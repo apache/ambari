@@ -111,7 +111,7 @@ class Facter():
 
   # Returns the full name of the OS
   def getOperatingSystem(self):
-    return OSCheck.get_os_family()
+    return OSCheck.get_os_type()
 
   # Returns the OS version
   def getOperatingSystemRelease(self):

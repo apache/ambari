@@ -1,0 +1,23 @@
+{
+  "redhat6": [
+    "redhat6",
+    "centos6",
+    "oraclelinux6",
+    "rhel6"
+  ],
+  "redhat5": [
+    "redhat5",
+    "centos5",
+    "oraclelinux5",
+    "rhel5"
+  ],
+  "suse11": [
+    "suse11",
+    "sles11",
+    "opensuse11"
+  ],
+  "debian12": [
+    "debian12",
+    "ubuntu12"
+  ]
+}

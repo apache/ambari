@@ -21,14 +21,13 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.InputStreamReader;
 import java.lang.reflect.Type;
-import java.net.URI;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Callable;
 
 import org.apache.ambari.server.controller.internal.URLStreamProvider;
 import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.StackInfo;
-import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -139,7 +138,7 @@ public class LatestRepoCallable implements Callable<Void> {
       return osMap.get(os);
     
     // !!! os not found, find and return the first compatible one
-    String[] possibleTypes = OsFamily.findTypes(os);
+    Set<String> possibleTypes = OsFamily.findTypes(os);
     
     for (String type : possibleTypes) {
       if (osMap.containsKey(type))

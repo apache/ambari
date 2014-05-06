@@ -49,6 +49,7 @@ import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.State;
+import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpInProgressEvent;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.lang.StringUtils;
@@ -746,7 +747,7 @@ public class AmbariCustomCommandExecutionHelper {
    * Get repository info given a cluster and host.
    * @param cluster
    * @param host
-   * @return
+   * @return the repo info
    * @throws AmbariException
    */
   public String getRepoInfo(Cluster cluster, Host host) throws AmbariException {
@@ -755,16 +756,23 @@ public class AmbariCustomCommandExecutionHelper {
     Map<String, List<RepositoryInfo>> repos = ambariMetaInfo.getRepository(
         stackId.getStackName(), stackId.getStackVersion());
     String repoInfo = "";
-    if (!repos.containsKey(host.getOsFamily())) {
-      // FIXME should this be an error?
+
+    String family = OsFamily.find(host.getOsType());
+    if (null == family)
+      family = host.getOsFamily();
+   
+    // !!! check for the most specific first
+    if (repos.containsKey(host.getOsType()))
+      repoInfo = gson.toJson(repos.get(host.getOsType()));
+    else if (null != family && repos.containsKey(family))
+      repoInfo = gson.toJson(repos.get(family));
+    else {
       LOG.warn("Could not retrieve repo information for host"
           + ", hostname=" + host.getHostName()
           + ", clusterName=" + cluster.getClusterName()
           + ", stackInfo=" + stackId.getStackId());
-    } else {
-      repoInfo = gson.toJson(repos.get(host.getOsFamily()));
     }
-
+    
     return repoInfo;
   }
 }

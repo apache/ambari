@@ -187,26 +187,29 @@ lo        Link encap:Local Loopback
   @patch.object(OSCheck, "get_os_type")
   @patch.object(OSCheck, "get_os_family")
   @patch.object(OSCheck, "get_os_version")
-  def test_facterDataOperatingsystemIsFamily(self, get_os_version_mock, get_os_family_mock, get_os_type_mock):
-    #Check that getOperatingSystem == os_family (NOT os_type)
+  def test_facterDataOperatingsystemVsFamily(self, get_os_version_mock, get_os_family_mock, get_os_type_mock):
     get_os_type_mock.return_value = "some_type_of_os"
     get_os_version_mock.return_value = "11"
-
     get_os_family_mock.return_value = "redhat"
+
     result = Facter().facterInfo()
-    self.assertEquals(result['operatingsystem'], 'redhat')
+    self.assertEquals(result['operatingsystem'], 'some_type_of_os')
+    self.assertEquals(result['osfamily'], 'redhat')
 
     get_os_family_mock.return_value = "debian"
     result = Facter().facterInfo()
-    self.assertEquals(result['operatingsystem'], 'debian')
+    self.assertEquals(result['operatingsystem'], 'some_type_of_os')
+    self.assertEquals(result['osfamily'], 'debian')
 
     get_os_family_mock.return_value = "suse"
     result = Facter().facterInfo()
-    self.assertEquals(result['operatingsystem'], 'suse')
+    self.assertEquals(result['operatingsystem'], 'some_type_of_os')
+    self.assertEquals(result['osfamily'], 'suse')
 
     get_os_family_mock.return_value = "My_new_family"
     result = Facter().facterInfo()
-    self.assertEquals(result['operatingsystem'], 'My_new_family')
+    self.assertEquals(result['operatingsystem'], 'some_type_of_os')
+    self.assertEquals(result['osfamily'], 'My_new_family')
 
 if __name__ == "__main__":
   unittest.main()

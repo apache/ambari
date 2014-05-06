@@ -183,13 +183,13 @@ public class StackUpgradeUtil {
     } else {
       for (String os : oses) {
         
-        OsFamily family = OsFamily.find(os);
+        String family = OsFamily.find(os);
         if (null != family) {
           String key = ami.generateRepoMetaKey(stackName, stackVersion, os,
-              stackName + "-" + stackVersion, AmbariMetaInfo.REPOSITORY_XML_PROPERTY_BASEURL);
+              stackRepoId, AmbariMetaInfo.REPOSITORY_XML_PROPERTY_BASEURL);
 
-          String familyKey = ami.generateRepoMetaKey(stackName, stackVersion,
-              family.name().toLowerCase(), stackRepoId, AmbariMetaInfo.REPOSITORY_XML_PROPERTY_BASEURL);
+          String familyKey = ami.generateRepoMetaKey(stackName, stackVersion, family,
+              stackRepoId, AmbariMetaInfo.REPOSITORY_XML_PROPERTY_BASEURL);
           
           // need to use (for example) redhat6 if the os is centos6
           MetainfoEntity entity = metaDao.findByKey(key);
