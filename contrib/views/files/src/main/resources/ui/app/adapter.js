@@ -149,7 +149,7 @@ Ember.Inflector.inflector.uncountable('upload');
 
 App.Store = DS.Store.extend({
   adapter: DS.RESTAdapter.extend({
-    namespace:'api/v1/views/FILE_BROWSER/instances/FILEBROWSER_1/resources/filebrowser',
+    namespace:'api/v1/views/FILES/instances/FILES_1/resources/files',
     headers: {
       'X-Requested-By': 'ambari'
     },

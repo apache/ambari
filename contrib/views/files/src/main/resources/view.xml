@@ -15,9 +15,9 @@
    limitations under the License.
 -->
 <view>
-    <name>FILE_BROWSER</name>
-    <label>File browser</label>
-    <version>1.0.0</version>
+    <name>FILES</name>
+    <label>Files</label>
+    <version>0.1.0</version>
 
     <parameter>
         <name>dataworker.defaultFs</name>
@@ -27,15 +27,15 @@
 
     
     <resource>
-        <name>filebrowser</name>
+        <name>files</name>
         <service-class>org.apache.ambari.view.filebrowser.FileBrowserService</service-class>
     </resource>
  
     <instance>
-        <name>FILEBROWSER_1</name>
+        <name>FILES_1</name>
         <property>
             <key>dataworker.defaultFs</key>
-            <value>hdfs://sandbox.hortonworks.com:8020</value>
+            <value>hdfs://c6401.ambari.apache.org:8020</value>
         </property>
     </instance>
   
