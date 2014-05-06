@@ -77,6 +77,7 @@ else:
   jdbc_driver_jar = ""
 
 hostname = config["hostname"]
+ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
 falcon_host = default("/clusterHostInfo/falcon_server_hosts", [])
 has_falcon_host = not len(falcon_host)  == 0
 falcon_home = '/usr/lib/falcon'

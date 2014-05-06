@@ -527,6 +527,9 @@
     }, 
     "commandId": "7-1", 
     "clusterHostInfo": {
+        "ambari_server_host": [
+            "c6401.ambari.apache.org"
+        ],
         "snamenode_host": [
             "c6402.ambari.apache.org"
         ], 

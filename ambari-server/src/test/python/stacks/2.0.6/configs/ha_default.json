@@ -389,6 +389,9 @@
     }, 
     "commandId": "23-4", 
     "clusterHostInfo": {
+        "ambari_server_host": [
+            "c6401.ambari.apache.org"
+        ],
         "nm_hosts": [
             "c6403.ambari.apache.org", 
             "c6401.ambari.apache.org", 

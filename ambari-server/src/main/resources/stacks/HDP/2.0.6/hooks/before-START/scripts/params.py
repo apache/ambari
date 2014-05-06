@@ -36,6 +36,7 @@ user_group = config['configurations']['global']['user_group']
 
 #hosts
 hostname = config["hostname"]
+ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
 rm_host = default("/clusterHostInfo/rm_host", [])
 slave_hosts = default("/clusterHostInfo/slave_hosts", [])
 hagios_server_hosts = default("/clusterHostInfo/nagios_server_host", [])

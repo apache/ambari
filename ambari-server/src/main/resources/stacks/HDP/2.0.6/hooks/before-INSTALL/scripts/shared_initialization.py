@@ -132,7 +132,9 @@ def setup_java():
   if not params.jdk_name:
     return
 
-  Execute(format("mkdir -p {artifact_dir} ; curl -kf --retry 10 {jdk_location}/{jdk_name} -o {jdk_curl_target}"),
+  Execute(format("mkdir -p {artifact_dir} ; '\
+  curl --noproxy {ambari_server_hostname} -kf \
+  --retry 10 {jdk_location}/{jdk_name} -o {jdk_curl_target}"),
           path = ["/bin","/usr/bin/"],
           not_if = format("test -e {java_exec}"))
 
@@ -145,13 +147,20 @@ def setup_java():
           path = ["/bin","/usr/bin/"],
           not_if = format("test -e {java_exec}")
   )
-  jce_curl_target = format("{artifact_dir}/{jce_policy_zip}")
-  download_jce = format("mkdir -p {artifact_dir}; curl -kf --retry 10 {jce_location}/{jce_policy_zip} -o {jce_curl_target}")
-  Execute( download_jce,
-           path = ["/bin","/usr/bin/"],
-           not_if =format("test -e {jce_curl_target}"),
-           ignore_failures = True
-  )
+
+  if params.jce_policy_zip is not None:
+    jce_curl_target = format("{artifact_dir}/{jce_policy_zip}")
+    download_jce = format("mkdir -p {artifact_dir}; \
+    curl --noproxy {ambari_server_hostname} -kf --retry 10 \
+    {jce_location}/{jce_policy_zip} -o {jce_curl_target}")
+    Execute( download_jce,
+             path = ["/bin","/usr/bin/"],
+             not_if =format("test -e {jce_curl_target}"),
+             ignore_failures = True
+    )
+  elif params.security_enabled:
+    # Something weird is happening
+    raise Fail("Security is enabled, but JCE policy zip is not specified.")
 
   if params.security_enabled:
     security_dir = format("{java_home}/jre/lib/security")

@@ -61,8 +61,10 @@ def hive(name=None):
             mode=config_file_mode
   )
 
-  cmd = format("/bin/sh -c 'cd /usr/lib/ambari-agent/ && curl -kf --retry 5 "
-               "{jdk_location}{check_db_connection_jar_name} -o {check_db_connection_jar_name}'")
+  cmd = format("/bin/sh -c 'cd /usr/lib/ambari-agent/ && curl -kf "
+               "--noproxy {ambari_server_hostname} --retry 5 "
+               "{jdk_location}{check_db_connection_jar_name} "
+               "-o {check_db_connection_jar_name}'")
 
   Execute(cmd,
           not_if=format("[ -f {check_db_connection_jar_name}]"))

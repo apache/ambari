@@ -40,7 +40,7 @@ class TestHiveClient(RMFTestCase):
       conf_dir = '/etc/hive/conf',
       configurations = self.getConfig()['configurations']['hive-site'],
     )
-    self.assertResourceCalled('Execute', "/bin/sh -c 'cd /usr/lib/ambari-agent/ && curl -kf --retry 5 http://c6401.ambari.apache.org:8080/resources/DBConnectionVerification.jar -o DBConnectionVerification.jar'",
+    self.assertResourceCalled('Execute', "/bin/sh -c 'cd /usr/lib/ambari-agent/ && curl -kf --noproxy c6401.ambari.apache.org --retry 5 http://c6401.ambari.apache.org:8080/resources/DBConnectionVerification.jar -o DBConnectionVerification.jar'",
       not_if = '[ -f DBConnectionVerification.jar]',
     )
     self.assertResourceCalled('File', '/etc/hive/conf/hive-env.sh',
@@ -92,7 +92,7 @@ class TestHiveClient(RMFTestCase):
       conf_dir = '/etc/hive/conf',
       configurations = self.getConfig()['configurations']['hive-site'],
     )
-    self.assertResourceCalled('Execute', "/bin/sh -c 'cd /usr/lib/ambari-agent/ && curl -kf --retry 5 http://c6401.ambari.apache.org:8080/resources/DBConnectionVerification.jar -o DBConnectionVerification.jar'",
+    self.assertResourceCalled('Execute', u"/bin/sh -c 'cd /usr/lib/ambari-agent/ && curl -kf --noproxy c6401.ambari.apache.org --retry 5 http://c6401.ambari.apache.org:8080/resources/DBConnectionVerification.jar -o DBConnectionVerification.jar'",
       not_if = '[ -f DBConnectionVerification.jar]',
     )
     self.assertResourceCalled('File', '/etc/hive/conf/hive-env.sh',

@@ -29,7 +29,7 @@ unavailableNN=()
 
 for nn in "${namenodes[@]}"
 do
-  status=$(curl -m 5 -s http://$nn:$port/jmx?qry=Hadoop:service=NameNode,name=FSNamesystem | grep -i "tag.HAState" | grep -o -E "standby|active")
+  status=$(curl --noproxy $nn -m 5 -s http://$nn:$port/jmx?qry=Hadoop:service=NameNode,name=FSNamesystem | grep -i "tag.HAState" | grep -o -E "standby|active")
   if [ "$status" == "active" ]; then
     activeNN[${#activeNN[*]}]="$nn"
   elif [ "$status" == "standby" ]; then

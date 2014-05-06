@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.utils;
 
+import static org.easymock.EasyMock.expect;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -57,6 +58,13 @@ import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+import static org.powermock.api.easymock.PowerMock.replayAll;
+import java.net.InetAddress;
+import static org.powermock.api.easymock.PowerMock.*;
 
 import com.google.common.collect.ContiguousSet;
 import com.google.common.collect.DiscreteDomain;
@@ -64,6 +72,9 @@ import com.google.common.collect.Range;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(StageUtils.class)
+@PowerMockIgnore("javax.management.*")
 public class TestStageUtils {
   private static final String HOSTS_LIST = "all_hosts";
 
@@ -151,9 +162,10 @@ public class TestStageUtils {
   @Test
   public void testGetClusterHostInfo() throws AmbariException, UnknownHostException {
     Clusters fsm = injector.getInstance(Clusters.class);
-    
+    String h1 = "h1";
+
     List<String> hostList = new ArrayList<String>();
-    hostList.add("h1");
+    hostList.add(h1);
     hostList.add("h2");
     hostList.add("h3");
     hostList.add("h4");
@@ -163,7 +175,11 @@ public class TestStageUtils {
     hostList.add("h8");
     hostList.add("h9");
     hostList.add("h10");
-    
+
+    mockStaticPartial(StageUtils.class, "getHostName");
+    expect(StageUtils.getHostName()).andReturn(h1).anyTimes();
+    replayAll();
+
     List<Integer> pingPorts = Arrays.asList(StageUtils.DEFAULT_PING_PORT,
         StageUtils.DEFAULT_PING_PORT,
         StageUtils.DEFAULT_PING_PORT,
@@ -232,9 +248,11 @@ public class TestStageUtils {
         StageUtils.getClusterHostInfo(fsm.getHostsForCluster("c1"), fsm.getCluster("c1"));
 
     //All hosts present in cluster host info
-    assertEquals(fsm.getHosts().size(), info.get(HOSTS_LIST).size());
+    Set<String> allHosts = info.get(HOSTS_LIST);
+    ArrayList<String> allHostsList = new ArrayList<String>(allHosts);
+    assertEquals(fsm.getHosts().size(), allHosts.size());
     for (Host host: fsm.getHosts()) {
-      assertTrue(info.get(HOSTS_LIST).contains(host.getHostName()));
+      assertTrue(allHosts.contains(host.getHostName()));
     }
     
     
@@ -267,7 +285,7 @@ public class TestStageUtils {
     
     List<Integer> pingPortsActual = getRangeMappedDecompressedSet(actualPingPorts);
 
-    List<Integer> reindexedPorts = getReindexedList(pingPortsActual, new ArrayList<String>(info.get(HOSTS_LIST)), hostList);
+    List<Integer> reindexedPorts = getReindexedList(pingPortsActual, new ArrayList<String>(allHosts), hostList);
     
     //Treat null values
     while (pingPorts.contains(null)) {
@@ -282,6 +300,13 @@ public class TestStageUtils {
     assertTrue(info.containsKey("decom_tt_hosts"));
     Set<String> decommissionedHosts = info.get("decom_tt_hosts");
     assertEquals(2, decommissionedHosts.toString().split(",").length);
+
+    // check server hostname field
+    assertTrue(info.containsKey(StageUtils.AMBARI_SERVER_HOST));
+    Set<String> serverHost = info.get(StageUtils.AMBARI_SERVER_HOST);
+    assertEquals(1, serverHost.toArray().length);
+    int serverHostIndex = Integer.valueOf(serverHost.iterator().next());
+    assertEquals(h1, allHostsList.get(serverHostIndex));
   }
 
   private void checkServiceCompression(Map<String, Set<String>> info,
