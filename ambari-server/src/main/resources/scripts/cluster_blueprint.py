@@ -431,7 +431,7 @@ def main():
                     help="Ambari server username, when running silently. [default: admin]")
   parser.add_option("-p", "--password", dest="password", default="admin",
                     help="Ambari server password, when running silently. [default: admin]")
-  parser.add_option("-h", "--host", dest="hostname", default="localhost",
+  parser.add_option("-i", "--host", dest="hostname", default="localhost",
                     help="Ambari server host, when running silently. [default: localhost]")
 
   (options, args) = parser.parse_args()
