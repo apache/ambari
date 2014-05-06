@@ -830,6 +830,12 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
     propertyUpdaters.put("hbase.zookeeper.quorum", new MultipleHostPropertyUpdater("ZOOKEEPER_SERVER"));
     propertyUpdaters.put("templeton.zookeeper.hosts", new MultipleHostPropertyUpdater("ZOOKEEPER_SERVER"));
 
+    // STORM
+    propertyUpdaters.put("nimbus.host", new SingleHostPropertyUpdater("NIMBUS"));
+    propertyUpdaters.put("worker.childopts", new SingleHostPropertyUpdater("GANGLIA_SERVER"));
+    propertyUpdaters.put("storm.zookeeper.servers",
+      new YamlMultiValuePropertyDecorator(new MultipleHostPropertyUpdater("ZOOKEEPER_SERVER")));
+
     // properties which need "m' appended.  Required due to AMBARI-4933
     propertyUpdaters.put("namenode_heapsize", new MPropertyUpdater());
     propertyUpdaters.put("namenode_opt_newsize", new MPropertyUpdater());
@@ -1138,7 +1144,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
   /**
    * Host group representation.
    */
-  private class HostGroup {
+  protected class HostGroup {
     /**
      * Host group entity
      */
@@ -1339,12 +1345,27 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
     private String component;
 
     /**
+     * Separator for multiple property values
+     */
+    private Character separator = ',';
+
+    /**
      * Constructor.
      *
      * @param component  component name associated with the property
      */
     public MultipleHostPropertyUpdater(String component) {
       this.component = component;
+    }
+
+    /**
+     * Constructor with customized separator.
+     * @param component Component name
+     * @param separator separator character
+     */
+    public MultipleHostPropertyUpdater(String component, Character separator) {
+      this.component = component;
+      this.separator = separator;
     }
 
     //todo: specific to default values of EXACTLY 'localhost' or 'localhost:port'.
@@ -1360,31 +1381,30 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
      * @return updated property value with old host names replaced by new host names
      */
     public String update(Map<String, HostGroup> hostGroups, String origValue) {
-      String newValue;
       Collection<HostGroup> matchingGroups = getHostGroupsForComponent(component, hostGroups.values());
       boolean containsPort = origValue.contains(":");
-
+      String port = null;
       if (containsPort) {
-        String port = origValue.substring(origValue.indexOf(":") + 1);
-        StringBuilder sb = new StringBuilder();
-        boolean firstHost = true;
-        for (HostGroup group : matchingGroups) {
-          for (String host : group.getHostInfo()) {
-            if (! firstHost) {
-              sb.append(',');
-            } else {
-              firstHost = false;
-            }
-            sb.append(host);
+        port = origValue.substring(origValue.indexOf(":") + 1);
+      }
+      StringBuilder sb = new StringBuilder();
+      boolean firstHost = true;
+      for (HostGroup group : matchingGroups) {
+        for (String host : group.getHostInfo()) {
+          if (!firstHost) {
+            sb.append(separator);
+          } else {
+            firstHost = false;
+          }
+          sb.append(host);
+          if (containsPort) {
             sb.append(":");
             sb.append(port);
           }
         }
-        newValue = sb.toString();
-      } else {
-        newValue = matchingGroups.iterator().next().getHostInfo().iterator().next();
       }
-      return newValue;
+
+      return sb.toString();
     }
   }
 
@@ -1403,6 +1423,72 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
      */
     public String update(Map<String, HostGroup> hostGroups, String origValue) {
       return origValue.endsWith("m") ? origValue : origValue + 'm';
+    }
+  }
+
+  /**
+   * Class to facilitate special formatting needs of property values.
+   */
+  private abstract class AbstractPropertyValueDecorator implements PropertyUpdater {
+    PropertyUpdater propertyUpdater;
+
+    public AbstractPropertyValueDecorator(PropertyUpdater propertyUpdater) {
+      this.propertyUpdater = propertyUpdater;
+    }
+
+    /**
+     * Return decorated form of the updated input property value.
+     * @param hostGroupMap Map of host group name to HostGroup
+     * @param origValue   original value of property
+     *
+     * @return Formatted output string
+     */
+    @Override
+    public String update(Map<String, HostGroup> hostGroupMap, String origValue) {
+      return doFormat(propertyUpdater.update(hostGroupMap, origValue));
+    }
+
+    /**
+     * Transform input string to required output format.
+     * @param originalValue Original value of property
+     * @return Formatted output string
+     */
+    public abstract String doFormat(String originalValue);
+  }
+
+  /**
+   * Return properties of the form ['value']
+   */
+  private class YamlMultiValuePropertyDecorator extends AbstractPropertyValueDecorator {
+
+    public YamlMultiValuePropertyDecorator(PropertyUpdater propertyUpdater) {
+      super(propertyUpdater);
+    }
+
+    /**
+     * Format input String of the form, str1,str2 to ['str1','str2']
+     * @param origValue Input string
+     * @return Formatted string
+     */
+    @Override
+    public String doFormat(String origValue) {
+      StringBuilder sb = new StringBuilder();
+      if (origValue != null) {
+        sb.append("[");
+        boolean isFirst = true;
+        for (String value : origValue.split(",")) {
+          if (!isFirst) {
+            sb.append(",");
+          } else {
+            isFirst = false;
+          }
+          sb.append("'");
+          sb.append(value);
+          sb.append("'");
+        }
+        sb.append("]");
+      }
+      return sb.toString();
     }
   }
 }
