@@ -25,17 +25,17 @@ import java.util.Set;
 
 
 /**
- * View resource definition.
+ * View version resource definition.
  */
-public class ViewResourceDefinition extends BaseResourceDefinition {
+public class ViewVersionResourceDefinition extends BaseResourceDefinition {
 
   // ----- Constructors ------------------------------------------------------
 
   /**
-   * Construct a view resource definition.
+   * Construct a view version resource definition.
    */
-  public ViewResourceDefinition() {
-    super(Resource.Type.View);
+  public ViewVersionResourceDefinition() {
+    super(Resource.Type.ViewVersion);
   }
 
 
@@ -43,16 +43,16 @@ public class ViewResourceDefinition extends BaseResourceDefinition {
 
   @Override
   public String getPluralName() {
-    return "views";
+    return "versions";
   }
 
   @Override
   public String getSingularName() {
-    return "view";
+    return "version";
   }
 
   @Override
   public Set<SubResourceDefinition> getSubResourceDefinitions() {
-    return Collections.singleton(new SubResourceDefinition(Resource.Type.ViewVersion));
+    return Collections.singleton(new SubResourceDefinition(Resource.Type.ViewInstance));
   }
 }

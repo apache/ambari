@@ -20,6 +20,8 @@ package org.apache.ambari.server.api.services;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.orm.entities.ViewEntity;
+import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.apache.ambari.view.ViewResourceHandler;
 
 import javax.ws.rs.core.HttpHeaders;
@@ -43,6 +45,11 @@ public class ViewSubResourceService extends BaseService implements ViewResourceH
   private final String viewName;
 
   /**
+   * The view version.
+   */
+  private final String version;
+
+  /**
    * The associated view instance name.
    */
   private final String instanceName;
@@ -53,10 +60,13 @@ public class ViewSubResourceService extends BaseService implements ViewResourceH
   /**
    * Construct a view sub-resource service.
    */
-  public ViewSubResourceService(Resource.Type type, String viewName, String instanceName) {
+  public ViewSubResourceService(Resource.Type type, ViewInstanceEntity viewInstanceDefinition) {
+    ViewEntity viewEntity = viewInstanceDefinition.getViewEntity();
+
     this.type         = type;
-    this.viewName     = viewName;
-    this.instanceName = instanceName;
+    this.viewName     = viewEntity.getCommonName();
+    this.version      = viewEntity.getVersion();
+    this.instanceName = viewInstanceDefinition.getName();
   }
 
 
@@ -76,6 +86,7 @@ public class ViewSubResourceService extends BaseService implements ViewResourceH
     Map<Resource.Type,String> mapIds = new HashMap<Resource.Type,String>();
 
     mapIds.put(Resource.Type.View, viewName);
+    mapIds.put(Resource.Type.ViewVersion, version);
     mapIds.put(Resource.Type.ViewInstance, instanceName);
 
     if (resourceId != null) {

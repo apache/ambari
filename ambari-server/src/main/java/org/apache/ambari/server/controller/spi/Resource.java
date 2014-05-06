@@ -104,6 +104,7 @@ public interface Resource {
     RootServiceComponent,
     RootServiceHostComponent,
     View,
+    ViewVersion,
     ViewInstance,
     Blueprint,
     HostComponentProcess;
@@ -171,6 +172,7 @@ public interface Resource {
     public static final Type RootServiceComponent = InternalType.RootServiceComponent.getType();
     public static final Type RootServiceHostComponent = InternalType.RootServiceHostComponent.getType();
     public static final Type View = InternalType.View.getType();
+    public static final Type ViewVersion = InternalType.ViewVersion.getType();
     public static final Type ViewInstance = InternalType.ViewInstance.getType();
     public static final Type Blueprint = InternalType.Blueprint.getType();
     public static final Type HostComponentProcess = InternalType.HostComponentProcess.getType();

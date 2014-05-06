@@ -97,7 +97,7 @@ public class ViewContextImplTest {
     ViewRegistry viewRegistry = createNiceMock(ViewRegistry.class);
 
     ResourceProvider provider = createNiceMock(ResourceProvider.class);
-    Resource.Type type = new Resource.Type("MY_VIEW/myType");
+    Resource.Type type = new Resource.Type("MY_VIEW{1.0.0}/myType");
 
     viewInstanceDefinition.addResourceProvider(type, provider);
 

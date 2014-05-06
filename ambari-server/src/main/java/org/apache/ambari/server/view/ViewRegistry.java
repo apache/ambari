@@ -147,11 +147,12 @@ public class ViewRegistry {
    * Get a view definition for the given name.
    *
    * @param viewName  the view name
+   * @param version   the version
    *
    * @return the view definition for the given name
    */
-  public ViewEntity getDefinition(String viewName) {
-    return viewDefinitions.get(viewName);
+  public ViewEntity getDefinition(String viewName, String version) {
+    return getDefinition(ViewEntity.getViewName(viewName, version));
   }
 
   /**
@@ -184,13 +185,14 @@ public class ViewRegistry {
    * Get the instance definition for the given view nam,e and instance name.
    *
    * @param viewName      the view name
+   * @param version       the version
    * @param instanceName  the instance name
    *
    * @return the view instance definition for the given view and instance name
    */
-  public ViewInstanceEntity getInstanceDefinition(String viewName, String instanceName) {
+  public ViewInstanceEntity getInstanceDefinition(String viewName, String version, String instanceName) {
     Map<String, ViewInstanceEntity> viewInstanceDefinitionMap =
-        viewInstanceDefinitions.get(getDefinition(viewName));
+        viewInstanceDefinitions.get(getDefinition(viewName, version));
 
     return viewInstanceDefinitionMap == null ? null : viewInstanceDefinitionMap.get(instanceName);
   }
@@ -236,12 +238,17 @@ public class ViewRegistry {
    * Get the sub-resource definitions for the given view name.
    *
    * @param viewName  the instance name
+   * @param version   the version
    *
    * @return the set of sub-resource definitions
    */
-  public synchronized Set<SubResourceDefinition> getSubResourceDefinitions(String viewName) {
+  public synchronized Set<SubResourceDefinition> getSubResourceDefinitions(
+      String viewName, String version) {
 
-    Set<SubResourceDefinition> subResourceDefinitions = subResourceDefinitionsMap.get(viewName);
+    viewName = ViewEntity.getViewName(viewName, version);
+
+    Set<SubResourceDefinition> subResourceDefinitions =
+        subResourceDefinitionsMap.get(viewName);
 
     if (subResourceDefinitions == null) {
       subResourceDefinitions = new HashSet<SubResourceDefinition>();
@@ -310,15 +317,17 @@ public class ViewRegistry {
    * @param instanceEntity  the view instance entity
    */
   public void installViewInstance(ViewInstanceEntity instanceEntity){
-    String viewName       = instanceEntity.getViewName();
-    ViewEntity viewEntity = getDefinition(viewName);
+    ViewEntity viewEntity = getDefinition(instanceEntity.getViewName());
 
     if (viewEntity != null) {
       String instanceName = instanceEntity.getName();
+      String viewName     = viewEntity.getCommonName();
+      String version      = viewEntity.getVersion();
 
-      if (getInstanceDefinition(viewName, instanceName) == null) {
+      if (getInstanceDefinition(viewName, version, instanceName) == null) {
         if (LOG.isDebugEnabled()) {
-          LOG.debug("Creating view instance " + viewName + "/" + instanceName);
+          LOG.debug("Creating view instance " + viewName + "/" +
+              version + "/" + instanceName);
         }
         instanceDAO.create(instanceEntity);
         try {
@@ -336,15 +345,19 @@ public class ViewRegistry {
    * @param instanceEntity  the view instance entity
    */
   public void updateViewInstance(ViewInstanceEntity instanceEntity) {
-    String       viewName   = instanceEntity.getViewName();
-    ViewEntity   viewEntity = getDefinition(viewName);
+    ViewEntity viewEntity = getDefinition(instanceEntity.getViewName());
 
     if (viewEntity != null) {
       String instanceName = instanceEntity.getName();
-      ViewInstanceEntity entity = getInstanceDefinition(viewName, instanceName);
+      String viewName     = viewEntity.getCommonName();
+      String version      = viewEntity.getVersion();
+
+      ViewInstanceEntity entity = getInstanceDefinition(viewName, version, instanceName);
+
       if (entity != null) {
         if (LOG.isDebugEnabled()) {
-          LOG.debug("Updating view instance " + viewName + "/" + instanceName);
+          LOG.debug("Updating view instance " + viewName + "/" +
+              version + "/" + instanceName);
         }
 
         entity.setProperties(instanceEntity.getProperties());
@@ -376,16 +389,18 @@ public class ViewRegistry {
    * @param instanceEntity  the view instance entity
    */
   public void uninstallViewInstance(ViewInstanceEntity instanceEntity) {
-
-    String       viewName   = instanceEntity.getViewName();
-    ViewEntity   viewEntity = getDefinition(viewName);
+    ViewEntity viewEntity = getDefinition(instanceEntity.getViewName());
 
     if (viewEntity != null) {
       String instanceName = instanceEntity.getName();
-      if (getInstanceDefinition(viewName, instanceName) != null) {
+      String viewName     = viewEntity.getCommonName();
+      String version      = viewEntity.getVersion();
+
+      if (getInstanceDefinition(viewName, version, instanceName) != null) {
 
         if (LOG.isDebugEnabled()) {
-          LOG.debug("Deleting view instance " + viewName + "/" + instanceName);
+          LOG.debug("Deleting view instance " + viewName + "/" +
+              version + "/" +instanceName);
         }
         instanceDAO.remove(instanceEntity);
         viewEntity.removeInstanceDefinition(instanceName);
@@ -420,6 +435,11 @@ public class ViewRegistry {
     viewDefinitions.clear();
     viewInstanceDefinitions.clear();
     subResourceDefinitionsMap.clear();
+  }
+
+  // get a view entity for the given internal view name
+  private ViewEntity getDefinition(String viewName) {
+    return viewDefinitions.get(viewName);
   }
 
   // install a new view definition
@@ -497,6 +517,7 @@ public class ViewRegistry {
   private void installViewInstance(ViewEntity viewDefinition,
                                    ViewInstanceEntity viewInstanceDefinition)
       throws ClassNotFoundException {
+    viewInstanceDefinition.setViewEntity(viewDefinition);
 
     ViewContext viewInstanceContext = new ViewContextImpl(viewInstanceDefinition, this);
 
@@ -511,8 +532,7 @@ public class ViewRegistry {
       Resource.Type  type           = resourceDefinition.getType();
       ResourceConfig resourceConfig = resourceDefinition.getResourceConfiguration();
 
-      ViewResourceHandler viewResourceService =
-          new ViewSubResourceService(type, viewDefinition.getName(), viewInstanceDefinition.getName());
+      ViewResourceHandler viewResourceService = new ViewSubResourceService(type, viewInstanceDefinition);
 
       ClassLoader cl = viewDefinition.getClassLoader();
 

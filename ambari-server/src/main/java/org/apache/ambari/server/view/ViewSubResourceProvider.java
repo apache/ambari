@@ -54,7 +54,8 @@ import java.util.Set;
  */
 public class ViewSubResourceProvider extends AbstractResourceProvider {
 
-  private static final String VIEW_NAME_PROPERTY_ID = "view_name";
+  private static final String VIEW_NAME_PROPERTY_ID     = "view_name";
+  private static final String VIEW_VERSION_PROPERTY_ID  = "version";
   private static final String INSTANCE_NAME_PROPERTY_ID = "instance_name";
 
   private final ViewEntity viewDefinition;
@@ -139,7 +140,8 @@ public class ViewSubResourceProvider extends AbstractResourceProvider {
             String resourceId = (String) propertyMap.get(pkField);
             if (resourceId != null) {
               Object bean = getResourceProvider(instanceName).getResource(resourceId, requestedIds);
-              return Collections.singleton(getResource(bean, viewDefinition.getName(), instanceName, requestedIds));
+              return Collections.singleton(getResource(bean, viewDefinition.getCommonName(),
+                  viewDefinition.getVersion(), instanceName, requestedIds));
             }
           }
           if (instanceName == null) {
@@ -161,7 +163,8 @@ public class ViewSubResourceProvider extends AbstractResourceProvider {
         Set<?> beans = instanceDefinition.getResourceProvider(type).getResources(readRequest);
 
         for (Object bean : beans) {
-          Resource resource = getResource(bean, viewDefinition.getName(), instanceDefinition.getName(), requestedIds);
+          Resource resource = getResource(bean, viewDefinition.getCommonName(),
+              viewDefinition.getVersion(), instanceDefinition.getName(), requestedIds);
           if (predicate.evaluate(resource)) {
             results.add(resource);
           }
@@ -235,12 +238,14 @@ public class ViewSubResourceProvider extends AbstractResourceProvider {
   // ----- helper methods ----------------------------------------------------
 
   // get a Resource from the bean
-  private Resource getResource(Object bean, String viewName, String instanceName, Set<String> requestedIds)
+  private Resource getResource(Object bean, String viewName, String viewVersion,
+                               String instanceName, Set<String> requestedIds)
       throws InvocationTargetException, IllegalAccessException {
 
     Resource resource = new ResourceImpl(type);
 
     resource.setProperty(VIEW_NAME_PROPERTY_ID, viewName);
+    resource.setProperty(VIEW_VERSION_PROPERTY_ID, viewVersion);
     resource.setProperty(INSTANCE_NAME_PROPERTY_ID, instanceName);
 
     for (Map.Entry<String, PropertyDescriptor> entry : descriptorMap.entrySet()) {
@@ -267,6 +272,7 @@ public class ViewSubResourceProvider extends AbstractResourceProvider {
     Set<String> propertyIds = new HashSet<String>(getDescriptorMap(clazz).keySet());
     propertyIds.add(INSTANCE_NAME_PROPERTY_ID);
     propertyIds.add(VIEW_NAME_PROPERTY_ID);
+    propertyIds.add(VIEW_VERSION_PROPERTY_ID);
 
     return propertyIds;
   }
@@ -290,6 +296,7 @@ public class ViewSubResourceProvider extends AbstractResourceProvider {
     Map<Resource.Type, String> keyPropertyIds = new HashMap<Resource.Type, String>();
 
     keyPropertyIds.put(Resource.Type.View, VIEW_NAME_PROPERTY_ID);
+    keyPropertyIds.put(Resource.Type.ViewVersion, VIEW_VERSION_PROPERTY_ID);
     keyPropertyIds.put(Resource.Type.ViewInstance, INSTANCE_NAME_PROPERTY_ID);
     keyPropertyIds.put(type, pkField);
 

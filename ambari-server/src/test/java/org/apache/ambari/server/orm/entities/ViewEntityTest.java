@@ -61,7 +61,13 @@ public class ViewEntityTest {
   @Test
   public void testGetName() throws Exception {
     ViewEntity viewDefinition = getViewEntity();
-    Assert.assertEquals("MY_VIEW", viewDefinition.getName());
+    Assert.assertEquals("MY_VIEW{1.0.0}", viewDefinition.getName());
+  }
+
+  @Test
+  public void testGetCommonName() throws Exception {
+    ViewEntity viewDefinition = getViewEntity();
+    Assert.assertEquals("MY_VIEW", viewDefinition.getCommonName());
   }
 
   @Test

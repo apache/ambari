@@ -85,7 +85,7 @@ public class ViewContextImpl implements ViewContext {
 
   @Override
   public String getViewName() {
-    return viewInstanceEntity.getViewName();
+    return viewInstanceEntity.getViewEntity().getCommonName();
   }
 
   @Override

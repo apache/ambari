@@ -20,6 +20,7 @@ package org.apache.ambari.server.api.services;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.orm.entities.ViewEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 
 import javax.ws.rs.GET;
@@ -50,6 +51,11 @@ public class ViewExternalSubResourceService  extends BaseService {
   private final String viewName;
 
   /**
+   * The view version.
+   */
+  private final String version;
+
+  /**
    * The instance name.
    */
   private final String instanceName;
@@ -63,8 +69,11 @@ public class ViewExternalSubResourceService  extends BaseService {
   // ----- Constructors ------------------------------------------------------
 
   public ViewExternalSubResourceService(Resource.Type type, ViewInstanceEntity viewInstanceDefinition) {
+    ViewEntity viewEntity = viewInstanceDefinition.getViewEntity();
+
     this.type         = type;
-    this.viewName     = viewInstanceDefinition.getViewName();
+    this.viewName     = viewEntity.getCommonName();
+    this.version      = viewEntity.getVersion();
     this.instanceName = viewInstanceDefinition.getName();
   }
 
@@ -81,7 +90,7 @@ public class ViewExternalSubResourceService  extends BaseService {
   @Produces("text/plain")
   public Response getResources(@Context HttpHeaders headers, @Context UriInfo ui) {
     return handleRequest(headers, null, ui, Request.Type.GET,
-        createServiceResource(viewName, instanceName));
+        createResource(viewName, instanceName));
   }
 
   /**
@@ -126,9 +135,10 @@ public class ViewExternalSubResourceService  extends BaseService {
    *
    * @return a view instance resource
    */
-  private ResourceInstance createServiceResource(String viewName, String instanceName) {
+  private ResourceInstance createResource(String viewName, String instanceName) {
     Map<Resource.Type,String> mapIds = new HashMap<Resource.Type, String>();
     mapIds.put(Resource.Type.View, viewName);
+    mapIds.put(Resource.Type.ViewVersion, version);
     mapIds.put(Resource.Type.ViewInstance, instanceName);
     return createResource(type, mapIds);
   }
