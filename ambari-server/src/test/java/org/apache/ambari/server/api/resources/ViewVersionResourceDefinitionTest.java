@@ -24,28 +24,28 @@ import org.junit.Test;
 import java.util.Set;
 
 /**
- * ViewResourceDefinition tests.
+ * ViewVersionResourceDefinition tests.
  */
-public class ViewResourceDefinitionTest {
+public class ViewVersionResourceDefinitionTest {
   @Test
   public void testGetPluralName() throws Exception {
-    ViewResourceDefinition viewResourceDefinition = new ViewResourceDefinition();
-    Assert.assertEquals("views", viewResourceDefinition.getPluralName());
+    ViewVersionResourceDefinition viewVersionResourceDefinition = new ViewVersionResourceDefinition();
+    Assert.assertEquals("versions", viewVersionResourceDefinition.getPluralName());
   }
 
   @Test
   public void testGetSingularName() throws Exception {
-    ViewResourceDefinition viewResourceDefinition = new ViewResourceDefinition();
-    Assert.assertEquals("view", viewResourceDefinition.getSingularName());
+    ViewVersionResourceDefinition viewVersionResourceDefinition = new ViewVersionResourceDefinition();
+    Assert.assertEquals("version", viewVersionResourceDefinition.getSingularName());
   }
 
   @Test
   public void testGetSubResourceDefinitions() throws Exception {
-    ViewResourceDefinition viewResourceDefinition = new ViewResourceDefinition();
-    Set<SubResourceDefinition> subResourceDefinitions = viewResourceDefinition.getSubResourceDefinitions ();
+    ViewVersionResourceDefinition viewVersionResourceDefinition = new ViewVersionResourceDefinition();
+    Set<SubResourceDefinition> subResourceDefinitions = viewVersionResourceDefinition.getSubResourceDefinitions ();
 
     Assert.assertEquals(1, subResourceDefinitions.size());
 
-    Assert.assertEquals("ViewVersion", subResourceDefinitions.iterator().next().getType().name());
+    Assert.assertEquals("ViewInstance", subResourceDefinitions.iterator().next().getType().name());
   }
 }

@@ -97,7 +97,7 @@ public class ViewInstanceEntityTest {
     ViewInstanceEntity viewInstanceDefinition = getViewInstanceEntity();
 
     ResourceProvider provider = createNiceMock(ResourceProvider.class);
-    Resource.Type type = new Resource.Type("MY_VIEW/myType");
+    Resource.Type type = new Resource.Type("MY_VIEW{1.0.0}/myType");
 
     viewInstanceDefinition.addResourceProvider(type, provider);
 
@@ -109,7 +109,7 @@ public class ViewInstanceEntityTest {
   public void testContextPath() throws Exception {
     ViewInstanceEntity viewInstanceDefinition = getViewInstanceEntity();
 
-    Assert.assertEquals(ViewInstanceEntity.VIEWS_CONTEXT_PATH_PREFIX + "MY_VIEW/INSTANCE1",
+    Assert.assertEquals(ViewInstanceEntity.VIEWS_CONTEXT_PATH_PREFIX + "MY_VIEW/1.0.0/INSTANCE1",
         viewInstanceDefinition.getContextPath());
   }
 

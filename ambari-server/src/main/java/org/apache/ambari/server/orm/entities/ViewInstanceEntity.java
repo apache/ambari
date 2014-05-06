@@ -408,7 +408,7 @@ public class ViewInstanceEntity {
    * @return the resource provider
    */
   public ResourceProvider getResourceProvider(String type) {
-    String typeName = view.getName() + "/" + type;
+    String typeName = view.getQualifiedResourceTypeName(type);
     return resourceProviders.get(Resource.Type.valueOf(typeName));
   }
 
@@ -439,7 +439,7 @@ public class ViewInstanceEntity {
    * @return the context path
    */
   public String getContextPath() {
-    return getContextPath(view.getName(), getName());
+    return getContextPath(view.getCommonName(), view.getVersion(), getName());
   }
 
   /**
@@ -450,7 +450,7 @@ public class ViewInstanceEntity {
    *
    * @return the context path
    */
-  public static String getContextPath(String viewName, String viewInstanceName) {
-    return VIEWS_CONTEXT_PATH_PREFIX + viewName + "/" + viewInstanceName;
+  public static String getContextPath(String viewName, String version, String viewInstanceName) {
+    return VIEWS_CONTEXT_PATH_PREFIX + viewName + "/" + version + "/" + viewInstanceName;
   }
 }

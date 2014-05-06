@@ -57,7 +57,7 @@ public class ViewRegistryTest {
 
     registry.addDefinition(viewDefinition);
 
-    Assert.assertEquals(viewDefinition, registry.getDefinition("MY_VIEW"));
+    Assert.assertEquals(viewDefinition, registry.getDefinition("MY_VIEW", "1.0.0"));
 
     Collection<ViewEntity> viewDefinitions = registry.getDefinitions();
 
@@ -77,7 +77,7 @@ public class ViewRegistryTest {
 
     registry.addInstanceDefinition(viewDefinition, viewInstanceDefinition);
 
-    Assert.assertEquals(viewInstanceDefinition, registry.getInstanceDefinition("MY_VIEW", "INSTANCE1"));
+    Assert.assertEquals(viewInstanceDefinition, registry.getInstanceDefinition("MY_VIEW", "1.0.0", "INSTANCE1"));
 
     Collection<ViewInstanceEntity> viewInstanceDefinitions = registry.getInstanceDefinitions(viewDefinition);
 
@@ -99,7 +99,7 @@ public class ViewRegistryTest {
 
     viewDefinition.addResourceConfiguration(type1, config);
     registry.addDefinition(viewDefinition);
-    Set<SubResourceDefinition> subResourceDefinitions = registry.getSubResourceDefinitions("MY_VIEW");
+    Set<SubResourceDefinition> subResourceDefinitions = registry.getSubResourceDefinitions("MY_VIEW", "1.0.0");
 
     Assert.assertEquals(1, subResourceDefinitions.size());
     Assert.assertEquals("myType", subResourceDefinitions.iterator().next().getType().name());

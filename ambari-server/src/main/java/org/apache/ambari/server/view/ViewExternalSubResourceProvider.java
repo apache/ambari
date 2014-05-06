@@ -48,6 +48,7 @@ public class ViewExternalSubResourceProvider extends AbstractResourceProvider {
    * View external sub resource property id constants.
    */
   private static final String VIEW_NAME_PROPERTY_ID     = "view_name";
+  private static final String VIEW_VERSION_PROPERTY_ID  = "version";
   private static final String INSTANCE_NAME_PROPERTY_ID = "instance_name";
   private static final String RESOURCE_NAME_PROPERTY_ID = "name";
 
@@ -125,7 +126,8 @@ public class ViewExternalSubResourceProvider extends AbstractResourceProvider {
     for (ViewInstanceEntity viewInstanceDefinition : instanceDefinitions) {
       for (String resourceName : resourceNames) {
         ResourceImpl resource = new ResourceImpl(type);
-        resource.setProperty(VIEW_NAME_PROPERTY_ID, viewDefinition.getName());
+        resource.setProperty(VIEW_NAME_PROPERTY_ID, viewDefinition.getCommonName());
+        resource.setProperty(VIEW_VERSION_PROPERTY_ID, viewDefinition.getVersion());
         resource.setProperty(INSTANCE_NAME_PROPERTY_ID, viewInstanceDefinition.getName());
         resource.setProperty("name", resourceName);
         resourceSet.add(resource);
@@ -177,6 +179,7 @@ public class ViewExternalSubResourceProvider extends AbstractResourceProvider {
     Map<Resource.Type, String> keyPropertyIds = new HashMap<Resource.Type, String>();
 
     keyPropertyIds.put(Resource.Type.View, VIEW_NAME_PROPERTY_ID);
+    keyPropertyIds.put(Resource.Type.ViewVersion, VIEW_VERSION_PROPERTY_ID);
     keyPropertyIds.put(Resource.Type.ViewInstance, INSTANCE_NAME_PROPERTY_ID);
     keyPropertyIds.put(type, RESOURCE_NAME_PROPERTY_ID);
 
@@ -188,6 +191,7 @@ public class ViewExternalSubResourceProvider extends AbstractResourceProvider {
     Set<String> propertyIds = new HashSet<String>();
     propertyIds.add(INSTANCE_NAME_PROPERTY_ID);
     propertyIds.add(VIEW_NAME_PROPERTY_ID);
+    propertyIds.add(VIEW_VERSION_PROPERTY_ID);
     propertyIds.add(RESOURCE_NAME_PROPERTY_ID);
 
     return propertyIds;

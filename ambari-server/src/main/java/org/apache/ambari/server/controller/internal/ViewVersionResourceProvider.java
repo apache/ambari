@@ -37,15 +37,19 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Resource provider for view instances.
+ * Resource provider for view versions.
  */
-public class ViewResourceProvider extends AbstractResourceProvider {
+public class ViewVersionResourceProvider extends AbstractResourceProvider {
 
   /**
    * View property id constants.
    */
-  public static final String VIEW_NAME_PROPERTY_ID    = "ViewInfo/view_name";
-
+  public static final String VIEW_NAME_PROPERTY_ID    = "ViewVersionInfo/view_name";
+  public static final String VIEW_VERSION_PROPERTY_ID = "ViewVersionInfo/version";
+  public static final String LABEL_PROPERTY_ID        = "ViewVersionInfo/label";
+  public static final String VERSION_PROPERTY_ID      = "ViewVersionInfo/version";
+  public static final String PARAMETERS_PROPERTY_ID   = "ViewVersionInfo/parameters";
+  public static final String ARCHIVE_PROPERTY_ID      = "ViewVersionInfo/archive";
 
   /**
    * The key property ids for a view resource.
@@ -53,6 +57,7 @@ public class ViewResourceProvider extends AbstractResourceProvider {
   private static Map<Resource.Type, String> keyPropertyIds = new HashMap<Resource.Type, String>();
   static {
     keyPropertyIds.put(Resource.Type.View, VIEW_NAME_PROPERTY_ID);
+    keyPropertyIds.put(Resource.Type.ViewVersion, VIEW_VERSION_PROPERTY_ID);
   }
 
   /**
@@ -61,25 +66,30 @@ public class ViewResourceProvider extends AbstractResourceProvider {
   private static Set<String> propertyIds = new HashSet<String>();
   static {
     propertyIds.add(VIEW_NAME_PROPERTY_ID);
+    propertyIds.add(VIEW_VERSION_PROPERTY_ID);
+    propertyIds.add(LABEL_PROPERTY_ID);
+    propertyIds.add(VERSION_PROPERTY_ID);
+    propertyIds.add(PARAMETERS_PROPERTY_ID);
+    propertyIds.add(ARCHIVE_PROPERTY_ID);
   }
 
-  
+
   // ----- Constructors ------------------------------------------------------
 
   /**
    * Construct a view resource provider.
    */
-  public ViewResourceProvider() {
+  public ViewVersionResourceProvider() {
     super(propertyIds, keyPropertyIds);
   }
 
-  
+
   // ----- ResourceProvider --------------------------------------------------
 
   @Override
-  public RequestStatus createResources(Request request) 
-      throws SystemException, UnsupportedPropertyException, 
-             ResourceAlreadyExistsException, NoSuchParentResourceException {
+  public RequestStatus createResources(Request request)
+      throws SystemException, UnsupportedPropertyException,
+      ResourceAlreadyExistsException, NoSuchParentResourceException {
     throw new UnsupportedOperationException("Not yet supported.");
   }
 
@@ -99,14 +109,23 @@ public class ViewResourceProvider extends AbstractResourceProvider {
     for (Map<String, Object> propertyMap : propertyMaps) {
 
       String viewName    = (String) propertyMap.get(VIEW_NAME_PROPERTY_ID);
+      String viewVersion = (String) propertyMap.get(VIEW_VERSION_PROPERTY_ID);
 
       for (ViewEntity viewDefinition : viewRegistry.getDefinitions()){
         if (viewName == null || viewName.equals(viewDefinition.getCommonName())) {
-          Resource resource = new ResourceImpl(Resource.Type.View);
+          if (viewVersion == null || viewVersion.equals(viewDefinition.getVersion())) {
+            Resource resource = new ResourceImpl(Resource.Type.ViewVersion);
 
-          setResourceProperty(resource, VIEW_NAME_PROPERTY_ID, viewDefinition.getCommonName(), requestedIds);
+            setResourceProperty(resource, VIEW_NAME_PROPERTY_ID, viewDefinition.getCommonName(), requestedIds);
+            setResourceProperty(resource, VIEW_VERSION_PROPERTY_ID, viewDefinition.getVersion(), requestedIds);
+            setResourceProperty(resource, LABEL_PROPERTY_ID, viewDefinition.getLabel(), requestedIds);
+            setResourceProperty(resource, VERSION_PROPERTY_ID, viewDefinition.getVersion(), requestedIds);
+            setResourceProperty(resource, PARAMETERS_PROPERTY_ID,
+                viewDefinition.getConfiguration().getParameters(), requestedIds);
+            setResourceProperty(resource, ARCHIVE_PROPERTY_ID, viewDefinition.getArchive(), requestedIds);
 
-          resources.add(resource);
+            resources.add(resource);
+          }
         }
       }
     }
@@ -130,7 +149,7 @@ public class ViewResourceProvider extends AbstractResourceProvider {
     return keyPropertyIds;
   }
 
-  
+
   // ----- AbstractResourceProvider ------------------------------------------
 
   @Override

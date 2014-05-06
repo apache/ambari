@@ -44,7 +44,12 @@ public class ViewInstanceService extends BaseService {
   /**
    * Parent view name.
    */
-  private String m_viewName;
+  private final String viewName;
+
+  /**
+   * The view version.
+   */
+  private final String version;
 
 
   // ----- Constructors ------------------------------------------------------
@@ -53,10 +58,15 @@ public class ViewInstanceService extends BaseService {
    * Construct a view instance service.
    *
    * @param viewName  the view id
+   * @param version   the version
    */
-  public ViewInstanceService(String viewName) {
-    m_viewName = viewName;
+  public ViewInstanceService(String viewName, String version) {
+    this.viewName = viewName;
+    this.version  = version;
   }
+
+
+  // ----- ViewInstanceService -----------------------------------------------
 
   /**
    * Handles URL: /views/{viewID}/instances/{instanceID}
@@ -75,7 +85,7 @@ public class ViewInstanceService extends BaseService {
                              @PathParam("instanceName") String instanceName) {
 
     return handleRequest(headers, null, ui, Request.Type.GET,
-        createServiceResource(m_viewName, instanceName));
+        createResource(viewName, version, instanceName));
   }
 
   /**
@@ -91,7 +101,7 @@ public class ViewInstanceService extends BaseService {
   @Produces("text/plain")
   public Response getServices(@Context HttpHeaders headers, @Context UriInfo ui) {
     return handleRequest(headers, null, ui, Request.Type.GET,
-        createServiceResource(m_viewName, null));
+        createResource(viewName, version,  null));
   }
 
   /**
@@ -111,7 +121,7 @@ public class ViewInstanceService extends BaseService {
   public Response createService(String body, @Context HttpHeaders headers, @Context UriInfo ui,
                                 @PathParam("instanceName") String instanceName) {
     return handleRequest(headers, body, ui, Request.Type.POST,
-        createServiceResource(m_viewName, instanceName));
+        createResource(viewName, version,  instanceName));
   }
 
   /**
@@ -129,7 +139,7 @@ public class ViewInstanceService extends BaseService {
   public Response createServices(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
 
     return handleRequest(headers, body, ui, Request.Type.POST,
-        createServiceResource(m_viewName, null));
+        createResource(viewName, version,  null));
   }
 
   /**
@@ -149,7 +159,7 @@ public class ViewInstanceService extends BaseService {
   public Response updateService(String body, @Context HttpHeaders headers, @Context UriInfo ui,
                                 @PathParam("instanceName") String instanceName) {
 
-    return handleRequest(headers, body, ui, Request.Type.PUT, createServiceResource(m_viewName, instanceName));
+    return handleRequest(headers, body, ui, Request.Type.PUT, createResource(viewName, version,  instanceName));
   }
 
   /**
@@ -166,7 +176,7 @@ public class ViewInstanceService extends BaseService {
   @Produces("text/plain")
   public Response updateServices(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
 
-    return handleRequest(headers, body, ui, Request.Type.PUT, createServiceResource(m_viewName, null));
+    return handleRequest(headers, body, ui, Request.Type.PUT, createResource(viewName, version,  null));
   }
 
   /**
@@ -185,7 +195,7 @@ public class ViewInstanceService extends BaseService {
   public Response deleteService(@Context HttpHeaders headers, @Context UriInfo ui,
                                 @PathParam("instanceName") String instanceName) {
 
-    return handleRequest(headers, null, ui, Request.Type.DELETE, createServiceResource(m_viewName, instanceName));
+    return handleRequest(headers, null, ui, Request.Type.DELETE, createResource(viewName, version,  instanceName));
   }
 
   /**
@@ -200,18 +210,18 @@ public class ViewInstanceService extends BaseService {
                                             @PathParam("resources") String resources) {
 
     ViewInstanceEntity instanceDefinition =
-        ViewRegistry.getInstance().getInstanceDefinition(m_viewName, instanceName);
+        ViewRegistry.getInstance().getInstanceDefinition(viewName, version, instanceName);
 
     if (instanceDefinition == null) {
       throw new IllegalArgumentException("A view instance " +
-          m_viewName + "/" + instanceName + " can not be found.");
+          viewName + "/" + instanceName + " can not be found.");
     }
 
     Object service = instanceDefinition.getService(resources);
 
     if (service == null) {
       throw new IllegalArgumentException("A resource type " + resources + " for view instance " +
-          m_viewName + "/" + instanceName + " can not be found.");
+          viewName + "/" + instanceName + " can not be found.");
     }
     return service;
   }
@@ -227,9 +237,10 @@ public class ViewInstanceService extends BaseService {
    *
    * @return a view instance resource
    */
-  private ResourceInstance createServiceResource(String viewName, String instanceName) {
+  private ResourceInstance createResource(String viewName, String viewVersion, String instanceName) {
     Map<Resource.Type,String> mapIds = new HashMap<Resource.Type, String>();
     mapIds.put(Resource.Type.View, viewName);
+    mapIds.put(Resource.Type.ViewVersion, viewVersion);
     mapIds.put(Resource.Type.ViewInstance, instanceName);
     return createResource(Resource.Type.ViewInstance, mapIds);
   }

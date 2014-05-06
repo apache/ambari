@@ -51,14 +51,14 @@ public class ViewSubResourceDefinitionTest {
   public void testGetSubResourceDefinitions() throws Exception {
     ViewSubResourceDefinition viewSubResourceDefinition = getViewSubResourceDefinition();
 
-    new Resource.Type("MY_VIEW/resource");
-    new Resource.Type("MY_VIEW/subresource");
+    new Resource.Type("MY_VIEW{1.0.0}/resource");
+    new Resource.Type("MY_VIEW{1.0.0}/subresource");
 
     Set<SubResourceDefinition> subResourceDefinitions = viewSubResourceDefinition.getSubResourceDefinitions ();
 
     Assert.assertEquals(1, subResourceDefinitions.size());
 
-    Assert.assertEquals("MY_VIEW/subresource", subResourceDefinitions.iterator().next().getType().name());
+    Assert.assertEquals("MY_VIEW{1.0.0}/subresource", subResourceDefinitions.iterator().next().getType().name());
   }
 
   public static ViewSubResourceDefinition getViewSubResourceDefinition() throws Exception {

@@ -52,6 +52,7 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
    * View instance property id constants.
    */
   public static final String VIEW_NAME_PROPERTY_ID     = "ViewInstanceInfo/view_name";
+  public static final String VIEW_VERSION_PROPERTY_ID  = "ViewInstanceInfo/version";
   public static final String INSTANCE_NAME_PROPERTY_ID = "ViewInstanceInfo/instance_name";
   public static final String PROPERTIES_PROPERTY_ID    = "ViewInstanceInfo/properties";
   public static final String DATA_PROPERTY_ID          = "ViewInstanceInfo/instance_data";
@@ -69,6 +70,7 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
   private static Map<Resource.Type, String> keyPropertyIds = new HashMap<Resource.Type, String>();
   static {
     keyPropertyIds.put(Resource.Type.View, VIEW_NAME_PROPERTY_ID);
+    keyPropertyIds.put(Resource.Type.ViewVersion, VIEW_VERSION_PROPERTY_ID);
     keyPropertyIds.put(Resource.Type.ViewInstance, INSTANCE_NAME_PROPERTY_ID);
   }
 
@@ -78,6 +80,7 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
   private static Set<String> propertyIds = new HashSet<String>();
   static {
     propertyIds.add(VIEW_NAME_PROPERTY_ID);
+    propertyIds.add(VIEW_VERSION_PROPERTY_ID);
     propertyIds.add(INSTANCE_NAME_PROPERTY_ID);
     propertyIds.add(PROPERTIES_PROPERTY_ID);
     propertyIds.add(DATA_PROPERTY_ID);
@@ -123,15 +126,18 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
 
     for (Map<String, Object> propertyMap : propertyMaps) {
 
-      String viewName = (String) propertyMap.get(VIEW_NAME_PROPERTY_ID);
+      String viewName     = (String) propertyMap.get(VIEW_NAME_PROPERTY_ID);
+      String viewVersion  = (String) propertyMap.get(VIEW_VERSION_PROPERTY_ID);
       String instanceName = (String) propertyMap.get(INSTANCE_NAME_PROPERTY_ID);
 
       for (ViewEntity viewDefinition : viewRegistry.getDefinitions()){
-        if (viewName == null || viewName.equals(viewDefinition.getName())) {
+        if (viewName == null || viewName.equals(viewDefinition.getCommonName())) {
           for (ViewInstanceEntity viewInstanceDefinition : viewRegistry.getInstanceDefinitions(viewDefinition)) {
             if (instanceName == null || instanceName.equals(viewInstanceDefinition.getName())) {
-              Resource resource = toResource(viewInstanceDefinition, requestedIds);
-              resources.add(resource);
+              if (viewVersion == null || viewVersion.equals(viewDefinition.getVersion())) {
+                Resource resource = toResource(viewInstanceDefinition, requestedIds);
+                resources.add(resource);
+              }
             }
           }
         }
@@ -182,12 +188,15 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
 
   // Convert an instance entity to a resource
   private Resource toResource(ViewInstanceEntity viewInstanceEntity, Set<String> requestedIds) {
-    Resource resource = new ResourceImpl(Resource.Type.ViewInstance);
+    Resource   resource   = new ResourceImpl(Resource.Type.ViewInstance);
+    ViewEntity viewEntity = viewInstanceEntity.getViewEntity();
 
-    String viewName = viewInstanceEntity.getViewName();
+    String viewName = viewEntity.getCommonName();
+    String version  = viewEntity.getVersion();
     String name     = viewInstanceEntity.getName();
 
     setResourceProperty(resource, VIEW_NAME_PROPERTY_ID, viewName, requestedIds);
+    setResourceProperty(resource, VIEW_VERSION_PROPERTY_ID, version, requestedIds);
     setResourceProperty(resource, INSTANCE_NAME_PROPERTY_ID, name, requestedIds);
     Map<String, String> properties = new HashMap<String, String>();
 
@@ -204,30 +213,36 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
     setResourceProperty(resource, DATA_PROPERTY_ID,
         applicationData, requestedIds);
     setResourceProperty(resource, CONTEXT_PATH_PROPERTY_ID,
-        ViewInstanceEntity.getContextPath(viewName, name), requestedIds);
+        ViewInstanceEntity.getContextPath(viewName, version, name), requestedIds);
 
     return resource;
   }
 
   // Convert a map of properties to a view instance entity.
   private ViewInstanceEntity toEntity(Map<String, Object> properties) {
-    String name     = (String) properties.get(INSTANCE_NAME_PROPERTY_ID);
+    String name = (String) properties.get(INSTANCE_NAME_PROPERTY_ID);
     if (name == null || name.isEmpty()) {
       throw new IllegalArgumentException("View instance name must be provided");
+    }
+
+    String version = (String) properties.get(VIEW_VERSION_PROPERTY_ID);
+    if (version == null || version.isEmpty()) {
+      throw new IllegalArgumentException("View version must be provided");
     }
 
     String viewName = (String) properties.get(VIEW_NAME_PROPERTY_ID);
     if (viewName == null || viewName.isEmpty()) {
       throw new IllegalArgumentException("View name must be provided");
     }
+    viewName = ViewEntity.getViewName(viewName, version);
 
     ViewInstanceEntity viewInstanceEntity = new ViewInstanceEntity();
     viewInstanceEntity.setName(name);
     viewInstanceEntity.setViewName(viewName);
 
-
     ViewEntity viewEntity = new ViewEntity();
     viewEntity.setName(viewName);
+    viewEntity.setVersion(version);
 
     viewInstanceEntity.setViewEntity(viewEntity);
 

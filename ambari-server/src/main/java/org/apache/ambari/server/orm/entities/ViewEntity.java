@@ -140,6 +140,12 @@ public class ViewEntity {
   @Transient
   private final Map<Resource.Type, ResourceConfig> resourceConfigurations = new HashMap<Resource.Type, ResourceConfig>();
 
+  /**
+   * The name of the view shared across versions.
+   */
+  @Transient
+  private String commonName = null;
+
 
   // ----- Constructors ------------------------------------------------------
 
@@ -169,9 +175,11 @@ public class ViewEntity {
     this.classLoader         = classLoader;
     this.archive             = archivePath;
 
-    this.name    = configuration.getName();
+    String version = configuration.getVersion();
+
+    this.name    = getViewName(configuration.getName(), version);
     this.label   = configuration.getLabel();
-    this.version = configuration.getVersion();
+    this.version = version;
 
     this.externalResourceType =
         new Resource.Type(getQualifiedResourceTypeName(ResourceConfig.EXTERNAL_RESOURCE_PLURAL_NAME));
@@ -196,6 +204,20 @@ public class ViewEntity {
    */
   public void setName(String name) {
     this.name = name;
+  }
+
+  /**
+   * Get the common name of the view.
+   * This name is shared across versions of the view.
+   *
+   * @return the common name
+   */
+  public synchronized String getCommonName() {
+    if (commonName == null) {
+      // Strip version from the internal name
+      commonName = name.replaceAll("\\{(.+)\\}", "");
+    }
+    return commonName;
   }
 
   /**
@@ -478,5 +500,20 @@ public class ViewEntity {
    */
   public ViewConfig getConfiguration() {
     return configuration;
+  }
+
+
+  // ----- helper methods ----------------------------------------------------
+
+  /**
+   * Get the internal view name from the given common name and version.
+   *
+   * @param name     the view common name
+   * @param version  the version
+   *
+   * @return the view name
+   */
+  public static String getViewName(String name, String version) {
+    return name + "{" + version + "}";
   }
 }

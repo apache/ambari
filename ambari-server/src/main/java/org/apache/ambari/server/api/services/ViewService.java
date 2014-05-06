@@ -137,11 +137,11 @@ public class ViewService extends BaseService {
    *
    * @param viewName  view id
    *
-   * @return the hosts service
+   * @return the versions service
    */
-  @Path("{viewName}/instances")
-  public ViewInstanceService getInstanceHandler(@PathParam("viewName") String viewName) {
-    return new ViewInstanceService(viewName);
+  @Path("{viewName}/versions")
+  public ViewVersionService getInstanceHandler(@PathParam("viewName") String viewName) {
+    return new ViewVersionService(viewName);
   }
 
 

@@ -201,9 +201,15 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
         resourceDefinition = new ViewResourceDefinition();
         break;
 
+      case ViewVersion:
+        resourceDefinition = new ViewVersionResourceDefinition();
+        break;
+
       case ViewInstance:
         Set<SubResourceDefinition> subResourceDefinitions =
-            ViewRegistry.getInstance().getSubResourceDefinitions(mapIds.get(Resource.Type.View));
+            ViewRegistry.getInstance().getSubResourceDefinitions(
+                mapIds.get(Resource.Type.View),
+                mapIds.get(Resource.Type.ViewVersion));
 
         resourceDefinition = new ViewInstanceResourceDefinition(subResourceDefinitions);
         break;
