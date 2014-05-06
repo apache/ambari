@@ -20,11 +20,11 @@
     <groupId>org.apache.ambari.view</groupId>
     <artifactId>files</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>Filebrowser</name>
+    <name>Files</name>
     
     <parent>
         <groupId>org.apache.ambari.views</groupId>
-        <artifactId>ambari-views-poc</artifactId>
+        <artifactId>ambari-views</artifactId>
         <version>0.1.0-SNAPSHOT</version>
     </parent>
     
