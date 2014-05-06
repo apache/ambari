@@ -31,9 +31,21 @@ App.AddSecurityController = App.WizardController.extend({
     controllerName: 'addSecurityController'
   }),
 
-  installedServices: function() {
+  /**
+   * installed services on cluster
+   */
+  installedServices: function () {
     return App.Service.find().mapProperty('serviceName');
   }.property(),
+
+  /**
+   * services with security configurations
+   */
+  secureServices: function () {
+    return (App.get('isHadoop2Stack')) ?
+      $.extend(true, [], require('data/HDP2/secure_configs')) :
+      $.extend(true, [], require('data/secure_configs'));
+  }.property('App.isHadoop2Stack'),
 
   /**
    * Loads all prior steps on refresh
@@ -47,29 +59,17 @@ App.AddSecurityController = App.WizardController.extend({
         this.loadServiceConfigs();
       case '1':
         this.loadServices();
-        this.loadNnHastatus();
+        this.loadNnHaStatus();
     }
   },
-
-  clearServices: function () {
-    if (this.get('content.services')) {
-      this.get('content.services').clear();
-    }
-  },
-
   /**
-   * Loads all installed services
+   * Load installed services, which match secure services, to content
    */
   loadServices: function () {
-    this.clearServices();
-    var secureServices;
-    if(App.get('isHadoop2Stack')) {
-      secureServices = $.extend(true, [], require('data/HDP2/secure_configs'));
-    } else {
-      secureServices = $.extend(true, [], require('data/secure_configs'));
-    }
-
+    var secureServices = this.get('secureServices');
     var installedServices = this.get('installedServices');
+
+    this.get('content.services').clear();
     //General (only non service tab) tab is always displayed
     this.get('content.services').push(secureServices.findProperty('serviceName', 'GENERAL'));
     installedServices.forEach(function (_service) {
@@ -78,46 +78,35 @@ App.AddSecurityController = App.WizardController.extend({
         this.get('content.services').push(secureService);
       }
     }, this);
-
+  },
+  /**
+   * identify whether NameNode in high availability mode
+   */
+  loadNnHaStatus: function () {
+    this.set('content.isNnHa', App.db.getIsNameNodeHa());
   },
 
-  loadNnHastatus: function() {
-    var isNnHa = App.db.getIsNameNodeHa();
-    this.set('content.isNnHa', isNnHa);
-  },
-
+  /**
+   * save service config properties to localStorage
+   * @param stepController
+   */
   saveServiceConfigProperties: function (stepController) {
     var serviceConfigProperties = [];
     stepController.get('stepConfigs').forEach(function (_content) {
       _content.get('configs').forEach(function (_configProperties) {
-        _configProperties.set('value', App.config.trimProperty(_configProperties,true));
-        var overrides = _configProperties.get('overrides');
-        var overridesArray = [];
-        if(overrides!=null){
-          overrides.forEach(function(override){
-            var overrideEntry = {
-              value: override.get('value'),
-              hosts: []
-            };
-            override.get('selectedHostOptions').forEach(function(host){
-              overrideEntry.hosts.push(host);
-            });
-            overridesArray.push(overrideEntry);
-          });
-        }
-        overridesArray = (overridesArray.length) ? overridesArray : null;
+        _configProperties.set('value', App.config.trimProperty(_configProperties, true));
         var configProperty = {
           id: _configProperties.get('id'),
           name: _configProperties.get('name'),
           value: _configProperties.get('value'),
           defaultValue: _configProperties.get('defaultValue'),
           serviceName: _configProperties.get('serviceName'),
-          domain:  _configProperties.get('domain'),
+          domain: _configProperties.get('domain'),
           filename: _configProperties.get('filename'),
           unit: _configProperties.get('unit'),
           components: _configProperties.get('components'),
           component: _configProperties.get('component'),
-          overrides: overridesArray
+          overrides: this.getConfigOverrides(_configProperties)
         };
         serviceConfigProperties.push(configProperty);
       }, this);
@@ -127,12 +116,33 @@ App.AddSecurityController = App.WizardController.extend({
   },
 
   /**
-   * Loads all service config properties
+   * get overrides of config
+   * @param _configProperties
+   * @return {Array}
    */
+  getConfigOverrides: function (_configProperties) {
+    var overrides = _configProperties.get('overrides');
+    var overridesArray = [];
+    if (Array.isArray(overrides)) {
+      overrides.forEach(function (override) {
+        var overrideEntry = {
+          value: override.get('value'),
+          hosts: []
+        };
+        override.get('selectedHostOptions').forEach(function (host) {
+          overrideEntry.hosts.push(host);
+        });
+        overridesArray.push(overrideEntry);
+      });
+    }
+    return (overridesArray.length > 0) ? overridesArray : null;
+  },
 
+  /**
+   * Load service config properties from localStorage
+   */
   loadServiceConfigs: function () {
-    var serviceConfigProperties = App.db.getSecureConfigProperties();
-    this.set('content.serviceConfigProperties', serviceConfigProperties);
+    this.set('content.serviceConfigProperties', App.db.getSecureConfigProperties());
   }
 });
 

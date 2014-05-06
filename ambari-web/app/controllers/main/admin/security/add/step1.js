@@ -20,8 +20,12 @@ var App = require('app');
 App.MainAdminSecurityAddStep1Controller = Em.Controller.extend({
 
   name: 'mainAdminSecurityAddStep1Controller',
+  /**
+   * identify whether ATS(Application Timeline Server) is installed
+   * @return {Boolean}
+   */
   isATSInstalled: function() {
-    return this.get('content.services').findProperty('serviceName', 'YARN') &&
-      App.Service.find('YARN').get('hostComponents').someProperty('componentName', 'APP_TIMELINE_SERVER')
+    return this.get('content.services').someProperty('serviceName', 'YARN') &&
+      App.Service.find('YARN').get('hostComponents').someProperty('componentName', 'APP_TIMELINE_SERVER');
   }
 });

@@ -18,36 +18,279 @@
 
 
 var App = require('app');
-require('models/host');
 require('mixins/common/localStorage');
 require('controllers/wizard');
 require('controllers/main/admin/security/add/addSecurity_controller');
-require('models/host_component');
 require('models/cluster');
 require('models/service');
 
 describe('App.AddSecurityController', function () {
 
-  var addSecurityController = App.AddSecurityController.create();
-
-  describe('#clearServices', function() {
-    addSecurityController.set('content.services', [{},{},{}]);
-    it('clear all services', function() {
-      addSecurityController.clearServices();
-      expect(addSecurityController.get('content.services.length')).to.equal(0);
-    });
+  var controller = App.AddSecurityController.create({
+    currentStep: null
   });
 
-  describe('#loadServices', function() {
+  describe('#installedServices', function () {
 
-    it('NAGIOS, HIVE and GENERAL (by default). FAKE not loaded', function() {
-      var ASC = App.AddSecurityController.extend({
-        installedServices: ['NAGIOS', 'HIVE', 'FAKE']
+    afterEach(function () {
+      App.Service.find.restore();
+    });
+
+    it('No installed services', function () {
+      sinon.stub(App.Service, 'find', function () {
+        return [];
       });
-      var c = ASC.create();
-      c.loadServices();
-      expect(c.get('content.services.length')).to.equal(3);
+      expect(controller.get('installedServices')).to.eql([]);
+    });
+    it('One service installed', function () {
+      sinon.stub(App.Service, 'find', function () {
+        return [Em.Object.create({serviceName: 'HDFS'})];
+      });
+      Em.propertyDidChange(controller, 'installedServices');
+      expect(controller.get('installedServices')).to.eql(['HDFS']);
     });
   });
 
+  describe('#secureServices', function () {
+
+    afterEach(function () {
+      App.get.restore();
+    });
+
+    it('App.isHadoop2Stack = false', function () {
+      var result = [
+        "GENERAL",
+        "HDFS",
+        "MAPREDUCE",
+        "HIVE",
+        "WEBHCAT",
+        "HBASE",
+        "ZOOKEEPER",
+        "OOZIE",
+        "NAGIOS"
+      ];
+      sinon.stub(App, 'get', function () {
+        return false;
+      });
+      expect(controller.get('secureServices').mapProperty('serviceName')).to.eql(result);
+    });
+    it('App.isHadoop2Stack = true', function () {
+      var result = [
+        "GENERAL",
+        "HDFS",
+        "MAPREDUCE2",
+        "YARN",
+        "HIVE",
+        "WEBHCAT",
+        "HBASE",
+        "ZOOKEEPER",
+        "OOZIE",
+        "NAGIOS",
+        "STORM",
+        "FALCON"
+      ];
+      sinon.stub(App, 'get', function () {
+        return true;
+      });
+      Em.propertyDidChange(App, 'isHadoop2Stack');
+      expect(controller.get('secureServices').mapProperty('serviceName')).to.eql(result);
+    });
+  });
+
+  describe('#loadAllPriorSteps()', function () {
+
+    beforeEach(function () {
+      sinon.stub(controller, 'loadServiceConfigs', Em.K);
+      sinon.stub(controller, 'loadServices', Em.K);
+      sinon.stub(controller, 'loadNnHaStatus', Em.K);
+    });
+    afterEach(function () {
+      controller.loadServiceConfigs.restore();
+      controller.loadServices.restore();
+      controller.loadNnHaStatus.restore();
+    });
+
+    var commonSteps = ['4', '3', '2'];
+    commonSteps.forEach(function (step) {
+      it('Current step - ' + step, function () {
+        controller.set('currentStep', step);
+        controller.loadAllPriorSteps();
+        expect(controller.loadServiceConfigs.calledOnce).to.be.true;
+        expect(controller.loadServices.calledOnce).to.be.true;
+        expect(controller.loadNnHaStatus.calledOnce).to.be.true;
+      });
+    });
+    it('Current step - 1', function () {
+      controller.set('currentStep', '1');
+      controller.loadAllPriorSteps();
+      expect(controller.loadServiceConfigs.called).to.be.false;
+      expect(controller.loadServices.calledOnce).to.be.true;
+      expect(controller.loadNnHaStatus.calledOnce).to.be.true;
+    });
+  });
+
+  describe('#loadServices()', function () {
+    it('No installed services', function () {
+      controller.reopen({
+        installedServices: [],
+        secureServices: [
+          {serviceName: 'GENERAL'}
+        ]
+      });
+      controller.loadServices();
+      expect(controller.get('content.services').mapProperty('serviceName')).to.eql(['GENERAL']);
+    });
+    it('Installed service does not match the secure one', function () {
+      controller.set('installedServices', ["HDFS"]);
+      controller.loadServices();
+      expect(controller.get('content.services').mapProperty('serviceName')).to.eql(['GENERAL']);
+    });
+    it('Installed service matches the secure one', function () {
+      controller.set('secureServices', [
+        {serviceName: 'GENERAL'},
+        {serviceName: 'HDFS'}
+      ]);
+      controller.loadServices();
+      expect(controller.get('content.services').mapProperty('serviceName')).to.eql(['GENERAL', 'HDFS']);
+    });
+  });
+
+  describe('#loadNnHaStatus()', function () {
+    afterEach(function () {
+      App.db.getIsNameNodeHa.restore();
+    });
+    it('NameNode HA is off', function () {
+      sinon.stub(App.db, 'getIsNameNodeHa', function () {
+        return false;
+      });
+      controller.loadNnHaStatus();
+      expect(controller.get('content.isNnHa')).to.be.false;
+    });
+    it('NameNode HA is on', function () {
+      sinon.stub(App.db, 'getIsNameNodeHa', function () {
+        return true;
+      });
+      controller.loadNnHaStatus();
+      expect(controller.get('content.isNnHa')).to.be.true;
+    });
+  });
+
+  describe('#loadServiceConfigs()', function () {
+    afterEach(function () {
+      App.db.getSecureConfigProperties.restore();
+    });
+    it('SecureConfigProperties is empty', function () {
+      sinon.stub(App.db, 'getSecureConfigProperties', function () {
+        return [];
+      });
+      controller.loadServiceConfigs();
+      expect(controller.get('content.serviceConfigProperties')).to.eql([]);
+    });
+    it('SecureConfigProperties has one config', function () {
+      sinon.stub(App.db, 'getSecureConfigProperties', function () {
+        return [{}];
+      });
+      controller.loadServiceConfigs();
+      expect(controller.get('content.serviceConfigProperties')).to.eql([{}]);
+    });
+  });
+
+  describe('#getConfigOverrides()', function () {
+    var testCases = [
+      {
+        title: 'overrides is null',
+        configProperty: Em.Object.create({overrides: null}),
+        result: null
+      },
+      {
+        title: 'overrides is empty',
+        configProperty: Em.Object.create({overrides: []}),
+        result: null
+      },
+      {
+        title: 'overrides has one override',
+        configProperty: Em.Object.create({
+          overrides: [
+            Em.Object.create({
+              value: 'value1',
+              selectedHostOptions: []
+            })
+          ]
+        }),
+        result: [{
+          value: 'value1',
+          hosts: []
+        }]
+      },
+      {
+        title: 'overrides has one override with hosts',
+        configProperty: Em.Object.create({
+          overrides: [
+            Em.Object.create({
+              value: 'value1',
+              selectedHostOptions: ['host1']
+            })
+          ]
+        }),
+        result: [{
+          value: 'value1',
+          hosts: ['host1']
+        }]
+      }
+    ];
+
+    testCases.forEach(function(test){
+      it(test.title, function () {
+        expect(controller.getConfigOverrides(test.configProperty)).to.eql(test.result);
+      });
+    });
+  });
+
+  describe('#saveServiceConfigProperties()', function () {
+    var testCases = [
+      {
+        title: 'stepConfigs is empty',
+        stepController: Em.Object.create({
+          stepConfigs: []
+        }),
+        result: []
+      },
+      {
+        title: 'No configs in service',
+        stepController: Em.Object.create({
+          stepConfigs: [
+            Em.Object.create({configs: []})
+          ]
+        }),
+        result: []
+      }
+    ];
+
+    testCases.forEach(function (test) {
+      it(test.title, function () {
+        sinon.stub(App.db, 'setSecureConfigProperties', Em.K);
+        controller.saveServiceConfigProperties(test.stepController);
+        expect(App.db.setSecureConfigProperties.calledWith(test.result)).to.be.true;
+        expect(controller.get('content.serviceConfigProperties')).to.eql(test.result);
+        App.db.setSecureConfigProperties.restore();
+      });
+    });
+    it('Service has config', function () {
+      var  stepController = Em.Object.create({
+        stepConfigs: [
+          Em.Object.create({configs: [
+            Em.Object.create({
+              name: 'config1',
+              value: 'value1'
+            })
+          ]})
+        ]
+      });
+      sinon.stub(App.db, 'setSecureConfigProperties', Em.K);
+      controller.saveServiceConfigProperties(stepController);
+      expect(App.db.setSecureConfigProperties.calledOnce).to.be.true;
+      expect(controller.get('content.serviceConfigProperties').mapProperty('name')).to.eql(['config1']);
+      App.db.setSecureConfigProperties.restore();
+    });
+  });
 });

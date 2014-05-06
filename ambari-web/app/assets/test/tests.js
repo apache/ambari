@@ -33,6 +33,7 @@ require('test/controllers/main/admin/security_test');
 require('test/controllers/main/admin/security/disable_test');
 require('test/controllers/main/admin/security/security_progress_controller_test');
 require('test/controllers/main/admin/security/add/addSecurity_controller_test');
+require('test/controllers/main/admin/security/add/step1_test');
 require('test/controllers/main/admin/security/add/step2_test');
 require('test/controllers/main/admin/security/add/step3_test');
 require('test/controllers/main/admin/security/add/step4_test');
