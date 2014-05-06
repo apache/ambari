@@ -136,6 +136,7 @@
             <exclude>conf/unix/ca.config</exclude>
             <exclude>conf/unix/krb5JAASLogin.conf</exclude>
             <exclude>**/*.json</exclude>
+            <exclude>**/*.sql</exclude>
             <exclude>**/*.pydevproject</exclude>
 
             <!--gitignore content -->
