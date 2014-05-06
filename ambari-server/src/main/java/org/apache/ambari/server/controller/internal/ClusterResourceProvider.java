@@ -1358,6 +1358,11 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
       this.component = component;
     }
 
+    /**
+     * Constructor with customized separator.
+     * @param component Component name
+     * @param separator separator character
+     */
     public MultipleHostPropertyUpdater(String component, Character separator) {
       this.component = component;
       this.separator = separator;
