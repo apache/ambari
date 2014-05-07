@@ -101,6 +101,7 @@ def create_hdfs_directories(check):
 def format_namenode(force=None):
   import params
 
+  old_mark_dir = params.namenode_formatted_old_mark_dir
   mark_dir = params.namenode_formatted_mark_dir
   dfs_name_dir = params.dfs_name_dir
   hdfs_user = params.hdfs_user
@@ -115,11 +116,15 @@ def format_namenode(force=None):
            content=StaticFile("checkForFormat.sh"),
            mode=0755)
       Execute(format(
-        "/tmp/checkForFormat.sh {hdfs_user} {hadoop_conf_dir} {mark_dir} "
-        "{dfs_name_dir}"),
-              not_if=format("test -d {mark_dir}"),
-              path="/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin")
-    Execute(format("mkdir -p {mark_dir}"))
+        "/tmp/checkForFormat.sh {hdfs_user} {hadoop_conf_dir} {old_mark_dir} "
+        "{mark_dir} {dfs_name_dir}"),
+              not_if=format("test -d {old_mark_dir} || test -d {mark_dir}"),
+              path="/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin"
+      )
+    
+      Directory(mark_dir,
+        recursive = True
+      )
 
 
 def decommission():

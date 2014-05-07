@@ -24,6 +24,8 @@ export hdfs_user=$1
 shift
 export conf_dir=$1
 shift
+export old_mark_dir=$1
+shift
 export mark_dir=$1
 shift
 export name_dirs=$*
@@ -36,6 +38,10 @@ mark_file=/var/run/hadoop/hdfs/namenode-formatted
 if [[ -f ${mark_file} ]] ; then
   rm -f ${mark_file}
   mkdir -p ${mark_dir}
+fi
+
+if [[ -d $old_mark_dir ]] ; then
+  mv ${old_mark_dir} ${mark_dir}
 fi
 
 if [[ ! -d $mark_dir ]] ; then

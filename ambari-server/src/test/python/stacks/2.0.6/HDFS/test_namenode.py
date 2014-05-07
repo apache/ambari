@@ -43,11 +43,12 @@ class TestNamenode(RMFTestCase):
                               content = StaticFile('checkForFormat.sh'),
                               mode = 0755,
                               )
-    self.assertResourceCalled('Execute', '/tmp/checkForFormat.sh hdfs /etc/hadoop/conf /var/run/hadoop/hdfs/namenode/formatted/ /hadoop/hdfs/namenode',
+    self.assertResourceCalled('Execute', '/tmp/checkForFormat.sh hdfs /etc/hadoop/conf /var/run/hadoop/hdfs/namenode/formatted/ /var/lib/hdfs/namenode/formatted/ /hadoop/hdfs/namenode',
                               path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
-                              not_if = 'test -d /var/run/hadoop/hdfs/namenode/formatted/',
+                              not_if = 'test -d /var/run/hadoop/hdfs/namenode/formatted/ || test -d /var/lib/hdfs/namenode/formatted/',
                               )
-    self.assertResourceCalled('Execute', 'mkdir -p /var/run/hadoop/hdfs/namenode/formatted/',
+    self.assertResourceCalled('Directory', '/var/lib/hdfs/namenode/formatted/',
+                              recursive = True,
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/dfs.exclude',
                               owner = 'hdfs',
@@ -148,11 +149,12 @@ class TestNamenode(RMFTestCase):
                               content = StaticFile('checkForFormat.sh'),
                               mode = 0755,
                               )
-    self.assertResourceCalled('Execute', '/tmp/checkForFormat.sh hdfs /etc/hadoop/conf /var/run/hadoop/hdfs/namenode/formatted/ /hadoop/hdfs/namenode',
+    self.assertResourceCalled('Execute', '/tmp/checkForFormat.sh hdfs /etc/hadoop/conf /var/run/hadoop/hdfs/namenode/formatted/ /var/lib/hdfs/namenode/formatted/ /hadoop/hdfs/namenode',
                               path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
-                              not_if = 'test -d /var/run/hadoop/hdfs/namenode/formatted/',
+                              not_if = 'test -d /var/run/hadoop/hdfs/namenode/formatted/ || test -d /var/lib/hdfs/namenode/formatted/',
                               )
-    self.assertResourceCalled('Execute', 'mkdir -p /var/run/hadoop/hdfs/namenode/formatted/',
+    self.assertResourceCalled('Directory', '/var/lib/hdfs/namenode/formatted/',
+                              recursive = True
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/dfs.exclude',
                               owner = 'hdfs',
