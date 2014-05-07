@@ -39,6 +39,7 @@
   <property require-input = "true">
     <name>nagios_web_password</name>
     <value></value>
+    <type>PASSWORD</type>
     <description>Nagios Admin Password.</description>
   </property>
   <property require-input = "true">
