@@ -28,56 +28,81 @@ import java.util.Arrays;
 
 import static java.lang.Math.ceil;
 
+/**
+ * Pagination for HDFS file implementation
+ */
 public class FilePaginator {
-    private static int PAGE_SIZE = 1*1024*1024;  // 1MB
+  private static int PAGE_SIZE = 1*1024*1024;  // 1MB
 
-    private String filePath;
-    private HdfsApi hdfsApi;
+  private String filePath;
+  private HdfsApi hdfsApi;
 
-    public FilePaginator(String filePath, ViewContext context) {
-        this.filePath = filePath;
-        hdfsApi = BaseService.getHdfsApi(context);
+  /**
+   * Constructor
+   * @param filePath Path to file on HDFS
+   * @param context View Context instance
+   */
+  public FilePaginator(String filePath, ViewContext context) {
+    this.filePath = filePath;
+    hdfsApi = BaseService.getHdfsApi(context);
+  }
+
+  /**
+   * Set page size
+   * @param PAGE_SIZE size
+   */
+  public static void setPageSize(int PAGE_SIZE) {
+    FilePaginator.PAGE_SIZE = PAGE_SIZE;
+  }
+
+  /**
+   * Get page count
+   * @return page count
+   * @throws IOException
+   * @throws InterruptedException
+   */
+  public long pageCount() throws IOException, InterruptedException {
+    return (long)
+        ceil( hdfsApi.getFileStatus(filePath).getLen() / ((double)PAGE_SIZE) );
+  }
+
+  /**
+   * Read one page of size PAGE_SIZE
+   * @param page page index
+   * @return data in UTF-8
+   * @throws IOException
+   * @throws InterruptedException
+   */
+  public String readPage(long page) throws IOException, InterruptedException {
+    FSDataInputStream stream = hdfsApi.open(filePath);
+    try {
+      stream.seek(page * PAGE_SIZE);
+    } catch (IOException e) {
+      throw new IllegalArgumentException("Page " + page + " does not exists");
     }
 
-    public static void setPageSize(int PAGE_SIZE) {
-        FilePaginator.PAGE_SIZE = PAGE_SIZE;
+    byte[] buffer = new byte[PAGE_SIZE];
+    int readCount = 0;
+    int read = 0;
+    while(read < PAGE_SIZE) {
+      try {
+        readCount = stream.read(buffer, read, PAGE_SIZE-read);
+      } catch (IOException e) {
+        stream.close();
+        throw e;
+      }
+      if (readCount == -1)
+        break;
+      read += readCount;
     }
-
-    public long pageCount() throws IOException, InterruptedException {
-        return (long)
-                ceil( hdfsApi.getFileStatus(filePath).getLen() / ((double)PAGE_SIZE) );
+    if (read != 0) {
+      byte[] readData = Arrays.copyOfRange(buffer, 0, read);
+      return new String(readData, Charset.forName("UTF-8"));
+    } else {
+      if (page == 0) {
+        return "";
+      }
+      throw new IllegalArgumentException("Page " + page + " does not exists");
     }
-
-    public String readPage(long page) throws IOException, InterruptedException {
-        FSDataInputStream stream = hdfsApi.open(filePath);
-        try {
-            stream.seek(page * PAGE_SIZE);
-        } catch (IOException e) {
-            throw new IllegalArgumentException("Page " + page + " does not exists");
-        }
-
-        byte[] buffer = new byte[PAGE_SIZE];
-        int readCount = 0;
-        int read = 0;
-        while(read < PAGE_SIZE) {
-            try {
-                readCount = stream.read(buffer, read, PAGE_SIZE-read);
-            } catch (IOException e) {
-                stream.close();
-                throw e;
-            }
-            if (readCount == -1)
-                break;
-            read += readCount;
-        }
-        if (read != 0) {
-            byte[] readData = Arrays.copyOfRange(buffer, 0, read);
-            return new String(readData, Charset.forName("UTF-8"));
-        } else {
-            if (page == 0) {
-                return "";
-            }
-            throw new IllegalArgumentException("Page " + page + " does not exists");
-        }
-    }
+  }
 }

@@ -29,51 +29,51 @@ import java.util.Map;
  * Bean to represent User Defined Functions
  */
 public class UDF implements Serializable, PersonalResource {
-    String id;
-    String path;
-    String name;
-    String owner;
+  private String id;
+  private String path;
+  private String name;
+  private String owner;
 
-    public UDF() {
-    }
+  public UDF() {
+  }
 
-    public UDF(Map<String, Object> stringObjectMap) throws InvocationTargetException, IllegalAccessException {
-        BeanUtils.populate(this, stringObjectMap);
-    }
+  public UDF(Map<String, Object> stringObjectMap) throws InvocationTargetException, IllegalAccessException {
+    BeanUtils.populate(this, stringObjectMap);
+  }
 
-    @Override
-    public String getId() {
-        return id;
-    }
+  @Override
+  public String getId() {
+    return id;
+  }
 
-    @Override
-    public void setId(String id) {
-        this.id = id;
-    }
+  @Override
+  public void setId(String id) {
+    this.id = id;
+  }
 
-    @Override
-    public String getOwner() {
-        return owner;
-    }
+  @Override
+  public String getOwner() {
+    return owner;
+  }
 
-    @Override
-    public void setOwner(String owner) {
-        this.owner = owner;
-    }
+  @Override
+  public void setOwner(String owner) {
+    this.owner = owner;
+  }
 
-    public String getPath() {
-        return path;
-    }
+  public String getPath() {
+    return path;
+  }
 
-    public void setPath(String path) {
-        this.path = path;
-    }
+  public void setPath(String path) {
+    this.path = path;
+  }
 
-    public String getName() {
-        return name;
-    }
+  public String getName() {
+    return name;
+  }
 
-    public void setName(String name) {
-        this.name = name;
-    }
+  public void setName(String name) {
+    this.name = name;
+  }
 }

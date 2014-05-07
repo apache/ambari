@@ -19,15 +19,15 @@
 package org.apache.ambari.view.pig.persistence.utils;
 
 public class OnlyOwnersFilteringStrategy implements FilteringStrategy {
-    private final String username;
+  private final String username;
 
-    public OnlyOwnersFilteringStrategy(String username) {
-        this.username = username;
-    }
+  public OnlyOwnersFilteringStrategy(String username) {
+    this.username = username;
+  }
 
-    @Override
-    public boolean is_conform(Indexed item) {
-        Owned object = (Owned) item;
-        return object.getOwner().compareTo(username) == 0;
-    }
+  @Override
+  public boolean isConform(Indexed item) {
+    Owned object = (Owned) item;
+    return object.getOwner().compareTo(username) == 0;
+  }
 }

@@ -36,81 +36,81 @@ import static org.easymock.EasyMock.*;
 import static org.easymock.EasyMock.replay;
 
 public class UDFTest extends BasePigTest {
-    private UDFService udfService;
+  private UDFService udfService;
 
-    @Override
-    @Before
-    public void setUp() throws Exception {
-        super.setUp();
-        udfService = getService(UDFService.class, handler, context);
-    }
+  @Override
+  @Before
+  public void setUp() throws Exception {
+    super.setUp();
+    udfService = getService(UDFService.class, handler, context);
+  }
 
-    private Response doCreateUDF() {
-        UDFService.UDFRequest request = new UDFService.UDFRequest();
-        request.udf = new UDF();
-        request.udf.setPath("/tmp/udf.jar");
-        request.udf.setName("TestUDF");
+  private Response doCreateUDF() {
+    UDFService.UDFRequest request = new UDFService.UDFRequest();
+    request.udf = new UDF();
+    request.udf.setPath("/tmp/udf.jar");
+    request.udf.setName("TestUDF");
 
-        UriInfo uriInfo = createNiceMock(UriInfo.class);
-        URI uri = UriBuilder.fromUri("http://host/a/b").build();
-        expect(uriInfo.getAbsolutePath()).andReturn(uri);
+    UriInfo uriInfo = createNiceMock(UriInfo.class);
+    URI uri = UriBuilder.fromUri("http://host/a/b").build();
+    expect(uriInfo.getAbsolutePath()).andReturn(uri);
 
-        HttpServletResponse resp_obj = createNiceMock(HttpServletResponse.class);
+    HttpServletResponse resp_obj = createNiceMock(HttpServletResponse.class);
 
-        resp_obj.setHeader(eq("Location"), anyString());
+    resp_obj.setHeader(eq("Location"), anyString());
 
-        replay(uriInfo, resp_obj);
-        return udfService.createUDF(request, resp_obj, uriInfo);
-    }
+    replay(uriInfo, resp_obj);
+    return udfService.createUDF(request, resp_obj, uriInfo);
+  }
 
-    @Test
-    public void createUDF() {
-        Response response = doCreateUDF();
-        Assert.assertEquals(201, response.getStatus());
+  @Test
+  public void createUDF() {
+    Response response = doCreateUDF();
+    Assert.assertEquals(201, response.getStatus());
 
-        JSONObject obj = (JSONObject)response.getEntity();
-        Assert.assertTrue(obj.containsKey("udf"));
-        Assert.assertNotNull(((UDF) obj.get("udf")).getId());
-        Assert.assertFalse(((UDF) obj.get("udf")).getId().isEmpty());
-    }
+    JSONObject obj = (JSONObject)response.getEntity();
+    Assert.assertTrue(obj.containsKey("udf"));
+    Assert.assertNotNull(((UDF) obj.get("udf")).getId());
+    Assert.assertFalse(((UDF) obj.get("udf")).getId().isEmpty());
+  }
 
-    @Test
-    public void udfNotFound() {
-        Response response2 = udfService.getUDF("4242");
-        Assert.assertEquals(404, response2.getStatus());
-    }
+  @Test
+  public void udfNotFound() {
+    Response response2 = udfService.getUDF("4242");
+    Assert.assertEquals(404, response2.getStatus());
+  }
 
-    @Test
-    public void updateUDF() {
-        Response createdUDF = doCreateUDF();
-        String createdUdfId = ((UDF) ((JSONObject) createdUDF.getEntity()).get("udf")).getId();
+  @Test
+  public void updateUDF() {
+    Response createdUDF = doCreateUDF();
+    String createdUdfId = ((UDF) ((JSONObject) createdUDF.getEntity()).get("udf")).getId();
 
-        UDFService.UDFRequest request = new UDFService.UDFRequest();
-        request.udf = new UDF();
-        request.udf.setPath("/tmp/updatedUDF.jar");
-        request.udf.setName("TestUDF2");
+    UDFService.UDFRequest request = new UDFService.UDFRequest();
+    request.udf = new UDF();
+    request.udf.setPath("/tmp/updatedUDF.jar");
+    request.udf.setName("TestUDF2");
 
-        Response response = udfService.updateUDF(request, createdUdfId);
-        Assert.assertEquals(204, response.getStatus());
+    Response response = udfService.updateUDF(request, createdUdfId);
+    Assert.assertEquals(204, response.getStatus());
 
-        Response response2 = udfService.getUDF(createdUdfId);
-        Assert.assertEquals(200, response2.getStatus());
+    Response response2 = udfService.getUDF(createdUdfId);
+    Assert.assertEquals(200, response2.getStatus());
 
-        JSONObject obj = ((JSONObject) response2.getEntity());
-        Assert.assertTrue(obj.containsKey("udf"));
-        Assert.assertEquals(((UDF) obj.get("udf")).getName(), request.udf.getName());
-        Assert.assertEquals(((UDF) obj.get("udf")).getPath(), request.udf.getPath());
-    }
+    JSONObject obj = ((JSONObject) response2.getEntity());
+    Assert.assertTrue(obj.containsKey("udf"));
+    Assert.assertEquals(((UDF) obj.get("udf")).getName(), request.udf.getName());
+    Assert.assertEquals(((UDF) obj.get("udf")).getPath(), request.udf.getPath());
+  }
 
-    @Test
-    public void deleteUDF() {
-        Response createdUDF = doCreateUDF();
-        String createdUdfId = ((UDF) ((JSONObject) createdUDF.getEntity()).get("udf")).getId();
+  @Test
+  public void deleteUDF() {
+    Response createdUDF = doCreateUDF();
+    String createdUdfId = ((UDF) ((JSONObject) createdUDF.getEntity()).get("udf")).getId();
 
-        Response response = udfService.deleteUDF(createdUdfId);
-        Assert.assertEquals(204, response.getStatus());
+    Response response = udfService.deleteUDF(createdUdfId);
+    Assert.assertEquals(204, response.getStatus());
 
-        Response response2 = udfService.getUDF(createdUdfId);
-        Assert.assertEquals(404, response2.getStatus());
-    }
+    Response response2 = udfService.getUDF(createdUdfId);
+    Assert.assertEquals(404, response2.getStatus());
+  }
 }

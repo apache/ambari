@@ -47,95 +47,98 @@ import java.io.IOException;
  *      update file content
  */
 public class FileService extends BaseService {
-    @Inject
-    ViewResourceHandler handler;
+  @Inject
+  ViewResourceHandler handler;
 
-    protected final static Logger LOG =
-            LoggerFactory.getLogger(FileService.class);
+  protected final static Logger LOG =
+      LoggerFactory.getLogger(FileService.class);
 
-    /**
-     * Get single item
-     */
-    @GET
-    @Path("{filePath:.*}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getFile(@PathParam("filePath") String filePath, @QueryParam("page") Long page) throws IOException, InterruptedException {
-        LOG.debug("Reading file " + filePath);
-        try {
-            FilePaginator paginator = new FilePaginator(filePath, context);
+  /**
+   * Get single item
+   */
+  @GET
+  @Path("{filePath:.*}")
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response getFile(@PathParam("filePath") String filePath, @QueryParam("page") Long page) throws IOException, InterruptedException {
+    LOG.debug("Reading file " + filePath);
+    try {
+      FilePaginator paginator = new FilePaginator(filePath, context);
 
-            if (page == null)
-                page = 0L;
+      if (page == null)
+        page = 0L;
 
-            FileResource file = new FileResource();
-            file.filePath = filePath;
-            file.fileContent = paginator.readPage(page);
-            file.hasNext = paginator.pageCount() > page + 1;
-            file.page = page;
-            file.pageCount = paginator.pageCount();
+      FileResource file = new FileResource();
+      file.setFilePath(filePath);
+      file.setFileContent(paginator.readPage(page));
+      file.setHasNext(paginator.pageCount() > page + 1);
+      file.setPage(page);
+      file.setPageCount(paginator.pageCount());
 
-            JSONObject object = new JSONObject();
-            object.put("file", file);
-            return Response.ok(object).status(200).build();
-        } catch (FileNotFoundException e) {
-            return notFoundResponse(e.toString());
-        } catch (IllegalArgumentException e) {
-            return badRequestResponse(e.toString());
-        }
+      JSONObject object = new JSONObject();
+      object.put("file", file);
+      return Response.ok(object).status(200).build();
+    } catch (FileNotFoundException e) {
+      return notFoundResponse(e.toString());
+    } catch (IllegalArgumentException e) {
+      return badRequestResponse(e.toString());
     }
+  }
 
-    /**
-     * Delete single item
-     */
-    @DELETE
-    @Path("{filePath:.*}")
-    public Response deleteFile(@PathParam("filePath") String filePath) throws IOException, InterruptedException {
-        LOG.debug("Deleting file " + filePath);
-        if (getHdfsApi().delete(filePath, false)) {
-            return Response.status(204).build();
-        }
-        return notFoundResponse("FileSystem.delete returned false");
+  /**
+   * Delete single item
+   */
+  @DELETE
+  @Path("{filePath:.*}")
+  public Response deleteFile(@PathParam("filePath") String filePath) throws IOException, InterruptedException {
+    LOG.debug("Deleting file " + filePath);
+    if (getHdfsApi().delete(filePath, false)) {
+      return Response.status(204).build();
     }
+    return notFoundResponse("FileSystem.delete returned false");
+  }
 
-    /**
-     * Update item
-     */
-    @PUT
-    @Path("{filePath:.*}")
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response updateFile(FileResourceRequest request,
-                               @PathParam("filePath") String filePath) throws IOException, InterruptedException {
-        LOG.debug("Rewriting file " + filePath);
-        FSDataOutputStream output = getHdfsApi().create(filePath, true);
-        output.writeBytes(request.file.fileContent);
-        output.close();
-        return Response.status(204).build();
-    }
+  /**
+   * Update item
+   */
+  @PUT
+  @Path("{filePath:.*}")
+  @Consumes(MediaType.APPLICATION_JSON)
+  public Response updateFile(FileResourceRequest request,
+                             @PathParam("filePath") String filePath) throws IOException, InterruptedException {
+    LOG.debug("Rewriting file " + filePath);
+    FSDataOutputStream output = getHdfsApi().create(filePath, true);
+    output.writeBytes(request.file.getFileContent());
+    output.close();
+    return Response.status(204).build();
+  }
 
-    /**
-     * Create script
-     */
-    @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response createFile(FileResourceRequest request,
-                               @Context HttpServletResponse response, @Context UriInfo ui)
-            throws IOException, InterruptedException {
-        LOG.debug("Creating file " + request.file.filePath);
-        try {
-            FSDataOutputStream output = getHdfsApi().create(request.file.filePath, false);
-            if (request.file.fileContent != null) {
-                output.writeBytes(request.file.fileContent);
-            }
-            output.close();
-        } catch (FileAlreadyExistsException e) {
-            return badRequestResponse(e.toString());
-        }
-        response.setHeader("Location",
-                String.format("%s/%s", ui.getAbsolutePath().toString(), request.file.filePath));
-        return Response.status(204).build();
+  /**
+   * Create script
+   */
+  @POST
+  @Consumes(MediaType.APPLICATION_JSON)
+  public Response createFile(FileResourceRequest request,
+                             @Context HttpServletResponse response, @Context UriInfo ui)
+      throws IOException, InterruptedException {
+    LOG.debug("Creating file " + request.file.getFilePath());
+    try {
+      FSDataOutputStream output = getHdfsApi().create(request.file.getFilePath(), false);
+      if (request.file.getFileContent() != null) {
+        output.writeBytes(request.file.getFileContent());
+      }
+      output.close();
+    } catch (FileAlreadyExistsException e) {
+      return badRequestResponse(e.toString());
     }
+    response.setHeader("Location",
+        String.format("%s/%s", ui.getAbsolutePath().toString(), request.file.getFilePath()));
+    return Response.status(204).build();
+  }
 
-    public static class FileResourceRequest {
-        public FileResource file;
-    }
+  /**
+   * Wrapper object for json mapping
+   */
+  public static class FileResourceRequest {
+    public FileResource file;
+  }
 }

@@ -26,20 +26,25 @@ import org.apache.ambari.view.pig.persistence.utils.Indexed;
  * @param <T> Data type with ID
  */
 public class SharedCRUDResourceManager<T extends Indexed> extends CRUDResourceManager<T> {
-    protected ViewContext context;
+  protected ViewContext context;
 
-    public SharedCRUDResourceManager(Class<T> responseClass, ViewContext context) {
-        super(responseClass);
-        this.context = context;
-    }
+  /**
+   * Constructor
+   * @param responseClass model class
+   * @param context View Context instance
+   */
+  public SharedCRUDResourceManager(Class<T> responseClass, ViewContext context) {
+    super(responseClass);
+    this.context = context;
+  }
 
-    @Override
-    protected boolean checkPermissions(T object) {
-        return true; //everyone has permission
-    }
+  @Override
+  protected boolean checkPermissions(T object) {
+    return true; //everyone has permission
+  }
 
-    @Override
-    protected ViewContext getContext() {
-        return context;
-    }
+  @Override
+  protected ViewContext getContext() {
+    return context;
+  }
 }

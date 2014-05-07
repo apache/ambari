@@ -33,64 +33,64 @@ import java.util.Map;
 import static org.easymock.EasyMock.*;
 
 public abstract class BasePigTest {
-    protected ViewResourceHandler handler;
-    protected ViewContext context;
-    protected static File pigStorageFile;
-    protected static File baseDir;
+  protected ViewResourceHandler handler;
+  protected ViewContext context;
+  protected static File pigStorageFile;
+  protected static File baseDir;
 
-    protected static String DATA_DIRECTORY = "./target/PigTest";
+  protected static String DATA_DIRECTORY = "./target/PigTest";
 
-    @BeforeClass
-    public static void startUp() throws Exception {
-        File baseDir = new File(DATA_DIRECTORY)
-                .getAbsoluteFile();
-        FileUtil.fullyDelete(baseDir);
-    }
+  @BeforeClass
+  public static void startUp() throws Exception {
+    File baseDir = new File(DATA_DIRECTORY)
+        .getAbsoluteFile();
+    FileUtil.fullyDelete(baseDir);
+  }
 
-    @Before
-    public void setUp() throws Exception {
-        handler = createNiceMock(ViewResourceHandler.class);
-        context = createNiceMock(ViewContext.class);
+  @Before
+  public void setUp() throws Exception {
+    handler = createNiceMock(ViewResourceHandler.class);
+    context = createNiceMock(ViewContext.class);
 
-        Map<String, String> properties = new HashMap<String, String>();
-        baseDir = new File(DATA_DIRECTORY)
-                .getAbsoluteFile();
-        pigStorageFile = new File("./target/BasePigTest/storage.dat")
-                .getAbsoluteFile();
+    Map<String, String> properties = new HashMap<String, String>();
+    baseDir = new File(DATA_DIRECTORY)
+        .getAbsoluteFile();
+    pigStorageFile = new File("./target/BasePigTest/storage.dat")
+        .getAbsoluteFile();
 
-        properties.put("dataworker.storagePath", pigStorageFile.toString());
-        properties.put("dataworker.templeton_url", "localhost:50111/templeton/v1");
-        properties.put("dataworker.templeton_user", "admin");
-        properties.put("dataworker.userScriptsPath", "/tmp/.pigscripts");
-        properties.put("dataworker.pigJobsPath", "/tmp/.pigjobs");
+    properties.put("dataworker.storagePath", pigStorageFile.toString());
+    properties.put("dataworker.templeton_url", "localhost:50111/templeton/v1");
+    properties.put("dataworker.templeton_user", "admin");
+    properties.put("dataworker.userScriptsPath", "/tmp/.pigscripts");
+    properties.put("dataworker.pigJobsPath", "/tmp/.pigjobs");
 
-        setupProperties(properties, baseDir);
+    setupProperties(properties, baseDir);
 
-        expect(context.getProperties()).andReturn(properties).anyTimes();
-        expect(context.getUsername()).andReturn("ambari-qa").anyTimes();
+    expect(context.getProperties()).andReturn(properties).anyTimes();
+    expect(context.getUsername()).andReturn("ambari-qa").anyTimes();
 
-        replay(handler, context);
-    }
+    replay(handler, context);
+  }
 
-    protected void setupProperties(Map<String, String> properties, File baseDir) throws Exception {
+  protected void setupProperties(Map<String, String> properties, File baseDir) throws Exception {
 
-    }
+  }
 
-    @After
-    public void tearDown() throws Exception {
+  @After
+  public void tearDown() throws Exception {
 
-    }
+  }
 
-    protected static <T> T getService(Class<T> clazz,
+  protected static <T> T getService(Class<T> clazz,
                                     final ViewResourceHandler viewResourceHandler,
                                     final ViewContext viewInstanceContext) {
-        Injector viewInstanceInjector = Guice.createInjector(new AbstractModule() {
-            @Override
-            protected void configure() {
-                bind(ViewResourceHandler.class).toInstance(viewResourceHandler);
-                bind(ViewContext.class).toInstance(viewInstanceContext);
-            }
-        });
-        return viewInstanceInjector.getInstance(clazz);
-    }
+    Injector viewInstanceInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(ViewResourceHandler.class).toInstance(viewResourceHandler);
+        bind(ViewContext.class).toInstance(viewInstanceContext);
+      }
+    });
+    return viewInstanceInjector.getInstance(clazz);
+  }
 }

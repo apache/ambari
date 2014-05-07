@@ -29,20 +29,27 @@ import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.Path;
 
+/**
+ * Pig service
+ */
 public class PigServiceRouter {
-    @Inject
-    ViewContext context;
+  @Inject
+  ViewContext context;
 
-    @Inject
-    protected ViewResourceHandler handler;
+  @Inject
+  protected ViewResourceHandler handler;
 
-    protected final static Logger LOG =
-            LoggerFactory.getLogger(PigServiceRouter.class);
+  protected final static Logger LOG =
+      LoggerFactory.getLogger(PigServiceRouter.class);
 
-    private Storage storage = null;
+  private Storage storage = null;
 
-    @Path("/help")
-    public HelpService help(){
-        return new HelpService(context, handler);
-    }
+  /**
+   * Help service
+   * @return help service
+   */
+  @Path("/help")
+  public HelpService help(){
+    return new HelpService(context, handler);
+  }
 }

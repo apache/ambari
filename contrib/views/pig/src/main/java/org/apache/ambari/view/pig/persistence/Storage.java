@@ -24,16 +24,55 @@ import org.apache.ambari.view.pig.persistence.utils.ItemNotFound;
 
 import java.util.List;
 
+/**
+ * Object storage interface
+ */
 public interface Storage {
-    void store(Indexed obj);
+  /**
+   * Persist object to DB. It should be Indexed
+   * @param obj object to save
+   */
+  void store(Indexed obj);
 
-    <T extends Indexed> T load(Class<T> model, int id) throws ItemNotFound;
+  /**
+   * Load object
+   * @param model bean class
+   * @param id identifier
+   * @param <T> bean class
+   * @return bean instance
+   * @throws ItemNotFound thrown if item with id was not found in DB
+   */
+  <T extends Indexed> T load(Class<T> model, int id) throws ItemNotFound;
 
-    <T extends Indexed> List<T> loadAll(Class<T> model, FilteringStrategy filter);
+  /**
+   * Load all objects of given bean class
+   * @param model bean class
+   * @param filter filtering strategy (return only those objects that conform condition)
+   * @param <T> bean class
+   * @return list of filtered objects
+   */
+  <T extends Indexed> List<T> loadAll(Class<T> model, FilteringStrategy filter);
 
-    <T extends Indexed> List<T> loadAll(Class<T> model);
+  /**
+   * Load all objects of given bean class
+   * @param model bean class
+   * @param <T> bean class
+   * @return list of all objects
+   */
+  <T extends Indexed> List<T> loadAll(Class<T> model);
 
-    void delete(Class model, int id);
+  /**
+   * Delete object
+   * @param model bean class
+   * @param id identifier
+   */
+  void delete(Class model, int id);
 
-    boolean exists(Class model, int id);
+  /**
+   * Check is object exists
+   * @param model bean class
+   * @param id identifier
+   * @return true if exists
+   */
+  boolean exists(Class model, int id);
 }

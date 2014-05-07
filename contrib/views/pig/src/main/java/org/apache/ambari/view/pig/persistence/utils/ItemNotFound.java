@@ -18,5 +18,8 @@
 
 package org.apache.ambari.view.pig.persistence.utils;
 
+/**
+ * Thrown when item was not found in DB
+ */
 public class ItemNotFound extends Exception {
 }

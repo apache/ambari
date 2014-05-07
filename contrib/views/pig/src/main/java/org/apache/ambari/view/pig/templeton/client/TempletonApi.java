@@ -40,125 +40,163 @@ import java.util.Map;
  * Templeton Business Delegate
  */
 public class TempletonApi {
-    private final Gson gson = new Gson();
+  private final Gson gson = new Gson();
 
-    protected final static Logger LOG =
-            LoggerFactory.getLogger(TempletonApi.class);
+  protected final static Logger LOG =
+      LoggerFactory.getLogger(TempletonApi.class);
 
-    protected WebResource service;
-    private String username;
-    private String doAs;
-    private ViewContext context;
+  protected WebResource service;
+  private String username;
+  private String doAs;
+  private ViewContext context;
 
-    /**
-     * TempletonApi constructor
-     * @param api dataworker.templeton_url
-     * @param username templeton username
-     * @param doAs doAs argument
-     * @param context context with URLStreamProvider
-     */
-    public TempletonApi(String api, String username, String doAs, ViewContext context) {
-        this.username = username;
-        this.doAs = doAs;
-        this.context = context;
-        ClientConfig config = new DefaultClientConfig();
-        config.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, Boolean.TRUE);
-        Client client = Client.create(config);
-        this.service = client.resource(api);
+  /**
+   * TempletonApi constructor
+   * @param api dataworker.templeton_url
+   * @param username templeton username
+   * @param doAs doAs argument
+   * @param context context with URLStreamProvider
+   */
+  public TempletonApi(String api, String username, String doAs, ViewContext context) {
+    this.username = username;
+    this.doAs = doAs;
+    this.context = context;
+    ClientConfig config = new DefaultClientConfig();
+    config.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, Boolean.TRUE);
+    Client client = Client.create(config);
+    this.service = client.resource(api);
+  }
+
+  /**
+   * @see #TempletonApi(String,String,String,ViewContext)
+   */
+  public TempletonApi(String api, String username, ViewContext context) {
+    this(api, username, username, context);
+  }
+
+  /**
+   * Create and queue a Pig job.
+   * @param execute String containing an entire, short pig program to run. (e.g. pwd)
+   * @param pigFile HDFS file name of a pig program to run. (One of either "execute" or "file" is required )
+   * @param statusDir A directory where Templeton will write the status of the Pig job. If
+   *                  provided, it is the caller's responsibility to remove this directory when done.
+   * @param arg Set a program argument. Optional None
+   * @return id A string containing the job ID similar to "job_201110132141_0001".
+   *         info A JSON object containing the information returned when the job was queued.
+   */
+  public JobData runPigQuery(String execute, File pigFile, String statusDir, String arg) throws IOException {
+    MultivaluedMapImpl data = new MultivaluedMapImpl();
+    if (execute != null)
+      data.add("execute", execute);
+    if (pigFile != null)
+      data.add("file", pigFile.toString());
+    if (statusDir != null)
+      data.add("statusdir", statusDir);
+    if (arg != null && !arg.isEmpty()) {
+      for(String arg1 : arg.split("\t")) {
+        data.add("arg", arg1);
+      }
     }
 
-    public TempletonApi(String api, String username, ViewContext context) {
-        this(api, username, username, context);
+    TempletonRequest<JobData> request =
+        new TempletonRequest<JobData>(service.path("pig"), JobData.class, username, doAs, context);
+
+    return request.post(data);
+  }
+
+  /**
+   * @see #runPigQuery(String, java.io.File, String, String)
+   */
+  public JobData runPigQuery(File pigFile, String statusDir, String arg) throws IOException {
+    return runPigQuery(null, pigFile, statusDir, arg);
+  }
+
+  /**
+   * @see #runPigQuery(String, java.io.File, String, String)
+   */
+  public JobData runPigQuery(String execute, String statusDir, String arg) throws IOException {
+    return runPigQuery(execute, null, statusDir, arg);
+  }
+
+  /**
+   * @see #runPigQuery(String, java.io.File, String, String)
+   */
+  public JobData runPigQuery(String execute) throws IOException {
+    return runPigQuery(execute, null, null, null);
+  }
+
+  /**
+   * Get Job information
+   * @param jobId templeton job identifier
+   * @return JobInfo object
+   * @throws IOException
+   */
+  public JobInfo checkJob(String jobId) throws IOException {
+    TempletonRequest<JobInfo> request =
+        new TempletonRequest<JobInfo>(service.path("jobs").path(jobId), JobInfo.class, username, context);
+
+    return request.get();
+  }
+
+  /**
+   * Kill templeton job
+   * @param jobId templeton job identifier
+   * @throws IOException
+   */
+  public void killJob(String jobId) throws IOException {
+    TempletonRequest<JobInfo> request =
+        new TempletonRequest<JobInfo>(service.path("jobs").path(jobId), JobInfo.class, username, context);
+
+    try {
+      request.delete();
+    } catch (IOException e) {
+      //TODO: remove this after HIVE-5835 resolved
+      LOG.debug("Ignoring 500 response from webhcat (see HIVE-5835)");
     }
+  }
 
-    /**
-     * Create and queue a Pig job.
-     * @param execute String containing an entire, short pig program to run. (e.g. pwd)
-     * @param pigFile HDFS file name of a pig program to run. (One of either "execute" or "file" is required )
-     * @param statusDir A directory where Templeton will write the status of the Pig job. If
-     *                  provided, it is the caller's responsibility to remove this directory when done.
-     * @param arg Set a program argument. Optional None
-     * @return id A string containing the job ID similar to "job_201110132141_0001".
-     *         info A JSON object containing the information returned when the job was queued.
-     */
-    public JobData runPigQuery(String execute, File pigFile, String statusDir, String arg) throws IOException {
-        MultivaluedMapImpl data = new MultivaluedMapImpl();
-        if (execute != null)
-            data.add("execute", execute);
-        if (pigFile != null)
-            data.add("file", pigFile.toString());
-        if (statusDir != null)
-            data.add("statusdir", statusDir);
-        if (arg != null && !arg.isEmpty()) {
-            for(String arg1 : arg.split("\t")) {
-                data.add("arg", arg1);
-            }
-        }
+  /**
+   * Get templeton status (version)
+   * @return templeton status
+   * @throws IOException
+   */
+  public Status status() throws IOException {
+    TempletonRequest<Status> request =
+        new TempletonRequest<Status>(service.path("status"), Status.class,
+            username, doAs, context);
+    return request.get();
+  }
 
-        TempletonRequest<JobData> request =
-                new TempletonRequest<JobData>(service.path("pig"), JobData.class, username, doAs, context);
+  /**
+   * Wrapper for json mapping of status request
+   */
+  public class Status {
+    public String status;
+    public String version;
+  }
 
-        return request.post(data);
-    }
+  /**
+   * Wrapper for json mapping of runPigQuery request
+   * @see #runPigQuery(String, java.io.File, String, String)
+   */
+  public class JobData {
+    public String id;
+  }
 
-    public JobData runPigQuery(File pigFile, String statusDir, String arg) throws IOException {
-        return runPigQuery(null, pigFile, statusDir, arg);
-    }
+  /**
+   * Wrapper for json mapping of job status
+   */
+  public class JobInfo {
+    public Map<String, Object> status;
+    public Map<String, Object> profile;
+    public Map<String, Object> userargs;
 
-    public JobData runPigQuery(String execute, String statusDir, String arg) throws IOException {
-        return runPigQuery(execute, null, statusDir, arg);
-    }
-
-    public JobData runPigQuery(String execute) throws IOException {
-        return runPigQuery(execute, null, null, null);
-    }
-
-    public JobInfo checkJob(String jobId) throws IOException {
-        TempletonRequest<JobInfo> request =
-                new TempletonRequest<JobInfo>(service.path("jobs").path(jobId), JobInfo.class, username, context);
-
-        return request.get();
-    }
-
-    public void killJob(String jobId) throws IOException {
-        TempletonRequest<JobInfo> request =
-                new TempletonRequest<JobInfo>(service.path("jobs").path(jobId), JobInfo.class, username, context);
-
-        try {
-             request.delete();
-        } catch (IOException e) {
-            //TODO: remove this after HIVE-5835 resolved
-            LOG.debug("Ignoring 500 response from webhcat (see HIVE-5835)");
-        }
-    }
-
-    public Status status() throws IOException {
-        TempletonRequest<Status> request =
-                new TempletonRequest<Status>(service.path("status"), Status.class,
-                username, doAs, context);
-        return request.get();
-    }
-
-    public class Status {
-        public String status;
-        public String version;
-    }
-
-    public class JobData {
-        public String id;
-    }
-
-    public class JobInfo {
-        public Map<String, Object> status;
-        public Map<String, Object> profile;
-        public Map<String, Object> userargs;
-
-        public String id;
-        public String parentId;
-        public String percentComplete;
-        public Integer exitValue;
-        public String user;
-        public String callback;
-        public String completed;
-    }
+    public String id;
+    public String parentId;
+    public String percentComplete;
+    public Integer exitValue;
+    public String user;
+    public String callback;
+    public String completed;
+  }
 }

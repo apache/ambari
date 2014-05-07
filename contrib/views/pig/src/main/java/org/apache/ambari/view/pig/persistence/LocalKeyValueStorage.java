@@ -31,31 +31,39 @@ import javax.xml.ws.WebServiceException;
  * Path to file should be in 'dataworker.storagePath' parameter
  */
 public class LocalKeyValueStorage extends KeyValueStorage {
-    private final static Logger LOG =
-            LoggerFactory.getLogger(LocalKeyValueStorage.class);
+  private final static Logger LOG =
+      LoggerFactory.getLogger(LocalKeyValueStorage.class);
 
-    private PersistentConfiguration config = null;
+  private PersistentConfiguration config = null;
 
-    public LocalKeyValueStorage(ViewContext context) {
-        super(context);
+  /**
+   * Constructor
+   * @param context View Context instance
+   */
+  public LocalKeyValueStorage(ViewContext context) {
+    super(context);
+  }
+
+  /**
+   * Returns config instance
+   * @return config instance
+   */
+  @Override
+  protected synchronized PersistentConfiguration getConfig() {
+    if (config == null) {
+      String fileName = context.getProperties().get("dataworker.storagePath");
+      if (fileName == null) {
+        String msg = "dataworker.storagePath is not configured!";
+        LOG.error(msg);
+        throw new WebServiceException(msg);
+      }
+      try {
+        config = new PersistentConfiguration(fileName);
+      } catch (ConfigurationException e) {
+        e.printStackTrace();
+      }
     }
-
-    @Override
-    protected synchronized PersistentConfiguration getConfig() {
-        if (config == null) {
-            String fileName = context.getProperties().get("dataworker.storagePath");
-            if (fileName == null) {
-                String msg = "dataworker.storagePath is not configured!";
-                LOG.error(msg);
-                throw new WebServiceException(msg);
-            }
-            try {
-                config = new PersistentConfiguration(fileName);
-            } catch (ConfigurationException e) {
-                e.printStackTrace();
-            }
-        }
-        return config;
-    }
+    return config;
+  }
 
 }

@@ -46,109 +46,112 @@ import java.util.List;
  *      get all scripts of current user
  */
 public class ScriptService extends BaseService {
-    @Inject
-    ViewResourceHandler handler;
+  @Inject
+  ViewResourceHandler handler;
 
-    protected ScriptResourceManager resourceManager = null;
-    protected final static Logger LOG =
-            LoggerFactory.getLogger(ScriptService.class);
+  protected ScriptResourceManager resourceManager = null;
+  protected final static Logger LOG =
+      LoggerFactory.getLogger(ScriptService.class);
 
-    protected synchronized PersonalCRUDResourceManager<PigScript> getResourceManager() {
-        if (resourceManager == null) {
-            resourceManager = new ScriptResourceManager(context);
-        }
-        return resourceManager;
+  protected synchronized PersonalCRUDResourceManager<PigScript> getResourceManager() {
+    if (resourceManager == null) {
+      resourceManager = new ScriptResourceManager(context);
+    }
+    return resourceManager;
+  }
+
+  /**
+   * Get single item
+   */
+  @GET
+  @Path("{scriptId}")
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response getScript(@PathParam("scriptId") String scriptId) {
+    PigScript script = null;
+    try {
+      script = getResourceManager().read(scriptId);
+    } catch (ItemNotFound itemNotFound) {
+      return Response.status(404).build();
+    }
+    JSONObject object = new JSONObject();
+    object.put("script", script);
+    return Response.ok(object).build();
+  }
+
+  /**
+   * Delete single item
+   */
+  @DELETE
+  @Path("{scriptId}")
+  public Response deleteScript(@PathParam("scriptId") String scriptId) {
+    try {
+      getResourceManager().delete(scriptId);
+    } catch (ItemNotFound itemNotFound) {
+      return Response.status(404).build();
+    }
+    return Response.status(204).build();
+  }
+
+  /**
+   * Get all scripts
+   */
+  @GET
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response getScriptList() {
+    LOG.debug("Getting all scripts");
+    List allScripts = getResourceManager().readAll(
+        new OnlyOwnersFilteringStrategy(this.context.getUsername()));
+
+    JSONObject object = new JSONObject();
+    object.put("scripts", allScripts);
+    return Response.ok(object).build();
+  }
+
+  /**
+   * Update item
+   */
+  @PUT
+  @Path("{scriptId}")
+  @Consumes(MediaType.APPLICATION_JSON)
+  public Response updateScript(PigScriptRequest request,
+                               @PathParam("scriptId") String scriptId) {
+    try {
+      getResourceManager().update(request.script, scriptId);
+    } catch (ItemNotFound itemNotFound) {
+      return Response.status(404).build();
+    }
+    return Response.status(204).build();
+  }
+
+  /**
+   * Create script
+   */
+  @POST
+  @Consumes(MediaType.APPLICATION_JSON)
+  public Response saveScript(PigScriptRequest request, @Context HttpServletResponse response,
+                             @Context UriInfo ui) {
+    getResourceManager().create(request.script);
+
+    PigScript script = null;
+
+    try {
+      script = getResourceManager().read(request.script.getId());
+    } catch (ItemNotFound itemNotFound) {
+      return Response.status(404).build();
     }
 
-    /**
-     * Get single item
-     */
-    @GET
-    @Path("{scriptId}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getScript(@PathParam("scriptId") String scriptId) {
-        PigScript script = null;
-        try {
-            script = getResourceManager().read(scriptId);
-        } catch (ItemNotFound itemNotFound) {
-            return Response.status(404).build();
-        }
-        JSONObject object = new JSONObject();
-        object.put("script", script);
-        return Response.ok(object).build();
-    }
+    response.setHeader("Location",
+        String.format("%s/%s", ui.getAbsolutePath().toString(), request.script.getId()));
 
-    /**
-     * Delete single item
-     */
-    @DELETE
-    @Path("{scriptId}")
-    public Response deleteScript(@PathParam("scriptId") String scriptId) {
-        try {
-            getResourceManager().delete(scriptId);
-        } catch (ItemNotFound itemNotFound) {
-            return Response.status(404).build();
-        }
-        return Response.status(204).build();
-    }
+    JSONObject object = new JSONObject();
+    object.put("script", script);
+    return Response.ok(object).status(201).build();
+  }
 
-    /**
-     * Get all scripts
-     */
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getScriptList() {
-        LOG.debug("Getting all scripts");
-        List allScripts = getResourceManager().readAll(
-                new OnlyOwnersFilteringStrategy(this.context.getUsername()));
-
-        JSONObject object = new JSONObject();
-        object.put("scripts", allScripts);
-        return Response.ok(object).build();
-    }
-
-    /**
-     * Update item
-     */
-    @PUT
-    @Path("{scriptId}")
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response updateScript(PigScriptRequest request,
-                                 @PathParam("scriptId") String scriptId) {
-        try {
-            getResourceManager().update(request.script, scriptId);
-        } catch (ItemNotFound itemNotFound) {
-            return Response.status(404).build();
-        }
-        return Response.status(204).build();
-    }
-
-    /**
-     * Create script
-     */
-    @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response saveScript(PigScriptRequest request, @Context HttpServletResponse response,
-                               @Context UriInfo ui) {
-        getResourceManager().create(request.script);
-
-        PigScript script = null;
-
-        try {
-            script = getResourceManager().read(request.script.getId());
-        } catch (ItemNotFound itemNotFound) {
-            return Response.status(404).build();
-        }
-
-        response.setHeader("Location",
-                String.format("%s/%s", ui.getAbsolutePath().toString(), request.script.getId()));
-
-        JSONObject object = new JSONObject();
-        object.put("script", script);
-        return Response.ok(object).status(201).build();
-    }
-
-    public static class PigScriptRequest {
-        public PigScript script;
-    }
+  /**
+   * Wrapper object for json mapping
+   */
+  public static class PigScriptRequest {
+    public PigScript script;
+  }
 }

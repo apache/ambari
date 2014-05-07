@@ -18,7 +18,19 @@
 
 package org.apache.ambari.view.pig.persistence.utils;
 
+/**
+ * Interface to represent item with owner
+ */
 public interface Owned {
-    String getOwner();
-    void setOwner(String owner);
+  /**
+   * Get the owner
+   * @return owner
+   */
+  String getOwner();
+
+  /**
+   * Set owner
+   * @param owner owner
+   */
+  void setOwner(String owner);
 }

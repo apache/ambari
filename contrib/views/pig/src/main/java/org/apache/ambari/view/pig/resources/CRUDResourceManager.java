@@ -32,60 +32,92 @@ import java.util.List;
  * @param <T> Data type with ID
  */
 abstract public class CRUDResourceManager<T extends Indexed> {
-    private Storage storage = null;
+  private Storage storage = null;
 
-    protected final Class<T> resourceClass;
+  protected final Class<T> resourceClass;
 
-    public CRUDResourceManager(Class<T> responseClass) {
-        this.resourceClass = responseClass;
+  /**
+   * Constructor
+   * @param responseClass model class
+   */
+  public CRUDResourceManager(Class<T> responseClass) {
+    this.resourceClass = responseClass;
+  }
+  // CRUD operations
+
+  /**
+   * Create operation
+   * @param object object
+   * @return model object
+   */
+  public T create(T object) {
+    object.setId(null);
+    return this.save(object);
+  }
+
+  /**
+   * Read operation
+   * @param id identifier
+   * @return model object
+   * @throws ItemNotFound
+   */
+  public T read(String id) throws ItemNotFound {
+    T object = null;
+    object = getPigStorage().load(this.resourceClass, Integer.parseInt(id));
+    if (!checkPermissions(object))
+      throw new ItemNotFound();
+    return object;
+  }
+
+  /**
+   * Read all objects
+   * @param filteringStrategy filtering strategy
+   * @return list of filtered objects
+   */
+  public List<T> readAll(FilteringStrategy filteringStrategy) {
+    return getPigStorage().loadAll(this.resourceClass, filteringStrategy);
+  }
+
+  /**
+   * Update operation
+   * @param newObject new object
+   * @param id identifier of previous object
+   * @return model object
+   * @throws ItemNotFound
+   */
+  public T update(T newObject, String id) throws ItemNotFound {
+    newObject.setId(id);
+    this.save(newObject);
+    return newObject;
+  }
+
+  /**
+   * Delete operation
+   * @param resourceId object identifier
+   * @throws ItemNotFound
+   */
+  public void delete(String resourceId) throws ItemNotFound {
+    int id = Integer.parseInt(resourceId);
+    if (!getPigStorage().exists(this.resourceClass, id)) {
+      throw new ItemNotFound();
     }
-    // CRUD operations
+    getPigStorage().delete(this.resourceClass, id);
+  }
 
-    public T create(T object) {
-        object.setId(null);
-        return this.save(object);
+  // UTILS
+
+  protected T save(T object) {
+    getPigStorage().store(object);
+    return object;
+  }
+
+  protected Storage getPigStorage() {
+    if (storage == null) {
+      storage = StorageUtil.getStorage(getContext());
     }
+    return storage;
+  }
 
-    public T read(String id) throws ItemNotFound {
-        T object = null;
-        object = getPigStorage().load(this.resourceClass, Integer.parseInt(id));
-        if (!checkPermissions(object))
-            throw new ItemNotFound();
-        return object;
-    }
-
-    public List<T> readAll(FilteringStrategy filteringStrategy) {
-        return getPigStorage().loadAll(this.resourceClass, filteringStrategy);
-    }
-
-    public T update(T newObject, String id) throws ItemNotFound {
-        newObject.setId(id);
-        this.save(newObject);
-        return newObject;
-    }
-
-    public void delete(String resourceId) throws ItemNotFound {
-        int id = Integer.parseInt(resourceId);
-        if (!getPigStorage().exists(this.resourceClass, id)) {
-            throw new ItemNotFound();
-        }
-        getPigStorage().delete(this.resourceClass, id);
-    }
-
-    // UTILS
-
-    protected T save(T object) {
-        getPigStorage().store(object);
-        return object;
-    }
-
-    protected Storage getPigStorage() {
-        if (storage == null) {
-            storage = StorageUtil.getStorage(getContext());
-        }
-        return storage;
-    }
-
-    protected abstract boolean checkPermissions(T object);
-    protected abstract ViewContext getContext();
+  protected abstract boolean checkPermissions(T object);
+  protected abstract ViewContext getContext();
 }

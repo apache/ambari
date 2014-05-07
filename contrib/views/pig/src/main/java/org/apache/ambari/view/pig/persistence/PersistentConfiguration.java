@@ -24,19 +24,28 @@ import org.apache.commons.configuration.reloading.FileChangedReloadingStrategy;
 
 import java.io.File;
 
+/**
+ * Configuration enables all necessary options for PropertiesConfiguration:
+ * auto-save, auto-reloading, no delimiter parsing and other
+ */
 public class PersistentConfiguration extends PropertiesConfiguration {
-    public PersistentConfiguration(String fileName) throws ConfigurationException {
-        super();
+  /**
+   * Constructor
+   * @param fileName path to data file
+   * @throws ConfigurationException
+   */
+  public PersistentConfiguration(String fileName) throws ConfigurationException {
+    super();
 
-        File config = new File(fileName);
-        setFile(config);
-        this.setAutoSave(true);
-        this.setReloadingStrategy(new FileChangedReloadingStrategy());
-        this.setDelimiterParsingDisabled(true);
-        this.setListDelimiter((char) 0);
+    File config = new File(fileName);
+    setFile(config);
+    this.setAutoSave(true);
+    this.setReloadingStrategy(new FileChangedReloadingStrategy());
+    this.setDelimiterParsingDisabled(true);
+    this.setListDelimiter((char) 0);
 
-        if (config.exists()) {
-            this.load();
-        }
+    if (config.exists()) {
+      this.load();
     }
+  }
 }

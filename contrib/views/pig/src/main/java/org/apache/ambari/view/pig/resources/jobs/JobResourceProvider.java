@@ -29,72 +29,75 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Resource provider for Jobs
+ */
 public class JobResourceProvider implements ResourceProvider<PigJob> {
-    @Inject
-    ViewContext context;
+  @Inject
+  ViewContext context;
 
-    protected JobResourceManager resourceManager = null;
+  protected JobResourceManager resourceManager = null;
 
-    protected synchronized JobResourceManager getResourceManager() {
-        if (resourceManager == null) {
-            resourceManager = new JobResourceManager(context);
-        }
-        return resourceManager;
+  protected synchronized JobResourceManager getResourceManager() {
+    if (resourceManager == null) {
+      resourceManager = new JobResourceManager(context);
     }
+    return resourceManager;
+  }
 
-    @Override
-    public PigJob getResource(String resourceId, Set<String> strings) throws SystemException, NoSuchResourceException, UnsupportedPropertyException {
-        try {
-            return getResourceManager().read(resourceId);
-        } catch (ItemNotFound itemNotFound) {
-            throw new NoSuchResourceException(resourceId);
-        }
+  @Override
+  public PigJob getResource(String resourceId, Set<String> strings) throws SystemException, NoSuchResourceException, UnsupportedPropertyException {
+    try {
+      return getResourceManager().read(resourceId);
+    } catch (ItemNotFound itemNotFound) {
+      throw new NoSuchResourceException(resourceId);
     }
+  }
 
-    @Override
-    public Set<PigJob> getResources(ReadRequest readRequest) throws SystemException, NoSuchResourceException, UnsupportedPropertyException {
-        return new HashSet<PigJob>(getResourceManager().readAll(
-                new OnlyOwnersFilteringStrategy(this.context.getUsername())));
-    }
+  @Override
+  public Set<PigJob> getResources(ReadRequest readRequest) throws SystemException, NoSuchResourceException, UnsupportedPropertyException {
+    return new HashSet<PigJob>(getResourceManager().readAll(
+        new OnlyOwnersFilteringStrategy(this.context.getUsername())));
+  }
 
-    @Override
-    public void createResource(String s, Map<String, Object> stringObjectMap) throws SystemException, ResourceAlreadyExistsException, NoSuchResourceException, UnsupportedPropertyException {
-        PigJob job = null;
-        try {
-            job = new PigJob(stringObjectMap);
-        } catch (InvocationTargetException e) {
-            throw new SystemException("error on creating resource", e);
-        } catch (IllegalAccessException e) {
-            throw new SystemException("error on creating resource", e);
-        }
-        getResourceManager().create(job);
+  @Override
+  public void createResource(String s, Map<String, Object> stringObjectMap) throws SystemException, ResourceAlreadyExistsException, NoSuchResourceException, UnsupportedPropertyException {
+    PigJob job = null;
+    try {
+      job = new PigJob(stringObjectMap);
+    } catch (InvocationTargetException e) {
+      throw new SystemException("error on creating resource", e);
+    } catch (IllegalAccessException e) {
+      throw new SystemException("error on creating resource", e);
     }
+    getResourceManager().create(job);
+  }
 
-    @Override
-    public boolean updateResource(String resourceId, Map<String, Object> stringObjectMap) throws SystemException, NoSuchResourceException, UnsupportedPropertyException {
-        PigJob job = null;
-        try {
-            job = new PigJob(stringObjectMap);
-        } catch (InvocationTargetException e) {
-            throw new SystemException("error on updating resource", e);
-        } catch (IllegalAccessException e) {
-            throw new SystemException("error on updating resource", e);
-        }
-        try {
-            getResourceManager().update(job, resourceId);
-        } catch (ItemNotFound itemNotFound) {
-            throw new NoSuchResourceException(resourceId);
-        }
-        return true;
+  @Override
+  public boolean updateResource(String resourceId, Map<String, Object> stringObjectMap) throws SystemException, NoSuchResourceException, UnsupportedPropertyException {
+    PigJob job = null;
+    try {
+      job = new PigJob(stringObjectMap);
+    } catch (InvocationTargetException e) {
+      throw new SystemException("error on updating resource", e);
+    } catch (IllegalAccessException e) {
+      throw new SystemException("error on updating resource", e);
     }
+    try {
+      getResourceManager().update(job, resourceId);
+    } catch (ItemNotFound itemNotFound) {
+      throw new NoSuchResourceException(resourceId);
+    }
+    return true;
+  }
 
-    @Override
-    public boolean deleteResource(String resourceId) throws SystemException, NoSuchResourceException, UnsupportedPropertyException {
-        try {
-            getResourceManager().delete(resourceId);
-        } catch (ItemNotFound itemNotFound) {
-            throw new NoSuchResourceException(resourceId);
-        }
-        return true;
+  @Override
+  public boolean deleteResource(String resourceId) throws SystemException, NoSuchResourceException, UnsupportedPropertyException {
+    try {
+      getResourceManager().delete(resourceId);
+    } catch (ItemNotFound itemNotFound) {
+      throw new NoSuchResourceException(resourceId);
     }
+    return true;
+  }
 }

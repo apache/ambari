@@ -27,33 +27,33 @@ import org.junit.*;
 import javax.ws.rs.core.Response;
 
 public class HelpTest extends HDFSTest {
-    private HelpService helpService;
+  private HelpService helpService;
 
-    @Override
-    @Before
-    public void setUp() throws Exception {
-        super.setUp();
-        helpService = new HelpService(context, handler);
-    }
+  @Override
+  @Before
+  public void setUp() throws Exception {
+    super.setUp();
+    helpService = new HelpService(context, handler);
+  }
 
-    @BeforeClass
-    public static void startUp() throws Exception {
-        HDFSTest.startUp(); // super
-    }
+  @BeforeClass
+  public static void startUp() throws Exception {
+    HDFSTest.startUp(); // super
+  }
 
-    @AfterClass
-    public static void shutDown() throws Exception {
-        HDFSTest.shutDown(); // super
-        FileService.setHdfsApi(null); //cleanup API connection
-    }
+  @AfterClass
+  public static void shutDown() throws Exception {
+    HDFSTest.shutDown(); // super
+    FileService.setHdfsApi(null); //cleanup API connection
+  }
 
-    @Test
-    public void configTest() {
-        Response response = helpService.config();
-        Assert.assertEquals(200, response.getStatus());
+  @Test
+  public void configTest() {
+    Response response = helpService.config();
+    Assert.assertEquals(200, response.getStatus());
 
-        JSONObject obj = (JSONObject)response.getEntity();
-        Assert.assertTrue(obj.containsKey("dataworker.defaultFs"));
-        Assert.assertEquals(hdfsURI, obj.get("dataworker.defaultFs"));
-    }
+    JSONObject obj = (JSONObject)response.getEntity();
+    Assert.assertTrue(obj.containsKey("dataworker.defaultFs"));
+    Assert.assertEquals(hdfsURI, obj.get("dataworker.defaultFs"));
+  }
 }

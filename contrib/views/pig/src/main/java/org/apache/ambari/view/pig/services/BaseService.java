@@ -35,83 +35,95 @@ import java.io.IOException;
 import java.util.HashMap;
 
 
+/**
+ * Parent service
+ */
 public class BaseService {
-    @Inject
-    protected ViewContext context;
+  @Inject
+  protected ViewContext context;
 
-    protected final static Logger LOG =
-            LoggerFactory.getLogger(BaseService.class);
+  protected final static Logger LOG =
+      LoggerFactory.getLogger(BaseService.class);
 
-    private Storage storage;
+  private Storage storage;
 
-    public Storage getStorage() {
-        if (this.storage == null) {
-            storage = StorageUtil.getStorage(context);
-        }
-        return storage;
+  protected Storage getStorage() {
+    if (this.storage == null) {
+      storage = StorageUtil.getStorage(context);
     }
+    return storage;
+  }
 
-    public void setStorage(Storage storage) {
-        this.storage = storage;
+  protected void setStorage(Storage storage) {
+    this.storage = storage;
+  }
+
+  private static HdfsApi hdfsApi = null;
+
+  /**
+   * Returns HdfsApi object
+   * @param context View Context instance
+   * @return Hdfs business delegate object
+   */
+  public static HdfsApi getHdfsApi(ViewContext context) {
+    if (hdfsApi == null) {
+      Thread.currentThread().setContextClassLoader(null);
+
+      String userName = context.getUsername();
+
+      String defaultFS = context.getProperties().get("dataworker.defaultFs");
+      if (defaultFS == null) {
+        String message = "dataworker.defaultFs is not configured!";
+        LOG.error(message);
+        throw new WebServiceException(message);
+      }
+
+      try {
+        hdfsApi = new HdfsApi(defaultFS, userName);
+        LOG.info("HdfsApi connected OK");
+      } catch (IOException e) {
+        String message = "HdfsApi IO error: " + e.getMessage();
+        LOG.error(message);
+        throw new WebServiceException(message, e);
+      } catch (InterruptedException e) {
+        String message = "HdfsApi Interrupted error: " + e.getMessage();
+        LOG.error(message);
+        throw new WebServiceException(message, e);
+      }
     }
+    return hdfsApi;
+  }
 
-    private static HdfsApi hdfsApi = null;
+  protected HdfsApi getHdfsApi()  {
+    return getHdfsApi(context);
+  }
 
-    public static HdfsApi getHdfsApi(ViewContext context) {
-        if (hdfsApi == null) {
-            Thread.currentThread().setContextClassLoader(null);
+  /**
+   * Set HdfsApi delegate
+   * @param api HdfsApi instance
+   */
+  public static void setHdfsApi(HdfsApi api)  {
+    hdfsApi = api;
+  }
 
-            String userName = context.getUsername();
+  protected static Response badRequestResponse(String message) {
+    HashMap<String, Object> response = new HashMap<String, Object>();
+    response.put("message", message);
+    response.put("status", 400);
+    return Response.status(400).entity(new JSONObject(response)).type(MediaType.APPLICATION_JSON).build();
+  }
 
-            String defaultFS = context.getProperties().get("dataworker.defaultFs");
-            if (defaultFS == null) {
-                String message = "dataworker.defaultFs is not configured!";
-                LOG.error(message);
-                throw new WebServiceException(message);
-            }
+  protected static Response serverErrorResponse(String message) {
+    HashMap<String, Object> response = new HashMap<String, Object>();
+    response.put("message", message);
+    response.put("status", 500);
+    return Response.status(500).entity(new JSONObject(response)).type(MediaType.APPLICATION_JSON).build();
+  }
 
-            try {
-                hdfsApi = new HdfsApi(defaultFS, userName);
-                LOG.info("HdfsApi connected OK");
-            } catch (IOException e) {
-                String message = "HdfsApi IO error: " + e.getMessage();
-                LOG.error(message);
-                throw new WebServiceException(message, e);
-            } catch (InterruptedException e) {
-                String message = "HdfsApi Interrupted error: " + e.getMessage();
-                LOG.error(message);
-                throw new WebServiceException(message, e);
-            }
-        }
-        return hdfsApi;
-    }
-
-    public HdfsApi getHdfsApi()  {
-        return getHdfsApi(context);
-    }
-
-    public static HdfsApi setHdfsApi(HdfsApi api)  {
-        return hdfsApi = api;
-    }
-
-    public static Response badRequestResponse(String message) {
-        HashMap<String, Object> response = new HashMap<String, Object>();
-        response.put("message", message);
-        response.put("status", 400);
-        return Response.status(400).entity(new JSONObject(response)).type(MediaType.APPLICATION_JSON).build();
-    }
-
-    public static Response serverErrorResponse(String message) {
-        HashMap<String, Object> response = new HashMap<String, Object>();
-        response.put("message", message);
-        response.put("status", 500);
-        return Response.status(500).entity(new JSONObject(response)).type(MediaType.APPLICATION_JSON).build();
-    }
-
-    public static Response notFoundResponse(String message) {
-        HashMap<String, Object> response = new HashMap<String, Object>();
-        response.put("message", message);
-        response.put("status", 404);
-        return Response.status(404).entity(new JSONObject(response)).type(MediaType.APPLICATION_JSON).build();
-    }
+  protected static Response notFoundResponse(String message) {
+    HashMap<String, Object> response = new HashMap<String, Object>();
+    response.put("message", message);
+    response.put("status", 404);
+    return Response.status(404).entity(new JSONObject(response)).type(MediaType.APPLICATION_JSON).build();
+  }
 }

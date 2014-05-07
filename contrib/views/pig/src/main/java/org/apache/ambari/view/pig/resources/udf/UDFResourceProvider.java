@@ -32,74 +32,77 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Resource provider for UDFs
+ */
 public class UDFResourceProvider implements ResourceProvider<UDF> {
-    @Inject
-    ViewContext context;
+  @Inject
+  ViewContext context;
 
-    protected UDFResourceManager resourceManager = null;
-    protected final static Logger LOG =
-            LoggerFactory.getLogger(UDFResourceProvider.class);
+  protected UDFResourceManager resourceManager = null;
+  protected final static Logger LOG =
+      LoggerFactory.getLogger(UDFResourceProvider.class);
 
-    protected synchronized PersonalCRUDResourceManager<UDF> getResourceManager() {
-        if (resourceManager == null) {
-            resourceManager = new UDFResourceManager(context);
-        }
-        return resourceManager;
+  protected synchronized PersonalCRUDResourceManager<UDF> getResourceManager() {
+    if (resourceManager == null) {
+      resourceManager = new UDFResourceManager(context);
     }
+    return resourceManager;
+  }
 
-    @Override
-    public UDF getResource(String resourceId, Set<String> properties) throws SystemException, NoSuchResourceException, UnsupportedPropertyException {
-        try {
-            return getResourceManager().read(resourceId);
-        } catch (ItemNotFound itemNotFound) {
-            throw new NoSuchResourceException(resourceId);
-        }
+  @Override
+  public UDF getResource(String resourceId, Set<String> properties) throws SystemException, NoSuchResourceException, UnsupportedPropertyException {
+    try {
+      return getResourceManager().read(resourceId);
+    } catch (ItemNotFound itemNotFound) {
+      throw new NoSuchResourceException(resourceId);
     }
+  }
 
-    @Override
-    public Set<UDF> getResources(ReadRequest readRequest) throws SystemException, NoSuchResourceException, UnsupportedPropertyException {
-        return new HashSet<UDF>(getResourceManager().readAll(
-                new OnlyOwnersFilteringStrategy(this.context.getUsername())));
-    }
+  @Override
+  public Set<UDF> getResources(ReadRequest readRequest) throws SystemException, NoSuchResourceException, UnsupportedPropertyException {
+    return new HashSet<UDF>(getResourceManager().readAll(
+        new OnlyOwnersFilteringStrategy(this.context.getUsername())));
+  }
 
-    @Override
-    public void createResource(String s, Map<String, Object> stringObjectMap) throws SystemException, ResourceAlreadyExistsException, NoSuchResourceException, UnsupportedPropertyException {
-        UDF udf = null;
-        try {
-            udf = new UDF(stringObjectMap);
-        } catch (InvocationTargetException e) {
-            throw new SystemException("error on creating resource", e);
-        } catch (IllegalAccessException e) {
-            throw new SystemException("error on creating resource", e);
-        }
-        getResourceManager().create(udf);
+  @Override
+  public void createResource(String s, Map<String, Object> stringObjectMap) throws SystemException, ResourceAlreadyExistsException, NoSuchResourceException, UnsupportedPropertyException {
+    UDF udf = null;
+    try {
+      udf = new UDF(stringObjectMap);
+    } catch (InvocationTargetException e) {
+      throw new SystemException("error on creating resource", e);
+    } catch (IllegalAccessException e) {
+      throw new SystemException("error on creating resource", e);
     }
+    getResourceManager().create(udf);
+  }
 
-    @Override
-    public boolean updateResource(String resourceId, Map<String, Object> stringObjectMap) throws SystemException, NoSuchResourceException, UnsupportedPropertyException {
-        UDF udf = null;
-        try {
-            udf = new UDF(stringObjectMap);
-        } catch (InvocationTargetException e) {
-            throw new SystemException("error on updating resource", e);
-        } catch (IllegalAccessException e) {
-            throw new SystemException("error on updating resource", e);
-        }
-        try {
-            getResourceManager().update(udf, resourceId);
-        } catch (ItemNotFound itemNotFound) {
-            throw new NoSuchResourceException(resourceId);
-        }
-        return true;
+  @Override
+  public boolean updateResource(String resourceId, Map<String, Object> stringObjectMap) throws SystemException, NoSuchResourceException, UnsupportedPropertyException {
+    UDF udf = null;
+    try {
+      udf = new UDF(stringObjectMap);
+    } catch (InvocationTargetException e) {
+      throw new SystemException("error on updating resource", e);
+    } catch (IllegalAccessException e) {
+      throw new SystemException("error on updating resource", e);
     }
+    try {
+      getResourceManager().update(udf, resourceId);
+    } catch (ItemNotFound itemNotFound) {
+      throw new NoSuchResourceException(resourceId);
+    }
+    return true;
+  }
 
-    @Override
-    public boolean deleteResource(String resourceId) throws SystemException, NoSuchResourceException, UnsupportedPropertyException {
-        try {
-            getResourceManager().delete(resourceId);
-        } catch (ItemNotFound itemNotFound) {
-            throw new NoSuchResourceException(resourceId);
-        }
-        return true;
+  @Override
+  public boolean deleteResource(String resourceId) throws SystemException, NoSuchResourceException, UnsupportedPropertyException {
+    try {
+      getResourceManager().delete(resourceId);
+    } catch (ItemNotFound itemNotFound) {
+      throw new NoSuchResourceException(resourceId);
     }
+    return true;
+  }
 }
