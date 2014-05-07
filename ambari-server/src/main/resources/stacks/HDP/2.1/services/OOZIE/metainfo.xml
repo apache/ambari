@@ -68,6 +68,10 @@
               <type>rpm</type>
               <name>extjs</name>
             </package>
+            <package>
+              <type>rpm</type>
+              <name>libxml2-utils</name>
+            </package>
           </packages>
         </osSpecific>
         
