@@ -42,7 +42,7 @@ class TestMySqlServer(RMFTestCase):
     )
     self.assertResourceCalled('Execute', 'service mysql start',
                        logoutput = True,
-                       tries = 1,
+                       not_if = 'service mysql status | grep running'
     )
     self.assertNoMoreResources()
 
@@ -57,7 +57,7 @@ class TestMySqlServer(RMFTestCase):
     )
     self.assertResourceCalled('Execute', 'service mysql stop',
                               logoutput = True,
-                              tries = 1,
+                              not_if = 'service mysql status | grep running',
     )
     self.assertNoMoreResources()
 
@@ -82,7 +82,7 @@ class TestMySqlServer(RMFTestCase):
     )
     self.assertResourceCalled('Execute', 'service mysql start',
                               logoutput = True,
-                              tries = 1,
+                              not_if = 'service mysql status | grep running'
                               )
     self.assertNoMoreResources()
 
@@ -97,7 +97,7 @@ class TestMySqlServer(RMFTestCase):
     )
     self.assertResourceCalled('Execute', 'service mysql stop',
                               logoutput = True,
-                              tries = 1,
+                              not_if = 'service mysql status | grep running'
                               )
     self.assertNoMoreResources()
 
@@ -106,7 +106,7 @@ class TestMySqlServer(RMFTestCase):
     )
     self.assertResourceCalled('Execute', 'service mysql start',
       logoutput = True,
-      tries = 1,
+      not_if = 'service mysql status | grep running'
     )
     self.assertResourceCalled('File', '/tmp/addMysqlUser.sh',
       content = StaticFile('addMysqlUser.sh'),
@@ -123,7 +123,7 @@ class TestMySqlServer(RMFTestCase):
     )
     self.assertResourceCalled('Execute', 'service mysql start',
       logoutput = True,
-      tries = 1,
+      not_if = 'service mysql status | grep running'
     )
     self.assertResourceCalled('File', '/tmp/addMysqlUser.sh',
       content = StaticFile('addMysqlUser.sh'),
