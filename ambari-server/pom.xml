@@ -350,12 +350,6 @@
                   <location>src/main/resources/Ambari-DDL-MySQL-DROP.sql</location>
                 </source>
                 <source>
-                  <location>src/main/resources/hive-schema-0.10.0.oracle.sql</location>
-                </source>
-                <source>
-                  <location>src/main/resources/hive-schema-0.12.0.oracle.sql</location>
-                </source>
-                <source>
                   <location>${project.build.directory}/DBConnectionVerification.jar</location>
                 </source>
                 <source>
@@ -647,22 +641,6 @@
           </data>
           <data>
             <src>src/main/resources/Ambari-DDL-MySQL-DROP.sql</src>
-            <type>file</type>
-            <mapper>
-              <type>perm</type>
-              <prefix>/var/lib/ambari-server/resources</prefix>
-            </mapper>
-          </data>
-          <data>
-            <src>src/main/resources/hive-schema-0.10.0.oracle.sql</src>
-            <type>file</type>
-            <mapper>
-              <type>perm</type>
-              <prefix>/var/lib/ambari-server/resources</prefix>
-            </mapper>
-          </data>
-          <data>
-            <src>src/main/resources/hive-schema-0.12.0.oracle.sql</src>
             <type>file</type>
             <mapper>
               <type>perm</type>
