@@ -29,53 +29,62 @@ import java.util.concurrent.Callable;
  * @param <T> Data type with ID and Owner
  */
 public class PersonalCRUDResourceManager<T extends PersonalResource> extends CRUDResourceManager<T> {
-    protected ViewContext context;
-    protected boolean ignorePermissions = false;
+  protected ViewContext context;
+  protected boolean ignorePermissions = false;
 
-    public PersonalCRUDResourceManager(Class<T> responseClass, ViewContext context) {
-        super(responseClass);
-        this.context = context;
+  /**
+   * Constructor
+   * @param responseClass model class
+   * @param context View Context instance
+   */
+  public PersonalCRUDResourceManager(Class<T> responseClass, ViewContext context) {
+    super(responseClass);
+    this.context = context;
+  }
+
+  @Override
+  public T update(T newObject, String id) throws ItemNotFound {
+    T object = getPigStorage().load(this.resourceClass, Integer.parseInt(id));
+    if (object.getOwner().compareTo(this.context.getUsername()) != 0) {
+      throw new ItemNotFound();
     }
 
-    public T update(T newObject, String id) throws ItemNotFound {
-        T object = getPigStorage().load(this.resourceClass, Integer.parseInt(id));
-        if (object.getOwner().compareTo(this.context.getUsername()) != 0) {
-            throw new ItemNotFound();
-        }
+    newObject.setOwner(this.context.getUsername());
+    return super.update(newObject, id);
+  }
 
-        newObject.setOwner(this.context.getUsername());
-        return super.update(newObject, id);
-    }
+  @Override
+  public T save(T object) {
+    object.setOwner(this.context.getUsername());
+    return super.save(object);
+  }
 
-    public T save(T object) {
-        object.setOwner(this.context.getUsername());
-        return super.save(object);
-    }
+  @Override
+  protected boolean checkPermissions(T object) {
+    if (ignorePermissions)
+      return true;
+    return object.getOwner().compareTo(this.context.getUsername()) == 0;
+  }
 
-    @Override
-    protected boolean checkPermissions(T object) {
-        if (ignorePermissions)
-            return true;
-        return object.getOwner().compareTo(this.context.getUsername()) == 0;
-    }
+  @Override
+  protected ViewContext getContext() {
+    return context;
+  }
 
-    @Override
-    protected ViewContext getContext() {
-        return context;
+  /**
+   * Execute action ignoring objects owner
+   * @param actions callable to execute
+   * @return value returned from actions
+   * @throws Exception
+   */
+  public <T> T ignorePermissions(Callable<T> actions) throws Exception {
+    ignorePermissions = true;
+    T result;
+    try {
+      result = actions.call();
+    } finally {
+      ignorePermissions = false;
     }
-
-    public <T> T ignorePermissions(String fakeUser, Callable<T> actions) throws Exception {
-        ignorePermissions = true;
-        T result;
-        try {
-            result = actions.call();
-        } finally {
-            ignorePermissions = false;
-        }
-        return result;
-    }
-
-    public <T> T ignorePermissions(Callable<T> actions) throws Exception {
-        return ignorePermissions("", actions);
-    }
+    return result;
+  }
 }

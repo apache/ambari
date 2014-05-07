@@ -27,30 +27,46 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.*;
 
+/**
+ * Help service
+ */
 public class HelpService extends BaseService {
-    private ViewContext context;
-    private ViewResourceHandler handler;
+  private ViewContext context;
+  private ViewResourceHandler handler;
 
-    public HelpService(ViewContext context, ViewResourceHandler handler) {
-        super();
-        this.context = context;
-        this.handler = handler;
-    }
+  /**
+   * Constructor
+   * @param context View Context instance
+   * @param handler View Resource Handler instance
+   */
+  public HelpService(ViewContext context, ViewResourceHandler handler) {
+    super();
+    this.context = context;
+    this.handler = handler;
+  }
 
-    @GET
-    @Path("/config")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response config(){
-        JSONObject object = new JSONObject();
-        String fs = context.getProperties().get("dataworker.defaultFs");
-        object.put("dataworker.defaultFs", fs);
-        return Response.ok(object).build();
-    }
+  /**
+   * View configuration
+   * @return configuration of HDFS
+   */
+  @GET
+  @Path("/config")
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response config(){
+    JSONObject object = new JSONObject();
+    String fs = context.getProperties().get("dataworker.defaultFs");
+    object.put("dataworker.defaultFs", fs);
+    return Response.ok(object).build();
+  }
 
-    @GET
-    @Path("/version")
-    @Produces(MediaType.TEXT_PLAIN)
-    public Response version(){
-        return Response.ok("0.0.1-SNAPSHOT").build();
-    }
+  /**
+   * Version
+   * @return version
+   */
+  @GET
+  @Path("/version")
+  @Produces(MediaType.TEXT_PLAIN)
+  public Response version(){
+    return Response.ok("0.0.1-SNAPSHOT").build();
+  }
 }

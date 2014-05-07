@@ -18,10 +18,53 @@
 
 package org.apache.ambari.view.pig.resources.files;
 
+/**
+ * File bean
+ */
 public class FileResource {
-    public String filePath;
-    public String fileContent;
-    public boolean hasNext;
-    public long page;
-    public long pageCount;
+  private String filePath;
+  private String fileContent;
+  private boolean hasNext;
+  private long page;
+  private long pageCount;
+
+  public String getFilePath() {
+    return filePath;
+  }
+
+  public void setFilePath(String filePath) {
+    this.filePath = filePath;
+  }
+
+  public String getFileContent() {
+    return fileContent;
+  }
+
+  public void setFileContent(String fileContent) {
+    this.fileContent = fileContent;
+  }
+
+  public boolean isHasNext() {
+    return hasNext;
+  }
+
+  public void setHasNext(boolean hasNext) {
+    this.hasNext = hasNext;
+  }
+
+  public long getPage() {
+    return page;
+  }
+
+  public void setPage(long page) {
+    this.page = page;
+  }
+
+  public long getPageCount() {
+    return pageCount;
+  }
+
+  public void setPageCount(long pageCount) {
+    this.pageCount = pageCount;
+  }
 }

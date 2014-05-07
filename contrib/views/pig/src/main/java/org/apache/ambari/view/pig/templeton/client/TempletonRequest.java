@@ -32,49 +32,68 @@ import java.io.IOException;
  * @param <RESPONSE> data type to deserialize response from JSON
  */
 public class TempletonRequest<RESPONSE> extends Request<RESPONSE> {
-    private String username;
-    private String doAs;
+  private String username;
+  private String doAs;
 
-    protected final static Logger LOG =
-            LoggerFactory.getLogger(TempletonRequest.class);
+  protected final static Logger LOG =
+      LoggerFactory.getLogger(TempletonRequest.class);
 
-    public TempletonRequest(WebResource resource, Class<RESPONSE> responseClass,
-                            String username, ViewContext context) {
-        this(resource, responseClass, username, username, context);
-    }
+  /**
+   * Constructor
+   * @param resource object that represents resource
+   * @param responseClass model class
+   * @param context View Context instance
+   * @param username user.name of templeton. user.name will be equal to doAs value
+   */
+  public TempletonRequest(WebResource resource, Class<RESPONSE> responseClass,
+                          String username, ViewContext context) {
+    this(resource, responseClass, username, username, context);
+  }
 
-    public TempletonRequest(WebResource resource, Class<RESPONSE> responseClass,
-                            String username, String doAs, ViewContext context) {
-        super(resource, responseClass, context);
-        this.username = username;
-        this.doAs = doAs;
-    }
+  /**
+   * Constructor
+   * @param resource object that represents resource
+   * @param responseClass model class
+   * @param context View Context instance
+   * @param username user.name of templeton
+   * @param doAs doAs user for templeton
+   */
+  public TempletonRequest(WebResource resource, Class<RESPONSE> responseClass,
+                          String username, String doAs, ViewContext context) {
+    super(resource, responseClass, context);
+    this.username = username;
+    this.doAs = doAs;
+  }
 
-    public RESPONSE get(WebResource resource) throws IOException {
-        MultivaluedMapImpl params = new MultivaluedMapImpl();
-        params.add("user.name", username);
-        params.add("doAs", doAs);
-        return super.get(resource.queryParams(params));
-    }
+  @Override
+  public RESPONSE get(WebResource resource) throws IOException {
+    MultivaluedMapImpl params = new MultivaluedMapImpl();
+    params.add("user.name", username);
+    params.add("doAs", doAs);
+    return super.get(resource.queryParams(params));
+  }
 
-    public RESPONSE put(WebResource resource, MultivaluedMapImpl data) throws IOException {
-        MultivaluedMapImpl params = new MultivaluedMapImpl();
-        params.add("user.name", username);
-        params.add("doAs", doAs);
-        return super.put(resource.queryParams(params), data);
-    }
+  @Override
+  public RESPONSE put(WebResource resource, MultivaluedMapImpl data) throws IOException {
+    MultivaluedMapImpl params = new MultivaluedMapImpl();
+    params.add("user.name", username);
+    params.add("doAs", doAs);
+    return super.put(resource.queryParams(params), data);
+  }
 
-    public RESPONSE delete(WebResource resource, MultivaluedMapImpl data) throws IOException {
-        MultivaluedMapImpl params = new MultivaluedMapImpl();
-        params.add("user.name", username);
-        params.add("doAs", doAs);
-        return super.delete(resource.queryParams(params), data);
-    }
+  @Override
+  public RESPONSE delete(WebResource resource, MultivaluedMapImpl data) throws IOException {
+    MultivaluedMapImpl params = new MultivaluedMapImpl();
+    params.add("user.name", username);
+    params.add("doAs", doAs);
+    return super.delete(resource.queryParams(params), data);
+  }
 
-    public RESPONSE post(WebResource resource, MultivaluedMapImpl data) throws IOException {
-        MultivaluedMapImpl params = new MultivaluedMapImpl();
-        params.add("user.name", username);
-        params.add("doAs", doAs);
-        return super.post(resource.queryParams(params), data);
-    }
+  @Override
+  public RESPONSE post(WebResource resource, MultivaluedMapImpl data) throws IOException {
+    MultivaluedMapImpl params = new MultivaluedMapImpl();
+    params.add("user.name", username);
+    params.add("doAs", doAs);
+    return super.post(resource.queryParams(params), data);
+  }
 }

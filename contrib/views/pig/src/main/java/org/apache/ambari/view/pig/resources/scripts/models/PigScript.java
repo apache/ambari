@@ -30,102 +30,102 @@ import java.util.Map;
  * Bean to represent script
  */
 public class PigScript implements Serializable, PersonalResource {
-    String id;
+  private String id;
 
-    String title = "";
-    String pigScript = "";
-    String pythonScript = "";
-    String templetonArguments = "";
-    Date dateCreated;
-    String owner = "";
+  private String title = "";
+  private String pigScript = "";
+  private String pythonScript = "";
+  private String templetonArguments = "";
+  private Date dateCreated;
+  private String owner = "";
 
-    boolean opened = false;
+  private boolean opened = false;
 
-    public PigScript() {
-    }
+  public PigScript() {
+  }
 
-    public PigScript(Map<String, Object> stringObjectMap) throws InvocationTargetException, IllegalAccessException {
-        BeanUtils.populate(this, stringObjectMap);
-    }
+  public PigScript(Map<String, Object> stringObjectMap) throws InvocationTargetException, IllegalAccessException {
+    BeanUtils.populate(this, stringObjectMap);
+  }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof PigScript)) return false;
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof PigScript)) return false;
 
-        PigScript pigScript = (PigScript) o;
+    PigScript pigScript = (PigScript) o;
 
-        if (!id.equals(pigScript.id)) return false;
+    if (!id.equals(pigScript.id)) return false;
 
-        return true;
-    }
+    return true;
+  }
 
-    @Override
-    public int hashCode() {
-        return id.hashCode();
-    }
+  @Override
+  public int hashCode() {
+    return id.hashCode();
+  }
 
-    public String getId() {
-        return id;
-    }
+  public String getId() {
+    return id;
+  }
 
-    public void setId(String id) {
-        this.id = id;
-    }
+  public void setId(String id) {
+    this.id = id;
+  }
 
-    public String getTitle() {
-        return title;
-    }
+  public String getTitle() {
+    return title;
+  }
 
-    public void setTitle(String title) {
-        this.title = title;
-    }
+  public void setTitle(String title) {
+    this.title = title;
+  }
 
-    public String getPigScript() {
-        return pigScript;
-    }
+  public String getPigScript() {
+    return pigScript;
+  }
 
-    public void setPigScript(String pigScript) {
-        this.pigScript = pigScript;
-    }
+  public void setPigScript(String pigScript) {
+    this.pigScript = pigScript;
+  }
 
-    public String getTempletonArguments() {
-        return templetonArguments;
-    }
+  public String getTempletonArguments() {
+    return templetonArguments;
+  }
 
-    public void setTempletonArguments(String templetonArguments) {
-        this.templetonArguments = templetonArguments;
-    }
+  public void setTempletonArguments(String templetonArguments) {
+    this.templetonArguments = templetonArguments;
+  }
 
-    public Date getDateCreated() {
-        return dateCreated;
-    }
+  public Date getDateCreated() {
+    return dateCreated;
+  }
 
-    public void setDateCreated(Date dateCreated) {
-        this.dateCreated = dateCreated;
-    }
+  public void setDateCreated(Date dateCreated) {
+    this.dateCreated = dateCreated;
+  }
 
-    public boolean isOpened() {
-        return opened;
-    }
+  public boolean isOpened() {
+    return opened;
+  }
 
-    public void setOpened(boolean opened) {
-        this.opened = opened;
-    }
+  public void setOpened(boolean opened) {
+    this.opened = opened;
+  }
 
-    public String getOwner() {
-        return owner;
-    }
+  public String getOwner() {
+    return owner;
+  }
 
-    public void setOwner(String owner) {
-        this.owner = owner;
-    }
+  public void setOwner(String owner) {
+    this.owner = owner;
+  }
 
-    public String getPythonScript() {
-        return pythonScript;
-    }
+  public String getPythonScript() {
+    return pythonScript;
+  }
 
-    public void setPythonScript(String pythonScript) {
-        this.pythonScript = pythonScript;
-    }
+  public void setPythonScript(String pythonScript) {
+    this.pythonScript = pythonScript;
+  }
 }

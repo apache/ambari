@@ -24,11 +24,18 @@ import org.apache.ambari.view.pig.resources.udf.models.UDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Object that provides CRUD operations for script objects
+ */
 public class UDFResourceManager extends PersonalCRUDResourceManager<UDF> {
-    private final static Logger LOG =
-            LoggerFactory.getLogger(UDFResourceManager.class);
+  private final static Logger LOG =
+      LoggerFactory.getLogger(UDFResourceManager.class);
 
-    public UDFResourceManager(ViewContext context) {
-        super(UDF.class, context);
-    }
+  /**
+   * Constructor
+   * @param context View Context instance
+   */
+  public UDFResourceManager(ViewContext context) {
+    super(UDF.class, context);
+  }
 }

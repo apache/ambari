@@ -18,6 +18,14 @@
 
 package org.apache.ambari.view.pig.persistence.utils;
 
+/**
+ * Filtering strategy for stored objects
+ */
 public interface FilteringStrategy {
-    boolean is_conform(Indexed item);
+  /**
+   * Check whether item conforms chosen filter or not
+   * @param item item to check
+   * @return true if item conforms this filter
+   */
+  boolean isConform(Indexed item);
 }

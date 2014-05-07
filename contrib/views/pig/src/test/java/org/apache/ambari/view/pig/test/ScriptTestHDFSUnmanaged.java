@@ -39,71 +39,71 @@ import java.util.Map;
 import static org.easymock.EasyMock.*;
 
 public class ScriptTestHDFSUnmanaged extends HDFSTest {
-    private ScriptService scriptService;
+  private ScriptService scriptService;
 
-    @BeforeClass
-    public static void startUp() throws Exception {
-        HDFSTest.startUp(); // super
-    }
+  @BeforeClass
+  public static void startUp() throws Exception {
+    HDFSTest.startUp(); // super
+  }
 
-    @AfterClass
-    public static void shutDown() throws Exception {
-        HDFSTest.shutDown(); // super
-        FileService.setHdfsApi(null); //cleanup API connection
-    }
+  @AfterClass
+  public static void shutDown() throws Exception {
+    HDFSTest.shutDown(); // super
+    FileService.setHdfsApi(null); //cleanup API connection
+  }
 
-    @Override
-    @Before
-    public void setUp() throws Exception {
-        handler = createNiceMock(ViewResourceHandler.class);
-        context = createNiceMock(ViewContext.class);
-        FileService.setHdfsApi(null); //cleanup API connection
-        StorageUtil.setStorage(null);
-    }
+  @Override
+  @Before
+  public void setUp() throws Exception {
+    handler = createNiceMock(ViewResourceHandler.class);
+    context = createNiceMock(ViewContext.class);
+    FileService.setHdfsApi(null); //cleanup API connection
+    StorageUtil.setStorage(null);
+  }
 
-    @Test(expected=WebServiceException.class)
-    public void createScriptAutoCreateNoScriptsPath() throws IOException, InterruptedException {
-        Map<String, String> properties = new HashMap<String, String>();
-        baseDir = new File(DATA_DIRECTORY)
-                .getAbsoluteFile();
-        pigStorageFile = new File("./target/BasePigTest/storage.dat")
-                .getAbsoluteFile();
+  @Test(expected=WebServiceException.class)
+  public void createScriptAutoCreateNoScriptsPath() throws IOException, InterruptedException {
+    Map<String, String> properties = new HashMap<String, String>();
+    baseDir = new File(DATA_DIRECTORY)
+        .getAbsoluteFile();
+    pigStorageFile = new File("./target/BasePigTest/storage.dat")
+        .getAbsoluteFile();
 
-        properties.put("dataworker.storagePath", pigStorageFile.toString());
+    properties.put("dataworker.storagePath", pigStorageFile.toString());
 //        properties.put("dataworker.userScriptsPath", "/tmp/.pigscripts");
-        properties.put("dataworker.defaultFs", hdfsURI);
+    properties.put("dataworker.defaultFs", hdfsURI);
 
-        expect(context.getProperties()).andReturn(properties).anyTimes();
-        expect(context.getUsername()).andReturn("ambari-qa").anyTimes();
+    expect(context.getProperties()).andReturn(properties).anyTimes();
+    expect(context.getUsername()).andReturn("ambari-qa").anyTimes();
 
-        replay(handler, context);
-        scriptService = getService(ScriptService.class, handler, context);
+    replay(handler, context);
+    scriptService = getService(ScriptService.class, handler, context);
 
-        doCreateScript("Test", null);
-    }
+    doCreateScript("Test", null);
+  }
 
-    @Test
-    public void createScriptAutoCreateNoStoragePath() throws IOException, InterruptedException {
-        Map<String, String> properties = new HashMap<String, String>();
-        baseDir = new File(DATA_DIRECTORY)
-                .getAbsoluteFile();
-        pigStorageFile = new File("./target/BasePigTest/storage.dat")
-                .getAbsoluteFile();
+  @Test
+  public void createScriptAutoCreateNoStoragePath() throws IOException, InterruptedException {
+    Map<String, String> properties = new HashMap<String, String>();
+    baseDir = new File(DATA_DIRECTORY)
+        .getAbsoluteFile();
+    pigStorageFile = new File("./target/BasePigTest/storage.dat")
+        .getAbsoluteFile();
 
 //        properties.put("dataworker.storagePath", pigStorageFile.toString());
-        properties.put("dataworker.userScriptsPath", "/tmp/.pigscripts");
-        properties.put("dataworker.defaultFs", hdfsURI);
+    properties.put("dataworker.userScriptsPath", "/tmp/.pigscripts");
+    properties.put("dataworker.defaultFs", hdfsURI);
 
-        expect(context.getProperties()).andReturn(properties).anyTimes();
-        expect(context.getUsername()).andReturn("ambari-qa").anyTimes();
+    expect(context.getProperties()).andReturn(properties).anyTimes();
+    expect(context.getUsername()).andReturn("ambari-qa").anyTimes();
 
-        replay(handler, context);
+    replay(handler, context);
 
-        Storage storage = StorageUtil.getStorage(context);
-        Assert.assertEquals(InstanceKeyValueStorage.class.getSimpleName(), storage.getClass().getSimpleName());
-    }
+    Storage storage = StorageUtil.getStorage(context);
+    Assert.assertEquals(InstanceKeyValueStorage.class.getSimpleName(), storage.getClass().getSimpleName());
+  }
 
-    private Response doCreateScript(String title, String path) {
-        return ScriptTest.doCreateScript(title, path, scriptService);
-    }
+  private Response doCreateScript(String title, String path) {
+    return ScriptTest.doCreateScript(title, path, scriptService);
+  }
 }

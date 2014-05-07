@@ -18,7 +18,19 @@
 
 package org.apache.ambari.view.pig.persistence.utils;
 
+/**
+ * Interface to represent item with identifier
+ */
 public interface Indexed {
-    String getId();
-    void setId(String id);
+  /**
+   * Get the ID
+   * @return ID
+   */
+  String getId();
+
+  /**
+   * Set ID
+   * @param id ID
+   */
+  void setId(String id);
 }

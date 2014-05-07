@@ -40,104 +40,107 @@ import java.util.concurrent.TimeUnit;
  * killed, changed progress and so on.
  */
 public class JobPolling implements Runnable {
-    private final static Logger LOG =
-            LoggerFactory.getLogger(JobPolling.class);
+  private final static Logger LOG =
+      LoggerFactory.getLogger(JobPolling.class);
 
-    /**
-     * We should limit count of concurrent calls to templeton
-     * to avoid high load on component
-     */
-    private static final int WORKER_COUNT = 2;
+  /**
+   * We should limit count of concurrent calls to templeton
+   * to avoid high load on component
+   */
+  private static final int WORKER_COUNT = 2;
 
-    private static final int POLLING_DELAY = 10*60;  // 10 minutes
+  private static final int POLLING_DELAY = 10*60;  // 10 minutes
 
-    /**
-     * In LONG_JOB_THRESHOLD seconds job reschedules polling from POLLING_DELAY to LONG_POLLING_DELAY
-     */
-    private static final int LONG_POLLING_DELAY = 60*60; // 1 hour
-    private static final int LONG_JOB_THRESHOLD = 60*60; // 1 hour
+  /**
+   * In LONG_JOB_THRESHOLD seconds job reschedules polling from POLLING_DELAY to LONG_POLLING_DELAY
+   */
+  private static final int LONG_POLLING_DELAY = 60*60; // 1 hour
+  private static final int LONG_JOB_THRESHOLD = 60*60; // 1 hour
 
-    private static final ScheduledExecutorService pollWorkersPool = Executors.newScheduledThreadPool(WORKER_COUNT);
+  private static final ScheduledExecutorService pollWorkersPool = Executors.newScheduledThreadPool(WORKER_COUNT);
 
-    private static final Map<String, JobPolling> jobPollers = new HashMap<String, JobPolling>();
+  private static final Map<String, JobPolling> jobPollers = new HashMap<String, JobPolling>();
 
-    private JobResourceManager resourceManager = null;
-    private final ViewContext context;
-    private PigJob job;
-    private volatile ScheduledFuture<?> thisFuture;
+  private JobResourceManager resourceManager = null;
+  private final ViewContext context;
+  private PigJob job;
+  private volatile ScheduledFuture<?> thisFuture;
 
-    private JobPolling(ViewContext context, PigJob job) {
-        this.context = context;
-        this.job = job;
+  private JobPolling(ViewContext context, PigJob job) {
+    this.context = context;
+    this.job = job;
+  }
+
+  protected synchronized JobResourceManager getResourceManager() {
+    if (resourceManager == null) {
+      resourceManager = new JobResourceManager(context);
+    }
+    return resourceManager;
+  }
+
+  /**
+   * Do polling
+   */
+  public void run() {
+    LOG.debug("Polling job status " + job.getJobId() + " #" + job.getId());
+    try {
+      job = getResourceManager().read(job.getId());
+    } catch (ItemNotFound itemNotFound) {
+      LOG.error("Job " + job.getJobId() + " does not exist! Polling canceled");
+      thisFuture.cancel(false);
+      return;
+    }
+    getResourceManager().retrieveJobStatus(job);
+
+    Long time = System.currentTimeMillis() / 1000L;
+    if (time - job.getDateStarted() > LONG_JOB_THRESHOLD) {
+      LOG.debug("Job becomes long.. Rescheduling polling to longer period");
+      // If job running longer than LONG_JOB_THRESHOLD, reschedule
+      // it to poll every LONG_POLLING_DELAY instead of POLLING_DELAY
+      thisFuture.cancel(false);
+      scheduleJobPolling(true);
     }
 
-    protected synchronized JobResourceManager getResourceManager() {
-        if (resourceManager == null) {
-            resourceManager = new JobResourceManager(context);
-        }
-        return resourceManager;
+    switch (job.getStatus()) {
+      case SUBMIT_FAILED:
+      case COMPLETED:
+      case FAILED:
+      case KILLED:
+        LOG.debug("Job finished. Polling canceled");
+        thisFuture.cancel(false);
+        break;
+      default:
     }
+  }
 
-    public void run() {
-        LOG.debug("Polling job status " + job.getJobId() + " #" + job.getId());
-        try {
-            job = getResourceManager().read(job.getId());
-        } catch (ItemNotFound itemNotFound) {
-            LOG.error("Job " + job.getJobId() + " does not exist! Polling canceled");
-            thisFuture.cancel(false);
-            return;
-        }
-        getResourceManager().retrieveJobStatus(job);
-
-        Long time = System.currentTimeMillis() / 1000L;
-        if (time - job.getDateStarted() > LONG_JOB_THRESHOLD) {
-            LOG.debug("Job becomes long.. Rescheduling polling to longer period");
-            // If job running longer than LONG_JOB_THRESHOLD, reschedule
-            // it to poll every LONG_POLLING_DELAY instead of POLLING_DELAY
-            thisFuture.cancel(false);
-            scheduleJobPolling(true);
-        }
-
-        switch (job.getStatus()) {
-            case SUBMIT_FAILED:
-            case COMPLETED:
-            case FAILED:
-            case KILLED:
-                LOG.debug("Job finished. Polling canceled");
-                thisFuture.cancel(false);
-                break;
-            default:
-        }
+  private void scheduleJobPolling(boolean longDelay) {
+    if (!longDelay) {
+      thisFuture = pollWorkersPool.scheduleWithFixedDelay(this,
+          POLLING_DELAY, POLLING_DELAY, TimeUnit.SECONDS);
+    } else {
+      thisFuture = pollWorkersPool.scheduleWithFixedDelay(this,
+          LONG_POLLING_DELAY, LONG_POLLING_DELAY, TimeUnit.SECONDS);
     }
+  }
 
-    private void scheduleJobPolling(boolean longDelay) {
-        if (!longDelay) {
-            thisFuture = pollWorkersPool.scheduleWithFixedDelay(this,
-                    POLLING_DELAY, POLLING_DELAY, TimeUnit.SECONDS);
-        } else {
-            thisFuture = pollWorkersPool.scheduleWithFixedDelay(this,
-                    LONG_POLLING_DELAY, LONG_POLLING_DELAY, TimeUnit.SECONDS);
-        }
-    }
+  private void scheduleJobPolling() {
+    scheduleJobPolling(false);
+  }
 
-    private void scheduleJobPolling() {
-        scheduleJobPolling(false);
+  /**
+   * Schedule job polling
+   * @param context ViewContext of web app
+   * @param job job instance
+   * @return returns false if already scheduled
+   */
+  public static boolean pollJob(ViewContext context, PigJob job) {
+    if (jobPollers.get(job.getJobId()) == null) {
+      LOG.debug("Setting up polling for " + job.getJobId());
+      JobPolling polling = new JobPolling(context, job);
+      polling.scheduleJobPolling();
+      jobPollers.put(job.getJobId(), polling);
+      return true;
     }
-
-    /**
-     * Schedule job polling
-     * @param context ViewContext of web app
-     * @param job job instance
-     * @return returns false if already scheduled
-     */
-    public static boolean pollJob(ViewContext context, PigJob job) {
-        if (jobPollers.get(job.getJobId()) == null) {
-            LOG.debug("Setting up polling for " + job.getJobId());
-            JobPolling polling = new JobPolling(context, job);
-            polling.scheduleJobPolling();
-            jobPollers.put(job.getJobId(), polling);
-            return true;
-        }
-        return false;
-    }
+    return false;
+  }
 }

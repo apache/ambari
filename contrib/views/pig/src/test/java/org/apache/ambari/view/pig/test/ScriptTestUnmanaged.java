@@ -51,42 +51,42 @@ import static org.easymock.EasyMock.*;
  * Tests without HDFS and predefined properties
  */
 public class ScriptTestUnmanaged extends BasePigTest {
-    private ScriptService scriptService;
-    private File pigStorageFile;
-    private File baseDir;
+  private ScriptService scriptService;
+  private File pigStorageFile;
+  private File baseDir;
 
-    @AfterClass
-    public static void shutDown() throws Exception {
-        FileService.setHdfsApi(null); //cleanup API connection
-    }
+  @AfterClass
+  public static void shutDown() throws Exception {
+    FileService.setHdfsApi(null); //cleanup API connection
+  }
 
-    @Before
-    public void setUp() throws Exception {
-        handler = createNiceMock(ViewResourceHandler.class);
-        context = createNiceMock(ViewContext.class);
+  @Before
+  public void setUp() throws Exception {
+    handler = createNiceMock(ViewResourceHandler.class);
+    context = createNiceMock(ViewContext.class);
 
-        baseDir = new File(DATA_DIRECTORY)
-                .getAbsoluteFile();
-        pigStorageFile = new File("./target/BasePigTest/storage.dat")
-                .getAbsoluteFile();
-    }
+    baseDir = new File(DATA_DIRECTORY)
+        .getAbsoluteFile();
+    pigStorageFile = new File("./target/BasePigTest/storage.dat")
+        .getAbsoluteFile();
+  }
 
-    private Response doCreateScript(String title, String path) {
-        return ScriptTest.doCreateScript(title, path, scriptService);
-    }
+  private Response doCreateScript(String title, String path) {
+    return ScriptTest.doCreateScript(title, path, scriptService);
+  }
 
-    @Test(expected=WebServiceException.class)
-    public void createScriptAutoCreateNoDefaultFS() {
-        Map<String, String> properties = new HashMap<String, String>();
-        properties.put("dataworker.storagePath", pigStorageFile.toString());
-        properties.put("dataworker.userScriptsPath", "/tmp/.pigscripts");
+  @Test(expected=WebServiceException.class)
+  public void createScriptAutoCreateNoDefaultFS() {
+    Map<String, String> properties = new HashMap<String, String>();
+    properties.put("dataworker.storagePath", pigStorageFile.toString());
+    properties.put("dataworker.userScriptsPath", "/tmp/.pigscripts");
 
-        expect(context.getProperties()).andReturn(properties).anyTimes();
-        expect(context.getUsername()).andReturn("ambari-qa").anyTimes();
+    expect(context.getProperties()).andReturn(properties).anyTimes();
+    expect(context.getUsername()).andReturn("ambari-qa").anyTimes();
 
-        replay(handler, context);
-        scriptService = getService(ScriptService.class, handler, context);
+    replay(handler, context);
+    scriptService = getService(ScriptService.class, handler, context);
 
-        doCreateScript("Test", null);
-    }
+    doCreateScript("Test", null);
+  }
 }

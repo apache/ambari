@@ -28,33 +28,33 @@ import java.io.File;
 import java.util.Map;
 
 public abstract class HDFSTest extends BasePigTest {
-    protected static MiniDFSCluster hdfsCluster;
-    protected static String hdfsURI;
+  protected static MiniDFSCluster hdfsCluster;
+  protected static String hdfsURI;
 
-    @BeforeClass
-    public static void startUp() throws Exception {
-        BasePigTest.startUp(); // super
-        File hdfsDir = new File("./target/PigTest/hdfs/")
-                .getAbsoluteFile();
-        FileUtil.fullyDelete(hdfsDir);
+  @BeforeClass
+  public static void startUp() throws Exception {
+    BasePigTest.startUp(); // super
+    File hdfsDir = new File("./target/PigTest/hdfs/")
+        .getAbsoluteFile();
+    FileUtil.fullyDelete(hdfsDir);
 
-        Configuration conf = new Configuration();
-        conf.set(MiniDFSCluster.HDFS_MINIDFS_BASEDIR, hdfsDir.getAbsolutePath());
+    Configuration conf = new Configuration();
+    conf.set(MiniDFSCluster.HDFS_MINIDFS_BASEDIR, hdfsDir.getAbsolutePath());
 
-        MiniDFSCluster.Builder builder = new MiniDFSCluster.Builder(conf);
-        hdfsCluster = builder.build();
-        hdfsURI = hdfsCluster.getURI().toString();
-    }
+    MiniDFSCluster.Builder builder = new MiniDFSCluster.Builder(conf);
+    hdfsCluster = builder.build();
+    hdfsURI = hdfsCluster.getURI().toString();
+  }
 
-    @AfterClass
-    public static void shutDown() throws Exception {
-        hdfsCluster.shutdown();
-        hdfsCluster = null;
-    }
+  @AfterClass
+  public static void shutDown() throws Exception {
+    hdfsCluster.shutdown();
+    hdfsCluster = null;
+  }
 
-    @Override
-    protected void setupProperties(Map<String, String> properties, File baseDir) throws Exception {
-        super.setupProperties(properties, baseDir);
-        properties.put("dataworker.defaultFs", hdfsURI);
-    }
+  @Override
+  protected void setupProperties(Map<String, String> properties, File baseDir) throws Exception {
+    super.setupProperties(properties, baseDir);
+    properties.put("dataworker.defaultFs", hdfsURI);
+  }
 }

@@ -36,168 +36,168 @@ import java.util.UUID;
 import static org.easymock.EasyMock.*;
 
 public class FileTest extends HDFSTest {
-    private final static int PAGINATOR_PAGE_SIZE = 4;
-    private FileService fileService;
+  private final static int PAGINATOR_PAGE_SIZE = 4;
+  private FileService fileService;
 
-    @Override
-    @Before
-    public void setUp() throws Exception {
-        super.setUp();
-        fileService = getService(FileService.class, handler, context);
-        FilePaginator.setPageSize(PAGINATOR_PAGE_SIZE);
-    }
+  @Override
+  @Before
+  public void setUp() throws Exception {
+    super.setUp();
+    fileService = getService(FileService.class, handler, context);
+    FilePaginator.setPageSize(PAGINATOR_PAGE_SIZE);
+  }
 
-    @BeforeClass
-    public static void startUp() throws Exception {
-        HDFSTest.startUp(); // super
-    }
+  @BeforeClass
+  public static void startUp() throws Exception {
+    HDFSTest.startUp(); // super
+  }
 
-    @AfterClass
-    public static void shutDown() throws Exception {
-        HDFSTest.shutDown(); // super
-        FileService.setHdfsApi(null); //cleanup API connection
-    }
+  @AfterClass
+  public static void shutDown() throws Exception {
+    HDFSTest.shutDown(); // super
+    FileService.setHdfsApi(null); //cleanup API connection
+  }
 
-    private Response doCreateFile() throws IOException, InterruptedException {
-        replay(handler, context);
-        return doCreateFile("luke", "i'm your father");
-    }
+  private Response doCreateFile() throws IOException, InterruptedException {
+    replay(handler, context);
+    return doCreateFile("luke", "i'm your father");
+  }
 
-    private Response doCreateFile(String name, String content) throws IOException, InterruptedException {
-        return doCreateFile(name, content, "/tmp/");
-    }
+  private Response doCreateFile(String name, String content) throws IOException, InterruptedException {
+    return doCreateFile(name, content, "/tmp/");
+  }
 
-    private Response doCreateFile(String name, String content, String filePath) throws IOException, InterruptedException {
-        FileService.FileResourceRequest request = new FileService.FileResourceRequest();
-        request.file = new FileResource();
-        request.file.filePath = filePath + name;
-        request.file.fileContent = content;
+  private Response doCreateFile(String name, String content, String filePath) throws IOException, InterruptedException {
+    FileService.FileResourceRequest request = new FileService.FileResourceRequest();
+    request.file = new FileResource();
+    request.file.setFilePath(filePath + name);
+    request.file.setFileContent(content);
 
-        HttpServletResponse resp_obj = createNiceMock(HttpServletResponse.class);
-        resp_obj.setHeader(eq("Location"), anyString());
+    HttpServletResponse resp_obj = createNiceMock(HttpServletResponse.class);
+    resp_obj.setHeader(eq("Location"), anyString());
 
-        UriInfo uriInfo = createNiceMock(UriInfo.class);
-        URI uri = UriBuilder.fromUri("http://host/a/b").build();
-        expect(uriInfo.getAbsolutePath()).andReturn(uri);
+    UriInfo uriInfo = createNiceMock(UriInfo.class);
+    URI uri = UriBuilder.fromUri("http://host/a/b").build();
+    expect(uriInfo.getAbsolutePath()).andReturn(uri);
 
-        replay(resp_obj, uriInfo);
-        return fileService.createFile(request, resp_obj, uriInfo);
-    }
+    replay(resp_obj, uriInfo);
+    return fileService.createFile(request, resp_obj, uriInfo);
+  }
 
-    @Test
-    public void testCreateFile() throws IOException, InterruptedException {
-        String name = UUID.randomUUID().toString().replaceAll("-", "");
-        Response response = doCreateFile(name, "12323");
-        Assert.assertEquals(204, response.getStatus());
+  @Test
+  public void testCreateFile() throws IOException, InterruptedException {
+    String name = UUID.randomUUID().toString().replaceAll("-", "");
+    Response response = doCreateFile(name, "12323");
+    Assert.assertEquals(204, response.getStatus());
 
-        String name2 = UUID.randomUUID().toString().replaceAll("-", "");
-        Response response2 = doCreateFile(name2, "12323");
-        Assert.assertEquals(204, response2.getStatus());
-    }
+    String name2 = UUID.randomUUID().toString().replaceAll("-", "");
+    Response response2 = doCreateFile(name2, "12323");
+    Assert.assertEquals(204, response2.getStatus());
+  }
 
-    @Test
-    public void testCreateFilePathNotExists() throws IOException, InterruptedException {
-        Response response = doCreateFile("Luke", null, "/non/existent/path/");
-        Assert.assertEquals(204, response.getStatus());  // path created automatically
+  @Test
+  public void testCreateFilePathNotExists() throws IOException, InterruptedException {
+    Response response = doCreateFile("Luke", null, "/non/existent/path/");
+    Assert.assertEquals(204, response.getStatus());  // path created automatically
 
-        Response response2 = doCreateFile("Leia", null, "/tmp/");
-        Assert.assertEquals(204, response2.getStatus());
+    Response response2 = doCreateFile("Leia", null, "/tmp/");
+    Assert.assertEquals(204, response2.getStatus());
 
-        Response response3 = doCreateFile("Leia", null, "/tmp/"); // file already exists
-        Assert.assertEquals(400, response3.getStatus());
-    }
+    Response response3 = doCreateFile("Leia", null, "/tmp/"); // file already exists
+    Assert.assertEquals(400, response3.getStatus());
+  }
 
-    @Test
-    public void testUpdateFileContent() throws Exception {
-        String name = UUID.randomUUID().toString().replaceAll("-", "");
-        String filePath = "/tmp/" + name;
+  @Test
+  public void testUpdateFileContent() throws Exception {
+    String name = UUID.randomUUID().toString().replaceAll("-", "");
+    String filePath = "/tmp/" + name;
 
-        Response createdFile = doCreateFile(name, "some content");
-        FileService.FileResourceRequest request = new FileService.FileResourceRequest();
-        request.file = new FileResource();
-        request.file.filePath = filePath;
-        request.file.fileContent = "1234567890";  // 10 bytes, 3*(4b page)
+    Response createdFile = doCreateFile(name, "some content");
+    FileService.FileResourceRequest request = new FileService.FileResourceRequest();
+    request.file = new FileResource();
+    request.file.setFilePath(filePath);
+    request.file.setFileContent("1234567890");  // 10 bytes, 3*(4b page)
 
-        Response response = fileService.updateFile(request, filePath);
-        Assert.assertEquals(204, response.getStatus());
+    Response response = fileService.updateFile(request, filePath);
+    Assert.assertEquals(204, response.getStatus());
 
-        Response response2 = fileService.getFile(filePath, 0L);
-        Assert.assertEquals(200, response2.getStatus());
+    Response response2 = fileService.getFile(filePath, 0L);
+    Assert.assertEquals(200, response2.getStatus());
 
-        JSONObject obj = ((JSONObject) response2.getEntity());
-        Assert.assertTrue(obj.containsKey("file"));
-        Assert.assertEquals("1234", ((FileResource) obj.get("file")).fileContent);
-    }
+    JSONObject obj = ((JSONObject) response2.getEntity());
+    Assert.assertTrue(obj.containsKey("file"));
+    Assert.assertEquals("1234", ((FileResource) obj.get("file")).getFileContent());
+  }
 
-    @Test
-    public void testPagination() throws Exception {
-        String name = UUID.randomUUID().toString().replaceAll("-", "");
-        String filePath = "/tmp/" + name;
+  @Test
+  public void testPagination() throws Exception {
+    String name = UUID.randomUUID().toString().replaceAll("-", "");
+    String filePath = "/tmp/" + name;
 
-        doCreateFile(name, "1234567890");
+    doCreateFile(name, "1234567890");
 
-        Response response = fileService.getFile(filePath, 0L);
-        Assert.assertEquals(200, response.getStatus());
+    Response response = fileService.getFile(filePath, 0L);
+    Assert.assertEquals(200, response.getStatus());
 
-        JSONObject obj = ((JSONObject) response.getEntity());
-        Assert.assertTrue(obj.containsKey("file"));
-        Assert.assertEquals("1234", ((FileResource) obj.get("file")).fileContent);
-        Assert.assertEquals(3, ((FileResource) obj.get("file")).pageCount);
-        Assert.assertEquals(0, ((FileResource) obj.get("file")).page);
-        Assert.assertTrue(((FileResource) obj.get("file")).hasNext);
-        Assert.assertEquals(filePath, ((FileResource) obj.get("file")).filePath);
+    JSONObject obj = ((JSONObject) response.getEntity());
+    Assert.assertTrue(obj.containsKey("file"));
+    Assert.assertEquals("1234", ((FileResource) obj.get("file")).getFileContent());
+    Assert.assertEquals(3, ((FileResource) obj.get("file")).getPageCount());
+    Assert.assertEquals(0, ((FileResource) obj.get("file")).getPage());
+    Assert.assertTrue(((FileResource) obj.get("file")).isHasNext());
+    Assert.assertEquals(filePath, ((FileResource) obj.get("file")).getFilePath());
 
-        response = fileService.getFile(filePath, 1L);
-        Assert.assertEquals(200, response.getStatus());
+    response = fileService.getFile(filePath, 1L);
+    Assert.assertEquals(200, response.getStatus());
 
-        obj = ((JSONObject) response.getEntity());
-        Assert.assertEquals("5678", ((FileResource) obj.get("file")).fileContent);
-        Assert.assertEquals(1, ((FileResource) obj.get("file")).page);
-        Assert.assertTrue(((FileResource) obj.get("file")).hasNext);
+    obj = ((JSONObject) response.getEntity());
+    Assert.assertEquals("5678", ((FileResource) obj.get("file")).getFileContent());
+    Assert.assertEquals(1, ((FileResource) obj.get("file")).getPage());
+    Assert.assertTrue(((FileResource) obj.get("file")).isHasNext());
 
-        response = fileService.getFile(filePath, 2L);
-        Assert.assertEquals(200, response.getStatus());
+    response = fileService.getFile(filePath, 2L);
+    Assert.assertEquals(200, response.getStatus());
 
-        obj = ((JSONObject) response.getEntity());
-        Assert.assertEquals("90", ((FileResource) obj.get("file")).fileContent);
-        Assert.assertEquals(2, ((FileResource) obj.get("file")).page);
-        Assert.assertFalse(((FileResource) obj.get("file")).hasNext);
+    obj = ((JSONObject) response.getEntity());
+    Assert.assertEquals("90", ((FileResource) obj.get("file")).getFileContent());
+    Assert.assertEquals(2, ((FileResource) obj.get("file")).getPage());
+    Assert.assertFalse(((FileResource) obj.get("file")).isHasNext());
 
-        response = fileService.getFile(filePath, 3L);
-        Assert.assertEquals(400, response.getStatus()); //page not found
-    }
+    response = fileService.getFile(filePath, 3L);
+    Assert.assertEquals(400, response.getStatus()); //page not found
+  }
 
-    @Test
-    public void testZeroLengthFile() throws Exception {
-        String name = UUID.randomUUID().toString().replaceAll("-", "");
-        String filePath = "/tmp/" + name;
+  @Test
+  public void testZeroLengthFile() throws Exception {
+    String name = UUID.randomUUID().toString().replaceAll("-", "");
+    String filePath = "/tmp/" + name;
 
-        doCreateFile(name, "");
+    doCreateFile(name, "");
 
-        Response response = fileService.getFile(filePath, 0L);
-        Assert.assertEquals(200, response.getStatus());
-        JSONObject obj = ((JSONObject) response.getEntity());
-        Assert.assertEquals("", ((FileResource) obj.get("file")).fileContent);
-        Assert.assertEquals(0, ((FileResource) obj.get("file")).page);
-        Assert.assertFalse(((FileResource) obj.get("file")).hasNext);
-    }
+    Response response = fileService.getFile(filePath, 0L);
+    Assert.assertEquals(200, response.getStatus());
+    JSONObject obj = ((JSONObject) response.getEntity());
+    Assert.assertEquals("", ((FileResource) obj.get("file")).getFileContent());
+    Assert.assertEquals(0, ((FileResource) obj.get("file")).getPage());
+    Assert.assertFalse(((FileResource) obj.get("file")).isHasNext());
+  }
 
-    @Test
-    public void testFileNotFound() throws IOException, InterruptedException {
-        Response response1 = fileService.getFile("/tmp/notExistentFile", 2L);
-        Assert.assertEquals(404, response1.getStatus());
-    }
+  @Test
+  public void testFileNotFound() throws IOException, InterruptedException {
+    Response response1 = fileService.getFile("/tmp/notExistentFile", 2L);
+    Assert.assertEquals(404, response1.getStatus());
+  }
 
-    @Test
-    public void testDeleteFile() throws IOException, InterruptedException {
-        String name = UUID.randomUUID().toString().replaceAll("-", "");
-        String filePath = "/tmp/" + name;
-        Response createdFile = doCreateFile(name, "some content");
+  @Test
+  public void testDeleteFile() throws IOException, InterruptedException {
+    String name = UUID.randomUUID().toString().replaceAll("-", "");
+    String filePath = "/tmp/" + name;
+    Response createdFile = doCreateFile(name, "some content");
 
-        Response response = fileService.deleteFile(filePath);
-        Assert.assertEquals(204, response.getStatus());
+    Response response = fileService.deleteFile(filePath);
+    Assert.assertEquals(204, response.getStatus());
 
-        Response response2 = fileService.getFile(filePath, 0L);
-        Assert.assertEquals(404, response2.getStatus());
-    }
+    Response response2 = fileService.getFile(filePath, 0L);
+    Assert.assertEquals(404, response2.getStatus());
+  }
 }

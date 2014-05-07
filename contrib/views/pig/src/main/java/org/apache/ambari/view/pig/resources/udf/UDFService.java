@@ -48,109 +48,112 @@ import java.util.List;
  *      Required: path, name
  */
 public class UDFService extends BaseService {
-    @Inject
-    ViewResourceHandler handler;
+  @Inject
+  ViewResourceHandler handler;
 
-    protected UDFResourceManager resourceManager = null;
-    protected final static Logger LOG =
-            LoggerFactory.getLogger(UDFService.class);
+  protected UDFResourceManager resourceManager = null;
+  protected final static Logger LOG =
+      LoggerFactory.getLogger(UDFService.class);
 
-    protected synchronized PersonalCRUDResourceManager<UDF> getResourceManager() {
-        if (resourceManager == null) {
-            resourceManager = new UDFResourceManager(context);
-        }
-        return resourceManager;
+  protected synchronized PersonalCRUDResourceManager<UDF> getResourceManager() {
+    if (resourceManager == null) {
+      resourceManager = new UDFResourceManager(context);
+    }
+    return resourceManager;
+  }
+
+  /**
+   * Get single item
+   */
+  @GET
+  @Path("{udfId}")
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response getUDF(@PathParam("udfId") String udfId) {
+    UDF udf = null;
+    try {
+      udf = getResourceManager().read(udfId);
+    } catch (ItemNotFound itemNotFound) {
+      return Response.status(404).build();
+    }
+    JSONObject object = new JSONObject();
+    object.put("udf", udf);
+    return Response.ok(object).build();
+  }
+
+  /**
+   * Delete single item
+   */
+  @DELETE
+  @Path("{udfId}")
+  public Response deleteUDF(@PathParam("udfId") String udfId) {
+    try {
+      getResourceManager().delete(udfId);
+    } catch (ItemNotFound itemNotFound) {
+      return Response.status(404).build();
+    }
+    return Response.status(204).build();
+  }
+
+  /**
+   * Get all UDFs
+   */
+  @GET
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response getUDFList(@Context UriInfo ui) {
+    LOG.debug("Getting all UDFs");
+    List allUDFs = getResourceManager().readAll(
+        new OnlyOwnersFilteringStrategy(this.context.getUsername()));
+
+    JSONObject object = new JSONObject();
+    object.put("udfs", allUDFs);
+    return Response.ok(object).build();
+  }
+
+  /**
+   * Update item
+   */
+  @PUT
+  @Path("{udfId}")
+  @Consumes(MediaType.APPLICATION_JSON)
+  public Response updateUDF(UDFRequest request,
+                            @PathParam("udfId") String udfId) {
+    try {
+      getResourceManager().update(request.udf, udfId);
+    } catch (ItemNotFound itemNotFound) {
+      return Response.status(404).build();
+    }
+    return Response.status(204).build();
+  }
+
+  /**
+   * Create UDF
+   */
+  @POST
+  @Consumes(MediaType.APPLICATION_JSON)
+  public Response createUDF(UDFRequest request, @Context HttpServletResponse response,
+                            @Context UriInfo ui) {
+    getResourceManager().create(request.udf);
+
+    UDF udf = null;
+
+    try {
+      udf = getResourceManager().read(request.udf.getId());
+    } catch (ItemNotFound itemNotFound) {
+      return Response.status(404).build();
     }
 
-    /**
-     * Get single item
-     */
-    @GET
-    @Path("{udfId}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getUDF(@PathParam("udfId") String udfId) {
-        UDF udf = null;
-        try {
-            udf = getResourceManager().read(udfId);
-        } catch (ItemNotFound itemNotFound) {
-            return Response.status(404).build();
-        }
-        JSONObject object = new JSONObject();
-        object.put("udf", udf);
-        return Response.ok(object).build();
-    }
+    response.setHeader("Location",
+        String.format("%s/%s", ui.getAbsolutePath().toString(), request.udf.getId()));
 
-    /**
-     * Delete single item
-     */
-    @DELETE
-    @Path("{udfId}")
-    public Response deleteUDF(@PathParam("udfId") String udfId) {
-        try {
-            getResourceManager().delete(udfId);
-        } catch (ItemNotFound itemNotFound) {
-            return Response.status(404).build();
-        }
-        return Response.status(204).build();
-    }
+    JSONObject object = new JSONObject();
+    object.put("udf", udf);
+    return Response.ok(object).status(201).build();
+  }
 
-    /**
-     * Get all UDFs
-     */
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getUDFList(@Context UriInfo ui) {
-        LOG.debug("Getting all UDFs");
-        List allUDFs = getResourceManager().readAll(
-                new OnlyOwnersFilteringStrategy(this.context.getUsername()));
-
-        JSONObject object = new JSONObject();
-        object.put("udfs", allUDFs);
-        return Response.ok(object).build();
-    }
-
-    /**
-     * Update item
-     */
-    @PUT
-    @Path("{udfId}")
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response updateUDF(UDFRequest request,
-                                 @PathParam("udfId") String udfId) {
-        try {
-            getResourceManager().update(request.udf, udfId);
-        } catch (ItemNotFound itemNotFound) {
-            return Response.status(404).build();
-        }
-        return Response.status(204).build();
-    }
-
-    /**
-     * Create UDF
-     */
-    @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response createUDF(UDFRequest request, @Context HttpServletResponse response,
-                               @Context UriInfo ui) {
-        getResourceManager().create(request.udf);
-
-        UDF udf = null;
-
-        try {
-            udf = getResourceManager().read(request.udf.getId());
-        } catch (ItemNotFound itemNotFound) {
-            return Response.status(404).build();
-        }
-
-        response.setHeader("Location",
-                String.format("%s/%s", ui.getAbsolutePath().toString(), request.udf.getId()));
-
-        JSONObject object = new JSONObject();
-        object.put("udf", udf);
-        return Response.ok(object).status(201).build();
-    }
-
-    public static class UDFRequest {
-        public UDF udf;
-    }
+  /**
+   * Wrapper object for json mapping
+   */
+  public static class UDFRequest {
+    public UDF udf;
+  }
 }

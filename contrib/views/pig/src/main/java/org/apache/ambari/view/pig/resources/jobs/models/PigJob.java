@@ -37,217 +37,217 @@ import java.util.Map;
  * SUBMITTED   SUBMIT_FAILED
  *     |
  *     |
-  *   [GET result from job/:job_id]
+ *   [GET result from job/:job_id]
  *     |            |             |
  * COMPLETED      KILLED        FAILED
  */
 public class PigJob implements Serializable, PersonalResource {
 
-    public enum Status {
-        UNKNOWN,
-        SUBMITTING, SUBMITTED, RUNNING,  // in progress
-        SUBMIT_FAILED, COMPLETED, FAILED, KILLED  // finished
-    }
+  public enum Status {
+    UNKNOWN,
+    SUBMITTING, SUBMITTED, RUNNING,  // in progress
+    SUBMIT_FAILED, COMPLETED, FAILED, KILLED  // finished
+  }
 
-    public boolean isInProgress() {
-        return status == Status.SUBMITTED || status == Status.SUBMITTING ||
-                status == Status.RUNNING;
-    }
+  public boolean isInProgress() {
+    return status == Status.SUBMITTED || status == Status.SUBMITTING ||
+        status == Status.RUNNING;
+  }
 
-    public static final int RUN_STATE_RUNNING = 1;
-    public static final int RUN_STATE_SUCCEEDED = 2;
-    public static final int RUN_STATE_FAILED = 3;
-    public static final int RUN_STATE_PREP = 4;
-    public static final int RUN_STATE_KILLED = 5;
+  public static final int RUN_STATE_RUNNING = 1;
+  public static final int RUN_STATE_SUCCEEDED = 2;
+  public static final int RUN_STATE_FAILED = 3;
+  public static final int RUN_STATE_PREP = 4;
+  public static final int RUN_STATE_KILLED = 5;
 
-    public PigJob() {
-    }
+  public PigJob() {
+  }
 
-    public PigJob(Map<String, Object> stringObjectMap) throws InvocationTargetException, IllegalAccessException {
-        BeanUtils.populate(this, stringObjectMap);
-    }
+  public PigJob(Map<String, Object> stringObjectMap) throws InvocationTargetException, IllegalAccessException {
+    BeanUtils.populate(this, stringObjectMap);
+  }
 
-    String id = null;
-    String scriptId = null;
+  private String id = null;
+  private String scriptId = null;
 
-    // cloned script data
-    String pigScript = null;
-    String pythonScript = null;
-    String title = null;
-    String templetonArguments = null;
-    String owner;
+  // cloned script data
+  private String pigScript = null;
+  private String pythonScript = null;
+  private String title = null;
+  private String templetonArguments = null;
+  private String owner;
 
-    // job info
-    String forcedContent = null;
+  // job info
+  private String forcedContent = null;
 
-    /**
-     * jobType possible values:
-     * null - regular execute
-     * "explain"
-     * "syntax_check"
-     */
-    String jobType = null;
+  /**
+   * jobType possible values:
+   * null - regular execute
+   * "explain"
+   * "syntax_check"
+   */
+  private String jobType = null;
 
-    /**
-     * Additional file to use in Explain job
-     */
-    String sourceFile = null;
-    String sourceFileContent = null;
+  /**
+   * Additional file to use in Explain job
+   */
+  private String sourceFile = null;
+  private String sourceFileContent = null;
 
-    String statusDir;
-    Long dateStarted = 0L;
-    String jobId = null;
+  private String statusDir;
+  private Long dateStarted = 0L;
+  private String jobId = null;
 
-    // status fields (not reliable)
-    Status status = Status.UNKNOWN;
-    Integer percentComplete = null;
+  // status fields (not reliable)
+  private Status status = Status.UNKNOWN;
+  private Integer percentComplete = null;
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof PigJob)) return false;
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof PigJob)) return false;
 
-        PigJob pigScript = (PigJob) o;
+    PigJob pigScript = (PigJob) o;
 
-        if (!id.equals(pigScript.id)) return false;
+    if (!id.equals(pigScript.id)) return false;
 
-        return true;
-    }
+    return true;
+  }
 
-    @Override
-    public int hashCode() {
-        return id.hashCode();
-    }
+  @Override
+  public int hashCode() {
+    return id.hashCode();
+  }
 
-    @Override
-    public String getId() {
-        return id;
-    }
+  @Override
+  public String getId() {
+    return id;
+  }
 
-    @Override
-    public void setId(String id) {
-        this.id = id;
-    }
+  @Override
+  public void setId(String id) {
+    this.id = id;
+  }
 
-    @Override
-    public String getOwner() {
-        return owner;
-    }
+  @Override
+  public String getOwner() {
+    return owner;
+  }
 
-    @Override
-    public void setOwner(String owner) {
-        this.owner = owner;
-    }
+  @Override
+  public void setOwner(String owner) {
+    this.owner = owner;
+  }
 
-    public Status getStatus() {
-        return status;
-    }
+  public Status getStatus() {
+    return status;
+  }
 
-    public void setStatus(Status status) {
-        this.status = status;
-    }
+  public void setStatus(Status status) {
+    this.status = status;
+  }
 
-    public String getScriptId() {
-        return scriptId;
-    }
+  public String getScriptId() {
+    return scriptId;
+  }
 
-    public void setScriptId(String scriptId) {
-        this.scriptId = scriptId;
-    }
+  public void setScriptId(String scriptId) {
+    this.scriptId = scriptId;
+  }
 
-    public String getTempletonArguments() {
-        return templetonArguments;
-    }
+  public String getTempletonArguments() {
+    return templetonArguments;
+  }
 
-    public void setTempletonArguments(String templetonArguments) {
-        this.templetonArguments = templetonArguments;
-    }
+  public void setTempletonArguments(String templetonArguments) {
+    this.templetonArguments = templetonArguments;
+  }
 
-    public String getPigScript() {
-        return pigScript;
-    }
+  public String getPigScript() {
+    return pigScript;
+  }
 
-    public void setPigScript(String pigScript) {
-        this.pigScript = pigScript;
-    }
+  public void setPigScript(String pigScript) {
+    this.pigScript = pigScript;
+  }
 
-    public String getJobId() {
-        return jobId;
-    }
+  public String getJobId() {
+    return jobId;
+  }
 
-    public void setJobId(String jobId) {
-        this.jobId = jobId;
-    }
+  public void setJobId(String jobId) {
+    this.jobId = jobId;
+  }
 
-    public String getTitle() {
-        return title;
-    }
+  public String getTitle() {
+    return title;
+  }
 
-    public void setTitle(String title) {
-        this.title = title;
-    }
+  public void setTitle(String title) {
+    this.title = title;
+  }
 
-    public void setStatusDir(String statusDir) {
-        this.statusDir = statusDir;
-    }
+  public void setStatusDir(String statusDir) {
+    this.statusDir = statusDir;
+  }
 
-    public String getStatusDir() {
-        return statusDir;
-    }
+  public String getStatusDir() {
+    return statusDir;
+  }
 
-    public Long getDateStarted() {
-        return dateStarted;
-    }
+  public Long getDateStarted() {
+    return dateStarted;
+  }
 
-    public void setDateStarted(Long dateStarted) {
-        this.dateStarted = dateStarted;
-    }
+  public void setDateStarted(Long dateStarted) {
+    this.dateStarted = dateStarted;
+  }
 
-    public Integer getPercentComplete() {
-        return percentComplete;
-    }
+  public Integer getPercentComplete() {
+    return percentComplete;
+  }
 
-    public void setPercentComplete(Integer percentComplete) {
-        this.percentComplete = percentComplete;
-    }
+  public void setPercentComplete(Integer percentComplete) {
+    this.percentComplete = percentComplete;
+  }
 
-    public String getPythonScript() {
-        return pythonScript;
-    }
+  public String getPythonScript() {
+    return pythonScript;
+  }
 
-    public void setPythonScript(String pythonScript) {
-        this.pythonScript = pythonScript;
-    }
+  public void setPythonScript(String pythonScript) {
+    this.pythonScript = pythonScript;
+  }
 
-    public String getForcedContent() {
-        return forcedContent;
-    }
+  public String getForcedContent() {
+    return forcedContent;
+  }
 
-    public void setForcedContent(String forcedContent) {
-        this.forcedContent = forcedContent;
-    }
+  public void setForcedContent(String forcedContent) {
+    this.forcedContent = forcedContent;
+  }
 
-    public String getJobType() {
-        return jobType;
-    }
+  public String getJobType() {
+    return jobType;
+  }
 
-    public void setJobType(String jobType) {
-        this.jobType = jobType;
-    }
+  public void setJobType(String jobType) {
+    this.jobType = jobType;
+  }
 
-    public String getSourceFileContent() {
-        return sourceFileContent;
-    }
+  public String getSourceFileContent() {
+    return sourceFileContent;
+  }
 
-    public void setSourceFileContent(String sourceFileContent) {
-        this.sourceFileContent = sourceFileContent;
-    }
+  public void setSourceFileContent(String sourceFileContent) {
+    this.sourceFileContent = sourceFileContent;
+  }
 
-    public String getSourceFile() {
-        return sourceFile;
-    }
+  public String getSourceFile() {
+    return sourceFile;
+  }
 
-    public void setSourceFile(String sourceFile) {
-        this.sourceFile = sourceFile;
-    }
+  public void setSourceFile(String sourceFile) {
+    this.sourceFile = sourceFile;
+  }
 }

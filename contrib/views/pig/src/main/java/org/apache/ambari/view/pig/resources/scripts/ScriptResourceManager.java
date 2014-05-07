@@ -33,69 +33,76 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+/**
+ * Object that provides CRUD operations for script objects
+ */
 public class ScriptResourceManager extends PersonalCRUDResourceManager<PigScript> {
-    private final static Logger LOG =
-            LoggerFactory.getLogger(ScriptResourceManager.class);
+  private final static Logger LOG =
+      LoggerFactory.getLogger(ScriptResourceManager.class);
 
-    public ScriptResourceManager(ViewContext context) {
-        super(PigScript.class, context);
+  /**
+   * Constructor
+   * @param context View Context instance
+   */
+  public ScriptResourceManager(ViewContext context) {
+    super(PigScript.class, context);
+  }
+
+  @Override
+  public PigScript create(PigScript object) {
+    super.create(object);
+    if (object.getPigScript() == null || object.getPigScript().isEmpty()) {
+      createDefaultScriptFile(object);
     }
+    return object;
+  }
 
-    @Override
-    public PigScript create(PigScript object) {
-        super.create(object);
-        if (object.getPigScript() == null || object.getPigScript().isEmpty()) {
-            createDefaultScriptFile(object);
+  private void createDefaultScriptFile(PigScript object) {
+    String userScriptsPath = context.getProperties().get("dataworker.userScriptsPath");
+    if (userScriptsPath == null) {
+      String msg = "dataworker.userScriptsPath is not configured!";
+      LOG.error(msg);
+      throw new WebServiceException(msg);
+    }
+    int checkId = 0;
+
+    boolean fileCreated;
+    String newFilePath;
+    do {
+      String normalizedName = object.getTitle().replaceAll("[^a-zA-Z0-9 ]+", "").replaceAll(" ", "_").toLowerCase();
+      String timestamp = new SimpleDateFormat("yyyy-MM-dd_hh-mm").format(new Date());
+      newFilePath = String.format(userScriptsPath +
+              "/%s/%s-%s%s.pig", context.getUsername(),
+          normalizedName, timestamp, (checkId == 0)?"":"_"+checkId);
+      LOG.debug("Trying to create new file " + newFilePath);
+
+      try {
+        FSDataOutputStream stream = BaseService.getHdfsApi(context).create(newFilePath, false);
+        stream.close();
+        fileCreated = true;
+        LOG.debug("File created successfully!");
+      } catch (FileAlreadyExistsException e) {
+        fileCreated = false;
+        LOG.debug("File already exists. Trying next id");
+      } catch (IOException e) {
+        try {
+          delete(object.getId());
+        } catch (ItemNotFound itemNotFound) {
+          throw new WebServiceException("Error in creation, during clean up: " + itemNotFound.toString(), itemNotFound);
         }
-        return object;
-    }
-
-    private void createDefaultScriptFile(PigScript object) {
-        String userScriptsPath = context.getProperties().get("dataworker.userScriptsPath");
-        if (userScriptsPath == null) {
-            String msg = "dataworker.userScriptsPath is not configured!";
-            LOG.error(msg);
-            throw new WebServiceException(msg);
+        throw new WebServiceException("Error in creation: " + e.toString(), e);
+      } catch (InterruptedException e) {
+        try {
+          delete(object.getId());
+        } catch (ItemNotFound itemNotFound) {
+          throw new WebServiceException("Error in creation, during clean up: " + itemNotFound.toString(), itemNotFound);
         }
-        int checkId = 0;
+        throw new WebServiceException("Error in creation: " + e.toString(), e);
+      }
+      checkId += 1;
+    } while (!fileCreated);
 
-        boolean fileCreated;
-        String newFilePath;
-        do {
-            String normalizedName = object.getTitle().replaceAll("[^a-zA-Z0-9 ]+", "").replaceAll(" ", "_").toLowerCase();
-            String timestamp = new SimpleDateFormat("yyyy-MM-dd_hh-mm").format(new Date());
-            newFilePath = String.format(userScriptsPath +
-                    "/%s/%s-%s%s.pig", context.getUsername(),
-                    normalizedName, timestamp, (checkId == 0)?"":"_"+checkId);
-            LOG.debug("Trying to create new file " + newFilePath);
-
-            try {
-                FSDataOutputStream stream = BaseService.getHdfsApi(context).create(newFilePath, false);
-                stream.close();
-                fileCreated = true;
-                LOG.debug("File created successfully!");
-            } catch (FileAlreadyExistsException e) {
-                fileCreated = false;
-                LOG.debug("File already exists. Trying next id");
-            } catch (IOException e) {
-                try {
-                    delete(object.getId());
-                } catch (ItemNotFound itemNotFound) {
-                    throw new WebServiceException("Error in creation, during clean up: " + itemNotFound.toString(), itemNotFound);
-                }
-                throw new WebServiceException("Error in creation: " + e.toString(), e);
-            } catch (InterruptedException e) {
-                try {
-                    delete(object.getId());
-                } catch (ItemNotFound itemNotFound) {
-                    throw new WebServiceException("Error in creation, during clean up: " + itemNotFound.toString(), itemNotFound);
-                }
-                throw new WebServiceException("Error in creation: " + e.toString(), e);
-            }
-            checkId += 1;
-        } while (!fileCreated);
-
-        object.setPigScript(newFilePath);
-        getPigStorage().store(object);
-    }
+    object.setPigScript(newFilePath);
+    getPigStorage().store(object);
+  }
 }
