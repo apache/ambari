@@ -62,6 +62,18 @@ public class ServiceInfo {
   @XmlElement(defaultValue = "false")
   private boolean monitoringService;
   
+  @JsonIgnore
+  @XmlElement(name = "restartRequiredAfterChange")
+  private Boolean restartRequiredAfterChange;  
+
+  public Boolean isRestartRequiredAfterChange() {
+    return restartRequiredAfterChange;
+  }
+
+  public void setRestartRequiredAfterChange(Boolean restartRequiredAfterChange) {
+    this.restartRequiredAfterChange = restartRequiredAfterChange;
+  }  
+  
   @XmlTransient
   private File metricsFile = null;
   @XmlTransient

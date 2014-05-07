@@ -9420,6 +9420,54 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
+  public void setRestartRequieredAfterChangeService() throws Exception {
+    String clusterName = "c1";
+    createCluster(clusterName);
+    Cluster cluster = clusters.getCluster(clusterName);
+    StackId stackId = new StackId("HDP-2.0.7");
+    cluster.setDesiredStackVersion(stackId);
+    cluster.setCurrentStackVersion(stackId);
+
+    String hdfsService = "HDFS";
+    String zookeeperService = "ZOOKEEPER";
+    createService(clusterName, hdfsService, null);
+    createService(clusterName, zookeeperService, null);
+
+    String namenode = "NAMENODE";
+    String datanode = "DATANODE";
+    String hdfsClient = "HDFS_CLIENT";
+    String zookeeperServer = "ZOOKEEPER_SERVER";
+    createServiceComponent(clusterName, hdfsService, namenode,
+      State.INIT);
+    createServiceComponent(clusterName, hdfsService, datanode,
+      State.INIT);
+    createServiceComponent(clusterName, zookeeperService, zookeeperServer,
+      State.INIT);
+
+    String host1 = "h1";
+    String host2 = "h2";
+
+    addHost(host1, clusterName);
+    createServiceComponentHost(clusterName, hdfsService, namenode, host1, null);
+    createServiceComponentHost(clusterName, hdfsService, datanode, host1, null);
+    createServiceComponentHost(clusterName, zookeeperService, zookeeperServer, host1,
+      null);
+
+    ServiceComponentHost zookeeperSch = null;
+    for (ServiceComponentHost sch : cluster.getServiceComponentHosts(host1)) {
+      if (sch.getServiceComponentName().equals(zookeeperServer)) {
+        zookeeperSch = sch;
+      }
+    }
+    assertFalse(zookeeperSch.isRestartRequired());
+
+    addHost(host2, clusterName);
+    createServiceComponentHost(clusterName, zookeeperService, zookeeperServer, host2, null);
+
+    assertTrue(zookeeperSch.isRestartRequired());
+  }  
+  
+  @Test
   public void testMaintenanceState() throws Exception {
     String clusterName = "c1";
     createCluster(clusterName);

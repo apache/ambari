@@ -562,6 +562,22 @@ public class AmbariMetaInfo {
     return monitoringServices;
   }
 
+  public Set<String> getRestartRequiredServicesNames(String stackName, String version)
+    throws AmbariException{
+
+    HashSet<String> needRestartServices = new HashSet<String>();
+    
+    List<ServiceInfo> serviceInfos = getSupportedServices(stackName, version);
+     
+    
+    for (ServiceInfo service : serviceInfos) {
+      if (service.isRestartRequiredAfterChange() != null && service.isRestartRequiredAfterChange()) {
+        needRestartServices.add(service.getName());
+      }
+    }
+    return needRestartServices;
+  }  
+  
   public List<StackInfo> getSupportedStacks() {
     return stacksResult;
   }

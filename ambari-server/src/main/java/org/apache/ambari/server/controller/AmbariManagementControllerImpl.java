@@ -426,6 +426,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       }
       ServiceComponent sc = s.getServiceComponent(
           request.getComponentName());
+     
+      setRestartRequiredServices(s);
 
       Host host;
       try {
@@ -556,6 +558,28 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
               ServiceComponentHost sch = sc.getServiceComponentHost(hostname);
               sch.setRestartRequired(true);
             }
+          }
+        }
+      }
+    }
+  } 
+  
+  private void setRestartRequiredServices(
+          Service service) throws AmbariException {
+
+    Cluster cluster = service.getCluster();
+    StackId stackId = cluster.getCurrentStackVersion();
+    Set<String> needRestartServices = ambariMetaInfo.getRestartRequiredServicesNames(
+            stackId.getStackName(), stackId.getStackVersion());
+    if (needRestartServices.contains(service.getName())) {
+      Map<String, ServiceComponent> m = service.getServiceComponents();
+      for (Entry<String, ServiceComponent> entry : m.entrySet()) {
+        ServiceComponent serviceComponent = entry.getValue();
+        if (serviceComponent.isMasterComponent()) {
+          Map<String, ServiceComponentHost> schMap = serviceComponent.getServiceComponentHosts();
+          for (Entry<String, ServiceComponentHost> sch : schMap.entrySet()) {
+            ServiceComponentHost serviceComponentHost = sch.getValue();
+            serviceComponentHost.setRestartRequired(true);
           }
         }
       }
@@ -2156,13 +2180,16 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
             "DISABLED/INIT/INSTALLED/INSTALL_FAILED/UNKNOWN state. Current=" + componentHost.getState() + ".");
       }
 
+      setRestartRequiredServices(service);
+              
       if (!safeToRemoveSCHs.containsKey(component)) {
         safeToRemoveSCHs.put(component, new HashSet<ServiceComponentHost>());
       }
       safeToRemoveSCHs.get(component).add(componentHost);
     }
-
-    for (Entry<ServiceComponent, Set<ServiceComponentHost>> entry : safeToRemoveSCHs.entrySet()) {
+    
+    for (Entry<ServiceComponent, Set<ServiceComponentHost>> entry 
+           : safeToRemoveSCHs.entrySet()) {
       for (ServiceComponentHost componentHost : entry.getValue()) {
         entry.getKey().deleteServiceComponentHosts(componentHost.getHostName());
       }

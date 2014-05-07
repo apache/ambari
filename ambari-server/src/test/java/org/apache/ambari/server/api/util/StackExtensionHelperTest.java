@@ -52,7 +52,7 @@ public class StackExtensionHelperTest {
     StackExtensionHelper helper = new StackExtensionHelper(stackRoot);
     helper.populateServicesForStack(stackInfo);
     List<ServiceInfo> services =  stackInfo.getServices();
-    assertEquals(6, services.size());
+    assertEquals(7, services.size());
     for (ServiceInfo serviceInfo : services) {
       if (serviceInfo.getName().equals("HIVE")) {
         // Check old-style service
@@ -182,6 +182,8 @@ public class StackExtensionHelperTest {
         assertEquals("global", configDependencies.get(0));
         assertEquals("hbase-policy", configDependencies.get(1));
         assertEquals("hbase-site", configDependencies.get(2));
+      } else if(serviceInfo.getName().equals("ZOOKEEPER")) {
+        assertTrue(serviceInfo.isRestartRequiredAfterChange());
       } else {
         if (!serviceInfo.getName().equals("YARN") &&
             !serviceInfo.getName().equals("HDFS") &&

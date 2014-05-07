@@ -129,6 +129,11 @@ public class StackExtensionHelper {
     mergedServiceInfo.setConfigDependencies(
       childService.getConfigDependencies() != null ?
         childService.getConfigDependencies() : new ArrayList<String>());
+    
+    mergedServiceInfo.setRestartRequiredAfterChange(
+            (childService.isRestartRequiredAfterChange() != null) 
+                    ? childService.isRestartRequiredAfterChange()
+                    : parentService.isRestartRequiredAfterChange());
 
     Map<String, ServiceOsSpecific> osSpecific = childService.getOsSpecifics();
     if (! osSpecific.isEmpty()) {

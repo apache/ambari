@@ -115,6 +115,12 @@ public class AmbariMetaInfoTest {
   }
 
   @Test
+  public void getRestartRequiredServicesNames() throws AmbariException {
+    Set<String> res = metaInfo.getRestartRequiredServicesNames(STACK_NAME_HDP, "2.0.7");
+    assertEquals(1, res.size());
+  }  
+  
+  @Test
   public void getComponentsByService() throws AmbariException {
     List<ComponentInfo> components = metaInfo.getComponentsByService(
         STACK_NAME_HDP, STACK_VERSION_HDP, SERVICE_NAME_HDFS);
