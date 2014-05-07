@@ -56,7 +56,9 @@ class TestHiveMetastore(RMFTestCase):
                        config_file="../../2.1/configs/default.json"
     )
 
-    self.assertResourceCalled('Execute', 'kill `cat /var/run/hive/hive.pid` >/dev/null 2>&1 && rm -f /var/run/hive/hive.pid')
+    self.assertResourceCalled('Execute', 'kill `cat /var/run/hive/hive.pid` >/dev/null 2>&1 && rm -f /var/run/hive/hive.pid',
+                              not_if = '! (ls /var/run/hive/hive.pid >/dev/null 2>&1 && ps `cat /var/run/hive/hive.pid` >/dev/null 2>&1)'
+    )
     self.assertNoMoreResources()
 
   def test_configure_secured(self):
@@ -94,7 +96,9 @@ class TestHiveMetastore(RMFTestCase):
                        config_file="../../2.1/configs/secured.json"
     )
 
-    self.assertResourceCalled('Execute', 'kill `cat /var/run/hive/hive.pid` >/dev/null 2>&1 && rm -f /var/run/hive/hive.pid')
+    self.assertResourceCalled('Execute', 'kill `cat /var/run/hive/hive.pid` >/dev/null 2>&1 && rm -f /var/run/hive/hive.pid',
+                              not_if = '! (ls /var/run/hive/hive.pid >/dev/null 2>&1 && ps `cat /var/run/hive/hive.pid` >/dev/null 2>&1)'
+    )
     self.assertNoMoreResources()
 
   def assert_configure_default(self):

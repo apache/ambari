@@ -85,7 +85,9 @@ class TestHiveServer(RMFTestCase):
                        config_file="default.json"
     )
 
-    self.assertResourceCalled('Execute', 'kill `cat /var/run/hive/hive-server.pid` >/dev/null 2>&1 && rm -f /var/run/hive/hive-server.pid')
+    self.assertResourceCalled('Execute', 'kill `cat /var/run/hive/hive-server.pid` >/dev/null 2>&1 && rm -f /var/run/hive/hive-server.pid',
+                              not_if = '! (ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps `cat /var/run/hive/hive-server.pid` >/dev/null 2>&1)'
+    )
     self.assertNoMoreResources()
 
     
@@ -152,7 +154,9 @@ class TestHiveServer(RMFTestCase):
                        config_file="secured.json"
     )
 
-    self.assertResourceCalled('Execute', 'kill `cat /var/run/hive/hive-server.pid` >/dev/null 2>&1 && rm -f /var/run/hive/hive-server.pid')
+    self.assertResourceCalled('Execute', 'kill `cat /var/run/hive/hive-server.pid` >/dev/null 2>&1 && rm -f /var/run/hive/hive-server.pid',
+                              not_if = '! (ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps `cat /var/run/hive/hive-server.pid` >/dev/null 2>&1)'
+    )
     self.assertNoMoreResources()
 
   def assert_configure_default(self):
