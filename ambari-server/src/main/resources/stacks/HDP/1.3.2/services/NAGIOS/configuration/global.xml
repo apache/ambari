@@ -36,12 +36,12 @@
     <value>nagiosadmin</value>
     <description>Nagios web user.</description>
   </property>
-  <property>
+  <property require-input = "true">
     <name>nagios_web_password</name>
     <value></value>
     <description>Nagios Admin Password.</description>
   </property>
-  <property>
+  <property require-input = "true">
     <name>nagios_contact</name>
     <value></value>
     <description>Hadoop Admin Email.</description>

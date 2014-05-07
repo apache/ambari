@@ -46,7 +46,7 @@
     <value>oozie</value>
     <description>Database user name to use to connect to the database</description>
   </property>
-  <property>
+  <property require-input = "true">
     <name>oozie_metastore_user_passwd</name>
     <value></value>
     <description>Database password to use to connect to the database</description>
