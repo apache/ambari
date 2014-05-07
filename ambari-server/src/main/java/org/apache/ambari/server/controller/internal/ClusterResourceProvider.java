@@ -980,6 +980,8 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
     // STORM
     propertyUpdaters.put("nimbus.host", new SingleHostPropertyUpdater("NIMBUS"));
     propertyUpdaters.put("worker.childopts", new SingleHostPropertyUpdater("GANGLIA_SERVER"));
+    propertyUpdaters.put("supervisor.childopts", new SingleHostPropertyUpdater("GANGLIA_SERVER"));
+    propertyUpdaters.put("nimbus.childopts", new SingleHostPropertyUpdater("GANGLIA_SERVER"));
     propertyUpdaters.put("storm.zookeeper.servers",
       new YamlMultiValuePropertyDecorator(new MultipleHostPropertyUpdater("ZOOKEEPER_SERVER")));
 
