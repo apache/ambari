@@ -71,6 +71,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.ambari.server.utils.VersionUtils;
 import org.apache.ambari.server.view.ViewRegistry;
+import org.apache.ambari.view.SystemException;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.HandlerList;
@@ -288,10 +289,15 @@ public class AmbariServer {
 
       HandlerList handlerList = new HandlerList();
 
-      ViewRegistry viewRegistry = ViewRegistry.getInstance();
-      for (ViewInstanceEntity entity : viewRegistry.readViewArchives(configs)){
-        handlerList.addHandler(viewRegistry.getWebAppContext(entity));
+      try {
+        ViewRegistry viewRegistry = ViewRegistry.getInstance();
+        for (ViewInstanceEntity entity : viewRegistry.readViewArchives(configs)){
+          handlerList.addHandler(viewRegistry.getWebAppContext(entity));
+        }
+      } catch (SystemException e) {
+        LOG.error("Caught exception deploying views.", e);
       }
+
       handlerList.addHandler(root);
 
       server.setHandler(handlerList);

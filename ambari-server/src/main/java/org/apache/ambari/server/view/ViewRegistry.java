@@ -20,7 +20,6 @@ package org.apache.ambari.server.view;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
-import com.google.inject.Inject;
 import com.google.inject.Injector;
 import org.apache.ambari.server.api.resources.ResourceInstanceFactoryImpl;
 import org.apache.ambari.server.api.resources.SubResourceDefinition;
@@ -44,6 +43,7 @@ import org.apache.ambari.server.view.configuration.PersistenceConfig;
 import org.apache.ambari.server.view.configuration.PropertyConfig;
 import org.apache.ambari.server.view.configuration.ResourceConfig;
 import org.apache.ambari.server.view.configuration.ViewConfig;
+import org.apache.ambari.view.SystemException;
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.ViewResourceHandler;
 import org.eclipse.jetty.webapp.WebAppContext;
@@ -51,19 +51,28 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import java.beans.IntrospectionException;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 
 /**
  * Registry for view and view instance definitions.
@@ -74,6 +83,9 @@ public class ViewRegistry {
    * Constants
    */
   private static final String VIEW_XML = "view.xml";
+  private static final String ARCHIVE_CLASSES_DIR = "WEB-INF/classes";
+  private static final String ARCHIVE_LIB_DIR = "WEB-INF/lib";
+  private static final String EXTRACTED_ARCHIVES_DIR = "work";
 
   /**
    * Mapping of view names to view definitions.
@@ -83,12 +95,19 @@ public class ViewRegistry {
   /**
    * Mapping of view instances to view definition and instance name.
    */
-  private Map<ViewEntity, Map<String, ViewInstanceEntity>> viewInstanceDefinitions = new HashMap<ViewEntity, Map<String, ViewInstanceEntity>>();
+  private Map<ViewEntity, Map<String, ViewInstanceEntity>> viewInstanceDefinitions =
+      new HashMap<ViewEntity, Map<String, ViewInstanceEntity>>();
 
   /**
    * Mapping of view names to sub-resources.
    */
-  private final Map<String, Set<SubResourceDefinition>> subResourceDefinitionsMap = new HashMap<String, Set<SubResourceDefinition>>();
+  private final Map<String, Set<SubResourceDefinition>> subResourceDefinitionsMap =
+      new HashMap<String, Set<SubResourceDefinition>>();
+
+  /**
+   * Helper class.
+   */
+  private ViewRegistryHelper helper = new ViewRegistryHelper();
 
   /**
    * The singleton view registry instance.
@@ -109,18 +128,6 @@ public class ViewRegistry {
    * View instance data access object.
    */
   private static ViewInstanceDAO instanceDAO;
-
-  /**
-   * Static initialization of DAO.
-   *
-   * @param vDAO  view data access object
-   * @param iDAO  view instance data access object
-   */
-  @Inject
-  public static void init(ViewDAO vDAO, ViewInstanceDAO iDAO) {
-    viewDAO     = vDAO;
-    instanceDAO = iDAO;
-  }
 
 
   // ----- Constructors ------------------------------------------------------
@@ -267,48 +274,60 @@ public class ViewRegistry {
    * Read the view archives.
    *
    * @param configuration  Ambari configuration
+   *
+   * @throws SystemException if the view archives can not be successfully read
    */
-  public Set<ViewInstanceEntity> readViewArchives(Configuration configuration) {
+  public Set<ViewInstanceEntity> readViewArchives(Configuration configuration)
+      throws SystemException {
 
-    File   viewDir = configuration.getViewsDir();
-    File[] files   = viewDir.listFiles();
+    try {
+      File viewDir = configuration.getViewsDir();
 
-    Set<ViewInstanceEntity> instanceDefinitions = new HashSet<ViewInstanceEntity>();
+      Set<ViewInstanceEntity> instanceDefinitions = new HashSet<ViewInstanceEntity>();
 
-    if (files != null) {
-      for (final File fileEntry : files) {
-        if (!fileEntry.isDirectory()) {
-          try {
-            ClassLoader cl = URLClassLoader.newInstance(new URL[]{fileEntry.toURI().toURL()});
+      String extractedArchivesPath = viewDir.getAbsolutePath() +
+          File.separator + EXTRACTED_ARCHIVES_DIR;
 
-            InputStream  configStream     = cl.getResourceAsStream(VIEW_XML);
-            JAXBContext  jaxbContext      = JAXBContext.newInstance(ViewConfig.class);
-            Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
-            ViewConfig   viewConfig       = (ViewConfig) jaxbUnmarshaller.unmarshal(configStream);
-            ViewEntity   viewDefinition   = installView(viewConfig, configuration, cl, fileEntry.getAbsolutePath());
+      if (ensureExtractedArchiveDirectory(extractedArchivesPath)) {
+        File[] files = viewDir.listFiles();
 
-            for (InstanceConfig instanceConfig : viewConfig.getInstances()) {
-              ViewInstanceEntity viewInstanceDefinition = new ViewInstanceEntity(viewDefinition, instanceConfig);
+        if (files != null) {
+          for (File archiveFile : files) {
+            if (!archiveFile.isDirectory()) {
+              try {
+                ViewConfig viewConfig = helper.getViewConfigFromArchive(archiveFile);
 
-              for (PropertyConfig propertyConfig : instanceConfig.getProperties()) {
-                viewInstanceDefinition.putProperty(propertyConfig.getKey(), propertyConfig.getValue());
+                String viewName    = ViewEntity.getViewName(viewConfig.getName(), viewConfig.getVersion());
+                String archivePath = extractedArchivesPath + File.separator + viewName;
+
+                // extract the archive and get the class loader
+                ClassLoader cl = extractViewArchive(archiveFile, helper.getFile(archivePath));
+
+                ViewEntity viewDefinition = installView(viewConfig, configuration, cl, archivePath);
+
+                for (InstanceConfig instanceConfig : viewConfig.getInstances()) {
+                  ViewInstanceEntity viewInstanceDefinition =
+                      new ViewInstanceEntity(viewDefinition, instanceConfig);
+
+                  for (PropertyConfig propertyConfig : instanceConfig.getProperties()) {
+                    viewInstanceDefinition.putProperty(propertyConfig.getKey(), propertyConfig.getValue());
+                  }
+
+                  installViewInstance(viewDefinition, viewInstanceDefinition);
+                  instanceDefinitions.add(viewInstanceDefinition);
+                }
+              } catch (Exception e) {
+                LOG.error("Caught exception loading view from " + archiveFile.getAbsolutePath(), e);
               }
-
-              installViewInstance(viewDefinition, viewInstanceDefinition);
-              instanceDefinitions.add(viewInstanceDefinition);
             }
-          } catch (Exception e) {
-            LOG.error("Caught exception loading view from " + fileEntry.getAbsolutePath(), e);
           }
+          instanceDefinitions.addAll(persistViews());
         }
       }
-      try {
-        instanceDefinitions.addAll(persistViews());
-      } catch (ClassNotFoundException e) {
-        LOG.error("Caught exception persisting views.", e);
-      }
+      return instanceDefinitions;
+    } catch (Exception e) {
+      throw new SystemException("Caught exception reading view archives.", e);
     }
-    return instanceDefinitions;
   }
 
   /**
@@ -415,14 +434,22 @@ public class ViewRegistry {
    * @param viewInstanceDefinition  the view instance definition
    *
    * @return a web app context
+   *
+   * @throws SystemException if an application context can not be obtained for the given view instance
    */
-  public WebAppContext getWebAppContext(ViewInstanceEntity viewInstanceDefinition) {
-    ViewEntity viewDefinition = viewInstanceDefinition.getViewEntity();
+  public WebAppContext getWebAppContext(ViewInstanceEntity viewInstanceDefinition)
+      throws SystemException{
+    try {
+      ViewEntity viewDefinition = viewInstanceDefinition.getViewEntity();
 
-    WebAppContext context = new WebAppContext(viewDefinition.getArchive(), viewInstanceDefinition.getContextPath());
-    context.setClassLoader(viewDefinition.getClassLoader());
-    context.setAttribute(ViewContext.CONTEXT_ATTRIBUTE, new ViewContextImpl(viewInstanceDefinition, this));
-    return context;
+      WebAppContext context = new WebAppContext(viewDefinition.getArchive(), viewInstanceDefinition.getContextPath());
+      context.setClassLoader(viewDefinition.getClassLoader());
+      context.setAttribute(ViewContext.CONTEXT_ATTRIBUTE, new ViewContextImpl(viewInstanceDefinition, this));
+      return context;
+    } catch (Exception e) {
+      throw new SystemException("Can't get application context for view " +
+          viewInstanceDefinition.getViewEntity().getCommonName() + ".", e);
+    }
   }
 
 
@@ -435,6 +462,15 @@ public class ViewRegistry {
     viewDefinitions.clear();
     viewInstanceDefinitions.clear();
     subResourceDefinitionsMap.clear();
+  }
+
+  /**
+   * Set the helper.
+   *
+   * @param helper  the helper
+   */
+  protected void setHelper(ViewRegistryHelper helper) {
+    this.helper = helper;
   }
 
   // get a view entity for the given internal view name
@@ -653,5 +689,194 @@ public class ViewRegistry {
       }
     }
     return instanceDefinitions;
+  }
+
+  // ensure that the extracted view archive directory exists
+  private boolean ensureExtractedArchiveDirectory(String extractedArchivesPath) {
+    File extractedArchiveDir = helper.getFile(extractedArchivesPath);
+
+    if (!extractedArchiveDir.exists()) {
+      if (!extractedArchiveDir.mkdir()) {
+        LOG.error("Could not create extracted view archive directory " +
+            extractedArchivesPath + ".");
+        return false;
+      }
+    }
+    return true;
+  }
+
+  // extract the given view archive to the given archive directory
+  private ClassLoader extractViewArchive(File viewArchive, File archiveDir) 
+      throws IOException {
+
+    // Skip if the archive has already been extracted
+    if (!archiveDir.exists()) {
+
+      String archivePath = archiveDir.getAbsolutePath();
+
+      LOG.info("Creating archive folder " + archivePath + ".");
+      
+      if (archiveDir.mkdir()) {
+        JarFile     viewJarFile = helper.getJarFile(viewArchive);
+        Enumeration enumeration = viewJarFile.entries();
+
+        LOG.info("Extracting files from " + viewArchive.getName() + ":");
+
+        while (enumeration.hasMoreElements()) {
+          JarEntry jarEntry  = (JarEntry) enumeration.nextElement();
+          String   entryPath = archivePath + File.separator + jarEntry.getName();
+
+          LOG.info("    " + entryPath);
+
+          File entryFile = helper.getFile(entryPath);
+
+          if (jarEntry.isDirectory()) {
+            if (!entryFile.mkdir()) {
+              LOG.error("Could not create archive entry directory " + entryPath + ".");
+            }
+          } else {
+            InputStream is = viewJarFile.getInputStream(jarEntry);
+            try {
+              FileOutputStream fos = helper.getFileOutputStream(entryFile);
+              try {
+                while (is.available() > 0) {
+                  fos.write(is.read());
+                }
+              } finally {
+                fos.close();
+              }
+            } finally {
+              is.close();
+            }
+          }
+        }
+      } else {
+        LOG.error("Could not create archive directory " + archivePath + ".");
+      }
+    }
+    return getArchiveClassLoader(archiveDir);
+  }
+
+  // get a class loader for the given archive directory
+  private ClassLoader getArchiveClassLoader(File archiveDir) 
+      throws MalformedURLException {
+
+    String    archivePath = archiveDir.getAbsolutePath();
+    List<URL> urlList     = new LinkedList<URL>();
+
+    // include the classes directory
+    String classesPath = archivePath + File.separator + ARCHIVE_CLASSES_DIR;
+    File   classesDir  = helper.getFile(classesPath);
+    if (classesDir.exists()) {
+      urlList.add(classesDir.toURI().toURL());
+    }
+
+    // include any libraries in the lib directory
+    String libPath = archivePath + File.separator + ARCHIVE_LIB_DIR;
+    File   libDir  = helper.getFile(libPath);
+    if (libDir.exists()) {
+      File[] files = libDir.listFiles();
+      if (files != null) {
+        for (final File fileEntry : files) {
+          if (!fileEntry.isDirectory()) {
+            urlList.add(fileEntry.toURI().toURL());
+          }
+        }
+      }
+    }
+
+    // include the archive directory 
+    urlList.add(archiveDir.toURI().toURL());
+
+    return URLClassLoader.newInstance(urlList.toArray(new URL[urlList.size()]));
+  }
+
+  /**
+   * Static initialization of DAO.
+   *
+   * @param viewDAO      view data access object
+   * @param instanceDAO  view instance data access object
+   */
+  public static void init(ViewDAO viewDAO, ViewInstanceDAO instanceDAO) {
+    setViewDAO(viewDAO);
+    setInstanceDAO(instanceDAO);
+  }
+
+  /**
+   * Set the view DAO.
+   *
+   * @param viewDAO  the view DAO
+   */
+  protected static void setViewDAO(ViewDAO viewDAO) {
+    ViewRegistry.viewDAO = viewDAO;
+  }
+
+  /**
+   * Set the instance DAO.
+   *
+   * @param instanceDAO  the instance DAO
+   */
+  protected static void setInstanceDAO(ViewInstanceDAO instanceDAO) {
+    ViewRegistry.instanceDAO = instanceDAO;
+  }
+
+
+  // ----- inner class : ViewRegistryHelper ----------------------------------
+
+  /**
+   * Registry helper class.
+   */
+  protected static class ViewRegistryHelper {
+
+    /**
+     * Get the view configuration from the given archive file.
+     *
+     * @param archiveFile  the archive file
+     *
+     * @return the associated view configuration
+     */
+    public ViewConfig getViewConfigFromArchive(File archiveFile)
+        throws MalformedURLException, JAXBException {
+      ClassLoader cl = URLClassLoader.newInstance(new URL[]{archiveFile.toURI().toURL()});
+
+      InputStream  configStream     = cl.getResourceAsStream(VIEW_XML);
+      JAXBContext  jaxbContext      = JAXBContext.newInstance(ViewConfig.class);
+      Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
+
+      return (ViewConfig) jaxbUnmarshaller.unmarshal(configStream);
+    }
+
+    /**
+     * Get a new file instance for the given path.
+     *
+     * @param path  the path
+     *
+     * @return a new file instance
+     */
+    public File getFile(String path) {
+      return new File(path);
+    }
+
+    /**
+     * Get a new file output stream for the given file.
+     *
+     * @param file  the file
+     *
+     * @return a new file output stream
+     */
+    public FileOutputStream getFileOutputStream(File file) throws FileNotFoundException {
+      return new FileOutputStream(file);
+    }
+
+    /**
+     * Get a new jar file instance from the given file.
+     *
+     * @param file  the file
+     *
+     * @return a new jar file instance
+     */
+    public JarFile getJarFile(File file) throws IOException {
+      return new JarFile(file);
+    }
   }
 }
