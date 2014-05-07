@@ -18,6 +18,20 @@
 
 var App = require('app');
 
+require('config');
+
+require('messages');
+require('utils/base64');
+require('utils/db');
+require('utils/helper');
+require('utils/config');
+require('mixins');
+require('models');
+require('controllers');
+require('views');
+require('router');
+require('mappers');
+
 require('test/init_model_test');
 require('test/app_test');
 require('test/data/HDP2/site_properties_test');

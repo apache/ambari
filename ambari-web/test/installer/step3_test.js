@@ -987,7 +987,7 @@ describe('App.WizardStep3Controller', function () {
 
   describe('#hostWarningsPopup', function() {
     it('should show App.ModalPopup', function() {
-      sinon.spy(App.ModalPopup, 'show');
+      sinon.stub(App.ModalPopup, 'show', Em.K);
       c.hostWarningsPopup();
       expect(App.ModalPopup.show.calledOnce).to.equal(true);
       App.ModalPopup.show.restore();
