@@ -36,12 +36,14 @@ def hive_service(
     cmd = format(
       "env JAVA_HOME={java64_home} {start_hiveserver2_path} {hive_log_dir}/hive-server2.out {hive_log_dir}/hive-server2.log {pid_file} {hive_server_conf_dir} {hive_log_dir}")
 
+  is_started = format("ls {pid_file} >/dev/null 2>&1 && ps `cat {pid_file}` >/dev/null 2>&1")
+  
   if action == 'start':
     demon_cmd = format("{cmd}")
-    no_op_test = format("ls {pid_file} >/dev/null 2>&1 && ps `cat {pid_file}` >/dev/null 2>&1")
+    
     Execute(demon_cmd,
             user=params.hive_user,
-            not_if=no_op_test
+            not_if=is_started
     )
 
     if params.hive_jdbc_driver == "com.mysql.jdbc.Driver" or \
@@ -54,5 +56,7 @@ def hive_service(
 
   elif action == 'stop':
     demon_cmd = format("kill `cat {pid_file}` >/dev/null 2>&1 && rm -f {pid_file}")
-    Execute(demon_cmd)
+    Execute(demon_cmd,
+            not_if = format("! ({is_started})")
+    )
 
