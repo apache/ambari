@@ -17,7 +17,6 @@
  */
 
 var App = require('app');
-var stringUtils = require('utils/string_utils');
 
 App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
 
@@ -27,15 +26,169 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
   selectedService: null,
   securityUsers: [],
 
+  /**
+   * map which depict connection between config and slave component
+   * in order to set component hosts to config value
+   */
+  slaveComponentMap: [
+    {
+      serviceName: 'HDFS',
+      configName: 'datanode_hosts',
+      component: 'DATANODE'
+    },
+    {
+      serviceName: 'MAPREDUCE',
+      configName: 'tasktracker_hosts',
+      component: 'TASKTRACKER'
+    },
+    {
+      serviceName: 'YARN',
+      configName: 'nodemanager_host',
+      component: 'NODEMANAGER'
+    },
+    {
+      serviceName: 'HBASE',
+      configName: 'regionserver_hosts',
+      component: 'HBASE_REGIONSERVER'
+    },
+    {
+      serviceName: 'STORM',
+      configName: 'supervisor_hosts',
+      component: 'SUPERVISOR'
+    }
+  ],
+  /**
+   * map which depict connection between config and master component
+   * in order to set component hosts to config value
+   */
+  masterComponentMap: [
+    {
+      serviceName: 'OOZIE',
+      configName: 'oozie_servername',
+      components: ['OOZIE_SERVER']
+    },
+    {
+      serviceName: 'HIVE',
+      configName: 'hive_metastore',
+      components: ['HIVE_SERVER']
+    },
+    {
+      serviceName: 'WEBHCAT',
+      configName: 'webhcatserver_host',
+      components: ['WEBHCAT_SERVER']
+    },
+    {
+      serviceName: 'NAGIOS',
+      configName: 'nagios_server',
+      components: ['NAGIOS_SERVER']
+    },
+    {
+      serviceName: 'HDFS',
+      configName: 'namenode_host',
+      components: ['NAMENODE']
+    },
+    {
+      serviceName: 'HDFS',
+      configName: 'snamenode_host',
+      components: ['SECONDARY_NAMENODE']
+    },
+    {
+      serviceName: 'HDFS',
+      configName: 'journalnode_hosts',
+      components: ['JOURNALNODE']
+    },
+    {
+      serviceName: 'MAPREDUCE',
+      configName: 'jobtracker_host',
+      components: ['JOBTRACKER']
+    },
+    {
+      serviceName: 'MAPREDUCE',
+      configName: 'jobhistoryserver_host',
+      components: ['HISTORYSERVER']
+    },
+    {
+      serviceName: 'MAPREDUCE2',
+      configName: 'jobhistoryserver_host',
+      components: ['HISTORYSERVER']
+    },
+    {
+      serviceName: 'YARN',
+      configName: 'resourcemanager_host',
+      components: ['RESOURCEMANAGER']
+    },
+    {
+      serviceName: 'HBASE',
+      configName: 'hbasemaster_host',
+      components: ['HBASE_MASTER']
+    },
+    {
+      serviceName: 'ZOOKEEPER',
+      configName: 'zookeeperserver_hosts',
+      components: ['ZOOKEEPER_SERVER']
+    },
+    {
+      serviceName: 'FALCON',
+      configName: 'falcon_server_host',
+      components: ['FALCON_SERVER']
+    },
+    {
+      serviceName: 'STORM',
+      configName: 'storm_host',
+      components: ['STORM_UI_SERVER', 'NIMBUS', 'SUPERVISOR']
+    }
+  ],
+
+  hostToPrincipalMap: [
+    {
+      serviceName: 'OOZIE',
+      configName: 'oozie_servername',
+      principalName: 'oozie_principal_name',
+      primaryName: 'oozie/'
+    },
+    {
+      serviceName: 'OOZIE',
+      configName: 'oozie_servername',
+      principalName: 'oozie_http_principal_name',
+      primaryName: 'HTTP/'
+    },
+    {
+      serviceName: 'FALCON',
+      configName: 'falcon_server_host',
+      principalName: 'falcon_principal_name',
+      primaryName: 'falcon/'
+    },
+    {
+      serviceName: 'FALCON',
+      configName: 'falcon_server_host',
+      principalName: 'falcon_http_principal_name',
+      primaryName: 'HTTP/'
+    },
+    {
+      serviceName: 'WEBHCAT',
+      configName: 'webhcatserver_host',
+      principalName: 'webHCat_http_principal_name',
+      primaryName: 'HTTP/'
+    },
+    {
+      serviceName: 'NAGIOS',
+      configName: 'nagios_server',
+      principalName: 'nagios_principal_name',
+      primaryName: 'nagios/'
+    }
+  ],
+
   isSubmitDisabled: function () {
-    return !this.stepConfigs.filterProperty('showConfig', true).everyProperty('errorCount', 0);
+    return !this.get('stepConfigs').filterProperty('showConfig').everyProperty('errorCount', 0);
   }.property('stepConfigs.@each.errorCount'),
 
+  /**
+   * clear info of step
+   */
   clearStep: function () {
     this.get('stepConfigs').clear();
     this.get('securityUsers').clear();
   },
-
 
   /**
    *  Function is called whenever the step is loaded
@@ -45,34 +198,34 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
     this.clearStep();
     this.loadUsers();
     this.addUserPrincipals(this.get('content.services'), this.get('securityUsers'));
-    this.addMasterHostToGlobals(this.get('content.services'));
-    this.addSlaveHostToGlobals(this.get('content.services'));
+    this.addMasterHostToGlobals();
+    this.addHostPrincipals();
+    this.addSlaveHostToGlobals();
     this.renderServiceConfigs(this.get('content.services'));
     this.changeCategoryOnHa(this.get('content.services'), this.get('stepConfigs'));
-    var storedServices = this.get('content.serviceConfigProperties');
-    if (storedServices) {
-      var configs = new Ember.Set();
-
-      // for all services`
-      this.get('stepConfigs').forEach(function (_content) {
-        //for all components
-        _content.get('configs').forEach(function (_config) {
-
-          var componentVal = storedServices.findProperty('name', _config.get('name'));
-          //if we have config for specified component
-          if (componentVal) {
-            //set it
-            _config.set('value', componentVal.value);
-          }
-
-        }, this);
-      }, this);
-
-    }
-    //
+    this.setStoredConfigsValue(this.get('content.serviceConfigProperties'));
     this.set('installedServices', App.Service.find().mapProperty('serviceName'));
-    console.log("The services are: " + this.get('installedServices'));
-    //
+  },
+
+  /**
+   * set stored values to service configs
+   * @param storedConfigProperties
+   * @return {Boolean}
+   */
+  setStoredConfigsValue: function (storedConfigProperties) {
+    if (!storedConfigProperties) return false;
+
+    // for all services`
+    this.get('stepConfigs').forEach(function (_content) {
+      _content.get('configs').forEach(function (_config) {
+        var configProperty = storedConfigProperties.findProperty('name', _config.get('name'));
+
+        if (configProperty) {
+          _config.set('value', configProperty.value);
+        }
+      }, this);
+    }, this);
+    return true;
   },
 
   /**
@@ -81,80 +234,94 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
    */
   renderServiceConfigs: function (serviceConfigs) {
     serviceConfigs.forEach(function (_serviceConfig) {
-
       var serviceConfig = App.ServiceConfig.create({
         filename: _serviceConfig.filename,
         serviceName: _serviceConfig.serviceName,
         displayName: _serviceConfig.displayName,
         configCategories: _serviceConfig.configCategories,
         showConfig: true,
-        configs: []
+        configs: this.wrapConfigProperties(_serviceConfig)
       });
-
-      this.loadComponentConfigs(_serviceConfig, serviceConfig);
 
       this.get('stepConfigs').pushObject(serviceConfig);
     }, this);
-    this.set('selectedService', this.get('stepConfigs').filterProperty('showConfig', true).objectAt(0));
+    this.set('selectedService', this.get('stepConfigs').filterProperty('showConfig').objectAt(0));
   },
 
   /**
-   * Load child components to service config object
+   * wrap configs into App.ServiceConfigProperty objects
    * @param _componentConfig
-   * @param componentConfig
    */
-  loadComponentConfigs: function (_componentConfig, componentConfig) {
+  wrapConfigProperties: function (_componentConfig) {
+    var configs = [];
     _componentConfig.configs.forEach(function (_serviceConfigProperty) {
       var serviceConfigProperty = App.ServiceConfigProperty.create(_serviceConfigProperty);
-      componentConfig.configs.pushObject(serviceConfigProperty);
       serviceConfigProperty.set('isEditable', serviceConfigProperty.get('isReconfigurable'));
       serviceConfigProperty.validate();
+      configs.pushObject(serviceConfigProperty);
     }, this);
+    return configs;
   },
 
   /**
    * fill config with hosts of component
-   * @param service
+   * @param serviceName
    * @param configName
-   * @param componentName
+   * @param componentNames
+   * @return {Boolean}
    */
-  setHostsToConfig: function (service, configName, componentName) {
+  setHostsToConfig: function (serviceName, configName, componentNames) {
+    var service = this.get('content.services').findProperty('serviceName', serviceName);
     if (service) {
       var hosts = service.configs.findProperty('name', configName);
       if (hosts) {
         hosts.defaultValue = App.Service.find(service.serviceName)
           .get('hostComponents')
-          .filterProperty('componentName', componentName)
-          .mapProperty('host.hostName');
+          .filter(function (component) {
+            return componentNames.contains(component.get('componentName'));
+          })
+          .mapProperty('host.hostName')
+          .uniq();
+        return true;
       }
+      return false;
     }
+    return false;
   },
 
   /**
-   * fill principal _HOST part with actual hostname of component
-   * @param service
+   * set principal default value based on config host and default primary name
+   * @param serviceName
    * @param hostConfigName
    * @param principalConfigName
    * @param defaultPrimaryName
+   * @return {Boolean}
    */
-  setHostToPrincipal: function (service, hostConfigName, principalConfigName, defaultPrimaryName) {
+  setHostToPrincipal: function (serviceName, hostConfigName, principalConfigName, defaultPrimaryName) {
+    var service = this.get('content.services').findProperty('serviceName', serviceName);
     if (service) {
       var host = service.configs.findProperty('name', hostConfigName);
       var principal = service.configs.findProperty('name', principalConfigName);
       if (host && principal) {
-        if (host.defaultValue instanceof Array) {
+        if (Array.isArray(host.defaultValue)) {
           host.defaultValue = host.defaultValue[0];
         }
         principal.defaultValue = defaultPrimaryName + host.defaultValue.toLowerCase();
+        return true;
       }
+      return false;
     }
+    return false;
   },
 
-
+  /**
+   * load services users
+   */
   loadUsers: function () {
     var securityUsers = App.router.get('mainAdminSecurityController').get('serviceUsers');
-    if (!securityUsers || securityUsers.length < 1) { // Page could be refreshed in middle
+    if (Em.isNone(securityUsers) || securityUsers.length === 0) {
       if (App.testMode) {
+        securityUsers = securityUsers || [];
         securityUsers.pushObject({id: 'puppet var', name: 'hdfs_user', value: 'hdfs'});
         securityUsers.pushObject({id: 'puppet var', name: 'mapred_user', value: 'mapred'});
         securityUsers.pushObject({id: 'puppet var', name: 'hbase_user', value: 'hbase'});
@@ -167,147 +334,98 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
     this.set('securityUsers', securityUsers);
   },
 
+  /**
+   * set default values to user principals and control their visibility
+   * @param serviceConfigs
+   * @param securityUsers
+   */
   addUserPrincipals: function (serviceConfigs, securityUsers) {
-    var smokeUser = securityUsers.findProperty('name', 'smokeuser');
-    var hdfsUser = securityUsers.findProperty('name', 'hdfs_user');
+    var generalService = serviceConfigs.findProperty('serviceName', 'GENERAL').configs;
+    var isHbaseService = serviceConfigs.someProperty('serviceName', 'HBASE');
+    var hbaseUserPrincipal = generalService.findProperty('name', 'hbase_principal_name');
+    var hbaseUserKeytab = generalService.findProperty('name', 'hbase_user_keytab');
     var hbaseUser = securityUsers.findProperty('name', 'hbase_user');
-    var generalService = serviceConfigs.findProperty('serviceName', 'GENERAL');
-    var smokeUserPrincipal = generalService.configs.findProperty('name', 'smokeuser_principal_name');
-    var hdfsUserPrincipal = generalService.configs.findProperty('name', 'hdfs_principal_name');
-    var hbaseUserPrincipal = generalService.configs.findProperty('name', 'hbase_principal_name');
-    var hbaseUserKeytab = generalService.configs.findProperty('name', 'hbase_user_keytab');
-    var hbaseService = serviceConfigs.findProperty('serviceName', 'HBASE');
-    if (smokeUser && smokeUserPrincipal) {
-      smokeUserPrincipal.defaultValue = smokeUser.value;
-    }
-    if (hdfsUser && hdfsUserPrincipal) {
-      hdfsUserPrincipal.defaultValue = hdfsUser.value;
-    }
-    if (hbaseService && hbaseUser && hbaseUserPrincipal) {
-      hbaseUserPrincipal.defaultValue = hbaseUser.value;
+
+    this.setUserPrincipalValue(securityUsers.findProperty('name', 'smokeuser'), generalService.findProperty('name', 'smokeuser_principal_name'));
+    this.setUserPrincipalValue(securityUsers.findProperty('name', 'hdfs_user'), generalService.findProperty('name', 'hdfs_principal_name'));
+
+    if (isHbaseService && this.setUserPrincipalValue(hbaseUser, hbaseUserPrincipal)) {
       hbaseUserPrincipal.isVisible = true;
       hbaseUserKeytab.isVisible = true;
     }
   },
-
-  addSlaveHostToGlobals: function (serviceConfigs) {
-    var serviceComponentMap = [
-      {
-        serviceName: 'HDFS',
-        configName: 'datanode_hosts',
-        component: 'DATANODE'
-      },
-      {
-        serviceName: 'MAPREDUCE',
-        configName: 'tasktracker_hosts',
-        component: 'TASKTRACKER'
-      },
-      {
-        serviceName: 'YARN',
-        configName: 'nodemanager_host',
-        component: 'NODEMANAGER'
-      },
-      {
-        serviceName: 'HBASE',
-        configName: 'regionserver_hosts',
-        component: 'HBASE_REGIONSERVER'
-      },
-      {
-        serviceName: 'STORM',
-        configName: 'supervisor_hosts',
-        component: 'SUPERVISOR'
-      }
-    ];
-    serviceComponentMap.forEach(function(service) {
-      this.setHostsToConfig(serviceConfigs.findProperty('serviceName', service.serviceName), service.configName, service.component);
-    }, this);
-  },
-
-  addMasterHostToGlobals: function (serviceConfigs) {
-    var oozieService = serviceConfigs.findProperty('serviceName', 'OOZIE');
-    var hiveService = serviceConfigs.findProperty('serviceName', 'HIVE');
-    var webHcatService = serviceConfigs.findProperty('serviceName', 'WEBHCAT');
-    var nagiosService = serviceConfigs.findProperty('serviceName', 'NAGIOS');
-    var hbaseService = serviceConfigs.findProperty('serviceName', 'HBASE');
-    var zooKeeperService = serviceConfigs.findProperty('serviceName', 'ZOOKEEPER');
-    var hdfsService = serviceConfigs.findProperty('serviceName', 'HDFS');
-    var mapReduceService = serviceConfigs.findProperty('serviceName', 'MAPREDUCE');
-    var mapReduce2Service = serviceConfigs.findProperty('serviceName', 'MAPREDUCE2');
-    var yarnService = serviceConfigs.findProperty('serviceName', 'YARN');
-    var stormService = serviceConfigs.findProperty('serviceName', 'STORM');
-    var falconService = serviceConfigs.findProperty('serviceName', 'FALCON');
-
-
-    this.setHostsToConfig(oozieService, 'oozie_servername', 'OOZIE_SERVER');
-    this.setHostsToConfig(hiveService, 'hive_metastore', 'HIVE_SERVER');
-    this.setHostsToConfig(webHcatService, 'webhcatserver_host', 'WEBHCAT_SERVER');
-    this.setHostsToConfig(nagiosService, 'nagios_server', 'NAGIOS_SERVER');
-    this.setHostsToConfig(hdfsService, 'namenode_host', 'NAMENODE');
-    this.setHostsToConfig(hdfsService, 'snamenode_host', 'SECONDARY_NAMENODE');
-    this.setHostsToConfig(hdfsService, 'journalnode_hosts', 'JOURNALNODE');
-    this.setHostsToConfig(mapReduceService, 'jobtracker_host', 'JOBTRACKER');
-    this.setHostsToConfig(mapReduceService, 'jobhistoryserver_host', 'HISTORYSERVER');
-    this.setHostsToConfig(mapReduce2Service, 'jobhistoryserver_host', 'HISTORYSERVER');
-    this.setHostsToConfig(yarnService, 'resourcemanager_host', 'RESOURCEMANAGER');
-    this.setHostsToConfig(hbaseService, 'hbasemaster_host', 'HBASE_MASTER');
-    this.setHostsToConfig(zooKeeperService, 'zookeeperserver_hosts', 'ZOOKEEPER_SERVER');
-    this.setHostsToConfig(falconService, 'falcon_server_host', 'FALCON_SERVER');
-    if (stormService) {
-      var stormComponents = ['STORM_UI_SERVER','NIMBUS','SUPERVISOR'];
-      var stormHosts = [];
-      stormComponents.forEach(function(componentName) {
-        stormHosts.pushObjects(App.Service.find(stormService.serviceName)
-          .get('hostComponents')
-          .filterProperty('componentName', componentName)
-          .mapProperty('host.hostName'));
-      }, this);
-      var hosts = stormService.configs.findProperty('name', 'storm_host');
-      hosts.defaultValue  = stormHosts.uniq();
+  /**
+   * set default value of user principal
+   * @param user
+   * @param userPrincipal
+   */
+  setUserPrincipalValue: function (user, userPrincipal) {
+    if (user && userPrincipal) {
+      userPrincipal.defaultValue = user.value;
+      return true;
     }
-
-    // Oozie, Falcon, WebHcat and Nagios does not support _HOST in the principal name. Actual hostname should be set instead of _HOST
-
-    this.setHostToPrincipal(oozieService, 'oozie_servername','oozie_principal_name','oozie/');
-    this.setHostToPrincipal(oozieService, 'oozie_servername','oozie_http_principal_name','HTTP/');
-    this.setHostToPrincipal(falconService, 'falcon_server_host','falcon_principal_name','falcon/');
-    this.setHostToPrincipal(falconService, 'falcon_server_host','falcon_http_principal_name','HTTP/');
-    this.setHostToPrincipal(webHcatService, 'webhcatserver_host','webHCat_http_principal_name','HTTP/');
-    this.setHostToPrincipal(nagiosService, 'nagios_server','nagios_principal_name','nagios/');
-  },
-
-  changeCategoryOnHa: function (serviceConfigs, stepConfigs) {
-    var hdfsService = serviceConfigs.findProperty('serviceName', 'HDFS');
-    if (hdfsService) {
-      var hdfsProperties = stepConfigs.findProperty('serviceName', 'HDFS').get('configs');
-      var configCategories = hdfsService.configCategories;
-      if ((App.testMode && App.testNameNodeHA) || (this.get('content.isNnHa') === 'true')) {
-        hdfsProperties.filterProperty('category', 'SNameNode').forEach(function (_snConfig) {
-          _snConfig.set('isVisible', false);
-        }, this);
-        var snCategory = configCategories.findProperty('name', 'SNameNode');
-        if (snCategory) {
-          configCategories.removeObject(snCategory);
-        }
-      } else {
-        hdfsProperties.filterProperty('category', 'JournalNode').forEach(function (_jnConfig) {
-          _jnConfig.set('isVisible', false);
-        }, this);
-        var jnCategory = configCategories.findProperty('name', 'JournalNode');
-        if (jnCategory) {
-          configCategories.removeObject(jnCategory);
-        }
-      }
-    }
+    return false;
   },
 
   /**
-   *  submit and move to step3
+   * put hosts of slave component into defaultValue of global configs
    */
+  addSlaveHostToGlobals: function () {
+    this.get('slaveComponentMap').forEach(function (service) {
+      this.setHostsToConfig(service.serviceName, service.configName, [service.component]);
+    }, this);
+  },
 
-  submit: function () {
-    if (!this.get('isSubmitDisabled')) {
-      App.router.send('next');
+  /**
+   * put hosts of master component into defaultValue of global configs
+   */
+  addMasterHostToGlobals: function () {
+    this.get('masterComponentMap').forEach(function (item) {
+      this.setHostsToConfig(item.serviceName, item.configName, item.components);
+    }, this);
+  },
+
+  /**
+   * put hosts to principal default values
+   */
+  addHostPrincipals: function () {
+    this.get('hostToPrincipalMap').forEach(function (item) {
+      this.setHostToPrincipal(item.serviceName, item.configName, item.principalName, item.primaryName);
+    }, this);
+  },
+
+  /**
+   * modify config categories depending on whether HA is enabled or not
+   * @param serviceConfigs
+   * @param stepConfigs
+   */
+  changeCategoryOnHa: function (serviceConfigs, stepConfigs) {
+    var hdfsService = serviceConfigs.findProperty('serviceName', 'HDFS');
+    if (hdfsService) {
+      var properties = stepConfigs.findProperty('serviceName', 'HDFS').get('configs');
+      var configCategories = hdfsService.configCategories;
+      if ((App.testMode && App.testNameNodeHA) || (this.get('content.isNnHa') === 'true')) {
+        this.removeConfigCategory(properties, configCategories, 'SNameNode');
+      } else {
+        this.removeConfigCategory(properties, configCategories, 'JournalNode');
+      }
+      return true;
+    }
+    return false;
+  },
+  /**
+   * remove config category that belong to component and hide category configs
+   * @param properties
+   * @param configCategories
+   * @param component
+   */
+  removeConfigCategory: function (properties, configCategories, component) {
+    properties.filterProperty('category', component).forEach(function (_snConfig) {
+      _snConfig.set('isVisible', false);
+    }, this);
+    var category = configCategories.findProperty('name', component);
+    if (category) {
+      configCategories.removeObject(category);
     }
   }
-
 });

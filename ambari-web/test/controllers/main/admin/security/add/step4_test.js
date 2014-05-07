@@ -22,6 +22,7 @@ require('controllers/main/admin/security/security_progress_controller');
 require('controllers/main/admin/security/add/step4');
 require('utils/polling');
 require('models/cluster_states');
+require('models/service');
 
 describe('App.MainAdminSecurityAddStep4Controller', function () {
 

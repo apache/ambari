@@ -18,26 +18,37 @@
 
 
 var App = require('app');
+
 require('controllers/main/admin/security/add/step2');
-require('utils/polling');
-require('models/cluster_states');
+require('models/service');
 
 describe('App.MainAdminSecurityAddStep2Controller', function () {
 
-  var mainAdminSecurityAddStep2Controller = App.MainAdminSecurityAddStep2Controller.create();
+  var controller = App.MainAdminSecurityAddStep2Controller.create({
+    content: {}
+  });
 
-  describe('#clearStep', function() {
-    mainAdminSecurityAddStep2Controller.set('stepConfigs',[1,2,3]);
-    it('clear', function() {
-      mainAdminSecurityAddStep2Controller.clearStep();
-      expect(mainAdminSecurityAddStep2Controller.get('stepConfigs.length')).to.equal(0);
+  describe('#clearStep()', function () {
+    it('Info is empty', function () {
+      controller.set('stepConfigs', []);
+      controller.set('securityUsers', []);
+      controller.clearStep();
+      expect(controller.get('stepConfigs')).to.be.empty;
+      expect(controller.get('securityUsers')).to.be.empty;
+    });
+    it('Info filled', function () {
+      controller.set('stepConfigs', [1]);
+      controller.set('securityUsers', [1]);
+      controller.clearStep();
+      expect(controller.get('stepConfigs')).to.be.empty;
+      expect(controller.get('securityUsers')).to.be.empty;
     });
   });
 
-  describe('#isSubmitDisabled', function() {
+  describe('#isSubmitDisabled', function () {
     var tests = [
       {
-        config:[
+        config: [
           {
             showConfig: true,
             errorCount: 0
@@ -47,7 +58,7 @@ describe('App.MainAdminSecurityAddStep2Controller', function () {
         e: false
       },
       {
-        config:[
+        config: [
           {
             showConfig: true,
             errorCount: 0
@@ -61,7 +72,7 @@ describe('App.MainAdminSecurityAddStep2Controller', function () {
         e: true
       },
       {
-        config:[
+        config: [
           {
             showConfig: true,
             errorCount: 0
@@ -75,7 +86,7 @@ describe('App.MainAdminSecurityAddStep2Controller', function () {
         e: false
       },
       {
-        config:[
+        config: [
           {
             showConfig: false,
             errorCount: 0
@@ -89,7 +100,7 @@ describe('App.MainAdminSecurityAddStep2Controller', function () {
         e: false
       },
       {
-        config:[
+        config: [
           {
             showConfig: true,
             errorCount: 1
@@ -103,12 +114,553 @@ describe('App.MainAdminSecurityAddStep2Controller', function () {
         e: true
       }
     ];
-    tests.forEach(function(test) {
-      it(test.m, function() {
-        mainAdminSecurityAddStep2Controller.set('stepConfigs', test.config);
-        expect(mainAdminSecurityAddStep2Controller.get('isSubmitDisabled')).to.equal(test.e);
+    tests.forEach(function (test) {
+      it(test.m, function () {
+        controller.set('stepConfigs', test.config);
+        expect(controller.get('isSubmitDisabled')).to.equal(test.e);
       });
     });
   });
 
+  describe('#loadStep()', function () {
+    it('load step', function () {
+      controller.set('stepConfigs', [
+        {}
+      ]);
+      controller.set('securityUsers', ['user1']);
+      controller.set('content.services', ['service1']);
+      controller.set('content.serviceConfigProperties', ['config1']);
+      sinon.stub(controller, 'clearStep', Em.K);
+      sinon.stub(controller, 'loadUsers', Em.K);
+      sinon.stub(controller, 'addUserPrincipals', Em.K);
+      sinon.stub(controller, 'addMasterHostToGlobals', Em.K);
+      sinon.stub(controller, 'addSlaveHostToGlobals', Em.K);
+      sinon.stub(controller, 'renderServiceConfigs', Em.K);
+      sinon.stub(controller, 'changeCategoryOnHa', Em.K);
+      sinon.stub(controller, 'setStoredConfigsValue', Em.K);
+      sinon.stub(controller, 'addHostPrincipals', Em.K);
+      sinon.stub(App.Service, 'find', function () {
+        return [
+          {serviceName: 'HDFS'}
+        ];
+      });
+
+      controller.loadStep();
+      expect(controller.get('installedServices')).to.eql(['HDFS']);
+      expect(controller.clearStep.calledOnce).to.be.true;
+      expect(controller.loadUsers.calledOnce).to.be.true;
+      expect(controller.addUserPrincipals.calledWith(['service1'], ['user1'])).to.be.true;
+      expect(controller.addMasterHostToGlobals.calledOnce).to.be.true;
+      expect(controller.addSlaveHostToGlobals.calledOnce).to.be.true;
+      expect(controller.addHostPrincipals.calledOnce).to.be.true;
+      expect(controller.renderServiceConfigs.calledWith(['service1'])).to.be.true;
+      expect(controller.changeCategoryOnHa.calledWith(['service1'], [{}])).to.be.true;
+      expect(controller.setStoredConfigsValue.calledWith(['config1'])).to.be.true;
+
+      controller.clearStep.restore();
+      controller.loadUsers.restore();
+      controller.addUserPrincipals.restore();
+      controller.addMasterHostToGlobals.restore();
+      controller.addSlaveHostToGlobals.restore();
+      controller.renderServiceConfigs.restore();
+      controller.changeCategoryOnHa.restore();
+      controller.setStoredConfigsValue.restore();
+      controller.addHostPrincipals.restore();
+      App.Service.find.restore();
+    });
+  });
+
+  describe('#setStoredConfigsValue()', function () {
+    it('storedConfigProperties is null', function () {
+      expect(controller.setStoredConfigsValue(null)).to.be.false;
+    });
+    it('stepConfigs is empty', function () {
+      controller.set('stepConfigs', []);
+      expect(controller.setStoredConfigsValue([])).to.be.true;
+      expect(controller.get('stepConfigs')).to.be.empty;
+    });
+    it('stepConfig has no configs', function () {
+      controller.set('stepConfigs', [Em.Object.create({
+        configs: []
+      })]);
+      expect(controller.setStoredConfigsValue([])).to.be.true;
+      expect(controller.get('stepConfigs')[0].get('configs')).to.be.empty;
+    });
+    it('stepConfig has no stored configs', function () {
+      controller.set('stepConfigs', [Em.Object.create({
+        configs: [Em.Object.create({
+          name: 'config1',
+          value: 'value1'
+        })]
+      })]);
+      var storedConfigProperties = [
+        {
+          name: 'config2',
+          value: "value2"
+        }
+      ];
+      expect(controller.setStoredConfigsValue(storedConfigProperties)).to.be.true;
+      expect(controller.get('stepConfigs')[0].get('configs').findProperty('name', 'config1').get('value')).to.equal('value1');
+    });
+    it('stepConfig has stored configs', function () {
+      controller.set('stepConfigs', [Em.Object.create({
+        configs: [Em.Object.create({
+          name: 'config2',
+          value: 'value1'
+        })]
+      })]);
+      var storedConfigProperties = [
+        {
+          name: 'config2',
+          value: "value2"
+        }
+      ];
+      expect(controller.setStoredConfigsValue(storedConfigProperties)).to.be.true;
+      expect(controller.get('stepConfigs')[0].get('configs').findProperty('name', 'config2').get('value')).to.equal('value2');
+    });
+  });
+
+  describe('#renderServiceConfigs()', function () {
+    it('serviceConfigs and stepConfigs are empty', function () {
+      controller.set('stepConfigs', []);
+      controller.renderServiceConfigs([]);
+      expect(controller.get('selectedService')).to.be.undefined;
+    });
+    it('serviceConfigs is empty', function () {
+      controller.set('stepConfigs', [
+        {showConfig: true}
+      ]);
+      controller.renderServiceConfigs([]);
+      expect(controller.get('selectedService')).to.eql({showConfig: true});
+    });
+    it('serviceConfigs has service', function () {
+      var serviceConfigs = [
+        {
+          serviceName: 'HDFS',
+          configs: []
+        }
+      ];
+      sinon.stub(controller, 'wrapConfigProperties', function () {
+        return [];
+      });
+      controller.set('stepConfigs', []);
+      controller.renderServiceConfigs(serviceConfigs);
+      expect(controller.get('selectedService').get('serviceName')).to.equal('HDFS');
+      expect(controller.get('selectedService').get('showConfig')).to.be.true;
+      expect(controller.get('selectedService').get('configs')).to.be.empty;
+      expect(controller.wrapConfigProperties.calledWith({
+        serviceName: 'HDFS',
+        configs: []
+      })).to.be.true;
+      controller.wrapConfigProperties.restore();
+    });
+  });
+
+  describe('#wrapConfigProperties()', function () {
+    it('_componentConfig is empty', function () {
+      expect(controller.wrapConfigProperties({configs: []})).to.be.empty;
+    });
+    it('serviceConfigs has service', function () {
+      var mock = Em.Object.create({
+        validate: Em.K,
+        isReconfigurable: true,
+        isEditable: false
+      });
+      var _componentConfig = {configs: [
+        {name: 'config1'}
+      ]};
+      sinon.stub(App.ServiceConfigProperty, 'create', function () {
+        return mock;
+      });
+      sinon.spy(mock, 'validate');
+      expect(controller.wrapConfigProperties(_componentConfig)[0].get('isEditable')).to.be.true;
+      expect(App.ServiceConfigProperty.create.calledWith({name: 'config1'})).to.be.true;
+      expect(mock.validate.calledOnce).to.be.true;
+      mock.validate.restore();
+      App.ServiceConfigProperty.create.restore();
+    });
+  });
+
+  describe('#setHostsToConfig()', function () {
+    it('service is null', function () {
+      expect(controller.setHostsToConfig(null)).to.be.false;
+    });
+    it('service.configs is empty', function () {
+      controller.set('content.services', [
+        {
+          serviceName: 'HDFS',
+          configs: []
+        }
+      ]);
+      expect(controller.setHostsToConfig('HDFS')).to.be.false;
+    });
+    it('No such config name in service.configs', function () {
+      controller.set('content.services', [
+        {
+          serviceName: 'HDFS',
+          configs: [
+            {
+              name: 'config1'
+            }
+          ]
+        }
+      ]);
+      expect(controller.setHostsToConfig('HDFS', 'config2')).to.be.false;
+    });
+    it('Correct config in service.configs', function () {
+      sinon.stub(App.Service, 'find', function () {
+        return Em.Object.create({
+          hostComponents: [
+            Em.Object.create({
+              componentName: 'comp1',
+              host: {hostName: 'host1'}
+            })
+          ]
+        });
+      });
+      expect(controller.setHostsToConfig('HDFS', 'config1', ['comp1'])).to.be.true;
+      expect(controller.get('content.services')[0].configs[0].defaultValue).to.eql(['host1']);
+      App.Service.find.restore();
+    });
+  });
+
+  describe('#setHostToPrincipal()', function () {
+    it('service is null', function () {
+      expect(controller.setHostToPrincipal(null)).to.be.false;
+    });
+    it('service.configs is empty', function () {
+      controller.set('content.services', [
+        {
+          serviceName: 'HDFS',
+          configs: []
+        }
+      ]);
+      expect(controller.setHostToPrincipal('HDFS')).to.be.false;
+    });
+    it('No such hostConfigName name in service.configs', function () {
+      controller.set('content.services', [
+        {
+          serviceName: 'HDFS',
+          configs: [
+            {
+              name: 'config1'
+            }
+          ]
+        }
+      ]);
+      expect(controller.setHostToPrincipal('HDFS', 'config2', 'config1')).to.be.false;
+    });
+    it('No such principalConfigName name in service.configs', function () {
+      expect(controller.setHostToPrincipal('HDFS', 'config1', 'config2')).to.be.false;
+    });
+    it('Correct config in service.configs', function () {
+      controller.set('content.services', [
+        {
+          serviceName: 'HDFS',
+          configs: [
+            {
+              name: 'config1',
+              defaultValue: 'value1'
+            },
+            {
+              name: 'principal1'
+            }
+          ]
+        }
+      ]);
+      expect(controller.setHostToPrincipal('HDFS', 'config1', 'principal1', 'name1')).to.be.true;
+      expect(controller.get('content.services')[0].configs[0].defaultValue).to.equal('value1');
+      expect(controller.get('content.services')[0].configs[1].defaultValue).to.equal('name1value1');
+    });
+    it('Correct config in service.configs, defaultValue is array', function () {
+      controller.set('content.services', [
+        {
+          serviceName: 'HDFS',
+          configs: [
+            {
+              name: 'config1',
+              defaultValue: ['Value1']
+            },
+            {
+              name: 'principal1'
+            }
+          ]
+        }
+      ]);
+      expect(controller.setHostToPrincipal('HDFS', 'config1', 'principal1', 'name1')).to.be.true;
+      expect(controller.get('content.services')[0].configs[0].defaultValue).to.equal('Value1');
+      expect(controller.get('content.services')[0].configs[1].defaultValue).to.equal('name1value1');
+    });
+  });
+
+  describe('#loadUsers()', function () {
+
+    afterEach(function () {
+      App.router.get.restore();
+    });
+
+    it('serviceUsers is correct', function () {
+      sinon.stub(App.router, 'get', function () {
+        return Em.Object.create({serviceUsers: [
+          {}
+        ]})
+      });
+      controller.loadUsers();
+      expect(controller.get('securityUsers')).to.eql([
+        {}
+      ]);
+    });
+    it('serviceUsers is null, testMode = true', function () {
+      sinon.stub(App.router, 'get', function () {
+        return Em.Object.create({serviceUsers: null})
+      });
+      App.testMode = true;
+      controller.loadUsers();
+      expect(controller.get('securityUsers').mapProperty('name')).to.eql(["hdfs_user",
+        "mapred_user",
+        "hbase_user",
+        "hive_user",
+        "smokeuser"
+      ]);
+    });
+    it('serviceUsers is empty, testMode = true', function () {
+      sinon.stub(App.router, 'get', function () {
+        return Em.Object.create({serviceUsers: []})
+      });
+      App.testMode = true;
+      controller.loadUsers();
+      expect(controller.get('securityUsers').mapProperty('name')).to.eql(["hdfs_user",
+        "mapred_user",
+        "hbase_user",
+        "hive_user",
+        "smokeuser"
+      ]);
+    });
+    it('serviceUsers is null, testMode = false', function () {
+      sinon.stub(App.router, 'get', function () {
+        return Em.Object.create({serviceUsers: null})
+      });
+      sinon.stub(App.db, 'getSecureUserInfo', function () {
+        return [
+          {}
+        ];
+      });
+      App.testMode = false;
+      controller.loadUsers();
+      expect(controller.get('securityUsers')).to.eql([
+        {}
+      ]);
+      expect(App.db.getSecureUserInfo.calledOnce).to.be.true;
+      App.db.getSecureUserInfo.restore();
+    });
+    it('serviceUsers is empty, testMode = false', function () {
+      sinon.stub(App.router, 'get', function () {
+        return Em.Object.create({serviceUsers: []})
+      });
+      sinon.stub(App.db, 'getSecureUserInfo', function () {
+        return [
+          {}
+        ];
+      });
+      App.testMode = false;
+      controller.loadUsers();
+      expect(controller.get('securityUsers')).to.eql([
+        {}
+      ]);
+      expect(App.db.getSecureUserInfo.calledOnce).to.be.true;
+      App.db.getSecureUserInfo.restore();
+    });
+  });
+
+  describe('#addUserPrincipals()', function () {
+
+    afterEach(function () {
+      controller.setUserPrincipalValue.restore();
+    });
+
+    var serviceConfigs = [
+      {
+        serviceName: 'GENERAL',
+        configs: [
+          {name: 'hbase_principal_name'},
+          {name: 'hbase_user_keytab'}
+        ]
+      }
+    ];
+    var securityUsers = [];
+
+    it('HBASE service is not installed', function () {
+      sinon.stub(controller, 'setUserPrincipalValue', Em.K);
+      controller.addUserPrincipals(serviceConfigs, securityUsers);
+      expect(controller.setUserPrincipalValue.calledTwice).to.be.true;
+    });
+    it('HBASE service is installed, setUserPrincipalValue return false', function () {
+      sinon.stub(controller, 'setUserPrincipalValue', function () {
+        return false;
+      });
+      serviceConfigs.push({serviceName: 'HBASE'});
+      controller.addUserPrincipals(serviceConfigs, securityUsers);
+      expect(controller.setUserPrincipalValue.calledThrice).to.be.true;
+    });
+    it('HBASE service is installed, setUserPrincipalValue return true', function () {
+      sinon.stub(controller, 'setUserPrincipalValue', function () {
+        return true;
+      });
+      controller.addUserPrincipals(serviceConfigs, securityUsers);
+      expect(controller.setUserPrincipalValue.calledThrice).to.be.true;
+      expect(serviceConfigs[0].configs.findProperty('name', 'hbase_principal_name').isVisible).to.be.true;
+      expect(serviceConfigs[0].configs.findProperty('name', 'hbase_user_keytab').isVisible).to.be.true;
+    });
+  });
+
+  describe('#setUserPrincipalValue()', function () {
+    it('user and userPrincipal are null', function () {
+      expect(controller.setUserPrincipalValue(null, null)).to.be.false;
+    });
+    it('user is null', function () {
+      expect(controller.setUserPrincipalValue(null, {})).to.be.false;
+    });
+    it('userPrincipal is null', function () {
+      expect(controller.setUserPrincipalValue({}, null)).to.be.false;
+    });
+    it('user and userPrincipal are correct', function () {
+      var user = {value: 'value1'};
+      var userPrincipal = {};
+      expect(controller.setUserPrincipalValue(user, userPrincipal)).to.be.true;
+      expect(userPrincipal.defaultValue).to.equal('value1');
+    });
+  });
+
+  describe('#addSlaveHostToGlobals()', function () {
+    it('slaveComponentMap is empty', function () {
+      sinon.stub(controller, 'setHostsToConfig', Em.K);
+      controller.set('slaveComponentMap', []);
+      controller.addSlaveHostToGlobals();
+      expect(controller.setHostsToConfig.called).to.be.false;
+      controller.setHostsToConfig.restore();
+    });
+    it('Correct data', function () {
+      sinon.stub(controller, 'setHostsToConfig', Em.K);
+      controller.set('slaveComponentMap', [
+        {
+          serviceName: 'HDFS',
+          configName: 'datanode_hosts',
+          component: 'DATANODE'
+        }
+      ]);
+      controller.addSlaveHostToGlobals();
+      expect(controller.setHostsToConfig.calledWith('HDFS', 'datanode_hosts', ['DATANODE'])).to.be.true;
+      controller.setHostsToConfig.restore();
+    });
+  });
+
+  describe('#addMasterHostToGlobals()', function () {
+    it('masterComponentMap is empty', function () {
+      sinon.stub(controller, 'setHostsToConfig', Em.K);
+      controller.set('masterComponentMap', []);
+      controller.addMasterHostToGlobals();
+      expect(controller.setHostsToConfig.called).to.be.false;
+      controller.setHostsToConfig.restore();
+    });
+    it('Correct data', function () {
+      sinon.stub(controller, 'setHostsToConfig', Em.K);
+      controller.set('masterComponentMap', [
+        {
+          serviceName: 'HDFS',
+          configName: 'datanode_hosts',
+          components: ['DATANODE']
+        }
+      ]);
+      controller.addMasterHostToGlobals();
+      expect(controller.setHostsToConfig.calledWith('HDFS', 'datanode_hosts', ['DATANODE'])).to.be.true;
+      controller.setHostsToConfig.restore();
+    });
+  });
+
+  describe('#addHostPrincipals()', function () {
+    it('hostToPrincipalMap is empty', function () {
+      sinon.stub(controller, 'setHostToPrincipal', Em.K);
+      controller.set('hostToPrincipalMap', []);
+      controller.addHostPrincipals();
+      expect(controller.setHostToPrincipal.called).to.be.false;
+      controller.setHostToPrincipal.restore();
+    });
+    it('Correct data', function () {
+      sinon.stub(controller, 'setHostToPrincipal', Em.K);
+      controller.set('hostToPrincipalMap', [
+        {
+          serviceName: 'HDFS',
+          configName: 'datanode_hosts',
+          principalName: 'principal1',
+          primaryName: 'name1'
+        }
+      ]);
+      controller.addHostPrincipals();
+      expect(controller.setHostToPrincipal.calledWith('HDFS', 'datanode_hosts', 'principal1', 'name1')).to.be.true;
+      controller.setHostToPrincipal.restore();
+    });
+  });
+
+  describe('#changeCategoryOnHa()', function () {
+
+    beforeEach(function () {
+      sinon.stub(controller, 'removeConfigCategory', Em.K);
+    });
+    afterEach(function () {
+      controller.removeConfigCategory.restore();
+    });
+
+    var serviceConfigs = [{
+      serviceName: 'HDFS',
+      configCategories: []
+    }];
+    var stepConfigs = [Em.Object.create({
+      serviceName: 'HDFS',
+      configs: []
+    })];
+
+    it('HDFS service is absent', function () {
+      expect(controller.changeCategoryOnHa([], [])).to.be.false;
+    });
+    it('HDFS service installed, App.testMode and App.testNameNodeHA - true', function () {
+      App.testMode = true;
+      App.testNameNodeHA = true;
+      expect(controller.changeCategoryOnHa(serviceConfigs, stepConfigs)).to.be.true;
+      expect(controller.removeConfigCategory.calledWith([], [], 'SNameNode')).to.be.true;
+      App.testMode = false;
+      App.testNameNodeHA = false;
+    });
+    it('HDFS service installed, content.isNnHa = true', function () {
+      controller.set('content.isNnHa', 'true');
+      expect(controller.changeCategoryOnHa(serviceConfigs, stepConfigs)).to.be.true;
+      expect(controller.removeConfigCategory.calledWith([], [], 'SNameNode')).to.be.true;
+    });
+    it('HDFS service installed, HA disabled', function () {
+      controller.set('content.isNnHa', 'false');
+      expect(controller.changeCategoryOnHa(serviceConfigs, stepConfigs)).to.be.true;
+      expect(controller.removeConfigCategory.calledWith([], [], 'JournalNode')).to.be.true;
+    });
+  });
+
+  describe('#removeConfigCategory()', function () {
+    it('properties should be hidden', function () {
+      var properties = [
+        Em.Object.create({
+          category: 'comp1',
+          isVisible: true
+        })
+      ];
+      controller.removeConfigCategory(properties, [], 'comp1');
+      expect(properties[0].isVisible).to.be.false;
+    });
+    it('category should be removed', function () {
+      var configCategories = [
+        Em.Object.create({
+          name: 'comp1'
+        })
+      ];
+      controller.removeConfigCategory([], configCategories, 'comp1');
+      expect(configCategories).to.be.empty;
+    });
+  });
 });
