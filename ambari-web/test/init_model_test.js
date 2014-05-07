@@ -37,5 +37,13 @@ module.exports = {
   },
   cleanStackServiceComponent: function(){
     App.StackServiceComponent.find().set('content',[]);
-  }
+  },
+  setupStackVersion: function(context, version) {
+    context.prevStackVersion = App.get('currentStackVersion');
+    App.set('currentStackVersion', version);
+  },
+  restoreStackVersion: function(context) {
+    App.set('currentStackVersion', context.prevStackVersion);
+  },
+  configs: require('test/mock_data_setup/configs_mock_data')
 };

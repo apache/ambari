@@ -56,6 +56,11 @@ App.config = Em.Object.create({
    * 
    * Special characters in XML are defined at
    * http://en.wikipedia.org/wiki/List_of_XML_and_HTML_character_entity_references#Predefined_entities_in_XML
+   *
+   * @method escapeXMLCharacters
+   * @param {*} value
+   * @param toXml {Boolean}
+   * @return {String}
    */
   escapeXMLCharacters: function(value, toXML) {
     var self = this;
@@ -72,6 +77,7 @@ App.config = Em.Object.create({
       return newValue;
     }
   },
+
   preDefinedServiceConfigs: function () {
     var configs = this.get('preDefinedGlobalProperties');
     var services = [];
@@ -81,32 +87,38 @@ App.config = Em.Object.create({
     });
     return services;
   }.property('preDefinedGlobalProperties'),
+
   configMapping: function () {
     if (App.get('isHadoop2Stack')) {
       return $.extend(true, [], require('data/HDP2/config_mapping'));
     }
     return $.extend(true, [], require('data/config_mapping'));
   }.property('App.isHadoop2Stack'),
+
   preDefinedGlobalProperties: function () {
     if (App.get('isHadoop2Stack')) {
       return $.extend(true, [], require('data/HDP2/global_properties').configProperties);
     }
     return $.extend(true, [], require('data/global_properties').configProperties);
   }.property('App.isHadoop2Stack'),
+
   preDefinedSiteProperties: function () {
     if (App.get('isHadoop2Stack')) {
       return $.extend(true, [], require('data/HDP2/site_properties').configProperties);
     }
     return $.extend(true, [], require('data/site_properties').configProperties);
   }.property('App.isHadoop2Stack'),
+
   preDefinedCustomConfigs: function () {
     if (App.get('isHadoop2Stack')) {
       return $.extend(true, [], require('data/HDP2/custom_configs'));
     }
     return $.extend(true, [], require('data/custom_configs'));
   }.property('App.isHadoop2Stack'),
+
   //categories which contain custom configs
   categoriesWithCustom: ['CapacityScheduler'],
+
   //configs with these filenames go to appropriate category not in Advanced
   customFileNames: function () {
     var customFiles = ['flume-conf.xml'];
@@ -121,7 +133,7 @@ App.config = Em.Object.create({
 
   /**
    * Function should be used post-install as precondition check should not be done only after installer wizard
-   * @param siteNames
+   * @param siteNames {string|array}
    * @returns {Array}
    */
   getBySitename: function (siteNames) {
@@ -136,7 +148,6 @@ App.config = Em.Object.create({
     }
     return siteProperties;
   },
-
 
   /**
    * Cache of loaded configurations. This is useful in not loading
@@ -206,6 +217,7 @@ App.config = Em.Object.create({
       config.isRequired = true;
     }
   },
+
   capacitySchedulerFilter: function () {
     var yarnRegex = /^yarn\.scheduler\.capacity\.root\.(?!unfunded)([a-z]([\_\-a-z0-9]{0,50}))\.(acl_administer_jobs|acl_submit_jobs|state|user-limit-factor|maximum-capacity|capacity)$/i;
     var self = this;
@@ -358,7 +370,9 @@ App.config = Em.Object.create({
 
   /**
    * synchronize order of config properties with order, that on UI side
-   * @param configSet
+   *
+   * @method syncOrderWithPredefined
+   * @param configSet {object}
    * @return {Object}
    */
   syncOrderWithPredefined: function (configSet) {
