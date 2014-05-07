@@ -221,7 +221,7 @@
     </description>
   </property>
 
-  <property>
+  <property require-input = "true">
     <name>oozie.service.JPAService.jdbc.password</name>
     <value> </value>
     <description>
