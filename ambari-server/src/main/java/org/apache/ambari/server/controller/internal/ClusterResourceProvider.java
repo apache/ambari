@@ -671,7 +671,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
    * @param properties           request properties
    * @param blueprintHostGroups  blueprint host groups
    *
-   * @throws IllegalArgumentException a host-group in the request doesn't match a host-group in the blueprint
+   * @throws IllegalArgumentException a host_group in the request doesn't match a host-group in the blueprint
    */
   private void applyRequestInfoToHostGroups(Map<String, Object> properties,
                                             Map<String, HostGroup> blueprintHostGroups)
@@ -681,9 +681,16 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
     Collection<Map<String, Object>> hostGroups =
         (Collection<Map<String, Object>>) properties.get("host_groups");
 
+    if (hostGroups == null || hostGroups.isEmpty()) {
+      throw new IllegalArgumentException("'host_groups' element must be included in cluster create body");
+    }
+
     // iterate over host groups provided in request body
     for (Map<String, Object> hostGroupProperties : hostGroups) {
       String name = (String) hostGroupProperties.get("name");
+      if (name == null || name.isEmpty()) {
+        throw new IllegalArgumentException("Every host_group must include a non-null 'name' property");
+      }
       HostGroup hostGroup = blueprintHostGroups.get(name);
 
       if (hostGroup == null) {
@@ -692,11 +699,18 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
       }
 
       Collection hosts = (Collection) hostGroupProperties.get("hosts");
+      if (hosts == null || hosts.isEmpty()) {
+        throw new IllegalArgumentException("Host group '" + name + "' must contain a 'hosts' element");
+      }
       for (Object oHost : hosts) {
         @SuppressWarnings("unchecked")
         Map<String, String> mapHostProperties = (Map<String, String>) oHost;
         //add host information to host group
-        hostGroup.addHostInfo(mapHostProperties.get("fqdn"));
+        String fqdn = mapHostProperties.get("fqdn");
+        if (fqdn == null || fqdn.isEmpty()) {
+          throw new IllegalArgumentException("Host group '" + name + "' hosts element must include at least one fqdn");
+        }
+        hostGroup.addHostInfo(fqdn);
       }
       Map<String, Map<String, String>> existingConfigurations = hostGroup.getConfigurations();
       overrideExistingProperties(existingConfigurations, (Collection<Map<String, String>>)
