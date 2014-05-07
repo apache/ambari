@@ -239,3 +239,30 @@ class TestOSCheck(TestCase):
         "Local OS is not compatible with cluster primary OS. Please perform manual bootstrap on this host.",
         str(e))
       pass
+
+  @patch.object(OSCheck, "get_os_family")
+  def test_is_debian_family(self, get_os_family_mock):
+
+    get_os_family_mock.return_value = "debian"
+    self.assertEqual(OSCheck.is_debian_family(), True)
+
+    get_os_family_mock.return_value = "troll_os"
+    self.assertEqual(OSCheck.is_debian_family(), False)
+
+  @patch.object(OSCheck, "get_os_family")
+  def test_is_suse_family(self, get_os_family_mock):
+
+    get_os_family_mock.return_value = "suse"
+    self.assertEqual(OSCheck.is_suse_family(), True)
+
+    get_os_family_mock.return_value = "troll_os"
+    self.assertEqual(OSCheck.is_suse_family(), False)
+
+  @patch.object(OSCheck, "get_os_family")
+  def test_is_redhat_family(self, get_os_family_mock):
+
+    get_os_family_mock.return_value = "redhat"
+    self.assertEqual(OSCheck.is_redhat_family(), True)
+
+    get_os_family_mock.return_value = "troll_os"
+    self.assertEqual(OSCheck.is_redhat_family(), False)

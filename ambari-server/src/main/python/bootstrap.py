@@ -417,9 +417,9 @@ class Bootstrap(threading.Thread):
     self.host_log.write("Checking 'sudo' package on remote host...")
     params = self.shared_state
     if self.getServerFamily()[0] == "debian":
-      command = "dpkg --get-selections|grep -e ^sudo"
+      command = "dpkg --get-selections|grep -e '^sudo\s*install'"
     else:
-      command = "rpm -qa | grep -e ^sudo"
+      command = "rpm -qa | grep -e '^sudo\-'"
     ssh = SSH(params.user, params.sshkey_file, self.host, command,
               params.bootdir, self.host_log,
               errorMessage="Error: Sudo command is not available. " \

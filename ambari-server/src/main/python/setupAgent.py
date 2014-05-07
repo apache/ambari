@@ -29,6 +29,7 @@ import threading
 import traceback
 import stat
 from pprint import pformat
+from common_functions import OSCheck
 
 AMBARI_PASSPHRASE_VAR = "AMBARI_PASSPHRASE"
 
@@ -40,26 +41,12 @@ def execOsCommand(osCommand):
   return ret
 
 
-def is_suse():
-  if os.path.isfile("/etc/issue"):
-    if "suse" in open("/etc/issue").read().lower():
-      return True
-  return False
-
-
-def is_ubuntu():
-  if os.path.isfile("/etc/issue"):
-    if "ubuntu" in open("/etc/issue").read().lower():
-      return True
-  return False
-
-
 def installAgent(projectVersion):
   """ Run install and make sure the agent install alright """
   # The command doesn't work with file mask ambari-agent*.rpm, so rename it on agent host
-  if is_suse():
+  if OSCheck.is_suse_family():
     Command = ["zypper", "install", "-y", "ambari-agent-" + projectVersion]
-  elif is_ubuntu():
+  elif OSCheck.is_debian_family():
     # add * to end of version in case of some test releases
     Command = ["apt-get", "install", "-y", "--force-yes", "ambari-agent=" + projectVersion + "*"]
   else:
@@ -69,7 +56,7 @@ def installAgent(projectVersion):
 
 def configureAgent(server_hostname):
   """ Configure the agent so that it has all the configs knobs properly installed """
-  osCommand = ["sed", "-i.bak", "s/hostname=localhost/hostname=" + server_hostname +\
+  osCommand = ["sed", "-i.bak", "s/hostname=localhost/hostname=" + server_hostname +
                                 "/g", "/etc/ambari-agent/conf/ambari-agent.ini"]
   execOsCommand(osCommand)
   return
@@ -77,7 +64,7 @@ def configureAgent(server_hostname):
 
 def runAgent(passPhrase, expected_hostname):
   os.environ[AMBARI_PASSPHRASE_VAR] = passPhrase
-  agent_retcode = subprocess.call("/usr/sbin/ambari-agent restart --expected-hostname=" +\
+  agent_retcode = subprocess.call("/usr/sbin/ambari-agent restart --expected-hostname=" +
                                   expected_hostname, shell=True)
   # need this, because, very rarely,
   # main.py(ambari-agent) starts a bit later then it should be started
@@ -101,7 +88,8 @@ def getOptimalVersion(initialProjectVersion):
   optimalVersion = initialProjectVersion
   ret = findNearestAgentPackageVersion(optimalVersion)
 
-  if ret["exitstatus"] == 0 and ret["log"][0].strip() != "" and ret["log"][0].strip() == initialProjectVersion:
+  if ret["exitstatus"] == 0 and ret["log"][0].strip() != "" \
+     and ret["log"][0].strip() == initialProjectVersion:
     optimalVersion = ret["log"][0].strip()
     retcode = 0
   else:
@@ -115,24 +103,24 @@ def getOptimalVersion(initialProjectVersion):
 def findNearestAgentPackageVersion(projectVersion):
   if projectVersion == "":
     projectVersion = "  "
-  if is_suse():
-    Command = ["bash", "-c", "zypper search -s --match-exact ambari-agent | grep '" + projectVersion +\
+  if OSCheck.is_suse_family():
+    Command = ["bash", "-c", "zypper search -s --match-exact ambari-agent | grep '" + projectVersion +
                                  "' | cut -d '|' -f 4 | head -n1 | sed -e 's/-\w[^:]*//1' "]
-  elif is_ubuntu():
+  elif OSCheck.is_debian_family():
     if projectVersion == "  ":
-      Command = ["bash", "-c", "apt-cache show ambari-agent |grep Version|cut -d ' ' -f 2|tr -d '\\n'|sed -s 's/[-|~][A-Za-z\d]*//g'"]
+      Command = ["bash", "-c", "apt-cache show ambari-agent |grep 'Version\:'|cut -d ' ' -f 2|tr -d '\\n'|sed -s 's/[-|~][A-Za-z\d]*//'"]
     else:
-      Command = ["bash", "-c", "apt-cache show ambari-agent |grep Version|cut -d ' ' -f 2|grep '" +
-               projectVersion + "'|tr -d '\\n'|sed -s 's/[-|~][A-Za-z\d]*//g'"]
+      Command = ["bash", "-c", "apt-cache show ambari-agent |grep 'Version\:'|cut -d ' ' -f 2|grep '" +
+               projectVersion + "'|tr -d '\\n'|sed -s 's/[-|~][A-Za-z\d]*//'"]
   else:
-    Command = ["bash", "-c", "yum list all ambari-agent | grep '" + projectVersion +\
+    Command = ["bash", "-c", "yum list all ambari-agent | grep '" + projectVersion +
                               "' | sed -re 's/\s+/ /g' | cut -d ' ' -f 2 | head -n1 | sed -e 's/-\w[^:]*//1' "]
   return execOsCommand(Command)
 
 
 def isAgentPackageAlreadyInstalled(projectVersion):
-    if is_ubuntu():
-      Command = ["bash", "-c", "dpkg -s ambari-agent  2>&1|grep Version|grep " + projectVersion]
+    if OSCheck.is_debian_family():
+      Command = ["bash", "-c", "dpkg -s ambari-agent  2>&1|grep 'Version\:'|grep " + projectVersion]
     else:
       Command = ["bash", "-c", "rpm -qa | grep ambari-agent-"+projectVersion]
     ret = execOsCommand(Command)
@@ -143,15 +131,15 @@ def isAgentPackageAlreadyInstalled(projectVersion):
 
 
 def getAvaliableAgentPackageVersions():
-  if is_suse():
+  if OSCheck.is_suse_family():
     Command = ["bash", "-c",
-        """zypper search -s --match-exact ambari-agent | grep ambari-agent | sed -re 's/\s+/ /g' | cut -d '|' -f 4 | tr '\\n' ', ' | sed -e 's/-\w[^:]*//1' """]
-  elif is_ubuntu():
+        "zypper search -s --match-exact ambari-agent | grep ambari-agent | sed -re 's/\s+/ /g' | cut -d '|' -f 4 | tr '\\n' ', ' | sed -s 's/[-|~][A-Za-z\d]*//g'"]
+  elif OSCheck.is_debian_family():
     Command = ["bash", "-c",
-        """apt-cache show ambari-agent|grep Version|cut -d ' ' -f 2| tr '\\n' ', '|sed -s 's/[-|~][A-Za-z\d]*//g'"""]
+        "apt-cache show ambari-agent|grep 'Version\:'|cut -d ' ' -f 2| tr '\\n' ', '|sed -s 's/[-|~][A-Za-z\d]*//g'"]
   else:
     Command = ["bash", "-c",
-        """yum list all ambari-agent | grep -E '^ambari-agent' | sed -re 's/\s+/ /g' | cut -d ' ' -f 2 | tr '\\n' ', ' | sed -e 's/-\w[^:]*//1' """]
+        "yum list all ambari-agent | grep -E '^ambari-agent' | sed -re 's/\s+/ /g' | cut -d ' ' -f 2 | tr '\\n' ', ' | sed -s 's/[-|~][A-Za-z\d]*//g'"]
   return execOsCommand(Command)
 
 
@@ -170,27 +158,48 @@ def checkServerReachability(host, port):
   pass
 
 
-def main(argv=None):
-  # Parse the input
-  onlyargs = argv[1:]
-  expected_hostname = onlyargs[0]
-  passPhrase = onlyargs[1]
-  hostname = onlyargs[2]
-  projectVersion = None
+#  Command line syntax help
+# IsOptional  Index     Description
+#               0        Expected host name
+#               1        Password
+#               2        Host name
+#      X        3        Project Version (Ambari)
+#      X        4        Server port
+
+
+def parseArguments(argv=None):
+  if argv is None:  # make sure that arguments was passed
+     sys.exit(1)
+  args = argv[1:]  # shift path to script
+  if len(args) < 3:
+    sys.exit({"exitstatus": 1, "log": "Was passed not all required arguments"})
+
+  expected_hostname = args[0]
+  passPhrase = args[1]
+  hostname = args[2]
+  projectVersion = ""
   server_port = 8080
-  if len(onlyargs) > 3:
-    projectVersion = onlyargs[3]
-  if len(onlyargs) > 4:
-    server_port = onlyargs[4]
-  try:
-    server_port = int(server_port)
-  except (Exception):
-    server_port = 8080
+
+  if len(args) > 3:
+    projectVersion = args[3]
+
+  if len(args) > 4:
+    try:
+      server_port = int(args[4])
+    except (Exception):
+      server_port = 8080
+
+  return expected_hostname, passPhrase, hostname, projectVersion, server_port
+
+
+def main(argv=None):
+  # Parse passed arguments
+  expected_hostname, passPhrase, hostname,\
+  projectVersion, server_port = parseArguments(argv)
 
   checkServerReachability(hostname, server_port)
 
-  if projectVersion is None or projectVersion == "null" or projectVersion == "{ambariVersion}" or projectVersion == "":
-    projectVersion = ""  # fix error in error output, if projectVersion leaves None
+  if projectVersion == "null" or projectVersion == "{ambariVersion}" or projectVersion == "":
     retcode = getOptimalVersion("")
   else:
     retcode = getOptimalVersion(projectVersion)

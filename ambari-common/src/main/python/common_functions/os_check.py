@@ -124,5 +124,46 @@ class OSCheck:
     else:
       raise Exception("Cannot detect os release name. Exiting...")
 
+  #  Exception safe family check functions
 
+  @staticmethod
+  def is_debian_family():
+    """
+     Return true if it is so or false if not
 
+     This is safe check for debian family, doesn't generate exception
+    """
+    try:
+      if OSCheck.get_os_family() == "debian":
+        return True
+    except Exception:
+      pass
+    return False
+
+  @staticmethod
+  def is_suse_family():
+    """
+     Return true if it is so or false if not
+
+     This is safe check for suse family, doesn't generate exception
+    """
+    try:
+      if OSCheck.get_os_family() == "suse":
+        return True
+    except Exception:
+      pass
+    return False
+
+  @staticmethod
+  def is_redhat_family():
+    """
+     Return true if it is so or false if not
+
+     This is safe check for redhat family, doesn't generate exception
+    """
+    try:
+      if OSCheck.get_os_family() == "redhat":
+        return True
+    except Exception:
+      pass
+    return False

@@ -536,7 +536,7 @@ class TestBootstrap(TestCase):
     res = bootstrap_obj.checkSudoPackage()
     self.assertEquals(res, expected)
     command = str(init_mock.call_args[0][3])
-    self.assertEqual(command, "rpm -qa | grep -e ^sudo")
+    self.assertEqual(command, "rpm -qa | grep -e '^sudo\-'")
 
   @patch.object(Bootstrap, "getServerFamily")
   @patch.object(SSH, "__init__")
@@ -554,7 +554,7 @@ class TestBootstrap(TestCase):
     res = bootstrap_obj.checkSudoPackage()
     self.assertEquals(res, expected)
     command = str(init_mock.call_args[0][3])
-    self.assertEqual(command, "dpkg --get-selections|grep -e ^sudo")
+    self.assertEqual(command, "dpkg --get-selections|grep -e '^sudo\s*install'")
 
 
   @patch.object(SSH, "__init__")
