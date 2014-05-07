@@ -443,6 +443,52 @@ describe('App.WizardStep3View', function () {
     });
   });
 
+  describe('#didInsertElement', function() {
+    beforeEach(function() {
+      v = App.WizardStep3View.create({
+        controller: Em.Object.create({
+          loadStep: Em.K
+        })
+      });
+      sinon.spy(v.get('controller'), 'loadStep');
+    });
+    afterEach(function() {
+      v.get('controller').loadStep.restore();
+    });
+    it('should call loadStep', function() {
+      v.didInsertElement();
+      expect(v.get('controller').loadStep.calledOnce).to.equal(true);
+    });
+  });
+
+  describe('#categoryObject', function() {
+    var o;
+    beforeEach(function() {
+      v = App.WizardStep3View.create();
+      o = v.get('categoryObject').create();
+    });
+
+    describe('#label', function() {
+      it('should use value and hostCount', function() {
+        o.setProperties({
+          value: 'abc',
+          hostsCount: 3
+        });
+        expect(o.get('label')).to.equal('abc (3)');
+      });
+    });
+
+    describe('#itemClass', function() {
+      it('should depends on isActive', function() {
+        o.set('isActive', true);
+        expect(o.get('itemClass')).to.equal('active');
+        o.set('isActive', false);
+        expect(o.get('itemClass')).to.equal('');
+      });
+    });
+
+  });
+
 });
 
 var wView;

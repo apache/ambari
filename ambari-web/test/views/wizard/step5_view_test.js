@@ -23,11 +23,13 @@ require('views/wizard/step5_view');
 var view;
 
 describe('App.WizardStep5View', function() {
+
   beforeEach(function() {
     view = App.WizardStep5View.create({
       controller: App.WizardStep5Controller.create({})
     });
   });
+
   describe('#didInsertElement', function() {
     it('should call controller.loadStep', function() {
       sinon.stub(view.get('controller'), 'loadStep', Em.K);
@@ -36,9 +38,11 @@ describe('App.WizardStep5View', function() {
       view.get('controller').loadStep.restore();
     });
   });
+
 });
 
 describe('App.SelectHostView', function() {
+
   beforeEach(function() {
     view = App.SelectHostView.create({
       controller: App.WizardStep5Controller.create({})
@@ -252,9 +256,67 @@ describe('App.SelectHostView', function() {
     });
   });
 
+  describe('#click', function() {
+    beforeEach(function() {
+      sinon.stub(lazyloading, 'run', Em.K);
+    });
+    afterEach(function() {
+      lazyloading.run.restore();
+    });
+    Em.A([
+        {
+          isLoaded: true,
+          isLazyLoading: true,
+          e: false
+        },
+        {
+          isLoaded: true,
+          isLazyLoading: false,
+          e: false
+        },
+        {
+          isLoaded: false,
+          isLazyLoading: true,
+          e: true
+        },
+        {
+          isLoaded: false,
+          isLazyLoading: false,
+          e: false
+        }
+      ]).forEach(function(test) {
+      it('isLoaded = ' + test.isLoaded.toString() + ', isLazyLoading = ' + test.isLazyLoading.toString(), function() {
+        view.reopen({
+          isLazyLoading: test.isLazyLoading,
+          isLoaded: test.isLoaded
+        });
+        view.click();
+        if(test.e) {
+          expect(lazyloading.run.calledOnce).to.equal(true);
+        }
+        else {
+          expect(lazyloading.run.called).to.equal(false);
+        }
+      });
+    });
+    it('check lazyLoading parameters', function() {
+      view.reopen({
+        isLoaded: false,
+        isLazyLoading: true,
+        content: [{host_name: 'host1'}, {host_name: 'host2'}]
+      });
+      var availableHosts = d3.range(1, 100).map(function(i) {return {host_name: 'host' + i.toString()};});
+      sinon.stub(view, 'getAvailableHosts', function() {return availableHosts;});
+      view.click();
+      expect(lazyloading.run.args[0][0].source.length).to.equal(97); // 99-2
+      view.getAvailableHosts.restore();
+    });
+  });
+
 });
 
 describe('App.RemoveControlView', function() {
+
   beforeEach(function() {
     view = App.RemoveControlView.create({
       controller: App.WizardStep5Controller.create({})
@@ -275,9 +337,11 @@ describe('App.RemoveControlView', function() {
       expect(view.get('controller').removeComponent.calledWith('c1', 1)).to.equal(true);
     });
   });
+
 });
 
 describe('App.AddControlView', function() {
+
   beforeEach(function() {
     view = App.AddControlView.create({
       controller: App.WizardStep5Controller.create({})
@@ -285,16 +349,21 @@ describe('App.AddControlView', function() {
   });
 
   describe('#click', function() {
+
     beforeEach(function() {
       sinon.stub(view.get('controller'), 'addComponent', Em.K);
     });
+
     afterEach(function() {
       view.get('controller').addComponent.restore();
     });
+
     it('should call addComponent', function() {
       view.set('componentName', 'c1');
       view.click();
       expect(view.get('controller').addComponent.calledWith('c1')).to.equal(true);
     });
+
   });
+
 });

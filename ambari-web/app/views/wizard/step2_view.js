@@ -70,6 +70,7 @@ App.WizardStep2View = Em.View.extend({
    * TODO: incupsulate it inside of App.SshKeyFileUploader
    */
   isFileApi: function () {
+    /* istanbul ignore next */
     return window.File && window.FileReader && window.FileList;
   }.property(),
 

@@ -116,15 +116,14 @@ App.SelectHostView = Em.Select.extend({
     }
     return hosts;
   },
+
   /**
    * On click start lazy loading
    * @method click
    */
   click: function () {
     var source = [];
-    var componentName = this.get('componentName');
     var availableHosts = this.getAvailableHosts();
-    var selectedHost = this.get('selectedHost');
 
     if (!this.get('isLoaded') && this.get('isLazyLoading')) {
       //filter out hosts, which already pushed in select

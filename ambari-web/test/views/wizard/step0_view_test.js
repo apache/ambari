@@ -20,23 +20,69 @@ var App = require('app');
 require('views/wizard/step0_view');
 
 var view, controller = Em.Object.create({
-  clusterNameError: ''
+  clusterNameError: '',
+  loadStep: Em.K
 });
 
 describe('App.WizardStep0View', function () {
 
-  beforeEach(function() {
+  beforeEach(function () {
     view = App.WizardStep0View.create({'controller': controller});
   });
 
-  describe('#onError', function() {
-    it('should be true if clusterNameError appears', function() {
+  describe('#onError', function () {
+    it('should be true if clusterNameError appears', function () {
       controller.set('clusterNameError', 'ERROR');
       expect(view.get('onError')).to.equal(true);
     });
-    it('should be false if clusterNameError doesn\'t appears', function() {
+    it('should be false if clusterNameError doesn\'t appears', function () {
       controller.set('clusterNameError', '');
       expect(view.get('onError')).to.equal(false);
+    });
+  });
+
+  describe('#didInsertElement', function () {
+    beforeEach(function () {
+      sinon.stub(App, 'popover', Em.K);
+      sinon.spy(view.get('controller'), 'loadStep');
+    });
+    afterEach(function () {
+      App.popover.restore();
+      view.get('controller').loadStep.restore();
+    });
+    it('should call loadStep', function () {
+      view.didInsertElement();
+      expect(view.get('controller').loadStep.calledOnce).to.equal(true);
+    });
+    it('should create popover', function () {
+      view.didInsertElement();
+      expect(App.popover.calledOnce).to.equal(true);
+    });
+  });
+
+});
+
+describe('App.WizardStep0ViewClusterNameInput', function () {
+
+  beforeEach(function() {
+    view = App.WizardStep0ViewClusterNameInput.create({
+      parentView: Em.Object.create({
+        controller: Em.Object.create({
+          submit: Em.K
+        })
+      })
+    });
+  });
+
+  describe('#keyPress', function() {
+    it('should return true if pressed not Enter', function() {
+      expect(view.keyPress({keyCode: 1})).to.equal(true);
+    });
+    it('should submit form if Enter pressed', function() {
+      sinon.spy(view.get('parentView.controller'), 'submit');
+      expect(view.keyPress({keyCode: 13})).to.equal(false);
+      expect(view.get('parentView.controller').submit.calledOnce).to.equal(true);
+      view.get('parentView.controller').submit.restore();
     });
   });
 

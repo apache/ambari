@@ -38,4 +38,133 @@ describe('App.WizardStep0View', function () {
     });
   });
 
+  describe('#didInsertElement', function() {
+    beforeEach(function () {
+      sinon.stub(App, 'popover', Em.K);
+      view.set('controller.hostsError', 'some text');
+      view.set('controller.sshKeyError', 'some text');
+    });
+    afterEach(function () {
+      App.popover.restore();
+    });
+    it('should clean hostsError', function () {
+      view.didInsertElement();
+      expect(view.get('controller.hostsError')).to.be.null;
+    });
+    it('should clean sshKeyError', function () {
+      view.didInsertElement();
+      expect(view.get('controller.sshKeyError')).to.be.null;
+    });
+    it('should create popover', function () {
+      view.didInsertElement();
+      expect(App.popover.calledOnce).to.equal(true);
+    });
+  });
+
+  describe('#providingSSHKeyRadioButton', function() {
+    var v;
+
+    beforeEach(function() {
+      v = view.get('providingSSHKeyRadioButton').create({
+        controller: Em.Object.create({
+          content: {
+            installOptions: {
+              useSsh: true,
+              manualInstall: true
+            }
+          }
+        })
+      });
+    });
+
+    describe('#checked', function() {
+      it('should be equal to controller.content.installOptions.useSsh', function () {
+        v.set('controller.content.installOptions.useSsh', false);
+        expect(v.get('checked')).to.equal(false);
+        v.set('controller.content.installOptions.useSsh', true);
+        expect(v.get('checked')).to.equal(true);
+      });
+    });
+
+    describe('#click', function() {
+      it('should update controller.content.installOptions.useSsh', function () {
+        v.set('controller.content.installOptions.useSsh', false);
+        v.click();
+        expect(v.get('controller.content.installOptions.useSsh')).to.equal(true);
+      });
+      it('should update controller.content.installOptions.manualInstall', function () {
+        v.set('controller.content.installOptions.manualInstall', true);
+        v.click();
+        expect(v.get('controller.content.installOptions.manualInstall')).to.equal(false);
+      });
+    });
+
+  });
+
+  describe('#manualRegistrationRadioButton', function() {
+    var v;
+
+    beforeEach(function() {
+      v = view.get('manualRegistrationRadioButton').create({
+        controller: Em.Object.create({
+          content: {
+            installOptions: {
+              useSsh: true,
+              manualInstall: true
+            }
+          }
+        })
+      });
+    });
+
+    describe('#checked', function() {
+      it('should be equal to controller.content.installOptions.manualInstall', function () {
+        v.set('controller.content.installOptions.manualInstall', false);
+        expect(v.get('checked')).to.equal(false);
+        v.set('controller.content.installOptions.manualInstall', true);
+        expect(v.get('checked')).to.equal(true);
+      });
+    });
+
+    describe('#click', function() {
+      it('should update controller.content.installOptions.useSsh', function () {
+        v.set('controller.content.installOptions.useSsh', true);
+        v.click();
+        expect(v.get('controller.content.installOptions.useSsh')).to.equal(false);
+      });
+      it('should update controller.content.installOptions.manualInstall', function () {
+        v.set('controller.content.installOptions.manualInstall', false);
+        v.click();
+        expect(v.get('controller.content.installOptions.manualInstall')).to.equal(true);
+      });
+    });
+
+  });
+
+  describe('#textFieldView', function() {
+    var v;
+
+    beforeEach(function() {
+      v = view.get('textFieldView').create();
+    });
+
+    describe('#disabled', function() {
+      it('should be inverted to isEnabled', function () {
+        v.set('isEnabled', false);
+        expect(v.get('disabled')).to.equal(true);
+        v.set('isEnabled', true);
+        expect(v.get('disabled')).to.equal(false);
+      });
+    });
+
+  });
+
+});
+
+describe('App.SshKeyFileUploader', function() {
+
+  beforeEach(function() {
+    view = App.SshKeyFileUploader.create();
+  });
+
 });

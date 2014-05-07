@@ -29,22 +29,25 @@ var controller = Em.Object.create({
 
 describe('App.WizardStep1View', function () {
 
-  beforeEach(function() {
+  beforeEach(function () {
     view = App.WizardStep1View.create({'controller': controller});
+    view.set('$', function () {
+      return Em.Object.create({hide: Em.K, toggle: Em.K});
+    });
   });
 
-  describe('#osTypeToGroup', function() {
+  describe('#osTypeToGroup', function () {
 
     var tests = Em.A([
-      {os:'redhat5', e: 0},
+      {os: 'redhat5', e: 0},
       {os: 'redhat6', e: 1},
       {os: 'suse11', e: 2},
       {os: 'debian12', e: 3},
       {os: 'bulgen', e: -1}
     ]);
 
-    tests.forEach(function(test) {
-      it(test.os, function() {
+    tests.forEach(function (test) {
+      it(test.os, function () {
         expect(view.osTypeToGroup(test.os)).to.equal(test.e);
       });
     });
@@ -61,33 +64,45 @@ describe('App.WizardStep1View', function () {
       {type: -1, e: []}
     ]);
 
-    tests.forEach(function(test) {
-      it(test.type, function() {
+    tests.forEach(function (test) {
+      it(test.type, function () {
         expect(view.groupToOsType(test.type)).to.eql(test.e);
       });
     });
 
   });
 
-  describe('#emptyRepoExist', function() {
+  describe('#emptyRepoExist', function () {
 
     var tests = Em.A([
       {
-        allRepositoriesGroup: [{'empty-error': false},{'empty-error': false},{'empty-error': false}],
+        allRepositoriesGroup: [
+          {'empty-error': false},
+          {'empty-error': false},
+          {'empty-error': false}
+        ],
         e: false
       },
       {
-        allRepositoriesGroup: [{'empty-error': true},{'empty-error': false},{'empty-error': false}],
+        allRepositoriesGroup: [
+          {'empty-error': true},
+          {'empty-error': false},
+          {'empty-error': false}
+        ],
         e: true
       },
       {
-        allRepositoriesGroup: [{'empty-error': true},{'empty-error': true},{'empty-error': true}],
+        allRepositoriesGroup: [
+          {'empty-error': true},
+          {'empty-error': true},
+          {'empty-error': true}
+        ],
         e: true
       }
     ]);
 
-    tests.forEach(function(test) {
-      it(test.allRepositoriesGroup.mapProperty('empty-error').join(', '), function() {
+    tests.forEach(function (test) {
+      it(test.allRepositoriesGroup.mapProperty('empty-error').join(', '), function () {
         view.set('allRepositoriesGroup', test.allRepositoriesGroup);
         expect(view.get('emptyRepoExist')).to.equal(test.e);
       });
@@ -95,25 +110,37 @@ describe('App.WizardStep1View', function () {
 
   });
 
-  describe('#allRepoUnchecked', function() {
+  describe('#allRepoUnchecked', function () {
 
     var tests = Em.A([
       {
-        allRepositoriesGroup: [{'checked': false},{'checked': false},{'checked': false}],
+        allRepositoriesGroup: [
+          {'checked': false},
+          {'checked': false},
+          {'checked': false}
+        ],
         e: true
       },
       {
-        allRepositoriesGroup: [{'checked': true},{'checked': false},{'checked': false}],
+        allRepositoriesGroup: [
+          {'checked': true},
+          {'checked': false},
+          {'checked': false}
+        ],
         e: false
       },
       {
-        allRepositoriesGroup: [{'checked': true},{'checked': true},{'checked': true}],
+        allRepositoriesGroup: [
+          {'checked': true},
+          {'checked': true},
+          {'checked': true}
+        ],
         e: false
       }
     ]);
 
-    tests.forEach(function(test) {
-      it(test.allRepositoriesGroup.mapProperty('checked').join(', '), function() {
+    tests.forEach(function (test) {
+      it(test.allRepositoriesGroup.mapProperty('checked').join(', '), function () {
         view.set('allRepositoriesGroup', test.allRepositoriesGroup);
         expect(view.get('allRepoUnchecked')).to.equal(test.e);
       });
@@ -121,7 +148,7 @@ describe('App.WizardStep1View', function () {
 
   });
 
-  describe('#stacks', function() {
+  describe('#stacks', function () {
 
     var tests = Em.A([
       {
@@ -145,8 +172,8 @@ describe('App.WizardStep1View', function () {
       }
     ]);
 
-    tests.forEach(function(test) {
-      it(test.m, function() {
+    tests.forEach(function (test) {
+      it(test.m, function () {
         view.set('controller.content.stacks', test.stacks);
         var stacks = view.get('stacks');
         expect(stacks.mapProperty('name')).to.eql(test.e.names);
@@ -156,7 +183,7 @@ describe('App.WizardStep1View', function () {
 
   });
 
-  describe('#isSubmitDisabled', function() {
+  describe('#isSubmitDisabled', function () {
 
     var tests = Em.A([
       {
@@ -209,8 +236,8 @@ describe('App.WizardStep1View', function () {
       }
     ]);
 
-    tests.forEach(function(test) {
-      it(test.emptyRepoExist.toString() + ' ' + test.allRepoUnchecked.toString() + ' ' + test.invalidUrlExist.toString(), function() {
+    tests.forEach(function (test) {
+      it(test.emptyRepoExist.toString() + ' ' + test.allRepoUnchecked.toString() + ' ' + test.invalidUrlExist.toString(), function () {
         view = App.WizardStep1View.create();
         view.reopen({
           emptyRepoExist: test.emptyRepoExist,
@@ -223,7 +250,7 @@ describe('App.WizardStep1View', function () {
 
   });
 
-  describe('#invalidUrlExist', function() {
+  describe('#invalidUrlExist', function () {
     var tests = Em.A([
       {
         stacks: [Em.Object.create({isSelected: true, invalidCnt: 1})],
@@ -250,8 +277,8 @@ describe('App.WizardStep1View', function () {
         e: false
       }
     ]);
-    tests.forEach(function(test) {
-      it(test.m, function() {
+    tests.forEach(function (test) {
+      it(test.m, function () {
         view.set('controller.content.stacks', test.stacks);
         view.set('allRepositoriesGroup', test.allRepositoriesGroup);
         expect(view.get('invalidUrlExist')).to.equal(test.e);
@@ -259,40 +286,563 @@ describe('App.WizardStep1View', function () {
     });
   });
 
-  describe('#totalErrorCnt', function() {
+  describe('#totalErrorCnt', function () {
     var tests = Em.A([
       {
-        allRepositoriesGroup: [{checked:false}],
+        allRepositoriesGroup: [
+          {checked: false}
+        ],
         m: 'allRepoUnchecked',
         e: 1
       },
       {
-        allRepositoriesGroup: [{checked:true, 'empty-error': true}, {checked:false, 'empty-error': true}],
+        allRepositoriesGroup: [
+          {checked: true, 'empty-error': true},
+          {checked: false, 'empty-error': true}
+        ],
         m: 'two with empty-error',
         e: 2
       },
       {
-        allRepositoriesGroup: [{checked:true, 'validation': 'icon-exclamation-sign'}, {checked:false, 'validation': 'icon-exclamation-sign'}],
+        allRepositoriesGroup: [
+          {checked: true, 'validation': 'icon-exclamation-sign'},
+          {checked: false, 'validation': 'icon-exclamation-sign'}
+        ],
         m: 'two with validation="icon-exclamation-sign"',
         e: 2
       },
       {
-        allRepositoriesGroup: [{checked:true, 'empty-error': true, 'validation': 'icon-exclamation-sign'}, {checked:false, 'empty-error': true, 'validation': 'icon-exclamation-sign'}],
+        allRepositoriesGroup: [
+          {checked: true, 'empty-error': true, 'validation': 'icon-exclamation-sign'},
+          {checked: false, 'empty-error': true, 'validation': 'icon-exclamation-sign'}
+        ],
         m: 'two with empty-error, two with validation="icon-exclamation-sign"',
         e: 4
       },
       {
-        allRepositoriesGroup: [{checked:true}],
+        allRepositoriesGroup: [
+          {checked: true}
+        ],
         m: 'no errors/warnings etc',
         e: 0
       }
     ]);
-    tests.forEach(function(test) {
-      it(test.m, function() {
+    tests.forEach(function (test) {
+      it(test.m, function () {
         view.set('allRepositoriesGroup', test.allRepositoriesGroup);
         expect(view.get('totalErrorCnt')).to.equal(test.e);
       });
     });
+  });
+
+  describe('#didInsertElement', function () {
+    it('should create tooltip', function () {
+      sinon.stub($.fn, 'tooltip', Em.K);
+      view.set('isRLCollapsed', false);
+      view.didInsertElement();
+      expect($.fn.tooltip.calledOnce).to.equal(true);
+      $.fn.tooltip.restore();
+    });
+  });
+
+  describe('#stackRadioButton', function () {
+
+    var v;
+    beforeEach(function () {
+      v = view.get('stackRadioButton').create({
+        content: Em.Object.create({
+          name: ''
+        }),
+        controller: Em.Object.create({
+          content: Em.Object.create({
+            stacks: []
+          })
+        })
+      });
+    });
+
+    describe('#checked', function () {
+      it('should be equal content.isSelected', function () {
+        v.set('content.isSelected', true);
+        expect(v.get('checked')).to.equal(true);
+        v.set('content.isSelected', false);
+        expect(v.get('checked')).to.equal(false);
+      });
+    });
+
+    describe('#click', function () {
+      it('should select proper stack', function () {
+        v.set('controller.content.stacks', Em.A([Em.Object.create({name: 'n-1'}), Em.Object.create({name: 'n-2'}), Em.Object.create({name: 'n-3'})]));
+        v.set('content.name', 'n 2');
+        v.click();
+        expect(v.get('controller.content.stacks').getEach('isSelected')).to.eql([false, true, false]);
+      });
+    });
+
+  });
+
+  describe('#popoverView', function () {
+
+    var v;
+    beforeEach(function () {
+      v = view.get('popoverView').create();
+      sinon.stub(App, 'popover', Em.K);
+    });
+
+    afterEach(function () {
+      App.popover.restore();
+    });
+
+    describe('#didInsertElement', function () {
+      it('should create popover', function () {
+        v.didInsertElement();
+        expect(App.popover.calledOnce).to.equal(true);
+      });
+    });
+
+  });
+
+  describe('#onToggleBlock', function () {
+    it('should toggle isRLCollapsed', function () {
+      view.set('isRLCollapsed', true);
+      view.onToggleBlock();
+      expect(view.get('isRLCollapsed')).to.equal(false);
+      view.onToggleBlock();
+      expect(view.get('isRLCollapsed')).to.equal(true);
+    });
+  });
+
+  describe('#setGroupByOs', function () {
+    Em.A([
+        {
+          allGroupsCheckbox: [true, false, true],
+          groupNumber: 1,
+          m: 'should update group',
+          os: {
+            baseUrl: 'baseUrl',
+            latestBaseUrl: 'latestBaseUrl',
+            defaultBaseUrl: 'defaultBaseUrl',
+            validation: 'icon-exclamation-sign',
+            errorTitle: 'errorTitle',
+            errorContent: 'errorContent'
+          },
+          e: {
+            'checked': false,
+            'baseUrl': 'baseUrl',
+            'latestBaseUrl': 'latestBaseUrl',
+            'defaultBaseUrl': 'defaultBaseUrl',
+            'empty-error': false,
+            'invalid-error': true,
+            'validation': 'icon-exclamation-sign',
+            'undo': true,
+            'clearAll': 'baseUrl',
+            'errorTitle': 'errorTitle',
+            'errorContent': 'errorContent',
+            'group-number': 1
+          }
+        },
+        {
+          allGroupsCheckbox: [true, false, true],
+          groupNumber: 0,
+          m: 'should update group (2)',
+          os: {
+            baseUrl: '',
+            latestBaseUrl: 'latestBaseUrl',
+            defaultBaseUrl: 'defaultBaseUrl',
+            validation: 'validation',
+            errorTitle: 'errorTitle',
+            errorContent: 'errorContent'
+          },
+          e: {
+            'checked': true,
+            'baseUrl': '',
+            'latestBaseUrl': 'latestBaseUrl',
+            'defaultBaseUrl': 'defaultBaseUrl',
+            'empty-error': true,
+            'invalid-error': false,
+            'validation': 'validation',
+            'undo': true,
+            'clearAll': '',
+            'errorTitle': 'errorTitle',
+            'errorContent': 'errorContent',
+            'group-number': 0
+          }
+        },
+        {
+          allGroupsCheckbox: [true, false, true],
+          groupNumber: 0,
+          m: 'should update group (3)',
+          os: {
+            baseUrl: 'latestBaseUrl',
+            latestBaseUrl: 'latestBaseUrl',
+            defaultBaseUrl: 'defaultBaseUrl',
+            validation: 'validation',
+            errorTitle: 'errorTitle',
+            errorContent: 'errorContent'
+          },
+          e: {
+            'checked': true,
+            'baseUrl': 'latestBaseUrl',
+            'latestBaseUrl': 'latestBaseUrl',
+            'defaultBaseUrl': 'defaultBaseUrl',
+            'empty-error': false,
+            'invalid-error': false,
+            'validation': 'validation',
+            'undo': false,
+            'clearAll': 'latestBaseUrl',
+            'errorTitle': 'errorTitle',
+            'errorContent': 'errorContent',
+            'group-number': 0
+          }
+        }
+      ]).forEach(function (test) {
+        it(test.m, function () {
+          var group = Em.Object.create({});
+          view.set('allGroupsCheckbox', test.allGroupsCheckbox);
+          view.setGroupByOs(group, test.os, test.groupNumber);
+          Em.keys(test.e).forEach(function (k) {
+            expect(group.get(k)).to.equal(test.e[k]);
+          });
+        });
+      });
+  });
+
+  describe('#updateByCheckbox', function () {
+
+    it('shouldn\'t do nothing if no stack selected', function () {
+      var groups = [
+        {},
+        {},
+        {}
+      ];
+      view.reopen({
+        allRepositoriesGroup: groups,
+        controller: {
+          content: {
+            stacks: [
+              {isSelected: false}
+            ]
+          }
+        }
+      });
+      view.updateByCheckbox();
+      view.get('allRepositoriesGroup').forEach(function(g) {
+        expect(g).to.eql({});
+      });
+    });
+
+    it('target group isn\'t checked', function() {
+      view.reopen({
+        allGroupsCheckbox: [true],
+        allRepositoriesGroup: [
+          Em.Object.create({
+            'group-number': 0,
+            checked: false
+          })
+        ],
+        controller: {
+          content: {
+            stacks: [
+              {
+                isSelected: true,
+                operatingSystems: [
+                  {
+                    osType: 'redhat5',
+                    baseUrl: 'baseUrl',
+                    latestBaseUrl: 'latestBaseUrl',
+                    validation: '',
+                    selected: ''
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      });
+      view.updateByCheckbox();
+      var os = view.get('controller.content.stacks')[0].operatingSystems[0],
+        targetGroup = view.get('allRepositoriesGroup.firstObject');
+      expect(os.baseUrl).to.equal(os.latestBaseUrl);
+      expect(os.selected).to.equal(false);
+      expect(os.validation).to.be.null;
+      expect(view.get('allGroupsCheckbox')).to.eql([false]);
+      expect(targetGroup.get('baseUrl')).to.equal('latestBaseUrl');
+      expect(targetGroup.get('latestBaseUrl')).to.equal('latestBaseUrl');
+      expect(targetGroup.get('undo')).to.equal(false);
+      expect(targetGroup.get('invalid-error')).to.equal(false);
+      expect(targetGroup.get('clearAll')).to.equal(false);
+      expect(targetGroup.get('empty-error')).to.equal(false);
+      expect(targetGroup.get('validation')).to.be.null;
+    });
+
+    it('target group is checked, skipValidationChecked = true', function() {
+      view.reopen({
+        allGroupsCheckbox: [false],
+        skipValidationChecked: true,
+        allRepositoriesGroup: [
+          Em.Object.create({
+            'group-number': 0,
+            checked: true,
+            baseUrl: ''
+          })
+        ],
+        controller: {
+          content: {
+            stacks: [
+              {
+                isSelected: true,
+                operatingSystems: [
+                  {
+                    osType: 'redhat5',
+                    baseUrl: 'baseUrl',
+                    latestBaseUrl: 'latestBaseUrl',
+                    validation: '',
+                    selected: ''
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      });
+      view.updateByCheckbox();
+      var os = view.get('controller.content.stacks')[0].operatingSystems[0],
+        targetGroup = view.get('allRepositoriesGroup.firstObject');
+      expect(os.selected).to.equal(true);
+      expect(os.skipValidation).to.equal(true);
+      expect(view.get('allGroupsCheckbox')).to.eql([true]);
+      expect(targetGroup.get('invalid-error')).to.equal(false);
+      expect(targetGroup.get('empty-error')).to.equal(true);
+      expect(targetGroup.get('clearAll')).to.equal('');
+      expect(targetGroup.get('validation')).to.be.null;
+    });
+
+  });
+
+  describe('#clearGroupLocalRepository', function() {
+    it('should be proxy for doActionForGroupLocalRepository', function() {
+      sinon.stub(view, 'doActionForGroupLocalRepository', Em.K);
+      view.clearGroupLocalRepository({});
+      expect(view.doActionForGroupLocalRepository.calledWith({}, '')).to.equal(true);
+      view.doActionForGroupLocalRepository.restore();
+    });
+  });
+
+  describe('#undoGroupLocalRepository', function() {
+    it('should be proxy for doActionForGroupLocalRepository', function() {
+      sinon.stub(view, 'doActionForGroupLocalRepository', Em.K);
+      view.undoGroupLocalRepository({});
+      expect(view.doActionForGroupLocalRepository.calledWith({}, 'latestBaseUrl')).to.equal(true);
+      view.doActionForGroupLocalRepository.restore();
+    });
+  });
+
+  describe('#doActionForGroupLocalRepository', function() {
+
+    beforeEach(function() {
+      sinon.stub(view, 'loadRepositories', Em.K);
+    });
+
+    afterEach(function() {
+      view.loadRepositories.restore();
+    });
+
+    it('should update OS in selected stack', function() {
+      var event = {context: Em.Object.create({'group-number': 0})};
+      view.reopen({
+        allGroupsCheckbox: [true],
+        allRepositoriesGroup: [
+          Em.Object.create({
+            'group-number': 0,
+            checked: false
+          })
+        ],
+        controller: {
+          content: {
+            stacks: [
+              {
+                isSelected: true,
+                operatingSystems: [
+                  {
+                    osType: 'redhat5',
+                    baseUrl: 'baseUrl',
+                    latestBaseUrl: 'latestBaseUrl',
+                    validation: '',
+                    selected: ''
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      });
+      view.doActionForGroupLocalRepository(event, '');
+      var os = view.get('controller.content.stacks')[0].operatingSystems[0];
+      expect(os.baseUrl).to.equal('');
+      expect(os.validation).to.be.null;
+      expect(view.loadRepositories.calledOnce).to.equal(true);
+    });
+
+    it('should update OS in selected stack (2)', function() {
+      var event = {context: Em.Object.create({'group-number': 0})};
+      view.reopen({
+        allGroupsCheckbox: [true],
+        allRepositoriesGroup: [
+          Em.Object.create({
+            'group-number': 0,
+            checked: false
+          })
+        ],
+        controller: {
+          content: {
+            stacks: [
+              {
+                isSelected: true,
+                operatingSystems: [
+                  {
+                    osType: 'redhat5',
+                    baseUrl: 'baseUrl',
+                    latestBaseUrl: 'latestBaseUrl',
+                    validation: '',
+                    selected: ''
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      });
+      view.doActionForGroupLocalRepository(event, 'latestBaseUrl');
+      var os = view.get('controller.content.stacks')[0].operatingSystems[0];
+      expect(os.baseUrl).to.equal('latestBaseUrl');
+      expect(os.validation).to.be.null;
+      expect(view.loadRepositories.calledOnce).to.equal(true);
+    });
+
+  });
+
+  describe('#editGroupLocalRepository', function() {
+
+    it('should update os and group', function() {
+      view.reopen({
+        allGroupsCheckbox: [true],
+        allRepositoriesGroup: [
+          Em.Object.create({
+            'group-number': 0,
+            checked: false,
+            baseUrl: 'b1'
+          })
+        ],
+        controller: {
+          content: {
+            stacks: [
+              {
+                isSelected: true,
+                operatingSystems: [
+                  {
+                    osType: 'redhat5',
+                    baseUrl: 'baseUrl',
+                    latestBaseUrl: 'latestBaseUrl',
+                    validation: '',
+                    selected: ''
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      });
+      view.editGroupLocalRepository();
+      var os = view.get('controller.content.stacks')[0].operatingSystems[0],
+        targetGroup = view.get('allRepositoriesGroup.firstObject');
+      expect(os.baseUrl).to.equal(targetGroup.get('baseUrl'));
+      expect(os.validation).to.be.null;
+
+
+      expect(targetGroup.get('undo')).to.equal(true);
+      expect(targetGroup.get('invalid-error')).to.equal(false);
+      expect(targetGroup.get('empty-error')).to.equal(false);
+      expect(targetGroup.get('validation')).to.be.null;
+    });
+
+  });
+
+  describe('#loadRepositories', function() {
+    beforeEach(function() {
+      sinon.stub(view, 'setGroupByOs', Em.K);
+      sinon.stub(view, 'updateByCheckbox', Em.K);
+      sinon.stub(view, 'editGroupLocalRepository', Em.K);
+      sinon.stub(App, 'get', function(k) {
+        if('supports.ubuntu' == k) return true;
+        return Em.get(App, k);
+      });
+    });
+    afterEach(function() {
+      view.setGroupByOs.restore();
+      view.updateByCheckbox.restore();
+      view.editGroupLocalRepository.restore();
+      App.get.restore();
+    });
+    Em.A([
+        {
+          osType: 'redhat5',
+          e: {
+            i: 0,
+            o: 'Red Hat 5'
+          }
+        },
+        {
+          osType: 'redhat6',
+          e: {
+            i: 1,
+            o: 'Red Hat 6'
+          }
+        },
+        {
+          osType: 'suse11',
+          e: {
+            i: 2,
+            o: 'SLES 11'
+          }
+        },
+        {
+          osType: 'debian12',
+          e: {
+            i: 3,
+            o: 'Ubuntu 12'
+          }
+        }
+      ]).forEach(function (test) {
+        it(test.osType, function () {
+          view.reopen({
+            allGroupsCheckbox: [true],
+            allRepositoriesGroup: [
+              Em.Object.create({
+                'group-number': 0,
+                checked: false,
+                baseUrl: 'b1'
+              })
+            ],
+            controller: {
+              content: {
+                stacks: [
+                  {
+                    isSelected: true,
+                    operatingSystems: [
+                      {
+                        osType: test.osType,
+                        baseUrl: 'baseUrl'
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          });
+          view.loadRepositories();
+          expect(view.get('allRepositoriesGroup')[test.e.i][0].get('osType')).to.equal(test.e.o);
+        });
+      });
   });
 
 });
