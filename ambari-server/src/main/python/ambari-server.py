@@ -3770,7 +3770,7 @@ def get_validated_filepath_input(prompt, description, default=None):
       input = raw_input(prompt)
       if not input == None:
         input = input.strip()
-      if not input == None and not "" == input and os.path.exists(input):
+      if not input == None and not "" == input and os.path.isfile(input):
         return input
       else:
         print description

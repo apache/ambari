@@ -1433,22 +1433,25 @@ class TestAmbariServer(TestCase):
   @patch("__builtin__.open")
   @patch.object(ambari_server, "run_os_command")
   @patch("os.path.join")
-  @patch.object(ambari_server, "get_validated_filepath_input")
+  @patch("os.path.isfile")
+  @patch('__builtin__.raw_input')
   @patch.object(ambari_server, "get_validated_string_input")
   @patch.object(ambari_server, "is_valid_cert_host")
   @patch.object(ambari_server, "is_valid_cert_exp")
   def test_import_cert_and_key(self, is_valid_cert_exp_mock, \
                                is_valid_cert_host_mock, \
                                get_validated_string_input_mock, \
-                               get_validated_filepath_input_mock, \
+                               raw_input_mock, \
+                               os_path_isfile_mock, \
                                os_path_join_mock, run_os_command_mock, \
                                open_mock, import_file_to_keystore_mock, \
                                set_file_permissions_mock, read_ambari_user_mock, copy_file_mock, \
                                remove_file_mock):
     is_valid_cert_exp_mock.return_value = True
     is_valid_cert_host_mock.return_value = True
+    os_path_isfile_mock.return_value = True
     get_validated_string_input_mock.return_value = "password"
-    get_validated_filepath_input_mock.side_effect = \
+    raw_input_mock.side_effect = \
       ["cert_file_path", "key_file_path"]
     os_path_join_mock.side_effect = ["keystore_file_path", "keystore_file_path_tmp", \
                                      "pass_file_path", "pass_file_path_tmp", \
@@ -1467,7 +1470,7 @@ class TestAmbariServer(TestCase):
                                      " 'keystore_cert_key_file_path')]"
 
     ambari_server.import_cert_and_key("key_dir")
-    self.assertTrue(get_validated_filepath_input_mock.call_count == 2)
+    self.assertTrue(raw_input_mock.call_count == 2)
     self.assertTrue(get_validated_string_input_mock.called)
     self.assertEqual(os_path_join_mock.call_count, 8)
     self.assertTrue(set_file_permissions_mock.call_count == 1)
