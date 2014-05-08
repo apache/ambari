@@ -1203,12 +1203,35 @@ App.WizardStep8Controller = Em.Controller.extend({
           hostNames = hostNames.uniq();
 
           if (_client.isInstalled) {
-            //check whether clients are already installed on selected master hosts!!!
-            _slave.hosts.filterProperty('isInstalled', true).mapProperty('hostName').forEach(function (host) {
-              if (hostNames.contains(host)) {
-                hostNames.splice(hostNames.indexOf(host), 1);
-              }
-            }, this);
+            /**
+             * check whether clients are already installed on selected master hosts!!!
+             */
+            var clientHosts = App.HostComponent.find().filterProperty("componentName",_client.component_name).filterProperty("workStatus", "INSTALLED");
+            if (clientHosts.length>0) {
+              clientHosts.mapProperty('host.hostName').forEach(function (host) {
+                if (hostNames.contains(host)) {
+                  hostNames.splice(hostNames.indexOf(host), 1);
+                }
+              }, this);
+            }
+            /**
+             * For Add Service Only
+             * if client is not added to host or is not installed add Object
+             * {
+             *    componentName: {String},
+             *    hostName: {String}
+             * }
+             * to content.additionalClients
+             * later it will be used to install client on host before istalling new services
+             */
+            if (this.get('content.controllerName') === 'addServiceController' && hostNames.length > 0) {
+                hostNames.forEach(function (hostName) {
+                this.get('content.additionalClients').push(Em.Object.create({
+                  componentName: _client.component_name, hostName: hostName
+                }))
+              }, this)
+
+            }
           }
 
           this.registerHostsToComponent(hostNames, _client.component_name);

@@ -52,7 +52,8 @@ App.AddServiceController = App.WizardController.extend({
     serviceConfigProperties: null,
     advancedServiceConfig: null,
     controllerName: 'addServiceController',
-    configGroups: []
+    configGroups: [],
+    additionalClients: []
   }),
 
   setCurrentStep: function (currentStep, completed) {
@@ -279,6 +280,7 @@ App.AddServiceController = App.WizardController.extend({
       case '6':
       case '5':
         this.load('cluster');
+        this.set('content.additionalClients', []);
       case '4':
         this.loadServiceConfigGroups();
         this.loadServiceConfigProperties();
@@ -319,6 +321,7 @@ App.AddServiceController = App.WizardController.extend({
     var clusterName = this.get('content.cluster.name');
     var data;
     var name;
+    this.installAdditionalClients();
     if (isRetry) {
       this.getFailedHostComponents();
       console.log('failedHostComponents', this.get('failedHostComponents'));
@@ -350,6 +353,34 @@ App.AddServiceController = App.WizardController.extend({
       success: 'installServicesSuccessCallback',
       error: 'installServicesErrorCallback'
     });
+  },
+
+  /**
+   * installs clients before install new services
+   * on host where some components require this
+   * @method installAdditionalClients
+   */
+  installAdditionalClients: function() {
+      this.get('content.additionalClients').forEach(function(c){
+        App.ajax.send({
+          name: 'host.host_component.install',
+          sender: this,
+          data: {
+            hostName: c.hostName,
+            componentName: c.componentName,
+            data: JSON.stringify({
+              RequestInfo: {
+                "context": Em.I18n.t('requestInfo.installHostComponent') + " " + c.hostName
+              },
+              Body: {
+                HostRoles: {
+                  state: 'INSTALLED'
+                }
+              }
+            })
+          }
+        });
+      }, this);
   },
 
   /**
