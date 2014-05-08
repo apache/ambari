@@ -31,6 +31,7 @@ with patch("platform.linux_distribution", return_value = ('redhat','11','Final')
   from ambari_agent.HostCheckReportFileHandler import HostCheckReportFileHandler
   from ambari_agent.PackagesAnalyzer import PackagesAnalyzer
   from ambari_agent.HostInfo import HostInfo
+  from ambari_agent.HostInfo import FirewallChecks
   from ambari_agent.Hardware import Hardware
   from ambari_agent.AmbariConfig import AmbariConfig
   from resource_management.core.system import System
@@ -252,9 +253,11 @@ class TestHostInfo(TestCase):
   @patch.object(HostInfo, 'etcAlternativesConf')
   @patch.object(HostInfo, 'hadoopVarRunCount')
   @patch.object(HostInfo, 'hadoopVarLogCount')
-  def test_hostinfo_register_suse(self, hvlc_mock, hvrc_mock, eac_mock, cf_mock, jp_mock,
+  @patch.object(HostInfo, 'checkIptables')
+  def test_hostinfo_register_suse(self, cit_mock, hvlc_mock, hvrc_mock, eac_mock, cf_mock, jp_mock,
                              cls_mock, cu_mock, gir_mock, gipbr_mock, gipbn_mock,
                              gpd_mock, aip_mock, aap_mock, whcf_mock, os_umask_mock, get_os_type_mock):
+    cit_mock.return_value = True
     hvlc_mock.return_value = 1
     hvrc_mock.return_value = 1
     gipbr_mock.return_value = ["pkg1"]
@@ -509,22 +512,24 @@ class TestHostInfo(TestCase):
 
     self.assertEquals(result[0]['name'], 'config1')
     self.assertEquals(result[0]['target'], 'real_path_to_conf')
-
-
-  @patch("subprocess.Popen")
-  def test_checkIptables(self, subproc_popen_mock):
-    hostInfo = HostInfo()
-    p = MagicMock()
-
-    subproc_popen_mock.return_value = p
     
-    result = hostInfo.checkIptables()
-    self.assertTrue(result == True)
 
-    result = hostInfo.checkIptables()
-    self.assertFalse(result == False)
+  @patch.object(FirewallChecks, "run_os_command")
+  def test_IpTablesRunning(self, run_os_command_mock):
+    hostInfo = HostInfo()
+    for firewallType in hostInfo.getFirewallObjectTypes():
+      firewall = firewallType()
+      run_os_command_mock.return_value = firewall.get_running_result()
+      self.assertTrue(firewall.check_iptables())
 
 
-
+  @patch.object(FirewallChecks, "run_os_command")
+  def test_IpTablesStopped(self, run_os_command_mock):
+    hostInfo = HostInfo()
+    for firewallType in hostInfo.getFirewallObjectTypes():
+      firewall = firewallType()
+      run_os_command_mock.return_value = firewall.get_stopped_result()
+      self.assertFalse(firewall.check_iptables())
+      
 if __name__ == "__main__":
   unittest.main()
