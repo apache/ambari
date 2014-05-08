@@ -2041,8 +2041,12 @@ var urls = {
     'real': '/views',
     'mock':''
   },
+  /**
+   * Get all instances of {viewName} across versions
+   * @param {String} viewName
+   */
   'views.instances': {
-    'real': '/views/{viewName}',
+    'real': '/views/{viewName}?fields=versions/instances',
     'mock':''
   },
   'host.host_component.flume.metrics': {
