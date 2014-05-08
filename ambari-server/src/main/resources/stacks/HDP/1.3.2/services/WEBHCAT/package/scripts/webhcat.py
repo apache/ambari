@@ -72,7 +72,7 @@ def webhcat():
   )
 
   if params.security_enabled:
-    kinit_if_needed = format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser};")
+    kinit_if_needed = format("{kinit_path_local} -kt {hdfs_user_keytab} {hdfs_user};")
   else:
     kinit_if_needed = ""
 
