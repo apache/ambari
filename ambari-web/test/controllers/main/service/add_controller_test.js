@@ -19,8 +19,13 @@
 var App = require('app');
 require('controllers/wizard');
 require('controllers/main/service/add_controller');
+var addServiceController = null;
 
 describe('App.AddServiceController', function() {
+
+  beforeEach(function () {
+    addServiceController = App.AddServiceController.create({});
+  });
 
   describe('#isServiceConfigurable', function() {
     var tests = [
@@ -116,6 +121,41 @@ describe('App.AddServiceController', function() {
       it(test.m, function() {
         expect(controller.skipConfigStep()).to.equal(test.e);
       })
+    });
+  });
+
+  describe('#installAdditionalClients', function() {
+
+    var t = {
+      additionalClients: {
+        componentName: "TEZ_CLIENT",
+        hostName: "hostName"
+      },
+      RequestInfo: {
+        "context": Em.I18n.t('requestInfo.installHostComponent') + " hostName"
+      },
+      Body: {
+        HostRoles: {
+          state: 'INSTALLED'
+        }
+      }
+    };
+
+    beforeEach(function () {
+      sinon.spy($, 'ajax');
+    });
+
+    afterEach(function () {
+      $.ajax.restore();
+    });
+
+    it('send request to install client', function () {
+      addServiceController.set("content.additionalClients", [t.additionalClients]);
+      addServiceController.installAdditionalClients();
+      expect($.ajax.calledOnce).to.equal(true);
+
+      expect(JSON.parse($.ajax.args[0][0].data).Body).to.deep.eql(t.Body);
+      expect(JSON.parse($.ajax.args[0][0].data).RequestInfo).to.eql(t.RequestInfo);
     });
   });
 
