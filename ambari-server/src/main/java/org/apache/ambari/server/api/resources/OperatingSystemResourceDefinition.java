@@ -24,7 +24,7 @@ import java.util.Set;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.Resource.Type;
 
-public class OperatingSystemResourceDefinition extends BaseResourceDefinition {
+public class OperatingSystemResourceDefinition extends BaseStacksResourceDefinition {
 
   public OperatingSystemResourceDefinition(Type resourceType) {
     super(resourceType);

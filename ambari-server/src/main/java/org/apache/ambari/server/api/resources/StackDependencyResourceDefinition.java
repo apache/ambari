@@ -23,7 +23,7 @@ import org.apache.ambari.server.controller.spi.Resource;
 /**
  * Stack Service Dependency Resource Definition.
  */
-public class StackDependencyResourceDefinition extends BaseResourceDefinition {
+public class StackDependencyResourceDefinition extends BaseStacksResourceDefinition {
 
   /**
    * Constructor.

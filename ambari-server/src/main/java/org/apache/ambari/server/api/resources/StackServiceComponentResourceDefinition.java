@@ -23,8 +23,7 @@ import org.apache.ambari.server.controller.spi.Resource;
 import java.util.Collections;
 import java.util.Set;
 
-public class StackServiceComponentResourceDefinition extends
-    BaseResourceDefinition {
+public class StackServiceComponentResourceDefinition extends BaseStacksResourceDefinition {
 
   public StackServiceComponentResourceDefinition() {
     super(Resource.Type.StackServiceComponent);
