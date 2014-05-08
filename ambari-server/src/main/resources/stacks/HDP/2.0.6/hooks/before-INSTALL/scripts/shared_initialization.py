@@ -132,7 +132,7 @@ def setup_java():
   if not params.jdk_name:
     return
 
-  Execute(format("mkdir -p {artifact_dir} ; '\
+  Execute(format("mkdir -p {artifact_dir} ; \
   curl --noproxy {ambari_server_hostname} -kf \
   --retry 10 {jdk_location}/{jdk_name} -o {jdk_curl_target}"),
           path = ["/bin","/usr/bin/"],
