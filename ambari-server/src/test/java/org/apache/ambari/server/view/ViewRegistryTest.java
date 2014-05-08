@@ -19,6 +19,7 @@
 package org.apache.ambari.server.view;
 
 import org.apache.ambari.server.api.resources.SubResourceDefinition;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.orm.dao.ViewDAO;
@@ -32,14 +33,32 @@ import org.apache.ambari.server.view.configuration.InstanceConfig;
 import org.apache.ambari.server.view.configuration.InstanceConfigTest;
 import org.apache.ambari.server.view.configuration.ResourceConfig;
 import org.apache.ambari.server.view.configuration.ResourceConfigTest;
+import org.apache.ambari.server.view.configuration.ViewConfig;
+import org.easymock.Capture;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import javax.xml.bind.JAXBException;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URI;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
@@ -49,6 +68,114 @@ import static org.easymock.EasyMock.verify;
  * ViewRegistry tests.
  */
 public class ViewRegistryTest {
+
+  @Test
+  public void testReadViewArchives() throws Exception {
+    Configuration configuration = createNiceMock(Configuration.class);
+    File viewDir = createNiceMock(File.class);
+    File extractedArchiveDir = createNiceMock(File.class);
+    File viewArchive = createNiceMock(File.class);
+    File archiveDir = createNiceMock(File.class);
+    File entryFile  = createNiceMock(File.class);
+    File classesDir = createNiceMock(File.class);
+    File libDir = createNiceMock(File.class);
+    File fileEntry = createNiceMock(File.class);
+
+    JarFile viewJarFile = createNiceMock(JarFile.class);
+    Enumeration<JarEntry> enumeration = createMock(Enumeration.class);
+    JarEntry jarEntry = createNiceMock(JarEntry.class);
+    InputStream is = createMock(InputStream.class);
+    FileOutputStream fos = createMock(FileOutputStream.class);
+
+    ViewDAO vDAO = createMock(ViewDAO.class);
+
+    ViewRegistry.setViewDAO(vDAO);
+
+    ViewEntity viewDefinition = ViewEntityTest.getViewEntity();
+
+    Map<File, ViewConfig> viewConfigs =
+        Collections.singletonMap(viewArchive, viewDefinition.getConfiguration());
+
+    Map<String, File> files = new HashMap<String, File>();
+
+    files.put("/var/lib/ambari-server/resources/views/work", extractedArchiveDir);
+    files.put("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}", archiveDir);
+    files.put("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}/view.xml", entryFile);
+    files.put("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}/WEB-INF/classes", classesDir);
+    files.put("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}/WEB-INF/lib", libDir);
+
+    Map<File, FileOutputStream> outputStreams = new HashMap<File, FileOutputStream>();
+    outputStreams.put(entryFile, fos);
+
+    Map<File, JarFile> jarFiles = new HashMap<File, JarFile>();
+    jarFiles.put(viewArchive, viewJarFile);
+
+    // set expectations
+    expect(configuration.getViewsDir()).andReturn(viewDir);
+    expect(viewDir.getAbsolutePath()).andReturn("/var/lib/ambari-server/resources/views");
+
+    expect(viewDir.listFiles()).andReturn(new File[]{viewArchive});
+
+    expect(viewArchive.isDirectory()).andReturn(false);
+
+    expect(archiveDir.exists()).andReturn(false);
+    expect(archiveDir.getAbsolutePath()).andReturn(
+        "/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}").anyTimes();
+    expect(archiveDir.mkdir()).andReturn(true);
+    expect(archiveDir.toURI()).andReturn(new URI("file:./"));
+
+    expect(viewJarFile.entries()).andReturn(enumeration);
+    expect(viewJarFile.getInputStream(jarEntry)).andReturn(is);
+
+    expect(enumeration.hasMoreElements()).andReturn(true);
+    expect(enumeration.hasMoreElements()).andReturn(false);
+    expect(enumeration.nextElement()).andReturn(jarEntry);
+
+    expect(jarEntry.getName()).andReturn("view.xml");
+    expect(jarEntry.isDirectory()).andReturn(false);
+
+    expect(is.available()).andReturn(1);
+    expect(is.available()).andReturn(0);
+
+    expect(is.read()).andReturn(10);
+    fos.write(10);
+
+    fos.close();
+    is.close();
+
+    expect(extractedArchiveDir.exists()).andReturn(false);
+    expect(extractedArchiveDir.mkdir()).andReturn(true);
+
+    expect(classesDir.exists()).andReturn(true);
+    expect(classesDir.toURI()).andReturn(new URI("file:./"));
+
+    expect(libDir.exists()).andReturn(true);
+
+    expect(libDir.listFiles()).andReturn(new File[]{fileEntry});
+    expect(fileEntry.toURI()).andReturn(new URI("file:./"));
+
+    Capture<ViewEntity> captureViewEntity = new Capture<ViewEntity>();
+
+    expect(vDAO.findAll()).andReturn(Collections.<ViewEntity>emptyList());
+    vDAO.create(capture(captureViewEntity));
+
+    // replay mocks
+    replay(configuration, viewDir, extractedArchiveDir, viewArchive, archiveDir, entryFile, classesDir,
+        libDir, fileEntry, viewJarFile, enumeration, jarEntry, is, fos, vDAO);
+
+    ViewRegistry registry = ViewRegistry.getInstance();
+    registry.setHelper(new TestViewRegistryHelper(viewConfigs, files, outputStreams, jarFiles));
+
+    Set<ViewInstanceEntity> instanceEntities = registry.readViewArchives(configuration);
+
+    Assert.assertEquals(2, instanceEntities.size());
+    Assert.assertEquals("MY_VIEW", captureViewEntity.getValue().getCommonName());
+
+    // verify mocks
+    verify(configuration, viewDir, extractedArchiveDir, viewArchive, archiveDir, entryFile, classesDir,
+        libDir, fileEntry, viewJarFile, enumeration, jarEntry, is, fos, vDAO);
+  }
+
   @Test
   public void testAddGetDefinitions() throws Exception {
     ViewEntity viewDefinition = ViewEntityTest.getViewEntity();
@@ -153,10 +280,48 @@ public class ViewRegistryTest {
   @Before
   public void before() throws Exception {
     ViewRegistry.getInstance().clear();
+    ViewRegistry.setViewDAO(null);
   }
 
   @AfterClass
   public static void afterClass() {
     ViewRegistry.getInstance().clear();
+    ViewRegistry.setViewDAO(null);
   }
+
+  public class TestViewRegistryHelper extends ViewRegistry.ViewRegistryHelper {
+    private final Map<File, ViewConfig> viewConfigs;
+    private final Map<String, File> files;
+    private final Map<File, FileOutputStream> outputStreams;
+    private final Map<File, JarFile> jarFiles;
+
+    public TestViewRegistryHelper(Map<File, ViewConfig> viewConfigs, Map<String, File> files, Map<File,
+        FileOutputStream> outputStreams, Map<File, JarFile> jarFiles) {
+      this.viewConfigs = viewConfigs;
+      this.files = files;
+      this.outputStreams = outputStreams;
+      this.jarFiles = jarFiles;
+    }
+
+    @Override
+    public ViewConfig getViewConfigFromArchive(File archiveFile) throws MalformedURLException, JAXBException {
+      return viewConfigs.get(archiveFile);
+    }
+
+    @Override
+    public File getFile(String path) {
+      return files.get(path);
+    }
+
+    @Override
+    public FileOutputStream getFileOutputStream(File file) throws FileNotFoundException {
+      return outputStreams.get(file);
+    }
+
+    @Override
+    public JarFile getJarFile(File file) throws IOException {
+      return jarFiles.get(file);
+    }
+  }
+
 }
