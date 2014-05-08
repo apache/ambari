@@ -22,8 +22,7 @@ package org.apache.ambari.server.api.resources;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.Resource.Type;
 
-public class StackConfigurationResourceDefinition extends
-    BaseResourceDefinition {
+public class StackConfigurationResourceDefinition extends BaseStacksResourceDefinition {
 
   public StackConfigurationResourceDefinition(Type resourceType) {
     super(resourceType);
