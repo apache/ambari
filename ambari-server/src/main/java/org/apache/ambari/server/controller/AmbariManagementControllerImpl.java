@@ -23,6 +23,21 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
+import java.io.File;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.TreeMap;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.DuplicateResourceException;
@@ -41,8 +56,32 @@ import org.apache.ambari.server.actionmanager.RequestFactory;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.agent.ExecutionCommand;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_DB_RCA_DRIVER;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_DB_RCA_PASSWORD;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_DB_RCA_URL;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_DB_RCA_USERNAME;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMMAND_TIMEOUT;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.DB_DRIVER_FILENAME;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.DB_NAME;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOOKS_FOLDER;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JAVA_HOME;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JCE_NAME;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JDK_LOCATION;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JDK_NAME;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.MYSQL_JDBC_URL;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.ORACLE_JDBC_URL;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.PACKAGE_LIST;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.REPO_INFO;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCHEMA_VERSION;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT_TYPE;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_PACKAGE_FOLDER;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_REPO_INFO;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_NAME;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_VERSION;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.internal.RequestResourceFilter;
 import org.apache.ambari.server.controller.internal.RequestStageContainer;
 import org.apache.ambari.server.controller.internal.URLStreamProvider;
 import org.apache.ambari.server.customactions.ActionDefinition;
@@ -93,46 +132,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.io.IOException;
-import java.net.InetAddress;
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.TreeMap;
-
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_DB_RCA_DRIVER;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_DB_RCA_PASSWORD;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_DB_RCA_URL;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_DB_RCA_USERNAME;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMMAND_TIMEOUT;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.DB_DRIVER_FILENAME;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.DB_NAME;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOOKS_FOLDER;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JAVA_HOME;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JCE_NAME;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JDK_LOCATION;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JDK_NAME;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.MYSQL_JDBC_URL;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.ORACLE_JDBC_URL;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.PACKAGE_LIST;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.REPO_INFO;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCHEMA_VERSION;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT_TYPE;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_PACKAGE_FOLDER;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_REPO_INFO;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_NAME;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_VERSION;
 
 @Singleton
 public class AmbariManagementControllerImpl implements AmbariManagementController {
@@ -2187,11 +2186,20 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       }
       safeToRemoveSCHs.get(component).add(componentHost);
     }
-    
-    for (Entry<ServiceComponent, Set<ServiceComponentHost>> entry 
-           : safeToRemoveSCHs.entrySet()) {
+
+    for (Entry<ServiceComponent, Set<ServiceComponentHost>> entry
+            : safeToRemoveSCHs.entrySet()) {
+      ServiceComponent serviceComponent = entry.getKey();
       for (ServiceComponentHost componentHost : entry.getValue()) {
-        entry.getKey().deleteServiceComponentHosts(componentHost.getHostName());
+        removeFromExcludeHosts(serviceComponent, componentHost.getHostName());
+        serviceComponent.deleteServiceComponentHosts(
+                componentHost.getHostName());
+      }
+      if (serviceComponent.getServiceComponentHosts().isEmpty()) {
+        LOG.info("Change service component " + serviceComponent.getName()
+                + " state from " + serviceComponent.getDesiredState().toString()
+                + " to state " + State.INIT.toString());
+        serviceComponent.setDesiredState(State.INIT);
       }
     }
 
@@ -2202,6 +2210,31 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     return null;
   }
 
+  public RequestStatusResponse removeFromExcludeHosts(
+          ServiceComponent serviceComponent, String hostname)
+          throws AmbariException {
+    String clusterName = serviceComponent.getClusterName();
+    String serviceName = serviceComponent.getServiceName();
+    String serviceComponentName = serviceComponent.getName();
+    RequestStatusResponse response = null;
+    HashMap<String, String> requestProperties = new HashMap<String, String>();
+    HashMap<String, String> params = new HashMap<String, String>();
+    if ("YARN".equals(serviceName)) {
+      if ("NODEMANAGER".equals(serviceComponentName)) {
+        params.put("included_hosts", hostname);
+        params.put("slave_type", serviceComponentName);
+
+        RequestResourceFilter resourceFilter
+              = new RequestResourceFilter(serviceName, "RESOURCEMANAGER", null);
+        ExecuteActionRequest actionRequest = new ExecuteActionRequest(
+              clusterName, "DECOMMISSION", null,
+              Collections.singletonList(resourceFilter), params);
+        response = createAction(actionRequest, requestProperties);
+      }
+    }
+    return response;
+  }
+  
   @Override
   public void deleteUsers(Set<UserRequest> requests)
     throws AmbariException {

@@ -8317,6 +8317,95 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
+  public void testDeleteNodeManagers() throws Exception {
+    String clusterName = "foo1";
+    createCluster(clusterName);
+    Cluster cluster = clusters.getCluster(clusterName);
+    cluster.setDesiredStackVersion(new StackId("HDP-2.0.7"));
+    String serviceName = Service.Type.HDFS.toString();
+    createService(clusterName, serviceName, null);
+    String componentName1 = Role.NAMENODE.toString();
+    String componentName2 = Role.DATANODE.toString();
+    createServiceComponent(clusterName, serviceName, componentName1, State.INIT);
+    createServiceComponent(clusterName, serviceName, componentName2, State.INIT);
+    String host1 = "h1";
+    String host2 = "h2";
+    addHost(host2, clusterName);
+    addHost(host1, clusterName);
+    createServiceComponentHost(clusterName, null, componentName1, host1, null);
+    createServiceComponentHost(clusterName, serviceName, componentName2, host1, null);
+    String yarnService = Service.Type.YARN.toString();
+    createService(clusterName, yarnService, null);
+    String resourceManagerComponent = Role.RESOURCEMANAGER.toString();
+    String nodeManagerComponent = Role.NODEMANAGER.toString();
+    createServiceComponent(clusterName, yarnService, nodeManagerComponent, State.INIT);
+    createServiceComponentHost(clusterName, yarnService, nodeManagerComponent, host1, null);
+    createServiceComponentHost(clusterName, yarnService, nodeManagerComponent, host2, null);
+
+    // Install
+    installService(clusterName, serviceName, false, false);
+    installService(clusterName, yarnService, false, false);
+
+    // make them believe they are up
+    Map<String, ServiceComponentHost> hostComponents = cluster.getService(serviceName).getServiceComponent(componentName1).getServiceComponentHosts();
+    for (Map.Entry<String, ServiceComponentHost> entry : hostComponents.entrySet()) {
+      ServiceComponentHost cHost = entry.getValue();
+      cHost.handleEvent(new ServiceComponentHostInstallEvent(cHost.getServiceComponentName(), cHost.getHostName(), System.currentTimeMillis(), cluster.getDesiredStackVersion().getStackId()));
+      cHost.handleEvent(new ServiceComponentHostOpSucceededEvent(cHost.getServiceComponentName(), cHost.getHostName(), System.currentTimeMillis()));
+    }
+    hostComponents = cluster.getService(serviceName).getServiceComponent(componentName2).getServiceComponentHosts();
+    for (Map.Entry<String, ServiceComponentHost> entry : hostComponents.entrySet()) {
+      ServiceComponentHost cHost = entry.getValue();
+      cHost.handleEvent(new ServiceComponentHostInstallEvent(cHost.getServiceComponentName(), cHost.getHostName(), System.currentTimeMillis(), cluster.getDesiredStackVersion().getStackId()));
+      cHost.handleEvent(new ServiceComponentHostOpSucceededEvent(cHost.getServiceComponentName(), cHost.getHostName(), System.currentTimeMillis()));
+    }
+    hostComponents = cluster.getService(yarnService).getServiceComponent(nodeManagerComponent).getServiceComponentHosts();
+    for (Map.Entry<String, ServiceComponentHost> entry : hostComponents.entrySet()) {
+      ServiceComponentHost cHost = entry.getValue();
+      cHost.handleEvent(new ServiceComponentHostInstallEvent(cHost.getServiceComponentName(), cHost.getHostName(), System.currentTimeMillis(), cluster.getDesiredStackVersion().getStackId()));
+      cHost.handleEvent(new ServiceComponentHostOpSucceededEvent(cHost.getServiceComponentName(), cHost.getHostName(), System.currentTimeMillis()));
+    }
+
+    ServiceComponent serviceComponent = cluster.getService(yarnService).getServiceComponent(nodeManagerComponent);
+    Assert.assertEquals(State.INSTALLED, serviceComponent.getDesiredState());
+
+    Set<ServiceComponentHostRequest> schRequests = new HashSet<ServiceComponentHostRequest>();
+
+    // delete NodeManagers from all hosts if RESOURCEMANAGER not installed
+    schRequests.clear();
+    schRequests.add(new ServiceComponentHostRequest(clusterName, yarnService, nodeManagerComponent, host1, null));
+    schRequests.add(new ServiceComponentHostRequest(clusterName, yarnService, nodeManagerComponent, host2, null));
+
+    // verify if removeFromExcludeHosts was called while deletion
+    // it need RESOURCEMANAGER component
+    try {
+      controller.deleteHostComponents(schRequests);
+      Assert.fail("Expected a AmbariException.");
+    } catch (AmbariException e) {
+      // expected
+    }
+
+    createServiceComponent(clusterName, yarnService, resourceManagerComponent, State.INIT);
+    createServiceComponentHost(clusterName, yarnService, resourceManagerComponent, host1, null);
+    hostComponents = cluster.getService(yarnService).getServiceComponent(resourceManagerComponent).getServiceComponentHosts();
+    for (Map.Entry<String, ServiceComponentHost> entry : hostComponents.entrySet()) {
+      ServiceComponentHost cHost = entry.getValue();
+      cHost.handleEvent(new ServiceComponentHostInstallEvent(cHost.getServiceComponentName(), cHost.getHostName(), System.currentTimeMillis(), cluster.getDesiredStackVersion().getStackId()));
+      cHost.handleEvent(new ServiceComponentHostOpSucceededEvent(cHost.getServiceComponentName(), cHost.getHostName(), System.currentTimeMillis()));
+    }
+
+    // delete NodeManagers from all hosts
+    schRequests.clear();
+    schRequests.add(new ServiceComponentHostRequest(clusterName, yarnService, nodeManagerComponent, host1, null));
+    schRequests.add(new ServiceComponentHostRequest(clusterName, yarnService, nodeManagerComponent, host2, null));
+    controller.deleteHostComponents(schRequests);
+
+    Assert.assertEquals(3, cluster.getServiceComponentHosts(host1).size());
+    Assert.assertEquals(0, cluster.getServiceComponentHosts(host2).size());
+    Assert.assertEquals(State.INIT, serviceComponent.getDesiredState());
+  }
+  
+  @Test
   public void testGetRootServices() throws Exception {
 
     RootServiceRequest request = new RootServiceRequest(null);
