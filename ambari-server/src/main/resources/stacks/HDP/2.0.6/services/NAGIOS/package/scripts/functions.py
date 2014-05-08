@@ -21,12 +21,6 @@ Ambari Agent
 """
 from resource_management import *
 
-def get_port_from_url(address):
-  if not is_empty(address):
-    return address.split(':')[-1]
-  else:
-    return address
-
 # Gets if the java version is greater than 6
 def is_jdk_greater_6(java64_home):
   import os

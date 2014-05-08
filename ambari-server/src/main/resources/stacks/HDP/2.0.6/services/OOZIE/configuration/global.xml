@@ -66,5 +66,10 @@
     <value>/var/run/oozie</value>
     <description>Directory in which the pid files for oozie reside.</description>
   </property>
+  <property>
+    <name>oozie_admin_port</name>
+    <value>11001</value>
+    <description>The admin port Oozie server runs.</description>
+  </property>
 
 </configuration>

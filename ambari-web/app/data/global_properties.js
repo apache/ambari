@@ -1057,6 +1057,17 @@ module.exports =
       "serviceName": "OOZIE",
       "category": "Advanced"
     },
+    {
+      "id": "puppet var",
+      "name": "oozie_admin_port",
+      "displayName": "Oozie Server Admin Port",
+      "isReconfigurable": true,
+      "displayType": "int",
+      "isOverridable": false,
+      "isVisible": true,
+      "serviceName": "OOZIE",
+      "category": "Advanced"
+    },
   /**********************************************NAGIOS***************************************/
     {
       "id": "puppet var",

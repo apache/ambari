@@ -60,6 +60,8 @@ oozie_metastore_user_passwd = default("/configurations/oozie-site/oozie.service.
 oozie_jdbc_connection_url = default("/configurations/oozie-site/oozie.service.JPAService.jdbc.url", "")
 oozie_log_dir = config['configurations']['global']['oozie_log_dir']
 oozie_data_dir = config['configurations']['global']['oozie_data_dir']
+oozie_server_port = get_port_from_url(config['configurations']['oozie-site']['oozie.base.url'])
+oozie_server_admin_port = config['configurations']['global']['oozie_admin_port']
 oozie_lib_dir = "/var/lib/oozie/"
 oozie_webapps_dir = "/var/lib/oozie/oozie-server/webapps/"
 

@@ -218,7 +218,8 @@
             "hadoop_heapsize": "1024", 
             "hadoop_pid_dir_prefix": "/var/run/hadoop", 
             "nagios_user": "nagios", 
-            "hbase_log_dir": "/var/log/hbase"
+            "hbase_log_dir": "/var/log/hbase",
+            "oozie_admin_port": "11001"
         }, 
         "hdfs-site": {
             "dfs.namenode.avoid.write.stale.datanode": "true", 

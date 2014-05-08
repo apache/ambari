@@ -20,7 +20,6 @@ Ambari Agent
 
 """
 
-from functions import get_port_from_url
 from functions import is_jdk_greater_6
 from resource_management import *
 import status_params
@@ -50,7 +49,7 @@ nagios_principal_name = default("nagios_principal_name", "nagios")
 hadoop_ssl_enabled = False
 
 namenode_metadata_port = get_port_from_url(config['configurations']['core-site']['fs.defaultFS'])
-oozie_server_port = "11000"
+oozie_server_port = get_port_from_url(config['configurations']['oozie-site']['oozie.base.url'])
 # different to HDP1    
 namenode_port = get_port_from_url(config['configurations']['hdfs-site']['dfs.namenode.http-address'])
 # different to HDP1  

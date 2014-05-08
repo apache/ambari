@@ -19,29 +19,13 @@ limitations under the License.
 Ambari Agent
 
 """
+
 from resource_management import *
+from resource_management.libraries.functions.is_empty import *
+from urlparse import urlparse
 
-# Gets if the java version is greater than 6
-def is_jdk_greater_6(java64_home):
-  import os
-  import re
-  java_bin = os.path.join(java64_home, 'bin', 'java')
-  ver_check = shell.call([java_bin, '-version'])
-
-  ver = ''
-  if 0 != ver_check[0]:
-    # java is not local, try the home name as a fallback
-    ver = java64_home
+def get_port_from_url(address):
+  if not is_empty(address):
+    return urlparse(address).port
   else:
-    ver = ver_check[1]
-
-  regex = re.compile('"1\.([0-9]*)\.0_([0-9]*)"', re.IGNORECASE)
-  r = regex.search(ver)
-  if r:
-    strs = r.groups()
-    if 2 == len(strs):
-      minor = int(strs[0])
-      if minor > 6:
-        return True
-
-  return False
+    return address
