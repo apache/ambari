@@ -294,6 +294,7 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    *    ]
    *  </code>
    * @param {string} i18nSuffix
+   * @return {App.ModalPopup}
    * @method needToAddServicePopup
    */
   needToAddServicePopup: function (services, i18nSuffix) {
@@ -301,7 +302,7 @@ App.WizardStep4Controller = Em.ArrayController.extend({
       services = [services];
     }
     var self = this;
-    App.ModalPopup.show({
+    return App.ModalPopup.show({
       header: Em.I18n.t('installer.step4.' + i18nSuffix + '.popup.header'),
       body: Em.I18n.t('installer.step4.' + i18nSuffix + '.popup.body'),
       onPrimary: function () {
@@ -316,10 +317,11 @@ App.WizardStep4Controller = Em.ArrayController.extend({
 
   /**
    * Show popup with info about not selected (but should be selected) services
+   * @return {App.ModalPopup}
    * @method monitoringCheckPopup
    */
   monitoringCheckPopup: function () {
-    App.ModalPopup.show({
+    return App.ModalPopup.show({
       header: Em.I18n.t('installer.step4.monitoringCheck.popup.header'),
       body: Em.I18n.t('installer.step4.monitoringCheck.popup.body'),
       onPrimary: function () {

@@ -22,8 +22,12 @@ require('controllers/wizard/step2_controller');
 require('models/host');
 require('models/host_component');
 require('messages');
-
+var c;
 describe('App.WizardStep2Controller', function () {
+
+  beforeEach(function() {
+    c = App.WizardStep2Controller.create();
+  });
 
   describe('#isInstaller', function() {
     it('true if controllerName is installerController', function() {
@@ -362,16 +366,78 @@ describe('App.WizardStep2Controller', function () {
 
   describe('#proceedNext()', function () {
 
-    it('should call manualInstallPopup if manualInstall is true', function (done) {
-      var controller = App.WizardStep2Controller.create({
+    it('should call warningPopup if not isAllHostNamesValid and no warningConfirmed', function() {
+      c.reopen({
+        isAllHostNamesValid: function() {
+          return false;
+        },
+        warningPopup: Em.K
+      });
+      sinon.spy(c, 'warningPopup');
+      var r = c.proceedNext(false);
+      expect(r).to.equal(false);
+      expect(c.warningPopup.calledOnce).to.equal(true);
+    });
+
+    it('should call manualInstallPopup if manualInstall is true', function () {
+      c.reopen({
         hostNames: '',
         manualInstall: true,
-        manualInstallPopup: function () {
-          done();
+        manualInstallPopup: Em.K
+      });
+      sinon.spy(c, 'manualInstallPopup');
+      var r = c.proceedNext(true);
+      expect(r).to.equal(false);
+      expect(c.manualInstallPopup.calledOnce).to.equal(true);
+    });
+
+    it ('should save hosts and proceed next if skipBootstrap is true', function() {
+      sinon.stub(App, 'get', function(k) {
+        if ('skipBootstrap' === k) {
+          return true;
+        }
+        return Em.get(App, k);
+      });
+      sinon.stub(App.router, 'send', Em.K);
+      c.reopen({
+        hostNameArr: ['h1'],
+        isAllHostNamesValid: function() {return true;},
+        content: {
+          installOptions: {},
+          hosts: null
         }
       });
-      controller.proceedNext(true);
-    })
+      var r = c.proceedNext();
+      expect(r).to.equal(true);
+      expect(Em.keys(c.get('content.hosts'))).to.eql(['h1']);
+      expect(App.router.send.calledWith('next')).to.equal(true);
+      App.get.restore();
+      App.router.send.restore();
+    });
+
+    it('should call setupBootStrap', function() {
+      sinon.stub(App, 'get', function(k) {
+        if ('skipBootstrap' === k) {
+          return false;
+        }
+        return Em.get(App, k);
+      });
+      c.reopen({
+        hostNameArr: ['h1'],
+        isAllHostNamesValid: function() {return true;},
+        content: {
+          installOptions: {},
+          hosts: null
+        }
+      });
+      sinon.stub(c, 'setupBootStrap', Em.K);
+      var r = c.proceedNext();
+      expect(r).to.equal(true);
+      expect(c.setupBootStrap.calledOnce).to.eql(true);
+      App.get.restore();
+      c.setupBootStrap.restore();
+    });
+
   });
 
   describe('#isSubmitDisabled', function () {
@@ -394,58 +460,82 @@ describe('App.WizardStep2Controller', function () {
   });
 
   describe('#installedHostsPopup', function() {
-    before(function() {
+    beforeEach(function() {
       sinon.spy(App.ModalPopup, 'show');
+      sinon.stub(c, 'proceedNext', Em.K);
     });
-    after(function() {
+    afterEach(function() {
       App.ModalPopup.show.restore();
+      c.proceedNext.restore();
     });
     it('should call App.ModalPopup.show', function() {
-      var controller = App.WizardStep2Controller.create();
-      controller.installedHostsPopup();
+      c.installedHostsPopup();
       expect(App.ModalPopup.show.calledOnce).to.equal(true);
+    });
+    it('should proceed next on primary', function() {
+      c.installedHostsPopup().onPrimary();
+      expect(c.proceedNext.calledOnce).to.equal(true);
     });
   });
 
   describe('#warningPopup', function() {
-    before(function() {
+    beforeEach(function() {
       sinon.spy(App.ModalPopup, 'show');
+      sinon.stub(c, 'proceedNext', Em.K);
     });
-    after(function() {
+    afterEach(function() {
       App.ModalPopup.show.restore();
+      c.proceedNext.restore();
+
     });
     it('should call App.ModalPopup.show', function() {
-      var controller = App.WizardStep2Controller.create();
-      controller.warningPopup();
+      c.warningPopup();
       expect(App.ModalPopup.show.calledOnce).to.equal(true);
+    });
+    it('should proceed next on primary', function() {
+      c.warningPopup().onPrimary();
+      expect(c.proceedNext.calledWith(true)).to.equal(true);
     });
   });
 
   describe('#hostNamePatternPopup', function() {
-    before(function() {
+    beforeEach(function() {
       sinon.spy(App.ModalPopup, 'show');
+      sinon.stub(c, 'proceedNext', Em.K);
     });
-    after(function() {
+    afterEach(function() {
       App.ModalPopup.show.restore();
+      c.proceedNext.restore();
     });
     it('should call App.ModalPopup.show', function() {
-      var controller = App.WizardStep2Controller.create();
-      controller.hostNamePatternPopup();
+      c.hostNamePatternPopup();
       expect(App.ModalPopup.show.calledOnce).to.equal(true);
+    });
+    it('should proceed next on primary', function() {
+      c.hostNamePatternPopup().onPrimary();
+      expect(c.proceedNext.calledOnce).to.equal(true);
     });
   });
 
   describe('#manualInstallPopup', function() {
-    before(function() {
+    beforeEach(function() {
       sinon.spy(App.ModalPopup, 'show');
+      sinon.stub(App.router, 'send', Em.K);
+      sinon.stub(c, 'saveHosts', Em.K);
     });
-    after(function() {
+    afterEach(function() {
       App.ModalPopup.show.restore();
+      App.router.send.restore();
+      c.saveHosts.restore();
     });
     it('should call App.ModalPopup.show', function() {
-      var controller = App.WizardStep2Controller.create();
-      controller.manualInstallPopup();
+      c.manualInstallPopup();
       expect(App.ModalPopup.show.calledOnce).to.equal(true);
+    });
+    it('should save hosts and go next on primary', function() {
+      c.manualInstallPopup().onPrimary();
+      expect(c.saveHosts.calledOnce).to.equal(true);
+      expect(App.router.send.calledWith('next')).to.equal(true);
     });
   });
 
@@ -496,6 +586,29 @@ describe('App.WizardStep2Controller', function () {
       var controller = App.WizardStep2Controller.create({content: {installOptions: {}}});
       controller.onGetAmbariJavaHomeError();
       expect(controller.content.installOptions.javaHome).to.equal(App.get('defaultJavaHome'));
+    });
+  });
+
+  describe('#saveHosts', function() {
+    beforeEach(function() {
+      sinon.stub(c, 'setAmbariJavaHome', Em.K);
+      c.reopen({
+        hostNameArr: ['h1'],
+        content: {
+          hosts: null
+        }
+      });
+    });
+    afterEach(function() {
+      c.setAmbariJavaHome.restore();
+    });
+    it('should call setAmbariJavaHome', function() {
+      c.saveHosts();
+      expect(c.setAmbariJavaHome.calledOnce).to.equal(true);
+    });
+    it('should set content.hosts', function() {
+      c.saveHosts();
+      expect(Em.keys(c.get('content.hosts'))).to.eql(['h1']);
     });
   });
 

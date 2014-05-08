@@ -411,4 +411,61 @@ describe('App.WizardStep10Controller', function () {
 
   });
 
+  describe('#isNagiosRestartRequired', function() {
+    Em.A([
+      {
+        controllerName: 'addServiceController',
+        isLoaded: true,
+        e: true
+      },
+      {
+        controllerName: 'installerController',
+        isLoaded: true,
+        e: false
+      },
+      {
+        controllerName: 'addServiceController',
+        isLoaded: false,
+        e: false
+      },
+      {
+        controllerName: 'installerController',
+        isLoaded: false,
+        e: false
+      }
+    ]).forEach(function (test) {
+        it(test.controllerName + ' Nagios loaded' + test.isLoaded.toString(), function () {
+          controller.set('content.controllerName', test.controllerName);
+          sinon.stub(App.Service, 'find', function() {
+            return Em.Object.create({
+              isLoaded: test.isLoaded
+            })
+          });
+          expect(controller.get('isNagiosRestartRequired')).to.equal(test.e);
+          App.Service.find.restore();
+        });
+      });
+  });
+
+  describe('#loadRegisteredHosts', function() {
+    it('should add object to clusterInfo', function() {
+      var masterComponentHosts = [{hostName: 'h1'}, {hostName: 'h2'}, {hostName: 'h3'}],
+        slaveComponentHosts = [{hosts: [{hostName: 'h1'}, {hostName: 'h4'}]}, {hosts: [{hostName: 'h2'}, {hostName: 'h5'}]}],
+        hosts = [{hostName: 'h6'}, {hostName: 'h3'}, {hostName: 'h7'}];
+      controller.set('content.masterComponentHosts', masterComponentHosts);
+      controller.set('content.slaveComponentHosts', slaveComponentHosts);
+      controller.set('clusterInfo', []);
+      sinon.stub(App.Host, 'find', function() {
+        return hosts;
+      });
+      var obj = controller.loadRegisteredHosts();
+      App.Host.find.restore();
+      expect(obj.id).to.equal(1);
+      expect(obj.color).to.equal('text-info');
+      expect(obj.displayStatement).to.equal(Em.I18n.t('installer.step10.hostsSummary').format(7));
+      expect(obj.status).to.eql([]);
+      expect(controller.get('clusterInfo.firstObject')).to.eql(obj);
+    });
+  });
+
 });

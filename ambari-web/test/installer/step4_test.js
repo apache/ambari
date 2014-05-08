@@ -345,6 +345,140 @@ describe('App.WizardStep4Controller', function () {
       expect(App.ModalPopup.show.calledOnce).to.equal(true);
       App.ModalPopup.show.restore();
     });
-  })
+    it('onPrimary should proceed to next step', function() {
+      sinon.stub(App.router, 'send', Em.K);
+      controller.monitoringCheckPopup().onPrimary();
+      expect(App.router.send.calledWith('next')).to.equal(true);
+      App.router.send.restore();
+    });
+  });
+
+  describe('#needToAddServicePopup', function() {
+    Em.A([
+        {
+          m: 'one service',
+          services: {selected: true, serviceName: 's1'},
+          content: [Em.Object.create({serviceName: 's1', isSelected: false})],
+          e: [true]
+        },
+        {
+          m: 'many services',
+          services: [{selected: true, serviceName: 's1'}, {selected: false, serviceName: 's2'}],
+          content: [Em.Object.create({serviceName: 's1', isSelected: false}),
+            Em.Object.create({serviceName: 's2', isSelected: true})],
+          e: [true, false]
+        }
+      ]).forEach(function (test) {
+        it(test.m, function () {
+          sinon.stub(controller, 'submit', Em.K);
+          controller.set('content', test.content);
+          controller.needToAddServicePopup(test.services, '').onPrimary();
+          expect(controller.submit.calledOnce).to.equal(true);
+          expect(controller.mapProperty('isSelected')).to.eql(test.e);
+          controller.submit.restore();
+        });
+      });
+  });
+
+  describe('#validateMonitoring', function() {
+    Em.A([
+        {
+          gangliaOrNagiosNotSelected: true,
+          e: {
+            monitoringCheckPopup: true,
+            send: false
+          }
+        },
+        {
+          gangliaOrNagiosNotSelected: false,
+          e: {
+            monitoringCheckPopup: false,
+            send: true
+          }
+        }
+      ]).forEach(function (test) {
+        it(test.m, function () {
+          sinon.stub(controller, 'monitoringCheckPopup', Em.K);
+          sinon.stub(App.router, 'send', Em.K);
+          sinon.stub(controller, 'gangliaOrNagiosNotSelected', function() {
+            return test.gangliaOrNagiosNotSelected;
+          });
+          controller.validateMonitoring();
+          if (test.e.monitoringCheckPopup) {
+           expect(controller.monitoringCheckPopup.calledOnce).to.equal(true);
+          }
+          else {
+            expect(controller.monitoringCheckPopup.called).to.equal(false);
+          }
+          if (test.e.send) {
+            expect(App.router.send.calledWith('next')).to.equal(true);
+          }
+          else {
+            expect(App.router.send.called).to.equal(false);
+          }
+          controller.gangliaOrNagiosNotSelected.restore();
+          controller.monitoringCheckPopup.restore();
+          App.router.send.restore();
+        });
+      });
+  });
+
+  describe('#submit', function() {
+    beforeEach(function() {
+      sinon.stub(controller, 'validateMonitoring', Em.K);
+    });
+    afterEach(function() {
+      controller.validateMonitoring.restore();
+    });
+    it('if not isSubmitDisabled shound\'t do nothing', function() {
+      controller.reopen({isSubmitDisabled: true});
+      controller.submit();
+      expect(controller.validateMonitoring.called).to.equal(false);
+    });
+    it('if isSubmitDisabled and not submitChecks should call validateMonitoring', function() {
+      controller.reopen({
+        isSubmitDisabled: false,
+        submitChecks: []
+      });
+      controller.submit();
+      expect(controller.validateMonitoring.calledOnce).to.equal(true);
+    });
+    it('if isSubmitDisabled and some submitChecks true shouldn\'t call validateMonitoring', function() {
+      controller.reopen({
+        isSubmitDisabled: false,
+        submitChecks: [
+          {
+            checkCallback: 'needToAddMapReduce',
+            popupParams: [
+              {serviceName: 'MAPREDUCE', selected: true},
+              'mapreduceCheck'
+            ]
+          }
+        ]
+      });
+      sinon.stub(controller, 'needToAddMapReduce', function() {return true;});
+      controller.submit();
+      expect(controller.validateMonitoring.called).to.equal(false);
+      controller.needToAddMapReduce.restore();
+    });
+    it('if isSubmitDisabled and some submitChecks false should call validateMonitoring', function() {
+      controller.reopen({
+        isSubmitDisabled: false,
+        submitChecks: [
+          {
+            checkCallback: 'needToAddMapReduce',
+            popupParams: [
+              {serviceName: 'MAPREDUCE', selected: true},
+              'mapreduceCheck'
+            ]
+          }
+        ]
+      });
+      sinon.stub(controller, 'needToAddMapReduce', function() {return false;});
+      controller.submit();
+      expect(controller.validateMonitoring.calledOnce).to.equal(true);
+      controller.needToAddMapReduce.restore();
+    });
+  });
 
 });
