@@ -379,6 +379,12 @@ class AmbariBlueprint:
           return retCode
         pass
       pass
+    except urllib2.HTTPError, e:
+      logger.error("POST request failed.")
+      logger.error('HTTPError : %s' % e.read())
+      if e.code == 409:
+        return '409'
+      pass
     except Exception, e:
       logger.error("POST request failed.")
       logger.error(e)

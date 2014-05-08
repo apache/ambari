@@ -1,4 +1,11 @@
 {
+    "configurations" : [
+        {
+            "global" : {
+                "nagios_contact" : "admin@localhost"
+            }
+        }
+    ],
     "host_groups" : [
         {
             "name" : "host_group_1",
