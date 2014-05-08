@@ -229,7 +229,7 @@ class TestWebHCatServer(RMFTestCase):
       owner = 'hcat',
       group = 'hadoop',
     )
-    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa;',
+    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/hdfs.headless.keytab hdfs;',
       path = ['/bin'],
       user = 'hcat',
     )
@@ -237,20 +237,20 @@ class TestWebHCatServer(RMFTestCase):
                               owner='hcat',
                               mode=0755,
                               dest_dir='/apps/webhcat',
-                              kinnit_if_needed='/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa;',
+                              kinnit_if_needed='/usr/bin/kinit -kt /etc/security/keytabs/hdfs.headless.keytab hdfs;',
                               hdfs_user='hdfs'
     )
     self.assertResourceCalled('CopyFromLocal', '/usr/share/HDP-webhcat/pig.tar.gz',
                               owner='hcat',
                               mode=0755,
                               dest_dir='/apps/webhcat',
-                              kinnit_if_needed='/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa;',
+                              kinnit_if_needed='/usr/bin/kinit -kt /etc/security/keytabs/hdfs.headless.keytab hdfs;',
                               hdfs_user='hdfs'
     )
     self.assertResourceCalled('CopyFromLocal', '/usr/share/HDP-webhcat/hive.tar.gz',
                               owner='hcat',
                               mode=0755,
                               dest_dir='/apps/webhcat',
-                              kinnit_if_needed='/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa;',
+                              kinnit_if_needed='/usr/bin/kinit -kt /etc/security/keytabs/hdfs.headless.keytab hdfs;',
                               hdfs_user='hdfs'
     )
