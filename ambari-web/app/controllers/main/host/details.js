@@ -924,7 +924,7 @@ App.MainHostDetailsController = Em.Controller.extend({
         this.doDecommission(hostName, svcName, "JOBTRACKER", "TASKTRACKER");
         break;
       case 'HBASE':
-        this.warnBeforeDecommission(hostName, svcName, "HBASE_MASTER", "HBASE_REGIONSERVER");
+        this.doDecommission(hostName, svcName, "HBASE_MASTER", "HBASE_REGIONSERVER");
     }
     this.showBackgroundOperationsPopup();
   },
@@ -988,31 +988,6 @@ App.MainHostDetailsController = Em.Controller.extend({
       success: 'decommissionSuccessCallback',
       error: 'decommissionErrorCallback'
     });
-  },
-
-  /**
-   * Recommend user to put component in MM before decommission (for HBASE only)
-   * @method warnBeforeDecommission
-   * @param {string[]} hostNames - list of host when run from bulk operations or current host
-   * @param {string} serviceName - serviceName
-   * @param {string} componentName - master component name
-   * @param {string} slaveType - slave component name
-   */
-  warnBeforeDecommission: function(hostNames, serviceName, componentName, slaveType) {
-    if (App.HostComponent.find().findProperty('componentName', componentName).get('passiveState') == "OFF") {
-      App.ModalPopup.show({
-        header: Em.I18n.t('common.warning'),
-        message: function () {
-          return Em.I18n.t('hostPopup.reccomendation.beforeDecommission').format(App.format.components[componentName]);
-        }.property(),
-        bodyClass: Em.View.extend({
-          template: Em.Handlebars.compile('<div class="alert alert-warning">{{message}}</div>')
-        }),
-        secondary: false
-      });
-    } else {
-      this.doDecommissionRegionServer(hostNames, serviceName, componentName, slaveType);
-    }
   },
 
   /**

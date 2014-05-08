@@ -1537,7 +1537,7 @@ Em.I18n.translations = {
   'hosts.host.regionserver.decommission.batch2':'Decommission RegionServer - Stop RegionServer',
   'hosts.host.regionserver.decommission.batch3':'Decommission RegionServer - Turn drain mode off',
   'hosts.host.hbase_regionserver.recommission':'Recommission RegionServer',
-  'hosts.host.hbase_regionserver.decommsion':'Decommission RegionServer',
+  'hosts.host.hbase_regionserver.decommission':'Decommission RegionServer',
   'hosts.host.decommissioned':'Decommissioned',
   'hosts.host.decommissioning':'Decommissioning',
 
