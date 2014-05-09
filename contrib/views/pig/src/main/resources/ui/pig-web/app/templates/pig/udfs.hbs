@@ -42,4 +42,8 @@
     {{/each}}
     </tbody>
   </table>
+
+  {{#unless content}}
+    <div class="panel-footer empty-table-footer">{{t 'udfs.noUDFs'}}</div>
+  {{/unless}}
 </div>

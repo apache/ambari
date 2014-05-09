@@ -22,11 +22,14 @@
 </div>
 <div class="modal-body">
 <div class="form-group">
+  {{#if error}}
+    <div class="alert alert-danger">{{error}}</div>
+  {{/if}}
     <label for="exampleInputEmail1">{{t 'scripts.title'}}</label>
-    {{input class="form-control" placeholderTranslation="udfs.modal.udf_name" valueBinding="content.title"}}
+    {{input class="form-control" placeholderTranslation="scripts.modal.script_title_placeholder" valueBinding="content.title"}}
   </div>
   <div class="form-group">
-    <label for="exampleInputPassword1">{{t 'common.path'}}</label>
+    <label for="exampleInputPassword1">{{t 'scripts.path'}}</label>
     {{input class="form-control" placeholderTranslation="scripts.modal.file_path_placeholder" valueBinding="filePath"}}
     <small class="pull-right help-block">{{t 'scripts.modal.file_path_hint'}}</small>
   </div>

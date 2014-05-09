@@ -22,6 +22,11 @@ App.CreateScriptView = App.PigModalView.extend({
   templateName: 'pig/modal/createScript',
   actions:{
     create: function(script) {
+      var title = this.controller.get('title');
+      if (!title) {
+        this.controller.set('error', Em.I18n.t('scripts.modal.error_empty_title'))
+        return;
+      }
       var filePath = this.controller.get('filePath');
       $(this.get('element')).find('.modal').modal('hide');
       return this.controller.send('confirmcreate',script,filePath);

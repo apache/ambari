@@ -30,9 +30,9 @@
         <th></th> 
       </tr>
     </thead>
-    <tbody> 
+    <tbody>
     {{#each content}}
-      <tr> 
+      <tr>
 
         <td class="first">{{#link-to 'pig.scriptEdit' this.id}}
           {{#if this.isNew}}
@@ -43,7 +43,7 @@
           {{/unless}}
         {{/link-to}}</td>
         <td><span class="date">{{showDate this.dateCreated 'YYYY-MM-DD HH:mm'}}</span></td>
-        <td> 
+        <td>
           {{#unless this.isNew}}
             <a>{{t 'common.history'}}</a> - <a>{{t 'common.clone'}}</a> - <a href="#" {{action "deletescript" this}}>{{t 'common.delete'}}</a>
           {{/unless}}
@@ -52,6 +52,9 @@
     {{/each}}
     </tbody>
   </table>
+  {{#unless content}}
+    <div class="panel-footer empty-table-footer">{{t 'scripts.noScripts'}}</div>
+  {{/unless}}
 </div>
 
 {{outlet modal}}
