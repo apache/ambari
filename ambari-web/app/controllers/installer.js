@@ -502,10 +502,8 @@ App.InstallerController = App.WizardController.extend({
       selectedStack.operatingSystems.forEach(function (os) {
         os.errorTitle = null;
         os.errorContent = null;
-        if (os.skipValidation) {
-          this.set('validationCnt', 0);
-        }
-        if (os.selected && !os.skipValidation) {
+        var verifyBaseUrl = os.skipValidation ? false: true;
+        if (os.selected ) {
           os.validation = 'icon-repeat';
           selectedStack.set('reload', !selectedStack.get('reload'));
           App.ajax.send({
@@ -518,7 +516,8 @@ App.InstallerController = App.WizardController.extend({
               osType: os.osType,
               data: {
                 'Repositories': {
-                  'base_url': os.baseUrl
+                  'base_url': os.baseUrl,
+                  "verify_base_url": verifyBaseUrl
                 }
               }
             },
