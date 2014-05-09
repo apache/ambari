@@ -147,9 +147,22 @@ Ember.Inflector.inflector.uncountable('fileops');
 Ember.Inflector.inflector.uncountable('download');
 Ember.Inflector.inflector.uncountable('upload');
 
+function getNamespaceUrl() {
+  var parts = window.location.pathname.match(/\/[^\/]*/g);
+  var view = parts[1];
+  var version = '/versions' + parts[2];
+  var instance = parts[3];
+  if (parts.length == 4) { // version is not present
+    instance = parts[2];
+    version = '';
+  }
+  var namespaceUrl = 'api/v1/views' + view + version + '/instances' + instance + '/';
+  return namespaceUrl;
+}
+
 App.Store = DS.Store.extend({
   adapter: DS.RESTAdapter.extend({
-    namespace:'api/v1/views/FILES/instances/FILES_1/resources/files',
+    namespace: getNamespaceUrl() + 'resources/files',
     headers: {
       'X-Requested-By': 'ambari'
     },
