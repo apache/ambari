@@ -313,6 +313,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
    * @throws UnsupportedPropertyException   if an invalid property is specified in the request
    * @throws NoSuchParentResourceException  if a necessary parent resource doesn't exist
    */
+  @SuppressWarnings("unchecked")
   private RequestStatusResponse processBlueprintCreate(Map<String, Object> properties)
       throws ResourceAlreadyExistsException, SystemException, UnsupportedPropertyException,
       NoSuchParentResourceException {
@@ -368,25 +369,28 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
     for(iter = missingPasswords.entrySet().iterator(); iter.hasNext(); ) {
       Map.Entry<String, Map<String, Collection<String>>> entry = iter.next();
       Map<String, Collection<String>> missingProps = entry.getValue();
-      Iterator<Map.Entry<String, Collection<String>>> propIter;
-      for (propIter = missingProps.entrySet().iterator(); propIter.hasNext(); ) {
-        Map.Entry<String, Collection<String>> propEntry = propIter.next();
-        String configType = propEntry.getKey();
-        Collection<String> propertySet = propEntry.getValue();
+      Iterator<Map.Entry<String, Collection<String>>> hostGroupIter;
 
-        for (String property : propertySet) {
-          if (setDefaultPassword(defaultPassword, configType, property)) {
-            propIter.remove();
-          } else if (isPropertyInConfiguration(mapClusterConfigurations.get(configType), property)){
+      for (hostGroupIter = missingProps.entrySet().iterator(); hostGroupIter.hasNext(); ) {
+        Map.Entry<String, Collection<String>> hgEntry = hostGroupIter.next();
+        String configType = hgEntry.getKey();
+        Collection<String> propertySet = hgEntry.getValue();
+
+        for (Iterator<String> propIter = propertySet.iterator(); propIter.hasNext(); ) {
+          String property = propIter.next();
+          if (isPropertyInConfiguration(mapClusterConfigurations.get(configType), property)){
               propIter.remove();
           } else {
-            HostGroup hostgroup = hostGroups.get(entry.getKey());
-            if (hostgroup != null) {
-              if (isPropertyInConfiguration(hostgroup.getConfigurations().get(configType), property)) {
-                propIter.remove();
-              }
+            HostGroup hg = hostGroups.get(entry.getKey());
+            if (hg != null && isPropertyInConfiguration(hg.getConfigurations().get(configType), property)) {
+              propIter.remove();
+            }  else if (setDefaultPassword(defaultPassword, configType, property)) {
+              propIter.remove();
             }
           }
+        }
+        if (propertySet.isEmpty()) {
+          hostGroupIter.remove();
         }
       }
       if (entry.getValue().isEmpty()) {
@@ -673,6 +677,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
    *
    * @throws IllegalArgumentException a host_group in the request doesn't match a host-group in the blueprint
    */
+  @SuppressWarnings("unchecked")
   private void applyRequestInfoToHostGroups(Map<String, Object> properties,
                                             Map<String, HostGroup> blueprintHostGroups)
                                             throws IllegalArgumentException {
@@ -703,7 +708,6 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
         throw new IllegalArgumentException("Host group '" + name + "' must contain a 'hosts' element");
       }
       for (Object oHost : hosts) {
-        @SuppressWarnings("unchecked")
         Map<String, String> mapHostProperties = (Map<String, String>) oHost;
         //add host information to host group
         String fqdn = mapHostProperties.get("fqdn");

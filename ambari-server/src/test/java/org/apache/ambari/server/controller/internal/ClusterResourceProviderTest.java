@@ -1333,6 +1333,7 @@ public class ClusterResourceProviderTest {
     Map<String, Collection<String>> missingHGPasswords = new HashMap<String, Collection<String>>();
     Collection<String> missingPasswords = new ArrayList<String>();
     missingPasswords.add("my.missing.password");
+    missingPasswords.add("my.missing.password2");
     missingHGPasswords.put("core-site", missingPasswords);
     allMissingPasswords.put("group1", missingHGPasswords);
 
@@ -1509,13 +1510,14 @@ public class ClusterResourceProviderTest {
     assertEquals(1, hdfsConfigRequest.getProperties().size());
     assertEquals("value2", hdfsConfigRequest.getProperties().get("property2"));
     ConfigurationRequest coreConfigRequest = mapConfigRequests.get("core-site");
-    assertEquals(6, coreConfigRequest.getProperties().size());
+    assertEquals(7, coreConfigRequest.getProperties().size());
     assertEquals("value2", coreConfigRequest.getProperties().get("property1"));
     assertEquals("value3", coreConfigRequest.getProperties().get("property3"));
     assertEquals("*", coreConfigRequest.getProperties().get("hadoop.proxyuser.oozie.hosts"));
     assertEquals("users", coreConfigRequest.getProperties().get("hadoop.proxyuser.oozie.groups"));
     assertEquals("new.property.value", coreConfigRequest.getProperties().get("new.property"));
     assertEquals("foo", coreConfigRequest.getProperties().get("my.missing.password"));
+    assertEquals("foo", coreConfigRequest.getProperties().get("my.missing.password2"));
     assertNull(updateClusterPropertyMapCapture.getValue());
     assertNull(updateClusterPropertyMapCapture2.getValue());
     assertNull(updateClusterPropertyMapCapture3.getValue());
