@@ -58,6 +58,7 @@ import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.Ignore;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -121,6 +122,7 @@ public class TestStageUtils {
   }
 
   @Test
+  @Ignore
   public void testGetATestStage() {
     Stage s = StageUtils.getATestStage(1, 2, "host2");
     String hostname = s.getHosts().get(0);
@@ -133,6 +135,7 @@ public class TestStageUtils {
   }
 
   @Test
+  @Ignore
   public void testJaxbToString() throws Exception {
     Stage s = StageUtils.getATestStage(1, 2, "host1");
     String hostname = s.getHosts().get(0);
@@ -144,6 +147,7 @@ public class TestStageUtils {
   }
 
   @Test
+  @Ignore
   public void testJasonToExecutionCommand() throws JsonGenerationException,
       JsonMappingException, JAXBException, IOException {
     Stage s = StageUtils.getATestStage(1, 2, "host1", "clusterHostInfo");
@@ -160,6 +164,7 @@ public class TestStageUtils {
   }
 
   @Test
+  @Ignore
   public void testGetClusterHostInfo() throws AmbariException, UnknownHostException {
     Clusters fsm = injector.getInstance(Clusters.class);
     String h1 = "h1";
