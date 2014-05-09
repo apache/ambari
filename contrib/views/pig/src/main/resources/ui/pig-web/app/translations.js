@@ -34,12 +34,17 @@ Ember.I18n.translations = {
   'scripts':{
     'scripts':"Scripts",
     'newscript': "New Script",
-    'title': "Title",
+    'title': "Name",
+    'path': "Script HDFS Location (optional)",
+    'noScripts': "No scripts to display",
     'modal':{
-      'create_script':'Create script',
+      'create_script':'New Script',
+      'script_title_placeholder': 'Script name',
       'file_path_placeholder':'Full path to script file',
       'file_path_hint':'Leave empty to create file automatically.',
       'file_path_hint':'Leave empty to create file automatically.',
+
+      'error_empty_title':'Title can not be empty!',
 
       'confirm_delete':'Confirm Delete',
       'confirm_delete_massage':'Are you sure you want to delete {{title}} script?'
@@ -71,6 +76,7 @@ Ember.I18n.translations = {
     'job_status':'Job status: ',
     'status':'Status',
     'started':'Started',
+    'noJobs': "No jobs to display",
     'alert':{
       'job_started' :'Job started!',
       'job_killed' :'{{title}} job killed!',
@@ -95,6 +101,7 @@ Ember.I18n.translations = {
     'tooltips':{
       'path':'Path of this script file on HDFS',
     },
+    'noUDFs': "No UDFs to display",
     'alert':{
       'udf_created':'{{name}} created!',
       'udf_deleted':'{{name}} deleted!',

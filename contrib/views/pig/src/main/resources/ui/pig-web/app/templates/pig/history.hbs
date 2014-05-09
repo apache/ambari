@@ -43,4 +43,8 @@
     {{/each}}
     </tbody>
   </table>
+
+  {{#unless content}}
+    <div class="panel-footer empty-table-footer">{{t 'job.noJobs'}}</div>
+  {{/unless}}
 </div>
