@@ -48,6 +48,7 @@ App.MainAdminSecurityProgressController = Em.Controller.extend({
   secureMapping: function () {
     return (App.get('isHadoop2Stack')) ? require('data/HDP2/secure_mapping') : require('data/secure_mapping');
   }.property('App.isHadoop2Stack'),
+
   secureProperties: function () {
     if (App.get('isHadoop2Stack')) {
       return require('data/HDP2/secure_properties').configProperties;

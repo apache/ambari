@@ -26,6 +26,8 @@ App.MainAdminSecurityDisableController = App.MainAdminSecurityProgressController
    * values of site configs when security disabled
    */
   secureConfigValuesMap: {
+    'hadoop.security.authentication': 'simple',
+    'hadoop.security.authorization': 'false',
     'dfs.datanode.address': '0.0.0.0:50010',
     'dfs.datanode.http.address': '0.0.0.0:50075',
     'mapred.task.tracker.task-controller': 'org.apache.hadoop.mapred.DefaultTaskController',
@@ -35,6 +37,10 @@ App.MainAdminSecurityDisableController = App.MainAdminSecurityProgressController
     'hbase.security.authorization': 'false',
     'zookeeper.znode.parent': '/hbase-unsecure',
     'hive.security.authorization.enabled': 'false',
+    'hive.metastore.sasl.enabled': 'false',
+    'hive.server2.authentication': 'NONE',
+    'oozie.authentication.type': 'simple',
+    'oozie.service.HadoopAccessorService.kerberos.enabled': 'false',
     '*.falcon.authentication.type': 'simple',
     '*.falcon.http.authentication.type': 'simple'
   },

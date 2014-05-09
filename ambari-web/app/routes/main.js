@@ -23,26 +23,26 @@ module.exports = Em.Route.extend({
   route: '/main',
   enter: function (router) {
     App.db.updateStorage();
-      console.log('in /main:enter');
-      if (router.getAuthenticated()) {
-        App.router.get('mainAdminAccessController').loadShowJobsForUsers().done(function() {
-          App.router.get('clusterController').loadClusterName(false);
-          if(App.testMode) {
-            router.get('mainController').initialize();
-          }else {
-            App.router.get('mainController').checkServerClientVersion().done(function() {
-              App.router.get('clusterController').loadClientServerClockDistance().done(function() {
-                router.get('mainController').initialize();
-              });
+    console.log('in /main:enter');
+    if (router.getAuthenticated()) {
+      App.router.get('mainAdminAccessController').loadShowJobsForUsers().done(function () {
+        App.router.get('clusterController').loadClusterName(false);
+        if (App.testMode) {
+          router.get('mainController').initialize();
+        } else {
+          App.router.get('mainController').checkServerClientVersion().done(function () {
+            App.router.get('clusterController').loadClientServerClockDistance().done(function () {
+              router.get('mainController').initialize();
             });
-          }
-        });
-        // TODO: redirect to last known state
-      } else {
-        Em.run.next(function () {
-          router.transitionTo('login');
-        });
-      }
+          });
+        }
+      });
+      // TODO: redirect to last known state
+    } else {
+      Em.run.next(function () {
+        router.transitionTo('login');
+      });
+    }
   },
   /*
    routePath: function(router,event) {
@@ -87,8 +87,8 @@ module.exports = Em.Route.extend({
     },
     index: Em.Route.extend({
       route: '/',
-      enter: function(router) {
-        Em.run.next(function(){
+      enter: function (router) {
+        Em.run.next(function () {
           router.transitionTo('widgets');
         });
       }
@@ -112,10 +112,10 @@ module.exports = Em.Route.extend({
       },
       index: Ember.Route.extend({
         route: '/',
-        enter: function(router) {
-         Em.run.next(function(){
-           router.transitionTo('heatmap');
-         });
+        enter: function (router) {
+          Em.run.next(function () {
+            router.transitionTo('heatmap');
+          });
         }
       }),
       heatmap: Em.Route.extend({
@@ -153,23 +153,23 @@ module.exports = Em.Route.extend({
     }
   }),
 
-  jobs : Em.Route.extend({
-    route : '/jobs',
+  jobs: Em.Route.extend({
+    route: '/jobs',
     enter: function (router) {
-      if(!App.router.get('mainAdminAccessController.showJobs') && !App.get('isAdmin')){
+      if (!App.router.get('mainAdminAccessController.showJobs') && !App.get('isAdmin')) {
         Em.run.next(function () {
           router.transitionTo('main.dashboard.index');
         });
       }
     },
-    exit: function(router) {
+    exit: function (router) {
       clearInterval(router.get('mainJobsController').jobsUpdate);
     },
     index: Ember.Route.extend({
       route: '/',
-      connectOutlets : function(router) {
+      connectOutlets: function (router) {
         if (!App.get('isHadoop2Stack')) {
-          Em.run.next(function() {
+          Em.run.next(function () {
             router.transitionTo('main.dashboard.index');
           });
         } else {
@@ -178,9 +178,9 @@ module.exports = Em.Route.extend({
         }
       }
     }),
-    jobDetails : Em.Route.extend({
-      route : '/:job_id',
-      connectOutlets : function(router, job) {
+    jobDetails: Em.Route.extend({
+      route: '/:job_id',
+      connectOutlets: function (router, job) {
         if (job) {
           router.get('mainHiveJobDetailsController').set('loaded', false);
           router.get('mainController').connectOutlet('mainHiveJobDetails', job);
@@ -188,7 +188,7 @@ module.exports = Em.Route.extend({
           router.get('mainJobsController').updateJobs('mainHiveJobDetailsController', 'loadJobDetails');
         }
       },
-      exit: function(router) {
+      exit: function (router) {
         router.get('mainHiveJobDetailsController').set('loaded', false);
       }
     })
@@ -448,7 +448,6 @@ module.exports = Em.Route.extend({
     rollbackHighAvailability: require('routes/rollbackHA_routes'),
 
 
-
     adminSecurity: Em.Route.extend({
       route: '/security',
       enter: function (router) {
@@ -483,12 +482,14 @@ module.exports = Em.Route.extend({
         router.transitionTo('adminAddSecurity');
       },
 
-      disableSecurity: Ember.Route.extend({
+      disableSecurity: Em.Route.extend({
         route: '/disableSecurity',
         enter: function (router) {
           //after refresh check if the wizard is open then restore it
           if (router.get('mainAdminSecurityController').getDisableSecurityStatus() === 'RUNNING') {
-            Ember.run.next(function () {
+            var controller = router.get('addSecurityController');
+            // App.MainAdminSecurityDisableController uses App.Service DS model whose data needs to be loaded first
+            controller.dataLoading().done(Em.run.next(function () {
               App.router.get('updateController').set('isWorking', false);
               App.ModalPopup.show({
                 classNames: ['full-width-modal'],
@@ -536,7 +537,7 @@ module.exports = Em.Route.extend({
                   this.fitHeight();
                 }
               });
-            });
+            }));
           } else {
             router.transitionTo('adminSecurity.index');
           }
@@ -579,8 +580,8 @@ module.exports = Em.Route.extend({
       }
     }),
     adminAccess: Em.Route.extend({
-      enter: function(router) {
-        router.get('mainController').dataLoading().done(function() {
+      enter: function (router) {
+        router.get('mainController').dataLoading().done(function () {
           if (!router.get('mainAdminController.isAccessAvailable')) router.transitionTo('adminUser.allUsers');
         });
       },
@@ -732,7 +733,7 @@ module.exports = Em.Route.extend({
     router.transitionTo('hosts.hostDetails.index', event.context);
   },
   filterHosts: function (router, component) {
-    if(!component.context)
+    if (!component.context)
       return;
     router.get('mainHostController').filterByComponent(component.context);
     router.transitionTo('hosts.index');
