@@ -1446,6 +1446,21 @@ var urls = {
       return d;
     }
   },
+  'wizard.step9.add_service.launch_start_services': {
+    'real': '/clusters/{cluster}/services?ServiceInfo/state=INSTALLED&ServiceInfo/service_name.in({servicesList})&params/reconfigure_client=false',
+    'mock': '/data/wizard/deploy/5_hosts/poll_6.json',
+    'format': function (data) {
+      var d = {
+        type: 'PUT',
+        async: false,
+        data: data.data
+      };
+      if (App.testMode) {
+        d.type = 'GET';
+      }
+      return d;
+    }
+  },
   'wizard.step9.add_host.launch_start_services': {
     'real': '/clusters/{cluster}/host_components',
     'mock': '/data/wizard/deploy/5_hosts/poll_6.json',

@@ -27,12 +27,20 @@ App.WizardStep10Controller = Em.Controller.extend({
   clusterInfo: [],
 
   /**
-   * Show message about required Nagios restart if installWizard used and Nagios is installed
+   * Show message about required Nagios restart if AddHostWizard or AddServiceWizard used and Nagios is installed
    * @type {bool}
    */
   isNagiosRestartRequired: function () {
     return this.get('content.controllerName') !== 'installerController' && App.Service.find('NAGIOS').get('isLoaded');
-  }.property(),
+  }.property('content.controllerName'),
+
+  /**
+   * is Add service wizard the ongoing wizard
+   * @type {bool}
+   */
+  isAddServiceWizard: function () {
+    return this.get('content.controllerName') === 'addServiceController';
+  }.property('content.controllerName'),
 
   /**
    * Clear <code>clusterInfo</code>

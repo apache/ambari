@@ -176,7 +176,7 @@ Em.I18n.translations = {
   'common.persist.error' : 'Error in persisting web client state at ambari server:',
   'common.update.error' : 'Error in retrieving web client state from ambari server',
   'common.tags': 'Tags',
-  'common.important': 'Important',
+  'common.important': '<strong>Important:</strong>',
   'common.allServices':'All Services',
   'common.move':'Move',
   'common.change': 'Change',
@@ -215,6 +215,7 @@ Em.I18n.translations = {
   'requestInfo.installComponents':'Install Components',
   'requestInfo.installServices':'Install Services',
   'requestInfo.startServices':'Start Services',
+  'requestInfo.startAddedServices':'Start Added Services',
   'requestInfo.stopAllServices':'Stop All Services',
   'requestInfo.startAllServices':'Start All Services',
   'requestInfo.startHostComponent':'Start',
@@ -670,7 +671,12 @@ Em.I18n.translations = {
 
   'installer.step10.header':'Summary',
   'installer.step10.body':'Here is the summary of the install process.',
-  'installer.step10.nagiosRestartRequired':'<b>Important!</b> Restarting Nagios service is required for alerts and notifications to work properly.  After clicking on the Complete button to dismiss this wizard, go to <i>Services -> Nagios</i> to restart the Nagios service.',
+  'installer.step10.nagiosRestartRequired':' Restarting Nagios service is required for alerts and ' +
+    'notifications to work properly.  After clicking on the Complete button to dismiss this wizard, go to ' +
+    '<i>Services -> Nagios</i> to restart the Nagios service.',
+  'installer.step10.staleServicesRestartRequired':' You may also need to restart other services for the newly added ' +
+    'services to function properly (for example, HDFS and YARN/MapReduce need to be restarted after adding Oozie). After closing this ' +
+    'wizard, please restart all services that have the restart indicator <i class="icon-refresh"></i> next to the service name.',
   'installer.step10.hostsSummary':'The cluster consists of {0} hosts',
   'installer.step10.servicesSummary':'Installed and started services successfully on {0} new ',
   'installer.step10.warnings':' warnings',

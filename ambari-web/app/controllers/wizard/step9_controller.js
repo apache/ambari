@@ -434,17 +434,12 @@ App.WizardStep9Controller = Em.Controller.extend({
    * @method launchStartServices
    */
   launchStartServices: function () {
-    var data = {
-      "RequestInfo": {
-        "context": Em.I18n.t("requestInfo.startServices")
-      },
-      "Body": {
-        "ServiceInfo": { "state": "STARTED" }
-      }
-    };
-    var name = 'wizard.step9.installer.launch_start_services';
+    var data = {};
+    var name = '';
+    var servicesList = [];
 
     if (this.get('content.controllerName') === 'addHostController') {
+      name = 'wizard.step9.add_host.launch_start_services';
       var hostnames = [];
       for (var hostname in this.get('wizardController').getDBProperty('hosts')) {
         hostnames.push(hostname);
@@ -458,7 +453,27 @@ App.WizardStep9Controller = Em.Controller.extend({
           "HostRoles": { "state": "STARTED" }
         }
       };
-      name = 'wizard.step9.add_host.launch_start_services';
+    } else if (this.get('content.controllerName') === 'addServiceController') {
+      servicesList = this.get('content.services').filterProperty('isSelected', true).filterProperty('isDisabled', false).mapProperty('serviceName');
+      name = 'wizard.step9.add_service.launch_start_services';
+      data = {
+        "RequestInfo": {
+          "context": Em.I18n.t("requestInfo.startAddedServices")
+        },
+        "Body": {
+          "ServiceInfo": { "state": "STARTED" }
+        }
+      };
+    } else {
+      name = 'wizard.step9.installer.launch_start_services';
+      data = {
+        "RequestInfo": {
+          "context": Em.I18n.t("requestInfo.startServices")
+        },
+        "Body": {
+          "ServiceInfo": { "state": "STARTED" }
+        }
+      };
     }
     data = JSON.stringify(data);
     if (App.testMode) {
@@ -470,7 +485,8 @@ App.WizardStep9Controller = Em.Controller.extend({
       sender: this,
       data: {
         data: data,
-        cluster: this.get('content.cluster.name')
+        cluster: this.get('content.cluster.name'),
+        servicesList: servicesList    // used only for Add Service wizard
       },
       success: 'launchStartServicesSuccessCallback',
       error: 'launchStartServicesErrorCallback'
