@@ -167,7 +167,7 @@
             <exclude>derby.log</exclude>
             <exclude>CHANGES.txt</exclude>
             <exclude>pass.txt</exclude>
-            <exclude>contrib/addons/test/dataServices/jmx/data/cluster_configuration.json.nohbase</exclude>
+                   <exclude>contrib/addons/test/dataServices/jmx/data/cluster_configuration.json.nohbase</exclude>
             <exclude>contrib/ambari-scom/msi/src/GUI_Ambari.sln</exclude>
             <exclude>version</exclude>
             <!--IDE and GIT files-->
@@ -239,6 +239,7 @@
         <module>ambari-web</module>
         <module>ambari-project</module>
         <module>ambari-views</module>
+        <module>contrib/views/</module>
         <module>ambari-server</module>
         <module>ambari-agent</module>
         <module>ambari-client</module>
@@ -249,6 +250,7 @@
       <modules>
         <module>ambari-project</module>
         <module>ambari-views</module>
+        <module>contrib/views/</module>
         <module>ambari-server</module>
         <module>ambari-agent</module>
         <module>ambari-client</module>
