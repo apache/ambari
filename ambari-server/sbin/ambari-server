@@ -41,7 +41,11 @@ export AMBARI_CONF_DIR=/etc/ambari-server/conf:$PATH
 # Because Ambari rpm unpacks modules here on all systems
 export PYTHONPATH=/usr/lib/python2.6/site-packages:$PYTHONPATH
 
-if [ -a /usr/bin/python2.6 ]; then
+if [ -a /usr/bin/python2.7 ] && [ -z "$PYTHON" ]; then
+  PYTHON=/usr/bin/python2.7
+fi
+
+if [ -a /usr/bin/python2.6 ] && [ -z "$PYTHON" ]; then
   PYTHON=/usr/bin/python2.6
 fi
 

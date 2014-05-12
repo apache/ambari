@@ -22,19 +22,32 @@ COMMON_DIR="/usr/lib/python2.6/site-packages/common_functions"
 INSTALL_HELPER_SERVER="/var/lib/ambari-server/install-helper.sh"
 COMMON_DIR_AGENT="/usr/lib/ambari-agent/lib/common_functions"
 
+PYTHON_WRAPER_TARGET="/usr/bin/ambari-python-wrap"
+PYTHON_WRAPER_SOURCE="/var/lib/ambari-agent/ambari-python-wrap"
 
 do_install(){
+  # setting common_functions shared resource
   if [ ! -d "$COMMON_DIR" ]; then
     ln -s "$COMMON_DIR_AGENT" "$COMMON_DIR"
+  fi
+  # setting python-wrapper script
+  if [ ! -f "$PYTHON_WRAPER_TARGET" ]; then
+    ln -s "$PYTHON_WRAPER_SOURCE" "$PYTHON_WRAPER_TARGET"
   fi
 }
 
 do_remove(){
   if [ -d "$COMMON_DIR" ]; then  # common dir exists
     rm -f "$COMMON_DIR"
-    if [ -f "$INSTALL_HELPER_SERVER" ]; then  #  call server shared files installer
-      $INSTALL_HELPER_SERVER install
-    fi
+  fi
+
+  if [ -f "$PYTHON_WRAPER_TARGET" ]; then
+    rm -f "$PYTHON_WRAPER_TARGET"
+  fi
+
+  # if server package exists, restore their settings
+  if [ -f "$INSTALL_HELPER_SERVER" ]; then  #  call server shared files installer
+    $INSTALL_HELPER_SERVER install
   fi
 }
 

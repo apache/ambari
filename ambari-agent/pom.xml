@@ -125,7 +125,7 @@
         <executions>
           <execution>
             <configuration>
-              <executable>python2.6</executable>
+              <executable>${project.basedir}/../ambari-common/src/main/unix/ambari-python-wrap</executable>
               <workingDirectory>src/test/python</workingDirectory>
               <arguments>
                 <argument>unitTests.py</argument>
@@ -144,7 +144,7 @@
           <execution>
             <!-- TODO: Looks like section is unused, maybe remove? -->
             <configuration>
-              <executable>python2.6</executable>
+              <executable>${project.basedir}/../ambari-common/src/main/unix/ambari-python-wrap</executable>
               <workingDirectory>target/ambari-agent-${project.version}</workingDirectory>
               <arguments>
                 <argument>${project.basedir}/src/main/python/setup.py</argument>
@@ -163,7 +163,7 @@
           </execution>
           <execution>
             <configuration>
-              <executable>python2.6</executable>
+              <executable>${project.basedir}/../ambari-common/src/main/unix/ambari-python-wrap</executable>
               <workingDirectory>${basedir}</workingDirectory>
               <arguments>
                 <argument>${resource.keeper.script}</argument>
@@ -224,6 +224,18 @@
               <sources>
                 <source>
                   <location>${project.build.directory}/${project.artifactId}-${project.version}/ambari_agent</location>
+                </source>
+              </sources>
+            </mapping>
+            <mapping>
+              <directory>/var/lib/ambari-agent/</directory>
+              <filemode>755</filemode>
+              <username>root</username>
+              <groupname>root</groupname>
+              <directoryIncluded>false</directoryIncluded>
+              <sources>
+                <source>
+                  <location>../ambari-common/src/main/unix/ambari-python-wrap</location>
                 </source>
               </sources>
             </mapping>
@@ -544,6 +556,17 @@
               <mapper>
                 <type>perm</type>
                 <prefix>/var/lib/${project.artifactId}/data</prefix>
+                <user>root</user>
+                <group>root</group>
+                <filemode>755</filemode>
+              </mapper>
+            </data>
+            <data>
+              <src>../ambari-common/src/main/unix/ambari-python-wrap</src>
+              <type>file</type>
+              <mapper>
+                <type>perm</type>
+                <prefix>/var/lib/ambari-agent</prefix>
                 <user>root</user>
                 <group>root</group>
                 <filemode>755</filemode>

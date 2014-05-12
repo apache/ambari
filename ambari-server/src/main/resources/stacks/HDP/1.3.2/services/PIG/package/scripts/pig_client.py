@@ -1,4 +1,3 @@
-#!/usr/bin/env python2.6
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -24,12 +23,12 @@ import sys
 from resource_management import *
 from pig import pig
 
-         
+
 class PigClient(Script):
   def install(self, env):
     self.install_packages(env)
     self.configure(env)
-    
+
   def configure(self, env):
     import params
     env.set_params(params)
@@ -37,6 +36,6 @@ class PigClient(Script):
 
   def status(self, env):
     raise ClientComponentHasNoStatus()
-    
+
 if __name__ == "__main__":
   PigClient().execute()

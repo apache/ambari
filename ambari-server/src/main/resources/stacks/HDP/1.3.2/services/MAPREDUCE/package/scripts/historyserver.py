@@ -1,4 +1,3 @@
-#!/usr/bin/env python2.6
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -28,7 +27,7 @@ from service import service
 class Historyserver(Script):
   def install(self, env):
     self.install_packages(env)
-  
+
   def configure(self, env):
     import params
     env.set_params(params)

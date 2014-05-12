@@ -1,4 +1,3 @@
-#!/usr/bin/env python2.6
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -144,7 +143,7 @@ def yarn(name = None):
          group=params.yarn_executor_container_group,
          mode=06050
     )
-    
+
     File(format("{config_dir}/container-executor.cfg"),
          group=params.user_group,
          mode=0644,

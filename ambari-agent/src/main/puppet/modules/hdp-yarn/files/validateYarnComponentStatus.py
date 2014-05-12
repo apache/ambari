@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.6
+#!/usr/bin/env ambari-python-wrap
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -40,7 +40,7 @@ def getResponse(path, address, ssl_enabled):
     url = 'https://' + address + path
   else:
     url = 'http://' + address + path
-      
+
   command_with_flags = [command,httpGssnegotiate,userpswd,insecure,url]
   try:
     proc = subprocess.Popen(command_with_flags, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -143,7 +143,7 @@ def main():
   (options, args) = parser.parse_args()
 
   component = args[0]
-  
+
   address = options.address
   ssl_enabled = (options.ssl_enabled) in 'true'
   if component == RESOURCEMANAGER:

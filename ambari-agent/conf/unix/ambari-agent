@@ -49,7 +49,11 @@ OK=1
 NOTOK=0
 
 
-if [ -a /usr/bin/python2.6 ]; then
+if [ -a /usr/bin/python2.7 ] && [ -z "$PYTHON" ]; then
+  PYTHON=/usr/bin/python2.7
+fi
+
+if [ -a /usr/bin/python2.6 ] && [ -z "$PYTHON" ]; then
   PYTHON=/usr/bin/python2.6
 fi
 
@@ -207,7 +211,7 @@ case "$1" in
         $0 stop
         $0 start "$@"
         retcode=$?
-        ;;     
+        ;;
   *)
         tput bold
         echo "Usage: /usr/sbin/ambari-agent {start|stop|restart|status}"

@@ -1,4 +1,3 @@
-#!/usr/bin/env python2.6
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -42,7 +41,7 @@ class Jobtracker(Script):
     service('jobtracker',
             action='start'
     )
-    
+
   def stop(self, env):
     import params
     env.set_params(params)
@@ -50,7 +49,7 @@ class Jobtracker(Script):
     service('jobtracker',
             action='stop'
     )
-    
+
   def status(self, env):
     import status_params
     env.set_params(status_params)

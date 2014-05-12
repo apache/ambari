@@ -72,7 +72,7 @@
         <executions>
           <execution>
             <configuration>
-              <executable>python2.6</executable>
+              <executable>${project.basedir}/../ambari-common/src/main/unix/ambari-python-wrap</executable>
               <workingDirectory>src/test/python</workingDirectory>
               <arguments>
                 <argument>unitTests.py</argument>
@@ -90,7 +90,7 @@
           </execution>
           <execution>
             <configuration>
-              <executable>python2.6</executable>
+              <executable>${project.basedir}/../ambari-common/src/main/unix/ambari-python-wrap</executable>
               <workingDirectory>target/ambari-client-${project.version}</workingDirectory>
               <arguments>
                 <argument>${project.basedir}/src/main/python/setup.py</argument>

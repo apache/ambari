@@ -1,4 +1,3 @@
-#!/usr/bin/env python2.6
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -26,15 +25,15 @@ class PigServiceCheck(Script):
   def service_check(self, env):
     import params
     env.set_params(params)
-    
+
     input_file = 'passwd'
     output_file = "pigsmoke.out"
-  
+
     cleanup_cmd = format("dfs -rmr {output_file} {input_file}")
     #cleanup put below to handle retries; if retrying there wil be a stale file that needs cleanup; exit code is fn of second command
     create_file_cmd = format("{cleanup_cmd}; hadoop dfs -put /etc/passwd {input_file} ") #TODO: inconsistent that second command needs hadoop
     test_cmd = format("fs -test -e {output_file}")
-  
+
     ExecuteHadoop( create_file_cmd,
       tries     = 3,
       try_sleep = 5,
@@ -45,24 +44,24 @@ class PigServiceCheck(Script):
       security_enabled = params.security_enabled,
       kinit_path_local = params.kinit_path_local
     )
-  
+
     File( '/tmp/pigSmoke.sh',
       content = StaticFile("pigSmoke.sh"),
       mode = 0755
     )
-  
+
     Execute( "pig /tmp/pigSmoke.sh",
       tries     = 3,
       try_sleep = 5,
       path      = '/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
       user      = params.smokeuser
     )
-  
+
     ExecuteHadoop( test_cmd,
       user      = params.smokeuser,
       conf_dir = params.hadoop_conf_dir
     )
-    
+
 if __name__ == "__main__":
   PigServiceCheck().execute()
-  
+

@@ -1,4 +1,3 @@
-#!/usr/bin/env python2.6
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -46,16 +45,16 @@ def pig():
          group=params.user_group,
          owner=params.hdfs_user
     )
-  
-  
+
+
 def pig_TemplateConfig(name):
   import params
-  
+
   if not isinstance(name, list):
     name = [name]
-    
+
   for x in name:
     TemplateConfig( format("{pig_conf_dir}/{x}"),
         owner = params.hdfs_user
     )
-  
+

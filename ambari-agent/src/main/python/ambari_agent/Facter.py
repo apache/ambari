@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.6
+#!/usr/bin/env ambari-python-wrap
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -42,9 +42,9 @@ GET_MEMINFO_CMD = "cat /proc/meminfo"
 
 class Facter():
   def __init__(self):
-    
-    self.DATA_IFCONFIG_OUTPUT = Facter.setDataIfConfigOutput()    
-    self.DATA_UPTIME_OUTPUT = Facter.setDataUpTimeOutput()    
+
+    self.DATA_IFCONFIG_OUTPUT = Facter.setDataIfConfigOutput()
+    self.DATA_UPTIME_OUTPUT = Facter.setDataUpTimeOutput()
     self.DATA_MEMINFO_OUTPUT = Facter.setMemInfoOutput()
 
   @staticmethod
@@ -189,7 +189,7 @@ class Facter():
 
   # Return first ip adress
   def getIpAddress(self):
-    result = self.data_return_first("(?: inet addr:)(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})", 
+    result = self.data_return_first("(?: inet addr:)(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})",
                                     self.DATA_IFCONFIG_OUTPUT)
     if result == '':
       log.warn("Can't get an ip address from {0}".format(self.DATA_IFCONFIG_OUTPUT))
@@ -199,7 +199,7 @@ class Facter():
 
   # Return  netmask
   def getNetmask(self):
-    result = self.data_return_first("(?: Mask:)(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})", 
+    result = self.data_return_first("(?: Mask:)(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})",
                                     self.DATA_IFCONFIG_OUTPUT)
     if result == '':
       log.warn("Can't get a netmask from {0}".format(self.DATA_IFCONFIG_OUTPUT))
