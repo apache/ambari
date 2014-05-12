@@ -94,12 +94,13 @@ exclude_file_path = default("/configurations/yarn-site/yarn.resourcemanager.node
 hostname = config['hostname']
 
 if security_enabled:
-  nm_principal_name = config['configurations']['global']['nodemanager_principal_name']
-  nodemanager_keytab = config['configurations']['global']['nodemanager_keytab']
-  nodemanager_principal_name = nm_principal_name.replace('_HOST',hostname.lower())
-  nm_kinit_cmd = format("{kinit_path_local} -kt {nodemanager_keytab} {nodemanager_principal_name};")
+  _rm_principal_name = config['configurations']['yarn-site']['yarn.resourcemanager.principal']
+  _rm_keytab = config['configurations']['yarn-site']['yarn.resourcemanager.keytab']
+  _rm_principal_name = _rm_principal_name.replace('_HOST',hostname.lower())
+  
+  rm_kinit_cmd = format("{kinit_path_local} -kt {_rm_keytab} {_rm_principal_name};")
 else:
-  nm_kinit_cmd = ""
+  rm_kinit_cmd = ""
 
 yarn_log_aggregation_enabled = config['configurations']['yarn-site']['yarn.log-aggregation-enable']
 yarn_nm_app_log_dir =  config['configurations']['yarn-site']['yarn.nodemanager.remote-app-log-dir']

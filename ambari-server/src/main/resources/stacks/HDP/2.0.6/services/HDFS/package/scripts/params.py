@@ -149,6 +149,16 @@ if dfs_ha_enabled:
 journalnode_address = default('/configurations/hdfs-site/dfs.journalnode.http-address', None)
 if journalnode_address:
   journalnode_port = journalnode_address.split(":")[1]
+  
+  
+if security_enabled:
+  _dn_principal_name = config['configurations']['hdfs-site']['dfs.datanode.kerberos.principal']
+  _dn_keytab = config['configurations']['hdfs-site']['dfs.datanode.keytab.file']
+  _dn_principal_name = _dn_principal_name.replace('_HOST',hostname.lower())
+  
+  dn_kinit_cmd = format("{kinit_path_local} -kt {_dn_keytab} {_dn_principal_name};")
+else:
+  dn_kinit_cmd = ""
 
 import functools
 #create partial functions with common arguments for every HdfsDirectory call
