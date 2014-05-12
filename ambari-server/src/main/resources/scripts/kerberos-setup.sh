@@ -199,13 +199,10 @@ installKDC () {
     $inst_cmd krb5-server krb5-libs krb5-auth-dialog  krb5-workstation
   fi
   # Configure /etc/krb5.conf
-  # !!! sed -i "s/\(default_realm *= *\).*/\1$EXAMPLE.COM/" $krb5_conf
-  # !!! should we set default_realm?
-  # !!!
   cp $krb5_conf $krb5_conf".bak"
   cp $krb5_new_conf $krb5_conf
-  sed -i "s/\(kdc *= *\).*/\1$HOSTNAME/" $krb5_conf
-  sed -i "s/\(admin_server *= *\).*/\1$HOSTNAME/" $krb5_conf
+  sed -i "s/\(kdc *= *\).*kerberos.example.com.*/\1$HOSTNAME/" $krb5_conf
+  sed -i "s/\(admin_server *= *\).*kerberos.example.com.*/\1$HOSTNAME/" $krb5_conf
   # Install rng tools
   if [ $os == 'debian' ]; then
     echo -ne '\n\n' | kdb5_util create -s
