@@ -24,7 +24,11 @@
         <description>FileSystem URI</description>
         <required>true</required>
     </parameter>
-
+    <parameter>
+        <name>dataworker.username</name>
+        <description>The username (defaults to ViewContext username)</description>
+        <required>false</required>
+    </parameter>
     
     <resource>
         <name>files</name>
