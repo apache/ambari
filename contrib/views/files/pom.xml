@@ -24,7 +24,7 @@
     
     <parent>
         <groupId>org.apache.ambari.views</groupId>
-        <artifactId>ambari-views</artifactId>
+        <artifactId>ambari-contrib-views</artifactId>
         <version>0.1.0-SNAPSHOT</version>
     </parent>
     
