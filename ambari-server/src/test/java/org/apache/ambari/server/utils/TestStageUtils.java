@@ -162,10 +162,10 @@ public class TestStageUtils {
   @Test
   public void testGetClusterHostInfo() throws AmbariException, UnknownHostException {
     Clusters fsm = injector.getInstance(Clusters.class);
-    String h1 = "h1";
+    String h0 = "h0";
 
     List<String> hostList = new ArrayList<String>();
-    hostList.add(h1);
+    hostList.add("h1");
     hostList.add("h2");
     hostList.add("h3");
     hostList.add("h4");
@@ -177,7 +177,7 @@ public class TestStageUtils {
     hostList.add("h10");
 
     mockStaticPartial(StageUtils.class, "getHostName");
-    expect(StageUtils.getHostName()).andReturn(h1).anyTimes();
+    expect(StageUtils.getHostName()).andReturn(h0).anyTimes();
     replayAll();
 
     List<Integer> pingPorts = Arrays.asList(StageUtils.DEFAULT_PING_PORT,
@@ -221,14 +221,14 @@ public class TestStageUtils {
     //Add HBASE service
     Map<String, List<Integer>> hbaseTopology = new HashMap<String, List<Integer>>(); 
     hbaseTopology.put("HBASE_MASTER", Collections.singletonList(5));
-    List<Integer> regionServiceIndexes = Arrays.asList(1,3,5,8,9);;
+    List<Integer> regionServiceIndexes = Arrays.asList(1,3,5,8,9);
     hbaseTopology.put("HBASE_REGIONSERVER", regionServiceIndexes);
     addService(fsm.getCluster("c1"), hostList, hbaseTopology , "HBASE", injector);
     
     //Add MAPREDUCE service
     Map<String, List<Integer>> mrTopology = new HashMap<String, List<Integer>>(); 
     mrTopology.put("JOBTRACKER", Collections.singletonList(5));
-    List<Integer> taskTrackerIndexes = Arrays.asList(1,2,3,4,5,7,9);;
+    List<Integer> taskTrackerIndexes = Arrays.asList(1,2,3,4,5,7,9);
     mrTopology.put("TASKTRACKER", taskTrackerIndexes);
     addService(fsm.getCluster("c1"), hostList, mrTopology , "MAPREDUCE", injector);
     
@@ -304,9 +304,8 @@ public class TestStageUtils {
     // check server hostname field
     assertTrue(info.containsKey(StageUtils.AMBARI_SERVER_HOST));
     Set<String> serverHost = info.get(StageUtils.AMBARI_SERVER_HOST);
-    assertEquals(1, serverHost.toArray().length);
-    int serverHostIndex = Integer.valueOf(serverHost.iterator().next());
-    assertEquals(h1, allHostsList.get(serverHostIndex));
+    assertEquals(1, serverHost.size());
+    assertEquals(h0, serverHost.iterator().next());
   }
 
   private void checkServiceCompression(Map<String, Set<String>> info,
