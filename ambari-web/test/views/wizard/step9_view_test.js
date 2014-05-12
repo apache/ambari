@@ -204,14 +204,14 @@ describe('App.WizardStep9View', function () {
     }, this);
   });
 
-  describe('#filter', function () {
+  describe('#doFilter', function () {
     testCases.forEach(function (test) {
       describe(test.title, function () {
         view.get('categories').forEach(function (category) {
           it('. Selected category - ' + category.get('hostStatus'), function () {
             view.set('content', test.content);
-            view.selectCategory({context: category});
-            view.filter();
+            view.reopen({selectedCategory: category});
+            view.doFilter();
             expect(view.get('filteredContent').length).to.equal(test.result[category.get('hostStatus')])
           });
         })

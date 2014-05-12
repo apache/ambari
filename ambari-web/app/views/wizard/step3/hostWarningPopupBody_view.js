@@ -47,7 +47,9 @@ App.WizardStep3HostWarningPopupBody = Em.View.extend({
      * @type {string[]}
      */
     hosts: function () {
-      return this.get('parentView.warningsByHost').mapProperty('name');
+      var warningsByHost = this.get('parentView.warningsByHost');
+      if (Em.isNone(warningsByHost)) return [];
+      return warningsByHost.mapProperty('name');
     }.property('parentView.warningsByHost'),
 
     /**
@@ -130,7 +132,9 @@ App.WizardStep3HostWarningPopupBody = Em.View.extend({
    * @type {Ember.Enumerable}
    */
   categoryWarnings: function () {
-    return this.get('warningsByHost').findProperty('name', this.get('category')).warnings
+    var warningsByHost = this.get('warningsByHost');
+    if (Em.isNone(warningsByHost)) return [];
+    return warningsByHost.findProperty('name', this.get('category')).warnings
   }.property('warningsByHost', 'category'),
 
   /**
@@ -345,6 +349,7 @@ App.WizardStep3HostWarningPopupBody = Em.View.extend({
    */
   warningHostsNamesCount: function () {
     var hostNameMap = Em.Object.create();
+    if (Em.isNone(this.get('bodyController.warningsByHost'))) return 0;
     var warningsByHost = this.get('bodyController.warningsByHost').slice();
     warningsByHost.shift();
     warningsByHost.forEach(function (_host) {

@@ -160,7 +160,7 @@ App.WizardStep3Controller = Em.Controller.extend({
         }
       } else {
         this.set('bootHosts', this.get('hosts'));
-        if (App.testMode) {
+        if (App.get('testMode')) {
           this.getHostInfo();
           this.get('bootHosts').setEach('cpu', '2');
           this.get('bootHosts').setEach('memory', '2000000');
@@ -416,14 +416,15 @@ App.WizardStep3Controller = Em.Controller.extend({
   /**
    * Do bootstrap calls
    * @method doBootstrap
+   * @return {$.ajax|null}
    */
   doBootstrap: function () {
     if (this.get('stopBootstrap')) {
-      return;
+      return null;
     }
     this.incrementProperty('numPolls');
 
-    App.ajax.send({
+    return App.ajax.send({
       name: 'wizard.step3.bootstrap',
       sender: this,
       data: {
@@ -512,13 +513,14 @@ App.WizardStep3Controller = Em.Controller.extend({
 
   /**
    * Do requests to check if hosts are already registered
+   * @return {$.ajax|null}
    * @method isHostsRegistered
    */
   isHostsRegistered: function () {
     if (this.get('stopBootstrap')) {
-      return;
+      return null;
     }
-    App.ajax.send({
+    return App.ajax.send({
       name: 'wizard.step3.is_hosts_registered',
       sender: this,
       success: 'isHostsRegisteredSuccessCallback'
@@ -689,73 +691,101 @@ App.WizardStep3Controller = Em.Controller.extend({
    * @method getHostInfoSuccessCallback
    */
   getHostInfoSuccessCallback: function (jsonData) {
-    var hosts = this.get('bootHosts');
-    var self = this;
+    var hosts = this.get('bootHosts'),
+      self = this,
+      repoWarnings = [],
+      hostsContext = [],
+      diskWarnings = [],
+      hostsDiskContext = [],
+      hostsDiskNames = [],
+      hostsRepoNames = [];
     this.parseWarnings(jsonData);
-    var repoWarnings = [];
-    var hostsContext = [];
-    var diskWarnings = [];
-    var hostsDiskContext = [];
-    var hostsDiskNames = [];
-    var hostsRepoNames = [];
+
     hosts.forEach(function (_host) {
-      var host = (App.testMode) ? jsonData.items[0] : jsonData.items.findProperty('Hosts.host_name', _host.name);
-      if (App.skipBootstrap) {
-        _host.set('cpu', 2);
-        _host.set('memory', ((parseInt(2000000))).toFixed(2));
-        _host.set('disk_info', [
-          {"mountpoint": "/", "type": "ext4"},
-          {"mountpoint": "/grid/0", "type": "ext4"},
-          {"mountpoint": "/grid/1", "type": "ext4"},
-          {"mountpoint": "/grid/2", "type": "ext4"}
-        ]);
-      } else if (host) {
-        _host.set('cpu', host.Hosts.cpu_count);
-        _host.set('memory', ((parseInt(host.Hosts.total_mem))).toFixed(2));
-        _host.set('disk_info', host.Hosts.disk_info.filter(function (host) {
-          return host.mountpoint != "/boot"
-        }));
-        _host.set('os_type', host.Hosts.os_type);
-        _host.set('os_arch', host.Hosts.os_arch);
-        _host.set('ip', host.Hosts.ip);
+      var host = (App.get('testMode')) ? jsonData.items[0] : jsonData.items.findProperty('Hosts.host_name', _host.name);
+      if (App.get('skipBootstrap')) {
+        self._setHostDataWithSkipBootstrap(_host);
+      }
+      else {
+        if (host) {
+          self._setHostDataFromLoadedHostInfo(_host, host);
 
-        var context = self.checkHostOSType(host.Hosts.os_type, host.Hosts.host_name);
-        if (context) {
-          hostsContext.push(context);
-          hostsRepoNames.push(host.Hosts.host_name);
+          var host_name = Em.get(host, 'Hosts.host_name');
+          var context = self.checkHostOSType(host.Hosts.os_type, host_name);
+          if (context) {
+            hostsContext.push(context);
+            hostsRepoNames.push(host_name);
+          }
+          var diskContext = self.checkHostDiskSpace(host_name, host.Hosts.disk_info);
+          if (diskContext) {
+            hostsDiskContext.push(diskContext);
+            hostsDiskNames.push(host_name);
+          }
         }
-        var diskContext = self.checkHostDiskSpace(host.Hosts.host_name, host.Hosts.disk_info);
-        if (diskContext) {
-          hostsDiskContext.push(diskContext);
-          hostsDiskNames.push(host.Hosts.host_name);
-        }
-
       }
     });
     if (hostsContext.length > 0) { // warning exist
-      var repoWarning = {
+      repoWarnings.push({
         name: Em.I18n.t('installer.step3.hostWarningsPopup.repositories.name'),
         hosts: hostsContext,
         hostsNames: hostsRepoNames,
         category: 'repositories',
         onSingleHost: false
-      };
-      repoWarnings.push(repoWarning);
+      });
     }
     if (hostsDiskContext.length > 0) { // disk space warning exist
-      var diskWarning = {
+      diskWarnings.push({
         name: Em.I18n.t('installer.step3.hostWarningsPopup.disk.name'),
         hosts: hostsDiskContext,
         hostsNames: hostsDiskNames,
         category: 'disk',
         onSingleHost: false
-      };
-      diskWarnings.push(diskWarning);
+      });
     }
 
     this.set('repoCategoryWarnings', repoWarnings);
     this.set('diskCategoryWarnings', diskWarnings);
     this.stopRegistration();
+  },
+
+  /**
+   * Set metrics to host object
+   * Used when <code>App.skipBootstrap</code> is true
+   * @param {Ember.Object} host
+   * @returns {object}
+   * @private
+   * @methos _setHostDataWithSkipBootstrap
+   */
+  _setHostDataWithSkipBootstrap: function(host) {
+    host.set('cpu', 2);
+    host.set('memory', ((parseInt(2000000))).toFixed(2));
+    host.set('disk_info', [
+      {"mountpoint": "/", "type": "ext4"},
+      {"mountpoint": "/grid/0", "type": "ext4"},
+      {"mountpoint": "/grid/1", "type": "ext4"},
+      {"mountpoint": "/grid/2", "type": "ext4"}
+    ]);
+    return host;
+  },
+
+  /**
+   * Set loaded metrics to host object
+   * @param {object} host
+   * @param {object} hostInfo
+   * @returns {object}
+   * @method _setHostDataFromLoadedHostInfo
+   * @private
+   */
+  _setHostDataFromLoadedHostInfo: function(host, hostInfo) {
+    host.set('cpu', Em.get(hostInfo, 'Hosts.cpu_count'));
+    host.set('memory', ((parseInt(Em.get(hostInfo, 'Hosts.total_mem')))).toFixed(2));
+    host.set('disk_info', Em.get(hostInfo, 'Hosts.disk_info').filter(function (h) {
+      return h.mountpoint != "/boot"
+    }));
+    host.set('os_type', Em.get(hostInfo, 'Hosts.os_type'));
+    host.set('os_arch', Em.get(hostInfo, 'Hosts.os_arch'));
+    host.set('ip', Em.get(hostInfo, 'Hosts.ip'));
+    return host;
   },
 
   /**
@@ -798,12 +828,12 @@ App.WizardStep3Controller = Em.Controller.extend({
         });
       }
 
-      if (!isValid) {
+      if (isValid) {
+        return '';
+      } else {
         console.log('WARNING: Getting host os type does NOT match the user selected os group in step1. ' +
           'Host Name: ' + hostName + '. Host os type:' + osType + '. Selected group:' + selectedOS);
         return Em.I18n.t('installer.step3.hostWarningsPopup.repositories.context').format(hostName, osType, selectedOS);
-      } else {
-        return '';
       }
     } else {
       return '';

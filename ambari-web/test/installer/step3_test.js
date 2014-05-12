@@ -487,7 +487,8 @@ describe('App.WizardStep3Controller', function () {
       });
       c = App.WizardStep3Controller.create({
         wizardController: App.InstallerController.create(),
-        bootHosts: Em.A([{name: 'c1', bootStatus: 'FAILED'}, {name: 'c2', bootStatus: 'REGISTERED'}]),
+        isRetryDisabled: false,
+        bootHosts: Em.A([Em.Object.create({name: 'c1', bootStatus: 'FAILED'}), Em.Object.create({name: 'c2', bootStatus: 'REGISTERED'})]),
         content: {installOptions: {}},
         doBootstrap: Em.K
       });
@@ -992,6 +993,21 @@ describe('App.WizardStep3Controller', function () {
       expect(App.ModalPopup.show.calledOnce).to.equal(true);
       App.ModalPopup.show.restore();
     });
+    it('should clear checksUpdateStatus on primary', function() {
+      c.set('checksUpdateStatus', 'not null value');
+      c.hostWarningsPopup().onPrimary();
+      expect(c.get('checksUpdateStatus')).to.be.null;
+    });
+    it('should clear checksUpdateStatus on close', function() {
+      c.set('checksUpdateStatus', 'not null value');
+      c.hostWarningsPopup().onClose();
+      expect(c.get('checksUpdateStatus')).to.be.null;
+    });
+    it('should rerunChecks onSecondary', function() {
+      sinon.stub(c, 'rerunChecks', Em.K);
+      c.hostWarningsPopup().onSecondary();
+      expect(c.rerunChecks.calledOnce).to.equal(true);
+    });
   });
 
   describe('#registeredHostsPopup', function() {
@@ -1302,6 +1318,359 @@ describe('App.WizardStep3Controller', function () {
       });
     });
 
+  });
+
+  describe('#hostsInCluster', function() {
+    it('should load data from App.Host model', function() {
+      var hosts = [
+        Em.Object.create({hostName: 'h1'}),
+        Em.Object.create({hostName: 'h2'}),
+        Em.Object.create({hostName: 'h3'})
+      ], expected = ['h1', 'h2', 'h3'];
+      sinon.stub(App.Host, 'find', function() {
+        return hosts;
+      });
+      expect(c.get('hostsInCluster')).to.eql(expected);
+      App.Host.find.restore();
+    });
+  });
+
+  describe('#navigateStep', function() {
+    Em.A([
+        {
+          isLoaded: true,
+          manualInstall: false,
+          bootStatus: false,
+          m: 'should call startBootstrap',
+          e: true
+        },
+        {
+          isLoaded: true,
+          manualInstall: false,
+          bootStatus: true,
+          m: 'shouldn\'t call startBootstrap (1)',
+          e: false
+        },
+        {
+          isLoaded: false,
+          manualInstall: false,
+          bootStatus: false,
+          m: 'shouldn\'t call startBootstrap (2)',
+          e: false
+        },
+        {
+          isLoaded: false,
+          manualInstall: true,
+          bootStatus: false,
+          m: 'shouldn\'t call startBootstrap (3)',
+          e: false
+        }
+    ]).forEach(function(test) {
+        it(test.m, function() {
+          c.reopen({
+            isLoaded: test.isLoaded,
+            content: {
+              installOptions: {
+                manualInstall: test.manualInstall
+              }
+            },
+            wizardController: Em.Object.create({
+              getDBProperty: function() {
+                return test.bootStatus
+              }
+            })
+          });
+          sinon.stub(c, 'startBootstrap', Em.K);
+          c.navigateStep();
+          if(test.e) {
+            expect(c.startBootstrap.calledOnce).to.equal(true);
+          }
+          else {
+            expect(c.startBootstrap.called).to.equal(false);
+          }
+          c.startBootstrap.restore();
+        });
+      });
+
+    it('should set test data if testMode is true', function() {
+      c.reopen({
+        isLoaded: true,
+        hosts: [{}, {}, {}],
+        content: {
+          installOptions: {
+            manualInstall: true
+          }
+        },
+        setRegistrationInProgress: Em.K
+      });
+      sinon.stub(App, 'get', function(k) {
+        if('testMode' === k) return true;
+        return Em.get(App, k);
+      });
+      c.navigateStep();
+      App.get.restore();
+      expect(c.get('bootHosts.length')).to.equal(c.get('hosts.length'));
+      expect(c.get('bootHosts').everyProperty('cpu', '2')).to.equal(true);
+      expect(c.get('bootHosts').everyProperty('memory', '2000000')).to.equal(true);
+      expect(c.get('isSubmitDisabled')).to.equal(false);
+    });
+
+    it('should start registration', function() {
+      c.reopen({
+        isLoaded: true,
+        hosts: [{}, {}, {}],
+        content: {
+          installOptions: {
+            manualInstall: true
+          }
+        },
+        setRegistrationInProgress: Em.K,
+        startRegistration: Em.K
+      });
+      sinon.spy(c, 'startRegistration');
+      sinon.stub(App, 'get', function(k) {
+        if('testMode' === k) return false;
+        return Em.get(App, k);
+      });
+      c.navigateStep();
+      App.get.restore();
+      expect(c.startRegistration.calledOnce).to.equal(true);
+      expect(c.get('bootHosts.length')).to.equal(c.get('hosts.length'));
+      expect(c.get('registrationStartedAt')).to.be.null;
+      c.startRegistration.restore();
+    });
+
+  });
+
+  describe('#checkHostDiskSpace', function() {
+    Em.A([
+        {
+          diskInfo: [
+            {
+              available: App.minDiskSpace * 1024 * 1024 - 1024,
+              mountpoint: '/'
+            }
+          ],
+          m: 'available less than App.minDiskSpace',
+          e: false
+        },
+        {
+          diskInfo: [
+            {
+              available: App.minDiskSpaceUsrLib * 1024 * 1024 - 1024,
+              mountpoint: '/usr'
+            }
+          ],
+          m: 'available less than App.minDiskSpaceUsrLib (1)',
+          e: false
+        },
+        {
+          diskInfo: [
+            {
+              available: App.minDiskSpaceUsrLib * 1024 * 1024 - 1024,
+              mountpoint: '/usr/lib'
+            }
+          ],
+          m: 'available less than App.minDiskSpaceUsrLib (2)',
+          e: false
+        },
+        {
+          diskInfo: [
+            {
+              available: App.minDiskSpace * 1024 * 1024 + 1024,
+              mountpoint: '/'
+            }
+          ],
+          m: 'available greater than App.minDiskSpace',
+          e: true
+        },
+        {
+          diskInfo: [
+            {
+              available: App.minDiskSpaceUsrLib * 1024 * 1024 + 1024,
+              mountpoint: '/usr'
+            }
+          ],
+          m: 'available greater than App.minDiskSpaceUsrLib (1)',
+          e: true
+        },
+        {
+          diskInfo: [
+            {
+              available: App.minDiskSpaceUsrLib * 1024 * 1024 + 1024,
+              mountpoint: '/usr/lib'
+            }
+          ],
+          m: 'available greater than App.minDiskSpaceUsrLib (2)',
+          e: true
+        },
+        {
+          diskInfo: [
+            {
+              available: App.minDiskSpaceUsrLib * 1024 * 1024 + 1024,
+              mountpoint: '/home/tdk'
+            }
+          ],
+          m: 'mount point without free space checks',
+          e: true
+        }
+      ]).forEach(function (test) {
+        it(test.m, function () {
+          var r = c.checkHostDiskSpace('', test.diskInfo);
+          expect(Em.isEmpty(r)).to.equal(test.e);
+        });
+      });
+  });
+
+  describe('#checkHostOSType', function() {
+    it('should return empty string if no stacks provided', function() {
+      c.reopen({content: {stacks: null}});
+      expect(c.checkHostOSType()).to.equal('');
+    });
+    it('os type is valid', function() {
+      var osType = 'os1';
+      c.reopen({
+        content: {
+          stacks: [
+            Em.Object.create({isSelected: true, operatingSystems: [{selected: true, osType: osType}]})
+          ]
+        }
+      });
+      expect(c.checkHostOSType(osType, '')).to.equal('');
+    });
+    it('os type is invalid', function() {
+      var osType = 'os2';
+      c.reopen({
+        content: {
+          stacks: [
+            Em.Object.create({isSelected: true, operatingSystems: [{selected: true, osType: 'os1'}]})
+          ]
+        }
+      });
+      expect(Em.isEmpty(c.checkHostOSType(osType, ''))).to.equal(false);
+    });
+  });
+
+  describe('#getHostInfoSuccessCallback', function() {
+
+    beforeEach(function() {
+      sinon.stub(c, 'parseWarnings', Em.K);
+      sinon.stub(c, 'stopRegistration', Em.K);
+    });
+
+    afterEach(function() {
+      c.parseWarnings.restore();
+      c.stopRegistration.restore();
+    });
+
+    it('should call _setHostDataWithSkipBootstrap if skipBootstrap is true', function() {
+      sinon.spy(c, '_setHostDataWithSkipBootstrap');
+      sinon.stub(App, 'get', function(k) {
+        if ('skipBootstrap' === k) return true;
+        return Em.get(App, k);
+      });
+      c.reopen({
+        bootHosts: [Em.Object.create({name: 'h1'})]
+      });
+      var jsonData = {items: [{Hosts: {host_name: 'h1'}}]};
+      c.getHostInfoSuccessCallback(jsonData);
+      expect(c._setHostDataWithSkipBootstrap.calledOnce).to.equal(true);
+      App.get.restore();
+      c._setHostDataWithSkipBootstrap.restore();
+    });
+
+    it('should add repo warnings', function() {
+
+      var jsonData = {items: [{Hosts: {host_name: 'h1'}}]};
+
+      sinon.stub(c, 'checkHostOSType', function() {return 'not_null_value';});
+      sinon.stub(c, 'checkHostDiskSpace', Em.K);
+      sinon.stub(c, '_setHostDataFromLoadedHostInfo', Em.K);
+
+      sinon.stub(App, 'get', function(k) {
+        if ('skipBootstrap' === k) return false;
+        return Em.get(App, k);
+      });
+
+      c.reopen({
+        bootHosts: [Em.Object.create({name: 'h1'})]
+      });
+
+      c.getHostInfoSuccessCallback(jsonData);
+      expect(c.get('repoCategoryWarnings.length')).to.equal(1);
+      expect(c.get('repoCategoryWarnings.firstObject.hostsNames').contains('h1')).to.equal(true);
+
+      c.checkHostOSType.restore();
+      c.checkHostDiskSpace.restore();
+      c._setHostDataFromLoadedHostInfo.restore();
+      App.get.restore();
+    });
+
+    it('should add disk warnings', function() {
+
+      var jsonData = {items: [{Hosts: {host_name: 'h1'}}]};
+
+      sinon.stub(c, 'checkHostDiskSpace', function() {return 'not_null_value';});
+      sinon.stub(c, 'checkHostOSType', Em.K);
+      sinon.stub(c, '_setHostDataFromLoadedHostInfo', Em.K);
+
+      sinon.stub(App, 'get', function(k) {
+        if ('skipBootstrap' === k) return false;
+        return Em.get(App, k);
+      });
+
+      c.reopen({
+        bootHosts: [Em.Object.create({name: 'h1'})]
+      });
+
+      c.getHostInfoSuccessCallback(jsonData);
+      expect(c.get('diskCategoryWarnings.length')).to.equal(1);
+      expect(c.get('diskCategoryWarnings.firstObject.hostsNames').contains('h1')).to.equal(true);
+
+      c.checkHostOSType.restore();
+      c.checkHostDiskSpace.restore();
+      c._setHostDataFromLoadedHostInfo.restore();
+      App.get.restore();
+    });
+
+  });
+
+  describe('#_setHostDataWithSkipBootstrap', function() {
+    it('should set mock-data', function() {
+      var host = Em.Object.create({});
+      c._setHostDataWithSkipBootstrap(host);
+      expect(host.get('cpu')).to.equal(2);
+      expect(host.get('memory')).to.equal('2000000.00');
+      expect(host.get('disk_info.length')).to.equal(4);
+    });
+  });
+
+  describe('#_setHostDataFromLoadedHostInfo', function() {
+    it('should set data from hostInfo', function() {
+      var host = Em.Object.create(),
+        hostInfo = {
+          Hosts: {
+            cpu_count: 2,
+            total_mem: 12345,
+            os_type: 't1',
+            os_arch: 'os1',
+            ip: '0.0.0.0',
+            disk_info: [
+              {mountpoint: '/boot'},
+              {mountpoint: '/usr'},
+              {mountpoint: '/no-boot'},
+              {mountpoint: '/boot'}
+            ]
+          }
+        };
+      c._setHostDataFromLoadedHostInfo(host, hostInfo);
+      expect(host.get('cpu')).to.equal(2);
+      expect(host.get('os_type')).to.equal('t1');
+      expect(host.get('os_arch')).to.equal('os1');
+      expect(host.get('ip')).to.equal('0.0.0.0');
+      expect(host.get('memory')).to.equal('12345.00');
+      expect(host.get('disk_info.length')).to.equal(2);
+    });
   });
 
 });

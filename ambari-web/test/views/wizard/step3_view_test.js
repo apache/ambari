@@ -21,9 +21,7 @@ require('messages');
 require('views/wizard/step3_view');
 var v;
 describe('App.WizardStep3View', function () {
-  Em.run.next = function(callback){
-    callback()
-  };
+
   var view = App.WizardStep3View.create({
     monitorStatuses: function () {
     },
@@ -253,17 +251,19 @@ describe('App.WizardStep3View', function () {
     }, this);
   });
 
-  describe('#filter', function () {
+  describe('#doFilter', function () {
     testCases.forEach(function (test) {
       describe(test.title, function () {
         view.get('categories').forEach(function (category) {
           it('. Selected category - ' + category.get('hostsBootStatus'), function () {
             view.set('content', test.content);
-            view.selectCategory({context: category});
-            view.filter();
+            view.reopen({
+              selectedCategory: category
+            });
+            view.doFilter();
             expect(view.get('filteredContent').length).to.equal(test.result[category.get('hostsBootStatus')])
           });
-        })
+        });
       });
     }, this);
   });

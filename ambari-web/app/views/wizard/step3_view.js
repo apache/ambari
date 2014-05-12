@@ -213,16 +213,25 @@ App.WizardStep3View = App.TableView.extend({
   filter: function () {
     var self = this;
     Em.run.next(function () {
-      var result = [];
-      var selectedCategory = self.get('selectedCategory');
-      if (!selectedCategory || selectedCategory.get('hostsBootStatus') === 'ALL') {
-        result = self.get('content');
-      } else {
-        result = self.get('content').filterProperty('bootStatus', self.get('selectedCategory.hostsBootStatus'));
-      }
-      self.set('filteredContent', result);
+      self.doFilter();
     });
   }.observes('selectedCategory'),
+
+  /**
+   * Real filter-method
+   * Called from <code>filter</code> in Em.run.next-wrapper
+   * @method doFilter
+   */
+  doFilter: function() {
+    var result = [];
+    var selectedCategory = this.get('selectedCategory');
+    if (!selectedCategory || selectedCategory.get('hostsBootStatus') === 'ALL') {
+      result = this.get('content');
+    } else {
+      result = this.get('content').filterProperty('bootStatus', this.get('selectedCategory.hostsBootStatus'));
+    }
+    this.set('filteredContent', result);
+  },
 
   /**
    * Trigger on Category click

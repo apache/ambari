@@ -182,26 +182,35 @@ App.WizardStep9View = App.TableView.extend({
   filter: function () {
     var self = this;
     Em.run.next(function () {
-      var result = [];
-      var content = self.get('content');
-      var selectedCategory = self.get('selectedCategory');
-      if (!selectedCategory || selectedCategory.get('hostStatus') === 'all') {
-        result = content;
-      } else if (selectedCategory.get('hostStatus') == 'inProgress') {
-        result = content.filter(function (_host) {
-          return (_host.get('status') == 'info' || _host.get('status') == 'pending' || _host.get('status') == 'in_progress');
-        });
-      } else if (selectedCategory.get('hostStatus') == 'failed') {
-        result = content.filter(function (_host) {
-          return (_host.get('status') == 'failed' || _host.get('status') == 'heartbeat_lost');
-        });
-      } else {
-        result = content.filterProperty('status', selectedCategory.get('hostStatus'));
-      }
-      self.set('filteredContent', result);
-      self.set('filteredHostsInfo', Em.I18n.t('installer.step9.hosts.filteredHostsInfo').format(result.get('length'), content.get('length')));
+      self.doFilter();
     });
   }.observes('selectedCategory'),
+
+  /**
+   * Real filter-method
+   * Called from <code>filter</code> in Em.run.next-wrapper
+   * @method doFilter
+   */
+  doFilter: function() {
+    var result = [];
+    var content = this.get('content');
+    var selectedCategory = this.get('selectedCategory');
+    if (!selectedCategory || selectedCategory.get('hostStatus') === 'all') {
+      result = content;
+    } else if (selectedCategory.get('hostStatus') == 'inProgress') {
+      result = content.filter(function (_host) {
+        return (_host.get('status') == 'info' || _host.get('status') == 'pending' || _host.get('status') == 'in_progress');
+      });
+    } else if (selectedCategory.get('hostStatus') == 'failed') {
+      result = content.filter(function (_host) {
+        return (_host.get('status') == 'failed' || _host.get('status') == 'heartbeat_lost');
+      });
+    } else {
+      result = content.filterProperty('status', selectedCategory.get('hostStatus'));
+    }
+    this.set('filteredContent', result);
+    this.set('filteredHostsInfo', Em.I18n.t('installer.step9.hosts.filteredHostsInfo').format(result.get('length'), content.get('length')));
+  },
 
   /**
    * On click handler for 'show all' link
