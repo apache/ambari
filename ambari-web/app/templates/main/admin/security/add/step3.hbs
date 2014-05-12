@@ -26,7 +26,7 @@
             <th>{{t common.component}}</th>
             <th>{{t admin.security.step3.table.principal}}</th>
             <th>{{t admin.security.step3.table.keytab}}</th>
-            </tr>
+        </tr>
         </thead>
         <tbody>
         {{#each hostComponent in hostComponents}}
@@ -37,13 +37,13 @@
                 <td>{{hostComponent.keytab}}</td>
             </tr>
         {{/each}}
-    </tbody>
+        </tbody>
     </table>
 </div>
 <div class="btn-area">
     <a class="btn" {{action back}}>&larr; {{t common.back}}</a>
     <div class="pull-right">
-        <a class="btn btn-info" {{action doDownloadCsv target="controller"}}>{{t admin.security.step3.downloadCSV}}</a>
-        <a class="btn btn-success" {{bindAttr disabled="isSubmitDisabled"}} {{action next}}>{{t common.apply}} &rarr;</a>
+        <button class="btn btn-info" {{action doDownloadCsv target="controller"}}>{{t admin.security.step3.downloadCSV}}</button>
+        <button class="btn btn-success" {{bindAttr disabled="isSubmitDisabled"}} {{action next}}>{{t common.apply}} &rarr;</button>
     </div>
 </div>

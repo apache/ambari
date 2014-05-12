@@ -22,6 +22,127 @@ var stringUtils = require('utils/string_utils');
 App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
   name: 'mainAdminSecurityAddStep3Controller',
   hostComponents: [],
+
+  componentToUserMap: {
+    'NAMENODE': 'hdfs_user',
+    'SECONDARY_NAMENODE': 'hdfs_user',
+    'DATANODE': 'hdfs_user',
+    'JOURNALNODE': 'hdfs_user',
+    'TASKTRACKER': 'mapred_user',
+    'JOBTRACKER': 'mapred_user',
+    'HISTORYSERVER': 'mapred_user',
+    'RESOURCEMANAGER': 'yarn_user',
+    'NODEMANAGER': 'yarn_user',
+    'ZOOKEEPER_SERVER': 'zk_user',
+    'HIVE_SERVER': 'hive_user',
+    'OOZIE_SERVER': 'oozie_user',
+    'NAGIOS_SERVER': 'nagios_user',
+    'HBASE_MASTER': 'hbase_user',
+    'HBASE_REGIONSERVER': 'hbase_user',
+    'SUPERVISOR': 'storm_user',
+    'NIMBUS': 'storm_user',
+    'STORM_UI_SERVER': 'storm_user',
+    'FALCON_SERVER': 'falcon_user'
+  },
+
+  componentToConfigMap: [
+    {
+      componentName: 'NAMENODE',
+      principal: 'hadoop_http_principal_name',
+      keytab: 'hadoop_http_keytab',
+      displayName: Em.I18n.t('admin.addSecurity.hdfs.user.httpUser')
+    },
+    {
+      componentName: 'SECONDARY_NAMENODE',
+      principal: 'hadoop_http_principal_name',
+      keytab: 'hadoop_http_keytab',
+      displayName: Em.I18n.t('admin.addSecurity.hdfs.user.httpUser')
+    },
+    {
+      componentName: 'JOURNALNODE',
+      principal: 'hadoop_http_principal_name',
+      keytab: 'hadoop_http_keytab',
+      displayName: Em.I18n.t('admin.addSecurity.hdfs.user.httpUser')
+    },
+    {
+      componentName: 'WEBHCAT_SERVER',
+      principal: 'webHCat_http_principal_name',
+      keytab: 'webhcat_http_keytab',
+      displayName: Em.I18n.t('admin.addSecurity.webhcat.user.httpUser')
+    },
+    {
+      componentName: 'OOZIE_SERVER',
+      principal: 'oozie_http_principal_name',
+      keytab: 'oozie_http_keytab',
+      displayName: Em.I18n.t('admin.addSecurity.oozie.user.httpUser')
+    },
+    {
+      componentName: 'FALCON_SERVER',
+      principal: 'falcon_http_principal_name',
+      keytab: 'falcon_http_keytab',
+      displayName: Em.I18n.t('admin.addSecurity.falcon.user.httpUser')
+    },
+    {
+      componentName: 'HISTORYSERVER',
+      principal: 'jobhistory_http_principal_name',
+      keytab: 'jobhistory_http_keytab',
+      displayName: Em.I18n.t('admin.addSecurity.historyServer.user.httpUser'),
+      isHadoop2Stack: true
+    },
+    {
+      componentName: 'RESOURCEMANAGER',
+      principal: 'resourcemanager_http_principal_name',
+      keytab: 'resourcemanager_http_keytab',
+      displayName: Em.I18n.t('admin.addSecurity.rm.user.httpUser'),
+      isHadoop2Stack: true
+    },
+    {
+      componentName: 'NODEMANAGER',
+      principal: 'nodemanager_http_principal_name',
+      keytab: 'nodemanager_http_keytab',
+      displayName: Em.I18n.t('admin.addSecurity.nm.user.httpUser'),
+      isHadoop2Stack: true
+    }
+  ],
+
+  mandatoryConfigs: [
+    {
+      userConfig: 'smokeuser',
+      keytab: 'smokeuser_keytab',
+      displayName: Em.I18n.t('admin.addSecurity.user.smokeUser')
+    },
+    {
+      userConfig: 'hdfs_user',
+      keytab: 'hdfs_user_keytab',
+      displayName: Em.I18n.t('admin.addSecurity.user.hdfsUser')
+    },
+    {
+      userConfig: 'hbase_user',
+      keytab: 'hbase_user_keytab',
+      displayName: Em.I18n.t('admin.addSecurity.user.hbaseUser'),
+      checkService: 'HBASE'
+    }
+  ],
+  /**
+   * mock users that used in testMode
+   */
+  testModeUsers: [
+    { name: 'hdfs_user', value: 'hdfs'},
+    { name: 'mapred_user', value: 'mapred'},
+    { name: 'yarn_user', value: 'yarn'},
+    { name: 'hbase_user', value: 'hbase'},
+    { name: 'hive_user', value: 'hive'},
+    { name: 'falcon_user', value: 'falcon'},
+    { name: 'smokeuser', value: 'ambari-qa'},
+    { name: 'zk_user', value: 'zookeeper'},
+    { name: 'oozie_user', value: 'oozie'},
+    { name: 'nagios_user', value: 'nagios'},
+    { name: 'user_group', value: 'hadoop'}
+  ],
+
+  /**
+   * download CSV file
+   */
   doDownloadCsv: function () {
     if ($.browser.msie && $.browser.version < 10) {
       this.openInfoInNewTab();
@@ -29,211 +150,215 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
       try {
         var blob = new Blob([stringUtils.arrayToCSV(this.get('hostComponents'))], {type: "text/csv;charset=utf-8;"});
         saveAs(blob, "host-principal-keytab-list.csv");
-      } catch(e) {
-         this.openInfoInNewTab();
+      } catch (e) {
+        this.openInfoInNewTab();
       }
     }
   },
+
+  /**
+   * open content of CSV file in new window
+   */
   openInfoInNewTab: function () {
     var newWindow = window.open('');
     var newDocument = newWindow.document;
     newDocument.write(stringUtils.arrayToCSV(this.get('hostComponents')));
     newWindow.focus();
   },
-  loadStep: function(){
-    var configs = this.get('content.serviceConfigProperties');
+
+  /**
+   * load step info
+   */
+  loadStep: function () {
     var hosts = App.Host.find();
     var result = [];
-    var componentsToDisplay = ['NAMENODE', 'SECONDARY_NAMENODE', 'DATANODE', 'JOBTRACKER', 'ZOOKEEPER_SERVER', 'HIVE_SERVER', 'TASKTRACKER',
-      'OOZIE_SERVER', 'NAGIOS_SERVER', 'HBASE_MASTER', 'HBASE_REGIONSERVER','HISTORYSERVER','RESOURCEMANAGER','NODEMANAGER','JOURNALNODE',
-      'SUPERVISOR', 'NIMBUS', 'STORM_UI_SERVER','FALCON_SERVER'];
-    var securityUsers = [];
-    if (!securityUsers || securityUsers.length < 1) { // Page could be refreshed in middle
-      securityUsers = this.getSecurityUsers();
-    }
-    var isHbaseInstalled = App.Service.find().findProperty('serviceName', 'HBASE');
-    var isStormInstalled = App.Service.find().findProperty('serviceName', 'STORM');
-    var generalConfigs = configs.filterProperty('serviceName', 'GENERAL');
-    var hdfsConfigs = configs.filterProperty('serviceName', 'HDFS');
-    var realm = generalConfigs.findProperty('name', 'kerberos_domain').value;
-    var smokeUserId = securityUsers.findProperty('name', 'smokeuser').value;
-    var hdfsUserId = securityUsers.findProperty('name', 'hdfs_user').value;
-    var hbaseUserId = securityUsers.findProperty('name', 'hbase_user').value;
-    var mapredUserId = securityUsers.findProperty('name', 'mapred_user').value;
-    var yarnUserId =  securityUsers.findProperty('name', 'yarn_user').value;
-    var hiveUserId = securityUsers.findProperty('name', 'hive_user').value;
-    var zkUserId = securityUsers.findProperty('name', 'zk_user').value;
-    var oozieUserId = securityUsers.findProperty('name', 'oozie_user').value;
-    var nagiosUserId = securityUsers.findProperty('name', 'nagios_user').value;
+    var securityUsers = this.getSecurityUsers();
     var hadoopGroupId = securityUsers.findProperty('name', 'user_group').value;
-    var stormUserId = securityUsers.findProperty('name', 'storm_user').value;
-    var falconUserId =  securityUsers.findProperty('name', 'falcon_user').value;
-
-    var smokeUser = smokeUserId + '@' + realm;
-    var hdfsUser = hdfsUserId + '@' + realm;
-    var hbaseUser = hbaseUserId + '@' + realm;
-    var stormUser = stormUserId + '@' + realm;
-
-    var smokeUserKeytabPath = generalConfigs.findProperty('name', 'smokeuser_keytab').value;
-    var hdfsUserKeytabPath = generalConfigs.findProperty('name', 'hdfs_user_keytab').value;
-    var hbaseUserKeytabPath = generalConfigs.findProperty('name', 'hbase_user_keytab').value;
-
-    var hadoopHttpPrincipal = hdfsConfigs.findProperty('name', 'hadoop_http_principal_name');
-    var hadoopHttpKeytabPath = hdfsConfigs.findProperty('name', 'hadoop_http_keytab').value;
-    var componentToOwnerMap = {
-      'NAMENODE': hdfsUserId,
-      'SECONDARY_NAMENODE': hdfsUserId,
-      'DATANODE': hdfsUserId,
-      'JOURNALNODE': hdfsUserId,
-      'TASKTRACKER': mapredUserId,
-      'JOBTRACKER': mapredUserId,
-      'HISTORYSERVER': mapredUserId,
-      'RESOURCEMANAGER':yarnUserId,
-      'NODEMANAGER':yarnUserId,
-      'ZOOKEEPER_SERVER': zkUserId,
-      'HIVE_SERVER': hiveUserId,
-      'OOZIE_SERVER': oozieUserId,
-      'NAGIOS_SERVER': nagiosUserId,
-      'HBASE_MASTER': hbaseUserId,
-      'HBASE_REGIONSERVER': hbaseUserId,
-      'SUPERVISOR': stormUserId,
-      'NIMBUS': stormUserId,
-      'STORM_UI_SERVER': stormUserId,
-      'FALCON_SERVER': falconUserId
-    };
-
     var addedPrincipalsHost = {}; //Keys = host_principal, Value = 'true'
 
     hosts.forEach(function (host) {
-      result.push({
-        host: host.get('hostName'),
-        component: Em.I18n.t('admin.addSecurity.user.smokeUser'),
-        principal: smokeUser,
-        keytabFile: stringUtils.getFileFromPath(smokeUserKeytabPath),
-        keytab: stringUtils.getPath(smokeUserKeytabPath),
-        owner: smokeUserId,
-        group: hadoopGroupId,
-        acl: '440'
-      });
-      result.push({
-        host: host.get('hostName'),
-        component: Em.I18n.t('admin.addSecurity.user.hdfsUser'),
-        principal: hdfsUser,
-        keytabFile: stringUtils.getFileFromPath(hdfsUserKeytabPath),
-        keytab: stringUtils.getPath(hdfsUserKeytabPath),
-        owner: hdfsUserId,
-        group: hadoopGroupId,
-        acl: '440'
-      });
-      if (isHbaseInstalled) {
+      this.setMandatoryConfigs(result, securityUsers, host.get('hostName'), hadoopGroupId);
+      this.setComponentsConfig(result, host, hadoopGroupId);
+      this.setHostComponentsSecureValue(result, host, addedPrincipalsHost, securityUsers, hadoopGroupId);
+    }, this);
+    this.set('hostComponents', result);
+  },
+
+  /**
+   * build map of connections between component and user
+   * @param securityUsers
+   */
+  buildComponentToOwnerMap: function (securityUsers) {
+    var componentToUserMap = this.get('componentToUserMap');
+    var componentToOwnerMap = {};
+    for (var component in componentToUserMap) {
+      componentToOwnerMap[component] = securityUsers.findProperty('name', componentToUserMap[component]).value;
+    }
+    return componentToOwnerMap;
+  },
+
+  /**
+   * set security settings(principal and keytab) to component depending on whether host has such component
+   * @param result
+   * @param host
+   * @param hadoopGroupId
+   */
+  setComponentsConfig: function (result, host, hadoopGroupId) {
+    var hostComponents = host.get('hostComponents');
+    this.get('componentToConfigMap').forEach(function (component) {
+      //add specific components that supported only in Hadoop2 stack
+      if (component.isHadoop2Stack && !App.get('isHadoop2Stack')) return;
+
+      if (hostComponents.someProperty('componentName', component.componentName)) {
+        var configs = this.get('content.serviceConfigProperties');
+        var serviceName = App.QuickDataMapper.componentServiceMap()[component.componentName];
+        var serviceConfigs = configs.filterProperty('serviceName', serviceName);
+        var servicePrincipal = serviceConfigs.findProperty('name', component.principal);
+        var serviceKeytabPath = serviceConfigs.findProperty('name', component.keytab).value;
         result.push({
           host: host.get('hostName'),
-          component: Em.I18n.t('admin.addSecurity.user.hbaseUser'),
-          principal: hbaseUser,
-          keytabFile: stringUtils.getFileFromPath(hbaseUserKeytabPath),
-          keytab: stringUtils.getPath(hbaseUserKeytabPath),
-          owner: hbaseUserId,
+          component: component.displayName,
+          principal: this.getPrincipal(servicePrincipal, host.get('hostName')),
+          keytabfile: stringUtils.getFileFromPath(serviceKeytabPath),
+          keytab: stringUtils.getPath(serviceKeytabPath),
+          owner: 'root',
           group: hadoopGroupId,
           acl: '440'
         });
       }
-
-      this.setComponentConfig(result,host,'NAMENODE','HDFS','hadoop_http_principal_name','hadoop_http_keytab',Em.I18n.t('admin.addSecurity.hdfs.user.httpUser'),hadoopGroupId);
-      this.setComponentConfig(result,host,'SECONDARY_NAMENODE','HDFS','hadoop_http_principal_name','hadoop_http_keytab',Em.I18n.t('admin.addSecurity.hdfs.user.httpUser'),hadoopGroupId);
-      this.setComponentConfig(result,host,'JOURNALNODE','HDFS','hadoop_http_principal_name','hadoop_http_keytab',Em.I18n.t('admin.addSecurity.hdfs.user.httpUser'),hadoopGroupId);
-      this.setComponentConfig(result,host,'WEBHCAT_SERVER','WEBHCAT','webHCat_http_principal_name','webhcat_http_keytab',Em.I18n.t('admin.addSecurity.webhcat.user.httpUser'),hadoopGroupId);
-      this.setComponentConfig(result,host,'OOZIE_SERVER','OOZIE','oozie_http_principal_name','oozie_http_keytab',Em.I18n.t('admin.addSecurity.oozie.user.httpUser'),hadoopGroupId);
-      this.setComponentConfig(result,host,'FALCON_SERVER','FALCON','falcon_http_principal_name','falcon_http_keytab',Em.I18n.t('admin.addSecurity.falcon.user.httpUser'),hadoopGroupId);
-      //Derive Principal name and Keytabs only if its HDP-2 stack
-      if (App.get('isHadoop2Stack')) {
-        this.setComponentConfig(result,host,'HISTORYSERVER','MAPREDUCE2','jobhistory_http_principal_name','jobhistory_http_keytab',Em.I18n.t('admin.addSecurity.historyServer.user.httpUser'),hadoopGroupId);
-        this.setComponentConfig(result,host,'RESOURCEMANAGER','YARN','resourcemanager_http_principal_name','resourcemanager_http_keytab',Em.I18n.t('admin.addSecurity.rm.user.httpUser'),hadoopGroupId);
-        this.setComponentConfig(result,host,'NODEMANAGER','YARN','nodemanager_http_principal_name','nodemanager_http_keytab',Em.I18n.t('admin.addSecurity.nm.user.httpUser'),hadoopGroupId);
-      }
-
-      host.get('hostComponents').forEach(function(hostComponent){
-        if(componentsToDisplay.contains(hostComponent.get('componentName'))){
-          var serviceConfigs = configs.filterProperty('serviceName', hostComponent.get('service.serviceName'));
-          var principal, keytab;
-          serviceConfigs.forEach(function (config) {
-            if (config.component && config.component === hostComponent.get('componentName')) {
-              if (config.name.endsWith('_principal_name')) {
-                principal = config.value.replace('_HOST', host.get('hostName').toLowerCase()) + config.unit;
-              } else if (config.name.endsWith('_keytab') || config.name.endsWith('_keytab_path')) {
-                keytab = config.value;
-              }
-            } else if (config.components && config.components.contains(hostComponent.get('componentName'))) {
-              if (config.name.endsWith('_principal_name')) {
-                principal = config.value.replace('_HOST', host.get('hostName').toLowerCase()) + config.unit;
-              } else if (config.name.endsWith('_keytab') || config.name.endsWith('_keytab_path')) {
-                keytab = config.value;
-              }
-            }
-          });
-          var displayName = this.changeDisplayName(hostComponent.get('displayName'));
-          var key = host.get('hostName') + "--" + principal;
-          if (!addedPrincipalsHost[key]) {
-            var owner = componentToOwnerMap[hostComponent.get('componentName')];
-            if(!owner){
-              owner = '';
-            }
-            result.push({
-              host: host.get('hostName'),
-              component: displayName,
-              principal: principal,
-              keytabFile: stringUtils.getFileFromPath(keytab),
-              keytab: stringUtils.getPath(keytab),
-              owner: owner,
-              group: hadoopGroupId,
-              acl: '400'
-            });
-            addedPrincipalsHost[key] = true;
-          }
-        }
-      },this);
-    },this);
-    this.set('hostComponents', result);
+    }, this);
   },
 
-  getSecurityUsers: function() {
+  /**
+   * set security settings(principal and keytab) to component
+   * if checkService is passed then verify that service to his existence in order to set configs to such service
+   * @param result
+   * @param securityUsers
+   * @param hostName
+   * @param hadoopGroupId
+   */
+  setMandatoryConfigs: function (result, securityUsers, hostName, hadoopGroupId) {
+    var generalConfigs = this.get('content.serviceConfigProperties').filterProperty('serviceName', 'GENERAL');
+    var realm = generalConfigs.findProperty('name', 'kerberos_domain').value;
+    var installedServices = App.Service.find().mapProperty('serviceName');
+
+    this.get('mandatoryConfigs').forEach(function (config) {
+      if (config.checkService && !installedServices.contains(config.checkService)) return;
+
+      var userId = securityUsers.findProperty('name', config.userConfig).value;
+      var userKeytabPath = generalConfigs.findProperty('name', config.keytab).value;
+      result.push({
+        host: hostName,
+        component: config.displayName,
+        principal: userId + '@' + realm,
+        keytabFile: stringUtils.getFileFromPath(userKeytabPath),
+        keytab: stringUtils.getPath(userKeytabPath),
+        owner: userId,
+        group: hadoopGroupId,
+        acl: '440'
+      });
+    }, this);
+  },
+
+  /**
+   * set secure properties(keytab and principal) for components, which should be displayed
+   * @param result
+   * @param host
+   * @param addedPrincipalsHost
+   * @param securityUsers
+   * @param hadoopGroupId
+   */
+  setHostComponentsSecureValue: function (result, host, addedPrincipalsHost, securityUsers, hadoopGroupId) {
+    var componentsToDisplay = ['NAMENODE', 'SECONDARY_NAMENODE', 'DATANODE', 'JOBTRACKER', 'ZOOKEEPER_SERVER', 'HIVE_SERVER', 'TASKTRACKER',
+      'OOZIE_SERVER', 'NAGIOS_SERVER', 'HBASE_MASTER', 'HBASE_REGIONSERVER', 'HISTORYSERVER', 'RESOURCEMANAGER', 'NODEMANAGER', 'JOURNALNODE',
+      'SUPERVISOR', 'NIMBUS', 'STORM_UI_SERVER', 'FALCON_SERVER'];
+    var configs = this.get('content.serviceConfigProperties');
+    var componentToOwnerMap = this.buildComponentToOwnerMap(securityUsers);
+    var hostName = host.get('hostName');
+
+    host.get('hostComponents').forEach(function (hostComponent) {
+      if (componentsToDisplay.contains(hostComponent.get('componentName'))) {
+        var serviceConfigs = configs.filterProperty('serviceName', hostComponent.get('service.serviceName'));
+        var secureProperties = this.getSecureProperties(serviceConfigs, hostComponent.get('componentName'), hostName);
+        var displayName = this.changeDisplayName(hostComponent.get('displayName'));
+        var key = hostName + "--" + secureProperties.principal;
+
+        if (Em.isNone(addedPrincipalsHost[key])) {
+          var owner = componentToOwnerMap[hostComponent.get('componentName')] || '';
+
+          result.push({
+            host: hostName,
+            component: displayName,
+            principal: secureProperties.principal,
+            keytabFile: stringUtils.getFileFromPath(secureProperties.keytab),
+            keytab: stringUtils.getPath(secureProperties.keytab),
+            owner: owner,
+            group: hadoopGroupId,
+            acl: '400'
+          });
+          addedPrincipalsHost[key] = true;
+        }
+      }
+    }, this);
+  },
+
+  /**
+   * get properties (keytab and principle) of secure config that match component
+   * @param serviceConfigs
+   * @param componentName
+   * @param hostName
+   * @return {Object}
+   */
+  getSecureProperties: function (serviceConfigs, componentName, hostName) {
+    var secureProperties = {};
+    serviceConfigs.forEach(function (config) {
+      if ((config.component && config.component === componentName) ||
+        (config.components && config.components.contains(componentName))) {
+        if (config.name.endsWith('_principal_name')) {
+          secureProperties.principal = this.getPrincipal(config, hostName);
+        } else if (config.name.endsWith('_keytab') || config.name.endsWith('_keytab_path')) {
+          secureProperties.keytab = config.value;
+        }
+      }
+    }, this);
+    return secureProperties;
+  },
+
+  /**
+   * get formatted principal value
+   * @param config
+   * @param hostName
+   * @return {String}
+   */
+  getPrincipal: function (config, hostName) {
+    return config.value.replace('_HOST', hostName.toLowerCase()) + config.unit;
+  },
+
+  /**
+   * get users from security configs
+   * @return {Array}
+   */
+  getSecurityUsers: function () {
     var securityUsers = [];
     if (App.testMode) {
-      securityUsers.pushObject({id: 'puppet var', name: 'hdfs_user', value: 'hdfs'});
-      securityUsers.pushObject({id: 'puppet var', name: 'mapred_user', value: 'mapred'});
-      securityUsers.pushObject({id: 'puppet var', name: 'yarn_user', value: 'yarn'});
-      securityUsers.pushObject({id: 'puppet var', name: 'hbase_user', value: 'hbase'});
-      securityUsers.pushObject({id: 'puppet var', name: 'hive_user', value: 'hive'});
-      securityUsers.pushObject({id: 'puppet var', name: 'falcon_user', value: 'falcon'});
-      securityUsers.pushObject({id: 'puppet var', name: 'smokeuser', value: 'ambari-qa'});
-      securityUsers.pushObject({id: 'puppet var', name: 'zk_user', value: 'zookeeper'});
-      securityUsers.pushObject({id: 'puppet var', name: 'oozie_user', value: 'oozie'});
-      securityUsers.pushObject({id: 'puppet var', name: 'nagios_user', value: 'nagios'});
-      securityUsers.pushObject({id: 'puppet var', name: 'user_group', value: 'hadoop'});
+      this.get('testModeUsers').forEach(function (user) {
+        securityUsers.push({
+          id: 'puppet var',
+          name: user.name,
+          value: user.value
+        });
+      });
     } else {
       securityUsers = App.db.getSecureUserInfo();
     }
     return securityUsers;
   },
 
-  setComponentConfig: function(hostComponents,host,componentName,serviceName,principal,keytab,displayName,groupId) {
-    if (host.get('hostComponents').someProperty('componentName', componentName)) {
-      var result = {};
-      var configs = this.get('content.serviceConfigProperties');
-      var serviceConfigs = configs.filterProperty('serviceName', serviceName);
-      var servicePrincipal = serviceConfigs.findProperty('name', principal);
-      var serviceKeytabPath = serviceConfigs.findProperty('name', keytab).value;
-      result.host = host.get('hostName');
-      result.component = displayName;
-      result.principal = servicePrincipal.value.replace('_HOST', host.get('hostName').toLowerCase()) + servicePrincipal.unit;
-      result.keytabfile = stringUtils.getFileFromPath(serviceKeytabPath);
-      result.keytab = stringUtils.getPath(serviceKeytabPath);
-      result.owner = 'root';
-      result.group = groupId;
-      result.acl = '440';
-      hostComponents.push(result);
-    }
-  },
-
+  /**
+   * format  display names of specific components
+   * @param name
+   * @return {*}
+   */
   changeDisplayName: function (name) {
     if (name === 'HiveServer2') {
       return 'Hive Metastore and HiveServer2';
