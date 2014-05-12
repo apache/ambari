@@ -40,7 +40,7 @@ class TestWebHCatServer(RMFTestCase):
 
     self.assert_configure_default()
     self.assertResourceCalled('Execute', 'env HADOOP_HOME=/usr /usr/lib/hcatalog/sbin/webhcat_server.sh start',
-                              not_if = 'ls /etc/run/webhcat/webhcat.pid >/dev/null 2>&1 && ps `cat /etc/run/webhcat/webhcat.pid` >/dev/null 2>&1',
+                              not_if = 'ls /var/run/webhcat/webhcat.pid >/dev/null 2>&1 && ps `cat /var/run/webhcat/webhcat.pid` >/dev/null 2>&1',
                               user = 'hcat'
     )
     self.assertNoMoreResources()
@@ -55,7 +55,7 @@ class TestWebHCatServer(RMFTestCase):
     self.assertResourceCalled('Execute', 'env HADOOP_HOME=/usr /usr/lib/hcatalog/sbin/webhcat_server.sh stop',
                               user = 'hcat',
                               )
-    self.assertResourceCalled('Execute', 'rm -f /etc/run/webhcat/webhcat.pid')
+    self.assertResourceCalled('Execute', 'rm -f /var/run/webhcat/webhcat.pid')
     self.assertNoMoreResources()
 
     def test_configure_secured(self):
@@ -77,7 +77,7 @@ class TestWebHCatServer(RMFTestCase):
 
     self.assert_configure_secured()
     self.assertResourceCalled('Execute', 'env HADOOP_HOME=/usr /usr/lib/hcatalog/sbin/webhcat_server.sh start',
-                              not_if = 'ls /etc/run/webhcat/webhcat.pid >/dev/null 2>&1 && ps `cat /etc/run/webhcat/webhcat.pid` >/dev/null 2>&1',
+                              not_if = 'ls /var/run/webhcat/webhcat.pid >/dev/null 2>&1 && ps `cat /var/run/webhcat/webhcat.pid` >/dev/null 2>&1',
                               user = 'hcat'
     )
     self.assertNoMoreResources()
@@ -92,7 +92,7 @@ class TestWebHCatServer(RMFTestCase):
     self.assertResourceCalled('Execute', 'env HADOOP_HOME=/usr /usr/lib/hcatalog/sbin/webhcat_server.sh stop',
                               user = 'hcat',
                               )
-    self.assertResourceCalled('Execute', 'rm -f /etc/run/webhcat/webhcat.pid')
+    self.assertResourceCalled('Execute', 'rm -f /var/run/webhcat/webhcat.pid')
     self.assertNoMoreResources()
 
   def assert_configure_default(self):
@@ -124,7 +124,7 @@ class TestWebHCatServer(RMFTestCase):
                               kinit_path_local = "/usr/bin/kinit",
                               action = ['create'],
                               )
-    self.assertResourceCalled('Directory', '/etc/run/webhcat',
+    self.assertResourceCalled('Directory', '/var/run/webhcat',
       owner = 'hcat',
       group = 'hadoop',
       recursive = True,
@@ -202,7 +202,7 @@ class TestWebHCatServer(RMFTestCase):
                               kinit_path_local = '/usr/bin/kinit',
                               action = ['create'],
                               )
-    self.assertResourceCalled('Directory', '/etc/run/webhcat',
+    self.assertResourceCalled('Directory', '/var/run/webhcat',
       owner = 'hcat',
       group = 'hadoop',
       recursive = True,

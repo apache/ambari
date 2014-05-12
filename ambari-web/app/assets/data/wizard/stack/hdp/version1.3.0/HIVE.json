@@ -54,7 +54,7 @@
       "StackConfigurations" : {
         "property_description" : "WebHCat Pid Dir.",
         "property_name" : "hcat_pid_dir",
-        "property_value" : "/etc/run/webhcat",
+        "property_value" : "/var/run/webhcat",
         "service_name" : "HIVE",
         "stack_name" : "HDP",
         "stack_version" : "1.3.0",

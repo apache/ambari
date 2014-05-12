@@ -183,7 +183,7 @@
             "hive_metastore_port": "9083", 
             "hbase_master_heapsize": "1024m", 
             "zk_data_dir": "/hadoop/zookeeper", 
-            "hcat_pid_dir": "/etc/run/webhcat", 
+            "hcat_pid_dir": "/var/run/webhcat",
             "oozie_jdbc_driver": "org.apache.derby.jdbc.EmbeddedDriver", 
             "initLimit": "10", 
             "hive_database_type": "mysql", 

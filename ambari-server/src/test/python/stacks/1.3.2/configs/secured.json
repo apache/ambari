@@ -191,7 +191,7 @@
             "nagios_primary_name": "nagios", 
             "jobtracker_principal_name": "jt/_HOST", 
             "hive_database": "New MySQL Database", 
-            "hcat_pid_dir": "/etc/run/webhcat", 
+            "hcat_pid_dir": "/var/run/webhcat",
             "oozie_derby_database": "Derby", 
             "snappy_enabled": "true", 
             "oozie_pid_dir": "/var/run/oozie", 
