@@ -674,6 +674,7 @@
             <exclude>src/main/puppet/modules/stdlib/**</exclude>
             <exclude>**/*.erb</exclude>
             <exclude>**/*.json</exclude>
+            <exclude>**/*.pydevproject</exclude>
           </excludes>
         </configuration>
         <executions>
