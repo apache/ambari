@@ -26,33 +26,49 @@ import org.apache.ambari.view.ViewContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Base Hdfs service
+ */
 public abstract class HdfsService {
 
-    protected static final Logger logger = LoggerFactory.getLogger(HdfsService.class);
+  protected static final Logger logger = LoggerFactory.getLogger(HdfsService.class);
 
-    protected final ViewContext context;
+  protected final ViewContext context;
 
-    public HdfsService(ViewContext context) {
-        this.context = context;
+  /**
+   * Constructor
+   * @param context View Context instance
+   */
+  public HdfsService(ViewContext context) {
+    this.context = context;
+  }
+
+  /**
+   * Wrapper for json mapping of bool response
+   */
+  @XmlRootElement
+  public static class BoolResult{
+    public boolean success;
+    public BoolResult(boolean success){
+      this.success = success;
     }
+  }
 
-    @XmlRootElement
-    public static class BoolResult{
-        public boolean success;
-        public BoolResult(boolean success){
-            this.success = success;
-        }
+  private HdfsApi _api = null;
+
+  /**
+   * Ger HdfsApi instance
+   * @param context View Context instance
+   * @return HdfsApi business delegate
+   * @throws IOException
+   * @throws Exception
+   */
+  public HdfsApi getApi(ViewContext context) throws IOException, Exception {
+    if (_api == null) {
+      Thread.currentThread().setContextClassLoader(null);
+      _api = new HdfsApi(context.getProperties().get("dataworker.defaultFs"), context.getUsername());
     }
-
-    private HdfsApi _api = null;
-
-    public HdfsApi getApi(ViewContext context) throws IOException, Exception {
-        if (_api == null) {
-            Thread.currentThread().setContextClassLoader(null);
-            _api = new HdfsApi(context.getProperties().get("dataworker.defaultFs")
-                .toString(), context.getUsername());
-        }
-        return _api;
-    }
+    return _api;
+  }
 
 }

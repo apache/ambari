@@ -24,29 +24,48 @@ import org.apache.ambari.view.ViewContext;
 
 import com.google.inject.Inject;
 
+/**
+ * Root files service
+ */
 public class FileBrowserService {
 
-    @Inject
-    ViewContext context;
+  @Inject
+  ViewContext context;
 
-    @Path("/download")
-    public DownloadService download() {
-        return new DownloadService(context);
-    }
+  /**
+   * @see org.apache.ambari.view.filebrowser.DownloadService
+   * @return service
+   */
+  @Path("/download")
+  public DownloadService download() {
+    return new DownloadService(context);
+  }
 
-    @Path("/upload")
-    public UploadService upload() {
-        return new UploadService(context);
-    }
+  /**
+   * @see org.apache.ambari.view.filebrowser.UploadService
+   * @return service
+   */
+  @Path("/upload")
+  public UploadService upload() {
+    return new UploadService(context);
+  }
 
-    @Path("/fileops")
-    public FileOperationService fileOps() {
-        return new FileOperationService(context);
-    }
+  /**
+   * @see org.apache.ambari.view.filebrowser.FileOperationService
+   * @return service
+   */
+  @Path("/fileops")
+  public FileOperationService fileOps() {
+    return new FileOperationService(context);
+  }
 
-    @Path("/help")
-    public HelpService help() {
-        return new HelpService(context);
-    }
+  /**
+   * @see org.apache.ambari.view.filebrowser.HelpService
+   * @return service
+   */
+  @Path("/help")
+  public HelpService help() {
+    return new HelpService(context);
+  }
 
 }
