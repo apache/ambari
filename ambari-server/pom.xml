@@ -251,7 +251,7 @@
               <sources>
                 <source>
                   <location>
-                    ${project.basedir}/../contrib/views/target/views
+                    ${project.basedir}/../contrib/views/target
                   </location>
                   <includes>
                     <include>*.jar</include>

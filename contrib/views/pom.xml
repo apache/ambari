@@ -71,7 +71,7 @@
             <!-- unbinds rpm creation from maven lifecycle -->
             <phase>none</phase>
             <goals>
-              <goal>attached-rpm</goal>
+              <goal>rpm</goal>
             </goals>
           </execution>
         </executions>
@@ -84,54 +84,6 @@
       </plugin>
     </plugins>
   </build>
-  <profiles>
-    <profile>
-      <id>default</id>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
-      <build>
-        <plugins>
-          <!-- Copy only the contrib views that we want included for default deployment -->
-          <plugin>
-            <artifactId>maven-resources-plugin</artifactId>
-            <version>2.6</version>
-            <executions>
-              <execution>
-                <id>copy-amabri-views</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>copy-resources</goal>
-                </goals>
-                <configuration>
-                  <!-- View archives in target/views will be deployed with an Ambari server install -->
-                  <outputDirectory>${basedir}/target/views</outputDirectory>
-                  <resources>
-                    <!-- PIG view -->
-                    <resource>
-                      <directory>${basedir}/pig/target/</directory>
-                      <includes>
-                        <include>*-dependencies.jar</include>
-                      </includes>
-                      <filtering>true</filtering>
-                    </resource>
-                    <!-- FILES view -->
-                    <resource>
-                      <directory>${basedir}/files/target/</directory>
-                      <includes>
-                        <include>*-dependencies.jar</include>
-                      </includes>
-                      <filtering>true</filtering>
-                    </resource>
-                  </resources>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-  </profiles>
   <dependencyManagement>
     <dependencies>
       <dependency>
