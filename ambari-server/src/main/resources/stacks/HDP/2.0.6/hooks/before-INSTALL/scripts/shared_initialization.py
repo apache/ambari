@@ -171,11 +171,16 @@ def setup_java():
   if not params.jdk_name:
     return
 
+  environment = {
+    "no_proxy": format("{ambari_server_hostname}")
+  }
+
   Execute(format("mkdir -p {artifact_dir} ; \
-  curl --noproxy {ambari_server_hostname} -kf \
+  curl -kf \
   --retry 10 {jdk_location}/{jdk_name} -o {jdk_curl_target}"),
           path = ["/bin","/usr/bin/"],
-          not_if = format("test -e {java_exec}"))
+          not_if = format("test -e {java_exec}"),
+          environment = environment)
 
   if params.jdk_name.endswith(".bin"):
     install_cmd = format("mkdir -p {java_dir} ; chmod +x {jdk_curl_target}; cd {java_dir} ; echo A | {jdk_curl_target} -noregister > /dev/null 2>&1")
@@ -190,12 +195,13 @@ def setup_java():
   if params.jce_policy_zip is not None:
     jce_curl_target = format("{artifact_dir}/{jce_policy_zip}")
     download_jce = format("mkdir -p {artifact_dir}; \
-    curl --noproxy {ambari_server_hostname} -kf --retry 10 \
+    curl -kf --retry 10 \
     {jce_location}/{jce_policy_zip} -o {jce_curl_target}")
     Execute( download_jce,
              path = ["/bin","/usr/bin/"],
              not_if =format("test -e {jce_curl_target}"),
-             ignore_failures = True
+             ignore_failures = True,
+             environment = environment
     )
   elif params.security_enabled:
     # Something weird is happening

@@ -61,13 +61,18 @@ def hive(name=None):
             mode=config_file_mode
   )
 
+  environment = {
+    "no_proxy": format("{ambari_server_hostname}")
+  }
+
   cmd = format("/bin/sh -c 'cd /usr/lib/ambari-agent/ && curl -kf "
-               "--noproxy {ambari_server_hostname} --retry 5 "
+               "--retry 5 "
                "{jdk_location}{check_db_connection_jar_name} "
                "-o {check_db_connection_jar_name}'")
 
   Execute(cmd,
-          not_if=format("[ -f {check_db_connection_jar_name}]"))
+          not_if=format("[ -f {check_db_connection_jar_name}]"),
+          environment = environment)
 
   if name == 'metastore':
     File(params.start_metastore_path,
@@ -167,10 +172,15 @@ def jdbc_connector():
             path=["/bin", "usr/bin/"])
 
   elif params.hive_jdbc_driver == "oracle.jdbc.driver.OracleDriver":
+    environment = {
+      "no_proxy": format("{ambari_server_hostname}")
+    }
+
     cmd = format(
       "mkdir -p {artifact_dir} ; curl -kf --retry 10 {driver_curl_source} -o {driver_curl_target} &&  "
       "cp {driver_curl_target} {target}")
 
     Execute(cmd,
             not_if=format("test -f {target}"),
-            path=["/bin", "/usr/bin/"])
+            path=["/bin", "/usr/bin/"],
+            environment=environment)

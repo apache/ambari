@@ -67,12 +67,18 @@ def hive(name=None):
             group=params.user_group,
             mode=config_file_mode)
 
-  cmd = format("/bin/sh -c 'cd /usr/lib/ambari-agent/ && "
-               "curl --noproxy {ambari_server_hostname} -kf --retry 5 "
-               "{jdk_location}{check_db_connection_jar_name} -o {check_db_connection_jar_name}'")
+  environment = {
+    "no_proxy": format("{ambari_server_hostname}")
+  }
+
+  cmd = format("/bin/sh -c 'cd /usr/lib/ambari-agent/ && curl -kf "
+               "--retry 5 "
+               "{jdk_location}{check_db_connection_jar_name} "
+               "-o {check_db_connection_jar_name}'")
 
   Execute(cmd,
-          not_if=format("[ -f {check_db_connection_jar_name}]"))
+          not_if=format("[ -f {check_db_connection_jar_name}]"),
+          environment = environment)
 
   File(format("{hive_config_dir}/hive-env.sh"),
        owner=params.hive_user,
@@ -186,11 +192,16 @@ def jdbc_connector():
             path=["/bin", "usr/bin/"])
 
   elif params.hive_jdbc_driver == "oracle.jdbc.driver.OracleDriver":
+    environment = {
+      "no_proxy": format("{ambari_server_hostname}")
+    }
+
     cmd = format(
-      "mkdir -p {artifact_dir} ; curl --noproxy {ambari_server_hostname} "
-      "-kf --retry 10 {driver_curl_source} -o {driver_curl_target} &&  "
+      "mkdir -p {artifact_dir} ; "
+      "curl -kf --retry 10 {driver_curl_source} -o {driver_curl_target} &&  "
       "cp {driver_curl_target} {target}")
 
     Execute(cmd,
             not_if=format("test -f {target}"),
-            path=["/bin", "/usr/bin/"])
+            path=["/bin", "/usr/bin/"],
+            environment=environment)

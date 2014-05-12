@@ -88,18 +88,22 @@ def setup_database():
   """
   import params
   db_driver_dload_cmd = ""
+  environment = {
+    "no_proxy": format("{ambari_server_hostname}")
+  }
   if params.server_db_name == 'oracle' and params.oracle_driver_url != "":
     db_driver_dload_cmd = format(
-      "curl -kf --noproxy {ambari_server_hostname} --retry 5 {oracle_driver_url}"
+      "curl -kf --retry 5 {oracle_driver_url}"
       " -o {hadoop_lib_home}/{db_driver_filename}")
   elif params.server_db_name == 'mysql' and params.mysql_driver_url != "":
     db_driver_dload_cmd = format(
-      "curl -kf --noproxy {ambari_server_hostname} --retry 5 {mysql_driver_url} "
+      "curl -kf --retry 5 {mysql_driver_url} "
       "-o {hadoop_lib_home}/{db_driver_filename}")
 
   if db_driver_dload_cmd:
     Execute(db_driver_dload_cmd,
-            not_if =format("test -e {hadoop_lib_home}/{db_driver_filename}")
+            not_if =format("test -e {hadoop_lib_home}/{db_driver_filename}"),
+            environment = environment
     )
 
 
