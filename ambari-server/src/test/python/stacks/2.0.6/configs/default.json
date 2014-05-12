@@ -512,6 +512,9 @@
         "pig-log4j": {
             "content": "log4jproperties\nline2"
         },
+        "pig-properties": {
+            "pig-content": "pigproperties\nline2"
+        },        
         "oozie-log4j": {
             "content": "log4jproperties\nline2"
         },
@@ -579,7 +582,10 @@
         },
         "pig-log4j": {
             "tag": "version1"
-        }
+        },
+        "pig-properties": {
+            "tag": "version1"
+        }        
     }, 
     "commandId": "7-1", 
     "clusterHostInfo": {

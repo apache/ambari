@@ -38,7 +38,16 @@ kinit_path_local = functions.get_kinit_path([default("kinit_path_local",None), "
 java64_home = config['hostLevelParams']['java_home']
 hadoop_home = "/usr"
 
-#log4j.properties
+# pig.properties - if not in the JSON command, then we need to esnure some 
+# basic properties are set; this is a safety mechanism
+if (('pig-properties' in config['configurations']) and ('pig-content' in config['configurations']['pig-properties'])):
+  pig_properties = config['configurations']['pig-properties']['pig-content']
+else:
+  pig_properties = {}
+  pig_properties['hcat.bin'] = '/usr/bin/hcat'
+  pig_properties['pig.location.check.strict'] = 'false'
+
+# log4j.properties
 if (('pig-log4j' in config['configurations']) and ('content' in config['configurations']['pig-log4j'])):
   log4j_props = config['configurations']['pig-log4j']['content']
 else:

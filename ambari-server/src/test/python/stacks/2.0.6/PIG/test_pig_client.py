@@ -31,13 +31,16 @@ class TestPigClient(RMFTestCase):
 
     self.assertResourceCalled('Directory', '/etc/pig/conf',
       owner = 'hdfs',
-      group = 'hadoop',
+      group = 'hadoop'
     )
     self.assertResourceCalled('TemplateConfig', '/etc/pig/conf/pig-env.sh',
-      owner = 'hdfs',
+      owner = 'hdfs'
     )
-    self.assertResourceCalled('TemplateConfig', '/etc/pig/conf/pig.properties',
+    self.assertResourceCalled('PropertiesFile', '/etc/pig/conf/pig.properties',
       owner = 'hdfs',
+      group = 'hadoop',
+      mode = 0644,
+      properties = 'pigproperties\nline2'      
     )
     self.assertResourceCalled('File', '/etc/pig/conf/log4j.properties',
       owner = 'hdfs',
@@ -56,13 +59,16 @@ class TestPigClient(RMFTestCase):
     
     self.assertResourceCalled('Directory', '/etc/pig/conf',
       owner = 'hdfs',
-      group = 'hadoop',
+      group = 'hadoop'
     )
     self.assertResourceCalled('TemplateConfig', '/etc/pig/conf/pig-env.sh',
-      owner = 'hdfs',
+      owner = 'hdfs'
     )
-    self.assertResourceCalled('TemplateConfig', '/etc/pig/conf/pig.properties',
+    self.assertResourceCalled('PropertiesFile', '/etc/pig/conf/pig.properties',
       owner = 'hdfs',
+      group = 'hadoop',
+      mode = 0644,
+      properties = 'pigproperties\nline2'
     )
     self.assertResourceCalled('File', '/etc/pig/conf/log4j.properties',
       owner = 'hdfs',
