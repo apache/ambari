@@ -40,142 +40,200 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import org.apache.ambari.view.ViewContext;
 
+/**
+ * File operations service
+ */
 public class FileOperationService extends HdfsService {
 
-    public FileOperationService(ViewContext context) {
-        super(context);
+  /**
+   * Constructor
+   * @param context View Context instance
+   */
+  public FileOperationService(ViewContext context) {
+    super(context);
+  }
+
+  /**
+   * List dir
+   * @param path path
+   * @return response with dir content
+   * @throws Exception
+   */
+  @GET
+  @Path("/listdir")
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response listdir(@QueryParam("path") String path) throws Exception {
+    try {
+      return Response.ok(
+          HdfsApi.fileStatusToJSON(getApi(context).listdir(path))).build();
+    } catch (FileNotFoundException ex) {
+      return Response.ok(Response.Status.NOT_FOUND.getStatusCode())
+          .entity(ex.getMessage()).build();
+    } catch (Throwable ex) {
+      throw new Exception(ex.getMessage());
     }
+  }
 
-    @XmlRootElement
-    public static class MkdirRequest {
-        @XmlElement(nillable = false, required = true)
-        public String path;
+  /**
+   * Rename
+   * @param request rename request
+   * @return response with success
+   * @throws IOException
+   * @throws Exception
+   */
+  @POST
+  @Path("/rename")
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response rename(final SrcDstFileRequest request) throws IOException,
+      Exception {
+    HdfsApi api = getApi(context);
+    ResponseBuilder result;
+    if (api.rename(request.src, request.dst)) {
+      result = Response.ok(HdfsApi.fileStatusToJSON(api
+          .getFileStatus(request.dst)));
+    } else {
+      result = Response.ok(new BoolResult(false)).status(422);
     }
+    return result.build();
+  }
 
-
-    @XmlRootElement
-    public static class SrcDstFileRequest {
-        @XmlElement(nillable = false, required = true)
-        public String src;
-        @XmlElement(nillable = false, required = true)
-        public String dst;
+  /**
+   * Copy file
+   * @param request source and destination request
+   * @return response with success
+   * @throws IOException
+   * @throws Exception
+   */
+  @POST
+  @Path("/copy")
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response copy(final SrcDstFileRequest request,
+                       @Context HttpHeaders headers, @Context UriInfo ui) throws IOException,
+      Exception {
+    HdfsApi api = getApi(context);
+    ResponseBuilder result;
+    if (api.copy(request.src, request.dst)) {
+      result = Response.ok(HdfsApi.fileStatusToJSON(api
+          .getFileStatus(request.dst)));
+    } else {
+      result = Response.ok(new BoolResult(false)).status(422);
     }
+    return result.build();
+  }
 
-    @XmlRootElement
-    public static class RemoveRequest {
-        @XmlElement(nillable = false, required = true)
-        public String path;
-        public boolean recursive;
+  /**
+   * Make directory
+   * @param request make directory request
+   * @return response with success
+   * @throws IOException
+   * @throws Exception
+   */
+  @PUT
+  @Path("/mkdir")
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response mkdir(final MkdirRequest request) throws IOException,
+      Exception {
+    HdfsApi api = getApi(context);
+    ResponseBuilder result;
+    if (api.mkdir(request.path)) {
+      result = Response.ok(HdfsApi.fileStatusToJSON(api.getFileStatus(request.path)));
+    } else {
+      result = Response.ok(new BoolResult(false)).status(422);
     }
+    return result.build();
+  }
 
-    @GET
-    @Path("/listdir")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response listdir(@QueryParam("path") String path,
-        @Context HttpHeaders headers, @Context UriInfo ui) throws Exception {
-        try {
-            return Response.ok(
-                HdfsApi.fileStatusToJSON(getApi(context).listdir(path))).build();
-        } catch (FileNotFoundException ex) {
-            return Response.ok(Response.Status.NOT_FOUND.getStatusCode())
-                .entity(ex.getMessage()).build();
-        } catch (Throwable ex) {
-            throw new Exception(ex.getMessage());
-        }
+  /**
+   * Empty trash
+   * @return response with success
+   * @throws IOException
+   * @throws Exception
+   */
+  @DELETE
+  @Path("/trash/emptyTrash")
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response emptyTrash() throws IOException, Exception {
+    HdfsApi api = getApi(context);
+    api.emptyTrash();
+    return Response.ok(new BoolResult(true)).build();
+  }
+
+  /**
+   * Move to trash
+   * @param request remove request
+   * @return response with success
+   * @throws IOException
+   * @throws Exception
+   */
+  @DELETE
+  @Path("/moveToTrash")
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response moveToTrash(RemoveRequest request) throws IOException, Exception {
+    HdfsApi api = getApi(context);
+    ResponseBuilder result;
+    if (api.moveToTrash(request.path)){
+      result = Response.ok(new BoolResult(true)).status(204);
+    } else {
+      result = Response.ok(new BoolResult(false)).status(422);
     }
+    return result.build();
+  }
 
-    @POST
-    @Path("/rename")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response rename(final SrcDstFileRequest request,
-        @Context HttpHeaders headers, @Context UriInfo ui) throws IOException,
-        Exception {
-        HdfsApi api = getApi(context);
-        ResponseBuilder result;
-        if (api.rename(request.src, request.dst)) {
-            result = Response.ok(HdfsApi.fileStatusToJSON(api
-                .getFileStatus(request.dst)));
-        } else {
-            result = Response.ok(new BoolResult(false)).status(422);
-        }
-        return result.build();
+  /**
+   * Remove
+   * @param request remove request
+   * @return response with success
+   * @throws IOException
+   * @throws Exception
+   */
+  @DELETE
+  @Path("/remove")
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response remove(RemoveRequest request, @Context HttpHeaders headers,
+                         @Context UriInfo ui) throws IOException, Exception {
+    HdfsApi api = getApi(context);
+    ResponseBuilder result;
+    if (api.delete(request.path, request.recursive)){
+      result = Response.ok(new BoolResult(true)).status(204);
+    } else {
+      result = Response.ok(new BoolResult(false)).status(422);
     }
+    return result.build();
+  }
 
-    @POST
-    @Path("/copy")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response copy(final SrcDstFileRequest request,
-                         @Context HttpHeaders headers, @Context UriInfo ui) throws IOException,
-            Exception {
-        HdfsApi api = getApi(context);
-        ResponseBuilder result;
-        if (api.copy(request.src, request.dst)) {
-            result = Response.ok(HdfsApi.fileStatusToJSON(api
-                    .getFileStatus(request.dst)));
-        } else {
-            result = Response.ok(new BoolResult(false)).status(422);
-        }
-        return result.build();
-    }
+  /**
+   * Wrapper for json mapping of mkdir request
+   */
+  @XmlRootElement
+  public static class MkdirRequest {
+    @XmlElement(nillable = false, required = true)
+    public String path;
+  }
 
-    @PUT
-    @Path("/mkdir")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response mkdir(final MkdirRequest request,
-        @Context HttpHeaders headers, @Context UriInfo ui) throws IOException,
-        Exception {
-        HdfsApi api = getApi(context);
-        ResponseBuilder result;
-        if (api.mkdir(request.path)) {
-            result = Response.ok(HdfsApi.fileStatusToJSON(api.getFileStatus(request.path)));
-        } else {
-            result = Response.ok(new BoolResult(false)).status(422);
-        }
-        return result.build();
-    }
 
-    @DELETE
-    @Path("/trash/emptyTrash")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response emptyTrash(@Context HttpHeaders headers,
-        @Context UriInfo ui) throws IOException, Exception {
-        HdfsApi api = getApi(context);
-        api.emptyTrash();
-        return Response.ok(new BoolResult(true)).build();
-    }
+  /**
+   * Wrapper for json mapping of request with
+   * source and destination
+   */
+  @XmlRootElement
+  public static class SrcDstFileRequest {
+    @XmlElement(nillable = false, required = true)
+    public String src;
+    @XmlElement(nillable = false, required = true)
+    public String dst;
+  }
 
-    @DELETE
-    @Path("/moveToTrash")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response moveToTrash(RemoveRequest request, @Context HttpHeaders headers,
-        @Context UriInfo ui) throws IOException, Exception {
-        HdfsApi api = getApi(context);
-        ResponseBuilder result;
-        if (api.moveToTrash(request.path)){
-            result = Response.ok(new BoolResult(true)).status(204);
-        } else {
-            result = Response.ok(new BoolResult(false)).status(422);
-        }
-        return result.build();
-    }
-
-    @DELETE
-    @Path("/remove")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response remove(RemoveRequest request, @Context HttpHeaders headers,
-        @Context UriInfo ui) throws IOException, Exception {
-        HdfsApi api = getApi(context);
-        ResponseBuilder result;
-        if (api.delete(request.path, request.recursive)){
-            result = Response.ok(new BoolResult(true)).status(204);
-        } else {
-            result = Response.ok(new BoolResult(false)).status(422);
-        }
-        return result.build();
-    }
-
+  /**
+   * Wrapper for json mapping of remove request
+   */
+  @XmlRootElement
+  public static class RemoveRequest {
+    @XmlElement(nillable = false, required = true)
+    public String path;
+    public boolean recursive;
+  }
 }

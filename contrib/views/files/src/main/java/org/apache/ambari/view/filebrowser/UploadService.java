@@ -36,61 +36,85 @@ import org.apache.hadoop.fs.FSDataOutputStream;
 import com.sun.jersey.core.header.FormDataContentDisposition;
 import com.sun.jersey.multipart.FormDataParam;
 
+/**
+ * Upload service
+ */
 public class UploadService extends HdfsService {
 
-    public UploadService(ViewContext context) {
-        super(context);
-    }
+  /**
+   * Constructor
+   * @param context View Context instance
+   */
+  public UploadService(ViewContext context) {
+    super(context);
+  }
 
-    private void uploadFile(final String filePath, InputStream uploadedInputStream)
-        throws IOException, Exception {
-        byte[] chunk = new byte[1024];
-        FSDataOutputStream out = getApi(context).create(filePath, false);
-        while (uploadedInputStream.read(chunk) != -1) {
-            out.write(chunk);
-        }
-        out.close();
+  private void uploadFile(final String filePath, InputStream uploadedInputStream)
+      throws IOException, Exception {
+    byte[] chunk = new byte[1024];
+    FSDataOutputStream out = getApi(context).create(filePath, false);
+    while (uploadedInputStream.read(chunk) != -1) {
+      out.write(chunk);
     }
+    out.close();
+  }
 
-    @PUT
-    @Consumes(MediaType.MULTIPART_FORM_DATA)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response uploadFile(
-        @FormDataParam("file") InputStream uploadedInputStream,
-        @FormDataParam("file") FormDataContentDisposition contentDisposition,
-        @FormDataParam("path") String path) throws IOException, Exception {
-        if (!path.endsWith("/"))
-            path = path + "/";
-        String filePath = path + contentDisposition.getFileName();
-        uploadFile(filePath, uploadedInputStream);
-        return Response.ok(
-            HdfsApi.fileStatusToJSON(getApi(context).getFileStatus(filePath)))
-            .build();
-    }
+  /**
+   * Upload file
+   * @param uploadedInputStream file input stream
+   * @param contentDisposition content disposition
+   * @param path path
+   * @return file status
+   * @throws Exception
+   */
+  @PUT
+  @Consumes(MediaType.MULTIPART_FORM_DATA)
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response uploadFile(
+      @FormDataParam("file") InputStream uploadedInputStream,
+      @FormDataParam("file") FormDataContentDisposition contentDisposition,
+      @FormDataParam("path") String path) throws Exception {
+    if (!path.endsWith("/"))
+      path = path + "/";
+    String filePath = path + contentDisposition.getFileName();
+    uploadFile(filePath, uploadedInputStream);
+    return Response.ok(
+        HdfsApi.fileStatusToJSON(getApi(context).getFileStatus(filePath)))
+        .build();
+  }
 
-    @PUT
-    @Path("/zip")
-    @Consumes(MediaType.MULTIPART_FORM_DATA)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response uploadZip(
-        @FormDataParam("file") InputStream uploadedInputStream,
-        @FormDataParam("file") FormDataContentDisposition contentDisposition,
-        @FormDataParam("path") String path) throws IOException, Exception {
-        if (!path.endsWith("/"))
-            path = path + "/";
-        ZipInputStream zip = new ZipInputStream(uploadedInputStream);
-        ZipEntry ze = zip.getNextEntry();
-        HdfsApi api = getApi(context);
-        while (ze != null) {
-            String filePath = path + ze.getName();
-            if (ze.isDirectory()) {
-                api.mkdir(filePath);
-            } else {
-                uploadFile(filePath, zip);
-            }
-            ze = zip.getNextEntry();
-        }
-        return Response.ok(HdfsApi.fileStatusToJSON(api.listdir(path))).build();
+  /**
+   * Upload zip and unpack
+   * @param uploadedInputStream file input stream
+   * @param contentDisposition content disposition
+   * @param path path
+   * @return files statuses
+   * @throws IOException
+   * @throws Exception
+   */
+  @PUT
+  @Path("/zip")
+  @Consumes(MediaType.MULTIPART_FORM_DATA)
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response uploadZip(
+      @FormDataParam("file") InputStream uploadedInputStream,
+      @FormDataParam("file") FormDataContentDisposition contentDisposition,
+      @FormDataParam("path") String path) throws Exception {
+    if (!path.endsWith("/"))
+      path = path + "/";
+    ZipInputStream zip = new ZipInputStream(uploadedInputStream);
+    ZipEntry ze = zip.getNextEntry();
+    HdfsApi api = getApi(context);
+    while (ze != null) {
+      String filePath = path + ze.getName();
+      if (ze.isDirectory()) {
+        api.mkdir(filePath);
+      } else {
+        uploadFile(filePath, zip);
+      }
+      ze = zip.getNextEntry();
     }
+    return Response.ok(HdfsApi.fileStatusToJSON(api.listdir(path))).build();
+  }
 
 }
