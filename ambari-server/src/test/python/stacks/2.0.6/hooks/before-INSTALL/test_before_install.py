@@ -32,18 +32,20 @@ class TestHookBeforeInstall(RMFTestCase):
     self.assertResourceCalled('Package', 'curl', )
     self.assertResourceCalled('Package', 'net-snmp', )
     
-    self.assertResourceCalled('Execute', "mkdir -p /tmp/HDP-artifacts/ ;   curl --noproxy c6401.ambari.apache.org -kf   --retry 10 http://c6401.ambari.apache.org:8080/resources//jdk-7u45-linux-x64.tar.gz -o /tmp/HDP-artifacts//jdk-7u45-linux-x64.tar.gz",
+    self.assertResourceCalled('Execute', "mkdir -p /tmp/HDP-artifacts/ ;   curl -kf   --retry 10 http://c6401.ambari.apache.org:8080/resources//jdk-7u45-linux-x64.tar.gz -o /tmp/HDP-artifacts//jdk-7u45-linux-x64.tar.gz",
                               not_if = 'test -e /usr/jdk64/jdk1.7.0_45/bin/java',
                               path = ['/bin', '/usr/bin/'],
+                              environment = {'no_proxy': 'c6401.ambari.apache.org'},
                               )
     self.assertResourceCalled('Execute', 'mkdir -p /usr/jdk64 ; cd /usr/jdk64 ; tar -xf /tmp/HDP-artifacts//jdk-7u45-linux-x64.tar.gz > /dev/null 2>&1',
                               not_if = 'test -e /usr/jdk64/jdk1.7.0_45/bin/java',
                               path = ['/bin', '/usr/bin/'],
                               )
-    self.assertResourceCalled('Execute', "mkdir -p /tmp/HDP-artifacts/;     curl --noproxy c6401.ambari.apache.org -kf --retry 10     http://c6401.ambari.apache.org:8080/resources//UnlimitedJCEPolicyJDK7.zip -o /tmp/HDP-artifacts//UnlimitedJCEPolicyJDK7.zip",
+    self.assertResourceCalled('Execute', 'mkdir -p /tmp/HDP-artifacts/;     curl -kf --retry 10     http://c6401.ambari.apache.org:8080/resources//UnlimitedJCEPolicyJDK7.zip -o /tmp/HDP-artifacts//UnlimitedJCEPolicyJDK7.zip',
                               not_if = 'test -e /tmp/HDP-artifacts//UnlimitedJCEPolicyJDK7.zip',
                               ignore_failures = True,
                               path = ['/bin', '/usr/bin/'],
+                              environment = {'no_proxy': 'c6401.ambari.apache.org'},
                               )
     self.assertResourceCalled('Group', 'hadoop', )
     self.assertResourceCalled('Group', 'users', )

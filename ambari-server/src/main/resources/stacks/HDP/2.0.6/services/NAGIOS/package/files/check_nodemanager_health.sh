@@ -35,7 +35,8 @@ if [[ "$SEC_ENABLED" == "true" ]]; then
   fi
 fi
 
-RESPONSE=`curl --noproxy $HOST --negotiate -u : -s $NODEMANAGER_URL`
+export no_proxy=$HOST
+RESPONSE=`curl --negotiate -u : -s $NODEMANAGER_URL`
 if [[ "$RESPONSE" == *'"nodeHealthy":true'* ]]; then 
   echo "OK: NodeManager healthy";
   exit 0;

@@ -26,7 +26,8 @@ port=$3
 
 checkurl () {
   url=$1
-  curl $url --noproxy $host -o /dev/null
+  export no_proxy=$host
+  curl $url -o /dev/null
   echo $?
 }
 

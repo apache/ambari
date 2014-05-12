@@ -62,14 +62,19 @@ def oozie(is_server=False
          owner=params.oozie_user
     )
 
+  environment = {
+    "no_proxy": format("{ambari_server_hostname}")
+  }
+
   if params.jdbc_driver_name == "com.mysql.jdbc.Driver" or \
      params.jdbc_driver_name == "org.postgresql.Driver" or \
      params.jdbc_driver_name == "oracle.jdbc.driver.OracleDriver":
     Execute(format("/bin/sh -c 'cd /usr/lib/ambari-agent/ &&\
-    curl -kf --noproxy {ambari_server_hostname} \
+    curl -kf \
     --retry 5 {jdk_location}{check_db_connection_jar_name}\
      -o {check_db_connection_jar_name}'"),
-      not_if  = format("[ -f {check_db_connection_jar} ]")
+      not_if  = format("[ -f {check_db_connection_jar} ]"),
+      environment=environment
     )
     
   oozie_ownership( )

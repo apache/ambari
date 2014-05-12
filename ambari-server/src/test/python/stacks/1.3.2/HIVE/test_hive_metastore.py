@@ -176,8 +176,9 @@ class TestHiveMetastore(RMFTestCase):
       conf_dir = '/etc/hive/conf.server',
       configurations = self.getConfig()['configurations']['hive-site'],
     )
-    self.assertResourceCalled('Execute', "/bin/sh -c 'cd /usr/lib/ambari-agent/ && curl -kf --noproxy c6401.ambari.apache.org --retry 5 http://c6401.ambari.apache.org:8080/resources/DBConnectionVerification.jar -o DBConnectionVerification.jar'",
+    self.assertResourceCalled('Execute', "/bin/sh -c 'cd /usr/lib/ambari-agent/ && curl -kf --retry 5 http://c6401.ambari.apache.org:8080/resources/DBConnectionVerification.jar -o DBConnectionVerification.jar'",
       not_if = '[ -f DBConnectionVerification.jar]',
+      environment = {'no_proxy': 'c6401.ambari.apache.org'}
     )
     self.assertResourceCalled('File', '/tmp/start_metastore_script',
       content = StaticFile('startMetastore.sh'),
@@ -233,8 +234,9 @@ class TestHiveMetastore(RMFTestCase):
       conf_dir = '/etc/hive/conf.server',
       configurations = self.getConfig()['configurations']['hive-site'],
     )
-    self.assertResourceCalled('Execute', "/bin/sh -c 'cd /usr/lib/ambari-agent/ && curl -kf --noproxy c6401.ambari.apache.org --retry 5 http://c6401.ambari.apache.org:8080/resources/DBConnectionVerification.jar -o DBConnectionVerification.jar'",
+    self.assertResourceCalled('Execute', "/bin/sh -c 'cd /usr/lib/ambari-agent/ && curl -kf --retry 5 http://c6401.ambari.apache.org:8080/resources/DBConnectionVerification.jar -o DBConnectionVerification.jar'",
       not_if = '[ -f DBConnectionVerification.jar]',
+      environment = {'no_proxy': 'c6401.ambari.apache.org'}
     )
     self.assertResourceCalled('File', '/tmp/start_metastore_script',
       content = StaticFile('startMetastore.sh'),
