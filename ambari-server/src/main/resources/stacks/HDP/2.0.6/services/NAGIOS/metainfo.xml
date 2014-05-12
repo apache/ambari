@@ -121,7 +121,7 @@
             </package>
             <package>
               <type>rpm</type>
-              <name>apache2-mod_php5</name>
+              <name>apache2?mod_php*</name>
             </package>
           </packages>
         </osSpecific>
