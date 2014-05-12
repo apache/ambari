@@ -29,6 +29,7 @@ from ambari_agent import AgentException
 
 HOSTS_LIST_KEY = "all_hosts"
 PING_PORTS_KEY = "all_ping_ports"
+AMBARI_SERVER_HOST = "ambari_server_host"
 
 logger = logging.getLogger()
 
@@ -108,6 +109,7 @@ def decompressClusterHostInfo(clusterHostInfo):
   #Pop info not related to host roles  
   hostsList = info.pop(HOSTS_LIST_KEY)
   pingPorts = info.pop(PING_PORTS_KEY)
+  ambariServerHost = info.pop(AMBARI_SERVER_HOST)
 
   decompressedMap = {}
 
@@ -127,6 +129,8 @@ def decompressClusterHostInfo(clusterHostInfo):
   decompressedMap[PING_PORTS_KEY] = pingPorts
   #Add hosts list to result
   decompressedMap[HOSTS_LIST_KEY] = hostsList
+  #Add ambari-server host to result
+  decompressedMap[AMBARI_SERVER_HOST] = ambariServerHost
   
   return decompressedMap
 

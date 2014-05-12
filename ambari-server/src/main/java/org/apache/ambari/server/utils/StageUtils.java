@@ -48,6 +48,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -236,12 +237,6 @@ public class StageUtils {
     List<String> hostsList = new ArrayList<String>(hostsSet);
 
     //     Fill host roles
-    // Fill server host
-    TreeSet<Integer> serverHost = new TreeSet<Integer>();
-    int hostIndex = hostsList.indexOf(getHostName());
-    serverHost.add(hostIndex);
-    hostRolesInfo.put(AMBARI_SERVER_HOST, serverHost);
-
     // Fill hosts for services
     for (Entry<String, Service> serviceEntry : cluster.getServices().entrySet()) {
 
@@ -273,7 +268,7 @@ public class StageUtils {
               hostRolesInfo.put(roleName, hostsForComponentsHost);
             }
 
-            hostIndex = hostsList.indexOf(hostName);
+            int hostIndex = hostsList.indexOf(hostName);
             //Add index of host to current host role
             hostsForComponentsHost.add(hostIndex);
           }
@@ -288,7 +283,7 @@ public class StageUtils {
                 hostRolesInfo.put(decomRoleName, hostsForComponentsHost);
               }
 
-              hostIndex = hostsList.indexOf(hostName);
+              int hostIndex = hostsList.indexOf(hostName);
               //Add index of host to current host role
               hostsForComponentsHost.add(hostIndex);
             }
@@ -307,6 +302,17 @@ public class StageUtils {
 
     clusterHostInfo.put(HOSTS_LIST, hostsSet);
     clusterHostInfo.put(PORTS, replaceMappedRanges(portsList));
+
+    // Fill server host
+    /*
+     * Note: We don't replace server host name by an index (like we do
+     * with component hostnames), because if ambari-agent is not installed
+     * at ambari-server host, then allHosts map will not contain
+     * ambari-server hostname.
+     */
+    TreeSet<String> serverHost = new TreeSet<String>();
+    serverHost.add(getHostName());
+    clusterHostInfo.put(AMBARI_SERVER_HOST, serverHost);
 
     return clusterHostInfo;
   }

@@ -192,31 +192,39 @@ class TestManifestGenerator(TestCase):
       exceptionWasTrown = True
     self.assertTrue(exceptionWasTrown)
     
-    def testDecompressClusterHostInfo(self):
-        
-      info = { "jtnode_host"        : ["5"],
-               "hbase_master_hosts" : ["5"],
-               "all_hosts"          : ["h8", "h9", "h5", "h4", "h7", "h6", "h1", "h3", "h2", "h10"],
-               "namenode_host"      : ["6"],
-               "mapred_tt_hosts"    : ["0", "7-9", "2","3", "5"],
-               "slave_hosts"        : ["3", "0", "1", "5-9"],
-               "snamenode_host"     : ["8"],
-               "ping_ports"         : ["8670:1,5-8", "8673:9", "8672:0,4", "8671:2,3"],
-               "hbase_rs_hosts"     : ["3", "1", "5", "8", "9"]
-      }
-        
-      decompressedInfo = manifestGenerator.decompressClusterHostInfo(clusterHostInfo)
-      
-      self.assertTrue(decompressedInfo.has_key("all_hosts"))
-      
-      allHosts = decompressedInfo.pop("all_hosts")
-      
-      self.assertEquals(info.get("all_hosts"), decompressedInfo.get("all_hosts"))
-      
-      pingPorts = decompressedInfo.pop("all_ping_ports")
-      
-      self.assertEquals(pingPorts, manifestGenerator.convertMappedRangeToList(info.get("all_ping_ports")))
-      
-      for k,v in decompressedInfo.items():
-        self.assertEquals(v, manifestGenerator.convertRangeToList(info.get(k)))
+  def testDecompressClusterHostInfo(self):
+
+    all_hosts_key = "all_hosts"
+    all_ping_ports_key = "all_ping_ports"
+    ambari_server_host_key = "ambari_server_host"
+    info = { "jtnode_host"        : ["5"],
+             "hbase_master_hosts" : ["5"],
+             all_hosts_key: ["h8", "h9", "h5", "h4", "h7", "h6", "h1", "h3", "h2", "h10"],
+             "namenode_host"      : ["6"],
+             "mapred_tt_hosts"    : ["0", "7-9", "2","3", "5"],
+             "slave_hosts"        : ["3", "0", "1", "5-9"],
+             "snamenode_host"     : ["8"],
+             all_ping_ports_key: ["8670:1,5-8", "8673:9", "8672:0,4", "8671:2,3"],
+             "hbase_rs_hosts"     : ["3", "1", "5", "8", "9"],
+             ambari_server_host_key: ["h0"]
+    }
+
+    decompressedInfo = manifestGenerator.decompressClusterHostInfo(info)
+
+    self.assertTrue(decompressedInfo.has_key(all_hosts_key))
+
+    self.assertEquals(info.pop(all_hosts_key), decompressedInfo.get(all_hosts_key))
+
+    self.assertEquals(['8672', '8670', '8671', '8671', '8672',
+                       '8670', '8670', '8670', '8670', '8673'],
+                      decompressedInfo.get(all_ping_ports_key))
+
+    self.assertEquals(["h0"], decompressedInfo.get(ambari_server_host_key))
+
+    for k,v in decompressedInfo.items():
+      if k is all_ping_ports_key:
+        continue # Skip checking this list
+      # Check that list contains only host names
+      non_converted = [x for x in v if not x.startswith("h")]
+      self.assertEquals(0, len(non_converted))
 
