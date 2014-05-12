@@ -138,8 +138,8 @@ doConfigUpdate () {
         newProperties=$newProperties$line
         propertiesStarted=0;
         
-        newTag=`date "+%s"`
-        newTag="version${newTag}000"
+        newTag=`date "+%s%N"`
+        newTag="version${newTag}"
         finalJson="{ \"Clusters\": { \"desired_config\": {\"type\": \"$SITE\", \"tag\":\"$newTag\", $newProperties}}}"
         newFile="doSet_$newTag.json"
         echo "########## PUTting json into: $newFile"
@@ -164,8 +164,8 @@ doConfigFileUpdate () {
   FILENAME=$1
   if [ -f $FILENAME ]; then
     if [ "1" == "`grep -n \"\"properties\"\" $FILENAME | cut -d : -f 1`" ]; then
-      newTag=`date "+%s"`
-      newTag="version${newTag}000"
+      newTag=`date "+%s%N"`
+      newTag="version${newTag}"
       newProperties=`cat $FILENAME`;
       finalJson="{ \"Clusters\": { \"desired_config\": {\"type\": \"$SITE\", \"tag\":\"$newTag\", $newProperties}}}"
       newFile="$FILENAME"
