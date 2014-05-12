@@ -155,6 +155,13 @@ public class FilebrowserTest{
     Response result = fileBrowserService.download().downloadGZip(dr);
   }
 
+  @Test
+  public void testUsername() throws Exception {
+    Assert.assertEquals(System.getProperty("user.name"), fileBrowserService.upload().getUsername(context));
+    properties.put("dataworker.username", "test-user");
+    Assert.assertEquals("test-user", fileBrowserService.upload().getUsername(context));
+  }
+
   private static <T> T getService(Class<T> clazz,
                                   final ViewResourceHandler viewResourceHandler,
                                   final ViewContext viewInstanceContext) {

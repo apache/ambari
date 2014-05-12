@@ -66,9 +66,21 @@ public abstract class HdfsService {
   public HdfsApi getApi(ViewContext context) throws IOException, Exception {
     if (_api == null) {
       Thread.currentThread().setContextClassLoader(null);
-      _api = new HdfsApi(context.getProperties().get("dataworker.defaultFs"), context.getUsername());
+      _api = new HdfsApi(context.getProperties().get("dataworker.defaultFs"), getUsername(context));
     }
     return _api;
+  }
+
+  /**
+   * Get username to use in HDFS
+   * @param context View Context instance
+   * @return user name
+   */
+  public String getUsername(ViewContext context) {
+    String username = context.getProperties().get("dataworker.username");
+    if (username == null || username.isEmpty())
+      username = context.getUsername();
+    return username;
   }
 
 }
