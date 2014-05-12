@@ -1167,7 +1167,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   formatConfigValues: function(serviceConfigProperties){
     serviceConfigProperties.forEach(function (_config) {
       if (typeof _config.get('value') === "boolean") _config.set('value', _config.value.toString());
-      _config.set('value', App.config.trimProperty(_config), true);
+      _config.set('value', App.config.trimProperty(_config, true));
     });
   },
 
@@ -1290,69 +1290,75 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   /**
    * Saves cluster level configurations for all necessary sites.
    * PUT calls are made to /api/v1/clusters/clusterName for each site.
-   *
    * @return {Boolean}
+   * @method doPUTClusterConfigurations
    */
   doPUTClusterConfigurations: function () {
     var result = true;
     var serviceConfigTags = this.get('serviceConfigTags');
     this.setNewTagNames(serviceConfigTags);
     var siteNameToServerDataMap = {};
-    var configController = App.router.get('configurationController');
-    var filenameExceptions = App.config.get('filenameExceptions');
 
     serviceConfigTags.forEach(function (_serviceTags) {
-      var loadedProperties;
-      if (_serviceTags.siteName === 'global') {
-        console.log("TRACE: Inside global");
-        var serverGlobalConfigs = this.createGlobalSiteObj(_serviceTags.newTagName, this.get('globalConfigs'));
-        siteNameToServerDataMap['global'] = serverGlobalConfigs;
-        loadedProperties = configController.getConfigsByTags([{siteName: 'global', tagName: this.loadedClusterSiteToTagMap['global']}]);
-        if (loadedProperties && loadedProperties[0]) {
-          loadedProperties = loadedProperties[0].properties;
-        }
-        if (this.isConfigChanged(loadedProperties, serverGlobalConfigs.properties)) {
-          result = result && this.doPUTClusterConfigurationSite(serverGlobalConfigs);
-        }
-      }
-      else {
-        if (_serviceTags.siteName === 'core-site') {
-          console.log("TRACE: Inside core-site");
-          if (this.get('content.serviceName') === 'HDFS' || this.get('content.serviceName') === 'GLUSTERFS') {
-            var coreSiteConfigs = this.createCoreSiteObj(_serviceTags.newTagName);
-            siteNameToServerDataMap['core-site'] = coreSiteConfigs;
-            loadedProperties = configController.getConfigsByTags([{siteName: 'core-site', tagName: this.loadedClusterSiteToTagMap['core-site']}]);
-            if (loadedProperties && loadedProperties[0]) {
-              loadedProperties = loadedProperties[0].properties;
-            }
-            if (this.isConfigChanged(loadedProperties, coreSiteConfigs.properties)) {
-              result = result && this.doPUTClusterConfigurationSite(coreSiteConfigs);
-            }
-          }
-        }
-        else {
-          var filename = (filenameExceptions.contains(_serviceTags.siteName)) ? _serviceTags.siteName : _serviceTags.siteName + '.xml';
-          var siteConfigs = this.get('uiConfigs').filterProperty('filename', filename);
-          var serverConfigs = this.createSiteObj(_serviceTags.siteName, _serviceTags.newTagName, siteConfigs);
-          siteNameToServerDataMap[_serviceTags.siteName] = serverConfigs;
-          loadedProperties = configController.getConfigsByTags([{siteName: _serviceTags.siteName, tagName: this.loadedClusterSiteToTagMap[_serviceTags.siteName]}]);
-          if (loadedProperties && loadedProperties[0]) {
-            loadedProperties = loadedProperties[0].properties;
-          }
-          if (!loadedProperties) {
-            loadedProperties = {};
-          }
-          if (filename === 'mapred-queue-acls' && !App.supports.capacitySchedulerUi) {
-            return;
-          }
-          if (this.isConfigChanged(loadedProperties, serverConfigs.properties)) {
-            result = result && this.doPUTClusterConfigurationSite(serverConfigs);
-          }
-        }
+      var configs = this.createConfigObject(_serviceTags.siteName, _serviceTags.newTagName);
+      if (configs) {
+        result = result && this.doPUTClusterConfiguration(siteNameToServerDataMap, _serviceTags.siteName, configs);
       }
     }, this);
-    this.savedSiteNameToServerServiceConfigDataMap = siteNameToServerDataMap;
+    this.set("savedSiteNameToServerServiceConfigDataMap", siteNameToServerDataMap);
     return result;
+  },
+
+  /**
+   * create different config object depending on siteName
+   * @param {String} siteName
+   * @param {String} tagName
+   * @returns {Object|undefined}
+   * @method createConfigObject
+   */
+  createConfigObject: function(siteName, tagName) {
+    console.log("TRACE: Inside " + siteName);
+    switch(siteName) {
+      case 'global':
+        return this.createGlobalSiteObj(tagName, this.get('globalConfigs'));
+      case 'core-site':
+        if(this.get('content.serviceName') === 'HDFS' || this.get('content.serviceName') === 'GLUSTERFS') {
+          return this.createCoreSiteObj(tagName);
+        }
+        return;
+      default:
+        var filename = (App.config.get('filenameExceptions').contains(siteName)) ? siteName : siteName + '.xml';
+        if (filename === 'mapred-queue-acls.xml' && !App.supports.capacitySchedulerUi) {
+          return;
+        }
+      return this.createSiteObj(siteName, tagName, this.get('uiConfigs').filterProperty('filename', filename));
+    }
+  },
+
+  /**
+   * load existen properties and compare them with current if there are
+   * differences - trigger doPUTClusterConfigurationSite to save new properties
+   * @param {Object} siteNameToServerDataMap
+   * @param {String} siteName
+   * @param {Object} configs
+   * @returns {Boolean} true if config successfully saved or there
+   *                    is no need to save them
+   * @method doPUTClusterConfiguration
+   */
+  doPUTClusterConfiguration: function(siteNameToServerDataMap, siteName, configs) {
+    var loadedProperties;
+    siteNameToServerDataMap[siteName] = configs;
+    loadedProperties = App.router.get('configurationController').getConfigsByTags([{siteName: siteName, tagName: this.loadedClusterSiteToTagMap[siteName]}]);
+    if (loadedProperties && loadedProperties[0]) {
+      loadedProperties = loadedProperties[0].properties;
+    }
+    if (!loadedProperties) {
+      loadedProperties = {};
+    }
+    if (this.isConfigChanged(loadedProperties, configs.properties)) {
+      return this.doPUTClusterConfigurationSite(configs);
+    }
+    return true;
   },
 
 
@@ -1552,133 +1558,191 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   },
 
   /**
+   * Array of Objects
+   * {
+   *  hostProperty - hostName property name for current component
+   *  componentName - master componentName
+   *  serviceName - serviceName of component
+   *  serviceUseThis - services that use hostname property of component(componentName)
+   *  m(multiple) - true if can be more than one components installed on cluster
+   * }
+   */
+
+  hostComponentsmapping: [
+    {
+      hostProperty: 'namenode_host',
+      componentName: 'NAMENODE',
+      serviceName: 'HDFS',
+      serviceUseThis: [],
+      m: true
+    },
+    {
+      hostProperty: 'snamenode_host',
+      componentName: 'SECONDARY_NAMENODE',
+      serviceName: 'HDFS',
+      serviceUseThis: []
+    },
+    {
+      hostProperty: 'jobtracker_host',
+      componentName: 'JOBTRACKER',
+      serviceName: 'MAPREDUCE',
+      serviceUseThis: []
+    },
+    {
+      hostProperty: 'jobtracker_host',
+      componentName: 'JOBTRACKER',
+      serviceName: 'MAPREDUCE2',
+      serviceUseThis: []
+    },
+    {
+      hostProperty: 'hs_host',
+      componentName: 'HISTORYSERVER',
+      serviceName: 'MAPREDUCE2',
+      serviceUseThis: ['YARN']
+    },
+    {
+      hostProperty: 'ats_host',
+      componentName: 'APP_TIMELINE_SERVER',
+      serviceName: 'YARN',
+      serviceUseThis: []
+    },
+    {
+      hostProperty: 'rm_host',
+      componentName: 'RESOURCEMANAGER',
+      serviceName: 'YARN',
+      serviceUseThis: []
+    },
+    {
+      hostProperty: 'hivemetastore_host',
+      componentName: 'HIVE_SERVER',
+      serviceName: 'HIVE',
+      serviceUseThis: ['WEBHCAT']
+    },
+    {
+      hostProperty: 'oozieserver_host',
+      componentName: 'OOZIE_SERVER',
+      serviceName: 'OOZIE',
+      serviceUseThis: []
+    },
+    {
+      hostProperty: 'hbasemaster_host',
+      componentName: 'HBASE_MASTER',
+      serviceName: 'HBASE',
+      serviceUseThis: [],
+      m: true
+    },
+    {
+      hostProperty: 'hueserver_host',
+      componentName: 'HUE_SERVER',
+      serviceName: 'HUE',
+      serviceUseThis: []
+    },
+    {
+      hostProperty: 'webhcatserver_host',
+      componentName: 'WEBHCAT_SERVER',
+      serviceName: 'WEBHCAT',
+      serviceUseThis: [],
+      m: true
+    },
+    {
+      hostProperty: 'zookeeperserver_hosts',
+      componentName: 'ZOOKEEPER_SERVER',
+      serviceName: 'ZOOKEEPER',
+      serviceUseThis: ['HBASE', 'WEBHCAT'],
+      m: true
+    },
+    {
+      hostProperty: 'stormuiserver_host',
+      componentName: 'STORM_UI_SERVER',
+      serviceName: 'STORM',
+      serviceUseThis: []
+    },
+    {
+      hostProperty: 'drpcserver_host',
+      componentName: 'DRPC_SERVER',
+      serviceName: 'STORM',
+      serviceUseThis: []
+    },
+    {
+      hostProperty: 'storm_rest_api_host',
+      componentName: 'STORM_REST_API',
+      serviceName: 'STORM',
+      serviceUseThis: []
+    },
+    {
+      hostProperty: 'supervisor_hosts',
+      componentName: 'SUPERVISOR',
+      serviceName: 'STORM',
+      serviceUseThis: [],
+      m: true
+    }
+  ],
+
+  /**
    * Adds host name of master component to global config;
+   * @method addHostNamesToGlobalConfig
    */
   addHostNamesToGlobalConfig: function () {
     var serviceName = this.get('content.serviceName');
     var globalConfigs = this.get('globalConfigs');
-    var serviceConfigs = this.get('serviceConfigs').findProperty('serviceName', serviceName).configs;
-    var hostComponents = App.HostComponent.find();
     //namenode_host is required to derive "fs.default.name" a property of core-site
-    var nameNodeHost = this.get('serviceConfigs').findProperty('serviceName', 'HDFS').configs.findProperty('name', 'namenode_host');
     try {
-      nameNodeHost.defaultValue = hostComponents.filterProperty('componentName', 'NAMENODE').mapProperty('host.hostName');
-      globalConfigs.push(nameNodeHost);
+      this.setHostForService('HDFS', 'NAMENODE', 'namenode_host', true);
     } catch (err) {
       console.log("No NameNode Host available.  This is expected if you're using GLUSTERFS rather than HDFS.");
     }
 
-    //zooKeeperserver_host
-    var zooKeperHost = this.get('serviceConfigs').findProperty('serviceName', 'ZOOKEEPER').configs.findProperty('name', 'zookeeperserver_hosts');
-    if (serviceName === 'ZOOKEEPER' || serviceName === 'HBASE' || serviceName === 'WEBHCAT') {
-      zooKeperHost.defaultValue = hostComponents.filterProperty('componentName', 'ZOOKEEPER_SERVER').mapProperty('host.hostName');
-      globalConfigs.push(zooKeperHost);
+    var hostProperties = this.get('hostComponentsmapping').filter(function(h) {
+      return h.serviceUseThis.contains(serviceName) || h.serviceName == serviceName;
+    });
+    hostProperties.forEach(function(h) {
+      this.setHostForService(h.serviceName, h.componentName, h.hostProperty, h.m);
+    }, this);
+
+    if (serviceName === 'HIVE') {
+      var hiveDb = globalConfigs.findProperty('name', 'hive_database').value;
+      if (['Existing MySQL Database', 'Existing Oracle Database'].contains(hiveDb)) {
+        globalConfigs.findProperty('name', 'hive_hostname').isVisible = true;
+      }
     }
-
-    switch (serviceName) {
-      case 'HDFS':
-        if (hostComponents.someProperty('componentName', 'SECONDARY_NAMENODE') && hostComponents.findProperty('componentName', 'SECONDARY_NAMENODE').get('workStatus') != 'DISABLED') {
-          var sNameNodeHost = serviceConfigs.findProperty('name', 'snamenode_host');
-          sNameNodeHost.defaultValue = hostComponents.findProperty('componentName', 'SECONDARY_NAMENODE').get('host.hostName');
-          globalConfigs.push(sNameNodeHost);
-        }
-        break;
-      case 'MAPREDUCE':
-        var jobTrackerHost = serviceConfigs.findProperty('name', 'jobtracker_host');
-        jobTrackerHost.defaultValue = hostComponents.findProperty('componentName', 'JOBTRACKER').get('host.hostName');
-        globalConfigs.push(jobTrackerHost);
-      case 'MAPREDUCE2':
-        var historyServerHost = serviceConfigs.findProperty('name', 'hs_host');
-        historyServerHost.defaultValue = hostComponents.findProperty('componentName', 'HISTORYSERVER').get('host.hostName');
-        globalConfigs.push(historyServerHost);
-        break;
-      case 'YARN':
-        var resourceManagerHost = serviceConfigs.findProperty('name', 'rm_host');
-        var ATSHost = this.getMasterComponentHostValue('APP_TIMELINE_SERVER');
-        if (ATSHost) {
-          var ATSProperty = serviceConfigs.findProperty('name', 'ats_host');
-          ATSProperty.defaultValue = ATSHost
-          globalConfigs.push(ATSProperty);
-        }
-        resourceManagerHost.defaultValue = hostComponents.findProperty('componentName', 'RESOURCEMANAGER').get('host.hostName');
-        globalConfigs.push(resourceManagerHost);
-        //yarn.log.server.url config dependent on HistoryServer host
-        if (hostComponents.someProperty('componentName', 'HISTORYSERVER')) {
-          historyServerHost = this.get('serviceConfigs').findProperty('serviceName', 'MAPREDUCE2').configs.findProperty('name', 'hs_host');
-          historyServerHost.defaultValue = hostComponents.findProperty('componentName', 'HISTORYSERVER').get('host.hostName');
-          globalConfigs.push(historyServerHost);
-        }
-        break;
-      case 'HIVE':
-        var hiveMetastoreHost = serviceConfigs.findProperty('name', 'hivemetastore_host');
-        hiveMetastoreHost.defaultValue = hostComponents.findProperty('componentName', 'HIVE_SERVER').get('host.hostName');
-        globalConfigs.push(hiveMetastoreHost);
-        var hiveDb = globalConfigs.findProperty('name', 'hive_database').value;
-        if (['Existing MySQL Database', 'Existing Oracle Database'].contains(hiveDb)) {
-          globalConfigs.findProperty('name', 'hive_hostname').isVisible = true;
-        }
-        break;
-
-      case 'OOZIE':
-        var oozieServerHost = serviceConfigs.findProperty('name', 'oozieserver_host');
-        oozieServerHost.defaultValue = hostComponents.findProperty('componentName', 'OOZIE_SERVER').get('host.hostName');
-        globalConfigs.push(oozieServerHost);
-        var oozieDb = globalConfigs.findProperty('name', 'oozie_database').value;
-        if (['Existing MySQL Database', 'Existing Oracle Database'].contains(oozieDb)) {
-          globalConfigs.findProperty('name', 'oozie_hostname').isVisible = true;
-        }
-        break;
-      case 'HBASE':
-        var hbaseMasterHost = serviceConfigs.findProperty('name', 'hbasemaster_host');
-        hbaseMasterHost.defaultValue = hostComponents.filterProperty('componentName', 'HBASE_MASTER').mapProperty('host.hostName');
-        globalConfigs.push(hbaseMasterHost);
-        break;
-      case 'HUE':
-        var hueServerHost = serviceConfigs.findProperty('name', 'hueserver_host');
-        hueServerHost.defaultValue = hostComponents.findProperty('componentName', 'HUE_SERVER').get('host.hostName');
-        globalConfigs.push(hueServerHost);
-        break;
-      case 'WEBHCAT':
-        var webhcatMasterHost = serviceConfigs.findProperty('name', 'webhcatserver_host');
-        webhcatMasterHost.defaultValue = hostComponents.filterProperty('componentName', 'WEBHCAT_SERVER').mapProperty('host.hostName');
-        globalConfigs.push(webhcatMasterHost);
-        var hiveMetastoreHost = this.get('serviceConfigs').findProperty('serviceName', 'HIVE').configs.findProperty('name', 'hivemetastore_host');
-        hiveMetastoreHost.defaultValue = hostComponents.findProperty('componentName', 'HIVE_SERVER').get('host.hostName');
-        globalConfigs.push(hiveMetastoreHost);
-        break;
-      case 'STORM':
-        var masterHostComponents = [
-          { name: 'STORM_UI_SERVER', propertyName: 'stormuiserver_host' },
-          { name: 'DRPC_SERVER', propertyName: 'drpcserver_host' },
-          { name: 'STORM_REST_API', propertyName: 'storm_rest_api_host' }
-        ];
-
-        masterHostComponents.forEach(function(component) {
-          var hostValue = this.getMasterComponentHostValue(component.name);
-          var config = serviceConfigs.findProperty('name', component.propertyName);
-          config.defaultValue = hostValue;
-          globalConfigs.push(config);
-        }, this);
-
-        var supervisorHosts = hostComponents.filterProperty('componentName','SUPERVISOR').mapProperty('host.hostName');
-        if (supervisorHosts.length > 0) {
-          var supervisorHostsConfig = serviceConfigs.findProperty('name', 'supervisor_hosts');
-          supervisorHostsConfig.defaultValue = supervisorHosts;
-          globalConfigs.push(supervisorHostsConfig);
-        }
-        break;
+    if (serviceName === 'OOZIE') {
+      var oozieDb = globalConfigs.findProperty('name', 'oozie_database').value;
+      if (['Existing MySQL Database', 'Existing Oracle Database'].contains(oozieDb)) {
+        globalConfigs.findProperty('name', 'oozie_hostname').isVisible = true;
+      }
+    }
+  },
+  /**
+   * set host name(s) property for component
+   * @param {String} serviceName - service name of component
+   * @param {String} componentName - component name whic host we want to know
+   * @param {String} hostProperty - name of host property for current component
+   * @param {Boolean} multiple - true if can be more than one component
+   * @method setHostForService
+   */
+  setHostForService: function(serviceName, componentName, hostProperty, multiple) {
+    var globalConfigs = this.get('globalConfigs');
+    var serviceConfigs = this.get('serviceConfigs').findProperty('serviceName', serviceName).configs;
+    var hostConfig = serviceConfigs.findProperty('name', hostProperty);
+    if (hostConfig) {
+      hostConfig.defaultValue = this.getMasterComponentHostValue(componentName, multiple);
+      globalConfigs.push(hostConfig);
     }
   },
 
   /**
    * get hostName of component
    * @param {String} componentName
-   * @return {String} hostName
+   * @param {Boolean} multiple - true if can be more than one component installed on cluster
+   * @return {String|Array|Boolean} hostName|hostNames|false if missing component
    * @method getMasterComponentHostValue
    */
-  getMasterComponentHostValue: function(componentName) {
-    var component = this.get('content.hostComponents').findProperty('componentName', componentName);
-    return component ? component.get('host.hostName') : false;
+  getMasterComponentHostValue: function(componentName, multiple) {
+    var components = this.get('content.hostComponents').filterProperty('componentName', componentName);
+    if (components.length > 0) {
+      return multiple ? components.mapProperty('host.hostName') : components[0].get('host.hostName');
+    }
+    return false;
   },
   /**
    * Provides service component name and display-name information for

@@ -435,26 +435,53 @@ describe("App.MainServiceInfoConfigsController", function () {
   });
 
   describe("#getMasterComponentHostValue", function () {
-    var t = Em.Object.create({
-      content: Em.Object.create({
-        hostComponents: [
-          Em.Object.create({
-            componentName: "componentName2",
-            displayName: "displayName2",
-            host: Em.Object.create({
-              hostName: "hostName"
+    var tests = [
+      {
+        content: {
+          hostComponents: [
+            Em.Object.create({
+              componentName: "componentName1",
+              host: {
+                hostName: "hostName"
+              }
             })
-          })
-        ]
-      })
-    });
-    beforeEach(function () {
-      mainServiceInfoConfigsController.set("content", { hostComponents: Em.A([])});
-    });
+          ]
+        },
+        result: "hostName",
+        multiple: false,
+        m: "returns hostname"
+      },
+      {
+        content: {
+          hostComponents: [
+            Em.Object.create({
+              componentName: "componentName2",
+              host: {
+                  hostName: "hostName1"
+              }
+            }),
+            Em.Object.create({
+              componentName: "componentName2",
+              host: {
+                hostName: "hostName2"
+              }
+            })
+          ]
+        },
+        result: ["hostName1","hostName2"],
+        multiple: true,
+        m: "returns hostnames"
+      }
+    ];
+    tests.forEach(function(t){
+      beforeEach(function () {
+        mainServiceInfoConfigsController.set("content", { hostComponents: []});
+      });
 
-    it("returns hostname", function () {
-      mainServiceInfoConfigsController.get("content.hostComponents").push(t.content.hostComponents[0]);
-      expect(mainServiceInfoConfigsController.getMasterComponentHostValue(t.content.hostComponents[0].componentName)).to.equal(t.content.hostComponents[0].host.hostName);
+      it(t.m, function () {
+        mainServiceInfoConfigsController.set("content.hostComponents", t.content.hostComponents);
+        expect(mainServiceInfoConfigsController.getMasterComponentHostValue(t.content.hostComponents[0].componentName, t.multiple)).to.eql(t.result);
+      });
     });
   });
 
@@ -705,4 +732,494 @@ describe("App.MainServiceInfoConfigsController", function () {
     });
   });
 
+  describe("#addDynamicProperties", function() {
+
+    var tests = [
+      {
+        stepConfigs: [Em.Object.create({
+          serviceName: "WEBHCAT",
+          configs: []
+        })],
+        content: Em.Object.create({
+          serviceName: "WEBHCAT"
+        }),
+        m: "add dynamic property",
+        addDynamic: true
+      },
+      {
+        stepConfigs: [Em.Object.create({
+          serviceName: "WEBHCAT",
+          configs: [
+            Em.Object.create({
+              name: "templeton.hive.properties"
+            })
+          ]
+        })],
+        content: Em.Object.create({
+          serviceName: "WEBHCAT"
+        }),
+        m: "don't add dynamic property (already included)",
+        addDynamic: false
+      },
+      {
+        stepConfigs: [Em.Object.create({
+          serviceName: "HDFS",
+          configs: []
+        })],
+        content: Em.Object.create({
+          serviceName: "HDFS"
+        }),
+        m: "don't add dynamic property (wrong service)",
+        addDynamic: false
+      }
+    ];
+    var dynamicProperty = {
+      "name": "templeton.hive.properties",
+      "templateName": ["hivemetastore_host"],
+      "foreignKey": null,
+      "value": "hive.metastore.local=false,hive.metastore.uris=thrift://<templateName[0]>:9083,hive.metastore.sasl.enabled=yes,hive.metastore.execute.setugi=true,hive.metastore.warehouse.dir=/apps/hive/warehouse",
+      "filename": "webhcat-site.xml"
+    };
+
+
+
+    tests.forEach(function(t) {
+      it(t.m, function() {
+        mainServiceInfoConfigsController.set("content", t.content);
+        mainServiceInfoConfigsController.set("stepConfigs", t.stepConfigs);
+        var configs = [];
+        mainServiceInfoConfigsController.addDynamicProperties(configs);
+        if (t.addDynamic){
+          expect(configs.findProperty("name","templeton.hive.properties")).to.deep.eql(dynamicProperty);
+        }
+      });
+    });
+  });
+
+  describe("#loadUiSideConfigs", function () {
+
+    var t = {
+      configMapping: [
+        {
+          foreignKey: null,
+          templateName: "",
+          value: "default",
+          name: "name1",
+          filename: "filename1"
+        },
+        {
+          foreignKey: "notNull",
+          templateName: "",
+          value: "default2",
+          name: "name2",
+          filename: "filename2"
+        }
+      ],
+      configMappingf: [
+        {
+          foreignKey: null,
+          templateName: "",
+          value: "default",
+          name: "name1",
+          filename: "filename1"
+        }
+      ],
+      valueWithOverrides: {
+        "value": "default",
+        "overrides": {
+          "value1": "value1",
+          "value2": "value2"
+        }
+      },
+      uiConfigs: [
+        {
+          "id": "site property",
+          "name": "name1",
+          "value": "default",
+          "filename": "filename1",
+          "overrides": {
+            "value1": "value1",
+            "value2": "value2"
+          }
+        }
+      ]
+    };
+
+    beforeEach(function(){
+      sinon.stub(mainServiceInfoConfigsController, "addDynamicProperties", Em.K);
+      sinon.stub(mainServiceInfoConfigsController, "getGlobConfigValueWithOverrides", function () {
+        return t.valueWithOverrides
+      });
+    });
+
+    afterEach(function(){
+      mainServiceInfoConfigsController.addDynamicProperties.restore();
+      mainServiceInfoConfigsController.getGlobConfigValueWithOverrides.restore();
+    });
+
+    it("load ui config", function() {
+      expect(mainServiceInfoConfigsController.loadUiSideConfigs(t.configMapping)[0]).to.deep.equal(t.uiConfigs[0]);
+      expect(mainServiceInfoConfigsController.addDynamicProperties.calledWith(t.configMappingf)).to.equal(true);
+    });
+  });
+
+  describe("#formatConfigValues", function () {
+    var t = {
+      configs: [
+        Em.Object.create({ name: "p1", value: " v1 v1 ", displayType: "" }),
+        Em.Object.create({ name: "p2", value: true, displayType: "" }),
+        Em.Object.create({ name: "p3", value: " d1 ", displayType: "directory" }),
+        Em.Object.create({ name: "p4", value: " d1 d2 d3 ", displayType: "directories" }),
+        Em.Object.create({ name: "p5", value: " v1 ", displayType: "password" }),
+        Em.Object.create({ name: "p6", value: " v ", displayType: "host" }),
+        Em.Object.create({ name: "javax.jdo.option.ConnectionURL", value: " v1 ", displayType: "advanced" }),
+        Em.Object.create({ name: "oozie.service.JPAService.jdbc.url", value: " v1 ", displayType: "advanced" })
+      ],
+      result: [
+        Em.Object.create({ name: "p1", value: " v1 v1", displayType: "" }),
+        Em.Object.create({ name: "p2", value: "true", displayType: "" }),
+        Em.Object.create({ name: "p3", value: "d1", displayType: "directory" }),
+        Em.Object.create({ name: "p4", value: "d1,d2,d3", displayType: "directories" }),
+        Em.Object.create({ name: "p5", value: " v1 ", displayType: "password" }),
+        Em.Object.create({ name: "p6", value: "v", displayType: "host" }),
+        Em.Object.create({ name: "javax.jdo.option.ConnectionURL", value: " v1", displayType: "advanced" }),
+        Em.Object.create({ name: "oozie.service.JPAService.jdbc.url", value: " v1", displayType: "advanced" })
+      ]
+    };
+
+    it("format config values", function () {
+      mainServiceInfoConfigsController.formatConfigValues(t.configs);
+      expect(t.configs).to.deep.equal(t.result);
+    });
+
+  });
+
+  describe("#setHostForService", function () {
+    var tests = [
+      {
+        globalConfigs: [],
+        componentName: "ZOOKEEPER_SERVER",
+        serviceName: "ZOOKEEPER",
+        hostProperty: "zookeeperserver_hosts",
+        multiple: true,
+        result: ["hostName1", "hostName2"],
+        serviceConfigs: [
+          {
+            serviceName: "ZOOKEEPER",
+            configs: [
+              {
+                "name": "zookeeperserver_hosts",
+                "defaultValue": null
+              }
+            ]
+          }
+        ],
+        m: "set hostNames to globalConfigs for current service"
+      },
+      {
+        globalConfigs: [],
+        componentName: "STORM_UI_SERVER",
+        serviceName: "STORM",
+        hostProperty: "stormuiserver_host",
+        multiple: false,
+        result: "hostName1",
+        serviceConfigs: [
+          {
+            serviceName: "STORM",
+            configs: [
+              {
+                "name": "stormuiserver_host",
+                "defaultValue": null
+              }
+            ]
+          }
+        ],
+        m: "set hostName to globalConfigs for current service"
+      }
+    ];
+
+    beforeEach(function () {
+      sinon.stub(mainServiceInfoConfigsController, "getMasterComponentHostValue", function (a,m) {
+        if (m) {
+          return ["hostName1", "hostName2"];
+        } else {
+          return "hostName1";
+        }
+      });
+    });
+
+    afterEach(function () {
+      mainServiceInfoConfigsController.getMasterComponentHostValue.restore();
+    });
+
+    tests.forEach(function (t) {
+      it(t.m, function () {
+        mainServiceInfoConfigsController.set("globalConfigs", t.globalConfigs);
+        mainServiceInfoConfigsController.set("serviceConfigs", t.serviceConfigs);
+        mainServiceInfoConfigsController.setHostForService(t.serviceName, t.componentName, t.hostProperty, t.multiple);
+        expect(mainServiceInfoConfigsController.get("globalConfigs").findProperty("name", t.hostProperty).defaultValue).to.eql(t.result);
+
+      });
+    }, this);
+  });
+
+  describe("#addHostNamesToGlobalConfig", function () {
+    var tests = [
+      {
+        globalConfigs: [],
+        serviceName: "ZOOKEEPER",
+        hostProperty: "zookeeperserver_hosts",
+        nameNodeHost: "namenode_host",
+        serviceConfigs: [
+          {
+            serviceName: "ZOOKEEPER",
+            configs: [
+              {
+                "name": "zookeeperserver_hosts",
+                "defaultValue": null
+              },
+              {
+                "name": "namenode_host",
+                "defaultValue": null
+              }
+            ]
+          }
+        ],
+        result: ["hostName1", "hostName2"],
+        result2: ["hostName1", "hostName2"],
+        m: "set hostNames to globalConfigs for required services"
+      },
+      {
+        globalConfigs: [
+          {
+            "name": "hive_database",
+            "value": "Existing MySQL Database"
+          },
+          {
+            "name": "hive_hostname",
+            "isVisible": false
+          }
+        ],
+        serviceName: "HIVE",
+        hostProperty: "hivemetastore_host",
+        nameNodeHost: "namenode_host",
+        isVisible: true,
+        serviceConfigs: [
+          {
+            serviceName: "HIVE",
+            configs: [
+              {
+                "name": "hivemetastore_host",
+                "defaultValue": null
+              },
+              {
+                "name": "namenode_host",
+                "defaultValue": null
+              }
+            ]
+          }
+        ],
+        result: "hostName3",
+        result2: ["hostName1", "hostName2"],
+        m: "set hostNames to globalConfigs for required services and isVisible property for HIVE"
+      }
+    ];
+
+    beforeEach(function () {
+      mainServiceInfoConfigsController.set("content", Em.Object.create({}));
+      sinon.stub(mainServiceInfoConfigsController, "getMasterComponentHostValue", function (a,m) {
+        if (m) {
+          return ["hostName1", "hostName2"];
+        } else {
+          return "hostName3";
+        }
+      });
+    });
+
+    afterEach(function () {
+      mainServiceInfoConfigsController.getMasterComponentHostValue.restore();
+    });
+
+    tests.forEach(function (t) {
+      it(t.m, function () {
+        mainServiceInfoConfigsController.set("content.serviceName", t.serviceName);
+        mainServiceInfoConfigsController.set("globalConfigs", t.globalConfigs);
+        mainServiceInfoConfigsController.set("serviceConfigs", t.serviceConfigs);
+        mainServiceInfoConfigsController.addHostNamesToGlobalConfig();
+        expect(mainServiceInfoConfigsController.get("globalConfigs").findProperty("name", t.hostProperty).defaultValue).to.eql(t.result);
+        expect(mainServiceInfoConfigsController.get("globalConfigs").findProperty("name", t.nameNodeHost).defaultValue).to.eql(t.result2);
+        if (t.serviceName == "HIVE" || t.serviceName == "OOZIE") {
+          expect(mainServiceInfoConfigsController.get("globalConfigs").findProperty("name", t.hostProperty).isVisible).to.eql(t.isVisible);
+        }
+      });
+    }, this);
+  });
+
+  describe("#doPUTClusterConfiguration", function () {
+    var tests = [
+      {
+        configs: {
+          properties: {
+            property1: "1001",
+            property2: "text"
+          }
+        },
+        siteName: "global",
+        r: true,
+        m: "save changed properties"
+      },
+      {
+        configs: {
+          properties: {
+            property1: "1000",
+            property2: "text"
+          }
+        },
+        siteName: "global",
+        r: true,
+        m: "skip saving becouse nothing changed (returns true)"
+      },
+      {
+        configs: {
+          properties: {
+            property1: "1001",
+            property2: "text"
+          },
+          success: false
+        },
+        siteName: "global",
+        r: false,
+        m: "saving failed"
+      }
+    ];
+    var getConfigsByTags = {
+      property1: "1000",
+      property2: "text"
+    }
+    beforeEach(function () {
+      sinon.stub(App.router.get('configurationController'), "getConfigsByTags", function () {
+        return getConfigsByTags
+      });
+      sinon.stub(mainServiceInfoConfigsController, "doPUTClusterConfigurationSite", function (k) {
+        return k.success !== false;
+      });
+    });
+
+    afterEach(function () {
+      mainServiceInfoConfigsController.doPUTClusterConfigurationSite.restore();
+      App.router.get('configurationController').getConfigsByTags.restore();
+    });
+    tests.forEach(function (t) {
+      it(t.m, function () {
+        var siteNameToServerDataMap = {};
+        expect(mainServiceInfoConfigsController.doPUTClusterConfiguration(siteNameToServerDataMap, t.siteName, t.configs)).to.equal(t.r);
+        expect(siteNameToServerDataMap[t.siteName]).to.eql(t.configs);
+      })
+    });
+  });
+
+  describe("#createConfigObject", function() {
+    var tests = [
+      {
+        siteName: "global",
+        method: "createGlobalSiteObj"
+      },
+      {
+        siteName: "core-site",
+        serviceName: "HDFS",
+        method: "createCoreSiteObj"
+      },
+      {
+        siteName: "core-site",
+        serviceName: "ANY",
+        method: false
+      },
+      {
+        siteName: "any",
+        method: "createSiteObj"
+      },
+      {
+        siteName: "mapred-queue-acls",
+        method: false,
+        capacitySchedulerUi: false
+      },
+      {
+        siteName: "mapred-queue-acls",
+        method: "createSiteObj",
+        capacitySchedulerUi: true
+      }
+    ];
+
+    var capacitySchedulerUi = App.supports.capacitySchedulerUi;
+    beforeEach(function() {
+      sinon.stub(mainServiceInfoConfigsController, "createGlobalSiteObj", Em.K);
+      sinon.stub(mainServiceInfoConfigsController, "createCoreSiteObj", Em.K);
+      sinon.stub(mainServiceInfoConfigsController, "createSiteObj", Em.K);
+      mainServiceInfoConfigsController.set("content", {});
+    });
+
+    afterEach(function() {
+      mainServiceInfoConfigsController.createGlobalSiteObj.restore();
+      mainServiceInfoConfigsController.createCoreSiteObj.restore();
+      mainServiceInfoConfigsController.createSiteObj.restore();
+      App.supports.capacitySchedulerUi = capacitySchedulerUi;
+    });
+
+    tests.forEach(function(t) {
+      it("create object for " + t.siteName + " run method " + t.method, function() {
+        App.supports.capacitySchedulerUi = t.capacitySchedulerUi;
+        mainServiceInfoConfigsController.set("content.serviceName", t.serviceName);
+        mainServiceInfoConfigsController.createConfigObject(t.siteName, "versrion1");
+        if (t.method) {
+          expect(mainServiceInfoConfigsController[t.method].calledOnce).to.equal(true);
+        } else {
+          expect(mainServiceInfoConfigsController["createGlobalSiteObj"].calledOnce).to.equal(false);
+          expect(mainServiceInfoConfigsController["createCoreSiteObj"].calledOnce).to.equal(false);
+          expect(mainServiceInfoConfigsController["createSiteObj"].calledOnce).to.equal(false);
+        }
+      });
+    });
+  });
+
+  describe("#doPUTClusterConfigurations", function() {
+
+    var t = {
+     propertyName: "global",
+     properties: {
+       propertu1: "text",
+       property2: 1000
+     },
+     serviceConfigTags: [{
+       siteName: "global",
+       tagName: "version1"
+     }]
+    };
+
+    beforeEach(function() {
+      sinon.stub(mainServiceInfoConfigsController, "createConfigObject", Em.K);
+      sinon.stub(mainServiceInfoConfigsController, "setNewTagNames", Em.K);
+      sinon.stub(mainServiceInfoConfigsController, "doPUTClusterConfiguration", function (siteNameToServerDataMap) {
+        siteNameToServerDataMap[t.propertyName] = t.properties;
+        return true;
+      });
+    });
+
+    afterEach(function() {
+      mainServiceInfoConfigsController.createConfigObject.restore();
+      mainServiceInfoConfigsController.setNewTagNames.restore();
+      mainServiceInfoConfigsController.doPUTClusterConfiguration.restore();
+    });
+
+    it("Saves cluster level configurations", function() {
+      var siteNameToServerDataMap = {};
+      siteNameToServerDataMap[t.propertyName] = t.properties;
+      mainServiceInfoConfigsController.set("serviceConfigTags", t.serviceConfigTags);
+      expect(mainServiceInfoConfigsController.doPUTClusterConfigurations()).to.equal(true);
+      expect(mainServiceInfoConfigsController["createConfigObject"].calledOnce).to.equal(true);
+      expect(mainServiceInfoConfigsController["setNewTagNames"].calledOnce).to.equal(true);
+      expect(mainServiceInfoConfigsController["doPUTClusterConfiguration"].calledOnce).to.equal(true);
+      expect(mainServiceInfoConfigsController.get("savedSiteNameToServerServiceConfigDataMap")).to.eql(siteNameToServerDataMap);
+    });
+
+  });
 });
