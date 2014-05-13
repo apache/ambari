@@ -27,12 +27,20 @@ def setup_users():
   """
   import params
 
-  Group(params.user_group)
-  Group(params.smoke_user_group)
-  Group(params.proxyuser_group)
+  Group(params.user_group, 
+        ignore_failures = params.ignore_groupsusers_create
+  )
+  
+  Group(params.smoke_user_group,
+        ignore_failures = params.ignore_groupsusers_create
+  )
+  Group(params.proxyuser_group,
+        ignore_failures = params.ignore_groupsusers_create
+  )
   User(params.smoke_user,
        gid=params.user_group,
-       groups=[params.proxyuser_group]
+       groups=[params.proxyuser_group],
+       ignore_failures = params.ignore_groupsusers_create
   )
   smoke_user_dirs = format(
     "/tmp/hadoop-{smoke_user},/tmp/hsperfdata_{smoke_user},/home/{smoke_user},/tmp/{smoke_user},/tmp/sqoop-{smoke_user}")
@@ -41,73 +49,104 @@ def setup_users():
   if params.has_hbase_masters:
     User(params.hbase_user,
          gid = params.user_group,
-         groups=[params.user_group])
+         groups=[params.user_group],
+         ignore_failures = params.ignore_groupsusers_create)
     hbase_user_dirs = format(
       "/home/{hbase_user},/tmp/{hbase_user},/usr/bin/{hbase_user},/var/log/{hbase_user},{hbase_tmp_dir}")
     set_uid(params.hbase_user, hbase_user_dirs)
 
   if params.has_nagios:
-    Group(params.nagios_group)
+    Group(params.nagios_group,
+      ignore_failures = params.ignore_groupsusers_create
+    )
     User(params.nagios_user,
-         gid=params.nagios_group)
+         gid=params.nagios_group,
+         ignore_failures = params.ignore_groupsusers_create
+    )
 
   if params.has_oozie_server:
     User(params.oozie_user,
-         gid = params.user_group)
+         gid = params.user_group,
+         ignore_failures = params.ignore_groupsusers_create
+    )
 
   if params.has_hcat_server_host:
     User(params.webhcat_user,
-         gid = params.user_group)
+         gid = params.user_group,
+         ignore_failures = params.ignore_groupsusers_create
+    )
     User(params.hcat_user,
-         gid = params.user_group)
+         gid = params.user_group,
+         ignore_failures = params.ignore_groupsusers_create
+    )
 
   if params.has_hive_server_host:
     User(params.hive_user,
-         gid = params.user_group)
+         gid = params.user_group,
+         ignore_failures = params.ignore_groupsusers_create
+    )
 
   if params.has_resourcemanager:
     User(params.yarn_user,
-         gid = params.user_group)
+         gid = params.user_group,
+         ignore_failures = params.ignore_groupsusers_create
+    )
 
   if params.has_ganglia_server:
-    Group(params.gmetad_user)
-    Group(params.gmond_user)
+    Group(params.gmetad_user,
+         ignore_failures = params.ignore_groupsusers_create
+    )
+    Group(params.gmond_user,
+         ignore_failures = params.ignore_groupsusers_create
+    )
     User(params.gmond_user,
          gid=params.user_group,
-        groups=[params.gmond_user])
+         groups=[params.gmond_user],
+         ignore_failures = params.ignore_groupsusers_create
+    )
     User(params.gmetad_user,
          gid=params.user_group,
-        groups=[params.gmetad_user])
+         groups=[params.gmetad_user],
+         ignore_failures = params.ignore_groupsusers_create
+    )
 
   User(params.hdfs_user,
         gid=params.user_group,
-        groups=[params.user_group]
+        groups=[params.user_group],
+        ignore_failures = params.ignore_groupsusers_create
   )
   User(params.mapred_user,
        gid=params.user_group,
-       groups=[params.user_group]
+       groups=[params.user_group],
+       ignore_failures = params.ignore_groupsusers_create
   )
+  
   if params.has_zk_host:
     User(params.zk_user,
-         gid=params.user_group)
+         gid=params.user_group,
+         ignore_failures = params.ignore_groupsusers_create
+    )
 
   if params.has_storm_server:
     User(params.storm_user,
          gid=params.user_group,
-         groups=[params.user_group]
+         groups=[params.user_group],
+         ignore_failures = params.ignore_groupsusers_create
     )
 
   if params.has_falcon_server:
     User(params.falcon_user,
          gid=params.user_group,
-         groups=[params.user_group]
+         groups=[params.user_group],
+         ignore_failures = params.ignore_groupsusers_create
     )
     
   if params.has_tez:  
     User(params.tez_user,
       gid=params.user_group,
-      groups=[params.proxyuser_group]
-  )
+      groups=[params.proxyuser_group],
+      ignore_failures = params.ignore_groupsusers_create
+    )
 
 def set_uid(user, user_dirs):
   """

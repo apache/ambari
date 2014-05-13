@@ -100,3 +100,4 @@ jdk_name = default("/hostLevelParams/jdk_name", None) # None when jdk is already
 jce_policy_zip = default("/hostLevelParams/jce_name", None) # None when jdk is already installed by user
 jce_location = config['hostLevelParams']['jdk_location']
 jdk_location = config['hostLevelParams']['jdk_location']
+ignore_groupsusers_create = default("ignore_groupsusers_create", False)

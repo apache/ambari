@@ -293,7 +293,8 @@
             "falcon_local_dir": "/hadoop/falcon",
             "tez_user": "tez",
             "rca_enabled": "false",
-            "oozie_admin_port": "11001"
+            "oozie_admin_port": "11001",
+            "ignore_groupsusers_create": "false"
         }, 
         "capacity-scheduler": {
             "yarn.scheduler.capacity.node-locality-delay": "40", 

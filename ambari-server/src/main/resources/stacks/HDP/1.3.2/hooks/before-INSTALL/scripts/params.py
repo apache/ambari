@@ -123,3 +123,4 @@ if has_ganglia_server:
   ganglia_server_host = ganglia_server_hosts[0]
 
 hbase_tmp_dir = config['configurations']['hbase-site']['hbase.tmp.dir']
+ignore_groupsusers_create = default("ignore_groupsusers_create", False)

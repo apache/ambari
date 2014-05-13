@@ -1880,7 +1880,18 @@ module.exports =
       "serviceName": "GANGLIA",
       "category": "General",
       "belongsToService": ["GANGLIA"]
+    },
+    {
+      "id": "puppet var",
+      "name": "ignore_groupsusers_create",
+      "displayName": "Skip group modifications during install",
+      "displayType": "checkbox",
+      "isReconfigurable": true,
+      "isOverridable": false,
+      "isVisible": true,
+      "serviceName": "MISC",
+      "category": "Users and Groups",
+      "belongsToService": ["HDFS"]
     }
-
   ]
 };

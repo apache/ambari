@@ -387,7 +387,8 @@
             "falcon_user": "falcon",
             "falcon_port": "15000",
             "falcon_local_dir": "/hadoop/falcon",
-            "rca_enabled": "false"
+            "rca_enabled": "false",
+            "ignore_groupsusers_create": "false"
         }, 
         "capacity-scheduler": {
             "yarn.scheduler.capacity.node-locality-delay": "40", 

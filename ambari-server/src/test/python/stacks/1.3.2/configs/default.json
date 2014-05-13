@@ -219,7 +219,8 @@
             "hadoop_pid_dir_prefix": "/var/run/hadoop", 
             "nagios_user": "nagios", 
             "hbase_log_dir": "/var/log/hbase",
-            "oozie_admin_port": "11001"
+            "oozie_admin_port": "11001",
+            "ignore_groupsusers_create": "false"
         }, 
         "hdfs-site": {
             "dfs.namenode.avoid.write.stale.datanode": "true", 

@@ -296,7 +296,8 @@
             "jtnode_opt_newsize": "200m", 
             "hbase_regionserver_keytab": "/etc/security/keytabs/hbase.service.keytab", 
             "hbase_principal_name": "hbase", 
-            "hdfs_principal_name": "hdfs"
+            "hdfs_principal_name": "hdfs",
+            "ignore_groupsusers_create": "false"
         }, 
         "hdfs-site": {
             "dfs.namenode.avoid.write.stale.datanode": "true", 

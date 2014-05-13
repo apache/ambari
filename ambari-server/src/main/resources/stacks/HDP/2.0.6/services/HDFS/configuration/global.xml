@@ -163,5 +163,10 @@
     <value>true</value>
     <description>LZO compression enabled</description>
   </property>
+  <property>
+    <name>ignore_groupsusers_create</name>
+    <value>false</value>
+    <description>Whether to ignores failures on users and group creation</description>
+  </property>
   
 </configuration>
