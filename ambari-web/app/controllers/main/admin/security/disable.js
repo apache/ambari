@@ -23,26 +23,20 @@ App.MainAdminSecurityDisableController = App.MainAdminSecurityProgressController
   name: 'mainAdminSecurityDisableController',
   secureServices: [],
   /**
-   * values of site configs when security disabled
+   * values of site configs when security disabled.
+   * Properties not defined in data/secure_mapping or data/HDP2/secure_mapping and needs to be changed on disabling
+   * security should be defined in secureConfigValuesMap Object
    */
   secureConfigValuesMap: {
-    'hadoop.security.authentication': 'simple',
-    'hadoop.security.authorization': 'false',
-    'dfs.datanode.address': '0.0.0.0:50010',
-    'dfs.datanode.http.address': '0.0.0.0:50075',
-    'mapred.task.tracker.task-controller': 'org.apache.hadoop.mapred.DefaultTaskController',
-    'yarn.nodemanager.container-executor.class': 'org.apache.hadoop.yarn.server.nodemanager.DefaultContainerExecutor',
-    'hbase.security.authentication': 'simple',
-    'hbase.rpc.engine': 'org.apache.hadoop.hbase.ipc.WritableRpcEngine',
-    'hbase.security.authorization': 'false',
-    'zookeeper.znode.parent': '/hbase-unsecure',
-    'hive.security.authorization.enabled': 'false',
-    'hive.metastore.sasl.enabled': 'false',
-    'hive.server2.authentication': 'NONE',
-    'oozie.authentication.type': 'simple',
-    'oozie.service.HadoopAccessorService.kerberos.enabled': 'false',
-    '*.falcon.authentication.type': 'simple',
-    '*.falcon.http.authentication.type': 'simple'
+    'nimbus.childopts': function(value) {
+     return value.replace (/-Djava.security.auth.login.config\s*=\s*\S*/g, "");
+    },
+    'ui.childopts': function(value) {
+       return value.replace (/-Djava.security.auth.login.config\s*=\s*\S*/g, "");
+    },
+    'supervisor.childopts': function(value) {
+      return value.replace (/-Djava.security.auth.login.config\s*=\s*\S*/g, "");
+    }
   },
 
   isSubmitDisabled: function () {
@@ -187,11 +181,25 @@ App.MainAdminSecurityDisableController = App.MainAdminSecurityProgressController
   modifySiteConfigs: function (secureMapping, _serviceConfigTags) {
     var secureConfigValuesMap = this.get('secureConfigValuesMap');
     if (!secureMapping || !_serviceConfigTags) return false;
+
+    // iterate over secureConfigValuesMap to update service-site configProperties not present in secureMapping metadata
+    for (var key in secureConfigValuesMap) {
+      if (key in _serviceConfigTags.configs) {
+        var value = secureConfigValuesMap[key];
+        if (typeof value == 'function') {
+          _serviceConfigTags.configs[key] = value(_serviceConfigTags.configs[key]);
+        }  else if (value) {
+          _serviceConfigTags.configs[key] = value;
+        }
+      }
+    }
+
     secureMapping.filterProperty('filename', _serviceConfigTags.siteName + '.xml').forEach(function (_config) {
       var configName = _config.name;
+      var nonSecureConfigValue = _config.nonSecureValue;
       if (configName in _serviceConfigTags.configs) {
-        if (secureConfigValuesMap[configName]) {
-          _serviceConfigTags.configs[configName] = secureConfigValuesMap[configName]
+        if (nonSecureConfigValue) {
+          _serviceConfigTags.configs[configName] = nonSecureConfigValue;
         } else {
           delete _serviceConfigTags.configs[configName]
         }
