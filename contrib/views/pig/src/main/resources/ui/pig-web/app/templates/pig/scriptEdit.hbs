@@ -21,50 +21,50 @@
       <div class="panel-heading">
         <div class="head control-group">
             {{outlet nav}}
-            <div class="btn-group">
-                {{input id="title" placeholderTranslation="scripts.title" class="form-control" disabled=controller.isJob valueBinding="content.title"}}
-            </div>
-            <div class="btn-group">
-                <input type="button" {{action "saveScript" content}} {{bind-attr class=":btn :btn-primary scriptDirty::disabled"}} {{translateAttr value="editor.save"}}
-                >
-            </div>
-            {{#if view.isEditConfirmed}}
-            {{view view.pigHelperView class="btn-group" }}
-            <div class="btn-group">
-                <button type="button" data-toggle="dropdown" {{bind-attr class=":btn :btn-default :dropdown-toggle ufdsList.length::disabled"}} >
-                  {{t 'editor.udfhelper'}}
-                  <span class="caret"></span>
-                </button>
-                <ul class="dropdown-menu">
-                {{#each ufdsList}}
-                  <li><a href="#" {{action 'insertUdf' this target="view" }}>{{this.name}}</a></li>
-                {{/each}}
-                </ul>
-            </div>
-            {{/if}}
+            {{#unless isRenaming}}
+              <div  {{bind-attr class="controller.isScript:input-group :input-title"}}>
+                {{input id="title" placeholderTranslation="scripts.title" class="form-control" disabled='disabled' valueBinding="content.title"}}
+                <div {{bind-attr class=":input-group-btn controller.isJob:hide"}}>
+                  <button  type="button" {{action 'rename' 'ask'}} {{bind-attr class=":btn :btn-default :btn-rename-ask"}} >
+                    <span class="glyphicon glyphicon-edit"></span>
+                  </button>
+                </div>
+              </div>
+            {{else}}
+              <div  {{bind-attr class=":input-group :input-title"}}>
+                {{input id="title" placeholderTranslation="scripts.title" class="form-control" valueBinding="content.title"}}
+                <div class="input-group-btn">
+                  <button  type="button" {{action 'rename' 'cancel'}} {{bind-attr class=":btn :btn-default :btn-rename-cancel"}} >
+                    <span class="glyphicon glyphicon-remove"></span> {{t 'common.cancel'}}
+                  </button>
+                </div>
+                <div class="input-group-btn">
+                  <button  type="button" {{action 'rename' 'confirm'}} {{bind-attr class=":btn :btn-primary :btn-rename-confirm"}} >
+                    <span class="glyphicon glyphicon-ok"></span> {{t 'editor.save'}}
+                  </button>
+                </div>
+              </div>
+            {{/unless}}
         </div>
       </div>
+      {{#if view.showEditor}}
       <div class="panel-body" >
-        <span>
-            {{#with controller }}
-              {{#each controller.pigArgumentsPull}}
-                <span {{bind-attr class=":argument controller.isScript:editable:"}} >
-                  <span class="title"> {{this}} </span>
-                  {{#if controller.isScript}}
-                  <button {{action "removeArgument" this}}  class="close rm-arg">
-                      &times;
-                  </button>
-                  {{/if}}
-                </span>
-              {{/each}}
-            {{/with}}
-            {{#if controller.isScript}}
-            {{view view.argumentInput}}
-              <button {{action "sendArgument" target="view.argumentInput" }} type="button" class="btn btn-default btn-xs" >
-                <span class="glyphicon glyphicon-plus"></span> {{t 'common.add'}}
+        <div class="pull-left">
+        {{#if view.isEditConfirmed}}
+          {{view view.pigHelperView class="btn-group" }}
+          <div class="btn-group">
+              <button type="button" data-toggle="dropdown" {{bind-attr class=":btn :btn-default :btn-xs :dropdown-toggle ufdsList.length::disabled"}} >
+                {{t 'editor.udfhelper'}}
+                <span class="caret"></span>
               </button>
-            {{/if}}
-        </span>
+              <ul class="dropdown-menu">
+              {{#each ufdsList}}
+                <li><a href="#" {{action 'insertUdf' this target="view" }}>{{this.name}}</a></li>
+              {{/each}}
+              </ul>
+          </div>
+        {{/if}}
+        </div>
         <kbd class="file-path pull-right" data-toggle="tooltip" data-placement="bottom"{{translateAttr title="udfs.tooltips.path"}} >
           {{#unless content.pigScript.isLoaded}}
             <div class="spinner-sm"></div>
@@ -91,6 +91,51 @@
         {{/if}}
         {{view view.codeMirrorView id="pig_script" contentBinding="content.pigScript"}}
       </div>
+      <div class="panel-footer" >
+        <span>
+          {{#with controller}}
+            {{#each controller.pigArgumentsPull}}
+              <span {{bind-attr class=":argument controller.isScript:editable:"}} >
+                <span class="title"> {{this}} </span>
+                {{#if controller.isScript}}
+                <button {{action "removeArgument" this}}  class="close rm-arg">
+                    &times;
+                </button>
+                {{/if}}
+              </span>
+            {{/each}}
+          {{/with}}
+          {{#if controller.isScript}}
+          {{view view.argumentInput placeholderTranslation="editor.pig_argument"}}
+            <button {{action "sendArgument" target="view.argumentInput" }} type="button" {{bind-attr class=":btn :btn-default :btn-xs view.argumentInput.value::disabled"}}>
+              <span class="glyphicon glyphicon-plus"></span> {{t 'common.add'}}
+            </button>
+          {{/if}}
+        </span>
+      </div>
+      {{else}}
+      <table class="table table-results">
+        <tr>
+          <td>{{t 'common.path'}}:</td>
+          <td><kbd>{{content.pigScript.id}}</kbd></td>
+        </tr>
+        <tr>
+          <td>{{t 'job.started'}}:</td>
+          <td>{{showDate content.dateStarted 'YYYY-MM-DD HH:mm'}}</td>
+        </tr>
+        <tr>
+          <td>{{t 'common.arguments'}}:</td>
+          <td>
+            {{#each pigArgumentsPull}}
+              <span {{bind-attr class=":argument controller.isScript:editable:"}} >
+                <span class="title"> {{this}} </span>
+              </span>
+            {{/each}}
+          </td>
+        </tr>
+      </table>
+      {{/if}}
+
     </div>
 
     {{outlet main}}
@@ -105,16 +150,18 @@
     </div>
     {{/each}}
     </div>
-
+    {{#if view.showEditor}}
     <div class="controls">
       {{#unless isExec}}
         <button {{action "execute" content 'execute' }} type="button" class="btn btn-default">{{t 'editor.execute'}}</button>
         <button {{action "execute" content 'explain' }} type="button" class="btn btn-default">{{t 'editor.explain'}}</button>
         <button {{action "execute" content 'syntax_check' }} type="button" class="btn btn-default">{{t 'editor.syntax_check'}}</button>
+        <input type="button" {{action "saveScript" content}} {{bind-attr class=":btn :btn-primary scriptDirty::disabled"}} {{translateAttr value="editor.save"}} >
       {{/unless}}
 
       {{#if isExec}}
         <div class="spinner-sm"></div>
       {{/if}}
     </div>
+    {{/if}}
 </div>

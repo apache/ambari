@@ -18,7 +18,9 @@
 
 <div class="panel panel-default panel-scriptlist">
   <div class="panel-heading">
-    {{t 'scripts.scripts'}}
+    <span class="panel-title">
+      {{t 'scripts.scripts'}}
+    </span>
     <a {{action "createScript"}} class="btn btn-default btn-sm pull-right new-script"><span class="glyphicon glyphicon-plus"></span> {{t 'scripts.newscript'}}</a>
   </div>
   
@@ -45,7 +47,7 @@
         <td><span class="date">{{showDate this.dateCreated 'YYYY-MM-DD HH:mm'}}</span></td>
         <td>
           {{#unless this.isNew}}
-            <a>{{t 'common.history'}}</a> - <a>{{t 'common.clone'}}</a> - <a href="#" {{action "deletescript" this}}>{{t 'common.delete'}}</a>
+            <a href="#" {{action "deletescript" this}}>{{t 'common.delete'}}</a>
           {{/unless}}
         </td>
       </tr>

@@ -21,7 +21,33 @@ var App = require('app');
 App.EditController = Em.ObjectController.extend({
   pigArgumentsPull: Em.A(),
   isExec:false,
+  isRenaming:false,
   actions:{
+    rename:function (opt) {
+      var changedAttributes = this.content.changedAttributes(),
+          controller = this;
+      if (opt==='ask') {
+        this.set('isRenaming',true);
+      };
+
+      if (opt==='cancel') {
+        this.content.rollback();
+        if (Em.isArray(changedAttributes.templetonArguments)) {
+          this.content.set('templetonArguments',changedAttributes.templetonArguments[1]);
+        }
+        this.set('isRenaming',false);
+      };
+
+      if (opt==='confirm') {
+        if (Em.isArray(changedAttributes.title)) {
+          this.content.save().then(function () {
+            controller.send('showAlert', {message:Em.I18n.t('editor.title_updated'),status:'success'});
+          });
+        }
+        this.set('isRenaming',false);
+      };
+
+    },
     addArgument:function (arg) {
       if (!arg) {
         return false;
