@@ -59,6 +59,8 @@ class Logger:
   @staticmethod  
   def _get_resource_repr(resource):
     MESSAGE_MAX_LEN = 256
+    logger_level = logging._levelNames[Logger.logger.level]
+    
     arguments_str = ""
     for x,y in resource.arguments.iteritems():
       
@@ -70,7 +72,7 @@ class Logger:
         val = repr(y).lstrip('u')
       # don't show dicts of configurations
       # usually too long  
-      elif isinstance(y, dict):
+      elif logger_level != 'DEBUG' and isinstance(y, dict):
         val = "..."
       # for configs which didn't come
       elif isinstance(y, UnknownConfiguration):

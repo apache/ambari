@@ -31,12 +31,13 @@ from resource_management.core.resources.packaging import Package
 from resource_management.libraries.script.config_dictionary import ConfigDictionary
 from resource_management.libraries.script.repo_installer import RepoInstaller
 
-USAGE = """Usage: {0} <COMMAND> <JSON_CONFIG> <BASEDIR> <STROUTPUT>
+USAGE = """Usage: {0} <COMMAND> <JSON_CONFIG> <BASEDIR> <STROUTPUT> <LOGGING_LEVEL>
 
 <COMMAND> command type (INSTALL/CONFIGURE/START/STOP/SERVICE_CHECK...)
 <JSON_CONFIG> path to command json file. Ex: /var/lib/ambari-agent/data/command-2.json
 <BASEDIR> path to service metadata dir. Ex: /var/lib/ambari-agent/cache/stacks/HDP/2.0.6/services/HDFS
 <STROUTPUT> path to file with structured command output (file will be created). Ex:/tmp/my.txt
+<LOGGING_LEVEL> log level for stdout. Ex:DEBUG,INFO
 """
 
 class Script(object):
@@ -80,17 +81,23 @@ class Script(object):
     cherr.setFormatter(formatter)
     logger.addHandler(cherr)
     logger.addHandler(chout)
+    
     # parse arguments
-    if len(sys.argv) < 5: 
-     logger.error("Script expects at least 4 arguments")
+    if len(sys.argv) < 6: 
+     logger.error("Script expects at least 5 arguments")
      print USAGE.format(os.path.basename(sys.argv[0])) # print to stdout
      sys.exit(1)
-      
+    
     command_name = str.lower(sys.argv[1])
-    # parse command parameters
     command_data_file = sys.argv[2]
     basedir = sys.argv[3]
     self.stroutfile = sys.argv[4]
+    logging_level = sys.argv[5]
+    
+    logging_level_str = logging._levelNames[logging_level]
+    chout.setLevel(logging_level_str)
+    logger.setLevel(logging_level_str)
+      
     try:
       with open(command_data_file, "r") as f:
         pass
