@@ -39,6 +39,8 @@ def printMetric(clusterName, hostName, metricName, file, cf, start, end,
 
   if start is not None:
     args.extend(["-s", start])
+  else:
+    args.extend(["-s", "now-10m"])
 
   if end is not None:
     args.extend(["-e", end])
