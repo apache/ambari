@@ -341,7 +341,6 @@
             "dfs.block.local-path-access.user": "hbase", 
             "dfs.datanode.ipc.address": "0.0.0.0:8010", 
             "dfs.web.ugi": "gopher,gopher", 
-            "dfs.datanode.du.pct": "0.85f", 
             "dfs.secondary.namenode.kerberos.principal": "nn/_HOST@EXAMPLE.COM", 
             "dfs.datanode.keytab.file": "/etc/security/keytabs/dn.service.keytab", 
             "dfs.http.address": "c6401.ambari.apache.org:50070", 

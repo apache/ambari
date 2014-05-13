@@ -79,7 +79,7 @@ public class AmbariMetaInfoTest {
 
   private static final int REPOS_CNT = 3;
   private static final int STACKS_NAMES_CNT = 1;
-  private static final int PROPERTIES_CNT = 63;
+  private static final int PROPERTIES_CNT = 62;
   private static final int OS_CNT = 4;
 
   private AmbariMetaInfo metaInfo = null;
@@ -629,7 +629,7 @@ public class AmbariMetaInfoTest {
   public void testPropertyCount() throws Exception {
     Set<PropertyInfo> properties = metaInfo.getProperties(STACK_NAME_HDP, STACK_VERSION_HDP_02, SERVICE_NAME_HDFS);
     // 3 empty properties
-    Assert.assertEquals(84, properties.size());
+    Assert.assertEquals(83, properties.size());
   }
 
   @Test

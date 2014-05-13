@@ -186,13 +186,6 @@ If the port is 0 then the server will start on a free port.
 </property>
 
 <property>
-<name>dfs.datanode.du.pct</name>
-<value>0.85f</value>
-<description>When calculating remaining space, only use this percentage of the real available space
-</description>
-</property>
-
-<property>
 <name>dfs.namenode.handler.count</name>
 <value>40</value>
 <description>The number of server threads for the namenode.</description>

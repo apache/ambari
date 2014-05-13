@@ -150,7 +150,7 @@ public class AmbariManagementControllerTest {
   private static final int STACK_VERSIONS_CNT = 12;
   private static final int REPOS_CNT = 3;
   private static final int STACKS_CNT = 1;
-  private static final int STACK_PROPERTIES_CNT = 84;
+  private static final int STACK_PROPERTIES_CNT = 83;
   private static final int STACK_COMPONENTS_CNT = 3;
   private static final int OS_CNT = 2;
 

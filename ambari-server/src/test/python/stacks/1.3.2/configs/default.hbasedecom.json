@@ -261,8 +261,7 @@
             "dfs.replication.max": "50", 
             "dfs.datanode.max.xcievers": "4096", 
             "dfs.namenode.write.stale.datanode.ratio": "1.0f", 
-            "dfs.hosts.exclude": "/etc/hadoop/conf/dfs.exclude", 
-            "dfs.datanode.du.pct": "0.85f", 
+            "dfs.hosts.exclude": "/etc/hadoop/conf/dfs.exclude",  
             "dfs.safemode.threshold.pct": "1.0f", 
             "dfs.umaskmode": "077"
         }, 
