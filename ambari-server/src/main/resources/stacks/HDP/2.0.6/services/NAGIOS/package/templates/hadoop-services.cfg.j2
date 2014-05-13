@@ -409,6 +409,17 @@ define service {
 {%  endfor  %}
 
 define service {
+        host_name               {{namenode_host[0]}}
+        use                     hadoop-service
+        service_description     NAMENODE::Last checkpoint time
+        servicegroups           HDFS
+        check_command           check_checkpoint_time!{{ nn_hosts_string }}!{{ namenode_port }}!200!200!{{ dfs_namenode_checkpoint_period }}!{{dfs_namenode_checkpoint_txns}}
+        normal_check_interval   0.5
+        retry_check_interval    0.25
+        max_check_attempts      3
+}
+
+define service {
         hostgroup_name          nagios-server
         use                     hadoop-service
         service_description     HDFS::Blocks health

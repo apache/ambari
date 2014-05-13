@@ -73,6 +73,8 @@ supervisor_port = "56431"
 storm_rest_api_port = "8745"
 falcon_port = config['configurations']['global']['falcon_port']
 ahs_port = get_port_from_url(config['configurations']['yarn-site']['yarn.timeline-service.webapp.address'])
+dfs_namenode_checkpoint_period = config['configurations']['hdfs-site']['dfs.namenode.checkpoint.period']
+dfs_namenode_checkpoint_txns = config['configurations']['hdfs-site']['dfs.namenode.checkpoint.txns']
 
 # this is different for HDP1
 nn_metrics_property = "FSNamesystem"
@@ -160,6 +162,7 @@ _falcon_host = default("/clusterHostInfo/falcon_server_hosts", None)
 _hbase_rs_hosts = default("/clusterHostInfo/hbase_rs_hosts", _slave_hosts)
 _hue_server_host = default("/clusterHostInfo/hue_server_host", None)
 all_hosts = config['clusterHostInfo']['all_hosts']
+nn_hosts_string = " ".join(namenode_host)
 
 
 hostgroup_defs = {

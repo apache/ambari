@@ -135,4 +135,9 @@ define command{
   command_name check_tcp_wrapper
   command_line  $USER1$/check_wrapper.sh $USER1$/check_tcp -H $HOSTADDRESS$ -p $ARG1$ $ARG2$
 }
+
+define command{
+  command_name check_checkpoint_time
+  command_line python $USER1$/check_checkpoint_time.py -H "$ARG1$" -p $ARG2$ -w $ARG3$ -c $ARG4$ -t $ARG5$ -x $ARG6$
+}
         
