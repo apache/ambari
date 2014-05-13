@@ -91,6 +91,7 @@ App.MainAdminClusterController = Em.Controller.extend({
   loadRepositoriesSuccessCallback: function (data) {
     var allRepos = [];
     data.items.forEach(function(os) {
+      if (!App.supports.ubuntu && os.OperatingSystems.os_type == 'debian12') return; // @todo: remove after Ubuntu support confirmation
       var repo = Em.Object.create({
         baseUrl: os.repositories[0].Repositories.base_url,
         osType: os.repositories[0].Repositories.os_type
