@@ -30,6 +30,7 @@ import threading
 import traceback
 import re
 from pprint import pformat
+from datetime import datetime
 
 AMBARI_PASSPHRASE_VAR_NAME = "AMBARI_PASSPHRASE"
 HOST_BOOTSTRAP_TIMEOUT = 300
@@ -84,15 +85,17 @@ class SCP:
                                                          self.host + ":" + self.remote]
     if DEBUG:
       self.host_log.write("Running scp command " + ' '.join(scpcommand))
+    self.host_log.write("==========================")
+    self.host_log.write("\nCommand start time " + datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     scpstat = subprocess.Popen(scpcommand, stdout=subprocess.PIPE,
                                stderr=subprocess.PIPE)
     log = scpstat.communicate()
     errorMsg = log[1]
     log = log[0] + "\n" + log[1]
-    self.host_log.write("==========================")
     self.host_log.write(log)
     self.host_log.write("scp " + self.inputFile)
     self.host_log.write("host=" + self.host + ", exitcode=" + str(scpstat.returncode) )
+    self.host_log.write("Command end time " + datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     return {"exitstatus": scpstat.returncode, "log": log, "errormsg": errorMsg}
 
 
@@ -120,6 +123,8 @@ class SSH:
                   self.user + "@" + self.host, self.command]
     if DEBUG:
       self.host_log.write("Running ssh command " + ' '.join(sshcommand))
+    self.host_log.write("==========================")
+    self.host_log.write("\nCommand start time " + datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     sshstat = subprocess.Popen(sshcommand, stdout=subprocess.PIPE,
                                stderr=subprocess.PIPE)
     log = sshstat.communicate()
@@ -127,10 +132,10 @@ class SSH:
     if self.errorMessage and sshstat.returncode != 0:
       errorMsg = self.errorMessage + "\n" + errorMsg
     log = log[0] + "\n" + errorMsg
-    self.host_log.write("==========================")
     self.host_log.write(log)
     self.host_log.write("SSH command execution finished")
     self.host_log.write("host=" + self.host + ", exitcode=" + str(sshstat.returncode))
+    self.host_log.write("Command end time " + datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     return  {"exitstatus": sshstat.returncode, "log": log, "errormsg": errorMsg}
 
 
@@ -541,7 +546,9 @@ class Bootstrap(threading.Thread):
     exit when the main parallel bootstrap thread exits.
     All we need to do now is a proper logging and creating .done file
     """
-    self.host_log.write("Bootstrap timed out")
+    self.host_log.write("Automatic Agent registration timed out (timeout = {0} seconds). " \
+                        "Check your network connectivity and retry registration," \
+                        " or use manual agent registration.").format(HOST_BOOTSTRAP_TIMEOUT)
     self.createDoneFile(199)
 
 
