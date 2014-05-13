@@ -1,0 +1,10 @@
+{
+  "name": "view",
+  "files": [
+    {
+      "from": "view.js.hbs",
+      "to": "app/views/{{#camelize}}{{name}}{{/camelize}}View.js"
+    }
+  ],
+  "dependencies": []
+}

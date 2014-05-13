@@ -25,6 +25,7 @@
   <modules>
     <module>files</module>
     <module>pig</module>
+    <module>slider</module>
   </modules>
   <build>
     <pluginManagement>

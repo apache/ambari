@@ -1,0 +1,10 @@
+{
+  "name": "route",
+  "files": [
+    {
+      "from": "route.js.hbs",
+      "to": "app/routes/{{#camelize}}{{name}}{{/camelize}}Route.js"
+    }
+  ],
+  "dependencies": []
+}

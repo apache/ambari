@@ -1,0 +1,10 @@
+{
+  "name": "model",
+  "files": [
+    {
+      "from": "model.js.hbs",
+      "to": "app/models/{{#camelize}}{{name}}{{/camelize}}.js"
+    }
+  ],
+  "dependencies": []
+}

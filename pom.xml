@@ -175,6 +175,7 @@
             <exclude>.git/</exclude>
             <exclude>**/.gitignore</exclude>
             <exclude>**/.gitattributes</exclude>
+            <exclude>**/.gitkeep</exclude>
             <!--gitignore content-->
             <exclude>.DS_Store</exclude>
             <exclude>.iml/</exclude>
@@ -196,7 +197,20 @@
             <exclude>contrib/ambari-scom/management-pack/Hadoop_MP/**</exclude>
             <exclude>contrib/addons/test/dataServices/jmx/data/cluster_configuration.json.nohbase</exclude>
             <exclude>contrib/ambari-scom/msi/src/GUI_Ambari.sln</exclude>
-            <exclude>contrib/views/pig/src/main/resources/ui/pig-web/vendor/*</exclude>
+            <exclude>contrib/views/*/target/**</exclude>
+            <exclude>contrib/views/files/src/main/resources/ui/bower_components/**</exclude>
+            <exclude>contrib/views/files/src/main/resources/ui/node/**</exclude>
+            <exclude>contrib/views/files/src/main/resources/ui/node_modules/**</exclude>
+            <exclude>contrib/views/files/src/main/resources/ui/public/**</exclude>
+            <exclude>contrib/views/pig/src/main/resources/ui/pig-web/public/**</exclude>
+            <exclude>contrib/views/pig/src/main/resources/ui/pig-web/node_modules/**</exclude>
+            <exclude>contrib/views/pig/src/main/resources/ui/pig-web/node/**</exclude>
+            <exclude>contrib/views/pig/src/main/resources/ui/pig-web/bower_components/**</exclude>
+            <exclude>contrib/views/pig/src/main/resources/ui/pig-web/vendor/**</exclude>
+            <exclude>contrib/views/slider/src/main/resources/ui/public/**</exclude>
+            <exclude>contrib/views/slider/src/main/resources/ui/node_modules/**</exclude>
+            <exclude>contrib/views/slider/src/main/resources/ui/vendor/**</exclude>
+            <exclude>contrib/views/slider/src/main/resources/ui/app/assets/javascripts/modernizr-2.6.2.min.js</exclude>
           </excludes>
         </configuration>
         <executions>

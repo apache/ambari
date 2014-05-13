@@ -1,0 +1,10 @@
+{
+  "name": "controller",
+  "files": [
+    {
+      "from": "controller.js.hbs",
+      "to": "app/controllers/{{#camelize}}{{name}}{{/camelize}}Controller.js"
+    }
+  ],
+  "dependencies": []
+}

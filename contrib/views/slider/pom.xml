@@ -1,0 +1,259 @@
+<!-- Licensed to the Apache Software Foundation (ASF) under one or more contributor 
+	license agreements. See the NOTICE file distributed with this work for additional 
+	information regarding copyright ownership. The ASF licenses this file to 
+	You under the Apache License, Version 2.0 (the "License"); you may not use 
+	this file except in compliance with the License. You may obtain a copy of 
+	the License at http://www.apache.org/licenses/LICENSE-2.0 Unless required 
+	by applicable law or agreed to in writing, software distributed under the 
+	License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS 
+	OF ANY KIND, either express or implied. See the License for the specific 
+	language governing permissions and limitations under the License. -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.apache.ambari.view</groupId>
+	<artifactId>slider</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<name>Slider</name>
+
+	<parent>
+		<groupId>org.apache.ambari.views</groupId>
+		<artifactId>ambari-contrib-views</artifactId>
+		<version>0.1.0-SNAPSHOT</version>
+	</parent>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.apache.hadoop</groupId>
+			<artifactId>hadoop-hdfs</artifactId>
+			<version>${hadoop-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.hadoop</groupId>
+			<artifactId>hadoop-common</artifactId>
+			<version>${hadoop-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.easymock</groupId>
+			<artifactId>easymock</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.google.inject</groupId>
+			<artifactId>guice</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.glassfish.jersey.containers</groupId>
+			<artifactId>jersey-container-servlet</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.googlecode.json-simple</groupId>
+			<artifactId>json-simple</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.hadoop</groupId>
+			<artifactId>hadoop-minicluster</artifactId>
+			<version>${hadoop-version}</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.glassfish.jersey.test-framework</groupId>
+			<artifactId>jersey-test-framework-core</artifactId>
+			<version>2.6</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.glassfish.jersey.test-framework.providers</groupId>
+			<artifactId>jersey-test-framework-provider-grizzly2</artifactId>
+			<version>2.6</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>
+        org.glassfish.jersey.test-framework.providers
+        </groupId>
+			<artifactId>
+        jersey-test-framework-provider-bundle
+        </artifactId>
+			<version>2.6</version>
+			<scope>test</scope>
+			<type>pom</type>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.ambari</groupId>
+			<artifactId>ambari-views</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+			<version>2.2.2</version>
+		</dependency>
+	</dependencies>
+
+	<properties>
+		<hadoop-version>2.2.0</hadoop-version>
+		<nodejs.directory>${basedir}/target/nodejs</nodejs.directory>
+		<npm.version>1.4.3</npm.version>
+		<ui.directory>${basedir}/src/main/resources/ui</ui.directory>
+	</properties>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>1.7</version>
+				<executions>
+					<execution>
+						<id>clean</id>
+						<phase>clean</phase>
+						<goals>
+							<goal>run</goal>
+						</goals>
+						<configuration>
+							<target name="slider-ui-clean">
+								<exec dir="${ui.directory}" executable="rm" failonerror="false">
+									<arg value="-rf" />
+									<arg value="public" />
+								</exec>
+								<exec dir="${ui.directory}" executable="mkdir" failonerror="false">
+									<arg value="public" />
+								</exec>
+							</target>
+						</configuration>
+					</execution>
+					<execution>
+						<id>compile</id>
+						<phase>generate-resources</phase>
+						<goals>
+							<goal>run</goal>
+						</goals>
+						<configuration>
+							<target name="slider-ui-compile">
+								<exec dir="${ui.directory}" executable="npm" failonerror="false">
+									<env key="PYTHON" value="python2.6" />
+									<arg value="install" />
+								</exec>
+								<exec dir="${ui.directory}" executable="brunch"
+									failonerror="false">
+									<arg value="build" />
+								</exec>
+								<exec dir="${ui.directory}" executable="gzip" failonerror="false">
+									<arg value="public/javascripts/app.js" />
+									<arg value="public/javascripts/vendor.js" />
+									<arg value="public/stylesheets/app.css" />
+								</exec>
+							</target>
+						</configuration>
+					</execution>
+					<execution>
+						<id>test</id>
+						<phase>test</phase>
+						<goals>
+							<goal>run</goal>
+						</goals>
+						<configuration>
+							<target name="slider-ui-test">
+								<!-- <exec dir="${ui.directory}" executable="brunch" failonerror="false"> 
+									<arg value="test"/> </exec> -->
+							</target>
+						</configuration>
+					</execution>
+					<execution>
+						<id>package</id>
+						<phase>package</phase>
+						<goals>
+							<goal>run</goal>
+						</goals>
+						<configuration>
+							<target name="slider-ui-package">
+								<!-- <copy toDir="${project.build.directory}/ambari-server-${project.version}-dist/ambari-server-${project.version}/web/"> 
+									<fileset dir="${ui.directory}/../ambari-web/public"/> </copy> -->
+							</target>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>attached</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<descriptorRefs>
+						<descriptorRef>jar-with-dependencies</descriptorRef>
+					</descriptorRefs>
+					<outputDirectory>${basedir}/target</outputDirectory>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.1</version>
+				<configuration>
+					<source>1.6</source>
+					<target>1.6</target>
+				</configuration>
+			</plugin>
+		</plugins>
+		<resources>
+      <resource>
+        <directory>src/main/resources/</directory>
+        <filtering>false</filtering>
+        <includes>
+          <include>view.xml</include>
+        </includes>
+      </resource>
+      <resource>
+        <directory>src/main/resources/ui/public</directory>
+        <filtering>false</filtering>
+      </resource>
+		</resources>
+		<pluginManagement>
+			<plugins>
+				<!--This plugin's configuration is used to store Eclipse m2e settings 
+					only. It has no influence on the Maven build itself. -->
+				<plugin>
+					<groupId>org.eclipse.m2e</groupId>
+					<artifactId>lifecycle-mapping</artifactId>
+					<version>1.0.0</version>
+					<configuration>
+						<lifecycleMappingMetadata>
+							<pluginExecutions>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>
+											org.codehaus.mojo
+										</groupId>
+										<artifactId>
+											exec-maven-plugin
+										</artifactId>
+										<versionRange>
+											[1.2.1,)
+										</versionRange>
+										<goals>
+											<goal>exec</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<ignore></ignore>
+									</action>
+								</pluginExecution>
+							</pluginExecutions>
+						</lifecycleMappingMetadata>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+</project>

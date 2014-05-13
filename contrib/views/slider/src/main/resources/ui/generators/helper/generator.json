@@ -1,0 +1,10 @@
+{
+  "name": "helper",
+  "files": [
+    {
+      "from": "helper.js.hbs",
+      "to": "app/helpers/{{name}}.js"
+    }
+  ],
+  "dependencies": []
+}
