@@ -45,6 +45,9 @@
 export JAVA_HOME={{java_home}}
 export HADOOP_HOME_WARN_SUPPRESS=1
 
+# Hadoop home directory
+export HADOOP_HOME=${HADOOP_HOME:-/usr/lib/hadoop}
+
 # Hadoop Configuration Directory
 #TODO: if env var set that can cause problems
 export HADOOP_CONF_DIR=${HADOOP_CONF_DIR:-{{hadoop_conf_dir}}}

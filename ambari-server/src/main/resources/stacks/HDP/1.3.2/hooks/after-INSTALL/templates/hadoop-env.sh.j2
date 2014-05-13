@@ -49,6 +49,9 @@ export HADOOP_HOME_WARN_SUPPRESS=1
 #TODO: if env var set that can cause problems
 export HADOOP_CONF_DIR=${HADOOP_CONF_DIR:-{{hadoop_conf_dir}}}
 
+# Hadoop home directory
+export HADOOP_HOME=${HADOOP_HOME:-/usr/lib/hadoop}
+
 # this is different for HDP1 #
 # Path to jsvc required by secure HDP 2.0 datanode
 # export JSVC_HOME={{jsvc_path}}
