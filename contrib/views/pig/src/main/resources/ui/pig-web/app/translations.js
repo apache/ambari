@@ -29,7 +29,8 @@ Ember.I18n.translations = {
     'created':"Created",
     'history':"History",
     'clone':"Clone",
-    'cancel':"Cancel"
+    'cancel':"Cancel",
+    'arguments':"Arguments"
   },
   'scripts':{
     'scripts':"Scripts",
@@ -62,6 +63,8 @@ Ember.I18n.translations = {
     },
   },
   'editor':{
+    'title_updated':'Title updated.',
+    'pig_argument':'Pig argument',
     'pighelper':'PIG helper',
     'udfhelper':'UDF helper',
     'save':'Save',
@@ -71,11 +74,12 @@ Ember.I18n.translations = {
   },
   'job':{
     'title': "Title",
+    'name': "Name",
     'results':'Results',
     'logs':'Logs',
     'job_status':'Job status: ',
     'status':'Status',
-    'started':'Started',
+    'started':'Date started',
     'noJobs': "No jobs to display",
     'alert':{
       'job_started' :'Job started!',

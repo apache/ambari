@@ -82,6 +82,24 @@
   }
 }
 
+.argument-label {
+  vertical-align: middle;
+  background-color: #999999;
+  display: inline-block;
+  font-size: 75%;
+  font-weight: bold;
+  line-height: 1;
+  color: #ffffff;
+  text-align: center;
+  white-space: nowrap;
+  border-radius: .3em;
+  height: 22px;
+  .title {
+    float: left;
+    padding: 7px;
+  }
+}
+
 //edit script
 .edit-script {
   .panel-editscript {
@@ -100,10 +118,35 @@
       .common-shadow-inset;
 
     }
+    .table-results {
+      .argument {
+        .argument-label;
+      }
+      tr td:first-child{
+        width: 100px;
+      }
+      background-color: #f5f5f5;
+    }
     .panel-heading{
-      #title {
-        display: inline-block;
-        width: auto;
+      .input-title {
+        width: 1%;
+        #title {
+          width: 250px;
+          display: inline-block;
+        }
+
+        .btn-rename-ask {
+          background-color: #f5f5f5;
+        }
+
+        .btn-rename-ask:hover {
+          background-color: #fff;
+        }
+
+        .btn-rename-cancel{
+          border-radius: 0;
+          margin-left: -1px;
+        }
       }
       .nav-results > li > a {
         padding: 7px 15px;
@@ -112,6 +155,29 @@
     .panel-body {
       padding: 5px; 
       background-color: #f5f5f5; 
+      border-bottom: 1px solid #dddddd;
+      .argadd {
+        font-size: 13px;
+        width:10%;
+        display: inline-block;
+        height:22px;
+        padding: 0 5px;
+      }
+      .editable{
+        background-color: #428bca !important;
+      }
+      .argument {
+        .argument-label;
+        .moz-padding(rm-arg, ~'.',0 5px 0 0);
+        .rm-arg {
+          position: relative;
+          padding: 2px 5px 0 0;
+        }
+      }
+    }
+    .panel-footer {
+      padding: 5px;
+      background-color: #f5f5f5;
       border-bottom: 1px solid #dddddd;
       .argadd {
         font-size: 13px;
@@ -299,7 +365,7 @@ a.list-group-item.active{
   color: #666666;
 }
 
-.panel-heading {
+.panel-title {
   font-size: 1.1em;
   font-weight: bold;
 }
