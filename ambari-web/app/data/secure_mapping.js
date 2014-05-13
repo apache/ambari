@@ -22,6 +22,7 @@ module.exports = [
     "templateName": [],
     "foreignKey": null,
     "value": "kerberos",
+    "nonSecureValue": "simple",
     "filename": "core-site.xml",
     "serviceName": "HDFS"
   },
@@ -30,6 +31,7 @@ module.exports = [
     "templateName": [],
     "foreignKey": null,
     "value": "true",
+    "nonSecureValue": "false",
     "filename": "core-site.xml",
     "serviceName": "HDFS"
   },
@@ -127,6 +129,7 @@ module.exports = [
     "templateName": ["dfs_datanode_address"],
     "foreignKey": null,
     "value": "0.0.0.0:<templateName[0]>",
+    "nonSecureValue": "0.0.0.0:50010",
     "filename": "hdfs-site.xml",
     "serviceName": "HDFS"
   },
@@ -135,6 +138,7 @@ module.exports = [
     "templateName": ["dfs_datanode_http_address"],
     "foreignKey": null,
     "value": "0.0.0.0:<templateName[0]>",
+    "nonSecureValue": "0.0.0.0:50075",
     "filename": "hdfs-site.xml",
     "serviceName": "HDFS"
   },
@@ -191,6 +195,7 @@ module.exports = [
     "templateName": ["tasktracker_task_controller"],
     "foreignKey": null,
     "value": "<templateName[0]>",
+    "nonSecureValue": "org.apache.hadoop.mapred.DefaultTaskController",
     "filename": "mapred-site.xml",
     "serviceName": "MAPREDUCE"
   },
@@ -231,6 +236,7 @@ module.exports = [
     "templateName": [],
     "foreignKey": null,
     "value": "true",
+    "nonSecureValue": "false",
     "filename": "hive-site.xml",
     "serviceName": "HIVE"
   },
@@ -239,6 +245,7 @@ module.exports = [
     "templateName": [],
     "foreignKey": null,
     "value": "true",
+    "nonSecureValue": "false",
     "filename": "hive-site.xml",
     "serviceName": "HIVE"
   },
@@ -247,6 +254,7 @@ module.exports = [
     "templateName": [],
     "foreignKey": null,
     "value": "KERBEROS",
+    "nonSecureValue": "NONE",
     "filename": "hive-site.xml",
     "serviceName": "HIVE"
   },
@@ -295,6 +303,7 @@ module.exports = [
     "templateName": [],
     "foreignKey": null,
     "value": "true",
+    "nonSecureValue": "false",
     "filename": "oozie-site.xml",
     "serviceName": "OOZIE"
   },
@@ -327,6 +336,7 @@ module.exports = [
     "templateName": [],
     "foreignKey": null,
     "value": "kerberos",
+    "nonSecureValue": "simple",
     "filename": "oozie-site.xml",
     "serviceName": "OOZIE"
   },
@@ -409,6 +419,7 @@ module.exports = [
     "templateName": [],
     "foreignKey": null,
     "value": "kerberos",
+    "nonSecureValue": "simple",
     "filename": "hbase-site.xml",
     "serviceName": "HBASE"
   },
@@ -417,6 +428,7 @@ module.exports = [
     "templateName": [],
     "foreignKey": null,
     "value": "org.apache.hadoop.hbase.ipc.SecureRpcEngine",
+    "nonSecureValue": "org.apache.hadoop.hbase.ipc.WritableRpcEngine",
     "filename": "hbase-site.xml",
     "serviceName": "HBASE"
   },
@@ -425,6 +437,7 @@ module.exports = [
     "templateName": [],
     "foreignKey": null,
     "value": "true",
+    "nonSecureValue": "false",
     "filename": "hbase-site.xml",
     "serviceName": "HBASE"
   },
@@ -448,6 +461,7 @@ module.exports = [
     "templateName": [],
     "foreignKey": null,
     "value": "/hbase-secure",
+    "nonSecureValue": "/hbase-unsecure",
     "filename": "hbase-site.xml",
     "serviceName": "HBASE"
   },
