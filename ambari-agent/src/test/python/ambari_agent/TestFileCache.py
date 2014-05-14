@@ -224,7 +224,7 @@ class TestFileCache(TestCase):
         'http://localhost:8080/resources//stacks/HDP/2.1.1/hooks/archive.zip')
 
 
-  @patch("urllib2.urlopen")
+  @patch("urllib2.OpenerDirector.open")
   def test_fetch_url(self, urlopen_mock):
     fileCache = FileCache(self.config)
     remote_url = "http://dummy-url/"

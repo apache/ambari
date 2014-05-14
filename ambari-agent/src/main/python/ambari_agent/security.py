@@ -189,7 +189,9 @@ class CertificateManager():
   def loadSrvrCrt(self):
     get_ca_url = self.server_url + '/cert/ca/'
     logger.info("Downloading server cert from " + get_ca_url)
-    stream = urllib2.urlopen(get_ca_url)
+    proxy_handler = urllib2.ProxyHandler({})
+    opener = urllib2.build_opener(proxy_handler)
+    stream = opener.open(get_ca_url)
     response = stream.read()
     stream.close()
     srvr_crt_f = open(self.getSrvrCrtName(), 'w+')
@@ -204,6 +206,9 @@ class CertificateManager():
     register_data = {'csr'       : agent_crt_req_content,
                     'passphrase' : passphrase}
     data = json.dumps(register_data)
+    proxy_handler = urllib2.ProxyHandler({})
+    opener = urllib2.build_opener(proxy_handler)
+    urllib2.install_opener(opener)
     req = urllib2.Request(sign_crt_req_url, data, {'Content-Type': 'application/json'})
     f = urllib2.urlopen(req)
     response = f.read()

@@ -155,7 +155,9 @@ class FileCache():
     logger.debug("Trying to download {0}".format(url))
     try:
       memory_buffer = StringIO.StringIO()
-      u = urllib2.urlopen(url, timeout=self.SOCKET_TIMEOUT)
+      proxy_handler = urllib2.ProxyHandler({})
+      opener = urllib2.build_opener(proxy_handler)
+      u = opener.open(url, timeout=self.SOCKET_TIMEOUT)
       logger.debug("Connected with {0} with code {1}".format(u.geturl(),
                                                              u.getcode()))
       buff = u.read(self.BLOCK_SIZE)

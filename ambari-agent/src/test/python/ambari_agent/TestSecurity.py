@@ -250,7 +250,7 @@ class TestSecurity(unittest.TestCase):
 
 
 
-  @patch('urllib2.urlopen')
+  @patch("urllib2.OpenerDirector.open")
   @patch.object(security.CertificateManager, "getSrvrCrtName")
   def test_loadSrvrCrt(self, getSrvrCrtName_mock, urlopen_mock):
     read_mock = MagicMock(create=True)
@@ -274,7 +274,7 @@ class TestSecurity(unittest.TestCase):
   @patch.dict('os.environ', {'DUMMY_PASSPHRASE': 'dummy-passphrase'})
   @patch('json.dumps')
   @patch('urllib2.Request')
-  @patch('urllib2.urlopen')
+  @patch("urllib2.OpenerDirector.open")
   @patch('json.loads')
   def test_reqSignCrt(self, loads_mock, urlopen_mock, request_mock, dumps_mock, open_mock, hostname_mock):
     self.config.set('security', 'keysdir', '/dummy-keysdir')
@@ -348,7 +348,7 @@ class TestSecurity(unittest.TestCase):
 
   @patch("ambari_agent.hostname.hostname")
   @patch('__builtin__.open', create=True, autospec=True)
-  @patch('urllib2.urlopen')
+  @patch("urllib2.OpenerDirector.open")
   @patch.dict('os.environ', {'DUMMY_PASSPHRASE': 'dummy-passphrase'})
   def test_reqSignCrt_malformedJson(self, urlopen_mock, open_mock, hostname_mock):
     hostname_mock.return_value = "dummy-hostname"
