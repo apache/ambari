@@ -72,7 +72,6 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.MYSQL_JDB
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.ORACLE_JDBC_URL;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.PACKAGE_LIST;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.REPO_INFO;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCHEMA_VERSION;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT_TYPE;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_PACKAGE_FOLDER;
@@ -1281,7 +1280,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     if (commandParams == null) { // if not defined
       commandParams = new TreeMap<String, String>();
     }
-    commandParams.put(SCHEMA_VERSION, serviceInfo.getSchemaVersion());
     String commandTimeout = configs.getDefaultAgentTaskTimeout();
     /*
      * This script is only used for

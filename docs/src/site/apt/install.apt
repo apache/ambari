@@ -62,7 +62,7 @@ Installing Ambari
   2) Install ambari-agent on each of the cluster nodes.
 
     * To install ambari-agent, point to the freely accessible HDP repo
-that contains the required dependencies (e.g., Puppet).  Then use yum to install ambari-agent RPM and all of its dependencies.
+that contains the required dependencies.  Then use yum to install ambari-agent RPM and all of its dependencies.
 
     On RHEL/CentOS 5:
 
@@ -90,7 +90,7 @@ $ sudo service iptables stop
 
   4) Install Ambari server on Ambari master:
 
-    * To install Ambari server, point to the freely accessible HDP repo that contains the required dependencies (e.g., Puppet, PHP, Ruby, etc).  Then use yum to install Ambari RPMs and all of the dependencies.
+    * To install Ambari server, point to the freely accessible HDP repo that contains the required dependencies (e.g., PHP, etc).  Then use yum to install Ambari RPMs and all of the dependencies.
 
     On RHEL/CentOS 5:
 

@@ -58,9 +58,7 @@ public class CommandScriptDefinition {
   }
 
   public static enum Type {
-    PYTHON,
-
-    PUPPET // TODO: Not supported yet. Do we really need it?
+    PYTHON
   }
 
   @Override

@@ -38,12 +38,6 @@ cache_dir=/var/lib/ambari-agent/cache
 
 [services]
 
-[puppet]
-puppetmodules=/var/lib/ambari-agent/puppet/
-puppet_home=/root/workspace/puppet-install/puppet-2.7.9
-facter_home=/root/workspace/puppet-install/facter-1.6.10
-timeout_seconds = 600
-
 [python]
 custom_actions_dir = /var/lib/ambari-agent/resources/custom_actions
 
@@ -59,7 +53,7 @@ passphrase_env_var_name=AMBARI_PASSPHRASE
 [heartbeat]
 state_interval = 6
 dirs=/etc/hadoop,/etc/hadoop/conf,/var/run/hadoop,/var/log/hadoop
-rpms=glusterfs,openssl,wget,net-snmp,ntpd,ruby,ganglia,nagios,glusterfs
+rpms=glusterfs,openssl,wget,net-snmp,ntpd,ganglia,nagios,glusterfs
 log_lines_count=300
 
 """

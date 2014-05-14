@@ -21,7 +21,6 @@ from Queue import Queue
 
 from unittest import TestCase
 from ambari_agent.LiveStatus import LiveStatus
-from ambari_agent.PuppetExecutor import PuppetExecutor
 from ambari_agent.ActionQueue import ActionQueue
 from ambari_agent.AmbariConfig import AmbariConfig
 import os, errno, time, pprint, tempfile, threading
@@ -243,23 +242,23 @@ class TestActionQueue(TestCase):
     dummy_controller = MagicMock()
     actionQueue = ActionQueue(config, dummy_controller)
     unfreeze_flag = threading.Event()
-    puppet_execution_result_dict = {
+    python_execution_result_dict = {
       'stdout': 'out',
       'stderr': 'stderr',
       'structuredOut' : ''
       }
     def side_effect(command, tmpoutfile, tmperrfile):
       unfreeze_flag.wait()
-      return puppet_execution_result_dict
+      return python_execution_result_dict
     def patched_aq_execute_command(command):
       # We have to perform patching for separate thread in the same thread
-      with patch.object(PuppetExecutor, "runCommand") as runCommand_mock:
+      with patch.object(CustomServiceOrchestrator, "runCommand") as runCommand_mock:
           runCommand_mock.side_effect = side_effect
           actionQueue.execute_command(command)
     ### Test install/start/stop command ###
     ## Test successful execution with configuration tags
-    puppet_execution_result_dict['status'] = 'COMPLETE'
-    puppet_execution_result_dict['exitcode'] = 0
+    python_execution_result_dict['status'] = 'COMPLETE'
+    python_execution_result_dict['exitcode'] = 0
     # We call method in a separate thread
     execution_thread = Thread(target = patched_aq_execute_command ,
                               args = (self.datanode_install_command, ))
@@ -315,8 +314,8 @@ class TestActionQueue(TestCase):
     self.assertEqual(len(report['reports']), 0)
 
     ## Test failed execution
-    puppet_execution_result_dict['status'] = 'FAILED'
-    puppet_execution_result_dict['exitcode'] = 13
+    python_execution_result_dict['status'] = 'FAILED'
+    python_execution_result_dict['exitcode'] = 13
     # We call method in a separate thread
     execution_thread = Thread(target = patched_aq_execute_command ,
                               args = (self.datanode_install_command, ))
@@ -349,8 +348,8 @@ class TestActionQueue(TestCase):
     self.assertEqual(len(report['reports']), 0)
 
     ### Test upgrade command ###
-    puppet_execution_result_dict['status'] = 'COMPLETE'
-    puppet_execution_result_dict['exitcode'] = 0
+    python_execution_result_dict['status'] = 'COMPLETE'
+    python_execution_result_dict['exitcode'] = 0
     execution_thread = Thread(target = patched_aq_execute_command ,
                               args = (self.datanode_upgrade_command, ))
     execution_thread.start()
@@ -384,12 +383,9 @@ class TestActionQueue(TestCase):
   @patch.object(CustomServiceOrchestrator, "runCommand")
   @patch("CommandStatusDict.CommandStatusDict")
   @patch.object(ActionQueue, "status_update_callback")
-  @patch.object(ActionQueue, "determine_command_format_version")
-  def test_store_configuration_tags(self, determine_command_format_version_mock,
-                                    status_update_callback_mock,
+  def test_store_configuration_tags(self, status_update_callback_mock,
                                     command_status_dict_mock,
                                     cso_runCommand_mock):
-    determine_command_format_version_mock.return_value = 2
     custom_service_orchestrator_execution_result_dict = {
       'stdout': 'out',
       'stderr': 'stderr',
@@ -426,7 +422,6 @@ class TestActionQueue(TestCase):
     self.assertEqual(expected, report['reports'][0])
 
   @patch.object(ActionQueue, "status_update_callback")
-  @patch.object(ActionQueue, "determine_command_format_version")
   @patch.object(StackVersionsFileHandler, "read_stack_version")
   @patch.object(CustomServiceOrchestrator, "requestComponentStatus")
   @patch.object(ActionQueue, "execute_command")
@@ -435,93 +430,18 @@ class TestActionQueue(TestCase):
   def test_execute_status_command(self, CustomServiceOrchestrator_mock,
                                   build_mock, execute_command_mock,
                                   requestComponentStatus_mock, read_stack_version_mock,
-                                  determine_command_format_version_mock,
                                   status_update_callback):
     CustomServiceOrchestrator_mock.return_value = None
     dummy_controller = MagicMock()
     actionQueue = ActionQueue(AmbariConfig().getConfig(), dummy_controller)
 
     build_mock.return_value = "dummy report"
-    # Check execution ov V1 status command
-    determine_command_format_version_mock.return_value = ActionQueue.COMMAND_FORMAT_V1
-    actionQueue.execute_status_command(self.status_command)
-    report = actionQueue.result()
-    expected = 'dummy report'
-    self.assertEqual(len(report['componentStatus']), 1)
-    self.assertEqual(report['componentStatus'][0], expected)
-    self.assertFalse(requestComponentStatus_mock.called)
 
-    # Check execution ov V2 status command
     requestComponentStatus_mock.reset_mock()
     requestComponentStatus_mock.return_value = {'exitcode': 0}
-    determine_command_format_version_mock.return_value = ActionQueue.COMMAND_FORMAT_V2
     actionQueue.execute_status_command(self.status_command)
     report = actionQueue.result()
     expected = 'dummy report'
     self.assertEqual(len(report['componentStatus']), 1)
     self.assertEqual(report['componentStatus'][0], expected)
     self.assertTrue(requestComponentStatus_mock.called)
-
-
-  @patch.object(CustomServiceOrchestrator, "__init__")
-  def test_determine_command_format_version(self,
-                                            CustomServiceOrchestrator_mock):
-    CustomServiceOrchestrator_mock.return_value = None
-    v1_command = {
-      'commandParams': {
-        'schema_version': '1.0'
-      }
-    }
-    v2_command = {
-      'commandParams': {
-        'schema_version': '2.0'
-      }
-    }
-    current_command = {
-      # Absent 'commandParams' section
-    }
-    dummy_controller = MagicMock()
-    actionQueue = ActionQueue(AmbariConfig().getConfig(), dummy_controller)
-    self.assertEqual(actionQueue.determine_command_format_version(v1_command),
-                     ActionQueue.COMMAND_FORMAT_V1)
-    self.assertEqual(actionQueue.determine_command_format_version(v2_command),
-                     ActionQueue.COMMAND_FORMAT_V2)
-    self.assertEqual(actionQueue.determine_command_format_version(current_command),
-                     ActionQueue.COMMAND_FORMAT_V1)
-
-
-  @patch.object(ActionQueue, "determine_command_format_version")
-  @patch("__builtin__.open")
-  @patch.object(PuppetExecutor, "runCommand")
-  @patch.object(CustomServiceOrchestrator, "runCommand")
-  @patch.object(ActionQueue, "status_update_callback")
-  @patch.object(CustomServiceOrchestrator, "__init__")
-  def test_command_execution_depending_on_command_format(self,
-                                CustomServiceOrchestrator_mock,
-                                status_update_callback_mock,
-                                custom_ex_runCommand_mock,
-                                puppet_runCommand_mock, open_mock,
-                                determine_command_format_version_mock):
-    CustomServiceOrchestrator_mock.return_value = None
-    dummy_controller = MagicMock()
-    actionQueue = ActionQueue(AmbariConfig().getConfig(), dummy_controller)
-    ret = {
-      'stdout' : '',
-      'stderr' : '',
-      'exitcode': 1,
-      }
-    puppet_runCommand_mock.return_value = ret
-    determine_command_format_version_mock.return_value = \
-                                  ActionQueue.COMMAND_FORMAT_V1
-    actionQueue.execute_command(self.datanode_install_command)
-    self.assertTrue(puppet_runCommand_mock.called)
-    self.assertFalse(custom_ex_runCommand_mock.called)
-
-    puppet_runCommand_mock.reset_mock()
-
-    custom_ex_runCommand_mock.return_value = ret
-    determine_command_format_version_mock.return_value = \
-      ActionQueue.COMMAND_FORMAT_V2
-    actionQueue.execute_command(self.datanode_install_command)
-    self.assertFalse(puppet_runCommand_mock.called)
-    self.assertTrue(custom_ex_runCommand_mock.called)

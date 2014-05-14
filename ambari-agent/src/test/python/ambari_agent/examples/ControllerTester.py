@@ -26,14 +26,14 @@ from mock.mock import patch, MagicMock, call
 from ambari_agent.AmbariConfig  import AmbariConfig
 import Queue
 import logging
-from ambari_agent import PuppetExecutor, PythonExecutor
+from ambari_agent import PythonExecutor
 
 logger=logging.getLogger()
 
 queue = Queue.Queue()
 
-# Set to True to replace python and puppet calls with mockups
-disable_python_and_puppet = True
+# Set to True to replace python calls with mockups
+disable_python = True
 
 agent_version = "1.3.0"
 
@@ -113,24 +113,16 @@ responseId = Int(0)
 
 def main():
 
-  if disable_python_and_puppet:
-    with patch.object(PuppetExecutor.PuppetExecutor, 'run_manifest') \
-                                          as run_manifest_method:
-      run_manifest_method.side_effect = \
-              lambda command, file, tmpout, tmperr: {
-          'exitcode' : 0,
-          'stdout'   : "Simulated run of pp %s" % file,
-          'stderr'   : 'None'
-        }
-      with patch.object(PythonExecutor.PythonExecutor, 'run_file') \
+  if disable_python:
+    with patch.object(PythonExecutor.PythonExecutor, 'run_file') \
                                           as run_file_py_method:
-        run_file_py_method.side_effect = \
-              lambda command, file, tmpoutfile, tmperrfile: {
-          'exitcode' : 0,
-          'stdout'   : "Simulated run of py %s" % file,
-          'stderr'   : 'None'
-        }
-        run_simulation()
+      run_file_py_method.side_effect = \
+            lambda command, file, tmpoutfile, tmperrfile: {
+        'exitcode' : 0,
+        'stdout'   : "Simulated run of py %s" % file,
+        'stderr'   : 'None'
+      }
+      run_simulation()
   else:
     run_simulation()
 

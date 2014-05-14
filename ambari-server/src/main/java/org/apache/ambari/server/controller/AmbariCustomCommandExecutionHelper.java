@@ -70,7 +70,6 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMPONENT
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.CUSTOM_COMMAND;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOOKS_FOLDER;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.REPO_INFO;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCHEMA_VERSION;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT_TYPE;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_PACKAGE_FOLDER;
@@ -268,7 +267,6 @@ public class AmbariCustomCommandExecutionHelper {
       execCmd.setHostLevelParams(hostLevelParams);
 
       Map<String, String> commandParams = new TreeMap<String, String>();
-      commandParams.put(SCHEMA_VERSION, serviceInfo.getSchemaVersion());
       if (additionalCommandParams != null) {
         for (String key : additionalCommandParams.keySet()) {
           commandParams.put(key, additionalCommandParams.get(key));
@@ -443,7 +441,6 @@ public class AmbariCustomCommandExecutionHelper {
     execCmd.setHostLevelParams(hostLevelParams);
 
     Map<String, String> commandParams = new TreeMap<String, String>();
-    commandParams.put(SCHEMA_VERSION, serviceInfo.getSchemaVersion());
 
     String commandTimeout = configs.getDefaultAgentTaskTimeout();
 

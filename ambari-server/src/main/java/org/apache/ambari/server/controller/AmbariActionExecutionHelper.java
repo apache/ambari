@@ -51,7 +51,6 @@ import java.util.TreeMap;
 
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMMAND_TIMEOUT;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMPONENT_CATEGORY;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCHEMA_VERSION;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT_TYPE;
 
@@ -316,7 +315,6 @@ public class AmbariActionExecutionHelper {
       commandParams.put(COMMAND_TIMEOUT, actionContext.getTimeout().toString());
       commandParams.put(SCRIPT, actionName + ".py");
       commandParams.put(SCRIPT_TYPE, TYPE_PYTHON);
-      commandParams.put(SCHEMA_VERSION, AmbariMetaInfo.SCHEMA_VERSION_2);
 
       ExecutionCommand execCmd = stage.getExecutionCommandWrapper(hostName,
         actionContext.getActionName()).getExecutionCommand();

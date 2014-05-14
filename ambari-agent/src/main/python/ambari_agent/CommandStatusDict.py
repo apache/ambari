@@ -112,7 +112,7 @@ class CommandStatusDict():
     output = grep.tail(tmpout, Grep.OUTPUT_LAST_LINES)
     inprogress = self.generate_report_template(command)
     inprogress.update({
-      'stdout': grep.filterMarkup(output),
+      'stdout': output,
       'stderr': tmperr,
       'structuredOut': tmpstructuredout,
       'exitCode': 777,

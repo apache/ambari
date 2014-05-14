@@ -27,7 +27,6 @@ import os
 
 from LiveStatus import LiveStatus
 from shell import shellRunner
-import PuppetExecutor
 from ActualConfigHandler import ActualConfigHandler
 from CommandStatusDict import CommandStatusDict
 from CustomServiceOrchestrator import CustomServiceOrchestrator
@@ -61,9 +60,6 @@ class ActionQueue(threading.Thread):
   IN_PROGRESS_STATUS = 'IN_PROGRESS'
   COMPLETED_STATUS = 'COMPLETED'
   FAILED_STATUS = 'FAILED'
-
-  COMMAND_FORMAT_V1 = "1.0"
-  COMMAND_FORMAT_V2 = "2.0"
 
   def __init__(self, config, controller):
     super(ActionQueue, self).__init__()
@@ -140,33 +136,17 @@ class ActionQueue(threading.Thread):
       traceback.print_exc()
       logger.warn(err)
 
-
-  def determine_command_format_version(self, command):
-    """
-    Returns either COMMAND_FORMAT_V1 or COMMAND_FORMAT_V2
-    """
-    try:
-      if command['commandParams']['schema_version'] == self.COMMAND_FORMAT_V2:
-        return self.COMMAND_FORMAT_V2
-      else:
-        return  self.COMMAND_FORMAT_V1
-    except KeyError:
-      pass # ignore
-    return self.COMMAND_FORMAT_V1 # Fallback
-
-
   def execute_command(self, command):
     '''
     Executes commands of type  EXECUTION_COMMAND
     '''
     clusterName = command['clusterName']
     commandId = command['commandId']
-    command_format = self.determine_command_format_version(command)
 
     message = "Executing command with id = {commandId} for role = {role} of " \
-              "cluster {cluster}. Command format={command_format}".format(
+              "cluster {cluster}.".format(
               commandId = str(commandId), role=command['role'],
-              cluster=clusterName, command_format=command_format)
+              cluster=clusterName)
     logger.info(message)
     logger.debug(pprint.pformat(command))
 
@@ -181,24 +161,13 @@ class ActionQueue(threading.Thread):
     })
     self.commandStatuses.put_command_status(command, in_progress_status)
     # running command
-    if command_format == self.COMMAND_FORMAT_V1:
-      # Create a new instance of executor for the current thread
-      puppetExecutor = PuppetExecutor.PuppetExecutor(
-        self.config.get('puppet', 'puppetmodules'),
-        self.config.get('puppet', 'puppet_home'),
-        self.config.get('puppet', 'facter_home'),
-        self.config.get('agent', 'prefix'), self.config)
-      commandresult = puppetExecutor.runCommand(command, in_progress_status['tmpout'],
-        in_progress_status['tmperr'])
-    else:
-      commandresult = self.customServiceOrchestrator.runCommand(command,
-        in_progress_status['tmpout'], in_progress_status['tmperr'])
+    commandresult = self.customServiceOrchestrator.runCommand(command,
+      in_progress_status['tmpout'], in_progress_status['tmperr'])
     # dumping results
     status = self.COMPLETED_STATUS
     if commandresult['exitcode'] != 0:
       status = self.FAILED_STATUS
     roleResult = self.commandStatuses.generate_report_template(command)
-    # assume some puppet plumbing to run these commands
     roleResult.update({
       'stdout': commandresult['stdout'],
       'stderr': commandresult['stderr'],
@@ -252,25 +221,22 @@ class ActionQueue(threading.Thread):
       else:
         globalConfig = {}
 
-      command_format = self.determine_command_format_version(command)
-
       livestatus = LiveStatus(cluster, service, component,
                               globalConfig, self.config, self.configTags)
 
-      component_status = None
       component_extra = None
-      if command_format == self.COMMAND_FORMAT_V2:
-        # For custom services, responsibility to determine service status is
-        # delegated to python scripts
-        component_status_result = self.customServiceOrchestrator.requestComponentStatus(command)
 
-        if component_status_result['exitcode'] == 0:
-          component_status = LiveStatus.LIVE_STATUS
-        else:
-          component_status = LiveStatus.DEAD_STATUS
+      # For custom services, responsibility to determine service status is
+      # delegated to python scripts
+      component_status_result = self.customServiceOrchestrator.requestComponentStatus(command)
 
-        if component_status_result.has_key('structuredOut'):
-          component_extra = component_status_result['structuredOut']
+      if component_status_result['exitcode'] == 0:
+        component_status = LiveStatus.LIVE_STATUS
+      else:
+        component_status = LiveStatus.DEAD_STATUS
+
+      if component_status_result.has_key('structuredOut'):
+        component_extra = component_status_result['structuredOut']
 
       result = livestatus.build(forsed_component_status= component_status)
 

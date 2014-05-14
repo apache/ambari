@@ -95,13 +95,6 @@ debug: Processing report from ambari-dmi with processor Puppet::Reports::Store
     desired = ''
     self.assertEquals(fragment, desired, 'Grep tail function contains bug in index arithmetics')
 
-  def test_filterMarkup(self):
-    string = """[0;36mnotice: /Stage[main]/Hdp-hadoop/Hdp-hadoop::Package[hadoop]/Hdp::Package[hadoop 64]/Hdp::Package::Process_pkg[hadoop 64]/Package[hadoop-libhdfs]/ensure: created[0m"""
-    desired="""notice: /Stage[main]/Hdp-hadoop/Hdp-hadoop::Package[hadoop]/Hdp::Package[hadoop 64]/Hdp::Package::Process_pkg[hadoop 64]/Package[hadoop-libhdfs]/ensure: created"""
-    filtered = self.grep.filterMarkup(string)
-    #sys.stderr.write(filtered)
-    self.assertEquals(filtered, desired)
-
   def tearDown(self):
     pass
 

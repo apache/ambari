@@ -37,7 +37,6 @@ import sys
 from AgentException import AgentException
 from FileCache import FileCache
 from LiveStatus import LiveStatus
-import manifestGenerator
 
 
 class TestCustomServiceOrchestrator(TestCase):
@@ -67,7 +66,7 @@ class TestCustomServiceOrchestrator(TestCase):
     self.assertTrue(dummy_controller.registration_listeners.append.called)
 
 
-  @patch.object(manifestGenerator, 'decompressClusterHostInfo')
+  @patch.object(CustomServiceOrchestrator, 'decompressClusterHostInfo')
   @patch("hostname.public_hostname")
   @patch("os.path.isfile")
   @patch("os.unlink")
@@ -217,7 +216,7 @@ class TestCustomServiceOrchestrator(TestCase):
     run_file_mock.reset_mock()
 
     # unknown script type case
-    command['commandParams']['script_type'] = "PUPPET"
+    command['commandParams']['script_type'] = "SOME_TYPE"
     ret = orchestrator.runCommand(command, "out.txt", "err.txt")
     self.assertEqual(ret['exitcode'], 1)
     self.assertFalse(run_file_mock.called)

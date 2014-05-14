@@ -153,7 +153,6 @@
             <exclude>src/examples/*</exclude>
             <exclude>src/test/python/dummy*.txt</exclude>
             <exclude>src/main/python/ambari_client/imports.txt</exclude>
-            <exclude>src/main/puppet/modules/stdlib/**</exclude>
             <exclude>**/*.erb</exclude>
             <exclude>**/*.json</exclude>
           </excludes>

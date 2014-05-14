@@ -253,7 +253,6 @@ public class ExecutionCommand extends AgentCommand {
    */
   public static interface KeyNames {
 
-    String SCHEMA_VERSION = "schema_version";
     String COMMAND_TIMEOUT = "command_timeout";
     String SCRIPT = "script";
     String SCRIPT_TYPE = "script_type";

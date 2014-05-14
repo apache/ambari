@@ -25,8 +25,7 @@
     "commandParams": {
         "command_timeout": "600", 
         "service_package_folder": "YARN",
-        "script_type": "PYTHON", 
-        "schema_version": "2.0", 
+        "script_type": "PYTHON",
         "script": "scripts/yarn_client.py",
         "excluded_hosts": "host1",
         "mark_draining_only" : "false"

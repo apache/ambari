@@ -26,8 +26,7 @@
     "commandParams": {
         "command_timeout": "600", 
         "service_package_folder": "HDFS",
-        "script_type": "PYTHON", 
-        "schema_version": "2.0", 
+        "script_type": "PYTHON",
         "script": "scripts/datanode.py",
         "excluded_hosts": "host1,host2",
         "mark_draining_only" : "false",

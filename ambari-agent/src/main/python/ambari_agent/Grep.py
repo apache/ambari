@@ -13,8 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import re
-
 class Grep:
 
   # How many lines from command output send to server
@@ -76,14 +74,3 @@ class Grep:
       length = len(lines)
       tailed = lines[length - n:]
       return "".join(tailed)
-
-  def filterMarkup(self, string):
-    """
-    Filters given string from puppet colour markup done using escape codes like [0;36m
-    """
-    if string is None:
-      result = None
-    else:
-      regexp = "\x1b" + r"\[[\d;]{1,4}m"
-      result = re.sub(regexp, '', string)
-    return result
