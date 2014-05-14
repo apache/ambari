@@ -44,57 +44,55 @@
           <div class="alert alert-info">{{t installer.step1.advancedRepo.message}}</div>
           <div class="alert alert-warning">{{t installer.step1.advancedRepo.importantMassage}}</div>
 
-          <table class="table">
-            <thead>
-            <tr>
-              <th></th>
-              <th class="os">{{t common.os}}</th>
-              <th class="validations"></th>
-              <th class="url">{{t installer.step1.advancedRepo.localRepo.column.baseUrl}}</th>
-              <th class="actions"></th>
-            </tr>
-            </thead>
-            <tbody>
-              {{#each repoGroup in view.allRepositoriesGroup}}
-              <tr>
-                <td class="group-checkbox">{{view Ember.Checkbox checkedBinding="repoGroup.checked"}}</td>
-                <td class="os-td">
-                  <table {{bindAttr class="repoGroup.checked::disabled-label"}}>
-                    <tbody>
-                      {{#each repo in repoGroup}}
-                      <tr>
-                        <td  {{bindAttr class=":os repo.empty-error:label-error repo.invalid-error:label-error "}}>{{repo.osType}}</td>
-                      </tr>
-                      {{/each}}
-                    </tbody>
-                  </table>
-                </td>
-                <td class="validation-results">
-                  {{#if repoGroup.validation}}
-                    {{view view.popoverView repoGroupBinding="repoGroup"}}
-                  {{/if}}
-                </td>
-                <td  {{bindAttr class=":url-results repoGroup.checked::disabled-textfield repoGroup.empty-error:textfield-error repoGroup.invalid-error:textfield-error"}}>
-                  {{view Ember.TextField valueBinding="repoGroup.baseUrl"}}
-                </td>
-                <td class="clearAll-icon">
-                  {{#if repoGroup.clearAll}}
-                    <a {{action "clearGroupLocalRepository" repoGroup target="view" }}>
-                      <i class="icon-remove-sign"></i>
-                    </a>
-                  {{/if}}
-                </td>
-                <td class="action-results">
-                  {{#if repoGroup.undo}}
-                    <a {{action "undoGroupLocalRepository" repoGroup target="view" }}>
-                      <i class="icon-undo"></i>{{t common.undo}}
-                    </a>
-                  {{/if}}
-                </td>
-              </tr>
+          <div class="repositories-table">
+            <div class="thead">
+              <div class="first-th">&nbsp;</div>
+              <div class="th os-th">{{t common.os}}</div>
+              <div class="th name-th">{{t common.name}}</div>
+              <div class="th url-th">{{t installer.step1.advancedRepo.localRepo.column.baseUrl}}</div>
+            </div>
+            <div class="tbody">
+              {{#each repoGroup in view.allRepositoriesGroups}}
+                <div class="trow">
+                  <div class="os-td">
+                    <label>
+                      {{view Ember.Checkbox checkedBinding="repoGroup.checked"}}
+                      <span {{bindAttr class=":os repoGroup.checked::disabled-label"}}>{{repoGroup.name}}</span>
+                    </label>
+                  </div>
+                  <div style="width:83%">
+                    {{#each repository in repoGroup.repositories}}
+                        <div class="sub-trow">
+                          <div class="name-td">{{repository.repoId}}</div>
+                          <div class="validation-td">
+                            {{#if repository.validation}}
+                              {{view view.popoverView repoGroupBinding="repository"}}
+                            {{/if}}
+                          </div>
+                          <div {{bindAttr class=":url-td repoGroup.checked::disabled-textfield repository.empty-error:textfield-error repository.invalid-error:textfield-error"}}>
+                            {{view Ember.TextField valueBinding="repository.baseUrl"}}
+                          </div>
+                          <div class="clear-td">
+                            {{#if repository.clearAll}}
+                              <a {{action "clearGroupLocalRepository" repository target="view" }}>
+                                <i class="icon-remove-sign"></i>
+                              </a>
+                            {{/if}}
+                          </div>
+                          <div class="actions-td">
+                            {{#if repository.undo}}
+                              <a {{action "undoGroupLocalRepository" repository target="view" }}>
+                                <i class="icon-undo"></i>{{t common.undo}}
+                              </a>
+                            {{/if}}
+                          </div>
+                         </div>
+                    {{/each}}
+                  </div>
+                </div>
               {{/each}}
-            </tbody>
-          </table>
+            </div>
+          </div>
           <div id="skip-validation">
             <label>{{view Ember.Checkbox checkedBinding="view.skipValidationChecked" class="checkbox"}}{{t installer.step1.advancedRepo.skipValidation.message}}
               <i class="icon-question-sign" rel="skip-validation-tooltip"
@@ -116,8 +114,4 @@
 {{/if}}
 
 <a class="btn pull-left" {{action back}}>&larr; {{t common.back}}</a>
-{{#if view.isSubmitDisabled}}
-  <a class="btn btn-success pull-right" disabled="disabled">{{t common.next}} &rarr;</a>
-{{else}}
-  <a class="btn btn-success pull-right" {{action next}}>{{t common.next}} &rarr;</a>
-{{/if}}
+<button class="btn btn-success pull-right" {{bindAttr disabled="view.isSubmitDisabled"}} {{action next}}>{{t common.next}} &rarr;</button>

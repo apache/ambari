@@ -36,47 +36,67 @@ describe('App.WizardStep1View', function () {
     });
   });
 
-  describe('#osTypeToGroup', function () {
+  describe('#allRepositoriesGroups', function () {
 
-    var tests = Em.A([
-      {os: 'redhat5', e: 0},
-      {os: 'redhat6', e: 1},
-      {os: 'suse11', e: 2},
-      {os: 'debian12', e: 3},
-      {os: 'bulgen', e: -1}
-    ]);
-
-    tests.forEach(function (test) {
-      it(test.os, function () {
-        expect(view.osTypeToGroup(test.os)).to.equal(test.e);
-      });
+    var controller = Em.Object.create({
+      content: {
+        stacks: [
+          {
+            operatingSystems: [
+              {
+                osType: 'redhat5',
+                selected: true
+              },
+              {
+                osType: 'redhat5',
+                selected: true
+              },
+              {
+                osType: 'redhat6',
+                selected: false
+              }
+            ],
+            isSelected: true
+          }
+        ]
+      }
     });
 
-  });
+    var allRepositories = [
+      Ember.Object.create({osType: 'redhat5', 'empty-error': true}),
+      Ember.Object.create({osType: 'redhat5', 'empty-error': true}),
+      Ember.Object.create({osType: 'redhat6', 'empty-error': true})
+    ];
 
-  describe('#groupToOsType', function () {
-
-    var tests = Em.A([
-      {type: 0, e: ['redhat5']},
-      {type: 1, e: ['redhat6']},
-      {type: 2, e: ['suse11']},
-      {type: 3, e: ['debian12']},
-      {type: -1, e: []}
-    ]);
-
-    tests.forEach(function (test) {
-      it(test.type, function () {
-        expect(view.groupToOsType(test.type)).to.eql(test.e);
+    it('should create repo groups from repo list', function () {
+      view.reopen({
+        controller: controller
       });
+      view.set('allRepositories', allRepositories);
+      expect(view.get('allRepositoriesGroups.length')).to.equal(2);
+      expect(view.get('allRepositoriesGroups')[0].get('name')).to.equal('redhat5');
+      expect(view.get('allRepositoriesGroups')[1].get('name')).to.equal('redhat6');
+      expect(view.get('allRepositoriesGroups')[0].get('checked')).to.be.true;
+      expect(view.get('allRepositoriesGroups')[1].get('checked')).to.be.false;
+      expect(view.get('allRepositoriesGroups')[0].get('repositories')).to.eql([allRepositories[0], allRepositories[1]]);
+      expect(view.get('allRepositoriesGroups')[1].get('repositories')).to.eql([allRepositories[2]]);
     });
 
+    it('should create empty array if there is no stacks', function () {
+      view.reopen({
+        controller: controller
+      });
+      view.set('controller.content.stacks', []);
+      view.set('allRepositories', allRepositories);
+      expect(view.get('allRepositoriesGroups.length')).to.equal(0);
+    });
   });
 
   describe('#emptyRepoExist', function () {
 
     var tests = Em.A([
       {
-        allRepositoriesGroup: [
+        allRepositories: [
           {'empty-error': false},
           {'empty-error': false},
           {'empty-error': false}
@@ -84,7 +104,7 @@ describe('App.WizardStep1View', function () {
         e: false
       },
       {
-        allRepositoriesGroup: [
+        allRepositories: [
           {'empty-error': true},
           {'empty-error': false},
           {'empty-error': false}
@@ -92,7 +112,7 @@ describe('App.WizardStep1View', function () {
         e: true
       },
       {
-        allRepositoriesGroup: [
+        allRepositories: [
           {'empty-error': true},
           {'empty-error': true},
           {'empty-error': true}
@@ -102,19 +122,18 @@ describe('App.WizardStep1View', function () {
     ]);
 
     tests.forEach(function (test) {
-      it(test.allRepositoriesGroup.mapProperty('empty-error').join(', '), function () {
-        view.set('allRepositoriesGroup', test.allRepositoriesGroup);
+      it(test.allRepositories.mapProperty('empty-error').join(', '), function () {
+        view.set('allRepositories', test.allRepositories);
         expect(view.get('emptyRepoExist')).to.equal(test.e);
       });
     });
-
   });
 
   describe('#allRepoUnchecked', function () {
 
     var tests = Em.A([
       {
-        allRepositoriesGroup: [
+        allRepositoriesGroups: [
           {'checked': false},
           {'checked': false},
           {'checked': false}
@@ -122,7 +141,7 @@ describe('App.WizardStep1View', function () {
         e: true
       },
       {
-        allRepositoriesGroup: [
+        allRepositoriesGroups: [
           {'checked': true},
           {'checked': false},
           {'checked': false}
@@ -130,7 +149,7 @@ describe('App.WizardStep1View', function () {
         e: false
       },
       {
-        allRepositoriesGroup: [
+        allRepositoriesGroups: [
           {'checked': true},
           {'checked': true},
           {'checked': true}
@@ -140,8 +159,10 @@ describe('App.WizardStep1View', function () {
     ]);
 
     tests.forEach(function (test) {
-      it(test.allRepositoriesGroup.mapProperty('checked').join(', '), function () {
-        view.set('allRepositoriesGroup', test.allRepositoriesGroup);
+      it(test.allRepositoriesGroups.mapProperty('checked').join(', '), function () {
+        view.reopen({
+          allRepositoriesGroups: test.allRepositoriesGroups
+        });
         expect(view.get('allRepoUnchecked')).to.equal(test.e);
       });
     });
@@ -254,33 +275,36 @@ describe('App.WizardStep1View', function () {
     var tests = Em.A([
       {
         stacks: [Em.Object.create({isSelected: true, invalidCnt: 1})],
-        allRepositoriesGroup: [Em.Object.create({validation: 'icon-exclamation-sign'})],
+        allRepositories: [Em.Object.create({validation: 'icon-exclamation-sign'})],
         m: 'invalidCnt: 1, validation: icon-exclamation-sign',
         e: true
       },
       {
         stacks: [Em.Object.create({isSelected: true, invalidCnt: 1})],
-        allRepositoriesGroup: [Em.Object.create({validation: ''})],
+        allRepositories: [Em.Object.create({validation: ''})],
         m: 'invalidCnt: 1, validation: ""',
         e: false
       },
       {
         stacks: [Em.Object.create({isSelected: true, invalidCnt: 0})],
-        allRepositoriesGroup: [Em.Object.create({validation: ''})],
+        allRepositories: [Em.Object.create({validation: ''})],
         m: 'invalidCnt: 0, validation: ""',
         e: false
       },
       {
         stacks: [Em.Object.create({isSelected: true, invalidCnt: 0})],
-        allRepositoriesGroup: [Em.Object.create({validation: 'icon-exclamation-sign'})],
+        allRepositories: [Em.Object.create({validation: 'icon-exclamation-sign'})],
         m: 'invalidCnt: 0, validation: icon-exclamation-sign',
         e: false
       }
     ]);
     tests.forEach(function (test) {
       it(test.m, function () {
+        view.reopen({
+          allRepositoriesGroups: null
+        });
         view.set('controller.content.stacks', test.stacks);
-        view.set('allRepositoriesGroup', test.allRepositoriesGroup);
+        view.set('allRepositories', test.allRepositories);
         expect(view.get('invalidUrlExist')).to.equal(test.e);
       });
     });
@@ -289,47 +313,56 @@ describe('App.WizardStep1View', function () {
   describe('#totalErrorCnt', function () {
     var tests = Em.A([
       {
-        allRepositoriesGroup: [
-          {checked: false}
+        allRepositories: [
+          {}
         ],
         m: 'allRepoUnchecked',
+        allRepoUnchecked: true,
         e: 1
       },
       {
-        allRepositoriesGroup: [
-          {checked: true, 'empty-error': true},
-          {checked: false, 'empty-error': true}
+        allRepositories: [
+          {'empty-error': true},
+          {'empty-error': true}
         ],
+        allRepoUnchecked: false,
         m: 'two with empty-error',
         e: 2
       },
       {
-        allRepositoriesGroup: [
-          {checked: true, 'validation': 'icon-exclamation-sign'},
-          {checked: false, 'validation': 'icon-exclamation-sign'}
+        allRepositories: [
+          {'validation': 'icon-exclamation-sign'},
+          {'validation': 'icon-exclamation-sign'}
         ],
+        allRepoUnchecked: false,
         m: 'two with validation="icon-exclamation-sign"',
         e: 2
       },
       {
-        allRepositoriesGroup: [
-          {checked: true, 'empty-error': true, 'validation': 'icon-exclamation-sign'},
-          {checked: false, 'empty-error': true, 'validation': 'icon-exclamation-sign'}
+        allRepositories: [
+          {'empty-error': true, 'validation': 'icon-exclamation-sign'},
+          {'empty-error': true, 'validation': 'icon-exclamation-sign'}
         ],
+        allRepoUnchecked: false,
         m: 'two with empty-error, two with validation="icon-exclamation-sign"',
         e: 4
       },
       {
-        allRepositoriesGroup: [
-          {checked: true}
+        allRepositories: [
+          {}
         ],
+        allRepoUnchecked: false,
         m: 'no errors/warnings etc',
         e: 0
       }
     ]);
     tests.forEach(function (test) {
       it(test.m, function () {
-        view.set('allRepositoriesGroup', test.allRepositoriesGroup);
+        view.reopen({
+          allRepositoriesGroups: null,
+          allRepoUnchecked: test.allRepoUnchecked
+        });
+        view.set('allRepositories', test.allRepositories);
         expect(view.get('totalErrorCnt')).to.equal(test.e);
       });
     });
@@ -412,160 +445,67 @@ describe('App.WizardStep1View', function () {
     });
   });
 
-  describe('#setGroupByOs', function () {
-    Em.A([
-        {
-          allGroupsCheckbox: [true, false, true],
-          groupNumber: 1,
-          m: 'should update group',
-          os: {
-            baseUrl: 'baseUrl',
-            latestBaseUrl: 'latestBaseUrl',
-            defaultBaseUrl: 'defaultBaseUrl',
-            validation: 'icon-exclamation-sign',
-            errorTitle: 'errorTitle',
-            errorContent: 'errorContent'
-          },
-          e: {
-            'checked': false,
-            'baseUrl': 'baseUrl',
-            'latestBaseUrl': 'latestBaseUrl',
-            'defaultBaseUrl': 'defaultBaseUrl',
-            'empty-error': false,
-            'invalid-error': true,
-            'validation': 'icon-exclamation-sign',
-            'undo': true,
-            'clearAll': 'baseUrl',
-            'errorTitle': 'errorTitle',
-            'errorContent': 'errorContent',
-            'group-number': 1
-          }
-        },
-        {
-          allGroupsCheckbox: [true, false, true],
-          groupNumber: 0,
-          m: 'should update group (2)',
-          os: {
-            baseUrl: '',
-            latestBaseUrl: 'latestBaseUrl',
-            defaultBaseUrl: 'defaultBaseUrl',
-            validation: 'validation',
-            errorTitle: 'errorTitle',
-            errorContent: 'errorContent'
-          },
-          e: {
-            'checked': true,
-            'baseUrl': '',
-            'latestBaseUrl': 'latestBaseUrl',
-            'defaultBaseUrl': 'defaultBaseUrl',
-            'empty-error': true,
-            'invalid-error': false,
-            'validation': 'validation',
-            'undo': true,
-            'clearAll': '',
-            'errorTitle': 'errorTitle',
-            'errorContent': 'errorContent',
-            'group-number': 0
-          }
-        },
-        {
-          allGroupsCheckbox: [true, false, true],
-          groupNumber: 0,
-          m: 'should update group (3)',
-          os: {
-            baseUrl: 'latestBaseUrl',
-            latestBaseUrl: 'latestBaseUrl',
-            defaultBaseUrl: 'defaultBaseUrl',
-            validation: 'validation',
-            errorTitle: 'errorTitle',
-            errorContent: 'errorContent'
-          },
-          e: {
-            'checked': true,
-            'baseUrl': 'latestBaseUrl',
-            'latestBaseUrl': 'latestBaseUrl',
-            'defaultBaseUrl': 'defaultBaseUrl',
-            'empty-error': false,
-            'invalid-error': false,
-            'validation': 'validation',
-            'undo': false,
-            'clearAll': 'latestBaseUrl',
-            'errorTitle': 'errorTitle',
-            'errorContent': 'errorContent',
-            'group-number': 0
-          }
-        }
-      ]).forEach(function (test) {
-        it(test.m, function () {
-          var group = Em.Object.create({});
-          view.set('allGroupsCheckbox', test.allGroupsCheckbox);
-          view.setGroupByOs(group, test.os, test.groupNumber);
-          Em.keys(test.e).forEach(function (k) {
-            expect(group.get(k)).to.equal(test.e[k]);
-          });
-        });
-      });
-  });
-
   describe('#updateByCheckbox', function () {
 
-    it('shouldn\'t do nothing if no stack selected', function () {
-      var groups = [
-        {},
-        {},
-        {}
-      ];
-      view.reopen({
-        allRepositoriesGroup: groups,
-        controller: {
-          content: {
-            stacks: [
-              {isSelected: false}
-            ]
-          }
-        }
-      });
-      view.updateByCheckbox();
-      view.get('allRepositoriesGroup').forEach(function(g) {
-        expect(g).to.eql({});
-      });
-    });
+    var allRepositories = [
+      Em.Object.create({
+        id: 'id',
+        osType: 'redhat5',
+        baseUrl: 'baseUrl',
+        latestBaseUrl: 'latestBaseUrl',
+        validation: '',
+        selected: ''
+      })
+    ];
 
-    it('target group isn\'t checked', function() {
-      view.reopen({
-        allGroupsCheckbox: [true],
-        allRepositoriesGroup: [
-          Em.Object.create({
-            'group-number': 0,
-            checked: false
-          })
-        ],
-        controller: {
-          content: {
-            stacks: [
+    var allRepositoriesGroups = [
+      Em.Object.create({
+        name: 'redhat5',
+        checked: false,
+        repositories: [Em.Object.create({
+          id: 'id',
+          osType: 'redhat5',
+          baseUrl: 'baseUrl',
+          latestBaseUrl: 'latestBaseUrl',
+          validation: '',
+          selected: ''
+        })
+        ]
+      })
+    ];
+
+    var controller = {
+      content: {
+        stacks: [
+          {
+            isSelected: true,
+            operatingSystems: [
               {
-                isSelected: true,
-                operatingSystems: [
-                  {
-                    osType: 'redhat5',
-                    baseUrl: 'baseUrl',
-                    latestBaseUrl: 'latestBaseUrl',
-                    validation: '',
-                    selected: ''
-                  }
-                ]
+                id: 'id',
+                osType: 'redhat5',
+                baseUrl: 'baseUrl',
+                latestBaseUrl: 'latestBaseUrl',
+                validation: '',
+                selected: false
               }
             ]
           }
-        }
+        ]
+      }
+    };
+
+    it('target group isn\'t checked', function () {
+      view.reopen({
+        allRepositories: allRepositories,
+        allRepositoriesGroups: allRepositoriesGroups,
+        controller: controller
       });
       view.updateByCheckbox();
       var os = view.get('controller.content.stacks')[0].operatingSystems[0],
-        targetGroup = view.get('allRepositoriesGroup.firstObject');
+          targetGroup = view.get('allRepositories.firstObject');
       expect(os.baseUrl).to.equal(os.latestBaseUrl);
       expect(os.selected).to.equal(false);
       expect(os.validation).to.be.null;
-      expect(view.get('allGroupsCheckbox')).to.eql([false]);
       expect(targetGroup.get('baseUrl')).to.equal('latestBaseUrl');
       expect(targetGroup.get('latestBaseUrl')).to.equal('latestBaseUrl');
       expect(targetGroup.get('undo')).to.equal(false);
@@ -575,52 +515,29 @@ describe('App.WizardStep1View', function () {
       expect(targetGroup.get('validation')).to.be.null;
     });
 
-    it('target group is checked, skipValidationChecked = true', function() {
+    it('target group is checked, skipValidationChecked = true', function () {
+      controller.content.stacks[0].operatingSystems[0].selected = true;
+      allRepositoriesGroups[0].set('checked', true);
       view.reopen({
-        allGroupsCheckbox: [false],
-        skipValidationChecked: true,
-        allRepositoriesGroup: [
-          Em.Object.create({
-            'group-number': 0,
-            checked: true,
-            baseUrl: ''
-          })
-        ],
-        controller: {
-          content: {
-            stacks: [
-              {
-                isSelected: true,
-                operatingSystems: [
-                  {
-                    osType: 'redhat5',
-                    baseUrl: 'baseUrl',
-                    latestBaseUrl: 'latestBaseUrl',
-                    validation: '',
-                    selected: ''
-                  }
-                ]
-              }
-            ]
-          }
-        }
+        allRepositories: allRepositories,
+        allRepositoriesGroups: allRepositoriesGroups,
+        controller: controller,
+        skipValidationChecked: true
       });
       view.updateByCheckbox();
       var os = view.get('controller.content.stacks')[0].operatingSystems[0],
-        targetGroup = view.get('allRepositoriesGroup.firstObject');
+          targetGroup = view.get('allRepositories.firstObject');
       expect(os.selected).to.equal(true);
       expect(os.skipValidation).to.equal(true);
-      expect(view.get('allGroupsCheckbox')).to.eql([true]);
       expect(targetGroup.get('invalid-error')).to.equal(false);
-      expect(targetGroup.get('empty-error')).to.equal(true);
-      expect(targetGroup.get('clearAll')).to.equal('');
+      expect(targetGroup.get('empty-error')).to.equal(false);
+      expect(targetGroup.get('clearAll')).to.equal('latestBaseUrl');
       expect(targetGroup.get('validation')).to.be.null;
     });
-
   });
 
-  describe('#clearGroupLocalRepository', function() {
-    it('should be proxy for doActionForGroupLocalRepository', function() {
+  describe('#clearGroupLocalRepository', function () {
+    it('should be proxy for doActionForGroupLocalRepository', function () {
       sinon.stub(view, 'doActionForGroupLocalRepository', Em.K);
       view.clearGroupLocalRepository({});
       expect(view.doActionForGroupLocalRepository.calledWith({}, '')).to.equal(true);
@@ -628,8 +545,8 @@ describe('App.WizardStep1View', function () {
     });
   });
 
-  describe('#undoGroupLocalRepository', function() {
-    it('should be proxy for doActionForGroupLocalRepository', function() {
+  describe('#undoGroupLocalRepository', function () {
+    it('should be proxy for doActionForGroupLocalRepository', function () {
       sinon.stub(view, 'doActionForGroupLocalRepository', Em.K);
       view.undoGroupLocalRepository({});
       expect(view.doActionForGroupLocalRepository.calledWith({}, 'latestBaseUrl')).to.equal(true);
@@ -637,21 +554,20 @@ describe('App.WizardStep1View', function () {
     });
   });
 
-  describe('#doActionForGroupLocalRepository', function() {
+  describe('#doActionForGroupLocalRepository', function () {
 
-    beforeEach(function() {
+    beforeEach(function () {
       sinon.stub(view, 'loadRepositories', Em.K);
     });
 
-    afterEach(function() {
+    afterEach(function () {
       view.loadRepositories.restore();
     });
 
-    it('should update OS in selected stack', function() {
+    it('should update OS in selected stack', function () {
       var event = {context: Em.Object.create({'group-number': 0})};
       view.reopen({
-        allGroupsCheckbox: [true],
-        allRepositoriesGroup: [
+        allRepositories: [
           Em.Object.create({
             'group-number': 0,
             checked: false
@@ -683,11 +599,10 @@ describe('App.WizardStep1View', function () {
       expect(view.loadRepositories.calledOnce).to.equal(true);
     });
 
-    it('should update OS in selected stack (2)', function() {
+    it('should update OS in selected stack (2)', function () {
       var event = {context: Em.Object.create({'group-number': 0})};
       view.reopen({
-        allGroupsCheckbox: [true],
-        allRepositoriesGroup: [
+        allRepositories: [
           Em.Object.create({
             'group-number': 0,
             checked: false
@@ -721,12 +636,11 @@ describe('App.WizardStep1View', function () {
 
   });
 
-  describe('#editGroupLocalRepository', function() {
+  describe('#editLocalRepository', function () {
 
-    it('should update os and group', function() {
+    it('should update os and group', function () {
       view.reopen({
-        allGroupsCheckbox: [true],
-        allRepositoriesGroup: [
+        allRepositories: [
           Em.Object.create({
             'group-number': 0,
             checked: false,
@@ -752,9 +666,9 @@ describe('App.WizardStep1View', function () {
           }
         }
       });
-      view.editGroupLocalRepository();
+      view.editLocalRepository();
       var os = view.get('controller.content.stacks')[0].operatingSystems[0],
-        targetGroup = view.get('allRepositoriesGroup.firstObject');
+          targetGroup = view.get('allRepositories.firstObject');
       expect(os.baseUrl).to.equal(targetGroup.get('baseUrl'));
       expect(os.validation).to.be.null;
 
@@ -767,82 +681,62 @@ describe('App.WizardStep1View', function () {
 
   });
 
-  describe('#loadRepositories', function() {
-    beforeEach(function() {
-      sinon.stub(view, 'setGroupByOs', Em.K);
+  describe('#loadRepositories', function () {
+    beforeEach(function () {
       sinon.stub(view, 'updateByCheckbox', Em.K);
-      sinon.stub(view, 'editGroupLocalRepository', Em.K);
-      sinon.stub(App, 'get', function(k) {
-        if('supports.ubuntu' == k) return true;
-        return Em.get(App, k);
-      });
+      sinon.stub(view, 'editLocalRepository', Em.K);
     });
-    afterEach(function() {
-      view.setGroupByOs.restore();
+    afterEach(function () {
       view.updateByCheckbox.restore();
-      view.editGroupLocalRepository.restore();
-      App.get.restore();
+      view.editLocalRepository.restore();
     });
-    Em.A([
-        {
-          osType: 'redhat5',
-          e: {
-            i: 0,
-            o: 'Red Hat 5'
-          }
-        },
-        {
-          osType: 'redhat6',
-          e: {
-            i: 1,
-            o: 'Red Hat 6'
-          }
-        },
-        {
-          osType: 'suse11',
-          e: {
-            i: 2,
-            o: 'SLES 11'
-          }
-        },
-        {
-          osType: 'debian12',
-          e: {
-            i: 3,
-            o: 'Ubuntu 12'
-          }
-        }
-      ]).forEach(function (test) {
-        it(test.osType, function () {
-          view.reopen({
-            allGroupsCheckbox: [true],
-            allRepositoriesGroup: [
-              Em.Object.create({
-                'group-number': 0,
-                checked: false,
-                baseUrl: 'b1'
-              })
-            ],
-            controller: {
-              content: {
-                stacks: [
-                  {
-                    isSelected: true,
-                    operatingSystems: [
-                      {
-                        osType: test.osType,
-                        baseUrl: 'baseUrl'
-                      }
-                    ]
-                  }
-                ]
-              }
+    it('Should create repository object from controller content stack data', function () {
+      controller = {
+        content: {
+          stacks: [
+            {
+              isSelected: true,
+              operatingSystems: [
+                {
+                  'id': 'test',
+                  'repoId': 'HDP',
+                  'baseUrl': 'http://test1',
+                  'osType': 'RedHat',
+                  'latestBaseUrl': 'http://test1',
+                  'defaultBaseUrl': 'http://test3',
+                  'validation': 'icon-exclamation-sign',
+                  'errorTitle': 'test',
+                  'errorContent': 'test'
+                }
+              ]
             }
-          });
-          view.loadRepositories();
-          expect(view.get('allRepositoriesGroup')[test.e.i][0].get('osType')).to.equal(test.e.o);
-        });
+          ]
+        }
+      };
+      result = Ember.Object.create({
+        'id': 'test',
+        'repoId': 'HDP',
+        'baseUrl': 'http://test1',
+        'osType': 'RedHat',
+        'latestBaseUrl': 'http://test1',
+        'defaultBaseUrl': 'http://test3',
+        'empty-error': false,
+        'invalid-error': true,
+        'validation': 'icon-exclamation-sign',
+        'undo': false,
+        'clearAll': 'http://test1',
+        'errorTitle': 'test',
+        'errorContent': 'test'
       });
+      view.reopen({
+        controller: controller
+      });
+      view.loadRepositories();
+      var allRepositories = view.get('allRepositories');
+      Em.keys(allRepositories).forEach(function (key) {
+        expect(allRepositories[0].get(key)).to.equal(result.get(key));
+      });
+    });
   });
 
 });

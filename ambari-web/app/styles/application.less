@@ -5852,19 +5852,85 @@ i.icon-asterisks {
     }
   }
   .accordion-body {
-    .table thead {
-    }
-    .table tbody{
-      .label-error{
-        color: #b94a48;
+    .repositories-table {
+      div {
+        float: left;
+        min-height: 1px;
       }
-      .textfield-error input{
+      .thead {
+        width: 100%;
+        .th {
+          font-weight: bold;
+        }
+        .first-th {
+          width: 4%;
+        }
+        .os-th {
+          width: 13%;
+        }
+        .name-th {
+          width: 17%;
+        }
+        .url-th {
+          width: 66%;
+        }
+      }
+      .tbody {
+        width: 100%;
+        .trow {
+          width: 100%;
+          border-top: 1px solid #dddddd;
+          padding-top: 10px;
+          .os-td {
+            width: 17%;
+          }
+          .sub-trow {
+            width: 100%;
+            .name-td {
+              width: 16%;
+            }
+            .validation-td {
+              width: 4%;
+            }
+            .url-td {
+              width: 63%;
+              .ember-text-field {
+                width: 100%;
+              }
+            }
+            .clear-td {
+              width: 4%;
+              padding-top: 5px;
+              padding-left: 12px;
+              a {
+                cursor: pointer;
+                text-decoration: none;
+              }
+              .icon-remove-sign {
+                color: #808080;
+              }
+            }
+            .actions-td {
+              width: 10%;
+              padding-top: 5px;
+              a {
+                cursor: pointer;
+              }
+              .icon-undo {
+                color: rgb(243, 178, 11);
+                margin-right: 2px;
+              }
+            }
+          }
+        }
+      }
+      .textfield-error input {
         border-color: #b94a48;
         -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
         -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
         box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
       }
-      .disabled-textfield input{
+      .disabled-textfield input {
         color: #808080;
         disabled: disabled;
         pointer-events: none;
@@ -5873,76 +5939,6 @@ i.icon-asterisks {
       }
       .disabled-label {
         color: #808080;
-      }
-      .group-checkbox {
-        width: 3%;
-        vertical-align: middle;
-        padding-left: 2px;
-        padding-right: 2px;
-      }
-      .os {
-        padding: 2px;
-        border-top: transparent;
-      }
-      .os-td {
-        width: 17%;
-        padding: 2px;
-        vertical-align: middle;
-      }
-      .url {
-        width: 65%;
-      }
-      .url-results {
-        width: 65%;
-        vertical-align: middle;
-        .ember-text-field {
-          width: 100%;
-        }
-      }
-      .validation {
-        width: 3%;
-      }
-      .validation-results {
-        width: 3%;
-        vertical-align: middle;
-        padding-top: 0px;
-        padding-left: 4px;
-        padding-right: 4px;
-        .icon-exclamation-sign {
-          color: #b94a48;
-        }
-
-      }
-      .clearAll-icon {
-        width: 2%;
-        vertical-align: middle;
-        padding-top: 0px;
-        padding-left: 4px;
-        padding-right: 4px;
-        a {
-          cursor: pointer;
-          text-decoration: none;
-        }
-        .icon-remove-sign {
-          color: #808080;
-        }
-      }
-      .action {
-        width: 10%;
-      }
-      .action-results {
-        width: 10%;
-        vertical-align: middle;
-        padding-top: 0px;
-        padding-left: 4px;
-        padding-right: 4px;
-        a {
-          cursor: pointer;
-        }
-        .icon-undo {
-          color: rgb(243, 178, 11);
-          margin-right: 2px;
-        }
       }
     }
     #skip-validation {

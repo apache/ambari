@@ -311,20 +311,21 @@ App.InstallerController = App.WizardController.extend({
         version.operatingSystems.forEach(function (os) {
           if (os.repositories) {
             os.repositories.forEach(function (repo) {
-              if(repo.Repositories.repo_name == version.Versions.stack_name) {
-                var defaultBaseUrl = repo.Repositories.default_base_url || repo.Repositories.base_url;
-                var latestBaseUrl = repo.Repositories.latest_base_url || defaultBaseUrl;
-                if (!App.supports.ubuntu && os.OperatingSystems.os_type == 'debian12') return; // @todo: remove after Ubuntu support confirmation
-                oses.push({
-                  osType: os.OperatingSystems.os_type,
-                  baseUrl: latestBaseUrl,
-                  latestBaseUrl: latestBaseUrl,
-                  originalLatestBaseUrl: latestBaseUrl,
-                  originalBaseUrl: repo.Repositories.base_url,
-                  defaultBaseUrl: defaultBaseUrl,
-                  mirrorsList: repo.Repositories.mirrors_list
-                });
-              }
+              var defaultBaseUrl = repo.Repositories.default_base_url || repo.Repositories.base_url;
+              var latestBaseUrl = repo.Repositories.latest_base_url || defaultBaseUrl;
+              if (!App.supports.ubuntu && os.OperatingSystems.os_type == 'debian12') return; // @todo: remove after Ubuntu support confirmation
+              oses.push({
+                osType: os.OperatingSystems.os_type,
+                baseUrl: latestBaseUrl,
+                latestBaseUrl: latestBaseUrl,
+                originalLatestBaseUrl: latestBaseUrl,
+                originalBaseUrl: repo.Repositories.base_url,
+                defaultBaseUrl: defaultBaseUrl,
+                mirrorsList: repo.Repositories.mirrors_list,
+                id: os.OperatingSystems.os_type + repo.Repositories.repo_name,
+                repoId: repo.Repositories.repo_id,
+                selected: true
+              });
             });
           }
         });
@@ -488,9 +489,8 @@ App.InstallerController = App.WizardController.extend({
 
   /**
    * Check validation of the customized local urls
-   * @param stepController step1WizardController
    */
-  checkRepoURL: function (stepController) {
+  checkRepoURL: function () {
     var selectedStack = this.get('content.stacks').findProperty('isSelected', true);
     selectedStack.set('reload', true);
     var nameVersionCombo = selectedStack.name;
@@ -512,8 +512,9 @@ App.InstallerController = App.WizardController.extend({
             data: {
               stackName: stackName,
               stackVersion: stackVersion,
-              nameVersionCombo: nameVersionCombo,
+              repoId: os.repoId,
               osType: os.osType,
+              osId: os.id,
               data: {
                 'Repositories': {
                   'base_url': os.baseUrl,
@@ -539,7 +540,7 @@ App.InstallerController = App.WizardController.extend({
     console.log('Success in check Repo URL. data osType: ' + data.osType );
     var selectedStack = this.get('content.stacks').findProperty('isSelected', true);
     if (selectedStack && selectedStack.operatingSystems) {
-      var os = selectedStack.operatingSystems.findProperty('osType', data.osType);
+      var os = selectedStack.operatingSystems.findProperty('id', data.osId);
       os.validation = 'icon-ok';
       selectedStack.set('reload', !selectedStack.get('reload'));
       this.set('validationCnt', this.get('validationCnt') - 1);
@@ -549,12 +550,11 @@ App.InstallerController = App.WizardController.extend({
   /**
    * onError callback for check Repo URL.
    */
-  checkRepoURLErrorCallback: function (request, ajaxOptions, error, data) {
+  checkRepoURLErrorCallback: function (request, ajaxOptions, error, data, params) {
     console.log('Error in check Repo URL. The baseURL sent is:  ' + data.data);
-    var osType = data.url.split('/')[8];
     var selectedStack = this.get('content.stacks').findProperty('isSelected', true);
     if (selectedStack && selectedStack.operatingSystems) {
-      var os = selectedStack.operatingSystems.findProperty('osType', osType);
+      var os = selectedStack.operatingSystems.findProperty('id', params.osId);
       os.validation = 'icon-exclamation-sign';
       os.errorTitle = request.status + ":" + request.statusText;
       os.errorContent = $.parseJSON(request.responseText) ? $.parseJSON(request.responseText).message : "";

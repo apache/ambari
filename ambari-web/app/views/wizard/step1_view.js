@@ -35,22 +35,40 @@ App.WizardStep1View = Em.View.extend({
   }.property('controller.content.stacks.@each.isSelected'),
 
   /**
-   * List of all repo-groups
-   * @type {Object[][]}
+   * List of all repositories
+   * @type {Array}
    */
-  allRepositoriesGroup: [
-    [],
-    [],
-    []
-  ],
+  allRepositories: [],
+
+  /**
+   * List of all repo-groups
+   * @type {Array}
+   */
+  allRepositoriesGroups: function () {
+    var result = [];
+    var stacks = this.get('controller.content.stacks');
+    if (stacks && stacks.length) {
+      var selectedStack = stacks.findProperty('isSelected', true);
+      var allRepositories = this.get('allRepositories');
+      var OSNames = allRepositories.mapProperty('osType').uniq();
+      OSNames.forEach(function (os) {
+        result.push(Ember.Object.create({
+          checked: selectedStack.operatingSystems.findProperty('osType', os).selected,
+          name: os,
+          repositories: allRepositories.filterProperty('osType', os)
+        }));
+      });
+    }
+    return result;
+  }.property('allRepositories.length', 'controller.content.stacks'),
 
   /**
    * Verify if some repo has empty base-url
    * @type {bool}
    */
   emptyRepoExist: function () {
-    return this.get('allRepositoriesGroup').someProperty('empty-error', true);
-  }.property('allRepositoriesGroup.@each.empty-error'),
+    return this.get('allRepositories').someProperty('empty-error', true);
+  }.property('allRepositories.@each.empty-error'),
 
   /**
    * Disable submit button flag
@@ -66,25 +84,25 @@ App.WizardStep1View = Em.View.extend({
    */
   invalidUrlExist: function () {
     var selectedStack = this.get('controller.content.stacks').findProperty('isSelected', true);
-    var invalidExist = this.get('allRepositoriesGroup').someProperty('validation', 'icon-exclamation-sign');
+    var invalidExist = this.get('allRepositories').someProperty('validation', 'icon-exclamation-sign');
     return (selectedStack.get('invalidCnt') > 0) && invalidExist;
-  }.property('controller.content.stacks.@each.invalidCnt', 'allRepositoriesGroup.@each.validation'),
+  }.property('controller.content.stacks.@each.invalidCnt', 'allRepositories.@each.validation'),
 
   /**
    * If all repo links are unchecked
    * @type {bool}
    */
   allRepoUnchecked: function () {
-    return !this.get('allRepositoriesGroup').someProperty('checked', true);
-  }.property('allRepositoriesGroup.@each.checked'),
+    return !this.get('allRepositoriesGroups').someProperty('checked', true);
+  }.property('allRepositoriesGroups.@each.checked'),
 
   /**
    * Overall errors count
    * @type {number}
    */
   totalErrorCnt: function () {
-    var emptyCnt = this.get('allRepositoriesGroup').filterProperty('empty-error', true).length;
-    var invalidCnt = this.get('allRepositoriesGroup').filterProperty('validation', 'icon-exclamation-sign').length;
+    var emptyCnt = this.get('allRepositories').filterProperty('empty-error', true).length;
+    var invalidCnt = this.get('allRepositories').filterProperty('validation', 'icon-exclamation-sign').length;
     if (this.get('allRepoUnchecked')) {
       return 1;
     } else if (emptyCnt || invalidCnt) {
@@ -92,19 +110,13 @@ App.WizardStep1View = Em.View.extend({
     } else {
       return 0;
     }
-  }.property('allRepositoriesGroup.@each.empty-error', 'allRepoUnchecked', 'allRepositoriesGroup.@each.validation'),
+  }.property('allRepositories.@each.empty-error', 'allRepoUnchecked', 'allRepositories.@each.validation'),
 
   /**
    * Is Repositories Accordion collapsed
    * @type {bool}
    */
   isRLCollapsed: true,
-
-  /**
-   * Checked flags for each repo-checkbox
-   * @type {bool[]}
-   */
-  allGroupsCheckbox: [true, true, true],
 
   /**
    * Skip repo-validation
@@ -160,77 +172,33 @@ App.WizardStep1View = Em.View.extend({
   },
 
   /**
-   * Format repo-group values and set it to <code>allRepositoriesGroup</code>
+   * Format repo values and set it to <code>allRepositories</code>
    * @method loadRepositories
    */
   loadRepositories: function () {
     var selectedStack = this.get('controller.content.stacks').findProperty('isSelected', true);
-    var reposGroup = [
-      [],
-      [],
-      []
-    ];
-    if (App.get('supports.ubuntu')) reposGroup.push([]); // @todo: remove after Ubuntu support confirmation
-    var self = this;
+    var repos = [];
     if (selectedStack && selectedStack.operatingSystems) {
       selectedStack.operatingSystems.forEach(function (os) {
-        var cur_repo = Em.Object.create({
-          baseUrl: os.baseUrl
-        });
-        switch (os.osType) {
-          case 'redhat5':
-            cur_repo.set('osType', 'Red Hat 5');
-            reposGroup[0][0] = cur_repo;
-            // set group 0 properties by redhat5 (any of the three is ok)
-            self.setGroupByOs(reposGroup[0], os, 0);
-            break;
-          case 'redhat6':
-            cur_repo.set('osType', 'Red Hat 6');
-            reposGroup[1][0] = cur_repo;
-            // set group 1 properties by redhat6 (any of the three is ok)
-            self.setGroupByOs(reposGroup[1], os, 1);
-            break;
-          case 'suse11':
-            cur_repo.set('osType', 'SLES 11');
-            reposGroup[2][0] = cur_repo;
-            // set group 2 properties by suse11 (any of the twe is ok)
-            self.setGroupByOs(reposGroup[2], os, 2);
-            break;
-          case 'debian12':
-            if (App.get('supports.ubuntu')) {
-              cur_repo.set('osType', 'Ubuntu 12');
-              reposGroup[3][0] = cur_repo;
-              self.setGroupByOs(reposGroup[3], os, 3);
-            }
-            break;
-        }
-      });
+        repos.push(Ember.Object.create({
+          'id': os.id,
+          'repoId': os.repoId,
+          'baseUrl': os.baseUrl,
+          'osType': os.osType,
+          'latestBaseUrl': os.latestBaseUrl,
+          'defaultBaseUrl': os.defaultBaseUrl,
+          'empty-error': !os.baseUrl,
+          'invalid-error': os.validation == 'icon-exclamation-sign',
+          'validation': os.validation,
+          'undo': os.baseUrl != os.latestBaseUrl,
+          'clearAll': os.baseUrl,
+          'errorTitle': os.errorTitle,
+          'errorContent': os.errorContent
+        }));
+      }, this);
     }
-    this.set('allRepositoriesGroup', reposGroup);
+    this.set('allRepositories', repos);
   }.observes('controller.content.stacks.@each.isSelected', 'controller.content.stacks.@each.reload'),
-
-  /**
-   * Set group parameters according to operation system
-   * @method setGroupByOs
-   * @param {Ember.Object} group
-   * @param {Object} os
-   * @param {number} groupNumber
-   */
-  setGroupByOs: function (group, os, groupNumber) {
-    var isChecked = this.get('allGroupsCheckbox')[groupNumber];
-    group.set('checked', isChecked);
-    group.set('baseUrl', os.baseUrl);
-    group.set('latestBaseUrl', os.latestBaseUrl);
-    group.set('defaultBaseUrl', os.defaultBaseUrl);
-    group.set('empty-error', !os.baseUrl);
-    group.set('invalid-error', os.validation == 'icon-exclamation-sign');
-    group.set('validation', os.validation);
-    group.set('undo', os.baseUrl != os.latestBaseUrl);
-    group.set('clearAll', os.baseUrl);
-    group.set('errorTitle', os.errorTitle);
-    group.set('errorContent', os.errorContent);
-    group.set('group-number', groupNumber);
-  },
 
   /**
    * Onclick handler for checkbox of each repo group
@@ -238,40 +206,37 @@ App.WizardStep1View = Em.View.extend({
    */
   updateByCheckbox: function () {
     //upload to content
-    var groups = this.get('allRepositoriesGroup');
-    var self = this;
+    var repos = this.get('allRepositories');
     var selectedStack = this.get('controller.content.stacks').findProperty('isSelected', true);
+    var allRepositoriesGroups = this.get('allRepositoriesGroups');
     if (selectedStack && selectedStack.operatingSystems) {
       selectedStack.operatingSystems.forEach(function (os) {
-        var groupNumber = self.osTypeToGroup(os.osType);
-        var targetGroup = groups.findProperty('group-number', groupNumber);
-        if (!targetGroup.get('checked')) {
+        var targetRepo = repos.findProperty('id', os.id);
+        var repoGroup = allRepositoriesGroups.findProperty('name', targetRepo.get('osType'));
+        if (repoGroup && !repoGroup.get('checked')) {
           os.baseUrl = os.latestBaseUrl;
           os.validation = null;
           os.selected = false;
-          targetGroup.set('baseUrl', os.latestBaseUrl);
-          targetGroup.set('latestBaseUrl', os.latestBaseUrl);
-          targetGroup.set('undo', targetGroup.get('baseUrl') != targetGroup.get('latestBaseUrl'));
-          targetGroup.set('invalid-error', false);
-          targetGroup.set('validation', null);
-          targetGroup.set('clearAll', false);
-          targetGroup.set('empty-error', !targetGroup.get('baseUrl'));
-          self.get('allGroupsCheckbox')[groupNumber] = false;
-          self.set('allGroupsCheckbox', self.get('allGroupsCheckbox'));
+          targetRepo.set('baseUrl', os.latestBaseUrl);
+          targetRepo.set('latestBaseUrl', os.latestBaseUrl);
+          targetRepo.set('undo', targetRepo.get('baseUrl') != targetRepo.get('latestBaseUrl'));
+          targetRepo.set('invalid-error', false);
+          targetRepo.set('validation', null);
+          targetRepo.set('clearAll', false);
+          targetRepo.set('empty-error', !targetRepo.get('baseUrl'));
         } else {
           os.selected = true;
-          os.skipValidation = self.get('skipValidationChecked');
+          os.skipValidation = this.get('skipValidationChecked');
           if (os.skipValidation) {
-            targetGroup.set('validation', null);
-            targetGroup.set('invalid-error', false);
+            targetRepo.set('validation', null);
+            targetRepo.set('invalid-error', false);
           }
-          targetGroup.set('clearAll', targetGroup.get('baseUrl'));
-          targetGroup.set('empty-error', !targetGroup.get('baseUrl'));
-          self.get('allGroupsCheckbox')[groupNumber] = true;
+          targetRepo.set('clearAll', targetRepo.get('baseUrl'));
+          targetRepo.set('empty-error', !targetRepo.get('baseUrl'));
         }
-      });
+      }, this);
     }
-  }.observes('allRepositoriesGroup.@each.checked', 'skipValidationChecked'),
+  }.observes('allRepositoriesGroups.@each.checked', 'skipValidationChecked'),
 
   /**
    * Onclick handler for undo action of each repo group
@@ -298,69 +263,35 @@ App.WizardStep1View = Em.View.extend({
    * @param {string} newBaseUrlField
    */
   doActionForGroupLocalRepository: function (event, newBaseUrlField) {
-    var osTypes = this.groupToOsType(event.context.get('group-number'));
     var selectedStack = this.get('controller.content.stacks').findProperty('isSelected', true);
-    osTypes.forEach(function (os) {
-      var cos = selectedStack.operatingSystems.findProperty('osType', os);
-      cos.baseUrl = Em.isEmpty(newBaseUrlField) ? '' : Em.get(cos, newBaseUrlField);
-      cos.validation = null;
-    });
+    var cos = selectedStack.operatingSystems.findProperty('id', event.context.get('id'));
+    cos.baseUrl = Em.isEmpty(newBaseUrlField) ? '' : Em.get(cos, newBaseUrlField);
+    cos.validation = null;
     this.loadRepositories();
   },
 
   /**
-   * Handler when editing any repo group BaseUrl
-   * @method editGroupLocalRepository
+   * Handler when editing any repo BaseUrl
+   * @method editLocalRepository
    */
-  editGroupLocalRepository: function () {
+  editLocalRepository: function () {
     //upload to content
-    var groups = this.get('allRepositoriesGroup');
-    var self = this;
+    var repos = this.get('allRepositories');
     var selectedStack = this.get('controller.content.stacks').findProperty('isSelected', true);
     if (selectedStack && selectedStack.operatingSystems) {
       selectedStack.operatingSystems.forEach(function (os) {
-        var targetGroup = groups.findProperty('group-number', self.osTypeToGroup(os.osType));
-        if (os.baseUrl != targetGroup.get('baseUrl')) {
-          os.baseUrl = targetGroup.get('baseUrl');
+        var targetRepo = repos.findProperty('id', os.id);
+        if (os.baseUrl != targetRepo.get('baseUrl')) {
+          os.baseUrl = targetRepo.get('baseUrl');
           os.validation = null;
-          targetGroup.set('undo', targetGroup.get('baseUrl') != targetGroup.get('latestBaseUrl'));
-          targetGroup.set('invalid-error', false);
-          targetGroup.set('validation', null);
-          targetGroup.set('clearAll', os.baseUrl);
-          targetGroup.set('empty-error', !targetGroup.get('baseUrl'));
+          targetRepo.set('undo', targetRepo.get('baseUrl') != targetRepo.get('latestBaseUrl'));
+          targetRepo.set('invalid-error', false);
+          targetRepo.set('validation', null);
+          targetRepo.set('clearAll', os.baseUrl);
+          targetRepo.set('empty-error', !targetRepo.get('baseUrl'));
         }
       });
     }
-  }.observes('allRepositoriesGroup.@each.baseUrl'),
-
-  /**
-   * Get list of OS for provided group number
-   * @method groupToOsType
-   * @param {number} groupNumber
-   * @returns {Array}
-   */
-  groupToOsType: function (groupNumber) {
-    return Em.getWithDefault({
-      '0': ['redhat5'],
-      '1': ['redhat6'],
-      '2': ['suse11'],
-      '3': ['debian12']
-    }, groupNumber.toString(), []);
-  },
-
-  /**
-   * Get group number for provided OS
-   * @method osTypeToGroup
-   * @param {string} osType
-   * @returns {number}
-   */
-  osTypeToGroup: function (osType) {
-    return Em.getWithDefault({
-      'redhat5': 0,
-      'redhat6': 1,
-      'suse11': 2,
-      'debian12': 3
-    }, osType, -1);
-  }
+  }.observes('allRepositories.@each.baseUrl')
 
 });

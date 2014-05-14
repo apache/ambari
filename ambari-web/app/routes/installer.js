@@ -144,7 +144,7 @@ module.exports = Em.Route.extend({
         installerController.set('validationCnt', 0);
         installerController.set('invalidCnt', 0);
       } else {
-        installerController.checkRepoURL(wizardStep1Controller);
+        installerController.checkRepoURL();
       }
       // make sure got all validations feedback and no invalid url, then proceed
       var myVar = setInterval(

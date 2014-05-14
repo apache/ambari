@@ -1323,7 +1323,7 @@ var urls = {
     'mock': '/data/wizard/{mock}'
   },
   'wizard.advanced_repositories.valid_url': {
-    'real': '/stacks2/{stackName}/versions/{stackVersion}/operatingSystems/{osType}/repositories/{nameVersionCombo}',
+    'real': '/stacks2/{stackName}/versions/{stackVersion}/operatingSystems/{osType}/repositories/{repoId}',
     'mock': '',
     'type': 'PUT',
     'format': function (data) {
@@ -1571,7 +1571,7 @@ var urls = {
   },
 
   'wizard.step8.set_local_repos': {
-    'real':'{stack2VersionURL}/operatingSystems/{osType}/repositories/{name}',
+    'real':'{stack2VersionURL}/operatingSystems/{osType}/repositories/{repoId}',
     'mock':'',
     'format': function(data) {
       return {

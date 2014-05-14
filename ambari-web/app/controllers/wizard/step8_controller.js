@@ -963,7 +963,7 @@ App.WizardStep8Controller = Em.Controller.extend({
           name: 'wizard.step8.set_local_repos',
           data: {
             osType: os.osType,
-            name: stack.name,
+            repoId: os.repoId,
             stack2VersionURL: App.get('stack2VersionURL'),
             data: JSON.stringify({
               "Repositories": {
