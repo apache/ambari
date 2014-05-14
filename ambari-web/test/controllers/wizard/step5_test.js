@@ -441,7 +441,7 @@ describe('App.WizardStep5Controller', function () {
       {componentName: 'FALCON_SERVER', hostsCount: 3, e: 'host2'},
       {componentName: 'FALCON_SERVER', hostsCount: 6, e: 'host3'},
       {componentName: 'FALCON_SERVER', hostsCount: 31, e: 'host4'},
-      {componentName: 'FALCON_SERVER', hostsCount: 32, e: 'host4'},
+      {componentName: 'FALCON_SERVER', hostsCount: 32, e: 'host4'}
     ]);
 
     tests.forEach(function(test) {
@@ -1035,6 +1035,322 @@ describe('App.WizardStep5Controller', function () {
       expect(c.updateComponent.calledTwice).to.equal(true);
       c.updateComponent.restore();
     });
+  });
+
+  describe('#title', function() {
+    it('should be custom title for reassignMasterController', function() {
+      c.set('content', {controllerName: 'reassignMasterController'});
+      expect(c.get('title')).to.equal(Em.I18n.t('installer.step5.reassign.header'));
+    });
+    it('should be default for other', function() {
+      c.set('content', {controllerName: 'notReassignMasterController'});
+      expect(c.get('title')).to.equal(Em.I18n.t('installer.step5.header'));
+    });
+  });
+
+  describe('#isSubmitDisabled', function() {
+    it('should be false if no isReassignWizard', function() {
+      c.reopen({isReassignWizard: false});
+      expect(c.get('isSubmitDisabled')).to.equal(false);
+    });
+    it('should be true if isReassignWizard', function() {
+      var hostComponents = Em.A([
+        Em.Object.create({componentName: 'c1', host: Em.Object.create({hostName: 'h1'})}),
+        Em.Object.create({componentName: 'c1', host: Em.Object.create({hostName: 'h2'})})
+      ]);
+      sinon.stub(App.HostComponent, 'find', function() {
+        return hostComponents;
+      });
+      c.reopen({
+        isReassignWizard: true,
+        content:{
+          reassign:{
+            component_name: 'c1'
+          }
+        },
+        servicesMasters: [
+          {selectedHost: 'h5'},
+          {selectedHost: 'h4'},
+          {selectedHost: 'h3'}
+        ]
+      });
+      expect(c.get('isSubmitDisabled')).to.equal(true);
+      App.HostComponent.find.restore();
+    });
+
+    it('should be false if isReassignWizard', function() {
+      var hostComponents = Em.A([
+        Em.Object.create({componentName: 'c1', host: Em.Object.create({hostName: 'h1'})}),
+        Em.Object.create({componentName: 'c1', host: Em.Object.create({hostName: 'h2'})}),
+        Em.Object.create({componentName: 'c1', host: Em.Object.create({hostName: 'h3'})})
+      ]);
+      sinon.stub(App.HostComponent, 'find', function() {
+        return hostComponents;
+      });
+      c.reopen({
+        isReassignWizard: true,
+        content:{
+          reassign:{
+            component_name: 'c1'
+          }
+        },
+        servicesMasters: [
+          {selectedHost: 'h1'},
+          {selectedHost: 'h2'}
+        ]
+      });
+      expect(c.get('isSubmitDisabled')).to.equal(false);
+      App.HostComponent.find.restore();
+    });
+
+  });
+
+  describe('#masterHostMapping', function() {
+    Em.A([
+        {
+          selectedServicesMasters: [
+            Em.Object.create({selectedHost: 'h1'}),
+            Em.Object.create({selectedHost: 'h2'}),
+            Em.Object.create({selectedHost: 'h1'})
+          ],
+          hosts: [
+            Em.Object.create({host_name: 'h1', host_info: {}}),
+            Em.Object.create({host_name: 'h2', host_info: {}})
+          ],
+          m: 'Two hosts',
+          e: [
+            {host_name: 'h1', hostInfo: {}, masterServices: [{}, {}]},
+            {host_name: 'h2', hostInfo: {}, masterServices: [{}]}
+          ]
+        },
+        {
+          selectedServicesMasters: [],
+          hosts: [],
+          m: 'No hosts',
+          e: []
+        },
+        {
+          selectedServicesMasters: [
+            Em.Object.create({selectedHost: 'h1'}),
+            Em.Object.create({selectedHost: 'h1'})
+          ],
+          hosts: [
+            Em.Object.create({host_name: 'h1', host_info: {}})
+          ],
+          m: 'One host',
+          e: [
+            {host_name: 'h1', hostInfo: {}, masterServices: [{}, {}]}
+          ]
+        }
+      ]).forEach(function (test) {
+        it(test.m, function () {
+          c.reopen({
+            selectedServicesMasters: test.selectedServicesMasters,
+            hosts: test.hosts
+          });
+          var result = c.get('masterHostMapping');
+          expect(result.length).to.equal(test.e.length);
+          result.forEach(function(r, i) {
+            expect(r.get('host_name')).to.equal(test.e[i].host_name);
+            expect(r.get('masterServices.length')).to.equal(test.e[i].masterServices.length);
+            expect(r.get('hostInfo')).to.be.an.object;
+          });
+        });
+      });
+  });
+
+  describe('#loadComponents', function() {
+    Em.A([
+        {
+          services: [
+            Em.Object.create({isSelected: true, serviceName: 's1'})
+          ],
+          masterComponents: Em.A([
+            Em.Object.create({displayName: 'c1d', serviceName: 's1', componentName: 'c1', isShownOnInstallerAssignMasterPage: true})
+          ]),
+          masterComponentHosts: Em.A([
+            {component: 'c1', hostName: 'h2', isInstalled: true}
+          ]),
+          selectHost: 'h3',
+          m: 'savedComponent exists',
+          e: {
+            component_name: 'c1',
+            display_name: 'c1d',
+            selectedHost: 'h2',
+            isInstalled: true,
+            serviceId: 's1'
+          }
+        },
+        {
+          services: [
+            Em.Object.create({isSelected: true, serviceName: 's1'})
+          ],
+          masterComponents: Em.A([
+            Em.Object.create({displayName: 'c1d', serviceName: 's1', componentName: 'c1', isShownOnInstallerAssignMasterPage: true})
+          ]),
+          masterComponentHosts: Em.A([
+            {component: 'c2', hostName: 'h2', isInstalled: true}
+          ]),
+          selectHost: 'h3',
+          m: 'savedComponent doesn\'t exist',
+          e: {
+            component_name: 'c1',
+            display_name: 'c1d',
+            selectedHost: 'h3',
+            isInstalled: false,
+            serviceId: 's1'
+          }
+        },
+        {
+          services: [
+            Em.Object.create({isSelected: true, serviceName: 's1'})
+          ],
+          masterComponents: Em.A([
+            Em.Object.create({displayName: 'c1d', serviceName: 's1', componentName: 'ZOOKEEPER_SERVER', isShownOnInstallerAssignMasterPage: true})
+          ]),
+          masterComponentHosts: Em.A([
+            {component: 'c1', hostName: 'h2', isInstalled: true}
+          ]),
+          selectHost: ['h3'],
+          m: 'component ZOOKEEPER_SERVER',
+          e: {
+            component_name: 'ZOOKEEPER_SERVER',
+            display_name: 'c1d',
+            selectedHost: 'h3',
+            isInstalled: false,
+            serviceId: 's1',
+            isHiveCoHost: false
+          }
+        },
+        {
+          services: [
+            Em.Object.create({isSelected: true, serviceName: 's1'})
+          ],
+          masterComponents: Em.A([
+            Em.Object.create({displayName: 'c1d', serviceName: 's1', componentName: 'HBASE_MASTER', isShownOnInstallerAssignMasterPage: true})
+          ]),
+          masterComponentHosts: Em.A([
+            {component: 'c1', hostName: 'h2', isInstalled: true}
+          ]),
+          selectHost: ['h3'],
+          m: 'component HBASE_MASTER',
+          e: {
+            component_name: 'HBASE_MASTER',
+            display_name: 'c1d',
+            selectedHost: 'h3',
+            isInstalled: false,
+            serviceId: 's1',
+            isHiveCoHost: false
+          }
+        },
+        {
+          services: [
+            Em.Object.create({isSelected: true, serviceName: 's1'})
+          ],
+          masterComponents: Em.A([
+            Em.Object.create({displayName: 'c1d', serviceName: 's1', componentName: 'ZOOKEEPER_SERVER', isShownOnInstallerAssignMasterPage: true})
+          ]),
+          masterComponentHosts: Em.A([
+            {component: 'ZOOKEEPER_SERVER', hostName: 'h2', isInstalled: true}
+          ]),
+          selectHost: ['h3'],
+          m: 'component ZOOKEEPER_SERVER(2)',
+          e: {
+            component_name: 'ZOOKEEPER_SERVER',
+            display_name: 'c1d',
+            selectedHost: 'h2',
+            isInstalled: true,
+            serviceId: 's1',
+            isHiveCoHost: false
+          }
+        },
+        {
+          services: [
+            Em.Object.create({isSelected: true, serviceName: 's1'})
+          ],
+          masterComponents: Em.A([
+            Em.Object.create({displayName: 'c1d', serviceName: 's1', componentName: 'HBASE_MASTER', isShownOnInstallerAssignMasterPage: true})
+          ]),
+          masterComponentHosts: Em.A([
+            {component: 'HBASE_MASTER', hostName: 'h2', isInstalled: true}
+          ]),
+          selectHost: ['h3'],
+          m: 'component HBASE_MASTER (2)',
+          e: {
+            component_name: 'HBASE_MASTER',
+            display_name: 'c1d',
+            selectedHost: 'h2',
+            isInstalled: true,
+            serviceId: 's1',
+            isHiveCoHost: false
+          }
+        }
+      ]).forEach(function (test) {
+        it(test.m, function() {
+          c.reopen({
+            content: {
+              services: test.services,
+              masterComponentHosts: test.masterComponentHosts
+            }
+          });
+          sinon.stub(App.StackServiceComponent, 'find', function() {
+            return test.masterComponents;
+          });
+          sinon.stub(c, 'selectHost', function() {
+            return test.selectHost;
+          });
+          var r = c.loadComponents();
+          App.StackServiceComponent.find.restore();
+          c.selectHost.restore();
+          expect(r.length).to.equal(1);
+          Em.keys(test.e).forEach(function(k) {
+            expect(r[0][k]).to.equal(test.e[k]);
+          });
+        });
+      });
+  });
+
+  describe('#_isHiveCoHost', function() {
+    Em.A([
+        {
+          componentName: 'HIVE_METASTORE',
+          isReassignWizard: false,
+          e: true
+        },
+        {
+          componentName: 'WEBHCAT_SERVER',
+          isReassignWizard: false,
+          e: true
+        },
+        {
+          componentName: 'HIVE_METASTORE',
+          isReassignWizard: true,
+          e: false
+        },
+        {
+          componentName: 'WEBHCAT_SERVER',
+          isReassignWizard: true,
+          e: false
+        },
+        {
+          componentName: 'C1',
+          isReassignWizard: false,
+          e: false
+        },
+        {
+          componentName: 'C1',
+          isReassignWizard: true,
+          e: false
+        }
+      ]).forEach(function (test) {
+        it(test.componentName.toString() + ' ' + test.isReassignWizard.toString(), function () {
+          c.reopen({
+            isReassignWizard: test.isReassignWizard
+          });
+          var r = c._isHiveCoHost(test.componentName);
+          expect(r).to.equal(test.e);
+        });
+      });
   });
 
 });

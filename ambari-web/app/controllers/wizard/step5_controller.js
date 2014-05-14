@@ -308,13 +308,23 @@ App.WizardStep5Controller = Em.Controller.extend({
           componentObj.selectedHost = savedComponent ? savedComponent.hostName : this.selectHost(_componentInfo.get('componentName'));   // call the method that plays selectNode algorithm or fetches from server
           componentObj.isInstalled = savedComponent ? savedComponent.isInstalled : false;
           componentObj.serviceId = services[index];
-          componentObj.isHiveCoHost = ['HIVE_METASTORE', 'WEBHCAT_SERVER'].contains(_componentInfo.get('componentName')) && !this.get('isReassignWizard');
+          componentObj.isHiveCoHost = this._isHiveCoHost(_componentInfo.get('componentName'));
           resultComponents.push(componentObj);
         }
       }, this);
     }
 
     return resultComponents;
+  },
+
+  /**
+   * @param {string} componentName
+   * @returns {bool}
+   * @private
+   * @method _isHiveCoHost
+   */
+  _isHiveCoHost: function(componentName) {
+    return ['HIVE_METASTORE', 'WEBHCAT_SERVER'].contains(componentName) && !this.get('isReassignWizard');
   },
 
   /**
