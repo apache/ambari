@@ -106,35 +106,4 @@
         <service-class>org.apache.ambari.view.pig.PigServiceRouter</service-class>
     </resource>
 
-    <instance>
-        <name>PIG_1</name>
-        <!--<property>-->
-            <!--<key>dataworker.storagePath</key>-->
-            <!--<value>/var/lib/ambari-server/pig-view.dat</value>-->
-        <!--</property>-->
-        <property>
-            <key>dataworker.templeton_url</key>
-            <value>http://sandbox.hortonworks.com:50111/templeton/v1</value>
-        </property>
-        <property>
-            <key>dataworker.templeton_user</key>
-            <value>hue</value>
-        </property>
-
-        <property>
-            <key>dataworker.userScriptsPath</key>
-            <value>/tmp/.pigscripts</value>
-        </property>
-        <property>
-            <key>dataworker.pigJobsPath</key>
-            <value>/tmp/.pigjobs</value>
-        </property>
-
-        <property>
-            <key>dataworker.defaultFs</key>
-            <!-- WebHDFS requires 50070 and 50075 ports to be opened -->
-            <value>webhdfs://sandbox.hortonworks.com:50070</value>
-        </property>
-    </instance>
-
 </view>
