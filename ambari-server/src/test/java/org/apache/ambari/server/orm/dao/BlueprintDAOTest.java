@@ -22,9 +22,12 @@ import com.google.inject.Provider;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
 import org.junit.Before;
 import org.junit.Test;
+
+import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createStrictMock;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.verify;
@@ -148,5 +151,22 @@ public class BlueprintDAOTest {
     dao.remove(entity);
 
     verify(entityManagerProvider, entityManager);
+  }
+
+  @Test
+  public void testRemoveByName() {
+    BlueprintEntity entity = new BlueprintEntity();
+    BlueprintDAO dao = new BlueprintDAO();
+    dao.entityManagerProvider = entityManagerProvider;
+
+    expect(entityManager.find(eq(BlueprintEntity.class), eq("test"))).andReturn(entity);
+    entityManager.remove(entity);
+    expectLastCall();
+
+    replay(entityManager);
+
+    dao.removeByName("test");
+
+    verify(entityManager);
   }
 }
