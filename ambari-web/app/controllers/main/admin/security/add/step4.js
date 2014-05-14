@@ -17,49 +17,108 @@
  */
 
 var App = require('app');
+
 App.MainAdminSecurityAddStep4Controller = App.MainAdminSecurityProgressController.extend({
 
   name: 'mainAdminSecurityAddStep4Controller',
 
   serviceUsersBinding: 'App.router.mainAdminSecurityController.serviceUsers',
 
+  /**
+   * component configs which should be added to global
+   */
+  componentsConfig: [
+    {
+      serviceName: 'OOZIE',
+      componentName: 'OOZIE_SERVER',
+      configName: 'oozieserver_host'
+    },
+    {
+      serviceName: 'HIVE',
+      componentName: 'HIVE_METASTORE',
+      configName: 'hivemetastore_host'
+    },
+    {
+      serviceName: 'WEBHCAT',
+      componentName: 'WEBHCAT_SERVER',
+      configName: 'webhcat_server'
+    }
+  ],
+
+  /**
+   * mock users used in testMode
+   */
+  testModeUsers: [
+    {
+      name: 'hdfs_user',
+      value: 'hdfs'
+    },
+    {
+      name: 'mapred_user',
+      value: 'mapred'
+    },
+    {
+      name: 'hbase_user',
+      value: 'hbase'
+    },
+    {
+      name: 'hive_user',
+      value: 'hive'
+    }
+  ],
+
+  /**
+   * security configs, which values should be modified after APPLY CONFIGURATIONS stage
+   */
+  secureConfigs: [
+    {
+      name: 'nagios_principal_name',
+      serviceName: 'NAGIOS'
+    },
+    {
+      name: 'zookeeper_principal_name',
+      serviceName: 'ZOOKEEPER'
+    },
+    {
+      name: 'storm_principal_name',
+      serviceName: 'STORM'
+    }
+  ],
+
   secureServices: function() {
     return  this.get('content.services');
   }.property('content.services'),
 
   isBackBtnDisabled: function () {
-    return !this.get('commands').someProperty('isError', true);
+    return !this.get('commands').someProperty('isError');
   }.property('commands.@each.isCompleted'),
-
-  isOozieSelected: function () {
-    return this.get('secureServices').someProperty('serviceName', 'OOZIE');
-  }.property('secureServices'),
-
-  isHiveSelected: function () {
-    return this.get('secureServices').someProperty('serviceName', 'HIVE');
-  }.property('secureServices'),
-
-  isNagiosSelected: function () {
-    return this.get('secureServices').someProperty('serviceName', 'NAGIOS');
-  }.property('secureServices'),
-
-  isZkSelected: function () {
-    return this.get('secureServices').someProperty('serviceName', 'ZOOKEEPER');
-  }.property('secureServices'),
-
-  isWebHcatSelected: function () {
-    var installedServices = App.Service.find().mapProperty('serviceName');
-    return installedServices.contains('WEBHCAT');
-  },
 
   isSecurityApplied: function () {
     return this.get('commands').someProperty('name', 'START_SERVICES') && this.get('commands').findProperty('name', 'START_SERVICES').get('isSuccess');
   }.property('commands.@each.isCompleted'),
 
+  /**
+   * control disabled property of completion button
+   */
+  enableSubmit: function () {
+    var addSecurityController = App.router.get('addSecurityController');
+    if (this.get('commands').someProperty('isError') || this.get('commands').everyProperty('isSuccess')) {
+      this.set('isSubmitDisabled', false);
+      if (this.get('commands').someProperty('isError')) {
+        addSecurityController.setStepsEnable();
+      }
+    } else {
+      this.set('isSubmitDisabled', true);
+      addSecurityController.setLowerStepsDisable(4);
+    }
+  }.observes('commands.@each.isCompleted'),
+
+  /**
+   * clear step info
+   */
   clearStep: function () {
-    this.set('commands',[]);
+    this.set('commands', []);
     this.set('isSubmitDisabled', true);
-    this.set('isBackBtnDisabled', true);
     this.get('serviceConfigTags').clear();
   },
 
@@ -71,54 +130,68 @@ App.MainAdminSecurityAddStep4Controller = App.MainAdminSecurityProgressControlle
     }
   },
 
+  /**
+   * load step info
+   */
   loadStep: function () {
-    this.set('secureMapping', require('data/secure_mapping').slice(0));
     this.clearStep();
-    var commands = App.db.getSecurityDeployCommands();
     this.prepareSecureConfigs();
-    if (commands && commands.length > 0) {
-      commands.forEach(function (_command, index) {
-        commands[index] = App.Poll.create(_command);
-      }, this);
-      if (commands.someProperty('isError', true)) {
-        this.get('commands').pushObjects(commands);
-        this.addObserverToCommands();
-        return;
-      } else if (commands.filterProperty('isStarted', true).someProperty('isCompleted', false)) {
-        var runningCommand = commands.filterProperty('isStarted', true).findProperty('isCompleted', false);
-        runningCommand.set('isStarted', false);
-        this.get('commands').pushObjects(commands);
-      } else {
-        this.get('commands').pushObjects(commands);
-      }
-    } else {
+
+    if (!this.resumeSavedCommands()) {
       this.loadCommands();
       this.addInfoToCommands();
-      var runningOperations = App.router.get('backgroundOperationsController.services').filterProperty('isRunning');
-      var stopAllOperation = runningOperations.findProperty('name', 'Stop All Services');
-      var stopCommand = this.get('commands').findProperty('name', 'STOP_SERVICES');
-      if (stopCommand.get('name') === 'STOP_SERVICES' && stopAllOperation) {
-        stopCommand.set('requestId', stopAllOperation.get('id'));
-      }
+      this.syncStopServicesOperation();
+      this.addObserverToCommands();
+      this.moveToNextCommand();
+    }
+  },
+
+  /**
+   * synchronize "STOP_SERVICES" operation from BO with command of step
+   * @return {Boolean}
+   */
+  syncStopServicesOperation: function () {
+    var runningOperations = App.router.get('backgroundOperationsController.services').filterProperty('isRunning');
+    var stopAllOperation = runningOperations.findProperty('name', 'Stop All Services');
+    var stopCommand = this.get('commands').findProperty('name', 'STOP_SERVICES');
+    if (stopCommand && stopAllOperation) {
+      stopCommand.set('requestId', stopAllOperation.get('id'));
+      return true;
+    }
+    return false;
+  },
+
+  /**
+   * resume previously saved commands
+   * @return {Boolean}
+   */
+  resumeSavedCommands: function () {
+    var commands = App.db.getSecurityDeployCommands();
+    if (Em.isNone(commands) || commands.length === 0) return false;
+
+    commands.forEach(function (_command, index) {
+      commands[index] = App.Poll.create(_command);
+    }, this);
+    if (commands.someProperty('isError')) {
+      this.get('commands').pushObjects(commands);
+      this.addObserverToCommands();
+      return true;
+    } else if (commands.filterProperty('isStarted').someProperty('isCompleted', false)) {
+      var runningCommand = commands.filterProperty('isStarted').findProperty('isCompleted', false);
+      runningCommand.set('isStarted', false);
+      this.get('commands').pushObjects(commands);
+    } else {
+      this.get('commands').pushObjects(commands);
     }
     this.addObserverToCommands();
     this.moveToNextCommand();
+    return true;
   },
 
-
-  enableSubmit: function () {
-    var addSecurityController = App.router.get('addSecurityController');
-    if (this.get('commands').someProperty('isError', true) || this.get('commands').everyProperty('isSuccess', true)) {
-      this.set('isSubmitDisabled', false);
-      if (this.get('commands').someProperty('isError', true)) {
-        addSecurityController.setStepsEnable();
-      }
-    } else {
-      this.set('isSubmitDisabled', true);
-      addSecurityController.setLowerStepsDisable(4);
-    }
-  }.observes('commands.@each.isCompleted'),
-
+  /**
+   * load configs from UI side
+   * @return {Array}
+   */
   loadUiSideConfigs: function () {
     var uiConfig = [];
     var configs = this.get('secureMapping').filterProperty('foreignKey', null);
@@ -127,8 +200,8 @@ App.MainAdminSecurityAddStep4Controller = App.MainAdminSecurityProgressControlle
       if (_config.hasOwnProperty('dependedServiceName')) {
         value = this.checkServiceForConfigValue(value, _config.dependedServiceName);
       }
-      value = this.getGlobConfigValue(_config.templateName, value, _config.name);
-      uiConfig.pushObject({
+      value = this.getGlobConfigValue(_config.templateName, value);
+      uiConfig.push({
         "id": "site property",
         "name": _config.name,
         "value": value,
@@ -138,8 +211,9 @@ App.MainAdminSecurityAddStep4Controller = App.MainAdminSecurityProgressControlle
     var dependentConfig = this.get('secureMapping').filterProperty('foreignKey');
     dependentConfig.forEach(function (_config) {
       if (App.Service.find().mapProperty('serviceName').contains(_config.serviceName)) {
-        this.setConfigValue(uiConfig, _config);
-        uiConfig.pushObject({
+        this.setConfigValue(_config);
+        this.formatConfigName(uiConfig, _config);
+        uiConfig.push({
           "id": "site property",
           "name": _config._name || _config.name,
           "value": _config.value,
@@ -150,57 +224,52 @@ App.MainAdminSecurityAddStep4Controller = App.MainAdminSecurityProgressControlle
     return uiConfig;
   },
 
-
-  checkServiceForConfigValue: function (value, serviceNames) {
-    serviceNames.forEach(function (_serviceName) {
-      if (!App.Service.find().mapProperty('serviceName').contains(_serviceName.name)) {
-        value = value.replace(_serviceName.replace, '');
+  /**
+   * erase template rules from config value if service is not loaded
+   * @param value
+   * @param services
+   * @return {*}
+   */
+  checkServiceForConfigValue: function (value, services) {
+    services.forEach(function (_service) {
+      if (!App.Service.find(_service.name).get('isLoaded')) {
+        value = value.replace(_service.replace, '');
       }
     }, this);
-
     return value;
   },
-
 
   /**
    * Set all site property that are derived from other puppet-variable
+   * @param templateName
+   * @param expression
+   * @return {String|null}
    */
+  getGlobConfigValue: function (templateName, expression) {
+    if (typeof expression !== 'string') return null;
 
-  getGlobConfigValue: function (templateName, expression, name) {
     var express = expression.match(/<(.*?)>/g);
-    var value = expression;
-    if (express == null) {
-      return expression;
-    }
+    var value = null;
+    if (Em.isNone(express)) return expression;
+
     express.forEach(function (_express) {
-      //console.log("The value of template is: " + _express);
       var index = parseInt(_express.match(/\[([\d]*)(?=\])/)[1]);
-      var globValue = this.get('globalProperties').findProperty('name', templateName[index]);
-      if (globValue) {
-        console.log('The template value of templateName ' + '[' + index + ']' + ': ' + templateName[index] + ' is: ' + globValue);
-        if (value !== null) {   // if the property depends on more than one template name like <templateName[0]>/<templateName[1]> then don't proceed to the next if the prior is null or not found in the global configs
-          value = value.replace(_express, globValue.value);
-        }
-      } else {
-        /*
-         console.log("ERROR: The variable name is: " + templateName[index]);
-         console.log("ERROR: mapped config from secureMapping file has no corresponding variable in " +
-         "content.serviceConfigProperties. Two possible reasons for the error could be: 1) The service is not selected. " +
-         "and/OR 2) The service_config metadata file has no corresponding global var for the site property variable");
-         */
-        value = null;
-      }
+      var globalConfig = this.get('globalProperties').findProperty('name', templateName[index]);
+
+      value = (globalConfig) ? expression.replace(_express, globalConfig.value) : null;
     }, this);
     return value;
   },
 
   /**
-   * Set all site property that are derived from other site-properties
+   * format name of config values of global configs which match foreignKey
+   * @param uiConfig
+   * @param config
+   * @return {Boolean}
    */
-  setConfigValue: function (uiConfig, config) {
-    if (config.value == null) {
-      return;
-    }
+  formatConfigName: function (uiConfig, config) {
+    if (Em.isNone(config.value)) return false;
+
     var fkValue = config.name.match(/<(foreignKey.*?)>/g);
     if (fkValue) {
       fkValue.forEach(function (_fkValue) {
@@ -214,23 +283,36 @@ App.MainAdminSecurityAddStep4Controller = App.MainAdminSecurityProgressControlle
           config._name = config.name.replace(_fkValue, globalValue);
         }
       }, this);
+      return true;
     }
-    //For properties in the configMapping file having foreignKey and templateName properties.
+    return false;
+  },
 
+  /**
+   * Set config value with values of global configs which match template
+   * @param config
+   * @return {Boolean}
+   */
+  setConfigValue: function (config) {
+    if (Em.isNone(config.value)) return false;
+
+    //For properties in the configMapping file having foreignKey and templateName properties.
     var templateValue = config.value.match(/<(templateName.*?)>/g);
     if (templateValue) {
       templateValue.forEach(function (_value) {
         var index = parseInt(_value.match(/\[([\d]*)(?=\])/)[1]);
         var globValue = this.get('globalProperties').findProperty('name', config.templateName[index]);
-        if (globValue) {
-          config.value = config.value.replace(_value, globValue.value);
-        } else {
-          config.value = null;
-        }
+
+        config.value = (globValue) ? config.value.replace(_value, globValue.value) : null;
       }, this);
+      return true;
     }
+    return false;
   },
 
+  /**
+   * prepare secure configs
+   */
   prepareSecureConfigs: function () {
     this.loadGlobals();
     var storedConfigs = this.get('content.serviceConfigProperties').filterProperty('id', 'site property');
@@ -238,6 +320,9 @@ App.MainAdminSecurityAddStep4Controller = App.MainAdminSecurityProgressControlle
     this.set('configs', storedConfigs.concat(uiConfigs));
   },
 
+  /**
+   * load global configs
+   */
   loadGlobals: function () {
     var globals = this.get('content.serviceConfigProperties').filterProperty('id', 'puppet var');
     this.set('globalProperties', globals);
@@ -247,8 +332,11 @@ App.MainAdminSecurityAddStep4Controller = App.MainAdminSecurityProgressControlle
     this.loadPrimaryNamesToGlobals();
   },
 
+  /**
+   * push users to global configs
+   */
   loadUsersToGlobal: function () {
-    if (!this.get('serviceUsers').length) {
+    if (!this.get('serviceUsers').length)  {
       this.loadUsersFromServer();
     }
     App.router.get('mainAdminSecurityController.serviceUsers').forEach(function (_user) {
@@ -256,38 +344,46 @@ App.MainAdminSecurityAddStep4Controller = App.MainAdminSecurityProgressControlle
     }, this);
   },
 
-  loadHostNamesToGlobal: function () {
-    var oozieHostComponent = App.Service.find('OOZIE').get('hostComponents').findProperty('componentName', 'OOZIE_SERVER');
-    if (this.get('isOozieSelected') && oozieHostComponent) {
-      var oozieHostName = oozieHostComponent.get('host.hostName');
-      this.get('globalProperties').pushObject({
-        id: 'puppet var',
-        name: 'oozieserver_host',
-        value: oozieHostName
-      });
+  /**
+   * add component config that contain host name as value
+   * @param serviceName
+   * @param componentName
+   * @param configName
+   * @return {Boolean}
+   */
+  addHostConfig: function(serviceName, componentName, configName) {
+    var service = App.Service.find(serviceName);
+    var isServiceSecure = this.get('secureServices').someProperty('serviceName', serviceName);
+
+    if (service.get('isLoaded') && isServiceSecure) {
+      var hostComponent = service.get('hostComponents').findProperty('componentName', componentName);
+      if (hostComponent) {
+        var hostName = hostComponent.get('host.hostName');
+        this.get('globalProperties').push({
+          id: 'puppet var',
+          name: configName,
+          value: hostName
+        });
+        return true;
+      }
     }
-    var hiveHostComponent = App.Service.find('HIVE').get('hostComponents').findProperty('componentName', 'HIVE_METASTORE');
-    if (this.get('isHiveSelected') && hiveHostComponent) {
-      var hiveHostName = hiveHostComponent.get('host.hostName');
-      this.get('globalProperties').pushObject({
-        id: 'puppet var',
-        name: 'hivemetastore_host',
-        value: hiveHostName
-      });
-    }
-    var webHcatComponent = App.Service.find('WEBHCAT').get('hostComponents').findProperty('componentName', 'WEBHCAT_SERVER');
-    if (this.isWebHcatSelected() && webHcatComponent) {
-      var webHcatHostName = webHcatComponent.get('host.hostName');
-      this.get('globalProperties').pushObject({
-        id: 'puppet var',
-        name: 'webhcat_server',
-        value: webHcatHostName
-      });
-    }
+    return false;
   },
 
+  /**
+   * add hosts' names to global configs
+   */
+  loadHostNamesToGlobal: function () {
+    var componentsConfig = this.get('componentsConfig');
+    componentsConfig.forEach(function (host) {
+      this.addHostConfig(host.serviceName, host.componentName, host.configName);
+    }, this);
+  },
+
+  /**
+   * load static global
+   */
   loadStaticGlobal: function () {
-    var globalProperties = this.get('globalProperties');
     this.get('globalProperties').forEach(function (_property) {
       switch (_property.name) {
         case 'security_enabled':
@@ -297,21 +393,27 @@ App.MainAdminSecurityAddStep4Controller = App.MainAdminSecurityProgressControlle
     }, this);
   },
 
+  /**
+   * add principals to global properties
+   */
   loadPrimaryNamesToGlobals: function () {
     var principalProperties = this.getPrincipalNames();
     principalProperties.forEach(function (_principalProperty) {
       var name = _principalProperty.name.replace('principal', 'primary');
       var value = _principalProperty.value.split('/')[0];
-      this.get('globalProperties').pushObject({name: name, value: value});
+      this.get('globalProperties').push({name: name, value: value});
     }, this);
   },
 
+  /**
+   * gather and return global properties with "principal_name"
+   * @return {Array}
+   */
   getPrincipalNames: function () {
     var principalNames = [];
-    var allPrincipalNames = [];
     this.get('globalProperties').forEach(function (_globalProperty) {
       if (/principal_name?$/.test(_globalProperty.name)) {
-        principalNames.pushObject(_globalProperty);
+        principalNames.push(_globalProperty);
       }
     }, this);
     this.get('secureProperties').forEach(function (_secureProperty) {
@@ -319,69 +421,90 @@ App.MainAdminSecurityAddStep4Controller = App.MainAdminSecurityProgressControlle
         var principalName = principalNames.findProperty('name', _secureProperty.name);
         if (!principalName) {
           _secureProperty.value = _secureProperty.defaultValue;
-          principalNames.pushObject(_secureProperty);
+          principalNames.push(_secureProperty);
         }
       }
     }, this);
     return principalNames;
   },
 
+  /**
+   * load users from server
+   */
   loadUsersFromServer: function () {
     if (App.testMode) {
       var serviceUsers = this.get('serviceUsers');
-      serviceUsers.pushObject({id: 'puppet var', name: 'hdfs_user', value: 'hdfs'});
-      serviceUsers.pushObject({id: 'puppet var', name: 'mapred_user', value: 'mapred'});
-      serviceUsers.pushObject({id: 'puppet var', name: 'hbase_user', value: 'hbase'});
-      serviceUsers.pushObject({id: 'puppet var', name: 'hive_user', value: 'hive'});
+      this.get('testModeUsers').forEach(function (user) {
+        user.id = 'puppet var';
+        serviceUsers.push(user);
+      }, this);
     } else {
       App.router.set('mainAdminSecurityController.serviceUsers', App.db.getSecureUserInfo());
     }
   },
 
-
+  /**
+   * manage secure configs
+   * @return {Boolean}
+   */
   manageSecureConfigs: function () {
-    try {
-      this.get('serviceConfigTags').forEach(function (_serviceConfigTags) {
+    var serviceConfigTags = this.get('serviceConfigTags');
+    var secureConfigs = this.get('secureConfigs');
+    var siteProperties = this.get('configs').filterProperty('id', 'site property');
+    var globalProperties = this.get('globalProperties');
+
+    if (serviceConfigTags) {
+      serviceConfigTags.forEach(function (_serviceConfigTags) {
         _serviceConfigTags.newTagName = 'version' + (new Date).getTime();
+
         if (_serviceConfigTags.siteName === 'global') {
-          var realmName = this.get('globalProperties').findProperty('name', 'kerberos_domain');
-          if (this.get('isNagiosSelected')) {
-            var nagiosPrincipalName = this.get('globalProperties').findProperty('name', 'nagios_principal_name');
-            nagiosPrincipalName.value = nagiosPrincipalName.value + '@' + realmName.value;
-          }
-          if (this.get('isZkSelected')) {
-            var zkPrincipalName = this.get('globalProperties').findProperty('name', 'zookeeper_principal_name');
-            zkPrincipalName.value = zkPrincipalName.value + '@' + realmName.value;
-          }
-          if (this.get('secureServices').someProperty('serviceName', 'STORM')) {
-            var stormPrincipalName = this.get('globalProperties').findProperty('name', 'storm_principal_name');
-            stormPrincipalName.value = stormPrincipalName.value + '@' + realmName.value;
-          }
-          this.get('globalProperties').forEach(function (_globalProperty) {
+          secureConfigs.forEach(function (config) {
+            this.setPrincipalValue(config.serviceName, config.name);
+          }, this);
+          globalProperties.forEach(function (_globalProperty) {
             if (!/_hosts?$/.test(_globalProperty.name)) {
               _serviceConfigTags.configs[_globalProperty.name] = _globalProperty.value;
             }
           }, this);
-        }
-        else {
-          this.get('configs').filterProperty('id', 'site property').filterProperty('filename', _serviceConfigTags.siteName + '.xml').forEach(function (_config) {
+        } else {
+          siteProperties.filterProperty('filename', _serviceConfigTags.siteName + '.xml').forEach(function (_config) {
             _serviceConfigTags.configs[_config.name] = _config.value;
           }, this);
         }
       }, this);
-    } catch (err) {
+      return true;
+    } else {
       var command = this.get('commands').findProperty('name', 'APPLY_CONFIGURATIONS');
       command.set('isSuccess', false);
       command.set('isError', true);
-      if (err) {
-        console.log("Error: Error occurred while applying secure configs to the server. Error message: " + err);
-      }
       this.onJsError();
       return false;
     }
-    return true;
   },
 
+  /**
+   * set value of principal property
+   * @param serviceName
+   * @param principalName
+   * @return {Boolean}
+   */
+  setPrincipalValue: function (serviceName, principalName) {
+    var globalProperties = this.get('globalProperties');
+    var realmName = globalProperties.findProperty('name', 'kerberos_domain');
+
+    if (this.get('secureServices').someProperty('serviceName', serviceName)) {
+      var principalProperty = globalProperties.findProperty('name', principalName);
+      principalProperty.value = principalProperty.value + '@' + realmName.value;
+      return true;
+    }
+    return false;
+  },
+
+  /**
+   * send DELETE command to server to delete component
+   * @param componentName
+   * @param hostName
+   */
   deleteComponents: function(componentName, hostName) {
     App.ajax.send({
       name: 'admin.delete_component',
@@ -395,6 +518,9 @@ App.MainAdminSecurityAddStep4Controller = App.MainAdminSecurityProgressControlle
     });
   },
 
+  /**
+   * callback on successful deletion of component
+   */
   onDeleteComplete: function () {
     var deleteAtsCommand = this.get('commands').findProperty('name', 'DELETE_ATS');
     console.warn('APP_TIMELINE_SERVER doesn\'t support security mode. It has been removed from YARN service ');
@@ -402,10 +528,16 @@ App.MainAdminSecurityAddStep4Controller = App.MainAdminSecurityProgressControlle
     deleteAtsCommand.set('isSuccess', true);
   },
 
+  /**
+   * callback on failed deletion of component
+   */
   onDeleteError: function () {
     console.warn('Error: Can\'t delete APP_TIMELINE_SERVER');
   },
 
+  /**
+   * show popup when js error occurred
+   */
   onJsError: function () {
     App.ModalPopup.show({
       header: Em.I18n.t('common.error'),
@@ -415,5 +547,4 @@ App.MainAdminSecurityAddStep4Controller = App.MainAdminSecurityProgressControlle
       })
     });
   }
-
 });

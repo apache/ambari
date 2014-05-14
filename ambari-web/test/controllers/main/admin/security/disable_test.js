@@ -37,11 +37,20 @@ describe('App.MainAdminSecurityDisableController', function () {
       }
     };
 
+    var mock = {
+      setStepsEnable: Em.K,
+      setLowerStepsDisable: Em.K
+    };
+
     beforeEach(function () {
       sinon.stub(App.db, "getSecurityDeployCommands", context.getSecurityDeployCommands);
+      sinon.stub(App.router, 'get', function () {
+        return mock;
+      });
     });
     afterEach(function () {
       App.db.getSecurityDeployCommands.restore();
+      App.router.get.restore();
     });
 
     it('commands are absent in local storage', function () {
@@ -190,7 +199,7 @@ describe('App.MainAdminSecurityDisableController', function () {
 
     beforeEach(function () {
       sinon.spy(controller, "deleteDisabledGlobalConfigs");
-      sinon.spy(controller, "modifySiteConfigs");
+      sinon.stub(controller, "modifySiteConfigs", Em.K);
     });
     afterEach(function () {
       controller.deleteDisabledGlobalConfigs.restore();
@@ -373,7 +382,9 @@ describe('App.MainAdminSecurityDisableController', function () {
         title: 'secureMapping and _serviceConfigTags are empty',
         content: {
           secureMapping: [],
-          _serviceConfigTags: {}
+          _serviceConfigTags: {
+            configs: {}
+          }
         },
         result: true
       }
@@ -430,7 +441,8 @@ describe('App.MainAdminSecurityDisableController', function () {
       var secureMapping = [
         {
           filename: 'site1.xml',
-          name: 'config2'
+          name: 'config2',
+          nonSecureValue: 'nonSecureValue'
         }
       ];
       var _serviceConfigTags = {
@@ -443,7 +455,7 @@ describe('App.MainAdminSecurityDisableController', function () {
         'config2': 'value'
       });
       expect(controller.modifySiteConfigs(secureMapping, _serviceConfigTags)).to.be.true;
-      expect(_serviceConfigTags.configs.config2).to.equal('value');
+      expect(_serviceConfigTags.configs.config2).to.equal('nonSecureValue');
     });
   });
 });
