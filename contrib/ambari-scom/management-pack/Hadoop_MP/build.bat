@@ -36,9 +36,3 @@ cd .. || exit /b %errorlevel%
 cd PresentationMp || exit /b %errorlevel%
 msbuild PresentationMp.mpproj  || exit /b %errorlevel%
 cd .. || exit /b %errorlevel%
-copy HadoopMp\bin\Debug\Ambari.SCOM.Monitoring.mpb Installer\Assets\ManagementPacks  || exit /b %errorlevel%
-copy ManagementMp\bin\Debug\Ambari.SCOM.Management.mpb Installer\Assets\ManagementPacks  || exit /b %errorlevel%
-copy PresentationMp\bin\Debug\Ambari.SCOM.Presentation.mpb Installer\Assets\ManagementPacks  || exit /b %errorlevel%
-cd Installer || exit /b %errorlevel%
-msbuild Installer.sln  || exit /b %errorlevel%
-cd .. || exit /b %errorlevel%
