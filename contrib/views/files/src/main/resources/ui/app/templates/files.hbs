@@ -129,6 +129,11 @@
           <strong> .. </strong>
         </td>
       </tr>
+      <tr class="error-row">
+        <td colspan="7" class="danger">
+          {{outlet error}}
+        </td>
+      </tr>
       {{#unless hideMoving}}
       {{#if movingFile}}
         <tr class="isMoving">
