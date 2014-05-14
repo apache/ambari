@@ -34,13 +34,5 @@
         <name>files</name>
         <service-class>org.apache.ambari.view.filebrowser.FileBrowserService</service-class>
     </resource>
- 
-    <instance>
-        <name>FILES_1</name>
-        <property>
-            <key>dataworker.defaultFs</key>
-            <value>hdfs://c6401.ambari.apache.org:8020</value>
-        </property>
-    </instance>
   
 </view>
