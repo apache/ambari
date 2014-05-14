@@ -43,7 +43,7 @@ function checkOozieJobStatus {
     act_status=$(IFS='';echo $cmd_output | grep ^Status | cut -d':' -f2 | sed 's| ||g')
     echo "workflow_status=$act_status"
     if [ "RUNNING" == "$act_status" ]; then
-      #increment the couner and get the status again after waiting for 15 secs
+      #increment the counter and get the status again after waiting for 15 secs
       sleep 15
       (( i++ ))
       elif [ "SUCCEEDED" == "$act_status" ]; then
@@ -102,6 +102,6 @@ cmd="${kinitcmd}source ${oozie_conf_dir}/oozie-env.sh ; /usr/bin/oozie -Doozie.a
 echo $cmd
 job_info=`su - ${smoke_test_user} -c "$cmd" | grep "job:"`
 job_id="`echo $job_info | cut -d':' -f2`"
-checkOozieJobStatus "$job_id"
+checkOozieJobStatus "$job_id" 15
 OOZIE_EXIT_CODE="$?"
 exit $OOZIE_EXIT_CODE
