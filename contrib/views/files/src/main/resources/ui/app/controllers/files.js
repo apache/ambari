@@ -148,3 +148,6 @@ App.FilesController = Ember.ArrayController.extend({
   }.property('arrangedContent')
 });
 
+App.FilesAlertController = Em.ObjectController.extend({
+  content:null
+});

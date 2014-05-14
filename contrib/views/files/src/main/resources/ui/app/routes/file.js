@@ -25,16 +25,55 @@ App.FilesRoute = Em.Route.extend({
     }
   },
   actions:{
+    error:function (error,transition,e) {
+      if (this.router._lookupActiveView('files')) {
+        this.controllerFor('filesAlert').set('content',error);
+        this.render('files.alert',{
+          into:'files',
+          outlet:'error',
+          controller:'filesAlert'
+        });
+      } else {
+        return true;
+      };
+    },
     dirUp: function () {
       var currentPath = this.controllerFor('files').get('path');
       var upDir = currentPath.replace(currentPath.substr(currentPath.lastIndexOf('/')), '');
       var target = upDir || '/';
       return this.transitionTo('files',{queryParams: {path: target}});
+    },
+    willTransition:function (argument) {
+      this.send('removeAlert');
+    },
+    removeAlert:function () {
+      this.disconnectOutlet({
+        outlet: 'error',
+        parentView: 'files'
+      });
     }
   },
   model:function (params) {
-    this.store.unloadAll('file');
     var path = (Em.isEmpty(params.path))?'/':params.path;
     return this.store.listdir(path);
+  },
+  afterModel:function (model) {
+    var self = this;
+    var model = model;
+    this.store.filter('file',function(file) {
+      if (!model.contains(file)) {
+        return true;
+      };
+    }).then(function (files) {
+      files.forEach(function (file) {
+        file.store.unloadRecord(file);
+      })
+    });
+  },
+  setupController:function (controller,model,transition) {
+    controller.set('model', model);
+  },
+  renderTemplate:function (q,w,e) {
+    this.render('files');
   }
 });

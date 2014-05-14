@@ -209,3 +209,7 @@ App.FilesView = Em.View.extend({
       });
     }.observes('controller.hideMoving')
 });
+
+App.FilesAlertView = Em.View.extend({
+  templateName:'util/errorRow'
+});

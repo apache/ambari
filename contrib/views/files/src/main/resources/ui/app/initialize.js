@@ -34,6 +34,7 @@ require('templates/util/deletePopover');
 require('templates/util/uploader');
 require('templates/util/contextMenu');
 require('templates/util/deleteBulk');
+require('templates/util/errorRow');
 
 //////////////////////////////////
 // Models
