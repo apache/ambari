@@ -183,23 +183,6 @@
         </executions>
         </plugin>
       <plugin>
-        <artifactId>maven-assembly-plugin</artifactId>
-        <executions>
-          <execution>
-            <phase>package</phase>
-            <goals>
-              <goal>attached</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <descriptorRefs>
-            <descriptorRef>jar-with-dependencies</descriptorRef>
-          </descriptorRefs>
-          <outputDirectory>${basedir}/target</outputDirectory>
-        </configuration>
-      </plugin>
-      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.1</version>
@@ -207,6 +190,21 @@
           <source>1.6</source>
           <target>1.6</target>
         </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>copy-dependencies</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/lib</outputDirectory>
+              <includeScope>runtime</includeScope>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
     <resources>
@@ -221,6 +219,12 @@
         <includes>
             <include>view.xml</include>
         </includes>
+        </resource>
+
+        <resource>
+          <targetPath>WEB-INF/lib</targetPath>
+          <filtering>false</filtering>
+          <directory>target/lib</directory>
         </resource>
     </resources>
     <pluginManagement>
@@ -295,7 +299,7 @@
             <version>2.6</version>
             <executions>
               <execution>
-                <id>copy-amabri-views</id>
+                <id>copy-ambari-views</id>
                 <phase>package</phase>
                 <goals>
                   <goal>copy-resources</goal>
@@ -307,7 +311,7 @@
                     <resource>
                       <directory>${basedir}/target/</directory>
                       <includes>
-                        <include>*-dependencies.jar</include>
+                        <include>*.jar</include>
                       </includes>
                       <filtering>true</filtering>
                     </resource>
