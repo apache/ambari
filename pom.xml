@@ -239,7 +239,6 @@
         <module>ambari-web</module>
         <module>ambari-project</module>
         <module>ambari-views</module>
-        <!--<module>contrib/views/</module>-->
         <module>ambari-server</module>
         <module>ambari-agent</module>
         <module>ambari-client</module>
@@ -250,7 +249,6 @@
       <modules>
         <module>ambari-project</module>
         <module>ambari-views</module>
-        <!--<module>contrib/views/</module>-->
         <module>ambari-server</module>
         <module>ambari-agent</module>
         <module>ambari-client</module>
