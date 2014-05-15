@@ -45,5 +45,14 @@ module.exports = {
   restoreStackVersion: function(context) {
     App.set('currentStackVersion', context.prevStackVersion);
   },
-  configs: require('test/mock_data_setup/configs_mock_data')
+  configs: require('test/mock_data_setup/configs_mock_data'),
+  /**
+   * Delete record from DS.Store and set its stateManager to proper state
+   * @param {DS.Model} record
+   * @method deleteRecord
+   */
+  deleteRecord: function (record) {
+    record.deleteRecord();
+    record.get('stateManager').transitionTo('loading');
+  }
 };
