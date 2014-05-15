@@ -99,6 +99,7 @@
     <dependency>
         <groupId>org.apache.ambari</groupId>
         <artifactId>ambari-views</artifactId>
+        <scope>provided</scope>
     </dependency>
         <dependency>
             <groupId>com.google.code.gson</groupId>
