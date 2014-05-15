@@ -63,7 +63,7 @@ App.FilesView = Em.View.extend({
         $(element).popover({
           html:true,
           trigger:'manual',
-          placement:'top',
+          placement:'left',
           content:function() {
             var content = element.find('.df-popover');
             return content.html();

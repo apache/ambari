@@ -31,7 +31,7 @@ App.FileController = Ember.ObjectController.extend({
       var file = this.get('content'),
           self,path,name,newPath;
       if (opt === 'edit') {
-        this.set('tmpName',file.get('title'));
+        this.set('tmpName',file.get('name'));
         this.set('isRenaming',true);
       };
 
@@ -49,7 +49,7 @@ App.FileController = Ember.ObjectController.extend({
           return false;
         }
 
-        if (name === file.get('title')) {
+        if (name === file.get('name')) {
           return self.set('isRenaming',false);
         }
 

@@ -39,7 +39,7 @@ App.FilesRoute = Em.Route.extend({
     },
     dirUp: function () {
       var currentPath = this.controllerFor('files').get('path');
-      var upDir = currentPath.replace(currentPath.substr(currentPath.lastIndexOf('/')), '');
+      var upDir = currentPath.substring(0,currentPath.lastIndexOf('/'));
       var target = upDir || '/';
       return this.transitionTo('files',{queryParams: {path: target}});
     },

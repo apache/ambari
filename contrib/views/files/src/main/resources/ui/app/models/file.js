@@ -33,11 +33,12 @@ App.File = DS.Model.extend({
   modificationTime: a('isodate'),
   blockSize: a('number'),
   replication: a('number'),
-  title:function () {
+  name:function () {
     var splitpath = this.get('path').split('/');
     return splitpath.get(splitpath.length-1);
   }.property('path'),
   date:function () {
     return parseInt(moment(this.get('modificationTime')).format('X'))
-  }.property('modificationTime')
+  }.property('modificationTime'),
+  size: Em.computed.alias('len')
 });
