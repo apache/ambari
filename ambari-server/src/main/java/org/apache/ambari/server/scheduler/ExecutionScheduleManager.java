@@ -26,8 +26,11 @@ import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
+import com.sun.jersey.api.client.config.ClientConfig;
+import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.client.filter.ClientFilter;
 import com.sun.jersey.api.client.filter.CsrfProtectionFilter;
+import com.sun.jersey.client.urlconnection.HTTPSProperties;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionDBAccessor;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
@@ -53,6 +56,13 @@ import org.quartz.SchedulerException;
 import org.quartz.Trigger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.net.ssl.*;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.text.ParseException;
 import java.util.Collections;
 import java.util.Date;
@@ -110,13 +120,18 @@ public class ExecutionScheduleManager {
     this.actionDBAccessor = actionDBAccessor;
     this.gson = gson;
 
-    buildApiClient();
+    try {
+      buildApiClient();
+    } catch (NoSuchAlgorithmException e) {
+      throw new RuntimeException(e);
+    } catch (KeyManagementException e) {
+      throw new RuntimeException(e);
+    }
   }
 
-  protected void buildApiClient() {
+  protected void buildApiClient() throws NoSuchAlgorithmException, KeyManagementException {
 
-    Client client = Client.create();
-    this.ambariClient = client;
+    Client client;
 
     String pattern;
     String url;
@@ -124,11 +139,51 @@ public class ExecutionScheduleManager {
     if (configuration.getApiSSLAuthentication()) {
       pattern = "https://localhost:%s/";
       url = String.format(pattern, configuration.getClientSSLApiPort());
+
+      // Create a trust manager that does not validate certificate chains
+      TrustManager[] trustAllCerts = new TrustManager[]{new X509TrustManager() {
+        @Override
+        public void checkClientTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
+
+        }
+
+        @Override
+        public void checkServerTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
+
+        }
+
+        public X509Certificate[] getAcceptedIssuers() {
+          return null;
+        }
+
+
+      }};
+
+      //Create SSL context
+      SSLContext sc = SSLContext.getInstance("TLS");
+      sc.init(null, trustAllCerts, new SecureRandom());
+
+      //Install all trusting cert SSL context for jersey client
+      ClientConfig config = new DefaultClientConfig();
+      config.getProperties().put(HTTPSProperties.PROPERTY_HTTPS_PROPERTIES, new HTTPSProperties(
+        new HostnameVerifier() {
+          @Override
+          public boolean verify( String s, SSLSession sslSession ) {
+            return true;
+          }
+        },
+        sc
+      ));
+
+      client = Client.create(config);
+
     } else {
+      client = Client.create();
       pattern = "http://localhost:%s/";
       url = String.format(pattern, configuration.getClientApiPort());
     }
 
+    this.ambariClient = client;
     this.ambariWebResource = client.resource(url);
 
     //Install auth filters
