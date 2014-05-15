@@ -43,9 +43,8 @@ hadoop_home = "/usr"
 if (('pig-properties' in config['configurations']) and ('pig-content' in config['configurations']['pig-properties'])):
   pig_properties = config['configurations']['pig-properties']['pig-content']
 else:
-  pig_properties = {}
-  pig_properties['hcat.bin'] = '/usr/bin/hcat'
-  pig_properties['pig.location.check.strict'] = 'false'
+  pig_properties = """hcat.bin=/usr/bin/hcat
+pig.location.check.strict=false"""
 
 # log4j.properties
 if (('pig-log4j' in config['configurations']) and ('content' in config['configurations']['pig-log4j'])):

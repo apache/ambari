@@ -33,11 +33,12 @@ def pig():
   pig_TemplateConfig( ['pig-env.sh'])
 
   # pig_properties is always set to a default even if it's not in the payload
-  PropertiesFile(format("{params.pig_conf_dir}/pig.properties"),    
-    mode = 0644,
-    group=params.user_group,
-    owner=params.hdfs_user,
-    properties=params.pig_properties)    
+  File(format("{params.pig_conf_dir}/pig.properties"),
+              mode=0644,
+              group=params.user_group,
+              owner=params.hdfs_user,
+              content=params.pig_properties
+  )
 
   if (params.log4j_props != None):
     File(format("{params.pig_conf_dir}/log4j.properties"),
