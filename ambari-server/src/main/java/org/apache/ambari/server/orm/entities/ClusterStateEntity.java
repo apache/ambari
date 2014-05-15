@@ -23,17 +23,12 @@ import static org.apache.commons.lang.StringUtils.defaultString;
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
-import javax.persistence.Table;
 
-import org.apache.ambari.server.state.State;
-
+@javax.persistence.Table(name = "clusterstate")
 @Entity
-@Table(name = "clusterstate")
 public class ClusterStateEntity {
 
   @Id
@@ -41,9 +36,8 @@ public class ClusterStateEntity {
   private Long clusterId;
 
   @Basic
-  @Enumerated(value = EnumType.STRING)
   @Column(name = "current_cluster_state", insertable = true, updatable = true)
-  private State currentClusterState = State.INIT; 
+  private String currentClusterState = "";
 
   @Basic
   @Column(name = "current_stack_version", insertable = true, updatable = true)
@@ -61,11 +55,11 @@ public class ClusterStateEntity {
     this.clusterId = clusterId;
   }
 
-  public State getCurrentClusterState() {
-    return currentClusterState;
+  public String getCurrentClusterState() {
+    return defaultString(currentClusterState);
   }
 
-  public void setCurrentClusterState(State currentClusterState) {
+  public void setCurrentClusterState(String currentClusterState) {
     this.currentClusterState = currentClusterState;
   }
 

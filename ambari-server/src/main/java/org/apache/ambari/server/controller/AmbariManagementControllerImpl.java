@@ -1041,10 +1041,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     
     // set the provisioning state of the cluster
     if (null != request.getProvisioningState()) {
-      State provisioningState;
       State oldProvisioningState = cluster.getProvisioningState();
+      State provisioningState = State.valueOf(request.getProvisioningState());
 
-      provisioningState = State.valueOf(request.getProvisioningState());
       if (provisioningState != State.INIT
           && provisioningState != State.INSTALLED) {
         LOG.warn(
