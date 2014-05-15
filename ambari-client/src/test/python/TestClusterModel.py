@@ -164,7 +164,7 @@ class TestClusterModel(unittest.TestCase):
     http_client_mock = MagicMock()
     
     expected_properties = {'dfs_namenode_name_dir': 'abc', 'security_enabled': 'false', 'proxyuser_group': 'users', 'hdfs_log_dir_prefix': '/var/log/hadoop', 'dfs_datanode_data_dir': '/hadoop/hdfs/data', 'namenode_formatted_mark_dir': '/var/run/hadoop/hdfs/namenode/formatted/', 'rrdcached_base_dir': '/var/lib/ganglia/rrds', 'user_group': 'hadoop', 'dfs_namenode_checkpoint_dir': '/hadoop/hdfs/namesecondary', 'dfs_namenode_checkpoint_period': '21600', 'hive_user': 'hive', 'fs_checkpoint_size': '0.5', 'hbase_conf_dir': '/etc/hbase', 'datanode_du_reserved': '1', 'dfs_datanode_http_address': '50075', 'namenode_heapsize': '1024m', 'dfs_webhdfs_enabled': 'true', 'oozie_user': 'oozie', 'hcat_conf_dir': '', 'hadoop_conf_dir': '/etc/hadoop/conf', 'dfs_replication': '3', 'namenode_opt_maxnewsize': '640m', 'apache_artifacts_download_url': '', 'dfs_datanode_address': '50010', 'dfs_exclude': 'dfs.exclude', 'yarn_user': 'yarn', 'gpl_artifacts_download_url': '', 'zk_user': 'zookeeper', 'smokeuser': 'ambari-qa', 'dtnode_heapsize': '1024m', 'gmond_user': 'nobody', 'dfs_datanode_failed_volume_tolerated': '0', 'java64_home': '/usr/jdk/jdk1.6.0_31', 'run_dir': '/var/run/hadoop', 'ganglia_runtime_dir': '/var/run/ganglia/hdp', 'dfs_datanode_data_dir_perm': '750', 'hdfs_enable_shortcircuit_read': 'true', 'hdfs_user': 'hdfs', 'hbase_user': 'hbase', 'webhcat_user': 'hcat', 'gmetad_user': 'nobody', 'dfs_block_local_path_access_user': 'hbase', 'namenode_opt_newsize': '200m', 'mapred_user': 'mapred', 'nagios_group': 'nagios', 'hcat_user': 'hcat', 'hadoop_heapsize': '1024', 'hadoop_pid_dir_prefix': '/var/run/hadoop', 'nagios_user': 'nagios'}
-    expected_post_path = '//clusters/test1/configurations'
+    expected_put_path = '//clusters/test1'
     expected_post_request = {'Clusters': {'desired_configs': {'tag': 'version1', 'type': 'global', 'properties':expected_properties}}}   
     expected_get_path = '//clusters/test1/configurations?type=global&tag=version1'
     expected_get_request = None
@@ -175,7 +175,7 @@ class TestClusterModel(unittest.TestCase):
     cluster.update_global_config(existant_global_config)
     
     self.assertEqual(cluster.cluster_name, "test1")
-    http_client_mock.invoke.assert_any_call('POST', expected_post_path, headers=None, payload=expected_post_request)
+    http_client_mock.invoke.assert_any_call('PUT', expected_put_path, headers=None, payload=expected_post_request)
     http_client_mock.invoke.assert_any_call('GET', expected_get_path, headers=None, payload=expected_get_request)
  
   def test_update_core_site_config(self):
@@ -185,7 +185,7 @@ class TestClusterModel(unittest.TestCase):
     http_client_mock = MagicMock()
     
     expected_properties = {'io.serializations': 'abc', 'fs.checkpoint.size': '0.5', 'fs.trash.interval': '360', 'hadoop.security.authentication': 'simple', 'io.compression.codecs': 'org.apache.hadoop.io.compress.GzipCodec,org.apache.hadoop.io.compress.DefaultCodec', 'mapreduce.jobtracker.webinterface.trusted': 'false', 'hadoop.security.authorization': 'false', 'fs.checkpoint.edits.dir': '/hadoop/hdfs/namesecondary', 'ipc.client.connection.maxidletime': '30000', 'ipc.client.connect.max.retries': '50', 'hadoop.security.auth_to_local': '\n        RULE:[2:$1@$0]([rn]m@.*)s/.*/yarn/\n        RULE:[2:$1@$0](jhs@.*)s/.*/mapred/\n        RULE:[2:$1@$0]([nd]n@.*)s/.*/hdfs/\n        RULE:[2:$1@$0](hm@.*)s/.*/hbase/\n        RULE:[2:$1@$0](rs@.*)s/.*/hbase/\n        DEFAULT\n    ', 'io.file.buffer.size': '131072', 'dfs.namenode.checkpoint.dir': '/hadoop/hdfs/namesecondary', 'ipc.client.idlethreshold': '8000', 'dfs.namenode.checkpoint.edits.dir': '${dfs.namenode.checkpoint.dir}', 'fs.defaultFS': 'hdfs://dev05.hortonworks.com:8020', 'dfs.namenode.checkpoint.period': '21600'}
-    expected_post_path = '//clusters/test1/configurations'
+    expected_put_path = '//clusters/test1'
     expected_post_request = {'Clusters': {'desired_configs': {'tag': 'version1', 'type': 'core-site', 'properties':expected_properties}}}   
     expected_get_path = '//clusters/test1/configurations?type=core-site&tag=version1'
     expected_get_request = None
@@ -196,7 +196,7 @@ class TestClusterModel(unittest.TestCase):
     cluster.update_core_site_config(existant_global_config)
     
     self.assertEqual(cluster.cluster_name, "test1")
-    http_client_mock.invoke.assert_any_call('POST', expected_post_path, headers=None, payload=expected_post_request)
+    http_client_mock.invoke.assert_any_call('PUT', expected_put_path, headers=None, payload=expected_post_request)
     http_client_mock.invoke.assert_any_call('GET', expected_get_path, headers=None, payload=expected_get_request)
        
   def test_update_hdfs_site_config(self):
@@ -206,7 +206,7 @@ class TestClusterModel(unittest.TestCase):
     http_client_mock = MagicMock()
     
     expected_properties = {'dfs.namenode.avoid.write.stale.datanode': 'abc', 'dfs.webhdfs.enabled': 'true', 'dfs.block.access.token.enable': 'true', 'dfs.datanode.address': '0.0.0.0:50010', 'dfs.cluster.administrators': ' hdfs', 'dfs.datanode.balance.bandwidthPerSec': '6250000', 'dfs.namenode.safemode.threshold-pct': '1.0f', 'dfs.permissions.enabled': 'true', 'dfs.client.read.shortcircuit': 'true', 'dfs.journalnode.edits.dir': '/grid/0/hdfs/journal', 'dfs.blocksize': '134217728', 'dfs.datanode.max.transfer.threads': '1024', 'dfs.datanode.du.reserved': '1', 'dfs.replication': '3', 'dfs.namenode.handler.count': '100', 'fs.permissions.umask-mode': '022', 'dfs.datanode.http.address': '0.0.0.0:50075', 'dfs.datanode.ipc.address': '0.0.0.0:8010', 'dfs.datanode.data.dir': '/hadoop/hdfs/data', 'dfs.namenode.http-address': 'dev05.hortonworks.com:50070', 'dfs.blockreport.initialDelay': '120', 'dfs.datanode.failed.volumes.tolerated': '0', 'dfs.namenode.accesstime.precision': '0', 'dfs.block.local-path-access.user': 'hbase', 'dfs.https.namenode.https-address': 'dev05.hortonworks.com:50470', 'dfs.namenode.secondary.http-address': 'dev05.hortonworks.com:50090', 'dfs.namenode.stale.datanode.interval': '30000', 'dfs.heartbeat.interval': '3', 'dfs.client.read.shortcircuit.streams.cache.size': '4096', 'dfs.permissions.superusergroup': 'hdfs', 'dfs.journalnode.http-address': '0.0.0.0:8480', 'dfs.domain.socket.path': '/var/lib/hadoop-hdfs/dn_socket', 'dfs.namenode.avoid.read.stale.datanode': 'true', 'dfs.hosts.exclude': '/etc/hadoop/conf/dfs.exclude', 'dfs.datanode.data.dir.perm': '750', 'dfs.namenode.write.stale.datanode.ratio': '1.0f', 'dfs.replication.max': '50', 'dfs.namenode.name.dir': '/hadoop/hdfs/namenode'}
-    expected_post_path = '//clusters/test1/configurations'
+    expected_put_path = '//clusters/test1'
     expected_post_request = {'Clusters': {'desired_configs': {'tag': 'version1', 'type': 'hdfs-site', 'properties':expected_properties}}}   
     expected_get_path = '//clusters/test1/configurations?type=hdfs-site&tag=version1'
     expected_get_request = None
@@ -217,7 +217,7 @@ class TestClusterModel(unittest.TestCase):
     cluster.update_hdfs_site_config(existant_global_config)
     
     self.assertEqual(cluster.cluster_name, "test1")
-    http_client_mock.invoke.assert_any_call('POST', expected_post_path, headers=None, payload=expected_post_request)
+    http_client_mock.invoke.assert_any_call('PUT', expected_put_path, headers=None, payload=expected_post_request)
     http_client_mock.invoke.assert_any_call('GET', expected_get_path, headers=None, payload=expected_get_request)\
     
   def test_update_mapred_site_config(self):
@@ -227,7 +227,7 @@ class TestClusterModel(unittest.TestCase):
     http_client_mock = MagicMock()
     
     expected_properties = {'mapreduce.jobhistory.address': 'abc', 'mapreduce.reduce.input.buffer.percent': '0.0', 'mapred.jobtracker.maxtasks.per.job': '-1', 'mapreduce.framework.name': 'yarn', 'mapreduce.map.speculative': 'false', 'mapreduce.tasktracker.healthchecker.script.path': 'file:////mapred/jobstatus', 'mapreduce.reduce.shuffle.merge.percent': '0.66', 'mapred.userlog.retain.hours': '24', 'yarn.app.mapreduce.am.resource.mb': '1024', 'mapreduce.reduce.shuffle.parallelcopies': '30', 'mapreduce.map.java.opts': '-Xmx320m', 'mapreduce.task.io.sort.factor': '100', 'mapreduce.application.classpath': '$HADOOP_MAPRED_HOME/share/hadoop/mapreduce/*,$HADOOP_MAPRED_HOME/share/hadoop/mapreduce/lib/*', 'yarn.app.mapreduce.am.command-opts': '-Xmx756m', 'mapreduce.job.reduce.slowstart.completedmaps': '0.05', 'mapreduce.output.fileoutputformat.compress.type': 'BLOCK', 'mapreduce.reduce.speculative': 'false', 'mapreduce.reduce.java.opts': '-Xmx756m', 'mapreduce.am.max-attempts': '2', 'yarn.app.mapreduce.am.admin-command-opts': '-Djava.net.preferIPv4Stack=true -Dhadoop.metrics.log.level=WARN', 'mapreduce.jobtracker.system.dir': '/mapred/system', 'mapreduce.map.sort.spill.percent': '0.1', 'mapreduce.task.timeout': '600000', 'mapreduce.map.memory.mb': '1536', 'mapreduce.reduce.log.level': 'INFO', 'mapreduce.jobhistory.intermediate-done-dir': '/mr-history/tmp', 'mapreduce.reduce.memory.mb': '2048', 'mapreduce.tasktracker.map.tasks.maximum': '4', 'yarn.app.mapreduce.am.log.level': 'INFO', 'mapreduce.map.log.level': 'INFO', 'mapreduce.shuffle.port': '13562', 'mapred.jobtracker.taskScheduler': 'org.apache.hadoop.mapred.CapacityTaskScheduler', 'mapreduce.admin.user.env': 'LD_LIBRARY_PATH=/usr/lib/hadoop/lib/native:/usr/lib/hadoop/lib/native/`$JAVA_HOME/bin/java -d32 -version &amp;&gt; /dev/null;if [ $? -eq 0 ]; then echo Linux-i386-32; else echo Linux-amd64-64;fi`', 'mapreduce.jobhistory.webapp.address': 'dev05.hortonworks.com:19888', 'mapred.hosts.exclude': '/etc/hadoop/conf/mapred.exclude', 'mapreduce.reduce.shuffle.input.buffer.percent': '0.7', 'yarn.app.mapreduce.am.staging-dir': '/user', 'mapred.hosts': '/etc/hadoop/conf/mapred.include', 'mapreduce.jobhistory.done-dir': '/mr-history/done', 'mapreduce.admin.reduce.child.java.opts': '-Djava.net.preferIPv4Stack=true -Dhadoop.metrics.log.level=WARN', 'mapreduce.task.io.sort.mb': '200', 'mapred.task.tracker.task-controller': 'org.apache.hadoop.mapred.DefaultTaskController', 'mapreduce.admin.map.child.java.opts': '-Djava.net.preferIPv4Stack=true -Dhadoop.metrics.log.level=WARN'}
-    expected_post_path = '//clusters/test1/configurations'
+    expected_put_path = '//clusters/test1'
     expected_post_request = {'Clusters': {'desired_configs': {'tag': 'version1', 'type': 'mapred-site', 'properties':expected_properties}}}   
     expected_get_path = '//clusters/test1/configurations?type=mapred-site&tag=version1'
     expected_get_request = None
@@ -238,7 +238,7 @@ class TestClusterModel(unittest.TestCase):
     cluster.update_mapred_site_config(existant_global_config)
     
     self.assertEqual(cluster.cluster_name, "test1")
-    http_client_mock.invoke.assert_any_call('POST', expected_post_path, headers=None, payload=expected_post_request)
+    http_client_mock.invoke.assert_any_call('PUT', expected_put_path, headers=None, payload=expected_post_request)
     http_client_mock.invoke.assert_any_call('GET', expected_get_path, headers=None, payload=expected_get_request)
     
   def test_create_services(self):

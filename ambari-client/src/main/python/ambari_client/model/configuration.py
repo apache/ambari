@@ -16,7 +16,7 @@
 #  limitations under the License.
 
 
-from ambari_client.model.base_model import  BaseModel 
+from ambari_client.model.base_model import  BaseModel , ModelList
 from ambari_client.model import paths , status , utils
 
 
@@ -41,6 +41,28 @@ def _get_configuration(resource_root, cluster_name , type , tag="version1"):
   return config_model
 
 
+def _get_all_configuration(resource_root, cluster_name , type ):
+  """
+  Gets ALL configuration of a cluster of a given type
+  @param resource_root: The root Resource .
+  @param cluster_name: cluster_name
+  @param type: type of config
+  @return: A ConfigModel object
+  """
+  dic = resource_root.get(paths.CONFIGURATION_ALL_PATH % (cluster_name, type))
+  
+  if len(dic["items"]) == 0:
+    return None
+
+  objects = []
+  for cfgm in dic["items"]:
+      config_model = utils.ModelUtils.create_model(ConfigModel , cfgm, resource_root, "NO_KEY")
+      ref_clss = utils.getREF_class_name("cluster_name")
+      config_model._setattr(ref_clss, cfgm['Config']['cluster_name'])
+      objects.append(config_model)
+  return ModelList(objects)
+  
+  
 def _update_configuration(resource_root, cluster_name , type , tag , config_model):
   """
   Update configuration of a cluster
@@ -51,7 +73,7 @@ def _update_configuration(resource_root, cluster_name , type , tag , config_mode
   @return: A ConfigModel object
   """
   data = {"Clusters":{"desired_configs":{ "type":type, "tag":tag, "properties":config_model.properties}}}
-  resp = resource_root.post(path=paths.CREATE_CONFIGURATION_PATH % cluster_name , payload=data)
+  resp = resource_root.put(path=paths.UPDATE_CONFIGURATION_PATH % cluster_name , payload=data )
   return utils.ModelUtils.create_model(status.StatusModel, resp, resource_root, "NO_KEY")
 
 
@@ -102,6 +124,9 @@ class ConfigModel(BaseModel):
     if self.clusterRef:
       return self.clusterRef.cluster_name
     return None
+
+  def __lt__(self, other):
+    return self.tag < other.tag
 
   def _path(self):
     """

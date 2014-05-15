@@ -162,12 +162,15 @@ class ClusterModel(BaseModel):
     """
     return configuration._get_configuration(self._get_resource_root(), self.cluster_name, "global")
 
-  def get_core_site_config(self, detail=None):
+  def get_core_site_config(self, tag="version1" ,detail=None):
     """
     Get core-site configuration of  cluster.
-    @return: A ConfigModel object.
+    @return: A ConfigModel object or ModelList<ConfiObject>
     """
-    return configuration._get_configuration(self._get_resource_root(), self.cluster_name, "core-site")
+    if(detail == utils.ALL):
+        return configuration._get_all_configuration(self._get_resource_root(), self.cluster_name, "core-site")
+    else:
+        return configuration._get_configuration(self._get_resource_root(), self.cluster_name,  "core-site" ,tag)
 
   def get_hdfs_site_config(self, detail=None):
     """
@@ -183,37 +186,37 @@ class ClusterModel(BaseModel):
     """
     return configuration._get_configuration(self._get_resource_root(), self.cluster_name, "mapred-site")
 
-  def update_global_config(self, config_model , detail=None):
+  def update_global_config(self, config_model , tag="version1" ,detail=None):
     """
     Updates the  global configuration of  cluster.
     @param config_model: The configModel object
     @return: A ConfigModel object.
     """
-    return configuration._update_configuration(self._get_resource_root(), self.cluster_name, "global" , "version1", config_model)
+    return configuration._update_configuration(self._get_resource_root(), self.cluster_name, "global" , tag, config_model)
 
-  def update_core_site_config(self, config_model , detail=None):
+  def update_core_site_config(self, config_model , tag="version1" ,detail=None):
     """
     Updates the  core-site configuration of  cluster.
     @param config_model: The configModel object
     @return: A ConfigModel object.
     """
-    return configuration._update_configuration(self._get_resource_root(), self.cluster_name, "core-site", "version1", config_model)
+    return configuration._update_configuration(self._get_resource_root(), self.cluster_name, "core-site", tag, config_model)
 
-  def update_hdfs_site_config(self, config_model , detail=None):
+  def update_hdfs_site_config(self, config_model , tag="version1" , detail=None):
     """
     Updates the  hdfs-site configuration of  cluster.
     @param config_model: The configModel object
     @return: A ConfigModel object.
     """
-    return configuration._update_configuration(self._get_resource_root(), self.cluster_name, "hdfs-site", "version1", config_model)
+    return configuration._update_configuration(self._get_resource_root(), self.cluster_name, "hdfs-site", tag, config_model)
 
-  def update_mapred_site_config(self, config_model , detail=None):
+  def update_mapred_site_config(self, config_model ,tag="version1" , detail=None):
     """
     Updates the  mapred-site configuration of  cluster.
     @param config_model: The configModel object
     @return: A ConfigModel object.
     """
-    return configuration._update_configuration(self._get_resource_root(), self.cluster_name, "mapred-site", "version1", config_model)
+    return configuration._update_configuration(self._get_resource_root(), self.cluster_name, "mapred-site", tag, config_model)
 
   def create_services(self, services_list , detail=None):
     """
