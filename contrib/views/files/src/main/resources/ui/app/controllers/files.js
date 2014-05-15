@@ -27,13 +27,13 @@ App.FilesController = Ember.ArrayController.extend({
 
       if (opt == 'cut') {
         src = file.toJSON({includeId: true});
-        src = Em.merge(src,{title:file.get('title'),path:file.get('path')})
+        src = Em.merge(src,{name:file.get('name'),path:file.get('path')})
         this.set('movingFile',src);
       };
 
       if (opt == 'move') {
         self = this;
-        this.store.move(moving.path,[this.get('path'),moving.title].join('/').replace('//','/'))
+        this.store.move(moving.path,[this.get('path'),moving.name].join('/').replace('//','/'))
           .then(function () {
             self.set('movingFile',null);
           });
@@ -112,7 +112,7 @@ App.FilesController = Ember.ArrayController.extend({
     });
   },
 
-  sortProperties: ['title'],
+  sortProperties: ['name'],
   sortAscending: true,
 
   needs: ["file"],
@@ -125,7 +125,7 @@ App.FilesController = Ember.ArrayController.extend({
   queryParams: ['path'],
   path: '/',
   hideMoving:function () {
-    return (this.movingFile)?[this.path,this.movingFile.title].join('/').replace('//','/')===this.movingFile.path:false;
+    return (this.movingFile)?[this.path,this.movingFile.name].join('/').replace('//','/')===this.movingFile.path:false;
   }.property('movingFile','path'),
   currentDir:function () {
     var splitpath = this.get('path').split('/');

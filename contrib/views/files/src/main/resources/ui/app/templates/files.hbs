@@ -60,37 +60,40 @@
   </div>
 
   <div class="panel-body">
-    <h4 class="i-am-in" > <i class="fa fa-folder fa-lg"></i>  {{currentDir}}</h4>
+    <h4 class="i-am-in pull-left" > <i class="fa fa-folder fa-lg"></i>  {{currentDir}}</h4>
+
+    <div class="btn-group btn-sort pull-right" data-toggle="tooltip" data-placement="left" title="Sort by:">
+      <button type="button" class="btn btn-xs btn-default" {{action sort 'toggle'}}>
+      {{#if sortAscending}} Asc {{else}} Desc {{/if}}
+      </button>
+
+      <button type="button" class="btn btn-xs btn-default dropdown-toggle" data-toggle="dropdown">
+        <span>
+        {{capitalize sortProperties.firstObject}}
+        </span>
+        <span class="caret"></span>
+      </button>
+      <ul class="dropdown-menu" role="menu">
+        <li><a href="#" {{action 'sort' 'name'}} >Name</a></li>
+        <li><a href="#" {{action 'sort' 'size'}} >Size</a></li>
+        <li><a href="#" {{action 'sort' 'owner'}} >Owner</a></li>
+        <li><a href="#" {{action 'sort' 'group'}} >Group</a></li>
+        <li><a href="#" {{action 'sort' 'permission'}} >Permission</a></li>
+        <li><a href="#" {{action 'sort' 'date'}} >Date</a></li>
+      </ul>
+    </div>
   </div>
 
   <table class="table table-hover table-files">
     <thead>
       <tr>
         <th class="icon"></th>
-        <th class="path" {{action 'sort' 'title'}}> Title {{view view.sortArrow sortProperty='title'}} </th>
+        <th class="path" {{action 'sort' 'name'}}> Name {{view view.sortArrow sortProperty='name'}} </th>
+        <th class="size" {{action 'sort' 'size'}}>Size {{view view.sortArrow sortProperty='size'}}</th>
         <th class="owner" {{action 'sort' 'owner'}}>Owner {{view view.sortArrow sortProperty='owner'}}</th>
         <th class="grp" {{action 'sort' 'group'}} >Group {{view view.sortArrow sortProperty='group'}}</th>
         <th class="perm" {{action 'sort' 'permission'}} >Permission {{view view.sortArrow sortProperty='permission'}}</th>
         <th class="download">
-          <div class="btn-group btn-sort" data-toggle="tooltip" data-placement="top" title="Sort by:">
-            <button type="button" class="btn btn-xs btn-default" {{action sort 'toggle'}}>
-            {{#if sortAscending}} Asc {{else}} Desc {{/if}}
-            </button>
-
-            <button type="button" class="btn btn-xs btn-default dropdown-toggle" data-toggle="dropdown">
-              <span>
-              {{capitalize sortProperties.firstObject}}
-              </span>
-              <span class="caret"></span>
-            </button>
-            <ul class="dropdown-menu" role="menu">
-              <li><a href="#" {{action 'sort' 'title'}} >Title</a></li>
-              <li><a href="#" {{action 'sort' 'owner'}} >Owner</a></li>
-              <li><a href="#" {{action 'sort' 'group'}} >Group</a></li>
-              <li><a href="#" {{action 'sort' 'permission'}} >Permission</a></li>
-              <li><a href="#" {{action 'sort' 'date'}} >Date</a></li>
-            </ul>
-          </div>
         </th>
         <th class="check"> 
           <div id="bulkDropdown" class="btn-group">
@@ -125,12 +128,12 @@
     <div>
       <tr>
         <td><i class="fa fa-folder"></i></td>
-        <td  {{action 'dirUp'}} colspan="6">
+        <td  {{action 'dirUp'}} colspan="7">
           <strong> .. </strong>
         </td>
       </tr>
       <tr class="error-row">
-        <td colspan="7" class="danger">
+        <td colspan="8" class="danger">
           {{outlet error}}
         </td>
       </tr>
@@ -148,7 +151,7 @@
             <div class="file-name">
                 <span>
                   <a>
-                  {{movingFile.title}}
+                  {{movingFile.name}}
                   </a>
                 </span>
                 <span class="help-block mod-time">
@@ -157,6 +160,11 @@
                   </small>
                 </span>
               </div>
+          </td>
+          <td>
+            {{#unless content.isDirectory}}
+              {{humanSize movingFile.size}}
+            {{/unless}}
           </td>
           <td >{{movingFile.owner}}</td>
           <td>{{movingFile.group}}</td>
@@ -188,19 +196,12 @@
             {{#unless isRenaming}}
               <div class="file-name allow-open">
                 <span>
-                  {{#link-to 'files' (query-params path=content.path)}}
+                  <a {{action 'open'}}>
                     <strong>
-                      {{content.title}}
+                      {{content.name}}
                     </strong>
-                  {{/link-to}}
+                  </a>
                 </span>
-                {{#unless isMoving}}
-                <a {{action 'rename' 'edit'}} {{bind-attr class=":btn-rename "}} data-toggle="tooltip" data-placement="bottom" title="Rename">
-                  <small>
-                    <i class="fa fa-edit fa-lg"></i>
-                  </small>
-                </a>
-                {{/unless }}
                 <span class="help-block mod-time allow-open">
                   <small class='allow-open'>
                     Updated {{showDate modificationTime 'YYYY-MM-DD HH:mm'}}
@@ -223,6 +224,11 @@
               </div>
             {{/unless}}
           </td>
+          <td>
+            {{#unless content.isDirectory}}
+              {{humanSize content.size}}
+            {{/unless}}
+          </td>
           <td >{{content.owner}}</td>
           <td>{{content.group}}</td>
           <td>{{content.permission}}</td>
@@ -236,10 +242,13 @@
                   <a href="#" {{action 'download' 'browse'}} data-toggle="tooltip" data-placement="bottom" title="Download"><i class="fa fa-download fa-fw fa-lg"></i></a>  
                 {{/if}}
                 </li>
-                <li>{{view view.deleteSingleView}}</li>
                 <li>
                   <a href="#" {{action 'moveFile' 'cut' this.content}} data-toggle="tooltip" data-placement="bottom" title="Move"><i class="fa fa-level-down fa-rotate-270 fa-fw fa-lg"></i></span></a>  
                 </li>
+                <li>
+                  <a {{action 'rename' 'edit'}} data-toggle="tooltip" data-placement="bottom" title="Rename"><i class="fa fa-edit fa-lg"></i></a>
+                </li>
+                <li>{{view view.deleteSingleView}}</li>
               </ul>
             {{/unless}}
             </td>
