@@ -114,8 +114,7 @@ mysql_host = config['clusterHostInfo']['hive_mysql_host']
 mysql_adduser_path = "/tmp/addMysqlUser.sh"
 
 ######## Metastore Schema
-if str(hdp_stack_version).startswith('2.1') and \
-    config['configurations']['global']['hive_database'] == 'New MySQL Database':
+if str(hdp_stack_version).startswith('2.1'):
   init_metastore_schema = True
 else:
   init_metastore_schema = False
