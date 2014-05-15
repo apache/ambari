@@ -40,37 +40,40 @@ App.MainAdminUserCreateView = Em.View.extend({
 
   /**
    * Create new user
-   * @method create
+   * @return {Boolean}
    */
   create: function () {
     var form = this.get("userForm");
-    if (form.isValid()) {
-      form.getField("userName").set('value', form.getField("userName").get('value').toLowerCase());
-      if (form.getField("admin").get('value') === "" || form.getField("admin").get('value') == true) {
-        form.getField("roles").set("value", "admin,user");
-        form.getField("admin").set("value", "true");
-      }
-      else {
-        form.getField("roles").set("value", "user");
-      }
+    if (!form.isValid())  return false;
 
-      App.ajax.send({
-        name: 'admin.user.create',
-        sender: this,
+    this.identifyRoles(form);
+
+    return !!App.ajax.send({
+      name: 'admin.user.create',
+      sender: this,
+      data: {
+        user: form.getField("userName").get('value'),
+        form: form,
         data: {
-          user: form.getField("userName").get('value'),
-          form: form,
-          data: {
-            Users: {
-              password: form.getField("password").get('value'),
-              roles: form.getField("roles").get('value')
-            }
+          Users: {
+            password: form.getField("password").get('value'),
+            roles: form.getField("roles").get('value')
           }
-        },
-        success: 'createUserSuccessCallback',
-        error: 'createUserErrorCallback'
-      });
-    }
+        }
+      },
+      success: 'createUserSuccessCallback',
+      error: 'createUserErrorCallback'
+    });
+  },
+
+  /**
+   * identify roles of user by admin checkbox
+   * @param form
+   */
+  identifyRoles: function (form) {
+    var roles = (form.getField("admin").get('value') === true) ? 'admin,user' : 'user';
+    form.getField("roles").set("value", roles);
+    return roles;
   },
 
   /**

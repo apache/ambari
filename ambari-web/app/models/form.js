@@ -49,14 +49,13 @@ App.Form = Em.View.extend({
     this._super();
   },
 
-  getField:function (name) {
-    var field = false;
-    $.each(this.fields, function () {
-      if (this.get('name') == name) {
-        return field = this;
-      }
-    });
-    return field;
+  /**
+   * get field of form by name
+   * @param name
+   * @return {Object}
+   */
+  getField: function (name) {
+    return this.get('fields').findProperty('name', name);
   },
 
   isValid:function () {
@@ -84,21 +83,18 @@ App.Form = Em.View.extend({
 
   }.observes("object"),
 
-  clearValues:function () {
-    $.each(this.fields, function () {
-      this.set('value', '');
-    });
+  /**
+   * reset values to default of every field in the form
+   */
+  clearValues: function () {
+    this.get('fields').forEach(function (field) {
+      var value = (field.get('defaultValue') === undefined) ? '' : field.get('defaultValue');
+      field.set('value', value);
+    }, this);
   },
 
   visibleFields:function () {
-    var fields = this.get('fields');
-    var visible = [];
-    fields.forEach(function (field) {
-      if (!field.get('isHiddenField')) {
-        visible.push(field);
-      }
-    });
-    return visible;
+    return this.get('fields').filterProperty('isHiddenField', false);
   }.property('fields'),
 
   resultText:function () {

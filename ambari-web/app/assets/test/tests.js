@@ -125,6 +125,8 @@ require('test/views/common/filter_view_test');
 require('test/views/common/table_view_test');
 require('test/views/common/quick_link_view_test');
 require('test/views/common/rolling_restart_view_test');
+require('test/views/main/admin/user/create_test');
+require('test/views/main/admin/user/edit_test');
 require('test/views/main/dashboard_test');
 require('test/views/main/dashboard/widget_test');
 require('test/views/main/dashboard/widgets_test');

@@ -116,7 +116,7 @@ App.CreateUserForm = App.Form.extend({
     { name:"userName", displayName:"Username", toLowerCase: function(){var v = this.get('value'); this.set('value', v.toLowerCase())}.observes('value') },
     { name:"password", displayName:"Password", displayType:"password", isRequired: true },
     { name:"passwordRetype", displayName:"Retype Password", displayType:"password", validator:"passwordRetype", isRequired: true },
-    { name:"admin", displayName:"Admin", displayType:"checkbox", isRequired:false },
+    { name:"admin", displayName:"Admin", displayType:"checkbox", isRequired:false, defaultValue: true},
     { name:"roles", displayName:"Role", isRequired:false, isHidden:true }
   ],
   fields:[],

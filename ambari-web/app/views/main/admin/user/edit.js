@@ -36,28 +36,19 @@ App.MainAdminUserEditView = Em.View.extend({
   /**
    * Edit existing user
    * @method edit
+   * @return {Boolean}
    */
   edit: function () {
     var form = this.get("userForm");
-    if (!form.isValid()) return;
+    if (!form.isValid()) return false;
 
-    var Users = {};
-    if (form.getField("admin").get('value') === "" || form.getField("admin").get('value') == true) {
-      form.getField("roles").set("value", "admin,user");
-      form.getField("admin").set("value", true);
-    }
-    else {
-      form.getField("roles").set("value", "user");
-    }
+    var Users = {
+      roles: this.identifyRoles(form)
+    };
 
-    Users.roles = form.getField("roles").get('value');
+    this.setPassword(Users, form);
 
-    if (form.getField("new_password").get('value') != "" && form.getField("old_password").get('value') != "") {
-      Users.password = form.getField("new_password").get('value');
-      Users.old_password = form.getField("old_password").get('value');
-    }
-
-    App.ajax.send({
+    return !!App.ajax.send({
       name: 'admin.user.edit',
       sender: this,
       data: {
@@ -70,6 +61,32 @@ App.MainAdminUserEditView = Em.View.extend({
       success: 'editUserSuccessCallback',
       error: 'editUserErrorCallback'
     });
+  },
+
+  /**
+   * set password to query data if it's not empty string
+   * @param Users
+   * @param form
+   * @return {Boolean}
+   */
+  setPassword: function (Users, form) {
+    if (form.getField("new_password").get('value') != "" && form.getField("old_password").get('value') != "") {
+      Users.password = form.getField("new_password").get('value');
+      Users.old_password = form.getField("old_password").get('value');
+      return true;
+    }
+    return false;
+  },
+
+  /**
+   * identify roles of user by admin checkbox
+   * @param form
+   * @return {String}
+   */
+  identifyRoles: function (form) {
+    var roles = (form.getField("admin").get('value') === true) ? 'admin,user' : 'user';
+    form.getField("roles").set("value", roles);
+    return roles;
   },
 
   /**
@@ -90,14 +107,22 @@ App.MainAdminUserEditView = Em.View.extend({
    * @method editUserErrorCallback
    */
   editUserErrorCallback: function (request) {
-    var message = $.parseJSON(request.responseText).message;
-    message = message.substr(message.lastIndexOf(':') + 1);
     App.ModalPopup.show({
       header: Em.I18n.t('admin.users.editButton'),
-      body: message,
+      body: this.parseErrorMessage(request),
       secondary: null
     });
-    console.log(message);
+  },
+
+  /**
+   * derive only valuable info from response,
+   * return content after last ":"
+   * @param request
+   * @return {String}
+   */
+  parseErrorMessage: function (request) {
+    var message = JSON.parse(request.responseText).message;
+    return message.substr(message.lastIndexOf(':') + 1);
   },
 
   /**
@@ -116,15 +141,10 @@ App.MainAdminUserEditView = Em.View.extend({
 
   didInsertElement: function () {
     var form = this.get('userForm');
-    if (form.getField("isLdap").get("value")) {
-      form.getField("old_password").set("disabled", true);
-      form.getField("new_password").set("disabled", true);
-      form.getField("new_passwordRetype").set("disabled", true);
-    } else {
-      form.getField("old_password").set("disabled", false);
-      form.getField("new_password").set("disabled", false);
-      form.getField("new_passwordRetype").set("disabled", false);
-    }
+    var isLdapValue = form.getField("isLdap").get("value");
+    form.getField("old_password").set("disabled", isLdapValue);
+    form.getField("new_password").set("disabled", isLdapValue);
+    form.getField("new_passwordRetype").set("disabled", isLdapValue);
     form.propertyDidChange('object');
   }
 });
