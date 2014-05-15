@@ -90,13 +90,27 @@ App.MainAdminClusterController = Em.Controller.extend({
 
   loadRepositoriesSuccessCallback: function (data) {
     var allRepos = [];
-    data.items.forEach(function(os) {
+    data.items.forEach(function (os) {
       if (!App.supports.ubuntu && os.OperatingSystems.os_type == 'debian12') return; // @todo: remove after Ubuntu support confirmation
-      var repo = Em.Object.create({
-        baseUrl: os.repositories[0].Repositories.base_url,
-        osType: os.repositories[0].Repositories.os_type
+      os.repositories.forEach(function (repository) {
+        var osType = repository.Repositories.os_type;
+        var repo = Em.Object.create({
+          baseUrl: repository.Repositories.base_url,
+          osType: osType,
+          repoId: repository.Repositories.repo_id,
+          isFirst: false
+        });
+        var group = allRepos.findProperty('name', osType);
+        if (!group) {
+          group = {
+            name: osType,
+            repositories: []
+          };
+          repo.set('isFirst', true);
+          allRepos.push(group);
+        }
+        group.repositories.push(repo);
       });
-      allRepos.push(repo);
     }, this);
     allRepos.stackVersion = App.get('currentStackVersionNumber');
     this.set('repositories', allRepos);

@@ -60,19 +60,25 @@
       </li>
     </ul>
 
-    <table class="table table-bordered table-striped">
+    <table class="table table-bordered">
       <thead>
       <tr>
         <th>{{t admin.cluster.repositories.os}}</th>
+        <th>{{t common.name}}</th>
         <th>{{t admin.cluster.repositories.baseUrl}}</th>
       </tr>
       </thead>
       <tbody>
-        {{#each repo in repositories}}
-          <tr>
-            <td>{{repo.osType}}</td>
-            <td>{{repo.baseUrl}}</td>
-          </tr>
+        {{#each repoGroup in repositories}}
+          {{#each repo in repoGroup.repositories}}
+            <tr>
+              {{#if repo.isFirst}}
+                <td {{bindAttr rowspan="repoGroup.repositories.length"}}>{{repo.osType}}</td>
+              {{/if}}
+              <td>{{repo.repoId}}</td>
+              <td>{{repo.baseUrl}}</td>
+            </tr>
+          {{/each}}
         {{/each}}
       </tbody>
     </table>
