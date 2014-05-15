@@ -17,7 +17,7 @@
 <view>
     <name>PIG</name>
     <label>Pig</label>
-    <version>1.0.0</version>
+    <version>0.1.0</version>
 
     <!-- HDFS parameters -->
     <parameter>
