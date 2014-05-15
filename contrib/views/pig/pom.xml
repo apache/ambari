@@ -220,43 +220,4 @@
       </resource>
     </resources>
   </build>
-  <profiles>
-    <profile>
-      <id>default</id>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
-      <build>
-        <plugins>
-          <!-- Copy only the contrib views that we want included for default deployment -->
-          <plugin>
-            <artifactId>maven-resources-plugin</artifactId>
-            <version>2.6</version>
-            <executions>
-              <execution>
-                <id>copy-ambari-views</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>copy-resources</goal>
-                </goals>
-                <configuration>
-                  <!-- View archives in ../target will be deployed with an Ambari server install -->
-                  <outputDirectory>${basedir}/../target</outputDirectory>
-                  <resources>
-                    <resource>
-                      <directory>${basedir}/target/</directory>
-                      <includes>
-                        <include>*.jar</include>
-                      </includes>
-                      <filtering>true</filtering>
-                    </resource>
-                  </resources>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-  </profiles>
 </project>
