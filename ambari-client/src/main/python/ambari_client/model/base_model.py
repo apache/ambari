@@ -19,7 +19,7 @@ import sys
 import logging
 import time
 from  ambari_client.model.utils  import get_REF_object, get_unicode, getREF_var_name , LIST_KEY
-
+from operator import itemgetter, attrgetter
 
 __docformat__ = "epytext"
 
@@ -101,6 +101,9 @@ class ModelList(object):
   def __iter__(self):
     return self.objects.__iter__()
 
+  def sort(self, sortkey):
+    self.objects = sorted(self.objects, key=sortkey ,reverse=True) 
+      
   def __getitem__(self, i):
     return self.objects.__getitem__(i)
 
