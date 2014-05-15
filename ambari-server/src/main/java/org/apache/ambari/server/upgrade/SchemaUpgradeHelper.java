@@ -198,6 +198,16 @@ public class SchemaUpgradeHelper {
     }
   }
 
+  public void resetUIState() throws AmbariException {
+    LOG.info("Resetting UI state.");
+    try {
+      dbAccessor.updateTable("key_value_store", "\"value\"", "{\"clusterState\":\"CLUSTER_STARTED_5\"}",
+          "where \"key\"='CLUSTER_CURRENT_STATUS'");
+    } catch (SQLException e) {
+      throw new AmbariException("Unable to reset UI state", e);
+    }
+  }
+
   /**
    * Upgrade Ambari DB schema to the target version passed in as the only
    * argument.
@@ -228,6 +238,8 @@ public class SchemaUpgradeHelper {
       schemaUpgradeHelper.startPersistenceService();
 
       schemaUpgradeHelper.executeDMLUpdates(upgradeCatalogs);
+
+      schemaUpgradeHelper.resetUIState();
 
       LOG.info("Upgrade successful.");
 
