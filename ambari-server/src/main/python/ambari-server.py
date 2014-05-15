@@ -146,17 +146,15 @@ SERVER_START_CMD = "{0}" + os.sep + "bin" + os.sep +\
                  os.getenv('AMBARI_JVM_ARGS', '-Xms512m -Xmx2048m') +\
                  " -cp {1}" + os.pathsep + "{2}" +\
                  " org.apache.ambari.server.controller.AmbariServer "\
-                 ">" + SERVER_OUT_FILE + " 2>&1 &" \
-                 " echo $! > {3}"  # Writing pidfile
+                 ">" + SERVER_OUT_FILE + " 2>&1"
 SERVER_START_CMD_DEBUG = "{0}" + os.sep + "bin" + os.sep +\
                        "java -server -XX:NewRatio=2 -XX:+UseConcMarkSweepGC " +\
                        ambari_provider_module_option +\
                        os.getenv('AMBARI_JVM_ARGS', '-Xms512m -Xmx2048m') +\
                        " -Xdebug -Xrunjdwp:transport=dt_socket,address=5005,"\
                        "server=y,suspend=n -cp {1}" + os.pathsep + "{2}" +\
-                       " org.apache.ambari.server.controller.AmbariServer &" \
-                       " echo $! > {3}"  # Writing pidfile
-
+                       " org.apache.ambari.server.controller.AmbariServer"
+SERVER_WRITE_PID_FILE_CMD = "pgrep -f 'org.apache.ambari.server.controller.AmbariServer' > {0}"
 SECURITY_PROVIDER_GET_CMD = "{0}" + os.sep + "bin" + os.sep + "java -cp {1}" +\
                           os.pathsep + "{2} " +\
                           "org.apache.ambari.server.security.encryption" +\
@@ -185,7 +183,7 @@ STACK_UPGRADE_HELPER_CMD = "{0}" + os.sep + "bin" + os.sep + "java -cp {1}" +\
                           "org.apache.ambari.server.upgrade.StackUpgradeHelper" +\
                           " {3} {4} > " + SERVER_OUT_FILE + " 2>&1"
 
-
+SERVER_START_TIMEOUT = 10
 SECURITY_KEYS_DIR = "security.server.keys_dir"
 SECURITY_MASTER_KEY_LOCATION = "security.master.key.location"
 SECURITY_KEY_IS_PERSISTED = "security.master.key.ispersisted"
@@ -2107,6 +2105,15 @@ def copy_files(files, dest_dir):
   else:
     return -1
 
+#
+# Wait for Popen process and returns exit code if process was finished in
+# timeout seconds, otherwise returns None
+#
+def wait_popen(popen, timeout=0):
+  begin = time.time()
+  while popen.poll() is None and not time.time() - begin > timeout:
+    time.sleep(1)
+  return popen.poll()
 
 def check_jdbc_drivers(args):
   properties = get_ambari_properties()
@@ -2475,10 +2482,16 @@ def start(args):
     param_list = [utils.locate_file('su', '/bin'), ambari_user, "-s", utils.locate_file('sh', '/bin'), "-c", command]
   else:
     param_list = [utils.locate_file('sh', '/bin'), "-c", command]
-
+  pid_params_list = [utils.locate_file('sh', '/bin'), "-c", SERVER_WRITE_PID_FILE_CMD.format(pidfile)]
   print_info_msg("Running server: " + str(param_list))
   server_process = subprocess.Popen(param_list, env=environ)
-
+  #wait for server process for SERVER_START_TIMEOUT seconds, if err_code None -
+  #server keep running normally and we consider that there is no errors
+  print "Waiting for server start..."
+  err_code = wait_popen(server_process, SERVER_START_TIMEOUT)
+  if  err_code is not None:
+    raise FatalException(-1, "Ambari Server java process died with exit code {0}. Check {1} for more information.".format(err_code, SERVER_OUT_FILE))
+  write_pid_file_process = subprocess.Popen(pid_params_list, env=environ)
   print "Server PID at: "+pidfile
   print "Server out at: "+SERVER_OUT_FILE
   print "Server log at: "+SERVER_LOG_FILE

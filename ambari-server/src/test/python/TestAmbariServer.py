@@ -2463,6 +2463,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertEqual(None, rcode)
     self.assertTrue(setup_db_mock.called)
 
+  @patch.object(ambari_server, "wait_popen", new = MagicMock(return_value=None))
   @patch('os.makedirs')
   @patch.object(ambari_server.utils, 'locate_file')
   @patch.object(ambari_server, 'is_server_runing')
@@ -2644,7 +2645,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
      ambari_server.start(args)
      self.assertTrue(chdir_mock.called)
      self.assertTrue(popenMock.called)
-     popen_arg = popenMock.call_args[0][0]
+     popen_arg = popenMock.call_args_list[0][0][0]
      self.assertTrue(popen_arg[0] == "/bin/su")
      self.assertTrue(perform_housekeeping_mock.called)
      check_postgre_up_mock.reset_mock()
