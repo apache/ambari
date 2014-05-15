@@ -83,9 +83,7 @@ public class UpgradeCatalog160 extends AbstractUpgradeCatalog {
     // ========================================================================
     // Add constraints
     dbAccessor.addFKConstraint("hostgroup_configuration", "FK_hg_config_blueprint_name",
-        "blueprint_name", "hostgroup", "blueprint_name", true);
-    dbAccessor.addFKConstraint("hostgroup_configuration", "FK_hg_config_hostgroup_name",
-        "hostgroup_name", "hostgroup", "name", true);
+      new String[] {"blueprint_name", "hostgroup_name"}, "hostgroup", new String[] {"blueprint_name", "name"}, true);
     dbAccessor.addFKConstraint("viewentity", "FK_viewentity_view_name",
         new String[]{"view_name", "view_instance_name"}, "viewinstance", new String[]{"view_name", "name"}, true);
 
