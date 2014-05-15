@@ -115,16 +115,13 @@ class HttpClient(object):
         self.c.setopt(pycurl.UPLOAD, 1)
     else:
         self.c.setopt(pycurl.CUSTOMREQUEST, http_method)
-
-    data = None    
+        
     if http_method in ('POST','PUT'):
       LOG.debug( "data..........."+str(payload))
       data = json.dumps(payload)
-      #data= data.decode('unicode-escape')
-      #LOG.debug( "after unicode decode")
-      #LOG.debug( data)
+      data= data.decode('unicode-escape')
+      LOG.debug( data)
       data = self._to_bytestring(data)
-      LOG.debug( "after _to_bytestring")
       LOG.debug( data)
       content = StringIO.StringIO(data)
       LOG.debug( content)
@@ -135,16 +132,13 @@ class HttpClient(object):
         self.c.setopt(pycurl.POSTFIELDSIZE, content_length)
       else:
         self.c.setopt(pycurl.INFILESIZE, content_length)
-        
       self.c.setopt(pycurl.READFUNCTION, content.read)
       
-
+      
     self.c.setopt(self.c.URL, url)
     headers = self._get_headers(headers)
-    headers_l = ["%s: %s" % pair for pair in sorted(headers.iteritems())]
-    LOG.debug( headers_l)
-    self.c.setopt(pycurl.HTTPHEADER,headers_l)
-
+    self.c.setopt(pycurl.HTTPHEADER,
+                        ["%s: %s" % pair for pair in sorted(headers.iteritems())])
 
     LOG.debug ("invoke : pycurl.EFFECTIVE_URL = "+self.c.getinfo(pycurl.EFFECTIVE_URL))
     try:

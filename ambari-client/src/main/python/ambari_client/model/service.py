@@ -159,26 +159,18 @@ class ServiceModel(BaseModel):
       status_model.request_path = None
     return status_model
 
-  def start(self ,message = None):
+  def start(self):
     """
     Start a service.
     """
-    data = None
-    if message:
-        data = {"RequestInfo":{"context":message},"Body":{"ServiceInfo":{"state":"STARTED"}}}
-    else:
-        data = {"ServiceInfo": {"state": "STARTED"}}
+    data = {"ServiceInfo": {"state": "STARTED"}}
     return self._action(data)
 
-  def stop(self ,message = None):
+  def stop(self):
     """
     Stop a service.
     """
-    data = None
-    if message:
-        data = {"RequestInfo":{"context":message},"Body":{"ServiceInfo":{"state":"INSTALLED"}}}
-    else:
-        data = {"ServiceInfo": {"state": "INSTALLED"}}
+    data = {"ServiceInfo": {"state": "INSTALLED"}}
     return self._action(data)
 
   def install(self):
