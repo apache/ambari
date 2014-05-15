@@ -135,3 +135,8 @@ define command{
   command_name check_tcp_wrapper
   command_line  $USER1$/check_wrapper.sh $USER1$/check_tcp -H $HOSTADDRESS$ -p $ARG1$ $ARG2$
 }
+
+define command{
+  command_name check_tcp_wrapper_sasl
+  command_line  $USER1$/check_wrapper.sh $USER1$/check_tcp -H $HOSTADDRESS$ -p $ARG1$ $ARG2$ -s \"$ARG3$\"
+}
