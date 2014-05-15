@@ -243,7 +243,11 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
             serviceDesiredProperties.get(service));
           
           for (String compName : portMap.keySet()) {
-            clusterJmxPorts.put(compName, getPortString(portMap.get(compName)));
+            // portString will be null if the property defined for the component doesn't exist
+            // this will trigger using the default port for the component
+            String portString = getPortString(portMap.get(compName));
+            if (null != portString)
+              clusterJmxPorts.put(compName, portString);
           }
         }
       } catch (Exception e) {
