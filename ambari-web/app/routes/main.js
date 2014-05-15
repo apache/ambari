@@ -62,13 +62,10 @@ module.exports = Em.Route.extend({
     redirectsTo: 'dashboard.index'
   }),
 
+  connectOutlets: function (router, context) {
+    router.get('applicationController').connectOutlet('main');
+  },
 
-  views: Ember.Route.extend({
-    route: '/views',
-    connectOutlets: function (router, context) {
-      router.get('mainController').connectOutlet('mainViews');
-    }
-  }),
   test: Em.Route.extend({
     route: '/test',
     connectOutlets: function (router, context) {
@@ -76,9 +73,18 @@ module.exports = Em.Route.extend({
     }
   }),
 
-  connectOutlets: function (router, context) {
-    router.get('applicationController').connectOutlet('main');
-  },
+  views: Em.Route.extend({
+    route: '/views',
+    connectOutlets: function (router, context) {
+      router.get('mainController').connectOutlet('mainViews');
+    },
+    viewDetails: Em.Route.extend({
+      route : '/:viewName/:version/:instanceName',
+      connectOutlets :  function (router, context) {
+        router.get('mainController').connectOutlet('mainViews');
+      }
+    })
+  }),
 
   dashboard: Em.Route.extend({
     route: '/dashboard',

@@ -26,7 +26,7 @@ App.MainViewsController = Em.Controller.extend({
   setView: function(event) {
     if(event.context){
       this.set('selectedView', event.context);
-      App.router.transitionTo('views');
+      App.router.transitionTo('main.views.viewDetails', event.context);
     }
   }
 })
