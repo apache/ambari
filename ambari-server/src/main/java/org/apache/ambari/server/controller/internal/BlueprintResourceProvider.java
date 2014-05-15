@@ -212,15 +212,16 @@ public class BlueprintResourceProvider extends AbstractResourceProvider {
         new RequestImpl(null, null, null, null), predicate);
 
     for (final Resource resource : setResources) {
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Deleting Blueprint, name=" +
-            resource.getPropertyValue(BLUEPRINT_NAME_PROPERTY_ID));
-      }
+      final String blueprintName =
+        (String) resource.getPropertyValue(BLUEPRINT_NAME_PROPERTY_ID);
+
+      LOG.info("Deleting Blueprint, name = " + blueprintName);
+
       modifyResources(new Command<Void>() {
         @Override
         public Void invoke() throws AmbariException {
-          dao.remove(toEntity(resource));
-          return null;
+        dao.removeByName(blueprintName);
+        return null;
         }
       });
     }

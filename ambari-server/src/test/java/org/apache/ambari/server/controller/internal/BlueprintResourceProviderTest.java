@@ -42,6 +42,7 @@ import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.easymock.Capture;
 
+import static org.easymock.EasyMock.expectLastCall;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
@@ -262,14 +263,13 @@ public class BlueprintResourceProviderTest {
   public void testDeleteResources() throws SystemException, UnsupportedPropertyException,
                                            NoSuchParentResourceException, NoSuchResourceException {
 
-    Capture<BlueprintEntity> entityCapture = new Capture<BlueprintEntity>();
-
     ResourceProvider provider = createProvider();
     BlueprintEntity blueprintEntity = createEntity(getTestProperties().iterator().next());
 
     // set expectations
     expect(dao.findByName(BLUEPRINT_NAME)).andReturn(blueprintEntity);
-    dao.remove(capture(entityCapture));
+    dao.removeByName(blueprintEntity.getBlueprintName());
+    expectLastCall();
     replay(dao);
 
     Predicate predicate = new EqualsPredicate<String>(
@@ -287,8 +287,6 @@ public class BlueprintResourceProviderTest {
     assertNotNull(lastEvent.getPredicate());
 
     verify(dao);
-
-    validateEntity(entityCapture.getValue(), false);
   }
 
   @Test

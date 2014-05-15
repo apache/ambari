@@ -109,4 +109,13 @@ public class BlueprintDAO {
   public void remove(BlueprintEntity blueprintEntity) {
     entityManagerProvider.get().remove(merge(blueprintEntity));
   }
+
+  /**
+   * Remove entity instance by primary key
+   * @param blueprint_name Primary key: blueprint name
+   */
+  @Transactional
+  public void removeByName(String blueprint_name) {
+    entityManagerProvider.get().remove(findByName(blueprint_name));
+  }
 }
