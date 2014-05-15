@@ -42,7 +42,9 @@ REQUEST_STATUS_PATH = "/clusters/%s/requests/%s?fields=tasks/Tasks/status"
 REQUEST_PATH = "clusters/%s/requests/%s"
 
 CONFIGURATION_PATH = "/clusters/%s/configurations?type=%s&tag=%s"
+CONFIGURATION_ALL_PATH = "/clusters/%s/configurations?type=%s"
 CREATE_CONFIGURATION_PATH = "/clusters/%s/configurations"
+UPDATE_CONFIGURATION_PATH="/clusters/%s"
 
 STACK_SERVICES_COMPONENTS_PATH = "/stacks2/HDP/versions/%s/stackServices/%s/serviceComponents?fields=*"
 STACK_SERVICES_CONFIG_PATH = "/stacks2/HDP/versions/%s/stackServices/%s/configurations?fields=*"

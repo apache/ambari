@@ -27,6 +27,7 @@ ref_dic = {"cluster_name":"clusterRef"}
 ref_class_dic = {"ClusterModelRef":"cluster_name"}
 ref_pkg_dic = {"ClusterModelRef":"ambari_client.model.cluster"}
 LIST_KEY = "items"
+ALL="ALL" 
   
 class ModelUtils(object):
   
