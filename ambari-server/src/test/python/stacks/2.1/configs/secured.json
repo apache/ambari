@@ -337,7 +337,7 @@
             "namenode_opt_newsize": "200m", 
             "yarn_pid_dir_prefix": "/var/run/hadoop-yarn", 
             "initLimit": "10", 
-            "hive_database_type": "postgres",
+            "hive_database_type": "mysql", 
             "zk_pid_dir": "/var/run/zookeeper", 
             "jobhistory_http_primary_name": "HTTP", 
             "namenode_primary_name": "nn", 

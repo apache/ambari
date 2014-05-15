@@ -272,7 +272,7 @@ App.WizardStep8Controller = Em.Controller.extend({
       else {
         if (hiveDb.value === Em.I18n.t('services.service.config.hive.oozie.postgresql')) {
           globals.findProperty('name', 'hive_hostname').value = globals.findProperty('name', 'hive_existing_postgresql_host').value;
-          hiveDbType.value = 'postgres';
+          hiveDbType.value = 'postgresql';
           hive_properties = Em.A(['hive_ambari_host', 'hive_ambari_database', 'hive_existing_oracle_host',
             'hive_existing_oracle_database', 'hive_existing_mysql_host', 'hive_existing_mysql_database']);
         }

@@ -296,7 +296,7 @@
             "oozie_jdbc_driver": "org.apache.derby.jdbc.EmbeddedDriver",
             "yarn_pid_dir_prefix": "/var/run/hadoop-yarn",
             "initLimit": "10",
-            "hive_database_type": "postgres",
+            "hive_database_type": "mysql",
             "oozie_database": "New Derby Database",
             "zk_pid_dir": "/var/run/zookeeper",
             "user_group": "hadoop",
