@@ -60,6 +60,8 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
 
   private static final int PROPERTY_REQUEST_CONNECT_TIMEOUT = 5000;
   private static final int PROPERTY_REQUEST_READ_TIMEOUT    = 10000;
+  // nagios can take longer on big clusters
+  private static final int NAGIOS_READ_TIMEOUT              = 30000;
 
   private static final String CLUSTER_NAME_PROPERTY_ID                  = PropertyHelper.getPropertyId("Clusters", "cluster_name");
   private static final String HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID   = PropertyHelper.getPropertyId("HostRoles", "cluster_name");
@@ -389,7 +391,7 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
     ComponentSSLConfiguration configuration = ComponentSSLConfiguration.instance();
     URLStreamProvider streamProvider = new URLStreamProvider(
         PROPERTY_REQUEST_CONNECT_TIMEOUT, PROPERTY_REQUEST_READ_TIMEOUT,
-        configuration.getTruststorePath(), configuration.getTruststorePassword(), configuration.getTruststoreType());
+        configuration);
 
     if (type.isInternalType()) {
       switch (type.getInternalType()) {
@@ -403,7 +405,9 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
           break;
         case Service:
           providers.add(new NagiosPropertyProvider(type,
-              streamProvider,
+              new URLStreamProvider(
+                PROPERTY_REQUEST_CONNECT_TIMEOUT, NAGIOS_READ_TIMEOUT,
+                configuration),
               "ServiceInfo/cluster_name",
               "ServiceInfo/service_name"));
           break;
@@ -417,7 +421,9 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
               PropertyHelper.getPropertyId("Hosts", "host_name")
           ));
           providers.add(new NagiosPropertyProvider(type,
-              streamProvider,
+              new URLStreamProvider(
+                PROPERTY_REQUEST_CONNECT_TIMEOUT, NAGIOS_READ_TIMEOUT,
+                configuration),
               "Hosts/cluster_name",
               "Hosts/host_name"));
           break;

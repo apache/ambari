@@ -161,6 +161,7 @@ function hdp_mon_generate_response( $response_data )
     $services_object = array ();
     $services_object["PUPPET"] = 0;
     foreach ($matches[0] as $object) {
+
       if (getParameter($object, "service_description") == HDFS_SERVICE_CHECK) {
         $services_object["HDFS"] = getParameter($object, "last_hard_state");
         if ($services_object["HDFS"] >= 1) {
@@ -234,6 +235,7 @@ function hdp_mon_generate_response( $response_data )
     $hostcounts_object = array ();
     $up_hosts = 0;
     $down_hosts = 0;
+
     foreach ($matches[0] as $object) {
       if (getParameter($object, "last_hard_state") != ok) {
         $down_hosts++;
@@ -294,13 +296,14 @@ function hdp_mon_generate_response( $response_data )
     #echo $matches[1][0] . ", " . $matches[1][1] . "\n";
     $services_objects = array ();
     $i = 0;
-    foreach ($matches[0] as $object) {
+    foreach ($matches[1] as $object) {
+      $map = getParameterMap($object);
       $servicestatus = array ();
       switch ($alert_type) {
       case "all":
-        if (empty($host) || getParameter($object, "host_name") == $host) {
+        if (empty($host) || getParameterMapValue($map, "host_name") == $host) {
           foreach ($servicestatus_attributes as $attrib) {
-            $servicestatus[$attrib] = htmlentities(getParameter($object, $attrib), ENT_COMPAT);
+            $servicestatus[$attrib] = htmlentities(getParameterMapValue($map, $attrib), ENT_COMPAT);
           }
           $servicestatus['service_type'] = get_service_type($servicestatus['service_description']);
           $srv_desc = explode ("::",$servicestatus['service_description'],2);
@@ -309,10 +312,10 @@ function hdp_mon_generate_response( $response_data )
         }
         break;
       case "nok":
-        if (getParameter($object, "last_hard_state") != ok &&
-           (empty($host) || getParameter($object, "host_name") == $host)) {
+        if (getParameterMapValue($map, "last_hard_state") != ok &&
+           (empty($host) || getParameterMapValue($map, "host_name") == $host)) {
           foreach ($servicestatus_attributes as $attrib) {
-            $servicestatus[$attrib] = htmlentities(getParameter($object, $attrib), ENT_COMPAT);
+            $servicestatus[$attrib] = htmlentities(getParameterMapValue($map, $attrib), ENT_COMPAT);
           }
           $servicestatus['service_type'] = get_service_type($servicestatus['service_description']);
           $srv_desc = explode ("::",$servicestatus['service_description'],2);
@@ -320,10 +323,10 @@ function hdp_mon_generate_response( $response_data )
         }
         break;
       case "ok":
-        if (getParameter($object, "last_hard_state") == ok &&
-           (empty($host) || getParameter($object, "host_name") == $host)) {
+        if (getParameterMapValue($map, "last_hard_state") == ok &&
+           (empty($host) || getParameterMapValue($map, "host_name") == $host)) {
           foreach ($servicestatus_attributes as $attrib) {
-            $servicestatus[$attrib] = htmlentities(getParameter($object, $attrib), ENT_COMPAT);
+            $servicestatus[$attrib] = htmlentities(getParameterMapValue($map, $attrib), ENT_COMPAT);
           }
           $servicestatus['service_type'] = get_service_type($servicestatus['service_description']);
           $srv_desc = explode ("::",$servicestatus['service_description'],2);
@@ -331,10 +334,10 @@ function hdp_mon_generate_response( $response_data )
         }
         break;
       case "warn":
-        if (getParameter($object, "last_hard_state") == warn &&
-           (empty($host) || getParameter($object, "host_name") == $host)) {
+        if (getParameterMapValue($map, "last_hard_state") == warn &&
+           (empty($host) || getParameterMapValue($map, "host_name") == $host)) {
           foreach ($servicestatus_attributes as $attrib) {
-            $servicestatus[$attrib] = htmlentities(getParameter($object, $attrib), ENT_COMPAT);
+            $servicestatus[$attrib] = htmlentities(getParameterMapValue($map, $attrib), ENT_COMPAT);
           }
           $servicestatus['service_type'] = get_service_type($servicestatus['service_description']);
           $srv_desc = explode ("::",$servicestatus['service_description'],2);
@@ -342,10 +345,10 @@ function hdp_mon_generate_response( $response_data )
         }
         break;
       case "critical":
-        if (getParameter($object, "last_hard_state") == critical &&
-           (empty($host) || getParameter($object, "host_name") == $host)) {
+        if (getParameterMapValue($map, "last_hard_state") == critical &&
+           (empty($host) || getParameterMapValue($map, "host_name") == $host)) {
           foreach ($servicestatus_attributes as $attrib) {
-            $servicestatus[$attrib] = htmlentities(getParameter($object, $attrib), ENT_COMPAT);
+            $servicestatus[$attrib] = htmlentities(getParameterMapValue($map, $attrib), ENT_COMPAT);
           }
           $servicestatus['service_type'] = get_service_type($servicestatus['service_description']);
           $srv_desc = explode ("::",$servicestatus['service_description'],2);
@@ -434,6 +437,36 @@ function hdp_mon_generate_response( $response_data )
       $value = $matches[1];
     }
     return $value;
+  }
+
+  function getParameterMapValue($map, $key) {
+    $value = $map[$key];
+
+    if (!is_null($value))
+      return "" . $value;
+
+    return "";
+  }
+
+  function getParameterMap($object) {
+    $map = array ();
+
+    $long_key = "long_plugin_output";
+    $found_long = false;
+    foreach (preg_split("/\n/", trim($object)) as $line) {
+      $arr = explode("=", $line, 2);
+      $key = trim($arr[0]);
+      if ($found_long) {
+        $map[$long_key] = trim($line);
+        $found_long = false;
+      } else {
+        $map[$key] = $arr[1];
+        if ($key == $long_key)
+          $found_long = true;
+      }
+    }
+
+    return $map;
   }
 
 function indent($json) {

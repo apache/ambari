@@ -18,8 +18,6 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import com.google.gson.Gson;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -30,14 +28,13 @@ import java.net.URLConnection;
 import java.security.KeyStore;
 import java.util.List;
 import java.util.Map;
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
-import static javax.ws.rs.core.MediaType.APPLICATION_FORM_URLENCODED;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManagerFactory;
 
+import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.controller.utilities.StreamProvider;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
@@ -52,7 +49,6 @@ public class URLStreamProvider implements StreamProvider {
   private static final String COOKIE = "Cookie";
   private static final String WWW_AUTHENTICATE = "WWW-Authenticate";
   private static final String NEGOTIATE = "Negotiate";
-  private static final String CONTENT_TYPE_HEADER_PARAMETER = "Content-Type";
   private static Log LOG = LogFactory.getLog(URLStreamProvider.class);
 
   private final int connTimeout;
@@ -63,6 +59,22 @@ public class URLStreamProvider implements StreamProvider {
   private volatile SSLSocketFactory sslSocketFactory = null;
   private AppCookieManager appCookieManager;
 
+  /**
+   * Provide the connection timeout for the underlying connection.
+   * 
+   * @param connectionTimeout
+   *          time, in milliseconds, to attempt a connection
+   * @param readTimeout
+   *          the read timeout in milliseconds
+   * @param configuration configuration holding TrustStore information
+   */
+  public URLStreamProvider(int connectionTimeout, int readTimeout, 
+      ComponentSSLConfiguration configuration) {  
+    this(connectionTimeout, readTimeout,
+        configuration.getTruststorePath(),
+        configuration.getTruststorePassword(),
+        configuration.getTruststoreType());
+  }
   /**
    * Provide the connection timeout for the underlying connection.
    * 

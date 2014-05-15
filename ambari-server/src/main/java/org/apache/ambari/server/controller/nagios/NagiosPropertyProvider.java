@@ -109,6 +109,7 @@ public class NagiosPropertyProvider extends BaseProvider implements PropertyProv
   private String clusterNameProperty;
   private String resourceTypeProperty;
   private StreamProvider urlStreamProvider;
+  private boolean waitOnFirstCall = false;
   
   @Inject
   public static void init(Injector injector) {
@@ -154,7 +155,7 @@ public class NagiosPropertyProvider extends BaseProvider implements PropertyProv
           }
         }
       }
-    }, 0L, 20L, TimeUnit.SECONDS);    
+    }, 0L, 30L, TimeUnit.SECONDS);    
   }
   
   /**
@@ -163,6 +164,7 @@ public class NagiosPropertyProvider extends BaseProvider implements PropertyProv
   public void forceReset() {
     CLUSTER_NAMES.clear();
     CLUSTER_ALERTS.clear();
+    waitOnFirstCall = true;
   }
   
   @Override
@@ -186,6 +188,9 @@ public class NagiosPropertyProvider extends BaseProvider implements PropertyProv
         continue;
       
       if (!CLUSTER_ALERTS.containsKey(clusterName)) {
+        // prevent endless looping for the first-time collection
+        CLUSTER_ALERTS.put(clusterName, Collections.<NagiosAlert>emptyList());
+        
         Future<List<NagiosAlert>> f = scheduler.submit(new Callable<List<NagiosAlert>>() {
           @Override
           public List<NagiosAlert> call() throws Exception {
@@ -193,11 +198,13 @@ public class NagiosPropertyProvider extends BaseProvider implements PropertyProv
           }
         });
         
-        try {
-          CLUSTER_ALERTS.put(clusterName, f.get());
-        } catch (Exception e) {
-          LOG.error("Could not load metrics - Executor exception" +
-            " (" + e.getMessage() + ")");
+        if (waitOnFirstCall) {
+          try {
+            CLUSTER_ALERTS.put(clusterName, f.get());
+          } catch (Exception e) {
+            LOG.error("Could not load metrics - Executor exception" +
+             " (" + e.getMessage() + ")");
+          }
         }
       }
       
@@ -354,6 +361,7 @@ public class NagiosPropertyProvider extends BaseProvider implements PropertyProv
       String url = String.format(template, nagiosHost);  
 
       InputStream in = null;
+
       try {
         in = urlStreamProvider.readFrom(url);
         
