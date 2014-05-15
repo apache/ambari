@@ -330,6 +330,10 @@ Task attempt resources are individual attempts at map or reduce tasks for a job.
 
 [Task Attempt Resources](taskattempt-resources.md)
 
+#### views
+Views offer a systematic way to plug-in UI capabilities to surface custom visualization, management and monitoring features in Ambari Web..
+
+[View Resources](view-resources.md)
 
 Partial Response
 ----
