@@ -148,9 +148,7 @@ public class UpgradeCatalog160Test {
       capture(restartRequiredColumnCapture));
 
     dbAccessor.addFKConstraint("hostgroup_configuration", "FK_hg_config_blueprint_name",
-        "blueprint_name", "hostgroup", "blueprint_name", true);
-    dbAccessor.addFKConstraint("hostgroup_configuration", "FK_hg_config_hostgroup_name",
-        "hostgroup_name", "hostgroup", "name", true);
+        new String[]{"blueprint_name", "hostgroup_name"}, "hostgroup", new String[]{"blueprint_name", "name"}, true);
   }
 
   private void setViewEntityConfigExpectations(DBAccessor dbAccessor,
