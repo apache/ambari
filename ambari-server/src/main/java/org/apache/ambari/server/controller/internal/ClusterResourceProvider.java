@@ -17,7 +17,15 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import com.google.gson.Gson;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -55,14 +63,7 @@ import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigImpl;
 import org.apache.ambari.server.state.PropertyInfo;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
+import com.google.gson.Gson;
 
 /**
  * Resource provider for cluster resources.
@@ -74,10 +75,10 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
   // Clusters
   protected static final String CLUSTER_ID_PROPERTY_ID      = PropertyHelper.getPropertyId("Clusters", "cluster_id");
   protected static final String CLUSTER_NAME_PROPERTY_ID    = PropertyHelper.getPropertyId("Clusters", "cluster_name");
-  protected static final String CLUSTER_VERSION_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters", "version");
+  protected static final String CLUSTER_VERSION_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters", "version");  
+  protected static final String CLUSTER_PROVISIONING_STATE_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters", "provisioning_state");
   protected static final String CLUSTER_DESIRED_CONFIGS_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters", "desired_configs");
   protected static final String BLUEPRINT_PROPERTY_ID = PropertyHelper.getPropertyId(null, "blueprint");
-
 
   private static Set<String> pkPropertyIds =
       new HashSet<String>(Arrays.asList(new String[]{CLUSTER_ID_PROPERTY_ID}));
@@ -182,12 +183,14 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
       LOG.debug("Found clusters matching getClusters request"
           + ", clusterResponseCount=" + responses.size());
     }
+    
     for (ClusterResponse response : responses) {
       Resource resource = new ResourceImpl(Resource.Type.Cluster);
       setResourceProperty(resource, CLUSTER_ID_PROPERTY_ID, response.getClusterId(), requestedIds);
       setResourceProperty(resource, CLUSTER_NAME_PROPERTY_ID, response.getClusterName(), requestedIds);
-      setResourceProperty(resource, CLUSTER_DESIRED_CONFIGS_PROPERTY_ID, response.getDesiredConfigs(), requestedIds);
-
+      setResourceProperty(resource, CLUSTER_PROVISIONING_STATE_PROPERTY_ID, response.getProvisioningState(), requestedIds);
+      setResourceProperty(resource, CLUSTER_DESIRED_CONFIGS_PROPERTY_ID, response.getDesiredConfigs(), requestedIds);      
+      
       resource.setProperty(CLUSTER_VERSION_PROPERTY_ID,
           response.getDesiredStackVersion());
 
@@ -276,9 +279,9 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
     ClusterRequest cr = new ClusterRequest(
         (Long) properties.get(CLUSTER_ID_PROPERTY_ID),
         (String) properties.get(CLUSTER_NAME_PROPERTY_ID),
+        (String) properties.get(CLUSTER_PROVISIONING_STATE_PROPERTY_ID),
         (String) properties.get(CLUSTER_VERSION_PROPERTY_ID),
         null);
-
 
     ConfigurationRequest configRequest = getConfigurationRequest("Clusters", properties);
 

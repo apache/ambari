@@ -18,7 +18,32 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import com.google.gson.Gson;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.createMockBuilder;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.createStrictMock;
+import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.PersistKeyValueImpl;
 import org.apache.ambari.server.api.services.PersistKeyValueService;
@@ -34,6 +59,8 @@ import org.apache.ambari.server.controller.StackServiceComponentRequest;
 import org.apache.ambari.server.controller.StackServiceComponentResponse;
 import org.apache.ambari.server.controller.StackServiceRequest;
 import org.apache.ambari.server.controller.StackServiceResponse;
+import org.apache.ambari.server.controller.internal.ClusterResourceProvider.HostGroup;
+import org.apache.ambari.server.controller.internal.ClusterResourceProvider.PropertyUpdater;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.RequestStatus;
@@ -47,38 +74,15 @@ import org.apache.ambari.server.orm.entities.BlueprintEntity;
 import org.apache.ambari.server.orm.entities.HostGroupComponentEntity;
 import org.apache.ambari.server.orm.entities.HostGroupConfigEntity;
 import org.apache.ambari.server.orm.entities.HostGroupEntity;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.ambari.server.state.PropertyInfo;
+import org.apache.ambari.server.state.State;
+import org.apache.commons.collections.CollectionUtils;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.junit.Test;
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
-import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.createMockBuilder;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.createStrictMock;
-import static org.easymock.EasyMock.eq;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import org.apache.ambari.server.controller.internal.ClusterResourceProvider.HostGroup;
-import org.apache.ambari.server.controller.internal.ClusterResourceProvider.PropertyUpdater;
+
+import com.google.gson.Gson;
 
 /**
  * ClusterResourceProvider tests.
@@ -1880,17 +1884,17 @@ public class ClusterResourceProviderTest {
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
 
     Set<ClusterResponse> allResponse = new HashSet<ClusterResponse>();
-    allResponse.add(new ClusterResponse(100L, "Cluster100", null, null));
-    allResponse.add(new ClusterResponse(101L, "Cluster101", null, null));
-    allResponse.add(new ClusterResponse(102L, "Cluster102", null, null));
-    allResponse.add(new ClusterResponse(103L, "Cluster103", null, null));
-    allResponse.add(new ClusterResponse(104L, "Cluster104", null, null));
+    allResponse.add(new ClusterResponse(100L, "Cluster100", State.INSTALLED, null, null));
+    allResponse.add(new ClusterResponse(101L, "Cluster101", State.INSTALLED, null, null));
+    allResponse.add(new ClusterResponse(102L, "Cluster102", State.INSTALLED, null, null));
+    allResponse.add(new ClusterResponse(103L, "Cluster103", State.INSTALLED, null, null));
+    allResponse.add(new ClusterResponse(104L, "Cluster104", State.INSTALLED, null, null));
 
     Set<ClusterResponse> nameResponse = new HashSet<ClusterResponse>();
-    nameResponse.add(new ClusterResponse(102L, "Cluster102", null, null));
+    nameResponse.add(new ClusterResponse(102L, "Cluster102", State.INSTALLED, null, null));
 
     Set<ClusterResponse> idResponse = new HashSet<ClusterResponse>();
-    idResponse.add(new ClusterResponse(103L, "Cluster103", null, null));
+    idResponse.add(new ClusterResponse(103L, "Cluster103", State.INSTALLED, null, null));
 
     // set expectations
     expect(managementController.getClusters(EasyMock.<Set<ClusterRequest>>anyObject())).andReturn(allResponse).once();
@@ -1959,7 +1963,7 @@ public class ClusterResourceProviderTest {
     RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
 
     Set<ClusterResponse> nameResponse = new HashSet<ClusterResponse>();
-    nameResponse.add(new ClusterResponse(102L, "Cluster102", null, null));
+    nameResponse.add(new ClusterResponse(102L, "Cluster102", State.INIT, null, null));
 
     Map<String, String> mapRequestProps = new HashMap<String, String>();
     mapRequestProps.put("context", "Called from a test");
@@ -1967,10 +1971,11 @@ public class ClusterResourceProviderTest {
     // set expectations
     expect(managementController.getClusters(EasyMock.<Set<ClusterRequest>>anyObject())).andReturn(nameResponse).once();
     expect(managementController.updateClusters(
-        AbstractResourceProviderTest.Matcher.getClusterRequestSet(102L, "Cluster102", "HDP-0.1", null), eq(mapRequestProps))).
+        AbstractResourceProviderTest.Matcher.getClusterRequestSet(102L, "Cluster102", State.INSTALLED.name(), "HDP-0.1", null), eq(mapRequestProps))).
         andReturn(response).once();
+    
     expect(managementController.updateClusters(
-        AbstractResourceProviderTest.Matcher.getClusterRequestSet(103L, null, "HDP-0.1", null), eq(mapRequestProps))).
+        AbstractResourceProviderTest.Matcher.getClusterRequestSet(103L, null, null, "HDP-0.1", null), eq(mapRequestProps))).
         andReturn(response).once();
 
     // replay
@@ -2020,7 +2025,7 @@ public class ClusterResourceProviderTest {
     RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
 
     Set<ClusterResponse> nameResponse = new HashSet<ClusterResponse>();
-    nameResponse.add(new ClusterResponse(100L, "Cluster100", null, null));
+    nameResponse.add(new ClusterResponse(100L, "Cluster100", State.INSTALLED, null, null));
 
     Map<String, String> mapRequestProps = new HashMap<String, String>();
     mapRequestProps.put("context", "Called from a test");

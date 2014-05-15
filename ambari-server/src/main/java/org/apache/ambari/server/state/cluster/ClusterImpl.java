@@ -18,11 +18,24 @@
 
 package org.apache.ambari.server.state.cluster;
 
-import com.google.gson.Gson;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.assistedinject.Assisted;
-import com.google.inject.persist.Transactional;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+
+import javax.persistence.RollbackException;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ServiceComponentHostNotFoundException;
 import org.apache.ambari.server.ServiceNotFoundException;
@@ -39,7 +52,6 @@ import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.ClusterStateEntity;
 import org.apache.ambari.server.orm.entities.ConfigGroupEntity;
-import org.apache.ambari.server.orm.entities.ConfigGroupHostMappingEntity;
 import org.apache.ambari.server.orm.entities.RequestScheduleEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -51,6 +63,7 @@ import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.scheduler.RequestExecution;
@@ -58,22 +71,11 @@ import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.persistence.RollbackException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import com.google.gson.Gson;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.persist.Transactional;
 
 public class ClusterImpl implements Cluster {
 
@@ -913,8 +915,43 @@ public class ClusterImpl implements Cluster {
     } finally {
       clusterGlobalLock.readLock().unlock();
     }
+  }
+  
+  @Override
+  public State getProvisioningState() {    
+    clusterGlobalLock.readLock().lock();
+    try {
+      readLock.lock();
+      State provisioningState = null;
+      try {
+        provisioningState = clusterEntity.getProvisioningState();
+        
+        if( null == provisioningState )
+          provisioningState = State.INIT;
+        
+        return provisioningState;
+      } finally {
+        readLock.unlock();
+      }
+    } finally {
+      clusterGlobalLock.readLock().unlock();
+    }
+  }  
 
-
+  @Override
+  public void setProvisioningState(State provisioningState) {
+    clusterGlobalLock.readLock().lock();
+    try {
+      writeLock.lock();
+      try {
+        clusterEntity.setProvisioningState(provisioningState);
+        clusterDAO.merge(clusterEntity);        
+      } finally {
+        writeLock.unlock();
+      }
+    } finally {
+      clusterGlobalLock.readLock().unlock();
+    }
   }
 
   @Override
@@ -1047,7 +1084,8 @@ public class ClusterImpl implements Cluster {
     try {
       readWriteLock.readLock().lock();
       try {
-        ClusterResponse r = new ClusterResponse(getClusterId(), getClusterName(),
+        ClusterResponse r = new ClusterResponse(getClusterId(), 
+          getClusterName(), getProvisioningState(), 
           clusters.getHostsForCluster(getClusterName()).keySet(),
           getDesiredStackVersion().getStackId());
 

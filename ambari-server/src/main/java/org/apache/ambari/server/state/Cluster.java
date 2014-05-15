@@ -101,6 +101,23 @@ public interface Cluster {
    * @param stackVersion
    */
   public void setCurrentStackVersion(StackId stackVersion) throws AmbariException;
+  
+  /**
+   * Gets whether the cluster is still initializing or has finished with its
+   * deployment requests.
+   * 
+   * @return either {@link State#INIT} or {@link State#INSTALLED}, never
+   *         {@code null}.
+   */
+  public State getProvisioningState();
+  
+  /**
+   * Sets the provisioning state of the cluster.
+   * 
+   * @param provisioningState
+   *          the provisioning state, not {@code null}.
+   */
+  public void setProvisioningState(State provisioningState);
 
   /**
    * Gets all configs that match the specified type.  Result is not the

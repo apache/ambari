@@ -184,7 +184,7 @@ public class SchemaUpgradeHelper {
   }
 
   public void executeDMLUpdates(List<UpgradeCatalog> upgradeCatalogs) throws AmbariException {
-    LOG.info("Execution DML changes.");
+    LOG.info("Executing DML changes.");
 
     if (upgradeCatalogs != null && !upgradeCatalogs.isEmpty()) {
       for (UpgradeCatalog upgradeCatalog : upgradeCatalogs) {

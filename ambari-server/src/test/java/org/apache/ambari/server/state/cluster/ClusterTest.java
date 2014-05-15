@@ -510,6 +510,17 @@ public class ClusterTest {
 
     assertTrue(configs.containsKey("h1"));
     assertEquals(1, configs.get("h1").size());
-
   }
+  
+  @Test
+  public void testProvisioningState() throws AmbariException {
+    c1.setProvisioningState(State.INIT);
+    Assert.assertEquals(State.INIT,
+        c1.getProvisioningState());
+    
+    c1.setProvisioningState(State.INSTALLED);
+    Assert.assertEquals(State.INSTALLED,
+        c1.getProvisioningState());    
+  }
+
 }

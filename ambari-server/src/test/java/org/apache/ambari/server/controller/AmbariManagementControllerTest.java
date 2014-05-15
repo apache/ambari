@@ -227,7 +227,7 @@ public class AmbariManagementControllerTest {
   }
 
   private void createCluster(String clusterName) throws AmbariException {
-    ClusterRequest r = new ClusterRequest(null, clusterName, "HDP-0.1", null);
+    ClusterRequest r = new ClusterRequest(null, clusterName, State.INSTALLED.name(), "HDP-0.1", null);
     controller.createCluster(r);
   }
 
@@ -509,6 +509,15 @@ public class AmbariManagementControllerTest {
     } catch (Exception e) {
       // Expected
     }
+    
+    r.setStackVersion("HDP-1.0.1");
+    r.setProvisioningState(State.INSTALLING.name());
+    try {
+      controller.createCluster(r);
+     fail("Expected create cluster for invalid request - invalid provisioning state");
+    } catch (Exception e) {
+      // Expected
+    }    
   }
 
   @Test

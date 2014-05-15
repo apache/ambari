@@ -47,6 +47,7 @@ import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
+import org.apache.ambari.server.state.State;
 import org.easymock.EasyMock;
 import org.easymock.IArgumentMatcher;
 import org.junit.Assert;
@@ -256,9 +257,9 @@ public class AbstractResourceProviderTest {
     }
 
     public static Set<ClusterRequest> getClusterRequestSet(
-        Long clusterId, String clusterName, String stackVersion, Set<String> hostNames)
+        Long clusterId, String clusterName, String provisioningState, String stackVersion, Set<String> hostNames)
     {
-      EasyMock.reportMatcher(new ClusterRequestSetMatcher(clusterId, clusterName, stackVersion, hostNames));
+      EasyMock.reportMatcher(new ClusterRequestSetMatcher(clusterId, clusterName, provisioningState, stackVersion, hostNames));
       return null;
     }
 
@@ -334,8 +335,8 @@ public class AbstractResourceProviderTest {
    */
   public static class ClusterRequestSetMatcher extends ClusterRequest implements IArgumentMatcher {
 
-    public ClusterRequestSetMatcher(Long clusterId, String clusterName, String stackVersion, Set<String> hostNames) {
-      super(clusterId, clusterName, stackVersion, hostNames);
+    public ClusterRequestSetMatcher(Long clusterId, String clusterName, String provisioningState, String stackVersion, Set<String> hostNames) {
+      super(clusterId, clusterName, provisioningState, stackVersion, hostNames);
     }
 
     @Override

@@ -31,17 +31,25 @@ public class ClusterRequest {
 
   private String stackVersion; // for CREATE/UPDATE
 
+  private String provisioningState; // for GET/CREATE/UPDATE
+  
   Set<String> hostNames; // CREATE/UPDATE
   
   private ConfigurationRequest config = null;
 
-  public ClusterRequest(Long clusterId, String clusterName,
+  public ClusterRequest(Long clusterId, String clusterName, 
       String stackVersion, Set<String> hostNames) {
+    this(clusterId, clusterName, null, stackVersion, hostNames);
+  }  
+  
+  public ClusterRequest(Long clusterId, String clusterName, 
+      String provisioningState, String stackVersion, Set<String> hostNames) {
     super();
     this.clusterId = clusterId;
     this.clusterName = clusterName;
+    this.provisioningState = provisioningState;
     this.stackVersion = stackVersion;
-    this.hostNames = hostNames;
+    this.hostNames = hostNames;    
   }
   
   /**
@@ -56,6 +64,29 @@ public class ClusterRequest {
    */
   public String getClusterName() {
     return clusterName;
+  }
+  
+  /**
+   * Gets whether the cluster is still initializing or has finished with its
+   * deployment requests.
+   * 
+   * @return either {@code INIT} or {@code INSTALLED} or {@code null} if not set
+   *         on the request.
+   */
+  public String getProvisioningState(){
+    return provisioningState;
+  }
+  
+  /**
+   * Sets whether the cluster is still initializing or has finished with its
+   * deployment requests.
+   * 
+   * @param provisioningState
+   *          either {@code INIT} or {@code INSTALLED}, or {@code null} if not
+   *          set on the request.
+   */
+  public void setProvisioningState(String provisioningState) {
+    this.provisioningState = provisioningState;
   }
 
   /**
@@ -116,6 +147,7 @@ public class ClusterRequest {
     sb.append("{"
         + " clusterName=" + clusterName
         + ", clusterId=" + clusterId
+        + ", provisioningState=" + provisioningState
         + ", stackVersion=" + stackVersion
         + ", hosts=[");
     if (hostNames != null) {

@@ -22,8 +22,10 @@ import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
+
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.state.State;
 import org.easymock.Capture;
 import org.junit.Assert;
 import org.junit.Test;
@@ -31,6 +33,7 @@ import org.junit.Test;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.sql.SQLException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -43,6 +46,7 @@ import static org.easymock.EasyMock.createMockBuilder;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 
@@ -56,10 +60,12 @@ public class UpgradeCatalog161Test {
 
     final DBAccessor dbAccessor = createNiceMock(DBAccessor.class);
     Configuration configuration = createNiceMock(Configuration.class);
-    Capture<List<DBAccessor.DBColumnInfo>> operationLevelEntitycolumnCapture = new Capture<List<DBAccessor.DBColumnInfo>>();
-
     expect(configuration.getDatabaseUrl()).andReturn(Configuration.JDBC_IN_MEMORY_URL).anyTimes();
 
+    Capture<DBAccessor.DBColumnInfo> provisioningStateColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
+    Capture<List<DBAccessor.DBColumnInfo>> operationLevelEntitycolumnCapture = new Capture<List<DBAccessor.DBColumnInfo>>();
+    
+    setClustersConfigExpectations(dbAccessor, provisioningStateColumnCapture);    
     setOperationLevelEntityConfigExpectations(dbAccessor, operationLevelEntitycolumnCapture);
 
     replay(dbAccessor, configuration);
@@ -72,6 +78,7 @@ public class UpgradeCatalog161Test {
     upgradeCatalog.executeDDLUpdates();
     verify(dbAccessor, configuration);
 
+    assertClusterColumns(provisioningStateColumnCapture);
     assertOperationLevelEntityColumns(operationLevelEntitycolumnCapture);
   }
 
@@ -84,10 +91,14 @@ public class UpgradeCatalog161Test {
     Method m = AbstractUpgradeCatalog.class.getDeclaredMethod
       ("updateConfigurationProperties", String.class, Map.class, boolean.class);
 
-    UpgradeCatalog161 upgradeCatalog = createMockBuilder(UpgradeCatalog161.class)
+    UpgradeCatalog160 upgradeCatalog = createMockBuilder(UpgradeCatalog160.class)
       .addMockedMethod(m).createMock();
 
     expect(configuration.getDatabaseUrl()).andReturn(Configuration.JDBC_IN_MEMORY_URL).anyTimes();
+
+    upgradeCatalog.updateConfigurationProperties("global",
+      Collections.singletonMap("jobhistory_heapsize", "900"), false);
+    expectLastCall();
 
     replay(upgradeCatalog, dbAccessor, configuration);
 
@@ -190,7 +201,22 @@ public class UpgradeCatalog161Test {
     assertEquals(String.class, column.getType());
     assertNull(column.getDefaultValue());
     assertTrue(column.isNullable());
-
   }
 
+  private void setClustersConfigExpectations(DBAccessor dbAccessor,
+      Capture<DBAccessor.DBColumnInfo> provisioningStateColumnCapture) throws SQLException {
+
+      dbAccessor.addColumn(eq("clusters"),
+        capture(provisioningStateColumnCapture));
+    }
+  
+  private void assertClusterColumns(
+      Capture<DBAccessor.DBColumnInfo> provisiontStateColumnCapture) {
+      DBAccessor.DBColumnInfo column = provisiontStateColumnCapture.getValue();
+      assertEquals("provisioning_state", column.getName());
+      assertEquals(255, (int) column.getLength());
+      assertEquals(String.class, column.getType());
+      assertEquals(State.INIT.name(), column.getDefaultValue());
+      assertFalse(column.isNullable());
+    }  
 }

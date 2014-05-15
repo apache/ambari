@@ -22,6 +22,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.State;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -31,16 +32,18 @@ public class ClusterRequestTest {
   public void testBasicGetAndSet() {
     Long clusterId = new Long(10);
     String clusterName = "foo";
+    String provisioningState = State.INIT.name();
     StackId stackVersion = new StackId("HDP-1.0.1");
     Set<String> hostNames = new HashSet<String>();
     hostNames.add("h1");
 
     ClusterRequest r1 =
-        new ClusterRequest(clusterId, clusterName,
+        new ClusterRequest(clusterId, clusterName, provisioningState,
             stackVersion.getStackId(), hostNames);
 
     Assert.assertEquals(clusterId, r1.getClusterId());
     Assert.assertEquals(clusterName, r1.getClusterName());
+    Assert.assertEquals(provisioningState, r1.getProvisioningState());
     Assert.assertEquals(stackVersion.getStackId(),
         r1.getStackVersion());
     Assert.assertArrayEquals(hostNames.toArray(), r1.getHostNames().toArray());
@@ -49,19 +52,20 @@ public class ClusterRequestTest {
     r1.setHostNames(hostNames);
     r1.setClusterName("foo1");
     r1.setStackVersion("HDP-1.0.2");
+    r1.setProvisioningState(State.INSTALLED.name());
 
     hostNames.add("h2");
 
     Assert.assertEquals(clusterId, r1.getClusterId());
     Assert.assertEquals("foo1", r1.getClusterName());
+    Assert.assertEquals(State.INSTALLED.name(), r1.getProvisioningState());
     Assert.assertEquals("HDP-1.0.2", r1.getStackVersion());
     Assert.assertArrayEquals(hostNames.toArray(), r1.getHostNames().toArray());
-
   }
 
   @Test
   public void testToString() {
-    ClusterRequest r1 = new ClusterRequest(null, null, null, null);
+    ClusterRequest r1 = new ClusterRequest(null, null, null, null, null);
     r1.toString();
   }
 

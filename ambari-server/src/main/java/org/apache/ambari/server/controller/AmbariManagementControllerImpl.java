@@ -18,44 +18,6 @@
 
 package org.apache.ambari.server.controller;
 
-import com.google.gson.Gson;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.Singleton;
-import com.google.inject.persist.Transactional;
-import java.io.File;
-import java.io.IOException;
-import java.net.InetAddress;
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.TreeMap;
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.ClusterNotFoundException;
-import org.apache.ambari.server.DuplicateResourceException;
-import org.apache.ambari.server.HostNotFoundException;
-import org.apache.ambari.server.ObjectNotFoundException;
-import org.apache.ambari.server.ParentObjectNotFoundException;
-import org.apache.ambari.server.Role;
-import org.apache.ambari.server.RoleCommand;
-import org.apache.ambari.server.ServiceComponentHostNotFoundException;
-import org.apache.ambari.server.ServiceComponentNotFoundException;
-import org.apache.ambari.server.ServiceNotFoundException;
-import org.apache.ambari.server.StackAccessException;
-import org.apache.ambari.server.actionmanager.ActionManager;
-import org.apache.ambari.server.actionmanager.HostRoleCommand;
-import org.apache.ambari.server.actionmanager.RequestFactory;
-import org.apache.ambari.server.actionmanager.Stage;
-import org.apache.ambari.server.actionmanager.StageFactory;
-import org.apache.ambari.server.agent.ExecutionCommand;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_DB_RCA_DRIVER;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_DB_RCA_PASSWORD;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_DB_RCA_URL;
@@ -78,10 +40,45 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_P
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_REPO_INFO;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_NAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_VERSION;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.TreeMap;
+
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.ClusterNotFoundException;
+import org.apache.ambari.server.DuplicateResourceException;
+import org.apache.ambari.server.HostNotFoundException;
+import org.apache.ambari.server.ObjectNotFoundException;
+import org.apache.ambari.server.ParentObjectNotFoundException;
+import org.apache.ambari.server.Role;
+import org.apache.ambari.server.RoleCommand;
+import org.apache.ambari.server.ServiceComponentHostNotFoundException;
+import org.apache.ambari.server.ServiceComponentNotFoundException;
+import org.apache.ambari.server.ServiceNotFoundException;
+import org.apache.ambari.server.StackAccessException;
+import org.apache.ambari.server.actionmanager.ActionManager;
+import org.apache.ambari.server.actionmanager.HostRoleCommand;
+import org.apache.ambari.server.actionmanager.RequestFactory;
+import org.apache.ambari.server.actionmanager.Stage;
+import org.apache.ambari.server.actionmanager.StageFactory;
+import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.controller.internal.RequestResourceFilter;
 import org.apache.ambari.server.controller.internal.RequestOperationLevel;
+import org.apache.ambari.server.controller.internal.RequestResourceFilter;
 import org.apache.ambari.server.controller.internal.RequestStageContainer;
 import org.apache.ambari.server.controller.internal.URLStreamProvider;
 import org.apache.ambari.server.customactions.ActionDefinition;
@@ -133,6 +130,12 @@ import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.gson.Gson;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.Singleton;
+import com.google.inject.persist.Transactional;
+
 @Singleton
 public class AmbariManagementControllerImpl implements AmbariManagementController {
 
@@ -150,7 +153,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
   private final ActionManager actionManager;
 
-  @SuppressWarnings("unused")
   private final Injector injector;
 
   private final Gson gson;
@@ -1036,7 +1038,46 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       clusters.mapHostsToCluster(
           request.getHostNames(), request.getClusterName());
     }
+    
+    // set the provisioning state of the cluster
+    if (null != request.getProvisioningState()) {
+      State provisioningState;
+      State oldProvisioningState = cluster.getProvisioningState();
 
+      provisioningState = State.valueOf(request.getProvisioningState());
+      if (provisioningState != State.INIT
+          && provisioningState != State.INSTALLED) {
+        LOG.warn(
+            "Invalid cluster provisioning state {} cannot be set on the cluster {}",
+            provisioningState, request.getClusterName());
+
+        throw new IllegalArgumentException(
+            "Invalid cluster provisioning state "
+            + provisioningState + " cannot be set on cluster "
+            + request.getClusterName());
+      }
+
+      if (provisioningState != oldProvisioningState) {
+        boolean isStateTransitionValid = State.isValidDesiredStateTransition(
+            oldProvisioningState, provisioningState);
+        
+        if (!isStateTransitionValid) {
+          LOG.warn(
+              "Invalid cluster provisioning state {} cannot be set on the cluster {} because the current state is {}",
+              provisioningState, request.getClusterName(), oldProvisioningState);
+          
+          throw new AmbariException("Invalid transition for"
+              + " cluster provisioning state" + ", clusterName="
+              + cluster.getClusterName() + ", clusterId="
+              + cluster.getClusterId() + ", currentProvisioningState="
+              + oldProvisioningState + ", newProvisioningState="
+              + provisioningState);
+        }
+      }
+      
+      cluster.setProvisioningState(provisioningState);
+    }
+    
     return null;
   }
 

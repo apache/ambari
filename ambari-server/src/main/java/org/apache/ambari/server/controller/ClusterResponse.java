@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.state.DesiredConfig;
+import org.apache.ambari.server.state.State;
 
 public class ClusterResponse {
 
@@ -35,13 +36,18 @@ public class ClusterResponse {
 
   private Map<String, DesiredConfig> desiredConfigs;
   
-  public ClusterResponse(Long clusterId, String clusterName,
+  private String provisioningState;
+  
+  public ClusterResponse(Long clusterId, String clusterName, State provisioningState,
       Set<String> hostNames, String desiredStackVersion) {
     super();
     this.clusterId = clusterId;
     this.clusterName = clusterName;
     this.hostNames = hostNames;
     this.desiredStackVersion = desiredStackVersion;
+    
+    if (null != provisioningState)
+      this.provisioningState = provisioningState.name();
   }
 
   /**
@@ -64,6 +70,16 @@ public class ClusterResponse {
   public Set<String> getHostNames() {
     return hostNames;
   }
+  
+  /**
+   * Gets whether the cluster is still initializing or has finished with its
+   * deployment requests.
+   * 
+   * @return either {@code INIT} or {@code INSTALLED}, never {@code null}.
+   */
+  public String getProvisioningState(){
+    return provisioningState;
+  }
 
   @Override
   public String toString() {
@@ -71,8 +87,10 @@ public class ClusterResponse {
     sb.append("{"
         + " clusterName=" + clusterName
         + ", clusterId=" + clusterId
+        + ", provisioningState=" + provisioningState
         + ", desiredStackVersion=" + desiredStackVersion
         + ", hosts=[");
+    
     if (hostNames != null) {
       int i = 0;
       for (String hostName : hostNames) {

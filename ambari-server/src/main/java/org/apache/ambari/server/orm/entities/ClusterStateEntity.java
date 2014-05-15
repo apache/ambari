@@ -18,12 +18,22 @@
 
 package org.apache.ambari.server.orm.entities;
 
-import javax.persistence.*;
-
 import static org.apache.commons.lang.StringUtils.defaultString;
 
-@javax.persistence.Table(name = "clusterstate")
+import javax.persistence.Basic;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
+
+import org.apache.ambari.server.state.State;
+
 @Entity
+@Table(name = "clusterstate")
 public class ClusterStateEntity {
 
   @Id
@@ -31,8 +41,9 @@ public class ClusterStateEntity {
   private Long clusterId;
 
   @Basic
+  @Enumerated(value = EnumType.STRING)
   @Column(name = "current_cluster_state", insertable = true, updatable = true)
-  private String currentClusterState = "";
+  private State currentClusterState = State.INIT; 
 
   @Basic
   @Column(name = "current_stack_version", insertable = true, updatable = true)
@@ -50,11 +61,11 @@ public class ClusterStateEntity {
     this.clusterId = clusterId;
   }
 
-  public String getCurrentClusterState() {
-    return defaultString(currentClusterState);
+  public State getCurrentClusterState() {
+    return currentClusterState;
   }
 
-  public void setCurrentClusterState(String currentClusterState) {
+  public void setCurrentClusterState(State currentClusterState) {
     this.currentClusterState = currentClusterState;
   }
 

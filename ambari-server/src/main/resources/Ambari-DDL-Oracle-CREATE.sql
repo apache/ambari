@@ -16,7 +16,7 @@
 -- limitations under the License.
 --
 
-CREATE TABLE clusters (cluster_id NUMBER(19) NOT NULL, cluster_info VARCHAR2(255) NULL, cluster_name VARCHAR2(100) NOT NULL UNIQUE, desired_cluster_state VARCHAR2(255) NULL, desired_stack_version VARCHAR2(255) NULL, PRIMARY KEY (cluster_id));
+CREATE TABLE clusters (cluster_id NUMBER(19) NOT NULL, cluster_info VARCHAR2(255) NULL, cluster_name VARCHAR2(100) NOT NULL UNIQUE, provisioning_state VARCHAR2(255) NOT NULL DEFAULT 'INIT', desired_cluster_state VARCHAR2(255) NULL, desired_stack_version VARCHAR2(255) NULL, PRIMARY KEY (cluster_id));
 CREATE TABLE clusterconfig (version_tag VARCHAR2(255) NOT NULL, type_name VARCHAR2(255) NOT NULL, cluster_id NUMBER(19) NOT NULL, config_data CLOB NOT NULL, create_timestamp NUMBER(19) NOT NULL, PRIMARY KEY (version_tag, type_name, cluster_id));
 CREATE TABLE clusterservices (service_name VARCHAR2(255) NOT NULL, cluster_id NUMBER(19) NOT NULL, service_enabled NUMBER(10) NOT NULL, PRIMARY KEY (service_name, cluster_id));
 CREATE TABLE clusterstate (cluster_id NUMBER(19) NOT NULL, current_cluster_state VARCHAR2(255) NULL, current_stack_version VARCHAR2(255) NULL, PRIMARY KEY (cluster_id));

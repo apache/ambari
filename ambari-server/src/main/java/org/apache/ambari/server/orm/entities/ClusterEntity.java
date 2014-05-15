@@ -19,6 +19,9 @@
 package org.apache.ambari.server.orm.entities;
 
 import javax.persistence.*;
+
+import org.apache.ambari.server.state.State;
+
 import java.util.Collection;
 
 import static org.apache.commons.lang.StringUtils.defaultString;
@@ -52,6 +55,11 @@ public class ClusterEntity {
       updatable = true, unique = true, length = 100)
   private String clusterName;
 
+  @Basic
+  @Enumerated(value = EnumType.STRING)
+  @Column(name = "provisioning_state", insertable = true, updatable = true)
+  private State provisioningState = State.INIT;   
+  
   @Basic
   @Column(name = "desired_cluster_state", insertable = true, updatable = true)
   private String desiredClusterState = "";
@@ -129,6 +137,28 @@ public class ClusterEntity {
 
   public void setDesiredStackVersion(String desiredStackVersion) {
     this.desiredStackVersion = desiredStackVersion;
+  }
+  
+  /**
+   * Gets whether the cluster is still initializing or has finished with its 
+   * deployment requests.
+   * 
+   * @return either {@link State#INIT} or {@link State#INSTALLED}, 
+   * never {@code null}.
+   */
+  public State getProvisioningState(){
+    return this.provisioningState;
+  }
+  
+  /**
+   * Sets whether the cluster is still initializing or has finished with its 
+   * deployment requests.
+   * 
+   * @param provisioningState either {@link State#INIT} or 
+   * {@link State#INSTALLED}, never {@code null}. 
+   */
+  public void setProvisioningState(State provisioningState){
+    this.provisioningState = provisioningState;
   }
 
   @Override
