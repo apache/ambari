@@ -416,7 +416,7 @@ App.ClusterController = Em.Controller.extend({
     data.versions.forEach(function (version) {
       version.instances.forEach(function (instance) {
         var view = Em.Object.create({
-          label: data.ViewInfo.view_name,
+          label: instance.ViewInstanceInfo.label || instance.ViewInstanceInfo.instance_name,
           viewName: instance.ViewInstanceInfo.view_name,
           instanceName: instance.ViewInstanceInfo.instance_name,
           version: version.ViewVersionInfo.version,
