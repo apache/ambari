@@ -891,7 +891,6 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
     // AMBARI-4921
     ensureProperty("global", "user_group", "hadoop");
     ensureProperty("global", "nagios_contact", "default@REPLACEME.NOWHERE");
-    ensureProperty("global", "nagios_web_password", "admin");
     ensureProperty("global", "smokeuser", "ambari-qa");
 
     // AMBARI-5206
