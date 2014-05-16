@@ -66,6 +66,7 @@ def hbase(name=None # 'master' or 'regionserver' or 'client'
   
   if 'hbase-policy' in params.config['configurations']:
     XmlConfig( "hbase-policy.xml",
+      conf_dir = params.conf_dir,
       configurations = params.config['configurations']['hbase-policy'],
       owner = params.hbase_user,
       group = params.user_group
