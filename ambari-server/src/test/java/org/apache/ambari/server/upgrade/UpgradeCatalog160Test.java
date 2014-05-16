@@ -23,10 +23,7 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.DBAccessor;
-import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Clusters;
 import org.easymock.Capture;
 import org.junit.Assert;
 import org.junit.Test;
@@ -40,11 +37,11 @@ import java.util.Map;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
-import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.assertNull;
+import static junit.framework.Assert.assertTrue;
+import static org.easymock.EasyMock.aryEq;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMockBuilder;
-import static org.easymock.EasyMock.createNiceControl;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
@@ -147,8 +144,8 @@ public class UpgradeCatalog160Test {
     dbAccessor.addColumn(eq("hostcomponentdesiredstate"),
       capture(restartRequiredColumnCapture));
 
-    dbAccessor.addFKConstraint("hostgroup_configuration", "FK_hg_config_blueprint_name",
-        new String[]{"blueprint_name", "hostgroup_name"}, "hostgroup", new String[]{"blueprint_name", "name"}, true);
+    dbAccessor.addFKConstraint(eq("hostgroup_configuration"), eq("FK_hg_config_blueprint_name"),
+      aryEq(new String[]{"blueprint_name", "hostgroup_name"}), eq("hostgroup"), aryEq(new String[]{"blueprint_name", "name"}), eq(true));
   }
 
   private void setViewEntityConfigExpectations(DBAccessor dbAccessor,
