@@ -37,6 +37,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.List;
+import java.util.ArrayList;
 
 import junit.framework.Assert;
 import org.apache.ambari.server.AmbariException;
@@ -46,6 +48,7 @@ import org.apache.ambari.server.ParentObjectNotFoundException;
 import org.apache.ambari.server.ServiceComponentHostNotFoundException;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.ServiceNotFoundException;
+import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -55,6 +58,8 @@ import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.ServiceOsSpecific;
+import org.apache.ambari.server.state.ServiceInfo;
 import org.easymock.Capture;
 import org.junit.Test;
 
@@ -1152,5 +1157,67 @@ public class AmbariManagementControllerImplTest {
 
     verify(injector, clusters, cluster, response1, response2, response3, stack, metaInfo, service1, service2,
         component1, component2, componentHost1, componentHost2, componentHost3);
+  }
+
+  @Test
+  public void testPopulateServicePackagesInfo() throws Exception {
+    Capture<AmbariManagementController> controllerCapture = new Capture<AmbariManagementController>();
+    Injector injector = createStrictMock(Injector.class);
+    MaintenanceStateHelper maintHelper = createNiceMock(MaintenanceStateHelper.class);
+    Clusters clusters = createNiceMock(Clusters.class);
+
+    ServiceInfo serviceInfo = createNiceMock(ServiceInfo.class);
+    Map<String, String> hostParams = new HashMap<String, String>();
+    String osFamily = "testOSFamily";
+
+    Map<String, ServiceOsSpecific> osSpecifics = new HashMap<String, ServiceOsSpecific>();
+
+    ServiceOsSpecific.Package package1 = new ServiceOsSpecific.Package();
+    package1.setName("testrpm1");
+    ServiceOsSpecific.Package package2 = new ServiceOsSpecific.Package();
+    package2.setName("testrpm2");
+    ServiceOsSpecific.Package package3 = new ServiceOsSpecific.Package();
+    package3.setName("testrpm3");
+
+    List<ServiceOsSpecific.Package> packageList1 = new ArrayList<ServiceOsSpecific.Package>();
+    packageList1.add(package1);
+    List<ServiceOsSpecific.Package> packageList2 = new ArrayList<ServiceOsSpecific.Package>();
+    packageList2.add(package2);
+    packageList2.add(package3);
+
+    ServiceOsSpecific osSpecific1 = new ServiceOsSpecific("testOSFamily");
+    osSpecific1.addPackages(packageList1);
+    ServiceOsSpecific osSpecific2 = new ServiceOsSpecific("testOSFamily1,testOSFamily,testOSFamily2");
+    osSpecific2.addPackages(packageList2);
+
+    osSpecifics.put("testOSFamily", osSpecific1);
+    osSpecifics.put("testOSFamily1,testOSFamily,testOSFamily2", osSpecific2);
+
+    expect(serviceInfo.getOsSpecifics()).andReturn(osSpecifics);
+    injector.injectMembers(capture(controllerCapture));
+    expect(injector.getInstance(Gson.class)).andReturn(null);
+    expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(maintHelper).anyTimes();
+
+    replay(maintHelper, injector, clusters, serviceInfo);
+
+    AmbariManagementControllerImplTest.NestedTestClass nestedTestClass = this.new NestedTestClass(null, clusters,
+                                                                         injector);
+
+    ServiceOsSpecific serviceOsSpecific = nestedTestClass.populateServicePackagesInfo(serviceInfo, hostParams, osFamily);
+
+    assertEquals(serviceOsSpecific.getPackages().size(), 3);
+  }
+
+  private class NestedTestClass extends AmbariManagementControllerImpl {
+
+    public NestedTestClass(ActionManager actionManager, Clusters clusters, Injector injector) throws Exception {
+      super(actionManager, clusters, injector);
+    }
+
+    public ServiceOsSpecific testPopulateServicePackagesInfo(ServiceInfo serviceInfo, Map<String, String> hostParams,
+                                                             String osFamily) {
+      return super.populateServicePackagesInfo(serviceInfo, hostParams, osFamily);
+    }
+
   }
 }

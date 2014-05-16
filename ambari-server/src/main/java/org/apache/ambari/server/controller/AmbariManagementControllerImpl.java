@@ -1373,19 +1373,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     if (serviceInfo.getOsSpecifics().containsKey(AmbariMetaInfo.ANY_OS)) {
       anyOs = serviceInfo.getOsSpecifics().get(AmbariMetaInfo.ANY_OS);
     }
-    ServiceOsSpecific hostOs = new ServiceOsSpecific(osFamily);
-    List<ServiceOsSpecific> foundedOSSpecifics = getOSSpecificsByFamily(serviceInfo.getOsSpecifics(), osFamily);
-    if (!foundedOSSpecifics.isEmpty()) {
-      for (ServiceOsSpecific osSpecific : foundedOSSpecifics) {
-        hostOs.addPackages(osSpecific.getPackages());
-      }
-      // Choose repo that is relevant for host
-      ServiceOsSpecific.Repo serviceRepo = hostOs.getRepo();
-      if (serviceRepo != null) {
-        String serviceRepoInfo = gson.toJson(serviceRepo);
-        hostParams.put(SERVICE_REPO_INFO, serviceRepoInfo);
-      }
-    }
+
+    ServiceOsSpecific hostOs = populateServicePackagesInfo(serviceInfo, hostParams, osFamily);
+
     // Build package list that is relevant for host
     List<ServiceOsSpecific.Package> packages =
       new ArrayList<ServiceOsSpecific.Package>();
@@ -1416,6 +1406,25 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       execCmd.setPassiveInfo(
         maintenanceStateHelper.getMaintenanceHostComponents(clusters, cluster));
     }
+  }
+
+  protected ServiceOsSpecific populateServicePackagesInfo(ServiceInfo serviceInfo, Map<String, String> hostParams,
+                                                        String osFamily) {
+    ServiceOsSpecific hostOs = new ServiceOsSpecific(osFamily);
+    List<ServiceOsSpecific> foundedOSSpecifics = getOSSpecificsByFamily(serviceInfo.getOsSpecifics(), osFamily);
+    if (!foundedOSSpecifics.isEmpty()) {
+      for (ServiceOsSpecific osSpecific : foundedOSSpecifics) {
+        hostOs.addPackages(osSpecific.getPackages());
+      }
+      // Choose repo that is relevant for host
+      ServiceOsSpecific.Repo serviceRepo = hostOs.getRepo();
+      if (serviceRepo != null) {
+        String serviceRepoInfo = gson.toJson(serviceRepo);
+        hostParams.put(SERVICE_REPO_INFO, serviceRepoInfo);
+      }
+    }
+
+    return hostOs;
   }
 
   private List<ServiceOsSpecific> getOSSpecificsByFamily(Map<String, ServiceOsSpecific> osSpecifics, String osFamily) {

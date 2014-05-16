@@ -125,7 +125,11 @@ public class ServiceOsSpecific {
       return name;
     }
 
-    private Package() { }
+    public void setName(String name) {
+      this.name = name;
+    }
+
+    public Package() { }
   }
 
 
