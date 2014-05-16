@@ -25,7 +25,7 @@
 
   <property>
     <name>yarn.nodemanager.container-executor.class</name>
-    <value>org.apache.hadoop.yarn.server.nodemanager.LinuxContainerExecutor</value>
+    <value>org.apache.hadoop.yarn.server.nodemanager.GlusterContainerExecutor</value>
     <description>ContainerExecutor for launching containers</description>
   </property>
 
