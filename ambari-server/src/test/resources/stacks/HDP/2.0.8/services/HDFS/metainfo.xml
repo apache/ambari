@@ -108,7 +108,6 @@
           <osFamily>any</osFamily>
           <packages>
             <package>
-              <type>rpm</type>
               <name>child-package-def</name>
             </package>
           </packages>

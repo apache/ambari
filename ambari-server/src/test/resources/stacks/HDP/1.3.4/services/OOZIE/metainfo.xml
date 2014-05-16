@@ -83,15 +83,12 @@
           <osFamily>any</osFamily>
           <packages>
             <package>
-              <type>rpm</type>
               <name>oozie.noarch</name>
             </package>
             <package>
-              <type>rpm</type>
               <name>oozie-client.noarch</name>
             </package>
             <package>
-              <type>rpm</type>
               <name>extjs-2.2-1</name>
             </package>
           </packages>

@@ -77,15 +77,12 @@
           <osFamily>any</osFamily>
           <packages>
             <package>
-              <type>rpm</type>
               <name>hcatalog</name>
             </package>
             <package>
-              <type>rpm</type>
               <name>webhcat-tar-hive</name>
             </package>
             <package>
-              <type>rpm</type>
               <name>webhcat-tar-pig</name>
             </package>
           </packages>

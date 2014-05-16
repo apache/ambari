@@ -100,11 +100,9 @@
           <osFamily>any</osFamily>
           <packages>
             <package>
-              <type>rpm</type>
               <name>hadoop</name>
             </package>
             <package>
-              <type>rpm</type>
               <name>hadoop-lzo</name>
             </package>
           </packages>
@@ -114,27 +112,21 @@
           <osFamily>redhat5,redhat6,suse11</osFamily>
           <packages>
             <package>
-              <type>rpm</type>
               <name>snappy</name>
             </package>
             <package>
-              <type>rpm</type>
               <name>snappy-devel</name>
             </package>
             <package>
-              <type>rpm</type>
               <name>lzo</name>
             </package>
             <package>
-              <type>rpm</type>
               <name>hadoop-lzo-native</name>
             </package>
             <package>
-              <type>rpm</type>
               <name>hadoop-libhdfs</name>
             </package>
             <package>
-              <type>rpm</type>
               <name>ambari-log4j</name>
             </package>
           </packages>
@@ -144,27 +136,21 @@
           <osFamily>debian12</osFamily>
           <packages>
             <package>
-              <type>rpm</type>
               <name>libsnappy1</name>
             </package>
             <package>
-              <type>rpm</type>
               <name>libsnappy-dev</name>
             </package>
             <package>
-              <type>rpm</type>
               <name>liblzo2-2</name>
             </package>
             <package>
-              <type>rpm</type>
               <name>hadoop-hdfs</name>
             </package>
             <package>
-              <type>rpm</type>
               <name>libhdfs0</name>
             </package>
             <package>
-              <type>rpm</type>
               <name>libhdfs0-dev</name>
             </package>
           </packages>

@@ -83,47 +83,36 @@
           <osFamily>any</osFamily>
           <packages>
             <package>
-              <type>rpm</type>
               <name>lzo</name>
             </package>
             <package>
-              <type>rpm</type>
               <name>hadoop</name>
             </package>
             <package>
-              <type>rpm</type>
               <name>hadoop-libhdfs</name>
             </package>
             <package>
-              <type>rpm</type>
               <name>hadoop-native</name>
             </package>
             <package>
-              <type>rpm</type>
               <name>hadoop-pipes</name>
             </package>
             <package>
-              <type>rpm</type>
               <name>hadoop-sbin</name>
             </package>
             <package>
-              <type>rpm</type>
               <name>hadoop-lzo-0.5.0</name>
             </package>
             <package>
-              <type>rpm</type>
               <name>hadoop-lzo-native-0.5.0</name>
             </package>
             <package>
-              <type>rpm</type>
               <name>snappy</name>
             </package>
             <package>
-              <type>rpm</type>
               <name>snappy-devel</name>
             </package>
             <package>
-              <type>rpm</type>
               <name>ambari-log4j</name>
             </package>
           </packages>

@@ -53,31 +53,24 @@
           <osFamily>any</osFamily>
           <packages>
             <package>
-              <type>rpm</type>
               <name>libganglia-3.5.0-99</name>
             </package>
             <package>
-              <type>rpm</type>
               <name>ganglia-devel-3.5.0-99</name>
             </package>
             <package>
-              <type>rpm</type>
               <name>ganglia-gmetad-3.5.0-99</name>
             </package>
             <package>
-              <type>rpm</type>
               <name>ganglia-web-3.5.7-99.noarch</name>
             </package>
             <package>
-              <type>rpm</type>
               <name>python-rrdtool.x86_64</name>
             </package>
             <package>
-              <type>rpm</type>
               <name>ganglia-gmond-3.5.0-99</name>
             </package>
             <package>
-              <type>rpm</type>
               <name>ganglia-gmond-modules-python-3.5.0-99</name>
             </package>
           </packages>
@@ -86,11 +79,9 @@
           <osFamily>suse11</osFamily>
           <packages>
             <package>
-              <type>rpm</type>
               <name>apache2</name>
             </package>
             <package>
-              <type>rpm</type>
               <name>apache2?mod_php*</name>
             </package>
           </packages>
@@ -99,7 +90,6 @@
           <osFamily>redhat5,redhat6</osFamily>
           <packages>
             <package>
-              <type>rpm</type>
               <name>httpd</name>
             </package>
           </packages>

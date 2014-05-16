@@ -51,7 +51,6 @@
           <osFamily>any</osFamily>
           <packages>
             <package>
-              <type>rpm</type>
               <name>zookeeper</name>
             </package>
           </packages>

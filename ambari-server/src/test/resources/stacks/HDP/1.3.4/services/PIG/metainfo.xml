@@ -39,7 +39,6 @@
           <osFamily>centos6</osFamily>
           <packages>
             <package>
-              <type>rpm</type>
               <name>pig</name>
             </package>
           </packages>

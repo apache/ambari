@@ -48,7 +48,6 @@
           <osFamily>any</osFamily>
           <packages>
             <package>
-              <type>rpm</type>
               <name>falcon</name>
             </package>
           </packages>

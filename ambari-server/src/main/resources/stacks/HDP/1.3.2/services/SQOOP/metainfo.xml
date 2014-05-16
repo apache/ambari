@@ -57,11 +57,9 @@
           <osFamily>any</osFamily>
           <packages>
             <package>
-              <type>rpm</type>
               <name>sqoop</name>
             </package>
             <package>
-              <type>rpm</type>
               <name>mysql-connector-java</name>
             </package>
           </packages>

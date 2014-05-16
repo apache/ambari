@@ -38,7 +38,6 @@
           <osFamily>any</osFamily>
           <packages>
             <package>
-              <type>rpm</type>
               <name>tez</name>
             </package>
           </packages>

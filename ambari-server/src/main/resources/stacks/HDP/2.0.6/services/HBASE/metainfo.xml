@@ -87,7 +87,6 @@
           <osFamily>any</osFamily>
           <packages>
             <package>
-              <type>rpm</type>
               <name>hbase</name>
             </package>
           </packages>

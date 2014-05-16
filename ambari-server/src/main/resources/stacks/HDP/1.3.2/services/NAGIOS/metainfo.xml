@@ -69,31 +69,24 @@
           <osFamily>any</osFamily>
           <packages>
             <package>
-              <type>rpm</type>
               <name>perl</name>
             </package>
             <package>
-              <type>rpm</type>
               <name>nagios-plugins-1.4.9</name>
             </package>
             <package>
-              <type>rpm</type>
               <name>nagios-3.5.0-99</name>
             </package>
             <package>
-              <type>rpm</type>
               <name>nagios-www-3.5.0-99</name>
             </package>
             <package>
-              <type>rpm</type>
               <name>nagios-devel-3.5.0-99</name>
             </package>
             <package>
-              <type>rpm</type>
               <name>fping</name>
             </package>
             <package>
-              <type>rpm</type>
               <name>hdp_mon_nagios_addons</name>
             </package>
           </packages>
@@ -102,11 +95,9 @@
           <osFamily>suse11</osFamily>
           <packages>
             <package>
-              <type>rpm</type>
               <name>php5-json</name>
             </package>
             <package>
-              <type>rpm</type>
               <name>apache2?mod_php*</name>
             </package>
           </packages>
@@ -115,7 +106,6 @@
           <osFamily>redhat5</osFamily>
           <packages>
             <package>
-              <type>rpm</type>
               <name>php-pecl-json.x86_64</name>
             </package>
           </packages>

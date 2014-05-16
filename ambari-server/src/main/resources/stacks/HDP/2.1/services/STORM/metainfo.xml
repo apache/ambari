@@ -81,7 +81,6 @@
           <osFamily>any</osFamily>
           <packages>
             <package>
-              <type>rpm</type>
               <name>storm</name>
             </package>
           </packages>

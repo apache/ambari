@@ -74,23 +74,18 @@
           <osFamily>any</osFamily>
           <packages>
             <package>
-              <type>rpm</type>
               <name>hadoop-yarn</name>
             </package>
             <package>
-              <type>rpm</type>
               <name>hadoop-yarn-nodemanager</name>
             </package>
             <package>
-              <type>rpm</type>
               <name>hadoop-mapreduce</name>
             </package>
             <package>
-              <type>rpm</type>
               <name>hadoop-yarn-proxyserver</name>
             </package>
             <package>
-              <type>rpm</type>
               <name>hadoop-yarn-resourcemanager</name>
             </package>
           </packages>
@@ -160,11 +155,9 @@
           <osFamily>any</osFamily>
           <packages>
             <package>
-              <type>rpm</type>
               <name>hadoop-mapreduce</name>
             </package>
             <package>
-              <type>rpm</type>
               <name>hadoop-mapreduce-historyserver</name>
             </package>
           </packages>

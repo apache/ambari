@@ -90,15 +90,12 @@
           <osFamily>any</osFamily>
           <packages>
             <package>
-              <type>rpm</type>
               <name>oozie</name>
             </package>
             <package>
-              <type>rpm</type>
               <name>oozie-client</name>
             </package>
             <package>
-              <type>rpm</type>
               <name>mysql-connector-java</name>
             </package>
           </packages>
@@ -108,7 +105,6 @@
           <osFamily>redhat5,redhat6,suse11</osFamily>
           <packages>
             <package>
-              <type>rpm</type>
               <name>extjs-2.2-1</name>
             </package>
           </packages>
@@ -118,11 +114,9 @@
           <osFamily>debian12</osFamily>
           <packages>
             <package>
-              <type>rpm</type>
               <name>extjs</name>
             </package>
             <package>
-              <type>rpm</type>
               <name>libxml2-utils</name>
             </package>
           </packages>

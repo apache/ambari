@@ -111,11 +111,9 @@
           <osFamily>any</osFamily>
           <packages>
             <package>
-              <type>rpm</type>
               <name>hive</name>
             </package>
             <package>
-              <type>rpm</type>
               <name>mysql-connector-java</name>
             </package>
           </packages>
@@ -124,7 +122,6 @@
           <osFamily>redhat5,redhat6,suse11</osFamily>
           <packages>
             <package>
-              <type>rpm</type>
               <name>mysql</name>
             </package>
           </packages>
@@ -133,7 +130,6 @@
           <osFamily>redhat5,redhat6,debian12</osFamily>
           <packages>
             <package>
-              <type>rpm</type>
               <name>mysql-server</name>
             </package>
           </packages>
@@ -142,7 +138,6 @@
           <osFamily>suse11</osFamily>
           <packages>
             <package>
-              <type>rpm</type>
               <name>mysql-client</name>
             </package>
           </packages>
@@ -181,7 +176,6 @@
           <osFamily>any</osFamily>
           <packages>
             <package>
-              <type>rpm</type>
               <name>hcatalog</name>
             </package>
           </packages>

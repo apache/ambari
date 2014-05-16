@@ -119,12 +119,7 @@ public class ServiceOsSpecific {
    */
   @XmlAccessorType(XmlAccessType.FIELD)
   public static class Package {
-    private String type;
     private String name;
-
-    public String getType() {
-      return type;
-    }
 
     public String getName() {
       return name;
