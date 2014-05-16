@@ -430,11 +430,10 @@ public class ClusterResourceProviderTest {
     mapConfigRequests.put(cr3.getType(), cr3);
     assertEquals(3, mapConfigRequests.size());
     ConfigurationRequest globalConfigRequest = mapConfigRequests.get("global");
-    assertEquals(5, globalConfigRequest.getProperties().size());
+    assertEquals(4, globalConfigRequest.getProperties().size());
     assertEquals("hadoop", globalConfigRequest.getProperties().get("user_group"));
     assertEquals("ambari-qa", globalConfigRequest.getProperties().get("smokeuser"));
     assertEquals("default@REPLACEME.NOWHERE", globalConfigRequest.getProperties().get("nagios_contact"));
-    assertEquals("admin", globalConfigRequest.getProperties().get("nagios_web_password"));
     assertEquals("oozie", globalConfigRequest.getProperties().get("oozie_user"));
     ConfigurationRequest hdfsConfigRequest = mapConfigRequests.get("hdfs-site");
     assertEquals(1, hdfsConfigRequest.getProperties().size());
@@ -1500,11 +1499,10 @@ public class ClusterResourceProviderTest {
     mapConfigRequests.put(cr3.getType(), cr3);
     assertEquals(3, mapConfigRequests.size());
     ConfigurationRequest globalConfigRequest = mapConfigRequests.get("global");
-    assertEquals(5, globalConfigRequest.getProperties().size());
+    assertEquals(4, globalConfigRequest.getProperties().size());
     assertEquals("hadoop", globalConfigRequest.getProperties().get("user_group"));
     assertEquals("ambari-qa", globalConfigRequest.getProperties().get("smokeuser"));
     assertEquals("default@REPLACEME.NOWHERE", globalConfigRequest.getProperties().get("nagios_contact"));
-    assertEquals("admin", globalConfigRequest.getProperties().get("nagios_web_password"));
     assertEquals("oozie", globalConfigRequest.getProperties().get("oozie_user"));
     ConfigurationRequest hdfsConfigRequest = mapConfigRequests.get("hdfs-site");
     assertEquals(1, hdfsConfigRequest.getProperties().size());

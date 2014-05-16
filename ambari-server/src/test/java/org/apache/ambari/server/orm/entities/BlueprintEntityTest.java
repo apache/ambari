@@ -89,7 +89,7 @@ public class BlueprintEntityTest {
     prop.setRequireInput(true);
     prop.setType(PropertyInfo.PropertyType.PASSWORD);
     prop.setValue(null);
-    requiredProps.put("service1", prop);
+    requiredProps.put("super.secret.password", prop);
 
     BlueprintEntity entity = new BlueprintEntity();
     entity.setStackName("stackName");
@@ -112,6 +112,7 @@ public class BlueprintEntityTest {
 
     Collection<HostGroupEntity> hostGroupEntities = new HashSet<HostGroupEntity>();
     HostGroupEntity hostGroupEntity = new HostGroupEntity();
+    hostGroupEntity.setName("group1");
     Collection<HostGroupComponentEntity> hostGroupComponents = new HashSet<HostGroupComponentEntity>();
     HostGroupComponentEntity componentEntity = new HostGroupComponentEntity();
     componentEntity.setName("component1");
@@ -148,7 +149,7 @@ public class BlueprintEntityTest {
     prop.setRequireInput(true);
     prop.setType(PropertyInfo.PropertyType.PASSWORD);
     prop.setValue(null);
-    requiredProps.put("service1", prop);
+    requiredProps.put("super.secret.password", prop);
 
     BlueprintEntity entity = new BlueprintEntity();
     entity.setStackName("stackName");
@@ -158,6 +159,7 @@ public class BlueprintEntityTest {
 
     Collection<HostGroupEntity> hostGroupEntities = new HashSet<HostGroupEntity>();
     HostGroupEntity hostGroupEntity = new HostGroupEntity();
+    hostGroupEntity.setName("group1");
     Collection<HostGroupComponentEntity> hostGroupComponents = new HashSet<HostGroupComponentEntity>();
     HostGroupComponentEntity componentEntity = new HostGroupComponentEntity();
     componentEntity.setName("component1");
@@ -208,7 +210,16 @@ public class BlueprintEntityTest {
     prop.setRequireInput(true);
     prop.setType(PropertyInfo.PropertyType.PASSWORD);
     prop.setValue(null);
-    requiredProps.put("service1", prop);
+
+    PropertyInfo prop2 = new PropertyInfo();
+    prop2.setFilename("global.xml");
+    prop2.setName("another.super.secret.password");
+    prop2.setRequireInput(true);
+    prop2.setType(PropertyInfo.PropertyType.PASSWORD);
+    prop2.setValue(" ");
+
+    requiredProps.put("super.secret.password", prop);
+    requiredProps.put("another.super.secret.password", prop2);
 
     BlueprintEntity entity = new BlueprintEntity();
     entity.setStackName("stackName");
@@ -231,12 +242,13 @@ public class BlueprintEntityTest {
 
     Collection<HostGroupEntity> hostGroupEntities = new HashSet<HostGroupEntity>();
     HostGroupEntity hostGroupEntity = new HostGroupEntity();
+    hostGroupEntity.setName("hg1");
     Collection<HostGroupComponentEntity> hostGroupComponents = new HashSet<HostGroupComponentEntity>();
     HostGroupComponentEntity componentEntity = new HostGroupComponentEntity();
     componentEntity.setName("component1");
     componentEntity.setBlueprintName("blueprint");
     componentEntity.setHostGroupEntity(hostGroupEntity);
-    componentEntity.setHostGroupName("group1");
+    componentEntity.setHostGroupName("hg1");
     hostGroupComponents.add(componentEntity);
     hostGroupEntity.setComponents(hostGroupComponents);
     hostGroupEntity.setConfigurations(Collections.<HostGroupConfigEntity>emptyList());
@@ -252,6 +264,13 @@ public class BlueprintEntityTest {
         metaInfo, PropertyInfo.PropertyType.PASSWORD);
 
     assertEquals(1, missingProps.size());
+    Map<String, Collection<String>> typeProps = missingProps.get("hg1");
+    assertEquals(2, typeProps.size());
+    assertEquals(1, typeProps.get("global").size());
+    assertEquals(1, typeProps.get("core-site").size());
+
+    assertTrue(typeProps.get("core-site").contains("super.secret.password"));
+    assertTrue(typeProps.get("global").contains("another.super.secret.password"));
 
     verify(metaInfo);
   }

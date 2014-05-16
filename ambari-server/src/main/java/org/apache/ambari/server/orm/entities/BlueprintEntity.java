@@ -228,9 +228,13 @@ public class BlueprintEntity {
 
         requiredProperties.removeAll(operationalTypeProps);
         if (! requiredProperties.isEmpty()) {
-          Map<String, Collection<String>> hostGroupMissingProps = new HashMap<String, Collection<String>>();
+          String hostGroupName = hostGroup.getName();
+          Map<String, Collection<String>> hostGroupMissingProps = missingProperties.get(hostGroupName);
+          if (hostGroupMissingProps == null) {
+            hostGroupMissingProps = new HashMap<String, Collection<String>>();
+            missingProperties.put(hostGroupName, hostGroupMissingProps);
+          }
           hostGroupMissingProps.put(requiredCategory, requiredProperties);
-          missingProperties.put(hostGroup.getName(), hostGroupMissingProps);
         }
       }
     }
