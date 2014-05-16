@@ -16,25 +16,14 @@
  * limitations under the License.
  */
 
-'use strict';
+App.IndexRoute = Ember.Route.extend({
+  redirect: function() {
+    this.transitionTo('slider_apps');
+  }
+});
 
-window.App = require('config/app');
-require('config/router');
-require('config/store');
-require('translations');
-
-// Load all modules in order automagically. Ember likes things to work this
-// way so everything is in the App.* namespace.
-var folderOrder = [
-    'initializers', 'mixins', 'routes', 'models',
-    'views', 'controllers', 'helpers',
-    'templates', 'components'
-  ];
-
-folderOrder.forEach(function(folder) {
-  window.require.list().filter(function(module) {
-    return new RegExp('^' + folder + '/').test(module);
-  }).forEach(function(module) {
-    require(module);
-  });
+App.SliderAppsRoute = Ember.Route.extend({
+  setupController: function(controller) {
+    controller.set('model', App.SliderApp.FIXTURES);
+  }
 });

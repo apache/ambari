@@ -32,7 +32,9 @@ exports.config = {
           'vendor/scripts/common/jquery.js',
           'vendor/scripts/common/handlebars.js',
           'vendor/scripts/development/ember.js',
-          'vendor/scripts/development/ember-data.js'
+          'vendor/scripts/production/ember-data.js',
+          'vendor/scripts/common/ember-i18n-1.4.1.js',
+          'vendor/scripts/common/bootstrap.js'
         ]
       }
     },
@@ -41,7 +43,11 @@ exports.config = {
         'stylesheets/app.css': /^(app|vendor)/
       },
       order: {
-        before: ['vendor/styles/normalize.css']
+        before: [
+          'vendor/styles/bootstrap.css',
+          'vendor/styles/font-awesome.css',
+          'vendor/styles/font-awesome-ie7.css'
+        ]
       }
     },
     templates: {
@@ -68,7 +74,9 @@ exports.config = {
               'vendor/scripts/common/jquery.js',
               'vendor/scripts/common/handlebars.js',
               'vendor/scripts/production/ember.js',
-              'vendor/scripts/production/ember-data.js'
+              'vendor/scripts/production/ember-data.js',
+              'vendor/scripts/common/ember-i18n-1.4.1.js',
+              'vendor/scripts/common/bootstrap.js'
             ]
           }
         }

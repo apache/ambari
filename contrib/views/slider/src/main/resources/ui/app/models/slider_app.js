@@ -85,7 +85,7 @@ App.SliderApp.FIXTURES = [
     index: 'indx1',
     yarnId: 'y1',
     name: 'name1',
-    status: 'good',
+    status: 'Running',
     user: 'u1',
     started: 1400132912,
     ended: 1400152912,
@@ -100,7 +100,7 @@ App.SliderApp.FIXTURES = [
     index: 'indx2',
     yarnId: 'y2',
     name: 'name2',
-    status: 'good',
+    status: 'Running',
     user: 'u2',
     started: 1400132912,
     ended: 1400152912,
@@ -115,7 +115,7 @@ App.SliderApp.FIXTURES = [
     index: 'indx3',
     yarnId: 'y3',
     name: 'name3',
-    status: 'good',
+    status: 'Running',
     user: 'u3',
     started: 1400132912,
     ended: 1400152912,
@@ -130,7 +130,7 @@ App.SliderApp.FIXTURES = [
     index: 'indx4',
     yarnId: 'y4',
     name: 'name4',
-    status: 'good',
+    status: 'Running',
     user: 'u4',
     started: 1400132912,
     ended: 1400152912,
@@ -145,7 +145,7 @@ App.SliderApp.FIXTURES = [
     index: 'indx5',
     yarnId: 'y5',
     name: 'name5',
-    status: 'good',
+    status: 'Running',
     user: 'u5',
     started: 1400132912,
     ended: 1400152912,
@@ -156,3 +156,9 @@ App.SliderApp.FIXTURES = [
     runtimeProperties: [1, 2, 3]
   }
 ];
+
+App.SliderApp.Status = {
+  running: "Running",
+  frozen: "Frozen",
+  destroyed: "Destroyed"
+};

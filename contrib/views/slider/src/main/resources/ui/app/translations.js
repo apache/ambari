@@ -16,10 +16,22 @@
  * limitations under the License.
  */
 
-'use strict';
 
-module.exports = App.IndexRoute = Ember.Route.extend({
-  model: function() {
-    return ['red', 'yellow', 'blue'];
-  }
-});
+Em.I18n.translations = {
+
+  'common' : {
+    'show': "Show"
+  },
+  'tableView.filters.all': 'All',
+  'tableView.filters.filtered': 'Filtered',
+  'tableView.filters.clearFilters': 'Clear filters',
+  'tableView.filters.paginationInfo': '{0} - {1} of {2}',
+  'tableView.filters.clearAllFilters': 'clear filters',
+  'tableView.filters.showAll': 'Show All',
+  'tableView.filters.clearSelection': 'clear selection All',
+  'tableView.filters.noItems' : 'There are no items to show',
+
+  'slider.apps.title': 'Slider Apps',
+  'slider.apps.create': 'Create App',
+  'sliderApps.filters.info': '{0} of {1} sliders showing'
+};

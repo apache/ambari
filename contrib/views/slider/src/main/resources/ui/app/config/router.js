@@ -19,5 +19,5 @@
 'use strict';
 
 module.exports = App.Router.map(function() {
-    // this.resource('about');
+  this.resource("slider_apps", { path: "/slider" });
 });
