@@ -22,7 +22,7 @@ var stringUtils = require('utils/string_utils');
 App.MainAdminClusterController = Em.Controller.extend({
   name:'mainAdminClusterController',
   services: [],
-  repositories: [],
+  allRepos: [],
   upgradeVersion: '',
   /**
    * get the newest version of HDP from server
@@ -98,6 +98,9 @@ App.MainAdminClusterController = Em.Controller.extend({
           baseUrl: repository.Repositories.base_url,
           osType: osType,
           repoId: repository.Repositories.repo_id,
+          repoName : repository.Repositories.repo_name,
+          stackName : repository.Repositories.stack_name,
+          stackVersion : repository.Repositories.stack_version,
           isFirst: false
         });
         var group = allRepos.findProperty('name', osType);
@@ -113,7 +116,7 @@ App.MainAdminClusterController = Em.Controller.extend({
       });
     }, this);
     allRepos.stackVersion = App.get('currentStackVersionNumber');
-    this.set('repositories', allRepos);
+    this.set('allRepos', allRepos);
   },
 
   loadRepositoriesErrorCallback: function(request, ajaxOptions, error) {

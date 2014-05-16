@@ -5853,6 +5853,8 @@ i.icon-asterisks {
   }
   .accordion-body {
     .repositories-table {
+      overflow: auto;
+      margin-bottom: 10px;
       div {
         float: left;
         min-height: 1px;
@@ -5950,6 +5952,118 @@ i.icon-asterisks {
       .icon-question-sign {
         color: @blue;
       }
+    }
+  }
+}
+
+.admin-cluster {
+  .repositories-table {
+    margin-bottom: 10px;
+    border: 1px solid #dddddd;
+    overflow: auto;
+    div {
+      float: left;
+      min-height: 1px;
+    }
+    .thead {
+      width: 100%;
+      .th {
+        font-weight: bold;
+        padding: 8px;
+      }
+      .os-th {
+        width: 10%;
+      }
+      .name-th {
+        width: 16%;
+      }
+      .url-th {
+        width: 66%;
+      }
+    }
+    .tbody {
+      width: 100%;
+      .trow {
+        width: 100%;
+        border-top: 1px solid #dddddd;
+        padding-top: 8px;
+        .os-td {
+          padding-top: 4px;
+          padding-left: 8px;
+          width: 9%;
+        }
+        .sub-trow {
+          width: 100%;
+          min-height: 39px;
+          .name-td {
+            width: 16%;
+            padding-top: 4px;
+          }
+          .url-td {
+            width: 60%;
+            .ember-text-field {
+              width: 100%;
+            }
+          }
+          .url-text-td {
+            width: 70%;
+            padding-top: 4px;
+            padding-left: 3px;
+            overflow: scroll;
+          }
+          .edit-td {
+            width: 8%;
+            padding-top: 4px;
+            padding-left: 5px;
+            a {
+              cursor: pointer;
+            }
+          }
+          .edit-buttons-td {
+            // save or cancel
+            width: 9%;
+          }
+          .clear-td {
+            width: 3%;
+            padding-top: 5px;
+            padding-left: 12px;
+            a {
+              cursor: pointer;
+              text-decoration: none;
+            }
+            .icon-remove-sign {
+              color: #808080;
+            }
+          }
+        }
+      }
+    }
+    .textfield-error input {
+      border-color: #b94a48;
+      -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+      -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+      box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+    }
+    .disabled-textfield input {
+      color: #808080;
+      disabled: disabled;
+      pointer-events: none;
+      cursor: default;
+      background: #E4E4E4;
+    }
+    .disabled-label {
+      color: #808080;
+    }
+  }
+  #skip-validation {
+    margin-top: 10px;
+    .checkbox {
+     margin-left: 3px;
+     margin-right: 8px;
+     margin-top: 0px;
+    }
+    .icon-question-sign {
+     color: @blue;
     }
   }
 }

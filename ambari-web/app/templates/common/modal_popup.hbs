@@ -51,6 +51,9 @@
           <label id="footer-checkbox">{{view Ember.Checkbox classNames="checkbox" checkedBinding="view.isNotShowBgChecked"}} &nbsp;
           {{t app.settings.notShowBgOperations}}</label>
         {{/if}}
+        {{#if view.third}}
+          <button class="btn" {{bindAttr disabled="view.disableThird"}} {{action onThird target="view"}}>{{view.third}}</button>
+        {{/if}}
         {{#if view.secondary}}
           <button class="btn" {{bindAttr disabled="view.disableSecondary"}} {{action onSecondary target="view"}}>{{view.secondary}}</button>
         {{/if}}

@@ -28,15 +28,21 @@ App.ModalPopup = Ember.View.extend({
   // define bodyClass which extends Ember.View to use an arbitrary Handlebars template as the body
   primary: Em.I18n.t('ok'),
   secondary: Em.I18n.t('common.cancel'),
+  third: null,
   autoHeight: true,
   disablePrimary: false,
   disableSecondary: false,
+  disableThird: false,
   primaryClass: 'btn-success',
   onPrimary: function () {
     this.hide();
   },
 
   onSecondary: function () {
+    this.hide();
+  },
+
+  onThird: function () {
     this.hide();
   },
 
