@@ -139,8 +139,8 @@ class TestHiveMetastore(RMFTestCase):
       content = StaticFile('startMetastore.sh'),
       mode = 0755,
     )
-    self.assertResourceCalled('Execute', "export HIVE_CONF_DIR=/etc/hive/conf.server ; /usr/lib/hive/bin/schematool -initSchema -dbType mysql -userName hive -passWord asd",
-      not_if = 'export HIVE_CONF_DIR=/etc/hive/conf.server ; /usr/lib/hive/bin/schematool -info -dbType mysql -userName hive -passWord asd',
+    self.assertResourceCalled('Execute', "export HIVE_CONF_DIR=/etc/hive/conf.server ; /usr/lib/hive/bin/schematool -initSchema -dbType postgres -userName hive -passWord asd",
+      not_if = 'export HIVE_CONF_DIR=/etc/hive/conf.server ; /usr/lib/hive/bin/schematool -info -dbType postgres -userName hive -passWord asd',
     )
     self.assertResourceCalled('Directory', '/var/run/hive',
       owner = 'hive',
@@ -207,8 +207,8 @@ class TestHiveMetastore(RMFTestCase):
       content = StaticFile('startMetastore.sh'),
       mode = 0755,
     )
-    self.assertResourceCalled('Execute', "export HIVE_CONF_DIR=/etc/hive/conf.server ; /usr/lib/hive/bin/schematool -initSchema -dbType mysql -userName hive -passWord asd",
-      not_if = 'export HIVE_CONF_DIR=/etc/hive/conf.server ; /usr/lib/hive/bin/schematool -info -dbType mysql -userName hive -passWord asd',
+    self.assertResourceCalled('Execute', "export HIVE_CONF_DIR=/etc/hive/conf.server ; /usr/lib/hive/bin/schematool -initSchema -dbType postgres -userName hive -passWord asd",
+      not_if = 'export HIVE_CONF_DIR=/etc/hive/conf.server ; /usr/lib/hive/bin/schematool -info -dbType postgres -userName hive -passWord asd',
     )
     self.assertResourceCalled('Directory', '/var/run/hive',
       owner = 'hive',
