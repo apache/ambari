@@ -425,7 +425,7 @@ define service {
         use                     hadoop-service
         service_description     HDFS::Blocks health
         servicegroups           HDFS
-        check_command           check_hdfs_blocks!$HOSTGROUPMEMBERS:namenode$!{{ namenode_port }}!0%!0%!{{ nn_metrics_property }}!{{ str(hadoop_ssl_enabled).lower() }}!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}!{{ str(security_enabled).lower() }}
+        check_command           check_hdfs_blocks!$HOSTGROUPMEMBERS:namenode$!{{ namenode_port }}!{{ nn_metrics_property }}!{{ str(hadoop_ssl_enabled).lower() }}!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}!{{ str(security_enabled).lower() }}
         normal_check_interval   2
         retry_check_interval    1 
         max_check_attempts      1
