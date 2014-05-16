@@ -870,7 +870,7 @@ describe('App.InstallerStep7Controller', function () {
         })
       });
     });
-    afterEach(function() {
+    afterEach(function () {
       App.config.renderConfigs.restore();
     });
     it('if wizard isn\'t addService, should set output of App.config.renderConfigs', function () {
@@ -897,8 +897,8 @@ describe('App.InstallerStep7Controller', function () {
       expect(installerStep7Controller.get('stepConfigs').findProperty('serviceName', 's2').get('selected')).to.equal(true);
     });
     it('addServiceWizard used, HA enabled', function () {
-      sinon.stub(App, 'get', function(k) {
-        if(k === 'isHaEnabled') {
+      sinon.stub(App, 'get', function (k) {
+        if (k === 'isHaEnabled') {
           return true;
         }
         return Em.get(App, k);
@@ -929,12 +929,12 @@ describe('App.InstallerStep7Controller', function () {
     });
   });
 
-  describe('#checkHostOverrideInstaller', function() {
-    beforeEach(function() {
+  describe('#checkHostOverrideInstaller', function () {
+    beforeEach(function () {
       sinon.stub(installerStep7Controller, 'loadConfigGroups', Em.K);
       sinon.stub(installerStep7Controller, 'loadInstalledServicesConfigGroups', Em.K);
     });
-    afterEach(function() {
+    afterEach(function () {
       installerStep7Controller.loadConfigGroups.restore();
       installerStep7Controller.loadInstalledServicesConfigGroups.restore();
       App.get.restore();
@@ -976,9 +976,9 @@ describe('App.InstallerStep7Controller', function () {
             loadInstalledServicesConfigGroups: true
           }
         }
-    ]).forEach(function(test) {
-        it(test.m, function() {
-          sinon.stub(App, 'get', function(k) {
+      ]).forEach(function (test) {
+        it(test.m, function () {
+          sinon.stub(App, 'get', function (k) {
             if (k === 'supports.hostOverridesInstaller') return test.hostOverridesInstaller;
             return Em.get(App, k);
           });
@@ -1000,12 +1000,14 @@ describe('App.InstallerStep7Controller', function () {
       });
   });
 
-  describe('#loadStep', function() {
-    beforeEach(function() {
+  describe('#loadStep', function () {
+    beforeEach(function () {
       installerStep7Controller.reopen({
         content: {services: []},
         wizardController: Em.Object.create({
-          getDBProperty: function(k) {return this.get(k);}
+          getDBProperty: function (k) {
+            return this.get(k);
+          }
         })
       });
       sinon.stub(App.config, 'mergePreDefinedWithStored', Em.K);
@@ -1022,7 +1024,7 @@ describe('App.InstallerStep7Controller', function () {
       sinon.stub(installerStep7Controller, 'selectProperService', Em.K);
       sinon.stub(App.router, 'send', Em.K);
     });
-    afterEach(function() {
+    afterEach(function () {
       App.config.mergePreDefinedWithStored.restore();
       App.config.addAdvancedConfigs.restore();
       App.config.addCustomConfigs.restore();
@@ -1037,16 +1039,16 @@ describe('App.InstallerStep7Controller', function () {
       installerStep7Controller.selectProperService.restore();
       App.router.send.restore();
     });
-    it('should call clearStep', function() {
+    it('should call clearStep', function () {
       installerStep7Controller.loadStep();
       expect(installerStep7Controller.clearStep.calledOnce).to.equal(true);
     });
-    it('shouldn\'t do nothing if isAdvancedConfigLoaded is false', function() {
+    it('shouldn\'t do nothing if isAdvancedConfigLoaded is false', function () {
       installerStep7Controller.set('isAdvancedConfigLoaded', false);
       installerStep7Controller.loadStep();
       expect(installerStep7Controller.clearStep.called).to.equal(false);
     });
-    it('should use App.config to map configs', function() {
+    it('should use App.config to map configs', function () {
       installerStep7Controller.loadStep();
       expect(App.config.mergePreDefinedWithStored.calledOnce).to.equal(true);
       expect(App.config.addAdvancedConfigs.calledOnce).to.equal(true);
@@ -1075,14 +1077,14 @@ describe('App.InstallerStep7Controller', function () {
         }
       ]).forEach(function (test) {
         it('allSelectedServiceNames = ' + JSON.stringify(test.allSelectedServiceNames) + ', capacitySchedulerUi = ' + test.capacitySchedulerUi.toString(), function () {
-          sinon.stub(App, 'get', function(k) {
+          sinon.stub(App, 'get', function (k) {
             if (k === 'supports.capacitySchedulerUi') return test.capacitySchedulerUi;
             return Em.get(App, k);
           });
           installerStep7Controller.reopen({allSelectedServiceNames: test.allSelectedServiceNames});
           installerStep7Controller.loadStep();
           if (test.e) {
-          expect(App.config.fileConfigsIntoTextarea.calledOnce).to.equal(true);
+            expect(App.config.fileConfigsIntoTextarea.calledOnce).to.equal(true);
           }
           else {
             expect(App.config.fileConfigsIntoTextarea.called).to.equal(false);
@@ -1090,19 +1092,19 @@ describe('App.InstallerStep7Controller', function () {
           App.get.restore();
         });
       });
-    it('should call getConfigTags, setInstalledServiceConfigs for addServiceController', function() {
+    it('should call getConfigTags, setInstalledServiceConfigs for addServiceController', function () {
       installerStep7Controller.set('wizardController.name', 'addServiceController');
       installerStep7Controller.loadStep();
       expect(installerStep7Controller.getConfigTags.calledOnce).to.equal(true);
       expect(installerStep7Controller.setInstalledServiceConfigs.calledOnce).to.equal(true);
     });
     Em.A([
-      {
-        allSelectedServiceNames: ['STORM'],
-        installedServiceNames: ['STORM'],
-        m: 'allSelectedServiceNames contains STORM, installedServiceNames contains STORM',
-        e: true
-      },
+        {
+          allSelectedServiceNames: ['STORM'],
+          installedServiceNames: ['STORM'],
+          m: 'allSelectedServiceNames contains STORM, installedServiceNames contains STORM',
+          e: true
+        },
         {
           allSelectedServiceNames: [],
           installedServiceNames: ['STORM'],
@@ -1121,8 +1123,8 @@ describe('App.InstallerStep7Controller', function () {
           m: 'allSelectedServiceNames doesn\'t contain STORM, installedServiceNames doesn\'t contain STORM',
           e: false
         }
-    ]).forEach(function(test) {
-        it(test.m, function() {
+      ]).forEach(function (test) {
+        it(test.m, function () {
           installerStep7Controller.reopen({
             allSelectedServiceNames: test.allSelectedServiceNames,
             installedServiceNames: test.installedServiceNames
@@ -1136,19 +1138,19 @@ describe('App.InstallerStep7Controller', function () {
           }
         });
       });
-    it('should call setStepConfigs', function() {
+    it('should call setStepConfigs', function () {
       installerStep7Controller.loadStep();
       expect(installerStep7Controller.setStepConfigs.calledOnce).to.equal(true);
     });
-    it('should call checkHostOverrideInstaller', function() {
+    it('should call checkHostOverrideInstaller', function () {
       installerStep7Controller.loadStep();
       expect(installerStep7Controller.checkHostOverrideInstaller.calledOnce).to.equal(true);
     });
-    it('should call activateSpecialConfigs', function() {
+    it('should call activateSpecialConfigs', function () {
       installerStep7Controller.loadStep();
       expect(installerStep7Controller.activateSpecialConfigs.calledOnce).to.equal(true);
     });
-    it('should call selectProperService', function() {
+    it('should call selectProperService', function () {
       installerStep7Controller.loadStep();
       expect(installerStep7Controller.selectProperService.calledOnce).to.equal(true);
     });
@@ -1163,17 +1165,306 @@ describe('App.InstallerStep7Controller', function () {
           skipConfigStep: false,
           e: false
         }
-      ]).forEach(function(test) {
-      it(test.m, function() {
-        installerStep7Controller.set('content.skipConfigStep', test.skipConfigStep);
-        installerStep7Controller.loadStep();
-        if (test.e) {
-          expect(App.router.send.calledWith('next')).to.equal(true);
-        }
-        else {
-          expect(App.router.send.called).to.equal(false);
-        }
+      ]).forEach(function (test) {
+        it(test.m, function () {
+          installerStep7Controller.set('content.skipConfigStep', test.skipConfigStep);
+          installerStep7Controller.loadStep();
+          if (test.e) {
+            expect(App.router.send.calledWith('next')).to.equal(true);
+          }
+          else {
+            expect(App.router.send.called).to.equal(false);
+          }
+        });
       });
+  });
+
+  describe('#_updateValueForCheckBoxConfig', function () {
+    Em.A([
+        {
+          v: 'true',
+          e: true
+        },
+        {
+          v: 'false',
+          e: false
+        }
+      ]).forEach(function (test) {
+        it(test.v, function () {
+          var serviceConfigProperty = Em.Object.create({value: test.v});
+          installerStep7Controller._updateValueForCheckBoxConfig(serviceConfigProperty);
+          expect(serviceConfigProperty.get('value')).to.equal(test.e);
+          expect(serviceConfigProperty.get('defaultValue')).to.equal(test.e);
+        });
+      });
+  });
+
+  describe('#_updateIsEditableFlagForConfig', function () {
+    Em.A([
+        {
+          isAdmin: false,
+          isReconfigurable: false,
+          isHostsConfigsPage: true,
+          defaultGroupSelected: false,
+          m: 'false for non-admin users',
+          e: false
+        },
+        {
+          isAdmin: true,
+          isReconfigurable: false,
+          isHostsConfigsPage: true,
+          defaultGroupSelected: false,
+          m: 'false if defaultGroupSelected is false and isHostsConfigsPage is true',
+          e: false
+        },
+        {
+          isAdmin: true,
+          isReconfigurable: false,
+          isHostsConfigsPage: true,
+          defaultGroupSelected: true,
+          m: 'false if defaultGroupSelected is true and isHostsConfigsPage is true',
+          e: false
+        },
+        {
+          isAdmin: true,
+          isReconfigurable: false,
+          isHostsConfigsPage: false,
+          defaultGroupSelected: false,
+          m: 'false if defaultGroupSelected is false and isHostsConfigsPage is false',
+          e: false
+        },
+        {
+          isAdmin: true,
+          isReconfigurable: true,
+          isHostsConfigsPage: false,
+          defaultGroupSelected: true,
+          m: 'equal to isReconfigurable if defaultGroupSelected is true and isHostsConfigsPage is false',
+          e: true
+        }
+      ]).forEach(function (test) {
+        it(test.m, function () {
+          sinon.stub(App, 'get', function (k) {
+            if (k === 'isAdmin') return test.isAdmin;
+            return Em.get(App, k);
+          });
+          installerStep7Controller.reopen({isHostsConfigsPage: test.isHostsConfigsPage});
+          var serviceConfigProperty = Em.Object.create({
+            isReconfigurable: test.isReconfigurable
+          });
+          installerStep7Controller._updateIsEditableFlagForConfig(serviceConfigProperty, test.defaultGroupSelected);
+          App.get.restore();
+          expect(serviceConfigProperty.get('isEditable')).to.equal(test.e);
+        });
+      });
+  });
+
+  describe('#_updateOverridesForConfig', function () {
+
+    it('should set empty array', function () {
+      var serviceConfigProperty = Em.Object.create({
+        overrides: null
+      }), component = Em.Object.create();
+      installerStep7Controller._updateOverridesForConfig(serviceConfigProperty, component);
+      expect(serviceConfigProperty.get('overrides')).to.eql(Em.A([]));
+    });
+
+    it('host overrides not supported', function () {
+      var serviceConfigProperty = Em.Object.create({
+        overrides: [
+          {value: 'new value'}
+        ]
+      }), component = Em.Object.create({selectedConfigGroup: {isDefault: false}});
+      installerStep7Controller._updateOverridesForConfig(serviceConfigProperty, component);
+      expect(serviceConfigProperty.get('overrides').length).to.equal(1);
+      expect(serviceConfigProperty.get('overrides.firstObject.value')).to.equal('new value');
+      expect(serviceConfigProperty.get('overrides.firstObject.isOriginalSCP')).to.equal(false);
+      expect(serviceConfigProperty.get('overrides.firstObject.parentSCP')).to.eql(serviceConfigProperty);
+    });
+
+    it('host overrides supported', function () {
+      sinon.stub(App, 'get', function (k) {
+        if (k === 'supports.hostOverrides') return true;
+        return Em.get(App, k);
+      });
+      var serviceConfigProperty = Em.Object.create({
+          overrides: [
+            {value: 'new value', group: Em.Object.create({name: 'n1'})}
+          ]
+        }),
+        component = Em.Object.create({
+          selectedConfigGroup: {isDefault: true},
+          configGroups: Em.A([
+            Em.Object.create({name: 'n1', properties: []})
+          ])
+        });
+      installerStep7Controller._updateOverridesForConfig(serviceConfigProperty, component);
+      App.get.restore();
+      expect(serviceConfigProperty.get('overrides').length).to.equal(1);
+      expect(serviceConfigProperty.get('overrides.firstObject.value')).to.equal('new value');
+      expect(serviceConfigProperty.get('overrides.firstObject.isOriginalSCP')).to.equal(false);
+      expect(serviceConfigProperty.get('overrides.firstObject.parentSCP')).to.eql(serviceConfigProperty);
+      expect(component.get('configGroups.firstObject.properties').length).to.equal(1);
+      expect(component.get('configGroups.firstObject.properties.firstObject.isEditable')).to.equal(false);
+      expect(component.get('configGroups.firstObject.properties.firstObject.group')).to.be.object;
+    });
+
+  });
+
+  describe('#_updateValidatorsForConfig', function () {
+
+    it('should set isVisible to false', function () {
+      var serviceConfigProperty = Em.Object.create({serviceName: 's1', isVisible: true}),
+        component = Em.Object.create({serviceName: 's2'}),
+        serviceConfigsData = {};
+      installerStep7Controller._updateValidatorsForConfig(serviceConfigProperty, component, serviceConfigsData);
+      expect(serviceConfigProperty.get('isVisible')).to.equal(false);
+    });
+
+    it('should set serviceValidator', function () {
+      var serviceConfigProperty = Em.Object.create({serviceName: 's1', name: 'n1', serviceValidator: null}),
+        component = Em.Object.create({serviceName: 's1'}),
+        serviceConfigsData = {
+          configsValidator: Em.Object.create({
+            configValidators: {
+              n1: {},
+              n2: {}
+            }
+          })
+        };
+      installerStep7Controller._updateValidatorsForConfig(serviceConfigProperty, component, serviceConfigsData);
+      expect(serviceConfigProperty.get('serviceValidator')).to.be.object;
+      expect(Em.keys(serviceConfigProperty.get('serviceValidator.configValidators'))).to.eql(['n1', 'n2']);
+    });
+
+  });
+
+  describe('#getRecommendedDefaultsForComponent', function () {
+    beforeEach(function () {
+      sinon.stub(App.router, 'get', function (k) {
+        if (k === 'mainServiceInfoConfigsController') return Em.Object.create({
+          getInfoForDefaults: Em.K
+        });
+        return Em.get(App.router, k);
+      });
+    });
+    afterEach(function () {
+      App.router.get.restore();
+    });
+    it('should return empty object', function () {
+      var serviceConfigsData = [
+          {serviceName: 's1'}
+        ],
+        serviceName = 's1';
+      installerStep7Controller.reopen({serviceConfigsData: serviceConfigsData});
+      var r = installerStep7Controller._getRecommendedDefaultsForComponent(serviceName);
+      expect(r).to.eql({});
+    });
+
+    it('should return recommendedDefaults', function () {
+      var serviceConfigsData = [
+          {serviceName: 's1', defaultsProviders: [
+            {getDefaults: function () {
+              return {c1: 'v1', c2: 'v2'};
+            }},
+            {getDefaults: function () {
+              return {c3: 'v3', c4: 'v4'};
+            }}
+          ]}
+        ],
+        serviceName = 's1';
+      installerStep7Controller.reopen({serviceConfigsData: serviceConfigsData});
+      var r = installerStep7Controller._getRecommendedDefaultsForComponent(serviceName);
+      expect(r).to.eql({c1: 'v1', c2: 'v2', c3: 'v3', c4: 'v4'});
+    });
+
+  });
+
+  describe('#loadComponentConfigs', function () {
+
+    beforeEach(function () {
+      sinon.stub(installerStep7Controller, '_updateValidatorsForConfig', Em.K);
+      sinon.stub(installerStep7Controller, '_updateOverridesForConfig', Em.K);
+      sinon.stub(installerStep7Controller, '_updateIsEditableFlagForConfig', Em.K);
+    });
+
+    afterEach(function () {
+      installerStep7Controller._updateIsEditableFlagForConfig.restore();
+      installerStep7Controller._updateOverridesForConfig.restore();
+      installerStep7Controller._updateValidatorsForConfig.restore();
+    });
+
+    it('should set recommended defaults', function () {
+      var configs = [],
+        serviceConfigsData = [
+          {serviceName: 's1', configsValidator: Em.Object.create({recommendedDefaults: {}})}
+        ],
+        component = Em.Object.create({serviceName: 's1'}),
+        componentConfig = {},
+        recommendedDefaults = {c1: 'v1', c2: 'v2'};
+      installerStep7Controller.reopen({serviceConfigsData: serviceConfigsData});
+      sinon.stub(installerStep7Controller, '_getRecommendedDefaultsForComponent', function () {
+        return recommendedDefaults;
+      });
+      installerStep7Controller.loadComponentConfigs(configs, componentConfig, component);
+      installerStep7Controller._getRecommendedDefaultsForComponent.restore();
+      expect(installerStep7Controller.get('serviceConfigsData.firstObject.configsValidator.recommendedDefaults')).to.eql(recommendedDefaults);
+    });
+
+    it('should skip null configs', function () {
+      var configs = [null, null, null],
+        serviceConfigsData = [
+          {serviceName: 's1'}
+        ],
+        component = Em.Object.create({serviceName: 's1'}),
+        componentConfig = Em.Object.create({configs: []});
+      installerStep7Controller.reopen({serviceConfigsData: serviceConfigsData});
+      installerStep7Controller.loadComponentConfigs(configs, componentConfig, component);
+      expect(componentConfig.get('configs.length')).to.equal(0);
+    });
+
+    it('should update isOverridable flag', function () {
+      var configs = [Em.Object.create({validate: Em.K}), Em.Object.create({validate: Em.K})],
+        componentConfig = Em.Object.create({configs: []}),
+        serviceConfigsData = [
+          {serviceName: 's1'}
+        ],
+        component = Em.Object.create({serviceName: 's1'});
+      installerStep7Controller.reopen({serviceConfigsData: serviceConfigsData});
+      installerStep7Controller.loadComponentConfigs(configs, componentConfig, component);
+      expect(componentConfig.get('configs').getEach('isOverridable')).to.eql([true, true]);
+    });
+
+    it('should update value for checkboxes', function () {
+      var configs = [
+          Em.Object.create({displayType: 'checkbox', value: 'true', validate: Em.K}),
+          Em.Object.create({displayType: 'checkbox', value: 'false', validate: Em.K})
+        ],
+        componentConfig = Em.Object.create({configs: []}),
+        serviceConfigsData = [
+          {serviceName: 's1'}
+        ],
+        component = Em.Object.create({serviceName: 's1'});
+      installerStep7Controller.reopen({serviceConfigsData: serviceConfigsData});
+      installerStep7Controller.loadComponentConfigs(configs, componentConfig, component);
+      expect(componentConfig.get('configs').getEach('value')).to.eql([true, false]);
+      expect(componentConfig.get('configs').getEach('defaultValue')).to.eql([true, false]);
+    });
+
+  });
+
+  describe('#_createSiteToTagMap', function () {
+    it('should map sites', function () {
+      var desired_configs = {
+          s1: {tag: 't1'},
+          s2: {tag: 't1'},
+          s3: {tag: 't3'},
+          s4: {tag: 't1'},
+          s5: {tag: 't2'}
+        },
+        sites = ['s1', 's2', 's3'],
+        expected = {s1: 't1', s2: 't1', s3: 't3'};
+      var r = installerStep7Controller._createSiteToTagMap(desired_configs, sites);
+      expect(r).to.eql(expected);
     });
   });
 
