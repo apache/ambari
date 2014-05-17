@@ -198,7 +198,7 @@ App.FilesView = Em.View.extend({
           this.set('asc',true);
           this.set('cur',false);
         };
-      }.observes('controller.sortProperties','controller.sortAscending'),
+      }.observes('controller.sortProperties','controller.sortAscending').on('init'),
       tagName:'span',
       classNames:['pull-right'],
       template:Ember.Handlebars.compile('<i {{bind-attr class=":fa view.asc:fa-chevron-down:fa-chevron-up view.cur::fa-gr view.cur::fa-rotate-270" }} ></i>')
