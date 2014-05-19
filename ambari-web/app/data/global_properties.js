@@ -918,7 +918,7 @@ module.exports =
         },
                 {
           displayName: 'Existing PostgreSQL Database',
-          foreignKeys: ['oozie_existing_postgresql_database', 'oozie_existing_postgresql_host'],
+          foreignKeys: ['oozie_existing_postgresql_database', 'oozie_existing_postgresql_host']
           },
         {
           displayName: 'Existing Oracle Database',
@@ -968,7 +968,7 @@ module.exports =
     },
     {
       "id": "puppet var",
-      "name": "oozie_existing_postgres_host",
+      "name": "oozie_existing_postgresql_host",
       "displayName": "Database Host",
       "description": "Specify the host on which the existing database is hosted",
       "defaultValue": "",
@@ -976,7 +976,7 @@ module.exports =
       "isOverridable": false,
       "displayType": "host",
       "isRequiredByAgent": false,
-      "isVisible": false,
+      "isVisible": false,   // This is dynamically set to true if database selected by the user is existing postgresql
       "isObserved": true,
       "serviceName": "OOZIE",
       "category": "Oozie Server",
