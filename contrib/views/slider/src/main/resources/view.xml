@@ -21,4 +21,16 @@ limitations under the License. Kerberos, LDAP, Custom. Binary/Htt
   <instance>
     <name>SLIDER_1</name>
   </instance>
+  <resource>
+    <name>status</name>
+    <service-class>org.apache.ambari.view.slider.rest.ViewStatusResource</service-class>
+  </resource>
+  <resource>
+    <name>app</name>
+    <plural-name>apps</plural-name>
+    <id-property>id</id-property>
+    <resource-class>org.apache.ambari.view.slider.SliderApp</resource-class>
+    <provider-class>org.apache.ambari.view.slider.SliderAppsResourceProvider</provider-class>
+    <service-class>org.apache.ambari.view.slider.rest.SliderAppsResource</service-class>
+  </resource>
 </view>

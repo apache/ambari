@@ -221,6 +221,13 @@
 		</plugins>
 		<resources>
       <resource>
+        <directory>src/main/resources</directory>
+        <filtering>true</filtering>
+        <includes>
+          <include>slider.properties</include>
+        </includes>
+      </resource>
+      <resource>
         <directory>src/main/resources/</directory>
         <filtering>false</filtering>
         <includes>
