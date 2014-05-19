@@ -319,10 +319,11 @@ App.WizardStep3HostWarningPopupBody = Em.View.extend({
    * Show popup with selected hostnames
    * @param {object} hosts
    * @method showHostsPopup
+   * @return {App.ModalPopup}
    */
   showHostsPopup: function (hosts) {
     $('.tooltip').hide();
-    App.ModalPopup.show({
+    return App.ModalPopup.show({
       header: Em.I18n.t('installer.step3.hostWarningsPopup.allHosts'),
       bodyClass: Em.View.extend({
         hosts: hosts.context,

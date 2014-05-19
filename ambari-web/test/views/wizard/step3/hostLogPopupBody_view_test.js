@@ -29,6 +29,24 @@ describe('App.WizardStep3HostLogPopupBody', function() {
     });
   });
 
+  describe('#textArea', function() {
+
+    var v;
+
+    beforeEach(function() {
+      v = view.get('textArea').create();
+    });
+
+    describe('#value', function() {
+      it('should be equal to content', function() {
+        var c = 'Relax, you are doing fine';
+        v.set('content', c);
+        expect(v.get('value')).to.equal(c);
+      });
+    });
+
+  });
+
   describe('#bootLog', function() {
     it('should be equal to parentView.host.bootLog', function() {
       var log = 'i wanna play a game';

@@ -142,4 +142,118 @@ describe('App.WizardStep9HostLogPopupBodyView', function() {
     });
   });
 
+  describe('#tasks', function() {
+    var testTask = {
+      Tasks: {
+        status: 'init',
+        id: 1,
+        request_id: 2,
+        role: 'PIG',
+        stderr: 'stderr',
+        stdout: 'stdout',
+        host_name: 'host1',
+        command: 'Cmd'
+      }
+    };
+
+    it('should map tasks', function() {
+      view.set('parentView.host.logTasks', [testTask]);
+      var t = view.get('tasks');
+      expect(t.length).to.equal(1);
+      var first = t[0];
+      expect(first.get('id')).to.equal(1);
+      expect(first.get('requestId')).to.equal(2);
+      expect(first.get('command')).to.equal('cmd');
+      expect(first.get('role')).to.equal('Pig');
+      expect(first.get('stderr')).to.equal('stderr');
+      expect(first.get('stdout')).to.equal('stdout');
+      expect(first.get('isVisible')).to.equal(true);
+      expect(first.get('hostName')).to.equal('host1');
+    });
+
+    it('should set cog icon', function() {
+      var t = Em.copy(testTask);
+      t.Tasks.status = 'pending';
+      view.set('parentView.host.logTasks', [t]);
+      var first = view.get('tasks')[0];
+      expect(first.get('icon')).to.equal('icon-cog');
+    });
+
+    it('should set cog icon (2)', function() {
+      var t = Em.copy(testTask);
+      t.Tasks.status = 'queued';
+      view.set('parentView.host.logTasks', [t]);
+      var first = view.get('tasks')[0];
+      expect(first.get('icon')).to.equal('icon-cog');
+    });
+
+    it('should set cogs icon', function() {
+      var t = Em.copy(testTask);
+      t.Tasks.status = 'in_progress';
+      view.set('parentView.host.logTasks', [t]);
+      var first = view.get('tasks')[0];
+      expect(first.get('icon')).to.equal('icon-cogs');
+    });
+
+    it('should set ok icon', function() {
+      var t = Em.copy(testTask);
+      t.Tasks.status = 'completed';
+      view.set('parentView.host.logTasks', [t]);
+      var first = view.get('tasks')[0];
+      expect(first.get('icon')).to.equal('icon-ok');
+    });
+
+    it('should set icon-exclamation-sign icon', function() {
+      var t = Em.copy(testTask);
+      t.Tasks.status = 'failed';
+      view.set('parentView.host.logTasks', [t]);
+      var first = view.get('tasks')[0];
+      expect(first.get('icon')).to.equal('icon-exclamation-sign');
+    });
+
+    it('should set minus icon', function() {
+      var t = Em.copy(testTask);
+      t.Tasks.status = 'aborted';
+      view.set('parentView.host.logTasks', [t]);
+      var first = view.get('tasks')[0];
+      expect(first.get('icon')).to.equal('icon-minus');
+    });
+
+    it('should set time icon', function() {
+      var t = Em.copy(testTask);
+      t.Tasks.status = 'timedout';
+      view.set('parentView.host.logTasks', [t]);
+      var first = view.get('tasks')[0];
+      expect(first.get('icon')).to.equal('icon-time');
+    });
+
+  });
+
+  describe('#toggleTaskLog', function() {
+    it('isLogWrapHidden is true', function() {
+      var taskInfo = {
+        id: 1,
+        requestId: 2
+      };
+      view.set('isLogWrapHidden', true);
+      view.set('parentView.c', Em.Object.create({loadCurrentTaskLog: Em.K}));
+      sinon.spy(view.get('parentView.c'), 'loadCurrentTaskLog');
+      view.toggleTaskLog({context: taskInfo});
+      expect(view.get('isLogWrapHidden')).to.equal(false);
+      expect(view.get('parentView.c.currentOpenTaskId')).to.equal(taskInfo.id);
+      expect(view.get('parentView.c.currentOpenTaskRequestId')).to.equal(taskInfo.requestId);
+      expect(view.get('parentView.c').loadCurrentTaskLog.calledOnce).to.equal(true);
+      view.get('parentView.c').loadCurrentTaskLog.restore();
+    });
+    it('isLogWrapHidden is false', function() {
+      var taskInfo = {};
+      view.set('isLogWrapHidden', false);
+      view.set('parentView.c', Em.Object.create({loadCurrentTaskLog: Em.K}));
+      view.toggleTaskLog({context: taskInfo});
+      expect(view.get('isLogWrapHidden')).to.equal(true);
+      expect(view.get('parentView.c.currentOpenTaskId')).to.equal(0);
+      expect(view.get('parentView.c.currentOpenTaskRequestId')).to.equal(0);
+    });
+  });
+
 });

@@ -43,11 +43,12 @@ App.WizardStep3HostLogPopupBody = Em.View.extend({
   textArea: Em.TextArea.extend({
 
     didInsertElement: function () {
-      var element = $(this.get('element'));
-      element.width($(this.get('parentView').get('element')).width() - 10);
-      element.height($(this.get('parentView').get('element')).height());
-      element.select();
-      element.css('resize', 'none');
+      /* istanbul ignore next: simple DOM manipulations */
+      $(this.get('element'))
+        .width($(this.get('parentView').get('element')).width() - 10)
+        .height($(this.get('parentView').get('element')).height())
+        .select()
+        .css('resize', 'none');
     },
 
     /**
@@ -73,15 +74,18 @@ App.WizardStep3HostLogPopupBody = Em.View.extend({
       $(this).text(self.get('isTextArea') ? Em.I18n.t('installer.step3.hostLogPopup.highlight') : Em.I18n.t('installer.step3.hostLogPopup.copy'));
       self.set('isTextArea', !self.get('isTextArea'));
     });
-    $(this.get('element')).find('.content-area').mouseenter(
+    /* istanbul ignore next: difficult to test */
+    $(this.get('element')).find('.content-area')
+      .mouseenter(
       function () {
         $(this).css('border', '1px solid #dcdcdc');
         button.css('visibility', 'visible');
-      }).mouseleave(
+      })
+      .mouseleave(
       function () {
         $(this).css('border', 'none');
         button.css('visibility', 'hidden');
-      })
+      });
   }
 
 });

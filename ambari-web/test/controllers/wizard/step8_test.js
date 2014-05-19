@@ -518,7 +518,7 @@ describe('App.WizardStep8Controller', function () {
           ],
           removed: Em.A(['hive_ambari_host', 'hive_ambari_database', 'hive_existing_oracle_host',
             'hive_existing_oracle_database', 'hive_existing_mysql_host', 'hive_existing_mysql_database']),
-          hive_database_type: 'postgresql',
+          hive_database_type: 'postgres',
           m: 'hive_database: Existing PostgreSQL Database',
           host: 'h1'
         },

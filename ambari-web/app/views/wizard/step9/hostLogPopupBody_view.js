@@ -148,7 +148,7 @@ App.WizardStep9HostLogPopupBodyView = Em.View.extend({
         } else if (taskInfo.get('status') == 'in_progress') {
           taskInfo.set('icon', 'icon-cogs');
         } else if (taskInfo.get('status') == 'completed') {
-          taskInfo.set('icon', ' icon-ok');
+          taskInfo.set('icon', 'icon-ok');
         } else if (taskInfo.get('status') == 'failed') {
           taskInfo.set('icon', 'icon-exclamation-sign');
         } else if (taskInfo.get('status') == 'aborted') {
