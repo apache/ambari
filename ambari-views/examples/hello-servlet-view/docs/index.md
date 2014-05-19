@@ -158,58 +158,63 @@ After deploying a view you should see it as a view resource in the Ambari REST A
 
 If we want to see the details about a specific view, we can ask for it by name.  This shows us that the HELLO_SERVLET view defines a single 'name' parameter and has a three instances.
 
-      http://<server>:8080/api/v1/views/HELLO_SERVLET/
+      http://<server>:8080/api/v1/views/HELLO_SERVLET/versions/1.0.0/
 
       {
-        "href" : "http://<server>:8080/api/v1/views/HELLO_SERVLET/",
-        "ViewInfo" : {
-          "archive" : "/var/lib/ambari-server/resources/views/hello-servlet-view-1.0.0.jar",
-          "label" : "The Hello Servlet View!",
-          "parameters" : [
-            {
-              "name" : "name",
-              "description" : "The name for the greeting. Defaults to current user.",
-              "required" : false
-            }
-          ],
-          "version" : "1.0.0",
-          "view_name" : "HELLO_SERVLET"
-        },
-        "instances" : [
+      "href" : "http://<server>:8080/api/v1/views/HELLO_SERVLET/versions/1.0.0/",
+      "ViewVersionInfo" : {
+        "archive" : "/var/lib/ambari-server/resources/views/work/HELLO_SERVLET{1.0.0}",
+        "label" : "The Hello Servlet View!",
+        "parameters" : [
           {
-            "href" : "http://<server>:8080/api/v1/views/HELLO_SERVLET/instances/JERRY",
-            "ViewInstanceInfo" : {
-              "instance_name" : "JERRY",
-              "view_name" : "HELLO_SERVLET"
-            }
-          },
-          {
-            "href" : "http://<server>:8080/api/v1/views/HELLO_SERVLET/instances/TOM",
-            "ViewInstanceInfo" : {
-              "instance_name" : "TOM",
-              "view_name" : "HELLO_SERVLET"
-            }
-          },
-          {
-            "href" : "http://<server>:8080/api/v1/views/HELLO_SERVLET/instances/USER",
-            "ViewInstanceInfo" : {
-              "instance_name" : "USER",
-              "view_name" : "HELLO_SERVLET"
-            }
+            "name" : "name",
+            "description" : "The name for the greeting. Defaults to current user.",
+            "required" : false
           }
-        ]
-      }
-
+        ],
+        "version" : "1.0.0",
+        "view_name" : "HELLO_SERVLET"
+      },
+      "instances" : [
+        {
+          "href" : "http://<server>:8080/api/v1/views/HELLO_SERVLET/versions/1.0.0/instances/JERRY",
+          "ViewInstanceInfo" : {
+            "instance_name" : "JERRY",
+            "version" : "1.0.0",
+            "view_name" : "HELLO_SERVLET"
+          }
+        },
+        {
+          "href" : "http://<server>:8080/api/v1/views/HELLO_SERVLET/versions/1.0.0/instances/TOM",
+          "ViewInstanceInfo" : {
+            "instance_name" : "TOM",
+            "version" : "1.0.0",
+            "view_name" : "HELLO_SERVLET"
+          }
+        },
+        {
+          "href" : "http://<server>:8080/api/v1/views/HELLO_SERVLET/versions/1.0.0/instances/USER",
+          "ViewInstanceInfo" : {
+            "instance_name" : "USER",
+            "version" : "1.0.0",
+            "view_name" : "HELLO_SERVLET"
+          }
+        }
+      ]
+    }
+    
 To see a specific instance of a view, we can ask for it by name.  Here we can see the attributes of the view including its name and root context path.  We can also see that this view instance defines a value for the name property.
 
-    http://<server>:8080/api/v1/views/HELLO_SERVLET/instances/TOM
+    http://<server>:8080/api/v1/views/HELLO_SERVLET/versions/1.0.0/instances/TOM
 
     {
-      "href" : "http://<server>:8080/api/v1/views/HELLO_SERVLET/instances/TOM",
+      "href" : "http://<server>:8080/api/v1/views/HELLO_SERVLET/versions/1.0.0/instances/TOM",
       "ViewInstanceInfo" : {
-        "context_path" : "/views/HELLO_SERVLET/TOM",
+        "context_path" : "/views/HELLO_SERVLET/1.0.0/TOM",
         "instance_name" : "TOM",
+        "version" : "1.0.0",
         "view_name" : "HELLO_SERVLET",
+        "instance_data" : { },
         "properties" : {
           "name" : "Tom"
         }
@@ -219,12 +224,12 @@ To see a specific instance of a view, we can ask for it by name.  Here we can se
 
 If the view contains any web content, we can access it at the view's root context path.  In this case its the HelloServlet which displays a greeting customized to the view instance.
       
-    http://<server>:8080/views/HELLO_SERVLET/JERRY/
+    http://<server>:8080/views/HELLO_SERVLET/1.0.0/JERRY/
 
 ![image](hello_1.png)
 
 
-    http://<server>:8080/views/HELLO_SERVLET/TOM/
+    http://<server>:8080/views/HELLO_SERVLET/1.0.0/TOM
 
 
 ![image](hello_2.png)

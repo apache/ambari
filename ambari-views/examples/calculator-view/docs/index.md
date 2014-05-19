@@ -117,58 +117,63 @@ After deploying a view you should see it as a view resource in the Ambari REST A
 
 If we want to see the details about a specific view, we can ask for it by name.  This shows us that the CALCULATOR view has a single instance named INSTANCE_1.
 
-      http://<server>:8080/api/v1/views/CALCULATOR/
+      http://<server>:8080/api/v1/views/CALCULATOR/versions/1.0.0
 
       {
-        "href" : "http://<server>:8080/api/v1/views/CALCULATOR/",
-        "ViewInfo" : {
-          "archive" : "/var/lib/ambari-server/resources/views/calculator-view-1.0.0.jar",
-          "label" : "The Calculator View",
-          "parameters" : [ ],
-          "version" : "1.0.0",
-          "view_name" : "CALCULATOR"
-        },
-        "instances" : [
-          {
-            "href" : "http://<server>:8080/api/v1/views/CALCULATOR/instances/INSTANCE_1",
-            "ViewInstanceInfo" : {
-              "instance_name" : "INSTANCE_1",
-              "view_name" : "CALCULATOR"
-            }
-          }
-        ]
-      }
-
-To see a specific instance of a view, we can ask for it by name.  Here we can see the attributes of the view instance.  We can also see that this view has a resource name 'calculator'.
-
-    http://<server>:8080/api/v1/views/CALCULATOR/instances/INSTANCE_1
-
-    {
-      "href" : "http://<server>:8080/api/v1/views/CALCULATOR/instances/INSTANCE_1",
-      "ViewInstanceInfo" : {
-        "context_path" : "/views/CALCULATOR/INSTANCE_1",
-        "instance_name" : "INSTANCE_1",
-        "view_name" : "CALCULATOR",
-        "properties" : { }
+      "href" : "http://<server>:8080/api/v1/views/CALCULATOR/versions/1.0.0",
+      "ViewVersionInfo" : {
+        "archive" : "/var/lib/ambari-server/resources/views/work/CALCULATOR{1.0.0}",
+        "label" : "The Calculator View",
+        "parameters" : [ ],
+        "version" : "1.0.0",
+        "view_name" : "CALCULATOR"
       },
-      "resources" : [
+      "instances" : [
         {
-          "href" : "http://<server>:8080/api/v1/views/CALCULATOR/instances/INSTANCE_1/resources/calculator",
-          "instance_name" : "INSTANCE_1",
-          "name" : "calculator",
-          "view_name" : "CALCULATOR"
+          "href" : "http://<server>:8080/api/v1/views/CALCULATOR/versions/1.0.0/instances/INSTANCE_1",
+          "ViewInstanceInfo" : {
+            "instance_name" : "INSTANCE_1",
+            "version" : "1.0.0",
+            "view_name" : "CALCULATOR"
+          }
         }
       ]
     }
 
+To see a specific instance of a view, we can ask for it by name.  Here we can see the attributes of the view instance.  We can also see that this view has a resource name 'calculator'.
+
+    http://<server>:8080/api/v1/views/CALCULATOR/versions/1.0.0/instances/INSTANCE_1
+
+    {
+      "href" : "http://<server>:8080/api/v1/views/CALCULATOR/versions/1.0.0/instances/INSTANCE_1",
+      "ViewInstanceInfo" : {
+        "context_path" : "/views/CALCULATOR/1.0.0/INSTANCE_1",
+        "instance_name" : "INSTANCE_1",
+        "version" : "1.0.0",
+        "view_name" : "CALCULATOR",
+        "instance_data" : { },
+        "properties" : { }
+      },
+      "resources" : [
+        {
+          "href" : "http://<server>:8080/api/v1/views/CALCULATOR/versions/1.0.0/instances/INSTANCE_1/resources/calculator",
+          "instance_name" : "INSTANCE_1",
+          "name" : "calculator",
+          "version" : "1.0.0",
+          "view_name" : "CALCULATOR"
+        }
+      ]
+    }
+    
 We can access the view's resource through the resource's href.
 
-    http://<server>:8080/api/v1/views/CALCULATOR/instances/INSTANCE_1/resources/calculator
+    http://<server>:8080/api/v1/views/CALCULATOR/versions/1.0.0/instances/INSTANCE_1/resources/calculator/
 
 ![image](usage.png)
 
 We can access the add method of the resource with the following …
 
-     http://<server>:8080/api/v1/views/CALCULATOR/instances/INSTANCE_1/resources/calculator/add/77.5/87.62
+     http://<server>:8080/api/v1/views/CALCULATOR/versions/1.0.0/instances/INSTANCE_1/resources/calculator/add/77.5/87.62
 
 ![image](add.png)
+

@@ -179,27 +179,31 @@ After deploying a view you should see it as a view resource in the Ambari REST A
 
 If we want to see the details about a specific view, we can ask for it by name.  This shows us that the PHONE_LIST view has a two instances.
 
+      http://<server>:8080/api/v1/views/PHONE_LIST/versions/1.0.0/
+      
       {
-        "href" : "http://<server>:8080/api/v1/views/PHONE_LIST/",
-          "ViewInfo" : {
-        "archive" : "/var/lib/ambari-server/resources/views/phone-list-view-1.0.0.jar",
-            "label" : "The Phone List View",
-            "parameters" : [ ],
-            "version" : "1.0.0",
-            "view_name" : "PHONE_LIST"
+      "href" : "http://<server>:8080/api/v1/views/PHONE_LIST/versions/1.0.0/",
+      "ViewVersionInfo" : {
+        "archive" : "/var/lib/ambari-server/resources/views/work/PHONE_LIST{1.0.0}",
+        "label" : "The Phone List View",
+        "parameters" : [ ],
+        "version" : "1.0.0",
+        "view_name" : "PHONE_LIST"
       },
       "instances" : [
         {
-          "href" : "http://<server>:8080/api/v1/views/PHONE_LIST/instances/LIST_1",
+          "href" : "http://<server>:8080/api/v1/views/PHONE_LIST/versions/1.0.0/instances/LIST_1",
           "ViewInstanceInfo" : {
             "instance_name" : "LIST_1",
+            "version" : "1.0.0",
             "view_name" : "PHONE_LIST"
           }
         },
         {
-          "href" : "http://<server>:8080/api/v1/views/PHONE_LIST/instances/LIST_2",
+          "href" : "http://<server>:8080/api/v1/views/PHONE_LIST/versions/1.0.0/instances/LIST_2",
           "ViewInstanceInfo" : {
             "instance_name" : "LIST_2",
+            "version" : "1.0.0",
             "view_name" : "PHONE_LIST"
           }
         }
@@ -208,20 +212,16 @@ If we want to see the details about a specific view, we can ask for it by name. 
 
 To see a specific instance of a view, we can ask for it by name.  Here we can see the attributes of the view including its name and root context path.  We can also see that this view instance defines a value for the name property.
 
-    http://<server>:8080/api/v1/views/PHONE_LIST/instances/LIST_1
+    http://<server>:8080/api/v1/views/PHONE_LIST/versions/1.0.0/instances/LIST_1
 
     {
-      "href" : "http://<server>:8080/api/v1/views/PHONE_LIST/instances/LIST_1",
+      "href" : "http://<server>:8080/api/v1/views/PHONE_LIST/versions/1.0.0/instances/LIST_1",
       "ViewInstanceInfo" : {
-        "context_path" : "/views/PHONE_LIST/LIST_1",
+        "context_path" : "/views/PHONE_LIST/1.0.0/LIST_1",
         "instance_name" : "LIST_1",
+        "version" : "1.0.0",
         "view_name" : "PHONE_LIST",
-        "instance_data" : {
-          "Dave" : "999 999 9923",
-          "Fred" : "123 678 1234",
-          "Karl" : "888 888 8788",
-          "Mary" : "888 888 8788"
-        },
+        "instance_data" : { },
         "properties" : { }
       },
       "resources" : [ ]
@@ -229,11 +229,11 @@ To see a specific instance of a view, we can ask for it by name.  Here we can se
 
 If the view contains any web content, we can access it at the view's root context path.  In this case its the PhoneListServlet which displays a list of phone number entries for the view instance.
       
-    http://<server>:8080/views/PHONE_LIST/LIST_1/
+    http://<server>:8080/views/PHONE_LIST/1.0.0/LIST_1/
 
 ![image](phone_1.png)
 
-Use the view API to add new numbers to the phone list.  Click on any name in the list to edit or delete a number…
+Use the view API to add new numbers to the phone list.  Click on any name in the list to edit or delete a number
 
 ![image](phone_2.png)
 
@@ -253,39 +253,40 @@ We can look at the Ambari database and see that the view instance data is being 
 Notice that the two instances above were defined in the view.xml for the Phone List view.  We can also create new instances through the API.  For example, if you POST the following…
 
 
-    POST http://<server>:8080/api/v1/views/PHONE_LIST/instances/LIST_3
+    POST http://<server>:8080/api/v1/views/PHONE_LIST/versions/1.0.0/instances/LIST_3
     
 You should then see a new instance named LIST_3 for the Phone List view …
 
-    http://<server>:8080/api/v1/views/PHONE_LIST/instances/  
-    
     {
-      "href" : "http://<server>:8080/api/v1/views/PHONE_LIST/instances/",
-        "items" : [
-          {
-            "href" : "http://<server>:8080/api/v1/views/PHONE_LIST/instances/LIST_1",
-            "ViewInstanceInfo" : {
-              "instance_name" : "LIST_1",
-              "view_name" : "PHONE_LIST"
-            }
-          },
-          {
-            "href" : "http://<server>:8080/api/v1/views/PHONE_LIST/instances/LIST_2",
-            "ViewInstanceInfo" : {
-              "instance_name" : "LIST_2",
-              "view_name" : "PHONE_LIST"
-            }
-          },
-          {
-            "href" : "http://<server>:8080/api/v1/views/PHONE_LIST/instances/LIST_3",
-            "ViewInstanceInfo" : {
-              "instance_name" : "LIST_3",
-              "view_name" : "PHONE_LIST"
-            }
+      "href" : "http://<server>:8080/api/v1/views/PHONE_LIST/versions/1.0.0/instances/",
+      "items" : [
+        {
+          "href" : "http://<server>:8080/api/v1/views/PHONE_LIST/versions/1.0.0/instances/LIST_1",
+          "ViewInstanceInfo" : {
+            "instance_name" : "LIST_1",
+            "version" : "1.0.0",
+            "view_name" : "PHONE_LIST"
           }
-        ]
-      }  
-      
+        },
+        {
+          "href" : "http://<server>:8080/api/v1/views/PHONE_LIST/versions/1.0.0/instances/LIST_2",
+          "ViewInstanceInfo" : {
+            "instance_name" : "LIST_2",
+            "version" : "1.0.0",
+            "view_name" : "PHONE_LIST"
+          }
+        },
+        {
+          "href" : "http://<server>:8080/api/v1/views/PHONE_LIST/versions/1.0.0/instances/LIST_3",
+          "ViewInstanceInfo" : {
+            "instance_name" : "LIST_3",
+            "version" : "1.0.0",
+            "view_name" : "PHONE_LIST"
+          }
+        }
+      ]
+    }
+          
  You can then access the new instance UI to add, edit and delete numbers for the new list …
  
  ![image](phone_5.png)

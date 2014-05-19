@@ -98,38 +98,41 @@ After deploying a view you should see it as a view resource in the Ambari REST A
 
 If we want to see the details about a specific view, we can ask for it by name.  This shows us that the HELLO_WORLD view does not define any parameters and has a single instance named INSTANCE_1.
 
-      http://<server>:8080/api/v1/views/HELLO_WORLD/
+    http://<server>:8080/api/v1/views/HELLO_WORLD/versions/1.0.0/
 
-      {
-        "href" : "http://<server>:8080/api/v1/views/HELLO_WORLD/",
-        "ViewInfo" : {
-          "archive" : "/var/lib/ambari-server/resources/views/helloworld-view-1.0.0.jar",
-          "label" : "The Hello World View!",
-          "parameters" : [ ],
-          "version" : "1.0.0",
-          "view_name" : "HELLO_WORLD"
-        },
-        "instances" : [
-          {
-            "href" : "http://<server>:8080/api/v1/views/HELLO_WORLD/instances/INSTANCE_1",
-            "ViewInstanceInfo" : {
-              "instance_name" : "INSTANCE_1",
-              "view_name" : "HELLO_WORLD"
-            }
+    {
+      "href" : "http://<server>:8080/api/v1/views/HELLO_WORLD/versions/1.0.0/",
+      "ViewVersionInfo" : {
+        "archive" : "/var/lib/ambari-server/resources/views/work/HELLO_WORLD{1.0.0}",
+        "label" : "The Hello World View!",
+        "parameters" : [ ],
+        "version" : "1.0.0",
+        "view_name" : "HELLO_WORLD"
+      },
+      "instances" : [
+        {
+          "href" : "http://<server>:8080/api/v1/views/HELLO_WORLD/versions/1.0.0/instances/INSTANCE_1",
+          "ViewInstanceInfo" : {
+            "instance_name" : "INSTANCE_1",
+            "version" : "1.0.0",
+            "view_name" : "HELLO_WORLD"
           }
-        ]
-      }
+        }
+      ]
+    }
 
 To see a specific instance of a view, we can ask for it by name.  Here we can see the attributes of the view including its name and root context path.  We can also see that this view instance does not define any properties or resources.
 
-    http://<server>:8080/api/v1/views/HELLO_WORLD/instances/INSTANCE_1
+    http://<server>:8080/api/v1/views/HELLO_WORLD/versions/1.0.0/instances/INSTANCE_1
 
     {
-      "href" : "http://<server>:8080/api/v1/views/HELLO_WORLD/instances/INSTANCE_1",
+      "href" : "http://<server>:8080/api/v1/views/HELLO_WORLD/versions/1.0.0/instances/INSTANCE_1",
       "ViewInstanceInfo" : {
-        "context_path" : "/views/HELLO_WORLD/INSTANCE_1",
+        "context_path" : "/views/HELLO_WORLD/1.0.0/INSTANCE_1",
         "instance_name" : "INSTANCE_1",
+        "version" : "1.0.0",
         "view_name" : "HELLO_WORLD",
+        "instance_data" : { },
         "properties" : { }
       },
       "resources" : [ ]
@@ -137,7 +140,7 @@ To see a specific instance of a view, we can ask for it by name.  Here we can se
 
 If the view contains any web content, we can access it at the view's root context path.  In this case its the index.html which displays Hello world!
 
-    http://<server>:8080/views/HELLO_WORLD/INSTANCE_1/
+    http://<server>:8080/views/HELLO_WORLD/1.0.0/INSTANCE_1/
 
 
 ![image](hello_world.png)

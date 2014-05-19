@@ -295,77 +295,84 @@ After deploying a view you should see it as a view resource in the Ambari REST A
 
 If we want to see the details about a specific view, we can ask for it by name.  This shows us that the WEATHER view has multiple parameters and multiple instances.
 
-      http://<server>:8080/api/v1/views/WEATHER/
-
-      {
-        "href" : "http://<server>:8080/api/v1/views/WEATHER/",
-        "ViewInfo" : {
-          "archive" : "/var/lib/ambari-server/resources/views/weather-view-1.0.0.jar",
-          "label" : "Weather",
-          "parameters" : [
-            {
-              "name" : "cities",
-              "description" : "The list of cities.",
-              "required" : true
-            },
-            {
-              "name" : "units",
-              "description" : "The units (metric or imperial).",
-              "required" : false
-            }
-          ],
-          "version" : "1.0.0",
-          "view_name" : "WEATHER"
-        },
-        "instances" : [
+    http://<server>:8080/api/v1/views/WEATHER/versions/1.0.0
+    
+    {
+      "href" : "http://<server>:8080/api/v1/views/WEATHER/versions/1.0.0",
+      "ViewVersionInfo" : {
+        "archive" : "/var/lib/ambari-server/resources/views/work/WEATHER{1.0.0}",
+        "label" : "Weather",
+        "parameters" : [
           {
-            "href" : "http://<server>:8080/api/v1/views/WEATHER/instances/EUROPE",
-            "ViewInstanceInfo" : {
-              "instance_name" : "EUROPE",
-              "view_name" : "WEATHER"
-            }
+            "name" : "cities",
+            "description" : "The list of cities.",
+            "required" : true
           },
           {
-            "href" : "http://<server>:8080/api/v1/views/WEATHER/instances/US_CENTRAL",
-            "ViewInstanceInfo" : {
-              "instance_name" : "US_CENTRAL",
-              "view_name" : "WEATHER"
-            }
-          },
-          {
-            "href" : "http://<server>:8080/api/v1/views/WEATHER/instances/US_EAST",
-            "ViewInstanceInfo" : {
-              "instance_name" : "US_EAST",
-              "view_name" : "WEATHER"
-            }
-          },
-          {
-            "href" : "http://<server>:8080/api/v1/views/WEATHER/instances/US_MOUNTAIN",
-            "ViewInstanceInfo" : {
-              "instance_name" : "US_MOUNTAIN",
-              "view_name" : "WEATHER"
-            }
-          },
-          {
-            "href" : "http://<server>:8080/api/v1/views/WEATHER/instances/US_WEST",
-            "ViewInstanceInfo" : {
-              "instance_name" : "US_WEST",
-              "view_name" : "WEATHER"
-            }
+            "name" : "units",
+            "description" : "The units (metric or imperial).",
+            "required" : false
           }
-        ]
-      }
-
+        ],
+        "version" : "1.0.0",
+        "view_name" : "WEATHER"
+      },
+      "instances" : [
+        {
+          "href" : "http://<server>:8080/api/v1/views/WEATHER/versions/1.0.0/instances/EUROPE",
+          "ViewInstanceInfo" : {
+            "instance_name" : "EUROPE",
+            "version" : "1.0.0",
+            "view_name" : "WEATHER"
+          }
+        },
+        {
+          "href" : "http://<server>:8080/api/v1/views/WEATHER/versions/1.0.0/instances/US_CENTRAL",
+          "ViewInstanceInfo" : {
+            "instance_name" : "US_CENTRAL",
+            "version" : "1.0.0",
+            "view_name" : "WEATHER"
+          }
+        },
+        {
+          "href" : "http://<server>:8080/api/v1/views/WEATHER/versions/1.0.0/instances/US_EAST",
+          "ViewInstanceInfo" : {
+            "instance_name" : "US_EAST",
+            "version" : "1.0.0",
+            "view_name" : "WEATHER"
+          }
+        },
+        {
+          "href" : "http://<server>:8080/api/v1/views/WEATHER/versions/1.0.0/instances/US_MOUNTAIN",
+          "ViewInstanceInfo" : {
+            "instance_name" : "US_MOUNTAIN",
+            "version" : "1.0.0",
+            "view_name" : "WEATHER"
+          }
+        },
+        {
+          "href" : "http://<server>:8080/api/v1/views/WEATHER/versions/1.0.0/instances/US_WEST",
+          "ViewInstanceInfo" : {
+            "instance_name" : "US_WEST",
+            "version" : "1.0.0",
+            "view_name" : "WEATHER"
+          }
+        }
+      ]
+    }
+    
 To see a specific instance of a view, we can ask for it by name.  Here we can see the attributes of the view including its name and root context path.  We can also see that this view instance defines a value for the name property.
 
-    http://<server>:8080/api/v1/views/WEATHER/instances/US_WEST
+    http://<server>:8080/api/v1/views/WEATHER/versions/1.0.0/instances/US_WEST
 
     {
-      "href" : "http://<server>:8080/api/v1/views/WEATHER/instances/US_WEST/",
+      "href" : "http://<server>:8080/api/v1/views/WEATHER/versions/1.0.0/instances/US_WEST",
       "ViewInstanceInfo" : {
-        "context_path" : "/views/WEATHER/US_WEST",
+        "context_path" : "/views/WEATHER/1.0.0/US_WEST",
         "instance_name" : "US_WEST",
+        "version" : "1.0.0",
         "view_name" : "WEATHER",
+        "instance_data" : { },
         "properties" : {
           "cities" : "Palo Alto, US;Los Angeles, US;Portland, US;Seattle, US",
           "units" : "imperial"
@@ -374,193 +381,186 @@ To see a specific instance of a view, we can ask for it by name.  Here we can se
       "resources" : [ ],
       "cities" : [
         {
-          "href" : "http://<server>:8080/api/v1/views/WEATHER/instances/US_WEST/cities/Los Angeles, US",
+          "href" : "http://<server>:8080/api/v1/views/WEATHER/versions/1.0.0/instances/US_WEST/cities/Los Angeles, US",
           "id" : "Los Angeles, US",
           "instance_name" : "US_WEST",
+          "version" : "1.0.0",
           "view_name" : "WEATHER"
         },
         {
-          "href" : "http://<server>:8080/api/v1/views/WEATHER/instances/US_WEST/cities/Palo Alto, US",
+          "href" : "http://<server>:8080/api/v1/views/WEATHER/versions/1.0.0/instances/US_WEST/cities/Palo Alto, US",
           "id" : "Palo Alto, US",
           "instance_name" : "US_WEST",
+          "version" : "1.0.0",
           "view_name" : "WEATHER"
         },
         {
-          "href" : "http://<server>:8080/api/v1/views/WEATHER/instances/US_WEST/cities/Portland, US",
+          "href" : "http://<server>:8080/api/v1/views/WEATHER/versions/1.0.0/instances/US_WEST/cities/Portland, US",
           "id" : "Portland, US",
           "instance_name" : "US_WEST",
+          "version" : "1.0.0",
           "view_name" : "WEATHER"
         },
         {
-          "href" : "http://<server>:8080/api/v1/views/WEATHER/instances/US_WEST/cities/Seattle, US",
+          "href" : "http://<server>:8080/api/v1/views/WEATHER/versions/1.0.0/instances/US_WEST/cities/Seattle, US",
           "id" : "Seattle, US",
           "instance_name" : "US_WEST",
+          "version" : "1.0.0",
           "view_name" : "WEATHER"
         }
       ]
     }
-
+    
 To see a specific city sub-resource we can ask for it by name.  Here we can see the city resource for Palo Alto.
 
-      http://<server>:8080/api/v1/views/WEATHER/instances/US_WEST/cities/Palo Alto, US
+      http://<server>:8080/api/v1/views/WEATHER/versions/1.0.0/instances/US_WEST/cities/Palo%20Alto,%20US
 
       {
-        "href" : "http://<server>:8080/api/v1/views/WEATHER/instances/US_WEST/cities/Palo Alto, US",
-        "id" : "Palo Alto, US",
-        "instance_name" : "US_WEST",
-        "units" : "imperial",
-        "view_name" : "WEATHER",
+      "href" : "http://<server>:8080/api/v1/views/WEATHER/versions/1.0.0/instances/US_WEST/cities/Palo Alto, US",
+      "id" : "Palo Alto, US",
+      "instance_name" : "US_WEST",
+      "units" : "imperial",
+      "version" : "1.0.0",
+      "view_name" : "WEATHER",
+      "weather" : {
+        "base" : "cmc stations",
+        "cod" : 200.0,
+        "dt" : 1.400170204E9,
+        "icon_src" : "http://openweathermap.org/img/w/01d",
+        "id" : 5567220.0,
+        "name" : "Palo Alto",
+        "clouds" : {
+          "all" : 0.0
+        },
+        "coord" : {
+          "lat" : 37.44,
+          "lon" : -122.16
+        },
+        "main" : {
+          "grnd_level" : 1021.91,
+          "humidity" : 87.0,
+          "pressure" : 1021.91,
+          "sea_level" : 1033.86,
+          "temp" : 56.98,
+          "temp_max" : 56.98,
+          "temp_min" : 56.98
+        },
+        "sys" : {
+          "country" : "United States of America",
+          "message" : 0.3532,
+          "sunrise" : 1.400158725E9,
+          "sunset" : 1.400209875E9
+        },
         "weather" : {
-          "base" : "cmc stations",
-          "cod" : 200.0,
-          "dt" : 1.392507995E9,
-          "icon_src" : "http://openweathermap.org/img/w/04d",
-          "id" : 5380748.0,
-          "name" : "Palo Alto",
-          "clouds" : {
-            "all" : 92.0
-          },
-          "coord" : {
-            "lat" : 37.44,
-            "lon" : -122.14
-          },
-          "main" : {
-            "humidity" : 82.0,
-            "pressure" : 969.0,
-            "temp" : 59.2,
-            "temp_max" : 62.01,
-            "temp_min" : 55.99
-          },
-          "sys" : {
-            "country" : "US",
-            "message" : 0.0116,
-            "sunrise" : 1.392562529E9,
-            "sunset" : 1.392601779E9
-          },
-          "weather" : {
-            "description" : "overcast clouds",
-            "icon" : "04d",
-            "id" : 804.0,
-            "main" : "Clouds"
-          },
-          "wind" : {
-            "deg" : 159.001,
-            "speed" : 4.54
-          }
+          "description" : "Sky is Clear",
+          "icon" : "01d",
+          "id" : 800.0,
+          "main" : "Clear"
+        },
+        "wind" : {
+          "deg" : 333.5,
+          "speed" : 3.43
         }
       }
-
+    }
 
 Because the city resource is managed by Ambari and exposed through the REST API, it may be queried through the API like any other Ambari resource.  All of the features of the API are available including partial response and query parameters.  For example, we can request select weather attributes for the cities where the temperature is greater than 50 degrees...
 
 
-      http://<server>:8080/api/v1/views/WEATHER/instances/?fields=cities/weather/main&cities/weather/main/temp>50
+      http://<server>:8080/api/v1/views/WEATHER/versions/1.0.0/instances/?fields=cities/weather/main&cities/weather/main/temp%3E50
 
-      {
-        "href" : "http://<server>:8080/api/v1/views/WEATHER/instances/?fields=cities/weather/main&cities/weather/main/temp>50",
-        "items" : [
           {
-            "href" : "http://<server>:8080/api/v1/views/WEATHER/instances/US_CENTRAL",
-            "ViewInstanceInfo" : {
+      "href" : "http://<server>:8080/api/v1/views/WEATHER/versions/1.0.0/instances/?fields=cities/weather/main&cities/weather/main/temp>50",
+      "items" : [
+        {
+          "href" : "http://<server>:8080/api/v1/views/WEATHER/versions/1.0.0/instances/EUROPE",
+          "ViewInstanceInfo" : {
+            "instance_name" : "EUROPE",
+            "version" : "1.0.0",
+            "view_name" : "WEATHER"
+          },
+          "cities" : [
+            {
+              "href" : "http://<server>:8080/api/v1/views/WEATHER/versions/1.0.0/instances/EUROPE/cities/London, UK",
+              "id" : "London, UK",
+              "instance_name" : "EUROPE",
+              "version" : "1.0.0",
+              "view_name" : "WEATHER",
+              "weather" : {
+                "main" : {
+                  "grnd_level" : 1039.75,
+                  "humidity" : 69.0,
+                  "pressure" : 1039.75,
+                  "sea_level" : 1049.87,
+                  "temp" : 66.34,
+                  "temp_max" : 66.34,
+                  "temp_min" : 66.34
+                }
+              }
+            },
+            {
+              "href" : "http://<server>:8080/api/v1/views/WEATHER/versions/1.0.0/instances/EUROPE/cities/Paris",
+              "id" : "Paris",
+              "instance_name" : "EUROPE",
+              "version" : "1.0.0",
+              "view_name" : "WEATHER",
+              "weather" : {
+                "main" : {
+                  "grnd_level" : 1019.4,
+                  "humidity" : 74.0,
+                  "pressure" : 1019.4,
+                  "sea_level" : 1036.29,
+                  "temp" : 61.84,
+                  "temp_max" : 61.84,
+                  "temp_min" : 61.84
+                }
+              }
+            }
+          ]
+        },
+        {
+          "href" : "http://<server>:8080/api/v1/views/WEATHER/versions/1.0.0/instances/US_CENTRAL",
+          "ViewInstanceInfo" : {
+            "instance_name" : "US_CENTRAL",
+            "version" : "1.0.0",
+            "view_name" : "WEATHER"
+          },
+          "cities" : [
+            {
+              "href" : "http://<server>:8080/api/v1/views/WEATHER/versions/1.0.0/instances/US_CENTRAL/cities/Dallas, US",
+              "id" : "Dallas, US",
               "instance_name" : "US_CENTRAL",
-              "view_name" : "WEATHER"
-            },
-            "cities" : [
-              {
-                "href" : "http://<server>:8080/api/v1/views/WEATHER/instances/US_CENTRAL/cities/Dallas, US",
-                "id" : "Dallas, US",
-                "instance_name" : "US_CENTRAL",
-                "view_name" : "WEATHER",
-                "weather" : {
-                  "main" : {
-                    "humidity" : 50.0,
-                    "pressure" : 1015.0,
-                    "temp" : 64.29,
-                    "temp_max" : 64.99,
-                    "temp_min" : 64.0
-                  }
+              "version" : "1.0.0",
+              "view_name" : "WEATHER",
+              "weather" : {
+                "main" : {
+                  "grnd_level" : 1020.13,
+                  "humidity" : 60.0,
+                  "pressure" : 1020.13,
+                  "sea_level" : 1037.18,
+                  "temp" : 64.81,
+                  "temp_max" : 64.81,
+                  "temp_min" : 64.81
                 }
               }
-            ]
-          },
-          {
-            "href" : "http://<server>:8080/api/v1/views/WEATHER/instances/US_MOUNTAIN",
-            "ViewInstanceInfo" : {
-              "instance_name" : "US_MOUNTAIN",
-              "view_name" : "WEATHER"
-            },
-            "cities" : [
-              {
-                "href" : "http://<server>:8080/api/v1/views/WEATHER/instances/US_MOUNTAIN/cities/Phoenix, US",
-                "id" : "Phoenix, US",
-                "instance_name" : "US_MOUNTAIN",
-                "view_name" : "WEATHER",
-                "weather" : {
-                  "main" : {
-                    "humidity" : 49.0,
-                    "pressure" : 1013.0,
-                    "temp" : 84.7,
-                    "temp_max" : 85.28,
-                    "temp_min" : 84.0
-                  }
-                }
-              }
-            ]
-          },
-          {
-            "href" : "http://<server>:8080/api/v1/views/WEATHER/instances/US_WEST",
-            "ViewInstanceInfo" : {
-              "instance_name" : "US_WEST",
-              "view_name" : "WEATHER"
-            },
-            "cities" : [
-              {
-                "href" : "http://<server>:8080/api/v1/views/WEATHER/instances/US_WEST/cities/Los Angeles, US",
-                "id" : "Los Angeles, US",
-                "instance_name" : "US_WEST",
-                "view_name" : "WEATHER",
-                "weather" : {
-                  "main" : {
-                    "humidity" : 37.0,
-                    "pressure" : 1013.0,
-                    "temp" : 74.5,
-                    "temp_max" : 78.01,
-                    "temp_min" : 69.01
-                  }
-                }
-              },
-              {
-                "href" : "http://<server>:8080/api/v1/views/WEATHER/instances/US_WEST/cities/Palo Alto, US",
-                "id" : "Palo Alto, US",
-                "instance_name" : "US_WEST",
-                "view_name" : "WEATHER",
-                "weather" : {
-                  "main" : {
-                    "humidity" : 82.0,
-                    "pressure" : 969.0,
-                    "temp" : 59.2,
-                    "temp_max" : 62.01,
-                    "temp_min" : 55.99
-                  }
-                }
-              }
-            ]
-          }
-        ]
-      }
-
+            }
+          ]
+        },
+        ...
+      ]
+    }
 
 If the view contains any web content, we can access it at the view's root context path.  In this case its the WeatherServlet which displays a the weather for a set of cities based on the properties of the view instance.
 
-    http://<server>:8080/views/WEATHER/US_WEST/ui
+    http://<server>:8080/views/WEATHER/1.0.0/US_WEST/ui
 
 ![image](weather.png)
 
 Selecting a specific city will show details about the weather in that city.
 
-    http://<server>:8080/views/WEATHER/US_WEST/ui?city=Portland%2C+US
+    http://<server>:8080/views/WEATHER/1.0.0/US_WEST/ui?city=Palo+Alto%2C+US
 
 
-![image](portland.png)
+![image](paloalto.png)
 
 
