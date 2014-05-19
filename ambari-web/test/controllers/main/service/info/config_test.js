@@ -1220,6 +1220,447 @@ describe("App.MainServiceInfoConfigsController", function () {
       expect(mainServiceInfoConfigsController["doPUTClusterConfiguration"].calledOnce).to.equal(true);
       expect(mainServiceInfoConfigsController.get("savedSiteNameToServerServiceConfigDataMap")).to.eql(siteNameToServerDataMap);
     });
+  });
 
+  describe("#putConfigGroupChanges", function() {
+
+    var t = {
+      data: {
+        ConfigGroup: {
+          id: "id"
+        }
+      },
+      request: [{
+        ConfigGroup: {
+          id: "id"
+        }
+      }]
+    };
+
+    beforeEach(function() {
+      sinon.spy($,"ajax");
+    });
+    afterEach(function() {
+      $.ajax.restore();
+    });
+
+    it("updates configs groups", function() {
+      mainServiceInfoConfigsController.putConfigGroupChanges(t.data);
+      expect(JSON.parse($.ajax.args[0][0].data)).to.deep.equal(t.request);
+    });
+  });
+
+  describe("#putConfigGroupChangesSuccess", function() {
+    it("set isPutConfigGroupChangesSuccess to true", function() {
+      mainServiceInfoConfigsController.set("mainServiceInfoConfigsController", false);
+      mainServiceInfoConfigsController.putConfigGroupChangesSuccess();
+      expect(mainServiceInfoConfigsController.get("isPutConfigGroupChangesSuccess")).to.equal(true);
+    });
+  });
+
+  describe("#setValueForCheckBox", function() {
+    var tests = [
+      {
+        serviceConfigPropertyInput: Em.Object.create({
+          value: "true",
+          defaultValue: "true",
+          displayType: 'checkbox'
+        }),
+        serviceConfigProperty: Em.Object.create({
+            value: true,
+            defaultValue: true,
+          displayType: 'checkbox'
+        })
+      },
+      {
+        serviceConfigPropertyInput: Em.Object.create({
+          value: "false",
+          defaultValue: "false",
+          displayType: 'checkbox'
+        }),
+        serviceConfigProperty: Em.Object.create({
+          value: false,
+          defaultValue: false,
+          displayType: 'checkbox'
+        })
+      },
+      {
+        serviceConfigPropertyInput: Em.Object.create({
+          value: "false",
+          defaultValue: "false"
+        }),
+        serviceConfigProperty: Em.Object.create({
+          value: "false",
+          defaultValue: "false"
+        })
+      }
+    ];
+    tests.forEach(function(t) {
+      it("set " + t.serviceConfigPropertyInput.value, function(){
+        var serviceConfigProperty = t.serviceConfigPropertyInput;
+        mainServiceInfoConfigsController.setValueForCheckBox(serviceConfigProperty);
+        expect(serviceConfigProperty).to.eql(t.serviceConfigProperty);
+      });
+    });
+  });
+
+  describe("#setEditability", function () {
+
+    var tests = [
+      {
+        isAdmin: true,
+        isHostsConfigsPage: false,
+        defaultGroupSelected: true,
+        isReconfigurable: true,
+        isEditable: true,
+        m: ""
+      },
+      {
+        isAdmin: false,
+        isHostsConfigsPage: false,
+        defaultGroupSelected: true,
+        isReconfigurable: true,
+        isEditable: false,
+        m: "(non admin)"
+      },
+      {
+        isAdmin: true,
+        isHostsConfigsPage: true,
+        defaultGroupSelected: true,
+        isReconfigurable: true,
+        isEditable: false,
+        m: "(isHostsConfigsPage)"
+      },
+      {
+        isAdmin: true,
+        isHostsConfigsPage: false,
+        defaultGroupSelected: false,
+        isReconfigurable: true,
+        isEditable: false,
+        m: "(defaultGroupSelected is false)"
+      },
+      {
+        isAdmin: true,
+        isHostsConfigsPage: false,
+        defaultGroupSelected: true,
+        isReconfigurable: false,
+        isEditable: false,
+        m: "(isReconfigurable is false)"
+      }
+    ];
+
+    var a = App.get('isAdmin');
+    afterEach(function () {
+      App.set('isAdmin', a);
+    });
+    tests.forEach(function(t) {
+      it("set isEditable " + t.isEditable + t.m, function(){
+        App.set('isAdmin', t.isAdmin);
+        mainServiceInfoConfigsController.set("isHostsConfigsPage", t.isHostsConfigsPage);
+        var serviceConfigProperty = Em.Object.create({
+          isReconfigurable: t.isReconfigurable
+        });
+        mainServiceInfoConfigsController.setEditability(serviceConfigProperty, t.defaultGroupSelected);
+        expect(serviceConfigProperty.get("isEditable")).to.equal(t.isEditable);
+      });
+    });
+  });
+
+  describe("#setValidator", function () {
+    var tests = [
+      {
+        content: Em.Object.create({
+          serviceName: "service1"
+        }),
+        serviceConfigsData: {
+          configsValidator: Em.Object.create({
+            configValidators: {
+              val1: "yarnNodemanagerResourceMemoryMb",
+              val2: "yarnSchedulerMaximumAllocationMb"
+            }
+          })
+        },
+        serviceConfigPropertyInput: Em.Object.create({
+          serviceName: "service1",
+          name: "val1",
+          serviceValidator: null,
+          isVisible: true
+        }),
+        serviceConfigProperty: Em.Object.create({
+          serviceName: "service1",
+          name: "val1",
+          serviceValidator: Em.Object.create({
+            configValidators: {
+              val1: "yarnNodemanagerResourceMemoryMb",
+              val2: "yarnSchedulerMaximumAllocationMb"
+            }
+          }),
+          isVisible: true
+        }),
+
+        m: "set appropriate configsValidator "
+      },
+      {
+        content: Em.Object.create({
+          serviceName: "service"
+        }),
+        serviceConfigsData: {
+          configsValidator: Em.Object.create({
+            configValidators: {
+              val1: "yarnNodemanagerResourceMemoryMb",
+              val2: "yarnSchedulerMaximumAllocationMb"
+            }
+          })
+        },
+        serviceConfigPropertyInput: Em.Object.create({
+          serviceName: "service1",
+          name: "yarnNodemanagerResourceMemoryMb",
+          serviceValidator: null,
+          isVisible: true
+        }),
+        serviceConfigProperty: Em.Object.create({
+          serviceName: "service1",
+          name: "yarnNodemanagerResourceMemoryMb",
+          serviceValidator: null,
+          isVisible: false
+        }),
+        m: "different service "
+      }
+    ];
+    tests.forEach(function (t) {
+      it(t.m, function () {
+        mainServiceInfoConfigsController.set("content", t.content);
+        var serviceConfigProperty = t.serviceConfigPropertyInput;
+        mainServiceInfoConfigsController.setValidator(serviceConfigProperty, t.serviceConfigsData);
+        expect(serviceConfigProperty).to.deep.eql(t.serviceConfigProperty);
+      });
+    });
+  });
+
+  describe("#checkOverrideProperty", function () {
+    var tests = [{
+      overrideToAdd: {
+        name: "name1"
+      },
+      componentConfig: {
+        configs: [
+          {
+            name: "name1"
+          }
+        ]
+      },
+      add: true,
+      m: "add property"
+    },
+      {
+        overrideToAdd: {
+          name: "name1"
+        },
+        componentConfig: {
+          configs: [
+            {
+              name: "name2"
+            }
+          ]
+        },
+        add: false,
+        m: "don't add property, different names"
+      },
+      {
+        overrideToAdd: null,
+        componentConfig: {},
+        add: false,
+        m: "don't add property, overrideToAdd is null"
+      }];
+
+    beforeEach(function() {
+      sinon.stub(mainServiceInfoConfigsController,"addOverrideProperty", Em.K)
+    });
+    afterEach(function() {
+      mainServiceInfoConfigsController.addOverrideProperty.restore();
+    });
+    tests.forEach(function(t) {
+      it(t.m, function() {
+        mainServiceInfoConfigsController.set("overrideToAdd", t.overrideToAdd);
+        mainServiceInfoConfigsController.checkOverrideProperty(t.componentConfig);
+        if(t.add) {
+          expect(mainServiceInfoConfigsController.addOverrideProperty.calledOnce).to.equal(true);
+          expect(mainServiceInfoConfigsController.get("overrideToAdd")).to.equal(null);
+        } else {
+          expect(mainServiceInfoConfigsController.addOverrideProperty.calledOnce).to.equal(false);
+        }
+      });
+    });
+  });
+
+  describe("#setRecommendedDefaults", function() {
+    var tests = [{
+      content: Em.Object.create({
+        serviceName: "service1"
+      }),
+      serviceConfigsDataInput:[{
+        serviceName: "service1",
+        defaultsProviders: [
+          App.DefaultsProvider.create({
+            getDefaults: function() {
+            return {
+              p1: "-Xmx546m1",
+              p2: null
+            }
+          }
+          })
+        ],
+        configsValidator: Em.Object.create({
+          recommendedDefaults: null
+        })
+      }],
+      advancedConfigs: [
+        { name: "p1", value: "1"},
+        { name: "p2", value: "2"}
+      ],
+
+      serviceConfigsData:[{
+        serviceName: "service1",
+        defaultsProviders: [
+          App.DefaultsProvider.create({
+            getDefaults: function() {
+              return {
+                p1: "-Xmx546m1",
+                p2: null
+              }
+            }
+          })
+        ],
+        configsValidator: Em.Object.create({
+          recommendedDefaults: {
+            p1: "-Xmx546m1",
+            p2: "2"
+          }
+        })
+      }]
+    }];
+
+    beforeEach(function() {
+      sinon.stub(mainServiceInfoConfigsController, "getInfoForDefaults", Em.K);
+    });
+    afterEach(function() {
+      mainServiceInfoConfigsController.getInfoForDefaults.restore();
+    });
+    tests.forEach(function(t) {
+      it("", function() {
+        mainServiceInfoConfigsController.set("content", t.content);
+        mainServiceInfoConfigsController.set("serviceConfigsData", t.serviceConfigsDataInput);
+        mainServiceInfoConfigsController.setRecommendedDefaults(t.advancedConfigs);
+        expect(mainServiceInfoConfigsController.get("serviceConfigsData")[0].configsValidator).to.deep.eql(t.serviceConfigsData[0].configsValidator);
+
+      });
+    });
+  });
+
+
+  describe("#setValuesForOverrides", function() {
+    var tests = [
+      {
+        overrides: [
+          {name: "override1"},
+          {name: "override2"}
+        ],
+        _serviceConfigProperty: {},
+        serviceConfigProperty: Em.Object.create({overrides: Em.A([])}),
+        defaultGroupSelected: true
+      }
+    ];
+    beforeEach(function() {
+      sinon.stub(mainServiceInfoConfigsController, "createNewSCP", function(override) {return {name: override.name}})
+    });
+    afterEach(function() {
+      mainServiceInfoConfigsController.createNewSCP.restore();
+    });
+    tests.forEach(function(t) {
+      it("set values for overrides. use createNewSCP method to do this", function() {
+        var serviceConfigProperty = t.serviceConfigProperty;
+        mainServiceInfoConfigsController.setValuesForOverrides(t.overrides, serviceConfigProperty, t.serviceConfigProperty, t.defaultGroupSelected);
+        expect(serviceConfigProperty.get("overrides")[0]).to.eql(t.overrides[0]);
+        expect(serviceConfigProperty.get("overrides")[1]).to.eql(t.overrides[1]);
+      });
+    });
+  });
+  describe("#createConfigProperty", function() {
+    var tests = [
+      {
+        _serviceConfigProperty: {
+          overrides: {
+
+          }
+        },
+        defaultGroupSelected: true,
+        restartData: {},
+        serviceConfigsData: {},
+        serviceConfigProperty: {
+          overrides: null,
+          isOverridable: true
+        }
+      }];
+    beforeEach(function() {
+      sinon.stub(mainServiceInfoConfigsController, "setValueForCheckBox", Em.K);
+      sinon.stub(mainServiceInfoConfigsController, "setRestartInfo", Em.K);
+      sinon.stub(mainServiceInfoConfigsController, "setValidator", Em.K);
+      sinon.stub(mainServiceInfoConfigsController, "setValuesForOverrides", Em.K);
+      sinon.stub(mainServiceInfoConfigsController, "setEditability", Em.K);
+    });
+    afterEach(function() {
+      mainServiceInfoConfigsController.setValueForCheckBox.restore();
+      mainServiceInfoConfigsController.setRestartInfo.restore();
+      mainServiceInfoConfigsController.setValidator.restore();
+      mainServiceInfoConfigsController.setValuesForOverrides.restore();
+      mainServiceInfoConfigsController.setEditability.restore();
+    });
+    tests.forEach(function(t) {
+      it("create service config. run methods to correctly set object fileds", function() {
+        var result = mainServiceInfoConfigsController.createConfigProperty(t._serviceConfigProperty, t.defaultGroupSelected, t.restartData, t.serviceConfigsData);
+        expect(mainServiceInfoConfigsController.setValueForCheckBox.calledWith(t.serviceConfigProperty));
+        expect(mainServiceInfoConfigsController.setRestartInfo.calledWith(t.restartData, t.serviceConfigProperty));
+        expect(mainServiceInfoConfigsController.setValidator.calledWith(t.serviceConfigProperty, t.serviceConfigsData));
+        expect(mainServiceInfoConfigsController.setValuesForOverrides.calledWith(t._serviceConfigProperty.overrides, t._serviceConfigProperty, t.serviceConfigProperty, t.defaultGroupSelected));
+        expect(mainServiceInfoConfigsController.setValidator.calledWith(t.serviceConfigProperty, t.defaultGroupSelected));
+        expect(result.getProperties('overrides','isOverridable')).to.eql(t.serviceConfigProperty);
+      });
+    });
+  });
+
+  describe("#createNewSCP", function() {
+    var tests = [
+      {
+        overrides: {
+          value: "value",
+          group: {
+            value: "group1"
+          }
+        },
+        _serviceConfigProperty: {},
+        serviceConfigProperty: {
+          value: "parentSCP"
+        },
+        defaultGroupSelected: true,
+
+        newSCP: {
+          value: "value",
+          isOriginalSCP: false,
+          parentSCP:{
+            value: "parentSCP"
+          },
+          group: {
+            value: "group1"
+          },
+          isEditable: false
+        }
+      }
+    ];
+    tests.forEach(function(t) {
+      it("", function() {
+        var newSCP = mainServiceInfoConfigsController.createNewSCP(t.overrides, t._serviceConfigProperty, t.serviceConfigProperty, t.defaultGroupSelected);
+        expect(newSCP.getProperties("value", "isOriginalSCP", "parentSCP", "group", "isEditable")).to.eql(t.newSCP);
+      });
+    });
   });
 });

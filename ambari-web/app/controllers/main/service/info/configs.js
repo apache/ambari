@@ -223,12 +223,10 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * }
    */
   loadActualConfigsAndCalculateRestarts: function () {
-    var currentService = this.get('content.serviceName');
     var restartData = {
       hostAndHostComponents: {},
       propertyToHostAndComponent: {}
     };
-    var self = this;
     console.log("loadActualConfigsAndCalculateRestarts(): Restart data = ", restartData);
     return restartData;
   },
@@ -380,7 +378,12 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     this.checkForRestart(serviceConfig, restartData);
     if (serviceName || serviceConfig.serviceName === 'MISC') {
       //STEP 11: render configs and wrap each in ServiceConfigProperty object
-      this.loadComponentConfigs(allConfigs, serviceConfig, restartData, advancedConfigs);
+      this.setRecommendedDefaults(advancedConfigs);
+
+      this.loadConfigs(configs, serviceConfig, restartData);
+
+      this.checkOverrideProperty(serviceConfig);
+
       this.get('stepConfigs').pushObject(serviceConfig);
     }
     this.set('selectedService', this.get('stepConfigs').objectAt(0));
@@ -521,29 +524,92 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
 
   /**
    * Load child components to service config object
-   * @param configs
-   * @param componentConfig
-   * @param restartData
-   * @param advancedConfigs
+   * @param {Array} configs - array of configs
+   * @param {Object} componentConfig - component config object
+   * @param {Object} restartData
+   * {
+   *  {Object} hostAndHostComponents,
+   *  {Object} propertyToHostAndComponent
+   * }
+   * @method loadConfigs
    */
-  loadComponentConfigs: function (configs, componentConfig, restartData, advancedConfigs) {
+  loadConfigs: function(configs, componentConfig, restartData) {
+    var serviceConfigsData = this.get('serviceConfigsData').findProperty('serviceName', this.get('content.serviceName'));
+    var defaultGroupSelected = this.get('selectedConfigGroup.isDefault');
+    configs.forEach(function (_serviceConfigProperty) {
+      var serviceConfigProperty = this.createConfigProperty(_serviceConfigProperty, defaultGroupSelected, restartData, serviceConfigsData);
+      componentConfig.configs.pushObject(serviceConfigProperty);
+      serviceConfigProperty.validate();
+    }, this);
+  },
 
+  /**
+   * create {Em.Object}service_cfg_property based on {Object}_serviceConfigProperty and additional info
+   * @param {Object} _serviceConfigProperty - config object
+   * @param {Boolean} defaultGroupSelected - true if selected cfg group is default
+   * @param {Object} restartData
+   * {
+   *  {Object} hostAndHostComponents,
+   *  {Object} propertyToHostAndComponent
+   * }
+   * @param {Object} serviceConfigsData - service cfg object
+   * @returns {Ember.Object|undefined}
+   * @method createConfigProperty
+   */
+  createConfigProperty: function(_serviceConfigProperty, defaultGroupSelected, restartData, serviceConfigsData) {
+    console.log("config", _serviceConfigProperty);
+    if (!_serviceConfigProperty) return;
+    var overrides = _serviceConfigProperty.overrides;
+    // we will populate the override properties below
+    _serviceConfigProperty.overrides = null;
+    _serviceConfigProperty.isOverridable = Em.isNone(_serviceConfigProperty.isOverridable) ? true : _serviceConfigProperty.isOverridable;
+
+    var serviceConfigProperty = App.ServiceConfigProperty.create(_serviceConfigProperty);
+
+    this.setValueForCheckBox(serviceConfigProperty);
+    this.setRestartInfo(restartData, serviceConfigProperty);
+    this.setValidator(serviceConfigProperty, serviceConfigsData);
+    this.setValuesForOverrides(overrides, _serviceConfigProperty, serviceConfigProperty, defaultGroupSelected);
+    this.setEditability(serviceConfigProperty, defaultGroupSelected);
+
+    return serviceConfigProperty;
+  },
+
+  /**
+   * trigger addOverrideProperty
+   * @param {Object} componentConfig
+   * @method checkOverrideProperty
+   */
+  checkOverrideProperty: function(componentConfig) {
+    var overrideToAdd = this.get('overrideToAdd');
+    if (overrideToAdd) {
+      overrideToAdd = componentConfig.configs.findProperty('name', overrideToAdd.name);
+      if (overrideToAdd) {
+        this.addOverrideProperty(overrideToAdd);
+        this.set('overrideToAdd', null);
+      }
+    }
+  },
+
+  /**
+   * set recommended defaults for advanced configs for current service
+   * @param {Array} advancedConfigs
+   * @mrethod setRecommendedDefaults
+   */
+  setRecommendedDefaults: function (advancedConfigs) {
+    var s = this.get('serviceConfigsData').findProperty('serviceName', this.get('content.serviceName'));
     var localDB = this.getInfoForDefaults();
     var recommendedDefaults = {};
-    var s = this.get('serviceConfigsData').findProperty('serviceName', this.get('content.serviceName'));
-    var defaultGroupSelected = this.get('selectedConfigGroup.isDefault');
-    var defaults = [];
     if (s.defaultsProviders) {
-      s.defaultsProviders.forEach(function(defaultsProvider) {
+      s.defaultsProviders.forEach(function (defaultsProvider) {
         var d = defaultsProvider.getDefaults(localDB);
-        defaults.push(d);
         for (var name in d) {
-          var defaultValueFromStack = advancedConfigs.findProperty('name',name);
           if (!!d[name]) {
             recommendedDefaults[name] = d[name];
           } else {
-           // If property default value is not declared on client, fetch it from stack definition
-           // If it's not declared with any valid value in both server stack and client, then js reference error is expected to be thrown
+            var defaultValueFromStack = advancedConfigs.findProperty('name', name);
+            // If property default value is not declared on client, fetch it from stack definition
+            // If it's not declared with any valid value in both server stack and client, then js reference error is expected to be thrown
             recommendedDefaults[name] = defaultValueFromStack.value
           }
         }
@@ -552,111 +618,129 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     if (s.configsValidator) {
       s.configsValidator.set('recommendedDefaults', recommendedDefaults);
     }
+  },
 
+  /**
+   * set isEditable property of config for admin
+   * if default cfg group and not on the host config page
+   * @param {Ember.Object} serviceConfigProperty
+   * @param {Boolean} defaultGroupSelected
+   * @method setEditability
+   */
+  setEditability: function (serviceConfigProperty, defaultGroupSelected) {
+    serviceConfigProperty.set('isEditable', false);
+    if (App.get('isAdmin') && defaultGroupSelected && !this.get('isHostsConfigsPage')) {
+      serviceConfigProperty.set('isEditable', serviceConfigProperty.get('isReconfigurable'));
+    }
+  },
 
-    configs.forEach(function (_serviceConfigProperty) {
-      console.log("config", _serviceConfigProperty);
-      if (!_serviceConfigProperty) return;
-      var overrides = _serviceConfigProperty.overrides;
-      // we will populate the override properties below
-      _serviceConfigProperty.overrides = null;
-
-      if (_serviceConfigProperty.isOverridable === undefined) {
-        _serviceConfigProperty.isOverridable = true;
-      }
-      if (_serviceConfigProperty.displayType === 'checkbox') {
-        switch (_serviceConfigProperty.value) {
-          case 'true':
-            _serviceConfigProperty.value = true;
-            _serviceConfigProperty.defaultValue = true;
-            break;
-          case 'false':
-            _serviceConfigProperty.value = false;
-            _serviceConfigProperty.defaultValue = false;
-            break;
-        }
-      }
-      var serviceConfigProperty = App.ServiceConfigProperty.create(_serviceConfigProperty);
-      var propertyName = serviceConfigProperty.get('name');
-      if (restartData != null && propertyName in restartData.propertyToHostAndComponent) {
-        serviceConfigProperty.set('isRestartRequired', true);
-        var message = '<ul>';
-        for (var host in restartData.propertyToHostAndComponent[propertyName]) {
-          var appHost = App.Host.find(host);
-          message += "<li>" + appHost.get('publicHostName');
-          message += "<ul>";
-          restartData.propertyToHostAndComponent[propertyName][host].forEach(function (comp) {
-            message += "<li>" + App.format.role(comp) + "</li>"
-          });
-          message += "</ul></li>";
-        }
-        message += "</ul>";
-        serviceConfigProperty.set('restartRequiredMessage', message);
-      }
-      if (serviceConfigProperty.get('serviceName') === this.get('content.serviceName')) {
-
-        // Do not reset values when reconfiguring.
-        // This might be useful to setting better descriptions
-        // or default values sometime in the future.
-        // defaults.forEach(function(defaults) {
-        //   for(var name in defaults) {
-        //    if (serviceConfigProperty.name == name) {
-        //       serviceConfigProperty.set('value', defaults[name]);
-        //       serviceConfigProperty.set('defaultValue', defaults[name]);
-        //     }
-        //   }
-        // });
-
-        if (s.configsValidator) {
-          var validators = s.configsValidator.get('configValidators');
-          for (var validatorName in validators) {
-            if (serviceConfigProperty.name == validatorName) {
-              serviceConfigProperty.set('serviceValidator', s.configsValidator);
-            }
+  /**
+   * set serviceValidator for config property
+   * hide properties for other services
+   * @param {Ember.Object} serviceConfigProperty
+   * @param {Object} serviceConfigsData
+   * @method setValidator
+   */
+  setValidator: function(serviceConfigProperty, serviceConfigsData) {
+    if (serviceConfigProperty.get('serviceName') === this.get('content.serviceName')) {
+      if (serviceConfigsData.configsValidator) {
+        for (var validatorName in serviceConfigsData.configsValidator.get('configValidators')) {
+          if (serviceConfigProperty.get("name") == validatorName) {
+            serviceConfigProperty.set('serviceValidator', serviceConfigsData.configsValidator);
           }
         }
+      }
+      console.log("config result", serviceConfigProperty);
+    } else {
+      serviceConfigProperty.set('isVisible', false);
+    }
+  },
 
-        console.log("config result", serviceConfigProperty);
-      } else {
-        serviceConfigProperty.set('isVisible', false);
+  /**
+   * generate restart mesage with components and host to restart
+   * @param {Object} restartData
+   * {
+   *  {Object} hostAndHostComponents,
+   *  {Object} propertyToHostAndComponent
+   * }
+   * @param {Ember.Object} serviceConfigProperty
+   * @method setRestartInfo
+   */
+  setRestartInfo: function(restartData, serviceConfigProperty) {
+    var propertyName = serviceConfigProperty.get('name');
+    if (restartData != null && propertyName in restartData.propertyToHostAndComponent) {
+      serviceConfigProperty.set('isRestartRequired', true);
+      var message = '<ul>';
+      for (var host in restartData.propertyToHostAndComponent[propertyName]) {
+        var appHost = App.Host.find(host);
+        message += "<li>" + appHost.get('publicHostName');
+        message += "<ul>";
+        restartData.propertyToHostAndComponent[propertyName][host].forEach(function (comp) {
+          message += "<li>" + App.format.role(comp) + "</li>"
+        });
+        message += "</ul></li>";
       }
-      if (overrides != null) {
-        overrides.forEach(function (override) {
-          var newSCP = App.ServiceConfigProperty.create(_serviceConfigProperty);
-          newSCP.set('value', override.value);
-          newSCP.set('isOriginalSCP', false); // indicated this is overridden value,
-          newSCP.set('parentSCP', serviceConfigProperty);
-          if (App.supports.hostOverrides && defaultGroupSelected) {
-            newSCP.set('group', override.group);
-            newSCP.set('isEditable', false);
-          }
-          var parentOverridesArray = serviceConfigProperty.get('overrides');
-          if (parentOverridesArray == null) {
-            parentOverridesArray = Ember.A([]);
-            serviceConfigProperty.set('overrides', parentOverridesArray);
-          }
-          parentOverridesArray.pushObject(newSCP);
-          console.debug("createOverrideProperty(): Added:", newSCP, " to main-property:", serviceConfigProperty)
-        }, this)
-      }
-      if (App.get('isAdmin')) {
-        if(defaultGroupSelected && !this.get('isHostsConfigsPage')){
-          serviceConfigProperty.set('isEditable', serviceConfigProperty.get('isReconfigurable'));
-        }else{
-          serviceConfigProperty.set('isEditable', false);
+      message += "</ul>";
+      serviceConfigProperty.set('restartRequiredMessage', message);
+    }
+  },
+
+  /**
+   * set override values
+   * @param overrides
+   * @param _serviceConfigProperty
+   * @param serviceConfigProperty
+   * @param defaultGroupSelected
+   */
+  setValuesForOverrides: function (overrides, _serviceConfigProperty, serviceConfigProperty, defaultGroupSelected) {
+    if (Em.isNone(overrides)) return;
+      overrides.forEach(function (override) {
+        var newSCP = this.createNewSCP(override, _serviceConfigProperty, serviceConfigProperty, defaultGroupSelected);
+        var parentOverridesArray = serviceConfigProperty.get('overrides');
+        if (parentOverridesArray == null) {
+          parentOverridesArray = Em.A([]);
+          serviceConfigProperty.set('overrides', parentOverridesArray);
         }
-      } else {
-        serviceConfigProperty.set('isEditable', false);
-      }
-      componentConfig.configs.pushObject(serviceConfigProperty);
-      serviceConfigProperty.validate();
-    }, this);
-    var overrideToAdd = this.get('overrideToAdd');
-    if (overrideToAdd) {
-      overrideToAdd = componentConfig.configs.findProperty('name', overrideToAdd.name);
-      if (overrideToAdd) {
-        this.addOverrideProperty(overrideToAdd);
-        this.set('overrideToAdd', null);
+        parentOverridesArray.pushObject(newSCP);
+        console.debug("createOverrideProperty(): Added:", newSCP, " to main-property:", serviceConfigProperty)
+      }, this);
+  },
+
+  /**
+   * create new overiden property and set approperiate fields
+   * @param override
+   * @param _serviceConfigProperty
+   * @param serviceConfigProperty
+   * @param defaultGroupSelected
+   * @returns {*}
+   */
+  createNewSCP: function(override, _serviceConfigProperty, serviceConfigProperty, defaultGroupSelected) {
+    var newSCP = App.ServiceConfigProperty.create(_serviceConfigProperty);
+    newSCP.set('value', override.value);
+    newSCP.set('isOriginalSCP', false); // indicated this is overridden value,
+    newSCP.set('parentSCP', serviceConfigProperty);
+    if (App.supports.hostOverrides && defaultGroupSelected) {
+      newSCP.set('group', override.group);
+      newSCP.set('isEditable', false);
+    }
+    return newSCP;
+  },
+
+  /**
+   * convert string values to boolean for checkboxes
+   * @param {Ember.Object} serviceConfigProperty
+   */
+  setValueForCheckBox: function(serviceConfigProperty) {
+    if (serviceConfigProperty.get("displayType") == 'checkbox') {
+      switch (serviceConfigProperty.get("value")) {
+        case 'true':
+          serviceConfigProperty.set("value", true);
+          serviceConfigProperty.set("defaultValue", true);
+          break;
+        case 'false':
+          serviceConfigProperty.set("value", false);
+          serviceConfigProperty.set("defaultValue", false);
+          break;
       }
     }
   },
@@ -1181,7 +1265,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     var configs = configMapping.filterProperty('foreignKey', null);
     this.addDynamicProperties(configs);
     configs.forEach(function (_config) {
-      var valueWithOverrides = this.getGlobConfigValueWithOverrides(_config.templateName, _config.value, _config.name);
+      var valueWithOverrides = this.getGlobConfigValueWithOverrides(_config.templateName, _config.value);
       if (valueWithOverrides !== null) {
         uiConfig.pushObject({
           "id": "site property",
@@ -1214,7 +1298,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * return global config value
    * @param templateName
    * @param expression
-   * @param name
    * @return {Object}
    * example: <code>{
    *   value: '...',
@@ -1224,49 +1307,34 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    *   }
    * }</code>
    */
-  getGlobConfigValueWithOverrides: function (templateName, expression, name) {
+  getGlobConfigValueWithOverrides: function (templateName, expression) {
     var express = expression.match(/<(.*?)>/g);
     var value = expression;
-    if (express == null) {
-      return { value: expression, overrides: {}};      // if site property do not map any global property then return the value
-    }
     var overrideHostToValue = {};
-    express.forEach(function (_express) {
-      //console.log("The value of template is: " + _express);
-      var index = parseInt(_express.match(/\[([\d]*)(?=\])/)[1]);
-      if (this.get('globalConfigs').someProperty('name', templateName[index])) {
-        //console.log("The name of the variable is: " + this.get('content.serviceConfigProperties').findProperty('name', templateName[index]).name);
+    if (express != null) {
+      express.forEach(function (_express) {
+        var index = parseInt(_express.match(/\[([\d]*)(?=\])/)[1]);
         var globalObj = this.get('globalConfigs').findProperty('name', templateName[index]);
-        var globValue = globalObj.value;
-        // Hack for templeton.zookeeper.hosts
-        var preReplaceValue = null;
-        if (value !== null) {   // if the property depends on more than one template name like <templateName[0]>/<templateName[1]> then don't proceed to the next if the prior is null or not found in the global configs
-          preReplaceValue = value;
-          value = this._replaceConfigValues(name, _express, value, globValue);
-        }
-        if (globalObj.overrides != null) {
-          for (var ov in globalObj.overrides) {
-            var hostsArray = globalObj.overrides[ov];
-            hostsArray.forEach(function (host) {
-              if (!(host in overrideHostToValue)) {
-                overrideHostToValue[host] = this._replaceConfigValues(name, _express, preReplaceValue, ov);
-              } else {
-                overrideHostToValue[host] = this._replaceConfigValues(name, _express, overrideHostToValue[host], ov);
-              }
-            }, this);
+        if (globalObj) {
+          var globOverride = globalObj.overrides;
+          if (globOverride != null) {
+            for (var ov in globOverride) {
+              globOverride[ov].forEach(function (host) {
+                var replacedVal = (host in overrideHostToValue) ? overrideHostToValue[host] : expression;
+                overrideHostToValue[host] = replacedVal.replace(_express, ov);
+              }, this);
+            }
           }
+          value = expression.replace(_express, globalObj.value);
+        } else {
+          value = null;
         }
-      } else {
-        /*
-         console.log("ERROR: The variable name is: " + templateName[index]);
-         console.log("ERROR: mapped config from configMapping file has no corresponding variable in " +
-         "content.serviceConfigProperties. Two possible reasons for the error could be: 1) The service is not selected. " +
-         "and/OR 2) The service_config metadata file has no corresponding global var for the site property variable");
-         */
-        value = null;
-      }
-    }, this);
+      }, this);
+    }
+    return this.getValueWithOverrides(value, overrideHostToValue)
+  },
 
+  getValueWithOverrides: function(value, overrideHostToValue) {
     var valueWithOverrides = {
       value: value,
       overrides: {}
@@ -1281,10 +1349,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       }
     }
     return valueWithOverrides;
-  },
-
-  _replaceConfigValues: function (name, express, value, globValue) {
-    return value.replace(express, globValue);
   },
 
   /**
