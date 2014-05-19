@@ -806,6 +806,19 @@ def create_custom_user():
   print_info_msg("User configuration is done.")
   return 0, user
 
+def check_reverse_lookup():
+  """
+  Check if host fqdn resolves to current host ip
+  """
+  try:
+    host_name = socket.gethostname()
+    host_ip = socket.gethostbyname(host_name)
+    host_fqdn = socket.getfqdn()
+    fqdn_ip = socket.gethostbyname(host_fqdn)
+    return host_ip == fqdn_ip
+  except socket.herror:
+    pass
+  return False
 
 def check_ambari_user():
   try:
@@ -2355,6 +2368,10 @@ def reset(args):
 # Starts the Ambari Server.
 #
 def start(args):
+  if not check_reverse_lookup():
+    print_warning_msg("The hostname was not found in the reverse DNS lookup. "
+                      "This may result in incorrect behavior. "
+                      "Please check the DNS setup and fix the issue.")
   current_user = getpass.getuser()
   ambari_user = read_ambari_user()
   if ambari_user is None:

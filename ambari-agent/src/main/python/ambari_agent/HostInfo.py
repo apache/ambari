@@ -32,6 +32,7 @@ from PackagesAnalyzer import PackagesAnalyzer
 from HostCheckReportFileHandler import HostCheckReportFileHandler
 from Hardware import Hardware
 from common_functions import OSCheck
+import socket
 
 logger = logging.getLogger()
 
@@ -327,7 +328,7 @@ class HostInfo:
     isSuse =  'suse' == OSCheck.get_os_family()
 
     dict['iptablesIsRunning'] = self.checkIptables()
-
+    dict['reverseLookup'] = self.checkReverseLookup()
     # If commands are in progress or components are already mapped to this host
     # Then do not perform certain expensive host checks
     if componentsMapped or commandsInProgress or isSuse:
@@ -374,7 +375,19 @@ class HostInfo:
     dict['hostHealth']['agentTimeStampAtReporting'] = int(time.time() * 1000)
 
     pass
-
+  def checkReverseLookup(self):
+    """
+    Check if host fqdn resolves to current host ip
+    """
+    try:
+      host_name = socket.gethostname()
+      host_ip = socket.gethostbyname(host_name)
+      host_fqdn = socket.getfqdn()
+      fqdn_ip = socket.gethostbyname(host_fqdn)
+      return host_ip == fqdn_ip
+    except socket.herror:
+      pass
+    return False
 
 class FirewallChecks(object):
   def __init__(self):

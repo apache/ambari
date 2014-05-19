@@ -60,6 +60,16 @@ public class AgentEnv {
 
   private Boolean iptablesIsRunning;
 
+  private Boolean reverseLookup;
+
+  public Boolean getReverseLookup() {
+    return reverseLookup;
+  }
+
+  public void setReverseLookup(Boolean reverseLookup) {
+    this.reverseLookup = reverseLookup;
+  }
+
   public Integer getUmask() {
     return umask;
   }

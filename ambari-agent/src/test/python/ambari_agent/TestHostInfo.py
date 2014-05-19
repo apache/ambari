@@ -23,6 +23,7 @@ from unittest import TestCase
 import logging
 import unittest
 import subprocess
+import socket
 from mock.mock import patch
 from mock.mock import MagicMock
 from mock.mock import create_autospec
@@ -522,6 +523,29 @@ class TestHostInfo(TestCase):
       run_os_command_mock.return_value = firewall.get_running_result()
       self.assertTrue(firewall.check_iptables())
 
+  @patch.object(socket, "getfqdn")
+  @patch.object(socket, "gethostbyname")
+  @patch.object(socket, "gethostname")
+  def test_checkReverseLookup(self, gethostname_mock, gethostbyname_mock, getfqdn_mock):
+    gethostname_mock.return_value = "test"
+    gethostbyname_mock.side_effect = ["123.123.123.123", "123.123.123.123"]
+    getfqdn_mock.return_value = "test.example.com"
+
+    hostInfo = HostInfo()
+
+    self.assertTrue(hostInfo.checkReverseLookup())
+    gethostbyname_mock.assert_any_call("test.example.com")
+    gethostbyname_mock.assert_any_call("test")
+    self.assertEqual(2, gethostbyname_mock.call_count)
+
+    gethostbyname_mock.side_effect = ["123.123.123.123", "231.231.231.231"]
+
+    self.assertFalse(hostInfo.checkReverseLookup())
+
+    gethostbyname_mock.side_effect = ["123.123.123.123", "123.123.123.123"]
+    getfqdn_mock.side_effect = socket.herror()
+
+    self.assertFalse(hostInfo.checkReverseLookup())
 
   @patch.object(FirewallChecks, "run_os_command")
   def test_IpTablesStopped(self, run_os_command_mock):
