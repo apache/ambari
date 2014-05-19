@@ -30,10 +30,13 @@ class TestHookAfterInstall(RMFTestCase):
                        command="hook",
                        config_file="default.json"
     )
-    self.assertResourceCalled('Directory', '/etc/hadoop/conf',
+    self.assertResourceCalled('Directory', '/etc/hadoop/conf.empty',
                               owner = 'root',
                               group = 'root',
                               recursive = True,
+                              )
+    self.assertResourceCalled('Link', '/etc/hadoop/conf',
+                              to = '/etc/hadoop/conf.empty'
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/hadoop-env.sh',
                               content = Template('hadoop-env.sh.j2'),

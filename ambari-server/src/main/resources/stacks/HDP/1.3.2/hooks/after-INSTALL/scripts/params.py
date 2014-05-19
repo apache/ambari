@@ -30,6 +30,7 @@ security_enabled = ( not is_empty(_authentication) and _authentication == 'kerbe
 java_home = config['hostLevelParams']['java_home']
 #hadoop params
 hadoop_conf_dir = "/etc/hadoop/conf"
+hadoop_conf_empty_dir = "/etc/hadoop/conf.empty"
 hdfs_log_dir_prefix = config['configurations']['global']['hdfs_log_dir_prefix']
 hadoop_pid_dir_prefix = config['configurations']['global']['hadoop_pid_dir_prefix']
 
