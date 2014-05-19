@@ -64,7 +64,7 @@ public class JobResourceManager extends PersonalCRUDResourceManager<PigJob> {
    */
   public TempletonApi getTempletonApi() {
     if (api == null) {
-      api = new TempletonApi(context.getProperties().get("dataworker.templeton_url"),
+      api = new TempletonApi(context.getProperties().get("dataworker.webhcat.url"),
           getTempletonUser(), getTempletonUser(), context);
     }
     return api;
@@ -135,8 +135,8 @@ public class JobResourceManager extends PersonalCRUDResourceManager<PigJob> {
    */
   private void submitJob(PigJob job) {
     String date = new SimpleDateFormat("dd-MM-yyyy-HH-mm-ss").format(new Date());
-    String statusdir = String.format(context.getProperties().get("dataworker.pigJobsPath") +
-            "/%s/%s_%s", getTempletonUser(),
+    String statusdir = String.format(context.getProperties().get("dataworker.jobs.path") +
+            "/%s/%s_%s", getUsername(),
         job.getTitle().toLowerCase().replaceAll("[^a-zA-Z0-9 ]+", "").replace(" ", "_"),
         date);
 
@@ -295,6 +295,6 @@ public class JobResourceManager extends PersonalCRUDResourceManager<PigJob> {
    * @return username in templeton
    */
   private String getTempletonUser() {
-    return context.getProperties().get("dataworker.templeton_user");
+    return context.getProperties().get("dataworker.webhcat.user");
   }
 }

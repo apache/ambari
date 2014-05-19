@@ -69,8 +69,6 @@ public class BaseService {
     if (hdfsApi == null) {
       Thread.currentThread().setContextClassLoader(null);
 
-      String userName = context.getUsername();
-
       String defaultFS = context.getProperties().get("dataworker.defaultFs");
       if (defaultFS == null) {
         String message = "dataworker.defaultFs is not configured!";
@@ -79,7 +77,7 @@ public class BaseService {
       }
 
       try {
-        hdfsApi = new HdfsApi(defaultFS, userName);
+        hdfsApi = new HdfsApi(defaultFS, getHdfsUsername(context));
         LOG.info("HdfsApi connected OK");
       } catch (IOException e) {
         String message = "HdfsApi IO error: " + e.getMessage();
@@ -92,6 +90,13 @@ public class BaseService {
       }
     }
     return hdfsApi;
+  }
+
+  public static String getHdfsUsername(ViewContext context) {
+    String userName = context.getProperties().get("dataworker.hdfs.username");
+    if (userName == null)
+      userName = context.getUsername();
+    return userName;
   }
 
   protected HdfsApi getHdfsApi()  {

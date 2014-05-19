@@ -27,24 +27,24 @@
     </parameter>
 
     <parameter>
-        <name>dataworker.hdfs_user</name>
+        <name>dataworker.hdfs.username</name>
         <description>HDFS user.name and doAs</description>
         <required>false</required>
     </parameter>
 
     <parameter>
-        <name>dataworker.use_current_user</name>
-        <description>If true, get user from Ambari auth</description>
-        <required>true</required>
+        <name>dataworker.username</name>
+        <description>The username (defaults to ViewContext username)</description>
+        <required>false</required>
     </parameter>
 
     <parameter>
-        <name>dataworker.userScriptsPath</name>
+        <name>dataworker.scripts.path</name>
         <description>Directory to store scripts</description>
         <required>true</required>
     </parameter>
     <parameter>
-        <name>dataworker.pigJobsPath</name>
+        <name>dataworker.jobs.path</name>
         <description>Directory to store jobs (for templeton status dir)</description>
         <required>true</required>
     </parameter>
@@ -58,13 +58,13 @@
     </parameter>
 
     <parameter>
-        <name>dataworker.templeton_url</name>
+        <name>dataworker.webhcat.url</name>
         <description>Templeton url</description>
         <required>true</required>
     </parameter>
 
     <parameter>
-        <name>dataworker.templeton_user</name>
+        <name>dataworker.webhcat.user</name>
         <description>Templeton user.name and doAs</description>
         <required>true</required>
     </parameter>

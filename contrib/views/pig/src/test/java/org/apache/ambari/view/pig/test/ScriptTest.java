@@ -60,7 +60,7 @@ public class ScriptTest extends HDFSTest {
     @Override
     protected void setupProperties(Map<String, String> properties, File baseDir) throws Exception {
         super.setupProperties(properties, baseDir);
-        properties.put("dataworker.userScriptsPath", "/tmp/.pigscripts");
+        properties.put("dataworker.scripts.path", "/tmp/.pigscripts");
     }
 
     private Response doCreateScript() {
