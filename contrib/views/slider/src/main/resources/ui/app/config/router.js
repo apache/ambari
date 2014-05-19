@@ -18,6 +18,14 @@
 
 'use strict';
 
-module.exports = App.Router.map(function() {
-  this.resource("slider_apps", { path: "/slider" });
+module.exports = App.Router.map(function () {
+  this.resource("slider_apps", { path: "/slider" }, function () {
+    this.resource('createAppWizard', function(){
+      this.route('step1');
+      this.route('step2');
+      this.route('step3');
+      this.route('step4');
+    });
+  });
 });
+

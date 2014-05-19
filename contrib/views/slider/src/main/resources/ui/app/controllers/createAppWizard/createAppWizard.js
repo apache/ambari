@@ -16,20 +16,6 @@
  * limitations under the License.
  */
 
-App.IndexRoute = Ember.Route.extend({
-  redirect: function () {
-    this.transitionTo('slider_apps');
-  }
-});
-
-App.SliderAppsRoute = Ember.Route.extend({
-  setupController: function (controller) {
-    controller.set('model', App.SliderApp.FIXTURES);
-  },
-
-  actions: {
-    createApp: function () {
-      this.transitionTo('createAppWizard');
-    }
-  }
+App.CreateAppWizardStep1Controller = Ember.ObjectController.extend({
+  types: ['HBase', 'Pig']
 });

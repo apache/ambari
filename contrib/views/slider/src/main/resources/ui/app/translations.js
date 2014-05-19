@@ -33,5 +33,11 @@ Em.I18n.translations = {
 
   'slider.apps.title': 'Slider Apps',
   'slider.apps.create': 'Create App',
-  'sliderApps.filters.info': '{0} of {1} sliders showing'
+  'sliderApps.filters.info': '{0} of {1} sliders showing',
+
+  'wizard.name': 'Create Slider App',
+  'wizard.step1.name': 'Select Type',
+  'wizard.step2.name': 'Allocate Resources',
+  'wizard.step3.name': 'Configuration',
+  'wizard.step4.name': 'Deploy'
 };

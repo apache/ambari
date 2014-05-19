@@ -16,20 +16,36 @@
  * limitations under the License.
  */
 
-App.IndexRoute = Ember.Route.extend({
-  redirect: function () {
-    this.transitionTo('slider_apps');
-  }
-});
+App.CreateAppWizardController = Ember.ObjectController.extend({
 
-App.SliderAppsRoute = Ember.Route.extend({
-  setupController: function (controller) {
-    controller.set('model', App.SliderApp.FIXTURES);
+  currentStep: 1,
+
+  TOTAL_STEPS_NUMBER: 4,
+
+  loadStep: function () {
+    this.set('currentStep', 1);
+    this.gotoStep(this.get('currentStep'));
+  },
+
+  gotoStep: function (step, fromNextButon) {
+    if (step > this.get('TOTAL_STEPS_NUMBER') || step < 1 || (!fromNextButon && step > this.get('currentStep'))) {
+      return false;
+    }
+    this.set('currentStep', step);
+    this.transitionToRoute('createAppWizard.step' + step);
+  },
+
+  nextStep: function () {
+    this.gotoStep(this.get('currentStep') + 1, true);
+  },
+
+  prevStep: function () {
+    this.gotoStep(this.get('currentStep') - 1);
   },
 
   actions: {
-    createApp: function () {
-      this.transitionTo('createAppWizard');
+    gotoStep: function (step) {
+      this.gotoStep(step);
     }
   }
 });

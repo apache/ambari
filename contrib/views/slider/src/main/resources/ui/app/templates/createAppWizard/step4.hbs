@@ -1,0 +1,39 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+<div id="step4">
+<h5>Summary</h5>
+<ul>
+  <li>App Name: HBase Cluster 1</li>
+  <li>App Type: HBase</li>
+</ul>
+<h5>Components</h5>
+<ul>
+  <li>HBASE_MASTER: 1</li>
+  <li>HBASE_REGION_SERVER: 5</li>
+</ul>
+<h5>Configuration</h5>
+<ul>
+  <li>"site.global.app_user": "yarn",</li>
+  <li>"site.global.app_log_dir": "${AGENT_LOG_ROOT}/app/log",</li>
+  <li>"site.global.app_pid_dir": "${AGENT_WORK_ROOT}/app/runР Р†Р вЂљРЎСљ,</li>
+  <li>"site.hbase-site.hbase.hstore.flush.retries.number": "120",</li>
+</ul>
+
+<button class="btn btn-success pull-right" {{action finish target="view"}}>Finish</button>
+</div>

@@ -22,7 +22,7 @@
       <h1>{{t slider.apps.title}}</h1>
     </div>
     <div class="pull-right create-app">
-      <a href="#" class="btn btn-inverse">
+      <a href="#" class="btn btn-inverse" {{action createApp}}>
         <i class="icon-plus"></i><span>&nbsp;{{t slider.apps.create}}</span>
       </a>
     </div>
@@ -90,3 +90,4 @@
     </div>
   </div>
 </div>
+{{outlet}}

@@ -15,21 +15,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+App.CreateAppWizardRoute = Ember.Route.extend({
 
-App.IndexRoute = Ember.Route.extend({
-  redirect: function () {
-    this.transitionTo('slider_apps');
-  }
-});
+  controller: null,
 
-App.SliderAppsRoute = Ember.Route.extend({
   setupController: function (controller) {
-    controller.set('model', App.SliderApp.FIXTURES);
+    this.set('controller', controller);
   },
 
   actions: {
-    createApp: function () {
-      this.transitionTo('createAppWizard');
+    nextStep: function () {
+      this.get('controller').nextStep();
+    },
+
+    prevStep: function () {
+      this.get('controller').prevStep();
     }
   }
 });
