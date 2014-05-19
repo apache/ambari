@@ -36,10 +36,13 @@ class TestHookBeforeStart(RMFTestCase):
                               )
     self.assertResourceCalled('Execute', 'mkdir -p /usr/lib/hadoop/lib/native/Linux-amd64-64; ln -sf /usr/lib64/libsnappy.so /usr/lib/hadoop/lib/native/Linux-amd64-64/libsnappy.so',
                               )
-    self.assertResourceCalled('Directory', '/etc/hadoop/conf',
+    self.assertResourceCalled('Directory', '/etc/hadoop/conf.empty',
                               owner = 'root',
                               group = 'root',
                               recursive = True,
+                              )
+    self.assertResourceCalled('Link', '/etc/hadoop/conf',
+                              to = '/etc/hadoop/conf.empty'
                               )
     self.assertResourceCalled('Directory', '/var/log/hadoop',
                               owner = 'root',
@@ -118,10 +121,13 @@ class TestHookBeforeStart(RMFTestCase):
                               )
     self.assertResourceCalled('Execute', 'mkdir -p /usr/lib/hadoop/lib/native/Linux-amd64-64; ln -sf /usr/lib64/libsnappy.so /usr/lib/hadoop/lib/native/Linux-amd64-64/libsnappy.so',
                               )
-    self.assertResourceCalled('Directory', '/etc/hadoop/conf',
+    self.assertResourceCalled('Directory', '/etc/hadoop/conf.empty',
                               owner = 'root',
                               group = 'root',
                               recursive = True,
+                              )
+    self.assertResourceCalled('Link', '/etc/hadoop/conf',
+                              to = '/etc/hadoop/conf.empty'
                               )
     self.assertResourceCalled('Directory', '/var/log/hadoop',
                               owner = 'root',

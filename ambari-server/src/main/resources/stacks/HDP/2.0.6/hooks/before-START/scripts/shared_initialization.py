@@ -34,10 +34,13 @@ def setup_hadoop():
   install_snappy()
 
   #directories
-  Directory(params.hadoop_conf_dir,
+  Directory(params.hadoop_conf_empty_dir,
             recursive=True,
             owner='root',
             group='root'
+  )
+  Link(params.hadoop_conf_dir,
+       to=params.hadoop_conf_empty_dir
   )
   Directory(params.hdfs_log_dir_prefix,
             recursive=True,
