@@ -16,9 +16,9 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.view.slider.rest.client;
+package org.apache.ambari.view.slider.clients;
 
-public class AmbariService {
+public class AmbariServiceInfo {
 
 	private String id;
 	private boolean started;

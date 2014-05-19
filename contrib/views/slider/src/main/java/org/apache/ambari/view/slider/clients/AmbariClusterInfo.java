@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.view.slider.rest.client;
+package org.apache.ambari.view.slider.clients;
 
 public class AmbariClusterInfo {
 	private String name;

@@ -23,10 +23,11 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.ambari.view.ViewContext;
-import org.apache.ambari.view.slider.rest.client.AmbariCluster;
-import org.apache.ambari.view.slider.rest.client.AmbariClusterInfo;
-import org.apache.ambari.view.slider.rest.client.AmbariHttpClient;
-import org.apache.ambari.view.slider.rest.client.AmbariService;
+import org.apache.ambari.view.slider.clients.AmbariClient;
+import org.apache.ambari.view.slider.clients.AmbariCluster;
+import org.apache.ambari.view.slider.clients.AmbariClusterInfo;
+import org.apache.ambari.view.slider.clients.AmbariServiceInfo;
+import org.apache.log4j.Logger;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -34,63 +35,55 @@ import com.google.inject.Singleton;
 @Singleton
 public class SliderAppsViewControllerImpl implements SliderAppsViewController {
 
+	private static final Logger logger = Logger
+	    .getLogger(SliderAppsViewControllerImpl.class);
 	@Inject
 	private ViewContext viewContext;
-	private AmbariHttpClient ambariClient;
-
-	private AmbariHttpClient getAmbariClient() {
-		// TODO Calculate Ambari location dynamically
-		if (ambariClient == null)
-			ambariClient = new AmbariHttpClient("http://localhost:8080",
-			    viewContext.getUsername(), "admin");
-		return ambariClient;
-	}
+	@Inject
+	private AmbariClient ambariClient;
 
 	@Override
 	public ViewStatus getViewStatus() {
 		ViewStatus status = new ViewStatus();
 		List<String> viewErrors = new ArrayList<String>();
 
-		AmbariHttpClient client = getAmbariClient();
-		AmbariClusterInfo clusterInfo = client.getClusterInfo();
+		AmbariClusterInfo clusterInfo = ambariClient.getClusterInfo();
 		if (clusterInfo != null) {
-			AmbariCluster cluster = client.getCluster(clusterInfo);
-			List<String> services = cluster.getServices();
-			if (services != null && services.size() > 0) {
-				boolean zkFound = services.indexOf("ZOOKEEPER") > -1;
-				boolean hdfsFound = services.indexOf("HDFS") > -1;
-				boolean yarnFound = services.indexOf("YARN") > -1;
-				if (!hdfsFound) {
+			AmbariCluster cluster = ambariClient.getCluster(clusterInfo);
+			List<AmbariServiceInfo> services = cluster.getServices();
+			if (services != null && !services.isEmpty()) {
+				AmbariServiceInfo hdfsService = null, yarnService = null, zkService = null;
+				for (AmbariServiceInfo service : services) {
+					if ("HDFS".equals(service.getId())) {
+						hdfsService = service;
+					} else if ("YARN".equals(service.getId())) {
+						yarnService = service;
+					} else if ("ZOOKEEPER".equals(service.getId())) {
+						zkService = service;
+					}
+				}
+				if (hdfsService == null) {
 					viewErrors.add("Slider applications view requires HDFS service");
 				} else {
-					AmbariService service = client.getService(clusterInfo, "HDFS");
-					if (service != null) {
-						if (!service.isStarted()) {
-							viewErrors
-							    .add("Slider applications view requires HDFS service to be started");
-						}
+					if (!hdfsService.isStarted()) {
+						viewErrors
+						    .add("Slider applications view requires HDFS service to be started");
 					}
 				}
-				if (!yarnFound) {
+				if (yarnService == null) {
 					viewErrors.add("Slider applications view requires YARN service");
 				} else {
-					AmbariService service = client.getService(clusterInfo, "YARN");
-					if (service != null) {
-						if (!service.isStarted()) {
-							viewErrors
-							    .add("Slider applications view requires YARN service to be started");
-						}
+					if (!yarnService.isStarted()) {
+						viewErrors
+						    .add("Slider applications view requires YARN service to be started");
 					}
 				}
-				if (!zkFound) {
+				if (zkService == null) {
 					viewErrors.add("Slider applications view requires ZooKeeper service");
 				} else {
-					AmbariService service = client.getService(clusterInfo, "ZOOKEEPER");
-					if (service != null) {
-						if (!service.isStarted()) {
-							viewErrors
-							    .add("Slider applications view requires ZooKeeper service to be started");
-						}
+					if (!zkService.isStarted()) {
+						viewErrors
+						    .add("Slider applications view requires ZooKeeper service to be started");
 					}
 				}
 			} else {
@@ -100,8 +93,8 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
 			// Check security
 			if (cluster.getDesiredConfigs() != null
 			    && cluster.getDesiredConfigs().containsKey("global")) {
-				Map<String, String> globalConfig = client.getConfiguration(clusterInfo,
-				    "global", cluster.getDesiredConfigs().get("global"));
+				Map<String, String> globalConfig = ambariClient.getConfiguration(
+				    clusterInfo, "global", cluster.getDesiredConfigs().get("global"));
 				if (globalConfig != null
 				    && globalConfig.containsKey("security_enabled")) {
 					String securityValue = globalConfig.get("security_enabled");

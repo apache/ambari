@@ -24,6 +24,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.ambari.view.slider.clients.AmbariClient;
+import org.apache.ambari.view.slider.clients.AmbariCluster;
+import org.apache.ambari.view.slider.clients.AmbariClusterInfo;
+import org.apache.ambari.view.slider.clients.AmbariHostInfo;
+import org.apache.ambari.view.slider.clients.AmbariServiceInfo;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.log4j.Logger;
 
@@ -31,7 +36,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-public class AmbariHttpClient extends BaseHttpClient {
+public class AmbariHttpClient extends BaseHttpClient implements AmbariClient {
 
 	private static final Logger logger = Logger.getLogger(AmbariHttpClient.class);
 
@@ -86,22 +91,10 @@ public class AmbariHttpClient extends BaseHttpClient {
 					}
 					cluster.setDesiredConfigs(desiredConfigs);
 					// services
-					List<String> services = new ArrayList<String>();
-					JsonArray servicesArray = jsonElement.getAsJsonObject()
-					    .get("services").getAsJsonArray();
-					for (JsonElement entry : servicesArray) {
-						services.add(entry.getAsJsonObject().get("ServiceInfo")
-						    .getAsJsonObject().get("service_name").getAsString());
-					}
+					List<AmbariServiceInfo> services = new ArrayList<AmbariServiceInfo>();
 					cluster.setServices(services);
 					// hosts
-					List<String> hosts = new ArrayList<String>();
-					JsonArray hostsArray = jsonElement.getAsJsonObject().get("hosts")
-					    .getAsJsonArray();
-					for (JsonElement entry : hostsArray) {
-						hosts.add(entry.getAsJsonObject().get("Hosts").getAsJsonObject()
-						    .get("host_name").getAsString());
-					}
+					List<AmbariHostInfo> hosts = new ArrayList<AmbariHostInfo>();
 					cluster.setHosts(hosts);
 					return cluster;
 				}
@@ -112,32 +105,6 @@ public class AmbariHttpClient extends BaseHttpClient {
 			} catch (IOException e) {
 				logger.warn("Unable to determine Ambari cluster details - "
 				    + clusterInfo.getName(), e);
-				throw new RuntimeException(e.getMessage(), e);
-			}
-		}
-		return null;
-	}
-
-	public AmbariService getService(AmbariClusterInfo clusterInfo,
-	    String serviceId) {
-		if (clusterInfo != null) {
-			try {
-				JsonElement jsonElement = doGetJson("/api/v1/clusters/"
-				    + clusterInfo.getName() + "/services/" + serviceId);
-				if (jsonElement != null) {
-					AmbariService service = new AmbariService();
-					String serviceState = jsonElement.getAsJsonObject()
-					    .get("ServiceInfo").getAsJsonObject().get("state").getAsString();
-					service.setStarted("STARTED".equals(serviceState));
-					return service;
-				}
-			} catch (HttpException e) {
-				logger.warn(
-				    "Unable to determine Ambari service details - " + serviceId, e);
-				throw new RuntimeException(e.getMessage(), e);
-			} catch (IOException e) {
-				logger.warn(
-				    "Unable to determine Ambari cluster details - " + serviceId, e);
 				throw new RuntimeException(e.getMessage(), e);
 			}
 		}

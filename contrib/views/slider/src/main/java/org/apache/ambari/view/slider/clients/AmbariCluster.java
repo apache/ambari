@@ -16,15 +16,15 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.view.slider.rest.client;
+package org.apache.ambari.view.slider.clients;
 
 import java.util.List;
 import java.util.Map;
 
 public class AmbariCluster extends AmbariClusterInfo {
 	private Map<String, String> desiredConfigs;
-	private List<String> services;
-	private List<String> hosts;
+	private List<AmbariServiceInfo> services;
+	private List<AmbariHostInfo> hosts;
 
 	public Map<String, String> getDesiredConfigs() {
 		return desiredConfigs;
@@ -34,19 +34,19 @@ public class AmbariCluster extends AmbariClusterInfo {
 		this.desiredConfigs = desiredConfigs;
 	}
 
-	public List<String> getServices() {
+	public List<AmbariServiceInfo> getServices() {
 		return services;
 	}
 
-	public void setServices(List<String> services) {
+	public void setServices(List<AmbariServiceInfo> services) {
 		this.services = services;
 	}
 
-	public List<String> getHosts() {
+	public List<AmbariHostInfo> getHosts() {
 		return hosts;
 	}
 
-	public void setHosts(List<String> hosts) {
+	public void setHosts(List<AmbariHostInfo> hosts) {
 		this.hosts = hosts;
 	}
 }
