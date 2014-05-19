@@ -104,6 +104,11 @@ public class DBAccessorImpl implements DBAccessor {
   }
 
   @Override
+  public String quoteObjectName(String name) {
+    return dbmsHelper.quoteObjectName(name);
+  }
+
+  @Override
   public void createTable(String tableName, List<DBColumnInfo> columnInfo,
                           String... primaryKeyColumns) throws SQLException {
     if (!tableExists(tableName)) {
@@ -135,6 +140,8 @@ public class DBAccessorImpl implements DBAccessor {
 
     return objectName;
   }
+
+
 
   @Override
   public boolean tableExists(String tableName) throws SQLException {

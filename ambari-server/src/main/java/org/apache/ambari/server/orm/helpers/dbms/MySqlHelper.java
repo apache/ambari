@@ -32,6 +32,11 @@ public class MySqlHelper extends GenericDbmsHelper {
   }
 
   @Override
+  public String quoteObjectName(String name) {
+    return "`" + name + "`";
+  }
+
+  @Override
   public StringBuilder writeColumnRenameString(StringBuilder builder, String oldName, DBAccessor.DBColumnInfo newColumnInfo) {
 
     builder.append(" CHANGE ").append(oldName).append(" ").append(newColumnInfo.getName()).append(" ");
