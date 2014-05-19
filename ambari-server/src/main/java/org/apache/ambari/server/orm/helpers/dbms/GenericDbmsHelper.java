@@ -45,6 +45,11 @@ public class GenericDbmsHelper implements DbmsHelper {
   }
 
   @Override
+  public String quoteObjectName(String name) {
+    return "\"" + name + "\"";
+  }
+
+  @Override
   public String getRenameColumnStatement(String tableName, String oldName, DBAccessor.DBColumnInfo columnInfo) {
     StringBuilder stringBuilder = new StringBuilder();
 

@@ -30,6 +30,8 @@ public interface DbmsHelper {
    */
   boolean supportsColumnTypeChange();
 
+  String quoteObjectName(String name);
+
   /**
    * Generate rename column statement
    * @param tableName

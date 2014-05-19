@@ -73,7 +73,8 @@ public class SchemaUpgradeHelper {
 
     ResultSet resultSet = null;
     try {
-      resultSet = dbAccessor.executeSelect("SELECT \"metainfo_value\" from metainfo WHERE \"metainfo_key\"='version'");
+      resultSet = dbAccessor.executeSelect("SELECT " + dbAccessor.quoteObjectName("metainfo_value") +
+          " from metainfo WHERE " + dbAccessor.quoteObjectName("metainfo_key") + "='version'");
       if (resultSet.next()) {
         return resultSet.getString(1);
       } else {
@@ -200,8 +201,9 @@ public class SchemaUpgradeHelper {
   public void resetUIState() throws AmbariException {
     LOG.info("Resetting UI state.");
     try {
-      dbAccessor.updateTable("key_value_store", "\"value\"", "{\"clusterState\":\"CLUSTER_STARTED_5\"}",
-          "where \"key\"='CLUSTER_CURRENT_STATUS'");
+      dbAccessor.updateTable("key_value_store", dbAccessor.quoteObjectName("value"),
+          "{\"clusterState\":\"CLUSTER_STARTED_5\"}",
+          "where " + dbAccessor.quoteObjectName("key") + "='CLUSTER_CURRENT_STATUS'");
     } catch (SQLException e) {
       throw new AmbariException("Unable to reset UI state", e);
     }
@@ -245,6 +247,7 @@ public class SchemaUpgradeHelper {
       schemaUpgradeHelper.stopPersistenceService();
     } catch (Throwable e) {
       if (e instanceof AmbariException) {
+        LOG.error("Exception occured during upgrade, failed", e);
         throw (AmbariException)e;
       }else{
         LOG.error("Unexpected error, upgrade failed", e);

@@ -32,6 +32,13 @@ import java.util.List;
 public interface DBAccessor {
 
   /**
+   * Wraps object name with dbms-specific quotes
+   * @param name object name without quotes
+   * @return quoted name
+   */
+  String quoteObjectName(String name);
+
+  /**
    * Create new table
    * @param tableName
    * @param columnInfo
