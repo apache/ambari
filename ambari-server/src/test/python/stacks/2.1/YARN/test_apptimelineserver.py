@@ -142,6 +142,10 @@ class TestAppTimelineServer(RMFTestCase):
                               conf_dir = '/etc/hadoop/conf',
                               configurations = self.getConfig()['configurations']['capacity-scheduler'],
                               )
+    self.assertResourceCalled('Directory', '/var/log/hadoop-yarn/timeline',
+                              owner = 'yarn',
+                              group = 'hadoop',
+                              )
     self.assertResourceCalled('File', '/etc/hadoop/conf/yarn.exclude',
                               owner = 'yarn',
                               group = 'hadoop',
