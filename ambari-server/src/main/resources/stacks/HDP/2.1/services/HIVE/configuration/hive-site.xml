@@ -341,7 +341,7 @@ limitations under the License.
 
   <property>
     <name>hive.tez.container.size</name>
-    <value>3000000000</value>
+    <value>682</value>
     <description>By default, Tez uses the java options from map tasks. Use this property to override that value. Assigned value must match value specified for mapreduce.map.child.java.opts.</description>
   </property>
 
