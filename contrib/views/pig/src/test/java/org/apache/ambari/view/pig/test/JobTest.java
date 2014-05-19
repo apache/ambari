@@ -106,11 +106,36 @@ public class JobTest extends BasePigTest {
     Assert.assertTrue(obj.containsKey("job"));
     Assert.assertNotNull(((PigJob) obj.get("job")).getId());
     Assert.assertFalse(((PigJob) obj.get("job")).getId().isEmpty());
-    Assert.assertTrue(((PigJob) obj.get("job")).getStatusDir().startsWith("/tmp/.pigjobs/admin/test"));
+    Assert.assertTrue(((PigJob) obj.get("job")).getStatusDir().startsWith("/tmp/.pigjobs/ambari-qa/test"));
 
     PigJob job = ((PigJob) obj.get("job"));
     Assert.assertEquals(PigJob.Status.SUBMITTED, job.getStatus());
     Assert.assertTrue(job.isInProgress());
+  }
+
+  @Test
+  public void testSubmitJobUsernameProvided() throws Exception {
+    HdfsApi hdfsApi = createNiceMock(HdfsApi.class);
+    expect(hdfsApi.copy(eq("/tmp/script.pig"), startsWith("/tmp/.pigjobs/"))).andReturn(true);
+
+    ByteArrayOutputStream do_stream = new ByteArrayOutputStream();
+
+    FSDataOutputStream stream = new FSDataOutputStream(do_stream);
+    expect(hdfsApi.create(anyString(), eq(true))).andReturn(stream);
+    replay(hdfsApi);
+    JobService.setHdfsApi(hdfsApi);
+
+    TempletonApi api = createNiceMock(TempletonApi.class);
+    jobService.getResourceManager().setTempletonApi(api);
+    TempletonApi.JobData data = api.new JobData();
+    expect(api.runPigQuery((File) anyObject(), anyString(), eq("-useHCatalog"))).andReturn(data);
+    replay(api);
+
+    properties.put("dataworker.username", "luke");
+    Response response = doCreateJob("Test", "/tmp/script.pig", "-useHCatalog");
+    JSONObject obj = (JSONObject)response.getEntity();
+    Assert.assertTrue(obj.containsKey("job"));
+    Assert.assertTrue(((PigJob) obj.get("job")).getStatusDir().startsWith("/tmp/.pigjobs/luke/test"));
   }
 
   @Test
@@ -140,7 +165,7 @@ public class JobTest extends BasePigTest {
     Assert.assertTrue(obj.containsKey("job"));
     Assert.assertNotNull(((PigJob) obj.get("job")).getId());
     Assert.assertFalse(((PigJob) obj.get("job")).getId().isEmpty());
-    Assert.assertTrue(((PigJob) obj.get("job")).getStatusDir().startsWith("/tmp/.pigjobs/admin/test"));
+    Assert.assertTrue(((PigJob) obj.get("job")).getStatusDir().startsWith("/tmp/.pigjobs/ambari-qa/test"));
 
     PigJob job = ((PigJob) obj.get("job"));
     Assert.assertEquals(PigJob.Status.SUBMITTED, job.getStatus());

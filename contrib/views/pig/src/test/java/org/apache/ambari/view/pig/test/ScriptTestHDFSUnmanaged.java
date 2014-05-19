@@ -27,6 +27,9 @@ import org.apache.ambari.view.pig.persistence.Storage;
 import org.apache.ambari.view.pig.resources.files.FileService;
 import org.apache.ambari.view.pig.resources.scripts.ScriptService;
 import org.apache.ambari.view.pig.persistence.utils.StorageUtil;
+import org.apache.ambari.view.pig.resources.scripts.models.PigScript;
+import org.apache.ambari.view.pig.services.BaseService;
+import org.json.simple.JSONObject;
 import org.junit.*;
 
 import javax.ws.rs.core.Response;
@@ -70,7 +73,7 @@ public class ScriptTestHDFSUnmanaged extends HDFSTest {
         .getAbsoluteFile();
 
     properties.put("dataworker.storagePath", pigStorageFile.toString());
-//        properties.put("dataworker.userScriptsPath", "/tmp/.pigscripts");
+//        properties.put("dataworker.scripts.path", "/tmp/.pigscripts");
     properties.put("dataworker.defaultFs", hdfsURI);
 
     expect(context.getProperties()).andReturn(properties).anyTimes();
@@ -83,6 +86,34 @@ public class ScriptTestHDFSUnmanaged extends HDFSTest {
   }
 
   @Test
+  public void createScriptAutoCreateUsername() throws IOException, InterruptedException {
+    Map<String, String> properties = new HashMap<String, String>();
+    baseDir = new File(DATA_DIRECTORY)
+        .getAbsoluteFile();
+    pigStorageFile = new File("./target/BasePigTest/storage.dat")
+        .getAbsoluteFile();
+
+    properties.put("dataworker.storagePath", pigStorageFile.toString());
+    properties.put("dataworker.scripts.path", "/tmp/.pigscripts");
+    properties.put("dataworker.defaultFs", hdfsURI);
+
+    expect(context.getProperties()).andReturn(properties).anyTimes();
+    expect(context.getUsername()).andReturn("ambari-qa").anyTimes();
+
+    replay(handler, context);
+    scriptService = getService(ScriptService.class, handler, context);
+
+    Response createdScript = doCreateScript("Test", null);
+    String createdScriptPath = ((PigScript) ((JSONObject) createdScript.getEntity()).get("script")).getPigScript();
+    Assert.assertTrue(createdScriptPath.startsWith("/tmp/.pigscripts/ambari-qa/"));
+
+    properties.put("dataworker.username", "luke");
+    Response createdScript2 = doCreateScript("Test", null);
+    String createdScriptPath2 = ((PigScript) ((JSONObject) createdScript2.getEntity()).get("script")).getPigScript();
+    Assert.assertTrue(createdScriptPath2.startsWith("/tmp/.pigscripts/luke/"));
+  }
+
+  @Test
   public void createScriptAutoCreateNoStoragePath() throws IOException, InterruptedException {
     Map<String, String> properties = new HashMap<String, String>();
     baseDir = new File(DATA_DIRECTORY)
@@ -91,7 +122,7 @@ public class ScriptTestHDFSUnmanaged extends HDFSTest {
         .getAbsoluteFile();
 
 //        properties.put("dataworker.storagePath", pigStorageFile.toString());
-    properties.put("dataworker.userScriptsPath", "/tmp/.pigscripts");
+    properties.put("dataworker.scripts.path", "/tmp/.pigscripts");
     properties.put("dataworker.defaultFs", hdfsURI);
 
     expect(context.getProperties()).andReturn(properties).anyTimes();
@@ -101,6 +132,24 @@ public class ScriptTestHDFSUnmanaged extends HDFSTest {
 
     Storage storage = StorageUtil.getStorage(context);
     Assert.assertEquals(InstanceKeyValueStorage.class.getSimpleName(), storage.getClass().getSimpleName());
+  }
+
+  @Test
+  public void hdfsApiNoUsernameProvided() throws IOException, InterruptedException {
+    Map<String, String> properties = new HashMap<String, String>();
+    properties.put("dataworker.defaultFs", hdfsURI);
+
+    expect(context.getProperties()).andReturn(properties).anyTimes();
+    expect(context.getUsername()).andReturn("ambari-qa").anyTimes();
+
+    replay(context);
+
+    // no dataworker.hdfs.username property
+    Assert.assertEquals("ambari-qa", BaseService.getHdfsUsername(context));
+
+    // with dataworker.hdfs.username property
+    properties.put("dataworker.hdfs.username", "luke");
+    Assert.assertEquals("luke", BaseService.getHdfsUsername(context));
   }
 
   private Response doCreateScript(String title, String path) {

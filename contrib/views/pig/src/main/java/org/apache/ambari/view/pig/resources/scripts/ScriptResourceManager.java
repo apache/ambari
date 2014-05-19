@@ -58,9 +58,9 @@ public class ScriptResourceManager extends PersonalCRUDResourceManager<PigScript
   }
 
   private void createDefaultScriptFile(PigScript object) {
-    String userScriptsPath = context.getProperties().get("dataworker.userScriptsPath");
+    String userScriptsPath = context.getProperties().get("dataworker.scripts.path");
     if (userScriptsPath == null) {
-      String msg = "dataworker.userScriptsPath is not configured!";
+      String msg = "dataworker.scripts.path is not configured!";
       LOG.error(msg);
       throw new WebServiceException(msg);
     }
@@ -72,7 +72,7 @@ public class ScriptResourceManager extends PersonalCRUDResourceManager<PigScript
       String normalizedName = object.getTitle().replaceAll("[^a-zA-Z0-9 ]+", "").replaceAll(" ", "_").toLowerCase();
       String timestamp = new SimpleDateFormat("yyyy-MM-dd_hh-mm").format(new Date());
       newFilePath = String.format(userScriptsPath +
-              "/%s/%s-%s%s.pig", context.getUsername(),
+              "/%s/%s-%s%s.pig", getUsername(),
           normalizedName, timestamp, (checkId == 0)?"":"_"+checkId);
       LOG.debug("Trying to create new file " + newFilePath);
 
@@ -105,4 +105,5 @@ public class ScriptResourceManager extends PersonalCRUDResourceManager<PigScript
     object.setPigScript(newFilePath);
     getPigStorage().store(object);
   }
+
 }

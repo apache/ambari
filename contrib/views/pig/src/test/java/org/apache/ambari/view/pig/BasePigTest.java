@@ -37,6 +37,7 @@ public abstract class BasePigTest {
   protected ViewContext context;
   protected static File pigStorageFile;
   protected static File baseDir;
+  protected Map<String, String> properties;
 
   protected static String DATA_DIRECTORY = "./target/PigTest";
 
@@ -52,17 +53,17 @@ public abstract class BasePigTest {
     handler = createNiceMock(ViewResourceHandler.class);
     context = createNiceMock(ViewContext.class);
 
-    Map<String, String> properties = new HashMap<String, String>();
+    properties = new HashMap<String, String>();
     baseDir = new File(DATA_DIRECTORY)
         .getAbsoluteFile();
     pigStorageFile = new File("./target/BasePigTest/storage.dat")
         .getAbsoluteFile();
 
     properties.put("dataworker.storagePath", pigStorageFile.toString());
-    properties.put("dataworker.templeton_url", "localhost:50111/templeton/v1");
-    properties.put("dataworker.templeton_user", "admin");
-    properties.put("dataworker.userScriptsPath", "/tmp/.pigscripts");
-    properties.put("dataworker.pigJobsPath", "/tmp/.pigjobs");
+    properties.put("dataworker.webhcat.url", "localhost:50111/templeton/v1");
+    properties.put("dataworker.webhcat.user", "admin");
+    properties.put("dataworker.scripts.path", "/tmp/.pigscripts");
+    properties.put("dataworker.jobs.path", "/tmp/.pigjobs");
 
     setupProperties(properties, baseDir);
 

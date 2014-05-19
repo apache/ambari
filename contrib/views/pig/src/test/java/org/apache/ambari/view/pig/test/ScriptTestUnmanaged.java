@@ -79,7 +79,7 @@ public class ScriptTestUnmanaged extends BasePigTest {
   public void createScriptAutoCreateNoDefaultFS() {
     Map<String, String> properties = new HashMap<String, String>();
     properties.put("dataworker.storagePath", pigStorageFile.toString());
-    properties.put("dataworker.userScriptsPath", "/tmp/.pigscripts");
+    properties.put("dataworker.scripts.path", "/tmp/.pigscripts");
 
     expect(context.getProperties()).andReturn(properties).anyTimes();
     expect(context.getUsername()).andReturn("ambari-qa").anyTimes();
