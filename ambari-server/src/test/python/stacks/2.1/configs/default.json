@@ -520,7 +520,8 @@
             "yarn.log.server.url": "http://c6402.ambari.apache.org:19888/jobhistory/logs", 
             "yarn.application.classpath": "/etc/hadoop/conf,/usr/lib/hadoop/*,/usr/lib/hadoop/lib/*,/usr/lib/hadoop-hdfs/*,/usr/lib/hadoop-hdfs/lib/*,/usr/lib/hadoop-yarn/*,/usr/lib/hadoop-yarn/lib/*,/usr/lib/hadoop-mapreduce/*,/usr/lib/hadoop-mapreduce/lib/*", 
             "yarn.resourcemanager.admin.address": "c6402.ambari.apache.org:8141", 
-            "yarn.nodemanager.aux-services.mapreduce_shuffle.class": "org.apache.hadoop.mapred.ShuffleHandler"
+            "yarn.nodemanager.aux-services.mapreduce_shuffle.class": "org.apache.hadoop.mapred.ShuffleHandler",
+            "yarn.timeline-service.leveldb-timeline-store.path": "/var/log/hadoop-yarn/timeline"
         },
         "tez-site": {
             "tez.am.log.level": "WARN",

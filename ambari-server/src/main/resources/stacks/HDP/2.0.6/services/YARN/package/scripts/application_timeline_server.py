@@ -33,7 +33,7 @@ class ApplicationTimelineServer(Script):
   def configure(self, env):
     import params
     env.set_params(params)
-    yarn()
+    yarn(name='apptimelineserver')
 
   def start(self, env):
     import params

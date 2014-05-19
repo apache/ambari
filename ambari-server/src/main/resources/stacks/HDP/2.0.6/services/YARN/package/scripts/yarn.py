@@ -114,6 +114,11 @@ def yarn(name = None):
        owner=params.yarn_user,
        group=params.user_group
     )
+  elif name == 'apptimelineserver':
+    Directory(params.ats_leveldb_dir,
+       owner=params.yarn_user,
+       group=params.user_group
+    )
 
   File(params.rm_nodes_exclude_path,
        owner=params.yarn_user,

@@ -660,7 +660,8 @@
             "yarn.resourcemanager.admin.address": "c6402.ambari.apache.org:8141", 
             "yarn.resourcemanager.webapp.spnego-keytab-file": "/etc/security/keytabs/spnego.service.keytab", 
             "yarn.resourcemanager.keytab": "/etc/security/keytabs/rm.service.keytab", 
-            "yarn.nodemanager.aux-services.mapreduce_shuffle.class": "org.apache.hadoop.mapred.ShuffleHandler"
+            "yarn.nodemanager.aux-services.mapreduce_shuffle.class": "org.apache.hadoop.mapred.ShuffleHandler",
+            "yarn.timeline-service.leveldb-timeline-store.path": "/var/log/hadoop-yarn/timeline"
         },
         "hdfs-log4j": {
             "property1": "value1"
