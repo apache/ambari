@@ -254,7 +254,7 @@ public class HostComponentResourceProviderTest {
         EasyMock.<Set<ServiceComponentHostRequest>>anyObject())).andReturn(nameResponse).once();
     expect(managementController.updateHostComponents(
         AbstractResourceProviderTest.Matcher.getHostComponentRequestSet(
-            "Cluster102", null, "Component100", "Host100", null, "STARTED"),
+            "Cluster102", "Service100", "Component100", "Host100", null, "STARTED"),
             eq(mapRequestProps), eq(false))).andReturn(response).once();
     
     expect(resourceProviderFactory.getHostComponentResourceProvider(anyObject(Set.class),

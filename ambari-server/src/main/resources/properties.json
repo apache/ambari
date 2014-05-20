@@ -72,6 +72,7 @@
         "HostRoles/stale_configs",
         "HostRoles/desired_admin_state",
         "HostRoles/maintenance_state",
+        "HostRoles/service_name",
         "_"
     ],
     "Configuration":[
