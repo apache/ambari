@@ -122,7 +122,7 @@ App.ConfigGroup = Ember.Object.extend({
     }
     // parentConfigGroup.hosts(hosts from default group) - are available hosts, which don't belong to any group
     this.get('parentConfigGroup.hosts').forEach(function (hostName) {
-      unusedHostsMap[hostName] = true;
+      unusedHostsMap[hostName.get('id')] = true;
     });
     sharedHosts.forEach(function (host) {
       if (unusedHostsMap[host.get('id')]) {
