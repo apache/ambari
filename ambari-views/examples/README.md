@@ -23,7 +23,9 @@ See the documentation pages for the view examples.
 
 * [Hello World View](helloworld-view/docs/index.md) : Demonstrates the very basics of how to write and deploy a view in Ambari.
 * [Hello Servlet View](hello-servlet-view/docs/index.md) : Includes instance parameters and a servlet for a dynamic UI. 
+* [Favorite view](favorite-view/docs/index.md) : Exposes a simple resource to work with instance parameters and data
 * [Calculator View](calculator-view/docs/index.md) : Includes a simple resource.
+* [Phone List View](phone-list-view/docs/index.md) : Demonstrates simple view persistence.
 * [Weather view](weather-view/docs/index.md)
 
 Please also visit the [Apache Ambari Project](http://ambari.apache.org/) page for more information.
