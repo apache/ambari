@@ -22,38 +22,73 @@ window.App = require('config/app');
 require('config/router');
 require('config/store');
 require('translations');
+require('mappers/mapper');
 
-App.reopen({
-  /**
-   * @type {string}
-   */
-  name: 'SLIDER',
+App.initializer({
+  name: "preload",
 
-  /**
-   * @type {string}
-   */
-  version: '1.0.0',
+  initialize: function(container, application) {
 
-  /**
-   * @type {string}
-   */
-  instance: 'SLIDER_1',
+    application.reopen({
+      /**
+       * Test mode is automatically enabled if running on brunch server
+       * @type {bool}
+       */
+      testMode: (location.port == '3333'),
 
-  /**
-   * API url for Slider
-   * Format:
-   *  <code>/api/v1/views/[VIEW_NAME]/versions/[VERSION]/instances/[INSTANCE_NAME]/</code>
-   * @type {string}
-   */
-  urlPrefix: function() {
-    return '/api/v1/views/%@1/versions/%@2/instances/%@3/'.fmt(this.get('name'), this.get('version'), this.get('instance'));
-  }.property('name', 'version', 'instance')
+      /**
+       * @type {string}
+       */
+      name: 'SLIDER',
+
+      /**
+       * Slider version
+       * @type {string}
+       */
+      version: '1.0.0',
+
+      /**
+       * Version of SLIDER_1 resource
+       * @type {string}
+       */
+      resourcesVersion: '',
+
+      /**
+       * @type {string}
+       */
+      instance: 'SLIDER_1',
+
+      /**
+       * API url for Slider
+       * Format:
+       *  <code>/api/v1/views/[VIEW_NAME]/versions/[VERSION]/instances/[INSTANCE_NAME]/</code>
+       * @type {string}
+       */
+      urlPrefix: function() {
+        return '/api/v1/views/%@1/versions/%@2/instances/%@3/'.fmt(this.get('name'), this.get('version'), this.get('instance'));
+      }.property('name', 'version', 'instance'),
+
+      /**
+       * Should Slider View be enabled
+       * @type {bool}
+       */
+      viewEnabled: true,
+
+      /**
+       * List of errors
+       * @type {string[]}
+       */
+      viewErrors: []
+
+    });
+    application.ApplicationStatusMapper.loop('load');
+  }
 });
 
 // Load all modules in order automagically. Ember likes things to work this
 // way so everything is in the App.* namespace.
 var folderOrder = [
-    'initializers', 'mixins', 'routes', 'models',
+    'initializers', 'mixins', 'routes', 'models', 'mappers',
     'views', 'controllers', 'helpers',
     'templates', 'components'
   ];
