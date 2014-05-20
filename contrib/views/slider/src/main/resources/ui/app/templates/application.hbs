@@ -16,4 +16,10 @@
 * limitations under the License.
 }}
 
-{{outlet}}
+{{#if App.viewEnabled}}
+  {{outlet}}
+{{else}}
+  {{#each error in App.viewErrors}}
+    <h3>{{error}}</h3>
+  {{/each}}
+{{/if}}

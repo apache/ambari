@@ -72,7 +72,7 @@ App.initializer({
        * Should Slider View be enabled
        * @type {bool}
        */
-      viewEnabled: true,
+      viewEnabled: false,
 
       /**
        * List of errors
