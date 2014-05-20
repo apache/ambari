@@ -23,6 +23,33 @@ require('config/router');
 require('config/store');
 require('translations');
 
+App.reopen({
+  /**
+   * @type {string}
+   */
+  name: 'SLIDER',
+
+  /**
+   * @type {string}
+   */
+  version: '1.0.0',
+
+  /**
+   * @type {string}
+   */
+  instance: 'SLIDER_1',
+
+  /**
+   * API url for Slider
+   * Format:
+   *  <code>/api/v1/views/[VIEW_NAME]/versions/[VERSION]/instances/[INSTANCE_NAME]/</code>
+   * @type {string}
+   */
+  urlPrefix: function() {
+    return '/api/v1/views/%@1/versions/%@2/instances/%@3/'.fmt(this.get('name'), this.get('version'), this.get('instance'));
+  }.property('name', 'version', 'instance')
+});
+
 // Load all modules in order automagically. Ember likes things to work this
 // way so everything is in the App.* namespace.
 var folderOrder = [
