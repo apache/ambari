@@ -155,7 +155,7 @@
                 <!-- optional: The default argument is actually "install", so unless
                  you need to run some other npm command, you can remove this whole <configuration>
                  section. -->
-                <arguments>install --unsafe-perm --registry=http://registry.npmjs.eu</arguments>
+              <arguments>install --python=python2.6 --unsafe-perm --registry=http://registry.npmjs.eu</arguments>
             </configuration>
             </execution>
         </executions>

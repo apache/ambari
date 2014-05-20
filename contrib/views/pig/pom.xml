@@ -147,7 +147,7 @@
               <goal>npm</goal>
             </goals>
             <configuration>
-              <arguments>install --unsafe-perm</arguments>
+              <arguments>install --python=python2.6 --unsafe-perm</arguments>
             </configuration>
           </execution>
         </executions>
