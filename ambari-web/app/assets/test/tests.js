@@ -172,6 +172,8 @@ require('test/views/wizard/step8_view_test');
 require('test/views/wizard/step9_view_test');
 require('test/views/wizard/step9/hostLogPopupBody_view_test');
 require('test/views/wizard/step10_view_test');
+require('test/models/jobs/job_test');
+require('test/models/jobs/tez_dag_test');
 require('test/models/service/flume_test');
 require('test/models/service/hbase_test');
 require('test/models/service/hdfs_test');
