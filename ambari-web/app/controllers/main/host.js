@@ -343,28 +343,33 @@ App.MainHostController = Em.ArrayController.extend({
       } else {
         hostsWithComponentInProperState = components.filterProperty('workStatus','STARTED').mapProperty('host.hostName');
         //For decommession
-        var parameters = {
-          "slave_type": slaveName
-        };
-        var contextString = turn_off? 'hosts.host.' + slaveName.toLowerCase() + '.recommission':
-          'hosts.host.' + slaveName.toLowerCase() + '.decommission';
-        if (turn_off) {
-          parameters['included_hosts'] = hostsWithComponentInProperState.join(',')
+        if (svcName == "HBASE") {
+          // HBASE service, decommission RegionServer in batch requests
+          App.router.get('mainHostDetailsController').doDecommissionRegionServer(hostNames, svcName, masterName, slaveName);
+        } else {
+          var parameters = {
+            "slave_type": slaveName
+          };
+          var contextString = turn_off? 'hosts.host.' + slaveName.toLowerCase() + '.recommission':
+            'hosts.host.' + slaveName.toLowerCase() + '.decommission';
+          if (turn_off) {
+            parameters['included_hosts'] = hostsWithComponentInProperState.join(',')
+          }
+          else {
+            parameters['excluded_hosts'] = hostsWithComponentInProperState.join(',');
+          }
+          App.ajax.send({
+            name: 'bulk_request.decommission',
+            sender: this,
+            data: {
+              context: Em.I18n.t(contextString),
+              serviceName: service.get('serviceName'),
+              componentName: operationData.componentName,
+              parameters: parameters
+            },
+            success: 'bulkOperationForHostComponentsSuccessCallback'
+          });
         }
-        else {
-          parameters['excluded_hosts'] = hostsWithComponentInProperState.join(',');
-        }
-        App.ajax.send({
-          name: 'bulk_request.decommission',
-          sender: this,
-          data: {
-            context: Em.I18n.t(contextString),
-            serviceName: service.get('serviceName'),
-            componentName: operationData.componentName,
-            parameters: parameters
-          },
-          success: 'bulkOperationForHostComponentsSuccessCallback'
-        });
       }
     }
     else {

@@ -940,7 +940,7 @@ App.MainHostDetailsController = Em.Controller.extend({
         this.doDecommission(hostName, svcName, "JOBTRACKER", "TASKTRACKER");
         break;
       case 'HBASE':
-        this.doDecommission(hostName, svcName, "HBASE_MASTER", "HBASE_REGIONSERVER");
+        this.doDecommissionRegionServer(hostName, svcName, "HBASE_MASTER", "HBASE_REGIONSERVER");
     }
     this.showBackgroundOperationsPopup();
   },
