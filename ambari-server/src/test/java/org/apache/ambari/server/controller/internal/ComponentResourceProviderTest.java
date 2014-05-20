@@ -174,9 +174,12 @@ public class ComponentResourceProviderTest {
 
     expect(service.getServiceComponents()).andReturn(serviceComponentMap).anyTimes();
 
-    expect(serviceComponent1.convertToResponse()).andReturn(new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component100", null, ""));
-    expect(serviceComponent2.convertToResponse()).andReturn(new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component101", null, ""));
-    expect(serviceComponent3.convertToResponse()).andReturn(new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component102", null, ""));
+    expect(serviceComponent1.convertToResponse()).andReturn(
+      new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component100", null, "", 1, 1, 0));
+    expect(serviceComponent2.convertToResponse()).andReturn(
+      new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component101", null, "", 1, 1, 0));
+    expect(serviceComponent3.convertToResponse()).andReturn(
+      new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component102", null, "", 1, 1, 0));
 
     expect(ambariMetaInfo.getComponentCategory((String) anyObject(),
       (String) anyObject(), (String) anyObject(), (String) anyObject()))
@@ -200,6 +203,9 @@ public class ComponentResourceProviderTest {
     propertyIds.add(ComponentResourceProvider.COMPONENT_CLUSTER_NAME_PROPERTY_ID);
     propertyIds.add(ComponentResourceProvider.COMPONENT_COMPONENT_NAME_PROPERTY_ID);
     propertyIds.add(ComponentResourceProvider.COMPONENT_CATEGORY_PROPERTY_ID);
+    propertyIds.add(ComponentResourceProvider.COMPONENT_TOTAL_COUNT_PROPERTY_ID);
+    propertyIds.add(ComponentResourceProvider.COMPONENT_STARTED_COUNT_PROPERTY_ID);
+    propertyIds.add(ComponentResourceProvider.COMPONENT_INSTALLED_COUNT_PROPERTY_ID);
 
     Predicate predicate = new PredicateBuilder()
       .property(ComponentResourceProvider.COMPONENT_CLUSTER_NAME_PROPERTY_ID)
@@ -218,6 +224,12 @@ public class ComponentResourceProviderTest {
       Assert.assertEquals("Cluster100", clusterName);
       Assert.assertEquals("MASTER", resource.getPropertyValue(
           ComponentResourceProvider.COMPONENT_CATEGORY_PROPERTY_ID));
+      Assert.assertEquals(1, resource.getPropertyValue(
+        ComponentResourceProvider.COMPONENT_TOTAL_COUNT_PROPERTY_ID));
+      Assert.assertEquals(1, resource.getPropertyValue(
+        ComponentResourceProvider.COMPONENT_STARTED_COUNT_PROPERTY_ID));
+      Assert.assertEquals(0, resource.getPropertyValue(
+        ComponentResourceProvider.COMPONENT_INSTALLED_COUNT_PROPERTY_ID));
     }
 
     // verify
@@ -266,9 +278,12 @@ public class ComponentResourceProviderTest {
 
     expect(service.getServiceComponents()).andReturn(serviceComponentMap).anyTimes();
 
-    expect(serviceComponent1.convertToResponse()).andReturn(new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component101", null, ""));
-    expect(serviceComponent2.convertToResponse()).andReturn(new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component102", null, ""));
-    expect(serviceComponent3.convertToResponse()).andReturn(new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component103", null, ""));
+    expect(serviceComponent1.convertToResponse()).andReturn(
+      new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component101", null, "", 1, 0, 1));
+    expect(serviceComponent2.convertToResponse()).andReturn(
+      new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component102", null, "", 1, 0, 1));
+    expect(serviceComponent3.convertToResponse()).andReturn(
+      new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component103", null, "", 1, 0, 1));
     expect(serviceComponent1.getDesiredState()).andReturn(State.INSTALLED).anyTimes();
     expect(serviceComponent2.getDesiredState()).andReturn(State.INSTALLED).anyTimes();
     expect(serviceComponent3.getDesiredState()).andReturn(State.INSTALLED).anyTimes();

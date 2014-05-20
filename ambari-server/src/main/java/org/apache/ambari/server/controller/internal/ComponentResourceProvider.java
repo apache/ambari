@@ -75,6 +75,9 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
   protected static final String COMPONENT_COMPONENT_NAME_PROPERTY_ID  = "ServiceComponentInfo/component_name";
   protected static final String COMPONENT_STATE_PROPERTY_ID           = "ServiceComponentInfo/state";
   protected static final String COMPONENT_CATEGORY_PROPERTY_ID        = "ServiceComponentInfo/category";
+  protected static final String COMPONENT_TOTAL_COUNT_PROPERTY_ID     = "ServiceComponentInfo/total_count";
+  protected static final String COMPONENT_STARTED_COUNT_PROPERTY_ID   = "ServiceComponentInfo/started_count";
+  protected static final String COMPONENT_INSTALLED_COUNT_PROPERTY_ID = "ServiceComponentInfo/installed_count";
 
   //Parameters from the predicate
   private static final String QUERY_PARAMETERS_RUN_SMOKE_TEST_ID =
@@ -160,6 +163,9 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
       setResourceProperty(resource, COMPONENT_STATE_PROPERTY_ID,
           response.getDesiredState(), requestedIds);
       setResourceProperty(resource, COMPONENT_CATEGORY_PROPERTY_ID, response.getCategory(), requestedIds);
+      setResourceProperty(resource, COMPONENT_TOTAL_COUNT_PROPERTY_ID, response.getTotalCount(), requestedIds);
+      setResourceProperty(resource, COMPONENT_STARTED_COUNT_PROPERTY_ID, response.getStartedCount(), requestedIds);
+      setResourceProperty(resource, COMPONENT_INSTALLED_COUNT_PROPERTY_ID, response.getInstalledCount(), requestedIds);
 
       resources.add(resource);
     }

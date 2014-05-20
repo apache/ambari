@@ -291,6 +291,18 @@ public class ServiceComponentTest {
     service.addServiceComponent(component);
     component.persist();
 
+    addHostToCluster("h1", service.getCluster().getClusterName());
+    ServiceComponentHost sch =
+      serviceComponentHostFactory.createNew(component, "h1");
+    sch.setState(State.INSTALLED);
+
+    Map<String, ServiceComponentHost> compHosts =
+      new HashMap<String, ServiceComponentHost>();
+    compHosts.put("h1", sch);
+    component.addServiceComponentHosts(compHosts);
+    Assert.assertEquals(1, component.getServiceComponentHosts().size());
+    sch.persist();
+
     ServiceComponent sc = service.getServiceComponent(componentName);
     Assert.assertNotNull(sc);
     sc.setDesiredState(State.INSTALLED);
@@ -305,6 +317,9 @@ public class ServiceComponentTest {
         r.getDesiredStackVersion());
     Assert.assertEquals(sc.getDesiredState().toString(),
         r.getDesiredState());
+    Assert.assertEquals(1, r.getTotalCount());
+    Assert.assertEquals(0, r.getStartedCount());
+    Assert.assertEquals(1, r.getInstalledCount());
 
     // TODO check configs
     // r.getConfigVersions()

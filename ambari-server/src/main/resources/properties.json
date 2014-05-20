@@ -51,6 +51,9 @@
         "ServiceComponents/display_name",
         "ServiceComponents/description",
         "ServiceComponentInfo/category",
+        "ServiceComponentInfo/total_count",
+        "ServiceComponentInfo/started_count",
+        "ServiceComponentInfo/installed_count",
         "params/run_smoke_test",
         "_"
     ],

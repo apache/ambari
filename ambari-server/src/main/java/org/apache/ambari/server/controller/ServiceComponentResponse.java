@@ -35,11 +35,20 @@ public class ServiceComponentResponse {
 
   private String category;
 
+  private int totalCount;
+
+  private int startedCount;
+
+  private int installedCount;
+
   public ServiceComponentResponse(Long clusterId, String clusterName,
                                   String serviceName,
                                   String componentName,
                                   String desiredStackVersion,
-                                  String desiredState) {
+                                  String desiredState,
+                                  int totalCount,
+                                  int startedCount,
+                                  int installedCount) {
     super();
     this.clusterId = clusterId;
     this.clusterName = clusterName;
@@ -47,6 +56,9 @@ public class ServiceComponentResponse {
     this.componentName = componentName;
     this.desiredStackVersion = desiredStackVersion;
     this.desiredState = desiredState;
+    this.totalCount = totalCount;
+    this.startedCount = startedCount;
+    this.installedCount = installedCount;
   }
 
   /**
@@ -149,6 +161,54 @@ public class ServiceComponentResponse {
    */
   public void setCategory(String category) {
     this.category = category;
+  }
+
+  /**
+   * Get the number of started SCH's
+   * @return number of started SCH's
+   */
+  public int getStartedCount() {
+    return startedCount;
+  }
+
+  /**
+   * Set the number of started SCH's
+   * @param startedCount
+   */
+  public void setStartedCount(int startedCount) {
+    this.startedCount = startedCount;
+  }
+
+  /**
+   * Get the number of installed SCH's
+   * @return number of installed SCH's
+   */
+  public int getInstalledCount() {
+    return installedCount;
+  }
+
+  /**
+   * Set the number of installed SCH's
+   * @param installedCount
+   */
+  public void setInstalledCount(int installedCount) {
+    this.installedCount = installedCount;
+  }
+
+  /**
+   * Get the total number of SCH's
+   * @return
+   */
+  public int getTotalCount() {
+    return totalCount;
+  }
+
+  /**
+   * Set the total number of SCH's
+   * @param totalCount
+   */
+  public void setTotalCount(int totalCount) {
+    this.totalCount = totalCount;
   }
 
   @Override

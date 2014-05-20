@@ -39,11 +39,9 @@ import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntityPK;
 import org.apache.ambari.server.state.cluster.ClusterImpl;
-import org.apache.mina.util.CopyOnWriteMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -433,7 +431,8 @@ public class ServiceComponentImpl implements ServiceComponent {
             getClusterId(), service.getCluster().getClusterName(),
             service.getName(), getName(),
             getDesiredStackVersion().getStackId(),
-            getDesiredState().toString());
+            getDesiredState().toString(), getTotalCount(), getStartedCount(),
+            getInstalledCount());
         return r;
       } finally {
         readWriteLock.readLock().unlock();
@@ -723,6 +722,28 @@ public class ServiceComponentImpl implements ServiceComponent {
     pk.setServiceName(getServiceName());
 
     serviceComponentDesiredStateDAO.removeByPK(pk);
+  }
+
+  private int getSCHCountByState(State state) {
+    int count = 0;
+    for (ServiceComponentHost sch : hostComponents.values()) {
+      if (sch.getState() == state) {
+        count++;
+      }
+    }
+    return count;
+  }
+
+  private int getStartedCount() {
+    return getSCHCountByState(State.STARTED);
+  }
+
+  private int getInstalledCount() {
+    return getSCHCountByState(State.INSTALLED);
+  }
+
+  private int getTotalCount() {
+    return hostComponents.size();
   }
 
 }
