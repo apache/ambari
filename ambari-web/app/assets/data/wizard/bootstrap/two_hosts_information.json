@@ -195,6 +195,7 @@
               }
             ]
           },
+          "reverseLookup": false,
           "umask" : 18
         },
         "total_mem" : 7644119
@@ -324,6 +325,7 @@
               }
             ]
           },
+          "reverseLookup": false,
           "umask" : 19
         },
         "total_mem" : 7644119

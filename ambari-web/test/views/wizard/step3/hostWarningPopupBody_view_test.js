@@ -144,6 +144,7 @@ describe('App.WizardStep3HostWarningPopupBody', function() {
     var content = [
       {category: 'firewall', warnings: [{name: 'n1'}, {name: 'n2'}, {name: 'n3'}]},
       {category: 'fileFolders', warnings: [{name: 'n4'}, {name: 'n5'}, {name: 'n6'}]},
+      {category: 'reverseLookup', warnings: [{name: 'n19', hosts: ["h1"]}]},
       {
         category: 'process',
         warnings: [
@@ -193,6 +194,10 @@ describe('App.WizardStep3HostWarningPopupBody', function() {
     it('should map user warnings', function() {
       var newContent = view.get('contentInDetails');
       expect(newContent.contains('n16 n17 n18')).to.equal(true);
+    });
+    it('should map reverse lookup warnings', function() {
+      var newContent = view.get('contentInDetails');
+      expect(newContent.contains('h1')).to.equal(true);
     });
   });
 

@@ -1183,6 +1183,23 @@ App.WizardStep3Controller = Em.Controller.extend({
         }, this);
       }
 
+      if (_host.Hosts.last_agent_env.reverseLookup === false) {
+        var name = Em.I18n.t('installer.step3.hostWarningsPopup.reverseLookup.name');
+        warning = warnings.filterProperty('category', 'reverseLookup').findProperty('name', name);
+        if (warning) {
+          warning.hosts.push(_host.Hosts.host_name);
+          warning.onSingleHost = false;
+        } else {
+          warning = {
+            name: name,
+            hosts: [_host.Hosts.host_name],
+            category: 'reverseLookup',
+            onSingleHost: true
+          };
+          warnings.push(warning);
+        }
+        host.warnings.push(warning);
+      }
       hosts.push(host);
     }, this);
 

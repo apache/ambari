@@ -245,6 +245,14 @@ App.WizardStep3HostWarningPopupBody = Em.View.extend({
         action: Em.I18n.t('installer.step3.hostWarningsPopup.action.exists'),
         category: 'alternatives',
         isCollapsed: true
+      }),
+      Em.Object.create({
+        warnings: categoryWarnings.filterProperty('category', 'reverseLookup'),
+        title: Em.I18n.t('installer.step3.hostWarningsPopup.reverseLookup'),
+        message: Em.I18n.t('installer.step3.hostWarningsPopup.reverseLookup.message'),
+        emptyName: Em.I18n.t('installer.step3.hostWarningsPopup.reverseLookup.empty'),
+        category: 'reverseLookup',
+        isCollapsed: true
       })
     ]
   }.property('category', 'warningsByHost'),
@@ -280,6 +288,10 @@ App.WizardStep3HostWarningPopupBody = Em.View.extend({
     if (content.findProperty('category', 'fileFolders').warnings.length) {
       newContent += Em.I18n.t('installer.step3.hostWarningsPopup.report.fileFolders');
       newContent += content.findProperty('category', 'fileFolders').warnings.mapProperty('name').join(' ');
+    }
+    if (content.findProperty('category', 'reverseLookup').warnings.length) {
+      newContent += Em.I18n.t('installer.step3.hostWarningsPopup.report.reverseLookup');
+      newContent += content.findProperty('category', 'reverseLookup').warnings[0].hosts.join(' ');
     }
     if (content.findProperty('category', 'process').warnings.length) {
       newContent += Em.I18n.t('installer.step3.hostWarningsPopup.report.process');
