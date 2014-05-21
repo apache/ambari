@@ -309,11 +309,26 @@ App.MainServiceItemController = Em.Controller.extend({
   /**
    * Restart clients host components to apply config changes
    */
-  refreshConfigs: function() {
+  refreshConfigs: function () {
     var self = this;
+
     if (this.get('content.isClientsOnly')) {
-      return App.showConfirmationFeedBackPopup(function(query) {
-        batchUtils.restartHostComponents(self.get('content.hostComponents'), Em.I18n.t('rollingrestart.context.allForSelectedService').format(self.get('content.serviceName')),"SERVICE",  query);
+      return App.showConfirmationFeedBackPopup(function (query) {
+        batchUtils.getComponentsFromServer({
+          services: [self.get('content.serviceName')]
+        }, function (data) {
+          var hostComponents = [];
+
+          data.items.forEach(function (host) {
+            host.host_components.forEach(function (hostComponent) {
+              hostComponents.push(Em.Object.create({
+                componentName: hostComponent.HostRoles.component_name,
+                hostName: host.Hosts.host_name
+              }))
+            });
+          });
+          batchUtils.restartHostComponents(hostComponents, Em.I18n.t('rollingrestart.context.allForSelectedService').format(self.get('content.serviceName')), "SERVICE", query);
+        })
       });
     }
   },

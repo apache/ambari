@@ -176,25 +176,51 @@ App.MainHostController = Em.ArrayController.extend({
    * @param {Object} operationData - data about bulk operation (action, hostComponents etc)
    * @param {Array} hosts - list of affected hosts
    */
-  bulkOperationForHosts: function(operationData, hosts) {
+  bulkOperationForHosts: function (operationData, hosts) {
+    var self = this;
+
+    batchUtils.getComponentsFromServer({
+      hosts: hosts.mapProperty('hostName'),
+      workStatus: operationData.actionToCheck,
+      passiveState: 'OFF',
+      displayParams: ['host_components/HostRoles/component_name']
+    }, function (data) {
+      self.bulkOperationForHostsCallback(operationData, data);
+    });
+  },
+  /**
+   * run Bulk operation (start/stop all) for selected hosts
+   * after host and components are loaded
+   * @param operationData
+   * @param data
+   */
+  bulkOperationForHostsCallback: function (operationData, data) {
     var query = [];
-    hosts.forEach(function(host) {
-      var subQuery = '(HostRoles/component_name.in(%@)&HostRoles/host_name=' + host.get('hostName') + ')';
-      var components = [];
-      host.get('hostComponents').forEach(function(hostComponent) {
-        if (hostComponent.get('passiveState') == 'OFF') {
-          if (hostComponent.get('isMaster') || hostComponent.get('isSlave')) {
-            if (hostComponent.get('workStatus') === operationData.actionToCheck) {
-              components.push(hostComponent.get('componentName'));
-            }
+    var hostNames = [];
+    var hostsMap = {};
+
+    data.items.forEach(function (host) {
+      host.host_components.forEach(function(hostComponent){
+        if (!App.components.get('clients').contains((hostComponent.HostRoles.component_name))) {
+          if (hostsMap[host.Hosts.host_name]) {
+            hostsMap[host.Hosts.host_name].push(hostComponent.HostRoles.component_name);
+          } else {
+            hostsMap[host.Hosts.host_name] = [hostComponent.HostRoles.component_name];
           }
         }
       });
+    });
+
+    for (var hostName in hostsMap) {
+      var subQuery = '(HostRoles/component_name.in(%@)&HostRoles/host_name=' + hostName + ')';
+      var components = hostsMap[hostName];
       if (components.length) {
         query.push(subQuery.fmt(components.join(',')));
       }
-    });
-    var hostNames = hosts.mapProperty('hostName').join(",");
+      hostNames.push(hostName);
+    }
+
+    hostNames = hostNames.join(",");
     if (query.length) {
       query = query.join('|');
       App.ajax.send({
@@ -224,11 +250,22 @@ App.MainHostController = Em.ArrayController.extend({
    * @param {Ember.Enumerable} hosts - list of affected hosts
    */
   bulkOperationForHostsRestart: function(operationData, hosts) {
-    var hostComponents = [];
-    hosts.forEach(function(host) {
-      hostComponents.pushObjects(host.get('hostComponents').filterProperty('passiveState','OFF').toArray());
+    batchUtils.getComponentsFromServer({
+      passiveState: 'OFF',
+      hosts: hosts.mapProperty('hostName'),
+      displayParams: ['host_components/HostRoles/component_name']
+    }, function (data) {
+      var hostComponents = [];
+      data.items.forEach(function (host) {
+        host.host_components.forEach(function (hostComponent) {
+          hostComponents.push(Em.Object.create({
+            componentName: hostComponent.HostRoles.component_name,
+            hostName: host.Hosts.host_name
+          }));
+        })
+      });
+      batchUtils.restartHostComponents(hostComponents, Em.I18n.t('rollingrestart.context.allOnSelectedHosts'), "HOST");
     });
-    batchUtils.restartHostComponents(hostComponents, Em.I18n.t('rollingrestart.context.allOnSelectedHosts'), "HOST");
   },
 
   /**
@@ -236,37 +273,41 @@ App.MainHostController = Em.ArrayController.extend({
    * @param {Object} operationData - data about bulk operation (action, hostComponents etc)
    * @param {Array} hosts - list of affected hosts
    */
-  bulkOperationForHostsPassiveState: function(operationData, hosts) {
-    var affectedHosts = [];
-    hosts.forEach(function(host) {
-      if (host.get('passiveState') !== operationData.state) {
-        affectedHosts.push(host);
+  bulkOperationForHostsPassiveState: function (operationData, hosts) {
+    var self = this;
+
+    batchUtils.getComponentsFromServer({
+      displayParams: ['Hosts/maintenance_state']
+    }, function (data) {
+      var hostNames = [];
+
+      data.items.forEach(function (host) {
+        if (host.Hosts.maintenance_state !== operationData.state) {
+          hostNames.push(host.Hosts.host_name);
+        }
+      });
+      if (hostNames.length) {
+        App.ajax.send({
+          name: 'bulk_request.hosts.passive_state',
+          sender: self,
+          data: {
+            hostNames: hostNames.join(','),
+            passive_state: operationData.state,
+            requestInfo: operationData.message
+          },
+          success: 'updateHostPassiveState'
+        });
+      } else {
+        App.ModalPopup.show({
+          header: Em.I18n.t('rolling.nothingToDo.header'),
+          body: Em.I18n.t('hosts.bulkOperation.passiveState.nothingToDo.body'),
+          secondary: false
+        });
       }
     });
-    if (affectedHosts.length) {
-      App.ajax.send({
-        name: 'bulk_request.hosts.passive_state',
-        sender: this,
-        data: {
-          hosts: affectedHosts,
-          hostNames: affectedHosts.mapProperty('hostName').join(','),
-          passive_state: operationData.state,
-          requestInfo: operationData.message
-        },
-        success: 'updateHostPassiveState'
-      });
-    }
-    else {
-      App.ModalPopup.show({
-        header: Em.I18n.t('rolling.nothingToDo.header'),
-        body: Em.I18n.t('hosts.bulkOperation.passiveState.nothingToDo.body'),
-        secondary: false
-      });
-    }
   },
 
   updateHostPassiveState: function(data, opt, params) {
-    params.hosts.setEach('passiveState', params.passive_state);
     App.router.get('clusterController').loadUpdatedStatus(function(){
       batchUtils.infoPassiveState(params.passive_state);
     });
@@ -277,38 +318,35 @@ App.MainHostController = Em.ArrayController.extend({
    * @param {Array} hosts - list of affected hosts
    */
   bulkOperationForHostComponents: function(operationData, hosts) {
-    var service = App.Service.find(operationData.serviceName);
-    var components = service.get('hostComponents').filter(function(hc) {
-      if (hc.get('componentName') != operationData.componentName || hc.get('passiveState') != 'OFF' ) {
-        return false;
-      }
-      if(hc.get('workStatus') == operationData.action) {
-        return false;
-      }
-      return hosts.contains(hc.get('host'));
-    });
+    var self = this;
 
-    if (components.length) {
-      var hostsWithComponentInProperState = components.mapProperty('host.hostName');
-      App.ajax.send({
-        name: 'bulk_request.host_components',
-        sender: this,
-        data: {
-          hostNames: hostsWithComponentInProperState.join(','),
-          state: operationData.action,
-          requestInfo: operationData.message + ' ' + operationData.componentNameFormatted,
-          componentName: operationData.componentName
-        },
-        success: 'bulkOperationForHostComponentsSuccessCallback'
-      });
-    }
-    else {
-      App.ModalPopup.show({
-        header: Em.I18n.t('rolling.nothingToDo.header'),
-        body: Em.I18n.t('rolling.nothingToDo.body').format(operationData.componentNameFormatted),
-        secondary: false
-      });
-    }
+    batchUtils.getComponentsFromServer({
+      components: [operationData.componentName],
+      hosts: hosts.mapProperty('hostName'),
+      passiveState: 'OFF'
+    }, function (data) {
+      if (data.items.length) {
+        var hostsWithComponentInProperState = data.items.mapProperty('Hosts.host_name');
+        App.ajax.send({
+          name: 'bulk_request.host_components',
+          sender: self,
+          data: {
+            hostNames: hostsWithComponentInProperState.join(','),
+            state: operationData.action,
+            requestInfo: operationData.message + ' ' + operationData.componentNameFormatted,
+            componentName: operationData.componentName
+          },
+          success: 'bulkOperationForHostComponentsSuccessCallback'
+        });
+      }
+      else {
+        App.ModalPopup.show({
+          header: Em.I18n.t('rolling.nothingToDo.header'),
+          body: Em.I18n.t('rolling.nothingToDo.body').format(operationData.componentNameFormatted),
+          secondary: false
+        });
+      }
+    });
   },
 
   /**
@@ -316,17 +354,41 @@ App.MainHostController = Em.ArrayController.extend({
    * @param {Object} operationData
    * @param {Array} hosts
    */
-  bulkOperationForHostComponentsDecommission: function(operationData, hosts) {
+  bulkOperationForHostComponentsDecommission: function (operationData, hosts) {
+    var self = this;
+
+    batchUtils.getComponentsFromServer({
+      components: [operationData.realComponentName],
+      hosts: hosts.mapProperty('hostName'),
+      passiveState: 'OFF',
+      displayParams: ['host_components/HostRoles/state']
+    }, function (data) {
+      self.bulkOperationForHostComponentsDecommissionCallBack(operationData, data)
+    });
+  },
+
+  /**
+   * run Bulk decommission/recommission for selected hostComponents
+   * after host and components are loaded
+   * @param operationData
+   * @param data
+   */
+  bulkOperationForHostComponentsDecommissionCallBack: function(operationData, data){
     var service = App.Service.find(operationData.serviceName);
-    var components = service.get('hostComponents').filter(function(hc) {
-      if (hc.get('componentName') != operationData.realComponentName || hc.get('passiveState') != 'OFF' ) {
-        return false;
-      }
-      return hosts.contains(hc.get('host'));
+    var components = [];
+
+    data.items.forEach(function (host) {
+      host.host_components.forEach(function (hostComponent) {
+        components.push(Em.Object.create({
+          componentName: hostComponent.HostRoles.component_name,
+          hostName: host.Hosts.host_name,
+          workStatus: hostComponent.HostRoles.state
+        }))
+      });
     });
 
     if (components.length) {
-      var hostsWithComponentInProperState = components.mapProperty('host.hostName');
+      var hostsWithComponentInProperState = components.mapProperty('hostName');
       var turn_off = operationData.action.indexOf('OFF') !== -1;
       var svcName = operationData.serviceName;
       var masterName = operationData.componentName;
@@ -341,7 +403,7 @@ App.MainHostController = Em.ArrayController.extend({
           App.router.get('mainHostDetailsController').doRecommissionAndRestart(hostNames, svcName, masterName, slaveName);
         }
       } else {
-        hostsWithComponentInProperState = components.filterProperty('workStatus','STARTED').mapProperty('host.hostName');
+        hostsWithComponentInProperState = components.filterProperty('workStatus', 'STARTED').mapProperty('hostName');
         //For decommession
         if (svcName == "HBASE") {
           // HBASE service, decommission RegionServer in batch requests
@@ -388,23 +450,37 @@ App.MainHostController = Em.ArrayController.extend({
    */
   bulkOperationForHostComponentsRestart: function(operationData, hosts) {
     var service = App.Service.find(operationData.serviceName);
-    var components = service.get('hostComponents').filter(function(hc) {
-      if (hc.get('componentName') != operationData.componentName || hc.get('passiveState') != 'OFF') {
-        return false;
-      }
-      return hosts.contains(hc.get('host'));
-    });
 
-    if (components.length) {
-      batchUtils.showRollingRestartPopup(components.objectAt(0).get('componentName'), service.get('displayName'), service.get('passiveState') === "ON", false, components);
-    }
-    else {
-      App.ModalPopup.show({
-        header: Em.I18n.t('rolling.nothingToDo.header'),
-        body: Em.I18n.t('rolling.nothingToDo.body').format(operationData.componentNameFormatted),
-        secondary: false
+    batchUtils.getComponentsFromServer({
+      components: [operationData.componentName],
+      hosts: hosts.mapProperty('hostName'),
+      passiveState: 'OFF',
+      displayParams: ['Hosts/maintenance_state', 'host_components/HostRoles/stale_configs', 'host_components/HostRoles/maintenance_state']
+    }, function (data) {
+      var wrappedHostComponents = [];
+
+      data.items.forEach(function (host) {
+        host.host_components.forEach(function (hostComponent) {
+          wrappedHostComponents.push(Em.Object.create({
+            componentName: hostComponent.HostRoles.component_name,
+            hostName: host.Hosts.host_name,
+            hostPassiveState: host.Hosts.maintenance_state,
+            staleConfigs: hostComponent.HostRoles.stale_configs,
+            passiveState: hostComponent.HostRoles.maintenance_state
+          }))
+        });
       });
-    }
+
+      if (wrappedHostComponents.length) {
+        batchUtils.showRollingRestartPopup(wrappedHostComponents.objectAt(0).get('componentName'), service.get('displayName'), service.get('passiveState') === "ON", false, wrappedHostComponents);
+      } else {
+        App.ModalPopup.show({
+          header: Em.I18n.t('rolling.nothingToDo.header'),
+          body: Em.I18n.t('rolling.nothingToDo.body').format(operationData.componentNameFormatted),
+          secondary: false
+        });
+      }
+    });
   },
 
   updateHostComponentsPassiveState: function(data, opt, params) {

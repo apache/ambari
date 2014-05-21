@@ -139,18 +139,14 @@ App.RollingRestartView = Em.View.extend({
    * List of all host components
    * @type {Array}
    */
-  allHostComponents : function() {
-    return App.HostComponent.find().filterProperty('componentName', this.get('hostComponentName'));
-  }.property('hostComponentName'),
+  allHostComponents : [],
 
   /**
    * List of host components without components in out-of-service state
    * @type {Array}
    */
   nonMaintainanceHostComponents : function() {
-    return this.get('allHostComponents').filter(function(item) {
-      return item.get('passiveState') == 'OFF';
-    });
+    return this.get('allHostComponents').filterProperty('passiveState', 'OFF')
   }.property('allHostComponents', 'allHostComponents.@each.passiveState'),
 
   /**
@@ -158,26 +154,21 @@ App.RollingRestartView = Em.View.extend({
    * @type {Array}
    */
   componentsWithMaintenanceHost: function() {
-    return this.get('allHostComponents').filterProperty('host.passiveState','ON');
-  }.property('allHostComponents', 'allHostComponents.@each.passiveState'),
+    return this.get('allHostComponents').filterProperty('hostPassiveState', 'ON');
+  }.property('allHostComponents', 'allHostComponents.@each.hostPassiveState'),
   /**
    * List of host components without components in out-of-service state
    * If <code>staleConfigsOnly</code> is true, components with <code>staleConfigs</code> = false are also filtered
    * @type {Array}
    */
-  restartHostComponents : function() {
-    var hostComponents = null;
-    if (this.get('skipMaintenance')) {
-      hostComponents = this.get('allHostComponents').filterProperty('host.passiveState','OFF');
-    } else {
-      hostComponents = this.get('nonMaintainanceHostComponents');
-    }
+  restartHostComponents: function () {
+    var hostComponents = (this.get('skipMaintenance')) ? this.get('allHostComponents') : this.get('nonMaintainanceHostComponents');
+
     if (this.get('staleConfigsOnly')) {
-      hostComponents = hostComponents.filterProperty('staleConfigs', true);
+      hostComponents = hostComponents.filterProperty('staleConfigs');
     }
     return hostComponents;
-  }.property('nonMaintainanceHostComponents', 'staleConfigsOnly'),
-
+  }.property('nonMaintainanceHostComponents'),
   /**
    * @type {String}
    */

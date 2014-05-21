@@ -906,9 +906,11 @@ describe('App.MainHostDetailsController', function () {
     beforeEach(function () {
       sinon.stub(controller, "doDecommission", Em.K);
       sinon.stub(controller, "showBackgroundOperationsPopup", Em.K);
+      sinon.stub(controller, "doDecommissionRegionServer", Em.K);
     });
 
     afterEach(function () {
+      controller.doDecommissionRegionServer.restore();
       controller.doDecommission.restore();
       controller.showBackgroundOperationsPopup.restore();
     });
@@ -930,7 +932,7 @@ describe('App.MainHostDetailsController', function () {
     });
     it('HBASE service', function () {
       controller.runDecommission('host1', 'HBASE');
-      expect(controller.doDecommission.calledWith('host1', 'HBASE', "HBASE_MASTER", "HBASE_REGIONSERVER")).to.be.true;
+      expect(controller.doDecommissionRegionServer.calledWith('host1', 'HBASE', "HBASE_MASTER", "HBASE_REGIONSERVER")).to.be.true;
       expect(controller.showBackgroundOperationsPopup.calledOnce).to.be.true;
     });
   });

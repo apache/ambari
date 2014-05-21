@@ -70,27 +70,110 @@ module.exports = {
    * @param {bool} staleConfigsOnly restart only hostComponents with <code>staleConfig</code> true
    */
   restartAllServiceHostComponents: function(serviceName, staleConfigsOnly, query) {
-    var service = App.Service.find(serviceName);
+    var self = this;
     var context = staleConfigsOnly ? Em.I18n.t('rollingrestart.context.allWithStaleConfigsForSelectedService').format(serviceName) : Em.I18n.t('rollingrestart.context.allForSelectedService').format(serviceName);
-    if (service) {
-      var hostComponents = service.get('hostComponents').filterProperty('host.passiveState','OFF');
+    var services = (serviceName === 'HIVE' && App.Service.find('HCATALOG').get('isLoaded')) ? ['HIVE', 'HCATALOG'] : [serviceName];
 
-      // HCatalog components are technically owned by Hive.
-      if (serviceName == 'HIVE') {
-        var hcatService = App.Service.find('HCATALOG');
-        if (hcatService != null && hcatService.get('isLoaded')) {
-          var hcatHcs = hcatService.get('hostComponents').filterProperty('host.passiveState', 'OFF');
-          if (hcatHcs != null) {
-            hostComponents.pushObjects(hcatHcs);
-          }
+    this.getComponentsFromServer({
+      services: services,
+      staleConfigs: staleConfigsOnly,
+      passiveState: 'OFF',
+      displayParams: ['host_components/HostRoles/component_name']
+    }, function (data) {
+      var hostComponents = [];
+      data.items.forEach(function (host) {
+        host.host_components.forEach(function (hostComponent) {
+          hostComponents.push(Em.Object.create({
+            componentName: hostComponent.HostRoles.component_name,
+            hostName: host.Hosts.host_name
+          }))
+        });
+      });
+      self.restartHostComponents(hostComponents, context, "SERVICE", query);
+    });
+  },
+
+  /**
+   * construct URL from parameters for request in <code>getComponentsFromServer()</code>
+   * @param options
+   * @return {String}
+   */
+  constructComponentsCallUrl: function (options) {
+    var multipleValueParams = {
+      'services': 'host_components/HostRoles/service_name.in(<entity-names>)',
+      'hosts': 'Hosts/host_name.in(<entity-names>)',
+      'components': 'host_components/HostRoles/component_name.in(<entity-names>)'
+    };
+    var singleValueParams = {
+      staleConfigs: 'host_components/HostRoles/stale_configs=',
+      passiveState: 'Hosts/maintenance_state=',
+      workStatus: 'host_components/HostRoles/state='
+    };
+    var displayParams = options.displayParams || [];
+    var urlParams = '?';
+    var addAmpersand = false;
+
+    for (var i in multipleValueParams) {
+      var arrayParams = options[i];
+      if (Array.isArray(arrayParams) && arrayParams.length > 0) {
+        if (addAmpersand) {
+          urlParams += '&';
+          addAmpersand = false;
         }
+        urlParams += multipleValueParams[i].replace('<entity-names>', arrayParams.join(','));
+        addAmpersand = true;
       }
-
-      if (staleConfigsOnly) {
-        hostComponents = hostComponents.filterProperty('staleConfigs', true);
-      }
-      this.restartHostComponents(hostComponents, context, "SERVICE", query);
     }
+
+    for (var j in singleValueParams) {
+      var param = options[j];
+      if (!Em.isNone(param)) {
+        urlParams += (addAmpersand) ? '&' : '';
+        urlParams += singleValueParams[j] + param.toString();
+        addAmpersand = true;
+      }
+    }
+
+    displayParams.forEach(function (displayParam, index, array) {
+      if (index === 0) {
+        urlParams += (addAmpersand) ? '&' : '';
+        urlParams += 'fields=';
+      }
+      urlParams += displayParam;
+      urlParams += (array.length === (index + 1)) ? '' : ",";
+    });
+
+    return urlParams + '&minimal_response=true';
+  },
+
+  /**
+   * make GET call to server in order to obtain host-components
+   * which correspond to filter params from <code>options</code>
+   * @param options
+   * @param callback
+   */
+  getComponentsFromServer: function (options, callback) {
+    var urlParams = this.constructComponentsCallUrl(options);
+
+    App.ajax.send({
+      name: 'host.host_components.filtered',
+      sender: this,
+      data: {
+        urlParams: urlParams,
+        callback: callback
+      },
+      success: 'getComponentsFromServerSuccessCallback'
+    });
+  },
+
+  /**
+   * pass request outcome to <code>callback()<code>
+   * @param data
+   * @param opt
+   * @param params
+   */
+  getComponentsFromServerSuccessCallback: function (data, opt, params) {
+    params.callback(data);
   },
 
   /**
@@ -100,7 +183,7 @@ module.exports = {
    * @param {String} level - operation level, can be ("CLUSTER", "SERVICE", "HOST", "HOSTCOMPONENT")
    * @param {String} query
    */
-  restartHostComponents: function(hostComponentsList, context, level, query) {
+  restartHostComponents: function (hostComponentsList, context, level, query) {
     context = context || Em.I18n.t('rollingrestart.context.default');
     /**
      * Format: {
@@ -113,26 +196,27 @@ module.exports = {
     var hosts = [];
     var componentServiceMap = App.QuickDataMapper.componentServiceMap();
     hostComponentsList.forEach(function(hc) {
+      var hostName = hc.get('hostName') || hc.get('host.hostName');
       var componentName = hc.get('componentName');
       if (!componentToHostsMap[componentName]) {
         componentToHostsMap[componentName] = [];
       }
-      componentToHostsMap[componentName].push(hc.get('host.hostName'));
-      hosts.push(hc.get('host.hostName'));
+      componentToHostsMap[componentName].push(hostName);
+      hosts.push(hostName);
     });
     var resource_filters = [];
     for (var componentName in componentToHostsMap) {
       if (componentToHostsMap.hasOwnProperty(componentName)) {
         resource_filters.push({
-          service_name:  componentServiceMap[componentName],
+          service_name: componentServiceMap[componentName],
           component_name: componentName,
           hosts: componentToHostsMap[componentName].join(",")
         });
       }
     }
-      if(hostComponentsList.length > 0) {
+    if (hostComponentsList.length > 0) {
       var operation_level = this.getOperationLevelobject(level, hosts.uniq().join(","),
-          hostComponentsList[0].get("service.serviceName"), hostComponentsList[0].get("componentName"));
+        componentServiceMap[hostComponentsList[0].get("componentName")], hostComponentsList[0].get("componentName"));
     }
 
 
@@ -224,12 +308,12 @@ module.exports = {
         batchCount = Math.ceil(restartHostComponents.length / batchSize),
         sampleHostComponent = restartHostComponents.objectAt(0),
         componentName = sampleHostComponent.get('componentName'),
-        serviceName = sampleHostComponent.get('service.serviceName');
+        serviceName = sampleHostComponent.get('serviceName');
 
     for ( var count = 0; count < batchCount; count++) {
       var hostNames = [];
       for ( var hc = 0; hc < batchSize && hostIndex < restartHostComponents.length; hc++) {
-        hostNames.push(restartHostComponents.objectAt(hostIndex++).get('host.hostName'));
+        hostNames.push(restartHostComponents.objectAt(hostIndex++).get('hostName'));
       }
       if (hostNames.length > 0) {
         batches.push({
@@ -284,6 +368,7 @@ module.exports = {
   showRollingRestartPopup: function(hostComponentName, serviceName, isMaintenanceModeOn, staleConfigsOnly, hostComponents, skipMaintenance) {
     hostComponents = hostComponents || [];
     var componentDisplayName = App.format.role(hostComponentName);
+    var self = this;
     if (!componentDisplayName) {
       componentDisplayName = hostComponentName;
     }
@@ -294,16 +379,40 @@ module.exports = {
       skipMaintenance: skipMaintenance,
       serviceName: serviceName,
       isServiceInMM: isMaintenanceModeOn,
-      didInsertElement : function() {
+      didInsertElement: function () {
+        var view = this;
+
         this.set('parentView.innerView', this);
-        this.initialize();
+        if (hostComponents.length) {
+          view.initialize();
+        } else {
+          self.getComponentsFromServer({
+            components: [hostComponentName],
+            displayParams: ['host_components/HostRoles/stale_configs', 'Hosts/maintenance_state', 'host_components/HostRoles/maintenance_state'],
+            staleConfigs: staleConfigsOnly
+          }, function (data) {
+            var wrappedHostComponents = [];
+            data.items.forEach(function (host) {
+              host.host_components.forEach(function(hostComponent){
+                wrappedHostComponents.push(Em.Object.create({
+                  componentName: hostComponent.HostRoles.component_name,
+                  hostName: host.Hosts.host_name,
+                  staleConfigs: hostComponent.HostRoles.stale_configs,
+                  hostPassiveState: host.Hosts.maintenance_state,
+                  passiveState: hostComponent.HostRoles.maintenance_state
+                }));
+              });
+            });
+            view.set('allHostComponents', wrappedHostComponents);
+            view.initialize();
+          });
+        }
       }
     };
     if (hostComponents.length) {
       viewExtend.allHostComponents = hostComponents;
     }
 
-    var self = this;
     App.ModalPopup.show({
       header : title,
       hostComponentName : hostComponentName,

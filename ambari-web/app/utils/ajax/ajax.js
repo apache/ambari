@@ -2076,6 +2076,15 @@ var urls = {
   'host.host_component.flume.metrics.timeseries': {
     'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/FLUME_HANDLER?fields=metrics/flume/flume/{flumeComponent}/*/{flumeComponentMetric}[{fromSeconds},{toSeconds},{stepSeconds}]',
     'mock': ''
+  },
+  'host.host_components.filtered': {
+    'real': '/clusters/{clusterName}/hosts',
+    'mock': '',
+    format: function(data, opt) {
+      return {
+        url: opt.url + data.urlParams
+      }
+    }
   }
 };
 /**
