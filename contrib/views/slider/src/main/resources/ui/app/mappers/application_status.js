@@ -62,6 +62,7 @@ App.ApplicationStatusMapper = App.Mapper.createWithMixins(App.RunPeriodically, {
 
     return $.ajax({
       url: url,
+      dataType: 'json',
       async: true,
       success: function(data) {self.parse(data);}
     });
