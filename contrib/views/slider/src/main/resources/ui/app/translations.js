@@ -20,7 +20,9 @@
 Em.I18n.translations = {
 
   'common' : {
-    'show': "Show"
+    'show': "Show",
+    'name': "Name",
+    'next': "Next"
   },
   'tableView.filters.all': 'All',
   'tableView.filters.filtered': 'Filtered',
@@ -37,6 +39,11 @@ Em.I18n.translations = {
 
   'wizard.name': 'Create Slider App',
   'wizard.step1.name': 'Select Type',
+  'wizard.step1.header': 'Available Types',
+  'wizard.step1.description': 'Description',
+  'wizard.step1.typeDescription': 'Deploys {0} cluster on YARN.',
+  'wizard.step1.nameFormatError': 'App Name should consist only of letters, numbers, \'-\', \'_\' and first character should be a letter.',
+  'wizard.step1.nameRepeatError': 'App with entered Name already exists.',
   'wizard.step2.name': 'Allocate Resources',
   'wizard.step3.name': 'Configuration',
   'wizard.step4.name': 'Deploy'

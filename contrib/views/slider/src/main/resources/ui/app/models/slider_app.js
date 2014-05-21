@@ -56,7 +56,7 @@ App.SliderApp = DS.Model.extend({
   /**
    * @type {App.SliderAppType}
    */
-  appType: DS.belongsTo('SliderAppType'),
+  appType: DS.belongsTo('sliderAppType'),
 
   /**
    * @type {string}
@@ -66,17 +66,17 @@ App.SliderApp = DS.Model.extend({
   /**
    * @type {App.SliderAppComponent[]}
    */
-  components: DS.hasMany('SliderAppComponent'),
+  components: DS.hasMany('sliderAppComponent'),
 
   /**
    * @type {App.QuickLink[]}
    */
-  quickLinks: DS.hasMany('QuickLink'),
+  quickLinks: DS.hasMany('quickLink'),
 
   /**
    * @type {App.TypedProperty[]}
    */
-  runtimeProperties: DS.hasMany('TypedProperty')
+  runtimeProperties: DS.hasMany('typedProperty')
 });
 
 App.SliderApp.FIXTURES = [
@@ -160,5 +160,6 @@ App.SliderApp.FIXTURES = [
 App.SliderApp.Status = {
   running: "Running",
   frozen: "Frozen",
-  destroyed: "Destroyed"
+  destroyed: "Destroyed",
+  initialized: "Initialized"
 };

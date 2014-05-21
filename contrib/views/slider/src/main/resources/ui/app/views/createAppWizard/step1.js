@@ -16,55 +16,28 @@
  * limitations under the License.
  */
 
-App.SliderAppComponent = DS.Model.extend({
+App.CreateAppWizardStep1View = Ember.View.extend({
 
-  /**
-   * @type {string}
-   */
-  index: DS.attr('string'), // (appid+component_name+index)
+  didInsertElement: function () {
+    this.get('controller').loadStep();
+  },
 
-  /**
-   * @type {string}
-   */
-  status: DS.attr('string'),
+  availableTypesSelect: Ember.Select.extend({
 
-  /**
-   * @type {App.Host}
-   */
-  host: DS.belongsTo('host')
-
+    /**
+     * Forbid user to select more than one App type
+     * Set selected type to <code>controller.selectedType</code>
+     */
+    setSelection: function () {
+      var content = this.get('content');
+      var selection = this.get('selection');
+      if (content.get('length') && !selection.length) {
+        this.set('selection', content.objectAt(0));
+      }
+      if (selection.length > 1) {
+        this.set('selection', [selection[0]])
+      }
+      this.set('controller.selectedType', this.get('selection')[0])
+    }.observes('content.length', 'selection.length', 'selection.@each')
+  })
 });
-
-
-App.SliderAppComponent.FIXTURES = [
-  {
-    id: 1,
-    index: 'indx1',
-    status: 'st1',
-    host: 1
-  },
-  {
-    id: 2,
-    index: 'indx2',
-    status: 'st1',
-    host: 2
-  },
-  {
-    id: 3,
-    index: 'indx3',
-    status: 'st3',
-    host: 3
-  },
-  {
-    id: 4,
-    index: 'indx4',
-    status: 'st4',
-    host: 4
-  },
-  {
-    id: 5,
-    index: 'indx5',
-    status: 'st5',
-    host: 1
-  }
-];
