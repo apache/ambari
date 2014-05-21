@@ -44,6 +44,7 @@ describe('App.WizardStep8Controller', function () {
     Em.Object.create({filename: 'oozie-site.xml', name: 'p2', value: 'v2'}),
     Em.Object.create({filename: 'hive-site.xml', name: 'p1', value: 'v1'}),
     Em.Object.create({filename: 'hive-site.xml', name: 'p2', value: 'v2'}),
+    Em.Object.create({filename: 'pig-properties.xml', name: 'p1', value: 'v1'}),
     Em.Object.create({filename: 'webhcat-site.xml', name: 'p1', value: 'v1'}),
     Em.Object.create({filename: 'webhcat-site.xml', name: 'p2', value: 'v2'}),
     Em.Object.create({filename: 'tez-site.xml', name: 'p1', value: 'v1'}),
@@ -72,6 +73,7 @@ describe('App.WizardStep8Controller', function () {
     {name: 'createHiveSiteObj', e: {type: 'hive-site', tag: 'version1', l: 2}},
     {name: 'createWebHCatSiteObj', e: {type: 'webhcat-site', tag: 'version1', l: 2}},
     {name: 'createTezSiteObj', e: {type: 'tez-site', tag: 'version1', l: 2}},
+    {name: 'createPigPropertiesSiteObj', e: {type: 'pig-properties', tag: 'version1', l: 1}},
     {name: 'createFalconStartupSiteObj', e: {type: 'falcon-startup.properties', tag: 'version1', l: 2}},
     {name: 'createFalconRuntimeSiteObj', e: {type: 'falcon-runtime.properties', tag: 'version1', l: 2}}
   ]);
@@ -141,11 +143,11 @@ describe('App.WizardStep8Controller', function () {
       {selectedServices: Em.A(['MAPREDUCE2', 'YARN', 'HBASE', 'OOZIE', 'HIVE']), e: 12},
       {selectedServices: Em.A(['MAPREDUCE2', 'YARN', 'HBASE', 'OOZIE', 'HIVE', 'WEBHCAT']), e: 13},
       {selectedServices: Em.A(['MAPREDUCE2', 'YARN', 'HBASE', 'OOZIE', 'HIVE', 'WEBHCAT', 'HUE']), e: 14},
-      {selectedServices: Em.A(['MAPREDUCE2', 'YARN', 'HBASE', 'OOZIE', 'HIVE', 'WEBHCAT', 'HUE', 'PIG']), e: 15},
-      {selectedServices: Em.A(['MAPREDUCE2', 'YARN', 'HBASE', 'OOZIE', 'HIVE', 'WEBHCAT', 'HUE', 'PIG', 'FALCON']), e: 17},
-      {selectedServices: Em.A(['MAPREDUCE2', 'YARN', 'HBASE', 'OOZIE', 'HIVE', 'WEBHCAT', 'HUE', 'PIG', 'FALCON', 'STORM']), e: 18},
-      {selectedServices: Em.A(['MAPREDUCE2', 'YARN', 'HBASE', 'OOZIE', 'HIVE', 'WEBHCAT', 'HUE', 'PIG', 'FALCON', 'STORM', 'TEZ']), e: 19},
-      {selectedServices: Em.A(['MAPREDUCE2', 'YARN', 'HBASE', 'OOZIE', 'HIVE', 'WEBHCAT', 'HUE', 'PIG', 'FALCON', 'STORM', 'TEZ', 'ZOOKEEPER']), e: 21}
+      {selectedServices: Em.A(['MAPREDUCE2', 'YARN', 'HBASE', 'OOZIE', 'HIVE', 'WEBHCAT', 'HUE', 'PIG']), e: 16},
+      {selectedServices: Em.A(['MAPREDUCE2', 'YARN', 'HBASE', 'OOZIE', 'HIVE', 'WEBHCAT', 'HUE', 'PIG', 'FALCON']), e: 18},
+      {selectedServices: Em.A(['MAPREDUCE2', 'YARN', 'HBASE', 'OOZIE', 'HIVE', 'WEBHCAT', 'HUE', 'PIG', 'FALCON', 'STORM']), e: 19},
+      {selectedServices: Em.A(['MAPREDUCE2', 'YARN', 'HBASE', 'OOZIE', 'HIVE', 'WEBHCAT', 'HUE', 'PIG', 'FALCON', 'STORM', 'TEZ']), e: 20},
+      {selectedServices: Em.A(['MAPREDUCE2', 'YARN', 'HBASE', 'OOZIE', 'HIVE', 'WEBHCAT', 'HUE', 'PIG', 'FALCON', 'STORM', 'TEZ', 'ZOOKEEPER']), e: 22}
 
     ]);
 

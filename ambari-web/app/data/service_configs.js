@@ -228,7 +228,7 @@ module.exports = [
       App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'}),
       App.ServiceConfigCategory.create({ name: 'AdvancedPigLog4j', displayName : 'Custom log4j.properties', siteFileName: 'pig-log4j.xml', canAddProperty: false})
     ],
-    sites: ['pig-log4j'],
+    sites: ['pig-properties','pig-log4j'],
     configs: []
   },
   {

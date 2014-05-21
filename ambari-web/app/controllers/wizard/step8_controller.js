@@ -1358,7 +1358,9 @@ App.WizardStep8Controller = Em.Controller.extend({
       HUE: {site: [
         {filename: 'hue-site', isXmlFile: true}
       ], log4j: []},
-      PIG: {site: [], log4j: ['pig']},
+      PIG: {site: [
+        {filename: 'pig-properties', isXmlFile: false}
+      ], log4j: ['pig']},
       FALCON: {site: [
         {filename: 'falcon-startup.properties', isXmlFile: false},
         {filename: 'falcon-runtime.properties', isXmlFile: false}

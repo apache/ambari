@@ -1589,6 +1589,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       switch(siteName) {
         case 'falcon-startup.properties':
         case 'falcon-runtime.properties':
+        case 'pig-properties':
           siteProperties[_siteObj.name] = _siteObj.value;
           break;
         default:
