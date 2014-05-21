@@ -19,6 +19,10 @@
 'use strict';
 
 window.App = require('config/app');
+
+App.ApplicationAdapter = DS.FixtureAdapter.extend({
+  namespace: 'slider-emberjs'
+});
 require('config/router');
 require('config/store');
 require('translations');

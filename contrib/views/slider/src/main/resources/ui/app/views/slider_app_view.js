@@ -16,17 +16,6 @@
  * limitations under the License.
  */
 
-'use strict';
+App.SliderAppView = Ember.View.extend({
 
-module.exports = App.Router.map(function () {
-  this.resource("slider_apps", { path: "/" }, function () {
-    this.resource('createAppWizard', function(){
-      this.route('step1');
-      this.route('step2');
-      this.route('step3');
-      this.route('step4');
-    });
-  });
-  this.resource('slider_app', { path: 'apps/:slider_app_id' });
 });
-

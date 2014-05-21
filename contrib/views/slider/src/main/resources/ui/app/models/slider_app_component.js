@@ -31,7 +31,7 @@ App.SliderAppComponent = DS.Model.extend({
   /**
    * @type {App.Host}
    */
-  host: DS.belongsTo('App.Host')
+  host: DS.belongsTo('Host')
 
 });
 

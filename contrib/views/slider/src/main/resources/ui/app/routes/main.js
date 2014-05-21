@@ -17,14 +17,17 @@
  */
 
 App.IndexRoute = Ember.Route.extend({
+
   redirect: function () {
     this.transitionTo('slider_apps');
   }
+
 });
 
 App.SliderAppsRoute = Ember.Route.extend({
-  setupController: function (controller) {
-    controller.set('model', App.SliderApp.FIXTURES);
+
+  model: function () {
+    return this.store.find('sliderApp');
   },
 
   actions: {
@@ -32,4 +35,20 @@ App.SliderAppsRoute = Ember.Route.extend({
       this.transitionTo('createAppWizard');
     }
   }
+});
+
+App.SliderAppsIndexRoute = Ember.Route.extend({
+
+  model: function () {
+    return this.modelFor('sliderApps');
+  }
+
+});
+
+App.SliderAppRoute = Ember.Route.extend({
+
+  model: function(params) {
+    return this.store.find('sliderApp', params.slider_app_id);
+  }
+
 });

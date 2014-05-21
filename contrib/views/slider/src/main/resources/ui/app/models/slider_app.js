@@ -56,7 +56,7 @@ App.SliderApp = DS.Model.extend({
   /**
    * @type {App.SliderAppType}
    */
-  appType: DS.belongsTo('App.SliderAppType'),
+  appType: DS.belongsTo('SliderAppType'),
 
   /**
    * @type {string}
@@ -66,17 +66,17 @@ App.SliderApp = DS.Model.extend({
   /**
    * @type {App.SliderAppComponent[]}
    */
-  components: DS.hasMany('App.SliderAppComponent'),
+  components: DS.hasMany('SliderAppComponent'),
 
   /**
    * @type {App.QuickLink[]}
    */
-  quickLinks: DS.hasMany('App.QuickLink'),
+  quickLinks: DS.hasMany('QuickLink'),
 
   /**
    * @type {App.TypedProperty[]}
    */
-  runtimeProperties: DS.hasMany('App.TypedProperty')
+  runtimeProperties: DS.hasMany('TypedProperty')
 });
 
 App.SliderApp.FIXTURES = [
@@ -85,7 +85,7 @@ App.SliderApp.FIXTURES = [
     index: 'indx1',
     yarnId: 'y1',
     name: 'name1',
-    status: 'Running',
+    status: 'FROZEN',
     user: 'u1',
     started: 1400132912,
     ended: 1400152912,

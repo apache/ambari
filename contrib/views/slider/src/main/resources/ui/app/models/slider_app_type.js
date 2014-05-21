@@ -31,7 +31,7 @@ App.SliderAppType = DS.Model.extend({
   /**
    * @type {App.SliderAppTypeComponent[]}
    */
-  components: DS.hasMany('App.SliderAppTypeComponent'),
+  components: DS.hasMany('SliderAppTypeComponent'),
 
   /**
    * @type {object}
@@ -44,7 +44,7 @@ App.SliderAppType.FIXTURES = [
   {
     id: 1,
     index: 'indx1',
-    disaplyName: 'Index 1',
+    displayName: 'Index 1',
     components: [1, 2],
     configs: {
       c1: 'v1',
@@ -54,7 +54,7 @@ App.SliderAppType.FIXTURES = [
   {
     id: 2,
     index: 'indx2',
-    disaplyName: 'Index 2',
+    displayName: 'Index 2',
     components: [2, 4, 5],
     configs: {
       c1: 'v2',
@@ -64,7 +64,7 @@ App.SliderAppType.FIXTURES = [
   {
     id: 3,
     index: 'indx3',
-    disaplyName: 'Index 3',
+    displayName: 'Index 3',
     components: [1, 2, 4],
     configs: {
       c1: 'v3',
@@ -74,7 +74,7 @@ App.SliderAppType.FIXTURES = [
   {
     id: 4,
     index: 'indx4',
-    disaplyName: 'Index 4',
+    displayName: 'Index 4',
     components: [5],
     configs: {
       c1: 'v4',
@@ -84,7 +84,7 @@ App.SliderAppType.FIXTURES = [
   {
     id: 5,
     index: 'indx5',
-    disaplyName: 'Index 5',
+    displayName: 'Index 5',
     components: [1, 2, 3, 4, 5],
     configs: {
       c1: 'v5',

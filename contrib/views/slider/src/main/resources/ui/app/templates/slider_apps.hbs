@@ -18,9 +18,6 @@
 
 <div id="slider-apps-table">
   <div class="box-header row">
-    <div class="pull-left">
-      <h1>{{t slider.apps.title}}</h1>
-    </div>
     <div class="pull-right create-app">
       <a href="#" class="btn btn-inverse" {{action createApp}}>
         <i class="icon-plus"></i><span>&nbsp;{{t slider.apps.create}}</span>
@@ -51,11 +48,15 @@
       {{#each slider in view.pageContent}}
         {{#view view.SliderView contentBinding="slider"}}
 
-          <td><a href="#">{{slider.name}}</a></td>
+          <td>
+            {{#link-to 'slider_app' slider}}
+              {{slider.name}}
+            {{/link-to}}
+          </td>
 
           <td>{{slider.status}}</td>
 
-          <td>{{slider.appType}}</td>
+          <td>{{slider.appType.displayName}}</td>
 
           <td>{{slider.user}}</td>
 
