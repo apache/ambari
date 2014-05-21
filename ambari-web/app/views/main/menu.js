@@ -31,32 +31,41 @@ App.MainMenuView = Em.CollectionView.extend({
   }.property('App.ClusterController.ambariViews'),
 
   content:function(){
-    var result = [
-      { label:Em.I18n.t('menu.item.dashboard'), routing:'dashboard', active:'active'},
-      { label:Em.I18n.t('menu.item.services'), routing:'services'},
-      { label:Em.I18n.t('menu.item.hosts'), routing:'hosts'}
-    ];
+    var result = [];
+    if (App.router.get('loggedIn')) {
 
-    if (App.supports.mirroring && App.Service.find().findProperty('serviceName', 'FALCON')) {
-      result.push({ label:Em.I18n.t('menu.item.mirroring'), routing:'mirroring'});
-    }
+      if (App.router.get('clusterController.isLoaded')) {
 
-    if (!App.get('isHadoop2Stack')) {
-      result.push({ label:Em.I18n.t('menu.item.jobs'), routing:'apps'});
-    } else if( App.router.get('mainAdminController.isAccessAvailable') && App.supports.jobs
-      && (App.router.get('mainAdminAccessController.showJobs') || App.get('isAdmin'))) {
-      result.push({ label:Em.I18n.t('menu.item.jobs'), routing:'jobs'});
-    }
+        result.push(
+          { label:Em.I18n.t('menu.item.dashboard'), routing:'dashboard', active:'active'},
+          { label:Em.I18n.t('menu.item.services'), routing:'services'},
+          { label:Em.I18n.t('menu.item.hosts'), routing:'hosts'}
+        );
 
-    if (App.get('isAdmin')) {
-      result.push({ label:Em.I18n.t('menu.item.admin'), routing:'admin'});
-    }
+        if (App.supports.mirroring && App.Service.find().findProperty('serviceName', 'FALCON')) {
+          result.push({ label:Em.I18n.t('menu.item.mirroring'), routing:'mirroring'});
+        }
 
-    if (App.supports.views) {
-      result.push({ label:Em.I18n.t('menu.item.views'), routing:'views', isView:true, views: this.get('views')});
+        if (!App.get('isHadoop2Stack')) {
+          result.push({ label:Em.I18n.t('menu.item.jobs'), routing:'apps'});
+        } else if( App.router.get('mainAdminController.isAccessAvailable') && App.supports.jobs
+          && (App.router.get('mainAdminAccessController.showJobs') || App.get('isAdmin'))) {
+          result.push({ label:Em.I18n.t('menu.item.jobs'), routing:'jobs'});
+        }
+
+        if (App.get('isAdmin')) {
+          result.push({ label:Em.I18n.t('menu.item.admin'), routing:'admin'});
+        }
+
+      }
+
+      if (App.supports.views) {
+        result.push({ label:Em.I18n.t('menu.item.views'), routing:'views', isView:true, views: this.get('views')});
+      }
+
     }
     return result;
-  }.property('App.supports.views', 'App.supports.mirroring', 'App.supports.secureCluster', 'App.supports.highAvailability', 'App.supports.jobs'),
+  }.property('App.router.loggedIn', 'App.router.clusterController.isLoaded', 'App.supports.views', 'App.supports.mirroring', 'App.supports.secureCluster', 'App.supports.highAvailability', 'App.supports.jobs'),
 
     /**
      *    Adds observer on lastSetURL and calls navigation sync procedure
