@@ -833,6 +833,8 @@ App.WizardStep9Controller = Em.Controller.extend({
       var task = host.logTasks.findProperty('Tasks.id', _task.Tasks.id);
       if (task) {
         task.Tasks.status = _task.Tasks.status;
+        task.Tasks.start_time = _task.Tasks.start_time;
+        task.Tasks.end_time = _task.Tasks.end_time;
         task.Tasks.exit_code = _task.Tasks.exit_code;
       } else {
         host.logTasks.pushObject(_task);
