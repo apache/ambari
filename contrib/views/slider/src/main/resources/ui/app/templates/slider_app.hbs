@@ -15,10 +15,27 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-
-{{#link-to 'slider_apps'}}
-  {{t slider.apps.title}}
-{{/link-to}}
-  &rarr;
-{{model.name}}
-
+<div class="app-page">
+  <div>
+    {{#link-to 'slider_apps'}}
+      {{t slider.apps.title}}
+    {{/link-to}}
+      &rarr;
+    {{model.name}}
+  </div>
+  <div class="wrap-tabs">
+    <ul class="nav nav-tabs"></ul>
+    <div class="span3 quick-links-wrapper">
+      <ul class="nav nav-pills move">
+        <li class="dropdown">
+          <a class="dropdown-toggle" data-toggle="dropdown" href="#">{{t common.quickLinks}}<b class="caret"></b></a>
+          <ul class="dropdown-menu">
+            {{#each quickLink in controller.quickLinks}}
+                <li><a {{bind-attr href="quickLink.url"}} target="_blank">{{quickLink.label}}</a></li>
+            {{/each}}
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>

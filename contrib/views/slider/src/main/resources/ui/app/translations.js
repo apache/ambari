@@ -22,7 +22,8 @@ Em.I18n.translations = {
   'common' : {
     'show': "Show",
     'name': "Name",
-    'next': "Next"
+    'next': "Next",
+    'quickLinks': "Quick Links"
   },
   'tableView.filters.all': 'All',
   'tableView.filters.filtered': 'Filtered',

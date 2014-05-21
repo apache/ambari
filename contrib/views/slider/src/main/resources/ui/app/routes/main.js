@@ -18,6 +18,10 @@
 
 App.IndexRoute = Ember.Route.extend({
 
+  model: function () {
+    return this.modelFor('sliderApps');
+  },
+
   redirect: function () {
     this.transitionTo('slider_apps');
   }
@@ -35,14 +39,6 @@ App.SliderAppsRoute = Ember.Route.extend({
       this.transitionTo('createAppWizard');
     }
   }
-});
-
-App.SliderAppsIndexRoute = Ember.Route.extend({
-
-  model: function () {
-    return this.modelFor('sliderApps');
-  }
-
 });
 
 App.SliderAppRoute = Ember.Route.extend({

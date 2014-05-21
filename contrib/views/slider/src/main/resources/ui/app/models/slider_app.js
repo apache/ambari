@@ -66,17 +66,17 @@ App.SliderApp = DS.Model.extend({
   /**
    * @type {App.SliderAppComponent[]}
    */
-  components: DS.hasMany('sliderAppComponent'),
+  components: DS.hasMany('sliderAppComponent', {async:true}),
 
   /**
    * @type {App.QuickLink[]}
    */
-  quickLinks: DS.hasMany('quickLink'),
+  quickLinks: DS.hasMany('quickLink', {async:true}),
 
   /**
    * @type {App.TypedProperty[]}
    */
-  runtimeProperties: DS.hasMany('typedProperty')
+  runtimeProperties: DS.hasMany('typedProperty', {async:true})
 });
 
 App.SliderApp.FIXTURES = [
@@ -92,7 +92,7 @@ App.SliderApp.FIXTURES = [
     appType: 1,
     diagnostics: 'd1',
     components: [3, 4, 5],
-    quickLinks: [1, 2],
+    quickLinks: [1, 2, 6],
     runtimeProperties: [1, 2, 3]
   },
   {
@@ -107,7 +107,7 @@ App.SliderApp.FIXTURES = [
     appType: 2,
     diagnostics: 'd2',
     components: [1, 3],
-    quickLinks: [4, 5],
+    quickLinks: [4, 5, 6],
     runtimeProperties: [3, 4]
   },
   {
@@ -122,7 +122,7 @@ App.SliderApp.FIXTURES = [
     appType: 3,
     diagnostics: 'd3',
     components: [1],
-    quickLinks: [1, 2, 4, 5],
+    quickLinks: [1, 2, 4, 5, 6],
     runtimeProperties: [2, 3]
   },
   {
@@ -137,7 +137,7 @@ App.SliderApp.FIXTURES = [
     appType: 4,
     diagnostics: 'd4',
     components: [1, 2, 3, 4, 5],
-    quickLinks: [4],
+    quickLinks: [4, 6],
     runtimeProperties: [1, 2, 3, 4, 5]
   },
   {
@@ -152,7 +152,7 @@ App.SliderApp.FIXTURES = [
     appType: 5,
     diagnostics: 'd5',
     components: [2, 5],
-    quickLinks: [3, 4],
+    quickLinks: [3, 4, 6],
     runtimeProperties: [1, 2, 3]
   }
 ];
