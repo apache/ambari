@@ -122,6 +122,7 @@ module.exports = [
     defaultsProviders: [App.HiveDefaultsProvider.create()],
     configCategories: [
       App.ServiceConfigCategory.create({ name: 'Hive Metastore', displayName : 'Hive Metastore'}),
+      App.ServiceConfigCategory.create({ name: 'General', displayName : 'General'}),
       App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'}),
       App.ServiceConfigCategory.create({ name: 'AdvancedHiveSite', displayName : 'Custom hive-site.xml', siteFileName: 'hive-site.xml', canAddProperty: true}),
       App.ServiceConfigCategory.create({ name: 'AdvancedHiveLog4j', displayName : 'Custom log4j.properties', siteFileName: 'hive-log4j.xml', canAddProperty: false}),

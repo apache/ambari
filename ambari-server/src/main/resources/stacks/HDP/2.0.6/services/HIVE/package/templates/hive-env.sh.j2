@@ -54,7 +54,7 @@
 
 # The heap size of the jvm stared by hive shell script can be controlled via:
 
-export HADOOP_HEAPSIZE="{{hadoop_heapsize}}"
+export HADOOP_HEAPSIZE="{{hive_heapsize}}"
 export HADOOP_CLIENT_OPTS="-Xmx${HADOOP_HEAPSIZE}m $HADOOP_CLIENT_OPTS"
 
 # Larger heap size may be required when running queries over large number of files or partitions.

@@ -431,6 +431,19 @@ module.exports =
     },
     {
       "id": "site property",
+      "name": "hive.heapsize",
+      "displayName": "Hive heap size",
+      "description": "Maximum Java heap size for HIVE service (Java option -Xmx)",
+      "defaultValue": "1024",
+      "displayType": "int",
+      "unit": "MB",
+      "isOverridable": false,
+      "serviceName": "HIVE",
+      "category": "General",
+      "index": 9
+    },
+    {
+      "id": "site property",
       "name": "javax.jdo.option.ConnectionUserName",
       "displayName": "Database Username",
       "displayType": "host",

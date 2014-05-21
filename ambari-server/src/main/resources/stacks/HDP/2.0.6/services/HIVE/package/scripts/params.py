@@ -102,6 +102,7 @@ start_metastore_path = "/tmp/start_metastore_script"
 
 hive_aux_jars_path = config['configurations']['global']['hive_aux_jars_path']
 hadoop_heapsize = config['configurations']['global']['hadoop_heapsize']
+hive_heapsize = config['configurations']['hive-site']['hive.heapsize']
 java64_home = config['hostLevelParams']['java_home']
 
 ##### MYSQL
