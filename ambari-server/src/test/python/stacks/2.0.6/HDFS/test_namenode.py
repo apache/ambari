@@ -370,6 +370,24 @@ class TestNamenode(RMFTestCase):
                               only_if = "su - hdfs -c 'hdfs haadmin -getServiceState nn1 | grep active > /dev/null'",
                               )
     self.assertNoMoreResources()
+    
+  def test_decommission_ha(self):
+    self.executeScript("2.0.6/services/HDFS/package/scripts/namenode.py",
+                       classname = "NameNode",
+                       command = "decommission",
+                       config_file="ha_default.json"
+    )
+    self.assertResourceCalled('File', '/etc/hadoop/conf/dfs.exclude',
+                              owner = 'hdfs',
+                              content = Template('exclude_hosts_list.j2'),
+                              group = 'hadoop',
+                              )
+    self.assertResourceCalled('Execute', '', user = 'hdfs')
+    self.assertResourceCalled('ExecuteHadoop', 'dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -refreshNodes', 
+                              user = 'hdfs', 
+                              conf_dir = '/etc/hadoop/conf', 
+                              kinit_override = True)
+    self.assertNoMoreResources()    
 
   def assert_configure_default(self):
     self.assertResourceCalled('File', '/etc/security/limits.d/hdfs.conf',
