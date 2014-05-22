@@ -18,6 +18,10 @@
 
 package org.apache.ambari.view.slider;
 
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -27,49 +31,75 @@ import org.apache.ambari.view.ResourceAlreadyExistsException;
 import org.apache.ambari.view.ResourceProvider;
 import org.apache.ambari.view.SystemException;
 import org.apache.ambari.view.UnsupportedPropertyException;
+import org.apache.hadoop.yarn.exceptions.YarnException;
+import org.apache.log4j.Logger;
 
 import com.google.inject.Inject;
 
 public class SliderAppsResourceProvider implements ResourceProvider<SliderApp> {
 
+	private static final Logger logger = Logger
+	    .getLogger(SliderAppsResourceProvider.class);
 	@Inject
-	SliderAppsViewController sliderController;
+	private SliderAppsViewController sliderController;
 
 	@Override
-  public void createResource(String resourceId, Map<String, Object> properties)
-      throws SystemException, ResourceAlreadyExistsException,
-      NoSuchResourceException, UnsupportedPropertyException {
-	  // TODO Auto-generated method stub
-  }
+	public void createResource(String resourceId, Map<String, Object> properties)
+	    throws SystemException, ResourceAlreadyExistsException,
+	    NoSuchResourceException, UnsupportedPropertyException {
+		// TODO Auto-generated method stub
+	}
 
 	@Override
-  public boolean deleteResource(String resourceId) throws SystemException,
-      NoSuchResourceException, UnsupportedPropertyException {
-	  // TODO Auto-generated method stub
-	  return false;
-  }
+	public boolean deleteResource(String resourceId) throws SystemException,
+	    NoSuchResourceException, UnsupportedPropertyException {
+		// TODO Auto-generated method stub
+		return false;
+	}
 
 	@Override
-  public SliderApp getResource(String resourceId, Set<String> properties)
-      throws SystemException, NoSuchResourceException,
-      UnsupportedPropertyException {
-	  // TODO Auto-generated method stub
-	  return null;
-  }
+	public SliderApp getResource(String resourceId, Set<String> properties)
+	    throws SystemException, NoSuchResourceException,
+	    UnsupportedPropertyException {
+		try {
+			SliderApp sliderApp = sliderController.getSliderApp(resourceId);
+			if (sliderApp == null)
+				throw new NoSuchResourceException(resourceId);
+			return sliderApp;
+		} catch (YarnException e) {
+			logger.warn("Unable to determine Slider app with id " + resourceId, e);
+			throw new SystemException(e.getMessage(), e);
+		} catch (IOException e) {
+			logger.warn("Unable to determine Slider app with id " + resourceId, e);
+			throw new SystemException(e.getMessage(), e);
+		}
+	}
 
 	@Override
-  public Set<SliderApp> getResources(ReadRequest request) throws SystemException,
-      NoSuchResourceException, UnsupportedPropertyException {
-	  // TODO Auto-generated method stub
-	  return null;
-  }
+	public Set<SliderApp> getResources(ReadRequest request)
+	    throws SystemException, NoSuchResourceException,
+	    UnsupportedPropertyException {
+		Set<SliderApp> appSet = new HashSet<SliderApp>();
+		try {
+			List<SliderApp> sliderApps = sliderController.getSliderApps();
+			for (SliderApp app : sliderApps)
+				appSet.add(app);
+		} catch (YarnException e) {
+			logger.warn("Unable to determine Slider apps", e);
+			throw new SystemException(e.getMessage(), e);
+		} catch (IOException e) {
+			logger.warn("Unable to determine Slider apps", e);
+			throw new SystemException(e.getMessage(), e);
+		}
+		return appSet;
+	}
 
 	@Override
-  public boolean updateResource(String resourceId, Map<String, Object> properties)
-      throws SystemException, NoSuchResourceException,
-      UnsupportedPropertyException {
-	  // TODO Auto-generated method stub
-	  return false;
-  }
+	public boolean updateResource(String resourceId,
+	    Map<String, Object> properties) throws SystemException,
+	    NoSuchResourceException, UnsupportedPropertyException {
+		// TODO Auto-generated method stub
+		return false;
+	}
 
 }

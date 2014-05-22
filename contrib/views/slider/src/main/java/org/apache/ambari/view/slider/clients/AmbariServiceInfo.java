@@ -22,6 +22,7 @@ public class AmbariServiceInfo {
 
 	private String id;
 	private boolean started;
+	private boolean maintenanceMode;
 
 	public String getId() {
 		return id;
@@ -37,6 +38,14 @@ public class AmbariServiceInfo {
 
 	public void setStarted(boolean started) {
 	  this.started = started;
+  }
+
+	public boolean isMaintenanceMode() {
+	  return maintenanceMode;
+  }
+
+	public void setMaintenanceMode(boolean maintenanceMode) {
+	  this.maintenanceMode = maintenanceMode;
   }
 
 }

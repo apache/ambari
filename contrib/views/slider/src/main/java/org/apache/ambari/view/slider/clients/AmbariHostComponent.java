@@ -16,21 +16,34 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.view.slider;
+package org.apache.ambari.view.slider.clients;
 
-import java.io.IOException;
-import java.util.List;
+public class AmbariHostComponent {
+	private String name;
+	private boolean started;
+	private String hostName;
 
-import org.apache.hadoop.yarn.exceptions.YarnException;
+	public String getName() {
+		return name;
+	}
 
-import com.google.inject.ImplementedBy;
+	public void setName(String name) {
+		this.name = name;
+	}
 
-@ImplementedBy(SliderAppsViewControllerImpl.class)
-public interface SliderAppsViewController {
+	public String getHostName() {
+		return hostName;
+	}
 
-	public ViewStatus getViewStatus();
+	public void setHostName(String hostName) {
+		this.hostName = hostName;
+	}
 
-	public SliderApp getSliderApp(String applicationId) throws YarnException, IOException;
+	public boolean isStarted() {
+		return started;
+	}
 
-	public List<SliderApp> getSliderApps() throws YarnException, IOException;
+	public void setStarted(boolean started) {
+		this.started = started;
+	}
 }

@@ -18,6 +18,7 @@
 
 package org.apache.ambari.view.slider;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -26,8 +27,17 @@ import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.slider.clients.AmbariClient;
 import org.apache.ambari.view.slider.clients.AmbariCluster;
 import org.apache.ambari.view.slider.clients.AmbariClusterInfo;
+import org.apache.ambari.view.slider.clients.AmbariHostComponent;
+import org.apache.ambari.view.slider.clients.AmbariService;
 import org.apache.ambari.view.slider.clients.AmbariServiceInfo;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hdfs.HdfsConfiguration;
+import org.apache.hadoop.yarn.api.records.ApplicationId;
+import org.apache.hadoop.yarn.api.records.ApplicationReport;
+import org.apache.hadoop.yarn.conf.YarnConfiguration;
+import org.apache.hadoop.yarn.exceptions.YarnException;
 import org.apache.log4j.Logger;
+import org.apache.slider.client.SliderClient;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -119,16 +129,147 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
 		return status;
 	}
 
-	@Override
-	public SliderApp getSliderApp(String applicationId) {
-		// TODO Auto-generated method stub
+	private AmbariCluster getAmbariCluster() {
+		AmbariClusterInfo clusterInfo = ambariClient.getClusterInfo();
+		if (clusterInfo != null)
+			return ambariClient.getCluster(clusterInfo);
 		return null;
 	}
 
 	@Override
-	public List<SliderApp> getSliderApps() {
-		// TODO Auto-generated method stub
+	public SliderApp getSliderApp(String applicationId) throws YarnException,
+	    IOException {
+		if (applicationId != null) {
+			int index = applicationId.indexOf('_');
+			if (index > -1 && index < applicationId.length() - 1) {
+				ApplicationId appId = ApplicationId.newInstance(
+				    Long.parseLong(applicationId.substring(0, index)),
+				    Integer.parseInt(applicationId.substring(index + 1)));
+				ClassLoader currentClassLoader = Thread.currentThread()
+				    .getContextClassLoader();
+				Thread.currentThread().setContextClassLoader(
+				    getClass().getClassLoader());
+				try {
+					ApplicationReport yarnApp = getSliderClient().getApplicationReport(
+					    appId);
+					return mapToSliderApp(yarnApp);
+				} finally {
+					Thread.currentThread().setContextClassLoader(currentClassLoader);
+				}
+			}
+		}
 		return null;
 	}
 
+	private SliderApp mapToSliderApp(ApplicationReport yarnApp) {
+		if (yarnApp == null)
+			return null;
+		SliderApp app = new SliderApp();
+		app.setId(Long.toString(yarnApp.getApplicationId().getClusterTimestamp())
+		    + "_" + Integer.toString(yarnApp.getApplicationId().getId()));
+		app.setName(yarnApp.getName());
+		app.setUser(yarnApp.getUser());
+		app.setState(yarnApp.getYarnApplicationState().name());
+		app.setDiagnostics(yarnApp.getDiagnostics());
+		app.setYarnId(yarnApp.getApplicationId().toString());
+		app.setType(yarnApp.getApplicationType());
+		app.setStartTime(yarnApp.getStartTime());
+		app.setEndTime(yarnApp.getFinishTime());
+		return app;
+	}
+
+	/**
+	 * Creates a new {@link SliderClient} initialized with appropriate
+	 * configuration. If configuration was not determined, <code>null</code> is
+	 * returned.
+	 * 
+	 * @return
+	 */
+	protected SliderClient getSliderClient() {
+		Configuration sliderClientConfiguration = getSliderClientConfiguration();
+		if (sliderClientConfiguration != null) {
+			SliderClient client = new SliderClient();
+			try {
+				sliderClientConfiguration = client.bindArgs(sliderClientConfiguration,
+				    new String[] { "usage" });
+			} catch (Exception e) {
+				logger.warn("Unable to set SliderClient configs", e);
+				throw new RuntimeException(e.getMessage(), e);
+			}
+			client.init(sliderClientConfiguration);
+			client.start();
+			return client;
+		}
+		return null;
+	}
+
+	/**
+	 * Dynamically determines Slider client configuration. If unable to determine,
+	 * <code>null</code> is returned.
+	 * 
+	 * @return
+	 */
+	private Configuration getSliderClientConfiguration() {
+		AmbariCluster ambariCluster = getAmbariCluster();
+		if (ambariCluster != null) {
+			AmbariService zkService = ambariClient.getService(ambariCluster,
+			    "ZOOKEEPER");
+			if (zkService != null && ambariCluster.getDesiredConfigs() != null
+			    && ambariCluster.getDesiredConfigs().containsKey("global")
+			    && ambariCluster.getDesiredConfigs().containsKey("yarn-site")
+			    && ambariCluster.getDesiredConfigs().containsKey("core-site")) {
+				Map<String, String> globalConfigs = ambariClient.getConfiguration(
+				    ambariCluster, "global",
+				    ambariCluster.getDesiredConfigs().get("yarn-site"));
+				Map<String, String> yarnSiteConfigs = ambariClient.getConfiguration(
+				    ambariCluster, "yarn-site",
+				    ambariCluster.getDesiredConfigs().get("yarn-site"));
+				Map<String, String> coreSiteConfigs = ambariClient.getConfiguration(
+				    ambariCluster, "core-site",
+				    ambariCluster.getDesiredConfigs().get("core-site"));
+				String zkPort = globalConfigs.get("clientPort");
+				String hdfsPath = coreSiteConfigs.get("fs.defaultFS");
+				String rmAddress = yarnSiteConfigs.get("yarn.resourcemanager.address");
+				String rmSchedulerAddress = yarnSiteConfigs
+				    .get("yarn.resourcemanager.scheduler.address");
+				StringBuilder zkQuorum = new StringBuilder();
+				List<AmbariHostComponent> zkHosts = zkService
+				    .getComponentsToHostComponentsMap().get("ZOOKEEPER_SERVER");
+				for (AmbariHostComponent zkHost : zkHosts) {
+					if (zkQuorum.length() > 0)
+						zkQuorum.append(',');
+					zkQuorum.append(zkHost.getHostName() + ":" + zkPort);
+				}
+				HdfsConfiguration hdfsConfig = new HdfsConfiguration();
+				YarnConfiguration yarnConfig = new YarnConfiguration(hdfsConfig);
+
+				yarnConfig.set("slider.yarn.queue", "default");
+				yarnConfig.set("yarn.log-aggregation-enable", "true");
+				yarnConfig.set("yarn.resourcemanager.address", rmAddress);
+				yarnConfig.set("yarn.resourcemanager.scheduler.address",
+				    rmSchedulerAddress);
+				yarnConfig.set("fs.defaultFS", hdfsPath);
+				yarnConfig.set("slider.zookeeper.quorum", zkQuorum.toString());
+				return yarnConfig;
+			}
+		}
+		return null;
+	}
+
+	@Override
+	public List<SliderApp> getSliderApps() throws YarnException, IOException {
+		List<SliderApp> sliderApps = new ArrayList<SliderApp>();
+		ClassLoader currentClassLoader = Thread.currentThread()
+		    .getContextClassLoader();
+		Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
+		try {
+			List<ApplicationReport> yarnApps = getSliderClient().getApplications();
+			for (ApplicationReport yarnApp : yarnApps) {
+				sliderApps.add(mapToSliderApp(yarnApp));
+			}
+		} finally {
+			Thread.currentThread().setContextClassLoader(currentClassLoader);
+		}
+		return sliderApps;
+	}
 }

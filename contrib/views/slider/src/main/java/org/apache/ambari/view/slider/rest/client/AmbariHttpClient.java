@@ -28,6 +28,7 @@ import org.apache.ambari.view.slider.clients.AmbariClient;
 import org.apache.ambari.view.slider.clients.AmbariCluster;
 import org.apache.ambari.view.slider.clients.AmbariClusterInfo;
 import org.apache.ambari.view.slider.clients.AmbariHostInfo;
+import org.apache.ambari.view.slider.clients.AmbariService;
 import org.apache.ambari.view.slider.clients.AmbariServiceInfo;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.log4j.Logger;
@@ -46,7 +47,7 @@ public class AmbariHttpClient extends BaseHttpClient implements AmbariClient {
 
 	/**
 	 * Provides the first cluster defined on this Ambari server.
-	 *
+	 * 
 	 * @return
 	 */
 	public AmbariClusterInfo getClusterInfo() {
@@ -137,6 +138,12 @@ public class AmbariHttpClient extends BaseHttpClient implements AmbariClient {
 				throw new RuntimeException(e.getMessage(), e);
 			}
 		}
+		return null;
+	}
+
+	@Override
+	public AmbariService getService(AmbariClusterInfo cluster, String serviceId) {
+		// TODO Auto-generated method stub
 		return null;
 	}
 

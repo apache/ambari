@@ -24,9 +24,6 @@ import com.google.inject.ImplementedBy;
 
 @ImplementedBy(AmbariInternalClient.class)
 public interface AmbariClient {
-
-	public AmbariCluster getCluster(AmbariClusterInfo clusterInfo);
-
 	/**
 	 * Provides the first cluster defined on this Ambari server.
 	 * 
@@ -34,6 +31,31 @@ public interface AmbariClient {
 	 */
 	public AmbariClusterInfo getClusterInfo();
 
+	/**
+	 * Provides detailed information about the given cluster.
+	 * 
+	 * @param clusterInfo
+	 * @return
+	 */
+	public AmbariCluster getCluster(AmbariClusterInfo clusterInfo);
+
+	/**
+	 * Provides configs identified by type and tag on given cluster.
+	 * 
+	 * @param cluster
+	 * @param configType
+	 * @param configTag
+	 * @return
+	 */
 	public Map<String, String> getConfiguration(AmbariClusterInfo cluster,
 	    String configType, String configTag);
+
+	/**
+	 * Provides detailed information about the given service.
+	 * 
+	 * @param cluster
+	 * @param serviceId
+	 * @return
+	 */
+	public AmbariService getService(AmbariClusterInfo cluster, String serviceId);
 }

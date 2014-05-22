@@ -91,6 +91,8 @@ public class AmbariInternalClient implements AmbariClient {
 					    "ServiceInfo/service_name").toString());
 					service.setStarted(State.STARTED.toString().equals(
 					    serviceResource.getPropertyValue("ServiceInfo/state")));
+					service.setMaintenanceMode("ON".equals(serviceResource
+					    .getPropertyValue("ServiceInfo/maintenance_state")));
 					servicesList.add(service);
 				}
 				for (Resource hostResource : hostResources) {
@@ -206,4 +208,85 @@ public class AmbariInternalClient implements AmbariClient {
 		return null;
 	}
 
+	@Override
+	public AmbariService getService(AmbariClusterInfo clusterInfo,
+	    String serviceId) {
+		ClusterController clusterController = ClusterControllerHelper
+		    .getClusterController();
+		try {
+			EqualsPredicate<String> clusterPredicate = new EqualsPredicate<String>(
+			    "ServiceInfo/cluster_name", clusterInfo.getName());
+			EqualsPredicate<String> servicePredicate = new EqualsPredicate<String>(
+			    "ServiceInfo/service_name", serviceId);
+			AndPredicate andPredicate = new AndPredicate(clusterPredicate,
+			    servicePredicate);
+			Set<Resource> serviceResources = clusterController.getResources(
+			    Resource.Type.Service, PropertyHelper.getReadRequest(), andPredicate);
+			if (!serviceResources.isEmpty()) {
+				Resource serviceResource = serviceResources.iterator().next();
+				AmbariService service = new AmbariService();
+				service.setId(serviceResource.getPropertyValue(
+				    "ServiceInfo/service_name").toString());
+				service.setStarted(State.STARTED.toString().equals(
+				    serviceResource.getPropertyValue("ServiceInfo/state")));
+				service.setMaintenanceMode("ON".equals(serviceResource
+				    .getPropertyValue("ServiceInfo/maintenance_state")));
+				// Components
+				Map<String, List<AmbariHostComponent>> componentsMap = new HashMap<String, List<AmbariHostComponent>>();
+				service.setComponentsToHostComponentsMap(componentsMap);
+				clusterPredicate = new EqualsPredicate<String>(
+				    "ServiceComponentInfo/cluster_name", clusterInfo.getName());
+				servicePredicate = new EqualsPredicate<String>(
+				    "ServiceComponentInfo/service_name", serviceId);
+				andPredicate = new AndPredicate(clusterPredicate, servicePredicate);
+				Set<Resource> componentResources = clusterController.getResources(
+				    Resource.Type.Component, PropertyHelper.getReadRequest(),
+				    andPredicate);
+				if (!componentResources.isEmpty()) {
+					for (Resource componentResouce : componentResources) {
+						List<AmbariHostComponent> hostComponents = new ArrayList<AmbariHostComponent>();
+						String componentName = componentResouce.getPropertyValue(
+						    "ServiceComponentInfo/component_name").toString();
+						componentsMap.put(componentName, hostComponents);
+						clusterPredicate = new EqualsPredicate<String>(
+						    "HostRoles/cluster_name", clusterInfo.getName());
+						EqualsPredicate<String> componentPredicate = new EqualsPredicate<String>(
+						    "HostRoles/component_name", componentName);
+						andPredicate = new AndPredicate(clusterPredicate,
+						    componentPredicate);
+						Set<Resource> hostComponentResources = clusterController
+						    .getResources(Resource.Type.HostComponent,
+						        PropertyHelper.getReadRequest(), andPredicate);
+						if (!hostComponentResources.isEmpty()) {
+							for (Resource hostComponentResource : hostComponentResources) {
+								AmbariHostComponent hc = new AmbariHostComponent();
+								hc.setHostName(hostComponentResource.getPropertyValue(
+								    "HostRoles/host_name").toString());
+								hc.setName(hostComponentResource.getPropertyValue(
+								    "HostRoles/component_name").toString());
+								hc.setStarted(State.STARTED.toString().equals(
+								    hostComponentResource.getPropertyValue("HostRoles/state")
+								        .toString()));
+								hostComponents.add(hc);
+							}
+						}
+					}
+				}
+				return service;
+			}
+		} catch (UnsupportedPropertyException e) {
+			logger.warn("Unable to determine service details - " + serviceId, e);
+			throw new RuntimeException(e.getMessage(), e);
+		} catch (NoSuchResourceException e) {
+			logger.warn("Unable to determine service details - " + serviceId, e);
+			throw new RuntimeException(e.getMessage(), e);
+		} catch (NoSuchParentResourceException e) {
+			logger.warn("Unable to determine service details - " + serviceId, e);
+			throw new RuntimeException(e.getMessage(), e);
+		} catch (SystemException e) {
+			logger.warn("Unable to determine service details - " + serviceId, e);
+			throw new RuntimeException(e.getMessage(), e);
+		}
+		return null;
+	}
 }

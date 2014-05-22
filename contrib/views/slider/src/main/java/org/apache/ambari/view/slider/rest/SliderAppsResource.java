@@ -18,13 +18,37 @@
 
 package org.apache.ambari.view.slider.rest;
 
-import org.apache.ambari.view.slider.SliderAppsResourceProvider;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
+
+import org.apache.ambari.view.ViewResourceHandler;
 
 import com.google.inject.Inject;
 
 public class SliderAppsResource {
 
 	@Inject
-	SliderAppsResourceProvider resourceHandler;
+	ViewResourceHandler resourceHandler;
+
+	@GET
+	@Produces({ MediaType.TEXT_PLAIN, MediaType.APPLICATION_JSON })
+	public Response getApps(@Context HttpHeaders headers, @Context UriInfo uri) {
+		return resourceHandler.handleRequest(headers, uri, null);
+	}
+
+	@GET
+	@Path("{appId}")
+	@Produces({ MediaType.TEXT_PLAIN, MediaType.APPLICATION_JSON })
+	public Response getApp(@Context HttpHeaders headers, @Context UriInfo uri,
+	    @PathParam("appId") String appId) {
+		return resourceHandler.handleRequest(headers, uri, appId);
+	}
 
 }

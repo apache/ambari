@@ -16,21 +16,21 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.view.slider;
+package org.apache.ambari.view.slider.clients;
 
-import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
-import org.apache.hadoop.yarn.exceptions.YarnException;
+public class AmbariService extends AmbariServiceInfo {
 
-import com.google.inject.ImplementedBy;
+	private Map<String, List<AmbariHostComponent>> componentsToHostComponentsMap;
 
-@ImplementedBy(SliderAppsViewControllerImpl.class)
-public interface SliderAppsViewController {
+	public Map<String, List<AmbariHostComponent>> getComponentsToHostComponentsMap() {
+		return componentsToHostComponentsMap;
+	}
 
-	public ViewStatus getViewStatus();
-
-	public SliderApp getSliderApp(String applicationId) throws YarnException, IOException;
-
-	public List<SliderApp> getSliderApps() throws YarnException, IOException;
+	public void setComponentsToHostComponentsMap(
+	    Map<String, List<AmbariHostComponent>> componentsToHostComponentsMap) {
+		this.componentsToHostComponentsMap = componentsToHostComponentsMap;
+	}
 }
