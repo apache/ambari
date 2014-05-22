@@ -33,6 +33,9 @@ exports.config = {
           'vendor/scripts/common/handlebars.js',
           'vendor/scripts/development/ember.js',
           'vendor/scripts/production/ember-data.js',
+          'vendor/scripts/common/bs-core.min.js',
+          'vendor/scripts/common/bs-nav.min.js',
+          'vendor/scripts/common/bs-basic.min.js',
           'vendor/scripts/common/ember-i18n-1.4.1.js',
           'vendor/scripts/common/bootstrap.js'
         ]
@@ -75,6 +78,9 @@ exports.config = {
               'vendor/scripts/common/handlebars.js',
               'vendor/scripts/production/ember.js',
               'vendor/scripts/production/ember-data.js',
+              'vendor/scripts/common/bs-core.min.js',
+              'vendor/scripts/common/bs-nav.min.js',
+              'vendor/scripts/common/bs-basic.min.js',
               'vendor/scripts/common/ember-i18n-1.4.1.js',
               'vendor/scripts/common/bootstrap.js'
             ]

@@ -15,17 +15,17 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-<div class="modal" id="createAppWizard">
-  <div class="modal-header">
+<div class="slider-modal" id="createAppWizard">
+  <div class="slider-modal-header">
     <button type="button" class="close" {{action hide target="view"}}>&times;</button>
     <h3 id="myModalLabel">{{t wizard.name}}</h3>
   </div>
-  <div class="modal-body">
+  <div class="slider-modal-body">
     <div class="wizard">
       <div class="container">
         <div class="container-fluid">
           <div class="row-fluid">
-            <div class="span3">
+            <div class="col-md-3">
               <div class="well">
                 <ul class="nav nav-pills nav-stacked">
                   <li {{bind-attr class="view.isStep1:active view.isStep1Disabled:disabled"}}><a href="javascript:void(null);" {{action gotoStep 1 target="controller"}}>{{t wizard.step1.name}}</a></li>
@@ -35,7 +35,7 @@
                 </ul>
               </div>
             </div>
-            <div class="wizard-content well span9">
+            <div class="wizard-content well col-md-9">
               {{outlet}}
             </div>
           </div>

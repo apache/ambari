@@ -19,12 +19,24 @@
 
 Em.I18n.translations = {
 
+  'ok': 'OK',
+
   'common' : {
-    'show': "Show",
+    'show': 'Show',
+    'actions': 'Actions',
+    'cancel': 'Cancel',
     'name': "Name",
+    'value': "Value",
     'next': "Next",
-    'quickLinks': "Quick Links"
+    'quickLinks': "Quick Links",
+    'summary': 'Summary',
+    'configs': 'Configs',
+    'metrics': 'Metrics'
   },
+
+  'popup.confirmation.commonHeader': 'Confirmation',
+  'question.sure':'Are you sure?',
+
   'tableView.filters.all': 'All',
   'tableView.filters.filtered': 'Filtered',
   'tableView.filters.clearFilters': 'Clear filters',

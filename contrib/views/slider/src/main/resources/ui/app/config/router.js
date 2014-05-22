@@ -27,6 +27,9 @@ module.exports = App.Router.map(function () {
       this.route('step4');
     });
   });
-  this.resource('slider_app', { path: 'apps/:slider_app_id' });
+  this.resource('slider_app', { path: 'apps/:slider_app_id' }, function() {
+    this.route('configs');
+    this.route('summary');
+  });
 });
 

@@ -23,4 +23,4 @@ var config = {
   LOG_TRANSITIONS_INTERNAL: false
 };
 
-module.exports = Ember.Application.create(config);
+module.exports = Ember.Application.createWithMixins(Bootstrap, config);

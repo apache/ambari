@@ -76,7 +76,73 @@ App.SliderApp = DS.Model.extend({
   /**
    * @type {App.TypedProperty[]}
    */
-  runtimeProperties: DS.hasMany('typedProperty', {async:true})
+  runtimeProperties: DS.hasMany('typedProperty', {async:true}),
+
+  /**
+   * @type {object}
+   * Format:
+   * {
+   *   site-name1: {
+   *      config1: value1,
+   *      config2: value2
+   *      ...
+   *   },
+   *   site-name2: {
+   *      config3: value5,
+   *      config4: value6
+   *      ...
+   *   },
+   *   ...
+   * }
+   */
+  configs: DS.attr('object'),
+
+  /**
+   * Global configs
+   * @type {{key: string, value: *}[]}
+   */
+  globals: function() {
+    var c = this.get('configs.global');
+    return this.mapObject(c);
+  }.property('configs.global'),
+
+  /**
+   * HBase-Site configs
+   * @type {{key: string, value: *}[]}
+   */
+  hbaseSite: function() {
+    var c = this.get('configs.hbase-site');
+    return this.mapObject(c);
+  }.property('configs.hbase-site'),
+
+  /**
+   * Configs which are not in global or hbase-site
+   * @type {{key: string, value: *}[]}
+   */
+  otherConfigs: function() {
+    var c = this.get('configs'),
+      ret = [],
+      self = this;
+    if (Ember.typeOf(c) !== 'object') return [];
+    Ember.keys(c).forEach(function(key) {
+      if (['hbase-site', 'global'].contains(key)) return;
+      ret = ret.concat(self.mapObject(c[key]));
+    });
+    return ret;
+  }.property('configs'),
+
+  /**
+   * Map object to array
+   * @param {object} o
+   * @returns {{key: string, value: *}[]}
+   */
+  mapObject: function(o) {
+    if (Ember.typeOf(o) !== 'object') return [];
+    return Ember.keys(o).map(function(key) {
+      return {key: key, value: o[key]};
+    });
+  }
+
 });
 
 App.SliderApp.FIXTURES = [
@@ -93,14 +159,41 @@ App.SliderApp.FIXTURES = [
     diagnostics: 'd1',
     components: [3, 4, 5],
     quickLinks: [1, 2, 6],
-    runtimeProperties: [1, 2, 3]
+    runtimeProperties: [1, 2, 3],
+    configs: {
+      global: {
+        config1: 'value1',
+        config2: 'value2',
+        config3: 'value3',
+        config4: 'value4'
+      },
+      'hbase-site': {
+        config1: 'value1',
+        config2: 'value2',
+        config3: 'value3',
+        config4: 'value4',
+        config5: 'value5'
+      },
+      another: {
+        config6: 'value6',
+        config7: 'value7',
+        config8: 'value8',
+        config9: 'value9'
+      },
+      another2: {
+        config10: 'value10',
+        config11: 'value11',
+        config12: 'value12',
+        config13: 'value13'
+      }
+    }
   },
   {
     id: 2,
     index: 'indx2',
     yarnId: 'y2',
     name: 'name2',
-    status: 'Running',
+    status: 'RUNNING',
     user: 'u2',
     started: 1400132912,
     ended: 1400152912,
