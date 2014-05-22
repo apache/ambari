@@ -23,17 +23,23 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 
+import com.google.inject.Provider;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.state.State;
 import org.easymock.Capture;
 import org.junit.Assert;
 import org.junit.Test;
 
+import javax.persistence.EntityManager;
+import javax.persistence.EntityTransaction;
+import javax.persistence.TypedQuery;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.sql.SQLException;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -42,8 +48,10 @@ import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertNull;
 import static junit.framework.Assert.assertTrue;
 import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createMockBuilder;
 import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.createStrictMock;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
@@ -63,10 +71,10 @@ public class UpgradeCatalog161Test {
     expect(configuration.getDatabaseUrl()).andReturn(Configuration.JDBC_IN_MEMORY_URL).anyTimes();
 
     Capture<DBAccessor.DBColumnInfo> provisioningStateColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
-    Capture<List<DBAccessor.DBColumnInfo>> operationLevelEntitycolumnCapture = new Capture<List<DBAccessor.DBColumnInfo>>();
+    Capture<List<DBAccessor.DBColumnInfo>> operationLevelEntityColumnCapture = new Capture<List<DBAccessor.DBColumnInfo>>();
     
     setClustersConfigExpectations(dbAccessor, provisioningStateColumnCapture);    
-    setOperationLevelEntityConfigExpectations(dbAccessor, operationLevelEntitycolumnCapture);
+    setOperationLevelEntityConfigExpectations(dbAccessor, operationLevelEntityColumnCapture);
 
     replay(dbAccessor, configuration);
     AbstractUpgradeCatalog upgradeCatalog = getUpgradeCatalog(dbAccessor);
@@ -79,28 +87,35 @@ public class UpgradeCatalog161Test {
     verify(dbAccessor, configuration);
 
     assertClusterColumns(provisioningStateColumnCapture);
-    assertOperationLevelEntityColumns(operationLevelEntitycolumnCapture);
+    assertOperationLevelEntityColumns(operationLevelEntityColumnCapture);
   }
 
-
+  @SuppressWarnings("unchecked")
   @Test
   public void testExecuteDMLUpdates() throws Exception {
     Configuration configuration = createNiceMock(Configuration.class);
     DBAccessor dbAccessor = createNiceMock(DBAccessor.class);
+    Injector injector = createStrictMock(Injector.class);
+    Provider provider = createStrictMock(Provider.class);
+    EntityManager em = createStrictMock(EntityManager.class);
+    EntityTransaction et = createMock(EntityTransaction.class);
+    TypedQuery query = createMock(TypedQuery.class);
 
-    Method m = AbstractUpgradeCatalog.class.getDeclaredMethod
-      ("updateConfigurationProperties", String.class, Map.class, boolean.class);
-
-    UpgradeCatalog160 upgradeCatalog = createMockBuilder(UpgradeCatalog160.class)
-      .addMockedMethod(m).createMock();
+    UpgradeCatalog161 upgradeCatalog =
+      createMockBuilder(UpgradeCatalog161.class).createMock();
 
     expect(configuration.getDatabaseUrl()).andReturn(Configuration.JDBC_IN_MEMORY_URL).anyTimes();
+    expect(injector.getProvider(EntityManager.class)).andReturn(provider).anyTimes();
+    expect(provider.get()).andReturn(em).anyTimes();
+    expect(em.getTransaction()).andReturn(et);
+    expect(et.isActive()).andReturn(true);
+    expect(em.createQuery("UPDATE ClusterEntity SET provisioningState = " +
+      ":provisioningState", ClusterEntity.class)).andReturn(query);
+    expect(query.setParameter("provisioningState", State.INSTALLED)).andReturn(null);
+    expect(query.executeUpdate()).andReturn(0);
 
-    upgradeCatalog.updateConfigurationProperties("global",
-      Collections.singletonMap("jobhistory_heapsize", "900"), false);
-    expectLastCall();
-
-    replay(upgradeCatalog, dbAccessor, configuration);
+    replay(upgradeCatalog, dbAccessor, configuration, injector, provider, em,
+      et, query);
 
     Class<?> c = AbstractUpgradeCatalog.class;
     Field f = c.getDeclaredField("configuration");
@@ -109,10 +124,14 @@ public class UpgradeCatalog161Test {
     f = c.getDeclaredField("dbAccessor");
     f.setAccessible(true);
     f.set(upgradeCatalog, dbAccessor);
+    f = c.getDeclaredField("injector");
+    f.setAccessible(true);
+    f.set(upgradeCatalog, injector);
 
     upgradeCatalog.executeDMLUpdates();
 
-    verify(upgradeCatalog, dbAccessor, configuration);
+    verify(upgradeCatalog, dbAccessor, configuration, injector, provider, em,
+      et, query);
   }
 
 
