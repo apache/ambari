@@ -49,7 +49,7 @@ public class QueryLexer {
    * All valid deliminators.
    */
   private static final String[] ALL_DELIMS =
-      {".filter\\(",".in\\(",".isEmpty\\(","<=",">=","!=","=","<",">","&","|","!","(", ")"};
+      {".matches\\(",".in\\(",".isEmpty\\(","<=",">=","!=","=","<",">","&","|","!","(", ")"};
 
   /**
    * Map of token type to list of valid handlers for next token.
