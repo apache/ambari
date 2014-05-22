@@ -77,16 +77,7 @@
               <name>hadoop-yarn</name>
             </package>
             <package>
-              <name>hadoop-yarn-nodemanager</name>
-            </package>
-            <package>
               <name>hadoop-mapreduce</name>
-            </package>
-            <package>
-              <name>hadoop-yarn-proxyserver</name>
-            </package>
-            <package>
-              <name>hadoop-yarn-resourcemanager</name>
             </package>
           </packages>
         </osSpecific>
@@ -156,9 +147,6 @@
           <packages>
             <package>
               <name>hadoop-mapreduce</name>
-            </package>
-            <package>
-              <name>hadoop-mapreduce-historyserver</name>
             </package>
           </packages>
         </osSpecific>

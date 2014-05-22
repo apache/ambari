@@ -17,58 +17,49 @@
 -->
 
 <metainfo>
-    <schemaVersion>2.0</schemaVersion>
-    <services>
-        <service>
-            <name>YARN</name>
-            <comment>Apache Hadoop NextGen MapReduce (YARN)</comment>
-            <version>2.4.0.2.1</version>
-            <components>
+  <schemaVersion>2.0</schemaVersion>
+  <services>
+    <service>
+      <name>YARN</name>
+      <comment>Apache Hadoop NextGen MapReduce (YARN)</comment>
+      <version>2.4.0.2.1</version>
+      <components>
 
-                <component>
-                    <name>APP_TIMELINE_SERVER</name>
-                    <category>SLAVE</category>
-                    <commandScript>
-                        <script>scripts/application_timeline_server.py</script>
-                        <scriptType>PYTHON</scriptType>
-                        <timeout>600</timeout>
-                    </commandScript>
-                </component>
+        <component>
+          <name>APP_TIMELINE_SERVER</name>
+          <category>SLAVE</category>
+          <commandScript>
+            <script>scripts/application_timeline_server.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>600</timeout>
+          </commandScript>
+        </component>
 
 
-            </components>
+      </components>
 
-            <osSpecifics>
-                <osSpecific>
-                    <osFamily>any</osFamily>
-                    <packages>
-                        <package>
-                            <name>hadoop-yarn</name>
-                        </package>
-                        <package>
-                            <name>hadoop-yarn-nodemanager</name>
-                        </package>
-                        <package>
-                            <name>hadoop-mapreduce</name>
-                        </package>
-                        <package>
-                            <name>hadoop-yarn-proxyserver</name>
-                        </package>
-                        <package>
-                            <name>hadoop-yarn-resourcemanager</name>
-                        </package>
-                    </packages>
-                </osSpecific>
-            </osSpecifics>
+      <osSpecifics>
+        <osSpecific>
+          <osFamily>any</osFamily>
+          <packages>
+            <package>
+              <name>hadoop-yarn</name>
+            </package>
+            <package>
+              <name>hadoop-mapreduce</name>
+            </package>
+          </packages>
+        </osSpecific>
+      </osSpecifics>
 
-            <configuration-dependencies>
-                <config-type>yarn-site</config-type>
-                <config-type>capacity-scheduler</config-type>
-                <config-type>core-site</config-type>
-                <config-type>global</config-type>
-                <config-type>yarn-log4j</config-type>
-            </configuration-dependencies>
-        </service>
+      <configuration-dependencies>
+        <config-type>yarn-site</config-type>
+        <config-type>capacity-scheduler</config-type>
+        <config-type>core-site</config-type>
+        <config-type>global</config-type>
+        <config-type>yarn-log4j</config-type>
+      </configuration-dependencies>
+    </service>
 
-    </services>
+  </services>
 </metainfo>
