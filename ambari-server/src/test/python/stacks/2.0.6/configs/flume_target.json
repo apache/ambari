@@ -333,7 +333,7 @@
             "dfs.namenode.handler.count": "100", 
             "dfs.namenode.checkpoint.dir": "/hadoop/hdfs/namesecondary", 
             "fs.permissions.umask-mode": "022", 
-            "dfs.datanode.http.address": "0.0.0.0:${ambari.dfs.datanode.http.port}", 
+            "dfs.datanode.http.address": "0.0.0.0:50075",
             "dfs.datanode.ipc.address": "0.0.0.0:8010", 
             "dfs.datanode.data.dir": "/hadoop/hdfs/data", 
             "dfs.namenode.http-address": "c6401.ambari.apache.org:50070", 

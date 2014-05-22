@@ -331,7 +331,7 @@
             "dfs.access.time.precision": "0", 
             "dfs.secondary.namenode.kerberos.internal.spnego.principal": "${dfs.web.authentication.kerberos.principal}", 
             "dfs.https.address": "c6401.ambari.apache.org:50470", 
-            "dfs.datanode.http.address": "0.0.0.0:${ambari.dfs.datanode.http.port}", 
+            "dfs.datanode.http.address": "0.0.0.0:1022",
             "dfs.data.dir": "/hadoop/hdfs/data", 
             "dfs.secondary.https.port": "50490", 
             "dfs.permissions": "true", 

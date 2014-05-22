@@ -22,10 +22,19 @@ Ambari Agent
 
 from resource_management import *
 from resource_management.libraries.functions.is_empty import *
-from urlparse import urlparse
+from resource_management.core.exceptions import Fail
+import re
 
 def get_port_from_url(address):
+  """
+  Return port from URL. If address is UnknownConfiguration,
+  UnknownConfiguration will be returned. If no port was found, Fail will be
+  raised.
+  """
   if not is_empty(address):
-    return urlparse(address).port
+    port = re.findall(":([\d]{1,5})(?=/|$)", address)
+    if port:
+      return port[0]
+    raise Fail("No port in URL:{0}".format(address))
   else:
     return address

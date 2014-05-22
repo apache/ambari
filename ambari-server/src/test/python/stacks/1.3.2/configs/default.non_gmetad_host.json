@@ -233,7 +233,7 @@
             "dfs.datanode.du.reserved": "1073741824", 
             "dfs.webhdfs.enabled": "true", 
             "dfs.namenode.handler.count": "100", 
-            "dfs.datanode.http.address": "0.0.0.0:${ambari.dfs.datanode.http.port}", 
+            "dfs.datanode.http.address": "0.0.0.0:50075",
             "dfs.datanode.socket.write.timeout": "0", 
             "ipc.server.read.threadpool.size": "5", 
             "dfs.balance.bandwidthPerSec": "6250000", 

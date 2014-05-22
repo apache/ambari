@@ -178,7 +178,7 @@
             "dfs.namenode.write.stale.datanode.ratio": "1.0f", 
             "dfs.namenode.secondary.http-address": "c6402.ambari.apache.org:50090", 
             "dfs.ha.fencing.methods": "shell(/bin/true)", 
-            "dfs.datanode.http.address": "0.0.0.0:${ambari.dfs.datanode.http.port}", 
+            "dfs.datanode.http.address": "0.0.0.0:50075",
             "dfs.datanode.du.reserved": "1073741824", 
             "dfs.client.read.shortcircuit.streams.cache.size": "4096", 
             "dfs.ha.namenodes.ns1": "nn1,nn2", 
