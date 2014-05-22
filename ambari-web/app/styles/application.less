@@ -351,6 +351,61 @@ footer {
   }
 }
 
+.page-bar {
+  border: 1px solid #E4E4E4;
+  color: #7B7B7B;
+  text-align: right;
+  font-size: 12px;
+  label {
+    font-size: 12px;
+  }
+  div {
+    display: inline-block;
+    margin:0 10px;
+  }
+  .filtered-hosts-info, .selected-hosts-info {
+    text-align: left;
+    margin-top: 8px;
+    margin-left: 17px;
+  }
+  .items-on-page {
+    label {
+      display:inline;
+    }
+    select {
+      margin-bottom: 4px;
+      margin-top: 4px;
+      width:70px;
+      font-size: 12px;
+      height: 27px;
+    }
+  }
+  .paging_two_button {
+    a.paginate_disabled_next, a.paginate_disabled_previous {
+      color: gray;
+      &:hover {
+        color: gray;
+        text-decoration: none;
+        cursor: default;
+      }
+    }
+
+    a.paginate_next, a.paginate_previous {
+      &:hover {
+        text-decoration: none;
+        cursor: pointer;
+      }
+    }
+    a {
+      padding:0 5px;
+    }
+  }
+}
+
+.hidden-scroll {
+  overflow-y: hidden;
+}
+
 #version-mismatch-title {
   font-size: 18px;
   font-weight: bold;
@@ -693,9 +748,6 @@ h1 {
     .pre-scrollable {
       max-height: 440px;
       position: relative;
-    }
-    .hidden-scroll {
-      overflow-y: hidden;
     }
     .spinner-overlay {
       position: absolute;
@@ -1754,6 +1806,8 @@ width:100%;
     }
   }
   #host-info, #service-info{
+    overflow: auto;
+    max-height: 340px;
     .span2{
       width:20%;
       float: left;
@@ -1915,6 +1969,8 @@ width:100%;
   }
 
   #host-log {
+    max-height: 340px;
+    overflow: auto;
     .log-list-wrap {
       padding: 10px 10px 10px 20px;
       border-top: 1px solid #CCC;
@@ -1961,7 +2017,10 @@ width:100%;
 }
 
 .task-detail-info {
-
+  .task-detail-log-info {
+    max-height: 340px;
+    overflow: auto;
+  }
   .task-detail-log-clipboard {
     display: none;
     resize: none;
@@ -3175,56 +3234,6 @@ table.graphs {
     }
 	thead {
       background: none repeat scroll 0 0 #F8F8F8;
-    }
-  }
-  .page-bar {
-    border: 1px solid #E4E4E4;
-    color: #7B7B7B;
-    text-align: right;
-    font-size: 12px;
-	label {
-    font-size: 12px;
-    }
-    div {
-      display: inline-block;
-      margin:0 10px;
-    }
-    .filtered-hosts-info, .selected-hosts-info {
-      text-align: left;
-      margin-top: 8px;
-      margin-left: 17px;
-    }
-    .items-on-page {
-      label {
-        display:inline;
-      }
-      select {
-        margin-bottom: 4px;
-        margin-top: 4px;
-        width:70px;
-        font-size: 12px;
-        height: 27px;
-      }
-    }
-    .paging_two_button {
-      a.paginate_disabled_next, a.paginate_disabled_previous {
-        color: gray;
-        &:hover {
-          color: gray;
-          text-decoration: none;
-          cursor: default;
-        }
-      }
-
-      a.paginate_next, a.paginate_previous {
-        &:hover {
-          text-decoration: none;
-          cursor: pointer;
-        }
-      }
-      a {
-        padding:0 5px;
-      }
     }
   }
   .status-dot-position {
@@ -4491,58 +4500,6 @@ ul.filter {
       }
     }
   }
-
-  .page-bar {
-    border: 1px solid #E4E4E4;
-    color: #7B7B7B;
-    text-align: right;
-    font-size: 12px;
-    label {
-      font-size: 12px;
-    }
-    div {
-      display: inline-block;
-      margin:0 10px;
-    }
-    .filtered-hosts-info, .selected-hosts-info {
-      text-align: left;
-      margin-top: 8px;
-      margin-left: 17px;
-    }
-    .items-on-page {
-      label {
-        display:inline;
-      }
-      select {
-        margin-bottom: 4px;
-        margin-top: 4px;
-        width:70px;
-        font-size: 12px;
-        height: 27px;
-      }
-    }
-    .paging_two_button {
-      a.paginate_disabled_next, a.paginate_disabled_previous {
-        color: gray;
-        &:hover {
-          color: gray;
-          text-decoration: none;
-          cursor: default;
-        }
-      }
-
-      a.paginate_next, a.paginate_previous {
-        &:hover {
-          text-decoration: none;
-          cursor: pointer;
-        }
-      }
-      a {
-        padding:0 5px;
-      }
-    }
-  }
-
   .status-dot-position {
     background-position: center;
     background-repeat: no-repeat;
@@ -6134,6 +6091,11 @@ i.icon-asterisks {
 .mlc {
   margin-left: 0;
 }
+
+.mtm {
+  margin-top: @space-m;
+}
+
 #cleanerContainer {
   z-index: 2;
   position: absolute;

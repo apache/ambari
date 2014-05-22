@@ -106,7 +106,7 @@
       {{#if view.isHostEmptyList}}
         <div class="log-list-wrap">{{t hostPopup.noHostsToShow}}</div>
       {{else}}
-        {{#each hostInfo in view.hosts}}
+        {{#each hostInfo in view.pageContent}}
           <div {{bindAttr class="hostInfo.isVisible::hidden :log-list-wrap"}}>
             <div {{action gotoTasks hostInfo}} class="task-list-line-cursor">
               <div class="host-name-icon-wrap">
@@ -198,3 +198,17 @@
       <div class="spinner"></div>
     {{/if}}
 </div>
+{{#if view.pagination}}
+  <div class="page-bar pull-right no-borders mtm">
+    <div class="items-on-page">
+      <label>{{t common.show}}: {{view view.rowsPerPageSelectView selectionBinding="view.displayLength"}}</label>
+    </div>
+    <div class="info">{{view.paginationInfo}}</div>
+    <div class="paging_two_button">
+      {{view view.paginationFirst}}
+      {{view view.paginationLeft}}
+      {{view view.paginationRight}}
+      {{view view.paginationLast}}
+    </div>
+  </div>
+{{/if}}

@@ -444,6 +444,8 @@ App.HostPopup = Em.Object.create({
       }.property('count')
     });
     self.set('isPopup', App.ModalPopup.show({
+
+      isHideBodyScroll: true,
       /**
        * no need to track is it loaded when popup contain only list of hosts
        * @type {bool}
@@ -516,7 +518,7 @@ App.HostPopup = Em.Object.create({
       },
       secondary: null,
 
-      bodyClass: Em.View.extend({
+      bodyClass: App.TableView.extend({
         templateName: require('templates/common/host_progress_popup'),
         isLogWrapHidden: true,
         isTaskListHidden: true,
@@ -533,6 +535,12 @@ App.HostPopup = Em.Object.create({
         sourceRequestScheduleCommand: null,
         hosts: self.get('hosts'),
         services: self.get('servicesInfo'),
+
+        pagination: false,
+        displayLength: "25",
+        content: function() {
+          return this.get('hosts') || [];
+        }.property('hosts.length', 'isHostListHidden'),
 
         currentHost: function () {
           return this.get('hosts') && this.get('hosts').findProperty('name', this.get('controller.currentHostName'));
@@ -685,14 +693,17 @@ App.HostPopup = Em.Object.create({
          * Depending on currently viewed tab, call setSelectCount function
          */
         updateSelectView: function () {
+          var isPaginate;
           if (!this.get('isHostListHidden')) {
             //since lazy loading used for hosts, we need to get hosts info directly from controller, that always contains entire array of data
             this.get('controller').setSelectCount(this.get("controller.hosts"), this.get('categories'));
+            isPaginate = true;
           } else if (!this.get('isTaskListHidden')) {
             this.get('controller').setSelectCount(this.get("tasks"), this.get('categories'));
           } else if (!this.get('isServiceListHidden')) {
             this.get('controller').setSelectCount(this.get("services"), this.get('categories'));
           }
+          this.set('pagination', !!isPaginate);
         }.observes('tasks.@each.status', 'hosts.@each.status', 'isTaskListHidden', 'isHostListHidden', 'services.length', 'services.@each.status'),
 
         /**
