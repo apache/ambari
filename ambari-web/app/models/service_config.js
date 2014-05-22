@@ -458,6 +458,7 @@ App.ServiceConfigProperty = Ember.Object.extend({
         break;
       case 'fs.checkpoint.dir':
       case 'dfs.namenode.checkpoint.dir':
+      case 'yarn.timeline-service.leveldb-timeline-store.path':
       case 'zk_data_dir':
       case 'oozie_data_dir':
       case 'hbase.tmp.dir':
@@ -534,6 +535,12 @@ App.ServiceConfigProperty = Ember.Object.extend({
         temp = slaveComponentHostsInDB.findProperty('componentName', 'NODEMANAGER');
         temp.hosts.forEach(function (host) {
           setOfHostNames.push(host.hostName);
+        }, this);
+        break;
+      case 'yarn.timeline-service.leveldb-timeline-store.path':
+        components = masterComponentHostsInDB.filterProperty('component', 'APP_TIMELINE_SERVER');
+        components.forEach(function (component) {
+          setOfHostNames.push(component.hostName);
         }, this);
         break;
       case 'zk_data_dir':

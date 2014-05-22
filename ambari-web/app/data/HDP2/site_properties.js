@@ -255,6 +255,7 @@ module.exports =
       "id": "site property",
       "name": "yarn.timeline-service.leveldb-timeline-store.path",
       "displayName": "yarn.timeline-service.leveldb-timeline-store.path",
+      "defaultDirectory": "/hadoop/yarn/timeline",
       "category": "AppTimelineServer",
       "displayType": "directory",
       "serviceName": "YARN"
