@@ -21,7 +21,7 @@ var filters = require('views/common/filter_view');
 var sort = require('views/common/sort_view');
 var date = require('utils/date');
 
-App.MainHostView = App.TableView.extend({
+App.MainHostView = App.TableView.extend(App.TableServerProvider, {
   templateName:require('templates/main/host'),
   /**
    * List of hosts in cluster
@@ -30,6 +30,24 @@ App.MainHostView = App.TableView.extend({
   content:function () {
     return this.get('controller.content');
   }.property('controller.content.length'),
+
+  tableName: 'Hosts',
+  paramAssociations: {
+    'serverStartIndex': 'from',
+    'displayLength': 'page_size'
+  },
+  refreshTriggers: ['serverStartIndex', 'displayLength'],
+
+  /**
+   * startIndex as query parameter have first index - "0"
+   */
+  serverStartIndex: function() {
+    return this.get('startIndex') - 1;
+  }.property('startIndex'),
+
+  pageContent: function () {
+    return this.get('filteredContent').filterProperty('isRequested');
+  }.property('filteredContent.length'),
 
   clearFiltersObs: function() {
     var self = this;
@@ -42,6 +60,7 @@ App.MainHostView = App.TableView.extend({
   },
 
   didInsertElement: function() {
+    this.initTriggers();
     this.addObserver('controller.clearFilters', this, this.clearFiltersObs);
     this.clearFiltersObs();
     this.addObserver('selectAllHosts', this, this.toggleAllHosts);

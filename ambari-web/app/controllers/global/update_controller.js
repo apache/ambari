@@ -36,6 +36,43 @@ App.UpdateController = Em.Controller.extend({
   },
 
   /**
+   * construct URL from real URL and query parameters
+   * @param testUrl
+   * @param realUrl
+   * @param queryParams
+   * @return {String}
+   */
+  getComplexUrl: function (testUrl, realUrl, queryParams) {
+    var url = App.apiPrefix + '/clusters/' + App.get('clusterName');
+    var params = '';
+    if (App.testMode) {
+      url = testUrl;
+    } else {
+      if (queryParams) {
+        queryParams.forEach(function (param) {
+          params += param.key + '=' + param.value + '&';
+        });
+      }
+      url += realUrl.replace('<parameters>', params);
+    }
+    return url;
+  },
+
+  /**
+   * depict query parameters of table
+   */
+  queryParams: Em.Object.create({
+    'Hosts': []
+  }),
+
+  /**
+   * map describes relations between updater function and table
+   */
+  tableUpdaterMap: {
+    'Hosts': 'updateHost'
+  },
+
+  /**
    * Start polling, when <code>isWorking</code> become true
    */
   updateAll: function () {
@@ -81,9 +118,11 @@ App.UpdateController = Em.Controller.extend({
 
   updateHost: function (callback) {
     var testUrl = App.get('isHadoop2Stack') ? '/data/hosts/HDP2/hosts.json' : '/data/hosts/hosts.json';
-    var hostsUrl = this.getUrl(testUrl, '/hosts?fields=Hosts/host_name,Hosts/host_status,Hosts/last_heartbeat_time,Hosts/disk_info,Hosts/maintenance_state,' +
-      'metrics/disk,metrics/load/load_one,metrics/cpu/cpu_system,metrics/cpu/cpu_user,metrics/memory/mem_total,metrics/memory/mem_free' +
-      '&minimal_response=true');
+    var realUrl = '/hosts?<parameters>fields=Hosts/host_name,Hosts/maintenance_state,Hosts/public_host_name,Hosts/cpu_count,Hosts/ph_cpu_count,Hosts/total_mem,' +
+      'Hosts/host_status,Hosts/last_heartbeat_time,Hosts/os_arch,Hosts/os_type,Hosts/ip,host_components/HostRoles/state,host_components/HostRoles/maintenance_state,' +
+      'Hosts/disk_info,metrics/disk,metrics/load/load_one,metrics/cpu/cpu_system,metrics/cpu/cpu_user,' +
+      'metrics/memory/mem_total,metrics/memory/mem_free,alerts/summary&minimal_response=true';
+    var hostsUrl = this.getComplexUrl(testUrl, realUrl, this.get('queryParams.Hosts'));
     App.HttpClient.get(hostsUrl, App.hostsMapper, {
       complete: callback
     });

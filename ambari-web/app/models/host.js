@@ -51,6 +51,10 @@ App.Host = DS.Model.extend({
    * Is host checked at the main Hosts page
    */
   selected:DS.attr('boolean'),
+  /**
+   * determine whether host is requested from server
+   */
+  isRequested: DS.attr('boolean'),
 
   /**
    * Overall CPU usage (system and user)

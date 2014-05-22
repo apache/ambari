@@ -136,8 +136,13 @@ App.hostsMapper = App.QuickDataMapper.create({
           });
           App.store.loadMany(this.get('model'), modifiedHosts);
         }
+
+        clientHosts.forEach(function (host) {
+          host.set('isRequested', !!hostIds[host.get('hostName')]);
+        }, this);
+
         // hosts were deleted
-        if (clientHosts.get('length') > hostsWithFullInfo.length) {
+       /* if (clientHosts.get('length') > hostsWithFullInfo.length) {
           clientHosts.forEach(function (host) {
             if (host && !hostIds[host.get('hostName')]) {
               // Delete old ones as new ones will be
@@ -146,7 +151,7 @@ App.hostsMapper = App.QuickDataMapper.create({
               delete cacheData[host.get('id')];
             }
           }, this);
-        }
+        }*/
       }
       if (!isModelLoaded) {
         App.Host.find().forEach(function (_host) {
