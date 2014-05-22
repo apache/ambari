@@ -66,12 +66,6 @@ class TestHookBeforeStart(RMFTestCase):
                               content = Template('hadoop-metrics2.properties.j2'),
                               owner = 'hdfs',
                               )
-    self.assertResourceCalled('XmlConfig', 'core-site.xml',
-                              owner = 'hdfs',
-                              group = 'hadoop',
-                              conf_dir = '/etc/hadoop/conf',
-                              configurations = self.getConfig()['configurations']['core-site'],
-                              )
     self.assertResourceCalled('File', '/etc/hadoop/conf/task-log4j.properties',
                               content = StaticFile('task-log4j.properties'),
                               mode = 0755,
@@ -125,12 +119,6 @@ class TestHookBeforeStart(RMFTestCase):
     self.assertResourceCalled('File', '/etc/hadoop/conf/hadoop-metrics2.properties',
                               content = Template('hadoop-metrics2.properties.j2'),
                               owner = 'hdfs',
-                              )
-    self.assertResourceCalled('XmlConfig', 'core-site.xml',
-                              owner = 'hdfs',
-                              group = 'hadoop',
-                              conf_dir = '/etc/hadoop/conf',
-                              configurations = self.getConfig()['configurations']['core-site'],
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/task-log4j.properties',
                               content = StaticFile('task-log4j.properties'),

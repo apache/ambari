@@ -34,14 +34,6 @@ def setup_hadoop():
   install_snappy()
 
   #directories
-  Directory(params.hadoop_conf_empty_dir,
-            recursive=True,
-            owner='root',
-            group='root'
-  )
-  Link(params.hadoop_conf_dir,
-       to=params.hadoop_conf_empty_dir
-  )
   Directory(params.hdfs_log_dir_prefix,
             recursive=True,
             owner='root',
@@ -63,11 +55,10 @@ def setup_hadoop():
   else:
     tc_owner = params.hdfs_user
 
-  for file in ['hadoop-env.sh', 'commons-logging.properties']:
-    File(os.path.join(params.hadoop_conf_dir, file),
-         owner=tc_owner,
-         content=Template(file + ".j2")
-    )
+  File(os.path.join(params.hadoop_conf_dir, 'commons-logging.properties'),
+       owner=tc_owner,
+       content=Template('commons-logging.properties.j2')
+  )
 
   health_check_template = "health_check-v2" #for stack 1 use 'health_check'
   File(os.path.join(params.hadoop_conf_dir, "health_check"),
@@ -125,13 +116,6 @@ def setup_configs():
   Creates configs for services DHFS mapred
   """
   import params
-
-  XmlConfig("core-site.xml",
-            conf_dir=params.hadoop_conf_dir,
-            configurations=params.config['configurations']['core-site'],
-            owner=params.hdfs_user,
-            group=params.user_group
-  )
 
   File(params.task_log4j_properties_location,
        content=StaticFile("task-log4j.properties"),

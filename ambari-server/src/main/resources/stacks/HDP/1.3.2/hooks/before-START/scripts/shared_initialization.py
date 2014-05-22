@@ -113,12 +113,6 @@ def setup_configs():
   """
   import params
 
-  XmlConfig("core-site.xml",
-            conf_dir=params.hadoop_conf_dir,
-            configurations=params.config['configurations']['core-site'],
-            owner=params.hdfs_user,
-            group=params.user_group
-  )
   File(params.task_log4j_properties_location,
        content=StaticFile("task-log4j.properties"),
        mode=0755

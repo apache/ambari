@@ -72,7 +72,6 @@ if has_ganglia_server:
 hadoop_tmp_dir = format("/tmp/hadoop-{hdfs_user}")
 hadoop_lib_home = "/usr/lib/hadoop/lib"
 hadoop_conf_dir = "/etc/hadoop/conf"
-hadoop_conf_empty_dir = "/etc/hadoop/conf.empty"
 hadoop_pid_dir_prefix = config['configurations']['global']['hadoop_pid_dir_prefix']
 hadoop_home = "/usr"
 hadoop_bin = "/usr/lib/hadoop/sbin"
