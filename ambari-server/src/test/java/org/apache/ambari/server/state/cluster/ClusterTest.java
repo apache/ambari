@@ -459,7 +459,46 @@ public class ClusterTest {
     ClusterResponse r = c1.convertToResponse();
     Assert.assertEquals(c1.getClusterId(), r.getClusterId().longValue());
     Assert.assertEquals(c1.getClusterName(), r.getClusterName());
-    Assert.assertEquals(1, r.getHostNames().size());
+    Assert.assertEquals(Integer.valueOf(1), r.getTotalHosts());
+    Assert.assertEquals(0, r.getClusterHealthReport().getAlertStatusHosts());
+    Assert.assertEquals(0, r.getClusterHealthReport().getHealthyStatusHosts());
+    Assert.assertEquals(0, r.getClusterHealthReport().getUnhealthyStatusHosts());
+    Assert.assertEquals(1, r.getClusterHealthReport().getUnknownStatusHosts());
+    Assert.assertEquals(0, r.getClusterHealthReport().getStaleConfigsHosts());
+    Assert.assertEquals(0, r.getClusterHealthReport().getMaintenanceStateHosts());
+    Assert.assertEquals(0, r.getClusterHealthReport().getHealthyStateHosts());
+    Assert.assertEquals(0, r.getClusterHealthReport().getHeartbeatLostStateHosts());
+    Assert.assertEquals(1, r.getClusterHealthReport().getInitStateHosts());
+    Assert.assertEquals(0, r.getClusterHealthReport().getUnhealthyStateHosts());
+
+    clusters.addHost("h2");
+    Host host = clusters.getHost("h2");
+    host.setIPv4("ipv4");
+    host.setIPv6("ipv6");
+
+    Map<String, String> hostAttributes = new HashMap<String, String>();
+    hostAttributes.put("os_family", "redhat");
+    hostAttributes.put("os_release_version", "5.9");
+    host.setHostAttributes(hostAttributes);
+    host.setState(HostState.HEALTHY);
+    host.setHealthStatus(new HostHealthStatus(HostHealthStatus.HealthStatus.HEALTHY, ""));
+    host.persist();
+    c1.setDesiredStackVersion(new StackId("HDP-2.0.6"));
+    clusters.mapHostToCluster("h2", "c1");
+
+    r = c1.convertToResponse();
+
+    Assert.assertEquals(Integer.valueOf(2), r.getTotalHosts());
+    Assert.assertEquals(0, r.getClusterHealthReport().getAlertStatusHosts());
+    Assert.assertEquals(1, r.getClusterHealthReport().getHealthyStatusHosts());
+    Assert.assertEquals(0, r.getClusterHealthReport().getUnhealthyStatusHosts());
+    Assert.assertEquals(1, r.getClusterHealthReport().getUnknownStatusHosts());
+    Assert.assertEquals(0, r.getClusterHealthReport().getStaleConfigsHosts());
+    Assert.assertEquals(0, r.getClusterHealthReport().getMaintenanceStateHosts());
+    Assert.assertEquals(1, r.getClusterHealthReport().getHealthyStateHosts());
+    Assert.assertEquals(0, r.getClusterHealthReport().getHeartbeatLostStateHosts());
+    Assert.assertEquals(1, r.getClusterHealthReport().getInitStateHosts());
+    Assert.assertEquals(0, r.getClusterHealthReport().getUnhealthyStateHosts());
 
     // TODO write unit tests for debug dump
     StringBuilder sb = new StringBuilder();

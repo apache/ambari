@@ -36,18 +36,21 @@ public class ClusterResponseTest {
     hostNames.add("h1");
 
     ClusterResponse r1 =
-        new ClusterResponse(clusterId, clusterName, provisioningState, hostNames, "bar");
+        new ClusterResponse(clusterId, clusterName, provisioningState,
+          hostNames, hostNames.size(), "bar", null);
     
     Assert.assertEquals(clusterId, r1.getClusterId());
     Assert.assertEquals(clusterName, r1.getClusterName());
     Assert.assertEquals(provisioningState.name(), r1.getProvisioningState());
     Assert.assertArrayEquals(hostNames.toArray(), r1.getHostNames().toArray());
+    Assert.assertEquals(Integer.valueOf(1), r1.getTotalHosts());
     Assert.assertEquals("bar", r1.getDesiredStackVersion());
   }
 
   @Test
   public void testToString() {
-    ClusterResponse r = new ClusterResponse(null, null, null, null, null);
+    ClusterResponse r =
+      new ClusterResponse(null, null, null, null, null, null, null);
     r.toString();
   }
 }

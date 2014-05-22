@@ -40,6 +40,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ServiceComponentHostNotFoundException;
 import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.controller.ClusterResponse;
+import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.orm.cache.ConfigGroupHostMapping;
 import org.apache.ambari.server.orm.cache.HostConfigMapping;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
@@ -57,13 +58,17 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
+import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DesiredConfig;
+import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
+import org.apache.ambari.server.state.ClusterHealthReport;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.scheduler.RequestExecution;
@@ -142,6 +147,10 @@ public class ClusterImpl implements Cluster {
   private ConfigGroupHostMappingDAO configGroupHostMappingDAO;
   @Inject
   private RequestExecutionFactory requestExecutionFactory;
+  @Inject
+  private ConfigHelper configHelper;
+  @Inject
+  private MaintenanceStateHelper maintenanceStateHelper;
 
   private volatile boolean svcHostsLoaded = false;
 
@@ -1084,10 +1093,10 @@ public class ClusterImpl implements Cluster {
     try {
       readWriteLock.readLock().lock();
       try {
+        Map<String, Host> hosts = clusters.getHostsForCluster(getClusterName());
         ClusterResponse r = new ClusterResponse(getClusterId(), 
-          getClusterName(), getProvisioningState(), 
-          clusters.getHostsForCluster(getClusterName()).keySet(),
-          getDesiredStackVersion().getStackId());
+          getClusterName(), getProvisioningState(), hosts.keySet(), hosts.size(),
+          getDesiredStackVersion().getStackId(), getClusterHealthReport());
 
         return r;
       } finally {
@@ -1417,4 +1426,95 @@ public class ClusterImpl implements Cluster {
     return getHostsDesiredConfigs(hostnames);
   }
 
+  private ClusterHealthReport getClusterHealthReport() throws AmbariException {
+
+    int staleConfigsHosts = 0;
+    int maintenanceStateHosts = 0;
+
+    int healthyStateHosts = 0;
+    int unhealthyStateHosts = 0;
+    int initStateHosts = 0;
+    int healthyStatusHosts = 0;
+
+    int unhealthyStatusHosts = 0;
+    int unknownStatusHosts = 0;
+    int alertStatusHosts = 0;
+    int heartbeatLostStateHosts = 0;
+
+    Set<String> hostnames;
+
+    try {
+      hostnames = clusters.getHostsForCluster(clusterEntity.getClusterName()).keySet();
+    } catch (AmbariException ignored) {
+      hostnames = Collections.emptySet();
+    }
+
+    for (String hostname : hostnames) {
+
+      Host host = clusters.getHost(hostname);
+
+      switch (host.getState()) {
+        case HEALTHY:
+          healthyStateHosts++;
+          break;
+        case UNHEALTHY:
+          unhealthyStateHosts++;
+          break;
+        case INIT:
+          initStateHosts++;
+          break;
+        case HEARTBEAT_LOST:
+          heartbeatLostStateHosts++;
+          break;
+      }
+
+      switch (host.getHealthStatus().getHealthStatus()) {
+        case HEALTHY:
+          healthyStatusHosts++;
+          break;
+        case UNHEALTHY:
+          unhealthyStatusHosts++;
+          break;
+        case UNKNOWN:
+          unknownStatusHosts++;
+          break;
+        case ALERT:
+          alertStatusHosts++;
+          break;
+      }
+
+      boolean staleConfig = false;
+      boolean maintenanceState = false;
+
+      if (serviceComponentHostsByHost.containsKey(hostname)) {
+        for (ServiceComponentHost sch : serviceComponentHostsByHost.get(hostname)) {
+          staleConfig = configHelper.isStaleConfigs(sch) ? true : staleConfig;
+          maintenanceState =
+            maintenanceStateHelper.getEffectiveState(sch) == MaintenanceState.ON ?
+              true : maintenanceState;
+        }
+      }
+
+      if (staleConfig) {
+        staleConfigsHosts++;
+      }
+      if (maintenanceState) {
+        maintenanceStateHosts++;
+      }
+    }
+
+    ClusterHealthReport chr = new ClusterHealthReport();
+    chr.setAlertStatusHosts(alertStatusHosts);
+    chr.setHealthyStateHosts(healthyStateHosts);
+    chr.setUnknownStatusHosts(unknownStatusHosts);
+    chr.setUnhealthyStatusHosts(unhealthyStatusHosts);
+    chr.setUnhealthyStateHosts(unhealthyStateHosts);
+    chr.setStaleConfigsHosts(staleConfigsHosts);
+    chr.setMaintenanceStateHosts(maintenanceStateHosts);
+    chr.setInitStateHosts(initStateHosts);
+    chr.setHeartbeatLostStateHosts(heartbeatLostStateHosts);
+    chr.setHealthyStatusHosts(healthyStatusHosts);
+
+    return chr;
+  }
 }

@@ -6,6 +6,8 @@
         "Clusters/version",
         "Clusters/state",
         "Clusters/desired_configs",
+        "Clusters/total_hosts",
+        "Clusters/health_report",
         "_"
     ],
     "Service":[
@@ -307,7 +309,7 @@
         "TaskAttempt/status",
         "TaskAttempt/locality"
     ],
-     "RootService":[
+    "RootService":[
         "RootService/service_name"
     ],
     "RootServiceComponent":[

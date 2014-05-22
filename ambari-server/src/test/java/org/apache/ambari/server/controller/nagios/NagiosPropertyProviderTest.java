@@ -145,7 +145,50 @@ public class NagiosPropertyProviderTest {
     Assert.assertEquals(1, set.size());
 
   }
-  
+
+  @Test
+  public void testNagiosClusterAlerts() throws Exception {
+
+    TestStreamProvider streamProvider = new TestStreamProvider("nagios_alerts.txt");
+
+    NagiosPropertyProvider npp = new NagiosPropertyProvider(Resource.Type.Cluster,
+      streamProvider,
+      "Clusters/cluster_name",
+      "Clusters/version");
+    npp.forceReset();
+
+    Resource resource = new ResourceImpl(Resource.Type.Cluster);
+    resource.setProperty("Clusters/cluster_name", "c1");
+    resource.setProperty("Clusters/version", "HDP-2.0.6");
+
+    // request with an empty set should get all supported properties
+    Request request = PropertyHelper.getReadRequest(Collections.<String>emptySet(), new HashMap<String, TemporalInfo>());
+
+    Set<Resource> set = npp.populateResources(Collections.singleton(resource), request, null);
+    Assert.assertEquals(1, set.size());
+
+    Resource res = set.iterator().next();
+
+    Map<String, Map<String, Object>> values = res.getPropertiesMap();
+
+    Assert.assertTrue(values.containsKey("alerts/summary"));
+
+    Map<String, Object> summary = values.get("alerts/summary");
+    Assert.assertEquals(4L, summary.size());
+    Assert.assertTrue(summary.containsKey("OK"));
+    Assert.assertTrue(summary.containsKey("WARNING"));
+    Assert.assertTrue(summary.containsKey("CRITICAL"));
+    Assert.assertTrue(summary.containsKey("PASSIVE"));
+    Assert.assertFalse(summary.containsKey("detail"));
+
+    //Totally 4 hosts, no hosts with no alerts
+    Assert.assertTrue(summary.get("OK").equals(Integer.valueOf(0)));
+    Assert.assertTrue(summary.get("WARNING").equals(Integer.valueOf(1)));
+    Assert.assertTrue(summary.get("CRITICAL").equals(Integer.valueOf(2)));
+    Assert.assertTrue(summary.get("PASSIVE").equals(Integer.valueOf(1)));
+
+  }
+
   @Test
   public void testNoNagiosServerCompoonent() throws Exception {
 

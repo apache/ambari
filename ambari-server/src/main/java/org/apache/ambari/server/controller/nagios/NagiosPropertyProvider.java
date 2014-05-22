@@ -23,9 +23,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -83,7 +85,7 @@ public class NagiosPropertyProvider extends BaseProvider implements PropertyProv
   
   private static final List<String> IGNORABLE_FOR_HOSTS = new ArrayList<String>(
       Arrays.asList("percent"));
-  
+
   // holds alerts for clusters.  clusterName is the key
   private static final Map<String, List<NagiosAlert>> CLUSTER_ALERTS =
       new ConcurrentHashMap<String, List<NagiosAlert>>();
@@ -238,10 +240,12 @@ public class NagiosPropertyProvider extends BaseProvider implements PropertyProv
     int passive = 0;
     
     List<Map<String, Object>> alerts = new ArrayList<Map<String, Object>>();
+
+    Set<String> processedHosts = new HashSet<String>();
     
     for (NagiosAlert alert : allAlerts) {
       boolean match = false;
-      
+
       switch (resourceType.getInternalType()) {
         case Service:
           match = alert.getService().equals(matchValue);
@@ -261,11 +265,24 @@ public class NagiosPropertyProvider extends BaseProvider implements PropertyProv
             }
           }
           break;
+        case Cluster:
+          if (!processedHosts.contains(alert.getHost())) {
+            match = true;
+            Iterator<String> it = IGNORABLE_FOR_HOSTS.iterator();
+            String desc = alert.getDescription();
+            while (it.hasNext() && match) {
+              if (-1 != desc.toLowerCase().indexOf(it.next()))
+                match = false;
+            }
+          }
+          break;
         default:
           break;
       }
-      
+
       if (match) {
+
+        processedHosts.add(alert.getHost());
 
         // status = the return code from the plugin that controls
         // whether an alert is sent out (0 when using wrapper)
@@ -301,17 +318,20 @@ public class NagiosPropertyProvider extends BaseProvider implements PropertyProv
           passive++;
         } else {
           switch (alert.getStatus()) {
-          case 0:
-            ok++;
-            break;
-          case 1:
-            warning++;
-            break;
-          case 2:
-            critical++;
-            break;
-          default:
-            break;
+            case 0:
+              ok++;
+              break;
+            case 1:
+              warning++;
+              break;
+            case 2:
+              critical++;
+              break;
+            case 3:
+              passive++;
+              break;
+            default:
+              break;
           }
         }
         
@@ -324,8 +344,11 @@ public class NagiosPropertyProvider extends BaseProvider implements PropertyProv
     setResourceProperty(res, ALERT_SUMMARY_CRITICAL_PROPERTY_ID, Integer.valueOf(critical), requestedIds);
     setResourceProperty(res, ALERT_SUMMARY_PASSIVE_PROPERTY_ID, Integer.valueOf(passive), requestedIds);
     
-    if (!alerts.isEmpty())
+    if (!alerts.isEmpty() &&
+      (resourceType.getInternalType() != Resource.InternalType.Cluster)) {
+
       setResourceProperty(res, ALERT_DETAIL_PROPERTY_ID, alerts, requestedIds);
+    }
   }
 
   /**

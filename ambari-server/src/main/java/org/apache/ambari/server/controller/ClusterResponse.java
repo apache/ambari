@@ -23,6 +23,7 @@ import java.util.Set;
 
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.State;
+import org.apache.ambari.server.state.ClusterHealthReport;
 
 public class ClusterResponse {
 
@@ -37,14 +38,22 @@ public class ClusterResponse {
   private Map<String, DesiredConfig> desiredConfigs;
   
   private String provisioningState;
+
+  private Integer totalHosts;
+
+  private ClusterHealthReport clusterHealthReport;
   
-  public ClusterResponse(Long clusterId, String clusterName, State provisioningState,
-      Set<String> hostNames, String desiredStackVersion) {
+  public ClusterResponse(Long clusterId, String clusterName,
+    State provisioningState, Set<String> hostNames, Integer totalHosts,
+    String desiredStackVersion, ClusterHealthReport clusterHealthReport) {
+
     super();
     this.clusterId = clusterId;
     this.clusterName = clusterName;
     this.hostNames = hostNames;
+    this.totalHosts = totalHosts;
     this.desiredStackVersion = desiredStackVersion;
+    this.clusterHealthReport = clusterHealthReport;
     
     if (null != provisioningState)
       this.provisioningState = provisioningState.name();
@@ -89,6 +98,7 @@ public class ClusterResponse {
         + ", clusterId=" + clusterId
         + ", provisioningState=" + provisioningState
         + ", desiredStackVersion=" + desiredStackVersion
+        + ", totalHosts=" + totalHosts
         + ", hosts=[");
     
     if (hostNames != null) {
@@ -101,7 +111,9 @@ public class ClusterResponse {
         sb.append(hostName);
       }
     }
-    sb.append("] }");
+    sb.append("]"
+        + ", clusterHealthReport= " + clusterHealthReport
+        + "}");
     return sb.toString();
   }
 
@@ -152,4 +164,17 @@ public class ClusterResponse {
     return desiredConfigs;
   }
 
+  /**
+   * @return total number of hosts in the cluster
+   */
+  public Integer getTotalHosts() {
+    return totalHosts;
+  }
+
+  /**
+   * @return cluster health report
+   */
+  public ClusterHealthReport getClusterHealthReport() {
+    return clusterHealthReport;
+  }
 }

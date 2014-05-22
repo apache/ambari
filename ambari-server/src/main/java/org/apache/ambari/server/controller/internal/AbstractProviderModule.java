@@ -402,6 +402,12 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
               ComponentSSLConfiguration.instance(),
               this,
               PropertyHelper.getPropertyId("Clusters", "cluster_name")));
+          providers.add(new NagiosPropertyProvider(type,
+              new URLStreamProvider(
+                PROPERTY_REQUEST_CONNECT_TIMEOUT, NAGIOS_READ_TIMEOUT,
+                configuration),
+              "Clusters/cluster_name",
+              "Clusters/version"));
           break;
         case Service:
           providers.add(new NagiosPropertyProvider(type,
