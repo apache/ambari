@@ -818,25 +818,44 @@ App.WizardStep3Controller = Em.Controller.extend({
     if (this.get('content.stacks')) {
       var selectedStack = this.get('content.stacks').findProperty('isSelected', true);
       var selectedOS = [];
+      var self = this;
       var isValid = false;
       if (selectedStack && selectedStack.operatingSystems) {
         selectedStack.get('operatingSystems').filterProperty('selected', true).forEach(function (os) {
           selectedOS.pushObject(os.osType);
-          if (os.osType == osType) {
+          if (self.repoToAgentOsType(os.osType).indexOf(osType) >= 0) {
             isValid = true;
           }
         });
       }
-
       if (isValid) {
         return '';
       } else {
         console.log('WARNING: Getting host os type does NOT match the user selected os group in step1. ' +
-          'Host Name: ' + hostName + '. Host os type:' + osType + '. Selected group:' + selectedOS);
-        return Em.I18n.t('installer.step3.hostWarningsPopup.repositories.context').format(hostName, osType, selectedOS);
+          'Host Name: ' + hostName + '. Host os type:' + osType + '. Selected group:' + selectedOS.uniq());
+        return Em.I18n.t('installer.step3.hostWarningsPopup.repositories.context').format(hostName, osType, selectedOS.uniq());
       }
     } else {
       return '';
+    }
+  },
+
+  /**
+   * return the supported agent os types for a repo os type
+   * @param {string} repoType
+   * @return {array} supported agent os type array
+   * @method repoToAgentOsType
+   */
+  repoToAgentOsType : function (repoType) {
+    switch (repoType) {
+      case "redhat6":
+        return ["redhat6", "centos6", "oraclelinux6", "rhel6"];
+      case "redhat5":
+        return ["redhat5", "centos5", "oraclelinux5", "rhel5"];
+      case "suse11":
+        return ["suse11", "sles11", "opensuse11"];
+      case "debian12":
+        return ["debian12", "ubuntu12"];
     }
   },
 

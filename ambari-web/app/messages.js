@@ -468,7 +468,7 @@ Em.I18n.translations = {
   'installer.step3.hostWarningsPopup.summary':'{0} on {1}',
   'installer.step3.hostWarningsPopup.repositories':'Repository Issues',
   'installer.step3.hostWarningsPopup.repositories.name':'Repository for OS not available',
-  'installer.step3.hostWarningsPopup.repositories.context':'Host ({0}) has a {1} OS type, But the repositories chosen in "Select Stack" step was {2}.',
+  'installer.step3.hostWarningsPopup.repositories.context':'Host ({0}) is {1} OS type, but the repositories chosen in "Select Stack" step was {2}. Selected repositories dont support such host OS type.',
   'installer.step3.hostWarningsPopup.repositories.message': 'The following registered hosts have different Operating System types from the available Repositories chosen in "Select Stack" step. You can go back to "Select Stack" step to select another OS repository <b>or</b> remove the host.',
   'installer.step3.hostWarningsPopup.disk':'Disk Issues',
   'installer.step3.hostWarningsPopup.disk.name':'Not enough disk space ',
