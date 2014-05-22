@@ -18,9 +18,10 @@
 
 package org.apache.ambari.server.actionmanager;
 
-import com.google.gson.Gson;
-import com.google.inject.assistedinject.Assisted;
-import com.google.inject.assistedinject.AssistedInject;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.ExecuteActionRequest;
 import org.apache.ambari.server.controller.internal.RequestOperationLevel;
@@ -35,16 +36,17 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import com.google.gson.Gson;
+import com.google.inject.Injector;
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.assistedinject.AssistedInject;
 
 public class Request {
   private static final Logger LOG = LoggerFactory.getLogger(Request.class);
 
   private final long requestId;
-  private final long clusterId;
-  private final String clusterName;
+  private long clusterId;
+  private String clusterName;
   private Long requestScheduleId;
   private String commandName;
   private String requestContext;
@@ -129,14 +131,24 @@ public class Request {
   /**
    * Load existing request from database
    */
-  public Request(@Assisted RequestEntity entity, StageFactory stageFactory){
+  public Request(@Assisted RequestEntity entity, StageFactory stageFactory, Clusters clusters){
     if (entity == null) {
       throw new RuntimeException("Request entity cannot be null.");
     }
 
     this.requestId = entity.getRequestId();
-    this.clusterId = entity.getCluster().getClusterId();
-    this.clusterName = entity.getCluster().getClusterName();
+    this.clusterId = entity.getClusterId();
+    
+    if (-1L != this.clusterId) {
+      try {
+        this.clusterName = clusters.getClusterById(this.clusterId).getClusterName();
+      } catch (AmbariException e) {
+        String message = String.format("Cluster with id %s not found", this.clusterId);
+        LOG.error(message);
+        throw new RuntimeException(message);
+      }
+    }
+
     this.createTime = entity.getCreateTime();
     this.startTime = entity.getStartTime();
     this.endTime = entity.getEndTime();

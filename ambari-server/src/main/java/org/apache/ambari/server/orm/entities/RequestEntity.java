@@ -44,7 +44,7 @@ public class RequestEntity {
   @Id
   private Long requestId;
 
-  @Column(name = "cluster_id", updatable = false, insertable = false)
+  @Column(name = "cluster_id", updatable = false, nullable = false)
   @Basic
   private Long clusterId;
 
@@ -94,10 +94,6 @@ public class RequestEntity {
   private RequestOperationLevelEntity requestOperationLevel;
 
   @ManyToOne(cascade = {CascadeType.MERGE})
-  @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id")
-  private ClusterEntity cluster;
-
-  @ManyToOne(cascade = {CascadeType.MERGE})
   @JoinColumn(name = "request_schedule_id", referencedColumnName = "schedule_id")
   private RequestScheduleEntity requestScheduleEntity;
 
@@ -123,14 +119,6 @@ public class RequestEntity {
 
   public void setStages(Collection<StageEntity> stages) {
     this.stages = stages;
-  }
-
-  public ClusterEntity getCluster() {
-    return cluster;
-  }
-
-  public void setCluster(ClusterEntity cluster) {
-    this.cluster = cluster;
   }
 
   public Long getCreateTime() {

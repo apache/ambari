@@ -80,6 +80,9 @@ public class UpgradeCatalog161 extends AbstractUpgradeCatalog {
     
     // Clusters
     dbAccessor.addColumn("clusters", new DBColumnInfo("provisioning_state", String.class, 255, State.INIT.name(), false));    
+    
+    dbAccessor.dropConstraint("stage", "FK_stage_cluster_id", true);
+    dbAccessor.dropConstraint("request", "FK_request_cluster_id", true);
   }
 
 

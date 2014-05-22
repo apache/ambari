@@ -17,9 +17,17 @@
  */
 package org.apache.ambari.server.actionmanager;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 
-import com.google.inject.persist.Transactional;
+import javax.annotation.Nullable;
+
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.agent.ExecutionCommand;
@@ -28,15 +36,16 @@ import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.RoleSuccessCriteriaEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.serveraction.ServerAction;
+import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ServiceComponentHostEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostUpgradeEvent;
 import org.apache.ambari.server.utils.StageUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
-
-import javax.annotation.Nullable;
+import com.google.inject.persist.Transactional;
 
 //This class encapsulates the stage. The stage encapsulates all the information
 //required to persist an action.
@@ -44,7 +53,7 @@ public class Stage {
 
   private static Logger LOG = LoggerFactory.getLogger(Stage.class);
   private final long requestId;
-  private final String clusterName;
+  private String clusterName;
   private long stageId = -1;
   private final String logDir;
   private final String requestContext;
@@ -75,12 +84,25 @@ public class Stage {
   }
 
   @AssistedInject
-  public Stage(@Assisted StageEntity stageEntity, HostRoleCommandDAO hostRoleCommandDAO, ActionDBAccessor dbAccessor) {
+  public Stage(@Assisted StageEntity stageEntity, HostRoleCommandDAO hostRoleCommandDAO,
+      ActionDBAccessor dbAccessor, Clusters clusters) {
 
     requestId = stageEntity.getRequestId();
     stageId = stageEntity.getStageId();
     logDir = stageEntity.getLogInfo();
-    clusterName = stageEntity.getCluster().getClusterName();
+    
+    long clusterId = stageEntity.getClusterId().longValue();
+    if (-1L != clusterId) {
+      try {
+        clusterName = clusters.getClusterById(clusterId).getClusterName();
+      } catch (Exception e) {
+        String message = String.format("Could not load cluster with id %s",
+            Long.valueOf(clusterId));
+        LOG.error(message);
+        throw new RuntimeException(message, e);
+      }
+    }
+    
     requestContext = stageEntity.getRequestContext();
     clusterHostInfo = stageEntity.getClusterHostInfo();
 

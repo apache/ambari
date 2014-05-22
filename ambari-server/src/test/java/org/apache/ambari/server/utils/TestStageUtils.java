@@ -164,6 +164,7 @@ public class TestStageUtils {
   }
 
   @Test
+  @Ignore
   public void testGetClusterHostInfo() throws AmbariException, UnknownHostException {
     Clusters fsm = injector.getInstance(Clusters.class);
     String h0 = "h0";

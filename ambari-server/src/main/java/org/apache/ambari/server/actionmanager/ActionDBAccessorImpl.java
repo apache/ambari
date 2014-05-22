@@ -207,7 +207,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
     if (clusterEntity == null) {
       throw new RuntimeException(String.format("Cluster with id=%s not found", request.getClusterId()));
     }
-    requestEntity.setCluster(clusterEntity);
+    requestEntity.setClusterId(clusterEntity.getClusterId());
     requestDAO.create(requestEntity);
 
     //TODO wire request to cluster
@@ -216,7 +216,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
     for (Stage stage : request.getStages()) {
       StageEntity stageEntity = stage.constructNewPersistenceEntity();
       stageEntities.add(stageEntity);
-      stageEntity.setCluster(clusterEntity);
+      stageEntity.setClusterId(clusterEntity.getClusterId());
       //TODO refactor to reduce merges
       stageEntity.setRequest(requestEntity);
       stageDAO.create(stageEntity);

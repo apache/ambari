@@ -67,7 +67,7 @@ public class ExecutionCommandWrapper {
         Clusters clusters = injector.getInstance(Clusters.class);
         HostRoleCommandDAO hostRoleCommandDAO = injector.getInstance(HostRoleCommandDAO.class);
         Long clusterId = hostRoleCommandDAO.findByPK(
-            executionCommand.getTaskId()).getStage().getCluster().getClusterId();
+            executionCommand.getTaskId()).getStage().getClusterId();
 
         try {
           Cluster cluster = clusters.getClusterById(clusterId);

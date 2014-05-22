@@ -223,12 +223,12 @@ public class TestOrmImpl extends Assert {
     List<StageEntity> stageEntities = new ArrayList<StageEntity>();
 
     StageEntity stageEntity = new StageEntity();
-    stageEntity.setCluster(clusterDAO.findByName("test_cluster1"));
+    stageEntity.setClusterId(clusterDAO.findByName("test_cluster1").getClusterId());
     stageEntity.setRequest(requestEntity);
     stageEntity.setStageId(2L);
     stageDAO.create(stageEntity);
     StageEntity stageEntity2 = new StageEntity();
-    stageEntity2.setCluster(clusterDAO.findByName("test_cluster1"));
+    stageEntity2.setClusterId(clusterDAO.findByName("test_cluster1").getClusterId());
     stageEntity2.setRequest(requestEntity);
     stageEntity2.setRequestId(1L);
     stageEntity2.setStageId(3L);

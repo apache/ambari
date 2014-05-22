@@ -28,9 +28,9 @@ import static org.apache.commons.lang.StringUtils.defaultString;
 @Entity
 public class StageEntity {
 
-  @Column(name = "cluster_id", insertable = false, updatable = false, nullable = false)
+  @Column(name = "cluster_id", updatable = false, nullable = false)
   @Basic
-  private Long clusterId;
+  private Long clusterId = Long.valueOf(-1L);
 
   @Column(name = "request_id", insertable = false, updatable = false, nullable = false)
   @Id
@@ -56,9 +56,6 @@ public class StageEntity {
   @JoinColumn(name = "request_id", referencedColumnName = "request_id", nullable = false)
   private RequestEntity request;
   
-  @ManyToOne(cascade = {CascadeType.MERGE})
-  @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id")
-  private ClusterEntity cluster;
 
   @OneToMany(mappedBy = "stage", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
   private Collection<HostRoleCommandEntity> hostRoleCommands;
@@ -141,14 +138,6 @@ public class StageEntity {
     result = 31 * result + (clusterHostInfo != null ? clusterHostInfo.hashCode() : 0);
     result = 31 * result + (requestContext != null ? requestContext.hashCode() : 0);
     return result;
-  }
-
-  public ClusterEntity getCluster() {
-    return cluster;
-  }
-
-  public void setCluster(ClusterEntity cluster) {
-    this.cluster = cluster;
   }
 
   public Collection<HostRoleCommandEntity> getHostRoleCommands() {

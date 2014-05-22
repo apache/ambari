@@ -152,11 +152,11 @@ public class OrmTestHelper {
     RequestDAO requestDAO = injector.getInstance(RequestDAO.class);
     RequestEntity requestEntity = new RequestEntity();
     requestEntity.setRequestId(1L);
-    requestEntity.setCluster(clusterDAO.findByName("test_cluster1"));
+    requestEntity.setClusterId(clusterDAO.findByName("test_cluster1").getClusterId());
 
     StageEntity stageEntity = new StageEntity();
     stageEntity.setRequest(requestEntity);
-    stageEntity.setCluster(clusterDAO.findByName("test_cluster1"));
+    stageEntity.setClusterId(clusterDAO.findByName("test_cluster1").getClusterId());
     stageEntity.setRequestId(1L);
     stageEntity.setStageId(1L);
 
