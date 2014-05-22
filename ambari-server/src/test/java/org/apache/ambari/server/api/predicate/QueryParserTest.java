@@ -193,7 +193,7 @@ public class QueryParserTest {
   @Test
   public void testParse_FilterOp() throws Exception {
     List<Token> listTokens = new ArrayList<Token>();
-    listTokens.add(new Token(Token.TYPE.RELATIONAL_OPERATOR_FUNC, ".filter("));
+    listTokens.add(new Token(Token.TYPE.RELATIONAL_OPERATOR_FUNC, ".matches("));
     listTokens.add(new Token(Token.TYPE.PROPERTY_OPERAND, "foo"));
     listTokens.add(new Token(Token.TYPE.VALUE_OPERAND, ".*"));
     listTokens.add(new Token(Token.TYPE.BRACKET_CLOSE, ")"));
@@ -209,7 +209,7 @@ public class QueryParserTest {
   @Test
   public void testParse_FilterOp_exception() throws Exception {
     List<Token> listTokens = new ArrayList<Token>();
-    listTokens.add(new Token(Token.TYPE.RELATIONAL_OPERATOR_FUNC, ".filter("));
+    listTokens.add(new Token(Token.TYPE.RELATIONAL_OPERATOR_FUNC, ".matches("));
     listTokens.add(new Token(Token.TYPE.PROPERTY_OPERAND, "foo"));
     listTokens.add(new Token(Token.TYPE.BRACKET_CLOSE, ")"));
 
