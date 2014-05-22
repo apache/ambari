@@ -50,6 +50,7 @@ public class ReadHandler implements RequestHandler {
     Query query = request.getResource().getQuery();
 
     query.setPageRequest(request.getPageRequest());
+    query.setSortRequest(request.getSortRequest());
     query.setRenderer(request.getRenderer());
 
     try {

@@ -15,50 +15,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.apache.ambari.server.api.predicate.operators;
 
-/**
- * Operator representation.
- */
-public interface Operator {
+import org.apache.ambari.server.api.predicate.InvalidQueryException;
+import org.apache.ambari.server.controller.predicate.FilterPredicate;
+import org.apache.ambari.server.controller.spi.Predicate;
 
-  /**
-   * Operator types.
-   */
-  public enum TYPE {
-    LESS,
-    LESS_EQUAL,
-    GREATER,
-    GREATER_EQUAL,
-    EQUAL,
-    NOT_EQUAL,
-    AND,
-    OR,
-    NOT,
-    IN,
-    IS_EMPTY,
-    FILTER
+/**
+ * This is a binary operator which takes right operand as a regular
+ * expression and applies it to the left operand
+ */
+public class FilterOperator extends AbstractOperator implements RelationalOperator {
+
+  public FilterOperator() {
+    super(0);
   }
 
-  /**
-   * The highest base operator precedence level.
-   */
-  public static final int MAX_OP_PRECEDENCE = 3;
+  @Override
+  public String getName() {
+    return "FilterOperator";
+  }
 
-  /**
-   * Get the operator type.
-   *
-   * @return the operator type
-   */
-  public TYPE getType();
+  @Override
+  public Predicate toPredicate(String prop, String val) throws InvalidQueryException {
+    if (val == null) {
+      throw new InvalidQueryException("Filter operator is missing a required right operand.");
+    }
+    return new FilterPredicate(prop, val);
+  }
 
-  /**
-   * Obtain the precedence of the operator.
-   * This value is calculated based on the operators base precedence and the context of the
-   * surrounding expressions.  Higher precedence values have higher precedence.
-   *
-   * @return  the precedence of this operator in it's current context
-   */
-  public int getPrecedence();
+  @Override
+  public TYPE getType() {
+    return TYPE.FILTER;
+  }
 }

@@ -23,6 +23,7 @@ import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Comparator;
@@ -56,19 +57,5 @@ public class PageRequestImplTest {
 
     PageRequest pageRequest = new PageRequestImpl(PageRequest.StartingPoint.Beginning, 20, 99, predicate, null);
     Assert.assertEquals(predicate, pageRequest.getPredicate());
-  }
-
-  @Test
-  public void testGetComparator() throws Exception {
-
-    Comparator<Resource> comparator = new Comparator<Resource>() {
-      @Override
-      public int compare(Resource resource, Resource resource1) {
-        return 0;
-      }
-    };
-
-    PageRequest pageRequest = new PageRequestImpl(PageRequest.StartingPoint.Beginning, 20, 99, null, comparator);
-    Assert.assertEquals(comparator, pageRequest.getComparator());
   }
 }

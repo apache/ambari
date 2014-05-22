@@ -88,7 +88,9 @@ public interface ClusterController extends SchemaFactory {
    * @throws NoSuchParentResourceException a specified parent resource doesn't exist
    */
   Iterable<Resource> getIterable(Resource.Type type, Set<Resource> providerResources,
-                                 Request request, Predicate predicate)
+                                 Request request, Predicate predicate,
+                                 PageRequest pageRequest,
+                                 SortRequest sortRequest)
       throws NoSuchParentResourceException,
       UnsupportedPropertyException,
       NoSuchResourceException,
@@ -113,7 +115,8 @@ public interface ClusterController extends SchemaFactory {
    * @throws NoSuchParentResourceException a specified parent resource doesn't exist
    */
   PageResponse getPage(Resource.Type type, Set<Resource> providerResources,
-                       Request request, Predicate predicate, PageRequest pageRequest)
+                       Request request, Predicate predicate,
+                       PageRequest pageRequest, SortRequest sortRequest)
       throws UnsupportedPropertyException,
       SystemException,
       NoSuchResourceException,

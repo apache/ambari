@@ -97,6 +97,9 @@ public abstract class ComparisonPredicate<T> extends PropertyPredicate implement
   }
 
   private Double stringToDouble(String stringValue) {
+    if (stringValue == null || stringValue.isEmpty()) {
+      return null;
+    }
     ParsePosition parsePosition = new ParsePosition(0);
     NumberFormat  numberFormat  = NumberFormat.getInstance();
     Number        parsedNumber  = numberFormat.parse((String) value, parsePosition);

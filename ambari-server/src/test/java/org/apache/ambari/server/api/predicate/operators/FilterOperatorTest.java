@@ -15,50 +15,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.apache.ambari.server.api.predicate.operators;
 
-/**
- * Operator representation.
- */
-public interface Operator {
+import org.apache.ambari.server.controller.predicate.FilterPredicate;
+import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
 
-  /**
-   * Operator types.
-   */
-  public enum TYPE {
-    LESS,
-    LESS_EQUAL,
-    GREATER,
-    GREATER_EQUAL,
-    EQUAL,
-    NOT_EQUAL,
-    AND,
-    OR,
-    NOT,
-    IN,
-    IS_EMPTY,
-    FILTER
+public class FilterOperatorTest {
+  @Test
+  public void testGetName() {
+    assertEquals("FilterOperator", new FilterOperator().getName());
   }
 
-  /**
-   * The highest base operator precedence level.
-   */
-  public static final int MAX_OP_PRECEDENCE = 3;
+  @Test
+  public void testToPredicate() throws Exception {
+    assertEquals(new FilterPredicate("p1", ".*"),
+                 new FilterOperator().toPredicate("p1", ".*"));
+  }
 
-  /**
-   * Get the operator type.
-   *
-   * @return the operator type
-   */
-  public TYPE getType();
+  @Test
+  public void testGetType() {
+    assertSame(Operator.TYPE.FILTER, new FilterOperator().getType());
+  }
 
-  /**
-   * Obtain the precedence of the operator.
-   * This value is calculated based on the operators base precedence and the context of the
-   * surrounding expressions.  Higher precedence values have higher precedence.
-   *
-   * @return  the precedence of this operator in it's current context
-   */
-  public int getPrecedence();
+  @Test
+  public void testGetBasePrecedence() {
+    assertEquals(-1, new FilterOperator().getBasePrecedence());
+  }
+
+  @Test
+  public void testGetPrecedence() {
+    assertEquals(-1, new FilterOperator().getPrecedence());
+  }
 }

@@ -63,9 +63,4 @@ public class PageRequestImpl implements PageRequest{
   public Predicate getPredicate() {
     return predicate;
   }
-
-  @Override
-  public Comparator<Resource> getComparator() {
-    return comparator;
-  }
 }

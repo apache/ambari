@@ -43,12 +43,13 @@ public class QueryLexer {
   public static final String QUERY_TO        = "to";
   public static final String QUERY_FROM      = "from";
   public static final String QUERY_MINIMAL   = "minimal_response";
+  public static final String QUERY_SORT      = "sortBy";
 
   /**
    * All valid deliminators.
    */
   private static final String[] ALL_DELIMS =
-      {".in\\(",".isEmpty\\(","<=",">=","!=","=","<",">","&","|","!","(", ")"};
+      {".filter\\(",".in\\(",".isEmpty\\(","<=",">=","!=","=","<",">","&","|","!","(", ")"};
 
   /**
    * Map of token type to list of valid handlers for next token.
@@ -184,6 +185,7 @@ public class QueryLexer {
     SET_IGNORE.add(QUERY_TO);
     SET_IGNORE.add(QUERY_FROM);
     SET_IGNORE.add(QUERY_MINIMAL);
+    SET_IGNORE.add(QUERY_SORT);
     SET_IGNORE.add("_");
   }
 

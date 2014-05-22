@@ -104,6 +104,11 @@ public class QueryImpl implements Query, ResourceInstance {
   private PageRequest pageRequest;
 
   /**
+   * The user supplied sorting information.
+   */
+  private SortRequest sortRequest;
+
+  /**
    * The sub resource properties referenced in the user predicate.
    */
   private final Set<String> subResourcePredicateProperties = new HashSet<String>();
@@ -205,6 +210,11 @@ public class QueryImpl implements Query, ResourceInstance {
   @Override
   public void setPageRequest(PageRequest pageRequest) {
     this.pageRequest = pageRequest;
+  }
+
+  @Override
+  public void setSortRequest(SortRequest sortRequest) {
+    this.sortRequest = sortRequest;
   }
 
   @Override
@@ -474,7 +484,7 @@ public class QueryImpl implements Query, ResourceInstance {
 
         Iterable<Resource> iterResource = clusterController.getIterable(
             resourceDefinition.getType(), queryResult.getProviderResourceSet(),
-            queryResult.getRequest(), queryResult.getPredicate());
+            queryResult.getRequest(), queryResult.getPredicate(), null, null);
 
         for (Resource resource : iterResource) {
           // get the resource properties
@@ -655,10 +665,14 @@ public class QueryImpl implements Query, ResourceInstance {
 
       if (pageRequest == null) {
         iterResource = clusterController.getIterable(
-            resourceType, providerResourceSet, queryRequest, queryPredicate);
+          resourceType, providerResourceSet, queryRequest, queryPredicate,
+          null, sortRequest
+        );
       } else {
         PageResponse pageResponse = clusterController.getPage(
-            resourceType, providerResourceSet, queryRequest, queryPredicate, pageRequest);
+          resourceType, providerResourceSet, queryRequest, queryPredicate,
+          pageRequest, sortRequest
+        );
         iterResource = pageResponse.getIterable();
       }
 

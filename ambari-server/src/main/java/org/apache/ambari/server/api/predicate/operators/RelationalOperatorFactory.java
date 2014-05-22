@@ -50,6 +50,8 @@ public class RelationalOperatorFactory {
       return new InOperator();
     } else if (".isEmpty(".equals(operator)) {
       return new IsEmptyOperator();
+    } else if (".filter(".equals(operator)) {
+      return new FilterOperator();
     } else {
       throw new RuntimeException("Invalid Operator Type: " + operator);
     }

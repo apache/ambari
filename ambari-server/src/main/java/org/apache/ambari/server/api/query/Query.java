@@ -22,6 +22,7 @@ import org.apache.ambari.server.api.query.render.Renderer;
 import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
+import org.apache.ambari.server.controller.spi.SortRequest;
 import org.apache.ambari.server.controller.spi.PageRequest;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.SystemException;
@@ -98,6 +99,13 @@ public interface Query {
    * @param pageRequest  the page request information
    */
   public void setPageRequest(PageRequest pageRequest);
+
+  /**
+   * Set the order request information on the query
+   *
+   * @param sortRequest the ordering info
+   */
+  public void setSortRequest(SortRequest sortRequest);
 
   /**
    * Set the corresponding renderer.

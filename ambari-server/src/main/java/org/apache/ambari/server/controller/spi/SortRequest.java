@@ -15,50 +15,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.apache.ambari.server.controller.spi;
 
-package org.apache.ambari.server.api.predicate.operators;
+import org.apache.ambari.server.controller.internal.SortRequestImpl;
+
+import java.util.List;
 
 /**
- * Operator representation.
+ * Holder for request information used for sorting the results.
  */
-public interface Operator {
+public interface SortRequest {
 
   /**
-   * Operator types.
+   * Get a list of @SortRequestProperty.
    */
-  public enum TYPE {
-    LESS,
-    LESS_EQUAL,
-    GREATER,
-    GREATER_EQUAL,
-    EQUAL,
-    NOT_EQUAL,
-    AND,
-    OR,
-    NOT,
-    IN,
-    IS_EMPTY,
-    FILTER
+  public List<SortRequestProperty> getProperties();
+
+  /**
+   * Get a list of propertyIds
+   */
+  public List<String> getPropertyIds();
+
+  /**
+   * Enumeration for order of sorting
+   */
+  public enum Order {
+    ASC,
+    DESC
   }
-
-  /**
-   * The highest base operator precedence level.
-   */
-  public static final int MAX_OP_PRECEDENCE = 3;
-
-  /**
-   * Get the operator type.
-   *
-   * @return the operator type
-   */
-  public TYPE getType();
-
-  /**
-   * Obtain the precedence of the operator.
-   * This value is calculated based on the operators base precedence and the context of the
-   * surrounding expressions.  Higher precedence values have higher precedence.
-   *
-   * @return  the precedence of this operator in it's current context
-   */
-  public int getPrecedence();
 }

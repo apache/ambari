@@ -191,6 +191,38 @@ public class QueryParserTest {
   }
 
   @Test
+  public void testParse_FilterOp() throws Exception {
+    List<Token> listTokens = new ArrayList<Token>();
+    listTokens.add(new Token(Token.TYPE.RELATIONAL_OPERATOR_FUNC, ".filter("));
+    listTokens.add(new Token(Token.TYPE.PROPERTY_OPERAND, "foo"));
+    listTokens.add(new Token(Token.TYPE.VALUE_OPERAND, ".*"));
+    listTokens.add(new Token(Token.TYPE.BRACKET_CLOSE, ")"));
+
+    QueryParser parser = new QueryParser();
+    Predicate p = parser.parse(listTokens.toArray(new Token[listTokens.size()]));
+
+    FilterPredicate fp = new FilterPredicate("foo", ".*");
+
+    assertEquals(fp, p);
+  }
+
+  @Test
+  public void testParse_FilterOp_exception() throws Exception {
+    List<Token> listTokens = new ArrayList<Token>();
+    listTokens.add(new Token(Token.TYPE.RELATIONAL_OPERATOR_FUNC, ".filter("));
+    listTokens.add(new Token(Token.TYPE.PROPERTY_OPERAND, "foo"));
+    listTokens.add(new Token(Token.TYPE.BRACKET_CLOSE, ")"));
+
+    QueryParser parser = new QueryParser();
+    try {
+      Predicate p = parser.parse(listTokens.toArray(new Token[listTokens.size()]));
+      fail("Filter operator is missing a required right operand.");
+    } catch (InvalidQueryException e) {
+      // expected
+    }
+  }
+
+  @Test
   public void testParse_isEmptyOp__simple() throws Exception {
     List<Token> listTokens = new ArrayList<Token>();
     // category1.isEmpty()

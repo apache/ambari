@@ -59,6 +59,7 @@ public class ReadHandlerTest {
     expect(resource.getQuery()).andReturn(query);
 
     query.setPageRequest(null);
+    query.setSortRequest(null);
     query.setRenderer(renderer);
     query.addProperty("foo/bar", null);
     expectLastCall().andThrow(new IllegalArgumentException("testMsg"));
@@ -94,6 +95,7 @@ public class ReadHandlerTest {
     expect(resource.getQuery()).andReturn(query);
 
     expect(request.getPageRequest()).andReturn(null);
+    expect(request.getSortRequest()).andReturn(null);
     expect(request.getRenderer()).andReturn(renderer);
     expect(request.getFields()).andReturn(mapPartialResponseFields);
 
@@ -105,6 +107,7 @@ public class ReadHandlerTest {
     expect(request.getQueryPredicate()).andReturn(predicate);
     query.setUserPredicate(predicate);
     query.setPageRequest(null);
+    query.setSortRequest(null);
     query.setRenderer(renderer);
     expect(query.execute()).andReturn(result);
     result.setResultStatus(capture(resultStatusCapture));
@@ -130,12 +133,14 @@ public class ReadHandlerTest {
     expect(resource.getQuery()).andReturn(query);
 
     expect(request.getPageRequest()).andReturn(null);
+    expect(request.getSortRequest()).andReturn(null);
     expect(request.getRenderer()).andReturn(renderer);
     expect(request.getFields()).andReturn(Collections.<String, TemporalInfo>emptyMap());
 
     expect(request.getQueryPredicate()).andReturn(predicate);
     query.setUserPredicate(predicate);
     query.setPageRequest(null);
+    query.setSortRequest(null);
     query.setRenderer(renderer);
     SystemException systemException = new SystemException("testMsg", new RuntimeException());
     expect(query.execute()).andThrow(systemException);
@@ -163,12 +168,14 @@ public class ReadHandlerTest {
     expect(resource.getQuery()).andReturn(query);
 
     expect(request.getPageRequest()).andReturn(null);
+    expect(request.getSortRequest()).andReturn(null);
     expect(request.getRenderer()).andReturn(renderer);
     expect(request.getFields()).andReturn(Collections.<String, TemporalInfo>emptyMap());
 
     expect(request.getQueryPredicate()).andReturn(predicate);
     query.setUserPredicate(predicate);
     query.setPageRequest(null);
+    query.setSortRequest(null);
     query.setRenderer(renderer);
 
     expect(query.execute()).andThrow(exception);
@@ -197,12 +204,14 @@ public class ReadHandlerTest {
     expect(resource.getQuery()).andReturn(query);
 
     expect(request.getPageRequest()).andReturn(null);
+    expect(request.getSortRequest()).andReturn(null);
     expect(request.getRenderer()).andReturn(renderer);
     expect(request.getFields()).andReturn(Collections.<String, TemporalInfo>emptyMap());
 
     expect(request.getQueryPredicate()).andReturn(predicate);
     query.setUserPredicate(predicate);
     query.setPageRequest(null);
+    query.setSortRequest(null);
     query.setRenderer(renderer);
 
     expect(query.execute()).andThrow(exception);
@@ -230,12 +239,14 @@ public class ReadHandlerTest {
     expect(resource.getQuery()).andReturn(query);
 
     expect(request.getPageRequest()).andReturn(null);
+    expect(request.getSortRequest()).andReturn(null);
     expect(request.getRenderer()).andReturn(renderer);
     expect(request.getFields()).andReturn(Collections.<String, TemporalInfo>emptyMap());
 
     expect(request.getQueryPredicate()).andReturn(predicate).anyTimes();
     query.setUserPredicate(predicate);
     query.setPageRequest(null);
+    query.setSortRequest(null);
     query.setRenderer(renderer);
 
     expect(query.execute()).andThrow(exception);
@@ -262,12 +273,14 @@ public class ReadHandlerTest {
     expect(resource.getQuery()).andReturn(query);
 
     expect(request.getPageRequest()).andReturn(null);
+    expect(request.getSortRequest()).andReturn(null);
     expect(request.getRenderer()).andReturn(renderer);
     expect(request.getFields()).andReturn(Collections.<String, TemporalInfo>emptyMap());
 
     expect(request.getQueryPredicate()).andReturn(null).anyTimes();
     query.setUserPredicate(null);
     query.setPageRequest(null);
+    query.setSortRequest(null);
     query.setRenderer(renderer);
 
     expect(query.execute()).andThrow(exception);

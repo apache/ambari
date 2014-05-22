@@ -23,20 +23,29 @@ import org.apache.ambari.server.api.predicate.InvalidQueryException;
 import org.apache.ambari.server.api.predicate.PredicateCompiler;
 import org.apache.ambari.server.api.predicate.QueryLexer;
 import org.apache.ambari.server.api.query.render.Renderer;
-import org.apache.ambari.server.api.resources.*;
+import org.apache.ambari.server.api.resources.ResourceInstance;
+import org.apache.ambari.server.controller.internal.SortRequestImpl;
 import org.apache.ambari.server.controller.internal.PageRequestImpl;
 import org.apache.ambari.server.controller.internal.TemporalInfoImpl;
+import org.apache.ambari.server.controller.spi.SortRequest;
 import org.apache.ambari.server.controller.spi.PageRequest;
 import org.apache.ambari.server.controller.spi.Predicate;
+import org.apache.ambari.server.controller.spi.SortRequestProperty;
 import org.apache.ambari.server.controller.spi.TemporalInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.UriInfo;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -318,6 +327,30 @@ public abstract class BaseRequest implements Request {
         m_uriInfo.getQueryParameters().getFirst(QueryLexer.QUERY_FORMAT);
     m_renderer = m_resource.getResourceDefinition().
         getRenderer(rendererName);
+  }
+
+  @Override
+  public SortRequest getSortRequest() {
+    String sortByParams = m_uriInfo.getQueryParameters().getFirst(QueryLexer.QUERY_SORT);
+    if (sortByParams != null && !sortByParams.isEmpty()) {
+      String[] params = sortByParams.split(",");
+      List<SortRequestProperty> properties = new ArrayList<SortRequestProperty>();
+      if (params.length > 0) {
+        for (String property : params) {
+          SortRequest.Order order = SortRequest.Order.ASC;
+          String propertyId = property;
+          int idx = property.indexOf(".");
+          if (idx != -1) {
+            order = SortRequest.Order.valueOf(property.substring(idx + 1).toUpperCase());
+            propertyId = property.substring(0, idx);
+          }
+          properties.add(new SortRequestProperty(propertyId, order));
+        }
+      }
+
+      return new SortRequestImpl(properties);
+    }
+    return null;
   }
 
   /**

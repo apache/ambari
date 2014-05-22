@@ -21,6 +21,7 @@ package org.apache.ambari.server.api.services;
 import org.apache.ambari.server.api.query.render.Renderer;
 import org.apache.ambari.server.api.resources.ResourceDefinition;
 import org.apache.ambari.server.api.resources.ResourceInstance;
+import org.apache.ambari.server.controller.spi.SortRequest;
 import org.apache.ambari.server.controller.spi.PageRequest;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.TemporalInfo;
@@ -115,6 +116,13 @@ public interface Request {
    * @return the page request
    */
   public PageRequest getPageRequest();
+
+  /**
+   * Obtain information to order the results by.
+   *
+   * @return the order request
+   */
+  public SortRequest getSortRequest();
 
   /**
    * Obtain the renderer for the request.

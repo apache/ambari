@@ -18,8 +18,6 @@
 
 package org.apache.ambari.server.controller.spi;
 
-import java.util.Comparator;
-
 /**
  * Holder for page request information used when pagination is requested.
  */
@@ -54,13 +52,6 @@ public interface PageRequest {
    * @return the associated predicate
    */
   public Predicate getPredicate();
-
-  /**
-   * Get the comparator used to order the page request.
-   *
-   * @return the comparator
-   */
-  public Comparator<Resource> getComparator();
 
   /**
    * The desired starting point of the page being requested.

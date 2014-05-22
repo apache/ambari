@@ -18,14 +18,30 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import org.apache.ambari.server.controller.spi.ClusterController;
+import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
+import org.apache.ambari.server.controller.spi.NoSuchResourceException;
+import org.apache.ambari.server.controller.spi.SortRequest;
+import org.apache.ambari.server.controller.spi.PageRequest;
+import org.apache.ambari.server.controller.spi.PageResponse;
+import org.apache.ambari.server.controller.spi.Predicate;
+import org.apache.ambari.server.controller.spi.PropertyProvider;
 import org.apache.ambari.server.controller.spi.ProviderModule;
-import org.apache.ambari.server.controller.spi.*;
+import org.apache.ambari.server.controller.spi.Request;
+import org.apache.ambari.server.controller.spi.RequestStatus;
+import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
+import org.apache.ambari.server.controller.spi.ResourcePredicateEvaluator;
+import org.apache.ambari.server.controller.spi.ResourceProvider;
+import org.apache.ambari.server.controller.spi.Schema;
+import org.apache.ambari.server.controller.spi.SortRequestProperty;
+import org.apache.ambari.server.controller.spi.SystemException;
+import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PredicateHelper;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -39,6 +55,8 @@ import java.util.NavigableSet;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.TreeSet;
+
+import static org.apache.ambari.server.controller.spi.Resource.Type;
 
 /**
  * Default cluster controller implementation.
@@ -92,8 +110,9 @@ public class ClusterControllerImpl implements ClusterController {
   // ----- ClusterController -------------------------------------------------
 
   @Override
-  public Set<Resource> getResources(Resource.Type type, Request request, Predicate predicate)
-      throws UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException, SystemException {
+  public Set<Resource> getResources(Type type, Request request, Predicate predicate)
+      throws UnsupportedPropertyException, NoSuchResourceException,
+             NoSuchParentResourceException, SystemException {
     Set<Resource> resources;
 
     ResourceProvider provider = ensureResourceProvider(type);
@@ -118,7 +137,7 @@ public class ClusterControllerImpl implements ClusterController {
   }
 
   @Override
-  public Set<Resource> populateResources(Resource.Type type,
+  public Set<Resource> populateResources(Type type,
                                          Set<Resource> resources,
                                          Request request,
                                          Predicate predicate) throws SystemException {
@@ -133,15 +152,18 @@ public class ClusterControllerImpl implements ClusterController {
   }
 
   @Override
-  public Iterable<Resource> getIterable(Resource.Type type, Set<Resource> providerResources,
-                                        Request request, Predicate predicate)
+  public Iterable<Resource> getIterable(Type type, Set<Resource> providerResources,
+                                        Request request, Predicate predicate,
+                                        PageRequest pageRequest,
+                                        SortRequest sortRequest)
       throws NoSuchParentResourceException, UnsupportedPropertyException, NoSuchResourceException, SystemException {
-    return getPage(type, providerResources, request, predicate, null).getIterable();
+    return getPage(type, providerResources, request, predicate, pageRequest, sortRequest).getIterable();
   }
 
   @Override
-  public PageResponse getPage(Resource.Type type, Set<Resource> providerResources,
-                              Request request, Predicate predicate, PageRequest pageRequest)
+  public PageResponse getPage(Type type, Set<Resource> providerResources,
+                              Request request, Predicate predicate,
+                              PageRequest pageRequest, SortRequest sortRequest)
       throws UnsupportedPropertyException,
       SystemException,
       NoSuchResourceException,
@@ -154,8 +176,11 @@ public class ClusterControllerImpl implements ClusterController {
         (ResourcePredicateEvaluator) provider : DEFAULT_RESOURCE_PREDICATE_EVALUATOR;
 
     if (!providerResources.isEmpty()) {
-      Comparator<Resource> resourceComparator = pageRequest == null || pageRequest.getComparator() == null ?
-          comparator : pageRequest.getComparator();
+      Comparator<Resource> resourceComparator = comparator;
+      if (sortRequest != null) {
+        checkSortRequestProperties(sortRequest, type, provider);
+        resourceComparator = new ResourceComparator(sortRequest);
+      }
 
       TreeSet<Resource> sortedResources = new TreeSet<Resource>(resourceComparator);
       sortedResources.addAll(providerResources);
@@ -184,30 +209,57 @@ public class ClusterControllerImpl implements ClusterController {
       resources = providerResources;
     }
 
-    return new PageResponseImpl(
-        new ResourceIterable(resources, predicate, evaluator),
-        0, null, null);
+    return new PageResponseImpl(new ResourceIterable(resources, predicate, evaluator), 0, null, null);
+  }
+
+  /**
+   * Check whether properties specified with a @SortRequest are supported by
+   * the @ResourceProvider.
+   *
+   * @param sortRequest @SortRequest
+   * @param type @Type
+   * @param provider @ResourceProvider
+   * @throws UnsupportedPropertyException
+   */
+  private void checkSortRequestProperties(SortRequest sortRequest, Type type,
+                                          ResourceProvider provider) throws UnsupportedPropertyException {
+    Set<String> requestPropertyIds = provider.checkPropertyIds(
+      new HashSet<String>(sortRequest.getPropertyIds()));
+
+    if (requestPropertyIds.size() > 0) {
+      List<PropertyProvider> propertyProviders = ensurePropertyProviders(type);
+      for (PropertyProvider propertyProvider : propertyProviders) {
+        requestPropertyIds = propertyProvider.checkPropertyIds(requestPropertyIds);
+        if (requestPropertyIds.size() == 0) {
+          return;
+        }
+      }
+      throw new UnsupportedPropertyException(type, requestPropertyIds);
+    }
   }
 
   @Override
-  public Schema getSchema(Resource.Type type) {
-    Schema schema;
+  public Schema getSchema(Type type) {
+    Schema schema = schemas.get(type);
 
-    synchronized (schemas) {
-      schema = schemas.get(type);
-      if (schema == null) {
-        schema = new SchemaImpl(ensureResourceProvider(type));
-        schemas.put(type, schema);
+    if (schema == null) {
+      synchronized (schemas) {
+        schema = schemas.get(type);
+        if (schema == null) {
+          schema = new SchemaImpl(ensureResourceProvider(type));
+          schemas.put(type, schema);
+        }
       }
     }
+
     return schema;
   }
 
   @Override
-  public RequestStatus createResources(Resource.Type type, Request request)
+  public RequestStatus createResources(Type type, Request request)
       throws UnsupportedPropertyException,
              SystemException,
-             ResourceAlreadyExistsException,
+    ResourceAlreadyExistsException,
              NoSuchParentResourceException {
 
     ResourceProvider provider = ensureResourceProvider(type);
@@ -221,7 +273,7 @@ public class ClusterControllerImpl implements ClusterController {
   }
 
   @Override
-  public RequestStatus updateResources(Resource.Type type, Request request, Predicate predicate)
+  public RequestStatus updateResources(Type type, Request request, Predicate predicate)
       throws UnsupportedPropertyException,
              SystemException,
              NoSuchResourceException,
@@ -242,7 +294,7 @@ public class ClusterControllerImpl implements ClusterController {
   }
 
   @Override
-  public RequestStatus deleteResources(Resource.Type type, Predicate predicate)
+  public RequestStatus deleteResources(Type type, Predicate predicate)
       throws UnsupportedPropertyException,
              SystemException,
              NoSuchResourceException,
@@ -271,7 +323,7 @@ public class ClusterControllerImpl implements ClusterController {
    *
    * @return the resource provider
    */
-  public ResourceProvider ensureResourceProvider(Resource.Type type) {
+  public ResourceProvider ensureResourceProvider(Type type) {
     synchronized (resourceProviders) {
       if (!resourceProviders.containsKey(type)) {
         resourceProviders.put(type, providerModule.getResourceProvider(type));
@@ -298,13 +350,13 @@ public class ClusterControllerImpl implements ClusterController {
    * @throws NoSuchResourceException no matching resource(s) found
    * @throws NoSuchParentResourceException a specified parent resource doesn't exist
    */
-  protected Iterable<Resource> getResourceIterable(Resource.Type type, Request request,
+  protected Iterable<Resource> getResourceIterable(Type type, Request request,
                                                    Predicate predicate)
       throws UnsupportedPropertyException,
       SystemException,
       NoSuchParentResourceException,
       NoSuchResourceException {
-    return getResources(type, request, predicate, null).getIterable();
+    return getResources(type, request, predicate, null, null).getIterable();
   }
 
   /**
@@ -324,8 +376,8 @@ public class ClusterControllerImpl implements ClusterController {
    * @throws NoSuchResourceException no matching resource(s) found
    * @throws NoSuchParentResourceException a specified parent resource doesn't exist
    */
-  protected  PageResponse getResources(Resource.Type type, Request request, Predicate predicate,
-                                       PageRequest pageRequest)
+  protected  PageResponse getResources(Type type, Request request, Predicate predicate,
+                                       PageRequest pageRequest, SortRequest sortRequest)
       throws UnsupportedPropertyException,
       SystemException,
       NoSuchResourceException,
@@ -333,7 +385,7 @@ public class ClusterControllerImpl implements ClusterController {
 
     Set<Resource> providerResources = getResources(type, request, predicate);
     populateResources(type, providerResources, request, predicate);
-    return getPage(type, providerResources, request, predicate, pageRequest);
+    return getPage(type, providerResources, request, predicate, pageRequest, sortRequest);
   }
 
   /**
@@ -354,7 +406,7 @@ public class ClusterControllerImpl implements ClusterController {
    *                                      and predicate are not supported by either the resource
    *                                      provider or a property provider for the given type
    */
-  private boolean checkProperties(Resource.Type type, Request request, Predicate predicate)
+  private boolean checkProperties(Type type, Request request, Predicate predicate)
       throws UnsupportedPropertyException {
     Set<String> requestPropertyIds = request == null ? new HashSet<String>() :
         PropertyHelper.getAssociatedPropertyIds(request);
@@ -402,7 +454,7 @@ public class ClusterControllerImpl implements ClusterController {
    * @throws NoSuchResourceException if the resource that is requested doesn't exist
    * @throws NoSuchParentResourceException if a parent resource of the requested resource doesn't exist
    */
-  private Predicate resolvePredicate(Resource.Type type, Predicate predicate)
+  private Predicate resolvePredicate(Type type, Predicate predicate)
     throws UnsupportedPropertyException,
         SystemException,
         NoSuchResourceException,
@@ -469,7 +521,7 @@ public class ClusterControllerImpl implements ClusterController {
    *
    * @return the list of property providers
    */
-  private List<PropertyProvider> ensurePropertyProviders(Resource.Type type) {
+  private List<PropertyProvider> ensurePropertyProviders(Type type) {
     synchronized (propertyProviders) {
       if (!propertyProviders.containsKey(type)) {
         propertyProviders.put(type, providerModule.getPropertyProviders(type));
@@ -698,19 +750,48 @@ public class ClusterControllerImpl implements ClusterController {
   // ----- ResourceComparator inner class ------------------------------------
 
   protected class ResourceComparator implements Comparator<Resource> {
+    SortRequest sortRequest;
+
+    /**
+     * Default comparator
+     */
+    protected ResourceComparator() {
+    }
+
+    /**
+     * Sort by properties.
+     * @param sortRequest @SortRequest to sort by.
+     */
+    protected ResourceComparator(SortRequest sortRequest) {
+      this.sortRequest = sortRequest;
+    }
 
     @Override
     public int compare(Resource resource1, Resource resource2) {
-      Resource.Type resourceType = resource1.getType();
+      Type resourceType = resource1.getType();
 
       // compare based on resource type
       int compVal = resourceType.compareTo(resource2.getType());
 
+      // compare based on requested properties
+      if (compVal == 0 && sortRequest != null) {
+        for (SortRequestProperty property : sortRequest.getProperties()) {
+          compVal = compareValues(
+            resource1.getPropertyValue(property.getPropertyId()),
+            resource2.getPropertyValue(property.getPropertyId()),
+            property.getOrder());
+
+          if (compVal != 0) {
+            return compVal;
+          }
+        }
+      }
+
+      // compare based on resource key properties
       if (compVal == 0) {
         Schema schema = getSchema(resourceType);
 
-        // compare based on resource key properties
-        for (Resource.Type type : Resource.Type.values()) {
+        for (Type type : Type.values()) {
           String keyPropertyId = schema.getKeyPropertyId(type);
           if (keyPropertyId != null) {
             compVal = compareValues(resource1.getPropertyValue(keyPropertyId),
@@ -727,6 +808,7 @@ public class ClusterControllerImpl implements ClusterController {
     }
 
     // compare two values and account for null
+    @SuppressWarnings("unchecked")
     private int compareValues(Object val1, Object val2) {
 
       if (val1 == null || val2 == null) {
@@ -735,12 +817,21 @@ public class ClusterControllerImpl implements ClusterController {
 
       if (val1 instanceof Comparable) {
         try {
-          return ((Comparable)val1).compareTo(val2);
+          return ((Comparable) val1).compareTo(val2);
         } catch (ClassCastException e) {
           return 0;
         }
       }
       return 0;
+    }
+
+    // compare two values respecting order specifier
+    private int compareValues(Object val1, Object val2, SortRequest.Order order) {
+      if (order == SortRequest.Order.ASC) {
+        return compareValues(val1, val2);
+      } else {
+        return -1 * compareValues(val1, val2);
+      }
     }
   }
 }
