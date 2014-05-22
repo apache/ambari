@@ -32,6 +32,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.sql.SQLException;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -98,6 +99,14 @@ public class UpgradeCatalog160Test {
 
     upgradeCatalog.updateConfigurationProperties("global",
       Collections.singletonMap("jobhistory_heapsize", "900"), false);
+    expectLastCall();
+
+    upgradeCatalog.updateConfigurationProperties(
+      "hdfs-site", new HashMap<String, String>() {{
+        put("dfs.namenode.checkpoint.txns", "1000000");
+        put("dfs.namenode.checkpoint.period", "21600");
+      }}, false
+    );
     expectLastCall();
 
     replay(upgradeCatalog, dbAccessor, configuration);

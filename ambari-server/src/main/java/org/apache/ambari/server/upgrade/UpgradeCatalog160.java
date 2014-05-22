@@ -27,7 +27,9 @@ import org.apache.ambari.server.orm.DBAccessor;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Upgrade catalog for version 1.6.0.
@@ -107,6 +109,12 @@ public class UpgradeCatalog160 extends AbstractUpgradeCatalog {
 
     // Add missing property for YARN
     updateConfigurationProperties("global", Collections.singletonMap("jobhistory_heapsize", "900"), false);
+
+    // Add missing properties for HDFS
+    Map<String, String> hdfsProperties = new HashMap<String, String>();
+    hdfsProperties.put("dfs.namenode.checkpoint.period", "21600");
+    hdfsProperties.put("dfs.namenode.checkpoint.txns", "1000000");
+    updateConfigurationProperties("hdfs-site", hdfsProperties, false);
   }
 
   @Override
