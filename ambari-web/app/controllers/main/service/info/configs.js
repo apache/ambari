@@ -380,7 +380,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       //STEP 11: render configs and wrap each in ServiceConfigProperty object
       this.setRecommendedDefaults(advancedConfigs);
 
-      this.loadConfigs(configs, serviceConfig, restartData);
+      this.loadConfigs(allConfigs, serviceConfig, restartData);
 
       this.checkOverrideProperty(serviceConfig);
 
