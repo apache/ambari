@@ -160,7 +160,7 @@ public class TestActionManager {
   }
 
   private void populateActionDB(ActionDBAccessor db, String hostname) {
-    Stage s = new Stage(requestId, "/a/b", "cluster1", "action manager test", "clusterHostInfo");
+    Stage s = new Stage(requestId, "/a/b", "cluster1", 1L, "action manager test", "clusterHostInfo");
     s.setStageId(stageId);
     s.addHostRoleExecutionCommand(hostname, Role.HBASE_MASTER,
         RoleCommand.START,

@@ -134,7 +134,10 @@ class TaskResourceProvider extends AbstractControllerResourceProvider {
       for (TaskStatusResponse response : responses) {
         Resource resource = new ResourceImpl(Resource.Type.Task);
 
-        setResourceProperty(resource, TASK_CLUSTER_NAME_PROPERTY_ID, entry.getKey(), requestedIds);
+        // !!! shocked this isn't broken.  the key can be null for non-cluster tasks
+        if (null != entry.getKey())
+          setResourceProperty(resource, TASK_CLUSTER_NAME_PROPERTY_ID, entry.getKey(), requestedIds);  
+        
         setResourceProperty(resource, TASK_REQUEST_ID_PROPERTY_ID, response.getRequestId(), requestedIds);
         setResourceProperty(resource, TASK_ID_PROPERTY_ID, response.getTaskId(), requestedIds);
         setResourceProperty(resource, TASK_STAGE_ID_PROPERTY_ID, response.getStageId(), requestedIds);

@@ -54,6 +54,7 @@ public class Stage {
   private static Logger LOG = LoggerFactory.getLogger(Stage.class);
   private final long requestId;
   private String clusterName;
+  private long clusterId = -1L;
   private long stageId = -1;
   private final String logDir;
   private final String requestContext;
@@ -73,12 +74,17 @@ public class Stage {
       new TreeMap<String, List<ExecutionCommandWrapper>>();
 
   @AssistedInject
-  public Stage(@Assisted long requestId, @Assisted("logDir") String logDir, @Assisted("clusterName") String clusterName,
-               @Assisted("requestContext") @Nullable String requestContext, @Assisted("clusterHostInfo") String clusterHostInfo) {
+  public Stage(@Assisted long requestId,
+      @Assisted("logDir") String logDir,
+      @Assisted("clusterName") @Nullable String clusterName,
+      @Assisted("clusterId") long clusterId,
+      @Assisted("requestContext") @Nullable String requestContext,
+      @Assisted("clusterHostInfo") String clusterHostInfo) {
     this.wrappersLoaded = true;
     this.requestId = requestId;
     this.logDir = logDir;
     this.clusterName = clusterName;
+    this.clusterId = clusterId;
     this.requestContext = requestContext == null ? "" : requestContext;
     this.clusterHostInfo = clusterHostInfo;
   }
@@ -349,6 +355,11 @@ public class Stage {
   public String getClusterName() {
     return clusterName;
   }
+  
+  public long getClusterId() {
+    return clusterId;
+  }
+  
 
   public String getRequestContext() {
     return requestContext;

@@ -50,7 +50,7 @@ public class TestStage {
   @Test
   public void testGetRequestContext() {
 
-    Stage stage = new Stage(1, "/logDir", "c1", "My Context", CLUSTER_HOST_INFO);
+    Stage stage = new Stage(1, "/logDir", "c1", 1L, "My Context", CLUSTER_HOST_INFO);
     assertEquals("My Context", stage.getRequestContext());
     assertEquals(CLUSTER_HOST_INFO, stage.getClusterHostInfo());
   }

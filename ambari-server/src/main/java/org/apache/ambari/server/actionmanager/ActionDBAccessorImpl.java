@@ -152,6 +152,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
       if (command.getStatus() == HostRoleStatus.QUEUED ||
           command.getStatus() == HostRoleStatus.IN_PROGRESS ||
           command.getStatus() == HostRoleStatus.PENDING) {
+
         command.setStatus(HostRoleStatus.ABORTED);
         command.setEndTime(now);
         LOG.info("Aborting command. Hostname " + command.getHostName()
@@ -203,11 +204,13 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
 
     RequestEntity requestEntity = request.constructNewPersistenceEntity();
 
+    Long clusterId = Long.valueOf(-1L);
     ClusterEntity clusterEntity = clusterDAO.findById(request.getClusterId());
-    if (clusterEntity == null) {
-      throw new RuntimeException(String.format("Cluster with id=%s not found", request.getClusterId()));
+    if (clusterEntity != null) {
+      clusterId = clusterEntity.getClusterId();
     }
-    requestEntity.setClusterId(clusterEntity.getClusterId());
+    
+    requestEntity.setClusterId(clusterId);
     requestDAO.create(requestEntity);
 
     //TODO wire request to cluster
@@ -216,7 +219,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
     for (Stage stage : request.getStages()) {
       StageEntity stageEntity = stage.constructNewPersistenceEntity();
       stageEntities.add(stageEntity);
-      stageEntity.setClusterId(clusterEntity.getClusterId());
+      stageEntity.setClusterId(clusterId);
       //TODO refactor to reduce merges
       stageEntity.setRequest(requestEntity);
       stageDAO.create(stageEntity);

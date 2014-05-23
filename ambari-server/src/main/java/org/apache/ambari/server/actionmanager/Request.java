@@ -67,16 +67,19 @@ public class Request {
    */
   public Request(@Assisted long requestId, @Assisted("clusterId") Long clusterId, Clusters clusters) {
     this.requestId = requestId;
-    this.clusterId = clusterId;
+    this.clusterId = clusterId.longValue();
     this.createTime = System.currentTimeMillis();
     this.startTime = -1;
     this.endTime = -1;
-    try {
-      this.clusterName = clusters.getClusterById(clusterId).getClusterName();
-    } catch (AmbariException e) {
-      String message = String.format("Cluster with id=%s not found", clusterId);
-      LOG.error(message);
-      throw new RuntimeException(message);
+
+    if (-1L != this.clusterId) {
+      try {
+        this.clusterName = clusters.getClusterById(this.clusterId).getClusterName();
+      } catch (AmbariException e) {
+        String message = String.format("Cluster with id=%s not found", clusterId);
+        LOG.error(message);
+        throw new RuntimeException(message);
+      }
     }
   }
 
@@ -93,10 +96,12 @@ public class Request {
       this.clusterName = stage.getClusterName();
       try {
         this.clusterId = clusters.getCluster(clusterName).getClusterId();
-      } catch (AmbariException e) {
-        String message = String.format("Cluster %s not found", clusterName);
-        LOG.error(message);
-        throw new RuntimeException(message);
+      } catch (Exception e) {
+        if (null != clusterName) {
+          String message = String.format("Cluster %s not found", clusterName);
+          LOG.error(message);
+          throw new RuntimeException(message);
+        }
       }
       this.requestContext = stages.iterator().next().getRequestContext();
       this.createTime = System.currentTimeMillis();
@@ -261,7 +266,7 @@ public class Request {
 
 
   public Long getClusterId() {
-    return clusterId;
+    return Long.valueOf(clusterId);
   }
 
   public String getClusterName() {

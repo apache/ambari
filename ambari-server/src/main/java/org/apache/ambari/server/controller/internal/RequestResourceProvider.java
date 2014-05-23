@@ -35,6 +35,7 @@ import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.state.Clusters;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -138,22 +139,30 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
     Integer maxResults = (maxResultsRaw == null ? null : Integer.parseInt(maxResultsRaw));
     Boolean ascOrder = (ascOrderRaw == null ? null : Boolean.parseBoolean(ascOrderRaw));
 
-    for (Map<String, Object> properties : getPropertyMaps(predicate)) {
-      String clusterName = (String) properties.get(REQUEST_CLUSTER_NAME_PROPERTY_ID);
-
-      Long requestId = null;
-      if (properties.get(REQUEST_ID_PROPERTY_ID) != null) {
-        requestId = Long.valueOf((String) properties.get(REQUEST_ID_PROPERTY_ID));
+    Set<Map<String, Object>> propertyMaps = new HashSet<Map<String,Object>>();
+    
+    if (null == predicate) {
+      resources.addAll(
+          getRequestResources(null, null, null, maxResults, ascOrder, requestedIds));
+    } else {
+      for (Map<String, Object> properties : getPropertyMaps(predicate)) {
+        String clusterName = (String) properties.get(REQUEST_CLUSTER_NAME_PROPERTY_ID);
+  
+        Long requestId = null;
+        if (properties.get(REQUEST_ID_PROPERTY_ID) != null) {
+          requestId = Long.valueOf((String) properties.get(REQUEST_ID_PROPERTY_ID));
+        }
+  
+        String requestStatus = null;
+        if (properties.get(REQUEST_STATUS_PROPERTY_ID) != null) {
+          requestStatus = (String) properties.get(REQUEST_STATUS_PROPERTY_ID);
+        }
+  
+        resources.addAll(getRequestResources(clusterName, requestId, requestStatus, maxResults,
+            ascOrder, requestedIds));
       }
-
-      String requestStatus = null;
-      if (properties.get(REQUEST_STATUS_PROPERTY_ID) != null) {
-        requestStatus = (String) properties.get(REQUEST_STATUS_PROPERTY_ID);
-      }
-
-      resources.addAll(getRequestResources(clusterName, requestId, requestStatus, maxResults,
-          ascOrder, requestedIds));
     }
+    
     return resources;
   }
 
@@ -335,7 +344,9 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
     Map<Long, Resource> resourceMap = new HashMap<Long, Resource>();
 
     for (org.apache.ambari.server.actionmanager.Request request : requests) {
-      resourceMap.put(request.getRequestId(), getRequestResource(request, requestedPropertyIds));
+      if ((null == clusterName && null == request.getClusterName()) ||
+          (null != clusterName && null != request.getClusterName() && clusterName.equals(request.getClusterName())))
+        resourceMap.put(request.getRequestId(), getRequestResource(request, requestedPropertyIds));
     }
 
     return resourceMap.values();
@@ -345,7 +356,9 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
                                       Set<String> requestedPropertyIds) {
     Resource resource = new ResourceImpl(Resource.Type.Request);
 
-    setResourceProperty(resource, REQUEST_CLUSTER_NAME_PROPERTY_ID, request.getClusterName(), requestedPropertyIds);
+    if (null != request.getClusterName())
+      setResourceProperty(resource, REQUEST_CLUSTER_NAME_PROPERTY_ID, request.getClusterName(), requestedPropertyIds);
+
     setResourceProperty(resource, REQUEST_ID_PROPERTY_ID, request.getRequestId(), requestedPropertyIds);
     setResourceProperty(resource, REQUEST_CONTEXT_ID, request.getRequestContext(), requestedPropertyIds);
     setResourceProperty(resource, REQUEST_TYPE_ID, request.getRequestType(), requestedPropertyIds);

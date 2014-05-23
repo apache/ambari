@@ -42,7 +42,7 @@
   <actionDefinition>
     <actionName>check_host</actionName>
     <actionType>SYSTEM</actionType>
-    <inputs>threshold</inputs>
+    <inputs></inputs>
     <targetService></targetService>
     <targetComponent></targetComponent>
     <defaultTimeout>60</defaultTimeout>

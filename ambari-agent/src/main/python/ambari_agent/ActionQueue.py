@@ -98,6 +98,9 @@ class ActionQueue(threading.Thread):
     for command in commands:
       if not command.has_key('serviceName'):
         command['serviceName'] = "null"
+      if not command.has_key('clusterName'):
+        command['clusterName'] = 'null'
+
       logger.info("Adding " + command['commandType'] + " for service " + \
                   command['serviceName'] + " of cluster " + \
                   command['clusterName'] + " to the queue.")

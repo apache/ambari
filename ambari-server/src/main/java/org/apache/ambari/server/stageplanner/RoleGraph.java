@@ -37,6 +37,9 @@ public class RoleGraph {
   private Stage initialStage = null;
   private boolean sameHostOptimization = true;
 
+  public RoleGraph() {
+  }
+  
   public RoleGraph(RoleCommandOrder rd) {
     this.roleDependencies = rd;
   }
@@ -66,17 +69,19 @@ public class RoleGraph {
       }
     }
 
-    //Add edges
-    for (String roleI : graph.keySet()) {
-      for (String roleJ : graph.keySet()) {
-        if (!roleI.equals(roleJ)) {
-          RoleGraphNode rgnI = graph.get(roleI);
-          RoleGraphNode rgnJ = graph.get(roleJ);
-          int order = roleDependencies.order(rgnI, rgnJ);
-          if (order == -1) {
-            rgnI.addEdge(rgnJ);
-          } else if (order == 1) {
-            rgnJ.addEdge(rgnI);
+    if (null != roleDependencies) {
+      //Add edges
+      for (String roleI : graph.keySet()) {
+        for (String roleJ : graph.keySet()) {
+          if (!roleI.equals(roleJ)) {
+            RoleGraphNode rgnI = graph.get(roleI);
+            RoleGraphNode rgnJ = graph.get(roleJ);
+            int order = roleDependencies.order(rgnI, rgnJ);
+            if (order == -1) {
+              rgnI.addEdge(rgnJ);
+            } else if (order == 1) {
+              rgnJ.addEdge(rgnI);
+            }
           }
         }
       }
@@ -133,6 +138,7 @@ public class RoleGraph {
 
     Stage newStage = new Stage(origStage.getRequestId(),
         origStage.getLogDir(), origStage.getClusterName(),
+        origStage.getClusterId(),
         origStage.getRequestContext(), origStage.getClusterHostInfo());
     newStage.setSuccessFactors(origStage.getSuccessFactors());
     for (RoleGraphNode rgn : stageGraphNodes) {

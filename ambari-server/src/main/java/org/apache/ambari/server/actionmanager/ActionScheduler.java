@@ -375,65 +375,80 @@ class ActionScheduler implements Runnable {
     if (taskTimeoutAdjustment) {
       taskTimeout = actionTimeout + s.getStageTimeout();
     }
+
+    Cluster cluster = null;
+    if (null != s.getClusterName()) {
+      cluster = fsmObject.getCluster(s.getClusterName());
+    }
+
     for (String host : s.getHosts()) {
       List<ExecutionCommandWrapper> commandWrappers = s.getExecutionCommands(host);
-      Cluster cluster = fsmObject.getCluster(s.getClusterName());
       Host hostObj = fsmObject.getHost(host);
+
       for(ExecutionCommandWrapper wrapper : commandWrappers) {
         ExecutionCommand c = wrapper.getExecutionCommand();
         String roleStr = c.getRole();
         HostRoleStatus status = s.getHostRoleStatus(host, roleStr);
-        Service svc = null;
-        if (c.getServiceName() != null && !c.getServiceName().isEmpty()) {
-          svc = cluster.getService(c.getServiceName());
-        }
-        ServiceComponent svcComp = null;
-        Map<String, ServiceComponentHost>  scHosts = null;
-        try {
-          if (svc != null) {
-            svcComp = svc.getServiceComponent(roleStr);
-            scHosts = svcComp.getServiceComponentHosts();
+
+        boolean hostDeleted = false;
+        if (null != cluster) {
+          Service svc = null;
+          if (c.getServiceName() != null && !c.getServiceName().isEmpty()) {
+            svc = cluster.getService(c.getServiceName());
           }
-        } catch (ServiceComponentNotFoundException scnex) {
-          String msg = String.format(
-                  "%s is not not a service component, assuming its an action",
-                  roleStr);
-          LOG.debug(msg);
+
+          ServiceComponent svcComp = null;
+          Map<String, ServiceComponentHost> scHosts = null;
+          try {
+            if (svc != null) {
+              svcComp = svc.getServiceComponent(roleStr);
+              scHosts = svcComp.getServiceComponentHosts();
+            }
+          } catch (ServiceComponentNotFoundException scnex) {
+            String msg = String.format(
+                    "%s is not not a service component, assuming its an action",
+                    roleStr);
+            LOG.debug(msg);
+          }
+
+          hostDeleted = (scHosts != null && !scHosts.containsKey(host));
+          if (hostDeleted) {
+            String message = String.format(
+              "Host component information has not been found.  Details:" +
+              "cluster=%s; host=%s; service=%s; component=%s; ",
+              c.getClusterName(), host,
+              svcComp == null ? "null" : svcComp.getServiceName(),
+              svcComp == null ? "null" : svcComp.getName());
+            LOG.warn(message);
+          }
         }
+
         // Check that service host component is not deleted
-        if (scHosts!= null && ! scHosts.containsKey(host)) {
+        if (hostDeleted) {
+          
           String message = String.format(
-                  "Service component host not found when trying to " +
-                          "schedule an execution command. " +
-                          "The most probable reason " +
-                          "for that is that host component " +
-                          "has been deleted recently. "+
-                          "The command has been aborted and dequeued. " +
-                          "Execution command details: " +
-                          "cluster=%s; host=%s; service=%s; component=%s; " +
-                          "cmdId: %s; taskId: %s; roleCommand: %s",
-                  c.getClusterName(), host, svcComp == null ? "null" : svcComp.getServiceName(),
-                  svcComp == null ? "null" : svcComp.getName(),
-                  c.getCommandId(), c.getTaskId(), c.getRoleCommand());
-          LOG.warn(message);
+            "Host not found when trying to schedule an execution command. " +
+            "The most probable reason for that is that host or host component " +
+            "has been deleted recently. The command has been aborted and dequeued." +
+            "Execution command details: " + 
+            "cmdId: %s; taskId: %s; roleCommand: %s",
+            c.getCommandId(), c.getTaskId(), c.getRoleCommand());
+          LOG.warn("Host {} has been detected as non-available. {}", host, message);
           // Abort the command itself
-          db.abortHostRole(host, s.getRequestId(),
-                  s.getStageId(), c.getRole(), message);
+          db.abortHostRole(host, s.getRequestId(), s.getStageId(), c.getRole(), message);
           status = HostRoleStatus.ABORTED;
-        } else if (timeOutActionNeeded(status, s, hostObj, roleStr, now,
-                taskTimeout)) {
+        } else if (timeOutActionNeeded(status, s, hostObj, roleStr, now, taskTimeout)) {
           // Process command timeouts
-          LOG.info("Host:" + host + ", role:" + roleStr + ", actionId:"
-                  + s.getActionId() + " timed out");
+          LOG.info("Host:" + host + ", role:" + roleStr + ", actionId:" + s.getActionId() + " timed out");
           if (s.getAttemptCount(host, roleStr) >= maxAttempts) {
-            LOG.warn("Host:" + host + ", role:" + roleStr + ", actionId:"
-                + s.getActionId() + " expired");
+            LOG.warn("Host:" + host + ", role:" + roleStr + ", actionId:" + s.getActionId() + " expired");
             db.timeoutHostRole(host, s.getRequestId(), s.getStageId(), c.getRole());
             //Reinitialize status
             status = s.getHostRoleStatus(host, roleStr);
-            transitionToFailedState(cluster.getClusterName(),
-              c.getServiceName(), roleStr, host, now, false);
-            LOG.warn("Operation timed out. Role: " + roleStr + ", host: " + host);
+
+            if (null != cluster) {
+              transitionToFailedState(cluster.getClusterName(), c.getServiceName(), roleStr, host, now, false);
+            }
 
             // Dequeue command
             actionQueue.dequeue(host, c.getCommandId());
@@ -445,6 +460,7 @@ class ActionScheduler implements Runnable {
           //Need to schedule first time
           commandsToSchedule.add(c);
         }
+
         this.updateRoleStats(status, roleStats.get(roleStr));
       }
     }

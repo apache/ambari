@@ -38,6 +38,7 @@ import java.util.Map;
 /**
  * Service responsible for request resource requests.
  */
+@Path("/requests/")
 public class RequestService extends BaseService {
   /**
    * Parent cluster name.
@@ -45,6 +46,9 @@ public class RequestService extends BaseService {
   private String m_clusterName;
 
 
+  public RequestService() {
+  }
+  
   /**
    * Constructor.
    *
@@ -55,7 +59,8 @@ public class RequestService extends BaseService {
   }
 
   /**
-   * Handles URL: /clusters/{clusterID}/requests/{requestID}
+   * Handles URL: /clusters/{clusterID}/requests/{requestID} or
+   * /requests/{requestId}
    * Get a specific request.
    *
    * @param headers    http headers
@@ -75,7 +80,7 @@ public class RequestService extends BaseService {
   }
 
   /**
-   * Handles URL: /clusters/{clusterId}/requests
+   * Handles URL: /clusters/{clusterId}/requests or /requests
    * Get all requests for a cluster.
    *
    * @param headers http headers
@@ -99,7 +104,7 @@ public class RequestService extends BaseService {
   }
 
   /**
-   * Handles: POST /clusters/{clusterId}/requests
+   * Handles: POST /clusters/{clusterId}/requests or /requests
    * Create multiple services.
    *
    * @param body        http body
@@ -124,7 +129,9 @@ public class RequestService extends BaseService {
    */
   ResourceInstance createRequestResource(String clusterName, String requestId) {
     Map<Resource.Type,String> mapIds = new HashMap<Resource.Type, String>();
-    mapIds.put(Resource.Type.Cluster, clusterName);
+    
+    if (null != clusterName)
+      mapIds.put(Resource.Type.Cluster, clusterName);
     mapIds.put(Resource.Type.Request, requestId);
 
     return createResource(Resource.Type.Request, mapIds);

@@ -18,6 +18,27 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
+import static org.easymock.EasyMock.verify;
+import static org.easymock.EasyMock.anyObject;
+
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
@@ -30,10 +51,7 @@ import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
-import org.apache.ambari.server.controller.spi.SystemException;
-import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.state.Cluster;
@@ -41,24 +59,6 @@ import org.apache.ambari.server.state.Clusters;
 import org.easymock.Capture;
 import org.junit.Assert;
 import org.junit.Test;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reset;
-import static org.easymock.EasyMock.verify;
 
 /**
  * RequestResourceProvider tests.
@@ -1062,5 +1062,121 @@ public class RequestResourceProviderTest {
     Assert.assertEquals(level.getHostName(), host_id);
   }
 
+  @Test
+  public void testCreateResourcesForNonCluster() throws Exception {
+    Resource.Type type = Resource.Type.Request;
+
+    Capture<ExecuteActionRequest> actionRequest = new Capture<ExecuteActionRequest>();
+    Capture<HashMap<String, String>> propertyMap = new Capture<HashMap<String, String>>();
+
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
+
+    expect(managementController.createAction(capture(actionRequest), capture(propertyMap)))
+        .andReturn(response).anyTimes();
+
+    // replay
+    replay(managementController);
+
+    // add the property map to a set for the request.  add more maps for multiple creates
+    Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
+
+    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+
+    Set<Map<String, Object>> filterSet = new HashSet<Map<String, Object>>();
+    Map<String, Object> filterMap = new HashMap<String, Object>();
+    filterMap.put(RequestResourceProvider.HOSTS_ID, "h1,h2");
+    filterSet.add(filterMap);
+
+    properties.put(RequestResourceProvider.REQUEST_RESOURCE_FILTER_ID, filterSet);
+
+    propertySet.add(properties);
+
+    Map<String, String> requestInfoProperties = new HashMap<String, String>();
+    requestInfoProperties.put(RequestResourceProvider.ACTION_ID, "check_java");
+
+    // create the request
+    Request request = PropertyHelper.getCreateRequest(propertySet, requestInfoProperties);
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
+        type,
+        PropertyHelper.getPropertyIds(type),
+        PropertyHelper.getKeyPropertyIds(type),
+        managementController);
+    provider.createResources(request);
+    ExecuteActionRequest capturedRequest = actionRequest.getValue();
+
+    Assert.assertTrue(actionRequest.hasCaptured());
+    Assert.assertFalse("expected an action", Boolean.valueOf(capturedRequest.isCommand()));
+    Assert.assertEquals("check_java", capturedRequest.getActionName());
+    Assert.assertEquals(null, capturedRequest.getCommandName());
+    Assert.assertNotNull(capturedRequest.getResourceFilters());
+    Assert.assertEquals(1, capturedRequest.getResourceFilters().size());
+    RequestResourceFilter capturedResourceFilter = capturedRequest.getResourceFilters().get(0);
+    Assert.assertEquals(null, capturedResourceFilter.getServiceName());
+    Assert.assertEquals(null, capturedResourceFilter.getComponentName());
+    Assert.assertNotNull(capturedResourceFilter.getHostNames());
+    Assert.assertEquals(2, capturedResourceFilter.getHostNames().size());
+    Assert.assertEquals(0, actionRequest.getValue().getParameters().size());
+    }
+  
+  @Test
+  public void testGetResourcesWithoutCluster() throws Exception {
+    Resource.Type type = Resource.Type.Request;
+
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    ActionManager actionManager = createNiceMock(ActionManager.class);
+    HostRoleCommand hostRoleCommand = createNiceMock(HostRoleCommand.class);
+    Clusters clusters = createNiceMock(Clusters.class);
+
+    List<HostRoleCommand> hostRoleCommands = new LinkedList<HostRoleCommand>();
+    hostRoleCommands.add(hostRoleCommand);
+
+    org.apache.ambari.server.actionmanager.Request requestMock =
+        createNiceMock(org.apache.ambari.server.actionmanager.Request.class);
+    expect(requestMock.getCommands()).andReturn(hostRoleCommands).anyTimes();
+    expect(requestMock.getRequestContext()).andReturn("this is a context").anyTimes();
+    expect(requestMock.getClusterName()).andReturn(null).anyTimes();
+    expect(requestMock.getRequestId()).andReturn(100L).anyTimes();
+
+    Capture<Collection<Long>> requestIdsCapture = new Capture<Collection<Long>>();
+
+    // set expectations
+    expect(managementController.getActionManager()).andReturn(actionManager).anyTimes();
+    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
+    expect(clusters.getCluster(anyObject(String.class))).andReturn(null).anyTimes();
+    expect(actionManager.getRequests(capture(requestIdsCapture))).andReturn(Collections.singletonList(requestMock));
+    expect(hostRoleCommand.getRequestId()).andReturn(100L).anyTimes();
+    expect(hostRoleCommand.getStatus()).andReturn(HostRoleStatus.IN_PROGRESS);
+
+    // replay
+    replay(managementController, actionManager, hostRoleCommand, clusters, requestMock);
+
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
+        type,
+        PropertyHelper.getPropertyIds(type),
+        PropertyHelper.getKeyPropertyIds(type),
+        managementController);
+
+    Set<String> propertyIds = new HashSet<String>();
+
+    propertyIds.add(RequestResourceProvider.REQUEST_ID_PROPERTY_ID);
+    propertyIds.add(RequestResourceProvider.REQUEST_STATUS_PROPERTY_ID);
+
+    Predicate predicate = new PredicateBuilder().
+        property(RequestResourceProvider.REQUEST_ID_PROPERTY_ID).equals("100").
+        toPredicate();
+    Request request = PropertyHelper.getReadRequest(propertyIds);
+    Set<Resource> resources = provider.getResources(request, predicate);
+
+    Assert.assertEquals(1, resources.size());
+    for (Resource resource : resources) {
+      Assert.assertEquals(100L, (long) (Long) resource.getPropertyValue(RequestResourceProvider.REQUEST_ID_PROPERTY_ID));
+      Assert.assertEquals("IN_PROGRESS", resource.getPropertyValue(RequestResourceProvider.REQUEST_STATUS_PROPERTY_ID));
+      Assert.assertNull(resource.getPropertyValue(RequestResourceProvider.REQUEST_CLUSTER_NAME_PROPERTY_ID));
+    }
+
+    // verify
+    verify(managementController, actionManager, hostRoleCommand, clusters);    
+  }
 
 }

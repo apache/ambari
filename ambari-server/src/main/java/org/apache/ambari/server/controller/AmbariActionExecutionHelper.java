@@ -18,8 +18,17 @@
 
 package org.apache.ambari.server.controller;
 
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMMAND_TIMEOUT;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMPONENT_CATEGORY;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT_TYPE;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
@@ -43,16 +52,8 @@ import org.apache.ambari.server.utils.StageUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMMAND_TIMEOUT;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMPONENT_CATEGORY;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT_TYPE;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
 /**
  * Helper class containing logic to process custom action execution requests
@@ -64,13 +65,9 @@ public class AmbariActionExecutionHelper {
   private static final String TYPE_PYTHON = "PYTHON";
 
   @Inject
-  private ActionMetadata actionMetadata;
-  @Inject
   private Clusters clusters;
   @Inject
   private AmbariManagementController managementController;
-  @Inject
-  private ActionManager actionManager;
   @Inject
   private AmbariMetaInfo ambariMetaInfo;
   @Inject
@@ -82,13 +79,9 @@ public class AmbariActionExecutionHelper {
    * @throws AmbariException
    */
   public void validateAction(ExecuteActionRequest actionRequest) throws AmbariException {
-    Cluster cluster = clusters.getCluster(actionRequest.getClusterName());
+    
 
-    if (cluster == null) {
-      throw new AmbariException("Unable to find cluster. clusterName = " +
-        actionRequest.getClusterName());
-    }
-
+    
     if (actionRequest.getActionName() == null || actionRequest.getActionName().isEmpty()) {
       throw new AmbariException("Action name must be specified");
     }
@@ -115,33 +108,43 @@ public class AmbariActionExecutionHelper {
       }
     }
 
-
-    StackId stackId = cluster.getCurrentStackVersion();
-    String expectedService = actionDef.getTargetService() == null ? "" : actionDef.getTargetService();
-
     List<RequestResourceFilter> resourceFilters = actionRequest.getResourceFilters();
-    String targetService = "";
-    String targetComponent = "";
     RequestResourceFilter resourceFilter = null;
-
     if (resourceFilters != null && !resourceFilters.isEmpty()) {
       if (resourceFilters.size() > 1) {
         throw new AmbariException("Custom action definition only allows one " +
           "resource filter to be specified.");
+      } else {
+        resourceFilter = resourceFilters.get(0);
       }
+    }
 
-      resourceFilter = resourceFilters.get(0);
-      String actualService = resourceFilter.getServiceName() == null ? "" : resourceFilter.getServiceName();
+    String targetService = "";
+    String targetComponent = "";
+    
+    if (null != actionRequest.getClusterName()) {
+      Cluster cluster = clusters.getCluster(actionRequest.getClusterName());
+      
+      if (cluster == null) {
+        throw new AmbariException("Unable to find cluster. clusterName = " +
+          actionRequest.getClusterName());
+      }
+      
+      StackId stackId = cluster.getCurrentStackVersion();
+
+      String expectedService = actionDef.getTargetService() == null ? "" : actionDef.getTargetService();
+  
+      String actualService = resourceFilter == null || resourceFilter.getServiceName() == null ? "" : resourceFilter.getServiceName();
       if (!expectedService.isEmpty() && !actualService.isEmpty() && !expectedService.equals(actualService)) {
         throw new AmbariException("Action " + actionRequest.getActionName() + " targets service " + actualService +
           " that does not match with expected " + expectedService);
       }
-
+  
       targetService = expectedService;
       if (targetService == null || targetService.isEmpty()) {
         targetService = actualService;
       }
-
+  
       if (targetService != null && !targetService.isEmpty()) {
         ServiceInfo serviceInfo;
         try {
@@ -156,14 +159,14 @@ public class AmbariActionExecutionHelper {
             " targets service " + targetService + " that does not exist.");
         }
       }
-
+  
       String expectedComponent = actionDef.getTargetComponent() == null ? "" : actionDef.getTargetComponent();
-      String actualComponent = resourceFilter.getComponentName() == null ? "" : resourceFilter.getComponentName();
+      String actualComponent = resourceFilter == null || resourceFilter.getComponentName() == null ? "" : resourceFilter.getComponentName();
       if (!expectedComponent.isEmpty() && !actualComponent.isEmpty() && !expectedComponent.equals(actualComponent)) {
         throw new AmbariException("Action " + actionRequest.getActionName() + " targets component " + actualComponent +
           " that does not match with expected " + expectedComponent);
       }
-
+  
       targetComponent = expectedComponent;
       if (targetComponent == null || targetComponent.isEmpty()) {
         targetComponent = actualComponent;
@@ -173,7 +176,7 @@ public class AmbariActionExecutionHelper {
         throw new AmbariException("Action " + actionRequest.getActionName() + " targets component " + targetComponent +
           " without specifying the target service.");
       }
-
+  
       if (targetComponent != null && !targetComponent.isEmpty()) {
         ComponentInfo compInfo;
         try {
@@ -189,7 +192,7 @@ public class AmbariActionExecutionHelper {
         }
       }
     }
-
+        
     if (TargetHostType.SPECIFIC.equals(actionDef.getTargetType())
       || (targetService.isEmpty() && targetComponent.isEmpty())) {
       if (resourceFilter == null || resourceFilter.getHostNames().size() == 0) {
@@ -213,7 +216,11 @@ public class AmbariActionExecutionHelper {
 
     String actionName = actionContext.getActionName();
     String clusterName = actionContext.getClusterName();
-    Cluster cluster = clusters.getCluster(clusterName);
+    Cluster cluster = null;
+    if (null != clusterName)
+      cluster = clusters.getCluster(clusterName);
+    
+    ComponentInfo componentInfo = null;
 
     List<RequestResourceFilter> resourceFilters = actionContext.getResourceFilters();
 
@@ -227,36 +234,38 @@ public class AmbariActionExecutionHelper {
 
     String serviceName = actionContext.getExpectedServiceName();
     String componentName = actionContext.getExpectedComponentName();
-    StackId stackId = cluster.getCurrentStackVersion();
-    ComponentInfo componentInfo = null;
-
-    if (serviceName != null && !serviceName.isEmpty()) {
-      if (componentName != null && !componentName.isEmpty()) {
-        Map<String, ServiceComponentHost> componentHosts =
-          cluster.getService(serviceName)
-            .getServiceComponent(componentName).getServiceComponentHosts();
-        candidateHosts.addAll(componentHosts.keySet());
-        componentInfo = ambariMetaInfo.getComponentCategory(stackId.getStackName(),
-          stackId.getStackVersion(), serviceName, componentName);
-      } else {
-        for (String component : cluster.getService(serviceName).getServiceComponents().keySet()) {
+    
+    if (null != cluster) {
+      StackId stackId = cluster.getCurrentStackVersion();
+      if (serviceName != null && !serviceName.isEmpty()) {
+        if (componentName != null && !componentName.isEmpty()) {
           Map<String, ServiceComponentHost> componentHosts =
             cluster.getService(serviceName)
-              .getServiceComponent(component).getServiceComponentHosts();
+              .getServiceComponent(componentName).getServiceComponentHosts();
           candidateHosts.addAll(componentHosts.keySet());
+          componentInfo = ambariMetaInfo.getComponentCategory(stackId.getStackName(),
+            stackId.getStackVersion(), serviceName, componentName);
+        } else {
+          for (String component : cluster.getService(serviceName).getServiceComponents().keySet()) {
+            Map<String, ServiceComponentHost> componentHosts =
+              cluster.getService(serviceName)
+                .getServiceComponent(component).getServiceComponentHosts();
+            candidateHosts.addAll(componentHosts.keySet());
+          }
         }
+      } else {
+        // All hosts are valid target host
+        candidateHosts.addAll(clusters.getHostsForCluster(cluster.getClusterName()).keySet());
       }
-    } else {
-      // All hosts are valid target host
-      candidateHosts.addAll(clusters.getHostsForCluster(cluster.getClusterName()).keySet());
     }
 
     // If request did not specify hosts and there exists no host
     if (resourceFilter.getHostNames().isEmpty() && candidateHosts.isEmpty()) {
       throw new AmbariException("Suitable hosts not found, component="
         + componentName + ", service=" + serviceName
-        + ", cluster=" + cluster.getClusterName() + ", " +
-        "actionName=" + actionContext.getActionName());
+        + ((null == cluster) ? "" : ", cluster=" + cluster.getClusterName() + ", ")
+//        + ", cluster=" + cluster.getClusterName() + ", "
+        + "actionName=" + actionContext.getActionName());
     }
 
     // Compare specified hosts to available hosts
@@ -294,8 +303,10 @@ public class AmbariActionExecutionHelper {
       }
     }
 
-    Set<Map<String, String>> maintenanceSCHs =
-      maintenanceStateHelper.getMaintenanceHostComponents(clusters, cluster);
+    Set<Map<String, String>> maintenanceSCHs = new HashSet<Map<String, String>>();
+        
+    if (null != cluster)
+      maintenanceSCHs = maintenanceStateHelper.getMaintenanceHostComponents(clusters, cluster);
 
     //create tasks for each host
     for (String hostName : targetHosts) {
@@ -307,7 +318,7 @@ public class AmbariActionExecutionHelper {
 
       Map<String, Map<String, String>> configurations = new TreeMap<String, Map<String, String>>();
       Map<String, Map<String, String>> configTags = null;
-      if (!serviceName.isEmpty()) {
+      if (!serviceName.isEmpty() && null != cluster) {
         configTags = managementController.findConfigurationTagsWithOverrides(cluster, hostName);
       }
 
@@ -343,8 +354,9 @@ public class AmbariActionExecutionHelper {
       execCmd.setRoleParams(roleParams);
 
       // Generate cluster host info
-      execCmd.setClusterHostInfo(
-        StageUtils.getClusterHostInfo(clusters.getHostsForCluster(clusterName), cluster));
+      if (null != cluster)
+        execCmd.setClusterHostInfo(
+          StageUtils.getClusterHostInfo(clusters.getHostsForCluster(clusterName), cluster));
 
       // cluster passive map
       execCmd.setPassiveInfo(maintenanceSCHs);

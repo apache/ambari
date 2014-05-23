@@ -887,7 +887,9 @@ public class QueryImpl implements Query, ResourceInstance {
 
     for (Resource.Type type : types) {
       String resourceKeyProp = schema.getKeyPropertyId(type);
-      resourceKeyValueMap.put(type, resource.getPropertyValue(resourceKeyProp).toString());
+      Object resourceValue = resource.getPropertyValue(resourceKeyProp);
+      if (null != resourceValue)
+        resourceKeyValueMap.put(type, resourceValue.toString());
     }
     return resourceKeyValueMap;
   }

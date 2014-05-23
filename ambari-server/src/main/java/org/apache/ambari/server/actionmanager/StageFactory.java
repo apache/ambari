@@ -18,13 +18,18 @@
 
 package org.apache.ambari.server.actionmanager;
 
-import com.google.inject.assistedinject.Assisted;
 import org.apache.ambari.server.orm.entities.StageEntity;
+
+import com.google.inject.assistedinject.Assisted;
 
 public interface StageFactory {
 
-  Stage createNew(long requestId, @Assisted("logDir") String logDir, @Assisted("clusterName") String clusterName,
-                   @Assisted("requestContext") String requestContext, @Assisted("clusterHostInfo") String clusterHostInfo);
+  Stage createNew(long requestId,
+      @Assisted("logDir") String logDir,
+      @Assisted("clusterName") String clusterName,
+      @Assisted("clusterId") long clusterId,
+      @Assisted("requestContext") String requestContext,
+      @Assisted("clusterHostInfo") String clusterHostInfo);
 
   Stage createExisting(StageEntity stageEntity);
 }

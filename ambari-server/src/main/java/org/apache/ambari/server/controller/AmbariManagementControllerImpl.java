@@ -654,7 +654,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   private Stage createNewStage(long id, Cluster cluster, long requestId, String requestContext, String clusterHostInfo) {
     String logDir = BASE_LOG_DIR + File.pathSeparator + requestId;
     Stage stage =
-        stageFactory.createNew(requestId, logDir, cluster.getClusterName(), requestContext, clusterHostInfo);
+        stageFactory.createNew(requestId, logDir,
+            null == cluster ? null : cluster.getClusterName(),
+            null == cluster ? -1L : cluster.getClusterId(),
+            requestContext, clusterHostInfo);
     stage.setStageId(id);
     return stage;
   }
@@ -2541,7 +2544,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   public RequestStatusResponse createAction(ExecuteActionRequest actionRequest,
       Map<String, String> requestProperties)
       throws AmbariException {
-    String clusterName;
+    String clusterName = actionRequest.getClusterName();
+        
     String requestContext = "";
 
     if (requestProperties != null) {
@@ -2552,32 +2556,34 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       }
     }
 
-    if (actionRequest.getClusterName() == null
-        || actionRequest.getClusterName().isEmpty()) {
-      throw new AmbariException("Invalid request, cluster name must be specified");
+    Cluster cluster = null;
+    if (null != clusterName) {
+      cluster = clusters.getCluster(clusterName);
+
+      LOG.info("Received action execution request"
+        + ", clusterName=" + actionRequest.getClusterName()
+        + ", request=" + actionRequest.toString());
     }
-    clusterName = actionRequest.getClusterName();
-
-    Cluster cluster = clusters.getCluster(clusterName);
-
-    LOG.info("Received action execution request"
-      + ", clusterName=" + actionRequest.getClusterName()
-      + ", request=" + actionRequest.toString());
-
+    
     ActionExecutionContext actionExecContext = getActionExecutionContext(actionRequest);
     if (actionRequest.isCommand()) {
       customCommandExecutionHelper.validateAction(actionRequest);
     } else {
       actionExecutionHelper.validateAction(actionRequest);
     }
-
-    Map<String, Set<String>> clusterHostInfo = StageUtils.getClusterHostInfo(
+    
+    Map<String, String> params = new HashMap<String, String>();
+    Map<String, Set<String>> clusterHostInfo = new HashMap<String, Set<String>>();
+    String clusterHostInfoJson = "{}";
+    
+    if (null != cluster) {
+      clusterHostInfo = StageUtils.getClusterHostInfo(
         clusters.getHostsForCluster(cluster.getClusterName()), cluster);
-
-    String clusterHostInfoJson = StageUtils.getGson().toJson(clusterHostInfo);
+      params = createDefaultHostParams(cluster);
+      clusterHostInfoJson = StageUtils.getGson().toJson(clusterHostInfo);
+    }
+    
     Stage stage = createNewStage(0, cluster, actionManager.getNextRequestId(), requestContext, clusterHostInfoJson);
-
-    Map<String, String> params = createDefaultHostParams(cluster);
 
     if (actionRequest.isCommand()) {
       customCommandExecutionHelper.addExecutionCommandsToStage(actionExecContext, stage,
@@ -2585,11 +2591,18 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     } else {
       actionExecutionHelper.addExecutionCommandsToStage(actionExecContext, stage, params);
     }
-
-    RoleCommandOrder rco = this.getRoleCommandOrder(cluster);
-    RoleGraph rg = new RoleGraph(rco);
-    rg.build(stage);
+    
+    RoleGraph rg = null;
+    if (null != cluster) {
+      RoleCommandOrder rco = getRoleCommandOrder(cluster);
+      rg = new RoleGraph(rco);
+    } else {
+      rg = new RoleGraph();
+    }
+    
+    rg.build(stage);    
     List<Stage> stages = rg.getStages();
+    
     if (stages != null && !stages.isEmpty()) {
       actionManager.sendActions(stages, actionRequest);
       return getRequestStatusResponse(stage.getRequestId());

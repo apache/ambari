@@ -83,6 +83,7 @@ import org.apache.ambari.server.orm.dao.ExecutionCommandDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.RoleDAO;
 import org.apache.ambari.server.orm.entities.ExecutionCommandEntity;
+import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.RoleEntity;
 import org.apache.ambari.server.security.authorization.Users;
 import org.apache.ambari.server.serveraction.ServerAction;
@@ -219,12 +220,17 @@ public class AmbariManagementControllerTest {
     host.setHostAttributes(hostAttributes);
   }
   
+  private void addHost(String hostname) throws AmbariException {
+    addHost(hostname, null);
+  }
+  
   private void addHost(String hostname, String clusterName) throws AmbariException {
     clusters.addHost(hostname);
     setOsFamily(clusters.getHost(hostname), "redhat", "6.3");
     clusters.getHost(hostname).setState(HostState.HEALTHY);
     clusters.getHost(hostname).persist();
-    clusters.mapHostToCluster(hostname, clusterName);
+    if (null != clusterName)
+      clusters.mapHostToCluster(hostname, clusterName);
   }
 
   private void createCluster(String clusterName) throws AmbariException {
@@ -7716,7 +7722,7 @@ public class AmbariManagementControllerTest {
 
 
     List<Stage> stages = new ArrayList<Stage>();
-    stages.add(new Stage(requestId1, "/a1", clusterName, context, CLUSTER_HOST_INFO));
+    stages.add(new Stage(requestId1, "/a1", clusterName, 1L, context, CLUSTER_HOST_INFO));
     stages.get(0).setStageId(1);
     stages.get(0).addHostRoleExecutionCommand(hostName1, Role.HBASE_MASTER,
             RoleCommand.START,
@@ -7724,14 +7730,14 @@ public class AmbariManagementControllerTest {
                     hostName1, System.currentTimeMillis()),
             clusterName, "HBASE");
 
-    stages.add(new Stage(requestId1, "/a2", clusterName, context, CLUSTER_HOST_INFO));
+    stages.add(new Stage(requestId1, "/a2", clusterName, 1L, context, CLUSTER_HOST_INFO));
     stages.get(1).setStageId(2);
     stages.get(1).addHostRoleExecutionCommand(hostName1, Role.HBASE_CLIENT,
             RoleCommand.START,
             new ServiceComponentHostStartEvent(Role.HBASE_CLIENT.toString(),
                     hostName1, System.currentTimeMillis()), clusterName, "HBASE");
 
-    stages.add(new Stage(requestId1, "/a3", clusterName, context, CLUSTER_HOST_INFO));
+    stages.add(new Stage(requestId1, "/a3", clusterName, 1L, context, CLUSTER_HOST_INFO));
     stages.get(2).setStageId(3);
     stages.get(2).addHostRoleExecutionCommand(hostName1, Role.HBASE_CLIENT,
             RoleCommand.START,
@@ -7742,14 +7748,14 @@ public class AmbariManagementControllerTest {
     actionDB.persistActions(request);
 
     stages.clear();
-    stages.add(new Stage(requestId2, "/a4", clusterName, context, CLUSTER_HOST_INFO));
+    stages.add(new Stage(requestId2, "/a4", clusterName, 1L, context, CLUSTER_HOST_INFO));
     stages.get(0).setStageId(4);
     stages.get(0).addHostRoleExecutionCommand(hostName1, Role.HBASE_CLIENT,
             RoleCommand.START,
             new ServiceComponentHostStartEvent(Role.HBASE_CLIENT.toString(),
                     hostName1, System.currentTimeMillis()), clusterName, "HBASE");
 
-    stages.add(new Stage(requestId2, "/a5", clusterName, context, CLUSTER_HOST_INFO));
+    stages.add(new Stage(requestId2, "/a5", clusterName, 1L, context, CLUSTER_HOST_INFO));
     stages.get(1).setStageId(5);
     stages.get(1).addHostRoleExecutionCommand(hostName1, Role.HBASE_CLIENT,
             RoleCommand.START,
@@ -9972,6 +9978,92 @@ public class AmbariManagementControllerTest {
       // expected
     }
   }
+
+  @Test
+  public void testCreateCustomActionNoCluster() throws Exception {
+    String hostname1 = "h1";
+    String hostname2 = "h2";
+    addHost(hostname1);
+    addHost(hostname2);
+    
+    ambariMetaInfo.addActionDefinition(new ActionDefinition("a1", ActionType.SYSTEM,
+        "", "", "", "action def description", TargetHostType.ANY,
+        Short.valueOf("60")));
+    
+    Map<String, String> requestProperties = new HashMap<String, String>();
+    requestProperties.put(REQUEST_CONTEXT_PROPERTY, "Called from a test");
+    
+    Map<String, String> requestParams = new HashMap<String, String>();
+    requestParams.put("some_custom_param", "abc");
+
+    // !!! target single host
+    List<String> hosts = Arrays.asList(hostname1);
+    RequestResourceFilter resourceFilter = new RequestResourceFilter(null, null, hosts);
+    List<RequestResourceFilter> resourceFilters = new ArrayList<RequestResourceFilter>();
+    resourceFilters.add(resourceFilter);
+    
+    ExecuteActionRequest actionRequest = new ExecuteActionRequest(null, null,
+        "a1", resourceFilters, null, requestParams);
+    RequestStatusResponse response = controller.createAction(actionRequest, requestProperties);
+    assertEquals(1, response.getTasks().size());
+    ShortTaskStatus taskStatus = response.getTasks().get(0);
+    Assert.assertEquals(hostname1, taskStatus.getHostName());
+
+    Stage stage = actionDB.getAllStages(response.getRequestId()).get(0);
+    Assert.assertNotNull(stage);
+    Assert.assertEquals(-1L, stage.getClusterId());
+    
+    List<HostRoleCommand> storedTasks = actionDB.getRequestTasks(response.getRequestId());    
+    Assert.assertEquals(1, storedTasks.size());
+    HostRoleCommand task = storedTasks.get(0);
+    Assert.assertEquals(RoleCommand.ACTIONEXECUTE, task.getRoleCommand());
+    Assert.assertEquals("a1", task.getRole().name());
+    Assert.assertEquals(hostname1, task.getHostName());
+    
+    ExecutionCommand cmd = task.getExecutionCommandWrapper().getExecutionCommand();
+    Assert.assertTrue(cmd.getCommandParams().containsKey("some_custom_param"));
+    Assert.assertEquals(null, cmd.getServiceName());
+    Assert.assertEquals(null, cmd.getComponentName());
+    
+    // !!! target two hosts
+
+    hosts = Arrays.asList(hostname1, hostname2);
+    resourceFilter = new RequestResourceFilter(null, null, hosts);
+    resourceFilters = new ArrayList<RequestResourceFilter>();
+    resourceFilters.add(resourceFilter);
+    
+    actionRequest = new ExecuteActionRequest(null, null,
+        "a1", resourceFilters, null, requestParams);
+    response = controller.createAction(actionRequest, requestProperties);
+    assertEquals(2, response.getTasks().size());
+    boolean host1Found = false;
+    boolean host2Found = false;
+    for (ShortTaskStatus sts : response.getTasks()) {
+      if (sts.getHostName().equals(hostname1))
+        host1Found = true;
+      else if (sts.getHostName().equals(hostname2))
+        host2Found = true;
+    }
+    Assert.assertTrue(host1Found);
+    Assert.assertTrue(host2Found);
+
+    stage = actionDB.getAllStages(response.getRequestId()).get(0);
+    Assert.assertNotNull(stage);
+    Assert.assertEquals(-1L, stage.getClusterId());
+    
+    storedTasks = actionDB.getRequestTasks(response.getRequestId());    
+    Assert.assertEquals(2, storedTasks.size());
+    task = storedTasks.get(0);
+    Assert.assertEquals(RoleCommand.ACTIONEXECUTE, task.getRoleCommand());
+    Assert.assertEquals("a1", task.getRole().name());
+    Assert.assertEquals(hostname1, task.getHostName());
+    
+    cmd = task.getExecutionCommandWrapper().getExecutionCommand();
+    Assert.assertTrue(cmd.getCommandParams().containsKey("some_custom_param"));
+    Assert.assertEquals(null, cmd.getServiceName());
+    Assert.assertEquals(null, cmd.getComponentName());
+  }
+
 }
 
   

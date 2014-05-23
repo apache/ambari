@@ -161,7 +161,7 @@ public class StageUtils {
   //For testing only
   public static Stage getATestStage(long requestId, long stageId, String hostname, String clusterHostInfo) {
 
-    Stage s = new Stage(requestId, "/tmp", "cluster1", "context", clusterHostInfo);
+    Stage s = new Stage(requestId, "/tmp", "cluster1", 1L, "context", clusterHostInfo);
     s.setStageId(stageId);
     long now = System.currentTimeMillis();
     s.addHostRoleExecutionCommand(hostname, Role.NAMENODE, RoleCommand.INSTALL,

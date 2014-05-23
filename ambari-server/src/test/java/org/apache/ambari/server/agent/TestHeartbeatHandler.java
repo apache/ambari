@@ -613,7 +613,7 @@ public class TestHeartbeatHandler {
   }
 
   private void populateActionDB(ActionDBAccessor db, String DummyHostname1) {
-    Stage s = new Stage(requestId, "/a/b", DummyCluster, "heartbeat handler test", "clusterHostInfo");
+    Stage s = new Stage(requestId, "/a/b", DummyCluster, 1L, "heartbeat handler test", "clusterHostInfo");
     s.setStageId(stageId);
     String filename = null;
     s.addHostRoleExecutionCommand(DummyHostname1, Role.HBASE_MASTER,
@@ -977,7 +977,7 @@ public class TestHeartbeatHandler {
       getServiceComponent(DATANODE).getServiceComponentHost(DummyHostname1);
     serviceComponentHost1.setState(State.INSTALLING);
 
-    Stage s = new Stage(1, "/a/b", "cluster1", "action manager test",
+    Stage s = new Stage(1, "/a/b", "cluster1", 1L, "action manager test",
       "clusterHostInfo");
     s.setStageId(1);
     s.addHostRoleExecutionCommand(DummyHostname1, Role.DATANODE, RoleCommand.INSTALL,
@@ -1493,7 +1493,7 @@ public class TestHeartbeatHandler {
     serviceComponentHost1.setDesiredStackVersion(stack130);
     serviceComponentHost2.setStackVersion(stack122);
 
-    Stage s = new Stage(requestId, "/a/b", "cluster1", "action manager test",
+    Stage s = new Stage(requestId, "/a/b", "cluster1", 1L, "action manager test",
       "clusterHostInfo");
     s.setStageId(stageId);
     s.addHostRoleExecutionCommand(DummyHostname1, Role.DATANODE, RoleCommand.UPGRADE,

@@ -63,30 +63,20 @@ public class RequestResourceDefinition extends BaseResourceDefinition {
   private class RequestHrefPostProcessor implements PostProcessor {
     @Override
     public void process(Request request, TreeNode<Resource> resultNode, String href) {
-      StringBuilder sb = new StringBuilder();
-      String[] toks = href.split("/");
-
-      for (int i = 0; i < toks.length; ++i) {
-        String s = toks[i];
-        sb.append(s).append('/');
-        if ("clusters".equals(s)) {
-          sb.append(toks[i + 1]).append('/');
-          break;
-        }
-      }
 
       Object requestId = resultNode.getObject().getPropertyValue(getClusterController().
           getSchema(Resource.Type.Request).getKeyPropertyId(Resource.Type.Request));
 
-      sb.append("requests/").append(requestId);
-
+      StringBuilder sb = new StringBuilder(href);
+      if (href.endsWith("/requests"))
+        sb.append('/').append(requestId);
+        
       resultNode.setProperty("href", sb.toString());
     }
   }
 
   private class RequestSourceScheduleHrefPostProcessor implements PostProcessor {
 
-    @SuppressWarnings("unchecked")
     @Override
     public void process(Request request, TreeNode<Resource> resultNode, String href) {
       StringBuilder sb = new StringBuilder();
