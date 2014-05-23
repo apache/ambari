@@ -1,0 +1,104 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+var App = require('app');
+
+require('views/experimental');
+
+var view,
+  transition,
+  supports = {},
+  transitionStubbed = false,
+  viewSupports = [
+    Em.Object.create({
+      name: 'sup0',
+      selected: true
+    }),
+    Em.Object.create({
+      name: 'sup1',
+      selected: false
+    })
+  ],
+  saveObject = {};
+
+describe('App.ExperimentalView', function () {
+
+  before(function () {
+    viewSupports.forEach(function(item) {
+      supports[item.get('name')] = item.get('selected');
+    });
+    sinon.stub(App, 'get', function(k) {
+      if (k === 'supports') return supports;
+      return Em.get(App, k);
+    });
+  });
+
+  beforeEach(function () {
+    view = App.ExperimentalView.create();
+  });
+
+  after(function () {
+    App.get.restore();
+  });
+
+  describe('#supports', function () {
+    it('should take data from App.supports', function () {
+      expect(view.get('supports')).to.eql(viewSupports);
+    });
+  });
+
+  describe('#doSave', function () {
+
+    before(function () {
+      sinon.stub(Ember, 'set', function (p, v) {
+        if (p.indexOf('App.supports.' != -1)) {
+          p = p.replace('App.supports.', '');
+          saveObject[p] = v;
+          return;
+        }
+        return Ember.set(p, v);
+      });
+      if (App.router.get('transitionTo') === undefined) {
+        App.router.set('transitionTo', Em.K);
+      } else {
+        sinon.stub(App.router, 'transitionTo', function (k) {
+          if (k === 'root.index') return Em.K;
+          return App.router.transitionTo(k);
+        });
+        transitionStubbed = true;
+      }
+    });
+
+    after(function () {
+      Ember.set.restore();
+      if (transitionStubbed) {
+        App.router.transitionTo.restore();
+      } else {
+        App.router.set('transitionTo', undefined);
+      }
+    });
+
+    it('should pass data to App.supports', function () {
+      view.set('supports', viewSupports);
+      view.doSave();
+      expect(saveObject).to.eql(supports);
+    });
+
+  });
+
+});

@@ -21,12 +21,12 @@ App.ExperimentalView = Em.View.extend({
   templateName: require('templates/experimental'),
   supports: function () {
     var supports = [];
-    for ( var sup in App.supports) {
+    Em.keys(App.get('supports')).forEach(function (sup) {
       supports.push(Ember.Object.create({
         name: sup,
-        selected: App.supports[sup]
+        selected: App.get('supports')[sup]
       }));
-    }
+    });
     return supports;
   }.property('App.supports'),
 
