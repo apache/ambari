@@ -23,7 +23,7 @@
   <div class="slider-modal-body">
     <div class="container-fluid">
       <div class="row">
-        <div class="col-md-3 wizard-nav">
+        <div class="col-xs-3 wizard-nav">
           <div class="well">
             <ul class="nav nav-pills nav-stacked">
               <li {{bind-attr class="view.isStep1:active view.isStep1Disabled:disabled"}}><a href="javascript:void(null);" {{action gotoStep 1 target="controller"}}>{{t wizard.step1.name}}</a></li>
@@ -33,7 +33,7 @@
             </ul>
           </div>
         </div>
-        <div class="wizard-content well col-md-9">
+        <div class="wizard-content well col-xs-9">
           {{outlet}}
         </div>
       </div>
