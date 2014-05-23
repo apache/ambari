@@ -20,6 +20,7 @@ package org.apache.ambari.view.slider;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.hadoop.yarn.exceptions.YarnException;
 
@@ -30,7 +31,30 @@ public interface SliderAppsViewController {
 
 	public ViewStatus getViewStatus();
 
-	public SliderApp getSliderApp(String applicationId) throws YarnException, IOException;
+	/**
+	 * Provides information about requested Slider App.
+	 * 
+	 * @param applicationId
+	 * @param properties
+	 *          Identifies specific properties to show up. Provide
+	 *          <code>null</code> for default properties.
+	 * @return
+	 * @throws YarnException
+	 * @throws IOException
+	 */
+	public SliderApp getSliderApp(String applicationId, Set<String> properties)
+	    throws YarnException, IOException;
 
-	public List<SliderApp> getSliderApps() throws YarnException, IOException;
+	/**
+	 * Provides list of Slider apps with requested properties populated.
+	 * 
+	 * @param properties
+	 *          Identifies specific properties to show up. Provide
+	 *          <code>null</code> for default properties.
+	 * @return
+	 * @throws YarnException
+	 * @throws IOException
+	 */
+	public List<SliderApp> getSliderApps(Set<String> properties)
+	    throws YarnException, IOException;
 }

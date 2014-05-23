@@ -85,6 +85,11 @@ public class BaseHttpClient {
 	}
 
 	public JsonElement doGetJson(String path) throws HttpException, IOException {
+		return doGetJson(getUrl(), path);
+	}
+
+	public JsonElement doGetJson(String url, String path) throws HttpException,
+	    IOException {
 		GetMethod get = new GetMethod(url + path);
 		if (isNeedsAuthentication()) {
 			get.setDoAuthentication(true);
@@ -95,6 +100,21 @@ public class BaseHttpClient {
 			JsonElement jsonElement = new JsonParser().parse(new JsonReader(
 			    new InputStreamReader(get.getResponseBodyAsStream())));
 			return jsonElement;
+		default:
+			break;
+		}
+		return null;
+	}
+
+	public String doGet(String path) throws HttpException, IOException {
+		GetMethod get = new GetMethod(url + path);
+		if (isNeedsAuthentication()) {
+			get.setDoAuthentication(true);
+		}
+		int executeMethod = getHttpClient().executeMethod(get);
+		switch (executeMethod) {
+		case HttpStatus.SC_OK:
+			return get.getResponseBodyAsString();
 		default:
 			break;
 		}

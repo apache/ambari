@@ -62,7 +62,7 @@ public class SliderAppsResourceProvider implements ResourceProvider<SliderApp> {
 	    throws SystemException, NoSuchResourceException,
 	    UnsupportedPropertyException {
 		try {
-			SliderApp sliderApp = sliderController.getSliderApp(resourceId);
+			SliderApp sliderApp = sliderController.getSliderApp(resourceId, properties);
 			if (sliderApp == null)
 				throw new NoSuchResourceException(resourceId);
 			return sliderApp;
@@ -81,7 +81,7 @@ public class SliderAppsResourceProvider implements ResourceProvider<SliderApp> {
 	    UnsupportedPropertyException {
 		Set<SliderApp> appSet = new HashSet<SliderApp>();
 		try {
-			List<SliderApp> sliderApps = sliderController.getSliderApps();
+			List<SliderApp> sliderApps = sliderController.getSliderApps(request.getPropertyIds());
 			for (SliderApp app : sliderApps)
 				appSet.add(app);
 		} catch (YarnException e) {
