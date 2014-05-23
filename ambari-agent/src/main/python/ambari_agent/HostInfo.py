@@ -122,12 +122,12 @@ class HostInfo:
   # default timeout for async invoked processes
   TIMEOUT_SECONDS = 60
   RESULT_UNAVAILABLE = "unable_to_determine"
-  
+
   DEFAULT_SERVICE_NAME = "ntpd"
   SERVICE_STATUS_CMD = "%s %s status" % (SERVICE_CMD, DEFAULT_SERVICE_NAME)
-  
+
   event = threading.Event()
-  
+
   current_umask = -1
 
   def __init__(self, config=None):
@@ -180,10 +180,10 @@ class HostInfo:
         serviceName = service[osType]
       else:
         serviceName = service
-      
+
       service_check_live = shlex.split(self.SERVICE_STATUS_CMD)
       service_check_live[1] = serviceName
-      
+
       svcCheckResult['name'] = serviceName
       svcCheckResult['status'] = "UNKNOWN"
       svcCheckResult['desc'] = ""
@@ -321,11 +321,11 @@ class HostInfo:
     liveSvcs = []
     self.checkLiveServices(self.DEFAULT_LIVE_SERVICES, liveSvcs)
     dict['hostHealth']['liveServices'] = liveSvcs
-    
+
     dict['umask'] = str(self.getUMask())
 
     # detailed host check is not available for Suse
-    isSuse =  'suse' == OSCheck.get_os_family()
+    isSuse = 'suse' == OSCheck.get_os_family()
 
     dict['iptablesIsRunning'] = self.checkIptables()
     dict['reverseLookup'] = self.checkReverseLookup()
@@ -375,6 +375,7 @@ class HostInfo:
     dict['hostHealth']['agentTimeStampAtReporting'] = int(time.time() * 1000)
 
     pass
+
   def checkReverseLookup(self):
     """
     Check if host fqdn resolves to current host ip
@@ -388,6 +389,7 @@ class HostInfo:
     except socket.herror:
       pass
     return False
+
 
 class FirewallChecks(object):
   def __init__(self):
@@ -412,16 +414,18 @@ class FirewallChecks(object):
   def get_stopped_result(self):
     # To support test code.  Expected output from run_os_command.
     return (3, "", "")
-    
+
   def run_os_command(self, cmd):
     if type(cmd) == str:
       cmd = shlex.split(cmd)
-      
-    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE,
-      stderr=subprocess.PIPE)
-                               
-    (stdoutdata, stderrdata) = process.communicate()
-    return process.returncode, stdoutdata, stderrdata    
+
+    try:
+      process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE,
+        stderr=subprocess.PIPE)
+      (stdoutdata, stderrdata) = process.communicate()
+      return process.returncode, stdoutdata, stderrdata
+    except OSError:
+      return self.get_stopped_result()
 
 
 class UbuntuFirewallChecks(FirewallChecks):

@@ -509,11 +509,10 @@ class TestHostInfo(TestCase):
     os_path_islink_mock.return_value = True
     os_path_realpath_mock.return_value = 'real_path_to_conf'
     result = []
-    hostInfo.etcAlternativesConf('project',result)
+    hostInfo.etcAlternativesConf('project', result)
 
     self.assertEquals(result[0]['name'], 'config1')
     self.assertEquals(result[0]['target'], 'real_path_to_conf')
-    
 
   @patch.object(FirewallChecks, "run_os_command")
   def test_IpTablesRunning(self, run_os_command_mock):
@@ -522,6 +521,29 @@ class TestHostInfo(TestCase):
       firewall = firewallType()
       run_os_command_mock.return_value = firewall.get_running_result()
       self.assertTrue(firewall.check_iptables())
+
+  @patch("subprocess.Popen")
+  def test_run_os_command_exception(self, popen_mock):
+    def base_test():
+       return "base test"
+
+    def sub_test():
+      return "output 1", "error 1"
+
+    base_test.communicate = sub_test
+    base_test.returncode = 0
+
+    hostInfo = HostInfo()
+    for firewallType in hostInfo.getFirewallObjectTypes():
+      firewall = firewallType()
+
+      popen_mock.side_effect = None
+      popen_mock.return_value = base_test
+      self.assertTrue(firewall.check_iptables())
+
+      popen_mock.side_effect = OSError('File not found')
+      popen_mock.return_value = None
+      self.assertFalse(firewall.check_iptables())
 
   @patch.object(socket, "getfqdn")
   @patch.object(socket, "gethostbyname")
@@ -554,6 +576,6 @@ class TestHostInfo(TestCase):
       firewall = firewallType()
       run_os_command_mock.return_value = firewall.get_stopped_result()
       self.assertFalse(firewall.check_iptables())
-      
+
 if __name__ == "__main__":
   unittest.main()
