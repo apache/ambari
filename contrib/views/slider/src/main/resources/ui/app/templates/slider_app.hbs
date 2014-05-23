@@ -33,7 +33,7 @@
       <ul class="dropdown-menu">
         {{#each option in controller.availableActions}}
           <li>
-            <a {{action 'openModal' option}}>{{option.title}}</a>
+            <a {{action 'openModal' option target='controller'}}>{{option.title}}</a>
           </li>
         {{/each}}
       </ul>
@@ -45,7 +45,7 @@
       <li class="dropdown">
         <a class="dropdown-toggle" data-toggle="dropdown" href="#">{{t common.quickLinks}}<b class="caret"></b></a>
         <ul class="dropdown-menu">
-          {{#each quickLink in controller.quickLinks}}
+          {{#each quickLink in model.quickLinks}}
             <li><a {{bind-attr href="quickLink.url"}} target="_blank">{{quickLink.label}}</a></li>
           {{/each}}
         </ul>

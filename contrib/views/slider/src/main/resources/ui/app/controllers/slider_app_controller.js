@@ -38,12 +38,14 @@ App.SliderAppController = Ember.ObjectController.extend({
     if ('RUNNING' === status) {
       actions.pushObject({
         title: 'Freeze',
+        action: 'freeze',
         confirm: true
       });
     }
     if ('FINISHED' !== status) {
       actions.push({
         title: 'Flex',
+        action: 'flex',
         confirm: true
       });
     }
@@ -51,10 +53,12 @@ App.SliderAppController = Ember.ObjectController.extend({
       actions.pushObjects([
         {
           title: 'Thaw',
+          action: 'thaw',
           confirm: false
         },
         {
           title: 'Destroy',
+          action: 'destroy',
           confirm: true
         }
       ]);
@@ -62,7 +66,84 @@ App.SliderAppController = Ember.ObjectController.extend({
     return actions;
   }.property('model.status'),
 
-  quickLinks: function() {
-    return this.get('content').get('quickLinks');
-  }.property('content.quickLinks')
+  /**
+   * Method's name that should be called for model
+   * @type {string}
+   */
+  currentAction: null,
+
+  /**
+   * Try call controller's method with name stored in <code>currentAction</code>
+   * @method tryDoAction
+   */
+  tryDoAction: function() {
+    var currentAction = this.get('currentAction');
+    if (Em.isNone(currentAction)) return;
+    if(Em.typeOf(this[currentAction]) !== 'function') return;
+    this[currentAction]();
+  },
+
+  thaw: Ember.K,
+  freeze: Ember.K,
+  flex: Ember.K,
+
+  /**
+   * Do request to delete current slider's app
+   * @return {$.ajax}
+   * @method destroy
+   */
+  destroy: function() {
+    var self = this;
+    return $.ajax({
+      url: App.get('urlPrefix') + 'apps/' + this.get('model.index'),
+      method: 'DELETE',
+      complete: function() {
+        self.transitionToRoute('slider_apps');
+      }
+    });
+  },
+
+  actions: {
+
+    /**
+     * Handler for "Yes" click in modal popup
+     * @returns {*}
+     * @method modalConfirmed
+     */
+    modalConfirmed: function() {
+      this.tryDoAction();
+      return Bootstrap.ModalManager.close('confirm-modal');
+    },
+
+    /**
+     * Handler for "No" click in modal popup
+     * @returns {*}
+     * @method modalCanceled
+     */
+    modalCanceled: function() {
+      return Bootstrap.ModalManager.close('confirm-modal');
+    },
+
+    /**
+     * Handler for Actions menu elements click
+     * @param {{title: string, action: string, confirm: bool}} option
+     * @method openModal
+     */
+    openModal: function(option) {
+      this.set('currentAction', option.action);
+      if (option.confirm) {
+        Bootstrap.ModalManager.confirm(
+          this,
+          Ember.I18n.t('common.confirmation'),
+          Ember.I18n.t('question.sure'),
+          Ember.I18n.t('yes'),
+          Ember.I18n.t('no')
+        );
+      }
+      else {
+        this.tryDoAction();
+      }
+    }
+  }
+
 });

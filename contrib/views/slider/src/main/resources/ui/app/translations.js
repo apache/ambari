@@ -20,6 +20,8 @@
 Em.I18n.translations = {
 
   'ok': 'OK',
+  'yes': 'Yes',
+  'no': 'No',
 
   'common' : {
     'show': 'Show',
@@ -32,7 +34,8 @@ Em.I18n.translations = {
     'quickLinks': "Quick Links",
     'summary': 'Summary',
     'configs': 'Configs',
-    'metrics': 'Metrics'
+    'metrics': 'Metrics',
+    'confirmation': 'Confirmation'
   },
 
   'popup.confirmation.commonHeader': 'Confirmation',
