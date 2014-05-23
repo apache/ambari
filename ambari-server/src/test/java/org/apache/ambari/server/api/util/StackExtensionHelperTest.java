@@ -19,6 +19,8 @@
 package org.apache.ambari.server.api.util;
 
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.api.services.AmbariMetaInfoTest.MockModule;
+import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.state.*;
 
 import java.io.File;
@@ -28,7 +30,12 @@ import java.util.Map;
 
 import static org.junit.Assert.*;
 
+import org.junit.Before;
 import org.junit.Test;
+
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 
 public class StackExtensionHelperTest {
 
@@ -38,6 +45,16 @@ public class StackExtensionHelperTest {
           replaceAll("/", File.separator);
   private final String yarnDirStr = stackRootStr + "services/YARN/".
           replaceAll("/", File.separator);
+  
+  private Injector injector = Guice.createInjector(new MockModule());
+  
+  
+  public class MockModule extends AbstractModule {
+    @Override
+    protected void configure() {
+      bind(ActionMetadata.class);
+    }
+  }
 
   /**
   * Checks than service metainfo is parsed correctly both for ver 1 services
@@ -49,7 +66,7 @@ public class StackExtensionHelperTest {
     StackInfo stackInfo = new StackInfo();
     stackInfo.setName("HDP");
     stackInfo.setVersion("2.0.7");
-    StackExtensionHelper helper = new StackExtensionHelper(stackRoot);
+    StackExtensionHelper helper = new StackExtensionHelper(injector, stackRoot);
     helper.populateServicesForStack(stackInfo);
     List<ServiceInfo> services =  stackInfo.getServices();
     assertEquals(7, services.size());
@@ -196,7 +213,7 @@ public class StackExtensionHelperTest {
   @Test
   public void getSchemaVersion() throws Exception {
     File stackRoot = new File(stackRootStr);
-    StackExtensionHelper helper = new StackExtensionHelper(stackRoot);
+    StackExtensionHelper helper = new StackExtensionHelper(injector, stackRoot);
     File legacyMetaInfoFile = new File("./src/test/resources/stacks/HDP/2.0.7/" +
             "services/HIVE/metainfo.xml".replaceAll("/", File.separator));
     String version = helper.getSchemaVersion(legacyMetaInfoFile);

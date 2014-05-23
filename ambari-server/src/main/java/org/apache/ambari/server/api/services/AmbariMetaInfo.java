@@ -69,6 +69,7 @@ import org.slf4j.LoggerFactory;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.google.inject.Inject;
+import com.google.inject.Injector;
 import com.google.inject.Singleton;
 
 
@@ -126,6 +127,10 @@ public class AmbariMetaInfo {
   private File customActionRoot;
   @Inject
   private MetainfoDAO metainfoDAO;
+  @Inject
+  Injector injector;
+  
+  
   // Required properties by stack version
   private final Map<StackId, Map<String, Map<String, PropertyInfo>>> requiredProperties =
     new HashMap<StackId, Map<String, Map<String, PropertyInfo>>>();
@@ -144,7 +149,7 @@ public class AmbariMetaInfo {
     this.serverVersionFile = new File(serverVersionFilePath);
     this.customActionRoot = new File(conf.getCustomActionDefinitionPath());
   }
-
+  
   public AmbariMetaInfo(File stackRoot, File serverVersionFile) throws Exception {
     this.stackRoot = stackRoot;
     this.serverVersionFile = serverVersionFile;
@@ -777,7 +782,7 @@ public class AmbariMetaInfo {
         + " should be a directory with stack"
         + ", stackRoot = " + stackRootAbsPath);
 
-    StackExtensionHelper stackExtensionHelper = new StackExtensionHelper(stackRoot);
+    StackExtensionHelper stackExtensionHelper = new StackExtensionHelper(injector, stackRoot);
     stackExtensionHelper.fillInfo();
 
     List<StackInfo> stacks = stackExtensionHelper.getAllAvailableStacks();

@@ -19,7 +19,9 @@
 package org.apache.ambari.server.metadata;
 
 import com.google.inject.Singleton;
+
 import org.apache.ambari.server.Role;
+import org.apache.ambari.server.state.Service;
 
 import java.util.*;
 
@@ -33,11 +35,20 @@ public class ActionMetadata {
   private final Map<String, String> serviceCheckActions =
       new HashMap<String, String>();
   private final List<String> defaultHostComponentCommands = new ArrayList<String>();
+  public final static String SERVICE_CHECK_POSTFIX = "_SERVICE_CHECK";
+  
+  private static final Map<String, String> SERVICE_CHECKS;
+  static {
+      Map<String, String> serviceChecks = new HashMap<String, String>();
+      
+      serviceChecks.put(Service.Type.ZOOKEEPER.toString(), "ZOOKEEPER_QUORUM_SERVICE_CHECK");
+      serviceChecks.put(Service.Type.HCATALOG.toString(), "HCAT_SERVICE_CHECK");
+      
+      SERVICE_CHECKS = Collections.unmodifiableMap(serviceChecks);
+  }
 
   public ActionMetadata() {
-    fillServiceActions();
     fillServiceClients();
-    fillServiceCheckActions();
     fillHostComponentCommands();
   }
 
@@ -62,52 +73,6 @@ public class ActionMetadata {
     serviceClients.put("yarn"       , Role.YARN_CLIENT.toString());
   }
 
-  private void fillServiceActions() {
-    serviceActions.put("hdfs"       , Arrays.asList(Role.HDFS_SERVICE_CHECK.toString()));
-    serviceActions.put("glusterfs"  , Arrays.asList(Role.GLUSTERFS_SERVICE_CHECK.toString()));
-    serviceActions.put("hbase"      , Arrays.asList(Role.HBASE_SERVICE_CHECK.toString()));
-    serviceActions.put("mapreduce"  , Arrays.asList(Role.MAPREDUCE_SERVICE_CHECK.toString()));
-    serviceActions.put("mapreduce2" , Arrays.asList(Role.MAPREDUCE2_SERVICE_CHECK.toString()));
-    serviceActions.put("yarn"       , Arrays.asList(Role.YARN_SERVICE_CHECK.toString()));
-    serviceActions.put("zookeeper"  , Arrays.asList(Role.ZOOKEEPER_QUORUM_SERVICE_CHECK.toString()));
-    serviceActions.put("hive"       , Arrays.asList(Role.HIVE_SERVICE_CHECK.toString()));
-    serviceActions.put("hcat"       , Arrays.asList(Role.HCAT_SERVICE_CHECK.toString()));
-    serviceActions.put("oozie"      , Arrays.asList(Role.OOZIE_SERVICE_CHECK.toString()));
-    serviceActions.put("pig"        , Arrays.asList(Role.PIG_SERVICE_CHECK.toString()));
-    serviceActions.put("sqoop"      , Arrays.asList(Role.SQOOP_SERVICE_CHECK.toString()));
-    serviceActions.put("webhcat"    , Arrays.asList(Role.WEBHCAT_SERVICE_CHECK.toString()));
-    serviceActions.put("storm"      , Arrays.asList(Role.STORM_SERVICE_CHECK.toString()));
-    serviceActions.put("falcon"     , Arrays.asList(Role.FALCON_SERVICE_CHECK.toString()));
-    serviceActions.put("flume"      , Arrays.asList(Role.FLUME_SERVICE_CHECK.toString()));
-  }
-
-  private void fillServiceCheckActions() {
-    serviceCheckActions.put("hdfs", Role.HDFS_SERVICE_CHECK.toString());
-    serviceCheckActions.put("glusterfs", Role.GLUSTERFS_SERVICE_CHECK.toString());
-    serviceCheckActions.put("hbase", Role.HBASE_SERVICE_CHECK.toString());
-    serviceCheckActions.put("mapreduce",
-        Role.MAPREDUCE_SERVICE_CHECK.toString());
-    serviceCheckActions.put("mapreduce2",
-        Role.MAPREDUCE2_SERVICE_CHECK.toString());
-    serviceCheckActions.put("yarn",
-        Role.YARN_SERVICE_CHECK.toString());
-    serviceCheckActions.put("zookeeper",
-        Role.ZOOKEEPER_QUORUM_SERVICE_CHECK.toString());
-    serviceCheckActions.put("hive", Role.HIVE_SERVICE_CHECK.toString());
-    serviceCheckActions.put("hcat", Role.HCAT_SERVICE_CHECK.toString());
-    serviceCheckActions.put("oozie", Role.OOZIE_SERVICE_CHECK.toString());
-    serviceCheckActions.put("pig", Role.PIG_SERVICE_CHECK.toString());
-    serviceCheckActions.put("sqoop", Role.SQOOP_SERVICE_CHECK.toString());
-    serviceCheckActions.put("webhcat",
-        Role.WEBHCAT_SERVICE_CHECK.toString());
-    serviceCheckActions.put("storm",
-        Role.STORM_SERVICE_CHECK.toString());
-    serviceCheckActions.put("falcon",
-        Role.FALCON_SERVICE_CHECK.toString());
-    serviceCheckActions.put("flume",
-        Role.FLUME_SERVICE_CHECK.toString());
-  }
-
   public List<String> getActions(String serviceName) {
     List<String> result = serviceActions.get(serviceName.toLowerCase());
     if (result != null) {
@@ -123,6 +88,17 @@ public class ActionMetadata {
 
   public String getServiceCheckAction(String serviceName) {
     return serviceCheckActions.get(serviceName.toLowerCase());
+  }
+  
+  public void addServiceCheckAction(String serviceName) {
+    String actionName = serviceName + SERVICE_CHECK_POSTFIX;
+    
+    if(SERVICE_CHECKS.containsKey(serviceName)) {
+      actionName = SERVICE_CHECKS.get(serviceName);
+    }
+    
+    serviceCheckActions.put(serviceName.toLowerCase(), actionName);
+    serviceActions.put(serviceName.toLowerCase(), Arrays.asList(actionName));
   }
 
   public boolean isDefaultHostComponentCommand(String command) {

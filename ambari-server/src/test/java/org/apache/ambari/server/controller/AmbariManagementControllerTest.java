@@ -76,6 +76,7 @@ import org.apache.ambari.server.controller.internal.HostResourceProviderTest;
 import org.apache.ambari.server.controller.internal.RequestResourceFilter;
 import org.apache.ambari.server.controller.internal.ServiceResourceProviderTest;
 import org.apache.ambari.server.customactions.ActionDefinition;
+import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.ExecutionCommandDAO;
@@ -4427,6 +4428,7 @@ public class AmbariManagementControllerTest {
     resourceFilter = new RequestResourceFilter("MAPREDUCE", null, null);
     actionRequest.getResourceFilters().add(resourceFilter);
 
+    this.injector.getInstance(ActionMetadata.class).addServiceCheckAction("MAPREDUCE");
     response = controller.createAction(actionRequest, requestProperties);
 
     assertEquals(1, response.getTasks().size());
@@ -5365,7 +5367,7 @@ public class AmbariManagementControllerTest {
     String componentName1 = "PIG";
     createServiceComponent(clusterName, serviceName, componentName1,
         State.INIT);
-
+    
     String host1 = "h1";
     String host2 = "h2";
     
@@ -5419,6 +5421,7 @@ public class AmbariManagementControllerTest {
     requests.clear();
     requests.add(r);
 
+    this.injector.getInstance(ActionMetadata.class).addServiceCheckAction("PIG");
     trackAction = ServiceResourceProviderTest.updateServices(controller, requests, mapRequestProps, true, false);
     Assert.assertNotNull(trackAction);
     Assert.assertEquals(State.INSTALLED,

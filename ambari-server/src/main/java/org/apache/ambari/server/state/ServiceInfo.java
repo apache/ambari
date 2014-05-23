@@ -101,6 +101,7 @@ public class ServiceInfo {
   private volatile Map<String, ServiceOsSpecific> serviceOsSpecificsMap;
 
   /**
+   * This is used to add service check actions for services.
    * Added at schema ver 2
    */
   private CommandScriptDefinition commandScript;

@@ -40,12 +40,15 @@ import javax.xml.xpath.XPathFactory;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.state.*;
 import org.apache.ambari.server.state.stack.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
+
+import com.google.inject.Injector;
 
 /**
  * Helper methods for providing stack extension behavior -
@@ -60,6 +63,8 @@ import org.xml.sax.SAXException;
  * properties are populated).
  */
 public class StackExtensionHelper {
+  private ActionMetadata actionMetadata;
+  
   private File stackRoot;
   private final static Logger LOG = LoggerFactory.getLogger(StackExtensionHelper.class);
   private final Map<String, StackInfo> stackVersionMap = new HashMap<String,
@@ -88,8 +93,9 @@ public class StackExtensionHelper {
    * Note: constructor does not perform inialisation now. After instance
    * creation, you have to call fillInfo() manually
    */
-  public StackExtensionHelper(File stackRoot) {
+  public StackExtensionHelper(Injector injector, File stackRoot) {
     this.stackRoot = stackRoot;
+    this.actionMetadata = injector.getInstance(ActionMetadata.class);
   }
 
 
@@ -148,7 +154,7 @@ public class StackExtensionHelper {
     } else {
       mergedServiceInfo.setCommandScript(parentService.getCommandScript());
     }
-
+    
     String servicePackageFolder = childService.getServicePackageFolder();
     if (servicePackageFolder != null) {
       mergedServiceInfo.setServicePackageFolder(servicePackageFolder);
@@ -316,6 +322,13 @@ public class StackExtensionHelper {
           ServiceInfo newServiceInfo = mergeServices(existingService, service);
           serviceInfoMap.put(service.getName(), newServiceInfo);
         }
+        
+        // add action for service check
+        ServiceInfo serviceInfo = serviceInfoMap.get(service.getName());
+        if(serviceInfo.getCommandScript() != null) {
+          actionMetadata.addServiceCheckAction(serviceInfo.getName());
+        }
+        
       }
     }
     return new ArrayList<ServiceInfo>(serviceInfoMap.values());

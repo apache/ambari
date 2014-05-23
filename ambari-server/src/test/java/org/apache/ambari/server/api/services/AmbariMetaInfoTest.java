@@ -24,6 +24,9 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.lang.reflect.Method;
@@ -41,7 +44,13 @@ import junit.framework.Assert;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StackAccessException;
+import org.apache.ambari.server.api.rest.BootStrapResource;
 import org.apache.ambari.server.api.util.StackExtensionHelper;
+import org.apache.ambari.server.bootstrap.BootStrapImpl;
+import org.apache.ambari.server.bootstrap.SshHostInfo;
+import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.metadata.ActionMetadata;
+import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.state.AutoDeployInfo;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.CustomCommandDefinition;
@@ -60,6 +69,11 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.Singleton;
 
 public class AmbariMetaInfoTest {
 
@@ -86,6 +100,8 @@ public class AmbariMetaInfoTest {
   private final static Logger LOG =
       LoggerFactory.getLogger(AmbariMetaInfoTest.class);
   private static final String FILE_NAME = "hbase-site.xml";
+  
+  private Injector injector;
 
 
   @Rule
@@ -93,13 +109,22 @@ public class AmbariMetaInfoTest {
 
   @Before
   public void before() throws Exception {
+    injector = Guice.createInjector(new MockModule());
     File stackRoot = new File("src/test/resources/stacks");
     LOG.info("Stacks file " + stackRoot.getAbsolutePath());
     metaInfo = new AmbariMetaInfo(stackRoot, new File("target/version"));
+    metaInfo.injector = injector;
     try {
       metaInfo.init();
     } catch(Exception e) {
       LOG.info("Error in initializing ", e);
+    }
+  }
+  
+  public class MockModule extends AbstractModule {
+    @Override
+    protected void configure() {
+      bind(ActionMetadata.class);
     }
   }
 
@@ -313,6 +338,7 @@ public class AmbariMetaInfoTest {
     File stackRootTmp = new File(buildDir + "/ambari-metaInfo"); stackRootTmp.mkdir();
     FileUtils.copyDirectory(stackRoot, stackRootTmp);
     AmbariMetaInfo ambariMetaInfo = new AmbariMetaInfo(stackRootTmp, new File("target/version"));
+    ambariMetaInfo.injector = this.injector;
     File f1, f2, f3;
     f1 = new File(stackRootTmp.getAbsolutePath() + "/001.svn"); f1.createNewFile();
     f2 = new File(stackRootTmp.getAbsolutePath() + "/abcd.svn/001.svn"); f2.mkdirs(); f2.createNewFile();
@@ -562,7 +588,7 @@ public class AmbariMetaInfoTest {
     Method method = StackExtensionHelper.class.getDeclaredMethod
       ("getParentStacksInOrder", Collection.class);
     method.setAccessible(true);
-    StackExtensionHelper helper = new StackExtensionHelper(metaInfo.getStackRoot());
+    StackExtensionHelper helper = new StackExtensionHelper(injector, metaInfo.getStackRoot());
     helper.fillInfo();
     Map<String, List<StackInfo>> stacks =
       (Map<String, List<StackInfo>>) method.invoke(helper, allStacks);
@@ -587,7 +613,7 @@ public class AmbariMetaInfoTest {
 
   @Test
   public void testGetApplicableServices() throws Exception {
-    StackExtensionHelper helper = new StackExtensionHelper(
+    StackExtensionHelper helper = new StackExtensionHelper(injector, 
       metaInfo.getStackRoot());
     helper.fillInfo();
     List<ServiceInfo> allServices = helper.getAllApplicableServices(metaInfo
@@ -637,6 +663,7 @@ public class AmbariMetaInfoTest {
     File stackRoot = new File("src/test/resources/bad-stacks");
     LOG.info("Stacks file " + stackRoot.getAbsolutePath());
     AmbariMetaInfo mi = new AmbariMetaInfo(stackRoot, new File("target/version"));
+    mi.injector = this.injector;
     try {
       mi.init();
     } catch(Exception e) {
