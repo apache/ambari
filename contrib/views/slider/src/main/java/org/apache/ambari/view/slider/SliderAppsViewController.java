@@ -57,4 +57,15 @@ public interface SliderAppsViewController {
 	 */
 	public List<SliderApp> getSliderApps(Set<String> properties)
 	    throws YarnException, IOException;
+
+	/**
+	 * Attempts to delete a Slider app. An unsuccessful attempt will result in
+	 * exception.
+	 * 
+	 * @param applicationId
+	 * @throws YarnException
+	 * @throws IOException
+	 */
+	public void deleteSliderApp(String applicationId) throws YarnException,
+	    IOException;
 }

@@ -20,7 +20,6 @@ package org.apache.ambari.view.slider;
 
 import java.io.IOException;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -53,8 +52,16 @@ public class SliderAppsResourceProvider implements ResourceProvider<SliderApp> {
 	@Override
 	public boolean deleteResource(String resourceId) throws SystemException,
 	    NoSuchResourceException, UnsupportedPropertyException {
-		// TODO Auto-generated method stub
-		return false;
+		try {
+			sliderController.deleteSliderApp(resourceId);
+			return true;
+		} catch (YarnException e) {
+			logger.warn("Unable to delete Slider app with id " + resourceId, e);
+			throw new SystemException(e.getMessage(), e);
+		} catch (IOException e) {
+			logger.warn("Unable to delete Slider app with id " + resourceId, e);
+			throw new SystemException(e.getMessage(), e);
+		}
 	}
 
 	@Override
@@ -62,7 +69,8 @@ public class SliderAppsResourceProvider implements ResourceProvider<SliderApp> {
 	    throws SystemException, NoSuchResourceException,
 	    UnsupportedPropertyException {
 		try {
-			SliderApp sliderApp = sliderController.getSliderApp(resourceId, properties);
+			SliderApp sliderApp = sliderController.getSliderApp(resourceId,
+			    properties);
 			if (sliderApp == null)
 				throw new NoSuchResourceException(resourceId);
 			return sliderApp;
@@ -81,7 +89,8 @@ public class SliderAppsResourceProvider implements ResourceProvider<SliderApp> {
 	    UnsupportedPropertyException {
 		Set<SliderApp> appSet = new HashSet<SliderApp>();
 		try {
-			List<SliderApp> sliderApps = sliderController.getSliderApps(request.getPropertyIds());
+			List<SliderApp> sliderApps = sliderController.getSliderApps(request
+			    .getPropertyIds());
 			for (SliderApp app : sliderApps)
 				appSet.add(app);
 		} catch (YarnException e) {

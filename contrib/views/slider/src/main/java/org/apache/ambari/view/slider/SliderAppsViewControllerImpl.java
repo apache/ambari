@@ -19,8 +19,10 @@
 package org.apache.ambari.view.slider;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -36,16 +38,21 @@ import org.apache.ambari.view.slider.clients.AmbariServiceInfo;
 import org.apache.ambari.view.slider.rest.client.SliderAppMasterClient;
 import org.apache.ambari.view.slider.rest.client.SliderAppMasterClient.SliderAppMasterData;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.hdfs.HdfsConfiguration;
 import org.apache.hadoop.yarn.api.records.ApplicationId;
 import org.apache.hadoop.yarn.api.records.ApplicationReport;
+import org.apache.hadoop.yarn.api.records.YarnApplicationState;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
+import org.apache.hadoop.yarn.exceptions.ApplicationNotFoundException;
 import org.apache.hadoop.yarn.exceptions.YarnException;
 import org.apache.log4j.Logger;
 import org.apache.slider.api.ClusterDescription;
 import org.apache.slider.client.SliderClient;
 import org.apache.slider.common.SliderKeys;
+import org.apache.slider.common.tools.SliderFileSystem;
 import org.apache.slider.core.exceptions.UnknownApplicationInstanceException;
+import org.apache.slider.core.main.LauncherExitCodes;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -160,7 +167,7 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
 				try {
 					SliderClient sliderClient = getSliderClient();
 					ApplicationReport yarnApp = sliderClient.getApplicationReport(appId);
-					return populateSliderApp(yarnApp, properties, sliderClient);
+					return createSliderAppObject(yarnApp, properties, sliderClient);
 				} finally {
 					Thread.currentThread().setContextClassLoader(currentClassLoader);
 				}
@@ -169,16 +176,37 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
 		return null;
 	}
 
-	private SliderApp populateSliderApp(ApplicationReport yarnApp,
+	private SliderApp createSliderAppObject(ApplicationReport yarnApp,
 	    Set<String> properties, SliderClient sliderClient) {
 		if (yarnApp == null)
 			return null;
+
 		SliderApp app = new SliderApp();
+		app.setState(yarnApp.getYarnApplicationState().name());
+
+		// Valid Slider App?
+		// We want all Slider apps except the ones which properly finished.
+		if (YarnApplicationState.FINISHED.equals(yarnApp.getYarnApplicationState())) {
+			try {
+				if (sliderClient.actionExists(yarnApp.getName(), false) == LauncherExitCodes.EXIT_SUCCESS)
+					app.setState("FROZEN");
+			} catch (UnknownApplicationInstanceException e) {
+				return null; // Application not in HDFS - means it is not frozen
+			} catch (YarnException e) {
+				logger.warn(
+				    "Unable to determine frozen state for " + yarnApp.getName(), e);
+				return null;
+			} catch (IOException e) {
+				logger.warn(
+				    "Unable to determine frozen state for " + yarnApp.getName(), e);
+				return null;
+			}
+		}
+
 		app.setId(Long.toString(yarnApp.getApplicationId().getClusterTimestamp())
 		    + "_" + Integer.toString(yarnApp.getApplicationId().getId()));
 		app.setName(yarnApp.getName());
 		app.setUser(yarnApp.getUser());
-		app.setState(yarnApp.getYarnApplicationState().name());
 		app.setDiagnostics(yarnApp.getDiagnostics());
 		app.setYarnId(yarnApp.getApplicationId().toString());
 		app.setType(yarnApp.getApplicationType());
@@ -306,6 +334,18 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
 				public String getUsername() throws IOException {
 					return null;
 				}
+
+				@Override
+				protected void serviceInit(Configuration conf) throws Exception {
+					super.serviceInit(conf);
+					// Override the default FS client to set the super user.
+					FileSystem fs = FileSystem.get(FileSystem.getDefaultUri(getConfig()),
+					    getConfig(), "hdfs");
+					SliderFileSystem fileSystem = new SliderFileSystem(fs, getConfig());
+					Field fsField = SliderClient.class.getDeclaredField("sliderFileSystem");
+					fsField.setAccessible(true);
+					fsField.set(this, fileSystem);
+				}
 			};
 			try {
 				sliderClientConfiguration = client.bindArgs(sliderClientConfiguration,
@@ -383,13 +423,37 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
 		Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
 		try {
 			SliderClient sliderClient = getSliderClient();
-			List<ApplicationReport> yarnApps = sliderClient.getApplications();
+			List<ApplicationReport> yarnApps = sliderClient.listSliderInstances(null);
 			for (ApplicationReport yarnApp : yarnApps) {
-				sliderApps.add(populateSliderApp(yarnApp, properties, sliderClient));
+				SliderApp sliderAppObject = createSliderAppObject(yarnApp, properties,
+				    sliderClient);
+				if (sliderAppObject != null)
+					sliderApps.add(sliderAppObject);
 			}
 		} finally {
 			Thread.currentThread().setContextClassLoader(currentClassLoader);
 		}
 		return sliderApps;
+	}
+
+	@Override
+	public void deleteSliderApp(String applicationId) throws YarnException,
+	    IOException {
+		ClassLoader currentClassLoader = Thread.currentThread()
+		    .getContextClassLoader();
+		Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
+		try {
+			Set<String> properties = new HashSet<String>();
+			properties.add("id");
+			properties.add("name");
+			SliderApp sliderApp = getSliderApp(applicationId, properties);
+			if (sliderApp == null)
+				throw new ApplicationNotFoundException(applicationId);
+
+			SliderClient sliderClient = getSliderClient();
+			sliderClient.actionDestroy(sliderApp.getName());
+		} finally {
+			Thread.currentThread().setContextClassLoader(currentClassLoader);
+		}
 	}
 }
