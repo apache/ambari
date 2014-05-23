@@ -275,6 +275,8 @@ public class ViewRegistry {
    *
    * @param configuration  Ambari configuration
    *
+   * @return the set of view instance definitions read from the archives
+   *
    * @throws SystemException if the view archives can not be successfully read
    */
   public Set<ViewInstanceEntity> readViewArchives(Configuration configuration)
@@ -283,7 +285,7 @@ public class ViewRegistry {
     try {
       File viewDir = configuration.getViewsDir();
 
-      Set<ViewInstanceEntity> instanceDefinitions = new HashSet<ViewInstanceEntity>();
+      Set<ViewInstanceEntity> allInstanceDefinitions = new HashSet<ViewInstanceEntity>();
 
       String extractedArchivesPath = viewDir.getAbsolutePath() +
           File.separator + EXTRACTED_ARCHIVES_DIR;
@@ -303,28 +305,34 @@ public class ViewRegistry {
                 // extract the archive and get the class loader
                 ClassLoader cl = extractViewArchive(archiveFile, helper.getFile(archivePath));
 
-                ViewEntity viewDefinition = installView(viewConfig, configuration, cl, archivePath);
+                ViewEntity viewDefinition = createViewDefinition(viewConfig, configuration, cl, archivePath);
+
+                Set<ViewInstanceEntity> instanceDefinitions = new HashSet<ViewInstanceEntity>();
 
                 for (InstanceConfig instanceConfig : viewConfig.getInstances()) {
-                  ViewInstanceEntity viewInstanceDefinition =
-                      new ViewInstanceEntity(viewDefinition, instanceConfig);
-
-                  for (PropertyConfig propertyConfig : instanceConfig.getProperties()) {
-                    viewInstanceDefinition.putProperty(propertyConfig.getKey(), propertyConfig.getValue());
-                  }
-
-                  installViewInstance(viewDefinition, viewInstanceDefinition);
-                  instanceDefinitions.add(viewInstanceDefinition);
+                  instanceDefinitions.add(createViewInstanceDefinition(viewDefinition, instanceConfig));
                 }
+                // ensure that the view entity matches the db
+                instanceDefinitions.addAll(persistView(viewDefinition));
+
+                // update the registry with the view
+                addDefinition(viewDefinition);
+
+                // update the registry with the view instances
+                for (ViewInstanceEntity instanceEntity : instanceDefinitions) {
+                  addInstanceDefinition(viewDefinition, instanceEntity);
+                }
+
+                allInstanceDefinitions.addAll(instanceDefinitions);
               } catch (Exception e) {
                 LOG.error("Caught exception loading view from " + archiveFile.getAbsolutePath(), e);
               }
             }
           }
-          instanceDefinitions.addAll(persistViews());
+          removeUndeployedViews();
         }
       }
-      return instanceDefinitions;
+      return allInstanceDefinitions;
     } catch (Exception e) {
       throw new SystemException("Caught exception reading view archives.", e);
     }
@@ -350,11 +358,20 @@ public class ViewRegistry {
         }
         instanceDAO.create(instanceEntity);
         try {
-          installViewInstance(viewEntity, instanceEntity);
+          // bind the view instance to a view
+          bindViewInstance(viewEntity, instanceEntity);
+          // update the registry
+          addInstanceDefinition(viewEntity, instanceEntity);
         } catch (ClassNotFoundException e) {
           LOG.error("Caught exception installing view instance.", e);
         }
       }
+    } else {
+      String message = "Attempt to install an instance for an unknown view " +
+          instanceEntity.getViewName() + ".";
+
+      LOG.error(message);
+      throw new IllegalArgumentException(message);
     }
   }
 
@@ -478,9 +495,9 @@ public class ViewRegistry {
     return viewDefinitions.get(viewName);
   }
 
-  // install a new view definition
-  private ViewEntity installView(ViewConfig viewConfig, Configuration ambariConfig,
-                                            ClassLoader cl, String archivePath)
+  // create a new view definition
+  private ViewEntity createViewDefinition(ViewConfig viewConfig, Configuration ambariConfig,
+                                          ClassLoader cl, String archivePath)
       throws ClassNotFoundException, IntrospectionException {
 
     ViewEntity viewDefinition = new ViewEntity(viewConfig, ambariConfig, cl, archivePath);
@@ -545,12 +562,25 @@ public class ViewRegistry {
       }
       viewDefinition.setResources(resources);
     }
-    addDefinition(viewDefinition);
     return viewDefinition;
   }
 
-  // install a view instance definition
-  private void installViewInstance(ViewEntity viewDefinition,
+  // create a new view instance definition
+  private ViewInstanceEntity createViewInstanceDefinition(ViewEntity viewDefinition, InstanceConfig instanceConfig)
+      throws ClassNotFoundException {
+    ViewInstanceEntity viewInstanceDefinition =
+        new ViewInstanceEntity(viewDefinition, instanceConfig);
+
+    for (PropertyConfig propertyConfig : instanceConfig.getProperties()) {
+      viewInstanceDefinition.putProperty(propertyConfig.getKey(), propertyConfig.getValue());
+    }
+
+    bindViewInstance(viewDefinition, viewInstanceDefinition);
+    return viewInstanceDefinition;
+  }
+
+  // bind a view instance definition to the given view definition
+  private void bindViewInstance(ViewEntity viewDefinition,
                                    ViewInstanceEntity viewInstanceDefinition)
       throws ClassNotFoundException {
     viewInstanceDefinition.setViewEntity(viewDefinition);
@@ -586,7 +616,6 @@ public class ViewRegistry {
     setPersistenceEntities(viewInstanceDefinition);
 
     viewDefinition.addInstanceDefinition(viewInstanceDefinition);
-    addInstanceDefinition(viewDefinition, viewInstanceDefinition);
   }
 
   // Set the entities defined in the view persistence element for the given view instance
@@ -646,46 +675,50 @@ public class ViewRegistry {
     return viewInstanceInjector.getInstance(clazz);
   }
 
-  // make sure that the views in the ambari db match the registry
-  private Set<ViewInstanceEntity> persistViews() throws ClassNotFoundException {
-
-    Set<ViewInstanceEntity> instanceDefinitions = new HashSet<ViewInstanceEntity>();
-    Set<String>             persistedViews      = new HashSet<String>();
-
+  // remove undeployed views from the ambari db
+  private void removeUndeployedViews() {
     for (ViewEntity viewEntity : viewDAO.findAll()) {
       String name = viewEntity.getName();
       if (!ViewRegistry.getInstance().viewDefinitions.containsKey(name)) {
-        viewDAO.remove(viewEntity);
-      } else {
-        persistedViews.add(name);
-
-        ViewEntity viewDefinition = ViewRegistry.getInstance().viewDefinitions.get(name);
-
-        for (ViewInstanceEntity viewInstanceEntity : viewEntity.getInstances()){
-          ViewInstanceEntity instanceEntity = viewDefinition.getInstanceDefinition(viewInstanceEntity.getName());
-          if (instanceEntity == null) {
-            viewInstanceEntity.setViewEntity(viewDefinition);
-            installViewInstance(viewDefinition, viewInstanceEntity);
-            instanceDefinitions.add(viewInstanceEntity);
-          } else {
-            // apply overrides to the in-memory view instance entities
-            instanceEntity.setData(viewInstanceEntity.getData());
-            instanceEntity.setProperties(viewInstanceEntity.getProperties());
-            instanceEntity.setEntities(viewInstanceEntity.getEntities());
-          }
+        try {
+          viewDAO.remove(viewEntity);
+        } catch (Exception e) {
+          LOG.error("Caught exception undeploying view " + viewEntity.getName(), e);
         }
       }
     }
+  }
 
-    // persist new views
-    for (ViewEntity definition : viewDefinitions.values() ) {
-      String viewName = definition.getName();
+  // persist the given view
+  private Set<ViewInstanceEntity> persistView(ViewEntity viewDefinition)
+      throws ClassNotFoundException {
 
-      if (!persistedViews.contains(viewName)) {
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("Creating View " + viewName + ".");
+    Set<ViewInstanceEntity> instanceDefinitions = new HashSet<ViewInstanceEntity>();
+
+    String viewName = viewDefinition.getName();
+
+    ViewEntity viewEntity = viewDAO.findByName(viewName);
+
+    if (viewEntity == null) {
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Creating View " + viewName + ".");
+      }
+      viewDAO.create(viewDefinition);
+    } else {
+      for (ViewInstanceEntity viewInstanceEntity : viewEntity.getInstances()){
+        ViewInstanceEntity instanceDefinition =
+            viewDefinition.getInstanceDefinition(viewInstanceEntity.getName());
+
+        if (instanceDefinition == null) {
+          viewInstanceEntity.setViewEntity(viewDefinition);
+          bindViewInstance(viewDefinition, viewInstanceEntity);
+          instanceDefinitions.add(viewInstanceEntity);
+        } else {
+          // apply overrides to the in-memory view instance entities
+          instanceDefinition.setData(viewInstanceEntity.getData());
+          instanceDefinition.setProperties(viewInstanceEntity.getProperties());
+          instanceDefinition.setEntities(viewInstanceEntity.getEntities());
         }
-        viewDAO.create(definition);
       }
     }
     return instanceDefinitions;

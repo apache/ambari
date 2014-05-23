@@ -61,6 +61,7 @@ import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 
@@ -156,8 +157,10 @@ public class ViewRegistryTest {
 
     Capture<ViewEntity> captureViewEntity = new Capture<ViewEntity>();
 
-    expect(vDAO.findAll()).andReturn(Collections.<ViewEntity>emptyList());
+    expect(vDAO.findByName("MY_VIEW{1.0.0}")).andReturn(null);
     vDAO.create(capture(captureViewEntity));
+
+    expect(vDAO.findAll()).andReturn(Collections.<ViewEntity>emptyList());
 
     // replay mocks
     replay(configuration, viewDir, extractedArchiveDir, viewArchive, archiveDir, entryFile, classesDir,
@@ -170,6 +173,115 @@ public class ViewRegistryTest {
 
     Assert.assertEquals(2, instanceEntities.size());
     Assert.assertEquals("MY_VIEW", captureViewEntity.getValue().getCommonName());
+
+    // verify mocks
+    verify(configuration, viewDir, extractedArchiveDir, viewArchive, archiveDir, entryFile, classesDir,
+        libDir, fileEntry, viewJarFile, enumeration, jarEntry, is, fos, vDAO);
+  }
+
+  @Test
+  public void testReadViewArchives_exception() throws Exception {
+    Configuration configuration = createNiceMock(Configuration.class);
+    File viewDir = createNiceMock(File.class);
+    File extractedArchiveDir = createNiceMock(File.class);
+    File viewArchive = createNiceMock(File.class);
+    File archiveDir = createNiceMock(File.class);
+    File entryFile  = createNiceMock(File.class);
+    File classesDir = createNiceMock(File.class);
+    File libDir = createNiceMock(File.class);
+    File fileEntry = createNiceMock(File.class);
+
+    JarFile viewJarFile = createNiceMock(JarFile.class);
+    Enumeration<JarEntry> enumeration = createMock(Enumeration.class);
+    JarEntry jarEntry = createNiceMock(JarEntry.class);
+    InputStream is = createMock(InputStream.class);
+    FileOutputStream fos = createMock(FileOutputStream.class);
+
+    ViewDAO vDAO = createMock(ViewDAO.class);
+
+    ViewRegistry.setViewDAO(vDAO);
+
+    ViewEntity viewDefinition = ViewEntityTest.getViewEntity();
+
+    Map<File, ViewConfig> viewConfigs =
+        Collections.singletonMap(viewArchive, viewDefinition.getConfiguration());
+
+    Map<String, File> files = new HashMap<String, File>();
+
+    files.put("/var/lib/ambari-server/resources/views/work", extractedArchiveDir);
+    files.put("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}", archiveDir);
+    files.put("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}/view.xml", entryFile);
+    files.put("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}/WEB-INF/classes", classesDir);
+    files.put("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}/WEB-INF/lib", libDir);
+
+    Map<File, FileOutputStream> outputStreams = new HashMap<File, FileOutputStream>();
+    outputStreams.put(entryFile, fos);
+
+    Map<File, JarFile> jarFiles = new HashMap<File, JarFile>();
+    jarFiles.put(viewArchive, viewJarFile);
+
+    // set expectations
+    expect(configuration.getViewsDir()).andReturn(viewDir);
+    expect(viewDir.getAbsolutePath()).andReturn("/var/lib/ambari-server/resources/views");
+
+    expect(viewDir.listFiles()).andReturn(new File[]{viewArchive});
+
+    expect(viewArchive.isDirectory()).andReturn(false);
+
+    expect(archiveDir.exists()).andReturn(false);
+    expect(archiveDir.getAbsolutePath()).andReturn(
+        "/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}").anyTimes();
+    expect(archiveDir.mkdir()).andReturn(true);
+    expect(archiveDir.toURI()).andReturn(new URI("file:./"));
+
+    expect(viewJarFile.entries()).andReturn(enumeration);
+    expect(viewJarFile.getInputStream(jarEntry)).andReturn(is);
+
+    expect(enumeration.hasMoreElements()).andReturn(true);
+    expect(enumeration.hasMoreElements()).andReturn(false);
+    expect(enumeration.nextElement()).andReturn(jarEntry);
+
+    expect(jarEntry.getName()).andReturn("view.xml");
+    expect(jarEntry.isDirectory()).andReturn(false);
+
+    expect(is.available()).andReturn(1);
+    expect(is.available()).andReturn(0);
+
+    expect(is.read()).andReturn(10);
+    fos.write(10);
+
+    fos.close();
+    is.close();
+
+    expect(extractedArchiveDir.exists()).andReturn(false);
+    expect(extractedArchiveDir.mkdir()).andReturn(true);
+
+    expect(classesDir.exists()).andReturn(true);
+    expect(classesDir.toURI()).andReturn(new URI("file:./"));
+
+    expect(libDir.exists()).andReturn(true);
+
+    expect(libDir.listFiles()).andReturn(new File[]{fileEntry});
+    expect(fileEntry.toURI()).andReturn(new URI("file:./"));
+
+    Capture<ViewEntity> captureViewEntity = new Capture<ViewEntity>();
+
+    expect(vDAO.findByName("MY_VIEW{1.0.0}")).andReturn(null);
+    vDAO.create(capture(captureViewEntity));
+    expectLastCall().andThrow(new IllegalArgumentException("Expected exception."));
+
+    expect(vDAO.findAll()).andReturn(Collections.<ViewEntity>emptyList());
+
+    // replay mocks
+    replay(configuration, viewDir, extractedArchiveDir, viewArchive, archiveDir, entryFile, classesDir,
+        libDir, fileEntry, viewJarFile, enumeration, jarEntry, is, fos, vDAO);
+
+    ViewRegistry registry = ViewRegistry.getInstance();
+    registry.setHelper(new TestViewRegistryHelper(viewConfigs, files, outputStreams, jarFiles));
+
+    Set<ViewInstanceEntity> instanceEntities = registry.readViewArchives(configuration);
+
+    Assert.assertEquals(0, instanceEntities.size());
 
     // verify mocks
     verify(configuration, viewDir, extractedArchiveDir, viewArchive, archiveDir, entryFile, classesDir,
