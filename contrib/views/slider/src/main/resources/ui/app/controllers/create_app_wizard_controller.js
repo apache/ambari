@@ -16,6 +16,38 @@
  * limitations under the License.
  */
 
-App.CreateAppWizardStep1Controller = Ember.ObjectController.extend({
-  types: ['HBase', 'Pig']
+App.CreateAppWizardController = Ember.ObjectController.extend({
+
+  newApp: null,
+
+  currentStep: 1,
+
+  TOTAL_STEPS_NUMBER: 4,
+
+  loadStep: function () {
+    this.set('currentStep', 1);
+    this.gotoStep(this.get('currentStep'));
+  },
+
+  gotoStep: function (step, fromNextButon) {
+    if (step > this.get('TOTAL_STEPS_NUMBER') || step < 1 || (!fromNextButon && step > this.get('currentStep'))) {
+      return false;
+    }
+    this.set('currentStep', step);
+    this.transitionToRoute('createAppWizard.step' + step);
+  },
+
+  nextStep: function () {
+    this.gotoStep(this.get('currentStep') + 1, true);
+  },
+
+  prevStep: function () {
+    this.gotoStep(this.get('currentStep') - 1);
+  },
+
+  actions: {
+    gotoStep: function (step) {
+      this.gotoStep(step);
+    }
+  }
 });

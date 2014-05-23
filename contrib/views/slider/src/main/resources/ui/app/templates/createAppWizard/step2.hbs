@@ -15,40 +15,41 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-
-<p>
-  HBase	applica;on	requires	resources	to	be	allocated	on	the	cluster.
-  Provide	resource	allocation	requests	for	each	component	of	the	application	below.
-</p>
-<table class="components-table">
-  <thead>
-  <tr>
-    <th></th>
-    <th>
-      Number of Instances
-    </th>
-    <th>
-      YARN Memory (MB)
-    </th>
-    <th>
-      YARN CPU Cores
-    </th>
-  </tr>
-  </thead>
-  <tbody>
-  <tr>
-    <td>HBASE_MASTER</td>
-    <td>{{input class="step2-input"}}</td>
-    <td>{{input class="step2-input"}}</td>
-    <td>{{input class="step2-input"}}</td>
-  </tr>
-  <tr>
-    <td>HBASE_REGIONSERVER</td>
-    <td>{{input class="step2-input"}}</td>
-    <td>{{input class="step2-input"}}</td>
-    <td>{{input class="step2-input"}}</td>
-  </tr>
-  </tbody>
-</table>
-<button class="btn btn-success pull-right next-btn" {{action nextStep}}>Next</button>
-<button class="btn pull-right" {{action prevStep}}>Back</button>
+<div id="step2">
+  <p>
+    {{t wizard.step2.header}}
+  </p>
+  <div class="table-container">
+    <table class="components-table">
+      <thead>
+      <tr>
+        <th></th>
+        <th>
+          {{t wizard.step2.table.instances}}
+        </th>
+        <th>
+          {{t wizard.step2.table.memory}}
+        </th>
+        <th>
+          {{t wizard.step2.table.cpu}}
+        </th>
+      </tr>
+      </thead>
+      <tbody>
+      {{#each}}
+        <tr>
+          <td>{{name}}</td>
+          <td>{{input valueBinding="numInstances"}}</td>
+          <td>{{input valueBinding="yarnMemory"}}</td>
+          <td>{{input valueBinding="yarnCPU"}}</td>
+        </tr>
+      {{/each}}
+      </tbody>
+    </table>
+  </div>
+  {{#if controller.isError}}
+    <div class="alert alert-danger">{{t wizard.step2.error.numbers}}</div>
+  {{/if}}
+  <button class="btn btn-success pull-right next-btn" {{bind-attr disabled="controller.isSubmitDisabled"}} {{action submit target="controller"}}>{{t common.next}}</button>
+  <button class="btn pull-right" {{action prevStep}}>{{t common.back}}</button>
+</div>

@@ -70,12 +70,10 @@ App.CreateAppWizardStep1Controller = Ember.Controller.extend({
    * Initialize new App and set it to <code>newApp</code>
    */
   initializeNewApp: function () {
-    // find early initialized app
-    var newApp = this.store.all('sliderApp').findBy('status', App.SliderApp.Status.initialized);
-    // if there is no one, than create new one
-    if (!newApp) {
-      newApp = this.store.push('sliderApp', {status: App.SliderApp.Status.initialized, id: 'app' + (new Date).getTime()});
-    }
+    var newApp = Ember.Object.create({
+      name: '',
+      appType: null
+    });
     this.set('newApp', newApp);
   },
 
@@ -131,6 +129,7 @@ App.CreateAppWizardStep1Controller = Ember.Controller.extend({
     var newApp = this.get('newApp');
     newApp.set('appType', this.get('selectedType'));
     newApp.set('name', this.get('newAppName'));
+    this.set('appWizardController.newApp', newApp);
   },
 
   actions: {

@@ -253,6 +253,5 @@ App.SliderApp.FIXTURES = [
 App.SliderApp.Status = {
   running: "Running",
   frozen: "Frozen",
-  destroyed: "Destroyed",
-  initialized: "Initialized"
+  destroyed: "Destroyed"
 };

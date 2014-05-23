@@ -16,7 +16,7 @@
 * limitations under the License.
 }}
 <h4>{{t wizard.step1.header}}</h4>
-<div class="row-fluid">
+<div class="row">
   <div class="col-md-6">
     {{view view.availableTypesSelect contentBinding="controller.availableTypes" optionLabelPath="content.displayName" multiple="true" class="type-select"}}
   </div>
@@ -25,7 +25,7 @@
       <label>{{t common.name}}: {{input id="app-name-input" valueBinding="controller.newAppName"}}</label>
     </div>
     {{#if controller.isNameError}}
-      <div class="alert alert-error">
+      <div class="alert alert-danger">
         {{controller.nameErrorMessage}}
       </div>
     {{/if}}
