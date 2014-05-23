@@ -535,8 +535,17 @@ App.HostPopup = Em.Object.create({
         sourceRequestScheduleCommand: null,
         hosts: self.get('hosts'),
         services: self.get('servicesInfo'),
+        filterMap: {
+          pending: ["pending", "queued"],
+          in_progress: ["in_progress", "upgrading"],
+          failed: ["failed"],
+          completed: ["completed", "success"],
+          aborted: ["aborted"],
+          timedout: ["timedout"]
+        },
 
-        pagination: false,
+        pagination: true,
+        isPaginate: false,
         displayLength: "25",
         content: function() {
           return this.get('hosts') || [];
@@ -616,14 +625,27 @@ App.HostPopup = Em.Object.create({
         /**
          * Depending on hosts filter, set which hosts should be shown
          */
-        visibleHosts: function () {
-          this.set("isHostEmptyList", true);
-          if (this.get('hostCategory.value') && this.get('hosts')) {
-            var filter = this.get('hostCategory.value');
-            var hosts = this.get('hosts');
-            this.set("isHostEmptyList", this.setVisibility(filter, hosts));
+        filter: function() {
+          var _this = this,
+              filter = this.get('hostCategory.value'),
+              hosts = this.get('content');
+          if (!filter || !hosts.length) return;
+          if (filter === 'all') {
+            this.set('filteredContent', hosts);
+          } else {
+            this.set('filteredContent', hosts.filter(function(item) {
+              return _this.get('filterMap')[filter].contains(item.status);
+            }));
           }
-        }.observes('hostCategory', 'hosts', 'hosts.@each.status'),
+          this.set("isHostEmptyList", !this.get('pageContent.length'));
+        }.observes('content.length', 'hostCategory.value'),
+
+        /**
+         * Reset startIndex property back to 1 when filter type has been changed.
+         */
+        resetIndex: function() {
+          if (this.get('hostCategory.value')) this.set('startIndex', 1)
+        }.observes('hostCategory.value'),
 
         /**
          * Depending on tasks filter, set which tasks should be shown
@@ -650,21 +672,9 @@ App.HostPopup = Em.Object.create({
             isEmptyList = !(obj.length > 0);
           } else {
             obj.forEach(function(item){
-              if (filter == "pending") {
-                item.set('isVisible', ["pending", "queued"].contains(item.status));
-              } else if (filter == "in_progress") {
-                item.set('isVisible', ["in_progress", "upgrading"].contains(item.status));
-              } else if (filter == "failed") {
-                item.set('isVisible', (item.status === "failed"));
-              } else if (filter == "completed") {
-                item.set('isVisible', ["completed", "success"].contains(item.status));
-              } else if (filter == "aborted") {
-                item.set('isVisible', (item.status === "aborted"));
-              } else if (filter == "timedout") {
-                item.set('isVisible', (item.status === "timedout"));
-              }
+              item.set('isVisible', this.get('filterMap')[filter].contains(item.status));
               isEmptyList = (isEmptyList) ? !item.get('isVisible') : false;
-            })
+            }, this)
           }
           return isEmptyList;
         },
@@ -703,7 +713,7 @@ App.HostPopup = Em.Object.create({
           } else if (!this.get('isServiceListHidden')) {
             this.get('controller').setSelectCount(this.get("services"), this.get('categories'));
           }
-          this.set('pagination', !!isPaginate);
+          this.set('isPaginate', !!isPaginate);
         }.observes('tasks.@each.status', 'hosts.@each.status', 'isTaskListHidden', 'isHostListHidden', 'services.length', 'services.@each.status'),
 
         /**
