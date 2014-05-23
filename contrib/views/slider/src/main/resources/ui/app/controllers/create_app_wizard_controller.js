@@ -45,6 +45,11 @@ App.CreateAppWizardController = Ember.ObjectController.extend({
     this.gotoStep(this.get('currentStep') - 1);
   },
 
+  hidePopup: function () {
+    $('#createAppWizard').hide();
+    this.transitionToRoute('slider_apps');
+  },
+
   actions: {
     gotoStep: function (step) {
       this.gotoStep(step);

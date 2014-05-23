@@ -54,7 +54,8 @@ App.CreateAppWizardStep2Controller = Ember.ArrayController.extend({
     if (allTypeComponents && allTypeComponents.get('length')) {
       allTypeComponents.forEach(function (typeComponent) {
         content.push(Ember.Object.create({
-          name: typeComponent.get('displayName'),
+          displayName: typeComponent.get('displayName'),
+          name: typeComponent.get('name'),
           numInstances: typeComponent.get('defaultNumInstances').toString(),
           yarnMemory: typeComponent.get('defaultYARNMemory').toString(),
           yarnCPU: typeComponent.get('defaultYARNCPU').toString()

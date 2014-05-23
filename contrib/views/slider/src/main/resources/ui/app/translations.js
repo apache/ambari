@@ -35,7 +35,10 @@ Em.I18n.translations = {
     'summary': 'Summary',
     'configs': 'Configs',
     'metrics': 'Metrics',
-    'confirmation': 'Confirmation'
+    'confirmation': 'Confirmation',
+    'configuration': 'Configuration',
+    'finish': 'Finish',
+    'components': 'Components'
   },
 
   'popup.confirmation.commonHeader': 'Confirmation',
@@ -70,5 +73,7 @@ Em.I18n.translations = {
   'wizard.step3.name': 'Configuration',
   'wizard.step3.header': 'Provide	configuration	details	for	HBase	application',
   'wizard.step3.error': 'Only \"key\":\"value\" format allowed.',
-  'wizard.step4.name': 'Deploy'
+  'wizard.step4.name': 'Deploy',
+  'wizard.step4.appName': 'App Name',
+  'wizard.step4.appType': 'App Type'
 };
