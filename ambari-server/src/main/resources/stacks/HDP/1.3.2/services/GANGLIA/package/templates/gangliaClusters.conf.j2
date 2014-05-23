@@ -39,15 +39,6 @@
 ### ClusterName           GmondMasterHost   GmondPort ###
 #########################################################
 
-    HDPJournalNode      {{ganglia_server_host}}   8654
-    HDPFlumeServer      {{ganglia_server_host}}   8655
-    HDPHBaseRegionServer       	{{ganglia_server_host}}   8656
-    HDPNodeManager     	{{ganglia_server_host}}   8657
-    HDPTaskTracker     	{{ganglia_server_host}}   8658
-    HDPDataNode       	{{ganglia_server_host}}   8659
-    HDPSlaves       	{{ganglia_server_host}}   8660
-    HDPNameNode         {{ganglia_server_host}}   8661
-    HDPJobTracker     	{{ganglia_server_host}}  8662
-    HDPHBaseMaster      {{ganglia_server_host}}   8663
-    HDPResourceManager  {{ganglia_server_host}}   8664
-    HDPHistoryServer    {{ganglia_server_host}}   8666
+{% for x in ganglia_clusters %}
+    {{ x[0] }}       	  {{ganglia_server_host}}  {{ x[1] }}
+{% endfor %}

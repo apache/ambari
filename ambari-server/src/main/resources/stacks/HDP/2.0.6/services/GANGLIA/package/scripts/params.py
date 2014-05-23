@@ -85,6 +85,31 @@ has_journalnode = not len(jn_hosts) == 0
 has_nimbus_server = not len(nimbus_server_hosts) == 0
 has_supervisor_server = not len(supervisor_server_hosts) == 0
 
+ganglia_cluster_names = {
+  "jtnode_host" : [("HDPJournalNode", 8654)],
+  "flume_hosts" : [("HDPFlumeServer", 8655)],
+  "hbase_rs_hosts" : [("HDPHBaseRegionServer", 8656)],
+  "nm_hosts" : [("HDPNodeManager", 8657)],
+  "mapred_tt_hosts" : [("HDPTaskTracker", 8658)],
+  "slave_hosts" : [("HDPDataNode", 8659), ("HDPSlaves", 8660)],
+  "namenode_host" : [("HDPNameNode", 8661)],
+  "jtnode_host" : [("HDPJobTracker", 8662)],
+  "hbase_master_hosts" : [("HDPHBaseMaster", 8663)],
+  "rm_host" : [("HDPResourceManager", 8664)],
+  "hs_host" : [("HDPHistoryServer", 8666)],
+  "nimbus_hosts" : [("HDPNimbus", 8649)],
+  "supervisor_hosts" : [("HDPSupervisor", 8650)]
+}
+
+ganglia_clusters = []
+
+for key in ganglia_cluster_names:
+  property_name = format("/clusterHostInfo/{key}")
+  hosts = set(default(property_name, []))
+  if not len(hosts) == 0:
+    for x in ganglia_cluster_names[key]:
+      ganglia_clusters.append(x)
+
 if System.get_instance().os_family == "suse":
   rrd_py_path = '/srv/www/cgi-bin'
 else:
