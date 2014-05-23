@@ -55,9 +55,9 @@ App.CreateAppWizardStep2Controller = Ember.ArrayController.extend({
       allTypeComponents.forEach(function (typeComponent) {
         content.push(Ember.Object.create({
           name: typeComponent.get('displayName'),
-          numInstances: typeComponent.get('defaultNumInstances'),
-          yarnMemory: typeComponent.get('defaultYARNMemory'),
-          yarnCPU: typeComponent.get('defaultYARNCPU')
+          numInstances: typeComponent.get('defaultNumInstances').toString(),
+          yarnMemory: typeComponent.get('defaultYARNMemory').toString(),
+          yarnCPU: typeComponent.get('defaultYARNCPU').toString()
         }));
       });
       this.set('content', content);
@@ -84,7 +84,7 @@ App.CreateAppWizardStep2Controller = Ember.ArrayController.extend({
    * @return {Boolean}
    */
   isNotInteger: function (value) {
-    return !value || !(value % 1 == 0);
+    return !(value.trim().length && (value % 1 == 0));
   },
 
   /**

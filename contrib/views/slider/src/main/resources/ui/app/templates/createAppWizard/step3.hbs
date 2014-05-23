@@ -17,8 +17,13 @@
 }}
 
 <p>
-  Provide configuration details for HBase application
+  {{t wizard.step3.header}}
 </p>
-{{view Ember.TextArea id="configs-text-area"}}
-<button class="btn btn-success pull-right next-btn" {{action nextStep}}>Next</button>
-<button class="btn pull-right" {{action prevStep}}>Back</button>
+<div {{bind-attr class="controller.isError:has-error :form-group"}}>
+  {{view Ember.TextArea id="configs-text-area" valueBinding="controller.configs" classNames="form-control"}}
+  {{#if controller.isError}}
+    <div class="alert alert-danger">{{t wizard.step3.error}}</div>
+  {{/if}}
+</div>
+<button class="btn btn-success pull-right next-btn" {{action submit}}>{{t common.next}}</button>
+<button class="btn pull-right" {{action prevStep}}>{{t common.back}}</button>

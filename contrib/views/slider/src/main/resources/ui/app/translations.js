@@ -65,8 +65,10 @@ Em.I18n.translations = {
   'wizard.step2.header': 'HBase application requires resources to be allocated on the cluster. Provide resource allocation requests for each component of the application below.',
   'wizard.step2.table.instances': 'Number of Instances',
   'wizard.step2.table.memory': 'YARN Memory (MB)',
-  'wizard.step2.table.cpu': 'Number of Instances',
-    'wizard.step2.error.numbers': 'All fields should be filled. Only integer numbers allowed.',
+  'wizard.step2.table.cpu': 'YARN	CPU	Cores',
+  'wizard.step2.error.numbers': 'All fields should be filled. Only integer numbers allowed.',
   'wizard.step3.name': 'Configuration',
+  'wizard.step3.header': 'Provide	configuration	details	for	HBase	application',
+  'wizard.step3.error': 'Only \"key\":\"value\" format allowed.',
   'wizard.step4.name': 'Deploy'
 };
