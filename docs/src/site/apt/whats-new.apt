@@ -16,25 +16,11 @@
 
 What's New with Ambari?
 
- * The latest release Ambari 1.5.0 added the following features:
+ * The latest release Ambari 1.6.0 added the following features:
 
-   * Maintenance Mode
+   * Support for PostgreSQL DB (Ambari, Oozie, Hive Metastore)
 
-   * Rolling Restarts
-
-   * Bulk Host Operations
-
-   * Service and Component Restarts
-
-   * Decommission TaskTrackers, NodeManagers, RegionServers
-
-   * Add Services to Existing Cluster
-
-   * Customize ZooKeeper Configs
-
-   * Refresh Client Configs
-
-   * Default JDK 7
+   * {{{https://cwiki.apache.org/confluence/display/AMBARI/Blueprints}Blueprints}}
 
 Getting Ambari Source
 
@@ -49,7 +35,7 @@ JIRA
 
 User Guide
 
-  Take a look at {{{https://cwiki.apache.org/confluence/display/AMBARI/Installation+Guide+for+Ambari+1.5.0} how to install a Hadoop cluster using Ambari 1.5.0}}.
+  Take a look at {{{https://cwiki.apache.org/confluence/display/AMBARI/Installation+Guide+for+Ambari+1.6.0} how to install a Hadoop cluster using Ambari 1.6.0}}.
 
 Stay Tuned
 
