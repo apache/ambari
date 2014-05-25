@@ -124,7 +124,8 @@ def main():
   sys.path.append(ambari_server_folder + "/src/test/python")
   sys.path.append(ambari_server_folder + "/src/main/python")
   sys.path.append(ambari_server_folder + "/src/main/resources/scripts")
-
+  sys.path.append(ambari_server_folder + "/src/main/resources/custom_actions")
+  
   stacks_folder = pwd+'/stacks'
   #generate test variants(path, service, stack)
   test_variants = []
