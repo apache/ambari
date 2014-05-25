@@ -21,6 +21,8 @@ package org.apache.ambari.view.slider;
 import java.util.Map;
 
 public class SliderApp {
+	public static final String STATE_FROZEN = "FROZEN";
+
 	private String id;
 	private String yarnId;
 	private String name;

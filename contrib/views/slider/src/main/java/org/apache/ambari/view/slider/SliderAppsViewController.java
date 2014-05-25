@@ -68,4 +68,8 @@ public interface SliderAppsViewController {
 	 */
 	public void deleteSliderApp(String applicationId) throws YarnException,
 	    IOException;
+
+	public SliderAppType getSliderAppType(String appTypeId, Set<String> properties);
+
+	public List<SliderAppType> getSliderAppTypes(Set<String> properties);
 }

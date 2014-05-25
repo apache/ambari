@@ -18,6 +18,8 @@
 
 package org.apache.ambari.view.slider;
 
+import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -27,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.zip.ZipException;
 
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.slider.clients.AmbariClient;
@@ -37,6 +40,8 @@ import org.apache.ambari.view.slider.clients.AmbariService;
 import org.apache.ambari.view.slider.clients.AmbariServiceInfo;
 import org.apache.ambari.view.slider.rest.client.SliderAppMasterClient;
 import org.apache.ambari.view.slider.rest.client.SliderAppMasterClient.SliderAppMasterData;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.filefilter.RegexFileFilter;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.hdfs.HdfsConfiguration;
@@ -53,7 +58,15 @@ import org.apache.slider.common.SliderKeys;
 import org.apache.slider.common.tools.SliderFileSystem;
 import org.apache.slider.core.exceptions.UnknownApplicationInstanceException;
 import org.apache.slider.core.main.LauncherExitCodes;
+import org.apache.slider.providers.agent.application.metadata.Component;
+import org.apache.slider.providers.agent.application.metadata.Metainfo;
+import org.apache.slider.providers.agent.application.metadata.MetainfoParser;
+import org.apache.slider.providers.agent.application.metadata.Service;
+import org.apache.tools.zip.ZipFile;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -66,6 +79,13 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
 	private ViewContext viewContext;
 	@Inject
 	private AmbariClient ambariClient;
+	private List<SliderAppType> appTypes;
+
+	private String getAppsFolderPath() {
+		return viewContext
+		    .getAmbariProperty(org.apache.ambari.server.configuration.Configuration.RESOURCES_DIR_KEY)
+		    + "/apps";
+	}
 
 	@Override
 	public ViewStatus getViewStatus() {
@@ -189,7 +209,7 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
 		if (YarnApplicationState.FINISHED.equals(yarnApp.getYarnApplicationState())) {
 			try {
 				if (sliderClient.actionExists(yarnApp.getName(), false) == LauncherExitCodes.EXIT_SUCCESS)
-					app.setState("FROZEN");
+					app.setState(SliderApp.STATE_FROZEN);
 			} catch (UnknownApplicationInstanceException e) {
 				return null; // Application not in HDFS - means it is not frozen
 			} catch (YarnException e) {
@@ -340,9 +360,10 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
 					super.serviceInit(conf);
 					// Override the default FS client to set the super user.
 					FileSystem fs = FileSystem.get(FileSystem.getDefaultUri(getConfig()),
-					    getConfig(), "hdfs");
+					    getConfig(), "yarn");
 					SliderFileSystem fileSystem = new SliderFileSystem(fs, getConfig());
-					Field fsField = SliderClient.class.getDeclaredField("sliderFileSystem");
+					Field fsField = SliderClient.class
+					    .getDeclaredField("sliderFileSystem");
 					fsField.setAccessible(true);
 					fsField.set(this, fileSystem);
 				}
@@ -455,5 +476,109 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
 		} finally {
 			Thread.currentThread().setContextClassLoader(currentClassLoader);
 		}
+	}
+
+	@Override
+	public SliderAppType getSliderAppType(String appTypeId, Set<String> properties) {
+		List<SliderAppType> appTypes = getSliderAppTypes(properties);
+		if (appTypeId != null && appTypes != null) {
+			for (SliderAppType appType : appTypes)
+				if (appTypeId != null && appTypeId.equals(appType.getId()))
+					return appType;
+		}
+		return null;
+	}
+
+	@Override
+	public List<SliderAppType> getSliderAppTypes(Set<String> properties) {
+		if (appTypes == null)
+			appTypes = loadAppTypes();
+		return appTypes;
+	}
+
+	private List<SliderAppType> loadAppTypes() {
+		List<SliderAppType> appTypes = null;
+		String appsFolderPath = getAppsFolderPath();
+		File appsFolder = new File(appsFolderPath);
+		if (appsFolder.exists()) {
+			File[] appZips = appsFolder
+			    .listFiles((FilenameFilter) new RegexFileFilter("^.*\\.zip$"));
+			if (appZips != null) {
+				appTypes = new ArrayList<SliderAppType>();
+				for (File appZip : appZips) {
+					try {
+						ZipFile zipFile = new ZipFile(appZip);
+						Metainfo metainfo = new MetainfoParser().parse(zipFile
+						    .getInputStream(zipFile.getEntry("metainfo.xml")));
+						// Create app type object
+						if (metainfo.getServices() != null
+						    && metainfo.getServices().size() > 0) {
+							Service service = metainfo.getServices().get(0);
+							String appConfigJsonString = IOUtils.toString(
+							    zipFile.getInputStream(zipFile.getEntry("appConfig.json")),
+							    "UTF-8");
+							String resourcesJsonString = IOUtils.toString(
+							    zipFile.getInputStream(zipFile.getEntry("resources.json")),
+							    "UTF-8");
+							JsonElement appConfigJson = new JsonParser()
+							    .parse(appConfigJsonString);
+							JsonElement resourcesJson = new JsonParser()
+							    .parse(resourcesJsonString);
+							SliderAppType appType = new SliderAppType();
+							appType.setId(service.getName());
+							appType.setTypeName(service.getName());
+							appType.setTypeDescription(service.getComment());
+							appType.setTypeVersion(service.getVersion());
+							appType.setTypePackageFileName(appZip.getName());
+							// Configs
+							Map<String, String> configsMap = new HashMap<String, String>();
+							JsonObject appTypeGlobalJson = appConfigJson.getAsJsonObject()
+							    .get("global").getAsJsonObject();
+							for (Entry<String, JsonElement> e : appTypeGlobalJson.entrySet())
+								configsMap.put(e.getKey(), e.getValue().getAsString());
+							appType.setTypeConfigs(configsMap);
+							// Components
+							ArrayList<SliderAppTypeComponent> appTypeComponentList = new ArrayList<SliderAppTypeComponent>();
+							for (Component component : service.getComponents()) {
+								SliderAppTypeComponent appTypeComponent = new SliderAppTypeComponent();
+								appTypeComponent.setDisplayName(component.getName());
+								appTypeComponent.setId(component.getName());
+								appTypeComponent.setName(component.getName());
+								appTypeComponent.setYarnMemory(1024);
+								appTypeComponent.setYarnCpuCores(1);
+								// appTypeComponent.setPriority(component.);
+								if (component.getMinInstanceCount() != null)
+									appTypeComponent.setInstanceCount(Integer.parseInt(component
+									    .getMinInstanceCount()));
+								if (component.getMaxInstanceCount() != null)
+									appTypeComponent.setMaxInstanceCount(Integer
+									    .parseInt(component.getMaxInstanceCount()));
+								if (resourcesJson != null) {
+									JsonElement componentJson = resourcesJson.getAsJsonObject()
+									    .get("components").getAsJsonObject()
+									    .get(component.getName());
+									if (componentJson != null
+									    && componentJson.getAsJsonObject().has(
+									        "yarn.role.priority")) {
+										appTypeComponent.setPriority(Integer.parseInt(componentJson
+										    .getAsJsonObject().get("yarn.role.priority")
+										    .getAsString()));
+									}
+								}
+								appTypeComponent.setCategory(component.getCategory());
+								appTypeComponentList.add(appTypeComponent);
+							}
+							appType.setTypeComponents(appTypeComponentList);
+							appTypes.add(appType);
+						}
+					} catch (ZipException e) {
+						logger.warn("Unable to parse app " + appZip.getAbsolutePath(), e);
+					} catch (IOException e) {
+						logger.warn("Unable to parse app " + appZip.getAbsolutePath(), e);
+					}
+				}
+			}
+		}
+		return appTypes;
 	}
 }
