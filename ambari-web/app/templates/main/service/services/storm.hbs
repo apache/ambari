@@ -25,7 +25,7 @@
   </td>
   <td>
     <span>
-      {{#view view.superVisorsLiveTextView}}
+      {{#view App.ComponentLiveTextView liveComponentsBinding="view.service.superVisorsStarted" totalComponentsBinding="view.service.superVisorsTotal"}}
         {{view.liveComponents}}/{{view.totalComponents}}
       {{/view}}
     </span> {{t services.service.summary.SupervisorsLIVE}}

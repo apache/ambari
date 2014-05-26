@@ -30,8 +30,8 @@ App.DataNodeUpView = App.TextDashboardWidgetView.extend({
 
   hiddenInfo: function () {
     var result = [];
-    result.pushObject(this.get('dataNodesLive').length + ' ' + Em.I18n.t('dashboard.services.hdfs.nodes.live'));
-    result.pushObject(this.get('dataNodesDead').length + ' ' + Em.I18n.t('dashboard.services.hdfs.nodes.dead'));
+    result.pushObject(this.get('dataNodesLive') + ' ' + Em.I18n.t('dashboard.services.hdfs.nodes.live'));
+    result.pushObject(this.get('dataNodesDead') + ' ' + Em.I18n.t('dashboard.services.hdfs.nodes.dead'));
     result.pushObject(this.get('model.decommissionDataNodes.length')+ ' ' + Em.I18n.t('dashboard.services.hdfs.nodes.decom'));
     return result;
   }.property('dataNodesLive', 'dataNodesDead', 'model.decommissionDataNodes.length'),
@@ -42,23 +42,23 @@ App.DataNodeUpView = App.TextDashboardWidgetView.extend({
   maxValue: 100,
 
   dataNodesLive: function () {
-    return this.get('model.dataNodes').filterProperty("workStatus", "STARTED");
-  }.property('model.dataNodes.@each.workStatus'),
+    return this.get('model.dataNodesStarted');
+  }.property('model.dataNodesStarted'),
   dataNodesDead: function () {
-    return this.get('model.dataNodes').filterProperty("workStatus", "INSTALLED");
-  }.property('model.dataNodes.@each.workStatus'),
+    return this.get('model.dataNodesInstalled');
+  }.property('model.dataNodesInstalled'),
 
   data: function () {
-    if ( !this.get('model.dataNodes.length')) {
+    if ( !this.get('model.dataNodesTotal')) {
       return -1;
     } else {
-      return ((this.get('dataNodesLive').length / this.get('model.dataNodes.length')).toFixed(2)) * 100;
+      return ((this.get('dataNodesLive') / this.get('model.dataNodesTotal')).toFixed(2)) * 100;
     }
-  }.property('model.dataNodes.length', 'dataNodesLive'),
+  }.property('model.dataNodesTotal', 'dataNodesLive'),
 
   content: function () {
-    return this.get('dataNodesLive').length + "/" + this.get('model.dataNodes.length');
-  }.property('model.dataNodes.length', 'dataNodesLive'),
+    return this.get('dataNodesLive') + "/" + this.get('model.dataNodesTotal');
+  }.property('model.dataNodesTotal', 'dataNodesLive'),
 
   editWidget: function (event) {
     var parent = this;

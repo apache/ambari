@@ -23,19 +23,6 @@ App.MainDashboardServiceStormView = App.MainDashboardServiceView.extend({
   templateName: require('templates/main/service/services/storm'),
   serviceName: 'storm',
 
-  superVisorComponents: function() {
-    return this.get('service.hostComponents').filterProperty('componentName', 'SUPERVISOR');
-  }.property('service.hostComponents.@each'),
-
-  superVisorsLiveTextView: App.ComponentLiveTextView.extend({
-    liveComponents: function () {
-      return this.get('parentView.superVisorComponents').filterProperty('workStatus','STARTED').length;
-    }.property('parentView.superVisorComponents.@each.workStatus'),
-    totalComponents: function() {
-      return this.get('parentView.superVisorComponents').length;
-    }.property('parentView.superVisorComponents.length')
-  }),
-
   freeSlotsPercentage: function() {
     return Math.round(this.get('service.freeSlots')/this.get('service.totalSlots')*100);
   }.property('service.freeSlots', 'service.totalSlots'),

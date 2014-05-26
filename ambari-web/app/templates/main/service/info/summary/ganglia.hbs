@@ -24,8 +24,8 @@
   <td class="summary-label"><a {{action filterHosts view.monitorsObj}} href="javascript:void(null)" >{{t services.ganglia.monitors}}</a></td>
   <td>
     <span>
-      {{#view view.monitorsLiveTextView}}
-        {{view.monitors}}
+      {{#view App.ComponentLiveTextView liveComponentsBinding="content.gangliaMonitorsStarted"}}
+        {{view.parentView.monitors}}
       {{/view}}
     </span> {{t services.service.summary.GangliaMonitorsLIVE}}
   </td>

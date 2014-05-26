@@ -32,7 +32,8 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     $rand: Math.random(),
     $alerts: [ 1, 2, 3 ],
     host_components: 'host_components',
-    tool_tip_content: 'tool_tip_content'
+    tool_tip_content: 'tool_tip_content',
+    installed_clients: 'installed_clients'
   },
   hdfsConfig: {
     version: 'nameNodeComponent.host_components[0].metrics.dfs.namenode.Version',
@@ -57,7 +58,10 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     upgrade_status: 'nameNodeComponent.host_components[0].metrics.dfs.namenode.UpgradeFinalized',
     safe_mode_status: 'nameNodeComponent.host_components[0].metrics.dfs.namenode.Safemode',
     name_node_cpu: 'nameNodeComponent.host_components[0].metrics.cpu.cpu_wio',
-    name_node_rpc: 'nameNodeComponent.host_components[0].metrics.rpc.RpcQueueTime_avg_time'
+    name_node_rpc: 'nameNodeComponent.host_components[0].metrics.rpc.RpcQueueTime_avg_time',
+    data_nodes_started: 'data_nodes_started',
+    data_nodes_installed: 'data_nodes_installed',
+    data_nodes_total: 'data_nodes_total'
   },
   yarnConfig: {
     version: 'resourceManagerComponent.ServiceComponentInfo.Version',
@@ -82,11 +86,15 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     allocated_memory: 'resourceManagerComponent.host_components[0].metrics.yarn.Queue.root.AllocatedMB',
     available_memory: 'resourceManagerComponent.host_components[0].metrics.yarn.Queue.root.AvailableMB',
     reserved_memory: 'resourceManagerComponent.host_components[0].metrics.yarn.Queue.root.ReservedMB',
-    queue: 'resourceManagerComponent.queue'
+    queue: 'resourceManagerComponent.queue',
+    node_managers_started: 'node_managers_started',
+    node_managers_installed: 'node_managers_installed',
+    node_managers_total: 'node_managers_total'
   },
   mapReduce2Config: {
     version: 'jobHistoryServerComponent.ServiceComponentInfo.Version',
-    job_history_server_id: 'jobHistoryServerComponent.host_components[0].HostRoles.host_name'
+    job_history_server_id: 'jobHistoryServerComponent.host_components[0].HostRoles.host_name',
+    map_reduce2_clients: 'map_reduce2_clients'
   },
   mapReduceConfig: {
     version: 'jobTrackerComponent.ServiceComponentInfo.Version',
@@ -113,7 +121,10 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     reduces_waiting: 'jobTrackerComponent.ServiceComponentInfo.jobtracker.waiting_reduces',
     trackers_decommissioned: 'jobTrackerComponent.host_components[0].metrics.mapred.jobtracker.trackers_decommissioned',
     job_tracker_cpu: 'jobTrackerComponent.host_components[0].metrics.cpu.cpu_wio',
-    job_tracker_rpc: 'jobTrackerComponent.host_components[0].metrics.rpc.RpcQueueTime_avg_time'
+    job_tracker_rpc: 'jobTrackerComponent.host_components[0].metrics.rpc.RpcQueueTime_avg_time',
+    task_trackers_started: 'task_trackers_started',
+    task_trackers_installed: 'task_trackers_installed',
+    task_trackers_total: 'task_trackers_total'
   },
   hbaseConfig: {
     version: 'masterComponent.ServiceComponentInfo.Version',
@@ -124,7 +135,10 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     regions_in_transition: 'regions_in_transition',
     revision: 'masterComponent.ServiceComponentInfo.Revision',
     heap_memory_used: 'masterComponent.ServiceComponentInfo.HeapMemoryUsed',
-    heap_memory_max: 'masterComponent.ServiceComponentInfo.HeapMemoryMax'
+    heap_memory_max: 'masterComponent.ServiceComponentInfo.HeapMemoryMax',
+    region_servers_started: 'region_servers_started',
+    region_servers_installed: 'region_servers_installed',
+    region_servers_total: 'region_servers_total'
   },
   stormConfig: {
     total_tasks: 'restApiComponent.metrics.api.cluster.summary.["tasks.total"]',

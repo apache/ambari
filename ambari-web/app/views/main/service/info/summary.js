@@ -86,20 +86,12 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     return serviceName == "WEBHCAT" || serviceName == "NAGIOS";
   }.property('controller.content'),
 
-  clients: function () {
-    var service = this.get('controller.content');
-    if (this.get('servicesHaveClients').contains(service.get("id"))) {
-      return service.get('hostComponents').filterProperty('isClient');
-    }
-    return [];
-  }.property('controller.content'),
-
   hasManyServers: function () {
     return this.get('servers').length > 1;
   }.property('servers'),
 
   clientsHostText: function () {
-    if (this.get('clients').length == 0) {
+    if (this.get('controller.content.installedClients').length == 0) {
       return '';
     } else if (this.get("hasManyClients")) {
       return Em.I18n.t('services.service.summary.viewHosts');
@@ -109,8 +101,8 @@ App.MainServiceInfoSummaryView = Em.View.extend({
   }.property("hasManyClients"),
 
   hasManyClients: function () {
-    return this.get('clients').length > 1;
-  }.property('clients'),
+    return this.get('controller.content.installedClients').length > 1;
+  }.property('controller.content.installedClients'),
 
   servers: function () {
     var result = [];
@@ -153,38 +145,14 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     var result = '';
     var service = this.get('controller.content');
     if (service.get("id") == "GANGLIA") {
-      var monitors = service.get('hostComponents').filterProperty('isMaster', false);
-      var liveMonitors = monitors.filterProperty("workStatus","STARTED").length;
-      this.set("liveMonitors", liveMonitors);
-      if (monitors.length) {
-        result = Em.I18n.t('services.service.info.summary.hostsRunningMonitor').format(liveMonitors, monitors.length);
+      var totalMonitors = service.get('gangliaMonitorsTotal');
+      var liveMonitors = service.get('gangliaMonitorsStarted');
+      if (totalMonitors) {
+        result = Em.I18n.t('services.service.info.summary.hostsRunningMonitor').format(liveMonitors, totalMonitors);
       }
     }
     return result;
   }.property('controller.content'),
-
-  monitorsLiveTextView: App.ComponentLiveTextView.extend({
-    liveComponents: function () {
-      var service = this.get('service');
-      if (service.get("id") == "GANGLIA") {
-        return service.get('hostComponents').filterProperty('isMaster', false).filterProperty("workStatus","STARTED").length;
-      } else {
-        return null;
-      }
-    }.property('service.hostComponents.@each'),
-    monitors: function () {
-      var result = '';
-      var service = this.get('parentView.controller.content');
-      if (service.get("id") == "GANGLIA") {
-        var monitors = service.get('hostComponents').filterProperty('isMaster', false);
-        var liveMonitors = monitors.filterProperty("workStatus","STARTED").length;
-        if (monitors.length) {
-          result = Em.I18n.t('services.service.info.summary.hostsRunningMonitor').format(liveMonitors, monitors.length);
-        }
-      }
-      return result;
-    }.property('service.hostComponents.@each')
-  }),
 
   hasManyMonitors: function () {
     var service = this.get('controller.content');

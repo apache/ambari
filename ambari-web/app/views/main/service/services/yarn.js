@@ -35,13 +35,16 @@ App.MainDashboardServiceYARNView = App.MainDashboardServiceView.extend({
 
   summaryHeader: function () {
     var text = this.t("dashboard.services.yarn.summary");
-    var svc = this.get('service');
-    var totalCount = svc.get('nodeManagerNodes').get('length');
-    return text.format(totalCount, totalCount);
-  }.property('service.nodeManagerNodes'),
+    var totalCount = this.get('service.nodeManagersTotal');
+    var liveCount = this.get('service.nodeManagersStarted');
+    return text.format(liveCount, totalCount);
+  }.property('service.nodeManagersStarted', 'service.nodeManagersTotal'),
   
   nodeManagerComponent: function () {
-    return this.get('service.nodeManagerNodes').objectAt(0);
+    return Em.Object.create({
+      componentName: 'NODEMANAGER'
+    });
+    //return this.get('service.nodeManagerNodes').objectAt(0);
   }.property(),
   
   yarnClientComponent: function () {
@@ -66,23 +69,14 @@ App.MainDashboardServiceYARNView = App.MainDashboardServiceView.extend({
   }.property("service.resourceManagerStartTime"),
 
   nodeManagerText: function () {
-    if(!this.get("nodeManagerComponent") || this.get("nodeManagerComponent.length") == 0){
+    if (this.get("service.nodeManagersTotal") === 0) {
       return '';
-    } else if(this.get("nodeManagerComponent.length") > 1){
+    } else if (this.get("service.nodeManagersTotal") > 1) {
       return Em.I18n.t('services.service.summary.viewHosts');
     } else {
       return Em.I18n.t('services.service.summary.viewHost');
     }
-  }.property("nodeManagerComponent"),
-
-  nodeManagersLiveTextView: App.ComponentLiveTextView.extend({
-    liveComponents: function () {
-      return this.get('service.nodeManagerNodes').filterProperty("workStatus", "STARTED").get("length");
-    }.property("service.nodeManagerNodes.@each.workStatus"),
-    totalComponents: function () {
-      return this.get('service.nodeManagerNodes.length');
-    }.property("service.nodeManagerNodes.length")
-  }),
+  }.property("service.nodeManagersTotal"),
 
   nodeManagersStatus: function () {
     var nmActive = this.get('service.nodeManagersCountActive');

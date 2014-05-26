@@ -22,7 +22,7 @@
 <tr>
     <td class="summary-label"><a {{action filterHosts view.clientObj}} href="javascript:void(null)" >{{pluralize view.clients.length singular="t:services.oozie.client" plural="t:services.oozie.clients"}}</a></td>
     <td>
-        <span class="green-live">{{view.clients.length}} </span>{{pluralize view.clients.length singular="t:services.oozie.client" plural="t:services.oozie.clients"}} {{t common.installed}}
+        <span class="green-live">{{view.service.installedClients}} </span>{{pluralize view.clients.length singular="t:services.oozie.client" plural="t:services.oozie.clients"}} {{t common.installed}}
     </td>
 </tr>
 

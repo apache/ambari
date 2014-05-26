@@ -49,41 +49,32 @@ App.MainDashboardServiceMapreduceView = App.MainDashboardServiceView.extend({
   summaryHeader: function () {
     var svc = this.get('service');
     var liveCount = svc.get('aliveTrackers').get('length');
-    var allCount = svc.get('taskTrackers').get('length');
+    var allCount = svc.get('taskTrackersTotal');
     var runningCount = svc.get('jobsRunning');
     if (runningCount === null) {
       runningCount = 'n/a';
     }
     var template = this.t('dashboard.services.mapreduce.summary');
     return template.format(liveCount, allCount, runningCount);
-  }.property('service.aliveTrackers', 'service.taskTrackers', 'service.jobsRunning'),
+  }.property('service.aliveTrackers', 'service.taskTrackersTotal', 'service.jobsRunning'),
 
   trackersText: function () {
-    if (this.get('service').get('taskTrackers.length') == 0) {
+    if (this.get('service').get('taskTrackersTotal') == 0) {
       return '';
-    } else if (this.get('service').get('taskTrackers.length') > 1){
+    } else if (this.get('service').get('taskTrackersTotal') > 1){
       return Em.I18n.t('services.service.summary.viewHosts');
     }else{
       return Em.I18n.t('services.service.summary.viewHost');
     }
-  }.property("service.taskTrackers.length"),
+  }.property("service.taskTrackersTotal"),
 
   trackersSummary: function () {
     var svc = this.get('service');
-    var liveCount = svc.get('taskTrackers').filterProperty("workStatus", "STARTED").length;
-    var totalCount = svc.get('taskTrackers').get('length');
+    var liveCount = svc.get('taskTrackersStarted');
+    var totalCount = svc.get('taskTrackersTotal');
     var template = this.t('dashboard.services.mapreduce.trackersSummary');
     return template.format(liveCount, totalCount);
-  }.property('service.aliveTrackers.length', 'service.taskTrackers.@each.workStatus'),
-
-  trackersLiveTextView: App.ComponentLiveTextView.extend({
-    liveComponents: function () {
-      return this.get('service.taskTrackers').filterProperty("workStatus", "STARTED").get("length");
-    }.property("service.taskTrackers.@each.workStatus"),
-    totalComponents: function() {
-      return this.get("service.taskTrackers.length");
-    }.property('service.taskTrackers.length')
-  }),
+  }.property('service.taskTrackersTotal', 'service.taskTrackersStarted'),
 
   trackersHeapSummary: function () {
     var heapUsed = this.get('service').get('jobTrackerHeapUsed');
@@ -135,6 +126,9 @@ App.MainDashboardServiceMapreduceView = App.MainDashboardServiceView.extend({
   }.property('service.mapSlots', 'service.reduceSlots', 'service.aliveTrackers'),
 
   taskTrackerComponent: function () {
-    return this.get('service.taskTrackers').objectAt(0);
+    return Em.Object.create({
+      componentName: 'TASKTRACKER'
+    });
+    //return this.get('service.taskTrackers').objectAt(0);
   }.property()
 });

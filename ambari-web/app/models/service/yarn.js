@@ -24,9 +24,9 @@ App.YARNService = App.Service.extend({
   appTimelineServerNode: function() {
     return this.get('hostComponents').filterProperty('componentName', 'APP_TIMELINE_SERVER').mapProperty('host').objectAt(0);
   }.property(),
-  nodeManagerNodes: function () {
-    return this.get('hostComponents').filterProperty('componentName', 'NODEMANAGER');
-  }.property('hostComponents.@each'),
+  nodeManagersStarted: DS.attr('number'),
+  nodeManagersInstalled: DS.attr('number'),
+  nodeManagersTotal: DS.attr('number'),
   nodeManagersCountActive: DS.attr('number'),
   nodeManagersCountUnhealthy: DS.attr('number'),
   nodeManagersCountRebooted: DS.attr('number'),
@@ -107,15 +107,14 @@ App.YARNService = App.Service.extend({
    * states, we calculate the lost count.
    */
   nodeManagersCountLost: function () {
-    var allNMs = this.get('nodeManagerNodes');
-    var totalCount = allNMs != null ? allNMs.get('length') : 0;
+    var totalCount = this.get('nodeManagersTotal');
     var activeCount = this.get('nodeManagersCountActive');
     var rebootedCount = this.get('nodeManagersCountRebooted');
     var unhealthyCount = this.get('nodeManagersCountUnhealthy');
     var decomCount = this.get('nodeManagersCountDecommissioned');
     var nonLostHostsCount = activeCount + rebootedCount + decomCount + unhealthyCount;
     return totalCount >= nonLostHostsCount ? totalCount - nonLostHostsCount : 0;
-  }.property('nodeManagerNodes', 'nodeManagersCountActive', 'nodeManagersCountRebooted', 'nodeManagersCountUnhealthy', 'nodeManagersCountDecommissioned')
+  }.property('nodeManagersTotal', 'nodeManagersCountActive', 'nodeManagersCountRebooted', 'nodeManagersCountUnhealthy', 'nodeManagersCountDecommissioned')
 });
 
 App.YARNService.FIXTURES = [];

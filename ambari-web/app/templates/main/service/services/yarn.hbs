@@ -22,7 +22,7 @@
   <td><a href="#" {{action filterHosts view.nodeManagerComponent}}>{{t dashboard.services.yarn.nodeManagers}}</a></td>
   <td>
     <span>
-      {{#view view.nodeManagersLiveTextView}}
+      {{#view App.ComponentLiveTextView liveComponentsBinding="view.service.nodeManagersStarted" totalComponentsBinding="view.service.nodeManagersTotal"}}
         {{view.liveComponents}}/{{view.totalComponents}}
       {{/view}}
     </span>{{t services.service.summary.nodeManagersLive}}

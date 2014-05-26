@@ -50,24 +50,15 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
   }),
 
   dataNodesLive: function () {
-    return this.get('service.dataNodes').filterProperty("workStatus", "STARTED");
-  }.property('service.dataNodes.@each.workStatus'),
+    return this.get('service.dataNodesStarted');
+  }.property('service.dataNodesStarted'),
   dataNodesDead: function () {
-    return this.get('service.dataNodes').filterProperty("workStatus", "INSTALLED");
-  }.property('service.dataNodes.@each.workStatus'),
+    return this.get('service.dataNodesInstalled');
+  }.property('service.dataNodesInstalled'),
 
   showJournalNodes: function () {
     return this.get('service.journalNodes.length') > 0;
   }.property('service.journalNodes.length'),
-
-  dataNodesLiveTextView: App.ComponentLiveTextView.extend({
-    liveComponents: function () {
-      return this.get('service.dataNodes').filterProperty("workStatus", "STARTED").get("length");
-    }.property("service.dataNodes.@each.workStatus"),
-    totalComponents: function() {
-      return this.get("service.dataNodes.length");
-    }.property("service.dataNodes.length")
-  }),
 
   journalNodesLiveTextView: App.ComponentLiveTextView.extend({
     liveComponents: function () {
@@ -128,8 +119,8 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
   summaryHeader: function () {
     var text = this.t("dashboard.services.hdfs.summary");
     var service = this.get('service');
-    var liveCount = service.get('dataNodes').filterProperty("workStatus", "STARTED").length;
-    var totalCount = service.get('dataNodes').get('length');
+    var liveCount = service.get('dataNodesStarted');
+    var totalCount = service.get('dataNodesTotal');
     var total = service.get('capacityTotal') + 0;
     var remaining = service.get('capacityRemaining') + 0;
     var used = total - remaining;
@@ -138,7 +129,7 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
       percent = Em.I18n.t('services.service.summary.notAvailable') + " ";
     }
     return text.format(liveCount, totalCount, percent);
-  }.property('service.dataNodes.@each.workStatus', 'service.capacityUsed', 'service.capacityTotal'),
+  }.property('service.dataNodesStarted', 'service.dataNodesTotal', 'service.capacityUsed', 'service.capacityTotal'),
 
   dfsUsedDisk: function () {
     var text = this.t("dashboard.services.hdfs.capacityUsed");
@@ -174,7 +165,10 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
   }.property('service.capacityRemaining', 'service.capacityTotal'),
 
   dataNodeComponent: function () {
-    return this.get('service.dataNodes').objectAt(0);
+    return Em.Object.create({
+      componentName: 'DATANODE'
+    });
+    //return this.get('service.dataNodes').objectAt(0);
   }.property(),
 
   journalNodeComponent: function () {

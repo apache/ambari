@@ -22,7 +22,7 @@
   <td><a href="#" {{action filterHosts view.dataNodeComponent}}>{{t dashboard.services.hdfs.datanodes}}</a></td>
   <td>
     <span>
-      {{#view view.dataNodesLiveTextView}}
+      {{#view App.ComponentLiveTextView liveComponentsBinding="view.service.dataNodesStarted" totalComponentsBinding="view.service.dataNodesTotal"}}
         {{view.liveComponents}}/{{view.totalComponents}}
       {{/view}}
     </span>
@@ -58,8 +58,8 @@
 <tr>
   <td>{{t dashboard.services.hdfs.datanodecounts}}</td>
   <td>
-    {{view.dataNodesLive.length}} {{t dashboard.services.hdfs.nodes.live}} /
-    {{view.dataNodesDead.length}} {{t dashboard.services.hdfs.nodes.dead}} /
+    {{view.dataNodesLive}} {{t dashboard.services.hdfs.nodes.live}} /
+    {{view.dataNodesDead}} {{t dashboard.services.hdfs.nodes.dead}} /
     {{view.service.decommissionDataNodes.length}} {{t dashboard.services.hdfs.nodes.decom}}
   </td>
 </tr>

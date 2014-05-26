@@ -24,9 +24,9 @@ App.HDFSService = App.Service.extend({
   activeNameNode: DS.belongsTo('App.Host'),
   standbyNameNode: DS.belongsTo('App.Host'),
   standbyNameNode2: DS.belongsTo('App.Host'),
-  dataNodes: function () {
-    return this.get('hostComponents').filterProperty('componentName', 'DATANODE');
-  }.property('hostComponents.@each'),
+  dataNodesStarted: DS.attr('number'),
+  dataNodesInstalled: DS.attr('number'),
+  dataNodesTotal: DS.attr('number'),
   journalNodes: function () {
     return this.get('hostComponents').filterProperty('componentName', 'JOURNALNODE');
   }.property('hostComponents.@each'),

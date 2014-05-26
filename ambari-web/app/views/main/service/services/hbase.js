@@ -39,28 +39,16 @@ App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
   }.property('masters'),
 
 
-  liveRegionServers: function () {
-    return this.get('service.regionServers').filterProperty("workStatus", "STARTED");
-  }.property('service.regionServers.@each.workStatus'),
 
   regionServesText: function () {
-    if (this.get('service.regionServers.length') == 0) {
+    if (this.get('service.regionServersTotal') == 0) {
       return '';
-    } else if (this.get('service.regionServers.length') > 1) {
+    } else if (this.get('service.regionServersTotal') > 1) {
       return Em.I18n.t('services.service.summary.viewHosts');
     } else {
       return Em.I18n.t('services.service.summary.viewHost');
     }
   }.property("service"),
-
-  regionServersLiveTextView: App.ComponentLiveTextView.extend({
-    liveComponents: function() {
-      return this.get('service.regionServers').filterProperty("workStatus","STARTED").get('length');
-    }.property('service.regionServers.@each.workStatus'),
-    totalComponents: function() {
-      return this.get("service.regionServers.length");
-    }.property("service.regionServers.length")
-  }),
 
   /**
    * One(!) active master component
@@ -95,8 +83,8 @@ App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
     if (isNaN(avgLoad)) {
       avgLoad = this.t("services.service.summary.unknown");
     }
-    return this.t("dashboard.services.hbase.summary").format(this.get('service.regionServers.length'), avgLoad);
-  }.property('service.regionServers', 'service.averageLoad'),
+    return this.t("dashboard.services.hbase.summary").format(this.get('service.regionServersTotal'), avgLoad);
+  }.property('service.regionServersTotal', 'service.averageLoad'),
 
   hbaseMasterWebUrl: function () {
     if (this.get('activeMaster.host') && this.get('activeMaster.host').get('publicHostName')) {
@@ -139,7 +127,10 @@ App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
   }.property("service.masterActiveTime"),
 
   regionServerComponent: function () {
-    return this.get('service.regionServers').objectAt(0);
+    return Em.Object.create({
+      componentName: 'HBASE_REGIONSERVER'
+    });
+    //return this.get('service.regionServers').objectAt(0);
   }.property()
 
 });

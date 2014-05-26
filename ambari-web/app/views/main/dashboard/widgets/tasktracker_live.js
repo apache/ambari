@@ -27,33 +27,29 @@ App.TaskTrackerUpView = App.TextDashboardWidgetView.extend({
 
   hiddenInfo: function () {
     var svc = this.get('model');
-    var liveCount = this.get('taskTrackersLive').length;
-    var totalCount = svc.get('taskTrackers').get('length');
+    var liveCount = svc.get('taskTrackersStarted');
+    var totalCount = svc.get('taskTrackersTotal');
     var result = [];
     result.pushObject(liveCount + " live");
     result.pushObject(totalCount + " total");
     return result;
-  }.property('model.taskTrackers.length', 'taskTrackersLive'),
+  }.property('model.taskTrackersTotal', 'model.taskTrackersStarted'),
 
   thresh1: 40,
   thresh2: 70,
   maxValue: 100,
 
-  taskTrackersLive: function () {
-    return this.get('model.taskTrackers').filterProperty("workStatus", "STARTED");
-  }.property('model.taskTrackers.@each.workStatus'),
-
   data: function () {
-    if (!this.get('model.taskTrackers.length')) {
+    if (!this.get('model.taskTrackersTotal')) {
       return -1;
     } else {
-      return (this.get('taskTrackersLive').length / this.get('model.taskTrackers.length')).toFixed(2) * 100;
+      return (this.get('model.taskTrackersStarted') / this.get('model.taskTrackersTotal')).toFixed(2) * 100;
     }
-  }.property('model.taskTrackers.length', 'taskTrackersLive'),
+  }.property('model.taskTrackersTotal', 'model.taskTrackersStarted'),
 
   content: function () {
-    return this.get('taskTrackersLive').length + "/" + this.get('model.taskTrackers.length');
-  }.property('model.taskTrackers.length', 'taskTrackersLive'),
+    return this.get('model.taskTrackersStarted') + "/" + this.get('model.taskTrackersTotal');
+  }.property('model.taskTrackersTotal', 'model.taskTrackersStarted'),
 
   editWidget: function (event) {
     var parent = this;

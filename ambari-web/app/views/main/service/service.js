@@ -113,13 +113,10 @@ App.MainDashboardServiceHealthView = Em.View.extend({
 
 App.ComponentLiveTextView =  Em.View.extend({
   classNameBindings: ['color:service-summary-component-red-dead:service-summary-component-green-live'],
-  service: function() { return this.get("parentView").get("service")}.property("parentView.service"),
-  liveComponents: function() {
-  }.property(),
-  totalComponents: function() {
-  }.property(),
+  liveComponents: null,
+  totalComponents: null,
   color: function() {
-    return this.get("liveComponents") == 0;
+    return this.get("liveComponents") === 0;
   }.property("liveComponents")
 });
 

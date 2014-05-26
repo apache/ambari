@@ -21,6 +21,6 @@
 <tr>
     <td class="summary-label"><a {{action filterHosts view.clientObj}} href="javascript:void(null)" >{{pluralize view.clients.length singular="t:services.hive.client" plural="t:services.hive.clients"}}</a></td>
     <td>
-        <span class="green-live">{{view.clients.length}} </span>{{pluralize view.clients.length singular="t:services.hive.client" plural="t:services.hive.clients"}} {{t common.installed}}
+        <span class="green-live">{{view.service.installedClients}} </span>{{pluralize view.clients.length singular="t:services.hive.client" plural="t:services.hive.clients"}} {{t common.installed}}
     </td>
 </tr>

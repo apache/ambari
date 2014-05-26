@@ -60,7 +60,8 @@ App.ClusterController = Em.Controller.extend({
     'clusterStatus': false,
     'racks': false,
     'users': false,
-    'componentConfigs': false
+    'componentConfigs': false,
+    'componentsState': false
   }),
 
   /**
@@ -352,7 +353,11 @@ App.ClusterController = Em.Controller.extend({
             self.updateLoadStatus('componentConfigs');
           }
         }, true);
-        App.router.get('updateController').updateServiceMetric(function () {});
+        App.router.get('updateController').updateServiceMetric(function () {
+          App.router.get('updateController').updateComponentsState(function () {
+            self.updateLoadStatus('componentsState');
+          });
+        });
       });
     });
   },

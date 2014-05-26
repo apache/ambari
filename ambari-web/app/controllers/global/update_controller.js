@@ -80,6 +80,7 @@ App.UpdateController = Em.Controller.extend({
       App.updater.run(this, 'updateServices', 'isWorking');
       App.updater.run(this, 'updateHostConditionally', 'isWorking');
       App.updater.run(this, 'updateServiceMetricConditionally', 'isWorking', App.componentsUpdateInterval);
+      App.updater.run(this, 'updateComponentsState', 'isWorking', App.componentsUpdateInterval);
       App.updater.run(this, 'graphsUpdate', 'isWorking');
       if (App.supports.hostOverrides) {
         App.updater.run(this, 'updateComponentConfig', 'isWorking');
@@ -244,6 +245,16 @@ App.UpdateController = Em.Controller.extend({
     var testUrl = '/data/services/host_component_stale_configs.json';
     var componentConfigUrl = this.getUrl(testUrl, '/host_components?fields=HostRoles/host_name&HostRoles/stale_configs=true&minimal_response=true');
     App.HttpClient.get(componentConfigUrl, App.componentConfigMapper, {
+      complete: callback
+    });
+  },
+  updateComponentsState: function (callback) {
+    var testUrl = '';
+    var realUrl = '/components/?ServiceComponentInfo/category.in(SLAVE,CLIENT)&fields=ServiceComponentInfo/service_name,' +
+      'ServiceComponentInfo/installed_count,ServiceComponentInfo/started_count,ServiceComponentInfo/total_count&minimal_response=true';
+    var url = this.getUrl(testUrl, realUrl);
+
+    App.HttpClient.get(url, App.componentsStateMapper, {
       complete: callback
     });
   }

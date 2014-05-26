@@ -31,6 +31,11 @@ App.Service = DS.Model.extend({
   quickLinks: DS.hasMany('App.QuickLinks'),  // mapped in app/mappers/service_metrics_mapper.js method - mapQuickLinks
   hostComponents: DS.hasMany('App.HostComponent'),
   serviceConfigsTemplate: App.config.get('preDefinedServiceConfigs'),
+  /**
+   * used by services("OOZIE", "ZOOKEEPER", "HIVE", "MAPREDUCE2", "TEZ", "SQOOP", "PIG","FALCON")
+   * that have only client components
+   */
+  installedClients: DS.attr('number'),
 
   /**
    * @type {bool}
@@ -232,5 +237,19 @@ App.Service.servicesSortOrder = [
   'SQOOP',
   'HUE'
 ];
+
+/**
+ * association between service and extended model name
+ * @type {Object}
+ */
+App.Service.extendedModel = {
+  'HDFS': 'HDFSService',
+  'MAPREDUCE': 'MapReduceService',
+  'HBASE': 'HBaseService',
+  'YARN': 'YARNService',
+  'MAPREDUCE2': 'MapReduce2Service',
+  'STORM': 'StormService',
+  'FLUME': 'FlumeService'
+};
 
 App.Service.FIXTURES = [];

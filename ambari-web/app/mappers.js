@@ -31,4 +31,5 @@ require('mappers/service_metrics_mapper');
 require('mappers/target_cluster_mapper');
 require('mappers/dataset_mapper');
 require('mappers/component_config_mapper');
+require('mappers/components_state_mapper');
 require('mappers/jobs/hive_jobs_mapper');
