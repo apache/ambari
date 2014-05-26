@@ -30,6 +30,11 @@ class TestSNamenode(RMFTestCase):
                        config_file="default.json"
     )
     self.assert_configure_default()
+    self.assertResourceCalled('File', '/etc/hadoop/conf/dfs.exclude',
+                              owner = 'hdfs',
+                              content = Template('exclude_hosts_list.j2'),
+                              group = 'hadoop',
+                              )
     self.assertNoMoreResources()
 
   def test_start_default(self):
@@ -39,6 +44,11 @@ class TestSNamenode(RMFTestCase):
                        config_file="default.json"
     )
     self.assert_configure_default()
+    self.assertResourceCalled('File', '/etc/hadoop/conf/dfs.exclude',
+                              owner = 'hdfs',
+                              content = Template('exclude_hosts_list.j2'),
+                              group = 'hadoop',
+                              )
     self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
                               owner = 'hdfs',
                               recursive = True,
@@ -84,6 +94,11 @@ class TestSNamenode(RMFTestCase):
                        config_file="secured.json"
     )
     self.assert_configure_secured()
+    self.assertResourceCalled('File', '/etc/hadoop/conf/dfs.exclude',
+                              owner = 'hdfs',
+                              content = Template('exclude_hosts_list.j2'),
+                              group = 'hadoop',
+                              )
     self.assertNoMoreResources()
 
   def test_start_secured(self):
@@ -93,6 +108,11 @@ class TestSNamenode(RMFTestCase):
                        config_file="secured.json"
     )
     self.assert_configure_secured()
+    self.assertResourceCalled('File', '/etc/hadoop/conf/dfs.exclude',
+                              owner = 'hdfs',
+                              content = Template('exclude_hosts_list.j2'),
+                              group = 'hadoop',
+                              )
     self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
                               owner = 'hdfs',
                               recursive = True,
