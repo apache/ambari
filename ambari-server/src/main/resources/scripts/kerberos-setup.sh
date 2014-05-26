@@ -195,8 +195,10 @@ installKDC () {
     OLD_DEBIAN_FRONTEND=$DEBIAN_FRONTEND
     export DEBIAN_FRONTEND=noninteractive
     $inst_cmd krb5-kdc krb5-admin-server krb5-user libpam-krb5 libpam-ccreds auth-client-config
+  elif [ $os == 'suse' ] ; then
+    $inst_cmd krb5 krb5-server krb5-client
   else
-    $inst_cmd krb5-server krb5-libs krb5-auth-dialog  krb5-workstation
+    $inst_cmd krb5-server krb5-libs krb5-auth-dialog krb5-workstation
   fi
   # Configure /etc/krb5.conf
   cp $krb5_conf $krb5_conf".bak"
@@ -232,6 +234,8 @@ installKDC () {
   export PDSH_SSH_ARGS_APPEND="-q -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o PreferredAuthentications=publickey"
   if [ $os == 'debian' ]; then
     pdsh -R ssh -w $hostNames OLD_DEBIAN_FRONTEND=$DEBIAN_FRONTEND; export DEBIAN_FRONTEND=noninteractive; $inst_cmd krb5-user libpam-krb5 libpam-ccreds auth-client-config; export DEBIAN_FRONTEND=OLD_DEBIAN_FRONTEND
+  elif [ $os == 'suse' ] ; then
+    pdsh -R ssh -w $hostNames $inst_cmd krb5-client
   else
     pdsh -R ssh -w $hostNames $inst_cmd krb5-workstation
   fi
