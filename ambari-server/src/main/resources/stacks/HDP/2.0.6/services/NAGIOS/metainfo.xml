@@ -114,6 +114,9 @@
             <package>
               <name>apache2?mod_php*</name>
             </package>
+            <package>
+              <name>php-curl</name>
+            </package>
           </packages>
         </osSpecific>
         <osSpecific>
