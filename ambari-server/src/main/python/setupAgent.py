@@ -104,16 +104,16 @@ def findNearestAgentPackageVersion(projectVersion):
   if projectVersion == "":
     projectVersion = "  "
   if OSCheck.is_suse_family():
-    Command = ["bash", "-c", "zypper search -s --match-exact ambari-agent | grep '" + projectVersion +
+    Command = ["bash", "-c", "zypper -q search -s --match-exact ambari-agent | grep '" + projectVersion +
                                  "' | cut -d '|' -f 4 | head -n1 | sed -e 's/-\w[^:]*//1' "]
   elif OSCheck.is_debian_family():
     if projectVersion == "  ":
-      Command = ["bash", "-c", "apt-cache show ambari-agent |grep 'Version\:'|cut -d ' ' -f 2|tr -d '\\n'|sed -s 's/[-|~][A-Za-z\d]*//'"]
+      Command = ["bash", "-c", "apt-cache -q show ambari-agent |grep 'Version\:'|cut -d ' ' -f 2|tr -d '\\n'|sed -s 's/[-|~][A-Za-z0-9]*//'"]
     else:
-      Command = ["bash", "-c", "apt-cache show ambari-agent |grep 'Version\:'|cut -d ' ' -f 2|grep '" +
+      Command = ["bash", "-c", "apt-cache -q show ambari-agent |grep 'Version\:'|cut -d ' ' -f 2|grep '" +
                projectVersion + "'|tr -d '\\n'|sed -s 's/[-|~][A-Za-z\d]*//'"]
   else:
-    Command = ["bash", "-c", "yum list all ambari-agent | grep '" + projectVersion +
+    Command = ["bash", "-c", "yum -q list all ambari-agent | grep '" + projectVersion +
                               "' | sed -re 's/\s+/ /g' | cut -d ' ' -f 2 | head -n1 | sed -e 's/-\w[^:]*//1' "]
   return execOsCommand(Command)
 
@@ -133,13 +133,13 @@ def isAgentPackageAlreadyInstalled(projectVersion):
 def getAvaliableAgentPackageVersions():
   if OSCheck.is_suse_family():
     Command = ["bash", "-c",
-        "zypper search -s --match-exact ambari-agent | grep ambari-agent | sed -re 's/\s+/ /g' | cut -d '|' -f 4 | tr '\\n' ', ' | sed -s 's/[-|~][A-Za-z\d]*//g'"]
+        "zypper -q search -s --match-exact ambari-agent | grep ambari-agent | sed -re 's/\s+/ /g' | cut -d '|' -f 4 | tr '\\n' ', ' | sed -s 's/[-|~][A-Za-z0-9]*//g'"]
   elif OSCheck.is_debian_family():
     Command = ["bash", "-c",
-        "apt-cache show ambari-agent|grep 'Version\:'|cut -d ' ' -f 2| tr '\\n' ', '|sed -s 's/[-|~][A-Za-z\d]*//g'"]
+        "apt-cache -q show ambari-agent|grep 'Version\:'|cut -d ' ' -f 2| tr '\\n' ', '|sed -s 's/[-|~][A-Za-z0-9]*//g'"]
   else:
     Command = ["bash", "-c",
-        "yum list all ambari-agent | grep -E '^ambari-agent' | sed -re 's/\s+/ /g' | cut -d ' ' -f 2 | tr '\\n' ', ' | sed -s 's/[-|~][A-Za-z\d]*//g'"]
+        "yum -q list all ambari-agent | grep -E '^ambari-agent' | sed -re 's/\s+/ /g' | cut -d ' ' -f 2 | tr '\\n' ', ' | sed -s 's/[-|~][A-Za-z0-9]*//g'"]
   return execOsCommand(Command)
 
 
@@ -152,8 +152,8 @@ def checkServerReachability(host, port):
   except Exception:
    ret["exitstatus"] = 1
    ret["log"] = "Host registration aborted. Ambari Agent host cannot reach Ambari Server '" +\
-                host+":"+str(port) + "'. "+\
-  		        "Please check the network connectivity between the Ambari Agent host and the Ambari Server"
+                host+":"+str(port) + "'. " +\
+                "Please check the network connectivity between the Ambari Agent host and the Ambari Server"
    sys.exit(ret)
   pass
 
