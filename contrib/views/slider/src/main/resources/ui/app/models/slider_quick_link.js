@@ -30,35 +30,4 @@ App.QuickLink = DS.Model.extend({
 
 });
 
-App.QuickLink.FIXTURES = [
-  {
-    id: 1,
-    label: 'link1',
-    url: 'url1'
-  },
-  {
-    id: 2,
-    label: 'link2',
-    url: 'url2'
-  },
-  {
-    id: 3,
-    label: 'link3',
-    url: 'url3'
-  },
-  {
-    id: 4,
-    label: 'link4',
-    url: 'url4'
-  },
-  {
-    id: 5,
-    label: 'link5',
-    url: 'url5'
-  },
-  {
-    id: 6,
-    label: 'YARN application',
-    url: 'http://yarn_application_url'
-  }
-];
+App.QuickLink.FIXTURES = [];

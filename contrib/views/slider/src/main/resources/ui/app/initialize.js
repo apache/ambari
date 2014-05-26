@@ -86,6 +86,7 @@ App.initializer({
 
     });
     application.ApplicationStatusMapper.loop('load');
+    application.SliderAppsMapper.loop('load');
   }
 });
 

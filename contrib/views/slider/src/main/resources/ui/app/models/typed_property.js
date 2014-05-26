@@ -35,35 +35,4 @@ App.TypedProperty = DS.Model.extend({
 
 });
 
-App.TypedProperty.FIXTURES = [
-  {
-    id: 1,
-    key: 'k1',
-    value: 'v1',
-    type: 'host'
-  },
-  {
-    id: 2,
-    key: 'k2',
-    value: 'v2',
-    type: 'host'
-  },
-  {
-    id: 3,
-    key: 'k3',
-    value: 'v3',
-    type: 'date'
-  },
-  {
-    id: 4,
-    key: 'k4',
-    value: 'v4',
-    type: 'date'
-  },
-  {
-    id: 5,
-    key: 'k5',
-    value: 'v5',
-    type: 'host'
-  }
-];
+App.TypedProperty.FIXTURES = [];

@@ -31,7 +31,7 @@ App.IndexRoute = Ember.Route.extend({
 App.SliderAppsRoute = Ember.Route.extend({
 
   model: function () {
-    return this.store.find('sliderApp');
+    return this.store.all('sliderApp');
   },
 
   actions: {
@@ -44,7 +44,7 @@ App.SliderAppsRoute = Ember.Route.extend({
 App.SliderAppRoute = Ember.Route.extend({
 
   model: function(params) {
-    return this.store.find('sliderApp', params.slider_app_id);
+    return this.store.all('sliderApp', params.slider_app_id);
   }
 
 });

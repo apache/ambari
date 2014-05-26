@@ -22,9 +22,14 @@ App.SliderAppsView = App.TableView.extend({
 
   statusList: [
     "",
+    App.SliderApp.Status.accepted,
+    App.SliderApp.Status.failed,
+    App.SliderApp.Status.finished,
+    App.SliderApp.Status.killed,
+    App.SliderApp.Status.new,
+    App.SliderApp.Status.new_saving,
     App.SliderApp.Status.running,
-    App.SliderApp.Status.frozen,
-    App.SliderApp.Status.destroyed,
+    App.SliderApp.Status.submitted
   ],
 
   content: function () {

@@ -36,35 +36,4 @@ App.SliderAppComponent = DS.Model.extend({
 });
 
 
-App.SliderAppComponent.FIXTURES = [
-  {
-    id: 1,
-    index: 'indx1',
-    status: 'st1',
-    host: 1
-  },
-  {
-    id: 2,
-    index: 'indx2',
-    status: 'st1',
-    host: 2
-  },
-  {
-    id: 3,
-    index: 'indx3',
-    status: 'st3',
-    host: 3
-  },
-  {
-    id: 4,
-    index: 'indx4',
-    status: 'st4',
-    host: 4
-  },
-  {
-    id: 5,
-    index: 'indx5',
-    status: 'st5',
-    host: 1
-  }
-];
+App.SliderAppComponent.FIXTURES = [];

@@ -1,0 +1,43 @@
+{
+  "href" : "http://162.216.149.12:8080/api/v1/views/SLIDER/versions/1.0.0/instances/SLIDER_1/apps?fields=*",
+  "items" : [
+    {
+      "href" : "http://162.216.149.12:8080/api/v1/views/SLIDER/versions/1.0.0/instances/SLIDER_1/apps/1400598543383_1",
+      "components" : null,
+      "configs" : null,
+      "diagnostics" : "",
+      "endTime" : 1400598813404,
+      "id" : "1400598543383_1",
+      "instance_name" : "SLIDER_1",
+      "jmx" : null,
+      "name" : "PigLatin:pigSmoke.sh",
+      "startTime" : 1400598788691,
+      "state" : "FINISHED",
+      "type" : "MAPREDUCE",
+      "urls" : null,
+      "user" : "ambari-qa",
+      "version" : "1.0.0",
+      "view_name" : "SLIDER",
+      "yarnId" : "application_1400598543383_0001"
+    },
+    {
+      "href" : "http://162.216.149.12:8080/api/v1/views/SLIDER/versions/1.0.0/instances/SLIDER_1/apps/1400598543383_2",
+      "components" : null,
+      "configs" : null,
+      "diagnostics" : "",
+      "endTime" : 1400598890254,
+      "id" : "1400598543383_2",
+      "instance_name" : "SLIDER_1",
+      "jmx" : null,
+      "name" : "word count",
+      "startTime" : 1400598861646,
+      "state" : "FINISHED",
+      "type" : "MAPREDUCE",
+      "urls" : null,
+      "user" : "ambari-qa",
+      "version" : "1.0.0",
+      "view_name" : "SLIDER",
+      "yarnId" : "application_1400598543383_0002"
+    }
+  ]
+}
