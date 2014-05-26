@@ -182,7 +182,7 @@ installKDC () {
   krb5_conf="/etc/krb5.conf"
   # Install rng tools
   $inst_cmd rng-tools
-  if [ $os == 'debian' ]; then
+  if [ $os == 'debian' ] || [ $os == 'suse' ]; then
     echo "HRNGDEVICE=/dev/urandom" >> /etc/default/rng-tools
     /etc/init.d/rng-tools start
   else
