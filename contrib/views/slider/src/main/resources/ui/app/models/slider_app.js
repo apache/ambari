@@ -54,9 +54,9 @@ App.SliderApp = DS.Model.extend({
   ended: DS.attr('number'),
 
   /**
-   * @type {string}
+   * @type {App.SliderAppType}
    */
-  appType: DS.attr('string'),
+  appType: DS.belongsTo('sliderAppType'),
 
   /**
    * @type {string}

@@ -17,8 +17,7 @@
  */
 
 /**
- * Mapper for SLIDER_1 status
- * Save mapped data to App properties
+ * Mapper for <code>App.SliderApp</code> and <code>App.QuickLink</code> models
  * @type {App.Mapper}
  */
 App.SliderAppsMapper = App.Mapper.createWithMixins(App.RunPeriodically, {
@@ -49,7 +48,7 @@ App.SliderAppsMapper = App.Mapper.createWithMixins(App.RunPeriodically, {
 
   /**
    * Parse loaded data according to <code>map</code>
-   * Set <code>App</code> properties
+   * Load <code>App.SliderApp</code> and <code>App.QuickLink</code> models
    * @param {object} data received from server data
    * @method parse
    */

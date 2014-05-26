@@ -46,7 +46,12 @@ App.SliderAppTypeComponent = DS.Model.extend({
   /**
    * @type {number}
    */
-  defaultYARNCPU: DS.attr('number')
+  defaultYARNCPU: DS.attr('number'),
+
+  /**
+   * @type {App.SliderAppType}
+   */
+  appType: DS.belongsTo('sliderAppType')
 
 });
 

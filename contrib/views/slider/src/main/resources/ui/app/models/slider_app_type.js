@@ -34,6 +34,11 @@ App.SliderAppType = DS.Model.extend({
   components: DS.hasMany('sliderAppTypeComponent', {async:true}),
 
   /**
+   * @type {string}
+   */
+  description: DS.attr('string'),
+
+  /**
    * @type {object}
    */
   configs: {}
