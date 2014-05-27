@@ -41,6 +41,8 @@ public class ClusterDefinition {
 
   private static final String HEADER_TAG              = "#";
   private static final String HOSTS_HEADER            = "hosts";
+  private static final String HA_HEADER               = "ha settings";
+  private static Boolean HA_ENABLE = Boolean.FALSE;
 
   private final Set<String> services = new HashSet<String>();
   private final Set<String> hosts = new HashSet<String>();
@@ -114,6 +116,7 @@ public class ClusterDefinition {
     componentNameMap.put("HIVE_SERVER_HOST", hiveComponents);
 
     Integer majorStackVersion = getMajorStackVersion();
+    Integer minorStackVersion = getMinorStackVersion();
     if(majorStackVersion != null) {
       if(majorStackVersion == 1) {
         Set<String> mapReduceComponents = new HashSet<String>();
@@ -125,11 +128,19 @@ public class ClusterDefinition {
       }
       if(majorStackVersion == 2) {
         componentNameMap.put("JOURNALNODE_HOST", Collections.singleton("JOURNALNODE"));
+        componentNameMap.put("HA_JOURNALNODE_HOSTS", Collections.singleton("JOURNALNODE"));
+
+        Set<String> haNamenodeComponents = new HashSet<String>();
+        haNamenodeComponents.add("NAMENODE");
+        haNamenodeComponents.add("ZKFC");
+        componentNameMap.put(minorStackVersion > 0 ? "NN_HA_STANDBY_NAMENODE_HOST" : "HA_NAMENODE_HOST", haNamenodeComponents);
 
         Set<String> mapReduce2Components = new HashSet<String>();
         mapReduce2Components.add("HISTORYSERVER");
         mapReduce2Components.add("RESOURCEMANAGER");
         componentNameMap.put("RESOURCEMANAGER_HOST", mapReduce2Components);
+
+        componentNameMap.put("RM_HA_STANDBY_RESOURCEMANAGER_HOST", Collections.singleton("RESOURCEMANAGER"));
 
         slaveComponents.add("NODEMANAGER");
         //hiveComponents.add("MYSQL_SERVER");
@@ -179,6 +190,7 @@ public class ClusterDefinition {
         componentServiceMap.put("NODEMANAGER",        "YARN");
         componentServiceMap.put("RESOURCEMANAGER",    "YARN");
         componentServiceMap.put("YARN_CLIENT",        "YARN");
+        componentServiceMap.put("ZKFC",               "HDFS");
         //componentServiceMap.put("MYSQL_SERVER",       "HIVE");
       }
     }
@@ -204,9 +216,24 @@ public class ClusterDefinition {
 
     try {
       readClusterDefinition();
+      haEnableSetup();
     } catch (IOException e) {
       String msg = "Caught exception reading cluster definition file.";
       throw new IllegalStateException(msg, e);
+    }
+  }
+
+  private void haEnableSetup() {
+    if(HA_ENABLE) {
+      Map<String, Set<String>> serviceHostComponents = hostComponents.get(componentServiceMap.get("ZKFC"));
+      if (serviceHostComponents != null) {
+        for(String host : serviceHostComponents.keySet()) {
+          Set<String> hostHostComponents = serviceHostComponents.get(host);
+          if(hostHostComponents != null && hostHostComponents.contains("NAMENODE")) {
+            hostHostComponents.add("ZKFC");
+          }
+        }
+      }
     }
   }
 
@@ -585,6 +612,7 @@ public class ClusterDefinition {
 
       String  line;
       boolean hostsSection = false;
+      boolean haSection = false;
 
       while ((line = br.readLine()) != null) {
         line = line.trim();
@@ -594,13 +622,23 @@ public class ClusterDefinition {
 
           String header = line.substring(HEADER_TAG.length()).toLowerCase();
           hostsSection = header.equalsIgnoreCase(HOSTS_HEADER);
+          haSection = header.equalsIgnoreCase(HA_HEADER);
 
           if (!hostsSection && (header.startsWith(HOSTS_HEADER) ) ){
             char c = header.charAt(HOSTS_HEADER.length());
             hostsSection = c == ' ' || c == '(';
           }
+
+          if(!haSection && header.startsWith(HA_HEADER)) {
+            char c = header.charAt(HA_HEADER.length());
+            haSection = c == ' ' || c == '(';
+          }
         } else {
-          if (hostsSection) {
+          if (hostsSection || haSection) {
+
+            if(haSection && line.toUpperCase().contains("HA=YES")) {
+              HA_ENABLE = Boolean.TRUE;
+            }
 
             int i = line.indexOf('=');
             if (i > -1) {

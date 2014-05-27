@@ -79,6 +79,7 @@ public class SQLProviderModule extends DefaultProviderModule implements HostInfo
     serviceNames.put("HBASE_MASTER", "master");
     serviceNames.put("HBASE_REGIONSERVER", "regionserver");
     serviceNames.put("ZOOKEEPER_SERVER", "zkServer");
+    serviceNames.put("ZKFC", "zkfc");
     serviceNames.put("DATANODE", "datanode");
     serviceNames.put("TASKTRACKER", "tasktracker");
     serviceNames.put("WEBHCAT_SERVER", "templeton");
