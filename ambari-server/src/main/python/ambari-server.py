@@ -4011,7 +4011,7 @@ def setup_security(args):
 # Main.
 #
 def main():
-  parser = optparse.OptionParser(usage="usage: %prog [options] action [stack_id]",)
+  parser = optparse.OptionParser(usage="usage: %prog [options] action [stack_id os]",)
 
   parser.add_option('-f', '--init-script-file',
                       default='/var/lib/ambari-server/'
@@ -4134,13 +4134,18 @@ def main():
   action = args[0]
 
   if action == UPGRADE_STACK_ACTION:
-    args_number_required = 2
+    possible_args_numbers = [2,4] # OR
   else:
-    args_number_required = 1
+    possible_args_numbers = [1]
 
-  if len(args) < args_number_required:
+  matches = 0
+  for args_number_required in possible_args_numbers:
+    matches += int(len(args) == args_number_required)
+      
+  if matches == 0:
     print parser.print_help()
-    parser.error("Invalid number of arguments. Entered: " + str(len(args)) + ", required: " + str(args_number_required))
+    possible_args = ' or '.join(str(x) for x in possible_args_numbers)
+    parser.error("Invalid number of arguments. Entered: " + str(len(args)) + ", required: " + possible_args)
 
   options.exit_message = "Ambari Server '%s' completed successfully." % action
   need_restart = True
