@@ -32,12 +32,20 @@ var urls = {
 
   'mapper.applicationTypes': {
     real: 'apptypes?fields=*',
-    mock: '/data/apptypes/all_fields.json'
+    mock: '/data/apptypes/all_fields.json',
+    headers: {
+      Accept : "text/plain; charset=utf-8",
+      "Content-Type": "text/plain; charset=utf-8"
+    }
   },
 
   'mapper.applicationApps': {
     real: 'apps/?fields=*',
-    mock: '/data/apps/apps.json'
+    mock: '/data/apps/apps.json',
+    headers: {
+      Accept : "text/plain; charset=utf-8",
+      "Content-Type": "text/plain; charset=utf-8"
+    }
   },
 
   'mapper.applicationStatus': {
@@ -101,7 +109,8 @@ var formatRequest = function (data) {
   var opt = {
     type: this.type || 'GET',
     dataType: 'json',
-    async: true
+    async: true,
+    headers: this.headers || {accepts: "application/json; charset=utf-8"}
   };
   if (App.get('testMode')) {
     opt.url = formatUrl(this.mock ? this.mock : '', data);
