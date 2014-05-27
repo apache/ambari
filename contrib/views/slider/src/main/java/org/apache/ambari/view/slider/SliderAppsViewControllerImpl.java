@@ -588,6 +588,8 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
               // Components
               ArrayList<SliderAppTypeComponent> appTypeComponentList = new ArrayList<SliderAppTypeComponent>();
               for (Component component : service.getComponents()) {
+                if ("CLIENT".equals(component.getCategory()))
+                  continue;
                 SliderAppTypeComponent appTypeComponent = new SliderAppTypeComponent();
                 appTypeComponent.setDisplayName(component.getName());
                 appTypeComponent.setId(component.getName());
