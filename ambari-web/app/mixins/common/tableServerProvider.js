@@ -31,6 +31,18 @@ App.TableServerProvider = Em.Mixin.create({
    */
   refreshTriggers: [],
   refreshCompleted: true,
+  /**
+   * total number of entities in table
+   */
+  totalCount: 0,
+
+  /**
+   * Return pagination information displayed on the page
+   * @type {String}
+   */
+  paginationInfo: function () {
+    return this.t('tableView.filters.paginationInfo').format(this.get('startIndex'), this.get('endIndex'), this.get('totalCount'));
+  }.property('totalCount', 'endIndex'),
 
   /**
    * add observers to trigger properties

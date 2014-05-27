@@ -129,8 +129,8 @@ App.componentsStateMapper = App.QuickDataMapper.create({
         var cacheService = App.cache['services'].findProperty('ServiceInfo.service_name', item.ServiceComponentInfo.service_name);
 
         for (var i in parsedItem) {
-          cacheService[i] = parsedItem[i];
           if (service.get('isLoaded')) {
+            cacheService[i] = parsedItem[i];
             service.set(stringUtils.underScoreToCamelCase(i), parsedItem[i]);
             if (extendedModel) {
               extendedModel.set(stringUtils.underScoreToCamelCase(i), parsedItem[i]);

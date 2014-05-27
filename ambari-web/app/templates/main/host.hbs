@@ -37,17 +37,13 @@
           </a>
           <ul class="dropdown-menu">
             <li {{bindAttr class=":category-item view.filtersUsed::active"}}>
-              <a {{action clearFilter target="view"}} href="#">{{t common.all}} ({{content.length}})</a>
+              <a {{action clearFilter target="view"}} href="#">{{t common.all}} ({{view.parentView.totalCount}})</a>
             </li>
             {{#each category in view.categories}}
               {{#if category.isVisible}}
-                <li {{bindAttr class="aaa :category-item category.itemClass"}}>
+                <li {{bindAttr class=":category-item category.itemClass"}}>
                   <a {{action selectCategory category target="view"}} href="#">
-                    {{#if category.isHealthStatus}}
-                      <span {{bindAttr class=":health-status category.healthStatusValue category.class"}}></span>
-                    {{else}}
-                      <span {{bindAttr class="category.class"}}></span>
-                    {{/if}}
+                      <span {{bindAttr class="category.isHealthStatus:health-status category.healthStatusValue category.class"}}></span>
                     {{category.label}}
                   </a>
                </li>

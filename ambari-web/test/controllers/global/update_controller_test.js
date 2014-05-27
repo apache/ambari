@@ -50,7 +50,7 @@ describe('App.UpdateController', function () {
   describe('#updateAll()', function () {
 
     beforeEach(function () {
-      sinon.spy(App.updater, 'run');
+      sinon.stub(App.updater, 'run', Em.K);
     });
     afterEach(function () {
       App.updater.run.restore();
@@ -63,14 +63,14 @@ describe('App.UpdateController', function () {
     it('isWorking = true, App.supports.hostOverrides = false', function () {
       App.supports.hostOverrides = false;
       controller.set('isWorking', true);
-      expect(App.updater.run.callCount).to.equal(4);
+      expect(App.updater.run.callCount).to.equal(5);
       controller.set('isWorking', false);
     });
 
     it('isWorking = true, App.supports.hostOverrides = true', function () {
       App.supports.hostOverrides = true;
       controller.set('isWorking', true);
-      expect(App.updater.run.callCount).to.equal(5);
+      expect(App.updater.run.callCount).to.equal(6);
     });
   });
 

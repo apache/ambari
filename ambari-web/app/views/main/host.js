@@ -39,7 +39,12 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
   refreshTriggers: ['serverStartIndex', 'displayLength'],
 
   /**
-   * startIndex as query parameter have first index - "0"
+   * flag responsible for updating status counters of hosts
+   */
+  isCountersUpdating: false,
+
+  /**
+   * startIndex as query parameter have first index - 0
    */
   serverStartIndex: function() {
     return this.get('startIndex') - 1;
@@ -64,14 +69,12 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
     this.addObserver('controller.clearFilters', this, this.clearFiltersObs);
     this.clearFiltersObs();
     this.addObserver('selectAllHosts', this, this.toggleAllHosts);
+    this.set('isCountersUpdating', true);
+    this.updateStatusCounters();
   },
 
   willDestroyElement: function() {
-    this.get('categories').forEach(function(c) {
-      if (c.get('observes')) {
-        c.removeObserver(c.get('observes'), c, c.updateHostsCount);
-      }
-    });
+    this.set('isCountersUpdating', false);
   },
 
   /**
@@ -297,6 +300,80 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
   }),
 
   /**
+   * update hosts count of selected hosts category
+   */
+  updateSelectedCategory: function () {
+    var hostsCountMap = {
+      'health-status-SELECTED': this.get('content').filterProperty('selected').length
+    };
+
+    this.updateHostsCount(hostsCountMap);
+  }.observes('content.@each.selected'),
+
+  /**
+   * update status counters of hosts
+   */
+  updateStatusCounters: function () {
+    var self = this;
+
+    if (this.get('isCountersUpdating')) {
+      App.ajax.send({
+        name: 'host.status.counters',
+        sender: this,
+        data: {},
+        success: 'updateStatusCountersSuccessCallback',
+        error: 'updateStatusCountersErrorCallback'
+      });
+
+      setTimeout(function () {
+        self.updateStatusCounters();
+      }, App.get('componentsUpdateInterval'));
+    }
+  },
+
+  /**
+   * success callback on <code>updateStatusCounters()</code>
+   * map counters' value to categories
+   * @param data
+   */
+  updateStatusCountersSuccessCallback: function (data) {
+    var hostsCountMap = {
+      'health-status-LIVE': data.Clusters.health_report['Host/host_status/HEALTHY'],
+      'health-status-DEAD-RED': data.Clusters.health_report['Host/host_status/UNHEALTHY'],
+      'health-status-DEAD-ORANGE': data.Clusters.health_report['Host/host_status/ALERT'],
+      'health-status-DEAD-YELLOW': data.Clusters.health_report['Host/host_status/UNKNOWN'],
+      'health-status-WITH-ALERTS': data.alerts.summary.CRITICAL + data.alerts.summary.WARNING,
+      'health-status-RESTART': data.Clusters.health_report['Host/stale_config'],
+      'health-status-PASSIVE_STATE': data.Clusters.health_report['Host/maintenance_state'],
+      'TOTAL': data.Clusters.total_hosts
+    };
+
+    this.set('totalCount', data.Clusters.total_hosts);
+    this.updateHostsCount(hostsCountMap);
+  },
+
+  /**
+   * success callback on <code>updateStatusCounters()</code>
+   */
+  updateStatusCountersErrorCallback: function() {
+    console.warn('ERROR: updateStatusCounters failed')
+  },
+
+  /**
+   * Update <code>hostsCount</code> in every category
+   */
+  updateHostsCount: function(hostsCountMap) {
+    this.get('categories').forEach(function(category) {
+      var hostsCount = (category.get('healthStatusValue').trim() === "") ? hostsCountMap['TOTAL'] : hostsCountMap[category.get('healthStatusValue')];
+
+      if (!Em.isNone(hostsCount)) {
+        category.set('hostsCount', hostsCount);
+        category.set('hasHosts', (hostsCount > 0));
+      }
+    }, this);
+  },
+
+  /**
    * Category view for all hosts
    * @type {Object}
    */
@@ -379,33 +456,6 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
     }.property('isActive'),
 
     /**
-     * Trigger updating <code>hostsCount</code> only 1 time
-     */
-    updateHostsCount: function() {
-      Em.run.once(this, 'updateOnce');
-    },
-    /**
-     * Update <code>hostsCount</code> in current category
-     */
-    updateOnce: function() {
-      //skip update when view is destroyed
-      if(!this.get('view.content')) return;
-      var statusString = this.get('healthStatusValue');
-      if (this.get('isHealthStatus')) {
-        if (statusString == "") {
-          this.set('hostsCount', this.get('view.content').get('length'));
-        }
-        else {
-          this.set('hostsCount', this.get('view.content').filterProperty('healthClass', statusString).get('length'));
-        }
-      }
-      else {
-        this.set('hostsCount', this.get('view.content').filterProperty(this.get('hostProperty')).get('length'));
-      }
-      this.set('hasHosts', !!this.get('hostsCount'));
-    },
-
-    /**
      * Text shown on the right of category icon
      * @type {String}
      */
@@ -420,19 +470,10 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
    */
   categories: function () {
     var self = this;
-    self.categoryObject.reopen({
-      view: self
-    });
-
     var category_mocks = require('data/host/categories');
 
     return category_mocks.map(function(category_mock) {
-      var c = self.categoryObject.create(category_mock);
-      if (c.get('observes')) {
-        c.addObserver(c.get('observes'), c, c.updateHostsCount);
-        c.updateHostsCount();
-      }
-      return c;
+      return self.categoryObject.create(category_mock);
     });
   }.property(),
 
@@ -449,13 +490,13 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
     value: null,
     class: "",
     comboBoxLabel: function(){
-      var selected = this.get('categories').findProperty('isActive',true);
+      var selected = this.get('categories').findProperty('isActive');
       if (!this.get('value') || !selected) {
-        return "%@ (%@)".fmt(Em.I18n.t('common.all'), this.get('parentView.content.length'));
+        return "%@ (%@)".fmt(Em.I18n.t('common.all'), this.get('parentView.totalCount'));
       } else {
         return "%@ (%@)".fmt(selected.get('value'), selected.get('hostsCount'))
       }
-    }.property('value'),
+    }.property('value', 'parentView.totalCount'),
     /**
      * switch active category label
      */

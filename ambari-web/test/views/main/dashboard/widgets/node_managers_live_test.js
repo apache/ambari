@@ -28,8 +28,8 @@ describe('App.NodeManagersLiveView', function() {
   var tests = [
     {
       model: {
-        nodeManagerNodes: [{}, {}, {}],
-        nodeManagerLiveNodes: [{}, {}]
+        nodeManagersTotal: 3,
+        nodeManagerLiveNodes: 2
       },
       e: {
         isRed: false,
@@ -42,8 +42,8 @@ describe('App.NodeManagersLiveView', function() {
     },
     {
       model: {
-        nodeManagerNodes: [{},{}],
-        nodeManagerLiveNodes: [{},{}]
+        nodeManagersTotal: 2,
+        nodeManagerLiveNodes: 2
       },
       e: {
         isRed: false,
@@ -56,8 +56,8 @@ describe('App.NodeManagersLiveView', function() {
     },
     {
       model: {
-        nodeManagerNodes: [{}, {}],
-        nodeManagerLiveNodes: []
+        nodeManagersTotal: 2,
+        nodeManagerLiveNodes: 0
       },
       e: {
         isRed: true,
@@ -71,7 +71,7 @@ describe('App.NodeManagersLiveView', function() {
   ];
 
   tests.forEach(function(test) {
-    describe('nodeManagerNodes length - ' + test.model.nodeManagerNodes.length + ' | nodeManagerLiveNodes length - ' + test.model.nodeManagerLiveNodes.length, function() {
+    describe('nodeManagerNodes length - ' + test.model.nodeManagersTotal + ' | nodeManagerLiveNodes length - ' + test.model.nodeManagerLiveNodes, function() {
       var AppNodeManagersLiveView = App.NodeManagersLiveView.extend({nodeManagersLive: test.model.nodeManagerLiveNodes});
       var nodeManagersLiveView = AppNodeManagersLiveView.create({model_type:null, model: test.model});
       it('content', function() {

@@ -28,29 +28,25 @@ module.exports = [
     value: Em.I18n.t('hosts.host.healthStatusCategory.green'),
     isHealthStatus: true,
     class: App.healthIconClassGreen,
-    healthStatusValue: 'health-status-LIVE',
-    observes: 'view.content.@each.healthClass'
+    healthStatusValue: 'health-status-LIVE'
   },
   {
     value: Em.I18n.t('hosts.host.healthStatusCategory.red'),
     isHealthStatus: true,
     class: App.healthIconClassRed,
-    healthStatusValue: 'health-status-DEAD-RED',
-    observes: 'view.content.@each.healthClass'
+    healthStatusValue: 'health-status-DEAD-RED'
   },
   {
     value: Em.I18n.t('hosts.host.healthStatusCategory.orange'),
     isHealthStatus: true,
     class: App.healthIconClassOrange,
-    healthStatusValue: 'health-status-DEAD-ORANGE',
-    observes: 'view.content.@each.healthClass'
+    healthStatusValue: 'health-status-DEAD-ORANGE'
   },
   {
     value: Em.I18n.t('hosts.host.healthStatusCategory.yellow'),
     isHealthStatus: true,
     class: App.healthIconClassYellow,
-    healthStatusValue: 'health-status-DEAD-YELLOW',
-    observes: 'view.content.@each.healthClass'
+    healthStatusValue: 'health-status-DEAD-YELLOW'
   },
   {
     value: Em.I18n.t('hosts.host.alerts.label'),
@@ -60,8 +56,7 @@ module.exports = [
     healthStatusValue: 'health-status-WITH-ALERTS',
     column: 7,
     type: 'number',
-    filterValue: '>0',
-    observes: 'view.content.@each.criticalAlertsCount'
+    filterValue: '>0'
   },
   {
     value: Em.I18n.t('common.restart'),
@@ -71,8 +66,7 @@ module.exports = [
     healthStatusValue: 'health-status-RESTART',
     column: 8,
     type: 'number',
-    filterValue: '>0',
-    observes: 'view.content.@each.componentsWithStaleConfigsCount'
+    filterValue: '>0'
   },
   {
     value: Em.I18n.t('common.selected'),
@@ -84,8 +78,7 @@ module.exports = [
     column: 10,
     type: 'boolean',
     filterValue: true,
-    isVisible: false,
-    observes: 'view.content.@each.selected'
+    isVisible: false
   },
   {
     value: Em.I18n.t('common.passive_state'),
@@ -95,7 +88,6 @@ module.exports = [
     healthStatusValue: 'health-status-PASSIVE_STATE',
     column: 9,
     type: 'number',
-    filterValue: '>0',
-    observes: 'view.content.@each.componentsInPassiveStateCount'
+    filterValue: '>0'
   }
 ];

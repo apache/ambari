@@ -2085,6 +2085,10 @@ var urls = {
         url: opt.url + data.urlParams
       }
     }
+  },
+  'host.status.counters': {
+    'real': '/clusters/{clusterName}?fields=alerts,Clusters/health_report,Clusters/total_hosts&minimal_response=true',
+    'mock': '/data/hosts/HDP2/host_status_counters.json'
   }
 };
 /**
