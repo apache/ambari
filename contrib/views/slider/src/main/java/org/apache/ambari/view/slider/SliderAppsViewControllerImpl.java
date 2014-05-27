@@ -18,11 +18,22 @@
 
 package org.apache.ambari.view.slider;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FilenameFilter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.reflect.Field;
+import java.security.PrivilegedExceptionAction;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.zip.ZipException;
+
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.slider.clients.AmbariClient;
 import org.apache.ambari.view.slider.clients.AmbariCluster;
@@ -37,7 +48,9 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.filefilter.RegexFileFilter;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hdfs.HdfsConfiguration;
+import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.yarn.api.records.ApplicationId;
 import org.apache.hadoop.yarn.api.records.ApplicationReport;
 import org.apache.hadoop.yarn.api.records.YarnApplicationState;
@@ -48,6 +61,7 @@ import org.apache.log4j.Logger;
 import org.apache.slider.api.ClusterDescription;
 import org.apache.slider.client.SliderClient;
 import org.apache.slider.common.SliderKeys;
+import org.apache.slider.common.params.ActionCreateArgs;
 import org.apache.slider.common.tools.SliderFileSystem;
 import org.apache.slider.core.exceptions.UnknownApplicationInstanceException;
 import org.apache.slider.core.main.LauncherExitCodes;
@@ -59,19 +73,13 @@ import org.apache.tools.zip.ZipFile;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
 
-import java.io.File;
-import java.io.FilenameFilter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.zip.ZipException;
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
 @Singleton
 public class SliderAppsViewControllerImpl implements SliderAppsViewController {
@@ -84,10 +92,16 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
   private AmbariClient ambariClient;
   private List<SliderAppType> appTypes;
 
+  private Integer createAppCounter = -1;
+
   private String getAppsFolderPath() {
     return viewContext
-               .getAmbariProperty(org.apache.ambari.server.configuration.Configuration.RESOURCES_DIR_KEY)
-           + "/apps";
+        .getAmbariProperty(org.apache.ambari.server.configuration.Configuration.RESOURCES_DIR_KEY)
+        + "/apps";
+  }
+
+  private String getAppsCreateFolderPath() {
+    return getAppsFolderPath() + "/create";
   }
 
   @Override
@@ -175,33 +189,45 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
     return null;
   }
 
+  private String getApplicationIdString(ApplicationId appId) {
+    return Long.toString(appId.getClusterTimestamp()) + "_"
+        + Integer.toString(appId.getId());
+  }
+
+  private ApplicationId getApplicationId(String appIdString) {
+    if (appIdString != null) {
+      int index = appIdString.indexOf('_');
+      if (index > -1 && index < appIdString.length() - 1) {
+        ApplicationId appId = ApplicationId.newInstance(
+            Long.parseLong(appIdString.substring(0, index)),
+            Integer.parseInt(appIdString.substring(index + 1)));
+        return appId;
+      }
+    }
+    return null;
+  }
+
   @Override
   public SliderApp getSliderApp(String applicationId, Set<String> properties)
       throws YarnException, IOException {
-    if (applicationId != null) {
-      int index = applicationId.indexOf('_');
-      if (index > -1 && index < applicationId.length() - 1) {
-        ApplicationId appId = ApplicationId.newInstance(
-            Long.parseLong(applicationId.substring(0, index)),
-            Integer.parseInt(applicationId.substring(index + 1)));
-        ClassLoader currentClassLoader = Thread.currentThread()
-            .getContextClassLoader();
-        Thread.currentThread().setContextClassLoader(
-            getClass().getClassLoader());
-        try {
-          SliderClient sliderClient = getSliderClient();
-          ApplicationReport yarnApp = sliderClient.getApplicationReport(appId);
-          return createSliderAppObject(yarnApp, properties, sliderClient);
-        } finally {
-          Thread.currentThread().setContextClassLoader(currentClassLoader);
-        }
+    ApplicationId appId = getApplicationId(applicationId);
+    if (appId != null) {
+      ClassLoader currentClassLoader = Thread.currentThread()
+          .getContextClassLoader();
+      Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
+      try {
+        SliderClient sliderClient = getSliderClient();
+        ApplicationReport yarnApp = sliderClient.getApplicationReport(appId);
+        return createSliderAppObject(yarnApp, properties, sliderClient);
+      } finally {
+        Thread.currentThread().setContextClassLoader(currentClassLoader);
       }
     }
     return null;
   }
 
   private SliderApp createSliderAppObject(ApplicationReport yarnApp,
-                                          Set<String> properties, SliderClient sliderClient) {
+      Set<String> properties, SliderClient sliderClient) {
     if (yarnApp == null) {
       return null;
     }
@@ -229,8 +255,7 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
       }
     }
 
-    app.setId(Long.toString(yarnApp.getApplicationId().getClusterTimestamp())
-              + "_" + Integer.toString(yarnApp.getApplicationId().getId()));
+    app.setId(getApplicationIdString(yarnApp.getApplicationId()));
     app.setName(yarnApp.getName());
     app.setUser(yarnApp.getUser());
     app.setDiagnostics(yarnApp.getDiagnostics());
@@ -267,10 +292,11 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
               if (quickLinks != null && quickLinks.containsKey("JMX")) {
                 String jmxUrl = quickLinks.get("JMX");
                 List<SliderAppType> appTypes = getSliderAppTypes(null);
-                if(appTypes != null && appTypes.size() > 0) {
+                if (appTypes != null && appTypes.size() > 0) {
                   // TODO: Get the correct app type based on name and version
                   SliderAppType appType = appTypes.get(0);
-                  app.setJmx(sliderAppClient.getJmx(jmxUrl, viewContext, appType));
+                  app.setJmx(sliderAppClient.getJmx(jmxUrl, viewContext,
+                      appType));
                 }
               }
               Map<String, Map<String, String>> configs = sliderAppClient
@@ -286,10 +312,8 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
                   Map<String, SliderAppComponent> componentTypeMap = new HashMap<String, SliderAppComponent>();
                   for (Entry<String, Object> e : description.status.entrySet()) {
                     @SuppressWarnings("unchecked")
-                    Map<String, Map<String, Map<String, Object>>>
-                        componentsObj =
-                        (Map<String, Map<String, Map<String, Object>>>) e
-                            .getValue();
+                    Map<String, Map<String, Map<String, Object>>> componentsObj = (Map<String, Map<String, Map<String, Object>>>) e
+                        .getValue();
                     boolean isLive = "live".equals(e.getKey());
                     for (Entry<String, Map<String, Map<String, Object>>> componentEntry : componentsObj
                         .entrySet()) {
@@ -303,7 +327,7 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
                         appComponent
                             .setCompletedContainers(new HashMap<String, Map<String, String>>());
                         componentTypeMap.put(componentEntry.getKey(),
-                                             appComponent);
+                            appComponent);
                       }
                       for (Entry<String, Map<String, Object>> containerEntry : componentEntry
                           .getValue().entrySet()) {
@@ -316,19 +340,19 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
                           Object containerPropertyValue = containerValues
                               .get(containerProperty);
                           containerDataMap.put(containerProperty,
-                                               containerPropertyValue.toString());
+                              containerPropertyValue.toString());
                         }
                         if (isLive) {
                           appComponent.getActiveContainers().put(containerId,
-                                                                 containerDataMap);
+                              containerDataMap);
                         } else {
                           appComponent.getCompletedContainers().put(
                               containerId, containerDataMap);
                         }
                       }
                       appComponent.setInstanceCount(appComponent
-                                                        .getActiveContainers().size()
-                                                    + appComponent.getCompletedContainers().size());
+                          .getActiveContainers().size()
+                          + appComponent.getCompletedContainers().size());
                     }
                   }
                   app.setComponents(componentTypeMap);
@@ -336,16 +360,16 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
               } catch (UnknownApplicationInstanceException e) {
                 logger.warn(
                     "Unable to determine app components for "
-                    + yarnApp.getName(), e);
+                        + yarnApp.getName(), e);
               } catch (YarnException e) {
                 logger.warn(
                     "Unable to determine app components for "
-                    + yarnApp.getName(), e);
+                        + yarnApp.getName(), e);
                 throw new RuntimeException(e.getMessage(), e);
               } catch (IOException e) {
                 logger.warn(
                     "Unable to determine app components for "
-                    + yarnApp.getName(), e);
+                        + yarnApp.getName(), e);
                 throw new RuntimeException(e.getMessage(), e);
               }
             }
@@ -357,9 +381,10 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
   }
 
   /**
-   * Creates a new {@link SliderClient} initialized with appropriate configuration. If configuration was not determined,
-   * <code>null</code> is returned.
-   *
+   * Creates a new {@link SliderClient} initialized with appropriate
+   * configuration. If configuration was not determined, <code>null</code> is
+   * returned.
+   * 
    * @return
    */
   protected SliderClient getSliderClient() {
@@ -368,7 +393,7 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
       SliderClient client = new SliderClient() {
         @Override
         public String getUsername() throws IOException {
-          return null;
+          return "yarn";
         }
 
         @Override
@@ -376,7 +401,7 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
           super.serviceInit(conf);
           // Override the default FS client to set the super user.
           FileSystem fs = FileSystem.get(FileSystem.getDefaultUri(getConfig()),
-                                         getConfig(), "yarn");
+              getConfig(), "yarn");
           SliderFileSystem fileSystem = new SliderFileSystem(fs, getConfig());
           Field fsField = SliderClient.class
               .getDeclaredField("sliderFileSystem");
@@ -386,7 +411,7 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
       };
       try {
         sliderClientConfiguration = client.bindArgs(sliderClientConfiguration,
-                                                    new String[]{"usage"});
+            new String[] { "usage" });
       } catch (Exception e) {
         logger.warn("Unable to set SliderClient configs", e);
         throw new RuntimeException(e.getMessage(), e);
@@ -399,15 +424,16 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
   }
 
   /**
-   * Dynamically determines Slider client configuration. If unable to determine, <code>null</code> is returned.
-   *
+   * Dynamically determines Slider client configuration. If unable to determine,
+   * <code>null</code> is returned.
+   * 
    * @return
    */
   private Configuration getSliderClientConfiguration() {
     AmbariCluster ambariCluster = getAmbariCluster();
     if (ambariCluster != null) {
       AmbariService zkService = ambariClient.getService(ambariCluster,
-                                                        "ZOOKEEPER");
+          "ZOOKEEPER");
       if (zkService != null && ambariCluster.getDesiredConfigs() != null
           && ambariCluster.getDesiredConfigs().containsKey("global")
           && ambariCluster.getDesiredConfigs().containsKey("yarn-site")
@@ -442,7 +468,7 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
         yarnConfig.set("yarn.log-aggregation-enable", "true");
         yarnConfig.set("yarn.resourcemanager.address", rmAddress);
         yarnConfig.set("yarn.resourcemanager.scheduler.address",
-                       rmSchedulerAddress);
+            rmSchedulerAddress);
         yarnConfig.set("fs.defaultFS", hdfsPath);
         yarnConfig.set("slider.zookeeper.quorum", zkQuorum.toString());
         return yarnConfig;
@@ -463,7 +489,7 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
       List<ApplicationReport> yarnApps = sliderClient.listSliderInstances(null);
       for (ApplicationReport yarnApp : yarnApps) {
         SliderApp sliderAppObject = createSliderAppObject(yarnApp, properties,
-                                                          sliderClient);
+            sliderClient);
         if (sliderAppObject != null) {
           sliderApps.add(sliderAppObject);
         }
@@ -530,7 +556,7 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
           try {
             ZipFile zipFile = new ZipFile(appZip);
             Metainfo metainfo = new MetainfoParser().parse(zipFile
-                                                               .getInputStream(zipFile.getEntry("metainfo.xml")));
+                .getInputStream(zipFile.getEntry("metainfo.xml")));
             // Create app type object
             if (metainfo.getServices() != null
                 && metainfo.getServices().size() > 0) {
@@ -571,11 +597,11 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
                 // appTypeComponent.setPriority(component.);
                 if (component.getMinInstanceCount() != null) {
                   appTypeComponent.setInstanceCount(Integer.parseInt(component
-                                                                         .getMinInstanceCount()));
+                      .getMinInstanceCount()));
                 }
                 if (component.getMaxInstanceCount() != null) {
                   appTypeComponent.setMaxInstanceCount(Integer
-                                                           .parseInt(component.getMaxInstanceCount()));
+                      .parseInt(component.getMaxInstanceCount()));
                 }
                 if (resourcesJson != null) {
                   JsonElement componentJson = resourcesJson.getAsJsonObject()
@@ -583,10 +609,10 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
                       .get(component.getName());
                   if (componentJson != null
                       && componentJson.getAsJsonObject().has(
-                      "yarn.role.priority")) {
+                          "yarn.role.priority")) {
                     appTypeComponent.setPriority(Integer.parseInt(componentJson
-                                                                      .getAsJsonObject().get("yarn.role.priority")
-                                                                      .getAsString()));
+                        .getAsJsonObject().get("yarn.role.priority")
+                        .getAsString()));
                   }
                 }
                 appTypeComponent.setCategory(component.getCategory());
@@ -594,7 +620,8 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
               }
 
               appType.setJmxMetrics(readMetrics(zipFile, "jmx_metrics.json"));
-              appType.setGangliaMetrics(readMetrics(zipFile, "ganglia_metrics.json"));
+              appType.setGangliaMetrics(readMetrics(zipFile,
+                  "ganglia_metrics.json"));
 
               appType.setTypeComponents(appTypeComponentList);
               appTypes.add(appType);
@@ -610,21 +637,152 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
     return appTypes;
   }
 
-  Map<String, Map<String, Map<String, Metric>>> readMetrics(ZipFile zipFile, String fileName) {
+  Map<String, Map<String, Map<String, Metric>>> readMetrics(ZipFile zipFile,
+      String fileName) {
     Map<String, Map<String, Map<String, Metric>>> metrics = null;
     try {
-      InputStream inputStream =
-          zipFile.getInputStream(zipFile.getEntry("jmx_metrics.json"));
+      InputStream inputStream = zipFile.getInputStream(zipFile
+          .getEntry("jmx_metrics.json"));
       ObjectMapper mapper = new ObjectMapper();
 
-      metrics =
-          mapper.readValue(inputStream,
-                           new TypeReference<Map<String, Map<String, Map<String, Metric>>>>() {
-                           });
+      metrics = mapper.readValue(inputStream,
+          new TypeReference<Map<String, Map<String, Map<String, Metric>>>>() {
+          });
     } catch (IOException e) {
       logger.info("Error reading metrics. " + e.getMessage());
     }
 
     return metrics;
+  }
+
+  @Override
+  public String createSliderApp(JsonObject json) throws IOException,
+      YarnException, InterruptedException {
+    if (json.has("name") && json.has("typeConfigs")
+        && json.has("typeComponents")) {
+      final String appName = json.get("name").getAsString();
+      JsonObject configs = json.get("typeConfigs").getAsJsonObject();
+      JsonArray componentsArray = json.get("typeComponents").getAsJsonArray();
+      String appsCreateFolderPath = getAppsCreateFolderPath();
+      File appsCreateFolder = new File(appsCreateFolderPath);
+      if (!appsCreateFolder.exists())
+        appsCreateFolder.mkdirs();
+      int appCount;
+      synchronized (createAppCounter) {
+        if (createAppCounter < 0) {
+          // Not initialized
+          createAppCounter = 0;
+          String[] apps = appsCreateFolder.list();
+          for (String app : apps) {
+            try {
+              int count = Integer.parseInt(app);
+              if (count > createAppCounter)
+                createAppCounter = count;
+            } catch (NumberFormatException e) {
+            }
+          }
+        }
+        appCount = ++createAppCounter;
+      }
+      File appCreateFolder = new File(appsCreateFolder,
+          Integer.toString(appCount));
+      appCreateFolder.mkdirs();
+      File appConfigJsonFile = new File(appCreateFolder, "appConfig.json");
+      File resourcesJsonFile = new File(appCreateFolder, "resources.json");
+      saveAppConfigs(configs, componentsArray, appConfigJsonFile);
+      saveAppResources(componentsArray, resourcesJsonFile);
+
+      AmbariClusterInfo clusterInfo = ambariClient.getClusterInfo();
+      AmbariCluster cluster = ambariClient.getCluster(clusterInfo);
+      Map<String, String> coreSiteConfigs = ambariClient.getConfiguration(
+          clusterInfo, "core-site", cluster.getDesiredConfigs()
+              .get("core-site"));
+      String hdfsLocation = coreSiteConfigs.get("fs.defaultFS");
+      final ActionCreateArgs createArgs = new ActionCreateArgs();
+      createArgs.template = appConfigJsonFile;
+      createArgs.resources = resourcesJsonFile;
+      createArgs.image = new Path(hdfsLocation
+          + "/slider/agent/slider-agent.tar.gz");
+
+      ClassLoader currentClassLoader = Thread.currentThread()
+          .getContextClassLoader();
+      Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
+      try {
+        ApplicationId applicationId = UserGroupInformation.getBestUGI(null,
+            "yarn").doAs(new PrivilegedExceptionAction<ApplicationId>() {
+          public ApplicationId run() throws IOException, YarnException {
+            SliderClient sliderClient = getSliderClient();
+            sliderClient.actionCreate(appName, createArgs);
+            return sliderClient.applicationId;
+          }
+        });
+        if (applicationId != null)
+          return getApplicationIdString(applicationId);
+      } finally {
+        Thread.currentThread().setContextClassLoader(currentClassLoader);
+      }
+    }
+    return null;
+  }
+
+  private void saveAppResources(JsonArray componentsArray,
+      File resourcesJsonFile) throws IOException {
+    JsonObject resourcesObj = new JsonObject();
+    resourcesObj.addProperty("schema",
+        "http://example.org/specification/v2.0.0");
+    resourcesObj.add("metadata", new JsonObject());
+    resourcesObj.add("global", new JsonObject());
+    JsonObject componentsObj = new JsonObject();
+    if (componentsArray != null) {
+      for (int i = 0; i < componentsArray.size(); i++) {
+        JsonObject inputComponent = componentsArray.get(i).getAsJsonObject();
+        if (inputComponent.has("id")) {
+          JsonObject componentValue = new JsonObject();
+          componentValue.addProperty("yarn.role.priority",
+              inputComponent.get("priority").getAsString());
+          componentValue.addProperty("yarn.component.instances", inputComponent
+              .get("instanceCount").getAsString());
+          componentsObj.add(inputComponent.get("id").getAsString(),
+              componentValue);
+        }
+      }
+    }
+    resourcesObj.add("components", componentsObj);
+    String jsonString = new Gson().toJson(resourcesObj);
+    FileOutputStream fos = null;
+    try {
+      fos = new FileOutputStream(resourcesJsonFile);
+      IOUtils.write(jsonString, fos);
+    } finally {
+      if (fos != null)
+        fos.close();
+    }
+  }
+
+  private void saveAppConfigs(JsonObject configs, JsonArray componentsArray,
+      File appConfigJsonFile) throws IOException {
+    JsonObject appConfigs = new JsonObject();
+    appConfigs.addProperty("schema", "http://example.org/specification/v2.0.0");
+    appConfigs.add("metadata", new JsonObject());
+    appConfigs.add("global", configs);
+    JsonObject componentsObj = new JsonObject();
+    if (componentsArray != null) {
+      for (int i = 0; i < componentsArray.size(); i++) {
+        JsonObject inputComponent = componentsArray.get(i).getAsJsonObject();
+        if (inputComponent.has("id"))
+          componentsObj.add(inputComponent.get("id").getAsString(),
+              new JsonObject());
+      }
+    }
+    appConfigs.add("components", componentsObj);
+    String jsonString = new Gson().toJson(appConfigs);
+    FileOutputStream fos = null;
+    try {
+      fos = new FileOutputStream(appConfigJsonFile);
+      IOUtils.write(jsonString, fos);
+    } finally {
+      if (fos != null)
+        fos.close();
+    }
   }
 }

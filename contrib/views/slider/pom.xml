@@ -111,6 +111,37 @@
 		<!-- Slider Dependencies (to be removed when Slider has Maven repository) -->
 		<!-- ==================================================================== -->
 		<dependency>
+			<groupId>org.apache.curator</groupId>
+			<artifactId>curator-client</artifactId>
+			<version>${curator.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.curator</groupId>
+			<artifactId>curator-framework</artifactId>
+			<version>${curator.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.curator</groupId>
+			<artifactId>curator-x-discovery</artifactId>
+			<version>${curator.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.curator</groupId>
+			<artifactId>curator-x-discovery-server</artifactId>
+			<version>${curator.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.zookeeper</groupId>
+			<artifactId>zookeeper</artifactId>
+			<version>${zookeeper.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.junit</groupId>
+					<artifactId>junit</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
 			<groupId>org.apache.hadoop</groupId>
 			<artifactId>hadoop-common</artifactId>
 			<version>${hadoop.version}</version>
@@ -341,6 +372,8 @@
 		<commons-lang.version>2.6</commons-lang.version>
 		<httpclient.version>4.2.5</httpclient.version>
 		<jcommander.version>1.30</jcommander.version>
+		<curator.version>2.4.1</curator.version>
+		<zookeeper.version>3.4.5</zookeeper.version>
 	</properties>
 
 	<build>
@@ -446,29 +479,29 @@
 			</plugin>
 		</plugins>
 		<resources>
-      <resource>
-        <directory>src/main/resources</directory>
-        <filtering>true</filtering>
-        <includes>
-          <include>slider.properties</include>
-        </includes>
-      </resource>
-      <resource>
-        <directory>src/main/resources/</directory>
-        <filtering>false</filtering>
-        <includes>
-          <include>view.xml</include>
-        </includes>
-      </resource>
-      <resource>
-        <directory>src/main/resources/ui/public</directory>
-        <filtering>false</filtering>
-      </resource>
-      <resource>
-        <targetPath>WEB-INF/lib</targetPath>
-        <filtering>false</filtering>
-        <directory>target/lib</directory>
-      </resource>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+				<includes>
+					<include>slider.properties</include>
+				</includes>
+			</resource>
+			<resource>
+				<directory>src/main/resources/</directory>
+				<filtering>false</filtering>
+				<includes>
+					<include>view.xml</include>
+				</includes>
+			</resource>
+			<resource>
+				<directory>src/main/resources/ui/public</directory>
+				<filtering>false</filtering>
+			</resource>
+			<resource>
+				<targetPath>WEB-INF/lib</targetPath>
+				<filtering>false</filtering>
+				<directory>target/lib</directory>
+			</resource>
 		</resources>
 		<pluginManagement>
 			<plugins>

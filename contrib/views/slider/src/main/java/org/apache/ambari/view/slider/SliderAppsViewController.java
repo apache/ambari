@@ -24,52 +24,55 @@ import java.util.Set;
 
 import org.apache.hadoop.yarn.exceptions.YarnException;
 
+import com.google.gson.JsonObject;
 import com.google.inject.ImplementedBy;
 
 @ImplementedBy(SliderAppsViewControllerImpl.class)
 public interface SliderAppsViewController {
 
-	public ViewStatus getViewStatus();
+  public ViewStatus getViewStatus();
 
-	/**
-	 * Provides information about requested Slider App.
-	 * 
-	 * @param applicationId
-	 * @param properties
-	 *          Identifies specific properties to show up. Provide
-	 *          <code>null</code> for default properties.
-	 * @return
-	 * @throws YarnException
-	 * @throws IOException
-	 */
-	public SliderApp getSliderApp(String applicationId, Set<String> properties)
-	    throws YarnException, IOException;
+  /**
+   * Provides information about requested Slider App.
+   * 
+   * @param applicationId
+   * @param properties
+   *          Identifies specific properties to show up. Provide
+   *          <code>null</code> for default properties.
+   * @return
+   * @throws YarnException
+   * @throws IOException
+   */
+  public SliderApp getSliderApp(String applicationId, Set<String> properties)
+      throws YarnException, IOException;
 
-	/**
-	 * Provides list of Slider apps with requested properties populated.
-	 * 
-	 * @param properties
-	 *          Identifies specific properties to show up. Provide
-	 *          <code>null</code> for default properties.
-	 * @return
-	 * @throws YarnException
-	 * @throws IOException
-	 */
-	public List<SliderApp> getSliderApps(Set<String> properties)
-	    throws YarnException, IOException;
+  /**
+   * Provides list of Slider apps with requested properties populated.
+   * 
+   * @param properties
+   *          Identifies specific properties to show up. Provide
+   *          <code>null</code> for default properties.
+   * @return
+   * @throws YarnException
+   * @throws IOException
+   */
+  public List<SliderApp> getSliderApps(Set<String> properties)
+      throws YarnException, IOException;
 
-	/**
-	 * Attempts to delete a Slider app. An unsuccessful attempt will result in
-	 * exception.
-	 * 
-	 * @param applicationId
-	 * @throws YarnException
-	 * @throws IOException
-	 */
-	public void deleteSliderApp(String applicationId) throws YarnException,
-	    IOException;
+  /**
+   * Attempts to delete a Slider app. An unsuccessful attempt will result in
+   * exception.
+   * 
+   * @param applicationId
+   * @throws YarnException
+   * @throws IOException
+   */
+  public void deleteSliderApp(String applicationId) throws YarnException,
+      IOException;
 
-	public SliderAppType getSliderAppType(String appTypeId, Set<String> properties);
+  public SliderAppType getSliderAppType(String appTypeId, Set<String> properties);
 
-	public List<SliderAppType> getSliderAppTypes(Set<String> properties);
+  public List<SliderAppType> getSliderAppTypes(Set<String> properties);
+
+  public String createSliderApp(JsonObject requestJson) throws IOException, YarnException, InterruptedException;
 }

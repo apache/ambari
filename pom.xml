@@ -213,6 +213,9 @@
             <exclude>contrib/views/slider/src/main/resources/ui/app/assets/javascripts/modernizr-2.6.2.min.js</exclude>
             <exclude>contrib/addons/package/deb/nagios_addon_deb_control</exclude>
             <exclude>contrib/addons/src/addOns/nagios/conf.d/hdp_mon_nagios_addons.conf</exclude>
+            <exclude>contrib/views/*/.classpath</exclude>
+            <exclude>contrib/views/*/.project</exclude>
+            <exclude>contrib/views/*/.settings/**</exclude>
           </excludes>
         </configuration>
         <executions>
