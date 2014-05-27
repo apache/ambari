@@ -59,7 +59,26 @@ App.CreateAppWizardStep1Controller = Ember.Controller.extend({
   nameErrorMessage: '',
 
   /**
+   * Define description depending on selected App type
+   * @type {string}
+   */
+  typeDescription: function () {
+    var selectedType = this.get('selectedType');
+    return selectedType ? Em.I18n.t('wizard.step1.typeDescription').format(selectedType.get('displayName')) : '';
+  }.property('selectedType'),
+
+  /**
+   * Define if submit button is disabled
+   * <code>newAppName</code> should pass validation and be not empty
+   * @type {bool}
+   */
+  isSubmitDisabled: function () {
+    return !this.get('newAppName') || this.get('isNameError');
+  }.property('newAppName', 'isNameError'),
+
+  /**
    * Load all required data for step
+   * @method loadStep
    */
   loadStep: function () {
     this.initializeNewApp();
@@ -68,17 +87,20 @@ App.CreateAppWizardStep1Controller = Ember.Controller.extend({
 
   /**
    * Initialize new App and set it to <code>newApp</code>
+   * @method initializeNewApp
    */
   initializeNewApp: function () {
     var newApp = Ember.Object.create({
       name: '',
-      appType: null
+      appType: null,
+      configs: {}
     });
     this.set('newApp', newApp);
   },
 
   /**
    * Load all available types for App
+   * @method loadAvailableTypes
    */
   loadAvailableTypes: function () {
     this.set('availableTypes', this.store.all('sliderAppType'));
@@ -87,6 +109,7 @@ App.CreateAppWizardStep1Controller = Ember.Controller.extend({
   /**
    * Validate <code>newAppName</code>
    * It should consist only of letters, numbers, '-', '_' and first character should be a letter
+   * @method nameValidator
    * @return {Boolean}
    */
   nameValidator: function () {
@@ -110,25 +133,14 @@ App.CreateAppWizardStep1Controller = Ember.Controller.extend({
   }.observes('newAppName'),
 
   /**
-   * Define description depending on selected App type
+   * Save new application data to wizard controller
+   * @method saveApp
    */
-  typeDescription: function () {
-    var selectedType = this.get('selectedType');
-    return selectedType ? Em.I18n.t('wizard.step1.typeDescription').format(selectedType.get('displayName')) : '';
-  }.property('selectedType'),
-
-  /**
-   * Define if submit button is disabled
-   * <code>newAppName</code> should pass validation and be not empty
-   */
-  isSubmitDisabled: function () {
-    return !this.get('newAppName') || this.get('isNameError');
-  }.property('newAppName', 'isNameError'),
-
   saveApp: function () {
     var newApp = this.get('newApp');
     newApp.set('appType', this.get('selectedType'));
     newApp.set('name', this.get('newAppName'));
+    newApp.set('configs', this.get('selectedType.configs'));
     this.set('appWizardController.newApp', newApp);
   },
 

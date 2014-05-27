@@ -42,13 +42,26 @@ App.CreateAppWizardStep3Controller = Ember.ObjectController.extend({
 
   /**
    * Load all data required for step
+   * @method loadStep
    */
   loadStep: function () {
     this.clearStep();
+    this.initConfigs();
+  },
+
+  /**
+   * Format init value for <code>configs</code> property
+   * @method initConfigs
+   */
+  initConfigs: function() {
+    var c = JSON.stringify(this.get('appWizardController.newApp.configs')).replace(/",/g, '",\n');
+    c = c.substr(1, c.length - 2);
+    this.set('configs', c);
   },
 
   /**
    * Clear all initial data
+   * @method clearStep
    */
   clearStep: function () {
     this.set('isError', false);
@@ -57,6 +70,7 @@ App.CreateAppWizardStep3Controller = Ember.ObjectController.extend({
   /**
    * Validate <code>configs</code> to be key-value formatted amd convert it to object
    * @return {Boolean}
+   * @method validateConfigs
    */
   validateConfigs: function () {
     var self = this;
@@ -74,6 +88,7 @@ App.CreateAppWizardStep3Controller = Ember.ObjectController.extend({
 
   /**
    * Save converted configs to new App configs
+   * @method saveConfigs
    */
   saveConfigs: function () {
     this.set('appWizardController.newApp.configs', this.get('configsObject'));

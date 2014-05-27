@@ -51,7 +51,12 @@ App.SliderAppTypeComponent = DS.Model.extend({
   /**
    * @type {App.SliderAppType}
    */
-  appType: DS.belongsTo('sliderAppType')
+  appType: DS.belongsTo('sliderAppType'),
+
+  /**
+   * @type {number}
+   */
+  priority: DS.attr('string')
 
 });
 

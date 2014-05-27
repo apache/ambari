@@ -24,13 +24,6 @@
 App.ApplicationStatusMapper = App.Mapper.createWithMixins(App.RunPeriodically, {
 
   /**
-   * Url suffix
-   * Used with <code>App.urlPrefix</code>
-   * @type {string}
-   */
-  urlSuffix: 'resources/status',
-
-  /**
    * Map for parsing JSON received from server
    * Format:
    *  <code>
@@ -57,14 +50,10 @@ App.ApplicationStatusMapper = App.Mapper.createWithMixins(App.RunPeriodically, {
    */
   load: function() {
     console.log('App.ApplicationStatusMapper loading data');
-    var self = this,
-      url = App.get('testMode') ? '/data/resource/status_true.json' : App.get('urlPrefix') + this.get('urlSuffix');
-
-    return $.ajax({
-      url: url,
-      dataType: 'json',
-      async: true,
-      success: function(data) {self.parse(data);}
+    return App.ajax.send({
+      name: 'mapper.applicationStatus',
+      sender: this,
+      success: 'parse'
     });
   },
 

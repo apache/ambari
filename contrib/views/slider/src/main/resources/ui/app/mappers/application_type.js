@@ -37,13 +37,6 @@
 App.ApplicationTypeMapper = App.Mapper.createWithMixins(App.RunPeriodically, {
 
   /**
-   * Url suffix
-   * Used with <code>App.urlPrefix</code>
-   * @type {string}
-   */
-  urlSuffix: 'apptypes?fields=*',
-
-  /**
    * Map for parsing JSON received from server
    * Format:
    *  <code>
@@ -63,6 +56,7 @@ App.ApplicationTypeMapper = App.Mapper.createWithMixins(App.RunPeriodically, {
     displayName: 'typeName',
     index: 'id',
     description: 'typeDescription',
+    version: 'typeVersion',
     /**
      * Map array to nested models
      * Use <code>('$components').replace('$', '') + 'Map'</code> property as map
@@ -81,7 +75,8 @@ App.ApplicationTypeMapper = App.Mapper.createWithMixins(App.RunPeriodically, {
     displayName: 'displayName',
     defaultNumInstances: 'instanceCount',
     defaultYARNMemory: 'yarnMemory',
-    defaultYARNCPU: 'yarnCpuCores'
+    defaultYARNCPU: 'yarnCpuCores',
+    priority: 'priority'
   },
 
   /**
@@ -103,14 +98,10 @@ App.ApplicationTypeMapper = App.Mapper.createWithMixins(App.RunPeriodically, {
    */
   load: function() {
     console.log('App.ApplicationTypeMapper loading data');
-    var self = this,
-      url = App.get('testMode') ? '/data/apptypes/all_fields.json' : App.get('urlPrefix') + this.get('urlSuffix');
-
-    return $.ajax({
-      url: url,
-      dataType: 'json',
-      async: true,
-      success: function(data) {self.parse(data);}
+    return App.ajax.send({
+      name: 'mapper.applicationTypes',
+      sender: this,
+      success: 'parse'
     });
   },
 

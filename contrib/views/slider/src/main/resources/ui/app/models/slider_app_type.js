@@ -39,9 +39,14 @@ App.SliderAppType = DS.Model.extend({
   description: DS.attr('string'),
 
   /**
+   * @type {string}
+   */
+  version: DS.attr('string'),
+
+  /**
    * @type {object}
    */
-  configs: {}
+  configs: DS.attr('object')
 
 });
 

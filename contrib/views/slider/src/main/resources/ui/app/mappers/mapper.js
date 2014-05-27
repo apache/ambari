@@ -24,13 +24,6 @@
 App.Mapper = Ember.Object.extend({
 
   /**
-   * Url suffix
-   * Used with <code>App.urlPrefix</code>
-   * @type {string}
-   */
-  urlSuffix: '',
-
-  /**
    * Map for parsing JSON received from server
    * Format:
    *  <code>

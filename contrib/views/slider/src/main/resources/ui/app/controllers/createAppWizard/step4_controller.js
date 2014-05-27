@@ -29,21 +29,6 @@ App.CreateAppWizardStep4Controller = Ember.ObjectController.extend({
   newApp: null,
 
   /**
-   * Load all required data for step
-   */
-  loadStep: function () {
-    this.initializeNewApp();
-  },
-
-  /**
-   * Initialize new App to use it scope of controller
-   */
-  initializeNewApp: function () {
-    var newApp = this.get('appWizardController.newApp');
-    this.set('newApp', newApp);
-  },
-
-  /**
    * Return formatted configs to show them on preview page
    * @return {String}
    */
@@ -53,58 +38,80 @@ App.CreateAppWizardStep4Controller = Ember.ObjectController.extend({
     if (configs) {
       result = JSON.stringify(configs);
       result = result.substring(1, result.length - 1);
-      result = result.replace(/,/g, ',\n');
+      result = result.replace(/",/g, '",\n');
     }
     return result;
   }.property('newApp.configs'),
 
   /**
    * Return formatted object to send it in request to server
-   * @type {Object}
+   * @type {Object[]}
    */
   componentsFormatted: function () {
-    var result = {};
-    this.get('newApp.components').forEach(function (component) {
-      result[component.get('name')] = {
-        'num_instances': component.get('numInstances'),
-        'yarn_memory': component.get('yarnMemory'),
-        'yarn_cpu': component.get('yarnCPU')
+    return this.get('newApp.components').map(function (component) {
+      return {
+        'id': component.get('name'),
+        'instanceCount': component.get('numInstances'),
+        'yarnMemory': component.get('yarnMemory'),
+        'yarnCpuCores': component.get('yarnCPU'),
+        'priority': component.get('priority')
       };
     });
-    return result;
   }.property('newApp.components.@each'),
+
+  /**
+   * Load all required data for step
+   * @method loadStep
+   */
+  loadStep: function () {
+    this.initializeNewApp();
+  },
+
+  /**
+   * Initialize new App to use it scope of controller
+   * @method initializeNewApp
+   */
+  initializeNewApp: function () {
+    var newApp = this.get('appWizardController.newApp');
+    this.set('newApp', newApp);
+  },
 
   /**
    * Send request to server to deploy new App
    * @return {$.ajax}
+   * @method sendAppDataToServer
    */
   sendAppDataToServer: function () {
-    if (!App.get('testMode')) {
-      var self = this;
-      var app = this.get('newApp');
-      var componentsFormatted = this.get('componentsFormatted');
-      return $.ajax({
-        url: App.get('urlPrefix') + 'apps/',
-        method: 'POST',
-        data: JSON.stringify({
-          type: app.get('appType.index'),
+    var app = this.get('newApp');
+    return App.ajax.send({
+      name: 'createNewApp',
+      sender: this,
+      data: {
+        data: {
+          typeName: app.get('appType.index'),
+          typeVersion: app.get('appType.version'),
           name: app.get('name'),
-          components: componentsFormatted,
-          configs: app.get('configs')
-        }),
-        complete: function () {
-          self.get('appWizardController').hidePopup();
+          typeComponents: this.get('componentsFormatted'),
+          typeConfigs: app.get('configs')
         }
-      });
-    } else {
-      this.get('appWizardController').hidePopup();
-      return true;
-    }
+      },
+      complete: 'sendAppDataToServerCompleteCallback'
+    });
+  },
+
+  /**
+   * Complete-callback for "create new app"-request
+   * @method sendAppDataToServerCompleteCallback
+   */
+  sendAppDataToServerCompleteCallback: function() {
+    this.get('appWizardController').hidePopup();
   },
 
   actions: {
+
     /**
      * Onclick handler for finish button
+     * @method finish
      */
     finish: function () {
       this.sendAppDataToServer();

@@ -93,14 +93,22 @@ App.SliderAppController = Ember.ObjectController.extend({
    * @method destroy
    */
   destroy: function() {
-    var self = this;
-    return $.ajax({
-      url: App.get('urlPrefix') + 'apps/' + this.get('model.index'),
-      method: 'DELETE',
-      complete: function() {
-        self.transitionToRoute('slider_apps');
-      }
+    return App.ajax.send({
+      name: 'destroyApp',
+      sender: this,
+      data: {
+        id: this.get('model.id')
+      },
+      complete: 'destroyCompleteCallback'
     });
+  },
+
+  /**
+   * Complate-callback for "destroy app"-request
+   * @method destroyCompleteCallback
+   */
+  destroyCompleteCallback: function() {
+    this.transitionToRoute('slider_apps');
   },
 
   actions: {

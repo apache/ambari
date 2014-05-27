@@ -23,26 +23,15 @@
 App.SliderAppsMapper = App.Mapper.createWithMixins(App.RunPeriodically, {
 
   /**
-   * Url suffix
-   * Used with <code>App.urlPrefix</code>
-   * @type {string}
-   */
-  urlSuffix: 'apps/?fields=*',
-
-  /**
    * Load data from <code>App.urlPrefix + this.urlSuffix</code> one time
    * @method load
    * @return {$.ajax}
    */
   load: function() {
-    var self = this,
-      url = App.get('testMode') ? '/data/apps/apps.json' : App.get('urlPrefix') + this.get('urlSuffix');
-
-    return $.ajax({
-      url: url,
-      dataType: 'json',
-      async: true,
-      success: function(data) {self.parse(data);}
+    return App.ajax.send({
+      name: 'mapper.applicationApps',
+      sender: this,
+      success: 'parse'
     });
   },
 
