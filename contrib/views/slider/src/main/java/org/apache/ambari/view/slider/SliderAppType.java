@@ -18,72 +18,99 @@
 
 package org.apache.ambari.view.slider;
 
+import org.apache.ambari.view.slider.rest.client.Metric;
+import org.codehaus.jackson.annotate.JsonIgnore;
+import org.codehaus.jackson.annotate.JsonIgnoreProperties;
+
 import java.util.List;
 import java.util.Map;
 
+@JsonIgnoreProperties({ "jmxMetrics", "gangliaMetrics" })
 public class SliderAppType {
-	private String id;
-	private String typeName;
-	private String typeVersion;
-	private String typeDescription;
-	private Map<String, String> typeConfigs;
-	private List<SliderAppTypeComponent> typeComponents;
-	private String typePackageFileName;
+  private String id;
+  private String typeName;
+  private String typeVersion;
+  private String typeDescription;
+  private Map<String, String> typeConfigs;
+  private List<SliderAppTypeComponent> typeComponents;
+  private String typePackageFileName;
+  @JsonIgnore
+  private Map<String, Map<String, Map<String, Metric>>> jmxMetrics;
+  @JsonIgnore
+  private Map<String, Map<String, Map<String, Metric>>> gangliaMetrics;
 
-	public String getId() {
-		return id;
-	}
+  @JsonIgnore
+  public Map<String, Map<String, Map<String, Metric>>> getJmxMetrics() {
+    return jmxMetrics;
+  }
 
-	public void setId(String id) {
-		this.id = id;
-	}
+  public void setJmxMetrics(Map<String, Map<String, Map<String, Metric>>> jmxMetrics) {
+    this.jmxMetrics = jmxMetrics;
+  }
 
-	public String getTypeName() {
-		return typeName;
-	}
+  @JsonIgnore
+  public Map<String, Map<String, Map<String, Metric>>> getGangliaMetrics() {
+    return gangliaMetrics;
+  }
 
-	public void setTypeName(String name) {
-		this.typeName = name;
-	}
+  public void setGangliaMetrics(Map<String, Map<String, Map<String, Metric>>> gangliaMetrics) {
+    this.gangliaMetrics = gangliaMetrics;
+  }
 
-	public String getTypeDescription() {
-		return typeDescription;
-	}
+  public String getId() {
+    return id;
+  }
 
-	public void setTypeDescription(String description) {
-		this.typeDescription = description;
-	}
+  public void setId(String id) {
+    this.id = id;
+  }
 
-	public Map<String, String> getTypeConfigs() {
-		return typeConfigs;
-	}
+  public String getTypeName() {
+    return typeName;
+  }
 
-	public void setTypeConfigs(Map<String, String> configs) {
-		this.typeConfigs = configs;
-	}
+  public void setTypeName(String name) {
+    this.typeName = name;
+  }
 
-	public List<SliderAppTypeComponent> getTypeComponents() {
-		return typeComponents;
-	}
+  public String getTypeDescription() {
+    return typeDescription;
+  }
 
-	public void setTypeComponents(List<SliderAppTypeComponent> components) {
-		this.typeComponents = components;
-	}
+  public void setTypeDescription(String description) {
+    this.typeDescription = description;
+  }
 
-	public String getTypeVersion() {
-		return typeVersion;
-	}
+  public Map<String, String> getTypeConfigs() {
+    return typeConfigs;
+  }
 
-	public void setTypeVersion(String version) {
-		this.typeVersion = version;
-	}
+  public void setTypeConfigs(Map<String, String> configs) {
+    this.typeConfigs = configs;
+  }
 
-	public String getTypePackageFileName() {
-		return typePackageFileName;
-	}
+  public List<SliderAppTypeComponent> getTypeComponents() {
+    return typeComponents;
+  }
 
-	public void setTypePackageFileName(String typePackageFileName) {
-		this.typePackageFileName = typePackageFileName;
-	}
+  public void setTypeComponents(List<SliderAppTypeComponent> components) {
+    this.typeComponents = components;
+  }
+
+  public String getTypeVersion() {
+    return typeVersion;
+  }
+
+  public void setTypeVersion(String version) {
+    this.typeVersion = version;
+  }
+
+  public String getTypePackageFileName() {
+    return typePackageFileName;
+  }
+
+  public void setTypePackageFileName(String typePackageFileName) {
+    this.typePackageFileName = typePackageFileName;
+  }
 
 }
