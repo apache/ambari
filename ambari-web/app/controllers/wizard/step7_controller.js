@@ -944,12 +944,73 @@ App.WizardStep7Controller = Em.Controller.extend({
   },
 
   /**
+    * Check whether hive New MySQL database is on the same host as Ambari server MySQL server
+    * @return {$.ajax|null}
+    * @method checkMySQLHost
+    */
+  checkMySQLHost: function () {
+    // get ambari database type and hostname
+    return App.ajax.send({
+      name: 'config.ambari.database.info',
+      sender: this,
+      success: 'getAmbariDatabaseSuccess'
+    });
+  },
+
+  /**
+   * Success callback for ambari database, get Ambari DB type and DB server hostname, then
+   * Check whether hive New MySQL database is on the same host as Ambari server MySQL server
+   * @param {object} data
+   * @method getAmbariDatabaseSuccess
+   */
+  getAmbariDatabaseSuccess: function (data) {
+    var hiveDBHostname = this.get('stepConfigs').findProperty('serviceName', 'HIVE').configs.findProperty('name', 'hivemetastore_host').value;
+    var ambariDBInfo = JSON.stringify(data.hostComponents[0].RootServiceHostComponents.properties);
+    this.set('mySQLServerConflict', ambariDBInfo.indexOf('mysql') > 0 && ambariDBInfo.indexOf(hiveDBHostname) > 0);
+  },
+
+  /**
    * Click-handler on Next button
    * @method submit
    */
   submit: function () {
     if (!this.get('isSubmitDisabled')) {
-      App.router.send('next');
+      var hiveDBType = this.get('stepConfigs').findProperty('serviceName', 'HIVE').configs.findProperty('name', 'hive_database').value;
+      if (hiveDBType == 'New MySQL Database') {
+        var self= this;
+        this.checkMySQLHost().done(function () {
+          if (self.get('mySQLServerConflict')) {
+            // error popup before you can proceed
+            return App.ModalPopup.show({
+              header: Em.I18n.t('installer.step7.popup.mySQLWarning.header'),
+              bodyClass: Ember.View.extend({
+                template: Ember.Handlebars.compile( Em.I18n.t('installer.step7.popup.mySQLWarning.body'))
+              }),
+              secondary: Em.I18n.t('installer.step7.popup.mySQLWarning.button.gotostep5'),
+              primary: Em.I18n.t('installer.step7.popup.mySQLWarning.button.dismiss'),
+              onSecondary: function (){
+                var parent = this;
+                return App.ModalPopup.show({
+                  header: Em.I18n.t('installer.step7.popup.mySQLWarning.confirmation.header'),
+                  bodyClass: Ember.View.extend({
+                    template: Ember.Handlebars.compile( Em.I18n.t('installer.step7.popup.mySQLWarning.confirmation.body'))
+                  }),
+                  onPrimary: function (){
+                    this.hide();
+                    parent.hide();
+                    // go back to step 5: assign masters and disable default navigation warning
+                    App.router.get('installerController').gotoStep(5, true);
+                  }
+                });
+              }
+            });
+          } else {
+            App.router.send('next');
+          }
+        });
+      } else {
+        App.router.send('next');
+      }
     }
   }
 

@@ -145,7 +145,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
     return this.get('currentStep') == 10;
   }.property('currentStep'),
 
-  gotoStep: function (step) {
+  gotoStep: function (step, disableNaviWarning) {
     if (this.get('isStepDisabled').findProperty('step', step).get('value') !== false) {
       return false;
     }
@@ -159,7 +159,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
         localdb: App.db.data
       });
     }
-    if ((this.get('currentStep') - step) > 1) {
+    if ((this.get('currentStep') - step) > 1 && !disableNaviWarning) {
       App.ModalPopup.show({
         header: Em.I18n.t('installer.navigation.warning.header'),
         onPrimary: function () {

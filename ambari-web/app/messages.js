@@ -598,6 +598,12 @@ Em.I18n.translations = {
   'installer.step7.popup.adjustedValue':'Adjusted Value',
   'installer.step7.popup.rddWarning.header':'Warning: disk space low on {0}',
   'installer.step7.popup.rddWarning.body':'A minimum of 16GB is recommended for the Ganglia Server logs but the disk mount "{0}" on {1} does not have enough space ({2} free). Go to the Misc tab and change Ganglia rrdcached base directory with more than 16GB of disk space. If you proceed without changing it, {1} will likely run out of disk space and become inoperable.',
+  'installer.step7.popup.mySQLWarning.header':'Error: New MySQL Database for Hive Conflict',
+  'installer.step7.popup.mySQLWarning.body':'You cannot install a \"New MySQL Database\" for Hive on the same host as the Ambari Server MySQL Server. Please go back to <b>Assign Masters</b> and reassign Hive to another host <b>OR</b> choose \"Existing MySQL Database\" option to specify the Database Credentials and URL for the Ambari Server MySQL Server instance. If you choose \"Existing MySQL Database\" option, you need to perform the Hive prerequisite steps to prepare the MySQL Server instance for Hive.',
+  'installer.step7.popup.mySQLWarning.button.gotostep5': 'Go to Assign Masters',
+  'installer.step7.popup.mySQLWarning.button.dismiss': 'Dismiss',
+  'installer.step7.popup.mySQLWarning.confirmation.header': 'Confirmation: Go to Assign Masters',
+  'installer.step7.popup.mySQLWarning.confirmation.body': 'You will be brought back to the \"Assign Masters\" step and will lose all your current customizations. Are you sure?',
 
   'installer.step8.header':'Review',
   'installer.step8.body':'Please review the configuration before installation',
