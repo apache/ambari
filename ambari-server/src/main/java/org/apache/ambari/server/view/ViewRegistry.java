@@ -44,8 +44,12 @@ import org.apache.ambari.server.view.configuration.PropertyConfig;
 import org.apache.ambari.server.view.configuration.ResourceConfig;
 import org.apache.ambari.server.view.configuration.ViewConfig;
 import org.apache.ambari.view.SystemException;
+import org.apache.ambari.view.View;
 import org.apache.ambari.view.ViewContext;
+import org.apache.ambari.view.ViewDefinition;
 import org.apache.ambari.view.ViewResourceHandler;
+import org.apache.ambari.view.events.Event;
+import org.apache.ambari.view.events.Listener;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -103,6 +107,12 @@ public class ViewRegistry {
    */
   private final Map<String, Set<SubResourceDefinition>> subResourceDefinitionsMap =
       new HashMap<String, Set<SubResourceDefinition>>();
+
+  /**
+   * Mapping of view names to registered listeners.
+   */
+  private final Map<String, List<Listener>> listeners =
+      new HashMap<String, List<Listener>>();
 
   /**
    * Helper class.
@@ -168,6 +178,10 @@ public class ViewRegistry {
    * @param definition  the definition
    */
   public void addDefinition(ViewEntity definition) {
+    View view = definition.getView();
+    if (view != null) {
+      view.onDeploy(definition);
+    }
     viewDefinitions.put(definition.getName(), definition);
   }
 
@@ -216,6 +230,11 @@ public class ViewRegistry {
       instanceDefinitions = new HashMap<String, ViewInstanceEntity>();
       viewInstanceDefinitions.put(definition, instanceDefinitions);
     }
+
+    View view = definition.getView();
+    if (view != null) {
+      view.onCreate(instanceDefinition);
+    }
     instanceDefinitions.put(instanceDefinition.getName(), instanceDefinition);
   }
 
@@ -228,7 +247,15 @@ public class ViewRegistry {
   public void removeInstanceDefinition(ViewEntity definition, String instanceName) {
     Map<String, ViewInstanceEntity> instanceDefinitions = viewInstanceDefinitions.get(definition);
     if (instanceDefinitions != null) {
-      instanceDefinitions.remove(instanceName);
+
+      ViewInstanceEntity instanceDefinition = instanceDefinitions.get(instanceName);
+      if (instanceDefinition != null) {
+        View view = definition.getView();
+        if (view != null) {
+          view.onDestroy(instanceDefinition);
+        }
+        instanceDefinitions.remove(instanceName);
+      }
     }
   }
 
@@ -469,6 +496,40 @@ public class ViewRegistry {
     }
   }
 
+  /**
+   * Notify any registered listeners of the given event.
+   *
+   * @param event  the event
+   */
+  public void fireEvent(Event event) {
+
+    ViewDefinition subject = event.getViewSubject();
+
+    fireEvent(event, subject.getViewName());
+    fireEvent(event, ViewEntity.getViewName(subject.getViewName(), subject.getVersion()));
+  }
+
+  /**
+   * Register the given listener to listen for events from the view identified by the given name and version.
+   *
+   * @param listener     the listener
+   * @param viewName     the view name
+   * @param viewVersion  the view version; null indicates all versions
+   */
+  public synchronized void registerListener(Listener listener, String viewName, String viewVersion) {
+
+    String name = viewVersion == null ? viewName : ViewEntity.getViewName(viewName, viewVersion);
+
+    List<Listener> listeners = this.listeners.get(name);
+
+    if (listeners == null) {
+      listeners = new LinkedList<Listener>();
+      this.listeners.put(name, listeners);
+    }
+
+    listeners.add(listener);
+  }
+
 
   // ----- helper methods ----------------------------------------------------
 
@@ -479,6 +540,7 @@ public class ViewRegistry {
     viewDefinitions.clear();
     viewInstanceDefinitions.clear();
     subResourceDefinitionsMap.clear();
+    listeners.clear();
   }
 
   /**
@@ -562,6 +624,12 @@ public class ViewRegistry {
       }
       viewDefinition.setResources(resources);
     }
+    View view = null;
+    if (viewConfig.getView() != null) {
+      view = getView(viewConfig.getViewClass(cl), new ViewContextImpl(viewDefinition, this));
+    }
+    viewDefinition.setView(view);
+
     return viewDefinition;
   }
 
@@ -670,6 +738,19 @@ public class ViewRegistry {
       protected void configure() {
         bind(ViewContext.class)
             .toInstance(viewInstanceContext);
+      }
+    });
+    return viewInstanceInjector.getInstance(clazz);
+  }
+
+  // get the given view class from the given class loader; inject a context
+  private static View getView(Class<? extends View> clazz,
+                              final ViewContext viewContext) {
+    Injector viewInstanceInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(ViewContext.class)
+            .toInstance(viewContext);
       }
     });
     return viewInstanceInjector.getInstance(clazz);
@@ -822,6 +903,17 @@ public class ViewRegistry {
     urlList.add(archiveDir.toURI().toURL());
 
     return URLClassLoader.newInstance(urlList.toArray(new URL[urlList.size()]));
+  }
+
+  // notify the view identified by the given view name of the given event
+  private void fireEvent(Event event, String viewName) {
+    List<Listener> listeners = this.listeners.get(viewName);
+
+    if (listeners != null) {
+      for (Listener listener : listeners) {
+        listener.notify(event);
+      }
+    }
   }
 
   /**

@@ -21,6 +21,9 @@ package org.apache.ambari.server.orm.entities;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.view.configuration.InstanceConfig;
 import org.apache.ambari.view.ResourceProvider;
+import org.apache.ambari.view.ViewDefinition;
+import org.apache.ambari.view.ViewInstanceDefinition;
+import org.apache.ambari.view.events.Listener;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -45,7 +48,7 @@ import java.util.Map;
 @NamedQuery(name = "allViewInstances",
     query = "SELECT viewInstance FROM ViewInstanceEntity viewInstance")
 @Entity
-public class ViewInstanceEntity {
+public class ViewInstanceEntity implements ViewInstanceDefinition {
   /**
    * The prefix for every view instance context path.
    */
@@ -142,16 +145,44 @@ public class ViewInstanceEntity {
   }
 
 
-  // ----- ViewInstanceEntity ------------------------------------------------
+  // ----- ViewInstanceDefinition --------------------------------------------
 
-  /**
-   * Get the view name.
-   *
-   * @return the view name
-   */
+  @Override
+  public String getInstanceName() {
+    return name;
+  }
+
+  @Override
   public String getViewName() {
     return viewName;
   }
+
+  @Override
+  public Map<String, String> getPropertyMap() {
+    Map<String, String> propertyMap = new HashMap<String, String>();
+
+    for (ViewInstancePropertyEntity viewInstancePropertyEntity : properties) {
+      propertyMap.put(viewInstancePropertyEntity.getName(), viewInstancePropertyEntity.getValue());
+    }
+    return propertyMap;
+  }
+
+  @Override
+  public Map<String, String> getInstanceDataMap() {
+    Map<String, String> applicationData = new HashMap<String, String>();
+
+    for (ViewInstanceDataEntity viewInstanceDataEntity : data) {
+      applicationData.put(viewInstanceDataEntity.getName(), viewInstanceDataEntity.getValue());
+    }
+    return applicationData;
+  }
+
+  @Override
+  public ViewDefinition getViewDefinition() {
+    return view;
+  }
+
+// ----- ViewInstanceEntity ------------------------------------------------
 
   /**
    * Set the view name.
@@ -187,20 +218,6 @@ public class ViewInstanceEntity {
    */
   public Collection<ViewInstancePropertyEntity> getProperties() {
     return properties;
-  }
-
-  /**
-   * Get the instance property map.
-   *
-   * @return the map of instance properties
-   */
-  public Map<String, String> getPropertyMap() {
-    Map<String, String> propertyMap = new HashMap<String, String>();
-
-    for (ViewInstancePropertyEntity viewInstancePropertyEntity : properties) {
-      propertyMap.put(viewInstancePropertyEntity.getName(), viewInstancePropertyEntity.getValue());
-    }
-    return propertyMap;
   }
 
   /**
@@ -291,20 +308,6 @@ public class ViewInstanceEntity {
    */
   public void setEntities(Collection<ViewEntityEntity> entities) {
     this.entities = entities;
-  }
-
-  /**
-   * Get the view instance application data.
-   *
-   * @return the view instance application data map
-   */
-  public Map<String, String> getInstanceDataMap() {
-    Map<String, String> applicationData = new HashMap<String, String>();
-
-    for (ViewInstanceDataEntity viewInstanceDataEntity : data) {
-      applicationData.put(viewInstanceDataEntity.getName(), viewInstanceDataEntity.getValue());
-    }
-    return applicationData;
   }
 
   /**

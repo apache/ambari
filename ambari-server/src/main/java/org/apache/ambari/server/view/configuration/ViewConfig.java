@@ -18,15 +18,14 @@
 
 package org.apache.ambari.server.view.configuration;
 
-import javax.servlet.http.HttpServlet;
+import org.apache.ambari.view.View;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * View configuration.
@@ -48,6 +47,17 @@ public class ViewConfig {
    * The view version.
    */
   private String version;
+
+  /**
+   * The main view class name.
+   */
+  @XmlElement(name="view-class")
+  private String view;
+
+  /**
+   * The view class.
+   */
+  private Class<? extends View> viewClass = null;
 
   /**
    * The list of view parameters.
@@ -98,6 +108,31 @@ public class ViewConfig {
    */
   public String getVersion() {
     return version;
+  }
+
+  /**
+   * Get the view class name.
+   *
+   * @return the view class name
+   */
+  public String getView() {
+    return view;
+  }
+
+  /**
+   * Get the view class.
+   *
+   * @param cl  the class loader
+   *
+   * @return the view class
+   *
+   * @throws ClassNotFoundException if the class can not be loaded
+   */
+  public Class<? extends View> getViewClass(ClassLoader cl) throws ClassNotFoundException {
+    if (viewClass == null) {
+      viewClass = cl.loadClass(view).asSubclass(View.class);
+    }
+    return viewClass;
   }
 
   /**

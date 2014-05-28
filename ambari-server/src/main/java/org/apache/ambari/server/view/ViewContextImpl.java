@@ -21,13 +21,20 @@ package org.apache.ambari.server.view;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
+import org.apache.ambari.server.orm.entities.ViewEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
+import org.apache.ambari.server.view.events.EventImpl;
 import org.apache.ambari.server.view.persistence.DataStoreImpl;
 import org.apache.ambari.server.view.persistence.DataStoreModule;
 import org.apache.ambari.view.DataStore;
 import org.apache.ambari.view.ResourceProvider;
 import org.apache.ambari.view.URLStreamProvider;
 import org.apache.ambari.view.ViewContext;
+import org.apache.ambari.view.ViewController;
+import org.apache.ambari.view.ViewDefinition;
+import org.apache.ambari.view.ViewInstanceDefinition;
+import org.apache.ambari.view.events.Event;
+import org.apache.ambari.view.events.Listener;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -35,15 +42,22 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
 /**
  * View context implementation.
  */
-public class ViewContextImpl implements ViewContext {
+public class ViewContextImpl implements ViewContext, ViewController {
+
+  /**
+   * The associated view definition.
+   */
+  private final ViewEntity viewEntity;
 
   /**
    * The associated view definition.
@@ -69,64 +83,94 @@ public class ViewContextImpl implements ViewContext {
   // ---- Constructors -------------------------------------------------------
 
   /**
-   * Construct a view context from the given view entity.
+   * Construct a view context from the given view instance entity.
    *
    * @param viewInstanceEntity  the view entity
    * @param viewRegistry        the view registry
    */
   public ViewContextImpl(ViewInstanceEntity viewInstanceEntity, ViewRegistry viewRegistry) {
+    this.viewEntity         = viewInstanceEntity.getViewEntity();
     this.viewInstanceEntity = viewInstanceEntity;
     this.viewRegistry       = viewRegistry;
     this.streamProvider     = ViewURLStreamProvider.getProvider();
   }
 
+  /**
+   * Construct a view context from the given view entity.
+   *
+   * @param viewEntity    the view entity
+   * @param viewRegistry  the view registry
+   */
+  public ViewContextImpl(ViewEntity viewEntity, ViewRegistry viewRegistry) {
+    this.viewEntity         = viewEntity;
+    this.viewInstanceEntity = null;
+    this.viewRegistry       = viewRegistry;
+    this.streamProvider     = ViewURLStreamProvider.getProvider();
+  }
 
   // ----- ViewContext -------------------------------------------------------
 
   @Override
   public String getViewName() {
-    return viewInstanceEntity.getViewEntity().getCommonName();
+    return viewEntity.getCommonName();
+  }
+
+  @Override
+  public ViewDefinition getViewDefinition() {
+    return viewEntity;
   }
 
   @Override
   public String getInstanceName() {
-    return viewInstanceEntity.getName();
+    return viewInstanceEntity == null ? null : viewInstanceEntity.getName();
+  }
+
+  @Override
+  public ViewInstanceDefinition getViewInstanceDefinition() {
+    return viewInstanceEntity;
   }
 
   @Override
   public Map<String, String> getProperties() {
-    return Collections.unmodifiableMap(viewInstanceEntity.getPropertyMap());
+    return viewInstanceEntity == null ? null :
+        Collections.unmodifiableMap(viewInstanceEntity.getPropertyMap());
   }
 
   @Override
   public void putInstanceData(String key, String value) {
+    checkInstance();
     viewInstanceEntity.putInstanceData(key, value);
     viewRegistry.updateViewInstance(viewInstanceEntity);
   }
 
   @Override
   public String getInstanceData(String key) {
-    return viewInstanceEntity.getInstanceDataMap().get(key);
+    return viewInstanceEntity == null ? null :
+        viewInstanceEntity.getInstanceDataMap().get(key);
   }
 
   @Override
   public Map<String, String> getInstanceData() {
-    return Collections.unmodifiableMap(viewInstanceEntity.getInstanceDataMap());
+    return viewInstanceEntity == null ? null :
+        Collections.unmodifiableMap(viewInstanceEntity.getInstanceDataMap());
   }
 
   @Override
   public void removeInstanceData(String key) {
+    checkInstance();
     viewRegistry.removeInstanceData(viewInstanceEntity, key);
   }
 
   @Override
   public String getAmbariProperty(String key) {
-    return viewInstanceEntity.getViewEntity().getAmbariProperty(key);
+    return viewInstanceEntity == null ? null :
+        viewInstanceEntity.getViewEntity().getAmbariProperty(key);
   }
 
   @Override
   public ResourceProvider<?> getResourceProvider(String type) {
-    return viewInstanceEntity.getResourceProvider(type);
+    return viewInstanceEntity == null ? null :
+        viewInstanceEntity.getResourceProvider(type);
   }
 
   @Override
@@ -151,11 +195,64 @@ public class ViewContextImpl implements ViewContext {
 
   @Override
   public synchronized DataStore getDataStore() {
-    if (dataStore == null) {
-      Injector injector = Guice.createInjector(new DataStoreModule(viewInstanceEntity));
-      dataStore = injector.getInstance(DataStoreImpl.class);
+    if (viewInstanceEntity != null) {
+      if (dataStore == null) {
+        Injector injector = Guice.createInjector(new DataStoreModule(viewInstanceEntity));
+        dataStore = injector.getInstance(DataStoreImpl.class);
+      }
     }
     return dataStore;
+  }
+
+  @Override
+  public Collection<ViewDefinition> getViewDefinitions() {
+    return Collections.<ViewDefinition>unmodifiableCollection(viewRegistry.getDefinitions());
+  }
+
+  @Override
+  public Collection<ViewInstanceDefinition> getViewInstanceDefinitions() {
+    Collection<ViewInstanceEntity> instanceDefinitions = new HashSet<ViewInstanceEntity>();
+    for (ViewEntity viewEntity : viewRegistry.getDefinitions()) {
+      instanceDefinitions.addAll(viewRegistry.getInstanceDefinitions(viewEntity));
+    }
+    return Collections.<ViewInstanceDefinition>unmodifiableCollection(instanceDefinitions);
+  }
+
+  @Override
+  public ViewController getController() {
+    return this;
+  }
+
+
+  // ----- ViewController ----------------------------------------------------
+
+  @Override
+  public void fireEvent(String eventId, Map<String, String> eventProperties) {
+    Event event = viewInstanceEntity == null ?
+        new EventImpl(eventId, eventProperties, viewEntity) :
+        new EventImpl(eventId, eventProperties, viewInstanceEntity);
+
+    viewRegistry.fireEvent(event);
+  }
+
+  @Override
+  public void registerListener(Listener listener, String viewName) {
+    viewRegistry.registerListener(listener, viewName, null);
+  }
+
+  @Override
+  public void registerListener(Listener listener, String viewName, String viewVersion) {
+    viewRegistry.registerListener(listener, viewName, viewVersion);
+  }
+
+
+  // ----- helper methods ----------------------------------------------------
+
+  // check for an associated instance
+  private void checkInstance() {
+    if (viewInstanceEntity == null) {
+      throw new IllegalStateException("No instance is associated with the context.");
+    }
   }
 
 

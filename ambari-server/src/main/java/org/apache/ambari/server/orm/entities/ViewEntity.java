@@ -24,6 +24,8 @@ import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.view.ViewSubResourceDefinition;
 import org.apache.ambari.server.view.configuration.ResourceConfig;
 import org.apache.ambari.server.view.configuration.ViewConfig;
+import org.apache.ambari.view.View;
+import org.apache.ambari.view.ViewDefinition;
 
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;
@@ -47,7 +49,7 @@ import java.util.Set;
 @NamedQuery(name = "allViews",
     query = "SELECT view FROM ViewEntity view")
 @Entity
-public class ViewEntity {
+public class ViewEntity implements ViewDefinition {
   /**
    * The unique view name.
    */
@@ -146,6 +148,12 @@ public class ViewEntity {
   @Transient
   private String commonName = null;
 
+  /**
+   * The view.
+   */
+  @Transient
+  private View view = null;
+
 
   // ----- Constructors ------------------------------------------------------
 
@@ -186,6 +194,24 @@ public class ViewEntity {
   }
 
 
+  // ----- ViewDefinition ----------------------------------------------------
+
+  @Override
+  public String getViewName() {
+    return getCommonName();
+  }
+
+  @Override
+  public String getLabel() {
+    return label;
+  }
+
+  @Override
+  public String getVersion() {
+    return version;
+  }
+
+
   // ----- ViewEntity --------------------------------------------------------
 
   /**
@@ -221,30 +247,12 @@ public class ViewEntity {
   }
 
   /**
-   * Get the view label (display name).
-   *
-   * @return the view label
-   */
-  public String getLabel() {
-    return label;
-  }
-
-  /**
    * Set the view label (display name).
    *
    * @param label  the view label
    */
   public void setLabel(String label) {
     this.label = label;
-  }
-
-  /**
-   * Get the view version.
-   *
-   * @return the version
-   */
-  public String getVersion() {
-    return version;
   }
 
   /**
@@ -500,6 +508,24 @@ public class ViewEntity {
    */
   public ViewConfig getConfiguration() {
     return configuration;
+  }
+
+  /**
+   * Set the view.
+   *
+   * @param view  the view
+   */
+  public void setView(View view) {
+    this.view = view;
+  }
+
+  /**
+   * Get the associated view.
+   *
+   * @return the view
+   */
+  public View getView() {
+    return view;
   }
 
 

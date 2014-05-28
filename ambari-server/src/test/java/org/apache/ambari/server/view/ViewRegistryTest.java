@@ -34,6 +34,10 @@ import org.apache.ambari.server.view.configuration.InstanceConfigTest;
 import org.apache.ambari.server.view.configuration.ResourceConfig;
 import org.apache.ambari.server.view.configuration.ResourceConfigTest;
 import org.apache.ambari.server.view.configuration.ViewConfig;
+import org.apache.ambari.server.view.events.EventImpl;
+import org.apache.ambari.server.view.events.EventImplTest;
+import org.apache.ambari.view.events.Event;
+import org.apache.ambari.view.events.Listener;
 import org.easymock.Capture;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -69,6 +73,18 @@ import static org.easymock.EasyMock.verify;
  * ViewRegistry tests.
  */
 public class ViewRegistryTest {
+
+  private static String view_xml1 = "<view>\n" +
+      "    <name>MY_VIEW</name>\n" +
+      "    <label>My View!</label>\n" +
+      "    <version>1.0.0</version>\n" +
+      "</view>";
+
+  private static String view_xml2 = "<view>\n" +
+      "    <name>MY_VIEW</name>\n" +
+      "    <label>My View!</label>\n" +
+      "    <version>2.0.0</version>\n" +
+      "</view>";
 
   @Test
   public void testReadViewArchives() throws Exception {
@@ -289,6 +305,28 @@ public class ViewRegistryTest {
   }
 
   @Test
+  public void testListener() throws Exception {
+    ViewRegistry registry = ViewRegistry.getInstance();
+
+    TestListener listener = new TestListener();
+    registry.registerListener(listener, "MY_VIEW", "1.0.0");
+
+    EventImpl event = EventImplTest.getEvent("MyEvent", Collections.<String, String>emptyMap(), view_xml1);
+
+    registry.fireEvent(event);
+
+    Assert.assertEquals(event, listener.getLastEvent());
+
+    listener.clear();
+
+    event = EventImplTest.getEvent("MyEvent", Collections.<String, String>emptyMap(), view_xml2);
+
+    registry.fireEvent(event);
+
+    Assert.assertNull(listener.getLastEvent());
+  }
+
+  @Test
   public void testAddGetDefinitions() throws Exception {
     ViewEntity viewDefinition = ViewEntityTest.getViewEntity();
 
@@ -433,6 +471,23 @@ public class ViewRegistryTest {
     @Override
     public JarFile getJarFile(File file) throws IOException {
       return jarFiles.get(file);
+    }
+  }
+
+  private static class TestListener implements Listener {
+    private Event lastEvent = null;
+
+    @Override
+    public void notify(Event event) {
+      lastEvent = event;
+    }
+
+    public Event getLastEvent() {
+      return lastEvent;
+    }
+
+    public void clear() {
+      lastEvent = null;
     }
   }
 

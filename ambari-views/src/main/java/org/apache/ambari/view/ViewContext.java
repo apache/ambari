@@ -18,6 +18,7 @@
 
 package org.apache.ambari.view;
 
+import java.util.Collection;
 import java.util.Map;
 
 /**
@@ -47,16 +48,30 @@ public interface ViewContext {
   public String getViewName();
 
   /**
+   * Get the view definition associated with this context.
+   *
+   * @return the view definition
+   */
+  public ViewDefinition getViewDefinition();
+
+  /**
    * Get the view instance name.
    *
-   * @return the view instance name
+   * @return the view instance name; null if no instance is associated
    */
   public String getInstanceName();
 
   /**
+   * Get the view instance definition associated with this context.
+   *
+   * @return the view instance definition; null if no instance is associated
+   */
+  public ViewInstanceDefinition getViewInstanceDefinition();
+
+  /**
    * Get the property values specified to create the view instance.
    *
-   * @return the view instance property values
+   * @return the view instance property values; null if no instance is associated
    */
   public Map<String, String> getProperties();
 
@@ -65,6 +80,8 @@ public interface ViewContext {
    *
    * @param key    the key
    * @param value  the value
+   *
+   * @throws IllegalStateException if no instance is associated
    */
   public void putInstanceData(String key, String value);
 
@@ -73,14 +90,14 @@ public interface ViewContext {
    *
    * @param key  the key
    *
-   * @return the instance data value
+   * @return the instance data value; null if no instance is associated
    */
   public String getInstanceData(String key);
 
   /**
    * Get the instance data values.
    *
-   * @return the view instance property values
+   * @return the view instance property values; null if no instance is associated
    */
   public Map<String, String> getInstanceData();
 
@@ -88,6 +105,8 @@ public interface ViewContext {
    * Remove the instance data value for the given key.
    *
    * @param key  the key
+   *
+   * @throws IllegalStateException if no instance is associated
    */
   public void removeInstanceData(String key);
 
@@ -105,7 +124,7 @@ public interface ViewContext {
    *
    * @param type  the resource type
    *
-   * @return the resource provider
+   * @return the resource provider; null if no instance is associated
    */
   public ResourceProvider<?> getResourceProvider(String type);
 
@@ -119,7 +138,28 @@ public interface ViewContext {
   /**
    * Get a data store for view persistence entities.
    *
-   * @return a data store
+   * @return a data store; null if no instance is associated
    */
   public DataStore getDataStore();
+
+  /**
+   * Get all of the available view definitions.
+   *
+   * @return the view definitions
+   */
+  public Collection<ViewDefinition> getViewDefinitions();
+
+  /**
+   * Get all of the available view instance definitions.
+   *
+   * @return the view instance definitions
+   */
+  public Collection<ViewInstanceDefinition> getViewInstanceDefinitions();
+
+  /**
+   * Get a view controller associated with this context.
+   *
+   * @return the view controller
+   */
+  public ViewController getController();
 }

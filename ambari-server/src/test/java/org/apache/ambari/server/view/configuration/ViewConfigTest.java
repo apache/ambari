@@ -100,6 +100,12 @@ public class ViewConfigTest {
       "    <version>1.0.0</version>\n" +
       "</view>";
 
+  private static String view_class_xml = "<view>\n" +
+      "    <name>MY_VIEW</name>\n" +
+      "    <label>My View!</label>\n" +
+      "    <version>1.0.0</version>\n" +
+      "    <view-class>ViewImpl</view-class>\n" +
+      "</view>";
 
   @Test
   public void testGetName() throws Exception {
@@ -117,6 +123,12 @@ public class ViewConfigTest {
   public void testGetVersion() throws Exception {
     ViewConfig config = getConfig();
     Assert.assertEquals("1.0.0", config.getVersion());
+  }
+
+  @Test
+  public void testGetView() throws Exception {
+    ViewConfig config = getConfig(view_class_xml);
+    Assert.assertEquals("ViewImpl", config.getView());
   }
 
   @Test
