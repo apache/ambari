@@ -74,5 +74,12 @@ public interface SliderAppsViewController {
 
   public List<SliderAppType> getSliderAppTypes(Set<String> properties);
 
-  public String createSliderApp(JsonObject requestJson) throws IOException, YarnException, InterruptedException;
+  public String createSliderApp(JsonObject requestJson) throws IOException,
+      YarnException, InterruptedException;
+
+  public void freezeApp(String appId) throws YarnException, IOException,
+      InterruptedException;
+
+  public void thawApp(String appId) throws YarnException, IOException,
+      InterruptedException;
 }

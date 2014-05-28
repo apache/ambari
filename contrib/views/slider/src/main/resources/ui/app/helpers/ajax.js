@@ -56,6 +56,9 @@ var urls = {
   'createNewApp': {
     real: 'apps',
     mock: '',
+    headers: {
+      "Content-Type": "text/plain; charset=utf-8"
+    },
     format: function(data) {
       return {
         type: 'POST',
@@ -70,6 +73,33 @@ var urls = {
     format: function() {
       return {
         method: 'DELETE'
+      }
+    }
+  },
+
+  'changeAppState': {
+    real: 'apps/{id}',
+    mock: '',
+    headers: {
+      "Content-Type": "text/plain; charset=utf-8"
+    },
+    format: function(data) {
+      return {
+        method: 'PUT',
+        data: JSON.stringify(data.data)
+      }
+    }
+  },
+  'flexApp': {
+    real: 'apps/{id}',
+    mock: '',
+    headers: {
+      "Content-Type": "text/plain; charset=utf-8"
+    },
+    format: function(data) {
+      return {
+        method: 'PUT',
+        data: JSON.stringify(data.data)
       }
     }
   }
@@ -110,7 +140,7 @@ var formatRequest = function (data) {
     type: this.type || 'GET',
     dataType: 'json',
     async: true,
-    headers: this.headers || {accepts: "application/json; charset=utf-8"}
+    headers: this.headers || {Accept: "application/json; charset=utf-8"}
   };
   if (App.get('testMode')) {
     opt.url = formatUrl(this.mock ? this.mock : '', data);

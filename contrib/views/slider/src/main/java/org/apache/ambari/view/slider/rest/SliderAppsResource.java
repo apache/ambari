@@ -26,6 +26,7 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -41,6 +42,7 @@ import org.apache.hadoop.yarn.exceptions.YarnException;
 import org.apache.log4j.Logger;
 
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.inject.Inject;
 
@@ -74,8 +76,37 @@ public class SliderAppsResource {
     sliderAppsViewController.deleteSliderApp(appId);
   }
 
+  @PUT
+  @Path("{appId}")
+  @Consumes({ MediaType.TEXT_PLAIN, MediaType.APPLICATION_JSON })
+  public Response updateApp(@Context UriInfo uri, String jsonString,
+      @PathParam("appId") String appId) throws IOException, YarnException,
+      InterruptedException, URISyntaxException {
+    if (jsonString != null) {
+      JsonElement requestContent = new JsonParser().parse(jsonString);
+      if (requestContent != null && appId != null) {
+        JsonObject requestJson = requestContent.getAsJsonObject();
+        if (requestJson.has("state")) {
+          String newState = requestJson.get("state").getAsString();
+          if ("FROZEN".equals(newState))
+            sliderAppsViewController.freezeApp(appId);
+          else if ("RUNNING".equals(newState))
+            sliderAppsViewController.thawApp(appId);
+        } else if (requestJson.has("components")) {
+        }
+      }
+      String sliderApp = sliderAppsViewController
+          .createSliderApp(requestContent.getAsJsonObject());
+      if (sliderApp != null)
+        return Response.created(new URI(uri.getAbsolutePath() + sliderApp))
+            .build();
+    }
+    logger.warn("No request content sent to create app");
+    return Response.status(Response.Status.BAD_REQUEST).build();
+  }
+
   @POST
-  @Consumes({ MediaType.TEXT_PLAIN })
+  @Consumes({ MediaType.TEXT_PLAIN, MediaType.APPLICATION_JSON })
   public Response createApp(@Context UriInfo uri, String jsonString)
       throws IOException, YarnException, InterruptedException,
       URISyntaxException {
@@ -84,8 +115,8 @@ public class SliderAppsResource {
       String sliderApp = sliderAppsViewController
           .createSliderApp(requestContent.getAsJsonObject());
       if (sliderApp != null)
-        return Response.created(
-            new URI(uri.getAbsolutePath() + "/" + sliderApp)).build();
+        return Response.created(new URI(uri.getAbsolutePath() + sliderApp))
+            .build();
     }
     logger.warn("No request content sent to create app");
     return Response.status(Response.Status.BAD_REQUEST).build();

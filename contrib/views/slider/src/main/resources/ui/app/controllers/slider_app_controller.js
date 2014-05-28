@@ -83,12 +83,99 @@ App.SliderAppController = Ember.ObjectController.extend({
     this[currentAction]();
   },
 
-  thaw: Ember.K,
-  freeze: Ember.K,
-  flex: Ember.K,
+  /**
+   * Do request to <strong>thaw</strong> current slider's app
+   * @returns {$.ajax}
+   * @method freeze
+   */
+  thaw: function() {
+    var model = this.get('model');
+    return App.ajax.send({
+      name: 'changeAppState',
+      sender: this,
+      data: {
+        id: model.get('id'),
+        data: {
+          id: model.get('id'),
+          name: model.get('name'),
+          state: "RUNNING"
+        }
+      }
+    });
+  },
 
   /**
    * Do request to delete current slider's app
+   * Do request to <strong>freeze</strong> current slider's app
+   * @returns {$.ajax}
+   * @method freeze
+   */
+  freeze: function() {
+    var model = this.get('model');
+    return App.ajax.send({
+      name: 'changeAppState',
+      sender: this,
+      data: {
+        id: model.get('id'),
+        data: {
+          id: model.get('id'),
+          name: model.get('name'),
+          state: "FROZEN"
+        }
+      }
+    });
+  },
+
+  /**
+   * Do request to <strong>flex</strong> current slider's app
+   * @returns {$.ajax}
+   * @method flex
+   */
+  flex: function() {
+    var model = this.get('model');
+    return App.ajax.send({
+      name: 'flexApp',
+      sender: this,
+      data: {
+        id: model.get('id'),
+        data: {
+          id: model.get('id'),
+          name: model.get('name'),
+          components: this.mapComponentsForFlexRequest()
+        }
+      }
+    });
+  },
+
+  /**
+   * Map <code>model.components</code> for Flex request
+   * Output format:
+   * <code>
+   *   {
+   *      COMPONENT_NAME_1: {
+   *        instanceCount: 1
+   *      },
+   *      COMPONENT_NAME_2: {
+   *        instanceCount: 2
+   *      },
+   *      ....
+   *   }
+   * </code>
+   * @returns {object}
+   * @method mapComponentsForFlexRequest
+   */
+  mapComponentsForFlexRequest: function() {
+    var components = {};
+    this.get('model.components').forEach(function(component) {
+      components[component.get('name')] = {
+        instanceCount: component.get('defaultNumInstances')
+      }
+    });
+    return components;
+  },
+
+  /**
+   * Do request to <strong>delete</strong> current slider's app
    * @return {$.ajax}
    * @method destroy
    */

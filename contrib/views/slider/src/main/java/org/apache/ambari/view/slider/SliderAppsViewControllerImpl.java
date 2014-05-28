@@ -62,6 +62,8 @@ import org.apache.slider.api.ClusterDescription;
 import org.apache.slider.client.SliderClient;
 import org.apache.slider.common.SliderKeys;
 import org.apache.slider.common.params.ActionCreateArgs;
+import org.apache.slider.common.params.ActionFreezeArgs;
+import org.apache.slider.common.params.ActionThawArgs;
 import org.apache.slider.common.tools.SliderFileSystem;
 import org.apache.slider.core.exceptions.UnknownApplicationInstanceException;
 import org.apache.slider.core.main.LauncherExitCodes;
@@ -486,6 +488,10 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
             rmSchedulerAddress);
         yarnConfig.set("fs.defaultFS", hdfsPath);
         yarnConfig.set("slider.zookeeper.quorum", zkQuorum.toString());
+        yarnConfig
+            .set(
+                "yarn.application.classpath",
+                "/etc/hadoop/conf,/usr/lib/hadoop/*,/usr/lib/hadoop/lib/*,/usr/lib/hadoop-hdfs/*,/usr/lib/hadoop-hdfs/lib/*,/usr/lib/hadoop-yarn/*,/usr/lib/hadoop-yarn/lib/*,/usr/lib/hadoop-mapreduce/*,/usr/lib/hadoop-mapreduce/lib/*");
         return yarnConfig;
       }
     }
@@ -800,6 +806,63 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
     } finally {
       if (fos != null)
         fos.close();
+    }
+  }
+
+  @Override
+  public void freezeApp(String appId) throws YarnException, IOException,
+      InterruptedException {
+    ClassLoader currentClassLoader = Thread.currentThread()
+        .getContextClassLoader();
+    Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
+    try {
+      Set<String> properties = new HashSet<String>();
+      properties.add("id");
+      properties.add("name");
+      final SliderApp sliderApp = getSliderApp(appId, properties);
+      if (sliderApp == null)
+        throw new ApplicationNotFoundException(appId);
+
+      ApplicationId applicationId = UserGroupInformation.getBestUGI(null,
+          "yarn").doAs(new PrivilegedExceptionAction<ApplicationId>() {
+        public ApplicationId run() throws IOException, YarnException {
+          SliderClient sliderClient = getSliderClient();
+          ActionFreezeArgs freezeArgs = new ActionFreezeArgs();
+          sliderClient.actionFreeze(sliderApp.getName(), freezeArgs);
+          return sliderClient.applicationId;
+        }
+      });
+      logger.debug("Slider app has been frozen - " + applicationId.toString());
+    } finally {
+      Thread.currentThread().setContextClassLoader(currentClassLoader);
+    }
+  }
+
+  @Override
+  public void thawApp(String appId) throws YarnException, IOException,
+      InterruptedException {
+    ClassLoader currentClassLoader = Thread.currentThread()
+        .getContextClassLoader();
+    Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
+    try {
+      Set<String> properties = new HashSet<String>();
+      properties.add("id");
+      properties.add("name");
+      final SliderApp sliderApp = getSliderApp(appId, properties);
+      if (sliderApp == null)
+        throw new ApplicationNotFoundException(appId);
+      ApplicationId applicationId = UserGroupInformation.getBestUGI(null,
+          "yarn").doAs(new PrivilegedExceptionAction<ApplicationId>() {
+        public ApplicationId run() throws IOException, YarnException {
+          SliderClient sliderClient = getSliderClient();
+          ActionThawArgs thawArgs = new ActionThawArgs();
+          sliderClient.actionThaw(sliderApp.getName(), thawArgs);
+          return sliderClient.applicationId;
+        }
+      });
+      logger.debug("Slider app has been thawed - " + applicationId.toString());
+    } finally {
+      Thread.currentThread().setContextClassLoader(currentClassLoader);
     }
   }
 }

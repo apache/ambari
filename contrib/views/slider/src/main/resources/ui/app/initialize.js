@@ -103,3 +103,10 @@ folderOrder.forEach(function(folder) {
     require(module);
   });
 });
+
+$.ajaxSetup({
+  cache : false,
+  headers : {
+    "X-Requested-By" : "X-Requested-By"
+  }
+});
