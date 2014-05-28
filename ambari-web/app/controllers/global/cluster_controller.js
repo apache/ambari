@@ -417,7 +417,6 @@ App.ClusterController = Em.Controller.extend({
   },
 
   loadViewInstancesSuccess: function (data) {
-    var self = this;
     data.versions.forEach(function (version) {
       version.instances.forEach(function (instance) {
         var view = Em.Object.create({
@@ -427,7 +426,7 @@ App.ClusterController = Em.Controller.extend({
           version: version.ViewVersionInfo.version,
           href: "/views/" + instance.ViewInstanceInfo.view_name + "/" + version.ViewVersionInfo.version + "/" + instance.ViewInstanceInfo.instance_name
         });
-        self.get('ambariViews').push(view);
+        this.get('ambariViews').pushObject(view);
       }, this);
     }, this);
   },

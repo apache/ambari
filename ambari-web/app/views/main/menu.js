@@ -28,7 +28,7 @@ App.MainMenuView = Em.CollectionView.extend({
 
   views: function() {
     return App.router.get('clusterController.ambariViews');
-  }.property('App.ClusterController.ambariViews'),
+  }.property('App.router.clusterController.ambariViews'),
 
   content:function(){
     var result = [];
