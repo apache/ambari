@@ -260,9 +260,24 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
     app.setUser(yarnApp.getUser());
     app.setDiagnostics(yarnApp.getDiagnostics());
     app.setYarnId(yarnApp.getApplicationId().toString());
-    app.setType(yarnApp.getApplicationType());
     app.setStartTime(yarnApp.getStartTime());
     app.setEndTime(yarnApp.getFinishTime());
+    Set<String> applicationTags = yarnApp.getApplicationTags();
+    if (applicationTags != null && applicationTags.size() > 0) {
+      for (String tag : applicationTags) {
+        int index = tag.indexOf(':');
+        if (index > 0 && index < tag.length() - 1) {
+          String key = tag.substring(0, index).trim();
+          String value = tag.substring(index + 1).trim();
+          if ("name".equals(key))
+            app.setType(value);
+          else if ("version".equals(key))
+            app.setAppVersion(value);
+          else if ("description".equals(key))
+            app.setDescription(value);
+        }
+      }
+    }
     if (properties != null && !properties.isEmpty()) {
       SliderAppMasterClient sliderAppClient = yarnApp.getTrackingUrl() == null ? null
           : new SliderAppMasterClient(yarnApp.getTrackingUrl());
