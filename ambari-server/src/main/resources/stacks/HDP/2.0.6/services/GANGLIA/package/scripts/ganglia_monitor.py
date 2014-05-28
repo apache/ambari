@@ -96,6 +96,11 @@ class GangliaMonitor(Script):
     if params.is_ganglia_server_host:
       self.generate_master_configs()
 
+      if len(params.gmond_apps) != 0:
+        self.generate_app_configs()
+        pass
+      pass
+
 
   def generate_slave_configs(self):
     import params
@@ -188,6 +193,23 @@ class GangliaMonitor(Script):
                       role = "monitor",
                       owner = "root",
                       group = params.user_group)
+
+
+  def generate_app_configs(self):
+    import params
+
+    for gmond_app in params.gmond_apps:
+      generate_daemon("gmond",
+                      name=gmond_app,
+                      role="server",
+                      owner="root",
+                      group=params.user_group)
+      generate_daemon("gmond",
+                      name = gmond_app,
+                      role = "monitor",
+                      owner = "root",
+                      group = params.user_group)
+    pass
 
 
   def generate_master_configs(self):
