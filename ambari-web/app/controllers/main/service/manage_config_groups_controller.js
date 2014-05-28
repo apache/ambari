@@ -253,8 +253,8 @@ App.ManageConfigGroupsController = Em.Controller.extend({
   componentsForFilter: function () {
     return App.StackServiceComponent.find().filterProperty('serviceName', this.get('serviceName')).map(function (component) {
       return Em.Object.create({
-        displayName: component.display_name,
-        componentName: component.isClient ? 'CLIENT' : component.component_name,
+        displayName: component.get('displayName'),
+        componentName: component.get('isClient') ? 'CLIENT' : component.get('componentName'),
         selected: false
       });
     });
