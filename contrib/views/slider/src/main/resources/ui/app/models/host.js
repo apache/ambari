@@ -30,25 +30,4 @@ App.Host = DS.Model.extend({
 
 });
 
-App.Host.FIXTURES = [
-  {
-    id: 1,
-    hostName: 'host1',
-    publicHostName: 'Host 1'
-  },
-  {
-    id: 2,
-    hostName: 'host2',
-    publicHostName: 'Host 2'
-  },
-  {
-    id: 3,
-    hostName: 'host3',
-    publicHostName: 'Host 3'
-  },
-  {
-    id: 4,
-    hostName: 'host 4',
-    publicHostName: 'Host 4'
-  }
-];
+App.Host.FIXTURES = [];

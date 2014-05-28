@@ -36,14 +36,57 @@ App.SliderAppsMapper = App.Mapper.createWithMixins(App.RunPeriodically, {
   },
 
   /**
-   * Parse loaded data according to <code>map</code>
-   * Load <code>App.SliderApp</code> and <code>App.QuickLink</code> models
+   * Parse loaded data
+   * Load <code>App.SliderAppComponent</code> model
    * @param {object} data received from server data
    * @method parse
    */
-  parse: function(data) {
-    var apps = [];
-    var quickLinks = [];
+  parseComponents: function(data) {
+    var components = [],
+    appId = data.id;
+
+    Object.keys(data.components).forEach(function (key) {
+      var component = data.components[key];
+      activeContainers = Object.keys(component.activeContainers);
+      for(var i= 0; i < component.instanceCount; i++){
+        components.pushObject(
+          Ember.Object.create({
+            id: appId + component.componentName + i,
+            status: activeContainers[i] ? "Running" : "Stopped",
+            host: activeContainers[i] ? component.activeContainers[activeContainers[i]].host : "",
+            componentName: component.componentName,
+            appId: appId
+          })
+        );
+      }
+    });
+    App.SliderApp.store.pushMany('sliderAppComponent', components);
+    return components.mapProperty('id');
+  },
+
+  /**
+   * Parse loaded data
+   * Load <code>App.SliderApp.configs</code> model
+   * @param {object} data received from server data
+   * @method parse
+   */
+  parseConfigs : function(data) {
+    var configs = {};
+    Object.keys(data.configs).forEach(function (key) {
+      configs[key] = data.configs[key];
+    });
+    return configs;
+  },
+
+  /**
+   * Parse loaded data
+   * Load <code>App.QuickLink</code> model
+   * @param {object} data received from server data
+   * @method parse
+   */
+  parseQuickLinks : function(data) {
+    var quickLinks = [],
+    appId = data.id;
     quickLinks.push(
       Ember.Object.create({
         id: 'YARN application',
@@ -51,26 +94,57 @@ App.SliderAppsMapper = App.Mapper.createWithMixins(App.RunPeriodically, {
         url: "http://"+window.location.hostname+":8088"
       })
     );
+
+    if(!data.urls){
+      return quickLinks.mapProperty('id');
+    }
+
+    Object.keys(data.urls).forEach(function (key) {
+      quickLinks.push(
+        Ember.Object.create({
+          id: appId+key,
+          label: key,
+          url: data.urls[key]
+        })
+      );
+    });
+    App.SliderApp.store.pushMany('QuickLink', quickLinks);
+    return quickLinks.mapProperty('id');
+  },
+
+  /**
+   * Parse loaded data
+   * Load <code>App.SliderApp</code> model
+   * @param {object} data received from server data
+   * @method parse
+   */
+  parse: function(data) {
+    var apps = [],
+    self = this;
+
     data.items.forEach(function(app) {
+      var componentsId = app.components ? self.parseComponents(app) : [],
+      configs = app.configs ? self.parseConfigs(app) : {};
+      quickLinks = self.parseQuickLinks(app);
+
       apps.push(
         Ember.Object.create({
           id: app.id,
-          index: app.id,
           yarnId: app.yarnId,
           name: app.name,
           status: app.state,
           user: app.user,
-          started: app.startTime,
-          ended: app.endTime,
-          appType: app.type,
+          started: (new Date(app.startTime).toUTCString()),
+          ended: app.endTime ? (new Date(app.endTime).toUTCString()) : "-",
+          appType: app.type.toUpperCase(),
           diagnostics: app.diagnostics,
-          components: app.components,
-          quickLinks: ["YARN application"],
+          components: componentsId,
+          quickLinks: quickLinks,
+          configs: configs,
           runtimeProperties: app.configs
         })
       );
     });
-    App.SliderApp.store.pushMany('quickLink', quickLinks);
     App.SliderApp.store.pushMany('sliderApp', apps);
   }
 });

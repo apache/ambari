@@ -21,11 +21,6 @@ App.SliderApp = DS.Model.extend({
   /**
    * @type {string}
    */
-  index: DS.attr('string'),
-
-  /**
-   * @type {string}
-   */
   yarnId: DS.attr('string'),
 
   /**

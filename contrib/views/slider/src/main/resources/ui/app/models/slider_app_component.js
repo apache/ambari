@@ -21,19 +21,23 @@ App.SliderAppComponent = DS.Model.extend({
   /**
    * @type {string}
    */
-  index: DS.attr('string'), // (appid+component_name+index)
+  status: DS.attr('string'),
 
   /**
    * @type {string}
    */
-  status: DS.attr('string'),
+  host: DS.attr('string'),
 
   /**
-   * @type {App.Host}
+   * @type {string}
    */
-  host: DS.belongsTo('host')
+  componentName: DS.attr('string'),
+
+  /**
+   * @type {App.SliderApp}
+   */
+  appId: DS.belongsTo('sliderApp')
 
 });
-
 
 App.SliderAppComponent.FIXTURES = [];
