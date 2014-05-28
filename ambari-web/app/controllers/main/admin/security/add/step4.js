@@ -249,14 +249,14 @@ App.MainAdminSecurityAddStep4Controller = App.MainAdminSecurityProgressControlle
     if (typeof expression !== 'string') return null;
 
     var express = expression.match(/<(.*?)>/g);
-    var value = null;
+    var value = expression;
     if (Em.isNone(express)) return expression;
 
     express.forEach(function (_express) {
       var index = parseInt(_express.match(/\[([\d]*)(?=\])/)[1]);
       var globalConfig = this.get('globalProperties').findProperty('name', templateName[index]);
 
-      value = (globalConfig) ? expression.replace(_express, globalConfig.value) : null;
+      value = (globalConfig) ? value.replace(_express, globalConfig.value) : null;
     }, this);
     return value;
   },
