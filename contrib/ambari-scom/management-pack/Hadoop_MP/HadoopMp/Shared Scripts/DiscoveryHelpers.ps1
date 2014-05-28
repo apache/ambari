@@ -37,6 +37,7 @@ function FormatClusterServiceName($serviceName) {
         'sqoop' { 'Sqoop' }
         'mapreduce2' { 'MapReduce 2' }
         'yarn' { 'YARN' }
+		'zookeeper' { 'ZooKeeper' }
         default { $serviceName }
     }
 }
@@ -61,6 +62,10 @@ function FormatHostComponentName($componentName) {
         'nodemanager' { 'Node Manager' }
         'resourcemanager' { 'Resource Manager' }
         'yarn_client' { 'YARN Client' }
+        'zookeeper_client' { 'ZooKeeper Client' }
+        'zookeeper_server' { 'ZooKeeper Server' }
+        'zkfc' { 'ZKFC' }
+        'journalnode' { 'JournalNode' }
         default { $componentName }
     }
 }

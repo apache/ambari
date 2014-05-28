@@ -66,6 +66,7 @@ function GetServiceClassId($monitoringUri) {
         'sqoop' { '$MPElement[Name="Ambari.SCOM.ClusterService.Sqoop"]$' }
         'mapreduce2' { '$MPElement[Name="Ambari.SCOM.ClusterService.MapReduce2"]$' }
         'yarn' { '$MPElement[Name="Ambari.SCOM.ClusterService.Yarn"]$' }
+		'zookeeper' { '$MPElement[Name="Ambari.SCOM.ClusterService.ZooKeeper"]$' }
         default: { $null }
     }
 }

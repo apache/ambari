@@ -49,7 +49,7 @@
                     <SimpleValue Type="xsd://int" Value="1" />
                   </Binding>
                   <Binding PropertyId="RowSpan">
-                    <SimpleValue Type="xsd://int" Value="1" />
+                    <SimpleValue Type="xsd://int" Value="3" />
                   </Binding>
                   <Binding PropertyId="Column">
                     <SimpleValue Type="xsd://int" Value="0" />
@@ -74,10 +74,10 @@
                 </ComplexValue>
                 <ComplexValue Type="xsd://Microsoft.SystemCenter.Visualization.Library!Microsoft.SystemCenter.Visualization.LayoutConfig/CellDefinition">
                   <Binding PropertyId="Row">
-                    <SimpleValue Type="xsd://int" Value="2" />
+                    <SimpleValue Type="xsd://int" Value="4" />
                   </Binding>
                   <Binding PropertyId="RowSpan">
-                    <SimpleValue Type="xsd://int" Value="3" />
+                    <SimpleValue Type="xsd://int" Value="1" />
                   </Binding>
                   <Binding PropertyId="Column">
                     <SimpleValue Type="xsd://int" Value="0" />

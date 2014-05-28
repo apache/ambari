@@ -39,6 +39,7 @@
         <ClassType ID="Ambari.SCOM.ClusterService.Sqoop" Accessibility="Public" Base="Ambari.SCOM.ClusterServiceBase" Hosted="true" Abstract="false" Singleton="false" />
         <ClassType ID="Ambari.SCOM.ClusterService.MapReduce2" Accessibility="Public" Base="Ambari.SCOM.ClusterService" Hosted="true" Abstract="false" Singleton="false" />
         <ClassType ID="Ambari.SCOM.ClusterService.Yarn" Accessibility="Public" Base="Ambari.SCOM.ClusterService" Hosted="true" Abstract="false" Singleton="false" />
+        <ClassType ID="Ambari.SCOM.ClusterService.ZooKeeper" Accessibility="Public" Base="Ambari.SCOM.ClusterService" Hosted="true" Abstract="false" Singleton="false" />
       </ClassTypes>
 
       <RelationshipTypes>
@@ -60,6 +61,14 @@
         <RelationshipType ID="Ambari.SCOM.HdfsServiceContainsSecondaryNameNodeComponent" Base="System!System.Containment" Abstract="false" Accessibility="Public">
           <Source ID="Service" Type="Ambari.SCOM.ClusterService.Hdfs" />
           <Target ID="Component" Type="Ambari.SCOM.HostComponent.SecondaryNameNode" />
+        </RelationshipType>
+        <RelationshipType ID="Ambari.SCOM.HdfsServiceContainsJournalNodeComponent" Base="System!System.Containment" Abstract="false" Accessibility="Public">
+          <Source ID="Service" Type="Ambari.SCOM.ClusterService.Hdfs" />
+          <Target ID="Component" Type="Ambari.SCOM.HostComponent.JournalNode" />
+        </RelationshipType>
+        <RelationshipType ID="Ambari.SCOM.HdfsServiceContainsZKFCComponent" Base="System!System.Containment" Abstract="false" Accessibility="Public">
+          <Source ID="Service" Type="Ambari.SCOM.ClusterService.Hdfs" />
+          <Target ID="Component" Type="Ambari.SCOM.HostComponent.ZKFC" />
         </RelationshipType>
         <RelationshipType ID="Ambari.SCOM.MapReduceServiceContainsJobTrackerComponent" Base="System!System.Containment" Abstract="false" Accessibility="Public">
           <Source ID="Service" Type="Ambari.SCOM.ClusterService.MapReduce" />
@@ -93,6 +102,14 @@
           <Source ID="Service" Type="Ambari.SCOM.ClusterService.Yarn" />
           <Target ID="Component" Type="Ambari.SCOM.HostComponent.ResourceManager" />
         </RelationshipType>
+        <RelationshipType ID="Ambari.SCOM.ZooKeeperServiceContainsZooKeeperClientComponent" Base="System!System.Containment" Abstract="false" Accessibility="Public">
+          <Source ID="Service" Type="Ambari.SCOM.ClusterService.ZooKeeper" />
+          <Target ID="Component" Type="Ambari.SCOM.HostComponent.ZooKeeperClient" />
+        </RelationshipType>
+        <RelationshipType ID="Ambari.SCOM.ZooKeeperServiceContainsZooKeeperServerComponent" Base="System!System.Containment" Abstract="false" Accessibility="Public">
+          <Source ID="Service" Type="Ambari.SCOM.ClusterService.ZooKeeper" />
+          <Target ID="Component" Type="Ambari.SCOM.HostComponent.ZooKeeperServer" />
+        </RelationshipType>
       </RelationshipTypes>
     </EntityTypes>
   </TypeDefinitions>
@@ -117,6 +134,8 @@
       <ImageReference ElementID="Ambari.SCOM.ClusterService.MapReduce2" ImageID="Ambari.SCOM.Resources.Images.Mapreduce2ServiceDiagramIcon" />
       <ImageReference ElementID="Ambari.SCOM.ClusterService.Yarn" ImageID="Ambari.SCOM.Resources.Images.YarnService16Icon" />
       <ImageReference ElementID="Ambari.SCOM.ClusterService.Yarn" ImageID="Ambari.SCOM.Resources.Images.YarnServiceDiagramIcon" />
+      <ImageReference ElementID="Ambari.SCOM.ClusterService.ZooKeeper" ImageID="Ambari.SCOM.Resources.Images.ZooKeeperService16Icon" />
+      <ImageReference ElementID="Ambari.SCOM.ClusterService.ZooKeeper" ImageID="Ambari.SCOM.Resources.Images.ZooKeeperServiceDiagramIcon" />
     </ImageReferences>
   </Presentation>
 
@@ -190,11 +209,23 @@
           <Name>Hadoop Sqoop Cluster Service</Name>
           <Description>This class represents Hadoop Sqoop Service.</Description>
         </DisplayString>
+        <DisplayString ElementID="Ambari.SCOM.ClusterService.ZooKeeper">
+          <Name>Hadoop ZooKeeper Cluster Service</Name>
+          <Description>This class represents Hadoop ZooKeeper Service.</Description>
+        </DisplayString>
+
         <DisplayString ElementID="Ambari.SCOM.HdfsServiceContainsNameNodeComponent">
           <Name>Hadoop HDFS Cluster Service Contains NameNode Host Component</Name>
         </DisplayString>
         <DisplayString ElementID="Ambari.SCOM.HdfsServiceContainsSecondaryNameNodeComponent">
           <Name>Hadoop HDFS Cluster Service Contains Secondary NameNode Host Component</Name>
+        </DisplayString>
+        
+        <DisplayString ElementID="Ambari.SCOM.HdfsServiceContainsJournalNodeComponent">
+          <Name>Hadoop HDFS Cluster Service Contains JournalNode Host Component</Name>
+        </DisplayString>
+        <DisplayString ElementID="Ambari.SCOM.HdfsServiceContainsZKFCComponent">
+          <Name>Hadoop HDFS Cluster Service Contains ZKFC Host Component</Name>
         </DisplayString>
         <DisplayString ElementID="Ambari.SCOM.MapReduceServiceContainsJobTrackerComponent">
           <Name>Hadoop MapReduce Cluster Service Contains JobTracker Host Component</Name>
@@ -219,6 +250,12 @@
         </DisplayString>
         <DisplayString ElementID="Ambari.SCOM.YarnServiceContainsResourceManagerComponent">
           <Name>Hadoop YARN Service Contains Resource Manager Host Component</Name>
+        </DisplayString>
+        <DisplayString ElementID="Ambari.SCOM.ZooKeeperServiceContainsZooKeeperClientComponent">
+          <Name>Hadoop ZooKeeper Service Contains ZooKeeper Client Host Component</Name>
+        </DisplayString>
+        <DisplayString ElementID="Ambari.SCOM.ZooKeeperServiceContainsZooKeeperServerComponent">
+          <Name>Hadoop ZooKeeper Service Contains ZooKeeper Server Host Component</Name>
         </DisplayString>
       </DisplayStrings>
     </LanguagePack>

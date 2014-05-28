@@ -93,6 +93,29 @@
                 </ComplexValue>
                 <ComplexValue Type="xsd://Microsoft.SystemCenter.Visualization.Library!Microsoft.SystemCenter.Visualization.ColumnType/DataGridColumn">
                   <Binding PropertyId="HeaderDisplayObject">
+                    <SimpleValue Type="xsd://string" Value="$MPReference/Ambari.SCOM.Presentation!Ambari.SCOM.Presentation.StringResource.NodeManagersState.HostName/DisplayName$" />
+                  </Binding>
+                  <Binding PropertyId="PropertyName">
+                    <SimpleValue Type="xsd://string" Value="ParentHostName" />
+                  </Binding>
+                  <Binding PropertyId="XPath">
+                    <SimpleValue Type="xsd://string" Value="$Object/PropertyCollection[Name='ParentHostName']$" />
+                  </Binding>
+                  <Binding PropertyId="SourceType">
+                    <SimpleValue Type="xsd://string" Value="ManagedEntity" />
+                  </Binding>
+                  <Binding PropertyId="SortableGroupable">
+                    <SimpleValue Type="xsd://boolean" Value="True" />
+                  </Binding>
+                  <Binding PropertyId="CanResize">
+                    <SimpleValue Type="xsd://boolean" Value="True" />
+                  </Binding>
+                  <Binding PropertyId="Width">
+                    <SimpleValue Type="xsd://string" Value="Auto" />
+                  </Binding>
+                </ComplexValue>
+                <ComplexValue Type="xsd://Microsoft.SystemCenter.Visualization.Library!Microsoft.SystemCenter.Visualization.ColumnType/DataGridColumn">
+                  <Binding PropertyId="HeaderDisplayObject">
                     <SimpleValue Type="xsd://string" Value="$MPReference/Microsoft.SystemCenter.Visualization.Library!Microsoft.SystemCenter.Visualization.Library.Entity.InMaintenanceMode/DisplayName$" />
                   </Binding>
                   <Binding PropertyId="SortableGroupable">

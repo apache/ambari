@@ -21,6 +21,7 @@
         <ClassType ID="Ambari.SCOM.HostComponent" Accessibility="Public" Base="Ambari.SCOM.AmbariManagedEntity" Hosted="true" Abstract="true" Singleton="false">
           <Property ID="ClusterName" Type="string" Comment="Required to show parent cluster name on State Widget" />
           <Property ID="ComponentName" Type="string" Key="true" />
+          <Property ID="ParentHostName" Type="string" Key="false" />
         </ClassType>
 
         <ClassType ID="Ambari.SCOM.ActiveHostComponent" Accessibility="Public" Base="Ambari.SCOM.HostComponent" Hosted="true" Abstract="true" Singleton="false"
@@ -46,11 +47,13 @@
         <ClassType ID="Ambari.SCOM.HostComponent.Sqoop" Accessibility="Public" Base="Ambari.SCOM.HostComponent" Hosted="true" Abstract="false" Singleton="false" />
         <ClassType ID="Ambari.SCOM.HostComponent.HistoryServer" Accessibility="Public" Base="Ambari.SCOM.HeadNodeComponent" Hosted="true" Abstract="false" Singleton="false" />
         <ClassType ID="Ambari.SCOM.HostComponent.MapReduce2Client" Accessibility="Public" Base="Ambari.SCOM.HostComponent" Hosted="true" Abstract="false" Singleton="false" />
-        <ClassType ID="Ambari.SCOM.HostComponent.NodeManager" Accessibility="Public" Base="Ambari.SCOM.HeadNodeComponent" Hosted="true" Abstract="false" Singleton="false">
-          <Property ID="ParentHostName" Type="string" Key="false" />
-        </ClassType>
+        <ClassType ID="Ambari.SCOM.HostComponent.NodeManager" Accessibility="Public" Base="Ambari.SCOM.HeadNodeComponent" Hosted="true" Abstract="false" Singleton="false"/>
         <ClassType ID="Ambari.SCOM.HostComponent.ResourceManager" Accessibility="Public" Base="Ambari.SCOM.HeadNodeComponent" Hosted="true" Abstract="false" Singleton="false" />
         <ClassType ID="Ambari.SCOM.HostComponent.YarnClient" Accessibility="Public" Base="Ambari.SCOM.HostComponent" Hosted="true" Abstract="false" Singleton="false" />
+        <ClassType ID="Ambari.SCOM.HostComponent.ZooKeeperClient" Accessibility="Public" Base="Ambari.SCOM.HostComponent" Hosted="true" Abstract="false" Singleton="false" />
+        <ClassType ID="Ambari.SCOM.HostComponent.ZooKeeperServer" Accessibility="Public" Base="Ambari.SCOM.ActiveHostComponent" Hosted="true" Abstract="false" Singleton="false" />
+        <ClassType ID="Ambari.SCOM.HostComponent.JournalNode" Accessibility="Public" Base="Ambari.SCOM.HostComponent" Hosted="true" Abstract="false" Singleton="false" />
+        <ClassType ID="Ambari.SCOM.HostComponent.ZKFC" Accessibility="Public" Base="Ambari.SCOM.HostComponent" Hosted="true" Abstract="false" Singleton="false" />
       </ClassTypes>
 
       <RelationshipTypes>
@@ -98,6 +101,16 @@
       <ImageReference ElementID="Ambari.SCOM.HostComponent.ResourceManager" ImageID="Ambari.SCOM.Resources.Images.ResourceManagerDiagramIcon" />
       <ImageReference ElementID="Ambari.SCOM.HostComponent.YarnClient" ImageID="Ambari.SCOM.Resources.Images.YarnClient16Icon" />
       <ImageReference ElementID="Ambari.SCOM.HostComponent.YarnClient" ImageID="Ambari.SCOM.Resources.Images.YarnClientDiagramIcon" />
+      <ImageReference ElementID="Ambari.SCOM.HostComponent.ZooKeeperClient" ImageID="Ambari.SCOM.Resources.Images.ZooKeeperClient16Icon" />
+      <ImageReference ElementID="Ambari.SCOM.HostComponent.ZooKeeperClient" ImageID="Ambari.SCOM.Resources.Images.ZooKeeperClientDiagramIcon" />
+      <ImageReference ElementID="Ambari.SCOM.HostComponent.ZooKeeperServer" ImageID="Ambari.SCOM.Resources.Images.ZooKeeperServer16Icon" />
+      <ImageReference ElementID="Ambari.SCOM.HostComponent.ZooKeeperServer" ImageID="Ambari.SCOM.Resources.Images.ZooKeeperServerDiagramIcon" />
+      <ImageReference ElementID="Ambari.SCOM.HostComponent.JournalNode" ImageID="Ambari.SCOM.Resources.Images.JournalNode16Icon" />
+      <ImageReference ElementID="Ambari.SCOM.HostComponent.JournalNode" ImageID="Ambari.SCOM.Resources.Images.JournalNodeDiagramIcon" />
+      <ImageReference ElementID="Ambari.SCOM.HostComponent.ZKFC" ImageID="Ambari.SCOM.Resources.Images.ZKFC16Icon" />
+      <ImageReference ElementID="Ambari.SCOM.HostComponent.ZKFC" ImageID="Ambari.SCOM.Resources.Images.ZKFCDiagramIcon" />
+
+  
     </ImageReferences>
   </Presentation>
 
@@ -115,6 +128,11 @@
         <DisplayString ElementID="Ambari.SCOM.HostComponent" SubElementID="ComponentName">
           <Name>Component Name</Name>
         </DisplayString>
+        <DisplayString ElementID="Ambari.SCOM.HostComponent" SubElementID="ParentHostName">
+          <Name>Host Name</Name>
+        </DisplayString>
+
+
 
         <DisplayString ElementID="Ambari.SCOM.ActiveHostComponent">
           <Name>Hadoop Active Host Component</Name>
@@ -188,9 +206,6 @@
           <Name>Hadoop Node Manager Service</Name>
           <Description>This class represents Hadoop Node Manager Service running on the Host.</Description>
         </DisplayString>
-        <DisplayString ElementID="Ambari.SCOM.HostComponent.NodeManager" SubElementID="ParentHostName">
-          <Name>Host Name</Name>
-        </DisplayString>
         <DisplayString ElementID="Ambari.SCOM.HostComponent.ResourceManager">
           <Name>Hadoop Resource Manager Service</Name>
           <Description>This class represents Hadoop Resource Manager Service running on the Host.</Description>
@@ -198,6 +213,22 @@
         <DisplayString ElementID="Ambari.SCOM.HostComponent.YarnClient">
           <Name>YARN Client Component</Name>
           <Description>This class represents Hadoop YARN Client Component on the Host.</Description>
+        </DisplayString>
+        <DisplayString ElementID="Ambari.SCOM.HostComponent.ZooKeeperClient">
+          <Name>ZooKeeper Client Component</Name>
+          <Description>This class represents Hadoop ZooKeeper Client Component on the Host.</Description>
+        </DisplayString>
+        <DisplayString ElementID="Ambari.SCOM.HostComponent.ZooKeeperServer">
+          <Name>ZooKeeper Server Component</Name>
+          <Description>This class represents Hadoop ZooKeeper Server Component on the Host.</Description>
+        </DisplayString>
+        <DisplayString ElementID="Ambari.SCOM.HostComponent.JournalNode">
+          <Name>JournalNode Component</Name>
+          <Description>This class represents Hadoop JournalNode Component on the Host.</Description>
+        </DisplayString>
+        <DisplayString ElementID="Ambari.SCOM.HostComponent.ZKFC">
+          <Name>ZKFC Component</Name>
+          <Description>This class represents Hadoop ZooKeeper Failover Controller Component on the Host.</Description>
         </DisplayString>
         <DisplayString ElementID="Ambari.SCOM.HostHostsHostComponent">
           <Name>Host hosts HostComponent relation</Name>

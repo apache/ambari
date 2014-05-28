@@ -76,6 +76,17 @@
     <Category ID="Ambari.SCOM.Resources.Images.YarnClientDiagramIconCategory" Target="Ambari.SCOM.Resources.Images.YarnClientDiagramIcon" Value="System!System.Internal.ManagementPack.Images.DiagramIcon" />
     <Category ID="Ambari.SCOM.Resources.Images.HistoryServer16IconCategory" Target="Ambari.SCOM.Resources.Images.HistoryServer16Icon" Value="System!System.Internal.ManagementPack.Images.u16x16Icon" />
     <Category ID="Ambari.SCOM.Resources.Images.HistoryServerDiagramIconCategory" Target="Ambari.SCOM.Resources.Images.HistoryServerDiagramIcon" Value="System!System.Internal.ManagementPack.Images.DiagramIcon" />
+    <Category ID="Ambari.SCOM.Resources.Images.JournalNode16IconCategory" Target="Ambari.SCOM.Resources.Images.JournalNode16Icon" Value="System!System.Internal.ManagementPack.Images.u16x16Icon" />
+    <Category ID="Ambari.SCOM.Resources.Images.JournalNodeDiagramIconCategory" Target="Ambari.SCOM.Resources.Images.JournalNodeDiagramIcon" Value="System!System.Internal.ManagementPack.Images.DiagramIcon" />
+    <Category ID="Ambari.SCOM.Resources.Images.ZooKeeperService16IconCategory" Target="Ambari.SCOM.Resources.Images.ZooKeeperService16Icon" Value="System!System.Internal.ManagementPack.Images.u16x16Icon" />
+    <Category ID="Ambari.SCOM.Resources.Images.ZooKeeperServiceDiagramIconCategory" Target="Ambari.SCOM.Resources.Images.ZooKeeperServiceDiagramIcon" Value="System!System.Internal.ManagementPack.Images.DiagramIcon" />
+    <Category ID="Ambari.SCOM.Resources.Images.ZooKeeperServer16IconCategory" Target="Ambari.SCOM.Resources.Images.ZooKeeperServer16Icon" Value="System!System.Internal.ManagementPack.Images.u16x16Icon" />
+    <Category ID="Ambari.SCOM.Resources.Images.ZooKeeperServerDiagramIconCategory" Target="Ambari.SCOM.Resources.Images.ZooKeeperServerDiagramIcon" Value="System!System.Internal.ManagementPack.Images.DiagramIcon" />
+    <Category ID="Ambari.SCOM.Resources.Images.ZooKeeperClient16IconCategory" Target="Ambari.SCOM.Resources.Images.ZooKeeperClient16Icon" Value="System!System.Internal.ManagementPack.Images.u16x16Icon" />
+    <Category ID="Ambari.SCOM.Resources.Images.ZooKeeperClientDiagramIconCategory" Target="Ambari.SCOM.Resources.Images.ZooKeeperClientDiagramIcon" Value="System!System.Internal.ManagementPack.Images.DiagramIcon" />
+    <Category ID="Ambari.SCOM.Resources.Images.ZKFC16IconCategory" Target="Ambari.SCOM.Resources.Images.ZKFC16Icon" Value="System!System.Internal.ManagementPack.Images.u16x16Icon" />
+    <Category ID="Ambari.SCOM.Resources.Images.ZKFCDiagramIconCategory" Target="Ambari.SCOM.Resources.Images.ZKFCDiagramIcon" Value="System!System.Internal.ManagementPack.Images.DiagramIcon" />
+
   </Categories>
 
   <Resources>
@@ -139,6 +150,17 @@
     <Image ID="Ambari.SCOM.Resources.Images.YarnClientDiagramIcon" FileName="YarnClient.png" Accessibility="Public" />
     <Image ID="Ambari.SCOM.Resources.Images.HistoryServer16Icon" FileName="HistoryServer_.png" Accessibility="Public" />
     <Image ID="Ambari.SCOM.Resources.Images.HistoryServerDiagramIcon" FileName="HistoryServer.png" Accessibility="Public" />
+    <Image ID="Ambari.SCOM.Resources.Images.JournalNode16Icon" FileName="JournalNode_.png" Accessibility="Public" />
+    <Image ID="Ambari.SCOM.Resources.Images.JournalNodeDiagramIcon" FileName="JournalNode.png" Accessibility="Public" />
+    <Image ID="Ambari.SCOM.Resources.Images.ZooKeeperService16Icon" FileName="ZooKeeperService_.png" Accessibility="Public" />
+    <Image ID="Ambari.SCOM.Resources.Images.ZooKeeperServiceDiagramIcon" FileName="ZooKeeperService.png" Accessibility="Public" />
+    <Image ID="Ambari.SCOM.Resources.Images.ZooKeeperServer16Icon" FileName="ZooKeeperServer_.png" Accessibility="Public" />
+    <Image ID="Ambari.SCOM.Resources.Images.ZooKeeperServerDiagramIcon" FileName="ZooKeeperServer.png" Accessibility="Public" />
+    <Image ID="Ambari.SCOM.Resources.Images.ZooKeeperClient16Icon" FileName="ZooKeeperClient_.png" Accessibility="Public" />
+    <Image ID="Ambari.SCOM.Resources.Images.ZooKeeperClientDiagramIcon" FileName="ZooKeeperClient.png" Accessibility="Public" />
+    <Image ID="Ambari.SCOM.Resources.Images.ZKFC16Icon" FileName="ZooKeeperFailoverController_.png" Accessibility="Public" />
+    <Image ID="Ambari.SCOM.Resources.Images.ZKFCDiagramIcon" FileName="ZooKeeperFailoverController.png" Accessibility="Public" />
+
   </Resources>
   
 </ManagementPackFragment>
