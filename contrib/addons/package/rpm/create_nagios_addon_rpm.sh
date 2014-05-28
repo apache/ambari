@@ -77,8 +77,7 @@ if [[ "$ret" != "0" ]]; then
 fi
 
 cd ${CUR_DIR}
-
-RPM_DEST="${RPM_BUILDDIR}/RPMS/noarch/${PKG_NAME}-$VERSION-$RELEASE.noarch.rpm"
+RPM_DEST=`find ${RPM_BUILDDIR}/RPMS/noarch -name ${PKG_NAME}-$VERSION-$RELEASE*.rpm`
 if [[ ! -f "${RPM_DEST}" ]]; then
   echo "Error: ${RPM_DEST} does not exist"
   exit 1
