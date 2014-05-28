@@ -162,6 +162,10 @@
         <artifactId>apache-rat-plugin</artifactId>
         <configuration>
           <excludes>
+            <exclude>**/version.txt</exclude>
+            <exclude>**/release.txt</exclude>
+            <exclude>**/*.list</exclude>
+            <exclude>**/hdp_mon_nagios_addons.conf</exclude>
             <exclude>**/*.json</exclude>
             <exclude>**/*.svg</exclude>
             <exclude>derby.log</exclude>
