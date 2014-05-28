@@ -67,6 +67,7 @@
   .panel-body {
     .i-am-in {
       margin: 0;
+      width: 80%;
     }
   }
 
@@ -296,4 +297,27 @@
   margin: -4px 0;
 }
 
-
+.renameable {
+  display: inline-block;
+  &.half {
+    width: 50%;
+  }
+  &.stocked {
+    margin-top: -12px;
+    margin-bottom: -12px;
+  }
+  .form-control {
+    font-size: 14px;
+  }
+  .mod-time{
+    margin: 0;
+  }
+  .file-name {
+    margin-top: -5px;
+    margin-bottom: -5px;
+  }
+  .btn-rename-cancel {
+    border-radius: 0 !important;
+    margin-left: -1px;
+  }
+}

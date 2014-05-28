@@ -24,6 +24,10 @@ App.File = DS.Model.extend({
   path: function() {
     return this.get('id');
   }.property('id'),
+  basedir:function () {
+    var path = this.get('id');
+    return path.substring(0,path.lastIndexOf('/'))||'/';
+  }.property('id'),
   isDirectory: a('boolean'),
   len: a('number'),
   owner: a('string'),

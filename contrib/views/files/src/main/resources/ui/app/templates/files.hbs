@@ -60,7 +60,11 @@
   </div>
 
   <div class="panel-body">
-    <h4 class="i-am-in pull-left" > <i class="fa fa-folder fa-lg"></i>  {{currentDir}}</h4>
+    <h4 class="i-am-in pull-left"> <i class="fa fa-folder fa-lg"></i>
+    {{#rename-input file=path actionName='renameDir' isRenaming=isRenaming class='renameable stocked half'}}
+      {{currentDir}} <a href="#" {{bind-attr class="isRootDir:hide"}} {{action showRenameInput}}><i class="fa fa-edit"></i></a>
+    {{/rename-input}}
+    </h4>
 
     <div class="btn-group btn-sort pull-right" data-toggle="tooltip" data-placement="left" title="Sort by:">
       <button type="button" class="btn btn-xs btn-default" {{action sort 'toggle'}}>

@@ -43,6 +43,36 @@ App.FilesController = Ember.ArrayController.extend({
         this.set('movingFile',null);
       };
     },
+    showRenameInput:function () {
+      this.toggleProperty('isRenaming');
+    },
+    renameDir:function (path,newName) {
+      var self = this,
+          basedir = path.substring(0,path.lastIndexOf('/')+1);
+          newPath = basedir + newName;
+
+      if (path === newPath) {
+        return false;
+      };
+
+      this.store.listdir(basedir).then(function (listdir) {
+        var recordExists = listdir.isAny('id',newPath);
+
+        listdir.forEach(function (file) {
+          self.store.unloadRecord(file);
+        });
+
+        if (recordExists) {
+          return self.send('showAlert',{message:newPath + ' already exists.'});
+        };
+
+        self.store.move(path,newPath).then(function (newDir) {
+          self.store.unloadRecord(newDir);
+          self.set('path',newPath);
+        });
+      });
+
+    },
     deleteFile:function () {
       var self = this;
       var selected = this.get('selectedFiles');
@@ -118,12 +148,14 @@ App.FilesController = Ember.ArrayController.extend({
   needs: ["file"],
   movingFile:null,
   uploader:App.Uploader,
+  isRenaming:false,
   isRemoving:false,
   isMkdir:false,
   isUploading:false,
   newDirName:'',
   queryParams: ['path'],
   path: '/',
+  isRootDir:Ember.computed.equal('path', '/'),
   hideMoving:function () {
     return (this.movingFile)?[this.path,this.movingFile.name].join('/').replace('//','/')===this.movingFile.path:false;
   }.property('movingFile','path'),
@@ -131,23 +163,25 @@ App.FilesController = Ember.ArrayController.extend({
     var splitpath = this.get('path').split('/');
     return splitpath.get(splitpath.length-1) || '/';
   }.property('path'),
-  selectedOne:function () {
-    return this.get('selectedFiles.length') == 1;
-  }.property('selectedFiles'),
-  isSelected:function () {
-    return this.get('selectedFiles.length') > 0;
-  }.property('selectedFiles'),
-  selectedFiles:function () {
-    return this.get('content').filterProperty('selected',true);
-  }.property('content.@each.selected'),
+  selectedOne:Ember.computed.equal('selectedFiles.length', 1),
+  isSelected:Ember.computed.gt('selectedFiles.length', 0),
+  selectedFiles:Ember.computed.filterBy('content', 'selected', true),
   canConcat:function () {
     return this.get('selectedFiles').filterProperty('isDirectory').get('length')==0;
-  }.property('selectedFiles'),
-  fileList:function () {
-    return this.get('arrangedContent');
-  }.property('arrangedContent')
+  }.property('selectedFiles.length'),
+
+  fileList: Ember.computed.alias('arrangedContent')
 });
 
 App.FilesAlertController = Em.ObjectController.extend({
-  content:null
+  content:null,
+  output:function () {
+    var error = this.get('content'),output;
+    if (error instanceof Em.Error) {
+      output = error;
+    } else {
+      output = {status:error.status, message:error.statusText||error.message};
+    };
+    return output;
+  }.property('content')
 });

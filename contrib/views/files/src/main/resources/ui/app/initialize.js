@@ -35,6 +35,7 @@ require('templates/util/uploader');
 require('templates/util/contextMenu');
 require('templates/util/deleteBulk');
 require('templates/util/errorRow');
+require('templates/util/renameInput');
 
 //////////////////////////////////
 // Models
@@ -55,6 +56,7 @@ require('controllers/file');
 
 require('components/uploader');
 require('components/contextMenu');
+require('components/renameInput');
 
 /////////////////////////////////
 // Views

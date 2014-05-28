@@ -27,12 +27,7 @@ App.FilesRoute = Em.Route.extend({
   actions:{
     error:function (error,transition,e) {
       if (this.router._lookupActiveView('files')) {
-        this.controllerFor('filesAlert').set('content',error);
-        this.render('files.alert',{
-          into:'files',
-          outlet:'error',
-          controller:'filesAlert'
-        });
+        this.send('showAlert',error);
       } else {
         return true;
       };
@@ -45,6 +40,14 @@ App.FilesRoute = Em.Route.extend({
     },
     willTransition:function (argument) {
       this.send('removeAlert');
+    },
+    showAlert:function (error) {
+      this.controllerFor('filesAlert').set('content',error);
+      this.render('files.alert',{
+        into:'files',
+        outlet:'error',
+        controller:'filesAlert'
+      });
     },
     removeAlert:function () {
       this.disconnectOutlet({
@@ -69,11 +72,5 @@ App.FilesRoute = Em.Route.extend({
         file.store.unloadRecord(file);
       })
     });
-  },
-  setupController:function (controller,model,transition) {
-    controller.set('model', model);
-  },
-  renderTemplate:function (q,w,e) {
-    this.render('files');
   }
 });
