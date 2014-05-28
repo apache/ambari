@@ -38,6 +38,7 @@ public class SliderApp {
   private Map<String, String> urls;
   private Map<String, Map<String, String>> configs;
   private Map<String, SliderAppComponent> components;
+  private Map<String, Object> metrics;
 
   public String getName() {
     return name;
@@ -125,6 +126,14 @@ public class SliderApp {
 
   public void setComponents(Map<String, SliderAppComponent> components) {
     this.components = components;
+  }
+
+  public Map<String, Object> getMetrics() {
+    return metrics;
+  }
+
+  public void setMetrics(Map<String, Object> metrics) {
+    this.metrics = metrics;
   }
 
   public long getStartTime() {

@@ -18,10 +18,18 @@
 
 package org.apache.ambari.view.slider.rest.client;
 
+import org.apache.log4j.Logger;
+
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Metric {
+  private static final Logger logger = Logger
+      .getLogger(Metric.class);
   private static String SEPARATOR = ".";
   private static char SEPARATOR_REPLACED = '#';
   private String metric;
@@ -29,6 +37,8 @@ public class Metric {
   private boolean temporal;
   private String keyName = null;
   private List<List<String>> matchers = null;
+  private XPathExpression xPathExpression = null;
+  private boolean xPathExpressionComputed = false;
 
   private Metric() {
   }
@@ -63,7 +73,24 @@ public class Metric {
     this.temporal = temporal;
   }
 
-  public String getKeyName() {
+  public XPathExpression getxPathExpression() {
+    if (!xPathExpressionComputed) {
+      XPathFactory xPathfactory = XPathFactory.newInstance();
+      XPath xpath = xPathfactory.newXPath();
+      XPathExpression schemaPath = null;
+      try {
+        schemaPath = xpath.compile(metric);
+      } catch (XPathExpressionException e) {
+        logger.info(String.format("Unable to compile %s into xpath expression", metric));
+      }
+      xPathExpression = schemaPath;
+      xPathExpressionComputed = true;
+    }
+
+    return xPathExpression;
+  }
+
+  public String getJmxBeanKeyName() {
     if (keyName == null) {
       int firstIndex = metric.indexOf(SEPARATOR);
       if (firstIndex > 0) {

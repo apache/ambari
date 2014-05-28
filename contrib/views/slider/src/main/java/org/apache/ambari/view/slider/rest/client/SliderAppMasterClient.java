@@ -20,16 +20,12 @@ package org.apache.ambari.view.slider.rest.client;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import org.apache.ambari.server.controller.jmx.JMXMetricHolder;
 import org.apache.ambari.view.URLStreamProvider;
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.slider.SliderAppType;
 import org.apache.ambari.view.slider.SliderAppTypeComponent;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.log4j.Logger;
-import org.codehaus.jackson.map.DeserializationConfig;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.ObjectReader;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -43,9 +39,6 @@ public class SliderAppMasterClient extends BaseHttpClient {
 
   private static final Logger logger = Logger
       .getLogger(SliderAppMasterClient.class);
-  private static final String NAME_KEY = "name";
-  private static final String PORT_KEY = "tag.port";
-  private static final String FORPORT_KEY = "ForPort";
 
   public SliderAppMasterClient(String url) {
     super(url);
@@ -158,8 +151,21 @@ public class SliderAppMasterClient extends BaseHttpClient {
    */
   public Map<String, String> getJmx(String jmxUrl, ViewContext context, SliderAppType appType) {
     Map<String, String> jmxProperties = new HashMap<String, String>();
-    if (appType == null) {
-      logger.info("AppType must be provided to extract jmx properties");
+    if (appType == null || appType.getJmxMetrics() == null) {
+      logger.info("AppType must be provided and it must contain jmx_metrics.json to extract jmx properties");
+      return jmxProperties;
+    }
+
+    List<String> components = new ArrayList<String>();
+    for (SliderAppTypeComponent appTypeComponent : appType.getTypeComponents()) {
+      components.add(appTypeComponent.getName());
+    }
+
+    Map<String, Map<String, Map<String, Metric>>> metrics = appType.getJmxMetrics();
+    Map<String, Metric> relevantMetrics = getRelevantMetrics(metrics, components);
+    SliderAppJmxHelper.JMXTypes jmxType = SliderAppJmxHelper.jmxTypeExpected(relevantMetrics);
+    if (jmxType == null) {
+      logger.info("jmx_metrics.json is malformed. It may have mixed metric key types of unsupported metric key types.");
       return jmxProperties;
     }
 
@@ -174,73 +180,25 @@ public class SliderAppMasterClient extends BaseHttpClient {
       }
 
       if (jmxStream != null) {
-        ObjectMapper jmxObjectMapper = new ObjectMapper();
-        jmxObjectMapper.configure(DeserializationConfig.Feature.USE_ANNOTATIONS, false);
-        ObjectReader jmxObjectReader = jmxObjectMapper.reader(JMXMetricHolder.class);
-        JMXMetricHolder metricHolder = null;
-        try {
-          metricHolder = jmxObjectReader.readValue(jmxStream);
-        } catch (IOException e) {
-          logger.error(String.format("Malformed jmx data from %s. Error %s", jmxUrl, e.getMessage()));
+        switch (jmxType) {
+          case JMX_BEAN:
+            SliderAppJmxHelper.extractMetricsFromJmxBean(jmxStream, jmxUrl, jmxProperties, relevantMetrics);
+            break;
+          case JSON:
+            SliderAppJmxHelper.extractMetricsFromJmxJson(jmxStream, jmxUrl, jmxProperties, relevantMetrics);
+            break;
+          case XML:
+            SliderAppJmxHelper.extractMetricsFromJmxXML(jmxStream, jmxUrl, jmxProperties, relevantMetrics);
+            break;
+          default:
+            logger.info("Unsupported jmx type.");
         }
-
-        Map<String, Map<String, Object>> categories = new HashMap<String, Map<String, Object>>();
-
-        for (Map<String, Object> bean : metricHolder.getBeans()) {
-          String category = getCategory(bean);
-          if (category != null) {
-            categories.put(category, bean);
-          }
-        }
-
-        List<String> components = new ArrayList<String>();
-        for (SliderAppTypeComponent appTypeComponent : appType.getTypeComponents()) {
-          components.add(appTypeComponent.getName());
-        }
-
-        Map<String, Map<String, Map<String, Metric>>> metrics = appType.getJmxMetrics();
-        Map<String, Metric> relevantMetrics = getRelevantMetrics(metrics, components);
-        addJmxProperties(jmxProperties, categories, relevantMetrics);
       }
     } catch (Exception e) {
       logger.info("Failed to extract jmx metrics. " + e.getMessage());
     }
 
     return jmxProperties;
-  }
-
-  protected void addJmxProperties(Map<String, String> jmxProperties,
-                                  Map<String, Map<String, Object>> categories,
-                                  Map<String, Metric> relevantMetrics) {
-    for (String metricName : relevantMetrics.keySet()) {
-      Metric metric = relevantMetrics.get(metricName);
-      String beanName = metric.getKeyName();
-      Object value = categories.get(beanName);
-      if (value instanceof Map) {
-        Map<?, ?> map = (Map<?, ?>) value;
-        for (List<String> matcher : metric.getMatchers()) {
-          boolean foundMetrics = false;
-          for (int matchIndex = 0; matchIndex < matcher.size(); matchIndex++) {
-            String matchKey = matcher.get(matchIndex);
-            value = map.get(matchKey);
-            if (value instanceof Map) {
-              map = (Map<?, ?>) value;
-              continue;
-            } else {
-              if (value != null && matchIndex == matcher.size() - 1) {
-                jmxProperties.put(metricName, value.toString());
-                foundMetrics = true;
-              } else {
-                break;
-              }
-            }
-          }
-          if (foundMetrics) {
-            break;
-          }
-        }
-      }
-    }
   }
 
   private Map<String, Metric> getRelevantMetrics(Map<String, Map<String, Map<String, Metric>>> metrics,
@@ -254,19 +212,6 @@ public class SliderAppMasterClient extends BaseHttpClient {
       }
     }
     return relevantMetrics;
-  }
-
-  private String getCategory(Map<String, Object> bean) {
-    if (bean.containsKey(NAME_KEY)) {
-      String name = (String) bean.get(NAME_KEY);
-
-      if (bean.containsKey(PORT_KEY)) {
-        String port = (String) bean.get(PORT_KEY);
-        name = name.replace(FORPORT_KEY + port, "");
-      }
-      return name;
-    }
-    return null;
   }
 
   public static class SliderAppMasterData {
