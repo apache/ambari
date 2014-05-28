@@ -49,8 +49,8 @@ public class FilterPredicate extends ComparisonPredicate {
 
   @Override
   public boolean evaluate(Resource resource) {
-    String propertyValue  = (String) resource.getPropertyValue(getPropertyId());
-    matcher.reset(propertyValue != null ? propertyValue : emptyString);
+    Object propertyValue =  resource.getPropertyValue(getPropertyId());
+    matcher.reset(propertyValue != null ? propertyValue.toString() : emptyString);
 
     return patternExpr == null ?
       propertyValue == null :
