@@ -2249,17 +2249,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     for (Entry<ServiceComponent, Set<ServiceComponentHost>> entry
             : safeToRemoveSCHs.entrySet()) {
-      ServiceComponent serviceComponent = entry.getKey();
       for (ServiceComponentHost componentHost : entry.getValue()) {
-        removeFromExcludeHosts(serviceComponent, componentHost.getHostName());
-        serviceComponent.deleteServiceComponentHosts(
-                componentHost.getHostName());
-      }
-      if (serviceComponent.getServiceComponentHosts().isEmpty()) {
-        LOG.info("Change service component " + serviceComponent.getName()
-                + " state from " + serviceComponent.getDesiredState().toString()
-                + " to state " + State.INIT.toString());
-        serviceComponent.setDesiredState(State.INIT);
+        entry.getKey().deleteServiceComponentHosts(componentHost.getHostName());
       }
     }
 
@@ -2268,31 +2259,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       setMonitoringServicesRestartRequired(requests);
     }
     return null;
-  }
-
-  public RequestStatusResponse removeFromExcludeHosts(
-          ServiceComponent serviceComponent, String hostname)
-          throws AmbariException {
-    String clusterName = serviceComponent.getClusterName();
-    String serviceName = serviceComponent.getServiceName();
-    String serviceComponentName = serviceComponent.getName();
-    RequestStatusResponse response = null;
-    HashMap<String, String> requestProperties = new HashMap<String, String>();
-    HashMap<String, String> params = new HashMap<String, String>();
-    if ("YARN".equals(serviceName)) {
-      if ("NODEMANAGER".equals(serviceComponentName)) {
-        params.put("included_hosts", hostname);
-        params.put("slave_type", serviceComponentName);
-
-        RequestResourceFilter resourceFilter
-              = new RequestResourceFilter(serviceName, "RESOURCEMANAGER", null);
-        ExecuteActionRequest actionRequest = new ExecuteActionRequest(
-              clusterName, "DECOMMISSION", null,
-              Collections.singletonList(resourceFilter), null, params);
-        response = createAction(actionRequest, requestProperties);
-      }
-    }
-    return response;
   }
   
   @Override
