@@ -23,6 +23,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JDK_LOCATION;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -44,6 +46,9 @@ public class RootServiceResponseFactory extends
   
   @Inject
   private AmbariMetaInfo ambariMetaInfo;
+
+  @Inject
+  private AmbariManagementController managementController;
   
   
   @Override
@@ -152,6 +157,7 @@ public class RootServiceResponseFactory extends
       switch (component) {
       case AMBARI_SERVER:
         response = configs.getAmbariProperties();
+        response.put(JDK_LOCATION, managementController.getJdkResourceUrl());
         break;
 
       default:

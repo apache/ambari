@@ -239,13 +239,11 @@ class TestCustomServiceOrchestrator(TestCase):
     _, script = tempfile.mkstemp()
     command = {
       'role' : 'any',
-      'hostLevelParams' : {
-        'jdk_location' : 'some_location'
-      },
       'commandParams': {
         'script_type': 'PYTHON',
         'script': 'some_custom_action.py',
         'command_timeout': '600',
+        'jdk_location' : 'some_location'
       },
       'taskId' : '3',
       'roleCommand': 'ACTIONEXECUTE'

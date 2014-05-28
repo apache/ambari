@@ -363,6 +363,8 @@ ORACLE_UPGRADE_STACK_ARGS = "-S -L '{0}/{1}@(description=(address=(protocol=TCP)
 
 JDBC_PATTERNS = {"oracle": "*ojdbc*.jar", "mysql": "*mysql*.jar"}
 DATABASE_FULL_NAMES = {"oracle": "Oracle", "mysql": "MySQL", "postgres": "PostgreSQL"}
+JDBC_DB_OPTION_VALUES = ["postgresql", "mysql", "oracle"]
+JDBC_DB_DEFAULT_DRIVER = {"postgresql" : "postgresql-jdbc.jar", "mysql" : "mysql-connector-java.jar", "oracle" : "ojdbc6.jar"}
 ORACLE_DB_ID_TYPES = ["Service Name", "SID"]
 
 
@@ -2162,10 +2164,20 @@ def check_jdbc_drivers(args):
       print_error_msg("There is no value for " + RESOURCES_DIR_PROPERTY + "in " + AMBARI_PROPERTIES_FILE)
       return -1
 
+    db_name = DATABASE_FULL_NAMES[args.dbms].lower()
+    jdbc_symlink = os.path.join(resources_dir, db_name + "-jdbc-driver.jar")
+    db_default_driver_path = os.path.join(JAVA_SHARE_PATH, JDBC_DB_DEFAULT_DRIVER[db_name])
+
+    if os.path.lexists(jdbc_symlink):
+      os.remove(jdbc_symlink)
+
     copy_status = copy_files(result, resources_dir)
 
     if not copy_status == 0:
       raise FatalException(-1, "Failed to copy JDBC drivers to server resources")
+
+    if db_default_driver_path in result:
+      os.symlink(os.path.join(resources_dir, JDBC_DB_DEFAULT_DRIVER[db_name]), jdbc_symlink)
 
   return 0
 
@@ -2213,6 +2225,10 @@ def setup(args):
 
   print 'Checking iptables...'
   check_iptables()
+
+  # proceed jdbc properties if they were set
+  if args.jdbc_driver is not None and args.jdbc_db is not None:
+    proceedJDBCProperties(args)
 
   print 'Checking JDK...'
   try:
@@ -2279,6 +2295,45 @@ def setup(args):
       err = 'Error while configuring connection properties. Exiting'
       raise FatalException(retcode, err)
     check_jdbc_drivers(args)
+
+
+def proceedJDBCProperties(args):
+  if not os.path.isfile(args.jdbc_driver):
+    err = "File {0} does not exist!".format(args.jdbc_driver)
+    raise FatalException(1, err)
+
+  if args.jdbc_db not in JDBC_DB_OPTION_VALUES:
+    err = "Unsupported database name {0}. Please see help for more information.".format(args.jdbc_db)
+    raise FatalException(1, err)
+
+  properties = get_ambari_properties()
+  if properties == -1:
+    err = "Error getting ambari properties"
+    raise FatalException(-1, err)
+  conf_file = properties.fileName
+
+  try:
+    resources_dir = properties[RESOURCES_DIR_PROPERTY]
+  except (KeyError), e:
+    err = 'Property ' + str(e) + ' is not defined at ' + conf_file
+    raise FatalException(1, err)
+
+  symlink_name = args.jdbc_db + "-jdbc-driver.jar"
+  jdbc_symlink = os.path.join(resources_dir, symlink_name)
+
+  if os.path.lexists(jdbc_symlink):
+    os.remove(jdbc_symlink)
+
+  try:
+    shutil.copy(args.jdbc_driver, resources_dir)
+  except Exception, e:
+    err = "Can not copy file {0} to {1} due to: {2} . Please check file " \
+          "permissions and free disk space.".format(args.jdbc_driver, resources_dir, e.message)
+    raise FatalException(1, err)
+
+  path, jdbc_name = os.path.split(args.jdbc_driver)
+
+  os.symlink(os.path.join(resources_dir,jdbc_name), jdbc_symlink)
 
 
 #
@@ -2758,6 +2813,28 @@ def upgrade(args):
 
   # local repo
   upgrade_local_repo(args)
+
+  # create jdbc symlinks if jdbc drivers are available in resources
+  properties = get_ambari_properties()
+  if properties == -1:
+    err = "Error getting ambari properties"
+    print_error_msg(err)
+    raise FatalException(-1, err)
+  conf_file = properties.fileName
+
+  try:
+    resources_dir = properties[RESOURCES_DIR_PROPERTY]
+  except (KeyError), e:
+    err = 'Property ' + str(e) + ' is not defined at ' + conf_file
+    raise FatalException(1, err)
+
+  for db_name in list(JDBC_DB_DEFAULT_DRIVER):
+    if os.path.isfile(os.path.join(resources_dir, JDBC_DB_DEFAULT_DRIVER[db_name])):
+      symlink_name = db_name + "-jdbc-driver.jar"
+      jdbc_symlink = os.path.join(resources_dir, symlink_name)
+      if os.path.lexists(jdbc_symlink):
+        os.remove(jdbc_symlink)
+      os.symlink(os.path.join(resources_dir,JDBC_DB_DEFAULT_DRIVER[db_name]), jdbc_symlink)
 
 
 #
@@ -4051,6 +4128,10 @@ def main():
   parser.add_option('--databasepassword', default=None, help="Database user password", dest="database_password")
   parser.add_option('--sidorsname', default="sname", help="Oracle database identifier type, Service ID/Service "
                                                          "Name sid|sname", dest="sid_or_sname")
+  parser.add_option('--jdbc-driver', default=None, help="Path to jdbc driver. Used only in pair with --jdbc-db. ",
+                    dest="jdbc_driver")
+  parser.add_option('--jdbc-db', default=None, help="Database name [postgresql/mysql/oracle]. Used only in pair with " \
+                    "--jdbc-driver", dest="jdbc_db")
   (options, args) = parser.parse_args()
 
   # set verbose
@@ -4118,6 +4199,11 @@ def main():
       parser.print_help()
       parser.error("Incorrect database port " + options.database_port)
 
+  # jdbc driver and db options validation
+  if options.jdbc_driver is None and options.jdbc_db is not None:
+    parser.error("Option --jdbc-db is used only in pair with --jdbc-driver.")
+  elif options.jdbc_driver is not None and options.jdbc_db is None:
+    parser.error("Option --jdbc-driver is used only in pair with --jdbc-db.")
 
   if options.sid_or_sname.lower() not in ["sid", "sname"]:
     print "WARNING: Valid values for sid_or_sname are 'sid' or 'sname'. Use 'sid' if the db identifier type is " \

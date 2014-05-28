@@ -79,7 +79,10 @@ class CustomServiceOrchestrator():
       script_type = command['commandParams']['script_type']
       script = command['commandParams']['script']
       timeout = int(command['commandParams']['command_timeout'])
-      server_url_prefix = command['hostLevelParams']['jdk_location']
+      if 'hostLevelParams' in command and 'jdk_location' in command['hostLevelParams']:
+        server_url_prefix = command['hostLevelParams']['jdk_location']
+      else:
+        server_url_prefix = command['commandParams']['jdk_location']
       task_id = "status"
       try:
         task_id = command['taskId']
@@ -208,7 +211,8 @@ class CustomServiceOrchestrator():
       file_path = os.path.join(self.tmp_dir, "status_command.json")
     else:
       task_id = command['taskId']
-      command['clusterHostInfo'] = self.decompressClusterHostInfo(command['clusterHostInfo'])
+      if 'clusterHostInfo' in command and command['clusterHostInfo']:
+        command['clusterHostInfo'] = self.decompressClusterHostInfo(command['clusterHostInfo'])
       file_path = os.path.join(self.tmp_dir, "command-{0}.json".format(task_id))
     # Json may contain passwords, that's why we need proper permissions
     if os.path.isfile(file_path):

@@ -38,10 +38,13 @@ hive_lib = '/usr/lib/hive/lib/'
 hive_jdbc_driver = config['configurations']['hive-site']['javax.jdo.option.ConnectionDriverName']
 if hive_jdbc_driver == "com.mysql.jdbc.Driver":
   jdbc_jar_name = "mysql-connector-java.jar"
+  jdbc_symlink_name = "mysql-jdbc-driver.jar"
 elif hive_jdbc_driver == "org.postgresql.Driver":
   jdbc_jar_name = "postgresql-jdbc.jar"
+  jdbc_symlink_name = "postgresql-jdbc-driver.jar"
 elif hive_jdbc_driver == "oracle.jdbc.driver.OracleDriver":
   jdbc_jar_name = "ojdbc6.jar"
+  jdbc_symlink_name = "oracle-jdbc-driver.jar"
 
 check_db_connection_jar_name = "DBConnectionVerification.jar"
 check_db_connection_jar = format("/usr/lib/ambari-agent/{check_db_connection_jar_name}")
@@ -95,7 +98,7 @@ artifact_dir = "/tmp/HDP-artifacts/"
 target = format("{hive_lib}/{jdbc_jar_name}")
 
 jdk_location = config['hostLevelParams']['jdk_location']
-driver_curl_source = format("{jdk_location}/{jdbc_jar_name}")
+driver_curl_source = format("{jdk_location}/{jdbc_symlink_name}")
 
 start_hiveserver2_path = "/tmp/start_hiveserver2_script"
 start_metastore_path = "/tmp/start_metastore_script"

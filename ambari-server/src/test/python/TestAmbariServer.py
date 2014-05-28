@@ -30,6 +30,7 @@ import datetime
 import operator
 import json
 import platform
+import shutil
 from pwd import getpwnam
 from ambari_server.resourceFilesKeeper import ResourceFilesKeeper, KeeperException
 
@@ -2214,6 +2215,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertEqual(result, "two")
 
   @patch("os.path.exists")
+  @patch("os.path.isfile")
   @patch.object(ambari_server, "remove_file")
   @patch.object(ambari_server, "is_jdbc_user_changed")
   @patch.object(ambari_server, 'verify_setup_allowed')
@@ -2236,10 +2238,11 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
                  setup_remote_db_mock, check_selinux_mock, check_jdbc_drivers_mock, check_ambari_user_mock,
                  check_iptables_mock, check_postgre_up_mock, setup_db_mock, configure_postgres_mock,
                  download_jdk_mock, configure_os_settings_mock, get_YN_input,
-                 verify_setup_allowed_method, is_jdbc_user_changed_mock, remove_file_mock, exists_mock):
+                 verify_setup_allowed_method, is_jdbc_user_changed_mock, remove_file_mock, isfile_mock, exists_mock):
     args = MagicMock()
     failed = False
     get_YN_input.return_value = False
+    isfile_mock.return_value = False
     verify_setup_allowed_method.return_value = 0
     exists_mock.return_value = False
     remove_file_mock.return_value = 0
@@ -2288,6 +2291,8 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     configure_os_settings_mock.return_value = 0
     store_remote_properties_mock.return_value = 0
     store_local_properties_mock.return_value = 0
+    args.jdbc_driver= None
+    args.jdbc_db = None
 
     result = ambari_server.setup(args)
 
@@ -2891,7 +2896,105 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
                                            ' > /var/log/ambari-server/ambari-server.out 2>&1')
 
 
+  @patch("os.path.isfile")
+  @patch.object(ambari_server, "get_ambari_properties")
+  @patch("os.path.lexists")
+  @patch("os.remove")
+  @patch("os.symlink")
+  @patch("shutil.copy")
+  def test_proceedJDBCProperties(self, copy_mock, os_symlink_mock, os_remove_mock, lexists_mock, get_ambari_properties_mock, isfile_mock):
+    args = MagicMock()
+
+    # test incorrect path to jdbc-driver
+    isfile_mock.return_value = False
+    args.jdbc_driver = "test jdbc"
+    fail = False
+
+    try:
+      ambari_server.proceedJDBCProperties(args)
+    except FatalException as e:
+      self.assertEquals("File test jdbc does not exist!", e.reason)
+      fail = True
+    self.assertTrue(fail)
+
+    # test incorrect jdbc-db
+    isfile_mock.return_value = True
+    args.jdbc_db = "incorrect db"
+    fail = False
+
+    try:
+      ambari_server.proceedJDBCProperties(args)
+    except FatalException as e:
+      self.assertEquals("Unsupported database name incorrect db. Please see help for more information.", e.reason)
+      fail = True
+    self.assertTrue(fail)
+
+    # test getAmbariProperties failed
+    args.jdbc_db = "mysql"
+    get_ambari_properties_mock.return_value = -1
+    fail = False
+
+    try:
+      ambari_server.proceedJDBCProperties(args)
+    except FatalException as e:
+      self.assertEquals("Error getting ambari properties", e.reason)
+      fail = True
+    self.assertTrue(fail)
+
+    # test get resource dir param failed
+    args.jdbc_db = "oracle"
+    p = MagicMock()
+    get_ambari_properties_mock.return_value = p
+    p.__getitem__.side_effect = KeyError("test exception")
+    fail = False
+
+    try:
+      ambari_server.proceedJDBCProperties(args)
+    except FatalException as e:
+      fail = True
+    self.assertTrue(fail)
+
+    # test copy jdbc failed and symlink exists
+    lexists_mock.return_value = True
+    args.jdbc_db = "postgresql"
+    get_ambari_properties_mock.return_value = MagicMock()
+    fail = False
+
+    def side_effect():
+      raise Exception(-1, "Failed to copy!")
+
+    copy_mock.side_effect = side_effect
+
+    try:
+      ambari_server.proceedJDBCProperties(args)
+    except FatalException as e:
+      fail = True
+    self.assertTrue(fail)
+    self.assertTrue(os_remove_mock.called)
+
+    # test success symlink creation
+    get_ambari_properties_mock.reset_mock()
+    os_remove_mock.reset_mock()
+    p = MagicMock()
+    get_ambari_properties_mock.return_value = p
+    p.__getitem__.side_effect = None
+    p.__getitem__.return_value = "somewhere"
+    copy_mock.reset_mock()
+    copy_mock.side_effect = None
+
+    ambari_server.proceedJDBCProperties(args)
+    self.assertTrue(os_remove_mock.called)
+    self.assertTrue(os_symlink_mock.called)
+    self.assertEquals(os_symlink_mock.call_args_list[0][0][0], os.path.join("somewhere","test jdbc"))
+    self.assertEquals(os_symlink_mock.call_args_list[0][0][1], os.path.join("somewhere","postgresql-jdbc-driver.jar"))
+
+
+
   @patch("__builtin__.open")
+  @patch("os.path.isfile")
+  @patch("os.path.lexists")
+  @patch("os.remove")
+  @patch("os.symlink")
   @patch.object(ambari_server.Properties, "store")
   @patch.object(ambari_server, "find_properties_file")
   @patch.object(ambari_server, "adjust_directory_permissions")
@@ -2909,13 +3012,15 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
                    update_ambari_properties_mock, run_schema_upgrade_mock,
                    read_ambari_user_mock, print_warning_msg_mock,
                    adjust_directory_permissions_mock,
-                   find_properties_file_mock, properties_store_mock, open_mock):
+                   find_properties_file_mock, properties_store_mock,
+                   os_symlink_mock, os_remove_mock, lexists_mock, isfile_mock, open_mock):
 
     args = MagicMock()
     check_database_name_property_mock = MagicMock()
 
     update_ambari_properties_mock.return_value = 0
     run_schema_upgrade_mock.return_value = 0
+    isfile_mock.return_value = False
 
     # Testing call under non-root
     is_root_mock.return_value = False
@@ -2954,6 +3059,43 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertNotEqual(-1, retcode)
     self.assertTrue(parse_properties_file_mock.called)
     self.assertTrue(run_schema_upgrade_mock.called)
+
+    # test getAmbariProperties failed
+    get_ambari_properties_mock.return_value = -1
+    fail = False
+
+    try:
+      ambari_server.upgrade(args)
+    except FatalException as e:
+      self.assertEquals("Error getting ambari properties", e.reason)
+      fail = True
+    self.assertTrue(fail)
+
+    # test get resource dir param failed
+    p = MagicMock()
+    get_ambari_properties_mock.reset_mock()
+    get_ambari_properties_mock.return_value = p
+    p.__getitem__.side_effect = ["something", KeyError("test exception")]
+    fail = False
+
+    try:
+      ambari_server.upgrade(args)
+    except FatalException as e:
+      fail = True
+    self.assertTrue(fail)
+
+    # test if some drivers are available in reources, and symlink available too
+    p.reset_mock()
+    p.__getitem__.side_effect = ["something", "resources"]
+    lexists_mock.return_value = True
+    isfile_mock.side_effect = [True, False, False]
+    ambari_server.upgrade(args)
+    self.assertTrue(os_remove_mock.called)
+    self.assertEquals(os_remove_mock.call_count, 1)
+    self.assertEquals(os_remove_mock.call_args[0][0], os.path.join("resources", "oracle-jdbc-driver.jar"))
+    self.assertEquals(os_symlink_mock.call_count, 1)
+    self.assertEquals(os_symlink_mock.call_args[0][0], os.path.join("resources","ojdbc6.jar"))
+    self.assertEquals(os_symlink_mock.call_args[0][1], os.path.join("resources","oracle-jdbc-driver.jar"))
 
 
   def test_print_info_msg(self):
@@ -3392,6 +3534,8 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
                                      store_remote_properties_mock, get_db_cli_tool_mock, get_YN_input,
                                      exit_mock, verify_setup_allowed_method):
     args = MagicMock()
+    args.jdbc_driver= None
+    args.jdbc_db = None
     raw_input.return_value = ""
     is_root_mock.return_value = True
     is_local_db_mock.return_value = False
@@ -3643,8 +3787,12 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
   @patch.object(ambari_server, "print_error_msg")
   @patch.object(ambari_server, "print_warning_msg")
   @patch('__builtin__.raw_input')
-  def test_check_jdbc_drivers(self, raw_input_mock, print_warning_msg, print_error_msg_mock, copy_files_mock,
-                              find_jdbc_driver_mock, get_ambari_properties_mock):
+  @patch("os.path.lexists")
+  @patch("os.remove")
+  @patch("os.symlink")
+  def test_check_jdbc_drivers(self,os_symlink_mock, os_remove_mock, lexists_mock,
+                              raw_input_mock, print_warning_msg, print_error_msg_mock,
+                              copy_files_mock, find_jdbc_driver_mock, get_ambari_properties_mock):
 
     out = StringIO.StringIO()
     sys.stdout = out
@@ -3652,7 +3800,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     args = MagicMock()
 
     # Check positive scenario
-    drivers_list = ['driver_file']
+    drivers_list = ['driver_file',os.path.join(os.sep,'usr','share','java','ojdbc6.jar')]
     resources_dir = '/tmp'
 
     get_ambari_properties_mock.return_value = {ambari_server.RESOURCES_DIR_PROPERTY: resources_dir}
@@ -3660,9 +3808,13 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     copy_files_mock.return_value = 0
 
     args.dbms = "oracle"
+    lexists_mock.return_value = True
 
     rcode = ambari_server.check_jdbc_drivers(args)
 
+    self.assertEquals(os_symlink_mock.call_count, 1)
+    self.assertEquals(os_symlink_mock.call_args_list[0][0][0], os.path.join(os.sep,'tmp','ojdbc6.jar'))
+    self.assertEquals(os_symlink_mock.call_args_list[0][0][1], os.path.join(os.sep,'tmp','oracle-jdbc-driver.jar'))
     self.assertEqual(0, rcode)
     copy_files_mock.assert_called_with(drivers_list, resources_dir)
 
@@ -4595,6 +4747,8 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     args.database_name = new_db
     args.database_username = "user"
     args.database_password = "password"
+    args.jdbc_driver= None
+    args.jdbc_db = None
 
     tempdir = tempfile.gettempdir()
     prop_file = os.path.join(tempdir, "ambari.properties")

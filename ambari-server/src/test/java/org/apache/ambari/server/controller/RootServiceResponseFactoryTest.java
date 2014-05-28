@@ -20,51 +20,37 @@ package org.apache.ambari.server.controller;
 
 import java.util.Collections;
 import java.util.Set;
+
 import org.apache.ambari.server.ObjectNotFoundException;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.RootServiceResponseFactory.Components;
+import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 
 import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.assertEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class RootServiceResponseFactoryTest {
 
-  private AbstractRootServiceResponseFactory responseFactory;
+  @Inject
+  private RootServiceResponseFactory responseFactory;
   private Injector injector;
   
   @Inject
   Configuration configs;
-  
-  @Inject
-  AmbariMetaInfo ambariMetaInfo;
-  
-  public class MockModule extends AbstractModule {
-    
-    @Override
-    protected void configure() {
-      AmbariMetaInfo ambariMetaInfo = mock(AmbariMetaInfo.class);
-      bind(AmbariMetaInfo.class).toInstance(ambariMetaInfo);
-    }
-  }
+
   
   @Before
   public void setUp() throws Exception{
-    injector = Guice.createInjector(new InMemoryDefaultTestModule(), new MockModule());
+    injector = Guice.createInjector(new InMemoryDefaultTestModule());
+    injector.getInstance(GuiceJpaInitializer.class);
     injector.injectMembers(this);
-    responseFactory = injector.getInstance(RootServiceResponseFactory.class);
-    
-    when(ambariMetaInfo.getServerVersion()).thenReturn("1.2.3");
   }
 
   @Test
@@ -142,16 +128,21 @@ public class RootServiceResponseFactoryTest {
           RootServiceResponseFactory.Services.AMBARI.getComponents()[i];
 
       if (component.name().equals(
-          RootServiceResponseFactory.Components.AMBARI_SERVER.name()))
-        assertTrue(rootServiceComponents
-            .contains(new RootServiceComponentResponse(component.name(),
-                ambariMetaInfo.getServerVersion(),
-                configs.getAmbariProperties())));
-      else
+          RootServiceResponseFactory.Components.AMBARI_SERVER.name())) {
+         for (RootServiceComponentResponse response : rootServiceComponents) {
+           if (response.getComponentName().equals(RootServiceResponseFactory.Components.AMBARI_SERVER.name())) {
+             assertEquals(response.getComponentVersion(), "1.3.0");
+             assertEquals(response.getProperties().size(), 1);
+             assertTrue(response.getProperties().containsKey("jdk_location"));
+             assertEquals(response.getProperties().get("jdk_location"), "http://localhost:8080/resources/");
+           }
+         }
+      } else {
         assertTrue(rootServiceComponents
             .contains(new RootServiceComponentResponse(component.name(),
                 RootServiceResponseFactory.NOT_APPLICABLE,
                 Collections.<String, String> emptyMap())));
+      }
     }
 
     // Request existent service name, existent component name
@@ -162,10 +153,14 @@ public class RootServiceResponseFactoryTest {
                 .name());
     rootServiceComponents = responseFactory.getRootServiceComponents(request);
     assertEquals(1, rootServiceComponents.size());
-    assertTrue(rootServiceComponents.contains(new RootServiceComponentResponse(
-        RootServiceResponseFactory.Services.AMBARI.getComponents()[0].name(),
-        ambariMetaInfo.getServerVersion(),
-        configs.getAmbariProperties())));
+    for (RootServiceComponentResponse response : rootServiceComponents) {
+      if (response.getComponentName().equals(RootServiceResponseFactory.Services.AMBARI.getComponents()[0].name())) {
+        assertEquals(response.getComponentVersion(), "1.3.0");
+        assertEquals(response.getProperties().size(), 1);
+        assertTrue(response.getProperties().containsKey("jdk_location"));
+        assertEquals(response.getProperties().get("jdk_location"), "http://localhost:8080/resources/");
+      }
+    }
     
     // Request existent service name, and component, not belongs to requested service
     request =

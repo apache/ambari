@@ -84,6 +84,9 @@ server_db_name = config['hostLevelParams']['db_name']
 db_driver_filename = config['hostLevelParams']['db_driver_filename']
 oracle_driver_url = config['hostLevelParams']['oracle_jdbc_url']
 mysql_driver_url = config['hostLevelParams']['mysql_jdbc_url']
+ambari_server_resources = config['hostLevelParams']['jdk_location']
+oracle_driver_symlink_url = format("{ambari_server_resources}oracle-jdbc-driver.jar")
+mysql_driver_symlink_url = format("{ambari_server_resources}mysql-jdbc-driver.jar")
 
 ambari_db_rca_url = config['hostLevelParams']['ambari_db_rca_url']
 ambari_db_rca_driver = config['hostLevelParams']['ambari_db_rca_driver']
