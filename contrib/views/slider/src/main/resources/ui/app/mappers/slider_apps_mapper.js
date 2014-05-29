@@ -127,7 +127,8 @@ App.SliderAppsMapper = App.Mapper.createWithMixins(App.RunPeriodically, {
    */
   parse: function(data) {
     var apps = [],
-    self = this;
+    self = this,
+    appsToDelete = App.SliderApp.store.all('sliderApp').get('content').mapProperty('id');
 
     data.items.forEach(function(app) {
       var componentsId = app.components ? self.parseComponents(app) : [],
@@ -153,6 +154,15 @@ App.SliderAppsMapper = App.Mapper.createWithMixins(App.RunPeriodically, {
           runtimeProperties: app.configs
         })
       );
+
+      appsToDelete.splice(appsToDelete.indexOf(app.id), 1);
+    });
+
+    appsToDelete.forEach(function (app) {
+      var appRecord = App.SliderApp.store.getById('sliderApp', app);
+      if(appRecord){
+        appRecord.destroyRecord();
+      }
     });
     App.SliderApp.store.pushMany('sliderApp', apps);
   }
