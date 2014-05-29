@@ -48,7 +48,6 @@ eventhandlers_dir = "/usr/lib/nagios/eventhandlers"
 nagios_principal_name = default("nagios_principal_name", "nagios")
 hadoop_ssl_enabled = False
 
-namenode_metadata_port = get_port_from_url(config['configurations']['core-site']['fs.defaultFS'])
 oozie_server_port = get_port_from_url(config['configurations']['oozie-site']['oozie.base.url'])
 # different to HDP1    
 namenode_port = get_port_from_url(config['configurations']['hdfs-site']['dfs.namenode.http-address'])
@@ -105,6 +104,7 @@ if dfs_ha_enabled:
     nn_host = config['configurations']['hdfs-site'][format('dfs.namenode.rpc-address.{dfs_ha_nameservices}.{nn_id}')]
     nn_ha_host_port_map[nn_host.split(":")[0]] = nn_host.split(":")[1]
 else:
+  namenode_metadata_port = get_port_from_url(config['configurations']['core-site']['fs.defaultFS'])
   nn_ha_host_port_map[config['clusterHostInfo']['namenode_host'][0]] = namenode_metadata_port
 
 ganglia_port = "8651"
