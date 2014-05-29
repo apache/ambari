@@ -970,47 +970,69 @@ App.WizardStep7Controller = Em.Controller.extend({
   },
 
   /**
+   * Check if new MySql database was chosen for Hive service
+   * and it is not located on the same host as Ambari server
+   * that using MySql database too.
+   *
+   * @method resolveHiveMysqlDatabase
+   **/
+  resolveHiveMysqlDatabase: function() {
+    var hiveService = this.get('content.services').findProperty('serviceName', 'HIVE');
+    if (!hiveService || !hiveService.get('isSelected') || hiveService.get('isInstalled')) {
+      this.moveNext();
+    }
+    var hiveDBType = this.get('stepConfigs').findProperty('serviceName', 'HIVE').configs.findProperty('name', 'hive_database').value;
+    if (hiveDBType == 'New MySQL Database') {
+      var self= this;
+      this.checkMySQLHost().done(function () {
+        if (self.get('mySQLServerConflict')) {
+          // error popup before you can proceed
+          return App.ModalPopup.show({
+            header: Em.I18n.t('installer.step7.popup.mySQLWarning.header'),
+            bodyClass: Ember.View.extend({
+              template: Ember.Handlebars.compile(Em.I18n.t('installer.step7.popup.mySQLWarning.body'))
+            }),
+            secondary: Em.I18n.t('installer.step7.popup.mySQLWarning.button.gotostep5'),
+            primary: Em.I18n.t('installer.step7.popup.mySQLWarning.button.dismiss'),
+            onSecondary: function (){
+              var parent = this;
+              return App.ModalPopup.show({
+                header: Em.I18n.t('installer.step7.popup.mySQLWarning.confirmation.header'),
+                bodyClass: Ember.View.extend({
+                  template: Ember.Handlebars.compile( Em.I18n.t('installer.step7.popup.mySQLWarning.confirmation.body'))
+                }),
+                onPrimary: function (){
+                  this.hide();
+                  parent.hide();
+                  // go back to step 5: assign masters and disable default navigation warning
+                  App.router.get('installerController').gotoStep(5, true);
+                }
+              });
+            }
+          });
+        } else {
+          self.moveNext();
+        }
+      });
+    } else {
+      this.moveNext();
+    }
+  },
+
+  /**
+   * Proceed to the next step
+   **/
+  moveNext: function() {
+    App.router.send('next');
+  },
+
+  /**
    * Click-handler on Next button
    * @method submit
    */
   submit: function () {
     if (!this.get('isSubmitDisabled')) {
-      var hiveDBType = this.get('stepConfigs').findProperty('serviceName', 'HIVE').configs.findProperty('name', 'hive_database').value;
-      if (hiveDBType == 'New MySQL Database') {
-        var self= this;
-        this.checkMySQLHost().done(function () {
-          if (self.get('mySQLServerConflict')) {
-            // error popup before you can proceed
-            return App.ModalPopup.show({
-              header: Em.I18n.t('installer.step7.popup.mySQLWarning.header'),
-              bodyClass: Ember.View.extend({
-                template: Ember.Handlebars.compile( Em.I18n.t('installer.step7.popup.mySQLWarning.body'))
-              }),
-              secondary: Em.I18n.t('installer.step7.popup.mySQLWarning.button.gotostep5'),
-              primary: Em.I18n.t('installer.step7.popup.mySQLWarning.button.dismiss'),
-              onSecondary: function (){
-                var parent = this;
-                return App.ModalPopup.show({
-                  header: Em.I18n.t('installer.step7.popup.mySQLWarning.confirmation.header'),
-                  bodyClass: Ember.View.extend({
-                    template: Ember.Handlebars.compile( Em.I18n.t('installer.step7.popup.mySQLWarning.confirmation.body'))
-                  }),
-                  onPrimary: function (){
-                    this.hide();
-                    parent.hide();
-                    // go back to step 5: assign masters and disable default navigation warning
-                    App.router.get('installerController').gotoStep(5, true);
-                  }
-                });
-              }
-            });
-          } else {
-            App.router.send('next');
-          }
-        });
-      } else {
-        App.router.send('next');
-      }
+      this.resolveHiveMysqlDatabase();
     }
   }
 
