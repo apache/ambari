@@ -24,6 +24,11 @@
 
 	<dependencies>
 		<dependency>
+			<groupId>org.codehaus.jackson</groupId>
+			<artifactId>jackson-mapper-asl</artifactId>
+			<version>1.9.2</version>
+		</dependency>
+		<dependency>
 			<groupId>org.apache.hadoop</groupId>
 			<artifactId>hadoop-hdfs</artifactId>
 			<version>${hadoop-version}</version>
@@ -360,7 +365,7 @@
 	</repositories>
 
 	<properties>
-		<hadoop-version>2.2.0</hadoop-version>
+		<hadoop-version>2.4.0</hadoop-version>
 		<nodejs.directory>${basedir}/target/nodejs</nodejs.directory>
 		<npm.version>1.4.3</npm.version>
 		<ui.directory>${basedir}/src/main/resources/ui</ui.directory>
