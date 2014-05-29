@@ -50,7 +50,7 @@ var configGroup,
   ],
   setParentConfigGroup = function (configGroup, hosts) {
     configGroup.set('parentConfigGroup', App.ConfigGroup.create());
-    configGroup.set('parentConfigGroup.hosts', hosts);
+    configGroup.set('parentConfigGroup.hosts', hosts.mapProperty('hostName'));
   };
 
 describe('App.ConfigGroup', function () {
