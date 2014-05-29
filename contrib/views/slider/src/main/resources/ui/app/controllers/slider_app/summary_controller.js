@@ -17,7 +17,7 @@
  */
 
 App.SliderAppSummaryController = Ember.Controller.extend({
-
-
-
+  appType: function () {
+    return this.get('model.appType.displayName');
+  }.property('model.appType')
 });

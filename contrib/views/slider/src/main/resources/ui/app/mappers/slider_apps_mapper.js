@@ -134,8 +134,15 @@ App.SliderAppsMapper = App.Mapper.createWithMixins(App.RunPeriodically, {
       var componentsId = app.components ? self.parseComponents(app) : [],
       configs = app.configs ? self.parseConfigs(app) : {},
       quickLinks = self.parseQuickLinks(app),
-      jmx = self.parseObject(app.jmx);
-
+      jmx = self.parseObject(app.jmx),
+      masterActiveTime = jmx.findProperty('key', 'MasterActiveTime'),
+      masterStartTime = jmx.findProperty('key', 'MasterStartTime');
+      if(masterActiveTime){
+        masterActiveTime.value = new Date(Date.now() - masterActiveTime.value).getHours() + "h:" + new Date(Date.now() - masterActiveTime.value).getMinutes() + "m";
+      }
+      if(masterStartTime){
+        masterStartTime.value = (new Date(masterStartTime.value).toUTCString());
+      }
       apps.push(
         Ember.Object.create({
           id: app.id,
@@ -143,10 +150,10 @@ App.SliderAppsMapper = App.Mapper.createWithMixins(App.RunPeriodically, {
           name: app.name,
           status: app.state,
           user: app.user,
-          started: (new Date(app.startTime).toUTCString()),
+          started: app.startTime ? (new Date(app.startTime).toUTCString()) : "-",
           ended: app.endTime ? (new Date(app.endTime).toUTCString()) : "-",
           appType: app.type.toUpperCase(),
-          diagnostics: app.diagnostics,
+          diagnostics: app.diagnostics ? app.diagnostics : "-",
           components: componentsId,
           quickLinks: quickLinks,
           configs: configs,

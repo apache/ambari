@@ -38,7 +38,12 @@ Em.I18n.translations = {
     'confirmation': 'Confirmation',
     'configuration': 'Configuration',
     'finish': 'Finish',
-    'components': 'Components'
+    'components': 'Components',
+    'type': 'Type',
+    'status': 'Status',
+    'started': 'Started',
+    'finished': 'Finished',
+    'diagnostics': 'Diagnostics'
   },
 
   'popup.confirmation.commonHeader': 'Confirmation',
