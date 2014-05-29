@@ -43,19 +43,52 @@ App.UpdateController = Em.Controller.extend({
    * @return {String}
    */
   getComplexUrl: function (testUrl, realUrl, queryParams) {
-    var url = App.apiPrefix + '/clusters/' + App.get('clusterName');
+    var prefix = App.apiPrefix + '/clusters/' + App.get('clusterName');
     var params = '';
+
     if (App.testMode) {
-      url = testUrl;
+      return testUrl;
     } else {
       if (queryParams) {
-        queryParams.forEach(function (param) {
-          params += param.key + '=' + param.value + '&';
-        });
+        params = this.computeParameters(queryParams);
       }
-      url += realUrl.replace('<parameters>', params);
+      return prefix + realUrl.replace('<parameters>', params);
     }
-    return url;
+  },
+
+  /**
+   * compute parameters according to their type
+   * @param queryParams
+   * @return {String}
+   */
+  computeParameters: function (queryParams) {
+    var params = '';
+
+    queryParams.forEach(function (param) {
+      switch (param.type) {
+        case 'PLAIN':
+          params += param.key + '=' + param.value;
+          break;
+        case 'MATCH':
+          params += param.key + '.matches(' + param.value + ')';
+          break;
+        case 'NUMBER':
+          //TODO should be added predicates of comparison (<,>,=)
+          params += param.key + '=' + param.value;
+          break;
+        case 'MULTIPLE':
+          params += param.key + '.in(' + param.value.join(',') + ')';
+          break;
+        case 'SORT':
+          params += 'sortBy=' + param.key + '.' + param.value;
+          break;
+        case 'CRITICAL_ALERTS':
+          params += param.key;
+          break;
+      }
+      params += '&';
+    });
+    return params;
   },
 
   /**
@@ -123,6 +156,8 @@ App.UpdateController = Em.Controller.extend({
       'Hosts/host_status,Hosts/last_heartbeat_time,Hosts/os_arch,Hosts/os_type,Hosts/ip,host_components/HostRoles/state,host_components/HostRoles/maintenance_state,' +
       'Hosts/disk_info,metrics/disk,metrics/load/load_one,metrics/cpu/cpu_system,metrics/cpu/cpu_user,' +
       'metrics/memory/mem_total,metrics/memory/mem_free,alerts/summary&minimal_response=true';
+
+    this.get('queryParams').set('Hosts', App.router.get('mainHostController').getQueryParameters());
     var hostsUrl = this.getComplexUrl(testUrl, realUrl, this.get('queryParams.Hosts'));
     App.HttpClient.get(hostsUrl, App.hostsMapper, {
       complete: callback

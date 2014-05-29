@@ -43,7 +43,7 @@
               {{#if category.isVisible}}
                 <li {{bindAttr class=":category-item category.itemClass"}}>
                   <a {{action selectCategory category target="view"}} href="#">
-                      <span {{bindAttr class="category.isHealthStatus:health-status category.healthStatusValue category.class"}}></span>
+                      <span {{bindAttr class="category.isHealthStatus:health-status category.healthClass category.class"}}></span>
                     {{category.label}}
                   </a>
                </li>

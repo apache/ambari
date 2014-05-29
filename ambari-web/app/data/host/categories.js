@@ -20,7 +20,8 @@ module.exports = [
   {
     value: Em.I18n.t('common.all'),
     isHealthStatus: true,
-    healthStatusValue: '',
+    healthStatus: '',
+    healthClass: '',
     isActive: true,
     isVisible: false
   },
@@ -28,32 +29,37 @@ module.exports = [
     value: Em.I18n.t('hosts.host.healthStatusCategory.green'),
     isHealthStatus: true,
     class: App.healthIconClassGreen,
-    healthStatusValue: 'health-status-LIVE'
+    healthStatus: 'HEALTHY',
+    healthClass: 'health-status-LIVE'
   },
   {
     value: Em.I18n.t('hosts.host.healthStatusCategory.red'),
     isHealthStatus: true,
     class: App.healthIconClassRed,
-    healthStatusValue: 'health-status-DEAD-RED'
+    healthStatus: 'UNHEALTHY',
+    healthClass: 'health-status-DEAD-RED'
   },
   {
     value: Em.I18n.t('hosts.host.healthStatusCategory.orange'),
     isHealthStatus: true,
     class: App.healthIconClassOrange,
-    healthStatusValue: 'health-status-DEAD-ORANGE'
+    healthStatus: 'ALERT',
+    healthClass: 'health-status-DEAD-ORANGE'
   },
   {
     value: Em.I18n.t('hosts.host.healthStatusCategory.yellow'),
     isHealthStatus: true,
     class: App.healthIconClassYellow,
-    healthStatusValue: 'health-status-DEAD-YELLOW'
+    healthStatus: 'UNKNOWN',
+    healthClass: 'health-status-DEAD-YELLOW'
   },
   {
     value: Em.I18n.t('hosts.host.alerts.label'),
     hostProperty: 'criticalAlertsCount',
     class: 'icon-exclamation-sign',
     isHealthStatus: false,
-    healthStatusValue: 'health-status-WITH-ALERTS',
+    healthClass: 'health-status-WITH-ALERTS',
+    healthStatus: 'health-status-WITH-ALERTS',
     column: 7,
     type: 'number',
     filterValue: '>0'
@@ -63,17 +69,19 @@ module.exports = [
     hostProperty: 'componentsWithStaleConfigsCount',
     class: 'icon-refresh',
     isHealthStatus: false,
-    healthStatusValue: 'health-status-RESTART',
+    healthClass: 'health-status-RESTART',
+    healthStatus: 'health-status-RESTART',
     column: 8,
     type: 'number',
-    filterValue: '>0'
+    filterValue: 'true'
   },
   {
     value: Em.I18n.t('common.selected'),
     hostProperty: 'selected',
     class: '',
     isHealthStatus: false,
-    healthStatusValue: 'health-status-SELECTED',
+    healthClass: 'health-status-SELECTED',
+    healthStatus: 'health-status-SELECTED',
     selected: true,
     column: 10,
     type: 'boolean',
@@ -85,9 +93,10 @@ module.exports = [
     hostProperty: 'componentsInPassiveStateCount',
     class: 'passive-state icon-medkit',
     isHealthStatus: false,
-    healthStatusValue: 'health-status-PASSIVE_STATE',
+    healthClass: 'health-status-PASSIVE_STATE',
+    healthStatus: 'health-status-PASSIVE_STATE',
     column: 9,
     type: 'number',
-    filterValue: '>0'
+    filterValue: 'ON'
   }
 ];

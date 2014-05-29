@@ -23,20 +23,14 @@ var date = require('utils/date');
 
 App.MainHostView = App.TableView.extend(App.TableServerProvider, {
   templateName:require('templates/main/host'),
-  /**
-   * List of hosts in cluster
-   * @type {Array}
-   */
-  content:function () {
-    return this.get('controller.content');
-  }.property('controller.content.length'),
 
   tableName: 'Hosts',
-  paramAssociations: {
-    'serverStartIndex': 'from',
-    'displayLength': 'page_size'
-  },
-  refreshTriggers: ['serverStartIndex', 'displayLength'],
+
+  /**
+   * Select/deselect all visible hosts flag
+   * @property {bool}
+   */
+  selectAllHosts: false,
 
   /**
    * flag responsible for updating status counters of hosts
@@ -44,15 +38,20 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
   isCountersUpdating: false,
 
   /**
-   * startIndex as query parameter have first index - 0
+   * List of hosts in cluster
+   * @type {Array}
    */
-  serverStartIndex: function() {
-    return this.get('startIndex') - 1;
-  }.property('startIndex'),
-
-  pageContent: function () {
-    return this.get('filteredContent').filterProperty('isRequested');
-  }.property('filteredContent.length'),
+  content:function () {
+    return this.get('controller.content');
+  }.property('controller.content.length'),
+  /**
+   * return filtered number of all content number information displayed on the page footer bar
+   * @returns {String}
+   */
+  filteredContentInfo: function () {
+    //TODO API should return number of filtered hosts
+    return this.t('hosts.filters.filteredHostsInfo').format(this.get('filteredContent.length'), this.get('content').get('length'));
+  }.property('content.length', 'filteredContent.length'),
 
   clearFiltersObs: function() {
     var self = this;
@@ -63,9 +62,56 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
       }
     });
   },
+  /**
+   * Restore filter properties in view
+   */
+  willInsertElement: function () {
+    this.set('displayLength', this.get('controller.viewProperties').findProperty('key', 'displayLength').getValue(this.get('controller')));
+    var filterConditions = App.db.getFilterConditions(this.get('controller.name'));
+    if (filterConditions) {
+
+      var childViews = this.get('childViews');
+
+      filterConditions.forEach(function(condition) {
+        var view = childViews.findProperty('column', condition.iColumn);
+        if (view) {
+          view.set('value', condition.value);
+          Em.run.next(function() {
+            view.showClearFilter();
+          });
+        }
+      });
+    } else {
+      this.clearFilters();
+    }
+  },
+
+  /**
+   * get query parameters computed in controller
+   * @return {Array}
+   */
+  getQueryParameters: function () {
+    return this.get('controller').getQueryParameters();
+  },
+  /**
+   * stub for filter function in TableView
+   */
+  filter: function () {
+    //Since filtering moved to server side, function is empty
+  },
+  /**
+   * save display length to local DB and server
+   */
+  saveDisplayLength: function() {
+    App.db.setDisplayLength(this.get('controller.name'), this.get('displayLength'));
+    if (!App.testMode) {
+      if (App.get('isAdmin')) {
+        this.get('controller').postUserPref(this.get('controller').displayLengthKey(), this.get('displayLength'));
+      }
+    }
+  },
 
   didInsertElement: function() {
-    this.initTriggers();
     this.addObserver('controller.clearFilters', this, this.clearFiltersObs);
     this.clearFiltersObs();
     this.addObserver('selectAllHosts', this, this.toggleAllHosts);
@@ -73,23 +119,17 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
     this.updateStatusCounters();
   },
 
+  /**
+   * synchronize properties of view with controller to generate query parameters
+   */
+  updateViewProperty: function (context, property) {
+    this.get('controller.viewProperties').findProperty('key', property).set('viewValue', this.get(property));
+    this.refresh();
+  }.observes('displayLength', 'startIndex'),
+
   willDestroyElement: function() {
     this.set('isCountersUpdating', false);
   },
-
-  /**
-   * return filtered number of all content number information displayed on the page footer bar
-   * @returns {String}
-   */
-  filteredContentInfo: function () {
-    return this.t('hosts.filters.filteredHostsInfo').format(this.get('filteredContent.length'), this.get('content').get('length'));
-  }.property('content.length', 'filteredContent.length'),
-
-  /**
-   * Select/deselect all visible hosts flag
-   * @property {bool}
-   */
-  selectAllHosts: false,
 
   /**
    * Set <code>selected</code> property for each App.Host
@@ -204,7 +244,7 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
     });
   },
 
-  sortView: sort.wrapperView,
+  sortView: sort.serverWrapperView,
   nameSort: sort.fieldView.extend({
     column: 1,
     name:'publicHostName',
@@ -338,11 +378,11 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
    */
   updateStatusCountersSuccessCallback: function (data) {
     var hostsCountMap = {
-      'health-status-LIVE': data.Clusters.health_report['Host/host_status/HEALTHY'],
-      'health-status-DEAD-RED': data.Clusters.health_report['Host/host_status/UNHEALTHY'],
-      'health-status-DEAD-ORANGE': data.Clusters.health_report['Host/host_status/ALERT'],
-      'health-status-DEAD-YELLOW': data.Clusters.health_report['Host/host_status/UNKNOWN'],
-      'health-status-WITH-ALERTS': data.alerts.summary.CRITICAL + data.alerts.summary.WARNING,
+      'HEALTHY': data.Clusters.health_report['Host/host_status/HEALTHY'],
+      'UNHEALTHY': data.Clusters.health_report['Host/host_status/UNHEALTHY'],
+      'ALERT': data.Clusters.health_report['Host/host_status/ALERT'],
+      'UNKNOWN': data.Clusters.health_report['Host/host_status/UNKNOWN'],
+      'health-status-WITH-ALERTS': (data.alerts) ? data.alerts.summary.CRITICAL + data.alerts.summary.WARNING : 0,
       'health-status-RESTART': data.Clusters.health_report['Host/stale_config'],
       'health-status-PASSIVE_STATE': data.Clusters.health_report['Host/maintenance_state'],
       'TOTAL': data.Clusters.total_hosts
@@ -364,7 +404,7 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
    */
   updateHostsCount: function(hostsCountMap) {
     this.get('categories').forEach(function(category) {
-      var hostsCount = (category.get('healthStatusValue').trim() === "") ? hostsCountMap['TOTAL'] : hostsCountMap[category.get('healthStatusValue')];
+      var hostsCount = (category.get('healthStatus').trim() === "") ? hostsCountMap['TOTAL'] : hostsCountMap[category.get('healthStatus')];
 
       if (!Em.isNone(hostsCount)) {
         category.set('hostsCount', hostsCount);
@@ -500,16 +540,16 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
     /**
      * switch active category label
      */
-    onCategoryChange: function() {
+    onCategoryChange: function () {
       this.get('categories').setEach('isActive', false);
-      var selected = this.get('categories').findProperty('healthStatusValue', this.get('value'));
+      var selected = this.get('categories').findProperty('healthStatus', this.get('value'));
       selected.set('isActive', true);
-      this.set('class', selected.get('class') + ' ' + this.get('value'));
+      this.set('class', selected.get('class') + ' ' + selected.get('healthClass'));
     }.observes('value'),
 
-    showClearFilter: function(){
+    showClearFilter: function () {
       var mockEvent = {
-        context: this.get('categories').findProperty('healthStatusValue', this.get('value'))
+        context: this.get('categories').findProperty('healthStatus', this.get('value'))
       };
       this.selectCategory(mockEvent);
     },
@@ -519,24 +559,13 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
      */
     selectCategory: function(event){
       var category = event.context;
-      var self = this;
-      this.set('value', category.get('healthStatusValue'));
+
+      this.set('value', category.get('healthStatus'));
+      this.get('parentView').resetFilterByColumns([0, 7, 8, 9]);
       if (category.get('isHealthStatus')) {
-        this.get('parentView').updateFilter(0, category.get('healthStatusValue'), 'string');
-        this.get('categories').filterProperty('isHealthStatus', false).forEach(function(c) {
-          self.get('parentView').updateFilter(c.get('column'), '', c.get('type'));
-        });
-      }
-      else {
-        this.get('parentView').updateFilter(0, '', 'string');
-        this.get('categories').filterProperty('isHealthStatus', false).forEach(function(c) {
-          if (c.get('column') === category.get('column')) {
-            self.get('parentView').updateFilter(category.get('column'), category.get('filterValue'), category.get('type'));
-          }
-          else {
-            self.get('parentView').updateFilter(c.get('column'), '', c.get('type'));
-          }
-        });
+        this.get('parentView').updateFilter(0, category.get('healthStatus'), 'string');
+      } else {
+        this.get('parentView').updateFilter(category.get('column'), category.get('filterValue'), category.get('type'));
       }
     },
     clearFilter: function() {
@@ -556,7 +585,7 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
     classNames: ['noDisplay'],
     showClearFilter: function(){
       var mockEvent = {
-        context: this.get('parentView.categories').findProperty('healthStatusValue', 'health-status-WITH-ALERTS')
+        context: this.get('parentView.categories').findProperty('healthStatus', 'health-status-WITH-ALERTS')
       };
       if(this.get('value')) {
         this.get('parentView.childViews').findProperty('column', 0).selectCategory(mockEvent);
@@ -573,7 +602,7 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
     classNames: ['noDisplay'],
     showClearFilter: function(){
       var mockEvent = {
-        context: this.get('parentView.categories').findProperty('healthStatusValue', 'health-status-RESTART')
+        context: this.get('parentView.categories').findProperty('healthStatus', 'health-status-RESTART')
       };
       if(this.get('value')) {
         this.get('parentView.childViews').findProperty('column', 0).selectCategory(mockEvent);
@@ -590,7 +619,7 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
     classNames: ['noDisplay'],
     showClearFilter: function(){
       var mockEvent = {
-        context: this.get('parentView.categories').findProperty('healthStatusValue', 'health-status-PASSIVE_STATE')
+        context: this.get('parentView.categories').findProperty('healthStatus', 'health-status-PASSIVE_STATE')
       };
       if(this.get('value')) {
         this.get('parentView.childViews').findProperty('column', 0).selectCategory(mockEvent);
@@ -607,7 +636,7 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
     class: ['noDisplay'],
     showClearFilter: function(){
       var mockEvent = {
-        context: this.get('parentView.categories').findProperty('healthStatusValue', 'health-status-SELECTED')
+        context: this.get('parentView.categories').findProperty('healthStatus', 'health-status-SELECTED')
       };
       if(this.get('value')) {
         this.get('parentView.childViews').findProperty('column', 0).selectCategory(mockEvent);
@@ -800,19 +829,7 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
    * associations between host property and column index
    * @type {Array}
    */
-  colPropAssoc: function(){
-    var associations = [];
-    associations[0] = 'healthClass';
-    associations[1] = 'publicHostName';
-    associations[2] = 'ip';
-    associations[3] = 'cpu';
-    associations[4] = 'memoryFormatted';
-    associations[5] = 'loadAvg';
-    associations[6] = 'hostComponents';
-    associations[7] = 'criticalAlertsCount';
-    associations[8] = 'componentsWithStaleConfigsCount';
-    associations[9] = 'componentsInPassiveStateCount';
-    associations[10] = 'selected';
-    return associations;
-  }.property()
+  colPropAssoc: function () {
+    return this.get('controller.colPropAssoc');
+  }.property('controller.colPropAssoc')
 });

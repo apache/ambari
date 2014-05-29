@@ -22,19 +22,20 @@ var App = require('app');
 App.TableServerProvider = Em.Mixin.create({
   tableName: '',
   updaterBinding: 'App.router.updateController',
-  /**
-   * contains association between property of table and parameter in query
-   */
-  paramAssociations: {},
-  /**
-   * properties which trigger <code>refresh()</code> when they are changed
-   */
-  refreshTriggers: [],
-  refreshCompleted: true,
+  filteringComplete: true,
+  filterConditions: [],
   /**
    * total number of entities in table
    */
   totalCount: 0,
+
+  filteredContent: function () {
+    return this.get('content');
+  }.property('content'),
+
+  pageContent: function () {
+    return this.get('filteredContent');
+  }.property('filteredContent'),
 
   /**
    * Return pagination information displayed on the page
@@ -44,45 +45,66 @@ App.TableServerProvider = Em.Mixin.create({
     return this.t('tableView.filters.paginationInfo').format(this.get('startIndex'), this.get('endIndex'), this.get('totalCount'));
   }.property('totalCount', 'endIndex'),
 
-  /**
-   * add observers to trigger properties
-   */
-  initTriggers: function () {
-    this.get('refreshTriggers').forEach(function (trigger) {
-      this.addObserver(trigger, this, 'refresh');
-    }, this);
-  },
-
-  /**
-   * set filter properties of table to query parameters
-   * @param newParams
-   */
-  setParams: function (newParams) {
-    this.get('updater.queryParams').set(this.get('tableName'), newParams);
-  },
 
   /**
    * request latest data filtered by new parameters
    * called when trigger property(<code>refreshTriggers</code>) is changed
    */
   refresh: function () {
-    var params = [];
-    var paramAssociations = this.get('paramAssociations');
     var self = this;
 
-    for (var property in paramAssociations) {
-      if (!Em.isNone(this.get(property))) {
-        params.push({
-          key: paramAssociations[property],
-          value: this.get(property)
-        });
-      }
-    }
-    this.setParams(params);
-    this.set('refreshCompleted', false);
+    if (!this.get('filteringComplete')) return false;
+
+    this.set('filteringComplete', false);
     this.get('updater')[this.get('updater.tableUpdaterMap')[this.get('tableName')]](function () {
-      self.set('refreshCompleted', true);
+      self.set('filteringComplete', true);
       self.propertyDidChange('pageContent');
     });
+    return true;
+  },
+  /**
+   * reset filters value by column to which filter belongs
+   * @param columns {Array}
+   */
+  resetFilterByColumns: function (columns) {
+    var filterConditions = this.get('filterConditions');
+
+    columns.forEach(function (iColumn) {
+      var filterCondition = filterConditions.findProperty('iColumn', iColumn);
+
+      if (filterCondition) {
+        filterCondition.value = '';
+      }
+    });
+    this.saveFilterConditions();
+  },
+  /**
+   * Apply each filter to each row
+   * @param iColumn {Number}
+   * @param value {String}
+   * @param type {String}
+   */
+  updateFilter: function (iColumn, value, type) {
+    var filterCondition = this.get('filterConditions').findProperty('iColumn', iColumn);
+
+    if (filterCondition) {
+      filterCondition.value = value;
+    } else {
+      filterCondition = {
+        iColumn: iColumn,
+        value: value,
+        type: type
+      };
+      this.get('filterConditions').push(filterCondition);
+    }
+    this.saveFilterConditions();
+    this.refresh();
+  },
+
+  /**
+   * save filter conditions to local storage
+   */
+  saveFilterConditions: function () {
+    App.db.setFilterConditions(this.get('controller.name'), this.get('filterConditions'));
   }
 });

@@ -78,10 +78,6 @@ App.TableView = Em.View.extend(App.UserPref, {
     if (!this.get('displayLength')) {
       if (App.db.getDisplayLength(name)) {
         this.set('displayLength', App.db.getDisplayLength(name));
-      } else {
-        self.dataLoading().done(function (initValue) {
-          self.set('displayLength', initValue);
-        });
       }
     }
 
@@ -104,61 +100,6 @@ App.TableView = Em.View.extend(App.UserPref, {
       this.clearFilters();
     }
     self.set('tableFilteringComplete', true);
-  },
-
-  /**
-   * Load user preference value on hosts page from server
-   */
-  dataLoading: function() {
-    var dfd = $.Deferred();
-    var self = this;
-    this.getUserPref(this.displayLengthKey()).done(function () {
-      var curLength = self.get('displayLengthOnLoad');
-      self.set('displayLengthOnLoad', null);
-      dfd.resolve(curLength);
-    });
-    return dfd.promise();
-  },
-
-  /**
-   * Persist-key of current table displayLength property
-   * @param {String} loginName current user login name
-   * @returns {String}
-   */
-  displayLengthKey: function (loginName) {
-    if (App.get('testMode')) {
-      return 'pagination_displayLength';
-    }
-    loginName = loginName ? loginName : App.router.get('loginName');
-    return this.get('controller.name') + '-pagination-displayLength-' + loginName;
-  },
-
-  /**
-   * Set received from server value to <code>displayLengthOnLoad</code>
-   * @param {Number} response
-   * @param {Object} request
-   * @param {Object} data
-   * @returns {*}
-   */
-  getUserPrefSuccessCallback: function (response, request, data) {
-    console.log('Got DisplayLength value from server with key ' + data.key + '. Value is: ' + response);
-    this.set('displayLengthOnLoad', response);
-    return response;
-  },
-
-  /**
-   * Set default value to <code>displayLengthOnLoad</code> (and send it on server) if value wasn't found on server
-   * @returns {Number}
-   */
-  getUserPrefErrorCallback: function () {
-    // this user is first time login
-    console.log('Persist did NOT find the key');
-    var displayLengthDefault = this.get('defaultDisplayLength');
-    this.set('displayLengthOnLoad', displayLengthDefault);
-    if (App.get('isAdmin')) {
-      this.postUserPref(this.displayLengthKey(), displayLengthDefault);
-    }
-    return displayLengthDefault;
   },
 
   /**

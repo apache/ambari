@@ -339,25 +339,33 @@ App.ClusterController = Em.Controller.extend({
      * 10. update stale_configs of host-components (depends on App.supports.hostOverrides)
      */
     this.loadStackServiceComponents(function (data) {
+      var updater = App.router.get('updateController');
+
       require('utils/component').loadStackServiceComponentModel(data);
       self.updateLoadStatus('stackComponents');
-      App.router.get('updateController').updateServices(function () {
+      updater.updateServices(function () {
         self.updateLoadStatus('services');
+
         self.loadUpdatedStatus(function () {
-          self.updateLoadStatus('hosts');
+
+          updater.updateHost(function () {
+            self.updateLoadStatus('hosts');
+          });
+
+          updater.updateServiceMetric(function () {
+            updater.updateComponentsState(function () {
+              self.updateLoadStatus('componentsState');
+            });
+          });
+
           if (App.supports.hostOverrides) {
-            App.router.get('updateController').updateComponentConfig(function () {
+            updater.updateComponentConfig(function () {
               self.updateLoadStatus('componentConfigs');
             });
           } else {
             self.updateLoadStatus('componentConfigs');
           }
         }, true);
-        App.router.get('updateController').updateServiceMetric(function () {
-          App.router.get('updateController').updateComponentsState(function () {
-            self.updateLoadStatus('componentsState');
-          });
-        });
       });
     });
   },

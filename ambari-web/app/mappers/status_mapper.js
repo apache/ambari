@@ -22,29 +22,20 @@ App.statusMapper = App.QuickDataMapper.create({
   map: function (json) {
     console.time('App.statusMapper execution time');
     if (json.items) {
-      var hostsCache = App.cache['Hosts'];
-      var previousHostStatuses = App.cache['previousHostStatuses'];
       var previousComponentStatuses = App.cache['previousComponentStatuses'];
       var previousComponentPassiveStates = App.cache['previousComponentPassiveStates'];
       var hostComponentRecordsMap = App.cache['hostComponentRecordsMap'];
       var servicesCache = App.cache['services'];
-      var hostStatuses = {};
       var addedHostComponents = [];
       var updatedHostComponents = [];
       var componentServiceMap = App.QuickDataMapper.componentServiceMap();
       var currentComponentStatuses = {};
       var currentComponentPassiveStates = {};
-      var currentHostStatuses = {};
       var hostComponentsOnService = {};
 
       json.items.forEach(function (host) {
         var hostName = host.Hosts.host_name;
-        //update hosts, which have status changed
-        if (previousHostStatuses[hostName] !== host.Hosts.host_status) {
-          hostStatuses[hostName] = host.Hosts.host_status;
-        }
-        //preserve all hosts' status
-        currentHostStatuses[hostName] = host.Hosts.host_status;
+
         var hostComponentsOnHost = [];
         host.host_components.forEach(function (host_component) {
           host_component.id = host_component.HostRoles.component_name + "_" + hostName;
@@ -70,8 +61,6 @@ App.statusMapper = App.QuickDataMapper.create({
               host_id: hostName,
               service_id: service
             });
-            //update host-components only on adding due to Ember Data features
-            if (hostsCache[hostName]) hostsCache[hostName].is_modified = true;
           }
           currentComponentStatuses[host_component.id] = host_component.HostRoles.state;
           currentComponentPassiveStates[host_component.id] = host_component.HostRoles.maintenance_state;
@@ -85,20 +74,7 @@ App.statusMapper = App.QuickDataMapper.create({
           }
           hostComponentsOnService[service].host_components.push(host_component.id);
         }, this);
-        /**
-         * updating relation between Host and his host-components
-         */
-        if (hostsCache[hostName]) {
-          hostsCache[hostName].host_components = hostComponentsOnHost;
-        } else {
-          hostsCache[hostName] = {};
-        }
-        //check whether Nagios installed and started
-        if (host.alerts) {
-          hostsCache[hostName].critical_alerts_count = host.alerts.summary.CRITICAL + host.alerts.summary.WARNING;
-        } else {
-          hostsCache[hostName].critical_alerts_count = 0;
-        }
+
       }, this);
 
 
@@ -113,18 +89,6 @@ App.statusMapper = App.QuickDataMapper.create({
           hostComponentRecord.set('passiveState', hostComponent.HostRoles.maintenance_state);
         }
       }, this);
-
-      var hostRecords = App.Host.find();
-      hostRecords.forEach(function (host) {
-        var status = hostStatuses[host.get('id')];
-        var hostCache = hostsCache[host.get('id')];
-        if (status) {
-          host.set('healthStatus', status);
-        }
-        if (hostCache) {
-          host.set('criticalAlertsCount', hostCache.critical_alerts_count);
-        }
-      });
 
       if (addedHostComponents.length) {
         App.store.loadMany(this.get('model'), addedHostComponents);
@@ -142,15 +106,11 @@ App.statusMapper = App.QuickDataMapper.create({
         }
       }, this);
 
-      App.cache['previousHostStatuses'] = currentHostStatuses;
       App.cache['previousComponentStatuses'] = currentComponentStatuses;
       App.cache['previousComponentPassiveStates'] = currentComponentPassiveStates;
       App.cache['hostComponentsOnService'] = hostComponentsOnService;
 
     }
     console.timeEnd('App.statusMapper execution time');
-    if (!App.router.get('clusterController.isLoaded')) {
-      App.hostsMapper.map(json);
-    }
   }
 });

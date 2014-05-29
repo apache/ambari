@@ -21,10 +21,10 @@ var validator = require('utils/validator');
 var componentHelper = require('utils/component');
 var batchUtils = require('utils/batch_scheduled_requests');
 
-App.MainHostController = Em.ArrayController.extend({
-  name:'mainHostController',
-  content: App.Host.find(),
+App.MainHostController = Em.ArrayController.extend(App.UserPref, {
+  name: 'mainHostController',
 
+  dataSource: App.Host.find(),
   clearFilters: null,
 
   /**
@@ -61,11 +61,185 @@ App.MainHostController = Em.ArrayController.extend({
     return this.get('componentsForFilter').filterProperty('isClient', true);
   }.property('componentsForFilter'),
 
+  content: function () {
+    return this.get('dataSource').filterProperty('isRequested');
+  }.property('dataSource.@each.isRequested'),
+
+  filterProperties: [
+    {
+      key: 'publicHostName',
+      alias: 'Hosts/host_name',
+      type: 'MATCH'
+    },
+    {
+      key: 'ip',
+      alias: 'Hosts/ip',
+      type: 'MATCH'
+    },
+    {
+      key: 'cpu',
+      alias: 'Hosts/cpu_count',
+      type: 'PLAIN'
+    },
+    {
+      key: 'memoryFormatted',
+      alias: 'Hosts/total_mem',
+      type: 'NUMBER'
+    },
+    {
+      key: 'loadAvg',
+      alias: 'metrics/load/load_one',
+      type: 'NUMBER'
+    },
+    {
+      key: 'hostComponents',
+      alias: 'host_components/HostRoles/component_name',
+      type: 'MULTIPLE'
+    },
+    {
+      key: 'healthClass',
+      alias: 'Hosts/host_status',
+      type: 'PLAIN'
+    },
+    {
+      key: 'criticalAlertsCount',
+      alias: 'alerts/summary/CRITICAL>0|alerts/summary/WARNING>0',
+      type: 'CRITICAL_ALERTS'
+    },
+    {
+      key: 'componentsWithStaleConfigsCount',
+      alias: 'host_components/HostRoles/stale_configs',
+      type: 'PLAIN'
+    },
+    {
+      key: 'componentsInPassiveStateCount',
+      alias: 'host_components/HostRoles/maintenance_state',
+      type: 'PLAIN'
+    }
+  ],
+
+  viewProperties: [
+    Em.Object.create({
+      key: 'displayLength',
+      getValue: function (controller) {
+        var name = controller.get('name');
+        var dbValue = App.db.getDisplayLength(name);
+
+        if (Em.isNone(this.get('viewValue'))) {
+          if (dbValue) {
+            this.set('viewValue', dbValue);
+          } else {
+            controller.set('makeRequestAsync', false);
+            controller.getUserPref(controller.displayLengthKey());
+            App.db.setDisplayLength(name, this.get('viewValue'));
+          }
+        }
+        return this.get('viewValue');
+      },
+      viewValue: null,
+      alias: 'page_size'
+    }),
+    Em.Object.create({
+      key: 'startIndex',
+      getValue: function (controller) {
+        var name = controller.get('name');
+        var startIndex = App.db.getStartIndex(name);
+        var value = this.get('viewValue');
+
+        if (Em.isNone(value)) {
+          if (Em.isNone(startIndex)) {
+            value = 0;
+          } else {
+            value = startIndex;
+          }
+        }
+        return (value > 0) ? value - 1 : value;
+      },
+      viewValue: null,
+      alias: 'from'
+    })
+  ],
+
+  sortProps: [
+    {
+      key: 'publicHostName',
+      alias: 'Hosts/host_name'
+    },
+    {
+      key: 'ip',
+      alias: 'Hosts/ip'
+    },
+    {
+      key: 'cpu',
+      alias: 'Hosts/cpu_count'
+    },
+    {
+      key: 'memoryFormatted',
+      alias: 'Hosts/total_mem'
+    },
+    {
+      key: 'diskUsage',
+      //TODO disk_usage is relative property and need support from API, metrics/disk/disk_free used temporarily
+      alias: 'metrics/disk/disk_free'
+    },
+    {
+      key: 'loadAvg',
+      alias: 'metrics/load/load_one'
+    }
+  ],
+
+  /**
+   * get query parameters computed from filter properties, sort properties and custom properties of view
+   * @return {Array}
+   */
+  getQueryParameters: function () {
+    var queryParams = [];
+    var savedFilterConditions = App.db.getFilterConditions(this.get('name')) || [];
+    var savedSortConditions = App.db.getSortingStatuses(this.get('name')) || [];
+    var colPropAssoc = this.get('colPropAssoc');
+    var filterProperties = this.get('filterProperties');
+    var sortProperties = this.get('sortProps');
+
+    this.get('viewProperties').forEach(function (property) {
+      queryParams.push({
+        key: property.get('alias'),
+        value: property.getValue(this),
+        type: 'PLAIN'
+      })
+    }, this);
+
+    savedFilterConditions.forEach(function (filter) {
+      var property = filterProperties.findProperty('key', colPropAssoc[filter.iColumn]);
+
+      if (property && filter.value.length > 0) {
+        queryParams.push({
+          key: property.alias,
+          value: (filter.type === 'multiple') ? filter.value.split(',') : filter.value,
+          type: property.type
+        });
+      }
+    }, this);
+
+    savedSortConditions.forEach(function (sort) {
+      var property = sortProperties.findProperty('key', sort.name);
+
+      if (property && (sort.status === 'sorting_asc' || sort.status === 'sorting_desc')) {
+        queryParams.push({
+          key: property.alias,
+          value: sort.status.replace('sorting_', ''),
+          type: 'SORT'
+        });
+      }
+    });
+
+    return queryParams;
+  },
+
   /**
    * Filter hosts by componentName of <code>component</code>
    * @param {App.HostComponent} component
    */
-  filterByComponent:function (component) {
+  filterByComponent: function (component) {
     if(!component)
       return;
     var id = component.get('componentName');
@@ -78,6 +252,44 @@ App.MainHostController = Em.ArrayController.extend({
       type: 'multiple'
     };
     App.db.setFilterConditions(this.get('name'), [filterForComponent]);
+  },
+
+  /**
+   * Persist-key of current table displayLength property
+   * @param {String} loginName current user login name
+   * @returns {String}
+   */
+  displayLengthKey: function (loginName) {
+    if (App.get('testMode')) {
+      return 'pagination_displayLength';
+    }
+    loginName = loginName ? loginName : App.router.get('loginName');
+    return this.get('name') + '-pagination-displayLength-' + loginName;
+  },
+
+  /**
+   * Set received from server value to <code>displayLengthOnLoad</code>
+   * @param {Number} response
+   * @param {Object} request
+   * @param {Object} data
+   * @returns {*}
+   */
+  getUserPrefSuccessCallback: function (response, request, data) {
+    console.log('Got DisplayLength value from server with key ' + data.key + '. Value is: ' + response);
+    this.get('viewProperties').findProperty('key', 'displayLength').set('viewValue', response);
+  },
+
+  /**
+   * Set default value to <code>displayLengthOnLoad</code> (and send it on server) if value wasn't found on server
+   * @returns {Number}
+   */
+  getUserPrefErrorCallback: function () {
+    // this user is first time login, so set default value - '25'
+    console.log('Persist did NOT find the key');
+    this.get('viewProperties').findProperty('key', 'displayLength').set('viewValue', '25');
+    if (App.get('isAdmin')) {
+      this.postUserPref(this.displayLengthKey(), '25');
+    }
   },
   /**
    * On click callback for delete button
@@ -497,6 +709,25 @@ App.MainHostController = Em.ArrayController.extend({
         App.router.get('backgroundOperationsController').showPopup();
       }
     });
-  }
+  },
+  /**
+   * associations between host property and column index
+   * @type {Array}
+   */
+  colPropAssoc: function(){
+    var associations = [];
+    associations[0] = 'healthClass';
+    associations[1] = 'publicHostName';
+    associations[2] = 'ip';
+    associations[3] = 'cpu';
+    associations[4] = 'memoryFormatted';
+    associations[5] = 'loadAvg';
+    associations[6] = 'hostComponents';
+    associations[7] = 'criticalAlertsCount';
+    associations[8] = 'componentsWithStaleConfigsCount';
+    associations[9] = 'componentsInPassiveStateCount';
+    associations[10] = 'selected';
+    return associations;
+  }.property()
 
 });

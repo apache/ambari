@@ -18,11 +18,6 @@
 var App = require('app');
 
 var stringUtils = require('utils/string_utils');
-/**
- * previousResponse contains only mutable properties of host
- * unlike App.cache.Hosts, which contains immutable properties
- */
-var previousResponse = {};
 
 App.hostsMapper = App.QuickDataMapper.create({
 
@@ -31,7 +26,7 @@ App.hostsMapper = App.QuickDataMapper.create({
     id: 'Hosts.host_name',
     host_name: 'Hosts.host_name',
     public_host_name: 'Hosts.public_host_name',
-    cluster_id: 'Hosts.cluster_name',// 1
+    cluster_id: 'cluster_id',// Hosts.cluster_name
     rack: 'Hosts.rack_info',
     host_components_key: 'host_components',
     host_components_type: 'array',
@@ -63,136 +58,34 @@ App.hostsMapper = App.QuickDataMapper.create({
     console.time('App.hostsMapper execution time');
     if (json.items) {
       var hostsWithFullInfo = [];
-      var modifiedHosts = [];
       var hostIds = {};
-      var cacheData = App.cache['Hosts'];
-      var currentHostStatuses = {};
-      var hostsData = {};
-      var isModelLoaded = false;
 
       json.items.forEach(function (item) {
-        var hostName = item.Hosts.host_name;
-        //receive host_components when hosts were added
         item.host_components = item.host_components || [];
         item.host_components.forEach(function (host_component) {
-          host_component.id = host_component.HostRoles.component_name + "_" + hostName;
+          host_component.id = host_component.HostRoles.component_name + "_" + item.Hosts.host_name;
         }, this);
         item.Hosts.disk_info = item.Hosts.disk_info.filter(function(h) {return h.mountpoint!="/boot"});
-        hostIds[hostName] = true;
-        currentHostStatuses[hostName] = item.Hosts.host_status;
+        item.critical_alerts_count = (item.alerts) ? item.alerts.summary.CRITICAL + item.alerts.summary.WARNING : 0;
+        item.cluster_id = App.get('clusterName');
 
-        var hostCache = cacheData[hostName];
-        item.critical_alerts_count = hostCache.critical_alerts_count;
+        hostIds[item.Hosts.host_name] = true;
+
         var parsedItem = this.parseIt(item, this.config);
+        parsedItem.is_requested = true;
 
         hostsWithFullInfo.push(parsedItem);
-        if (hostCache) {
-          if (hostCache.is_modified) {
-            modifiedHosts.push(parsedItem);
-            delete hostCache.is_modified;
-          } else {
-            hostsData[hostName] = this.getDiscrepancies(parsedItem, previousResponse[hostName]);
-          }
-        }
-        previousResponse[hostName] = parsedItem;
       }, this);
 
-      App.cache['previousHostStatuses'] = currentHostStatuses;
       hostsWithFullInfo = hostsWithFullInfo.sortProperty('public_host_name');
 
-      var clientHosts = App.Host.find();
-
-      if (clientHosts) {
-        // hosts were added
-        if (clientHosts.get('length') < hostsWithFullInfo.length) {
-          hostsWithFullInfo.forEach(function (host) {
-            cacheData[host.id] = {
-              ip: host.ip,
-              os_arch: host.os_arch,
-              os_type: host.os_type,
-              public_host_name: host.public_host_name,
-              memory: host.memory,
-              cpu: host.cpu,
-              cpu_physical: host.cpu_physical,
-              host_components: host.host_components
-            };
-          });
-          App.store.loadMany(this.get('model'), hostsWithFullInfo);
-          isModelLoaded = true;
-        } else {
-          //restore properties from cache instead of asking them from server
-          modifiedHosts.forEach(function (host) {
-            var cacheHost = cacheData[host.id];
-            if (cacheHost) {
-              host.ip = cacheHost.ip;
-              host.os_arch = cacheHost.os_arch;
-              host.os_type = cacheHost.os_type;
-              host.public_host_name = cacheHost.public_host_name;
-              host.memory = cacheHost.memory;
-              host.cpu = cacheHost.cpu;
-              host.cpu_physical = cacheHost.cpu_physical;
-              host.host_components = cacheHost.host_components;
-            }
-          });
-          App.store.loadMany(this.get('model'), modifiedHosts);
+      App.Host.find().forEach(function (host) {
+        if (!hostIds[host.get('hostName')]) {
+          host.set('isRequested', false);
         }
-
-        clientHosts.forEach(function (host) {
-          host.set('isRequested', !!hostIds[host.get('hostName')]);
-        }, this);
-
-        // hosts were deleted
-       /* if (clientHosts.get('length') > hostsWithFullInfo.length) {
-          clientHosts.forEach(function (host) {
-            if (host && !hostIds[host.get('hostName')]) {
-              // Delete old ones as new ones will be
-              // loaded by loadMany().
-              this.deleteRecord(host);
-              delete cacheData[host.get('id')];
-            }
-          }, this);
-        }*/
-      }
-      if (!isModelLoaded) {
-        App.Host.find().forEach(function (_host) {
-          var hostData = hostsData[_host.get('id')];
-          if (hostData) {
-            for (var i in hostData) {
-              _host.set(stringUtils.underScoreToCamelCase(i), hostData[i]);
-            }
-          }
-        });
-      }
+      });
+      App.store.loadMany(App.Host, hostsWithFullInfo);
     }
     console.timeEnd('App.hostsMapper execution time');
-    if (!App.router.get('clusterController.dataLoadList.serviceMetrics')) {
-      App.router.get('clusterController').deferServiceMetricsLoad();
-    }
-  },
-  /**
-   * check mutable fields whether they have been changed and if positive
-   * return host object only with properties, that contains new value
-   * @param current
-   * @param previous
-   * @return {*}
-   */
-  getDiscrepancies: function (current, previous) {
-    var result = {};
-    var fields = Em.A(['disk_total', 'disk_free', 'health_status', 'load_one', 'cpu_system', 'cpu_user', 'mem_total', 'mem_free', 'critical_alerts_count', 'passive_state']);
-    if (previous) {
-      fields.forEach(function (field) {
-        if (current[field] != previous[field]) result[field] = current[field];
-      });
-      if (JSON.stringify(current.disk_info) !== JSON.stringify(previous.disk_info)) {
-        result.disk_info = current.disk_info;
-      }
-      if (JSON.stringify(current.host_components) !== JSON.stringify(previous.host_components)) {
-        result.host_components = current.host_components;
-      }
-      result.last_heart_beat_time = current.last_heart_beat_time;
-      return result;
-    }
-    return current;
   }
-
 });

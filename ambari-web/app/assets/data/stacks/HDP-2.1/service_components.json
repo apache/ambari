@@ -456,18 +456,6 @@
           }
         },
         {
-          "href" : "http://localhost:8080/api/v1/stacks/HDP/versions/2.1/stackServices/STORM/serviceComponents/LOGVIEWER_SERVER",
-          "StackServiceComponents" : {
-            "component_category" : "MASTER",
-            "component_name" : "LOGVIEWER_SERVER",
-            "is_client" : false,
-            "is_master" : true,
-            "service_name" : "STORM",
-            "stack_name" : "HDP",
-            "stack_version" : "2.1"
-          }
-        },
-        {
           "href" : "http://localhost:8080/api/v1/stacks/HDP/versions/2.1/stackServices/STORM/serviceComponents/NIMBUS",
           "StackServiceComponents" : {
             "component_category" : "MASTER",
