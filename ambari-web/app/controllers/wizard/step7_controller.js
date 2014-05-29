@@ -965,7 +965,7 @@ App.WizardStep7Controller = Em.Controller.extend({
    */
   getAmbariDatabaseSuccess: function (data) {
     var hiveDBHostname = this.get('stepConfigs').findProperty('serviceName', 'HIVE').configs.findProperty('name', 'hivemetastore_host').value;
-    var ambariDBInfo = JSON.stringify(data.hostComponents[0].RootServiceHostComponents.properties);
+    var ambariDBInfo = JSON.stringify(data.RootServiceComponents.properties);
     this.set('mySQLServerConflict', ambariDBInfo.indexOf('mysql') > 0 && ambariDBInfo.indexOf(hiveDBHostname) > 0);
   },
 
@@ -975,12 +975,13 @@ App.WizardStep7Controller = Em.Controller.extend({
    */
   submit: function () {
     if (!this.get('isSubmitDisabled')) {
-      var hiveDBType = this.get('stepConfigs').findProperty('serviceName', 'HIVE').configs.findProperty('name', 'hive_database').value;
-      if (hiveDBType == 'New MySQL Database') {
+      // if Hive selected, then check mySQLsevers conflict issue: whether hive New MySQL database is on the same host as Ambari server MySQL server
+      if (this.get('stepConfigs').findProperty('serviceName', 'HIVE') &&
+         this.get('stepConfigs').findProperty('serviceName', 'HIVE').configs.findProperty('name', 'hive_database').value == 'New MySQL Database') {
         var self= this;
         this.checkMySQLHost().done(function () {
           if (self.get('mySQLServerConflict')) {
-            // error popup before you can proceed
+            // hive New MySQL database is on the same host as Ambari server MySQL server, error popup before you can proceed
             return App.ModalPopup.show({
               header: Em.I18n.t('installer.step7.popup.mySQLWarning.header'),
               bodyClass: Ember.View.extend({
@@ -1013,5 +1014,4 @@ App.WizardStep7Controller = Em.Controller.extend({
       }
     }
   }
-
 });
