@@ -107,8 +107,14 @@ public class ClusterDefinitionTest {
     Assert.assertTrue(components.contains("SECONDARY_NAMENODE"));
     Assert.assertTrue(components.contains("DATANODE"));
     Assert.assertTrue(components.contains("ZKFC"));
+    Assert.assertTrue(components.contains("JOURNALNODE"));
 
     clusterDefinition = new ClusterDefinition(new TestStateProvider(), new TestClusterDefinitionProvider("clusterproperties_HDP21_HA.txt", "myCluster", "HDP-2.1.2"), new TestHostInfoProvider());
+    components = clusterDefinition.getComponents("HDFS");
+    Assert.assertTrue(components.contains("NAMENODE"));
+    Assert.assertTrue(components.contains("ZKFC"));
+    Assert.assertTrue(components.contains("JOURNALNODE"));
+
     components = clusterDefinition.getComponents("YARN");
     Assert.assertTrue(components.contains("RESOURCEMANAGER"));
   }
@@ -150,12 +156,14 @@ public class ClusterDefinitionTest {
 
     hostComponents = clusterDefinition.getHostComponents("HDFS", "WINHDP-1");
     Assert.assertTrue(hostComponents.contains("NAMENODE"));
+    Assert.assertTrue(hostComponents.contains("JOURNALNODE"));
 
     hostComponents = clusterDefinition.getHostComponents("YARN", "WINHDP-2");
     Assert.assertTrue(hostComponents.contains("RESOURCEMANAGER"));
 
     hostComponents = clusterDefinition.getHostComponents("HDFS", "WINHDP-2");
     Assert.assertTrue(hostComponents.contains("NAMENODE"));
+    Assert.assertTrue(hostComponents.contains("JOURNALNODE"));
   }
 
   @Test

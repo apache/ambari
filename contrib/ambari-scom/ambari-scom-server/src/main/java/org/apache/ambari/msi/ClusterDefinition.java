@@ -39,9 +39,8 @@ import java.util.Set;
  */
 public class ClusterDefinition {
 
-  private static final String HEADER_TAG              = "#";
-  private static final String HOSTS_HEADER            = "hosts";
-  private static final String HA_HEADER               = "ha settings";
+  private static final String COMMENT_TAG = "#";
+  private static final String HA_PROPERTY_INDICATOR = "HA";
   private static Boolean HA_ENABLE = Boolean.FALSE;
 
   private final Set<String> services = new HashSet<String>();
@@ -128,7 +127,7 @@ public class ClusterDefinition {
       }
       if(majorStackVersion == 2) {
         componentNameMap.put("JOURNALNODE_HOST", Collections.singleton("JOURNALNODE"));
-        componentNameMap.put("HA_JOURNALNODE_HOSTS", Collections.singleton("JOURNALNODE"));
+        componentNameMap.put(minorStackVersion > 0 ? "NN_HA_JOURNALNODE_HOSTS" : "HA_JOURNALNODE_HOSTS", Collections.singleton("JOURNALNODE"));
 
         Set<String> haNamenodeComponents = new HashSet<String>();
         haNamenodeComponents.add("NAMENODE");
@@ -611,80 +610,51 @@ public class ClusterDefinition {
       BufferedReader br = new BufferedReader(new InputStreamReader(is));
 
       String  line;
-      boolean hostsSection = false;
-      boolean haSection = false;
-
       while ((line = br.readLine()) != null) {
         line = line.trim();
 
+        if (line.startsWith(COMMENT_TAG)) continue;
 
-        if (line.startsWith(HEADER_TAG)) {
+        int i = line.indexOf('=');
+        if (i == -1) continue;
 
-          String header = line.substring(HEADER_TAG.length()).toLowerCase();
-          hostsSection = header.equalsIgnoreCase(HOSTS_HEADER);
-          haSection = header.equalsIgnoreCase(HA_HEADER);
+        String propertyName = line.substring(0, i);
+        String propertyValue = line.substring(i + 1);
 
-          if (!hostsSection && (header.startsWith(HOSTS_HEADER) ) ){
-            char c = header.charAt(HOSTS_HEADER.length());
-            hostsSection = c == ' ' || c == '(';
-          }
+        if(propertyName.equalsIgnoreCase(HA_PROPERTY_INDICATOR)) {
+          HA_ENABLE = propertyValue.equalsIgnoreCase("YES") ? Boolean.TRUE : Boolean.FALSE;
+        }
 
-          if(!haSection && header.startsWith(HA_HEADER)) {
-            char c = header.charAt(HA_HEADER.length());
-            haSection = c == ' ' || c == '(';
-          }
-        } else {
-          if (hostsSection || haSection) {
+        Set<String> componentNames = componentNameMap.get(propertyName);
+        if (componentNames != null) {
+          for (String componentName : componentNames) {
+            String serviceName = componentServiceMap.get(componentName);
+            services.add(serviceName);
 
-            if(haSection && line.toUpperCase().contains("HA=YES")) {
-              HA_ENABLE = Boolean.TRUE;
+            Set<String> serviceComponents = components.get(serviceName);
+            if (serviceComponents == null) {
+              serviceComponents = new HashSet<String>();
+              components.put(serviceName, serviceComponents);
+            }
+            serviceComponents.add(componentName);
+
+            Map<String, Set<String>> serviceHostComponents = hostComponents.get(serviceName);
+            if (serviceHostComponents == null) {
+              serviceHostComponents = new HashMap<String, Set<String>>();
+              hostComponents.put(serviceName, serviceHostComponents);
             }
 
-            int i = line.indexOf('=');
-            if (i > -1) {
-
-              String name = line.substring(0, i);
-              String hostLine = line.substring(i + 1);
-
-              Set<String> componentNames = componentNameMap.get(name);
-
-              if (componentNames != null) {
-
-                for (String componentName : componentNames) {
-
-
-                  String serviceName = componentServiceMap.get(componentName);
-
-                  services.add(serviceName);
-                  Set<String> serviceComponents = components.get(serviceName);
-                  if (serviceComponents == null) {
-                    serviceComponents = new HashSet<String>();
-                    components.put(serviceName, serviceComponents);
-                  }
-                  serviceComponents.add(componentName);
-
-                  Map<String, Set<String>> serviceHostComponents = hostComponents.get(serviceName);
-                  if (serviceHostComponents == null) {
-                    serviceHostComponents = new HashMap<String, Set<String>>();
-                    hostComponents.put(serviceName, serviceHostComponents);
-                  }
-
-                  String[] hostNames = hostLine.split(",");
-                  for (String hostName : hostNames) {
-
-                    hostName = hostName.trim();
-
-                    Set<String> hostHostComponents = serviceHostComponents.get(hostName);
-                    if (hostHostComponents == null) {
-                      hostHostComponents = new HashSet<String>();
-                      serviceHostComponents.put(hostName, hostHostComponents);
-                    }
-                    hostHostComponents.add(componentName);
-
-                    hosts.add(hostName);
-                  }
-                }
+            String[] hostNames = propertyValue.split(",");
+            for (String hostName : hostNames) {
+              hostName = hostName.trim();
+              Set<String> hostHostComponents = serviceHostComponents.get(hostName);
+              if (hostHostComponents == null) {
+                hostHostComponents = new HashSet<String>();
+                serviceHostComponents.put(hostName, hostHostComponents);
               }
+              hostHostComponents.add(componentName);
+
+              hosts.add(hostName);
             }
           }
         }
