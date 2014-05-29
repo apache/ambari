@@ -161,27 +161,30 @@
         </executions>
       </plugin>
       <plugin>
-        <!--Static -->
-        <artifactId>maven-antrun-plugin</artifactId>
+        <artifactId>eclipselink-staticweave-maven-plugin</artifactId>
+        <groupId>au.com.alderaan</groupId>
+        <version>1.0.4</version>
         <executions>
           <execution>
+            <goals>
+              <goal>weave</goal>
+            </goals>
             <phase>process-classes</phase>
             <configuration>
-              <tasks>
-                <java
-                  classname="org.eclipse.persistence.tools.weaving.jpa.StaticWeave"
-                  classpathref="maven.runtime.classpath" fork="true">
-                  <arg
-                    line="-loglevel FINE -persistenceinfo src/main/resources target/classes target/classes" />
-                </java>
-              </tasks>
+              <logLevel>ALL</logLevel>
+              <includeProjectClasspath>true</includeProjectClasspath>
             </configuration>
-            <goals>
-              <goal>run</goal>
-            </goals>
           </execution>
         </executions>
+        <dependencies>
+          <dependency>
+            <groupId>org.eclipse.persistence</groupId>
+            <artifactId>eclipselink</artifactId>
+            <version>2.4.0</version>
+          </dependency>
+        </dependencies>
       </plugin>
+
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>rpm-maven-plugin</artifactId>
