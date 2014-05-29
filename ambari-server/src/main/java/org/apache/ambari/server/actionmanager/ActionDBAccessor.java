@@ -19,6 +19,7 @@ package org.apache.ambari.server.actionmanager;
 
 import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.agent.CommandReport;
+import org.apache.ambari.server.agent.ExecutionCommand;
 
 import java.util.Collection;
 import java.util.List;
@@ -109,6 +110,16 @@ public interface ActionDBAccessor {
    * @return Request Id seen at init time
    */
   public long getLastPersistedRequestIdWhenInitialized();
+
+  /**
+   * Bulk update scheduled commands
+   */
+  void bulkHostRoleScheduled(Stage s, List<ExecutionCommand> commands);
+
+  /**
+   * Bulk abort commands
+   */
+  void bulkAbortHostRole(Stage s, List<ExecutionCommand> commands);
 
   /**
    * Updates scheduled stage.

@@ -36,6 +36,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.persistence.RollbackException;
 
+import com.google.common.collect.ListMultimap;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ServiceComponentHostNotFoundException;
 import org.apache.ambari.server.ServiceNotFoundException;
@@ -65,12 +66,14 @@ import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.ServiceComponentHostEvent;
 import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.ClusterHealthReport;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
+import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.scheduler.RequestExecution;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 import org.slf4j.Logger;
@@ -1424,6 +1427,36 @@ public class ClusterImpl implements Cluster {
     }
 
     return getHostsDesiredConfigs(hostnames);
+  }
+
+  @Transactional
+  @Override
+  public List<ServiceComponentHostEvent> processServiceComponentHostEvents(ListMultimap<String, ServiceComponentHostEvent> eventMap) {
+    List<ServiceComponentHostEvent> failedEvents = new ArrayList<ServiceComponentHostEvent>();
+
+    clusterGlobalLock.readLock().lock();
+    try {
+      for (Entry<String, ServiceComponentHostEvent> entry : eventMap.entries()) {
+        String serviceName = entry.getKey();
+        ServiceComponentHostEvent event = entry.getValue();
+        try {
+          Service service = getService(serviceName);
+          ServiceComponent serviceComponent = service.getServiceComponent(event.getServiceComponentName());
+          ServiceComponentHost serviceComponentHost = serviceComponent.getServiceComponentHost(event.getHostName());
+          serviceComponentHost.handleEvent(event);
+        } catch (AmbariException e) {
+          LOG.error("ServiceComponentHost lookup exception ", e);
+          failedEvents.add(event);
+        } catch (InvalidStateTransitionException e) {
+          LOG.error("Invalid transition ", e);
+          failedEvents.add(event);
+        }
+      }
+    } finally {
+      clusterGlobalLock.readLock().unlock();
+    }
+
+    return failedEvents;
   }
 
   private ClusterHealthReport getClusterHealthReport() throws AmbariException {

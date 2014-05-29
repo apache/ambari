@@ -1814,6 +1814,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     List<Stage> stages = doStageCreation(requestStages, cluster, changedServices, changedComponents,
         changedHosts, requestParameters, requestProperties,
         runSmokeTest, reconfigureClients);
+    LOG.debug("Created {} stages", ((stages != null) ? stages.size() : 0));
 
     requestStages.addStages(stages);
     updateServiceStates(changedServices, changedComponents, changedHosts, ignoredHosts);

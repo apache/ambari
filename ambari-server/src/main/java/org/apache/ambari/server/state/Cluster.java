@@ -23,9 +23,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.ReadWriteLock;
 
+import com.google.common.collect.ListMultimap;
+import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.ClusterResponse;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
+import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.scheduler.RequestExecution;
 
 public interface Cluster {
@@ -293,4 +296,12 @@ public interface Cluster {
    * @throws AmbariException
    */
   public void deleteRequestExecution(Long id) throws AmbariException;
+
+  /**
+   * Bulk handle service component host events
+   *
+   * @param eventMap serviceName - event mapping
+   * @return list of failed events
+   */
+  List<ServiceComponentHostEvent> processServiceComponentHostEvents(ListMultimap<String, ServiceComponentHostEvent> eventMap);
 }

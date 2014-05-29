@@ -318,6 +318,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
       List<Long> requestIds = actionManager.getRequestsByStatus(status,
         maxResults != null ? maxResults : BaseRequest.DEFAULT_PAGE_SIZE,
         ascOrder != null ? ascOrder : false);
+      LOG.debug("List<Long> requestIds = actionManager.getRequestsByStatus = {}", requestIds.size());
 
       response.addAll(getRequestResources(clusterName, actionManager, requestIds,
           requestedPropertyIds));
@@ -340,6 +341,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
                                                    Set<String> requestedPropertyIds) {
 
     List<org.apache.ambari.server.actionmanager.Request> requests = actionManager.getRequests(requestIds);
+    LOG.debug("requests = actionManager.getRequests(requestIds)={}", requests.size());
 
     Map<Long, Resource> resourceMap = new HashMap<Long, Resource>();
 
@@ -416,6 +418,11 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
     }
 
     int inProgressTaskCount = taskCount - completedTaskCount - queuedTaskCount - pendingTaskCount;
+
+    LOG.debug("taskCount={}, inProgressTaskCount={}, completedTaskCount={}, queuedTaskCount={}, " +
+      "pendingTaskCount={}, failedTaskCount={}, abortedTaskCount={}, timedOutTaskCount={}",
+      taskCount, inProgressTaskCount, completedTaskCount, queuedTaskCount, pendingTaskCount,
+      failedTaskCount, abortedTaskCount, timedOutTaskCount);
 
     // determine request status
     HostRoleStatus requestStatus = failedTaskCount > 0 ? HostRoleStatus.FAILED :

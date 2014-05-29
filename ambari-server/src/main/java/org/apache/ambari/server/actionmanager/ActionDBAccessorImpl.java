@@ -24,6 +24,7 @@ import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.agent.CommandReport;
+import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ExecutionCommandDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
@@ -409,6 +410,23 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
   @Override
   public long getLastPersistedRequestIdWhenInitialized() {
     return requestId;
+  }
+
+
+  @Override
+  @Transactional
+  public void bulkHostRoleScheduled(Stage s, List<ExecutionCommand> commands) {
+    for (ExecutionCommand command : commands) {
+      hostRoleScheduled(s, command.getHostname(), command.getRole());
+    }
+  }
+
+  @Override
+  @Transactional
+  public void bulkAbortHostRole(Stage s, List<ExecutionCommand> commands) {
+    for (ExecutionCommand command : commands) {
+      abortHostRole(command.getHostname(), s.getRequestId(), s.getStageId(), command.getRole());
+    }
   }
 
   @Override
