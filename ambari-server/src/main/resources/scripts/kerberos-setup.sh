@@ -173,6 +173,9 @@ processCSVFile () {
     sh ./generate_keytabs.sh
 }
 
+########################
+## installKDC () : Install rng tools,pdsh on KDC host and KDC packages on all host. Modify krb5 file
+########################
 installKDC () {
   csvFile=$1;
   sshLoginKey=$2;
@@ -249,6 +252,9 @@ installKDC () {
   fi
 }
 
+########################
+## distributeKeytabs () : Distribute the tar on all respective hosts root directory and untar it
+########################
 distributeKeytabs () {
   shopt -s nullglob  
   filearray=(keytabs_*tar)
@@ -261,29 +267,44 @@ distributeKeytabs () {
   done
 }
 
+########################
+## getEnvironmentCMD () : get linux distribution type and package manager
+########################
 getEnvironmentCMD () {
-#get linux distribution type and package manager
-    os=`python -c 'import sys; sys.path.append("/usr/lib/python2.6/site-packages/"); from common_functions import OSCheck; print OSCheck.get_os_family()'`
-    case $os in
-    'debian' )
-        pkgmgr='apt-get'
-        inst_cmd="/usr/bin/$pkgmgr --force-yes --assume-yes install "
-        ;;
-    'redhat' )
-        pkgmgr='yum'
-        inst_cmd="/usr/bin/$pkgmgr -d 0 -e 0 -y install "
-        ;;
-    'suse' )
-        pkgmgr='zypper'
-        inst_cmd="/usr/bin/$pkgmgr --quiet install --auto-agree-with-licenses --no-confirm "
-        ;;
-    esac
+  os=`python -c 'import sys; sys.path.append("/usr/lib/python2.6/site-packages/"); from common_functions import OSCheck; print OSCheck.get_os_family()'`
+  case $os in
+  'debian' )
+    pkgmgr='apt-get'
+    inst_cmd="/usr/bin/$pkgmgr --force-yes --assume-yes install "
+    ;;
+  'redhat' )
+    pkgmgr='yum'
+    inst_cmd="/usr/bin/$pkgmgr -d 0 -e 0 -y install "
+    ;;
+  'suse' )
+    pkgmgr='zypper'
+    inst_cmd="/usr/bin/$pkgmgr --quiet install --auto-agree-with-licenses --no-confirm "
+    ;;
+  esac
 }
+
+########################
+## checkUser () : If the user executing the script is not "root" then exit
+########################
+checkUser () {
+  userid=`id -u`;
+  if (($userid != 0)); then
+    echo "ERROR: The script needs to be executed by root user"
+    exit 1;
+  fi
+}
+
 
 if (($# != 2)); then
     usage
 fi
 
+checkUser
 getEnvironmentCMD
 installKDC $@
 processCSVFile $@
