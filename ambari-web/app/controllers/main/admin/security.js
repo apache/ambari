@@ -252,9 +252,13 @@ App.MainAdminSecurityController = Em.Controller.extend({
     }
   },
 
-  errorCallback: function () {
+  errorCallback: function (jqXHR) {
     this.set('dataIsLoaded', true);
-    this.showSecurityErrorPopup();
+    // Show the error popup if the API call received a response from the server.
+    // jqXHR.status will be empty when browser cancels the request. Refer to AMBARI-5921 for more info
+    if (!!jqXHR.status) {
+      this.showSecurityErrorPopup();
+    }
   },
 
   getSecurityStatusFromServerSuccessCallback: function (data) {

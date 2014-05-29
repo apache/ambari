@@ -230,8 +230,8 @@ module.exports = App.WizardRoute.extend({
       var controller = router.get('mainAdminSecurityAddStep4Controller');
       if (!controller.get('isSubmitDisabled')) {
         $(context.currentTarget).parents("#modal").find(".close").trigger('click');
+        location.reload();
       }
-      location.reload();
     }
   }),
 
