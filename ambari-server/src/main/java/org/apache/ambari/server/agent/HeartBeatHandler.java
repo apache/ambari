@@ -417,7 +417,7 @@ public class HeartBeatHandler {
                   || prevState.equals(State.STARTING)
                   || prevState.equals(State.STOPPING)
                   || prevState.equals(State.UNKNOWN)) {
-                scHost.setState(liveState);
+                scHost.setState(liveState); //TODO direct status set breaks state machine sometimes !!!
                 if (!prevState.equals(liveState)) {
                   LOG.info("State of service component " + componentName
                       + " of service " + status.getServiceName()

@@ -181,8 +181,16 @@ public class HeartbeatMonitor implements Runnable {
 
     for (Cluster cl : clusters.getClustersForHost(hostname)) {
       for (ServiceComponentHost sch : cl.getServiceComponentHosts(hostname)) {
-        StatusCommand statusCmd = createStatusCommand(hostname, cl, sch);
-        cmds.add(statusCmd);
+        switch (sch.getState()) {
+          case INIT:
+          case INSTALLING:
+            //don't send commands until component is installed at least
+            continue;
+          default:
+            StatusCommand statusCmd = createStatusCommand(hostname, cl, sch);
+            cmds.add(statusCmd);
+        }
+
       }
     }
     return cmds;

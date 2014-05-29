@@ -248,11 +248,7 @@ public class MaintenanceStateHelperTest {
     expect(clusters.getCluster("c1")).andReturn(cluster).anyTimes();
     expect(cluster.getClusterName()).andReturn("c1").anyTimes();
     expect(cluster.getClusterId()).andReturn(1L).anyTimes();
-    expect(clusters.getHostsForCluster("c1")).andReturn(
-      new HashMap<String, Host>() {{
-        put("h1", host);
-      }}
-    ).anyTimes();
+    expect(clusters.getHost("h1")).andReturn(host).anyTimes();
     expect(sch.getHostName()).andReturn("h1").anyTimes();
     expect(sch.getServiceName()).andReturn("HDFS").anyTimes();
     expect(cluster.getService("HDFS")).andReturn(service).anyTimes();

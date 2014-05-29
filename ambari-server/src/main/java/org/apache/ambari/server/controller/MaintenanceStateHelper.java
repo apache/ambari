@@ -85,11 +85,7 @@ public class MaintenanceStateHelper {
   public MaintenanceState getEffectiveState(ServiceComponentHost sch) throws AmbariException {
     Cluster cluster = clusters.getCluster(sch.getClusterName());
 
-    Map<String, Host> map = clusters.getHostsForCluster(cluster.getClusterName());
-    if (null == map)
-      return MaintenanceState.OFF;
-
-    Host host = map.get(sch.getHostName());
+    Host host = clusters.getHost(sch.getHostName());
 
     return getEffectiveState(sch, host);
   }
