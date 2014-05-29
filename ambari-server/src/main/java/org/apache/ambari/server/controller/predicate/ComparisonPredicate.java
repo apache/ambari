@@ -79,7 +79,6 @@ public abstract class ComparisonPredicate<T> extends PropertyPredicate implement
   protected int compareValueTo(Object propertyValue) throws ClassCastException{
     if (doubleValue != null) {
       if (propertyValue instanceof Number) {
-
         return doubleValue.compareTo(((Number) propertyValue).doubleValue());
       }
       else if (propertyValue instanceof String) {
