@@ -491,4 +491,16 @@ public class ViewRegistryTest {
     }
   }
 
+  public static ViewEntity getViewEntity(ViewConfig viewConfig, Configuration ambariConfig,
+                                     ClassLoader cl, String archivePath) throws Exception{
+    ViewRegistry registry = ViewRegistry.getInstance();
+
+    return registry.createViewDefinition(viewConfig, ambariConfig, cl, archivePath);
+  }
+
+  public static ViewInstanceEntity getViewInstanceEntity(ViewEntity viewDefinition, InstanceConfig instanceConfig) throws Exception {
+    ViewRegistry registry = ViewRegistry.getInstance();
+
+    return registry.createViewInstanceDefinition(viewDefinition, instanceConfig);
+  }
 }

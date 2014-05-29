@@ -29,6 +29,7 @@ import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
+import org.apache.ambari.server.controller.spi.TemporalInfo;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.entities.ViewEntity;
@@ -157,7 +158,7 @@ public class ViewSubResourceProvider extends AbstractResourceProvider {
       }
 
       Set<Resource> results = new HashSet<Resource>();
-      ReadRequest readRequest = new ViewReadRequest(requestedIds, predicate == null ? "" : predicate.toString());
+      ReadRequest readRequest = new ViewReadRequest(request, requestedIds, predicate == null ? "" : predicate.toString());
       for (ViewInstanceEntity instanceDefinition : instanceDefinitions) {
 
         Set<?> beans = instanceDefinition.getResourceProvider(type).getResources(readRequest);
@@ -307,9 +308,17 @@ public class ViewSubResourceProvider extends AbstractResourceProvider {
   // ----- inner class : ViewReadRequest -------------------------------------
 
   /**
-   * A read request to pass the the view resource provider.
+   * A read request to pass the the view resource provider.  Serves
+   * as a bridge from the ambari-server API framework request to the
+   * view framework request.
    */
   private static class ViewReadRequest implements ReadRequest {
+
+    /**
+     * The original request.
+     */
+    private final Request request;
+
     /**
      * The property ids of the request.
      */
@@ -329,9 +338,10 @@ public class ViewSubResourceProvider extends AbstractResourceProvider {
      * @param propertyIds  the property ids
      * @param predicate    the predicate
      */
-    private ViewReadRequest(Set<String> propertyIds, String predicate) {
+    private ViewReadRequest(Request request, Set<String> propertyIds, String predicate) {
+      this.request     = request;
       this.propertyIds = propertyIds;
-      this.predicate = predicate;
+      this.predicate   = predicate;
     }
 
 
@@ -345,6 +355,53 @@ public class ViewSubResourceProvider extends AbstractResourceProvider {
     @Override
     public String getPredicate() {
       return predicate;
+    }
+
+    @Override
+    public TemporalInfo getTemporalInfo(String id) {
+
+      org.apache.ambari.server.controller.spi.TemporalInfo temporalInfo =
+          request.getTemporalInfo(id);
+
+      return temporalInfo == null ? null : new ViewReadRequestTemporalInfo(temporalInfo);
+    }
+  }
+
+  /**
+   * Temporal information to pass to the view resource provider.  Serves as a
+   * bridge from the ambari-server API framework temporal info object to the
+   * view framework temporal info object.
+   */
+  private static class ViewReadRequestTemporalInfo implements ReadRequest.TemporalInfo {
+
+    /**
+     * The original temporal information object.
+     */
+    private final org.apache.ambari.server.controller.spi.TemporalInfo temporalInfo;
+
+
+    // ----- Constructors ----------------------------------------------------
+
+    private ViewReadRequestTemporalInfo(TemporalInfo temporalInfo) {
+      this.temporalInfo = temporalInfo;
+    }
+
+
+    // ----- TemporalInfo ----------------------------------------------------
+
+    @Override
+    public Long getStartTime() {
+      return temporalInfo.getStartTime();
+    }
+
+    @Override
+    public Long getEndTime() {
+      return temporalInfo.getEndTime();
+    }
+
+    @Override
+    public Long getStep() {
+      return temporalInfo.getStep();
     }
   }
 }

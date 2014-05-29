@@ -36,4 +36,45 @@ public interface ReadRequest {
    * @return the predicate; may be null
    */
   public String getPredicate();
+
+  /**
+   * Get the temporal information for the given property id for this
+   * request, if any.
+   *
+   * @param id the property id
+   *
+   * @return the temporal information for the given property id; null if
+   *         none exists
+   */
+  public TemporalInfo getTemporalInfo(String id);
+
+
+  /**
+   * Temporal query data.
+   */
+  public interface TemporalInfo {
+    /**
+     * Get the start of the requested time range.  The time is given in
+     * seconds since the Unix epoch.
+     *
+     * @return the start time in seconds
+     */
+    Long getStartTime();
+
+    /**
+     * Get the end of the requested time range.  The time is given in
+     * seconds since the Unix epoch.
+     *
+     * @return the end time in seconds
+     */
+    Long getEndTime();
+
+    /**
+     * Get the requested time between each data point of the temporal
+     * data.  The time is given in seconds.
+     *
+     * @return the step time in seconds
+     */
+    Long getStep();
+  }
 }

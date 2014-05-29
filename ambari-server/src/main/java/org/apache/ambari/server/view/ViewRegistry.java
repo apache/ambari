@@ -558,7 +558,7 @@ public class ViewRegistry {
   }
 
   // create a new view definition
-  private ViewEntity createViewDefinition(ViewConfig viewConfig, Configuration ambariConfig,
+  protected ViewEntity createViewDefinition(ViewConfig viewConfig, Configuration ambariConfig,
                                           ClassLoader cl, String archivePath)
       throws ClassNotFoundException, IntrospectionException {
 
@@ -634,7 +634,7 @@ public class ViewRegistry {
   }
 
   // create a new view instance definition
-  private ViewInstanceEntity createViewInstanceDefinition(ViewEntity viewDefinition, InstanceConfig instanceConfig)
+  protected ViewInstanceEntity createViewInstanceDefinition(ViewEntity viewDefinition, InstanceConfig instanceConfig)
       throws ClassNotFoundException {
     ViewInstanceEntity viewInstanceDefinition =
         new ViewInstanceEntity(viewDefinition, instanceConfig);
