@@ -18,15 +18,6 @@
 
 package org.apache.ambari.view.slider.rest.client;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import org.apache.ambari.view.URLStreamProvider;
-import org.apache.ambari.view.ViewContext;
-import org.apache.ambari.view.slider.SliderAppType;
-import org.apache.ambari.view.slider.SliderAppTypeComponent;
-import org.apache.commons.httpclient.HttpException;
-import org.apache.log4j.Logger;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -34,6 +25,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+
+import org.apache.ambari.view.URLStreamProvider;
+import org.apache.ambari.view.ViewContext;
+import org.apache.ambari.view.slider.SliderAppType;
+import org.apache.ambari.view.slider.SliderAppTypeComponent;
+import org.apache.commons.httpclient.HttpException;
+import org.apache.log4j.Logger;
+
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 public class SliderAppMasterClient extends BaseHttpClient {
 
@@ -82,17 +83,20 @@ public class SliderAppMasterClient extends BaseHttpClient {
     try {
       JsonElement json = super.doGetJson(providerUrl, "/slider/quicklinks");
       Map<String, String> quickLinks = new HashMap<String, String>();
-      JsonObject jsonObject = json.getAsJsonObject().get("entries")
-          .getAsJsonObject();
-      for (Entry<String, JsonElement> entry : jsonObject.entrySet()) {
-        if ("org.apache.slider.jmx".equals(entry.getKey())) {
-          quickLinks.put("JMX", entry.getValue().getAsString());
-        } else if ("org.apache.slider.monitor".equals(entry.getKey())) {
-          quickLinks.put("UI", entry.getValue().getAsString());
-        } else if ("org.apache.slider.metrics".equals(entry.getKey())) {
-          quickLinks.put("Metrics", entry.getValue().getAsString());
-        } else {
-          quickLinks.put(entry.getKey(), entry.getValue().getAsString());
+      if (json != null && json.getAsJsonObject() != null
+          && json.getAsJsonObject().has("entries")) {
+        JsonObject jsonObject = json.getAsJsonObject().get("entries")
+            .getAsJsonObject();
+        for (Entry<String, JsonElement> entry : jsonObject.entrySet()) {
+          if ("org.apache.slider.jmx".equals(entry.getKey())) {
+            quickLinks.put("JMX", entry.getValue().getAsString());
+          } else if ("org.apache.slider.monitor".equals(entry.getKey())) {
+            quickLinks.put("UI", entry.getValue().getAsString());
+          } else if ("org.apache.slider.metrics".equals(entry.getKey())) {
+            quickLinks.put("Metrics", entry.getValue().getAsString());
+          } else {
+            quickLinks.put(entry.getKey(), entry.getValue().getAsString());
+          }
         }
       }
       return quickLinks;
@@ -118,7 +122,7 @@ public class SliderAppMasterClient extends BaseHttpClient {
             continue;
           }
           JsonElement entryJson = super.doGetJson(providerUrl, "/slider/"
-                                                               + entry.getKey());
+              + entry.getKey());
           if (entryJson != null) {
             JsonObject configsObj = entryJson.getAsJsonObject().get("entries")
                 .getAsJsonObject();
@@ -144,15 +148,17 @@ public class SliderAppMasterClient extends BaseHttpClient {
 
   /**
    * Provides only the interesting JMX metric names and values.
-   *
+   * 
    * @param jmxUrl
-   *
+   * 
    * @return
    */
-  public Map<String, String> getJmx(String jmxUrl, ViewContext context, SliderAppType appType) {
+  public Map<String, String> getJmx(String jmxUrl, ViewContext context,
+      SliderAppType appType) {
     Map<String, String> jmxProperties = new HashMap<String, String>();
     if (appType == null || appType.getJmxMetrics() == null) {
-      logger.info("AppType must be provided and it must contain jmx_metrics.json to extract jmx properties");
+      logger
+          .info("AppType must be provided and it must contain jmx_metrics.json to extract jmx properties");
       return jmxProperties;
     }
 
@@ -161,11 +167,15 @@ public class SliderAppMasterClient extends BaseHttpClient {
       components.add(appTypeComponent.getName());
     }
 
-    Map<String, Map<String, Map<String, Metric>>> metrics = appType.getJmxMetrics();
-    Map<String, Metric> relevantMetrics = getRelevantMetrics(metrics, components);
-    SliderAppJmxHelper.JMXTypes jmxType = SliderAppJmxHelper.jmxTypeExpected(relevantMetrics);
+    Map<String, Map<String, Map<String, Metric>>> metrics = appType
+        .getJmxMetrics();
+    Map<String, Metric> relevantMetrics = getRelevantMetrics(metrics,
+        components);
+    SliderAppJmxHelper.JMXTypes jmxType = SliderAppJmxHelper
+        .jmxTypeExpected(relevantMetrics);
     if (jmxType == null) {
-      logger.info("jmx_metrics.json is malformed. It may have mixed metric key types of unsupported metric key types.");
+      logger
+          .info("jmx_metrics.json is malformed. It may have mixed metric key types of unsupported metric key types.");
       return jmxProperties;
     }
 
@@ -176,22 +186,27 @@ public class SliderAppMasterClient extends BaseHttpClient {
       try {
         jmxStream = streamProvider.readFrom(jmxUrl, "GET", null, headers);
       } catch (IOException e) {
-        logger.error(String.format("Unable to access JMX endpoint at %s. Error %s", jmxUrl, e.getMessage()));
+        logger.error(String.format(
+            "Unable to access JMX endpoint at %s. Error %s", jmxUrl,
+            e.getMessage()));
       }
 
       if (jmxStream != null) {
         switch (jmxType) {
-          case JMX_BEAN:
-            SliderAppJmxHelper.extractMetricsFromJmxBean(jmxStream, jmxUrl, jmxProperties, relevantMetrics);
-            break;
-          case JSON:
-            SliderAppJmxHelper.extractMetricsFromJmxJson(jmxStream, jmxUrl, jmxProperties, relevantMetrics);
-            break;
-          case XML:
-            SliderAppJmxHelper.extractMetricsFromJmxXML(jmxStream, jmxUrl, jmxProperties, relevantMetrics);
-            break;
-          default:
-            logger.info("Unsupported jmx type.");
+        case JMX_BEAN:
+          SliderAppJmxHelper.extractMetricsFromJmxBean(jmxStream, jmxUrl,
+              jmxProperties, relevantMetrics);
+          break;
+        case JSON:
+          SliderAppJmxHelper.extractMetricsFromJmxJson(jmxStream, jmxUrl,
+              jmxProperties, relevantMetrics);
+          break;
+        case XML:
+          SliderAppJmxHelper.extractMetricsFromJmxXML(jmxStream, jmxUrl,
+              jmxProperties, relevantMetrics);
+          break;
+        default:
+          logger.info("Unsupported jmx type.");
         }
       }
     } catch (Exception e) {
@@ -201,8 +216,8 @@ public class SliderAppMasterClient extends BaseHttpClient {
     return jmxProperties;
   }
 
-  private Map<String, Metric> getRelevantMetrics(Map<String, Map<String, Map<String, Metric>>> metrics,
-                                                 List<String> comps) {
+  private Map<String, Metric> getRelevantMetrics(
+      Map<String, Map<String, Map<String, Metric>>> metrics, List<String> comps) {
     Map<String, Metric> relevantMetrics = new HashMap<String, Metric>();
     for (String comp : comps) {
       for (Map<String, Map<String, Metric>> m : metrics.values()) {

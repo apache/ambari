@@ -463,7 +463,7 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
           && ambariCluster.getDesiredConfigs().containsKey("core-site")) {
         Map<String, String> globalConfigs = ambariClient.getConfiguration(
             ambariCluster, "global",
-            ambariCluster.getDesiredConfigs().get("yarn-site"));
+            ambariCluster.getDesiredConfigs().get("global"));
         Map<String, String> yarnSiteConfigs = ambariClient.getConfiguration(
             ambariCluster, "yarn-site",
             ambariCluster.getDesiredConfigs().get("yarn-site"));
@@ -512,15 +512,25 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
         .getContextClassLoader();
     Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
     try {
+      Map<String, SliderApp> sliderAppsMap = new HashMap<String, SliderApp>();
       SliderClient sliderClient = getSliderClient();
       List<ApplicationReport> yarnApps = sliderClient.listSliderInstances(null);
       for (ApplicationReport yarnApp : yarnApps) {
         SliderApp sliderAppObject = createSliderAppObject(yarnApp, properties,
                                                           sliderClient);
         if (sliderAppObject != null) {
-          sliderApps.add(sliderAppObject);
+          if (sliderAppsMap.containsKey(sliderAppObject.getName())) {
+            if (sliderAppsMap.get(sliderAppObject.getName()).getId()
+                .compareTo(sliderAppObject.getId()) < 0) {
+              sliderAppsMap.put(sliderAppObject.getName(), sliderAppObject);
+            }
+          } else {
+            sliderAppsMap.put(sliderAppObject.getName(), sliderAppObject);
+          }
         }
       }
+      if (sliderAppsMap.size() > 0)
+        sliderApps.addAll(sliderAppsMap.values());
     } finally {
       Thread.currentThread().setContextClassLoader(currentClassLoader);
     }
