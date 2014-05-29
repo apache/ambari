@@ -67,4 +67,20 @@ public class GreaterPredicateTest {
     Assert.assertEquals(1, ids.size());
     Assert.assertTrue(ids.contains(propertyId));
   }
+
+  @Test
+  public void testApplyWithSmallFloats() {
+    Resource resource = new ResourceImpl(Resource.Type.HostComponent);
+    String propertyId = PropertyHelper.getPropertyId("category1", "foo");
+    Predicate predicate = new GreaterPredicate<Double>(propertyId, 0.1);
+
+    resource.setProperty(propertyId, 1.3);
+    Assert.assertTrue(predicate.evaluate(resource));
+
+    resource.setProperty(propertyId, 0.06);
+    Assert.assertFalse(predicate.evaluate(resource));
+
+    resource.setProperty(propertyId, 100.3);
+    Assert.assertTrue(predicate.evaluate(resource));
+  }
 }
