@@ -59,6 +59,16 @@
       "version" : "1.0.0",
       "view_name" : "SLIDER",
       "yarnId" : "application_1401266754647_0003",
+      "metrics" : {
+        "metric1" : "",
+        "metric2" : "",
+        "metric3" : "",
+        "metric4" : "",
+        "metric5" : "",
+        "metric6" : "",
+        "metric7" : "",
+        "metric8" : ""
+      },
       "components" : {
         "HBASE_MASTER" : {
           "componentName" : "HBASE_MASTER",
@@ -228,7 +238,18 @@
           "yarn.timeline-service.webapp.https.address" : "c6401.ambari.apache.org:8190"
         }
       },
-      "jmx" : { },
+      "jmx" : {
+        "ClusterId" : "67ee848a-8576-45d3-9b18-cdda4eb6c025",
+        "DeadRegionServers" : "1",
+        "IsActiveMaster" : "true",
+        "MasterActiveTime" : "1401332251511",
+        "MasterStartTime" : "1401332248911",
+        "RegionServers" : "1",
+        "ServerName" : "c6401.ambari.apache.org,60000,1401332245896",
+        "ZookeeperQuorum" : "c6401.ambari.apache.org:2181",
+        "cluster_requests" : "14496",
+        "metricAverageLoad" : "2.0"
+      },
       "urls" : {
         "JMX" : "http://c6401.ambari.apache.org:39505/jmx",
         "Metrics" : "http://c6401.ambari.apache.org/cgi-bin/rrd.py?c=Application1",

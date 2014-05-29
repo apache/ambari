@@ -26,7 +26,6 @@
     "stylus-brunch": "~1.7.0",
     "uglify-js-brunch": "~1.7.0",
     "clean-css-brunch": "~1.7.0",
-    "auto-reload-brunch": "~1.7.0",
     "ember-handlebars-brunch": "git://github.com/fuseelements/ember-handlebars-brunch#fix/ember-1.3.0"
   },
   "devDependencies": {

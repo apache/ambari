@@ -16,26 +16,11 @@
 * limitations under the License.
 }}
 
-<div class="container">
-  <div class="row">
-    <div class="col-md-6">
-      {{#bs-panel heading="Summary"}}
-      {{/bs-panel}}
-    </div>
-    <div class="col-md-6">
-      {{#bs-panel heading="Components"}}
-      {{/bs-panel}}
-    </div>
-  </div>
-  {{#if controller.model.showMetrics}}
-    {{#bs-panel heading="Metrics"}}
-      {{#each graphs in view.parentView.graphs}}
-        <div class="row">
-          {{#each graph in graphs}}
-            <div class="col-md-3">{{view graph}}</div>
-          {{/each}}
-        </div>
-      {{/each}}
-    {{/bs-panel}}
-  {{/if}}
+<div {{bind-attr class=":time-label"}}>{{view.parentView.currentTimeState.name}}</div>
+<div {{bind-attr id="view.containerId"}} {{bind-attr class="view.containerClass :chart-container"}}>
+  <div {{bind-attr id="view.yAxisId"}} {{bind-attr class="view.yAxisClass :chart-y-axis"}}></div>
+  <div {{bind-attr id="view.xAxisId"}} {{bind-attr class="view.xAxisClass :chart-x-axis"}}></div>
+  <div {{bind-attr id="view.legendId"}} {{bind-attr class="view.legendClass :chart-legend"}}></div>
+  <div {{bind-attr id="view.chartId"}} {{bind-attr class="view.chartClass :chart"}}></div>
+  <div {{bind-attr id="view.titleId"}} {{bind-attr class="view.titleClass :chart-title"}}>{{view.title}}</div>
 </div>

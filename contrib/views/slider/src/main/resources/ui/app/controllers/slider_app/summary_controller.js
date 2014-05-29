@@ -16,35 +16,8 @@
  * limitations under the License.
  */
 
-App.IndexRoute = Ember.Route.extend({
+App.SliderAppSummaryController = Ember.Controller.extend({
 
-  model: function () {
-    return this.modelFor('sliderApps');
-  },
 
-  redirect: function () {
-    this.transitionTo('slider_apps');
-  }
-
-});
-
-App.SliderAppsRoute = Ember.Route.extend({
-
-  model: function () {
-    return this.store.all('sliderApp');
-  },
-
-  actions: {
-    createApp: function () {
-      this.transitionTo('createAppWizard');
-    }
-  }
-});
-
-App.SliderAppRoute = Ember.Route.extend({
-
-  model: function(params) {
-    return this.store.all('sliderApp', params.slider_app_id);
-  }
 
 });

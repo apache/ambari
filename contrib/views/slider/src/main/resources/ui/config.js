@@ -28,8 +28,15 @@ exports.config = {
       },
       order: {
         before: [
+          'vendor/scripts/common/d3.v2.js',
+          'vendor/scripts/common/cubism.v1.js',
+          'vendor/scripts/common/rickshaw.js',
           'vendor/scripts/common/console-polyfill.js',
           'vendor/scripts/common/jquery.js',
+          'vendor/scripts/common/jquery.ui.core.js',
+          'vendor/scripts/common/jquery.ui.widget.js',
+          'vendor/scripts/common/jquery.ui.mouse.js',
+          'vendor/scripts/common/jquery.ui.sortable.js',
           'vendor/scripts/common/handlebars.js',
           'vendor/scripts/development/ember.js',
           'vendor/scripts/production/ember-data.js',
@@ -49,6 +56,8 @@ exports.config = {
       },
       order: {
         before: [
+          'vendor/styles/cubism.css',
+          'vendor/styles/rickshaw.css',
           'vendor/styles/bootstrap.css',
           'vendor/styles/font-awesome.css',
           'vendor/styles/font-awesome-ie7.css'
@@ -75,6 +84,9 @@ exports.config = {
           },
           order: {
             before: [
+              'vendor/scripts/common/d3.v2.js',
+              'vendor/scripts/common/cubism.v1.js',
+              'vendor/scripts/common/rickshaw.js',
               'vendor/scripts/common/console-polyfill.js',
               'vendor/scripts/common/jquery.js',
               'vendor/scripts/common/handlebars.js',

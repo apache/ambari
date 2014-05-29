@@ -92,6 +92,8 @@ App.SliderApp = DS.Model.extend({
    */
   configs: DS.attr('object'),
 
+  jmx: DS.attr('object'),
+
   /**
    * Global configs
    * @type {{key: string, value: *}[]}
@@ -99,7 +101,7 @@ App.SliderApp = DS.Model.extend({
   globals: function() {
     var c = this.get('configs.global');
     return this.mapObject(c);
-  }.property('configs.global'),
+  }.property('configs.@each'),
 
   /**
    * HBase-Site configs
@@ -108,7 +110,7 @@ App.SliderApp = DS.Model.extend({
   hbaseSite: function() {
     var c = this.get('configs.hbase-site');
     return this.mapObject(c);
-  }.property('configs.hbase-site'),
+  }.property('configs.@each'),
 
   /**
    * Configs which are not in global or hbase-site
@@ -124,7 +126,15 @@ App.SliderApp = DS.Model.extend({
       ret = ret.concat(self.mapObject(c[key]));
     });
     return ret;
-  }.property('configs'),
+  }.property('configs.@each'),
+
+  /**
+   * Display metrics only for running apps
+   * @type {boolean}
+   */
+  showMetrics: function() {
+    return App.SliderApp.Status.running === this.get('status');
+  }.property('status'),
 
   /**
    * Map object to array

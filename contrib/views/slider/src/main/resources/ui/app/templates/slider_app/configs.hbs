@@ -29,7 +29,7 @@
         {{#each model.otherConfigs}}
         <tr>
           <td>{{key}}</td>
-          <td>{{value}}</td>
+          <td>{{formatWordBreak value}}</td>
         </tr>
         {{/each}}
       </tbody>
@@ -50,7 +50,7 @@
         {{#each model.globals}}
           <tr>
             <td>{{key}}</td>
-            <td>{{value}}</td>
+            <td>{{formatWordBreak value}}</td>
           </tr>
         {{/each}}
       </tbody>
@@ -71,7 +71,7 @@
         {{#each model.hbaseSite}}
         <tr>
           <td>{{key}}</td>
-          <td>{{value}}</td>
+          <td>{{formatWordBreak value}}</td>
         </tr>
         {{/each}}
       </tbody>

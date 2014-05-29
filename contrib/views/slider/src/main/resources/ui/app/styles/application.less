@@ -505,3 +505,93 @@ a {
 .modal-backdrop.in {
   opacity:0;
 }
+
+/**
+ * App Summary Page
+ */
+.app_summary {
+  .container {
+    padding-left: 0;
+  }
+}
+
+
+.chart-container {
+  cursor: default;
+
+  position: relative;
+  margin: 20px 15px 0px 15px;
+
+  .chart {
+    position: relative;
+    z-index: 1;
+  }
+  .chart-y-axis {
+    position: absolute;
+    top: 0;
+    bottom: 0px;
+    width: 100px;
+    z-index: 2;
+    margin-top: 15px;
+  }
+  .chart-x-axis {
+    position: absolute;
+    top: 180px;
+    left: 35%;
+    width: 30%;
+    z-index: 2;
+  }
+  .x_tick {
+    margin-top: 5px;
+    .title {
+      padding: 0 2px 0 2px;
+      opacity: 1 !important;
+      top: 148px;
+    }
+  }
+  svg {
+    g {
+      g:nth-child(1) {
+        display: none;
+      }
+    }
+  }
+  text {
+    font-weight: 700;
+    opacity: 1 !important;
+  }
+  .chart-legend {
+    font-family: 'Courier New';
+    position: absolute;
+    top: 180px;
+    z-index: 3;
+  }
+  .rickshaw_legend {
+    background-color: #999 !important;
+    li:hover {
+      background-color: #999 !important;
+    }
+  }
+  .rickshaw_legend:empty {
+    padding: 0;
+  }
+  .rickshaw_graph {
+    .x_tick {
+      .title {
+        bottom: -6px;
+        opacity: 0.75;
+      }
+    }
+  }
+  .chart-overlay {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 100%;
+    z-index: 5;
+  }
+  .chart-title {
+    text-align: center;
+    margin-top: 20px;
+  }
+}

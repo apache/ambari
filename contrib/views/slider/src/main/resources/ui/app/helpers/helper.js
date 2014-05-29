@@ -24,4 +24,45 @@ String.prototype.format = function () {
   });
 };
 
+/**
+ * Helper function for bound property helper registration
+ * @memberof App
+ * @method registerBoundHelper
+ * @param name {String} name of helper
+ * @param view {Em.View} view
+ */
+App.registerBoundHelper = function(name, view) {
+  Ember.Handlebars.registerHelper(name, function(property, options) {
+    options.hash.contentBinding = property;
+    return Ember.Handlebars.helpers.view.call(this, view, options);
+  });
+};
 
+
+/**
+ * Return formatted string with inserted <code>wbr</code>-tag after each dot
+ *
+ * @param {String} content
+ *
+ * Examples:
+ *
+ * returns 'apple'
+ * {{formatWordBreak 'apple'}}
+ *
+ * returns 'apple.<wbr />banana'
+ * {{formatWordBreak 'apple.banana'}}
+ *
+ * returns 'apple.<wbr />banana.<wbr />uranium'
+ * {{formatWordBreak 'apple.banana.uranium'}}
+ */
+App.registerBoundHelper('formatWordBreak', Em.View.extend({
+  tagName: 'span',
+  template: Ember.Handlebars.compile('{{{view.result}}}'),
+
+  /**
+   * @type {string}
+   */
+  result: function() {
+    return this.get('content') && this.get('content').replace(/\//g, '/<wbr />');
+  }.property('content')
+}));

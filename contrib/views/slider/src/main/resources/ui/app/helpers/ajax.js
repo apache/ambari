@@ -102,7 +102,28 @@ var urls = {
         data: JSON.stringify(data.data)
       }
     }
+  },
+
+  'metrics': {
+    real: 'apps/{id}/metrics/{metric}',
+    mock: '/data/metrics/metric.json'
+  },
+
+  'metrics2': {
+    real: 'apps/{id}/metrics/{metric}',
+    mock: '/data/metrics/metric2.json'
+  },
+
+  'metrics3': {
+    real: 'apps/{id}/metrics/{metric}',
+    mock: '/data/metrics/metric3.json'
+  },
+
+  'metrics4': {
+    real: 'apps/{id}/metrics/{metric}',
+    mock: '/data/metrics/metric4.json'
   }
+
 };
 /**
  * Replace data-placeholders to its values

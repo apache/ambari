@@ -60,17 +60,6 @@
           "maxInstanceCount" : 0,
           "yarnMemory" : 1024,
           "yarnCpuCores" : 1
-        },
-        {
-          "id" : "ACCUMULO_CLIENT",
-          "name" : "ACCUMULO_CLIENT",
-          "category" : "CLIENT",
-          "displayName" : "ACCUMULO_CLIENT",
-          "priority" : 0,
-          "instanceCount" : 0,
-          "maxInstanceCount" : 0,
-          "yarnMemory" : 1024,
-          "yarnCpuCores" : 1
         }
       ],
       "typeDescription" : "The Apache Accumulo sorted, distributed key/value store is a robust,\n        scalable, high performance data storage system that features cell-based\n        access control and customizable server-side processing. It is based on\n        Google's BigTable design and is built on top of Apache Hadoop,\n        Zookeeper, and Thrift.\n        Requirements:\n        1. Ensure parent dir for path (accumulo-site/instance.dfs.dir) is accessible to the App owner.",
@@ -122,7 +111,7 @@
       }
     },
     {
-      "href" : "http://c6401:8080/api/v1/views/SLIDER/versions/1.0.0/instances/SLIDER_1/apptypes/HBASE",
+      "href" : "http://162.216.148.58:8080/api/v1/views/SLIDER/versions/1.0.0/instances/SLIDER_1/apptypes/HBASE",
       "id" : "HBASE",
       "instance_name" : "SLIDER_1",
       "typeComponents" : [
@@ -147,25 +136,278 @@
           "maxInstanceCount" : 0,
           "yarnMemory" : 1024,
           "yarnCpuCores" : 1
-        },
-        {
-          "id" : "HBASE_CLIENT",
-          "name" : "HBASE_CLIENT",
-          "category" : "CLIENT",
-          "displayName" : "HBASE_CLIENT",
-          "priority" : 0,
-          "instanceCount" : 0,
-          "maxInstanceCount" : 0,
-          "yarnMemory" : 1024,
-          "yarnCpuCores" : 1
         }
       ],
       "typeDescription" : "Apache HBase is the Hadoop database, a distributed, scalable, big data store.\n        Requirements:\n        1. Ensure parent dir for path (hbase-site/hbase.rootdir) is accessible to the App owner.\n        2. Ensure ZK root (hbase-site/zookeeper.znode.parent) is unique for the App instance.",
       "typeName" : "HBASE",
-      "typePackageFileName" : "hbase_v096 (1).zip",
+      "typePackageFileName" : "hbase_v096.zip",
       "typeVersion" : "0.96.0.2.1.1",
       "version" : "1.0.0",
       "view_name" : "SLIDER",
+      "gangliaMetrics" : {
+        "Component" : {
+          "HBASE_MASTER" : {
+            "ClusterId" : {
+              "metric" : "Hadoop:service=HBase,name=Master,sub=Server.tag.clusterId",
+              "pointInTime" : true,
+              "temporal" : false,
+              "keyName" : "Hadoop:service=HBase,name=Master,sub=Server",
+              "matchers" : [
+                [
+                  "tag",
+                  "clusterId"
+                ],
+                [
+                  "tag.clusterId"
+                ]
+              ]
+            },
+            "DeadRegionServers" : {
+              "metric" : "Hadoop:service=HBase,name=Master,sub=Server.numDeadRegionServers",
+              "pointInTime" : true,
+              "temporal" : false,
+              "keyName" : "Hadoop:service=HBase,name=Master,sub=Server",
+              "matchers" : [
+                [
+                  "numDeadRegionServers"
+                ]
+              ]
+            },
+            "IsActiveMaster" : {
+              "metric" : "Hadoop:service=HBase,name=Master,sub=Server.tag.isActiveMaster",
+              "pointInTime" : true,
+              "temporal" : false,
+              "keyName" : "Hadoop:service=HBase,name=Master,sub=Server",
+              "matchers" : [
+                [
+                  "tag",
+                  "isActiveMaster"
+                ],
+                [
+                  "tag.isActiveMaster"
+                ]
+              ]
+            },
+            "MasterActiveTime" : {
+              "metric" : "Hadoop:service=HBase,name=Master,sub=Server.masterActiveTime",
+              "pointInTime" : true,
+              "temporal" : false,
+              "keyName" : "Hadoop:service=HBase,name=Master,sub=Server",
+              "matchers" : [
+                [
+                  "masterActiveTime"
+                ]
+              ]
+            },
+            "MasterStartTime" : {
+              "metric" : "Hadoop:service=HBase,name=Master,sub=Server.masterStartTime",
+              "pointInTime" : true,
+              "temporal" : false,
+              "keyName" : "Hadoop:service=HBase,name=Master,sub=Server",
+              "matchers" : [
+                [
+                  "masterStartTime"
+                ]
+              ]
+            },
+            "RegionServers" : {
+              "metric" : "Hadoop:service=HBase,name=Master,sub=Server.numRegionServers",
+              "pointInTime" : true,
+              "temporal" : false,
+              "keyName" : "Hadoop:service=HBase,name=Master,sub=Server",
+              "matchers" : [
+                [
+                  "numRegionServers"
+                ]
+              ]
+            },
+            "ServerName" : {
+              "metric" : "Hadoop:service=HBase,name=Master,sub=Server.tag.serverName",
+              "pointInTime" : true,
+              "temporal" : false,
+              "keyName" : "Hadoop:service=HBase,name=Master,sub=Server",
+              "matchers" : [
+                [
+                  "tag",
+                  "serverName"
+                ],
+                [
+                  "tag.serverName"
+                ]
+              ]
+            },
+            "ZookeeperQuorum" : {
+              "metric" : "Hadoop:service=HBase,name=Master,sub=Server.tag.zookeeperQuorum",
+              "pointInTime" : true,
+              "temporal" : false,
+              "keyName" : "Hadoop:service=HBase,name=Master,sub=Server",
+              "matchers" : [
+                [
+                  "tag",
+                  "zookeeperQuorum"
+                ],
+                [
+                  "tag.zookeeperQuorum"
+                ]
+              ]
+            },
+            "cluster_requests" : {
+              "metric" : "Hadoop:service=HBase,name=Master,sub=Server.clusterRequests",
+              "pointInTime" : true,
+              "temporal" : false,
+              "keyName" : "Hadoop:service=HBase,name=Master,sub=Server",
+              "matchers" : [
+                [
+                  "clusterRequests"
+                ]
+              ]
+            },
+            "metricAverageLoad" : {
+              "metric" : "Hadoop:service=HBase,name=Master,sub=Server.averageLoad",
+              "pointInTime" : true,
+              "temporal" : false,
+              "keyName" : "Hadoop:service=HBase,name=Master,sub=Server",
+              "matchers" : [
+                [
+                  "averageLoad"
+                ]
+              ]
+            }
+          }
+        }
+      },
+      "jmxMetrics" : {
+        "Component" : {
+          "HBASE_MASTER" : {
+            "ClusterId" : {
+              "metric" : "Hadoop:service=HBase,name=Master,sub=Server.tag.clusterId",
+              "pointInTime" : true,
+              "temporal" : false,
+              "keyName" : "Hadoop:service=HBase,name=Master,sub=Server",
+              "matchers" : [
+                [
+                  "tag",
+                  "clusterId"
+                ],
+                [
+                  "tag.clusterId"
+                ]
+              ]
+            },
+            "DeadRegionServers" : {
+              "metric" : "Hadoop:service=HBase,name=Master,sub=Server.numDeadRegionServers",
+              "pointInTime" : true,
+              "temporal" : false,
+              "keyName" : "Hadoop:service=HBase,name=Master,sub=Server",
+              "matchers" : [
+                [
+                  "numDeadRegionServers"
+                ]
+              ]
+            },
+            "IsActiveMaster" : {
+              "metric" : "Hadoop:service=HBase,name=Master,sub=Server.tag.isActiveMaster",
+              "pointInTime" : true,
+              "temporal" : false,
+              "keyName" : "Hadoop:service=HBase,name=Master,sub=Server",
+              "matchers" : [
+                [
+                  "tag",
+                  "isActiveMaster"
+                ],
+                [
+                  "tag.isActiveMaster"
+                ]
+              ]
+            },
+            "MasterActiveTime" : {
+              "metric" : "Hadoop:service=HBase,name=Master,sub=Server.masterActiveTime",
+              "pointInTime" : true,
+              "temporal" : false,
+              "keyName" : "Hadoop:service=HBase,name=Master,sub=Server",
+              "matchers" : [
+                [
+                  "masterActiveTime"
+                ]
+              ]
+            },
+            "MasterStartTime" : {
+              "metric" : "Hadoop:service=HBase,name=Master,sub=Server.masterStartTime",
+              "pointInTime" : true,
+              "temporal" : false,
+              "keyName" : "Hadoop:service=HBase,name=Master,sub=Server",
+              "matchers" : [
+                [
+                  "masterStartTime"
+                ]
+              ]
+            },
+            "RegionServers" : {
+              "metric" : "Hadoop:service=HBase,name=Master,sub=Server.numRegionServers",
+              "pointInTime" : true,
+              "temporal" : false,
+              "keyName" : "Hadoop:service=HBase,name=Master,sub=Server",
+              "matchers" : [
+                [
+                  "numRegionServers"
+                ]
+              ]
+            },
+            "ServerName" : {
+              "metric" : "Hadoop:service=HBase,name=Master,sub=Server.tag.serverName",
+              "pointInTime" : true,
+              "temporal" : false,
+              "keyName" : "Hadoop:service=HBase,name=Master,sub=Server",
+              "matchers" : [
+                [
+                  "tag",
+                  "serverName"
+                ],
+                [
+                  "tag.serverName"
+                ]
+              ]
+            },
+            "ZookeeperQuorum" : {
+              "metric" : "Hadoop:service=HBase,name=Master,sub=Server.tag.zookeeperQuorum",
+              "pointInTime" : true,
+              "temporal" : false,
+              "keyName" : "Hadoop:service=HBase,name=Master,sub=Server",
+              "matchers" : [
+                [
+                  "tag",
+                  "zookeeperQuorum"
+                ],
+                [
+                  "tag.zookeeperQuorum"
+                ]
+              ]
+            },
+            "cluster_requests" : {
+              "metric" : "Hadoop:service=HBase,name=Master,sub=Server.clusterRequests",
+              "pointInTime" : true,
+              "temporal" : false,
+              "keyName" : "Hadoop:service=HBase,name=Master,sub=Server",
+              "matchers" : [
+                [
+                  "clusterRequests"
+                ]
+              ]
+            },
+            "metricAverageLoad" : {
+              "metric" : "Hadoop:service=HBase,name=Master,sub=Server.averageLoad",
+              "pointInTime" : true,
+              "temporal" : false,
+              "keyName" : "Hadoop:service=HBase,name=Master,sub=Server",
+              "matchers" : [
+                [
+                  "averageLoad"
+                ]
+              ]
+            }
+          }
+        }
+      },
       "typeConfigs" : {
         "agent.conf" : "/slider/agent/conf/agent.ini",
         "application.def" : "/slider/hbase_v096.zip",
@@ -221,9 +463,11 @@
       }
     },
     {
-      "href" : "http://c6401:8080/api/v1/views/SLIDER/versions/1.0.0/instances/SLIDER_1/apptypes/STORM",
+      "href" : "http://162.216.148.58:8080/api/v1/views/SLIDER/versions/1.0.0/instances/SLIDER_1/apptypes/STORM",
+      "gangliaMetrics" : null,
       "id" : "STORM",
       "instance_name" : "SLIDER_1",
+      "jmxMetrics" : null,
       "typeComponents" : [
         {
           "id" : "NIMBUS",
