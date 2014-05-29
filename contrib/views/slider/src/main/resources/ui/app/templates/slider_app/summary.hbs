@@ -54,6 +54,16 @@
     </div>
     <div class="col-md-6">
       {{#bs-panel heading="Components"}}
+          <table class="table table-striped table-bordered table-condensed">
+              <tbody>
+              {{#each controller.model.components}}
+                <tr>
+                  <td>{{componentName}}</td>
+                  <td>{{host}}</td>
+                </tr>
+              {{/each}}
+              </tbody>
+          </table>
       {{/bs-panel}}
     </div>
   </div>
