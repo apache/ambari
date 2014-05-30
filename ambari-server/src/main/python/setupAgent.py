@@ -66,23 +66,17 @@ def runAgent(passPhrase, expected_hostname):
   os.environ[AMBARI_PASSPHRASE_VAR] = passPhrase
   agent_retcode = subprocess.call("/usr/sbin/ambari-agent restart --expected-hostname=" +
                                   expected_hostname, shell=True)
-  # need this, because, very rarely,
-  # main.py(ambari-agent) starts a bit later then it should be started
-  time.sleep(1)
-  try:
+  for i in range(3):
+    time.sleep(1)
     ret = execOsCommand(["tail", "-20", "/var/log/ambari-agent/ambari-agent.log"])
-    try:
-      log = ret['log']
-    except Exception:
-      log = "Log not found"
-    print log
-    if not 0 == ret['exitstatus']:
-      return ret['exitstatus']
-
-    return agent_retcode
-  except (Exception):
-    return 1
-
+    if (not ret is None) and (0 == ret['exitstatus']):
+      try:
+        log = ret['log']
+      except Exception:
+        log = "Log not found"
+      print log
+      return agent_retcode
+  return agent_retcode
 
 def getOptimalVersion(initialProjectVersion):
   optimalVersion = initialProjectVersion
