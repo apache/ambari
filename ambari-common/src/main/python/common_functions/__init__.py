@@ -18,8 +18,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-from common_functions.os_check import OSCheck
+from common_functions.os_check import OSCheck, OSConst
 
 __all__ = [
   'OSCheck',
+  'OSConst',
 ]

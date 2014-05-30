@@ -388,7 +388,6 @@ class Bootstrap(threading.Thread):
     self.host_log.write("\n")
     return retcode
 
-
   def runSetupAgent(self):
     params = self.shared_state
     self.host_log.write("==========================\n")
@@ -399,7 +398,6 @@ class Bootstrap(threading.Thread):
     retcode = ssh.run()
     self.host_log.write("\n")
     return retcode
-
 
   def createDoneFile(self, retcode):
     """ Creates .done file for current host. These files are later read from Java code.
@@ -414,7 +412,7 @@ class Bootstrap(threading.Thread):
   def getServerFamily(self):
     '''Return server OS family and version'''
     cot = re.search("([^\d]+)([\d]*)", self.shared_state.cluster_os_type)
-    return cot.group(1).lower(),cot.group(2).lower()
+    return cot.group(1).lower(), cot.group(2).lower()
 
   def checkSudoPackage(self):
     """ Checking 'sudo' package on remote host """
@@ -427,12 +425,11 @@ class Bootstrap(threading.Thread):
       command = "rpm -qa | grep -e '^sudo\-'"
     ssh = SSH(params.user, params.sshkey_file, self.host, command,
               params.bootdir, self.host_log,
-              errorMessage="Error: Sudo command is not available. " \
+              errorMessage="Error: Sudo command is not available. "
                            "Please install the sudo command.")
     retcode = ssh.run()
     self.host_log.write("\n")
     return retcode
-
 
   def copyPasswordFile(self):
     # Copy the password file
@@ -454,7 +451,6 @@ class Bootstrap(threading.Thread):
     self.host_log.write("Copying password file finished")
     return max(retcode1["exitstatus"], retcode2["exitstatus"])
 
-
   def changePasswordFileModeOnHost(self):
     # Change password file mode to 600
     self.host_log.write("Changing password file mode...")
@@ -465,7 +461,6 @@ class Bootstrap(threading.Thread):
     retcode = ssh.run()
     self.host_log.write("Change password file mode on host finished")
     return retcode
-
 
   def deletePasswordFile(self):
     # Deleting the password file
@@ -486,7 +481,7 @@ class Bootstrap(threading.Thread):
         last_retcode["exitstatus"] = retcode
       else:
         last_retcode = retcode
-    except Exception, e:
+    except Exception:
       self.host_log.write("Traceback: " + traceback.format_exc())
     return last_retcode
 

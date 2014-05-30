@@ -33,6 +33,55 @@ def linux_distribution():
 
   return linux_distribution
 
+
+class OS_CONST_TYPE(type):
+  # os families
+  REDHAT_FAMILY = 'redhat'
+  DEBIAN_FAMILY = 'debian'
+  SUSE_FAMILY = 'suse'
+
+  # Declare here os type mapping
+  OS_FAMILY_COLLECTION = [
+                            {'name': REDHAT_FAMILY,
+                             'os_list':
+                                ['redhat', 'fedora', 'centos', 'oraclelinux',
+                                 'ascendos', 'amazon', 'xenserver', 'oel', 'ovs',
+                                 'cloudlinux', 'slc', 'scientific', 'psbm',
+                                 'centos linux']
+                             },
+                            {'name': DEBIAN_FAMILY,
+                             'os_list': ['ubuntu', 'debian']
+                             },
+                            {'name': SUSE_FAMILY,
+                             'os_list': ['sles', 'sled', 'opensuse', 'suse']
+                             }
+                           ]
+  # Would be generated from Family collection definition
+  OS_COLLECTION = []
+
+  def __init__(cls, name, bases, dct):
+    for item in cls.OS_FAMILY_COLLECTION:
+      cls.OS_COLLECTION += item['os_list']
+
+  def __getattr__(cls, name):
+    """
+      Added support of class.OS_<os_type> properties defined in OS_COLLECTION
+      Example:
+              OSConst.OS_CENTOS would return centos
+              OSConst.OS_OTHEROS would triger an error, coz
+               that os is not present in OS_FAMILY_COLLECTION map
+    """
+    name = name.lower()
+    if "os_" in name and name[3:] in cls.OS_COLLECTION:
+      return name[3:]
+    else:
+      raise Exception("Unknown class property '%s'" % name)
+
+
+class OSConst:
+  __metaclass__ = OS_CONST_TYPE
+
+
 class OSCheck:
 
   @staticmethod
@@ -72,15 +121,11 @@ class OSCheck:
     In case cannot detect raises exception( from self.get_operating_system_type() ).
     """
     os_family = OSCheck.get_os_type()
-    if os_family in ['redhat', 'fedora', 'centos', 'oraclelinux', 'ascendos',
-                     'amazon', 'xenserver', 'oel', 'ovs', 'cloudlinux',
-                     'slc', 'scientific', 'psbm', 'centos linux']:
-      os_family = 'RedHat'
-    elif os_family in ['ubuntu', 'debian']:
-      os_family = 'Debian'
-    elif os_family in ['sles', 'sled', 'opensuse', 'suse']:
-      os_family = 'Suse'
-    #else:  os_family = OSCheck.get_os_type()
+    for os_family_item in OSConst.OS_FAMILY_COLLECTION:
+      if os_family in os_family_item['os_list']:
+        os_family = os_family_item['name']
+        break
+
     return os_family.lower()
 
   @staticmethod
@@ -134,7 +179,7 @@ class OSCheck:
      This is safe check for debian family, doesn't generate exception
     """
     try:
-      if OSCheck.get_os_family() == "debian":
+      if OSCheck.get_os_family() == OSConst.DEBIAN_FAMILY:
         return True
     except Exception:
       pass
@@ -148,7 +193,7 @@ class OSCheck:
      This is safe check for suse family, doesn't generate exception
     """
     try:
-      if OSCheck.get_os_family() == "suse":
+      if OSCheck.get_os_family() == OSConst.SUSE_FAMILY:
         return True
     except Exception:
       pass
@@ -162,7 +207,7 @@ class OSCheck:
      This is safe check for redhat family, doesn't generate exception
     """
     try:
-      if OSCheck.get_os_family() == "redhat":
+      if OSCheck.get_os_family() == OSConst.REDHAT_FAMILY:
         return True
     except Exception:
       pass

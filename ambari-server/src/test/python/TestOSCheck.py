@@ -27,7 +27,7 @@ import sys
 from unittest import TestCase
 from mock.mock import patch
 
-from common_functions import OSCheck
+from common_functions import OSCheck, OSConst
 import os_check_type
 
 with patch("platform.linux_distribution", return_value=('Suse', '11', 'Final')):

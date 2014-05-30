@@ -18,13 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 import os
-
-#OS constants
-OS_UBUNTU = 'ubuntu'
-OS_FEDORA = 'fedora'
-OS_OPENSUSE = 'opensuse'
-OS_SUSE = 'suse'
-OS_SUSE_ENTERPRISE = 'sles'
+from common_functions import OSConst
 
 #PostgreSQL settings
 UBUNTU_PG_HBA_ROOT = "/etc/postgresql"
@@ -65,7 +59,7 @@ def get_ubuntu_pg_version():
 
 def get_postgre_hba_dir(OS):
   """Return postgre hba dir location depends on OS"""
-  if OS == OS_UBUNTU:
+  if OS == OSConst.OS_UBUNTU:
     return "%s/%s/main" % (UBUNTU_PG_HBA_ROOT, get_ubuntu_pg_version())
   else:
     return PG_HBA_ROOT_DEFAULT
@@ -73,7 +67,7 @@ def get_postgre_hba_dir(OS):
 
 def get_postgre_running_status(OS):
   """Return postgre running status indicator"""
-  if OS == OS_UBUNTU:
+  if OS == OSConst.OS_UBUNTU:
     return "%s/main" % get_ubuntu_pg_version()
   else:
     return PG_STATUS_RUNNING_DEFAULT

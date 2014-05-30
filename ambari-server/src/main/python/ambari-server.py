@@ -41,7 +41,7 @@ import random
 import pwd
 from ambari_server.resourceFilesKeeper import ResourceFilesKeeper, KeeperException
 import json
-from common_functions import OSCheck
+from common_functions import OSCheck, OSConst
 from ambari_server import utils
 
 # debug settings
@@ -494,11 +494,11 @@ class OpenSuseFirewallChecks(FirewallChecks):
 
 
 def get_firewall_object():
-  if OS_TYPE == utils.OS_UBUNTU:
+  if OS_TYPE == OSConst.OS_UBUNTU:
     return UbuntuFirewallChecks()
-  elif OS_TYPE == utils.OS_FEDORA and int(OS_VERSION) >= 18:
+  elif OS_TYPE == OSConst.OS_FEDORA and int(OS_VERSION) >= 18:
     return Fedora18FirewallChecks()
-  elif OS_TYPE == utils.OS_OPENSUSE:
+  elif OS_TYPE == OSConst.OS_OPENSUSE:
     return OpenSuseFirewallChecks()
   else:
     return FirewallChecks()
@@ -1078,7 +1078,7 @@ def check_postgre_up():
     return 0
   else:
     # run initdb only on non ubuntu systems as ubuntu does not have initdb cmd.
-    if OS_TYPE != utils.OS_UBUNTU:
+    if OS_TYPE != OSConst.OS_UBUNTU:
       print "Running initdb: This may take upto a minute."
       retcode, out, err = run_os_command(PG_INITDB_CMD)
       if retcode == 0:
@@ -1090,7 +1090,7 @@ def check_postgre_up():
                                  stdin=subprocess.PIPE,
                                  stderr=subprocess.PIPE
                                  )
-      if OS_TYPE == utils.OS_SUSE:
+      if OS_TYPE == OSConst.OS_SUSE:
         time.sleep(20)
         result = process.poll()
         print_info_msg("Result of postgres start cmd: " + str(result))

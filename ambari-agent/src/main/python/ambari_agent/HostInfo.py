@@ -31,7 +31,7 @@ import platform
 from PackagesAnalyzer import PackagesAnalyzer
 from HostCheckReportFileHandler import HostCheckReportFileHandler
 from Hardware import Hardware
-from common_functions import OSCheck
+from common_functions import OSCheck, OSConst
 import socket
 
 logger = logging.getLogger()
@@ -41,20 +41,13 @@ OS_VERSION = OSCheck().get_os_major_version()
 OS_TYPE = OSCheck.get_os_type()
 OS_FAMILY = OSCheck.get_os_family()
 
-# OS constants
-OS_UBUNTU_DEBIAN = 'debian'
-OS_UBUNTU = 'ubuntu'
-OS_FEDORA = 'fedora'
-OS_OPENSUSE = 'opensuse'
-OS_SUSE = 'suse'
-OS_SUSE_ENTERPRISE = 'sles'
-
 # service cmd
 SERVICE_CMD = "/sbin/service"
 
 # on ubuntu iptables service is called ufw
-if OS_FAMILY == OS_UBUNTU_DEBIAN:
+if OS_FAMILY == OSConst.DEBIAN_FAMILY:
   SERVICE_CMD = "/usr/sbin/service"
+
 
 class HostInfo:
   # List of project names to be used to find alternatives folders etc.
@@ -68,7 +61,7 @@ class HostInfo:
 
   # List of live services checked for on the host, takes a map of plan strings
   DEFAULT_LIVE_SERVICES = [
-    {"redhat":"ntpd", "suse":"ntp", "debian":"ntp"}
+    {OSConst.REDHAT_FAMILY: "ntpd", OSConst.SUSE_FAMILY: "ntp", OSConst.DEBIAN_FAMILY: "ntp"}
   ]
 
   # Set of default users (need to be replaced with the configured user names)
@@ -133,7 +126,6 @@ class HostInfo:
   def __init__(self, config=None):
     self.packages = PackagesAnalyzer()
     self.reportFileHandler = HostCheckReportFileHandler(config)
-
 
   def dirType(self, path):
     if not os.path.exists(path):
@@ -212,9 +204,9 @@ class HostInfo:
         homeDir = fields[5]
         result['name'] = fields[0]
         result['homeDir'] = fields[5]
-        result['status'] = "Available";
+        result['status'] = "Available"
         if not os.path.exists(homeDir):
-          result['status'] = "Invalid home directory";
+          result['status'] = "Invalid home directory"
         results.append(result)
 
   def osdiskAvailableSpace(self, path):
@@ -288,11 +280,11 @@ class HostInfo:
      return self.current_umask
 
   def getFirewallObject(self):
-    if OS_TYPE == OS_UBUNTU:
+    if OS_TYPE == OSConst.OS_UBUNTU:
       return UbuntuFirewallChecks()
-    elif OS_TYPE == OS_FEDORA and int(OS_VERSION) >= 18:
+    elif OS_TYPE == OSConst.OS_FEDORA and int(OS_VERSION) >= 18:
       return Fedora18FirewallChecks()
-    elif OS_TYPE == OS_SUSE or OS_TYPE == OS_OPENSUSE or OS_TYPE == OS_SUSE_ENTERPRISE:
+    elif OS_FAMILY == OSConst.SUSE_FAMILY:
       return SuseFirewallChecks()
     else:
       return FirewallChecks()
