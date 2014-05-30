@@ -19,7 +19,7 @@
   <parent>
     <groupId>org.apache.ambari</groupId>
     <artifactId>ambari-project</artifactId>
-    <version>1.6.1.100</version>
+    <version>1.3.0-SNAPSHOT</version>
     <relativePath>../ambari-project</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
@@ -27,7 +27,7 @@
   <artifactId>ambari-web</artifactId>
   <packaging>pom</packaging>
   <name>Ambari Web</name>
-  <version>1.6.1.100</version>
+  <version>1.3.0-SNAPSHOT</version>
   <description>Ambari Web</description>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
