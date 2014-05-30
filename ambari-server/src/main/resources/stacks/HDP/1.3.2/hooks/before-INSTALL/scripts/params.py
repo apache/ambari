@@ -124,3 +124,8 @@ if has_ganglia_server:
 
 hbase_tmp_dir = config['configurations']['hbase-site']['hbase.tmp.dir']
 ignore_groupsusers_create = default("ignore_groupsusers_create", False)
+
+
+#repo params
+repo_info = config['hostLevelParams']['repo_info']
+service_repo_info = default("/hostLevelParams/service_repo_info",None)

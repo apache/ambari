@@ -28,6 +28,14 @@ class TestHookBeforeInstall(RMFTestCase):
                        command="hook",
                        config_file="default.json"
     )
+    self.assertResourceCalled('Repository', 'HDP-2.0._',
+        action=['create'],
+        base_url='http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0',
+        components=['HDP', 'main'],
+        mirror_list=None,
+        repo_file_name='HDP',
+        repo_template='repo_suse_rhel.j2'
+    )
     self.assertResourceCalled('Package', 'unzip',)
     self.assertResourceCalled('Package', 'curl',)
     self.assertResourceCalled('Execute', 'mkdir -p /tmp/HDP-artifacts/ ;   curl -kf   --retry 10 http://c6401.ambari.apache.org:8080/resources//jdk-7u45-linux-x64.tar.gz -o /tmp/HDP-artifacts//jdk-7u45-linux-x64.tar.gz',

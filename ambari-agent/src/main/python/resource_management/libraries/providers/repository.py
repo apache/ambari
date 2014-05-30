@@ -31,21 +31,16 @@ class RhelSuseRepositoryProvider(Provider):
     with Environment.get_instance_copy() as env:
       repo_file_name = self.resource.repo_file_name
       repo_dir = repos_dirs[env.system.os_family]
-      
+      repo_template = self.resource.repo_template
       File(format("{repo_dir}/{repo_file_name}.repo"),
-        content = InlineTemplate("""[{{repo_id}}]
-name={{repo_file_name}}
-{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}
-path=/
-enabled=1
-gpgcheck=0""", repo_id=self.resource.repo_id, repo_file_name=self.resource.repo_file_name, base_url=self.resource.base_url, mirror_list=self.resource.mirror_list)
+        content = Template(repo_template, repo_id=self.resource.repo_id, repo_file_name=self.resource.repo_file_name, base_url=self.resource.base_url, mirror_list=self.resource.mirror_list)
       )
   
   def action_remove(self):
     with Environment.get_instance_copy() as env:
       repo_file_name = self.resource.repo_file_name
       repo_dir = repos_dirs[env.system.os_family]
-        
+
       File(format("{repo_dir}/{repo_file_name}.repo"),
            action = "delete")
     
@@ -65,7 +60,7 @@ class DebianRepositoryProvider(Provider):
     with Environment.get_instance_copy() as env:
       with tempfile.NamedTemporaryFile() as tmpf:
         File(tmpf.name,
-          content = InlineTemplate("{{package_type}} {{base_url}} {{components}}", 
+          content = Template(self.resource.repo_template,
               package_type=self.package_type, base_url=self.resource.base_url, components=' '.join(self.resource.components))
         )
         

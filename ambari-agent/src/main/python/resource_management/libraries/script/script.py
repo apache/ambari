@@ -29,7 +29,6 @@ from resource_management.core.environment import Environment
 from resource_management.core.exceptions import Fail, ClientComponentHasNoStatus, ComponentIsNotRunning
 from resource_management.core.resources.packaging import Package
 from resource_management.libraries.script.config_dictionary import ConfigDictionary
-from resource_management.libraries.script.repo_installer import RepoInstaller
 
 USAGE = """Usage: {0} <COMMAND> <JSON_CONFIG> <BASEDIR> <STROUTPUT> <LOGGING_LEVEL>
 
@@ -152,12 +151,11 @@ class Script(object):
 
   def install_packages(self, env, exclude_packages=[]):
     """
-    List of packages that are required by service is received from the server
+    List of packages that are required< by service is received from the server
     as a command parameter. The method installs all packages
     from this list
     """
     config = self.get_config()
-    RepoInstaller.install_repos(config)
     
     try:
       package_list_str = config['hostLevelParams']['package_list']

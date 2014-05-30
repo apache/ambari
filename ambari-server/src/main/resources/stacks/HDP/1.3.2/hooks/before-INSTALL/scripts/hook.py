@@ -20,6 +20,7 @@ limitations under the License.
 import sys
 from resource_management import *
 from shared_initialization import *
+from repo_initialization import install_repos
 
 #TODO this must be "CONFIGURE" hook when CONFIGURE command will be implemented
 class BeforeConfigureHook(Hook):
@@ -28,6 +29,7 @@ class BeforeConfigureHook(Hook):
     import params
 
     env.set_params(params)
+    install_repos()
     setup_java()
     setup_users()
     install_packages()

@@ -73,7 +73,7 @@ class TestScript(TestCase):
       Script.config = no_packages_config
       script.install_packages(env)
     resource_dump = pprint.pformat(env.resource_list)
-    self.assertEquals(resource_dump, "[Repository['HDP-2.0._']]")
+    self.assertEquals(resource_dump, "[]")
 
     # Testing empty package list
     with Environment(".", test_mode=True) as env:
@@ -81,14 +81,14 @@ class TestScript(TestCase):
       Script.config = empty_config
       script.install_packages(env)
     resource_dump = pprint.pformat(env.resource_list)
-    self.assertEquals(resource_dump, "[Repository['HDP-2.0._']]")
+    self.assertEquals(resource_dump, "[]")
 
     # Testing installing of a list of packages
     with Environment(".", test_mode=True) as env:
       Script.config = dummy_config
       script.install_packages("env")
     resource_dump = pprint.pformat(env.resource_list)
-    self.assertEqual(resource_dump, "[Repository['HDP-2.0._'],\n Repository['HDP-2.0._'],\n Package['hbase'],\n Package['yet-another-package']]")
+    self.assertEqual(resource_dump, "[Package['hbase'], Package['yet-another-package']]")
 
   @patch("__builtin__.open")
   def test_structured_out(self, open_mock):
