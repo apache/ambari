@@ -270,22 +270,28 @@ class ActionScheduler implements Runnable {
 
         //Multimap is analog of Map<Object, List<Object>> but allows to avoid nested loop
         ListMultimap<String, ServiceComponentHostEvent> eventMap = formEventMap(s, commandsToStart);
-        LOG.debug("==> processing {} serviceComponentHostEvents...", eventMap.size());
-        List<ServiceComponentHostEvent> failedEvents =
-            fsmObject.getCluster(s.getClusterName()).processServiceComponentHostEvents(eventMap);
-        LOG.debug("==> {} events failed.", failedEvents.size());
-
         List<ExecutionCommand> commandsToAbort = new ArrayList<ExecutionCommand>();
+        if (!eventMap.isEmpty()) {
+          LOG.debug("==> processing {} serviceComponentHostEvents...", eventMap.size());
+          Cluster cluster = fsmObject.getCluster(s.getClusterName());
+          if (cluster != null) {
+            List<ServiceComponentHostEvent> failedEvents =
+              cluster.processServiceComponentHostEvents(eventMap);
+            LOG.debug("==> {} events failed.", failedEvents.size());
 
-        for (Iterator<ExecutionCommand> iterator = commandsToUpdate.iterator(); iterator.hasNext(); ) {
-          ExecutionCommand cmd = iterator.next();
-          for (ServiceComponentHostEvent event : failedEvents) {
-            if (StringUtils.equals(event.getHostName(), cmd.getHostname()) &&
-                StringUtils.equals(event.getServiceComponentName(), cmd.getRole())) {
-              iterator.remove();
-              commandsToAbort.add(cmd);
-              break;
+            for (Iterator<ExecutionCommand> iterator = commandsToUpdate.iterator(); iterator.hasNext(); ) {
+              ExecutionCommand cmd = iterator.next();
+              for (ServiceComponentHostEvent event : failedEvents) {
+                if (StringUtils.equals(event.getHostName(), cmd.getHostname()) &&
+                  StringUtils.equals(event.getServiceComponentName(), cmd.getRole())) {
+                  iterator.remove();
+                  commandsToAbort.add(cmd);
+                  break;
+                }
+              }
             }
+          } else {
+            LOG.warn("There was events to process but cluster {} not found", s.getClusterName());
           }
         }
 
