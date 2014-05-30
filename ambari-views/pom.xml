@@ -20,7 +20,7 @@
     <parent>
         <groupId>org.apache.ambari</groupId>
         <artifactId>ambari-project</artifactId>
-        <version>1.3.0-SNAPSHOT</version>
+        <version>1.6.1.100</version>
         <relativePath>../ambari-project</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -28,7 +28,7 @@
     <artifactId>ambari-views</artifactId>
     <packaging>jar</packaging>
     <name>Ambari Views</name>
-    <version>1.3.0-SNAPSHOT</version>
+    <version>1.6.1.100</version>
     <description>Ambari View interfaces.</description>
     <dependencies>
         <dependency>

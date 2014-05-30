@@ -170,6 +170,8 @@
             <exclude>**/*.svg</exclude>
             <exclude>derby.log</exclude>
             <exclude>CHANGES.txt</exclude>
+            <exclude>**/repo_*.j2</exclude>
+            <exclude>**/ambari-log4j.spec</exclude>
             <exclude>pass.txt</exclude>
                    <exclude>contrib/addons/test/dataServices/jmx/data/cluster_configuration.json.nohbase</exclude>
             <exclude>contrib/ambari-scom/msi/src/GUI_Ambari.sln</exclude>
