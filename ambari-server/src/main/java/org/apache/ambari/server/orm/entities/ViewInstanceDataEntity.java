@@ -51,6 +51,13 @@ public class ViewInstanceDataEntity {
   private String name;
 
   /**
+   * The user.
+   */
+  @Id
+  @Column(name = "user_name", nullable = false, insertable = true, updatable = false)
+  private String user;
+
+  /**
    * The property value.
    */
   @Column
@@ -64,43 +71,110 @@ public class ViewInstanceDataEntity {
   })
   private ViewInstanceEntity viewInstance;
 
-
+  /**
+   * Get the view name.
+   *
+   * @return the view name
+   */
   public String getViewName() {
     return viewName;
   }
 
+  /**
+   * Set the view name.
+   *
+   * @param viewName  the view name
+   */
   public void setViewName(String viewName) {
     this.viewName = viewName;
   }
 
+  /**
+   * Get the instance name.
+   *
+   * @return the instance name
+   */
   public String getViewInstanceName() {
     return viewInstanceName;
   }
 
+  /**
+   * Set the instance name.
+   *
+   * @param viewInstanceName  the instance name
+   */
   public void setViewInstanceName(String viewInstanceName) {
     this.viewInstanceName = viewInstanceName;
   }
 
+  /**
+   * Get the data key.
+   *
+   * @return the data key
+   */
   public String getName() {
     return name;
   }
 
+  /**
+   * Set the data key.
+   *
+   * @param name  the data key
+   */
   public void setName(String name) {
     this.name = name;
   }
 
+  /**
+   * Get the user.
+   *
+   * @return the user
+   */
+  public String getUser() {
+    return user;
+  }
+
+  /**
+   * Set the user.
+   *
+   * @param user  the user
+   */
+  public void setUser(String user) {
+    this.user = user;
+  }
+
+  /**
+   * Get the data value.
+   *
+   * @return the data value
+   */
   public String getValue() {
     return value;
   }
 
+  /**
+   * Set the data value.
+   *
+   * @param value  the data value
+   */
   public void setValue(String value) {
     this.value = value;
   }
 
+  /**
+   * Get the view instance.
+   *
+   * @return  the view instance
+   */
   public ViewInstanceEntity getViewInstanceEntity() {
     return viewInstance;
   }
 
+  /**
+   * Set the view instance
+   *
+   * @param viewInstance  the view instance
+   */
   public void setViewInstanceEntity(ViewInstanceEntity viewInstance) {
     this.viewInstance = viewInstance;
   }

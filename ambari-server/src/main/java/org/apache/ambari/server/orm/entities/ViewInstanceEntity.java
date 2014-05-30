@@ -23,7 +23,10 @@ import org.apache.ambari.server.view.configuration.InstanceConfig;
 import org.apache.ambari.view.ResourceProvider;
 import org.apache.ambari.view.ViewDefinition;
 import org.apache.ambari.view.ViewInstanceDefinition;
-import org.apache.ambari.view.events.Listener;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -111,6 +114,12 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
   @Transient
   private final Map<String, Object> services = new HashMap<String, Object>();
 
+  /**
+   * Helper class.
+   */
+  @Transient
+  private UserNameProvider userNameProvider = new UserNameProvider();
+
 
   // ----- Constructors ------------------------------------------------------
 
@@ -171,8 +180,12 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
   public Map<String, String> getInstanceDataMap() {
     Map<String, String> applicationData = new HashMap<String, String>();
 
+    String user = getCurrentUserName();
+
     for (ViewInstanceDataEntity viewInstanceDataEntity : data) {
-      applicationData.put(viewInstanceDataEntity.getName(), viewInstanceDataEntity.getValue());
+      if (viewInstanceDataEntity.getUser().equals(user)) {
+        applicationData.put(viewInstanceDataEntity.getName(), viewInstanceDataEntity.getValue());
+      }
     }
     return applicationData;
   }
@@ -227,7 +240,7 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
    * @param value  the property value
    */
   public void putProperty(String key, String value) {
-    removeInstanceData(key);
+    removeProperty(key);
     ViewInstancePropertyEntity viewInstancePropertyEntity = new ViewInstancePropertyEntity();
     viewInstancePropertyEntity.setViewName(viewName);
     viewInstancePropertyEntity.setViewInstanceName(name);
@@ -322,6 +335,7 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
     viewInstanceDataEntity.setViewName(viewName);
     viewInstanceDataEntity.setViewInstanceName(name);
     viewInstanceDataEntity.setName(key);
+    viewInstanceDataEntity.setUser(getCurrentUserName());
     viewInstanceDataEntity.setValue(value);
     viewInstanceDataEntity.setViewInstanceEntity(this);
     data.add(viewInstanceDataEntity);
@@ -347,8 +361,11 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
    * @return the instance data entity associated with the given key
    */
   public ViewInstanceDataEntity getInstanceData(String key) {
+    String user = getCurrentUserName();
+
     for (ViewInstanceDataEntity viewInstanceDataEntity : data) {
-      if (viewInstanceDataEntity.getName().equals(key)) {
+      if (viewInstanceDataEntity.getName().equals(key) &&
+          viewInstanceDataEntity.getUser().equals(user)) {
         return viewInstanceDataEntity;
       }
     }
@@ -455,5 +472,55 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
    */
   public static String getContextPath(String viewName, String version, String viewInstanceName) {
     return VIEWS_CONTEXT_PATH_PREFIX + viewName + "/" + version + "/" + viewInstanceName;
+  }
+
+  /**
+   * Get the current user name.
+   *
+   * @return the current user name; empty String if user is not known
+   */
+  public String getUsername() {
+    return userNameProvider.getUsername();
+  }
+
+  // ----- helper methods ----------------------------------------------------
+
+  // get the current user name
+  private String getCurrentUserName() {
+    String currentUserName = getUsername();
+
+    return currentUserName == null || currentUserName.length() == 0 ?
+        " " : currentUserName;
+  }
+
+  /**
+   * Set the user name provider helper.
+   *
+   * @param userNameProvider  the helper
+   */
+  protected void setUserNameProvider(UserNameProvider userNameProvider) {
+    this.userNameProvider = userNameProvider;
+  }
+
+
+  // ----- inner class : UserNameProvider ----------------------------------
+
+  /**
+   * User name provider helper class.
+   */
+  protected static class UserNameProvider {
+    public String getUsername() {
+      SecurityContext ctx = SecurityContextHolder.getContext();
+      Authentication authentication = ctx == null ? null : ctx.getAuthentication();
+      Object principal = authentication == null ? null : authentication.getPrincipal();
+
+      String username;
+      if (principal instanceof UserDetails) {
+        username = ((UserDetails)principal).getUsername();
+      } else {
+        username = principal == null ? "" :principal.toString();
+      }
+      return username;
+    }
   }
 }

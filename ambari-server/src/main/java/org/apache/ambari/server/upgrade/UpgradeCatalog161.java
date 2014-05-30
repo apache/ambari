@@ -27,6 +27,7 @@ import javax.persistence.TypedQuery;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.state.State;
@@ -72,6 +73,11 @@ public class UpgradeCatalog161 extends AbstractUpgradeCatalog {
     columns.add(new DBColumnInfo("host_name", String.class, 255, null, true));
 
     dbAccessor.createTable("requestoperationlevel", columns, "operation_level_id");
+
+    //=========================================================================
+    // Add columns
+    dbAccessor.addColumn("viewinstancedata",
+        new DBAccessor.DBColumnInfo("user_name", String.class, 255, " ", false));
 
     // ========================================================================
     // Add constraints

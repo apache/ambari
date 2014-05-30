@@ -35,10 +35,6 @@ import org.apache.ambari.view.ViewDefinition;
 import org.apache.ambari.view.ViewInstanceDefinition;
 import org.apache.ambari.view.events.Event;
 import org.apache.ambari.view.events.Listener;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -175,17 +171,7 @@ public class ViewContextImpl implements ViewContext, ViewController {
 
   @Override
   public String getUsername() {
-    SecurityContext ctx = SecurityContextHolder.getContext();
-    Authentication authentication = ctx == null ? null : ctx.getAuthentication();
-    Object principal = authentication == null ? null : authentication.getPrincipal();
-
-    String username;
-    if (principal instanceof UserDetails) {
-      username = ((UserDetails)principal).getUsername();
-    } else {
-      username = principal == null ? "" :principal.toString();
-    }
-    return username;
+    return viewInstanceEntity.getUsername();
   }
 
   @Override

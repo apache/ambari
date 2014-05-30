@@ -38,6 +38,10 @@ public class ViewInstanceDataEntityPK {
   @Column(name = "name", nullable = false, insertable = true, updatable = false, length = 100)
   private String name;
 
+  @Id
+  @Column(name = "user_name", nullable = false, insertable = true, updatable = false, length = 100)
+  private String user;
+
   /**
    * Get the name of the associated view.
    *
@@ -56,16 +60,26 @@ public class ViewInstanceDataEntityPK {
     this.viewName = viewName;
   }
 
+  /**
+   * Get the view instance name.
+   *
+   * @return the view instance name
+   */
   public String getViewInstanceName() {
     return viewInstanceName;
   }
 
+  /**
+   * Set the view instance name.
+   *
+   * @param viewInstanceName  the view instance name
+   */
   public void setViewInstanceName(String viewInstanceName) {
     this.viewInstanceName = viewInstanceName;
   }
 
   /**
-   * Get the name of the host group.
+   * Get the name of the data entry.
    *
    * @return host group name
    */
@@ -74,12 +88,30 @@ public class ViewInstanceDataEntityPK {
   }
 
   /**
-   * Set the name of the host group.
+   * Set the name of the data entry.
    *
    * @param name  host group name
    */
   public void setName(String name) {
     this.name = name;
+  }
+
+  /**
+   * Get the associated user.
+   *
+   * @return the user
+   */
+  public String getUser() {
+    return user;
+  }
+
+  /**
+   * Set the user.
+   *
+   * @param user  the user
+   */
+  public void setUser(String user) {
+    this.user = user;
   }
 
   @Override
@@ -91,11 +123,13 @@ public class ViewInstanceDataEntityPK {
 
     return this.viewName.equals(that.viewName) &&
         this.viewInstanceName.equals(that.viewInstanceName) &&
-        this.name.equals(that.name);
+        this.name.equals(that.name) &&
+        this.user.equals(that.user);
   }
 
   @Override
   public int hashCode() {
-    return 31 * viewName.hashCode() + viewInstanceName.hashCode() + name.hashCode();
+    return 31 * viewName.hashCode() + viewInstanceName.hashCode() +
+        name.hashCode() + user.hashCode();
   }
 }

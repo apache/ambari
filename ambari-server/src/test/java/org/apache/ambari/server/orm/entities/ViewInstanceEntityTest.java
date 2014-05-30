@@ -113,9 +113,98 @@ public class ViewInstanceEntityTest {
         viewInstanceDefinition.getContextPath());
   }
 
+  @Test
+  public void testInstanceData() throws Exception {
+    TestUserNameProvider userNameProvider = new TestUserNameProvider("user1");
+
+    ViewInstanceEntity viewInstanceDefinition = getViewInstanceEntity(userNameProvider);
+
+    viewInstanceDefinition.putInstanceData("key1", "foo");
+
+    ViewInstanceDataEntity dataEntity = viewInstanceDefinition.getInstanceData("key1");
+
+    Assert.assertNotNull(dataEntity);
+
+    Assert.assertEquals("foo", dataEntity.getValue());
+    Assert.assertEquals("user1", dataEntity.getUser());
+
+    viewInstanceDefinition.putInstanceData("key2", "bar");
+    viewInstanceDefinition.putInstanceData("key3", "baz");
+    viewInstanceDefinition.putInstanceData("key4", "monkey");
+    viewInstanceDefinition.putInstanceData("key5", "runner");
+
+    Map<String, String> dataMap = viewInstanceDefinition.getInstanceDataMap();
+
+    Assert.assertEquals(5, dataMap.size());
+
+    Assert.assertEquals("foo", dataMap.get("key1"));
+    Assert.assertEquals("bar", dataMap.get("key2"));
+    Assert.assertEquals("baz", dataMap.get("key3"));
+    Assert.assertEquals("monkey", dataMap.get("key4"));
+    Assert.assertEquals("runner", dataMap.get("key5"));
+
+    viewInstanceDefinition.removeInstanceData("key3");
+    dataMap = viewInstanceDefinition.getInstanceDataMap();
+    Assert.assertEquals(4, dataMap.size());
+    Assert.assertFalse(dataMap.containsKey("key3"));
+
+    userNameProvider.setUser("user2");
+
+    dataMap = viewInstanceDefinition.getInstanceDataMap();
+    Assert.assertTrue(dataMap.isEmpty());
+
+    viewInstanceDefinition.putInstanceData("key1", "aaa");
+    viewInstanceDefinition.putInstanceData("key2", "bbb");
+    viewInstanceDefinition.putInstanceData("key3", "ccc");
+
+    dataMap = viewInstanceDefinition.getInstanceDataMap();
+
+    Assert.assertEquals(3, dataMap.size());
+
+    Assert.assertEquals("aaa", dataMap.get("key1"));
+    Assert.assertEquals("bbb", dataMap.get("key2"));
+    Assert.assertEquals("ccc", dataMap.get("key3"));
+
+    userNameProvider.setUser("user1");
+
+    dataMap = viewInstanceDefinition.getInstanceDataMap();
+    Assert.assertEquals(4, dataMap.size());
+
+    Assert.assertEquals("foo", dataMap.get("key1"));
+    Assert.assertEquals("bar", dataMap.get("key2"));
+    Assert.assertNull(dataMap.get("key3"));
+    Assert.assertEquals("monkey", dataMap.get("key4"));
+    Assert.assertEquals("runner", dataMap.get("key5"));
+  }
+
   public static ViewInstanceEntity getViewInstanceEntity() throws Exception {
     InstanceConfig instanceConfig = InstanceConfigTest.getInstanceConfigs().get(0);
     ViewEntity viewDefinition = ViewEntityTest.getViewEntity();
     return new ViewInstanceEntity(viewDefinition, instanceConfig);
+  }
+
+  public static ViewInstanceEntity getViewInstanceEntity(ViewInstanceEntity.UserNameProvider userNameProvider)
+      throws Exception {
+    ViewInstanceEntity viewInstanceEntity = getViewInstanceEntity();
+    viewInstanceEntity.setUserNameProvider(userNameProvider);
+    return viewInstanceEntity;
+  }
+
+  protected static class TestUserNameProvider extends ViewInstanceEntity.UserNameProvider {
+
+    private String user;
+
+    public TestUserNameProvider(String user) {
+      this.user = user;
+    }
+
+    public void setUser(String user) {
+      this.user = user;
+    }
+
+    @Override
+    public String getUsername() {
+      return user;
+    }
   }
 }
