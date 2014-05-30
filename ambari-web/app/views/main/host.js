@@ -36,14 +36,32 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
    * flag responsible for updating status counters of hosts
    */
   isCountersUpdating: false,
+  /**
+   * Contains all selected hosts on cluster
+   */
+  selectedHosts: [],
 
   /**
    * List of hosts in cluster
    * @type {Array}
    */
-  content:function () {
-    return this.get('controller.content');
-  }.property('controller.content.length'),
+  content: function () {
+    var selectedHosts = this.getSelectedFilter();
+    if (this.get('controller')) {
+      return this.get('controller.content').filter(function (host) {
+        host.set('selected', selectedHosts.contains(host.get('hostName')));
+        return true;
+      });
+    }
+    return [];
+  }.property('controller.content'),
+  /**
+   * flag to toggle displaying selected hosts counter
+   */
+  showSelectedFilter: function () {
+    return this.get('selectedHosts.length') > 0;
+  }.property('selectedHosts'),
+
   /**
    * return filtered number of all content number information displayed on the page footer bar
    * @returns {String}
@@ -156,7 +174,53 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
     else {
       this.set('selectAllHosts', false);
     }
+    this.combineSelectedFilter();
+    //10 is an index of selected column
+    this.saveFilterConditions(10, this.get('selectedHosts'), 'multiple', true);
+
     this.addObserver('selectAllHosts', this, this.toggleAllHosts);
+  },
+  /**
+   * combine selected hosts on page with selected hosts which are filtered out but added to cluster
+   */
+  combineSelectedFilter: function () {
+    var previouslySelectedHosts = this.getSelectedFilter();
+    var selectedHosts = [];
+    var hostsOnPage = this.get('pageContent').mapProperty('hostName');
+    selectedHosts = this.get('pageContent').filterProperty('selected').mapProperty('hostName');
+
+    previouslySelectedHosts.forEach(function (hostName) {
+      if (!hostsOnPage.contains(hostName)) {
+        selectedHosts.push(hostName);
+      }
+    }, this);
+    this.set('selectedHosts', selectedHosts);
+  },
+
+  /**
+   * filter selected hosts
+   */
+  filterSelected: function() {
+    //10 is an index of selected column
+    this.updateFilter(10, this.get('selectedHosts'), 'multiple');
+  },
+
+  /**
+   * get selected filter previous value
+   * @return {Array}
+   */
+  getSelectedFilter: function() {
+    var filterCondition = this.get('filterConditions').findProperty('iColumn', 10);
+    var dbFilterConditions = App.db.getFilterConditions(this.get('controller.name'));
+    var selectedFilter = [];
+
+    if (filterCondition) {
+      selectedFilter = filterCondition.value;
+    }
+    else if (dbFilterConditions && dbFilterConditions.findProperty('iColumn', 10)) {
+        selectedFilter = dbFilterConditions.findProperty('iColumn', 10).value;
+    }
+    return selectedFilter;
   },
 
   /**
@@ -166,7 +230,8 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
   clearSelection: function() {
     this.get('pageContent').setEach('selected', false);
     this.set('selectAllHosts', false);
-    this.clearFilters();
+    this.get('selectedHosts').clear();
+    this.filterSelected();
   },
 
   /**
@@ -338,17 +403,6 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
     }.property('content.diskUsage')
 
   }),
-
-  /**
-   * update hosts count of selected hosts category
-   */
-  updateSelectedCategory: function () {
-    var hostsCountMap = {
-      'health-status-SELECTED': this.get('content').filterProperty('selected').length
-    };
-
-    this.updateHostsCount(hostsCountMap);
-  }.observes('content.@each.selected'),
 
   /**
    * update status counters of hosts
@@ -577,74 +631,6 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
   }),
 
   /**
-   * view of the alert filter implemented as a category of host statuses
-   */
-  alertFilter: Em.View.extend({
-    column: 7,
-    value: null,
-    classNames: ['noDisplay'],
-    showClearFilter: function(){
-      var mockEvent = {
-        context: this.get('parentView.categories').findProperty('healthStatus', 'health-status-WITH-ALERTS')
-      };
-      if(this.get('value')) {
-        this.get('parentView.childViews').findProperty('column', 0).selectCategory(mockEvent);
-      }
-    }
-  }),
-
-  /**
-   * view of the staleConfigs filter implemented as a category of host statuses
-   */
-  restartFilter: Em.View.extend({
-    column: 8,
-    value: null,
-    classNames: ['noDisplay'],
-    showClearFilter: function(){
-      var mockEvent = {
-        context: this.get('parentView.categories').findProperty('healthStatus', 'health-status-RESTART')
-      };
-      if(this.get('value')) {
-        this.get('parentView.childViews').findProperty('column', 0).selectCategory(mockEvent);
-      }
-    }
-  }),
-
-  /**
-   * view of the maintenance filter implemented as a category of host statuses
-   */
-  passiveStateFilter: Em.View.extend({
-    column: 9,
-    value: null,
-    classNames: ['noDisplay'],
-    showClearFilter: function(){
-      var mockEvent = {
-        context: this.get('parentView.categories').findProperty('healthStatus', 'health-status-PASSIVE_STATE')
-      };
-      if(this.get('value')) {
-        this.get('parentView.childViews').findProperty('column', 0).selectCategory(mockEvent);
-      }
-    }
-  }),
-
-  /**
-   * view of the "selected" filter implemented as a category of host statuses
-   */
-  selectedFilter: Em.View.extend({
-    column: 10,
-    value: null,
-    class: ['noDisplay'],
-    showClearFilter: function(){
-      var mockEvent = {
-        context: this.get('parentView.categories').findProperty('healthStatus', 'health-status-SELECTED')
-      };
-      if(this.get('value')) {
-        this.get('parentView.childViews').findProperty('column', 0).selectCategory(mockEvent);
-      }
-    }
-  }),
-
-  /**
    * Filter view for name column
    * Based on <code>filters</code> library
    */
@@ -787,7 +773,7 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
           chosenComponents.push(item.get('id'));
         });
         Em.run.next(function() {
-          self.set('value', chosenComponents.toString());
+          self.set('value', chosenComponents);
         });
       },
 

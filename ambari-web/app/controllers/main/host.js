@@ -115,6 +115,11 @@ App.MainHostController = Em.ArrayController.extend(App.UserPref, {
       key: 'componentsInPassiveStateCount',
       alias: 'host_components/HostRoles/maintenance_state',
       type: 'PLAIN'
+    },
+    {
+      key: 'selected',
+      alias: 'Hosts/host_name',
+      type: 'MULTIPLE'
     }
   ],
 
@@ -211,10 +216,10 @@ App.MainHostController = Em.ArrayController.extend(App.UserPref, {
     savedFilterConditions.forEach(function (filter) {
       var property = filterProperties.findProperty('key', colPropAssoc[filter.iColumn]);
 
-      if (property && filter.value.length > 0) {
+      if (property && filter.value.length > 0 && !filter.skipFilter) {
         queryParams.push({
           key: property.alias,
-          value: (filter.type === 'multiple') ? filter.value.split(',') : filter.value,
+          value: filter.value,
           type: property.type
         });
       }

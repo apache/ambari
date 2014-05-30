@@ -147,13 +147,13 @@
       <label>{{view.filteredContentInfo}} - <a {{action clearFilters target="view"}} href="#">{{t tableView.filters.clearAllFilters}}</a></label>
     </div>
     <div class="selected-hosts-info span4">
-      {{#if view.selectedCategory.hostsCount}}
-        {{#view view.statusFilter categoriesBinding="view.categories"}}
-          <a {{action selectCategory view.parentView.selectedCategory target="view"}} href="#">
-            {{view.parentView.selectedCategory.hostsCount}}
-            {{pluralize view.parentView.selectedCategory.hostsCount singular="t:hosts.filters.selectedHostInfo" plural="t:hosts.filters.selectedHostsInfo"}}
+      {{#if view.showSelectedFilter}}
+        <div>
+          <a {{action filterSelected target="view"}} href="#">
+            {{view.selectedHosts.length}}
+            {{pluralize view.selectedHostsCount singular="t:hosts.filters.selectedHostInfo" plural="t:hosts.filters.selectedHostsInfo"}}
           </a>
-        {{/view}} - <a {{action clearSelection target="view"}} href="#">{{t hosts.filters.clearSelection}}</a>
+        </div> - <a {{action clearSelection target="view"}} href="#">{{t hosts.filters.clearSelection}}</a>
       {{/if}}
     </div>
     <div class="items-on-page">

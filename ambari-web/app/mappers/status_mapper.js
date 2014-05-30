@@ -106,6 +106,11 @@ App.statusMapper = App.QuickDataMapper.create({
         }
       }, this);
 
+      //TODO remove when App.Host model dependencies will be replaced with server request
+      if (!App.router.get('clusterController.isLoaded')) {
+        App.hostsMapper.map(json);
+      }
+
       App.cache['previousComponentStatuses'] = currentComponentStatuses;
       App.cache['previousComponentPassiveStates'] = currentComponentPassiveStates;
       App.cache['hostComponentsOnService'] = hostComponentsOnService;

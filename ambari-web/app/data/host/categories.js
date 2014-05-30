@@ -76,19 +76,6 @@ module.exports = [
     filterValue: 'true'
   },
   {
-    value: Em.I18n.t('common.selected'),
-    hostProperty: 'selected',
-    class: '',
-    isHealthStatus: false,
-    healthClass: 'health-status-SELECTED',
-    healthStatus: 'health-status-SELECTED',
-    selected: true,
-    column: 10,
-    type: 'boolean',
-    filterValue: true,
-    isVisible: false
-  },
-  {
     value: Em.I18n.t('common.passive_state'),
     hostProperty: 'componentsInPassiveStateCount',
     class: 'passive-state icon-medkit',
