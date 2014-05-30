@@ -90,14 +90,16 @@ App.MainAdminSecurityController = Em.Controller.extend({
   loadStep: function () {
     var step2Controller = App.router.get('mainAdminSecurityAddStep2Controller');
     var services = this.get('services');
+    step2Controller.set('content', Em.Object.create({services: []}));
+    step2Controller.set('content.services', services);
     this.get('stepConfigs').clear();
     this.get('securityUsers').clear();
     this.get('serviceConfigTags').clear();
     this.loadSecurityUsers();
     //loadSecurityUsers - desired configs fetched from server
     step2Controller.addUserPrincipals(services, this.get('securityUsers'));
-    step2Controller.addMasterHostToGlobals(services);
-    step2Controller.addSlaveHostToGlobals(services);
+    step2Controller.addMasterHostToGlobals();
+    step2Controller.addSlaveHostToGlobals();
     this.renderServiceConfigs(services);
     step2Controller.changeCategoryOnHa(services, this.get('stepConfigs'));
 
