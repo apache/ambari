@@ -434,8 +434,6 @@ module.exports =
       "id": "site property",
       "name": "hive.heapsize",
       "displayName": "Hive heap size",
-      "description": "Maximum Java heap size for HIVE service (Java option -Xmx)",
-      "defaultValue": "1024",
       "displayType": "int",
       "unit": "MB",
       "isOverridable": false,
@@ -1517,13 +1515,29 @@ module.exports =
   /**********************************************webhcat-site***************************************/
     {
       "id": "site property",
+      "name": "templeton.hive.archive",
+      "displayName": "templeton.hive.archive",
+      "isRequired": false,
+      "serviceName": "WEBHCAT",
+      "category": "Advanced"
+    },
+    {
+      "id": "site property",
+      "name": "templeton.pig.archive",
+      "displayName": "templeton.pig.archive",
+      "isRequired": false,
+      "serviceName": "WEBHCAT",
+      "category": "Advanced"
+    },
+    {
+      "id": "site property",
       "name": "templeton.zookeeper.hosts",
       "displayName": "templeton.zookeeper.hosts",
       "displayType": "multiLine",
       "serviceName": "WEBHCAT",
       "category": "Advanced"
-      /**********************************************log4j.properties***************************************/
     },
+  /**********************************************log4j.properties***************************************/
     {
       "id": "site property",
       "name": "content",

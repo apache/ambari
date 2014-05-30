@@ -727,6 +727,22 @@ module.exports =
   /**********************************************webhcat-site***************************************/
     {
       "id": "site property",
+      "name": "templeton.hive.archive",
+      "displayName": "templeton.hive.archive",
+      "isRequired": false,
+      "serviceName": "WEBHCAT",
+      "category": "Advanced"
+    },
+    {
+      "id": "site property",
+      "name": "templeton.pig.archive",
+      "displayName": "templeton.pig.archive",
+      "isRequired": false,
+      "serviceName": "WEBHCAT",
+      "category": "Advanced"
+    },
+    {
+      "id": "site property",
       "name": "templeton.zookeeper.hosts",
       "displayName": "templeton.zookeeper.hosts",
       "defaultValue": "",
