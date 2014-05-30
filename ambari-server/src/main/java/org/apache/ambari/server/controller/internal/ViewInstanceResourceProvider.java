@@ -54,6 +54,7 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
   public static final String VIEW_NAME_PROPERTY_ID     = "ViewInstanceInfo/view_name";
   public static final String VIEW_VERSION_PROPERTY_ID  = "ViewInstanceInfo/version";
   public static final String INSTANCE_NAME_PROPERTY_ID = "ViewInstanceInfo/instance_name";
+  public static final String LABEL_PROPERTY_ID         = "ViewInstanceInfo/label";
   public static final String PROPERTIES_PROPERTY_ID    = "ViewInstanceInfo/properties";
   public static final String DATA_PROPERTY_ID          = "ViewInstanceInfo/instance_data";
   public static final String CONTEXT_PATH_PROPERTY_ID  = "ViewInstanceInfo/context_path";
@@ -82,6 +83,7 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
     propertyIds.add(VIEW_NAME_PROPERTY_ID);
     propertyIds.add(VIEW_VERSION_PROPERTY_ID);
     propertyIds.add(INSTANCE_NAME_PROPERTY_ID);
+    propertyIds.add(LABEL_PROPERTY_ID);
     propertyIds.add(PROPERTIES_PROPERTY_ID);
     propertyIds.add(DATA_PROPERTY_ID);
     propertyIds.add(CONTEXT_PATH_PROPERTY_ID);
@@ -198,6 +200,7 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
     setResourceProperty(resource, VIEW_NAME_PROPERTY_ID, viewName, requestedIds);
     setResourceProperty(resource, VIEW_VERSION_PROPERTY_ID, version, requestedIds);
     setResourceProperty(resource, INSTANCE_NAME_PROPERTY_ID, name, requestedIds);
+    setResourceProperty(resource, LABEL_PROPERTY_ID, viewInstanceEntity.getLabel(), requestedIds);
     Map<String, String> properties = new HashMap<String, String>();
 
     for (ViewInstancePropertyEntity viewInstancePropertyEntity : viewInstanceEntity.getProperties()) {
@@ -234,17 +237,25 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
     if (viewName == null || viewName.isEmpty()) {
       throw new IllegalArgumentException("View name must be provided");
     }
+
+    ViewRegistry       viewRegistry       = ViewRegistry.getInstance();
+    ViewInstanceEntity viewInstanceEntity = viewRegistry.getInstanceDefinition(viewName, version, name);
+
     viewName = ViewEntity.getViewName(viewName, version);
 
-    ViewInstanceEntity viewInstanceEntity = new ViewInstanceEntity();
-    viewInstanceEntity.setName(name);
-    viewInstanceEntity.setViewName(viewName);
-
-    ViewEntity viewEntity = new ViewEntity();
-    viewEntity.setName(viewName);
-    viewEntity.setVersion(version);
-
-    viewInstanceEntity.setViewEntity(viewEntity);
+    if (viewInstanceEntity == null) {
+      viewInstanceEntity = new ViewInstanceEntity();
+      viewInstanceEntity.setName(name);
+      viewInstanceEntity.setViewName(viewName);
+      ViewEntity viewEntity = new ViewEntity();
+      viewEntity.setName(viewName);
+      viewEntity.setVersion(version);
+      viewInstanceEntity.setViewEntity(viewEntity);
+    }
+    String label = (String) properties.get(LABEL_PROPERTY_ID);
+    if (label != null) {
+      viewInstanceEntity.setLabel(label);
+    }
 
     Collection<ViewInstancePropertyEntity> instanceProperties = new HashSet<ViewInstancePropertyEntity>();
     Collection<ViewInstanceDataEntity>     instanceData       = new HashSet<ViewInstanceDataEntity>();
@@ -275,8 +286,12 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
         instanceData.add(viewInstanceDataEntity);
       }
     }
-    viewInstanceEntity.setProperties(instanceProperties);
-    viewInstanceEntity.setData(instanceData);
+    if (!instanceProperties.isEmpty()) {
+      viewInstanceEntity.setProperties(instanceProperties);
+    }
+    if (!instanceData.isEmpty()) {
+      viewInstanceEntity.setData(instanceData);
+    }
 
     return viewInstanceEntity;
   }

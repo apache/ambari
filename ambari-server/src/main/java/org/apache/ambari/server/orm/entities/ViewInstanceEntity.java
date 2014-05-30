@@ -28,6 +28,7 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -67,6 +68,13 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
   @Id
   @Column(name = "name", nullable = false, insertable = true, updatable = false)
   private String name;
+
+  /**
+   * The public view instance name.
+   */
+  @Column
+  @Basic
+  private String label;
 
   /**
    * The instance properties.
@@ -138,6 +146,9 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
     this.instanceConfig = instanceConfig;
     this.view           = view;
     this.viewName       = view.getName();
+
+    String label = instanceConfig.getLabel();
+    this.label = (label == null || label.length()== 0) ? view.getLabel() : label;
   }
 
   /**
@@ -151,6 +162,7 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
     this.instanceConfig = null;
     this.view           = view;
     this.viewName       = view.getName();
+    this.label          = view.getLabel();
   }
 
 
@@ -195,7 +207,13 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
     return view;
   }
 
-// ----- ViewInstanceEntity ------------------------------------------------
+  @Override
+  public String getLabel() {
+    return label;
+  }
+
+
+  // ----- ViewInstanceEntity ------------------------------------------------
 
   /**
    * Set the view name.
@@ -222,6 +240,15 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
    */
   public void setName(String name) {
     this.name = name;
+  }
+
+  /**
+   * Set the label.
+   *
+   * @param label  the label
+   */
+  public void setLabel(String label) {
+    this.label = label;
   }
 
   /**

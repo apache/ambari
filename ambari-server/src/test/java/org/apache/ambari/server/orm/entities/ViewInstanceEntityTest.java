@@ -34,6 +34,25 @@ import static org.easymock.EasyMock.createNiceMock;
  */
 public class ViewInstanceEntityTest {
 
+  private static String xml_with_instance_label = "<view>\n" +
+      "    <name>MY_VIEW</name>\n" +
+      "    <label>My View!</label>\n" +
+      "    <version>1.0.0</version>\n" +
+      "    <instance>\n" +
+      "        <name>INSTANCE1</name>\n" +
+      "        <label>My Instance 1!</label>\n" +
+      "    </instance>\n" +
+      "</view>";
+
+  private static String xml_without_instance_label = "<view>\n" +
+      "    <name>MY_VIEW</name>\n" +
+      "    <label>My View!</label>\n" +
+      "    <version>1.0.0</version>\n" +
+      "    <instance>\n" +
+      "        <name>INSTANCE1</name>\n" +
+      "    </instance>\n" +
+      "</view>";
+
   @Test
   public void testGetViewEntity() throws Exception {
     InstanceConfig instanceConfig = InstanceConfigTest.getInstanceConfigs().get(0);
@@ -57,6 +76,24 @@ public class ViewInstanceEntityTest {
     ViewInstanceEntity viewInstanceDefinition = getViewInstanceEntity();
 
     Assert.assertEquals("INSTANCE1", viewInstanceDefinition.getName());
+  }
+
+  @Test
+  public void testGetLabel() throws Exception {
+    // with an instance label
+    InstanceConfig instanceConfig = InstanceConfigTest.getInstanceConfigs(xml_with_instance_label).get(0);
+    ViewEntity viewDefinition = ViewEntityTest.getViewEntity();
+    ViewInstanceEntity viewInstanceDefinition = new ViewInstanceEntity(viewDefinition, instanceConfig);
+
+    Assert.assertEquals("My Instance 1!", viewInstanceDefinition.getLabel());
+
+    // without an instance label
+    instanceConfig = InstanceConfigTest.getInstanceConfigs(xml_without_instance_label).get(0);
+    viewDefinition = ViewEntityTest.getViewEntity();
+    viewInstanceDefinition = new ViewInstanceEntity(viewDefinition, instanceConfig);
+
+    // should default to view label
+    Assert.assertEquals("My View!", viewInstanceDefinition.getLabel());
   }
 
   @Test

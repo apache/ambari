@@ -57,6 +57,15 @@ public class InstanceConfigTest {
   }
 
   @Test
+  public void testGetLabel() throws Exception {
+    List<InstanceConfig> instances = getInstanceConfigs();
+
+    Assert.assertEquals(2, instances.size());
+    Assert.assertEquals("My Instance 1!", instances.get(0).getLabel());
+    Assert.assertEquals("My Instance 2!", instances.get(1).getLabel());
+  }
+
+  @Test
   public void testGetProperties() throws Exception {
     List<InstanceConfig> instances = getInstanceConfigs();
 

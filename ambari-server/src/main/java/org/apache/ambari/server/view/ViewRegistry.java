@@ -422,7 +422,7 @@ public class ViewRegistry {
           LOG.debug("Updating view instance " + viewName + "/" +
               version + "/" + instanceName);
         }
-
+        entity.setLabel(instanceEntity.getLabel());
         entity.setProperties(instanceEntity.getProperties());
         entity.setData(instanceEntity.getData());
 
@@ -796,6 +796,7 @@ public class ViewRegistry {
           instanceDefinitions.add(viewInstanceEntity);
         } else {
           // apply overrides to the in-memory view instance entities
+          instanceDefinition.setLabel(viewInstanceEntity.getLabel());
           instanceDefinition.setData(viewInstanceEntity.getData());
           instanceDefinition.setProperties(viewInstanceEntity.getProperties());
           instanceDefinition.setEntities(viewInstanceEntity.getEntities());

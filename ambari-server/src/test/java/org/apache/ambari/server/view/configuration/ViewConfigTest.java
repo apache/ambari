@@ -75,6 +75,7 @@ public class ViewConfigTest {
       "    </resource>\n" +
       "    <instance>\n" +
       "        <name>INSTANCE1</name>\n" +
+      "        <label>My Instance 1!</label>\n" +
       "        <property>\n" +
       "            <key>p1</key>\n" +
       "            <value>v1-1</value>\n" +
@@ -86,6 +87,7 @@ public class ViewConfigTest {
       "    </instance>\n" +
       "    <instance>\n" +
       "        <name>INSTANCE2</name>\n" +
+      "        <label>My Instance 2!</label>\n" +
       "        <property>\n" +
       "            <key>p1</key>\n" +
       "            <value>v1-2</value>\n" +

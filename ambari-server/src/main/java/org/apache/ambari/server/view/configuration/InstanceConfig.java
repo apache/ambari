@@ -35,6 +35,11 @@ public class InstanceConfig {
   private String name;
 
   /**
+   * The public view name.
+   */
+  private String label;
+
+  /**
    * The instance properties.
    */
   @XmlElement(name="property")
@@ -47,6 +52,15 @@ public class InstanceConfig {
    */
   public String getName() {
     return name;
+  }
+
+  /**
+   * Get the public view name.
+   *
+   * @return the view label
+   */
+  public String getLabel() {
+    return label;
   }
 
   /**

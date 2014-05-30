@@ -40,6 +40,13 @@ public interface ViewInstanceDefinition {
   public String getViewName();
 
   /**
+   * Get the view instance label (display name).
+   *
+   * @return the view instance label
+   */
+  public String getLabel();
+
+  /**
    * Get the instance property map.
    *
    * @return the map of instance properties
