@@ -297,14 +297,11 @@ function hdp_mon_generate_response( $response_data )
     $services_objects = array ();
     $i = 0;
     foreach ($matches[1] as $object) {
-      $map = getParameterMap($object);
-      $servicestatus = array ();
+      $servicestatus = getParameterMap($object, $servicestatus_attributes);
       switch ($alert_type) {
       case "all":
-        if (empty($host) || getParameterMapValue($map, "host_name") == $host) {
-          foreach ($servicestatus_attributes as $attrib) {
-            $servicestatus[$attrib] = htmlentities(getParameterMapValue($map, $attrib), ENT_COMPAT);
-          }
+
+        if (empty($host) || $servicestatus['host_name'] == $host) {
           $servicestatus['service_type'] = get_service_type($servicestatus['service_description']);
           $srv_desc = explode ("::",$servicestatus['service_description'],2);
 
@@ -448,27 +445,20 @@ function hdp_mon_generate_response( $response_data )
     return "";
   }
 
-  function getParameterMap($object) {
-    $map = array ();
 
-    $long_key = "long_plugin_output";
-    $found_long = false;
-    foreach (preg_split("/\n/", trim($object)) as $line) {
-      $arr = explode("=", $line, 2);
-      $key = trim($arr[0]);
-      if ($found_long) {
-        $map[$long_key] = trim($line);
-        $found_long = false;
-      } else {
-        $map[$key] = $arr[1];
-        if ($key == $long_key)
-          $found_long = true;
-      }
+  function getParameterMap($object, $keynames) {
+
+    $cnt = preg_match_all('/\t([\S]*)=[\n]?[\t]?([\S= ]*)/', $object, $matches, PREG_PATTERN_ORDER);
+
+    $tmpmap = array_combine($matches[1], $matches[2]);
+
+    $map = array();
+    foreach ($keynames as $key) {
+      $map[$key] = htmlentities($tmpmap[$key], ENT_COMPAT);
     }
 
     return $map;
   }
-
 function indent($json) {
 
     $result      = '';
