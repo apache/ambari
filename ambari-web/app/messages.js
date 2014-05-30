@@ -511,7 +511,7 @@ Em.I18n.translations = {
   'installer.step3.hostWarningsPopup.reverseLookup.name': 'Reverse Lookup validation failed on',
   'installer.step3.hostWarningsPopup.reverseLookup': 'Reverse Lookup issues',
   'installer.step3.hostWarningsPopup.reverseLookup.message': 'The hostname was not found in the reverse DNS lookup. This may result in incorrect behavior. Please check the DNS setup and fix the issue.',
-  'installer.step3.hostWarningsPopup.reverseLookup.empty': 'hosts failed DNS lookup validation',
+  'installer.step3.hostWarningsPopup.reverseLookup.empty': 'reverse DNS lookup issues.',
   'installer.step3.hostWarningsPopup.action.exists':'Exists on',
   'installer.step3.hostWarningsPopup.action.notRunning':'Not running on',
   'installer.step3.hostWarningsPopup.action.installed':'Installed on',
