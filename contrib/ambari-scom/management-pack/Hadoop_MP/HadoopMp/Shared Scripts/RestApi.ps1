@@ -35,6 +35,7 @@ function InvokeRestAPI($uri, [string]$username, [string]$password) {
     
     $credentials = [Convert]::ToBase64String([Text.Encoding]::Default.GetBytes($username + ':' + $password));
     $request.Headers.Add('Authorization', "Basic $credentials")
+    $request.Headers.Add('X-Requested-By', "X-Requested-By")
     
     $response = $request.GetResponse()
     if ($response.StatusCode -ne [System.Net.HttpStatusCode]::OK) {
