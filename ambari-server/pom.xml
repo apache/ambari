@@ -137,7 +137,9 @@
             <exclude>conf/unix/krb5JAASLogin.conf</exclude>
             <exclude>**/*.json</exclude>
             <exclude>**/*.sql</exclude>
-            <exclude>**/*.pydevproject</exclude>
+            <exclude>**/repo_suse_rhel.j2</exclude>
+            <exclude>**/repo_debian.j2</exclude>
+            <exclude>**/.pydev*</exclude>
 
             <!--gitignore content -->
             <exclude>src/main/resources/db/newcerts/**</exclude>
