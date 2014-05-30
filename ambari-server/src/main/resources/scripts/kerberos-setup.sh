@@ -263,7 +263,7 @@ distributeKeytabs () {
     derivedname=${derivedname##keytabs_}
     echo $derivedname
     scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $i root@$derivedname:/
-    ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root@$derivedname "cd /;tar xvf $i"
+    ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root@$derivedname "cd /;tar xvf $i --no-overwrite-dir"
   done
 }
 
