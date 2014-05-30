@@ -46,5 +46,20 @@
     <value>/var/lib/ganglia/rrds</value>
     <description>Default directory for saving the rrd files on ganglia server</description>
   </property>
+  <property>
+    <name>rrdcached_timeout</name>
+    <value>3600</value>
+    <description>(-w) Data is written to disk every timeout seconds. If this option is not specified the default interval of 300 seconds will be used.</description>
+  </property>
+  <property>
+    <name>rrdcached_delay</name>
+    <value>1800</value>
+    <description>(-z) If specified, rrdcached will delay writing of each RRD for a random number of seconds in the range [0,delay). This will avoid too many writes being queued simultaneously. This value should be no greater than the value specified in -w. By default, there is no delay.</description>
+  </property>
+  <property>
+    <name>rrdcached_write_threads</name>
+    <value>10</value>
+    <description>(-t) Specifies the number of threads used for writing RRD files. The default is 4. Increasing this number will allow rrdcached to have more simultaneous I/O requests into the kernel. This may allow the kernel to re-order disk writes, resulting in better disk throughput.</description>
+  </property>
 
 </configuration>

@@ -46,7 +46,6 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.controller.utilities.StreamProvider;
-import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.ObjectReader;
@@ -113,8 +112,6 @@ public class JMXPropertyProvider extends AbstractPropertyProvider {
     jmxObjectMapper.configure(DeserializationConfig.Feature.USE_ANNOTATIONS, false);
     jmxObjectReader = jmxObjectMapper.reader(JMXMetricHolder.class);
 
-    JsonFactory factory = new JsonFactory();
-    ObjectMapper stormObjectMapper = new ObjectMapper(factory);
     TypeReference<HashMap<String,Object>> typeRef
             = new TypeReference<
             HashMap<String,Object>
@@ -124,6 +121,9 @@ public class JMXPropertyProvider extends AbstractPropertyProvider {
 
   protected final static Logger LOG =
       LoggerFactory.getLogger(JMXPropertyProvider.class);
+
+  private static final Pattern dotReplacementCharPattern =
+    Pattern.compile(DOT_REPLACEMENT_CHAR);
 
   private final StreamProvider streamProvider;
 
@@ -347,7 +347,7 @@ public class JMXPropertyProvider extends AbstractPropertyProvider {
         if (null == componentName || !componentName.equals(STORM_REST_API)) {
           getHadoopMetricValue(in, ids, resource, request);
         } else {
-          getStormMetricValue(in, ids, resource, request);
+          getStormMetricValue(in, ids, resource);
         }
 
       } finally {
@@ -390,7 +390,6 @@ public class JMXPropertyProvider extends AbstractPropertyProvider {
 
           String property = propertyInfo.getPropertyId();
           String category = "";
-
 
           List<String> keyList = new LinkedList<String>();
 
@@ -450,13 +449,13 @@ public class JMXPropertyProvider extends AbstractPropertyProvider {
    * Storm-specific metrics fetching
    */
   private void getStormMetricValue(InputStream in, Set<String> ids,
-                                   Resource resource, Request request) throws IOException {
+                                   Resource resource) throws IOException {
     HashMap<String, Object> metricHolder = stormObjectReader.readValue(in);
     for (String category : ids) {
       Map<String, PropertyInfo> defProps = getComponentMetrics().get(STORM_REST_API);
-      for (String depProp : defProps.keySet()) {
-        if (depProp.startsWith(category)) {
-          PropertyInfo propInfo = defProps.get(depProp);
+      for (Map.Entry<String, PropertyInfo> depEntry : defProps.entrySet()) {
+        if (depEntry.getKey().startsWith(category)) {
+          PropertyInfo propInfo = depEntry.getValue();
           String propName = propInfo.getPropertyId();
           Object propertyValue = metricHolder.get(propName);
           String absId = PropertyHelper.getPropertyId(category, propName);
@@ -471,7 +470,7 @@ public class JMXPropertyProvider extends AbstractPropertyProvider {
                                 String category, String property, List<String> keyList) {
     Map<String, Object> properties = categories.get(category);
     if (property.contains(DOT_REPLACEMENT_CHAR)) {
-      property = property.replaceAll(DOT_REPLACEMENT_CHAR, ".");
+      property = dotReplacementCharPattern.matcher(property).replaceAll(".");
     }
     if (properties != null && properties.containsKey(property)) {
       Object value = properties.get(property);
@@ -497,8 +496,7 @@ public class JMXPropertyProvider extends AbstractPropertyProvider {
   }
 
   private String getJMXProtocol(String clusterName, String componentName) {
-    String protocol = jmxHostProvider.getJMXProtocol(clusterName, componentName);
-    return protocol;
+    return jmxHostProvider.getJMXProtocol(clusterName, componentName);
   }
   
   private String getHost(Resource resource, String clusterName, String componentName) throws SystemException {
@@ -548,7 +546,7 @@ public class JMXPropertyProvider extends AbstractPropertyProvider {
    *
    * @param throwable  the caught exception
    *
-   * @throws SystemException always around the given exception
+   * @throws org.apache.ambari.server.controller.spi.SystemException always around the given exception
    */
   private static void rethrowSystemException(Throwable throwable) throws SystemException {
     String msg = logException(throwable);

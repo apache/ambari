@@ -178,8 +178,9 @@ class TestGangliaServer(RMFTestCase):
     self.assertResourceCalled('Directory', '/srv/www/cgi-bin',
         recursive = True,
     )
-    self.assertResourceCalled('File', '/srv/www/cgi-bin/rrd.py',
-        content = StaticFile('rrd.py'),
+    self.assertResourceCalled('TemplateConfig', '/srv/www/cgi-bin/rrd.py',
+        owner = "root",
+        group = "root",
         mode = 0755,
     )
     self.assertResourceCalled('Directory', '/var/lib/ganglia/rrds',

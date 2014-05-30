@@ -23,11 +23,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -39,6 +37,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
@@ -84,7 +83,9 @@ public class NagiosPropertyProvider extends BaseProvider implements PropertyProv
       "ZooKeeper Server process", "Supervisors process"));
   
   private static final List<String> IGNORABLE_FOR_HOSTS = new ArrayList<String>(
-      Arrays.asList("percent"));
+    Collections.singletonList("percent"));
+
+  private static final Pattern COMMA_PATTERN = Pattern.compile(",");
 
   // holds alerts for clusters.  clusterName is the key
   private static final Map<String, List<NagiosAlert>> CLUSTER_ALERTS =
@@ -120,14 +121,12 @@ public class NagiosPropertyProvider extends BaseProvider implements PropertyProv
     
     String ignores = config.getProperty(Configuration.NAGIOS_IGNORE_FOR_SERVICES_KEY);
     if (null != ignores) {
-      for (String str : ignores.split(","))
-        IGNORABLE_FOR_SERVICES.add(str);
+      Collections.addAll(IGNORABLE_FOR_SERVICES, COMMA_PATTERN.split(ignores));
     }
 
     ignores = config.getProperty(Configuration.NAGIOS_IGNORE_FOR_HOSTS_KEY);
     if (null != ignores) {
-      for (String str : ignores.split(","))
-        IGNORABLE_FOR_HOSTS.add(str);
+      Collections.addAll(IGNORABLE_FOR_HOSTS, COMMA_PATTERN.split(ignores));
     }
     
   }  

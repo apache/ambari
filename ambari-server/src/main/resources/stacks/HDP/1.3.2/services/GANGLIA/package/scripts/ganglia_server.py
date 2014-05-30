@@ -96,9 +96,10 @@ def server_files():
             recursive=True
   )
   rrd_py_file_path = path.join(rrd_py_path, "rrd.py")
-  File(rrd_py_file_path,
-       content=StaticFile("rrd.py"),
-       mode=0755
+  TemplateConfig(rrd_py_file_path,
+                 owner="root",
+                 group="root",
+                 mode=0755
   )
   rrd_file_owner = params.gmetad_user
 

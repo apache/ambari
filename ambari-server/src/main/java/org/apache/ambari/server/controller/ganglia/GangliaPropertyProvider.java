@@ -39,6 +39,8 @@ import java.util.regex.Pattern;
  */
 public abstract class GangliaPropertyProvider extends AbstractPropertyProvider {
 
+  private static final Pattern questionMarkPattern = Pattern.compile("\\?");
+
   private final StreamProvider streamProvider;
 
   private final GangliaHostProvider hostProvider;
@@ -58,19 +60,19 @@ public abstract class GangliaPropertyProvider extends AbstractPropertyProvider {
 
   
   static {
-    GANGLIA_CLUSTER_NAME_MAP.put("NAMENODE",           Arrays.asList("HDPNameNode"));
+    GANGLIA_CLUSTER_NAME_MAP.put("NAMENODE",           Collections.singletonList("HDPNameNode"));
     GANGLIA_CLUSTER_NAME_MAP.put("DATANODE",           Arrays.asList("HDPDataNode", "HDPSlaves"));
-    GANGLIA_CLUSTER_NAME_MAP.put("JOBTRACKER",         Arrays.asList("HDPJobTracker"));
+    GANGLIA_CLUSTER_NAME_MAP.put("JOBTRACKER",         Collections.singletonList("HDPJobTracker"));
     GANGLIA_CLUSTER_NAME_MAP.put("TASKTRACKER",        Arrays.asList("HDPTaskTracker", "HDPSlaves"));
-    GANGLIA_CLUSTER_NAME_MAP.put("RESOURCEMANAGER",    Arrays.asList("HDPResourceManager"));
+    GANGLIA_CLUSTER_NAME_MAP.put("RESOURCEMANAGER",    Collections.singletonList("HDPResourceManager"));
     GANGLIA_CLUSTER_NAME_MAP.put("NODEMANAGER",        Arrays.asList("HDPNodeManager", "HDPSlaves"));
-    GANGLIA_CLUSTER_NAME_MAP.put("HISTORYSERVER",      Arrays.asList("HDPHistoryServer"));
-    GANGLIA_CLUSTER_NAME_MAP.put("HBASE_MASTER",       Arrays.asList("HDPHBaseMaster"));
+    GANGLIA_CLUSTER_NAME_MAP.put("HISTORYSERVER",      Collections.singletonList("HDPHistoryServer"));
+    GANGLIA_CLUSTER_NAME_MAP.put("HBASE_MASTER",       Collections.singletonList("HDPHBaseMaster"));
     GANGLIA_CLUSTER_NAME_MAP.put("HBASE_REGIONSERVER", Arrays.asList("HDPHBaseRegionServer", "HDPSlaves"));
     GANGLIA_CLUSTER_NAME_MAP.put("FLUME_HANDLER",      Arrays.asList("HDPFlumeServer", "HDPSlaves"));
     GANGLIA_CLUSTER_NAME_MAP.put("JOURNALNODE",        Arrays.asList("HDPJournalNode", "HDPSlaves"));
-    GANGLIA_CLUSTER_NAME_MAP.put("NIMBUS",             Arrays.asList("HDPNimbus"));
-    GANGLIA_CLUSTER_NAME_MAP.put("SUPERVISOR",         Arrays.asList("HDPSupervisor"));
+    GANGLIA_CLUSTER_NAME_MAP.put("NIMBUS",             Collections.singletonList("HDPNimbus"));
+    GANGLIA_CLUSTER_NAME_MAP.put("SUPERVISOR",         Collections.singletonList("HDPSupervisor"));
   }
 
   protected final static Logger LOG =
@@ -108,8 +110,6 @@ public abstract class GangliaPropertyProvider extends AbstractPropertyProvider {
       return resources;
     }
 
-    Set<Resource> keepers = new HashSet<Resource>();
-
     Map<String, Map<TemporalInfo, RRDRequest>> requestMap = getRRDRequests(resources, request, ids);
 
     // For each cluster...
@@ -117,10 +117,9 @@ public abstract class GangliaPropertyProvider extends AbstractPropertyProvider {
       // For each request ...
       for (RRDRequest rrdRequest : clusterEntry.getValue().values() ) {
         //todo: property provider can reduce set of resources
-        keepers.addAll(rrdRequest.populateResources());
+        rrdRequest.populateResources();
       }
     }
-    //todo: ignoring keepers returned by the provider
     return resources;
   }
 
@@ -267,7 +266,7 @@ public abstract class GangliaPropertyProvider extends AbstractPropertyProvider {
    *
    * @return the spec, like http://example.com/path?param1=val1&paramn=valn
    *
-   * @throws SystemException if unable to get the Ganglia Collector host name
+   * @throws org.apache.ambari.server.controller.spi.SystemException if unable to get the Ganglia Collector host name
    */
   private String getSpec(String clusterName,
                          Set<String> clusterSet,
@@ -364,7 +363,7 @@ public abstract class GangliaPropertyProvider extends AbstractPropertyProvider {
     if (limit == -1 || set.size() <= limit) {
       for (String cluster : set) {
         if (sb.length() > 0) {
-          sb.append(",");
+          sb.append(',');
         }
         sb.append(cluster);
       }
@@ -422,7 +421,7 @@ public abstract class GangliaPropertyProvider extends AbstractPropertyProvider {
      *
      * @return a collection of populated resources
      *
-     * @throws SystemException if unable to populate the resources
+     * @throws org.apache.ambari.server.controller.spi.SystemException if unable to populate the resources
      */
     public Collection<Resource> populateResources() throws SystemException {
 
@@ -434,7 +433,7 @@ public abstract class GangliaPropertyProvider extends AbstractPropertyProvider {
       //Parameters
       String params = null;
       
-      String[] tokens = specWithParams.split("\\?", 2);
+      String[] tokens = questionMarkPattern.split(specWithParams, 2);
 
       try {
         spec = tokens[0];

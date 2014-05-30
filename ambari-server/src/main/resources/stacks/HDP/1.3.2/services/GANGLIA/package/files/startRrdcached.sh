@@ -31,15 +31,11 @@ rrdcachedRunningPid=`getRrdcachedRunningPid`;
 # Only attempt to start rrdcached if there's not already one running.
 if [ -z "${rrdcachedRunningPid}" ]
 then
-    #changed because problem puppet had with nobody user
-    #sudo -u ${GMETAD_USER} ${RRDCACHED_BIN} -p ${RRDCACHED_PID_FILE} \
-    #         -m 664 -l unix:${RRDCACHED_ALL_ACCESS_UNIX_SOCKET} \
-    #         -m 777 -P FLUSH,STATS,HELP -l unix:${RRDCACHED_LIMITED_ACCESS_UNIX_SOCKET} \
-    #         -b /var/lib/ganglia/rrds -B
     su - ${GMETAD_USER} -c "${RRDCACHED_BIN} -p ${RRDCACHED_PID_FILE} \
              -m 664 -l unix:${RRDCACHED_ALL_ACCESS_UNIX_SOCKET} \
              -m 777 -P FLUSH,STATS,HELP -l unix:${RRDCACHED_LIMITED_ACCESS_UNIX_SOCKET} \
-             -b ${RRDCACHED_BASE_DIR} -B"
+             -b ${RRDCACHED_BASE_DIR} -B -t ${RRDCACHED_WRITE_THREADS} \
+             -w ${RRDCACHED_TIMEOUT} -z ${RRDCACHED_DELAY} -F"
 
     # Ideally, we'd use ${RRDCACHED_BIN}'s -s ${WEBSERVER_GROUP} option for 
     # this, but it doesn't take sometimes due to a lack of permissions,
