@@ -124,12 +124,20 @@ class CheckHost(Script):
     db_connection_url = config['commandParams']['db_connection_url']
     user_name = config['commandParams']['user_name']
     user_passwd = config['commandParams']['user_passwd']
-  
+    java_exec = os.path.join(java64_home, "bin","java")
+
+    if ('jdk_name' not in config['commandParams'] or config['commandParams']['jdk_name'] == None \
+        or config['commandParams']['jdk_name'] == '') and not os.path.isfile(java_exec):
+      message = "Custom java is not available on host. Please install it. Java home should be the same as on server. " \
+                "\n"
+      print message
+      db_connection_check_structured_output = {"exit_code" : "1", "message": message}
+      return db_connection_check_structured_output
+
     environment = { "no_proxy": format("{ambari_server_hostname}") }
     artifact_dir = "/tmp/HDP-artifacts/"
     jdk_name = config['commandParams']['jdk_name']
     jdk_curl_target = format("{artifact_dir}/{jdk_name}")
-    java_exec = os.path.join(java64_home, "bin","java")
     java_dir = os.path.dirname(java64_home)
 
     # download DBConnectionVerification.jar from ambari-server resources

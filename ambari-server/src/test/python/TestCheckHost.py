@@ -148,6 +148,21 @@ class TestCheckHost(TestCase):
     self.assertEquals(structured_out_mock.call_args[0][0], {'db_connection_check':
                                         {'message': 'DB connection check completed successfully!', 'exit_code': '0'}})
 
+    #test jdk_name and java home are not available
+    mock_config.return_value = {"commandParams" : {"check_execute_list" : "db_connection_check",
+                                                   "java_home" : "test_java_home",
+                                                   "ambari_server_host" : "test_host",
+                                                   "jdk_location" : "test_jdk_location",
+                                                   "db_connection_url" : "test_db_connection_url",
+                                                   "user_name" : "test_user_name",
+                                                   "user_passwd" : "test_user_passwd",
+                                                   "db_name" : "postgresql"}}
+
+    isfile_mock.return_value = False
+    checkHost.actionexecute(None)
+    self.assertEquals(structured_out_mock.call_args[0][0], {'db_connection_check': {'message': 'Custom java is not ' \
+            'available on host. Please install it. Java home should be the same as on server. \n', 'exit_code': '1'}})
+
 
 
   @patch("socket.gethostbyname")
