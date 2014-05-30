@@ -19,13 +19,15 @@
 package org.apache.ambari.server.api.resources;
 
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+
 import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.api.util.TreeNode;
-import org.apache.ambari.server.controller.internal.RepositoryResourceProvider;
 import org.apache.ambari.server.controller.internal.RequestResourceProvider;
 import org.apache.ambari.server.controller.spi.Resource;
-
-import java.util.*;
 
 
 /**
@@ -62,15 +64,42 @@ public class RequestResourceDefinition extends BaseResourceDefinition {
 
   private class RequestHrefPostProcessor implements PostProcessor {
     @Override
-    public void process(Request request, TreeNode<Resource> resultNode, String href) {
+    public void process(Request request, TreeNode<Resource> resultNode,
+        String href) {
+      Object requestId = resultNode.getObject().getPropertyValue(
+          getClusterController().getSchema(Resource.Type.Request)
+              .getKeyPropertyId(Resource.Type.Request));
 
-      Object requestId = resultNode.getObject().getPropertyValue(getClusterController().
-          getSchema(Resource.Type.Request).getKeyPropertyId(Resource.Type.Request));
+      // sanity check for a trailing slash since this would cause problems
+      // with string-based URL matching
+      if (href.endsWith("/")) {
+        href = href.substring(0, href.length() - 1);
+      }
 
-      StringBuilder sb = new StringBuilder(href);
-      if (href.endsWith("/requests"))
+      // if the original href was for a "request", then shortcut and just
+      // append the ID onto the URL
+      StringBuilder sb = new StringBuilder();
+      if (href.endsWith("/requests")) {
+        sb.append(href);
         sb.append('/').append(requestId);
-        
+      } else {
+        // split the href up into its parts, intercepting "clusers" in order
+        // to rewrite the href to be scoped for requests
+        String[] tokens = href.split("/");
+
+        for (int i = 0; i < tokens.length; ++i) {
+          String fragment = tokens[i];
+          sb.append(fragment).append('/');
+
+          if ("clusters".equals(fragment) && i + 1 < tokens.length) {
+            String clusterName = tokens[i + 1];
+            sb.append(clusterName).append("/");
+            sb.append("requests/").append(requestId);
+            break;
+          }
+        }
+      }
+
       resultNode.setProperty("href", sb.toString());
     }
   }
