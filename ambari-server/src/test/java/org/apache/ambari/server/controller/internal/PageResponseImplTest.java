@@ -36,7 +36,7 @@ public class PageResponseImplTest {
     Resource prev = new ResourceImpl(Resource.Type.Cluster);
     Resource next = new ResourceImpl(Resource.Type.Cluster);
 
-    PageResponse response = new PageResponseImpl(iterable, 99, prev, next);
+    PageResponse response = new PageResponseImpl(iterable, 99, prev, next, 0);
 
     Assert.assertEquals(iterable, response.getIterable());
   }
@@ -47,7 +47,7 @@ public class PageResponseImplTest {
     Resource prev = new ResourceImpl(Resource.Type.Cluster);
     Resource next = new ResourceImpl(Resource.Type.Cluster);
 
-    PageResponse response = new PageResponseImpl(iterable, 99, prev, next);
+    PageResponse response = new PageResponseImpl(iterable, 99, prev, next, 0);
 
     Assert.assertEquals(99, response.getOffset());
   }
@@ -58,7 +58,7 @@ public class PageResponseImplTest {
     Resource prev = new ResourceImpl(Resource.Type.Cluster);
     Resource next = new ResourceImpl(Resource.Type.Cluster);
 
-    PageResponse response = new PageResponseImpl(iterable, 99, prev, next);
+    PageResponse response = new PageResponseImpl(iterable, 99, prev, next, 0);
 
     Assert.assertEquals(prev, response.getPreviousResource());
   }
@@ -69,7 +69,7 @@ public class PageResponseImplTest {
     Resource prev = new ResourceImpl(Resource.Type.Cluster);
     Resource next = new ResourceImpl(Resource.Type.Cluster);
 
-    PageResponse response = new PageResponseImpl(iterable, 99, prev, next);
+    PageResponse response = new PageResponseImpl(iterable, 99, prev, next, 0);
 
     Assert.assertEquals(next, response.getNextResource());
   }

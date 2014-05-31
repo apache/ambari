@@ -68,7 +68,6 @@ public abstract class BaseResourceDefinition implements ResourceDefinition {
   public List<PostProcessor> getPostProcessors() {
     List<PostProcessor> listProcessors = new ArrayList<PostProcessor>();
     listProcessors.add(new BaseHrefPostProcessor());
-
     return listProcessors;
   }
 

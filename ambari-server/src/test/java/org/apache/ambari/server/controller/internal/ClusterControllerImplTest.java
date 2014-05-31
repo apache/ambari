@@ -309,6 +309,8 @@ public class ClusterControllerImplTest {
     Assert.assertEquals(Resource.Type.Host, list.get(1).getType());
     Assert.assertEquals("host:2", (String) list.get(2).getPropertyValue(PropertyHelper.getPropertyId("Hosts", "host_name")));
     Assert.assertEquals(Resource.Type.Host, list.get(2).getType());
+    // Check total count
+    Assert.assertEquals(4, pageResponse.getTotalResourceCount().intValue());
   }
 
   @Test
@@ -352,6 +354,8 @@ public class ClusterControllerImplTest {
     Assert.assertEquals(Resource.Type.Host, list.get(1).getType());
     Assert.assertEquals("host:3", (String) list.get(2).getPropertyValue(PropertyHelper.getPropertyId("Hosts", "host_name")));
     Assert.assertEquals(Resource.Type.Host, list.get(2).getType());
+    // Check total count
+    Assert.assertEquals(4, pageResponse.getTotalResourceCount().intValue());
   }
 
   @Test
@@ -403,6 +407,8 @@ public class ClusterControllerImplTest {
     Assert.assertEquals(Resource.Type.Host, list.get(1).getType());
     Assert.assertEquals("host:2", (String) list.get(2).getPropertyValue(PropertyHelper.getPropertyId("Hosts", "host_name")));
     Assert.assertEquals(Resource.Type.Host, list.get(2).getType());
+    // Check total count
+    Assert.assertEquals(4, pageResponse.getTotalResourceCount().intValue());
   }
 
   @Test

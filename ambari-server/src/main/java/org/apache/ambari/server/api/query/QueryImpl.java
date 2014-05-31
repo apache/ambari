@@ -674,6 +674,7 @@ public class QueryImpl implements Query, ResourceInstance {
           pageRequest, sortRequest
         );
         iterResource = pageResponse.getIterable();
+        tree.setProperty("count", pageResponse.getTotalResourceCount().toString());
       }
 
       int count = 1;

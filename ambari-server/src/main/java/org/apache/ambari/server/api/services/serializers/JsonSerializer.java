@@ -61,7 +61,8 @@ public class JsonSerializer implements ResultSerializer {
         return serializeError(result.getStatus());
       }
 
-      processNode(result.getResultTree());
+      TreeNode<Resource> treeNode = result.getResultTree();
+      processNode(treeNode);
 
       m_generator.close();
       return bytesOut.toString("UTF-8");
@@ -105,12 +106,14 @@ public class JsonSerializer implements ResultSerializer {
       m_generator.writeStartObject();
 
       writeHref(node);
+      writeItemCount(node);
 
       Resource r = node.getObject();
       if (r != null) {
         handleResourceProperties(getTreeProperties(r.getPropertiesMap()));
       }
     }
+
     if (isArray(node)) {
       m_generator.writeArrayFieldStart(node.getName());
     }
@@ -122,6 +125,7 @@ public class JsonSerializer implements ResultSerializer {
     if (isArray(node)) {
       m_generator.writeEndArray();
     }
+
     if (isObject(node)) {
       m_generator.writeEndObject();
     }
@@ -208,6 +212,15 @@ public class JsonSerializer implements ResultSerializer {
     String hrefProp = node.getProperty("href");
     if (hrefProp != null) {
       m_generator.writeStringField("href", hrefProp);
+    }
+  }
+
+  private void writeItemCount(TreeNode<Resource> node) throws IOException {
+    String countProp = node.getProperty("count");
+    if (countProp != null) {
+      m_generator.writeStringField("itemCount", countProp);
+      // Write once
+      node.setProperty("count", null);
     }
   }
 }

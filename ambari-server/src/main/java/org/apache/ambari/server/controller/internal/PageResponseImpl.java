@@ -25,18 +25,20 @@ import org.apache.ambari.server.controller.spi.Resource;
  * Basic page response implementation.
  */
 public class PageResponseImpl implements PageResponse{
-
-
   private final Iterable<Resource> iterable;
   private final int offset;
   private final Resource previousResource;
   private final Resource nextResource;
+  private final Integer totalResourceCount;
 
-  public PageResponseImpl(Iterable<Resource> iterable, int offset, Resource previousResource, Resource nextResource) {
+  public PageResponseImpl(Iterable<Resource> iterable, int offset,
+                          Resource previousResource, Resource nextResource,
+                          Integer totalResourceCount) {
     this.iterable = iterable;
     this.offset = offset;
     this.previousResource = previousResource;
     this.nextResource = nextResource;
+    this.totalResourceCount = totalResourceCount;
   }
 
   @Override
@@ -57,5 +59,10 @@ public class PageResponseImpl implements PageResponse{
   @Override
   public Resource getNextResource() {
     return nextResource;
+  }
+
+  @Override
+  public Integer getTotalResourceCount() {
+    return totalResourceCount;
   }
 }

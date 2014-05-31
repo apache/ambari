@@ -49,4 +49,10 @@ public interface PageResponse {
    * @return the next resource after this page; null if this is the last page
    */
   public Resource getNextResource();
+
+  /**
+   * Get the count of total resources without account for paging request.
+   * @return total count
+   */
+  public Integer getTotalResourceCount();
 }

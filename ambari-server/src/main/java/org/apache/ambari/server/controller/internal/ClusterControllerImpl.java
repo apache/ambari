@@ -175,6 +175,7 @@ public class ClusterControllerImpl implements ClusterController {
     ResourcePredicateEvaluator evaluator = provider instanceof ResourcePredicateEvaluator ?
         (ResourcePredicateEvaluator) provider : DEFAULT_RESOURCE_PREDICATE_EVALUATOR;
 
+    int totalCount = 0;
     if (!providerResources.isEmpty()) {
       Comparator<Resource> resourceComparator = comparator;
       if (sortRequest != null) {
@@ -184,6 +185,7 @@ public class ClusterControllerImpl implements ClusterController {
 
       TreeSet<Resource> sortedResources = new TreeSet<Resource>(resourceComparator);
       sortedResources.addAll(providerResources);
+      totalCount = sortedResources.size();
 
       if (pageRequest != null) {
         switch (pageRequest.getStartingPoint()) {
@@ -207,9 +209,11 @@ public class ClusterControllerImpl implements ClusterController {
       resources = sortedResources;
     } else {
       resources = providerResources;
+      totalCount = providerResources.size();
     }
 
-    return new PageResponseImpl(new ResourceIterable(resources, predicate, evaluator), 0, null, null);
+    return new PageResponseImpl(new ResourceIterable(resources, predicate,
+      evaluator), 0, null, null, totalCount);
   }
 
   /**
@@ -565,7 +569,9 @@ public class ClusterControllerImpl implements ClusterController {
         predicate, evaluator),
         currentOffset,
         previous,
-        iterator.hasNext() ? iterator.next() : null);
+        iterator.hasNext() ? iterator.next() : null,
+        resources.size()
+      );
   }
 
   /**
@@ -606,7 +612,9 @@ public class ClusterControllerImpl implements ClusterController {
         LinkedHashSet<Resource>(pageResources), predicate, evaluator),
         currentOffset + 1,
         iterator.hasNext() ? iterator.next() : null,
-        next);
+        next,
+        resources.size()
+      );
   }
 
   /**
