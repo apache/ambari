@@ -1,0 +1,14 @@
+{
+  "href" : "http://localhost:49271/api/v1/clusters/single-node-hdfs-yarn/services?fields=ServiceInfo/*",
+  "items" : [
+    {
+      "href" : "http://localhost:49271/api/v1/clusters/single-node-hdfs-yarn/services/HDFS",
+      "ServiceInfo" : {
+        "cluster_name" : "single-node-hdfs-yarn",
+        "maintenance_state" : "OFF",
+        "service_name" : "HDFS",
+        "state" : "STARTED"
+      }
+    }
+  ]
+}

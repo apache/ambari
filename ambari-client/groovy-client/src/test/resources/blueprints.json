@@ -1,0 +1,21 @@
+{
+  "href" : "http://localhost:49233/api/v1/blueprints?fields=Blueprints",
+  "items" : [
+    {
+      "href" : "http://localhost:49233/api/v1/blueprints/multi-node-hdfs-yarn",
+      "Blueprints" : {
+        "blueprint_name" : "multi-node-hdfs-yarn",
+        "stack_name" : "HDP",
+        "stack_version" : "2.0"
+      }
+    },
+    {
+      "href" : "http://localhost:49233/api/v1/blueprints/single-node-hdfs-yarn",
+      "Blueprints" : {
+        "blueprint_name" : "single-node-hdfs-yarn",
+        "stack_name" : "HDP",
+        "stack_version" : "2.0"
+      }
+    }
+  ]
+}

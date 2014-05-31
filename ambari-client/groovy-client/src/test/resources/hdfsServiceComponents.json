@@ -1,0 +1,63 @@
+{
+  "href" : "http://localhost:49271/api/v1/clusters/single-node-hdfs-yarn/services/HDFS/components?fields=ServiceComponentInfo/*",
+  "items" : [
+    {
+      "href" : "http://localhost:49271/api/v1/clusters/single-node-hdfs-yarn/services/HDFS/components/DATANODE",
+      "ServiceComponentInfo" : {
+        "category" : "SLAVE",
+        "cluster_name" : "single-node-hdfs-yarn",
+        "component_name" : "DATANODE",
+        "service_name" : "HDFS",
+        "state" : "STARTED"
+      }
+    },
+    {
+      "href" : "http://localhost:49271/api/v1/clusters/single-node-hdfs-yarn/services/HDFS/components/HDFS_CLIENT",
+      "ServiceComponentInfo" : {
+        "category" : "CLIENT",
+        "cluster_name" : "single-node-hdfs-yarn",
+        "component_name" : "HDFS_CLIENT",
+        "service_name" : "HDFS",
+        "state" : "INSTALLED"
+      }
+    },
+    {
+      "href" : "http://localhost:49271/api/v1/clusters/single-node-hdfs-yarn/services/HDFS/components/NAMENODE",
+      "ServiceComponentInfo" : {
+        "CapacityRemaining" : 31924920320,
+        "CapacityTotal" : 39078707200,
+        "CapacityUsed" : 24576,
+        "DeadNodes" : "{}",
+        "DecomNodes" : "{}",
+        "HeapMemoryMax" : 1052770304,
+        "HeapMemoryUsed" : 100962448,
+        "LiveNodes" : "{\"server.ambari.com\":{\"infoAddr\":\"172.17.0.2:50075\",\"infoSecureAddr\":\"172.17.0.2:0\",\"xferaddr\":\"172.17.0.2:50010\",\"lastContact\":0,\"usedSpace\":24576,\"adminState\":\"In Service\",\"nonDfsUsedSpace\":7153762304,\"capacity\":39078707200,\"numBlocks\":0,\"version\":\"2.4.0.2.1.1.0-385\",\"used\":24576,\"remaining\":31924920320,\"blockScheduled\":0,\"blockPoolUsed\":24576,\"blockPoolUsedPercent\":6.2888466E-5,\"volfails\":0}}",
+        "NonDfsUsedSpace" : 7153762304,
+        "NonHeapMemoryMax" : 136314880,
+        "NonHeapMemoryUsed" : 33860904,
+        "PercentRemaining" : 81.6939,
+        "PercentUsed" : 6.2888466E-5,
+        "Safemode" : "",
+        "StartTime" : 1400572832732,
+        "TotalFiles" : 10,
+        "UpgradeFinalized" : true,
+        "Version" : "2.4.0.2.1.1.0-385, r68ceccf06a4441273e81a5ec856d41fc7e11c792",
+        "category" : "MASTER",
+        "cluster_name" : "single-node-hdfs-yarn",
+        "component_name" : "NAMENODE",
+        "service_name" : "HDFS",
+        "state" : "STARTED"
+      }
+    },
+    {
+      "href" : "http://localhost:49271/api/v1/clusters/single-node-hdfs-yarn/services/HDFS/components/SECONDARY_NAMENODE",
+      "ServiceComponentInfo" : {
+        "category" : "MASTER",
+        "cluster_name" : "single-node-hdfs-yarn",
+        "component_name" : "SECONDARY_NAMENODE",
+        "service_name" : "HDFS",
+        "state" : "STARTED"
+      }
+    }
+  ]
+}

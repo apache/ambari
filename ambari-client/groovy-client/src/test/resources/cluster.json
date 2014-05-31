@@ -1,0 +1,16 @@
+{
+    "blueprint": "c1",
+    "host-groups": [
+        {
+            "name": "host_group_1",
+            "hosts": [
+                {
+                    "fqdn": "server.ambari.com"
+                },
+                {
+                    "fqdn": "server2.ambari.com"
+                }
+            ]
+        }
+    ]
+}

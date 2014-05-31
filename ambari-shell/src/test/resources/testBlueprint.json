@@ -1,0 +1,48 @@
+{
+  "host_groups" : [
+    {
+      "name" : "host_group_1",
+      "components" : [
+      {
+        "name" : "NAMENODE"
+      },
+      {
+        "name" : "SECONDARY_NAMENODE"
+      },
+      {
+        "name" : "DATANODE"
+      },
+      {
+        "name" : "HDFS_CLIENT"
+      },
+      {
+        "name" : "RESOURCEMANAGER"
+      },
+      {
+        "name" : "NODEMANAGER"
+      },
+      {
+        "name" : "YARN_CLIENT"
+      },
+      {
+        "name" : "HISTORYSERVER"
+      },
+      {
+        "name" : "MAPREDUCE2_CLIENT"
+      },
+      {
+        "name" : "ZOOKEEPER_SERVER"
+      },
+      {
+        "name" : "ZOOKEEPER_CLIENT"
+      }
+      ],
+      "cardinality" : "1"
+    }
+  ],
+  "Blueprints" : {
+    "blueprint_name" : "single-node-hdfs-yarn",
+    "stack_name" : "HDP",
+    "stack_version" : "2.0"
+  }
+}

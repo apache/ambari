@@ -1,0 +1,5 @@
+  SERVICE     COMPONENT         STATE
+  ----------  ----------------  ---------
+  ZOOKEEPER   ZOOKEEPER_SERVER  INSTALLED
+  MAPREDUCE2  HISTORYSERVER     STARTED
+  HDFS        DATANODE          STARTED
