@@ -218,7 +218,7 @@ public class JsonSerializer implements ResultSerializer {
   private void writeItemCount(TreeNode<Resource> node) throws IOException {
     String countProp = node.getProperty("count");
     if (countProp != null) {
-      m_generator.writeStringField("itemCount", countProp);
+      m_generator.writeStringField("itemTotal", countProp);
       // Write once
       node.setProperty("count", null);
     }
