@@ -48,7 +48,7 @@ class TestHookBeforeStart(RMFTestCase):
                               group = 'root',
                               recursive = True,
                               )
-    self.assertResourceCalled('Directory', '/tmp',
+    self.assertResourceCalled('Directory', '/tmp/hadoop-hdfs',
                               owner = 'hdfs',
                               recursive = True,
                               )
@@ -108,7 +108,7 @@ class TestHookBeforeStart(RMFTestCase):
                               group = 'root',
                               recursive = True,
                               )
-    self.assertResourceCalled('Directory', '/tmp',
+    self.assertResourceCalled('Directory', '/tmp/hadoop-hdfs',
                               owner = 'hdfs',
                               recursive = True,
                               )

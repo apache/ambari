@@ -45,7 +45,7 @@ def setup_hadoop():
             group='root'
   )
   #this doesn't needed with stack 1
-  Directory(os.path.dirname(params.hadoop_tmp_dir),
+  Directory(params.hadoop_tmp_dir,
             recursive=True,
             owner=params.hdfs_user,
             )
