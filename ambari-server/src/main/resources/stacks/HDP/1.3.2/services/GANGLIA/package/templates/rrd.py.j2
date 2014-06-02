@@ -148,7 +148,7 @@ clusterParts = stripList(clusterParts)
 if "p" in queryString:
   rrdPath = queryString["p"]
 else:
-  rrdPath = "/var/lib/ganglia/rrds/"
+  rrdPath = "{{rrdcached_base_dir}}"
 
 start = None
 if "s" in queryString:
@@ -184,7 +184,7 @@ def _walk(*args, **kwargs):
 
 
 for cluster in clusterParts:
-  for path, dirs, files in _walk(rrdPath + cluster):
+  for path, dirs, files in _walk(os.path.join(rrdPath,cluster)):
     pathParts = path.split("/")
     #Process only path which contains files. If no host parameter passed - process all hosts folders and summary info
     #If host parameter passed - process only this host folder

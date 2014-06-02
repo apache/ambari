@@ -37,7 +37,6 @@ gmond_allowed_apps = ["Application1", "Application2", "Application3"]
 gmond_apps = set(gmond_apps) & set(gmond_allowed_apps)
 
 webserver_group = "apache"
-rrdcached_default_base_dir = "/var/lib/ganglia/rrds"
 rrdcached_base_dir = config['configurations']['global']["rrdcached_base_dir"]
 rrdcached_timeout = default("/configurations/global/rrdcached_timeout", 3600)
 rrdcached_delay = default("/configurations/global/rrdcached_delay", 1800)

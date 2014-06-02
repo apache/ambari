@@ -189,7 +189,7 @@ setuid_username "${GMETAD_USER}"
 #-------------------------------------------------------------------------------
 # Where gmetad stores its round-robin databases
 # default: "/var/lib/ganglia/rrds"
-# rrd_rootdir "/some/other/place"
+rrd_rootdir "${RRD_ROOTDIR}"
 #
 #-------------------------------------------------------------------------------
 # In earlier versions of gmetad, hostnames were handled in a case

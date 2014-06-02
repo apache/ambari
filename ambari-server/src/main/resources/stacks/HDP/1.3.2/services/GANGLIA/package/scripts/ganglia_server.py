@@ -103,34 +103,12 @@ def server_files():
   )
   rrd_file_owner = params.gmetad_user
 
-  if not os.path.exists(params.rrdcached_base_dir) or (os.path.islink(params.rrdcached_default_base_dir)
-                                                    and params.rrdcached_default_base_dir == params.rrdcached_base_dir):
-    if os.path.islink(params.rrdcached_default_base_dir):
-      Link(params.rrdcached_default_base_dir,
-           action = "delete"
-      )
-    else:
-      Directory(params.rrdcached_default_base_dir,
-                action = "delete"
-      )
-
-    Directory(params.rrdcached_base_dir,
-              owner=rrd_file_owner,
-              group=rrd_file_owner,
-              mode=0755,
-              recursive=True
-    )
-
-    if params.rrdcached_default_base_dir != params.rrdcached_base_dir:
-      Link(params.rrdcached_default_base_dir,
-           to=params.rrdcached_base_dir
-      )
-  elif rrd_file_owner != 'nobody':
-    Directory(params.rrdcached_default_base_dir,
-              owner=rrd_file_owner,
-              group=rrd_file_owner,
-              recursive=True
-    )
+  Directory(params.rrdcached_base_dir,
+            owner=rrd_file_owner,
+            group=rrd_file_owner,
+            mode=0755,
+            recursive=True
+  )
 
 
 if __name__ == "__main__":
