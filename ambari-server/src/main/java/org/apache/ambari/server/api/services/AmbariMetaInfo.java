@@ -561,7 +561,8 @@ public class AmbariMetaInfo {
 
     List<String> monitoringServices = new ArrayList<String>();
     for (ServiceInfo service : getSupportedServices(stackName, version)) {
-      if (service.isMonitoringService()) {
+      if ((service.isMonitoringService() != null) &&
+        service.isMonitoringService()) {
         monitoringServices.add(service.getName());
       }
     }

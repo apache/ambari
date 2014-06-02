@@ -59,8 +59,7 @@ public class ServiceInfo {
   private List<String> configDependencies;
 
   @JsonIgnore
-  @XmlElement(defaultValue = "false")
-  private boolean monitoringService;
+  private Boolean monitoringService;
   
   @JsonIgnore
   @XmlElement(name = "restartRequiredAfterChange")
@@ -395,11 +394,17 @@ public class ServiceInfo {
     return configDir;
   }
 
-  public boolean isMonitoringService() {
+  /**
+   * @return whether the service is a monitoring service
+   */
+  public Boolean isMonitoringService() {
     return monitoringService;
   }
 
-  public void setMonitoringService(boolean monitoringService) {
+  /**
+   * @param monitoringService whether the service is a monitoring service
+   */
+  public void setMonitoringService(Boolean monitoringService) {
     this.monitoringService = monitoringService;
   }
 }

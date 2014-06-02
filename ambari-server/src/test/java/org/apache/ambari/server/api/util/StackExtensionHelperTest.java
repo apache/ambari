@@ -19,7 +19,6 @@
 package org.apache.ambari.server.api.util;
 
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.api.services.AmbariMetaInfoTest.MockModule;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.state.*;
 
@@ -30,7 +29,6 @@ import java.util.Map;
 
 import static org.junit.Assert.*;
 
-import org.junit.Before;
 import org.junit.Test;
 
 import com.google.inject.AbstractModule;
@@ -41,11 +39,7 @@ public class StackExtensionHelperTest {
 
   private final String stackRootStr = "./src/test/resources/stacks/".
           replaceAll("/", File.separator);
-  private final String hBaseDirStr = stackRootStr + "services/HBASE/".
-          replaceAll("/", File.separator);
-  private final String yarnDirStr = stackRootStr + "services/YARN/".
-          replaceAll("/", File.separator);
-  
+
   private Injector injector = Guice.createInjector(new MockModule());
   
   
@@ -69,7 +63,7 @@ public class StackExtensionHelperTest {
     StackExtensionHelper helper = new StackExtensionHelper(injector, stackRoot);
     helper.populateServicesForStack(stackInfo);
     List<ServiceInfo> services =  stackInfo.getServices();
-    assertEquals(7, services.size());
+    assertEquals(8, services.size());
     for (ServiceInfo serviceInfo : services) {
       if (serviceInfo.getName().equals("HIVE")) {
         // Check old-style service
@@ -203,9 +197,50 @@ public class StackExtensionHelperTest {
         if (!serviceInfo.getName().equals("YARN") &&
             !serviceInfo.getName().equals("HDFS") &&
             !serviceInfo.getName().equals("MAPREDUCE2") &&
+            !serviceInfo.getName().equals("NAGIOS") &&
             !serviceInfo.getName().equals("SQOOP")) {
           fail("Unknown service");
         }
+      }
+    }
+  }
+
+  @Test
+  public void testPropertyInheritance() throws Exception{
+    File stackRoot = new File(stackRootStr);
+    StackInfo stackInfo = new StackInfo();
+    stackInfo.setName("HDP");
+    stackInfo.setVersion("2.0.7");
+    StackExtensionHelper helper = new StackExtensionHelper(injector, stackRoot);
+    helper.populateServicesForStack(stackInfo);
+    helper.fillInfo();
+    List<ServiceInfo> allServices = helper.getAllApplicableServices(stackInfo);
+    assertEquals(13, allServices.size());
+    for (ServiceInfo serviceInfo : allServices) {
+      if (serviceInfo.getName().equals("NAGIOS")) {
+        assertTrue(serviceInfo.isMonitoringService());
+      } else {
+        assertNull(serviceInfo.isMonitoringService());
+      }
+    }
+  }
+
+  @Test
+  public void testPropertyInheritance() throws Exception{
+    File stackRoot = new File(stackRootStr);
+    StackInfo stackInfo = new StackInfo();
+    stackInfo.setName("HDP");
+    stackInfo.setVersion("2.0.7");
+    StackExtensionHelper helper = new StackExtensionHelper(injector, stackRoot);
+    helper.populateServicesForStack(stackInfo);
+    helper.fillInfo();
+    List<ServiceInfo> allServices = helper.getAllApplicableServices(stackInfo);
+    assertEquals(13, allServices.size());
+    for (ServiceInfo serviceInfo : allServices) {
+      if (serviceInfo.getName().equals("NAGIOS")) {
+        assertTrue(serviceInfo.isMonitoringService());
+      } else {
+        assertNull(serviceInfo.isMonitoringService());
       }
     }
   }

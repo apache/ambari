@@ -140,6 +140,10 @@ public class StackExtensionHelper {
             (childService.isRestartRequiredAfterChange() != null) 
                     ? childService.isRestartRequiredAfterChange()
                     : parentService.isRestartRequiredAfterChange());
+    mergedServiceInfo.setMonitoringService(
+            (childService.isMonitoringService() != null)
+                    ? childService.isMonitoringService()
+                    : parentService.isMonitoringService());
 
     Map<String, ServiceOsSpecific> osSpecific = childService.getOsSpecifics();
     if (! osSpecific.isEmpty()) {
