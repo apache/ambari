@@ -1528,7 +1528,7 @@ describe('App.WizardStep3Controller', function () {
       expect(c.checkHostOSType()).to.equal('');
     });
     it('os type is valid', function() {
-      var osType = 'os1';
+      var osType = 'redhat6';
       c.reopen({
         content: {
           stacks: [

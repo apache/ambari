@@ -27,7 +27,8 @@ describe('MainHostController', function () {
 
   var hostController;
 
-  describe('#bulkOperation', function() {
+  // @todo add unit tests after bulk ops reimplementing
+  describe.skip('#bulkOperation', function() {
 
     beforeEach(function() {
       hostController = App.MainHostController.create({
@@ -135,7 +136,8 @@ describe('MainHostController', function () {
 
   });
 
-  describe('#bulkOperationForHosts', function() {
+  // @todo add unit tests after bulk ops reimplementing
+  describe.skip('#bulkOperationForHosts', function() {
 
     beforeEach(function(){
       hostController = App.MainHostController.create({});
@@ -209,7 +211,8 @@ describe('MainHostController', function () {
 
   });
 
-  describe('#bulkOperationForHostsRestart', function() {
+  // @todo add unit tests after bulk ops reimplementing
+  describe.skip('#bulkOperationForHostsRestart', function() {
 
     beforeEach(function(){
       hostController = App.MainHostController.create({});
@@ -246,7 +249,8 @@ describe('MainHostController', function () {
 
   });
 
-  describe('#bulkOperationForHostsPassiveState', function() {
+  // @todo add unit tests after bulk ops reimplementing
+  describe.skip('#bulkOperationForHostsPassiveState', function() {
 
     beforeEach(function(){
       hostController = App.MainHostController.create({});
