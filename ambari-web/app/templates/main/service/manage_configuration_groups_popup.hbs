@@ -16,77 +16,81 @@
 * limitations under the License.
 }}
 <div class="alert alert-info margin-bottom-5">{{t services.service.config_groups_popup.notice serviceNameBinding="view.displayName"}}</div>
-<div class="row-fluid  manage-configuration-group-content">
-  <div class="span12">
-    <div class="row-fluid">
-      <div class="span4">
-        <span>&nbsp;</span>
-        {{view Em.Select
-          contentBinding="configGroups"
-          optionLabelPath="content.displayNameHosts"
-          selectionBinding="view.selectedConfigGroup"
-          multiple="multiple"
-          class="group-select"
-        }}
-        <div class="btn-toolbar pull-right">
-          <button rel="button-info" class="btn" {{bindAttr data-original-title="view.addButtonTooltip"}}
-            {{action addConfigGroup target="controller"}}><i class="icon-plus"></i></button>
-          <button rel="button-info" class="btn" {{bindAttr data-original-title="view.removeButtonTooltip" disabled="view.isRemoveButtonDisabled"}}
-            {{action confirmDelete target="controller"}}><i class="icon-minus"></i></button>
-          <div class="btn-group">
-            <button class="btn dropdown-toggle" data-toggle="dropdown">
-              <i class="icon-cog"></i>&nbsp;<span class="caret"></span>
-            </button>
-            <ul class="dropdown-menu">
-              <li {{bindAttr class="view.isRenameButtonDisabled:disabled"}}>
-                <a href="" rel="button-info-dropdown" {{bindAttr data-original-title="view.renameButtonTooltip"}} {{action renameConfigGroup target="controller"}}>{{t services.service.config_groups_popup.rename}}</a>
-              </li>
-              <li {{bindAttr class="view.isDuplicateButtonDisabled:disabled"}}>
-                <a href="" rel="button-info-dropdown" {{bindAttr data-original-title="view.duplicateButtonTooltip"}} {{action duplicateConfigGroup target="controller"}}>{{t services.service.config_groups_popup.duplicate}}</a>
-              </li>
-            </ul>
-          </div>
+  {{#if controller.isLoaded}}
+    <div class="row-fluid  manage-configuration-group-content">
+        <div class="span12">
+            <div class="row-fluid">
+                <div class="span4">
+                    <span>&nbsp;</span>
+                  {{view Em.Select
+                  contentBinding="configGroups"
+                  optionLabelPath="content.displayNameHosts"
+                  selectionBinding="view.selectedConfigGroup"
+                  multiple="multiple"
+                  class="group-select"
+                  }}
+                    <div class="btn-toolbar pull-right">
+                        <button rel="button-info" class="btn" {{bindAttr data-original-title="view.addButtonTooltip"}}
+                          {{action addConfigGroup target="controller"}}><i class="icon-plus"></i></button>
+                        <button rel="button-info" class="btn" {{bindAttr data-original-title="view.removeButtonTooltip" disabled="view.isRemoveButtonDisabled"}}
+                          {{action confirmDelete target="controller"}}><i class="icon-minus"></i></button>
+                        <div class="btn-group">
+                            <button class="btn dropdown-toggle" data-toggle="dropdown">
+                                <i class="icon-cog"></i>&nbsp;<span class="caret"></span>
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li {{bindAttr class="view.isRenameButtonDisabled:disabled"}}>
+                                    <a href="" rel="button-info-dropdown" {{bindAttr data-original-title="view.renameButtonTooltip"}} {{action renameConfigGroup target="controller"}}>{{t services.service.config_groups_popup.rename}}</a>
+                                </li>
+                                <li {{bindAttr class="view.isDuplicateButtonDisabled:disabled"}}>
+                                    <a href="" rel="button-info-dropdown" {{bindAttr data-original-title="view.duplicateButtonTooltip"}} {{action duplicateConfigGroup target="controller"}}>{{t services.service.config_groups_popup.duplicate}}</a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="span8">
+                    <span>&nbsp;</span>
+                    <div class="row-fluid">
+                        <div class="span12 pull-right">
+                          {{view Em.Select
+                          contentBinding="selectedConfigGroup.hosts"
+                          multiple="multiple"
+                          class="group-select"
+                          selectionBinding="selectedHosts"
+                          }}
+                        </div>
+                        <div class="button-group pull-right">
+                            <a rel="button-info" class="btn" {{bindAttr data-original-title="view.addHostTooltip" class="selectedConfigGroup.isAddHostsDisabled:disabled"}} {{action addHosts target="controller"}} ><i class="icon-plus"></i></a>
+                            <a rel="button-info" class="btn" {{bindAttr data-original-title="view.removeHostTooltip" class="isDeleteHostsDisabled:disabled"}} {{action deleteHosts target="controller"}} ><i class="icon-minus"></i></a>
+                        </div>
+                    </div>
+                    <div class="row-fluid">
+                        <div class="span2">{{t common.overrides}}</div>
+                        <div class="span10">
+                            <a href="" class="properties-link" {{action showProperties target="controller"}}
+                              {{bindAttr data-original-title="selectedConfigGroup.propertiesList" }}>{{selectedConfigGroup.properties.length}} {{t common.properties}}</a>
+                        </div>
+                    </div>
+                    <div class="clearfix"></div>
+                    <div class="row-fluid">
+                        <div class="span2"><span class="prrl">{{t common.description}}</span></div>
+                        <div class="span10 group-description">{{selectedConfigGroup.description}}</div>
+                    </div>
+                </div>
+                <div class="clearfix"></div>
+                <div class="row-fluid">
+                    <div class="span12 text-error" id="manage-config-group-error-div">
+                      {{#if errorMessage}}
+                        {{errorMessage}}
+                      {{else}}
+                          &nbsp;
+                      {{/if}}
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
-      <div class="span8">
-        <span>&nbsp;</span>
-        <div class="row-fluid">
-          <div class="span12 pull-right">
-            {{view Em.Select
-              contentBinding="selectedConfigGroup.hosts"
-              multiple="multiple"
-              class="group-select"
-              selectionBinding="selectedHosts"
-            }}
-          </div>
-          <div class="button-group pull-right">
-            <a rel="button-info" class="btn" {{bindAttr data-original-title="view.addHostTooltip" class="selectedConfigGroup.isAddHostsDisabled:disabled"}} {{action addHosts target="controller"}} ><i class="icon-plus"></i></a>
-            <a rel="button-info" class="btn" {{bindAttr data-original-title="view.removeHostTooltip" class="isDeleteHostsDisabled:disabled"}} {{action deleteHosts target="controller"}} ><i class="icon-minus"></i></a>
-          </div>
-        </div>
-        <div class="row-fluid">
-          <div class="span2">{{t common.overrides}}</div>
-          <div class="span10">
-            <a href="" class="properties-link" {{action showProperties target="controller"}}
-              {{bindAttr data-original-title="selectedConfigGroup.propertiesList" }}>{{selectedConfigGroup.properties.length}} {{t common.properties}}</a>
-          </div>
-        </div>
-        <div class="clearfix"></div>
-        <div class="row-fluid">
-          <div class="span2"><span class="prrl">{{t common.description}}</span></div>
-          <div class="span10 group-description">{{selectedConfigGroup.description}}</div>
-        </div>
-      </div>
-      <div class="clearfix"></div>
-      <div class="row-fluid">
-        <div class="span12 text-error" id="manage-config-group-error-div">
-          {{#if errorMessage}}
-            {{errorMessage}}
-          {{else}}
-              &nbsp;
-          {{/if}}
-        </div>
-      </div>
     </div>
-  </div>
-</div>
+  {{else}}
+    <div class="spinner"></div>
+  {{/if}}

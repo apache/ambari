@@ -28,21 +28,25 @@
     </ul>
   </div>
 {{/unless}}
-{{#if view.runningHosts}}
-  <i class="icon-warning-sign"></i>  {{view.runningHostsMessage}}
-  <table class="table-striped running-host-components-table">
-    <tr><th>{{t common.host}}</th><th>{{t common.components}}</th></tr>
-    {{#each host in view.runningHosts}}
-    <tr><td>{{host.name}}</td><td>{{host.components}}</td></tr>
-    {{/each}}
-  </table>
-{{/if}}
-{{#if view.unknownHosts}}
-  <i class="icon-warning-sign"></i>  {{view.unknownHostsMessage}}
-  <table class="table-striped running-host-components-table">
-    <tr><th>{{t common.host}}</th><th>{{t common.components}}</th></tr>
-    {{#each host in view.unknownHosts}}
-      <tr><td>{{host.name}}</td><td>{{host.components}}</td></tr>
-    {{/each}}
-  </table>
+{{#if view.isLoaded}}
+  {{#if view.runningHosts}}
+      <i class="icon-warning-sign"></i>  {{view.runningHostsMessage}}
+      <table class="table-striped running-host-components-table">
+          <tr><th>{{t common.host}}</th><th>{{t common.components}}</th></tr>
+        {{#each host in view.runningHosts}}
+            <tr><td>{{host.name}}</td><td>{{host.components}}</td></tr>
+        {{/each}}
+      </table>
+  {{/if}}
+  {{#if view.unknownHosts}}
+      <i class="icon-warning-sign"></i>  {{view.unknownHostsMessage}}
+      <table class="table-striped running-host-components-table">
+          <tr><th>{{t common.host}}</th><th>{{t common.components}}</th></tr>
+        {{#each host in view.unknownHosts}}
+            <tr><td>{{host.name}}</td><td>{{host.components}}</td></tr>
+        {{/each}}
+      </table>
+  {{/if}}
+{{else}}
+  <div class="spinner"></div>
 {{/if}}

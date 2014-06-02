@@ -20,6 +20,7 @@
 var App = require('app');
 var hostsManagement = require('utils/hosts');
 var componentHelper = require('utils/component');
+var lazyLoading = require('utils/lazy_loading');
 
 App.ManageConfigGroupsController = Em.Controller.extend({
   name: 'manageConfigGroupsController',
@@ -76,7 +77,6 @@ App.ManageConfigGroupsController = Em.Controller.extend({
 
   onLoadConfigGroupsSuccess: function (data) {
     var usedHosts = [];
-    var unusedHosts = [];
     var serviceName = this.get('serviceName');
     var defaultConfigGroup = App.ConfigGroup.create({
       name: App.Service.DisplayNames[serviceName] + " Default",
@@ -100,12 +100,27 @@ App.ManageConfigGroupsController = Em.Controller.extend({
           isDefault: false,
           parentConfigGroup: defaultConfigGroup,
           service: App.Service.find().findProperty('serviceName', configGroup.tag),
-          hosts: hostNames,
+          hosts: [],
           configSiteTags: [],
           properties: [],
           apiResponse: configGroup
         });
-        usedHosts = usedHosts.concat(newConfigGroup.get('hosts'));
+        lazyLoading.run({
+          initSize: 20,
+          chunkSize: 50,
+          delay: 50,
+          destination: newConfigGroup.get('hosts'),
+          source: hostNames,
+          context: Em.Object.create()
+        });
+        lazyLoading.run({
+          initSize: 20,
+          chunkSize: 50,
+          delay: 50,
+          destination: usedHosts,
+          source: newConfigGroup.get('hosts'),
+          context: Em.Object.create()
+        });
         configGroups.push(newConfigGroup);
         var newConfigGroupSiteTags = newConfigGroup.get('configSiteTags');
         configGroup.desired_configs.forEach(function (config) {
@@ -119,19 +134,69 @@ App.ManageConfigGroupsController = Em.Controller.extend({
           groupToTypeToTagMap[configGroup.group_name][config.type] = config.tag;
         });
       }, this);
-      unusedHosts = App.Host.find().mapProperty('hostName');
-      usedHosts.uniq().forEach(function (host) {
-        unusedHosts = unusedHosts.without(host);
-      }, this);
-      defaultConfigGroup.set('childConfigGroups', configGroups);
-      defaultConfigGroup.set('hosts', unusedHosts);
-      var allGroups = [defaultConfigGroup].concat(configGroups);
-      this.set('configGroups', allGroups);
-      var originalGroups = this.copyConfigGroups(allGroups);
-      this.set('originalConfigGroups', originalGroups);
-      this.loadProperties(groupToTypeToTagMap);
-      this.set('isLoaded', true);
+      var requestName = (this.get('content.controllerName') == 'installerController') ? 'hosts.all.install' : 'hosts.all';
+      App.ajax.send({
+        name: requestName,
+        sender: this,
+        data: {
+          clusterName: App.get('clusterName'),
+          usedHosts: usedHosts,
+          defaultConfigGroup: defaultConfigGroup,
+          configGroups: configGroups,
+          groupToTypeToTagMap: groupToTypeToTagMap
+        },
+        success: 'unusedHostsSuccessCallBack',
+        error: ''
+      });
     }
+  },
+
+  unusedHostsSuccessCallBack: function (response, request, data) {
+    var unusedHosts = response.items.mapProperty('Hosts.host_name');
+    data.usedHosts.uniq().forEach(function (host) {
+      unusedHosts = unusedHosts.without(host);
+    }, this);
+    data.defaultConfigGroup.set('hosts', []);
+    lazyLoading.run({
+      initSize: 20,
+      chunkSize: 50,
+      delay: 50,
+      destination: data.defaultConfigGroup.get('hosts'),
+      source: unusedHosts,
+      context: Em.Object.create()
+    });
+    data.defaultConfigGroup.set('childConfigGroups', data.configGroups);
+    data.defaultConfigGroup.set('hosts', unusedHosts);
+    var allGroups = [data.defaultConfigGroup];
+    lazyLoading.run({
+      initSize: 20,
+      chunkSize: 50,
+      delay: 50,
+      destination: allGroups,
+      source: data.configGroups,
+      context: Em.Object.create()
+    });
+    this.set('configGroups', []);
+    lazyLoading.run({
+      initSize: 20,
+      chunkSize: 50,
+      delay: 50,
+      destination: this.get('configGroups'),
+      source: allGroups,
+      context: Em.Object.create()
+    });
+    var originalGroups = this.copyConfigGroups(allGroups);
+    this.set('originalConfigGroups', []);
+    lazyLoading.run({
+      initSize: 20,
+      chunkSize: 50,
+      delay: 50,
+      destination: this.get('originalConfigGroups'),
+      source: originalGroups,
+      context: Em.Object.create()
+    });
+    this.loadProperties(data.groupToTypeToTagMap);
+    this.set('isLoaded', true);
   },
 
   onLoadConfigGroupsError: function () {

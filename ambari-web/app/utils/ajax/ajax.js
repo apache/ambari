@@ -345,7 +345,7 @@ var urls = {
     'mock': '/data/clusters/cluster.json'
   },
   'config.tags_and_groups': {
-    'real': '/clusters/{clusterName}?fields=Clusters/desired_configs,config_groups/*',
+    'real': '/clusters/{clusterName}?fields=Clusters/desired_configs,config_groups/*{urlParams}',
     'mock': '/data/clusters/tags_and_groups.json'
   },
   'config.tags.sync': {
@@ -2098,6 +2098,34 @@ var urls = {
   'host.status.counters': {
     'real': '/clusters/{clusterName}?fields=alerts,Clusters/health_report,Clusters/total_hosts&minimal_response=true',
     'mock': '/data/hosts/HDP2/host_status_counters.json'
+  },
+  'components.filter_by_status': {
+  'real': '/clusters/{clusterName}/components/fields=host_components/HostRoles/host_name,ServiceComponentInfo/component_name,ServiceComponentInfo/started_count{urlParams}&minimal_response=true',
+    'mock': ''
+  },
+  'hosts.all.install': {
+    'real': '/hosts?minimal_response=true',
+    'mock': ''
+  },
+  'hosts.all': {
+    'real': '/clusters/{clusterName}/hosts?minimal_response=true',
+    'mock': ''
+  },
+  'hosts.with_public_host_names': {
+    'real': '/clusters/{clusterName}/hosts?fields=Hosts/public_host_name&minimal_response=true',
+    'mock': ''
+  },
+  'hosts.confirmed': {
+    'real': '/clusters/{clusterName}/hosts?fields=Hosts/cpu_count,Hosts/disk_info,Hosts/total_mem&minimal_response=true',
+    'mock': ''
+  },
+  'host_components.all': {
+    'real': '/clusters/{clusterName}/host_components?fields=HostRoles/host_name&minimal_response=true',
+    'mock': ''
+  },
+  'host_components.with_services_names': {
+    'real': '/clusters/{clusterName}/host_components?fields=component/ServiceComponentInfo/service_name,HostRoles/host_name&minimal_response=true',
+    'mock': ''
   }
 };
 /**
