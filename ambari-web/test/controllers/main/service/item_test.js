@@ -453,12 +453,16 @@ describe('App.MainServiceItemController', function () {
   describe("#refreshConfigs", function () {
     var temp = batchUtils.restartHostComponents;
     beforeEach(function () {
+      sinon.stub(App.ajax, 'send', function(opt) {
+        return opt.data.callback({ items: [] });
+      });
       batchUtils.restartHostComponents = Em.K;
       sinon.spy(batchUtils, "restartHostComponents");
     });
     afterEach(function () {
       batchUtils.restartHostComponents.restore();
       batchUtils.restartHostComponents = temp;
+      App.ajax.send.restore();
     });
     var tests = [
       {

@@ -842,8 +842,8 @@ App.WizardStep3Controller = Em.Controller.extend({
 
   /**
    * return the supported agent os types for a repo os type
-   * @param {string} repoType
-   * @return {array} supported agent os type array
+   * @param {String} repoType
+   * @return {Array} supported agent os type array
    * @method repoToAgentOsType
    */
   repoToAgentOsType : function (repoType) {
@@ -856,6 +856,8 @@ App.WizardStep3Controller = Em.Controller.extend({
         return ["suse11", "sles11", "opensuse11"];
       case "debian12":
         return ["debian12", "ubuntu12"];
+      default:
+        return [];
     }
   },
 

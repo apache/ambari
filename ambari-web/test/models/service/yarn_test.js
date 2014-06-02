@@ -59,10 +59,6 @@ var yarnService,
   ],
   nodeCases = [
     {
-      propertyName: 'nodeManagerNodes',
-      componentId: 'nodemanager'
-    },
-    {
       propertyName: 'yarnClientNodes',
       componentId: 'host'
     }
@@ -70,6 +66,9 @@ var yarnService,
   nodeCountCases = [
     {
       assets: {
+        nodeManagersStarted: 0,
+        nodeManagersInstalled: 1,
+        nodeManagersTotal: 1,
         nodeManagersCountActive: 0,
         nodeManagersCountRebooted: 0,
         nodeManagersCountUnhealthy: 0,
@@ -79,8 +78,11 @@ var yarnService,
     },
     {
       assets: {
+        nodeManagersStarted: 1,
+        nodeManagersInstalled: 1,
+        nodeManagersTotal: 1,
         nodeManagersCountActive: 1,
-        nodeManagersCountRebooted: 0,
+        nodeManagersCountRebooted: 1,
         nodeManagersCountUnhealthy: 0,
         nodeManagersCountDecommissioned: 0
       },

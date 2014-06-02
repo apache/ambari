@@ -27,19 +27,11 @@ var hdfsService,
   },
   hostComponentsData = [
     {
-      id: 'datanode',
-      componentName: 'DATANODE'
-    },
-    {
       id: 'journalnode',
       componentName: 'JOURNALNODE'
     }
   ],
   cases = [
-    {
-      propertyName: 'dataNodes',
-      componentId: 'datanode'
-    },
     {
       propertyName: 'journalNodes',
       componentId: 'journalnode'

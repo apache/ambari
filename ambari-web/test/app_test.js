@@ -69,6 +69,9 @@ describe('#App', function() {
 
   describe('Disable/enable components', function() {
 
+    App.set('handleStackDependencyTest', true);
+    modelSetup.setupStackVersion(this, 'HDP-2.1');
+
     var testableComponent =  Em.Object.create({
       componentName: 'APP_TIMELINE_SERVER',
       serviceName: 'YARN'
@@ -86,16 +89,13 @@ describe('#App', function() {
         name: 'AppTimelineServer'
       }
     };
+
     var globalProperties = require('data/HDP2/global_properties');
     var siteProperties = require('data/HDP2/site_properties');
     var reviewConfigs = require('data/review_configs');
-    var disableResult;
-
-    App.set('currentStackVersion', 'HDP-2.1');
-    App.set('handleStackDependencyTest', true);
+    var disableResult = App.disableComponent(testableComponent);
 
     describe('#disableComponent()', function() {
-      disableResult = App.disableComponent(testableComponent);
       // copy
       var _globalProperties = $.extend({}, globalProperties);
       var _siteProperties = $.extend({}, siteProperties);
@@ -166,6 +166,8 @@ describe('#App', function() {
         expect(reviewConfig).to.include(expectedInfo.reviewConfigs.component_name);
       });
     });
+
+    modelSetup.restoreStackVersion(this);
   });
 
   describe('#stackVersionURL', function () {

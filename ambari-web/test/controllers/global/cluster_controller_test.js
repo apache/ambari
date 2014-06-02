@@ -25,6 +25,8 @@ require('models/service');
 require('models/host');
 require('utils/ajax/ajax');
 
+var modelSetup = require('test/init_model_test');
+
 describe('App.clusterController', function () {
   var controller = App.ClusterController.create();
   App.Service.FIXTURES = [
@@ -63,9 +65,11 @@ describe('App.clusterController', function () {
   describe('#loadClusterName()', function () {
 
     beforeEach(function () {
+      modelSetup.setupStackVersion(this, 'HDP-2.0.5');
       sinon.spy(App.ajax, 'send');
     });
     afterEach(function () {
+      modelSetup.restoreStackVersion(this);
       App.ajax.send.restore();
     });
 
