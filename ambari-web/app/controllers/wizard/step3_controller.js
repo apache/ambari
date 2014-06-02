@@ -38,6 +38,9 @@ App.WizardStep3Controller = Em.Controller.extend({
 
   registrationStartedAt: null,
 
+  requestId: 0,
+
+  hostCheckWarnings: [],
   /**
    * Timeout for registration
    * Based on <code>installOptions.manualInstall</code>
@@ -161,7 +164,7 @@ App.WizardStep3Controller = Em.Controller.extend({
       } else {
         this.set('bootHosts', this.get('hosts'));
         if (App.get('testMode')) {
-          this.getHostInfo();
+          this.startHostcheck();
           this.get('bootHosts').setEach('cpu', '2');
           this.get('bootHosts').setEach('memory', '2000000');
           this.set('isSubmitDisabled', false);
@@ -594,7 +597,7 @@ App.WizardStep3Controller = Em.Controller.extend({
     }, this);
 
     if (stopPolling) {
-      this.getHostInfo();
+      this.startHostcheck();
     }
     else {
       if (hosts.someProperty('bootStatus', 'RUNNING') || App.dateTime() - this.get('registrationStartedAt') < this.get('registrationTimeoutSecs') * 1000) {
@@ -611,7 +614,7 @@ App.WizardStep3Controller = Em.Controller.extend({
           _host.set('bootStatus', 'FAILED');
           _host.set('bootLog', (_host.get('bootLog') != null ? _host.get('bootLog') : '') + Em.I18n.t('installer.step3.hosts.bootLog.failed'));
         });
-        this.getHostInfo();
+        this.startHostcheck();
       }
     }
   },
@@ -683,6 +686,130 @@ App.WizardStep3Controller = Em.Controller.extend({
       success: 'getHostInfoSuccessCallback',
       error: 'getHostInfoErrorCallback'
     });
+  },
+
+  
+  startHostcheck: function() {
+    this.set('isWarningsLoaded', false);
+    this.getHostNameResolution();   
+  },
+
+  getHostNameResolution: function () {
+    var hosts = this.get('bootHosts').getEach('name').join(",");
+    var RequestInfo = {
+      "action": "check_host",
+      "context": "Check host",
+      "parameters": {
+        "check_execute_list": "host_resolution_check",
+        "hosts": hosts,
+        "threshold": "20"
+      }
+    };
+    var resource_filters = {
+      "hosts": hosts
+    };
+    if (App.testMode) {
+      this.getHostNameResolutionSuccess();
+    } else {
+      return App.ajax.send({
+        name: 'preinstalled.checks',
+        sender: this,
+        data: {
+          RequestInfo: RequestInfo,
+          resource_filters: resource_filters
+        },
+        success: 'getHostNameResolutionSuccess',
+        error: 'getHostNameResolutionError'
+      });
+    }
+  },
+
+  getHostNameResolutionSuccess: function(response) {
+    if (!App.testMode) {
+      this.set("requestId", response.Requests.id);
+    }
+    this.getHostCheckTasks();
+  },
+
+  getHostNameResolutionError: function() {
+    this.getHostInfo();
+  },
+
+  /**
+   * send ajax request to get all tasks
+   * @method getHostCheckTasks
+   */
+  getHostCheckTasks: function () {
+    var requestId = this.get("requestId");
+    var self = this;
+    this.set('startChecking', new Date().getTime());
+    var checker = setInterval(function () {
+      if (self.get('stopChecking') == true) {
+        clearInterval(checker);
+        self.getHostInfo();
+      } else {
+        App.ajax.send({
+          name: 'preinstalled.checks.tasks',
+          sender: self,
+          data: {
+            requestId: requestId
+          },
+          success: 'getHostCheckTasksSuccess',
+          error: 'getHostCheckTasksError'
+        });
+      }
+    }, 1000);
+  },
+
+  /**
+   * add warnings to host warning popup if needed
+   * @param data {Object} - json
+   * @method getHostCheckTasksSuccess
+   */
+  getHostCheckTasksSuccess: function (data) {
+    console.log('checking attempt...');
+    if (!data) {
+      console.warn("Error: jsonData is null");
+      return;
+    }
+    this.set('stopChecking', true);
+    data.tasks.forEach(function (task) {
+      var cur = new Date().getTime();
+      var name = Em.I18n.t('installer.step3.hostWarningsPopup.resolution.validation.error');
+      var hostInfo = this.get("hostCheckWarnings").findProperty('name', name);
+      if (task.Tasks.status == "FAILED" || (cur - this.get('startChecking') > 5000) || task.Tasks.status == "COMPLETED") {
+        if (task.Tasks.status == "COMPLETED" && Em.get(task, 'Tasks.structured_out.host_resolution_check.failed_count') == 0) {
+          return;
+        }
+        if (!hostInfo) {
+          hostInfo = {
+            name: name,
+            hosts: [task.Tasks.host_name],
+            onSingleHost: true
+          };
+          this.get("hostCheckWarnings").push(hostInfo);
+        } else {
+          hostInfo.hosts.push(task.Tasks.host_name);
+        }
+      } else {
+        this.set('stopChecking', false);
+      }
+    }, this);
+  },
+
+  stopChecking: false,
+
+  /**
+   * startChecking {Number} - timestamp
+   */
+  startChecking: 0,
+
+  /**
+   * @method getHostCheckTasksError
+   */
+  getHostCheckTasksError: function() {
+    console.warn("failed to cheek hostName resolution");
+    this.set('stopChecking', true);
   },
 
   /**

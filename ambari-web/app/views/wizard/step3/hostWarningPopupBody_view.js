@@ -144,6 +144,7 @@ App.WizardStep3HostWarningPopupBody = Em.View.extend({
   content: function () {
     var repoCategoryWarnings = this.get('bodyController.repoCategoryWarnings');
     var diskCategoryWarnings = this.get('bodyController.diskCategoryWarnings');
+    var hostCheckWarnings = this.get('bodyController.hostCheckWarnings');
     var categoryWarnings = this.get('categoryWarnings');
     return [
       Em.Object.create({
@@ -252,6 +253,14 @@ App.WizardStep3HostWarningPopupBody = Em.View.extend({
         message: Em.I18n.t('installer.step3.hostWarningsPopup.reverseLookup.message'),
         emptyName: Em.I18n.t('installer.step3.hostWarningsPopup.reverseLookup.empty'),
         category: 'reverseLookup',
+        isCollapsed: true
+      }),
+      Em.Object.create({
+        warnings: hostCheckWarnings,
+        title: Em.I18n.t('installer.step3.hostWarningsPopup.resolution.validation.name'),
+        message: Em.I18n.t('installer.step3.hostWarningsPopup.resolution.validation.message'),
+        emptyName: Em.I18n.t('installer.step3.hostWarningsPopup.resolution.validation.empty'),
+        category: 'hostNameResolution',
         isCollapsed: true
       })
     ]

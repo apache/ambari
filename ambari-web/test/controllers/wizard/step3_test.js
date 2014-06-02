@@ -698,7 +698,7 @@ describe('App.WizardStep3Controller', function () {
         m: ' one host REGISTERING',
         e: {
           bs: 'FAILED',
-          getHostInfoCalled: true
+          getHostInfoCalled: false
         }
       },
       {
@@ -709,7 +709,7 @@ describe('App.WizardStep3Controller', function () {
         m: 'one host REGISTERING but data without info about it',
         e: {
           bs: 'FAILED',
-          getHostInfoCalled: true
+          getHostInfoCalled: false
         }
       },
       {

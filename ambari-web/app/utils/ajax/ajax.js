@@ -1601,6 +1601,26 @@ var urls = {
       };
     }
   },
+
+  'preinstalled.checks': {
+    'real':'/requests',
+    'mock':'',
+    'format': function(data) {
+      return {
+        type : 'POST',
+        data : JSON.stringify({
+          "RequestInfo": data.RequestInfo,
+          "Requests/resource_filters": [data.resource_filters]
+        })
+      }
+    }
+  },
+
+  'preinstalled.checks.tasks': {
+    'real':'/requests/{requestId}?fields=tasks/Tasks',
+    'mock':'/data/requests/host_check/1.json'
+  },
+
   'wizard.step3.rerun_checks': {
     'real': '/hosts?fields=Hosts/last_agent_env',
     'mock': '/data/wizard/bootstrap/two_hosts_information.json',
