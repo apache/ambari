@@ -395,8 +395,8 @@ App.QuickLinks.FIXTURES = [
     url:'%@://%@:%@/',
     service_id: 'STORM',
     template:'%@://%@:%@/',
-    http_config: 'nimbus.host',
-    https_config: 'nimbus.host',
+    http_config: 'stormuiserver_host',
+    https_config: 'stormuiserver_host',
     site: 'storm-site',
     regex: portRegex,
     default_http_port: 8744

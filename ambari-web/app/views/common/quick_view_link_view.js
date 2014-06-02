@@ -160,7 +160,7 @@ App.QuickViewLinks = Em.View.extend({
         hosts[0] = this.findComponentHost('FALCON_SERVER');
         break;
       case "STORM":
-        hosts[0] = this.findComponentHost('NIMBUS');
+        hosts[0] = this.findComponentHost('STORM_UI_SERVER');
         break;
     }
     if (!hosts) {
