@@ -124,7 +124,7 @@ if has_ganglia_server:
 
 hbase_tmp_dir = config['configurations']['hbase-site']['hbase.tmp.dir']
 ignore_groupsusers_create = default("ignore_groupsusers_create", False)
-
+transparent_huge_pages_file = "/sys/kernel/mm/redhat_transparent_hugepage/enabled"
 
 #repo params
 repo_info = config['hostLevelParams']['repo_info']

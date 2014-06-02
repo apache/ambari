@@ -69,6 +69,16 @@ class System(object):
     In case cannot detect --> Fail
     """
     return OSCheck.get_os_version()
+
+  @lazy_property
+  def os_major_version(self):
+    """
+    Example return value:
+    "6" for "Centos 6.3"
+
+    In case cannot detect --> Fail
+    """
+    return OSCheck.get_os_major_version()
   
   @lazy_property
   def os_release_name(self):

@@ -27,8 +27,8 @@ class BeforeConfigureHook(Hook):
 
   def hook(self, env):
     import params
-
     env.set_params(params)
+    change_thp()
     install_repos()
     setup_java()
     setup_users()
