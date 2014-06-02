@@ -21,8 +21,6 @@ limitations under the License.
 from stacks.utils.RMFTestCase import *
 from mock.mock import MagicMock, call, patch
 
-@patch("os.path.exists", new = MagicMock(return_value=False))
-@patch("os.path.islink", new = MagicMock(return_value=False))
 class TestGangliaServer(RMFTestCase):
 
   def test_configure_default(self):
@@ -182,9 +180,6 @@ class TestGangliaServer(RMFTestCase):
         owner = "root",
         group = "root",
         mode = 0755,
-    )
-    self.assertResourceCalled('Directory', '/var/lib/ganglia/rrds',
-        action = ['delete'],
     )
     self.assertResourceCalled('Directory', '/var/lib/ganglia/rrds',
         owner = 'nobody',
