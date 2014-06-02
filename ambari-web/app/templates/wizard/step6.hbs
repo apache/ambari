@@ -32,9 +32,7 @@
 
             <th>
               <a href="#" {{bindAttr class="header.allChecked:selected:deselected"}}
-                {{action "selectAllNodes" header target="controller"}}>{{t all}}</a> |
-
-              <a href="#" {{bindAttr class="header.noChecked:selected:deselected"}}
+                {{action "selectAllNodes" header target="controller"}}>{{t all}}</a>&nbsp;|&nbsp;<a href="#" {{bindAttr class="header.noChecked:selected:deselected"}}
                 {{action "deselectAllNodes" header target="controller"}}>{{t none}}</a>
             </th>
 
