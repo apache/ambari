@@ -43,6 +43,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Represents an instance of a View.
@@ -509,6 +510,34 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
   public String getUsername() {
     return userNameProvider.getUsername();
   }
+
+  /**
+   * Validate the state of the instance.
+   *
+   * @param viewEntity  the view entity to which this instance will be bound
+   *
+   * @throws IllegalStateException if the instance is not in a valid state
+   */
+  public void validate(ViewEntity viewEntity) throws IllegalStateException {
+
+    // make sure that there is an instance property value defined
+    // for each required view parameter
+    Set<String> requiredParamterNames = new HashSet<String>();
+    for (ViewParameterEntity parameter : viewEntity.getParameters()) {
+      if (parameter.isRequired()) {
+        requiredParamterNames.add(parameter.getName());
+      }
+    }
+    for (ViewInstancePropertyEntity property : getProperties()) {
+      requiredParamterNames.remove(property.getName());
+    }
+
+    if (!requiredParamterNames.isEmpty()) {
+      throw new IllegalStateException("No property values exist for the required parameters " +
+          requiredParamterNames);
+    }
+  }
+
 
   // ----- helper methods ----------------------------------------------------
 

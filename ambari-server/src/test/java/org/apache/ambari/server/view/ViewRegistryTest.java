@@ -31,9 +31,11 @@ import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntityTest;
 import org.apache.ambari.server.view.configuration.InstanceConfig;
 import org.apache.ambari.server.view.configuration.InstanceConfigTest;
+import org.apache.ambari.server.view.configuration.PropertyConfig;
 import org.apache.ambari.server.view.configuration.ResourceConfig;
 import org.apache.ambari.server.view.configuration.ResourceConfigTest;
 import org.apache.ambari.server.view.configuration.ViewConfig;
+import org.apache.ambari.server.view.configuration.ViewConfigTest;
 import org.apache.ambari.server.view.events.EventImpl;
 import org.apache.ambari.server.view.events.EventImplTest;
 import org.apache.ambari.view.events.Event;
@@ -57,6 +59,7 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -84,6 +87,54 @@ public class ViewRegistryTest {
       "    <name>MY_VIEW</name>\n" +
       "    <label>My View!</label>\n" +
       "    <version>2.0.0</version>\n" +
+      "</view>";
+
+  private static String xml_valid_instance = "<view>\n" +
+      "    <name>MY_VIEW</name>\n" +
+      "    <label>My View!</label>\n" +
+      "    <version>1.0.0</version>\n" +
+      "    <parameter>\n" +
+      "        <name>p1</name>\n" +
+      "        <description>Parameter 1.</description>\n" +
+      "        <required>true</required>\n" +
+      "    </parameter>\n" +
+      "    <parameter>\n" +
+      "        <name>p2</name>\n" +
+      "        <description>Parameter 2.</description>\n" +
+      "        <required>false</required>\n" +
+      "    </parameter>\n" +
+      "    <instance>\n" +
+      "        <name>INSTANCE1</name>\n" +
+      "        <label>My Instance 1!</label>\n" +
+      "        <property>\n" +
+      "            <key>p1</key>\n" +
+      "            <value>v1-1</value>\n" +
+      "        </property>\n" +
+      "        <property>\n" +
+      "            <key>p2</key>\n" +
+      "            <value>v2-1</value>\n" +
+      "        </property>\n" +
+      "    </instance>\n" +
+      "</view>";
+
+  private static String xml_invalid_instance = "<view>\n" +
+      "    <name>MY_VIEW</name>\n" +
+      "    <label>My View!</label>\n" +
+      "    <version>1.0.0</version>\n" +
+      "    <parameter>\n" +
+      "        <name>p1</name>\n" +
+      "        <description>Parameter 1.</description>\n" +
+      "        <required>true</required>\n" +
+      "    </parameter>\n" +
+      "    <parameter>\n" +
+      "        <name>p2</name>\n" +
+      "        <description>Parameter 2.</description>\n" +
+      "        <required>false</required>\n" +
+      "    </parameter>\n" +
+      "    <instance>\n" +
+      "        <name>INSTANCE1</name>\n" +
+      "        <label>My Instance 1!</label>\n" +
+      "    </instance>\n" +
       "</view>";
 
   @Test
@@ -402,6 +453,180 @@ public class ViewRegistryTest {
   }
 
   @Test
+  public void testInstallViewInstance() throws Exception {
+
+    ViewDAO viewDAO = createNiceMock(ViewDAO.class);
+    ViewInstanceDAO viewInstanceDAO = createNiceMock(ViewInstanceDAO.class);
+
+    ViewRegistry.init(viewDAO, viewInstanceDAO);
+
+    ViewRegistry registry = ViewRegistry.getInstance();
+
+    Properties properties = new Properties();
+    properties.put("p1", "v1");
+
+    Configuration ambariConfig = new Configuration(properties);
+
+    ViewConfig config = ViewConfigTest.getConfig(xml_valid_instance);
+    ViewEntity viewEntity = getViewEntity(config, ambariConfig, getClass().getClassLoader(), "");
+    ViewInstanceEntity viewInstanceEntity = getViewInstanceEntity(viewEntity, config.getInstances().get(0));
+
+    viewInstanceDAO.create(viewInstanceEntity);
+
+    replay(viewDAO, viewInstanceDAO);
+
+    registry.addDefinition(viewEntity);
+    registry.installViewInstance(viewInstanceEntity);
+
+    Collection<ViewInstanceEntity> viewInstanceDefinitions = registry.getInstanceDefinitions(viewEntity);
+
+    Assert.assertEquals(1, viewInstanceDefinitions.size());
+
+    Assert.assertEquals(viewInstanceEntity, viewInstanceDefinitions.iterator().next());
+
+    verify(viewDAO, viewInstanceDAO);
+  }
+
+  @Test
+  public void testInstallViewInstance_invalid() throws Exception {
+
+    ViewDAO viewDAO = createNiceMock(ViewDAO.class);
+    ViewInstanceDAO viewInstanceDAO = createNiceMock(ViewInstanceDAO.class);
+
+    ViewRegistry.init(viewDAO, viewInstanceDAO);
+
+    ViewRegistry registry = ViewRegistry.getInstance();
+
+    Properties properties = new Properties();
+    properties.put("p1", "v1");
+
+    Configuration ambariConfig = new Configuration(properties);
+
+    ViewConfig config = ViewConfigTest.getConfig(xml_invalid_instance);
+    ViewEntity viewEntity = getViewEntity(config, ambariConfig, getClass().getClassLoader(), "");
+    ViewInstanceEntity viewInstanceEntity = getViewInstanceEntity(viewEntity, config.getInstances().get(0));
+
+    replay(viewDAO, viewInstanceDAO);
+
+    registry.addDefinition(viewEntity);
+    try {
+      registry.installViewInstance(viewInstanceEntity);
+      Assert.fail("expected an IllegalStateException");
+    } catch (IllegalStateException e) {
+      // expected
+    }
+    verify(viewDAO, viewInstanceDAO);
+  }
+
+  @Test
+  public void testInstallViewInstance_unknownView() throws Exception {
+
+    ViewDAO viewDAO = createNiceMock(ViewDAO.class);
+    ViewInstanceDAO viewInstanceDAO = createNiceMock(ViewInstanceDAO.class);
+
+    ViewRegistry.init(viewDAO, viewInstanceDAO);
+
+    ViewRegistry registry = ViewRegistry.getInstance();
+
+    Properties properties = new Properties();
+    properties.put("p1", "v1");
+
+    Configuration ambariConfig = new Configuration(properties);
+
+    ViewConfig config = ViewConfigTest.getConfig(xml_valid_instance);
+    ViewEntity viewEntity = getViewEntity(config, ambariConfig, getClass().getClassLoader(), "");
+    ViewInstanceEntity viewInstanceEntity = getViewInstanceEntity(viewEntity, config.getInstances().get(0));
+    viewInstanceEntity.setViewName("BOGUS_VIEW");
+
+    replay(viewDAO, viewInstanceDAO);
+
+    registry.addDefinition(viewEntity);
+    try {
+      registry.installViewInstance(viewInstanceEntity);
+      Assert.fail("expected an IllegalArgumentException");
+    } catch (IllegalArgumentException e) {
+      // expected
+    }
+    verify(viewDAO, viewInstanceDAO);
+  }
+
+  @Test
+  public void testUpdateViewInstance() throws Exception {
+
+    ViewDAO viewDAO = createNiceMock(ViewDAO.class);
+    ViewInstanceDAO viewInstanceDAO = createNiceMock(ViewInstanceDAO.class);
+
+    ViewRegistry.init(viewDAO, viewInstanceDAO);
+
+    ViewRegistry registry = ViewRegistry.getInstance();
+
+    Properties properties = new Properties();
+    properties.put("p1", "v1");
+
+    Configuration ambariConfig = new Configuration(properties);
+
+    ViewConfig config = ViewConfigTest.getConfig(xml_valid_instance);
+    ViewEntity viewEntity = getViewEntity(config, ambariConfig, getClass().getClassLoader(), "");
+    ViewInstanceEntity viewInstanceEntity = getViewInstanceEntity(viewEntity, config.getInstances().get(0));
+    ViewInstanceEntity updateInstance = getViewInstanceEntity(viewEntity, config.getInstances().get(0));
+
+    viewInstanceDAO.create(viewInstanceEntity);
+    expect(viewInstanceDAO.merge(viewInstanceEntity)).andReturn(viewInstanceEntity);
+
+    replay(viewDAO, viewInstanceDAO);
+
+    registry.addDefinition(viewEntity);
+    registry.installViewInstance(viewInstanceEntity);
+
+    registry.updateViewInstance(updateInstance);
+
+    Collection<ViewInstanceEntity> viewInstanceDefinitions = registry.getInstanceDefinitions(viewEntity);
+
+    Assert.assertEquals(1, viewInstanceDefinitions.size());
+
+    Assert.assertEquals(viewInstanceEntity, viewInstanceDefinitions.iterator().next());
+
+    verify(viewDAO, viewInstanceDAO);
+  }
+
+  @Test
+  public void testUpdateViewInstance_invalid() throws Exception {
+
+    ViewDAO viewDAO = createNiceMock(ViewDAO.class);
+    ViewInstanceDAO viewInstanceDAO = createNiceMock(ViewInstanceDAO.class);
+
+    ViewRegistry.init(viewDAO, viewInstanceDAO);
+
+    ViewRegistry registry = ViewRegistry.getInstance();
+
+    Properties properties = new Properties();
+    properties.put("p1", "v1");
+
+    Configuration ambariConfig = new Configuration(properties);
+
+    ViewConfig config = ViewConfigTest.getConfig(xml_valid_instance);
+    ViewConfig invalidConfig = ViewConfigTest.getConfig(xml_invalid_instance);
+    ViewEntity viewEntity = getViewEntity(config, ambariConfig, getClass().getClassLoader(), "");
+    ViewInstanceEntity viewInstanceEntity = getViewInstanceEntity(viewEntity, config.getInstances().get(0));
+    ViewInstanceEntity updateInstance = getViewInstanceEntity(viewEntity, invalidConfig.getInstances().get(0));
+
+    viewInstanceDAO.create(viewInstanceEntity);
+
+    replay(viewDAO, viewInstanceDAO);
+
+    registry.addDefinition(viewEntity);
+    registry.installViewInstance(viewInstanceEntity);
+
+    try {
+      registry.updateViewInstance(updateInstance);
+      Assert.fail("expected an IllegalStateException");
+    } catch (IllegalStateException e) {
+      // expected
+    }
+    verify(viewDAO, viewInstanceDAO);
+  }
+
+  @Test
   public void testRemoveInstanceData() throws Exception {
 
     ViewDAO viewDAO = createNiceMock(ViewDAO.class);
@@ -501,6 +726,14 @@ public class ViewRegistryTest {
   public static ViewInstanceEntity getViewInstanceEntity(ViewEntity viewDefinition, InstanceConfig instanceConfig) throws Exception {
     ViewRegistry registry = ViewRegistry.getInstance();
 
-    return registry.createViewInstanceDefinition(viewDefinition, instanceConfig);
+    ViewInstanceEntity viewInstanceDefinition =
+        new ViewInstanceEntity(viewDefinition, instanceConfig);
+
+    for (PropertyConfig propertyConfig : instanceConfig.getProperties()) {
+      viewInstanceDefinition.putProperty(propertyConfig.getKey(), propertyConfig.getValue());
+    }
+
+    registry.bindViewInstance(viewDefinition, viewInstanceDefinition);
+    return viewInstanceDefinition;
   }
 }

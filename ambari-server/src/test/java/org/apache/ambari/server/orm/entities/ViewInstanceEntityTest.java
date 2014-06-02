@@ -18,14 +18,19 @@
 
 package org.apache.ambari.server.orm.entities;
 
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.view.ViewRegistryTest;
 import org.apache.ambari.server.view.configuration.InstanceConfig;
 import org.apache.ambari.server.view.configuration.InstanceConfigTest;
+import org.apache.ambari.server.view.configuration.ViewConfig;
+import org.apache.ambari.server.view.configuration.ViewConfigTest;
 import org.apache.ambari.view.ResourceProvider;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Map;
+import java.util.Properties;
 
 import static org.easymock.EasyMock.createNiceMock;
 
@@ -50,6 +55,54 @@ public class ViewInstanceEntityTest {
       "    <version>1.0.0</version>\n" +
       "    <instance>\n" +
       "        <name>INSTANCE1</name>\n" +
+      "    </instance>\n" +
+      "</view>";
+
+  private static String xml_valid_instance = "<view>\n" +
+      "    <name>MY_VIEW</name>\n" +
+      "    <label>My View!</label>\n" +
+      "    <version>1.0.0</version>\n" +
+      "    <parameter>\n" +
+      "        <name>p1</name>\n" +
+      "        <description>Parameter 1.</description>\n" +
+      "        <required>true</required>\n" +
+      "    </parameter>\n" +
+      "    <parameter>\n" +
+      "        <name>p2</name>\n" +
+      "        <description>Parameter 2.</description>\n" +
+      "        <required>false</required>\n" +
+      "    </parameter>\n" +
+      "    <instance>\n" +
+      "        <name>INSTANCE1</name>\n" +
+      "        <label>My Instance 1!</label>\n" +
+      "        <property>\n" +
+      "            <key>p1</key>\n" +
+      "            <value>v1-1</value>\n" +
+      "        </property>\n" +
+      "        <property>\n" +
+      "            <key>p2</key>\n" +
+      "            <value>v2-1</value>\n" +
+      "        </property>\n" +
+      "    </instance>\n" +
+      "</view>";
+
+  private static String xml_invalid_instance = "<view>\n" +
+      "    <name>MY_VIEW</name>\n" +
+      "    <label>My View!</label>\n" +
+      "    <version>1.0.0</version>\n" +
+      "    <parameter>\n" +
+      "        <name>p1</name>\n" +
+      "        <description>Parameter 1.</description>\n" +
+      "        <required>true</required>\n" +
+      "    </parameter>\n" +
+      "    <parameter>\n" +
+      "        <name>p2</name>\n" +
+      "        <description>Parameter 2.</description>\n" +
+      "        <required>false</required>\n" +
+      "    </parameter>\n" +
+      "    <instance>\n" +
+      "        <name>INSTANCE1</name>\n" +
+      "        <label>My Instance 1!</label>\n" +
       "    </instance>\n" +
       "</view>";
 
@@ -218,6 +271,41 @@ public class ViewInstanceEntityTest {
     InstanceConfig instanceConfig = InstanceConfigTest.getInstanceConfigs().get(0);
     ViewEntity viewDefinition = ViewEntityTest.getViewEntity();
     return new ViewInstanceEntity(viewDefinition, instanceConfig);
+  }
+
+  @Test
+  public void testValidate() throws Exception {
+
+    Properties properties = new Properties();
+    properties.put("p1", "v1");
+
+    Configuration ambariConfig = new Configuration(properties);
+
+    ViewConfig config = ViewConfigTest.getConfig(xml_valid_instance);
+    ViewEntity viewEntity = ViewRegistryTest.getViewEntity(config, ambariConfig, getClass().getClassLoader(), "");
+    ViewInstanceEntity viewInstanceEntity = ViewRegistryTest.getViewInstanceEntity(viewEntity, config.getInstances().get(0));
+
+    viewInstanceEntity.validate(viewEntity);
+  }
+
+  @Test
+  public void testValidate_fail() throws Exception {
+
+    Properties properties = new Properties();
+    properties.put("p1", "v1");
+
+    Configuration ambariConfig = new Configuration(properties);
+
+    ViewConfig config = ViewConfigTest.getConfig(xml_invalid_instance);
+    ViewEntity viewEntity = ViewRegistryTest.getViewEntity(config, ambariConfig, getClass().getClassLoader(), "");
+    ViewInstanceEntity viewInstanceEntity = ViewRegistryTest.getViewInstanceEntity(viewEntity, config.getInstances().get(0));
+
+    try {
+      viewInstanceEntity.validate(viewEntity);
+      Assert.fail("Expected an IllegalStateException");
+    } catch (IllegalStateException e) {
+      // expected
+    }
   }
 
   public static ViewInstanceEntity getViewInstanceEntity(ViewInstanceEntity.UserNameProvider userNameProvider)

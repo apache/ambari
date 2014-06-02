@@ -337,7 +337,12 @@ public class ViewRegistry {
                 Set<ViewInstanceEntity> instanceDefinitions = new HashSet<ViewInstanceEntity>();
 
                 for (InstanceConfig instanceConfig : viewConfig.getInstances()) {
-                  instanceDefinitions.add(createViewInstanceDefinition(viewDefinition, instanceConfig));
+                  try {
+                    instanceDefinitions.add(createViewInstanceDefinition(viewDefinition, instanceConfig));
+                  } catch (Exception e) {
+                    LOG.error("Caught exception adding view instance for view " +
+                        viewDefinition.getViewName(), e);
+                  }
                 }
                 // ensure that the view entity matches the db
                 instanceDefinitions.addAll(persistView(viewDefinition));
@@ -366,11 +371,16 @@ public class ViewRegistry {
   }
 
   /**
-   * Install a view instance for the view with the given view name.
+   * Install the given view instance with its associated view.
    *
    * @param instanceEntity  the view instance entity
+   *
+   * @throws IllegalStateException     if the given instance is not in a valid state
+   * @throws IllegalArgumentException  if the view associated with the given instance
+   *                                   does not exist
    */
-  public void installViewInstance(ViewInstanceEntity instanceEntity){
+  public void installViewInstance(ViewInstanceEntity instanceEntity)
+      throws IllegalStateException, IllegalArgumentException {
     ViewEntity viewEntity = getDefinition(instanceEntity.getViewName());
 
     if (viewEntity != null) {
@@ -383,15 +393,18 @@ public class ViewRegistry {
           LOG.debug("Creating view instance " + viewName + "/" +
               version + "/" + instanceName);
         }
+        instanceEntity.validate(viewEntity);
         instanceDAO.create(instanceEntity);
         try {
           // bind the view instance to a view
           bindViewInstance(viewEntity, instanceEntity);
-          // update the registry
-          addInstanceDefinition(viewEntity, instanceEntity);
-        } catch (ClassNotFoundException e) {
-          LOG.error("Caught exception installing view instance.", e);
+        } catch (Exception e) {
+          String message = "Caught exception installing view instance.";
+          LOG.error(message, e);
+          throw new IllegalStateException(message, e);
         }
+        // update the registry
+        addInstanceDefinition(viewEntity, instanceEntity);
       }
     } else {
       String message = "Attempt to install an instance for an unknown view " +
@@ -406,8 +419,11 @@ public class ViewRegistry {
    * Update a view instance for the view with the given view name.
    *
    * @param instanceEntity  the view instance entity
+   *
+   * @throws IllegalStateException if the given instance is not in a valid state
    */
-  public void updateViewInstance(ViewInstanceEntity instanceEntity) {
+  public void updateViewInstance(ViewInstanceEntity instanceEntity)
+      throws IllegalStateException {
     ViewEntity viewEntity = getDefinition(instanceEntity.getViewName());
 
     if (viewEntity != null) {
@@ -426,6 +442,7 @@ public class ViewRegistry {
         entity.setProperties(instanceEntity.getProperties());
         entity.setData(instanceEntity.getData());
 
+        instanceEntity.validate(viewEntity);
         instanceDAO.merge(entity);
       }
     }
@@ -635,20 +652,21 @@ public class ViewRegistry {
 
   // create a new view instance definition
   protected ViewInstanceEntity createViewInstanceDefinition(ViewEntity viewDefinition, InstanceConfig instanceConfig)
-      throws ClassNotFoundException {
+      throws ClassNotFoundException, IllegalStateException {
     ViewInstanceEntity viewInstanceDefinition =
         new ViewInstanceEntity(viewDefinition, instanceConfig);
 
     for (PropertyConfig propertyConfig : instanceConfig.getProperties()) {
       viewInstanceDefinition.putProperty(propertyConfig.getKey(), propertyConfig.getValue());
     }
+    viewInstanceDefinition.validate(viewDefinition);
 
     bindViewInstance(viewDefinition, viewInstanceDefinition);
     return viewInstanceDefinition;
   }
 
   // bind a view instance definition to the given view definition
-  private void bindViewInstance(ViewEntity viewDefinition,
+  protected void bindViewInstance(ViewEntity viewDefinition,
                                    ViewInstanceEntity viewInstanceDefinition)
       throws ClassNotFoundException {
     viewInstanceDefinition.setViewEntity(viewDefinition);
