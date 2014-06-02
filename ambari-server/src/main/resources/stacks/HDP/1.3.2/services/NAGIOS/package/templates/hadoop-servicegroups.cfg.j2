@@ -50,13 +50,7 @@ define servicegroup {
   alias  MAPREDUCE Checks
 }
 {% endif %}
-{%if hostgroup_defs['resourcemanager'] or
-  hostgroup_defs['nodemanagers'] %}
-define servicegroup {
-  servicegroup_name  YARN
-  alias  YARN Checks
-}
-{% endif %}
+
 {%if hostgroup_defs['flume-servers'] %}
 define servicegroup {
   servicegroup_name  FLUME

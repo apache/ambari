@@ -171,8 +171,6 @@ hostgroup_defs = {
     'namenode' : namenode_host,
     'snamenode' : _snamenode_host,
     'slaves' : _slave_hosts,
-    # HDP1
-    #'tasktracker-servers' : _mapred_tt_hosts,
     'agent-servers' : all_hosts,
     'nagios-server' : _nagios_server_host,
     'jobtracker' : _jtnode_host,

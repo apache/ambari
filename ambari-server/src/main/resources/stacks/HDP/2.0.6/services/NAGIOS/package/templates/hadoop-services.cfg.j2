@@ -173,21 +173,6 @@ define service {
 {% endfor %}
 {% endif %}
 
-{% if hostgroup_defs['jobtracker'] %}
-{% for hostname in hostgroup_defs['jobtracker'] %}
-define service {
-        host_name	        {{ hostname }}
-        use                     hadoop-service
-        service_description     GANGLIA::Ganglia Monitor process for JobTracker
-        servicegroups           GANGLIA
-        check_command           check_tcp_wrapper!{{ ganglia_collector_jobtracker_port }}!-w 1 -c 1
-        normal_check_interval   0.25
-        retry_check_interval    0.25
-        max_check_attempts      4
-}
-{% endfor %}
-{% endif %}
-
 {% if hostgroup_defs['hbasemasters'] %}
 {% for hostname in hostgroup_defs['hbasemasters'] %}
 define service {
@@ -427,7 +412,7 @@ define service {
         servicegroups           HDFS
         check_command           check_hdfs_blocks!$HOSTGROUPMEMBERS:namenode$!{{ namenode_port }}!{{ nn_metrics_property }}!{{ str(hadoop_ssl_enabled).lower() }}!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}!{{ str(security_enabled).lower() }}
         normal_check_interval   2
-        retry_check_interval    1 
+        retry_check_interval    1
         max_check_attempts      1
 }
 
@@ -438,14 +423,11 @@ define service {
         servicegroups           HDFS
         check_command           check_hdfs_capacity!$HOSTGROUPMEMBERS:namenode$!{{ namenode_port }}!80%!90%!{{ str(hadoop_ssl_enabled).lower() }}!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}!{{ str(security_enabled).lower() }}
         normal_check_interval   2
-        retry_check_interval    1 
+        retry_check_interval    1
         max_check_attempts      1
 }
 
 {% endif %}
-
-# MAPREDUCE Checks
-{# On HDP1 here are jobtracker and tasktracker alters #}
 
 {% if hostgroup_defs['resourcemanager'] %}
 # YARN::RESOURCEMANAGER Checks 

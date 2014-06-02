@@ -56,8 +56,6 @@ namenode_port = get_port_from_url(config['configurations']['hdfs-site']['dfs.htt
 snamenode_port = get_port_from_url(config['configurations']['hdfs-site']["dfs.secondary.http.address"])
 
 hbase_master_rpc_port = "60000"
-rm_port = get_port_from_url(config['configurations']['yarn-site']['yarn.resourcemanager.webapp.address'])
-nm_port = "8042"
 hs_port = get_port_from_url(config['configurations']['mapred-site']['mapreduce.history.server.http.address'])
 journalnode_port = get_port_from_url(config['configurations']['hdfs-site']['dfs.journalnode.http-address'])
 datanode_port = get_port_from_url(config['configurations']['hdfs-site']['dfs.datanode.http.address'])
@@ -121,8 +119,6 @@ _slave_hosts = default("/clusterHostInfo/slave_hosts", None)
 _tt_hosts = default("/clusterHostInfo/mapred_tt_hosts", [])
 _journalnode_hosts = default("/clusterHostInfo/journalnode_hosts", None)
 _zkfc_hosts = default("/clusterHostInfo/zkfc_hosts", None)
-_rm_host = default("/clusterHostInfo/rm_host", None)
-_nm_hosts = default("/clusterHostInfo/nm_hosts", None)
 _hs_host = default("/clusterHostInfo/hs_host", None)
 _zookeeper_hosts = default("/clusterHostInfo/zookeeper_hosts", None)
 _flume_hosts = default("/clusterHostInfo/flume_hosts", None)
@@ -159,8 +155,6 @@ hostgroup_defs = {
     'oozie-server' : _oozie_server,
     'webhcat-server' : _webhcat_server_host,
     'hue-server' : _hue_server_host,
-    'resourcemanager' : _rm_host,
-    'nodemanagers' : _nm_hosts,
     'historyserver2' : _hs_host,
     'jobhistory': _hs_host,
     'journalnodes' : _journalnode_hosts
