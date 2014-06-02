@@ -965,8 +965,13 @@ App.WizardStep7Controller = Em.Controller.extend({
    */
   getAmbariDatabaseSuccess: function (data) {
     var hiveDBHostname = this.get('stepConfigs').findProperty('serviceName', 'HIVE').configs.findProperty('name', 'hivemetastore_host').value;
-    var ambariDBInfo = JSON.stringify(data.hostComponents[0].RootServiceHostComponents.properties);
-    this.set('mySQLServerConflict', ambariDBInfo.indexOf('mysql') > 0 && ambariDBInfo.indexOf(hiveDBHostname) > 0);
+    var ambariServiceHostComponents = data.hostComponents;
+    if (!!ambariServiceHostComponents.length) {
+      var ambariDBInfo = JSON.stringify(ambariServiceHostComponents[0].RootServiceHostComponents.properties);
+      this.set('mySQLServerConflict', ambariDBInfo.indexOf('mysql') > 0 && ambariDBInfo.indexOf(hiveDBHostname) > 0);
+    } else {
+      this.set('mySQLServerConflict', false);
+    }
   },
 
   /**
