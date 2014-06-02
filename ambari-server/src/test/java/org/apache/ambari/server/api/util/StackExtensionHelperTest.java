@@ -226,7 +226,7 @@ public class StackExtensionHelperTest {
   }
 
   @Test
-  public void testPropertyInheritance() throws Exception{
+  public void testMonitoringServicePropertyInheritance() throws Exception{
     File stackRoot = new File(stackRootStr);
     StackInfo stackInfo = new StackInfo();
     stackInfo.setName("HDP");
