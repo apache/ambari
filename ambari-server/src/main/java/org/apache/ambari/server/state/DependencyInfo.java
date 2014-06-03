@@ -135,4 +135,12 @@ public class DependencyInfo {
   public String getServiceName() {
     return serviceName;
   }
+
+  @Override
+  public String toString() {
+    return "DependencyInfo[name=" + getName() +
+           ", scope=" + getScope() +
+           ", auto-deploy=" + m_autoDeploy.isEnabled() +
+           "]";
+  }
 }

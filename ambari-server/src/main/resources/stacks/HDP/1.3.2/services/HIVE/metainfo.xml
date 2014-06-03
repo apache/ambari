@@ -27,12 +27,7 @@
         <component>
           <name>HIVE_METASTORE</name>
           <category>MASTER</category>
-          <!-- may be 0 if specifying external metastore, how to specify this? -->
           <cardinality>1</cardinality>
-          <auto-deploy>
-            <enabled>true</enabled>
-            <co-locate>HIVE/HIVE_SERVER</co-locate>
-          </auto-deploy>
           <commandScript>
             <script>scripts/hive_metastore.py</script>
             <scriptType>PYTHON</scriptType>
@@ -70,12 +65,7 @@
         <component>
           <name>MYSQL_SERVER</name>
           <category>MASTER</category>
-          <!-- may be 0 if specifying external db, how to specify this? -->
           <cardinality>1</cardinality>
-          <auto-deploy>
-            <enabled>true</enabled>
-            <co-locate>HIVE/HIVE_SERVER</co-locate>
-          </auto-deploy>
           <commandScript>
             <script>scripts/mysql_server.py</script>
             <scriptType>PYTHON</scriptType>

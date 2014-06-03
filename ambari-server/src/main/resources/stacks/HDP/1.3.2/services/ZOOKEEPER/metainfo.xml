@@ -27,7 +27,7 @@
         <component>
           <name>ZOOKEEPER_SERVER</name>
           <category>MASTER</category>
-          <cardinality>1</cardinality>
+          <cardinality>1+</cardinality>
           <commandScript>
             <script>scripts/zookeeper_server.py</script>
             <scriptType>PYTHON</scriptType>

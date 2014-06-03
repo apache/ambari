@@ -27,7 +27,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.PersistKeyValueService;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -36,12 +35,6 @@ import org.apache.ambari.server.controller.ClusterResponse;
 import org.apache.ambari.server.controller.ConfigGroupRequest;
 import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.controller.RequestStatusResponse;
-import org.apache.ambari.server.controller.StackConfigurationRequest;
-import org.apache.ambari.server.controller.StackConfigurationResponse;
-import org.apache.ambari.server.controller.StackServiceComponentRequest;
-import org.apache.ambari.server.controller.StackServiceComponentResponse;
-import org.apache.ambari.server.controller.StackServiceRequest;
-import org.apache.ambari.server.controller.StackServiceResponse;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -54,21 +47,16 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.BlueprintDAO;
-import org.apache.ambari.server.orm.entities.BlueprintConfigEntity;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
-import org.apache.ambari.server.orm.entities.HostGroupComponentEntity;
-import org.apache.ambari.server.orm.entities.HostGroupConfigEntity;
 import org.apache.ambari.server.orm.entities.HostGroupEntity;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigImpl;
 import org.apache.ambari.server.state.PropertyInfo;
 
-import com.google.gson.Gson;
-
 /**
  * Resource provider for cluster resources.
  */
-public class ClusterResourceProvider extends AbstractControllerResourceProvider {
+public class ClusterResourceProvider extends BaseBlueprintProcessor {
 
   // ----- Property ID constants ---------------------------------------------
 
@@ -85,17 +73,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
   private static Set<String> pkPropertyIds =
       new HashSet<String>(Arrays.asList(new String[]{CLUSTER_ID_PROPERTY_ID}));
 
-  /**
-   * Data access object used to obtain blueprint entities.
-   */
-  private static BlueprintDAO blueprintDAO;
-
-  /**
-   * Stack related information.
-   */
-  private static AmbariMetaInfo stackInfo;
-
-  /**
+   /**
    * Maps properties to updaters which update the property when provisioning a cluster via a blueprint
    */
   private Map<String, PropertyUpdater> propertyUpdaters =
@@ -331,7 +309,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
         "' based on blueprint '" + blueprintName + "'.");
 
     //todo: build up a proper topology object
-    BlueprintEntity blueprint = getBlueprint(blueprintName);
+    BlueprintEntity blueprint = getExistingBlueprint(blueprintName);
     Stack stack = parseStack(blueprint);
 
     Map<String, HostGroup> blueprintHostGroups = parseBlueprintHostGroups(blueprint, stack);
@@ -455,52 +433,6 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
   }
 
   /**
-   * Override existing properties or add new.
-   *
-   * @param existingProperties  property overrides
-   * @param configOverrides     current property values
-   */
-  private void overrideExistingProperties(Map<String, Map<String, String>> existingProperties,
-                                          Collection<Map<String, String>> configOverrides) {
-    if (configOverrides != null) {
-      for (Map<String, String> properties : configOverrides) {
-        String category = null;
-        int propertyOffset = -1;
-        for (Map.Entry<String, String> entry : properties.entrySet()) {
-          String absolutePropName = entry.getKey();
-          if (category == null) {
-            propertyOffset =  absolutePropName.indexOf('/');
-            category = absolutePropName.substring(0, propertyOffset);
-          }
-          Map<String, String> existingCategoryProperties = existingProperties.get(category);
-          if (existingCategoryProperties == null) {
-            existingCategoryProperties = new HashMap<String, String>();
-            existingProperties.put(category, existingCategoryProperties);
-          }
-          //override existing property or add new
-          existingCategoryProperties.put(absolutePropName.substring(propertyOffset + 1), entry.getValue());
-        }
-      }
-    }
-  }
-
-  /**
-   * Obtain a blueprint entity based on name.
-   *
-   * @param blueprintName  name of blueprint to obtain
-   *
-   * @return blueprint entity for the given name
-   * @throws IllegalArgumentException no blueprint with the given name found
-   */
-  private BlueprintEntity getBlueprint(String blueprintName) {
-    BlueprintEntity blueprint = blueprintDAO.findByName(blueprintName);
-    if (blueprint == null) {
-      throw new IllegalArgumentException("Specified blueprint doesn't exist: " + blueprintName);
-    }
-    return blueprint;
-  }
-
-  /**
    * Create service and component resources.
    *
    * @param blueprintHostGroups  host groups contained in blueprint
@@ -542,7 +474,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
   private Map<String, Object> buildClusterResourceProperties(Stack stack, String clusterName) {
     Map<String, Object> clusterProperties = new HashMap<String, Object>();
     clusterProperties.put(CLUSTER_NAME_PROPERTY_ID, clusterName);
-    clusterProperties.put(CLUSTER_VERSION_PROPERTY_ID, stack.name + "-" + stack.version);
+    clusterProperties.put(CLUSTER_VERSION_PROPERTY_ID, stack.getName() + "-" + stack.getVersion());
     return clusterProperties;
   }
 
@@ -732,47 +664,6 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
   }
 
   /**
-   * Parse blueprint host groups.
-   *
-   * @param blueprint  associated blueprint
-   * @param stack      associated stack
-   *
-   * @return map of host group name to host group
-   */
-  private Map<String, HostGroup> parseBlueprintHostGroups(BlueprintEntity blueprint, Stack stack) {
-    Map<String, HostGroup> mapHostGroups = new HashMap<String, HostGroup>();
-
-    for (HostGroupEntity hostGroup : blueprint.getHostGroups()) {
-      mapHostGroups.put(hostGroup.getName(), new HostGroup(hostGroup, stack));
-    }
-    return mapHostGroups;
-  }
-
-  /**
-   * Parse stack information.
-   *
-   * @param blueprint  associated blueprint
-   *
-   * @return stack instance
-   *
-   * @throws SystemException an unexpected exception occurred
-   */
-  private Stack parseStack(BlueprintEntity blueprint) throws SystemException {
-    Stack stack;
-    try {
-      stack = new Stack(blueprint.getStackName(), blueprint.getStackVersion());
-    } catch (StackAccessException e) {
-      throw new IllegalArgumentException("Invalid stack information provided for cluster.  " +
-          "stack name: " + blueprint.getStackName() +
-          " stack version: " + blueprint.getStackVersion());
-    } catch (AmbariException e) {
-      //todo: review all exception handling associated with cluster creation via blueprint
-      throw new SystemException("Unable to obtain stack information.", e);
-    }
-    return stack;
-  }
-
-  /**
    * Create the cluster resource.
    *
    * @param properties  cluster resource request properties
@@ -807,28 +698,6 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
       throw new SystemException("Unable to finalize state of cluster for UI.  " +
           "Cluster creation will not be affected but the cluster may be inaccessible by Ambari UI." );
     }
-  }
-
-  /**
-   * Process configurations contained in blueprint.
-   *
-   * @param blueprint  blueprint entity
-   *
-   * @return configuration properties contained within in blueprint
-   */
-  private Map<String, Map<String, String>> processBlueprintConfigurations(BlueprintEntity blueprint,
-                                                                          Collection<Map<String, String>> configOverrides) {
-    Map<String, Map<String, String>> mapConfigurations = new HashMap<String, Map<String, String>>();
-    Collection<BlueprintConfigEntity> configs = blueprint.getConfigurations();
-    Gson jsonSerializer = new Gson();
-
-    for (BlueprintConfigEntity config : configs) {
-      mapConfigurations.put(config.getType(), jsonSerializer.<Map<String, String>> fromJson(
-          config.getConfigData(), Map.class));
-    }
-    overrideExistingProperties(mapConfigurations, configOverrides);
-
-    return mapConfigurations;
   }
 
   /**
@@ -1022,24 +891,6 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
   }
 
   /**
-   * Get host groups which contain a component.
-   *
-   * @param component   component name
-   * @param hostGroups  collection of host groups to check
-   *
-   * @return collection of host groups which contain the specified component
-   */
-  private Collection<HostGroup> getHostGroupsForComponent(String component, Collection<HostGroup> hostGroups) {
-    Collection<HostGroup> resultGroups = new HashSet<HostGroup>();
-    for (HostGroup group : hostGroups ) {
-      if (group.getComponents().contains(component)) {
-        resultGroups.add(group);
-      }
-    }
-    return resultGroups;
-  }
-
-  /**
    * Register config groups for host group scoped configuration.
    * For each host group with configuration specified in the blueprint, a config group is created
    * and the hosts associated with the host group are assigned to the config group.
@@ -1113,346 +964,6 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
     }
   }
 
-
-  // ----- Inner Classes -----------------------------------------------------
-
-  /**
-   * Encapsulates stack information.
-   */
-  private class Stack {
-    /**
-     * Stack name
-     */
-    private String name;
-
-    /**
-     * Stack version
-     */
-    private String version;
-
-    /**
-     * Map of service name to components
-     */
-    private Map<String, Collection<String>> serviceComponents = new HashMap<String, Collection<String>>();
-
-    /**
-     * Map of component to service
-     */
-    private Map<String, String> componentService = new HashMap<String, String>();
-
-    /**
-     * Map of service to config type properties
-     */
-    private Map<String, Map<String, Map<String, String>>> serviceConfigurations =
-        new HashMap<String, Map<String, Map<String, String>>>();
-
-    /**
-     * Constructor.
-     *
-     * @param name     stack name
-     * @param version  stack version
-     *
-     * @throws AmbariException an exception occurred getting stack information
-     *                         for the specified name and version
-     */
-    public Stack(String name, String version) throws AmbariException {
-      this.name = name;
-      this.version = version;
-
-      Set<StackServiceResponse> stackServices = getManagementController().getStackServices(
-          Collections.singleton(new StackServiceRequest(name, version, null)));
-
-      for (StackServiceResponse stackService : stackServices) {
-        String serviceName = stackService.getServiceName();
-        parseComponents(serviceName);
-        parseConfigurations(serviceName);
-      }
-    }
-
-    /**
-     * Get services contained in the stack.
-     *
-     * @return collection of all services for the stack
-     */
-    public Collection<String> getServices() {
-      return serviceComponents.keySet();
-    }
-
-    /**
-     * Get components contained in the stack for the specified service.
-     *
-     * @param service  service name
-     *
-     * @return collection of component names for the specified service
-     */
-    public Collection<String> getComponents(String service) {
-      return serviceComponents.get(service);
-    }
-
-    /**
-     * Get configuration types for the specified service.
-     *
-     * @param service  service name
-     *
-     * @return collection of configuration types for the specified service
-     */
-    public Collection<String> getConfigurationTypes(String service) {
-      return serviceConfigurations.get(service).keySet();
-    }
-
-    /**
-     * Get config properties for the specified service and configuration type.
-     *
-     * @param service  service name
-     * @param type     configuration type
-     *
-     * @return map of property names to values for the specified service and configuration type
-     */
-    public Map<String, String> getConfigurationProperties(String service, String type) {
-      return serviceConfigurations.get(service).get(type);
-    }
-
-    /**
-     * Get the service for the specified component.
-     *
-     * @param component  component name
-     *
-     * @return service name that contains tha specified component
-     */
-    public String getServiceForComponent(String component) {
-      return componentService.get(component);
-    }
-
-    /**
-     * Get the names of the services which contains the specified components.
-     *
-     * @param components collection of components
-     *
-     * @return collection of services which contain the specified components
-     */
-    public Collection<String> getServicesForComponents(Collection<String> components) {
-      Set<String> services = new HashSet<String>();
-      for (String component : components) {
-        services.add(getServiceForComponent(component));
-      }
-
-      return services;
-    }
-
-    /**
-     * Obtain the service name which corresponds to the specified configuration.
-     *
-     * @param config  configuration type
-     *
-     * @return name of service which corresponds to the specified configuration type
-     */
-    public String getServiceForConfigType(String config) {
-      for (Map.Entry<String, Map<String, Map<String, String>>> entry : serviceConfigurations.entrySet()) {
-        Map<String, Map<String, String>> typeMap = entry.getValue();
-        if (typeMap.containsKey(config)) {
-          return entry.getKey();
-        }
-      }
-      throw new IllegalArgumentException(
-          "Specified configuration type is not associated with any service: " + config);
-    }
-
-    /**
-     * Parse components for the specified service from the stack definition.
-     *
-     * @param service  service name
-     *
-     * @throws AmbariException an exception occurred getting components from the stack definition
-     */
-    private void parseComponents(String service) throws AmbariException{
-      Collection<String> componentSet = new HashSet<String>();
-
-      Set<StackServiceComponentResponse> components = getManagementController().getStackComponents(
-          Collections.singleton(new StackServiceComponentRequest(name, version, service, null)
-      ));
-
-      // stack service components
-      for (StackServiceComponentResponse component : components) {
-        String componentName = component.getComponentName();
-        componentSet.add(componentName);
-        componentService.put(componentName, service);
-      }
-      this.serviceComponents.put(service, componentSet);
-    }
-
-    /**
-     * Parse configurations for the specified service from the stack definition.
-     *
-     * @param service  service name
-     *
-     * @throws AmbariException an exception occurred getting configurations from the stack definition
-     */
-    private void parseConfigurations(String service) throws AmbariException {
-      Map<String, Map<String, String>> mapServiceConfig = new HashMap<String, Map<String, String>>();
-
-      serviceConfigurations.put(service, mapServiceConfig);
-
-      Set<StackConfigurationResponse> serviceConfigs =
-        getManagementController().getStackConfigurations(
-          Collections.singleton(new StackConfigurationRequest(name, version, service, null)
-        ));
-
-      for (StackConfigurationResponse config : serviceConfigs) {
-        String type = config.getType();
-        //strip .xml from type
-        if (type.endsWith(".xml")) {
-          type = type.substring(0, type.length() - 4);
-        }
-        Map<String, String> mapTypeConfig = mapServiceConfig.get(type);
-        if (mapTypeConfig == null) {
-          mapTypeConfig = new HashMap<String, String>();
-          mapServiceConfig.put(type, mapTypeConfig);
-        }
-
-        mapTypeConfig.put(config.getPropertyName(), config.getPropertyValue());
-      }
-    }
-  }
-
-  /**
-   * Host group representation.
-   */
-  protected class HostGroup {
-    /**
-     * Host group entity
-     */
-    private HostGroupEntity hostGroup;
-
-    /**
-     * Components contained in the host group
-     */
-    private Collection<String> components = new HashSet<String>();
-
-    /**
-     * Hosts contained associated with the host group
-     */
-    private Collection<String> hosts = new HashSet<String>();
-
-    /**
-     * Map of service to components for the host group
-     */
-    private Map<String, Set<String>> componentsForService = new HashMap<String, Set<String>>();
-
-    /**
-     * Map of host group configurations.
-     * Type -> Map<Key, Val>
-     */
-    private Map<String, Map<String, String>> configurations =
-        new HashMap<String, Map<String, String>>();
-
-    /**
-     * Associated stack
-     */
-    private Stack stack;
-
-    /**
-     * Constructor.
-     *
-     * @param hostGroup  host group
-     * @param stack      stack
-     */
-    public HostGroup(HostGroupEntity hostGroup, Stack stack) {
-      this.hostGroup = hostGroup;
-      this.stack = stack;
-      parseComponents();
-      parseConfigurations();
-    }
-
-    /**
-     * Associate a host with the host group.
-     *
-     * @param fqdn  fully qualified domain name of the host being added
-     */
-    public void addHostInfo(String fqdn) {
-      this.hosts.add(fqdn);
-    }
-
-    /**
-     * Get associated host information.
-     *
-     * @return collection of hosts associated with the host group
-     */
-    public Collection<String> getHostInfo() {
-      return this.hosts;
-    }
-
-    /**
-     * Get the components associated with the host group.
-     *
-     * @return  collection of component names for the host group
-     */
-    public Collection<String> getComponents() {
-      return this.components;
-    }
-
-    /**
-     * Get the components for the specified service which are associated with the host group.
-     *
-     * @param service  service name
-     *
-     * @return set of component names
-     */
-    public Collection<String> getComponents(String service) {
-      return componentsForService.get(service);
-    }
-
-    /**
-     * Get the configurations associated with the host group.
-     *
-     * @return map of configuration type to a map of properties
-     */
-    public Map<String, Map<String, String>> getConfigurations() {
-      return configurations;
-    }
-
-    /**
-     * Get the associated entity.
-     *
-     * @return  associated host group entity
-     */
-    public HostGroupEntity getEntity() {
-      return hostGroup;
-    }
-
-    /**
-     * Parse component information.
-     */
-    private void parseComponents() {
-      for (HostGroupComponentEntity componentEntity : hostGroup.getComponents() ) {
-        String name = componentEntity.getName();
-        components.add(name);
-        String service = stack.getServiceForComponent(name);
-        Set<String> serviceComponents = componentsForService.get(service);
-        if (serviceComponents == null) {
-          serviceComponents = new HashSet<String>();
-          componentsForService.put(service, serviceComponents);
-        }
-        serviceComponents.add(name);
-      }
-    }
-
-    /**
-     * Parse host group configurations.
-     */
-    private void parseConfigurations() {
-      Gson jsonSerializer = new Gson();
-      for (HostGroupConfigEntity configEntity : hostGroup.getConfigurations()) {
-        String type = configEntity.getType();
-        Map<String, String> typeProperties = configurations.get(type);
-        if ( typeProperties == null) {
-          typeProperties = new HashMap<String, String>();
-          configurations.put(type, typeProperties);
-        }
-        configurations.put(type, jsonSerializer.<Map<String, String>>fromJson(
-            configEntity.getConfigData(), Map.class));
-      }
-    }
-  }
 
   /**
    * Provides functionality to update a property value.

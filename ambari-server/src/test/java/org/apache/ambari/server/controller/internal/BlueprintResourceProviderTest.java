@@ -21,6 +21,9 @@ package org.apache.ambari.server.controller.internal;
 import com.google.gson.Gson;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.StackServiceRequest;
+import org.apache.ambari.server.controller.StackServiceResponse;
 import org.apache.ambari.server.controller.predicate.EqualsPredicate;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
@@ -99,7 +102,9 @@ public class BlueprintResourceProviderTest {
   public void testCreateResources() throws AmbariException, ResourceAlreadyExistsException, SystemException,
       UnsupportedPropertyException, NoSuchParentResourceException {
 
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
     Request request = createMock(Request.class);
+    Capture<Set<StackServiceRequest>> stackServiceRequestCapture = new Capture<Set<StackServiceRequest>>();
 
     Map<String, ServiceInfo> services = new HashMap<String, ServiceInfo>();
     ServiceInfo service = new ServiceInfo();
@@ -120,6 +125,8 @@ public class BlueprintResourceProviderTest {
     Capture<BlueprintEntity> entityCapture = new Capture<BlueprintEntity>();
 
     // set expectations
+    expect(managementController.getStackServices(capture(stackServiceRequestCapture))).andReturn(
+        Collections.<StackServiceResponse>emptySet());
     expect(request.getProperties()).andReturn(setProperties);
     expect(dao.findByName(BLUEPRINT_NAME)).andReturn(null);
     expect(metaInfo.getServices("test-stack-name", "test-stack-version")).andReturn(services).anyTimes();
@@ -133,10 +140,15 @@ public class BlueprintResourceProviderTest {
         Collections.<String, org.apache.ambari.server.state.PropertyInfo>emptyMap()).anyTimes();
     dao.create(capture(entityCapture));
 
-    replay(dao, metaInfo, request);
+    replay(dao, metaInfo, request, managementController);
     // end expectations
 
-    ResourceProvider provider = createProvider();
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
+        Resource.Type.Blueprint,
+        PropertyHelper.getPropertyIds(Resource.Type.Blueprint),
+        PropertyHelper.getKeyPropertyIds(Resource.Type.Blueprint),
+        managementController);
+
     AbstractResourceProviderTest.TestObserver observer = new AbstractResourceProviderTest.TestObserver();
     ((ObservableResourceProvider)provider).addObserver(observer);
 
@@ -151,7 +163,7 @@ public class BlueprintResourceProviderTest {
 
     validateEntity(entityCapture.getValue(), false);
 
-    verify(dao, metaInfo, request);
+    verify(dao, metaInfo, request, managementController);
   }
 
   @Test
@@ -160,6 +172,8 @@ public class BlueprintResourceProviderTest {
 
     Set<Map<String, Object>> setProperties = getTestProperties();
     setConfigurationProperties(setProperties);
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    Capture<Set<StackServiceRequest>> stackServiceRequestCapture = new Capture<Set<StackServiceRequest>>();
     Request request = createMock(Request.class);
 
     Map<String, ServiceInfo> services = new HashMap<String, ServiceInfo>();
@@ -178,6 +192,8 @@ public class BlueprintResourceProviderTest {
     Capture<BlueprintEntity> entityCapture = new Capture<BlueprintEntity>();
 
     // set expectations
+    expect(managementController.getStackServices(capture(stackServiceRequestCapture))).andReturn(
+        Collections.<StackServiceResponse>emptySet());
     expect(request.getProperties()).andReturn(setProperties);
     expect(dao.findByName(BLUEPRINT_NAME)).andReturn(null);
     expect(metaInfo.getServices("test-stack-name", "test-stack-version")).andReturn(services).anyTimes();
@@ -191,10 +207,15 @@ public class BlueprintResourceProviderTest {
         Collections.<String, org.apache.ambari.server.state.PropertyInfo>emptyMap()).anyTimes();
     dao.create(capture(entityCapture));
 
-    replay(dao, metaInfo, request);
+    replay(dao, metaInfo, request, managementController);
     // end expectations
 
-    ResourceProvider provider = createProvider();
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
+        Resource.Type.Blueprint,
+        PropertyHelper.getPropertyIds(Resource.Type.Blueprint),
+        PropertyHelper.getKeyPropertyIds(Resource.Type.Blueprint),
+        managementController);
+
     AbstractResourceProviderTest.TestObserver observer = new AbstractResourceProviderTest.TestObserver();
     ((ObservableResourceProvider)provider).addObserver(observer);
 
@@ -209,7 +230,7 @@ public class BlueprintResourceProviderTest {
 
     validateEntity(entityCapture.getValue(), true);
 
-    verify(dao, metaInfo, request);
+    verify(dao, metaInfo, request, managementController);
   }
 
   @Test
@@ -490,6 +511,8 @@ public class BlueprintResourceProviderTest {
       SystemException, UnsupportedPropertyException, NoSuchParentResourceException
   {
     Request request = createMock(Request.class);
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    Capture<Set<StackServiceRequest>> stackServiceRequestCapture = new Capture<Set<StackServiceRequest>>();
 
     Map<String, ServiceInfo> services = new HashMap<String, ServiceInfo>();
     ServiceInfo service = new ServiceInfo();
@@ -512,6 +535,8 @@ public class BlueprintResourceProviderTest {
     Capture<BlueprintEntity> entityCapture = new Capture<BlueprintEntity>();
 
     // set expectations
+    expect(managementController.getStackServices(capture(stackServiceRequestCapture))).andReturn(
+        Collections.<StackServiceResponse>emptySet());
     expect(request.getProperties()).andReturn(setProperties);
     expect(dao.findByName(BLUEPRINT_NAME)).andReturn(null);
     expect(metaInfo.getServices("test-stack-name", "test-stack-version")).andReturn(services).anyTimes();
@@ -524,10 +549,15 @@ public class BlueprintResourceProviderTest {
 
     dao.create(capture(entityCapture));
 
-    replay(dao, metaInfo, request);
+    replay(dao, metaInfo, request, managementController);
     // end expectations
 
-    ResourceProvider provider = createProvider();
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
+        Resource.Type.Blueprint,
+        PropertyHelper.getPropertyIds(Resource.Type.Blueprint),
+        PropertyHelper.getKeyPropertyIds(Resource.Type.Blueprint),
+        managementController);
+
     AbstractResourceProviderTest.TestObserver observer = new AbstractResourceProviderTest.TestObserver();
     ((ObservableResourceProvider)provider).addObserver(observer);
 
@@ -540,7 +570,7 @@ public class BlueprintResourceProviderTest {
     assertEquals(request, lastEvent.getRequest());
     assertNull(lastEvent.getPredicate());
 
-    verify(dao, metaInfo, request);
+    verify(dao, metaInfo, request, managementController);
   }
 
   private Set<Map<String, Object>> getTestProperties() {
@@ -715,7 +745,8 @@ public class BlueprintResourceProviderTest {
   private BlueprintResourceProvider createProvider() {
     return new BlueprintResourceProvider(
         PropertyHelper.getPropertyIds(Resource.Type.Blueprint),
-        PropertyHelper.getKeyPropertyIds(Resource.Type.Blueprint));
+        PropertyHelper.getKeyPropertyIds(Resource.Type.Blueprint),
+        null);
   }
 
   private BlueprintEntity createEntity(Map<String, Object> properties) {

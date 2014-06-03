@@ -67,8 +67,6 @@ public class DefaultProviderModule extends AbstractProviderModule {
         return new ViewVersionResourceProvider();
       case ViewInstance:
         return new ViewInstanceResourceProvider();
-      case Blueprint:
-        return new BlueprintResourceProvider(propertyIds, keyPropertyIds);
       case StackServiceComponentDependency:
         return new StackDependencyResourceProvider(propertyIds, keyPropertyIds);
       default:

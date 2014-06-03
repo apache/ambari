@@ -133,6 +133,15 @@ public class HostGroupEntity {
   }
 
   /**
+   * Add a component to the host group.
+   *
+   * @param component  component to add
+   */
+  public void addComponent(HostGroupComponentEntity component) {
+    this.components.add(component);
+  }
+
+  /**
    * Get the collection of associated configuration entities.
    *
    * @return collection of configurations

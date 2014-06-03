@@ -27,6 +27,7 @@
         <component>
           <name>NAMENODE</name>
           <category>MASTER</category>
+          <cardinality>1</cardinality>
           <commandScript>
             <script>scripts/namenode.py</script>
             <scriptType>PYTHON</scriptType>
@@ -47,6 +48,7 @@
         <component>
           <name>DATANODE</name>
           <category>SLAVE</category>
+          <cardinality>1+</cardinality>
           <commandScript>
             <script>scripts/datanode.py</script>
             <scriptType>PYTHON</scriptType>
@@ -56,6 +58,8 @@
 
         <component>
           <name>SECONDARY_NAMENODE</name>
+          <!-- TODO:  cardinality is conditional on HA usage -->
+          <cardinality>1</cardinality>
           <category>MASTER</category>
           <commandScript>
             <script>scripts/snamenode.py</script>
@@ -67,6 +71,7 @@
         <component>
           <name>HDFS_CLIENT</name>
           <category>CLIENT</category>
+          <cardinality>0+</cardinality>
           <commandScript>
             <script>scripts/hdfs_client.py</script>
             <scriptType>PYTHON</scriptType>
@@ -76,7 +81,8 @@
 
         <component>
           <name>JOURNALNODE</name>
-          <category>MASTER</category>
+          <category>SLAVE</category>
+          <cardinality>0+</cardinality>
           <commandScript>
             <script>scripts/journalnode.py</script>
             <scriptType>PYTHON</scriptType>
@@ -87,6 +93,8 @@
         <component>
           <name>ZKFC</name>
           <category>SLAVE</category>
+          <!-- TODO: cardinality is conditional on HA topology -->
+          <cardinality>0+</cardinality>
           <commandScript>
             <script>scripts/zkfc_slave.py</script>
             <scriptType>PYTHON</scriptType>

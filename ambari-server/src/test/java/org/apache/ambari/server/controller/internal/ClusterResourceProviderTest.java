@@ -59,7 +59,6 @@ import org.apache.ambari.server.controller.StackServiceComponentRequest;
 import org.apache.ambari.server.controller.StackServiceComponentResponse;
 import org.apache.ambari.server.controller.StackServiceRequest;
 import org.apache.ambari.server.controller.StackServiceResponse;
-import org.apache.ambari.server.controller.internal.ClusterResourceProvider.HostGroup;
 import org.apache.ambari.server.controller.internal.ClusterResourceProvider.PropertyUpdater;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
@@ -68,12 +67,14 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.controller.internal.BaseBlueprintProcessor.HostGroup;
 import org.apache.ambari.server.orm.dao.BlueprintDAO;
 import org.apache.ambari.server.orm.entities.BlueprintConfigEntity;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
 import org.apache.ambari.server.orm.entities.HostGroupComponentEntity;
 import org.apache.ambari.server.orm.entities.HostGroupConfigEntity;
 import org.apache.ambari.server.orm.entities.HostGroupEntity;
+import org.apache.ambari.server.state.DependencyInfo;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.State;
 import org.apache.commons.collections.CollectionUtils;
@@ -278,6 +279,13 @@ public class ClusterResourceProviderTest {
     expect(blueprint.getConfigurations()).andReturn(Collections.<BlueprintConfigEntity>singletonList(blueprintConfig));
     expect(blueprint.validateConfigurations(metaInfo, PropertyInfo.PropertyType.PASSWORD)).andReturn(
         Collections.<String, Map<String, Collection<String>>>emptyMap());
+
+    expect(metaInfo.getComponentDependencies("test", "1.23", "service1", "component1")).
+        andReturn(Collections.<DependencyInfo>emptyList());
+    expect(metaInfo.getComponentDependencies("test", "1.23", "service1", "component2")).
+        andReturn(Collections.<DependencyInfo>emptyList());
+    expect(metaInfo.getComponentDependencies("test", "1.23", "service2", "component3")).
+        andReturn(Collections.<DependencyInfo>emptyList());
 
     expect(managementController.getStackServices(capture(stackServiceRequestCapture))).andReturn(stackServiceResponses);
     expect(stackServiceResponse1.getServiceName()).andReturn("service1");
@@ -623,6 +631,13 @@ public class ClusterResourceProviderTest {
     expect(blueprint.getConfigurations()).andReturn(Collections.<BlueprintConfigEntity>singletonList(blueprintConfig));
     expect(blueprint.validateConfigurations(metaInfo, PropertyInfo.PropertyType.PASSWORD)).andReturn(allMissingPasswords);
 
+    expect(metaInfo.getComponentDependencies("test", "1.23", "service1", "component1")).
+        andReturn(Collections.<DependencyInfo>emptyList());
+    expect(metaInfo.getComponentDependencies("test", "1.23", "service1", "component2")).
+        andReturn(Collections.<DependencyInfo>emptyList());
+    expect(metaInfo.getComponentDependencies("test", "1.23", "service2", "component3")).
+        andReturn(Collections.<DependencyInfo>emptyList());
+
     expect(managementController.getStackServices(capture(stackServiceRequestCapture))).andReturn(stackServiceResponses);
     expect(stackServiceResponse1.getServiceName()).andReturn("service1");
     expect(stackServiceResponse2.getServiceName()).andReturn("service2");
@@ -795,6 +810,13 @@ public class ClusterResourceProviderTest {
     expect(blueprintDAO.findByName(blueprintName)).andReturn(blueprint);
     expect(blueprint.getStackName()).andReturn(stackName);
     expect(blueprint.getStackVersion()).andReturn(stackVersion);
+
+    expect(metaInfo.getComponentDependencies("test", "1.23", "service1", "component1")).
+        andReturn(Collections.<DependencyInfo>emptyList());
+    expect(metaInfo.getComponentDependencies("test", "1.23", "service1", "component2")).
+        andReturn(Collections.<DependencyInfo>emptyList());
+    expect(metaInfo.getComponentDependencies("test", "1.23", "service2", "component3")).
+        andReturn(Collections.<DependencyInfo>emptyList());
 
     expect(managementController.getStackServices(capture(stackServiceRequestCapture))).andReturn(stackServiceResponses);
     expect(stackServiceResponse1.getServiceName()).andReturn("service1");
@@ -971,6 +993,13 @@ public class ClusterResourceProviderTest {
     expect(blueprint.getStackName()).andReturn(stackName);
     expect(blueprint.getStackVersion()).andReturn(stackVersion);
 
+    expect(metaInfo.getComponentDependencies("test", "1.23", "service1", "component1")).
+        andReturn(Collections.<DependencyInfo>emptyList());
+    expect(metaInfo.getComponentDependencies("test", "1.23", "service1", "component2")).
+        andReturn(Collections.<DependencyInfo>emptyList());
+    expect(metaInfo.getComponentDependencies("test", "1.23", "service2", "component3")).
+        andReturn(Collections.<DependencyInfo>emptyList());
+
     expect(managementController.getStackServices(capture(stackServiceRequestCapture))).andReturn(stackServiceResponses);
     expect(stackServiceResponse1.getServiceName()).andReturn("service1");
     expect(stackServiceResponse2.getServiceName()).andReturn("service2");
@@ -1145,6 +1174,13 @@ public class ClusterResourceProviderTest {
     expect(blueprintDAO.findByName(blueprintName)).andReturn(blueprint);
     expect(blueprint.getStackName()).andReturn(stackName);
     expect(blueprint.getStackVersion()).andReturn(stackVersion);
+
+    expect(metaInfo.getComponentDependencies("test", "1.23", "service1", "component1")).
+        andReturn(Collections.<DependencyInfo>emptyList());
+    expect(metaInfo.getComponentDependencies("test", "1.23", "service1", "component2")).
+        andReturn(Collections.<DependencyInfo>emptyList());
+    expect(metaInfo.getComponentDependencies("test", "1.23", "service2", "component3")).
+        andReturn(Collections.<DependencyInfo>emptyList());
 
     expect(managementController.getStackServices(capture(stackServiceRequestCapture))).andReturn(stackServiceResponses);
     expect(stackServiceResponse1.getServiceName()).andReturn("service1");
@@ -1347,6 +1383,13 @@ public class ClusterResourceProviderTest {
     expect(blueprint.getStackVersion()).andReturn(stackVersion);
     expect(blueprint.getConfigurations()).andReturn(Collections.<BlueprintConfigEntity>singletonList(blueprintConfig));
     expect(blueprint.validateConfigurations(metaInfo, PropertyInfo.PropertyType.PASSWORD)).andReturn(allMissingPasswords);
+
+    expect(metaInfo.getComponentDependencies("test", "1.23", "service1", "component1")).
+        andReturn(Collections.<DependencyInfo>emptyList());
+    expect(metaInfo.getComponentDependencies("test", "1.23", "service1", "component2")).
+        andReturn(Collections.<DependencyInfo>emptyList());
+    expect(metaInfo.getComponentDependencies("test", "1.23", "service2", "component3")).
+        andReturn(Collections.<DependencyInfo>emptyList());
 
     expect(managementController.getStackServices(capture(stackServiceRequestCapture))).andReturn(stackServiceResponses);
     expect(stackServiceResponse1.getServiceName()).andReturn("service1");
@@ -1586,6 +1629,7 @@ public class ClusterResourceProviderTest {
     String clusterName = "c1";
 
     BlueprintDAO blueprintDAO = createStrictMock(BlueprintDAO.class);
+    AmbariMetaInfo metaInfo = createMock(AmbariMetaInfo.class);
     AmbariManagementController managementController = createStrictMock(AmbariManagementController.class);
     Request request = createNiceMock(Request.class);
     RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
@@ -1702,6 +1746,15 @@ public class ClusterResourceProviderTest {
     expect(blueprint.getStackName()).andReturn(stackName);
     expect(blueprint.getStackVersion()).andReturn(stackVersion);
     expect(blueprint.getConfigurations()).andReturn(Collections.<BlueprintConfigEntity>singletonList(blueprintConfig));
+    expect(blueprint.validateConfigurations(metaInfo, PropertyInfo.PropertyType.PASSWORD)).andReturn(
+        Collections.<String, Map<String, Collection<String>>>emptyMap());
+
+    expect(metaInfo.getComponentDependencies("test", "1.23", "service1", "component1")).
+        andReturn(Collections.<DependencyInfo>emptyList());
+    expect(metaInfo.getComponentDependencies("test", "1.23", "service1", "component2")).
+        andReturn(Collections.<DependencyInfo>emptyList());
+    expect(metaInfo.getComponentDependencies("test", "1.23", "service2", "component3")).
+        andReturn(Collections.<DependencyInfo>emptyList());
 
     expect(managementController.getStackServices(capture(stackServiceRequestCapture))).andReturn(stackServiceResponses);
     expect(stackServiceResponse1.getServiceName()).andReturn("service1");
@@ -1776,10 +1829,10 @@ public class ClusterResourceProviderTest {
         stackConfigurationResponse1, stackConfigurationResponse2, stackConfigurationResponse3, stackConfigurationResponse4,
         blueprintConfig, hostGroup, hostGroupComponent1, hostGroupComponent2, hostGroupComponent3, hostGroupConfig,
         serviceResourceProvider, componentResourceProvider, hostResourceProvider, hostComponentResourceProvider,
-        configGroupResourceProvider);
+        configGroupResourceProvider, metaInfo);
 
     // test
-    ClusterResourceProvider.init(blueprintDAO, null);
+    ClusterResourceProvider.init(blueprintDAO, metaInfo);
     ResourceProvider provider = new TestClusterResourceProvider(
         managementController, serviceResourceProvider, componentResourceProvider,
         hostResourceProvider, hostComponentResourceProvider, configGroupResourceProvider);

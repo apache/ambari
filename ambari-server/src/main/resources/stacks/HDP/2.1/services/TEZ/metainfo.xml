@@ -25,6 +25,7 @@
       <components>
         <component>
           <name>TEZ_CLIENT</name>
+          <cardinality>0+</cardinality>
           <category>CLIENT</category>
           <commandScript>
             <script>scripts/tez_client.py</script>

@@ -23,6 +23,7 @@ import com.google.inject.Inject;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.DuplicateResourceException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -58,7 +59,7 @@ import java.util.Set;
 /**
  * Resource Provider for Blueprint resources.
  */
-public class BlueprintResourceProvider extends AbstractResourceProvider {
+public class BlueprintResourceProvider extends BaseBlueprintProcessor {
 
   // ----- Property ID constants ---------------------------------------------
 
@@ -88,19 +89,9 @@ public class BlueprintResourceProvider extends AbstractResourceProvider {
           BLUEPRINT_NAME_PROPERTY_ID}));
 
   /**
-   * Blueprint data access object.
-   */
-  private static BlueprintDAO dao;
-
-  /**
    * Used to serialize to/from json.
    */
   private static Gson jsonSerializer;
-
-  /**
-   * Stack information.
-   */
-  private static AmbariMetaInfo stackInfo;
 
 
   // ----- Constructors ----------------------------------------------------
@@ -110,21 +101,25 @@ public class BlueprintResourceProvider extends AbstractResourceProvider {
    *
    * @param propertyIds     the property ids
    * @param keyPropertyIds  the key property ids
+   * @param controller      management controller
    */
-  BlueprintResourceProvider(Set<String> propertyIds, Map<Resource.Type, String> keyPropertyIds) {
-    super(propertyIds, keyPropertyIds);
+  BlueprintResourceProvider(Set<String> propertyIds,
+                            Map<Resource.Type, String> keyPropertyIds,
+                            AmbariManagementController controller) {
+
+    super(propertyIds, keyPropertyIds, controller);
   }
 
   /**
    * Static initialization.
    *
-   * @param blueprintDAO  blueprint data access object
-   * @param gson          gson json serializer
-   * @param metaInfo      stack related information
+   * @param dao       blueprint data access object
+   * @param gson      json serializer
+   * @param metaInfo  stack related information
    */
   @Inject
-  public static void init(BlueprintDAO blueprintDAO, Gson gson, AmbariMetaInfo metaInfo) {
-    dao            = blueprintDAO;
+  public static void init(BlueprintDAO dao, Gson gson, AmbariMetaInfo metaInfo) {
+    blueprintDAO   = dao;
     jsonSerializer = gson;
     stackInfo      = metaInfo;
   }
@@ -165,7 +160,7 @@ public class BlueprintResourceProvider extends AbstractResourceProvider {
             BLUEPRINT_NAME_PROPERTY_ID);
 
         if (name != null) {
-          BlueprintEntity entity = dao.findByName(name);
+          BlueprintEntity entity = blueprintDAO.findByName(name);
           results = entity == null ? Collections.<BlueprintEntity>emptyList() :
               Collections.singletonList(entity);
         }
@@ -174,7 +169,7 @@ public class BlueprintResourceProvider extends AbstractResourceProvider {
 
     if (results == null) {
       applyPredicate = true;
-      results = dao.findAll();
+      results = blueprintDAO.findAll();
     }
 
     Set<Resource> resources  = new HashSet<Resource>();
@@ -220,7 +215,7 @@ public class BlueprintResourceProvider extends AbstractResourceProvider {
       modifyResources(new Command<Void>() {
         @Override
         public Void invoke() throws AmbariException {
-        dao.removeByName(blueprintName);
+        blueprintDAO.removeByName(blueprintName);
         return null;
         }
       });
@@ -271,57 +266,6 @@ public class BlueprintResourceProvider extends AbstractResourceProvider {
         populateConfigurationList(entity.getConfigurations()), requestedIds);
 
     return resource;
-  }
-  /**
-   * Convert a resource to a blueprint entity.
-   *
-   * @param resource the resource to convert
-   * @return  a new blueprint entity
-   */
-  @SuppressWarnings("unchecked")
-  protected BlueprintEntity toEntity(Resource resource) {
-    BlueprintEntity entity = new BlueprintEntity();
-    entity.setBlueprintName((String) resource.getPropertyValue(BLUEPRINT_NAME_PROPERTY_ID));
-    entity.setStackName((String) resource.getPropertyValue(STACK_NAME_PROPERTY_ID));
-    entity.setStackVersion((String) resource.getPropertyValue(STACK_VERSION_PROPERTY_ID));
-
-    Collection<HostGroupEntity> blueprintHostGroups = new ArrayList<HostGroupEntity>();
-    entity.setHostGroups(blueprintHostGroups);
-
-    Collection<Map<String, Object>> hostGroupProps = (Collection<Map<String, Object>>)
-        resource.getPropertyValue(HOST_GROUP_PROPERTY_ID);
-
-    for (Map<String, Object> properties : hostGroupProps) {
-      HostGroupEntity group = new HostGroupEntity();
-      group.setName((String) properties.get(BlueprintResourceProvider.HOST_GROUP_NAME_PROPERTY_ID));
-      group.setBlueprintEntity(entity);
-      group.setBlueprintName(entity.getBlueprintName());
-      group.setCardinality((String) properties.get(HOST_GROUP_CARDINALITY_PROPERTY_ID));
-
-      Collection<HostGroupComponentEntity> hostGroupComponents = new ArrayList<HostGroupComponentEntity>();
-      group.setComponents(hostGroupComponents);
-      createHostGroupConfigEntities((Collection<Map<String,
-          String>>) properties.get(CONFIGURATION_PROPERTY_ID), group);
-
-      List<Map<String, String>> listComponents = (List<Map<String, String>>)
-          properties.get(BlueprintResourceProvider.COMPONENT_PROPERTY_ID);
-
-      for (Map<String, String> componentProperties : listComponents) {
-        HostGroupComponentEntity component = new HostGroupComponentEntity();
-        component.setName(componentProperties.get(COMPONENT_NAME_PROPERTY_ID));
-        component.setBlueprintName(entity.getBlueprintName());
-        component.setHostGroupEntity(group);
-        component.setHostGroupName((String) properties.get(HOST_GROUP_NAME_PROPERTY_ID));
-
-        hostGroupComponents.add(component);
-      }
-      blueprintHostGroups.add(group);
-    }
-
-    createBlueprintConfigEntities((Collection<Map<String,
-        String>>) resource.getPropertyValue(CONFIGURATION_PROPERTY_ID), entity);
-
-    return entity;
   }
 
   /**
@@ -588,12 +532,11 @@ public class BlueprintResourceProvider extends AbstractResourceProvider {
       public Void invoke() throws AmbariException {
         BlueprintEntity blueprint = toBlueprintEntity(properties);
 
-        if (dao.findByName(blueprint.getBlueprintName()) != null) {
+        if (blueprintDAO.findByName(blueprint.getBlueprintName()) != null) {
           throw new DuplicateResourceException(
               "Attempted to create a Blueprint which already exists, blueprint_name=" +
               blueprint.getBlueprintName());
         }
-
         Map<String, Map<String, Collection<String>>> missingProperties = blueprint.validateConfigurations(
             stackInfo, PropertyInfo.PropertyType.DEFAULT);
 
@@ -602,10 +545,19 @@ public class BlueprintResourceProvider extends AbstractResourceProvider {
                                              missingProperties);
         }
 
+        String validateTopology = (String) properties.get("validate_topology");
+        if (validateTopology == null || ! validateTopology.equalsIgnoreCase("false")) {
+          validateTopology(blueprint);
+        }
+
         if (LOG.isDebugEnabled()) {
           LOG.debug("Creating Blueprint, name=" + blueprint.getBlueprintName());
         }
-        dao.create(blueprint);
+        try {
+          blueprintDAO.create(blueprint);
+        } catch (Exception e) {
+          throw new RuntimeException(e);
+        }
         return null;
       }
     };

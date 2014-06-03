@@ -334,7 +334,8 @@
         "host_groups",
         "host_groups/components",
         "host_groups/cardinality",
-        "configurations"
+        "configurations",
+        "validate_topology"
     ],
     "HostComponentProcess": [
       "HostComponentProcess/cluster_name",
