@@ -38,15 +38,6 @@ App.TableServerProvider = Em.Mixin.create({
   }.property('filteredContent'),
 
   /**
-   * Return pagination information displayed on the page
-   * @type {String}
-   */
-  paginationInfo: function () {
-    return this.t('tableView.filters.paginationInfo').format(this.get('startIndex'), this.get('endIndex'), this.get('totalCount'));
-  }.property('totalCount', 'endIndex'),
-
-
-  /**
    * request latest data filtered by new parameters
    * called when trigger property(<code>refreshTriggers</code>) is changed
    */

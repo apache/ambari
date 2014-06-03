@@ -68,6 +68,13 @@ App.TableView = Em.View.extend(App.UserPref, {
   defaultDisplayLength: "10",
 
   /**
+   * number of hosts in table after applying filters
+   */
+  filteredCount: function () {
+    return this.get('filteredContent.length');
+  }.property('filteredContent.length'),
+
+  /**
    * Do filtering, using saved in the local storage filter conditions
    */
   willInsertElement:function () {
@@ -122,8 +129,8 @@ App.TableView = Em.View.extend(App.UserPref, {
    * @type {String}
    */
   paginationInfo: function () {
-    return this.t('tableView.filters.paginationInfo').format(this.get('startIndex'), this.get('endIndex'), this.get('filteredContent.length'));
-  }.property('filteredContent.length', 'endIndex'),
+    return this.t('tableView.filters.paginationInfo').format(this.get('startIndex'), this.get('endIndex'), this.get('filteredCount'));
+  }.property('filteredCount', 'endIndex'),
 
   paginationLeft: Ember.View.extend({
     tagName: 'a',
@@ -134,7 +141,7 @@ App.TableView = Em.View.extend(App.UserPref, {
         return "paginate_previous";
       }
       return "paginate_disabled_previous";
-    }.property("parentView.startIndex", 'filteredContent.length'),
+    }.property("parentView.startIndex", 'filteredCount'),
 
     click: function () {
       if (this.get('class') === "paginate_previous") {
@@ -148,11 +155,11 @@ App.TableView = Em.View.extend(App.UserPref, {
     template: Ember.Handlebars.compile('<i class="icon-arrow-right"></i>'),
     classNameBindings: ['class'],
     class: function () {
-      if ((this.get("parentView.endIndex")) < this.get("parentView.filteredContent.length")) {
+      if ((this.get("parentView.endIndex")) < this.get("parentView.filteredCount")) {
         return "paginate_next";
       }
       return "paginate_disabled_next";
-    }.property("parentView.endIndex", 'filteredContent.length'),
+    }.property("parentView.endIndex", 'filteredCount'),
 
     click: function () {
       if (this.get('class') === "paginate_next") {
@@ -170,7 +177,7 @@ App.TableView = Em.View.extend(App.UserPref, {
         return "paginate_previous";
       }
       return "paginate_disabled_previous";
-    }.property("parentView.endIndex", 'filteredContent.length'),
+    }.property("parentView.endIndex", 'filteredCount'),
 
     click: function () {
       if (this.get('class') === "paginate_previous") {
@@ -184,11 +191,11 @@ App.TableView = Em.View.extend(App.UserPref, {
     template: Ember.Handlebars.compile('<i class="icon-step-forward"></i>'),
     classNameBindings: ['class'],
     class: function () {
-      if (this.get("parentView.endIndex") !== this.get("parentView.filteredContent.length")) {
+      if (this.get("parentView.endIndex") !== this.get("parentView.filteredCount")) {
         return "paginate_next";
       }
       return "paginate_disabled_next";
-    }.property("parentView.endIndex", 'filteredContent.length'),
+    }.property("parentView.endIndex", 'filteredCount'),
 
     click: function () {
       if (this.get('class') === "paginate_next") {
@@ -218,11 +225,11 @@ App.TableView = Em.View.extend(App.UserPref, {
    */
   endIndex: function () {
     if (this.get('pagination')) {
-      return Math.min(this.get('filteredContent.length'), this.get('startIndex') + parseInt(this.get('displayLength')) - 1);
+      return Math.min(this.get('filteredCount'), this.get('startIndex') + parseInt(this.get('displayLength')) - 1);
     } else {
-      return this.get('filteredContent.length')
+      return this.get('filteredCount')
     }
-  }.property('startIndex', 'displayLength', 'filteredContent.length'),
+  }.property('startIndex', 'displayLength', 'filteredCount'),
 
   /**
    * Onclick handler for previous page button on the page
@@ -237,7 +244,7 @@ App.TableView = Em.View.extend(App.UserPref, {
    */
   nextPage: function () {
     var result = this.get('startIndex') + parseInt(this.get('displayLength'));
-    if (result - 1 < this.get('filteredContent.length')) {
+    if (result - 1 < this.get('filteredCount')) {
       this.set('startIndex', result);
     }
   },
@@ -251,8 +258,8 @@ App.TableView = Em.View.extend(App.UserPref, {
    * Onclick handler for last page button on the page
    */
   lastPage: function () {
-    var pagesCount = this.get('filteredContent.length') / parseInt(this.get('displayLength'));
-    var startIndex = (this.get('filteredContent.length') % parseInt(this.get('displayLength')) === 0) ?
+    var pagesCount = this.get('filteredCount') / parseInt(this.get('displayLength'));
+    var startIndex = (this.get('filteredCount') % parseInt(this.get('displayLength')) === 0) ?
       (pagesCount - 1) * parseInt(this.get('displayLength')) :
       Math.floor(pagesCount) * parseInt(this.get('displayLength'));
     this.set('startIndex', ++startIndex);
@@ -263,7 +270,7 @@ App.TableView = Em.View.extend(App.UserPref, {
    */
   updatePaging: function (controller, property) {
     var displayLength = this.get('displayLength');
-    var filteredContentLength = this.get('filteredContent.length');
+    var filteredContentLength = this.get('filteredCount');
     if (property == 'displayLength') {
       this.set('startIndex', Math.min(1, filteredContentLength));
     } else if (!filteredContentLength) {
@@ -273,7 +280,7 @@ App.TableView = Em.View.extend(App.UserPref, {
     } else if (!this.get('startIndex')) {
       this.set('startIndex', 1);
     }
-  }.observes('displayLength', 'filteredContent.length'),
+  }.observes('displayLength', 'filteredCount'),
 
   /**
    * Apply each filter to each row
@@ -347,8 +354,8 @@ App.TableView = Em.View.extend(App.UserPref, {
    * @type {Boolean}
    */
   hasFilteredItems: function() {
-    return !!this.get('filteredContent.length');
-  }.property('filteredContent.length'),
+    return !!this.get('filteredCount');
+  }.property('filteredCount'),
 
   /**
    * Contains content to show on the current page of data page view
@@ -356,7 +363,7 @@ App.TableView = Em.View.extend(App.UserPref, {
    */
   pageContent: function () {
     return this.get('filteredContent').slice(this.get('startIndex') - 1, this.get('endIndex'));
-  }.property('filteredContent.length', 'startIndex', 'endIndex'),
+  }.property('filteredCount', 'startIndex', 'endIndex'),
 
   /**
    * Filter table by filterConditions

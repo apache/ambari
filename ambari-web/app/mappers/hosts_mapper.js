@@ -88,6 +88,7 @@ App.hostsMapper = App.QuickDataMapper.create({
         }
       });
       App.store.loadMany(App.Host, hostsWithFullInfo);
+      App.router.set('mainHostController.filteredCount', json.itemTotal);
     }
     console.timeEnd('App.hostsMapper execution time');
   }

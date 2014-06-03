@@ -27,6 +27,8 @@ App.MainHostController = Em.ArrayController.extend(App.UserPref, {
   dataSource: App.Host.find(),
   clearFilters: null,
 
+  filteredCount: 0,
+
   /**
    * Components which will be shown in component filter
    * @returns {Array}

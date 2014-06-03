@@ -40,6 +40,14 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
    * Contains all selected hosts on cluster
    */
   selectedHosts: [],
+  /**
+   * total number of installed hosts
+   */
+  totalCount: 0,
+
+  filteredCount: function () {
+    return this.get('controller.filteredCount');
+  }.property('controller.filteredCount'),
 
   /**
    * List of hosts in cluster
@@ -67,9 +75,16 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
    * @returns {String}
    */
   filteredContentInfo: function () {
-    //TODO API should return number of filtered hosts
-    return this.t('hosts.filters.filteredHostsInfo').format(this.get('filteredContent.length'), this.get('content').get('length'));
-  }.property('content.length', 'filteredContent.length'),
+    return this.t('hosts.filters.filteredHostsInfo').format(this.get('filteredCount'), this.get('totalCount'));
+  }.property('filteredCount', 'totalCount'),
+
+  /**
+   * Return pagination information displayed on the page
+   * @type {String}
+   */
+  paginationInfo: function () {
+    return this.t('tableView.filters.paginationInfo').format(this.get('startIndex'), this.get('endIndex'), this.get('filteredCount'));
+  }.property('totalCount', 'endIndex', 'filteredCount'),
 
   clearFiltersObs: function() {
     var self = this;

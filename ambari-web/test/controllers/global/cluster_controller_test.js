@@ -389,35 +389,6 @@ describe('App.clusterController', function () {
     });
   });
 
-  describe('#deferServiceMetricsLoad()', function () {
-    beforeEach(function () {
-      sinon.spy(App.serviceMetricsMapper, 'map');
-    });
-    afterEach(function () {
-      App.serviceMetricsMapper.map.restore();
-    });
-    it('json is null', function () {
-      controller.set('serviceMetricsJson', {});
-      controller.set('dataLoadList.serviceMetrics', false);
-      controller.deferServiceMetricsLoad(null);
-      expect(controller.get('serviceMetricsJson')).to.equal(null);
-      expect(controller.get('dataLoadList.serviceMetrics')).to.equal(true);
-      expect(App.serviceMetricsMapper.map.calledOnce).to.equal(true);
-    });
-    it('json is correct', function () {
-      controller.deferServiceMetricsLoad({data: ''});
-      expect(controller.get('serviceMetricsJson')).to.eql({data: ''});
-    });
-    it('json is correct and dataLoadList.hosts is true', function () {
-      controller.set('serviceMetricsJson', {});
-      controller.set('dataLoadList.serviceMetrics', false);
-      controller.set('dataLoadList.hosts', true);
-      controller.deferServiceMetricsLoad(null);
-      expect(controller.get('dataLoadList.serviceMetrics')).to.equal(true);
-      expect(App.serviceMetricsMapper.map.calledOnce).to.equal(true);
-    });
-  });
-
   describe('#clusterName', function () {
     var testCases = [
       {

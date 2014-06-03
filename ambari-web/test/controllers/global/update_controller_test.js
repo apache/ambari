@@ -80,7 +80,7 @@ describe('App.UpdateController', function () {
     };
 
     beforeEach(function () {
-      sinon.spy(controller, 'updateHost');
+      sinon.stub(controller, 'updateHost', Em.K);
       sinon.spy(context, 'callback');
     });
     afterEach(function () {

@@ -29,30 +29,42 @@ describe('App.MainChartsHeatmapRackView', function() {
   describe('#hostCssStyle', function () {
     var testCases = [
       {
+        title: 'if hosts haven\'t been loaded yet then hostCssStyle should be have width 100%',
+        rack: Em.Object.create({
+          hosts: new Array(0),
+          isLoaded: false
+        }),
+        result: "width:100%;float:left;"
+      },
+      {
         title: 'if hosts number is zero then hostCssStyle should be have width 10%',
         rack: Em.Object.create({
-          hosts: new Array(0)
+          hosts: new Array(0),
+          isLoaded: true
         }),
         result: "width:10%;float:left;"
       },
       {
         title: 'if hosts number is one then hostCssStyle should be have width 99.5%',
         rack: Em.Object.create({
-          hosts: new Array(1)
+          hosts: new Array(1),
+          isLoaded: true
         }),
         result: "width:99.5%;float:left;"
       },
       {
         title: 'if hosts number is ten then hostCssStyle should be have width 9.5%',
         rack: Em.Object.create({
-          hosts: new Array(10)
+          hosts: new Array(10),
+          isLoaded: true
         }),
         result: "width:9.5%;float:left;"
       },
       {
         title: 'if hosts number is ten then hostCssStyle should be have width 10%',
         rack: Em.Object.create({
-          hosts: new Array(11)
+          hosts: new Array(11),
+          isLoaded: true
         }),
         result: "width:10%;float:left;"
       }
