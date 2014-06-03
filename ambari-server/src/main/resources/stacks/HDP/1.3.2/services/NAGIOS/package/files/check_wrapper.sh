@@ -79,7 +79,7 @@ if [ ! -f /var/nagios/ignore.dat ]; then
   echo "$wrapper_output"
   exit $wrapper_result
 else
-  count=`grep $NAGIOS_HOSTNAME /var/nagios/ignore.dat | grep $real_service_var | grep $real_comp_var | wc -l`
+  count=$(grep $NAGIOS_HOSTNAME /var/nagios/ignore.dat | grep $real_service_var | grep $real_comp_var | wc -l)
   if [ "$count" -ne "0" ]; then
     echo "$wrapper_output\nAMBARIPASSIVE=${wrapper_result}" | sed 's/^[ \t]*//g'
     exit 0
