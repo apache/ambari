@@ -54,7 +54,7 @@ namenode_port = get_port_from_url(config['configurations']['hdfs-site']['dfs.nam
 # different to HDP1  
 snamenode_port = get_port_from_url(config['configurations']['hdfs-site']["dfs.namenode.secondary.http-address"])
 
-hbase_master_rpc_port = "60000"
+hbase_master_rpc_port = default('/configurations/hbase-site/hbase.master.port', "60000")
 rm_port = get_port_from_url(config['configurations']['yarn-site']['yarn.resourcemanager.webapp.address'])
 nm_port = "8042"
 hs_port = get_port_from_url(config['configurations']['mapred-site']['mapreduce.jobhistory.webapp.address'])

@@ -43,6 +43,11 @@
     </description>
   </property>
   <property>
+    <name>hbase.master.port</name>
+    <value>60000</value>
+    <description>The port the HBase Master should bind to.</description>
+  </property>
+  <property>
     <name>hbase.tmp.dir</name>
     <value>/hadoop/hbase</value>
     <description>Temporary directory on the local filesystem.

@@ -583,6 +583,17 @@ module.exports =
 
     },
     {
+    "id": "site property",
+    "name": "hbase.master.port",
+    "displayName": "HBase Master Port",
+    "isReconfigurable": true,
+    "displayType": "int",
+    "isOverridable": false,
+    "isVisible": true,
+    "serviceName": "HBASE",
+    "category": "Advanced"
+    },
+    {
       "id": "site property",
       "name": "hbase.regionserver.global.memstore.upperLimit",
       "displayName": "hbase.regionserver.global.memstore.upperLimit",

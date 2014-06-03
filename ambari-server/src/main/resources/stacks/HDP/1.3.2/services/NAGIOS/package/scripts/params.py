@@ -55,7 +55,7 @@ namenode_port = get_port_from_url(config['configurations']['hdfs-site']['dfs.htt
 # different to HDP2  
 snamenode_port = get_port_from_url(config['configurations']['hdfs-site']["dfs.secondary.http.address"])
 
-hbase_master_rpc_port = "60000"
+hbase_master_rpc_port = default('/configurations/hbase-site/hbase.master.port', "60000")
 hs_port = get_port_from_url(config['configurations']['mapred-site']['mapreduce.history.server.http.address'])
 journalnode_port = get_port_from_url(config['configurations']['hdfs-site']['dfs.journalnode.http-address'])
 datanode_port = get_port_from_url(config['configurations']['hdfs-site']['dfs.datanode.http.address'])

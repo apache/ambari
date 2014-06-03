@@ -1,0 +1,7 @@
+Usage: jira <action> <param>
+Options:
+  -h, --help            show this help message and exit
+  -b BRANCHES, --braches=BRANCHES
+                        space separted list of branch. E.g. -b="brach-1.6.0
+                        branch-1.7.0"
+
