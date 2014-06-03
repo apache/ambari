@@ -73,6 +73,12 @@ public class ViewSubResourceService extends BaseService implements ViewResourceH
   // ----- ViewResourceHandler -----------------------------------------------
 
   @Override
+  public Response handleRequest(HttpHeaders headers, UriInfo ui, RequestType requestType, String resourceId) {
+    return handleRequest(headers, null, ui, getRequestType(requestType),
+        createResource(resourceId));
+  }
+
+  @Override
   public Response handleRequest(HttpHeaders headers, UriInfo ui, String resourceId) {
     return handleRequest(headers, null, ui, Request.Type.GET,
         createResource(resourceId));
@@ -82,7 +88,7 @@ public class ViewSubResourceService extends BaseService implements ViewResourceH
   // ----- helper methods ----------------------------------------------------
 
   // create a resource with the given id
-  private ResourceInstance createResource(String resourceId) {
+  protected ResourceInstance createResource(String resourceId) {
     Map<Resource.Type,String> mapIds = new HashMap<Resource.Type,String>();
 
     mapIds.put(Resource.Type.View, viewName);
@@ -93,5 +99,22 @@ public class ViewSubResourceService extends BaseService implements ViewResourceH
       mapIds.put(type, resourceId);
     }
     return super.createResource(type, mapIds);
+  }
+
+  // get the internal request type from the view API request type
+  private Request.Type getRequestType(RequestType type) {
+    switch (type) {
+      case GET:
+        return Request.Type.GET;
+      case POST:
+        return Request.Type.POST;
+      case PUT:
+        return Request.Type.PUT;
+      case DELETE:
+        return Request.Type.DELETE;
+      case QUERY_POST:
+        return Request.Type.QUERY_POST;
+    }
+    throw new IllegalArgumentException("Unknown type " + type);
   }
 }

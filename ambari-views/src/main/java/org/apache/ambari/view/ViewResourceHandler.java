@@ -27,9 +27,33 @@ import javax.ws.rs.core.UriInfo;
  * the API framework to handle the request.
  */
 public interface ViewResourceHandler {
+  /**
+   * Enum of request types.
+   */
+  public enum RequestType {
+    GET,
+    POST,
+    PUT,
+    DELETE,
+    QUERY_POST
+  }
 
   /**
    * Handle the API request.
+   *
+   * @param headers      the headers
+   * @param ui           the URI info
+   * @param requestType  the request type
+   * @param resourceId   the resource id; may be null for collection resources
+   *
+   * @return the response
+   */
+  public Response handleRequest(HttpHeaders headers, UriInfo ui, RequestType requestType, String resourceId);
+
+  /**
+   * Handle the API request with a request type of GET. Same as
+   * {@link ViewResourceHandler#handleRequest(HttpHeaders, UriInfo, ViewResourceHandler.RequestType, String)}
+   * for {@link ViewResourceHandler.RequestType#GET}.
    *
    * @param headers     the headers
    * @param ui          the URI info
