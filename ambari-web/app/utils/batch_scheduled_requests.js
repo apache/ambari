@@ -396,6 +396,7 @@ module.exports = {
               host.host_components.forEach(function(hostComponent){
                 wrappedHostComponents.push(Em.Object.create({
                   componentName: hostComponent.HostRoles.component_name,
+                  serviceName: App.QuickDataMapper.componentServiceMap()[hostComponent.HostRoles.component_name],
                   hostName: host.Hosts.host_name,
                   staleConfigs: hostComponent.HostRoles.stale_configs,
                   hostPassiveState: host.Hosts.maintenance_state,
