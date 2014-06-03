@@ -239,14 +239,13 @@ App.MainChartHeatmapMetric = Em.Object.extend(heatmap.mappers, {
   hostToSlotMap: function(){
     var hostToValueMap = this.get('hostToValueMap');
     var slotDefs = this.get('slotDefinitions');
-    var allHosts = App.Host.find();
+    var hostNames = App.Host.find().mapProperty('hostName');
     var hostToSlotMap = {};
-    if (hostToValueMap && allHosts) {
-      allHosts.forEach(function(host){
+    if (hostToValueMap && hostNames) {
+      hostNames.forEach(function(hostName){
         var slot = -1;
-        var key = host.get('hostName');
-        if (key in hostToValueMap) {
-          var value = hostToValueMap[key];
+        if (hostName in hostToValueMap) {
+          var value = hostToValueMap[hostName];
           if (isNaN(value)) {
             slot = slotDefs.length - 2;
           } else {
@@ -265,7 +264,7 @@ App.MainChartHeatmapMetric = Em.Object.extend(heatmap.mappers, {
           slot = slotDefs.length - 1;
         }
         if (slot > -1) {
-          hostToSlotMap[key] = slot;
+          hostToSlotMap[hostName] = slot;
         }
       });
     }

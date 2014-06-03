@@ -27,27 +27,38 @@ App.MainChartsHeatmapRackView = Em.View.extend({
   /** rack status block class */
   statusIndicator:'statusIndicator',
   /** loaded hosts of rack */
-  hosts: [],
+  hosts: function() {
+    return this.get('rack.hosts').toArray();
+  }.property('rack.hosts'),
 
   willInsertElement: function () {
-    this.set('hosts', []);
+    this.set('rack.isLoaded', false);
+  },
+
+  /**
+   * get hosts from server
+   */
+  getHosts: function () {
+    App.ajax.send({
+      name: 'hosts.heatmaps',
+      sender: this,
+      data: {},
+      success: 'getHostsSuccessCallback',
+      error: 'getHostsErrorCallback'
+    });
+  },
+
+  getHostsSuccessCallback: function (data, opt, params) {
+    App.hostsMapper.map(data, true);
+    this.set('rack.isLoaded', true);
+  },
+
+  getHostsErrorCallback: function(request, ajaxOptions, error, opt, params){
+    this.set('rack.isLoaded', true);
   },
 
   didInsertElement: function () {
-    var rackHosts = this.get('rack.hosts').toArray();
-    if (rackHosts.length > 100) {
-      lazyloading.run({
-        destination: this.get('hosts'),
-        source: rackHosts,
-        context: this.get('rack'),
-        initSize: 25,
-        chunkSize: 100,
-        delay: 25
-      });
-    } else {
-      this.set('hosts', rackHosts);
-      this.set('rack.isLoaded', true);
-    }
+    this.getHosts();
   },
   /**
    * Provides the CSS style for an individual host.
@@ -57,11 +68,13 @@ App.MainChartsHeatmapRackView = Em.View.extend({
     var rack = this.get('rack');
     var widthPercent = 100;
     var hostCount = rack.get('hosts.length');
-    if (hostCount && hostCount < 11) {
-      widthPercent = (100 / hostCount) - 0.5;
-    } else {
-      widthPercent = 10; // max out at 10%
+    if (rack.get('isLoaded')) {
+      if (hostCount && hostCount < 11) {
+        widthPercent = (100 / hostCount) - 0.5;
+      } else {
+        widthPercent = 10; // max out at 10%
+      }
     }
     return "width:" + widthPercent + "%;float:left;";
-  }.property('rack')
+  }.property('rack.isLoaded')
 });

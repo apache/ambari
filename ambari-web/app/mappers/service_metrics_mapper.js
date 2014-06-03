@@ -171,11 +171,7 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     $service_id: 'none' /* will be set outside of parse function */
   },
 
-  map: function (json, isDefered) {
-    if (!isDefered && !App.router.get('clusterController.isLoaded')) {
-      App.router.get('clusterController').deferServiceMetricsLoad(json);
-      return;
-    }
+  map: function (json) {
     console.time('App.serviceMetricsMapper execution time');
     if (json.items) {
 

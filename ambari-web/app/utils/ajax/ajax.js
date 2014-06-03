@@ -2146,6 +2146,10 @@ var urls = {
   'host_components.with_services_names': {
     'real': '/clusters/{clusterName}/host_components?fields=component/ServiceComponentInfo/service_name,HostRoles/host_name&minimal_response=true',
     'mock': ''
+  },
+  'hosts.heatmaps': {
+    'real': '/clusters/{clusterName}/hosts?fields=Hosts/host_name,Hosts/maintenance_state,Hosts/public_host_name,Hosts/cpu_count,Hosts/ph_cpu_count,Hosts/total_mem,Hosts/host_status,Hosts/last_heartbeat_time,Hosts/os_arch,Hosts/os_type,Hosts/ip,host_components/HostRoles/state,host_components/HostRoles/maintenance_state,Hosts/disk_info,metrics/disk,metrics/load/load_one,metrics/cpu/cpu_system,metrics/cpu/cpu_user,metrics/memory/mem_total,metrics/memory/mem_free,alerts/summary&minimal_response=true',
+    'mock': ''
   }
 };
 /**

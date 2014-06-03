@@ -24,18 +24,10 @@ App.Rack = DS.Model.extend({
   status: DS.attr('string'),
   criticalHostsCount: DS.attr('number'),
   deadHostsCount: DS.attr('number'),
-  hosts: function(){
-    return App.Host.find();
-  }.property('name'),
-  liveHostsCount: function(){
-    var count = 0;
-    this.get('hosts').forEach(function(host){
-      if(host.get('healthStatus')=="HEALTHY"){
-        count++;
-      }
-    });
-    return count;
-  }.property('hosts')
+  hosts: App.Host.find(),
+  liveHostsCount: function () {
+    return this.get('hosts').filterProperty('healthStatus', 'HEALTHY').length;
+  }.property('hosts.@each.healthStatus')
 });
 
 App.Rack.FIXTURES = [

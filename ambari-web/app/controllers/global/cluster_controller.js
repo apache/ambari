@@ -356,6 +356,7 @@ App.ClusterController = Em.Controller.extend({
             updater.updateComponentsState(function () {
               self.updateLoadStatus('componentsState');
             });
+            self.updateLoadStatus('serviceMetrics');
           });
 
           if (App.supports.hostOverrides) {
@@ -368,30 +369,6 @@ App.ClusterController = Em.Controller.extend({
         }, true);
       });
     });
-  },
-  /**
-   * json from serviceMetricsMapper on initial load
-   */
-  serviceMetricsJson: null,
-  /**
-   * control that services was loaded to model strictly after hosts and host-components
-   * regardless which request was completed first
-   * @param json
-   */
-  deferServiceMetricsLoad: function (json) {
-    if (json) {
-      if (this.get('dataLoadList.hosts')) {
-        App.serviceMetricsMapper.map(json, true);
-        this.updateLoadStatus('serviceMetrics');
-      } else {
-        this.set('serviceMetricsJson', json);
-      }
-    } else if (this.get('serviceMetricsJson')) {
-      json = this.get('serviceMetricsJson');
-      this.set('serviceMetricsJson', null);
-      App.serviceMetricsMapper.map(json, true);
-      this.updateLoadStatus('serviceMetrics');
-    }
   },
 
   requestHosts: function (realUrl, callback) {

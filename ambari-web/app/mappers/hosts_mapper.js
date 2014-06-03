@@ -54,7 +54,7 @@ App.hostsMapper = App.QuickDataMapper.create({
     ip: 'Hosts.ip',
     passive_state: 'Hosts.maintenance_state'
   },
-  map: function (json) {
+  map: function (json, isAll) {
     console.time('App.hostsMapper execution time');
     if (json.items) {
       var hostsWithFullInfo = [];
@@ -65,14 +65,15 @@ App.hostsMapper = App.QuickDataMapper.create({
         item.host_components.forEach(function (host_component) {
           host_component.id = host_component.HostRoles.component_name + "_" + item.Hosts.host_name;
         }, this);
-        item.Hosts.disk_info = item.Hosts.disk_info.filter(function(h) {return h.mountpoint!="/boot"});
         item.critical_alerts_count = (item.alerts) ? item.alerts.summary.CRITICAL + item.alerts.summary.WARNING : 0;
         item.cluster_id = App.get('clusterName');
 
-        hostIds[item.Hosts.host_name] = true;
+
 
         var parsedItem = this.parseIt(item, this.config);
-        parsedItem.is_requested = true;
+        parsedItem.is_requested = !isAll;
+
+        hostIds[item.Hosts.host_name] = parsedItem;
 
         hostsWithFullInfo.push(parsedItem);
       }, this);
@@ -80,7 +81,9 @@ App.hostsMapper = App.QuickDataMapper.create({
       hostsWithFullInfo = hostsWithFullInfo.sortProperty('public_host_name');
 
       App.Host.find().forEach(function (host) {
-        if (!hostIds[host.get('hostName')]) {
+        if (isAll && host.get('isRequested')) {
+          hostIds[host.get('hostName')].is_requested = true;
+        } else if (!hostIds[host.get('hostName')]) {
           host.set('isRequested', false);
         }
       });
