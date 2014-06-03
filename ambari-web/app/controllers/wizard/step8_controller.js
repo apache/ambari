@@ -437,10 +437,17 @@ App.WizardStep8Controller = Em.Controller.extend({
    * @return {Object}
    * example: <code>{
    *   value: '...',
-   *   overrides: {
-   *    'value1': [h1, h2],
-   *    'value2': [h3]
-   *   }
+   *   overrides: [
+   *    {
+   *      value: 'v1',
+   *      hosts: ['h1', 'h2']
+   *    },
+   *    {
+   *      value: 'v2',
+   *      hosts: ['h2', 'h3']
+   *    },
+   *    ....
+   *   ]
    * }</code>
    * @method getGlobConfigValueWithOverrides
    */
@@ -643,22 +650,24 @@ App.WizardStep8Controller = Em.Controller.extend({
    * @method loadServices
    */
   loadServices: function () {
-    var reviewService = this.rawContent.findProperty('config_name', 'services');
+    var reviewService = this.get('rawContent').findProperty('config_name', 'services');
+    if (Em.isNone(reviewService)) return;
+
+    var config_value = Em.get(reviewService, 'config_value');
+    if (Em.isNone(config_value)) return;
 
     this.get('selectedServices').forEach(function (_service) {
-      console.log('INFO: step8: Name of the service from getService function: ' + _service.serviceName);
-      var serviceObj = reviewService.config_value.findProperty('service_name', _service.serviceName);
-      if (serviceObj) {
-        serviceObj.get('service_components').forEach(function (_component) {
-          this.assignComponentHosts(_component);
-        }, this);
-        this.get('services').pushObject(serviceObj);
-      }
+      var serviceObj = config_value.findProperty('service_name', _service.serviceName);
+      if (Em.isNone(serviceObj)) return;
+      serviceObj.get('service_components').forEach(function (_component) {
+        this.assignComponentHosts(_component);
+      }, this);
+      this.get('services').pushObject(serviceObj);
     }, this);
   },
 
   /**
-   *
+   * Set <code>component_value</code> property to <code>component</code>
    * @param {Em.Object} component
    * @method assignComponentHosts
    */
@@ -803,8 +812,17 @@ App.WizardStep8Controller = Em.Controller.extend({
 
   /**
    * Update configurations for installed services.
+   * Do separated PUT-request for each siteName for each service
    *
    * @param {Array} configsToUpdate - configs need to update
+   * Format:
+   * <code>
+   *   [
+   *    {serviceName: 's1', id: 'site property', filename: 'f1.xml', name: 'n1', value: 'v1'},
+   *    {serviceName: 's2', id: 'site property', filename: 'f1.xml', name: 'n2', value: 'v2'},
+   *    {serviceName: 's2', id: '', filename: 'f2.xml', name: 'n3', value: 'v3'}
+   *   ]
+   * </code>
    * @method updateConfigurations
    */
   updateConfigurations: function (configsToUpdate) {
@@ -865,7 +883,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     // delete any existing clusters to start from a clean slate
     // before creating a new cluster in install wizard
     // TODO: modify for multi-cluster support
-    if (this.get('content.controllerName') == 'installerController' && (!App.testMode)) {
+    if (this.get('content.controllerName') == 'installerController' && (!App.get('testMode'))) {
       this.deleteClusters(this.getExistingClusterNames());
     }
     if (this.get('wizardController').getDBProperty('configsToUpdate')) {
@@ -880,7 +898,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     }
     this.createComponents();
     this.registerHostsToCluster();
-    if (App.supports.hostOverridesInstaller) {
+    if (App.get('supports.hostOverridesInstaller')) {
       this.createConfigurationGroups();
     }
     this.createMasterHostComponents();
@@ -951,11 +969,12 @@ App.WizardStep8Controller = Em.Controller.extend({
   /**
    * Updates local repositories for the Ambari server.
    * @method setLocalRepositories
+   * @return {bool} true - requests are sent, false - requests not sent
    */
   setLocalRepositories: function () {
-    if (this.get('content.controllerName') !== 'installerController' || !App.supports.localRepositories) return;
-    var self = this;
-    var stack = this.get('content.stacks').findProperty('isSelected', true);
+    if (this.get('content.controllerName') !== 'installerController' || !App.get('supports.localRepositories')) return false;
+    var self = this,
+      stack = this.get('content.stacks').findProperty('isSelected', true);
     stack.operatingSystems.forEach(function (os) {
       if (os.baseUrl !== os.originalBaseUrl) {
         console.log("Updating local repository URL from " + os.originalBaseUrl + " -> " + os.baseUrl + ". ", os);
@@ -975,6 +994,7 @@ App.WizardStep8Controller = Em.Controller.extend({
         });
       }
     });
+    return true;
   },
 
 
@@ -1054,7 +1074,7 @@ App.WizardStep8Controller = Em.Controller.extend({
       });
     }, this);
 
-    if (this.get('content.controllerName') == 'addServiceController' && !App.testMode) {
+    if (this.get('content.controllerName') == 'addServiceController' && !App.get('testMode')) {
       // Add service-components which show up in newer versions but did not
       // exist in older ones.
       var self = this;
@@ -1139,7 +1159,7 @@ App.WizardStep8Controller = Em.Controller.extend({
   },
 
   /**
-   * Register master components
+   * Register new master components
    * @uses registerHostsToComponent
    * @method createMasterHostComponents
    */
@@ -1157,9 +1177,9 @@ App.WizardStep8Controller = Em.Controller.extend({
    * @method createSlaveAndClientsHostComponents
    */
   createSlaveAndClientsHostComponents: function () {
-    var masterHosts = this.get('content.masterComponentHosts');
-    var slaveHosts = this.get('content.slaveComponentHosts');
-    var clients = this.get('content.clients');
+    var masterHosts = this.get('content.masterComponentHosts'),
+      slaveHosts = this.get('content.slaveComponentHosts'),
+      clients = this.get('content.clients');
 
     /**
      * Determines on which hosts client should be installed (based on availability of master components on hosts)
@@ -1503,6 +1523,7 @@ App.WizardStep8Controller = Em.Controller.extend({
 
   /**
    * Update existed config groups
+   * Separated request for each group
    * @param {Object[]} updateData
    * @method applyInstalledServicesConfigurationGroup
    */
@@ -1536,19 +1557,19 @@ App.WizardStep8Controller = Em.Controller.extend({
     // screen out the GLUSTERFS-specific global config entries when they are not required
     if (!isGLUSTERFSSelected) {
       globalSiteObj = globalSiteObj.filter(function (_config) {
-        return _config.name.indexOf("fs_glusterfs") < 0;
+        return !_config.name.contains("fs_glusterfs");
       });
     }
 
-    globalSiteObj.forEach(function (_globalSiteObj) {
-      var heapsizeException = ['hadoop_heapsize', 'yarn_heapsize', 'nodemanager_heapsize', 'resourcemanager_heapsize', 'apptimelineserver_heapsize', 'jobhistory_heapsize'];
+    globalSiteObj.forEach(function (globalConfig) {
+      var heapsizeExceptions = ['hadoop_heapsize', 'yarn_heapsize', 'nodemanager_heapsize', 'resourcemanager_heapsize', 'apptimelineserver_heapsize', 'jobhistory_heapsize'];
       // do not pass any globals whose name ends with _host or _hosts
-      if (_globalSiteObj.isRequiredByAgent !== false) {
-        // append "m" to JVM memory options except for hadoop_heapsize
-        if (/_heapsize|_newsize|_maxnewsize$/.test(_globalSiteObj.name) && !heapsizeException.contains(_globalSiteObj.name)) {
-          globalSiteProperties[_globalSiteObj.name] = _globalSiteObj.value + "m";
+      if (globalConfig.isRequiredByAgent !== false) {
+        // append "m" to JVM memory options except for heapsizeExtensions
+        if (/_heapsize|_newsize|_maxnewsize$/.test(globalConfig.name) && !heapsizeExceptions.contains(globalConfig.name)) {
+          globalSiteProperties[globalConfig.name] = globalConfig.value + "m";
         } else {
-          globalSiteProperties[_globalSiteObj.name] = App.config.escapeXMLCharacters(_globalSiteObj.value);
+          globalSiteProperties[globalConfig.name] = App.config.escapeXMLCharacters(globalConfig.value);
         }
       }
     }, this);
@@ -1563,33 +1584,41 @@ App.WizardStep8Controller = Em.Controller.extend({
    * @method createCoreSiteObj
    */
   createCoreSiteObj: function () {
-    var coreSiteObj = this.get('configs').filterProperty('filename', 'core-site.xml');
-    var coreSiteProperties = {};
-    // hadoop.proxyuser.oozie.hosts needs to be skipped if oozie is not selected
-    var isOozieSelected = this.get('selectedServices').someProperty('serviceName', 'OOZIE');
-    var oozieUser = this.get('globals').someProperty('name', 'oozie_user') ? this.get('globals').findProperty('name', 'oozie_user').value : null;
-    var isHiveSelected = this.get('selectedServices').someProperty('serviceName', 'HIVE');
-    var hiveUser = this.get('globals').someProperty('name', 'hive_user') ? this.get('globals').findProperty('name', 'hive_user').value : null;
-    var isHcatSelected = this.get('selectedServices').someProperty('serviceName', 'WEBHCAT');
-    var hcatUser = this.get('globals').someProperty('name', 'hcat_user') ? this.get('globals').findProperty('name', 'hcat_user').value : null;
-    var isGLUSTERFSSelected = this.get('selectedServices').someProperty('serviceName', 'GLUSTERFS');
+    var coreSiteObj = this.get('configs').filterProperty('filename', 'core-site.xml'),
+      coreSiteProperties = {},
+      // some configs needs to be skipped if services are not selected
+      isOozieSelected = this.get('selectedServices').someProperty('serviceName', 'OOZIE'),
+      oozieUser = this.get('globals').someProperty('name', 'oozie_user') ? this.get('globals').findProperty('name', 'oozie_user').value : null,
+      isHiveSelected = this.get('selectedServices').someProperty('serviceName', 'HIVE'),
+      hiveUser = this.get('globals').someProperty('name', 'hive_user') ? this.get('globals').findProperty('name', 'hive_user').value : null,
+      isHcatSelected = this.get('selectedServices').someProperty('serviceName', 'WEBHCAT'),
+      hcatUser = this.get('globals').someProperty('name', 'hcat_user') ? this.get('globals').findProperty('name', 'hcat_user').value : null,
+      isGLUSTERFSSelected = this.get('selectedServices').someProperty('serviceName', 'GLUSTERFS');
 
     // screen out the GLUSTERFS-specific core-site.xml entries when they are not needed
     if (!isGLUSTERFSSelected) {
       coreSiteObj = coreSiteObj.filter(function (_config) {
-        return _config.name.indexOf("fs.glusterfs") < 0;
+        return !_config.name.contains("fs.glusterfs");
       });
     }
 
     coreSiteObj.forEach(function (_coreSiteObj) {
-      if ((isOozieSelected || (_coreSiteObj.name != 'hadoop.proxyuser.' + oozieUser + '.hosts' && _coreSiteObj.name != 'hadoop.proxyuser.' + oozieUser + '.groups')) && (isHiveSelected || (_coreSiteObj.name != 'hadoop.proxyuser.' + hiveUser + '.hosts' && _coreSiteObj.name != 'hadoop.proxyuser.' + hiveUser + '.groups')) && (isHcatSelected || (_coreSiteObj.name != 'hadoop.proxyuser.' + hcatUser + '.hosts' && _coreSiteObj.name != 'hadoop.proxyuser.' + hcatUser + '.groups'))) {
+      // exclude some configs if service wasn't selected
+      if (
+        (isOozieSelected || (_coreSiteObj.name != 'hadoop.proxyuser.' + oozieUser + '.hosts' && _coreSiteObj.name != 'hadoop.proxyuser.' + oozieUser + '.groups')) &&
+        (isHiveSelected || (_coreSiteObj.name != 'hadoop.proxyuser.' + hiveUser + '.hosts' && _coreSiteObj.name != 'hadoop.proxyuser.' + hiveUser + '.groups')) &&
+        (isHcatSelected || (_coreSiteObj.name != 'hadoop.proxyuser.' + hcatUser + '.hosts' && _coreSiteObj.name != 'hadoop.proxyuser.' + hcatUser + '.groups'))) {
         coreSiteProperties[_coreSiteObj.name] = App.config.escapeXMLCharacters(_coreSiteObj.value);
       }
       if (isGLUSTERFSSelected && _coreSiteObj.name == "fs.default.name") {
-        coreSiteProperties[_coreSiteObj.name] = this.get('globals').someProperty('name', 'fs_glusterfs_default_name') ? App.config.escapeXMLCharacters(this.get('globals').findProperty('name', 'fs_glusterfs_default_name').value) : null;
+        coreSiteProperties[_coreSiteObj.name] =
+          this.get('globals').someProperty('name', 'fs_glusterfs_default_name') ?
+            App.config.escapeXMLCharacters(this.get('globals').findProperty('name', 'fs_glusterfs_default_name').value) : null;
       }
       if (isGLUSTERFSSelected && _coreSiteObj.name == "fs.defaultFS") {
-        coreSiteProperties[_coreSiteObj.name] = this.get('globals').someProperty('name', 'glusterfs_defaultFS_name') ? App.config.escapeXMLCharacters(this.get('globals').findProperty('name', 'glusterfs_defaultFS_name').value) : null;
+        coreSiteProperties[_coreSiteObj.name] =
+          this.get('globals').someProperty('name', 'glusterfs_defaultFS_name') ?
+            App.config.escapeXMLCharacters(this.get('globals').findProperty('name', 'glusterfs_defaultFS_name').value) : null;
       }
     }, this);
     return {"type": "core-site", "tag": "version1", "properties": coreSiteProperties};
