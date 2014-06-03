@@ -22,15 +22,17 @@ import java.io.*;
 import java.lang.reflect.Constructor;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Random;
 
 import com.google.common.io.Files;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.utils.ShellCommandUtil;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.rules.TemporaryFolder;
 
 import com.google.inject.AbstractModule;
@@ -40,14 +42,19 @@ import com.google.inject.Injector;
 
 import junit.framework.TestCase;
 
-public class CertGenerationTest extends TestCase {
-	
-  private static Log LOG = LogFactory.getLog(CertGenerationTest.class);
-  public TemporaryFolder temp = new TemporaryFolder();
+public class CertGenerationTest {
 
-  Injector injector;
+  private static final int PASS_FILE_NAME_LEN = 20;
+  private static final float MAX_PASS_LEN = 100;
+
+  private static Log LOG = LogFactory.getLog(CertGenerationTest.class);
+  public static TemporaryFolder temp = new TemporaryFolder();
+
+  private static Injector injector;
 
   private static CertificateManager certMan;
+  private static String passFileName;
+  private static int passLen;
 
   @Inject
   static void init(CertificateManager instance) {
@@ -55,7 +62,7 @@ public class CertGenerationTest extends TestCase {
   }
 
 
-  private class SecurityModule extends AbstractModule {
+  private static class SecurityModule extends AbstractModule {
     @Override
     protected void configure() {
       bind(Properties.class).toInstance(buildTestProperties());
@@ -64,7 +71,7 @@ public class CertGenerationTest extends TestCase {
     }
   }
   
-  protected Properties buildTestProperties() {
+  protected static Properties buildTestProperties() {
     try {
       temp.create();
     } catch (IOException e) {
@@ -73,12 +80,18 @@ public class CertGenerationTest extends TestCase {
 	  Properties properties = new Properties();
 	  properties.setProperty(Configuration.SRVR_KSTR_DIR_KEY,
       temp.getRoot().getAbsolutePath());
-    System.out.println(properties.get(Configuration.SRVR_CRT_PASS_KEY));
+    passLen = (int) Math.abs((new Random().nextFloat() * MAX_PASS_LEN));
+
+    properties.setProperty(Configuration.SRVR_CRT_PASS_LEN_KEY,
+      String.valueOf(passLen));
+
+    passFileName = RandomStringUtils.randomAlphabetic(PASS_FILE_NAME_LEN);
+    properties.setProperty(Configuration.SRVR_CRT_PASS_FILE_KEY, passFileName);
 	
 	  return properties;
   }
  
-  protected Constructor<Configuration> getConfigurationConstructor() {
+  protected static Constructor<Configuration> getConfigurationConstructor() {
     try {
       return Configuration.class.getConstructor(Properties.class);
 	} catch (NoSuchMethodException e) {
@@ -86,8 +99,8 @@ public class CertGenerationTest extends TestCase {
 	   }
 	}
 	
-  @Before
-  public void setUp() throws IOException {
+  @BeforeClass
+  public static void setUpBeforeClass() throws IOException {
 
 
     injector = Guice.createInjector(new SecurityModule());
@@ -108,14 +121,14 @@ public class CertGenerationTest extends TestCase {
       IOUtils.write(content, new FileOutputStream(caConfigTest));
     } catch (IOException e) {
       e.printStackTrace();
-      fail();
+      TestCase.fail();
     }
 
     certMan.initRootCert();
   }
-	
-  @After
-  public void tearDown() throws IOException {
+
+  @AfterClass
+  public static void tearDownAfterClass() throws IOException {
     temp.delete();
   }
 	
@@ -124,7 +137,7 @@ public class CertGenerationTest extends TestCase {
 
     File serverCrt = new File(temp.getRoot().getAbsoluteFile() +
     						  File.separator + Configuration.SRVR_CRT_NAME_DEFAULT);
-    assertTrue(serverCrt.exists());
+    Assert.assertTrue(serverCrt.exists());
   }
 
   @Test
@@ -132,7 +145,7 @@ public class CertGenerationTest extends TestCase {
 
     File serverKey = new File(temp.getRoot().getAbsoluteFile() +
     						  File.separator + Configuration.SRVR_KEY_NAME_DEFAULT);
-    assertTrue(serverKey.exists());
+    Assert.assertTrue(serverKey.exists());
   }
 
   @Test
@@ -140,7 +153,7 @@ public class CertGenerationTest extends TestCase {
 
     File serverKeyStrore = new File(temp.getRoot().getAbsoluteFile() +
     						  File.separator + Configuration.KSTR_NAME_DEFAULT);
-    assertTrue(serverKeyStrore.exists());
+    Assert.assertTrue(serverKeyStrore.exists());
   }
 
   @Test
@@ -153,17 +166,36 @@ public class CertGenerationTest extends TestCase {
     SignCertResponse scr = certMan.signAgentCrt(agentHostname,
       "incorrect_agentCrtReqContent", "passphrase");
     //Revoke command wasn't executed
-    assertFalse(scr.getMessage().contains("-revoke"));
+    Assert.assertFalse(scr.getMessage().contains("-revoke"));
 
     //Emulate existing agent certificate
     File fakeAgentCertFile = new File(temp.getRoot().getAbsoluteFile() +
       File.separator + agentHostname + ".crt");
-    assertTrue(fakeAgentCertFile.exists());
+    Assert.assertTrue(fakeAgentCertFile.exists());
 
     //Revoke command was executed
     scr = certMan.signAgentCrt(agentHostname,
       "incorrect_agentCrtReqContent", "passphrase");
-    assertTrue(scr.getMessage().contains("-revoke"));
+    Assert.assertTrue(scr.getMessage().contains("-revoke"));
   }
 
+  @Test
+  public void testPassFileGen() throws Exception {
+
+    File passFile = new File(temp.getRoot().getAbsolutePath() + File.separator
+      + passFileName);
+
+    Assert.assertTrue(passFile.exists());
+
+    String pass = FileUtils.readFileToString(passFile);
+
+    Assert.assertEquals(pass.length(), passLen);
+
+    if (ShellCommandUtil.LINUX) {
+      String permissions = ShellCommandUtil.
+        getUnixFilePermissions(passFile.getAbsolutePath());
+      Assert.assertEquals(ShellCommandUtil.MASK_OWNER_ONLY_RW, permissions);
+    }
+
+  }
 }
