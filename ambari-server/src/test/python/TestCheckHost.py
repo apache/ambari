@@ -105,7 +105,7 @@ class TestCheckHost(TestCase):
 
     self.assertEquals(structured_out_mock.call_args[0][0], {'db_connection_check': {'message': 'Error downloading JDBC ' \
                               'connector from Ambari Server resources. Confirm you ran ambari-server setup to ' \
-                              'install JDBC connector. Use "ambari-server --help" for more information. Check ' \
+                              'install JDBC connector. Use "ambari-server setup --help" for more information. Check ' \
                               'network access to Ambari Server.\ntest exception', 'exit_code': '1'}})
     self.assertEquals(format_mock.call_args_list[4][0][0], "/bin/sh -c 'cd /usr/lib/ambari-agent/ && curl -kf " \
                                                             "--retry 5 {jdbc_url} -o {jdbc_name}'")

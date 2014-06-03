@@ -23,7 +23,7 @@ from unittest import TestCase
 from ambari_agent.LiveStatus import LiveStatus
 from ambari_agent.ActionQueue import ActionQueue
 from ambari_agent.AmbariConfig import AmbariConfig
-import os, errno, time, pprint, tempfile, threading
+import os, errno, time, pprint, tempfile, threading, json
 import StringIO
 import sys
 from threading import Thread
@@ -294,13 +294,13 @@ class TestActionQueue(TestCase):
                 'stderr': 'stderr',
                 'stdout': 'out',
                 'clusterName': u'cc',
-                'configurationTags': {'global': {'tag': 'v1'}},
+                'structuredOut': '""',
                 'roleCommand': u'INSTALL',
                 'serviceName': u'HDFS',
                 'role': u'DATANODE',
                 'actionId': '1-1',
                 'taskId': 3,
-                'structuredOut' : '',
+                'configurationTags': {'global': {'tag': 'v1'}},
                 'exitCode': 0}
     self.assertEqual(len(report['reports']), 1)
     self.assertEqual(report['reports'][0], expected)
@@ -333,12 +333,12 @@ class TestActionQueue(TestCase):
                 'stderr': 'stderr',
                 'stdout': 'out',
                 'clusterName': u'cc',
+                'structuredOut': '""',
                 'roleCommand': u'INSTALL',
                 'serviceName': u'HDFS',
                 'role': u'DATANODE',
                 'actionId': '1-1',
                 'taskId': 3,
-                'structuredOut' : '',
                 'exitCode': 13}
     self.assertEqual(len(report['reports']), 1)
     self.assertEqual(report['reports'][0], expected)
@@ -365,12 +365,12 @@ class TestActionQueue(TestCase):
                 'stderr': 'stderr',
                 'stdout': 'out',
                 'clusterName': 'clusterName',
+                'structuredOut': '""',
                 'roleCommand': 'UPGRADE',
                 'serviceName': 'serviceName',
                 'role': 'role',
                 'actionId': 17,
                 'taskId': 'taskId',
-                'structuredOut' : '',
                 'exitCode': 0}
     self.assertEqual(len(report['reports']), 1)
     self.assertEqual(report['reports'][0], expected)
@@ -403,20 +403,19 @@ class TestActionQueue(TestCase):
     actionQueue = ActionQueue(config, dummy_controller)
     actionQueue.execute_command(self.datanode_restart_command)
     report = actionQueue.result()
-    expected = {'actionId': '1-1',
-                'clusterName': u'cc',
-                'configurationTags': {'global' : { 'tag': 'v123' }},
-                'exitCode': 0,
-                'role': u'DATANODE',
-                'roleCommand': u'CUSTOM_COMMAND',
-                'serviceName': u'HDFS',
-                'status': 'COMPLETED',
-                'customCommand': 'RESTART',
+    expected = {'status': 'COMPLETED',
+                'configurationTags': {'global': {'tag': 'v123'}},
                 'stderr': 'stderr',
                 'stdout': 'out',
-                'structuredOut': '',
-                'taskId': 9
-    }
+                'clusterName': u'cc',
+                'structuredOut': '""',
+                'roleCommand': u'CUSTOM_COMMAND',
+                'serviceName': u'HDFS',
+                'role': u'DATANODE',
+                'actionId': '1-1',
+                'taskId': 9,
+                'customCommand': 'RESTART',
+                'exitCode': 0}
     # Agent caches configurationTags if custom_command RESTART completed
     self.assertEqual(len(report['reports']), 1)
     self.assertEqual(expected, report['reports'][0])

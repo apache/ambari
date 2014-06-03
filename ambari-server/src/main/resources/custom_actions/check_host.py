@@ -189,7 +189,7 @@ class CheckHost(Script):
       Execute(cmd, not_if=format("[ -f /usr/lib/ambari-agent/{jdbc_name}]"), environment = environment)
     except Exception, e:
       message = "Error downloading JDBC connector from Ambari Server resources. Confirm you ran ambari-server setup to " \
-                "install JDBC connector. Use \"ambari-server --help\" for more information. Check network access to " \
+                "install JDBC connector. Use \"ambari-server setup --help\" for more information. Check network access to " \
                 "Ambari Server.\n" + str(e)
       print message
       db_connection_check_structured_output = {"exit_code" : "1", "message": message}

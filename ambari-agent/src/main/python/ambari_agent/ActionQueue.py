@@ -24,6 +24,7 @@ import traceback
 import threading
 import pprint
 import os
+import json
 
 from LiveStatus import LiveStatus
 from shell import shellRunner
@@ -187,7 +188,7 @@ class ActionQueue(threading.Thread):
       roleResult['customCommand'] = command['hostLevelParams']['custom_command']
 
     if 'structuredOut' in commandresult:
-      roleResult['structuredOut'] = str(commandresult['structuredOut'])
+      roleResult['structuredOut'] = str(json.dumps(commandresult['structuredOut']))
     else:
       roleResult['structuredOut'] = ''
     # let ambari know that configuration tags were applied
