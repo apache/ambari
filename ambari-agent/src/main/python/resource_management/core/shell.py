@@ -86,7 +86,7 @@ def _call(command, logoutput=False, throw_on_failure=True,
     Logger.info(out)
   
   if throw_on_failure and code:
-    err_msg = ("Execution of '%s' returned %d. %s") % (command[-1], code, out)
+    err_msg = Logger.get_protected_text(("Execution of '%s' returned %d. %s") % (command[-1], code, out))
     raise Fail(err_msg)
   
   return code, out

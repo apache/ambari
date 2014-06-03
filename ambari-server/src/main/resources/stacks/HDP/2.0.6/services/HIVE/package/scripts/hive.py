@@ -96,13 +96,13 @@ def hive(name=None):
                                  "{hive_bin}/schematool -initSchema "
                                  "-dbType {hive_metastore_db_type} "
                                  "-userName {hive_metastore_user_name} "
-                                 "-passWord {hive_metastore_user_passwd}")
+                                 "-passWord {hive_metastore_user_passwd!p}")
 
       check_schema_created_cmd = format("export HIVE_CONF_DIR={hive_config_dir} ; "
                                         "{hive_bin}/schematool -info "
                                         "-dbType {hive_metastore_db_type} "
                                         "-userName {hive_metastore_user_name} "
-                                        "-passWord {hive_metastore_user_passwd}")
+                                        "-passWord {hive_metastore_user_passwd!p}")
 
       Execute(create_schema_cmd,
               not_if = check_schema_created_cmd
