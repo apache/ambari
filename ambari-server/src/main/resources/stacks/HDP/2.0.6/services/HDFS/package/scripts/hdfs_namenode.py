@@ -145,9 +145,13 @@ def decommission():
           user=hdfs_user
   )
 
-  # due to a bug in hdfs, refreshNodes will not run on both namenodes so we
-  # need to execute each command scoped to a particular namenode
-  ExecuteHadoop(format('dfsadmin -fs hdfs://{namenode_rpc} -refreshNodes'),
+  if params.dfs_ha_enabled:
+    # due to a bug in hdfs, refreshNodes will not run on both namenodes so we
+    # need to execute each command scoped to a particular namenode
+    nn_refresh_cmd = format('dfsadmin -fs hdfs://{namenode_rpc} -refreshNodes')
+  else:
+    nn_refresh_cmd = format('dfsadmin -refreshNodes')
+  ExecuteHadoop(nn_refresh_cmd,
                 user=hdfs_user,
                 conf_dir=conf_dir,
                 kinit_override=True)
