@@ -82,6 +82,12 @@ public class UpgradeCatalog161 extends AbstractUpgradeCatalog {
     dbAccessor.addColumn("viewinstance",
         new DBAccessor.DBColumnInfo("label", String.class, 255, null, true));
 
+    dbAccessor.addColumn("viewinstance",
+        new DBAccessor.DBColumnInfo("description", String.class, 255, null, true));
+
+    dbAccessor.addColumn("viewinstance",
+        new DBAccessor.DBColumnInfo("visible", Character.class, 1, null, true));
+
     // ========================================================================
     // Add constraints
     dbAccessor.addFKConstraint("requestoperationlevel", "FK_req_op_level_req_id",

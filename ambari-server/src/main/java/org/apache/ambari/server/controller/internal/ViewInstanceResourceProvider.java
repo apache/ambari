@@ -55,6 +55,8 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
   public static final String VIEW_VERSION_PROPERTY_ID  = "ViewInstanceInfo/version";
   public static final String INSTANCE_NAME_PROPERTY_ID = "ViewInstanceInfo/instance_name";
   public static final String LABEL_PROPERTY_ID         = "ViewInstanceInfo/label";
+  public static final String DESCRIPTION_PROPERTY_ID   = "ViewInstanceInfo/description";
+  public static final String VISIBLE_PROPERTY_ID       = "ViewInstanceInfo/visible";
   public static final String PROPERTIES_PROPERTY_ID    = "ViewInstanceInfo/properties";
   public static final String DATA_PROPERTY_ID          = "ViewInstanceInfo/instance_data";
   public static final String CONTEXT_PATH_PROPERTY_ID  = "ViewInstanceInfo/context_path";
@@ -84,6 +86,8 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
     propertyIds.add(VIEW_VERSION_PROPERTY_ID);
     propertyIds.add(INSTANCE_NAME_PROPERTY_ID);
     propertyIds.add(LABEL_PROPERTY_ID);
+    propertyIds.add(DESCRIPTION_PROPERTY_ID);
+    propertyIds.add(VISIBLE_PROPERTY_ID);
     propertyIds.add(PROPERTIES_PROPERTY_ID);
     propertyIds.add(DATA_PROPERTY_ID);
     propertyIds.add(CONTEXT_PATH_PROPERTY_ID);
@@ -201,6 +205,8 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
     setResourceProperty(resource, VIEW_VERSION_PROPERTY_ID, version, requestedIds);
     setResourceProperty(resource, INSTANCE_NAME_PROPERTY_ID, name, requestedIds);
     setResourceProperty(resource, LABEL_PROPERTY_ID, viewInstanceEntity.getLabel(), requestedIds);
+    setResourceProperty(resource, DESCRIPTION_PROPERTY_ID, viewInstanceEntity.getDescription(), requestedIds);
+    setResourceProperty(resource, VISIBLE_PROPERTY_ID, viewInstanceEntity.isVisible(), requestedIds);
     Map<String, String> properties = new HashMap<String, String>();
 
     for (ViewInstancePropertyEntity viewInstancePropertyEntity : viewInstanceEntity.getProperties()) {
@@ -256,6 +262,14 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
     if (label != null) {
       viewInstanceEntity.setLabel(label);
     }
+
+    String description = (String) properties.get(DESCRIPTION_PROPERTY_ID);
+    if (description != null) {
+      viewInstanceEntity.setDescription(description);
+    }
+
+    String visible = (String) properties.get(VISIBLE_PROPERTY_ID);
+    viewInstanceEntity.setVisible(visible==null ? true : Boolean.valueOf(visible));
 
     Collection<ViewInstancePropertyEntity> instanceProperties = new HashSet<ViewInstancePropertyEntity>();
     Collection<ViewInstanceDataEntity>     instanceData       = new HashSet<ViewInstanceDataEntity>();

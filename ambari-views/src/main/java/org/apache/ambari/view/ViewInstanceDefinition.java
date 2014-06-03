@@ -47,6 +47,20 @@ public interface ViewInstanceDefinition {
   public String getLabel();
 
   /**
+   * Get the view instance description.
+   *
+   * @return the description
+   */
+  public String getDescription();
+
+  /**
+   * Indicates whether or not the view instance should be visible.
+   *
+   * @return true if the view instance should be visible; false otherwise
+   */
+  public boolean isVisible();
+
+  /**
    * Get the instance property map.
    *
    * @return the map of instance properties
@@ -54,10 +68,10 @@ public interface ViewInstanceDefinition {
   public Map<String, String> getPropertyMap();
 
   /**
-    * Get the view instance application data.
-    *
-    * @return the view instance application data map
-    */
+   * Get the view instance application data.
+   *
+   * @return the view instance application data map
+   */
   public Map<String, String> getInstanceDataMap();
 
   /**

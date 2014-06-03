@@ -47,6 +47,24 @@ public class InstanceConfigTest {
       "    </instance>\n" +
       "</view>";
 
+  private static String xml_visible = "<view>\n" +
+      "    <name>MY_VIEW</name>\n" +
+      "    <label>My View!</label>\n" +
+      "    <version>1.0.0</version>\n" +
+      "    <instance>\n" +
+      "        <name>INSTANCE1</name>\n" +
+      "        <visible>true</visible>\n" +
+      "    </instance>\n" +
+      "    <instance>\n" +
+      "        <name>INSTANCE2</name>\n" +
+      "        <visible>false</visible>\n" +
+      "    </instance>\n" +
+      "    <instance>\n" +
+      "        <name>INSTANCE3</name>\n" +
+      "    </instance>\n" +
+      "</view>";
+
+
   @Test
   public void testGetName() throws Exception {
     List<InstanceConfig> instances = getInstanceConfigs();
@@ -63,6 +81,25 @@ public class InstanceConfigTest {
     Assert.assertEquals(2, instances.size());
     Assert.assertEquals("My Instance 1!", instances.get(0).getLabel());
     Assert.assertEquals("My Instance 2!", instances.get(1).getLabel());
+  }
+
+  @Test
+  public void testGetDescription() throws Exception {
+    List<InstanceConfig> instances = getInstanceConfigs();
+
+    Assert.assertEquals(2, instances.size());
+    Assert.assertEquals("This is a description.", instances.get(0).getDescription());
+    Assert.assertNull(instances.get(1).getDescription());
+  }
+
+  @Test
+  public void testIsVisible() throws Exception {
+    List<InstanceConfig> instances = getInstanceConfigs(xml_visible);
+
+    Assert.assertEquals(3, instances.size());
+    Assert.assertTrue(instances.get(0).isVisible());
+    Assert.assertFalse(instances.get(1).isVisible());
+    Assert.assertTrue(instances.get(2).isVisible());
   }
 
   @Test

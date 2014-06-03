@@ -67,10 +67,12 @@ public class UpgradeCatalog161Test {
     Capture<DBAccessor.DBColumnInfo> provisioningStateColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
     Capture<List<DBAccessor.DBColumnInfo>> operationLevelEntityColumnCapture = new Capture<List<DBAccessor.DBColumnInfo>>();
     Capture<DBAccessor.DBColumnInfo> labelColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
+    Capture<DBAccessor.DBColumnInfo> descriptionColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
+    Capture<DBAccessor.DBColumnInfo> visibleColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
 
     setClustersConfigExpectations(dbAccessor, provisioningStateColumnCapture);    
     setOperationLevelEntityConfigExpectations(dbAccessor, operationLevelEntityColumnCapture);
-    setViewInstanceExpectations(dbAccessor, labelColumnCapture);
+    setViewInstanceExpectations(dbAccessor, labelColumnCapture, descriptionColumnCapture, visibleColumnCapture);
 
     replay(dbAccessor, configuration);
     AbstractUpgradeCatalog upgradeCatalog = getUpgradeCatalog(dbAccessor);
@@ -84,7 +86,7 @@ public class UpgradeCatalog161Test {
 
     assertClusterColumns(provisioningStateColumnCapture);
     assertOperationLevelEntityColumns(operationLevelEntityColumnCapture);
-    assertViewInstanceColumns(labelColumnCapture);
+    assertViewInstanceColumns(labelColumnCapture, descriptionColumnCapture, visibleColumnCapture);
   }
 
   @SuppressWarnings("unchecked")
@@ -238,22 +240,44 @@ public class UpgradeCatalog161Test {
 
 
   private void setViewInstanceExpectations(DBAccessor dbAccessor,
-                                             Capture<DBAccessor.DBColumnInfo> labelColumnCapture) throws SQLException {
+                                           Capture<DBAccessor.DBColumnInfo> labelColumnCapture,
+                                           Capture<DBAccessor.DBColumnInfo> descriptionColumnCapture,
+                                           Capture<DBAccessor.DBColumnInfo> visibleColumnCapture)
+      throws SQLException {
 
     dbAccessor.addColumn(eq("viewinstance"),
         capture(labelColumnCapture));
+
+    dbAccessor.addColumn(eq("viewinstance"),
+        capture(descriptionColumnCapture));
+
+    dbAccessor.addColumn(eq("viewinstance"),
+        capture(visibleColumnCapture));
   }
 
   private void assertViewInstanceColumns(
-      Capture<DBAccessor.DBColumnInfo> labelColumnCapture) {
+      Capture<DBAccessor.DBColumnInfo> labelColumnCapture,
+      Capture<DBAccessor.DBColumnInfo> descriptionColumnCapture,
+      Capture<DBAccessor.DBColumnInfo> visibleColumnCapture) {
     DBAccessor.DBColumnInfo column = labelColumnCapture.getValue();
     assertEquals("label", column.getName());
     assertEquals(255, (int) column.getLength());
     assertEquals(String.class, column.getType());
     assertNull(column.getDefaultValue());
     assertTrue(column.isNullable());
+
+    column = descriptionColumnCapture.getValue();
+    assertEquals("description", column.getName());
+    assertEquals(255, (int) column.getLength());
+    assertEquals(String.class, column.getType());
+    assertNull(column.getDefaultValue());
+    assertTrue(column.isNullable());
+
+    column = visibleColumnCapture.getValue();
+    assertEquals("visible", column.getName());
+    assertEquals(1, (int) column.getLength());
+    assertEquals(Character.class, column.getType());
+    assertNull(column.getDefaultValue());
+    assertTrue(column.isNullable());
   }
-
-
-
 }

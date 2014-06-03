@@ -439,6 +439,8 @@ public class ViewRegistry {
               version + "/" + instanceName);
         }
         entity.setLabel(instanceEntity.getLabel());
+        entity.setDescription(instanceEntity.getDescription());
+        entity.setVisible(instanceEntity.isVisible());
         entity.setProperties(instanceEntity.getProperties());
         entity.setData(instanceEntity.getData());
 
@@ -815,6 +817,8 @@ public class ViewRegistry {
         } else {
           // apply overrides to the in-memory view instance entities
           instanceDefinition.setLabel(viewInstanceEntity.getLabel());
+          instanceDefinition.setDescription(viewInstanceEntity.getDescription());
+          instanceDefinition.setVisible(viewInstanceEntity.isVisible());
           instanceDefinition.setData(viewInstanceEntity.getData());
           instanceDefinition.setProperties(viewInstanceEntity.getProperties());
           instanceDefinition.setEntities(viewInstanceEntity.getEntities());

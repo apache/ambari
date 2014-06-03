@@ -76,6 +76,7 @@ public class ViewConfigTest {
       "    <instance>\n" +
       "        <name>INSTANCE1</name>\n" +
       "        <label>My Instance 1!</label>\n" +
+      "        <description>This is a description.</description>\n" +
       "        <property>\n" +
       "            <key>p1</key>\n" +
       "            <value>v1-1</value>\n" +

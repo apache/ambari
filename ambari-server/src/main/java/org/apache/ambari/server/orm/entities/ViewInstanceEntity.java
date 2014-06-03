@@ -78,6 +78,20 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
   private String label;
 
   /**
+   * The description.
+   */
+  @Column
+  @Basic
+  private String description;
+
+  /**
+   * Visible flag.
+   */
+  @Column
+  @Basic
+  private char visible;
+
+  /**
    * The instance properties.
    */
   @OneToMany(cascade = CascadeType.ALL, mappedBy = "viewInstance")
@@ -147,6 +161,8 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
     this.instanceConfig = instanceConfig;
     this.view           = view;
     this.viewName       = view.getName();
+    this.description    = instanceConfig.getDescription();
+    this.visible        = instanceConfig.isVisible() ? 'Y' : 'N';
 
     String label = instanceConfig.getLabel();
     this.label = (label == null || label.length()== 0) ? view.getLabel() : label;
@@ -163,6 +179,8 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
     this.instanceConfig = null;
     this.view           = view;
     this.viewName       = view.getName();
+    this.description    = null;
+    this.visible        = 'Y';
     this.label          = view.getLabel();
   }
 
@@ -213,6 +231,16 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
     return label;
   }
 
+  @Override
+  public String getDescription() {
+    return description;
+  }
+
+  @Override
+  public boolean isVisible() {
+    return visible == 'y' || visible == 'Y';
+  }
+
 
   // ----- ViewInstanceEntity ------------------------------------------------
 
@@ -250,6 +278,24 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
    */
   public void setLabel(String label) {
     this.label = label;
+  }
+
+  /**
+   * Set the description.
+   *
+   * @param description  the description
+   */
+  public void setDescription(String description) {
+    this.description = description;
+  }
+
+  /**
+   * Set the visible flag.
+   *
+   * @param visible  visible flag
+   */
+  public void setVisible(boolean visible) {
+    this.visible = (visible ? 'Y' : 'N');
   }
 
   /**

@@ -46,6 +46,13 @@ public class ViewInstanceEntityTest {
       "    <instance>\n" +
       "        <name>INSTANCE1</name>\n" +
       "        <label>My Instance 1!</label>\n" +
+      "        <description>This is an instance description.</description>\n" +
+      "        <visible>true</visible>\n" +
+      "    </instance>\n" +
+      "    <instance>\n" +
+      "        <name>INSTANCE2</name>\n" +
+      "        <label>My Instance 2!</label>\n" +
+      "        <visible>false</visible>\n" +
       "    </instance>\n" +
       "</view>";
 
@@ -147,6 +154,42 @@ public class ViewInstanceEntityTest {
 
     // should default to view label
     Assert.assertEquals("My View!", viewInstanceDefinition.getLabel());
+  }
+
+  @Test
+  public void testGetDescription() throws Exception {
+    InstanceConfig instanceConfig = InstanceConfigTest.getInstanceConfigs(xml_with_instance_label).get(0);
+    ViewEntity viewDefinition = ViewEntityTest.getViewEntity();
+    ViewInstanceEntity viewInstanceDefinition = new ViewInstanceEntity(viewDefinition, instanceConfig);
+
+    Assert.assertEquals("This is an instance description.", viewInstanceDefinition.getDescription());
+
+    instanceConfig = InstanceConfigTest.getInstanceConfigs(xml_without_instance_label).get(0);
+    viewDefinition = ViewEntityTest.getViewEntity();
+    viewInstanceDefinition = new ViewInstanceEntity(viewDefinition, instanceConfig);
+
+    Assert.assertNull(viewInstanceDefinition.getDescription());
+  }
+
+  @Test
+  public void testIsVisible() throws Exception {
+    InstanceConfig instanceConfig = InstanceConfigTest.getInstanceConfigs(xml_with_instance_label).get(0);
+    ViewEntity viewDefinition = ViewEntityTest.getViewEntity();
+    ViewInstanceEntity viewInstanceDefinition = new ViewInstanceEntity(viewDefinition, instanceConfig);
+
+    Assert.assertTrue(viewInstanceDefinition.isVisible());
+
+    instanceConfig = InstanceConfigTest.getInstanceConfigs(xml_with_instance_label).get(1);
+    viewDefinition = ViewEntityTest.getViewEntity();
+    viewInstanceDefinition = new ViewInstanceEntity(viewDefinition, instanceConfig);
+
+    Assert.assertFalse(viewInstanceDefinition.isVisible());
+
+    instanceConfig = InstanceConfigTest.getInstanceConfigs(xml_without_instance_label).get(0);
+    viewDefinition = ViewEntityTest.getViewEntity();
+    viewInstanceDefinition = new ViewInstanceEntity(viewDefinition, instanceConfig);
+
+    Assert.assertTrue(viewInstanceDefinition.isVisible());
   }
 
   @Test

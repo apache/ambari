@@ -40,6 +40,16 @@ public class InstanceConfig {
   private String label;
 
   /**
+   * The instance description.
+   */
+  private String description;
+
+  /**
+   * Indicates whether or not the instance should be visible.
+   */
+  private boolean visible = true;
+
+  /**
    * The instance properties.
    */
   @XmlElement(name="property")
@@ -55,12 +65,30 @@ public class InstanceConfig {
   }
 
   /**
-   * Get the public view name.
+   * Get the public view instance label.
    *
-   * @return the view label
+   * @return the view instance label
    */
   public String getLabel() {
     return label;
+  }
+
+  /**
+   * Get the  view instance description.
+   *
+   * @return the view instance description
+   */
+  public String getDescription() {
+    return description;
+  }
+
+  /**
+   * Indicates whether or not the instance should be visible.
+   *
+   * @return true if the instance should be visible; false otherwise
+   */
+  public boolean isVisible() {
+    return visible;
   }
 
   /**
