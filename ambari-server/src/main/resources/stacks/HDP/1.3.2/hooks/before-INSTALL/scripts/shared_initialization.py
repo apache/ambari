@@ -196,8 +196,3 @@ def setup_java():
 
 def install_packages():
   Package(['unzip'])
-
-def change_thp():
-  import params
-  if System.get_instance().os_family == "redhat" and System.get_instance().os_major_version == '6' :
-    Execute(format("echo never > {transparent_huge_pages_file}"))

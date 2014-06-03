@@ -101,7 +101,6 @@ jce_policy_zip = default("/hostLevelParams/jce_name", None) # None when jdk is a
 jce_location = config['hostLevelParams']['jdk_location']
 jdk_location = config['hostLevelParams']['jdk_location']
 ignore_groupsusers_create = default("ignore_groupsusers_create", False)
-transparent_huge_pages_file = "/sys/kernel/mm/redhat_transparent_hugepage/enabled"
 
 #repo params
 repo_info = config['hostLevelParams']['repo_info']
