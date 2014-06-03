@@ -206,4 +206,35 @@ describe('utils/helper', function() {
       });
     });
   });
+  describe('#App.permit()', function() {
+    var obj = {
+      a1: 'v1',
+      a2: 'v2',
+      a3: 'v3'
+    }
+
+    var tests = [
+      {
+        keys: 'a1',
+        e: {
+          a1: 'v1'
+        }
+      },
+      {
+        keys: ['a2','a3','a4'],
+        e: {
+          a2: 'v2',
+          a3: 'v3'
+        }
+      }
+    ];
+
+    tests.forEach(function(test) {
+      it('should return object `{0}` permitted keys `{1}`'.format(JSON.stringify(test.e), JSON.stringify(test.keys)), function() {
+        expect(App.permit(obj, test.keys)).to.deep.eql(test.e);
+      });
+    });
+
+
+  });
 });

@@ -437,13 +437,12 @@ App.ClusterController = Em.Controller.extend({
   },
 
   loadAmbariProperties: function () {
-    App.ajax.send({
+    return App.ajax.send({
       name: 'ambari.service',
       sender: this,
       success: 'loadAmbariPropertiesSuccess',
       error: 'loadAmbariPropertiesError'
     });
-    return this.get('ambariProperties');
   },
 
   loadAmbariPropertiesSuccess: function (data) {

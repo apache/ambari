@@ -1029,7 +1029,7 @@ module.exports =
       "isRequired": false,
       "serviceName": "OOZIE",
       "category": "Oozie Server",
-      "index": 7
+      "index": 9
     },
     {
       "id": "puppet var",
@@ -1057,9 +1057,10 @@ module.exports =
       "isVisible": false,
       "isObserved": true,
       "serviceName": "OOZIE",
-      "category": "Oozie Server"
+      "category": "Oozie Server",
+      "index": 3
     },
-        {
+    {
       "id": "puppet var",
       "name": "oozie_existing_postgresql_host",
       "displayName": "Database Host",
@@ -1071,7 +1072,8 @@ module.exports =
       "isVisible": false,
       "isObserved": true,
       "serviceName": "OOZIE",
-      "category": "Oozie Server"
+      "category": "Oozie Server",
+      "index": 3
     },
     {
       "id": "puppet var",
@@ -1085,7 +1087,8 @@ module.exports =
       "isVisible": false,
       "isObserved": true,
       "serviceName": "OOZIE",
-      "category": "Oozie Server"
+      "category": "Oozie Server",
+      "index": 3
     },
     {
       "id": "puppet var",

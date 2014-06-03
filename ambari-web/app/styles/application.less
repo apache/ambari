@@ -1178,6 +1178,34 @@ h1 {
   .dropdown-menu > li > a:hover {
     text-shadow: none;
   }
+  .db-connection {
+    .spinner {
+      width: 30px;
+      height: 30px;
+      background-size: 30px 30px;
+    }
+    .icon-ok-sign, .icon-warning-sign {
+      font-size: 27px;
+      line-height: 30px;
+    }
+    .icon-ok-sign {
+      color: @health-status-green;
+    }
+    .icon-warning-sign {
+      color: @health-status-red;
+    }
+    .connection-result {
+      font-size: 15px;
+      line-height: 30px;
+    }
+    a.mute {
+      color: #333;
+      &:hover {
+        text-decoration: none;
+        color: #333;
+      }
+    }
+  }
 }
 
 .running-host-components-table{
@@ -6098,6 +6126,10 @@ i.icon-asterisks {
 
 .mtm {
   margin-top: @space-m;
+}
+
+.mll {
+  margin-left: @space-l;
 }
 
 #cleanerContainer {

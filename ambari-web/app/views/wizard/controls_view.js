@@ -335,6 +335,30 @@ App.ServiceConfigRadioButtons = Ember.View.extend({
     }
   }.property('serviceConfig.serviceName'),
 
+  /**
+   * `Observer` that add <code>additionalView</code> to <code>App.ServiceConfigProperty</code>
+   * that responsible for checking database connection.
+   *
+   * @method handleDBConnectionProperty
+   **/
+  handleDBConnectionProperty: function() {
+    if (!App.supports.databaseConnection) return;
+    if (!['addServiceController', 'installerController'].contains(App.clusterStatus.wizardControllerName)) return;
+    var handledProperties = ['oozie_database', 'hive_database'];
+    var currentValue = this.get('serviceConfig.value');
+    var databases = /MySQL|PostgreSQL|Oracle|Derby/gi;
+    var currentDB = currentValue.match(databases)[0];
+    var existingDatabase = /existing/gi.test(currentValue);
+    var propertyAppendTo = this.get('categoryConfigsAll').findProperty('displayName', 'Database URL');
+    if (currentDB && existingDatabase) {
+      if (handledProperties.contains(this.get('serviceConfig.name'))) {
+        if (propertyAppendTo) propertyAppendTo.set('additionalView', App.CheckDBConnectionView.extend({databaseName: currentDB}));
+      }
+    } else {
+      propertyAppendTo.set('additionalView', null);
+    }
+  }.observes('serviceConfig.value', 'configs.@each.value'),
+
   optionsBinding: 'serviceConfig.options'
 });
 
@@ -654,6 +678,320 @@ App.SlaveComponentChangeGroupNameView = Ember.View.extend({
       var result = this.get('controller').changeSlaveGroupName(this.get('content'), inputVal);
       this.set('error', result);
     }
+  }
+});
+/**
+ * View for testing connection to database.
+ **/
+App.CheckDBConnectionView = Ember.View.extend({
+  templateName: require('templates/common/form/check_db_connection'),
+  /** @property {string} btnCaption - text for button **/
+  btnCaption: Em.I18n.t('services.service.config.database.btn.idle'),
+  /** @property {string} responseCaption - text for status link **/
+  responseCaption: null,
+  /** @property {boolean} isConnecting - is request to server activated **/
+  isConnecting: false,
+  /** @property {boolean} isValidationPassed - check validation for required fields **/
+  isValidationPassed: null,
+  /** @property {string} databaseName- name of current database **/
+  databaseName: null,
+  /** @property {boolean} isRequestResolved - check for finished request to server **/
+  isRequestResolved: false,
+  /** @property {boolean} isConnectionSuccess - check for successful connection to database **/
+  isConnectionSuccess: null,
+  /** @property {string} responseFromServer - message from server response **/
+  responseFromServer: null,
+  /** @property {Object} ambariRequiredProperties - properties that need for custom action request **/
+  ambariRequiredProperties: null,
+  /** @property {Number} currentRequestId - current custom action request id **/
+  currentRequestId: null,
+  /** @property {Number} currentTaskId - current custom action task id **/
+  currentTaskId: null,
+  /** @property {jQuery.Deferred} request - current $.ajax request **/
+  request: null,
+  /** @property {Number} pollInterval - timeout interval for ajax polling **/
+  pollInterval: 3000,
+  /** @property {string} hostNameProperty - host name property based on service and database names **/
+  hostNameProperty: function() {
+    return '{0}_existing_{1}_host'.format(this.get('parentView.service.serviceName').toLowerCase(), this.get('databaseName').toLowerCase());
+  }.property('databaseName'),
+  /** @property {boolean} isBtnDisabled - disable button on failed validation or active request **/
+  isBtnDisabled: function() {
+    return !this.get('isValidationPassed') || this.get('isConnecting');
+  }.property('isValidationPassed', 'isConnecting'),
+  /** @property {object} requiredProperties - properties that necessary for database connection **/
+  requiredProperties: function() {
+    var propertiesMap = {
+      OOZIE: ['oozie.db.schema.name','oozie.service.JPAService.jdbc.username','oozie.service.JPAService.jdbc.password','oozie.service.JPAService.jdbc.driver','oozie.service.JPAService.jdbc.url'],
+      HIVE: ['ambari.hive.db.schema.name','javax.jdo.option.ConnectionUserName','javax.jdo.option.ConnectionPassword','javax.jdo.option.ConnectionDriverName','javax.jdo.option.ConnectionURL']
+    };
+    return propertiesMap[this.get('parentView.service.serviceName')];
+  }.property(),
+  /** @property {Object} propertiesPattern - check pattern according to type of connection properties **/
+  propertiesPattern: function() {
+    return {
+      user_name: /username$/ig,
+      user_passwd: /password$/ig,
+      db_connection_url: /jdbc\.url|connectionurl/ig
+    }
+  }.property(),
+  /** @property {Object} connectionProperties - service specific config values mapped for custom action request **/
+  connectionProperties: function() {
+    var propObj = {};
+    for (var key in this.get('propertiesPattern')) {
+      propObj[key] = this.getConnectionProperty(this.get('propertiesPattern')[key]);
+    }
+    return propObj;
+  }.property('parentView.categoryConfigsAll.@each.value'),
+  /**
+   * Properties that stores in local storage used for handling
+   * last success connection.
+   *
+   * @property {Object} preparedDBProperties
+   **/
+  preparedDBProperties: function() {
+    var propObj = {};
+    for (var key in this.get('propertiesPattern')) {
+      var propName = this.getConnectionProperty(this.get('propertiesPattern')[key], true);
+      propObj[propName] = this.get('parentView.categoryConfigsAll').findProperty('name', propName).get('value');
+    }
+    return propObj;
+  }.property(),
+  /** Check validation and load ambari properties **/
+  didInsertElement: function() {
+    this.handlePropertiesValidation();
+    this.getAmbariProperties();
+  },
+  /** On view destroy **/
+  willDestroyElement: function() {
+    this.set('isConnecting', false);
+    this._super();
+  },
+  /**
+   * Observer that take care about enabling/disabling button based on required properties validation.
+   *
+   * @method handlePropertiesValidation
+   **/
+  handlePropertiesValidation: function() {
+    this.restore();
+    var isValid = true;
+    var properties = [].concat(this.get('requiredProperties'));
+    properties.push(this.get('hostNameProperty'));
+    properties.forEach(function(propertyName) {
+      if(!this.get('parentView.categoryConfigsAll').findProperty('name', propertyName).get('isValid')) isValid = false;
+    }, this);
+    this.set('isValidationPassed', isValid);
+  }.observes('parentView.categoryConfigsAll.@each.isValid', 'parentView.categoryConfigsAll.@each.value', 'databaseName'),
+
+  getConnectionProperty: function(regexp, isGetName) {
+    var _this = this;
+    var propertyName = _this.get('requiredProperties').filter(function(item) {
+      return regexp.test(item);
+    })[0];
+    return (isGetName) ? propertyName : _this.get('parentView.categoryConfigsAll').findProperty('name', propertyName).get('value');
+  },
+  /**
+   * Set up ambari properties required for custom action request
+   *
+   * @method getAmbariProperties
+   **/
+  getAmbariProperties: function() {
+    var clusterController = App.router.get('clusterController');
+    var _this = this;
+    if (!App.isEmptyObject(App.db.get('tmp', 'ambariProperties')) && !this.get('ambariProperties')) {
+      this.set('ambariProperties', App.db.get('tmp', 'ambariProperties'));
+      return;
+    }
+    if (App.isEmptyObject(clusterController.get('ambariProperties'))) {
+      clusterController.loadAmbariProperties().done(function(data) {
+        _this.formatAmbariProperties(data.RootServiceComponents.properties);
+      });
+    } else {
+      this.formatAmbariProperties(clusterController.get('ambariProperties'));
+    }
+  },
+
+  formatAmbariProperties: function(properties) {
+    var defaults = {
+      threshold: "60",
+      ambari_server_host: location.hostname,
+      check_execute_list : "db_connection_check"
+    };
+    var properties = App.permit(properties, ['jdk.name','jdk_location','java.home']);
+    var renameKey = function(oldKey, newKey) {
+      if (properties[oldKey]) {
+        defaults[newKey] = properties[oldKey];
+        delete properties[oldKey];
+      }
+    };
+    renameKey('java.home', 'java_home');
+    renameKey('jdk.name', 'jdk_name');
+    $.extend(properties, defaults);
+    App.db.set('tmp', 'ambariProperties', properties);
+    this.set('ambariProperties', properties);
+  },
+  /**
+   * `Action` method for starting connect to current database.
+   *
+   * @method connectToDatabase
+   **/
+  connectToDatabase: function() {
+    var self = this;
+    self.set('isRequestResolved', false);
+    App.db.set('tmp', this.get('parentView.service.serviceName') + '_connection', {});
+    this.setConnectingStatus(true);
+    this.createCustomAction();
+  },
+  /**
+   * Run custom action for database connection.
+   *
+   * @method createCustomAction
+   **/
+  createCustomAction: function() {
+    var databaseHost = this.get('parentView.categoryConfigsAll').findProperty('name', this.get('hostNameProperty')).get('value');
+    var params = $.extend(true, {}, { db_name: this.get('databaseName').toLowerCase() }, this.get('connectionProperties'), this.get('ambariProperties'));
+    App.ajax.send({
+      name: 'custom_action.create',
+      sender: this,
+      data: {
+        requestInfo: {
+          parameters: params
+        },
+        filteredHosts: [databaseHost]
+      },
+      success: 'onCreateActionSuccess',
+      error: 'onCreateActionError'
+    });
+  },
+  /**
+   * Run updater if task is created successfully.
+   *
+   * @method onConnectActionS
+   **/
+  onCreateActionSuccess: function(data) {
+    this.set('currentRequestId', data.Requests.id);
+    App.ajax.send({
+      name: 'custom_action.request',
+      sender: this,
+      data: {
+        requestId: this.get('currentRequestId')
+      },
+      success: 'setCurrentTaskId'
+    });
+  },
+
+  setCurrentTaskId: function(data) {
+    this.set('currentTaskId', data.items[0].Tasks.id);
+    this.startPolling();
+  },
+
+  startPolling: function() {
+    if (this.get('isConnecting'))
+      this.getTaskInfo();
+  },
+
+  getTaskInfo: function() {
+    var request = App.ajax.send({
+      name: 'custom_action.request',
+      sender: this,
+      data: {
+        requestId: this.get('currentRequestId'),
+        taskId: this.get('currentTaskId')
+      },
+      success: 'getTaskInfoSuccess'
+    });
+    this.set('request', request);
+  },
+
+  getTaskInfoSuccess: function(data) {
+    var task = data.Tasks;
+    if (task.status === 'COMPLETED') {
+      var structuredOut = JSON.parse(task.structured_out).db_connection_check;
+      if (structuredOut.exit_code != 0) {
+        this.set('responseFromServer', {
+          stderr: task.stderr,
+          stdout: task.stdout,
+          structuredOut: structuredOut.message
+        });
+        this.setResponseStatus('failed');
+      } else {
+        App.db.set('tmp', this.get('parentView.service.serviceName') + '_connection', this.get('preparedDBProperties'));
+        this.setResponseStatus('success');
+      }
+    }
+    if (task.status === 'FAILED') {
+      this.set('responseFromServer', {
+        stderr: task.stderr,
+        stdout: task.stdout
+      });
+      this.setResponseStatus('failed');
+    }
+    if (/PENDING|QUEUED|IN_PROGRESS/.test(task.status)) {
+      Em.run.later(this, function() {
+        this.startPolling();
+      }, this.get('pollInterval'));
+    }
+  },
+
+  onCreateActionError: function(jqXhr, status, errorMessage) {
+    this.setResponseStatus('failed');
+    this.set('responseFromServer', errorMessage);
+  },
+
+  setResponseStatus: function(isSuccess) {
+    var isSuccess = isSuccess == 'success';
+    this.setConnectingStatus(false);
+    this.set('responseCaption', isSuccess ? Em.I18n.t('services.service.config.database.connection.success') : Em.I18n.t('services.service.config.database.connection.failed'));
+    this.set('isConnectionSuccess', isSuccess);
+    this.set('isRequestResolved', true);
+  },
+  /**
+   * Switch captions and statuses for active/non-active request.
+   *
+   * @method setConnectionStatus
+   * @param {Boolean} [active]
+   */
+  setConnectingStatus: function(active) {
+    if (active) {
+      this.set('responseCaption', null);
+      this.set('responseFromServer', null);
+    }
+    this.set('btnCaption', !!active ? Em.I18n.t('services.service.config.database.btn.connecting') : Em.I18n.t('services.service.config.database.btn.idle'));
+    this.set('isConnecting', !!active);
+  },
+  /**
+   * Set view to init status.
+   *
+   * @method restore
+   **/
+  restore: function() {
+    if (this.get('request')) {
+      this.get('request').abort();
+      this.set('request', null);
+    }
+    this.set('responseCaption', null);
+    this.set('responseFromServer', null);
+    this.setConnectingStatus(false);
+    this.set('isRequestResolved', false);
+  },
+  /**
+   * `Action` method for showing response from server in popup.
+   *
+   * @method showLogsPopup
+   **/
+  showLogsPopup: function() {
+    if (this.get('isConnectionSuccess')) return;
+    var _this = this;
+    var popup = App.showAlertPopup('Error: {0} connection'.format(this.get('databaseName')));
+    if (typeof this.get('responseFromServer') == 'object') {
+      popup.set('bodyClass', Em.View.extend({
+        templateName: require('templates/common/error_log_body'),
+        openedTask: _this.get('responseFromServer')
+      }));
+    } else {
+      popup.set('body', this.get('responseFromServer'));
+    }
+    return popup;
   }
 });
 

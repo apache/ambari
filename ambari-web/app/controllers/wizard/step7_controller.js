@@ -986,6 +986,7 @@ App.WizardStep7Controller = Em.Controller.extend({
     var hiveService = this.get('content.services').findProperty('serviceName', 'HIVE');
     if (!hiveService || !hiveService.get('isSelected') || hiveService.get('isInstalled')) {
       this.moveNext();
+      return;
     }
     var hiveDBType = this.get('stepConfigs').findProperty('serviceName', 'HIVE').configs.findProperty('name', 'hive_database').value;
     if (hiveDBType == 'New MySQL Database') {
@@ -1025,6 +1026,71 @@ App.WizardStep7Controller = Em.Controller.extend({
     }
   },
 
+  checkDatabaseConnectionTest: function() {
+    var deferred = $.Deferred();
+    if (!App.supports.databaseConnection) {
+      deferred.resolve();
+      return deferred;
+    }
+    var configMap = [
+      {
+        serviceName: 'OOZIE',
+        ignored: Em.I18n.t('installer.step7.oozie.database.new')
+      },
+      {
+        serviceName: 'HIVE',
+        ignored: Em.I18n.t('installer.step7.hive.database.new')
+      }
+    ];
+    configMap.forEach(function(config) {
+      var isConnectionNotTested = false;
+      var service = this.get('content.services').findProperty('serviceName', config.serviceName);
+      if (service && service.get('isSelected') && !service.get('isInstalled')) {
+        var serviceConfigs = this.get('stepConfigs').findProperty('serviceName', config.serviceName).configs;
+        var serviceDatabase = serviceConfigs.findProperty('name', config.serviceName.toLowerCase() + '_database').get('value');
+        if (serviceDatabase !== config.ignored) {
+          var filledProperties = App.db.get('tmp', config.serviceName + '_connection');
+          if (!filledProperties || App.isEmptyObject(filledProperties)) {
+            isConnectionNotTested = true;
+          } else {
+            for (var key in filledProperties) {
+              if (serviceConfigs.findProperty('name', key).get('value') !== filledProperties[key])
+                isConnectionNotTested = true;
+            }
+          }
+        }
+      }
+      config.isCheckIgnored = isConnectionNotTested;
+    }, this);
+    var ignoredServices = configMap.filterProperty('isCheckIgnored', true);
+    if (ignoredServices.length) {
+      var displayedServiceNames = ignoredServices.mapProperty('serviceName').map(function(serviceName) {
+        return this.get('content.services').findProperty('serviceName', serviceName).get('displayName');
+      }, this);
+      this.showDatabaseConnectionWarningPopup(displayedServiceNames, deferred);
+    }
+    else {
+      deferred.resolve();
+    }
+    return deferred;
+  },
+
+  showDatabaseConnectionWarningPopup: function(serviceNames, deferred) {
+    return App.ModalPopup.show({
+      header: Em.I18n.t('installer.step7.popup.database.connection.header'),
+      body: Em.I18n.t('installer.step7.popup.database.connection.body').format(serviceNames.join(', ')),
+      secondary: Em.I18n.t('common.cancel'),
+      primary: Em.I18n.t('common.proceedAnyway'),
+      onPrimary: function() {
+        deferred.resolve();
+        this._super();
+      },
+      onSecondary: function() {
+        deferred.reject();
+        this._super();
+      }
+    })
+  },
   /**
    * Proceed to the next step
    **/
@@ -1037,8 +1103,11 @@ App.WizardStep7Controller = Em.Controller.extend({
    * @method submit
    */
   submit: function () {
+    var _this = this;
     if (!this.get('isSubmitDisabled')) {
-      this.resolveHiveMysqlDatabase();
+      this.checkDatabaseConnectionTest().done(function() {
+        _this.resolveHiveMysqlDatabase();
+      });
     }
   }
 

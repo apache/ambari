@@ -172,6 +172,7 @@ Em.I18n.translations = {
   'common.path': 'Path',
   'common.package': 'Package',
   'common.proceed': 'Proceed',
+  'common.proceedAnyway': 'Proceed Anyway',
   'common.process': 'Process',
   'common.property': 'Property',
   'common.installed': 'Installed',
@@ -609,6 +610,11 @@ Em.I18n.translations = {
   'installer.step7.popup.mySQLWarning.button.dismiss': 'Dismiss',
   'installer.step7.popup.mySQLWarning.confirmation.header': 'Confirmation: Go to Assign Masters',
   'installer.step7.popup.mySQLWarning.confirmation.body': 'You will be brought back to the \"Assign Masters\" step and will lose all your current customizations. Are you sure?',
+  'installer.step7.popup.database.connection.header': 'Database Connectivity Warning',
+  'installer.step7.popup.database.connection.body': 'You have not run the database connectivity check for {0}. It is recommended that you run the check before proceeding to prevent failures during deployment.',
+
+  'installer.step7.oozie.database.new': 'New Derby Database',
+  'installer.step7.hive.database.new': 'New MySQL Database',
 
   'installer.step8.header':'Review',
   'installer.step8.body':'Please review the configuration before installation',
@@ -1282,6 +1288,10 @@ Em.I18n.translations = {
   'services.service.config.propertyFilterPopover.title':'Properties filter',
   'services.service.config.propertyFilterPopover.content':'Enter keywords to filter properties by property name, value, or description.',
   'services.service.config.hive.oozie.postgresql': 'Existing PostgreSQL Database',
+  'services.service.config.database.connection.success': 'Connection OK',
+  'services.service.config.database.connection.failed': 'Connection Failed',
+  'services.service.config.database.btn.idle': 'Test Connection',
+  'services.service.config.database.btn.connecting': 'Connecting...',
 
   'services.add.header':'Add Service Wizard',
   'services.reassign.header':'Move Master Wizard',

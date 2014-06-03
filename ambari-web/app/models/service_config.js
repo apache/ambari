@@ -170,6 +170,12 @@ App.ServiceConfigProperty = Ember.Object.extend({
   editDone: false, //Text field: on focusOut: true, on focusIn: false
   serviceValidator: null,
   isNotSaved: false, // user property was added but not saved
+  /**
+   * Usage example see on <code>App.ServiceConfigRadioButtons.handleDBConnectionProperty()</code>
+   *
+   * @property {Ember.View} additionalView - custom view related to property
+   **/
+  additionalView: null,
 
   /**
    * On Overridable property error message, change overrideErrorTrigger value to recount number of errors service have

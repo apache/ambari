@@ -161,6 +161,7 @@ require('test/views/main/charts/heatmap/heatmap_rack_test');
 require('test/views/main/service/info/config_test');
 require('test/views/main/mirroring/edit_dataset_view_test');
 require('test/views/common/configs/services_config_test');
+require('test/views/wizard/controls_view_test');
 require('test/views/wizard/step3/hostLogPopupBody_view_test');
 require('test/views/wizard/step3/hostWarningPopupBody_view_test');
 require('test/views/wizard/step3/hostWarningPopupFooter_view_test');

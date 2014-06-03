@@ -37,7 +37,8 @@ var InitialData =  {
   'ReassignMaster' : {},
   'AddSecurity': {},
   'HighAvailabilityWizard': {},
-  'RollbackHighAvailabilityWizard': {}
+  'RollbackHighAvailabilityWizard': {},
+  'tmp': {}
 
 };
 
@@ -73,6 +74,11 @@ App.db.cleanUp = function () {
   console.log("In cleanup./..");
   localStorage.setObject('ambari', App.db.data);
 };
+
+App.db.cleanTmp = function() {
+  App.db.data.tmp = {};
+  localStorage.setObject('ambari', App.db.data);
+}
 
 App.db.updateStorage = function() {
   App.db.data = localStorage.getObject('ambari');

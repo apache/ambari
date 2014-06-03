@@ -144,6 +144,9 @@
                             {{/if}}
                           </div>
                       </div>
+                    {{#if this.additionalView}}
+                      {{view additionalView}}
+                    {{/if}}
                   {{/each}}
 
                   {{! For Advanced, Advanced Core Site, Advanced HDFS Site sections, show the 'Add Property' link.}}

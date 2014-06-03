@@ -276,6 +276,25 @@ App.isEmptyObject = function(obj) {
   return empty;
 }
 /**
+ * Returns object with defined keys only.
+ *
+ * @memberof App
+ * @method permit
+ * @param {Object} obj - input object
+ * @param {String|Array} keys - allowed keys
+ * @return {Object}
+ */
+App.permit = function(obj, keys) {
+  var result = {};
+  if (typeof obj !== 'object' || App.isEmptyObject(obj)) return result;
+  if (typeof keys == 'string') keys = Array(keys);
+  keys.forEach(function(key) {
+    if (obj.hasOwnProperty(key))
+      result[key] = obj[key];
+  });
+  return result;
+};
+/**
  *
  * @namespace App
  * @namespace App.format

@@ -377,7 +377,7 @@ module.exports =
       "isObserved": true,
       "category": "Oozie Server",
       "serviceName": "OOZIE",
-      "index": 3
+      "index": 4
     },
     {
       "id": "site property",
@@ -387,7 +387,7 @@ module.exports =
       "displayType": "host",
       "category": "Oozie Server",
       "serviceName": "OOZIE",
-      "index": 4
+      "index": 5
     },
     {
       "id": "site property",
@@ -398,7 +398,7 @@ module.exports =
       "category": "Oozie Server",
       "serviceName": "OOZIE",
       "filename": "oozie-site.xml",
-      "index": 5
+      "index": 6
     },
     {
       "id": "site property",
@@ -407,7 +407,7 @@ module.exports =
       "isOverridable": false,
       "category": "Oozie Server",
       "serviceName": "OOZIE",
-      "index": 6
+      "index": 7
     },
     {
       "id": "site property",
@@ -417,7 +417,7 @@ module.exports =
       "displayType": "advanced",
       "category": "Oozie Server",
       "serviceName": "OOZIE",
-      "index": 7
+      "index": 8
     },
 
   /**********************************************hive-site***************************************/

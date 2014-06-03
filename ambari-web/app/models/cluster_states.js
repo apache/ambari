@@ -191,6 +191,7 @@ App.clusterStatus = Em.Object.create(App.UserPref, {
     var login = App.db.getLoginName();
     var val = {clusterName: this.get('clusterName')};
     if (newValue) {
+      App.db.cleanTmp();
       //setter
       if (newValue.clusterName) {
         this.set('clusterName', newValue.clusterName);
