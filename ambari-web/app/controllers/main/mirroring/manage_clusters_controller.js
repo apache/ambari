@@ -64,11 +64,6 @@ App.MainMirroringManageClustersController = Em.ArrayController.extend({
 
   selectedCluster: null,
 
-  // Disable input fields for already created clusters
-  isEditDisabled: function () {
-    return !this.get('clustersToCreate').mapProperty('name').contains(this.get('selectedCluster.name'));
-  }.property('selectedCluster.name', 'clustersToCreate.@each.name'),
-
   addCluster: function () {
     var self = this;
     var newClusterPopup = App.ModalPopup.show({

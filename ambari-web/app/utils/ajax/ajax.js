@@ -1841,7 +1841,7 @@ var urls = {
       return {
         contentType: 'text/xml',
         dataType: 'xml',
-        data: data.dataset,
+        data: data.entity,
         headers: {
           'AmbariProxy-Content-Type': 'text/xml'
         }

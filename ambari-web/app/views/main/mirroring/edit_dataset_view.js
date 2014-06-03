@@ -17,14 +17,17 @@
  */
 
 var App = require('app');
-var filters = require('views/common/filter_view');
-var sort = require('views/common/sort_view');
-var date = require('utils/date');
 
 App.MainMirroringEditDataSetView = Em.View.extend({
+
   name: 'mainMirroringEditDataSetView',
+
   templateName: require('templates/main/mirroring/edit_dataset'),
 
+  /**
+   * Defines if there are some target clusters defined
+   * @type {Boolean}
+   */
   hasTargetClusters: false,
 
   targetClusters: App.TargetCluster.find(),
@@ -46,6 +49,9 @@ App.MainMirroringEditDataSetView = Em.View.extend({
     }
   }),
 
+  /**
+   * Set <code>hasTargetClusters</code> after clustes load
+   */
   onTargetClustersChange: function () {
     if (this.get('isLoaded') && this.get('targetClusters.length') > 1) {
       this.set('hasTargetClusters', true);
@@ -71,9 +77,12 @@ App.MainMirroringEditDataSetView = Em.View.extend({
     App.router.get('mainMirroringController').manageClusters();
   },
 
+  /**
+   * Fill form input fields for selected dataset to edit
+   */
   fillForm: function () {
     var isEdit = this.get('controller.isEdit');
-    if (this.get('isLoaded')  && isEdit) {
+    if (this.get('isLoaded') && isEdit) {
       var controller = this.get('controller');
       var dataset = App.Dataset.find().findProperty('id', controller.get('datasetIdToEdit'));
       var scheduleStartDate = new Date(dataset.get('scheduleStartDate'));
