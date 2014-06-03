@@ -551,8 +551,9 @@ App.WizardStep7Controller = Em.Controller.extend({
       gangliaServerHost = this.get('wizardController').getDBProperty('masterComponentHosts').findProperty('component', 'GANGLIA_SERVER').hostName;
       dependentConfigs.forEach(function (configName) {
         var config = configs.findProperty('name', configName);
-        var replaceStr = '.jar=host=';
-        config.value = config.defaultValue = config.value.replace(replaceStr, replaceStr + gangliaServerHost);
+        var replaceStr = config.value.match(/.jar=host[^,]+/)[0];
+        var replaceWith = replaceStr.slice(0, replaceStr.lastIndexOf('=') - replaceStr.length + 1) + gangliaServerHost;
+        config.value = config.defaultValue = config.value.replace(replaceStr, replaceWith);
         config.forceUpdate = true;
       }, this);
     }
