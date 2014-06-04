@@ -36,7 +36,7 @@
     </td>
     <td>
       <span>
-        {{#view view.journalNodesLiveTextView}}
+        {{#view App.ComponentLiveTextView liveComponentsBinding="view.journalNodesLive" totalComponentsBinding="view.journalNodesTotal"}}
           {{view.liveComponents}}/{{view.totalComponents}}
         {{/view}}
       </span>

@@ -60,14 +60,13 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
     return this.get('service.journalNodes.length') > 0;
   }.property('service.journalNodes.length'),
 
-  journalNodesLiveTextView: App.ComponentLiveTextView.extend({
-    liveComponents: function () {
-      return this.get('service.journalNodes').filterProperty("workStatus", "STARTED").get("length");
-    }.property("service.journalNodes.@each.workStatus"),
-    totalComponents: function () {
-      return this.get('service.journalNodes.length');
-    }.property("service.journalNodes.length")
-  }),
+  journalNodesLive: function () {
+    return this.get('service.journalNodes').filterProperty("workStatus", "STARTED").get("length");
+  }.property("service.journalNodes.@each.workStatus"),
+
+  journalNodesTotal: function () {
+    return this.get('service.journalNodes').get("length");
+  }.property("service.journalNodes.length"),
 
   dfsTotalBlocks: function(){
     return this.formatUnavailable(this.get('service.dfsTotalBlocks'));
