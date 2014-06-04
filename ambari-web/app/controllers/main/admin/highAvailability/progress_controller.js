@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var installedComponents = [];
 
 App.HighAvailabilityProgressPageController = App.HighAvailabilityWizardController.extend({
 
@@ -252,31 +253,59 @@ App.HighAvailabilityProgressPageController = App.HighAvailabilityWizardControlle
     this.setTaskStatus(this.get('currentTaskId'), 'COMPLETED');
   },
 
+  /**
+   * check whether component installed on specified hosts
+   * @param componentName
+   * @param hostNames
+   * @return {Array}
+   */
+  checkInstalledComponents: function (componentName, hostNames) {
+    var result = [];
+
+    App.ajax.send({
+      name: 'host_component.installed.on_hosts',
+      sender: this,
+      data: {
+        componentName: componentName,
+        hostNames: hostNames.join(',')
+      },
+      success: 'checkInstalledComponentsSuccessCallback'
+    });
+    hostNames.forEach(function (hostName) {
+      result.push({
+        componentName: componentName,
+        hostName: hostName,
+        hasComponent: installedComponents.someProperty('HostRoles.host_name', hostName)
+      });
+    });
+    return result;
+  },
+
+  checkInstalledComponentsSuccessCallback: function (data, opt, params) {
+    installedComponents = data.items;
+  },
+
   createComponent: function (componentName, hostName) {
-    console.warn('func: createComponent');
-    if (!(hostName instanceof Array)) {
-      hostName = [hostName];
-    }
-    var hostComponents = [];
-    for (var i = 0; i < hostName.length; i++) {
-      hostComponents = App.HostComponent.find().filterProperty('componentName', componentName);
-      if (!hostComponents.length || !hostComponents.mapProperty('host.hostName').contains(hostName[i])) {
+    var hostNames = (Array.isArray(hostName)) ? hostName : [hostName];
+
+    this.checkInstalledComponents(componentName, hostNames).forEach(function (host, index, array) {
+      if (!host.hasComponent) {
         App.ajax.send({
           name: 'admin.high_availability.create_component',
           sender: this,
           data: {
-            hostName: hostName[i],
-            componentName: componentName,
-            taskNum: hostName.length
+            hostName: host.hostName,
+            componentName: host.componentName,
+            taskNum: array.length
           },
           success: 'onCreateComponent',
           error: 'onCreateComponentError'
         });
       } else {
         // Simulates format returned from ajax.send
-        this.onCreateComponent(null, null, {hostName: hostName[i], componentName: componentName, taskNum: hostName.length});
+        this.onCreateComponent(null, null, {hostName: host.hostName, componentName: host.componentName, taskNum: array.length});
       }
-    }
+    }, this)
   },
 
   onCreateComponent: function () {

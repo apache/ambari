@@ -80,26 +80,13 @@ App.HighAvailabilityWizardController = App.WizardController.extend({
    * Load confirmed hosts.
    * Will be used at <code>Assign Masters(step5)</code> step
    */
-  loadConfirmedHosts: function(){
+  loadConfirmedHosts: function () {
     var hosts = App.db.getHosts();
-    if(!hosts || !hosts.length){
-      var hosts = {};
 
-      App.Host.find().forEach(function(item){
-        hosts[item.get('id')] = {
-          name: item.get('id'),
-          cpu: item.get('cpu'),
-          memory: item.get('memory'),
-          disk_info: item.get('diskInfo'),
-          bootStatus: "REGISTERED",
-          isInstalled: true
-        };
-      });
-      App.db.setHosts(hosts);
+    if (hosts) {
+      this.set('content.hosts', hosts);
+      console.log('ReassignMasterController.loadConfirmedHosts: loaded hosts', hosts);
     }
-
-    this.set('content.hosts', hosts);
-    console.log('ReassignMasterController.loadConfirmedHosts: loaded hosts', hosts);
   },
   /**
    * save status of the cluster.

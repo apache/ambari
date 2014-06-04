@@ -20,8 +20,9 @@ var App = require('app');
 
 App.MainAdminSecurityAddStep3View = Em.View.extend({
   templateName: require('templates/main/admin/security/add/step3'),
-  didInsertElement: function(){
-    this.get('controller').loadStep();
+  didInsertElement: function() {
+    this.set('controller.isLoaded', false);
+    this.get('controller').loadHosts();
   }
 });
 

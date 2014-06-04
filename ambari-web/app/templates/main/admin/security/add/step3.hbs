@@ -18,32 +18,37 @@
 
 <h2>{{t admin.security.step3.header}}</h2>
 <div class="alert alert-info">{{t admin.security.step3.notice}}</div>
-<div class="step3">
-    <table class="table table-bordered table-striped">
-        <thead>
-        <tr>
-            <th>{{t common.host}}</th>
-            <th>{{t common.component}}</th>
-            <th>{{t admin.security.step3.table.principal}}</th>
-            <th>{{t admin.security.step3.table.keytab}}</th>
-        </tr>
-        </thead>
-        <tbody>
-        {{#each hostComponent in hostComponents}}
+{{#if isLoaded}}
+    <div class="step3">
+        <table class="table table-bordered table-striped">
+            <thead>
             <tr>
-                <td>{{hostComponent.host}}</td>
-                <td>{{hostComponent.component}}</td>
-                <td>{{hostComponent.principal}}</td>
-                <td>{{hostComponent.keytab}}</td>
+                <th>{{t common.host}}</th>
+                <th>{{t common.component}}</th>
+                <th>{{t admin.security.step3.table.principal}}</th>
+                <th>{{t admin.security.step3.table.keytab}}</th>
             </tr>
-        {{/each}}
-        </tbody>
-    </table>
-</div>
-<div class="btn-area">
-    <a class="btn" {{action back}}>&larr; {{t common.back}}</a>
-    <div class="pull-right">
-        <button class="btn btn-info" {{action doDownloadCsv target="controller"}}>{{t admin.security.step3.downloadCSV}}</button>
-        <button class="btn btn-success" {{bindAttr disabled="isSubmitDisabled"}} {{action next}}>{{t common.apply}} &rarr;</button>
+            </thead>
+            <tbody>
+            {{#each hostComponent in hostComponents}}
+                <tr>
+                    <td>{{hostComponent.host}}</td>
+                    <td>{{hostComponent.component}}</td>
+                    <td>{{hostComponent.principal}}</td>
+                    <td>{{hostComponent.keytab}}</td>
+                </tr>
+            {{/each}}
+            </tbody>
+        </table>
     </div>
-</div>
+    <div class="btn-area">
+        <a class="btn" {{action back}}>&larr; {{t common.back}}</a>
+
+        <div class="pull-right">
+            <button class="btn btn-info" {{action doDownloadCsv target="controller"}}>{{t admin.security.step3.downloadCSV}}</button>
+            <button class="btn btn-success" {{bindAttr disabled="isSubmitDisabled"}} {{action next}}>{{t common.apply}} &rarr;</button>
+        </div>
+    </div>
+{{else}}
+    <div class="spinner"></div>
+{{/if}}

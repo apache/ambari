@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var totalHosts = 0;
 
 App.MainAdminHighAvailabilityController = Em.Controller.extend({
   name: 'mainAdminHighAvailabilityController',
@@ -39,14 +40,14 @@ App.MainAdminHighAvailabilityController = Em.Controller.extend({
       this.showErrorPopup(Em.I18n.t('admin.highAvailability.error.security'));
       return false;
     } else {
-      if (hostComponents.findProperty('componentName', 'NAMENODE').get('workStatus') !== 'STARTED') {
+     if (hostComponents.findProperty('componentName', 'NAMENODE').get('workStatus') !== 'STARTED') {
         message.push(Em.I18n.t('admin.highAvailability.error.namenodeStarted'));
       }
       if (hostComponents.filterProperty('componentName', 'ZOOKEEPER_SERVER').length < 3) {
         message.push(Em.I18n.t('admin.highAvailability.error.zooKeeperNum'));
       }
 
-      if (App.Host.find().content.length < 3) {
+      if (this.getTotalHosts() < 3) {
         message.push(Em.I18n.t('admin.highAvailability.error.hostsNum'));
       }
       if (message.length > 0) {
@@ -56,6 +57,24 @@ App.MainAdminHighAvailabilityController = Em.Controller.extend({
     }
     App.router.transitionTo('enableHighAvailability');
     return true;
+  },
+
+  /**
+   * get total hosts count from cluster API
+   * @return {Number}
+   */
+  getTotalHosts: function () {
+    App.ajax.send({
+      name: 'hosts.total_count',
+      data: {},
+      sender: this,
+      success: 'getTotalHostsSuccessCallback'
+    });
+    return totalHosts;
+  },
+
+  getTotalHostsSuccessCallback: function (data, opt, params) {
+    totalHosts = data.Clusters.total_hosts;
   },
 
   disableHighAvailability: function () {

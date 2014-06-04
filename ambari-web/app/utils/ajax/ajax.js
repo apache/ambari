@@ -2184,6 +2184,32 @@ var urls = {
         taskId: data.taskId || ''
       }
     }
+  },
+  'hosts.total_count': {
+    'real': '/clusters/{clusterName}?fields=Clusters/total_hosts&minimal_response=true',
+    'mock': '',
+    'format': function() {
+      return {
+        async: false
+      }
+    }
+  },
+  'hosts.high_availability.wizard': {
+    'real': '/clusters/{clusterName}/hosts?fields=Hosts/cpu_count,Hosts/disk_info,Hosts/total_mem&minimal_response=true',
+    'mock': ''
+  },
+  'hosts.security.wizard': {
+    'real': '/clusters/{clusterName}/hosts?fields=host_components/HostRoles/service_name&minimal_response=true',
+    'mock': ''
+  },
+  'host_component.installed.on_hosts': {
+    'real': '/clusters/{clusterName}/host_components?HostRoles/component_name={componentName}&HostRoles/host_name.in({hostNames})&fields=HostRoles/host_name&minimal_response=true',
+    'mock': '',
+    'format': function() {
+      return {
+        async: false
+      }
+    }
   }
 };
 /**

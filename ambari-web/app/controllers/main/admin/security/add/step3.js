@@ -22,6 +22,8 @@ var stringUtils = require('utils/string_utils');
 App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
   name: 'mainAdminSecurityAddStep3Controller',
   hostComponents: [],
+  hosts: [],
+  isLoaded: false,
 
   componentToUserMap: {
     'NAMENODE': 'hdfs_user',
@@ -167,10 +169,53 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
   },
 
   /**
+   * load hosts from server
+   */
+  loadHosts: function () {
+    App.ajax.send({
+      name: 'hosts.security.wizard',
+      sender: this,
+      data: {},
+      error: 'loadHostsErrorCallback',
+      success: 'loadHostsSuccessCallback'
+    })
+  },
+
+  loadHostsSuccessCallback: function (data, opt, params) {
+    var hosts = [];
+
+    data.items.forEach(function (item) {
+      var hostComponents = [];
+
+      item.host_components.forEach(function (hostComponent) {
+        hostComponents.push(Em.Object.create({
+          componentName: hostComponent.HostRoles.component_name,
+          service: Em.Object.create({
+            serviceName: hostComponent.HostRoles.service_name
+          }),
+          displayName: App.format.role(hostComponent.HostRoles.component_name)
+        }));
+      });
+      hosts.push(Em.Object.create({
+        hostName: item.Hosts.host_name,
+        hostComponents: hostComponents
+      }));
+    });
+    this.set('isLoaded', true);
+    this.set('hosts', hosts);
+    this.loadStep();
+  },
+  loadHostsErrorCallback: function () {
+    this.set('isLoaded', true);
+    this.set('hosts', []);
+    this.loadStep();
+  },
+
+  /**
    * load step info
    */
   loadStep: function () {
-    var hosts = App.Host.find();
+    var hosts = this.get('hosts');
     var result = [];
     var securityUsers = this.getSecurityUsers();
     var hadoopGroupId = securityUsers.findProperty('name', 'user_group').value;
