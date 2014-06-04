@@ -21,25 +21,34 @@ App.serviceMapper = App.QuickDataMapper.create({
   map: function (json) {
     console.time("App.serviceMapper execution time");
 
-    var servicesData = [];
     json.items.forEach(function (service) {
-      var serviceData = {
-        ServiceInfo: {
-          service_name: service.ServiceInfo.service_name,
-          state: service.ServiceInfo.state,
-          passive_state: service.ServiceInfo.maintenance_state
-        },
-        host_components: [],
-        components: []
-      };
-      //check whether Nagios installed and started
-      if (service.alerts) {
-        serviceData.ServiceInfo.critical_alerts_count = service.alerts.summary.CRITICAL + service.alerts.summary.WARNING;
-      }
-      servicesData.push(serviceData);
-    });
+      var cachedService = App.cache['services'].findProperty('ServiceInfo.service_name', service.ServiceInfo.service_name);
+      if (cachedService) {
+        cachedService.ServiceInfo.state = service.ServiceInfo.state;
+        cachedService.ServiceInfo.passive_state = service.ServiceInfo.maintenance_state;
 
-    App.cache['services'] = servicesData;
+        //check whether Nagios installed and started
+        if (service.alerts) {
+          cachedService.ServiceInfo.critical_alerts_count = service.alerts.summary.CRITICAL + service.alerts.summary.WARNING;
+        }
+      } else {
+        var serviceData = {
+          ServiceInfo: {
+            service_name: service.ServiceInfo.service_name,
+            state: service.ServiceInfo.state,
+            passive_state: service.ServiceInfo.maintenance_state
+          },
+          host_components: [],
+          components: []
+        };
+
+        //check whether Nagios installed and started
+        if (service.alerts) {
+          serviceData.ServiceInfo.critical_alerts_count = service.alerts.summary.CRITICAL + service.alerts.summary.WARNING;
+        }
+        App.cache['services'].push(serviceData);
+      }
+    });
 
     console.timeEnd("App.serviceMapper execution time");
   }
