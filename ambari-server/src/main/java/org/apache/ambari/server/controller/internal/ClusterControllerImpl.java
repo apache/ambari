@@ -535,6 +535,23 @@ public class ClusterControllerImpl implements ClusterController {
   }
 
   /**
+   * Evaluate the predicate and create a list of filtered resources
+   *
+   * @param resourceIterable @ResourceIterable
+   * @return @NavigableSet of filtered resources
+   */
+  private LinkedList<Resource> getEvaluatedResources(ResourceIterable
+                                              resourceIterable) {
+    LinkedList<Resource> resources = new LinkedList<Resource>();
+    if (resourceIterable != null) {
+      for (Resource resource : resourceIterable) {
+        resources.add(resource);
+      }
+    }
+    return resources;
+  }
+
+  /**
    * Get one page of resources from the given set of resources starting at the given offset.
    *
    * @param pageSize   the page size
@@ -549,10 +566,12 @@ public class ClusterControllerImpl implements ClusterController {
                                          Predicate predicate,
                                          ResourcePredicateEvaluator evaluator) {
 
-    int                currentOffset = 0;
-    Resource           previous      = null;
-    Set<Resource>      pageResources = new LinkedHashSet<Resource>();
-    Iterator<Resource> iterator      = resources.iterator();
+    int currentOffset = 0;
+    Resource previous      = null;
+    Set<Resource> pageResources = new LinkedHashSet<Resource>();
+    LinkedList<Resource> filteredResources =
+      getEvaluatedResources(new ResourceIterable(resources, predicate, evaluator));
+    Iterator<Resource> iterator = filteredResources.iterator();
 
     // skip till offset
     while (currentOffset < offset && iterator.hasNext()) {
@@ -565,12 +584,11 @@ public class ClusterControllerImpl implements ClusterController {
       pageResources.add(iterator.next());
     }
 
-    return new PageResponseImpl(new ResourceIterable(pageResources,
-        predicate, evaluator),
+    return new PageResponseImpl(pageResources,
         currentOffset,
         previous,
         iterator.hasNext() ? iterator.next() : null,
-        resources.size()
+        filteredResources.size()
       );
   }
 
@@ -592,7 +610,9 @@ public class ClusterControllerImpl implements ClusterController {
     int                currentOffset = resources.size() - 1;
     Resource           next          = null;
     List<Resource>     pageResources = new LinkedList<Resource>();
-    Iterator<Resource> iterator      = resources.descendingIterator();
+    LinkedList<Resource> filteredResources =
+      getEvaluatedResources(new ResourceIterable(resources, predicate, evaluator));
+    Iterator<Resource> iterator = filteredResources.descendingIterator();
 
     if (offset != -1) {
       // skip till offset
@@ -608,12 +628,11 @@ public class ClusterControllerImpl implements ClusterController {
       --currentOffset;
     }
 
-    return new PageResponseImpl(new ResourceIterable(new
-        LinkedHashSet<Resource>(pageResources), predicate, evaluator),
+    return new PageResponseImpl(pageResources,
         currentOffset + 1,
         iterator.hasNext() ? iterator.next() : null,
         next,
-        resources.size()
+        filteredResources.size()
       );
   }
 

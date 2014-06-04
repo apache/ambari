@@ -151,6 +151,8 @@ public class ClusterControllerImplTest {
     Assert.assertEquals(Resource.Type.Host, list.get(0).getType());
     Assert.assertEquals("host:1", (String) list.get(1).getPropertyValue(PropertyHelper.getPropertyId("Hosts", "host_name")));
     Assert.assertEquals(Resource.Type.Host, list.get(1).getType());
+    //total hosts created in TestHostResourceProvider, not only on this page
+    Assert.assertEquals(4, pageResponse.getTotalResourceCount().intValue());
 
     // get the first three
     pageRequest = new PageRequestImpl(PageRequest.StartingPoint.Beginning, 3, 0, null, null);
@@ -169,6 +171,8 @@ public class ClusterControllerImplTest {
     Assert.assertEquals(Resource.Type.Host, list.get(1).getType());
     Assert.assertEquals("host:2", (String) list.get(2).getPropertyValue(PropertyHelper.getPropertyId("Hosts", "host_name")));
     Assert.assertEquals(Resource.Type.Host, list.get(2).getType());
+    //total hosts created in TestHostResourceProvider, not only on this page
+    Assert.assertEquals(4, pageResponse.getTotalResourceCount().intValue());
   }
 
   @Test
@@ -287,6 +291,8 @@ public class ClusterControllerImplTest {
     Assert.assertEquals(Resource.Type.Host, list.get(0).getType());
     Assert.assertEquals("host:2", (String) list.get(1).getPropertyValue(PropertyHelper.getPropertyId("Hosts", "host_name")));
     Assert.assertEquals(Resource.Type.Host, list.get(1).getType());
+    //total hosts created in TestHostResourceProvider, not only on this page
+    Assert.assertEquals(4, pageResponse.getTotalResourceCount().intValue());
 
     // get the last three (0 - 2)
     pageRequest = new PageRequestImpl(PageRequest.StartingPoint.OffsetStart, 3, 0, null, null);
@@ -336,6 +342,8 @@ public class ClusterControllerImplTest {
     Assert.assertEquals(Resource.Type.Host, list.get(0).getType());
     Assert.assertEquals("host:3", (String) list.get(1).getPropertyValue(PropertyHelper.getPropertyId("Hosts", "host_name")));
     Assert.assertEquals(Resource.Type.Host, list.get(1).getType());
+    //total hosts created in TestHostResourceProvider, not only on this page
+    Assert.assertEquals(4, pageResponse.getTotalResourceCount().intValue());
 
     // get the last three
     pageRequest = new PageRequestImpl(PageRequest.StartingPoint.End, 3, 0, null, null);
@@ -373,6 +381,8 @@ public class ClusterControllerImplTest {
     Assert.assertEquals(1, pageResponse.getOffset());
     Assert.assertEquals("host:0", pageResponse.getPreviousResource().getPropertyValue(PropertyHelper.getPropertyId("Hosts", "host_name")));
     Assert.assertEquals("host:3", pageResponse.getNextResource().getPropertyValue(PropertyHelper.getPropertyId("Hosts", "host_name")));
+    //total hosts created in TestHostResourceProvider, not only on this page
+    Assert.assertEquals(4, pageResponse.getTotalResourceCount().intValue());
 
     Iterable<Resource> iterable = pageResponse.getIterable();
     List<Resource> list = new LinkedList<Resource>();
@@ -524,6 +534,63 @@ public class ClusterControllerImplTest {
     } catch (UnsupportedPropertyException e) {
       // Expected
     }
+  }
+
+  @Test
+  public void testGetResourcesSortedWithPredicateWithItemsTotal() throws Exception{
+
+    ClusterControllerImpl controller =
+      new ClusterControllerImpl(new TestProviderModule());
+
+    Set<String> propertyIds = new HashSet<String>();
+
+    Request request = PropertyHelper.getReadRequest(propertyIds);
+
+    Predicate predicate =
+      new PredicateBuilder().property("c1/p2").equals(1).toPredicate();
+    List<SortRequestProperty> sortRequestProperties = Collections.singletonList(
+      new SortRequestProperty("Hosts/host_name", SortRequest.Order.DESC));
+    SortRequest sortRequest = new SortRequestImpl(sortRequestProperties);
+
+    // get the first one
+    PageRequest pageRequest =
+      new PageRequestImpl(PageRequest.StartingPoint.Beginning, 1, 0, null, null);
+    PageResponse pageResponse =
+      controller.getResources(Resource.Type.Host, request, predicate, pageRequest, sortRequest);
+
+    Iterable<Resource> iterable = pageResponse.getIterable();
+    List<Resource> list = new LinkedList<Resource>();
+
+    for (Resource resource : iterable) {
+      list.add(resource);
+    }
+    Assert.assertEquals(1, list.size());
+    //total hosts after applying the filter, not only on this page
+    Assert.assertEquals(2, pageResponse.getTotalResourceCount().intValue());
+    // DESC sorted
+    Assert.assertEquals("host:3", (String) list.get(0).getPropertyValue(
+      PropertyHelper.getPropertyId("Hosts", "host_name")));
+    Assert.assertEquals(Resource.Type.Host, list.get(0).getType());
+
+    pageRequest =
+      new PageRequestImpl(PageRequest.StartingPoint.OffsetStart, 1, 1, null, null);
+    pageResponse = controller.getResources(
+      Resource.Type.Host, request, predicate, pageRequest, sortRequest);
+
+    iterable = pageResponse.getIterable();
+    list.clear();
+
+    for (Resource resource : iterable) {
+      list.add(resource);
+    }
+    Assert.assertEquals(1, list.size());
+    //total hosts after applying the filter, not only on this page
+    Assert.assertEquals(2, pageResponse.getTotalResourceCount().intValue());
+    // DESC sorted
+    Assert.assertEquals("host:1", (String) list.get(0).getPropertyValue(
+      PropertyHelper.getPropertyId("Hosts", "host_name")));
+    Assert.assertEquals(Resource.Type.Host, list.get(0).getType());
+
   }
 
   @Test
