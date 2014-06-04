@@ -20,6 +20,8 @@ limitations under the License.
 from mock.mock import MagicMock, call, patch
 from stacks.utils.RMFTestCase import *
 
+import socket
+
 class TestHiveServer(RMFTestCase):
 
   def test_configure_default(self):
@@ -45,7 +47,10 @@ class TestHiveServer(RMFTestCase):
     )
     self.assertNoMoreResources()
   
-  def test_start_default(self):
+  @patch("socket.socket")
+  def test_start_default(self, socket_mock):
+    s = socket_mock.return_value
+    
     self.executeScript("1.3.2/services/HIVE/package/scripts/hive_server.py",
                          classname = "HiveServer",
                          command = "start",
@@ -76,9 +81,12 @@ class TestHiveServer(RMFTestCase):
                               path=['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin']
     )
 
-    self.assertNoMoreResources()
+    self.assertNoMoreResources()    
+    self.assertTrue(socket_mock.called)
+    self.assertTrue(s.close.called)
 
-  def test_stop_default(self):
+  @patch("socket.socket")
+  def test_stop_default(self, socket_mock):
     self.executeScript("1.3.2/services/HIVE/package/scripts/hive_server.py",
                        classname = "HiveServer",
                        command = "stop",
@@ -88,9 +96,10 @@ class TestHiveServer(RMFTestCase):
     self.assertResourceCalled('Execute', 'kill `cat /var/run/hive/hive-server.pid` >/dev/null 2>&1 && rm -f /var/run/hive/hive-server.pid',
                               not_if = '! (ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps `cat /var/run/hive/hive-server.pid` >/dev/null 2>&1)'
     )
-    self.assertNoMoreResources()
-
     
+    self.assertNoMoreResources()
+    self.assertFalse(socket_mock.called)
+
   def test_configure_secured(self):
     self.executeScript("1.3.2/services/HIVE/package/scripts/hive_server.py",
                        classname = "HiveServer",
@@ -114,7 +123,10 @@ class TestHiveServer(RMFTestCase):
     )
     self.assertNoMoreResources()
 
-  def test_start_secured(self):
+  @patch("socket.socket")
+  def test_start_secured(self, socket_mock):
+    s = socket_mock.return_value
+    
     self.executeScript("1.3.2/services/HIVE/package/scripts/hive_server.py",
                        classname = "HiveServer",
                        command = "start",
@@ -146,8 +158,11 @@ class TestHiveServer(RMFTestCase):
     )
 
     self.assertNoMoreResources()
+    self.assertTrue(socket_mock.called)    
+    self.assertTrue(s.close.called)
 
-  def test_stop_secured(self):
+  @patch("socket.socket")
+  def test_stop_secured(self, socket_mock):
     self.executeScript("1.3.2/services/HIVE/package/scripts/hive_server.py",
                        classname = "HiveServer",
                        command = "stop",
@@ -157,7 +172,9 @@ class TestHiveServer(RMFTestCase):
     self.assertResourceCalled('Execute', 'kill `cat /var/run/hive/hive-server.pid` >/dev/null 2>&1 && rm -f /var/run/hive/hive-server.pid',
                               not_if = '! (ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps `cat /var/run/hive/hive-server.pid` >/dev/null 2>&1)'
     )
+    
     self.assertNoMoreResources()
+    self.assertFalse(socket_mock.called)
 
   def assert_configure_default(self):
     self.assertResourceCalled('HdfsDirectory', '/apps/hive/warehouse',
@@ -331,3 +348,24 @@ class TestHiveServer(RMFTestCase):
       group = 'hadoop',
     )
 
+  @patch("time.time")
+  @patch("socket.socket")
+  def test_socket_timeout(self, socket_mock, time_mock):        
+    s = socket_mock.return_value
+    s.connect = MagicMock()    
+    s.connect.side_effect = socket.error("")
+    
+    time_mock.side_effect = [0, 1000, 2000, 3000, 4000]
+    
+    try:
+      self.executeScript("1.3.2/services/HIVE/package/scripts/hive_server.py",
+                           classname = "HiveServer",
+                           command = "start",
+                           config_file="default.json"
+      )
+      
+      self.fail("Script failure due to socket error was expected")
+    except:
+      self.assert_configure_default()
+      self.assertTrue(socket_mock.called)
+      self.assertTrue(s.close.called)    
