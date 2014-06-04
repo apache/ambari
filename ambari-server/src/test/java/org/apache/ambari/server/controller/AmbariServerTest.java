@@ -18,10 +18,15 @@
 
 package org.apache.ambari.server.controller;
 
-import com.google.inject.Guice;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.junit.Assert.fail;
+
+import java.net.Authenticator;
+import java.net.InetAddress;
+import java.net.PasswordAuthentication;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
@@ -29,15 +34,16 @@ import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
 import org.apache.ambari.server.orm.entities.MetainfoEntity;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
-import static org.easymock.EasyMock.*;
-import static org.junit.Assert.fail;
+import com.google.inject.Guice;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
 
 public class AmbariServerTest {
 
@@ -93,6 +99,26 @@ public class AmbariServerTest {
     } catch(AmbariException e) {
       // Expected
     }
+  }
+  
+  @Test
+  public void testProxyUser() throws Exception {
+    
+    PasswordAuthentication pa = Authenticator.requestPasswordAuthentication(
+        InetAddress.getLocalHost(), 80, null, null, null);
+    Assert.assertNull(pa);
+    
+    System.setProperty("http.proxyUser", "abc");
+    System.setProperty("http.proxyPassword", "def");
+    
+    AmbariServer.setupProxyAuth();
+
+    pa = Authenticator.requestPasswordAuthentication(
+        InetAddress.getLocalHost(), 80, null, null, null);
+    Assert.assertNotNull(pa);
+    Assert.assertEquals("abc", pa.getUserName());
+    Assert.assertArrayEquals("def".toCharArray(), pa.getPassword());
+
   }
 
 

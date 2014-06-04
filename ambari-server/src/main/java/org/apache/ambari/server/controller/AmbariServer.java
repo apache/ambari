@@ -20,12 +20,13 @@ package org.apache.ambari.server.controller;
 
 
 import java.io.File;
+import java.net.Authenticator;
 import java.net.BindException;
+import java.net.PasswordAuthentication;
 import java.util.Map;
 
 import javax.crypto.BadPaddingException;
 
-import com.google.inject.name.Named;
 import org.apache.ambari.eventdb.webservice.WorkflowJsonService;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
@@ -97,6 +98,7 @@ import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
+import com.google.inject.name.Named;
 import com.google.inject.persist.Transactional;
 import com.sun.jersey.spi.container.servlet.ServletContainer;
 
@@ -490,7 +492,7 @@ public class AmbariServer {
 
     LOG.info("DB store version is compatible");
   }
-
+  
   public void stop() throws Exception {
     try {
       server.stop();
@@ -523,6 +525,32 @@ public class AmbariServer {
     ClusterResourceProvider.init(injector.getInstance(BlueprintDAO.class), ambariMetaInfo);
     ViewRegistry.init(injector.getInstance(ViewDAO.class), injector.getInstance(ViewInstanceDAO.class));
   }
+  
+  /**
+   * Sets up proxy authentication.  This must be done before the server is
+   * initialized since <code>AmbariMetaInfo</code> requires potential URL
+   * lookups that may need the proxy.
+   */
+  static void setupProxyAuth() {
+    final String proxyUser = System.getProperty("http.proxyUser");
+    final String proxyPass = System.getProperty("http.proxyPassword");
+    
+    // to skip some hosts from proxy, pipe-separate names using, i.e.:
+    // -Dhttp.nonProxyHosts=*.domain.com|host.internal.net
+    
+    if (null != proxyUser && null != proxyPass) {
+      LOG.info("Proxy authentication enabled");
+      
+      Authenticator.setDefault(new Authenticator() {
+        @Override
+        protected PasswordAuthentication getPasswordAuthentication() {
+          return new PasswordAuthentication(proxyUser, proxyPass.toCharArray());
+        }
+      });
+    } else {
+      LOG.debug("Proxy authentication not specified");
+    }
+  }  
 
   public static void main(String[] args) throws Exception {
     Injector injector = Guice.createInjector(new ControllerModule());
@@ -530,6 +558,9 @@ public class AmbariServer {
     AmbariServer server = null;
     try {
       LOG.info("Getting the controller");
+
+      setupProxyAuth();
+      
       injector.getInstance(GuiceJpaInitializer.class);
       server = injector.getInstance(AmbariServer.class);
       CertificateManager certMan = injector.getInstance(CertificateManager.class);
