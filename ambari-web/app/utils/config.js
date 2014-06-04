@@ -199,7 +199,7 @@ App.config = Em.Object.create({
   },
   /**
    * calculate config properties:
-   * category, filename, isRequired, isUserProperty
+   * category, filename, isUserProperty, description   
    * @param config
    * @param isAdvanced
    * @param advancedConfigs
@@ -212,9 +212,13 @@ App.config = Em.Object.create({
         if (!isAdvanced) config.isUserProperty = true;
       }
     } else {
+      var advancedProperty = null;
+      if( isAdvanced ){
+        advancedProperty = advancedConfigs.findProperty('name', config.name);
+      }
+
       config.category = config.category ? config.category : 'Advanced';
-      config.description = isAdvanced && advancedConfigs.findProperty('name', config.name).description;
-      config.isRequired = true;
+      config.description = isAdvanced && advancedProperty.description;
     }
   },
 
@@ -286,6 +290,7 @@ App.config = Em.Object.create({
           filename: filename,
           isUserProperty: false,
           isOverridable: true,
+          isRequired: true,
           showLabel: true,
           serviceName: serviceName,
           belongsToService: []
@@ -294,6 +299,7 @@ App.config = Em.Object.create({
         if (configsPropertyDef) {
           this.setServiceConfigUiAttributes(serviceConfigObj, configsPropertyDef);
         }
+        
         if (_tag.siteName === 'global') {
           if (configsPropertyDef) {
             if (configsPropertyDef.isRequiredByAgent === false) {
@@ -313,8 +319,10 @@ App.config = Em.Object.create({
           if (!configsPropertyDef) {
             serviceConfigObj.displayType = stringUtils.isSingleLine(serviceConfigObj.value) ? 'advanced' : 'multiLine';
           }
+
           serviceConfigObj.displayName = configsPropertyDef ? configsPropertyDef.displayName : index;
           this.calculateConfigProperties(serviceConfigObj, isAdvanced, advancedConfigs);
+          
           if(serviceConfigObj.get('displayType') == 'directories'
             && (serviceConfigObj.get('category') == 'DataNode'
             || serviceConfigObj.get('category') == 'NameNode')) {
@@ -322,12 +330,14 @@ App.config = Em.Object.create({
             serviceConfigObj.set('value', dirs.join(','));
             serviceConfigObj.set('defaultValue', dirs.join(','));
           }
+          
           if(serviceConfigObj.get('displayType') == 'directory'
             && serviceConfigObj.get('category') == 'SNameNode') {
             var dirs = serviceConfigObj.get('value').split(',').sort();
             serviceConfigObj.set('value', dirs[0]);
             serviceConfigObj.set('defaultValue', dirs[0]);
           }
+          
           if (serviceConfigObj.get('displayType') == 'masterHosts') {
             if (typeof(serviceConfigObj.get('value')) == 'string') {
               var value = serviceConfigObj.get('value').replace(/\[|]|'|&apos;/g, "").split(',');
@@ -439,6 +449,7 @@ App.config = Em.Object.create({
       if (storedCfgs.length <= 1 && preDefinedCfgs.length <= 1) {
         var stored = storedCfgs[0];
         var preDefined = preDefinedCfgs[0];
+        
         if (preDefined && stored) {
           configData = preDefined;
           configData.value = stored.value;
@@ -447,10 +458,10 @@ App.config = Em.Object.create({
           configData.filename = stored.filename;
           configData.description = stored.description;
           configData.isVisible = stored.isVisible;
+          configData.isRequired = (configData.isRequired !== undefined) ? configData.isRequired : true;
           configData.isRequiredByAgent = (configData.isRequiredByAgent !== undefined) ? configData.isRequiredByAgent : true;
           configData.showLabel = stored.showLabel !== false;
         } else if (!preDefined && stored) {
-
           configData = {
             id: stored.id,
             name: stored.name,
@@ -468,6 +479,7 @@ App.config = Em.Object.create({
             isVisible: stored.isVisible,
             showLabel: stored.showLabel !== false
           };
+          
           this.calculateConfigProperties(configData, isAdvanced, advancedConfigs);
         } else if (preDefined && !stored) {
           configData = preDefined;
@@ -477,10 +489,12 @@ App.config = Em.Object.create({
             this.setPropertyFromStack(configData,advanced);
           }
         }
+        
         if (configData.displayType === 'checkbox') {
           configData.value = configData.value === 'true'; // convert {String} value to {Boolean}
           configData.defaultValue = configData.value;
         }
+      
         mergedConfigs.push(configData);
       } else {
         preDefinedCfgs.forEach(function (cfg) {
