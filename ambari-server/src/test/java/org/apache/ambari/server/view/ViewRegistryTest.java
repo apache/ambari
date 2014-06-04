@@ -225,7 +225,7 @@ public class ViewRegistryTest {
     Capture<ViewEntity> captureViewEntity = new Capture<ViewEntity>();
 
     expect(vDAO.findByName("MY_VIEW{1.0.0}")).andReturn(null);
-    vDAO.create(capture(captureViewEntity));
+    expect(vDAO.merge(capture(captureViewEntity))).andReturn(null);
 
     expect(vDAO.findAll()).andReturn(Collections.<ViewEntity>emptyList());
 
@@ -334,8 +334,7 @@ public class ViewRegistryTest {
     Capture<ViewEntity> captureViewEntity = new Capture<ViewEntity>();
 
     expect(vDAO.findByName("MY_VIEW{1.0.0}")).andReturn(null);
-    vDAO.create(capture(captureViewEntity));
-    expectLastCall().andThrow(new IllegalArgumentException("Expected exception."));
+    expect(vDAO.merge(capture(captureViewEntity))).andThrow(new IllegalArgumentException("Expected exception."));
 
     expect(vDAO.findAll()).andReturn(Collections.<ViewEntity>emptyList());
 
@@ -471,7 +470,7 @@ public class ViewRegistryTest {
     ViewEntity viewEntity = getViewEntity(config, ambariConfig, getClass().getClassLoader(), "");
     ViewInstanceEntity viewInstanceEntity = getViewInstanceEntity(viewEntity, config.getInstances().get(0));
 
-    viewInstanceDAO.create(viewInstanceEntity);
+    expect(viewInstanceDAO.merge(viewInstanceEntity)).andReturn(null);
 
     replay(viewDAO, viewInstanceDAO);
 
@@ -570,7 +569,7 @@ public class ViewRegistryTest {
     ViewInstanceEntity viewInstanceEntity = getViewInstanceEntity(viewEntity, config.getInstances().get(0));
     ViewInstanceEntity updateInstance = getViewInstanceEntity(viewEntity, config.getInstances().get(0));
 
-    viewInstanceDAO.create(viewInstanceEntity);
+    expect(viewInstanceDAO.merge(viewInstanceEntity)).andReturn(null);
     expect(viewInstanceDAO.merge(viewInstanceEntity)).andReturn(viewInstanceEntity);
 
     replay(viewDAO, viewInstanceDAO);
@@ -610,7 +609,7 @@ public class ViewRegistryTest {
     ViewInstanceEntity viewInstanceEntity = getViewInstanceEntity(viewEntity, config.getInstances().get(0));
     ViewInstanceEntity updateInstance = getViewInstanceEntity(viewEntity, invalidConfig.getInstances().get(0));
 
-    viewInstanceDAO.create(viewInstanceEntity);
+    expect(viewInstanceDAO.merge(viewInstanceEntity)).andReturn(null);
 
     replay(viewDAO, viewInstanceDAO);
 
