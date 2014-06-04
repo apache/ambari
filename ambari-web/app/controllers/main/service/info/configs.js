@@ -922,6 +922,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
           unknownHosts: unknownHosts,
           unknownComponentCount: unknownComponentCount,
           siteProperties: value,
+          isLoaded: true,
           getDisplayMessage: function () {
             var displayMsg = [];
             var siteProperties = this.get('siteProperties');
