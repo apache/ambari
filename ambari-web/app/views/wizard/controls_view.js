@@ -735,6 +735,14 @@ App.CheckDBConnectionView = Ember.View.extend({
       db_connection_url: /jdbc\.url|connectionurl/ig
     }
   }.property(),
+  /** @property {String} masterHostName - host name location of Master Component related to Service **/
+  masterHostName: function() {
+    var serviceMasterMap = {
+      'OOZIE': 'oozieserver_host',
+      'HIVE': 'hivemetastore_host'
+    };
+    return this.get('parentView.categoryConfigsAll').findProperty('name', serviceMasterMap[this.get('parentView.service.serviceName')]).get('value');
+  }.property(),
   /** @property {Object} connectionProperties - service specific config values mapped for custom action request **/
   connectionProperties: function() {
     var propObj = {};
@@ -848,7 +856,6 @@ App.CheckDBConnectionView = Ember.View.extend({
    * @method createCustomAction
    **/
   createCustomAction: function() {
-    var databaseHost = this.get('parentView.categoryConfigsAll').findProperty('name', this.get('hostNameProperty')).get('value');
     var params = $.extend(true, {}, { db_name: this.get('databaseName').toLowerCase() }, this.get('connectionProperties'), this.get('ambariProperties'));
     App.ajax.send({
       name: 'custom_action.create',
@@ -857,7 +864,7 @@ App.CheckDBConnectionView = Ember.View.extend({
         requestInfo: {
           parameters: params
         },
-        filteredHosts: [databaseHost]
+        filteredHosts: [this.get('masterHostName')]
       },
       success: 'onCreateActionSuccess',
       error: 'onCreateActionError'
