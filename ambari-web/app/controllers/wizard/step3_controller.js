@@ -213,6 +213,7 @@ App.WizardStep3Controller = Em.Controller.extend({
     this.set('isLoaded', false);
     this.disablePreviousSteps();
     this.clearStep();
+    App.router.get('clusterController').loadAmbariProperties();
     this.loadHosts();
   },
 
@@ -756,11 +757,13 @@ App.WizardStep3Controller = Em.Controller.extend({
 
   getHostNameResolution: function () {
     var hosts = this.get('bootHosts').getEach('name').join(",");
+    var jdk_location = App.router.get('clusterController.ambariProperties.jdk_location');
     var RequestInfo = {
       "action": "check_host",
       "context": "Check host",
       "parameters": {
         "check_execute_list": "host_resolution_check",
+        "jdk_location" : jdk_location,
         "hosts": hosts,
         "threshold": "20"
       }
@@ -802,7 +805,6 @@ App.WizardStep3Controller = Em.Controller.extend({
   getHostCheckTasks: function () {
     var requestId = this.get("requestId");
     var self = this;
-    this.set('startChecking', new Date().getTime());
     var checker = setInterval(function () {
       if (self.get('stopChecking') == true) {
         clearInterval(checker);
@@ -834,12 +836,14 @@ App.WizardStep3Controller = Em.Controller.extend({
     }
     this.set('stopChecking', true);
     data.tasks.forEach(function (task) {
-      var cur = new Date().getTime();
       var name = Em.I18n.t('installer.step3.hostWarningsPopup.resolution.validation.error');
       var hostInfo = this.get("hostCheckWarnings").findProperty('name', name);
-      if (task.Tasks.status == "FAILED" || (cur - this.get('startChecking') > 5000) || task.Tasks.status == "COMPLETED") {
-        if (task.Tasks.status == "COMPLETED" && Em.get(task, 'Tasks.structured_out.host_resolution_check.failed_count') == 0) {
-          return;
+      if (task.Tasks.status == "FAILED" || task.Tasks.status == "COMPLETED" || task.Tasks.status == "TIMEDOUT") {
+        if (task.Tasks.status == "COMPLETED") {
+          var structured_out = jQuery.parseJSON(task.Tasks.structured_out);
+          if(structured_out && structured_out.host_resolution_check.failed_count == 0) {
+            return;
+          }
         }
         if (!hostInfo) {
           hostInfo = {
@@ -849,7 +853,9 @@ App.WizardStep3Controller = Em.Controller.extend({
           };
           this.get("hostCheckWarnings").push(hostInfo);
         } else {
-          hostInfo.hosts.push(task.Tasks.host_name);
+          if (!hostInfo.hosts.contains(task.Tasks.host_name)) {
+            hostInfo.hosts.push(task.Tasks.host_name);
+          }
         }
       } else {
         this.set('stopChecking', false);
@@ -858,11 +864,6 @@ App.WizardStep3Controller = Em.Controller.extend({
   },
 
   stopChecking: false,
-
-  /**
-   * startChecking {Number} - timestamp
-   */
-  startChecking: 0,
 
   /**
    * @method getHostCheckTasksError
