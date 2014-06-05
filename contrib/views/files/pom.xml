@@ -21,13 +21,13 @@
     <artifactId>files</artifactId>
     <version>0.1.0-SNAPSHOT</version>
     <name>Files</name>
-    
+
     <parent>
         <groupId>org.apache.ambari.views</groupId>
         <artifactId>ambari-contrib-views</artifactId>
         <version>0.1.0-SNAPSHOT</version>
     </parent>
-    
+
     <dependencies>
     <dependency>
         <groupId>org.apache.hadoop</groupId>
@@ -155,7 +155,7 @@
                 <!-- optional: The default argument is actually "install", so unless
                  you need to run some other npm command, you can remove this whole <configuration>
                  section. -->
-              <arguments>install --python=python2.6 --unsafe-perm --registry=http://registry.npmjs.eu</arguments>
+              <arguments>install --python="${project.basedir}/../src/main/unix/ambari-python-wrap" --unsafe-perm --registry=http://registry.npmjs.eu</arguments>
             </configuration>
             </execution>
         </executions>

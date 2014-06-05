@@ -17,8 +17,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-export PYTHONPATH=/usr/lib/python2.6/site-packages/common_functions:$PYTHONPATH
-
 # reset settings
 unset PYTHON
 

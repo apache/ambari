@@ -117,7 +117,7 @@
             <configuration>
               <target name="ambari-web-compile">
                 <exec dir="${basedir}" executable="npm" failonerror="false">
-                  <env key="PYTHON" value="python2.6" />
+                  <env key="PYTHON" value="${project.basedir}/../ambari-common/src/main/unix/ambari-python-wrap" />
                   <arg value="install"/>
                 </exec>
                 <exec dir="${basedir}" executable="brunch" failonerror="false">

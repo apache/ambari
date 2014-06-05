@@ -40,6 +40,9 @@
     <install.dir>/usr/lib/python2.6/site-packages/ambari_client</install.dir>
     <lib.dir>/usr/lib/ambari-client/lib</lib.dir>
     <python.ver>python &gt;= 2.6</python.ver>
+    <deb.python.ver>python (&gt;= 2.6)</deb.python.ver>
+    <deb.architecture>amd64</deb.architecture>
+    <deb.dependency.list>openssl, zlibc, ${deb.python.ver}</deb.dependency.list>
   </properties>
   <build>
     <plugins>
@@ -72,7 +75,7 @@
         <executions>
           <execution>
             <configuration>
-              <executable>python2.6</executable>
+              <executable>${project.basedir}/../../ambari-common/src/main/unix/ambari-python-wrap</executable>
               <workingDirectory>src/test/python</workingDirectory>
               <arguments>
                 <argument>unitTests.py</argument>
@@ -90,7 +93,7 @@
           </execution>
           <execution>
             <configuration>
-              <executable>python2.6</executable>
+              <executable>${project.basedir}/../../ambari-common/src/main/unix/ambari-python-wrap</executable>
               <workingDirectory>target/python-client-${project.version}</workingDirectory>
               <arguments>
                 <argument>${project.basedir}/src/main/python/setup.py</argument>
@@ -141,7 +144,6 @@
                 </source>
               </sources>
             </mapping>
-            <!-- -->
           </mappings>
         </configuration>
       </plugin>
@@ -180,8 +182,18 @@
           </execution>
         </executions>
         <configuration>
-          <skip>true</skip>
-          <submodules>false</submodules>
+          <controlDir>${basedir}/src/main/package/deb/control</controlDir>
+          <deb>${basedir}/target/${artifactId}_${package-version}-${package-release}.deb</deb>
+          <dataSet>
+            <data>
+              <src>${project.build.directory}/${project.artifactId}-${project.version}/ambari_client</src>
+              <type>directory</type>
+              <mapper>
+                <type>perm</type>
+                <prefix>${install.dir}</prefix>
+              </mapper>
+            </data>
+          </dataSet>
         </configuration>
       </plugin>
     </plugins>

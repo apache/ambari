@@ -147,7 +147,7 @@
               <goal>npm</goal>
             </goals>
             <configuration>
-              <arguments>install --python=python2.6 --unsafe-perm</arguments>
+              <arguments>install --python="${project.basedir}/../src/main/unix/ambari-python-wrap" --unsafe-perm</arguments>
             </configuration>
           </execution>
         </executions>
