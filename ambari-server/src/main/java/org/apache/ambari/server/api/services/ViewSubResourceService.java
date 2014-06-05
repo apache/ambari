@@ -73,9 +73,11 @@ public class ViewSubResourceService extends BaseService implements ViewResourceH
   // ----- ViewResourceHandler -----------------------------------------------
 
   @Override
-  public Response handleRequest(HttpHeaders headers, UriInfo ui, RequestType requestType, String resourceId) {
+  public Response handleRequest(HttpHeaders headers, UriInfo ui,
+                                RequestType requestType, MediaType mediaType,
+                                String resourceId) {
     return handleRequest(headers, null, ui, getRequestType(requestType),
-        createResource(resourceId));
+        getMediaType(mediaType), createResource(resourceId));
   }
 
   @Override
@@ -115,6 +117,17 @@ public class ViewSubResourceService extends BaseService implements ViewResourceH
       case QUERY_POST:
         return Request.Type.QUERY_POST;
     }
-    throw new IllegalArgumentException("Unknown type " + type);
+    throw new IllegalArgumentException("Unknown resource type " + type);
+  }
+
+  // get the JAX-RS media type from the view media type
+  private javax.ws.rs.core.MediaType getMediaType(MediaType type) {
+    switch (type) {
+      case TEXT_PLAIN:
+        return javax.ws.rs.core.MediaType.TEXT_PLAIN_TYPE;
+      case APPLICATION_JSON:
+        return javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
+    }
+    throw new IllegalArgumentException("Unknown media type " + type);
   }
 }

@@ -51,10 +51,11 @@ public class CityService {
    */
   @GET
   @Path("{cityName}")
-  @Produces({"text/plain", "application/json"})
+  @Produces({"application/json"})
   public Response getCity(@Context HttpHeaders headers, @Context UriInfo ui,
                           @PathParam("cityName") String cityName) {
-    return resourceHandler.handleRequest(headers, ui, cityName);
+    return resourceHandler.handleRequest(headers, ui, ViewResourceHandler.RequestType.GET,
+        ViewResourceHandler.MediaType.APPLICATION_JSON, cityName);
   }
 
   /**

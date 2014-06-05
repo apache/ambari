@@ -21,18 +21,31 @@ package org.apache.ambari.server.api.services;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.parsers.RequestBodyParser;
 import org.apache.ambari.server.api.services.serializers.ResultSerializer;
+import org.apache.ambari.server.api.util.TreeNode;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntityTest;
+import org.junit.Test;
 
 import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * ViewSubResourceService tests
@@ -80,6 +93,124 @@ public class ViewSubResourceServiceTest extends BaseServiceTest {
     return listInvocations;
   }
 
+  @Test
+  public void testGetResultSerializer_Text() throws Exception {
+    UriInfo uriInfo = createMock(UriInfo.class);
+    Resource resource = createMock(Resource.class);
+
+    Result result = new ResultImpl(true);
+    result.setResultStatus(new ResultStatus(ResultStatus.STATUS.OK));
+    TreeNode<Resource> tree = result.getResultTree();
+    TreeNode<Resource> child = tree.addChild(resource, "resource1");
+    child.setProperty("href", "this is an href");
+
+    // resource properties
+    HashMap<String, Object> mapRootProps = new HashMap<String, Object>();
+    mapRootProps.put("prop1", "value1");
+    mapRootProps.put("prop2", "value2");
+
+    HashMap<String, Object> mapCategoryProps = new HashMap<String, Object>();
+    mapCategoryProps.put("catProp1", "catValue1");
+    mapCategoryProps.put("catProp2", "catValue2");
+
+    Map<String, Map<String, Object>> propertyMap = new HashMap<String, Map<String, Object>>();
+
+    propertyMap.put(null, mapRootProps);
+    propertyMap.put("category", mapCategoryProps);
+
+    //expectations
+    expect(resource.getPropertiesMap()).andReturn(propertyMap).anyTimes();
+    expect(resource.getType()).andReturn(Resource.Type.Cluster).anyTimes();
+
+    replay(uriInfo, resource);
+
+    //execute test
+    ViewInstanceEntity viewInstanceEntity = ViewInstanceEntityTest.getViewInstanceEntity();
+
+    Resource.Type type = new Resource.Type("subResource");
+
+    // get resource
+    ViewSubResourceService service = new ViewSubResourceService(type, viewInstanceEntity);
+
+    ResultSerializer serializer = service.getResultSerializer(MediaType.TEXT_PLAIN_TYPE);
+
+    Object o = serializer.serialize(result);
+
+    String expected = "{\n" +
+        "  \"href\" : \"this is an href\",\n" +
+        "  \"prop2\" : \"value2\",\n" +
+        "  \"prop1\" : \"value1\",\n" +
+        "  \"category\" : {\n" +
+        "    \"catProp1\" : \"catValue1\",\n" +
+        "    \"catProp2\" : \"catValue2\"\n" +
+        "  }\n" +
+        "}";
+
+    assertEquals(expected, o);
+
+    verify(uriInfo, resource);
+  }
+
+  @Test
+  public void testGetResultSerializer_Json() throws Exception {
+    UriInfo uriInfo = createMock(UriInfo.class);
+    Resource resource = createMock(Resource.class);
+
+    Result result = new ResultImpl(true);
+    result.setResultStatus(new ResultStatus(ResultStatus.STATUS.OK));
+    TreeNode<Resource> tree = result.getResultTree();
+    TreeNode<Resource> child = tree.addChild(resource, "resource1");
+    child.setProperty("href", "this is an href");
+
+    // resource properties
+    HashMap<String, Object> mapRootProps = new HashMap<String, Object>();
+    mapRootProps.put("prop1", "value1");
+    mapRootProps.put("prop2", "value2");
+
+    HashMap<String, Object> mapCategoryProps = new HashMap<String, Object>();
+    mapCategoryProps.put("catProp1", "catValue1");
+    mapCategoryProps.put("catProp2", "catValue2");
+
+    Map<String, Map<String, Object>> propertyMap = new HashMap<String, Map<String, Object>>();
+
+    propertyMap.put(null, mapRootProps);
+    propertyMap.put("category", mapCategoryProps);
+
+    //expectations
+    expect(resource.getPropertiesMap()).andReturn(propertyMap).anyTimes();
+    expect(resource.getType()).andReturn(Resource.Type.Cluster).anyTimes();
+
+    replay(uriInfo, resource);
+
+    //execute test
+    ViewInstanceEntity viewInstanceEntity = ViewInstanceEntityTest.getViewInstanceEntity();
+
+    Resource.Type type = new Resource.Type("subResource");
+
+    // get resource
+    ViewSubResourceService service = new ViewSubResourceService(type, viewInstanceEntity);
+
+    ResultSerializer serializer = service.getResultSerializer(MediaType.APPLICATION_JSON_TYPE);
+
+    Object o = serializer.serialize(result);
+
+    assertTrue(o instanceof Map);
+    Map map = (Map) o;
+    assertEquals(4, map.size());
+    assertEquals("value1", map.get("prop1"));
+    assertEquals("value2", map.get("prop2"));
+    assertEquals("this is an href", map.get("href"));
+    Object o2 = map.get("category");
+    assertNotNull(o2);
+    assertTrue(o2 instanceof Map);
+    Map subMap = (Map) o2;
+    assertEquals(2, subMap.size());
+    assertEquals("catValue1", subMap.get("catProp1"));
+    assertEquals("catValue2", subMap.get("catProp2"));
+
+    verify(uriInfo, resource);
+  }
+
   private class TestViewSubResourceService extends ViewSubResourceService {
 
     /**
@@ -98,25 +229,25 @@ public class ViewSubResourceServiceTest extends BaseServiceTest {
     public Response getSubResource2(@Context HttpHeaders headers, @Context UriInfo ui,
                                    @PathParam("resourceId") String resourceId) {
 
-      return handleRequest(headers, ui, RequestType.GET, resourceId);
+      return handleRequest(headers, ui, RequestType.GET, MediaType.TEXT_PLAIN, resourceId);
     }
 
     public Response postSubResource(@Context HttpHeaders headers, @Context UriInfo ui,
                                    @PathParam("resourceId") String resourceId) {
 
-      return handleRequest(headers, ui, RequestType.POST, resourceId);
+      return handleRequest(headers, ui, RequestType.POST, MediaType.TEXT_PLAIN, resourceId);
     }
 
     public Response putSubResource(@Context HttpHeaders headers, @Context UriInfo ui,
                                     @PathParam("resourceId") String resourceId) {
 
-      return handleRequest(headers, ui, RequestType.PUT, resourceId);
+      return handleRequest(headers, ui, RequestType.PUT, MediaType.TEXT_PLAIN, resourceId);
     }
 
     public Response deleteSubResource(@Context HttpHeaders headers, @Context UriInfo ui,
                                     @PathParam("resourceId") String resourceId) {
 
-      return handleRequest(headers, ui, RequestType.DELETE, resourceId);
+      return handleRequest(headers, ui, RequestType.DELETE, MediaType.TEXT_PLAIN, resourceId);
     }
 
     @Override
@@ -136,6 +267,11 @@ public class ViewSubResourceServiceTest extends BaseServiceTest {
 
     @Override
     protected ResultSerializer getResultSerializer() {
+      return getTestResultSerializer();
+    }
+
+    @Override
+    protected ResultSerializer getResultSerializer(javax.ws.rs.core.MediaType mediaType) {
       return getTestResultSerializer();
     }
   }

@@ -28,7 +28,7 @@ import javax.ws.rs.core.UriInfo;
  */
 public interface ViewResourceHandler {
   /**
-   * Enum of request types.
+   * Request types.
    */
   public enum RequestType {
     GET,
@@ -39,21 +39,29 @@ public interface ViewResourceHandler {
   }
 
   /**
-   * Handle the API request.
+   * Supported media types.
+   */
+  public enum MediaType {
+    TEXT_PLAIN,
+    APPLICATION_JSON
+  }
+
+  /**
+   * Handle the API request for the given request and media type.
    *
    * @param headers      the headers
    * @param ui           the URI info
    * @param requestType  the request type
+   * @param mediaType    the requested media type
    * @param resourceId   the resource id; may be null for collection resources
    *
    * @return the response
    */
-  public Response handleRequest(HttpHeaders headers, UriInfo ui, RequestType requestType, String resourceId);
+  public Response handleRequest(HttpHeaders headers, UriInfo ui, RequestType requestType,
+                                MediaType mediaType, String resourceId);
 
   /**
-   * Handle the API request with a request type of GET. Same as
-   * {@link ViewResourceHandler#handleRequest(HttpHeaders, UriInfo, ViewResourceHandler.RequestType, String)}
-   * for {@link ViewResourceHandler.RequestType#GET}.
+   * Handle the API request with a request type of GET and media type of TEXT_PLAIN.
    *
    * @param headers     the headers
    * @param ui          the URI info

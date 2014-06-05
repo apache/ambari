@@ -27,8 +27,10 @@ import org.apache.ambari.server.api.services.parsers.RequestBodyParser;
 import org.apache.ambari.server.api.services.serializers.JsonSerializer;
 import org.apache.ambari.server.api.services.serializers.ResultSerializer;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.eclipse.jetty.util.ajax.JSON;
 
 import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import java.util.Iterator;
@@ -52,8 +54,9 @@ public abstract class BaseService {
 
 
   /**
-   * All requests are funneled through this method so that common logic can be executed.
-   * Creates a request instance and invokes it's process method.
+   * Requests are funneled through this method so that common logic can be executed.
+   * Creates a request instance and invokes it's process method.  Uses the default
+   * media type.
    *
    * @param headers      http headers
    * @param body         http body
@@ -65,6 +68,26 @@ public abstract class BaseService {
    */
   protected Response handleRequest(HttpHeaders headers, String body, UriInfo uriInfo,
                                    Request.Type requestType, ResourceInstance resource) {
+
+    return handleRequest(headers, body, uriInfo, requestType, null, resource);
+  }
+
+  /**
+   * Requests are funneled through this method so that common logic can be executed.
+   * Creates a request instance and invokes it's process method.
+   *
+   * @param headers      http headers
+   * @param body         http body
+   * @param uriInfo      uri information
+   * @param requestType  http request type
+   * @param mediaType    the requested media type; may be null
+   * @param resource     resource instance that is being acted on
+   *
+   * @return the response of the operation in serialized form
+   */
+  protected Response handleRequest(HttpHeaders headers, String body,
+                                   UriInfo uriInfo, Request.Type requestType,
+                                   MediaType mediaType, ResourceInstance resource) {
 
     Result result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.OK));
     try {
@@ -83,8 +106,16 @@ public abstract class BaseService {
       result =  new ResultImpl(new ResultStatus(ResultStatus.STATUS.BAD_REQUEST, e.getMessage()));
     }
 
-    return Response.status(result.getStatus().getStatusCode()).entity(
-        getResultSerializer().serialize(result)).build();
+    ResultSerializer serializer = mediaType == null ? getResultSerializer() : getResultSerializer(mediaType);
+
+    Response.ResponseBuilder builder = Response.status(result.getStatus().getStatusCode()).entity(
+        serializer.serialize(result));
+
+    if (mediaType != null) {
+      builder.type(mediaType);
+    }
+
+    return builder.build();
   }
 
   /**
@@ -108,6 +139,50 @@ public abstract class BaseService {
     return m_resourceFactory.createResource(type, mapIds);
   }
 
+  /**
+   * Get a serializer for the given media type.
+   *
+   * @param mediaType  the media type
+   *
+   * @return the result serializer
+   */
+  protected ResultSerializer getResultSerializer(final MediaType mediaType) {
+
+    final ResultSerializer serializer = getResultSerializer();
+
+    if (mediaType.equals(MediaType.TEXT_PLAIN_TYPE)){
+      return new ResultSerializer() {
+        @Override
+        public Object serialize(Result result) {
+          return serializer.serialize(result).toString();
+        }
+
+        @Override
+        public Object serializeError(ResultStatus error) {
+          return serializer.serializeError(error).toString();
+        }
+      };
+    } else if (mediaType.equals(MediaType.APPLICATION_JSON_TYPE)){
+      return new ResultSerializer() {
+        @Override
+        public Object serialize(Result result) {
+          return JSON.parse(serializer.serialize(result).toString());
+        }
+
+        @Override
+        public Object serializeError(ResultStatus error) {
+          return JSON.parse(serializer.serializeError(error).toString());
+        }
+      };
+    }
+    throw new IllegalArgumentException("The media type " + mediaType + " is not supported.");
+  }
+
+  /**
+   * Get the default serializer.
+   *
+   * @return the default serializer
+   */
   protected ResultSerializer getResultSerializer() {
     return m_serializer;
   }
