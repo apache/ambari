@@ -913,7 +913,7 @@ App.CheckDBConnectionView = Ember.View.extend({
   getTaskInfoSuccess: function(data) {
     var task = data.Tasks;
     if (task.status === 'COMPLETED') {
-      var structuredOut = JSON.parse(task.structured_out).db_connection_check;
+      var structuredOut = task.structured_out.db_connection_check;
       if (structuredOut.exit_code != 0) {
         this.set('responseFromServer', {
           stderr: task.stderr,

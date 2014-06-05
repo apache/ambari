@@ -840,8 +840,7 @@ App.WizardStep3Controller = Em.Controller.extend({
       var hostInfo = this.get("hostCheckWarnings").findProperty('name', name);
       if (task.Tasks.status == "FAILED" || task.Tasks.status == "COMPLETED" || task.Tasks.status == "TIMEDOUT") {
         if (task.Tasks.status == "COMPLETED") {
-          var structured_out = jQuery.parseJSON(task.Tasks.structured_out);
-          if(structured_out && structured_out.host_resolution_check.failed_count == 0) {
+          if (Em.get(task, "Tasks.structured_out.host_resolution_check.failed_count") == 0) {
             return;
           }
         }
