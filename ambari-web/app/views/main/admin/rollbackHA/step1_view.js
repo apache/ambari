@@ -28,20 +28,40 @@ App.RollbackHighAvailabilityWizardStep1View = Em.View.extend({
   selectedSNNHost: null,
   selectedAddNNHost: null,
 
-  didInsertElement: function() {
-    var addNNHosts = App.HostComponent.find().filterProperty('componentName','NAMENODE');
-    this.secondaryNNHosts = [];
+  isLoaded: false,
 
+  loadHostsName: function () {
+    App.ajax.send({
+      name: 'hosts.all',
+      sender: this,
+      data: {},
+      success: 'loadHostsNameSuccessCallback',
+      error: 'loadHostsNameErrorCallback'
+    });
+  },
+
+  loadHostsNameSuccessCallback: function (data) {
+    var addNNHosts = App.HostComponent.find().filterProperty('componentName', 'NAMENODE');
+
+    this.secondaryNNHosts = [];
     this.set('selectedSNNHost', this.get('controller.content.sNNHost'));
     this.set('selectedAddNNHost', this.get('controller.content.addNNHost'));
 
-    if(addNNHosts.length == 2){
+    if (addNNHosts.length == 2) {
       this.set('addNNHosts', addNNHosts.mapProperty('host.hostName'));
     }
-    App.Host.find().forEach(function(host){
-      this.secondaryNNHosts.push(host.get('id'));
-    },this);
+    data.items.forEach(function (host) {
+      this.secondaryNNHosts.push(host.Hosts.host_name);
+    }, this);
     this.set('sNNHosts', this.secondaryNNHosts);
+    this.set('isLoaded', true);
+  },
+  loadHostsNameErrorCallback: function(){
+    this.set('isLoaded', true);
+  },
+
+  didInsertElement: function() {
+    this.loadHostsName();
   },
 
   tipAddNNHost: function () {

@@ -28,13 +28,19 @@ App.MainHostController = Em.ArrayController.extend(App.UserPref, {
   clearFilters: null,
 
   filteredCount: 0,
+  /**
+   * flag responsible for updating status counters of hosts
+   */
+  isCountersUpdating: false,
+
+  hostsCountMap: {},
 
   /**
    * Components which will be shown in component filter
    * @returns {Array}
    */
   componentsForFilter: function () {
-    var installedComponents = componentHelper.getInstalledComponents();
+    var installedComponents = App.StackServiceComponent.find().toArray();
     installedComponents.setEach('checkedForHostFilter', false);
     return installedComponents;
   }.property('App.router.clusterController.isLoaded'),
@@ -249,6 +255,54 @@ App.MainHostController = Em.ArrayController.extend(App.UserPref, {
     });
 
     return queryParams;
+  },
+
+  /**
+   * update status counters of hosts
+   */
+  updateStatusCounters: function () {
+    var self = this;
+
+    if (this.get('isCountersUpdating')) {
+      App.ajax.send({
+        name: 'host.status.counters',
+        sender: this,
+        data: {},
+        success: 'updateStatusCountersSuccessCallback',
+        error: 'updateStatusCountersErrorCallback'
+      });
+
+      setTimeout(function () {
+        self.updateStatusCounters();
+      }, App.get('componentsUpdateInterval'));
+    }
+  },
+
+  /**
+   * success callback on <code>updateStatusCounters()</code>
+   * map counters' value to categories
+   * @param data
+   */
+  updateStatusCountersSuccessCallback: function (data) {
+    var hostsCountMap = {
+      'HEALTHY': data.Clusters.health_report['Host/host_status/HEALTHY'],
+      'UNHEALTHY': data.Clusters.health_report['Host/host_status/UNHEALTHY'],
+      'ALERT': data.Clusters.health_report['Host/host_status/ALERT'],
+      'UNKNOWN': data.Clusters.health_report['Host/host_status/UNKNOWN'],
+      'health-status-WITH-ALERTS': (data.alerts) ? data.alerts.summary.CRITICAL + data.alerts.summary.WARNING : 0,
+      'health-status-RESTART': data.Clusters.health_report['Host/stale_config'],
+      'health-status-PASSIVE_STATE': data.Clusters.health_report['Host/maintenance_state'],
+      'TOTAL': data.Clusters.total_hosts
+    };
+
+    this.set('hostsCountMap', hostsCountMap);
+  },
+
+  /**
+   * success callback on <code>updateStatusCounters()</code>
+   */
+  updateStatusCountersErrorCallback: function() {
+    console.warn('ERROR: updateStatusCounters failed')
   },
 
   /**

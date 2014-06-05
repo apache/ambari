@@ -293,6 +293,12 @@ App.ClusterController = Em.Controller.extend({
     var usersUrl = App.testMode ? '/data/users/users.json' : App.apiPrefix + '/users/?fields=*';
     var racksUrl = "/data/racks/racks.json";
 
+
+    var hostsController = App.router.get('mainHostController');
+    hostsController.set('isCountersUpdating', true);
+    hostsController.updateStatusCounters();
+    hostsController.set('isCountersUpdating', false);
+
     App.HttpClient.get(racksUrl, App.racksMapper, {
       complete: function (jqXHR, textStatus) {
         self.updateLoadStatus('racks');

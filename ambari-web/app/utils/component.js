@@ -23,41 +23,6 @@
 
 var App = require('app');
 module.exports = {
-
-  /**
-   * Return list of installed components. Syntax is:
-   *
-   * [{
-   *    id : 'DATANODE',
-   *    displayName : 'DataNode',
-   *    isMaster : true,
-   *    isSlave : false,
-   *    isClient : false
-   * }]
-   *
-   *  @method getInstalledComponents
-   *  @return {object[]}
-   */
-  getInstalledComponents : function(){
-    var components = App.HostComponent.find();
-    var names = components.mapProperty('componentName').uniq();
-    var result = [];
-
-    names.forEach(function(componentName){
-      var component = components.findProperty('componentName', componentName);
-      result.push(Ember.Object.create({
-        id: componentName,
-        isMaster: component.get('isMaster'),
-        isSlave: component.get('isSlave'),
-        isClient: component.get('isClient'),
-        displayName: component.get('displayName'),
-        serviceName: component.get('service.id')
-      }));
-    });
-
-    return result;
-  },
-
   /**
    * Format and load info about components to StackServiceComponent model.
    *

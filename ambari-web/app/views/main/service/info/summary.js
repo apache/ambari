@@ -470,30 +470,5 @@ App.MainServiceInfoSummaryView = Em.View.extend({
         $(alertsList).attr('style', "height:" + summaryActualHeight + "px;");
       }
     }
-  }.observes('alertsController.isLoaded'),
-
-  clientHosts:App.Host.find(),
-
-  clientHostsLength:function () {
-    var text = this.t('services.service.summary.clientCount');
-    var self = this;
-    return text.format(self.get('clientHosts.length'));
-  }.property('clientHosts'),
-
-  clientComponents:function () {
-    return App.HostComponent.find().filterProperty('isClient', true);
-  }.property(),
-
-  clientComponentsString:function () {
-    var components = this.get('clientComponents');
-    var names = [];
-    components.forEach(function (component) {
-      if (names.indexOf(component.get('displayName')) == -1) {
-        names.push(component.get('displayName'));
-      }
-    });
-
-    return names.length ? names.join(', ') : false;
-  }.property('clientComponents')
-
+  }.observes('alertsController.isLoaded')
 });

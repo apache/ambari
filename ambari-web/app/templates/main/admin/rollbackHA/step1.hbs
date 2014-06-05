@@ -16,28 +16,35 @@
 * limitations under the License.
 }}
 <div>
-  <h2>{{t admin.rollbackHighAvailability.wizard.step1.header}}</h2>
-  <div class="alert alert-info">
-    <p>
-      Select Additional NameNode host:
-      {{view Ember.Select
-        contentBinding="view.addNNHosts"
-        valueBinding="view.selectedAddNNHost"
-      }}
-    </p>
-    <div class="code-snippet">Tip: Suggested host <b>{{view.tipAddNNHost}}</b></div>
-  </div>
-  <div class="alert alert-info">
-    <p>
-      Select Secondary NameNode host:
-      {{view Ember.Select
-        contentBinding="view.sNNHosts"
-        valueBinding="view.selectedSNNHost"
-      }}
-    </p>
-    <div class="code-snippet">Tip: Suggested host <b>{{view.tipSNNHost}}</b></div>
-  </div>
-  <div class="btn-area">
-    <a {{bindAttr class=":btn controller.isNameServiceIdValid::disabled :btn-success :pull-right"}} {{action done target="view"}}>{{t common.next}} &rarr;</a>
-  </div>
+  {{#if view.isLoaded}}
+      <h2>{{t admin.rollbackHighAvailability.wizard.step1.header}}</h2>
+
+      <div class="alert alert-info">
+          <p>
+              Select Additional NameNode host:
+            {{view Ember.Select
+            contentBinding="view.addNNHosts"
+            valueBinding="view.selectedAddNNHost"
+            }}
+          </p>
+
+          <div class="code-snippet">Tip: Suggested host <b>{{view.tipAddNNHost}}</b></div>
+      </div>
+      <div class="alert alert-info">
+          <p>
+              Select Secondary NameNode host:
+            {{view Ember.Select
+            contentBinding="view.sNNHosts"
+            valueBinding="view.selectedSNNHost"
+            }}
+          </p>
+
+          <div class="code-snippet">Tip: Suggested host <b>{{view.tipSNNHost}}</b></div>
+      </div>
+      <div class="btn-area">
+          <a {{bindAttr class=":btn controller.isNameServiceIdValid::disabled :btn-success :pull-right"}} {{action done target="view"}}>{{t common.next}} &rarr;</a>
+      </div>
+  {{else}}
+      <div class="spinner"></div>
+  {{/if}}
 </div>

@@ -33,17 +33,15 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
   selectAllHosts: false,
 
   /**
-   * flag responsible for updating status counters of hosts
-   */
-  isCountersUpdating: false,
-  /**
    * Contains all selected hosts on cluster
    */
   selectedHosts: [],
   /**
    * total number of installed hosts
    */
-  totalCount: 0,
+  totalCount: function () {
+    return this.get('controller.hostsCountMap')['TOTAL'] || 0;
+  }.property('controller.hostsCountMap'),
 
   filteredCount: function () {
     return this.get('controller.filteredCount');
@@ -148,8 +146,8 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
     this.addObserver('controller.clearFilters', this, this.clearFiltersObs);
     this.clearFiltersObs();
     this.addObserver('selectAllHosts', this, this.toggleAllHosts);
-    this.set('isCountersUpdating', true);
-    this.updateStatusCounters();
+    this.set('controller.isCountersUpdating', true);
+    this.get('controller').updateStatusCounters();
   },
 
   /**
@@ -161,7 +159,7 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
   }.observes('displayLength', 'startIndex'),
 
   willDestroyElement: function() {
-    this.set('isCountersUpdating', false);
+    this.set('controller.isCountersUpdating', false);
   },
 
   /**
@@ -420,58 +418,11 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
   }),
 
   /**
-   * update status counters of hosts
-   */
-  updateStatusCounters: function () {
-    var self = this;
-
-    if (this.get('isCountersUpdating')) {
-      App.ajax.send({
-        name: 'host.status.counters',
-        sender: this,
-        data: {},
-        success: 'updateStatusCountersSuccessCallback',
-        error: 'updateStatusCountersErrorCallback'
-      });
-
-      setTimeout(function () {
-        self.updateStatusCounters();
-      }, App.get('componentsUpdateInterval'));
-    }
-  },
-
-  /**
-   * success callback on <code>updateStatusCounters()</code>
-   * map counters' value to categories
-   * @param data
-   */
-  updateStatusCountersSuccessCallback: function (data) {
-    var hostsCountMap = {
-      'HEALTHY': data.Clusters.health_report['Host/host_status/HEALTHY'],
-      'UNHEALTHY': data.Clusters.health_report['Host/host_status/UNHEALTHY'],
-      'ALERT': data.Clusters.health_report['Host/host_status/ALERT'],
-      'UNKNOWN': data.Clusters.health_report['Host/host_status/UNKNOWN'],
-      'health-status-WITH-ALERTS': (data.alerts) ? data.alerts.summary.CRITICAL + data.alerts.summary.WARNING : 0,
-      'health-status-RESTART': data.Clusters.health_report['Host/stale_config'],
-      'health-status-PASSIVE_STATE': data.Clusters.health_report['Host/maintenance_state'],
-      'TOTAL': data.Clusters.total_hosts
-    };
-
-    this.set('totalCount', data.Clusters.total_hosts);
-    this.updateHostsCount(hostsCountMap);
-  },
-
-  /**
-   * success callback on <code>updateStatusCounters()</code>
-   */
-  updateStatusCountersErrorCallback: function() {
-    console.warn('ERROR: updateStatusCounters failed')
-  },
-
-  /**
    * Update <code>hostsCount</code> in every category
    */
-  updateHostsCount: function(hostsCountMap) {
+  updateHostsCount: function() {
+    var hostsCountMap = this.get('controller.hostsCountMap');
+
     this.get('categories').forEach(function(category) {
       var hostsCount = (category.get('healthStatus').trim() === "") ? hostsCountMap['TOTAL'] : hostsCountMap[category.get('healthStatus')];
 
@@ -480,7 +431,7 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
         category.set('hasHosts', (hostsCount > 0));
       }
     }, this);
-  },
+  }.observes('controller.hostsCountMap'),
 
   /**
    * Category view for all hosts

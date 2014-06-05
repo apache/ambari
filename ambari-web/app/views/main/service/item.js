@@ -24,7 +24,7 @@ App.MainServiceItemView = Em.View.extend({
   maintenance: function(){
     var options = [];
     var service = this.get('controller.content');
-    var hosts = App.Host.find().content.length;
+    var hosts = App.router.get('mainHostController.hostsCountMap')['TOTAL'];
     var allMasters = this.get('controller.content.hostComponents').filterProperty('isMaster').mapProperty('componentName').uniq();
     var disabled = this.get('controller.isStopDisabled');
     var serviceName = service.get('serviceName');

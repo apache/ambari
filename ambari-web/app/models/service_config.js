@@ -493,6 +493,7 @@ App.ServiceConfigProperty = Ember.Object.extend({
     var masterComponentHostsInDB = localDB.masterComponentHosts;
     var slaveComponentHostsInDB = localDB.slaveComponentHosts;
     var hostsInfo = localDB.hosts; // which we are setting in installerController in step3.
+    //all hosts should be in local storage without using App.Host model
     App.Host.find().forEach(function(item){
       if(!hostsInfo[item.get('id')]){
         hostsInfo[item.get('id')] = {

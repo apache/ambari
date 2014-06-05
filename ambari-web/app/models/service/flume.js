@@ -19,7 +19,8 @@ var App = require('app');
 
 App.FlumeService = App.Service.extend({
   version: DS.attr('string'),
-  agents: DS.hasMany('App.FlumeAgent')
+  agents: DS.hasMany('App.FlumeAgent'),
+  flumeHandlersTotal: DS.attr('number')
 });
 
 App.FlumeAgent = DS.Model.extend({

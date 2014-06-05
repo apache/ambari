@@ -86,6 +86,9 @@ App.componentsStateMapper = App.QuickDataMapper.create({
     },
     'HDFS_CLIENT': {
       installed_clients: 'INSTALLED_PATH'
+    },
+    'FLUME_HANDLER': {
+      flume_handlers_total: 'TOTAL_PATH'
     }
   },
   /**

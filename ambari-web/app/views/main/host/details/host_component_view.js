@@ -213,7 +213,7 @@ App.HostComponentView = Em.View.extend({
    * @type {bool}
    */
   isReassignable: function () {
-    return App.supports.reassignMaster && App.get('components.reassignable').contains(this.get('content.componentName')) && App.Host.find().content.length > 1;
+    return App.supports.reassignMaster && App.get('components.reassignable').contains(this.get('content.componentName')) && App.router.get('mainHostController.hostsCountMap')['TOTAL'] > 1;
   }.property('content.componentName'),
 
   /**

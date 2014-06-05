@@ -22,31 +22,6 @@ require('models/host_component');
 require('models/stack_service_component');
 
 describe('utils/component', function(){
-  describe('#getInstalledComponents()', function(){
-    beforeEach(function(){
-      App.HostComponent.find().set('content',[]);
-      App.store.loadMany(App.HostComponent, [
-        {
-          "component_name" : "HISTORYSERVER",
-          "is_client" : false,
-          "is_master" : true,
-          "is_slave" : false
-        },
-        {
-          "component_name" : "TASKTRACKER",
-          "is_client" : false,
-          "is_master" : false,
-          "is_slave" : true
-        }
-      ]);
-    });
-    afterEach(function(){
-      App.HostComponent.find().set('content',[]);
-    });
-    it('names of components should be equal for input and output arrays', function(){
-      expect(component.getInstalledComponents().mapProperty('id')).to.have.members(App.HostComponent.find().mapProperty('componentName'));
-    });
-  });
   describe('#loadStackServiceComponentModel()', function(){
     var data = {
       "items": [
