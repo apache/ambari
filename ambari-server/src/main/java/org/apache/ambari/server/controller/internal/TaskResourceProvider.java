@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.controller.internal;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.TaskStatusRequest;
@@ -63,6 +65,7 @@ class TaskResourceProvider extends AbstractControllerResourceProvider {
   protected static final String TASK_COMMAND_DET_PROPERTY_ID  = PropertyHelper.getPropertyId("Tasks", "command_detail");
   protected static final String TASK_CUST_CMD_NAME_PROPERTY_ID  = PropertyHelper.getPropertyId("Tasks", "custom_command_name");
 
+  private static final Gson gson = new Gson();
 
   private static Set<String> pkPropertyIds =
       new HashSet<String>(Arrays.asList(new String[]{
@@ -148,7 +151,7 @@ class TaskResourceProvider extends AbstractControllerResourceProvider {
         setResourceProperty(resource, TASK_EXIT_CODE_PROPERTY_ID, response.getExitCode(), requestedIds);
         setResourceProperty(resource, TASK_STDERR_PROPERTY_ID, response.getStderr(), requestedIds);
         setResourceProperty(resource, TASK_STOUT_PROPERTY_ID, response.getStdout(), requestedIds);
-        setResourceProperty(resource, TASK_STRUCT_OUT_PROPERTY_ID, response.getStructuredOut(), requestedIds);
+        setResourceProperty(resource, TASK_STRUCT_OUT_PROPERTY_ID, prepareStructuredOutJson(response.getStructuredOut()), requestedIds);
         setResourceProperty(resource, TASK_START_TIME_PROPERTY_ID, response.getStartTime(), requestedIds);
         setResourceProperty(resource, TASK_END_TIME_PROPERTY_ID, response.getEndTime(), requestedIds);
         setResourceProperty(resource, TASK_ATTEMPT_CNT_PROPERTY_ID, response.getAttemptCount(), requestedIds);
@@ -165,6 +168,16 @@ class TaskResourceProvider extends AbstractControllerResourceProvider {
       }
     }
     return resources;
+  }
+
+  Object prepareStructuredOutJson(String structuredOutStr) {
+    Object result = null;
+    try {
+      result = gson.fromJson(structuredOutStr, Map.class);
+    } catch (JsonSyntaxException exception) {
+      LOG.warn("Can not parse structured output string " + structuredOutStr);
+    }
+    return result;
   }
 
   @Override

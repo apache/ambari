@@ -29,10 +29,12 @@ import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.junit.Assert;
 import org.junit.Test;
+import static org.junit.Assert.*;
 
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -196,6 +198,33 @@ public class TaskResourceProviderTest {
     }
 
     // verify
+    verify(managementController);
+  }
+
+  @Test
+  public void testPrepareStructuredOutJson() {
+    Resource.Type type = Resource.Type.Task;
+    // Test general case
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    TaskResourceProvider taskResourceProvider = new TaskResourceProvider(
+            PropertyHelper.getPropertyIds(type),
+            PropertyHelper.getKeyPropertyIds(type), managementController);
+    replay(managementController);
+
+    // Check parsing of nested JSON
+    Map result = (Map) taskResourceProvider.prepareStructuredOutJson("{\"a\":\"b\", \"c\": {\"d\":\"e\",\"f\": [\"g\",\"h\"],\"i\": {\"k\":\"l\"}}}");
+    assertEquals(result.size(), 2);
+    Map submap = (Map) result.get("c");
+    assertEquals(submap.size(), 3);
+    List sublist = (List) submap.get("f");
+    assertEquals(sublist.size(), 2);
+    Map subsubmap = (Map) submap.get("i");
+    assertEquals(subsubmap.size(), 1);
+    assertEquals(subsubmap.get("k"), "l");
+    // Check negative case - invalid JSON
+    result = (Map) taskResourceProvider.prepareStructuredOutJson("{\"a\": invalid JSON}");
+    assertNull(result);
+
     verify(managementController);
   }
 }
