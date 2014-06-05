@@ -1683,6 +1683,35 @@ class TestAmbariServer(TestCase):
     self.assertEqual(fqdn, host)
 
 
+  @patch.object(ambari_server, "find_properties_file")
+  def test_get_ulimit_open_files(self, find_properties_file_mock):
+
+    # 1 - No ambari.properties
+    find_properties_file_mock.return_value = None
+    open_files = ambari_server.get_fqdn()
+    self.assertEqual(open_files, None)
+
+    # 2 - With ambari.properties - ok
+    tf1 = tempfile.NamedTemporaryFile()
+    prop_value = 65000
+    with open(tf1.name, 'w') as fout:
+      fout.write(ambari_server.ULIMIT_OPEN_FILES_KEY + '=' + str(prop_value))
+    fout.close()
+    find_properties_file_mock.return_value = tf1.name
+    open_files = ambari_server.get_ulimit_open_files()
+    self.assertEqual(open_files, 65000)
+
+    # 2 - With ambari.properties - default
+    tf1 = tempfile.NamedTemporaryFile()
+    prop_value = 0
+    with open(tf1.name, 'w') as fout:
+      fout.write(ambari_server.ULIMIT_OPEN_FILES_KEY + '=' + str(prop_value))
+    fout.close()
+    find_properties_file_mock.return_value = tf1.name
+    open_files = ambari_server.get_ulimit_open_files()
+    self.assertEqual(open_files, ambari_server.ULIMIT_OPEN_FILES_DEFAULT)
+
+
   @patch.object(ambari_server, "run_os_command")
   def test_get_cert_info(self, run_os_command_mock):
     # Error running openssl command

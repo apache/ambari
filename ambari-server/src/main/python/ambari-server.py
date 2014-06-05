@@ -401,6 +401,10 @@ DEFAULT_DB_NAME = "ambari"
 STACK_LOCATION_KEY = 'metadata.path'
 STACK_LOCATION_DEFAULT = '/var/lib/ambari-server/resources/stacks'
 
+# linux open-file limit
+ULIMIT_OPEN_FILES_KEY = 'ulimit.open.files'
+ULIMIT_OPEN_FILES_DEFAULT = 10000
+
 #Apache License Header
 ASF_LICENSE_HEADER = '''
 # Copyright 2011 The Apache Software Foundation
@@ -2542,6 +2546,7 @@ def start(args):
 
   pidfile = PID_DIR + os.sep + PID_NAME
   command_base = SERVER_START_CMD_DEBUG if (SERVER_DEBUG_MODE or SERVER_START_DEBUG) else SERVER_START_CMD
+  command_base = "ulimit -n " + str(get_ulimit_open_files()) + "; " + command_base
   command = command_base.format(jdk_path, conf_dir, get_ambari_classpath(), pidfile)
   if not os.path.exists(PID_DIR):
     os.makedirs(PID_DIR, 0755)
@@ -4019,6 +4024,19 @@ def get_fqdn():
     return str
   except Exception:
     return socket.getfqdn()
+
+
+def get_ulimit_open_files():
+  properties = get_ambari_properties()
+  if properties == -1:
+    print "Error reading ambari properties"
+    return None
+
+  open_files = int(properties[ULIMIT_OPEN_FILES_KEY])
+  if open_files > 0:
+    return open_files
+  else:
+    return ULIMIT_OPEN_FILES_DEFAULT
 
 
 def is_valid_filepath(filepath):
