@@ -49,6 +49,48 @@ App.ReassignMasterView = Em.View.extend({
 
   isStepDisabled: function (index) {
     return this.get('controller.isStepDisabled').findProperty('step', index).get('value');
+  },
+
+  isLoaded: false,
+
+  willInsertElement: function() {
+    this.set('isLoaded', false);
+    this.loadHosts();
+  },
+
+  /**
+   * load hosts from server
+   */
+  loadHosts: function () {
+    App.ajax.send({
+      name: 'hosts.high_availability.wizard',
+      data: {},
+      sender: this,
+      success: 'loadHostsSuccessCallback',
+      error: 'loadHostsErrorCallback'
+    });
+  },
+
+  loadHostsSuccessCallback: function (data, opt, params) {
+    var hosts = {};
+
+    data.items.forEach(function (item) {
+      hosts[item.Hosts.host_name] = {
+        name: item.Hosts.host_name,
+        cpu: item.Hosts.cpu_count,
+        memory: item.Hosts.total_mem,
+        disk_info: item.Hosts.disk_info,
+        bootStatus: "REGISTERED",
+        isInstalled: true
+      };
+    });
+    App.db.setHosts(hosts);
+    this.set('controller.content.hosts', hosts);
+    this.set('isLoaded', true);
+  },
+
+  loadHostsErrorCallback: function(){
+    this.set('isLoaded', true);
   }
 
 });
