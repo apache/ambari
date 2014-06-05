@@ -47,9 +47,9 @@ App.hiveJobMapper = App.QuickDataMapper.create({
       hiveJob.id = json.entity;
       hiveJob.name = hiveJob.id;
       hiveJob.startTime = json.starttime;
-      if (json.endtime == undefined) {
+      if (typeof(json.endtime) == "undefined") {
         var i = 0;
-        while (hiveJob.endTime == undefined && json.events[i]) {
+        while (typeof(hiveJob.endTime) == "undefined" &&  json.events && json.events[i]) {
           if (json.events[i].eventtype == 'QUERY_COMPLETED') {
             hiveJob.endTime = json.events[i].timestamp;
           };

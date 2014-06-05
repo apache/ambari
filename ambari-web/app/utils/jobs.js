@@ -99,6 +99,8 @@ module.exports = {
           errorCallback('job.dag.noname');
         }
       }
+    }, function () {
+      App.router.transitionTo('main.jobs.index');
     });
   },
 

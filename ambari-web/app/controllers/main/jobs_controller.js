@@ -391,13 +391,13 @@ App.MainJobsController = Em.Controller.extend({
     var atsComponent = App.HostComponent.find().findProperty('componentName','APP_TIMELINE_SERVER');
     if(atsComponent && atsComponent.get('workStatus') != "STARTED") {
       this.set('jobsMessage', Em.I18n.t('jobs.error.ats.down'));
-      return true;
     }else if (jqXHR && jqXHR.status == 400) {
       this.set('jobsMessage', Em.I18n.t('jobs.error.400'));
+    }else if ((!jqXHR && this.get('loaded') && !this.get('loading')) || (jqXHR && jqXHR.status == 500)) {
+      this.set('jobsMessage', Em.I18n.t('jobs.nothingToShow'));
     }else{
       this.set('jobsMessage', Em.I18n.t('jobs.loadingTasks'));
     }
-    return false;
   },
 
   loadJobs : function() {
@@ -405,7 +405,7 @@ App.MainJobsController = Em.Controller.extend({
     var timeout = this.get('loadTimeout');
     var yarnService = App.YARNService.find().objectAt(0);
     var retryLoad = this.checkDataLoadingError();
-    if (yarnService != null && !retryLoad) {
+    if (yarnService != null) {
       this.set('loading', true);
       var historyServerHostName = yarnService.get('appTimelineServerNode.hostName');
       var filtersLink = this.get('filterObject').createJobsFiltersLink();
@@ -431,8 +431,8 @@ App.MainJobsController = Em.Controller.extend({
           self.set('loaded', true);
         }
       }, function (jqXHR, textStatus) {
-        self.checkDataLoadingError(jqXHR);
         App.hiveJobsMapper.map({entities : []});
+        self.checkDataLoadingError(jqXHR);
       });
     }else{
       clearTimeout(timeout);

@@ -51,15 +51,11 @@
           </thead>
           <tbody>
           {{#if view.noDataToShow}}
-              <tr>
-                <td class="no-data" {{bindAttr colspan="controller.columnsName.columnsCount"}}>
-                  {{#if controller.loaded}}
-                    {{t jobs.nothingToShow}}
-                  {{else}}
-                    {{controller.jobsMessage}}
-                  {{/if}}
-                </td>
-              </tr>
+            <tr>
+              <td class="no-data" {{bindAttr colspan="controller.columnsName.columnsCount"}}>
+                {{controller.jobsMessage}}
+              </td>
+            </tr>
           {{else}}
             {{#each job in controller.sortedContent}}
               <tr>
