@@ -19,6 +19,7 @@
 var App = require('app');
 require('controllers/wizard/slave_component_groups_controller');
 var batchUtils = require('utils/batch_scheduled_requests');
+var lazyLoading = require('utils/lazy_loading');
 
 App.MainServiceInfoConfigsController = Em.Controller.extend({
   name: 'mainServiceInfoConfigsController',
@@ -143,6 +144,10 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * {Boolean}
    */
   isInit: true,
+
+  restartHosts: Em.A(),
+
+  defaultsInfo: null,
   /**
    * On load function
    */
@@ -240,7 +245,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       sender: this,
       data: {
         serviceName: this.get('content.serviceName'),
-        serviceConfigsDef: this.get('serviceConfigs').findProperty('serviceName', this.get('content.serviceName'))
+        serviceConfigsDef: this.get('serviceConfigs').findProperty('serviceName', this.get('content.serviceName')),
+        urlParams: ',hosts'
       },
       success: 'loadServiceTagsSuccess'
     });
@@ -251,7 +257,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     var serviceName = this.get('content.serviceName');
     console.debug("loadServiceConfigs(): data=", data);
     // Create default configuration group
-    var defaultConfigGroupHosts = App.Host.find().mapProperty('hostName');
+    var defaultConfigGroupHosts = data.hosts.mapProperty('Hosts.host_name');
     var selectedConfigGroup;
     var siteToTagMap = {};
     serviceConfigsDef.sites.forEach(function(siteName){
@@ -297,13 +303,21 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
           }
         }, this);
       }
-      this.set('configGroups', configGroups);
+      this.set('configGroups', []);
+      lazyLoading.run({
+        initSize: 20,
+        chunkSize: 50,
+        delay: 50,
+        destination: this.get('configGroups'),
+        source: configGroups,
+        context: this
+      });
     }
     var defaultConfigGroup = App.ConfigGroup.create({
       name: App.Service.DisplayNames[serviceName] + " Default",
       description: "Default cluster level " + serviceName + " configuration",
       isDefault: true,
-      hosts: defaultConfigGroupHosts,
+      hosts: [],
       parentConfigGroup: null,
       service: this.get('content'),
       serviceName: serviceName,
@@ -311,12 +325,28 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     });
     if (!selectedConfigGroup) {
       selectedConfigGroup = defaultConfigGroup;
+      lazyLoading.run({
+        initSize: 20,
+        chunkSize: 50,
+        delay: 50,
+        destination: selectedConfigGroup.get('hosts'),
+        source: defaultConfigGroupHosts,
+        context: Em.Object.create()
+      });
     }
 
     this.get('configGroups').sort(function(configGroupA, configGroupB){
       return (configGroupA.name > configGroupB.name);
     });
     this.get('configGroups').unshift(defaultConfigGroup);
+    lazyLoading.run({
+      initSize: 20,
+      chunkSize: 50,
+      delay: 50,
+      destination: this.get('configGroups').objectAt(0).get('hosts'),
+      source: defaultConfigGroupHosts,
+      context: Em.Object.create()
+    });
     this.set('selectedConfigGroup', selectedConfigGroup);
   },
 
@@ -440,7 +470,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   checkForRestart: function (serviceConfig, restartData) {
     var hostsCount = 0;
     var hostComponentCount = 0;
-    var restartHosts = Ember.A([]);
     if (restartData != null && restartData.hostAndHostComponents != null && !jQuery.isEmptyObject(restartData.hostAndHostComponents)) {
       serviceConfig.set('restartRequired', true);
       for (var host in restartData.hostAndHostComponents) {
@@ -450,12 +479,40 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
           componentsArray.push(Ember.Object.create({name: App.format.role(component)}));
           hostComponentCount++;
         }
-        var hostObj = App.Host.find(host);
-        restartHosts.push(Ember.Object.create({hostData: hostObj, components: componentsArray}))
+        App.ajax.send({
+          name: 'hosts.with_public_host_names',
+          sender: this,
+          data: {
+            clusterName: App.get('clusterName'),
+            componentsArray: componentsArray,
+            host: host,
+            serviceConfig: serviceConfig,
+            hostsCount: hostsCount,
+            hostComponentCount: hostComponentCount
+          },
+          success: 'hostObjSuccessCallback'
+        });
       }
-      serviceConfig.set('restartRequiredHostsAndComponents', restartHosts);
-      serviceConfig.set('restartRequiredMessage', 'Service needs ' + hostComponentCount + ' components on ' + hostsCount + ' hosts to be restarted.')
     }
+  },
+
+  hostObjSuccessCallback: function (response, request, data) {
+    var hostObj = Em.Object.create({
+      hostName: response.items.findProperty('Hosts.host_name'),
+      publicHostName: response.items.findProperty('Hosts.public_host_name'),
+      id: response.items.findProperty('Hosts.host_name')
+    });
+    this.get('restartHosts').push(Ember.Object.create({hostData: hostObj, components: data.componentsArray}))
+    data.serviceConfig.set('restartRequiredHostsAndComponents', []);
+    lazyLoading.run({
+      initSize: 20,
+      chunkSize: 50,
+      delay: 50,
+      destination: data.serviceConfig.get('restartRequiredHostsAndComponents'),
+      source: this.get('restartHosts'),
+      context: this
+    });
+    data.serviceConfig.set('restartRequiredMessage', 'Service needs ' + data.hostComponentCount + ' components on ' + data.hostsCount + ' hosts to be restarted.')
   },
 
   /**
@@ -478,11 +535,25 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    */
   getInfoForDefaults: function() {
 
+    App.ajax.send({
+      name: 'host_components.all',
+      sender: this,
+      data: {
+        clusterName: App.get('clusterName')
+      },
+      success: 'slavesSuccessCallback'
+    });
+
+  },
+
+  slavesSuccessCallback: function (response) {
     var slaveComponentHosts = [];
-    var slaves = App.HostComponent.find().filterProperty('isSlave', true).map(function(item) {
+    var slaves = response.items.mapProperty('HostRoles').filter(function (c) {
+      return App.StackServiceComponent.find().findProperty('componentName', c.component_name).get('isSlave');
+    }).map(function(item) {
       return Em.Object.create({
-        host: item.get('host.hostName'),
-        componentName: item.get('componentName')
+        host: item.host_name,
+        componentName: item.component_name
       });
     });
     slaves.forEach(function(slave) {
@@ -498,28 +569,75 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       }
     });
 
-    var masterComponentHosts = App.HostComponent.find().filterProperty('isMaster', true).map(function(item) {
-      return {
-        component: item.get('componentName'),
-        serviceId: item.get('service.serviceName'),
-        host: item.get('host.hostName')
-      }
-    });
-    var hosts = {};
-    App.Host.find().map(function(host) {
-      hosts[host.get('hostName')] = {
-        name: host.get('hostName'),
-        cpu: host.get('cpu'),
-        memory: host.get('memory'),
-        disk_info: host.get('diskInfo')
-      };
+    App.ajax.send({
+      name: 'host_components.with_services_names',
+      sender: this,
+      data: {
+        clusterName: App.get('clusterName'),
+        slaveComponentHosts: slaveComponentHosts
+      },
+      success: 'mastersSuccessCallback'
     });
 
-    return {
-      masterComponentHosts: masterComponentHosts,
-      slaveComponentHosts: slaveComponentHosts,
+  },
+
+  mastersSuccessCallback: function (response, request, data) {
+
+    var masterComponentHosts = response.items.filter(function (c) {
+      return App.StackServiceComponent.find().findProperty('componentName', c.HostRoles.component_name).get('isMaster');
+    }).map(function(item) {
+      return {
+        component: item.HostRoles.component_name,
+        serviceId: item.component[0].ServiceComponentInfo.service_name,
+        host: item.HostRoles.host_name
+      }
+    });
+
+    App.ajax.send({
+      name: 'hosts.confirmed',
+      sender: this,
+      data: {
+        clusterName: App.get('clusterName'),
+        masterComponentHosts: masterComponentHosts,
+        slaveComponentHosts: data.slaveComponentHosts
+      },
+      success: 'hostsSuccessCallback'
+    });
+
+  },
+
+  hostsSuccessCallback: function (response, request, data) {
+    var hosts = {};
+    response.items.mapProperty('Hosts').map(function(host) {
+      hosts[host.host_name] = {
+        name: host.host_name,
+        cpu: host.cpu_count,
+        memory: host.total_mem,
+        disk_info: host.disk_info
+      };
+    });
+    var obj =  {
+      masterComponentHosts: [],
+      slaveComponentHosts: [],
       hosts: hosts
     };
+    lazyLoading.run({
+      initSize: 20,
+      chunkSize: 50,
+      delay: 50,
+      destination: obj.masterComponentHosts,
+      source: data.masterComponentHosts,
+      context: Em.Object.create()
+    });
+    lazyLoading.run({
+      initSize: 20,
+      chunkSize: 50,
+      delay: 50,
+      destination: obj.slaveComponentHosts,
+      source: obj.slaveComponentHosts,
+      context: Em.Object.create()
+    });
+    this.set('defaultsInfo', obj);
   },
 
   /**
@@ -553,12 +671,12 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    *  {Object} propertyToHostAndComponent
    * }
    * @param {Object} serviceConfigsData - service cfg object
-   * @returns {Ember.Object|undefined}
+   * @returns {Ember.Object|null}
    * @method createConfigProperty
    */
   createConfigProperty: function(_serviceConfigProperty, defaultGroupSelected, restartData, serviceConfigsData) {
     console.log("config", _serviceConfigProperty);
-    if (!_serviceConfigProperty) return;
+    if (!_serviceConfigProperty) return null;
     var overrides = _serviceConfigProperty.overrides;
     // we will populate the override properties below
     _serviceConfigProperty.overrides = null;
@@ -598,7 +716,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    */
   setRecommendedDefaults: function (advancedConfigs) {
     var s = this.get('serviceConfigsData').findProperty('serviceName', this.get('content.serviceName'));
-    var localDB = this.getInfoForDefaults();
+    this.getInfoForDefaults();
+    var localDB = this.get('defaultsInfo');
     var recommendedDefaults = {};
     if (s.defaultsProviders) {
       s.defaultsProviders.forEach(function (defaultsProvider) {
@@ -667,21 +786,34 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * @method setRestartInfo
    */
   setRestartInfo: function(restartData, serviceConfigProperty) {
-    var propertyName = serviceConfigProperty.get('name');
-    if (restartData != null && propertyName in restartData.propertyToHostAndComponent) {
-      serviceConfigProperty.set('isRestartRequired', true);
+    App.ajax.send({
+      name: 'hosts.with_public_host_names',
+      sender: this,
+      data: {
+        clusterName: App.get('clusterName'),
+        restartData: restartData,
+        serviceConfigProperty: serviceConfigProperty
+      },
+      success: 'setRestartInfoSuccessCallback'
+    });
+  },
+
+  setRestartInfoSuccessCallback: function (response, request, data) {
+    var propertyName = data.serviceConfigProperty.get('name');
+    if (data.restartData != null && propertyName in data.restartData.propertyToHostAndComponent) {
+      data.serviceConfigProperty.set('isRestartRequired', true);
       var message = '<ul>';
-      for (var host in restartData.propertyToHostAndComponent[propertyName]) {
-        var appHost = App.Host.find(host);
-        message += "<li>" + appHost.get('publicHostName');
+      for (var host in data.restartData.propertyToHostAndComponent[propertyName]) {
+        var appHost = response.items.mapProperty('Hosts').filterProperty('host_name', host);
+        message += "<li>" + appHost.public_host_name;
         message += "<ul>";
-        restartData.propertyToHostAndComponent[propertyName][host].forEach(function (comp) {
+        data.restartData.propertyToHostAndComponent[propertyName][host].forEach(function (comp) {
           message += "<li>" + App.format.role(comp) + "</li>"
         });
         message += "</ul></li>";
       }
       message += "</ul>";
-      serviceConfigProperty.set('restartRequiredMessage', message);
+      data.serviceConfigProperty.set('restartRequiredMessage', message);
     }
   },
 
@@ -746,54 +878,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   },
 
   /**
-   * Determines which host components are running on each host.
-   * @param {Array} services
-   * @param {String} status 'running' or 'unknown'
-   * @return Returned in the following format:
-   * {
-   *  runningHosts: {
-   *    'hostname1': 'NameNode, DataNode, JobTracker',
-   *    'hostname2': 'DataNode',
-   *  },
-   *  runningComponentCount: 5
-   * }
-   */
-  getHostComponentsByStatus: function (services, status) {
-    var hosts = [];
-    var componentCount = 0;
-    var hostToIndexMap = {};
-    services.forEach(function (service) {
-      var hostComponents = service.get('hostComponents').filterProperty('workStatus', status);
-      if (hostComponents != null) {
-        hostComponents.forEach(function (hc) {
-          var hostName = hc.get('host.publicHostName');
-          var componentName = hc.get('displayName');
-          componentCount++;
-          if (!(hostName in hostToIndexMap)) {
-            hosts.push({
-              name: hostName,
-              components: ""
-            });
-            hostToIndexMap[hostName] = hosts.length - 1;
-          }
-          var hostObj = hosts[hostToIndexMap[hostName]];
-          if (hostObj.components.length > 0)
-            hostObj.components += ", " + componentName;
-          else
-            hostObj.components += componentName;
-        });
-        hosts.sort(function (a, b) {
-          return a.name.localeCompare(b.name);
-        });
-      }
-    });
-    return {
-      hosts: hosts,
-      componentCount: componentCount
-    };
-  },
-
-  /**
    * open popup with appropriate message
    */
   restartServicePopup: function (event) {
@@ -806,15 +890,14 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     var hasUnknown = false;
     var value;
     var flag = false;
-    var runningHosts = null;
-    var runningComponentCount = 0;
-    var unknownHosts = null;
-    var unknownComponentCount = 0;
 
     var dfd = $.Deferred();
     var self = this;
     var serviceName = this.get('content.serviceName');
     var displayName = this.get('content.displayName');
+
+    var urlParams = '';
+    var status;
 
     if (App.supports.hostOverrides ||
       (serviceName !== 'HDFS' && this.get('content.isStopped') === true) ||
@@ -870,14 +953,11 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
           message = Em.I18n.t('services.service.config.saved.message');
           messageClass = 'alert alert-success';
           // warn the user if any of the components are in UNKNOWN state
-          var uhc;
-          if (self.get('content.serviceName') !== 'HDFS' || (self.get('content.serviceName') === 'HDFS' && !App.Service.find().someProperty('id', 'MAPREDUCE'))) {
-            uhc = self.getHostComponentsByStatus([self.get('content')], App.HostComponentStatus.unknown);
-          } else {
-            uhc = self.getHostComponentsByStatus([self.get('content'), App.Service.find('MAPREDUCE')], App.HostComponentStatus.unknown);
+          status = 'unknown';
+          urlParams += ',ServiceComponentInfo/installed_count,ServiceComponentInfo/total_count';
+          if (self.get('content.serviceName') === 'HDFS' || App.Service.find().someProperty('id', 'MAPREDUCE')) {
+            urlParams += '&ServiceComponentInfo/service_name.in(HDFS,MAPREDUCE)'
           }
-          unknownHosts = uhc.hosts;
-          unknownComponentCount = uhc.componentCount;
         } else {
           header = Em.I18n.t('common.failure');
           message = result.message;
@@ -886,19 +966,16 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         }
       });
     } else {
-      var rhc;
+      status = 'started';
       if (this.get('content.serviceName') !== 'HDFS' || (this.get('content.serviceName') === 'HDFS' && !App.Service.find().someProperty('id', 'MAPREDUCE'))) {
-        rhc = this.getHostComponentsByStatus([this.get('content')], App.HostComponentStatus.started);
         header = Em.I18n.t('services.service.config.notSaved');
         message = Em.I18n.t('services.service.config.msgServiceStop');
       } else {
-        rhc = this.getHostComponentsByStatus([this.get('content'), App.Service.find('MAPREDUCE')], App.HostComponentStatus.started);
         header = Em.I18n.t('services.service.config.notSaved');
         message = Em.I18n.t('services.service.config.msgHDFSMapRServiceStop');
+        urlParams += '&ServiceComponentInfo/service_name.in(HDFS,MAPREDUCE)';
       }
       messageClass = 'alert alert-error';
-      runningHosts = rhc.hosts;
-      runningComponentCount = rhc.componentCount;
       dfd.resolve();
     }
 
@@ -917,12 +994,91 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
           flag: flag,
           message: message,
           messageClass: messageClass,
-          runningHosts: runningHosts,
-          runningComponentCount: runningComponentCount,
-          unknownHosts: unknownHosts,
-          unknownComponentCount: unknownComponentCount,
+          runningHosts: [],
+          runningComponentCount: 0,
+          unknownHosts: [],
+          unknownComponentCount: 0,
           siteProperties: value,
-          isLoaded: true,
+          isLoaded: false,
+          componentsFilterSuccessCallback: function (response) {
+            var count = 0,
+              self = this,
+              lazyLoadHosts = function (dest) {
+                lazyLoading.run({
+                  initSize: 20,
+                  chunkSize: 50,
+                  delay: 50,
+                  destination: dest,
+                  source: hosts,
+                  context: self
+                });
+              },
+              setComponents = function (item, components) {
+                item.host_components.forEach(function (c) {
+                  var name = c.HostRoles.host_name;
+                  if (!components[name]) {
+                    components[name] = [];
+                  } else {
+                    components[name].push(App.format.role(item.ServiceComponentInfo.component_name));
+                  }
+                });
+                return components;
+              },
+              setHosts = function (components) {
+                var hosts = [];
+                Em.keys(components).forEach(function (key) {
+                  hosts.push({
+                    name: key,
+                    components: components[key].join(', ')
+                  });
+                });
+                return hosts;
+              },
+              components = {},
+              hosts = [];
+            switch (status) {
+              case 'unknown':
+                response.items.filter(function (item) {
+                  return (item.ServiceComponentInfo.total_count > item.ServiceComponentInfo.started_count + item.ServiceComponentInfo.installed_count);
+                }).forEach(function (item) {
+                    var total = item.ServiceComponentInfo.total_count,
+                      started = item.ServiceComponentInfo.started_count,
+                      installed = item.ServiceComponentInfo.installed_count,
+                      unknown = total - started + installed;
+                    components = setComponents(item, components);
+                    count += unknown;
+                  });
+                hosts = setHosts(components);
+                this.set('unknownComponentCount', count);
+                lazyLoadHosts(this.get('unknownHosts'));
+                break;
+              case 'started':
+                response.items.filterProperty('ServiceComponentInfo.started_count').forEach(function (item) {
+                  var started = item.ServiceComponentInfo.started_count;
+                  components = setComponents(item, components);
+                  count += started;
+                  hosts = setHosts(components);
+                });
+                this.set('runningComponentCount', count);
+                lazyLoadHosts(this.get('runningHosts'));
+                break;
+            }
+          },
+          componentsFilterErrorCallback: function () {
+            this.set('isLoaded', true);
+          },
+          didInsertElement: function () {
+            App.ajax.send({
+              name: 'components.filter_by_status',
+              sender: this,
+              data: {
+                clusterName: App.get('clusterName'),
+                urlParams: urlParams
+              },
+              success: 'componentsFilterSuccessCallback',
+              error: 'componentsFilterErrorCallback'
+            });
+          },
           getDisplayMessage: function () {
             var displayMsg = [];
             var siteProperties = this.get('siteProperties');
@@ -999,7 +1155,14 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       var overridenConfigs = [];
       var groupHosts = [];
       configs.filterProperty('isOverridden', true).forEach(function (config) {
-        overridenConfigs = overridenConfigs.concat(config.get('overrides'));
+        lazyLoading.run({
+          initSize: 20,
+          chunkSize: 50,
+          delay: 50,
+          destination: overridenConfigs,
+          source: config.get('overrides'),
+          context: Em.Object.create()
+        });
       });
       this.formatConfigValues(overridenConfigs);
       selectedConfigGroup.get('hosts').forEach(function(hostName){
@@ -1378,7 +1541,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * create different config object depending on siteName
    * @param {String} siteName
    * @param {String} tagName
-   * @returns {Object|undefined}
+   * @returns {Object|null}
    * @method createConfigObject
    */
   createConfigObject: function(siteName, tagName) {
@@ -1390,11 +1553,11 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         if(this.get('content.serviceName') === 'HDFS' || this.get('content.serviceName') === 'GLUSTERFS') {
           return this.createCoreSiteObj(tagName);
         }
-        return;
+        return null;
       default:
         var filename = (App.config.get('filenameExceptions').contains(siteName)) ? siteName : siteName + '.xml';
         if (filename === 'mapred-queue-acls.xml' && !App.supports.capacitySchedulerUi) {
-          return;
+          return null;
         }
       return this.createSiteObj(siteName, tagName, this.get('uiConfigs').filterProperty('filename', filename));
     }
