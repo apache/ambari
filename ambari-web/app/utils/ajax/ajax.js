@@ -2135,8 +2135,12 @@ var urls = {
     'real': '/clusters/{clusterName}/hosts?fields=Hosts/public_host_name&minimal_response=true',
     'mock': ''
   },
+  'hosts.confirmed.install': {
+    'real': '/hosts?fields=Hosts/cpu_count,Hosts/disk_info,Hosts/total_mem&minimal_response=true',
+    'mock': ''
+  },
   'hosts.confirmed': {
-    'real': '/clusters/{clusterName}/hosts?fields=Hosts/cpu_count,Hosts/disk_info,Hosts/total_mem&minimal_response=true',
+    'real': '/clusters/{clusterName}/hosts?fields=Hosts/cpu_count,Hosts/disk_info,Hosts/total_mem,host_components&minimal_response=true',
     'mock': ''
   },
   'host_components.all': {
@@ -2145,6 +2149,10 @@ var urls = {
   },
   'host_components.with_services_names': {
     'real': '/clusters/{clusterName}/host_components?fields=component/ServiceComponentInfo/service_name,HostRoles/host_name&minimal_response=true',
+    'mock': ''
+  },
+  'components.get_installed': {
+    'real': '/clusters/{clusterName}/components',
     'mock': ''
   },
   'hosts.heatmaps': {

@@ -53,6 +53,32 @@ App.AddHostView = Em.View.extend({
 
  isStepDisabled: function (index) {
     return this.get('controller.isStepDisabled').findProperty('step', index).get('value');
+  },
+
+  didInsertElement: function () {
+    App.ajax.send({
+      name: 'hosts.confirmed',
+      sender: this,
+      data: {
+        clusterName: App.get('clusterName')
+      },
+      success: 'loadConfirmedHostsSuccessCallback'
+    });
+  },
+
+  loadConfirmedHostsSuccessCallback: function (response) {
+    var hosts = {};
+    response.items.mapProperty('Hosts').forEach(function(item){
+      hosts[item.host_name] = {
+        name: item.host_name,
+        cpu: item.cpu_count,
+        memory: item.total_mem,
+        disk_info: item.disk_info,
+        bootStatus: "REGISTERED",
+        isInstalled: true
+      };
+    });
+    this.get('controller').setDBProperty('hosts', hosts);
   }
 
 });

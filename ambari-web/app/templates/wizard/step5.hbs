@@ -24,43 +24,44 @@
     {{t installer.step5.body.hive}}
   {{/if}}
 </div>
-<div class="assign-masters row-fluid">
-  <div class="select-hosts span7">
-    <div class="row-fluid">
-      {{#if showCurrentHost}}
-        <div class="span12 control-group mlc">
-          <div class="row-fluid">
-            <div class="span4"><span class="pull-right control-label">{{t services.reassign.step2.currentHost}}</span>
-            </div>
-            <div class="span8"><span>{{currentHostId}}</span></div>
-          </div>
-        </div>
-      {{/if}}
-      <div class="clearfix"></div>
+{{#if controller.isLoaded}}
+  <div class="assign-masters row-fluid">
+    <div class="select-hosts span7">
       <div class="row-fluid">
-        <div class="span12 control-group">
-          <form class="form-horizontal" autocomplete="off">
-            <!-- View for array controller -->
-            {{#each servicesMasters}}
-              <div class="row-fluid">
-                <div class="span4">
-                  <div class="control-group">
-                    <label class="pts pull-right">
-                      {{#if controller.isReassignHive}}
-                        {{t installer.step5.hiveGroup}}
-                      {{else}}
-                        {{display_name}}:
-                      {{/if}}
-                    </label>
-                  </div>
-                </div>
-                <div class="span8">
-                  {{#if isHiveCoHost}}
-                    <div class="hostName">
-                      {{selectedHost}}<i class="icon-asterisks">&#10037;</i>
+        {{#if showCurrentHost}}
+          <div class="span12 control-group mlc">
+            <div class="row-fluid">
+              <div class="span4"><span class="pull-right control-label">{{t services.reassign.step2.currentHost}}</span>
+              </div>
+              <div class="span8"><span>{{currentHostId}}</span></div>
+            </div>
+          </div>
+        {{/if}}
+        <div class="clearfix"></div>
+        <div class="row-fluid">
+          <div class="span12 control-group">
+            <form class="form-horizontal" autocomplete="off">
+              <!-- View for array controller -->
+              {{#each servicesMasters}}
+                <div class="row-fluid">
+                  <div class="span4">
+                    <div class="control-group">
+                      <label class="pts pull-right">
+                        {{#if controller.isReassignHive}}
+                          {{t installer.step5.hiveGroup}}
+                        {{else}}
+                          {{display_name}}:
+                        {{/if}}
+                      </label>
                     </div>
-                  {{else}}
-                    {{view App.SelectHostView
+                  </div>
+                  <div class="span8">
+                    {{#if isHiveCoHost}}
+                      <div class="hostName">
+                        {{selectedHost}}<i class="icon-asterisks">&#10037;</i>
+                      </div>
+                    {{else}}
+                      {{view App.SelectHostView
                       optionValuePath="content.host_name"
                       optionLabelPath="content.host_info"
                       selectedHostBinding="selectedHost"
@@ -68,41 +69,44 @@
                       class="host-select"
                       zIdBinding="zId"
                       disabledBinding="isInstalled"
-                    }}
-                    {{#if showAddControl}}
-                      {{view App.AddControlView componentNameBinding="component_name"}}
+                      }}
+                      {{#if showAddControl}}
+                        {{view App.AddControlView componentNameBinding="component_name"}}
+                      {{/if}}
+                      {{#if showRemoveControl}}
+                        {{view App.RemoveControlView componentNameBinding="component_name" zIdBinding="zId"}}
+                      {{/if}}
                     {{/if}}
-                    {{#if showRemoveControl}}
-                      {{view App.RemoveControlView componentNameBinding="component_name" zIdBinding="zId"}}
-                    {{/if}}
-                  {{/if}}
+                  </div>
                 </div>
-              </div>
-            {{/each}}
-          </form>
+              {{/each}}
+            </form>
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <div class="host-assignments span5">
-    {{#each masterHostMapping}}
-      <div class="mapping-box round-corners well">
-        <div class="hostString"><span>{{hostInfo}}</span></div>
-        {{#each masterServices}}
-          <span {{bindAttr class="isInstalled:assignedService:newService :round-corners"}}>{{display_name}}</span>
-        {{/each}}
-      </div>
-    {{/each}}
+    <div class="host-assignments span5">
+      {{#each masterHostMapping}}
+        <div class="mapping-box round-corners well">
+          <div class="hostString"><span>{{hostInfo}}</span></div>
+          {{#each masterServices}}
+            <span {{bindAttr class="isInstalled:assignedService:newService :round-corners"}}>{{display_name}}</span>
+          {{/each}}
+        </div>
+      {{/each}}
 
-    {{#if remainingHosts}}
-      <div class="remaining-hosts round-corners well">
-        <span><strong>{{remainingHosts}}</strong> {{t installer.step5.attention}}</span></div>
-    {{/if}}
+      {{#if remainingHosts}}
+        <div class="remaining-hosts round-corners well">
+          <span><strong>{{remainingHosts}}</strong> {{t installer.step5.attention}}</span></div>
+      {{/if}}
+    </div>
+    <div class="clearfix"></div>
   </div>
-  <div class="clearfix"></div>
-</div>
+{{else}}
+  <div class="spinner"></div>
+{{/if}}
 <div class="btn-area">
   <a class="btn pull-left" {{action back href="true"}}>&larr; {{t common.back}}</a>
-  <a class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}} {{action submit target="controller"}}>{{t common.next}} &rarr;</a>
+  <a class="btn btn-success pull-right" {{bindAttr disabled="submitDisabled"}} {{action submit target="controller"}}>{{t common.next}} &rarr;</a>
 </div>

@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var lazyLoading = require('utils/lazy_loading');
 
 App.WizardStep10Controller = Em.Controller.extend({
 
@@ -56,16 +57,7 @@ App.WizardStep10Controller = Em.Controller.extend({
   loadStep: function () {
     console.log("TRACE: Loading step10: Summary Page");
     this.clearStep();
-    this.loadInstalledHosts(this.loadRegisteredHosts());
-    var installFlag = true;
-    var startFlag = true;
-    if (this.get('content.controllerName') == 'installerController') {
-      installFlag = this.loadMasterComponents();
-      startFlag = this.loadStartedServices();
-    }
-    if (installFlag && startFlag) {
-      this.loadInstallTime();
-    }
+    this.loadRegisteredHosts();
   },
 
   /**
@@ -74,14 +66,41 @@ App.WizardStep10Controller = Em.Controller.extend({
    * @method loadRegisteredHosts
    */
   loadRegisteredHosts: function () {
+    var clusterName = (this.get('content.controllerName') === 'installerController') ? this.get('content.cluster.name') : App.get('clusterName')
+    App.ajax.send({
+      name: 'hosts.all',
+      sender: this,
+      data: {
+        clusterName: clusterName
+      },
+      success: 'loadRegisteredHostsSuccessCallback'
+    });
+  },
+
+  loadRegisteredHostsSuccessCallback: function (response) {
     var masterHosts = this.get('content.masterComponentHosts').mapProperty('hostName').uniq();
-    var slaveHosts = this.get('content.slaveComponentHosts');
+    var slaveHosts = [];
+    lazyLoading.run({
+      initSize: 20,
+      chunkSize: 50,
+      delay: 50,
+      destination: slaveHosts,
+      source: this.get('content.slaveComponentHosts'),
+      context: Em.Object.create()
+    });
     var hostObj = [];
     slaveHosts.forEach(function (_hosts) {
-      hostObj = hostObj.concat(_hosts.hosts);
+      lazyLoading.run({
+        initSize: 20,
+        chunkSize: 50,
+        delay: 50,
+        destination: hostObj,
+        source: _hosts.hosts,
+        context: Em.Object.create()
+      });
     }, this);
     slaveHosts = hostObj.mapProperty('hostName').uniq();
-    var registeredHosts = App.Host.find().mapProperty('hostName').concat(masterHosts.concat(slaveHosts)).uniq();
+    var registeredHosts = response.items.mapProperty('Hosts.host_name').concat(masterHosts.concat(slaveHosts)).uniq();
     var registerHostsStatement = Em.I18n.t('installer.step10.hostsSummary').format(registeredHosts.length);
     var registerHostsObj = Em.Object.create({
       id: 1,
@@ -91,7 +110,17 @@ App.WizardStep10Controller = Em.Controller.extend({
     });
     this.get('clusterInfo').pushObject(registerHostsObj);
 
-    return registerHostsObj;
+    this.loadInstalledHosts();
+    var installFlag = true;
+    var startFlag = true;
+    if (this.get('content.controllerName') == 'installerController') {
+      installFlag = this.loadMasterComponents();
+      startFlag = this.loadStartedServices();
+    }
+    if (installFlag && startFlag) {
+      this.loadInstallTime();
+    }
+    this.set('isLoaded', true);
   },
 
   /**

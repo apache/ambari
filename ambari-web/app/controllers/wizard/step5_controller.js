@@ -18,6 +18,7 @@
 
 var App = require('app');
 var numberUtils = require('utils/number_utils');
+var lazyLoading = require('utils/lazy_loading');
 
 App.WizardStep5Controller = Em.Controller.extend({
 
@@ -65,24 +66,38 @@ App.WizardStep5Controller = Em.Controller.extend({
    */
   multipleComponents: ['ZOOKEEPER_SERVER', 'HBASE_MASTER'],
 
+  submitDisabled: false,
+
   /**
    * Define state for submit button. Return true only for Reassign Master Wizard and if more than one master component was reassigned.
    * @type {bool}
    */
   isSubmitDisabled: function () {
     if (!this.get('isReassignWizard')) {
-      return false;
+      this.set('submitDisabled', false);
+    } else {
+      App.ajax.send({
+        name: 'host_components.all',
+        sender: this,
+        data: {
+          clusterName: App.get('clusterName')
+        },
+        success: 'isSubmitDisabledSuccessCallBack'
+      });
     }
+  }.observes('servicesMasters.@each.selectedHost'),
+
+  isSubmitDisabledSuccessCallBack: function (response) {
     var reassigned = 0;
-    var arr1 = App.HostComponent.find().filterProperty('componentName', this.get('content.reassign.component_name')).mapProperty('host.hostName');
+    var arr1 = response.items.mapProperty('HostRoles').filterProperty('component_name', this.get('content.reassign.component_name')).mapProperty('host_name');
     var arr2 = this.get('servicesMasters').mapProperty('selectedHost');
     arr1.forEach(function (host) {
       if (!arr2.contains(host)) {
         reassigned++;
       }
     }, this);
-    return reassigned !== 1;
-  }.property('servicesMasters.@each.selectedHost'),
+    this.set('submitDisabled', reassigned !== 1);
+  },
 
   /**
    * List of hosts
@@ -133,32 +148,73 @@ App.WizardStep5Controller = Em.Controller.extend({
    * </code>
    * @type {Ember.Enumerable}
    */
-  masterHostMapping: function () {
+  masterHostMapping: [],
+
+  isLoaded: false,
+
+  /**
+   * Check if HIVE_SERVER component exist (also checks if this is not reassign)
+   * @type {bool}
+   */
+  hasHiveServer: function () {
+    return this.get('selectedServicesMasters').someProperty('component_name', 'HIVE_SERVER') && !this.get('isReassignWizard');
+  }.property('selectedServicesMasters'),
+
+  masterHostMappingObserver: function () {
+    var requestName = this.get('content.controllerName') == 'installerController' ? 'hosts.confirmed.install' : 'hosts.confirmed'
+    App.ajax.send({
+      name: requestName,
+      sender: this,
+      data: {
+        clusterName: App.get('clusterName')
+      },
+      success: 'masterHostMappingSuccessCallback'
+    });
+  }.observes('selectedServicesMasters', 'selectedServicesMasters.@each.selectedHost'),
+
+  masterHostMappingSuccessCallback: function (response) {
     var mapping = [], mappingObject, mappedHosts, hostObj;
     //get the unique assigned hosts and find the master services assigned to them
-    mappedHosts = this.get("selectedServicesMasters").mapProperty("selectedHost").uniq();
+    mappedHosts = this.get("selectedServicesMasters").mapProperty("selectedHost").uniq().without(undefined);
     mappedHosts.forEach(function (item) {
-      hostObj = this.get("hosts").findProperty("host_name", item);
+      var host = response.items.mapProperty('Hosts').findProperty('host_name', item);
+      hostObj = {
+        name: host.host_name,
+        memory: host.total_mem,
+        cpu: host.cpu_count
+      };
 
       mappingObject = Em.Object.create({
         host_name: item,
-        hostInfo: hostObj.host_info,
+        hostInfo: Em.I18n.t('installer.step5.hostInfo').fmt(hostObj.name, numberUtils.bytesToSize(hostObj.memory, 1, 'parseFloat', 1024), hostObj.cpu),
         masterServices: this.get("selectedServicesMasters").filterProperty("selectedHost", item)
       });
 
       mapping.pushObject(mappingObject);
     }, this);
 
-    return mapping.sortProperty('host_name');
-  }.property("selectedServicesMasters.@each.selectedHost"),
+    this.set('masterHostMapping', []);
+    lazyLoading.run({
+      initSize: 20,
+      chunkSize: 50,
+      delay: 50,
+      destination: this.get('masterHostMapping'),
+      source: mapping.sortProperty('host_name'),
+      context: Em.Object.create()
+    });
+  },
 
   /**
    * Count of hosts without masters
    * @type {number}
    */
   remainingHosts: function () {
-    return (this.get("hosts.length") - this.get("masterHostMapping.length"));
-  }.property("selectedServicesMasters.@each.selectedHost"),
+    if (this.get('content.controllerName') === 'installerController') {
+     return 0;
+    } else {
+      return (this.get("hosts.length") - this.get("masterHostMapping.length"));
+    };
+  }.property('masterHostMapping.length', 'selectedServicesMasters.@each.selectedHost'),
 
   /**
    * Clear controller data (hosts, masters etc)
@@ -235,8 +291,17 @@ App.WizardStep5Controller = Em.Controller.extend({
         }));
       }
     }
-    this.set("hosts", result);
+    this.set("hosts", []);
+    lazyLoading.run({
+      initSize: 20,
+      chunkSize: 50,
+      delay: 50,
+      destination: this.get('hosts'),
+      source: result,
+      context: Em.Object.create()
+    });
     this.sortHosts(this.get('hosts'));
+    this.set('isLoaded', true);
   },
 
   /**
@@ -626,7 +691,8 @@ App.WizardStep5Controller = Em.Controller.extend({
    * @metohd submit
    */
   submit: function () {
-    if (!this.get('isSubmitDisabled')) {
+    this.isSubmitDisabled();
+    if (!this.get('submitDisabled')) {
       App.router.send('next');
     }
   }

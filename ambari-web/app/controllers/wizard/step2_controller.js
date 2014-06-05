@@ -148,10 +148,30 @@ App.WizardStep2Controller = Em.Controller.extend({
    * @method updateHostNameArr
    */
   updateHostNameArr: function () {
-    this.set('hostNameArr', this.get('hostNames').trim().split(new RegExp("\\s+", "g")));
+    this.set('hostNameArr', []);
+    lazyloading.run({
+      initSize: 20,
+      chunkSize: 50,
+      delay: 50,
+      destination: this.get('hostNameArr'),
+      source: this.get('hostNames').trim().split(new RegExp("\\s+", "g")),
+      context: this
+    });
     this.parseHostNamesAsPatternExpression();
     this.get('inputtedAgainHostNames').clear();
-    var installedHostNames = App.Host.find().mapProperty('hostName'),
+    var requestName = (this.get('content.controllerName') == 'installerController') ? 'hosts.all.install' : 'hosts.all';
+    App.ajax.send({
+      name: requestName,
+      sender: this,
+      data: {
+        clusterName: App.get('clusterName')
+      },
+      success: 'updateHostNameArrSuccessCallback'
+    });
+  },
+
+  updateHostNameArrSuccessCallback: function (response) {
+    var installedHostNames = response.items.mapProperty('Hosts.host_name'),
       tempArr = [],
       hostNameArr = this.get('hostNameArr');
     for (var i = 0; i < hostNameArr.length; i++) {
@@ -162,7 +182,14 @@ App.WizardStep2Controller = Em.Controller.extend({
         this.get('inputtedAgainHostNames').push(hostNameArr[i]);
       }
     }
-    this.set('hostNameArr', tempArr);
+    lazyloading.run({
+      initSize: 20,
+      chunkSize: 50,
+      delay: 50,
+      destination: this.get('hostNameArr'),
+      source: tempArr,
+      context: this
+    });
   },
 
   /**
@@ -311,7 +338,15 @@ App.WizardStep2Controller = Em.Controller.extend({
         hostNames.push(a);
       }
     });
-    this.set('hostNameArr', hostNames);
+    this.set('hostNameArr', []);
+    lazyloading.run({
+      initSize: 20,
+      chunkSize: 50,
+      delay: 50,
+      destination: this.get('hostNameArr'),
+      source: hostNames,
+      context: this
+    });
   },
 
   /**

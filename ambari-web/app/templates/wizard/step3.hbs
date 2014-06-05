@@ -21,133 +21,149 @@
 
   <p class="alert alert-info">{{t installer.step3.body}}</p>
 
-  <div class="box">
-    <div class="box-header">
-      <div class="button-section">
-        <button class="btn btn-primary" {{bindAttr disabled="view.noHostsSelected"}}
-          {{action removeSelectedHosts target="controller" }}><i class="icon-trash icon-white"></i>
-          {{t installer.step3.removeSelected}}
-        </button>
-        {{#unless isRetryDisabled}}
-          <a class="btn btn-primary decommission"
-             href="#" {{action retrySelectedHosts target="view"}}><i class="icon-repeat icon-white"></i>
-            {{t installer.step3.retryFailed}}
-          </a>
-        {{/unless}}
+  {{#if view.isLoaded}}
+    {{#if controller.isLoaded}}
 
-        <div id="host-filter" class="pull-right">
-          <ul class="clearfix">
-            <li class="first">{{t common.show}}:</li>
-            {{#each category in view.categories}}
-              <li {{bindAttr class=":filter-status category.itemClass"}}>
-                <a {{action selectCategory category target="view"}} href="#">
-                  {{category.label}}
+      <div class="box">
+        <div class="box-header">
+          <div class="button-section">
+            <button class="btn btn-primary" {{bindAttr disabled="view.noHostsSelected"}}
+              {{action removeSelectedHosts target="controller" }}><i class="icon-trash icon-white"></i>
+              {{t installer.step3.removeSelected}}
+            </button>
+            {{#unless isRetryDisabled}}
+              <a class="btn btn-primary decommission"
+                 href="#" {{action retrySelectedHosts target="view"}}><i class="icon-repeat icon-white"></i>
+                {{t installer.step3.retryFailed}}
+              </a>
+            {{/unless}}
+
+            <div id="host-filter" class="pull-right">
+              <ul class="clearfix">
+                <li class="first">{{t common.show}}:</li>
+                {{#each category in view.categories}}
+                  <li {{bindAttr class=":filter-status category.itemClass"}}>
+                    <a {{action selectCategory category target="view"}} href="#">
+                      {{category.label}}
+                    </a>
+                  </li>
+                  {{#unless category.last}}
+                    <li class="divider">|</li>
+                  {{/unless}}
+                {{/each}}
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="pre-scrollable" style="max-height: 440px;">
+          <table class="table table-bordered table-striped">
+            <thead>
+            <tr>
+              <th class="tinyspan">
+                {{view Ember.Checkbox checkedBinding="view.pageChecked"}}
+              </th>
+              <th class="span5">{{t common.host}}</th>
+              <!-- retrieved from local storage initially -->
+              <th class="span2">{{t common.progress}}</th>
+              <th class="span2">{{t common.status}}</th>
+              <!-- given by the parsing function that parses data from bootstrap call, dynamically assign the color -->
+              <th class="span2">{{t common.action}}</th>
+              <!-- trash icon -->
+              <!-- retry icon -->
+            </tr>
+            </thead>
+            <tbody>
+            {{#if view.pageContent}}
+              {{#each host in view.pageContent}}
+                {{#view App.WizardHostView categoryBinding="controller.category" hostInfoBinding="host"}}
+                  <td>
+                    {{view Ember.Checkbox checkedBinding="host.isChecked"}}
+                  </td>
+                  <td>
+                    {{host.name}}
+                  </td>
+                  <td>
+                    <div {{bindAttr class="host.bootBarColor host.isBootDone::progress-striped host.isBootDone::active :progress"}}>
+                      <div class="bar" style="width:100%">
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <a href="javascript:void(null)"
+                       data-toggle="modal" {{action hostLogPopup host target="controller"}}><span {{bindAttr class="host.bootStatusColor"}}>{{host.bootStatusForDisplay}}</span></a>
+                  </td>
+                  <td>
+                    <a class="btn btn-mini" {{action remove target="view"}}><i class="icon-trash"></i>
+                      {{t common.remove}}</a>
+                    {{#if view.isRetryable}}<a class="btn btn-mini" {{action retry target="view"}}><i
+                      class="icon-repeat"></i>
+                      {{t common.retry}}</a>{{/if}}
+                  </td>
+                {{/view}}
+              {{/each}}
+            {{else}}
+              <tr>
+                <td colspan="5">
+                  {{t hosts.table.noHosts}}
+                </td>
+              </tr>
+            {{/if}}
+            </tbody>
+          </table>
+        </div>
+        <div id="hosts">
+          <div class="page-bar">
+            <div class="selected-hosts-info pull-left">
+              {{#if view.selectedHostsCount}}
+                <a {{action selectedHostsPopup target="controller"}} href="#">
+                  {{view.selectedHostsCount}}
+                  {{pluralize view.selectedHostsCount singular="t:hosts.filters.selectedHostInfo" plural="t:hosts.filters.selectedHostsInfo"}}
                 </a>
-              </li>
-              {{#unless category.last}}
-                <li class="divider">|</li>
-              {{/unless}}
-            {{/each}}
-          </ul>
+                -
+                <a {{action unSelectAll target="view"}} href="#">{{t hosts.filters.clearSelection}}</a>
+              {{/if}}
+            </div>
+            <div class="items-on-page">
+              <label>{{t common.show}}: {{view view.rowsPerPageSelectView selectionBinding="view.displayLength"}}</label>
+            </div>
+            <div class="info">{{view.paginationInfo}}</div>
+            <div class="paging_two_button">
+              {{view view.paginationFirst}}
+              {{view view.paginationLeft}}
+              {{view view.paginationRight}}
+              {{view view.paginationLast}}
+            </div>
+          </div>
         </div>
       </div>
-    </div>
+      {{#if hasMoreRegisteredHosts}}
+        <div {{bindAttr class=":alert alert-warn"}}>
+          <a href="#" {{action registeredHostsPopup target="controller"}}>{{controller.registeredHostsMessage}}</a>
+        </div>
+      {{/if}}
+      <div {{bindAttr class=":alert view.status isWarningsBoxVisible::hidden"}}>
+        {{view.message}}
+        <a href="#" {{action hostWarningsPopup warnings target="controller"}}>{{view.linkText}}</a>
+        {{#unless isWarningsLoaded}}
+          <div class="spinner"></div>
+        {{/unless}}
+      </div>
 
-    <div class="pre-scrollable" style="max-height: 440px;">
-      <table class="table table-bordered table-striped">
-        <thead>
-        <tr>
-          <th class="tinyspan">
-            {{view Ember.Checkbox checkedBinding="view.pageChecked"}}
-          </th>
-          <th class="span5">{{t common.host}}</th>
-          <!-- retrieved from local storage initially -->
-          <th class="span2">{{t common.progress}}</th>
-          <th class="span2">{{t common.status}}</th>
-          <!-- given by the parsing function that parses data from bootstrap call, dynamically assign the color -->
-          <th class="span2">{{t common.action}}</th>
-          <!-- trash icon -->
-          <!-- retry icon -->
-        </tr>
-        </thead>
-        <tbody>
-          {{#if view.pageContent}}
-            {{#each host in view.pageContent}}
-              {{#view App.WizardHostView categoryBinding="controller.category" hostInfoBinding="host"}}
-              <td>
-                {{view Ember.Checkbox checkedBinding="host.isChecked"}}
-              </td>
-              <td>
-                {{host.name}}
-              </td>
-              <td>
-                <div {{bindAttr class="host.bootBarColor host.isBootDone::progress-striped host.isBootDone::active :progress"}}>
-                  <div class="bar" style="width:100%">
-                  </div>
-                </div>
-              </td>
-              <td>
-                <a href="javascript:void(null)"
-                   data-toggle="modal" {{action hostLogPopup host target="controller"}}><span {{bindAttr class="host.bootStatusColor"}}>{{host.bootStatusForDisplay}}</span></a>
-              </td>
-              <td>
-                <a class="btn btn-mini" {{action remove target="view"}}><i class="icon-trash"></i>
-                  {{t common.remove}}</a>
-                {{#if view.isRetryable}}<a class="btn btn-mini" {{action retry target="view"}}><i
-                    class="icon-repeat"></i>
-                  {{t common.retry}}</a>{{/if}}
-              </td>
-              {{/view}}
-            {{/each}}
-          {{else}}
-          <tr>
-            <td colspan="5">
-              {{t hosts.table.noHosts}}
-            </td>
-          </tr>
-          {{/if}}
-        </tbody>
-      </table>
-    </div>
-    <div id="hosts">
-      <div class="page-bar">
-        <div class="selected-hosts-info pull-left">
-          {{#if view.selectedHostsCount}}
-            <a {{action selectedHostsPopup target="controller"}} href="#">
-              {{view.selectedHostsCount}}
-              {{pluralize view.selectedHostsCount singular="t:hosts.filters.selectedHostInfo" plural="t:hosts.filters.selectedHostsInfo"}}
-            </a>
-            -
-            <a {{action unSelectAll target="view"}} href="#">{{t hosts.filters.clearSelection}}</a>
-          {{/if}}
-        </div>
-        <div class="items-on-page">
-          <label>{{t common.show}}: {{view view.rowsPerPageSelectView selectionBinding="view.displayLength"}}</label>
-        </div>
-        <div class="info">{{view.paginationInfo}}</div>
-        <div class="paging_two_button">
-          {{view view.paginationFirst}}
-          {{view view.paginationLeft}}
-          {{view view.paginationRight}}
-          {{view view.paginationLast}}
-        </div>
-      </div>
-    </div>
-  </div>
-  {{#if hasMoreRegisteredHosts}}
-    <div {{bindAttr class=":alert alert-warn"}}>
-      <a href="#" {{action registeredHostsPopup target="controller"}}>{{view.registeredHostsMessage}}</a>
-    </div>
-  {{/if}}
-  <div {{bindAttr class=":alert view.status isWarningsBoxVisible::hidden"}}>
-    {{view.message}}
-    <a href="#" {{action hostWarningsPopup warnings target="controller"}}>{{view.linkText}}</a>
-    {{#unless isWarningsLoaded}}
+    {{else}}
+
       <div class="spinner"></div>
-    {{/unless}}
-  </div>
+
+    {{/if}}
+  {{else}}
+
+    <div class="spinner"></div>
+
+  {{/if}}
+
   <div class="btn-area">
     <button class="btn pull-left" {{bindAttr disabled="isRegistrationInProgress"}} {{action back}}>&larr; {{t common.back}}</button>
     <button class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}} {{action submit target="controller"}}>{{t common.next}} &rarr;</button>
   </div>
+
 </div>
