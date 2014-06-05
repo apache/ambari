@@ -19,7 +19,6 @@
 //load all mappers
 require('mappers/server_data_mapper');
 require('mappers/stack_service_component_mapper');
-require('mappers/status_mapper');
 require('mappers/hosts_mapper');
 require('mappers/cluster_mapper');
 require('mappers/jobs_mapper');

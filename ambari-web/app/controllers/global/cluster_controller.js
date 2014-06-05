@@ -25,10 +25,7 @@ App.ClusterController = Em.Controller.extend({
   ambariProperties: null,
   ambariViews: [],
   clusterDataLoadedPercent: 'width:0', // 0 to 1
-  /**
-   * Whether we need to update statuses automatically or not
-   */
-  isWorking: false,
+
   isGangliaUrlLoaded: false,
   isNagiosUrlLoaded: false,
 
@@ -234,57 +231,6 @@ App.ClusterController = Em.Controller.extend({
   }.property('App.router.updateController.isUpdated', 'dataLoadList.serviceMetrics'),
 
   /**
-   * Send request to server to load components updated statuses
-   * @param callback Slave function, should be called to fire delayed update.
-   * @param isInitialLoad
-   * Look at <code>App.updater.run</code> for more information
-   * @return {Boolean} Whether we have errors
-   */
-  loadUpdatedStatus: function (callback, isInitialLoad) {
-    if (!this.get('clusterName')) {
-      callback();
-      return false;
-    }
-    App.set('currentServerTime', App.get('currentServerTime') + App.componentsUpdateInterval);
-    var testUrl = App.get('isHadoop2Stack') ? '/data/hosts/HDP2/hc_host_status.json' : '/data/dashboard/services.json';
-    var statusUrl = '/hosts?fields=Hosts/host_status,Hosts/maintenance_state,host_components/HostRoles/state,host_components/HostRoles/maintenance_state,alerts/summary&minimal_response=true';
-    if (isInitialLoad) {
-      testUrl = '/data/hosts/HDP2/hosts_init.json';
-      statusUrl = '/hosts?fields=Hosts/host_name,Hosts/maintenance_state,Hosts/public_host_name,Hosts/cpu_count,Hosts/ph_cpu_count,Hosts/total_mem,' +
-        'Hosts/host_status,Hosts/last_heartbeat_time,Hosts/os_arch,Hosts/os_type,Hosts/ip,host_components/HostRoles/state,host_components/HostRoles/maintenance_state,' +
-        'Hosts/disk_info,metrics/disk,metrics/load/load_one,metrics/cpu/cpu_system,metrics/cpu/cpu_user,' +
-        'metrics/memory/mem_total,metrics/memory/mem_free,alerts/summary&minimal_response=true';
-    }
-    //desired_state property is eliminated since calculateState function is commented out, it become useless
-    statusUrl = this.getUrl(testUrl, statusUrl);
-
-    App.HttpClient.get(statusUrl, App.statusMapper, {
-      complete: callback
-    });
-    return true;
-  },
-
-  /**
-   * Run <code>loadUpdatedStatus</code> with delay
-   * @param delay
-   */
-  loadUpdatedStatusDelayed: function (delay) {
-    setTimeout(function () {
-      App.updater.immediateRun('loadUpdatedStatus');
-    }, delay);
-  },
-
-  /**
-   * Start polling, when <code>isWorking</code> become true
-   */
-  startPolling: function () {
-    if (!this.get('isWorking')) {
-      return false;
-    }
-    App.updater.run(this, 'loadUpdatedStatus', 'isWorking', App.componentsUpdateInterval); //update will not run it immediately
-    return true;
-  }.observes('isWorking'),
-  /**
    *
    *  load all data and update load status
    */
@@ -362,28 +308,24 @@ App.ClusterController = Em.Controller.extend({
       self.updateLoadStatus('stackComponents');
       updater.updateServices(function () {
         self.updateLoadStatus('services');
+        updater.updateHost(function () {
+          self.updateLoadStatus('hosts');
+        });
 
-        self.loadUpdatedStatus(function () {
-
-          updater.updateHost(function () {
-            self.updateLoadStatus('hosts');
+        updater.updateServiceMetric(function () {
+          updater.updateComponentsState(function () {
+            self.updateLoadStatus('componentsState');
           });
+          self.updateLoadStatus('serviceMetrics');
+        });
 
-          updater.updateServiceMetric(function () {
-            updater.updateComponentsState(function () {
-              self.updateLoadStatus('componentsState');
-            });
-            self.updateLoadStatus('serviceMetrics');
-          });
-
-          if (App.supports.hostOverrides) {
-            updater.updateComponentConfig(function () {
-              self.updateLoadStatus('componentConfigs');
-            });
-          } else {
+        if (App.supports.hostOverrides) {
+          updater.updateComponentConfig(function () {
             self.updateLoadStatus('componentConfigs');
-          }
-        }, true);
+          });
+        } else {
+          self.updateLoadStatus('componentConfigs');
+        }
       });
     });
   },

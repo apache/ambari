@@ -190,8 +190,6 @@ App.MainHostDetailsController = Em.Controller.extend({
 
     if (App.testMode) {
       this.mimicWorkStatusChange(params.component, App.HostComponentStatus.starting, App.HostComponentStatus.started);
-    } else {
-      App.router.get('clusterController').loadUpdatedStatusDelayed(500);
     }
     this.showBackgroundOperationsPopup();
   },
@@ -378,8 +376,6 @@ App.MainHostDetailsController = Em.Controller.extend({
 
     if (App.testMode) {
       this.mimicWorkStatusChange(params.component, App.HostComponentStatus.starting, App.HostComponentStatus.started);
-    } else {
-      App.router.get('clusterController').loadUpdatedStatusDelayed(500);
     }
     this.showBackgroundOperationsPopup();
   },
@@ -433,8 +429,6 @@ App.MainHostDetailsController = Em.Controller.extend({
 
     if (App.testMode) {
       this.mimicWorkStatusChange(params.component, App.HostComponentStatus.stopping, App.HostComponentStatus.stopped);
-    } else {
-      App.router.get('clusterController').loadUpdatedStatusDelayed(500);
     }
     this.showBackgroundOperationsPopup();
   },
@@ -630,8 +624,6 @@ App.MainHostDetailsController = Em.Controller.extend({
 
     if (App.testMode) {
       this.mimicWorkStatusChange(params.component, App.HostComponentStatus.installing, App.HostComponentStatus.stopped);
-    } else {
-      App.router.get('clusterController').loadUpdatedStatusDelayed(500);
     }
 
     this.showBackgroundOperationsPopup(function () {
@@ -905,8 +897,6 @@ App.MainHostDetailsController = Em.Controller.extend({
     console.log('Send request for REINSTALL COMPONENT successfully');
     if (App.testMode) {
       this.mimicWorkStatusChange(params.component, App.HostComponentStatus.installing, App.HostComponentStatus.stopped);
-    } else {
-      App.router.get('clusterController').loadUpdatedStatusDelayed(500);
     }
     this.showBackgroundOperationsPopup();
   },
@@ -1100,9 +1090,6 @@ App.MainHostDetailsController = Em.Controller.extend({
    */
   decommissionSuccessCallback: function (data) {
     if (data && (data.Requests || data.resources[0].RequestSchedule)) {
-      if (!App.testMode) {
-        App.router.get('clusterController').loadUpdatedStatusDelayed(500);
-      }
       this.showBackgroundOperationsPopup();
       return true;
     } else {

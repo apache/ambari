@@ -63,9 +63,6 @@ App.MainServiceItemController = Em.Controller.extend({
           self.get('content.hostComponents').setEach('workStatus', App.HostComponentStatus[config.hs]);
         }, App.testModeDelayForActions);
       }
-      else {
-        App.router.get('clusterController').loadUpdatedStatusDelayed(500);// @todo check working without param 500
-      }
       // load data (if we need to show this background operations popup) from persist
       App.router.get('applicationController').dataLoading().done(function (initValue) {
         if (initValue) {

@@ -66,13 +66,11 @@ App.MainController = Em.Controller.extend({
     if (App.router.get('clusterController.isLoaded')) {
       App.router.get('updateController').set('isWorking', true);
       App.router.get('backgroundOperationsController').set('isWorking', true);
-      App.router.get('clusterController').set('isWorking', true);
     }
   }.observes('App.router.clusterController.isLoaded'),
   stopPolling: function(){
     App.router.get('updateController').set('isWorking', false);
     App.router.get('backgroundOperationsController').set('isWorking', false);
-    App.router.get('clusterController').set('isWorking', false);
   },
 
   reloadTimeOut: null,
