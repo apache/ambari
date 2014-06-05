@@ -538,7 +538,7 @@ public class ClusterControllerImpl implements ClusterController {
    * Evaluate the predicate and create a list of filtered resources
    *
    * @param resourceIterable @ResourceIterable
-   * @return @NavigableSet of filtered resources
+   * @return @LinkedList of filtered resources
    */
   private LinkedList<Resource> getEvaluatedResources(ResourceIterable
                                               resourceIterable) {
