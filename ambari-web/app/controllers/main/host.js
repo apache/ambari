@@ -33,7 +33,7 @@ App.MainHostController = Em.ArrayController.extend(App.UserPref, {
    * Components which will be shown in component filter
    * @returns {Array}
    */
-  componentsForFilter:function() {
+  componentsForFilter: function () {
     var installedComponents = componentHelper.getInstalledComponents();
     installedComponents.setEach('checkedForHostFilter', false);
     return installedComponents;
@@ -43,7 +43,7 @@ App.MainHostController = Em.ArrayController.extend(App.UserPref, {
    * Master components
    * @returns {Array}
    */
-  masterComponents:function () {
+  masterComponents: function () {
     return this.get('componentsForFilter').filterProperty('isMaster', true);
   }.property('componentsForFilter'),
 
@@ -51,7 +51,7 @@ App.MainHostController = Em.ArrayController.extend(App.UserPref, {
    * Slave components
    * @returns {Array}
    */
-  slaveComponents:function () {
+  slaveComponents: function () {
     return this.get('componentsForFilter').filterProperty('isSlave', true);
   }.property('componentsForFilter'),
 
@@ -59,7 +59,7 @@ App.MainHostController = Em.ArrayController.extend(App.UserPref, {
    * Client components
    * @returns {Array}
    */
-  clientComponents: function() {
+  clientComponents: function () {
     return this.get('componentsForFilter').filterProperty('isClient', true);
   }.property('componentsForFilter'),
 
@@ -86,12 +86,12 @@ App.MainHostController = Em.ArrayController.extend(App.UserPref, {
     {
       key: 'memoryFormatted',
       alias: 'Hosts/total_mem',
-      type: 'NUMBER'
+      type: 'PLAIN'
     },
     {
       key: 'loadAvg',
       alias: 'metrics/load/load_one',
-      type: 'NUMBER'
+      type: 'PLAIN'
     },
     {
       key: 'hostComponents',
@@ -217,13 +217,22 @@ App.MainHostController = Em.ArrayController.extend(App.UserPref, {
 
     savedFilterConditions.forEach(function (filter) {
       var property = filterProperties.findProperty('key', colPropAssoc[filter.iColumn]);
-
       if (property && filter.value.length > 0 && !filter.skipFilter) {
-        queryParams.push({
+        var result = {
           key: property.alias,
           value: filter.value,
           type: property.type
-        });
+        };
+        if (filter.type === 'number' || filter.type === 'ambari-bandwidth') {
+          result.type = this.getComparisonType(filter.value);
+          result.value = this.getProperValue(filter.value);
+        }
+        if (filter.type === 'ambari-bandwidth') {
+          result.value = this.convertMemory(filter.value);
+        }
+        if (result.value) {
+          queryParams.push(result);
+        }
       }
     }, this);
 
@@ -243,11 +252,72 @@ App.MainHostController = Em.ArrayController.extend(App.UserPref, {
   },
 
   /**
+   * Return value without predicate
+   * @param {String} value
+   * @return {String}
+   */
+  getProperValue: function (value) {
+    return (value.charAt(0) === '>' || value.charAt(0) === '<' || value.charAt(0) === '=') ? value.substr(1, value.length) : value;
+  },
+
+  /**
+   * Return value converted to kilobytes
+   * @param {String} value
+   * @return {*}
+   */
+  convertMemory: function (value) {
+    var scale = value.charAt(value.length - 1);
+    // first char may be predicate for comparison
+    value = this.getProperValue(value);
+    var parsedValue = parseFloat(value);
+
+    if (isNaN(parsedValue)) {
+      return value;
+    }
+
+    switch (scale) {
+      case 'g':
+        parsedValue *= 1048576;
+        break;
+      case 'm':
+        parsedValue *= 1024;
+        break;
+      case 'k':
+        break;
+      default:
+        //default value in GB
+        parsedValue *= 1048576;
+    }
+    return Math.round(parsedValue);
+  },
+
+  /**
+   * Return comparison type depending on populated predicate
+   * @param value
+   * @return {String}
+   */
+  getComparisonType: function (value) {
+    var comparisonChar = value.charAt(0);
+    var result = 'PLAIN';
+    if (isNaN(comparisonChar)) {
+      switch (comparisonChar) {
+        case '>':
+          result = 'MORE';
+          break;
+        case '<':
+          result = 'LESS';
+          break;
+      }
+    }
+    return result;
+  },
+
+  /**
    * Filter hosts by componentName of <code>component</code>
    * @param {App.HostComponent} component
    */
   filterByComponent: function (component) {
-    if(!component)
+    if (!component)
       return;
     var id = component.get('componentName');
     var column = 6;
@@ -301,9 +371,9 @@ App.MainHostController = Em.ArrayController.extend(App.UserPref, {
   /**
    * On click callback for delete button
    */
-  deleteButtonPopup:function () {
+  deleteButtonPopup: function () {
     var self = this;
-    App.showConfirmationPopup(function(){
+    App.showConfirmationPopup(function () {
       self.removeHosts();
     });
   },
@@ -325,7 +395,7 @@ App.MainHostController = Em.ArrayController.extend(App.UserPref, {
         }
       }),
       primary: Em.I18n.t('common.close'),
-      secondary : null,
+      secondary: null,
       didInsertElement: function () {
         this.$().find('.modal-footer').addClass('align-center');
         this.$().children('.modal').css({'margin-top': '-350px'});
@@ -337,7 +407,7 @@ App.MainHostController = Em.ArrayController.extend(App.UserPref, {
   /**
    * remove selected hosts
    */
-  removeHosts:function () {
+  removeHosts: function () {
     var hosts = this.get('content');
     var selectedHosts = hosts.filterProperty('isChecked', true);
     selectedHosts.forEach(function (_hostInfo) {
@@ -350,7 +420,7 @@ App.MainHostController = Em.ArrayController.extend(App.UserPref, {
    * remove hosts with id equal host_id
    * @param {String} host_id
    */
-  checkRemoved:function (host_id) {
+  checkRemoved: function (host_id) {
     var hosts = this.get('content');
     var selectedHosts = hosts.filterProperty('id', host_id);
     this.get('fullContent').removeObjects(selectedHosts);
@@ -361,7 +431,7 @@ App.MainHostController = Em.ArrayController.extend(App.UserPref, {
    * @param {Object} operationData - data about bulk operation (action, hosts or hostComponents etc)
    * @param {Array} hosts - list of affected hosts
    */
-  bulkOperation: function(operationData, hosts) {
+  bulkOperation: function (operationData, hosts) {
     if (operationData.componentNameFormatted) {
       if (operationData.action === 'RESTART') {
         this.bulkOperationForHostComponentsRestart(operationData, hosts);
@@ -419,7 +489,7 @@ App.MainHostController = Em.ArrayController.extend(App.UserPref, {
     var hostsMap = {};
 
     data.items.forEach(function (host) {
-      host.host_components.forEach(function(hostComponent){
+      host.host_components.forEach(function (hostComponent) {
         if (!App.components.get('clients').contains((hostComponent.HostRoles.component_name))) {
           if (hostsMap[host.Hosts.host_name]) {
             hostsMap[host.Hosts.host_name].push(hostComponent.HostRoles.component_name);
@@ -468,7 +538,7 @@ App.MainHostController = Em.ArrayController.extend(App.UserPref, {
    * @param {Object} operationData - data about bulk operation (action, hostComponents etc)
    * @param {Ember.Enumerable} hosts - list of affected hosts
    */
-  bulkOperationForHostsRestart: function(operationData, hosts) {
+  bulkOperationForHostsRestart: function (operationData, hosts) {
     batchUtils.getComponentsFromServer({
       passiveState: 'OFF',
       hosts: hosts.mapProperty('hostName'),
@@ -526,8 +596,8 @@ App.MainHostController = Em.ArrayController.extend(App.UserPref, {
     });
   },
 
-  updateHostPassiveState: function(data, opt, params) {
-    App.router.get('clusterController').loadUpdatedStatus(function(){
+  updateHostPassiveState: function (data, opt, params) {
+    App.router.get('clusterController').loadUpdatedStatus(function () {
       batchUtils.infoPassiveState(params.passive_state);
     });
   },
@@ -536,7 +606,7 @@ App.MainHostController = Em.ArrayController.extend(App.UserPref, {
    * @param {Object} operationData - data about bulk operation (action, hostComponents etc)
    * @param {Array} hosts - list of affected hosts
    */
-  bulkOperationForHostComponents: function(operationData, hosts) {
+  bulkOperationForHostComponents: function (operationData, hosts) {
     var self = this;
 
     batchUtils.getComponentsFromServer({
@@ -592,7 +662,7 @@ App.MainHostController = Em.ArrayController.extend(App.UserPref, {
    * @param operationData
    * @param data
    */
-  bulkOperationForHostComponentsDecommissionCallBack: function(operationData, data){
+  bulkOperationForHostComponentsDecommissionCallBack: function (operationData, data) {
     var service = App.Service.find(operationData.serviceName);
     var components = [];
 
@@ -631,8 +701,8 @@ App.MainHostController = Em.ArrayController.extend(App.UserPref, {
           var parameters = {
             "slave_type": slaveName
           };
-          var contextString = turn_off? 'hosts.host.' + slaveName.toLowerCase() + '.recommission':
-            'hosts.host.' + slaveName.toLowerCase() + '.decommission';
+          var contextString = turn_off ? 'hosts.host.' + slaveName.toLowerCase() + '.recommission' :
+              'hosts.host.' + slaveName.toLowerCase() + '.decommission';
           if (turn_off) {
             parameters['included_hosts'] = hostsWithComponentInProperState.join(',')
           }
@@ -667,7 +737,7 @@ App.MainHostController = Em.ArrayController.extend(App.UserPref, {
    * @param {Object} operationData
    * @param {Array} hosts
    */
-  bulkOperationForHostComponentsRestart: function(operationData, hosts) {
+  bulkOperationForHostComponentsRestart: function (operationData, hosts) {
     var service = App.Service.find(operationData.serviceName);
 
     batchUtils.getComponentsFromServer({
@@ -702,15 +772,15 @@ App.MainHostController = Em.ArrayController.extend(App.UserPref, {
     });
   },
 
-  updateHostComponentsPassiveState: function(data, opt, params) {
-    App.router.get('clusterController').loadUpdatedStatus(function(){
+  updateHostComponentsPassiveState: function (data, opt, params) {
+    App.router.get('clusterController').loadUpdatedStatus(function () {
       batchUtils.infoPassiveState(params.passive_state);
     });
   },
   /**
    * Show BO popup after bulk request
    */
-  bulkOperationForHostComponentsSuccessCallback: function() {
+  bulkOperationForHostComponentsSuccessCallback: function () {
     App.router.get('applicationController').dataLoading().done(function (initValue) {
       if (initValue) {
         App.router.get('backgroundOperationsController').showPopup();
@@ -721,7 +791,7 @@ App.MainHostController = Em.ArrayController.extend(App.UserPref, {
    * associations between host property and column index
    * @type {Array}
    */
-  colPropAssoc: function(){
+  colPropAssoc: function () {
     var associations = [];
     associations[0] = 'healthClass';
     associations[1] = 'publicHostName';

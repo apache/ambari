@@ -69,12 +69,14 @@ App.UpdateController = Em.Controller.extend({
         case 'PLAIN':
           params += param.key + '=' + param.value;
           break;
+        case 'LESS':
+          params += param.key + '<' + param.value;
+          break;
+        case 'MORE':
+          params += param.key + '>' + param.value;
+          break;
         case 'MATCH':
           params += param.key + '.matches(' + param.value + ')';
-          break;
-        case 'NUMBER':
-          //TODO should be added predicates of comparison (<,>,=)
-          params += param.key + '=' + param.value;
           break;
         case 'MULTIPLE':
           params += param.key + '.in(' + param.value.join(',') + ')';
@@ -153,9 +155,9 @@ App.UpdateController = Em.Controller.extend({
   updateHost: function (callback) {
     var testUrl = App.get('isHadoop2Stack') ? '/data/hosts/HDP2/hosts.json' : '/data/hosts/hosts.json';
     var realUrl = '/hosts?<parameters>fields=Hosts/host_name,Hosts/maintenance_state,Hosts/public_host_name,Hosts/cpu_count,Hosts/ph_cpu_count,Hosts/total_mem,' +
-      'Hosts/host_status,Hosts/last_heartbeat_time,Hosts/os_arch,Hosts/os_type,Hosts/ip,host_components/HostRoles/state,host_components/HostRoles/maintenance_state,' +
-      'metrics/disk,metrics/load/load_one,metrics/cpu/cpu_system,metrics/cpu/cpu_user,' +
-      'metrics/memory/mem_total,metrics/memory/mem_free,alerts/summary&minimal_response=true';
+        'Hosts/host_status,Hosts/last_heartbeat_time,Hosts/os_arch,Hosts/os_type,Hosts/ip,host_components/HostRoles/state,host_components/HostRoles/maintenance_state,' +
+        'metrics/disk,metrics/load/load_one,metrics/cpu/cpu_system,metrics/cpu/cpu_user,' +
+        'metrics/memory/mem_total,metrics/memory/mem_free,alerts/summary&minimal_response=true';
 
     this.get('queryParams').set('Hosts', App.router.get('mainHostController').getQueryParameters());
     var hostsUrl = this.getComplexUrl(testUrl, realUrl, this.get('queryParams.Hosts'));
@@ -197,32 +199,32 @@ App.UpdateController = Em.Controller.extend({
     var isFlumeInstalled = App.cache['services'].mapProperty('ServiceInfo.service_name').contains('FLUME');
     var flumeHandlerParam = isFlumeInstalled ? 'ServiceComponentInfo/component_name=FLUME_HANDLER|' : '';
     var realUrl = '/components/?' + flumeHandlerParam +
-      'ServiceComponentInfo/category=MASTER&fields=' +
-      'ServiceComponentInfo/Version,' +
-      'ServiceComponentInfo/StartTime,' +
-      'ServiceComponentInfo/HeapMemoryUsed,' +
-      'ServiceComponentInfo/HeapMemoryMax,' +
-      'ServiceComponentInfo/service_name,' +
-      'host_components/HostRoles/host_name,' +
-      'host_components/HostRoles/state,' +
-      'host_components/HostRoles/maintenance_state,' +
-      'host_components/HostRoles/stale_configs,' +
-      'host_components/metrics/jvm/memHeapUsedM,' +
-      'host_components/metrics/jvm/HeapMemoryMax,' +
-      'host_components/metrics/jvm/HeapMemoryUsed,' +
-      'host_components/metrics/jvm/memHeapCommittedM,' +
-      'host_components/metrics/mapred/jobtracker/trackers_decommissioned,' +
-      'host_components/metrics/cpu/cpu_wio,' +
-      'host_components/metrics/rpc/RpcQueueTime_avg_time,' +
-      'host_components/metrics/dfs/FSNamesystem/*,' +
-      'host_components/metrics/dfs/namenode/Version,' +
-      'host_components/metrics/dfs/namenode/DecomNodes,' +
-      'host_components/metrics/dfs/namenode/TotalFiles,' +
-      'host_components/metrics/dfs/namenode/UpgradeFinalized,' +
-      'host_components/metrics/dfs/namenode/Safemode,' +
-      'host_components/metrics/runtime/StartTime' +
-      conditionalFieldsString +
-      '&minimal_response=true';
+        'ServiceComponentInfo/category=MASTER&fields=' +
+        'ServiceComponentInfo/Version,' +
+        'ServiceComponentInfo/StartTime,' +
+        'ServiceComponentInfo/HeapMemoryUsed,' +
+        'ServiceComponentInfo/HeapMemoryMax,' +
+        'ServiceComponentInfo/service_name,' +
+        'host_components/HostRoles/host_name,' +
+        'host_components/HostRoles/state,' +
+        'host_components/HostRoles/maintenance_state,' +
+        'host_components/HostRoles/stale_configs,' +
+        'host_components/metrics/jvm/memHeapUsedM,' +
+        'host_components/metrics/jvm/HeapMemoryMax,' +
+        'host_components/metrics/jvm/HeapMemoryUsed,' +
+        'host_components/metrics/jvm/memHeapCommittedM,' +
+        'host_components/metrics/mapred/jobtracker/trackers_decommissioned,' +
+        'host_components/metrics/cpu/cpu_wio,' +
+        'host_components/metrics/rpc/RpcQueueTime_avg_time,' +
+        'host_components/metrics/dfs/FSNamesystem/*,' +
+        'host_components/metrics/dfs/namenode/Version,' +
+        'host_components/metrics/dfs/namenode/DecomNodes,' +
+        'host_components/metrics/dfs/namenode/TotalFiles,' +
+        'host_components/metrics/dfs/namenode/UpgradeFinalized,' +
+        'host_components/metrics/dfs/namenode/Safemode,' +
+        'host_components/metrics/runtime/StartTime' +
+        conditionalFieldsString +
+        '&minimal_response=true';
 
     var servicesUrl = this.getUrl(testUrl, realUrl);
     callback = callback || function () {
@@ -242,22 +244,22 @@ App.UpdateController = Em.Controller.extend({
     var conditionalFields = [];
     var serviceSpecificParams = {
       'FLUME': "host_components/metrics/flume/flume," +
-         "host_components/processes/HostComponentProcess",
+          "host_components/processes/HostComponentProcess",
       'YARN': "host_components/metrics/yarn/Queue," +
-        "ServiceComponentInfo/rm_metrics/cluster/activeNMcount," +
-        "ServiceComponentInfo/rm_metrics/cluster/unhealthyNMcount," +
-        "ServiceComponentInfo/rm_metrics/cluster/rebootedNMcount," +
-        "ServiceComponentInfo/rm_metrics/cluster/decommissionedNMcount",
+          "ServiceComponentInfo/rm_metrics/cluster/activeNMcount," +
+          "ServiceComponentInfo/rm_metrics/cluster/unhealthyNMcount," +
+          "ServiceComponentInfo/rm_metrics/cluster/rebootedNMcount," +
+          "ServiceComponentInfo/rm_metrics/cluster/decommissionedNMcount",
       'HBASE': "host_components/metrics/hbase/master/IsActiveMaster," +
-        "ServiceComponentInfo/MasterStartTime," +
-        "ServiceComponentInfo/MasterActiveTime," +
-        "ServiceComponentInfo/AverageLoad," +
-        "ServiceComponentInfo/Revision," +
-        "ServiceComponentInfo/RegionsInTransition",
+          "ServiceComponentInfo/MasterStartTime," +
+          "ServiceComponentInfo/MasterActiveTime," +
+          "ServiceComponentInfo/AverageLoad," +
+          "ServiceComponentInfo/Revision," +
+          "ServiceComponentInfo/RegionsInTransition",
       'MAPREDUCE': "ServiceComponentInfo/AliveNodes," +
-        "ServiceComponentInfo/GrayListedNodes," +
-        "ServiceComponentInfo/BlackListedNodes," +
-        "ServiceComponentInfo/jobtracker/*,",
+          "ServiceComponentInfo/GrayListedNodes," +
+          "ServiceComponentInfo/BlackListedNodes," +
+          "ServiceComponentInfo/jobtracker/*,",
       'STORM': "metrics/api/cluster/summary,"
     };
     var services = App.cache['services'];
@@ -286,7 +288,7 @@ App.UpdateController = Em.Controller.extend({
   updateComponentsState: function (callback) {
     var testUrl = '/data/services/HDP2/components_state.json';
     var realUrl = '/components/?ServiceComponentInfo/category.in(SLAVE,CLIENT)&fields=ServiceComponentInfo/service_name,' +
-      'ServiceComponentInfo/installed_count,ServiceComponentInfo/started_count,ServiceComponentInfo/total_count&minimal_response=true';
+        'ServiceComponentInfo/installed_count,ServiceComponentInfo/started_count,ServiceComponentInfo/total_count&minimal_response=true';
     var url = this.getUrl(testUrl, realUrl);
 
     App.HttpClient.get(url, App.componentsStateMapper, {
