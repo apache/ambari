@@ -2135,6 +2135,10 @@ var urls = {
     'real': '/clusters/{clusterName}/hosts?fields=Hosts/public_host_name&minimal_response=true',
     'mock': ''
   },
+  'hosts.for_quick_links': {
+    'real': '/clusters/{clusterName}/hosts?host_components/HostRoles/component_name.in({masterComponents})&fields=Hosts/public_host_name,host_components&minimal_response=true',
+    'mock': ''
+  },
   'hosts.confirmed.install': {
     'real': '/hosts?fields=Hosts/cpu_count,Hosts/disk_info,Hosts/total_mem&minimal_response=true',
     'mock': ''

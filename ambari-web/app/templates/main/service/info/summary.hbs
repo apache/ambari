@@ -93,7 +93,11 @@
           <h4>{{t services.alerts.headingOfList}}</h4>
           {{#if controller.isNagiosInstalled}}
             <div class="btn-group">
-              <a class="btn" target="_blank" rel="tooltip" title="Go to Nagios" {{bindAttr href="controller.nagiosUrl"}}><i class="icon-link"></i></a>
+              {{#if App.router.clusterController.isNagiosUrlLoaded}}
+                <a class="btn" target="_blank" rel="tooltip" title="Go to Nagios" {{bindAttr href="controller.nagiosUrl"}}><i class="icon-link"></i></a>
+              {{else}}
+                <div class="spinner"></div>
+              {{/if}}
             </div>
           {{/if}}
         </div>
@@ -161,7 +165,11 @@
       <h4>{{controller.content.label}} {{t common.metrics}}</h4>
         {{#if controller.isGangliaInstalled}}
           <div class="btn-group">
-            <a class="btn" target="_blank" rel="tooltip" title="Go to Ganglia" {{bindAttr href="view.gangliaUrl"}}><i class="icon-link"></i></a>
+            {{#if App.router.clusterController.isGangliaUrlLoaded}}
+              <a class="btn" target="_blank" rel="tooltip" title="Go to Ganglia" {{bindAttr href="view.gangliaUrl"}}><i class="icon-link"></i></a>
+            {{else}}
+              <div class="spinner"></div>
+            {{/if}}
           </div>
         {{/if}}
       </div>

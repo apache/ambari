@@ -21,6 +21,8 @@ var stringUtils = require('utils/string_utils');
 
 App.QuickViewLinks = Em.View.extend({
 
+  isLoaded: false,
+
   loadTags: function () {
     App.ajax.send({
       name: 'config.tags.sync',
@@ -73,12 +75,25 @@ App.QuickViewLinks = Em.View.extend({
     this.setQuickLinks();
   },
 
-  findComponentHost: function (componentName) {
-    var components = this.get('content.hostComponents');
-    return App.singleNodeInstall ? App.singleNodeAlias : components.findProperty('componentName', componentName).get('host.publicHostName')
+  findComponentHost: function (components, componentName) {
+    return App.singleNodeInstall ? App.singleNodeAlias : components.find(function (item) {
+      return item.host_components.mapProperty('HostRoles.component_name').contains(componentName);
+    }).Hosts.public_host_name
   },
 
   setQuickLinks: function () {
+    App.ajax.send({
+      name: 'hosts.for_quick_links',
+      sender: this,
+      data: {
+        clusterName: App.get('clusterName'),
+        masterComponents: App.StackServiceComponent.find().filterProperty('isMaster', true).mapProperty('componentName').join(',')
+      },
+      success: 'setQuickLinksSuccessCallback'
+    });
+  }.observes('App.currentStackVersionNumber', 'App.singleNodeInstall'),
+
+  setQuickLinksSuccessCallback: function (response) {
     this.loadTags();
     var serviceName = this.get('content.serviceName');
     var components = this.get('content.hostComponents');
@@ -91,12 +106,14 @@ App.QuickViewLinks = Em.View.extend({
         var otherHost;
         if (this.get('content.snameNode')) {
           // not HA
-          hosts[0] = this.findComponentHost('NAMENODE');
+          hosts[0] = this.findComponentHost(response.items, 'NAMENODE');
         } else {
           // HA enabled, need both two namenodes hosts
-          var nameNodes = components.filterProperty('componentName', 'NAMENODE');
+          var nameNodes = response.items.filter(function (item) {
+            return item.host_components.mapProperty('HostRoles.component_name').contains('NAMENODE');
+          });
           nameNodes.forEach(function(item) {
-            hosts.push({'publicHostName': item.get('host.publicHostName')});
+            hosts.push({'publicHostName': item.Hosts.public_host_name});
           });
           // assign each namenode status label
           if (this.get('content.activeNameNode')) {
@@ -132,17 +149,17 @@ App.QuickViewLinks = Em.View.extend({
             // need all hbase_masters hosts in quick links
             if (activeMaster) {
               activeMaster.forEach(function(item) {
-                hosts.push({'publicHostName': item.get('host.publicHostName'), 'status': Em.I18n.t('quick.links.label.active')});
+                hosts.push({'publicHostName': response.items.mapProperty('Hosts').findProperty('host_name', item.get('host.hostName')).public_host_name, 'status': Em.I18n.t('quick.links.label.active')});
               });
             }
             if (standbyMasters) {
               standbyMasters.forEach(function(item) {
-                hosts.push({'publicHostName': item.get('host.publicHostName'), 'status': Em.I18n.t('quick.links.label.standby')});
+                hosts.push({'publicHostName': response.items.mapProperty('Hosts').findProperty('host_name', item.get('host.hostName')).public_host_name, 'status': Em.I18n.t('quick.links.label.standby')});
               });
             }
             if (otherMasters) {
               otherMasters.forEach(function(item) {
-                hosts.push({'publicHostName': item.get('host.publicHostName')});
+                hosts.push({'publicHostName': response.items.mapProperty('Hosts').findProperty('host_name', item.get('host.hostName')).public_host_name});
               });
             }
           } else {
@@ -151,16 +168,16 @@ App.QuickViewLinks = Em.View.extend({
         }
         break;
       case "YARN":
-        hosts[0] = this.findComponentHost('RESOURCEMANAGER');
+        hosts[0] = this.findComponentHost(response.items, 'RESOURCEMANAGER');
         break;
       case "MAPREDUCE2":
-        hosts[0] = this.findComponentHost('HISTORYSERVER');
+        hosts[0] = this.findComponentHost(response.items, 'HISTORYSERVER');
         break;
       case "FALCON":
-        hosts[0] = this.findComponentHost('FALCON_SERVER');
+        hosts[0] = this.findComponentHost(response.items, 'FALCON_SERVER');
         break;
       case "STORM":
-        hosts[0] = this.findComponentHost('STORM_UI_SERVER');
+        hosts[0] = this.findComponentHost(response.items, 'STORM_UI_SERVER');
         break;
     }
     if (!hosts) {
@@ -171,6 +188,7 @@ App.QuickViewLinks = Em.View.extend({
         }
       ];
       this.set('quickLinks', quickLinks);
+      this.set('isLoaded', true);
     } else if (hosts.length == 1) {
 
       quickLinks = this.get('content.quickLinks').map(function (item) {
@@ -182,6 +200,7 @@ App.QuickViewLinks = Em.View.extend({
         return item;
       });
       this.set('quickLinks', quickLinks);
+      this.set('isLoaded', true);
     } else {
       // multiple hbase masters or HDFS HA enabled
       var quickLinksArray = [];
@@ -207,7 +226,8 @@ App.QuickViewLinks = Em.View.extend({
 
       this.set('quickLinksArray', quickLinksArray);
     }
-  }.observes('App.currentStackVersionNumber', 'App.singleNodeInstall'),
+
+  },
 
   setProtocol: function (service_id) {
     var properties = this.ambariProperties();

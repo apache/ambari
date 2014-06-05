@@ -29,6 +29,25 @@ App.ClusterController = Em.Controller.extend({
    * Whether we need to update statuses automatically or not
    */
   isWorking: false,
+  isGangliaUrlLoaded: false,
+  isNagiosUrlLoaded: false,
+
+  /**
+   * Provides the URL to use for Ganglia server. This URL
+   * is helpful in populating links in UI.
+   *
+   * If null is returned, it means GANGLIA service is not installed.
+   */
+  gangliaUrl: null,
+
+  /**
+   * Provides the URL to use for NAGIOS server. This URL
+   * is helpful in getting alerts data from server and also
+   * in populating links in UI.
+   *
+   * If null is returned, it means NAGIOS service is not installed.
+   */
+  nagiosUrl: null,
   updateLoadStatus: function (item) {
     var loadList = this.get('dataLoadList');
     var loaded = true;
@@ -130,71 +149,63 @@ App.ClusterController = Em.Controller.extend({
     return (App.testMode) ? testUrl : App.apiPrefix + '/clusters/' + this.get('clusterName') + url;
   },
 
-  /**
-   * Provides the URL to use for Ganglia server. This URL
-   * is helpful in populating links in UI.
-   *
-   * If null is returned, it means GANGLIA service is not installed.
-   */
-  gangliaUrl: function () {
+  setGangliaUrl: function () {
     if (App.testMode) {
       return 'http://gangliaserver/ganglia/?t=yes';
     } else {
       // We want live data here
-      var svcs = App.Service.find();
-      var gangliaSvc = svcs.findProperty("serviceName", "GANGLIA");
-      if (gangliaSvc) {
-        var svcComponents = gangliaSvc.get('hostComponents');
-        if (svcComponents) {
-          var gangliaSvcComponent = svcComponents.findProperty("componentName", "GANGLIA_SERVER");
-          if (gangliaSvcComponent) {
-            var hostName = gangliaSvcComponent.get('host.hostName');
-            if (hostName) {
-              var host = App.Host.find(hostName);
-              if (host) {
-                hostName = host.get('publicHostName');
-              }
-              return this.get('gangliaWebProtocol') + "://" + (App.singleNodeInstall ? App.singleNodeAlias + ":42080" : hostName) + "/ganglia";
-            }
-          }
-        }
+      if (this.get('isLoaded')) {
+        this.set('isGangliaUrlLoaded', true);
+        App.ajax.send({
+          name: 'hosts.for_quick_links',
+          sender: this,
+          data: {
+            clusterName: App.get('clusterName'),
+            masterComponents: 'GANGLIA_SERVER'
+          },
+          success: 'setGangliaUrlSuccessCallback'
+        });
       }
-      return null;
     }
-  }.property('App.router.updateController.isUpdated', 'dataLoadList.hosts', 'gangliaWebProtocol'),
+  }.observes('App.router.updateController.isUpdated', 'dataLoadList.hosts', 'gangliaWebProtocol', 'isLoaded'),
 
-  /**
-   * Provides the URL to use for NAGIOS server. This URL
-   * is helpful in getting alerts data from server and also
-   * in populating links in UI.
-   *
-   * If null is returned, it means NAGIOS service is not installed.
-   */
-  nagiosUrl: function () {
+  setGangliaUrlSuccessCallback: function (response) {
+    var url = null;
+    if (response.items.length > 0) {
+      url = this.get('gangliaWebProtocol') + "://" + (App.singleNodeInstall ? App.singleNodeAlias + ":42080" : response.items[0].Hosts.public_host_name) + "/ganglia";
+    }
+    this.set('gangliaUrl', url);
+    this.set('isGangliaUrlLoaded', true);
+  },
+
+  setNagiosUrl: function () {
     if (App.testMode) {
       return 'http://nagiosserver/nagios';
     } else {
       // We want live data here
-      var nagiosSvc = App.Service.find("NAGIOS");
-      if (nagiosSvc) {
-        var svcComponents = nagiosSvc.get('hostComponents');
-        if (svcComponents) {
-          var nagiosSvcComponent = svcComponents.findProperty("componentName", "NAGIOS_SERVER");
-          if (nagiosSvcComponent) {
-            var hostName = nagiosSvcComponent.get('host.hostName');
-            if (hostName) {
-              var host = App.Host.find(hostName);
-              if (host) {
-                hostName = host.get('publicHostName');
-              }
-              return this.get('nagiosWebProtocol') + "://" + (App.singleNodeInstall ? App.singleNodeAlias + ":42080" : hostName) + "/nagios";
-            }
-          }
-        }
+      if (this.get('isLoaded')) {
+        this.set('isNagiosUrlLoaded', false);
+        App.ajax.send({
+          name: 'hosts.for_quick_links',
+          sender: this,
+          data: {
+            clusterName: App.get('clusterName'),
+            masterComponents: 'NAGIOS_SERVER'
+          },
+          success: 'setNagiosUrlSuccessCallback'
+        });
       }
-      return null;
     }
-  }.property('App.router.updateController.isUpdated', 'dataLoadList.serviceMetrics', 'dataLoadList.hosts', 'nagiosWebProtocol'),
+  }.observes('App.router.updateController.isUpdated', 'dataLoadList.serviceMetrics', 'dataLoadList.hosts', 'nagiosWebProtocol', 'isLoaded'),
+
+  setNagiosUrlSuccessCallback: function (response) {
+    var url = null;
+    if (response.items.length > 0) {
+      url = this.get('nagiosWebProtocol') + "://" + (App.singleNodeInstall ? App.singleNodeAlias + ":42080" : response.items[0].Hosts.public_host_name) + "/nagios";
+    }
+    this.set('nagiosUrl', url);
+    this.set('isNagiosUrlLoaded', true);
+  },
 
   nagiosWebProtocol: function () {
     var properties = this.get('ambariProperties');

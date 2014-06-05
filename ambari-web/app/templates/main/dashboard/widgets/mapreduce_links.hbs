@@ -42,21 +42,25 @@
       </div>
 
       <div class="link-button">
-        {{#if view.model.quickLinks.length}}
-          {{#view App.QuickViewLinks contentBinding="view.model"}}
-            <div class="btn-group">
-              <a class="btn btn-mini dropdown-toggle" data-toggle="dropdown" href="#">
-                {{t common.more}}
-                <span class="caret"></span>
-              </a>
-            <ul class="dropdown-menu">
-              {{#each view.quickLinks}}
-                <li><a {{bindAttr href="url"}} target="_blank">{{label}}</a></li>
-                {{/each}}
-              </ul>
-            </div>
-          {{/view}}
-        {{/if}}
+          {{#if view.model.quickLinks.length}}
+            {{#view App.QuickViewLinks contentBinding="view.model"}}
+              {{#if view.isLoaded}}
+                <div class="btn-group">
+                  <a class="btn btn-mini dropdown-toggle" data-toggle="dropdown" href="#">
+                    {{t common.more}}
+                    <span class="caret"></span>
+                  </a>
+                  <ul class="dropdown-menu">
+                    {{#each view.quickLinks}}
+                      <li><a {{bindAttr href="url"}} target="_blank">{{label}}</a></li>
+                    {{/each}}
+                  </ul>
+                </div>
+              {{else}}
+                <div class="spinner"></div>
+              {{/if}}
+            {{/view}}
+          {{/if}}
       </div>
     </li>
   </ul>
