@@ -339,14 +339,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       return (configGroupA.name > configGroupB.name);
     });
     this.get('configGroups').unshift(defaultConfigGroup);
-    lazyLoading.run({
-      initSize: 20,
-      chunkSize: 50,
-      delay: 50,
-      destination: this.get('configGroups').objectAt(0).get('hosts'),
-      source: defaultConfigGroupHosts,
-      context: Em.Object.create()
-    });
     this.set('selectedConfigGroup', selectedConfigGroup);
   },
 
@@ -717,26 +709,28 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   setRecommendedDefaults: function (advancedConfigs) {
     var s = this.get('serviceConfigsData').findProperty('serviceName', this.get('content.serviceName'));
     this.getInfoForDefaults();
-    var localDB = this.get('defaultsInfo');
-    var recommendedDefaults = {};
-    if (s.defaultsProviders) {
-      s.defaultsProviders.forEach(function (defaultsProvider) {
-        var d = defaultsProvider.getDefaults(localDB);
-        for (var name in d) {
-          if (!!d[name]) {
-            recommendedDefaults[name] = d[name];
-          } else {
-            var defaultValueFromStack = advancedConfigs.findProperty('name', name);
-            // If property default value is not declared on client, fetch it from stack definition
-            // If it's not declared with any valid value in both server stack and client, then js reference error is expected to be thrown
-            recommendedDefaults[name] = defaultValueFromStack.value
+    this.addObserver('defaultsInfo.hosts.length', this, function() {
+      var localDB = this.get('defaultsInfo');
+      var recommendedDefaults = {};
+      if (s.defaultsProviders) {
+        s.defaultsProviders.forEach(function (defaultsProvider) {
+          var d = defaultsProvider.getDefaults(localDB);
+          for (var name in d) {
+            if (!!d[name]) {
+              recommendedDefaults[name] = d[name];
+            } else {
+              var defaultValueFromStack = advancedConfigs.findProperty('name', name);
+              // If property default value is not declared on client, fetch it from stack definition
+              // If it's not declared with any valid value in both server stack and client, then js reference error is expected to be thrown
+              recommendedDefaults[name] = defaultValueFromStack.value
+            }
           }
-        }
-      });
-    }
-    if (s.configsValidator) {
-      s.configsValidator.set('recommendedDefaults', recommendedDefaults);
-    }
+        });
+      }
+      if (s.configsValidator) {
+        s.configsValidator.set('recommendedDefaults', recommendedDefaults);
+      }
+    });
   },
 
   /**

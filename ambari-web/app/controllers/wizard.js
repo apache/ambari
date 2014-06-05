@@ -868,14 +868,6 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
     }, this);
     this.setDBProperty('serviceConfigGroups', serviceConfigGroups);
     this.set('content.configGroups', serviceConfigGroups);
-    lazyLoading.run({
-      initSize: 20,
-      chunkSize: 50,
-      delay: 50,
-      destination: this.get('content.configGroups'),
-      source: serviceConfigGroups,
-      context: this
-    });
   },
   /**
    * return slaveComponents bound to hosts
