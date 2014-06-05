@@ -1548,6 +1548,21 @@ module.exports =
       "serviceName": "WEBHCAT",
       "category": "Advanced"
     },
+  /**********************************************pig.properties*****************************************/
+    {
+      "id": "site property",
+      "name": "pig-content",
+      "displayName": "content",
+      "value": "",
+      "defaultValue": "",
+      "description": "pig properties",
+      "displayType": "content",
+      "isRequired": false,
+      "showLabel": false,
+      "serviceName": "PIG",
+      "filename": "pig-properties.xml",
+      "category": "Advanced"
+    },
   /**********************************************log4j.properties***************************************/
     {
       "id": "site property",
