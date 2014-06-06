@@ -1091,7 +1091,7 @@ class TestAmbariServer(TestCase):
       # Expected
       self.assertTrue("JCE Policy path" in fe.reason)
       pass
-    os_path_exists_mock.reset()
+    os_path_exists_mock.reset_mock()
 
     # Case when JCE is a directory
     os_path_exists_mock.return_value = True
@@ -1103,7 +1103,7 @@ class TestAmbariServer(TestCase):
       # Expected
       self.assertTrue("JCE Policy path is a directory" in fe.reason)
       pass
-    os_path_isdir_mock.reset()
+    os_path_isdir_mock.reset_mock()
 
     os_path_isdir_mock.return_value = False
     os_path_join_mock.return_value = \
@@ -2783,11 +2783,12 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertTrue(removeMock.called)
 
 
+  @patch.object(ambari_server, "run_in_shell")
   @patch.object(ambari_server, "is_root")
   @patch.object(ambari_server, "check_database_name_property")
   @patch.object(ambari_server, "run_stack_upgrade")
   def test_upgrade_stack(self, run_stack_upgrade_mock,
-                         check_database_name_property_mock, is_root_mock):
+                         check_database_name_property_mock, is_root_mock, run_in_shell_mock):
     args = MagicMock()
     args.persistence_type = "local"
 
@@ -2802,12 +2803,50 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
       pass
 
     # Testing calls under root
+    run_in_shell_mock.return_value = 0, "existed!", ""
     is_root_mock.return_value = True
-    run_stack_upgrade_mock.return_value = 0
+    run_stack_upgrade_mock.return_value = 0, "", ""
     ambari_server.upgrade_stack(args, 'HDP-2.0')
 
     self.assertTrue(run_stack_upgrade_mock.called)
     run_stack_upgrade_mock.assert_called_with("HDP", "2.0", None, None)
+    run_stack_upgrade_mock.reset_mock()
+
+    # Testing calls if desired stack repo not existed
+    run_in_shell_mock.return_value = 1, "", ""
+    is_root_mock.return_value = True
+    try:
+      ambari_server.upgrade_stack(args, 'HDP-2.0')
+      self.fail("Should throw exception")
+    except FatalException as fe:
+      # Expected
+      self.assertTrue("Repository for HDP-2.0 is not existed" in fe.reason)
+      pass
+
+    run_stack_upgrade_mock.reset_mock()
+
+    # Testing calls if desired stack repo not existed but base URL is not empty
+    run_in_shell_mock.return_value = 0, "existed!", ""
+    is_root_mock.return_value = True
+    run_stack_upgrade_mock.return_value = 0, "", ""
+    ambari_server.upgrade_stack(args, 'HDP-2.0', "URL")
+
+    self.assertTrue(run_stack_upgrade_mock.called)
+    run_stack_upgrade_mock.assert_called_with("HDP", "2.0", "URL", None)
+    run_stack_upgrade_mock.reset_mock()
+
+    # Testing calls if upgrade stack return non zero retcode
+    run_in_shell_mock.return_value = 0, "", ""
+    is_root_mock.return_value = True
+    run_stack_upgrade_mock.return_value = 2, "", ""
+    try:
+      ambari_server.upgrade_stack(args, 'HDP-2.0', "URL")
+      self.fail("Should throw exception")
+    except FatalException as fe:
+      # Expected
+      self.assertTrue("Error executing stack upgrade." in fe.reason)
+      pass
+
 
   @patch.object(ambari_server, 'get_conf_dir')
   @patch.object(ambari_server, 'get_ambari_classpath')
@@ -3734,7 +3773,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     copy_files_mock.assert_called_with(drivers_list, resources_dir)
 
     # Non-Silent option, no drivers at first ask, present drivers after that
-    find_jdbc_driver_mock.reset()
+    find_jdbc_driver_mock.reset_mock()
     find_jdbc_driver_mock.side_effect = [-1, -1]
 
     rcode = ambari_server.check_jdbc_drivers(args)

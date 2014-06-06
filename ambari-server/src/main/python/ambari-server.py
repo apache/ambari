@@ -2605,13 +2605,26 @@ def upgrade_stack(args, stack_id, repo_url=None, repo_url_os=None):
     raise FatalException(4, err)
   check_database_name_property()
 
+  local_repo_check_commamd = ""
+  if OS_FAMILY == OSConst.DEBIAN_FAMILY:
+    raise FatalException(3, '"upgradestack" command not supported yet for Debian OS\'es family.')
+  elif OS_FAMILY == OSConst.REDHAT_FAMILY:
+    local_repo_check_commamd = 'yum repolist | grep "{0} "'
+  elif OS_FAMILY == OSConst.SUSE_FAMILY:
+    local_repo_check_commamd = 'zypper repos | grep "{0} "'
+  
+  command = local_repo_check_commamd.format(stack_id)
+  (retcode, stdout, stderr) = run_in_shell(command)
+  
+  if not retcode == 0 and repo_url is None:
+    raise FatalException(retcode, 'Repository for ' + stack_id + " is not existed")
+
   stack_name, stack_version = stack_id.split(STACK_NAME_VER_SEP)
-  retcode = run_stack_upgrade(stack_name, stack_version, repo_url, repo_url_os)
+  retcode, stdout, stderr = run_stack_upgrade(stack_name, stack_version, repo_url, repo_url_os)
 
   if not retcode == 0:
-    raise FatalException(retcode, 'Stack upgrade failed.')
+    raise FatalException(retcode, 'Error executing stack upgrade. ' + stderr)
 
-  return retcode
 
 
 def load_stack_values(version, filename):
@@ -2723,10 +2736,9 @@ def run_schema_upgrade():
 def run_stack_upgrade(stackName, stackVersion, repo_url, repo_url_os):
   jdk_path = find_jdk()
   if jdk_path is None:
-    print_error_msg("No JDK found, please run the \"setup\" "
-                    "command to install a JDK automatically or install any "
-                    "JDK manually to " + JDK_INSTALL_DIR)
-    return 1
+    return 1, "", "No JDK found, please run the \"setup\" \
+                    command to install a JDK automatically or install any \
+                    JDK manually to " + JDK_INSTALL_DIR
   stackId = {}
   stackId[stackName] = stackVersion
   if repo_url is not None:
@@ -2737,11 +2749,7 @@ def run_stack_upgrade(stackName, stackVersion, repo_url, repo_url_os):
   command = STACK_UPGRADE_HELPER_CMD.format(jdk_path, get_conf_dir(), get_ambari_classpath(),
                                              "updateStackId",
                                             "'" + json.dumps(stackId) + "'")
-  (retcode, stdout, stderr) = run_os_command(command)
-  print_info_msg("Return code from stack upgrade command, retcode = " + str(retcode))
-  if retcode > 0:
-    print_error_msg("Error executing stack upgrade, please check the server logs.")
-  return retcode
+  return run_os_command(command)
 
 
 def run_metainfo_upgrade(keyValueMap=None):

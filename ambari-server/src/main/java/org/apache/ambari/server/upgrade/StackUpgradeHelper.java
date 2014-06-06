@@ -24,8 +24,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import javax.ws.rs.core.UriInfo;
-
 import org.apache.ambari.server.controller.ControllerModule;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
@@ -39,10 +37,14 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
 import com.google.inject.persist.Transactional;
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import org.eclipse.jetty.http.HttpStatus;
 
 public class StackUpgradeHelper {
-  private static final Logger LOG = LoggerFactory.getLogger
-    (StackUpgradeHelper.class);
+
+  private static final Logger LOG = LoggerFactory.getLogger(StackUpgradeHelper.class);
 
   private static final String STACK_ID_UPDATE_ACTION = "updateStackId";
   private static final String METAINFO_UPDATE_ACTION = "updateMetaInfo";
@@ -67,6 +69,7 @@ public class StackUpgradeHelper {
 
   /**
    * Add key value to the metainfo table.
+   *
    * @param data
    * @throws SQLException
    */
@@ -91,6 +94,7 @@ public class StackUpgradeHelper {
 
   /**
    * Change the stack id in the Ambari DB.
+   *
    * @param stackInfo
    * @throws SQLException
    */
@@ -98,44 +102,75 @@ public class StackUpgradeHelper {
     if (stackInfo == null || stackInfo.isEmpty()) {
       throw new IllegalArgumentException("Empty stack id. " + stackInfo);
     }
-    
+
     String repoUrl = stackInfo.remove("repo_url");
     String repoUrlOs = stackInfo.remove("repo_url_os");
-    
+
     Iterator<Map.Entry<String, String>> stackIdEntry = stackInfo.entrySet().iterator();
     Map.Entry<String, String> stackEntry = stackIdEntry.next();
 
     String stackName = stackEntry.getKey();
     String stackVersion = stackEntry.getValue();
 
-    LOG.info("Updating stack id, stackName = " + stackName + ", " +
-      "stackVersion = "+ stackVersion);
-
-    stackUpgradeUtil.updateStackDetails(stackName, stackVersion);
+    LOG.info("Updating stack id, stackName = " + stackName + ", "
+            + "stackVersion = " + stackVersion);
     
-    if (null != repoUrl) {
-      stackUpgradeUtil.updateLocalRepo(stackName, stackVersion, repoUrl, repoUrlOs);  
+    if (null != repoUrl && !repoUrl.isEmpty() && repoUrl.startsWith("http")) {
+      if (!repoUrl.trim().endsWith("/")) repoUrl = repoUrl + "/";
+      if (checkURL(repoUrl + "repodata/repomd.xml", 2000)) {
+        stackUpgradeUtil.updateLocalRepo(stackName, stackVersion, repoUrl, repoUrlOs);
+      }
+    } else {
+      throw (new Exception("Base repo URL not found"));
     }
 
-    dbAccessor.updateTable("hostcomponentstate", "current_state", "INSTALLED", "where current_state = 'UPGRADING'");
+    stackUpgradeUtil.updateStackDetails(stackName, stackVersion);
+
+    dbAccessor.updateTable("hostcomponentstate", "current_state",
+            "INSTALLED", "where current_state = 'UPGRADING'");
+  }
+
+  public boolean checkURL(String url, int timeout) throws Exception {
+    int responseCode = 0;
+    try {
+      HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
+      connection.setConnectTimeout(timeout);
+      connection.setReadTimeout(timeout);
+      connection.setRequestMethod("HEAD");
+      responseCode = connection.getResponseCode();
+      if (responseCode != HttpStatus.OK_200) {
+        throw (new Exception("Invalid repository base URL" +
+                ", Responce: "+ HttpStatus.getMessage(responseCode) +
+                ", during check URL: " + url));        
+      } else {
+        return true;
+      } 
+    } catch (IOException exception) {
+      throw (new Exception(exception.getClass().getSimpleName() +
+              ", Responce: "+ HttpStatus.getMessage(responseCode) +
+              ", during check URL: " + url));
+    }
   }
 
   private List<String> getValidActions() {
-    return new ArrayList<String>() {{
-      add(STACK_ID_UPDATE_ACTION);
-      add(METAINFO_UPDATE_ACTION);
-    }};
+    return new ArrayList<String>() {
+      {
+        add(STACK_ID_UPDATE_ACTION);
+        add(METAINFO_UPDATE_ACTION);
+      }
+    };
   }
 
   /**
    * Support changes need to support upgrade of Stack
+   *
    * @param args Simple key value json map
    */
   public static void main(String[] args) {
     try {
       if (args.length < 2) {
-        throw new InputMismatchException("Need to provide action, " +
-          "stack name and stack version.");
+        throw new InputMismatchException("Need to provide action, "
+                + "stack name and stack version.");
       }
 
       String action = args[0];
@@ -146,17 +181,16 @@ public class StackUpgradeHelper {
       Gson gson = injector.getInstance(Gson.class);
 
       if (!stackUpgradeHelper.getValidActions().contains(action)) {
-        throw new IllegalArgumentException("Unsupported action. Allowed " +
-          "actions: " + stackUpgradeHelper.getValidActions());
+        throw new IllegalArgumentException("Unsupported action. Allowed "
+                + "actions: " + stackUpgradeHelper.getValidActions());
       }
 
-      
       stackUpgradeHelper.startPersistenceService();
       Map values = gson.fromJson(valueMap, Map.class);
 
       if (action.equals(STACK_ID_UPDATE_ACTION)) {
         stackUpgradeHelper.updateStackVersion(values);
-        
+
       } else if (action.equals(METAINFO_UPDATE_ACTION)) {
 
         stackUpgradeHelper.updateMetaInfo(values);
@@ -165,8 +199,8 @@ public class StackUpgradeHelper {
       stackUpgradeHelper.stopPersistenceService();
 
     } catch (Throwable t) {
-      LOG.error("Caught exception on upgrade. Exiting...", t);
-      System.exit(1);
+      System.err.println("Caught exception on upgrade. Exiting..." + t.getMessage());
+      System.exit(2);
     }
   }
 }
