@@ -19,6 +19,7 @@
 var Ember = require('ember');
 var App = require('app');
 require('controllers/wizard/step5_controller');
+require('utils/ajax/ajax');
 var c;
 describe('App.WizardStep5Controller', function () {
   beforeEach(function() {
@@ -190,6 +191,14 @@ describe('App.WizardStep5Controller', function () {
   });
 
   describe('#isReassignHive', function() {
+
+    beforeEach(function() {
+      sinon.stub(controller, 'getIsSubmitDisabled', Em.K);
+    });
+
+    afterEach(function() {
+      controller.getIsSubmitDisabled.restore();
+    });
 
     var tests = Em.A([
       {
@@ -503,10 +512,15 @@ describe('App.WizardStep5Controller', function () {
 
   });
 
-  describe('#isSubmitDisabled', function() {
-    it('should be false if it\'s not a isReassignWizard', function() {
+  describe('#getIsSubmitDisabled', function() {
+    it('should base on selected host to masters if it\'s not a isReassignWizard', function() {
       c.set('controllerName', 'addServiceController');
-      expect(c.get('isSubmitDisabled')).to.equal(false);
+      c.reopen({servicesMasters: [{isHostNameValid: true}, {isHostNameValid: false}]});
+      c.getIsSubmitDisabled();
+      expect(c.get('submitDisabled')).to.equal(true);
+      c.reopen({servicesMasters: [{isHostNameValid: true}, {isHostNameValid: true}]});
+      c.getIsSubmitDisabled();
+      expect(c.get('submitDisabled')).to.equal(false);
     });
   });
 
@@ -630,6 +644,7 @@ describe('App.WizardStep5Controller', function () {
   });
 
   describe('#renderComponents', function() {
+
     var tests = Em.A([
       {
         masterComponents: Em.A([
@@ -705,19 +720,21 @@ describe('App.WizardStep5Controller', function () {
       }
     ]);
     tests.forEach(function(test) {
-      beforeEach(function() {
-        App.reopen({isHaEnabled: test.isHaEnabled});
-      });
       it(test.m, function() {
-        App.set('isHaEnabled', test.isHaEnabled);
+        sinon.stub(App, 'get', function(k) {
+          if ('isHaEnabled' === k) return test.isHaEnabled;
+          return Em.get(App, k);
+        });
         c.reopen({
           content: Em.Object.create({
+            getIsSubmitDisabled: Em.K,
             services: test.services,
             controllerName: test.controllerName,
             reassign: {component_name: test.component_name}
           })
         });
         c.renderComponents(test.masterComponents);
+        App.get.restore();
         expect(c.get('selectedServicesMasters').mapProperty('component_name')).to.eql(test.e.selectedServicesMasters);
         expect(c.get('servicesMasters').mapProperty('component_name')).to.eql(test.e.servicesMasters);
         expect(c.get('selectedServicesMasters').mapProperty('showRemoveControl')).to.eql(test.e.showRemoveControl);
@@ -834,18 +851,21 @@ describe('App.WizardStep5Controller', function () {
 
   describe('#submit', function() {
     beforeEach(function() {
-      sinon.spy(App.router, 'send');
+      if(!App.router) {
+        App.router = Em.Object.create({send: Em.K});
+      }
+      sinon.stub(App.router, 'send', Em.K);
     });
     afterEach(function() {
       App.router.send.restore();
     });
     it('should go next if not isSubmitDisabled', function() {
-      c.reopen({isSubmitDisabled: false});
+      c.reopen({servicesMasters: [{isHostNameValid: true}]});
       c.submit();
       expect(App.router.send.calledWith('next')).to.equal(true);
     });
     it('shouldn\'t go next if isSubmitDisabled', function() {
-      c.reopen({isSubmitDisabled: true});
+      c.reopen({servicesMasters: [{isHostNameValid: false}]});
       c.submit();
       expect(App.router.send.called).to.equal(false);
     });
@@ -1046,63 +1066,6 @@ describe('App.WizardStep5Controller', function () {
       c.set('content', {controllerName: 'notReassignMasterController'});
       expect(c.get('title')).to.equal(Em.I18n.t('installer.step5.header'));
     });
-  });
-
-  describe('#isSubmitDisabled', function() {
-    it('should be false if no isReassignWizard', function() {
-      c.reopen({isReassignWizard: false});
-      expect(c.get('isSubmitDisabled')).to.equal(false);
-    });
-    it('should be true if isReassignWizard', function() {
-      var hostComponents = Em.A([
-        Em.Object.create({componentName: 'c1', host: Em.Object.create({hostName: 'h1'})}),
-        Em.Object.create({componentName: 'c1', host: Em.Object.create({hostName: 'h2'})})
-      ]);
-      sinon.stub(App.HostComponent, 'find', function() {
-        return hostComponents;
-      });
-      c.reopen({
-        isReassignWizard: true,
-        content:{
-          reassign:{
-            component_name: 'c1'
-          }
-        },
-        servicesMasters: [
-          {selectedHost: 'h5'},
-          {selectedHost: 'h4'},
-          {selectedHost: 'h3'}
-        ]
-      });
-      expect(c.get('isSubmitDisabled')).to.equal(true);
-      App.HostComponent.find.restore();
-    });
-
-    it('should be false if isReassignWizard', function() {
-      var hostComponents = Em.A([
-        Em.Object.create({componentName: 'c1', host: Em.Object.create({hostName: 'h1'})}),
-        Em.Object.create({componentName: 'c1', host: Em.Object.create({hostName: 'h2'})}),
-        Em.Object.create({componentName: 'c1', host: Em.Object.create({hostName: 'h3'})})
-      ]);
-      sinon.stub(App.HostComponent, 'find', function() {
-        return hostComponents;
-      });
-      c.reopen({
-        isReassignWizard: true,
-        content:{
-          reassign:{
-            component_name: 'c1'
-          }
-        },
-        servicesMasters: [
-          {selectedHost: 'h1'},
-          {selectedHost: 'h2'}
-        ]
-      });
-      expect(c.get('isSubmitDisabled')).to.equal(false);
-      App.HostComponent.find.restore();
-    });
-
   });
 
   describe('#masterHostMapping', function() {
@@ -1351,6 +1314,59 @@ describe('App.WizardStep5Controller', function () {
           expect(r).to.equal(test.e);
         });
       });
+  });
+
+  describe('#isHostNameValid', function() {
+
+    beforeEach(function() {
+      controller.set('hosts', [{host_name: 'h1'}]);
+      controller.set('selectedServicesMasters', [{component_name: 'c1', selectedHost: 'h2'}]);
+    });
+
+    it('hostname is empty', function() {
+      expect(controller.isHostNameValid('c1', '')).to.be.false;
+    });
+
+    it('hostname not exists', function() {
+      expect(controller.isHostNameValid('c1', 'h2')).to.be.false;
+    });
+
+    it('hostname is assigned to such component', function() {
+      controller.get('selectedServicesMasters').pushObject({component_name: 'c1', selectedHost: 'h2'});
+      expect(controller.isHostNameValid('c1', 'h2')).to.be.false;
+    });
+
+    it('hostname is valid', function() {
+      expect(controller.isHostNameValid('c1', 'h1')).to.be.true;
+    });
+
+  });
+
+  describe('#updateIsHostNameValidFlag', function() {
+
+    beforeEach(function() {
+      controller.set('selectedServicesMasters', [
+        Em.Object.create({component_name: 'ZOOKEEPER_SERVER', zId: 1, isHostNameValid: true}),
+        Em.Object.create({component_name: 'ZOOKEEPER_SERVER', zId: 2, isHostNameValid: true}),
+        Em.Object.create({component_name: 'c1', zId: null, isHostNameValid: true})
+      ]);
+    });
+
+    it('shouldn\'t do nothing componentName not provided', function() {
+      controller.updateIsHostNameValidFlag(null, null, false);
+      expect(controller.get('selectedServicesMasters').everyProperty('isHostNameValid', true)).to.be.true;
+    });
+
+    it('should update one multiple component', function() {
+      controller.updateIsHostNameValidFlag('ZOOKEEPER_SERVER', 2, false);
+      expect(controller.get('selectedServicesMasters').mapProperty('isHostNameValid')).to.eql([true, false, true]);
+    });
+
+    it('should update single component', function() {
+      controller.updateIsHostNameValidFlag('c1', null, false);
+      expect(controller.get('selectedServicesMasters').mapProperty('isHostNameValid')).to.eql([true, true, false]);
+    });
+
   });
 
 });
