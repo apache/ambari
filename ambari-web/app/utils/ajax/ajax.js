@@ -1591,7 +1591,34 @@ var urls = {
       }
     }
   },
-
+  'wizard.step3.jdk_check': {
+    'real': '/requests',
+    'mock': '',
+    'format': function (data) {
+      return {
+        type: 'POST',
+        data: JSON.stringify({
+          "RequestInfo": {
+            "context": "Check hosts",
+            "action": "check_host",
+            "parameters" : {
+              "threshold" : "60",
+              "java_home" : data.java_home,
+              "jdk_location": data.jdk_location,
+              "check_execute_list" : "java_home_check"
+            }
+          },
+          "Requests/resource_filters": [{
+            "hosts": data.host_names
+          }]
+        })
+      }
+    }
+  },
+  'wizard.step3.jdk_check.get_results': {
+    'real': '/requests/{requestIndex}?fields=*,tasks/Tasks/host_name,tasks/Tasks/status,tasks/Tasks/structured_out',
+    'mock': '/data/requests/host_check/jdk_check_results.json'
+  },
   'wizard.step3.host_info': {
     'real': '/hosts?fields=Hosts/total_mem,Hosts/cpu_count,Hosts/disk_info,Hosts/last_agent_env,Hosts/host_name,Hosts/os_type,Hosts/os_arch,Hosts/ip',
     'mock': '/data/wizard/bootstrap/two_hosts_information.json',
@@ -1706,6 +1733,10 @@ var urls = {
         async: false
       };
     }
+  },
+  'ambari.service.load_jdk_name': {
+    'real': '/services/AMBARI/components/AMBARI_SERVER?fields=RootServiceComponents/properties/jdk.name,RootServiceComponents/properties/java.home,RootServiceComponents/properties/jdk_location',
+    'mock': '/data/requests/host_check/jdk_name.json'
   },
   'ambari.service.load_server_version': {
     'real': '/services/AMBARI/components/AMBARI_SERVER?fields=RootServiceComponents/component_version',

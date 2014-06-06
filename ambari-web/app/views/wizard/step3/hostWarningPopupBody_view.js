@@ -142,11 +142,22 @@ App.WizardStep3HostWarningPopupBody = Em.View.extend({
    * @type {Ember.Object[]}
    */
   content: function () {
+    var hostCheckWarnings = this.get('bodyController.hostCheckWarnings');
     var repoCategoryWarnings = this.get('bodyController.repoCategoryWarnings');
     var diskCategoryWarnings = this.get('bodyController.diskCategoryWarnings');
-    var hostCheckWarnings = this.get('bodyController.hostCheckWarnings');
+    var jdkCategoryWarnings = this.get('bodyController.jdkCategoryWarnings') || [];
     var categoryWarnings = this.get('categoryWarnings');
     return [
+      Em.Object.create({
+        warnings: jdkCategoryWarnings,
+        title: Em.I18n.t('installer.step3.hostWarningsPopup.jdk'),
+        message: Em.I18n.t('installer.step3.hostWarningsPopup.jdk.message'),
+        type: Em.I18n.t('common.issues'),
+        emptyName: Em.I18n.t('installer.step3.hostWarningsPopup.empty.jdk'),
+        action: Em.I18n.t('installer.step3.hostWarningsPopup.action.exists'),
+        category: 'jdk',
+        isCollapsed: true
+      }),
       Em.Object.create({
         warnings: diskCategoryWarnings,
         title: Em.I18n.t('installer.step3.hostWarningsPopup.disk'),
@@ -259,24 +270,27 @@ App.WizardStep3HostWarningPopupBody = Em.View.extend({
         warnings: hostCheckWarnings,
         title: Em.I18n.t('installer.step3.hostWarningsPopup.resolution.validation.name'),
         message: Em.I18n.t('installer.step3.hostWarningsPopup.resolution.validation.message'),
+        type: Em.I18n.t('common.issues'),
         emptyName: Em.I18n.t('installer.step3.hostWarningsPopup.resolution.validation.empty'),
+        action: Em.I18n.t('installer.step3.hostWarningsPopup.action.failed'),
         category: 'hostNameResolution',
         isCollapsed: true
       })
     ]
-  }.property('category', 'warningsByHost'),
+  }.property('category', 'warningsByHost', 'bodyController.jdkCategoryWarnings', 'bodyController.repoCategoryWarnings', 'bodyController.diskCategoryWarnings', 'bodyController.hostCheckWarnings'),
 
   /**
    * Message with info about warnings
    * @return {string}
    */
   warningsNotice: function () {
-    var issuesNumber = this.get('warnings.length') + this.get('bodyController.repoCategoryWarnings.length') + this.get('bodyController.diskCategoryWarnings.length');
+    var issuesNumber = this.get('warnings.length') + this.get('bodyController.repoCategoryWarnings.length') + this.get('bodyController.diskCategoryWarnings.length')
+      + this.get('bodyController.jdkCategoryWarnings.length') + this.get('bodyController.hostCheckWarnings.length');
     var issues = issuesNumber + ' ' + (issuesNumber.length === 1 ? Em.I18n.t('installer.step3.hostWarningsPopup.issue') : Em.I18n.t('installer.step3.hostWarningsPopup.issues'));
     var hostsCnt = this.warningHostsNamesCount();
     var hosts = hostsCnt + ' ' + (hostsCnt === 1 ? Em.I18n.t('installer.step3.hostWarningsPopup.host') : Em.I18n.t('installer.step3.hostWarningsPopup.hosts'));
     return Em.I18n.t('installer.step3.hostWarningsPopup.summary').format(issues, hosts);
-  }.property('warnings', 'warningsByHost'),
+  }.property('warnings', 'warningsByHost', 'bodyController.jdkCategoryWarnings', 'bodyController.repoCategoryWarnings', 'bodyController.diskCategoryWarnings', 'bodyController.hostCheckWarnings'),
 
   /**
    * Detailed content to show it in new window
@@ -381,6 +395,8 @@ App.WizardStep3HostWarningPopupBody = Em.View.extend({
     });
     var repoCategoryWarnings = this.get('bodyController.repoCategoryWarnings');
     var diskCategoryWarnings = this.get('bodyController.diskCategoryWarnings');
+    var jdkCategoryWarnings = this.get('bodyController.jdkCategoryWarnings');
+    var hostResolutionWarnings = this.get('bodyController.hostCheckWarnings');
 
     if (repoCategoryWarnings.length) {
       repoCategoryWarnings[0].hostsNames.forEach(function (_hostName) {
@@ -391,6 +407,20 @@ App.WizardStep3HostWarningPopupBody = Em.View.extend({
     }
     if (diskCategoryWarnings.length) {
       diskCategoryWarnings[0].hostsNames.forEach(function (_hostName) {
+        if (!hostNameMap[_hostName]) {
+          hostNameMap[_hostName] = true;
+        }
+      });
+    }
+    if (jdkCategoryWarnings && jdkCategoryWarnings.length) {
+      jdkCategoryWarnings[0].hostsNames.forEach(function (_hostName) {
+        if (!hostNameMap[_hostName]) {
+          hostNameMap[_hostName] = true;
+        }
+      });
+    }
+    if (hostResolutionWarnings && hostResolutionWarnings.length) {
+      hostResolutionWarnings[0].hosts.forEach(function (_hostName) {
         if (!hostNameMap[_hostName]) {
           hostNameMap[_hostName] = true;
         }

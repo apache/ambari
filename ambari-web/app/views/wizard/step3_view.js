@@ -276,7 +276,7 @@ App.WizardStep3View = App.TableView.extend({
         this.set('message', Em.I18n.t('installer.step3.warning.loading'));
       }
       else {
-        if (this.get('controller.isHostHaveWarnings') || this.get('controller.repoCategoryWarnings.length') || this.get('controller.diskCategoryWarnings.length') || this.get('controller.hostCheckWarnings')) {
+        if (this.get('controller.isHostHaveWarnings') || this.get('controller.repoCategoryWarnings.length') || this.get('controller.diskCategoryWarnings.length') || this.get('controller.jdkCategoryWarnings.length') || this.get('controller.hostCheckWarnings.length')) {
           this.set('status', 'alert-warn');
           this.set('linkText', Em.I18n.t('installer.step3.warnings.linkText'));
           this.set('message', Em.I18n.t('installer.step3.warnings.fails').format(hosts.length - failedHosts));
@@ -303,8 +303,8 @@ App.WizardStep3View = App.TableView.extend({
         }
       }
     }
-  }.observes('controller.isWarningsLoaded', 'controller.isHostHaveWarnings', 'controller.repoCategoryWarnings', 'controller.diskCategoryWarnings', 'controller.hostCheckWarnings')
 
+  }.observes('controller.isWarningsLoaded','controller.hostCheckWarnings', 'controller.isHostHaveWarnings', 'controller.repoCategoryWarnings', 'controller.diskCategoryWarnings', 'controller.jdkCategoryWarnings')
 });
 
 //todo: move it inside WizardStep3View

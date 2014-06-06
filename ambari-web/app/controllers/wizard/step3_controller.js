@@ -32,15 +32,15 @@ App.WizardStep3Controller = Em.Controller.extend({
 
   registeredHosts: [],
 
+  hostCheckWarnings: [],
   repoCategoryWarnings: [],
-
   diskCategoryWarnings: [],
+  jdkCategoryWarnings: null,
 
   registrationStartedAt: null,
 
   requestId: 0,
 
-  hostCheckWarnings: [],
   /**
    * Timeout for registration
    * Based on <code>installOptions.manualInstall</code>
@@ -119,7 +119,9 @@ App.WizardStep3Controller = Em.Controller.extend({
    * Are hosts warnings loaded
    * @type {bool}
    */
-  isWarningsLoaded: false,
+  isWarningsLoaded: function () {
+    return this.get('isJDKWarningsLoaded') && this.get('isHostsWarningsLoaded');
+  }.property('isJDKWarningsLoaded', 'isHostsWarningsLoaded'),
 
   /**
    * Check are hosts have any warnings
@@ -735,12 +737,129 @@ App.WizardStep3Controller = Em.Controller.extend({
   },
 
   /**
+   * Get JDK name from server to determine if user had setup a customized JDK path when doing 'ambari-server setup'.
+   * The Ambari properties are different from default ambari-server setup, property 'jdk.name' will be missing if a customized jdk path is applied.
+   * @return {$.ajax}
+   * @method getJDKName
+   */
+  getJDKName: function () {
+    return App.ajax.send({
+      name: 'ambari.service.load_jdk_name',
+      sender: this,
+      success: 'getJDKNameSuccessCallback'
+    });
+  },
+
+  /**
+    * Success callback for JDK name, property 'jdk.name' will be missing if a customized jdk path is applied
+    * @param {object} data
+    * @method getJDKNameSuccessCallback
+    */
+  getJDKNameSuccessCallback: function (data) {
+    this.set('needJDKCheckOnHosts', !data.RootServiceComponents.properties["jdk.name"]);
+    this.set('jdkLocation', Em.get(data, "RootServiceComponents.properties.jdk_location"));
+    this.set('javaHome', data.RootServiceComponents.properties["java.home"]);
+  },
+
+  doCheckJDK: function () {
+    var hostsNames = this.get('bootHosts').getEach('name').join(",");
+    var javaHome = this.get('javaHome');
+    var jdkLocation = this.get('jdkLocation');
+    App.ajax.send({
+      name: 'wizard.step3.jdk_check',
+      sender: this,
+      data: {
+        host_names: hostsNames,
+        java_home: javaHome,
+        jdk_location: jdkLocation
+      },
+      success: 'doCheckJDKsuccessCallback',
+      error: 'doCheckJDKerrorCallback'
+    });
+  },
+
+  doCheckJDKsuccessCallback: function (data) {
+    var requestIndex = data.href.split('/')[data.href.split('/').length - 1];
+    var self = this;
+    // keep getting JDK check results data until all hosts jdk check completed
+    var myVar = setInterval( function(){
+      if (self.get('jdkCategoryWarnings') == null) {
+        // get jdk check results for all hosts
+        App.ajax.send({
+          name: 'wizard.step3.jdk_check.get_results',
+          sender: self,
+          data: {
+            requestIndex: requestIndex
+          },
+          success: 'parseJDKCheckResults'
+        })
+      } else {
+        clearInterval(myVar);
+        self.set('isJDKWarningsLoaded', true);
+      }
+    },
+    1000);
+  },
+  doCheckJDKerrorCallback: function () {
+    console.log('INFO: Doing JDK check for host failed');
+    this.set('isJDKWarningsLoaded', true);
+  },
+  parseJDKCheckResults: function (data) {
+    var jdkWarnings = [], hostsJDKContext = [], hostsJDKNames = [];
+    // check if the request ended
+    if (data.Requests.end_time > 0 && data.tasks) {
+      data.tasks.forEach( function(task) {
+        // generate warning context
+        if (Em.get(task, "Tasks.structured_out.java_home_check.exit_code") == 1){
+          var jdkContext = Em.I18n.t('installer.step3.hostWarningsPopup.jdk.context').format(task.Tasks.host_name);
+          hostsJDKContext.push(jdkContext);
+          hostsJDKNames.push(task.Tasks.host_name);
+        }
+      });
+      if (hostsJDKContext.length > 0) { // java jdk warning exist
+        var invalidJavaHome = this.get('javaHome');
+        jdkWarnings.push({
+          name: Em.I18n.t('installer.step3.hostWarningsPopup.jdk.name').format(invalidJavaHome),
+          hosts: hostsJDKContext,
+          hostsNames: hostsJDKNames,
+          category: 'jdk',
+          onSingleHost: false
+        });
+      }
+      this.set('jdkCategoryWarnings', jdkWarnings);
+    } else {
+      // still doing JDK check, data not ready to be parsed
+      this.set('jdkCategoryWarnings', null);
+    }
+  },
+
+  /**
+   * Check JDK issues on registered hosts.
+   */
+  checkHostJDK: function () {
+    this.set('isJDKWarningsLoaded', false);
+    this.set('jdkCategoryWarnings', null);
+    var self = this;
+    this.getJDKName().done( function() {
+      if (self.get('needJDKCheckOnHosts')) {
+        // need to do JDK check on each host
+       self.doCheckJDK();
+      } else {
+        // no customized JDK path, so no need to check jdk
+        self.set('jdkCategoryWarnings', []);
+        self.set('isJDKWarningsLoaded', true);
+      }
+    });
+  },
+
+  /**
    * Get disk info and cpu count of booted hosts from server
    * @return {$.ajax}
    * @method getHostInfo
    */
   getHostInfo: function () {
-    this.set('isWarningsLoaded', false);
+    this.set('isHostsWarningsLoaded', false);
+    // begin JDK check for each host
     return App.ajax.send({
       name: 'wizard.step3.host_info',
       sender: this,
@@ -752,7 +871,8 @@ App.WizardStep3Controller = Em.Controller.extend({
   
   startHostcheck: function() {
     this.set('isWarningsLoaded', false);
-    this.getHostNameResolution();   
+    this.getHostNameResolution();
+    this.checkHostJDK();
   },
 
   getHostNameResolution: function () {
@@ -880,14 +1000,11 @@ App.WizardStep3Controller = Em.Controller.extend({
   getHostInfoSuccessCallback: function (jsonData) {
     var hosts = this.get('bootHosts'),
       self = this,
-      repoWarnings = [],
-      hostsContext = [],
-      diskWarnings = [],
-      hostsDiskContext = [],
-      hostsDiskNames = [],
-      hostsRepoNames = [];
-    this.parseWarnings(jsonData);
+      repoWarnings = [], hostsRepoNames = [], hostsContext = [],
+      diskWarnings = [], hostsDiskContext = [], hostsDiskNames = [];
 
+    // parse host checks warning
+    this.parseWarnings(jsonData);
     hosts.forEach(function (_host) {
       var host = (App.get('testMode')) ? jsonData.items[0] : jsonData.items.findProperty('Hosts.host_name', _host.name);
       if (App.get('skipBootstrap')) {
@@ -896,8 +1013,8 @@ App.WizardStep3Controller = Em.Controller.extend({
       else {
         if (host) {
           self._setHostDataFromLoadedHostInfo(_host, host);
-
           var host_name = Em.get(host, 'Hosts.host_name');
+
           var context = self.checkHostOSType(host.Hosts.os_type, host_name);
           if (context) {
             hostsContext.push(context);
@@ -911,7 +1028,7 @@ App.WizardStep3Controller = Em.Controller.extend({
         }
       }
     });
-    if (hostsContext.length > 0) { // warning exist
+    if (hostsContext.length > 0) { // repository warning exist
       repoWarnings.push({
         name: Em.I18n.t('installer.step3.hostWarningsPopup.repositories.name'),
         hosts: hostsContext,
@@ -981,7 +1098,7 @@ App.WizardStep3Controller = Em.Controller.extend({
    */
   getHostInfoErrorCallback: function () {
     console.log('INFO: Getting host information(cpu_count and total_mem) from the server failed');
-    this.set('isWarningsLoaded', true);
+    this.set('isHostsWarningsLoaded', true);
     this.registerErrPopup(Em.I18n.t('installer.step3.hostInformation.popup.header'), Em.I18n.t('installer.step3.hostInformation.popup.body'));
   },
 
@@ -1146,6 +1263,8 @@ App.WizardStep3Controller = Em.Controller.extend({
   rerunChecks: function () {
     var self = this;
     var currentProgress = 0;
+    this.getHostNameResolution();
+    this.checkHostJDK();
     var interval = setInterval(function () {
       currentProgress += 100000 / self.get('warningsTimeInterval');
       if (currentProgress < 100) {
@@ -1447,7 +1566,7 @@ App.WizardStep3Controller = Em.Controller.extend({
     });
     this.set('warnings', warnings);
     this.set('warningsByHost', hosts);
-    this.set('isWarningsLoaded', true);
+    this.set('isHostsWarningsLoaded', true);
   },
 
   /**
