@@ -342,17 +342,6 @@
               </sources>
             </mapping>
             <mapping>
-              <directory>/etc/init.d</directory>
-              <filemode>755</filemode>
-              <username>root</username>
-              <groupname>root</groupname>
-              <sources>
-                <softlinkSource>
-                  <location>/etc/rc.d/init.d/ambari-agent</location>
-                </softlinkSource>
-              </sources>
-            </mapping>
-            <mapping>
               <directory>/var/lib/${project.artifactId}/data</directory>
               <filemode>755</filemode>
               <username>root</username>
