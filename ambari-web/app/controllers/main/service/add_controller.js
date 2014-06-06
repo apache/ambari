@@ -18,7 +18,6 @@
 
 
 var App = require('app');
-var lazyLoading = require('utils/lazy_loading');
 App.AddServiceController = App.WizardController.extend({
 
   name: 'addServiceController',
@@ -77,10 +76,12 @@ App.AddServiceController = App.WizardController.extend({
    * Load confirmed hosts.
    * Will be used at <code>Assign Masters(step5)</code> step
    */
-  loadConfirmedHosts: function(){
+  loadConfirmedHosts: function () {
     var hosts = this.getDBProperty('hosts');
 
-    this.set('content.hosts', hosts);
+    if (hosts) {
+      this.set('content.hosts', hosts);
+    }
     console.log('AddServiceController.loadConfirmedHosts: loaded hosts', hosts);
   },
 
@@ -147,44 +148,33 @@ App.AddServiceController = App.WizardController.extend({
    * @param stepController App.WizardStep5Controller
    */
   saveMasterComponentHosts: function (stepController) {
-
-    App.ajax.send({
-      name: 'host_components.all',
-      sender: this,
-      data: {
-        clusterName: App.get('clusterName'),
-        stepController: stepController
-      },
-      success: 'saveMasterComponentHostsSuccessCallback'
-    });
-
-  },
-
-  saveMasterComponentHostsSuccessCallback: function (response, request, data) {
-    var obj = data.stepController.get('selectedServicesMasters');
+    var obj = stepController.get('selectedServicesMasters');
     var masterComponentHosts = [];
+    var installedComponents = App.HostComponent.find();
+
     obj.forEach(function (_component) {
-      masterComponentHosts.push({
-        display_name: _component.display_name,
-        component: _component.component_name,
-        hostName: _component.selectedHost,
-        serviceId: _component.serviceId,
-        isInstalled: response.items.someProperty('HostRoles.component_name', _component.component_name)
-      });
+        masterComponentHosts.push({
+          display_name: _component.display_name,
+          component: _component.component_name,
+          hostName: _component.selectedHost,
+          serviceId: _component.serviceId,
+          isInstalled: installedComponents.someProperty('componentName', _component.component_name)
+        });
     });
 
     console.log("AddServiceController.saveMasterComponentHosts: saved hosts ", masterComponentHosts);
     this.setDBProperty('masterComponentHosts', masterComponentHosts);
-    this.set('content.masterComponentHosts', []);
-    lazyLoading.run({
-      initSize: 20,
-      chunkSize: 50,
-      delay: 50,
-      destination: this.get('content.masterComponentHosts'),
-      source: masterComponentHosts,
-      context: this
-    });
+    this.set('content.masterComponentHosts', masterComponentHosts);
 
+    this.set('content.skipMasterStep', this.get('content.masterComponentHosts').everyProperty('isInstalled', true));
+    this.get('isStepDisabled').findProperty('step', 2).set('value', this.get('content.skipMasterStep'));
+  },
+
+  /**
+   * Load master component hosts data for using in required step controllers
+   */
+  loadMasterComponentHosts: function () {
+    this._super();
     this.set('content.skipMasterStep', this.get('content.masterComponentHosts').everyProperty('isInstalled', true));
     this.get('isStepDisabled').findProperty('step', 2).set('value', this.get('content.skipMasterStep'));
   },
@@ -235,22 +225,73 @@ App.AddServiceController = App.WizardController.extend({
    */
   loadSlaveComponentHosts: function () {
     var slaveComponentHosts = this.getDBProperty('slaveComponentHosts');
-    var message = 'AddServiceController.loadSlaveComponentHosts: loaded hosts ';
-    this.set('content.slaveComponentHosts', []);
     if(!slaveComponentHosts){
-      this.getSlaveComponentHosts(this, 'content.slaveComponentHosts', message);
-    } else {
-      this.set('content.slaveComponentHosts', []);
-      lazyLoading.run({
-        initSize: 20,
-        chunkSize: 50,
-        delay: 50,
-        destination: this.get('content.slaveComponentHosts'),
-        source: slaveComponentHosts,
-        context: this
-      });
-      console.log(message, slaveComponentHosts);
+      slaveComponentHosts = this.getSlaveComponentHosts();
     }
+    this.set("content.slaveComponentHosts", slaveComponentHosts);
+    console.log("AddServiceController.loadSlaveComponentHosts: loaded hosts ", slaveComponentHosts);
+  },
+
+  /**
+   * return slaveComponents bound to hosts
+   * @return {Array}
+   */
+  getSlaveComponentHosts: function () {
+    var components = this.get('slaveComponents');
+    var result = [];
+    var installedServices = App.Service.find().mapProperty('serviceName');
+    var selectedServices = this.get('content.services').filterProperty('isSelected', true).mapProperty('serviceName');
+    var installedComponentsMap = {};
+    var uninstalledComponents = [];
+    var installedHosts = this.get('content.hosts');
+
+    components.forEach(function (component) {
+      if (installedServices.contains(component.get('serviceName'))) {
+        installedComponentsMap[component.get('componentName')] = [];
+      } else if (selectedServices.contains(component.get('serviceName'))) {
+        uninstalledComponents.push(component);
+      }
+    }, this);
+    installedComponentsMap['HDFS_CLIENT'] = [];
+
+    for (var hostName in installedHosts) {
+      installedHosts[hostName].hostComponents.forEach(function (componentName) {
+        if (installedComponentsMap[componentName]) {
+          installedComponentsMap[componentName].push(hostName);
+        }
+      });
+    }
+
+    for (var componentName in installedComponentsMap) {
+      var name = (componentName === 'HDFS_CLIENT') ? 'CLIENT' : componentName;
+      var component = {
+        componentName: name,
+        displayName: App.format.role(name),
+        hosts: [],
+        isInstalled: true
+      };
+      installedComponentsMap[componentName].forEach(function (hostName) {
+        component.hosts.push({
+          group: "Default",
+          hostName: hostName,
+          isInstalled: true
+        });
+      }, this);
+      result.push(component);
+    }
+
+    uninstalledComponents.forEach(function (component) {
+      var hosts = jQuery.extend(true, [], result.findProperty('componentName', 'DATANODE').hosts);
+      hosts.setEach('isInstalled', false);
+      result.push({
+        componentName: component.get('componentName'),
+        displayName: App.format.role(component.get('componentName')),
+        hosts: hosts,
+        isInstalled: false
+      })
+    });
+
+    return result;
   },
 
   /**
@@ -258,43 +299,30 @@ App.AddServiceController = App.WizardController.extend({
    * @param stepController step4WizardController
    */
   saveClients: function(stepController){
-
-    App.ajax.send({
-      name: 'host_components.all',
-      sender: this,
-      data: {
-        clusterName: App.get('clusterName'),
-        stepController: stepController
-      },
-      success: 'saveClientsSuccessCallback'
-    });
-
-  },
-
-  saveClientsSuccessCallback: function (response, request, data) {
     var clients = [];
     var serviceComponents = App.StackServiceComponent.find();
-    data.stepController.get('content').filterProperty('isSelected',true).forEach(function (_service) {
-      var client = serviceComponents.filterProperty('serviceName', _service.serviceName).findProperty('isClient', true);
+    var clientComponents = [];
+    var dbHosts = this.get('content.hosts');
+
+    for (var hostName in dbHosts) {
+      dbHosts[hostName].hostComponents.forEach(function (componentName) {
+        clientComponents[componentName] = true;
+      }, this);
+    }
+
+    this.get('content.services').filterProperty('isSelected').forEach(function (_service) {
+      var client = serviceComponents.filterProperty('serviceName', _service.serviceName).findProperty('isClient');
       if (client) {
-        clients.pushObject({
+        clients.push({
           component_name: client.get('componentName'),
           display_name: client.get('displayName'),
-          isInstalled: response.items.filterProperty('HostRoles.component_name', client.get('componentName')).length > 0
+          isInstalled: !!clientComponents[client.get('componentName')]
         });
       }
     }, this);
 
     this.setDBProperty('clientInfo', clients);
-    this.set('content.clients', []);
-    lazyLoading.run({
-      initSize: 20,
-      chunkSize: 50,
-      delay: 50,
-      destination: this.get('content.clients'),
-      source: clients,
-      context: this
-    });
+    this.set('content.clients', clients);
     console.log("AddServiceController.saveClients: saved list ", clients);
   },
 

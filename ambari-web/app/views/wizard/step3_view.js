@@ -18,7 +18,6 @@
 
 
 var App = require('app');
-var lazyLoading = require('utils/lazy_loading');
 
 App.WizardStep3View = App.TableView.extend({
 
@@ -29,19 +28,9 @@ App.WizardStep3View = App.TableView.extend({
    * Same to <code>controller.hosts</code>
    * @type {Ember.Enumerable}
    */
-  content: [],
-
-  contentObserver: function() {
-    this.set('content', []);
-    lazyLoading.run({
-      initSize: 20,
-      chunkSize: 50,
-      delay: 50,
-      destination: this.get('content'),
-      source: this.get('controller.hosts'),
-      context: this
-    });
-  }.observes('controller.hosts.length'),
+  content:function () {
+    return this.get('controller.hosts');
+  }.property('controller.hosts.length'),
 
   /**
    * Message with info about registration result
@@ -70,6 +59,12 @@ App.WizardStep3View = App.TableView.extend({
   }.property('categories.@each.isActive'),
 
   /**
+   * Message about other registered hosts (not included in current registration)
+   * @type {string}
+   */
+  registeredHostsMessage: '',
+
+  /**
    * Number of visible hosts on page
    * @type {string}
    */
@@ -80,8 +75,6 @@ App.WizardStep3View = App.TableView.extend({
    * @type {bool}
    */
   pageChecked: false,
-
-  isLoaded: false,
 
   /**
    * bootStatus category object
@@ -171,6 +164,14 @@ App.WizardStep3View = App.TableView.extend({
     this.set('noHostsSelected', noHostsSelected);
     this.set('selectedHostsCount', selectedHostsCount);
   },
+
+  /**
+   * Update <code>registeredHostsMessage</code> according to <code>controller.registeredHots.length</code>
+   * @method setRegisteredHosts
+   */
+  setRegisteredHosts: function(){
+    this.set('registeredHostsMessage',Em.I18n.t('installer.step3.warning.registeredHosts').format(this.get('controller.registeredHosts').length));
+  }.observes('controller.registeredHosts'),
 
   /**
    * Call filters and counters one time

@@ -17,7 +17,6 @@
  */
 
 var App = require('app');
-var lazyLoading = require('utils/lazy_loading');
 
 App.WizardStep10Controller = Em.Controller.extend({
 
@@ -57,60 +56,7 @@ App.WizardStep10Controller = Em.Controller.extend({
   loadStep: function () {
     console.log("TRACE: Loading step10: Summary Page");
     this.clearStep();
-    this.loadRegisteredHosts();
-  },
-
-  /**
-   * Get list of clusterInfo object about registered hosts
-   * @returns {{id: number, color: string, displayStatement: string, status: array}}
-   * @method loadRegisteredHosts
-   */
-  loadRegisteredHosts: function () {
-    var clusterName = (this.get('content.controllerName') === 'installerController') ? this.get('content.cluster.name') : App.get('clusterName')
-    App.ajax.send({
-      name: 'hosts.all',
-      sender: this,
-      data: {
-        clusterName: clusterName
-      },
-      success: 'loadRegisteredHostsSuccessCallback'
-    });
-  },
-
-  loadRegisteredHostsSuccessCallback: function (response) {
-    var masterHosts = this.get('content.masterComponentHosts').mapProperty('hostName').uniq();
-    var slaveHosts = [];
-    lazyLoading.run({
-      initSize: 20,
-      chunkSize: 50,
-      delay: 50,
-      destination: slaveHosts,
-      source: this.get('content.slaveComponentHosts'),
-      context: Em.Object.create()
-    });
-    var hostObj = [];
-    slaveHosts.forEach(function (_hosts) {
-      lazyLoading.run({
-        initSize: 20,
-        chunkSize: 50,
-        delay: 50,
-        destination: hostObj,
-        source: _hosts.hosts,
-        context: Em.Object.create()
-      });
-    }, this);
-    slaveHosts = hostObj.mapProperty('hostName').uniq();
-    var registeredHosts = response.items.mapProperty('Hosts.host_name').concat(masterHosts.concat(slaveHosts)).uniq();
-    var registerHostsStatement = Em.I18n.t('installer.step10.hostsSummary').format(registeredHosts.length);
-    var registerHostsObj = Em.Object.create({
-      id: 1,
-      color: 'text-info',
-      displayStatement: registerHostsStatement,
-      status: []
-    });
-    this.get('clusterInfo').pushObject(registerHostsObj);
-
-    this.loadInstalledHosts();
+    this.loadInstalledHosts(this.loadRegisteredHosts());
     var installFlag = true;
     var startFlag = true;
     if (this.get('content.controllerName') == 'installerController') {
@@ -120,7 +66,32 @@ App.WizardStep10Controller = Em.Controller.extend({
     if (installFlag && startFlag) {
       this.loadInstallTime();
     }
-    this.set('isLoaded', true);
+  },
+
+  /**
+   * Get list of clusterInfo object about registered hosts
+   * @returns {{id: number, color: string, displayStatement: string, status: array}}
+   * @method loadRegisteredHosts
+   */
+  loadRegisteredHosts: function () {
+    var masterHosts = this.get('content.masterComponentHosts').mapProperty('hostName').uniq();
+    var slaveHosts = this.get('content.slaveComponentHosts');
+    var hostObj = [];
+    slaveHosts.forEach(function (_hosts) {
+      hostObj = hostObj.concat(_hosts.hosts);
+    }, this);
+    slaveHosts = hostObj.mapProperty('hostName').uniq();
+    var registeredHosts = App.Host.find().mapProperty('hostName').concat(masterHosts.concat(slaveHosts)).uniq();
+    var registerHostsStatement = Em.I18n.t('installer.step10.hostsSummary').format(registeredHosts.length);
+    var registerHostsObj = Em.Object.create({
+      id: 1,
+      color: 'text-info',
+      displayStatement: registerHostsStatement,
+      status: []
+    });
+    this.get('clusterInfo').pushObject(registerHostsObj);
+
+    return registerHostsObj;
   },
 
   /**

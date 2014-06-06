@@ -18,7 +18,6 @@
 
 
 var App = require('app');
-var lazyLoading = require('utils/lazy_loading');
 require('models/host');
 
 App.WizardController = Em.Controller.extend(App.LocalStorage, {
@@ -58,6 +57,31 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
   slaveComponents: function () {
     return App.StackServiceComponent.find().filterProperty('isSlave',true);
   }.property('App.router.clusterController.isLoaded'),
+
+  allHosts: function () {
+    var dbHosts = this.get('content.hosts');
+    var hosts = [];
+    var hostComponents = [];
+
+    for (var hostName in dbHosts) {
+      hostComponents = [];
+      dbHosts[hostName].hostComponents.forEach(function (componentName) {
+        hostComponents.push(Em.Object.create({
+          componentName: componentName,
+          displayName: App.format.role(componentName)
+        }));
+      });
+
+      hosts.push(Em.Object.create({
+        hostName: hostName,
+        diskInfo: dbHosts[hostName].disk_info,
+        cpu: dbHosts[hostName].cpu,
+        memory: dbHosts[hostName].memory,
+        hostComponents: hostComponents
+      }))
+    }
+    return hosts;
+  }.property('content.hosts'),
 
   setStepsEnable: function () {
     for (var i = 1; i <= this.totalSteps; i++) {
@@ -797,40 +821,18 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
         });
         // if modified configs detected push all service's configs for update
         if (configs.length)
-         lazyLoading.run({
-            initSize: 20,
-            chunkSize: 50,
-            delay: 50,
-            destination: updateServiceConfigProperties,
-            source: serviceConfigProperties.filterProperty('serviceName',_content.get('serviceName')),
-            context: this
-          });
+          updateServiceConfigProperties = updateServiceConfigProperties.concat(serviceConfigProperties.filterProperty('serviceName',_content.get('serviceName')));
         // watch for properties that are not modified but have to be updated
         if (_content.get('configs').someProperty('forceUpdate')) {
           // check for already added modified properties
           if (!updateServiceConfigProperties.findProperty('serviceName', _content.get('serviceName'))) {
-            lazyLoading.run({
-              initSize: 20,
-              chunkSize: 50,
-              delay: 50,
-              destination: updateServiceConfigProperties,
-              source: serviceConfigProperties.filterProperty('serviceName',_content.get('serviceName')),
-              context: this
-            });
+            updateServiceConfigProperties = updateServiceConfigProperties.concat(serviceConfigProperties.filterProperty('serviceName',_content.get('serviceName')));
           }
         }
       }
     }, this);
     this.setDBProperty('serviceConfigProperties', serviceConfigProperties);
-    this.set('content.serviceConfigProperties', []);
-    lazyLoading.run({
-      initSize: 20,
-      chunkSize: 50,
-      delay: 50,
-      destination: this.get('content.serviceConfigProperties'),
-      source: serviceConfigProperties,
-      context: this
-    });
+    this.set('content.serviceConfigProperties', serviceConfigProperties);
     this.setDBProperty('configsToUpdate', updateServiceConfigProperties);
   },
   /**
@@ -873,8 +875,9 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
    * return slaveComponents bound to hosts
    * @return {Array}
    */
-  getSlaveComponentHosts: function (context, property, message, filterFunction) {
+  getSlaveComponentHosts: function () {
     var components = this.get('slaveComponents');
+    var result = [];
     var installedServices = App.Service.find().mapProperty('serviceName');
     var selectedServices = this.get('content.services').filterProperty('isSelected', true).mapProperty('serviceName');
     var installedComponentsMap = {};
@@ -889,33 +892,13 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
     }, this);
     installedComponentsMap['HDFS_CLIENT'] = [];
 
-    App.ajax.send({
-      name: 'host_components.all',
-      sender: this,
-      data: {
-        clusterName: App.get('clusterName'),
-        installedComponentsMap: installedComponentsMap,
-        uninstalledComponents: uninstalledComponents,
-        context: context,
-        property: property,
-        message: message,
-        filterFunction: filterFunction
-      },
-      success: 'getSlaveComponentHostsSuccessCallback'
-    });
-
-  },
-
-  getSlaveComponentHostsSuccessCallback: function (response, request, data) {
-    var result = [];
-
-    response.items.mapProperty('HostRoles').forEach(function (hostComponent) {
-      if (data.installedComponentsMap[hostComponent.component_name]) {
-        data.installedComponentsMap[hostComponent.component_name].push(hostComponent.host_name);
+    App.HostComponent.find().forEach(function (hostComponent) {
+      if (installedComponentsMap[hostComponent.get('componentName')]) {
+        installedComponentsMap[hostComponent.get('componentName')].push(hostComponent.get('host.id'));
       }
     }, this);
 
-    for (var componentName in data.installedComponentsMap) {
+    for (var componentName in installedComponentsMap) {
       var name = (componentName === 'HDFS_CLIENT') ? 'CLIENT' : componentName;
       var component = {
         componentName: name,
@@ -923,7 +906,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
         hosts: [],
         isInstalled: true
       };
-      data.installedComponentsMap[componentName].forEach(function (hostName) {
+      installedComponentsMap[componentName].forEach(function (hostName) {
         component.hosts.push({
           group: "Default",
           hostName: hostName,
@@ -933,7 +916,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
       result.push(component);
     }
 
-    data.uninstalledComponents.forEach(function (component) {
+    uninstalledComponents.forEach(function (component) {
       var hosts = jQuery.extend(true, [], result.findProperty('componentName', 'DATANODE').hosts);
       hosts.setEach('isInstalled', false);
       result.push({
@@ -944,20 +927,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
       })
     });
 
-    if (data.filterFunction) {
-      result = result.filter(data.filterFunction);
-    }
-
-    data.context.set(data.property, []);
-    lazyLoading.run({
-      initSize: 20,
-      chunkSize: 50,
-      delay: 50,
-      destination: data.context.get(data.property),
-      source: result,
-      context: this
-    });
-    console.log(data.message, result);
+    return result;
   },
   /**
    * Load master component hosts data for using in required step controllers
@@ -984,15 +954,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
    */
   loadClients: function () {
     var clients = this.getDBProperty('clientInfo');
-    this.set('content.clients', []);
-    lazyLoading.run({
-      initSize: 20,
-      chunkSize: 50,
-      delay: 50,
-      destination: this.get('content.clients'),
-      source: clients,
-      context: this
-    });
+    this.set('content.clients', clients);
     console.log(this.get('content.controllerName') + ".loadClients: loaded list ", clients);
   }
 });

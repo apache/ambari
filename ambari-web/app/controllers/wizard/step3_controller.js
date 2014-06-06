@@ -95,7 +95,9 @@ App.WizardStep3Controller = Em.Controller.extend({
    * List of installed hostnames
    * @type {string[]}
    */
-  hostsInCluster: [],
+  hostsInCluster: function () {
+    return this.get('content.installedHosts').getEach('hostName');
+  }.property('content.installedHosts'),
 
   /**
    * All hosts warnings
@@ -152,14 +154,6 @@ App.WizardStep3Controller = Em.Controller.extend({
   checksUpdateStatus: null,
 
   /**
-   * Message about other registered hosts (not included in current registration)
-   * @type {string}
-   */
-  registeredHostsMessage: '',
-
-  /**
-
-  /**
    *
    * @method navigateStep
    */
@@ -170,15 +164,7 @@ App.WizardStep3Controller = Em.Controller.extend({
           this.startBootstrap();
         }
       } else {
-        this.set('bootHosts', []);
-        lazyloading.run({
-          initSize: 20,
-          chunkSize: 50,
-          delay: 200,
-          destination: this.get('bootHosts'),
-          source: this.get('hosts'),
-          context: Em.Object.create()
-        });
+        this.set('bootHosts', this.get('hosts'));
         if (App.get('testMode')) {
           this.startHostcheck();
           this.get('bootHosts').setEach('cpu', '2');
@@ -240,15 +226,8 @@ App.WizardStep3Controller = Em.Controller.extend({
         }));
       }
     }
-    this.set('hosts', []);
-    lazyloading.run({
-      initSize: 20,
-      chunkSize: 50,
-      delay: 50,
-      destination: this.get('hosts'),
-      source: hosts,
-      context: this
-    });
+    this.set('hosts', hosts);
+    this.set('isLoaded', true);
   },
 
   /**
@@ -662,59 +641,20 @@ App.WizardStep3Controller = Em.Controller.extend({
    * @method getAllRegisteredHostsCallback
    */
   getAllRegisteredHostsCallback: function (hosts) {
-    App.ajax.send({
-      name: 'hosts.all.install',
-      sender: this,
-      data: {
-        hosts: hosts
-      },
-      success: 'hostsInClusterSuccessCallback',
-      error: ''
-    });
-  },
-
-  hostsInClusterSuccessCallback: function (response, request, data) {
-    this.set('hostsInCluster', []);
-    lazyloading.run({
-      initSize: 20,
-      chunkSize: 50,
-      delay: 50,
-      destination: this.get('hostsInCluster'),
-      source: response.items.getEach('Hosts.host_name'),
-      context: Em.Object.create()
-    });
-    var registeredHosts = [],
-      hostsInCluster = [],
-      addedHosts = [];
-    lazyloading.run({
-      initSize: 20,
-      chunkSize: 50,
-      delay: 50,
-      destination: addedHosts,
-      source: this.get('bootHosts').getEach('name'),
-      context: Em.Object.create()
-    });
-    data.hosts.items.forEach(function (host) {
+    var registeredHosts = [];
+    var hostsInCluster = this.get('hostsInCluster');
+    var addedHosts = this.get('bootHosts').getEach('name');
+    hosts.items.forEach(function (host) {
       if (!hostsInCluster.contains(host.Hosts.host_name) && !addedHosts.contains(host.Hosts.host_name)) {
         registeredHosts.push(host.Hosts.host_name);
       }
     });
     if (registeredHosts.length) {
       this.set('hasMoreRegisteredHosts', true);
-      this.set('registeredHosts', []);
-      lazyloading.run({
-        initSize: 20,
-        chunkSize: 50,
-        delay: 50,
-        destination: this.get('registeredHosts'),
-        source: registeredHosts,
-        context: this
-      });
-      this.set('registeredHostsMessage', Em.I18n.t('installer.step3.warning.registeredHosts').format(this.get('registeredHosts').length))
+      this.set('registeredHosts', registeredHosts);
     } else {
       this.set('hasMoreRegisteredHosts', false);
       this.set('registeredHosts', '');
-      this.set('isLoaded', true);
     }
   },
 
@@ -1212,29 +1152,13 @@ App.WizardStep3Controller = Em.Controller.extend({
       var self = this;
       return App.showConfirmationPopup(
         function () {
-          self.set('content.hosts', []);
-          lazyloading.run({
-            initSize: 20,
-            chunkSize: 50,
-            delay: 50,
-            destination: self.get('content.hosts'),
-            source: self.get('bootHosts'),
-            context: Em.Object.create()
-          });
+          self.set('content.hosts', self.get('bootHosts'));
           App.router.send('next');
         },
         Em.I18n.t('installer.step3.hostWarningsPopup.hostHasWarnings'));
     }
     else {
-      this.set('content.hosts', []);
-      lazyloading.run({
-        initSize: 20,
-        chunkSize: 50,
-        delay: 50,
-        destination: this.get('content.hosts'),
-        source: this.get('bootHosts'),
-        context: Em.Object.create()
-      });
+      this.set('content.hosts', this.get('bootHosts'));
       App.router.send('next');
     }
     return null;

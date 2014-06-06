@@ -18,7 +18,6 @@
 
 var App = require('app');
 var date = require('utils/date');
-var lazyLoading = require('utils/lazy_loading');
 
 App.WizardStep9View = App.TableView.extend({
 
@@ -56,25 +55,13 @@ App.WizardStep9View = App.TableView.extend({
    */
   displayLength: "25",
 
-  isLoaded: false,
-
   /**
    * Same to <code>controller.hosts</code>
    * @type {object[]}
    */
-  content: [],
-
-  contentObserver: function() {
-    this.set('content', []);
-    lazyLoading.run({
-      initSize: 20,
-      chunkSize: 50,
-      delay: 50,
-      destination: this.get('content'),
-      source: this.get('controller.hosts'),
-      context: this
-    });
-  }.observes('controller.hosts.length'),
+  content: function () {
+    return this.get('controller.hosts');
+  }.property('controller.hosts'),
 
   /**
    * Active category

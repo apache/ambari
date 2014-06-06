@@ -18,8 +18,6 @@
 
 var App = require('app');
 var numberUtils = require('utils/number_utils');
-var lazyLoading = require('utils/lazy_loading');
-
 /**
  * By Step 7, we have the following information stored in App.db and set on this
  * controller by the router.
@@ -205,8 +203,7 @@ App.WizardStep7Controller = Em.Controller.extend({
         sender: this,
         data: {
           serviceName: serviceName,
-          serviceConfigsDef: App.config.get('preDefinedServiceConfigs').findProperty('serviceName', serviceName),
-          urlParams: ',hosts'
+          serviceConfigsDef: App.config.get('preDefinedServiceConfigs').findProperty('serviceName', serviceName)
         },
         success: 'loadServiceTagsSuccess'
       });
@@ -293,7 +290,7 @@ App.WizardStep7Controller = Em.Controller.extend({
       name: App.Service.DisplayNames[serviceName] + " Default",
       description: "Default cluster level " + serviceName + " configuration",
       isDefault: true,
-      hosts: [],
+      hosts: defaultConfigGroupHosts,
       parentConfigGroup: null,
       service: Em.Object.create({
         id: serviceName
@@ -303,25 +300,9 @@ App.WizardStep7Controller = Em.Controller.extend({
     });
     if (!selectedConfigGroup) {
       selectedConfigGroup = defaultConfigGroup;
-      lazyLoading.run({
-        initSize: 20,
-        chunkSize: 50,
-        delay: 200,
-        destination: selectedConfigGroup.get('hosts'),
-        source: defaultConfigGroupHosts,
-        context: Em.Object.create()
-      });
     }
     configGroups = configGroups.sortProperty('name');
     configGroups.unshift(defaultConfigGroup);
-    lazyLoading.run({
-      initSize: 20,
-      chunkSize: 50,
-      delay: 200,
-      destination: configGroups.objectAt(0).get('hosts'),
-      source: defaultConfigGroupHosts,
-      context: Em.Object.create()
-    });
     if (App.get('supports.hostOverrides')) {
       service.set('configGroups', configGroups);
       var loadedGroupToOverrideSiteToTagMap = {};
@@ -715,14 +696,7 @@ App.WizardStep7Controller = Em.Controller.extend({
     var installedServiceSites = [];
     this.get('serviceConfigsData').filter(function (service) {
       if (this.get('installedServiceNames').contains(service.serviceName)) {
-        lazyLoading.run({
-          initSize: 20,
-          chunkSize: 50,
-          delay: 50,
-          destination: installedServiceSites,
-          source: service.sites,
-          context: Em.Object.create()
-        });
+        installedServiceSites = installedServiceSites.concat(service.sites);
       }
     }, this);
     installedServiceSites = installedServiceSites.uniq();
@@ -807,7 +781,7 @@ App.WizardStep7Controller = Em.Controller.extend({
    */
   loadConfigGroups: function (serviceConfigGroups) {
     var services = this.get('stepConfigs');
-    var hosts = Em.keys(this.get('wizardController').getDBProperty('hosts'));
+    var hosts = this.get('wizardController.allHosts').mapProperty('hostName');
     services.forEach(function (service) {
       if (service.get('serviceName') === 'MISC') return;
       var serviceRawGroups = serviceConfigGroups.filterProperty('service.id', service.serviceName);
@@ -817,21 +791,13 @@ App.WizardStep7Controller = Em.Controller.extend({
             name: App.Service.DisplayNames[service.serviceName] + " Default",
             description: "Default cluster level " + service.serviceName + " configuration",
             isDefault: true,
-            hosts: [],
+            hosts: Em.copy(hosts),
             service: Em.Object.create({
               id: service.serviceName
             }),
             serviceName: service.serviceName
           })
         ]);
-        lazyLoading.run({
-          initSize: 20,
-          chunkSize: 50,
-          delay: 50,
-          destination: service.get('configGroups').objectAt(0).get('hosts'),
-          source: hosts,
-          context: Em.Object.create()
-        });
       }
       else {
         var defaultGroup = App.ConfigGroup.create(serviceRawGroups.findProperty('isDefault'));

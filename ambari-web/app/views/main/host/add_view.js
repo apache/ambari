@@ -23,6 +23,8 @@ App.AddHostView = Em.View.extend({
 
   templateName: require('templates/main/host/add'),
 
+  isLoaded: false,
+
   isStep1Disabled: function () {
     return this.isStepDisabled(1);
   }.property('controller.isStepDisabled.@each.value').cacheable(),
@@ -51,34 +53,41 @@ App.AddHostView = Em.View.extend({
     return this.isStepDisabled(7);
   }.property('controller.isStepDisabled.@each.value').cacheable(),
 
- isStepDisabled: function (index) {
+  isStepDisabled: function (index) {
     return this.get('controller.isStepDisabled').findProperty('step', index).get('value');
   },
 
-  didInsertElement: function () {
+  willInsertElement: function () {
+    this.loadHosts();
+  },
+
+  loadHosts: function () {
     App.ajax.send({
-      name: 'hosts.confirmed',
+      name: 'hosts.all',
       sender: this,
-      data: {
-        clusterName: App.get('clusterName')
-      },
-      success: 'loadConfirmedHostsSuccessCallback'
+      data: {},
+      success: 'loadHostsSuccessCallback',
+      error: 'loadHostsErrorCallback'
     });
   },
 
-  loadConfirmedHostsSuccessCallback: function (response) {
-    var hosts = {};
-    response.items.mapProperty('Hosts').forEach(function(item){
-      hosts[item.host_name] = {
-        name: item.host_name,
-        cpu: item.cpu_count,
-        memory: item.total_mem,
-        disk_info: item.disk_info,
+  loadHostsSuccessCallback: function (response) {
+    var hosts = [];
+
+    response.items.forEach(function (item) {
+      hosts.push({
+        hostName: item.Hosts.host_name,
         bootStatus: "REGISTERED",
         isInstalled: true
-      };
+      });
     });
-    this.get('controller').setDBProperty('hosts', hosts);
+    this.get('controller').setDBProperty('installedHosts', hosts);
+    this.set('controller.content.installedHosts', hosts);
+    this.set('isLoaded', true);
+  },
+
+  loadHostsErrorCallback: function(){
+    this.set('isLoaded', true);
   }
 
 });

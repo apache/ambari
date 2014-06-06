@@ -55,30 +55,41 @@ App.AddServiceView = Em.View.extend({
     return this.get('controller.isStepDisabled').findProperty('step', index).get('value');
   },
 
-  didInsertElement: function () {
+
+  willInsertElement: function () {
+    this.loadHosts();
+  },
+
+  loadHosts: function () {
     App.ajax.send({
       name: 'hosts.confirmed',
       sender: this,
-      data: {
-        clusterName: App.get('clusterName')
-      },
-      success: 'loadConfirmedHostsSuccessCallback'
+      data: {},
+      success: 'loadHostsSuccessCallback',
+      error: 'loadHostsErrorCallback'
     });
   },
 
-  loadConfirmedHostsSuccessCallback: function (response) {
+  loadHostsSuccessCallback: function (response) {
     var hosts = {};
-    response.items.mapProperty('Hosts').forEach(function(item){
-      hosts[item.host_name] = {
-        name: item.host_name,
-        cpu: item.cpu_count,
-        memory: item.total_mem,
-        disk_info: item.disk_info,
+
+    response.items.forEach(function (item) {
+      hosts[item.Hosts.host_name] = {
+        name: item.Hosts.host_name,
+        cpu: item.Hosts.cpu_count,
+        memory: item.Hosts.total_mem,
+        disk_info: item.Hosts.disk_info,
         bootStatus: "REGISTERED",
-        isInstalled: true
+        isInstalled: true,
+        hostComponents: item.host_components.mapProperty('HostRoles.component_name')
       };
     });
     this.get('controller').setDBProperty('hosts', hosts);
-  }
+    this.set('controller.content.hosts', hosts);
+    this.set('isLoaded', true);
+  },
 
+  loadHostsErrorCallback: function(){
+    this.set('isLoaded', true);
+  }
 });

@@ -143,53 +143,33 @@ App.WizardStep2Controller = Em.Controller.extend({
     return (this.get('hostsError') || this.get('sshKeyError') || this.get('sshUserError'));
   }.property('hostsError', 'sshKeyError', 'sshUserError'),
 
+  installedHostNames: function () {
+    if (this.get('content.controllerName') === 'addHostController') {
+      return this.get('content.installedHosts').mapProperty('hostName');
+    } else {
+      return [];
+    }
+  }.property('content.controllerName'),
+
   /**
    * Set not installed hosts to the hostNameArr
    * @method updateHostNameArr
    */
   updateHostNameArr: function () {
-    this.set('hostNameArr', []);
-    lazyloading.run({
-      initSize: 20,
-      chunkSize: 50,
-      delay: 50,
-      destination: this.get('hostNameArr'),
-      source: this.get('hostNames').trim().split(new RegExp("\\s+", "g")),
-      context: this
-    });
+    this.set('hostNameArr', this.get('hostNames').trim().split(new RegExp("\\s+", "g")));
     this.parseHostNamesAsPatternExpression();
     this.get('inputtedAgainHostNames').clear();
-    var requestName = (this.get('content.controllerName') == 'installerController') ? 'hosts.all.install' : 'hosts.all';
-    App.ajax.send({
-      name: requestName,
-      sender: this,
-      data: {
-        clusterName: App.get('clusterName')
-      },
-      success: 'updateHostNameArrSuccessCallback'
-    });
-  },
-
-  updateHostNameArrSuccessCallback: function (response) {
-    var installedHostNames = response.items.mapProperty('Hosts.host_name'),
-      tempArr = [],
-      hostNameArr = this.get('hostNameArr');
+    var tempArr = [],
+        hostNameArr = this.get('hostNameArr');
     for (var i = 0; i < hostNameArr.length; i++) {
-      if (!installedHostNames.contains(hostNameArr[i])) {
+      if (!this.get('installedHostNames').contains(hostNameArr[i])) {
         tempArr.push(hostNameArr[i]);
       }
       else {
         this.get('inputtedAgainHostNames').push(hostNameArr[i]);
       }
     }
-    lazyloading.run({
-      initSize: 20,
-      chunkSize: 50,
-      delay: 50,
-      destination: this.get('hostNameArr'),
-      source: tempArr,
-      context: this
-    });
+    this.set('hostNameArr', tempArr);
   },
 
   /**
@@ -338,15 +318,7 @@ App.WizardStep2Controller = Em.Controller.extend({
         hostNames.push(a);
       }
     });
-    this.set('hostNameArr', []);
-    lazyloading.run({
-      initSize: 20,
-      chunkSize: 50,
-      delay: 50,
-      destination: this.get('hostNameArr'),
-      source: hostNames,
-      context: this
-    });
+    this.set('hostNameArr', hostNames);
   },
 
   /**

@@ -25,33 +25,29 @@
 <div class="alert alert-info">
   {{t installer.step10.body}}
 </div>
-{{#if controller.isLoaded}}
-  <div id="step10-content" class="well pre-scrollable">
-    <ul>
-      {{#each item in clusterInfo}}
-        <li>
-          <span {{bindAttr class="item.color"}}>{{item.displayStatement}}</span>
-          <ul>
-            {{#each status in item.status}}
-              <li>
-                <span {{bindAttr class="status.color"}}>{{status.displayStatement}}</span>
-                <ul>
-                  {{#each statement in status.statements}}
-                    <li>
-                      <span {{bindAttr class="status.color"}}>{{statement.displayStatement}}</span>
-                    </li>
-                  {{/each}}
-                </ul>
-              </li>
-            {{/each}}
-          </ul>
-        </li>
-      {{/each}}
-    </ul>
-  </div>
-{{else}}
-  <div class="spinner"></div>
-{{/if}}
+<div id="step10-content" class="well pre-scrollable">
+  <ul>
+    {{#each item in clusterInfo}}
+      <li>
+        <span {{bindAttr class="item.color"}}>{{item.displayStatement}}</span>
+        <ul>
+          {{#each status in item.status}}
+            <li>
+              <span {{bindAttr class="status.color"}}>{{status.displayStatement}}</span>
+              <ul>
+                {{#each statement in status.statements}}
+                  <li>
+                    <span {{bindAttr class="status.color"}}>{{statement.displayStatement}}</span>
+                  </li>
+                {{/each}}
+              </ul>
+            </li>
+          {{/each}}
+        </ul>
+      </li>
+    {{/each}}
+  </ul>
+</div>
 <div class="btn-area">
   <a class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}} {{action complete}}>{{t common.complete}} &rarr;</a>
 </div>

@@ -18,7 +18,6 @@
 
 
 var App = require('app');
-var lazyLoading = require('utils/lazy_loading');
 
 App.WizardStep6View = App.TableView.extend({
 
@@ -36,19 +35,9 @@ App.WizardStep6View = App.TableView.extend({
    * List of hosts
    * @type {object[]}
    */
-  content: [],
-
-  contentObserver: function() {
-    this.set('content', []);
-    lazyLoading.run({
-      initSize: 20,
-      chunkSize: 50,
-      delay: 50,
-      destination: this.get('content'),
-      source: this.get('controller.hosts'),
-      context: this
-    });
-  }.observes('controller.hosts.length'),
+  content: function () {
+    return this.get('controller.hosts');
+  }.property('controller.hosts'),
 
   /**
    * Synonym to <code>content</code> in this <code>App.TableView</code>

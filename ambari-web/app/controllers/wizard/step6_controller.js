@@ -342,13 +342,17 @@ App.WizardStep6Controller = Em.Controller.extend({
     return hostNames;
   },
 
-  renderHostNames: function (array) {
+  /**
+   * Load all data needed for this module. Then it automatically renders in template
+   * @method render
+   */
+  render: function () {
     var hostsObj = [],
       masterHosts = [],
       headers = this.get('headers'),
       masterHostNames = this.get('content.masterComponentHosts').mapProperty('hostName').uniq();
 
-    array.forEach(function (_hostName) {
+    this.getHostNames().forEach(function (_hostName) {
       var hasMaster = masterHostNames.contains(_hostName);
 
       var obj = Em.Object.create({
@@ -386,29 +390,6 @@ App.WizardStep6Controller = Em.Controller.extend({
       this.checkCallback(header.get('name'));
     }, this);
     this.set('isLoaded', true);
-  },
-
-  /**
-   * Load all data needed for this module. Then it automatically renders in template
-   * @method render
-   */
-  render: function () {
-    if (this.get('isInstallerWizard') || this.get('isAddHostWizard')) {
-      this.renderHostNames(this.getHostNames());
-    } else {
-      App.ajax.send({
-        name: 'hosts.all',
-        sender: this,
-        data: {
-          clusterName: App.get('clusterName')
-        },
-        success: 'getHostNamesSuccessCallback'
-      });
-    }
-  },
-
-  getHostNamesSuccessCallback: function (response) {
-    this.renderHostNames(response.items.mapProperty('Hosts.host_name'));
   },
 
   /**

@@ -36,6 +36,7 @@ App.InstallerController = App.WizardController.extend({
     advancedServiceConfig: null,
     configGroups: [],
     slaveGroupProperties: null,
+    installedHosts: [],
     stacks: null,
     controllerName: 'installerController'
   }),
