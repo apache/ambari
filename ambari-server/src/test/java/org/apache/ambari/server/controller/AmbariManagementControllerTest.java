@@ -83,7 +83,6 @@ import org.apache.ambari.server.orm.dao.ExecutionCommandDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.RoleDAO;
 import org.apache.ambari.server.orm.entities.ExecutionCommandEntity;
-import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.RoleEntity;
 import org.apache.ambari.server.security.authorization.Users;
 import org.apache.ambari.server.serveraction.ServerAction;
@@ -3832,15 +3831,19 @@ public class AmbariManagementControllerTest {
     List<HostRoleCommand> storedTasks = actionDB.getRequestTasks(response.getRequestId());
     Stage stage = actionDB.getAllStages(response.getRequestId()).get(0);
     Assert.assertNotNull(stage);
+
     Assert.assertEquals(1, storedTasks.size());
     HostRoleCommand task = storedTasks.get(0);
     Assert.assertEquals(RoleCommand.ACTIONEXECUTE, task.getRoleCommand());
     Assert.assertEquals("a1", task.getRole().name());
     Assert.assertEquals("h1", task.getHostName());
     ExecutionCommand cmd = task.getExecutionCommandWrapper().getExecutionCommand();
-    Assert.assertTrue(cmd.getCommandParams().containsKey("test"));
+    Map<String, String> commandParameters = cmd.getCommandParams();
+
+    Assert.assertTrue(commandParameters.containsKey("test"));
     Assert.assertEquals("HDFS", cmd.getServiceName());
     Assert.assertEquals("DATANODE", cmd.getComponentName());
+    Assert.assertNotNull(commandParameters.get("jdk_location"));
 
     resourceFilters.clear();
     resourceFilter = new RequestResourceFilter("", "", null);
@@ -3864,7 +3867,9 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals(expectedHosts, actualHosts);
 
     cmd = task.getExecutionCommandWrapper().getExecutionCommand();
-    Assert.assertTrue(cmd.getCommandParams().containsKey("test"));
+    commandParameters = cmd.getCommandParams();
+
+    Assert.assertTrue(commandParameters.containsKey("test"));
     Assert.assertEquals("HDFS", cmd.getServiceName());
     Assert.assertEquals("DATANODE", cmd.getComponentName());
 
@@ -3880,7 +3885,6 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals("h3", taskStatus.getHostName());
     
     Assert.assertTrue(null != cmd.getPassiveInfo());
-    
   }
 
   @Test
@@ -6296,6 +6300,9 @@ public class AmbariManagementControllerTest {
     int expectedRestartCount = 0;
     for (HostRoleCommand hrc : storedTasks) {
       Assert.assertEquals("RESTART", hrc.getCustomCommandName());
+      Assert.assertNotNull(hrc.getExecutionCommandWrapper()
+          .getExecutionCommand().getCommandParams().get("jdk_location"));
+
       if (hrc.getHostName().equals("h1") && hrc.getRole().equals(Role.DATANODE)) {
         expectedRestartCount++;
       } else if(hrc.getHostName().equals("h2")) {
@@ -6307,7 +6314,8 @@ public class AmbariManagementControllerTest {
       }
     }
 
-    Assert.assertEquals("Restart 2 datanodes and 1 Resourcemanager.", 3, expectedRestartCount);
+    Assert.assertEquals("Restart 2 datanodes and 1 Resourcemanager.", 3,
+        expectedRestartCount);
 
     // Test service checks - specific host
     resourceFilters.clear();

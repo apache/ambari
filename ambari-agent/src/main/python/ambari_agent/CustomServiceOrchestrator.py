@@ -20,7 +20,7 @@ limitations under the License.
 
 import logging
 import os
-import json, pprint
+import json
 import sys
 
 from FileCache import FileCache
@@ -267,14 +267,14 @@ class CustomServiceOrchestrator():
         if len(rangeBounds) == 2:
 
           if not rangeBounds[0] or not rangeBounds[1]:
-            raise AgentException.AgentException("Broken data in given range, expected - ""m-n"" or ""m"", got : " + str(r))
+            raise AgentException("Broken data in given range, expected - ""m-n"" or ""m"", got : " + str(r))
 
 
           resultList.extend(range(int(rangeBounds[0]), int(rangeBounds[1]) + 1))
         elif len(rangeBounds) == 1:
           resultList.append((int(rangeBounds[0])))
         else:
-          raise AgentException.AgentException("Broken data in given range, expected - ""m-n"" or ""m"", got : " + str(r))
+          raise AgentException("Broken data in given range, expected - ""m-n"" or ""m"", got : " + str(r))
 
     return resultList
 
@@ -286,7 +286,7 @@ class CustomServiceOrchestrator():
     for i in list:
       valueToRanges = i.split(":")
       if len(valueToRanges) <> 2:
-        raise AgentException.AgentException("Broken data in given value to range, expected format - ""value:m-n"", got - " + str(i))
+        raise AgentException("Broken data in given value to range, expected format - ""value:m-n"", got - " + str(i))
       value = valueToRanges[0]
       rangesToken = valueToRanges[1]
 
@@ -297,7 +297,7 @@ class CustomServiceOrchestrator():
         if len(rangeIndexes) == 2:
 
           if not rangeIndexes[0] or not rangeIndexes[1]:
-            raise AgentException.AgentException("Broken data in given value to range, expected format - ""value:m-n"", got - " + str(r))
+            raise AgentException("Broken data in given value to range, expected format - ""value:m-n"", got - " + str(r))
 
           start = int(rangeIndexes[0])
           end = int(rangeIndexes[1])

@@ -133,7 +133,7 @@ class TestPythonExecutor(TestCase):
     executor = PythonExecutor("/tmp", AmbariConfig().getConfig())
     command = executor.python_command("script", ["script_param1"])
     self.assertEqual(3, len(command))
-    self.assertTrue("python" in command[0])
+    self.assertTrue("python" in command[0].lower())
     self.assertEquals("script", command[1])
     self.assertEquals("script_param1", command[2])
 

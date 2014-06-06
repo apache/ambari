@@ -18,9 +18,24 @@
 
 package org.apache.ambari.server.controller;
 
-import com.google.gson.Gson;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMMAND_TIMEOUT;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMPONENT_CATEGORY;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.CUSTOM_COMMAND;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOOKS_FOLDER;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JDK_LOCATION;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.REPO_INFO;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT_TYPE;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_PACKAGE_FOLDER;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
@@ -56,23 +71,9 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMMAND_TIMEOUT;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMPONENT_CATEGORY;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.CUSTOM_COMMAND;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOOKS_FOLDER;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.REPO_INFO;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT_TYPE;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_PACKAGE_FOLDER;
+import com.google.gson.Gson;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
 /**
  * Helper class containing logic to process custom command execution requests .
@@ -297,10 +298,13 @@ public class AmbariCustomCommandExecutionHelper {
         }
         // We don't need package/repo information to perform service check
       }
+
       commandParams.put(COMMAND_TIMEOUT, commandTimeout);
+      commandParams.put(JDK_LOCATION, managementController.getJdkResourceUrl());
 
       commandParams.put(SERVICE_PACKAGE_FOLDER,
           serviceInfo.getServicePackageFolder());
+
       commandParams.put(HOOKS_FOLDER, stackInfo.getStackHooksFolder());
 
       execCmd.setCommandParams(commandParams);
@@ -462,7 +466,9 @@ public class AmbariCustomCommandExecutionHelper {
       }
       // We don't need package/repo information to perform service check
     }
+
     commandParams.put(COMMAND_TIMEOUT, commandTimeout);
+    commandParams.put(JDK_LOCATION, managementController.getJdkResourceUrl());
 
     commandParams.put(SERVICE_PACKAGE_FOLDER,
         serviceInfo.getServicePackageFolder());

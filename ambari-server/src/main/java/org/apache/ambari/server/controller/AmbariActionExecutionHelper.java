@@ -20,6 +20,7 @@ package org.apache.ambari.server.controller;
 
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMMAND_TIMEOUT;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMPONENT_CATEGORY;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JDK_LOCATION;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT_TYPE;
 
@@ -33,14 +34,12 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.StackAccessException;
-import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.actionmanager.TargetHostType;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.internal.RequestResourceFilter;
 import org.apache.ambari.server.customactions.ActionDefinition;
-import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
@@ -324,6 +323,7 @@ public class AmbariActionExecutionHelper {
 
       Map<String, String> commandParams = actionContext.getParameters();
       commandParams.put(COMMAND_TIMEOUT, actionContext.getTimeout().toString());
+      commandParams.put(JDK_LOCATION, managementController.getJdkResourceUrl());
       commandParams.put(SCRIPT, actionName + ".py");
       commandParams.put(SCRIPT_TYPE, TYPE_PYTHON);
 
