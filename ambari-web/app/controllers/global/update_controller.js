@@ -156,7 +156,7 @@ App.UpdateController = Em.Controller.extend({
     var testUrl = App.get('isHadoop2Stack') ? '/data/hosts/HDP2/hosts.json' : '/data/hosts/hosts.json';
     var realUrl = '/hosts?<parameters>fields=Hosts/host_name,Hosts/maintenance_state,Hosts/public_host_name,Hosts/cpu_count,Hosts/ph_cpu_count,Hosts/total_mem,' +
         'Hosts/host_status,Hosts/last_heartbeat_time,Hosts/os_arch,Hosts/os_type,Hosts/ip,host_components/HostRoles/state,host_components/HostRoles/maintenance_state,' +
-        'metrics/disk,metrics/load/load_one,metrics/cpu/cpu_system,metrics/cpu/cpu_user,' +
+        'host_components/HostRoles/stale_configs,host_components/HostRoles/service_name,metrics/disk,metrics/load/load_one,metrics/cpu/cpu_system,metrics/cpu/cpu_user,' +
         'metrics/memory/mem_total,metrics/memory/mem_free,alerts/summary&minimal_response=true';
 
     this.get('queryParams').set('Hosts', App.router.get('mainHostController').getQueryParameters());

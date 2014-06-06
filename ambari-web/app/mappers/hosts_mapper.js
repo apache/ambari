@@ -54,16 +54,28 @@ App.hostsMapper = App.QuickDataMapper.create({
     ip: 'Hosts.ip',
     passive_state: 'Hosts.maintenance_state'
   },
+  hostComponentConfig: {
+    component_name: 'HostRoles.component_name',
+    service_id: 'HostRoles.service_name',
+    passive_state: 'HostRoles.maintenance_state',
+    work_status: 'HostRoles.state',
+    stale_configs: 'HostRoles.stale_configs'
+  },
   map: function (json, isAll) {
     console.time('App.hostsMapper execution time');
     if (json.items) {
       var hostsWithFullInfo = [];
       var hostIds = {};
+      var components = [];
 
       json.items.forEach(function (item) {
         item.host_components = item.host_components || [];
         item.host_components.forEach(function (host_component) {
           host_component.id = host_component.HostRoles.component_name + "_" + item.Hosts.host_name;
+          var component = this.parseIt(host_component, this.hostComponentConfig);
+          component.id = host_component.HostRoles.component_name + "_" + item.Hosts.host_name;
+          component.host_id = item.Hosts.host_name;
+          components.push(component);
         }, this);
         item.critical_alerts_count = (item.alerts) ? item.alerts.summary.CRITICAL + item.alerts.summary.WARNING : 0;
         item.cluster_id = App.get('clusterName');
@@ -87,6 +99,7 @@ App.hostsMapper = App.QuickDataMapper.create({
           host.set('isRequested', false);
         }
       });
+      App.store.loadMany(App.HostComponent, components);
       App.store.loadMany(App.Host, hostsWithFullInfo);
       App.router.set('mainHostController.filteredCount', json.itemTotal);
     }
