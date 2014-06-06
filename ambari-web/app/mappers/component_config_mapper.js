@@ -17,44 +17,40 @@
 
 var App = require('app');
 
-/**
- * The usage of previousResponse is due to detect
- * which exactly components has stale_configs changed in comparison to previous response
- */
-var previousResponse = {};
-
 App.componentConfigMapper = App.QuickDataMapper.create({
+  model: App.HostComponent,
+  config: {
+    id: 'id',
+    work_status: 'state',
+    passive_state: 'maintenance_state',
+    component_name: 'component_name',
+    $ha_status: 'none',
+    $display_name_advanced: 'none',
+    stale_configs: 'stale_configs',
+    host_id: 'host_name',
+    service_id: 'service_name'
+  },
   map: function (json) {
     console.time('App.componentConfigMapper execution time');
-    if (json.items) {
-      var hostComponentRecordsMap = App.cache['hostComponentRecordsMap'];
-      var staleConfigsTrue = [];
-      var currentResponse = {};
-      json.items.forEach(function (component) {
-        var id = component.HostRoles.component_name + "_" + component.HostRoles.host_name;
-        if (previousResponse[id]) {
-          delete previousResponse[id];
-        } else {
-          staleConfigsTrue.push(id);
+    var hostComponents = [];
+    var serviceToHostComponentIdMap = {};
+    json.items.forEach(function (item) {
+      item.host_components.forEach(function (host_component) {
+        host_component = host_component.HostRoles;
+        host_component.id = host_component.component_name + '_' + host_component.host_name;
+        hostComponents.push(this.parseIt(host_component, this.get('config')));
+        if (!serviceToHostComponentIdMap[host_component.service_name]) {
+          serviceToHostComponentIdMap[host_component.service_name] = [];
         }
-        currentResponse[id] = true;
-      });
-
-      /**
-       * if stale_configs of components became
-       * true:
-       *  then they will be in "staleConfigsTrue" object
-       * false:
-       *  then they will be in "previousResponse" object
-       * if stale_configs haven't changed then both objects will be empty and components stay the same
-       */
-      staleConfigsTrue.forEach(function (id) {
-        hostComponentRecordsMap[id].set('staleConfigs', true);
-      });
-      for (var id in previousResponse) {
-        hostComponentRecordsMap[id].set('staleConfigs', false)
+        serviceToHostComponentIdMap[host_component.service_name].push(host_component.id);
+      }, this);
+    }, this);
+    App.store.loadMany(this.get('model'), hostComponents);
+    for (var serviceName in serviceToHostComponentIdMap) {
+      var service = App.cache['services'].findProperty('ServiceInfo.service_name', serviceName);
+      if (service) {
+        service.host_components.pushObjects(serviceToHostComponentIdMap[serviceName]);
       }
-      previousResponse = currentResponse;
     }
     console.timeEnd('App.componentConfigMapper execution time');
   }

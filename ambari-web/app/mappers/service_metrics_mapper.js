@@ -213,7 +213,11 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
       services.forEach(function (item) {
         var finalJson = [];
 
-        item.host_components = hostComponents.filterProperty('service_id', item.ServiceInfo.service_name).mapProperty('id');
+        hostComponents.filterProperty('service_id', item.ServiceInfo.service_name).mapProperty('id').forEach(function (hostComponent) {
+          if (!item.host_components.contains(hostComponent)) {
+            item.host_components.push(hostComponent);
+          }
+        }, this);
         item.host_components.sort();
 
         if (item && item.ServiceInfo && item.ServiceInfo.service_name == "HDFS") {

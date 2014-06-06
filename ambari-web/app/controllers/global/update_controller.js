@@ -280,7 +280,7 @@ App.UpdateController = Em.Controller.extend({
   },
   updateComponentConfig: function (callback) {
     var testUrl = '/data/services/host_component_stale_configs.json';
-    var componentConfigUrl = this.getUrl(testUrl, '/host_components?fields=HostRoles/host_name&HostRoles/stale_configs=true&minimal_response=true');
+    var componentConfigUrl = this.getUrl(testUrl, '/components?ServiceComponentInfo/category.in(SLAVE,CLIENT)&host_components/HostRoles/stale_configs=true&fields=host_components/HostRoles/service_name,host_components/HostRoles/state,host_components/HostRoles/maintenance_state,host_components/HostRoles/host_name,host_components/HostRoles/stale_configs&minimal_response=true');
     App.HttpClient.get(componentConfigUrl, App.componentConfigMapper, {
       complete: callback
     });
