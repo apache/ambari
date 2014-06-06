@@ -158,7 +158,8 @@ App.ClusterController = Em.Controller.extend({
           sender: this,
           data: {
             clusterName: App.get('clusterName'),
-            masterComponents: 'GANGLIA_SERVER'
+            masterComponents: 'GANGLIA_SERVER',
+            urlParams: ''
           },
           success: 'setGangliaUrlSuccessCallback'
         });
@@ -187,7 +188,8 @@ App.ClusterController = Em.Controller.extend({
           sender: this,
           data: {
             clusterName: App.get('clusterName'),
-            masterComponents: 'NAGIOS_SERVER'
+            masterComponents: 'NAGIOS_SERVER',
+            urlParams: ''
           },
           success: 'setNagiosUrlSuccessCallback'
         });

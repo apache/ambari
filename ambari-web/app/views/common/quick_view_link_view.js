@@ -87,7 +87,8 @@ App.QuickViewLinks = Em.View.extend({
       sender: this,
       data: {
         clusterName: App.get('clusterName'),
-        masterComponents: App.StackServiceComponent.find().filterProperty('isMaster', true).mapProperty('componentName').join(',')
+        masterComponents: App.StackServiceComponent.find().filterProperty('isMaster', true).mapProperty('componentName').join(','),
+        urlParams: ',host_components/component/metrics/hbase/master/IsActiveMaster'
       },
       success: 'setQuickLinksSuccessCallback'
     });
@@ -96,7 +97,6 @@ App.QuickViewLinks = Em.View.extend({
   setQuickLinksSuccessCallback: function (response) {
     this.loadTags();
     var serviceName = this.get('content.serviceName');
-    var components = this.get('content.hostComponents');
     var hosts = [];
     var self = this;
     var version = App.get('currentStackVersionNumber');
@@ -132,15 +132,23 @@ App.QuickViewLinks = Em.View.extend({
       case "GANGLIA":
       case "NAGIOS":
       case "HUE":
-        hosts[0] = App.singleNodeInstall ? App.singleNodeAlias : components.findProperty('isMaster', true).get("host").get("publicHostName");
+        hosts[0] = App.singleNodeInstall ? App.singleNodeAlias : response.items[0].Hosts.public_host_name;
         break;
       case "HBASE":
-        var masterComponents = components.filterProperty('componentName', 'HBASE_MASTER');
+        var masterComponents = response.items.filter(function (item) {
+            return item.host_components.mapProperty('HostRoles.component_name').contains('HBASE_MASTER');
+        });
         var activeMaster, standbyMasters, otherMasters;
         if (App.supports.multipleHBaseMasters) {
-          activeMaster = masterComponents.filterProperty('haStatus', 'true');
-          standbyMasters = masterComponents.filterProperty('haStatus', 'false');
-          otherMasters = masterComponents.filterProperty('haStatus', null);
+          activeMaster = masterComponents.filter(function (item) {
+            return item.host_components.mapProperty('component')[0].mapProperty('metrics.hbase.master.IsActiveMaster').contains('true');
+          });
+          standbyMasters = masterComponents.filter(function (item) {
+            return item.host_components.mapProperty('component')[0].mapProperty('metrics.hbase.master.IsActiveMaster').contains('false');
+          });
+          otherMasters = masterComponents.filter(function (item) {
+            return item.host_components.mapProperty('component')[0].mapProperty('metrics.hbase.master.IsActiveMaster').contains(undefined);
+          });
         }
         if (masterComponents) {
           if (App.singleNodeInstall) {
@@ -149,21 +157,21 @@ App.QuickViewLinks = Em.View.extend({
             // need all hbase_masters hosts in quick links
             if (activeMaster) {
               activeMaster.forEach(function(item) {
-                hosts.push({'publicHostName': response.items.mapProperty('Hosts').findProperty('host_name', item.get('host.hostName')).public_host_name, 'status': Em.I18n.t('quick.links.label.active')});
+                hosts.push({'publicHostName': item.Hosts.public_host_name, 'status': Em.I18n.t('quick.links.label.active')});
               });
             }
             if (standbyMasters) {
               standbyMasters.forEach(function(item) {
-                hosts.push({'publicHostName': response.items.mapProperty('Hosts').findProperty('host_name', item.get('host.hostName')).public_host_name, 'status': Em.I18n.t('quick.links.label.standby')});
+                hosts.push({'publicHostName': item.Hosts.public_host_name, 'status': Em.I18n.t('quick.links.label.standby')});
               });
             }
             if (otherMasters) {
               otherMasters.forEach(function(item) {
-                hosts.push({'publicHostName': response.items.mapProperty('Hosts').findProperty('host_name', item.get('host.hostName')).public_host_name});
+                hosts.push({'publicHostName': item.Hosts.public_host_name});
               });
             }
           } else {
-            hosts[0] = masterComponents[0].get('host.publicHostName');
+            hosts[0] = masterComponents[0].Hosts.public_host_name;
           }
         }
         break;
