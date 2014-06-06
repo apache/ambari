@@ -30,8 +30,8 @@ App.SuperVisorUpView = App.TextDashboardWidgetView.extend({
 
   hiddenInfo: function () {
     var result = [];
-    result.pushObject(this.get('superVisorsLive').length + ' ' + Em.I18n.t('dashboard.services.hdfs.nodes.live'));
-    result.pushObject(this.get('superVisorsDead').length + ' ' + Em.I18n.t('dashboard.services.hdfs.nodes.dead'));
+    result.pushObject(this.get('superVisorsLive') + ' ' + Em.I18n.t('dashboard.services.hdfs.nodes.live'));
+    result.pushObject(this.get('superVisorsDead') + ' ' + Em.I18n.t('dashboard.services.hdfs.nodes.dead'));
     return result;
   }.property('superVisorsLive', 'superVisorsDead'),
   hiddenInfoClass: "hidden-info-two-line",
@@ -40,30 +40,29 @@ App.SuperVisorUpView = App.TextDashboardWidgetView.extend({
   thresh2: 70,
   maxValue: 100,
 
-  superVisorComponents: function() {
-    return this.get('model.hostComponents').filterProperty('componentName', 'SUPERVISOR');
-  }.property('model.hostComponents.length'),
-
   superVisorsLive: function () {
-    return this.get('superVisorComponents').filterProperty("workStatus", "STARTED");
-  }.property('superVisorComponents.@each.workStatus'),
+    return this.get('model.superVisorsStarted');
+  }.property('model.superVisorsStarted'),
 
   superVisorsDead: function () {
-    return this.get('superVisorComponents').filterProperty("workStatus", "INSTALLED");
-  }.property('superVisorComponents.@each.workStatus'),
+    return this.get('model.superVisorsInstalled');
+  }.property('model.superVisorsInstalled'),
 
+  superVisorsTotal: function() {
+    return this.get('model.superVisorsTotal');
+  }.property('model.superVisorsTotal'),
 
   data: function () {
-    if ( !this.get('superVisorComponents.length')) {
+    if ( !this.get('superVisorsTotal')) {
       return -1;
     } else {
-      return ((this.get('superVisorsLive').length / this.get('model.hostComponents').filterProperty('componentName', 'SUPERVISOR').length).toFixed(2)) * 100;
+      return ((this.get('superVisorsLive') / this.get('superVisorsTotal')).toFixed(2)) * 100;
     }
-  }.property('model.hostComponents.length', 'superVisorsLive'),
+  }.property('superVisorsTotal', 'superVisorsLive'),
 
   content: function () {
-    return this.get('superVisorsLive').length + "/" + this.get('superVisorComponents').length;
-  }.property('superVisorComponents.length', 'superVisorsLive'),
+    return this.get('superVisorsLive') + "/" + this.get('superVisorsTotal');
+  }.property('superVisorsLive', 'superVisorsTotal'),
 
   editWidget: function (event) {
     var parent = this;

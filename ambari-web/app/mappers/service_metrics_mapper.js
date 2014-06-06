@@ -147,7 +147,10 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     used_slots: 'restApiComponent.metrics.api.cluster.summary.["tasks.total"]',
     topologies: 'restApiComponent.metrics.api.cluster.summary.topologies',
     total_executors: 'restApiComponent.metrics.api.cluster.summary.["executors.total"]',
-    nimbus_uptime: 'restApiComponent.metrics.api.cluster.summary.["nimbus.uptime"]'
+    nimbus_uptime: 'restApiComponent.metrics.api.cluster.summary.["nimbus.uptime"]',
+    super_visors_started: 'super_visors_started',
+    super_visors_installed: 'super_visors_installed',
+    super_visors_total: 'super_visors_total'
   },
   flumeAgentConfig: {
     name: 'HostComponentProcess.name',

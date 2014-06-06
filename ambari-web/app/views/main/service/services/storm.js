@@ -21,11 +21,19 @@ var date = require('utils/date');
 
 App.MainDashboardServiceStormView = App.MainDashboardServiceView.extend({
   templateName: require('templates/main/service/services/storm'),
-  serviceName: 'storm',
+  serviceName: 'STORM',
 
   freeSlotsPercentage: function() {
     return Math.round(this.get('service.freeSlots')/this.get('service.totalSlots')*100);
   }.property('service.freeSlots', 'service.totalSlots'),
+
+  superVisorsLive: function () {
+    return this.get('service.superVisorsStarted');
+  }.property('service.superVisorsStarted'),
+
+  superVisorsTotal: function() {
+    return this.get('service.superVisorsTotal');
+  }.property('service.superVisorsTotal'),
 
   nimbusUptimeFormatted: function() {
     if (this.get('service.nimbusUptime') > 0) {

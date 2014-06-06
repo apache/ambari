@@ -19,6 +19,9 @@ var App = require('app');
 
 App.StormService = App.Service.extend({
   version: DS.attr('string'),
+  superVisorsStarted: DS.attr('number'),
+  superVisorsInstalled: DS.attr('number'),
+  superVisorsTotal: DS.attr('number'),
   totalTasks: DS.attr('number'),
   totalSlots: DS.attr('number'),
   usedSlots: DS.attr('number'),
