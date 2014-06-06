@@ -565,7 +565,7 @@ class TestHostInfo(TestCase):
     self.assertFalse(hostInfo.checkReverseLookup())
 
     gethostbyname_mock.side_effect = ["123.123.123.123", "123.123.123.123"]
-    getfqdn_mock.side_effect = socket.herror()
+    getfqdn_mock.side_effect = socket.error()
 
     self.assertFalse(hostInfo.checkReverseLookup())
 

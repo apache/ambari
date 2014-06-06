@@ -378,7 +378,7 @@ class HostInfo:
       host_fqdn = socket.getfqdn()
       fqdn_ip = socket.gethostbyname(host_fqdn)
       return host_ip == fqdn_ip
-    except socket.herror:
+    except socket.error:
       pass
     return False
 
