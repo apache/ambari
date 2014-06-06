@@ -145,7 +145,7 @@ App.WizardStep2Controller = Em.Controller.extend({
 
   installedHostNames: function () {
     if (this.get('content.controllerName') === 'addHostController') {
-      return this.get('content.installedHosts').mapProperty('hostName');
+      return this.get('content.installedHosts').mapProperty('name');
     } else {
       return [];
     }

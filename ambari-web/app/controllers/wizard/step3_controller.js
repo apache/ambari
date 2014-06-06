@@ -96,7 +96,7 @@ App.WizardStep3Controller = Em.Controller.extend({
    * @type {string[]}
    */
   hostsInCluster: function () {
-    return this.get('content.installedHosts').getEach('hostName');
+    return this.get('content.installedHosts').getEach('name');
   }.property('content.installedHosts'),
 
   /**

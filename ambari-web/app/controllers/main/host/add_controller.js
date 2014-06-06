@@ -159,13 +159,13 @@ App.AddHostController = App.WizardController.extend({
     var clients = [];
     var serviceComponents = App.StackServiceComponent.find();
     var clientComponents = [];
-    var dbHosts = this.get('content.hosts');
+    var installedHosts = this.get('content.installedHosts');
 
-    for (var hostName in dbHosts) {
-      dbHosts[hostName].hostComponents.forEach(function (componentName) {
+    installedHosts.forEach(function (host) {
+      host.hostComponents.forEach(function (componentName) {
         clientComponents[componentName] = true;
       }, this);
-    }
+    });
 
     this.get('content.services').filterProperty('isSelected').forEach(function (_service) {
       var client = serviceComponents.filterProperty('serviceName', _service.serviceName).findProperty('isClient');

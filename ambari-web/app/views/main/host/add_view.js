@@ -63,7 +63,7 @@ App.AddHostView = Em.View.extend({
 
   loadHosts: function () {
     App.ajax.send({
-      name: 'hosts.all',
+      name: 'hosts.confirmed',
       sender: this,
       data: {},
       success: 'loadHostsSuccessCallback',
@@ -72,17 +72,21 @@ App.AddHostView = Em.View.extend({
   },
 
   loadHostsSuccessCallback: function (response) {
-    var hosts = [];
+    var installedHosts = [];
 
     response.items.forEach(function (item) {
-      hosts.push({
-        hostName: item.Hosts.host_name,
+      installedHosts.push({
+        name: item.Hosts.host_name,
+        cpu: item.Hosts.cpu_count,
+        memory: item.Hosts.total_mem,
+        disk_info: item.Hosts.disk_info,
         bootStatus: "REGISTERED",
-        isInstalled: true
+        isInstalled: true,
+        hostComponents: item.host_components.mapProperty('HostRoles.component_name')
       });
     });
-    this.get('controller').setDBProperty('installedHosts', hosts);
-    this.set('controller.content.installedHosts', hosts);
+    this.get('controller').setDBProperty('installedHosts', installedHosts);
+    this.set('controller.content.installedHosts', installedHosts);
     this.set('isLoaded', true);
   },
 
