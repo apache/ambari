@@ -230,11 +230,8 @@ App.MainServiceItemController = Em.Controller.extend({
   },
 
   updateService: function(data, opt, params) {
-    var self = this;
-    App.router.get('clusterController').loadUpdatedStatus(function(){
-      self.set('content.passiveState', params.passive_state);
-      batchUtils.infoPassiveState(params.passive_state);
-    });
+    this.set('content.passiveState', params.passive_state);
+    batchUtils.infoPassiveState(params.passive_state);
   },
 
   runSmokeTestPrimary: function(query) {

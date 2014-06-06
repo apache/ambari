@@ -1289,9 +1289,7 @@ App.MainHostDetailsController = Em.Controller.extend({
    */
   updateHost: function (data, opt, params) {
     this.set('content.passiveState', params.passive_state);
-    App.router.get('clusterController').loadUpdatedStatus(function () {
-      batchUtils.infoPassiveState(params.passive_state);
-    });
+    batchUtils.infoPassiveState(params.passive_state);
   },
 
   /**
