@@ -256,7 +256,9 @@ App.MainAdminSecurityAddStep4Controller = App.MainAdminSecurityProgressControlle
       var index = parseInt(_express.match(/\[([\d]*)(?=\])/)[1]);
       var globalConfig = this.get('globalProperties').findProperty('name', templateName[index]);
 
-      value = (globalConfig) ? value.replace(_express, globalConfig.value) : null;
+      if (!!value) {
+        value = (globalConfig) ? value.replace(_express, globalConfig.value) : null;
+      }
     }, this);
     return value;
   },

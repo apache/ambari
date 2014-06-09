@@ -498,6 +498,14 @@ describe('App.MainAdminSecurityAddStep4Controller', function () {
           expression: '<[0]>'
         },
         result: 'value1'
+      },
+      {
+        title: 'First property not in global configs',
+        arguments: {
+          templateName: ['config2','config1'],
+          expression: '<[0]>@<[1]>'
+        },
+        result: null
       }
     ];
 

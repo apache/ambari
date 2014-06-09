@@ -20,7 +20,6 @@ var Ember = require('ember');
 var App = require('app');
 
 require('mappers/server_data_mapper');
-require('mappers/status_mapper');
 
 describe('App.statusMapper', function () {
 
