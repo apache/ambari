@@ -191,6 +191,7 @@ class ActionQueue(threading.Thread):
       roleResult['structuredOut'] = str(json.dumps(commandresult['structuredOut']))
     else:
       roleResult['structuredOut'] = ''
+
     # let ambari know that configuration tags were applied
     if status == self.COMPLETED_STATUS:
       configHandler = ActualConfigHandler(self.config, self.configTags)
@@ -208,6 +209,7 @@ class ActionQueue(threading.Thread):
         configHandler.write_actual_component(command['role'], command['configurationTags'])
         configHandler.write_client_components(command['serviceName'], command['configurationTags'])
         roleResult['configurationTags'] = configHandler.read_actual_component(command['role'])
+
     self.commandStatuses.put_command_status(command, roleResult)
 
 

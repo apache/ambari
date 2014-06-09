@@ -60,7 +60,7 @@ class CheckHost(Script):
         structured_output[CHECK_JAVA_HOME] = java_home_check_structured_output
       except Exception, exception:
         print "There was an unexpected error while checking for the Java home location: " + str(exception)
-        structured_output[CHECK_JAVA_HOME] = {"exit_code" : "1", "message": str(exception)}
+        structured_output[CHECK_JAVA_HOME] = {"exit_code" : 1, "message": str(exception)}
 
     if CHECK_DB_CONNECTION in check_execute_list:
       try :
@@ -68,7 +68,7 @@ class CheckHost(Script):
         structured_output[CHECK_DB_CONNECTION] = db_connection_check_structured_output
       except Exception, exception:
         print "There was an unknown error while checking database connectivity: " + str(exception)
-        structured_output[CHECK_DB_CONNECTION] = {"exit_code" : "1", "message": str(exception)}
+        structured_output[CHECK_DB_CONNECTION] = {"exit_code" : 1, "message": str(exception)}
 
     if CHECK_HOST_RESOLUTION in check_execute_list:
       try : 
@@ -76,7 +76,7 @@ class CheckHost(Script):
         structured_output[CHECK_HOST_RESOLUTION] = host_resolution_structured_output
       except Exception, exception :
         print "There was an unknown error while checking IP address lookups: " + str(exception)
-        structured_output[CHECK_HOST_RESOLUTION] = {"exit_code" : "1", "message": str(exception)}
+        structured_output[CHECK_HOST_RESOLUTION] = {"exit_code" : 1, "message": str(exception)}
 
     self.put_structured_out(structured_output)
 
@@ -89,10 +89,10 @@ class CheckHost(Script):
   
     if not os.path.isfile(os.path.join(java64_home, "bin", "java")):
       print "Java home doesn't exist!"
-      java_home_check_structured_output = {"exit_code" : "1", "message": "Java home doesn't exist!"}
+      java_home_check_structured_output = {"exit_code" : 1, "message": "Java home doesn't exist!"}
     else:
       print "Java home exists!"
-      java_home_check_structured_output = {"exit_code" : "0", "message": "Java home exists!"}
+      java_home_check_structured_output = {"exit_code" : 0, "message": "Java home exists!"}
   
     return java_home_check_structured_output
 
@@ -131,7 +131,7 @@ class CheckHost(Script):
       message = "Custom java is not available on host. Please install it. Java home should be the same as on server. " \
                 "\n"
       print message
-      db_connection_check_structured_output = {"exit_code" : "1", "message": message}
+      db_connection_check_structured_output = {"exit_code" : 1, "message": message}
       return db_connection_check_structured_output
 
     environment = { "no_proxy": format("{ambari_server_hostname}") }
@@ -152,7 +152,7 @@ class CheckHost(Script):
         message = "Error downloading JDK from Ambari Server resources. Check network access to " \
                   "Ambari Server.\n" + str(e)
         print message
-        db_connection_check_structured_output = {"exit_code" : "1", "message": message}
+        db_connection_check_structured_output = {"exit_code" : 1, "message": message}
         return db_connection_check_structured_output
 
       if jdk_name.endswith(".bin"):
@@ -166,7 +166,7 @@ class CheckHost(Script):
       except Exception, e:
         message = "Error installing java.\n" + str(e)
         print message
-        db_connection_check_structured_output = {"exit_code" : "1", "message": message}
+        db_connection_check_structured_output = {"exit_code" : 1, "message": message}
         return db_connection_check_structured_output
 
     try:
@@ -178,7 +178,7 @@ class CheckHost(Script):
       message = "Error downloading DBConnectionVerification.jar from Ambari Server resources. Check network access to " \
                 "Ambari Server.\n" + str(e)
       print message
-      db_connection_check_structured_output = {"exit_code" : "1", "message": message}
+      db_connection_check_structured_output = {"exit_code" : 1, "message": message}
       return db_connection_check_structured_output
   
     # download jdbc driver from ambari-server resources
@@ -192,7 +192,7 @@ class CheckHost(Script):
                 "install JDBC connector. Use \"ambari-server setup --help\" for more information. Check network access to " \
                 "Ambari Server.\n" + str(e)
       print message
-      db_connection_check_structured_output = {"exit_code" : "1", "message": message}
+      db_connection_check_structured_output = {"exit_code" : 1, "message": message}
       return db_connection_check_structured_output
   
   
@@ -213,9 +213,9 @@ class CheckHost(Script):
     print "INFO returncode: " + str(process.returncode)
   
     if process.returncode == 0:
-      db_connection_check_structured_output = {"exit_code" : "0", "message": "DB connection check completed successfully!" }
+      db_connection_check_structured_output = {"exit_code" : 0, "message": "DB connection check completed successfully!" }
     else:
-      db_connection_check_structured_output = {"exit_code" : "1", "message":  stdoutdata + stderrdata }
+      db_connection_check_structured_output = {"exit_code" : 1, "message":  stdoutdata + stderrdata }
   
     return db_connection_check_structured_output
   
@@ -257,7 +257,7 @@ class CheckHost(Script):
     print message
         
     host_resolution_check_structured_output = {
-      "exit_code" : "0",
+      "exit_code" : 0,
       "message" : message,                                          
       "failed_count" : failedCount, 
       "success_count" : successCount,

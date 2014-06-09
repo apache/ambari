@@ -69,10 +69,10 @@ class CustomServiceOrchestrator():
       pass # Ignore fail
 
 
-  def runCommand(self, command, tmpoutfile, tmperrfile, forsed_command_name = None,
+  def runCommand(self, command, tmpoutfile, tmperrfile, forced_command_name = None,
                  override_output_files = True):
     """
-    forsed_command_name may be specified manually. In this case, value, defined at
+    forced_command_name may be specified manually. In this case, value, defined at
     command json, is ignored.
     """
     try:
@@ -90,8 +90,8 @@ class CustomServiceOrchestrator():
       except KeyError:
         pass # Status commands have no taskId
 
-      if forsed_command_name is not None: # If not supplied as an argument
-        command_name = forsed_command_name
+      if forced_command_name is not None: # If not supplied as an argument
+        command_name = forced_command_name
 
       if command_name == self.CUSTOM_ACTION_COMMAND:
         base_dir = self.file_cache.get_custom_actions_base_dir(server_url_prefix)

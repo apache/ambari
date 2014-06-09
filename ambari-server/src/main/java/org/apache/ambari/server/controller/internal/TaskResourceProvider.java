@@ -17,8 +17,12 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.TaskStatusRequest;
@@ -32,12 +36,7 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import org.codehaus.jackson.map.ObjectMapper;
 
 /**
  * Resource provider for task resources.
@@ -64,8 +63,6 @@ class TaskResourceProvider extends AbstractControllerResourceProvider {
   protected static final String TASK_ATTEMPT_CNT_PROPERTY_ID  = PropertyHelper.getPropertyId("Tasks", "attempt_cnt");
   protected static final String TASK_COMMAND_DET_PROPERTY_ID  = PropertyHelper.getPropertyId("Tasks", "command_detail");
   protected static final String TASK_CUST_CMD_NAME_PROPERTY_ID  = PropertyHelper.getPropertyId("Tasks", "custom_command_name");
-
-  private static final Gson gson = new Gson();
 
   private static Set<String> pkPropertyIds =
       new HashSet<String>(Arrays.asList(new String[]{
@@ -151,31 +148,49 @@ class TaskResourceProvider extends AbstractControllerResourceProvider {
         setResourceProperty(resource, TASK_EXIT_CODE_PROPERTY_ID, response.getExitCode(), requestedIds);
         setResourceProperty(resource, TASK_STDERR_PROPERTY_ID, response.getStderr(), requestedIds);
         setResourceProperty(resource, TASK_STOUT_PROPERTY_ID, response.getStdout(), requestedIds);
-        setResourceProperty(resource, TASK_STRUCT_OUT_PROPERTY_ID, prepareStructuredOutJson(response.getStructuredOut()), requestedIds);
+        setResourceProperty(resource, TASK_STRUCT_OUT_PROPERTY_ID, parseStructuredOutput(response.getStructuredOut()), requestedIds);
         setResourceProperty(resource, TASK_START_TIME_PROPERTY_ID, response.getStartTime(), requestedIds);
         setResourceProperty(resource, TASK_END_TIME_PROPERTY_ID, response.getEndTime(), requestedIds);
         setResourceProperty(resource, TASK_ATTEMPT_CNT_PROPERTY_ID, response.getAttemptCount(), requestedIds);
+
         if (response.getCustomCommandName() != null) {
           setResourceProperty(resource, TASK_CUST_CMD_NAME_PROPERTY_ID, response.getCustomCommandName(), requestedIds);
         }
+
         if (response.getCommandDetail() == null) {
           setResourceProperty(resource, TASK_COMMAND_DET_PROPERTY_ID,
               String.format("%s %s", response.getRole(), response.getCommand()), requestedIds);
         } else {
           setResourceProperty(resource, TASK_COMMAND_DET_PROPERTY_ID, response.getCommandDetail(), requestedIds);
         }
+
         resources.add(resource);
       }
     }
     return resources;
   }
 
-  Object prepareStructuredOutJson(String structuredOutStr) {
-    Object result = null;
+  /**
+   * Converts the specified JSON string into a {@link Map}. For now, use Jackson
+   * instead of gson since none of the integers will convert properly without a
+   * well-defined first-class object to map to.
+   * 
+   * @param structuredOutput
+   *          the JSON string to convert.
+   * @return the converted JSON as key-value pairs, or {@code null} if an
+   *         exception was encountered or if the JSON string was empty.
+   */
+  Map<?, ?> parseStructuredOutput(String structuredOutput) {
+    if (null == structuredOutput || structuredOutput.isEmpty())
+      return null;
+
+    Map<?, ?> result = null;
+
     try {
-      result = gson.fromJson(structuredOutStr, Map.class);
-    } catch (JsonSyntaxException exception) {
-      LOG.warn("Can not parse structured output string " + structuredOutStr);
+      ObjectMapper mapper = new ObjectMapper();
+      result = mapper.readValue(structuredOutput, Map.class);
+    } catch (Exception excepton) {
+      LOG.warn("Unable to parse task structured output: {}", structuredOutput);
     }
     return result;
   }

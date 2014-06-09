@@ -44,7 +44,7 @@ class TestCheckHost(TestCase):
 
     self.assertEquals(os_isfile_mock.call_args[0][0], 'test_java_home/bin/java')
     self.assertEquals(structured_out_mock.call_args[0][0], {'java_home_check': {'message': 'Java home exists!',
-                                                                                'exit_code': '0'}})
+                                                                                'exit_code': 0}})
     # test, java home doesn't exist
     os_isfile_mock.reset_mock()
     os_isfile_mock.return_value = False
@@ -53,7 +53,7 @@ class TestCheckHost(TestCase):
 
     self.assertEquals(os_isfile_mock.call_args[0][0], 'test_java_home/bin/java')
     self.assertEquals(structured_out_mock.call_args[0][0], {'java_home_check': {"message": "Java home doesn't exist!",
-                                                                                "exit_code" : "1"}})
+                                                                                "exit_code" : 1}})
 
 
   @patch.object(Script, 'get_config')
@@ -81,9 +81,11 @@ class TestCheckHost(TestCase):
 
     self.assertEquals(structured_out_mock.call_args[0][0], {'db_connection_check': {'message': 'Error downloading ' \
                      'DBConnectionVerification.jar from Ambari Server resources. Check network access to Ambari ' \
-                     'Server.\ntest exception', 'exit_code': '1'}})
+                     'Server.\ntest exception', 'exit_code': 1}})
+    
     self.assertEquals(format_mock.call_args_list[2][0][0], "/bin/sh -c 'cd /usr/lib/ambari-agent/ && curl -kf " \
                       "--retry 5 {jdk_location}{check_db_connection_jar_name} -o {check_db_connection_jar_name}'")
+    
     self.assertEquals(format_mock.call_args_list[3][0][0], "[ -f /usr/lib/ambari-agent/{check_db_connection_jar_name}]")
 
     # test, download jdbc driver failed
@@ -106,9 +108,11 @@ class TestCheckHost(TestCase):
     self.assertEquals(structured_out_mock.call_args[0][0], {'db_connection_check': {'message': 'Error downloading JDBC ' \
                               'connector from Ambari Server resources. Confirm you ran ambari-server setup to ' \
                               'install JDBC connector. Use "ambari-server setup --help" for more information. Check ' \
-                              'network access to Ambari Server.\ntest exception', 'exit_code': '1'}})
+                              'network access to Ambari Server.\ntest exception', 'exit_code': 1}})
+    
     self.assertEquals(format_mock.call_args_list[4][0][0], "/bin/sh -c 'cd /usr/lib/ambari-agent/ && curl -kf " \
                                                             "--retry 5 {jdbc_url} -o {jdbc_name}'")
+    
     self.assertEquals(format_mock.call_args_list[5][0][0], "[ -f /usr/lib/ambari-agent/{jdbc_name}]")
 
     # test, no connection to remote db
@@ -132,7 +136,7 @@ class TestCheckHost(TestCase):
     checkHost.actionexecute(None)
 
     self.assertEquals(structured_out_mock.call_args[0][0], {'db_connection_check': {'message': 'test message',
-                                                                                    'exit_code': '1'}})
+                                                                                    'exit_code': 1}})
     self.assertEquals(format_mock.call_args[0][0],'{java64_home}/bin/java -cp /usr/lib/ambari-agent/{check_db_' \
                                                 'connection_jar_name}:/usr/lib/ambari-agent/{jdbc_name} org.' \
                                                 'apache.ambari.server.DBConnectionVerification {db_connection_url} ' \
@@ -146,7 +150,7 @@ class TestCheckHost(TestCase):
     checkHost.actionexecute(None)
 
     self.assertEquals(structured_out_mock.call_args[0][0], {'db_connection_check':
-                                        {'message': 'DB connection check completed successfully!', 'exit_code': '0'}})
+                                        {'message': 'DB connection check completed successfully!', 'exit_code': 0}})
 
     #test jdk_name and java home are not available
     mock_config.return_value = {"commandParams" : {"check_execute_list" : "db_connection_check",
@@ -161,7 +165,7 @@ class TestCheckHost(TestCase):
     isfile_mock.return_value = False
     checkHost.actionexecute(None)
     self.assertEquals(structured_out_mock.call_args[0][0], {'db_connection_check': {'message': 'Custom java is not ' \
-            'available on host. Please install it. Java home should be the same as on server. \n', 'exit_code': '1'}})
+            'available on host. Please install it. Java home should be the same as on server. \n', 'exit_code': 1}})
 
 
 
@@ -187,7 +191,7 @@ class TestCheckHost(TestCase):
        'message': 'All hosts resolved to an IP address.', 
        'failed_count': 0, 
        'success_count': 5, 
-       'exit_code': '0'}})
+       'exit_code': 0}})
     
     # try it now with errors
     mock_socket.side_effect = socket.error
@@ -201,4 +205,21 @@ class TestCheckHost(TestCase):
                     {'cause': (), 'host': u'foobar', 'type': 'FORWARD_LOOKUP'}, 
                     {'cause': (), 'host': u'!!!', 'type': 'FORWARD_LOOKUP'}], 
        'message': 'There were 5 host(s) that could not resolve to an IP address.', 
-       'failed_count': 5, 'success_count': 0, 'exit_code': '0'}})
+       'failed_count': 5, 'success_count': 0, 'exit_code': 0}})
+    
+  @patch.object(Script, 'get_config')
+  @patch("resource_management.libraries.script.Script.put_structured_out")
+  def testInvalidCheck(self, structured_out_mock, mock_config):    
+    jsonFilePath = os.path.join("../resources/custom_actions", "invalid_check.json")
+    
+    with open(jsonFilePath, "r") as jsonFile:
+      jsonPayload = json.load(jsonFile)
+ 
+    mock_config.return_value = ConfigDictionary(jsonPayload)
+    
+    checkHost = CheckHost()
+    checkHost.actionexecute(None)
+    
+    # ensure the correct function was called
+    self.assertTrue(structured_out_mock.called)
+    structured_out_mock.assert_called_with({})

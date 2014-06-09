@@ -18,6 +18,21 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.TaskStatusResponse;
@@ -29,20 +44,6 @@ import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.junit.Assert;
 import org.junit.Test;
-import static org.junit.Assert.*;
-
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
 
 /**
  * TaskResourceProvider tests.
@@ -202,29 +203,84 @@ public class TaskResourceProviderTest {
   }
 
   @Test
-  public void testPrepareStructuredOutJson() {
+  public void testParseStructuredOutput() {
     Resource.Type type = Resource.Type.Task;
     // Test general case
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
+
     TaskResourceProvider taskResourceProvider = new TaskResourceProvider(
             PropertyHelper.getPropertyIds(type),
             PropertyHelper.getKeyPropertyIds(type), managementController);
+
     replay(managementController);
 
     // Check parsing of nested JSON
-    Map result = (Map) taskResourceProvider.prepareStructuredOutJson("{\"a\":\"b\", \"c\": {\"d\":\"e\",\"f\": [\"g\",\"h\"],\"i\": {\"k\":\"l\"}}}");
+    Map<?, ?> result = taskResourceProvider
+        .parseStructuredOutput("{\"a\":\"b\", \"c\": {\"d\":\"e\",\"f\": [\"g\",\"h\"],\"i\": {\"k\":\"l\"}}}");
     assertEquals(result.size(), 2);
-    Map submap = (Map) result.get("c");
+    Map<?, ?> submap = (Map<?, ?>) result.get("c");
     assertEquals(submap.size(), 3);
     List sublist = (List) submap.get("f");
     assertEquals(sublist.size(), 2);
-    Map subsubmap = (Map) submap.get("i");
+    Map<?, ?> subsubmap = (Map<?, ?>) submap.get("i");
     assertEquals(subsubmap.size(), 1);
     assertEquals(subsubmap.get("k"), "l");
+
     // Check negative case - invalid JSON
-    result = (Map) taskResourceProvider.prepareStructuredOutJson("{\"a\": invalid JSON}");
+    result = taskResourceProvider.parseStructuredOutput("{\"a\": invalid JSON}");
     assertNull(result);
+
+    // ensure that integers come back as integers
+    result = taskResourceProvider.parseStructuredOutput("{\"a\": 5}");
+    assertEquals(result.get("a"), 5);
 
     verify(managementController);
   }
+  
+  @Test
+  public void testParseStructuredOutputForHostCheck() {
+    Resource.Type type = Resource.Type.Task;
+
+    // Test general case
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+
+    TaskResourceProvider taskResourceProvider = new TaskResourceProvider(
+            PropertyHelper.getPropertyIds(type),
+            PropertyHelper.getKeyPropertyIds(type), managementController);
+
+    replay(managementController);
+
+    Map<?, ?> result = taskResourceProvider.parseStructuredOutput("{\"host_resolution_check\": {\"failures\": [{\"cause\": [-2, \"Name or service not known\"], \"host\": \"foobar\", \"type\": \"FORWARD_LOOKUP\"}], \"message\": \"There were 1 host(s) that could not resolve to an IP address.\", \"failed_count\": 1, \"success_count\": 3, \"exit_code\": 0}}");
+
+    Assert.assertNotNull(result);
+    Map<?,?> host_resolution_check = (Map<?,?>)result.get("host_resolution_check");
+    
+    assertEquals(host_resolution_check.get("success_count"), 3);
+    assertEquals(host_resolution_check.get("failed_count"), 1);
+    
+    verify(managementController);
+  }
+  
+  @Test
+  public void testInvalidStructuredOutput() {
+    Resource.Type type = Resource.Type.Task;
+
+    // Test general case
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+
+    TaskResourceProvider taskResourceProvider = new TaskResourceProvider(
+        PropertyHelper.getPropertyIds(type),
+        PropertyHelper.getKeyPropertyIds(type), managementController);
+
+    replay(managementController);
+
+    Map<?, ?> result = taskResourceProvider.parseStructuredOutput(null);
+    Assert.assertNull(result);
+
+    result = taskResourceProvider.parseStructuredOutput("This is some bad JSON");
+    Assert.assertNull(result);
+
+    verify(managementController);
+  }
+
 }
