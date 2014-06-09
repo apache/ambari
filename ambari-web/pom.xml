@@ -98,11 +98,11 @@
             </goals>
             <configuration>
               <target name="ambari-web-clean">
-                <exec dir="${basedir}" executable="rm" failonerror="false">
+                <exec dir="${basedir}" executable="rm">
                   <arg value="-rf"/>
                   <arg value="public"/>
                 </exec>
-                <exec dir="${basedir}" executable="mkdir" failonerror="false">
+                <exec dir="${basedir}" executable="mkdir">
                   <arg value="public"/>
                 </exec>
               </target>
@@ -116,29 +116,29 @@
             </goals>
             <configuration>
               <target name="ambari-web-compile">
-                <exec dir="${basedir}" executable="npm" failonerror="false">
+                <exec dir="${basedir}" executable="npm">
                   <env key="PYTHON" value="${project.basedir}/../ambari-common/src/main/unix/ambari-python-wrap" />
                   <arg value="install"/>
                 </exec>
-                <exec dir="${basedir}" executable="brunch" failonerror="false">
+                <exec dir="${basedir}" executable="brunch">
                   <arg value="build"/>
                 </exec>
                 <!-- sets Ambari version to make it accessible from code -->
-                <exec dir="${basedir}" executable="sh" failonerror="false">
+                <exec dir="${basedir}" executable="sh">
                   <arg value="${basedir}/set-ambari-version.sh"/>
                   <arg value="${ambariVersion}"/>
                 </exec>
                 <!-- sets default stack and version to use for install -->
-                <exec dir="${basedir}" executable="sh" failonerror="false">
+                <exec dir="${basedir}" executable="sh">
                   <arg value="${basedir}/set-default-stack-version.sh"/>
                   <arg value="${defaultStackVersion}"/>
                 </exec>
                 <!-- enables experimental features if enableExperimental is set to true -->
-                <exec dir="${basedir}" executable="sh" failonerror="false">
+                <exec dir="${basedir}" executable="sh">
                   <arg value="${basedir}/toggle-experimental.sh"/>
                   <arg value="${enableExperimental}"/>
                 </exec>
-                <exec dir="${basedir}" executable="gzip" failonerror="false">
+                <exec dir="${basedir}" executable="gzip">
                   <arg value="public/javascripts/app.js"/>
                   <arg value="public/javascripts/vendor.js"/>
                   <arg value="public/stylesheets/app.css"/>
@@ -154,11 +154,6 @@
             </goals>
             <configuration>
               <target name="ambari-web-test">
-                <!--
-                <exec dir="${basedir}" executable="brunch" failonerror="false">
-                  <arg value="test"/>
-                </exec>
-                -->
               </target>
             </configuration>
           </execution>
