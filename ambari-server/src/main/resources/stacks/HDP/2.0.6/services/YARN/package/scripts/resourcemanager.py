@@ -62,6 +62,16 @@ class Resourcemanager(Script):
     check_process_status(status_params.resourcemanager_pid_file)
     pass
 
+  def refreshqueues(self, env):
+    import params
+
+    self.configure(env)
+    env.set_params(params)
+
+    service('resourcemanager',
+            action='refreshQueues'
+    )
+
   def decommission(self, env):
     import params
 
