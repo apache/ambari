@@ -222,7 +222,7 @@ public class AmbariManagementControllerTest {
   private void addHost(String hostname) throws AmbariException {
     addHost(hostname, null);
   }
-  
+
   private void addHost(String hostname, String clusterName) throws AmbariException {
     clusters.addHost(hostname);
     setOsFamily(clusters.getHost(hostname), "redhat", "6.3");
@@ -230,6 +230,10 @@ public class AmbariManagementControllerTest {
     clusters.getHost(hostname).persist();
     if (null != clusterName)
       clusters.mapHostToCluster(hostname, clusterName);
+  }
+
+  private void deleteHost(String hostname) throws AmbariException {
+    clusters.deleteHost(hostname);
   }
 
   private void createCluster(String clusterName) throws AmbariException {
@@ -278,6 +282,21 @@ public class AmbariManagementControllerTest {
         new HashSet<ServiceComponentHostRequest>();
     requests.add(r);
     controller.createHostComponents(requests);
+  }
+
+  private void deleteServiceComponentHost(String clusterName,
+                                          String serviceName, String componentName, String hostname,
+                                          State desiredState) throws AmbariException {
+    String dStateStr = null;
+    if (desiredState != null) {
+      dStateStr = desiredState.toString();
+    }
+    ServiceComponentHostRequest r = new ServiceComponentHostRequest(clusterName,
+        serviceName, componentName, hostname, dStateStr);
+    Set<ServiceComponentHostRequest> requests =
+        new HashSet<ServiceComponentHostRequest>();
+    requests.add(r);
+    controller.deleteHostComponents(requests);
   }
 
   private Long createConfigGroup(Cluster cluster, String name, String tag,
@@ -9446,7 +9465,7 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
-  public void setRestartRequieredAfterChangeService() throws Exception {
+  public void setRestartRequiredAfterChangeService() throws Exception {
     String clusterName = "c1";
     createCluster(clusterName);
     Cluster cluster = clusters.getCluster(clusterName);
@@ -9490,8 +9509,13 @@ public class AmbariManagementControllerTest {
     addHost(host2, clusterName);
     createServiceComponentHost(clusterName, zookeeperService, zookeeperServer, host2, null);
 
-    assertTrue(zookeeperSch.isRestartRequired());
-  }  
+    assertFalse(zookeeperSch.isRestartRequired());  //No restart required if adding host
+
+    deleteServiceComponentHost(clusterName, zookeeperService, zookeeperServer, host2, null);
+    deleteHost(host2);
+
+    assertTrue(zookeeperSch.isRestartRequired());   //Restart if removing host!
+  }
   
   @Test
   public void testMaintenanceState() throws Exception {
