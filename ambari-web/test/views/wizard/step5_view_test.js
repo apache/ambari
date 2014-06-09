@@ -45,9 +45,7 @@ describe('App.SelectHostView', function() {
 
   beforeEach(function() {
     view = App.SelectHostView.create({
-      controller: App.WizardStep5Controller.create({}),
-      $: function() {return {typeahead: function(){return {on: Em.K}}}},
-      updateErrorStatus: Em.K
+      controller: App.WizardStep5Controller.create({})
     });
   });
 
@@ -62,18 +60,19 @@ describe('App.SelectHostView', function() {
       view.didInsertElement();
       expect(view.initContent.calledOnce).to.equal(true);
     });
-    it('should set component.selectedHost to value', function() {
-      view.set('component', {selectedHost: 'h1'});
+    it('should set selectedHost to value', function() {
+      view.set('selectedHost', 'h1');
       view.set('value', '');
       view.didInsertElement();
       expect(view.get('value')).to.equal('h1');
     });
   });
 
-  describe('#changeHandler', function() {
+  describe('#change', function() {
     beforeEach(function() {
-      view.set('component', {component_name: 'ZOOKEEPER_SERVER', zId: 1});
+      view.set('componentName', 'ZOOKEEPER_SERVER');
       view.set('value', 'h1');
+      view.set('zId', 1);
       view.set('controller.rebalanceComponentHostsCounter', 0);
       view.set('controller.componentToRebalance', '');
       sinon.stub(view.get('controller'), 'assignHostToMaster', Em.K);
@@ -81,23 +80,16 @@ describe('App.SelectHostView', function() {
     afterEach(function() {
       view.get('controller').assignHostToMaster.restore();
     });
-
-    it('shouldn\'t do nothing if view is destroyed', function() {
-      view.set('state', 'destroyed');
-      expect(view.get('controller').assignHostToMaster.called).to.be.false;
-    });
-
     it('should call assignHostToMaster', function() {
-      view.changeHandler();
+      view.change();
       expect(view.get('controller').assignHostToMaster.calledWith('ZOOKEEPER_SERVER', 'h1', 1));
     });
-    it('should increment rebalanceComponentHostsCounter if component is multiple', function() {
-      view.set('component', {component_name: 'ZOOKEEPER_SERVER'});
-      view.changeHandler();
+    it('should increment rebalanceComponentHostsCounter', function() {
+      view.change();
       expect(view.get('controller.rebalanceComponentHostsCounter')).to.equal(1);
     });
     it('should set componentToRebalance', function() {
-      view.changeHandler();
+      view.change();
       expect(view.get('controller.componentToRebalance')).to.equal('ZOOKEEPER_SERVER');
     });
   });
@@ -157,7 +149,7 @@ describe('App.SelectHostView', function() {
     tests.forEach(function(test) {
       it(test.m, function() {
         view.set('controller.hosts', test.hosts);
-        view.set('component', {component_name: test.componentName});
+        view.set('componentName', test.componentName);
         view.set('controller.selectedServicesMasters', test.selectedServicesMasters);
         var r = view.getAvailableHosts();
         expect(r.mapProperty('host_name')).to.eql(test.e);
@@ -165,36 +157,45 @@ describe('App.SelectHostView', function() {
     });
   });
 
-  describe('#rebalanceComponentHostsOnce', function() {
+  describe('#rebalanceComponentHosts', function() {
     var tests = Em.A([
       {
         componentName: 'c1',
         componentToRebalance: 'c2',
+        isLoaded: true,
         content: [{}],
         m: 'componentName not equal to componentToRebalance',
         e: {
-          initContent: false
+          initContent: false,
+          isLoaded: true,
+          content: 1
         }
       },
       {
         componentName: 'c2',
         componentToRebalance: 'c2',
+        isLoaded: true,
         content: [{}],
         m: 'componentName equal to componentToRebalance',
         e: {
-          initContent: true
+          initContent: true,
+          isLoaded: false,
+          content: 0
         }
       }
     ]);
 
     tests.forEach(function(test) {
       it(test.m, function() {
+        view.set('isLoaded', test.isLoaded);
         view.set('content', test.content);
-        view.set('component', {component_name: test.componentName});
+        view.set('componentName', test.componentName);
         view.set('controller.componentToRebalance', test.componentToRebalance);
         sinon.stub(view, 'initContent', Em.K);
-        view.rebalanceComponentHostsOnce();
+        view.rebalanceComponentHosts();
         expect(view.initContent.calledOnce).to.equal(test.e.initContent);
+        expect(view.get('isLoaded')).to.equal(test.e.isLoaded);
+        expect(view.get('content.length')).to.equal(test.e.content);
         view.initContent.restore();
       });
     });
@@ -203,15 +204,43 @@ describe('App.SelectHostView', function() {
   describe('#initContent', function() {
     var tests = Em.A([
       {
+        isLazyLoading: false,
         hosts: 25,
         m: 'not lazy loading, 25 hosts, no selected host',
         e: 25
       },
       {
+        isLazyLoading: false,
         hosts: 25,
         h: 4,
         m: 'not lazy loading, 25 hosts, one selected host',
         e: 25
+      },
+      {
+        isLazyLoading: true,
+        hosts: 25,
+        h: 4,
+        m: 'lazy loading, 25 hosts, one selected host',
+        e: 25
+      },
+      {
+        isLazyLoading: true,
+        hosts: 25,
+        m: 'lazy loading, 25 hosts, no selected host',
+        e: 26
+      },
+      {
+        isLazyLoading: true,
+        hosts: 100,
+        h: 4,
+        m: 'lazy loading, 100 hosts, one selected host',
+        e: 30
+      },
+      {
+        isLazyLoading: true,
+        hosts: 100,
+        m: 'lazy loading, 100 hosts, no selected host',
+        e: 31
       }
     ]);
     tests.forEach(function(test) {
@@ -220,35 +249,68 @@ describe('App.SelectHostView', function() {
         if (test.h) {
           view.set('selectedHost', test.h);
         }
+        view.set('isLazyLoading', test.isLazyLoading);
         view.initContent();
         expect(view.get('content.length')).to.equal(test.e);
       });
     });
   });
 
-  describe('#change', function() {
-
+  describe('#click', function() {
     beforeEach(function() {
-      sinon.stub(view, 'changeHandler', Em.K);
+      sinon.stub(lazyloading, 'run', Em.K);
     });
-
     afterEach(function() {
-      view.changeHandler.restore();
+      lazyloading.run.restore();
     });
-
-    it('shouldn\'t do nothing if view is destroyed', function() {
-      view.set('controller.hostNameCheckTrigger', false);
-      view.set('state', 'destroyed');
-      view.change();
-      expect(view.get('controller.hostNameCheckTrigger')).to.equal(false);
+    Em.A([
+        {
+          isLoaded: true,
+          isLazyLoading: true,
+          e: false
+        },
+        {
+          isLoaded: true,
+          isLazyLoading: false,
+          e: false
+        },
+        {
+          isLoaded: false,
+          isLazyLoading: true,
+          e: true
+        },
+        {
+          isLoaded: false,
+          isLazyLoading: false,
+          e: false
+        }
+      ]).forEach(function(test) {
+      it('isLoaded = ' + test.isLoaded.toString() + ', isLazyLoading = ' + test.isLazyLoading.toString(), function() {
+        view.reopen({
+          isLazyLoading: test.isLazyLoading,
+          isLoaded: test.isLoaded
+        });
+        view.click();
+        if(test.e) {
+          expect(lazyloading.run.calledOnce).to.equal(true);
+        }
+        else {
+          expect(lazyloading.run.called).to.equal(false);
+        }
+      });
     });
-
-    it('should toggle hostNameCheckTrigger', function() {
-      view.set('controller.hostNameCheckTrigger', false);
-      view.change();
-      expect(view.get('controller.hostNameCheckTrigger')).to.equal(true);
+    it('check lazyLoading parameters', function() {
+      view.reopen({
+        isLoaded: false,
+        isLazyLoading: true,
+        content: [{host_name: 'host1'}, {host_name: 'host2'}]
+      });
+      var availableHosts = d3.range(1, 100).map(function(i) {return {host_name: 'host' + i.toString()};});
+      sinon.stub(view, 'getAvailableHosts', function() {return availableHosts;});
+      view.click();
+      expect(lazyloading.run.args[0][0].source.length).to.equal(97); // 99-2
+      view.getAvailableHosts.restore();
     });
-
   });
 
 });
