@@ -1,0 +1,12 @@
+{
+  "href" : "http://c6404.ambari.apache.org:8080/api/v1/services/AMBARI/components/AMBARI_SERVER?fields=RootServiceComponents/properties/jdk.name,RootServiceComponents/properties/java.home,RootServiceComponents/properties/jdk_location",
+  "RootServiceComponents" : {
+    "component_name" : "AMBARI_SERVER",
+    "service_name" : "AMBARI",
+    "properties" : {
+      "java.home" : "/usr/jdk64/jdk1.7.0_58",
+      "jdk_location" : "http://c6404.ambari.apache.org:8080/resources/",
+      "jdk.name": "jdk-7u45-linux-x64.tar.gz"
+    }
+  }
+}
