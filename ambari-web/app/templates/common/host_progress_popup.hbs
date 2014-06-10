@@ -102,7 +102,7 @@
         </div>
       {{/if}}
     {{/if}}
-    <div id="host-info">
+    <div id="host-info" {{bindAttr class="view.isRequestSchedule:scheduled"}}>
       {{#if view.isHostEmptyList}}
         <div class="log-list-wrap">{{t hostPopup.noHostsToShow}}</div>
       {{else}}
