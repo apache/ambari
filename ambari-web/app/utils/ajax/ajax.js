@@ -2151,7 +2151,7 @@ var urls = {
     'mock': '/data/hosts/HDP2/host_status_counters.json'
   },
   'components.filter_by_status': {
-  'real': '/clusters/{clusterName}/components/fields=host_components/HostRoles/host_name,ServiceComponentInfo/component_name,ServiceComponentInfo/started_count{urlParams}&minimal_response=true',
+    'real': '/clusters/{clusterName}/components?fields=host_components/HostRoles/host_name,ServiceComponentInfo/component_name,ServiceComponentInfo/started_count{urlParams}&minimal_response=true',
     'mock': ''
   },
   'hosts.all.install': {
