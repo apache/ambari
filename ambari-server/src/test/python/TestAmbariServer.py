@@ -2263,13 +2263,17 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
   @patch.object(ambari_server, "is_local_database")
   @patch.object(ambari_server, "store_local_properties")
   @patch.object(ambari_server, "is_root")
-  def test_setup(self, is_root_mock, store_local_properties_mock, is_local_database_mock, store_remote_properties_mock,
+  @patch.object(ambari_server, 'is_server_runing')
+  @patch.object(ambari_server, 'proceedJDBCProperties')
+  def test_setup(self, proceedJDBCProperties_mock, is_server_runing_mock, is_root_mock, store_local_properties_mock,
+                 is_local_database_mock, store_remote_properties_mock,
                  setup_remote_db_mock, check_selinux_mock, check_jdbc_drivers_mock, check_ambari_user_mock,
                  check_iptables_mock, check_postgre_up_mock, setup_db_mock, configure_postgres_mock,
                  download_jdk_mock, configure_os_settings_mock, get_YN_input,
                  verify_setup_allowed_method, is_jdbc_user_changed_mock, remove_file_mock, isfile_mock, exists_mock):
     args = MagicMock()
     failed = False
+    is_server_runing_mock.return_value = (False, 0)
     get_YN_input.return_value = False
     isfile_mock.return_value = False
     verify_setup_allowed_method.return_value = 0
@@ -2371,6 +2375,17 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
       self.fail("Should throw exception")
     except NonFatalException as fe:
       self.assertTrue("Remote database setup aborted." in fe.reason)
+
+    reset_mocks()
+    is_server_runing_mock.return_value = (True, 0)
+    args.jdbc_driver= "path/to/driver"
+    args.jdbc_db = "test_db_name"
+
+
+    ambari_server.setup(args)
+    self.assertTrue(proceedJDBCProperties_mock.called)
+    self.assertFalse(check_selinux_mock.called)
+    self.assertFalse(check_ambari_user_mock.called)
 
   @patch.object(ambari_server, 'is_server_runing')
   @patch.object(ambari_server, "get_YN_input")
@@ -2970,7 +2985,8 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
   @patch("os.remove")
   @patch("os.symlink")
   @patch("shutil.copy")
-  def test_proceedJDBCProperties(self, copy_mock, os_symlink_mock, os_remove_mock, lexists_mock, get_ambari_properties_mock, isfile_mock):
+  def test_proceedJDBCProperties(self, copy_mock, os_symlink_mock, os_remove_mock, lexists_mock,
+                                 get_ambari_properties_mock, isfile_mock):
     args = MagicMock()
 
     # test incorrect path to jdbc-driver
@@ -3026,6 +3042,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     lexists_mock.return_value = True
     args.jdbc_db = "postgresql"
     get_ambari_properties_mock.return_value = MagicMock()
+    isfile_mock.side_effect = [True, False]
     fail = False
 
     def side_effect():
@@ -3049,10 +3066,12 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     p.__getitem__.return_value = "somewhere"
     copy_mock.reset_mock()
     copy_mock.side_effect = None
+    isfile_mock.side_effect = [True, False]
 
     ambari_server.proceedJDBCProperties(args)
     self.assertTrue(os_remove_mock.called)
     self.assertTrue(os_symlink_mock.called)
+    self.assertTrue(copy_mock.called)
     self.assertEquals(os_symlink_mock.call_args_list[0][0][0], os.path.join("somewhere","test jdbc"))
     self.assertEquals(os_symlink_mock.call_args_list[0][0][1], os.path.join("somewhere","postgresql-jdbc-driver.jar"))
 

@@ -2215,6 +2215,13 @@ def setup(args):
                      'root-level privileges'
     raise FatalException(4, err)
 
+  # proceed jdbc properties if they were set
+  if args.jdbc_driver is not None and args.jdbc_db is not None:
+    proceedJDBCProperties(args)
+    status, pid = is_server_runing()
+    if status:
+      return
+
   print 'Checking SELinux...'
   retcode = check_selinux()
   if not retcode == 0:
@@ -2324,20 +2331,21 @@ def proceedJDBCProperties(args):
 
   symlink_name = args.jdbc_db + "-jdbc-driver.jar"
   jdbc_symlink = os.path.join(resources_dir, symlink_name)
+  path, jdbc_name = os.path.split(args.jdbc_driver)
 
   if os.path.lexists(jdbc_symlink):
     os.remove(jdbc_symlink)
 
-  try:
-    shutil.copy(args.jdbc_driver, resources_dir)
-  except Exception, e:
-    err = "Can not copy file {0} to {1} due to: {2} . Please check file " \
-          "permissions and free disk space.".format(args.jdbc_driver, resources_dir, e.message)
-    raise FatalException(1, err)
-
-  path, jdbc_name = os.path.split(args.jdbc_driver)
+  if not os.path.isfile(os.path.join(resources_dir, jdbc_name)):
+    try:
+      shutil.copy(args.jdbc_driver, resources_dir)
+    except Exception, e:
+      err = "Can not copy file {0} to {1} due to: {2} . Please check file " \
+            "permissions and free disk space.".format(args.jdbc_driver, resources_dir, e.message)
+      raise FatalException(1, err)
 
   os.symlink(os.path.join(resources_dir,jdbc_name), jdbc_symlink)
+  print "JDBC driver was successfully initialized ."
 
 
 #
@@ -4154,7 +4162,7 @@ def main():
   parser.add_option('--databasepassword', default=None, help="Database user password", dest="database_password")
   parser.add_option('--sidorsname', default="sname", help="Oracle database identifier type, Service ID/Service "
                                                          "Name sid|sname", dest="sid_or_sname")
-  parser.add_option('--jdbc-driver', default=None, help="Path to jdbc driver. Used only in pair with --jdbc-db. ",
+  parser.add_option('--jdbc-driver', default=None, help="Path to jdbc driver. Used only in pair with --jdbc-db ",
                     dest="jdbc_driver")
   parser.add_option('--jdbc-db', default=None, help="Database name [postgresql/mysql/oracle]. Used only in pair with " \
                     "--jdbc-driver", dest="jdbc_db")
@@ -4227,9 +4235,9 @@ def main():
 
   # jdbc driver and db options validation
   if options.jdbc_driver is None and options.jdbc_db is not None:
-    parser.error("Option --jdbc-db is used only in pair with --jdbc-driver.")
+    parser.error("Option --jdbc-db is used only in pair with --jdbc-driver")
   elif options.jdbc_driver is not None and options.jdbc_db is None:
-    parser.error("Option --jdbc-driver is used only in pair with --jdbc-db.")
+    parser.error("Option --jdbc-driver is used only in pair with --jdbc-db")
 
   if options.sid_or_sname.lower() not in ["sid", "sname"]:
     print "WARNING: Valid values for sid_or_sname are 'sid' or 'sname'. Use 'sid' if the db identifier type is " \
