@@ -48,12 +48,15 @@ App.MainDashboardServiceYARNView = App.MainDashboardServiceView.extend({
   }.property(),
   
   yarnClientComponent: function () {
-    return this.get('service.hostComponents').findProperty('componentName', 'YARN_CLIENT');
+    return Em.Object.create({
+      componentName: 'YARN_CLIENT'
+    });
+    //return this.get('service.hostComponents').findProperty('componentName', 'YARN_CLIENT');
   }.property(),
 
   hasManyYarnClients: function () {
-    return (this.get('service.yarnClientNodes.length') > 1);
-  }.property('service.yarnClientNodes.length'),
+    return (this.get('service.installedClients') > 1);
+  }.property('service.installedClients'),
 
   nodeUptime: function () {
     var uptime = this.get('service').get('resourceManagerStartTime');

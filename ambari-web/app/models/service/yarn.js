@@ -47,9 +47,6 @@ App.YARNService = App.Service.extend({
     }
     return "8188";
   }.property(),
-  yarnClientNodes: function(){
-    return this.get('hostComponents').filterProperty('componentName', 'YARN_CLIENT').mapProperty('host');
-  }.property('hostComponents.length'),
   resourceManagerStartTime: DS.attr('number'),
   jvmMemoryHeapUsed: DS.attr('number'),
   jvmMemoryHeapMax: DS.attr('number'),

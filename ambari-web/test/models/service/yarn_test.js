@@ -57,12 +57,6 @@ var yarnService,
       type: 'yarn-site'
     }
   ],
-  nodeCases = [
-    {
-      propertyName: 'yarnClientNodes',
-      componentId: 'host'
-    }
-  ],
   nodeCountCases = [
     {
       assets: {
@@ -111,17 +105,6 @@ describe('App.YARNService', function () {
         hostComponents: hostComponentsData
       });
       expect(yarnService.get('appTimelineServerNode.id')).to.equal('host');
-    });
-  });
-
-  nodeCases.forEach(function (item) {
-    var propertyName = item.propertyName;
-    describe('#' + propertyName, function () {
-      it('should take one component from hostComponents', function () {
-        setHostComponents();
-        expect(yarnService.get(propertyName)).to.have.length(1);
-        expect(yarnService.get(propertyName)[0].id).to.equal(item.componentId);
-      });
     });
   });
 
