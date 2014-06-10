@@ -197,11 +197,6 @@ public class AmbariCustomCommandExecutionHelper {
       sb.append(resourceFilter.getComponentName());
     }
 
-    RequestOperationLevel level = actionRequest.getOperationLevel();
-    if (level != null) {
-      sb.append("op_lvl: " + level.getLevel().toString());
-    }
-
     return sb.toString();
   }
 
