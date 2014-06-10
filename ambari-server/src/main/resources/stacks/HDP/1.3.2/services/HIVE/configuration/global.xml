@@ -53,12 +53,7 @@
     <value></value>
     <type>PASSWORD</type>
     <description>Database password to use to connect to the database.</description>
-  </property>    
-  <property>
-    <name>hive_metastore_port</name>
-    <value>9083</value>
-    <description>Hive Metastore port.</description>
-  </property>    
+  </property>
   <property>
     <name>hive_lib</name>
     <value>/usr/lib/hive/lib/</value>

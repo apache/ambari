@@ -289,4 +289,12 @@ limitations under the License.
     </description>
   </property>
 
+  <property>
+    <name>hive.server2.thrift.port</name>
+    <value>10000</value>
+    <description>
+      TCP port number to listen on, default 10000.
+    </description>
+  </property>
+
 </configuration>

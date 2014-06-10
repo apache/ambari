@@ -490,6 +490,19 @@ module.exports =
       "serviceName": "HIVE",
       "category": "Advanced"
     },
+    {
+      "id": "site property",
+      "name": "hive.server2.thrift.port",
+      "displayName": "Hive Server Port",
+      "description": "TCP port number to listen on, default 10000.",
+      "defaultValue": "10000",
+      "displayType": "int",
+      "isReconfigurable": true,
+      "isOverridable": false,
+      "isVisible": true,
+      "category": "Advanced",
+      "serviceName": "HIVE"
+    },
   /**********************************************tez-site*****************************************/
     {
       "id": "site property",

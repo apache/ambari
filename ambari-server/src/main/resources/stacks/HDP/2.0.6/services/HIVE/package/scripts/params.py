@@ -51,12 +51,12 @@ check_db_connection_jar = format("/usr/lib/ambari-agent/{check_db_connection_jar
 
 #common
 hdp_stack_version = config['hostLevelParams']['stack_version']
-hive_metastore_port = config['configurations']['global']['hive_metastore_port']
+hive_metastore_port = get_port_from_url(config['configurations']['hive-site']['hive.metastore.uris']) #"9083"
 hive_var_lib = '/var/lib/hive'
 ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
 hive_bin = '/usr/lib/hive/bin'
 hive_server_host = config['clusterHostInfo']['hive_server_host'][0]
-hive_server_port = 10000
+hive_server_port = default('/configurations/hive-site/hive.server2.thrift.port',"10000")
 hive_url = format("jdbc:hive2://{hive_server_host}:{hive_server_port}")
 
 smokeuser = config['configurations']['global']['smokeuser']
@@ -133,8 +133,6 @@ else:
   hcat_conf_dir = '/etc/hive-hcatalog/conf'
   hcat_lib = '/usr/lib/hive-hcatalog/share/hcatalog'
 
-
-metastore_port = 9933
 
 hcat_dbroot = hcat_lib
 

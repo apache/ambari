@@ -76,4 +76,4 @@ elif [ -d "/usr/lib/hive-hcatalog/" ]; then
 else
   export HIVE_AUX_JARS_PATH=/usr/lib/hcatalog/share/hcatalog/hcatalog-core.jar
 fi
-
+export METASTORE_PORT={{hive_metastore_port}}
