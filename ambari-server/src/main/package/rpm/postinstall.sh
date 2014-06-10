@@ -20,11 +20,18 @@ fi
 
 ln -s /usr/sbin/ambari-server /etc/init.d/ambari-server
 
-if [ "$1" -eq 1 ]; then # Action is install
-  if [ -f "/var/lib/ambari-server/install-helper.sh" ]; then
-      /var/lib/ambari-server/install-helper.sh install
-  fi
-  chkconfig --add ambari-server
-fi
+case "$1" in
+  1) # Action install
+    if [ -f "/var/lib/ambari-server/install-helper.sh" ]; then
+        /var/lib/ambari-server/install-helper.sh install
+    fi
+    chkconfig --add ambari-server
+  ;;
+  2) # Action upgrade
+    if [ -f "/var/lib/ambari-server/install-helper.sh" ]; then
+        /var/lib/ambari-server/install-helper.sh upgrade
+    fi
+  ;;
+esac
 
 exit 0

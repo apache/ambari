@@ -14,19 +14,24 @@
 # limitations under the License
 
 
-if [ "$1" -eq 1 ]; then # Action is install
-  if [ -f "/var/lib/ambari-agent/install-helper.sh" ]; then
-    /var/lib/ambari-agent/install-helper.sh install
-  fi
+case "$1" in
+  1) # Action install
+    if [ -f "/var/lib/ambari-agent/install-helper.sh" ]; then
+        /var/lib/ambari-agent/install-helper.sh install
+    fi
   chkconfig --add ambari-agent
-fi
+  ;;
+  2) # Action upgrade
+    if [ -d "/etc/ambari-agent/conf.save" ]; then
+        cp -f /etc/ambari-agent/conf.save/* /etc/ambari-agent/conf
+        mv /etc/ambari-agent/conf.save /etc/ambari-agent/conf_$(date '+%d_%m_%y_%H_%M').save
+    fi
 
-if [ "$1" -eq 2 ]; then # Action is upgrade
-  if [ -d "/etc/ambari-agent/conf.save" ]; then
-      cp -f /etc/ambari-agent/conf.save/* /etc/ambari-agent/conf
-      mv /etc/ambari-agent/conf.save /etc/ambari-agent/conf_$(date '+%d_%m_%y_%H_%M').save
-  fi
-fi
+    if [ -f "/var/lib/ambari-agent/install-helper.sh" ]; then
+        /var/lib/ambari-agent/install-helper.sh upgrade
+    fi
+  ;;
+esac
 
 
 BAK=/etc/ambari-agent/conf/ambari-agent.ini.old

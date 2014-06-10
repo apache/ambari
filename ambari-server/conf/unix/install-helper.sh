@@ -26,9 +26,8 @@ PYTHON_WRAPER_SOURCE="/var/lib/ambari-server/ambari-python-wrap"
 
 do_install(){
   # setting common_functions shared resource
-  if [ ! -d "$COMMON_DIR" ]; then
-    ln -s "$COMMON_DIR_SERVER" "$COMMON_DIR"
-  fi
+  rm -rf "$COMMON_DIR"
+  ln -s "$COMMON_DIR_SERVER" "$COMMON_DIR"
   # setting python-wrapper script
   if [ ! -f "$PYTHON_WRAPER_TARGET" ]; then
     ln -s "$PYTHON_WRAPER_SOURCE" "$PYTHON_WRAPER_TARGET"
@@ -36,9 +35,8 @@ do_install(){
 }
 
 do_remove(){
-  if [ -d "$COMMON_DIR" ]; then  # common dir exists
-    rm -f "$COMMON_DIR"
-  fi
+
+  rm -rf "$COMMON_DIR"
 
   if [ -f "$PYTHON_WRAPER_TARGET" ]; then
     rm -f "$PYTHON_WRAPER_TARGET"
@@ -50,6 +48,9 @@ do_remove(){
   fi
 }
 
+do_upgrade(){
+  do_install
+}
 
 case "$1" in
 install)
@@ -57,5 +58,8 @@ install)
   ;;
 remove)
   do_remove
+  ;;
+upgrade)
+  do_upgrade
   ;;
 esac
