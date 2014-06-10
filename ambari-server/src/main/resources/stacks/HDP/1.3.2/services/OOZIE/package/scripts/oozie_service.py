@@ -40,7 +40,7 @@ def oozie_service(action = 'start'): # 'start' or 'stop'
     cmd2 =  format("{kinit_if_needed} hadoop dfs -put /usr/lib/oozie/share {oozie_hdfs_user_dir} ; hadoop dfs -chmod -R 755 {oozie_hdfs_user_dir}/share")
       
     if db_connection_check_command:
-      Execute( db_connection_check_command)
+      Execute( db_connection_check_command, tries=5, try_sleep=10)
                   
     Execute( cmd1,
       user = params.oozie_user,

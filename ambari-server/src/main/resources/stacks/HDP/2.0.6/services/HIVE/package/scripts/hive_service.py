@@ -56,7 +56,7 @@ def hive_service(
         "{java64_home}/bin/java -cp {check_db_connection_jar}:/usr/share/java/{jdbc_jar_name} org.apache.ambari.server.DBConnectionVerification {hive_jdbc_connection_url} {hive_metastore_user_name} {hive_metastore_user_passwd!p} {hive_jdbc_driver}")
       
       Execute(db_connection_check_command,
-              path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin')
+              path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin', tries=5, try_sleep=10)
       
     # AMBARI-5800 - wait for the server to come up instead of just the PID existance
     if name == 'hiveserver2':
