@@ -323,7 +323,7 @@ var urls = {
   },
 
   'config.advanced': {
-    'real': '{stack2VersionUrl}/stackServices/{serviceName}/configurations?fields=*',
+    'real': '{stackVersionUrl}/services/{serviceName}/configurations?fields=*',
     'mock': '/data/wizard/stack/hdp/version{stackVersion}/{serviceName}.json',
     'format': function (data) {
       return {
@@ -332,7 +332,7 @@ var urls = {
     }
   },
   'config.advanced.global': {
-    'real': '{stack2VersionUrl}/stackServices?fields=configurations/StackConfigurations/type',
+    'real': '{stackVersionUrl}/services?fields=configurations/StackConfigurations/type',
     'mock': '/data/wizard/stack/hdp/version1.3.0/global.json',
     'format': function() {
       return {
@@ -984,7 +984,7 @@ var urls = {
     }
   },
   'cluster.update_upgrade_version': {
-    'real': '/stacks2/HDP/versions?fields=stackServices/StackServices,Versions',
+    'real': '/stacks/HDP/versions?fields=stackServices/StackServices,Versions',
     'mock': '/data/wizard/stack/stacks.json',
     'format': function() {
       return {
@@ -993,7 +993,7 @@ var urls = {
     }
   },
   'cluster.load_repositories': {
-    'real': '/stacks2/{stackName}/versions/{stackVersion}/operatingSystems?fields=repositories/*',
+    'real': '/stacks/{stackName}/versions/{stackVersion}/operating_systems?fields=repositories/*',
     'mock': '',
     'type': 'GET',
     'format': function (data) {
@@ -1332,7 +1332,7 @@ var urls = {
     'mock': '/data/wizard/{mock}'
   },
   'wizard.advanced_repositories.valid_url': {
-    'real': '/stacks2/{stackName}/versions/{stackVersion}/operatingSystems/{osType}/repositories/{repoId}',
+    'real': '/stacks/{stackName}/versions/{stackVersion}/operating_systems/{osType}/repositories/{repoId}',
     'mock': '',
     'type': 'PUT',
     'format': function (data) {
@@ -1396,7 +1396,7 @@ var urls = {
     }
   },
   'wizard.service_components': {
-    'real': '{stackUrl}/stackServices?fields=StackServices/comments,StackServices/service_version,serviceComponents/*',
+    'real': '{stackUrl}/services?fields=StackServices/comments,StackServices/service_version,serviceComponents/*',
     'mock': '/data/stacks/HDP-2.1/service_components.json',
     'format': function(data) {
       return {
@@ -1580,7 +1580,7 @@ var urls = {
   },
 
   'wizard.step8.set_local_repos': {
-    'real':'{stack2VersionURL}/operatingSystems/{osType}/repositories/{repoId}',
+    'real':'{stackVersionURL}/operating_systems/{osType}/repositories/{repoId}',
     'mock':'',
     'format': function(data) {
       return {
@@ -1666,7 +1666,7 @@ var urls = {
     'mock': '/data/wizard/bootstrap/single_host_registration.json'
   },
   'wizard.stacks': {
-    'real': '/stacks2',
+    'real': '/stacks',
     'mock': '/data/wizard/stack/stacks2.json',
     'format': function() {
       return {
@@ -1675,7 +1675,7 @@ var urls = {
     }
   },
   'wizard.stacks_versions': {
-    'real': '/stacks2/{stackName}/versions?fields=Versions,operatingSystems/repositories/Repositories',
+    'real': '/stacks/{stackName}/versions?fields=Versions,operatingSystems/repositories/Repositories',
     'mock': '/data/wizard/stack/{stackName}_versions.json',
     'format': function() {
       return {

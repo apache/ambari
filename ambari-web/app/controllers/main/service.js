@@ -52,7 +52,7 @@ App.MainServiceController = Em.ArrayController.extend({
       name: 'wizard.service_components',
       sender: this,
       data: {
-        stackUrl: App.get('stack2VersionURL'),
+        stackUrl: App.get('stackVersionURL'),
         stackVersion: App.get('currentStackVersionNumber')
       },
       success: 'loadAvailableServicesSuccessCallback'

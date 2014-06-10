@@ -125,8 +125,7 @@ describe('views/wizard/control_views', function() {
         var tests = [
           generateTypeValueProp('user_name', 'hive_user'),
           generateTypeValueProp('user_passwd', 'hive_pass'),
-          generateTypeValueProp('db_connection_url', 'hive_c_url'),
-          generateTypeValueProp('db_name', 'hive_scheme')
+          generateTypeValueProp('db_connection_url', 'hive_c_url')
         ];
         var testMessage = 'property `{0}` should have `{1}`';
         tests.forEach(function(test) {
@@ -141,8 +140,7 @@ describe('views/wizard/control_views', function() {
         var tests = [
           generateTypeValueProp('javax.jdo.option.ConnectionUserName', 'hive_user'),
           generateTypeValueProp('javax.jdo.option.ConnectionPassword', 'hive_pass'),
-          generateTypeValueProp('javax.jdo.option.ConnectionURL', 'hive_c_url'),
-          generateTypeValueProp('ambari.hive.db.schema.name', 'hive_scheme')
+          generateTypeValueProp('javax.jdo.option.ConnectionURL', 'hive_c_url')
         ];
         var testMessage = 'property `{1}` should have `{0}`';
         tests.forEach(function(test) {

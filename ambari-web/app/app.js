@@ -37,9 +37,9 @@ module.exports = Em.Application.create({
   stackVersionURL: function () {
     var stackVersion = this.get('currentStackVersion') || this.get('defaultStackVersion');
     if (stackVersion.indexOf('HDPLocal') !== -1) {
-      return '/stacks/HDPLocal/version/' + stackVersion.replace(/HDPLocal-/g, '');
+      return '/stacks/HDPLocal/versions/' + stackVersion.replace(/HDPLocal-/g, '');
     }
-    return '/stacks/HDP/version/' + stackVersion.replace(/HDP-/g, '');
+    return '/stacks/HDP/versions/' + stackVersion.replace(/HDP-/g, '');
   }.property('currentStackVersion'),
 
   /**

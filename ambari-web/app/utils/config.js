@@ -791,7 +791,7 @@ App.config = Em.Object.create({
       sender: this,
       data: {
         serviceName: serviceName,
-        stack2VersionUrl: App.get('stack2VersionURL'),
+        stackVersionUrl: App.get('stackVersionURL'),
         stackVersion: App.get('currentStackVersionNumber'),
         callback: callback,
         sync: sync

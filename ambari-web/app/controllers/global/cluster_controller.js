@@ -388,7 +388,7 @@ App.ClusterController = Em.Controller.extend({
     App.ajax.send({
       name: 'wizard.service_components',
       data: {
-        stackUrl: App.get('stack2VersionURL'),
+        stackUrl: App.get('stackVersionURL'),
         stackVersion: App.get('currentStackVersionNumber'),
         async: true
       },

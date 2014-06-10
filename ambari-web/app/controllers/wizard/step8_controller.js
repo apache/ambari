@@ -983,7 +983,7 @@ App.WizardStep8Controller = Em.Controller.extend({
           data: {
             osType: os.osType,
             repoId: os.repoId,
-            stack2VersionURL: App.get('stack2VersionURL'),
+            stackVersionURL: App.get('stackVersionURL'),
             data: JSON.stringify({
               "Repositories": {
                 "base_url": os.baseUrl,
