@@ -35,10 +35,12 @@ class TestFlumeHandler(RMFTestCase):
     self.assertNoMoreResources()
 
   @patch("os.path.isfile")
-  def test_start_default(self, os_path_isfile_mock):
+  @patch("flume.cmd_target_names")
+  def test_start_default(self, cmd_target_names_mock, os_path_isfile_mock):
     # 1st call is to check if the conf file is there - that should be True
     # 2nd call is to check if the process is live - that should be False
     os_path_isfile_mock.side_effect = [True, False]
+    cmd_target_names_mock.return_value = ["a1"]
 
     self.executeScript("2.0.6/services/FLUME/package/scripts/flume_handler.py",
                        classname = "FlumeHandler",
@@ -64,7 +66,7 @@ class TestFlumeHandler(RMFTestCase):
 
   @patch("glob.glob")
   def test_stop_default(self, glob_mock):
-    glob_mock.return_value = ['/var/run/flume/a1.pid']
+    glob_mock.side_effect = [['/var/run/flume/a1/pid'], ['/etc/flume/conf/a1/ambari-meta.json']]
 
     self.executeScript("2.0.6/services/FLUME/package/scripts/flume_handler.py",
                        classname = "FlumeHandler",
@@ -253,6 +255,22 @@ class TestFlumeHandler(RMFTestCase):
 
     self.assertResourceCalled('File', '/var/run/flume/b1.pid', action = ['delete'])
 
+    self.assertNoMoreResources()
+
+  @patch("flume.find_expected_agent_names")
+  @patch("os.unlink")
+  def test_configure_with_existing(self, os_unlink_mock, find_expected_mock):
+    find_expected_mock.return_value = ["x1"]
+
+    self.executeScript("2.0.6/services/FLUME/package/scripts/flume_handler.py",
+                       classname = "FlumeHandler",
+                       command = "configure",
+                       config_file="default.json")
+
+    self.assertTrue(os_unlink_mock.called)
+    os_unlink_mock.assert_called_with('/etc/flume/conf/x1/ambari-meta.json')
+
+    self.assert_configure_default()
     self.assertNoMoreResources()
 
 def build_flume(content):

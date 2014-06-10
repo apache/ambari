@@ -25,23 +25,23 @@ from resource_management import *
 def flume(action = None):
   import params
 
-  flume_agents = {}
-  if params.flume_conf_content is not None:
-    flume_agents = build_flume_topology(params.flume_conf_content)
-
-  agent_names = flume_agents.keys()
-  if len(params.flume_command_targets) > 0:
-    agent_names = params.flume_command_targets
-
   if action == 'config':
+    # remove previously defined meta's
+    for n in find_expected_agent_names():
+      os.unlink(os.path.join(params.flume_conf_dir, n, 'ambari-meta.json'))
+
     Directory(params.flume_conf_dir)
     Directory(params.flume_log_dir, owner=params.flume_user)
 
+    flume_agents = {}
+    if params.flume_conf_content is not None:
+      flume_agents = build_flume_topology(params.flume_conf_content)
+
     for agent in flume_agents.keys():
-      flume_agent_conf_dir = params.flume_conf_dir + os.sep + agent
-      flume_agent_conf_file = flume_agent_conf_dir + os.sep + 'flume.conf'
-      flume_agent_meta_file = flume_agent_conf_dir + os.sep + 'ambari-meta.json'
-      flume_agent_log4j_file = flume_agent_conf_dir + os.sep + 'log4j.properties'
+      flume_agent_conf_dir = os.path.join(params.flume_conf_dir, agent)
+      flume_agent_conf_file = os.path.join(flume_agent_conf_dir, 'flume.conf')
+      flume_agent_meta_file = os.path.join(flume_agent_conf_dir, 'ambari-meta.json')
+      flume_agent_log4j_file = os.path.join(flume_agent_conf_dir, 'log4j.properties')
 
       Directory(flume_agent_conf_dir)
 
@@ -64,7 +64,7 @@ def flume(action = None):
       '--conf-file {{2}} '
       '{{3}}')
 
-    for agent in agent_names:
+    for agent in cmd_target_names():
       flume_agent_conf_dir = params.flume_conf_dir + os.sep + agent
       flume_agent_conf_file = flume_agent_conf_dir + os.sep + "flume.conf"
       flume_agent_pid_file = params.flume_run_dir + os.sep + agent + ".pid"
@@ -95,6 +95,8 @@ def flume(action = None):
 
     if 0 == len(pid_files):
       return
+
+    agent_names = cmd_target_names()
 
     if len(agent_names) > 0:
       for agent in agent_names:
@@ -199,11 +201,9 @@ def live_status(pid_file):
 def flume_status():
   import params
 
-  # these are what Ambari believes should be running
-  meta_files = glob.glob(params.flume_conf_dir + os.sep + "*/ambari-meta.json")
+  meta_files = find_expected_agent_names()
   pid_files = []
-  for meta_file in meta_files:
-    agent_name = os.path.dirname(meta_file).split(os.sep).pop()
+  for agent_name in meta_files:
     pid_files.append(os.path.join(params.flume_run_dir, agent_name + '.pid'))
 
   procs = []
@@ -211,4 +211,24 @@ def flume_status():
     procs.append(live_status(pid_file))
 
   return procs
+
+# these are what Ambari believes should be running
+def find_expected_agent_names():
+  import params
+
+  files = glob.glob(params.flume_conf_dir + os.sep + "*/ambari-meta.json")
+  expected = []
+
+  for f in files:
+    expected.append(os.path.dirname(f).split(os.sep).pop())
+
+  return expected
+
+def cmd_target_names():
+  import params
+
+  if len(params.flume_command_targets) > 0:
+    return params.flume_command_targets
+  else:
+    return find_expected_agent_names()
 
