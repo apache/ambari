@@ -61,3 +61,118 @@ class TestUtils(TestCase):
     # Testing default vaule
     isfile_mock.return_value = False
     self.assertEquals('/tmp/myfile', utils.locate_file('myfile', '/tmp'))
+
+  @patch('os.path.exists')
+  @patch('os.path.join')
+  def test_pid_exists(self, path_join_mock, path_exists_mock):
+    path_join_mock.return_value = '/test'
+    path_exists_mock.return_value = True
+    self.assertTrue(utils.pid_exists('1'))
+
+  @patch('time.time')
+  @patch('__builtin__.open')
+  @patch('time.sleep')
+  @patch('os.listdir')
+  @patch('os.path.join')
+  @patch.object(utils, 'get_symlink_path')
+  def test_looking_for_pid(self, get_symlink_path_mock, path_join_mock,
+                      listdir_mock, sleep_mock, open_mock, time_mock):
+    def test_read():
+      return "test args"
+
+    def test_obj():
+      pass
+
+    test_obj.read = test_read
+    path_join_mock.return_value = '/'
+    open_mock.return_value = test_obj
+    listdir_mock.return_value = ['1000']
+    get_symlink_path_mock.return_value = "/symlinkpath"
+    time_mock.side_effect = [0, 0, 2]
+
+    r = utils.looking_for_pid("test args", 1)
+    self.assertEquals(len(r), 1)
+    self.assertEquals(r[0], {
+       "pid": "1000",
+       "exe": "/symlinkpath",
+       "cmd": "test args"
+      })
+
+  @patch('os.path.normpath')
+  @patch('os.path.join')
+  @patch('os.path.dirname')
+  @patch('os.readlink')
+  def test_get_symlink_path(self, readlink_mock, dirname_mock, join_mock,
+                            normpath_mock):
+    normpath_mock.return_value = "test value"
+    self.assertEquals(utils.get_symlink_path("/"), "test value")
+
+  @patch('time.time')
+  @patch.object(utils, 'pid_exists')
+  @patch('time.sleep')
+  def test_wait_for_pid(self, sleep_mock, pid_exists_mock, time_mock):
+    pid_exists_mock.return_value = True
+    time_mock.side_effect = [0, 0, 2]
+    live_pids = utils.wait_for_pid([
+                                   {"pid": "111",
+                                    "exe": "",
+                                    "cmd": ""
+                                    },
+                                   {"pid": "222",
+                                    "exe": "",
+                                    "cmd": ""
+                                    },
+                                   ], 1)
+
+    self.assertEquals(2, live_pids)
+
+  @patch.object(utils, 'pid_exists')
+  @patch('__builtin__.open')
+  @patch('os.kill')
+  def test_save_main_pid_ex(self, kill_mock, open_mock, pid_exists_mock):
+    def test_write(data):
+      self.assertEquals(data, "222\n")
+
+    def test_close():
+      pass
+
+    def test_obj():
+      pass
+
+    test_obj.write = test_write
+    test_obj.close = test_close
+    open_mock.return_value = test_obj
+    pid_exists_mock.return_value = True
+
+    utils.save_main_pid_ex([{"pid": "111",
+                             "exe": "/exe1",
+                             "cmd": ""
+                             },
+                            {"pid": "222",
+                             "exe": "/exe2",
+                             "cmd": ""
+                             },
+                            ], "/pidfile", ["/exe1"], True)
+    self.assertEquals(open_mock.call_count, 1)
+    self.assertEquals(pid_exists_mock.call_count, 4)
+    self.assertEquals(kill_mock.call_count, 1)
+
+  @patch('os.path.isfile')
+  @patch('__builtin__.open')
+  @patch('os.remove')
+  def test_check_exitcode(self, remove_mock, open_mock, isfile_mock):
+    def test_read():
+      return "777"
+
+    def test_close():
+      pass
+
+    def test_obj():
+      pass
+
+    test_obj.read = test_read
+    test_obj.close = test_close
+    open_mock.return_value = test_obj
+    isfile_mock.return_value = True
+
+    self.assertEquals(utils.check_exitcode("/tmp/nofile"), 777)

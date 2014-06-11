@@ -37,7 +37,7 @@ from ambari_server.resourceFilesKeeper import ResourceFilesKeeper, KeeperExcepti
 with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
   # We have to use this import HACK because the filename contains a dash
   ambari_server = __import__('ambari-server')
-  
+
 FatalException = ambari_server.FatalException
 NonFatalException = ambari_server.NonFatalException
 
@@ -2512,7 +2512,10 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertEqual(None, rcode)
     self.assertTrue(setup_db_mock.called)
 
-  @patch.object(ambari_server, "wait_popen", new = MagicMock(return_value=None))
+  @patch.object(ambari_server.utils, 'looking_for_pid')
+  @patch.object(ambari_server.utils, 'wait_for_pid')
+  @patch.object(ambari_server.utils, 'save_main_pid_ex')
+  @patch.object(ambari_server.utils, 'check_exitcode')
   @patch('os.makedirs')
   @patch.object(ambari_server.utils, 'locate_file')
   @patch.object(ambari_server, 'is_server_runing')
@@ -2540,20 +2543,29 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
   @patch("os.chdir")
   @patch.object(ResourceFilesKeeper, "perform_housekeeping")
   def test_start(self, perform_housekeeping_mock, chdir_mock, getuser_mock,
-                  find_jdbc_driver_mock, is_root_mock, read_ambari_user_mock,
-                  parse_properties_file_mock, check_postgre_up_mock,
-                  print_error_msg_mock, find_jdk_mock, search_file_mock,
-                  print_info_msg_mock, popenMock, openMock, pexistsMock,
-                  get_ambari_properties_mock, os_environ_mock,
-                  get_validated_string_input_method, os_chmod_method,
-                  save_master_key_method, get_master_key_location_method,
-                  getpwnam_mock, os_chown_mock, is_server_running_mock, locate_file_mock,
-                  os_makedirs_mock):
+                 find_jdbc_driver_mock, is_root_mock, read_ambari_user_mock,
+                 parse_properties_file_mock, check_postgre_up_mock,
+                 print_error_msg_mock, find_jdk_mock, search_file_mock,
+                 print_info_msg_mock, popenMock, openMock, pexistsMock,
+                 get_ambari_properties_mock, os_environ_mock,
+                 get_validated_string_input_method, os_chmod_method,
+                 save_master_key_method, get_master_key_location_method,
+                 getpwnam_mock, os_chown_mock, is_server_running_mock, locate_file_mock,
+                 os_makedirs_mock, check_exitcode_mock, save_main_pid_ex_mock,
+                 wait_for_pid_mock, looking_for_pid_mock):
      args = MagicMock()
      locate_file_mock.side_effect = lambda *args: '/bin/su' if args[0] == 'su' else '/bin/sh'
      f = MagicMock()
      f.readline.return_value = 42
      openMock.return_value = f
+
+     looking_for_pid_mock.return_value = [{
+          "pid": "777",
+          "exe": "/test",
+          "cmd": "test arg"
+     }]
+     wait_for_pid_mock.return_value = 1
+     check_exitcode_mock.return_value = 0
 
      p = get_ambari_properties_mock.return_value
      p.get_property.return_value = 'False'

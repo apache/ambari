@@ -129,6 +129,7 @@ SETUP_OR_UPGRADE_MSG = "- If this is a new setup, then run the \"ambari-server s
 "- If this is an upgrade of an existing setup, run the \"ambari-server upgrade\" command.\n" \
 "Refer to the Ambari documentation for more information on setup and upgrade."
 
+AMBARI_SERVER_DIE_MSG = "Ambari Server java process died with exitcode {0}. Check {1} for more information."
 #SSL certificate metainfo
 COMMON_NAME_ATTR = 'CN'
 NOT_BEFORE_ATTR = 'notBefore'
@@ -146,7 +147,7 @@ SERVER_START_CMD = "{0}" + os.sep + "bin" + os.sep +\
                  os.getenv('AMBARI_JVM_ARGS', '-Xms512m -Xmx2048m') +\
                  " -cp {1}" + os.pathsep + "{2}" +\
                  " org.apache.ambari.server.controller.AmbariServer "\
-                 ">" + SERVER_OUT_FILE + " 2>&1"
+                 ">" + SERVER_OUT_FILE + " 2>&1 || echo $? > {3} &"
 SERVER_START_CMD_DEBUG = "{0}" + os.sep + "bin" + os.sep +\
                        "java -server -XX:NewRatio=2 -XX:+UseConcMarkSweepGC " +\
                        ambari_provider_module_option +\
@@ -154,7 +155,7 @@ SERVER_START_CMD_DEBUG = "{0}" + os.sep + "bin" + os.sep +\
                        " -Xdebug -Xrunjdwp:transport=dt_socket,address=5005,"\
                        "server=y,suspend=n -cp {1}" + os.pathsep + "{2}" +\
                        " org.apache.ambari.server.controller.AmbariServer"
-SERVER_WRITE_PID_FILE_CMD = "pgrep -f 'org.apache.ambari.server.controller.AmbariServer' > {0}"
+SERVER_SEARCH_PATTERN = "org.apache.ambari.server.controller.AmbariServer"
 SECURITY_PROVIDER_GET_CMD = "{0}" + os.sep + "bin" + os.sep + "java -cp {1}" +\
                           os.pathsep + "{2} " +\
                           "org.apache.ambari.server.security.encryption" +\
@@ -182,7 +183,8 @@ STACK_UPGRADE_HELPER_CMD = "{0}" + os.sep + "bin" + os.sep + "java -cp {1}" +\
                           os.pathsep + "{2} " +\
                           "org.apache.ambari.server.upgrade.StackUpgradeHelper" +\
                           " {3} {4} > " + SERVER_OUT_FILE + " 2>&1"
-
+ULIMIT_CMD = "ulimit -n"
+SERVER_INIT_TIMEOUT = 5
 SERVER_START_TIMEOUT = 10
 SECURITY_KEYS_DIR = "security.server.keys_dir"
 SECURITY_MASTER_KEY_LOCATION = "security.master.key.location"
@@ -226,6 +228,7 @@ JAVA_HOME = "JAVA_HOME"
 PID_DIR = "/var/run/ambari-server"
 BOOTSTRAP_DIR_PROPERTY = "bootstrap.dir"
 PID_NAME = "ambari-server.pid"
+EXITCODE_NAME = "ambari-server.exitcode"
 AMBARI_PROPERTIES_FILE = "ambari.properties"
 AMBARI_PROPERTIES_RPMSAVE_FILE = "ambari.properties.rpmsave"
 RESOURCES_DIR_PROPERTY = "resources.dir"
@@ -2554,10 +2557,17 @@ def start(args):
 
   pidfile = PID_DIR + os.sep + PID_NAME
   command_base = SERVER_START_CMD_DEBUG if (SERVER_DEBUG_MODE or SERVER_START_DEBUG) else SERVER_START_CMD
-  command_base = "ulimit -n " + str(get_ulimit_open_files()) + "; " + command_base
-  command = command_base.format(jdk_path, conf_dir, get_ambari_classpath(), pidfile)
+  command = "%s %s; %s" % (ULIMIT_CMD, str(get_ulimit_open_files()),
+                           command_base.format(jdk_path,
+                                               conf_dir,
+                                               get_ambari_classpath(),
+                                               pidfile,
+                                               os.path.join(PID_DIR, EXITCODE_NAME))
+                           )
   if not os.path.exists(PID_DIR):
     os.makedirs(PID_DIR, 0755)
+
+    #For properly daemonization server should be started using shell as parent
   if is_root() and ambari_user != "root":
     # To inherit exported environment variables (especially AMBARI_PASSPHRASE),
     # from subprocess, we have to skip --login option of su command. That's why
@@ -2567,19 +2577,23 @@ def start(args):
     param_list = [utils.locate_file('su', '/bin'), ambari_user, "-s", utils.locate_file('sh', '/bin'), "-c", command]
   else:
     param_list = [utils.locate_file('sh', '/bin'), "-c", command]
-  pid_params_list = [utils.locate_file('sh', '/bin'), "-c", SERVER_WRITE_PID_FILE_CMD.format(pidfile)]
+
   print_info_msg("Running server: " + str(param_list))
-  server_process = subprocess.Popen(param_list, env=environ)
-  #wait for server process for SERVER_START_TIMEOUT seconds, if err_code None -
-  #server keep running normally and we consider that there is no errors
+  subprocess.Popen(param_list, env=environ)
+
+  #wait for server process for SERVER_START_TIMEOUT seconds
   print "Waiting for server start..."
-  err_code = wait_popen(server_process, SERVER_START_TIMEOUT)
-  if  err_code is not None:
-    raise FatalException(-1, "Ambari Server java process died with exit code {0}. Check {1} for more information.".format(err_code, SERVER_OUT_FILE))
-  write_pid_file_process = subprocess.Popen(pid_params_list, env=environ)
-  print "Server PID at: "+pidfile
-  print "Server out at: "+SERVER_OUT_FILE
-  print "Server log at: "+SERVER_LOG_FILE
+
+  pids = utils.looking_for_pid(SERVER_SEARCH_PATTERN, SERVER_INIT_TIMEOUT)
+  if utils.wait_for_pid(pids, SERVER_START_TIMEOUT) <= 0:
+    exitcode = utils.check_exitcode(os.path.join(PID_DIR, EXITCODE_NAME))
+    raise FatalException(-1, AMBARI_SERVER_DIE_MSG.format(exitcode, SERVER_OUT_FILE))
+  else:
+    utils.save_main_pid_ex(pids, pidfile, [utils.locate_file('sh', '/bin'),
+                                 utils.locate_file('bash', '/bin')], True)
+    print "Server PID at: "+pidfile
+    print "Server out at: "+SERVER_OUT_FILE
+    print "Server log at: "+SERVER_LOG_FILE
 
 
 #
@@ -2620,10 +2634,10 @@ def upgrade_stack(args, stack_id, repo_url=None, repo_url_os=None):
     local_repo_check_commamd = 'yum repolist | grep "{0} "'
   elif OS_FAMILY == OSConst.SUSE_FAMILY:
     local_repo_check_commamd = 'zypper repos | grep "{0} "'
-  
+
   command = local_repo_check_commamd.format(stack_id)
   (retcode, stdout, stderr) = run_in_shell(command)
-  
+
   if not retcode == 0 and repo_url is None:
     raise FatalException(retcode, 'Repository for ' + stack_id + " is not existed")
 
@@ -4261,7 +4275,7 @@ def main():
   matches = 0
   for args_number_required in possible_args_numbers:
     matches += int(len(args) == args_number_required)
-      
+
   if matches == 0:
     print parser.print_help()
     possible_args = ' or '.join(str(x) for x in possible_args_numbers)
