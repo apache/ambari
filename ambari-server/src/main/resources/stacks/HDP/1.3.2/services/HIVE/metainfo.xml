@@ -28,6 +28,10 @@
           <name>HIVE_METASTORE</name>
           <category>MASTER</category>
           <cardinality>1</cardinality>
+          <auto-deploy>
+            <enabled>true</enabled>
+            <co-locate>HIVE/HIVE_SERVER</co-locate>
+          </auto-deploy>
           <commandScript>
             <script>scripts/hive_metastore.py</script>
             <scriptType>PYTHON</scriptType>

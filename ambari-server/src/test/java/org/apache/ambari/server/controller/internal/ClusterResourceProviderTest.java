@@ -175,6 +175,7 @@ public class ClusterResourceProviderTest {
     StackServiceComponentResponse stackServiceComponentResponse1 = createNiceMock(StackServiceComponentResponse.class);
     StackServiceComponentResponse stackServiceComponentResponse2 = createNiceMock(StackServiceComponentResponse.class);
     StackServiceComponentResponse stackServiceComponentResponse3 = createNiceMock(StackServiceComponentResponse.class);
+    StackServiceComponentResponse stackServiceComponentResponse4 = createNiceMock(StackServiceComponentResponse.class);
     Capture<Set<StackServiceComponentRequest>> serviceComponentRequestCapture1 = new Capture<Set<StackServiceComponentRequest>>();
     Capture<Set<StackServiceComponentRequest>> serviceComponentRequestCapture2 = new Capture<Set<StackServiceComponentRequest>>();
 
@@ -182,15 +183,18 @@ public class ClusterResourceProviderTest {
     StackConfigurationResponse stackConfigurationResponse2 = createNiceMock(StackConfigurationResponse.class);
     StackConfigurationResponse stackConfigurationResponse3 = createNiceMock(StackConfigurationResponse.class);
     StackConfigurationResponse stackConfigurationResponse4 = createNiceMock(StackConfigurationResponse.class);
+    StackConfigurationResponse stackConfigurationResponse5 = createNiceMock(StackConfigurationResponse.class);
     Capture<Set<StackConfigurationRequest>> serviceConfigurationRequestCapture1 = new Capture<Set<StackConfigurationRequest>>();
     Capture<Set<StackConfigurationRequest>> serviceConfigurationRequestCapture2 = new Capture<Set<StackConfigurationRequest>>();
 
     BlueprintConfigEntity blueprintConfig = createNiceMock(BlueprintConfigEntity.class);
+    BlueprintConfigEntity blueprintConfig2 = createNiceMock(BlueprintConfigEntity.class);
 
     HostGroupEntity hostGroup = createNiceMock(HostGroupEntity.class);
     HostGroupComponentEntity hostGroupComponent1 = createNiceMock(HostGroupComponentEntity.class);
     HostGroupComponentEntity hostGroupComponent2 = createNiceMock(HostGroupComponentEntity.class);
     HostGroupComponentEntity hostGroupComponent3 = createNiceMock(HostGroupComponentEntity.class);
+    HostGroupComponentEntity hostGroupComponent4 = createNiceMock(HostGroupComponentEntity.class);
 
     HostGroupConfigEntity hostGroupConfig = createNiceMock(HostGroupConfigEntity.class);
 
@@ -208,6 +212,8 @@ public class ClusterResourceProviderTest {
     Capture<Map<String, String>> updateClusterPropertyMapCapture2 = new Capture<Map<String, String>>();
     Capture<Set<ClusterRequest>> updateClusterRequestCapture3 = new Capture<Set<ClusterRequest>>();
     Capture<Map<String, String>> updateClusterPropertyMapCapture3 = new Capture<Map<String, String>>();
+    Capture<Set<ClusterRequest>> updateClusterRequestCapture4 = new Capture<Set<ClusterRequest>>();
+    Capture<Map<String, String>> updateClusterPropertyMapCapture4 = new Capture<Map<String, String>>();
 
     Capture<Request> serviceRequestCapture = new Capture<Request>();
     Capture<Request> componentRequestCapture = new Capture<Request>();
@@ -220,18 +226,20 @@ public class ClusterResourceProviderTest {
     stackServiceResponses.add(stackServiceResponse1);
     stackServiceResponses.add(stackServiceResponse2);
 
-    // service1 has 2 components
+    // service1 has 3 components
     Set<StackServiceComponentResponse> stackServiceComponentResponses1 = new LinkedHashSet<StackServiceComponentResponse>();
     stackServiceComponentResponses1.add(stackServiceComponentResponse1);
     stackServiceComponentResponses1.add(stackServiceComponentResponse2);
+    stackServiceComponentResponses1.add(stackServiceComponentResponse4);
 
     // service2 has 1 components
     Set<StackServiceComponentResponse> stackServiceComponentResponses2 = new LinkedHashSet<StackServiceComponentResponse>();
     stackServiceComponentResponses2.add(stackServiceComponentResponse3);
 
-    // service1 has 1 config
+    // service1 has 2 config
     Set<StackConfigurationResponse> stackConfigurationResponses1 = new LinkedHashSet<StackConfigurationResponse>();
     stackConfigurationResponses1.add(stackConfigurationResponse1);
+    stackConfigurationResponses1.add(stackConfigurationResponse5);
 
     // service2 has 3 config
     Set<StackConfigurationResponse> stackConfigurationResponses2 = new LinkedHashSet<StackConfigurationResponse>();
@@ -243,6 +251,7 @@ public class ClusterResourceProviderTest {
     hostGroupComponents.add(hostGroupComponent1);
     hostGroupComponents.add(hostGroupComponent2);
     hostGroupComponents.add(hostGroupComponent3);
+    hostGroupComponents.add(hostGroupComponent4);
 
     // request properties
     Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
@@ -266,23 +275,32 @@ public class ClusterResourceProviderTest {
     Map<String, String> mapGroupConfigProperties = new HashMap<String, String>();
     mapGroupConfigProperties.put("myGroupProp", "awesomeValue");
 
-    // blueprint cluster configuration properties
-    Map<String, String> blueprintConfigProperties = new HashMap<String, String>();
-    blueprintConfigProperties.put("property1", "value2");
-    blueprintConfigProperties.put("new.property", "new.property.value");
+    // blueprint core-site cluster configuration properties
+    Map<String, String> blueprintCoreConfigProperties = new HashMap<String, String>();
+    blueprintCoreConfigProperties.put("property1", "value2");
+    blueprintCoreConfigProperties.put("new.property", "new.property.value");
+
+    Map<String, String> blueprintGlobalConfigProperties = new HashMap<String, String>();
+    blueprintGlobalConfigProperties.put("hive_database", "New MySQL Database");
+
+    Collection<BlueprintConfigEntity> configurations = new HashSet<BlueprintConfigEntity>();
+    configurations.add(blueprintConfig);
+    configurations.add(blueprintConfig2);
 
     // expectations
     expect(request.getProperties()).andReturn(propertySet).anyTimes();
     expect(blueprintDAO.findByName(blueprintName)).andReturn(blueprint);
     expect(blueprint.getStackName()).andReturn(stackName);
     expect(blueprint.getStackVersion()).andReturn(stackVersion);
-    expect(blueprint.getConfigurations()).andReturn(Collections.<BlueprintConfigEntity>singletonList(blueprintConfig));
+    expect(blueprint.getConfigurations()).andReturn(configurations);
     expect(blueprint.validateConfigurations(metaInfo, PropertyInfo.PropertyType.PASSWORD)).andReturn(
         Collections.<String, Map<String, Collection<String>>>emptyMap());
 
     expect(metaInfo.getComponentDependencies("test", "1.23", "service1", "component1")).
         andReturn(Collections.<DependencyInfo>emptyList());
     expect(metaInfo.getComponentDependencies("test", "1.23", "service1", "component2")).
+        andReturn(Collections.<DependencyInfo>emptyList());
+    expect(metaInfo.getComponentDependencies("test", "1.23", "service1", "MYSQL_SERVER")).
         andReturn(Collections.<DependencyInfo>emptyList());
     expect(metaInfo.getComponentDependencies("test", "1.23", "service2", "component3")).
         andReturn(Collections.<DependencyInfo>emptyList());
@@ -295,6 +313,7 @@ public class ClusterResourceProviderTest {
         andReturn(stackServiceComponentResponses1);
     expect(stackServiceComponentResponse1.getComponentName()).andReturn("component1");
     expect(stackServiceComponentResponse2.getComponentName()).andReturn("component2");
+    expect(stackServiceComponentResponse4.getComponentName()).andReturn("MYSQL_SERVER");
 
     expect(managementController.getStackConfigurations(capture(serviceConfigurationRequestCapture1))).
         andReturn(stackConfigurationResponses1);
@@ -320,9 +339,16 @@ public class ClusterResourceProviderTest {
     expect(stackConfigurationResponse4.getPropertyName()).andReturn("property3");
     expect(stackConfigurationResponse4.getPropertyValue()).andReturn("value3");
 
+    expect(stackConfigurationResponse5.getType()).andReturn("hive-site.xml");
+    expect(stackConfigurationResponse5.getPropertyName()).andReturn("javax.jdo.option.ConnectionURL");
+    expect(stackConfigurationResponse5.getPropertyValue()).andReturn("localhost:12345");
+
     expect(blueprintConfig.getBlueprintName()).andReturn("test-blueprint").anyTimes();
     expect(blueprintConfig.getType()).andReturn("core-site").anyTimes();
-    expect(blueprintConfig.getConfigData()).andReturn(new Gson().toJson(blueprintConfigProperties));
+    expect(blueprintConfig.getConfigData()).andReturn(new Gson().toJson(blueprintCoreConfigProperties)).anyTimes();
+    expect(blueprintConfig2.getBlueprintName()).andReturn("test-blueprint").anyTimes();
+    expect(blueprintConfig2.getType()).andReturn("global").anyTimes();
+    expect(blueprintConfig2.getConfigData()).andReturn(new Gson().toJson(blueprintGlobalConfigProperties)).anyTimes();
 
     expect(blueprint.getHostGroups()).andReturn(Collections.singleton(hostGroup)).anyTimes();
     expect(hostGroup.getName()).andReturn("group1").anyTimes();
@@ -330,6 +356,7 @@ public class ClusterResourceProviderTest {
     expect(hostGroupComponent1.getName()).andReturn("component1").anyTimes();
     expect(hostGroupComponent2.getName()).andReturn("component2").anyTimes();
     expect(hostGroupComponent3.getName()).andReturn("component3").anyTimes();
+    expect(hostGroupComponent4.getName()).andReturn("MYSQL_SERVER").anyTimes();
     expect(hostGroup.getConfigurations()).andReturn(
         Collections.<HostGroupConfigEntity>singleton(hostGroupConfig)).anyTimes();
 
@@ -343,6 +370,8 @@ public class ClusterResourceProviderTest {
         capture(updateClusterPropertyMapCapture2))).andReturn(null);
     expect(managementController.updateClusters(capture(updateClusterRequestCapture3),
         capture(updateClusterPropertyMapCapture3))).andReturn(null);
+    expect(managementController.updateClusters(capture(updateClusterRequestCapture4),
+        capture(updateClusterPropertyMapCapture4))).andReturn(null);
 
     expect(serviceResourceProvider.createResources(capture(serviceRequestCapture))).andReturn(null);
     expect(componentResourceProvider.createResources(capture(componentRequestCapture))).andReturn(null);
@@ -359,10 +388,11 @@ public class ClusterResourceProviderTest {
 
     replay(blueprintDAO, managementController, request, response, blueprint, stackServiceResponse1, stackServiceResponse2,
            stackServiceComponentResponse1, stackServiceComponentResponse2, stackServiceComponentResponse3,
-           stackConfigurationResponse1, stackConfigurationResponse2, stackConfigurationResponse3, stackConfigurationResponse4,
-           blueprintConfig, hostGroup, hostGroupComponent1, hostGroupComponent2, hostGroupComponent3, hostGroupConfig,
-           serviceResourceProvider, componentResourceProvider, hostResourceProvider, hostComponentResourceProvider,
-           configGroupResourceProvider, persistKeyValue, metaInfo);
+           stackServiceComponentResponse4, stackConfigurationResponse1, stackConfigurationResponse2,
+           stackConfigurationResponse3, stackConfigurationResponse4, stackConfigurationResponse5, blueprintConfig,
+           blueprintConfig2, hostGroup, hostGroupComponent1, hostGroupComponent2, hostGroupComponent3, hostGroupComponent4,
+           hostGroupConfig, serviceResourceProvider, componentResourceProvider, hostResourceProvider,
+           hostComponentResourceProvider, configGroupResourceProvider, persistKeyValue, metaInfo);
 
     // test
     ClusterResourceProvider.init(blueprintDAO, metaInfo);
@@ -421,32 +451,40 @@ public class ClusterResourceProviderTest {
     Set<ClusterRequest> updateClusterRequest1 = updateClusterRequestCapture.getValue();
     Set<ClusterRequest> updateClusterRequest2 = updateClusterRequestCapture2.getValue();
     Set<ClusterRequest> updateClusterRequest3 = updateClusterRequestCapture3.getValue();
+    Set<ClusterRequest> updateClusterRequest4 = updateClusterRequestCapture4.getValue();
     assertEquals(1, updateClusterRequest1.size());
     assertEquals(1, updateClusterRequest2.size());
     assertEquals(1, updateClusterRequest3.size());
+    assertEquals(1, updateClusterRequest4.size());
     ClusterRequest ucr1 = updateClusterRequest1.iterator().next();
     ClusterRequest ucr2 = updateClusterRequest2.iterator().next();
     ClusterRequest ucr3 = updateClusterRequest3.iterator().next();
+    ClusterRequest ucr4 = updateClusterRequest4.iterator().next();
     assertEquals(clusterName, ucr1.getClusterName());
     assertEquals(clusterName, ucr2.getClusterName());
     assertEquals(clusterName, ucr3.getClusterName());
+    assertEquals(clusterName, ucr4.getClusterName());
     ConfigurationRequest cr1 = ucr1.getDesiredConfig();
     ConfigurationRequest cr2 = ucr2.getDesiredConfig();
     ConfigurationRequest cr3 = ucr3.getDesiredConfig();
+    ConfigurationRequest cr4 = ucr4.getDesiredConfig();
     assertEquals("1", cr1.getVersionTag());
     assertEquals("1", cr2.getVersionTag());
     assertEquals("1", cr3.getVersionTag());
+    assertEquals("1", cr4.getVersionTag());
     Map<String, ConfigurationRequest> mapConfigRequests = new HashMap<String, ConfigurationRequest>();
     mapConfigRequests.put(cr1.getType(), cr1);
     mapConfigRequests.put(cr2.getType(), cr2);
     mapConfigRequests.put(cr3.getType(), cr3);
-    assertEquals(3, mapConfigRequests.size());
+    mapConfigRequests.put(cr4.getType(), cr4);
+    assertEquals(4, mapConfigRequests.size());
     ConfigurationRequest globalConfigRequest = mapConfigRequests.get("global");
-    assertEquals(4, globalConfigRequest.getProperties().size());
+    assertEquals(5, globalConfigRequest.getProperties().size());
     assertEquals("hadoop", globalConfigRequest.getProperties().get("user_group"));
     assertEquals("ambari-qa", globalConfigRequest.getProperties().get("smokeuser"));
     assertEquals("default@REPLACEME.NOWHERE", globalConfigRequest.getProperties().get("nagios_contact"));
     assertEquals("oozie", globalConfigRequest.getProperties().get("oozie_user"));
+    assertEquals("New MySQL Database", globalConfigRequest.getProperties().get("hive_database"));
     ConfigurationRequest hdfsConfigRequest = mapConfigRequests.get("hdfs-site");
     assertEquals(1, hdfsConfigRequest.getProperties().size());
     assertEquals("value2", hdfsConfigRequest.getProperties().get("property2"));
@@ -457,15 +495,20 @@ public class ClusterResourceProviderTest {
     assertEquals("*", coreConfigRequest.getProperties().get("hadoop.proxyuser.oozie.hosts"));
     assertEquals("users", coreConfigRequest.getProperties().get("hadoop.proxyuser.oozie.groups"));
     assertEquals("new.property.value", coreConfigRequest.getProperties().get("new.property"));
+    ConfigurationRequest hiveConfigRequest = mapConfigRequests.get("hive-site");
+    assertEquals(1, hiveConfigRequest.getProperties().size());
+    assertEquals("host.domain:12345", hiveConfigRequest.getProperties().get("javax.jdo.option.ConnectionURL"));
+
     assertNull(updateClusterPropertyMapCapture.getValue());
     assertNull(updateClusterPropertyMapCapture2.getValue());
     assertNull(updateClusterPropertyMapCapture3.getValue());
+    assertNull(updateClusterPropertyMapCapture4.getValue());
 
     Request serviceRequest = serviceRequestCapture.getValue();
     assertEquals(2, serviceRequest.getProperties().size());
     Request componentRequest = componentRequestCapture.getValue();
     Request componentRequest2 = componentRequestCapture2.getValue();
-    assertEquals(2, componentRequest.getProperties().size());
+    assertEquals(3, componentRequest.getProperties().size());
     Set<String> componentRequest1Names = new HashSet<String>();
     for (Map<String, Object> componentRequest1Properties : componentRequest.getProperties()) {
       assertEquals(3, componentRequest1Properties.size());
@@ -473,7 +516,8 @@ public class ClusterResourceProviderTest {
       assertEquals("service1", componentRequest1Properties.get("ServiceComponentInfo/service_name"));
       componentRequest1Names.add((String) componentRequest1Properties.get("ServiceComponentInfo/component_name"));
     }
-    assertTrue(componentRequest1Names.contains("component1") && componentRequest1Names.contains("component2"));
+    assertTrue(componentRequest1Names.contains("component1") && componentRequest1Names.contains("component2")
+        && componentRequest1Names.contains("MYSQL_SERVER"));
     assertEquals(1, componentRequest2.getProperties().size());
     Map<String, Object> componentRequest2Properties = componentRequest2.getProperties().iterator().next();
     assertEquals(clusterName, componentRequest2Properties.get("ServiceComponentInfo/cluster_name"));
@@ -484,7 +528,7 @@ public class ClusterResourceProviderTest {
     assertEquals(clusterName, hostRequest.getProperties().iterator().next().get("Hosts/cluster_name"));
     assertEquals("host.domain", hostRequest.getProperties().iterator().next().get("Hosts/host_name"));
     Request hostComponentRequest = hostComponentRequestCapture.getValue();
-    assertEquals(3, hostComponentRequest.getProperties().size());
+    assertEquals(4, hostComponentRequest.getProperties().size());
     Set<String> componentNames = new HashSet<String>();
     for (Map<String, Object> hostComponentProperties : hostComponentRequest.getProperties()) {
       assertEquals(3, hostComponentProperties.size());
@@ -493,7 +537,7 @@ public class ClusterResourceProviderTest {
       componentNames.add((String) hostComponentProperties.get("HostRoles/component_name"));
     }
     assertTrue(componentNames.contains("component1") && componentNames.contains("component2") &&
-        componentNames.contains("component3"));
+        componentNames.contains("component3") && componentNames.contains("MYSQL_SERVER"));
 
     Set<ConfigGroupRequest> configGroupRequests = configGroupRequestCapture.getValue();
     assertEquals(1, configGroupRequests.size());
@@ -509,10 +553,11 @@ public class ClusterResourceProviderTest {
 
     verify(blueprintDAO, managementController, request, response, blueprint, stackServiceResponse1, stackServiceResponse2,
         stackServiceComponentResponse1, stackServiceComponentResponse2, stackServiceComponentResponse3,
-        stackConfigurationResponse1, stackConfigurationResponse2, stackConfigurationResponse3, stackConfigurationResponse4,
-        blueprintConfig, hostGroup, hostGroupComponent1, hostGroupComponent2, hostGroupComponent3, hostGroupConfig,
-        serviceResourceProvider, componentResourceProvider, hostResourceProvider, hostComponentResourceProvider,
-        configGroupResourceProvider, persistKeyValue);
+        stackServiceComponentResponse4, stackConfigurationResponse1, stackConfigurationResponse2,
+        stackConfigurationResponse3, stackConfigurationResponse4, stackConfigurationResponse5, blueprintConfig,
+        blueprintConfig2, hostGroup, hostGroupComponent1, hostGroupComponent2, hostGroupComponent3, hostGroupComponent4,
+        hostGroupConfig, serviceResourceProvider, componentResourceProvider, hostResourceProvider,
+        hostComponentResourceProvider, configGroupResourceProvider, persistKeyValue, metaInfo);
   }
 
   @Test
@@ -1863,6 +1908,9 @@ public class ClusterResourceProviderTest {
     final Map<String, String> mProperty =
       Collections.singletonMap("namenode_heapsize", "1025");
 
+    final Map<String, String> databaseProperty =
+        Collections.singletonMap("javax.jdo.option.ConnectionURL", "localhost:12345");
+
     final HostGroup hostGroup1 = createNiceMock(HostGroup.class);
     final HostGroup hostGroup2 = createNiceMock(HostGroup.class);
 
@@ -1892,6 +1940,11 @@ public class ClusterResourceProviderTest {
         .createMock();
 
     replay(managementController, resourceProvider, hostGroup1, hostGroup2);
+
+    Map<String, Map<String, String>> mapConfigurations;
+    Field configField = ClusterResourceProvider.class.getDeclaredField("mapClusterConfigurations");
+    configField.setAccessible(true);
+    mapConfigurations = (Map<String, Map<String, String>>) configField.get(resourceProvider);
 
     Map<String, PropertyUpdater> propertyUpdaterMap;
     Field f = ClusterResourceProvider.class.getDeclaredField("propertyUpdaters");
@@ -1924,6 +1977,13 @@ public class ClusterResourceProviderTest {
     entry = mProperty.entrySet().iterator().next();
     newValue = propertyUpdaterMap.get(entry.getKey()).update(hostGroups, entry.getValue());
     Assert.assertEquals("1025m", newValue);
+
+    Map<String, String> configs = new HashMap<String, String>();
+    configs.put("hive_database", "External MySQL Database");
+    mapConfigurations.put("global", configs);
+    entry = databaseProperty.entrySet().iterator().next();
+    newValue = propertyUpdaterMap.get(entry.getKey()).update(hostGroups, entry.getValue());
+    Assert.assertEquals("localhost:12345", newValue);
 
     verify(managementController, resourceProvider, hostGroup1, hostGroup2);
   }

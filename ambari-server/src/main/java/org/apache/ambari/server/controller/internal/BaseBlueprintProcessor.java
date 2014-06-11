@@ -50,6 +50,8 @@ import java.util.Set;
 /**
  * Base blueprint processing resource provider.
  */
+//todo: this class needs to be refactored to a ClusterTopology class which
+//todo: has hostgroup, stack and configuration state specific to a deployment.
 public abstract class BaseBlueprintProcessor extends AbstractControllerResourceProvider {
 
   /**
@@ -145,12 +147,14 @@ public abstract class BaseBlueprintProcessor extends AbstractControllerResourceP
     Stack stack = new Stack(blueprint.getStackName(), blueprint.getStackVersion());
     Map<String, HostGroup> hostGroupMap = parseBlueprintHostGroups(blueprint, stack);
     Collection<HostGroup> hostGroups = hostGroupMap.values();
+    Map<String, Map<String, String>> clusterConfig = processBlueprintConfigurations(blueprint, null);
     Map<String, Map<String, Collection<DependencyInfo>>> missingDependencies =
         new HashMap<String, Map<String, Collection<DependencyInfo>>>();
 
     Collection<String> services = getTopologyServices(hostGroups);
     for (HostGroup group : hostGroups) {
-      Map<String, Collection<DependencyInfo>> missingGroupDependencies = group.validateTopology(hostGroups, services);
+      Map<String, Collection<DependencyInfo>> missingGroupDependencies =
+          group.validateTopology(hostGroups, services, clusterConfig);
       if (! missingGroupDependencies.isEmpty()) {
         missingDependencies.put(group.getEntity().getName(), missingGroupDependencies);
       }
@@ -166,7 +170,7 @@ public abstract class BaseBlueprintProcessor extends AbstractControllerResourceP
               blueprint, hostGroups, component, autoDeploy));
         } else {
           cardinalityFailures.addAll(verifyComponentCardinalityCount(
-              blueprint, hostGroups, component, cardinality, autoDeploy));
+              blueprint, hostGroups, component, cardinality, autoDeploy, stack, clusterConfig));
         }
       }
     }
@@ -285,6 +289,33 @@ public abstract class BaseBlueprintProcessor extends AbstractControllerResourceP
   }
 
   /**
+   * Determine if a component is managed, meaning that it is running inside of the cluster
+   * topology.  Generally, non-managed dependencies will be database components.
+   *
+   * @param stack          stack instance
+   * @param component      component to determine if it is managed
+   * @param clusterConfig  cluster configuration
+   *
+   * @return true if the specified component managed by the cluster; false otherwise
+   */
+  protected boolean isDependencyManaged(Stack stack, String component, Map<String, Map<String, String>> clusterConfig) {
+    boolean isManaged = true;
+    String externalComponentConfig = stack.getExternalComponentConfig(component);
+    if (externalComponentConfig != null) {
+      String[] toks = externalComponentConfig.split("/");
+      String externalComponentConfigType = toks[0];
+      String externalComponentConfigProp = toks[1];
+      Map<String, String> properties = clusterConfig.get(externalComponentConfigType);
+      if (properties != null && properties.containsKey(externalComponentConfigProp)) {
+        if (properties.get(externalComponentConfigProp).startsWith("Existing")) {
+          isManaged = false;
+        }
+      }
+    }
+    return isManaged;
+  }
+
+  /**
    * Verify that a component meets cardinality requirements.  For components that are
    * auto-install enabled, will add component to topology if needed.
    *
@@ -300,20 +331,22 @@ public abstract class BaseBlueprintProcessor extends AbstractControllerResourceP
                                                              Collection<HostGroup> hostGroups,
                                                              String component,
                                                              Cardinality cardinality,
-                                                             AutoDeployInfo autoDeploy) {
+                                                             AutoDeployInfo autoDeploy,
+                                                             Stack stack,
+                                                             Map<String, Map<String, String>> clusterConfig) {
 
     Collection<String> cardinalityFailures = new HashSet<String>();
 
     int actualCount = getHostGroupsForComponent(component, hostGroups).size();
-    boolean autoDeployed = false;
     if (! cardinality.isValidCount(actualCount)) {
-      if (autoDeploy != null && autoDeploy.isEnabled() && cardinality.cardinality.equals("1")) {
+      boolean validated = ! isDependencyManaged(stack, component, clusterConfig);
+      if (! validated && autoDeploy != null && autoDeploy.isEnabled() && cardinality.cardinality.equals("1")) {
         String coLocateName = autoDeploy.getCoLocate();
         if (coLocateName != null && ! coLocateName.isEmpty()) {
           Collection<HostGroup> coLocateHostGroups = getHostGroupsForComponent(
               coLocateName.split("/")[1], hostGroups);
           if (! coLocateHostGroups.isEmpty()) {
-            autoDeployed = true;
+            validated = true;
             HostGroup group = coLocateHostGroups.iterator().next();
             if (group.addComponent(component)) {
               addComponentToBlueprint(blueprint, group.getEntity().getName(), component);
@@ -321,7 +354,7 @@ public abstract class BaseBlueprintProcessor extends AbstractControllerResourceP
           }
         }
       }
-      if (! autoDeployed) {
+      if (! validated) {
         cardinalityFailures.add(component + "(actual=" + actualCount + ", required=" +
             cardinality.cardinality + ")");
       }
@@ -426,6 +459,14 @@ public abstract class BaseBlueprintProcessor extends AbstractControllerResourceP
         new HashMap<DependencyInfo, String>();
 
     /**
+     * Map of database component name to configuration property which indicates whether
+     * the database in to be managed or if it is an external non-managed instance.
+     * If the value of the config property starts with 'New', the database is determined
+     * to be managed, otherwise it is non-managed.
+     */
+    private Map<String, String> dbDependencyInfo = new HashMap<String, String>();
+
+    /**
      * Map of component to required cardinality
      */
     private Map<String, String> cardinalityRequirements = new HashMap<String, String>();
@@ -462,7 +503,7 @@ public abstract class BaseBlueprintProcessor extends AbstractControllerResourceP
         String serviceName = stackService.getServiceName();
         parseComponents(serviceName);
         parseConfigurations(serviceName);
-        recordConditionalDependencies();
+        registerConditionalDependencies();
       }
     }
 
@@ -597,6 +638,10 @@ public abstract class BaseBlueprintProcessor extends AbstractControllerResourceP
       return dependencyConditionalServiceMap.get(dependency);
     }
 
+    public String getExternalComponentConfig(String component) {
+      return dbDependencyInfo.get(component);
+    }
+
     /**
      * Obtain the required cardinality for the specified component.
      */
@@ -683,7 +728,7 @@ public abstract class BaseBlueprintProcessor extends AbstractControllerResourceP
      * Register conditional dependencies.
      */
     //todo: This information should be specified in the stack definition.
-    private void recordConditionalDependencies() {
+    private void registerConditionalDependencies() {
       Collection<DependencyInfo> nagiosDependencies = getDependenciesForComponent("NAGIOS_SERVER");
       for (DependencyInfo dependency : nagiosDependencies) {
         if (dependency.getComponentName().equals("HCAT")) {
@@ -692,6 +737,7 @@ public abstract class BaseBlueprintProcessor extends AbstractControllerResourceP
           dependencyConditionalServiceMap.put(dependency, "OOZIE");
         }
       }
+      dbDependencyInfo.put("MYSQL_SERVER", "global/hive_database");
     }
   }
 
@@ -837,12 +883,15 @@ public abstract class BaseBlueprintProcessor extends AbstractControllerResourceP
     /**
      * Validate host group topology. This includes ensuring that all component dependencies are satisfied.
      *
-     * @param hostGroups  collection of all host groups
+     * @param hostGroups     collection of all host groups
+     * @param services       set of services in cluster topology
+     * @param clusterConfig  cluster configuration
      *
      * @return map of component to missing dependencies
      */
     public Map<String, Collection<DependencyInfo>> validateTopology(Collection<HostGroup> hostGroups,
-                                                                    Collection<String> services) {
+                                                                    Collection<String> services,
+                                                                    Map<String, Map<String, String>> clusterConfig) {
 
       Map<String, Collection<DependencyInfo>> missingDependencies =
           new HashMap<String, Collection<DependencyInfo>>();
@@ -863,7 +912,7 @@ public abstract class BaseBlueprintProcessor extends AbstractControllerResourceP
 
           if (dependencyScope.equals("cluster")) {
             Collection<String> missingDependencyInfo = verifyComponentCardinalityCount(entity, hostGroups,
-                componentName, new Cardinality("1"), autoDeployInfo);
+                componentName, new Cardinality("1"), autoDeployInfo, stack, clusterConfig);
             resolved = missingDependencyInfo.isEmpty();
           } else if (dependencyScope.equals("host")) {
             if (components.contains(component) || (autoDeployInfo != null && autoDeployInfo.isEnabled())) {

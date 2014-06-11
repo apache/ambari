@@ -860,7 +860,8 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
     // HIVE_SERVER
     propertyUpdaters.put("hive.metastore.uris", new SingleHostPropertyUpdater("HIVE_SERVER"));
     propertyUpdaters.put("hive_ambari_host", new SingleHostPropertyUpdater("HIVE_SERVER"));
-    propertyUpdaters.put("javax.jdo.option.ConnectionURL", new SingleHostPropertyUpdater("MYSQL_SERVER"));
+    propertyUpdaters.put("javax.jdo.option.ConnectionURL",
+        new DBPropertyUpdater("MYSQL_SERVER", "global", "hive_database"));
 
     // OOZIE_SERVER
     propertyUpdaters.put("oozie.base.url", new SingleHostPropertyUpdater("OOZIE_SERVER"));
@@ -1012,9 +1013,71 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
       if (matchingGroups.size() == 1) {
         return origValue.replace("localhost", matchingGroups.iterator().next().getHostInfo().iterator().next());
       } else {
-        throw new IllegalArgumentException("Unable to update configuration properties with topology information. " +
+        throw new IllegalArgumentException("Unable to update configuration property with topology information. " +
             "Component '" + this.component + "' is not mapped to any host group or is mapped to multiple groups.");
       }
+    }
+  }
+
+  /**
+   * Topology based updater which replaces the original host name of a database property with the host name
+   * where the DB is deployed in the new cluster.  If an existing database is specified, the original property
+   * value is returned.
+   */
+  private class DBPropertyUpdater extends SingleHostPropertyUpdater {
+    /**
+     * Property type (global, core-site ...) for property which is used to determine if DB is external.
+     */
+    private final String configPropertyType;
+
+    /**
+     * Name of property which is used to determine if DB is new or existing (exernal).
+     */
+    private final String conditionalPropertyName;
+
+    /**
+     * Constructor.
+     *
+     * @param component                component to get hot name if new DB
+     * @param configPropertyType       config type of property used to determine if DB is external
+     * @param conditionalPropertyName  name of property which is used to determine if DB is external
+     */
+    private DBPropertyUpdater(String component, String configPropertyType, String conditionalPropertyName) {
+      super(component);
+      this.configPropertyType = configPropertyType;
+      this.conditionalPropertyName = conditionalPropertyName;
+    }
+
+    /**
+     * If database is a new managed database, update the property with the new host name which
+     * runs the associated component.  If the database is external (non-managed), return the
+     * original value.
+     *
+     * @param hostGroups  host groups                 host groups
+     * @param origValue   original value of property  original property value
+     *
+     * @return updated property value with old host name replaced by new host name or original value
+     *         if the database is exernal
+     */
+    @Override
+    public String update(Map<String, HostGroup> hostGroups, String origValue) {
+      if (isDatabaseManaged()) {
+        return super.update(hostGroups, origValue);
+      } else {
+        return origValue;
+      }
+    }
+
+    /**
+     * Determine if database is managed, meaning that it is a component in the cluster topology.
+     *
+     * @return true if the DB is managed; false otherwise
+     */
+    //todo: use super.isDependencyManaged() and remove this method
+    private boolean isDatabaseManaged() {
+      // conditional property should always exist since it is required to be specified in the stack
+      return mapClusterConfigurations.get(configPropertyType).
+          get(conditionalPropertyName).startsWith("New");
     }
   }
 
