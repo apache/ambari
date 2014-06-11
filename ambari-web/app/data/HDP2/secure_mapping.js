@@ -198,6 +198,15 @@ module.exports = [
     "serviceName": "MAPREDUCE2"
   },
   {
+    "name": "yarn.timeline-service.enabled",
+    "templateName": [],
+    "foreignKey": null,
+    "value": false,
+    "nonSecureValue": false,
+    "filename": "yarn-site.xml",
+    "serviceName": "YARN"
+  },
+  {
     "name": "yarn.resourcemanager.principal",
     "templateName": ["resourcemanager_principal_name", "kerberos_domain"],
     "foreignKey": null,
