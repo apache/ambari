@@ -28,7 +28,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.concurrent.TimeUnit;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.google.inject.Singleton;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -36,6 +39,8 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import com.google.inject.Inject;
 import org.apache.ambari.server.configuration.Configuration;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 /**
  * Helper class that works with config traversals.
  */
@@ -44,13 +49,22 @@ public class ConfigHelper {
 
   private Clusters clusters = null;
   private AmbariMetaInfo ambariMetaInfo = null;
-  private static String DELETED = "DELETED_";
+  private static final String DELETED = "DELETED_";
   public static final String CLUSTER_DEFAULT_TAG = "tag";
-  
+  private final boolean STALE_CONFIGS_CACHE_ENABLED;
+  private final int STALE_CONFIGS_CACHE_EXPIRATION_TIME = 300;
+  private final Cache<ServiceComponentHost, Boolean> staleConfigsCache;
+
+  private static final Logger LOG =
+    LoggerFactory.getLogger(ConfigHelper.class);
+
   @Inject
-  public ConfigHelper(Clusters c, AmbariMetaInfo metaInfo) {
+  public ConfigHelper(Clusters c, AmbariMetaInfo metaInfo, Configuration configuration) {
     clusters = c;
-    ambariMetaInfo = metaInfo; 
+    ambariMetaInfo = metaInfo;
+    STALE_CONFIGS_CACHE_ENABLED = configuration.isStaleConfigCacheEnabled();
+    staleConfigsCache = CacheBuilder.newBuilder().
+      expireAfterWrite(STALE_CONFIGS_CACHE_EXPIRATION_TIME, TimeUnit.SECONDS).build();
   }
   
   /**
@@ -73,11 +87,9 @@ public class ConfigHelper {
    * @param cluster the cluster
    * @param hostConfigOverrides the host overrides applied using config groups
    * @return a map of tag type to tag names with overrides
-   * @throws AmbariException
    */
   private Map<String, Map<String, String>> getEffectiveDesiredTags(
-      Cluster cluster, Map<String, HostConfig> hostConfigOverrides)
-        throws AmbariException {
+      Cluster cluster, Map<String, HostConfig> hostConfigOverrides) {
     
     Map<String, DesiredConfig> clusterDesired = cluster.getDesiredConfigs();
     
@@ -183,14 +195,15 @@ public class ConfigHelper {
     Map<String, String> finalConfig = new HashMap<String, String>(persistedClusterConfig);
 
     if (override != null && override.size() > 0) {
-      for (String overrideKey : override.keySet()) {
-        Boolean deleted = 0 == overrideKey.indexOf(DELETED);
-        String nameToUse = deleted ? overrideKey.substring(DELETED.length()) : overrideKey;
+      for (Entry<String, String> entry : override.entrySet()) {
+        Boolean deleted = 0 == entry.getKey().indexOf(DELETED);
+        String nameToUse = deleted ?
+          entry.getKey().substring(DELETED.length()) : entry.getKey();
         if (finalConfig.containsKey(nameToUse)) {
           finalConfig.remove(nameToUse);
         }
         if (!deleted) {
-          finalConfig.put(nameToUse, override.get(overrideKey));
+          finalConfig.put(nameToUse, entry.getValue());
         }
       }
     }
@@ -210,7 +223,7 @@ public class ConfigHelper {
     }
     properties.put(nameToUse, value);
   }
-  
+
   /**
    * The purpose of this method is to determine if a {@link ServiceComponentHost}'s
    * known actual configs are different than what is set on the cluster (the desired).
@@ -235,6 +248,51 @@ public class ConfigHelper {
    * @return <code>true</code> if the actual configs are stale
    */
   public boolean isStaleConfigs(ServiceComponentHost sch) throws AmbariException {
+    Boolean stale  = null;
+
+    if (STALE_CONFIGS_CACHE_ENABLED) {
+      stale = staleConfigsCache.getIfPresent(sch);
+    }
+
+    if (stale == null) {
+      stale = calculateIsStaleConfigs(sch);
+      staleConfigsCache.put(sch, stale);
+    }
+    return stale;
+  }
+
+  /**
+   * Invalidates cached isStale values for hostname
+   * @param hostname
+   */
+  public void invalidateStaleConfigsCache(String hostname) {
+    try {
+      for (Cluster cluster : clusters.getClustersForHost(hostname)) {
+        for (ServiceComponentHost sch : cluster.getServiceComponentHosts(hostname)) {
+          invalidateStaleConfigsCache(sch);
+        }
+      }
+    } catch (AmbariException e) {
+      LOG.warn("Unable to find clusters for host " + hostname);
+    }
+  }
+
+  /**
+   * Invalidates isStale cache
+   */
+  public void invalidateStaleConfigsCache() {
+    staleConfigsCache.invalidateAll();
+  }
+
+  /**
+   * Invalidates cached isStale value for sch
+   * @param sch
+   */
+  public void invalidateStaleConfigsCache(ServiceComponentHost sch) {
+    staleConfigsCache.invalidate(sch);
+  }
+
+  private boolean calculateIsStaleConfigs(ServiceComponentHost sch) throws AmbariException {
 
     if (sch.isRestartRequired()) {
       return true;
@@ -302,10 +360,8 @@ public class ConfigHelper {
           if (serviceInfo.hasPropertyFor(type, changed)) {
             stale = true;
           }
-        } else if (!serviceInfo.hasConfigType(type)) {
-          stale = false;
         } else {
-          stale = true;
+          stale = serviceInfo.hasConfigType(type);
         }
       }
     }
@@ -410,6 +466,6 @@ public class ConfigHelper {
     return names;
   }
 
-  
-  
+
+
 }

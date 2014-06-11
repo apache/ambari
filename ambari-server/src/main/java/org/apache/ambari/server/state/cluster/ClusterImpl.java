@@ -347,6 +347,7 @@ public class ClusterImpl implements Cluster {
             + ", tag = " + configGroup.getTag());
         } else {
           clusterConfigGroups.put(configGroup.getId(), configGroup);
+          configHelper.invalidateStaleConfigsCache();
         }
 
       } finally {
@@ -493,7 +494,7 @@ public class ClusterImpl implements Cluster {
 
         configGroup.delete();
         clusterConfigGroups.remove(id);
-
+        configHelper.invalidateStaleConfigsCache();
       } finally {
         readWriteLock.writeLock().unlock();
       }
@@ -1097,7 +1098,7 @@ public class ClusterImpl implements Cluster {
       readWriteLock.readLock().lock();
       try {
         Map<String, Host> hosts = clusters.getHostsForCluster(getClusterName());
-        ClusterResponse r = new ClusterResponse(getClusterId(), 
+        ClusterResponse r = new ClusterResponse(getClusterId(),
           getClusterName(), getProvisioningState(), hosts.keySet(), hosts.size(),
           getDesiredStackVersion().getStackId(), getClusterHealthReport());
 
@@ -1118,19 +1119,19 @@ public class ClusterImpl implements Cluster {
     try {
       readWriteLock.readLock().lock();
       try {
-        sb.append("Cluster={ clusterName=" + getClusterName()
-          + ", clusterId=" + getClusterId()
-          + ", desiredStackVersion=" + desiredStackVersion.getStackId()
-          + ", services=[ ");
+        sb.append("Cluster={ clusterName=").append(getClusterName())
+          .append(", clusterId=").append(getClusterId())
+          .append(", desiredStackVersion=").append(desiredStackVersion.getStackId())
+          .append(", services=[ ");
         boolean first = true;
         for (Service s : services.values()) {
           if (!first) {
             sb.append(" , ");
-            first = false;
           }
+          first = false;
           sb.append("\n    ");
           s.debugDump(sb);
-          sb.append(" ");
+          sb.append(' ');
         }
         sb.append(" ] }");
       } finally {
@@ -1308,7 +1309,7 @@ public class ClusterImpl implements Cluster {
         entities.add(entity);
 
         clusterDAO.merge(clusterEntity);
-
+        configHelper.invalidateStaleConfigsCache();
         return true;
       } finally {
         readWriteLock.writeLock().unlock();

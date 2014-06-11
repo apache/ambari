@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.state.svccomphost;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -38,6 +37,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
+import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostConfig;
 import org.apache.ambari.server.state.MaintenanceState;
@@ -87,6 +87,8 @@ public class ServiceComponentHostTest {
   private ConfigFactory configFactory;
   @Inject
   private ConfigGroupFactory configGroupFactory;
+  @Inject
+  private ConfigHelper configHelper;
 
   @Before
   public void setup() throws Exception {
@@ -104,7 +106,7 @@ public class ServiceComponentHostTest {
   }
   
   private void setOsFamily(Host host, String osFamily, String osVersion) {
-    Map<String, String> hostAttributes = new HashMap<String, String>();
+    Map<String, String> hostAttributes = new HashMap<String, String>(2);
     hostAttributes.put("os_family", osFamily);
     hostAttributes.put("os_release_version", osVersion);
     
@@ -179,18 +181,16 @@ public class ServiceComponentHostTest {
   private ServiceComponentHostEvent createEvent(ServiceComponentHostImpl impl,
       long timestamp, ServiceComponentHostEventType eventType)
       throws AmbariException {
-    Map<String, String> configs = new HashMap<String, String>();
 
     Cluster c = clusters.getCluster("C1");
-    if (c.getConfig("time", "" + timestamp) == null) {
+    if (c.getConfig("time", String.valueOf(timestamp)) == null) {
       Config config = configFactory.createNew (c, "time",
           new HashMap<String, String>());
-      config.setVersionTag("" + timestamp);
+      config.setVersionTag(String.valueOf(timestamp));
       c.addConfig(config);
       config.persist();
     }
 
-    configs.put("time", "" + timestamp);
     switch (eventType) {
       case HOST_SVCCOMP_INSTALL:
         return new ServiceComponentHostInstallEvent(
@@ -688,7 +688,7 @@ public class ServiceComponentHostTest {
     
     makeConfig(cluster, "hdfs-site", "version1",
         new HashMap<String,String>() {{ put("a", "b"); }});
-    
+
     // HDP-x/HDFS/hdfs-site is not on the actual, but it is defined, so it is stale
     Assert.assertTrue(sch1.convertToResponse().isStaleConfig());
     Assert.assertTrue(sch2.convertToResponse().isStaleConfig());
@@ -696,11 +696,21 @@ public class ServiceComponentHostTest {
     actual.put("hdfs-site", new HashMap<String, String>() {{ put ("tag", "version1"); }});
     
     sch1.updateActualConfigs(actual);
+    // previous value from cache
+    Assert.assertTrue(sch1.convertToResponse().isStaleConfig());
+    //reset restartRequired flag + invalidating isStale cache
+    // after start/restart command execution completed
+    sch1.setRestartRequired(false);
     // HDP-x/HDFS/hdfs-site up to date, only for sch1
     Assert.assertFalse(sch1.convertToResponse().isStaleConfig());
     Assert.assertTrue(sch2.convertToResponse().isStaleConfig());
     
     sch2.updateActualConfigs(actual);
+    // previous value from cache
+    Assert.assertTrue(sch2.convertToResponse().isStaleConfig());
+    //reset restartRequired flag + invalidating isStale cache(
+    // after start/restart command execution completed)
+    sch2.setRestartRequired(false);
     // HDP-x/HDFS/hdfs-site up to date for both
     Assert.assertFalse(sch1.convertToResponse().isStaleConfig());
     Assert.assertFalse(sch2.convertToResponse().isStaleConfig());
@@ -715,6 +725,10 @@ public class ServiceComponentHostTest {
     actual.get("hdfs-site").put("tag", "version2");
     sch1.updateActualConfigs(actual);
     sch2.updateActualConfigs(actual);
+    //reset restartRequired flag + invalidating isStale cache
+    // after start/restart command execution completed
+    sch1.setRestartRequired(false);
+    sch2.setRestartRequired(false);
     // HDP-x/HDFS/hdfs-site updated to changed property
     Assert.assertFalse(sch1.convertToResponse().isStaleConfig());
     Assert.assertFalse(sch2.convertToResponse().isStaleConfig());
@@ -741,11 +755,21 @@ public class ServiceComponentHostTest {
     
     actual.get("hdfs-site").put(configGroup.getId().toString(), "version3");
     sch2.updateActualConfigs(actual);
+    // previous value from cache
+    Assert.assertTrue(sch2.convertToResponse().isStaleConfig());
+    //reset restartRequired flag + invalidating isStale cache
+    // after start/restart command execution completed
+    sch2.setRestartRequired(false);
     // HDP-x/HDFS/hdfs-site updated host to changed property
     Assert.assertTrue(sch1.convertToResponse().isStaleConfig());
     Assert.assertFalse(sch2.convertToResponse().isStaleConfig());
     
     sch1.updateActualConfigs(actual);
+    // previous value from cache
+    Assert.assertTrue(sch1.convertToResponse().isStaleConfig());
+    //reset restartRequired flag + invalidating isStale cache
+    // after start/restart command execution completed
+    sch1.setRestartRequired(false);
     // HDP-x/HDFS/hdfs-site updated host to changed property
     Assert.assertFalse(sch1.convertToResponse().isStaleConfig());
     Assert.assertFalse(sch2.convertToResponse().isStaleConfig());
@@ -796,11 +820,16 @@ public class ServiceComponentHostTest {
 
     // Test actual configs are updated for deleted config group
     Long id = configGroup.getId();
-    HashMap<String, String> tags = new HashMap<String, String>();
+    HashMap<String, String> tags = new HashMap<String, String>(2);
     tags.put("tag", "version1");
     tags.put(id.toString(), "version2");
     actual.put("core-site", tags);
     sch3.updateActualConfigs(actual);
+    // previous value from cache
+    Assert.assertTrue(sch3.convertToResponse().isStaleConfig());
+    //reset restartRequired flag + invalidating isStale cache
+    // after start/restart command execution completed
+    sch3.setRestartRequired(false);
 
     Assert.assertFalse(sch3.convertToResponse().isStaleConfig());
 
@@ -812,6 +841,11 @@ public class ServiceComponentHostTest {
 
     tags.remove(id.toString());
     sch3.updateActualConfigs(actual);
+    // previous value from cache
+    Assert.assertTrue(sch3.convertToResponse().isStaleConfig());
+    //reset restartRequired flag + invalidating isStale cache
+    // after start/restart command execution completed
+    sch3.setRestartRequired(false);
     Assert.assertFalse(sch3.convertToResponse().isStaleConfig());
   }
 

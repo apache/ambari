@@ -531,7 +531,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
             (ServiceComponentHostInstallEvent) event;
         if (LOG.isDebugEnabled()) {
           LOG.debug("Updating live stack version during INSTALL event"
-              + ", new stack verion=" + e.getStackId());
+              + ", new stack version=" + e.getStackId());
         }
         impl.setStackVersion(new StackId(e.getStackId()));
       }
@@ -1112,15 +1112,15 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     try {
       readLock.lock();
       try {
-        sb.append("ServiceComponentHost={ hostname=" + getHostName()
-            + ", serviceComponentName=" + serviceComponent.getName()
-            + ", clusterName=" + serviceComponent.getClusterName()
-            + ", serviceName=" + serviceComponent.getServiceName()
-            + ", desiredStackVersion=" + getDesiredStackVersion()
-            + ", desiredState=" + getDesiredState()
-            + ", stackVersion=" + getStackVersion()
-            + ", state=" + getState()
-            + " }");
+        sb.append("ServiceComponentHost={ hostname=").append(getHostName())
+          .append(", serviceComponentName=").append(serviceComponent.getName())
+          .append(", clusterName=").append(serviceComponent.getClusterName())
+          .append(", serviceName=").append(serviceComponent.getServiceName())
+          .append(", desiredStackVersion=").append(getDesiredStackVersion())
+          .append(", desiredState=").append(getDesiredState())
+          .append(", stackVersion=").append(getStackVersion())
+          .append(", state=").append(getState())
+          .append(" }");
       } finally {
         readLock.unlock();
       }
@@ -1462,6 +1462,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       try {
         desiredStateEntity.setRestartRequired(restartRequired);
         saveIfPersisted();
+        helper.invalidateStaleConfigsCache(this);
       } finally {
         writeLock.unlock();
       }

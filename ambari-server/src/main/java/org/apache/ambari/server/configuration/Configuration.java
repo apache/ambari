@@ -138,6 +138,8 @@ public class Configuration {
   public static final String ADMIN_ROLE_NAME_KEY =
       "authorization.adminRoleName";
   public static final String SERVER_EC_CACHE_SIZE = "server.ecCacheSize";
+  public static final String SERVER_STALE_CONFIG_CACHE_ENABLED_KEY =
+    "server.cache.isStale.enabled";
   public static final String SERVER_PERSISTENCE_TYPE_KEY = "server.persistence.type";
   public static final String SERVER_JDBC_USER_NAME_KEY = "server.jdbc.user.name";
   public static final String SERVER_JDBC_USER_PASSWD_KEY = "server.jdbc.user.passwd";
@@ -231,6 +233,7 @@ public class Configuration {
       "/var/lib/ambari-server/resources/custom_action_definitions";
 
   private static final long SERVER_EC_CACHE_SIZE_DEFAULT = 10000L;
+  private static final String SERVER_STALE_CONFIG_CACHE_ENABLED_DEFAULT = "true";
   private static final String SERVER_JDBC_USER_NAME_DEFAULT = "ambari";
   private static final String SERVER_JDBC_USER_PASSWD_DEFAULT = "bigdata";
   private static final String SERVER_JDBC_RCA_USER_NAME_DEFAULT = "mapred";
@@ -440,10 +443,7 @@ public class Configuration {
   }
 
   private synchronized void loadCredentialProvider() {
-    if (credentialProviderInitialized) {
-      return;
-    }
-    else {
+    if (!credentialProviderInitialized) {
       try {
         this.credentialProvider = new CredentialProvider(null,
           getMasterKeyLocation(), isMasterKeyPersisted());
@@ -501,8 +501,7 @@ public class Configuration {
   }
 
   public String getBootStrapScript() {
-    String bootscript = properties.getProperty(BOOTSTRAP_SCRIPT, BOOTSTRAP_SCRIPT_DEFAULT);
-    return bootscript;
+    return properties.getProperty(BOOTSTRAP_SCRIPT, BOOTSTRAP_SCRIPT_DEFAULT);
   }
 
   public String getBootSetupAgentScript() {
@@ -603,7 +602,7 @@ public class Configuration {
    * Check to see if two-way SSL auth should be used between server and agents
    * or not
    *
-   * @return
+   * @return true two-way SSL authentication is enabled
    */
   public boolean getTwoWaySsl() {
     return ("true".equals(properties.getProperty(SRVR_TWO_WAY_SSL_KEY,
@@ -899,6 +898,16 @@ public class Configuration {
     }
 
     return value;
+  }
+
+  /**
+   * @return cache expiration time in seconds
+   */
+  public boolean isStaleConfigCacheEnabled() {
+    String stringValue =
+      properties.getProperty(SERVER_STALE_CONFIG_CACHE_ENABLED_KEY,
+        SERVER_STALE_CONFIG_CACHE_ENABLED_DEFAULT);
+    return "true".equalsIgnoreCase(stringValue);
   }
   
   /**

@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Pattern;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.HostNotFoundException;
@@ -38,6 +39,7 @@ import org.apache.ambari.server.state.AgentVersion;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
+import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostHealthStatus;
 import org.apache.ambari.server.state.HostHealthStatus.HealthStatus;
@@ -77,6 +79,7 @@ import com.google.inject.Singleton;
  */
 @Singleton
 public class HeartBeatHandler {
+  private static final Pattern DOT_PATTERN = Pattern.compile("\\.");
   private static Log LOG = LogFactory.getLog(HeartBeatHandler.class);
   private final Clusters clusterFsm;
   private final ActionQueue actionQueue;
@@ -92,6 +95,8 @@ public class HeartBeatHandler {
   private HeartbeatMonitor heartbeatMonitor;
   @Inject
   private Gson gson;
+  @Inject
+  ConfigHelper configHelper;
   private Map<String, Long> hostResponseIds = new ConcurrentHashMap<String, Long>();
   private Map<String, HeartBeatResponse> hostResponses = new ConcurrentHashMap<String, HeartBeatResponse>();
 
@@ -276,11 +281,11 @@ public class HeartBeatHandler {
         }
 
         if (masterCount == mastersRunning && slaveCount == slavesRunning) {
-          healthStatus = HostHealthStatus.HealthStatus.HEALTHY;
+          healthStatus = HealthStatus.HEALTHY;
         } else if (masterCount > 0 && mastersRunning < masterCount) {
-          healthStatus = HostHealthStatus.HealthStatus.UNHEALTHY;
+          healthStatus = HealthStatus.UNHEALTHY;
         } else {
-          healthStatus = HostHealthStatus.HealthStatus.ALERT;
+          healthStatus = HealthStatus.ALERT;
         }
 
         host.setStatus(healthStatus.name());
@@ -289,7 +294,7 @@ public class HeartBeatHandler {
 
       //If host doesn't belongs to any cluster
       if ((clusterFsm.getClustersForHost(host.getHostName())).size() == 0) {
-        healthStatus = HostHealthStatus.HealthStatus.HEALTHY;
+        healthStatus = HealthStatus.HEALTHY;
         host.setStatus(healthStatus.name());
         host.persist();
       }
@@ -324,7 +329,6 @@ public class HeartBeatHandler {
           ServiceComponent svcComp = svc.getServiceComponent(report.getRole());
           ServiceComponentHost scHost = svcComp.getServiceComponentHost(hostname);
           String schName = scHost.getServiceComponentName();
-          State state = scHost.getState();
 
           if (report.getStatus().equals("COMPLETED")) {
             // Updating stack version, if needed
@@ -337,7 +341,7 @@ public class HeartBeatHandler {
                 && null != report.getConfigurationTags()
                 && !report.getConfigurationTags().isEmpty()) {
               LOG.info("Updating applied config on service " + scHost.getServiceName() +
-                  ", component " + scHost.getServiceComponentName() + ", host " + scHost.getHostName());
+                ", component " + scHost.getServiceComponentName() + ", host " + scHost.getHostName());
               scHost.updateActualConfigs(report.getConfigurationTags());
               scHost.setRestartRequired(false);
             }
@@ -533,7 +537,7 @@ public class HeartBeatHandler {
       osType = os;
     }
     if (osRelease != null) {
-      String[] release = osRelease.split("\\.");
+      String[] release = DOT_PATTERN.split(osRelease);
       if (release.length > 0) {
         osType += release[0];
       }
@@ -584,12 +588,12 @@ public class HeartBeatHandler {
           + " os type"
           + ", hostname=" + hostname
           + ", serverOsType=" + config.getServerOsType()
-          + ", agentOstype=" + agentOsType);
+          + ", agentOsType=" + agentOsType);
       throw new AmbariException("Cannot register host with not supported"
           + " os type"
           + ", hostname=" + hostname
           + ", serverOsType=" + config.getServerOsType()
-          + ", agentOstype=" + agentOsType);
+          + ", agentOsType=" + agentOsType);
     }
 
     Host hostObject;
@@ -618,6 +622,9 @@ public class HeartBeatHandler {
       hostObject.handleEvent(new HostStatusUpdatesReceivedEvent(hostname,
           now));
     }
+
+    configHelper.invalidateStaleConfigsCache(hostname);
+
     response.setStatusCommands(cmds);
 
     response.setResponseStatus(RegistrationStatus.OK);
@@ -633,7 +640,7 @@ public class HeartBeatHandler {
    * hasMappedComponents - indicates if any components are mapped to the host
    * @param hostname
    * @param response
-   * @throws AmbariException
+   * @throws org.apache.ambari.server.AmbariException
    */
   private void annotateResponse(String hostname, HeartBeatResponse response) throws AmbariException {
     for (Cluster cl : this.clusterFsm.getClustersForHost(hostname)) {
@@ -646,10 +653,10 @@ public class HeartBeatHandler {
   }
 
   /**
-   * Response
+   * Response contains information about HDP Stack in use
    * @param clusterName
-   * @return
-   * @throws AmbariException
+   * @return @ComponentsResponse
+   * @throws org.apache.ambari.server.AmbariException
    */
   public ComponentsResponse handleComponents(String clusterName)
       throws AmbariException {
