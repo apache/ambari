@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.controller.nagios;
 
+import org.apache.ambari.server.state.Alert;
+
 /**
  * Represents a Nagios alert as represented by the JSON returning from the HTTP
  * call.
@@ -38,6 +40,33 @@ public class NagiosAlert {
   private String service_type = null;
   private String long_plugin_output = null;
 
+  
+  /**
+   * Use a cluster alert as the basis for this alert.  This bridge can be
+   * removed when Nagios is not longer the Source For Alerts.
+   */
+  public NagiosAlert(Alert alert) {
+    service_type = alert.getService();
+    host_name = alert.getHost();
+    switch (alert.getState()) {
+    case CRITICAL:
+      current_state = "2";
+      break;
+    case OK:
+      current_state = "0";
+      break;
+    case WARNING:
+      current_state = "1";
+      break;
+    default:
+      current_state = "3";
+      break;
+    }
+    
+    service_description = alert.getLabel();
+    plugin_output = alert.getText();
+    
+  }
   
   public NagiosAlert() {
   }

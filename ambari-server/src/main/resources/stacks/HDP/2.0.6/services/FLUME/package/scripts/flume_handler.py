@@ -59,6 +59,22 @@ class FlumeHandler(Script):
 
     json = {}
     json['processes'] = processes
+    json['alerts'] = []
+
+    for proc in processes:
+      alert = {}
+      alert['name'] = 'flume_agent'
+      alert['instance'] = proc['name']
+      alert['label'] = 'Flume Agent process'
+
+      if not proc.has_key('status') or proc['status'] == 'NOT_RUNNING':
+        alert['state'] = 'CRITICAL'
+        alert['text'] = 'Flume agent {0} not running'.format(proc['name'])
+      else:
+        alert['state'] = 'OK'
+        alert['text'] = 'Flume agent {0} is running'.format(proc['name'])
+
+      json['alerts'].append(alert)
 
     self.put_structured_out(json)
 

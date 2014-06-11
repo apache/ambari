@@ -19,6 +19,7 @@ package org.apache.ambari.server.agent;
 
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DATANODE;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyCluster;
+import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyCurrentPingPort;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyHostStatus;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyHostname1;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyOSRelease;
@@ -31,7 +32,6 @@ import static org.apache.ambari.server.agent.DummyHeartbeatConstants.HDFS;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.HDFS_CLIENT;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.NAMENODE;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.SECONDARY_NAMENODE;
-import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyCurrentPingPort;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -52,20 +52,26 @@ import java.util.Set;
 
 import javax.xml.bind.JAXBException;
 
-import com.google.inject.persist.UnitOfWork;
-
 import junit.framework.Assert;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
-import org.apache.ambari.server.actionmanager.*;
+import org.apache.ambari.server.actionmanager.ActionDBAccessor;
+import org.apache.ambari.server.actionmanager.ActionDBAccessorImpl;
+import org.apache.ambari.server.actionmanager.ActionManager;
+import org.apache.ambari.server.actionmanager.HostRoleStatus;
+import org.apache.ambari.server.actionmanager.Request;
+import org.apache.ambari.server.actionmanager.RequestFactory;
+import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.agent.HostStatus.Status;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.HostsMap;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.state.Alert;
+import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
@@ -92,6 +98,7 @@ import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
+import com.google.inject.persist.UnitOfWork;
 
 public class TestHeartbeatHandler {
 
@@ -1960,6 +1967,34 @@ public class TestHeartbeatHandler {
     ServiceComponentHost sch = hdfs.getServiceComponent(DATANODE).getServiceComponentHost(DummyHostname1); 
 
     Assert.assertEquals(Integer.valueOf(2), Integer.valueOf(sch.getProcesses().size()));
+    
+    hb = new HeartBeat();
+    hb.setTimestamp(System.currentTimeMillis());
+    hb.setResponseId(1);
+    hb.setHostname(DummyHostname1);
+    hb.setNodeStatus(new HostStatus(Status.HEALTHY, DummyHostStatus));
+    hb.setReports(new ArrayList<CommandReport>());
+    
+    componentStatus1 = new ComponentStatus();
+    componentStatus1.setClusterName(DummyCluster);
+    componentStatus1.setServiceName(HDFS);
+    componentStatus1.setMessage(DummyHostStatus);
+    componentStatus1.setStatus(State.STARTED.name());
+    componentStatus1.setComponentName(DATANODE);
+    componentStatus1.setAlerts(Collections.singletonList(
+        new AgentAlert("xyz", AlertState.CRITICAL)));
+    hb.setComponentStatus(Collections.singletonList(componentStatus1));
+    
+    handler.handleHeartBeat(hb);
+    
+    Assert.assertNotNull(hdfs.getCluster().getAlerts());
+    Assert.assertEquals(1, hdfs.getCluster().getAlerts().size());
+    Alert clusterAlert = hdfs.getCluster().getAlerts().iterator().next();
+    Assert.assertNotNull(clusterAlert);
+    Assert.assertEquals(HDFS, clusterAlert.getService());
+    Assert.assertEquals(DATANODE, clusterAlert.getComponent());
+    Assert.assertEquals(DummyHostname1, clusterAlert.getHost());
+    Assert.assertEquals(AlertState.CRITICAL, clusterAlert.getState());
   }
   
   @Test

@@ -146,6 +146,15 @@ class TestActionQueue(TestCase):
     'hostLevelParams':{'custom_command': 'RESTART'}
   }
 
+  status_command_for_alerts = {
+    "serviceName" : 'FLUME',
+    "commandType" : "STATUS_COMMAND",
+    "clusterName" : "",
+    "componentName" : "FLUME_HANDLER",
+    'configurations':{},
+    'hostLevelParams': {}
+  }
+
   @patch.object(ActionQueue, "process_command")
   @patch.object(Queue, "get")
   @patch.object(CustomServiceOrchestrator, "__init__")
@@ -444,3 +453,35 @@ class TestActionQueue(TestCase):
     self.assertEqual(len(report['componentStatus']), 1)
     self.assertEqual(report['componentStatus'][0], expected)
     self.assertTrue(requestComponentStatus_mock.called)
+
+  @patch.object(ActionQueue, "status_update_callback")
+  @patch.object(StackVersionsFileHandler, "read_stack_version")
+  @patch.object(CustomServiceOrchestrator, "requestComponentStatus")
+  @patch.object(ActionQueue, "execute_command")
+  @patch.object(LiveStatus, "build")
+  @patch.object(CustomServiceOrchestrator, "__init__")
+  def test_execute_status_command_with_alerts(self, CustomServiceOrchestrator_mock,
+                                  build_mock, execute_command_mock,
+                                  requestComponentStatus_mock, read_stack_version_mock,
+                                  status_update_callback):
+    CustomServiceOrchestrator_mock.return_value = None
+    dummy_controller = MagicMock()
+    actionQueue = ActionQueue(AmbariConfig().getConfig(), dummy_controller)
+
+
+    requestComponentStatus_mock.reset_mock()
+    requestComponentStatus_mock.return_value = {
+      'exitcode': 0,
+      'stdout': 'out',
+      'stderr': 'err',
+      'structuredOut': {'alerts': [ {'name': 'flume_alert'} ] }
+    }
+    build_mock.return_value = {'somestatusresult': 'aresult'}
+
+    actionQueue.execute_status_command(self.status_command_for_alerts)
+
+    report = actionQueue.result()
+
+    self.assertTrue(requestComponentStatus_mock.called)
+    self.assertEqual(len(report['componentStatus']), 1)
+    self.assertTrue(report['componentStatus'][0].has_key('alerts'))

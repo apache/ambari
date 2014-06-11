@@ -36,7 +36,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.persistence.RollbackException;
 
-import com.google.common.collect.ListMultimap;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ServiceComponentHostNotFoundException;
 import org.apache.ambari.server.ServiceNotFoundException;
@@ -55,7 +54,9 @@ import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.ClusterStateEntity;
 import org.apache.ambari.server.orm.entities.ConfigGroupEntity;
 import org.apache.ambari.server.orm.entities.RequestScheduleEntity;
+import org.apache.ambari.server.state.Alert;
 import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.ClusterHealthReport;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
@@ -70,7 +71,6 @@ import org.apache.ambari.server.state.ServiceComponentHostEvent;
 import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
-import org.apache.ambari.server.state.ClusterHealthReport;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
@@ -79,6 +79,7 @@ import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ListMultimap;
 import com.google.gson.Gson;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
@@ -131,6 +132,8 @@ public class ClusterImpl implements Cluster {
   private final ReadWriteLock clusterGlobalLock = new ReentrantReadWriteLock();
 
   private ClusterEntity clusterEntity;
+  
+  private Set<Alert> clusterAlerts = new HashSet<Alert>(); 
 
   @Inject
   private ClusterDAO clusterDAO;
@@ -1550,5 +1553,34 @@ public class ClusterImpl implements Cluster {
     chr.setHealthyStatusHosts(healthyStatusHosts);
 
     return chr;
+  }
+  
+  @Override
+  public void addAlerts(Collection<Alert> alerts) {
+    try {
+      writeLock.lock();
+      if (LOG.isDebugEnabled()) {
+        for (Alert alert : alerts) {
+          LOG.debug("Adding alert for name={} service={}, on host={}",
+              alert.getName(), alert.getService(), alert.getHost());
+        }
+      }
+      clusterAlerts.removeAll(alerts);
+      clusterAlerts.addAll(alerts);
+
+    } finally {
+      writeLock.unlock();
+    }
+  }
+  
+  @Override
+  public Collection<Alert> getAlerts() {
+    try {
+      readLock.lock();
+      
+      return Collections.unmodifiableSet(clusterAlerts);
+    } finally {
+      readLock.unlock();
+    }
   }
 }

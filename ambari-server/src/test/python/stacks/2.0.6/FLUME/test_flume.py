@@ -97,7 +97,7 @@ class TestFlumeHandler(RMFTestCase):
     
     # test that the method was called with empty processes
     self.assertTrue(structured_out_mock.called)
-    structured_out_mock.assert_called_with({'processes': []})
+    structured_out_mock.assert_called_with({'processes': [], 'alerts': []})
 
     self.assertNoMoreResources()
 
@@ -118,9 +118,10 @@ class TestFlumeHandler(RMFTestCase):
     
     self.assertTrue(structured_out_mock.called)
 
-    structured_out_mock.assert_called_with({'processes':
-      [{'status': 'NOT_RUNNING', 'channels_count': 0, 'sinks_count': 0,
-        'name': 'a1', 'sources_count': 0}]})
+    # call_args[0] is a tuple, whose first element is the actual call argument
+    struct_out = structured_out_mock.call_args[0][0]
+    self.assertTrue(struct_out.has_key('processes'))
+    self.assertTrue(struct_out.has_key('alerts'))
 
     self.assertNoMoreResources()
 

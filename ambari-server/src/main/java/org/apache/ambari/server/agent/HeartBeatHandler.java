@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.agent;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,6 +37,7 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.state.AgentVersion;
+import org.apache.ambari.server.state.Alert;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
@@ -454,6 +456,22 @@ public class HeartBeatHandler {
                       scHost.getHostName() + ": " + status.getExtra() +
                       " (" + e.getMessage() + ")");
                 }
+              }
+              
+              if (null != status.getAlerts()) {
+                List<Alert> clusterAlerts = new ArrayList<Alert>();
+                for (AgentAlert aa : status.getAlerts()) {
+                  Alert alert = new Alert(aa.getName(), aa.getInstance(),
+                      scHost.getServiceName(), scHost.getServiceComponentName(),
+                      scHost.getHostName(), aa.getState());
+                  alert.setLabel(aa.getLabel());
+                  alert.setText(aa.getText());
+                  
+                  clusterAlerts.add(alert);
+                }
+                
+               if (0 != clusterAlerts.size())
+                 cl.addAlerts(clusterAlerts);
               }
               
 

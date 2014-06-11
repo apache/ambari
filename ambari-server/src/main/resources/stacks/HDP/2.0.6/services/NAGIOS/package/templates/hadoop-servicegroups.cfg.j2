@@ -39,12 +39,6 @@ define servicegroup {
   alias  YARN Checks
 }
 {% endif %}
-{%if hostgroup_defs['flume-servers'] %}
-define servicegroup {
-  servicegroup_name  FLUME
-  alias  FLUME Checks
-}
-{% endif %}
 {%if hostgroup_defs['hbasemasters'] %}
 define servicegroup {
   servicegroup_name  HBASE

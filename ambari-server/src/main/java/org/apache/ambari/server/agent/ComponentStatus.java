@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.agent;
 
+import java.util.List;
 import java.util.Map;
 
 
@@ -32,6 +33,7 @@ public class ComponentStatus {
   private String stackVersion;
   private Map<String, Map<String, String>> configurationTags;
   private Map<String, Object> extra;
+  private List<AgentAlert> alerts;
 
   public String getComponentName() {
     return this.componentName;
@@ -116,6 +118,20 @@ public class ComponentStatus {
    */
   public Map<String, Object> getExtra() {
     return extra;
+  }
+  
+  /**
+   * Sets alert information from the agent
+   */
+  public void setAlerts(List<AgentAlert> alertInfo) {
+    alerts = alertInfo;
+  }
+  
+  /**
+   * Gets alert information from the agent
+   */
+  public List<AgentAlert> getAlerts() {
+    return alerts;
   }
 
   @Override

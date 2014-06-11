@@ -618,21 +618,6 @@ define service {
 
 {% endif %}
 
-{% if hostgroup_defs['flume-servers'] %}
-# FLUME Checks
-define service {
-        hostgroup_name          flume-servers
-        use                     hadoop-service
-        service_description     FLUME::Flume Agent process
-        servicegroups           FLUME
-        check_command           check_tcp_wrapper!{{ flume_port }}!-w 1 -c 1
-        normal_check_interval   1
-        retry_check_interval    0.5
-        max_check_attempts      3
-}
-{% endif %}
-
-
 {% if hostgroup_defs['zookeeper-servers'] %}
 # ZOOKEEPER Checks
 define service {

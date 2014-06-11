@@ -247,6 +247,10 @@ class ActionQueue(threading.Thread):
       result = livestatus.build(forsed_component_status= component_status)
 
       if component_extra is not None and len(component_extra) != 0:
+        if component_extra.has_key('alerts'):
+          result['alerts'] = component_extra['alerts']
+          del component_extra['alerts']
+
         result['extra'] = component_extra
 
       logger.debug("Got live status for component " + component + \

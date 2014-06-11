@@ -304,4 +304,17 @@ public interface Cluster {
    * @return list of failed events
    */
   List<ServiceComponentHostEvent> processServiceComponentHostEvents(ListMultimap<String, ServiceComponentHostEvent> eventMap);
+
+  
+  /**
+   * Adds alerts for the current cluster.
+   */
+  public void addAlerts(Collection<Alert> alerts);
+  
+  /**
+   * @return a collection of current known alerts.
+   */
+  public Collection<Alert> getAlerts();
+
+
 }
