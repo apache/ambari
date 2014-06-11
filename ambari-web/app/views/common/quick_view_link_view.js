@@ -88,7 +88,7 @@ App.QuickViewLinks = Em.View.extend({
       data: {
         clusterName: App.get('clusterName'),
         masterComponents: App.StackServiceComponent.find().filterProperty('isMaster', true).mapProperty('componentName').join(','),
-        urlParams: ',host_components/component/metrics/hbase/master/IsActiveMaster'
+        urlParams: ',host_components/metrics/hbase/master/IsActiveMaster'
       },
       success: 'setQuickLinksSuccessCallback'
     });
@@ -141,13 +141,13 @@ App.QuickViewLinks = Em.View.extend({
         var activeMaster, standbyMasters, otherMasters;
         if (App.supports.multipleHBaseMasters) {
           activeMaster = masterComponents.filter(function (item) {
-            return item.host_components.mapProperty('component')[0].mapProperty('metrics.hbase.master.IsActiveMaster').contains('true');
+            return item.host_components.mapProperty('metrics.hbase.master.IsActiveMaster').contains('true');
           });
           standbyMasters = masterComponents.filter(function (item) {
-            return item.host_components.mapProperty('component')[0].mapProperty('metrics.hbase.master.IsActiveMaster').contains('false');
+            return item.host_components.mapProperty('metrics.hbase.master.IsActiveMaster').contains('false');
           });
           otherMasters = masterComponents.filter(function (item) {
-            return item.host_components.mapProperty('component')[0].mapProperty('metrics.hbase.master.IsActiveMaster').contains(undefined);
+            return !(item.host_components.mapProperty('metrics.hbase.master.IsActiveMaster').contains('true') || item.host_components.mapProperty('metrics.hbase.master.IsActiveMaster').contains('false')) ;
           });
         }
         if (masterComponents) {
@@ -231,8 +231,8 @@ App.QuickViewLinks = Em.View.extend({
         }
         quickLinksArray.push(quickLinks);
       }, this);
-
       this.set('quickLinksArray', quickLinksArray);
+      this.set('isLoaded', true);
     }
 
   },
