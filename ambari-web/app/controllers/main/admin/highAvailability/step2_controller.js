@@ -30,6 +30,12 @@ App.HighAvailabilityWizardStep2Controller = App.WizardStep5Controller.extend({
   multipleComponents: ['NAMENODE', 'JOURNALNODE'],
 
   /**
+   * overrides method in wizardStep5Controller
+   * it must be empty as it shouldn't be run
+   */
+  masterHostMappingObserver: function() {},
+
+  /**
    * Load services info to appropriate variable and return masterComponentHosts
    * @return Array
    */
