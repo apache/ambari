@@ -2081,11 +2081,10 @@ var urls = {
     'mock':''
   },
   /**
-   * Get all instances of {viewName} across versions
-   * @param {String} viewName
+   * Get all instances of all views across versions
    */
   'views.instances': {
-    'real': '/views/{viewName}?fields=versions/instances',
+    'real': '/views?fields=versions/instances/ViewInstanceInfo,versions/ViewVersionInfo/label',
     'mock':''
   },
   'host.host_component.flume.metrics': {

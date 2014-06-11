@@ -16,20 +16,15 @@
 * limitations under the License.
 }}
 
-{{#if view.content.isView}}
-  <a href="javascript:void(null);">
-    {{{unbound view.content.label}}}
-  </a>
-{{else}}
-  <a href="#/main/{{unbound view.content.routing}}">
-    {{{unbound view.content.label}}}
-    {{#if view.alertsCount}}
-      <span class="label label-important alerts-count">
-        {{view.alertsCount}}
-      </span>
-    {{/if}}
-  </a>
-{{/if}}
+
+<a href="#/main/{{unbound view.content.routing}}">
+  {{{unbound view.content.label}}}
+  {{#if view.alertsCount}}
+    <span class="label label-important alerts-count">
+      {{view.alertsCount}}
+    </span>
+  {{/if}}
+</a>
 
 <!--dropdown menu for the items had dropdowns-->
 {{#if view.isServicesItem}}

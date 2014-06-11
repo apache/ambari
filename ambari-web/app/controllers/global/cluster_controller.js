@@ -349,30 +349,33 @@ App.ClusterController = Em.Controller.extend({
   },
 
   loadAmbariViewsSuccess: function (data) {
-    this.set('ambariViews', []);
-    data.items.forEach(function (item) {
+    if (data.items.length) {
       App.ajax.send({
         name: 'views.instances',
-        data: {
-          viewName: item.ViewInfo.view_name
-        },
         sender: this,
         success: 'loadViewInstancesSuccess'
       });
-    }, this)
+    }
   },
 
   loadViewInstancesSuccess: function (data) {
-    data.versions.forEach(function (version) {
-      version.instances.forEach(function (instance) {
-        var view = Em.Object.create({
-          label: instance.ViewInstanceInfo.label || instance.ViewInstanceInfo.instance_name,
-          viewName: instance.ViewInstanceInfo.view_name,
-          instanceName: instance.ViewInstanceInfo.instance_name,
-          version: version.ViewVersionInfo.version,
-          href: "/views/" + instance.ViewInstanceInfo.view_name + "/" + version.ViewVersionInfo.version + "/" + instance.ViewInstanceInfo.instance_name
-        });
-        this.get('ambariViews').pushObject(view);
+    this.set('ambariViews', []);
+    var self = this;
+    data.items.forEach(function (view) {
+      view.versions.forEach(function (version) {
+        version.instances.forEach(function (instance) {
+          var current_instance = Em.Object.create({
+            iconPath: instance.ViewInstanceInfo.icon_path || "/img/ambari-view-default.png",
+            label: instance.ViewInstanceInfo.label || version.ViewVersionInfo.label || instance.ViewInstanceInfo.view_name,
+            visible: instance.ViewInstanceInfo.visible || false,
+            version: instance.ViewInstanceInfo.version,
+            description: instance.ViewInstanceInfo.description || Em.I18n.t('views.main.instance.noDescription'),
+            viewName: instance.ViewInstanceInfo.view_name,
+            instanceName: instance.ViewInstanceInfo.instance_name,
+            href: instance.ViewInstanceInfo.context_path
+          });
+          self.get('ambariViews').pushObject(current_instance);
+        }, this);
       }, this);
     }, this);
   },

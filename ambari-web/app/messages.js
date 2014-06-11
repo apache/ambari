@@ -2084,6 +2084,10 @@ Em.I18n.translations = {
   'jobs.hive.tez.edge.broadcast':'Broadcast',
   'jobs.hive.tez.edge.scatter_gather':'Shuffle',
 
+  'views.main.yourViews': 'Your Views',
+  'views.main.noViews': 'No views',
+  'views.main.instance.noDescription': 'No description',
+
   'number.validate.empty': 'cannot be empty',
   'number.validate.notValidNumber': 'not a valid number',
   'number.validate.lessThanMinumum': 'value less than {0}',

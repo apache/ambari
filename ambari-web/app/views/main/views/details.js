@@ -18,16 +18,17 @@
 
 var App = require('app');
 
-App.MainViewsView = Em.View.extend({
+App.MainViewsDetailsView = Em.View.extend({
 
-  name: "mainViewsView",
-  templateName: require('templates/main/views'),
-  classNames: [""],
+  name: "mainViewsDetailsView",
 
-  views: function() {
-    return App.router.get('clusterController.ambariViews');
-  }.property('App.ClusterController.ambariViews'),
+  tagName: "iframe",
+  classNames: ["views_sizes"],
+  attributeBindings: ['src','seamless'],
+  seamless: "seamless",
 
-  selectedViewBinding: 'controller.selectedView'
+  src: function() {
+    return window.location.origin + App.router.get('mainViewsController.selectedView.href');
+  }.property('App.MainViewsController.selectedView')
 
 });

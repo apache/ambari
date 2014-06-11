@@ -39,6 +39,7 @@ require('views/login');
 require('views/main');
 require('views/main/menu');
 require('views/main/charts');
+require('views/main/views/details');
 require('views/main/host');
 require('views/main/host/hosts_table_menu_view');
 require('views/main/host/details');

@@ -66,24 +66,46 @@ module.exports = Em.Route.extend({
     router.get('applicationController').connectOutlet('main');
   },
 
-  test: Em.Route.extend({
-    route: '/test',
-    connectOutlets: function (router, context) {
-      router.get('mainController').connectOutlet('mainTest');
-    }
-  }),
 
   views: Em.Route.extend({
     route: '/views',
     connectOutlets: function (router, context) {
       router.get('mainController').connectOutlet('mainViews');
     },
-    viewDetails: Em.Route.extend({
-      route : '/:viewName/:version/:instanceName',
-      connectOutlets :  function (router, context) {
+    index: Em.Route.extend({
+      route: '/',
+      enter: function (router) {
+        Em.run.next(function () {
+          router.transitionTo('allViews');
+        });
+      }
+    }),
+    allViews: Em.Route.extend({
+      route: '/',
+      connectOutlets: function (router, context) {
         router.get('mainController').connectOutlet('mainViews');
       }
+    }),
+    viewDetails: Em.Route.extend({
+      route: '/:viewName/:version/:instanceName',
+      connectOutlets: function (router, view) {
+        router.get('mainController').connectOutlet('mainViewsDetails');
+      },
+      index: Em.Route.extend({
+        route: '/',
+        connectOutlets: function (router, context) {
+          router.get('mainController').connectOutlet('mainViewsDetails');
+        }
+      })
     })
+  }),
+
+
+  test: Em.Route.extend({
+    route: '/test',
+    connectOutlets: function (router, context) {
+      router.get('mainController').connectOutlet('mainTest');
+    }
   }),
 
   dashboard: Em.Route.extend({
