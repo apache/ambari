@@ -2016,6 +2016,23 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     except FatalException as fe:
       # Expected
       pass
+    # Test when custom java home exists but java binary file doesn't exist
+    args.java_home = None
+    path_isfileMock.return_value = False
+    write_property_mock.reset_mock()
+    remove_property_mock.reset_mock()
+    path_existsMock.side_effect = [True,False,False]
+    get_validated_string_input_mock.return_value = "3"
+    get_JAVA_HOME_mock.return_value = False
+    flag = False
+    try:
+      ambari_server.download_jdk(args)
+      self.fail("Should throw exception")
+    except FatalException as fe:
+      # Expected
+      flag = True
+      pass
+    self.assertTrue(flag)
     #Test case: Setup ambari-server with java home passed. Path to java home doesn't not exists
     args.java_home = "somewhere"
     path_existsMock.return_value = False
