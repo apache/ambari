@@ -934,24 +934,6 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
       var opsHeight = Math.ceil(node.operations.length / 3);
       size.drawHeight += (opsHeight * 20);
     }
-    if (minVertexDuration < Number.MAX_VALUE && maxVertexDuration > Number.MIN_VALUE &&
-        minVertexDuration < maxVertexDuration && node.duration > 0) {
-      var MAXSCALE = 100;
-      // Upto scale of 100 the actual ratio of durations will be used.
-      // If scale is exceeding 100, some nodes will become too small (not visible) in comparison with others.
-      // Then we fit node scaling into 1 to 100.
-      var minMaxRatio = maxVertexDuration / minVertexDuration;
-      if (minMaxRatio > MAXSCALE) {
-        size.scale = ((maxVertexDuration - node.duration) + MAXSCALE * (node.duration - minVertexDuration));
-        size.scale = size.scale / (maxVertexDuration - minVertexDuration);
-      } else {
-        size.scale = (minVertexDuration < Number.MAX_VALUE && node.duration > 0) ? (node.duration / minVertexDuration) : 1;
-      }
-    }
-    if (size.scale < 1) {
-      size.scale = 1;
-    }
-    size.scale = Math.sqrt(size.scale);
     size.width = size.drawWidth * size.scale;
     size.height = size.drawHeight * size.scale;
     return size;
