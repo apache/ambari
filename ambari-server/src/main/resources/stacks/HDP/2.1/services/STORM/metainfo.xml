@@ -28,6 +28,16 @@
         <component>
           <name>NIMBUS</name>
           <category>MASTER</category>
+          <cardinality>1</cardinality>
+          <dependencies>
+            <dependency>
+              <name>ZOOKEEPER/ZOOKEEPER_SERVER</name>
+              <scope>cluster</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+          </dependencies>
           <commandScript>
             <script>scripts/nimbus.py</script>
             <scriptType>PYTHON</scriptType>
@@ -38,6 +48,7 @@
         <component>
           <name>STORM_REST_API</name>
           <category>MASTER</category>
+          <cardinality>1</cardinality>
           <commandScript>
             <script>scripts/rest_api.py</script>
             <scriptType>PYTHON</scriptType>
@@ -48,6 +59,7 @@
         <component>
           <name>SUPERVISOR</name>
           <category>SLAVE</category>
+          <cardinality>1+</cardinality>
           <commandScript>
             <script>scripts/supervisor.py</script>
             <scriptType>PYTHON</scriptType>
@@ -58,6 +70,7 @@
         <component>
           <name>STORM_UI_SERVER</name>
           <category>MASTER</category>
+          <cardinality>1</cardinality>
           <commandScript>
             <script>scripts/ui_server.py</script>
             <scriptType>PYTHON</scriptType>
@@ -68,6 +81,7 @@
         <component>
           <name>DRPC_SERVER</name>
           <category>MASTER</category>
+          <cardinality>1</cardinality>
           <commandScript>
             <script>scripts/drpc_server.py</script>
             <scriptType>PYTHON</scriptType>
