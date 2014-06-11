@@ -24,8 +24,8 @@
       <li class="divider"></li>
     {{/if}}
     <li class="dropdown-submenu">
-      <a {{bindAttr class="view.parentView.selectedCategory.hasHosts::disabled"}} tabindex="-1" href="javascript:void(null);">{{view.menuItems.s.label}}
-        ({{view.parentView.selectedCategory.hostsCount}})</a>
+      <a {{bindAttr class="view.parentView.showSelectedFilter::disabled"}} tabindex="-1" href="javascript:void(null);">{{view.menuItems.s.label}}
+        ({{view.parentView.selectedHosts.length}})</a>
         <ul {{bindAttr class="view.parentView.selectedCategory.hasHosts::hidden :dropdown-menu"}}>
           {{#view view.hostItemView}}
               <a href="javascript:void(null);">{{view.label}}</a>
@@ -61,7 +61,7 @@
     </li>
     <li class="dropdown-submenu">
       <a {{bindAttr class="view.parentView.hasFilteredItems::disabled"}} tabindex="-1" href="javascript:void(null);">{{view.menuItems.f.label}}
-        ({{view.parentView.filteredContent.length}})</a>
+        ({{view.parentView.filteredCount}})</a>
         <ul {{bindAttr class="view.parentView.hasFilteredItems::hidden :dropdown-menu"}}>
           {{#view view.hostItemView}}
             <a href="javascript:void(null);">{{view.label}}</a>
@@ -97,7 +97,7 @@
     </li>
     <li class="dropdown-submenu">
       <a tabindex="-1" href="javascript:void(null);">{{view.menuItems.a.label}}
-        ({{view.parentView.content.length}})</a>
+        ({{view.parentView.totalCount}})</a>
         <ul class="dropdown-menu">
           {{#view view.hostItemView}}
               <a href="javascript:void(null);">{{view.label}}</a>
