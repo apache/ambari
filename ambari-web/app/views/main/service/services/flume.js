@@ -144,7 +144,7 @@ App.MainDashboardServiceFlumeView = App.TableView.extend({
       return  metricType + ' - ' + hostName;
     };
     var gangliaUrlTpl = App.router.get('clusterController.gangliaUrl') + '/?r=hour&cs=&ce=&m=load_one&s=by+name&c=HDPFlumeServer&h={0}&host_regex=&max_graphs=0&tab=m&vn=&sh=1&z=small&hc=4';
-    var agentHostMock = agent.get('host.hostName');
+    var agentHostMock = agent.get('hostName');
     var mockMetricData = [
       {
         header: 'channelName',

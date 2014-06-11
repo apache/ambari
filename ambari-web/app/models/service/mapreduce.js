@@ -19,17 +19,21 @@ var App = require('app');
 
 App.MapReduceService = App.Service.extend({
   version: DS.attr('string'),
-  jobHistoryServer: DS.belongsTo('App.Host'),
-  jobTracker: DS.belongsTo('App.Host'),
+  jobHistoryServer: function () {
+    return this.get('hostComponents').findProperty('componentName', 'HISTORYSERVER');
+  }.property('hostComponents'),
+  jobTracker: function () {
+    return this.get('hostComponents').findProperty('componentName', 'JOBTRACKER');
+  }.property('hostComponents'),
   taskTrackersStarted: DS.attr('number'),
   taskTrackersInstalled: DS.attr('number'),
   taskTrackersTotal: DS.attr('number'),
   jobTrackerStartTime: DS.attr('number'),
   jobTrackerHeapUsed: DS.attr('number'),
   jobTrackerHeapMax: DS.attr('number'),
-  aliveTrackers: DS.hasMany('App.Host'),
-  blackListTrackers: DS.hasMany('App.Host'),
-  grayListTrackers: DS.hasMany('App.Host'),
+  aliveTrackers: DS.hasMany('App.HostComponent'),
+  blackListTrackers: DS.hasMany('App.HostComponent'),
+  grayListTrackers: DS.hasMany('App.HostComponent'),
   mapSlots: DS.attr('number'),
   reduceSlots: DS.attr('number'),
   jobsSubmitted: DS.attr('number'),

@@ -19,7 +19,9 @@ var App = require('app');
 
 App.HBaseService = App.Service.extend({
   version: DS.attr('string'),
-  master: DS.belongsTo('App.Host'),
+  master: function () {
+    return this.get('hostComponents').findProperty('componentName', 'HBASE_MASTER');
+  }.property('hostComponents'),
   regionServersStarted: DS.attr('number'),
   regionServersInstalled: DS.attr('number'),
   regionServersTotal: DS.attr('number'),

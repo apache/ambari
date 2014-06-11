@@ -827,7 +827,7 @@ App.MainHostDetailsController = Em.Controller.extend({
    * @method getZkServerHosts
    */
   getZkServerHosts: function () {
-    var zks = App.HostComponent.find().filterProperty('componentName', 'ZOOKEEPER_SERVER').mapProperty('host.hostName');
+    var zks = App.HostComponent.find().filterProperty('componentName', 'ZOOKEEPER_SERVER').mapProperty('hostName');
     if (this.get('fromDeleteHost')) {
       this.set('fromDeleteHost', false);
       return zks.without(this.get('content.hostName'));

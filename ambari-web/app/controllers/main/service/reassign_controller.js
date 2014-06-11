@@ -205,7 +205,7 @@ App.ReassignMasterController = App.WizardController.extend({
       component_name: masterComponent.get('componentName'),
       display_name: masterComponent.get('displayName'),
       service_id: masterComponent.get('service.serviceName'),
-      host_id: masterComponent.get('host.hostName')
+      host_id: masterComponent.get('hostName')
     };
     App.db.setMasterToReassign(component);
   },

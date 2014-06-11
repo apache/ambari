@@ -35,6 +35,7 @@ App.FlumeAgent = DS.Model.extend({
    */
   status: DS.attr('string'),
   host: DS.belongsTo('App.Host'),
+  hostName: DS.attr('string'),
 
   channelsCount: DS.attr('number'),
   sourcesCount: DS.attr('number'),

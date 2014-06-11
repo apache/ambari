@@ -280,7 +280,7 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
           .filter(function (component) {
             return componentNames.contains(component.get('componentName'));
           })
-          .mapProperty('host.hostName')
+          .mapProperty('hostName')
           .uniq();
         return true;
       }

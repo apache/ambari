@@ -360,7 +360,7 @@ App.MainAdminSecurityAddStep4Controller = App.MainAdminSecurityProgressControlle
     if (service.get('isLoaded') && isServiceSecure) {
       var hostComponent = service.get('hostComponents').findProperty('componentName', componentName);
       if (hostComponent) {
-        var hostName = hostComponent.get('host.hostName');
+        var hostName = hostComponent.get('hostName');
         this.get('globalProperties').push({
           id: 'puppet var',
           name: configName,

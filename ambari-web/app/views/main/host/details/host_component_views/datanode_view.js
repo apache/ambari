@@ -69,7 +69,7 @@ App.DataNodeComponentView = App.HostComponentView.extend(App.Decommissionable, {
    * load Recommission/Decommission status from adminState of each live node
    */
   loadComponentDecommissionStatus: function () {
-    var hostName = this.get('content.host.hostName');
+    var hostName = this.get('content.hostName');
     var dfd = $.Deferred();
     var self = this;
     this.getDNDecommissionStatus().done(function () {

@@ -25,7 +25,7 @@ App.MainServiceInfoFlumeGraphsView = App.MainServiceInfoSummaryMetricGraphsView.
     var viewData = this.get('viewData');
     if (viewData != null) {
       var metricType = viewData.metricType;
-      var hostName = viewData.agent.get('host.hostName');
+      var hostName = viewData.agent.get('hostName');
       var metricNamesGatherer = {
         success: function(data) {
           var metricNames = {};

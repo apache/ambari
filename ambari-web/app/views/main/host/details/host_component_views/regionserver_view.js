@@ -25,7 +25,7 @@ App.RegionServerComponentView = App.HostComponentView.extend(App.Decommissionabl
    * load Recommission/Decommission status of RegionServer
    */
   loadComponentDecommissionStatus: function () {
-    var hostName = this.get('content.host.hostName');
+    var hostName = this.get('content.hostName');
     var slaveType = 'HBASE_REGIONSERVER';
     var self = this;
     var deferred = $.Deferred();

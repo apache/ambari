@@ -1228,7 +1228,7 @@ App.WizardStep8Controller = Em.Controller.extend({
              */
             var clientHosts = App.HostComponent.find().filterProperty("componentName",_client.component_name).filterProperty("workStatus", "INSTALLED");
             if (clientHosts.length>0) {
-              clientHosts.mapProperty('host.hostName').forEach(function (host) {
+              clientHosts.mapProperty('hostName').forEach(function (host) {
                 if (hostNames.contains(host)) {
                   hostNames.splice(hostNames.indexOf(host), 1);
                 }

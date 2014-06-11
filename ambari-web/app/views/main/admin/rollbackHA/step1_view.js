@@ -48,7 +48,7 @@ App.RollbackHighAvailabilityWizardStep1View = Em.View.extend({
     this.set('selectedAddNNHost', this.get('controller.content.addNNHost'));
 
     if (addNNHosts.length == 2) {
-      this.set('addNNHosts', addNNHosts.mapProperty('host.hostName'));
+      this.set('addNNHosts', addNNHosts.mapProperty('hostName'));
     }
     data.items.forEach(function (host) {
       this.secondaryNNHosts.push(host.Hosts.host_name);

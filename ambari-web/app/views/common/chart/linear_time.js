@@ -170,7 +170,7 @@ App.ChartLinearTimeView = Ember.View.extend({
     var MapReduceService = App.MapReduceService.find().objectAt(0);
     var jobTrackerNode = MapReduceService ? MapReduceService.get('jobTracker.hostName') : "";
     var YARNService = App.YARNService.find().objectAt(0);
-    var resourceManager = YARNService ? YARNService.get('resourceManagerNode.hostName') : "";
+    var resourceManager = YARNService ? YARNService.get('resourceManager.hostName') : "";
     var timeUnit = this.get('timeUnitSeconds');
     return {
       toSeconds: toSeconds,

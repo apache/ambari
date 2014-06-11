@@ -127,7 +127,7 @@ module.exports = App.WizardRoute.extend({
       var reassignHosts = {};
       var componentName = reassignMasterWizardStep2.get('content.reassign.component_name');
       var masterAssignmentsHosts = reassignMasterWizardStep2.get('selectedServicesMasters').filterProperty('component_name', componentName).mapProperty('selectedHost');
-      var currentMasterHosts = App.HostComponent.find().filterProperty('componentName', componentName).mapProperty('host.hostName');
+      var currentMasterHosts = App.HostComponent.find().filterProperty('componentName', componentName).mapProperty('hostName');
       masterAssignmentsHosts.forEach(function (host) {
         if (!currentMasterHosts.contains(host)) {
           reassignHosts.target = host;

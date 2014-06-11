@@ -407,7 +407,7 @@ App.MainJobsController = Em.Controller.extend({
     var retryLoad = this.checkDataLoadingError();
     if (yarnService != null) {
       this.set('loading', true);
-      var historyServerHostName = yarnService.get('appTimelineServerNode.hostName');
+      var historyServerHostName = yarnService.get('appTimelineServer.hostName');
       var filtersLink = this.get('filterObject').createJobsFiltersLink();
       var hiveQueriesUrl = App.testMode ? "/data/jobs/hive-queries.json" : "/proxy?url=http://" + historyServerHostName
         + ":" + yarnService.get('ahsWebPort') + "/ws/v1/timeline/HIVE_QUERY_ID" + filtersLink;

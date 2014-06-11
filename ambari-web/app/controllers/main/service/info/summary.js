@@ -69,7 +69,7 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
         state: state,
         context: context,
         agentName: agent.get('name'),
-        host: agent.get('host.hostName')
+        host: agent.get('hostName')
       },
       success: 'commandSuccessCallback'
     });

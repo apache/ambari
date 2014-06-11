@@ -28,7 +28,7 @@ App.RollbackHighAvailabilityWizardStep2View = App.HighAvailabilityWizardStep4Vie
     if(!activeNN){
       activeNN = App.HostComponent.find().findProperty('componentName','NAMENODE');
     }
-    activeNN = activeNN.get('host.hostName');
+    activeNN = activeNN.get('hostName');
     this.get('controller.content').set('activeNNHost', activeNN);
     return Em.I18n.t('admin.highAvailability.rollback.step2.body').format(this.get('controller.content.hdfsUser'), activeNN);
   }.property()

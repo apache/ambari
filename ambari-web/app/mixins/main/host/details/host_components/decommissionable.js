@@ -150,7 +150,7 @@ App.Decommissionable = Em.Mixin.create({
       name: 'host.host_component.slave_desired_admin_state',
       sender: this,
       data: {
-        hostName: this.get('content.host.hostName'),
+        hostName: this.get('content.hostName'),
         componentName: this.get('content.componentName')
       },
       success: 'getDesiredAdminStateSuccessCallback',
@@ -190,7 +190,7 @@ App.Decommissionable = Em.Mixin.create({
       name: 'host.host_component.decommission_status',
       sender: this,
       data: {
-        hostName: this.get('content.host.hostName'),
+        hostName: this.get('content.hostName'),
         componentName: this.get('componentForCheckDecommission'),
         serviceName: this.get('content.service.serviceName')
       },

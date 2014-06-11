@@ -894,7 +894,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
 
     App.HostComponent.find().forEach(function (hostComponent) {
       if (installedComponentsMap[hostComponent.get('componentName')]) {
-        installedComponentsMap[hostComponent.get('componentName')].push(hostComponent.get('host.id'));
+        installedComponentsMap[hostComponent.get('componentName')].push(hostComponent.get('hostName'));
       }
     }, this);
 
@@ -939,7 +939,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
       App.HostComponent.find().filterProperty('isMaster', true).forEach(function (item) {
         masterComponentHosts.push({
           component: item.get('componentName'),
-          hostName: item.get('host.hostName'),
+          hostName: item.get('hostName'),
           isInstalled: true,
           serviceId: item.get('service.id'),
           display_name: item.get('displayName')

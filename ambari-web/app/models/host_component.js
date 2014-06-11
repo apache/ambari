@@ -26,6 +26,7 @@ App.HostComponent = DS.Model.extend({
   displayNameAdvanced: DS.attr('string'),
   staleConfigs: DS.attr('boolean'),
   host: DS.belongsTo('App.Host'),
+  hostName: DS.attr('string'),
   service: DS.belongsTo('App.Service'),
   /**
    * Determine if component is client
@@ -142,7 +143,7 @@ App.HostComponent = DS.Model.extend({
    */
   isDecommissioning: function () {
     var decommissioning = false;
-    var hostName = this.get('host.hostName');
+    var hostName = this.get('hostName');
     var componentName = this.get('componentName');
     var hdfsSvc = App.HDFSService.find().objectAt(0);
     if (componentName === 'DATANODE' && hdfsSvc) {
@@ -151,7 +152,7 @@ App.HostComponent = DS.Model.extend({
       decommissioning = decomNode != null;
     }
     return decommissioning;
-  }.property('componentName', 'host.hostName', 'App.router.clusterController.isLoaded', 'App.router.updateController.isUpdated'),
+  }.property('componentName', 'hostName', 'App.router.clusterController.isLoaded', 'App.router.updateController.isUpdated'),
   /**
    * User friendly host component status
    * @returns {String}

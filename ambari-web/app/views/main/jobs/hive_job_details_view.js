@@ -114,7 +114,7 @@ App.MainHiveJobDetailsView = Em.View.extend({
       }
     }
     return null;
-  }.property('content.tezDag.yarnApplicationId', 'App.YARNService.resourceManagerNode.hostName'),
+  }.property('content.tezDag.yarnApplicationId', 'App.YARNService.resourceManager.hostName'),
 
   jobObserver : function() {
     var content = this.get('content');

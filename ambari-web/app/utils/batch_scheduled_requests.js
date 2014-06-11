@@ -196,7 +196,7 @@ module.exports = {
     var hosts = [];
     var componentServiceMap = App.QuickDataMapper.componentServiceMap();
     hostComponentsList.forEach(function(hc) {
-      var hostName = hc.get('hostName') || hc.get('host.hostName');
+      var hostName = hc.get('hostName');
       var componentName = hc.get('componentName');
       if (!componentToHostsMap[componentName]) {
         componentToHostsMap[componentName] = [];

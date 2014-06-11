@@ -1963,7 +1963,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   getMasterComponentHostValue: function(componentName, multiple) {
     var components = this.get('content.hostComponents').filterProperty('componentName', componentName);
     if (components.length > 0) {
-      return multiple ? components.mapProperty('host.hostName') : components[0].get('host.hostName');
+      return multiple ? components.mapProperty('hostName') : components[0].get('hostName');
     }
     return false;
   },

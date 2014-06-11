@@ -26,7 +26,7 @@ App.TaskTrackerComponentView = App.HostComponentView.extend(App.Decommissionable
    * load Recommission/Decommission status for TaskTracker from JobTracker/AliveNodes list
    */
   loadComponentDecommissionStatus: function () {
-    var hostName = this.get('content.host.hostName');
+    var hostName = this.get('content.hostName');
     var dfd = $.Deferred();
     var self = this;
     this.getDesiredAdminState().done( function () {

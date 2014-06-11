@@ -246,9 +246,9 @@ App.MainMirroringController = Em.ArrayController.extend({
       var clusterName = App.get('clusterName');
       var sourceCluster = Ember.Object.create({
         name: clusterName,
-        execute: App.HostComponent.find().findProperty('componentName', 'RESOURCEMANAGER').get('host.hostName') + ':8050',
-        readonly: 'hftp://' + App.HostComponent.find().findProperty('componentName', 'NAMENODE').get('host.hostName') + ':50070',
-        workflow: 'http://' + App.HostComponent.find().findProperty('componentName', 'OOZIE_SERVER').get('host.hostName') + ':11000/oozie',
+        execute: App.HostComponent.find().findProperty('componentName', 'RESOURCEMANAGER').get('hostName') + ':8050',
+        readonly: 'hftp://' + App.HostComponent.find().findProperty('componentName', 'NAMENODE').get('hostName') + ':50070',
+        workflow: 'http://' + App.HostComponent.find().findProperty('componentName', 'OOZIE_SERVER').get('hostName') + ':11000/oozie',
         write: defaultFS,
         staging: '/apps/falcon/' + clusterName + '/staging',
         working: '/apps/falcon/' + clusterName + '/working',

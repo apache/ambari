@@ -37,8 +37,6 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
   },
   hdfsConfig: {
     version: 'nameNodeComponent.host_components[0].metrics.dfs.namenode.Version',
-    name_node_id: 'nameNodeComponent.host_components[0].HostRoles.host_name',
-    sname_node_id: 'snameNodeComponent.host_components[0].HostRoles.host_name',
     active_name_node_id: 'active_name_node_id',
     standby_name_node_id: 'standby_name_node_id',
     standby_name_node2_id: 'standby_name_node2_id',
@@ -65,7 +63,6 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
   },
   yarnConfig: {
     version: 'resourceManagerComponent.ServiceComponentInfo.Version',
-    resource_manager_node_id: 'resourceManagerComponent.host_components[0].HostRoles.host_name',
     resource_manager_start_time: 'resourceManagerComponent.ServiceComponentInfo.StartTime',
     jvm_memory_heap_used: 'resourceManagerComponent.host_components[0].metrics.jvm.HeapMemoryUsed',
     jvm_memory_heap_max: 'resourceManagerComponent.host_components[0].metrics.jvm.HeapMemoryMax',
@@ -93,13 +90,10 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
   },
   mapReduce2Config: {
     version: 'jobHistoryServerComponent.ServiceComponentInfo.Version',
-    job_history_server_id: 'jobHistoryServerComponent.host_components[0].HostRoles.host_name',
     map_reduce2_clients: 'map_reduce2_clients'
   },
   mapReduceConfig: {
     version: 'jobTrackerComponent.ServiceComponentInfo.Version',
-    job_history_server_id: 'jobHistoryServerComponent.host_components[0].HostRoles.host_name',
-    job_tracker_id: 'jobTrackerComponent.host_components[0].HostRoles.host_name',
     job_tracker_start_time: 'jobTrackerComponent.ServiceComponentInfo.StartTime',
     job_tracker_heap_used: 'jobTrackerComponent.ServiceComponentInfo.HeapMemoryUsed',
     job_tracker_heap_max: 'jobTrackerComponent.ServiceComponentInfo.HeapMemoryMax',
@@ -128,7 +122,6 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
   },
   hbaseConfig: {
     version: 'masterComponent.ServiceComponentInfo.Version',
-    master_id: 'masterComponent.host_components[0].HostRoles.host_name',
     master_start_time: 'masterComponent.ServiceComponentInfo.MasterStartTime',
     master_active_time: 'masterComponent.ServiceComponentInfo.MasterActiveTime',
     average_load: 'masterComponent.ServiceComponentInfo.AverageLoad',
@@ -156,6 +149,7 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     name: 'HostComponentProcess.name',
     status: 'HostComponentProcess.status',
     host_id: 'HostComponentProcess.host_name',
+    host_name: 'HostComponentProcess.host_name',
     channels_count: 'HostComponentProcess.channels_count',
     sources_count: 'HostComponentProcess.sources_count',
     sinks_count: 'HostComponentProcess.sinks_count'
@@ -169,6 +163,7 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     desired_status: 'HostRoles.desired_state',
     component_name: 'HostRoles.component_name',
     host_id: 'HostRoles.host_name',
+    host_name: 'HostRoles.host_name',
     stale_configs: 'HostRoles.stale_configs',
     display_name_advanced: 'display_name_advanced',
     $service_id: 'none' /* will be set outside of parse function */
@@ -401,16 +396,16 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
           item.standby_name_node2_id = null;
           switch (active_name_node.length) {
             case 1:
-              item.active_name_node_id = active_name_node[0];
+              item.active_name_node_id = 'NAMENODE' + '_' + active_name_node[0];
               break;
           }
           switch (standby_name_nodes.length) {
             case 1:
-              item.standby_name_node_id = standby_name_nodes[0];
+              item.standby_name_node_id = 'NAMENODE' + '_' + standby_name_nodes[0];
               break;
             case 2:
-              item.standby_name_node_id = standby_name_nodes[0];
-              item.standby_name_node2_id = standby_name_nodes[1];
+              item.standby_name_node_id = 'NAMENODE' + '_' + standby_name_nodes[0];
+              item.standby_name_node2_id = 'NAMENODE' + '_' + standby_name_nodes[1];
               break;
           }
           // important: active nameNode always at host_components[0]; if no active, then any nameNode could work.
@@ -427,12 +422,9 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
           var decommissionNodesJson = App.parseJSON(component.host_components[0].metrics.dfs.namenode.DecomNodes);
         }
         item.decommission_data_nodes = [];
-        for (var dcn in decommissionNodesJson) {
-          item.decommission_data_nodes.push(dcn);
+        for (var host in decommissionNodesJson) {
+          item.decommission_data_nodes.push('DATANODE'+ '_' + host);
         }
-      }
-      if (component.ServiceComponentInfo && component.ServiceComponentInfo.component_name == "SECONDARY_NAMENODE") {
-        item.snameNodeComponent = component;
       }
       if (component.ServiceComponentInfo && component.ServiceComponentInfo.component_name == "JOURNALNODE") {
         if (!item.journal_nodes) {
@@ -526,7 +518,7 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
         item.black_list_trackers = [];
         if (liveNodesJson != null) {
           liveNodesJson.forEach(function (nj) {
-            item.alive_trackers.push(nj.hostname);
+            item.alive_trackers.push('TASKTRACKER' + '_' + nj.hostname);
             if (nj.slots && nj.slots.map_slots)
               item.map_slots += nj.slots.map_slots;
             if (nj.slots && nj.slots.map_slots_used)
@@ -539,12 +531,12 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
         }
         if (grayNodesJson != null) {
           grayNodesJson.forEach(function (nj) {
-            item.gray_list_trackers.push(nj.hostname);
+            item.gray_list_trackers.push('TASKTRACKER' + '_' + nj.hostname);
           });
         }
         if (blackNodesJson != null) {
           blackNodesJson.forEach(function (nj) {
-            item.black_list_trackers.push(nj.hostname);
+            item.black_list_trackers.push('TASKTRACKER' + '_' + nj.hostname);
           });
         }
       } else if (component.ServiceComponentInfo && component.ServiceComponentInfo.component_name == "HISTORYSERVER") {

@@ -20,10 +20,12 @@ var objectUtils = require('utils/object_utils');
 
 App.YARNService = App.Service.extend({
   version: DS.attr('string'),
-  resourceManagerNode: DS.belongsTo('App.Host'),
-  appTimelineServerNode: function() {
-    return this.get('hostComponents').filterProperty('componentName', 'APP_TIMELINE_SERVER').mapProperty('host').objectAt(0);
-  }.property(),
+  resourceManager: function() {
+    return this.get('hostComponents').findProperty('componentName', 'RESOURCEMANAGER');
+  }.property('hostComponents'),
+  appTimelineServer: function() {
+    return this.get('hostComponents').findProperty('componentName', 'APP_TIMELINE_SERVER');
+  }.property('hostComponents'),
   nodeManagersStarted: DS.attr('number'),
   nodeManagersInstalled: DS.attr('number'),
   nodeManagersTotal: DS.attr('number'),

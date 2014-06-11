@@ -59,7 +59,8 @@ App.hostsMapper = App.QuickDataMapper.create({
     service_id: 'HostRoles.service_name',
     passive_state: 'HostRoles.maintenance_state',
     work_status: 'HostRoles.state',
-    stale_configs: 'HostRoles.stale_configs'
+    stale_configs: 'HostRoles.stale_configs',
+    host_name: 'host_name'
   },
   map: function (json, isAll) {
     console.time('App.hostsMapper execution time');
@@ -75,6 +76,7 @@ App.hostsMapper = App.QuickDataMapper.create({
           var component = this.parseIt(host_component, this.hostComponentConfig);
           component.id = host_component.HostRoles.component_name + "_" + item.Hosts.host_name;
           component.host_id = item.Hosts.host_name;
+          component.host_name = item.Hosts.host_name;
           components.push(component);
         }, this);
         item.critical_alerts_count = (item.alerts) ? item.alerts.summary.CRITICAL + item.alerts.summary.WARNING : 0;
