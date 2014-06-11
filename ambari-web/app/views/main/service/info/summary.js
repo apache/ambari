@@ -154,35 +154,21 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     return result;
   }.property('controller.content'),
 
-  hasManyMonitors: function () {
-    var service = this.get('controller.content');
-    if (service.get("id") == "GANGLIA") {
-      var monitors = service.get('hostComponents').filterProperty('isMaster', false);
-      if (monitors.length == 0) {
-        return '';
-      } else if (monitors.length > 1) {
-        return Em.I18n.t('services.service.summary.viewHosts');
-      } else {
-        return Em.I18n.t('services.service.summary.viewHost');
-      }
-    }
-    return result;
-  }.property('controller.content'),
-
   /**
    * Property related to GANGLIA service, is unused for other services
-   * @return {Object}
+   * @type {Object}
    */
-  monitorsObj: function(){
-    var service = this.get('controller.content');
-    if (service.get("id") == "GANGLIA") {
-      var monitors = service.get('hostComponents').filterProperty('isMaster', false);
+  monitorsObj: function () {
+    if (this.get('controller.content.id') == "GANGLIA") {
+      var monitors = App.StackServiceComponent.find().filterProperty('serviceName', 'GANGLIA').filterProperty('isMaster', false);
       if (monitors.length) {
-        return monitors[0];
+        return Em.Object.create({
+          componentName: monitors.objectAt(0).get('componentName')
+        });
       }
     }
     return {};
-  }.property('controller.content'),
+  }.property('controller.content.id'),
 
   /**
    * Property related to ZOOKEEPER service, is unused for other services
@@ -200,20 +186,21 @@ App.MainServiceInfoSummaryView = Em.View.extend({
   }.property('controller.content'),
 
   /**
-   * Property related to OOZIE and ZOOKEEPER services, is unused for other services
-   * HIVE is supported too
-   * @return {Object}
+   * Contain Object with <code>componentName</code> property for <code>filterByComponent</code> method
+   * @type {Object}
    */
-  clientObj: function() {
-    var service = this.get('controller.content');
-    if (this.get('servicesHaveClients').contains(service.get("id"))) {
-      var clients = service.get('hostComponents').filterProperty('isClient', true);
-      if (clients.length > 0) {
-        return clients[0];
+  clientObj: function () {
+    var serviceName = this.get('controller.content.id');
+    if (this.get('servicesHaveClients').contains(serviceName)) {
+      var clients = App.StackServiceComponent.find().filterProperty('serviceName', serviceName).filterProperty('isClient');
+      if (clients.length) {
+        return Em.Object.create({
+          componentName: clients.objectAt(0).get('componentName')
+        });
       }
     }
     return {};
-  }.property('controller.content'),
+  }.property('controller.content.id'),
 
   data:{
     hive:{

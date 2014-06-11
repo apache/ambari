@@ -379,7 +379,7 @@ App.MainHostController = Em.ArrayController.extend(App.UserPref, {
 
     var filterForComponent = {
       iColumn: column,
-      value: id,
+      value: [id],
       type: 'multiple'
     };
     App.db.setFilterConditions(this.get('name'), [filterForComponent]);

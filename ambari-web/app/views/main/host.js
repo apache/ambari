@@ -115,6 +115,7 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
     } else {
       this.clearFilters();
     }
+    this.addObserver('pageContent.@each.selected', this, this.selectedHostsObserver);
   },
 
   /**
@@ -174,7 +175,7 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
    */
   selectedHostsObserver: function() {
     Ember.run.once(this, 'updateCheckedFlags');
-  }.observes('pageContent.@each.selected'),
+  },
 
   /**
    * Update <code>selectAllHosts</code> value
@@ -747,7 +748,7 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
        * Verify that checked checkboxes are equal to value stored in hidden field (components ids list)
        */
       checkComponents: function() {
-        var components = this.get('value').split(',');
+        var components = this.get('value');
         var self = this;
         if (components) {
           components.forEach(function(componentId) {
