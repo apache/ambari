@@ -36,7 +36,23 @@
         <component>
           <name>FALCON_SERVER</name>
           <category>MASTER</category>
-          <cardinality>1</cardinality> 
+          <cardinality>1</cardinality>
+          <dependencies>
+            <dependency>
+              <name>OOZIE/OOZIE_SERVER</name>
+              <scope>cluster</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>OOZIE/OOZIE_CLIENT</name>
+              <scope>cluster</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+          </dependencies>
           <commandScript>
             <script>scripts/falcon_server.py</script>
             <scriptType>PYTHON</scriptType>
