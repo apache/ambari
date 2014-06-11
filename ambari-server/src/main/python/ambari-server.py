@@ -1785,8 +1785,8 @@ def download_jdk(args):
         print_warning_msg("JDK must be installed on all hosts and JAVA_HOME must be valid on all hosts.")
         print_warning_msg(jcePolicyWarn)
         args.java_home = get_validated_string_input("Path to JAVA_HOME: ", None, None, None, False, False)
-        if not os.path.exists(args.java_home):
-          err = "Java home path is unavailable. Please put correct path to java home."
+        if not os.path.exists(args.java_home) or not os.path.isfile(os.path.join(args.java_home, "bin", "java")):
+          err = "Java home path or java binary file is unavailable. Please put correct path to java home."
           raise FatalException(1, err)
         print "Validating JDK on Ambari Server...done."
         write_property(JAVA_HOME_PROPERTY, args.java_home)
