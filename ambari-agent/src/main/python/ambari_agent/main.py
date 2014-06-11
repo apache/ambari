@@ -211,7 +211,13 @@ def main():
   daemonize()
 
   # Starting ping port listener
-  ping_port_listener = PingPortListener(config)
+  try:
+    ping_port_listener = PingPortListener(config)
+  except Exception as ex:
+    err_message = "Failed to start ping port listener of: " + str(ex)
+    logger.error(err_message);
+    sys.stderr.write(err_message)
+    sys.exit(1)
   ping_port_listener.start()
 
   update_log_level(config)

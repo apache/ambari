@@ -31,10 +31,17 @@ class TestPingPortListener(unittest.TestCase):
     self.config.get.return_value = 55000
     PingPortListener.logger = MagicMock()
 
+  @patch("subprocess.Popen")
   @patch("socket.socket")
-  def test_init_success(self,socketMock):
+  def test_init_success(self,socketMock,popen_mock):
+    procObj = MagicMock()
+    procObj.communicate = MagicMock()
+    procObj.communicate.return_value = {"": 0, "log": "log"}
+    popen_mock.return_value = procObj
     PingPortListener.logger.reset_mock()
+    popen_mock.reset_mock()
     allive_daemon = PingPortListener.PingPortListener(self.config)
+    self.assertTrue(popen_mock.called)
     self.assertFalse(PingPortListener.logger.warn.called)
     self.assertTrue(socketMock.call_args_list[0][0][0] == socket.AF_INET)
     self.assertTrue(socketMock.call_args_list[0][0][1] == socket.SOCK_STREAM)
@@ -45,15 +52,22 @@ class TestPingPortListener(unittest.TestCase):
 
 
 
+  @patch("subprocess.Popen")
   @patch.object(socket.socket,"bind")
   @patch.object(socket.socket,"listen")
-  @patch.object(socket.socket,"__init__")
-  @patch.object(sys, "exit")
-  def test_init_warn(self, sys_exit_mock, socketInitMock,socketListenMock,socketBindMock):
+  def test_init_warn(self,socketListenMock,socketBindMock,popen_mock):
+    procObj = MagicMock()
+    procObj.communicate = MagicMock()
+    procObj.communicate.return_value = {"mine.py": 0, "log": "log"}
+    popen_mock.return_value = procObj
     PingPortListener.logger.reset_mock()
-    allive_daemon = PingPortListener.PingPortListener(self.config)
-    self.assertTrue(socketInitMock.called)
-    self.assertTrue(sys_exit_mock.called)
+    try:
+      PingPortListener.PingPortListener(self.config)
+      self.fail("Should throw exception")
+    except Exception as fe:
+      # Expected
+      self.assertTrue("port already used" in str(fe))
+      pass
 
 if __name__ == "__main__":
   suite = unittest.TestLoader().loadTestsFromTestCase(PingPortListener)
