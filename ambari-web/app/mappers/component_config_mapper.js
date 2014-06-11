@@ -26,7 +26,7 @@ App.componentConfigMapper = App.QuickDataMapper.create({
     component_name: 'component_name',
     host_name: 'host_name',
     $ha_status: 'none',
-    $display_name_advanced: 'none',
+    $display_name_advanced: '',
     stale_configs: 'stale_configs',
     host_id: 'host_name',
     service_id: 'service_name'
@@ -48,9 +48,17 @@ App.componentConfigMapper = App.QuickDataMapper.create({
     }, this);
     App.store.loadMany(this.get('model'), hostComponents);
     for (var serviceName in serviceToHostComponentIdMap) {
-      var service = App.cache['services'].findProperty('ServiceInfo.service_name', serviceName);
-      if (service) {
-        service.host_components.pushObjects(serviceToHostComponentIdMap[serviceName]);
+      if (serviceToHostComponentIdMap.hasOwnProperty(serviceName)) {
+        var service = App.cache['services'].findProperty('ServiceInfo.service_name', serviceName);
+        if (service) {
+          for (var n in serviceToHostComponentIdMap[serviceName]) {
+            if (serviceToHostComponentIdMap[serviceName].hasOwnProperty(n)) {
+              if (!service.host_components.contains(serviceToHostComponentIdMap[serviceName][n])) {
+                service.host_components.pushObject(serviceToHostComponentIdMap[serviceName][n]);
+              }
+            }
+          }
+        }
       }
     }
     console.timeEnd('App.componentConfigMapper execution time');

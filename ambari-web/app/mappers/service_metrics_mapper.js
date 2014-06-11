@@ -181,6 +181,9 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
       /**
        * services contains constructed service-components structure from components array
        */
+
+      services.setEach('components', []);
+
       json.items.forEach(function (component) {
         var serviceName = component.ServiceComponentInfo.service_name;
         var service = services.findProperty('ServiceInfo.service_name', serviceName);

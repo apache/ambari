@@ -32,7 +32,7 @@ App.UpdateController = Em.Controller.extend({
   }.property('App.router.location.lastSetURL'),
 
   getUrl: function (testUrl, url) {
-    return (App.testMode) ? testUrl : App.apiPrefix + '/clusters/' + this.get('clusterName') + url;
+    return (App.get('testMode')) ? testUrl : App.apiPrefix + '/clusters/' + this.get('clusterName') + url;
   },
 
   /**
@@ -46,7 +46,7 @@ App.UpdateController = Em.Controller.extend({
     var prefix = App.apiPrefix + '/clusters/' + App.get('clusterName');
     var params = '';
 
-    if (App.testMode) {
+    if (App.get('testMode')) {
       return testUrl;
     } else {
       if (queryParams) {
@@ -193,12 +193,14 @@ App.UpdateController = Em.Controller.extend({
     var self = this;
     self.set('isUpdated', false);
 
-    var conditionalFields = this.getConditionalFields();
-    var conditionalFieldsString = conditionalFields.length > 0 ? ',' + conditionalFields.join(',') : '';
-    var testUrl = App.get('isHadoop2Stack') ? '/data/dashboard/HDP2/master_components.json' : '/data/dashboard/services.json';
-    var isFlumeInstalled = App.cache['services'].mapProperty('ServiceInfo.service_name').contains('FLUME');
-    var flumeHandlerParam = isFlumeInstalled ? 'ServiceComponentInfo/component_name=FLUME_HANDLER|' : '';
-    var realUrl = '/components/?' + flumeHandlerParam +
+    var conditionalFields = this.getConditionalFields(),
+      conditionalFieldsString = conditionalFields.length > 0 ? ',' + conditionalFields.join(',') : '',
+      testUrl = App.get('isHadoop2Stack') ? '/data/dashboard/HDP2/master_components.json' : '/data/dashboard/services.json',
+      isFlumeInstalled = App.cache['services'].mapProperty('ServiceInfo.service_name').contains('FLUME'),
+      isYarnInstalled = App.cache['services'].mapProperty('ServiceInfo.service_name').contains('YARN'),
+      flumeHandlerParam = isFlumeInstalled ? 'ServiceComponentInfo/component_name=FLUME_HANDLER|' : '',
+      atsHandlerParam = isYarnInstalled ? 'ServiceComponentInfo/component_name=APP_TIMELINE_SERVER|' : '',
+      realUrl = '/components/?' + flumeHandlerParam + atsHandlerParam +
         'ServiceComponentInfo/category=MASTER&fields=' +
         'ServiceComponentInfo/Version,' +
         'ServiceComponentInfo/StartTime,' +
