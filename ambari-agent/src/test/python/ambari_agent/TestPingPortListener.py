@@ -66,7 +66,7 @@ class TestPingPortListener(unittest.TestCase):
       self.fail("Should throw exception")
     except Exception as fe:
       # Expected
-      self.assertTrue("port already used" in str(fe))
+      self.assertEqual(1, procObj.communicate.call_count)
       pass
 
 if __name__ == "__main__":

@@ -26,7 +26,7 @@ import socket
 import subprocess
 
 logger = logging.getLogger()
-FUSER_CMD = "fuser {0}/tcp 2>&1 | awk '{1}'"
+FUSER_CMD = "fuser {0}/tcp 2>\&1 \| awk \'{1}\'"
 PSPF_CMD = "ps -fp {0}"
 PORT_IN_USE_MESSAGE = "Could not open port {0} because port already used by another process:\n{1}"
 
@@ -41,7 +41,7 @@ class PingPortListener(threading.Thread):
     self.port = int(self.config.get('agent','ping_port'))
     if not self.port == None and not self.port == 0:
       (stdoutdata, stderrdata) = self.run_os_command_in_shell(FUSER_CMD.format(str(self.port), "{print $2}"))
-      if stdoutdata.strip():
+      if stdoutdata.strip() and stdoutdata.strip().isdigit():
         (stdoutdata, stderrdata) = self.run_os_command_in_shell(PSPF_CMD.format(stdoutdata.strip()))
         raise Exception(PORT_IN_USE_MESSAGE.format(str(self.port), stdoutdata))      
     self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
