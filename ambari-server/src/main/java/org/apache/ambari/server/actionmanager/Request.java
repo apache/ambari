@@ -76,9 +76,8 @@ public class Request {
       try {
         this.clusterName = clusters.getClusterById(this.clusterId).getClusterName();
       } catch (AmbariException e) {
-        String message = String.format("Cluster with id=%s not found", clusterId);
-        LOG.error(message);
-        throw new RuntimeException(message);
+        LOG.debug("Could not load cluster with id {}, the cluster may have been removed for request {}",
+            clusterId, Long.valueOf(requestId));
       }
     }
   }
@@ -148,9 +147,8 @@ public class Request {
       try {
         this.clusterName = clusters.getClusterById(this.clusterId).getClusterName();
       } catch (AmbariException e) {
-        String message = String.format("Cluster with id %s not found", this.clusterId);
-        LOG.error(message);
-        throw new RuntimeException(message);
+        LOG.debug("Could not load cluster with id {}, the cluster may have been removed for request {}",
+            Long.valueOf(clusterId), Long.valueOf(requestId));
       }
     }
 

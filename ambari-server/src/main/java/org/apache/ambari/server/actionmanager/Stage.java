@@ -102,10 +102,8 @@ public class Stage {
       try {
         clusterName = clusters.getClusterById(clusterId).getClusterName();
       } catch (Exception e) {
-        String message = String.format("Could not load cluster with id %s",
-            Long.valueOf(clusterId));
-        LOG.error(message);
-        throw new RuntimeException(message, e);
+        LOG.debug("Could not load cluster with id {}, the cluster may have been removed for stage {}",
+            Long.valueOf(clusterId), Long.valueOf(stageId));
       }
     }
     
