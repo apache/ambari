@@ -83,12 +83,12 @@
 
   <property>
     <name>yarn.acl.enable</name>
-    <value>true</value>
+    <value>false</value>
   </property>
 
   <property>
     <name>yarn.admin.acl</name>
-    <value>*</value>
+    <value></value>
   </property>
 
   <!-- NodeManager -->

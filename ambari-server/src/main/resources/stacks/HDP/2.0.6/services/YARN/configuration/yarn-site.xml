@@ -84,13 +84,13 @@
 
   <property>
     <name>yarn.acl.enable</name>
-    <value>true</value>
+    <value>false</value>
     <description> Are acls enabled. </description>
   </property>
 
   <property>
     <name>yarn.admin.acl</name>
-    <value>*</value>
+    <value></value>
     <description> ACL of who can be admin of the YARN cluster. </description>
   </property>
 

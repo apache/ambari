@@ -207,6 +207,15 @@ module.exports = [
     "serviceName": "YARN"
   },
   {
+    "name": "yarn.acl.enable",
+    "templateName": [],
+    "foreignKey": null,
+    "value": true,
+    "nonSecureValue": false,
+    "filename": "yarn-site.xml",
+    "serviceName": "YARN"
+  },
+  {
     "name": "yarn.resourcemanager.principal",
     "templateName": ["resourcemanager_principal_name", "kerberos_domain"],
     "foreignKey": null,

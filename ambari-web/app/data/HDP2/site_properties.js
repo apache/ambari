@@ -133,6 +133,7 @@ module.exports =
       "id": "site property",
       "name": "yarn.admin.acl",
       "displayName": "yarn.admin.acl",
+      "isRequired": false,
       "serviceName": "YARN",
       "category": "ResourceManager"
     },
