@@ -36,6 +36,11 @@ gmond_apps = [x.strip() for x in gmond_apps]
 gmond_allowed_apps = ["Application1", "Application2", "Application3"]
 gmond_apps = set(gmond_apps) & set(gmond_allowed_apps)
 
+if System.get_instance().os_family == "debian":
+  gmond_service_name = "ganglia-monitor"
+else:
+  gmond_service_name = "gmond"
+
 webserver_group = "apache"
 rrdcached_base_dir = config['configurations']['global']["rrdcached_base_dir"]
 rrdcached_timeout = default("/configurations/global/rrdcached_timeout", 3600)
@@ -43,6 +48,7 @@ rrdcached_delay = default("/configurations/global/rrdcached_delay", 1800)
 rrdcached_write_threads = default("/configurations/global/rrdcached_write_threads", 10)
 
 ganglia_server_host = config["clusterHostInfo"]["ganglia_server_host"][0]
+ganglia_debian_apache_conf_file = "/etc/apache2/conf.d/ganglia.conf"
 
 hostname = config["hostname"]
 namenode_host = set(default("/clusterHostInfo/namenode_host", []))
@@ -127,5 +133,7 @@ if len(gmond_apps) > 0:
 
 if System.get_instance().os_family == "suse":
   rrd_py_path = '/srv/www/cgi-bin'
-else:
+elif  System.get_instance().os_family == "redhat":
   rrd_py_path = '/var/www/cgi-bin'
+elif  System.get_instance().os_family == "debian":
+  rrd_py_path = '/usr/lib/cgi-bin'

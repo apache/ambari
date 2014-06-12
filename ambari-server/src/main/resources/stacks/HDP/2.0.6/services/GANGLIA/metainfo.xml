@@ -53,6 +53,14 @@
           <osFamily>any</osFamily>
           <packages>
             <package>
+              <name>python-rrdtool</name>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>redhat5,redhat6,suse11</osFamily>
+          <packages>
+            <package>
               <name>libganglia-3.5.0-99</name>
             </package>
             <package>
@@ -72,6 +80,23 @@
             </package>
             <package>
               <name>ganglia-gmond-modules-python-3.5.0-99</name>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>debian12</osFamily>
+          <packages>
+            <package>
+              <name>gmetad</name>
+            </package>
+            <package>
+              <name>ganglia-webfrontend</name>
+            </package>
+            <package>
+              <name>ganglia-monitor-python</name>
+            </package>
+            <package>
+              <name>rrdcached</name>
             </package>
           </packages>
         </osSpecific>

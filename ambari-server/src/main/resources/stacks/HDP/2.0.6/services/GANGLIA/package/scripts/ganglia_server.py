@@ -22,6 +22,7 @@ from os import path
 from resource_management import *
 from ganglia import generate_daemon
 import ganglia
+import functions
 import ganglia_server_service
 
 
@@ -32,7 +33,8 @@ class GangliaServer(Script):
     self.install_packages(env)
     env.set_params(params)
     self.configure(env)
-    self.chkconfigOff()
+    
+    functions.chkconfigOff("gmetad")
 
   def start(self, env):
     import params
@@ -73,11 +75,6 @@ class GangliaServer(Script):
     )
 
 
-  def chkconfigOff(self):
-    Execute("chkconfig gmetad off",
-            path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin')
-
-
 def change_permission():
   import params
 
@@ -109,6 +106,12 @@ def server_files():
             mode=0755,
             recursive=True
   )
+  
+  if System.get_instance().os_family == "debian":
+    File( params.ganglia_debian_apache_conf_file,
+      content = Template("ganglia.conf.j2"),
+      mode = 0644
+    )
 
 
 if __name__ == "__main__":

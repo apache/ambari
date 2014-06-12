@@ -22,6 +22,7 @@ from os import path
 from resource_management import *
 from ganglia import generate_daemon
 import ganglia
+import functions
 import ganglia_monitor_service
 
 
@@ -32,7 +33,9 @@ class GangliaMonitor(Script):
     self.install_packages(env)
     env.set_params(params)
     self.configure(env)
-    self.chkconfigOff()
+    
+    functions.chkconfigOff(params.gmond_service_name)
+    functions.chkconfigOff("gmetad")
 
   def start(self, env):
     import params
@@ -311,14 +314,6 @@ class GangliaMonitor(Script):
                     role = "server",
                     owner = "root",
                     group = params.user_group)
-
-
-  def chkconfigOff(self):
-    Execute("chkconfig gmond off",
-            path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin')
-
-    Execute("chkconfig gmetad off",
-            path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin')
 
 
 if __name__ == "__main__":

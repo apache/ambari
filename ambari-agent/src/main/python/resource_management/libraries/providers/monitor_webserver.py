@@ -42,7 +42,7 @@ class MonitorWebserverProvider(Provider):
 
   def get_serivice_params(self):
     self.system = System.get_instance()
-    if self.system.os_family == "suse":
+    if self.system.os_family in ["suse","debian"]:
       self.service_name = "apache2"
       self.httpd_conf_dir = '/etc/apache2'
     else:
