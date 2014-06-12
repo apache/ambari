@@ -62,7 +62,7 @@ def service(componentName, action='start', serviceName='yarn'):
     )
 
   elif action == 'refreshQueues':
-    refresh_cmd = format("{yarn_bin}/yarn rmadmin -refreshQueues")
+    refresh_cmd = format("yarn rmadmin -refreshQueues")
 
     Execute(refresh_cmd,
             user=usr,
