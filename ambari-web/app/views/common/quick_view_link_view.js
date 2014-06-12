@@ -132,7 +132,7 @@ App.QuickViewLinks = Em.View.extend({
       case "GANGLIA":
       case "NAGIOS":
       case "HUE":
-        hosts[0] = App.singleNodeInstall ? App.singleNodeAlias : response.items[0].Hosts.public_host_name;
+        hosts[0] = App.singleNodeInstall ? App.singleNodeAlias : this.findComponentHost(response.items, this.get('content.hostComponents').findProperty('isMaster', true).get('componentName'));
         break;
       case "HBASE":
         var masterComponents = response.items.filter(function (item) {
