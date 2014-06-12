@@ -101,6 +101,7 @@
                 <exec dir="${basedir}" executable="rm">
                   <arg value="-rf"/>
                   <arg value="public"/>
+                  <arg value="node_modules"/>
                 </exec>
                 <exec dir="${basedir}" executable="mkdir">
                   <arg value="public"/>
@@ -120,25 +121,26 @@
                   <env key="PYTHON" value="${project.basedir}/../ambari-common/src/main/unix/ambari-python-wrap" />
                   <arg value="install"/>
                 </exec>
-                <exec dir="${basedir}" executable="brunch">
+                <exec dir="${basedir}" executable="brunch" failonerror="true">
                   <arg value="build"/>
                 </exec>
                 <!-- sets Ambari version to make it accessible from code -->
-                <exec dir="${basedir}" executable="sh">
+                <exec dir="${basedir}" executable="sh" failonerror="true">
                   <arg value="${basedir}/set-ambari-version.sh"/>
                   <arg value="${ambariVersion}"/>
                 </exec>
                 <!-- sets default stack and version to use for install -->
-                <exec dir="${basedir}" executable="sh">
+                <exec dir="${basedir}" executable="sh" failonerror="true">
                   <arg value="${basedir}/set-default-stack-version.sh"/>
                   <arg value="${defaultStackVersion}"/>
                 </exec>
                 <!-- enables experimental features if enableExperimental is set to true -->
-                <exec dir="${basedir}" executable="sh">
+                <exec dir="${basedir}" executable="sh" failonerror="true">
                   <arg value="${basedir}/toggle-experimental.sh"/>
                   <arg value="${enableExperimental}"/>
                 </exec>
-                <exec dir="${basedir}" executable="gzip">
+                <exec dir="${basedir}" executable="gzip" failonerror="true">
+                  <arg value="-f"/>
                   <arg value="public/javascripts/app.js"/>
                   <arg value="public/javascripts/vendor.js"/>
                   <arg value="public/stylesheets/app.css"/>
