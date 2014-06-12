@@ -103,7 +103,7 @@ App.hostsMapper = App.QuickDataMapper.create({
       });
       App.store.loadMany(App.HostComponent, components);
       App.store.loadMany(App.Host, hostsWithFullInfo);
-      App.router.set('mainHostController.filteredCount', json.itemTotal);
+      App.router.set('mainHostController.filteredCount', parseInt(json.itemTotal));
     }
     console.timeEnd('App.hostsMapper execution time');
   }
