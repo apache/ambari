@@ -187,7 +187,7 @@ App.MainHostDetailsController = Em.Controller.extend({
    */
   startComponentSuccessCallback: function (data, opt, params) {
     console.log('Send request for STARTING successfully');
-
+    params.component.set('workStatus', 'STARTING');
     if (App.testMode) {
       this.mimicWorkStatusChange(params.component, App.HostComponentStatus.starting, App.HostComponentStatus.started);
     }
@@ -426,7 +426,7 @@ App.MainHostDetailsController = Em.Controller.extend({
    */
   stopComponentSuccessCallback: function (data, opt, params) {
     console.log('Send request for STOPPING successfully');
-
+    params.component.set('workStatus', 'STOPPING');
     if (App.testMode) {
       this.mimicWorkStatusChange(params.component, App.HostComponentStatus.stopping, App.HostComponentStatus.stopped);
     }
