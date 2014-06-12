@@ -345,7 +345,7 @@ App.WizardStep7Controller = Em.Controller.extend({
   _getRecommendedDefaultsForComponent: function (serviceName) {
     var s = this.get('serviceConfigsData').findProperty('serviceName', serviceName),
       recommendedDefaults = {},
-      localDB = App.router.get('mainServiceInfoConfigsController').getInfoForDefaults();
+      localDB = this.getInfoForDefaults();
     if (s.defaultsProviders) {
       s.defaultsProviders.forEach(function (defaultsProvider) {
         var d = defaultsProvider.getDefaults(localDB);
@@ -357,6 +357,58 @@ App.WizardStep7Controller = Em.Controller.extend({
       });
     }
     return recommendedDefaults;
+  },
+
+  /**
+   * Get info about hosts and host components to configDefaultsProviders
+   * Work specifically in Add Service wizard
+   * @slaveComponentHosts - contains slaves and clients as well
+   * @returns {{masterComponentHosts: Array, slaveComponentHosts: Array, hosts: {}}}
+   */
+  getInfoForDefaults: function() {
+    var slaveComponentHosts = [];
+    var hosts = this.get('content.hosts');
+    var slaveHostMap = {};
+
+    //get clients and slaves from stack
+    App.StackServiceComponent.find().forEach(function (component) {
+      if (component.get('isClient') || component.get('isSlave')) {
+        slaveHostMap[component.get('componentName')] = [];
+      }
+    });
+
+    //assign hosts of every component
+    for (var hostName in hosts) {
+      hosts[hostName].hostComponents.forEach(function (componentName) {
+        if (slaveHostMap[componentName]) {
+          slaveHostMap[componentName].push({hostName: hostName});
+        }
+      });
+    }
+
+    //push slaves and clients into @slaveComponentHosts
+    for (var componentName in slaveHostMap) {
+      if(slaveHostMap[componentName].length > 0) {
+        slaveComponentHosts.push({
+          componentName: componentName,
+          hosts: slaveHostMap[componentName]
+        })
+      }
+    }
+
+    var masterComponentHosts = App.HostComponent.find().filterProperty('isMaster', true).map(function(item) {
+      return {
+        component: item.get('componentName'),
+        serviceId: item.get('service.serviceName'),
+        host: item.get('hostName')
+      }
+    });
+
+    return {
+      masterComponentHosts: masterComponentHosts,
+      slaveComponentHosts: slaveComponentHosts,
+      hosts: hosts
+    };
   },
 
   /**

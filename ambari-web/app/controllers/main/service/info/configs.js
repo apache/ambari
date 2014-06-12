@@ -522,117 +522,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   },
 
   /**
-   * Get info about hosts and host components to configDefaultsProviders
-   * @returns {{masterComponentHosts: Array, slaveComponentHosts: Array, hosts: {}}}
-   */
-  getInfoForDefaults: function() {
-
-    App.ajax.send({
-      name: 'host_components.all',
-      sender: this,
-      data: {
-        clusterName: App.get('clusterName')
-      },
-      success: 'slavesSuccessCallback'
-    });
-
-  },
-
-  slavesSuccessCallback: function (response) {
-    var slaveComponentHosts = [];
-    var slaves = response.items.mapProperty('HostRoles').filter(function (c) {
-      return App.StackServiceComponent.find().findProperty('componentName', c.component_name).get('isSlave');
-    }).map(function(item) {
-      return Em.Object.create({
-        host: item.host_name,
-        componentName: item.component_name
-      });
-    });
-    slaves.forEach(function(slave) {
-      var s = slaveComponentHosts.findProperty('componentName', slave.componentName);
-      if (s) {
-        s.hosts.push({hostName: slave.host});
-      }
-      else {
-        slaveComponentHosts.push({
-          componentName: slave.get('componentName'),
-          hosts: [{hostName: slave.host}]
-        });
-      }
-    });
-
-    App.ajax.send({
-      name: 'host_components.with_services_names',
-      sender: this,
-      data: {
-        clusterName: App.get('clusterName'),
-        slaveComponentHosts: slaveComponentHosts
-      },
-      success: 'mastersSuccessCallback'
-    });
-
-  },
-
-  mastersSuccessCallback: function (response, request, data) {
-
-    var masterComponentHosts = response.items.filter(function (c) {
-      return App.StackServiceComponent.find().findProperty('componentName', c.HostRoles.component_name).get('isMaster');
-    }).map(function(item) {
-      return {
-        component: item.HostRoles.component_name,
-        serviceId: item.component[0].ServiceComponentInfo.service_name,
-        host: item.HostRoles.host_name
-      }
-    });
-
-    App.ajax.send({
-      name: 'hosts.confirmed',
-      sender: this,
-      data: {
-        clusterName: App.get('clusterName'),
-        masterComponentHosts: masterComponentHosts,
-        slaveComponentHosts: data.slaveComponentHosts
-      },
-      success: 'hostsSuccessCallback'
-    });
-
-  },
-
-  hostsSuccessCallback: function (response, request, data) {
-    var hosts = {};
-    response.items.mapProperty('Hosts').map(function(host) {
-      hosts[host.host_name] = {
-        name: host.host_name,
-        cpu: host.cpu_count,
-        memory: host.total_mem,
-        disk_info: host.disk_info
-      };
-    });
-    var obj =  {
-      masterComponentHosts: [],
-      slaveComponentHosts: [],
-      hosts: hosts
-    };
-    lazyLoading.run({
-      initSize: 20,
-      chunkSize: 50,
-      delay: 50,
-      destination: obj.masterComponentHosts,
-      source: data.masterComponentHosts,
-      context: Em.Object.create()
-    });
-    lazyLoading.run({
-      initSize: 20,
-      chunkSize: 50,
-      delay: 50,
-      destination: obj.slaveComponentHosts,
-      source: obj.slaveComponentHosts,
-      context: Em.Object.create()
-    });
-    this.set('defaultsInfo', obj);
-  },
-
-  /**
    * Load child components to service config object
    * @param {Array} configs - array of configs
    * @param {Object} componentConfig - component config object
@@ -708,7 +597,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    */
   setRecommendedDefaults: function (advancedConfigs) {
     var s = this.get('serviceConfigsData').findProperty('serviceName', this.get('content.serviceName'));
-    this.getInfoForDefaults();
     this.addObserver('defaultsInfo.hosts.length', this, function() {
       var localDB = this.get('defaultsInfo');
       var recommendedDefaults = {};
