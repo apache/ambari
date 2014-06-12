@@ -38,7 +38,7 @@
 define host {
         alias                     {{host}}
         host_name                 {{host}}
-        use                       linux-server
+        use                       {{host_template}}
         address                   {{host}}
         check_command             check_tcp_wrapper!{{all_ping_ports[loop.index-1]}}!-w 1 -c 1
         check_interval            0.25

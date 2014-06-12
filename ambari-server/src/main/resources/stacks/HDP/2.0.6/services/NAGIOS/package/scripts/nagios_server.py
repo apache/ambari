@@ -68,11 +68,12 @@ def remove_conflicting_packages():
   Package( 'nagios-plugins',
     action = "remove"
   )
-
-  Execute( "rpm -e --allmatches --nopostun nagios",
-    path    = "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
-    ignore_failures = True 
-  )
+  
+  if System.get_instance().os_family in ["redhat","suse"]:
+    Execute( "rpm -e --allmatches --nopostun nagios",
+      path    = "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+      ignore_failures = True 
+    )
 
 def update_ignorable(params):
   if not params.config.has_key('passiveInfo'):

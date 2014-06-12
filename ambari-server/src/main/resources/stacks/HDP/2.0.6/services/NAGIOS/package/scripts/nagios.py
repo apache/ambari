@@ -77,13 +77,13 @@ def nagios():
 def set_web_permisssions():
   import params
 
-  cmd = format("{htpasswd_cmd} -c -b  /etc/nagios/htpasswd.users {nagios_web_login} {nagios_web_password!p}")
-  test = format("grep {nagios_web_login} /etc/nagios/htpasswd.users")
+  cmd = format("{htpasswd_cmd} -c -b  {conf_dir}/htpasswd.users {nagios_web_login} {nagios_web_password!p}")
+  test = format("grep {nagios_web_login} {conf_dir}/htpasswd.users")
   Execute( cmd,
     not_if = test
   )
 
-  File( "/etc/nagios/htpasswd.users",
+  File( format("{conf_dir}/htpasswd.users"),
     owner = params.nagios_user,
     group = params.nagios_group,
     mode  = 0640
@@ -91,7 +91,9 @@ def set_web_permisssions():
 
   if System.get_instance().os_family == "suse":
     command = format("usermod -G {nagios_group} wwwrun")
-  else:
+  elif System.get_instance().os_family == "debian":
+    command = format("usermod -G {nagios_group} www-data") # check -a ???
+  elif System.get_instance().os_family == "redhat":
     command = format("usermod -a -G {nagios_group} apache")
   
   Execute( command)

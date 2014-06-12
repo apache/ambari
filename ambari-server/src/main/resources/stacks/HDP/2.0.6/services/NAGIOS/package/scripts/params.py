@@ -27,11 +27,40 @@ import status_params
 # server configurations
 config = Script.get_config()
 
-conf_dir = "/etc/nagios"
+if System.get_instance().os_family == "debian":
+  nagios_service_name = "nagios3"
+else:
+  nagios_service_name = "nagios"
+
+conf_dir = format("/etc/{nagios_service_name}")
+nagios_obj_dir = format("{conf_dir}/objects")
 nagios_var_dir = "/var/nagios"
 nagios_rw_dir = "/var/nagios/rw"
-plugins_dir = "/usr/lib64/nagios/plugins"
-nagios_obj_dir = "/etc/nagios/objects"
+
+if System.get_instance().os_family == "debian":
+  host_template = "generic-host"
+  plugins_dir = "/usr/lib/nagios/plugins"
+  nagios_web_dir = "/usr/share/nagios3/htdocs"
+  
+  cfg_files = [
+    format("{conf_dir}/commands.cfg"),
+    format("{conf_dir}/conf.d/contacts_nagios2.cfg"),
+    format("{conf_dir}/conf.d/generic-host_nagios2.cfg"),
+    format("{conf_dir}/conf.d/generic-service_nagios2.cfg"),
+    format("{conf_dir}/conf.d/timeperiods_nagios2.cfg"),
+  ]
+else:
+  host_template = "linux-server"
+  plugins_dir = "/usr/lib64/nagios/plugins"
+  nagios_web_dir = "/usr/share/nagios"
+  
+  cfg_files = [
+    format("{nagios_obj_dir}/commands.cfg"),
+    format("{nagios_obj_dir}/contacts.cfg"),
+    format("{nagios_obj_dir}/timeperiods.cfg"),
+    format("{nagios_obj_dir}/templates.cfg"),
+  ]
+  
 check_result_path = "/var/nagios/spool/checkresults"
 nagios_log_dir = "/var/log/nagios"
 nagios_log_archives_dir = format("{nagios_log_dir}/archives")
@@ -122,7 +151,11 @@ if System.get_instance().os_family == "suse":
   nagios_p1_pl = "/usr/lib/nagios/p1.pl"
   htpasswd_cmd = "htpasswd2"
   nagios_httpd_config_file = format("/etc/apache2/conf.d/nagios.conf")
-else:
+elif System.get_instance().os_family == "debian":
+  nagios_p1_pl = "/usr/lib/nagios3/p1.pl"
+  htpasswd_cmd = "htpasswd"
+  nagios_httpd_config_file = format("/etc/apache2/conf.d/nagios3.conf")
+elif System.get_instance().os_family == "redhat":
   nagios_p1_pl = "/usr/bin/p1.pl"
   htpasswd_cmd = "htpasswd"
   nagios_httpd_config_file = format("/etc/httpd/conf.d/nagios.conf")

@@ -41,7 +41,6 @@ class TestNagiosServer(RMFTestCase):
     )
     self.assert_configure_default()
     self.assertResourceCalled('Execute', 'service nagios start',
-                              path=['/usr/local/bin/:/bin/:/sbin/']
     )
     self.assertResourceCalled('MonitorWebserver', 'restart',
     )
@@ -56,8 +55,7 @@ class TestNagiosServer(RMFTestCase):
       config_file="default.json"
     )
     self.assertResourceCalled('Execute',
-                              'service nagios stop && rm -f /var/run/nagios/nagios.pid',
-                              path=['/usr/local/bin/:/bin/:/sbin/']
+                              'service nagios stop && rm -f /var/run/nagios/nagios.pid'
     )
     self.assertResourceCalled('MonitorWebserver', 'restart',
     )

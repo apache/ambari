@@ -86,6 +86,43 @@
               <name>perl</name>
             </package>
             <package>
+              <name>fping</name>
+            </package>
+            <package>
+              <name>hdp_mon_nagios_addons</name>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>debian12</osFamily>             
+          <packages>
+            <package>
+              <name>nagios3</name>
+            </package>
+            <package>
+              <name>nagios3-common</name>
+            </package>
+            <package>
+              <name>nagios3-dbg</name>
+            </package>
+            <package>
+              <name>nagios3-doc</name>
+            </package>
+            <package>
+              <name>nagios-plugins-extra</name>
+            </package>
+            <package>
+              <name>php5-curl</name>
+            </package>
+            <package>
+              <name>libapache2-mod-php5</name>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>redhat5,redhat6,suse11</osFamily>
+          <packages>
+            <package>
               <name>nagios-plugins-1.4.9</name>
             </package>
             <package>
@@ -96,12 +133,6 @@
             </package>
             <package>
               <name>nagios-devel-3.5.0-99</name>
-            </package>
-            <package>
-              <name>fping</name>
-            </package>
-            <package>
-              <name>hdp_mon_nagios_addons</name>
             </package>
           </packages>
         </osSpecific>

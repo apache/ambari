@@ -48,8 +48,8 @@ SRC_DIR="${BASEDIR}/../../src/addOns/nagios/"
 mkdir -p "${MON_TAR_DIR}/usr/lib64/nagios"
 cp -r "${SRC_DIR}/plugins" "${MON_TAR_DIR}/usr/lib64/nagios"
 
-mkdir -p "${MON_TAR_DIR}/etc/httpd"
-cp -r "${SRC_DIR}/conf.d" "${MON_TAR_DIR}/etc/httpd"
+mkdir -p "${MON_TAR_DIR}/etc/apache2"
+cp -r "${SRC_DIR}/conf.d" "${MON_TAR_DIR}/etc/apache2"
 
 mkdir -p "${MON_TAR_DIR}/usr/share/hdp/nagios"
 cp -r ${SRC_DIR}/scripts/* "${MON_TAR_DIR}/usr/share/hdp/nagios"

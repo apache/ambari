@@ -57,13 +57,13 @@ ScriptAlias /nagios/cgi-bin "/usr/lib/nagios/cgi"
 #  Allow from 127.0.0.1
    AuthName "Nagios Access"
    AuthType Basic
-   AuthUserFile /etc/nagios/htpasswd.users
+   AuthUserFile {{conf_dir}}/htpasswd.users
    Require valid-user
 </Directory>
 
-Alias /nagios "/usr/share/nagios"
+Alias /nagios "{{nagios_web_dir}}"
 
-<Directory "/usr/share/nagios">
+<Directory "{{nagios_web_dir}}">
 #  SSLRequireSSL
    Options None
    AllowOverride None
@@ -74,7 +74,7 @@ Alias /nagios "/usr/share/nagios"
 #  Allow from 127.0.0.1
    AuthName "Nagios Access"
    AuthType Basic
-   AuthUserFile /etc/nagios/htpasswd.users
+   AuthUserFile {{conf_dir}}/htpasswd.users
    Require valid-user
 </Directory>
 

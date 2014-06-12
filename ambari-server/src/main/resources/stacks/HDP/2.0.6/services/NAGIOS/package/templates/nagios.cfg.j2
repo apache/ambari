@@ -57,30 +57,27 @@
 log_file=/var/log/nagios/nagios.log
 
 
-
 # OBJECT CONFIGURATION FILE(S)
 # These are the object configuration files in which you define hosts,
 # host groups, contacts, contact groups, services, etc.
 # You can split your object definitions across several config files
 # if you wish (as shown below), or keep them all in a single config file.
 
-# You can specify individual object config files as shown below:
-cfg_file=/etc/nagios/objects/commands.cfg
-cfg_file=/etc/nagios/objects/contacts.cfg
-cfg_file=/etc/nagios/objects/timeperiods.cfg
-cfg_file=/etc/nagios/objects/templates.cfg
+{% for cfg_file in cfg_files %}
+cfg_file={{cfg_file}}
+{% endfor %}
 
 # Definitions for monitoring the local (Linux) host
-#cfg_file=/etc/nagios/objects/localhost.cfg
+#cfg_file={{conf_dir}}/objects/localhost.cfg
 
 # Definitions for monitoring a Windows machine
-#cfg_file=/etc/nagios/objects/windows.cfg
+#cfg_file={{conf_dir}}/objects/windows.cfg
 
 # Definitions for monitoring a router/switch
-#cfg_file=/etc/nagios/objects/switch.cfg
+#cfg_file={{conf_dir}}/objects/switch.cfg
 
 # Definitions for monitoring a network printer
-#cfg_file=/etc/nagios/objects/printer.cfg
+#cfg_file={{conf_dir}}/objects/printer.cfg
 
 # Definitions for hadoop servers
 cfg_file={{nagios_host_cfg}}
@@ -94,10 +91,10 @@ cfg_file={{nagios_command_cfg}}
 # extension) in a particular directory by using the cfg_dir
 # directive as shown below:
 
-#cfg_dir=/etc/nagios/servers
-#cfg_dir=/etc/nagios/printers
-#cfg_dir=/etc/nagios/switches
-#cfg_dir=/etc/nagios/routers
+#cfg_dir={{conf_dir}}/servers
+#cfg_dir={{conf_dir}}/printers
+#cfg_dir={{conf_dir}}/switches
+#cfg_dir={{conf_dir}}/routers
 
 
 

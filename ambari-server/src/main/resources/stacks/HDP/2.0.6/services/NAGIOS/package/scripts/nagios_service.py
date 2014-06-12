@@ -26,11 +26,10 @@ def nagios_service(action='start'): # start or stop
   import params
 
   if action == 'start':
-   command = "service nagios start"
+   command = format("service {nagios_service_name} start")
   elif action == 'stop':
-   command = format("service nagios stop && rm -f {nagios_pid_file}")
+   command = format("service {nagios_service_name} stop && rm -f {nagios_pid_file}")
 
-  Execute( command,
-     path    = "/usr/local/bin/:/bin/:/sbin/"      
+  Execute( command,      
   )
   MonitorWebserver("restart")
