@@ -83,6 +83,24 @@ public class ViewEntityTest {
   }
 
   @Test
+  public void testGetIcon() throws Exception {
+    ViewEntity viewDefinition = getViewEntity();
+    Assert.assertEquals("/this/is/the/icon/url/icon.png", viewDefinition.getIcon());
+
+    viewDefinition.setIcon("/a/different/icon.png");
+    Assert.assertEquals("/a/different/icon.png", viewDefinition.getIcon());
+  }
+
+  @Test
+  public void testGetIcon64() throws Exception {
+    ViewEntity viewDefinition = getViewEntity();
+    Assert.assertEquals("/this/is/the/icon/url/icon64.png", viewDefinition.getIcon64());
+
+    viewDefinition.setIcon64("/a/different/icon.png");
+    Assert.assertEquals("/a/different/icon.png", viewDefinition.getIcon64());
+  }
+
+  @Test
   public void testGetConfiguration() throws Exception {
     ViewConfig viewConfig = ViewConfigTest.getConfig();
     ViewEntity viewDefinition = getViewEntity(viewConfig);

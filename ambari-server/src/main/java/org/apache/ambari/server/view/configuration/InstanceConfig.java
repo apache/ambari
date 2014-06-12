@@ -50,6 +50,18 @@ public class InstanceConfig {
   private boolean visible = true;
 
   /**
+   * The icon path in the view archive.  Overrides the view
+   * level icon attribute.
+   */
+  private String icon;
+
+  /**
+   * The big icon path in the view archive.  Overrides the view
+   * level big icon attribute.
+   */
+  private String icon64;
+
+  /**
    * The instance properties.
    */
   @XmlElement(name="property")
@@ -89,6 +101,26 @@ public class InstanceConfig {
    */
   public boolean isVisible() {
     return visible;
+  }
+
+  /**
+   * Get the icon path in the view archive.  Overrides the view
+   * level icon attribute.
+   *
+   * @return the icon path
+   */
+  public String getIcon() {
+    return icon;
+  }
+
+  /**
+   * Get the big icon path in the view archive. Overrides the view
+   * level big icon attribute.
+   *
+   * @return the big icon path
+   */
+  public String getIcon64() {
+    return icon64;
   }
 
   /**

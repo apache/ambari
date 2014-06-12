@@ -49,6 +49,16 @@ public class ViewConfig {
   private String version;
 
   /**
+   * The icon path in the view archive.
+   */
+  private String icon;
+
+  /**
+   * The big icon path in the view archive.
+   */
+  private String icon64;
+
+  /**
    * The main view class name.
    */
   @XmlElement(name="view-class")
@@ -108,6 +118,24 @@ public class ViewConfig {
    */
   public String getVersion() {
     return version;
+  }
+
+  /**
+   * Get the icon path in the view archive.
+   *
+   * @return the icon path
+   */
+  public String getIcon() {
+    return icon;
+  }
+
+  /**
+   * Get the big icon path in the view archive.
+   *
+   * @return the big icon path
+   */
+  public String getIcon64() {
+    return icon64;
   }
 
   /**

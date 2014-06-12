@@ -57,6 +57,8 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
   public static final String LABEL_PROPERTY_ID         = "ViewInstanceInfo/label";
   public static final String DESCRIPTION_PROPERTY_ID   = "ViewInstanceInfo/description";
   public static final String VISIBLE_PROPERTY_ID       = "ViewInstanceInfo/visible";
+  public static final String ICON_PATH_ID              = "ViewInstanceInfo/icon_path";
+  public static final String ICON64_PATH_ID            = "ViewInstanceInfo/icon64_path";
   public static final String PROPERTIES_PROPERTY_ID    = "ViewInstanceInfo/properties";
   public static final String DATA_PROPERTY_ID          = "ViewInstanceInfo/instance_data";
   public static final String CONTEXT_PATH_PROPERTY_ID  = "ViewInstanceInfo/context_path";
@@ -88,6 +90,8 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
     propertyIds.add(LABEL_PROPERTY_ID);
     propertyIds.add(DESCRIPTION_PROPERTY_ID);
     propertyIds.add(VISIBLE_PROPERTY_ID);
+    propertyIds.add(ICON_PATH_ID);
+    propertyIds.add(ICON64_PATH_ID);
     propertyIds.add(PROPERTIES_PROPERTY_ID);
     propertyIds.add(DATA_PROPERTY_ID);
     propertyIds.add(CONTEXT_PATH_PROPERTY_ID);
@@ -221,8 +225,12 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
     }
     setResourceProperty(resource, DATA_PROPERTY_ID,
         applicationData, requestedIds);
-    setResourceProperty(resource, CONTEXT_PATH_PROPERTY_ID,
-        ViewInstanceEntity.getContextPath(viewName, version, name), requestedIds);
+
+    String contextPath = ViewInstanceEntity.getContextPath(viewName, version, name);
+
+    setResourceProperty(resource, CONTEXT_PATH_PROPERTY_ID,contextPath, requestedIds);
+    setResourceProperty(resource, ICON_PATH_ID, getIconPath(contextPath, viewInstanceEntity.getIcon()), requestedIds);
+    setResourceProperty(resource, ICON64_PATH_ID, getIconPath(contextPath, viewInstanceEntity.getIcon64()), requestedIds);
 
     return resource;
   }
@@ -258,18 +266,24 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
       viewEntity.setVersion(version);
       viewInstanceEntity.setViewEntity(viewEntity);
     }
-    String label = (String) properties.get(LABEL_PROPERTY_ID);
-    if (label != null) {
-      viewInstanceEntity.setLabel(label);
+    if (properties.containsKey(LABEL_PROPERTY_ID)) {
+      viewInstanceEntity.setLabel((String) properties.get(LABEL_PROPERTY_ID));
     }
 
-    String description = (String) properties.get(DESCRIPTION_PROPERTY_ID);
-    if (description != null) {
-      viewInstanceEntity.setDescription(description);
+    if (properties.containsKey(DESCRIPTION_PROPERTY_ID)) {
+      viewInstanceEntity.setDescription((String) properties.get(DESCRIPTION_PROPERTY_ID));
     }
 
     String visible = (String) properties.get(VISIBLE_PROPERTY_ID);
     viewInstanceEntity.setVisible(visible==null ? true : Boolean.valueOf(visible));
+
+    if (properties.containsKey(ICON_PATH_ID)) {
+      viewInstanceEntity.setIcon((String) properties.get(ICON_PATH_ID));
+    }
+
+    if (properties.containsKey(ICON64_PATH_ID)) {
+      viewInstanceEntity.setIcon64((String) properties.get(ICON64_PATH_ID));
+    }
 
     Collection<ViewInstancePropertyEntity> instanceProperties = new HashSet<ViewInstancePropertyEntity>();
     Collection<ViewInstanceDataEntity>     instanceData       = new HashSet<ViewInstanceDataEntity>();
@@ -356,5 +370,11 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
         return null;
       }
     };
+  }
+
+  // get the icon path
+  private static String getIconPath(String contextPath, String iconPath){
+    return iconPath == null || iconPath.length() == 0 ? null :
+        contextPath + (iconPath.startsWith("/") ? "" : "/") + iconPath;
   }
 }

@@ -103,6 +103,24 @@ public class InstanceConfigTest {
   }
 
   @Test
+  public void testGetIcon() throws Exception {
+    List<InstanceConfig> instances = getInstanceConfigs();
+
+    Assert.assertEquals(2, instances.size());
+    Assert.assertEquals("/this/is/the/icon/url/instance_1_icon.png", instances.get(0).getIcon());
+    Assert.assertNull(instances.get(1).getIcon());
+  }
+
+  @Test
+  public void testGetIcon64() throws Exception {
+    List<InstanceConfig> instances = getInstanceConfigs();
+
+    Assert.assertEquals(2, instances.size());
+    Assert.assertEquals("/this/is/the/icon/url/instance_1_icon64.png", instances.get(0).getIcon64());
+    Assert.assertNull(instances.get(1).getIcon());
+  }
+
+  @Test
   public void testGetProperties() throws Exception {
     List<InstanceConfig> instances = getInstanceConfigs();
 

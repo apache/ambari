@@ -43,11 +43,15 @@ public class ViewInstanceEntityTest {
       "    <name>MY_VIEW</name>\n" +
       "    <label>My View!</label>\n" +
       "    <version>1.0.0</version>\n" +
+      "    <icon>/this/is/the/icon/url/icon.png</icon>\n" +
+      "    <icon64>/this/is/the/icon/url/icon64.png</icon64>\n" +
       "    <instance>\n" +
       "        <name>INSTANCE1</name>\n" +
       "        <label>My Instance 1!</label>\n" +
       "        <description>This is an instance description.</description>\n" +
       "        <visible>true</visible>\n" +
+      "        <icon>/this/is/the/icon/url/instance_1_icon.png</icon>\n" +
+      "        <icon64>/this/is/the/icon/url/instance_1_icon64.png</icon64>\n" +
       "    </instance>\n" +
       "    <instance>\n" +
       "        <name>INSTANCE2</name>\n" +
@@ -190,6 +194,38 @@ public class ViewInstanceEntityTest {
     viewInstanceDefinition = new ViewInstanceEntity(viewDefinition, instanceConfig);
 
     Assert.assertTrue(viewInstanceDefinition.isVisible());
+  }
+
+  @Test
+  public void testGetIcon() throws Exception {
+    InstanceConfig instanceConfig = InstanceConfigTest.getInstanceConfigs(xml_with_instance_label).get(0);
+    ViewEntity viewDefinition = ViewEntityTest.getViewEntity();
+    ViewInstanceEntity viewInstanceDefinition = new ViewInstanceEntity(viewDefinition, instanceConfig);
+    Assert.assertEquals("/this/is/the/icon/url/instance_1_icon.png", viewInstanceDefinition.getIcon());
+
+    viewInstanceDefinition.setIcon("/a/different/icon.png");
+    Assert.assertEquals("/a/different/icon.png", viewInstanceDefinition.getIcon());
+
+    instanceConfig = InstanceConfigTest.getInstanceConfigs(xml_with_instance_label).get(1);
+    viewDefinition = ViewEntityTest.getViewEntity();
+    viewInstanceDefinition = new ViewInstanceEntity(viewDefinition, instanceConfig);
+    Assert.assertEquals("/this/is/the/icon/url/icon.png", viewInstanceDefinition.getIcon());
+  }
+
+  @Test
+  public void testGetIcon64() throws Exception {
+    InstanceConfig instanceConfig = InstanceConfigTest.getInstanceConfigs(xml_with_instance_label).get(0);
+    ViewEntity viewDefinition = ViewEntityTest.getViewEntity();
+    ViewInstanceEntity viewInstanceDefinition = new ViewInstanceEntity(viewDefinition, instanceConfig);
+    Assert.assertEquals("/this/is/the/icon/url/instance_1_icon64.png", viewInstanceDefinition.getIcon64());
+
+    viewInstanceDefinition.setIcon64("/a/different/icon.png");
+    Assert.assertEquals("/a/different/icon.png", viewInstanceDefinition.getIcon64());
+
+    instanceConfig = InstanceConfigTest.getInstanceConfigs(xml_with_instance_label).get(1);
+    viewDefinition = ViewEntityTest.getViewEntity();
+    viewInstanceDefinition = new ViewInstanceEntity(viewDefinition, instanceConfig);
+    Assert.assertEquals("/this/is/the/icon/url/icon64.png", viewInstanceDefinition.getIcon64());
   }
 
   @Test

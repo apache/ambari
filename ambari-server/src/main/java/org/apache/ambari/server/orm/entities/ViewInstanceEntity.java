@@ -92,6 +92,20 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
   private char visible;
 
   /**
+   * The icon path.
+   */
+  @Column
+  @Basic
+  private String icon;
+
+  /**
+   * The big icon path.
+   */
+  @Column
+  @Basic
+  private String icon64;
+
+  /**
    * The instance properties.
    */
   @OneToMany(cascade = CascadeType.ALL, mappedBy = "viewInstance")
@@ -165,7 +179,13 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
     this.visible        = instanceConfig.isVisible() ? 'Y' : 'N';
 
     String label = instanceConfig.getLabel();
-    this.label = (label == null || label.length()== 0) ? view.getLabel() : label;
+    this.label = (label == null || label.length() == 0) ? view.getLabel() : label;
+
+    String icon = instanceConfig.getIcon();
+    this.icon = (icon == null || icon.length() == 0) ? view.getIcon() : icon;
+
+    String icon64 = instanceConfig.getIcon64();
+    this.icon64 = (icon64 == null || icon64.length() == 0) ? view.getIcon64() : icon64;
   }
 
   /**
@@ -296,6 +316,42 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
    */
   public void setVisible(boolean visible) {
     this.visible = (visible ? 'Y' : 'N');
+  }
+
+  /**
+   * Get the icon path.
+   *
+   * @return the icon path
+   */
+  public String getIcon() {
+    return icon;
+  }
+
+  /**
+   * Set the icon path.
+   *
+   * @param icon  the icon path
+   */
+  public void setIcon(String icon) {
+    this.icon = icon;
+  }
+
+  /**
+   * Get the big icon path.
+   *
+   * @return the big icon path
+   */
+  public String getIcon64() {
+    return icon64;
+  }
+
+  /**
+   * Set the big icon path.
+   *
+   * @param icon64  the big icon path
+   */
+  public void setIcon64(String icon64) {
+    this.icon64 = icon64;
   }
 
   /**

@@ -46,6 +46,8 @@ public class ViewConfigTest {
       "    <name>MY_VIEW</name>\n" +
       "    <label>My View!</label>\n" +
       "    <version>1.0.0</version>\n" +
+      "    <icon64>/this/is/the/icon/url/icon64.png</icon64>\n" +
+      "    <icon>/this/is/the/icon/url/icon.png</icon>\n" +
       "    <parameter>\n" +
       "        <name>p1</name>\n" +
       "        <description>Parameter 1.</description>\n" +
@@ -77,6 +79,8 @@ public class ViewConfigTest {
       "        <name>INSTANCE1</name>\n" +
       "        <label>My Instance 1!</label>\n" +
       "        <description>This is a description.</description>\n" +
+      "        <icon64>/this/is/the/icon/url/instance_1_icon64.png</icon64>\n" +
+      "        <icon>/this/is/the/icon/url/instance_1_icon.png</icon>\n" +
       "        <property>\n" +
       "            <key>p1</key>\n" +
       "            <value>v1-1</value>\n" +
@@ -126,6 +130,18 @@ public class ViewConfigTest {
   public void testGetVersion() throws Exception {
     ViewConfig config = getConfig();
     Assert.assertEquals("1.0.0", config.getVersion());
+  }
+
+  @Test
+  public void testGetIcon() throws Exception {
+    ViewConfig config = getConfig();
+    Assert.assertEquals("/this/is/the/icon/url/icon.png", config.getIcon());
+  }
+
+  @Test
+  public void testGetIcon64() throws Exception {
+    ViewConfig config = getConfig();
+    Assert.assertEquals("/this/is/the/icon/url/icon64.png", config.getIcon64());
   }
 
   @Test

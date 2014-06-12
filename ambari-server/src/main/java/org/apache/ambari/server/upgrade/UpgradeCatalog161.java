@@ -76,6 +76,12 @@ public class UpgradeCatalog161 extends AbstractUpgradeCatalog {
 
     //=========================================================================
     // Add columns
+    dbAccessor.addColumn("viewmain",
+        new DBAccessor.DBColumnInfo("icon", String.class, 255, null, true));
+
+    dbAccessor.addColumn("viewmain",
+        new DBAccessor.DBColumnInfo("icon64", String.class, 255, null, true));
+
     dbAccessor.addColumn("viewinstancedata",
         new DBAccessor.DBColumnInfo("user_name", String.class, 255, " ", false));
 
@@ -87,6 +93,12 @@ public class UpgradeCatalog161 extends AbstractUpgradeCatalog {
 
     dbAccessor.addColumn("viewinstance",
         new DBAccessor.DBColumnInfo("visible", Character.class, 1, null, true));
+
+    dbAccessor.addColumn("viewinstance",
+        new DBAccessor.DBColumnInfo("icon", String.class, 255, null, true));
+
+    dbAccessor.addColumn("viewinstance",
+        new DBAccessor.DBColumnInfo("icon64", String.class, 255, null, true));
 
     // ========================================================================
     // Add constraints

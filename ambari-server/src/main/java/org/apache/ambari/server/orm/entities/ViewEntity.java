@@ -66,6 +66,20 @@ public class ViewEntity implements ViewDefinition {
   private String label;
 
   /**
+   * The icon path.
+   */
+  @Column
+  @Basic
+  private String icon;
+
+  /**
+   * The big icon path.
+   */
+  @Column
+  @Basic
+  private String icon64;
+
+  /**
    * The view version.
    */
   @Column
@@ -188,6 +202,8 @@ public class ViewEntity implements ViewDefinition {
     this.name    = getViewName(configuration.getName(), version);
     this.label   = configuration.getLabel();
     this.version = version;
+    this.icon    = configuration.getIcon();
+    this.icon64  = configuration.getIcon64();
 
     this.externalResourceType =
         new Resource.Type(getQualifiedResourceTypeName(ResourceConfig.EXTERNAL_RESOURCE_PLURAL_NAME));
@@ -262,6 +278,42 @@ public class ViewEntity implements ViewDefinition {
    */
   public void setVersion(String version) {
     this.version = version;
+  }
+
+  /**
+   * Get the icon path.
+   *
+   * @return the icon path
+   */
+  public String getIcon() {
+    return icon;
+  }
+
+  /**
+   * Set the icon path.
+   *
+   * @param icon  the icon path
+   */
+  public void setIcon(String icon) {
+    this.icon = icon;
+  }
+
+  /**
+   * Get the big icon path.
+   *
+   * @return the big icon path
+   */
+  public String getIcon64() {
+    return icon64;
+  }
+
+  /**
+   * Set the big icon path.
+   *
+   * @param icon64  the big icon path
+   */
+  public void setIcon64(String icon64) {
+    this.icon64 = icon64;
   }
 
   /**
