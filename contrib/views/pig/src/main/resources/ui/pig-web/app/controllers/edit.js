@@ -70,7 +70,11 @@ App.EditController = Em.ObjectController.extend({
             var alerts = {success:Em.I18n.t('job.alert.job_started'), error:Em.I18n.t('job.alert.start_filed')};
             return function (argument) {
               controller.set('isExec',false);
-              controller.send('showAlert', {message:alerts[status],status:status});
+              var trace = null;
+              if (status=='error') {
+                trace = argument.responseJSON.trace;
+              }
+              controller.send('showAlert', {message:alerts[status],status:status,trace:trace});
               if (status=='success') {
                 controller.transitionToRoute('job',job);
               };

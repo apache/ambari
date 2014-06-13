@@ -19,6 +19,16 @@
 var App = require('app');
 
 App.PigRoute = Em.Route.extend({
+  beforeModel: function(transition) {
+    App.set('previousTransition', transition);
+  },
+  redirect: function () {
+    testsConducted = App.get("smokeTests");
+    if (!testsConducted) {
+        App.set("smokeTests", true);
+        this.transitionTo('splash');
+    }
+  },
   actions: {
     gotoSection: function(nav) {
       var location = (nav.hasOwnProperty('url'))?[nav.url]:['pig.scriptEdit',nav.get('id')];
@@ -38,7 +48,10 @@ App.PigRoute = Em.Route.extend({
         self.send('showAlert', {'message':Em.I18n.t('scripts.alert.script_saved',{title: script.get('title')}), status:'success'});
       },function (error) {
         //script.open();
-        self.send('showAlert', {'message': Em.I18n.t('scripts.alert.save_error_reason',{message:error.statusText}) , status:'error'});
+        var trace = null;
+        if (error && error.responseJSON.trace)
+          trace = error.responseJSON.trace;
+        self.send('showAlert', {'message': Em.I18n.t('scripts.alert.save_error_reason',{message:error.statusText}) , status:'error', trace:trace});
       });
     },
     showAlert:function (alert) {

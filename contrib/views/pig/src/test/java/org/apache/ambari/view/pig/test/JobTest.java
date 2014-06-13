@@ -22,10 +22,14 @@ import org.apache.ambari.view.pig.BasePigTest;
 import org.apache.ambari.view.pig.resources.jobs.JobService;
 import org.apache.ambari.view.pig.resources.jobs.models.PigJob;
 import org.apache.ambari.view.pig.templeton.client.TempletonApi;
+import org.apache.ambari.view.pig.utils.BadRequestFormattedException;
 import org.apache.ambari.view.pig.utils.HdfsApi;
+import org.apache.ambari.view.pig.utils.NotFoundFormattedException;
+import org.apache.ambari.view.pig.utils.ServiceFormattedException;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.json.simple.JSONObject;
 import org.junit.*;
+import org.junit.rules.ExpectedException;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Response;
@@ -39,6 +43,7 @@ import static org.easymock.EasyMock.*;
 
 public class JobTest extends BasePigTest {
   private JobService jobService;
+  @Rule public ExpectedException thrown = ExpectedException.none();
 
   @Override
   @Before
@@ -190,10 +195,8 @@ public class JobTest extends BasePigTest {
     expect(api.runPigQuery((File) anyObject(), anyString(), eq("-useHCatalog"))).andReturn(data);
     replay(api);
 
-    Response response = doCreateJob("Test", null, "-useHCatalog");
-    Assert.assertEquals(400, response.getStatus());
-    JSONObject obj = (JSONObject)response.getEntity();
-    Assert.assertTrue(((String)obj.get("message")).contains("No pigScript file or forcedContent specifed;"));
+    thrown.expect(ServiceFormattedException.class);
+    doCreateJob("Test", null, "-useHCatalog");
   }
 
   @Test
@@ -240,10 +243,8 @@ public class JobTest extends BasePigTest {
     expect(api.runPigQuery((File) anyObject(), anyString(), eq("-useHCatalog"))).andReturn(data);
     replay(api);
 
-    Response response = doCreateJob(null, "/tmp/1.pig", "-useHCatalog");
-    Assert.assertEquals(400, response.getStatus());
-    JSONObject obj = (JSONObject)response.getEntity();
-    Assert.assertTrue(((String)obj.get("message")).contains("No title specifed"));
+    thrown.expect(BadRequestFormattedException.class);
+    doCreateJob(null, "/tmp/1.pig", "-useHCatalog");
   }
 
   @Test
@@ -264,10 +265,8 @@ public class JobTest extends BasePigTest {
     expect(api.runPigQuery((File) anyObject(), anyString(), eq("-useHCatalog"))).andReturn(data);
     replay(api);
 
-    Response response = doCreateJob("Test", "/tmp/script.pig", "-useHCatalog");
-    Assert.assertEquals(500, response.getStatus());
-    JSONObject obj = (JSONObject)response.getEntity();
-    Assert.assertTrue(((String)obj.get("message")).contains("Can't copy"));
+    thrown.expect(ServiceFormattedException.class);
+    doCreateJob("Test", "/tmp/script.pig", "-useHCatalog");
   }
 
   @Test
@@ -289,10 +288,8 @@ public class JobTest extends BasePigTest {
     expect(api.runPigQuery((File) anyObject(), anyString(), eq("-useHCatalog"))).andThrow(new IOException());
     replay(api);
 
-    Response response = doCreateJob("Test", "/tmp/script.pig", "-useHCatalog");
-    Assert.assertEquals(500, response.getStatus());
-    JSONObject obj = (JSONObject)response.getEntity();
-    Assert.assertTrue(((String) obj.get("message")).contains("Templeton"));
+    thrown.expect(ServiceFormattedException.class);
+    doCreateJob("Test", "/tmp/script.pig", "-useHCatalog");
   }
 
   @Test

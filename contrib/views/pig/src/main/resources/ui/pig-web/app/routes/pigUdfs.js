@@ -30,7 +30,10 @@ App.PigUdfsRoute = Em.Route.extend({
           router.send('showAlert', {'message': Em.I18n.t('udfs.alert.udf_created',{name : model.get('name')}), status:'success'});
         };
       var onFail = function(error){
-          router.send('showAlert', {'message':Em.I18n.t('udfs.alert.create_failed'),status:'error'});
+          var trace = null;
+          if (error && error.responseJSON.trace)
+            trace = error.responseJSON.trace;
+          router.send('showAlert', {'message':Em.I18n.t('udfs.alert.create_failed'),status:'error',trace:trace});
         };
       return udf.save().then(onSuccess,onFail);
     },
@@ -40,7 +43,10 @@ App.PigUdfsRoute = Em.Route.extend({
             router.send('showAlert', {'message': Em.I18n.t('udfs.alert.udf_deleted',{name : model.get('name')}),status:'success'});
           };
       var onFail = function(error){
-            router.send('showAlert', {'message': Em.I18n.t('udfs.alert.delete_failed'),status:'error'});
+            var trace = null;
+            if (error && error.responseJSON.trace)
+              trace = error.responseJSON.trace;
+            router.send('showAlert', {'message': Em.I18n.t('udfs.alert.delete_failed'),status:'error',trace:trace});
           };
       udf.deleteRecord();
       return udf.save().then(onSuccess,onFail);

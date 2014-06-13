@@ -22,7 +22,10 @@ App.JobRoute = Em.Route.extend({
     actions: {
       error: function(error, transition) {
         Em.warn(error.stack);
-        transition.send('showAlert', {'message':Em.I18n.t('job.alert.load_error',{message:error.message}), status:'error'});
+        var trace = null;
+        if (error && error.responseJSON.trace)
+          trace = error.responseJSON.trace;
+        transition.send('showAlert', {'message':Em.I18n.t('job.alert.load_error',{message:error.message}), status:'error', trace:trace});
         this.transitionTo('pig.scriptList');
       },
       navigate:function (argument) {

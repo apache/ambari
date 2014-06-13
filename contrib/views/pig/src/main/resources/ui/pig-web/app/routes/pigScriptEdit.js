@@ -36,7 +36,10 @@ App.PigScriptEditRoute = Em.Route.extend({
           router.send('showAlert', {'message':Em.I18n.t('scripts.alert.script_saved',{title: script.get('title')}),status:'success'});
         },
         onFail = function(error){
-          router.send('showAlert', {'message':Em.I18n.t('scripts.alert.save_error'),status:'error'});
+          var trace = null;
+          if (error && error.responseJSON.trace)
+            trace = error.responseJSON.trace;
+          router.send('showAlert', {'message':Em.I18n.t('scripts.alert.save_error'),status:'error',trace:trace});
         };
 
       return script.get('pigScript').then(function(file){

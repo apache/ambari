@@ -38,11 +38,13 @@ App.PigScriptListRoute = Em.Route.extend({
           success:Em.I18n.t('scripts.alert.script_created',{title:'New script'}), 
           error: Em.I18n.t('scripts.alert.create_failed')
         };
-        return function () {
+        return function (data) {
+          var trace = null;
           if (status=='error'){
             script.deleteRecord();
+            trace = data.responseJSON.trace;
           }
-          route.send('showAlert', {message:alerts[status],status:status});
+          route.send('showAlert', {message:alerts[status],status:status,trace:trace});
         };
       };
       if (filePath) {
@@ -73,7 +75,10 @@ App.PigScriptListRoute = Em.Route.extend({
             router.send('showAlert', {'message':Em.I18n.t('scripts.alert.script_deleted',{title : model.get('title')}),status:'success'});
           };
       var onFail = function(error){
-            router.send('showAlert', {'message':Em.I18n.t('scripts.alert.delete_failed'),status:'error'});
+            var trace = null;
+            if (error && error.responseJSON.trace)
+              trace = error.responseJSON.trace;
+            router.send('showAlert', {'message':Em.I18n.t('scripts.alert.delete_failed'),status:'error',trace:trace});
           };
       script.deleteRecord();
       return script.save().then(onSuccess,onFail);

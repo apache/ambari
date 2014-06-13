@@ -20,4 +20,20 @@
 module.exports = Em.Application.create({
   //LOG_TRANSITIONS: true, 
   //LOG_TRANSITIONS_INTERNAL: true
+  smokeTests: false,
+
+  errorLog: "",
+
+  getNamespaceUrl: function() {
+    var parts = window.location.pathname.match(/\/[^\/]*/g);
+    var view = parts[1];
+    var version = '/versions' + parts[2];
+    var instance = parts[3];
+    if (parts.length == 4) { // version is not present
+      instance = parts[2];
+      version = '';
+    }
+    var namespaceUrl = 'api/v1/views' + view + version + '/instances' + instance;
+    return namespaceUrl;
+  }
 });

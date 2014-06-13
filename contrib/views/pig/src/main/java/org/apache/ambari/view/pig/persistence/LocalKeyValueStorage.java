@@ -19,11 +19,11 @@
 package org.apache.ambari.view.pig.persistence;
 
 import org.apache.ambari.view.ViewContext;
+import org.apache.ambari.view.pig.utils.MisconfigurationFormattedException;
 import org.apache.commons.configuration.ConfigurationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.xml.ws.WebServiceException;
 
 /**
  * Persistent storage engine for storing java beans to
@@ -55,7 +55,7 @@ public class LocalKeyValueStorage extends KeyValueStorage {
       if (fileName == null) {
         String msg = "dataworker.storagePath is not configured!";
         LOG.error(msg);
-        throw new WebServiceException(msg);
+        throw new MisconfigurationFormattedException("dataworker.storagePath");
       }
       try {
         config = new PersistentConfiguration(fileName);

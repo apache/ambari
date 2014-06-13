@@ -38,24 +38,31 @@ App.PigScriptEditController = App.EditController.extend({
     and updates pigParams object as they changes. 
    */
   pigParamsMatch:function (controller) {
-    var editorContent = this.get('content.pigScript.fileContent');
-    if (editorContent) {
-      var match_var = editorContent.match(/\%\w+\%/g);
-      if (match_var) {
-        var oldParams = controller.pigParams;
-        controller.set('pigParams',[]);
-        match_var.forEach(function (param) {
-          var suchParams = controller.pigParams.filterProperty('param',param);
-          if (suchParams.length == 0){
-            var oldParam = oldParams.filterProperty('param',param);
-            var oldValue = oldParam.get('firstObject.value');
-            controller.pigParams.pushObject(Em.Object.create({param:param,value:oldValue,title:param.replace(/%/g,'')}));
-          }
-        });
-      } else {
-        controller.set('pigParams',[]);
-      }
-    };
+    var editorContent = this.get('content.pigScript').then(function(data) {
+      editorContent = data.get('fileContent');
+      if (editorContent) {
+            var match_var = editorContent.match(/\%\w+\%/g);
+            if (match_var) {
+              var oldParams = controller.pigParams;
+              controller.set('pigParams',[]);
+              match_var.forEach(function (param) {
+                var suchParams = controller.pigParams.filterProperty('param',param);
+                if (suchParams.length == 0){
+                  var oldParam = oldParams.filterProperty('param',param);
+                  var oldValue = oldParam.get('firstObject.value');
+                  controller.pigParams.pushObject(Em.Object.create({param:param,value:oldValue,title:param.replace(/%/g,'')}));
+                }
+              });
+            } else {
+              controller.set('pigParams',[]);
+            }
+          };
+    }, function(reason) {
+      var trace = null;
+      if (reason.responseJSON.trace)
+        trace = reason.responseJSON.trace;
+      controller.send('showAlert', {'message':Em.I18n.t('scripts.alert.file_not_found',{title: 'Error'}),status:'error',trace:trace});
+    });
   }.observes('content.pigScript.fileContent'),
 
 });

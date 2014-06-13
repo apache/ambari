@@ -21,9 +21,13 @@ package org.apache.ambari.view.pig.test;
 import org.apache.ambari.view.pig.HDFSTest;
 import org.apache.ambari.view.pig.resources.files.FileResource;
 import org.apache.ambari.view.pig.resources.files.FileService;
+import org.apache.ambari.view.pig.utils.BadRequestFormattedException;
 import org.apache.ambari.view.pig.utils.FilePaginator;
+import org.apache.ambari.view.pig.utils.NotFoundFormattedException;
+import org.apache.ambari.view.pig.utils.ServiceFormattedException;
 import org.json.simple.JSONObject;
 import org.junit.*;
+import org.junit.rules.ExpectedException;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Response;
@@ -38,6 +42,8 @@ import static org.easymock.EasyMock.*;
 public class FileTest extends HDFSTest {
   private final static int PAGINATOR_PAGE_SIZE = 4;
   private FileService fileService;
+
+  @Rule public ExpectedException thrown = ExpectedException.none();
 
   @Override
   @Before
@@ -103,6 +109,7 @@ public class FileTest extends HDFSTest {
     Response response2 = doCreateFile("Leia", null, "/tmp/");
     Assert.assertEquals(204, response2.getStatus());
 
+    thrown.expect(ServiceFormattedException.class);
     Response response3 = doCreateFile("Leia", null, "/tmp/"); // file already exists
     Assert.assertEquals(400, response3.getStatus());
   }
@@ -163,8 +170,8 @@ public class FileTest extends HDFSTest {
     Assert.assertEquals(2, ((FileResource) obj.get("file")).getPage());
     Assert.assertFalse(((FileResource) obj.get("file")).isHasNext());
 
-    response = fileService.getFile(filePath, 3L);
-    Assert.assertEquals(400, response.getStatus()); //page not found
+    thrown.expect(BadRequestFormattedException.class);
+    fileService.getFile(filePath, 3L);
   }
 
   @Test
@@ -184,8 +191,8 @@ public class FileTest extends HDFSTest {
 
   @Test
   public void testFileNotFound() throws IOException, InterruptedException {
-    Response response1 = fileService.getFile("/tmp/notExistentFile", 2L);
-    Assert.assertEquals(404, response1.getStatus());
+    thrown.expect(NotFoundFormattedException.class);
+    fileService.getFile("/tmp/notExistentFile", 2L);
   }
 
   @Test
@@ -197,7 +204,7 @@ public class FileTest extends HDFSTest {
     Response response = fileService.deleteFile(filePath);
     Assert.assertEquals(204, response.getStatus());
 
-    Response response2 = fileService.getFile(filePath, 0L);
-    Assert.assertEquals(404, response2.getStatus());
+    thrown.expect(NotFoundFormattedException.class);
+    fileService.getFile(filePath, 0L);
   }
 }

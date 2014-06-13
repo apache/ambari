@@ -25,6 +25,8 @@ import org.apache.ambari.view.pig.persistence.utils.OnlyOwnersFilteringStrategy;
 import org.apache.ambari.view.pig.resources.PersonalCRUDResourceManager;
 import org.apache.ambari.view.pig.resources.udf.models.UDF;
 import org.apache.ambari.view.pig.services.BaseService;
+import org.apache.ambari.view.pig.utils.NotFoundFormattedException;
+import org.apache.ambari.view.pig.utils.ServiceFormattedException;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,15 +71,18 @@ public class UDFService extends BaseService {
   @Path("{udfId}")
   @Produces(MediaType.APPLICATION_JSON)
   public Response getUDF(@PathParam("udfId") String udfId) {
-    UDF udf = null;
     try {
-      udf = getResourceManager().read(udfId);
+      UDF udf = getResourceManager().read(udfId);
+      JSONObject object = new JSONObject();
+      object.put("udf", udf);
+      return Response.ok(object).build();
+    } catch (WebApplicationException ex) {
+      throw ex;
     } catch (ItemNotFound itemNotFound) {
-      return Response.status(404).build();
+      throw new NotFoundFormattedException(itemNotFound.getMessage(), itemNotFound);
+    } catch (Exception ex) {
+      throw new ServiceFormattedException(ex.getMessage(), ex);
     }
-    JSONObject object = new JSONObject();
-    object.put("udf", udf);
-    return Response.ok(object).build();
   }
 
   /**
@@ -88,10 +93,14 @@ public class UDFService extends BaseService {
   public Response deleteUDF(@PathParam("udfId") String udfId) {
     try {
       getResourceManager().delete(udfId);
+      return Response.status(204).build();
+    } catch (WebApplicationException ex) {
+      throw ex;
     } catch (ItemNotFound itemNotFound) {
-      return Response.status(404).build();
+      throw new NotFoundFormattedException(itemNotFound.getMessage(), itemNotFound);
+    } catch (Exception ex) {
+      throw new ServiceFormattedException(ex.getMessage(), ex);
     }
-    return Response.status(204).build();
   }
 
   /**
@@ -100,13 +109,19 @@ public class UDFService extends BaseService {
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   public Response getUDFList(@Context UriInfo ui) {
-    LOG.debug("Getting all UDFs");
-    List allUDFs = getResourceManager().readAll(
-        new OnlyOwnersFilteringStrategy(this.context.getUsername()));
+    try {
+      LOG.debug("Getting all UDFs");
+      List allUDFs = getResourceManager().readAll(
+          new OnlyOwnersFilteringStrategy(this.context.getUsername()));
 
-    JSONObject object = new JSONObject();
-    object.put("udfs", allUDFs);
-    return Response.ok(object).build();
+      JSONObject object = new JSONObject();
+      object.put("udfs", allUDFs);
+      return Response.ok(object).build();
+    } catch (WebApplicationException ex) {
+      throw ex;
+    } catch (Exception ex) {
+      throw new ServiceFormattedException(ex.getMessage(), ex);
+    }
   }
 
   /**
@@ -119,10 +134,14 @@ public class UDFService extends BaseService {
                             @PathParam("udfId") String udfId) {
     try {
       getResourceManager().update(request.udf, udfId);
+      return Response.status(204).build();
+    } catch (WebApplicationException ex) {
+      throw ex;
     } catch (ItemNotFound itemNotFound) {
-      return Response.status(404).build();
+      throw new NotFoundFormattedException(itemNotFound.getMessage(), itemNotFound);
+    } catch (Exception ex) {
+      throw new ServiceFormattedException(ex.getMessage(), ex);
     }
-    return Response.status(204).build();
   }
 
   /**
@@ -132,22 +151,24 @@ public class UDFService extends BaseService {
   @Consumes(MediaType.APPLICATION_JSON)
   public Response createUDF(UDFRequest request, @Context HttpServletResponse response,
                             @Context UriInfo ui) {
-    getResourceManager().create(request.udf);
-
-    UDF udf = null;
-
     try {
-      udf = getResourceManager().read(request.udf.getId());
+      getResourceManager().create(request.udf);
+
+      UDF udf = getResourceManager().read(request.udf.getId());
+
+      response.setHeader("Location",
+          String.format("%s/%s", ui.getAbsolutePath().toString(), request.udf.getId()));
+
+      JSONObject object = new JSONObject();
+      object.put("udf", udf);
+      return Response.ok(object).status(201).build();
+    } catch (WebApplicationException ex) {
+      throw ex;
     } catch (ItemNotFound itemNotFound) {
-      return Response.status(404).build();
+      throw new NotFoundFormattedException(itemNotFound.getMessage(), itemNotFound);
+    } catch (Exception ex) {
+      throw new ServiceFormattedException(ex.getMessage(), ex);
     }
-
-    response.setHeader("Location",
-        String.format("%s/%s", ui.getAbsolutePath().toString(), request.udf.getId()));
-
-    JSONObject object = new JSONObject();
-    object.put("udf", udf);
-    return Response.ok(object).status(201).build();
   }
 
   /**

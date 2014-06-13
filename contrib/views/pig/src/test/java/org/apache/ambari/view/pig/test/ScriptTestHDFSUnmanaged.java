@@ -29,11 +29,14 @@ import org.apache.ambari.view.pig.resources.scripts.ScriptService;
 import org.apache.ambari.view.pig.persistence.utils.StorageUtil;
 import org.apache.ambari.view.pig.resources.scripts.models.PigScript;
 import org.apache.ambari.view.pig.services.BaseService;
+import org.apache.ambari.view.pig.utils.MisconfigurationFormattedException;
+import org.apache.ambari.view.pig.utils.NotFoundFormattedException;
 import org.json.simple.JSONObject;
 import org.junit.*;
+import org.junit.rules.ExpectedException;
 
 import javax.ws.rs.core.Response;
-import javax.xml.ws.WebServiceException;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
@@ -43,6 +46,7 @@ import static org.easymock.EasyMock.*;
 
 public class ScriptTestHDFSUnmanaged extends HDFSTest {
   private ScriptService scriptService;
+  @Rule public ExpectedException thrown = ExpectedException.none();
 
   @BeforeClass
   public static void startUp() throws Exception {
@@ -64,7 +68,7 @@ public class ScriptTestHDFSUnmanaged extends HDFSTest {
     StorageUtil.setStorage(null);
   }
 
-  @Test(expected=WebServiceException.class)
+  @Test
   public void createScriptAutoCreateNoScriptsPath() throws IOException, InterruptedException {
     Map<String, String> properties = new HashMap<String, String>();
     baseDir = new File(DATA_DIRECTORY)
@@ -82,6 +86,7 @@ public class ScriptTestHDFSUnmanaged extends HDFSTest {
     replay(handler, context);
     scriptService = getService(ScriptService.class, handler, context);
 
+    thrown.expect(MisconfigurationFormattedException.class);
     doCreateScript("Test", null);
   }
 

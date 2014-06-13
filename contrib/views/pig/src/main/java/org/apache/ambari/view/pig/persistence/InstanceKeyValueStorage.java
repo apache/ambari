@@ -20,9 +20,12 @@ package org.apache.ambari.view.pig.persistence;
 
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.pig.persistence.utils.*;
+import org.apache.ambari.view.pig.utils.ServiceFormattedException;
 import org.apache.commons.configuration.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.ws.rs.WebApplicationException;
 
 
 /**
@@ -111,5 +114,19 @@ public class InstanceKeyValueStorage extends KeyValueStorage {
       LOG.debug("Chunk clean: " + modelPropName + "#" + page);
     }
     getConfig().clearProperty(modelPropName);
+  }
+
+  public static void storageSmokeTest(ViewContext context) {
+    try {
+      final String property = "test.smoke.property";
+      context.putInstanceData(property, "42");
+      boolean status = context.getInstanceData(property).equals("42");
+      context.removeInstanceData(property);
+      if (!status) throw new ServiceFormattedException("Ambari Views instance data DB doesn't work properly", null);
+    } catch (WebApplicationException ex) {
+      throw ex;
+    } catch (Exception ex) {
+      throw new ServiceFormattedException(ex.getMessage(), ex);
+    }
   }
 }

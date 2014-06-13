@@ -21,28 +21,15 @@ package org.apache.ambari.view.pig.test;
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.ViewResourceHandler;
 import org.apache.ambari.view.pig.BasePigTest;
-import org.apache.ambari.view.pig.HDFSTest;
 import org.apache.ambari.view.pig.resources.files.FileService;
 import org.apache.ambari.view.pig.resources.scripts.ScriptService;
-import org.apache.ambari.view.pig.resources.scripts.models.PigScript;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileUtil;
-import org.apache.hadoop.hdfs.MiniDFSCluster;
-import org.json.simple.JSONObject;
+import org.apache.ambari.view.pig.utils.MisconfigurationFormattedException;
 import org.junit.*;
-import org.junit.experimental.runners.Enclosed;
-import org.junit.runner.RunWith;
+import org.junit.rules.ExpectedException;
 
-import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriBuilder;
-import javax.ws.rs.core.UriInfo;
-import javax.xml.ws.WebServiceException;
 import java.io.File;
-import java.io.IOException;
-import java.net.URI;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import static org.easymock.EasyMock.*;
@@ -51,6 +38,7 @@ import static org.easymock.EasyMock.*;
  * Tests without HDFS and predefined properties
  */
 public class ScriptTestUnmanaged extends BasePigTest {
+  @Rule public ExpectedException thrown = ExpectedException.none();
   private ScriptService scriptService;
   private File pigStorageFile;
   private File baseDir;
@@ -75,7 +63,7 @@ public class ScriptTestUnmanaged extends BasePigTest {
     return ScriptTest.doCreateScript(title, path, scriptService);
   }
 
-  @Test(expected=WebServiceException.class)
+  @Test
   public void createScriptAutoCreateNoDefaultFS() {
     Map<String, String> properties = new HashMap<String, String>();
     properties.put("dataworker.storagePath", pigStorageFile.toString());
@@ -87,6 +75,7 @@ public class ScriptTestUnmanaged extends BasePigTest {
     replay(handler, context);
     scriptService = getService(ScriptService.class, handler, context);
 
+    thrown.expect(MisconfigurationFormattedException.class);
     doCreateScript("Test", null);
   }
 }

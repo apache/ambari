@@ -16,10 +16,8 @@
    limitations under the License.
 }}
 
-  <button type="button" class="close" >&times;</button>
-  <p>
-    {{view.content.message}}
-  </p>
-  {{#if view.content.trace}}
-      <a href="#" {{action 'showErrorLog' this}}>{{t 'common.showErrorLog'}}</a>
-  {{/if}}
+<h1>{{t 'common.errorLog'}}</h1>
+
+<pre class="prettyprint">
+{{errorLog}}
+</pre>

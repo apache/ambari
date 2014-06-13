@@ -19,9 +19,10 @@
 package org.apache.ambari.view.pig.resources.files;
 
 import com.google.inject.Inject;
+import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.ViewResourceHandler;
 import org.apache.ambari.view.pig.services.BaseService;
-import org.apache.ambari.view.pig.utils.FilePaginator;
+import org.apache.ambari.view.pig.utils.*;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileAlreadyExistsException;
 import org.json.simple.JSONObject;
@@ -77,10 +78,14 @@ public class FileService extends BaseService {
       JSONObject object = new JSONObject();
       object.put("file", file);
       return Response.ok(object).status(200).build();
-    } catch (FileNotFoundException e) {
-      return notFoundResponse(e.toString());
-    } catch (IllegalArgumentException e) {
-      return badRequestResponse(e.toString());
+    } catch (WebApplicationException ex) {
+      throw ex;
+    } catch (FileNotFoundException ex) {
+      throw new NotFoundFormattedException(ex.getMessage(), ex);
+    } catch (IllegalArgumentException ex) {
+      throw new BadRequestFormattedException(ex.getMessage(), ex);
+    } catch (Exception ex) {
+      throw new ServiceFormattedException(ex.getMessage(), ex);
     }
   }
 
@@ -90,11 +95,17 @@ public class FileService extends BaseService {
   @DELETE
   @Path("{filePath:.*}")
   public Response deleteFile(@PathParam("filePath") String filePath) throws IOException, InterruptedException {
-    LOG.debug("Deleting file " + filePath);
-    if (getHdfsApi().delete(filePath, false)) {
-      return Response.status(204).build();
+    try {
+      LOG.debug("Deleting file " + filePath);
+      if (getHdfsApi().delete(filePath, false)) {
+        return Response.status(204).build();
+      }
+      throw new NotFoundFormattedException("FileSystem.delete returned false", null);
+    } catch (WebApplicationException ex) {
+      throw ex;
+    } catch (Exception ex) {
+      throw new ServiceFormattedException(ex.getMessage(), ex);
     }
-    return notFoundResponse("FileSystem.delete returned false");
   }
 
   /**
@@ -105,11 +116,17 @@ public class FileService extends BaseService {
   @Consumes(MediaType.APPLICATION_JSON)
   public Response updateFile(FileResourceRequest request,
                              @PathParam("filePath") String filePath) throws IOException, InterruptedException {
-    LOG.debug("Rewriting file " + filePath);
-    FSDataOutputStream output = getHdfsApi().create(filePath, true);
-    output.writeBytes(request.file.getFileContent());
-    output.close();
-    return Response.status(204).build();
+    try {
+      LOG.debug("Rewriting file " + filePath);
+      FSDataOutputStream output = getHdfsApi().create(filePath, true);
+      output.writeBytes(request.file.getFileContent());
+      output.close();
+      return Response.status(204).build();
+    } catch (WebApplicationException ex) {
+      throw ex;
+    } catch (Exception ex) {
+      throw new ServiceFormattedException(ex.getMessage(), ex);
+    }
   }
 
   /**
@@ -120,19 +137,40 @@ public class FileService extends BaseService {
   public Response createFile(FileResourceRequest request,
                              @Context HttpServletResponse response, @Context UriInfo ui)
       throws IOException, InterruptedException {
-    LOG.debug("Creating file " + request.file.getFilePath());
     try {
-      FSDataOutputStream output = getHdfsApi().create(request.file.getFilePath(), false);
-      if (request.file.getFileContent() != null) {
-        output.writeBytes(request.file.getFileContent());
+      LOG.debug("Creating file " + request.file.getFilePath());
+      try {
+        FSDataOutputStream output = getHdfsApi().create(request.file.getFilePath(), false);
+        if (request.file.getFileContent() != null) {
+          output.writeBytes(request.file.getFileContent());
+        }
+        output.close();
+      } catch (FileAlreadyExistsException ex) {
+        throw new ServiceFormattedException(ex.getMessage(), ex, 400);
       }
-      output.close();
-    } catch (FileAlreadyExistsException e) {
-      return badRequestResponse(e.toString());
+      response.setHeader("Location",
+          String.format("%s/%s", ui.getAbsolutePath().toString(), request.file.getFilePath()));
+      return Response.status(204).build();
+    } catch (WebApplicationException ex) {
+      throw ex;
+    } catch (Exception ex) {
+      throw new ServiceFormattedException(ex.getMessage(), ex);
     }
-    response.setHeader("Location",
-        String.format("%s/%s", ui.getAbsolutePath().toString(), request.file.getFilePath()));
-    return Response.status(204).build();
+  }
+
+  /**
+   * Checks connection to HDFS
+   * @param context View Context
+   */
+  public static void hdfsSmokeTest(ViewContext context) {
+    try {
+      HdfsApi api = connectToHDFSApi(context);
+      api.getStatus();
+    } catch (WebApplicationException ex) {
+      throw ex;
+    } catch (Exception ex) {
+      throw new ServiceFormattedException(ex.getMessage(), ex);
+    }
   }
 
   /**

@@ -20,17 +20,17 @@ package org.apache.ambari.view.pig.services;
 
 import com.google.inject.Inject;
 import org.apache.ambari.view.ViewContext;
-import org.apache.ambari.view.ViewResourceHandler;
 import org.apache.ambari.view.pig.persistence.Storage;
 import org.apache.ambari.view.pig.utils.HdfsApi;
 import org.apache.ambari.view.pig.persistence.utils.StorageUtil;
+import org.apache.ambari.view.pig.utils.MisconfigurationFormattedException;
+import org.apache.ambari.view.pig.utils.ServiceFormattedException;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.xml.ws.WebServiceException;
 import java.io.IOException;
 import java.util.HashMap;
 
@@ -67,29 +67,35 @@ public class BaseService {
    */
   public static HdfsApi getHdfsApi(ViewContext context) {
     if (hdfsApi == null) {
-      Thread.currentThread().setContextClassLoader(null);
-
-      String defaultFS = context.getProperties().get("dataworker.defaultFs");
-      if (defaultFS == null) {
-        String message = "dataworker.defaultFs is not configured!";
-        LOG.error(message);
-        throw new WebServiceException(message);
-      }
-
-      try {
-        hdfsApi = new HdfsApi(defaultFS, getHdfsUsername(context));
-        LOG.info("HdfsApi connected OK");
-      } catch (IOException e) {
-        String message = "HdfsApi IO error: " + e.getMessage();
-        LOG.error(message);
-        throw new WebServiceException(message, e);
-      } catch (InterruptedException e) {
-        String message = "HdfsApi Interrupted error: " + e.getMessage();
-        LOG.error(message);
-        throw new WebServiceException(message, e);
-      }
+      hdfsApi = connectToHDFSApi(context);
     }
     return hdfsApi;
+  }
+
+  protected static HdfsApi connectToHDFSApi(ViewContext context) {
+    HdfsApi api = null;
+    Thread.currentThread().setContextClassLoader(null);
+
+    String defaultFS = context.getProperties().get("dataworker.defaultFs");
+    if (defaultFS == null) {
+      String message = "dataworker.defaultFs is not configured!";
+      LOG.error(message);
+      throw new MisconfigurationFormattedException("dataworker.defaultFs");
+    }
+
+    try {
+      api = new HdfsApi(defaultFS, getHdfsUsername(context));
+      LOG.info("HdfsApi connected OK");
+    } catch (IOException e) {
+      String message = "HdfsApi IO error: " + e.getMessage();
+      LOG.error(message);
+      throw new ServiceFormattedException(message, e);
+    } catch (InterruptedException e) {
+      String message = "HdfsApi Interrupted error: " + e.getMessage();
+      LOG.error(message);
+      throw new ServiceFormattedException(message, e);
+    }
+    return api;
   }
 
   public static String getHdfsUsername(ViewContext context) {
@@ -109,26 +115,5 @@ public class BaseService {
    */
   public static void setHdfsApi(HdfsApi api)  {
     hdfsApi = api;
-  }
-
-  protected static Response badRequestResponse(String message) {
-    HashMap<String, Object> response = new HashMap<String, Object>();
-    response.put("message", message);
-    response.put("status", 400);
-    return Response.status(400).entity(new JSONObject(response)).type(MediaType.APPLICATION_JSON).build();
-  }
-
-  protected static Response serverErrorResponse(String message) {
-    HashMap<String, Object> response = new HashMap<String, Object>();
-    response.put("message", message);
-    response.put("status", 500);
-    return Response.status(500).entity(new JSONObject(response)).type(MediaType.APPLICATION_JSON).build();
-  }
-
-  protected static Response notFoundResponse(String message) {
-    HashMap<String, Object> response = new HashMap<String, Object>();
-    response.put("message", message);
-    response.put("status", 404);
-    return Response.status(404).entity(new JSONObject(response)).type(MediaType.APPLICATION_JSON).build();
   }
 }

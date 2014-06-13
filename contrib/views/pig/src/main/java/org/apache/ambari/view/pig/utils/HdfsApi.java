@@ -148,6 +148,32 @@ public class HdfsApi {
   }
 
   /**
+   * Home directory
+   * @return home directory
+   * @throws Exception
+   */
+  public Path getHomeDir() throws Exception {
+    return ugi.doAs(new PrivilegedExceptionAction<Path>() {
+      public Path run() throws IOException {
+        return fs.getHomeDirectory();
+      }
+    });
+  }
+
+  /**
+   * Hdfs Status
+   * @return home directory
+   * @throws Exception
+   */
+  public FsStatus getStatus() throws Exception {
+    return ugi.doAs(new PrivilegedExceptionAction<FsStatus>() {
+      public FsStatus run() throws IOException {
+        return fs.getStatus();
+      }
+    });
+  }
+
+  /**
    * Create file
    * @param path path
    * @param overwrite overwrite existent file

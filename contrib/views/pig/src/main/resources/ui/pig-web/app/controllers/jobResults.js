@@ -35,7 +35,7 @@ App.JobResultsController = Em.ObjectController.extend({
       },function (error) {
         var responseText = JSON.parse(error.responseText);
         self.send('showAlert', {'message': Em.I18n.t('job.alert.'+output+'_error',
-          {status:responseText.status, message:responseText.message}), status:'error'});
+          {status:responseText.status, message:responseText.message}), status:'error', trace: responseText.trace});
       })
     });
 

@@ -30,7 +30,9 @@ Ember.I18n.translations = {
     'history':"History",
     'clone':"Clone",
     'cancel':"Cancel",
-    'arguments':"Arguments"
+    'arguments':"Arguments",
+    'errorLog':"Stack Trace",
+    'showErrorLog':"Show Stack Trace"
   },
   'scripts':{
     'scripts':"Scripts",
@@ -51,6 +53,7 @@ Ember.I18n.translations = {
       'confirm_delete_massage':'Are you sure you want to delete {{title}} script?'
     },
     'alert':{
+      'file_not_found':'File not found',
       'arg_present':'Argument already present',
       'file_exist_error':'File already exist',
       'script_saved':'{{title}} saved!',

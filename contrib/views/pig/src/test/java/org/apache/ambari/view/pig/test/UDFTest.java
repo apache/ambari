@@ -21,10 +21,13 @@ package org.apache.ambari.view.pig.test;
 import org.apache.ambari.view.pig.BasePigTest;
 import org.apache.ambari.view.pig.resources.udf.UDFService;
 import org.apache.ambari.view.pig.resources.udf.models.UDF;
+import org.apache.ambari.view.pig.utils.NotFoundFormattedException;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Response;
@@ -36,6 +39,7 @@ import static org.easymock.EasyMock.*;
 import static org.easymock.EasyMock.replay;
 
 public class UDFTest extends BasePigTest {
+  @Rule public ExpectedException thrown = ExpectedException.none();
   private UDFService udfService;
 
   @Override
@@ -76,8 +80,8 @@ public class UDFTest extends BasePigTest {
 
   @Test
   public void udfNotFound() {
-    Response response2 = udfService.getUDF("4242");
-    Assert.assertEquals(404, response2.getStatus());
+    thrown.expect(NotFoundFormattedException.class);
+    udfService.getUDF("4242");
   }
 
   @Test
@@ -110,7 +114,7 @@ public class UDFTest extends BasePigTest {
     Response response = udfService.deleteUDF(createdUdfId);
     Assert.assertEquals(204, response.getStatus());
 
-    Response response2 = udfService.getUDF(createdUdfId);
-    Assert.assertEquals(404, response2.getStatus());
+    thrown.expect(NotFoundFormattedException.class);
+    udfService.getUDF(createdUdfId);
   }
 }

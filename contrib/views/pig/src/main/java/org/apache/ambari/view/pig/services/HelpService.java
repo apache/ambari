@@ -20,12 +20,17 @@ package org.apache.ambari.view.pig.services;
 
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.ViewResourceHandler;
+import org.apache.ambari.view.pig.persistence.InstanceKeyValueStorage;
+import org.apache.ambari.view.pig.resources.files.FileService;
+import org.apache.ambari.view.pig.resources.jobs.JobResourceManager;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.json.simple.JSONObject;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.*;
+import java.util.HashMap;
 
 /**
  * Help service
@@ -68,5 +73,53 @@ public class HelpService extends BaseService {
   @Produces(MediaType.TEXT_PLAIN)
   public Response version(){
     return Response.ok("0.0.1-SNAPSHOT").build();
+  }
+
+  // ================================================================================
+  // Smoke tests
+  // ================================================================================
+
+  /**
+   * HDFS Status
+   * @return status
+   */
+  @GET
+  @Path("/hdfsStatus")
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response hdfsStatus(){
+    FileService.hdfsSmokeTest(context);
+    return getOKResponse();
+  }
+
+  /**
+   * WebHCat Status
+   * @return status
+   */
+  @GET
+  @Path("/webhcatStatus")
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response webhcatStatus(){
+    JobResourceManager.webhcatSmokeTest(context);
+    return getOKResponse();
+  }
+
+  /**
+   * Storage Status
+   * @return status
+   */
+  @GET
+  @Path("/storageStatus")
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response storageStatus(){
+    InstanceKeyValueStorage.storageSmokeTest(context);
+    return getOKResponse();
+  }
+
+  private Response getOKResponse() {
+    JSONObject response = new JSONObject();
+    response.put("message", "OK");
+    response.put("trace", null);
+    response.put("status", "200");
+    return Response.ok().entity(response).type(MediaType.APPLICATION_JSON).build();
   }
 }

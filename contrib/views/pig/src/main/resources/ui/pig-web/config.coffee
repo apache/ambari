@@ -42,7 +42,7 @@ exports.config =
 
 
   paths:
-    public: '/usr/lib/ambari-server/web/views-debug/PIG/PIG_1/'
+    public: '/usr/lib/ambari-server/web/views-debug/PIG/0.1.0/MyPig/'
 
   overrides:
     production:

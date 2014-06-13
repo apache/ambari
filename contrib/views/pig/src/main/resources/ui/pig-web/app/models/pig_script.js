@@ -39,5 +39,5 @@ App.Script = DS.Model.extend(App.OpenedScript,{
   }.property('title'),
   label:function (){
     return this.get('title');
-  }.property('title')
+  }.property('title'),
 });

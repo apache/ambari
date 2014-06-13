@@ -19,19 +19,22 @@
 package org.apache.ambari.view.pig.resources.jobs;
 
 import com.google.inject.Inject;
+import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.ViewResourceHandler;
 import org.apache.ambari.view.pig.persistence.utils.ItemNotFound;
 import org.apache.ambari.view.pig.persistence.utils.OnlyOwnersFilteringStrategy;
 import org.apache.ambari.view.pig.resources.files.FileResource;
 import org.apache.ambari.view.pig.resources.jobs.models.PigJob;
 import org.apache.ambari.view.pig.services.BaseService;
+import org.apache.ambari.view.pig.utils.BadRequestFormattedException;
 import org.apache.ambari.view.pig.utils.FilePaginator;
+import org.apache.ambari.view.pig.utils.NotFoundFormattedException;
+import org.apache.ambari.view.pig.utils.ServiceFormattedException;
 import org.json.simple.JSONObject;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
-import javax.xml.ws.WebServiceException;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -82,16 +85,22 @@ public class JobService extends BaseService {
   @Path("{jobId}")
   @Produces(MediaType.APPLICATION_JSON)
   public Response getJob(@PathParam("jobId") String jobId) {
-    PigJob job = null;
     try {
-      job = getResourceManager().read(jobId);
-    } catch (ItemNotFound itemNotFound) {
-      return Response.status(404).build();
+      PigJob job = null;
+      try {
+        job = getResourceManager().read(jobId);
+      } catch (ItemNotFound itemNotFound) {
+        throw new NotFoundFormattedException(itemNotFound.getMessage(), itemNotFound);
+      }
+      getResourceManager().retrieveJobStatus(job);
+      JSONObject object = new JSONObject();
+      object.put("job", job);
+      return Response.ok(object).build();
+    } catch (WebApplicationException ex) {
+      throw ex;
+    } catch (Exception ex) {
+      throw new ServiceFormattedException(ex.getMessage(), ex);
     }
-    getResourceManager().retrieveJobStatus(job);
-    JSONObject object = new JSONObject();
-    object.put("job", job);
-    return Response.ok(object).build();
   }
 
   /**
@@ -100,14 +109,20 @@ public class JobService extends BaseService {
   @DELETE
   @Path("{jobId}")
   public Response killJob(@PathParam("jobId") String jobId) throws IOException {
-    PigJob job = null;
     try {
-      job = getResourceManager().read(jobId);
-    } catch (ItemNotFound itemNotFound) {
-      return Response.status(404).build();
+      PigJob job = null;
+      try {
+        job = getResourceManager().read(jobId);
+      } catch (ItemNotFound itemNotFound) {
+        throw new NotFoundFormattedException(itemNotFound.getMessage(), itemNotFound);
+      }
+      getResourceManager().killJob(job);
+      return Response.status(204).build();
+    } catch (WebApplicationException ex) {
+      throw ex;
+    } catch (Exception ex) {
+      throw new ServiceFormattedException(ex.getMessage(), ex);
     }
-    getResourceManager().killJob(job);
-    return Response.status(204).build();
   }
 
   /**
@@ -118,8 +133,8 @@ public class JobService extends BaseService {
   public Response jobCompletionNotification(@Context HttpHeaders headers,
                                             @Context UriInfo ui,
                                             @PathParam("jobId") final String jobId) {
-    PigJob job = null;
     try {
+      PigJob job = null;
       job = getResourceManager().ignorePermissions(new Callable<PigJob>() {
         public PigJob call() throws Exception {
           PigJob job = null;
@@ -131,14 +146,16 @@ public class JobService extends BaseService {
           return job;
         }
       });
-    } catch (Exception e) {
-      return Response.status(500).build();
-    }
-    if (job == null)
-      return Response.status(404).build();
+      if (job == null)
+        throw new NotFoundFormattedException("Job with id '" + jobId + "' not found", null);
 
-    getResourceManager().retrieveJobStatus(job);
-    return Response.ok().build();
+      getResourceManager().retrieveJobStatus(job);
+      return Response.ok().build();
+    } catch (WebApplicationException ex) {
+      throw ex;
+    } catch (Exception ex) {
+      throw new ServiceFormattedException(ex.getMessage(), ex);
+    }
   }
 
   @GET
@@ -149,13 +166,13 @@ public class JobService extends BaseService {
                               @PathParam("jobId") String jobId,
                               @PathParam("fileName") String fileName,
                               @QueryParam("page") Long page) {
-    PigJob job = null;
     try {
-      job = getResourceManager().read(jobId);
-    } catch (ItemNotFound itemNotFound) {
-      return Response.ok("No such job").status(404).build();
-    }
-    try {
+      PigJob job = null;
+      try {
+        job = getResourceManager().read(jobId);
+      } catch (ItemNotFound itemNotFound) {
+        throw new NotFoundFormattedException("Job with id '" + jobId + "' not found", null);
+      }
       String filePath = job.getStatusDir() + "/" + fileName;
       LOG.debug("Reading file " + filePath);
       FilePaginator paginator = new FilePaginator(filePath, context);
@@ -173,10 +190,14 @@ public class JobService extends BaseService {
       JSONObject object = new JSONObject();
       object.put("file", file);
       return Response.ok(object).status(200).build();
-    } catch (IOException e) {
-      return Response.ok(e.getMessage()).status(404).build();
-    } catch (InterruptedException e) {
-      return Response.ok(e.getMessage()).status(404).build();
+    } catch (WebApplicationException ex) {
+      throw ex;
+    } catch (IOException ex) {
+      throw new NotFoundFormattedException(ex.getMessage(), ex);
+    } catch (InterruptedException ex) {
+      throw new NotFoundFormattedException(ex.getMessage(), ex);
+    } catch (Exception ex) {
+      throw new ServiceFormattedException(ex.getMessage(), ex);
     }
   }
 
@@ -186,12 +207,18 @@ public class JobService extends BaseService {
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   public Response getJobList(@Context HttpHeaders headers, @Context UriInfo ui) {
-    List allJobs = getResourceManager().readAll(
-        new OnlyOwnersFilteringStrategy(this.context.getUsername()));
+    try {
+      List allJobs = getResourceManager().readAll(
+          new OnlyOwnersFilteringStrategy(this.context.getUsername()));
 
-    JSONObject object = new JSONObject();
-    object.put("jobs", allJobs);
-    return Response.ok(object).build();
+      JSONObject object = new JSONObject();
+      object.put("jobs", allJobs);
+      return Response.ok(object).build();
+    } catch (WebApplicationException ex) {
+      throw ex;
+    } catch (Exception ex) {
+      throw new ServiceFormattedException(ex.getMessage(), ex);
+    }
   }
 
   /**
@@ -202,31 +229,31 @@ public class JobService extends BaseService {
   @Produces(MediaType.APPLICATION_JSON)
   public Response runJob(PigJobRequest request, @Context HttpServletResponse response,
                          @Context UriInfo ui) {
-    if (!request.validatePOST()) {
-      return badRequestResponse(request.explainPOST());
-    }
     try {
+      request.validatePOST();
       getResourceManager().create(request.job);
-    } catch (IllegalArgumentException e) {
-      return badRequestResponse(e.getMessage());
-    } catch (WebServiceException e) {
-      return serverErrorResponse(e.getMessage());
+
+      PigJob job = null;
+
+      try {
+        job = getResourceManager().read(request.job.getId());
+      } catch (ItemNotFound itemNotFound) {
+        throw new NotFoundFormattedException("Job not found", null);
+      }
+
+      response.setHeader("Location",
+          String.format("%s/%s", ui.getAbsolutePath().toString(), request.job.getId()));
+
+      JSONObject object = new JSONObject();
+      object.put("job", job);
+      return Response.ok(object).status(201).build();
+    } catch (WebApplicationException ex) {
+      throw ex;
+    } catch (IllegalArgumentException ex) {
+      throw new BadRequestFormattedException(ex.getMessage(), ex);
+    } catch (Exception ex) {
+      throw new ServiceFormattedException(ex.getMessage(), ex);
     }
-
-    PigJob job = null;
-
-    try {
-      job = getResourceManager().read(request.job.getId());
-    } catch (ItemNotFound itemNotFound) {
-      return Response.status(404).build();
-    }
-
-    response.setHeader("Location",
-        String.format("%s/%s", ui.getAbsolutePath().toString(), request.job.getId()));
-
-    JSONObject object = new JSONObject();
-    object.put("job", job);
-    return Response.ok(object).status(201).build();
   }
 
   /**
@@ -247,8 +274,10 @@ public class JobService extends BaseService {
       return result.toString();
     }
 
-    public boolean validatePOST() {
-      return explainPOST().isEmpty();
+    public void validatePOST() {
+      if (!explainPOST().isEmpty()) {
+        throw new BadRequestFormattedException(explainPOST(), null);
+      }
     }
   }
 }

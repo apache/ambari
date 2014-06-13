@@ -25,8 +25,11 @@ App.PollController = Ember.ObjectController.extend({
       job.kill(function () {
         job.reload();
         self.send('showAlert', {'message': Em.I18n.t('job.alert.job_killed',{title:self.get('title')}), status:'info'});
-      },function () {
-        self.send('showAlert', {'message': Em.I18n.t('job.alert.job_kill_error'), status:'error'});
+      },function (reason) {
+        var trace = null;
+        if (reason && reason.responseJSON.trace)
+          trace = reason.responseJSON.trace;
+        self.send('showAlert', {'message': Em.I18n.t('job.alert.job_kill_error'), status:'error', trace:trace});
       });
     },
   },

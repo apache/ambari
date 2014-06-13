@@ -22,8 +22,11 @@ import org.apache.ambari.view.pig.HDFSTest;
 import org.apache.ambari.view.pig.resources.files.FileService;
 import org.apache.ambari.view.pig.resources.scripts.ScriptService;
 import org.apache.ambari.view.pig.resources.scripts.models.PigScript;
+import org.apache.ambari.view.pig.utils.BadRequestFormattedException;
+import org.apache.ambari.view.pig.utils.NotFoundFormattedException;
 import org.json.simple.JSONObject;
 import org.junit.*;
+import org.junit.rules.ExpectedException;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Response;
@@ -38,6 +41,7 @@ import static org.easymock.EasyMock.*;
 
 public class ScriptTest extends HDFSTest {
     private ScriptService scriptService;
+    @Rule public ExpectedException thrown = ExpectedException.none();
 
     @BeforeClass
     public static void startUp() throws Exception {
@@ -114,8 +118,8 @@ public class ScriptTest extends HDFSTest {
 
     @Test
     public void scriptNotFound() {
-        Response response2 = scriptService.getScript("4242");
-        Assert.assertEquals(404, response2.getStatus());
+      thrown.expect(NotFoundFormattedException.class);
+      scriptService.getScript("4242");
     }
 
     @Test
@@ -146,8 +150,8 @@ public class ScriptTest extends HDFSTest {
         Response response = scriptService.deleteScript(createdScriptId);
         Assert.assertEquals(204, response.getStatus());
 
-        Response response2 = scriptService.getScript(createdScriptId);
-        Assert.assertEquals(404, response2.getStatus());
+        thrown.expect(NotFoundFormattedException.class);
+        scriptService.getScript(createdScriptId);
     }
 
     @Test

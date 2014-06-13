@@ -18,21 +18,8 @@
 
 var App = require('app');
 
-function getNamespaceUrl() {
-  var parts = window.location.pathname.match(/\/[^\/]*/g);
-  var view = parts[1];
-  var version = '/versions' + parts[2];
-  var instance = parts[3];
-  if (parts.length == 4) { // version is not present
-    instance = parts[2];
-    version = '';
-  }
-  var namespaceUrl = 'api/v1/views' + view + version + '/instances' + instance;
-  return namespaceUrl;
-}
-
 App.ApplicationAdapter = DS.RESTAdapter.extend({
-  namespace: getNamespaceUrl(),
+  namespace: App.getNamespaceUrl(),
   headers: {
    'X-Requested-By': 'ambari'
   }
@@ -41,7 +28,7 @@ App.ApplicationAdapter = DS.RESTAdapter.extend({
 App.FileAdapter = App.ApplicationAdapter.extend({
   pathForType: function() {
     return 'resources/file';
-  }
+  },
 });
 
 App.FileSerializer = DS.RESTSerializer.extend({
@@ -93,6 +80,7 @@ require('templates/pig/jobResults');
 require('templates/pig/jobResultsOutput');
 require('templates/pig/history');
 require('templates/pig/udfs');
+require('templates/pig/errorLog');
 
 require('templates/pig/util/script-nav');
 require('templates/pig/util/alert');
@@ -102,6 +90,8 @@ require('templates/pig/modal/confirmdelete');
 require('templates/pig/modal/createUdf');
 require('templates/pig/modal/modalLayout');
 require('templates/pig/modal/createScript');
+
+require('templates/splash');
 
 //////////////////////////////////
 // Models
@@ -126,6 +116,8 @@ require('controllers/pigUdfs');
 require('controllers/pigHistory');
 require('controllers/pigJob');
 require('controllers/jobResults');
+require('controllers/splash');
+require('controllers/errorLog');
 require('controllers/util/pigUtilAlert');
 require('controllers/modal/pigModal');
 
@@ -162,6 +154,7 @@ require('routes/pigScriptList');
 require('routes/pigUdfs');
 require('routes/pigJob');
 require('routes/jobResults');
+require('routes/splash');
 
 /////////////////////////////////
 // Router

@@ -26,11 +26,13 @@ import org.apache.ambari.view.pig.resources.jobs.models.PigJob;
 import org.apache.ambari.view.pig.resources.jobs.utils.JobPolling;
 import org.apache.ambari.view.pig.services.BaseService;
 import org.apache.ambari.view.pig.templeton.client.TempletonApi;
+import org.apache.ambari.view.pig.utils.MisconfigurationFormattedException;
+import org.apache.ambari.view.pig.utils.ServiceFormattedException;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.xml.ws.WebServiceException;
+import javax.ws.rs.WebApplicationException;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -64,8 +66,7 @@ public class JobResourceManager extends PersonalCRUDResourceManager<PigJob> {
    */
   public TempletonApi getTempletonApi() {
     if (api == null) {
-      api = new TempletonApi(context.getProperties().get("dataworker.webhcat.url"),
-          getTempletonUser(), getTempletonUser(), context);
+      api = connectToTempletonApi(context);
     }
     return api;
   }
@@ -158,15 +159,15 @@ public class JobResourceManager extends PersonalCRUDResourceManager<PigJob> {
         if (job.getSourceFile() != null && !job.getSourceFile().isEmpty()) {
           // otherwise, just copy original file
           if (!BaseService.getHdfsApi(context).copy(job.getSourceFile(), newSourceFilePath)) {
-            throw new WebServiceException("Can't copy source file from " + job.getSourceFile() +
+            throw new ServiceFormattedException("Can't copy source file from " + job.getSourceFile() +
                 " to " + newPigScriptPath);
           }
         }
       }
     } catch (IOException e) {
-      throw new WebServiceException("Can't create/copy source file: " + e.toString(), e);
+      throw new ServiceFormattedException("Can't create/copy source file: " + e.toString(), e);
     } catch (InterruptedException e) {
-      throw new WebServiceException("Can't create/copy source file: " + e.toString(), e);
+      throw new ServiceFormattedException("Can't create/copy source file: " + e.toString(), e);
     }
 
     try {
@@ -185,26 +186,26 @@ public class JobResourceManager extends PersonalCRUDResourceManager<PigJob> {
       } else {
         // otherwise, just copy original file
         if (!BaseService.getHdfsApi(context).copy(job.getPigScript(), newPigScriptPath)) {
-          throw new WebServiceException("Can't copy pig script file from " + job.getPigScript() +
+          throw new ServiceFormattedException("Can't copy pig script file from " + job.getPigScript() +
               " to " + newPigScriptPath);
         }
       }
     } catch (IOException e) {
-      throw new WebServiceException("Can't create/copy pig script file: " + e.toString(), e);
+      throw new ServiceFormattedException("Can't create/copy pig script file: " + e.toString(), e);
     } catch (InterruptedException e) {
-      throw new WebServiceException("Can't create/copy pig script file: " + e.toString(), e);
+      throw new ServiceFormattedException("Can't create/copy pig script file: " + e.toString(), e);
     }
 
     if (job.getPythonScript() != null && !job.getPythonScript().isEmpty()) {
       try {
         if (!BaseService.getHdfsApi(context).copy(job.getPythonScript(), newPythonScriptPath)) {
-          throw new WebServiceException("Can't copy python udf script file from " + job.getPythonScript() +
+          throw new ServiceFormattedException("Can't copy python udf script file from " + job.getPythonScript() +
               " to " + newPythonScriptPath);
         }
       } catch (IOException e) {
-        throw new WebServiceException("Can't create/copy python udf file: " + e.toString(), e);
+        throw new ServiceFormattedException("Can't create/copy python udf file: " + e.toString(), e);
       } catch (InterruptedException e) {
-        throw new WebServiceException("Can't create/copy python udf file: " + e.toString(), e);
+        throw new ServiceFormattedException("Can't create/copy python udf file: " + e.toString(), e);
       }
     }
 
@@ -215,9 +216,9 @@ public class JobResourceManager extends PersonalCRUDResourceManager<PigJob> {
       }
       stream.close();
     } catch (IOException e) {
-      throw new WebServiceException("Can't create params file: " + e.toString(), e);
+      throw new ServiceFormattedException("Can't create params file: " + e.toString(), e);
     } catch (InterruptedException e) {
-      throw new WebServiceException("Can't create params file: " + e.toString(), e);
+      throw new ServiceFormattedException("Can't create params file: " + e.toString(), e);
     }
     job.setPigScript(newPigScriptPath);
 
@@ -230,7 +231,7 @@ public class JobResourceManager extends PersonalCRUDResourceManager<PigJob> {
     } catch (IOException templetonBadResponse) {
       String msg = String.format("Templeton bad response: %s", templetonBadResponse.toString());
       LOG.debug(msg);
-      throw new WebServiceException(msg, templetonBadResponse);
+      throw new ServiceFormattedException(msg, templetonBadResponse);
     }
     job.setJobId(data.id);
 
@@ -290,11 +291,43 @@ public class JobResourceManager extends PersonalCRUDResourceManager<PigJob> {
   }
 
   /**
+   * Checks connection to WebHCat
+   * @param context View Context
+   */
+  public static void webhcatSmokeTest(ViewContext context) {
+    try {
+      TempletonApi api = connectToTempletonApi(context);
+      api.status();
+    } catch (WebApplicationException ex) {
+      throw ex;
+    } catch (Exception ex) {
+      throw new ServiceFormattedException(ex.getMessage(), ex);
+    }
+  }
+
+  private static TempletonApi connectToTempletonApi(ViewContext context) {
+    String webhcatUrl = context.getProperties().get("dataworker.webhcat.url");
+    if (webhcatUrl == null) {
+      String message = "dataworker.webhcat.url is not configured!";
+      LOG.error(message);
+      throw new MisconfigurationFormattedException("dataworker.webhcat.url");
+    }
+    return new TempletonApi(context.getProperties().get("dataworker.webhcat.url"),
+        getTempletonUser(context), getTempletonUser(context), context);
+  }
+
+  /**
    * Extension point to use different usernames in templeton
    * requests instead of logged in user
    * @return username in templeton
    */
-  private String getTempletonUser() {
-    return context.getProperties().get("dataworker.webhcat.user");
+  private static String getTempletonUser(ViewContext context) {
+    String username = context.getProperties().get("dataworker.webhcat.user");
+    if (username == null) {
+      String message = "dataworker.webhcat.user is not configured!";
+      LOG.error(message);
+      throw new MisconfigurationFormattedException("dataworker.webhcat.user");
+    }
+    return username;
   }
 }

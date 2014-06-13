@@ -23,12 +23,13 @@ import org.apache.ambari.view.pig.persistence.utils.ItemNotFound;
 import org.apache.ambari.view.pig.resources.PersonalCRUDResourceManager;
 import org.apache.ambari.view.pig.resources.scripts.models.PigScript;
 import org.apache.ambari.view.pig.services.BaseService;
+import org.apache.ambari.view.pig.utils.MisconfigurationFormattedException;
+import org.apache.ambari.view.pig.utils.ServiceFormattedException;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileAlreadyExistsException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.xml.ws.WebServiceException;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -62,7 +63,7 @@ public class ScriptResourceManager extends PersonalCRUDResourceManager<PigScript
     if (userScriptsPath == null) {
       String msg = "dataworker.scripts.path is not configured!";
       LOG.error(msg);
-      throw new WebServiceException(msg);
+      throw new MisconfigurationFormattedException("dataworker.scripts.path");
     }
     int checkId = 0;
 
@@ -88,16 +89,16 @@ public class ScriptResourceManager extends PersonalCRUDResourceManager<PigScript
         try {
           delete(object.getId());
         } catch (ItemNotFound itemNotFound) {
-          throw new WebServiceException("Error in creation, during clean up: " + itemNotFound.toString(), itemNotFound);
+          throw new ServiceFormattedException("Error in creation, during clean up: " + itemNotFound.toString(), itemNotFound);
         }
-        throw new WebServiceException("Error in creation: " + e.toString(), e);
+        throw new ServiceFormattedException("Error in creation: " + e.toString(), e);
       } catch (InterruptedException e) {
         try {
           delete(object.getId());
         } catch (ItemNotFound itemNotFound) {
-          throw new WebServiceException("Error in creation, during clean up: " + itemNotFound.toString(), itemNotFound);
+          throw new ServiceFormattedException("Error in creation, during clean up: " + itemNotFound.toString(), itemNotFound);
         }
-        throw new WebServiceException("Error in creation: " + e.toString(), e);
+        throw new ServiceFormattedException("Error in creation: " + e.toString(), e);
       }
       checkId += 1;
     } while (!fileCreated);
@@ -105,5 +106,4 @@ public class ScriptResourceManager extends PersonalCRUDResourceManager<PigScript
     object.setPigScript(newFilePath);
     getPigStorage().store(object);
   }
-
 }

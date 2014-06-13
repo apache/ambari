@@ -16,11 +16,12 @@
  * limitations under the License.
  */
 
-var App = require('app');
+package org.apache.ambari.view.pig.utils;
 
-App.File = DS.Model.extend({
-  fileContent: DS.attr('string'),
-  hasNext:DS.attr('boolean'),
-  page:DS.attr('number'),
-  pageCount:DS.attr('number'),
-});
+public class BadRequestFormattedException extends ServiceFormattedException {
+  private final static int STATUS = 400;
+
+  public BadRequestFormattedException(String message, Throwable exception) {
+    super(message, exception, STATUS);
+  }
+}

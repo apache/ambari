@@ -20,17 +20,17 @@ var App = require('app');
 
 App.Router.map(function () {
   this.resource('pig', { path: "/" }, function() {
-  	this.route('scriptList',{ path: "/list" });
+    this.route('scriptList',{ path: "/list" });
     this.route('scriptEdit',{ path: "/edit/:script_id" });
     this.resource('job', { path: "/job/:job_id" },function (argument) {
       this.route('results');
     });
     this.route('udfs');
-  	this.route('history');
+    this.route('history');
+    this.route('errorLog');
   });
+  this.route('splash');
 });
-
-App.LoadingRoute = Ember.Route.extend({});
 
 App.LoadingView = Em.View.extend({
     templateName: 'pig/loading'

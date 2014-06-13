@@ -25,6 +25,8 @@ import org.apache.ambari.view.pig.persistence.utils.ItemNotFound;
 import org.apache.ambari.view.pig.resources.PersonalCRUDResourceManager;
 import org.apache.ambari.view.pig.resources.scripts.models.PigScript;
 import org.apache.ambari.view.pig.services.BaseService;
+import org.apache.ambari.view.pig.utils.NotFoundFormattedException;
+import org.apache.ambari.view.pig.utils.ServiceFormattedException;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,15 +69,19 @@ public class ScriptService extends BaseService {
   @Path("{scriptId}")
   @Produces(MediaType.APPLICATION_JSON)
   public Response getScript(@PathParam("scriptId") String scriptId) {
-    PigScript script = null;
     try {
+      PigScript script = null;
       script = getResourceManager().read(scriptId);
+      JSONObject object = new JSONObject();
+      object.put("script", script);
+      return Response.ok(object).build();
+    } catch (WebApplicationException ex) {
+      throw ex;
     } catch (ItemNotFound itemNotFound) {
-      return Response.status(404).build();
+      throw new NotFoundFormattedException(itemNotFound.getMessage(), itemNotFound);
+    } catch (Exception ex) {
+      throw new ServiceFormattedException(ex.getMessage(), ex);
     }
-    JSONObject object = new JSONObject();
-    object.put("script", script);
-    return Response.ok(object).build();
   }
 
   /**
@@ -86,10 +92,14 @@ public class ScriptService extends BaseService {
   public Response deleteScript(@PathParam("scriptId") String scriptId) {
     try {
       getResourceManager().delete(scriptId);
+      return Response.status(204).build();
+    } catch (WebApplicationException ex) {
+      throw ex;
     } catch (ItemNotFound itemNotFound) {
-      return Response.status(404).build();
+      throw new NotFoundFormattedException(itemNotFound.getMessage(), itemNotFound);
+    } catch (Exception ex) {
+      throw new ServiceFormattedException(ex.getMessage(), ex);
     }
-    return Response.status(204).build();
   }
 
   /**
@@ -98,13 +108,19 @@ public class ScriptService extends BaseService {
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   public Response getScriptList() {
-    LOG.debug("Getting all scripts");
-    List allScripts = getResourceManager().readAll(
-        new OnlyOwnersFilteringStrategy(this.context.getUsername()));
+    try {
+      LOG.debug("Getting all scripts");
+      List allScripts = getResourceManager().readAll(
+          new OnlyOwnersFilteringStrategy(this.context.getUsername()));
 
-    JSONObject object = new JSONObject();
-    object.put("scripts", allScripts);
-    return Response.ok(object).build();
+      JSONObject object = new JSONObject();
+      object.put("scripts", allScripts);
+      return Response.ok(object).build();
+    } catch (WebApplicationException ex) {
+      throw ex;
+    } catch (Exception ex) {
+      throw new ServiceFormattedException(ex.getMessage(), ex);
+    }
   }
 
   /**
@@ -117,10 +133,14 @@ public class ScriptService extends BaseService {
                                @PathParam("scriptId") String scriptId) {
     try {
       getResourceManager().update(request.script, scriptId);
+      return Response.status(204).build();
+    } catch (WebApplicationException ex) {
+      throw ex;
     } catch (ItemNotFound itemNotFound) {
-      return Response.status(404).build();
+      throw new NotFoundFormattedException(itemNotFound.getMessage(), itemNotFound);
+    } catch (Exception ex) {
+      throw new ServiceFormattedException(ex.getMessage(), ex);
     }
-    return Response.status(204).build();
   }
 
   /**
@@ -130,22 +150,26 @@ public class ScriptService extends BaseService {
   @Consumes(MediaType.APPLICATION_JSON)
   public Response saveScript(PigScriptRequest request, @Context HttpServletResponse response,
                              @Context UriInfo ui) {
-    getResourceManager().create(request.script);
-
-    PigScript script = null;
-
     try {
+      getResourceManager().create(request.script);
+
+      PigScript script = null;
+
       script = getResourceManager().read(request.script.getId());
+
+      response.setHeader("Location",
+          String.format("%s/%s", ui.getAbsolutePath().toString(), request.script.getId()));
+
+      JSONObject object = new JSONObject();
+      object.put("script", script);
+      return Response.ok(object).status(201).build();
+    } catch (WebApplicationException ex) {
+      throw ex;
     } catch (ItemNotFound itemNotFound) {
-      return Response.status(404).build();
+      throw new NotFoundFormattedException(itemNotFound.getMessage(), itemNotFound);
+    } catch (Exception ex) {
+      throw new ServiceFormattedException(ex.getMessage(), ex);
     }
-
-    response.setHeader("Location",
-        String.format("%s/%s", ui.getAbsolutePath().toString(), request.script.getId()));
-
-    JSONObject object = new JSONObject();
-    object.put("script", script);
-    return Response.ok(object).status(201).build();
   }
 
   /**
