@@ -36,7 +36,7 @@ License: Apache License, Version 2.0
 Group: System Environment/Base
 Source: %{name}-%{version}.tar.gz
 Buildroot: %{buildroot}
-Requires: nagios, nagios-plugins, php >= 5
+Requires: nagios = 3.5.0-99, nagios-plugins = 1.4.9, php >= 5
 
 %define nagioshdpscripts_dir %{_prefix}/share/hdp/nagios
 %define nagiosplugin_dir %{_libdir}/nagios/plugins
