@@ -47,12 +47,6 @@ App.TableView = Em.View.extend(App.UserPref, {
   startIndexOnLoad: null,
 
   /**
-   * Loaded from server persist value
-   * @type {Number}
-   */
-  displayLengthOnLoad: null,
-
-  /**
    * The number of rows to show on every page
    * The value should be a number converted into string type in order to support select element API
    * Example: "10", "25"
@@ -85,6 +79,8 @@ App.TableView = Em.View.extend(App.UserPref, {
     if (!this.get('displayLength')) {
       if (App.db.getDisplayLength(name)) {
         this.set('displayLength', App.db.getDisplayLength(name));
+      } else {
+        this.getUserPref(this.displayLengthKey());
       }
     }
 
@@ -107,6 +103,47 @@ App.TableView = Em.View.extend(App.UserPref, {
       this.clearFilters();
     }
     self.set('tableFilteringComplete', true);
+  },
+
+  /**
+   * Persist-key of current table displayLength property
+   * @param {String} loginName current user login name
+   * @returns {String}
+   */
+  displayLengthKey: function (loginName) {
+    if (App.get('testMode')) {
+      return 'pagination_displayLength';
+    }
+    loginName = loginName ? loginName : App.router.get('loginName');
+    return this.get('controller.name') + '-pagination-displayLength-' + loginName;
+  },
+
+  /**
+   * Set received from server value to <code>displayLengthOnLoad</code>
+   * @param {Number} response
+   * @param {Object} request
+   * @param {Object} data
+   * @returns {*}
+   */
+  getUserPrefSuccessCallback: function (response, request, data) {
+    console.log('Got DisplayLength value from server with key ' + data.key + '. Value is: ' + response);
+    this.set('displayLength', response);
+    return response;
+  },
+
+  /**
+   * Set default value to <code>displayLength</code> (and send it on server) if value wasn't found on server
+   * @returns {Number}
+   */
+  getUserPrefErrorCallback: function () {
+    // this user is first time login
+    console.log('Persist did NOT find the key');
+    var displayLengthDefault = this.get('defaultDisplayLength');
+    this.set('displayLength', displayLengthDefault);
+    if (App.get('isAdmin')) {
+      this.postUserPref(this.displayLengthKey(), displayLengthDefault);
+    }
+    return displayLengthDefault;
   },
 
   /**

@@ -25,6 +25,8 @@ var date = require('utils/date');
  */
 App.HostPopup = Em.Object.create({
 
+  name: 'hostPopup',
+
   servicesInfo: null,
   hosts: null,
   inputData: null,
@@ -546,7 +548,6 @@ App.HostPopup = Em.Object.create({
 
         pagination: true,
         isPaginate: false,
-        displayLength: "25",
         content: function() {
           return this.get('hosts') || [];
         }.property('hosts.length', 'isHostListHidden'),

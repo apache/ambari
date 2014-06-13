@@ -21,7 +21,7 @@ var validator = require('utils/validator');
 var componentHelper = require('utils/component');
 var batchUtils = require('utils/batch_scheduled_requests');
 
-App.MainHostController = Em.ArrayController.extend(App.UserPref, {
+App.MainHostController = Em.ArrayController.extend({
   name: 'mainHostController',
 
   dataSource: App.Host.find(),
@@ -137,15 +137,8 @@ App.MainHostController = Em.ArrayController.extend(App.UserPref, {
       getValue: function (controller) {
         var name = controller.get('name');
         var dbValue = App.db.getDisplayLength(name);
-
         if (Em.isNone(this.get('viewValue'))) {
-          if (dbValue) {
-            this.set('viewValue', dbValue);
-          } else {
-            controller.set('makeRequestAsync', false);
-            controller.getUserPref(controller.displayLengthKey());
-            App.db.setDisplayLength(name, this.get('viewValue'));
-          }
+          this.set('viewValue', dbValue || '25'); //25 is default displayLength value for hosts page
         }
         return this.get('viewValue');
       },
@@ -385,43 +378,6 @@ App.MainHostController = Em.ArrayController.extend(App.UserPref, {
     App.db.setFilterConditions(this.get('name'), [filterForComponent]);
   },
 
-  /**
-   * Persist-key of current table displayLength property
-   * @param {String} loginName current user login name
-   * @returns {String}
-   */
-  displayLengthKey: function (loginName) {
-    if (App.get('testMode')) {
-      return 'pagination_displayLength';
-    }
-    loginName = loginName ? loginName : App.router.get('loginName');
-    return this.get('name') + '-pagination-displayLength-' + loginName;
-  },
-
-  /**
-   * Set received from server value to <code>displayLengthOnLoad</code>
-   * @param {Number} response
-   * @param {Object} request
-   * @param {Object} data
-   * @returns {*}
-   */
-  getUserPrefSuccessCallback: function (response, request, data) {
-    console.log('Got DisplayLength value from server with key ' + data.key + '. Value is: ' + response);
-    this.get('viewProperties').findProperty('key', 'displayLength').set('viewValue', response);
-  },
-
-  /**
-   * Set default value to <code>displayLengthOnLoad</code> (and send it on server) if value wasn't found on server
-   * @returns {Number}
-   */
-  getUserPrefErrorCallback: function () {
-    // this user is first time login, so set default value - '25'
-    console.log('Persist did NOT find the key');
-    this.get('viewProperties').findProperty('key', 'displayLength').set('viewValue', '25');
-    if (App.get('isAdmin')) {
-      this.postUserPref(this.displayLengthKey(), '25');
-    }
-  },
   /**
    * On click callback for delete button
    */

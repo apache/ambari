@@ -97,7 +97,7 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
    * Restore filter properties in view
    */
   willInsertElement: function () {
-    this.set('displayLength', this.get('controller.viewProperties').findProperty('key', 'displayLength').getValue(this.get('controller')));
+    this._super();
     var filterConditions = App.db.getFilterConditions(this.get('controller.name'));
     if (filterConditions) {
 
@@ -130,17 +130,6 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
    */
   filter: function () {
     //Since filtering moved to server side, function is empty
-  },
-  /**
-   * save display length to local DB and server
-   */
-  saveDisplayLength: function() {
-    App.db.setDisplayLength(this.get('controller.name'), this.get('displayLength'));
-    if (!App.testMode) {
-      if (App.get('isAdmin')) {
-        this.get('controller').postUserPref(this.get('controller').displayLengthKey(), this.get('displayLength'));
-      }
-    }
   },
 
   didInsertElement: function() {

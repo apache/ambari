@@ -59,15 +59,14 @@ App.TableServerProvider = Em.Mixin.create({
    */
   resetFilterByColumns: function (columns) {
     var filterConditions = this.get('filterConditions');
-
     columns.forEach(function (iColumn) {
       var filterCondition = filterConditions.findProperty('iColumn', iColumn);
 
       if (filterCondition) {
         filterCondition.value = '';
+        this.saveFilterConditions(filterCondition.iColumn, filterCondition.value, filterCondition.type, filterCondition.skipFilter);
       }
-    });
-    this.saveFilterConditions();
+    }, this);
   },
   /**
    * Apply each filter to each row

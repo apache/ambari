@@ -45,6 +45,7 @@ App.MainJobsView = App.TableView.extend({
   }.observes("controller.content.length"),
 
   willInsertElement: function () {
+    this._super();
     var self = this;
     var name = this.get('controller.name');
     var colPropAssoc = this.get('colPropAssoc');
