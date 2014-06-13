@@ -188,9 +188,10 @@ class CheckHost(Script):
                    "--retry 5 {jdbc_url} -o {jdbc_name}'")
       Execute(cmd, not_if=format("[ -f /usr/lib/ambari-agent/{jdbc_name}]"), environment = environment)
     except Exception, e:
-      message = "Error downloading JDBC connector from Ambari Server resources. Confirm you ran ambari-server setup to " \
-                "install JDBC connector. Use \"ambari-server setup --help\" for more information. Check network access to " \
-                "Ambari Server.\n" + str(e)
+      message = format("Error: Ambari Server cannot download the database JDBC driver and is unable to test the " \
+                "database connection. You must run ambari-server setup --jdbc-db={db_name} " \
+                "--jdbc-driver=/path/to/your/{db_name}/driver.jar on the Ambari Server host to make the JDBC " \
+                "driver available for download and to enable testing the database connection.\n") + str(e)
       print message
       db_connection_check_structured_output = {"exit_code" : 1, "message": message}
       return db_connection_check_structured_output
