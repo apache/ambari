@@ -140,7 +140,7 @@
           <osFamily>suse11</osFamily>
           <packages>
             <package>
-              <name>php5-json</name>
+              <name>php5*-json</name>
             </package>
             <package>
               <name>apache2?mod_php*</name>
