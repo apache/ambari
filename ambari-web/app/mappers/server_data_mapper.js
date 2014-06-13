@@ -23,7 +23,7 @@ var App = require('app');
  * App.cache contains shared data, used for syncronizing incoming server data among mappers
  */
 App.cache = {
-  'Hosts': {},
+  'HostsList': [],
   'previousHostStatuses': {},
   'previousComponentStatuses': {},
   'previousComponentPassiveStates': {},

@@ -68,8 +68,9 @@ App.hostsMapper = App.QuickDataMapper.create({
       var hostsWithFullInfo = [];
       var hostIds = {};
       var components = [];
-
+      App.cache['HostsList'] = [];
       json.items.forEach(function (item) {
+        App.cache['HostsList'].push(item.Hosts.host_name);
         item.host_components = item.host_components || [];
         item.host_components.forEach(function (host_component) {
           host_component.id = host_component.HostRoles.component_name + "_" + item.Hosts.host_name;

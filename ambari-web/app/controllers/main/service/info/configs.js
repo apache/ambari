@@ -245,8 +245,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       sender: this,
       data: {
         serviceName: this.get('content.serviceName'),
-        serviceConfigsDef: this.get('serviceConfigs').findProperty('serviceName', this.get('content.serviceName')),
-        urlParams: ',hosts'
+        serviceConfigsDef: this.get('serviceConfigs').findProperty('serviceName', this.get('content.serviceName'))
       },
       success: 'loadServiceTagsSuccess'
     });
@@ -257,7 +256,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     var serviceName = this.get('content.serviceName');
     console.debug("loadServiceConfigs(): data=", data);
     // Create default configuration group
-    var defaultConfigGroupHosts = data.hosts.mapProperty('Hosts.host_name');
+    var defaultConfigGroupHosts = App.cache['HostsList'];
     var selectedConfigGroup;
     var siteToTagMap = {};
     serviceConfigsDef.sites.forEach(function(siteName){
