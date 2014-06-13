@@ -61,21 +61,25 @@
                         {{selectedHost}}<i class="icon-asterisks">&#10037;</i>
                       </div>
                     {{else}}
-                      {{view App.SelectHostView
-                      optionValuePath="content.host_name"
-                      optionLabelPath="content.host_info"
-                      selectedHostBinding="selectedHost"
-                      componentNameBinding="component_name"
-                      class="host-select"
-                      zIdBinding="zId"
-                      disabledBinding="isInstalled"
-                      }}
+                    <div class="control-group">
+                      {{#if view.shouldUseInputs}}
+                        {{view App.InputHostView
+                        componentBinding="this"
+                        disabledBinding="isInstalled" }}
+                      {{else}}
+                        {{view App.SelectHostView
+                        componentBinding="this"
+                        disabledBinding="isInstalled"
+                        optionValuePath="content.host_name"
+                        optionLabelPath="content.host_info" }}
+                      {{/if}}
                       {{#if showAddControl}}
                         {{view App.AddControlView componentNameBinding="component_name"}}
                       {{/if}}
                       {{#if showRemoveControl}}
                         {{view App.RemoveControlView componentNameBinding="component_name" zIdBinding="zId"}}
                       {{/if}}
+                      </div>
                     {{/if}}
                   </div>
                 </div>
@@ -90,7 +94,7 @@
       {{#each masterHostMapping}}
         <div class="mapping-box round-corners well">
           <div class="hostString"><span>{{hostInfo}}</span></div>
-          {{#each masterServices}}
+          {{#each masterServicesToDisplay}}
             <span {{bindAttr class="isInstalled:assignedService:newService :round-corners"}}>{{display_name}}</span>
           {{/each}}
         </div>

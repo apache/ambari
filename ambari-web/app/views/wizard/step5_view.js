@@ -16,13 +16,20 @@
  * limitations under the License.
  */
 
-
 var App = require('app');
-var lazyloading = require('utils/lazy_loading');
 
 App.WizardStep5View = Em.View.extend({
 
   templateName: require('templates/wizard/step5'),
+
+  /**
+   * If install more than 25 hosts, should use App.InputHostView for hosts selection
+   * Othervise - App.SelectHostView
+   * @type {bool}
+   */
+  shouldUseInputs: function() {
+    return this.get('controller.hosts.length') > 25;
+  }.property('controller.hosts.length'),
 
   didInsertElement: function () {
     this.get('controller').loadStep();
@@ -30,124 +37,46 @@ App.WizardStep5View = Em.View.extend({
 
 });
 
-App.SelectHostView = Em.Select.extend({
-
-  /**
-   * List of avaiable host names
-   * @type {string[]}
-   */
-  content: [],
-
-  /**
-   * Index for multiple component (like ZOOKEEPER_SERVER)
-   * @type {number|null}
-   */
-  zId: null,
-
-  /**
-   * Selected host name for host component
-   * @type {string}
-   */
-  selectedHost: null,
-
-  /**
-   * Host component name
-   * @type {string}
-   */
-  componentName: null,
+App.InputHostView = Em.TextField.extend(App.SelectHost, {
 
   attributeBindings: ['disabled'],
 
   /**
-   * Is data loaded
-   * @type {bool}
+   * Saved typeahead component
+   * @type {$}
    */
-  isLoaded: false,
+  typeahead: null,
 
   /**
-   * Is lazy loading used
-   * @type {bool}
+   * When <code>value</code> (host_info) is changed this method is triggered
+   * If new hostname is valid, this host is assigned to master component
+   * @method changeHandler
    */
-  isLazyLoading: false,
-
-  /**
-   * Handler for selected value change
-   * @method change
-   */
-  change: function () {
-    this.get('controller').assignHostToMaster(this.get("componentName"), this.get("value"), this.get("zId"));
-    this.set('selectedHost', this.get('value'));
-    this.get('controller').set('componentToRebalance', this.get("componentName"));
-    this.get('controller').incrementProperty('rebalanceComponentHostsCounter');
-  },
-
-  /**
-   * Recalculate available hosts
-   * @method rebalanceComponentHosts
-   */
-  rebalanceComponentHosts: function () {
-    if (this.get('componentName') === this.get('controller.componentToRebalance')) {
-      this.get('content').clear();
-      this.set('isLoaded', false);
-      this.initContent();
+  changeHandler: function() {
+    if (!this.shouldChangeHandlerBeCalled()) return;
+    var host = this.get('controller.hosts').findProperty('host_info', this.get('value'));
+    if (Em.isNone(host)) {
+      this.get('controller').updateIsHostNameValidFlag(this.get("component.component_name"), this.get("component.zId"), false);
+      return;
     }
-  }.observes('controller.rebalanceComponentHostsCounter'),
-
-  /**
-   * Get available hosts
-   * multipleComponents component can be assigned to multiple hosts,
-   * shared hosts among the same component should be filtered out
-   * @return {string[]}
-   * @method getAvailableHosts
-   */
-  getAvailableHosts: function () {
-    var hosts = this.get('controller.hosts').slice(),
-      componentName = this.get('componentName'),
-      multipleComponents = this.get('controller.multipleComponents'),
-      occupiedHosts = this.get('controller.selectedServicesMasters')
-        .filterProperty('component_name', componentName)
-        .mapProperty('selectedHost')
-        .without(this.get('selectedHost'));
-
-    if (multipleComponents.contains(componentName)) {
-      return hosts.filter(function (host) {
-        return !occupiedHosts.contains(host.get('host_name'));
-      }, this);
-    }
-    return hosts;
-  },
-
-  /**
-   * On click start lazy loading
-   * @method click
-   */
-  click: function () {
-    var source = [];
-    var availableHosts = this.getAvailableHosts();
-
-    if (!this.get('isLoaded') && this.get('isLazyLoading')) {
-      //filter out hosts, which already pushed in select
-      source = availableHosts.filter(function (_host) {
-        return !this.get('content').someProperty('host_name', _host.host_name);
-      }, this).slice();
-      lazyloading.run({
-        destination: this.get('content'),
-        source: source,
-        context: this,
-        initSize: 30,
-        chunkSize: 200,
-        delay: 50
-      });
-    }
-  },
+    this.get('controller').assignHostToMaster(this.get("component.component_name"), host.get('host_name'), this.get("component.zId"));
+    this.tryTriggerRebalanceForMultipleComponents();
+  }.observes('controller.hostNameCheckTrigger'),
 
   didInsertElement: function () {
-    //The lazy loading for select elements supported only by Firefox and Chrome
-    var isBrowserSupported = $.browser.mozilla || ($.browser.safari && navigator.userAgent.indexOf('Chrome') !== -1);
-    var isLazyLoading = isBrowserSupported && this.get('controller.hosts').length > 100;
-    this.set('isLazyLoading', isLazyLoading);
     this.initContent();
-    this.set("value", this.get("selectedHost"));
+    var value = this.get('content').findProperty('host_name', this.get('component.selectedHost')).get('host_info');
+    this.set("value", value);
+    var content = this.get('content').mapProperty('host_info'),
+      self = this,
+      typeahead = this.$().typeahead({items: 10, source: content, minLength: 0});
+    typeahead.on('blur', function() {
+      self.change();
+    }).on('keyup', function(e) {
+        self.set('value', $(e.currentTarget).val());
+        self.change();
+      });
+    this.set('typeahead', typeahead);
   },
 
   /**
@@ -157,19 +86,50 @@ App.SelectHostView = Em.Select.extend({
    * @method initContent
    */
   initContent: function () {
-    var hosts = this.getAvailableHosts();
-    if (this.get('isLazyLoading')) {
-      //select need at least 30 hosts to have scrollbar
-      var initialHosts = hosts.slice(0, 30);
-      if (!initialHosts.someProperty('host_name', this.get('selectedHost'))) {
-        initialHosts.unshift(hosts.findProperty('host_name', this.get('selectedHost')));
-      }
-      this.set("content", initialHosts);
-    }
-    else {
-      this.set("content", hosts);
+    this._super();
+    this.updateTypeaheadData(this.get('content').mapProperty('host_info'));
+  },
+
+  /**
+   * Update <code>source</code> property of <code>typeahead</code> with a new list of hosts
+   * @param {string[]} hosts
+   * @method updateTypeaheadData
+   */
+  updateTypeaheadData: function(hosts) {
+    if (this.get('typeahead')) {
+      this.get('typeahead').data('typeahead').source = hosts;
     }
   }
+
+});
+
+App.SelectHostView = Em.Select.extend(App.SelectHost, {
+
+  attributeBindings: ['disabled'],
+
+  didInsertElement: function () {
+    this.initContent();
+    this.set("value", this.get("component.selectedHost"));
+  },
+
+  /**
+   * Handler for selected value change
+   * @method change
+   */
+  changeHandler: function () {
+    if (!this.shouldChangeHandlerBeCalled()) return;
+    this.get('controller').assignHostToMaster(this.get("component.component_name"), this.get("value"), this.get("component.zId"));
+    this.tryTriggerRebalanceForMultipleComponents();
+  }.observes('controller.hostNameCheckTrigger'),
+
+  /**
+   * On click handler
+   * @method click
+   */
+  click: function () {
+    this.initContent();
+  }
+
 });
 
 App.AddControlView = Em.View.extend({
