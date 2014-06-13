@@ -1076,42 +1076,6 @@ var urls = {
       }
     }
   },
-  'admin.high_availability.create_journalnode': {
-    'real': '/clusters/{clusterName}/services?ServiceInfo/service_name=HDFS',
-    'mock': '',
-    'type': 'POST',
-    'format': function() {
-      return {
-        data: JSON.stringify({
-          "components": [
-            {
-              "ServiceComponentInfo": {
-                "component_name": "JOURNALNODE"
-              }
-            }
-          ]
-        })
-      }
-    }
-  },
-  'admin.high_availability.create_zkfc': {
-    'real': '/clusters/{clusterName}/services?ServiceInfo/service_name=HDFS',
-    'mock': '',
-    'type': 'POST',
-    'format': function() {
-      return {
-        data: JSON.stringify({
-          "components": [
-            {
-              "ServiceComponentInfo": {
-                "component_name": "ZKFC"
-              }
-            }
-          ]
-        })
-      }
-    }
-  },
   'admin.high_availability.install_component': {
     'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}',
     'mock': '',

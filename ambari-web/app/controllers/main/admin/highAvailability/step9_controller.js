@@ -41,15 +41,6 @@ App.HighAvailabilityWizardStep9Controller = App.HighAvailabilityProgressPageCont
   },
 
   installZKFC: function () {
-    App.ajax.send({
-      name: 'admin.high_availability.create_zkfc',
-      sender: this,
-      success: 'onZKFCCreate',
-      error: 'onZKFCCreate'
-    });
-  },
-
-  onZKFCCreate: function () {
     var hostName = this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE').mapProperty('hostName');
     this.createComponent('ZKFC', hostName);
   },
