@@ -57,6 +57,12 @@ class TestHBaseClient(RMFTestCase):
       conf_dir = '/etc/hbase/conf',
       configurations = self.getConfig()['configurations']['hdfs-site'], # don't hardcode all the properties
     )
+    self.assertResourceCalled('XmlConfig', 'hdfs-site.xml',
+      owner = 'hdfs',
+      group = 'hadoop',
+      conf_dir = '/etc/hadoop/conf',
+      configurations = self.getConfig()['configurations']['hdfs-site'], # don't hardcode all the properties
+    )
     self.assertResourceCalled('File', '/etc/hbase/conf/hbase-policy.xml',
       owner = 'hbase',
       group = 'hadoop',
@@ -118,6 +124,12 @@ class TestHBaseClient(RMFTestCase):
       owner = 'hbase',
       group = 'hadoop',
       conf_dir = '/etc/hbase/conf',
+      configurations = self.getConfig()['configurations']['hdfs-site'], # don't hardcode all the properties
+    )
+    self.assertResourceCalled('XmlConfig', 'hdfs-site.xml',
+      owner = 'hdfs',
+      group = 'hadoop',
+      conf_dir = '/etc/hadoop/conf',
       configurations = self.getConfig()['configurations']['hdfs-site'], # don't hardcode all the properties
     )
     self.assertResourceCalled('File', '/etc/hbase/conf/hbase-policy.xml',

@@ -57,8 +57,8 @@ class HbaseServiceCheck(Script):
         user = params.hbase_user,
       )
 
-    servicecheckcmd = format("{smokeuser_kinit_cmd} hbase --config {conf_dir} shell {hbase_servicecheck_file}")
-    smokeverifycmd = format("{smokeuser_kinit_cmd} /tmp/hbaseSmokeVerify.sh {conf_dir} {service_check_data}")
+    servicecheckcmd = format("{smokeuser_kinit_cmd} hbase --config {hbase_conf_dir} shell {hbase_servicecheck_file}")
+    smokeverifycmd = format("{smokeuser_kinit_cmd} /tmp/hbaseSmokeVerify.sh {hbase_conf_dir} {service_check_data}")
   
     Execute( servicecheckcmd,
       tries     = 3,

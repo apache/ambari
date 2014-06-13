@@ -27,7 +27,7 @@ def hbase_service(
     import params
   
     role = name
-    cmd = format("{daemon_script} --config {conf_dir}")
+    cmd = format("{daemon_script} --config {hbase_conf_dir}")
     pid_file = format("{pid_dir}/hbase-{hbase_user}-{role}.pid")
     no_op_test = format("ls {pid_file} >/dev/null 2>&1 && ps `cat {pid_file}` >/dev/null 2>&1")
     

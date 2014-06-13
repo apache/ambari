@@ -26,18 +26,7 @@ def hbase(name=None # 'master' or 'regionserver' or 'client'
               ):
   import params
 
-  if name in ["master","regionserver"]:
-    params.HdfsDirectory(params.hbase_hdfs_root_dir,
-                         action="create_delayed",
-                         owner=params.hbase_user
-    )
-    params.HdfsDirectory(params.hbase_staging_dir,
-                         action="create_delayed",
-                         owner=params.hbase_user,
-                         mode=0711
-    )
-    params.HdfsDirectory(None, action="create")
-  Directory( params.conf_dir,
+  Directory( params.hbase_conf_dir,
       owner = params.hbase_user,
       group = params.user_group,
       recursive = True
@@ -56,29 +45,36 @@ def hbase(name=None # 'master' or 'regionserver' or 'client'
   )
 
   XmlConfig( "hbase-site.xml",
-            conf_dir = params.conf_dir,
+            conf_dir = params.hbase_conf_dir,
             configurations = params.config['configurations']['hbase-site'],
             owner = params.hbase_user,
             group = params.user_group
   )
 
   XmlConfig( "hdfs-site.xml",
-            conf_dir = params.conf_dir,
+            conf_dir = params.hbase_conf_dir,
             configurations = params.config['configurations']['hdfs-site'],
             owner = params.hbase_user,
             group = params.user_group
   )
 
+  XmlConfig("hdfs-site.xml",
+            conf_dir=params.hadoop_conf_dir,
+            configurations=params.config['configurations']['hdfs-site'],
+            owner=params.hdfs_user,
+            group=params.user_group
+  )
+
   if 'hbase-policy' in params.config['configurations']:
     XmlConfig( "hbase-policy.xml",
-            conf_dir = params.conf_dir,
+            conf_dir = params.hbase_conf_dir,
             configurations = params.config['configurations']['hbase-policy'],
             owner = params.hbase_user,
             group = params.user_group
     )
   # Manually overriding ownership of file installed by hadoop package
   else: 
-    File( format("{params.conf_dir}/hbase-policy.xml"),
+    File( format("{params.hbase_conf_dir}/hbase-policy.xml"),
       owner = params.hbase_user,
       group = params.user_group
     )
@@ -106,25 +102,36 @@ def hbase(name=None # 'master' or 'regionserver' or 'client'
     )
 
   if (params.log4j_props != None):
-    File(format("{params.conf_dir}/log4j.properties"),
+    File(format("{params.hbase_conf_dir}/log4j.properties"),
          mode=0644,
          group=params.user_group,
          owner=params.hbase_user,
          content=params.log4j_props
     )
-  elif (os.path.exists(format("{params.conf_dir}/log4j.properties"))):
-    File(format("{params.conf_dir}/log4j.properties"),
+  elif (os.path.exists(format("{params.hbase_conf_dir}/log4j.properties"))):
+    File(format("{params.hbase_conf_dir}/log4j.properties"),
       mode=0644,
       group=params.user_group,
       owner=params.hbase_user
     )
+  if name in ["master","regionserver"]:
+    params.HdfsDirectory(params.hbase_hdfs_root_dir,
+                         action="create_delayed",
+                         owner=params.hbase_user
+    )
+    params.HdfsDirectory(params.hbase_staging_dir,
+                         action="create_delayed",
+                         owner=params.hbase_user,
+                         mode=0711
+    )
+    params.HdfsDirectory(None, action="create")
 
 def hbase_TemplateConfig(name, 
                          tag=None
                          ):
   import params
 
-  TemplateConfig( format("{conf_dir}/{name}"),
+  TemplateConfig( format("{hbase_conf_dir}/{name}"),
       owner = params.hbase_user,
       template_tag = tag
   )

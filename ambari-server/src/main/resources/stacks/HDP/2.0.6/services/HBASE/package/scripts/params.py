@@ -25,7 +25,7 @@ import status_params
 # server configurations
 config = Script.get_config()
 
-conf_dir = "/etc/hbase/conf"
+hbase_conf_dir = "/etc/hbase/conf"
 daemon_script = "/usr/lib/hbase/bin/hbase-daemon.sh"
 region_mover = "/usr/lib/hbase/bin/region_mover.rb"
 region_drainer = "/usr/lib/hbase/bin/draining_servers.rb"
@@ -57,9 +57,9 @@ tmp_dir = config['configurations']['hbase-site']['hbase.tmp.dir']
 _local_dir_conf = default('/configurations/hbase-site/hbase.local.dir', "${hbase.tmp.dir}/local")
 local_dir = substitute_vars(_local_dir_conf, config['configurations']['hbase-site'])
 
-client_jaas_config_file = default('hbase_client_jaas_config_file', format("{conf_dir}/hbase_client_jaas.conf"))
-master_jaas_config_file = default('hbase_master_jaas_config_file', format("{conf_dir}/hbase_master_jaas.conf"))
-regionserver_jaas_config_file = default('hbase_regionserver_jaas_config_file', format("{conf_dir}/hbase_regionserver_jaas.conf"))
+client_jaas_config_file = default('hbase_client_jaas_config_file', format("{hbase_conf_dir}/hbase_client_jaas.conf"))
+master_jaas_config_file = default('hbase_master_jaas_config_file', format("{hbase_conf_dir}/hbase_master_jaas.conf"))
+regionserver_jaas_config_file = default('hbase_regionserver_jaas_config_file', format("{hbase_conf_dir}/hbase_regionserver_jaas.conf"))
 
 ganglia_server_hosts = default('/clusterHostInfo/ganglia_server_host', []) # is not passed when ganglia is not present
 ganglia_server_host = '' if len(ganglia_server_hosts) == 0 else ganglia_server_hosts[0]
