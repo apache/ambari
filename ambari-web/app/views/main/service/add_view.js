@@ -23,6 +23,8 @@ App.AddServiceView = Em.View.extend({
 
   templateName: require('templates/main/service/add'),
 
+  isLoaded: false,
+
   isStep1Disabled: function () {
     return this.isStepDisabled(1);
   }.property('controller.isStepDisabled.@each.value').cacheable(),
@@ -55,11 +57,13 @@ App.AddServiceView = Em.View.extend({
     return this.get('controller.isStepDisabled').findProperty('step', index).get('value');
   },
 
-
   willInsertElement: function () {
     this.loadHosts();
   },
 
+  /**
+   * send request to fetch all hosts information
+   */
   loadHosts: function () {
     App.ajax.send({
       name: 'hosts.confirmed',
