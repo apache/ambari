@@ -18,18 +18,19 @@
 
 package org.apache.ambari.server.upgrade;
 
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.orm.DBAccessor;
-
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.orm.DBAccessor;
+
+import com.google.inject.Inject;
+import com.google.inject.Injector;
 
 /**
  * Upgrade catalog for version 1.6.0.
@@ -72,15 +73,17 @@ public class UpgradeCatalog160 extends AbstractUpgradeCatalog {
 
     //=========================================================================
     // Add columns
-    //TODO type converters are not supported by DBAccessor currently, default value will be provided to query as is in most cases
-    DBAccessor.DBColumnInfo restartRequiredColumn =
-      new DBAccessor.DBColumnInfo("restart_required", Boolean.class, 1, 0, false);
+
+    // restart_required is a boolean, but most DBs use 0/1 in a SMALLINT
+    DBAccessor.DBColumnInfo restartRequiredColumn = new DBAccessor.DBColumnInfo(
+        "restart_required", Boolean.class, 1, 0, false);
+
+    // only postgres supports boolean type, so assign it here
     if (Configuration.POSTGRES_DB_NAME.equals(getDbType())) {
-      //only postgres supports boolean type
       restartRequiredColumn.setDefaultValue(Boolean.FALSE);
     }
-    dbAccessor.addColumn("hostcomponentdesiredstate",
-      new DBAccessor.DBColumnInfo("restart_required", Boolean.class, 1, 0, false));
+
+    dbAccessor.addColumn("hostcomponentdesiredstate", restartRequiredColumn);
 
     // ========================================================================
     // Add constraints

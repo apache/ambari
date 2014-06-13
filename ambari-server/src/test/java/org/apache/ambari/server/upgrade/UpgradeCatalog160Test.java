@@ -18,24 +18,6 @@
 
 package org.apache.ambari.server.upgrade;
 
-import com.google.inject.Binder;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.Module;
-import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.orm.DBAccessor;
-import org.easymock.Capture;
-import org.junit.Assert;
-import org.junit.Test;
-
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.sql.SQLException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertNull;
@@ -50,6 +32,25 @@ import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.sql.SQLException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.orm.DBAccessor;
+import org.easymock.Capture;
+import org.junit.Assert;
+import org.junit.Test;
+
+import com.google.inject.Binder;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.Module;
+
 /**
  * UpgradeCatalog160 unit tests.
  */
@@ -57,7 +58,6 @@ public class UpgradeCatalog160Test {
 
   @Test
   public void testExecuteDDLUpdates() throws Exception {
-
     final DBAccessor dbAccessor = createNiceMock(DBAccessor.class);
     Configuration configuration = createNiceMock(Configuration.class);
     Capture<List<DBAccessor.DBColumnInfo>> hgConfigcolumnCapture = new Capture<List<DBAccessor.DBColumnInfo>>();
@@ -82,6 +82,35 @@ public class UpgradeCatalog160Test {
     assertHGConfigColumns(hgConfigcolumnCapture);
     assertViewEntityColumns(viewEntitycolumnCapture);
     assertRestartRequiredColumn(restartRequiredColumnCapture);
+  }
+
+  /**
+   * Tests that Postgres-specific code is executed correctly in the DDL layer.
+   * 
+   * @throws Exception
+   */
+  @Test
+  public void testRestartRequiredPostgresDDL() throws Exception {
+    final DBAccessor dbAccessor = createNiceMock(DBAccessor.class);
+    Configuration configuration = createNiceMock(Configuration.class);
+    Capture<DBAccessor.DBColumnInfo> restartRequiredColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
+
+    expect(configuration.getDatabaseUrl()).andReturn(Configuration.POSTGRES_DB_NAME).anyTimes();
+
+    dbAccessor.addColumn(eq("hostcomponentdesiredstate"),
+        capture(restartRequiredColumnCapture));
+    
+    replay(dbAccessor, configuration);
+    AbstractUpgradeCatalog upgradeCatalog = getUpgradeCatalog(dbAccessor);
+    Class<?> c = AbstractUpgradeCatalog.class;
+    Field f = c.getDeclaredField("configuration");
+    f.setAccessible(true);
+    f.set(upgradeCatalog, configuration);
+
+    upgradeCatalog.executeDDLUpdates();
+    verify(dbAccessor, configuration);
+
+    assertRestartRequiredColumnPostgres(restartRequiredColumnCapture);
   }
 
   @Test
@@ -243,6 +272,12 @@ public class UpgradeCatalog160Test {
     assertTrue(column.isNullable());
   }
 
+  /**
+   * Checks that the restart_require column was created correct when using a
+   * non-Postgres DB (MySQL, Oracle, etc).
+   * 
+   * @param restartRequiredColumnCapture
+   */
   private void assertRestartRequiredColumn(
     Capture<DBAccessor.DBColumnInfo> restartRequiredColumnCapture) {
     DBAccessor.DBColumnInfo column = restartRequiredColumnCapture.getValue();
@@ -251,7 +286,21 @@ public class UpgradeCatalog160Test {
     assertEquals(Boolean.class, column.getType());
     assertEquals(0, column.getDefaultValue());
     assertFalse(column.isNullable());
-
   }
 
+  /**
+   * Checks that the restart_require column was created correct when using a
+   * Postgres DB.
+   * 
+   * @param restartRequiredColumnCapture
+   */
+  private void assertRestartRequiredColumnPostgres(
+      Capture<DBAccessor.DBColumnInfo> restartRequiredColumnCapture) {
+    DBAccessor.DBColumnInfo column = restartRequiredColumnCapture.getValue();
+    assertEquals("restart_required", column.getName());
+    assertEquals(1, (int) column.getLength());
+    assertEquals(Boolean.class, column.getType());
+    assertEquals(false, column.getDefaultValue());
+    assertFalse(column.isNullable());
+  }
 }
