@@ -73,6 +73,13 @@ App.MainHostController = Em.ArrayController.extend({
     return this.get('dataSource').filterProperty('isRequested');
   }.property('dataSource.@each.isRequested'),
 
+  /**
+   * filterProperties support follow types of filter:
+   * MATCH - match of RegExp
+   * EQUAL - equality "="
+   * MULTIPLE - multiple values to compare
+   * CUSTOM - substitute values with keys "{#}" in alias
+   */
   filterProperties: [
     {
       key: 'publicHostName',
@@ -87,17 +94,17 @@ App.MainHostController = Em.ArrayController.extend({
     {
       key: 'cpu',
       alias: 'Hosts/cpu_count',
-      type: 'PLAIN'
+      type: 'EQUAL'
     },
     {
       key: 'memoryFormatted',
       alias: 'Hosts/total_mem',
-      type: 'PLAIN'
+      type: 'EQUAL'
     },
     {
       key: 'loadAvg',
       alias: 'metrics/load/load_one',
-      type: 'PLAIN'
+      type: 'EQUAL'
     },
     {
       key: 'hostComponents',
@@ -107,22 +114,22 @@ App.MainHostController = Em.ArrayController.extend({
     {
       key: 'healthClass',
       alias: 'Hosts/host_status',
-      type: 'PLAIN'
+      type: 'EQUAL'
     },
     {
       key: 'criticalAlertsCount',
-      alias: 'alerts/summary/CRITICAL>0|alerts/summary/WARNING>0',
-      type: 'CRITICAL_ALERTS'
+      alias: 'alerts/summary/CRITICAL{0}|alerts/summary/WARNING{1}',
+      type: 'CUSTOM'
     },
     {
       key: 'componentsWithStaleConfigsCount',
       alias: 'host_components/HostRoles/stale_configs',
-      type: 'PLAIN'
+      type: 'EQUAL'
     },
     {
       key: 'componentsInPassiveStateCount',
       alias: 'host_components/HostRoles/maintenance_state',
-      type: 'PLAIN'
+      type: 'EQUAL'
     },
     {
       key: 'selected',
@@ -210,7 +217,7 @@ App.MainHostController = Em.ArrayController.extend({
       queryParams.push({
         key: property.get('alias'),
         value: property.getValue(this),
-        type: 'PLAIN'
+        type: 'EQUAL'
       })
     }, this);
 
@@ -345,7 +352,7 @@ App.MainHostController = Em.ArrayController.extend({
    */
   getComparisonType: function (value) {
     var comparisonChar = value.charAt(0);
-    var result = 'PLAIN';
+    var result = 'EQUAL';
     if (isNaN(comparisonChar)) {
       switch (comparisonChar) {
         case '>':

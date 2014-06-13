@@ -66,7 +66,7 @@ App.UpdateController = Em.Controller.extend({
 
     queryParams.forEach(function (param) {
       switch (param.type) {
-        case 'PLAIN':
+        case 'EQUAL':
           params += param.key + '=' + param.value;
           break;
         case 'LESS':
@@ -84,7 +84,10 @@ App.UpdateController = Em.Controller.extend({
         case 'SORT':
           params += 'sortBy=' + param.key + '.' + param.value;
           break;
-        case 'CRITICAL_ALERTS':
+        case 'CUSTOM':
+          param.value.forEach(function(item, index){
+            param.key = param.key.replace('{' + index + '}', item);
+          }, this);
           params += param.key;
           break;
       }

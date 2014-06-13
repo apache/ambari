@@ -61,8 +61,8 @@ module.exports = [
     healthClass: 'health-status-WITH-ALERTS',
     healthStatus: 'health-status-WITH-ALERTS',
     column: 7,
-    type: 'number',
-    filterValue: '>0'
+    type: 'custom',
+    filterValue: ['>0', '>0']
   },
   {
     value: Em.I18n.t('common.restart'),
@@ -72,7 +72,7 @@ module.exports = [
     healthClass: 'health-status-RESTART',
     healthStatus: 'health-status-RESTART',
     column: 8,
-    type: 'number',
+    type: 'string',
     filterValue: 'true'
   },
   {
@@ -83,7 +83,7 @@ module.exports = [
     healthClass: 'health-status-PASSIVE_STATE',
     healthStatus: 'health-status-PASSIVE_STATE',
     column: 9,
-    type: 'number',
+    type: 'string',
     filterValue: 'ON'
   }
 ];
