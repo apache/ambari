@@ -21,7 +21,6 @@ limitations under the License.
 import platform
 import datetime
 import os
-import glob
 import errno
 import tempfile
 import sys
@@ -212,9 +211,6 @@ class TestOSCheck(TestCase):
     # Command should not fail if *.rpmsave file is missing
     result = ambari_server.update_ambari_properties()
     self.assertEquals(result, 0)
-    os.unlink(fn2)
-    prev_conf_file = glob.glob(ambari_server.AMBARI_PROPERTIES_RPMSAVE_FILE+'*')
-    os.unlink(prev_conf_file[0])
 
   @patch("platform.linux_distribution")
   def test_os_type_check(self, mock_linux_distribution):

@@ -24,7 +24,6 @@ from mock.mock import patch
 from mock.mock import MagicMock
 from mock.mock import create_autospec
 import os, errno, tempfile
-import glob
 import signal
 import stat
 import datetime
@@ -3568,8 +3567,6 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertEquals(result, 0)
 
     os.unlink(fn2)
-    os.unlink(ambari_server.AMBARI_PROPERTIES_RPMSAVE_FILE
-              + '.' + timestamp.strftime('%Y%m%d%H%M%S'))
 
     #if ambari.properties file is absent then "ambari-server upgrade" should
     # fail
@@ -3578,8 +3575,6 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
     result = ambari_server.update_ambari_properties()
     self.assertNotEquals(result, 0)
-    os.unlink(os.path.join(tempfile.gettempdir(),'password.dat'))
-    os.unlink(fn)
 
   @patch.object(ambari_server.Properties, '__init__')
   @patch.object(ambari_server, 'search_file')
@@ -3633,8 +3628,6 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertEqual(value, "root")
 
     os.unlink(fn2)
-    prev_conf_file = glob.glob(ambari_server.AMBARI_PROPERTIES_RPMSAVE_FILE+'*')
-    os.unlink(prev_conf_file[0])
 
 
   @patch.object(ambari_server, 'verify_setup_allowed')
