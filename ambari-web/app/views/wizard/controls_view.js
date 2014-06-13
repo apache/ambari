@@ -337,25 +337,47 @@ App.ServiceConfigRadioButtons = Ember.View.extend({
 
   /**
    * `Observer` that add <code>additionalView</code> to <code>App.ServiceConfigProperty</code>
-   * that responsible for checking database connection.
+   * that responsible for (if existing db selected)
+   * 1. checking database connection
+   * 2. showing jdbc driver setup warning msg.
    *
    * @method handleDBConnectionProperty
    **/
   handleDBConnectionProperty: function() {
-    if (!App.supports.databaseConnection) return;
     if (!['addServiceController', 'installerController'].contains(App.clusterStatus.wizardControllerName)) return;
     var handledProperties = ['oozie_database', 'hive_database'];
     var currentValue = this.get('serviceConfig.value');
     var databases = /MySQL|PostgreSQL|Oracle|Derby/gi;
     var currentDB = currentValue.match(databases)[0];
+    var databasesTypes = /MySQL|PostgreS|Oracle|Derby/gi;
+    var currentDBType = currentValue.match(databasesTypes)[0];
     var existingDatabase = /existing/gi.test(currentValue);
-    var propertyAppendTo = this.get('categoryConfigsAll').findProperty('displayName', 'Database URL');
+    // db connection check button show up if existed db selected
+    if (App.supports.databaseConnection) {
+      var propertyAppendTo1 = this.get('categoryConfigsAll').findProperty('displayName', 'Database URL');
+      if (currentDB && existingDatabase) {
+        if (handledProperties.contains(this.get('serviceConfig.name'))) {
+          if (propertyAppendTo1) propertyAppendTo1.set('additionalView', App.CheckDBConnectionView.extend({databaseName: currentDB}));
+        }
+      } else {
+        propertyAppendTo1.set('additionalView', null);
+      }
+    }
+    // warning msg under database type radio buttons, to warn the user to setup jdbc driver if existed db selected
+    var propertyHive = this.get('categoryConfigsAll').findProperty('displayName', 'Hive Database');
+    var propertyOozie = this.get('categoryConfigsAll').findProperty('displayName', 'Oozie Database');
+    var propertyAppendTo2 = propertyHive ? propertyHive : propertyOozie;
     if (currentDB && existingDatabase) {
       if (handledProperties.contains(this.get('serviceConfig.name'))) {
-        if (propertyAppendTo) propertyAppendTo.set('additionalView', App.CheckDBConnectionView.extend({databaseName: currentDB}));
+        if (propertyAppendTo2) {
+          propertyAppendTo2.set('additionalView', Ember.View.extend({
+            template: Ember.Handlebars.compile('<div class="alert">{{{view.message}}}</div>'),
+            message: Em.I18n.t('services.service.config.database.msg.jdbcSetup').format(currentDBType.toLowerCase(), currentDBType.toLowerCase())
+          }));
+        }
       }
     } else {
-      propertyAppendTo.set('additionalView', null);
+      propertyAppendTo2.set('additionalView', null);
     }
   }.observes('serviceConfig.value', 'configs.@each.value'),
 

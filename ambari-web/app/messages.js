@@ -1298,6 +1298,9 @@ Em.I18n.translations = {
   'services.service.config.database.connection.failed': 'Connection Failed',
   'services.service.config.database.btn.idle': 'Test Connection',
   'services.service.config.database.btn.connecting': 'Connecting...',
+  'services.service.config.database.msg.jdbcSetup': 'Be sure you have run:<br/>' +
+    '<b>ambari-server setup --jdbc-db={0} --jdbc-driver=/path/to/{1}/driver.jar</b> ' +
+    'on the Ambari Server host to make the JDBC driver available and to enable testing the database connection.',
 
   'services.add.header':'Add Service Wizard',
   'services.reassign.header':'Move Master Wizard',
