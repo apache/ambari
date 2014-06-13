@@ -21,25 +21,25 @@ package org.apache.hadoop.metrics2.sink;
 import java.lang.Override;
 
 /**
- * This class stores published metrics to the SQL Server database.
+ * This class stores published metrics to the MySql database.
  */
-public abstract class SqlServerSink extends SqlSink {
-  public SqlServerSink(String NAMENODE_URL_KEY, String DFS_BLOCK_SIZE_KEY) {
+public abstract class MySqlSink extends SqlSink {
+  public MySqlSink(String NAMENODE_URL_KEY, String DFS_BLOCK_SIZE_KEY) {
     super(NAMENODE_URL_KEY, DFS_BLOCK_SIZE_KEY);
   }
 
   @Override
   protected String getInsertMetricsProcedureName() {
-    return "dbo." + SqlSink.insertMetricProc;
+    return SqlSink.insertMetricProc;
   }
 
   @Override
   protected String getGetMetricsProcedureName() {
-    return "dbo." + SqlSink.getMetricRecordProc;
+    return SqlSink.getMetricRecordProc;
   }
 
   @Override
   protected String getDatabaseDriverClassName() {
-    return "com.microsoft.sqlserver.jdbc.SQLServerDriver";
+    return "com.mysql.jdbc.Driver";
   }
 }

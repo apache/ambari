@@ -17,27 +17,28 @@
  */
 package org.apache.hadoop.metrics2.sink;
 
-import org.apache.hadoop.metrics2.AbstractMetric;
+import org.apache.hadoop.metrics2.Metric;
 import org.apache.hadoop.metrics2.MetricsRecord;
 
-public class SqlServerSinkHadoop2 extends SqlServerSink {
-  public SqlServerSinkHadoop2() {
-    super(SqlSink.HADOOP2_NAMENODE_URL_KEY, SqlSink.HADOOP2_DFS_BLOCK_SIZE_KEY);
+public class MySqlSinkHadoop1 extends MySqlSink {
+  public MySqlSinkHadoop1() {
+    super(SqlSink.HADOOP1_NAMENODE_URL_KEY, SqlSink.HADOOP1_DFS_BLOCK_SIZE_KEY);
   }
 
   @Override
   public void putMetrics(MetricsRecord record) {
     long metricRecordID = getMetricRecordID(record.context(), record.name(),
-            getLocalNodeName(), getLocalNodeIPAddress(), getClusterNodeName(), getCurrentServiceName(),
-            getTagString(record.tags()), record.timestamp());
+      getLocalNodeName(), getLocalNodeIPAddress(), getClusterNodeName(), getCurrentServiceName(),
+      getTagString(record.tags()), record.timestamp());
     if (metricRecordID < 0)
       return;
 
-    for (AbstractMetric metric : record.metrics()) {
-      insertMetricValue(metricRecordID, metric.name(), String.valueOf(metric.value()));
+    for (Metric metric : record.metrics()) {
+      insertMetricValue(metricRecordID, metric.name(), String.valueOf(metric
+        .value()));
       if (metric.name().equals("BlockCapacity")) {
         insertMetricValue(metricRecordID, "BlockSize", Integer
-                .toString(getBlockSize()));
+          .toString(getBlockSize()));
       }
     }
   }

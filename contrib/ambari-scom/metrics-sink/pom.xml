@@ -70,6 +70,7 @@
                         <configuration>
                             <excludes>
                                 <exclude>**/SqlServerSinkHadoop2.java</exclude>
+                                <exclude>**/MySqlSinkHadoop2.java</exclude>
                             </excludes>
                             <testExcludes>
                                 <exclude>**/SqlServerSinkHadoop2Test.java</exclude>
@@ -99,6 +100,7 @@
                         <configuration>
                             <excludes>
                                 <exclude>**/SqlServerSinkHadoop1.java</exclude>
+                                <exclude>**/MySqlSinkHadoop1.java</exclude>
                             </excludes>
                             <testExcludes>
                                 <exclude>**/SqlServerSinkHadoop1Test.java</exclude>

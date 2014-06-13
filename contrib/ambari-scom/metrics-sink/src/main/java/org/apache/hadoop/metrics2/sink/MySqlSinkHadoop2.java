@@ -20,16 +20,16 @@ package org.apache.hadoop.metrics2.sink;
 import org.apache.hadoop.metrics2.AbstractMetric;
 import org.apache.hadoop.metrics2.MetricsRecord;
 
-public class SqlServerSinkHadoop2 extends SqlServerSink {
-  public SqlServerSinkHadoop2() {
+public class MySqlSinkHadoop2 extends MySqlSink {
+  public MySqlSinkHadoop2() {
     super(SqlSink.HADOOP2_NAMENODE_URL_KEY, SqlSink.HADOOP2_DFS_BLOCK_SIZE_KEY);
   }
 
   @Override
   public void putMetrics(MetricsRecord record) {
     long metricRecordID = getMetricRecordID(record.context(), record.name(),
-            getLocalNodeName(), getLocalNodeIPAddress(), getClusterNodeName(), getCurrentServiceName(),
-            getTagString(record.tags()), record.timestamp());
+      getLocalNodeName(), getLocalNodeIPAddress(), getClusterNodeName(), getCurrentServiceName(),
+      getTagString(record.tags()), record.timestamp());
     if (metricRecordID < 0)
       return;
 
@@ -37,7 +37,7 @@ public class SqlServerSinkHadoop2 extends SqlServerSink {
       insertMetricValue(metricRecordID, metric.name(), String.valueOf(metric.value()));
       if (metric.name().equals("BlockCapacity")) {
         insertMetricValue(metricRecordID, "BlockSize", Integer
-                .toString(getBlockSize()));
+          .toString(getBlockSize()));
       }
     }
   }
