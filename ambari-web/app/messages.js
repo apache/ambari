@@ -984,8 +984,8 @@ Em.I18n.translations = {
   'admin.security.step1.body.instruction4': 'Generate keytabs for each principal and place on the appropriate hosts',
   'admin.security.step1.body.instruction5': '<b>Application Timeline Server</b> component of YARN service will be <span class="text-error"><b>deleted</b></span> as part of enabling security',
   'admin.security.step2.body.header': 'Configure Kerberos security properties',
-  'admin.security.step3.notice': 'You need to create the following principals and keytabs on the hosts shown.<br />'+
-  'You can download the list as a CSV file and use it to create a script to generate the principals and keytabs. ' +
+  'admin.security.step3.notice': 'You need to create Kerberos principals and keytabs before proceeding.<br />'+
+  'Download the CSV file and use it to create a script to generate the principals and keytabs on specified hosts. ' +
   'Once the principals and keytabs have been created, click on <i>Apply</i> to continue. If you need to make configuration changes, click <i>Back</i>.',
   'admin.security.step3.table.principal': 'Principal',
   'admin.security.step3.table.keytab': 'Keytab',
