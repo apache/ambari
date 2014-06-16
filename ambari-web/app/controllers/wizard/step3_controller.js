@@ -36,6 +36,7 @@ App.WizardStep3Controller = Em.Controller.extend({
   repoCategoryWarnings: [],
   diskCategoryWarnings: [],
   jdkCategoryWarnings: null,
+  jdkRequestIndex: null,
 
   registrationStartedAt: null,
 
@@ -727,26 +728,22 @@ App.WizardStep3Controller = Em.Controller.extend({
   },
 
   doCheckJDKsuccessCallback: function (data) {
-    var requestIndex = data.href.split('/')[data.href.split('/').length - 1];
-    var self = this;
-    // keep getting JDK check results data until all hosts jdk check completed
-    var myVar = setInterval( function(){
-      if (self.get('jdkCategoryWarnings') == null) {
-        // get jdk check results for all hosts
-        App.ajax.send({
-          name: 'wizard.step3.jdk_check.get_results',
-          sender: self,
-          data: {
-            requestIndex: requestIndex
-          },
-          success: 'parseJDKCheckResults'
-        })
-      } else {
-        clearInterval(myVar);
-        self.set('isJDKWarningsLoaded', true);
-      }
-    },
-    1000);
+    if(data){
+      this.set('jdkRequestIndex', data.href.split('/')[data.href.split('/').length - 1]);
+    }
+    if (this.get('jdkCategoryWarnings') == null) {
+      // get jdk check results for all hosts
+      App.ajax.send({
+        name: 'wizard.step3.jdk_check.get_results',
+        sender: this,
+        data: {
+          requestIndex: this.get('jdkRequestIndex')
+        },
+        success: 'parseJDKCheckResults'
+      })
+    } else {
+      this.set('isJDKWarningsLoaded', true);
+    }
   },
   doCheckJDKerrorCallback: function () {
     console.log('INFO: Doing JDK check for host failed');
@@ -779,6 +776,7 @@ App.WizardStep3Controller = Em.Controller.extend({
       // still doing JDK check, data not ready to be parsed
       this.set('jdkCategoryWarnings', null);
     }
+    this.doCheckJDKsuccessCallback();
   },
 
   /**
@@ -871,9 +869,9 @@ App.WizardStep3Controller = Em.Controller.extend({
    * @method getHostCheckTasks
    */
   getHostCheckTasks: function () {
-    var requestId = this.get("requestId");
     var self = this;
-    var checker = setInterval(function () {
+    var requestId = this.get("requestId");
+    var checker = setTimeout(function () {
       if (self.get('stopChecking') == true) {
         clearInterval(checker);
         self.getHostInfo();
@@ -928,6 +926,7 @@ App.WizardStep3Controller = Em.Controller.extend({
         this.set('stopChecking', false);
       }
     }, this);
+    this.getHostCheckTasks();
   },
 
   stopChecking: false,
