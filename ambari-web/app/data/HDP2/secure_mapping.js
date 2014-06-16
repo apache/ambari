@@ -201,8 +201,8 @@ module.exports = [
     "name": "yarn.timeline-service.enabled",
     "templateName": [],
     "foreignKey": null,
-    "value": false,
-    "nonSecureValue": false,
+    "value": "false",
+    "nonSecureValue": "false",
     "filename": "yarn-site.xml",
     "serviceName": "YARN"
   },
@@ -210,8 +210,8 @@ module.exports = [
     "name": "yarn.acl.enable",
     "templateName": [],
     "foreignKey": null,
-    "value": true,
-    "nonSecureValue": false,
+    "value": "true",
+    "nonSecureValue": "false",
     "filename": "yarn-site.xml",
     "serviceName": "YARN"
   },

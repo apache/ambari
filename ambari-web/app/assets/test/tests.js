@@ -35,6 +35,7 @@ require('mappers');
 require('test/init_model_test');
 require('test/app_test');
 require('test/data/HDP2/site_properties_test');
+require('test/data/HDP2/secure_mapping_test');
 require('test/controllers/global/background_operations_test');
 require('test/controllers/global/cluster_controller_test');
 require('test/controllers/global/update_controller_test');

@@ -246,8 +246,6 @@ App.MainAdminSecurityAddStep4Controller = App.MainAdminSecurityProgressControlle
    * @return {String|null}
    */
   getGlobConfigValue: function (templateName, expression) {
-    if (typeof expression !== 'string') return null;
-
     var express = expression.match(/<(.*?)>/g);
     var value = expression;
     if (Em.isNone(express)) return expression;
