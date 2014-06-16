@@ -878,7 +878,8 @@ App.CheckDBConnectionView = Ember.View.extend({
    * @method createCustomAction
    **/
   createCustomAction: function() {
-    var params = $.extend(true, {}, { db_name: this.get('databaseName').toLowerCase() }, this.get('connectionProperties'), this.get('ambariProperties'));
+    var dbName = this.get('databaseName').toLowerCase() === 'postgresql' ? 'postgres' : this.get('databaseName').toLowerCase();
+    var params = $.extend(true, {}, { db_name: dbName }, this.get('connectionProperties'), this.get('ambariProperties'));
     App.ajax.send({
       name: 'custom_action.create',
       sender: this,
