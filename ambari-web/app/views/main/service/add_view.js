@@ -75,21 +75,21 @@ App.AddServiceView = Em.View.extend({
   },
 
   loadHostsSuccessCallback: function (response) {
-    var hosts = {};
+    var installedHosts = {};
 
     response.items.forEach(function (item) {
-      hosts[item.Hosts.host_name] = {
+      installedHosts[item.Hosts.host_name] = {
         name: item.Hosts.host_name,
         cpu: item.Hosts.cpu_count,
         memory: item.Hosts.total_mem,
         disk_info: item.Hosts.disk_info,
         bootStatus: "REGISTERED",
         isInstalled: true,
-        hostComponents: item.host_components.mapProperty('HostRoles.component_name')
+        hostComponents: item.host_components
       };
     });
-    this.get('controller').setDBProperty('hosts', hosts);
-    this.set('controller.content.hosts', hosts);
+    this.get('controller').setDBProperty('hosts', installedHosts);
+    this.set('controller.content.hosts', installedHosts);
     this.set('isLoaded', true);
   },
 

@@ -73,19 +73,6 @@ App.AddServiceController = App.WizardController.extend({
   },
 
   /**
-   * Load confirmed hosts.
-   * Will be used at <code>Assign Masters(step5)</code> step
-   */
-  loadConfirmedHosts: function () {
-    var hosts = this.getDBProperty('hosts');
-
-    if (hosts) {
-      this.set('content.hosts', hosts);
-    }
-    console.log('AddServiceController.loadConfirmedHosts: loaded hosts', hosts);
-  },
-
-  /**
    * Load services data from server.
    */
   loadServicesFromServer: function() {
@@ -243,7 +230,7 @@ App.AddServiceController = App.WizardController.extend({
     var selectedServices = this.get('content.services').filterProperty('isSelected', true).mapProperty('serviceName');
     var installedComponentsMap = {};
     var uninstalledComponents = [];
-    var installedHosts = this.get('content.hosts');
+    var hosts = this.get('content.hosts');
 
     components.forEach(function (component) {
       if (installedServices.contains(component.get('serviceName'))) {
@@ -254,12 +241,14 @@ App.AddServiceController = App.WizardController.extend({
     }, this);
     installedComponentsMap['HDFS_CLIENT'] = [];
 
-    for (var hostName in installedHosts) {
-      installedHosts[hostName].hostComponents.forEach(function (componentName) {
-        if (installedComponentsMap[componentName]) {
-          installedComponentsMap[componentName].push(hostName);
-        }
-      });
+    for (var hostName in hosts) {
+      if (hosts[hostName].isInstalled) {
+        hosts[hostName].hostComponents.forEach(function (component) {
+          if (installedComponentsMap[component.HostRoles.component_name]) {
+            installedComponentsMap[component.HostRoles.component_name].push(hostName);
+          }
+        }, this);
+      }
     }
 
     for (var componentName in installedComponentsMap) {
@@ -305,8 +294,8 @@ App.AddServiceController = App.WizardController.extend({
     var dbHosts = this.get('content.hosts');
 
     for (var hostName in dbHosts) {
-      dbHosts[hostName].hostComponents.forEach(function (componentName) {
-        clientComponents[componentName] = true;
+      dbHosts[hostName].hostComponents.forEach(function (component) {
+        clientComponents[component.HostRoles.component_name] = true;
       }, this);
     }
 
@@ -346,7 +335,7 @@ App.AddServiceController = App.WizardController.extend({
         this.loadSlaveComponentHosts();//depends on loadServices
       case '2':
         this.loadMasterComponentHosts();
-        this.loadConfirmedHosts();
+        this.load('hosts');
       case '1':
         this.loadServices();
     }

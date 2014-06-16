@@ -30,11 +30,6 @@ App.WizardStep8Controller = Em.Controller.extend({
   rawContent: require('data/review_configs'),
 
   /**
-   * @type {Object[]}
-   */
-  totalHosts: [],
-
-  /**
    * List of data about cluster (based on formatted <code>rawContent</code>)
    * @type {Object[]}
    */
@@ -553,22 +548,16 @@ App.WizardStep8Controller = Em.Controller.extend({
     this.get('clusterInfo').pushObject(Ember.Object.create(cluster));
 
     //hosts
-    var masterHosts = this.get('content.masterComponentHosts').mapProperty('hostName').uniq();
-    var slaveHosts = this.get('content.slaveComponentHosts');
+    var newHostsCount = 0;
+    var totalHostsCount = 0;
+    var hosts = this.get('content.hosts');
+    for (var hostName in hosts) {
+      newHostsCount += ~~(!hosts[hostName].isInstalled);
+      totalHostsCount++;
+    }
 
-    var hostObj = [];
-    slaveHosts.forEach(function (_hosts) {
-      hostObj = hostObj.concat(_hosts.hosts);
-    }, this);
-
-    slaveHosts = hostObj.mapProperty('hostName').uniq();
-
-    var componentHosts = masterHosts.concat(slaveHosts).uniq();
-    var totalHosts = App.Host.find().mapProperty('hostName').concat(componentHosts).uniq();
-    var newHostsCount = totalHosts.length - App.Host.find().content.length;
-    this.set('totalHosts', totalHosts);
     var totalHostsObj = this.rawContent.findProperty('config_name', 'hosts');
-    totalHostsObj.config_value = totalHosts.length + ' (' + newHostsCount + ' new)';
+    totalHostsObj.config_value = totalHostsCount + ' (' + newHostsCount + ' new)';
     this.get('clusterInfo').pushObject(Em.Object.create(totalHostsObj));
 
     //repo

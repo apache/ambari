@@ -95,7 +95,7 @@ App.StackUpgradeStep3Controller = Em.Controller.extend({
   /**
    * load hosts for each process
    */
-  loadHosts: function () {
+  loadHosts: function () {//TODO replace App.Host.find() with content.hosts loaded directly from server
     var hosts = [];
     var installedHosts = App.Host.find();
     this.get('processes').forEach(function(process){

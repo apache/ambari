@@ -36,7 +36,6 @@ App.InstallerController = App.WizardController.extend({
     advancedServiceConfig: null,
     configGroups: [],
     slaveGroupProperties: null,
-    installedHosts: [],
     stacks: null,
     controllerName: 'installerController'
   }),
@@ -112,7 +111,7 @@ App.InstallerController = App.WizardController.extend({
    * Will be used at <code>Assign Masters(step5)</code> step
    */
   loadConfirmedHosts: function () {
-    this.set('content.hosts', this.getDBProperty('hosts') || []);
+    this.set('content.hosts', this.getDBProperty('hosts') || {});
   },
 
   /**

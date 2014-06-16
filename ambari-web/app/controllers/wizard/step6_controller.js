@@ -332,10 +332,15 @@ App.WizardStep6Controller = Em.Controller.extend({
   getHostNames: function () {
     var hostInfo = this.get('content.hosts');
     var hostNames = [];
+    //flag identify whether get all hosts or only uninstalled(newly added) hosts
+    var getUninstalledHosts = (this.get('content.controllerName') !== 'addServiceController');
+
     for (var index in hostInfo) {
       if (hostInfo.hasOwnProperty(index)) {
         if (hostInfo[index].bootStatus === 'REGISTERED') {
-          hostNames.push(hostInfo[index].name);
+          if(!getUninstalledHosts || !hostInfo[index].isInstalled) {
+            hostNames.push(hostInfo[index].name);
+          }
         }
       }
     }

@@ -54,8 +54,7 @@ App.AddHostController = App.WizardController.extend({
     advancedServiceConfig: null,
     controllerName: 'addHostController',
     serviceConfigGroups: null,
-    configGroups: null,
-    installedHosts: null
+    configGroups: null
   }),
 
   /**
@@ -159,13 +158,15 @@ App.AddHostController = App.WizardController.extend({
     var clients = [];
     var serviceComponents = App.StackServiceComponent.find();
     var clientComponents = [];
-    var installedHosts = this.get('content.installedHosts');
+    var hosts = this.get('content.hosts');
 
-    installedHosts.forEach(function (host) {
-      host.hostComponents.forEach(function (componentName) {
-        clientComponents[componentName] = true;
-      }, this);
-    });
+    for (var hostName in hosts) {
+      if(hosts[hostName].isInstalled) {
+        hosts[hostName].hostComponents.forEach(function (component) {
+          clientComponents[component.HostRoles.component_name] = true;
+        }, this);
+      }
+    }
 
     this.get('content.services').filterProperty('isSelected').forEach(function (_service) {
       var client = serviceComponents.filterProperty('serviceName', _service.serviceName).findProperty('isClient');
@@ -347,7 +348,6 @@ App.AddHostController = App.WizardController.extend({
       case '2':
         this.loadServices();
       case '1':
-        this.load('installedHosts');
         this.load('hosts');
         this.load('installOptions');
         this.load('cluster');

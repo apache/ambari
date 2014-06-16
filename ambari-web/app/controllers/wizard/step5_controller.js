@@ -277,7 +277,6 @@ App.WizardStep5Controller = Em.Controller.extend({
    * @method renderHostInfo
    */
   renderHostInfo: function () {
-
     var hostInfo = this.get('content.hosts');
     var result = [];
 
@@ -286,7 +285,6 @@ App.WizardStep5Controller = Em.Controller.extend({
       if (_host.bootStatus === 'REGISTERED') {
         result.push(Em.Object.create({
           host_name: _host.name,
-
           cpu: _host.cpu,
           memory: _host.memory,
           disk_info: _host.disk_info,

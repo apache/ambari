@@ -144,12 +144,16 @@ App.WizardStep2Controller = Em.Controller.extend({
   }.property('hostsError', 'sshKeyError', 'sshUserError'),
 
   installedHostNames: function () {
-    if (this.get('content.controllerName') === 'addHostController') {
-      return this.get('content.installedHosts').mapProperty('name');
-    } else {
-      return [];
+    var installedHostsName = [];
+    var hosts = this.get('content.hosts');
+
+    for (var hostName in hosts) {
+      if (hosts[hostName].isInstalled) {
+        installedHostsName.push(hostName);
+      }
     }
-  }.property('content.controllerName'),
+    return installedHostsName;
+  }.property('content.hosts'),
 
   /**
    * Set not installed hosts to the hostNameArr
@@ -226,7 +230,8 @@ App.WizardStep2Controller = Em.Controller.extend({
       hostInfo[hostNameArr[i]] = {
         name: hostNameArr[i],
         installType: this.get('installType'),
-        bootStatus: 'PENDING'
+        bootStatus: 'PENDING',
+        isInstalled: false
       };
     }
 
@@ -512,7 +517,16 @@ App.WizardStep2Controller = Em.Controller.extend({
    * @method saveHosts
    */
   saveHosts: function () {
-    this.set('content.hosts', this.getHostInfo());
+    var hosts = this.get('content.hosts');
+
+    //add previously installed hosts
+    for (var hostName in hosts) {
+      if (!hosts[hostName].isInstalled) {
+        delete hosts[hostName];
+      }
+    }
+
+    this.set('content.hosts', $.extend(hosts, this.getHostInfo()));
     this.setAmbariJavaHome();
   }
 

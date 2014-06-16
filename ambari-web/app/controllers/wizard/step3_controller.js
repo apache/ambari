@@ -96,8 +96,16 @@ App.WizardStep3Controller = Em.Controller.extend({
    * @type {string[]}
    */
   hostsInCluster: function () {
-    return this.get('content.installedHosts').getEach('name');
-  }.property('content.installedHosts'),
+    var installedHostsName = [];
+    var hosts = this.get('content.hosts');
+
+    for (var hostName in hosts) {
+      if (hosts[hostName].isInstalled) {
+        installedHostsName.push(hostName);
+      }
+    }
+    return installedHostsName;
+  }.property('content.hosts'),
 
   /**
    * All hosts warnings
@@ -218,7 +226,7 @@ App.WizardStep3Controller = Em.Controller.extend({
     }
 
     for (var index in hostsInfo) {
-      if (hostsInfo.hasOwnProperty(index)) {
+      if (hostsInfo.hasOwnProperty(index) && !hostsInfo[index].isInstalled) {
         hosts.pushObject(App.HostInfo.create({
           name: hostsInfo[index].name,
           bootStatus: bootStatus,
@@ -1148,17 +1156,18 @@ App.WizardStep3Controller = Em.Controller.extend({
    * @method submit
    */
   submit: function () {
+    var self = this;
+
     if (this.get('isHostHaveWarnings')) {
-      var self = this;
       return App.showConfirmationPopup(
         function () {
-          self.set('content.hosts', self.get('bootHosts'));
+          self.set('confirmedHosts', self.get('bootHosts'));
           App.router.send('next');
         },
         Em.I18n.t('installer.step3.hostWarningsPopup.hostHasWarnings'));
     }
     else {
-      this.set('content.hosts', this.get('bootHosts'));
+      this.set('confirmedHosts', this.get('bootHosts'));
       App.router.send('next');
     }
     return null;

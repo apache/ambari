@@ -264,8 +264,8 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
     var installOptions = jQuery.extend({}, this.get('installOptionsTemplate'));
     this.set('content.installOptions', installOptions);
     this.setDBProperty('installOptions', installOptions);
-    this.set('content.hosts', []);
-    this.setDBProperty('hosts', []);
+    this.set('content.hosts', {});
+    this.setDBProperty('hosts', {});
   },
 
   toObject: function (object) {
@@ -611,10 +611,18 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
    * @param stepController App.WizardStep3Controller
    */
   saveConfirmedHosts: function (stepController) {
-    var hostInfo = {};
-    stepController.get('content.hosts').forEach(function (_host) {
+    var hosts = this.get('content.hosts');
+
+    //add previously installed hosts
+    for (var hostName in hosts) {
+      if (!hosts[hostName].isInstalled) {
+        delete hosts[hostName];
+      }
+    }
+
+    stepController.get('confirmedHosts').forEach(function (_host) {
       if (_host.bootStatus == 'REGISTERED') {
-        hostInfo[_host.name] = {
+        hosts[_host.name] = {
           name: _host.name,
           cpu: _host.cpu,
           memory: _host.memory,
@@ -627,9 +635,9 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
         };
       }
     });
-    console.log('wizardController:saveConfirmedHosts: save hosts ', hostInfo);
-    this.setDBProperty('hosts', hostInfo);
-    this.set('content.hosts', hostInfo);
+    console.log('wizardController:saveConfirmedHosts: save hosts ', hosts);
+    this.setDBProperty('hosts', hosts);
+    this.set('content.hosts', hosts);
   },
 
   /**
