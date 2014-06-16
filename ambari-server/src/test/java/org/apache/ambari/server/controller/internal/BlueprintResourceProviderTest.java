@@ -45,6 +45,7 @@ import org.apache.ambari.server.orm.entities.BlueprintEntity;
 import org.apache.ambari.server.orm.entities.HostGroupComponentEntity;
 import org.apache.ambari.server.orm.entities.HostGroupConfigEntity;
 import org.apache.ambari.server.orm.entities.HostGroupEntity;
+import org.apache.ambari.server.state.AutoDeployInfo;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.DependencyInfo;
 import org.apache.ambari.server.state.ServiceInfo;
@@ -620,7 +621,229 @@ public class BlueprintResourceProviderTest {
   }
 
   @Test
-  public void testCreateResource_Validate__Cardinality__Negative() throws AmbariException, ResourceAlreadyExistsException,
+   public void testCreateResource_Validate__Cardinality__MultipleDependencyInstances() throws AmbariException, ResourceAlreadyExistsException,
+      SystemException, UnsupportedPropertyException, NoSuchParentResourceException {
+
+    Set<Map<String, Object>> setProperties = getTestProperties();
+    setConfigurationProperties(setProperties);
+
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    Capture<Set<StackServiceRequest>> stackServiceRequestCapture = new Capture<Set<StackServiceRequest>>();
+    Capture<Set<StackServiceComponentRequest>> serviceComponentRequestCapture = new Capture<Set<StackServiceComponentRequest>>();
+    Capture<StackConfigurationRequest> stackConfigurationRequestCapture = new Capture<StackConfigurationRequest>();
+    Request request = createMock(Request.class);
+    StackServiceResponse stackServiceResponse = createMock(StackServiceResponse.class);
+    StackServiceComponentResponse stackServiceComponentResponse = createNiceMock(StackServiceComponentResponse.class);
+    StackServiceComponentResponse stackServiceComponentResponse2 = createNiceMock(StackServiceComponentResponse.class);
+    Set<StackServiceComponentResponse> setServiceComponents = new HashSet<StackServiceComponentResponse>();
+    setServiceComponents.add(stackServiceComponentResponse);
+    setServiceComponents.add(stackServiceComponentResponse2);
+
+    DependencyInfo dependencyInfo = new DependencyInfo();
+    AutoDeployInfo autoDeployInfo = new AutoDeployInfo();
+    autoDeployInfo.setEnabled(false);
+    dependencyInfo.setAutoDeploy(autoDeployInfo);
+    dependencyInfo.setScope("cluster");
+    dependencyInfo.setName("test-service/component1");
+
+    Map<String, ServiceInfo> services = new HashMap<String, ServiceInfo>();
+    ServiceInfo service = new ServiceInfo();
+    service.setName("test-service");
+    services.put("test-service", service);
+
+    List<ComponentInfo> serviceComponents = new ArrayList<ComponentInfo>();
+    ComponentInfo component1 = new ComponentInfo();
+    component1.setName("component1");
+    ComponentInfo component2 = new ComponentInfo();
+    component2.setName("component2");
+    serviceComponents.add(component1);
+    serviceComponents.add(component2);
+
+    Capture<BlueprintEntity> entityCapture = new Capture<BlueprintEntity>();
+
+    // set expectations
+    expect(managementController.getStackServices(capture(stackServiceRequestCapture))).andReturn(
+        Collections.<StackServiceResponse>singleton(stackServiceResponse));
+    expect(stackServiceResponse.getServiceName()).andReturn("test-service").anyTimes();
+    expect(stackServiceResponse.getStackName()).andReturn("test-stack-name").anyTimes();
+    expect(stackServiceResponse.getStackVersion()).andReturn("test-stack-version").anyTimes();
+
+    expect(managementController.getStackComponents(capture(serviceComponentRequestCapture))).andReturn(setServiceComponents).anyTimes();
+    expect(stackServiceComponentResponse.getCardinality()).andReturn("2").anyTimes();
+    expect(stackServiceComponentResponse.getComponentName()).andReturn("component1").anyTimes();
+    expect(stackServiceComponentResponse.getServiceName()).andReturn("test-service").anyTimes();
+    expect(stackServiceComponentResponse.getStackName()).andReturn("test-stack-name").anyTimes();
+    expect(stackServiceComponentResponse.getStackVersion()).andReturn("test-stack-version").anyTimes();
+    expect(stackServiceComponentResponse2.getCardinality()).andReturn("1").anyTimes();
+    expect(stackServiceComponentResponse2.getComponentName()).andReturn("component2").anyTimes();
+    expect(stackServiceComponentResponse2.getServiceName()).andReturn("test-service").anyTimes();
+    expect(stackServiceComponentResponse2.getStackName()).andReturn("test-stack-name").anyTimes();
+    expect(stackServiceComponentResponse2.getStackVersion()).andReturn("test-stack-version").anyTimes();
+
+    expect(managementController.getStackConfigurations(Collections.singleton(capture(stackConfigurationRequestCapture)))).
+        andReturn(Collections.<StackConfigurationResponse>emptySet());
+
+    expect(metaInfo.getComponentDependencies("test-stack-name", "test-stack-version", "test-service", "component2")).
+        andReturn(Collections.<DependencyInfo>singletonList(dependencyInfo)).anyTimes();
+    expect(metaInfo.getComponentDependencies("test-stack-name", "test-stack-version", "test-service", "component1")).
+        andReturn(Collections.<DependencyInfo>emptyList()).anyTimes();
+
+    expect(request.getProperties()).andReturn(setProperties);
+    expect(dao.findByName(BLUEPRINT_NAME)).andReturn(null);
+    expect(metaInfo.getServices("test-stack-name", "test-stack-version")).andReturn(services).anyTimes();
+    expect(metaInfo.getComponentsByService("test-stack-name", "test-stack-version", "test-service")).
+        andReturn(serviceComponents).anyTimes();
+    expect(metaInfo.getComponentToService("test-stack-name", "test-stack-version", "component1")).
+        andReturn("test-service").anyTimes();
+    expect(metaInfo.getComponentToService("test-stack-name", "test-stack-version", "component2")).
+        andReturn("test-service").anyTimes();
+    expect(metaInfo.getRequiredProperties("test-stack-name", "test-stack-version", "test-service")).andReturn(
+        Collections.<String, org.apache.ambari.server.state.PropertyInfo>emptyMap()).anyTimes();
+    dao.create(capture(entityCapture));
+
+    replay(dao, metaInfo, request, managementController, stackServiceResponse,
+        stackServiceComponentResponse, stackServiceComponentResponse2);
+    // end expectations
+
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
+        Resource.Type.Blueprint,
+        PropertyHelper.getPropertyIds(Resource.Type.Blueprint),
+        PropertyHelper.getKeyPropertyIds(Resource.Type.Blueprint),
+        managementController);
+
+    AbstractResourceProviderTest.TestObserver observer = new AbstractResourceProviderTest.TestObserver();
+    ((ObservableResourceProvider)provider).addObserver(observer);
+
+    provider.createResources(request);
+
+    ResourceProviderEvent lastEvent = observer.getLastEvent();
+    assertNotNull(lastEvent);
+    assertEquals(Resource.Type.Blueprint, lastEvent.getResourceType());
+    assertEquals(ResourceProviderEvent.Type.Create, lastEvent.getType());
+    assertEquals(request, lastEvent.getRequest());
+    assertNull(lastEvent.getPredicate());
+
+    verify(dao, metaInfo, request, managementController, stackServiceResponse,
+        stackServiceComponentResponse, stackServiceComponentResponse2);
+  }
+
+  @Test
+  public void testCreateResource_Validate__Cardinality__AutoCommit() throws AmbariException, ResourceAlreadyExistsException,
+      SystemException, UnsupportedPropertyException, NoSuchParentResourceException {
+
+    Set<Map<String, Object>> setProperties = getTestProperties();
+    setConfigurationProperties(setProperties);
+
+    // remove component2 from BP
+    Iterator iter = ((HashSet<Map<String, HashSet<Map<String, String>>>>) setProperties.iterator().next().
+        get(BlueprintResourceProvider.HOST_GROUP_PROPERTY_ID)).
+        iterator().next().get("components").iterator();
+    iter.next();
+    iter.remove();
+
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    Capture<Set<StackServiceRequest>> stackServiceRequestCapture = new Capture<Set<StackServiceRequest>>();
+    Capture<Set<StackServiceComponentRequest>> serviceComponentRequestCapture = new Capture<Set<StackServiceComponentRequest>>();
+    Capture<StackConfigurationRequest> stackConfigurationRequestCapture = new Capture<StackConfigurationRequest>();
+    Request request = createMock(Request.class);
+    StackServiceResponse stackServiceResponse = createMock(StackServiceResponse.class);
+    StackServiceComponentResponse stackServiceComponentResponse = createNiceMock(StackServiceComponentResponse.class);
+    StackServiceComponentResponse stackServiceComponentResponse2 = createNiceMock(StackServiceComponentResponse.class);
+    Set<StackServiceComponentResponse> setServiceComponents = new HashSet<StackServiceComponentResponse>();
+    setServiceComponents.add(stackServiceComponentResponse);
+    setServiceComponents.add(stackServiceComponentResponse2);
+
+    DependencyInfo dependencyInfo = new DependencyInfo();
+    AutoDeployInfo autoDeployInfo = new AutoDeployInfo();
+    autoDeployInfo.setEnabled(true);
+    autoDeployInfo.setCoLocate("test-service/component1");
+    dependencyInfo.setAutoDeploy(autoDeployInfo);
+    dependencyInfo.setScope("cluster");
+    dependencyInfo.setName("test-service/component2");
+
+    Map<String, ServiceInfo> services = new HashMap<String, ServiceInfo>();
+    ServiceInfo service = new ServiceInfo();
+    service.setName("test-service");
+    services.put("test-service", service);
+
+    List<ComponentInfo> serviceComponents = new ArrayList<ComponentInfo>();
+    ComponentInfo component1 = new ComponentInfo();
+    component1.setName("component1");
+    ComponentInfo component2 = new ComponentInfo();
+    component2.setName("component2");
+    serviceComponents.add(component1);
+    serviceComponents.add(component2);
+
+    Capture<BlueprintEntity> entityCapture = new Capture<BlueprintEntity>();
+
+    // set expectations
+    expect(managementController.getStackServices(capture(stackServiceRequestCapture))).andReturn(
+        Collections.<StackServiceResponse>singleton(stackServiceResponse));
+    expect(stackServiceResponse.getServiceName()).andReturn("test-service").anyTimes();
+    expect(stackServiceResponse.getStackName()).andReturn("test-stack-name").anyTimes();
+    expect(stackServiceResponse.getStackVersion()).andReturn("test-stack-version").anyTimes();
+
+    expect(managementController.getStackComponents(capture(serviceComponentRequestCapture))).andReturn(setServiceComponents).anyTimes();
+    expect(stackServiceComponentResponse.getCardinality()).andReturn("2").anyTimes();
+    expect(stackServiceComponentResponse.getComponentName()).andReturn("component1").anyTimes();
+    expect(stackServiceComponentResponse.getServiceName()).andReturn("test-service").anyTimes();
+    expect(stackServiceComponentResponse.getStackName()).andReturn("test-stack-name").anyTimes();
+    expect(stackServiceComponentResponse.getStackVersion()).andReturn("test-stack-version").anyTimes();
+    expect(stackServiceComponentResponse2.getCardinality()).andReturn("1").anyTimes();
+    expect(stackServiceComponentResponse2.getComponentName()).andReturn("component2").anyTimes();
+    expect(stackServiceComponentResponse2.getServiceName()).andReturn("test-service").anyTimes();
+    expect(stackServiceComponentResponse2.getStackName()).andReturn("test-stack-name").anyTimes();
+    expect(stackServiceComponentResponse2.getStackVersion()).andReturn("test-stack-version").anyTimes();
+
+    expect(managementController.getStackConfigurations(Collections.singleton(capture(stackConfigurationRequestCapture)))).
+        andReturn(Collections.<StackConfigurationResponse>emptySet());
+
+    expect(metaInfo.getComponentDependencies("test-stack-name", "test-stack-version", "test-service", "component2")).
+        andReturn(Collections.<DependencyInfo>emptyList()).anyTimes();
+    expect(metaInfo.getComponentDependencies("test-stack-name", "test-stack-version", "test-service", "component1")).
+        andReturn(Collections.<DependencyInfo>singletonList(dependencyInfo)).anyTimes();
+
+    expect(request.getProperties()).andReturn(setProperties);
+    expect(dao.findByName(BLUEPRINT_NAME)).andReturn(null);
+    expect(metaInfo.getServices("test-stack-name", "test-stack-version")).andReturn(services).anyTimes();
+    expect(metaInfo.getComponentsByService("test-stack-name", "test-stack-version", "test-service")).
+        andReturn(serviceComponents).anyTimes();
+    expect(metaInfo.getComponentToService("test-stack-name", "test-stack-version", "component1")).
+        andReturn("test-service").anyTimes();
+    expect(metaInfo.getComponentToService("test-stack-name", "test-stack-version", "component2")).
+        andReturn("test-service").anyTimes();
+    expect(metaInfo.getRequiredProperties("test-stack-name", "test-stack-version", "test-service")).andReturn(
+        Collections.<String, org.apache.ambari.server.state.PropertyInfo>emptyMap()).anyTimes();
+    dao.create(capture(entityCapture));
+
+    replay(dao, metaInfo, request, managementController, stackServiceResponse,
+        stackServiceComponentResponse, stackServiceComponentResponse2);
+    // end expectations
+
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
+        Resource.Type.Blueprint,
+        PropertyHelper.getPropertyIds(Resource.Type.Blueprint),
+        PropertyHelper.getKeyPropertyIds(Resource.Type.Blueprint),
+        managementController);
+
+    AbstractResourceProviderTest.TestObserver observer = new AbstractResourceProviderTest.TestObserver();
+    ((ObservableResourceProvider)provider).addObserver(observer);
+
+    provider.createResources(request);
+
+    ResourceProviderEvent lastEvent = observer.getLastEvent();
+    assertNotNull(lastEvent);
+    assertEquals(Resource.Type.Blueprint, lastEvent.getResourceType());
+    assertEquals(ResourceProviderEvent.Type.Create, lastEvent.getType());
+    assertEquals(request, lastEvent.getRequest());
+    assertNull(lastEvent.getPredicate());
+
+    verify(dao, metaInfo, request, managementController, stackServiceResponse,
+        stackServiceComponentResponse, stackServiceComponentResponse2);
+  }
+
+  @Test
+  public void testCreateResource_Validate__Cardinality__Fail() throws AmbariException, ResourceAlreadyExistsException,
       SystemException, UnsupportedPropertyException, NoSuchParentResourceException {
 
     Set<Map<String, Object>> setProperties = getTestProperties();

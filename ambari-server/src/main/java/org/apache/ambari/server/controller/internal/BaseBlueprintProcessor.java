@@ -340,7 +340,7 @@ public abstract class BaseBlueprintProcessor extends AbstractControllerResourceP
     int actualCount = getHostGroupsForComponent(component, hostGroups).size();
     if (! cardinality.isValidCount(actualCount)) {
       boolean validated = ! isDependencyManaged(stack, component, clusterConfig);
-      if (! validated && autoDeploy != null && autoDeploy.isEnabled() && cardinality.cardinality.equals("1")) {
+      if (! validated && autoDeploy != null && autoDeploy.isEnabled() && cardinality.supportsAutoDeploy()) {
         String coLocateName = autoDeploy.getCoLocate();
         if (coLocateName != null && ! coLocateName.isEmpty()) {
           Collection<HostGroup> coLocateHostGroups = getHostGroupsForComponent(
@@ -912,7 +912,7 @@ public abstract class BaseBlueprintProcessor extends AbstractControllerResourceP
 
           if (dependencyScope.equals("cluster")) {
             Collection<String> missingDependencyInfo = verifyComponentCardinalityCount(entity, hostGroups,
-                componentName, new Cardinality("1"), autoDeployInfo, stack, clusterConfig);
+                componentName, new Cardinality("1+"), autoDeployInfo, stack, clusterConfig);
             resolved = missingDependencyInfo.isEmpty();
           } else if (dependencyScope.equals("host")) {
             if (components.contains(component) || (autoDeployInfo != null && autoDeployInfo.isEnabled())) {
@@ -1012,6 +1012,21 @@ public abstract class BaseBlueprintProcessor extends AbstractControllerResourceP
       } else if (exact != -1) {
         return count == exact;
       } else return count >= min && count <= max;
+    }
+
+    /**
+     * Determine if the cardinality count supports auto-deployment.
+     * This determination is independent of whether the component is configured
+     * to be auto-deployed.  This only indicates whether auto-deployment is
+     * supported for the current cardinality.
+     *
+     * At this time, only cardinalities of ALL or where a count of 1 is valid are
+     * supported.
+     *
+     * @return true if cardinality supports auto-deployment
+     */
+    public boolean supportsAutoDeploy() {
+      return isValidCount(1) || isAll;
     }
   }
 }
