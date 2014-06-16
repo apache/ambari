@@ -55,7 +55,7 @@ App.MainJobsView = App.TableView.extend({
       var childViews = this.get('childViews');
 
       filterConditions.forEach(function(condition) {
-        var view = childViews.findProperty('column', condition.iColumn);
+        var view = !Em.isNone(condition.iColumn) && childViews.findProperty('column', condition.iColumn);
         if (view) {
           //self.get('controller.filterObject').set(colPropAssoc[condition.iColumn], condition.value);
           view.set('value', condition.value);
@@ -333,4 +333,4 @@ App.MainJobsView = App.TableView.extend({
     return (this.get("controller.navIDs.backIDs").length > 1);
   }.property('controller.navIDs.backIDs.[].length')
 
-})
+});

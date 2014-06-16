@@ -91,7 +91,7 @@ App.TableView = Em.View.extend(App.UserPref, {
       var childViews = this.get('childViews');
 
       filterConditions.forEach(function(condition) {
-        var view = childViews.findProperty('column', condition.iColumn);
+        var view = !Em.isNone(condition.iColumn) && childViews.findProperty('column', condition.iColumn);
         if (view) {
           view.set('value', condition.value);
           Em.run.next(function() {

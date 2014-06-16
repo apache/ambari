@@ -100,11 +100,9 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
     this._super();
     var filterConditions = App.db.getFilterConditions(this.get('controller.name'));
     if (filterConditions) {
-
       var childViews = this.get('childViews');
-
       filterConditions.forEach(function(condition) {
-        var view = childViews.findProperty('column', condition.iColumn);
+        var view = !Em.isNone(condition.iColumn) && childViews.findProperty('column', condition.iColumn);
         if (view) {
           view.set('value', condition.value);
           Em.run.next(function() {
