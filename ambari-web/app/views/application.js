@@ -27,10 +27,10 @@ App.ApplicationView = Em.View.extend({
     // on 'Esc' pressed, close the modal
     $(document).keydown(function(event){
       if (event.which == 13 || event.keyCode == 13 ) {
-        event.preventDefault();
-        event.stopPropagation();
         var primaryButton = $(document).find('#modal > .modal-footer > .btn-success').last();
         if (primaryButton.length > 0 && primaryButton.attr('disabled') != 'disabled') {
+          event.preventDefault();
+          event.stopPropagation();
           primaryButton.click();
           return false;
         }
@@ -39,10 +39,10 @@ App.ApplicationView = Em.View.extend({
     });
     $(document).keyup(function(event){
       if (event.which == 27 || event.keyCode == 27) {
-        event.preventDefault();
-        event.stopPropagation();
         var closeButton = $(document).find('#modal > .modal-header > .close').last();
         if (closeButton.length > 0) {
+          event.preventDefault();
+          event.stopPropagation();
           closeButton.click();
           return false;
         }
