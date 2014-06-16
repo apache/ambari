@@ -61,8 +61,8 @@
                           }}
                         </div>
                         <div class="button-group pull-right">
-                            <a rel="button-info" class="btn" {{bindAttr data-original-title="view.addHostTooltip" class="selectedConfigGroup.isAddHostsDisabled:disabled"}} {{action addHosts target="controller"}} ><i class="icon-plus"></i></a>
-                            <a rel="button-info" class="btn" {{bindAttr data-original-title="view.removeHostTooltip" class="isDeleteHostsDisabled:disabled"}} {{action deleteHosts target="controller"}} ><i class="icon-minus"></i></a>
+                            <a rel="button-info" {{bindAttr data-original-title="view.addHostTooltip" class=":btn selectedConfigGroup.isAddHostsDisabled:disabled"}} {{action addHosts target="controller"}} ><i class="icon-plus"></i></a>
+                            <a rel="button-info" {{bindAttr data-original-title="view.removeHostTooltip" class=":btn isDeleteHostsDisabled:disabled"}} {{action deleteHosts target="controller"}} ><i class="icon-minus"></i></a>
                         </div>
                     </div>
                     <div class="row-fluid">
