@@ -238,6 +238,23 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
   },
 
   /**
+   * Returs all hostNames if amount is less than {minShown} or
+   * first elements of array (number of elements - {minShown}) converted to string
+   * @param {Array} hostNames - array of all listed hostNames
+   * @param {String} divider - string to separate hostNames
+   * @param {Number} minShown - min amount of hostName to be shown
+   * @returns {String} hostNames
+   * @method showHostNames
+   */
+  showHostNames: function(hostNames, divider, minShown) {
+    if (hostNames.length > minShown) {
+      return hostNames.slice(0, minShown).join(divider) + divider + Em.I18n.t("installer.step8.other").format(hostNames.length - minShown);
+    } else {
+      return hostNames.join(divider);
+    }
+  },
+
+  /**
    * Confirmation Popup for bulk Operations
    */
   bulkOperationConfirm: function(operationData, selection) {
@@ -280,12 +297,18 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
     App.ModalPopup.show({
       header: Em.I18n.t('hosts.bulkOperation.confirmation.header'),
       hostNames: hostNames.join("\n"),
+      visibleHosts: self.showHostNames(hostNames, "\n", 3),
+      hostNamesSkippedVisible: self.showHostNames(hostNamesSkipped, "\n", 3),
       hostNamesSkipped: function() {
         if (hostNamesSkipped.length) {
-          return hostNamesSkipped.join("<br/>");
+          return hostNamesSkipped.join("\n");
         }
         return false;
       }.property(),
+      expanded: false,
+      didInsertElement: function() {
+        this.set('expanded', hostNames.length <= 3);
+      },
       onPrimary: function() {
         self.get('controller').bulkOperation(operationData, hosts);
         this._super();
@@ -297,6 +320,11 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
         textareaVisible: false,
         textTrigger: function() {
           this.set('textareaVisible', !this.get('textareaVisible'));
+        },
+        showAll: function() {
+          this.set('parentView.visibleHosts', this.get('parentView.hostNames'));
+          this.set('parentView.hostNamesSkippedVisible', this.get('parentView.hostNamesSkipped'));
+          this.set('parentView.expanded', true);
         },
         putHostNamesToTextarea: function() {
           var hostNames = this.get('parentView.hostNames');

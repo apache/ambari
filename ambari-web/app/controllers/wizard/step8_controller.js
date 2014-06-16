@@ -720,7 +720,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     if (hbaseHostName.length == 1) {
       hbaseMaster.set('component_value', hbaseHostName[0].hostName);
     } else {
-      hbaseMaster.set('component_value', hbaseHostName[0].hostName + Em.I18n.t('installer.step8.other').format(hbaseHostName.length - 1));
+      hbaseMaster.set('component_value', hbaseHostName[0].hostName + " " + Em.I18n.t('installer.step8.other').format(hbaseHostName.length - 1));
     }
   },
 

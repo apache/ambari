@@ -864,7 +864,7 @@ describe('App.WizardStep8Controller', function () {
           masterComponentHosts: [{component: 'HBASE_MASTER', hostName: 'h1'}, {component: 'HBASE_MASTER', hostName: 'h2'}, {component: 'HBASE_MASTER', hostName: 'h3'}],
           component: Em.Object.create({component_name: 'HBASE_MASTER'}),
           m: 'many hosts',
-          e: 'h1' + Em.I18n.t('installer.step8.other').format(2)
+          e: 'h1 ' + Em.I18n.t('installer.step8.other').format(2)
         }
       ]).forEach(function (test) {
         it(test.m, function() {

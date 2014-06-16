@@ -17,7 +17,6 @@
 }}
 
 <p>{{{view.message}}}</p>
-
 <div class="task-top-wrap">
   <div class="task-detail-ico-wrap">
     <a href="#" title="Click to Copy" {{action "textTrigger"}} class="task-detail-copy"><i class="icon-copy"></i> {{t common.copy}}</a>
@@ -29,13 +28,16 @@
       <textarea class="task-detail-log-clipboard"></textarea>
     </div>
     <div {{bindAttr class="view.textareaVisible:hidden :task-detail-log-maintext"}}>
-      <pre>{{hostNames}}</pre>
+      <pre class="limited-height">{{visibleHosts}}</pre>
     </div>
+    {{#unless expanded}}
+      <a href="#" {{action "showAll"}}>{{t tableView.filters.showAll}}</a>
+    {{/unless}}
   </div>
+  {{#if hostNamesSkipped}}
+    <div class="alert alert-warning">
+      {{view.warningInfo}}<br />
+      <pre class="limited-height alert alert-warning"><strong>{{hostNamesSkippedVisible}}</strong></pre>
+    </div>
+  {{/if}}
 </div>
-{{#if hostNamesSkipped}}
-  <div class="alert alert-warning">
-    {{view.warningInfo}}<br />
-      <strong>{{hostNamesSkipped}}</strong>
-  </div>
-{{/if}}

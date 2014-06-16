@@ -627,7 +627,7 @@ Em.I18n.translations = {
   'installer.step8.deployPopup.message':'Preparing to Deploy: {0} of {1} tasks completed.',
   'installer.step8.hosts':' hosts',
   'installer.step8.host':' host',
-  'installer.step8.other':' and {0} other hosts',
+  'installer.step8.other':'and {0} other hosts',
   'installer.step8.repoInfo.osType.redhat6':'RHEL 6/CentOS 6/Oracle Linux 6',
   'installer.step8.repoInfo.osType.redhat5':'RHEL 5/CentOS 5/Oracle Linux 5',
   'installer.step8.repoInfo.osType.sles11':'SLES 11/SUSE 11',
