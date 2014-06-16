@@ -2393,6 +2393,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     except NonFatalException as fe:
       self.assertTrue("Remote database setup aborted." in fe.reason)
 
+    # test not run setup if ambari-server setup executed with jdbc properties
     reset_mocks()
     is_server_runing_mock.return_value = (True, 0)
     args.jdbc_driver= "path/to/driver"

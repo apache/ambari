@@ -2221,9 +2221,7 @@ def setup(args):
   # proceed jdbc properties if they were set
   if args.jdbc_driver is not None and args.jdbc_db is not None:
     proceedJDBCProperties(args)
-    status, pid = is_server_runing()
-    if status:
-      return
+    return
 
   print 'Checking SELinux...'
   retcode = check_selinux()
