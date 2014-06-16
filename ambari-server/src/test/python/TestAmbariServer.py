@@ -2395,7 +2395,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
     # test not run setup if ambari-server setup executed with jdbc properties
     reset_mocks()
-    is_server_runing_mock.return_value = (True, 0)
+    is_server_runing_mock.return_value = (False, 1)
     args.jdbc_driver= "path/to/driver"
     args.jdbc_db = "test_db_name"
 
@@ -3070,7 +3070,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
     # test copy jdbc failed and symlink exists
     lexists_mock.return_value = True
-    args.jdbc_db = "postgresql"
+    args.jdbc_db = "postgres"
     get_ambari_properties_mock.return_value = MagicMock()
     isfile_mock.side_effect = [True, False]
     fail = False
@@ -3103,7 +3103,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertTrue(os_symlink_mock.called)
     self.assertTrue(copy_mock.called)
     self.assertEquals(os_symlink_mock.call_args_list[0][0][0], os.path.join("somewhere","test jdbc"))
-    self.assertEquals(os_symlink_mock.call_args_list[0][0][1], os.path.join("somewhere","postgresql-jdbc-driver.jar"))
+    self.assertEquals(os_symlink_mock.call_args_list[0][0][1], os.path.join("somewhere","postgres-jdbc-driver.jar"))
 
 
 

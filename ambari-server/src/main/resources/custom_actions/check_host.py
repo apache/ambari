@@ -32,7 +32,7 @@ CHECK_HOST_RESOLUTION = "host_resolution_check"
 
 DB_MYSQL = "mysql"
 DB_ORACLE = "oracle"
-DB_POSTGRESQL = "postgresql"
+DB_POSTGRESQL = "postgres"
 
 JDBC_DRIVER_MYSQL = "com.mysql.jdbc.Driver"
 JDBC_DRIVER_ORACLE = "oracle.jdbc.driver.OracleDriver"
@@ -40,7 +40,7 @@ JDBC_DRIVER_POSTGRESQL = "org.postgresql.Driver"
 
 JDBC_DRIVER_SYMLINK_MYSQL = "mysql-jdbc-driver.jar"
 JDBC_DRIVER_SYMLINK_ORACLE = "oracle-jdbc-driver.jar"
-JDBC_DRIVER_SYMLINK_POSTGRESQL = "postgresql-jdbc-driver.jar"
+JDBC_DRIVER_SYMLINK_POSTGRESQL = "postgres-jdbc-driver.jar"
 
 
 class CheckHost(Script):

@@ -366,7 +366,7 @@ ORACLE_UPGRADE_STACK_ARGS = "-S -L '{0}/{1}@(description=(address=(protocol=TCP)
 
 JDBC_PATTERNS = {"oracle": "*ojdbc*.jar", "mysql": "*mysql*.jar"}
 DATABASE_FULL_NAMES = {"oracle": "Oracle", "mysql": "MySQL", "postgres": "PostgreSQL"}
-JDBC_DB_OPTION_VALUES = ["postgresql", "mysql", "oracle"]
+JDBC_DB_OPTION_VALUES = ["postgres", "mysql", "oracle"]
 JDBC_DB_DEFAULT_DRIVER = {"postgresql" : "postgresql-jdbc.jar", "mysql" : "mysql-connector-java.jar", "oracle" : "ojdbc6.jar"}
 ORACLE_DB_ID_TYPES = ["Service Name", "SID"]
 
@@ -4174,10 +4174,11 @@ def main():
   parser.add_option('--databasepassword', default=None, help="Database user password", dest="database_password")
   parser.add_option('--sidorsname', default="sname", help="Oracle database identifier type, Service ID/Service "
                                                          "Name sid|sname", dest="sid_or_sname")
-  parser.add_option('--jdbc-driver', default=None, help="Path to jdbc driver. Used only in pair with --jdbc-db ",
+  parser.add_option('--jdbc-driver', default=None, help="Specifies the path to the JDBC driver JAR file for the " \
+                            "database type specified with the --jdbc-db option. Used only with --jdbc-db option.",
                     dest="jdbc_driver")
-  parser.add_option('--jdbc-db', default=None, help="Database name [postgresql/mysql/oracle]. Used only in pair with " \
-                    "--jdbc-driver", dest="jdbc_db")
+  parser.add_option('--jdbc-db', default=None, help="Specifies the database type [postgres|mysql|oracle] for the " \
+            "JDBC driver specified with the --jdbc-driver option. Used only with --jdbc-driver option.", dest="jdbc_db")
   (options, args) = parser.parse_args()
 
   # set verbose

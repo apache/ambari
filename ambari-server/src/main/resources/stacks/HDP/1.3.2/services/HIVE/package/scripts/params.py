@@ -40,7 +40,7 @@ if hive_jdbc_driver == "com.mysql.jdbc.Driver":
   jdbc_symlink_name = "mysql-jdbc-driver.jar"
 elif hive_jdbc_driver == "org.postgresql.Driver":
   jdbc_jar_name = "postgresql-jdbc.jar"
-  jdbc_symlink_name = "postgresql-jdbc-driver.jar"
+  jdbc_symlink_name = "postgres-jdbc-driver.jar"
 elif hive_jdbc_driver == "oracle.jdbc.driver.OracleDriver":
   jdbc_jar_name = "ojdbc6.jar"
   jdbc_symlink_name = "oracle-jdbc-driver.jar"
