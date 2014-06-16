@@ -17,6 +17,9 @@
       "hdfs-site" : {
         "tag" : "version1"
       },
+      "glusterfs-site" : {
+        "tag" : "version1"
+      },      
       "mapred-queue-acls" : {
         "tag" : "version1"
       },

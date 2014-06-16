@@ -54,7 +54,8 @@ module.exports = [
     displayName: 'GLUSTERFS',
     filename: 'core-site',
     configCategories: [
-      App.ServiceConfigCategory.create({ name: 'General', displayName : 'General'})
+      App.ServiceConfigCategory.create({ name: 'General', displayName : 'General'}),     
+      App.ServiceConfigCategory.create({ name: 'AdvancedGlusterFSSite', displayName : 'Custom core-site.xml', siteFileName: 'core-site.xml', canAddProperty: true})
     ],
     sites: ['core-site'],
     configs: []

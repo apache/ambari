@@ -572,6 +572,39 @@ module.exports =
     },
     {
       "id": "site property",
+      "name": "hbase.rootdir",
+      "displayName": "HBase root directory",
+      "description": "he directory shared by region servers and into \
+    which HBase persists.  The URL should be 'fully-qualified' \
+    to include the filesystem scheme.  For example, to specify the \
+    HDFS directory '/hbase' where the HDFS instance's namenode is \
+    running at namenode.example.org on port 9000, set this value to: \
+    hdfs://namenode.example.org:9000/hbase.  By default HBase writes \
+    into /tmp.  Change this configuration else all data will be lost \
+    on machine restart.",
+      "defaultDirectory": "/hadoop/hbase",
+      "defaultValue": "/mnt/glusterfs/hbase",
+      "displayType": "directory",
+      "isVisible": true,
+      "category": "Advanced",
+      "serviceName": "HBASE"
+    },        
+    {
+      "id": "site property",
+      "name": "hbase.cluster.distributed",
+      "displayName": "hbase.cluster.distributed",
+      "description": "The mode the cluster will be in. Possible values are \
+      false for standalone mode and true for distributed mode.  If \
+      false, startup will run all HBase and ZooKeeper daemons together \
+      in the one JVM.",
+      "defaultValue": "",
+      "displayType": "checkbox",
+      "isVisible": false,
+      "category": "Advanced",
+      "serviceName": "HBASE"
+    },
+    {
+      "id": "site property",
       "name": "hbase.regionserver.global.memstore.upperLimit",
       "displayName": "hbase.regionserver.global.memstore.upperLimit",
       "displayType": "float",
@@ -1683,6 +1716,7 @@ module.exports =
       "serviceName": "GLUSTERFS",
       "category": "General"
     },
+              
   /********************************************* flume-agent *****************************/
     {
       "id": "site property",

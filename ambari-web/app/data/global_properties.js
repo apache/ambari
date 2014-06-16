@@ -259,8 +259,8 @@ module.exports =
         "domain": "global",
         "serviceName": "GLUSTERFS",
         "category": "General"
-      },
-      {
+    },
+    {
           "id": "puppet var",
           "name": "glusterfs_defaultFS_name",
           "displayName": "GlusterFS default fs name 2.x Hadoop",
@@ -271,8 +271,8 @@ module.exports =
           "domain": "global",
           "serviceName": "GLUSTERFS",
           "category": "General"
-        },
-        {
+     },
+     {
             "id": "puppet var",
             "name": "fs_AbstractFileSystem_glusterfs_impl",
             "displayName": "GlusterFS Abstract Filesystem declaration",
@@ -283,8 +283,8 @@ module.exports =
             "domain": "global",
             "serviceName": "GLUSTERFS",
             "category": "General"
-          },
-          {
+      },
+      {
             "id": "puppet var",
             "name": "hadoop_heapsize",
             "displayName": "Hadoop maximum Java heap size",
@@ -295,7 +295,33 @@ module.exports =
 	          "isVisible": true,
 	          "serviceName": "GLUSTERFS",
             "index": 1
-          },
+      },
+      {
+          "id": "puppet var",
+          "name": "hdfs_log_dir_prefix",
+          "displayName": "Hadoop Log Dir Prefix",
+          "description": "The parent directory for Hadoop log files.  The HDFS log directory will be ${hadoop_log_dir_prefix} / ${hdfs_user} and the MapReduce log directory will be ${hadoop_log_dir_prefix} / ${mapred_user}.",
+          "defaultValue": "/var/log/hadoop",
+          "isReconfigurable": false,
+          "displayType": "directory",
+          "isOverridable": false,
+          "isVisible": true,
+          "serviceName": "GLUSTERFS",
+          "category": "Advanced"
+      },
+      {
+          "id": "puppet var",
+          "name": "hadoop_pid_dir_prefix",
+          "displayName": "Hadoop PID Dir Prefix",
+          "description": "The parent directory in which the PID files for Hadoop processes will be created.  The HDFS PID directory will be ${hadoop_pid_dir_prefix} / ${hdfs_user} and the MapReduce PID directory will be ${hadoop_pid_dir_prefix} / ${mapred_user}.",
+          "defaultValue": "/var/run/hadoop",
+          "isReconfigurable": false,
+          "displayType": "directory",
+          "isOverridable": false,
+          "isVisible": true,
+          "serviceName": "GLUSTERFS",
+          "category": "Advanced"
+       },          
   /**********************************************MAPREDUCE***************************************/
     {
       "id": "puppet var",

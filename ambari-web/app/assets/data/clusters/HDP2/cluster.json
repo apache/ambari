@@ -25,6 +25,10 @@
         "user" : "admin",
         "tag" : "version1"
       },
+      "glusterfs-site" : {
+        "user" : "admin",
+        "tag" : "version1"
+      },      
       "hive-site" : {
         "user" : "admin",
         "tag" : "version1"

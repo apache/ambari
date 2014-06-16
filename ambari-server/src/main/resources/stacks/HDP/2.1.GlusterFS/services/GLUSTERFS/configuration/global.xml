@@ -36,5 +36,29 @@
     <value>root</value>
     <description></description>
   </property>
-  
+  <property>
+    <name>hdfs_log_dir_prefix</name>
+    <value>/var/log/hadoop</value>
+    <description>Hadoop Log Dir Prefix</description>
+  </property>
+  <property>
+    <name>hadoop_pid_dir_prefix</name>
+    <value>/var/run/hadoop</value>
+    <description>Hadoop PID Dir Prefix</description>
+  </property>
+  <property>
+    <name>namenode_heapsize</name>
+    <value>1024</value>
+    <description>NameNode Java heap size</description>
+  </property>
+  <property>
+    <name>namenode_host</name>
+    <value></value>
+    <description>NameNode Host.</description>
+  </property>
+  <property>
+    <name>snamenode_host</name>
+    <value></value>
+    <description>Secondary NameNode.</description>
+  </property>
 </configuration>

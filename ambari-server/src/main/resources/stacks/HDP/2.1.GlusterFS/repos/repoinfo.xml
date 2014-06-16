@@ -16,60 +16,41 @@
    limitations under the License.
 -->
 <reposinfo>
-  <os type="centos6">
-    <repo>
-      <baseurl>http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0</baseurl>
-      <repoid>HDP-2.1.GlusterFS</repoid>
-      <reponame>HDP</reponame>
-    </repo>
-  </os>
-  <os type="centos5">
-    <repo>
-      <baseurl>http://public-repo-1.hortonworks.com/HDP/centos5/2.x/updates/2.0.6.0</baseurl>
-      <repoid>HDP-2.1.GlusterFS</repoid>
-      <reponame>HDP</reponame>
-    </repo>
-  </os>
+  <latest>http://public-repo-1.hortonworks.com/HDP/hdp_urlinfo.json</latest>
   <os type="redhat6">
     <repo>
-      <baseurl>http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0</baseurl>
+      <baseurl>http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.1.2.0</baseurl>
       <repoid>HDP-2.1.GlusterFS</repoid>
       <reponame>HDP</reponame>
+    </repo>
+    <repo>
+      <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.17/repos/centos6</baseurl>
+      <repoid>HDP-UTILS-1.1.0.17</repoid>
+      <reponame>HDP-UTILS</reponame>
     </repo>
   </os>
   <os type="redhat5">
     <repo>
-      <baseurl>http://public-repo-1.hortonworks.com/HDP/centos5/2.x/updates/2.0.6.0</baseurl>
+      <baseurl>http://public-repo-1.hortonworks.com/HDP/centos5/2.x/updates/2.1.2.0</baseurl>
       <repoid>HDP-2.1.GlusterFS</repoid>
       <reponame>HDP</reponame>
     </repo>
-  </os>
-   <os type="oraclelinux6">
     <repo>
-      <baseurl>http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0</baseurl>
-      <repoid>HDP-2.1.GlusterFS</repoid>
-      <reponame>HDP</reponame>
-    </repo>
-  </os>
-  <os type="oraclelinux5">
-    <repo>
-      <baseurl>http://public-repo-1.hortonworks.com/HDP/centos5/2.x/updates/2.0.6.0</baseurl>
-      <repoid>HDP-2.1.GlusterFS</repoid>
-      <reponame>HDP</reponame>
+      <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.17/repos/centos5</baseurl>
+      <repoid>HDP-UTILS-1.1.0.17</repoid>
+      <reponame>HDP-UTILS</reponame>
     </repo>
   </os>
   <os type="suse11">
     <repo>
-      <baseurl>http://public-repo-1.hortonworks.com/HDP/suse11/2.x/updates/2.0.6.0</baseurl>
+      <baseurl>http://public-repo-1.hortonworks.com/HDP/suse11/2.x/updates/2.1.2.0</baseurl>
       <repoid>HDP-2.1.GlusterFS</repoid>
       <reponame>HDP</reponame>
     </repo>
-  </os>
-  <os type="sles11">
     <repo>
-      <baseurl>http://public-repo-1.hortonworks.com/HDP/suse11/2.x/updates/2.0.6.0</baseurl>
-      <repoid>HDP-2.1.GlusterFS</repoid>
-      <reponame>HDP</reponame>
+      <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.17/repos/suse11</baseurl>
+      <repoid>HDP-UTILS-1.1.0.17</repoid>
+      <reponame>HDP-UTILS</reponame>
     </repo>
   </os>
 </reposinfo>

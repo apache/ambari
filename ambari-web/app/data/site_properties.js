@@ -493,7 +493,40 @@ module.exports =
       "isVisible": true,
       "category": "Advanced",
       "serviceName": "HBASE"
+    },
 
+    {
+      "id": "site property",
+      "name": "hbase.rootdir",
+      "displayName": "HBase root directory",
+      "description": "he directory shared by region servers and into \
+    which HBase persists.  The URL should be 'fully-qualified' \
+    to include the filesystem scheme.  For example, to specify the \
+    HDFS directory '/hbase' where the HDFS instance's namenode is \
+    running at namenode.example.org on port 9000, set this value to: \
+    hdfs://namenode.example.org:9000/hbase.  By default HBase writes \
+    into /tmp.  Change this configuration else all data will be lost \
+    on machine restart.",
+      "defaultDirectory": "/mnt/glusterfs/hbase",
+      "defaultValue": "/mnt/glusterfs/hbase",
+      "displayType": "directory",
+      "isVisible": true,
+      "category": "Advanced",
+      "serviceName": "HBASE"
+    },        
+    {
+      "id": "site property",
+      "name": "hbase.cluster.distributed",
+      "displayName": "hbase.cluster.distributed",
+      "description": "The mode the cluster will be in. Possible values are \
+      false for standalone mode and true for distributed mode.  If \
+      false, startup will run all HBase and ZooKeeper daemons together \
+      in the one JVM.",
+      "defaultValue": "",
+      "displayType": "checkbox",
+      "isVisible": false,
+      "category": "Advanced",
+      "serviceName": "HBASE"
     },
     {
       "id": "site property",
@@ -683,26 +716,6 @@ module.exports =
     },
     {
       "id": "site property",
-      "name": "dfs.client.read.shortcircuit",
-      "displayName": "HDFS Short-circuit read",
-      "description": "This configuration parameter turns on short-circuit local reads.",
-      "defaultValue": "",
-      "displayType": "checkbox",
-      "category": "Advanced",
-      "serviceName": "HBASE"
-    },
-    {
-      "id": "site property",
-      "name": "dfs.support.append",
-      "displayName": "HDFS append support",
-      "description": "HDFS append support",
-      "defaultValue": "",
-      "displayType": "checkbox",
-      "serviceName": "HBASE",
-      "category": "Advanced"
-    },
-    {
-      "id": "site property",
       "name": "hbase.zookeeper.quorum",
       "displayName": "hbase.zookeeper.quorum",
       "defaultValue": "",
@@ -710,6 +723,7 @@ module.exports =
       "serviceName": "HBASE",
       "category": "Advanced"
     },
+
 
   /**********************************************webhcat-site***************************************/
     {
@@ -855,6 +869,24 @@ module.exports =
 
     //***************************************** GLUSTERFS stack********************************************
     {
+        "id": "site property",
+        "name": "fs.defaultFS",
+        "displayName": "GlusterFS default fs name",
+        "displayType": "string",
+        "filename": "core-site.xml",
+        "serviceName": "GLUSTERFS",
+        "category": "General"
+    },
+    {
+        "id": "site property",
+        "name": "fs.default.name",
+        "displayName": "GlusterFS default fs name",
+        "displayType": "string",
+        "filename": "core-site.xml",
+        "serviceName": "GLUSTERFS",
+        "category": "General"
+    },      
+    {
       "id": "site property",
       "name": "fs.glusterfs.impl",
       "displayName": "GlusterFS fs impl",
@@ -889,7 +921,24 @@ module.exports =
       "filename": "core-site.xml",
       "serviceName": "GLUSTERFS",
       "category": "General"
-    }
-
+    },
+    {
+      "id": "site property",
+      "name": "fs.AbstractFileSystem.glusterfs.impl",
+      "displayName": "GlusterFS Abstract Filesystem declaration",
+      "displayType": "string",
+      "filename": "core-site.xml",
+      "serviceName": "GLUSTERFS",
+      "category": "General"
+    },
+    {
+      "id": "site property",
+      "name": "gluster.daemon.user",
+      "displayName": "GlusterFS Daemon user",
+      "displayType": "string",
+      "filename": "core-site.xml",
+      "serviceName": "GLUSTERFS",
+      "category": "General"
+    },             
   ]
 };
