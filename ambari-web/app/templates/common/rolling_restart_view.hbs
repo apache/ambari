@@ -32,30 +32,34 @@
       </p>
     {{/if}}
   </div>
-  <table>
-    <tr>
-      <td>{{t common.restart}}</td>
-      <td>{{view Ember.TextField valueBinding="view.batchSize" class="span1"}}</td>
-      <td>{{view.batchSizeMessage}}</td>
-    </tr>
-    <tr>
-      <td>{{t rollingrestart.dialog.msg.timegap.prefix}}</td>
-      <td>{{view Ember.TextField valueBinding="view.interBatchWaitTimeSeconds" class="span1"}}</td>
-      <td>{{t rollingrestart.dialog.msg.timegap.suffix}}</td>
-    </tr>
-    <tr>
-      <td>{{t rollingrestart.dialog.msg.toleration.prefix}}</td>
-      <td>{{view Ember.TextField valueBinding="view.tolerateSize" class="span1"}}</td>
-      <td>{{t rollingrestart.dialog.msg.toleration.suffix}}</td>
-    </tr>
-    <tr>
-      <td>&nbsp;</td>
-      <td colspan="2">
-        {{view Ember.Checkbox checkedBinding="view.staleConfigsOnly"}}
-        {{view.staleConfigsOnlyMessage}}
-      </td>
-    </tr>
-  </table>
+  {{#if view.isLoaded}}
+    <table>
+      <tr>
+        <td>{{t common.restart}}</td>
+        <td>{{view Ember.TextField valueBinding="view.batchSize" class="span1"}}</td>
+        <td>{{view.batchSizeMessage}}</td>
+      </tr>
+      <tr>
+        <td>{{t rollingrestart.dialog.msg.timegap.prefix}}</td>
+        <td>{{view Ember.TextField valueBinding="view.interBatchWaitTimeSeconds" class="span1"}}</td>
+        <td>{{t rollingrestart.dialog.msg.timegap.suffix}}</td>
+      </tr>
+      <tr>
+        <td>{{t rollingrestart.dialog.msg.toleration.prefix}}</td>
+        <td>{{view Ember.TextField valueBinding="view.tolerateSize" class="span1"}}</td>
+        <td>{{t rollingrestart.dialog.msg.toleration.suffix}}</td>
+      </tr>
+      <tr>
+        <td>&nbsp;</td>
+        <td colspan="2">
+          {{view Ember.Checkbox checkedBinding="view.staleConfigsOnly"}}
+          {{view.staleConfigsOnlyMessage}}
+        </td>
+      </tr>
+    </table>
+  {{else}}
+    <div class="spinner"></div>
+  {{/if}}
   {{#if view.errors}}
     <div class="alert alert-warn">
       <ul>

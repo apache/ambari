@@ -76,6 +76,11 @@ App.RollingRestartView = Em.View.extend({
   tolerateSize : -1,
 
   /**
+   * Shows if all needed info is loaded and initialized
+   * @type {Bool}
+   */
+  isLoaded: false,
+  /**
    * List of error in batch-request properties
    * @type {Array}
    */
@@ -94,6 +99,7 @@ App.RollingRestartView = Em.View.extend({
       this.set('batchSize', batchSize);
       this.set('tolerateSize', tolerateCount);
       this.set('interBatchWaitTimeSeconds', 120);
+      this.set('isLoaded', true);
     }
   },
 
