@@ -38,8 +38,10 @@ gmond_apps = set(gmond_apps) & set(gmond_allowed_apps)
 
 if System.get_instance().os_family == "debian":
   gmond_service_name = "ganglia-monitor"
+  modules_dir = "/usr/lib/ganglia"
 else:
   gmond_service_name = "gmond"
+  modules_dir = "/usr/lib64/ganglia"
 
 webserver_group = "apache"
 rrdcached_base_dir = config['configurations']['global']["rrdcached_base_dir"]

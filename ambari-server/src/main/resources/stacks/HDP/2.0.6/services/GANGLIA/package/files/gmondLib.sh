@@ -177,31 +177,31 @@ modules {
   }
   module {
     name = "cpu_module"
-    path = "modcpu.so"
+    path = "${MODULES_DIR}/modcpu.so"
   }
   module {
     name = "disk_module"
-    path = "moddisk.so"
+    path = "${MODULES_DIR}/moddisk.so"
   }
   module {
     name = "load_module"
-    path = "modload.so"
+    path = "${MODULES_DIR}/modload.so"
   }
   module {
     name = "mem_module"
-    path = "modmem.so"
+    path = "${MODULES_DIR}/modmem.so"
   }
   module {
     name = "net_module"
-    path = "modnet.so"
+    path = "${MODULES_DIR}/modnet.so"
   }
   module {
     name = "proc_module"
-    path = "modproc.so"
+    path = "${MODULES_DIR}/modproc.so"
   }
   module {
     name = "sys_module"
-    path = "modsys.so"
+    path = "${MODULES_DIR}/modsys.so"
   }
 }
 
