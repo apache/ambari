@@ -192,7 +192,7 @@ class ActionScheduler implements Runnable {
         LOG.debug("==> STAGE_i = " + i_stage + "(requestId=" + requestIdStr + ",StageId=" + s.getStageId() + ")");
         if (runningRequestIds.contains(requestIdStr)) {
           // We don't want to process different stages from the same request in parallel
-          LOG.info("==> We don't want to process different stages from the same request in parallel" );
+          LOG.debug("==> We don't want to process different stages from the same request in parallel" );
           continue;
         } else {
           runningRequestIds.add(requestIdStr);
