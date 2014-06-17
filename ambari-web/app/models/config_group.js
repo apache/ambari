@@ -47,6 +47,10 @@ App.ConfigGroup = Ember.Object.extend({
    * deltas that are applied on the default.
    */
   parentConfigGroup: null,
+  /**
+   * all hosts that belong to cluster
+   */
+  clusterHostsBinding: 'App.router.manageConfigGroupsController.clusterHosts',
 
   /**
    * Children configuration groups for this group.
@@ -113,13 +117,7 @@ App.ConfigGroup = Ember.Object.extend({
     if (this.get('isDefault')) return [];
     var unusedHostsMap = {};
     var availableHosts = [];
-    var sharedHosts = [];
-    //if cluster is not installed then get hosts from installerController instead of model
-    if (App.clusterStatus.get('isInstalled')) {
-      sharedHosts = App.Host.find();
-    } else {
-      sharedHosts = App.router.get('installerController.allHosts');
-    }
+    var sharedHosts = this.get('clusterHosts');
     // parentConfigGroup.hosts(hosts from default group) - are available hosts, which don't belong to any group
     this.get('parentConfigGroup.hosts').forEach(function (hostName) {
       unusedHostsMap[hostName] = true;

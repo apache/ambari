@@ -2137,6 +2137,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     var serviceName = serviceData.get('serviceName');
     var displayName = serviceData.get('displayName');
     App.router.get('manageConfigGroupsController').set('isInstaller', !!controller);
+    App.router.get('manageConfigGroupsController').set('serviceName', serviceName);
     return App.ModalPopup.show({
       header: Em.I18n.t('services.service.config_groups_popup.header').format(displayName),
       bodyClass: App.MainServiceManageConfigGroupView.extend({
