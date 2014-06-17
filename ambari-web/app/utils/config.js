@@ -1200,7 +1200,9 @@ App.config = Em.Object.create({
             configSiteTags: [],
             properties: []
           });
-          self.postNewConfigurationGroup(newConfigGroup);
+          if (!isInstaller) {
+            self.postNewConfigurationGroup(newConfigGroup);
+          }
           if (newConfigGroup) {
             newConfigGroup.set('parentConfigGroup', configGroups.findProperty('isDefault'));
             configGroups.pushObject(newConfigGroup);

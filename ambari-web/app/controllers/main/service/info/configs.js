@@ -2252,7 +2252,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         this.set('disablePrimary', !modified);
       }.observes('subViewController.isHostsModified'),
       secondary : Em.I18n.t('common.cancel'),
-      didInsertElement: function () {}
+      didInsertElement: Em.K
     });
   },
 
