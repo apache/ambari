@@ -60,6 +60,24 @@ then
         echo "Failed to start ${RRDCACHED_BIN}";
         exit 1;
     fi
+
+    #Configure Ganglia Web to work with RRDCached
+    GANGLIA_WEB_CONFIG_FILE=""
+    if [ -f /etc/SuSE-release ]
+    then
+      GANGLIA_WEB_CONFIG_FILE=/srv/www/htdocs/ganglia/conf_default.php
+    else
+      GANGLIA_WEB_CONFIG_FILE=/var/www/html/ganglia/conf_default.php
+    fi
+
+    if [ -f $GANGLIA_WEB_CONFIG_FILE ]
+    then
+      sed -i "s@\$conf\['rrdcached_socket'] =.*@\$conf\['rrdcached_socket'] = \"unix:${RRDCACHED_LIMITED_ACCESS_UNIX_SOCKET}\";@" $GANGLIA_WEB_CONFIG_FILE
+    else
+      echo "${FILE} can't be found";
+      exit 1;
+    fi
+
 else
     echo "${RRDCACHED_BIN} already running with PID ${rrdcachedRunningPid}";
 fi
