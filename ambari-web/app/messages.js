@@ -617,7 +617,7 @@ Em.I18n.translations = {
   'installer.step7.popup.mySQLWarning.confirmation.header': 'Confirmation: Go to Assign Masters',
   'installer.step7.popup.mySQLWarning.confirmation.body': 'You will be brought back to the \"Assign Masters\" step and will lose all your current customizations. Are you sure?',
   'installer.step7.popup.database.connection.header': 'Database Connectivity Warning',
-  'installer.step7.popup.database.connection.body': 'You have not run the database connectivity check for {0}. It is recommended that you run the check before proceeding to prevent failures during deployment.',
+  'installer.step7.popup.database.connection.body': 'You have not run or passed the database connection test for: {0}. It is highly recommended that you pass the connection test before proceeding to prevent failures during deployment.',
 
   'installer.step7.oozie.database.new': 'New Derby Database',
   'installer.step7.hive.database.new': 'New MySQL Database',

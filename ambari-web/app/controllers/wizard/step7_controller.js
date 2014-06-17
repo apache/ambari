@@ -1124,7 +1124,7 @@ App.WizardStep7Controller = Em.Controller.extend({
     var ignoredServices = configMap.filterProperty('isCheckIgnored', true);
     if (ignoredServices.length) {
       var displayedServiceNames = ignoredServices.mapProperty('serviceName').map(function(serviceName) {
-        return this.get('content.services').findProperty('serviceName', serviceName).get('displayName');
+        return App.Service.DisplayNames[serviceName];
       }, this);
       this.showDatabaseConnectionWarningPopup(displayedServiceNames, deferred);
     }
