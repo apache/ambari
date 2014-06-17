@@ -195,8 +195,6 @@ installKDC () {
   fi
   # Install kdc server on this host
   if [ $os == 'debian' ]; then
-    OLD_DEBIAN_FRONTEND=$DEBIAN_FRONTEND
-    export DEBIAN_FRONTEND=noninteractive
     $inst_cmd krb5-kdc krb5-admin-server krb5-user libpam-krb5 libpam-ccreds auth-client-config
   elif [ $os == 'suse' ] ; then
     $inst_cmd krb5 krb5-server krb5-client
@@ -236,20 +234,15 @@ installKDC () {
   done < $csvFile
   export PDSH_SSH_ARGS_APPEND="-q -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o PreferredAuthentications=publickey"
   if [ $os == 'debian' ]; then
-    pdsh -R ssh -w $hostNames OLD_DEBIAN_FRONTEND=$DEBIAN_FRONTEND; export DEBIAN_FRONTEND=noninteractive; $inst_cmd krb5-user libpam-krb5 libpam-ccreds auth-client-config; export DEBIAN_FRONTEND=OLD_DEBIAN_FRONTEND
+    pdsh -R ssh -w $hostNames "$inst_cmd krb5-user libpam-krb5 libpam-ccreds auth-client-config"
   elif [ $os == 'suse' ] ; then
-    pdsh -R ssh -w $hostNames $inst_cmd krb5-client
+    pdsh -R ssh -w $hostNames "$inst_cmd krb5-client"
   else
-    pdsh -R ssh -w $hostNames $inst_cmd krb5-workstation
+    pdsh -R ssh -w $hostNames "$inst_cmd krb5-workstation"
   fi
-  pdsh -R ssh -w $hostNames $inst_cmd pdsh
+  pdsh -R ssh -w $hostNames "$inst_cmd pdsh"
   pdsh -R ssh -w $hostNames chown root:root -R /usr
   pdcp -R ssh -w $hostNames $krb5_conf $krb5_conf
-
-  #restore env variables to old state
-  if [ $os == 'debian' ]; then
-    export DEBIAN_FRONTEND=OLD_DEBIAN_FRONTEND
-  fi
 }
 
 ########################
@@ -275,7 +268,7 @@ getEnvironmentCMD () {
   case $os in
   'debian' )
     pkgmgr='apt-get'
-    inst_cmd="/usr/bin/$pkgmgr --force-yes --assume-yes install "
+    inst_cmd="env DEBIAN_FRONTEND=noninteractive /usr/bin/$pkgmgr --force-yes --assume-yes install "
     ;;
   'redhat' )
     pkgmgr='yum'
