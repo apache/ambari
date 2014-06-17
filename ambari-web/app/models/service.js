@@ -68,7 +68,7 @@ App.Service = DS.Model.extend({
   }.property('workStatus'),
 
   isClientsOnly: function() {
-    var clientsOnly = ['SQOOP','PIG','TEZ','HCATALOG'];
+    var clientsOnly = ['SQOOP','PIG','TEZ','HCATALOG','GLUSTERFS'];
     return clientsOnly.contains(this.get('serviceName'));
   }.property('serviceName'),
 
