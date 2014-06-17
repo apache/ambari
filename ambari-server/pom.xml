@@ -221,6 +221,10 @@
             <scriptFile>src/main/package/rpm/preremove.sh</scriptFile>
             <fileEncoding>utf-8</fileEncoding>
           </preremoveScriptlet>
+          <posttransScriptlet>
+            <scriptFile>src/main/package/rpm/posttrans.sh</scriptFile>
+            <fileEncoding>utf-8</fileEncoding>
+          </posttransScriptlet>
           <defaultFilemode>644</defaultFilemode>
           <defaultDirmode>755</defaultDirmode>
           <defaultUsername>root</defaultUsername>

@@ -27,7 +27,6 @@ PYTHON_WRAPER_SOURCE="/var/lib/ambari-server/ambari-python-wrap"
 do_install(){
   # setting common_functions shared resource
   rm -rf "$COMMON_DIR"
-  ln -s "$COMMON_DIR_SERVER" "$COMMON_DIR"
   # setting python-wrapper script
   if [ ! -f "$PYTHON_WRAPER_TARGET" ]; then
     ln -s "$PYTHON_WRAPER_SOURCE" "$PYTHON_WRAPER_TARGET"
