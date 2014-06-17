@@ -1661,7 +1661,24 @@ module.exports =
 
 
     //***************************************** GLUSTERFS stack********************************************
-
+    {
+        "id": "site property",
+        "name": "fs.defaultFS",
+        "displayName": "GlusterFS default fs name",
+        "displayType": "string",
+        "filename": "core-site.xml",
+        "serviceName": "GLUSTERFS",
+        "category": "General"
+    },
+    {
+        "id": "site property",
+        "name": "fs.default.name",
+        "displayName": "GlusterFS default fs name",
+        "displayType": "string",
+        "filename": "core-site.xml",
+        "serviceName": "GLUSTERFS",
+        "category": "General"
+    },
     {
       "id": "site property",
       "name": "fs.glusterfs.impl",
@@ -1673,44 +1690,8 @@ module.exports =
     },
     {
       "id": "site property",
-      "name": "fs.glusterfs.volname",
-      "displayName": "GlusterFS volume name",
-      "displayType": "string",
-      "filename": "core-site.xml",
-      "serviceName": "GLUSTERFS",
-      "category": "General"
-    },
-    {
-      "id": "site property",
-      "name": "fs.glusterfs.mount",
-      "displayName": "GlusterFS mount point",
-      "displayType": "string",
-      "filename": "core-site.xml",
-      "serviceName": "GLUSTERFS",
-      "category": "General"
-    },
-    {
-      "id": "site property",
-      "name": "fs.glusterfs.getfattrcmd",
-      "displayName": "GlusterFS getfattr command",
-      "displayType": "string",
-      "filename": "core-site.xml",
-      "serviceName": "GLUSTERFS",
-      "category": "General"
-    },
-    {
-      "id": "site property",
       "name": "fs.AbstractFileSystem.glusterfs.impl",
       "displayName": "GlusterFS Abstract Filesystem declaration",
-      "displayType": "string",
-      "filename": "core-site.xml",
-      "serviceName": "GLUSTERFS",
-      "category": "General"
-    },
-    {
-      "id": "site property",
-      "name": "gluster.daemon.user",
-      "displayName": "GlusterFS Daemon user",
       "displayType": "string",
       "filename": "core-site.xml",
       "serviceName": "GLUSTERFS",
