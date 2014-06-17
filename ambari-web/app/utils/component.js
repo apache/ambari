@@ -23,6 +23,18 @@
 
 var App = require('app');
 module.exports = {
+
+  /**
+   * This needs to be done because mapper functions like App.stackServiceComponentMapper.map(data) does not override
+   * but unions the instances. So on re-navigation if the stack is switched and this function is not called then union of
+   * StackServiceComponent of both the stacks will be mapped to the model.
+   */
+  clearStackModel: function() {
+    if (App.StackServiceComponent.find().get('content').length) {
+      App.StackServiceComponent.find().set('content', []);
+    }
+  },
+
   /**
    * Format and load info about components to StackServiceComponent model.
    *
@@ -31,6 +43,7 @@ module.exports = {
    * @return {object} formatted info about components
    */
   loadStackServiceComponentModel: function(data) {
+    this.clearStackModel();
     var serviceComponents = {items: []};
     data.items.forEach(function(item){
       item.serviceComponents.forEach(function(_serviceComponent){
@@ -45,8 +58,8 @@ module.exports = {
           stack_version: stackServiceComponents.stack_version
         };
         serviceComponents.items.pushObject(serviceComponent);
-      },this);
-    },this);
+      }, this);
+    }, this);
     App.stackServiceComponentMapper.map(serviceComponents);
     App.handleStackDependedComponents();
     return serviceComponents;
