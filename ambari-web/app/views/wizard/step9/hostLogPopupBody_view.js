@@ -58,6 +58,12 @@ App.WizardStep9HostLogPopupBodyView = Em.View.extend({
   isEmptyList: true,
 
   /**
+   * Is task logs loaded
+   * @type {Boolean}
+   */
+  isTaskLoaded: true,
+
+  /**
    * Checks if no visible tasks are in popup
    * @method visibleTasks
    */
@@ -159,6 +165,7 @@ App.WizardStep9HostLogPopupBodyView = Em.View.extend({
         tasksArr.push(taskInfo);
       }, this);
     }
+    this.set('isTaskLoaded', true);
     return tasksArr;
   }.property('parentView.c.logTasksChangesCounter'),
 
@@ -213,6 +220,7 @@ App.WizardStep9HostLogPopupBodyView = Em.View.extend({
       this.set("isLogWrapHidden", false);
       this.set('parentView.c.currentOpenTaskId', taskInfo.id);
       this.set('parentView.c.currentOpenTaskRequestId', taskInfo.requestId);
+      this.set('isTaskLoaded', false);
       this.get('parentView.c').loadCurrentTaskLog();
       $(".modal").scrollTop(0);
       $(".modal-body").scrollTop(0);

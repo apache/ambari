@@ -948,8 +948,7 @@ App.WizardStep9Controller = Em.Controller.extend({
       data: {
         'taskId': taskId,
         'requestId': requestId,
-        'clusterName': clusterName,
-        'sync': true
+        'clusterName': clusterName
       },
       success: 'loadCurrentTaskLogSuccessCallback',
       error: 'loadCurrentTaskLogErrorCallback'

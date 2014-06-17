@@ -43,8 +43,7 @@ App.BackgroundOperationsController = Em.Controller.extend({
   levelInfo: Em.Object.create({
     name: 'REQUESTS_LIST',
     requestId: null,
-    taskId: null,
-    sync: false
+    taskId: null
   }),
 
   /**
@@ -70,6 +69,20 @@ App.BackgroundOperationsController = Em.Controller.extend({
       'callback': callback,
       'data': queryParams.data
     });
+    return !this.isInitLoading();
+  },
+  /**
+   * indicate whether data for current level has already been loaded or not
+   * @return {Boolean}
+   */
+  isInitLoading: function () {
+    var levelInfo = this.get('levelInfo');
+    var request = this.get('services').findProperty('id', levelInfo.get('requestId'));
+
+    if (levelInfo.get('name') === 'HOSTS_LIST') {
+      return !!(request && App.isEmptyObject(request.get('hostsMap')));
+    }
+    return false;
   },
   /**
    * construct params of ajax query regarding displayed level
@@ -86,18 +99,15 @@ App.BackgroundOperationsController = Em.Controller.extend({
       result.successCallback = 'callBackFilteredByTask';
       result.data = {
         'taskId': levelInfo.get('taskId'),
-        'requestId': levelInfo.get('requestId'),
-        'sync': levelInfo.get('sync')
+        'requestId': levelInfo.get('requestId')
       };
     } else if (levelInfo.get('name') === 'TASKS_LIST' || levelInfo.get('name') === 'HOSTS_LIST') {
       result.name = 'background_operations.get_by_request';
       result.successCallback = 'callBackFilteredByRequest';
       result.data = {
-        'requestId': levelInfo.get('requestId'),
-        'sync': levelInfo.get('sync')
+        'requestId': levelInfo.get('requestId')
       };
     }
-    levelInfo.set('sync', false);
     return result;
   },
 

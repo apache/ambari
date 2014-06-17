@@ -548,6 +548,30 @@ App.HostPopup = Em.Object.create({
 
         pagination: true,
         isPaginate: false,
+        /**
+         * Select box, display names and values
+         */
+        categories: [
+          categoryObject.create({value: 'all', labelPath: 'hostPopup.status.category.all'}),
+          categoryObject.create({value: 'pending', labelPath: 'hostPopup.status.category.pending'}),
+          categoryObject.create({value: 'in_progress', labelPath: 'hostPopup.status.category.inProgress'}),
+          categoryObject.create({value: 'failed', labelPath: 'hostPopup.status.category.failed'}),
+          categoryObject.create({value: 'completed', labelPath: 'hostPopup.status.category.success'}),
+          categoryObject.create({value: 'aborted', labelPath: 'hostPopup.status.category.aborted'}),
+          categoryObject.create({value: 'timedout', labelPath: 'hostPopup.status.category.timedout'})
+        ],
+
+        /**
+         * Selected option is bound to this values
+         */
+        serviceCategory: null,
+        hostCategory: null,
+        taskCategory: null,
+        /**
+         * flag to indicate whether level data has already been loaded
+         * applied only to HOSTS_LIST and TASK_DETAILS levels, whereas async query used to obtain data
+         */
+        isLevelLoaded: true,
         content: function() {
           return this.get('hosts') || [];
         }.property('hosts.length', 'isHostListHidden'),
@@ -602,11 +626,9 @@ App.HostPopup = Em.Object.create({
           this.get("controller").onServiceUpdate(this.get('isServiceListHidden'));
           this.get("controller").onHostUpdate();
           this.set('parentView.isLoaded', true);
-          //push hosts into view when none or all hosts are loaded
-          if(this.get('hosts') == null || this.get('hosts').length === this.get("controller.hosts").length){
-            this.set("hosts", this.get("controller.hosts"));
-          }
+          this.set("hosts", this.get("controller.hosts"));
           this.set("services", this.get("controller.servicesInfo"));
+          this.set('isLevelLoaded', true);
         }.observes("controller.dataSourceController.serviceTimestamp"),
 
         /**
@@ -681,26 +703,6 @@ App.HostPopup = Em.Object.create({
         },
 
         /**
-         * Select box, display names and values
-         */
-        categories: [
-          categoryObject.create({value: 'all', labelPath: 'hostPopup.status.category.all'}),
-          categoryObject.create({value: 'pending', labelPath: 'hostPopup.status.category.pending'}),
-          categoryObject.create({value: 'in_progress', labelPath: 'hostPopup.status.category.inProgress'}),
-          categoryObject.create({value: 'failed', labelPath: 'hostPopup.status.category.failed'}),
-          categoryObject.create({value: 'completed', labelPath: 'hostPopup.status.category.success'}),
-          categoryObject.create({value: 'aborted', labelPath: 'hostPopup.status.category.aborted'}),
-          categoryObject.create({value: 'timedout', labelPath: 'hostPopup.status.category.timedout'})
-        ],
-
-        /**
-         * Selected option is binded to this values
-         */
-        serviceCategory: null,
-        hostCategory: null,
-        taskCategory: null,
-
-        /**
          * Depending on currently viewed tab, call setSelectCount function
          */
         updateSelectView: function () {
@@ -733,17 +735,17 @@ App.HostPopup = Em.Object.create({
             levelInfo.set('requestId', this.get('controller.currentServiceId'));
             levelInfo.set('name', levelName);
             if (levelName === 'HOSTS_LIST') {
-              levelInfo.set('sync', (this.get('controller.hosts').length === 0));
-              dataSourceController.requestMostRecent();
+              this.set('isLevelLoaded', dataSourceController.requestMostRecent());
             } else if (levelName === 'TASK_DETAILS') {
-              levelInfo.set('sync', true);
               dataSourceController.requestMostRecent();
+              this.set('isLevelLoaded', false);
             } else if (levelName === 'REQUESTS_LIST') {
               this.get('controller.hosts').clear();
               dataSourceController.requestMostRecent();
             }
           } else if (securityControllers.contains(dataSourceController.get('name'))) {
             if (levelName === 'TASK_DETAILS') {
+              this.set('isLevelLoaded', false);
               dataSourceController.startUpdatingTask(this.get('controller.currentServiceId'), this.get('openedTaskId'));
             } else {
               dataSourceController.stopUpdatingTask(this.get('controller.currentServiceId'));

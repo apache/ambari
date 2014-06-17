@@ -128,8 +128,7 @@ App.Poll = Em.Object.extend({
         sender: this,
         data: {
           requestId: this.get('requestId'),
-          taskId: this.get('currentTaskId'),
-          sync: true
+          taskId: this.get('currentTaskId')
         },
         success: 'pollTaskLogSuccessCallback'
       })
@@ -159,8 +158,7 @@ App.Poll = Em.Object.extend({
       name: 'background_operations.get_by_request',
       sender: this,
       data: {
-        requestId: this.get('requestId'),
-        sync: false
+        requestId: this.get('requestId')
       },
       success: 'startPollingSuccessCallback',
       error: 'startPollingErrorCallback'

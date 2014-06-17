@@ -46,22 +46,12 @@ var urls = {
   'background_operations.get_by_request': {
     'real': '/clusters/{clusterName}/requests/{requestId}?fields=*,tasks/Tasks/command,tasks/Tasks/command_detail,tasks/Tasks/start_time,tasks/Tasks/end_time,tasks/Tasks/exit_code,tasks/Tasks/host_name,tasks/Tasks/id,tasks/Tasks/role,tasks/Tasks/status&minimal_response=true',
     'mock': '/data/background_operations/task_by_request{requestId}.json',
-    'testInProduction': true,
-    'format': function (data) {
-      return {
-        async: !data.sync
-      };
-    }
+    'testInProduction': true
   },
   'background_operations.get_by_task': {
     'real': '/clusters/{clusterName}/requests/{requestId}/tasks/{taskId}',
     'mock': '/data/background_operations/list_on_start.json',
-    'testInProduction': true,
-    'format': function (data) {
-      return {
-        async: !data.sync
-      };
-    }
+    'testInProduction': true
   },
   'service.item.start_stop': {
     'real': '/clusters/{clusterName}/services/{serviceName}',

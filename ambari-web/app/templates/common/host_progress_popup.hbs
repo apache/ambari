@@ -102,31 +102,35 @@
         </div>
       {{/if}}
     {{/if}}
-    <div id="host-info" {{bindAttr class="view.isRequestSchedule:scheduled"}}>
-      {{#if view.isHostEmptyList}}
-        <div class="log-list-wrap">{{t hostPopup.noHostsToShow}}</div>
-      {{else}}
-        {{#each hostInfo in view.pageContent}}
-          <div {{bindAttr class="hostInfo.isVisible::hidden :log-list-wrap"}}>
-            <div {{action gotoTasks hostInfo}} class="task-list-line-cursor">
-              <div class="host-name-icon-wrap">
-                <i {{bindAttr class="hostInfo.status hostInfo.icon"}}></i>
-                <a href="#">
-                  {{hostInfo.displayName}}
-                </a>
-              </div>
-              <div class="progress-bar span2">
-                <div {{bindAttr class="hostInfo.isInProgress:progress-striped :active hostInfo.barColor :progress"}}>
-                  <div class="bar" {{bindAttr style="hostInfo.barWidth"}}></div>
+    {{#if view.isLevelLoaded}}
+        <div id="host-info" {{bindAttr class="view.isRequestSchedule:scheduled"}}>
+          {{#if view.isHostEmptyList}}
+              <div class="log-list-wrap">{{t hostPopup.noHostsToShow}}</div>
+          {{else}}
+            {{#each hostInfo in view.pageContent}}
+                <div {{bindAttr class="hostInfo.isVisible::hidden :log-list-wrap"}}>
+                    <div {{action gotoTasks hostInfo}} class="task-list-line-cursor">
+                        <div class="host-name-icon-wrap">
+                            <i {{bindAttr class="hostInfo.status hostInfo.icon"}}></i>
+                            <a href="#">
+                              {{hostInfo.displayName}}
+                            </a>
+                        </div>
+                        <div class="progress-bar span2">
+                            <div {{bindAttr class="hostInfo.isInProgress:progress-striped :active hostInfo.barColor :progress"}}>
+                                <div class="bar" {{bindAttr style="hostInfo.barWidth"}}></div>
+                            </div>
+                        </div>
+                        <div class="host-progress-num">{{hostInfo.progress}}%</div>
+                        <div class="show-details"><i class="icon-caret-right"></i></div>
+                    </div>
                 </div>
-              </div>
-              <div class="host-progress-num">{{hostInfo.progress}}%</div>
-              <div class="show-details"><i class="icon-caret-right"></i></div>
-            </div>
-          </div>
-        {{/each}}
-      {{/if}}
-    </div>
+            {{/each}}
+          {{/if}}
+        </div>
+    {{else}}
+      <div class="spinner"></div>
+    {{/if}}
   </div>
 
 
@@ -182,17 +186,21 @@
         <a title="Open in New Window" {{action openTaskLogInDialog}} class="task-detail-open-dialog"><i class="icon-external-link"></i> {{t common.open}}</a>
       </div>
     </div>
-    <div class="task-detail-log-info">
-      <div class="content-area" >
-        <div class="task-detail-log-clipboard-wrap" ></div>
-        <div class="task-detail-log-maintext">
-          <h5>stderr: &nbsp; <span class="muted">{{view.openedTask.errorLog}} </span></h5>
-          <pre class="stderr">{{view.openedTask.stderr}}</pre>
-          <h5>stdout: &nbsp; <span class="muted"> {{view.openedTask.outputLog}} </span> </h5>
-          <pre class="stdout">{{view.openedTask.stdout}}</pre>
+    {{#if view.isLevelLoaded}}
+        <div class="task-detail-log-info">
+            <div class="content-area">
+                <div class="task-detail-log-clipboard-wrap"></div>
+                <div class="task-detail-log-maintext">
+                    <h5>stderr: &nbsp; <span class="muted">{{view.openedTask.errorLog}} </span></h5>
+                    <pre class="stderr">{{view.openedTask.stderr}}</pre>
+                    <h5>stdout: &nbsp; <span class="muted"> {{view.openedTask.outputLog}} </span></h5>
+                    <pre class="stdout">{{view.openedTask.stdout}}</pre>
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
+    {{else}}
+      <div class="spinner"></div>
+    {{/if}}
   </div>
     {{else}}
       <div class="spinner"></div>

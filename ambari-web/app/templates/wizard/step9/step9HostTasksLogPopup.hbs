@@ -74,17 +74,21 @@
                   class="icon-external-link"></i> {{t common.open}}</a>
         </div>
       </div>
-      <div class="task-detail-log-info">
-        <div class="content-area">
-          <div class="task-detail-log-clipboard-wrap"></div>
-          <div class="task-detail-log-maintext">
-            <h5>stderr: &nbsp; <span class="muted">{{view.openedTask.errorLog}} </span></h5>
-            <pre class="stderr">{{view.openedTask.stderr}}</pre>
-            <h5>stdout: &nbsp; <span class="muted"> {{view.openedTask.outputLog}} </span></h5>
-            <pre class="stdout">{{view.openedTask.stdout}}</pre>
+      {{#if view.isTaskLoaded}}
+          <div class="task-detail-log-info">
+              <div class="content-area">
+                  <div class="task-detail-log-clipboard-wrap"></div>
+                  <div class="task-detail-log-maintext">
+                      <h5>stderr: &nbsp; <span class="muted">{{view.openedTask.errorLog}} </span></h5>
+                      <pre class="stderr">{{view.openedTask.stderr}}</pre>
+                      <h5>stdout: &nbsp; <span class="muted"> {{view.openedTask.outputLog}} </span></h5>
+                      <pre class="stdout">{{view.openedTask.stdout}}</pre>
+                  </div>
+              </div>
           </div>
-        </div>
-      </div>
+      {{else}}
+        <div class="spinner"></div>
+      {{/if}}
     </div>
   {{/if}}
 {{/if}}
