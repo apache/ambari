@@ -563,16 +563,17 @@ App.WizardStep8Controller = Em.Controller.extend({
     //repo
     if (['addHostController', 'addServiceController'].contains(this.get('content.controllerName'))) {
       this.loadRepoInfo();
-    } else { // from install wizard
+    } else {
+     // from install wizard
       var selectedStack = this.get('content.stacks').findProperty('isSelected', true);
       var allRepos = [];
-      var supportedOs = ['redhat5', 'redhat6', 'sles11'];
       if (selectedStack && selectedStack.operatingSystems) {
         selectedStack.operatingSystems.forEach(function (os) {
-          if (os.selected && supportedOs.contains(os.osType)) {
+          if (os.selected) {
             allRepos.push(Em.Object.create({
               base_url: os.baseUrl,
-              os_type: Em.I18n.t("installer.step8.repoInfo.osType." + os.osType)
+              os_type: os.osType,
+              repo_id: os.repoId
             }));
           }
         }, this);
@@ -583,7 +584,7 @@ App.WizardStep8Controller = Em.Controller.extend({
   },
 
   /**
-   * Get the repositories info of HDP from server. Used only in addHost controller.
+   * Load repo info for add Service/Host wizard review page
    * @return {$.ajax|null}
    * @method loadRepoInfo
    */
@@ -602,28 +603,27 @@ App.WizardStep8Controller = Em.Controller.extend({
   },
 
   /**
-   *
+   * Save all repo base URL of all OS type to <code>repoInfo<code>
    * @param {object} data
    * @method loadRepoInfoSuccessCallback
    */
   loadRepoInfoSuccessCallback: function (data) {
     var allRepos = [];
-    var supportedOs = ['redhat5', 'redhat6', 'sles11'];
-    data.items.forEach(function (item) {
-      var os = item.repositories[0].Repositories;
-      if (supportedOs.contains(os.os_type)) {
+    data.items.forEach(function (os) {
+      if (!App.supports.ubuntu && os.OperatingSystems.os_type == 'debian12') return; // @todo: remove after Ubuntu support confirmation
+      os.repositories.forEach(function (repository) {
         allRepos.push(Em.Object.create({
-          base_url: os.base_url,
-          os_type: Em.I18n.t("installer.step8.repoInfo.osType." + os.os_type)
+          base_url: repository.Repositories.base_url,
+          os_type: repository.Repositories.os_type,
+          repo_id: repository.Repositories.repo_id
         }));
-      }
+      });
     }, this);
     allRepos.set('display_name', Em.I18n.t("installer.step8.repoInfo.displayName"));
     this.get('clusterInfo').set('repoInfo', allRepos);
   },
 
   /**
-   *
    * @param {object} request
    * @method loadRepoInfoErrorCallback
    */

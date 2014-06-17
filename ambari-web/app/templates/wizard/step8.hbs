@@ -45,7 +45,7 @@
       <ul>
         {{#each item in controller.clusterInfo.repoInfo}}
           <li>
-            <p><span class="text text-info">{{item.os_type}} : </span>{{item.base_url}}</p>
+            <p><span class="text text-info">{{item.os_type}} ({{item.repo_id}}): <br/></span>{{item.base_url}}</p>
           </li>
         {{/each}}
       </ul>
