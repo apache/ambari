@@ -71,15 +71,8 @@ module.exports = [
       Ember.Object.create({
         service_name: 'GLUSTERFS',
         display_name: 'GLUSTERFS',
-        service_components: [
-          Ember.Object.create({
-            display_name: 'GLUSTERFS Client',
-            component_name: 'GLUSTERFS_CLIENT',
-            component_value: '',
-            isMaster: false
-          })
-        ]
-      }),
+        service_components: []
+      }),    
       Ember.Object.create({
         service_name: 'MAPREDUCE',
         display_name: 'MapReduce',

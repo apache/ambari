@@ -19,6 +19,6 @@
     <versions>
 	  <active>false</active>
     </versions>
-    <extends>2.1</extends>
-    <!-- <extends>2.0.6</extends> -->
+    <!-- <extends>2.1</extends> -->
+    <extends>2.0.6</extends>
 </metainfo>

@@ -651,6 +651,7 @@ App.WizardStep8Controller = Em.Controller.extend({
       if (serviceObj) {
         serviceObj.get('service_components').forEach(function (_component) {
           this.assignComponentHosts(_component);
+          console.log(' ---INFO: step8: service component: ' + _service.serviceName);
         }, this);
         this.get('services').pushObject(serviceObj);
       }
@@ -666,18 +667,23 @@ App.WizardStep8Controller = Em.Controller.extend({
     var componentValue;
     if (component.get('customHandler')) {
       this[component.get('customHandler')].call(this, component);
+      console.log(' --- ---INFO: step8: in customHandler');
     }
     else {
+      console.log(' --- ---INFO: step8: NOT in customHandler');    
       if (component.get('isMaster')) {
+        console.log(' --- ---INFO: step8: component isMaster');
         componentValue = this.get('content.masterComponentHosts')
           .findProperty('component', component.component_name).hostName;
       }
       else {
+        console.log(' --- ---INFO: step8: NOT component isMaster');
         var hostsLength = this.get('content.slaveComponentHosts')
           .findProperty('componentName', component.component_name)
           .hosts.length;
         componentValue = hostsLength + Em.I18n.t('installer.step8.host' + ((hostsLength > 1) ? 's' : ''));
       }
+      console.log(' --- --- --- INFO: step8: componentValue: ' + componentValue);
       component.set('component_value', componentValue);
     }
   },
