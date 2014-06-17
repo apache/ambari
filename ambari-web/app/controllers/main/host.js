@@ -202,6 +202,18 @@ App.MainHostController = Em.ArrayController.extend({
   ],
 
   /**
+   * Validate and convert input string to valid url parameter.
+   * Detect if user have passed string as regular expression or extend
+   * string to regexp.
+   *
+   * @params {String} value
+   * @return {String}
+   **/
+  getRegExp: function (value) {
+    return validator.isValidMatchesRegexp(value) ? value.replace(/(\.+\*?|(\.\*)+)$/, '') + '.*' : '^$';
+  },
+
+  /**
    * get query parameters computed from filter properties, sort properties and custom properties of view
    * @return {Array}
    */
@@ -220,7 +232,6 @@ App.MainHostController = Em.ArrayController.extend({
         type: 'EQUAL'
       })
     }, this);
-
     savedFilterConditions.forEach(function (filter) {
       var property = filterProperties.findProperty('key', colPropAssoc[filter.iColumn]);
       if (property && filter.value.length > 0 && !filter.skipFilter) {
@@ -229,6 +240,9 @@ App.MainHostController = Em.ArrayController.extend({
           value: filter.value,
           type: property.type
         };
+        if (filter.type === 'string') {
+          result.value = this.getRegExp(filter.value);
+        }
         if (filter.type === 'number' || filter.type === 'ambari-bandwidth') {
           result.type = this.getComparisonType(filter.value);
           result.value = this.getProperValue(filter.value);
@@ -241,7 +255,6 @@ App.MainHostController = Em.ArrayController.extend({
         }
       }
     }, this);
-
     savedSortConditions.forEach(function (sort) {
       var property = sortProperties.findProperty('key', sort.name);
 

@@ -143,5 +143,16 @@ module.exports = {
       default :
         return false;
     }
-}
+  },
+  /**
+   * Validate string that will pass as parameter to .matches() url param.
+   * For example: /api/v1/clusters/c1/hosts?Hosts/host_name.matches(.*localhost.)
+   *
+   * @params {String} value - string to validate
+   * @return {Boolean}
+   * @method isValidMatchesRegexp
+   */
+  isValidMatchesRegexp: function(value) {
+    return /^((\.\*?)?([\w]+)?)+(\.\*?)?$/g.test(value);
+  }
 };

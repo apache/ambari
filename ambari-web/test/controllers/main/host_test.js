@@ -303,4 +303,33 @@ describe('MainHostController', function () {
 
   });
 
+  describe('#getRegExp()', function() {
+    before(function() {
+      hostController = App.MainHostController.create({});
+    });
+
+    var message = '`{0}` should convert to `{1}`',
+        tests = [
+      { value: '.*', expected: '.*' },
+      { value: '.', expected: '.*' },
+      { value: '.*.*', expected: '.*' },
+      { value: '*', expected: '^$' },
+      { value: '........', expected: '.*' },
+      { value: '........*', expected: '.*' },
+      { value: '........?', expected: '^$' },
+      { value: 'a1', expected: 'a1.*' },
+      { value: 'a1.', expected: 'a1.*' },
+      { value: 'a1...', expected: 'a1.*' },
+      { value: 'a1.*', expected: 'a1.*' },
+      { value: 'a1.*.a2.a3', expected: 'a1.*.a2.a3.*' },
+      { value: 'a1.*.a2...a3', expected: 'a1.*.a2...a3.*' }
+    ]
+
+    tests.forEach(function(test){
+      it(message.format(test.value, test.expected), function() {
+        expect(hostController.getRegExp(test.value)).to.be.equal(test.expected);
+      });
+    });
+  });
+
 });
