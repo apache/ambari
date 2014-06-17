@@ -1,0 +1,37 @@
+{
+  "href" : "http://localhost:49178/api/v1/clusters/MySingleNodeCluster/configurations",
+  "items" : [
+    {
+      "href" : "http://localhost:49178/api/v1/clusters/MySingleNodeCluster/configurations?type=yarn-log4j&tag=1",
+      "tag" : "1",
+      "type" : "yarn-log4j",
+      "Config" : {
+        "cluster_name" : "MySingleNodeCluster"
+      }
+    },
+    {
+      "href" : "http://localhost:49178/api/v1/clusters/MySingleNodeCluster/configurations?type=yarn-site&tag=1",
+      "tag" : "1",
+      "type" : "yarn-site",
+      "Config" : {
+        "cluster_name" : "MySingleNodeCluster"
+      }
+    },
+    {
+          "href" : "http://localhost:49178/api/v1/clusters/MySingleNodeCluster/configurations?type=yarn-site&tag=2",
+          "tag" : "2",
+          "type" : "yarn-site",
+          "Config" : {
+            "cluster_name" : "MySingleNodeCluster"
+          }
+    },
+    {
+      "href" : "http://localhost:49178/api/v1/clusters/MySingleNodeCluster/configurations?type=zookeeper-log4j&tag=1",
+      "tag" : "1",
+      "type" : "zookeeper-log4j",
+      "Config" : {
+        "cluster_name" : "MySingleNodeCluster"
+      }
+    }
+  ]
+}

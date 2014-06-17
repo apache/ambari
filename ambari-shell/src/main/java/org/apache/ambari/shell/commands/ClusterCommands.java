@@ -26,6 +26,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.ambari.groovy.client.AmbariClient;
+import org.apache.ambari.shell.completion.Blueprint;
+import org.apache.ambari.shell.completion.Host;
+import org.apache.ambari.shell.flash.FlashService;
 import org.apache.ambari.shell.model.AmbariContext;
 import org.apache.ambari.shell.model.FocusType;
 import org.apache.ambari.shell.model.Hints;
@@ -48,12 +51,14 @@ public class ClusterCommands implements CommandMarker {
 
   private AmbariClient client;
   private AmbariContext context;
+  private FlashService flashService;
   private Map<String, List<String>> hostGroups;
 
   @Autowired
-  public ClusterCommands(AmbariClient client, AmbariContext context) {
+  public ClusterCommands(AmbariClient client, AmbariContext context, FlashService flashService) {
     this.client = client;
     this.context = context;
+    this.flashService = flashService;
   }
 
   /**
@@ -75,14 +80,15 @@ public class ClusterCommands implements CommandMarker {
    */
   @CliCommand(value = "cluster build", help = "Starts to build a cluster")
   public String buildCluster(
-    @CliOption(key = "blueprint", mandatory = true, help = "Id of the blueprint, use 'blueprints' command to see the list") String id) {
+    @CliOption(key = "blueprint", mandatory = true, help = "Id of the blueprint, use 'blueprints' command to see the list") Blueprint id) {
     String message;
-    if (client.doesBlueprintExists(id)) {
-      context.setFocus(id, FocusType.CLUSTER_BUILD);
+    String blueprint = id.getName();
+    if (client.doesBlueprintExist(blueprint)) {
+      context.setFocus(blueprint, FocusType.CLUSTER_BUILD);
       context.setHint(Hints.ASSIGN_HOSTS);
       message = String.format("%s\n%s",
         renderSingleMap(client.getHostNames(), "HOSTNAME", "STATE"),
-        renderMultiValueMap(client.getBlueprintMap(id), "HOSTGROUP", "COMPONENT"));
+        renderMultiValueMap(client.getBlueprintMap(blueprint), "HOSTGROUP", "COMPONENT"));
       createNewHostGroups();
     } else {
       message = "Not a valid blueprint id";
@@ -109,20 +115,46 @@ public class ClusterCommands implements CommandMarker {
    */
   @CliCommand(value = "cluster assign", help = "Assign host to host group")
   public String assign(
-    @CliOption(key = "host", mandatory = true, help = "Fully qualified host name") String host,
+    @CliOption(key = "host", mandatory = true, help = "Fully qualified host name") Host host,
     @CliOption(key = "hostGroup", mandatory = true, help = "Host group which to assign the host") String group) {
     String message;
-    if (client.getHostNames().keySet().contains(host)) {
-      if (addHostToGroup(host, group)) {
+    String hostName = host.getName();
+    if (client.getHostNames().keySet().contains(hostName)) {
+      if (addHostToGroup(hostName, group)) {
         context.setHint(Hints.CREATE_CLUSTER);
-        message = String.format("%s has been added to %s", host, group);
+        message = String.format("%s has been added to %s", hostName, group);
       } else {
         message = String.format("%s is not a valid host group", group);
       }
     } else {
-      message = String.format("%s is not a valid hostname", host);
+      message = String.format("%s is not a valid hostname", hostName);
     }
     return message;
+  }
+
+  /**
+   * Checks whether the cluster auto command is available or not.
+   *
+   * @return true if available false otherwise
+   */
+  @CliAvailabilityIndicator(value = "cluster autoAssign")
+  public boolean isClusterAutoAssignAvailable() {
+    return context.isFocusOnClusterBuild() && !isHostAssigned();
+  }
+
+  /**
+   * Tries to auto associate hosts to host groups.
+   *
+   * @return prints the auto assignments
+   */
+  @CliCommand(value = "cluster autoAssign", help = "Automatically assigns hosts to different host groups base on the provided strategy")
+  public String autoAssign() {
+    Map<String, List<String>> assignments = client.recommendAssignments(context.getFocusValue());
+    if (!assignments.isEmpty()) {
+      hostGroups = assignments;
+      context.setHint(Hints.CREATE_CLUSTER);
+    }
+    return showAssignments();
   }
 
   /**
@@ -162,7 +194,8 @@ public class ClusterCommands implements CommandMarker {
    * @return status message
    */
   @CliCommand(value = "cluster create", help = "Create a cluster based on current blueprint and assigned hosts")
-  public String createCluster() {
+  public String createCluster(
+    @CliOption(key = "exitOnFinish", mandatory = false, help = "Quits the shell when the cluster creation finishes") Boolean exit) {
     String message = "Successfully created the cluster";
     String blueprint = context.getFocusValue();
     try {
@@ -170,6 +203,7 @@ public class ClusterCommands implements CommandMarker {
       context.setCluster(blueprint);
       context.resetFocus();
       context.setHint(Hints.PROGRESS);
+      flashService.showInstallProgress(exit == null ? false : exit);
     } catch (HttpResponseException e) {
       createNewHostGroups();
       message = "Failed to create the cluster: " + e.getMessage();

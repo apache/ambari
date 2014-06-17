@@ -19,6 +19,7 @@ package org.apache.ambari.shell.commands;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -29,7 +30,10 @@ import java.io.IOException;
 
 import org.apache.ambari.groovy.client.AmbariClient;
 import org.apache.ambari.shell.model.AmbariContext;
+import org.apache.ambari.shell.model.Hints;
 import org.apache.commons.io.IOUtils;
+import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -50,16 +54,25 @@ public class BlueprintCommandsTest {
   private HttpResponseException responseException;
   @Mock
   private AmbariContext context;
+  @Mock
+  private ObjectMapper objectMapper;
 
   @Test
   public void testAddBlueprintForFileReadPrecedence() throws IOException {
     File file = new File("src/test/resources/testBlueprint.json");
     String json = IOUtils.toString(new FileInputStream(file));
+    JsonNode jsonNode = mock(JsonNode.class);
+    when(objectMapper.readTree(json.getBytes())).thenReturn(jsonNode);
+    when(jsonNode.get("Blueprints")).thenReturn(jsonNode);
+    when(jsonNode.get("blueprint_name")).thenReturn(jsonNode);
+    when(jsonNode.asText()).thenReturn("blueprintName");
 
     String result = blueprintCommands.addBlueprint("url", file);
 
     verify(ambariClient).addBlueprint(json);
-    assertEquals("Blueprint added", result);
+    verify(context).setHint(Hints.BUILD_CLUSTER);
+    verify(context).setBlueprintsAvailable(true);
+    assertEquals("Blueprint: 'blueprintName' has been added", result);
   }
 
   @Test

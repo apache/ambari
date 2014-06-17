@@ -17,6 +17,10 @@
  */
 package org.apache.ambari.shell.configuration;
 
+import org.apache.ambari.groovy.client.AmbariClient;
+import org.apache.ambari.shell.converter.BlueprintConverter;
+import org.apache.ambari.shell.converter.HostConverter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.shell.converters.AvailableCommandsConverter;
@@ -42,6 +46,9 @@ import org.springframework.shell.core.Converter;
  */
 @Configuration
 public class ConverterConfiguration {
+
+  @Autowired
+  private AmbariClient client;
 
   @Bean
   Converter simpleFileConverter() {
@@ -121,5 +128,15 @@ public class ConverterConfiguration {
   @Bean
   Converter staticFieldConverterImpl() {
     return new StaticFieldConverterImpl();
+  }
+
+  @Bean
+  Converter blueprintConverter() {
+    return new BlueprintConverter(client);
+  }
+
+  @Bean
+  Converter hostConverter() {
+    return new HostConverter(client);
   }
 }

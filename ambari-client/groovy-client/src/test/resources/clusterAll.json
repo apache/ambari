@@ -1,0 +1,194 @@
+{
+  "href" : "http://localhost:8080/api/v1/clusters/MySingleNodeCluster",
+  "Clusters" : {
+    "cluster_id" : 2,
+    "cluster_name" : "MySingleNodeCluster",
+    "version" : "HDP-2.0",
+    "desired_configs" : {
+      "capacity-scheduler" : {
+        "user" : "admin",
+        "tag" : "1"
+      },
+      "core-site" : {
+        "user" : "admin",
+        "tag" : "1"
+      },
+      "global" : {
+        "user" : "admin",
+        "tag" : "1"
+      },
+      "hadoop-policy" : {
+        "user" : "admin",
+        "tag" : "1"
+      },
+      "hdfs-log4j" : {
+        "user" : "admin",
+        "tag" : "1"
+      },
+      "hdfs-site" : {
+        "user" : "admin",
+        "tag" : "1"
+      },
+      "mapred-queue-acls" : {
+        "user" : "admin",
+        "tag" : "1"
+      },
+      "mapred-site" : {
+        "user" : "admin",
+        "tag" : "1"
+      },
+      "yarn-log4j" : {
+        "user" : "admin",
+        "tag" : "1"
+      },
+      "yarn-site" : {
+        "user" : "admin",
+        "tag" : "1"
+      },
+      "zookeeper-log4j" : {
+        "user" : "admin",
+        "tag" : "1"
+      }
+    }
+  },
+  "requests" : [
+    {
+      "href" : "http://localhost:8080/api/v1/clusters/MySingleNodeCluster/requests/1",
+      "Requests" : {
+        "cluster_name" : "MySingleNodeCluster",
+        "id" : 1
+      }
+    }
+  ],
+  "config_groups" : [ ],
+  "services" : [
+    {
+      "href" : "http://localhost:8080/api/v1/clusters/MySingleNodeCluster/services/HDFS",
+      "ServiceInfo" : {
+        "cluster_name" : "MySingleNodeCluster",
+        "service_name" : "HDFS"
+      }
+    },
+    {
+      "href" : "http://localhost:8080/api/v1/clusters/MySingleNodeCluster/services/MAPREDUCE2",
+      "ServiceInfo" : {
+        "cluster_name" : "MySingleNodeCluster",
+        "service_name" : "MAPREDUCE2"
+      }
+    },
+    {
+      "href" : "http://localhost:8080/api/v1/clusters/MySingleNodeCluster/services/YARN",
+      "ServiceInfo" : {
+        "cluster_name" : "MySingleNodeCluster",
+        "service_name" : "YARN"
+      }
+    },
+    {
+      "href" : "http://localhost:8080/api/v1/clusters/MySingleNodeCluster/services/ZOOKEEPER",
+      "ServiceInfo" : {
+        "cluster_name" : "MySingleNodeCluster",
+        "service_name" : "ZOOKEEPER"
+      }
+    }
+  ],
+  "workflows" : [ ],
+  "hosts" : [
+    {
+      "href" : "http://localhost:8080/api/v1/clusters/MySingleNodeCluster/hosts/server.ambari.com",
+      "Hosts" : {
+        "cluster_name" : "MySingleNodeCluster",
+        "host_name" : "server.ambari.com"
+      }
+    }
+  ],
+  "configurations" : [
+    {
+      "href" : "http://localhost:8080/api/v1/clusters/MySingleNodeCluster/configurations?type=capacity-scheduler&tag=1",
+      "tag" : "1",
+      "type" : "capacity-scheduler",
+      "Config" : {
+        "cluster_name" : "MySingleNodeCluster"
+      }
+    },
+    {
+      "href" : "http://localhost:8080/api/v1/clusters/MySingleNodeCluster/configurations?type=core-site&tag=1",
+      "tag" : "1",
+      "type" : "core-site",
+      "Config" : {
+        "cluster_name" : "MySingleNodeCluster"
+      }
+    },
+    {
+      "href" : "http://localhost:8080/api/v1/clusters/MySingleNodeCluster/configurations?type=global&tag=1",
+      "tag" : "1",
+      "type" : "global",
+      "Config" : {
+        "cluster_name" : "MySingleNodeCluster"
+      }
+    },
+    {
+      "href" : "http://localhost:8080/api/v1/clusters/MySingleNodeCluster/configurations?type=hadoop-policy&tag=1",
+      "tag" : "1",
+      "type" : "hadoop-policy",
+      "Config" : {
+        "cluster_name" : "MySingleNodeCluster"
+      }
+    },
+    {
+      "href" : "http://localhost:8080/api/v1/clusters/MySingleNodeCluster/configurations?type=hdfs-log4j&tag=1",
+      "tag" : "1",
+      "type" : "hdfs-log4j",
+      "Config" : {
+        "cluster_name" : "MySingleNodeCluster"
+      }
+    },
+    {
+      "href" : "http://localhost:8080/api/v1/clusters/MySingleNodeCluster/configurations?type=hdfs-site&tag=1",
+      "tag" : "1",
+      "type" : "hdfs-site",
+      "Config" : {
+        "cluster_name" : "MySingleNodeCluster"
+      }
+    },
+    {
+      "href" : "http://localhost:8080/api/v1/clusters/MySingleNodeCluster/configurations?type=mapred-queue-acls&tag=1",
+      "tag" : "1",
+      "type" : "mapred-queue-acls",
+      "Config" : {
+        "cluster_name" : "MySingleNodeCluster"
+      }
+    },
+    {
+      "href" : "http://localhost:8080/api/v1/clusters/MySingleNodeCluster/configurations?type=mapred-site&tag=1",
+      "tag" : "1",
+      "type" : "mapred-site",
+      "Config" : {
+        "cluster_name" : "MySingleNodeCluster"
+      }
+    },
+    {
+      "href" : "http://localhost:8080/api/v1/clusters/MySingleNodeCluster/configurations?type=yarn-log4j&tag=1",
+      "tag" : "1",
+      "type" : "yarn-log4j",
+      "Config" : {
+        "cluster_name" : "MySingleNodeCluster"
+      }
+    },
+    {
+      "href" : "http://localhost:8080/api/v1/clusters/MySingleNodeCluster/configurations?type=yarn-site&tag=1",
+      "tag" : "1",
+      "type" : "yarn-site",
+      "Config" : {
+        "cluster_name" : "MySingleNodeCluster"
+      }
+    },
+    {
+      "href" : "http://localhost:8080/api/v1/clusters/MySingleNodeCluster/configurations?type=zookeeper-log4j&tag=1",
+      "tag" : "1",
+      "type" : "zookeeper-log4j",
+      "Config" : {
+        "cluster_name" : "MySingleNodeCluster"
+      }
+    }
+  ]
+}

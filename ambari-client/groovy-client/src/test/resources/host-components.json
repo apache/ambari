@@ -1,0 +1,590 @@
+{
+  "href" : "http://172.24.0.2:8080/api/v1/clusters/single-node-hdfs-yarn/hosts/amb0.mycorp.kom/host_components?fields=HostRoles/*",
+  "items" : [
+    {
+      "href" : "http://172.24.0.2:8080/api/v1/clusters/single-node-hdfs-yarn/hosts/amb0.mycorp.kom/host_components/DATANODE",
+      "HostRoles" : {
+        "cluster_name" : "single-node-hdfs-yarn",
+        "component_name" : "DATANODE",
+        "desired_admin_state" : "INSERVICE",
+        "desired_stack_id" : "HDP-2.0",
+        "desired_state" : "STARTED",
+        "host_name" : "amb0.mycorp.kom",
+        "maintenance_state" : "OFF",
+        "service_name" : "HDFS",
+        "stack_id" : "HDP-2.0",
+        "stale_configs" : false,
+        "state" : "STARTED",
+        "actual_configs" : {
+          "capacity-scheduler" : {
+            "default" : "1"
+          },
+          "core-site" : {
+            "default" : "1"
+          },
+          "global" : {
+            "default" : "1"
+          },
+          "hadoop-policy" : {
+            "default" : "1"
+          },
+          "hdfs-log4j" : {
+            "default" : "1"
+          },
+          "hdfs-site" : {
+            "default" : "1"
+          },
+          "mapred-queue-acls" : {
+            "default" : "1"
+          },
+          "mapred-site" : {
+            "default" : "1"
+          },
+          "yarn-log4j" : {
+            "default" : "1"
+          },
+          "yarn-site" : {
+            "default" : "1"
+          },
+          "zookeeper-log4j" : {
+            "default" : "1"
+          }
+        }
+      },
+      "host" : {
+        "href" : "http://172.24.0.2:8080/api/v1/clusters/single-node-hdfs-yarn/hosts/amb0.mycorp.kom"
+      }
+    },
+    {
+      "href" : "http://172.24.0.2:8080/api/v1/clusters/single-node-hdfs-yarn/hosts/amb0.mycorp.kom/host_components/HDFS_CLIENT",
+      "HostRoles" : {
+        "cluster_name" : "single-node-hdfs-yarn",
+        "component_name" : "HDFS_CLIENT",
+        "desired_stack_id" : "HDP-2.0",
+        "desired_state" : "INSTALLED",
+        "host_name" : "amb0.mycorp.kom",
+        "maintenance_state" : "OFF",
+        "service_name" : "HDFS",
+        "stack_id" : "HDP-2.0",
+        "stale_configs" : false,
+        "state" : "INSTALLED",
+        "actual_configs" : {
+          "capacity-scheduler" : {
+            "default" : "1"
+          },
+          "core-site" : {
+            "default" : "1"
+          },
+          "global" : {
+            "default" : "1"
+          },
+          "hadoop-policy" : {
+            "default" : "1"
+          },
+          "hdfs-log4j" : {
+            "default" : "1"
+          },
+          "hdfs-site" : {
+            "default" : "1"
+          },
+          "mapred-queue-acls" : {
+            "default" : "1"
+          },
+          "mapred-site" : {
+            "default" : "1"
+          },
+          "yarn-log4j" : {
+            "default" : "1"
+          },
+          "yarn-site" : {
+            "default" : "1"
+          },
+          "zookeeper-log4j" : {
+            "default" : "1"
+          }
+        }
+      },
+      "host" : {
+        "href" : "http://172.24.0.2:8080/api/v1/clusters/single-node-hdfs-yarn/hosts/amb0.mycorp.kom"
+      }
+    },
+    {
+      "href" : "http://172.24.0.2:8080/api/v1/clusters/single-node-hdfs-yarn/hosts/amb0.mycorp.kom/host_components/HISTORYSERVER",
+      "HostRoles" : {
+        "cluster_name" : "single-node-hdfs-yarn",
+        "component_name" : "HISTORYSERVER",
+        "desired_stack_id" : "HDP-2.0",
+        "desired_state" : "STARTED",
+        "host_name" : "amb0.mycorp.kom",
+        "maintenance_state" : "OFF",
+        "service_name" : "MAPREDUCE2",
+        "stack_id" : "HDP-2.0",
+        "stale_configs" : false,
+        "state" : "STARTED",
+        "actual_configs" : {
+          "capacity-scheduler" : {
+            "default" : "1"
+          },
+          "core-site" : {
+            "default" : "1"
+          },
+          "global" : {
+            "default" : "1"
+          },
+          "hadoop-policy" : {
+            "default" : "1"
+          },
+          "hdfs-log4j" : {
+            "default" : "1"
+          },
+          "hdfs-site" : {
+            "default" : "1"
+          },
+          "mapred-queue-acls" : {
+            "default" : "1"
+          },
+          "mapred-site" : {
+            "default" : "1"
+          },
+          "yarn-log4j" : {
+            "default" : "1"
+          },
+          "yarn-site" : {
+            "default" : "1"
+          },
+          "zookeeper-log4j" : {
+            "default" : "1"
+          }
+        }
+      },
+      "host" : {
+        "href" : "http://172.24.0.2:8080/api/v1/clusters/single-node-hdfs-yarn/hosts/amb0.mycorp.kom"
+      }
+    },
+    {
+      "href" : "http://172.24.0.2:8080/api/v1/clusters/single-node-hdfs-yarn/hosts/amb0.mycorp.kom/host_components/MAPREDUCE2_CLIENT",
+      "HostRoles" : {
+        "cluster_name" : "single-node-hdfs-yarn",
+        "component_name" : "MAPREDUCE2_CLIENT",
+        "desired_stack_id" : "HDP-2.0",
+        "desired_state" : "INSTALLED",
+        "host_name" : "amb0.mycorp.kom",
+        "maintenance_state" : "OFF",
+        "service_name" : "MAPREDUCE2",
+        "stack_id" : "HDP-2.0",
+        "stale_configs" : false,
+        "state" : "INSTALLED",
+        "actual_configs" : {
+          "capacity-scheduler" : {
+            "default" : "1"
+          },
+          "core-site" : {
+            "default" : "1"
+          },
+          "global" : {
+            "default" : "1"
+          },
+          "hadoop-policy" : {
+            "default" : "1"
+          },
+          "hdfs-log4j" : {
+            "default" : "1"
+          },
+          "hdfs-site" : {
+            "default" : "1"
+          },
+          "mapred-queue-acls" : {
+            "default" : "1"
+          },
+          "mapred-site" : {
+            "default" : "1"
+          },
+          "yarn-log4j" : {
+            "default" : "1"
+          },
+          "yarn-site" : {
+            "default" : "1"
+          },
+          "zookeeper-log4j" : {
+            "default" : "1"
+          }
+        }
+      },
+      "host" : {
+        "href" : "http://172.24.0.2:8080/api/v1/clusters/single-node-hdfs-yarn/hosts/amb0.mycorp.kom"
+      }
+    },
+    {
+      "href" : "http://172.24.0.2:8080/api/v1/clusters/single-node-hdfs-yarn/hosts/amb0.mycorp.kom/host_components/NAMENODE",
+      "HostRoles" : {
+        "cluster_name" : "single-node-hdfs-yarn",
+        "component_name" : "NAMENODE",
+        "desired_stack_id" : "HDP-2.0",
+        "desired_state" : "STARTED",
+        "host_name" : "amb0.mycorp.kom",
+        "maintenance_state" : "OFF",
+        "service_name" : "HDFS",
+        "stack_id" : "HDP-2.0",
+        "stale_configs" : false,
+        "state" : "STARTED",
+        "actual_configs" : {
+          "capacity-scheduler" : {
+            "default" : "1"
+          },
+          "core-site" : {
+            "default" : "1"
+          },
+          "global" : {
+            "default" : "1"
+          },
+          "hadoop-policy" : {
+            "default" : "1"
+          },
+          "hdfs-log4j" : {
+            "default" : "1"
+          },
+          "hdfs-site" : {
+            "default" : "1"
+          },
+          "mapred-queue-acls" : {
+            "default" : "1"
+          },
+          "mapred-site" : {
+            "default" : "1"
+          },
+          "yarn-log4j" : {
+            "default" : "1"
+          },
+          "yarn-site" : {
+            "default" : "1"
+          },
+          "zookeeper-log4j" : {
+            "default" : "1"
+          }
+        }
+      },
+      "host" : {
+        "href" : "http://172.24.0.2:8080/api/v1/clusters/single-node-hdfs-yarn/hosts/amb0.mycorp.kom"
+      }
+    },
+    {
+      "href" : "http://172.24.0.2:8080/api/v1/clusters/single-node-hdfs-yarn/hosts/amb0.mycorp.kom/host_components/NODEMANAGER",
+      "HostRoles" : {
+        "cluster_name" : "single-node-hdfs-yarn",
+        "component_name" : "NODEMANAGER",
+        "desired_admin_state" : "INSERVICE",
+        "desired_stack_id" : "HDP-2.0",
+        "desired_state" : "STARTED",
+        "host_name" : "amb0.mycorp.kom",
+        "maintenance_state" : "OFF",
+        "service_name" : "YARN",
+        "stack_id" : "HDP-2.0",
+        "stale_configs" : false,
+        "state" : "STARTED",
+        "actual_configs" : {
+          "capacity-scheduler" : {
+            "default" : "1"
+          },
+          "core-site" : {
+            "default" : "1"
+          },
+          "global" : {
+            "default" : "1"
+          },
+          "hadoop-policy" : {
+            "default" : "1"
+          },
+          "hdfs-log4j" : {
+            "default" : "1"
+          },
+          "hdfs-site" : {
+            "default" : "1"
+          },
+          "mapred-queue-acls" : {
+            "default" : "1"
+          },
+          "mapred-site" : {
+            "default" : "1"
+          },
+          "yarn-log4j" : {
+            "default" : "1"
+          },
+          "yarn-site" : {
+            "default" : "1"
+          },
+          "zookeeper-log4j" : {
+            "default" : "1"
+          }
+        }
+      },
+      "host" : {
+        "href" : "http://172.24.0.2:8080/api/v1/clusters/single-node-hdfs-yarn/hosts/amb0.mycorp.kom"
+      }
+    },
+    {
+      "href" : "http://172.24.0.2:8080/api/v1/clusters/single-node-hdfs-yarn/hosts/amb0.mycorp.kom/host_components/RESOURCEMANAGER",
+      "HostRoles" : {
+        "cluster_name" : "single-node-hdfs-yarn",
+        "component_name" : "RESOURCEMANAGER",
+        "desired_stack_id" : "HDP-2.0",
+        "desired_state" : "STARTED",
+        "host_name" : "amb0.mycorp.kom",
+        "maintenance_state" : "OFF",
+        "service_name" : "YARN",
+        "stack_id" : "HDP-2.0",
+        "stale_configs" : false,
+        "state" : "STARTED",
+        "actual_configs" : {
+          "capacity-scheduler" : {
+            "default" : "1"
+          },
+          "core-site" : {
+            "default" : "1"
+          },
+          "global" : {
+            "default" : "1"
+          },
+          "hadoop-policy" : {
+            "default" : "1"
+          },
+          "hdfs-log4j" : {
+            "default" : "1"
+          },
+          "hdfs-site" : {
+            "default" : "1"
+          },
+          "mapred-queue-acls" : {
+            "default" : "1"
+          },
+          "mapred-site" : {
+            "default" : "1"
+          },
+          "yarn-log4j" : {
+            "default" : "1"
+          },
+          "yarn-site" : {
+            "default" : "1"
+          },
+          "zookeeper-log4j" : {
+            "default" : "1"
+          }
+        }
+      },
+      "host" : {
+        "href" : "http://172.24.0.2:8080/api/v1/clusters/single-node-hdfs-yarn/hosts/amb0.mycorp.kom"
+      }
+    },
+    {
+      "href" : "http://172.24.0.2:8080/api/v1/clusters/single-node-hdfs-yarn/hosts/amb0.mycorp.kom/host_components/SECONDARY_NAMENODE",
+      "HostRoles" : {
+        "cluster_name" : "single-node-hdfs-yarn",
+        "component_name" : "SECONDARY_NAMENODE",
+        "desired_stack_id" : "HDP-2.0",
+        "desired_state" : "STARTED",
+        "host_name" : "amb0.mycorp.kom",
+        "maintenance_state" : "OFF",
+        "service_name" : "HDFS",
+        "stack_id" : "HDP-2.0",
+        "stale_configs" : false,
+        "state" : "STARTED",
+        "actual_configs" : {
+          "capacity-scheduler" : {
+            "default" : "1"
+          },
+          "core-site" : {
+            "default" : "1"
+          },
+          "global" : {
+            "default" : "1"
+          },
+          "hadoop-policy" : {
+            "default" : "1"
+          },
+          "hdfs-log4j" : {
+            "default" : "1"
+          },
+          "hdfs-site" : {
+            "default" : "1"
+          },
+          "mapred-queue-acls" : {
+            "default" : "1"
+          },
+          "mapred-site" : {
+            "default" : "1"
+          },
+          "yarn-log4j" : {
+            "default" : "1"
+          },
+          "yarn-site" : {
+            "default" : "1"
+          },
+          "zookeeper-log4j" : {
+            "default" : "1"
+          }
+        }
+      },
+      "host" : {
+        "href" : "http://172.24.0.2:8080/api/v1/clusters/single-node-hdfs-yarn/hosts/amb0.mycorp.kom"
+      }
+    },
+    {
+      "href" : "http://172.24.0.2:8080/api/v1/clusters/single-node-hdfs-yarn/hosts/amb0.mycorp.kom/host_components/YARN_CLIENT",
+      "HostRoles" : {
+        "cluster_name" : "single-node-hdfs-yarn",
+        "component_name" : "YARN_CLIENT",
+        "desired_stack_id" : "HDP-2.0",
+        "desired_state" : "INSTALLED",
+        "host_name" : "amb0.mycorp.kom",
+        "maintenance_state" : "OFF",
+        "service_name" : "YARN",
+        "stack_id" : "HDP-2.0",
+        "stale_configs" : false,
+        "state" : "INSTALLED",
+        "actual_configs" : {
+          "capacity-scheduler" : {
+            "default" : "1"
+          },
+          "core-site" : {
+            "default" : "1"
+          },
+          "global" : {
+            "default" : "1"
+          },
+          "hadoop-policy" : {
+            "default" : "1"
+          },
+          "hdfs-log4j" : {
+            "default" : "1"
+          },
+          "hdfs-site" : {
+            "default" : "1"
+          },
+          "mapred-queue-acls" : {
+            "default" : "1"
+          },
+          "mapred-site" : {
+            "default" : "1"
+          },
+          "yarn-log4j" : {
+            "default" : "1"
+          },
+          "yarn-site" : {
+            "default" : "1"
+          },
+          "zookeeper-log4j" : {
+            "default" : "1"
+          }
+        }
+      },
+      "host" : {
+        "href" : "http://172.24.0.2:8080/api/v1/clusters/single-node-hdfs-yarn/hosts/amb0.mycorp.kom"
+      }
+    },
+    {
+      "href" : "http://172.24.0.2:8080/api/v1/clusters/single-node-hdfs-yarn/hosts/amb0.mycorp.kom/host_components/ZOOKEEPER_CLIENT",
+      "HostRoles" : {
+        "cluster_name" : "single-node-hdfs-yarn",
+        "component_name" : "ZOOKEEPER_CLIENT",
+        "desired_stack_id" : "HDP-2.0",
+        "desired_state" : "INSTALLED",
+        "host_name" : "amb0.mycorp.kom",
+        "maintenance_state" : "OFF",
+        "service_name" : "ZOOKEEPER",
+        "stack_id" : "HDP-2.0",
+        "stale_configs" : false,
+        "state" : "INSTALLED",
+        "actual_configs" : {
+          "capacity-scheduler" : {
+            "default" : "1"
+          },
+          "core-site" : {
+            "default" : "1"
+          },
+          "global" : {
+            "default" : "1"
+          },
+          "hadoop-policy" : {
+            "default" : "1"
+          },
+          "hdfs-log4j" : {
+            "default" : "1"
+          },
+          "hdfs-site" : {
+            "default" : "1"
+          },
+          "mapred-queue-acls" : {
+            "default" : "1"
+          },
+          "mapred-site" : {
+            "default" : "1"
+          },
+          "yarn-log4j" : {
+            "default" : "1"
+          },
+          "yarn-site" : {
+            "default" : "1"
+          },
+          "zookeeper-log4j" : {
+            "default" : "1"
+          }
+        }
+      },
+      "host" : {
+        "href" : "http://172.24.0.2:8080/api/v1/clusters/single-node-hdfs-yarn/hosts/amb0.mycorp.kom"
+      }
+    },
+    {
+      "href" : "http://172.24.0.2:8080/api/v1/clusters/single-node-hdfs-yarn/hosts/amb0.mycorp.kom/host_components/ZOOKEEPER_SERVER",
+      "HostRoles" : {
+        "cluster_name" : "single-node-hdfs-yarn",
+        "component_name" : "ZOOKEEPER_SERVER",
+        "desired_stack_id" : "HDP-2.0",
+        "desired_state" : "STARTED",
+        "host_name" : "amb0.mycorp.kom",
+        "maintenance_state" : "OFF",
+        "service_name" : "ZOOKEEPER",
+        "stack_id" : "HDP-2.0",
+        "stale_configs" : false,
+        "state" : "STARTED",
+        "actual_configs" : {
+          "capacity-scheduler" : {
+            "default" : "1"
+          },
+          "core-site" : {
+            "default" : "1"
+          },
+          "global" : {
+            "default" : "1"
+          },
+          "hadoop-policy" : {
+            "default" : "1"
+          },
+          "hdfs-log4j" : {
+            "default" : "1"
+          },
+          "hdfs-site" : {
+            "default" : "1"
+          },
+          "mapred-queue-acls" : {
+            "default" : "1"
+          },
+          "mapred-site" : {
+            "default" : "1"
+          },
+          "yarn-log4j" : {
+            "default" : "1"
+          },
+          "yarn-site" : {
+            "default" : "1"
+          },
+          "zookeeper-log4j" : {
+            "default" : "1"
+          }
+        }
+      },
+      "host" : {
+        "href" : "http://172.24.0.2:8080/api/v1/clusters/single-node-hdfs-yarn/hosts/amb0.mycorp.kom"
+      }
+    }
+  ]
+}

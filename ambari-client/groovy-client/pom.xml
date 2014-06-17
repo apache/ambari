@@ -83,14 +83,8 @@
         <artifactId>apache-rat-plugin</artifactId>
         <configuration>
           <excludes>
-            <exclude>src/main/resources/blueprints/multi-node-hdfs-yarn</exclude>
-            <exclude>src/main/resources/blueprints/single-node-hdfs-yarn</exclude>
-            <exclude>src/test/resources/blueprint.json</exclude>
-            <exclude>src/test/resources/blueprints.json</exclude>
-            <exclude>src/test/resources/cluster.json</exclude>
-            <exclude>src/test/resources/hdfsServiceComponents.json</exclude>
-            <exclude>src/test/resources/services.json</exclude>
-            <exclude>src/test/resources/tasks.json</exclude>
+            <exclude>src/main/resources/blueprints/**</exclude>
+            <exclude>src/test/resources/**</exclude>
           </excludes>
         </configuration>
         <executions>

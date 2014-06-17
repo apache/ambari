@@ -1,0 +1,91 @@
+{
+  "href" : "http://localhost:49178/api/v1/hosts?fields=Hosts",
+  "items" : [
+    {
+      "href" : "http://localhost:49178/api/v1/hosts/server.ambari.com",
+      "Hosts" : {
+        "cluster_name" : "MySingleNodeCluster",
+        "cpu_count" : 2,
+        "desired_configs" : null,
+        "disk_info" : [
+          {
+            "available" : "30467416",
+            "used" : "6729092",
+            "percent" : "19%",
+            "size" : "39211376",
+            "type" : "rootfs",
+            "mountpoint" : "/"
+          },
+          {
+            "available" : "30467416",
+            "used" : "6729092",
+            "percent" : "19%",
+            "size" : "39211376",
+            "type" : "aufs",
+            "mountpoint" : "/"
+          },
+          {
+            "available" : "2027492",
+            "used" : "0",
+            "percent" : "0%",
+            "size" : "2027492",
+            "type" : "tmpfs",
+            "mountpoint" : "/dev"
+          },
+          {
+            "available" : "65536",
+            "used" : "0",
+            "percent" : "0%",
+            "size" : "65536",
+            "type" : "tmpfs",
+            "mountpoint" : "/dev/shm"
+          },
+          {
+            "available" : "2027492",
+            "used" : "0",
+            "percent" : "0%",
+            "size" : "2027492",
+            "type" : "tmpfs",
+            "mountpoint" : "/proc/kcore"
+          }
+        ],
+        "host_health_report" : "",
+        "host_name" : "server.ambari.com",
+        "host_state" : "HEALTHY",
+        "host_status" : "UNHEALTHY",
+        "ip" : "172.17.0.2",
+        "last_agent_env" : {
+          "stackFoldersAndFiles" : [ ],
+          "alternatives" : [ ],
+          "existingUsers" : [ ],
+          "existingRepos" : [
+            "unable_to_determine"
+          ],
+          "installedPackages" : [ ],
+          "hostHealth" : {
+            "activeJavaProcs" : [ ],
+            "agentTimeStampAtReporting" : 1401222525617,
+            "serverTimeStampAtReporting" : 1401222525661,
+            "liveServices" : [
+              {
+                "desc" : "ntpd: unrecognized service\n",
+                "status" : "Unhealthy",
+                "name" : "ntpd"
+              }
+            ]
+          },
+          "umask" : 18,
+          "iptablesIsRunning" : true
+        },
+        "last_heartbeat_time" : 1401222535701,
+        "last_registration_time" : 1401180386121,
+        "os_arch" : "x86_64",
+        "os_type" : "redhat6",
+        "ph_cpu_count" : 2,
+        "public_host_name" : "server.ambari.com",
+        "rack_info" : "/default-rack",
+        "total_mem" : 4054984
+      }
+    }
+  ]
+}

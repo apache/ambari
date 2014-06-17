@@ -26,9 +26,11 @@ import java.io.IOException;
 import java.net.URL;
 
 import org.apache.ambari.groovy.client.AmbariClient;
+import org.apache.ambari.shell.completion.Blueprint;
 import org.apache.ambari.shell.model.AmbariContext;
 import org.apache.ambari.shell.model.Hints;
 import org.apache.commons.io.IOUtils;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.shell.core.CommandMarker;
 import org.springframework.shell.core.annotation.CliAvailabilityIndicator;
@@ -46,11 +48,13 @@ public class BlueprintCommands implements CommandMarker {
 
   private AmbariClient client;
   private AmbariContext context;
+  private ObjectMapper jsonMapper;
 
   @Autowired
-  public BlueprintCommands(AmbariClient client, AmbariContext context) {
+  public BlueprintCommands(AmbariClient client, AmbariContext context, ObjectMapper jsonMapper) {
     this.client = client;
     this.context = context;
+    this.jsonMapper = jsonMapper;
   }
 
   /**
@@ -91,8 +95,8 @@ public class BlueprintCommands implements CommandMarker {
    */
   @CliCommand(value = "blueprint show", help = "Shows the blueprint by its id")
   public String showBlueprint(
-    @CliOption(key = "id", mandatory = true, help = "Id of the blueprint") String id) {
-    return renderMultiValueMap(client.getBlueprintMap(id), "HOSTGROUP", "COMPONENT");
+    @CliOption(key = "id", mandatory = true, help = "Id of the blueprint") Blueprint id) {
+    return renderMultiValueMap(client.getBlueprintMap(id.getName()), "HOSTGROUP", "COMPONENT");
   }
 
   /**
@@ -122,9 +126,9 @@ public class BlueprintCommands implements CommandMarker {
       String json = file == null ? readContent(url) : readContent(file);
       if (json != null) {
         client.addBlueprint(json);
-        message = "Blueprint added";
         context.setHint(Hints.BUILD_CLUSTER);
         context.setBlueprintsAvailable(true);
+        message = String.format("Blueprint: '%s' has been added", getBlueprintName(json));
       } else {
         message = "No blueprint specified";
       }
@@ -180,5 +184,15 @@ public class BlueprintCommands implements CommandMarker {
       // not important
     }
     return content;
+  }
+
+  private String getBlueprintName(String json) {
+    String result = "";
+    try {
+      result = jsonMapper.readTree(json.getBytes()).get("Blueprints").get("blueprint_name").asText();
+    } catch (IOException e) {
+      // not important
+    }
+    return result;
   }
 }

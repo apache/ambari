@@ -35,7 +35,11 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.ambari.groovy.client.AmbariClient;
+import org.apache.ambari.shell.completion.Blueprint;
+import org.apache.ambari.shell.completion.Host;
+import org.apache.ambari.shell.flash.FlashService;
 import org.apache.ambari.shell.model.AmbariContext;
+import org.apache.ambari.shell.model.Hints;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -44,7 +48,6 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import groovyx.net.http.HttpResponseException;
-
 
 @RunWith(MockitoJUnitRunner.class)
 public class ClusterCommandsTest {
@@ -58,6 +61,8 @@ public class ClusterCommandsTest {
   private AmbariContext context;
   @Mock
   private HttpResponseException responseException;
+  @Mock
+  private FlashService flashService;
 
   @Test
   public void testIsClusterBuildCommandAvailable() {
@@ -94,11 +99,11 @@ public class ClusterCommandsTest {
 
   @Test
   public void testBuildClusterForNonExistingBlueprint() {
-    when(client.doesBlueprintExists("id")).thenReturn(false);
+    when(client.doesBlueprintExist("id")).thenReturn(false);
 
-    String result = clusterCommands.buildCluster("id");
+    String result = clusterCommands.buildCluster(new Blueprint("id"));
 
-    verify(client).doesBlueprintExists("id");
+    verify(client).doesBlueprintExist("id");
     assertEquals("Not a valid blueprint id", result);
   }
 
@@ -106,14 +111,14 @@ public class ClusterCommandsTest {
   public void testBuildCluster() {
     Map<String, String> hostNames = singletonMap("host1", "HEALTHY");
     Map<String, List<String>> map = singletonMap("group1", asList("comp1", "comp2"));
-    when(client.doesBlueprintExists("id")).thenReturn(true);
+    when(client.doesBlueprintExist("id")).thenReturn(true);
     when(client.getBlueprintMap("id")).thenReturn(map);
     when(context.getFocusValue()).thenReturn("id");
     when(client.getHostNames()).thenReturn(hostNames);
 
-    String result = clusterCommands.buildCluster("id");
+    String result = clusterCommands.buildCluster(new Blueprint("id"));
 
-    verify(client).doesBlueprintExists("id");
+    verify(client).doesBlueprintExist("id");
     verify(client).getBlueprintMap("id");
     verify(client).getHostGroups("id");
     assertEquals(String.format("%s\n%s", renderSingleMap(hostNames, "HOSTNAME", "STATE"),
@@ -126,7 +131,7 @@ public class ClusterCommandsTest {
     ReflectionTestUtils.setField(clusterCommands, "hostGroups", map);
     when(client.getHostNames()).thenReturn(singletonMap("host3", "HEALTHY"));
 
-    String result = clusterCommands.assign("host3", "group0");
+    String result = clusterCommands.assign(new Host("host3"), "group0");
 
     assertEquals("group0 is not a valid host group", result);
   }
@@ -138,7 +143,7 @@ public class ClusterCommandsTest {
     ReflectionTestUtils.setField(clusterCommands, "hostGroups", map);
     when(client.getHostNames()).thenReturn(singletonMap("host3", "HEALTHY"));
 
-    String result = clusterCommands.assign("host3", "group1");
+    String result = clusterCommands.assign(new Host("host3"), "group1");
 
     assertEquals("host3 has been added to group1", result);
   }
@@ -150,7 +155,7 @@ public class ClusterCommandsTest {
     ReflectionTestUtils.setField(clusterCommands, "hostGroups", map);
     when(client.getHostNames()).thenReturn(singletonMap("host2", "HEALTHY"));
 
-    String result = clusterCommands.assign("host3", "group1");
+    String result = clusterCommands.assign(new Host("host3"), "group1");
 
     assertEquals("host3 is not a valid hostname", result);
   }
@@ -164,7 +169,7 @@ public class ClusterCommandsTest {
     doThrow(responseException).when(client).createCluster(blueprint, blueprint, map);
     doThrow(responseException).when(client).deleteCluster(blueprint);
 
-    String result = clusterCommands.createCluster();
+    String result = clusterCommands.createCluster(false);
 
     verify(client).createCluster(blueprint, blueprint, map);
     verify(client).getHostGroups(blueprint);
@@ -180,7 +185,7 @@ public class ClusterCommandsTest {
     when(context.getFocusValue()).thenReturn(blueprint);
     when(client.getClusterName()).thenReturn("cluster");
 
-    String result = clusterCommands.createCluster();
+    String result = clusterCommands.createCluster(false);
 
     verify(client).createCluster(blueprint, blueprint, map);
     verify(context).resetFocus();
@@ -242,5 +247,33 @@ public class ClusterCommandsTest {
     boolean result = clusterCommands.isClusterResetCommandAvailable();
 
     assertTrue(result);
+  }
+
+  @Test
+  public void testAutoAssignForEmptyResult() {
+    Map<String, List<String>> hostGroups = singletonMap("group1", asList("host1"));
+    ReflectionTestUtils.setField(clusterCommands, "hostGroups", hostGroups);
+    when(context.getFocusValue()).thenReturn("blueprint");
+    when(client.recommendAssignments("blueprint")).thenReturn(new HashMap<String, List<String>>());
+
+    clusterCommands.autoAssign();
+
+    Map<String, List<String>> result = (Map<String, List<String>>) ReflectionTestUtils.getField(clusterCommands, "hostGroups");
+    assertEquals(hostGroups, result);
+  }
+
+  @Test
+  public void testAutoAssign() {
+    Map<String, List<String>> hostGroups = singletonMap("group1", asList("host1"));
+    Map<String, List<String>> newAssignments = singletonMap("group1", asList("host1"));
+    ReflectionTestUtils.setField(clusterCommands, "hostGroups", hostGroups);
+    when(context.getFocusValue()).thenReturn("blueprint");
+    when(client.recommendAssignments("blueprint")).thenReturn(newAssignments);
+
+    clusterCommands.autoAssign();
+
+    Map<String, List<String>> result = (Map<String, List<String>>) ReflectionTestUtils.getField(clusterCommands, "hostGroups");
+    assertEquals(newAssignments, result);
+    verify(context).setHint(Hints.CREATE_CLUSTER);
   }
 }

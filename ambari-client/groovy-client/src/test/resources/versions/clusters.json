@@ -1,0 +1,12 @@
+{
+  "href" : "http://localhost:49178/api/v1/clusters",
+  "items" : [
+    {
+      "href" : "http://localhost:49178/api/v1/clusters/MySingleNodeCluster",
+      "Clusters" : {
+        "cluster_name" : "MySingleNodeCluster",
+        "version" : "HDP-2.1"
+      }
+    }
+  ]
+}

@@ -74,7 +74,7 @@ public class BasicCommands implements CommandMarker {
    *
    * @return true if available false otherwise
    */
-  @CliAvailabilityIndicator("service list")
+  @CliAvailabilityIndicator("services list")
   public boolean isServiceListCommandAvailable() {
     return context.isConnectedToCluster();
   }
@@ -84,7 +84,7 @@ public class BasicCommands implements CommandMarker {
    *
    * @return service list
    */
-  @CliCommand(value = "service list", help = "Lists the available services")
+  @CliCommand(value = "services list", help = "Lists the available services")
   public String servicesList() {
     return renderSingleMap(client.getServicesMap(), "SERVICE", "STATE");
   }
@@ -94,7 +94,7 @@ public class BasicCommands implements CommandMarker {
    *
    * @return true if available false otherwise
    */
-  @CliAvailabilityIndicator("service components")
+  @CliAvailabilityIndicator("services components")
   public boolean isServiceComponentsCommandAvailable() {
     return context.isConnectedToCluster();
   }
@@ -104,7 +104,7 @@ public class BasicCommands implements CommandMarker {
    *
    * @return service component list
    */
-  @CliCommand(value = "service components", help = "Lists all services with their components")
+  @CliCommand(value = "services components", help = "Lists all services with their components")
   public String serviceComponents() {
     return renderMapValueMap(client.getServiceComponentsMap(), "SERVICE", "COMPONENT", "STATE");
   }
@@ -169,5 +169,39 @@ public class BasicCommands implements CommandMarker {
   @CliCommand(value = "hint", help = "Shows some hints")
   public String hint() {
     return context.getHint();
+  }
+
+  @CliAvailabilityIndicator("services stop")
+  public boolean isServiceStopCommandAvailable() {
+    return context.isConnectedToCluster();
+  }
+
+  @CliCommand(value = "services stop", help = "Stops all the running services")
+  public String stopServices() {
+    String message;
+    try {
+      client.stopAllServices();
+      message = "Stopping all services..";
+    } catch (Exception e) {
+      message = "Cannot stop services";
+    }
+    return String.format("%s\n\n%s", message, servicesList());
+  }
+
+  @CliAvailabilityIndicator("services start")
+  public boolean isServiceStartCommandAvailable() {
+    return context.isConnectedToCluster();
+  }
+
+  @CliCommand(value = "services start", help = "Starts all the services")
+  public String startServices() {
+    String message;
+    try {
+      client.startAllServices();
+      message = "Starting all services..";
+    } catch (Exception e) {
+      message = "Cannot start services";
+    }
+    return String.format("%s\n\n%s", message, servicesList());
   }
 }

@@ -55,6 +55,7 @@ public class AmbariShell implements CommandLineRunner, ShellStatusListener {
           break;
         }
       }
+      System.exit(0);
     } else {
       shell.addShellStatusListener(this);
       shell.start();

@@ -20,6 +20,7 @@ package org.apache.ambari.shell.commands;
 import static org.apache.ambari.shell.support.TableRenderer.renderSingleMap;
 
 import org.apache.ambari.groovy.client.AmbariClient;
+import org.apache.ambari.shell.completion.Host;
 import org.apache.ambari.shell.model.AmbariContext;
 import org.apache.ambari.shell.model.FocusType;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -84,13 +85,14 @@ public class HostCommands implements CommandMarker {
    */
   @CliCommand(value = "host focus", help = "Sets the useHost to the specified host")
   public String focusHost(
-    @CliOption(key = "host", mandatory = true, help = "hostname") String host) {
+    @CliOption(key = "host", mandatory = true, help = "hostname") Host host) {
     String message;
-    if (client.getHostNames().keySet().contains(host)) {
-      context.setFocus(host, FocusType.HOST);
-      message = "Focus set to: " + host;
+    String hostName = host.getName();
+    if (client.getHostNames().keySet().contains(hostName)) {
+      context.setFocus(hostName, FocusType.HOST);
+      message = "Focus set to: " + hostName;
     } else {
-      message = host + " is not a valid host name";
+      message = hostName + " is not a valid host name";
     }
     return message;
   }

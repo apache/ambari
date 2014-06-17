@@ -34,6 +34,9 @@
         "name" : "ZOOKEEPER_SERVER"
       },
       {
+        "name" : "APP_TIMELINE_SERVER"
+      },
+      {
         "name" : "ZOOKEEPER_CLIENT"
       }
       ],
@@ -43,6 +46,6 @@
   "Blueprints" : {
     "blueprint_name" : "single-node-hdfs-yarn",
     "stack_name" : "HDP",
-    "stack_version" : "2.0"
+    "stack_version" : "2.1"
   }
 }

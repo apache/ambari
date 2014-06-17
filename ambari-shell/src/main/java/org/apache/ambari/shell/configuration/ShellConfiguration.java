@@ -18,10 +18,12 @@
 package org.apache.ambari.shell.configuration;
 
 import org.apache.ambari.groovy.client.AmbariClient;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
+import org.springframework.scheduling.concurrent.ThreadPoolExecutorFactoryBean;
 import org.springframework.shell.CommandLine;
 import org.springframework.shell.SimpleShellCommandLineOptions;
 import org.springframework.shell.commands.ExitCommands;
@@ -78,6 +80,16 @@ public class ShellConfiguration {
   CommandLine commandLine() throws Exception {
     String[] args = cmdFile.length() > 0 ? new String[]{"--cmdfile", cmdFile} : new String[0];
     return SimpleShellCommandLineOptions.parseCommandLine(args);
+  }
+
+  @Bean
+  ThreadPoolExecutorFactoryBean getThreadPoolExecutorFactoryBean() {
+    return new ThreadPoolExecutorFactoryBean();
+  }
+
+  @Bean
+  ObjectMapper getObjectMapper() {
+    return new ObjectMapper();
   }
 
   @Bean

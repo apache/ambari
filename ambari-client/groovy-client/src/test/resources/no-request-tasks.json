@@ -1,0 +1,10 @@
+{
+  "href" : "http://172.18.0.2:8080/api/v1/clusters/MySingleNodeCluster/requests/1",
+  "Requests" : {
+    "cluster_name" : "MySingleNodeCluster",
+    "id" : 1
+  },
+  "tasks" : [
+
+  ]
+}

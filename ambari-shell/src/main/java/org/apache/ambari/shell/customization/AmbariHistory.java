@@ -17,38 +17,24 @@
  */
 package org.apache.ambari.shell.customization;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.when;
+import org.springframework.shell.plugin.HistoryFileNameProvider;
+import org.springframework.stereotype.Component;
 
-import org.apache.ambari.shell.model.AmbariContext;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+/**
+ * Specifies the name of the Ambari command log. Later this log can be used
+ * to re-execute the commands with either the --cmdfile option at startup
+ * or with the script --file command.
+ */
+@Component
+public class AmbariHistory implements HistoryFileNameProvider {
 
-@RunWith(MockitoJUnitRunner.class)
-public class AmbariPromptTest {
-
-  @InjectMocks
-  private AmbariPrompt prompt;
-
-  @Mock
-  private AmbariContext context;
-
-  @Test
-  public void testGetProviderName() {
-    String result = prompt.getProviderName();
-
-    assertEquals(AmbariPrompt.class.getSimpleName(), result);
+  @Override
+  public String getHistoryFileName() {
+    return "ambari-log.ash";
   }
 
-  @Test
-  public void testGetPrompt(){
-    when(context.getPrompt()).thenReturn("prompt");
-
-    String result = prompt.getPrompt();
-
-    assertEquals("prompt", result);
+  @Override
+  public String getProviderName() {
+    return "AmbariShell";
   }
 }

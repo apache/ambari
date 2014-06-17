@@ -1,0 +1,63 @@
+{
+  "href" : "http://172.18.0.2:8080/api/v1/clusters/MySingleNodeCluster/services/HDFS/components?fields=ServiceComponentInfo",
+  "items" : [
+    {
+      "href" : "http://172.18.0.2:8080/api/v1/clusters/MySingleNodeCluster/services/HDFS/components/DATANODE",
+      "ServiceComponentInfo" : {
+        "category" : "SLAVE",
+        "cluster_name" : "MySingleNodeCluster",
+        "component_name" : "DATANODE",
+        "service_name" : "HDFS",
+        "state" : "STARTED"
+      }
+    },
+    {
+      "href" : "http://172.18.0.2:8080/api/v1/clusters/MySingleNodeCluster/services/HDFS/components/HDFS_CLIENT",
+      "ServiceComponentInfo" : {
+        "category" : "CLIENT",
+        "cluster_name" : "MySingleNodeCluster",
+        "component_name" : "HDFS_CLIENT",
+        "service_name" : "HDFS",
+        "state" : "INSTALLED"
+      }
+    },
+    {
+      "href" : "http://172.18.0.2:8080/api/v1/clusters/MySingleNodeCluster/services/HDFS/components/NAMENODE",
+      "ServiceComponentInfo" : {
+        "CapacityRemaining" : 15762272256,
+        "CapacityTotal" : 18433347584,
+        "CapacityUsed" : 24576,
+        "DeadNodes" : "{}",
+        "DecomNodes" : "{}",
+        "HeapMemoryMax" : 1052770304,
+        "HeapMemoryUsed" : 161373832,
+        "LiveNodes" : "{\"server.ambari.com\":{\"infoAddr\":\"172.18.0.2:50075\",\"infoSecureAddr\":\"172.18.0.2:0\",\"xferaddr\":\"172.18.0.2:50010\",\"lastContact\":2,\"usedSpace\":24576,\"adminState\":\"In Service\",\"nonDfsUsedSpace\":2671050752,\"capacity\":18433347584,\"numBlocks\":0,\"version\":\"2.4.0.2.1.1.0-390\",\"used\":24576,\"remaining\":15762272256,\"blockScheduled\":0,\"blockPoolUsed\":24576,\"blockPoolUsedPercent\":1.3332359E-4,\"volfails\":0}}",
+        "NonDfsUsedSpace" : 2671050752,
+        "NonHeapMemoryMax" : 136314880,
+        "NonHeapMemoryUsed" : 34330384,
+        "PercentRemaining" : 85.509544,
+        "PercentUsed" : 1.3332359E-4,
+        "Safemode" : "",
+        "StartTime" : 1401353117084,
+        "TotalFiles" : 10,
+        "UpgradeFinalized" : true,
+        "Version" : "2.4.0.2.1.1.0-390, r68ceccf06a4441273e81a5ec856d41fc7e11c792",
+        "category" : "MASTER",
+        "cluster_name" : "MySingleNodeCluster",
+        "component_name" : "NAMENODE",
+        "service_name" : "HDFS",
+        "state" : "STARTED"
+      }
+    },
+    {
+      "href" : "http://172.18.0.2:8080/api/v1/clusters/MySingleNodeCluster/services/HDFS/components/SECONDARY_NAMENODE",
+      "ServiceComponentInfo" : {
+        "category" : "MASTER",
+        "cluster_name" : "MySingleNodeCluster",
+        "component_name" : "SECONDARY_NAMENODE",
+        "service_name" : "HDFS",
+        "state" : "STARTED"
+      }
+    }
+  ]
+}

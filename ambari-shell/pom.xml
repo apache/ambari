@@ -67,6 +67,10 @@
       <groupId>jline</groupId>
       <artifactId>jline</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.codehaus.jackson</groupId>
+      <artifactId>jackson-mapper-asl</artifactId>
+    </dependency>
   </dependencies>
   <build>
     <plugins>
