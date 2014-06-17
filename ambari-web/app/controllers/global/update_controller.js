@@ -200,9 +200,9 @@ App.UpdateController = Em.Controller.extend({
       conditionalFieldsString = conditionalFields.length > 0 ? ',' + conditionalFields.join(',') : '',
       testUrl = App.get('isHadoop2Stack') ? '/data/dashboard/HDP2/master_components.json' : '/data/dashboard/services.json',
       isFlumeInstalled = App.cache['services'].mapProperty('ServiceInfo.service_name').contains('FLUME'),
-      isYarnInstalled = App.cache['services'].mapProperty('ServiceInfo.service_name').contains('YARN'),
+      isATSInstalled = App.cache['services'].mapProperty('ServiceInfo.service_name').contains('YARN') && App.get('isHadoop21Stack'),
       flumeHandlerParam = isFlumeInstalled ? 'ServiceComponentInfo/component_name=FLUME_HANDLER|' : '',
-      atsHandlerParam = isYarnInstalled ? 'ServiceComponentInfo/component_name=APP_TIMELINE_SERVER|' : '',
+      atsHandlerParam = isATSInstalled ? 'ServiceComponentInfo/component_name=APP_TIMELINE_SERVER|' : '',
       realUrl = '/components/?' + flumeHandlerParam + atsHandlerParam +
         'ServiceComponentInfo/category=MASTER&fields=' +
         'ServiceComponentInfo/Version,' +
