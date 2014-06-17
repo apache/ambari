@@ -242,31 +242,32 @@ App.MainMirroringController = Em.ArrayController.extend({
         });
       }, this);
     } else {
-      var defaultFS = this.loadDefaultFS();
-      var clusterName = App.get('clusterName');
-      var sourceCluster = Ember.Object.create({
-        name: clusterName,
-        execute: App.HostComponent.find().findProperty('componentName', 'RESOURCEMANAGER').get('hostName') + ':8050',
-        readonly: 'hftp://' + App.HostComponent.find().findProperty('componentName', 'NAMENODE').get('hostName') + ':50070',
-        workflow: 'http://' + App.HostComponent.find().findProperty('componentName', 'OOZIE_SERVER').get('hostName') + ':11000/oozie',
-        write: defaultFS,
-        staging: '/apps/falcon/' + clusterName + '/staging',
-        working: '/apps/falcon/' + clusterName + '/working',
-        temp: '/tmp'
+      this.loadDefaultFS(function (defaultFS) {
+        var clusterName = App.get('clusterName');
+        var sourceCluster = Ember.Object.create({
+          name: clusterName,
+          execute: App.HostComponent.find().findProperty('componentName', 'RESOURCEMANAGER').get('hostName') + ':8050',
+          readonly: 'hftp://' + App.HostComponent.find().findProperty('componentName', 'NAMENODE').get('hostName') + ':50070',
+          workflow: 'http://' + App.HostComponent.find().findProperty('componentName', 'OOZIE_SERVER').get('hostName') + ':11000/oozie',
+          write: defaultFS,
+          staging: '/apps/falcon/' + clusterName + '/staging',
+          working: '/apps/falcon/' + clusterName + '/working',
+          temp: '/tmp'
+        });
+        var sourceClusterData = App.router.get('mainMirroringManageClustersController').formatClusterXML(sourceCluster);
+        App.ajax.send({
+          name: 'mirroring.submit_entity',
+          sender: this,
+          data: {
+            type: 'cluster',
+            entity: sourceClusterData,
+            falconServer: App.get('falconServerURL')
+          },
+          success: 'onSourceClusterCreateSuccess',
+          error: 'onSourceClusterCreateError'
+        });
+        clustersData.items.push(sourceCluster);
       });
-      var sourceClusterData = App.router.get('mainMirroringManageClustersController').formatClusterXML(sourceCluster);
-      App.ajax.send({
-        name: 'mirroring.submit_entity',
-        sender: this,
-        data: {
-          type: 'cluster',
-          entity: sourceClusterData,
-          falconServer: App.get('falconServerURL')
-        },
-        success: 'onSourceClusterCreateSuccess',
-        error: 'onSourceClusterCreateError'
-      });
-      clustersData.items.push(sourceCluster);
     }
   },
 
@@ -274,31 +275,35 @@ App.MainMirroringController = Em.ArrayController.extend({
    * Return fs.defaultFS config property loaded from server
    * @return {String}
    */
-  loadDefaultFS: function () {
+  loadDefaultFS: function (callback) {
     App.ajax.send({
-      name: 'config.tags.sync',
+      name: 'config.tags',
       sender: this,
+      data: {
+        callback: callback
+      },
       success: 'onLoadConfigTagsSuccess',
       error: 'onLoadConfigTagsError'
     });
+  },
+
+  // Loaded core-site tag version
+  tag: null,
+
+  onLoadConfigTagsSuccess: function (data, opt, params) {
+    this.set('tag', data.Clusters.desired_configs['core-site'].tag);
     var configs = App.router.get('configurationController').getConfigsByTags([
       {
         siteName: "core-site",
         tagName: this.get('tag')
       }
     ]);
-    return configs[0].properties['fs.defaultFS'];
+    params.callback(configs[0].properties['fs.defaultFS']);
   },
 
-  // Loaded core-site tag version
-  tag: null,
-
-  onLoadConfigTagsSuccess: function (data) {
-    this.set('tag', data.Clusters.desired_configs['core-site'].tag);
-  },
-
-  onLoadConfigTagsError: function () {
+  onLoadConfigTagsError: function (request, ajaxOptions, error, opt, params) {
     console.error('Error in loading fs.defaultFS');
+    params.callback(null);
   },
 
   onLoadClustersListError: function () {

@@ -265,7 +265,6 @@ var urls = {
     'type': 'PUT',
     'format': function (data) {
       return {
-        async: false,
         data: JSON.stringify({
           Clusters: {
             desired_config: {
@@ -314,21 +313,7 @@ var urls = {
 
   'config.advanced': {
     'real': '{stackVersionUrl}/services/{serviceName}/configurations?fields=*',
-    'mock': '/data/wizard/stack/hdp/version{stackVersion}/{serviceName}.json',
-    'format': function (data) {
-      return {
-        async: !data.sync
-      };
-    }
-  },
-  'config.advanced.global': {
-    'real': '{stackVersionUrl}/services?fields=configurations/StackConfigurations/type',
-    'mock': '/data/wizard/stack/hdp/version1.3.0/global.json',
-    'format': function() {
-      return {
-        async: false
-      };
-    }
+    'mock': '/data/wizard/stack/hdp/version{stackVersion}/{serviceName}.json'
   },
   'config.tags': {
     'real': '/clusters/{clusterName}?fields=Clusters/desired_configs',
@@ -337,15 +322,6 @@ var urls = {
   'config.tags_and_groups': {
     'real': '/clusters/{clusterName}?fields=Clusters/desired_configs,config_groups/*{urlParams}',
     'mock': '/data/clusters/tags_and_groups.json'
-  },
-  'config.tags.sync': {
-    'real': '/clusters/{clusterName}?fields=Clusters/desired_configs',
-    'mock': '/data/clusters/cluster.json',
-    'format': function() {
-      return {
-        async: false
-      };
-    }
   },
   'config.ambari.database.info': {
     'real': '/services/AMBARI/components/AMBARI_SERVER?fields=hostComponents/RootServiceHostComponents/properties/server.jdbc.database,hostComponents/RootServiceHostComponents/properties/server.jdbc.url',
@@ -1291,7 +1267,6 @@ var urls = {
     'type': 'PUT',
     'format': function (data) {
       return {
-        async: true,
         data: JSON.stringify(data.data)
       }
     }
@@ -1416,7 +1391,6 @@ var urls = {
     'format': function () {
       return {
         type: 'GET',
-        async: true,
         dataType: 'text'
       };
     }
@@ -1448,7 +1422,6 @@ var urls = {
     'format': function(data) {
       return {
         type: 'POST',
-        async: true,
         dataType: 'text',
         data: data.data
       }
@@ -1461,7 +1434,6 @@ var urls = {
     'format': function(data) {
       return {
         type: 'POST',
-        async: true,
         dataType: 'text',
         data: data.data
       }
@@ -1474,7 +1446,6 @@ var urls = {
     'format': function(data) {
       return {
         type: 'POST',
-        async: true,
         dataType: 'text',
         data: data.data
       }
@@ -1487,7 +1458,6 @@ var urls = {
     'format': function(data) {
       return {
         type: 'POST',
-        async: true,
         dataType: 'text',
         data: data.data
       }
@@ -1500,7 +1470,6 @@ var urls = {
     'format': function(data) {
       return {
         type: 'POST',
-        async: true,
         dataType: 'text',
         data: data.data
       }
@@ -1513,7 +1482,6 @@ var urls = {
     'format': function(data) {
       return {
         type: 'PUT',
-        async: true,
         dataType: 'text',
         data: data.data
       }
@@ -1526,7 +1494,6 @@ var urls = {
     'format': function(data) {
       return {
         type: 'POST',
-        async: true,
         dataType: 'text',
         data: data.data
       }
@@ -1539,7 +1506,6 @@ var urls = {
     'format': function(data) {
       return {
         type: 'PUT',
-        async: true,
         dataType: 'text',
         data: data.data
       }
@@ -1729,7 +1695,6 @@ var urls = {
     'mock': '',
     'format': function (data) {
       return {
-        async: true,
         type: 'PUT',
         data: JSON.stringify(data.data)
       }
@@ -2160,7 +2125,6 @@ var urls = {
       $.extend(true, requestInfo, data.requestInfo)
       return {
         type: 'POST',
-        async: true,
         data: JSON.stringify({
           'RequestInfo': requestInfo,
           'Requests/resource_filters': [{
@@ -2175,7 +2139,6 @@ var urls = {
     'mock': '',
     'format': function(data) {
       return {
-        async: true,
         requestId: data.requestId,
         taskId: data.taskId || ''
       }

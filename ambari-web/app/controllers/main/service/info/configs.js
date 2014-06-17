@@ -240,6 +240,20 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * Loads service configurations
    */
   loadServiceConfigs: function () {
+    var advancedConfigs = [];
+    var self = this;
+
+    App.config.loadAdvancedConfig(this.get('content.serviceName'), function (properties) {
+      advancedConfigs.pushObjects(properties);
+      self.set('advancedConfigs', advancedConfigs);
+      self.loadServiceTags();
+    });
+  },
+
+  /**
+   * load config tags of service
+   */
+  loadServiceTags: function () {
     App.ajax.send({
       name: 'config.tags_and_groups',
       sender: this,
@@ -302,21 +316,13 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
           }
         }, this);
       }
-      this.set('configGroups', []);
-      lazyLoading.run({
-        initSize: 20,
-        chunkSize: 50,
-        delay: 50,
-        destination: this.get('configGroups'),
-        source: configGroups,
-        context: this
-      });
+      this.set('configGroups', configGroups);
     }
     var defaultConfigGroup = App.ConfigGroup.create({
       name: App.Service.DisplayNames[serviceName] + " Default",
       description: "Default cluster level " + serviceName + " configuration",
       isDefault: true,
-      hosts: [],
+      hosts: defaultConfigGroupHosts,
       parentConfigGroup: null,
       service: this.get('content'),
       serviceName: serviceName,
@@ -324,14 +330,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     });
     if (!selectedConfigGroup) {
       selectedConfigGroup = defaultConfigGroup;
-      lazyLoading.run({
-        initSize: 20,
-        chunkSize: 50,
-        delay: 50,
-        destination: selectedConfigGroup.get('hosts'),
-        source: defaultConfigGroupHosts,
-        context: Em.Object.create()
-      });
     }
 
     this.get('configGroups').sort(function(configGroupA, configGroupB){
@@ -360,11 +358,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     }
     //STEP 2: Create an array of objects defining tag names to be polled and new tag names to be set after submit
     this.setServiceConfigTags(this.loadedClusterSiteToTagMap);
-    //STEP 3: Load advanced configs from server
-    var advancedConfigs = [];
-    App.config.loadAdvancedConfig(serviceName, function (properties) {
-      advancedConfigs.pushObjects(properties);
-    }, true);
+    //STEP 3: Load advanced configs
+    var advancedConfigs = this.get('advancedConfigs');
     //STEP 4: Load on-site config by service from server
     var configGroups = App.router.get('configurationController').getConfigsByTags(this.get('serviceConfigTags'));
     //STEP 5: Merge global and on-site configs with pre-defined
@@ -1158,14 +1153,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       var overridenConfigs = [];
       var groupHosts = [];
       configs.filterProperty('isOverridden', true).forEach(function (config) {
-        lazyLoading.run({
-          initSize: 20,
-          chunkSize: 50,
-          delay: 50,
-          destination: overridenConfigs,
-          source: config.get('overrides'),
-          context: Em.Object.create()
-        });
+        overridenConfigs = overridenConfigs.concat(config.get('overrides'));
       });
       this.formatConfigValues(overridenConfigs);
       selectedConfigGroup.get('hosts').forEach(function(hostName){

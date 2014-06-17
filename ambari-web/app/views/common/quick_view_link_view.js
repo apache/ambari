@@ -25,9 +25,10 @@ App.QuickViewLinks = Em.View.extend({
 
   loadTags: function () {
     App.ajax.send({
-      name: 'config.tags.sync',
+      name: 'config.tags',
       sender: this,
-      success: 'loadTagsSuccess'
+      success: 'loadTagsSuccess',
+      error: 'loadTagsError'
     });
   },
 
@@ -41,6 +42,24 @@ App.QuickViewLinks = Em.View.extend({
     }
     this.set('actualTags', tags);
     this.setConfigProperties();
+    this.getQuickLinksHosts();
+  },
+
+  loadTagsError: function() {
+    this.getQuickLinksHosts();
+  },
+
+  getQuickLinksHosts: function () {
+    App.ajax.send({
+      name: 'hosts.for_quick_links',
+      sender: this,
+      data: {
+        clusterName: App.get('clusterName'),
+        masterComponents: App.StackServiceComponent.find().filterProperty('isMaster', true).mapProperty('componentName').join(','),
+        urlParams: ',host_components/metrics/hbase/master/IsActiveMaster'
+      },
+      success: 'setQuickLinksSuccessCallback'
+    });
   },
 
   actualTags: [],
@@ -82,20 +101,10 @@ App.QuickViewLinks = Em.View.extend({
   },
 
   setQuickLinks: function () {
-    App.ajax.send({
-      name: 'hosts.for_quick_links',
-      sender: this,
-      data: {
-        clusterName: App.get('clusterName'),
-        masterComponents: App.StackServiceComponent.find().filterProperty('isMaster', true).mapProperty('componentName').join(','),
-        urlParams: ',host_components/metrics/hbase/master/IsActiveMaster'
-      },
-      success: 'setQuickLinksSuccessCallback'
-    });
+    this.loadTags();
   }.observes('App.currentStackVersionNumber', 'App.singleNodeInstall'),
 
   setQuickLinksSuccessCallback: function (response) {
-    this.loadTags();
     var serviceName = this.get('content.serviceName');
     var hosts = [];
     var self = this;

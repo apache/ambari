@@ -611,6 +611,12 @@ App.WizardStep7Controller = Em.Controller.extend({
     }
   },
 
+  checkConfigLoad: function() {
+    if (this.get('wizardController.name') === 'addServiceController') {
+      this.set('isAdvancedConfigLoaded', false);
+    }
+  },
+
   /**
    * On load function
    * @method loadStep
@@ -618,6 +624,7 @@ App.WizardStep7Controller = Em.Controller.extend({
   loadStep: function () {
     console.log("TRACE: Loading step7: Configure Services");
     if (!this.get('isAdvancedConfigLoaded')) {
+      this.getConfigTags();
       return;
     }
     this.clearStep();
@@ -643,7 +650,6 @@ App.WizardStep7Controller = Em.Controller.extend({
     this.set('groupsToDelete', this.get('wizardController').getDBProperty('groupsToDelete') || []);
 
     if (this.get('wizardController.name') === 'addServiceController') {
-      this.getConfigTags();
       this.setInstalledServiceConfigs(this.get('serviceConfigTags'), configs);
     }
     if (this.get('allSelectedServiceNames').contains('STORM') || this.get('installedServiceNames').contains('STORM')) {
@@ -732,7 +738,7 @@ App.WizardStep7Controller = Em.Controller.extend({
    */
   getConfigTags: function () {
     return App.ajax.send({
-      name: 'config.tags.sync',
+      name: 'config.tags',
       sender: this,
       success: 'getConfigTagsSuccess'
     });
@@ -765,6 +771,7 @@ App.WizardStep7Controller = Em.Controller.extend({
       }
     }
     this.set('serviceConfigTags', serviceConfigTags);
+    this.set('isAdvancedConfigLoaded', true);
   },
 
   /**

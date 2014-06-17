@@ -70,7 +70,7 @@ App.ReassignMasterController = App.WizardController.extend({
     } else {
       //get Security Status From Server
       App.ajax.send({
-        name: 'config.tags.sync',
+        name: 'config.tags',
         sender: this,
         success: 'getSecurityStatusSuccessCallback',
         error: 'errorCallback'

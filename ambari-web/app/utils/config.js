@@ -783,18 +783,18 @@ App.config = Em.Object.create({
    * called form stepController step6WizardController
    *
    * @param serviceName
-   * @return {*}
+   * @param callback
+   * @return {object|null}
    */
-  loadAdvancedConfig: function (serviceName, callback, sync) {
-    App.ajax.send({
+  loadAdvancedConfig: function (serviceName, callback) {
+    return App.ajax.send({
       name: 'config.advanced',
       sender: this,
       data: {
         serviceName: serviceName,
         stackVersionUrl: App.get('stackVersionURL'),
         stackVersion: App.get('currentStackVersionNumber'),
-        callback: callback,
-        sync: sync
+        callback: callback
       },
       success: 'loadAdvancedConfigSuccess',
       error: 'loadAdvancedConfigError'

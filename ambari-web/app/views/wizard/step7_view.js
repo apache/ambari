@@ -21,6 +21,10 @@ var App = require('app');
 
 App.WizardStep7View = Em.View.extend({
 
-  templateName: require('templates/wizard/step7')
+  templateName: require('templates/wizard/step7'),
+
+  willInsertElement: function () {
+    this.get('controller').checkConfigLoad();
+  }
 
 });
