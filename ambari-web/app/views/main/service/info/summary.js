@@ -52,6 +52,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     storm: false,
     tez: false,
     pig :false,
+    glusterfs: false,
     sqoop: false
   },
   /** @property collapsedMetrics {object[]} - metrics list for collapsed section
@@ -63,7 +64,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
    */
   collapsedSections: null,
 
-  servicesHaveClients: ["OOZIE", "ZOOKEEPER", "HIVE", "MAPREDUCE2", "TEZ", "SQOOP", "PIG","FALCON"],
+  servicesHaveClients: ["GLUSTERFS", "OOZIE", "ZOOKEEPER", "HIVE", "MAPREDUCE2", "TEZ", "SQOOP", "PIG","FALCON"],
 
   sumMasterComponentView : Em.View.extend({
     didInsertElement: function() {

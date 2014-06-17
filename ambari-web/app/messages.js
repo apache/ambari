@@ -1429,6 +1429,8 @@ Em.I18n.translations = {
   'services.tez.clients': 'Tez clients',
   'services.pig.client': 'Pig client',
   'services.pig.clients': 'Pig clients',
+  'services.glusterfs.client': 'GLUSTERFS client',
+  'services.glusterfs.clients': 'GLUSTERFS clients',
   'services.sqoop.client': 'Sqoop client',
   'services.sqoop.clients': 'Sqoop clients',
 
