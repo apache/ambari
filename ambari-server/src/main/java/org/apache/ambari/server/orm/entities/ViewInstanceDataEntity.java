@@ -36,10 +36,12 @@ import javax.persistence.Table;
 public class ViewInstanceDataEntity {
 
   @Id
+  @Column(name = "view_instance_id", nullable = false, insertable = false, updatable = false)
+  private Long viewInstanceId;
+
   @Column(name = "view_name", nullable = false, insertable = false, updatable = false)
   private String viewName;
 
-  @Id
   @Column(name = "view_instance_name", nullable = false, insertable = false, updatable = false)
   private String viewInstanceName;
 
@@ -66,10 +68,20 @@ public class ViewInstanceDataEntity {
 
   @ManyToOne
   @JoinColumns({
-      @JoinColumn(name = "view_name", referencedColumnName = "view_name", nullable = false),
-      @JoinColumn(name = "view_instance_name", referencedColumnName = "name", nullable = false)
+    @JoinColumn(name = "view_instance_id", referencedColumnName = "view_instance_id", nullable = false),
+    @JoinColumn(name = "view_name", referencedColumnName = "view_name", nullable = false),
+    @JoinColumn(name = "view_instance_name", referencedColumnName = "name", nullable = false)
   })
   private ViewInstanceEntity viewInstance;
+
+
+  public Long getViewInstanceId() {
+    return viewInstanceId;
+  }
+
+  public void setViewInstanceId(Long viewInstanceId) {
+    this.viewInstanceId = viewInstanceId;
+  }
 
   /**
    * Get the view name.

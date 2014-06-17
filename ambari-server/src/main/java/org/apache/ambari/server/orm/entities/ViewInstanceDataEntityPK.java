@@ -27,12 +27,8 @@ import javax.persistence.Id;
 public class ViewInstanceDataEntityPK {
 
   @Id
-  @Column(name = "view_name", nullable = false, insertable = true, updatable = false, length = 100)
-  private String viewName;
-
-  @Id
-  @Column(name = "view_instance_name", nullable = false, insertable = true, updatable = false, length = 100)
-  private String viewInstanceName;
+  @Column(name = "view_instance_id", nullable = false, insertable = false, updatable = false)
+  private Long viewInstanceId;
 
   @Id
   @Column(name = "name", nullable = false, insertable = true, updatable = false, length = 100)
@@ -42,40 +38,12 @@ public class ViewInstanceDataEntityPK {
   @Column(name = "user_name", nullable = false, insertable = true, updatable = false, length = 100)
   private String user;
 
-  /**
-   * Get the name of the associated view.
-   *
-   * @return view name
-   */
-  public String getViewName() {
-    return viewName;
+  public Long getViewInstanceId() {
+    return viewInstanceId;
   }
 
-  /**
-   * Set the name of the associated view.
-   *
-   * @param viewName  view name
-   */
-  public void setViewName(String viewName) {
-    this.viewName = viewName;
-  }
-
-  /**
-   * Get the view instance name.
-   *
-   * @return the view instance name
-   */
-  public String getViewInstanceName() {
-    return viewInstanceName;
-  }
-
-  /**
-   * Set the view instance name.
-   *
-   * @param viewInstanceName  the view instance name
-   */
-  public void setViewInstanceName(String viewInstanceName) {
-    this.viewInstanceName = viewInstanceName;
+  public void setViewInstanceId(Long viewInstanceId) {
+    this.viewInstanceId = viewInstanceId;
   }
 
   /**
@@ -121,15 +89,15 @@ public class ViewInstanceDataEntityPK {
 
     ViewInstanceDataEntityPK that = (ViewInstanceDataEntityPK) o;
 
-    return this.viewName.equals(that.viewName) &&
-        this.viewInstanceName.equals(that.viewInstanceName) &&
-        this.name.equals(that.name) &&
-        this.user.equals(that.user);
+    return name.equals(that.name) && user.equals(that.user) && viewInstanceId.equals(that.viewInstanceId);
+
   }
 
   @Override
   public int hashCode() {
-    return 31 * viewName.hashCode() + viewInstanceName.hashCode() +
-        name.hashCode() + user.hashCode();
+    int result = viewInstanceId.hashCode();
+    result = 31 * result + name.hashCode();
+    result = 31 * result + user.hashCode();
+    return result;
   }
 }

@@ -24,7 +24,6 @@ import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.orm.entities.ViewInstanceDataEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
-import org.apache.ambari.server.orm.entities.ViewInstanceEntityPK;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
@@ -40,6 +39,8 @@ public class ViewInstanceDAO {
    */
   @Inject
   Provider<EntityManager> entityManagerProvider;
+  @Inject
+  DaoUtils daoUtils;
 
   /**
    * Find a view with the given names.
@@ -50,12 +51,10 @@ public class ViewInstanceDAO {
    * @return  a matching view instance or null
    */
   public ViewInstanceEntity findByName(String viewName, String instanceName) {
-    EntityManager entityManager = entityManagerProvider.get();
-    ViewInstanceEntityPK pk = new ViewInstanceEntityPK();
-    pk.setViewName(viewName);
-    pk.setName(instanceName);
-
-    return entityManager.find(ViewInstanceEntity.class, pk);
+    TypedQuery<ViewInstanceEntity> query = entityManagerProvider.get().createQuery(
+      "SELECT instance FROM ViewInstanceEntity instance WHERE instance.viewName = ?1 AND instance.name = ?2",
+      ViewInstanceEntity.class);
+    return daoUtils.selectSingle(query, viewName, instanceName);
   }
 
   /**

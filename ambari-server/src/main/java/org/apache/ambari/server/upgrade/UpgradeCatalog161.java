@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.upgrade;
 
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -84,6 +85,94 @@ public class UpgradeCatalog161 extends AbstractUpgradeCatalog {
 
     dbAccessor.addColumn("viewinstancedata",
         new DBAccessor.DBColumnInfo("user_name", String.class, 255, " ", false));
+
+    dbAccessor.dropConstraint("viewinstancedata", "FK_viewinstdata_view_name");
+
+    //modify primary key of viewinstancedata
+    if (Configuration.ORACLE_DB_NAME.equals(getDbType()) ||
+        Configuration.MYSQL_DB_NAME.equals(getDbType())) {
+      dbAccessor.executeQuery("alter table viewinstance drop primary key", true);
+      dbAccessor.executeQuery("alter table viewinstancedata drop primary key", true);
+    }else if (Configuration.POSTGRES_DB_NAME.equals(getDbType())) {
+      dbAccessor.executeQuery("alter table viewinstance drop constraint viewinstance_pkey", true);
+      dbAccessor.executeQuery("alter table viewinstancedata drop constraint viewinstancedata_pkey", true);
+    }
+
+
+    dbAccessor.addColumn("viewinstance", new DBAccessor.DBColumnInfo("view_instance_id", Long.class, null, null, true));
+    dbAccessor.addColumn("viewinstancedata",
+      new DBAccessor.DBColumnInfo("view_instance_id", Long.class, null, null, true));
+
+    if (Configuration.ORACLE_DB_NAME.equals(getDbType())) {
+      //sequence looks to be simpler than rownum
+      if (dbAccessor.tableHasData("viewinstancedata")) {
+        dbAccessor.executeQuery("CREATE SEQUENCE TEMP_SEQ " +
+            "  START WITH 1 " +
+            "  MAXVALUE 999999999999999999999999999 " +
+            "  MINVALUE 1 " +
+            "  NOCYCLE " +
+            "  NOCACHE " +
+            "  NOORDER");
+        dbAccessor.executeQuery("UPDATE viewinstance SET view_instance_id = TEMP_SEQ.NEXTVAL");
+        dbAccessor.dropSequence("TEMP_SEQ");
+      }
+    }else if (Configuration.MYSQL_DB_NAME.equals(getDbType())) {
+      if (dbAccessor.tableHasData("viewinstance")) {
+        dbAccessor.executeQuery("UPDATE viewinstance " +
+            "SET view_instance_id = (SELECT @a := @a + 1 FROM (SELECT @a := 1) s)");
+      }
+    }else if (Configuration.POSTGRES_DB_NAME.equals(getDbType())) {
+      if (dbAccessor.tableHasData("viewinstance")) {
+        //window functions like row_number were added in 8.4, workaround for earlier versions (redhat/centos 5)
+        dbAccessor.executeQuery("CREATE sequence temp_seq START WITH 1");
+        dbAccessor.executeQuery("UPDATE viewinstance SET view_instance_id = nextval('temp_seq')");
+        dbAccessor.dropSequence("temp_seq");
+      }
+
+
+    }
+
+    dbAccessor.executeQuery("alter table viewinstance add primary key (view_instance_id)");
+    dbAccessor.executeQuery("ALTER TABLE viewinstance ADD CONSTRAINT UQ_viewinstance_name UNIQUE (view_name, name)", true);
+
+    if (Configuration.POSTGRES_DB_NAME.equals(getDbType())) {
+      dbAccessor.executeQuery("UPDATE viewinstancedata AS vid SET view_instance_id = vi.view_instance_id " +
+        "FROM viewinstance AS vi WHERE vi.name = vid.view_instance_name AND vi.view_name = vid.view_name");
+    } else if (Configuration.ORACLE_DB_NAME.equals(getDbType())) {
+      dbAccessor.executeQuery("UPDATE viewinstancedata AS vid SET view_instance_id = (" +
+        "SELECT view_instance_id FROM viewinstance AS vi WHERE vi.name = vid.view_instance_name AND vi.view_name = vid.view_name)");
+    }else if (Configuration.MYSQL_DB_NAME.equals(getDbType())) {
+      dbAccessor.executeQuery("UPDATE viewinstancedata AS vid JOIN viewinstance AS vi " +
+        "ON vi.name = vid.view_instance_name AND vi.view_name = vid.view_name " +
+        "SET vid.view_instance_id = vi.view_instance_id");
+    }
+
+    dbAccessor.executeQuery("alter table viewinstancedata add primary key (view_instance_id, name, user_name)");
+
+    dbAccessor.addFKConstraint("viewinstancedata", "FK_viewinstdata_view_name", new String[]{"view_instance_id", "view_name", "view_instance_name"},
+      "viewinstance", new String[]{"view_instance_id", "view_name", "name"}, false);
+
+
+    long count = 1;
+    ResultSet resultSet = null;
+    try {
+      resultSet = dbAccessor.executeSelect("SELECT count(*) FROM viewinstance");
+      if (resultSet.next()) {
+        count = resultSet.getLong(1) + 2;
+      }
+    } finally {
+      if (resultSet != null) {
+        resultSet.close();
+      }
+    }
+
+    String valueColumnName = "\"value\"";
+    if (Configuration.ORACLE_DB_NAME.equals(getDbType()) || Configuration.MYSQL_DB_NAME.equals(getDbType())) {
+      valueColumnName = "value";
+    }
+
+    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, " + valueColumnName + ") " +
+        "VALUES('view_instance_id_seq', " + count + ")", true);
 
     dbAccessor.addColumn("viewinstance",
         new DBAccessor.DBColumnInfo("label", String.class, 255, null, true));

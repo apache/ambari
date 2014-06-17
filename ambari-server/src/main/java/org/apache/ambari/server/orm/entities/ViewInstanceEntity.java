@@ -32,13 +32,17 @@ import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import javax.persistence.TableGenerator;
 import javax.persistence.Transient;
+import javax.persistence.UniqueConstraint;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -48,10 +52,19 @@ import java.util.Set;
 /**
  * Represents an instance of a View.
  */
-@javax.persistence.IdClass(ViewInstanceEntityPK.class)
-@Table(name = "viewinstance")
+@Table(name = "viewinstance", uniqueConstraints =
+  @UniqueConstraint(
+    name = "UQ_viewinstance_name", columnNames = {"view_name", "name"}
+  )
+)
 @NamedQuery(name = "allViewInstances",
-    query = "SELECT viewInstance FROM ViewInstanceEntity viewInstance")
+  query = "SELECT viewInstance FROM ViewInstanceEntity viewInstance")
+@TableGenerator(name = "view_instance_id_generator",
+  table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "value"
+  , pkColumnValue = "view_instance_id_seq"
+  , initialValue = 1
+  , allocationSize = 1
+)
 @Entity
 public class ViewInstanceEntity implements ViewInstanceDefinition {
   /**
@@ -60,13 +73,16 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
   public static final String VIEWS_CONTEXT_PATH_PREFIX = "/views/";
 
   @Id
+  @Column(name = "view_instance_id")
+  @GeneratedValue(strategy = GenerationType.TABLE, generator = "view_instance_id_generator")
+  private Long viewInstanceId;
+
   @Column(name = "view_name", nullable = false, insertable = false, updatable = false)
   private String viewName;
 
   /**
    * The instance name.
    */
-  @Id
   @Column(name = "name", nullable = false, insertable = true, updatable = false)
   private String name;
 
@@ -167,16 +183,16 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
   /**
    * Construct a view instance definition.
    *
-   * @param view  the parent view definition
-   * @param instanceConfig  the associated configuration
+   * @param view           the parent view definition
+   * @param instanceConfig the associated configuration
    */
   public ViewInstanceEntity(ViewEntity view, InstanceConfig instanceConfig) {
-    this.name           = instanceConfig.getName();
+    this.name = instanceConfig.getName();
     this.instanceConfig = instanceConfig;
-    this.view           = view;
-    this.viewName       = view.getName();
-    this.description    = instanceConfig.getDescription();
-    this.visible        = instanceConfig.isVisible() ? 'Y' : 'N';
+    this.view = view;
+    this.viewName = view.getName();
+    this.description = instanceConfig.getDescription();
+    this.visible = instanceConfig.isVisible() ? 'Y' : 'N';
 
     String label = instanceConfig.getLabel();
     this.label = (label == null || label.length() == 0) ? view.getLabel() : label;
@@ -191,17 +207,17 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
   /**
    * Construct a view instance definition.
    *
-   * @param view  the parent view definition
-   * @param name  the instance name
+   * @param view the parent view definition
+   * @param name the instance name
    */
   public ViewInstanceEntity(ViewEntity view, String name) {
-    this.name           = name;
+    this.name = name;
     this.instanceConfig = null;
-    this.view           = view;
-    this.viewName       = view.getName();
-    this.description    = null;
-    this.visible        = 'Y';
-    this.label          = view.getLabel();
+    this.view = view;
+    this.viewName = view.getName();
+    this.description = null;
+    this.visible = 'Y';
+    this.label = view.getLabel();
   }
 
 
@@ -267,7 +283,7 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
   /**
    * Set the view name.
    *
-   * @param viewName  the view name
+   * @param viewName the view name
    */
   public void setViewName(String viewName) {
     this.viewName = viewName;
@@ -285,7 +301,7 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
   /**
    * Set the name of this instance.
    *
-   * @param name  the instance name
+   * @param name the instance name
    */
   public void setName(String name) {
     this.name = name;
@@ -294,7 +310,7 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
   /**
    * Set the label.
    *
-   * @param label  the label
+   * @param label the label
    */
   public void setLabel(String label) {
     this.label = label;
@@ -303,7 +319,7 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
   /**
    * Set the description.
    *
-   * @param description  the description
+   * @param description the description
    */
   public void setDescription(String description) {
     this.description = description;
@@ -312,7 +328,7 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
   /**
    * Set the visible flag.
    *
-   * @param visible  visible flag
+   * @param visible visible flag
    */
   public void setVisible(boolean visible) {
     this.visible = (visible ? 'Y' : 'N');
@@ -330,7 +346,7 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
   /**
    * Set the icon path.
    *
-   * @param icon  the icon path
+   * @param icon the icon path
    */
   public void setIcon(String icon) {
     this.icon = icon;
@@ -348,7 +364,7 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
   /**
    * Set the big icon path.
    *
-   * @param icon64  the big icon path
+   * @param icon64 the big icon path
    */
   public void setIcon64(String icon64) {
     this.icon64 = icon64;
@@ -366,8 +382,8 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
   /**
    * Add a property value to this instance.
    *
-   * @param key    the property key
-   * @param value  the property value
+   * @param key   the property key
+   * @param value the property value
    */
   public void putProperty(String key, String value) {
     removeProperty(key);
@@ -383,7 +399,7 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
   /**
    * Remove the property identified by the given key from this instance.
    *
-   * @param key  the key
+   * @param key the key
    */
   public void removeProperty(String key) {
     ViewInstancePropertyEntity entity = getProperty(key);
@@ -395,8 +411,7 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
   /**
    * Get the instance property entity for the given key.
    *
-   * @param key  the key
-   *
+   * @param key the key
    * @return the instance property entity identified by the given key
    */
   public ViewInstancePropertyEntity getProperty(String key) {
@@ -411,7 +426,7 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
   /**
    * Set the collection of instance property entities.
    *
-   * @param properties  the collection of instance property entities
+   * @param properties the collection of instance property entities
    */
   public void setProperties(Collection<ViewInstancePropertyEntity> properties) {
     this.properties = properties;
@@ -429,7 +444,7 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
   /**
    * Set the collection of instance data entities.
    *
-   * @param data  the collection of instance data entities
+   * @param data the collection of instance data entities
    */
   public void setData(Collection<ViewInstanceDataEntity> data) {
     this.data = data;
@@ -447,7 +462,7 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
   /**
    * Set the view entities.
    *
-   * @param entities  the view entities
+   * @param entities the view entities
    */
   public void setEntities(Collection<ViewEntityEntity> entities) {
     this.entities = entities;
@@ -456,8 +471,8 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
   /**
    * Associate the given instance data value with the given key.
    *
-   * @param key    the key
-   * @param value  the value
+   * @param key   the key
+   * @param value the value
    */
   public void putInstanceData(String key, String value) {
     removeInstanceData(key);
@@ -474,7 +489,7 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
   /**
    * Remove the instance data entity associated with the given key.
    *
-   * @param key  the key
+   * @param key the key
    */
   public void removeInstanceData(String key) {
     ViewInstanceDataEntity entity = getInstanceData(key);
@@ -486,8 +501,7 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
   /**
    * Get the instance data entity for the given key.
    *
-   * @param key  the key
-   *
+   * @param key the key
    * @return the instance data entity associated with the given key
    */
   public ViewInstanceDataEntity getInstanceData(String key) {
@@ -495,7 +509,7 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
 
     for (ViewInstanceDataEntity viewInstanceDataEntity : data) {
       if (viewInstanceDataEntity.getName().equals(key) &&
-          viewInstanceDataEntity.getUser().equals(user)) {
+        viewInstanceDataEntity.getUser().equals(user)) {
         return viewInstanceDataEntity;
       }
     }
@@ -514,7 +528,7 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
   /**
    * Set the parent view entity.
    *
-   * @param view  the parent view entity
+   * @param view the parent view entity
    */
   public void setViewEntity(ViewEntity view) {
     this.view = view;
@@ -532,8 +546,8 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
   /**
    * Add a resource provider for the given resource type.
    *
-   * @param type      the resource type
-   * @param provider  the resource provider
+   * @param type     the resource type
+   * @param provider the resource provider
    */
   public void addResourceProvider(Resource.Type type, ResourceProvider provider) {
     resourceProviders.put(type, provider);
@@ -542,8 +556,7 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
   /**
    * Get the resource provider for the given resource type.
    *
-   * @param type  the resource type
-   *
+   * @param type the resource type
    * @return the resource provider
    */
   public ResourceProvider getResourceProvider(Resource.Type type) {
@@ -553,8 +566,7 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
   /**
    * Get the resource provider for the given resource type name (scoped to this view).
    *
-   * @param type  the resource type name
-   *
+   * @param type the resource type name
    * @return the resource provider
    */
   public ResourceProvider getResourceProvider(String type) {
@@ -565,8 +577,8 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
   /**
    * Add a service for the given plural resource name.
    *
-   * @param pluralName  the plural resource name
-   * @param service     the service
+   * @param pluralName the plural resource name
+   * @param service    the service
    */
   public void addService(String pluralName, Object service) {
     services.put(pluralName, service);
@@ -575,8 +587,7 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
   /**
    * Get the service associated with the given plural resource name.
    *
-   * @param pluralName  the plural resource name
-   *
+   * @param pluralName the plural resource name
    * @return the service associated with the given name
    */
   public Object getService(String pluralName) {
@@ -595,9 +606,8 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
   /**
    * Get the context path for a view instance with the given names.
    *
-   * @param viewName          the view name
-   * @param viewInstanceName  the instance name
-   *
+   * @param viewName         the view name
+   * @param viewInstanceName the instance name
    * @return the context path
    */
   public static String getContextPath(String viewName, String version, String viewInstanceName) {
@@ -616,8 +626,7 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
   /**
    * Validate the state of the instance.
    *
-   * @param viewEntity  the view entity to which this instance will be bound
-   *
+   * @param viewEntity the view entity to which this instance will be bound
    * @throws IllegalStateException if the instance is not in a valid state
    */
   public void validate(ViewEntity viewEntity) throws IllegalStateException {
@@ -636,7 +645,7 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
 
     if (!requiredParamterNames.isEmpty()) {
       throw new IllegalStateException("No property values exist for the required parameters " +
-          requiredParamterNames);
+        requiredParamterNames);
     }
   }
 
@@ -648,13 +657,13 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
     String currentUserName = getUsername();
 
     return currentUserName == null || currentUserName.length() == 0 ?
-        " " : currentUserName;
+      " " : currentUserName;
   }
 
   /**
    * Set the user name provider helper.
    *
-   * @param userNameProvider  the helper
+   * @param userNameProvider the helper
    */
   protected void setUserNameProvider(UserNameProvider userNameProvider) {
     this.userNameProvider = userNameProvider;
@@ -674,9 +683,9 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
 
       String username;
       if (principal instanceof UserDetails) {
-        username = ((UserDetails)principal).getUsername();
+        username = ((UserDetails) principal).getUsername();
       } else {
-        username = principal == null ? "" :principal.toString();
+        username = principal == null ? "" : principal.toString();
       }
       return username;
     }
