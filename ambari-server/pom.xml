@@ -31,7 +31,7 @@
     <custom.tests>false</custom.tests>
     <hdpUrlForCentos6>http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.1.1.0</hdpUrlForCentos6>
     <hdpLatestUrl>http://public-repo-1.hortonworks.com/HDP/hdp_urlinfo.json</hdpLatestUrl>
-    <common_functions.install.dir>/usr/lib/ambari-server/lib/common_functions</common_functions.install.dir>
+    <ambari_commons.install.dir>/usr/lib/ambari-server/lib/ambari_commons</ambari_commons.install.dir>
     <ambari-web-dir>${basedir}/../ambari-web/public</ambari-web-dir>
   </properties>
   <build>
@@ -221,10 +221,6 @@
             <scriptFile>src/main/package/rpm/preremove.sh</scriptFile>
             <fileEncoding>utf-8</fileEncoding>
           </preremoveScriptlet>
-          <posttransScriptlet>
-            <scriptFile>src/main/package/rpm/posttrans.sh</scriptFile>
-            <fileEncoding>utf-8</fileEncoding>
-          </posttransScriptlet>
           <defaultFilemode>644</defaultFilemode>
           <defaultDirmode>755</defaultDirmode>
           <defaultUsername>root</defaultUsername>
@@ -255,11 +251,11 @@
               </sources>
             </mapping>
             <mapping>
-              <directory>${common_functions.install.dir}</directory>
+              <directory>${ambari_commons.install.dir}</directory>
               <sources>
                 <source>
                   <location>
-                    ${project.basedir}/../ambari-common/src/main/python/common_functions
+                    ${project.basedir}/../ambari-common/src/main/python/ambari_commons
                   </location>
                 </source>
               </sources>
@@ -832,12 +828,12 @@
           </data>
             <data>
               <src>
-                ${project.basedir}/../ambari-common/src/main/python/common_functions
+                ${project.basedir}/../ambari-common/src/main/python/ambari_commons
               </src>
               <type>directory</type>
               <mapper>
                 <type>perm</type>
-                <prefix>${common_functions.install.dir}</prefix>
+                <prefix>${ambari_commons.install.dir}</prefix>
                 <filemode>755</filemode>
                 <user>root</user>
                 <group>root</group>
@@ -876,7 +872,7 @@
                 <argument>${custom.tests}</argument>
               </arguments>
               <environmentVariables>
-                  <PYTHONPATH>${project.basedir}/../ambari-agent/src/main/python:${project.basedir}/../ambari-common/src/main/python/jinja2:${project.basedir}/../ambari-common/src/main/python:${project.basedir}/../ambari-common/src/main/python/common_functions:${project.basedir}/../ambari-common/src/test/python:${project.basedir}/src/main/python:${project.basedir}/src/main/python/ambari-server-state:${project.basedir}/src/test/python:$PYTHONPATH</PYTHONPATH>
+                  <PYTHONPATH>${project.basedir}/../ambari-agent/src/main/python:${project.basedir}/../ambari-common/src/main/python/jinja2:${project.basedir}/../ambari-common/src/main/python:${project.basedir}/../ambari-common/src/main/python/ambari_commons:${project.basedir}/../ambari-common/src/test/python:${project.basedir}/src/main/python:${project.basedir}/src/main/python/ambari-server-state:${project.basedir}/src/test/python:$PYTHONPATH</PYTHONPATH>
               </environmentVariables>
               <skip>${skipTests}</skip>
             </configuration>

@@ -29,7 +29,7 @@ import threading
 import traceback
 import stat
 from pprint import pformat
-from common_functions import OSCheck
+from ambari_commons import OSCheck
 
 AMBARI_PASSPHRASE_VAR = "AMBARI_PASSPHRASE"
 

@@ -147,7 +147,7 @@ class Bootstrap(threading.Thread):
   AMBARI_REPO_FILENAME = "ambari"
   SETUP_SCRIPT_FILENAME = "setupAgent.py"
   PASSWORD_FILENAME = "host_pass"
-  COMMON_FUNCTIONS="/usr/lib/python2.6/site-packages/common_functions"
+  ambari_commons="/usr/lib/python2.6/site-packages/ambari_commons"
 
   def __init__(self, host, shared_state):
     threading.Thread.__init__(self)
@@ -250,7 +250,7 @@ class Bootstrap(threading.Thread):
 
   def copyCommonFunctions(self):
     # Copying the os check script file
-    fileToCopy = self.COMMON_FUNCTIONS
+    fileToCopy = self.ambari_commons
     target = self.getCommonFunctionsRemoteLocation()
     params = self.shared_state
     self.host_log.write("==========================\n")

@@ -27,7 +27,7 @@ with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
   from ambari_agent import hostname
   from ambari_agent.Hardware import Hardware
   from ambari_agent.Facter import Facter
-  from common_functions import OSCheck
+  from ambari_commons import OSCheck
 
 @patch.object(platform,"linux_distribution", new = ('Suse','11','Final'))
 class TestHardware(TestCase):

@@ -28,7 +28,7 @@ import tempfile
 import os.path
 import optparse
 import logging
-from common_functions import OSCheck
+from ambari_commons import OSCheck
 
 PACKAGE_SECTION = "packages"
 PACKAGE_KEY = "pkg_list"

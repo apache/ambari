@@ -264,7 +264,7 @@ distributeKeytabs () {
 ## getEnvironmentCMD () : get linux distribution type and package manager
 ########################
 getEnvironmentCMD () {
-  os=`python -c 'import sys; sys.path.append("/usr/lib/python2.6/site-packages/"); from common_functions import OSCheck; print OSCheck.get_os_family()'`
+  os=`python -c 'import sys; sys.path.append("/usr/lib/python2.6/site-packages/"); from ambari_commons import OSCheck; print OSCheck.get_os_family()'`
   case $os in
   'debian' )
     pkgmgr='apt-get'

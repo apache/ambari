@@ -31,7 +31,7 @@ import sys
 import datetime
 import AmbariConfig
 from pwd import getpwnam
-from common_functions import OSCheck
+from ambari_commons import OSCheck
 
 logger = logging.getLogger()
 configFile = "/etc/ambari-agent/conf/ambari-agent.ini"

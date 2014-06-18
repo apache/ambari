@@ -19,7 +19,7 @@ limitations under the License.
 '''
 
 import sys
-from common_functions import OSCheck
+from ambari_commons import OSCheck
 
 def main(argv=None):
   # Same logic that was in "os_type_check.sh"

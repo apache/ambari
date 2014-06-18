@@ -23,7 +23,7 @@ Ambari Agent
 import os
 import filecmp
 import tempfile
-from common_functions import OSCheck
+from ambari_commons import OSCheck
 from resource_management import *
 
 class RhelSuseRepositoryProvider(Provider):

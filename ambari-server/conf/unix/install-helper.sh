@@ -13,20 +13,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-##################################################################
+#########################################postinstall.sh#########################
 #                      SERVER INSTALL HELPER                     #
 ##################################################################
 
-COMMON_DIR="/usr/lib/python2.6/site-packages/common_functions"
+COMMON_DIR="/usr/lib/python2.6/site-packages/ambari_commons"
+OLD_COMMON_DIR="/usr/lib/python2.6/site-packages/common_functions"
 INSTALL_HELPER_AGENT="/var/lib/ambari-agent/install-helper.sh"
-COMMON_DIR_SERVER="/usr/lib/ambari-server/lib/common_functions"
+COMMON_DIR_SERVER="/usr/lib/ambari-server/lib/ambari_commons"
 
 PYTHON_WRAPER_TARGET="/usr/bin/ambari-python-wrap"
 PYTHON_WRAPER_SOURCE="/var/lib/ambari-server/ambari-python-wrap"
 
 do_install(){
-  # setting common_functions shared resource
-  rm -rf "$COMMON_DIR"
+  # setting ambari_commons shared resource
+  rm -rf "$OLD_COMMON_DIR"
+  if [ ! -d "$COMMON_DIR" ]; then
+    ln -s "$COMMON_DIR_AGENT" "$COMMON_DIR"
+  fi
   # setting python-wrapper script
   if [ ! -f "$PYTHON_WRAPER_TARGET" ]; then
     ln -s "$PYTHON_WRAPER_SOURCE" "$PYTHON_WRAPER_TARGET"

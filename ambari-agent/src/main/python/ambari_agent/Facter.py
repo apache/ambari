@@ -30,7 +30,7 @@ import subprocess
 
 import time
 import uuid
-from common_functions import OSCheck
+from ambari_commons import OSCheck
 
 log = logging.getLogger()
 

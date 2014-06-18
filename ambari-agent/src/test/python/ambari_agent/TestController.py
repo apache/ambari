@@ -33,7 +33,7 @@ with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
   from ambari_agent import Controller, ActionQueue
   from ambari_agent import hostname
   from ambari_agent.Controller import AGENT_AUTO_RESTART_EXIT_CODE
-  from common_functions import OSCheck
+  from ambari_commons import OSCheck
 
 @patch.object(platform, "linux_distribution", new = ('Suse','11','Final'))
 class TestController(unittest.TestCase):

@@ -87,8 +87,8 @@ class TestSetupAgent(TestCase):
     execOsCommand_mock.reset_mock()
 
   @patch.object(setup_agent, 'getAvaliableAgentPackageVersions')
-  @patch('common_functions.OSCheck.is_suse_family')
-  @patch('common_functions.OSCheck.is_debian_family')
+  @patch('ambari_commons.OSCheck.is_suse_family')
+  @patch('ambari_commons.OSCheck.is_debian_family')
   @patch.object(setup_agent, 'findNearestAgentPackageVersion')
   def test_returned_optimal_version_is_initial_on_suse(self, findNearestAgentPackageVersion_method, is_debian_family_method,
                                                        is_suse_family_method, getAvaliableAgentPackageVersions_method):
@@ -103,8 +103,8 @@ class TestSetupAgent(TestCase):
     pass
 
   @patch.object(setup_agent, 'getAvaliableAgentPackageVersions')
-  @patch('common_functions.OSCheck.is_suse_family')
-  @patch('common_functions.OSCheck.is_debian_family')
+  @patch('ambari_commons.OSCheck.is_suse_family')
+  @patch('ambari_commons.OSCheck.is_debian_family')
   @patch.object(setup_agent, 'findNearestAgentPackageVersion')
   def test_returned_optimal_version_is_initial_on_debian(self, findNearestAgentPackageVersion_method, is_debian_family_method,
                                                        is_suse_family_method, getAvaliableAgentPackageVersions_method):
@@ -118,8 +118,8 @@ class TestSetupAgent(TestCase):
     self.assertTrue(result_version["exitstatus"] == 1)
     pass
 
-  @patch('common_functions.OSCheck.is_suse_family')
-  @patch('common_functions.OSCheck.is_debian_family')
+  @patch('ambari_commons.OSCheck.is_suse_family')
+  @patch('ambari_commons.OSCheck.is_debian_family')
   @patch.object(setup_agent, 'findNearestAgentPackageVersion')
   def test_returned_optimal_version_is_nearest_on_suse(self, findNearestAgentPackageVersion_method,
                                                        is_debian_family_method,
@@ -139,8 +139,8 @@ class TestSetupAgent(TestCase):
     self.assertTrue(result_version["exitstatus"] == 1)
     pass
 
-  @patch('common_functions.OSCheck.is_suse_family')
-  @patch('common_functions.OSCheck.is_debian_family')
+  @patch('ambari_commons.OSCheck.is_suse_family')
+  @patch('ambari_commons.OSCheck.is_debian_family')
   @patch.object(setup_agent, 'findNearestAgentPackageVersion')
   def test_returned_optimal_version_is_nearest_on_debian(self, findNearestAgentPackageVersion_method,
                                                        is_debian_family_method,
@@ -161,8 +161,8 @@ class TestSetupAgent(TestCase):
     pass
 
   @patch.object(setup_agent, 'getAvaliableAgentPackageVersions')
-  @patch('common_functions.OSCheck.is_suse_family')
-  @patch('common_functions.OSCheck.is_debian_family')
+  @patch('ambari_commons.OSCheck.is_suse_family')
+  @patch('ambari_commons.OSCheck.is_debian_family')
   @patch.object(setup_agent, 'findNearestAgentPackageVersion')
   def test_returned_optimal_version_is_initial(self, findNearestAgentPackageVersion_method,
                                                is_debian_family_method,
@@ -178,8 +178,8 @@ class TestSetupAgent(TestCase):
     pass
 
   @patch.object(setup_agent, 'getAvaliableAgentPackageVersions')
-  @patch('common_functions.OSCheck.is_suse_family')
-  @patch('common_functions.OSCheck.is_debian_family')
+  @patch('ambari_commons.OSCheck.is_suse_family')
+  @patch('ambari_commons.OSCheck.is_debian_family')
   @patch.object(setup_agent, 'findNearestAgentPackageVersion')
   def test_returned_optimal_version_is_default(self, findNearestAgentPackageVersion_method,
                                                is_debian_family_method,
@@ -206,8 +206,8 @@ class TestSetupAgent(TestCase):
   @patch.object(setup_agent, 'runAgent')
   @patch.object(setup_agent, 'configureAgent')
   @patch.object(setup_agent, 'installAgent')
-  @patch('common_functions.OSCheck.is_suse_family')
-  @patch('common_functions.OSCheck.is_debian_family')
+  @patch('ambari_commons.OSCheck.is_suse_family')
+  @patch('ambari_commons.OSCheck.is_debian_family')
   @patch.object(setup_agent, 'getOptimalVersion')
   @patch.object(setup_agent, 'checkServerReachability')
   @patch("sys.exit")

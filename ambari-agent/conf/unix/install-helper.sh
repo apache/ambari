@@ -18,15 +18,17 @@
 #                      AGENT INSTALL HELPER                      #
 ##################################################################
 
-COMMON_DIR="/usr/lib/python2.6/site-packages/common_functions"
+COMMON_DIR="/usr/lib/python2.6/site-packages/ambari_commons"
+OLD_COMMON_DIR="/usr/lib/python2.6/site-packages/common_functions"
 INSTALL_HELPER_SERVER="/var/lib/ambari-server/install-helper.sh"
-COMMON_DIR_AGENT="/usr/lib/ambari-agent/lib/common_functions"
+COMMON_DIR_AGENT="/usr/lib/ambari-agent/lib/ambari_commons"
 
 PYTHON_WRAPER_TARGET="/usr/bin/ambari-python-wrap"
 PYTHON_WRAPER_SOURCE="/var/lib/ambari-agent/ambari-python-wrap"
 
 do_install(){
-  # setting common_functions shared resource
+  # setting ambari_commons shared resource
+  rm -rf "$OLD_COMMON_DIR"
   if [ ! -d "$COMMON_DIR" ]; then
     ln -s "$COMMON_DIR_AGENT" "$COMMON_DIR"
   fi
@@ -51,6 +53,10 @@ do_remove(){
   fi
 }
 
+do_upgrade(){
+  do_install
+}
+
 
 case "$1" in
 install)
@@ -59,4 +65,7 @@ install)
 remove)
   do_remove
   ;;
+upgrade)
+  do_upgrade
+;;
 esac

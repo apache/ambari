@@ -31,7 +31,7 @@ import platform
 from PackagesAnalyzer import PackagesAnalyzer
 from HostCheckReportFileHandler import HostCheckReportFileHandler
 from Hardware import Hardware
-from common_functions import OSCheck, OSConst
+from ambari_commons import OSCheck, OSConst
 import socket
 
 logger = logging.getLogger()

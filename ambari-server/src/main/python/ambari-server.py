@@ -41,7 +41,7 @@ import random
 import pwd
 from ambari_server.resourceFilesKeeper import ResourceFilesKeeper, KeeperException
 import json
-from common_functions import OSCheck, OSConst
+from ambari_commons import OSCheck, OSConst
 from ambari_server import utils
 
 # debug settings

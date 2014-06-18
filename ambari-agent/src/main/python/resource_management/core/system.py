@@ -28,7 +28,7 @@ import platform
 from resource_management.core import shell
 from resource_management.core.exceptions import Fail
 from functools import wraps
-from common_functions import OSCheck
+from ambari_commons import OSCheck
 
 def lazy_property(undecorated):
   name = '_' + undecorated.__name__

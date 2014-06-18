@@ -36,7 +36,7 @@ with patch("platform.linux_distribution", return_value = ('redhat','11','Final')
   from ambari_agent.Hardware import Hardware
   from ambari_agent.AmbariConfig import AmbariConfig
   from resource_management.core.system import System
-  from common_functions import OSCheck
+  from ambari_commons import OSCheck
 
 @patch.object(System, "os_family", new = 'redhat')
 class TestHostInfo(TestCase):

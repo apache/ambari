@@ -20,7 +20,7 @@ limitations under the License.
 import os
 import signal
 import time
-from common_functions import OSConst
+from ambari_commons import OSConst
 
 #PostgreSQL settings
 UBUNTU_PG_HBA_ROOT = "/etc/postgresql"
