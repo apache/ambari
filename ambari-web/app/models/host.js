@@ -46,6 +46,7 @@ App.Host = DS.Model.extend({
   cpuUser:DS.attr('number'),
   criticalAlertsCount: DS.attr('number'),
   passiveState: DS.attr('string'),
+  index: DS.attr('number'),
 
   /**
    * Is host checked at the main Hosts page

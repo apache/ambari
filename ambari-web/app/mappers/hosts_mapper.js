@@ -52,7 +52,8 @@ App.hostsMapper = App.QuickDataMapper.create({
     os_arch: 'Hosts.os_arch',
     os_type: 'Hosts.os_type',
     ip: 'Hosts.ip',
-    passive_state: 'Hosts.maintenance_state'
+    passive_state: 'Hosts.maintenance_state',
+    index: 'index'
   },
   hostComponentConfig: {
     component_name: 'HostRoles.component_name',
@@ -69,7 +70,7 @@ App.hostsMapper = App.QuickDataMapper.create({
       var hostIds = {};
       var components = [];
       App.cache['HostsList'] = [];
-      json.items.forEach(function (item) {
+      json.items.forEach(function (item, index) {
         App.cache['HostsList'].push(item.Hosts.host_name);
         item.host_components = item.host_components || [];
         item.host_components.forEach(function (host_component) {
@@ -82,7 +83,7 @@ App.hostsMapper = App.QuickDataMapper.create({
         }, this);
         item.critical_alerts_count = (item.alerts) ? item.alerts.summary.CRITICAL + item.alerts.summary.WARNING : 0;
         item.cluster_id = App.get('clusterName');
-
+        item.index = index;
 
 
         var parsedItem = this.parseIt(item, this.config);

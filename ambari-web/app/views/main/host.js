@@ -61,6 +61,17 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
     }
     return [];
   }.property('controller.content'),
+
+  /**
+   * Contains content to show on the current page of data page view
+   * @type {Array}
+   */
+  pageContent: function () {
+    return this.get('filteredContent').slice(this.get('startIndex') - 1, this.get('endIndex')).sort(function (a, b) {
+      return a.get('index') - b.get('index');
+    });
+  }.property('filteredCount', 'startIndex', 'endIndex'),
+
   /**
    * flag to toggle displaying selected hosts counter
    */
