@@ -70,6 +70,17 @@ App.QuickViewLinks = Em.View.extend({
    * list of files that contains properties for enabling/disabling ssl
    */
   requiredSiteNames: ['global','core-site', 'hdfs-site', 'hbase-site', 'oozie-site', 'yarn-site', 'mapred-site'],
+  /**
+   * Get public host name by its host name.
+   *
+   * @method getPublicHostName
+   * @param {Object[]} hosts - list of hosts from response
+   * @param {String} hostName
+   * @return {String}
+   **/
+  getPublicHostName: function(hosts, hostName) {
+    return Em.get(hosts.findProperty('Hosts.host_name', hostName), 'Hosts.public_host_name');
+  },
 
   setConfigProperties: function () {
     this.set('configProperties', []);
@@ -126,13 +137,13 @@ App.QuickViewLinks = Em.View.extend({
           });
           // assign each namenode status label
           if (this.get('content.activeNameNode')) {
-            hosts.findProperty('publicHostName', this.get('content.activeNameNode.publicHostName')).status = Em.I18n.t('quick.links.label.active');
+            hosts.findProperty('publicHostName', this.getPublicHostName(response.items, this.get('content.activeNameNode.hostName'))).status = Em.I18n.t('quick.links.label.active');
           }
           if (this.get('content.standbyNameNode')) {
-            hosts.findProperty('publicHostName', this.get('content.standbyNameNode.publicHostName')).status = Em.I18n.t('quick.links.label.standby');
+            hosts.findProperty('publicHostName', this.getPublicHostName(response.items, this.get('content.standbyNameNode.hostName'))).status = Em.I18n.t('quick.links.label.standby');
           }
           if (this.get('content.standbyNameNode2')) {
-            hosts.findProperty('publicHostName', this.get('content.standbyNameNode2.publicHostName')).status = Em.I18n.t('quick.links.label.standby');
+            hosts.findProperty('publicHostName', this.getPublicHostName(response.items, this.get('content.standbyNameNode2.hostName'))).status = Em.I18n.t('quick.links.label.standby');
           }
         }
         break;
