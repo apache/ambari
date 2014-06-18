@@ -172,71 +172,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   },
 
   /**
-   * Loads the actual configuration of all host components.
-   * This helps in determining which services need a restart, and also
-   * in showing which properties are actually applied or not.
-   * This method also compares the actual_configs with the desired_configs
-   * and builds a diff structure.
-   *
-   * Internally it calculates an array of host-components which need restart.
-   * Example:
-   * [
-   *  {
-   *    componentName: 'DATANODE',
-   *    serviceName: 'HDFS',
-   *    host: 'host.name',
-   *    type: 'core-site',
-   *    desiredConfigTags: {tag:'version1'},
-   *    actualConfigTags: {tag:'version4'. host_override:'version2'}
-   *  },
-   *  ...
-   * ]
-   *
-   * From there it return the following restart-data for this service.
-   * It represents the hosts, whose components need restart, and the
-   * properties which require restart.
-   *
-   * {
-   *  hostAndHostComponents: {
-   *   'hostname1': {
-   *     'DATANODE': {
-   *       'property1': 'value1',
-   *       'property2': 'value2'
-   *     },
-   *     'TASKTRACKER': {
-   *       'prop1': 'val1'
-   *     }
-   *    },
-   *    'hostname6': {
-   *     'ZOOKEEPER': {
-   *       'property1': 'value3'
-   *     }
-   *    }
-   *  },
-   *  propertyToHostAndComponent: {
-   *    'property1': {
-   *      'hostname1': ['DATANODE'],
-   *      'hostname6': ['ZOOKEEPER']
-   *    },
-   *    'property2': {
-   *      'hostname1': ['DATANODE']
-   *    },
-   *    'prop1': {
-   *      'hostname1': ['TASKTRACKER']
-   *    }
-   *  }
-   * }
-   */
-  loadActualConfigsAndCalculateRestarts: function () {
-    var restartData = {
-      hostAndHostComponents: {},
-      propertyToHostAndComponent: {}
-    };
-    console.log("loadActualConfigsAndCalculateRestarts(): Restart data = ", restartData);
-    return restartData;
-  },
-
-  /**
    * Loads service configurations
    */
   loadServiceConfigs: function () {
@@ -384,21 +319,19 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     var allConfigs = this.get('globalConfigs').concat(configs);
     //STEP 9: Load and add overriden configs of group
     App.config.loadServiceConfigGroupOverrides(allConfigs, this.loadedGroupToOverrideSiteToTagMap, this.get('configGroups'));
-    var restartData = this.loadActualConfigsAndCalculateRestarts();
     //STEP 10: creation of serviceConfig object which contains configs for current service
     var serviceConfig = App.config.createServiceConfig(serviceName);
     //STEP11: Make SecondaryNameNode invisible on enabling namenode HA
     if (serviceConfig.get('serviceName') === 'HDFS') {
       App.config.OnNnHAHideSnn(serviceConfig);
     }
-    this.checkForRestart(serviceConfig, restartData);
 
     if (serviceName || serviceConfig.serviceName === 'MISC') {
       //STEP 11: render configs and wrap each in ServiceConfigProperty object
       var self =this;
       // set recommended Defaults first then load the configs (including set validator)
       this.setRecommendedDefaults(advancedConfigs).done(function () {
-        self.loadConfigs(allConfigs, serviceConfig, restartData);
+        self.loadConfigs(allConfigs, serviceConfig);
         self.checkOverrideProperty(serviceConfig);
         self.get('stepConfigs').pushObject(serviceConfig);
         self.set('selectedService', self.get('stepConfigs').objectAt(0));
@@ -453,59 +386,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     }
     console.debug("setServiceConfigTags(): Setting 'serviceConfigTags' to ", newServiceConfigTags);
     this.set('serviceConfigTags', newServiceConfigTags);
-  },
-
-  /**
-   * check whether host component must be restarted
-   * @param serviceConfig
-   * @param restartData
-   */
-  checkForRestart: function (serviceConfig, restartData) {
-    var hostsCount = 0;
-    var hostComponentCount = 0;
-    if (restartData != null && restartData.hostAndHostComponents != null && !jQuery.isEmptyObject(restartData.hostAndHostComponents)) {
-      serviceConfig.set('restartRequired', true);
-      for (var host in restartData.hostAndHostComponents) {
-        hostsCount++;
-        var componentsArray = Ember.A([]);
-        for (var component in restartData.hostAndHostComponents[host]) {
-          componentsArray.push(Ember.Object.create({name: App.format.role(component)}));
-          hostComponentCount++;
-        }
-        App.ajax.send({
-          name: 'hosts.with_public_host_names',
-          sender: this,
-          data: {
-            clusterName: App.get('clusterName'),
-            componentsArray: componentsArray,
-            host: host,
-            serviceConfig: serviceConfig,
-            hostsCount: hostsCount,
-            hostComponentCount: hostComponentCount
-          },
-          success: 'hostObjSuccessCallback'
-        });
-      }
-    }
-  },
-
-  hostObjSuccessCallback: function (response, request, data) {
-    var hostObj = Em.Object.create({
-      hostName: response.items.findProperty('Hosts.host_name'),
-      publicHostName: response.items.findProperty('Hosts.public_host_name'),
-      id: response.items.findProperty('Hosts.host_name')
-    });
-    this.get('restartHosts').push(Ember.Object.create({hostData: hostObj, components: data.componentsArray}))
-    data.serviceConfig.set('restartRequiredHostsAndComponents', []);
-    lazyLoading.run({
-      initSize: 20,
-      chunkSize: 50,
-      delay: 50,
-      destination: data.serviceConfig.get('restartRequiredHostsAndComponents'),
-      source: this.get('restartHosts'),
-      context: this
-    });
-    data.serviceConfig.set('restartRequiredMessage', 'Service needs ' + data.hostComponentCount + ' components on ' + data.hostsCount + ' hosts to be restarted.')
   },
 
   /**
@@ -637,18 +517,13 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * Load child components to service config object
    * @param {Array} configs - array of configs
    * @param {Object} componentConfig - component config object
-   * @param {Object} restartData
-   * {
-   *  {Object} hostAndHostComponents,
-   *  {Object} propertyToHostAndComponent
-   * }
    * @method loadConfigs
    */
-  loadConfigs: function(configs, componentConfig, restartData) {
+  loadConfigs: function(configs, componentConfig) {
     var serviceConfigsData = this.get('serviceConfigsData').findProperty('serviceName', this.get('content.serviceName'));
     var defaultGroupSelected = this.get('selectedConfigGroup.isDefault');
     configs.forEach(function (_serviceConfigProperty) {
-      var serviceConfigProperty = this.createConfigProperty(_serviceConfigProperty, defaultGroupSelected, restartData, serviceConfigsData);
+      var serviceConfigProperty = this.createConfigProperty(_serviceConfigProperty, defaultGroupSelected, serviceConfigsData);
       componentConfig.configs.pushObject(serviceConfigProperty);
       serviceConfigProperty.validate();
     }, this);
@@ -658,16 +533,11 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * create {Em.Object}service_cfg_property based on {Object}_serviceConfigProperty and additional info
    * @param {Object} _serviceConfigProperty - config object
    * @param {Boolean} defaultGroupSelected - true if selected cfg group is default
-   * @param {Object} restartData
-   * {
-   *  {Object} hostAndHostComponents,
-   *  {Object} propertyToHostAndComponent
-   * }
    * @param {Object} serviceConfigsData - service cfg object
    * @returns {Ember.Object|null}
    * @method createConfigProperty
    */
-  createConfigProperty: function(_serviceConfigProperty, defaultGroupSelected, restartData, serviceConfigsData) {
+  createConfigProperty: function(_serviceConfigProperty, defaultGroupSelected, serviceConfigsData) {
     console.log("config", _serviceConfigProperty);
     if (!_serviceConfigProperty) return null;
     var overrides = _serviceConfigProperty.overrides;
@@ -678,7 +548,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     var serviceConfigProperty = App.ServiceConfigProperty.create(_serviceConfigProperty);
 
     this.setValueForCheckBox(serviceConfigProperty);
-    this.setRestartInfo(restartData, serviceConfigProperty);
     this.setValidator(serviceConfigProperty, serviceConfigsData);
     this.setValuesForOverrides(overrides, _serviceConfigProperty, serviceConfigProperty, defaultGroupSelected);
     this.setEditability(serviceConfigProperty, defaultGroupSelected);
@@ -770,48 +639,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       console.log("config result", serviceConfigProperty);
     } else {
       serviceConfigProperty.set('isVisible', false);
-    }
-  },
-
-  /**
-   * generate restart mesage with components and host to restart
-   * @param {Object} restartData
-   * {
-   *  {Object} hostAndHostComponents,
-   *  {Object} propertyToHostAndComponent
-   * }
-   * @param {Ember.Object} serviceConfigProperty
-   * @method setRestartInfo
-   */
-  setRestartInfo: function(restartData, serviceConfigProperty) {
-    App.ajax.send({
-      name: 'hosts.with_public_host_names',
-      sender: this,
-      data: {
-        clusterName: App.get('clusterName'),
-        restartData: restartData,
-        serviceConfigProperty: serviceConfigProperty
-      },
-      success: 'setRestartInfoSuccessCallback'
-    });
-  },
-
-  setRestartInfoSuccessCallback: function (response, request, data) {
-    var propertyName = data.serviceConfigProperty.get('name');
-    if (data.restartData != null && propertyName in data.restartData.propertyToHostAndComponent) {
-      data.serviceConfigProperty.set('isRestartRequired', true);
-      var message = '<ul>';
-      for (var host in data.restartData.propertyToHostAndComponent[propertyName]) {
-        var appHost = response.items.mapProperty('Hosts').filterProperty('host_name', host);
-        message += "<li>" + appHost.public_host_name;
-        message += "<ul>";
-        data.restartData.propertyToHostAndComponent[propertyName][host].forEach(function (comp) {
-          message += "<li>" + App.format.role(comp) + "</li>"
-        });
-        message += "</ul></li>";
-      }
-      message += "</ul>";
-      data.serviceConfigProperty.set('restartRequiredMessage', message);
     }
   },
 

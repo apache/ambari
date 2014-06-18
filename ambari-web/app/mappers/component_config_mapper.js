@@ -35,9 +35,11 @@ App.componentConfigMapper = App.QuickDataMapper.create({
     console.time('App.componentConfigMapper execution time');
     var hostComponents = [];
     var serviceToHostComponentIdMap = {};
+    var restartRequiredServices = [];
     json.items.forEach(function (item) {
       item.host_components.forEach(function (host_component) {
         host_component = host_component.HostRoles;
+        restartRequiredServices.push(host_component.service_name);
         host_component.id = host_component.component_name + '_' + host_component.host_name;
         hostComponents.push(this.parseIt(host_component, this.get('config')));
         if (!serviceToHostComponentIdMap[host_component.service_name]) {
@@ -46,21 +48,21 @@ App.componentConfigMapper = App.QuickDataMapper.create({
         serviceToHostComponentIdMap[host_component.service_name].push(host_component.id);
       }, this);
     }, this);
+    restartRequiredServices = restartRequiredServices.uniq();
+    var restartRequired = App.cache['restartRequiredServices'].concat(restartRequiredServices).uniq();
     App.store.loadMany(this.get('model'), hostComponents);
-    for (var serviceName in serviceToHostComponentIdMap) {
-      if (serviceToHostComponentIdMap.hasOwnProperty(serviceName)) {
-        var service = App.cache['services'].findProperty('ServiceInfo.service_name', serviceName);
-        if (service) {
-          for (var n in serviceToHostComponentIdMap[serviceName]) {
-            if (serviceToHostComponentIdMap[serviceName].hasOwnProperty(n)) {
-              if (!service.host_components.contains(serviceToHostComponentIdMap[serviceName][n])) {
-                service.host_components.pushObject(serviceToHostComponentIdMap[serviceName][n]);
-              }
-            }
+    restartRequired.forEach(function(serviceName) {
+      var service = App.cache['services'].findProperty('ServiceInfo.service_name', serviceName);
+      if (service) {
+        service.host_components = [];
+        for (var n in serviceToHostComponentIdMap[serviceName]) {
+          if (serviceToHostComponentIdMap[serviceName].hasOwnProperty(n)) {
+            service.host_components.pushObject(serviceToHostComponentIdMap[serviceName][n]);
           }
         }
       }
-    }
+    }, this);
+    App.cache['restartRequiredServices'] = restartRequiredServices;
     console.timeEnd('App.componentConfigMapper execution time');
   }
 });

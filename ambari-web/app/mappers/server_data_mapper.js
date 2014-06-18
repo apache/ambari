@@ -28,6 +28,7 @@ App.cache = {
   'previousComponentStatuses': {},
   'previousComponentPassiveStates': {},
   'hostComponentsOnService': {},
+  'restartRequiredServices': [],
   'services': []
 };
 
