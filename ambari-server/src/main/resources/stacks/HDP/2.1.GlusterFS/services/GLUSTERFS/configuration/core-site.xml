@@ -68,7 +68,7 @@
 
   <property>
    <name>fs.glusterfs.volume.fuse.gv0</name>
-  <decription>The mount point that corresponds to the fs.glusterfs.volumes value</description>
+  <description>The mount point that corresponds to the fs.glusterfs.volumes value</description>
     <value>/mnt/gv0</value>
   </property>
 
