@@ -32,7 +32,8 @@ def setup_hadoop_env():
             group='root'
   )
   Link(params.hadoop_conf_dir,
-       to=params.hadoop_conf_empty_dir
+       to=params.hadoop_conf_empty_dir,
+       not_if=format("ls {hadoop_conf_dir}")
   )
   
   File(os.path.join(params.hadoop_conf_dir, 'hadoop-env.sh'),

@@ -36,7 +36,8 @@ class TestHookAfterInstall(RMFTestCase):
                               recursive = True,
                               )
     self.assertResourceCalled('Link', '/etc/hadoop/conf',
-                              to = '/etc/hadoop/conf.empty'
+                              to = '/etc/hadoop/conf.empty',
+                              not_if = 'ls /etc/hadoop/conf'
     )
     self.assertResourceCalled('File', '/etc/hadoop/conf/hadoop-env.sh',
                               content = Template('hadoop-env.sh.j2'),
