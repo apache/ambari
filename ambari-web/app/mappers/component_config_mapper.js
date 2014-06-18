@@ -21,48 +21,92 @@ App.componentConfigMapper = App.QuickDataMapper.create({
   model: App.HostComponent,
   config: {
     id: 'id',
-    work_status: 'state',
-    passive_state: 'maintenance_state',
-    component_name: 'component_name',
-    host_name: 'host_name',
-    $ha_status: 'none',
+    work_status: 'HostRoles.state',
+    passive_state: 'HostRoles.maintenance_state',
+    component_name: 'HostRoles.component_name',
+    host_name: 'HostRoles.host_name',
+    $ha_status: '',
     $display_name_advanced: '',
-    stale_configs: 'stale_configs',
-    host_id: 'host_name',
-    service_id: 'service_name'
+    stale_configs: 'HostRoles.stale_configs',
+    host_id: 'HostRoles.host_name',
+    service_id: 'HostRoles.service_name'
   },
   map: function (json) {
     console.time('App.componentConfigMapper execution time');
     var hostComponents = [];
     var serviceToHostComponentIdMap = {};
-    var restartRequiredServices = [];
+    var cacheServices = App.cache['services'];
+    var componentsWithStaleConfigs = {};
+    var loadedServiceComponentsMap = this.buildServiceComponentMap(cacheServices);
+
     json.items.forEach(function (item) {
       item.host_components.forEach(function (host_component) {
-        host_component = host_component.HostRoles;
-        restartRequiredServices.push(host_component.service_name);
-        host_component.id = host_component.component_name + '_' + host_component.host_name;
+        var serviceName = host_component.HostRoles.service_name;
+        host_component.id = host_component.HostRoles.component_name + '_' + host_component.HostRoles.host_name;
         hostComponents.push(this.parseIt(host_component, this.get('config')));
-        if (!serviceToHostComponentIdMap[host_component.service_name]) {
-          serviceToHostComponentIdMap[host_component.service_name] = [];
+
+        componentsWithStaleConfigs[host_component.id] = true;
+
+        if (!serviceToHostComponentIdMap[serviceName]) {
+          serviceToHostComponentIdMap[serviceName] = [];
         }
-        serviceToHostComponentIdMap[host_component.service_name].push(host_component.id);
+        serviceToHostComponentIdMap[serviceName].push(host_component.id);
       }, this);
     }, this);
-    restartRequiredServices = restartRequiredServices.uniq();
-    var restartRequired = App.cache['restartRequiredServices'].concat(restartRequiredServices).uniq();
-    App.store.loadMany(this.get('model'), hostComponents);
-    restartRequired.forEach(function(serviceName) {
-      var service = App.cache['services'].findProperty('ServiceInfo.service_name', serviceName);
-      if (service) {
-        service.host_components = [];
-        for (var n in serviceToHostComponentIdMap[serviceName]) {
-          if (serviceToHostComponentIdMap[serviceName].hasOwnProperty(n)) {
-            service.host_components.pushObject(serviceToHostComponentIdMap[serviceName][n]);
-          }
-        }
+
+    //reset(only for slave and client components) staleConfigs property to false before load to model
+    this.get('model').find().forEach(function (hostComponent) {
+      if (!componentsWithStaleConfigs[hostComponent.get('id')] && !hostComponent.get('isMaster')) {
+        hostComponent.set('staleConfigs', false);
       }
-    }, this);
-    App.cache['restartRequiredServices'] = restartRequiredServices;
+    });
+    App.store.loadMany(this.get('model'), hostComponents);
+
+    this.addNewHostComponents(loadedServiceComponentsMap, serviceToHostComponentIdMap, cacheServices);
     console.timeEnd('App.componentConfigMapper execution time');
+  },
+
+  /**
+   * build map that include loaded host-components to avoid duplicate loading
+   * @param cacheServices
+   * @return {Object}
+   */
+  buildServiceComponentMap: function (cacheServices) {
+    var loadedServiceComponentsMap = {};
+
+    cacheServices.forEach(function (cacheService) {
+      var componentsMap = {};
+
+      cacheService.host_components.forEach(function (componentId) {
+        componentsMap[componentId] = true;
+      });
+      loadedServiceComponentsMap[cacheService.ServiceInfo.service_name] = componentsMap;
+    });
+    return loadedServiceComponentsMap;
+  },
+
+  /**
+   * add only new host-components to every service
+   * to update service - host-component relations in model
+   * @param loadedServiceComponentsMap
+   * @param serviceToHostComponentIdMap
+   * @param cacheServices
+   * @return {boolean}
+   */
+  addNewHostComponents: function (loadedServiceComponentsMap, serviceToHostComponentIdMap, cacheServices) {
+    if (!loadedServiceComponentsMap || !serviceToHostComponentIdMap || !cacheServices) return false;
+
+    for (var serviceName in serviceToHostComponentIdMap) {
+      var loadedService = cacheServices.findProperty('ServiceInfo.service_name', serviceName);
+
+      if (serviceToHostComponentIdMap[serviceName] && loadedService) {
+        serviceToHostComponentIdMap[serviceName].forEach(function (componentId) {
+          if (!loadedServiceComponentsMap[serviceName][componentId]) {
+            loadedService.host_components.push(componentId)
+          }
+        });
+      }
+    }
+    return true;
   }
 });

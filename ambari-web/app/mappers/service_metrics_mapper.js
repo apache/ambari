@@ -178,6 +178,7 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
       var services = App.cache['services'];
       var previousComponentStatuses = App.cache['previousComponentStatuses'];
       var previousComponentPassiveStates = App.cache['previousComponentPassiveStates'];
+      var result = [];
       /**
        * services contains constructed service-components structure from components array
        */
@@ -204,8 +205,6 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
       this.computeAdditionalRelations(hostComponents, services);
       //load master components to model
       App.store.loadMany(this.get('model3'), hostComponents);
-
-      var result = [];
 
       //parse service metrics from components
       services.forEach(function (item) {
@@ -266,7 +265,8 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
       result = misc.sortByOrder(App.Service.servicesSortOrder, result);
 
       //load services to model
-      if (previousResponse.length !== result.length) {
+      App.store.loadMany(this.get('model'), result);
+      /*if (previousResponse.length !== result.length) {
         App.store.loadMany(this.get('model'), result);
       } else {
         result.forEach(function (serviceJson) {
@@ -283,7 +283,7 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
         }, this)
       }
 
-      previousResponse = result;
+      previousResponse = result;*/
     }
     console.timeEnd('App.serviceMetricsMapper execution time');
   },

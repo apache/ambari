@@ -315,19 +315,20 @@ App.ClusterController = Em.Controller.extend({
         });
 
         updater.updateServiceMetric(function () {
+
+          if (App.supports.hostOverrides) {
+            updater.updateComponentConfig(function () {
+              self.updateLoadStatus('componentConfigs');
+            });
+          } else {
+            self.updateLoadStatus('componentConfigs');
+          }
+
           updater.updateComponentsState(function () {
             self.updateLoadStatus('componentsState');
           });
           self.updateLoadStatus('serviceMetrics');
         });
-
-        if (App.supports.hostOverrides) {
-          updater.updateComponentConfig(function () {
-            self.updateLoadStatus('componentConfigs');
-          });
-        } else {
-          self.updateLoadStatus('componentConfigs');
-        }
       });
     });
   },
