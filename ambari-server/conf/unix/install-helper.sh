@@ -29,7 +29,7 @@ do_install(){
   # setting ambari_commons shared resource
   rm -rf "$OLD_COMMON_DIR"
   if [ ! -d "$COMMON_DIR" ]; then
-    ln -s "$COMMON_DIR_AGENT" "$COMMON_DIR"
+    ln -s "$COMMON_DIR_SERVER" "$COMMON_DIR"
   fi
   # setting python-wrapper script
   if [ ! -f "$PYTHON_WRAPER_TARGET" ]; then
