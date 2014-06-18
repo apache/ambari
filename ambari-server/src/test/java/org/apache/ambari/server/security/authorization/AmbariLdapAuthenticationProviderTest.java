@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.security.authorization;
 
+import com.google.inject.persist.PersistService;
 import junit.framework.Assert;
 
 import com.google.inject.Guice;
@@ -31,6 +32,7 @@ import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.security.ClientSecurityType;
 import org.easymock.EasyMockSupport;
 import org.easymock.IAnswer;
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -60,9 +62,6 @@ public class AmbariLdapAuthenticationProviderTest extends EasyMockSupport {
 
   @BeforeClass
   public static void beforeClass() throws Exception{
-    injector = Guice.createInjector(new AuthorizationTestModule());
-    injector.getInstance(GuiceJpaInitializer.class);
-
     apacheDSContainer = new ApacheDSContainer("dc=ambari,dc=apache,dc=org", "classpath:/users.ldif");
     apacheDSContainer.setPort(33389);
     apacheDSContainer.afterPropertiesSet();
@@ -70,8 +69,15 @@ public class AmbariLdapAuthenticationProviderTest extends EasyMockSupport {
 
   @Before
   public void setUp() {
+    injector = Guice.createInjector(new AuthorizationTestModule());
     injector.injectMembers(this);
+    injector.getInstance(GuiceJpaInitializer.class);
     configuration.setClientSecurityType(ClientSecurityType.LDAP);
+  }
+
+  @After
+  public void tearDown() throws Exception {
+    injector.getInstance(PersistService.class).stop();
   }
 
   @Test(expected = BadCredentialsException.class)
@@ -79,7 +85,6 @@ public class AmbariLdapAuthenticationProviderTest extends EasyMockSupport {
     Authentication authentication = new UsernamePasswordAuthenticationToken("notFound", "wrong");
     authenticationProvider.authenticate(authentication);
   }
-
 
   @Test
   public void testGoodManagerCredentials() throws Exception {
