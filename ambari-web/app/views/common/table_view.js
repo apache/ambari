@@ -141,8 +141,9 @@ App.TableView = Em.View.extend(App.UserPref, {
     var displayLengthDefault = this.get('defaultDisplayLength');
     this.set('displayLength', displayLengthDefault);
     if (App.get('isAdmin')) {
-      this.postUserPref(this.displayLengthKey(), displayLengthDefault);
+      this.saveDisplayLength();
     }
+    this.filter();
     return displayLengthDefault;
   },
 
