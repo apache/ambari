@@ -29,7 +29,7 @@ App.MainChartsHeatmapRackView = Em.View.extend({
   /** loaded hosts of rack */
   hosts: function() {
     return this.get('rack.hosts').toArray();
-  }.property('rack.hosts'),
+  }.property('rack.hosts', 'rack.hosts.length'),
 
   willInsertElement: function () {
     this.set('rack.isLoaded', false);
