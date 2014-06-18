@@ -63,6 +63,7 @@ import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.HostHealthStatus;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
@@ -1101,11 +1102,10 @@ public class ClusterImpl implements Cluster {
       readWriteLock.readLock().lock();
       try {
         Map<String, Host> hosts = clusters.getHostsForCluster(getClusterName());
-        ClusterResponse r = new ClusterResponse(getClusterId(),
+
+        return new ClusterResponse(getClusterId(),
           getClusterName(), getProvisioningState(), hosts.keySet(), hosts.size(),
           getDesiredStackVersion().getStackId(), getClusterHealthReport());
-
-        return r;
       } finally {
         readWriteLock.readLock().unlock();
       }
@@ -1505,7 +1505,7 @@ public class ClusterImpl implements Cluster {
           break;
       }
 
-      switch (host.getHealthStatus().getHealthStatus()) {
+      switch (HostHealthStatus.HealthStatus.valueOf(host.getStatus())) {
         case HEALTHY:
           healthyStatusHosts++;
           break;
@@ -1525,10 +1525,9 @@ public class ClusterImpl implements Cluster {
 
       if (serviceComponentHostsByHost.containsKey(hostname)) {
         for (ServiceComponentHost sch : serviceComponentHostsByHost.get(hostname)) {
-          staleConfig = configHelper.isStaleConfigs(sch) ? true : staleConfig;
-          maintenanceState =
-            maintenanceStateHelper.getEffectiveState(sch) == MaintenanceState.ON ?
-              true : maintenanceState;
+          staleConfig = staleConfig || configHelper.isStaleConfigs(sch);
+          maintenanceState = maintenanceState ||
+            maintenanceStateHelper.getEffectiveState(sch) != MaintenanceState.OFF;
         }
       }
 

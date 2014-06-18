@@ -482,6 +482,7 @@ public class ClusterTest {
     host.setHostAttributes(hostAttributes);
     host.setState(HostState.HEALTHY);
     host.setHealthStatus(new HostHealthStatus(HostHealthStatus.HealthStatus.HEALTHY, ""));
+    host.setStatus(host.getHealthStatus().getHealthStatus().name());
     host.persist();
     c1.setDesiredStackVersion(new StackId("HDP-2.0.6"));
     clusters.mapHostToCluster("h2", "c1");
