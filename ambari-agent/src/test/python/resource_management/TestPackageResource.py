@@ -36,7 +36,7 @@ class TestPackageResource(TestCase):
       Package("some_package",
       )
     call_mock.assert_called_with('dpkg --get-selections some_package | grep -v deinstall')    
-    shell_mock.assert_called_with("env DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get --force-yes --assume-yes install some_package")
+    shell_mock.assert_called_with("env DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get -q -o Dpkg::Options::='--force-confdef' --force-yes --assume-yes install some_package")
 
 
   @patch.object(shell, "call")
