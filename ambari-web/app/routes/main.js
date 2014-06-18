@@ -684,6 +684,7 @@ module.exports = Em.Route.extend({
         route: '/summary',
         connectOutlets: function (router, context) {
           var item = router.get('mainServiceItemController.content');
+          router.get('updateController').updateServiceMetric(Em.K);
           //if service is not existed then route to default service
           if (item.get('isLoaded')) {
             router.get('mainServiceItemController').connectOutlet('mainServiceInfoSummary', item);
