@@ -221,13 +221,8 @@ public class DBAccessorImpl implements DBAccessor {
   @Override
   public boolean tableHasForeignKey(String tableName, String fkName) throws SQLException {
     DatabaseMetaData metaData = getDatabaseMetaData();
-    String schemaFilter = null;
-    if (getDbType().equals(Configuration.ORACLE_DB_NAME)) {
-      // Optimization to not query everything
-      schemaFilter = configuration.getDatabaseUser();
-    }
 
-    ResultSet rs = metaData.getImportedKeys(null, convertObjectName(schemaFilter), convertObjectName(tableName));
+    ResultSet rs = metaData.getImportedKeys(null, null, convertObjectName(tableName));
 
     if (rs != null) {
       try {
@@ -240,6 +235,8 @@ public class DBAccessorImpl implements DBAccessor {
         rs.close();
       }
     }
+
+    LOG.warn("FK {} not found for table {}", convertObjectName(fkName), convertObjectName(tableName));
 
     return false;
   }
@@ -254,16 +251,11 @@ public class DBAccessorImpl implements DBAccessor {
   public boolean tableHasForeignKey(String tableName, String referenceTableName, String[] keyColumns,
                                     String[] referenceColumns) throws SQLException {
     DatabaseMetaData metaData = getDatabaseMetaData();
-    String schemaFilter = null;
-    if (getDbType().equals(Configuration.ORACLE_DB_NAME)) {
-      // Optimization to not query everything
-      schemaFilter = configuration.getDatabaseUser();
-    }
 
     //NB: reference table contains pk columns while key table contains fk columns
 
-    ResultSet rs = metaData.getCrossReference(null, convertObjectName(schemaFilter), convertObjectName(referenceTableName),
-      null, convertObjectName(schemaFilter), convertObjectName(tableName));
+    ResultSet rs = metaData.getCrossReference(null, null, convertObjectName(referenceTableName),
+      null, null, convertObjectName(tableName));
 
     List<String> pkColumns = new ArrayList<String>(referenceColumns.length);
     for (String referenceColumn : referenceColumns) {

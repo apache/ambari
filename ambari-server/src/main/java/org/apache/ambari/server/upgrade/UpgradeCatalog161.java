@@ -93,15 +93,18 @@ public class UpgradeCatalog161 extends AbstractUpgradeCatalog {
         new DBAccessor.DBColumnInfo("user_name", String.class, 255, " ", false));
 
     dbAccessor.dropConstraint("viewinstancedata", "FK_viewinstdata_view_name");
+    dbAccessor.dropConstraint("viewinstanceproperty", "FK_viewinstprop_view_name");
+    dbAccessor.dropConstraint("viewentity", "FK_viewentity_view_name");
 
     //modify primary key of viewinstancedata
     if (Configuration.ORACLE_DB_NAME.equals(getDbType()) ||
-        Configuration.MYSQL_DB_NAME.equals(getDbType())) {
-      dbAccessor.executeQuery("alter table viewinstance drop primary key", true);
-      dbAccessor.executeQuery("alter table viewinstancedata drop primary key", true);
+        Configuration.MYSQL_DB_NAME.equals(getDbType()) ||
+        Configuration.DERBY_DB_NAME.equals(getDbType())) {
+      dbAccessor.executeQuery("ALTER TABLE viewinstance DROP PRIMARY KEY", true);
+      dbAccessor.executeQuery("ALTER TABLE viewinstancedata DROP PRIMARY KEY", true);
     }else if (Configuration.POSTGRES_DB_NAME.equals(getDbType())) {
-      dbAccessor.executeQuery("alter table viewinstance drop constraint viewinstance_pkey", true);
-      dbAccessor.executeQuery("alter table viewinstancedata drop constraint viewinstancedata_pkey", true);
+      dbAccessor.executeQuery("ALTER TABLE viewinstance DROP CONSTRAINT viewinstance_pkey CASCADE", true);
+      dbAccessor.executeQuery("ALTER TABLE viewinstancedata DROP CONSTRAINT viewinstancedata_pkey CASCADE", true);
     }
 
 
@@ -130,7 +133,7 @@ public class UpgradeCatalog161 extends AbstractUpgradeCatalog {
     }else if (Configuration.POSTGRES_DB_NAME.equals(getDbType())) {
       if (dbAccessor.tableHasData("viewinstance")) {
         //window functions like row_number were added in 8.4, workaround for earlier versions (redhat/centos 5)
-        dbAccessor.executeQuery("CREATE sequence temp_seq START WITH 1");
+        dbAccessor.executeQuery("CREATE SEQUENCE temp_seq START WITH 1");
         dbAccessor.executeQuery("UPDATE viewinstance SET view_instance_id = nextval('temp_seq')");
         dbAccessor.dropSequence("temp_seq");
       }
@@ -138,15 +141,30 @@ public class UpgradeCatalog161 extends AbstractUpgradeCatalog {
 
     }
 
+    if (Configuration.DERBY_DB_NAME.equals(getDbType())) {
+      dbAccessor.executeQuery("ALTER TABLE viewinstance ALTER COLUMN view_instance_id DEFAULT 0");
+      dbAccessor.executeQuery("ALTER TABLE viewinstance ALTER COLUMN view_instance_id NOT NULL");
+      dbAccessor.executeQuery("ALTER TABLE viewinstancedata ALTER COLUMN view_instance_id DEFAULT 0");
+      dbAccessor.executeQuery("ALTER TABLE viewinstancedata ALTER COLUMN view_instance_id NOT NULL");
+      dbAccessor.executeQuery("ALTER TABLE viewinstancedata ALTER COLUMN user_name DEFAULT ' '");
+      dbAccessor.executeQuery("ALTER TABLE viewinstancedata ALTER COLUMN user_name NOT NULL");
+    }
+
     dbAccessor.executeQuery("alter table viewinstance add primary key (view_instance_id)");
     dbAccessor.executeQuery("ALTER TABLE viewinstance ADD CONSTRAINT UQ_viewinstance_name UNIQUE (view_name, name)", true);
+    dbAccessor.executeQuery("ALTER TABLE viewinstance ADD CONSTRAINT UQ_viewinstance_name_id UNIQUE (view_instance_id, view_name, name)", true);
+
+    dbAccessor.addFKConstraint("viewinstanceproperty", "FK_viewinstprop_view_name",
+        new String[]{"view_name", "view_instance_name"}, "viewinstance", new String[]{"view_name", "name"}, true);
+    dbAccessor.addFKConstraint("viewentity", "FK_viewentity_view_name",
+        new String[]{"view_name", "view_instance_name"}, "viewinstance", new String[]{"view_name", "name"}, true);
 
     if (Configuration.POSTGRES_DB_NAME.equals(getDbType())) {
       dbAccessor.executeQuery("UPDATE viewinstancedata AS vid SET view_instance_id = vi.view_instance_id " +
         "FROM viewinstance AS vi WHERE vi.name = vid.view_instance_name AND vi.view_name = vid.view_name");
     } else if (Configuration.ORACLE_DB_NAME.equals(getDbType())) {
-      dbAccessor.executeQuery("UPDATE viewinstancedata AS vid SET view_instance_id = (" +
-        "SELECT view_instance_id FROM viewinstance AS vi WHERE vi.name = vid.view_instance_name AND vi.view_name = vid.view_name)");
+      dbAccessor.executeQuery("UPDATE viewinstancedata vid SET view_instance_id = (" +
+        "SELECT view_instance_id FROM viewinstance vi WHERE vi.name = vid.view_instance_name AND vi.view_name = vid.view_name)");
     }else if (Configuration.MYSQL_DB_NAME.equals(getDbType())) {
       dbAccessor.executeQuery("UPDATE viewinstancedata AS vid JOIN viewinstance AS vi " +
         "ON vi.name = vid.view_instance_name AND vi.view_name = vid.view_name " +
@@ -156,7 +174,7 @@ public class UpgradeCatalog161 extends AbstractUpgradeCatalog {
     dbAccessor.executeQuery("alter table viewinstancedata add primary key (view_instance_id, name, user_name)");
 
     dbAccessor.addFKConstraint("viewinstancedata", "FK_viewinstdata_view_name", new String[]{"view_instance_id", "view_name", "view_instance_name"},
-      "viewinstance", new String[]{"view_instance_id", "view_name", "name"}, false);
+      "viewinstance", new String[]{"view_instance_id", "view_name", "name"}, true);
 
 
     long count = 1;

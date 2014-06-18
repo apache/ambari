@@ -35,6 +35,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
 import javax.persistence.TypedQuery;
 import java.lang.reflect.Field;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -42,15 +43,7 @@ import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertNull;
 import static junit.framework.Assert.assertTrue;
-import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.createMockBuilder;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.createStrictMock;
-import static org.easymock.EasyMock.eq;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
+import static org.easymock.EasyMock.*;
 
 /**
  * UpgradeCatalog161 unit tests.
@@ -62,6 +55,7 @@ public class UpgradeCatalog161Test {
 
     final DBAccessor dbAccessor = createNiceMock(DBAccessor.class);
     Configuration configuration = createNiceMock(Configuration.class);
+    ResultSet resultSet = createNiceMock(ResultSet.class);
     expect(configuration.getDatabaseUrl()).andReturn(Configuration.JDBC_IN_MEMORY_URL).anyTimes();
 
     Capture<DBAccessor.DBColumnInfo> provisioningStateColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
@@ -77,9 +71,17 @@ public class UpgradeCatalog161Test {
     setClustersConfigExpectations(dbAccessor, provisioningStateColumnCapture);    
     setOperationLevelEntityConfigExpectations(dbAccessor, operationLevelEntityColumnCapture);
     setViewExpectations(dbAccessor, viewIconColumnCapture, viewIcon64ColumnCapture);
+    dbAccessor.addColumn(eq("viewinstance"),
+        anyObject(DBAccessor.DBColumnInfo.class));
     setViewInstanceExpectations(dbAccessor, labelColumnCapture, descriptionColumnCapture, visibleColumnCapture, instanceIconColumnCapture, instanceIcon64ColumnCapture);
+    dbAccessor.executeSelect(anyObject(String.class));
+    expectLastCall().andReturn(resultSet).anyTimes();
+    resultSet.next();
+    expectLastCall().andReturn(false).anyTimes();
+    resultSet.close();
+    expectLastCall().anyTimes();
 
-    replay(dbAccessor, configuration);
+    replay(dbAccessor, configuration, resultSet);
     AbstractUpgradeCatalog upgradeCatalog = getUpgradeCatalog(dbAccessor);
     Class<?> c = AbstractUpgradeCatalog.class;
     Field f = c.getDeclaredField("configuration");
@@ -87,7 +89,7 @@ public class UpgradeCatalog161Test {
     f.set(upgradeCatalog, configuration);
 
     upgradeCatalog.executeDDLUpdates();
-    verify(dbAccessor, configuration);
+    verify(dbAccessor, configuration, resultSet);
 
     assertClusterColumns(provisioningStateColumnCapture);
     assertOperationLevelEntityColumns(operationLevelEntityColumnCapture);
