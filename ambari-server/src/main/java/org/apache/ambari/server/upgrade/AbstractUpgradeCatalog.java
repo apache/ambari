@@ -262,8 +262,7 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
 
   @Override
   public String toString() {
-    return "{ " + this.getClass().getCanonicalName() +": " +
-      "sourceVersion = " + getSourceVersion() + ", " +
+    return "{ ugradeCatalog: sourceVersion = " + getSourceVersion() + ", " +
       "targetVersion = " + getTargetVersion() + " }";
   }
 }

@@ -293,4 +293,10 @@ public class UpgradeCatalog150Test {
     }
     Assert.assertFalse(failFlag);
   }
+  
+  @Test
+  public void testGetSourceVersion() {
+    UpgradeCatalog150 upgradeCatalog150 = injector.getInstance(UpgradeCatalog150.class);
+    Assert.assertNull(upgradeCatalog150.getSourceVersion());
+  }  
 }

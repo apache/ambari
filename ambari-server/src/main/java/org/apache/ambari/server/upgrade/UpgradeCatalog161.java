@@ -43,6 +43,12 @@ import com.google.inject.Injector;
  */
 public class UpgradeCatalog161 extends AbstractUpgradeCatalog {
 
+  //SourceVersion is only for book-keeping purpos
+  @Override
+  public String getSourceVersion() {
+    return "1.6.0";
+  }
+
   /**
    * Logger.
    */

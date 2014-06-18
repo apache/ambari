@@ -31,6 +31,12 @@ import java.util.List;
  * Upgrade catalog for version 1.5.1.
  */
 public class UpgradeCatalog151 extends AbstractUpgradeCatalog {
+  
+  //SourceVersion is only for book-keeping purpose
+  @Override
+  public String getSourceVersion() {
+    return "1.5.0";
+  }
 
 
   // ----- Constructors ------------------------------------------------------

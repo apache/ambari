@@ -311,7 +311,7 @@ public class UpgradeCatalog161Test {
     assertEquals(String.class, column.getType());
     assertNull(column.getDefaultValue());
     assertTrue(column.isNullable());
-
+  
     column = descriptionColumnCapture.getValue();
     assertEquals("description", column.getName());
     assertEquals(255, (int) column.getLength());
@@ -340,4 +340,11 @@ public class UpgradeCatalog161Test {
     assertNull(column.getDefaultValue());
     assertTrue(column.isNullable());
   }
+  
+  @Test
+  public void testGetSourceVersion() {
+    final DBAccessor dbAccessor     = createNiceMock(DBAccessor.class);
+    UpgradeCatalog upgradeCatalog = getUpgradeCatalog(dbAccessor);
+    Assert.assertEquals("1.6.0", upgradeCatalog.getSourceVersion());
+  }   
 }

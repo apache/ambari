@@ -104,5 +104,11 @@ public class UpgradeCatalog151Test {
     Injector injector = Guice.createInjector(module);
     return injector.getInstance(UpgradeCatalog151.class);
   }
-
+  
+  @Test
+  public void testGetSourceVersion() {
+    final DBAccessor dbAccessor     = createNiceMock(DBAccessor.class);
+    UpgradeCatalog upgradeCatalog = getUpgradeCatalog(dbAccessor);
+    Assert.assertEquals("1.5.0", upgradeCatalog.getSourceVersion());
+  }  
 }
