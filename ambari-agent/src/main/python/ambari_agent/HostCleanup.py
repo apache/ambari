@@ -17,7 +17,10 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-
+import sys
+# For compatibility with different OSes
+# Edit PYTHONPATH to be able to import common_functions
+sys.path.append("/usr/lib/python2.6/site-packages/")
 import os
 import string
 import subprocess
@@ -27,7 +30,6 @@ import platform
 import ConfigParser
 import optparse
 import shlex
-import sys
 import datetime
 import AmbariConfig
 from pwd import getpwnam

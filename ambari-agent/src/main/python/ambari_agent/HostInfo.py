@@ -316,14 +316,11 @@ class HostInfo:
 
     dict['umask'] = str(self.getUMask())
 
-    # detailed host check is not available for Suse
-    isSuse = 'suse' == OSCheck.get_os_family()
-
     dict['iptablesIsRunning'] = self.checkIptables()
     dict['reverseLookup'] = self.checkReverseLookup()
     # If commands are in progress or components are already mapped to this host
     # Then do not perform certain expensive host checks
-    if componentsMapped or commandsInProgress or isSuse:
+    if componentsMapped or commandsInProgress:
       dict['existingRepos'] = [self.RESULT_UNAVAILABLE]
       dict['installedPackages'] = []
       dict['alternatives'] = []

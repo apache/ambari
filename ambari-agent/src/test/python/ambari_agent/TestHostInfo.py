@@ -269,14 +269,14 @@ class TestHostInfo(TestCase):
     hostInfo = HostInfo()
     dict = {}
     hostInfo.register(dict, False, False)
-    self.assertFalse(gir_mock.called)
-    self.assertFalse(gpd_mock.called)
-    self.assertFalse(aip_mock.called)
-    self.assertFalse(aap_mock.called)
+    self.assertTrue(gir_mock.called)
+    self.assertTrue(gpd_mock.called)
+    self.assertTrue(aip_mock.called)
+    self.assertTrue(aap_mock.called)
     self.assertTrue(os_umask_mock.called)
-    self.assertFalse(whcf_mock.called)
+    self.assertTrue(whcf_mock.called)
 
-    self.assertTrue(0 == len(dict['installedPackages']))
+    self.assertTrue(0 < len(dict['installedPackages']))
     self.assertTrue('agentTimeStampAtReporting' in dict['hostHealth'])
 
 
