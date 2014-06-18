@@ -59,7 +59,11 @@ App.InstallerController = App.WizardController.extend({
     'serviceConfigGroups',
     'serviceConfigProperties',
     'configsToUpdate',
-    'bootStatus'
+    'bootStatus',
+    'stacksVersions',
+    'currentStep',
+    'serviceInfo',
+    'hostInfo'
   ],
 
   init: function () {

@@ -60,6 +60,24 @@ App.ReassignMasterController = App.WizardController.extend({
     securityEnabled: false
   }),
 
+  /**
+   * Wizard properties in local storage, which should be cleaned right after wizard has been finished
+   */
+  dbPropertiesToClean: [
+    'cluster',
+    'hosts',
+    'installOptions',
+    'masterComponentHosts',
+    'serviceComponents',
+    'masterComponent',
+    'securityEnabled',
+    'currentStep',
+    'reassignHosts',
+    'tasksStatuses',
+    'tasksRequestIds',
+    'requestIds'
+  ],
+
   addManualSteps: function () {
     this.set('content.hasManualSteps', this.get('content.componentsWithManualCommands').contains(this.get('content.reassign.component_name')) || this.get('content.securityEnabled'));
   }.observes('content.reassign.component_name', 'content.securityEnabled'),

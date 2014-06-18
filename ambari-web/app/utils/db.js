@@ -325,7 +325,7 @@ App.db.setReassignTasksRequestIds = function (requestIds) {
 
 App.db.setStacks = function (stacks) {
   App.db.data = localStorage.getObject('ambari');
-  App.db.data.app.stacksVersions = stacks;
+  App.db.data.Installer.stacksVersions = stacks;
   localStorage.setObject('ambari', App.db.data);
 };
 
@@ -736,7 +736,7 @@ App.db.getIsNameNodeHa = function (haStatus) {
 
 App.db.getStacks = function () {
   App.db.data = localStorage.getObject('ambari');
-  return App.db.data.app.stacksVersions;
+  return App.db.data.Installer.stacksVersions;
 };
 
 App.db.getServices = function () {
