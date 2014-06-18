@@ -129,6 +129,10 @@ mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
 hadoop_libexec_dir = "/usr/lib/hadoop/libexec"
 mapred_log_dir_prefix = default("mapred_log_dir_prefix","/var/log/hadoop-mapreduce")
 
+artifact_dir = "/tmp/HDP-artifacts/"
+jce_policy_zip = default("/hostLevelParams/jce_name", None) # None when jdk is already installed by user
+jce_location = config['hostLevelParams']['jdk_location']
+
 #log4j.properties
 
 yarn_log_dir_prefix = default("yarn_log_dir_prefix","/var/log/hadoop-yarn")
