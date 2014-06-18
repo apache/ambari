@@ -79,6 +79,12 @@ wbr {
   display: inline-block;
 }
 
+@-moz-document url-prefix() {
+input[type="file"] {
+  line-height: 25px!important;
+}
+}
+
 ul.typeahead.dropdown-menu {
   z-index: 3000000 !important;
 }
