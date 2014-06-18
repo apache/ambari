@@ -68,6 +68,23 @@ class TestOSCheck(TestCase):
     result = OSCheck.get_os_type()
     self.assertEquals(result, 'centos')
 
+    # 5 - Red Hat Enterprise Linux
+    mock_exists.return_value = False
+    # Red Hat Enterprise Linux Server release 6.5 (Santiago)
+    mock_linux_distribution.return_value = ('Red Hat Enterprise Linux Server', '6.5', 'Santiago')
+    result = OSCheck.get_os_type()
+    self.assertEquals(result, 'redhat')
+
+    # Red Hat Enterprise Linux Workstation release 6.4 (Santiago)
+    mock_linux_distribution.return_value = ('Red Hat Enterprise Linux Workstation', '6.4', 'Santiago')
+    result = OSCheck.get_os_type()
+    self.assertEquals(result, 'redhat')
+
+    # Red Hat Enterprise Linux AS release 4 (Nahant Update 3)
+    mock_linux_distribution.return_value = ('Red Hat Enterprise Linux AS', '4', 'Nahant Update 3')
+    result = OSCheck.get_os_type()
+    self.assertEquals(result, 'redhat')
+
 
   @patch("platform.linux_distribution")
   @patch("os.path.exists")

@@ -104,7 +104,7 @@ class OSCheck:
       return 'oraclelinux'
     elif operatingSystem.startswith('suse linux enterprise server'):
       return 'sles'
-    elif operatingSystem.startswith('red hat enterprise linux server'):
+    elif operatingSystem.startswith('red hat enterprise linux'):
       return 'redhat'
 
     if operatingSystem != '':
