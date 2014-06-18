@@ -74,7 +74,7 @@ then
     then
       sed -i "s@\$conf\['rrdcached_socket'] =.*@\$conf\['rrdcached_socket'] = \"unix:${RRDCACHED_LIMITED_ACCESS_UNIX_SOCKET}\";@" $GANGLIA_WEB_CONFIG_FILE
     else
-      echo "${FILE} can't be found";
+      echo "${GANGLIA_WEB_CONFIG_FILE} can't be found";
       exit 1;
     fi
 

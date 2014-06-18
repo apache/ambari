@@ -35,7 +35,7 @@ def printMetric(clusterName, hostName, metricName, file, cf, start, end,
   if clusterName.endswith("rrds"):
     clusterName = ""
 
-  args = [file, cf, "--daemon", "unix:{{ganglia_runtime_dir}}/rrdcached.sock"]
+  args = [file, cf, "--daemon", "unix:{{ganglia_runtime_dir}}/rrdcached.limited.sock"]
 
   if start is not None:
     args.extend(["-s", start])
