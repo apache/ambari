@@ -986,17 +986,6 @@ h1 {
   }
 }
 
-#host-log {
-  width: 100%;
-  .stderr, .stdout {
-    background-color: #f0f0f0;
-  /* max-height: 300px;
-  overflow-y: auto; */
-    border-radius: 4px;
-    padding: 8px;
-  }
-}
-
 .spinner {
   width: 36px;
   height: 36px;
@@ -2120,6 +2109,13 @@ width:100%;
         float: right;
       }
     }
+  }
+}
+.task-detail-log-info {
+  .stderr, .stdout {
+    line-height: 14px;
+    font-size: 11px;
+    font-family: monospace;
   }
 }
 
