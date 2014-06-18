@@ -596,6 +596,7 @@ App.MainHostController = Em.ArrayController.extend({
     var self = this;
 
     batchUtils.getComponentsFromServer({
+      hosts: hosts.mapProperty('hostName'),
       displayParams: ['Hosts/maintenance_state']
     }, function (data) {
       var hostNames = [];
