@@ -317,6 +317,12 @@ App.db.setReassignTasksStatuses = function (tasksStatuses) {
   localStorage.setObject('ambari', App.db.data);
 };
 
+App.db.setReassignTasksRequestIds = function (requestIds) {
+  App.db.data = localStorage.getObject('ambari');
+  App.db.data.ReassignMaster.tasksRequestIds = requestIds;
+  localStorage.setObject('ambari', App.db.data);
+};
+
 App.db.setStacks = function (stacks) {
   App.db.data = localStorage.getObject('ambari');
   App.db.data.app.stacksVersions = stacks;
@@ -425,6 +431,12 @@ App.db.setHighAvailabilityWizardTasksStatuses = function (tasksStatuses) {
   localStorage.setObject('ambari', App.db.data);
 };
 
+App.db.setHighAvailabilityWizardTasksRequestIds = function (requestIds) {
+  App.db.data = localStorage.getObject('ambari');
+  App.db.data.HighAvailabilityWizard.tasksRequestIds = requestIds;
+  localStorage.setObject('ambari', App.db.data);
+};
+
 App.db.setHighAvailabilityWizardHdfsUser = function (hdfsUser) {
   App.db.data = localStorage.getObject('ambari');
   App.db.data.HighAvailabilityWizard.hdfsUser = hdfsUser;
@@ -434,12 +446,6 @@ App.db.setHighAvailabilityWizardHdfsUser = function (hdfsUser) {
 App.db.setHighAvailabilityWizardRequestIds = function (requestIds) {
   App.db.data = localStorage.getObject('ambari');
   App.db.data.HighAvailabilityWizard.requestIds = requestIds;
-  localStorage.setObject('ambari', App.db.data);
-};
-
-App.db.setHighAvailabilityWizardLogs = function (logs) {
-  App.db.data = localStorage.getObject('ambari');
-  App.db.data.HighAvailabilityWizard.logs = logs;
   localStorage.setObject('ambari', App.db.data);
 };
 
@@ -480,27 +486,21 @@ App.db.setRollbackHighAvailabilityWizardTasksStatuses = function (tasksStatuses)
   localStorage.setObject('ambari', App.db.data);
 };
 
+App.db.setRollbackHighAvailabilityWizardTasksRequestIds = function (requestIds) {
+  App.db.data = localStorage.getObject('ambari');
+  App.db.data.RollbackHighAvailabilityWizard.tasksRequestIds = requestIds;
+  localStorage.setObject('ambari', App.db.data);
+};
+
 App.db.setRollbackHighAvailabilityWizardRequestIds = function (requestIds) {
   App.db.data = localStorage.getObject('ambari');
   App.db.data.RollbackHighAvailabilityWizard.requestIds = requestIds;
   localStorage.setObject('ambari', App.db.data);
 };
 
-App.db.setRollbackHighAvailabilityWizardLogs = function (logs) {
-  App.db.data = localStorage.getObject('ambari');
-  App.db.data.RollbackHighAvailabilityWizard.logs = logs;
-  localStorage.setObject('ambari', App.db.data);
-};
-
 App.db.setReassignMasterWizardRequestIds = function (requestIds) {
   App.db.data = localStorage.getObject('ambari');
   App.db.data.ReassignMaster.requestIds = requestIds;
-  localStorage.setObject('ambari', App.db.data);
-};
-
-App.db.setReassignMasterWizardLogs = function (logs) {
-  App.db.data = localStorage.getObject('ambari');
-  App.db.data.ReassignMaster.logs = logs;
   localStorage.setObject('ambari', App.db.data);
 };
 
@@ -687,6 +687,11 @@ App.db.getReassignTasksStatuses = function () {
   return App.db.data.ReassignMaster.tasksStatuses;
 };
 
+App.db.getReassignTasksRequestIds = function () {
+  App.db.data = localStorage.getObject('ambari');
+  return App.db.data.ReassignMaster.tasksRequestIds;
+};
+
 App.db.getUpgradeOptions = function () {
   console.log('TRACE: Entering db:getUpgradeOptions function');
   App.db.data = localStorage.getObject('ambari');
@@ -749,6 +754,11 @@ App.db.getHighAvailabilityWizardTasksStatuses = function () {
   return App.db.data.HighAvailabilityWizard.tasksStatuses;
 };
 
+App.db.getHighAvailabilityWizardTasksRequestIds = function () {
+  App.db.data = localStorage.getObject('ambari');
+  return App.db.data.ReassignMaster.tasksRequestIds;
+};
+
 App.db.getHighAvailabilityWizardFailedTask = function () {
   App.db.data = localStorage.getObject('ambari');
   return App.db.data.HighAvailabilityWizard.failedTask;
@@ -769,11 +779,6 @@ App.db.getHighAvailabilityWizardRequestIds = function () {
   return App.db.data.HighAvailabilityWizard.requestIds;
 };
 
-App.db.getHighAvailabilityWizardLogs = function () {
-  App.db.data = localStorage.getObject('ambari');
-  return App.db.data.HighAvailabilityWizard.logs;
-};
-
 App.db.getHighAvailabilityWizardNameServiceId = function () {
   App.db.data = localStorage.getObject('ambari');
   return App.db.data.HighAvailabilityWizard.nameServiceId;
@@ -784,14 +789,14 @@ App.db.getRollbackHighAvailabilityWizardTasksStatuses = function () {
   return App.db.data.RollbackHighAvailabilityWizard.tasksStatuses;
 };
 
+App.db.getRollbackHighAvailabilityWizardTasksRequestIds = function () {
+  App.db.data = localStorage.getObject('ambari');
+  return App.db.data.ReassignMaster.tasksRequestIds;
+};
+
 App.db.getRollbackHighAvailabilityWizardRequestIds = function () {
   App.db.data = localStorage.getObject('ambari');
   return App.db.data.RollbackHighAvailabilityWizard.requestIds;
-};
-
-App.db.getRollbackHighAvailabilityWizardLogs = function () {
-  App.db.data = localStorage.getObject('ambari');
-  return App.db.data.RollbackHighAvailabilityWizard.logs;
 };
 
 App.db.getRollBackHighAvailabilityWizardAddNNHost = function (host) {
@@ -807,11 +812,6 @@ App.db.getRollBackHighAvailabilityWizardSNNHost = function (host) {
 App.db.getReassignMasterWizardRequestIds = function () {
   App.db.data = localStorage.getObject('ambari');
   return App.db.data.ReassignMaster.requestIds;
-};
-
-App.db.getReassignMasterWizardLogs = function () {
-  App.db.data = localStorage.getObject('ambari');
-  return App.db.data.ReassignMaster.logs;
 };
 
 App.db.getReassignMasterWizardComponentDir = function () {

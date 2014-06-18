@@ -60,7 +60,6 @@ App.RollbackHighAvailabilityWizardController = App.WizardController.extend({
     return jQuery.extend({}, this.get('clusterStatusTemplate'), {name: App.router.getClusterName()});
   },
 
-
   /**
    * save status of the cluster.
    * @param clusterStatus object with status,requestId fields.
@@ -87,11 +86,6 @@ App.RollbackHighAvailabilityWizardController = App.WizardController.extend({
   saveRequestIds: function(requestIds){
     App.db.setRollbackHighAvailabilityWizardRequestIds(requestIds);
     this.set('content.requestIds', requestIds);
-  },
-
-  saveLogs: function(logs){
-    App.db.setRollbackHighAvailabilityWizardLogs(logs);
-    this.set('content.logs', logs);
   },
 
   saveSelectedSNN: function(addNN){
@@ -124,11 +118,6 @@ App.RollbackHighAvailabilityWizardController = App.WizardController.extend({
     this.set('content.requestIds', requestIds);
   },
 
-  loadLogs: function(){
-    var logs = App.db.getRollbackHighAvailabilityWizardLogs();
-    this.set('content.logs', logs);
-  },
-
   /**
    * Load data for all steps until <code>current step</code>
    */
@@ -157,7 +146,6 @@ App.RollbackHighAvailabilityWizardController = App.WizardController.extend({
   clearTasksData: function () {
     this.saveTasksStatuses(undefined);
     this.saveRequestIds(undefined);
-    this.saveLogs(undefined);
   },
 
   /**

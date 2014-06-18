@@ -24,7 +24,7 @@
     <div class="item">
       <div {{bindAttr class=":pull-left view.linkClass controller.isHA:span4 controller.isRollback:span3 controller.isReassign:span5"}}>
         <i {{bindAttr class="view.icon view.iconColor"}}></i>
-        <a {{bindAttr class=""}} {{action "hostsLogPopup" task target="view"}} >{{task.title}}</a>
+        <a {{action "showHostProgressPopup" task target="controller"}} >{{task.title}}</a>
       </div>
       <div {{bindAttr class="view.showProgressBar::hide :row :span5 :pull-left" }}>
         <div {{bindAttr class=":progress-bar controller.isRollback::span8 controller.isRollback:span3"}}>

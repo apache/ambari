@@ -30,6 +30,7 @@ require('controllers/main/admin');
 require('controllers/main/admin/highAvailability_controller');
 require('controllers/main/admin/highAvailability/wizard_controller');
 require('controllers/main/admin/highAvailability/progress_controller');
+require('controllers/main/admin/highAvailability/progress_popup_controller');
 require('controllers/main/admin/highAvailability/rollback_controller');
 require('controllers/main/admin/highAvailability/step1_controller');
 require('controllers/main/admin/highAvailability/step2_controller');

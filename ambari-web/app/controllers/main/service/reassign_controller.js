@@ -209,10 +209,21 @@ App.ReassignMasterController = App.WizardController.extend({
     };
     App.db.setMasterToReassign(component);
   },
+
   saveTasksStatuses: function (statuses) {
     App.db.setReassignTasksStatuses(statuses);
     this.set('content.tasksStatuses', statuses);
     console.log('ReassignMasterController.saveTasksStatuses: saved statuses', statuses);
+  },
+
+  loadTasksRequestIds: function () {
+    var requestIds = App.db.getReassignTasksRequestIds();
+    this.set('content.tasksRequestIds', requestIds);
+  },
+
+  saveTasksRequestIds: function (requestIds) {
+    App.db.setReassignTasksRequestIds(requestIds);
+    this.set('content.tasksRequestIds', requestIds);
   },
 
   loadRequestIds: function () {
@@ -223,16 +234,6 @@ App.ReassignMasterController = App.WizardController.extend({
   saveRequestIds: function (requestIds) {
     App.db.setReassignMasterWizardRequestIds(requestIds);
     this.set('content.requestIds', requestIds);
-  },
-
-  saveLogs: function (logs) {
-    App.db.setReassignMasterWizardLogs(logs);
-    this.set('content.logs', logs);
-  },
-
-  loadLogs: function () {
-    var logs = App.db.getReassignMasterWizardLogs();
-    this.set('content.logs', logs);
   },
 
   saveComponentDir: function (componentDir) {
@@ -288,8 +289,8 @@ App.ReassignMasterController = App.WizardController.extend({
         this.loadComponentDir();
       case '4':
         this.loadTasksStatuses();
+        this.loadTasksRequestIds();
         this.loadRequestIds();
-        this.loadLogs();
       case '3':
         this.loadReassignHosts();
       case '2':

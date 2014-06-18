@@ -1007,7 +1007,7 @@ var urls = {
     }
   },
   'admin.high_availability.polling': {
-    'real': '/clusters/{clusterName}/requests/{requestId}?fields=tasks/*',
+    'real': '/clusters/{clusterName}/requests/{requestId}?fields=tasks/*,Requests/*',
     'mock': '',
     'type': 'GET'
   },

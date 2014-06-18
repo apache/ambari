@@ -161,7 +161,7 @@ module.exports = App.WizardRoute.extend({
     back: Em.Router.transitionTo('step2'),
     next: function (router) {
       App.db.setReassignTasksStatuses(undefined);
-      App.db.setReassignMasterWizardLogs(undefined);
+      App.db.setReassignTasksRequestIds(undefined);
       App.clusterStatus.setClusterStatus({
         clusterName: router.get('reassignMasterController.content.cluster.name'),
         clusterState: 'REASSIGN_MASTER_INSTALLING',

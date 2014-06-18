@@ -27,9 +27,9 @@ App.HighAvailabilityProgressPageView = Em.View.extend({
 
   headerTitle: function () {
     var currentStep = App.router.get('highAvailabilityWizardController.currentStep');
-    if(currentStep == 1) {
+    if (currentStep == 1) {
       return  Em.I18n.t('admin.highAvailability.wizard.rollback.header.title');
-    }else {
+    } else {
       return  Em.I18n.t('admin.highAvailability.wizard.step' + currentStep + '.header.title');
     }
   }.property(),
@@ -42,9 +42,9 @@ App.HighAvailabilityProgressPageView = Em.View.extend({
 
   noticeInProgress: function () {
     var currentStep = App.router.get('highAvailabilityWizardController.currentStep');
-    if(currentStep == 1) {
+    if (currentStep == 1) {
       return  Em.I18n.t('admin.highAvailability.rollback.notice.inProgress');
-    }else {
+    } else {
       return  Em.I18n.t('admin.highAvailability.wizard.step' + currentStep + '.notice.inProgress');
     }
   }.property(),
@@ -81,7 +81,7 @@ App.HighAvailabilityProgressPageView = Em.View.extend({
     }.property('content.progress'),
 
     onStatus: function () {
-      var linkClass = !!this.get('content.hosts.length') ? 'active-link' : 'active-text';
+      var linkClass = !!this.get('content.requestIds.length') ? 'active-link' : 'active-text';
       this.set('linkClass', linkClass);
       if (this.get('content.status') === 'IN_PROGRESS') {
         this.set('icon', 'icon-cog');
@@ -101,21 +101,6 @@ App.HighAvailabilityProgressPageView = Em.View.extend({
 
     showProgressBar: function () {
       return this.get('content.status') === "IN_PROGRESS";
-    }.property('content.status'),
-
-    /**
-     * open popup with list of hosts, that associated to service
-     * @param event
-     */
-    hostsLogPopup: function(event){
-      if(!!this.get('content.hosts.length')){
-        var serviceName = event.contexts[0].title;
-        var controller = this.get("controller");
-        App.router.get('applicationController').dataLoading().done(function (initValue) {
-          var popupView = App.HostPopup.initPopup(serviceName, controller);
-          popupView.set ('isNotShowBgChecked', !initValue);
-        })
-      }
-    }
+    }.property('content.status')
   })
 });

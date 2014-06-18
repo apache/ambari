@@ -203,19 +203,9 @@ App.HighAvailabilityWizardController = App.WizardController.extend({
     this.set('content.requestIds', requestIds);
   },
 
-  saveLogs: function(logs){
-    App.db.setHighAvailabilityWizardLogs(logs);
-    this.set('content.logs', logs);
-  },
-
   loadRequestIds: function(){
     var requestIds = App.db.getHighAvailabilityWizardRequestIds();
     this.set('content.requestIds', requestIds);
-  },
-
-  loadLogs: function(){
-    var logs = App.db.getHighAvailabilityWizardLogs();
-    this.set('content.logs', logs);
   },
 
   saveNameServiceId: function(nameServiceId){
@@ -226,6 +216,16 @@ App.HighAvailabilityWizardController = App.WizardController.extend({
   loadNameServiceId: function(){
     var nameServiceId = App.db.getHighAvailabilityWizardNameServiceId();
     this.set('content.nameServiceId', nameServiceId);
+  },
+
+  saveTasksRequestIds: function (requestIds) {
+    App.db.setHighAvailabilityWizardTasksRequestIds(requestIds);
+    this.set('content.tasksRequestIds', requestIds);
+  },
+
+  loadTasksRequestIds: function () {
+    var requestIds = App.db.getHighAvailabilityWizardTasksRequestIds();
+    this.set('content.tasksRequestIds', requestIds);
   },
 
   /**
@@ -240,8 +240,8 @@ App.HighAvailabilityWizardController = App.WizardController.extend({
       case '6':
       case '5':
         this.loadTasksStatuses();
+        this.loadTasksRequestIds();
         this.loadRequestIds();
-        this.loadLogs();
       case '4':
       case '3':
         this.loadNameServiceId();
@@ -269,7 +269,7 @@ App.HighAvailabilityWizardController = App.WizardController.extend({
   clearTasksData: function () {
     this.saveTasksStatuses(undefined);
     this.saveRequestIds(undefined);
-    this.saveLogs(undefined);
+    this.saveTasksRequestIds(undefined);
   },
 
   /**
