@@ -56,7 +56,6 @@ def service(action=None, name=None, user=None, create_pid_dir=False,
   File(pid_file,
        action="delete",
        not_if=check_process,
-       ignore_failures=True
   )
   Execute(daemon_cmd,
           user = user,
@@ -65,5 +64,4 @@ def service(action=None, name=None, user=None, create_pid_dir=False,
   if action == "stop":
     File(pid_file,
          action="delete",
-         ignore_failures=True
     )
