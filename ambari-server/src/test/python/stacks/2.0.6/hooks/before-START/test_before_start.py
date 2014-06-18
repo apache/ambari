@@ -83,6 +83,12 @@ class TestHookBeforeStart(RMFTestCase):
       owner = 'hdfs',
       group = 'hadoop',
     )
+    self.assertResourceCalled('Execute', 'mkdir -p /tmp/HDP-artifacts/;     curl -kf --retry 10     http://c6401.ambari.apache.org:8080/resources//UnlimitedJCEPolicyJDK7.zip -o /tmp/HDP-artifacts//UnlimitedJCEPolicyJDK7.zip',
+        environment = {"no_proxy": "c6401.ambari.apache.org"},
+        not_if = 'test -e /tmp/HDP-artifacts//UnlimitedJCEPolicyJDK7.zip',
+        ignore_failures = True,
+        path = ['/bin', '/usr/bin/'],
+    )
     self.assertNoMoreResources()
 
   def test_hook_secured(self):
@@ -143,4 +149,26 @@ class TestHookBeforeStart(RMFTestCase):
                               owner = 'hdfs',
                               group = 'hadoop',
                               )
+    self.assertResourceCalled('Execute', 'mkdir -p /tmp/HDP-artifacts/;     curl -kf --retry 10     http://c6401.ambari.apache.org:8080/resources//UnlimitedJCEPolicyJDK7.zip -o /tmp/HDP-artifacts//UnlimitedJCEPolicyJDK7.zip',
+        environment = {"no_proxy": "c6401.ambari.apache.org"},
+        not_if = 'test -e /tmp/HDP-artifacts//UnlimitedJCEPolicyJDK7.zip',
+        ignore_failures = True,
+        path = ['/bin', '/usr/bin/'],
+    )
+    self.assertResourceCalled('Execute', 'rm -f local_policy.jar; rm -f US_export_policy.jar; unzip -o -j -q /tmp/HDP-artifacts//UnlimitedJCEPolicyJDK7.zip',
+        path = ['/bin/', '/usr/bin'],
+        only_if = 'test -e /usr/jdk64/jdk1.7.0_45/jre/lib/security && test -f /tmp/HDP-artifacts//UnlimitedJCEPolicyJDK7.zip',
+        cwd = '/usr/jdk64/jdk1.7.0_45/jre/lib/security',
+    )
     self.assertNoMoreResources()
+    
+def test_that_jce_is_required_in_secured_cluster(self):
+  try:
+    self.executeScript("2.0.6/hooks/before-START/scripts/hook.py",
+                       classname="BeforeStartHook",
+                       command="hook",
+                       config_file="secured_no_jce_name.json"
+    )
+    self.fail("Should throw an exception")
+  except Fail:
+    pass  # Expected

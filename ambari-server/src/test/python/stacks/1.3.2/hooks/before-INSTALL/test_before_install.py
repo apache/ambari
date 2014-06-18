@@ -45,12 +45,6 @@ class TestHookBeforeInstall(RMFTestCase):
         not_if = 'test -e /usr/jdk64/jdk1.7.0_45/bin/java',
         path = ['/bin', '/usr/bin/'],
     )
-    self.assertResourceCalled('Execute', 'mkdir -p /tmp/HDP-artifacts/; curl -kf --retry 10 http://c6401.ambari.apache.org:8080/resources//UnlimitedJCEPolicyJDK7.zip -o /tmp/HDP-artifacts//UnlimitedJCEPolicyJDK7.zip',
-        not_if = 'test -e /tmp/HDP-artifacts//UnlimitedJCEPolicyJDK7.zip',
-        ignore_failures = True,
-        path = ['/bin', '/usr/bin/'],
-        environment = {'no_proxy': 'c6401.ambari.apache.org'}
-    )
     self.assertResourceCalled('Group', 'hadoop',
         ignore_failures = False,
     )
@@ -139,17 +133,3 @@ class TestHookBeforeInstall(RMFTestCase):
     )
     self.assertResourceCalled('Package', 'unzip',)
     self.assertNoMoreResources()
-
-
-  def test_that_jce_is_required_in_secured_cluster(self):
-    try:
-      self.executeScript("1.3.2/hooks/before-INSTALL/scripts/hook.py",
-                         classname="BeforeConfigureHook",
-                         command="hook",
-                         config_file="secured_no_jce_name.json"
-      )
-      self.fail("Should throw an exception")
-    except Fail:
-      pass  # Expected
-
-
