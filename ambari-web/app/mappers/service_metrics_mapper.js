@@ -188,7 +188,9 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
       json.items.forEach(function (component) {
         var serviceName = component.ServiceComponentInfo.service_name;
         var service = services.findProperty('ServiceInfo.service_name', serviceName);
-        service.components.push(component);
+        if (service) {
+          service.components.push(component);
+        }
         component.host_components.forEach(function (host_component) {
           host_component.id = host_component.HostRoles.component_name + "_" + host_component.HostRoles.host_name;
           previousComponentStatuses[host_component.id] = host_component.HostRoles.state;
@@ -332,11 +334,12 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
             hostComponent.display_name_advanced = null;
           }
         }
-
-        if (hostComponent.display_name_advanced) {
-          service.tool_tip_content += hostComponent.display_name_advanced + " " + App.HostComponentStatus.getTextStatus(hostComponent.work_status) + "<br/>";
-        } else {
-          service.tool_tip_content += App.format.role(hostComponent.component_name) + " " + App.HostComponentStatus.getTextStatus(hostComponent.work_status) + "<br/>";
+        if (service) {
+          if (hostComponent.display_name_advanced) {
+            service.tool_tip_content += hostComponent.display_name_advanced + " " + App.HostComponentStatus.getTextStatus(hostComponent.work_status) + "<br/>";
+          } else {
+            service.tool_tip_content += App.format.role(hostComponent.component_name) + " " + App.HostComponentStatus.getTextStatus(hostComponent.work_status) + "<br/>";
+          }
         }
       }
     }, this)

@@ -158,6 +158,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   },
 
   getHash: function() {
+    if (!this.get('stepConfigs')[0]) {
+      return "";
+    }
     var hash = {};
     this.get('stepConfigs')[0].configs.forEach(function(config) {
       hash[config.get('name')] = {value: config.get('value'), overrides: []};
@@ -593,7 +596,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
               var defaultValueFromStack = advancedConfigs.findProperty('name', name);
               // If property default value is not declared on client, fetch it from stack definition
               // If it's not declared with any valid value in both server stack and client, then js reference error is expected to be thrown
-              recommendedDefaults[name] = defaultValueFromStack.value
+              recommendedDefaults[name] = defaultValueFromStack && defaultValueFromStack.value
             }
           }
         });
