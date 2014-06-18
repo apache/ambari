@@ -230,32 +230,20 @@ App.WizardStep9Controller = Em.Controller.extend({
       this.set('content.cluster.isCompleted', false);
       this.set('content.cluster.requestId', 1);
     }
+    var needPolling = false;
     var clusterStatus = this.get('content.cluster.status');
     console.log('navigateStep: clusterStatus = ' + clusterStatus);
     if (this.get('content.cluster.isCompleted') === false) {
-      // the cluster has not yet successfully installed and started
-      if (clusterStatus === 'INSTALL FAILED') {
-        this.loadStep();
-        this.loadLogData(this.get('content.cluster.requestId'));
-      } else {
-        if (clusterStatus === 'START FAILED') {
-          this.loadStep();
-          this.loadLogData(this.get('content.cluster.requestId'));
-        }
-        else {
-          // handle PENDING, INSTALLED
-          this.loadStep();
-          this.loadLogData(this.get('content.cluster.requestId'));
-          this.startPolling();
-        }
+      if (clusterStatus !== 'INSTALL FAILED' && clusterStatus !== 'START FAILED') {
+        needPolling = true;
       }
     } else {
       // handle STARTED
       // the cluster has successfully installed and started
-      this.loadStep();
-      this.loadLogData(this.get('content.cluster.requestId'));
       this.set('progress', '100');
     }
+    this.loadStep();
+    this.loadLogData(needPolling);
   },
 
   /**
@@ -920,14 +908,12 @@ App.WizardStep9Controller = Em.Controller.extend({
    * This function calls API just once to fetch log data of all tasks.
    * @method loadLogData
    */
-  loadLogData: function () {
+  loadLogData: function (startPolling) {
     var requestsId = this.get('wizardController').getDBProperty('cluster').oldRequestsId;
-    requestsId.forEach(function (requestId) {
-      if (App.testMode) {
-        this.set('POLL_INTERVAL', 1);
-      }
-      this.getLogsByRequest(false, requestId);
-    }, this);
+    if (App.testMode) {
+      this.set('POLL_INTERVAL', 1);
+    }
+    this.getLogsByRequest(!!startPolling, requestsId[requestsId.length-1]);
   },
 
   /**
@@ -1002,7 +988,7 @@ App.WizardStep9Controller = Em.Controller.extend({
       },
       success: 'getLogsByRequestSuccessCallback',
       error: 'getLogsByRequestErrorCallback'
-    }).retry({times: App.maxRetries, timeout: App.timeout}).then(null,
+    }).retry({times: App.maxRetries, timeout: 3000}).then(null,
       function () {
         App.showReloadPopup();
         console.log('Install services all retries failed');
@@ -1043,7 +1029,9 @@ App.WizardStep9Controller = Em.Controller.extend({
    * Error-callback for get log by request
    * @method getLogsByRequestErrorCallback
    */
-  getLogsByRequestErrorCallback: Em.K,
+  getLogsByRequestErrorCallback: function () {
+    this.loadLogData(true);
+  },
 
   /**
    * Delegates the function call to {getLogsByRequest} with appropriate params
