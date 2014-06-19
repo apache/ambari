@@ -62,6 +62,13 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
     return [];
   }.property('controller.content'),
 
+  onRequestErrorHandler: function() {
+    this.set('requestError', null);
+    this.get('controller').get('dataSource').setEach('isRequested', false);
+    this.set('filteringComplete', true);
+    this.propertyDidChange('pageContent');
+  }.observes('requestError'),
+
   /**
    * Contains content to show on the current page of data page view
    * @type {Array}

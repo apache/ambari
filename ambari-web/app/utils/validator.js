@@ -146,6 +146,7 @@ module.exports = {
   },
   /**
    * Validate string that will pass as parameter to .matches() url param.
+   * Try to prevent invalid regexp.
    * For example: /api/v1/clusters/c1/hosts?Hosts/host_name.matches(.*localhost.)
    *
    * @params {String} value - string to validate
@@ -153,6 +154,18 @@ module.exports = {
    * @method isValidMatchesRegexp
    */
   isValidMatchesRegexp: function(value) {
-    return /^((\.\*?)?([\w]+)?)+(\.\*?)?$/g.test(value);
+    var checkPair = function(chars) {
+      chars = chars.map(function(char) { return '\\' + char; });
+      var charsReg = new RegExp(chars.join('|'), 'g');
+      if (charsReg.test(value)) {
+        var pairContentReg = new RegExp(chars.join('.*'), 'g');
+        if (!pairContentReg.test(value)) return false;
+        var pairCounts = chars.map(function(char) { return value.match(new RegExp(char, 'g')).length; });
+        if (pairCounts[0] != pairCounts[1] ) return false;
+      }
+      return true;
+    }
+    if (/^[\?\|\*\!,]/.test(value)) return false;
+    return /^((\.\*?)?([\w\[\]\?\-_,\|\*\!\{\}]*)?)+(\.\*?)?$/g.test(value) && (checkPair(['[',']'])) && (checkPair(['{','}']));
   }
 };

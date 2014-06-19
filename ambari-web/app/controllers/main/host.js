@@ -210,7 +210,9 @@ App.MainHostController = Em.ArrayController.extend({
    * @return {String}
    **/
   getRegExp: function (value) {
-    return validator.isValidMatchesRegexp(value) ? value.replace(/(\.+\*?|(\.\*)+)$/, '') + '.*' : '^$';
+    value = validator.isValidMatchesRegexp(value) ? value.replace(/(\.+\*?|(\.\*)+)$/, '') + '.*' : '^$';
+    value = /^\.\*/.test(value) || value == '^$' ? value : '.*' + value;
+    return value;
   },
 
   /**

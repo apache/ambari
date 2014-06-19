@@ -346,7 +346,17 @@ describe('validator', function () {
           { value: '.*a1.*.a2.*.a3.a4.*.*', expected: true },
           { value: '*', expected: false },
           { value: '1>1', expected: false },
-          { value: '.*a1,*', expected: false }
+          { value: '.*a1,*', expected: false },
+          { value: '?a1[1]asd[1]', expected: false },
+          { value: 'a1[1]asd[1]', expected: true },
+          { value: 'a1[1]asd[1][', expected: false },
+          { value: 'a1[1|1]asd[1]', expected: true },
+          { value: 'a1-2!', expected: true },
+          { value: '|a1-2', expected: false },
+          { value: '[a1', expected: false },
+          { value: 'a{1}', expected: true },
+          { value: 'a{1,2}', expected: true },
+          { value: 'a{1,2}{', expected: false }
         ];
     tests.forEach(function(test) {
       it(message.format(test.value, (test.expected) ? 'valid' : 'not valid'), function() {

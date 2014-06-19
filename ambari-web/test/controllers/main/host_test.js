@@ -303,7 +303,7 @@ describe('MainHostController', function () {
 
   });
 
-  describe('#getRegExp()', function() {
+  describe.only('#getRegExp()', function() {
     before(function() {
       hostController = App.MainHostController.create({});
     });
@@ -316,13 +316,12 @@ describe('MainHostController', function () {
       { value: '*', expected: '^$' },
       { value: '........', expected: '.*' },
       { value: '........*', expected: '.*' },
-      { value: '........?', expected: '^$' },
-      { value: 'a1', expected: 'a1.*' },
-      { value: 'a1.', expected: 'a1.*' },
-      { value: 'a1...', expected: 'a1.*' },
-      { value: 'a1.*', expected: 'a1.*' },
-      { value: 'a1.*.a2.a3', expected: 'a1.*.a2.a3.*' },
-      { value: 'a1.*.a2...a3', expected: 'a1.*.a2...a3.*' }
+      { value: 'a1', expected: '.*a1.*' },
+      { value: 'a1.', expected: '.*a1.*' },
+      { value: 'a1...', expected: '.*a1.*' },
+      { value: 'a1.*', expected: '.*a1.*' },
+      { value: 'a1.*.a2.a3', expected: '.*a1.*.a2.a3.*' },
+      { value: 'a1.*.a2...a3', expected: '.*a1.*.a2...a3.*' }
     ]
 
     tests.forEach(function(test){

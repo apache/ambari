@@ -155,7 +155,7 @@ App.UpdateController = Em.Controller.extend({
     }
   },
 
-  updateHost: function (callback) {
+  updateHost: function (callback, error) {
     var testUrl = App.get('isHadoop2Stack') ? '/data/hosts/HDP2/hosts.json' : '/data/hosts/hosts.json';
     var realUrl = '/hosts?<parameters>fields=Hosts/host_name,Hosts/maintenance_state,Hosts/public_host_name,Hosts/cpu_count,Hosts/ph_cpu_count,Hosts/total_mem,' +
         'Hosts/host_status,Hosts/last_heartbeat_time,Hosts/os_arch,Hosts/os_type,Hosts/ip,host_components/HostRoles/state,host_components/HostRoles/maintenance_state,' +
@@ -165,7 +165,8 @@ App.UpdateController = Em.Controller.extend({
     this.get('queryParams').set('Hosts', App.router.get('mainHostController').getQueryParameters());
     var hostsUrl = this.getComplexUrl(testUrl, realUrl, this.get('queryParams.Hosts'));
     App.HttpClient.get(hostsUrl, App.hostsMapper, {
-      complete: callback
+      complete: callback,
+      error: error
     });
   },
   graphs: [],

@@ -28,6 +28,11 @@ App.TableServerProvider = Em.Mixin.create({
    * total number of entities in table
    */
   totalCount: 0,
+  /**
+   * Request error data
+   *
+   */
+  requestError: null,
 
   filteredContent: function () {
     return this.get('content');
@@ -50,6 +55,8 @@ App.TableServerProvider = Em.Mixin.create({
     this.get('updater')[this.get('updater.tableUpdaterMap')[this.get('tableName')]](function () {
       self.set('filteringComplete', true);
       self.propertyDidChange('pageContent');
+    }, function() {
+      self.set('requestError', arguments);
     });
     return true;
   },
