@@ -756,7 +756,7 @@ App.db.getHighAvailabilityWizardTasksStatuses = function () {
 
 App.db.getHighAvailabilityWizardTasksRequestIds = function () {
   App.db.data = localStorage.getObject('ambari');
-  return App.db.data.ReassignMaster.tasksRequestIds;
+  return App.db.data.HighAvailabilityWizard.tasksRequestIds;
 };
 
 App.db.getHighAvailabilityWizardFailedTask = function () {
