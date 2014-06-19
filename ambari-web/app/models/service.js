@@ -73,13 +73,14 @@ App.Service = DS.Model.extend({
   }.property('workStatus'),
 
   isClientsOnly: function() {
-    var clientsOnly = ['SQOOP','PIG','TEZ','HCATALOG'];
+    var clientsOnly = ['GLUSTERFS','SQOOP','PIG','TEZ','HCATALOG'];
     return clientsOnly.contains(this.get('serviceName'));
   }.property('serviceName'),
 
   isConfigurable: function () {
     var configurableServices = [
       "HDFS",
+      "GLUSTERFS",
       "YARN",
       "MAPREDUCE",
       "MAPREDUCE2",
@@ -196,6 +197,7 @@ App.Service.Health = {
 
 App.Service.DisplayNames = {
   'HDFS': 'HDFS',
+  'GLUSTERFS': 'GLUSTERFS',
   'YARN': 'YARN',
   'MAPREDUCE': 'MapReduce',
   'MAPREDUCE2': 'MapReduce2',
@@ -218,6 +220,7 @@ App.Service.DisplayNames = {
 
 App.Service.servicesSortOrder = [
   'HDFS',
+  'GLUSTERFS',
   'YARN',
   'MAPREDUCE',
   'MAPREDUCE2',

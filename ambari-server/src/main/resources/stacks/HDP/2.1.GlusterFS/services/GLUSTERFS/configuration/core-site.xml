@@ -25,6 +25,59 @@
 <!-- i/o properties -->
 
   <property>
+    <name>hadoop_heapsize</name>
+    <value>1024</value>
+    <description>Hadoop maximum Java heap size</description>
+  </property>
+
+
+<!-- file system properties -->
+
+  <property>
+    <name>fs.defaultFS</name>
+    <!-- cluster variant -->
+    <value>glusterfs:///</value>
+    <description>The name of the default file system.  Either the
+  literal string "local" or a host:port for NDFS.</description>
+    <final>true</final>
+  </property>
+  
+  <property>
+    <name>fs.default.name</name>
+    <!-- cluster variant -->
+    <value>glusterfs:///</value>
+    <description>The name of the default file system.  Either the
+         literal string "local" or a host:port for NDFS.</description>
+  </property>
+
+  <property>
+  <name>fs.AbstractFileSystem.glusterfs.impl</name>
+  <value>org.apache.hadoop.fs.local.GlusterFs</value>
+  </property>
+
+  <property>
+  <name>fs.glusterfs.impl</name>
+  <value>org.apache.hadoop.fs.glusterfs.GlusterFileSystem</value>
+  </property>
+
+  <property>
+  <name>fs.glusterfs.volumes</name>
+    <description>The name of the gluster volume(s) you would like Hadoop to use.  Values should be seperated by commas i.e. gv0, gv1</description>
+  <value>gv0</value>
+  </property>
+
+  <property>
+   <name>fs.glusterfs.volume.fuse.gv0</name>
+  <description>The mount point that corresponds to the fs.glusterfs.volumes value</description>
+    <value>/mnt/gv0</value>
+  </property>
+
+
+<!-- Properties that I am removing to get rid of service errors -->
+<!--  I/O Properties -->
+<!--
+
+ <property>
     <name>io.file.buffer.size</name>
     <value>131072</value>
     <description>The size of buffer for use in sequence files.
@@ -32,12 +85,6 @@
   page size (4096 on Intel x86), and it determines how much data is
   buffered during read and write operations.</description>
   </property>
- <property>
-    <name>hadoop_heapsize</name>
-    <value>1024</value>
-    <description>Hadoop maximum Java heap size</description>
-  </property>
-
   <property>
     <name>io.serializations</name>
     <value>org.apache.hadoop.io.serializer.WritableSerialization</value>
@@ -55,59 +102,9 @@
     <value>com.hadoop.compression.lzo.LzoCodec</value>
     <description>The implementation for lzo codec.</description>
   </property>
-
-<!-- file system properties -->
-
-  <property>
-    <name>fs.defaultFS</name>
-    <!-- cluster variant -->
-    <value>glusterfs:///</value>
-    <description>The name of the default file system.  Either the
-  literal string "local" or a host:port for NDFS.</description>
-    <final>true</final>
-  </property>
-  
-  <property>
-<name>fs.default.name</name>
-    <!-- cluster variant -->
-    <value>glusterfs:///</value>
-    <description>The name of the default file system.  Either the
-  literal string "local" or a host:port for NDFS.</description>
-</property>
-
-<property>
-<name>gluster.daemon.user</name>
-<value>yarn</value>
-</property>
-
-<property>
-<name>fs.AbstractFileSystem.glusterfs.impl</name>
-<value>org.apache.hadoop.fs.local.GlusterFs</value>
-</property>
-
-<property>
-<name>fs.glusterfs.impl</name>
-<value>org.apache.hadoop.fs.glusterfs.GlusterFileSystem</value>
-</property>
-
-<property>
-<name>fs.glusterfs.volname</name>
-<value>HadoopVol</value>
-<description>GlusterFS volume name</description>
-</property>
-<property>
-<name>fs.glusterfs.getfattrcmd</name>
-<value>sudo getfattr -m . -n trusted.glusterfs.pathinfo</value>
-<description>GlusterFS getfattr command</description>
-</property>
-
-
-<property>
-<name>fs.glusterfs.mount</name>
-<value>/mnt/glusterfs</value>
-</property>
-
-
+-->
+<!-- something -->
+<!--
   <property>
     <name>fs.trash.interval</name>
     <value>360</value>
@@ -152,7 +149,6 @@
   </description>
   </property>
 
-  <!-- ipc properties: copied from kryptonite configuration -->
   <property>
     <name>ipc.client.idlethreshold</name>
     <value>8000</value>
@@ -175,7 +171,6 @@
     <description>Defines the maximum number of retries for IPC connections.</description>
   </property>
 
-  <!-- Web Interface Configuration -->
   <property>
     <name>webinterface.private.actions</name>
     <value>false</value>
@@ -244,54 +239,6 @@ RULE[2:$1%$2@$0](.%admin@APACHE.ORG)s/./admin/
 DEFAULT
     </description>
   </property>
-
-<!--
-<property>
-  <name>hadoop.proxyuser.scope.function_hdp_user("hcat_user").groups</name>
-  <value></value>
-  <description>
-     Proxy group for Hadoop.
-  </description>
-</property>
-
-<property>
-  <name>hadoop.proxyuser.scope.function_hdp_user("hcat_user").hosts</name>
-  <value></value>
-  <description>
-     Proxy host for Hadoop.
-  </description>
-</property>
-
-<property>
-  <name>hadoop.proxyuser.scope.function_hdp_user("oozie_user").groups</name>
-  <value></value>
-  <description>
-     Proxy group for Hadoop.
-  </description>
-</property>
-
-<property>
-  <name>hadoop.proxyuser.scope.function_hdp_user("oozie_user").hosts</name>
-  <value></value>
-  <description>
-     Proxy host for Hadoop.
-  </description>
-</property>
-
-<property>
-  <name>hadoop.proxyuser.scope.function_hdp_user("templeton_user").groups</name>
-  <value></value>
-  <description>
-    Proxy group for templeton.
-  </description>
-</property>
-
-<property>
-  <name>hadoop.proxyuser.scope.function_hdp_user("templeton_user").hosts</name>
-  <value></value>
-  <description>
-    Proxy host for templeton.
-  </description>
-</property>
 -->
+
 </configuration>

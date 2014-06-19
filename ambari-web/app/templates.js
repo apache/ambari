@@ -29,5 +29,6 @@ require('templates/main/service/info/summary/hue');
 require('templates/main/service/info/summary/falcon');
 require('templates/main/service/info/summary/tez');
 require('templates/main/service/info/summary/pig');
+require('templates/main/service/info/summary/glusterfs');
 require('templates/main/service/info/summary/sqoop');
 require('templates/main/admin/highAvailability/progress');

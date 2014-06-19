@@ -1708,8 +1708,8 @@ module.exports =
     },
     {
       "id": "site property",
-      "name": "fs.glusterfs.volname",
-      "displayName": "GlusterFS volume name",
+      "name": "fs.glusterfs.volumes",
+      "displayName": "Gluster volume name(s)",
       "displayType": "string",
       "filename": "core-site.xml",
       "serviceName": "GLUSTERFS",
@@ -1717,40 +1717,13 @@ module.exports =
     },
     {
       "id": "site property",
-      "name": "fs.glusterfs.mount",
-      "displayName": "GlusterFS mount point",
+      "name": "fs.glusterfs.volume.fuse.gv0",
+      "displayName": "Gluster mount point for volume",
       "displayType": "string",
       "filename": "core-site.xml",
       "serviceName": "GLUSTERFS",
       "category": "General"
-    },
-    {
-      "id": "site property",
-      "name": "fs.glusterfs.getfattrcmd",
-      "displayName": "GlusterFS getfattr command",
-      "displayType": "string",
-      "filename": "core-site.xml",
-      "serviceName": "GLUSTERFS",
-      "category": "General"
-    },
-    {
-      "id": "site property",
-      "name": "fs.AbstractFileSystem.glusterfs.impl",
-      "displayName": "GlusterFS Abstract Filesystem declaration",
-      "displayType": "string",
-      "filename": "core-site.xml",
-      "serviceName": "GLUSTERFS",
-      "category": "General"
-    },
-    {
-      "id": "site property",
-      "name": "gluster.daemon.user",
-      "displayName": "GlusterFS Daemon user",
-      "displayType": "string",
-      "filename": "core-site.xml",
-      "serviceName": "GLUSTERFS",
-      "category": "General"
-    },
+    }, 
   /********************************************* flume-agent *****************************/
     {
       "id": "site property",

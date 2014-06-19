@@ -240,6 +240,7 @@ App.QuickDataMapper.componentServiceMap = function () {
     'KERBEROS_CLIENT': 'KERBEROS',
     'HUE_SERVER': 'HUE',
     'GLUSTERFS_CLIENT': 'GLUSTERFS',
+    'GLUSTERFS': 'GLUSTERFS',
     'FALCON_SERVER': 'FALCON',
     'FALCON_CLIENT': 'FALCON',
     'NIMBUS': 'STORM',
