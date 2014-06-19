@@ -917,26 +917,8 @@ module.exports =
     },
     {
       "id": "site property",
-      "name": "fs.glusterfs.volname",
-      "displayName": "GlusterFS volume name",
-      "displayType": "string",
-      "filename": "core-site.xml",
-      "serviceName": "GLUSTERFS",
-      "category": "General"
-    },
-    {
-      "id": "site property",
-      "name": "fs.glusterfs.mount",
-      "displayName": "GlusterFS mount point",
-      "displayType": "string",
-      "filename": "core-site.xml",
-      "serviceName": "GLUSTERFS",
-      "category": "General"
-    },
-    {
-      "id": "site property",
-      "name": "fs.glusterfs.getfattrcmd",
-      "displayName": "GlusterFS getfattr command",
+      "name": "fs.AbstractFileSystem.glusterfs.impl",
+      "displayName": "Abstract File System Implementation",
       "displayType": "string",
       "filename": "core-site.xml",
       "serviceName": "GLUSTERFS",

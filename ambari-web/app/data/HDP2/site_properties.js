@@ -1708,6 +1708,15 @@ module.exports =
     },
     {
       "id": "site property",
+      "name": "fs.AbstractFileSystem.glusterfs.impl",
+      "displayName": "Abstract File System Implementation",
+      "displayType": "string",
+      "filename": "core-site.xml",
+      "serviceName": "GLUSTERFS",
+      "category": "General"
+    },
+    {
+      "id": "site property",
       "name": "fs.glusterfs.volumes",
       "displayName": "Gluster volume name(s)",
       "displayType": "string",
