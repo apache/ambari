@@ -134,6 +134,73 @@ public class BlueprintResourceProviderTest {
     expect(managementController.getStackServices(capture(stackServiceRequestCapture))).andReturn(
         Collections.<StackServiceResponse>emptySet());
     expect(request.getProperties()).andReturn(setProperties);
+    expect(request.getRequestInfoProperties()).andReturn(Collections.<String, String>emptyMap());
+    expect(dao.findByName(BLUEPRINT_NAME)).andReturn(null);
+    expect(metaInfo.getServices("test-stack-name", "test-stack-version")).andReturn(services).anyTimes();
+    expect(metaInfo.getComponentsByService("test-stack-name", "test-stack-version", "test-service")).
+        andReturn(serviceComponents).anyTimes();
+    expect(metaInfo.getComponentToService("test-stack-name", "test-stack-version", "component1")).
+        andReturn("test-service").anyTimes();
+    expect(metaInfo.getComponentToService("test-stack-name", "test-stack-version", "component2")).
+        andReturn("test-service").anyTimes();
+    expect(metaInfo.getRequiredProperties("test-stack-name", "test-stack-version", "test-service")).andReturn(
+        Collections.<String, org.apache.ambari.server.state.PropertyInfo>emptyMap()).anyTimes();
+    dao.create(capture(entityCapture));
+
+    replay(dao, metaInfo, request, managementController);
+    // end expectations
+
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
+        Resource.Type.Blueprint,
+        PropertyHelper.getPropertyIds(Resource.Type.Blueprint),
+        PropertyHelper.getKeyPropertyIds(Resource.Type.Blueprint),
+        managementController);
+
+    AbstractResourceProviderTest.TestObserver observer = new AbstractResourceProviderTest.TestObserver();
+    ((ObservableResourceProvider)provider).addObserver(observer);
+
+    provider.createResources(request);
+
+    ResourceProviderEvent lastEvent = observer.getLastEvent();
+    assertNotNull(lastEvent);
+    assertEquals(Resource.Type.Blueprint, lastEvent.getResourceType());
+    assertEquals(ResourceProviderEvent.Type.Create, lastEvent.getType());
+    assertEquals(request, lastEvent.getRequest());
+    assertNull(lastEvent.getPredicate());
+
+    validateEntity(entityCapture.getValue(), false);
+
+    verify(dao, metaInfo, request, managementController);
+  }
+
+  @Test
+  public void testCreateResources_NoValidation() throws AmbariException, ResourceAlreadyExistsException, SystemException,
+      UnsupportedPropertyException, NoSuchParentResourceException {
+
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    Request request = createMock(Request.class);
+
+    Map<String, ServiceInfo> services = new HashMap<String, ServiceInfo>();
+    ServiceInfo service = new ServiceInfo();
+    service.setName("test-service");
+    services.put("test-service", service);
+
+    List<ComponentInfo> serviceComponents = new ArrayList<ComponentInfo>();
+    ComponentInfo component1 = new ComponentInfo();
+    component1.setName("component1");
+    ComponentInfo component2 = new ComponentInfo();
+    component2.setName("component2");
+    serviceComponents.add(component1);
+    serviceComponents.add(component2);
+
+    Set<Map<String, Object>> setProperties = getTestProperties();
+
+
+    Capture<BlueprintEntity> entityCapture = new Capture<BlueprintEntity>();
+
+    // set expectations
+    expect(request.getProperties()).andReturn(setProperties);
+    expect(request.getRequestInfoProperties()).andReturn(Collections.<String, String>singletonMap("validate_topology", "false"));
     expect(dao.findByName(BLUEPRINT_NAME)).andReturn(null);
     expect(metaInfo.getServices("test-stack-name", "test-stack-version")).andReturn(services).anyTimes();
     expect(metaInfo.getComponentsByService("test-stack-name", "test-stack-version", "test-service")).
@@ -201,6 +268,7 @@ public class BlueprintResourceProviderTest {
     expect(managementController.getStackServices(capture(stackServiceRequestCapture))).andReturn(
         Collections.<StackServiceResponse>emptySet());
     expect(request.getProperties()).andReturn(setProperties);
+    expect(request.getRequestInfoProperties()).andReturn(Collections.<String, String>emptyMap());
     expect(dao.findByName(BLUEPRINT_NAME)).andReturn(null);
     expect(metaInfo.getServices("test-stack-name", "test-stack-version")).andReturn(services).anyTimes();
     expect(metaInfo.getComponentsByService("test-stack-name", "test-stack-version", "test-service")).
@@ -327,6 +395,7 @@ public class BlueprintResourceProviderTest {
 
     // set expectations
     expect(request.getProperties()).andReturn(setProperties);
+    expect(request.getRequestInfoProperties()).andReturn(Collections.<String, String>emptyMap());
 
     replay(dao, metaInfo, request);
     // end expectations
@@ -367,6 +436,7 @@ public class BlueprintResourceProviderTest {
 
     // set expectations
     expect(request.getProperties()).andReturn(setProperties);
+    expect(request.getRequestInfoProperties()).andReturn(Collections.<String, String>emptyMap());
     expect(metaInfo.getServices("test-stack-name", "test-stack-version")).andReturn(services).anyTimes();
     expect(metaInfo.getComponentsByService("test-stack-name", "test-stack-version", "test-service")).
         andReturn(serviceComponents).anyTimes();
@@ -410,6 +480,7 @@ public class BlueprintResourceProviderTest {
 
     // set expectations
     expect(request.getProperties()).andReturn(setProperties);
+    expect(request.getRequestInfoProperties()).andReturn(Collections.<String, String>emptyMap());
     expect(metaInfo.getServices("test-stack-name", "test-stack-version")).andReturn(services).anyTimes();
     expect(metaInfo.getComponentsByService("test-stack-name", "test-stack-version", "test-service")).
         andReturn(serviceComponents).anyTimes();
@@ -453,6 +524,7 @@ public class BlueprintResourceProviderTest {
 
     // set expectations
     expect(request.getProperties()).andReturn(setProperties);
+    expect(request.getRequestInfoProperties()).andReturn(Collections.<String, String>emptyMap());
     expect(metaInfo.getServices("test-stack-name", "test-stack-version")).andReturn(services).anyTimes();
     expect(metaInfo.getComponentsByService("test-stack-name", "test-stack-version", "test-service")).
         andReturn(serviceComponents).anyTimes();
@@ -495,6 +567,7 @@ public class BlueprintResourceProviderTest {
 
     // set expectations
     expect(request.getProperties()).andReturn(setProperties);
+    expect(request.getRequestInfoProperties()).andReturn(Collections.<String, String>emptyMap());
     expect(metaInfo.getServices("test-stack-name", "test-stack-version")).andReturn(services).anyTimes();
     expect(metaInfo.getComponentsByService("test-stack-name", "test-stack-version", "test-service")).
         andReturn(serviceComponents).anyTimes();
@@ -582,6 +655,7 @@ public class BlueprintResourceProviderTest {
         andReturn(Collections.<DependencyInfo>emptyList()).anyTimes();
 
     expect(request.getProperties()).andReturn(setProperties);
+    expect(request.getRequestInfoProperties()).andReturn(Collections.<String, String>emptyMap());
     expect(dao.findByName(BLUEPRINT_NAME)).andReturn(null);
     expect(metaInfo.getServices("test-stack-name", "test-stack-version")).andReturn(services).anyTimes();
     expect(metaInfo.getComponentsByService("test-stack-name", "test-stack-version", "test-service")).
@@ -689,6 +763,7 @@ public class BlueprintResourceProviderTest {
         andReturn(Collections.<DependencyInfo>emptyList()).anyTimes();
 
     expect(request.getProperties()).andReturn(setProperties);
+    expect(request.getRequestInfoProperties()).andReturn(Collections.<String, String>emptyMap());
     expect(dao.findByName(BLUEPRINT_NAME)).andReturn(null);
     expect(metaInfo.getServices("test-stack-name", "test-stack-version")).andReturn(services).anyTimes();
     expect(metaInfo.getComponentsByService("test-stack-name", "test-stack-version", "test-service")).
@@ -804,6 +879,7 @@ public class BlueprintResourceProviderTest {
         andReturn(Collections.<DependencyInfo>singletonList(dependencyInfo)).anyTimes();
 
     expect(request.getProperties()).andReturn(setProperties);
+    expect(request.getRequestInfoProperties()).andReturn(Collections.<String, String>emptyMap());
     expect(dao.findByName(BLUEPRINT_NAME)).andReturn(null);
     expect(metaInfo.getServices("test-stack-name", "test-stack-version")).andReturn(services).anyTimes();
     expect(metaInfo.getComponentsByService("test-stack-name", "test-stack-version", "test-service")).
@@ -908,6 +984,7 @@ public class BlueprintResourceProviderTest {
         andReturn(Collections.<DependencyInfo>emptyList()).anyTimes();
 
     expect(request.getProperties()).andReturn(setProperties);
+    expect(request.getRequestInfoProperties()).andReturn(Collections.<String, String>emptyMap());
     expect(dao.findByName(BLUEPRINT_NAME)).andReturn(null);
     expect(metaInfo.getServices("test-stack-name", "test-stack-version")).andReturn(services).anyTimes();
     expect(metaInfo.getComponentsByService("test-stack-name", "test-stack-version", "test-service")).
@@ -975,6 +1052,7 @@ public class BlueprintResourceProviderTest {
     expect(managementController.getStackServices(capture(stackServiceRequestCapture))).andReturn(
         Collections.<StackServiceResponse>emptySet());
     expect(request.getProperties()).andReturn(setProperties);
+    expect(request.getRequestInfoProperties()).andReturn(Collections.<String, String>emptyMap());
     expect(dao.findByName(BLUEPRINT_NAME)).andReturn(null);
     expect(metaInfo.getServices("test-stack-name", "test-stack-version")).andReturn(services).anyTimes();
     expect(metaInfo.getComponentsByService("test-stack-name", "test-stack-version", "test-service")).
@@ -1039,7 +1117,6 @@ public class BlueprintResourceProviderTest {
     setHostGroupProperties.add(mapHostGroupProperties2);
 
     Map<String, Object> mapProperties = new HashMap<String, Object>();
-    mapProperties.put("validate_topology", "true");
     mapProperties.put(BlueprintResourceProvider.BLUEPRINT_NAME_PROPERTY_ID, BLUEPRINT_NAME);
     mapProperties.put(BlueprintResourceProvider.STACK_NAME_PROPERTY_ID, "test-stack-name");
     mapProperties.put(BlueprintResourceProvider.STACK_VERSION_PROPERTY_ID, "test-stack-version");

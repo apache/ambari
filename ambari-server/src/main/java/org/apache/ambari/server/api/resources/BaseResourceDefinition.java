@@ -30,7 +30,9 @@ import org.apache.ambari.server.controller.spi.Schema;
 import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -88,15 +90,21 @@ public abstract class BaseResourceDefinition implements ResourceDefinition {
   }
 
   @Override
+  public Collection<String> getCreateDirectives() {
+    // return a collection which can be modified by sub resources
+    return new HashSet<String>();
+  }
+
+  @Override
   public boolean equals(Object o) {
-      boolean result =false;
-      if(this == o) result = true;
-      if(o instanceof BaseResourceDefinition){
-          BaseResourceDefinition other = (BaseResourceDefinition) o;
-          if(m_type == other.m_type )
-              result = true;
-      }
-      return result;
+    boolean result =false;
+    if(this == o) result = true;
+    if(o instanceof BaseResourceDefinition){
+        BaseResourceDefinition other = (BaseResourceDefinition) o;
+        if(m_type == other.m_type )
+            result = true;
+    }
+    return result;
   }
 
   @Override

@@ -25,6 +25,7 @@ import org.apache.ambari.server.api.util.TreeNode;
 
 import org.apache.ambari.server.api.services.ResultPostProcessor;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -78,6 +79,15 @@ public interface ResourceDefinition {
    * @throws IllegalArgumentException if name is invalid for this resource
    */
   public Renderer getRenderer(String name) throws IllegalArgumentException;
+
+  /**
+   * Obtain the set of create directives for the resource.  A create directive is
+   * information that can be provided in the query string of a POST operation for
+   * the resource.  These directives are not predicates but are put into the
+   * map of request info properties used by the resource provider when creating
+   * the resource.
+   */
+  public Collection<String> getCreateDirectives();
 
   /**
    * Resource specific result processor.

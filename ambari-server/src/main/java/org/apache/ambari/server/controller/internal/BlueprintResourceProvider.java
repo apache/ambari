@@ -138,7 +138,7 @@ public class BlueprintResourceProvider extends BaseBlueprintProcessor {
              ResourceAlreadyExistsException, NoSuchParentResourceException {
 
     for (Map<String, Object> properties : request.getProperties()) {
-      createResources(getCreateCommand(properties));
+      createResources(getCreateCommand(properties, request.getRequestInfoProperties()));
     }
     notifyCreate(Resource.Type.Blueprint, request);
 
@@ -522,11 +522,12 @@ public class BlueprintResourceProvider extends BaseBlueprintProcessor {
   /**
    * Create a create command with all properties set.
    *
-   * @param properties  properties to be applied to blueprint
+   * @param properties        properties to be applied to blueprint
+   * @param requestInfoProps  request info properties
    *
    * @return a new create command
    */
-  private Command<Void> getCreateCommand(final Map<String, Object> properties) {
+  private Command<Void> getCreateCommand(final Map<String, Object> properties, final Map<String, String> requestInfoProps) {
     return new Command<Void>() {
       @Override
       public Void invoke() throws AmbariException {
@@ -545,7 +546,7 @@ public class BlueprintResourceProvider extends BaseBlueprintProcessor {
                                              missingProperties);
         }
 
-        String validateTopology = (String) properties.get("validate_topology");
+        String validateTopology =  requestInfoProps.get("validate_topology");
         if (validateTopology == null || ! validateTopology.equalsIgnoreCase("false")) {
           validateTopology(blueprint);
         }

@@ -20,6 +20,8 @@ package org.apache.ambari.server.api.resources;
 
 import org.apache.ambari.server.controller.spi.Resource;
 
+import java.util.Collection;
+
 
 /**
  * Blueprint resource definition.
@@ -41,5 +43,13 @@ public class BlueprintResourceDefinition extends BaseResourceDefinition {
   @Override
   public String getSingularName() {
     return "blueprint";
+  }
+
+  @Override
+  public Collection<String> getCreateDirectives() {
+    Collection<String> directives = super.getCreateDirectives();
+    directives.add("validate_topology");
+
+    return directives;
   }
 }

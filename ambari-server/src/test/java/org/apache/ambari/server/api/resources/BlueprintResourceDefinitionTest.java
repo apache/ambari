@@ -22,6 +22,9 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Collection;
+import java.util.Set;
+
 /**
  * BlueprintResourceDefinition tests.
  */
@@ -49,5 +52,13 @@ public class BlueprintResourceDefinitionTest {
   public void testGetSubResourceDefinitions() {
     BlueprintResourceDefinition definition = new BlueprintResourceDefinition();
     Assert.assertTrue(definition.getSubResourceDefinitions().isEmpty());
+  }
+
+  @Test
+  public void testGetCreateDirectives() {
+    BlueprintResourceDefinition definition = new BlueprintResourceDefinition();
+    Collection<String> directives = definition.getCreateDirectives();
+    Assert.assertEquals(1, directives.size());
+    Assert.assertTrue(directives.contains("validate_topology"));
   }
 }
