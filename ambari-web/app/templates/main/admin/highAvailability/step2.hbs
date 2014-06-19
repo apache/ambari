@@ -36,15 +36,17 @@
           {{display_name}}:
         </label>
         <div class="controls">
-          {{view App.SelectHostView
-            optionValuePath="content.host_name"
-            optionLabelPath="content.host_info"
-            selectedHostBinding="selectedHost"
+          {{#if view.shouldUseInputs}}
+            {{view App.InputHostView
             componentBinding="this"
-            class="host-select"
-            zIdBinding="zId"
+            disabledBinding="isInstalled" }}
+          {{else}}
+            {{view App.SelectHostView
+            componentBinding="this"
             disabledBinding="isInstalled"
-          }}
+            optionValuePath="content.host_name"
+            optionLabelPath="content.host_info" }}
+          {{/if}}
           {{#if showAddControl}}
           {{view App.AddControlView componentNameBinding="component_name"}}
           {{/if}}
