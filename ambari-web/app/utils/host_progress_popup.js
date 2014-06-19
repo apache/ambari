@@ -142,7 +142,7 @@ App.HostPopup = Em.Object.create({
     if (isFailed) {
       status = ['FAILED', 'icon-exclamation-sign', 'progress-danger', false];
     } else if (isAborted) {
-      status = ['CANCELLED', 'icon-minus', 'progress-warning', false];
+      status = ['ABORTED', 'icon-minus', 'progress-warning', false];
     } else if (isTimedout) {
       status = ['TIMEDOUT', 'icon-time', 'progress-warning', false];
     } else if (isInProgress) {
@@ -255,7 +255,7 @@ App.HostPopup = Em.Object.create({
       var allNewServices = [];
       var statuses = {
         'FAILED': ['FAILED', 'icon-exclamation-sign', 'progress-danger', false],
-        'ABORTED': ['CANCELLED', 'icon-minus', 'progress-warning', false],
+        'ABORTED': ['ABORTED', 'icon-minus', 'progress-warning', false],
         'TIMEDOUT': ['TIMEDOUT', 'icon-time', 'progress-warning', false],
         'IN_PROGRESS': ['IN_PROGRESS', 'icon-cogs', 'progress-info', true],
         'COMPLETED': ['SUCCESS', 'icon-ok', 'progress-success', false]

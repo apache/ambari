@@ -660,7 +660,7 @@ Em.I18n.translations = {
   'installer.step9.hostLog.popup.categories.in_progress':'In Progress',
   'installer.step9.hostLog.popup.categories.failed':'Failed',
   'installer.step9.hostLog.popup.categories.completed':'Success',
-  'installer.step9.hostLog.popup.categories.aborted':'Cancelled',
+  'installer.step9.hostLog.popup.categories.aborted':'Aborted',
   'installer.step9.hostLog.popup.categories.timedout':'Timed Out',
   'installer.step9.hostLog.popup.noTasksToShow':'No tasks to show',
   'installer.step9.host.status.noTasks': 'Ambari server did not schedule any tasks on the host. Either the service component on the host is already in installed state <b>OR</b> the pre-check of host reachability failed.',
