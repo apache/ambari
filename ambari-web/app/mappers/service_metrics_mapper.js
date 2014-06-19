@@ -309,17 +309,18 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     hostComponents.forEach(function (hostComponent) {
       var service = services.findProperty('ServiceInfo.service_name', hostComponent.service_id);
       if (hostComponent) {
-        // set advanced nameNode display name for HA, active or standby NameNode
-        // this is useful on three places: hdfs health status hover tooltip, hdfs service summary and NN component on host detail page
+        // set advanced nameNode display name for HA, Active NameNode or Standby NameNode
+        // this is useful on three places: 1) HDFS health status hover tooltip, 2) HDFS service summary 3) NameNode component on host detail page
         if (hostComponent.component_name === 'NAMENODE' && !isSecondaryNamenode) {
           var hdfs = this.hdfsMapper(service);
           var hostName = hostComponent.host_id;
           var activeNNText = Em.I18n.t('services.service.summary.nameNode.active');
           var standbyNNText = Em.I18n.t('services.service.summary.nameNode.standby');
           if (hdfs) {
-            if (hostName == hdfs.active_name_node_id) {
+            // active_name_node_id format : NAMENODE_c6401.ambari.apache.org
+            if (hdfs.active_name_node_id && hdfs.active_name_node_id.contains(hostName)) {
               hostComponent.display_name_advanced = activeNNText;
-            } else if (hostName == hdfs.standby_name_node_id || hostName == hdfs.standby_name_node2_id) {
+            } else if ((hdfs.standby_name_node_id && hdfs.standby_name_node_id.contains(hostName)) || ( hdfs.standby_name_node2_id && hdfs.standby_name_node2_id.contains(hostName))) {
               hostComponent.display_name_advanced = standbyNNText;
             } else {
               hostComponent.display_name_advanced = null;
