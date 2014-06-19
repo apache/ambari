@@ -18,15 +18,11 @@
 
 package org.apache.ambari.server.orm.entities;
 
-import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.view.configuration.InstanceConfig;
-import org.apache.ambari.view.ResourceProvider;
-import org.apache.ambari.view.ViewDefinition;
-import org.apache.ambari.view.ViewInstanceDefinition;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;
@@ -43,11 +39,16 @@ import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 import javax.persistence.Transient;
 import javax.persistence.UniqueConstraint;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+
+import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.view.configuration.InstanceConfig;
+import org.apache.ambari.view.ResourceProvider;
+import org.apache.ambari.view.ViewDefinition;
+import org.apache.ambari.view.ViewInstanceDefinition;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 
 /**
  * Represents an instance of a View.
@@ -73,7 +74,7 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
   public static final String VIEWS_CONTEXT_PATH_PREFIX = "/views/";
 
   @Id
-  @Column(name = "view_instance_id")
+  @Column(name = "view_instance_id", nullable = false)
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "view_instance_id_generator")
   private Long viewInstanceId;
 

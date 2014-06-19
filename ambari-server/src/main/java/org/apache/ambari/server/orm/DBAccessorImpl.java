@@ -17,21 +17,6 @@
  */
 package org.apache.ambari.server.orm;
 
-import com.google.inject.Inject;
-import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.orm.helpers.ScriptRunner;
-import org.apache.ambari.server.orm.helpers.dbms.*;
-import org.apache.commons.lang.StringUtils;
-import org.eclipse.persistence.internal.helper.DBPlatformHelper;
-import org.eclipse.persistence.internal.sessions.DatabaseSessionImpl;
-import org.eclipse.persistence.logging.AbstractSessionLog;
-import org.eclipse.persistence.logging.SessionLogEntry;
-import org.eclipse.persistence.platform.database.*;
-import org.eclipse.persistence.sessions.DatabaseLogin;
-import org.eclipse.persistence.sessions.DatabaseSession;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -39,12 +24,37 @@ import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
+
+import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.orm.helpers.ScriptRunner;
+import org.apache.ambari.server.orm.helpers.dbms.DbmsHelper;
+import org.apache.ambari.server.orm.helpers.dbms.DerbyHelper;
+import org.apache.ambari.server.orm.helpers.dbms.GenericDbmsHelper;
+import org.apache.ambari.server.orm.helpers.dbms.MySqlHelper;
+import org.apache.ambari.server.orm.helpers.dbms.OracleHelper;
+import org.apache.ambari.server.orm.helpers.dbms.PostgresHelper;
+import org.apache.commons.lang.StringUtils;
+import org.eclipse.persistence.internal.helper.DBPlatformHelper;
+import org.eclipse.persistence.internal.sessions.DatabaseSessionImpl;
+import org.eclipse.persistence.logging.AbstractSessionLog;
+import org.eclipse.persistence.logging.SessionLogEntry;
+import org.eclipse.persistence.platform.database.DatabasePlatform;
+import org.eclipse.persistence.platform.database.DerbyPlatform;
+import org.eclipse.persistence.platform.database.MySQLPlatform;
+import org.eclipse.persistence.platform.database.OraclePlatform;
+import org.eclipse.persistence.platform.database.PostgreSQLPlatform;
+import org.eclipse.persistence.sessions.DatabaseLogin;
+import org.eclipse.persistence.sessions.DatabaseSession;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.inject.Inject;
 
 public class DBAccessorImpl implements DBAccessor {
   private static final Logger LOG = LoggerFactory.getLogger(DBAccessorImpl.class);
@@ -533,5 +543,31 @@ public class DBAccessorImpl implements DBAccessor {
 
 
     return new DatabaseSessionImpl(login);
+  }
+
+  public int getColumnType(String tableName, String columnName)
+      throws SQLException {
+    String query = "SELECT " + columnName + " FROM " + tableName;
+    Statement statement = null;
+
+    try {
+      statement = getConnection().createStatement();
+      ResultSet rs = statement.executeQuery(query);
+
+      ResultSetMetaData rsmd = rs.getMetaData();
+      return rsmd.getColumnType(1);
+    } finally {
+      if (null != statement)
+        statement.close();
+    }
+  }
+
+  @Override
+  public void setNullable(String tableName, String columnName, boolean nullable)
+      throws SQLException {
+    String statement = dbmsHelper.getSetNullableStatement(tableName,
+        columnName, nullable);
+
+    executeQuery(statement);
   }
 }

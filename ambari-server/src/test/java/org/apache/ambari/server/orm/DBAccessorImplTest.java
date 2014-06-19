@@ -18,33 +18,32 @@
 
 package org.apache.ambari.server.orm;
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import junit.framework.Assert;
-import org.eclipse.persistence.sessions.DatabaseSession;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import static org.junit.Assert.assertEquals;
+import static org.junit.matchers.JUnitMatchers.containsString;
 
-import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
-import static org.junit.matchers.JUnitMatchers.containsString;
+import junit.framework.Assert;
+
+import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
+import org.eclipse.persistence.sessions.DatabaseSession;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 
 public class DBAccessorImplTest {
   private Injector injector;
@@ -305,5 +304,48 @@ public class DBAccessorImplTest {
     assertEquals("Bob", map.get("name".toUpperCase()));
 
     databaseSession.logout();
+  }
+
+  @Test
+  public void testGetColumnType() throws Exception {
+    String tableName = getFreeTableName();
+    createMyTable(tableName);
+    DBAccessorImpl dbAccessor = injector.getInstance(DBAccessorImpl.class);
+    assertEquals(Types.BIGINT, dbAccessor.getColumnType(tableName, "id"));
+    assertEquals(Types.VARCHAR, dbAccessor.getColumnType(tableName, "name"));
+  }
+
+  @Test
+  public void testSetNullable() throws Exception {
+    String tableName = getFreeTableName();
+    createMyTable(tableName);
+    DBAccessorImpl dbAccessor = injector.getInstance(DBAccessorImpl.class);
+
+    dbAccessor.addColumn(tableName, new DBColumnInfo("isNullable",
+        String.class, 1000, "test", false));
+
+    Statement statement = dbAccessor.getConnection().createStatement();
+    ResultSet resultSet = statement.executeQuery("SELECT isNullable FROM "
+        + tableName);
+    ResultSetMetaData rsmd = resultSet.getMetaData();
+    assertEquals(ResultSetMetaData.columnNullable, rsmd.isNullable(1));
+
+    statement.close();
+
+    dbAccessor.setNullable(tableName, "isNullable", false);
+    statement = dbAccessor.getConnection().createStatement();
+    resultSet = statement.executeQuery("SELECT isNullable FROM " + tableName);
+    rsmd = resultSet.getMetaData();
+    assertEquals(ResultSetMetaData.columnNoNulls, rsmd.isNullable(1));
+
+    statement.close();
+
+    dbAccessor.setNullable(tableName, "isNullable", true);
+    statement = dbAccessor.getConnection().createStatement();
+    resultSet = statement.executeQuery("SELECT isNullable FROM " + tableName);
+    rsmd = resultSet.getMetaData();
+    assertEquals(ResultSetMetaData.columnNullable, rsmd.isNullable(1));
+
+    statement.close();
   }
 }

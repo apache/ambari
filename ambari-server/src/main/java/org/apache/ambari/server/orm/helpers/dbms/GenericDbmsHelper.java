@@ -18,6 +18,11 @@
 
 package org.apache.ambari.server.orm.helpers.dbms;
 
+import java.io.IOException;
+import java.io.StringWriter;
+import java.io.Writer;
+import java.util.List;
+
 import org.apache.ambari.server.orm.DBAccessor;
 import org.eclipse.persistence.internal.databaseaccess.FieldTypeDefinition;
 import org.eclipse.persistence.internal.databaseaccess.Platform;
@@ -26,11 +31,6 @@ import org.eclipse.persistence.platform.database.DatabasePlatform;
 import org.eclipse.persistence.tools.schemaframework.FieldDefinition;
 import org.eclipse.persistence.tools.schemaframework.ForeignKeyConstraint;
 import org.eclipse.persistence.tools.schemaframework.TableDefinition;
-
-import java.io.IOException;
-import java.io.StringWriter;
-import java.io.Writer;
-import java.util.List;
 
 public class GenericDbmsHelper implements DbmsHelper {
   protected final DatabasePlatform databasePlatform;
@@ -65,7 +65,15 @@ public class GenericDbmsHelper implements DbmsHelper {
     writeAlterTableClause(stringBuilder, tableName);
     writeColumnModifyString(stringBuilder, columnInfo);
 
+    return stringBuilder.toString();
+  }
 
+  @Override
+  public String getSetNullableStatement(String tableName, String columnName,
+      boolean nullable) {
+    StringBuilder stringBuilder = new StringBuilder();
+    writeAlterTableClause(stringBuilder, tableName);
+    writeSetNullableString(stringBuilder, tableName, columnName, nullable);
     return stringBuilder.toString();
   }
 
@@ -104,6 +112,12 @@ public class GenericDbmsHelper implements DbmsHelper {
     builder.append(writer.toString());
 
     return builder;
+  }
+
+  public StringBuilder writeSetNullableString(StringBuilder builder,
+      String tableName, String columnName, boolean nullable) {
+    throw new UnsupportedOperationException(
+        "Column nullable modification not supported for generic DB");
   }
 
   /**

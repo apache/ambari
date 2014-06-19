@@ -17,13 +17,22 @@
  */
 package org.apache.ambari.server.orm.entities;
 
-import javax.persistence.*;
+import static org.apache.commons.lang.StringUtils.defaultString;
+
+import javax.persistence.Basic;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinColumns;
+import javax.persistence.ManyToOne;
 
 import org.apache.ambari.server.state.HostComponentAdminState;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.State;
-
-import static org.apache.commons.lang.StringUtils.defaultString;
 
 @javax.persistence.IdClass(HostComponentDesiredStateEntityPK.class)
 @javax.persistence.Table(name = "hostcomponentdesiredstate")
@@ -76,7 +85,7 @@ public class HostComponentDesiredStateEntity {
 
   @Basic
   @Column(name = "restart_required", insertable = true, updatable = true, nullable = false)
-  private Boolean restartRequired = false;
+  private Integer restartRequired = 0;
 
   public Long getClusterId() {
     return clusterId;
@@ -190,10 +199,10 @@ public class HostComponentDesiredStateEntity {
   }
 
   public boolean isRestartRequired() {
-    return restartRequired;
+    return restartRequired == 0 ? false : true;
   }
 
   public void setRestartRequired(boolean restartRequired) {
-    this.restartRequired = restartRequired;
+    this.restartRequired = (restartRequired == false ? 0 : 1);
   }
 }

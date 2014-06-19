@@ -80,14 +80,10 @@ public class UpgradeCatalog160 extends AbstractUpgradeCatalog {
     //=========================================================================
     // Add columns
 
-    // restart_required is a boolean, but most DBs use 0/1 in a SMALLINT
+    // treat restart_required as an integer to maintain consistency with other
+    // tables that have booleans
     DBAccessor.DBColumnInfo restartRequiredColumn = new DBAccessor.DBColumnInfo(
-        "restart_required", Boolean.class, 1, 0, false);
-
-    // only postgres supports boolean type, so assign it here
-    if (Configuration.POSTGRES_DB_NAME.equals(getDbType())) {
-      restartRequiredColumn.setDefaultValue(Boolean.FALSE);
-    }
+        "restart_required", Integer.class, 1, 0, false);
 
     dbAccessor.addColumn("hostcomponentdesiredstate", restartRequiredColumn);
 
@@ -95,9 +91,9 @@ public class UpgradeCatalog160 extends AbstractUpgradeCatalog {
     // Add constraints
     dbAccessor.addFKConstraint("hostgroup_configuration", "FK_hg_config_blueprint_name",
       new String[] {"blueprint_name", "hostgroup_name"}, "hostgroup", new String[] {"blueprint_name", "name"}, true);
+
     dbAccessor.addFKConstraint("viewentity", "FK_viewentity_view_name",
         new String[]{"view_name", "view_instance_name"}, "viewinstance", new String[]{"view_name", "name"}, true);
-
   }
 
 

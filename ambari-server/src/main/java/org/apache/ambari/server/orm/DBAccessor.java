@@ -17,13 +17,12 @@
  */
 package org.apache.ambari.server.orm;
 
-import org.eclipse.persistence.sessions.DatabaseSession;
-
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+
+import org.eclipse.persistence.sessions.DatabaseSession;
 
 /**
  * Interface for schema manipulation
@@ -285,6 +284,35 @@ public interface DBAccessor {
    * @return
    */
   public DatabaseSession getNewDatabaseSession();
+
+  /**
+   * Gets the column's SQL type
+   * 
+   * @param tableName
+   *          the name of the table (not {@code null}).
+   * @param columnName
+   *          the name of the column to retrieve type for (not {@code null}).
+   * @return the integer representation of the column type from {@link Types}.
+   * @throws SQLException
+   * @see {@link Types}
+   */
+  public int getColumnType(String tableName, String columnName)
+      throws SQLException;
+
+  /**
+   * Sets the specified column to either allow or prohibit {@code NULL}.
+   * 
+   * @param tableName
+   *          the name of the table (not {@code null}).
+   * @param columnName
+   *          the name of the column to alter (not {@code null}).
+   * @param nullable
+   *          {@code true} to indicate that the column allows {@code NULL}
+   *          values, {@code false} otherwise.
+   * @throws SQLException
+   */
+  public void setNullable(String tableName, String columnName, boolean nullable)
+      throws SQLException;
 
   /**
    * Capture column type

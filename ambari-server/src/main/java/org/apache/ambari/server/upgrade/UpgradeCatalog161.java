@@ -20,6 +20,7 @@ package org.apache.ambari.server.upgrade;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -67,6 +68,8 @@ public class UpgradeCatalog161 extends AbstractUpgradeCatalog {
 
   @Override
   protected void executeDDLUpdates() throws AmbariException, SQLException {
+    String dbType = getDbType();
+
     List<DBColumnInfo> columns;
 
     // Operation level
@@ -80,6 +83,30 @@ public class UpgradeCatalog161 extends AbstractUpgradeCatalog {
     columns.add(new DBColumnInfo("host_name", String.class, 255, null, true));
 
     dbAccessor.createTable("requestoperationlevel", columns, "operation_level_id");
+
+    // 1.6.0 initially shipped with restart_required as a BOOELAN so some
+    // upgrades might be BOOLEAN but most are probably SMALLINT
+    if (Configuration.POSTGRES_DB_NAME.equals(dbType)) {
+      int columnType = dbAccessor.getColumnType("hostcomponentdesiredstate",
+          "restart_required");
+
+      if (columnType == Types.BOOLEAN || columnType == Types.BIT) {
+        dbAccessor.executeQuery(
+            "ALTER TABLE hostcomponentdesiredstate ALTER column restart_required TYPE SMALLINT USING CASE WHEN restart_required=true THEN 1 ELSE 0 END",
+            true);
+      }
+    }
+
+    if (Configuration.ORACLE_DB_NAME.equals(dbType)) {
+      dbAccessor.executeQuery(
+          "ALTER TABLE hostcomponentdesiredstate MODIFY (restart_required DEFAULT 0)",
+          true);
+
+    } else {
+      dbAccessor.executeQuery(
+          "ALTER TABLE hostcomponentdesiredstate ALTER column restart_required SET DEFAULT 0",
+          true);
+    }
 
     //=========================================================================
     // Add columns
@@ -97,12 +124,12 @@ public class UpgradeCatalog161 extends AbstractUpgradeCatalog {
     dbAccessor.dropConstraint("viewentity", "FK_viewentity_view_name");
 
     //modify primary key of viewinstancedata
-    if (Configuration.ORACLE_DB_NAME.equals(getDbType()) ||
-        Configuration.MYSQL_DB_NAME.equals(getDbType()) ||
-        Configuration.DERBY_DB_NAME.equals(getDbType())) {
+    if (Configuration.ORACLE_DB_NAME.equals(dbType)
+        || Configuration.MYSQL_DB_NAME.equals(dbType)
+        || Configuration.DERBY_DB_NAME.equals(dbType)) {
       dbAccessor.executeQuery("ALTER TABLE viewinstance DROP PRIMARY KEY", true);
       dbAccessor.executeQuery("ALTER TABLE viewinstancedata DROP PRIMARY KEY", true);
-    }else if (Configuration.POSTGRES_DB_NAME.equals(getDbType())) {
+    } else if (Configuration.POSTGRES_DB_NAME.equals(dbType)) {
       dbAccessor.executeQuery("ALTER TABLE viewinstance DROP CONSTRAINT viewinstance_pkey CASCADE", true);
       dbAccessor.executeQuery("ALTER TABLE viewinstancedata DROP CONSTRAINT viewinstancedata_pkey CASCADE", true);
     }
@@ -112,7 +139,7 @@ public class UpgradeCatalog161 extends AbstractUpgradeCatalog {
     dbAccessor.addColumn("viewinstancedata",
       new DBAccessor.DBColumnInfo("view_instance_id", Long.class, null, null, true));
 
-    if (Configuration.ORACLE_DB_NAME.equals(getDbType())) {
+    if (Configuration.ORACLE_DB_NAME.equals(dbType)) {
       //sequence looks to be simpler than rownum
       if (dbAccessor.tableHasData("viewinstancedata")) {
         dbAccessor.executeQuery("CREATE SEQUENCE TEMP_SEQ " +
@@ -125,12 +152,12 @@ public class UpgradeCatalog161 extends AbstractUpgradeCatalog {
         dbAccessor.executeQuery("UPDATE viewinstance SET view_instance_id = TEMP_SEQ.NEXTVAL");
         dbAccessor.dropSequence("TEMP_SEQ");
       }
-    }else if (Configuration.MYSQL_DB_NAME.equals(getDbType())) {
+    } else if (Configuration.MYSQL_DB_NAME.equals(dbType)) {
       if (dbAccessor.tableHasData("viewinstance")) {
         dbAccessor.executeQuery("UPDATE viewinstance " +
             "SET view_instance_id = (SELECT @a := @a + 1 FROM (SELECT @a := 1) s)");
       }
-    }else if (Configuration.POSTGRES_DB_NAME.equals(getDbType())) {
+    } else if (Configuration.POSTGRES_DB_NAME.equals(dbType)) {
       if (dbAccessor.tableHasData("viewinstance")) {
         //window functions like row_number were added in 8.4, workaround for earlier versions (redhat/centos 5)
         dbAccessor.executeQuery("CREATE SEQUENCE temp_seq START WITH 1");
@@ -141,7 +168,7 @@ public class UpgradeCatalog161 extends AbstractUpgradeCatalog {
 
     }
 
-    if (Configuration.DERBY_DB_NAME.equals(getDbType())) {
+    if (Configuration.DERBY_DB_NAME.equals(dbType)) {
       dbAccessor.executeQuery("ALTER TABLE viewinstance ALTER COLUMN view_instance_id DEFAULT 0");
       dbAccessor.executeQuery("ALTER TABLE viewinstance ALTER COLUMN view_instance_id NOT NULL");
       dbAccessor.executeQuery("ALTER TABLE viewinstancedata ALTER COLUMN view_instance_id DEFAULT 0");
@@ -159,13 +186,13 @@ public class UpgradeCatalog161 extends AbstractUpgradeCatalog {
     dbAccessor.addFKConstraint("viewentity", "FK_viewentity_view_name",
         new String[]{"view_name", "view_instance_name"}, "viewinstance", new String[]{"view_name", "name"}, true);
 
-    if (Configuration.POSTGRES_DB_NAME.equals(getDbType())) {
+    if (Configuration.POSTGRES_DB_NAME.equals(dbType)) {
       dbAccessor.executeQuery("UPDATE viewinstancedata AS vid SET view_instance_id = vi.view_instance_id " +
         "FROM viewinstance AS vi WHERE vi.name = vid.view_instance_name AND vi.view_name = vid.view_name");
-    } else if (Configuration.ORACLE_DB_NAME.equals(getDbType())) {
+    } else if (Configuration.ORACLE_DB_NAME.equals(dbType)) {
       dbAccessor.executeQuery("UPDATE viewinstancedata vid SET view_instance_id = (" +
         "SELECT view_instance_id FROM viewinstance vi WHERE vi.name = vid.view_instance_name AND vi.view_name = vid.view_name)");
-    }else if (Configuration.MYSQL_DB_NAME.equals(getDbType())) {
+    } else if (Configuration.MYSQL_DB_NAME.equals(dbType)) {
       dbAccessor.executeQuery("UPDATE viewinstancedata AS vid JOIN viewinstance AS vi " +
         "ON vi.name = vid.view_instance_name AND vi.view_name = vid.view_name " +
         "SET vid.view_instance_id = vi.view_instance_id");
@@ -191,7 +218,8 @@ public class UpgradeCatalog161 extends AbstractUpgradeCatalog {
     }
 
     String valueColumnName = "\"value\"";
-    if (Configuration.ORACLE_DB_NAME.equals(getDbType()) || Configuration.MYSQL_DB_NAME.equals(getDbType())) {
+    if (Configuration.ORACLE_DB_NAME.equals(dbType)
+        || Configuration.MYSQL_DB_NAME.equals(dbType)) {
       valueColumnName = "value";
     }
 

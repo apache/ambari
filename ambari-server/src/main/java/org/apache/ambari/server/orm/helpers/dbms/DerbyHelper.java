@@ -49,4 +49,13 @@ public class DerbyHelper extends GenericDbmsHelper {
 
     return builder;
   }
+
+  @Override
+  public StringBuilder writeSetNullableString(StringBuilder builder,
+      String tableName, String columnName, boolean nullable) {
+    builder.append(" ALTER COLUMN ").append(columnName);
+    String nullStatement = nullable ? " NULL" : " NOT NULL";
+    builder.append(nullStatement);
+    return builder;
+  }
 }

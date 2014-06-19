@@ -18,9 +18,9 @@
 
 package org.apache.ambari.server.orm.helpers.dbms;
 
-import org.apache.ambari.server.orm.DBAccessor;
-
 import java.util.List;
+
+import org.apache.ambari.server.orm.DBAccessor;
 
 public interface DbmsHelper {
 
@@ -71,4 +71,19 @@ public interface DbmsHelper {
   String getDropConstraintStatement(String tableName, String constraintName);
 
   String getDropSequenceStatement(String sequenceName);
+
+  /**
+   * Gets the {@code SET NULL} or {@code SET NOT NULL} statement.
+   * 
+   * @param tableName
+   *          the table (not {@code null}).
+   * @param columnName
+   *          the column to alert the nullable state of (not {@code null}).
+   * @param nullable
+   *          {@code true} to indicate that the column allows {@code NULL}
+   *          values, {@code false} otherwise.
+   * @return the statement (never {@code null}).
+   */
+  String getSetNullableStatement(String tableName, String columnName,
+      boolean nullable);
 }

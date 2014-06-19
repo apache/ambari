@@ -43,4 +43,13 @@ public class OracleHelper extends GenericDbmsHelper {
     writeColumnType(builder, columnInfo);
     return builder;
   }
+
+  @Override
+  public StringBuilder writeSetNullableString(StringBuilder builder,
+      String tableName, String columnName, boolean nullable) {
+    builder.append(" MODIFY ").append(columnName);
+    String nullStatement = nullable ? " NULL" : " NOT NULL";
+    builder.append(nullStatement);
+    return builder;
+  }
 }
