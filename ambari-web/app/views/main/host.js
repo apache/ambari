@@ -67,7 +67,11 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
    * @type {Array}
    */
   pageContent: function () {
-    return this.get('filteredContent').slice(this.get('startIndex') - 1, this.get('endIndex')).sort(function (a, b) {
+    var content = this.get('filteredContent');
+    if (content.length > this.get('endIndex') - this.get('startIndex') + 1) {
+      content = content.slice(this.get('startIndex') - 1, this.get('endIndex'));
+    }
+    return content.sort(function (a, b) {
       return a.get('index') - b.get('index');
     });
   }.property('filteredCount', 'startIndex', 'endIndex'),
