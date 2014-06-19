@@ -24,7 +24,7 @@ App.WizardStep5View = Em.View.extend({
 
   /**
    * If install more than 25 hosts, should use App.InputHostView for hosts selection
-   * Othervise - App.SelectHostView
+   * Otherwise - App.SelectHostView
    * @type {bool}
    */
   shouldUseInputs: function() {
