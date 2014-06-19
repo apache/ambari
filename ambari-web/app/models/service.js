@@ -101,6 +101,18 @@ App.Service = DS.Model.extend({
     return configurableServices.contains(this.get('serviceName'));
   }.property('serviceName'),
 
+  /**
+   * Service Tagging by their type.
+   * @type {String[]}
+   **/
+  serviceTypes: function() {
+    var typeServiceMap = {
+      GANGLIA: ['MONITORING'],
+      NAGIOS:  ['MONITORING']
+    };
+    return typeServiceMap[this.get('serviceName')] || [];
+  }.property('serviceName'),
+
   displayName: function () {
     return App.Service.DisplayNames[this.get('serviceName')];
   }.property('serviceName'),
