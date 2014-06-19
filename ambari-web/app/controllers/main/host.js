@@ -240,7 +240,7 @@ App.MainHostController = Em.ArrayController.extend({
           value: filter.value,
           type: property.type
         };
-        if (filter.type === 'string') {
+        if (filter.type === 'string' && sortProperties.someProperty('key', colPropAssoc[filter.iColumn])) {
           result.value = this.getRegExp(filter.value);
         }
         if (filter.type === 'number' || filter.type === 'ambari-bandwidth') {
