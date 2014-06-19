@@ -28,7 +28,7 @@ import java.util.List;
 /**
  * Abstract base class for all stacks related resource definitions.
  * Because we cloned /stacks from /stacks2 and changed the endpoint names in stacks,
- * this class is a temporary mechanism to deviate from the standard /stacks2 endpoint names.
+ * this class is a TEMPORARY mechanism to deviate from the standard /stacks2 endpoint names.
  *
  */
 public abstract class BaseStacksResourceDefinition extends BaseResourceDefinition {
@@ -54,9 +54,43 @@ public abstract class BaseStacksResourceDefinition extends BaseResourceDefinitio
         nodeHref = nodeHref.replace("stackServices", "services");
         nodeHref = nodeHref.replace("serviceComponents", "components");
         nodeHref = nodeHref.replace("operatingSystems", "operating_systems");
+
+        // The UI currently expects the old sub-resource names so don't do replacement
+        // if the href contains "_=" as only the UI uses this syntax.
+        if (! href.contains("_=")) {
+          renameChildren(resultNode);
+        }
       }
 
       resultNode.setProperty("href", nodeHref);
+    }
+
+    /**
+     * Rename child nodes.
+     *
+     * @param resultNode result node
+     */
+    private void renameChildren(TreeNode<Resource> resultNode) {
+      TreeNode<Resource> childNode = resultNode.removeChild("stackServices");
+      if (childNode != null) {
+        childNode.setName("services");
+        resultNode.addChild(childNode);
+        renameChildren(childNode);
+      }
+
+      childNode = resultNode.removeChild("serviceComponents");
+      if (childNode != null) {
+        childNode.setName("components");
+        resultNode.addChild(childNode);
+        renameChildren(childNode);
+      }
+
+      childNode = resultNode.removeChild("operatingSystems");
+      if (childNode != null) {
+        childNode.setName("operating_systems");
+        resultNode.addChild(childNode);
+        renameChildren(childNode);
+      }
     }
   }
 }

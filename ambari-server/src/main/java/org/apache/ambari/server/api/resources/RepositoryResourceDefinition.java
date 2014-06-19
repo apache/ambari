@@ -20,7 +20,7 @@ package org.apache.ambari.server.api.resources;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.Resource.Type;
 
-public class RepositoryResourceDefinition extends BaseResourceDefinition {
+public class RepositoryResourceDefinition extends BaseStacksResourceDefinition {
 
   public RepositoryResourceDefinition(Type resourceType) {
     super(Resource.Type.Repository);

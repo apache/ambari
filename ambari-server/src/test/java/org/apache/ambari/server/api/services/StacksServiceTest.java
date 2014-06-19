@@ -21,6 +21,7 @@ package org.apache.ambari.server.api.services;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.parsers.RequestBodyParser;
 import org.apache.ambari.server.api.services.serializers.ResultSerializer;
+import org.easymock.EasyMock;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.UriInfo;
@@ -29,6 +30,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.notNull;
+import static org.easymock.EasyMock.same;
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -210,4 +214,11 @@ public class StacksServiceTest extends BaseServiceTest {
     }
   }
 
+  //todo: this is necessary for temporary changes to service to support both stacks and stacks2 api.
+  //todo: when stacks2 is removed and stacks doesn't need to wrap the UriInfo, this should be removed.
+  @Override
+  protected void assertCreateRequest(ServiceTestInvocation testMethod) {
+    expect(requestFactory.createRequest(same(httpHeaders), same(requestBody), (UriInfo) notNull(),
+        same(testMethod.getRequestType()), same(resourceInstance))).andReturn(request);
+  }
 }

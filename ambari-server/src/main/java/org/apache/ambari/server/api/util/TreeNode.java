@@ -84,6 +84,15 @@ public interface TreeNode<T> {
   public TreeNode<T> addChild(TreeNode<T> child);
 
   /**
+   * Remove a child from this resource.
+   *
+   * @param name  name of child to remove
+   *
+   * @return the previous value associated with key, or null if there was no mapping for key
+   */
+  public TreeNode<T> removeChild(String name);
+
+  /**
    * Set a property on the node.
    *
    * @param name  the name of the property

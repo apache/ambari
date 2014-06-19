@@ -112,6 +112,11 @@ public class TreeNodeImpl<T> implements TreeNode<T> {
   }
 
   @Override
+  public TreeNode<T> removeChild(String name) {
+    return m_mapChildren.remove(name);
+  }
+
+  @Override
   public void setProperty(String name, String value) {
     if (m_mapNodeProps == null) {
       m_mapNodeProps = new LinkedHashMap<String, String>();

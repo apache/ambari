@@ -47,17 +47,17 @@ import static org.junit.Assert.assertEquals;
  */
 public abstract class BaseServiceTest {
 
-  private ResourceInstance resourceInstance = createNiceMock(ResourceInstance.class);
-  private RequestFactory requestFactory = createStrictMock(RequestFactory.class);
-  private Request request = createNiceMock(Request.class);
-  private HttpHeaders httpHeaders = createNiceMock(HttpHeaders.class);
-  private UriInfo uriInfo = createNiceMock(UriInfo.class);
-  private Result result = createMock(Result.class);
-  private RequestBody requestBody = createNiceMock(RequestBody.class);
-  private RequestBodyParser bodyParser = createStrictMock(RequestBodyParser.class);
-  private ResultStatus status = createNiceMock(ResultStatus.class);
-  private ResultSerializer serializer = createStrictMock(ResultSerializer.class);
-  private Object serializedResult = new Object();
+  protected ResourceInstance resourceInstance = createNiceMock(ResourceInstance.class);
+  protected RequestFactory requestFactory = createStrictMock(RequestFactory.class);
+  protected Request request = createNiceMock(Request.class);
+  protected HttpHeaders httpHeaders = createNiceMock(HttpHeaders.class);
+  protected UriInfo uriInfo = createNiceMock(UriInfo.class);
+  protected Result result = createMock(Result.class);
+  protected RequestBody requestBody = createNiceMock(RequestBody.class);
+  protected RequestBodyParser bodyParser = createStrictMock(RequestBodyParser.class);
+  protected ResultStatus status = createNiceMock(ResultStatus.class);
+  protected ResultSerializer serializer = createStrictMock(ResultSerializer.class);
+  protected Object serializedResult = new Object();
 
   public ResourceInstance getTestResource() {
     return resourceInstance;
@@ -105,7 +105,7 @@ public abstract class BaseServiceTest {
       // needed for compiler
     }
 
-    expect(requestFactory.createRequest(httpHeaders, requestBody, uriInfo, testMethod.getRequestType(), resourceInstance)).andReturn(request);
+    assertCreateRequest(testMethod);
     expect(request.process()).andReturn(result);
     expect(result.getStatus()).andReturn(status).atLeastOnce();
     expect(status.getStatusCode()).andReturn(testMethod.getStatusCode()).atLeastOnce();
@@ -118,6 +118,11 @@ public abstract class BaseServiceTest {
     assertEquals(serializedResult, r.getEntity());
     assertEquals(testMethod.getStatusCode(), r.getStatus());
     verifyAndResetMocks();
+  }
+
+  protected void assertCreateRequest(ServiceTestInvocation testMethod) {
+    expect(requestFactory.createRequest(httpHeaders, requestBody, uriInfo,
+        testMethod.getRequestType(), resourceInstance)).andReturn(request);
   }
 
 
@@ -144,7 +149,7 @@ public abstract class BaseServiceTest {
     } catch (BodyParseException e) {
       // needed for compiler
     }
-    expect(requestFactory.createRequest(httpHeaders, requestBody, uriInfo, testMethod.getRequestType(), resourceInstance)).andReturn(request);
+    assertCreateRequest(testMethod);
     expect(request.process()).andReturn(result);
     expect(result.getStatus()).andReturn(status).atLeastOnce();
     expect(status.getStatusCode()).andReturn(400).atLeastOnce();
