@@ -187,8 +187,9 @@ public class UpgradeCatalog161 extends AbstractUpgradeCatalog {
         new String[]{"view_name", "view_instance_name"}, "viewinstance", new String[]{"view_name", "name"}, true);
 
     if (Configuration.POSTGRES_DB_NAME.equals(dbType)) {
-      dbAccessor.executeQuery("UPDATE viewinstancedata AS vid SET view_instance_id = vi.view_instance_id " +
-        "FROM viewinstance AS vi WHERE vi.name = vid.view_instance_name AND vi.view_name = vid.view_name");
+      dbAccessor.executeQuery("UPDATE viewinstancedata " +
+        "SET view_instance_id = vi.view_instance_id FROM viewinstance AS vi " +
+        "WHERE vi.name = viewinstancedata.view_instance_name AND vi.view_name = viewinstancedata.view_name");
     } else if (Configuration.ORACLE_DB_NAME.equals(dbType)) {
       dbAccessor.executeQuery("UPDATE viewinstancedata vid SET view_instance_id = (" +
         "SELECT view_instance_id FROM viewinstance vi WHERE vi.name = vid.view_instance_name AND vi.view_name = vid.view_name)");
