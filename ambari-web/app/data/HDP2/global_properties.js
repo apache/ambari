@@ -314,19 +314,6 @@ module.exports =
       "serviceName": "MAPREDUCE2",
       "category": "Advanced"
     },
-      {
-          "id": "puppet var",
-          "name": "namenode_heapsize",
-          "displayName": "Name Node Heap Size",
-          "description": "Name Node Heap Size, default jvm memory setting",
-          "defaultValue": "1024",
-          "isReconfigurable": false,
-          "displayType": "int",
-          "isOverridable": false,
-          "isVisible": false,
-          "serviceName": "MAPREDUCE2",
-          "category": "Advanced"
-       },  
   /**********************************************YARN***************************************/
     {
       "id": "puppet var",
@@ -452,19 +439,6 @@ module.exports =
       "category": "AppTimelineServer",
       "index": 1
     },
-      {
-          "id": "puppet var",
-          "name": "namenode_heapsize",
-          "displayName": "Name Node Heap Size",
-          "description": "Name Node Heap Size, default jvm memory setting",
-          "defaultValue": "1024",
-          "isReconfigurable": false,
-          "displayType": "int",
-          "isOverridable": false,
-          "isVisible": false,
-          "serviceName": "YARN",
-          "category": "Advanced"
-       },     
   /**********************************************HBASE***************************************/
     {
       "id": "puppet var",
@@ -590,45 +564,45 @@ module.exports =
       "serviceName": "GLUSTERFS",
       "category": "General"
     },
-      {
-          "id": "puppet var",
-          "name": "hdfs_log_dir_prefix",
-          "displayName": "Hadoop Log Dir Prefix",
-          "description": "The parent directory for Hadoop log files.  The HDFS log directory will be ${hadoop_log_dir_prefix} / ${hdfs_user} and the MapReduce log directory will be ${hadoop_log_dir_prefix} / ${mapred_user}.",
-          "defaultValue": "/var/log/hadoop",
-          "isReconfigurable": false,
-          "displayType": "directory",
-          "isOverridable": false,
-          "isVisible": true,
-          "serviceName": "GLUSTERFS",
-          "category": "Advanced"
-      },
-      {
-          "id": "puppet var",
-          "name": "hadoop_pid_dir_prefix",
-          "displayName": "Hadoop PID Dir Prefix",
-          "description": "The parent directory in which the PID files for Hadoop processes will be created.  The HDFS PID directory will be ${hadoop_pid_dir_prefix} / ${hdfs_user} and the MapReduce PID directory will be ${hadoop_pid_dir_prefix} / ${mapred_user}.",
-          "defaultValue": "/var/run/hadoop",
-          "isReconfigurable": false,
-          "displayType": "directory",
-          "isOverridable": false,
-          "isVisible": true,
-          "serviceName": "GLUSTERFS",
-          "category": "Advanced"
-       },         
-      {
-          "id": "puppet var",
-          "name": "namenode_heapsize",
-          "displayName": "Name Node Heap Size",
-          "description": "Name Node Heap Size, default jvm memory setting",
-          "defaultValue": "1024",
-          "isReconfigurable": false,
-          "displayType": "int",
-          "isOverridable": false,
-          "isVisible": false,
-          "serviceName": "GLUSTERFS",
-          "category": "Advanced"
-       }, 
+    {
+        "id": "puppet var",
+        "name": "hdfs_log_dir_prefix",
+        "displayName": "Hadoop Log Dir Prefix",
+        "description": "The parent directory for Hadoop log files.  The HDFS log directory will be ${hadoop_log_dir_prefix} / ${hdfs_user} and the MapReduce log directory will be ${hadoop_log_dir_prefix} / ${mapred_user}.",
+        "defaultValue": "/var/log/hadoop",
+        "isReconfigurable": false,
+        "displayType": "directory",
+        "isOverridable": false,
+        "isVisible": true,
+        "serviceName": "GLUSTERFS",
+        "category": "Advanced"
+    },
+    {
+        "id": "puppet var",
+        "name": "hadoop_pid_dir_prefix",
+        "displayName": "Hadoop PID Dir Prefix",
+        "description": "The parent directory in which the PID files for Hadoop processes will be created.  The HDFS PID directory will be ${hadoop_pid_dir_prefix} / ${hdfs_user} and the MapReduce PID directory will be ${hadoop_pid_dir_prefix} / ${mapred_user}.",
+        "defaultValue": "/var/run/hadoop",
+        "isReconfigurable": false,
+        "displayType": "directory",
+        "isOverridable": false,
+        "isVisible": true,
+        "serviceName": "GLUSTERFS",
+        "category": "Advanced"
+    },
+    {
+        "id": "puppet var",
+        "name": "namenode_heapsize",
+        "displayName": "Name Node Heap Size",
+        "description": "Name Node Heap Size, default jvm memory setting",
+        "defaultValue": "1024",
+        "isReconfigurable": false,
+        "displayType": "int",
+        "isOverridable": false,
+        "isVisible": false,
+        "serviceName": "GLUSTERFS",
+        "category": "Advanced"
+     },
     {
       "id": "puppet var",
       "name": "namenode_opt_newsize",
