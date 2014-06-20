@@ -22,7 +22,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
@@ -289,6 +292,14 @@ public class UpgradeCatalog161 extends AbstractUpgradeCatalog {
             updatedClusterProvisionedStateCount, State.INSTALLED);
       }
     });
+    
+    addMissingConfigs();
+  }
+  
+  protected void addMissingConfigs() throws AmbariException {
+    updateConfigurationProperties("hbase-site", Collections.singletonMap("hbase.regionserver.info.port", "60030"), false);
+    updateConfigurationProperties("global", Collections.singletonMap("oozie_admin_port", "11001"), false);
+    updateConfigurationProperties("hive-site", Collections.singletonMap("hive.heapsize", "1024"), false);
   }
 
   @Override

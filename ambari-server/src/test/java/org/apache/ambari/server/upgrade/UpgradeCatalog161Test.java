@@ -35,9 +35,12 @@ import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
@@ -120,8 +123,11 @@ public class UpgradeCatalog161Test {
     EntityTransaction et = createMock(EntityTransaction.class);
     TypedQuery query = createMock(TypedQuery.class);
 
-    UpgradeCatalog161 upgradeCatalog =
-      createMockBuilder(UpgradeCatalog161.class).createMock();
+    Method m = AbstractUpgradeCatalog.class.getDeclaredMethod
+        ("updateConfigurationProperties", String.class, Map.class, boolean.class);
+
+    UpgradeCatalog161 upgradeCatalog = createMockBuilder(UpgradeCatalog161.class)
+      .addMockedMethod(m).createMock();
 
     expect(configuration.getDatabaseUrl()).andReturn(Configuration.JDBC_IN_MEMORY_URL).anyTimes();
     expect(injector.getProvider(EntityManager.class)).andReturn(provider).anyTimes();
@@ -132,6 +138,18 @@ public class UpgradeCatalog161Test {
       ":provisioningState", ClusterEntity.class)).andReturn(query);
     expect(query.setParameter("provisioningState", State.INSTALLED)).andReturn(null);
     expect(query.executeUpdate()).andReturn(0);
+    
+    upgradeCatalog.updateConfigurationProperties("hbase-site",
+        Collections.singletonMap("hbase.regionserver.info.port", "60030"), false);
+    expectLastCall();
+    
+    upgradeCatalog.updateConfigurationProperties("global",
+        Collections.singletonMap("oozie_admin_port", "11001"), false);
+    expectLastCall();
+    
+    upgradeCatalog.updateConfigurationProperties("hive-site",
+        Collections.singletonMap("hive.heapsize", "1024"), false);
+    expectLastCall();
 
     replay(upgradeCatalog, dbAccessor, configuration, injector, provider, em,
       et, query);
