@@ -391,11 +391,8 @@ App.InstallerController = App.WizardController.extend({
    * @param stepController App.WizardStep4Controller
    */
   saveServices: function (stepController) {
-    var serviceNames = [];
     this.setDBProperty('service', stepController.get('content'));
-    stepController.filterProperty('isSelected', true).forEach(function (item) {
-      serviceNames.push(item.serviceName);
-    });
+    var serviceNames = stepController.filterProperty('isSelected', true).mapProperty('serviceName');
     this.set('content.selectedServiceNames', serviceNames);
     this.setDBProperty('selectedServiceNames', serviceNames);
     console.log('installerController.saveServices: saved data ', serviceNames);
@@ -406,16 +403,18 @@ App.InstallerController = App.WizardController.extend({
    * @param stepController App.WizardStep5Controller
    */
   saveMasterComponentHosts: function (stepController) {
-    var obj = stepController.get('selectedServicesMasters');
+
+    var obj = stepController.get('selectedServicesMasters'),
+      hosts = this.getDBProperty('hosts');
 
     var masterComponentHosts = [];
     obj.forEach(function (_component) {
       masterComponentHosts.push({
         display_name: _component.get('display_name'),
         component: _component.get('component_name'),
-        hostName: _component.get('selectedHost'),
         serviceId: _component.get('serviceId'),
-        isInstalled: false
+        isInstalled: false,
+        host_id: hosts[_component.get('selectedHost')].id
       });
     });
 
@@ -428,16 +427,44 @@ App.InstallerController = App.WizardController.extend({
    * Load master component hosts data for using in required step controllers
    */
   loadMasterComponentHosts: function () {
-    var masterComponentHosts = this.getDBProperty('masterComponentHosts') || [];
+    var masterComponentHosts = this.getDBProperty('masterComponentHosts'),
+      hosts = this.getDBProperty('hosts'),
+      host_names = Em.keys(hosts);
+    if (Em.isNone(masterComponentHosts)) {
+      masterComponentHosts = [];
+    }
+    else {
+      masterComponentHosts.forEach(function(component) {
+        for (var i = 0; i < host_names.length; i++) {
+          if (hosts[host_names[i]].id === component.host_id) {
+            component.hostName = host_names[i];
+            break;
+          }
+        }
+      });
+    }
     this.set("content.masterComponentHosts", masterComponentHosts);
-    console.log("InstallerController.loadMasterComponentHosts: loaded hosts ", masterComponentHosts);
   },
 
   /**
    * Load master component hosts data for using in required step controllers
    */
   loadSlaveComponentHosts: function () {
-    var slaveComponentHosts = this.getDBProperty('slaveComponentHosts') || null;
+    var slaveComponentHosts = this.getDBProperty('slaveComponentHosts'),
+      hosts = this.getDBProperty('hosts'),
+      host_names = Em.keys(hosts);
+    if (!Em.isNone(slaveComponentHosts)) {
+      slaveComponentHosts.forEach(function(component) {
+        component.hosts.forEach(function(host) {
+          for (var i = 0; i < host_names.length; i++) {
+            if (hosts[host_names[i]].id === host.host_id) {
+              host.hostName = host_names[i];
+              break;
+            }
+          }
+        });
+      });
+    }
     this.set("content.slaveComponentHosts", slaveComponentHosts);
     console.log("InstallerController.loadSlaveComponentHosts: loaded hosts ", slaveComponentHosts);
   },

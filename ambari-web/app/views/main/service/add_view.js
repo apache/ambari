@@ -77,7 +77,7 @@ App.AddServiceView = Em.View.extend({
   loadHostsSuccessCallback: function (response) {
     var installedHosts = {};
 
-    response.items.forEach(function (item) {
+    response.items.forEach(function (item, indx) {
       installedHosts[item.Hosts.host_name] = {
         name: item.Hosts.host_name,
         cpu: item.Hosts.cpu_count,
@@ -85,7 +85,8 @@ App.AddServiceView = Em.View.extend({
         disk_info: item.Hosts.disk_info,
         bootStatus: "REGISTERED",
         isInstalled: true,
-        hostComponents: item.host_components
+        hostComponents: item.host_components,
+        id: indx++
       };
     });
     this.get('controller').setDBProperty('hosts', installedHosts);

@@ -1295,13 +1295,13 @@ App.config = Em.Object.create({
         selectedGroup.get('hosts').removeObject(hostName);
         if (!selectedGroup.get('isDefault')) {
           self.updateConfigurationGroup(selectedGroup, function () {
-          }, function () {});
+          }, Em.K);
         }
         newGroup.get('hosts').pushObject(hostName);
         callback(newGroup);
         if (!newGroup.get('isDefault')) {
           self.updateConfigurationGroup(newGroup, function () {
-          }, function () {});
+          }, Em.K);
         }
         this.hide();
       },

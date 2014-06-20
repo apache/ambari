@@ -46,7 +46,7 @@ module.exports = {
     this.clearStackModel();
     var serviceComponents = {items: []};
     data.items.forEach(function(item){
-      item.serviceComponents.forEach(function(_serviceComponent){
+      item.serviceComponents.forEach(function(_serviceComponent, indx){
         var stackServiceComponents =  _serviceComponent.StackServiceComponents;
         var serviceComponent = {
           component_name: stackServiceComponents.component_name,
@@ -55,7 +55,8 @@ module.exports = {
           is_master: stackServiceComponents.is_master,
           is_client: stackServiceComponents.is_client,
           stack_name: stackServiceComponents.stack_name,
-          stack_version: stackServiceComponents.stack_version
+          stack_version: stackServiceComponents.stack_version,
+          id: indx
         };
         serviceComponents.items.pushObject(serviceComponent);
       }, this);
