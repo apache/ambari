@@ -90,13 +90,7 @@ module.exports = Em.Route.extend({
       route: '/:viewName/:version/:instanceName',
       connectOutlets: function (router, view) {
         router.get('mainController').connectOutlet('mainViewsDetails');
-      },
-      index: Em.Route.extend({
-        route: '/',
-        connectOutlets: function (router, context) {
-          router.get('mainController').connectOutlet('mainViewsDetails');
-        }
-      })
+      }
     })
   }),
 
