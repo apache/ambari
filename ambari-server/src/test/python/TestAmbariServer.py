@@ -2860,13 +2860,6 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     # Testing calls if desired stack repo not existed
     run_in_shell_mock.return_value = 1, "", ""
     is_root_mock.return_value = True
-    try:
-      ambari_server.upgrade_stack(args, 'HDP-2.0')
-      self.fail("Should throw exception")
-    except FatalException as fe:
-      # Expected
-      self.assertTrue("Repository for HDP-2.0 is not existed" in fe.reason)
-      pass
 
     run_stack_upgrade_mock.reset_mock()
 
