@@ -292,8 +292,12 @@ App.WizardStep9Controller = Em.Controller.extend({
    */
   loadHosts: function () {
     var hosts = this.get('content.hosts');
+
+    //flag identify whether get all hosts or only NewHosts(newly added) hosts
+    var getOnlyNewHosts = (this.get('content.controllerName') !== 'addServiceController');
+
     for (var index in hosts) {
-      if (hosts[index].bootStatus === 'REGISTERED') {
+      if (hosts[index].bootStatus === 'REGISTERED' && (!getOnlyNewHosts || !hosts[index].isInstalled)) {
         var hostInfo = App.HostInfo.create({
           name: hosts[index].name,
           status: (hosts[index].status) ? hosts[index].status : 'info',
