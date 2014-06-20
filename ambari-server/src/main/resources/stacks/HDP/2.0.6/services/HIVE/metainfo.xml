@@ -183,6 +183,7 @@
       </commandScript>
       <configuration-dependencies>
         <config-type>global</config-type>
+        <config-type>hive-site</config-type>
       </configuration-dependencies>
     </service>
 

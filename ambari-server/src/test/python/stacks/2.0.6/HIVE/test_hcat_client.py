@@ -37,6 +37,13 @@ class TestHcatClient(RMFTestCase):
       owner = 'hcat',
       recursive = True,
     )
+    self.assertResourceCalled('XmlConfig', 'hive-site.xml',
+      owner = 'hive',
+      group = 'hadoop',
+      mode = 0644,
+      conf_dir = '/etc/hive/conf',
+      configurations = self.getConfig()['configurations']['hive-site'],
+    )
     self.assertResourceCalled('TemplateConfig', '/etc/hcatalog/conf/hcat-env.sh',
       owner = 'hcat',
       group = 'hadoop',
@@ -60,8 +67,16 @@ class TestHcatClient(RMFTestCase):
       owner = 'hcat',
       recursive = True,
     )
+    self.assertResourceCalled('XmlConfig', 'hive-site.xml',
+      owner = 'hive',
+      group = 'hadoop',
+      mode = 0644,
+      conf_dir = '/etc/hive/conf',
+      configurations = self.getConfig()['configurations']['hive-site'],
+    )
     self.assertResourceCalled('TemplateConfig', '/etc/hcatalog/conf/hcat-env.sh',
       owner = 'hcat',
       group = 'hadoop',
     )
+
     self.assertNoMoreResources()
