@@ -35,6 +35,13 @@ def hcat():
             recursive=True
   )
 
+  XmlConfig("hive-site.xml",
+            conf_dir=params.hive_conf_dir,
+            configurations=params.config['configurations']['hive-site'],
+            owner=params.hive_user,
+            group=params.user_group,
+            mode=0644)
+
   hcat_TemplateConfig('hcat-env.sh')
 
 
