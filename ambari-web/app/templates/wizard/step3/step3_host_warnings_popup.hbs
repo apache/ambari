@@ -25,7 +25,7 @@
     <div class="span7">
       {{t common.hosts}}&nbsp;{{view view.hostSelectView}}
     </div>
-    {{#if view.categoryWarnings.length}}
+    {{#if view.totalWarningsCount}}
       <div class="span3 offset2">
         <a href="javascript:void(null)" title="Show Details" {{action openWarningsInDialog target="view"}}
            class="task-detail-open-dialog"><i

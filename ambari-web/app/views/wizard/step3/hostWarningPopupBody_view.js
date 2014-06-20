@@ -134,7 +134,7 @@ App.WizardStep3HostWarningPopupBody = Em.View.extend({
   categoryWarnings: function () {
     var warningsByHost = this.get('warningsByHost');
     if (Em.isNone(warningsByHost)) return [];
-    return warningsByHost.findProperty('name', this.get('category')).warnings
+    return warningsByHost.findProperty('name', this.get('category')).warnings;
   }.property('warningsByHost', 'category'),
 
   /**
@@ -286,6 +286,7 @@ App.WizardStep3HostWarningPopupBody = Em.View.extend({
   warningsNotice: function () {
     var issuesNumber = this.get('warnings.length') + this.get('bodyController.repoCategoryWarnings.length') + this.get('bodyController.diskCategoryWarnings.length')
       + this.get('bodyController.jdkCategoryWarnings.length') + this.get('bodyController.hostCheckWarnings.length');
+    this.set('totalWarningsCount', issuesNumber);
     var issues = issuesNumber + ' ' + (issuesNumber.length === 1 ? Em.I18n.t('installer.step3.hostWarningsPopup.issue') : Em.I18n.t('installer.step3.hostWarningsPopup.issues'));
     var hostsCnt = this.warningHostsNamesCount();
     var hosts = hostsCnt + ' ' + (hostsCnt === 1 ? Em.I18n.t('installer.step3.hostWarningsPopup.host') : Em.I18n.t('installer.step3.hostWarningsPopup.hosts'));
@@ -298,12 +299,26 @@ App.WizardStep3HostWarningPopupBody = Em.View.extend({
    */
   contentInDetails: function () {
     var content = this.get('content');
-    var warningsByHost = this.get('warningsByHost').slice();
-    warningsByHost.shift();
     var newContent = '';
     newContent += Em.I18n.t('installer.step3.hostWarningsPopup.report.header') + new Date;
     newContent += Em.I18n.t('installer.step3.hostWarningsPopup.report.hosts');
-    newContent += warningsByHost.filterProperty('warnings.length').mapProperty('name').join(' ');
+    newContent += this.get('hostNamesWithWarnings').join(' ');
+    if (content.findProperty('category', 'jdk').warnings.length) {
+      newContent += Em.I18n.t('installer.step3.hostWarningsPopup.report.jdk');
+      newContent += content.findProperty('category', 'jdk').warnings[0].hosts.join('<br>');
+    }
+    if (content.findProperty('category', 'disk').warnings.length) {
+      newContent += Em.I18n.t('installer.step3.hostWarningsPopup.report.disk');
+      newContent += content.findProperty('category', 'disk').warnings[0].hosts.join('<br>');
+    }
+    if (content.findProperty('category', 'repositories').warnings.length) {
+      newContent += Em.I18n.t('installer.step3.hostWarningsPopup.report.repositories');
+      newContent += content.findProperty('category', 'repositories').warnings[0].hosts.join('<br>');
+    }
+    if (content.findProperty('category', 'hostNameResolution').warnings.length) {
+      newContent += Em.I18n.t('installer.step3.hostWarningsPopup.report.hostNameResolution');
+      newContent += content.findProperty('category', 'hostNameResolution').warnings[0].hosts.join(' ');
+    }
     if (content.findProperty('category', 'firewall').warnings.length) {
       newContent += Em.I18n.t('installer.step3.hostWarningsPopup.report.firewall');
       newContent += content.findProperty('category', 'firewall').warnings.mapProperty('name').join('<br>');
@@ -341,7 +356,7 @@ App.WizardStep3HostWarningPopupBody = Em.View.extend({
     }
     newContent += '</p>';
     return newContent;
-  }.property('content', 'warningsByHost'),
+  }.property('content', 'warningsByHost', 'bodyController.jdkCategoryWarnings', 'bodyController.repoCategoryWarnings', 'bodyController.diskCategoryWarnings', 'bodyController.hostCheckWarnings'),
 
   didInsertElement: function () {
     Em.run.next(this, function () {
@@ -426,6 +441,7 @@ App.WizardStep3HostWarningPopupBody = Em.View.extend({
         }
       });
     }
+    this.set('hostNamesWithWarnings', Em.keys(hostNameMap));
     return Em.keys(hostNameMap).length;
   },
 
