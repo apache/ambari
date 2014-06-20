@@ -24,6 +24,10 @@ App.ReassignMasterWizardStep2Controller = App.WizardStep5Controller.extend({
   showCurrentHost: true,
 
   loadStep: function() {
+    // If High Availability is enabled NameNode became a multiple component
+    if (App.get('isHaEnabled')) {
+      this.get('multipleComponents').push('NAMENODE');
+    }
     this._super();
     if(this.get('content.reassign.component_name') == "NAMENODE" && !this.get('content.masterComponentHosts').findProperty('component', "SECONDARY_NAMENODE")){
       this.set('showCurrentHost', false);
