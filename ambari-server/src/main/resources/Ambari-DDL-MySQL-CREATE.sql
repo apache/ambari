@@ -124,7 +124,7 @@ INSERT INTO ambari_sequences(sequence_name, value) values ('requestschedule_id_s
 INSERT INTO ambari_sequences(sequence_name, value) values ('resourcefilter_id_seq', 1);
 INSERT INTO ambari_sequences(sequence_name, value) values ('viewentity_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, value) values ('operation_level_id_seq', 1);
-INSERT INTO ambari_sequences(sequence_name, value) values ('view_instance_id_seq', 1)
+INSERT INTO ambari_sequences(sequence_name, value) values ('view_instance_id_seq', 1);
 
 insert into roles(role_name)
   select 'admin'
