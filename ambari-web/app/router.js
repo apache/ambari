@@ -193,7 +193,7 @@ App.Router = Em.Router.extend({
       this.setAuthenticated(true);
       this.setLoginName(params.loginName);
       App.usersMapper.map({"items": [data]});
-      this.setUser(App.User.find(params.loginName));
+      this.setUser(App.User.find().findProperty('id', params.loginName));
       this.transitionTo(this.getSection());
       controller.postLogin(true,true);
     }
@@ -229,7 +229,7 @@ App.Router = Em.Router.extend({
       this.setAuthenticated(true);
       this.setLoginName(params.loginName);
       App.usersMapper.map({"items": [params.loginData]});
-      this.setUser(App.User.find(params.loginName));
+      this.setUser(App.User.find().findProperty('id', params.loginName));
       this.transitionTo(this.getSection());
       controller.postLogin(true,true);
     }
