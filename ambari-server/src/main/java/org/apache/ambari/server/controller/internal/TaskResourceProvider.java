@@ -68,6 +68,11 @@ class TaskResourceProvider extends AbstractControllerResourceProvider {
       new HashSet<String>(Arrays.asList(new String[]{
           TASK_ID_PROPERTY_ID}));
 
+  /**
+   * Thread-safe Jackson JSON mapper.
+   */
+  private static final ObjectMapper mapper = new ObjectMapper();
+
   // ----- Constructors ----------------------------------------------------
 
   /**
@@ -187,7 +192,6 @@ class TaskResourceProvider extends AbstractControllerResourceProvider {
     Map<?, ?> result = null;
 
     try {
-      ObjectMapper mapper = new ObjectMapper();
       result = mapper.readValue(structuredOutput, Map.class);
     } catch (Exception excepton) {
       LOG.warn("Unable to parse task structured output: {}", structuredOutput);
