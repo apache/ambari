@@ -114,7 +114,7 @@ App.HighAvailabilityProgressPopupController = Ember.Controller.extend({
     var popupTitle = this.get('popupTitle');
     data.forEach(function (request) {
       request.tasks.forEach(function (task) {
-        var host = hosts.findProperty('name', task.Tasks.host_name);
+        var host = task.Tasks.host_name;
         if (hostsMap[host]) {
           hostsMap[host].logTasks.push(task);
         } else {
