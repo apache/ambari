@@ -282,6 +282,24 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
   // ----- ViewInstanceEntity ------------------------------------------------
 
   /**
+   * Get the view instance id.
+   *
+   * @return the instance id
+   */
+  public Long getViewInstanceId() {
+    return viewInstanceId;
+  }
+
+  /**
+   * Set the given view instance id.
+   *
+   * @param viewInstanceId  the instance id
+   */
+  public void setViewInstanceId(Long viewInstanceId) {
+    this.viewInstanceId = viewInstanceId;
+  }
+
+  /**
    * Set the view name.
    *
    * @param viewName the view name

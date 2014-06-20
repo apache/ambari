@@ -29,8 +29,10 @@ import org.apache.ambari.view.ResourceProvider;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
 import static org.easymock.EasyMock.createNiceMock;
 
@@ -133,6 +135,16 @@ public class ViewInstanceEntityTest {
     ViewInstanceEntity viewInstanceDefinition = new ViewInstanceEntity(viewDefinition, instanceConfig);
 
     Assert.assertEquals(instanceConfig, viewInstanceDefinition.getConfiguration());
+  }
+
+  @Test
+  public void testGetId() throws Exception {
+    ViewInstanceEntity viewInstanceDefinition = getViewInstanceEntity();
+
+    Assert.assertNull(viewInstanceDefinition.getViewInstanceId());
+
+    viewInstanceDefinition.setViewInstanceId(99L);
+    Assert.assertEquals(99L, (long) viewInstanceDefinition.getViewInstanceId());
   }
 
   @Test
@@ -350,6 +362,17 @@ public class ViewInstanceEntityTest {
     InstanceConfig instanceConfig = InstanceConfigTest.getInstanceConfigs().get(0);
     ViewEntity viewDefinition = ViewEntityTest.getViewEntity();
     return new ViewInstanceEntity(viewDefinition, instanceConfig);
+  }
+
+  public static Set<ViewInstanceEntity> getViewInstanceEntities(ViewEntity viewDefinition) throws Exception {
+    Set<ViewInstanceEntity> entities = new HashSet<ViewInstanceEntity>();
+
+    InstanceConfig instanceConfig = InstanceConfigTest.getInstanceConfigs().get(0);
+    entities.add(new ViewInstanceEntity(viewDefinition, instanceConfig));
+    instanceConfig = InstanceConfigTest.getInstanceConfigs().get(1);
+    entities.add(new ViewInstanceEntity(viewDefinition, instanceConfig));
+
+    return entities;
   }
 
   @Test

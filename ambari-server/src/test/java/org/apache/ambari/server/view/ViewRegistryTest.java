@@ -161,6 +161,8 @@ public class ViewRegistryTest {
 
     ViewEntity viewDefinition = ViewEntityTest.getViewEntity();
 
+    viewDefinition.setInstances(ViewInstanceEntityTest.getViewInstanceEntities(viewDefinition));
+
     Map<File, ViewConfig> viewConfigs =
         Collections.singletonMap(viewArchive, viewDefinition.getConfiguration());
 
@@ -226,6 +228,7 @@ public class ViewRegistryTest {
 
     expect(vDAO.findByName("MY_VIEW{1.0.0}")).andReturn(null);
     expect(vDAO.merge(capture(captureViewEntity))).andReturn(null);
+    expect(vDAO.findByName("MY_VIEW{1.0.0}")).andReturn(viewDefinition);
 
     expect(vDAO.findAll()).andReturn(Collections.<ViewEntity>emptyList());
 
@@ -471,6 +474,7 @@ public class ViewRegistryTest {
     ViewInstanceEntity viewInstanceEntity = getViewInstanceEntity(viewEntity, config.getInstances().get(0));
 
     expect(viewInstanceDAO.merge(viewInstanceEntity)).andReturn(null);
+    expect(viewInstanceDAO.findByName("MY_VIEW{1.0.0}", viewInstanceEntity.getInstanceName())).andReturn(viewInstanceEntity);
 
     replay(viewDAO, viewInstanceDAO);
 
@@ -571,6 +575,7 @@ public class ViewRegistryTest {
 
     expect(viewInstanceDAO.merge(viewInstanceEntity)).andReturn(null);
     expect(viewInstanceDAO.merge(viewInstanceEntity)).andReturn(viewInstanceEntity);
+    expect(viewInstanceDAO.findByName("MY_VIEW{1.0.0}", viewInstanceEntity.getInstanceName())).andReturn(viewInstanceEntity);
 
     replay(viewDAO, viewInstanceDAO);
 
@@ -610,6 +615,7 @@ public class ViewRegistryTest {
     ViewInstanceEntity updateInstance = getViewInstanceEntity(viewEntity, invalidConfig.getInstances().get(0));
 
     expect(viewInstanceDAO.merge(viewInstanceEntity)).andReturn(null);
+    expect(viewInstanceDAO.findByName("MY_VIEW{1.0.0}", viewInstanceEntity.getInstanceName())).andReturn(viewInstanceEntity);
 
     replay(viewDAO, viewInstanceDAO);
 

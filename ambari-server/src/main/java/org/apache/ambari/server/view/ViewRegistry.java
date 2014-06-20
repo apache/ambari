@@ -395,6 +395,16 @@ public class ViewRegistry {
         }
         instanceEntity.validate(viewEntity);
         instanceDAO.merge(instanceEntity);
+
+        ViewInstanceEntity persistedInstance = instanceDAO.findByName(ViewEntity.getViewName(viewName, version), instanceName);
+        if (persistedInstance == null) {
+          String message = "Instance  " + instanceEntity.getViewName() + " can not be found.";
+
+          LOG.error(message);
+          throw new IllegalStateException(message);
+        }
+        instanceEntity.setViewInstanceId(persistedInstance.getViewInstanceId());
+
         try {
           // bind the view instance to a view
           bindViewInstance(viewEntity, instanceEntity);
@@ -806,43 +816,53 @@ public class ViewRegistry {
       }
       // ... merge it
       viewDAO.merge(view);
-    } else {
-      Map<String, ViewInstanceEntity> instanceEntityMap = new HashMap<String, ViewInstanceEntity>();
-      for( ViewInstanceEntity instance : view.getInstances()) {
-        instanceEntityMap.put(instance.getName(), instance);
+
+      persistedView = viewDAO.findByName(viewName);
+      if (persistedView == null) {
+        String message = "View  " + persistedView.getViewName() + " can not be found.";
+
+        LOG.error(message);
+        throw new IllegalStateException(message);
       }
+    }
 
-      // make sure that each instance of the view in the db is reflected in the given view
-      for (ViewInstanceEntity persistedInstance : persistedView.getInstances()){
-        String instanceName = persistedInstance.getName();
+    Map<String, ViewInstanceEntity> instanceEntityMap = new HashMap<String, ViewInstanceEntity>();
+    for( ViewInstanceEntity instance : view.getInstances()) {
+      instanceEntityMap.put(instance.getName(), instance);
+    }
 
-        ViewInstanceEntity instance =
-            view.getInstanceDefinition(instanceName);
+    // make sure that each instance of the view in the db is reflected in the given view
+    for (ViewInstanceEntity persistedInstance : persistedView.getInstances()){
+      String instanceName = persistedInstance.getName();
 
-        instanceEntityMap.remove(instanceName);
+      ViewInstanceEntity instance =
+          view.getInstanceDefinition(instanceName);
 
-        // if the persisted instance is not in the registry ...
-        if (instance == null) {
-          // ... create and add it
-          instance = new ViewInstanceEntity(view, instanceName);
-          bindViewInstance(view, instance);
-          instanceDefinitions.add(instance);
-        }
-        // apply the persisted overrides to the in-memory instance
-        instance.setLabel(persistedInstance.getLabel());
-        instance.setDescription(persistedInstance.getDescription());
-        instance.setVisible(persistedInstance.isVisible());
-        instance.setData(persistedInstance.getData());
-        instance.setProperties(persistedInstance.getProperties());
-        instance.setEntities(persistedInstance.getEntities());
+      instanceEntityMap.remove(instanceName);
+
+      // if the persisted instance is not in the registry ...
+      if (instance == null) {
+        // ... create and add it
+        instance = new ViewInstanceEntity(view, instanceName);
+        bindViewInstance(view, instance);
+        instanceDefinitions.add(instance);
       }
+      instance.setViewInstanceId(persistedInstance.getViewInstanceId());
 
-      // these instances appear in the archive but have been deleted
-      // from the db... remove them from the registry
-      for (ViewInstanceEntity instance : instanceEntityMap.values()) {
-        view.removeInstanceDefinition(instance.getName());
-        instanceDefinitions.remove(instance);
-      }
+      // apply the persisted overrides to the in-memory instance
+      instance.setLabel(persistedInstance.getLabel());
+      instance.setDescription(persistedInstance.getDescription());
+      instance.setVisible(persistedInstance.isVisible());
+      instance.setData(persistedInstance.getData());
+      instance.setProperties(persistedInstance.getProperties());
+      instance.setEntities(persistedInstance.getEntities());
+    }
+
+    // these instances appear in the archive but have been deleted
+    // from the db... remove them from the registry
+    for (ViewInstanceEntity instance : instanceEntityMap.values()) {
+      view.removeInstanceDefinition(instance.getName());
+      instanceDefinitions.remove(instance);
     }
   }
 
