@@ -35,9 +35,16 @@ import org.apache.ambari.view.ViewDefinition;
 import org.apache.ambari.view.ViewInstanceDefinition;
 import org.apache.ambari.view.events.Event;
 import org.apache.ambari.view.events.Listener;
+import org.apache.velocity.VelocityContext;
+import org.apache.velocity.app.Velocity;
+import org.apache.velocity.exception.ParseErrorException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -75,6 +82,14 @@ public class ViewContextImpl implements ViewContext, ViewController {
    */
   private DataStore dataStore = null;
 
+  private final VelocityContext velocityContext;
+
+
+  // ----- Constants ---------------------------------------------------------
+
+  protected final static Logger LOG =
+      LoggerFactory.getLogger(ViewContext.class);
+
 
   // ---- Constructors -------------------------------------------------------
 
@@ -85,10 +100,7 @@ public class ViewContextImpl implements ViewContext, ViewController {
    * @param viewRegistry        the view registry
    */
   public ViewContextImpl(ViewInstanceEntity viewInstanceEntity, ViewRegistry viewRegistry) {
-    this.viewEntity         = viewInstanceEntity.getViewEntity();
-    this.viewInstanceEntity = viewInstanceEntity;
-    this.viewRegistry       = viewRegistry;
-    this.streamProvider     = ViewURLStreamProvider.getProvider();
+    this(viewInstanceEntity.getViewEntity(), viewInstanceEntity, viewRegistry);
   }
 
   /**
@@ -98,10 +110,15 @@ public class ViewContextImpl implements ViewContext, ViewController {
    * @param viewRegistry  the view registry
    */
   public ViewContextImpl(ViewEntity viewEntity, ViewRegistry viewRegistry) {
+    this(viewEntity, null, viewRegistry);
+  }
+
+  private ViewContextImpl(ViewEntity viewEntity, ViewInstanceEntity viewInstanceEntity, ViewRegistry viewRegistry) {
     this.viewEntity         = viewEntity;
-    this.viewInstanceEntity = null;
+    this.viewInstanceEntity = viewInstanceEntity;
     this.viewRegistry       = viewRegistry;
     this.streamProvider     = ViewURLStreamProvider.getProvider();
+    this.velocityContext    = initVelocityContext();
   }
 
   // ----- ViewContext -------------------------------------------------------
@@ -128,8 +145,20 @@ public class ViewContextImpl implements ViewContext, ViewController {
 
   @Override
   public Map<String, String> getProperties() {
-    return viewInstanceEntity == null ? null :
-        Collections.unmodifiableMap(viewInstanceEntity.getPropertyMap());
+    if (viewInstanceEntity == null) {
+      return null;
+    }
+    Map<String, String> properties = viewInstanceEntity.getPropertyMap();
+    String rawValue;
+    for (String key : properties.keySet()) {
+      rawValue = properties.get(key);
+      try {
+        properties.put(key, parameterize(rawValue));
+      } catch (ParseErrorException ex) {
+        LOG.warn(String.format("Error during parsing '%s' parameter. Leaving original value.", key));
+      }
+    }
+    return Collections.unmodifiableMap(properties);
   }
 
   @Override
@@ -171,7 +200,7 @@ public class ViewContextImpl implements ViewContext, ViewController {
 
   @Override
   public String getUsername() {
-    return viewInstanceEntity.getUsername();
+    return viewInstanceEntity != null ? viewInstanceEntity.getUsername() : null;
   }
 
   @Override
@@ -241,6 +270,52 @@ public class ViewContextImpl implements ViewContext, ViewController {
     }
   }
 
+  /**
+   * Parameterize string using VelocityContext instance
+   *
+   * @param raw original string with parameters in formal or shorthand notation
+   *
+   * @return parameterized string
+   *
+   * @throws ParseErrorException if original string cannot be parsed by Velocity
+   */
+  private String parameterize(String raw) throws ParseErrorException {
+    Writer templateWriter = new StringWriter();
+    Velocity.evaluate(velocityContext, templateWriter, raw, raw);
+    return templateWriter.toString();
+  }
+
+  /**
+   * Instantiate and initialize context for parameters processing using Velocity.
+   *
+   * @return initialized context instance
+   */
+  private VelocityContext initVelocityContext() {
+    VelocityContext context = new VelocityContext();
+    context.put("username",
+        new ParameterResolver() {
+          @Override
+          protected String getValue() {
+            return viewContext.getUsername();
+          }
+        });
+    context.put("viewName",
+        new ParameterResolver() {
+          @Override
+          protected String getValue() {
+            return viewContext.getViewName();
+          }
+        });
+    context.put("instanceName",
+        new ParameterResolver() {
+          @Override
+          protected String getValue() {
+            return viewContext.getInstanceName();
+          }
+        });
+    return context;
+  }
+
 
   // ----- Inner class : ViewURLStreamProvider -------------------------------
 
@@ -294,6 +369,24 @@ public class ViewContextImpl implements ViewContext, ViewController {
               configuration.getTruststorePassword(),
               configuration.getTruststoreType());
       return new ViewURLStreamProvider(streamProvider);
+    }
+  }
+
+  // ----- Inner class : ParameterResolver -------------------------------
+
+  /**
+   * Represents basic parameter resolver to obtain fields of ViewContext at runtime.
+   */
+  private abstract class ParameterResolver {
+
+    protected final ViewContext viewContext = ViewContextImpl.this;
+
+    protected abstract String getValue();
+
+    @Override
+    public String toString() {
+      String value = getValue();
+      return value == null ? "" : value;
     }
   }
 }

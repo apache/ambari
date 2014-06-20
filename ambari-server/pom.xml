@@ -151,6 +151,9 @@
             <exclude>src/test/resources/TestAmbaryServer.samples/**</exclude>
             <exclude>src/test/resources/*.txt</exclude>
             <exclude>src/test/resources/users_for_dn_with_space.ldif</exclude>
+
+            <!--Velocity log -->
+            <exclude>**/velocity.log*</exclude>
           </excludes>
         </configuration>
         <executions>
@@ -1287,6 +1290,11 @@
       <groupId>org.quartz-scheduler</groupId>
       <artifactId>quartz-jobs</artifactId>
       <version>2.2.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.velocity</groupId>
+      <artifactId>velocity</artifactId>
+      <version>1.7</version>
     </dependency>
   </dependencies>
   <!--<reporting> <plugins> <plugin> <groupId>org.codehaus.mojo</groupId>

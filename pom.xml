@@ -222,6 +222,9 @@
             <exclude>contrib/views/*/.classpath</exclude>
             <exclude>contrib/views/*/.project</exclude>
             <exclude>contrib/views/*/.settings/**</exclude>
+			
+            <!--Velocity log -->
+            <exclude>**/velocity.log*</exclude>
           </excludes>
         </configuration>
         <executions>

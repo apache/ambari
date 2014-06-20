@@ -36,6 +36,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.easymock.EasyMock.createMockBuilder;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
@@ -87,6 +88,53 @@ public class ViewContextImplTest {
     Assert.assertEquals("v1", properties.get("p1"));
     Assert.assertEquals("v2", properties.get("p2"));
     Assert.assertEquals("v3", properties.get("p3"));
+  }
+
+  @Test
+  public void testGetPropertiesWithParameters() throws Exception {
+    InstanceConfig instanceConfig = createNiceMock(InstanceConfig.class);
+    replay(instanceConfig);
+    ViewEntity viewDefinition = createNiceMock(ViewEntity.class);
+    expect(viewDefinition.getCommonName()).andReturn("View").times(2);
+    replay(viewDefinition);
+    ViewInstanceEntity viewInstanceDefinition = createMockBuilder(ViewInstanceEntity.class)
+        .addMockedMethod("getUsername")
+        .addMockedMethod("getName")
+        .withConstructor(viewDefinition, instanceConfig).createMock();
+    expect(viewInstanceDefinition.getUsername()).andReturn("User").times(1);
+    expect(viewInstanceDefinition.getUsername()).andReturn("User2").times(1);
+    expect(viewInstanceDefinition.getName()).andReturn("Instance").times(3);
+    replay(viewInstanceDefinition);
+    ViewRegistry viewRegistry = createNiceMock(ViewRegistry.class);
+    viewInstanceDefinition.putProperty("p1", "/tmp/some/path/${username}");
+    viewInstanceDefinition.putProperty("p2", "/tmp/path/$viewName");
+    viewInstanceDefinition.putProperty("p3", "/path/$instanceName");
+    viewInstanceDefinition.putProperty("p4", "/path/to/${unspecified_parameter}");
+    viewInstanceDefinition.putProperty("p5", "/path/to/${incorrect_parameter");
+    viewInstanceDefinition.putProperty("p6", "/path/to/\\${username}");
+    viewInstanceDefinition.putProperty("p7", "/path/to/\\$viewName");
+
+    ViewContextImpl viewContext = new ViewContextImpl(viewInstanceDefinition, viewRegistry);
+
+    Map<String, String> properties = viewContext.getProperties();
+    Assert.assertEquals(7, properties.size());
+    Assert.assertEquals("/tmp/some/path/User", properties.get("p1"));
+    Assert.assertEquals("/tmp/path/View", properties.get("p2"));
+    Assert.assertEquals("/path/Instance", properties.get("p3"));
+    Assert.assertEquals("/path/to/${unspecified_parameter}", properties.get("p4"));
+    Assert.assertEquals("/path/to/${incorrect_parameter", properties.get("p5"));
+    Assert.assertEquals("/path/to/${username}", properties.get("p6"));
+    Assert.assertEquals("/path/to/$viewName", properties.get("p7"));
+
+    properties = viewContext.getProperties();
+    Assert.assertEquals(7, properties.size());
+    Assert.assertEquals("/tmp/some/path/User2", properties.get("p1"));
+    Assert.assertEquals("/tmp/path/View", properties.get("p2"));
+    Assert.assertEquals("/path/Instance", properties.get("p3"));
+    Assert.assertEquals("/path/to/${unspecified_parameter}", properties.get("p4"));
+    Assert.assertEquals("/path/to/${incorrect_parameter", properties.get("p5"));
+    Assert.assertEquals("/path/to/${username}", properties.get("p6"));
+    Assert.assertEquals("/path/to/$viewName", properties.get("p7"));
   }
 
   @Test
