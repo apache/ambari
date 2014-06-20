@@ -590,7 +590,25 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
    * Load config groups from local DB
    */
   loadServiceConfigGroups: function () {
-    var serviceConfigGroups = this.getDBProperty('serviceConfigGroups') || [];
+    var serviceConfigGroups = this.getDBProperty('serviceConfigGroups'),
+      hosts = this.getDBProperty('hosts'),
+      host_names = Em.keys(hosts);
+    if (Em.isNone(serviceConfigGroups)) {
+      serviceConfigGroups = [];
+    }
+    else {
+      serviceConfigGroups.forEach(function(group) {
+        group.hosts.map(function(host_id) {
+          for (var i = 0; i < host_names.length; i++) {
+            if (hosts[host_names[i]].id === host_id) {
+              return host_names[i];
+            }
+          }
+          Em.assert('host is missing!!!!', false);
+        });
+        Em.set(group, 'hosts', host_names);
+      });
+    }
     this.set('content.configGroups', serviceConfigGroups);
     console.log("InstallerController.configGroups: loaded config ", serviceConfigGroups);
   },
@@ -611,7 +629,8 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
    * @param stepController App.WizardStep3Controller
    */
   saveConfirmedHosts: function (stepController) {
-    var hosts = this.get('content.hosts');
+    var hosts = this.get('content.hosts'),
+      indx = 1;
 
     //add previously installed hosts
     for (var hostName in hosts) {
@@ -631,7 +650,8 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
           os_arch: _host.os_arch,
           ip: _host.ip,
           bootStatus: _host.bootStatus,
-          isInstalled: false
+          isInstalled: false,
+          id: indx++
         };
       }
     });
@@ -667,9 +687,9 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
    * @param stepController
    */
   saveSlaveComponentHosts: function (stepController) {
-
-    var hosts = stepController.get('hosts');
-    var headers = stepController.get('headers');
+    var hosts = stepController.get('hosts'),
+      dbHosts = this.getDBProperty('hosts'),
+      headers = stepController.get('headers');
 
     var formattedHosts = Ember.Object.create();
     headers.forEach(function (header) {
@@ -683,9 +703,9 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
         var cb = checkboxes.findProperty('title', header.get('label'));
         if (cb.get('checked')) {
           formattedHosts.get(header.get('name')).push({
-            hostName: host.hostName,
             group: 'Default',
-            isInstalled: cb.get('isInstalled')
+            isInstalled: cb.get('isInstalled'),
+            host_id: dbHosts[host.hostName].id
           });
         }
       });
@@ -848,8 +868,9 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
    * @param stepController
    */
   saveServiceConfigGroups: function (stepController) {
-    var serviceConfigGroups = [];
-    var isForUpdate = false;
+    var serviceConfigGroups = [],
+      isForUpdate = false,
+      hosts = this.getDBProperty('hosts');
     stepController.get('stepConfigs').forEach(function (service) {
       // mark group of installed service
       if (service.get('selected') === false) isForUpdate = true;
@@ -868,7 +889,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
           id: configGroup.get('id'),
           name: configGroup.get('name'),
           description: configGroup.get('description'),
-          hosts: configGroup.get('hosts'),
+          hosts: configGroup.get('hosts').map(function(host_name) {return hosts[host_name].id;}),
           properties: properties,
           isDefault: configGroup.get('isDefault'),
           isForUpdate: isForUpdate,

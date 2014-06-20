@@ -114,7 +114,8 @@ App.AddServiceController = App.WizardController.extend({
    * Save data to model
    * @param stepController App.WizardStep4Controller
    */
-  saveServices: function (stepController) {var serviceNames = [];
+  saveServices: function (stepController) {
+    var serviceNames = [];
     this.setDBProperty('service', stepController.get('content'));
     console.log('AddServiceController.saveServices: saved data', stepController.get('content'));
     stepController.filterProperty('isSelected', true).filterProperty('isInstalled', false).forEach(function (item) {
@@ -211,7 +212,22 @@ App.AddServiceController = App.WizardController.extend({
    * Load master component hosts data for using in required step controllers
    */
   loadSlaveComponentHosts: function () {
-    var slaveComponentHosts = this.getDBProperty('slaveComponentHosts');
+    var slaveComponentHosts = this.getDBProperty('slaveComponentHosts'),
+      hosts = this.getDBProperty('hosts'),
+      host_names = Em.keys(hosts);
+    if (!Em.isNone(slaveComponentHosts)) {
+      slaveComponentHosts.forEach(function(component) {
+        component.hosts.forEach(function(host) {
+          //Em.set(host, 'hostName', hosts[host.host_id].name);
+          for (var i = 0; i < host_names.length; i++) {
+            if (hosts[host_names[i]].id === host.host_id) {
+              host.hostName = host_names[i];
+              break;
+            }
+          }
+        });
+      });
+    }
     if(!slaveComponentHosts){
       slaveComponentHosts = this.getSlaveComponentHosts();
     }

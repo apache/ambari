@@ -690,9 +690,9 @@ App.WizardStep7Controller = Em.Controller.extend({
    */
   setStepConfigs: function (configs, storedConfigs) {
     var localDB = {
-      hosts: this.get('wizardController').getDBProperty('hosts'),
-      masterComponentHosts: this.get('wizardController').getDBProperty('masterComponentHosts'),
-      slaveComponentHosts: this.get('wizardController').getDBProperty('slaveComponentHosts')
+      hosts: this.get('wizardController.content.hosts'),
+      masterComponentHosts: this.get('wizardController.content.masterComponentHosts'),
+      slaveComponentHosts: this.get('wizardController.content.slaveComponentHosts')
     };
     var serviceConfigs = App.config.renderConfigs(configs, storedConfigs, this.get('allSelectedServiceNames'), this.get('installedServiceNames'), localDB);
     if (this.get('wizardController.name') === 'addServiceController') {
