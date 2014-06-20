@@ -132,10 +132,6 @@ mapred_local_dir = "/tmp/hadoop-mapred/mapred/local"
 
 dfs_hosts = default('/configurations/hdfs-site/dfs.hosts', None)
 
-artifact_dir = "/tmp/HDP-artifacts/"
-jce_policy_zip = default("/hostLevelParams/jce_name", None) # None when jdk is already installed by user
-jce_location = config['hostLevelParams']['jdk_location']
-
 #log4j.properties
 rca_properties = format('''
 

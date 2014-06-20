@@ -31,7 +31,6 @@ class BeforeConfigureHook(Hook):
     self.run_custom_hook('after-INSTALL')
     setup_hadoop()
     setup_configs()
-    setup_jce()
     create_javahome_symlink()
 
 if __name__ == "__main__":
