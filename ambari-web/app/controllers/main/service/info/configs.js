@@ -36,6 +36,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   customConfig: [],
   serviceConfigsData: require('data/service_configs'),
   isApplyingChanges: false,
+  saveConfigsFlag: true,
+  putClusterConfigsCallsNumber: null,
   // contain Service Config Property, when user proceed from Select Config Group dialog
   overrideToAdd: null,
   serviceConfigs: function () {
@@ -706,93 +708,29 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   },
 
   /**
-   * open popup with appropriate message
+   * Initialize save configs popup
    */
-  restartServicePopup: function (event) {
+  restartServicePopup: function () {
     if (this.get("isSubmitDisabled")) {
       return;
     }
-    var header;
-    var message;
-    var messageClass;
-    var hasUnknown = false;
-    var value;
-    var flag = false;
-
-    var dfd = $.Deferred();
     var self = this;
-    var serviceName = this.get('content.serviceName');
-    var displayName = this.get('content.displayName');
-
-    var urlParams = '';
-    var status;
+    var header, message, messageClass, status;
+    var serviceName = this.get('content.serviceName'),
+        displayName = this.get('content.displayName'),
+        urlParams = '';
 
     if (App.supports.hostOverrides ||
-      (serviceName !== 'HDFS' && this.get('content.isStopped') === true) ||
-      ((serviceName === 'HDFS') && this.get('content.isStopped') === true && (!App.Service.find().someProperty('id', 'MAPREDUCE') || App.Service.find('MAPREDUCE').get('isStopped')))) {
+        (serviceName !== 'HDFS' && this.get('content.isStopped') === true) ||
+        ((serviceName === 'HDFS') && this.get('content.isStopped') === true && (!App.Service.find().someProperty('id', 'MAPREDUCE') || App.Service.find('MAPREDUCE').get('isStopped')))) {
 
-      // warn the user if any service directories are being changed
-      var dirChanged = false;
-
-      if (serviceName === 'HDFS') {
-        var hdfsConfigs = self.get('stepConfigs').findProperty('serviceName', 'HDFS').get('configs');
-        if (App.get('isHadoop2Stack')) {
-          if (
-            hdfsConfigs.findProperty('name', 'dfs.namenode.name.dir').get('isNotDefaultValue') ||
-              hdfsConfigs.findProperty('name', 'dfs.namenode.checkpoint.dir').get('isNotDefaultValue') ||
-              hdfsConfigs.findProperty('name', 'dfs.datanode.data.dir').get('isNotDefaultValue')
-            ) {
-            dirChanged = true;
-          }
-        } else {
-          if (
-            hdfsConfigs.findProperty('name', 'dfs.name.dir').get('isNotDefaultValue') ||
-              hdfsConfigs.findProperty('name', 'fs.checkpoint.dir').get('isNotDefaultValue') ||
-              hdfsConfigs.findProperty('name', 'dfs.data.dir').get('isNotDefaultValue')
-            ) {
-            dirChanged = true;
-          }
-        }
-      } else if (serviceName === 'MAPREDUCE') {
-        var mapredConfigs = self.get('stepConfigs').findProperty('serviceName', 'MAPREDUCE').get('configs');
-        if (
-          mapredConfigs.findProperty('name', 'mapred.local.dir').get('isNotDefaultValue') ||
-            mapredConfigs.findProperty('name', 'mapred.system.dir').get('isNotDefaultValue')
-          ) {
-          dirChanged = true;
-        }
-      }
-
-      if (dirChanged) {
+      if (this.isDirChanged()) {
         App.showConfirmationPopup(function () {
-          dfd.resolve();
+          self.saveConfigs();
         }, Em.I18n.t('services.service.config.confirmDirectoryChange').format(displayName));
       } else {
-        dfd.resolve();
+        this.saveConfigs();
       }
-
-      dfd.done(function () {
-        var result = self.saveServiceConfigProperties();
-        App.router.get('clusterController').updateClusterData();
-        App.router.get('updateController').updateComponentConfig(function(){});
-        flag = result.flag;
-        if (result.flag === true) {
-          header = Em.I18n.t('services.service.config.saved');
-          message = Em.I18n.t('services.service.config.saved.message');
-          messageClass = 'alert alert-success';
-          // warn the user if any of the components are in UNKNOWN state
-          status = 'unknown';
-          urlParams += ',ServiceComponentInfo/installed_count,ServiceComponentInfo/total_count';
-          if (self.get('content.serviceName') === 'HDFS' || App.Service.find().someProperty('id', 'MAPREDUCE')) {
-            urlParams += '&ServiceComponentInfo/service_name.in(HDFS,MAPREDUCE)'
-          }
-        } else {
-          header = Em.I18n.t('common.failure');
-          message = result.message;
-          messageClass = 'alert alert-error';
-          value = result.value;
-        }
-      });
     } else {
       status = 'started';
       if (this.get('content.serviceName') !== 'HDFS' || (this.get('content.serviceName') === 'HDFS' && !App.Service.find().someProperty('id', 'MAPREDUCE'))) {
@@ -804,33 +742,157 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         urlParams += '&ServiceComponentInfo/service_name.in(HDFS,MAPREDUCE)';
       }
       messageClass = 'alert alert-error';
-      dfd.resolve();
+      this.showSaveConfigsPopup(header, false, message, messageClass, null, status, urlParams);
+    }
+  },
+
+  /**
+   * Define if user has changed some dir properties
+   * @return {Boolean}
+   */
+  isDirChanged: function () {
+    var dirChanged = false;
+    var serviceName = this.get('content.serviceName');
+
+    if (serviceName === 'HDFS') {
+      var hdfsConfigs = this.get('stepConfigs').findProperty('serviceName', 'HDFS').get('configs');
+      if (App.get('isHadoop2Stack')) {
+        if (hdfsConfigs.findProperty('name', 'dfs.namenode.name.dir').get('isNotDefaultValue') ||
+            hdfsConfigs.findProperty('name', 'dfs.namenode.checkpoint.dir').get('isNotDefaultValue') ||
+            hdfsConfigs.findProperty('name', 'dfs.datanode.data.dir').get('isNotDefaultValue')) {
+          dirChanged = true;
+        }
+      } else {
+        if (hdfsConfigs.findProperty('name', 'dfs.name.dir').get('isNotDefaultValue') ||
+            hdfsConfigs.findProperty('name', 'fs.checkpoint.dir').get('isNotDefaultValue') ||
+            hdfsConfigs.findProperty('name', 'dfs.data.dir').get('isNotDefaultValue')) {
+          dirChanged = true;
+        }
+      }
+    } else if (serviceName === 'MAPREDUCE') {
+      var mapredConfigs = self.get('stepConfigs').findProperty('serviceName', 'MAPREDUCE').get('configs');
+      if (mapredConfigs.findProperty('name', 'mapred.local.dir').get('isNotDefaultValue') ||
+          mapredConfigs.findProperty('name', 'mapred.system.dir').get('isNotDefaultValue')) {
+        dirChanged = true;
+      }
+    }
+    return dirChanged;
+  },
+
+  /**
+   * Save changed configs and config groups
+   */
+  saveConfigs: function () {
+    var selectedConfigGroup = this.get('selectedConfigGroup');
+    var configs = this.get('stepConfigs').findProperty('serviceName', this.get('content.serviceName')).get('configs');
+
+    if (selectedConfigGroup.get('isDefault')) {
+      this.saveGlobalConfigs(configs);
+      if (this.get('content.serviceName') === 'YARN' && !App.supports.capacitySchedulerUi) {
+        configs = App.config.textareaIntoFileConfigs(configs, 'capacity-scheduler.xml');
+      }
+      this.saveSiteConfigs(configs);
+
+      /**
+       * First we put cluster configurations, which automatically creates /configurations
+       * resources. Next we update host level overrides.
+       */
+      this.doPUTClusterConfigurations();
+    } else {
+      var overridenConfigs = [];
+      var groupHosts = [];
+      configs.filterProperty('isOverridden', true).forEach(function (config) {
+        overridenConfigs = overridenConfigs.concat(config.get('overrides'));
+      });
+      this.formatConfigValues(overridenConfigs);
+      selectedConfigGroup.get('hosts').forEach(function (hostName) {
+        groupHosts.push({"host_name": hostName});
+      });
+
+      this.putConfigGroupChanges({
+        ConfigGroup: {
+          "id": selectedConfigGroup.get('id'),
+          "cluster_name": App.get('clusterName'),
+          "group_name": selectedConfigGroup.get('name'),
+          "tag": selectedConfigGroup.get('service.id'),
+          "description": selectedConfigGroup.get('description'),
+          "hosts": groupHosts,
+          "desired_configs": this.buildGroupDesiredConfigs(overridenConfigs)
+        }
+      });
+    }
+  },
+
+  /**
+   * On save configs handler. Open save configs popup with appropriate message.
+   */
+  onDoPUTClusterConfigurations: function () {
+    var header, message, messageClass, value, status, urlParams = '';
+    var result = {
+      flag: this.get('saveConfigsFlag'),
+      message: null,
+      value: null
+    };
+
+    if (!result.flag) {
+      result.message = Em.I18n.t('services.service.config.failSaveConfig');
+    } else {
+      if (!result.flag) {
+        result.message = Em.I18n.t('services.service.config.failSaveConfigHostOverrides');
+      }
     }
 
-    dfd.done(function () {
-      App.ModalPopup.show({
-        header: header,
-        primary: Em.I18n.t('ok'),
-        secondary: null,
-        onPrimary: function () {
-          this.hide();
-          if (flag) {
-            self.loadStep();
-          }
-        },
-        bodyClass: Ember.View.extend({
-          flag: flag,
-          message: message,
-          messageClass: messageClass,
-          runningHosts: [],
-          runningComponentCount: 0,
-          unknownHosts: [],
-          unknownComponentCount: 0,
-          siteProperties: value,
-          isLoaded: false,
-          componentsFilterSuccessCallback: function (response) {
-            var count = 0,
-              self = this,
+    App.router.get('clusterController').updateClusterData();
+    App.router.get('updateController').updateComponentConfig(function () {
+    });
+    var flag = result.flag;
+    if (result.flag === true) {
+      header = Em.I18n.t('services.service.config.saved');
+      message = Em.I18n.t('services.service.config.saved.message');
+      messageClass = 'alert alert-success';
+      // warn the user if any of the components are in UNKNOWN state
+      status = 'unknown';
+      urlParams += ',ServiceComponentInfo/installed_count,ServiceComponentInfo/total_count';
+      if (this.get('content.serviceName') === 'HDFS' || App.Service.find().someProperty('id', 'MAPREDUCE')) {
+        urlParams += '&ServiceComponentInfo/service_name.in(HDFS,MAPREDUCE)'
+      }
+    } else {
+      header = Em.I18n.t('common.failure');
+      message = result.message;
+      messageClass = 'alert alert-error';
+      value = result.value;
+    }
+    this.showSaveConfigsPopup(header, flag, message, messageClass, value, status, urlParams);
+  },
+
+  /**
+   * Show save configs popup
+   */
+  showSaveConfigsPopup: function (header, flag, message, messageClass, value, status, urlParams) {
+    var self = this;
+    App.ModalPopup.show({
+      header: header,
+      primary: Em.I18n.t('ok'),
+      secondary: null,
+      onPrimary: function () {
+        this.hide();
+        if (flag) {
+          self.loadStep();
+        }
+      },
+      bodyClass: Ember.View.extend({
+        flag: flag,
+        message: message,
+        messageClass: messageClass,
+        runningHosts: [],
+        runningComponentCount: 0,
+        unknownHosts: [],
+        unknownComponentCount: 0,
+        siteProperties: value,
+        isLoaded: false,
+        componentsFilterSuccessCallback: function (response) {
+          var count = 0,
+              view = this,
               lazyLoadHosts = function (dest) {
                 lazyLoading.run({
                   initSize: 20,
@@ -838,7 +900,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
                   delay: 50,
                   destination: dest,
                   source: hosts,
-                  context: self
+                  context: view
                 });
               },
               setComponents = function (item, components) {
@@ -864,155 +926,96 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
               },
               components = {},
               hosts = [];
-            switch (status) {
-              case 'unknown':
-                response.items.filter(function (item) {
-                  return (item.ServiceComponentInfo.total_count > item.ServiceComponentInfo.started_count + item.ServiceComponentInfo.installed_count);
-                }).forEach(function (item) {
+          switch (status) {
+            case 'unknown':
+              response.items.filter(function (item) {
+                return (item.ServiceComponentInfo.total_count > item.ServiceComponentInfo.started_count + item.ServiceComponentInfo.installed_count);
+              }).forEach(function (item) {
                     var total = item.ServiceComponentInfo.total_count,
-                      started = item.ServiceComponentInfo.started_count,
-                      installed = item.ServiceComponentInfo.installed_count,
-                      unknown = total - started + installed;
+                        started = item.ServiceComponentInfo.started_count,
+                        installed = item.ServiceComponentInfo.installed_count,
+                        unknown = total - started + installed;
                     components = setComponents(item, components);
                     count += unknown;
                   });
+              hosts = setHosts(components);
+              this.set('unknownComponentCount', count);
+              lazyLoadHosts(this.get('unknownHosts'));
+              break;
+            case 'started':
+              response.items.filterProperty('ServiceComponentInfo.started_count').forEach(function (item) {
+                var started = item.ServiceComponentInfo.started_count;
+                components = setComponents(item, components);
+                count += started;
                 hosts = setHosts(components);
-                this.set('unknownComponentCount', count);
-                lazyLoadHosts(this.get('unknownHosts'));
-                break;
-              case 'started':
-                response.items.filterProperty('ServiceComponentInfo.started_count').forEach(function (item) {
-                  var started = item.ServiceComponentInfo.started_count;
-                  components = setComponents(item, components);
-                  count += started;
-                  hosts = setHosts(components);
-                });
-                this.set('runningComponentCount', count);
-                lazyLoadHosts(this.get('runningHosts'));
-                break;
-            }
-          },
-          componentsFilterErrorCallback: function () {
-            this.set('isLoaded', true);
-          },
-          didInsertElement: function () {
-            App.ajax.send({
-              name: 'components.filter_by_status',
-              sender: this,
-              data: {
-                clusterName: App.get('clusterName'),
-                urlParams: urlParams
-              },
-              success: 'componentsFilterSuccessCallback',
-              error: 'componentsFilterErrorCallback'
-            });
-          },
-          getDisplayMessage: function () {
-            var displayMsg = [];
-            var siteProperties = this.get('siteProperties');
-            if (siteProperties) {
-              siteProperties.forEach(function (_siteProperty) {
-                var displayProperty = _siteProperty.siteProperty;
-                var displayNames = _siteProperty.displayNames;
-                /////////
-                if (displayNames && displayNames.length) {
-                  if (displayNames.length === 1) {
-                    displayMsg.push(displayProperty + Em.I18n.t('as') + displayNames[0]);
-                  } else {
-                    var name;
-                    displayNames.forEach(function (_name, index) {
-                      if (index === 0) {
-                        name = _name;
-                      } else if (index === siteProperties.length - 1) {
-                        name = name + Em.I18n.t('and') + _name;
-                      } else {
-                        name = name + ', ' + _name;
-                      }
-                    }, this);
-                    displayMsg.push(displayProperty + Em.I18n.t('as') + name);
+              });
+              this.set('runningComponentCount', count);
+              lazyLoadHosts(this.get('runningHosts'));
+              break;
+          }
+        },
+        componentsFilterErrorCallback: function () {
+          this.set('isLoaded', true);
+        },
+        didInsertElement: function () {
+          App.ajax.send({
+            name: 'components.filter_by_status',
+            sender: this,
+            data: {
+              clusterName: App.get('clusterName'),
+              urlParams: urlParams
+            },
+            success: 'componentsFilterSuccessCallback',
+            error: 'componentsFilterErrorCallback'
+          });
+        },
+        getDisplayMessage: function () {
+          var displayMsg = [];
+          var siteProperties = this.get('siteProperties');
+          if (siteProperties) {
+            siteProperties.forEach(function (_siteProperty) {
+              var displayProperty = _siteProperty.siteProperty;
+              var displayNames = _siteProperty.displayNames;
 
-                  }
+              if (displayNames && displayNames.length) {
+                if (displayNames.length === 1) {
+                  displayMsg.push(displayProperty + Em.I18n.t('as') + displayNames[0]);
                 } else {
-                  displayMsg.push(displayProperty);
+                  var name;
+                  displayNames.forEach(function (_name, index) {
+                    if (index === 0) {
+                      name = _name;
+                    } else if (index === siteProperties.length - 1) {
+                      name = name + Em.I18n.t('and') + _name;
+                    } else {
+                      name = name + ', ' + _name;
+                    }
+                  }, this);
+                  displayMsg.push(displayProperty + Em.I18n.t('as') + name);
+
                 }
-              }, this);
-            }
-            return displayMsg;
+              } else {
+                displayMsg.push(displayProperty);
+              }
+            }, this);
+          }
+          return displayMsg;
 
-          }.property('siteProperties'),
+        }.property('siteProperties'),
 
-          runningHostsMessage: function () {
-            return Em.I18n.t('services.service.config.stopService.runningHostComponents').format(this.get('runningComponentCount'), this.get('runningHosts.length'));
-          }.property('runningComponentCount', 'runningHosts.length'),
+        runningHostsMessage: function () {
+          return Em.I18n.t('services.service.config.stopService.runningHostComponents').format(this.get('runningComponentCount'), this.get('runningHosts.length'));
+        }.property('runningComponentCount', 'runningHosts.length'),
 
-          unknownHostsMessage: function () {
-            return Em.I18n.t('services.service.config.stopService.unknownHostComponents').format(this.get('unknownComponentCount'), this.get('unknownHosts.length'));
-          }.property('unknownComponentCount', 'unknownHosts.length'),
+        unknownHostsMessage: function () {
+          return Em.I18n.t('services.service.config.stopService.unknownHostComponents').format(this.get('unknownComponentCount'), this.get('unknownHosts.length'));
+        }.property('unknownComponentCount', 'unknownHosts.length'),
 
-          templateName: require('templates/main/service/info/configs_save_popup')
-        })
+        templateName: require('templates/main/service/info/configs_save_popup')
       })
-    });
+    })
   },
 
-  /**
-   * Save config properties
-   */
-  saveServiceConfigProperties: function () {
-    var result = {
-      flag: false,
-      message: null,
-      value: null
-    };
-    var selectedConfigGroup = this.get('selectedConfigGroup');
-    var configs = this.get('stepConfigs').findProperty('serviceName', this.get('content.serviceName')).get('configs');
-
-    if (selectedConfigGroup.get('isDefault')) {
-      this.saveGlobalConfigs(configs);
-      if (this.get('content.serviceName') === 'YARN' && !App.supports.capacitySchedulerUi) {
-        configs = App.config.textareaIntoFileConfigs(configs, 'capacity-scheduler.xml');
-      }
-      this.saveSiteConfigs(configs);
-
-      /**
-       * First we put cluster configurations, which automatically creates /configurations
-       * resources. Next we update host level overrides.
-       */
-      result.flag = this.doPUTClusterConfigurations();
-    } else {
-      var overridenConfigs = [];
-      var groupHosts = [];
-      configs.filterProperty('isOverridden', true).forEach(function (config) {
-        overridenConfigs = overridenConfigs.concat(config.get('overrides'));
-      });
-      this.formatConfigValues(overridenConfigs);
-      selectedConfigGroup.get('hosts').forEach(function(hostName){
-        groupHosts.push({"host_name": hostName});
-      });
-
-      this.putConfigGroupChanges({
-        ConfigGroup: {
-          "id": selectedConfigGroup.get('id'),
-          "cluster_name": App.get('clusterName'),
-          "group_name": selectedConfigGroup.get('name'),
-          "tag": selectedConfigGroup.get('service.id'),
-          "description": selectedConfigGroup.get('description'),
-          "hosts": groupHosts,
-          "desired_configs": this.buildGroupDesiredConfigs(overridenConfigs)
-        }
-      });
-      result.flag = this.get('isPutConfigGroupChangesSuccess');
-    }
-    if (!result.flag) {
-      result.message = Em.I18n.t('services.service.config.failSaveConfig');
-    } else {
-      if (!result.flag) {
-        result.message = Em.I18n.t('services.service.config.failSaveConfigHostOverrides');
-      }
-    }
-    console.log("The result from applyCreatdConfToService is: " + result);
-    return result;
-  },
   /**
    * construct desired_configs for config groups from overriden properties
    * @param configs
@@ -1034,16 +1037,18 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         site = {
           type: type,
           tag: 'version' + time,
-          properties: [{
-            name: config.get('name'),
-            value: config.get('value')
-          }]
+          properties: [
+            {
+              name: config.get('name'),
+              value: config.get('value')
+            }
+          ]
         };
         sites.push(site);
       }
     });
-    sites.forEach(function(site){
-      if(site.type === 'global') {
+    sites.forEach(function (site) {
+      if (site.type === 'global') {
         site.properties = this.createGlobalSiteObj(site.tag, site.properties).properties;
       } else {
         site.properties = this.createSiteObj(site.type, site.tag, site.properties).properties;
@@ -1066,9 +1071,10 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       success: "putConfigGroupChangesSuccess"
     });
   },
-  isPutConfigGroupChangesSuccess: false,
+
   putConfigGroupChangesSuccess: function () {
-    this.set('isPutConfigGroupChangesSuccess', true);
+    this.set('saveConfigsFlag', true);
+    this.onDoPUTClusterConfigurations();
   },
   /**
    * save new or change exist configs in global configs
@@ -1343,19 +1349,24 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * @method doPUTClusterConfigurations
    */
   doPUTClusterConfigurations: function () {
-    var result = true;
+    this.set('saveConfigsFlag', true);
     var serviceConfigTags = this.get('serviceConfigTags');
     this.setNewTagNames(serviceConfigTags);
     var siteNameToServerDataMap = {};
-
+    this.set('putClusterConfigsCallsNumber', serviceConfigTags.length);
     serviceConfigTags.forEach(function (_serviceTags) {
       var configs = this.createConfigObject(_serviceTags.siteName, _serviceTags.newTagName);
       if (configs) {
-        result = result && this.doPUTClusterConfiguration(siteNameToServerDataMap, _serviceTags.siteName, configs);
+        this.doPUTClusterConfiguration(_serviceTags.siteName, configs);
+        siteNameToServerDataMap[_serviceTags.siteName] = configs;
+      } else {
+        if (this.decrementProperty('putClusterConfigsCallsNumber') === 0) {
+          this.onDoPUTClusterConfigurations();
+        }
       }
     }, this);
+
     this.set("savedSiteNameToServerServiceConfigDataMap", siteNameToServerDataMap);
-    return result;
   },
 
   /**
@@ -1387,16 +1398,12 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   /**
    * load existen properties and compare them with current if there are
    * differences - trigger doPUTClusterConfigurationSite to save new properties
-   * @param {Object} siteNameToServerDataMap
    * @param {String} siteName
    * @param {Object} configs
-   * @returns {Boolean} true if config successfully saved or there
-   *                    is no need to save them
    * @method doPUTClusterConfiguration
    */
-  doPUTClusterConfiguration: function(siteNameToServerDataMap, siteName, configs) {
+  doPUTClusterConfiguration: function(siteName, configs) {
     var loadedProperties;
-    siteNameToServerDataMap[siteName] = configs;
     loadedProperties = App.router.get('configurationController').getConfigsByTags([{siteName: siteName, tagName: this.loadedClusterSiteToTagMap[siteName]}]);
     if (loadedProperties && loadedProperties[0]) {
       loadedProperties = loadedProperties[0].properties;
@@ -1405,11 +1412,13 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       loadedProperties = {};
     }
     if (this.isConfigChanged(loadedProperties, configs.properties)) {
-      return this.doPUTClusterConfigurationSite(configs);
+      this.doPUTClusterConfigurationSite(configs);
+    } else {
+      if (this.decrementProperty('putClusterConfigsCallsNumber') === 0) {
+        this.onDoPUTClusterConfigurations();
+      }
     }
-    return true;
   },
-
 
   /**
    * Compares the loaded config values with the saving config values.
@@ -1460,7 +1469,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * Saves configuration of a particular site. The provided data
    * contains the site name and tag to be used.
    * @param {Object} data
-   * @return {bool}
    * @method doPUTClusterConfigurationSite
    */
   doPUTClusterConfigurationSite: function (data) {
@@ -1478,34 +1486,17 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       success: 'doPUTClusterConfigurationSiteSuccessCallback',
       error: 'doPUTClusterConfigurationSiteErrorCallback'
     });
-    return this.get('doPUTClusterConfigurationSiteResult');
   },
 
-  /**
-   * @type {bool}
-   */
-  doPUTClusterConfigurationSiteResult: null,
-
-  /**
-   * set doPUTClusterConfigurationSiteResult to true and write info to log
-   * @param {Object} data
-   * @method doPUTClusterConfigurationSiteSuccessCallback
-   */
-  doPUTClusterConfigurationSiteSuccessCallback: function(data) {
-    console.log("applyClusterConfigurationToSite(): In success for data:", data);
-    this.set('doPUTClusterConfigurationSiteResult', true);
+  doPUTClusterConfigurationSiteSuccessCallback: function() {
+    if (this.decrementProperty('putClusterConfigsCallsNumber') === 0) {
+      this.onDoPUTClusterConfigurations();
+    }
   },
 
-  /**
-   * set doPUTClusterConfigurationSiteResult to false and write info to log
-   * @param {Object} request
-   * @param {Object} ajaxOptions
-   * @param {String} error
-   * @method doPUTClusterConfigurationSiteSuccessCallback
-   */
-  doPUTClusterConfigurationSiteErrorCallback: function(request, ajaxOptions, error) {
-    console.log('applyClusterConfigurationToSite(): ERROR:', request.responseText, ", error=", error);
-    this.set('doPUTClusterConfigurationSiteResult', false);
+  doPUTClusterConfigurationSiteErrorCallback: function() {
+    this.set('saveConfigsFlag', false);
+    this.doPUTClusterConfigurationSiteSuccessCallback();
   },
 
   /**
