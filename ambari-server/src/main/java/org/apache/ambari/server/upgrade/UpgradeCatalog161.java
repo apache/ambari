@@ -298,6 +298,7 @@ public class UpgradeCatalog161 extends AbstractUpgradeCatalog {
   
   protected void addMissingConfigs() throws AmbariException {
     updateConfigurationProperties("hbase-site", Collections.singletonMap("hbase.regionserver.info.port", "60030"), false);
+    updateConfigurationProperties("hbase-site", Collections.singletonMap("hbase.master.info.port", "60010"), false);
     updateConfigurationProperties("global", Collections.singletonMap("oozie_admin_port", "11001"), false);
     updateConfigurationProperties("hive-site", Collections.singletonMap("hive.heapsize", "1024"), false);
   }
