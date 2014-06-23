@@ -142,6 +142,10 @@ public class UpgradeCatalog161Test {
     upgradeCatalog.updateConfigurationProperties("hbase-site",
         Collections.singletonMap("hbase.regionserver.info.port", "60030"), false);
     expectLastCall();
+
+    upgradeCatalog.updateConfigurationProperties("hbase-site",
+        Collections.singletonMap("hbase.master.info.port", "60010"), false);
+    expectLastCall();
     
     upgradeCatalog.updateConfigurationProperties("global",
         Collections.singletonMap("oozie_admin_port", "11001"), false);
