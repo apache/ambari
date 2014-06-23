@@ -304,7 +304,6 @@ var urls = {
     'format': function(data) {
       return {
         type: 'PUT',
-        async: false,
         dataType: 'text',
         data: data.data
       }
@@ -346,7 +345,6 @@ var urls = {
     'type': 'PUT',
     'format': function (data) {
       return {
-        async: false,
         data: JSON.stringify(
           [
             data.configGroup
