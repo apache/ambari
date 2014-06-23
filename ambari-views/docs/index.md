@@ -313,9 +313,12 @@ For example …
       }
 
 ###Persistence
-#####Application Data
-The application data map is a simple method for view application code to store key/value pairs for a view instance.  The application data map is different than the view instance properties that are specified to instantiate the view.  The application data map may contain any arbitrary string values that the view needs to persist and may be updated or queried at any point during the life of the view instance by the application logic. The view context contains methods to put and get values from the application data map.
-      /**
+
+The application data map is different than the view instance properties that are specified to instantiate the view.  The application data map may contain any arbitrary string values that the view needs to persist and may be updated or queried at any point during the life of the view instance by the application logic. 
+
+The view context contains methods to put and get values from the application data map.
+
+      /**
        * Save an instance data value for the given key.
        *
        * @param key    the key
@@ -344,10 +347,13 @@ The application data map is a simple method for view application code to store k
        *
        * @param key  the key
        */
-      public void removeInstanceData(String key);
+
 #####DataStore
-The data store allows view instances to save JavaBean entities in the Ambari database.The view components may acquire a data store instance through the injected view context.  The view context exposes a data store object … 
-      /**
+The data store allows view instances to save JavaBean entities in the Ambari database.
+
+The view components may acquire a data store instance through the injected view context.  The view context exposes a data store object … 
+
+      /**
        * Get a data store for view persistence entities.
        *
        * @return a data store

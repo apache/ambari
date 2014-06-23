@@ -17,8 +17,7 @@
 <view>
   <name>FAVORITE</name>
   <label>Favorite</label>
-  <version>0.1.0</version>
-
+  <version>1.0.0</version>
   <parameter>
     <name>what.is.the.question</name>
     <description>Ask a question</description>
@@ -29,10 +28,8 @@
     <description>If you do not know</description>
     <required>true</required>
   </parameter>
-
   <resource>
     <name>favorite</name>
-    <service-class>org.apache.ambari.view.examples.FavoriteService</service-class>
+    <service-class>org.apache.ambari.view.favorite.FavoriteService</service-class>
   </resource>
-
 </view>
