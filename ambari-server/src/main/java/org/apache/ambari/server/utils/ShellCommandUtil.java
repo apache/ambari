@@ -32,7 +32,7 @@ public class ShellCommandUtil {
   private static final Log LOG = LogFactory.getLog(ShellCommandUtil.class);
   private static final Object WindowsProcessLaunchLock = new Object();
   private static final String PASS_TOKEN = "pass:";
-
+  private static final String KEY_TOKEN = "-key ";
   /*
   public static String LogAndReturnOpenSslExitCode(String command, int exitCode) {
     logOpenSslExitCode(command, exitCode);
@@ -49,7 +49,14 @@ public class ShellCommandUtil {
   }
 
   public static String hideOpenSslPassword(String command){
-    int start = command.indexOf(PASS_TOKEN)+PASS_TOKEN.length();
+    int start;
+    if(command.contains(PASS_TOKEN)){
+      start = command.indexOf(PASS_TOKEN)+PASS_TOKEN.length();
+    } else if (command.contains(KEY_TOKEN)){
+      start = command.indexOf(KEY_TOKEN)+KEY_TOKEN.length();
+    } else {
+      return command;
+    }
     CharSequence cs = command.subSequence(start, command.indexOf(" ", start));
     return command.replace(cs, "****");
   }
