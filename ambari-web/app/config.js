@@ -75,7 +75,7 @@ App.supports = {
   autoRollbackHA: false,
   appTimelineServer: true,
   jobs: true,
-  ubuntu: false,
+  ubuntu: true,
   views: false,
   flume: false,
   databaseConnection: true

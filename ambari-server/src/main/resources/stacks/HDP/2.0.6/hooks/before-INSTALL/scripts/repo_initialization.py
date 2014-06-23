@@ -19,7 +19,8 @@ limitations under the License.
 from resource_management import *
 import json
 
-_UBUNTU_REPO_COMPONENTS = ["HDP", "main"]
+# components_lits = repoName + postfix
+_UBUNTU_REPO_COMPONENTS_POSTFIX = ["main"]
 
 def _alter_repo(action, repo_string, repo_template):
   """
@@ -36,14 +37,16 @@ def _alter_repo(action, repo_string, repo_template):
       repo['baseUrl'] = None
     if not 'mirrorsList' in repo:
       repo['mirrorsList'] = None
-
+    
+    ubuntu_components = [ repo['repoName'] ] + _UBUNTU_REPO_COMPONENTS_POSTFIX
+    
     Repository(repo['repoId'],
                action = action,
                base_url = repo['baseUrl'],
                mirror_list = repo['mirrorsList'],
                repo_file_name = repo['repoName'],
                repo_template = repo_template,
-               components = _UBUNTU_REPO_COMPONENTS, # ubuntu specific
+               components = ubuntu_components, # ubuntu specific
     )
 
 def install_repos():

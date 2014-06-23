@@ -59,5 +59,10 @@
       <repoid>HDP-2.1</repoid>
       <reponame>HDP</reponame>
     </repo>
+    <repo>
+      <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.17/repos/ubuntu12</baseurl>
+      <repoid>HDP-UTILS-1.1.0.17</repoid>
+      <reponame>HDP-UTILS</reponame>
+    </repo>
   </os>
 </reposinfo>
