@@ -142,6 +142,10 @@
     </tbody>
   </table>
 
+  <div {{bindAttr class="view.filteringComplete:hidden :hosts-overlay"}}>
+    <div class="spinner"></div>
+  </div>
+
   <div class="page-bar">
     <div class="filtered-hosts-info span4">
       <label>{{view.filteredContentInfo}} - <a {{action clearFilters target="view"}} href="#">{{t tableView.filters.clearAllFilters}}</a></label>

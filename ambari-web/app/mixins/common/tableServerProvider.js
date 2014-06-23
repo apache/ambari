@@ -52,7 +52,8 @@ App.TableServerProvider = Em.Mixin.create({
     if (!this.get('filteringComplete')) return false;
 
     this.set('filteringComplete', false);
-    this.get('updater')[this.get('updater.tableUpdaterMap')[this.get('tableName')]](function () {
+    var updaterMethodName = this.get('updater.tableUpdaterMap')[this.get('tableName')];
+    this.get('updater')[updaterMethodName](function () {
       self.set('filteringComplete', true);
       self.propertyDidChange('pageContent');
     }, function() {
