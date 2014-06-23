@@ -26,18 +26,20 @@ import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.TemporalInfo;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.text.NumberFormat;
 import java.text.ParsePosition;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -60,10 +62,26 @@ public class SQLPropertyProvider extends AbstractPropertyProvider {
 
   // ----- Constants ---------------------------------------------------------
 
-  private static final String GET_METRICS_STATEMENT = "select * from dbo.ufGetMetrics(?, ?, ?, ?, ?, ?, ?)";
+  private static final String GET_METRICS_STATEMENT =
+                  "SELECT  s.RecordTypeContext, s.RecordTypeName, s.NodeName, s.ServiceName, mn.Name AS MetricName, s.RecordTimeStamp, mp.MetricValue\n" +
+                  "FROM HadoopMetrics.dbo.MetricPair mp\n" +
+                  "     INNER JOIN (\n" +
+                  "         SELECT mr.RecordID AS RecordID, mr.RecordTimeStamp AS RecordTimeStamp, rt.Context AS RecordTypeContext, rt.Name AS RecordTypeName, nd.Name AS NodeName, sr.Name AS ServiceName\n" +
+                  "         FROM HadoopMetrics.dbo.MetricRecord mr\n" +
+                  "              INNER JOIN HadoopMetrics.dbo.RecordType rt ON (mr.RecordTypeId = rt.RecordTypeId)\n" +
+                  "              INNER JOIN HadoopMetrics.dbo.Node nd ON (mr.NodeID = nd.NodeID)\n" +
+                  "              INNER JOIN HadoopMetrics.dbo.Service sr ON (mr.ServiceID = sr.ServiceID)\n" +
+                  "         WHERE rt.Context in (%s)\n" +
+                  "               AND rt.Name in (%s)\n" +
+                  "               AND (nd.Name in (%s))\n" +
+                  "               AND (sr.Name in (%s))\n" +
+                  "               AND mr.RecordTimestamp >= %d\n" +
+                  "               AND mr.RecordTimestamp <= %d\n" +
+                  "     ) s ON (mp.RecordID = s.RecordID)\n" +
+                  "     INNER JOIN HadoopMetrics.dbo.MetricName mn ON (mp.MetricID = mn.MetricID)\n" +
+                  "WHERE (mn.Name in (%s))";
 
-  protected final static Logger LOG =
-      LoggerFactory.getLogger(SQLPropertyProvider.class);
+  protected final static Logger LOG = LoggerFactory.getLogger(SQLPropertyProvider.class);
 
 
   // ----- Constructors ------------------------------------------------------
@@ -93,15 +111,15 @@ public class SQLPropertyProvider extends AbstractPropertyProvider {
     try {
       Connection connection = connectionFactory.getConnection();
       try {
-        PreparedStatement preparedStatement = connection.prepareStatement(GET_METRICS_STATEMENT);
+        Statement statement = connection.createStatement();
         try {
           for (Resource resource : resources) {
-            if (populateResource(resource, request, predicate, preparedStatement)) {
+            if (populateResource(resource, request, predicate, statement)) {
               keepers.add(resource);
             }
           }
         } finally {
-          preparedStatement.close();
+          statement.close();
         }
       } finally {
         connection.close();
@@ -119,7 +137,7 @@ public class SQLPropertyProvider extends AbstractPropertyProvider {
   // ----- helper methods ----------------------------------------------------
 
   // Populate the given resource
-  private boolean populateResource(Resource resource, Request request, Predicate predicate, PreparedStatement preparedStatement) throws SystemException {
+  private boolean populateResource(Resource resource, Request request, Predicate predicate, Statement statement) throws SystemException {
 
     Set<String> ids = getRequestPropertyIds(request, predicate);
     if (ids.isEmpty()) {
@@ -142,6 +160,7 @@ public class SQLPropertyProvider extends AbstractPropertyProvider {
           "Unable to get metrics.  No host name for " + componentName, null);
     }
 
+    Set<MetricDefinition> metricsDefinitionSet = new HashSet<MetricDefinition>();
     for (String id : ids) {
       Map<String, PropertyInfo> propertyInfoMap = getPropertyInfoMap(componentName, id);
 
@@ -171,25 +190,20 @@ public class SQLPropertyProvider extends AbstractPropertyProvider {
           int      size  = parts.length;
 
           if (size >= 3) {
-            List<DataPoint> dataPoints = getMetric(startTime, endTime, parts[size - 3], parts[size - 2], parts[size - 1],
-                                                   componentName.toLowerCase(), hostName, preparedStatement);
 
-            if (dataPoints != null) {
-              if (temporalInfo == null){
-                // return the value of the last data point
-                int          length = dataPoints.size();
-                Serializable value  = length > 0 ? dataPoints.get(length - 1).getValue() : 0;
-                resource.setProperty(propertyKey, value);
-              } else {
+            metricsDefinitionSet.add(
+                    new MetricDefinition(
+                            startTime,
+                            endTime,
+                            parts[size - 3],
+                            parts[size - 2],
+                            parts[size - 1],
+                            componentName.toLowerCase(),
+                            hostName,
+                            propertyKey,
+                            temporalInfo)
+            );
 
-                Number[][] dp = new Number[dataPoints.size()][2];
-                for (int i = 0; i < dp.length; i++) {
-                  dp[i][0] = dataPoints.get(i).getValue();
-                  dp[i][1] = dataPoints.get(i).getTimestamp();
-                }
-                resource.setProperty(propertyKey, dp);
-              }
-            }
           } else {
             if (LOG.isWarnEnabled()) {
               LOG.warn("Can't get metrics for " + id + " : " + propertyId);
@@ -199,45 +213,84 @@ public class SQLPropertyProvider extends AbstractPropertyProvider {
       }
     }
 
+    Map<MetricDefinition, List<DataPoint>> results = getMetric(metricsDefinitionSet, statement);
+
+    for(MetricDefinition metricDefinition : metricsDefinitionSet) {
+        List<DataPoint> dataPoints = results.containsKey(metricDefinition) ? results.get(metricDefinition) : new ArrayList<DataPoint>();
+        TemporalInfo temporalInfo = metricDefinition.getTemporalInfo();
+        String propertyKey = metricDefinition.getPropertyKey();
+        if (dataPoints != null) {
+          if (temporalInfo == null){
+            // return the value of the last data point
+            int length = dataPoints.size();
+            Serializable value  = length > 0 ? dataPoints.get(length - 1).getValue() : 0;
+            resource.setProperty(propertyKey, value);
+          } else {
+            Number[][] dp = new Number[dataPoints.size()][2];
+            for (int i = 0; i < dp.length; i++) {
+              dp[i][0] = dataPoints.get(i).getValue();
+              dp[i][1] = dataPoints.get(i).getTimestamp();
+            }
+            resource.setProperty(propertyKey, dp);
+          }
+      }
+    }
+
     return true;
   }
 
   // get a metric from a sql connection
-  private List<DataPoint> getMetric(long startTime, long endTime, String recordTypeContext,
-                        String recordTypeName, String metricName, String serviceName, String nodeName,
-                        PreparedStatement preparedStatement) throws SystemException {
-
-    if (recordTypeContext == null || recordTypeName == null || nodeName == null) {
-      return null;
-    }
-
-    int columnId = 1;
-    List<DataPoint> results;
+  private Map<MetricDefinition, List<DataPoint>> getMetric(Set<MetricDefinition> metricDefinitionSet, Statement statement) throws SystemException {
+    Map<MetricDefinition, List<DataPoint>> results = new HashMap<MetricDefinition, List<DataPoint>>();
     try {
-      preparedStatement.clearParameters();
+      StringBuilder query = new StringBuilder();
+      Set<String> recordTypeContexts = new HashSet<String>();
+      Set<String> recordTypeNamess = new HashSet<String>();
+      Set<String> nodeNames = new HashSet<String>();
+      Set<String> serviceNames = new HashSet<String>();
+      Set<String> metricNames = new HashSet<String>();
+      long startTime = 0, endTime = 0;
+      for (MetricDefinition metricDefinition : metricDefinitionSet) {
+        if (metricDefinition.getRecordTypeContext() == null || metricDefinition.getRecordTypeName() == null || metricDefinition.getNodeName() == null) {
+          continue;
+        }
 
-      preparedStatement.setLong(columnId++, startTime);
-      preparedStatement.setLong(columnId++, endTime);
-      preparedStatement.setNString(columnId++, recordTypeContext);
-      preparedStatement.setNString(columnId++, recordTypeName);
-      preparedStatement.setNString(columnId++, metricName);
-      preparedStatement.setNString(columnId++, serviceName);
-      preparedStatement.setNString(columnId, nodeName);
+        recordTypeContexts.add(metricDefinition.getRecordTypeContext());
+        recordTypeNamess.add(metricDefinition.getRecordTypeName());
+        nodeNames.add(metricDefinition.getNodeName());
+        serviceNames.add(metricDefinition.getServiceName());
+        metricNames.add(metricDefinition.getMetricName());
+        startTime = metricDefinition.getStartTime();
+        endTime = metricDefinition.getEndTime();
+      }
 
-      ResultSet rs = preparedStatement.executeQuery();
+      query.append(String.format(GET_METRICS_STATEMENT,
+              "'" + StringUtils.join(recordTypeContexts, "','") + "'",
+              "'" + StringUtils.join(recordTypeNamess, "','") + "'",
+              "'" + StringUtils.join(nodeNames, "','") + "'",
+              "'" + StringUtils.join(serviceNames, "','") + "'",
+              startTime,
+              endTime,
+              "'" + StringUtils.join(metricNames, "','") + "'"
+      ));
 
-      results = new LinkedList<DataPoint>();
+      ResultSet rs = statement.executeQuery(query.toString());
 
       if (rs != null) {
-
         //(RecordTimeStamp bigint, MetricValue NVARCHAR(512))
         while (rs.next()) {
-
+          MetricDefinition metricDefinition = new MetricDefinition(rs.getString("RecordTypeContext"), rs.getString("RecordTypeName"), rs.getString("MetricName"), rs.getString("ServiceName"), rs.getString("NodeName"));
           ParsePosition parsePosition = new ParsePosition(0);
           NumberFormat  numberFormat  = NumberFormat.getInstance();
-          Number        parsedNumber  = numberFormat.parse(rs.getNString("MetricValue"), parsePosition);
-
-          results.add(new DataPoint(rs.getLong("RecordTimeStamp"), parsedNumber));
+          Number parsedNumber  = numberFormat.parse(rs.getNString("MetricValue"), parsePosition);
+          if(results.containsKey(metricDefinition)) {
+              results.get(metricDefinition).add(new DataPoint(rs.getLong("RecordTimeStamp"), parsedNumber));
+          }
+          else {
+            List<DataPoint> dataPoints = new ArrayList<DataPoint>();
+            dataPoints.add(new DataPoint(rs.getLong("RecordTimeStamp"), parsedNumber));
+            results.put(metricDefinition, dataPoints);
+          }
         }
       }
     } catch (SQLException e) {
@@ -299,6 +352,140 @@ public class SQLPropertyProvider extends AbstractPropertyProvider {
     @Override
     public String toString() {
       return "{" +value + " : " + timestamp + "}";
+    }
+  }
+
+  private class MetricDefinition {
+    long startTime;
+    long endTime;
+
+    String recordTypeContext;
+    String recordTypeName;
+    String metricName;
+    String serviceName;
+    String nodeName;
+
+    String propertyKey;
+    TemporalInfo temporalInfo;
+
+    private MetricDefinition(long startTime, long endTime, String recordTypeContext, String recordTypeName, String metricName, String serviceName, String nodeName, String propertyKey, TemporalInfo temporalInfo) {
+      this.startTime = startTime;
+      this.endTime = endTime;
+      this.recordTypeContext = recordTypeContext;
+      this.recordTypeName = recordTypeName;
+      this.metricName = metricName;
+      this.serviceName = serviceName;
+      this.nodeName = nodeName;
+      this.propertyKey = propertyKey;
+      this.temporalInfo = temporalInfo;
+    }
+
+    private MetricDefinition(String recordTypeContext, String recordTypeName, String metricName, String serviceName, String nodeName) {
+      this.recordTypeContext = recordTypeContext;
+      this.recordTypeName = recordTypeName;
+      this.metricName = metricName;
+      this.serviceName = serviceName;
+      this.nodeName = nodeName;
+    }
+
+    public long getStartTime() {
+      return startTime;
+    }
+
+    public void setStartTime(long startTime) {
+      this.startTime = startTime;
+    }
+
+    public long getEndTime() {
+      return endTime;
+    }
+
+    public void setEndTime(long endTime) {
+      this.endTime = endTime;
+    }
+
+    public String getRecordTypeContext() {
+      return recordTypeContext;
+    }
+
+    public void setRecordTypeContext(String recordTypeContext) {
+      this.recordTypeContext = recordTypeContext;
+    }
+
+    public String getRecordTypeName() {
+      return recordTypeName;
+    }
+
+    public void setRecordTypeName(String recordTypeName) {
+      this.recordTypeName = recordTypeName;
+    }
+
+    public String getMetricName() {
+      return metricName;
+    }
+
+    public void setMetricName(String metricName) {
+      this.metricName = metricName;
+    }
+
+    public String getServiceName() {
+      return serviceName;
+    }
+
+    public void setServiceName(String serviceName) {
+      this.serviceName = serviceName;
+    }
+
+    public String getNodeName() {
+      return nodeName;
+    }
+
+    public void setNodeName(String nodeName) {
+      this.nodeName = nodeName;
+    }
+
+    public String getPropertyKey() {
+      return propertyKey;
+    }
+
+    public void setPropertyKey(String propertyKey) {
+      this.propertyKey = propertyKey;
+    }
+
+    public TemporalInfo getTemporalInfo() {
+      return temporalInfo;
+    }
+
+    public void setTemporalInfo(TemporalInfo temporalInfo) {
+      this.temporalInfo = temporalInfo;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+
+      MetricDefinition that = (MetricDefinition) o;
+
+      if (metricName != null ? !metricName.equals(that.metricName) : that.metricName != null) return false;
+      if (nodeName != null ? !nodeName.equals(that.nodeName) : that.nodeName != null) return false;
+      if (recordTypeContext != null ? !recordTypeContext.equals(that.recordTypeContext) : that.recordTypeContext != null)
+        return false;
+      if (recordTypeName != null ? !recordTypeName.equals(that.recordTypeName) : that.recordTypeName != null)
+        return false;
+      if (serviceName != null ? !serviceName.equals(that.serviceName) : that.serviceName != null) return false;
+
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      int result = recordTypeContext != null ? recordTypeContext.hashCode() : 0;
+      result = 31 * result + (recordTypeName != null ? recordTypeName.hashCode() : 0);
+      result = 31 * result + (metricName != null ? metricName.hashCode() : 0);
+      result = 31 * result + (serviceName != null ? serviceName.hashCode() : 0);
+      result = 31 * result + (nodeName != null ? nodeName.hashCode() : 0);
+      return result;
     }
   }
 }
