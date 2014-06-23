@@ -78,6 +78,9 @@ def runAgent(passPhrase, expected_hostname):
       return agent_retcode
   return agent_retcode
 
+def tryStopAgent():
+  subprocess.call("/usr/sbin/ambari-agent stop", shell=True)
+
 def getOptimalVersion(initialProjectVersion):
   optimalVersion = initialProjectVersion
   ret = findNearestAgentPackageVersion(optimalVersion)
@@ -197,7 +200,9 @@ def main(argv=None):
     retcode = getOptimalVersion("")
   else:
     retcode = getOptimalVersion(projectVersion)
-
+  
+  tryStopAgent()
+  
   if retcode["exitstatus"] == 0 and retcode["log"] != None and retcode["log"] != "" and retcode["log"][0].strip() != "":
       availiableProjectVersion = retcode["log"].strip()
       if not isAgentPackageAlreadyInstalled(availiableProjectVersion):

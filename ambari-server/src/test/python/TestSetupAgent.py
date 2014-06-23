@@ -202,6 +202,7 @@ class TestSetupAgent(TestCase):
   def test_execOsCommand(self, Popen_mock):
     self.assertFalse(setup_agent.execOsCommand("hostname -f") == None)
 
+  @patch.object(setup_agent, 'tryStopAgent')
   @patch.object(setup_agent, 'isAgentPackageAlreadyInstalled')
   @patch.object(setup_agent, 'runAgent')
   @patch.object(setup_agent, 'configureAgent')
@@ -216,11 +217,12 @@ class TestSetupAgent(TestCase):
   def test_setup_agent_main(self, dirname_mock, realpath_mock, exit_mock, checkServerReachability_mock,
                             getOptimalVersion_mock, is_debian_family_mock, is_suse_family_mock,
                             installAgent_mock, configureAgent_mock, runAgent_mock,
-                            isAgentPackageAlreadyInstalled_mock):
+                            isAgentPackageAlreadyInstalled_mock, tryStopAgent_mock):
     installAgent_mock.return_value = {'log': 'log', 'exitstatus': 0}
     runAgent_mock.return_value = 0
     getOptimalVersion_mock.return_value = {'log': '1.1.2, 1.1.3, ', 'exitstatus': 1}
     setup_agent.main(("setupAgent.py","agents_host","password", "server_hostname","1.1.1","8080"))
+    self.assertTrue(tryStopAgent_mock.called)
     self.assertTrue(exit_mock.called)
     self.assertTrue(getOptimalVersion_mock.called)
     exit_mock.reset_mock()
