@@ -42,7 +42,6 @@
 # 'check_cpu' check remote cpu load
 define command {
         command_name    check_cpu
-#        command_line    $USER1$/check_wrapper.sh $USER1$/check_cpu.pl -H $HOSTADDRESS$ -C hadoop -w $ARG1$ -c $ARG2$
         command_line    $USER1$/check_wrapper.sh php $USER1$/check_cpu.php -h $HOSTADDRESS$ -p $ARG1$ -w $ARG2$ -c $ARG3$ -e $ARG4$ -k $ARG5$ -r $ARG6$ -t $ARG7$ -u $ARG8$
        }
 {% endif %}
@@ -65,7 +64,7 @@ define command{
 
 define command{
         command_name    check_aggregate
-        command_line    php $USER1$/check_aggregate.php -f /var/nagios/status.dat -s 1 -t service -n $ARG1$ -w $ARG2$ -c $ARG3$
+        command_line    $USER1$/check_wrapper.sh php $USER1$/check_aggregate.php -f /var/nagios/status.dat -s 1 -t service -n $ARG1$ -w $ARG2$ -c $ARG3$
        }
 
 define command{
@@ -133,16 +132,16 @@ define command{
        }
 
 define command{
-  command_name check_tcp_wrapper
-  command_line  $USER1$/check_wrapper.sh $USER1$/check_tcp -H $HOSTADDRESS$ -p $ARG1$ $ARG2$
-}
+        command_name check_tcp_wrapper
+        command_line  $USER1$/check_wrapper.sh $USER1$/check_tcp -H $HOSTADDRESS$ -p $ARG1$ $ARG2$
+       }
 
 define command{
-  command_name check_checkpoint_time
-  command_line /var/lib/ambari-agent/ambari-python-wrap $USER1$/check_checkpoint_time.py -H "$ARG1$" -p $ARG2$ -w $ARG3$ -c $ARG4$ -t $ARG5$ -x $ARG6$
-}
+        command_name check_checkpoint_time
+        command_line $USER1$/check_wrapper.sh /var/lib/ambari-agent/ambari-python-wrap $USER1$/check_checkpoint_time.py -H "$ARG1$" -p $ARG2$ -w $ARG3$ -c $ARG4$ -t $ARG5$ -x $ARG6$
+       }
 
 define command{
-  command_name check_tcp_wrapper_sasl
-  command_line  $USER1$/check_wrapper.sh $USER1$/check_tcp -H $HOSTADDRESS$ -p $ARG1$ $ARG2$ -s \"$ARG3$\"
-}
+        command_name check_tcp_wrapper_sasl
+        command_line  $USER1$/check_wrapper.sh $USER1$/check_tcp -H $HOSTADDRESS$ -p $ARG1$ $ARG2$ -s \"$ARG3$\"
+       }
