@@ -70,7 +70,7 @@ real_comp_var=""
 real_component real_comp_var
 
 
-wrapper_output=`exec $1 $2 $3 $4 $5 $6 $7 $8 $9 ${10} ${11} ${12} ${13} ${14} ${15} ${16} ${17} ${18} ${19} ${20}`
+wrapper_output=`exec "$@"`
 wrapper_result=$?
 
 if [ "$wrapper_result" == "0" ]; then
