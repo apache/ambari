@@ -2701,7 +2701,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       
       if (null == rr.getRepoId() || rr.getRepoId().isEmpty())
         throw new AmbariException("Repo ID must be specified.");
-      
+
       if (null != rr.getBaseUrl()) {
         if (!rr.isVerifyBaseUrl()) {
           ambariMetaInfo.updateRepoBaseURL(rr.getStackName(),
@@ -2710,12 +2710,15 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         } else {
           URLStreamProvider usp = new URLStreamProvider(REPO_URL_CONNECT_TIMEOUT,
               REPO_URL_READ_TIMEOUT, null, null, null);
+          
+          RepositoryInfo repositoryInfo = ambariMetaInfo.getRepository(rr.getStackName(), rr.getStackVersion(), rr.getOsType(), rr.getRepoId());
+          String repoName = repositoryInfo.getRepoName();
 
           boolean bFound = false;
           
           String[] suffixes = configs.getRepoValidationSuffixes(rr.getOsType());
           for (int i = 0; i < suffixes.length && !bFound; i++) {
-            String suffix = suffixes[i];
+            String suffix = String.format(suffixes[i], repoName);
             String spec = rr.getBaseUrl();
             
             if (spec.charAt(spec.length()-1) != '/' && suffix.charAt(0) != '/')

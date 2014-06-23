@@ -276,7 +276,7 @@ public class Configuration {
    * Default for repo validation suffixes.
    */
   private static final String REPO_SUFFIX_DEFAULT = "/repodata/repomd.xml";
-  private static final String REPO_SUFFIX_UBUNTU = "/dists/HDP/Release.gpg,/dists/HDP/Release";
+  private static final String REPO_SUFFIX_UBUNTU = "/dists/%s/Release.gpg,/dists/%s/Release";
   
   private static final String PARALLEL_STAGE_EXECUTION_DEFAULT = "true";
   
