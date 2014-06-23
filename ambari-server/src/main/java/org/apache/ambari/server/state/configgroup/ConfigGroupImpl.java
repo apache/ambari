@@ -284,7 +284,6 @@ public class ConfigGroupImpl implements ConfigGroup {
   }
 
   @Override
-  @Transactional
   public void persist() {
     readWriteLock.writeLock().lock();
     try {
