@@ -2405,6 +2405,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertFalse(check_selinux_mock.called)
     self.assertFalse(check_ambari_user_mock.called)
 
+  @patch.object(ambari_server, 'get_remote_script_line')
   @patch.object(ambari_server, 'is_server_runing')
   @patch.object(ambari_server, "get_YN_input")
   @patch.object(ambari_server, "setup_db")
@@ -2417,7 +2418,8 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
   def test_reset(self, check_database_name_property_mock, is_root_mock,
                  parse_properties_file_mock, configure_database_username_password_mock,
                  run_os_command_mock, print_info_msg_mock,
-                 setup_db_mock, get_YN_inputMock, is_server_running_mock):
+                 setup_db_mock, get_YN_inputMock, is_server_running_mock,
+                 get_remote_script_line_mock):
 
     parse_properties_file_mock.return_value = 0
     args = MagicMock()
@@ -2460,7 +2462,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertTrue(setup_db_mock.called)
 
     # Database errors cases
-    is_server_running_mock.side_effect = [(True, 123), (False, 0), (False, 0)]
+    is_server_running_mock.side_effect = [(True, 123), (False, 0), (False, 0), (False, 0), (False, 0)]
 
     try:
       ambari_server.reset(args)
@@ -2476,10 +2478,27 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
       # Expected
       pass
 
-    #remote db case
-    args.persistence_type = "remote"
-    rcode = ambari_server.reset(args)
-    self.assertEqual(None, rcode)
+    get_remote_script_line_mock.return_value = None
+    try:
+      #remote db case
+      args.persistence_type = "remote"
+      ambari_server.reset(args)
+      self.fail("Should throw exception")
+    except NonFatalException:
+      # Expected
+      pass
+
+    get_remote_script_line_mock.reset_mock()
+    get_remote_script_line_mock.side_effect = ["drop", "create"]
+    try:
+      #remote db case (not Postgres)
+      args.persistence_type = "remote"
+      rcode = ambari_server.reset(args)
+      self.fail("Should throw exception")
+    except NonFatalException:
+      # Expected
+      self.assertTrue(get_remote_script_line_mock.called)
+      pass
 
   @patch.object(ambari_server, "get_YN_input")
   @patch("__builtin__.raw_input")
