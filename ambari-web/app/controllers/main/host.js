@@ -206,7 +206,7 @@ App.MainHostController = Em.ArrayController.extend({
    * Detect if user have passed string as regular expression or extend
    * string to regexp.
    *
-   * @params {String} value
+   * @param {String} value
    * @return {String}
    **/
   getRegExp: function (value) {

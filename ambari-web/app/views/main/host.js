@@ -247,6 +247,26 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
   },
 
   /**
+   * Show spinner when filter/sorting request is processed
+   * @method overlayObserver
+   */
+  overlayObserver: function() {
+    if (!this.get('filteringComplete')) {
+      var $tbody = this.$('tbody');
+      if (!$tbody) return;
+      var tbodyPos =  $tbody.position();
+      if (!tbodyPos) return;
+
+      this.$('.hosts-overlay').css({
+        top: tbodyPos.top,
+        left: tbodyPos.left,
+        width: $tbody.width(),
+        height: $tbody.height()
+      });
+    }
+  }.observes('filteringComplete'),
+
+  /**
    * Clear selectedFilter
    * Set <code>selected</code> to false for each host
    */
