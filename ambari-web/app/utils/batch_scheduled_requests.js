@@ -76,7 +76,7 @@ module.exports = {
 
     this.getComponentsFromServer({
       services: services,
-      staleConfigs: staleConfigsOnly,
+      staleConfigs: staleConfigsOnly ? staleConfigsOnly : null,
       passiveState: 'OFF',
       displayParams: ['host_components/HostRoles/component_name']
     }, function (data) {
@@ -389,7 +389,7 @@ module.exports = {
           self.getComponentsFromServer({
             components: [hostComponentName],
             displayParams: ['host_components/HostRoles/stale_configs', 'Hosts/maintenance_state', 'host_components/HostRoles/maintenance_state'],
-            staleConfigs: staleConfigsOnly
+            staleConfigs: staleConfigsOnly ? staleConfigsOnly : null
           }, function (data) {
             var wrappedHostComponents = [];
             data.items.forEach(function (host) {
