@@ -1,0 +1,256 @@
+2014-06-23 17:02:52,078 - Log4JLogChute initialized using file 'velocity.log'
+2014-06-23 17:02:52,078 - Initializing Velocity, Calling init()...
+2014-06-23 17:02:52,078 - Starting Apache Velocity v1.7 (compiled: 2010-11-19 12:14:37)
+2014-06-23 17:02:52,078 - Default Properties File: org/apache/velocity/runtime/defaults/velocity.properties
+2014-06-23 17:02:52,078 - Trying to use logger class org.apache.velocity.runtime.log.AvalonLogChute
+2014-06-23 17:02:52,078 - Target log system for org.apache.velocity.runtime.log.AvalonLogChute is not available (java.lang.NoClassDefFoundError: org/apache/log/format/Formatter).  Falling back to next log system...
+2014-06-23 17:02:52,079 - Trying to use logger class org.apache.velocity.runtime.log.Log4JLogChute
+2014-06-23 17:02:52,079 - Using logger class org.apache.velocity.runtime.log.Log4JLogChute
+2014-06-23 17:02:52,083 - ResourceLoader instantiated: org.apache.velocity.runtime.resource.loader.FileResourceLoader
+2014-06-23 17:02:52,084 - Do unicode file recognition:  false
+2014-06-23 17:02:52,084 - FileResourceLoader : adding path '.'
+2014-06-23 17:02:52,094 - ResourceCache: initialized (class org.apache.velocity.runtime.resource.ResourceCacheImpl) with class java.util.Collections$SynchronizedMap cache map.
+2014-06-23 17:02:52,095 - Loaded System Directive: org.apache.velocity.runtime.directive.Stop
+2014-06-23 17:02:52,096 - Loaded System Directive: org.apache.velocity.runtime.directive.Define
+2014-06-23 17:02:52,097 - Loaded System Directive: org.apache.velocity.runtime.directive.Break
+2014-06-23 17:02:52,097 - Loaded System Directive: org.apache.velocity.runtime.directive.Evaluate
+2014-06-23 17:02:52,098 - Loaded System Directive: org.apache.velocity.runtime.directive.Literal
+2014-06-23 17:02:52,099 - Loaded System Directive: org.apache.velocity.runtime.directive.Macro
+2014-06-23 17:02:52,106 - Loaded System Directive: org.apache.velocity.runtime.directive.Parse
+2014-06-23 17:02:52,108 - Loaded System Directive: org.apache.velocity.runtime.directive.Include
+2014-06-23 17:02:52,108 - Loaded System Directive: org.apache.velocity.runtime.directive.Foreach
+2014-06-23 17:02:52,133 - Created '20' parsers.
+2014-06-23 17:02:52,139 - Velocimacro : "velocimacro.library" is not set.  Trying default library: VM_global_library.vm
+2014-06-23 17:02:52,139 - Velocimacro : Default library not found.
+2014-06-23 17:02:52,139 - Velocimacro : allowInline = true : VMs can be defined inline in templates
+2014-06-23 17:02:52,139 - Velocimacro : allowInlineToOverride = false : VMs defined inline may NOT replace previous VM definitions
+2014-06-23 17:02:52,139 - Velocimacro : allowInlineLocal = false : VMs defined inline will be global in scope if allowed.
+2014-06-23 17:02:52,139 - Velocimacro : autoload off : VM system will not automatically reload global library macros
+2014-06-23 17:02:52,250 - Parser Exception: /path/to/${incorrect_parameter
+org.apache.velocity.runtime.parser.ParseException: Encountered "<EOF>" at line 1, column 30.
+Was expecting one of:
+    "[" ...
+    "}" ...
+    
+	at org.apache.velocity.runtime.parser.Parser.generateParseException(Parser.java:3679)
+	at org.apache.velocity.runtime.parser.Parser.jj_consume_token(Parser.java:3558)
+	at org.apache.velocity.runtime.parser.Parser.Reference(Parser.java:1521)
+	at org.apache.velocity.runtime.parser.Parser.Statement(Parser.java:357)
+	at org.apache.velocity.runtime.parser.Parser.process(Parser.java:317)
+	at org.apache.velocity.runtime.parser.Parser.parse(Parser.java:117)
+	at org.apache.velocity.runtime.RuntimeInstance.parse(RuntimeInstance.java:1226)
+	at org.apache.velocity.runtime.RuntimeInstance.parse(RuntimeInstance.java:1181)
+	at org.apache.velocity.runtime.RuntimeInstance.evaluate(RuntimeInstance.java:1297)
+	at org.apache.velocity.runtime.RuntimeInstance.evaluate(RuntimeInstance.java:1265)
+	at org.apache.velocity.app.Velocity.evaluate(Velocity.java:180)
+	at org.apache.ambari.server.view.ViewContextImpl.parameterize(ViewContextImpl.java:284)
+	at org.apache.ambari.server.view.ViewContextImpl.getProperties(ViewContextImpl.java:156)
+	at org.apache.ambari.server.view.ViewContextImplTest.testGetPropertiesWithParameters(ViewContextImplTest.java:119)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:57)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:606)
+	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:45)
+	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:15)
+	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:42)
+	at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:20)
+	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:263)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:68)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:47)
+	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:231)
+	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:60)
+	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:229)
+	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:50)
+	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:222)
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:300)
+	at org.apache.maven.surefire.junit4.JUnit4Provider.execute(JUnit4Provider.java:236)
+	at org.apache.maven.surefire.junit4.JUnit4Provider.executeTestSet(JUnit4Provider.java:134)
+	at org.apache.maven.surefire.junit4.JUnit4Provider.invoke(JUnit4Provider.java:113)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:57)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:606)
+	at org.apache.maven.surefire.util.ReflectionUtils.invokeMethodWithArray(ReflectionUtils.java:189)
+	at org.apache.maven.surefire.booter.ProviderFactory$ProviderProxy.invoke(ProviderFactory.java:165)
+	at org.apache.maven.surefire.booter.ProviderFactory.invokeProvider(ProviderFactory.java:85)
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:103)
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:74)
+2014-06-23 17:02:52,255 - Null reference [template '/path/to/${unspecified_parameter}', line 1, column 10] : ${unspecified_parameter} cannot be resolved.
+2014-06-23 17:02:52,256 - Parser Exception: /path/to/${incorrect_parameter
+org.apache.velocity.runtime.parser.ParseException: Encountered "<EOF>" at line 1, column 30.
+Was expecting one of:
+    "[" ...
+    "}" ...
+    
+	at org.apache.velocity.runtime.parser.Parser.generateParseException(Parser.java:3679)
+	at org.apache.velocity.runtime.parser.Parser.jj_consume_token(Parser.java:3558)
+	at org.apache.velocity.runtime.parser.Parser.Reference(Parser.java:1521)
+	at org.apache.velocity.runtime.parser.Parser.Statement(Parser.java:357)
+	at org.apache.velocity.runtime.parser.Parser.process(Parser.java:317)
+	at org.apache.velocity.runtime.parser.Parser.parse(Parser.java:117)
+	at org.apache.velocity.runtime.RuntimeInstance.parse(RuntimeInstance.java:1226)
+	at org.apache.velocity.runtime.RuntimeInstance.parse(RuntimeInstance.java:1181)
+	at org.apache.velocity.runtime.RuntimeInstance.evaluate(RuntimeInstance.java:1297)
+	at org.apache.velocity.runtime.RuntimeInstance.evaluate(RuntimeInstance.java:1265)
+	at org.apache.velocity.app.Velocity.evaluate(Velocity.java:180)
+	at org.apache.ambari.server.view.ViewContextImpl.parameterize(ViewContextImpl.java:284)
+	at org.apache.ambari.server.view.ViewContextImpl.getProperties(ViewContextImpl.java:156)
+	at org.apache.ambari.server.view.ViewContextImplTest.testGetPropertiesWithParameters(ViewContextImplTest.java:129)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:57)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:606)
+	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:45)
+	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:15)
+	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:42)
+	at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:20)
+	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:263)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:68)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:47)
+	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:231)
+	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:60)
+	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:229)
+	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:50)
+	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:222)
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:300)
+	at org.apache.maven.surefire.junit4.JUnit4Provider.execute(JUnit4Provider.java:236)
+	at org.apache.maven.surefire.junit4.JUnit4Provider.executeTestSet(JUnit4Provider.java:134)
+	at org.apache.maven.surefire.junit4.JUnit4Provider.invoke(JUnit4Provider.java:113)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:57)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:606)
+	at org.apache.maven.surefire.util.ReflectionUtils.invokeMethodWithArray(ReflectionUtils.java:189)
+	at org.apache.maven.surefire.booter.ProviderFactory$ProviderProxy.invoke(ProviderFactory.java:165)
+	at org.apache.maven.surefire.booter.ProviderFactory.invokeProvider(ProviderFactory.java:85)
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:103)
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:74)
+2014-06-23 17:02:52,257 - Null reference [template '/path/to/${unspecified_parameter}', line 1, column 10] : ${unspecified_parameter} cannot be resolved.
+2014-06-23 22:24:10,447 - Log4JLogChute initialized using file 'velocity.log'
+2014-06-23 22:24:10,447 - Initializing Velocity, Calling init()...
+2014-06-23 22:24:10,447 - Starting Apache Velocity v1.7 (compiled: 2010-11-19 12:14:37)
+2014-06-23 22:24:10,447 - Default Properties File: org/apache/velocity/runtime/defaults/velocity.properties
+2014-06-23 22:24:10,447 - Trying to use logger class org.apache.velocity.runtime.log.AvalonLogChute
+2014-06-23 22:24:10,447 - Target log system for org.apache.velocity.runtime.log.AvalonLogChute is not available (java.lang.NoClassDefFoundError: org/apache/log/format/Formatter).  Falling back to next log system...
+2014-06-23 22:24:10,447 - Trying to use logger class org.apache.velocity.runtime.log.Log4JLogChute
+2014-06-23 22:24:10,447 - Using logger class org.apache.velocity.runtime.log.Log4JLogChute
+2014-06-23 22:24:10,451 - ResourceLoader instantiated: org.apache.velocity.runtime.resource.loader.FileResourceLoader
+2014-06-23 22:24:10,453 - Do unicode file recognition:  false
+2014-06-23 22:24:10,453 - FileResourceLoader : adding path '.'
+2014-06-23 22:24:10,464 - ResourceCache: initialized (class org.apache.velocity.runtime.resource.ResourceCacheImpl) with class java.util.Collections$SynchronizedMap cache map.
+2014-06-23 22:24:10,466 - Loaded System Directive: org.apache.velocity.runtime.directive.Stop
+2014-06-23 22:24:10,467 - Loaded System Directive: org.apache.velocity.runtime.directive.Define
+2014-06-23 22:24:10,467 - Loaded System Directive: org.apache.velocity.runtime.directive.Break
+2014-06-23 22:24:10,468 - Loaded System Directive: org.apache.velocity.runtime.directive.Evaluate
+2014-06-23 22:24:10,468 - Loaded System Directive: org.apache.velocity.runtime.directive.Literal
+2014-06-23 22:24:10,470 - Loaded System Directive: org.apache.velocity.runtime.directive.Macro
+2014-06-23 22:24:10,477 - Loaded System Directive: org.apache.velocity.runtime.directive.Parse
+2014-06-23 22:24:10,478 - Loaded System Directive: org.apache.velocity.runtime.directive.Include
+2014-06-23 22:24:10,479 - Loaded System Directive: org.apache.velocity.runtime.directive.Foreach
+2014-06-23 22:24:10,503 - Created '20' parsers.
+2014-06-23 22:24:10,508 - Velocimacro : "velocimacro.library" is not set.  Trying default library: VM_global_library.vm
+2014-06-23 22:24:10,508 - Velocimacro : Default library not found.
+2014-06-23 22:24:10,508 - Velocimacro : allowInline = true : VMs can be defined inline in templates
+2014-06-23 22:24:10,508 - Velocimacro : allowInlineToOverride = false : VMs defined inline may NOT replace previous VM definitions
+2014-06-23 22:24:10,508 - Velocimacro : allowInlineLocal = false : VMs defined inline will be global in scope if allowed.
+2014-06-23 22:24:10,509 - Velocimacro : autoload off : VM system will not automatically reload global library macros
+2014-06-23 22:24:10,625 - Parser Exception: /path/to/${incorrect_parameter
+org.apache.velocity.runtime.parser.ParseException: Encountered "<EOF>" at line 1, column 30.
+Was expecting one of:
+    "[" ...
+    "}" ...
+    
+	at org.apache.velocity.runtime.parser.Parser.generateParseException(Parser.java:3679)
+	at org.apache.velocity.runtime.parser.Parser.jj_consume_token(Parser.java:3558)
+	at org.apache.velocity.runtime.parser.Parser.Reference(Parser.java:1521)
+	at org.apache.velocity.runtime.parser.Parser.Statement(Parser.java:357)
+	at org.apache.velocity.runtime.parser.Parser.process(Parser.java:317)
+	at org.apache.velocity.runtime.parser.Parser.parse(Parser.java:117)
+	at org.apache.velocity.runtime.RuntimeInstance.parse(RuntimeInstance.java:1226)
+	at org.apache.velocity.runtime.RuntimeInstance.parse(RuntimeInstance.java:1181)
+	at org.apache.velocity.runtime.RuntimeInstance.evaluate(RuntimeInstance.java:1297)
+	at org.apache.velocity.runtime.RuntimeInstance.evaluate(RuntimeInstance.java:1265)
+	at org.apache.velocity.app.Velocity.evaluate(Velocity.java:180)
+	at org.apache.ambari.server.view.ViewContextImpl.parameterize(ViewContextImpl.java:284)
+	at org.apache.ambari.server.view.ViewContextImpl.getProperties(ViewContextImpl.java:156)
+	at org.apache.ambari.server.view.ViewContextImplTest.testGetPropertiesWithParameters(ViewContextImplTest.java:119)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:57)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:606)
+	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:45)
+	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:15)
+	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:42)
+	at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:20)
+	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:263)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:68)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:47)
+	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:231)
+	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:60)
+	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:229)
+	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:50)
+	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:222)
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:300)
+	at org.apache.maven.surefire.junit4.JUnit4Provider.execute(JUnit4Provider.java:236)
+	at org.apache.maven.surefire.junit4.JUnit4Provider.executeTestSet(JUnit4Provider.java:134)
+	at org.apache.maven.surefire.junit4.JUnit4Provider.invoke(JUnit4Provider.java:113)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:57)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:606)
+	at org.apache.maven.surefire.util.ReflectionUtils.invokeMethodWithArray(ReflectionUtils.java:189)
+	at org.apache.maven.surefire.booter.ProviderFactory$ProviderProxy.invoke(ProviderFactory.java:165)
+	at org.apache.maven.surefire.booter.ProviderFactory.invokeProvider(ProviderFactory.java:85)
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:103)
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:74)
+2014-06-23 22:24:10,630 - Null reference [template '/path/to/${unspecified_parameter}', line 1, column 10] : ${unspecified_parameter} cannot be resolved.
+2014-06-23 22:24:10,631 - Parser Exception: /path/to/${incorrect_parameter
+org.apache.velocity.runtime.parser.ParseException: Encountered "<EOF>" at line 1, column 30.
+Was expecting one of:
+    "[" ...
+    "}" ...
+    
+	at org.apache.velocity.runtime.parser.Parser.generateParseException(Parser.java:3679)
+	at org.apache.velocity.runtime.parser.Parser.jj_consume_token(Parser.java:3558)
+	at org.apache.velocity.runtime.parser.Parser.Reference(Parser.java:1521)
+	at org.apache.velocity.runtime.parser.Parser.Statement(Parser.java:357)
+	at org.apache.velocity.runtime.parser.Parser.process(Parser.java:317)
+	at org.apache.velocity.runtime.parser.Parser.parse(Parser.java:117)
+	at org.apache.velocity.runtime.RuntimeInstance.parse(RuntimeInstance.java:1226)
+	at org.apache.velocity.runtime.RuntimeInstance.parse(RuntimeInstance.java:1181)
+	at org.apache.velocity.runtime.RuntimeInstance.evaluate(RuntimeInstance.java:1297)
+	at org.apache.velocity.runtime.RuntimeInstance.evaluate(RuntimeInstance.java:1265)
+	at org.apache.velocity.app.Velocity.evaluate(Velocity.java:180)
+	at org.apache.ambari.server.view.ViewContextImpl.parameterize(ViewContextImpl.java:284)
+	at org.apache.ambari.server.view.ViewContextImpl.getProperties(ViewContextImpl.java:156)
+	at org.apache.ambari.server.view.ViewContextImplTest.testGetPropertiesWithParameters(ViewContextImplTest.java:129)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:57)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:606)
+	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:45)
+	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:15)
+	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:42)
+	at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:20)
+	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:263)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:68)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:47)
+	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:231)
+	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:60)
+	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:229)
+	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:50)
+	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:222)
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:300)
+	at org.apache.maven.surefire.junit4.JUnit4Provider.execute(JUnit4Provider.java:236)
+	at org.apache.maven.surefire.junit4.JUnit4Provider.executeTestSet(JUnit4Provider.java:134)
+	at org.apache.maven.surefire.junit4.JUnit4Provider.invoke(JUnit4Provider.java:113)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:57)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:606)
+	at org.apache.maven.surefire.util.ReflectionUtils.invokeMethodWithArray(ReflectionUtils.java:189)
+	at org.apache.maven.surefire.booter.ProviderFactory$ProviderProxy.invoke(ProviderFactory.java:165)
+	at org.apache.maven.surefire.booter.ProviderFactory.invokeProvider(ProviderFactory.java:85)
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:103)
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:74)
+2014-06-23 22:24:10,632 - Null reference [template '/path/to/${unspecified_parameter}', line 1, column 10] : ${unspecified_parameter} cannot be resolved.

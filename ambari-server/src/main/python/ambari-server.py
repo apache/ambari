@@ -2639,10 +2639,13 @@ def upgrade_stack(args, stack_id, repo_url=None, repo_url_os=None):
   check_database_name_property()
 
   stack_name, stack_version = stack_id.split(STACK_NAME_VER_SEP)
-  retcode, stdout, stderr = run_stack_upgrade(stack_name, stack_version, repo_url, repo_url_os)
+  retcode = run_stack_upgrade(stack_name, stack_version, repo_url, repo_url_os)
 
   if not retcode == 0:
-    raise FatalException(retcode, 'Error executing stack upgrade. ' + stderr)
+    raise FatalException(retcode, 'Stack upgrade failed.')
+  
+  return retcode
+
 
 
 def load_stack_values(version, filename):
@@ -2754,9 +2757,10 @@ def run_schema_upgrade():
 def run_stack_upgrade(stackName, stackVersion, repo_url, repo_url_os):
   jdk_path = find_jdk()
   if jdk_path is None:
-    return 1, "", "No JDK found, please run the \"setup\" \
-                    command to install a JDK automatically or install any \
-                    JDK manually to " + JDK_INSTALL_DIR
+    print_error_msg("No JDK found, please run the \"setup\" "
+                    "command to install a JDK automatically or install any "
+                    "JDK manually to " + JDK_INSTALL_DIR)
+    return 1
   stackId = {}
   stackId[stackName] = stackVersion
   if repo_url is not None:
@@ -2767,7 +2771,11 @@ def run_stack_upgrade(stackName, stackVersion, repo_url, repo_url_os):
   command = STACK_UPGRADE_HELPER_CMD.format(jdk_path, get_conf_dir(), get_ambari_classpath(),
                                              "updateStackId",
                                             "'" + json.dumps(stackId) + "'")
-  return run_os_command(command)
+  (retcode, stdout, stderr) = run_os_command(command)
+  print_info_msg("Return code from stack upgrade command, retcode = " + str(retcode))
+  if retcode > 0:
+    print_error_msg("Error executing stack upgrade, please check the server logs.")
+  return retcode
 
 
 def run_metainfo_upgrade(keyValueMap=None):
