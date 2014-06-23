@@ -1396,7 +1396,6 @@ def get_db_cli_tool(args):
 
   return None
 
-
 #execute SQL script on remote database: Deprecated
 def execute_remote_script(args, scriptPath):
   print_warning_msg("Deprecated method called.")
@@ -1405,19 +1404,31 @@ def execute_remote_script(args, scriptPath):
     # args.warnings.append('{0} not found. Please, run DDL script manually'.format(DATABASE_CLI_TOOLS[DATABASE_INDEX]))
     if VERBOSE:
       print_warning_msg('{0} not found'.format(DATABASE_CLI_TOOLS[DATABASE_INDEX]))
-    return -1, "Client wasn't found", "Client wasn't found"
+    return -1, "Client wasn't found", "Client wasn't found"  
+  CMD = get_remote_script_line(args, scriptPath, False)
+  if CMD:
+    retcode, out, err = run_in_shell(CMD)
+    return retcode, out, err
+  else:
+    return -2, "Wrong database", "Wrong database"
 
+
+def get_remote_script_line(args, scriptPath, forPrint=True):
+  tool = get_db_cli_tool(args)
+  if not tool:
+    # args.warnings.append('{0} not found. Please, run DDL script manually'.format(DATABASE_CLI_TOOLS[DATABASE_INDEX]))
+    if VERBOSE or args.persistence_type == "remote":
+      print_warning_msg('{0} not found'.format(DATABASE_CLI_TOOLS[DATABASE_INDEX]))  
+    return None
   if args.dbms == "postgres":
-
     os.environ["PGPASSWORD"] = args.database_password
-    retcode, out, err = run_in_shell('{0} {1}'.format(tool, POSTGRES_EXEC_ARGS.format(
+    return '{0} {1}'.format(tool, POSTGRES_EXEC_ARGS.format(
       args.database_host,
       args.database_port,
       args.database_name,
       args.database_username,
       scriptPath
-    )))
-    return retcode, out, err
+    ))
   elif args.dbms == "oracle":
     sid_or_sname = "sid"
     if (hasattr(args, 'sid_or_sname') and args.sid_or_sname == "sname") or \
@@ -1425,29 +1436,27 @@ def execute_remote_script(args, scriptPath):
       print_info_msg("using SERVICE_NAME instead of SID for Oracle")
       sid_or_sname = "service_name"
 
-    retcode, out, err = run_in_shell('{0} {1}'.format(tool, ORACLE_EXEC_ARGS.format(
+    return '{0} {1}'.format(tool, ORACLE_EXEC_ARGS.format(
       args.database_username,
-      args.database_password,
+      args.database_password if not forPrint else BLIND_PASSWORD,
       args.database_host,
       args.database_port,
       args.database_name,
       scriptPath,
       sid_or_sname
-    )))
-    return retcode, out, err
+    ))
   elif args.dbms == "mysql":
     MYSQL_EXEC_ARGS = MYSQL_EXEC_ARGS_WO_USER_VARS if MYSQL_INIT_SCRIPT == scriptPath else MYSQL_EXEC_ARGS_WITH_USER_VARS
-    retcode, out, err = run_in_shell('{0} {1}'.format(tool, MYSQL_EXEC_ARGS.format(
+    return '{0} {1}'.format(tool, MYSQL_EXEC_ARGS.format(
       args.database_host,
       args.database_port,
       args.database_username,
-      args.database_password,
+      args.database_password if not forPrint else BLIND_PASSWORD,
       args.database_name,
       scriptPath
-    )))
-    return retcode, out, err
+    ))
 
-  return -2, "Wrong database", "Wrong database"
+  return None
 
 
 def configure_database_password(showDefault=True):
@@ -2383,12 +2392,12 @@ def reset(args):
 
   check_database_name_property()
   parse_properties_file(args)
-
+  
   if args.persistence_type == "remote":
-    client_usage_cmd_drop = DATABASE_CLI_TOOLS_USAGE[DATABASE_INDEX].format(DATABASE_DROP_SCRIPTS[DATABASE_INDEX], args.database_username,
-                                                     BLIND_PASSWORD, args.database_name)
-    client_usage_cmd_init = DATABASE_CLI_TOOLS_USAGE[DATABASE_INDEX].format(DATABASE_INIT_SCRIPTS[DATABASE_INDEX], args.database_username,
-                                                     BLIND_PASSWORD, args.database_name)
+    client_usage_cmd_drop = get_remote_script_line(args, DATABASE_DROP_SCRIPTS[DATABASE_INDEX])
+    client_usage_cmd_init = get_remote_script_line(args, DATABASE_INIT_SCRIPTS[DATABASE_INDEX])
+    if not client_usage_cmd_drop or not client_usage_cmd_init:
+      raise NonFatalException("Could`t create command lines for {0} DB".format(args.dbms))
 
     print_warning_msg('To reset Ambari Server schema ' +
                       'you must run the following DDL against the database to '
@@ -2396,6 +2405,10 @@ def reset(args):
                       + os.linesep + 'Then you must run the following DDL ' +
                       'against the database to create the schema: ' + os.linesep +
                       client_usage_cmd_init + os.linesep)
+    if args.dbms == "postgres":
+      raise NonFatalException("Please set DB password to PGPASSWORD env variable before running DDL`s!")
+    else:
+      raise NonFatalException("Please replace '*' symbols with password before running DDL`s!")
   else:
     # Run automatic reset only for embedded DB
     okToRun = get_YN_input("Confirm server reset [yes/no]({0})? ".format(default), SILENT)
