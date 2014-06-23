@@ -82,7 +82,6 @@ public class StackExtensionHelper {
       _jaxbContexts.put(StackMetainfoXml.class, ctx);
       _jaxbContexts.put(RepositoryXml.class, ctx);
       _jaxbContexts.put(ConfigurationXml.class, ctx);
-      _jaxbContexts.put(ServiceMetainfoXml.class, JAXBContext.newInstance(ServiceMetainfoXml.class));
       _jaxbContexts.put(ServiceMetainfoV2Xml.class, JAXBContext.newInstance(ServiceMetainfoV2Xml.class));
     } catch (JAXBException e) {
       throw new RuntimeException (e);
@@ -130,7 +129,6 @@ public class StackExtensionHelper {
     mergedServiceInfo.setSchemaVersion(childService.getSchemaVersion());
     mergedServiceInfo.setName(childService.getName());
     mergedServiceInfo.setComment(childService.getComment());
-    mergedServiceInfo.setUser(childService.getUser());
     mergedServiceInfo.setVersion(childService.getVersion());
     mergedServiceInfo.setConfigDependencies(
       childService.getConfigDependencies() != null ?
@@ -399,52 +397,31 @@ public class StackExtensionHelper {
           File metricsJson = new File(serviceFolder.getAbsolutePath()
             + File.separator + AmbariMetaInfo.SERVICE_METRIC_FILE_NAME);
           String version = getSchemaVersion(metainfoFile);
-          if (AmbariMetaInfo.SCHEMA_VERSION_LEGACY.equals(version)) {
-            // Get information about service
-            ServiceInfo serviceInfo = new ServiceInfo();
-            serviceInfo.setSchemaVersion(AmbariMetaInfo.SCHEMA_VERSION_LEGACY);
-            serviceInfo.setName(serviceFolder.getName());
-            ServiceMetainfoXml smx = unmarshal(ServiceMetainfoXml.class, metainfoFile);
-            serviceInfo.setComment(smx.getComment());
-            serviceInfo.setUser(smx.getUser());
-            serviceInfo.setVersion(smx.getVersion());
-            serviceInfo.setDeleted(smx.isDeleted());
-			      serviceInfo.setConfigDependencies(smx.getConfigDependencies());
-            serviceInfo.getComponents().addAll(smx.getComponents());
 
+          //Reading v2 service metainfo (may contain multiple services)
+          // Get services from metadata
+          ServiceMetainfoV2Xml smiv2x =
+                  unmarshal(ServiceMetainfoV2Xml.class, metainfoFile);
+          List<ServiceInfo> serviceInfos = smiv2x.getServices();
+          for (ServiceInfo serviceInfo : serviceInfos) {
+            serviceInfo.setSchemaVersion(AmbariMetaInfo.SCHEMA_VERSION_2);
+
+            // Find service package folder
+            String servicePackageDir = resolveServicePackageFolder(
+                    stackRoot.getAbsolutePath(), stackInfo,
+                    serviceFolder.getName(), serviceInfo.getName());
+            serviceInfo.setServicePackageFolder(servicePackageDir);
+
+            // process metrics.json
             if (metricsJson.exists())
-              serviceInfo.setMetricsFile(metricsJson);            
+              serviceInfo.setMetricsFile(metricsJson);
 
             // Get all properties from all "configs/*-site.xml" files
             setPropertiesFromConfigs(serviceFolder, serviceInfo);
 
             // Add now to be removed while iterating extension graph
             services.add(serviceInfo);
-          } else { //Reading v2 service metainfo (may contain multiple services)
-            // Get services from metadata
-            ServiceMetainfoV2Xml smiv2x =
-                    unmarshal(ServiceMetainfoV2Xml.class, metainfoFile);
-            List<ServiceInfo> serviceInfos = smiv2x.getServices();
-            for (ServiceInfo serviceInfo : serviceInfos) {
-              serviceInfo.setSchemaVersion(AmbariMetaInfo.SCHEMA_VERSION_2);
-
-              // Find service package folder
-              String servicePackageDir = resolveServicePackageFolder(
-                      stackRoot.getAbsolutePath(), stackInfo,
-                      serviceFolder.getName(), serviceInfo.getName());
-              serviceInfo.setServicePackageFolder(servicePackageDir);
-
-              // process metrics.json
-              if (metricsJson.exists())
-                serviceInfo.setMetricsFile(metricsJson);
-
-              // Get all properties from all "configs/*-site.xml" files
-              setPropertiesFromConfigs(serviceFolder, serviceInfo);
-
-              // Add now to be removed while iterating extension graph
-              services.add(serviceInfo);
             }
-          }
         }
       } catch (Exception e) {
         LOG.error("Error while parsing metainfo.xml for a service", e);
@@ -542,9 +519,7 @@ public class StackExtensionHelper {
 
     String value = schemaPath.evaluate(doc).trim();
     if ( "".equals(value) || // If schemaVersion is not defined
-            AmbariMetaInfo.SCHEMA_VERSION_LEGACY.equals(value)) {
-      return AmbariMetaInfo.SCHEMA_VERSION_LEGACY;
-    } else if (AmbariMetaInfo.SCHEMA_VERSION_2.equals(value)) {
+            AmbariMetaInfo.SCHEMA_VERSION_2.equals(value)) {
       return AmbariMetaInfo.SCHEMA_VERSION_2;
     } else {
       String message = String.format("Unknown schema version %s at file " +

@@ -13,22 +13,85 @@
   limitations under the License. See accompanying LICENSE file.
 -->
 <metainfo>
-  <user>root</user>
-  <comment>This is comment for Mapred service</comment>
-  <version>1.0</version>
-  <components>
-    <component>
-      <name>JOBTRACKER</name>
-      <category>MASTER</category>
-    </component>
-    <component>
-      <name>TASKTRACKER</name>
-      <category>SLAVE</category>
-    </component>
-    <component>
-      <name>MAPREDUCE_CLIENT</name>
-      <category>CLIENT</category>
-    </component>
-  </components>
+  <schemaVersion>2.0</schemaVersion>
+  <services>
+    <service>
+      <name>MAPREDUCE</name>
+      <comment>This is comment for Mapred service</comment>
+      <version>1.0</version>
+      <components>
+        <component>
+          <name>JOBTRACKER</name>
+          <category>MASTER</category>
+          <cardinality>1</cardinality>
+          <commandScript>
+            <script>scripts/jobtracker.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>600</timeout>
+          </commandScript>
+          <customCommands>
+            <customCommand>
+              <name>DECOMMISSION</name>
+              <commandScript>
+                <script>scripts/jobtracker.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>600</timeout>
+              </commandScript>
+            </customCommand>
+          </customCommands>
+        </component>
 
+        <component>
+          <name>TASKTRACKER</name>
+          <category>SLAVE</category>
+          <cardinality>1+</cardinality>
+          <commandScript>
+            <script>scripts/tasktracker.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>600</timeout>
+          </commandScript>
+        </component>
+
+        <component>
+          <name>MAPREDUCE_CLIENT</name>
+          <category>CLIENT</category>
+          <cardinality>0+</cardinality>
+          <commandScript>
+            <script>scripts/client.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>600</timeout>
+          </commandScript>
+        </component>
+
+        <component>
+          <name>HISTORYSERVER</name>
+          <category>MASTER</category>
+          <cardinality>1</cardinality>
+          <auto-deploy>
+            <enabled>true</enabled>
+            <co-locate>MAPREDUCE/JOBTRACKER</co-locate>
+          </auto-deploy>
+          <commandScript>
+            <script>scripts/historyserver.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>600</timeout>
+          </commandScript>
+        </component>
+      </components>
+
+      <commandScript>
+        <script>scripts/service_check.py</script>
+        <scriptType>PYTHON</scriptType>
+        <timeout>300</timeout>
+      </commandScript>
+
+      <configuration-dependencies>
+        <config-type>capacity-scheduler</config-type>
+        <config-type>core-site</config-type>
+        <config-type>global</config-type>
+        <config-type>mapred-site</config-type>
+        <config-type>mapred-queue-acls</config-type>
+      </configuration-dependencies>
+    </service>
+  </services>
 </metainfo>

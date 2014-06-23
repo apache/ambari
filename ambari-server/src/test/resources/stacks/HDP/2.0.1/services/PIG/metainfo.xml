@@ -16,15 +16,47 @@
    limitations under the License.
 -->
 <metainfo>
-    <user>root</user>
-    <comment>Scripting platform for analyzing large datasets</comment>
-    <version>0.10.1.22-1</version>
+  <schemaVersion>2.0</schemaVersion>
+  <services>
+    <service>
+      <name>PIG</name>
+      <comment>Scripting platform for analyzing large datasets</comment>
+      <version>0.10.1.22-1</version>
 
-    <components>
+      <components>
         <component>
-            <name>PIG</name>
-            <category>CLIENT</category>
+          <name>PIG</name>
+          <category>CLIENT</category>
+          <cardinality>0+</cardinality>
+          <commandScript>
+            <script>scripts/pig_client.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>600</timeout>
+          </commandScript>
         </component>
-    </components>
+      </components>
+      <osSpecifics>
+        <osSpecific>
+          <osFamily>any</osFamily>
+          <packages>
+            <package>
+              <name>pig</name>
+            </package>
+          </packages>
+        </osSpecific>
+      </osSpecifics>
 
+      <commandScript>
+        <script>scripts/service_check.py</script>
+        <scriptType>PYTHON</scriptType>
+        <timeout>300</timeout>
+      </commandScript>
+
+      <configuration-dependencies>
+        <config-type>global</config-type>
+        <config-type>pig-log4j</config-type>
+        <config-type>pig-properties</config-type>
+      </configuration-dependencies>
+    </service>
+  </services>
 </metainfo>

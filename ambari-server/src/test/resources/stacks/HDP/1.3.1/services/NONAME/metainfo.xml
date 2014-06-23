@@ -16,15 +16,18 @@
    limitations under the License.
 -->
 <metainfo>
-    <user>root</user>
-    <comment>No-name service</comment>
-    <version>1.0.0</version>
-    <components>
+  <schemaVersion>2.0</schemaVersion>
+  <services>
+    <service>
+      <name>NONAME</name>
+      <comment>No-name service</comment>
+      <version>1.0.0</version>
+      <components>
         <component>
-            <name>NONAME_SERVER</name>
-            <category>MASTER</category>
+          <name>NONAME_SERVER</name>
+          <category>MASTER</category>
         </component>
-    </components>
-
-
+      </components>
+    </service>
+  </services>
 </metainfo>

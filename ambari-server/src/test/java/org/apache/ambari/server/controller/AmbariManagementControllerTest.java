@@ -152,7 +152,7 @@ public class AmbariManagementControllerTest {
   private static final int REPOS_CNT = 3;
   private static final int STACKS_CNT = 1;
   private static final int STACK_PROPERTIES_CNT = 83;
-  private static final int STACK_COMPONENTS_CNT = 3;
+  private static final int STACK_COMPONENTS_CNT = 4;
   private static final int OS_CNT = 2;
 
   private static final String NON_EXT_VALUE = "XXX";
@@ -8529,7 +8529,7 @@ public class AmbariManagementControllerTest {
         Properties properties = new Properties();
         properties.setProperty(Configuration.SERVER_PERSISTENCE_TYPE_KEY, "in-memory");
         properties.setProperty(Configuration.METADETA_DIR_PATH,
-            "src/main/resources/stacks");
+            "src/test/resources/stacks");
         properties.setProperty(Configuration.SERVER_VERSION_FILE,
             "target/version");
         properties.setProperty(Configuration.OS_VERSION_KEY,
@@ -8712,7 +8712,7 @@ public class AmbariManagementControllerTest {
         properties.setProperty(Configuration.SERVER_PERSISTENCE_TYPE_KEY, "in-memory");
 
         properties.setProperty(Configuration.METADETA_DIR_PATH,
-            "src/main/resources/stacks");
+            "src/test/resources/stacks");
         properties.setProperty(Configuration.SERVER_VERSION_FILE,
             "target/version");
         properties.setProperty(Configuration.OS_VERSION_KEY,

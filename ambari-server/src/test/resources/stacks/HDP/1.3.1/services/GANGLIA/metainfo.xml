@@ -16,25 +16,82 @@
    limitations under the License.
 -->
 <metainfo>
-    <user>root</user>
-    <comment>Ganglia Metrics Collection system</comment>
-    <version>3.2.0</version>
+  <schemaVersion>2.0</schemaVersion>
+  <services>
+    <service>
+      <name>GANGLIA</name>
+      <comment>Ganglia Metrics Collection system</comment>
+      <version>3.2.0</version>
 
-    <components>
+      <components>
         <component>
-            <name>GANGLIA_SERVER</name>
-            <category>MASTER</category>
+          <name>GANGLIA_SERVER</name>
+          <category>MASTER</category>
+          <cardinality>1</cardinality>
+          <commandScript>
+            <script>scripts/ganglia_server.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>600</timeout>
+          </commandScript>
         </component>
 
         <component>
-            <name>GANGLIA_MONITOR</name>
-            <category>SLAVE</category>
+          <name>GANGLIA_MONITOR</name>
+          <category>SLAVE</category>
+          <cardinality>ALL</cardinality>
+          <auto-deploy>
+            <enabled>true</enabled>
+          </auto-deploy>
+          <commandScript>
+            <script>scripts/ganglia_monitor.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>600</timeout>
+          </commandScript>
         </component>
-
-        <component>
-            <name>MONITOR_WEBSERVER</name>
-            <category>MASTER</category>
-        </component>
-    </components>
-
+      </components>
+      <osSpecifics>
+        <osSpecific>
+          <osFamily>any</osFamily>
+          <packages>
+            <package>
+              <name>libganglia-3.5.0-99</name>
+            </package>
+            <package>
+              <name>ganglia-devel-3.5.0-99</name>
+            </package>
+            <package>
+              <name>ganglia-gmetad-3.5.0-99</name>
+            </package>
+            <package>
+              <name>ganglia-web-3.5.7-99.noarch</name>
+            </package>
+            <package>
+              <name>python-rrdtool.x86_64</name>
+            </package>
+            <package>
+              <name>ganglia-gmond-3.5.0-99</name>
+            </package>
+            <package>
+              <name>ganglia-gmond-modules-python-3.5.0-99</name>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>suse</osFamily>
+          <package>
+            <name>apache2</name>
+          </package>
+          <package>
+            <name>apache2-mod_php5</name>
+          </package>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>centos6</osFamily>
+          <package>
+            <name>httpd</name>
+          </package>
+        </osSpecific>
+      </osSpecifics>
+    </service>
+  </services>
 </metainfo>

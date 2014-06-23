@@ -16,15 +16,18 @@
    limitations under the License.
 -->
 <metainfo>
-    <user>root</user>
-    <comment>Hadoop Compatible File System</comment>
-    <version>1.0.0</version>
-    <components>
+  <schemaVersion>2.0</schemaVersion>
+  <services>
+    <service>
+      <name>HCFS</name>
+      <comment>Hadoop Compatible File System</comment>
+      <version>1.0.0</version>
+      <components>
         <component>
-            <name>GLUSTERFS_CLIENT</name>
-            <category>CLIENT</category>
+          <name>GLUSTERFS_CLIENT</name>
+          <category>CLIENT</category>
         </component>
-    </components>
-
-
+      </components>
+    </service>
+  </services>
 </metainfo>

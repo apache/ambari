@@ -16,19 +16,7 @@
    limitations under the License.
 -->
 <metainfo>
-  <schemaVersion>2.0</schemaVersion>
-  <services>
-    <service>
-      <name>TEZ</name>
-      <comment>Tez is the next generation Hadoop Query Processing framework written on top of YARN</comment>
-      <version>0.1.0.22-1</version>
-
-      <components>
-        <component>
-          <name>TEZ_CLIENT</name>
-          <category>CLIENT</category>
-        </component>
-      </components>
-    </service>
-  </services>
+    <versions>
+	  <active>true</active>
+    </versions>
 </metainfo>

@@ -16,15 +16,80 @@
    limitations under the License.
 -->
 <metainfo>
-    <user>root</user>
-    <comment>Nagios Monitoring and Alerting system</comment>
-    <version>3.2.3</version>
+  <schemaVersion>2.0</schemaVersion>
+  <services>
+    <service>
+      <name>NAGIOS</name>
+      <comment>Nagios Monitoring and Alerting system</comment>
+      <version>3.2.3</version>
 
-    <components>
+      <components>
         <component>
-            <name>NAGIOS_SERVER</name>
-            <category>MASTER</category>
+          <name>NAGIOS_SERVER</name>
+          <category>MASTER</category>
+          <cardinality>1</cardinality>
+          <commandScript>
+            <script>scripts/nagios_server.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>600</timeout>
+          </commandScript>
         </component>
-    </components>
-
+      </components>
+      <osSpecifics>
+        <osSpecific>
+          <osFamily>any</osFamily>
+          <packages>
+            <package>
+              <name>perl</name>
+            </package>
+            <package>
+              <name>perl-Net-SNMP</name>
+            </package>
+            <package>
+              <name>nagios-plugins-1.4.9</name>
+            </package>
+            <package>
+              <name>nagios-3.5.0-99</name>
+            </package>
+            <package>
+              <name>nagios-www-3.5.0-99</name>
+            </package>
+            <package>
+              <name>nagios-devel-3.5.0-99</name>
+            </package>
+            <package>
+              <name>fping</name>
+            </package>
+            <package>
+              <name>hdp_mon_nagios_addons</name>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>suse</osFamily>
+          <package>
+            <name>php5-json</name>
+          </package>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>centos5</osFamily>
+          <package>
+            <name>php-pecl-json.x86_64</name>
+          </package>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>redhat5</osFamily>
+          <package>
+            <name>php-pecl-json.x86_64</name>
+          </package>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>oraclelinux5</osFamily>
+          <package>
+            <name>php-pecl-json.x86_64</name>
+          </package>
+        </osSpecific>
+      </osSpecifics>
+    </service>
+  </services>
 </metainfo>

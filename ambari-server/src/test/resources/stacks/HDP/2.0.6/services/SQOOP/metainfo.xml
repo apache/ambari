@@ -16,15 +16,19 @@
    limitations under the License.
 -->
 <metainfo>
-    <user>root</user>
-    <comment>Tool for transferring bulk data between Apache Hadoop and structured data stores such as relational databases</comment>
-    <version></version>
-    <deleted>true</deleted>
-    <components>
+  <schemaVersion>2.0</schemaVersion>
+  <services>
+    <service>
+      <name>SQOOP</name>
+      <comment>Tool for transferring bulk data between Apache Hadoop and structured data stores such as relational databases</comment>
+      <version></version>
+      <deleted>true</deleted>
+      <components>
         <component>
-            <name>SQOOP</name>
-            <category>CLIENT</category>
+          <name>SQOOP</name>
+          <category>CLIENT</category>
         </component>
-    </components>
-
+      </components>
+    </service>
+  </services>
 </metainfo>

@@ -16,15 +16,41 @@
    limitations under the License.
 -->
 <metainfo>
-    <user>root</user>
-    <comment>This is comment for HCATALOG service</comment>
-    <version>0.11.0.2.0.5.0</version>
+  <schemaVersion>2.0</schemaVersion>
+  <services>
+    <service>
+      <name>HCATALOG</name>
+      <comment>This is comment for HCATALOG service</comment>
+      <version>0.11.0.2.0.5.0</version>
 
-    <components>
+      <components>
         <component>
-            <name>HCAT</name>
-            <category>CLIENT</category>
+          <name>HCAT</name>
+          <category>CLIENT</category>
+          <commandScript>
+            <script>scripts/hcat_client.py</script>
+            <scriptType>PYTHON</scriptType>
+          </commandScript>
         </component>
-    </components>
-
+      </components>
+      <osSpecifics>
+        <osSpecific>
+          <osFamily>any</osFamily>
+          <packages>
+            <package>
+              <name>hcatalog</name>
+            </package>
+          </packages>
+        </osSpecific>
+      </osSpecifics>
+      <commandScript>
+        <script>scripts/service_check.py</script>
+        <scriptType>PYTHON</scriptType>
+        <timeout>300</timeout>
+      </commandScript>
+      <configuration-dependencies>
+        <config-type>global</config-type>
+      </configuration-dependencies>
+    </service>
+  </services>
 </metainfo>

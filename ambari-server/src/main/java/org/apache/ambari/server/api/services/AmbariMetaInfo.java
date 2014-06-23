@@ -92,10 +92,6 @@ public class AmbariMetaInfo {
    */
   public static final String ANY_OS = "any";
   /**
-   * Value for legacy xml files that don't contain schema property
-   */
-  public static final String SCHEMA_VERSION_LEGACY = "1.0";
-  /**
    * Version of XML files with support of custom services and custom commands
    */
   public static final String SCHEMA_VERSION_2 = "2.0";

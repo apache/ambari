@@ -68,8 +68,7 @@ public class StackExtensionHelperTest {
       if (serviceInfo.getName().equals("HIVE")) {
         // Check old-style service
         assertEquals("HIVE", serviceInfo.getName());
-        assertEquals("1.0", serviceInfo.getSchemaVersion());
-        assertEquals("root", serviceInfo.getUser());
+        assertEquals("2.0", serviceInfo.getSchemaVersion());
         assertTrue(serviceInfo.getComment().startsWith("Data warehouse system"));
         assertEquals("0.11.0.2.0.5.0", serviceInfo.getVersion());
         // Check some component definitions
@@ -252,7 +251,7 @@ public class StackExtensionHelperTest {
     File legacyMetaInfoFile = new File("./src/test/resources/stacks/HDP/2.0.7/" +
             "services/HIVE/metainfo.xml".replaceAll("/", File.separator));
     String version = helper.getSchemaVersion(legacyMetaInfoFile);
-    assertEquals("1.0", version);
+    assertEquals("2.0", version);
 
     File v2MetaInfoFile = new File("./src/test/resources/stacks/HDP/2.0.7/" +
             "services/HBASE/metainfo.xml".replaceAll("/", File.separator));

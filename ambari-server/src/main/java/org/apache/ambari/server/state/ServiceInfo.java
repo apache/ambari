@@ -40,7 +40,6 @@ public class ServiceInfo {
 
   private String name;
   private String version;
-  private String user;
   private String comment;
   private List<PropertyInfo> properties;
 
@@ -48,6 +47,7 @@ public class ServiceInfo {
   @XmlElements(@XmlElement(name="component"))
   private List<ComponentInfo> components;
 
+  @XmlElement(name="deleted")
   private boolean isDeleted = false;
 
   @JsonIgnore
@@ -146,14 +146,6 @@ public class ServiceInfo {
     this.version = version;
   }
 
-  public String getUser() {
-    return user;
-  }
-
-  public void setUser(String user) {
-    this.user = user;
-  }
-
   public String getComment() {
     return comment;
   }
@@ -200,7 +192,7 @@ public class ServiceInfo {
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append("Service name:" + name + "\nversion:" + version +
-        "\nuser:" + user + "\ncomment:" + comment);
+        "\ncomment:" + comment);
     //for (PropertyInfo property : getProperties()) {
     //  sb.append("\tProperty name=" + property.getName() +
     //"\nproperty value=" + property.getValue() + "\ndescription=" + property.getDescription());
@@ -216,7 +208,7 @@ public class ServiceInfo {
   
   public StackServiceResponse convertToResponse()
   {
-    return new StackServiceResponse(getName(), getUser(), getComment(), getVersion(),
+    return new StackServiceResponse(getName(), null, getComment(), getVersion(),
         getConfigTypes());
   }
   
@@ -294,7 +286,7 @@ public class ServiceInfo {
 
   public String getSchemaVersion() {
     if (schemaVersion == null) {
-      return AmbariMetaInfo.SCHEMA_VERSION_LEGACY;
+      return AmbariMetaInfo.SCHEMA_VERSION_2;
     } else {
       return schemaVersion;
     }

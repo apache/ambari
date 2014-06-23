@@ -16,25 +16,95 @@
    limitations under the License.
 -->
 <metainfo>
-    <user>mapred</user>
-    <comment>Apache Hadoop NextGen MapReduce (YARN)</comment>
-    <version>2.1.0.2.0.5.0</version>
-    <components>
+  <schemaVersion>2.0</schemaVersion>
+  <services>
+    <service>
+      <name>YARN</name>
+      <comment>Apache Hadoop NextGen MapReduce (YARN)</comment>
+      <version>2.1.0.2.0.5.0</version>
+      <components>
+
         <component>
-            <name>RESOURCEMANAGER</name>
-            <category>MASTER</category>
+          <name>RESOURCEMANAGER</name>
+          <category>MASTER</category>
+          <cardinality>1</cardinality>
+          <commandScript>
+            <script>scripts/resourcemanager.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>600</timeout>
+          </commandScript>
+          <customCommands>
+            <customCommand>
+              <name>DECOMMISSION</name>
+              <commandScript>
+                <script>scripts/resourcemanager.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>600</timeout>
+              </commandScript>
+            </customCommand>
+            <customCommand>
+              <name>REFRESHQUEUES</name>
+              <commandScript>
+                <script>scripts/resourcemanager.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>600</timeout>
+              </commandScript>
+            </customCommand>
+          </customCommands>
         </component>
+
         <component>
-            <name>NODEMANAGER</name>
-            <category>SLAVE</category>
+          <name>NODEMANAGER</name>
+          <category>SLAVE</category>
+          <cardinality>1+</cardinality>
+          <commandScript>
+            <script>scripts/nodemanager.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>600</timeout>
+          </commandScript>
         </component>
-       <component>
-            <name>YARN_CLIENT</name>
-            <category>CLIENT</category>
+
+        <component>
+          <name>YARN_CLIENT</name>
+          <category>CLIENT</category>
+          <cardinality>0+</cardinality>
+          <commandScript>
+            <script>scripts/yarn_client.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>600</timeout>
+          </commandScript>
         </component>
-    </components>
-    <configuration-dependencies>
-      <config-type>yarn-site</config-type>
-      <config-type>global</config-type>
-    </configuration-dependencies>
+      </components>
+
+      <osSpecifics>
+        <osSpecific>
+          <osFamily>any</osFamily>
+          <packages>
+            <package>
+              <name>hadoop-yarn</name>
+            </package>
+            <package>
+              <name>hadoop-mapreduce</name>
+            </package>
+          </packages>
+        </osSpecific>
+      </osSpecifics>
+
+      <commandScript>
+        <script>scripts/service_check.py</script>
+        <scriptType>PYTHON</scriptType>
+        <timeout>300</timeout>
+      </commandScript>
+
+      <configuration-dependencies>
+        <config-type>yarn-site</config-type>
+        <config-type>capacity-scheduler</config-type>
+        <config-type>core-site</config-type>
+        <config-type>global</config-type>
+        <config-type>mapred-site</config-type>
+        <config-type>mapred-queue-acls</config-type>
+        <config-type>yarn-log4j</config-type>
+      </configuration-dependencies>
+    </service>
+  </services>
 </metainfo>
