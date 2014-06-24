@@ -103,6 +103,7 @@ App.ManageConfigGroupsController = Em.Controller.extend({
           memory: host.Hosts.total_mem,
           diskTotal: host.metrics.disk.disk_total,
           diskFree: host.metrics.disk.disk_free,
+          disksMounted: host.Hosts.disk_info.length,
           hostComponents: hostComponents
         }
       ));

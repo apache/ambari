@@ -199,13 +199,27 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       sender: this,
       data: {
         serviceName: this.get('content.serviceName'),
-        serviceConfigsDef: this.get('serviceConfigs').findProperty('serviceName', this.get('content.serviceName'))
+        serviceConfigsDef: this.get('serviceConfigs').findProperty('serviceName', this.get('content.serviceName')),
+        urlParams: "&config_groups/ConfigGroup/tag=" + this.get('content.serviceName')
       },
-      success: 'loadServiceTagsSuccess'
+      success: 'loadServiceConfigsSuccess'
     });
   },
 
-  loadServiceTagsSuccess: function (data, opt, params) {
+  loadServiceConfigsSuccess: function(data, opt, params) {
+    if (data) {
+      this.setConfigGroups.apply(this, Array.prototype.slice.call(arguments, 0));
+    } else {
+      App.ajax.send({
+        name: 'config.tags',
+        sender: this,
+        data: App.permit(params, ['clusterName', 'serviceConfigsDef', 'serviceName']),
+        success: 'setConfigGroups'
+      });
+    }
+  },
+
+  setConfigGroups: function (data, opt, params) {
     var serviceConfigsDef = params.serviceConfigsDef;
     var serviceName = this.get('content.serviceName');
     console.debug("loadServiceConfigs(): data=", data);
@@ -224,7 +238,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     //parse loaded config groups
     if (App.supports.hostOverrides) {
       var configGroups = [];
-      if (data.config_groups.length) {
+      if (data.config_groups && data.config_groups.length) {
         data.config_groups.forEach(function (item) {
           item = item.ConfigGroup;
           if (item.tag === this.get('content.serviceName')) {
@@ -414,25 +428,37 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   getInfoForDefaults: function() {
 
     App.ajax.send({
-      name: 'host_components.all',
+      name: 'hosts.config_groups',
       sender: this,
       data: {
         clusterName: App.get('clusterName')
       },
-      success: 'slavesSuccessCallback'
+      success: 'configGroupsHostsSuccessCallback'
     });
-
   },
 
-  slavesSuccessCallback: function (response) {
-    var slaveComponentHosts = [];
-    var slaves = response.items.mapProperty('HostRoles').filter(function (c) {
-      return App.StackServiceComponent.find().findProperty('componentName', c.component_name).get('isSlave');
-    }).map(function(item) {
-      return Em.Object.create({
-        host: item.host_name,
-        componentName: item.component_name
+  configGroupsHostsSuccessCallback: function(response) {
+    this.set('defaultsInfo', {
+      masterComponentHosts: this.getMasterComponents(response),
+      slaveComponentHosts: this.getSlaveComponents(response),
+      hosts: this.getHostsInfo(response)
+    });
+  },
+
+  getSlaveComponents: function (response) {
+    var slaveComponentHosts = [],
+        slaves = [];
+    response.items.forEach(function(item) {
+      var hostName = item.Hosts.host_name;
+      var _slaves = item.host_components.mapProperty('HostRoles.component_name').filter(function(componentName) {
+        return App.StackServiceComponent.find().findProperty('componentName', componentName).get('isSlave');
+      }).map(function(componentName) {
+        return Em.Object.create({
+          host: hostName,
+          componentName: componentName
+        });
       });
+      slaves = slaves.concat(_slaves);
     });
     slaves.forEach(function(slave) {
       var s = slaveComponentHosts.findProperty('componentName', slave.componentName);
@@ -446,45 +472,30 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         });
       }
     });
-
-    App.ajax.send({
-      name: 'host_components.with_services_names',
-      sender: this,
-      data: {
-        clusterName: App.get('clusterName'),
-        slaveComponentHosts: slaveComponentHosts
-      },
-      success: 'mastersSuccessCallback'
-    });
-
+    return slaveComponentHosts;
   },
 
-  mastersSuccessCallback: function (response, request, data) {
-
-    var masterComponentHosts = response.items.filter(function (c) {
-      return App.StackServiceComponent.find().findProperty('componentName', c.HostRoles.component_name).get('isMaster');
-    }).map(function(item) {
-      return {
-        component: item.HostRoles.component_name,
-        serviceId: item.component[0].ServiceComponentInfo.service_name,
-        host: item.HostRoles.host_name
-      }
+  getMasterComponents: function (response) {
+    var serviceMasterComponents = this.get('content.hostComponents').filterProperty('isMaster', true).mapProperty('componentName').uniq(),
+        masterComponentHosts = [],
+        _this = this;
+    response.items.forEach(function(item) {
+      var hostName = item.Hosts.host_name;
+      item.host_components.mapProperty('HostRoles.component_name').forEach(function(componentName) {
+        if (serviceMasterComponents.contains(componentName)) {
+          masterComponentHosts.push({
+            component: componentName,
+            serviceId: _this.get('content.serviceName'),
+            host: hostName
+          });
+        }
+      });
     });
 
-    App.ajax.send({
-      name: 'hosts.confirmed',
-      sender: this,
-      data: {
-        clusterName: App.get('clusterName'),
-        masterComponentHosts: masterComponentHosts,
-        slaveComponentHosts: data.slaveComponentHosts
-      },
-      success: 'hostsSuccessCallback'
-    });
-
+    return masterComponentHosts;
   },
 
-  hostsSuccessCallback: function (response, request, data) {
+  getHostsInfo: function (response) {
     var hosts = {};
     response.items.mapProperty('Hosts').map(function(host) {
       hosts[host.host_name] = {
@@ -494,28 +505,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         disk_info: host.disk_info
       };
     });
-    var obj =  {
-      masterComponentHosts: [],
-      slaveComponentHosts: [],
-      hosts: hosts
-    };
-    lazyLoading.run({
-      initSize: 20,
-      chunkSize: 50,
-      delay: 50,
-      destination: obj.masterComponentHosts,
-      source: data.masterComponentHosts,
-      context: Em.Object.create()
-    });
-    lazyLoading.run({
-      initSize: 20,
-      chunkSize: 50,
-      delay: 50,
-      destination: obj.slaveComponentHosts,
-      source: obj.slaveComponentHosts,
-      context: Em.Object.create()
-    });
-    this.set('defaultsInfo', obj);
+
+    return hosts;
   },
 
   /**
@@ -584,6 +575,10 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   setRecommendedDefaults: function (advancedConfigs) {
     var s = this.get('serviceConfigsData').findProperty('serviceName', this.get('content.serviceName'));
     var dfd = $.Deferred();
+    if (!s.defaultsProviders) {
+      dfd.resolve();
+      return dfd.promise();
+    }
     this.getInfoForDefaults();
     this.addObserver('defaultsInfo.hosts.length', this, function() {
       var localDB = this.get('defaultsInfo');
