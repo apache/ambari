@@ -131,8 +131,13 @@ App.MainChartsHeatmapController = Em.Controller.extend({
 
   loadMetrics: function () {
     var selectedMetric = this.get('selectedMetric');
-    if (selectedMetric) {
-      selectedMetric.refreshHostSlots();
+    var hostNames = [];
+
+    if (selectedMetric && this.get('racks').everyProperty('isLoaded', true)) {
+      this.get('racks').forEach(function (rack) {
+        hostNames = hostNames.concat(rack.hosts.mapProperty('hostName'));
+      });
+      selectedMetric.refreshHostSlots(hostNames);
     }
     this.set('inputMaximum', this.get('selectedMetric.maximumValue'));
   }.observes('selectedMetric'),

@@ -239,7 +239,7 @@ App.MainChartHeatmapMetric = Em.Object.extend(heatmap.mappers, {
   hostToSlotMap: function(){
     var hostToValueMap = this.get('hostToValueMap');
     var slotDefs = this.get('slotDefinitions');
-    var hostNames = App.Host.find().mapProperty('hostName');
+    var hostNames = this.get('hostNames');
     var hostToSlotMap = {};
     if (hostToValueMap && hostNames) {
       hostNames.forEach(function(hostName){
@@ -276,8 +276,9 @@ App.MainChartHeatmapMetric = Em.Object.extend(heatmap.mappers, {
    * the callback's #map(hostnameToSlotObject) method. The
    * 'hostnameToSlotObject' has key as hostname, and the slot index as value.
    */
-  refreshHostSlots: function () {
+  refreshHostSlots: function (hostNames) {
     this.set('loading', true);
+    this.set('hostNames', hostNames);
     var fixedMetricName = this.get('defaultMetric');
     fixedMetricName = fixedMetricName.replace(/\./g, "/");
     var ajaxData = {
