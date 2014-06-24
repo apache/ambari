@@ -35,7 +35,7 @@ case "$1" in
         ;;
 esac
 
-export PATH=/usr/lib/ambari-server/*:$PATH
+export PATH=/usr/lib/ambari-server/*:$PATH:/sbin/:/usr/sbin
 export AMBARI_CONF_DIR=/etc/ambari-server/conf:$PATH
 
 # Because Ambari rpm unpacks modules here on all systems

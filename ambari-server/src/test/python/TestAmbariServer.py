@@ -487,17 +487,17 @@ class TestAmbariServer(TestCase):
 
     out = StringIO.StringIO()
     sys.stdout = out
-    rcode = ambari_server.configure_postgres()
+    retcode, out1, err = ambari_server.configure_postgres()
     sys.stdout = sys.__stdout__
-    self.assertEqual(0, rcode)
+    self.assertEqual(0, retcode)
     self.assertEqual("Backup for pg_hba found, reconfiguration not required\n",
                      out.getvalue())
 
     ambari_server.PG_HBA_CONF_FILE_BACKUP = tempfile.mktemp()
-    get_postgre_status_mock.return_value = ambari_server.PG_STATUS_RUNNING
-    restart_postgres_mock.return_value = 0
+    get_postgre_status_mock.return_value = ambari_server.PG_STATUS_RUNNING, 0, "", ""
+    restart_postgres_mock.return_value = 0, "", ""
 
-    rcode = ambari_server.configure_postgres()
+    rcode, out, err = ambari_server.configure_postgres()
 
     self.assertTrue(os.path.isfile(ambari_server.PG_HBA_CONF_FILE_BACKUP),
                     "postgresql.conf backup not created")
@@ -510,8 +510,8 @@ class TestAmbariServer(TestCase):
     self.assertEqual(0, rcode)
 
     os.unlink(ambari_server.PG_HBA_CONF_FILE_BACKUP)
-    get_postgre_status_mock.return_value = "stopped"
-    rcode = ambari_server.configure_postgres()
+    get_postgre_status_mock.return_value = "stopped", 0, "", ""
+    rcode, out, err = ambari_server.configure_postgres()
     self.assertEqual(0, rcode)
     os.unlink(ambari_server.PG_HBA_CONF_FILE_BACKUP)
     sys.stdout = sys.__stdout__
@@ -527,14 +527,14 @@ class TestAmbariServer(TestCase):
     p = MagicMock()
     p.poll.return_value = 0
     popenMock.return_value = p
-    rcode = ambari_server.restart_postgres()
-    self.assertEqual(0, rcode)
+    retcode, out, err = ambari_server.restart_postgres()
+    self.assertEqual(0, retcode)
 
     p.poll.return_value = None
-    get_postgre_status_mock.return_value = "stopped"
+    get_postgre_status_mock.return_value = "stopped", 0, "", ""
     run_os_command_mock.return_value = (1, None, None)
-    rcode = ambari_server.restart_postgres()
-    self.assertEqual(1, rcode)
+    retcode, out, err = ambari_server.restart_postgres()
+    self.assertEqual(1, retcode)
 
 
   @patch("shlex.split")
@@ -2056,12 +2056,12 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
   def test_get_postgre_status(self, run_os_command_mock):
 
     run_os_command_mock.return_value = (1, "running", None)
-    result = ambari_server.get_postgre_status()
-    self.assertEqual("running", result)
+    pg_status, retcode, out, err = ambari_server.get_postgre_status()
+    self.assertEqual("running", pg_status)
 
     run_os_command_mock.return_value = (1, "wrong", None)
-    result = ambari_server.get_postgre_status()
-    self.assertEqual(None, result)
+    pg_status, retcode, out, err = ambari_server.get_postgre_status()
+    self.assertEqual(None, pg_status)
 
 
   @patch("time.sleep")
@@ -2075,15 +2075,16 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     p.communicate.return_value = (None, None)
     p.returncode = 0
     popen_mock.return_value = p
+    get_postgre_status_mock.return_value = "running", 0, "", ""
     run_os_command_mock.return_value = (0, None, None)
-    rcode = ambari_server.check_postgre_up()
-    self.assertEqual(0, rcode)
+    pg_status, retcode, out, err = ambari_server.check_postgre_up()
+    self.assertEqual(0, retcode)
 
     ambari_server.OS = 'suse'
     p.poll.return_value = 4
-    get_postgre_status_mock.return_value = None
-    rcode = ambari_server.check_postgre_up()
-    self.assertEqual(4, rcode)
+    get_postgre_status_mock.return_value = "stopped", 0, "", ""
+    pg_status, retcode, out, err = ambari_server.check_postgre_up()
+    self.assertEqual(4, retcode)
 
 
   @patch("platform.linux_distribution")
@@ -2332,11 +2333,11 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     check_ambari_user_mock.return_value = 0
     check_jdbc_drivers_mock.return_value = 0
     check_iptables_mock.return_value = (0, "other")
-    check_postgre_up_mock.return_value = 0
+    check_postgre_up_mock.return_value = "running", 0, "", ""
     setup_db_mock.return_value = (0, None, None)
     setup_remote_db_mock.return_value = 0
     is_local_database_mock.return_value = False
-    configure_postgres_mock.return_value = 0
+    configure_postgres_mock.return_value = 0, "", ""
     download_jdk_mock.return_value = 0
     configure_os_settings_mock.return_value = 0
     store_remote_properties_mock.return_value = 0
@@ -2713,7 +2714,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
      args.persistence_type = "local"
 
      # case: postgres failed to start
-     check_postgre_up_mock.return_value = 1
+     check_postgre_up_mock.return_value = None, 1, "Unable to start PostgreSQL serv", "error"
      try:
        ambari_server.start(args)
        self.fail("Should fail with 'Unable to start PostgreSQL server'")
@@ -2724,7 +2725,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
      parse_properties_file_mock.reset_mock()
 
-     check_postgre_up_mock.return_value = 0
+     check_postgre_up_mock.return_value = "running", 0, "success", ""
 
      # Case: custom user is "root"
      read_ambari_user_mock.return_value = "root"
@@ -4830,9 +4831,9 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     check_ambari_user_mock.return_value = 0
     check_jdbc_drivers_mock.return_value = 0
     check_iptables_mock.return_value = (0, "other")
-    check_postgre_up_mock.return_value = 0
+    check_postgre_up_mock.return_value = "running", 0, "", ""
     is_local_database_mock.return_value = True
-    configure_postgres_mock.return_value = 0
+    configure_postgres_mock.return_value = 0, "", ""
     download_jdk_mock.return_value = 0
     configure_os_settings_mock.return_value = 0
     is_jdbc_user_changed_mock.return_value = False

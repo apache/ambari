@@ -906,17 +906,17 @@ def configure_postgres():
     else:
       #Postgres has been configured before, must not override backup
       print "Backup for pg_hba found, reconfiguration not required"
-      return 0
+      return 0, "", ""
   configure_pg_hba_postgres_user()
   configure_pg_hba_ambaridb_users()
   os.chmod(PG_HBA_CONF_FILE, 0644)
   configure_postgresql_conf()
   #restart postgresql if already running
-  pg_status = get_postgre_status()
+  pg_status, retcode, out, err = get_postgre_status()
   if pg_status == PG_STATUS_RUNNING:
-    retcode = restart_postgres()
-    return retcode
-  return 0
+    retcode, out, err = restart_postgres()
+    return retcode, out, err
+  return 0, "", ""
 
 
 def restart_postgres():
@@ -931,13 +931,13 @@ def restart_postgres():
   if result is None:
     print_info_msg("Killing restart PostgresSQL process")
     process.kill()
-    pg_status = get_postgre_status()
+    pg_status, retcode, out, err = get_postgre_status()
     # SUSE linux set status of stopped postgresql proc to unused
     if pg_status == "unused" or pg_status == "stopped":
       print_info_msg("PostgreSQL is stopped. Restarting ...")
       retcode, out, err = run_os_command(PG_START_CMD)
-      return retcode
-  return 0
+      return retcode, out, err
+  return 0, "", ""
 
 
 # todo: check if the scheme is already exist
@@ -1075,14 +1075,14 @@ def get_postgre_status():
     pg_status = re.search('(stopped|running)', out, re.IGNORECASE).group(0).lower()
   except AttributeError:
     pg_status = None
-  return pg_status
+  return pg_status, retcode, out, err
 
 
 def check_postgre_up():
-  pg_status = get_postgre_status()
+  pg_status, retcode, out, err = get_postgre_status()
   if pg_status == PG_STATUS_RUNNING:
     print_info_msg("PostgreSQL is running")
-    return 0
+    return pg_status, 0, out, err
   else:
     # run initdb only on non ubuntu systems as ubuntu does not have initdb cmd.
     if OS_TYPE != OSConst.OS_UBUNTU:
@@ -1103,7 +1103,7 @@ def check_postgre_up():
         print_info_msg("Result of postgres start cmd: " + str(result))
         if result is None:
           process.kill()
-          pg_status = get_postgre_status()
+          pg_status, retcode, out, err = get_postgre_status()
         else:
           retcode = result
       else:
@@ -1111,15 +1111,14 @@ def check_postgre_up():
         retcode = process.returncode
       if pg_status == PG_STATUS_RUNNING:
         print_info_msg("Postgres process is running. Returning...")
-        return 0
+        return pg_status, 0, out, err
     except (Exception), e:
-      pg_status = get_postgre_status()
+      pg_status, retcode, out, err = get_postgre_status()
       if pg_status == PG_STATUS_RUNNING:
-        return 0
+        return pg_status, 0, out, err
       else:
-        print_error_msg("Postgres start failed. " + str(e))
-        return 1
-    return retcode
+        print_error_msg("Postgres start failed. " + str(e))    
+    return pg_status, retcode, out, err
 
 
 def get_validated_db_name(database_name):
@@ -2277,15 +2276,16 @@ def setup(args):
     store_local_properties(args)
 
     print 'Checking PostgreSQL...'
-    retcode = check_postgre_up()
+    pg_status, retcode, out, err = check_postgre_up()
     if not retcode == 0:
-      err = 'Unable to start PostgreSQL server. Exiting'
+      err = 'Unable to start PostgreSQL server. Status {0}. {1}.' \
+            ' Exiting'.format(pg_status, err)
       raise FatalException(retcode, err)
 
     print 'Configuring local database...'
     retcode, outdata, errdata = setup_db(args)
     if not retcode == 0:
-      err = 'Running database init script was failed. Exiting.'
+      err = 'Running database init script was failed. {0}. Exiting.'.format(errdata)
       raise FatalException(retcode, err)
 
     if is_user_changed:
@@ -2293,9 +2293,9 @@ def setup(args):
       remove_file(PG_HBA_CONF_FILE_BACKUP)
 
     print 'Configuring PostgreSQL...'
-    retcode = configure_postgres()
+    retcode, out, err = configure_postgres()
     if not retcode == 0:
-      err = 'Unable to configure PostgreSQL server. Exiting'
+      err = 'Unable to configure PostgreSQL server. {0} Exiting'.format(err)
       raise FatalException(retcode, err)
 
   else:
@@ -2496,9 +2496,9 @@ def start(args):
     print "Ambari Server running with 'root' privileges."
 
     if args.persistence_type == "local":
-      retcode = check_postgre_up()
+      pg_status, retcode, out, err = check_postgre_up()
       if not retcode == 0:
-        err = "Unable to start PostgreSQL server. Exiting"
+        err = 'Unable to start PostgreSQL server. Status {0}. {1}. Exiting'.format(pg_status, err)
         raise FatalException(retcode, err)
 
   else:  # Skipping actions that require root permissions
