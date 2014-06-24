@@ -45,6 +45,7 @@ App.MainHostDetailsView = Em.View.extend({
       App.router.transitionTo('main.hosts.index');
       return;
     }
+    App.router.get('updateController').updateHost(Em.K);
     App.tooltip($("[rel='HealthTooltip']"));
   }
 });

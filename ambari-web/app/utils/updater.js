@@ -39,13 +39,14 @@ function update(obj, name, isWorking, interval){
         obj[name](callback);
         return true;
       },
+      interval: interval,
       callback: callback
     };
   }
 
   clearTimeout(state.timeout);
 
-  state.timeout = setTimeout(state.func, interval);
+  state.timeout = setTimeout(state.func, state.interval);
   return true;
 }
 
@@ -124,6 +125,16 @@ App.updater = {
    */
   immediateRun: function(name){
     return rerun(name);
+  },
+  /**
+   * Update interval for state by its name.
+   *
+   * @param name - state name
+   * @param value - new interval value
+   **/
+  updateInterval: function(name, value) {
+    if (!states[name]) return;
+    states[name].interval = value;
   }
 
 };
