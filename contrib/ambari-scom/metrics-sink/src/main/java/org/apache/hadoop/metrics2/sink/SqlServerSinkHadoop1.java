@@ -21,10 +21,6 @@ import org.apache.hadoop.metrics2.Metric;
 import org.apache.hadoop.metrics2.MetricsRecord;
 
 public class SqlServerSinkHadoop1 extends SqlServerSink {
-  public SqlServerSinkHadoop1() {
-    super(SqlSink.HADOOP1_NAMENODE_URL_KEY, SqlSink.HADOOP1_DFS_BLOCK_SIZE_KEY);
-  }
-
   @Override
   public void putMetrics(MetricsRecord record) {
     long metricRecordID = getMetricRecordID(record.context(), record.name(),

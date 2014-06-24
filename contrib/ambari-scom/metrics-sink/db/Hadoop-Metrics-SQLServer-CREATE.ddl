@@ -550,10 +550,10 @@ BEGIN
 			SELECT @recordIDCutoff = MIN(RecordID) FROM MetricRecord WHERE RecordID IN (SELECT TOP 60000 RecordID FROM MetricRecord WHERE NodeID = @nodeID ORDER BY RecordDate DESC);
 			IF @recordIDCutoff IS NOT NULL
 			BEGIN
-				DELETE FROM MetricPair WHERE RecordID IN (
-				SELECT RecordID FROM MetricPair as mp
+				DELETE FROM MetricPair 
+				FROM MetricPair as mp
 				JOIN MetricRecord as mr ON mp.RecordID = mr.RecordID
-				WHERE mr.RecordID < @recordIDCutoff AND mr.NodeID = @nodeID);
+				WHERE mr.RecordID < @recordIDCutoff AND mr.NodeID = @nodeID;
 
 				DELETE FROM MetricRecord
 				WHERE RecordID < @recordIDCutoff AND NodeID = @nodeID;
