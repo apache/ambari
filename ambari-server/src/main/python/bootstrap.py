@@ -543,7 +543,7 @@ class Bootstrap(threading.Thread):
     """
     self.host_log.write("Automatic Agent registration timed out (timeout = {0} seconds). " \
                         "Check your network connectivity and retry registration," \
-                        " or use manual agent registration.").format(HOST_BOOTSTRAP_TIMEOUT)
+                        " or use manual agent registration.".format(HOST_BOOTSTRAP_TIMEOUT))
     self.createDoneFile(199)
 
 
