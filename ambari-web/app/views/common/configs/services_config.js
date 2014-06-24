@@ -489,6 +489,9 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
       header: "Add Property",
       primary: 'Add',
       secondary: 'Cancel',
+      didInsertElement: function(){
+        this.$('input').focus();
+      },
       onPrimary: function () {
         serviceConfigObj.observeAddPropertyValue();
         /**

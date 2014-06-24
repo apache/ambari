@@ -413,6 +413,7 @@ App.ManageConfigGroupsController = Em.Controller.extend({
       warningMessage: '',
       didInsertElement: function(){
         this.validate();
+        this.$('input').focus();
       },
       validate: function () {
         var warningMessage = '';
