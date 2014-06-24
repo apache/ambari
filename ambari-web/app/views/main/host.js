@@ -158,6 +158,7 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
     this.addObserver('selectAllHosts', this, this.toggleAllHosts);
     this.set('controller.isCountersUpdating', true);
     this.get('controller').updateStatusCounters();
+    this.addObserver('filteringComplete', this, this.overlayObserver);
   },
 
   /**
@@ -247,24 +248,26 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
   },
 
   /**
-   * Show spinner when filter/sorting request is processed
+   * Show spinner when filter/sorting request is in processing
    * @method overlayObserver
    */
   overlayObserver: function() {
+    var $tbody = this.$('tbody'),
+      $overlay = this.$('.hosts-overlay'),
+      $spinner = $($overlay).find('.spinner');
     if (!this.get('filteringComplete')) {
-      var $tbody = this.$('tbody');
       if (!$tbody) return;
       var tbodyPos =  $tbody.position();
       if (!tbodyPos) return;
-
-      this.$('.hosts-overlay').css({
-        top: tbodyPos.top,
-        left: tbodyPos.left,
-        width: $tbody.width(),
-        height: $tbody.height()
+      $spinner.css('display', 'block');
+      $overlay.css({
+        top: tbodyPos.top + 1,
+        left: tbodyPos.left + 1,
+        width: $tbody.width() - 1,
+        height: $tbody.height() - 1
       });
     }
-  }.observes('filteringComplete'),
+  },
 
   /**
    * Clear selectedFilter
