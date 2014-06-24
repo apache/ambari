@@ -910,16 +910,21 @@ App.WizardStep3Controller = Em.Controller.extend({
             return;
           }
         }
+        var targetHostName = Em.get(task, "Tasks.host_name");
+        var relatedHostNames = Em.get(task, "Tasks.structured_out.host_resolution_check.failures") ? Em.get(task, "Tasks.structured_out.host_resolution_check.failures").mapProperty('host') : [];
+        var contextMessage = Em.I18n.t('installer.step3.hostWarningsPopup.resolution.validation.context').format(targetHostName, relatedHostNames.join(', '));
         if (!hostInfo) {
           hostInfo = {
             name: name,
-            hosts: [task.Tasks.host_name],
+            hosts: [contextMessage],
+            hostsNames: [targetHostName],
             onSingleHost: true
           };
           this.get("hostCheckWarnings").push(hostInfo);
         } else {
-          if (!hostInfo.hosts.contains(task.Tasks.host_name)) {
-            hostInfo.hosts.push(task.Tasks.host_name);
+          if (!hostInfo.hostsNames.contains(targetHostName)) {
+            hostInfo.hosts.push(contextMessage);
+            hostInfo.hostsNames.push(targetHostName);
           }
         }
       } else {

@@ -317,7 +317,7 @@ App.WizardStep3HostWarningPopupBody = Em.View.extend({
     }
     if (content.findProperty('category', 'hostNameResolution').warnings.length) {
       newContent += Em.I18n.t('installer.step3.hostWarningsPopup.report.hostNameResolution');
-      newContent += content.findProperty('category', 'hostNameResolution').warnings[0].hosts.join(' ');
+      newContent += content.findProperty('category', 'hostNameResolution').warnings[0].hosts.join('<br>');
     }
     if (content.findProperty('category', 'firewall').warnings.length) {
       newContent += Em.I18n.t('installer.step3.hostWarningsPopup.report.firewall');
@@ -435,7 +435,7 @@ App.WizardStep3HostWarningPopupBody = Em.View.extend({
       });
     }
     if (hostResolutionWarnings && hostResolutionWarnings.length) {
-      hostResolutionWarnings[0].hosts.forEach(function (_hostName) {
+      hostResolutionWarnings[0].hostsNames.forEach(function (_hostName) {
         if (!hostNameMap[_hostName]) {
           hostNameMap[_hostName] = true;
         }
