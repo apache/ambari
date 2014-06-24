@@ -142,8 +142,8 @@ public class ClusterControllerImpl implements ClusterController {
                                          Request request,
                                          Predicate predicate) throws SystemException {
     Set<Resource> keepers = resources;
-
-    for (PropertyProvider propertyProvider : propertyProviders.get(type)) {
+    List<PropertyProvider> propertyProviders = ensurePropertyProviders(type);
+    for (PropertyProvider propertyProvider : propertyProviders) {
       if (providesRequestProperties(propertyProvider, request, predicate)) {
         keepers = propertyProvider.populateResources(keepers, request, predicate);
       }

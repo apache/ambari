@@ -857,15 +857,19 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
             r.setMaintenanceState(maintenanceStateHelper.getEffectiveState(sch, host).name());
             response.add(r);
           } catch (ServiceComponentHostNotFoundException e) {
-            if (request.getServiceName() != null && request.getComponentName() != null) {
-              LOG.error("ServiceComponentHost not found ", e);
+            if (request.getServiceName() == null || request.getComponentName() == null) {
+              // Ignore the exception if either the service name or component name are not specified.
+              // This is an artifact of how we get host_components and can happen in the case where
+              // we get all host_components for a host, for example.
+              LOG.debug("Ignoring not specified host_component ", e);
+
+            } else {
+              // Otherwise rethrow the exception and let the caller decide if it's an error condition.
+              // Logging the exception as debug since this does not necessarily indicate an error
+              // condition.
+              LOG.debug("ServiceComponentHost not found ", e);
               throw new ServiceComponentHostNotFoundException(cluster.getClusterName(),
                   request.getServiceName(), request.getComponentName(), request.getHostname());
-            } else {
-              LOG.debug("Ignoring not specified host_component ", e);
-              // ignore this since host_component was not specified
-              // this is an artifact of how we get host_components and can happen
-              // in case where we get all host_components for a host
             }
           }
         } else {
