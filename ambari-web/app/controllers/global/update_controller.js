@@ -116,7 +116,7 @@ App.UpdateController = Em.Controller.extend({
   updateAll: function () {
     if (this.get('isWorking')) {
       App.updater.run(this, 'updateServices', 'isWorking');
-      App.updater.run(this, 'updateHostConditionally', 'isWorking');
+      App.updater.run(this, 'updateHost', 'isWorking');
       App.updater.run(this, 'updateServiceMetricConditionally', 'isWorking', App.componentsUpdateInterval);
       App.updater.run(this, 'updateComponentsState', 'isWorking', App.componentsUpdateInterval);
       App.updater.run(this, 'graphsUpdate', 'isWorking');
@@ -125,21 +125,6 @@ App.UpdateController = Em.Controller.extend({
       }
     }
   }.observes('isWorking'),
-  /**
-   * Update hosts depending on which page is open
-   * Make a call only on follow pages:
-   * /main/hosts
-   * /main/hosts/*
-   * /main/charts/heatmap
-   * @param callback
-   */
-  updateHostConditionally: function (callback) {
-    if (/\/main\/(hosts|charts\/heatmap).*/.test(this.get('location'))) {
-      this.updateHost(callback);
-    } else {
-      callback();
-    }
-  },
   /**
    * Update service metrics depending on which page is open
    * Make a call only on follow pages:
@@ -158,10 +143,18 @@ App.UpdateController = Em.Controller.extend({
   updateHost: function (callback, error) {
     var testUrl = App.get('isHadoop2Stack') ? '/data/hosts/HDP2/hosts.json' : '/data/hosts/hosts.json';
     var realUrl = '/hosts?<parameters>fields=Hosts/host_name,Hosts/maintenance_state,Hosts/public_host_name,Hosts/cpu_count,Hosts/ph_cpu_count,Hosts/total_mem,' +
-        'Hosts/host_status,Hosts/last_heartbeat_time,Hosts/os_arch,Hosts/os_type,Hosts/ip,host_components/HostRoles/state,host_components/HostRoles/maintenance_state,' +
-        'host_components/HostRoles/stale_configs,host_components/HostRoles/service_name,metrics/disk,metrics/load/load_one,metrics/cpu/cpu_system,metrics/cpu/cpu_user,' +
-        'metrics/memory/mem_total,metrics/memory/mem_free,alerts/summary&minimal_response=true';
-
+      'Hosts/host_status,Hosts/last_heartbeat_time,Hosts/os_arch,Hosts/os_type,Hosts/ip,host_components/HostRoles/state,host_components/HostRoles/maintenance_state,' +
+      'host_components/HostRoles/stale_configs,host_components/HostRoles/service_name,metrics/disk,metrics/load/load_one,metrics/cpu/cpu_system,metrics/cpu/cpu_user,' +
+      'metrics/memory/mem_total,metrics/memory/mem_free,alerts/summary&minimal_response=true';
+    if (App.router.get('currentState.name') == 'index' && App.router.get('currentState.parentState.name') == 'hosts') {
+      App.updater.updateInterval('updateHost', App.get('contentUpdateInterval'));
+    } else if(App.router.get('currentState.name') == 'summary' && App.router.get('currentState.parentState.name') == 'hostDetails') {
+      realUrl = realUrl.replace('<parameters>', 'Hosts/host_name=' + App.router.get('location.lastSetURL').match(/\/hosts\/(.*)\/summary/)[1] + '&');
+      App.updater.updateInterval('updateHost', App.get('componentsUpdateInterval'));
+    } else {
+      callback();
+      return;
+    }
     this.get('queryParams').set('Hosts', App.router.get('mainHostController').getQueryParameters());
     var hostsUrl = this.getComplexUrl(testUrl, realUrl, this.get('queryParams.Hosts'));
     App.HttpClient.get(hostsUrl, App.hostsMapper, {
