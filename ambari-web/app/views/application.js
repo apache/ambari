@@ -28,7 +28,7 @@ App.ApplicationView = Em.View.extend({
     $(document).keydown(function(event){
       if (event.which == 13 || event.keyCode == 13 ) {
         var primaryButton = $(document).find('#modal > .modal-footer > .btn-success').last();
-        if (primaryButton.length > 0 && primaryButton.attr('disabled') != 'disabled') {
+        if ((!$("*:focus").is("textarea")) && primaryButton.length > 0 && primaryButton.attr('disabled') != 'disabled') {
           event.preventDefault();
           event.stopPropagation();
           primaryButton.click();
