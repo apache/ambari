@@ -1292,12 +1292,21 @@ App.config = Em.Object.create({
       }.property('selectedConfigGroup'),
       onPrimary: function () {
         var newGroup = this.get('selectedConfigGroup');
-        selectedGroup.get('hosts').removeObject(hostName);
+        if (selectedGroup.get('isDefault')) {
+          selectedGroup.set('hosts.length', selectedGroup.get('hosts.length') - 1)
+        } else {
+          selectedGroup.get('hosts').removeObject(hostName);
+        }
         if (!selectedGroup.get('isDefault')) {
           self.updateConfigurationGroup(selectedGroup, function () {
           }, Em.K);
         }
-        newGroup.get('hosts').pushObject(hostName);
+
+        if (newGroup.get('isDefault')) {
+          newGroup.set('hosts.length', newGroup.get('hosts.length') + 1)
+        } else {
+          newGroup.get('hosts').pushObject(hostName);
+        }
         callback(newGroup);
         if (!newGroup.get('isDefault')) {
           self.updateConfigurationGroup(newGroup, function () {

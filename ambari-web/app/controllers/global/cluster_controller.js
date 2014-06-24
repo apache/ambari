@@ -233,32 +233,12 @@ App.ClusterController = Em.Controller.extend({
   }.property('App.router.updateController.isUpdated', 'dataLoadList.serviceMetrics'),
 
   /**
-   * Get all host names. We have many places where we need it.
-   **/
-  loadAllHostNames: function () {
-    App.ajax.send({
-      sender: this,
-      name: 'cluster.fields',
-      data: {
-        fields: ['hosts'],
-        clusterName: App.get('clusterName')
-      },
-      success: 'loadAllHostNamesSuccess'
-    });
-  },
-
-  loadAllHostNamesSuccess: function(response) {
-    App.cache['HostsList'] = response.hosts.mapProperty('Hosts.host_name');
-  },
-  /**
-   *
    *  load all data and update load status
    */
   loadClusterData: function () {
     var self = this;
     this.loadAmbariProperties();
     this.loadAmbariViews();
-    this.loadAllHostNames();
     if (!this.get('clusterName')) {
       return;
     }
