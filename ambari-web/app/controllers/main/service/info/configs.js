@@ -337,7 +337,12 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
 
     var allConfigs = this.get('globalConfigs').concat(configs);
     //STEP 9: Load and add overriden configs of group
-    App.config.loadServiceConfigGroupOverrides(allConfigs, this.loadedGroupToOverrideSiteToTagMap, this.get('configGroups'));
+    App.config.loadServiceConfigGroupOverrides(allConfigs, this.loadedGroupToOverrideSiteToTagMap, this.get('configGroups'), this.onLoadOverrides, this);
+  }.observes('selectedConfigGroup'),
+
+  onLoadOverrides: function (allConfigs) {
+    var serviceName = this.get('content.serviceName');
+    var advancedConfigs = this.get('advancedConfigs');
     //STEP 10: creation of serviceConfig object which contains configs for current service
     var serviceConfig = App.config.createServiceConfig(serviceName);
     //STEP11: Make SecondaryNameNode invisible on enabling namenode HA
@@ -367,8 +372,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       this.set('hash', this.getHash());
       this.set('isInit', false);
     }
-
-  }.observes('selectedConfigGroup'),
+  },
 
   /**
    * Changes format from Object to Array

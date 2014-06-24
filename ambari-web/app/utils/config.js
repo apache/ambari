@@ -839,9 +839,9 @@ App.config = Em.Object.create({
 
   /**
    * Get properties from server by type and tag with properties, that belong to group
-   * push them to common {serviceConfigs}
+   * push them to common {serviceConfigs} and call callback function
    */
-  loadServiceConfigGroupOverrides: function (serviceConfigs, loadedGroupToOverrideSiteToTagMap, configGroups) {
+  loadServiceConfigGroupOverrides: function (serviceConfigs, loadedGroupToOverrideSiteToTagMap, configGroups, callback, sender) {
     var configKeyToConfigMap = {};
     serviceConfigs.forEach(function (item) {
       configKeyToConfigMap[item.name] = item;
@@ -864,10 +864,15 @@ App.config = Em.Object.create({
         data: {
           params: params,
           configKeyToConfigMap: configKeyToConfigMap,
-          typeTagToGroupMap: typeTagToGroupMap
+          typeTagToGroupMap: typeTagToGroupMap,
+          callback: callback,
+          sender: sender,
+          serviceConfigs: serviceConfigs
         },
         success: 'loadServiceConfigGroupOverridesSuccess'
       });
+    } else {
+      callback.call(sender, serviceConfigs);
     }
   },
   loadServiceConfigGroupOverridesSuccess: function (data, opt, params) {
@@ -906,6 +911,7 @@ App.config = Em.Object.create({
         }
       }
     });
+    params.callback.call(params.sender, params.serviceConfigs);
   },
 
   /**
