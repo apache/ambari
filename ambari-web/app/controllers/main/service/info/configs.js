@@ -224,9 +224,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     var serviceName = this.get('content.serviceName');
     console.debug("loadServiceConfigs(): data=", data);
     // Create default configuration group
-    var defaultConfigGroupHosts = App.cache['HostsList'];
     var selectedConfigGroup;
     var siteToTagMap = {};
+    var hostsLength = App.router.get('mainHostController.hostsCountMap.TOTAL');
     serviceConfigsDef.sites.forEach(function(siteName){
       if(data.Clusters.desired_configs[siteName]){
         siteToTagMap[siteName] = data.Clusters.desired_configs[siteName].tag;
@@ -253,9 +253,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
               hosts: groupHosts,
               configSiteTags: []
             });
-            groupHosts.forEach(function (host) {
-              defaultConfigGroupHosts = defaultConfigGroupHosts.without(host);
-            }, this);
+            hostsLength -= groupHosts.length;
             item.desired_configs.forEach(function (config) {
               newConfigGroup.configSiteTags.push(App.ConfigSiteTag.create({
                 site: config.type,
@@ -276,7 +274,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       name: App.Service.DisplayNames[serviceName] + " Default",
       description: "Default cluster level " + serviceName + " configuration",
       isDefault: true,
-      hosts: defaultConfigGroupHosts,
+      hosts: {
+        length: hostsLength
+      },
       parentConfigGroup: null,
       service: this.get('content'),
       serviceName: serviceName,
