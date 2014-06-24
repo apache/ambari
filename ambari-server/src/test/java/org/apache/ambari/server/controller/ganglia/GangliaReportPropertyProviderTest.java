@@ -86,6 +86,7 @@ public class GangliaReportPropertyProviderTest {
     Resource resource = new ResourceImpl(Resource.Type.Cluster);
 
     resource.setProperty(CLUSTER_NAME_PROPERTY_ID, "c1");
+    resource.setPopulateRequiredFlag(true);
 
     // only ask for one property
     Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();

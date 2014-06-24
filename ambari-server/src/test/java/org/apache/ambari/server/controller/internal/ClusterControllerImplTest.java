@@ -138,7 +138,7 @@ public class ClusterControllerImplTest {
 
     // get the first two
     PageRequest pageRequest = new PageRequestImpl(PageRequest.StartingPoint.Beginning, 2, 0, null, null);
-    PageResponse pageResponse = controller.getResources(Resource.Type.Host, request, null, pageRequest, null);
+    PageResponse pageResponse = controller.getPageResponse(Resource.Type.Host, request, null, pageRequest, null);
 
     Iterable<Resource> iterable = pageResponse.getIterable();
     List<Resource> list = new LinkedList<Resource>();
@@ -156,7 +156,7 @@ public class ClusterControllerImplTest {
 
     // get the first three
     pageRequest = new PageRequestImpl(PageRequest.StartingPoint.Beginning, 3, 0, null, null);
-    pageResponse = controller.getResources(Resource.Type.Host, request, null, pageRequest, null);
+    pageResponse = controller.getPageResponse(Resource.Type.Host, request, null, pageRequest, null);
 
     iterable = pageResponse.getIterable();
     list = new LinkedList<Resource>();
@@ -193,7 +193,7 @@ public class ClusterControllerImplTest {
       Collections.singletonList(new SortRequestProperty("Hosts/host_name", SortRequest.Order.ASC));
     SortRequest sortRequest = new SortRequestImpl(sortRequestProperties);
 
-    Iterable<Resource> iterable = controller.getResources(Resource.Type.Host,
+    Iterable<Resource> iterable = controller.getPageResponse(Resource.Type.Host,
       request, null, null, sortRequest).getIterable();
 
     List<Resource> list = new LinkedList<Resource>();
@@ -213,7 +213,7 @@ public class ClusterControllerImplTest {
       new SortRequestProperty("Hosts/host_name", SortRequest.Order.DESC));
     sortRequest = new SortRequestImpl(sortRequestProperties);
 
-    iterable = controller.getResources(Resource.Type.Host,
+    iterable = controller.getPageResponse(Resource.Type.Host,
       request, null, null, sortRequest).getIterable();
 
     list = new LinkedList<Resource>();
@@ -248,7 +248,7 @@ public class ClusterControllerImplTest {
       }};
     SortRequest sortRequest = new SortRequestImpl(sortRequestProperties);
 
-    Iterable<Resource> iterable = controller.getResources(Resource.Type.Host,
+    Iterable<Resource> iterable = controller.getPageResponse(Resource.Type.Host,
       request, null, null, sortRequest).getIterable();
 
     List<Resource> list = new LinkedList<Resource>();
@@ -274,7 +274,7 @@ public class ClusterControllerImplTest {
 
     // get the middle two (1 - 2)
     PageRequest pageRequest = new PageRequestImpl(PageRequest.StartingPoint.OffsetStart, 2, 1, null, null);
-    PageResponse pageResponse = controller.getResources(Resource.Type.Host, request, null, pageRequest, null);
+    PageResponse pageResponse = controller.getPageResponse(Resource.Type.Host, request, null, pageRequest, null);
 
     Assert.assertEquals(1, pageResponse.getOffset());
     Assert.assertEquals("host:0", pageResponse.getPreviousResource().getPropertyValue(PropertyHelper.getPropertyId("Hosts", "host_name")));
@@ -296,7 +296,7 @@ public class ClusterControllerImplTest {
 
     // get the last three (0 - 2)
     pageRequest = new PageRequestImpl(PageRequest.StartingPoint.OffsetStart, 3, 0, null, null);
-    pageResponse = controller.getResources(Resource.Type.Host, request, null, pageRequest, null);
+    pageResponse = controller.getPageResponse(Resource.Type.Host, request, null, pageRequest, null);
 
     Assert.assertEquals(0, pageResponse.getOffset());
     Assert.assertNull(pageResponse.getPreviousResource());
@@ -329,7 +329,7 @@ public class ClusterControllerImplTest {
 
     // get the last two
     PageRequest pageRequest = new PageRequestImpl(PageRequest.StartingPoint.End, 2, 0, null, null);
-    PageResponse pageResponse = controller.getResources(Resource.Type.Host, request, null, pageRequest, null);
+    PageResponse pageResponse = controller.getPageResponse(Resource.Type.Host, request, null, pageRequest, null);
 
     Iterable<Resource> iterable = pageResponse.getIterable();
     List<Resource> list = new LinkedList<Resource>();
@@ -347,7 +347,7 @@ public class ClusterControllerImplTest {
 
     // get the last three
     pageRequest = new PageRequestImpl(PageRequest.StartingPoint.End, 3, 0, null, null);
-    pageResponse = controller.getResources(Resource.Type.Host, request, null, pageRequest, null);
+    pageResponse = controller.getPageResponse(Resource.Type.Host, request, null, pageRequest, null);
 
     iterable = pageResponse.getIterable();
     list = new LinkedList<Resource>();
@@ -376,7 +376,7 @@ public class ClusterControllerImplTest {
 
     // get the middle two (1 - 2)
     PageRequest pageRequest = new PageRequestImpl(PageRequest.StartingPoint.OffsetEnd, 2, 2, null, null);
-    PageResponse pageResponse = controller.getResources(Resource.Type.Host, request, null, pageRequest, null);
+    PageResponse pageResponse = controller.getPageResponse(Resource.Type.Host, request, null, pageRequest, null);
 
     Assert.assertEquals(1, pageResponse.getOffset());
     Assert.assertEquals("host:0", pageResponse.getPreviousResource().getPropertyValue(PropertyHelper.getPropertyId("Hosts", "host_name")));
@@ -398,7 +398,7 @@ public class ClusterControllerImplTest {
 
     // get the last three (0 - 2)
     pageRequest = new PageRequestImpl(PageRequest.StartingPoint.OffsetEnd, 3, 2, null, null);
-    pageResponse = controller.getResources(Resource.Type.Host, request, null, pageRequest, null);
+    pageResponse = controller.getPageResponse(Resource.Type.Host, request, null, pageRequest, null);
 
     Assert.assertEquals(0, pageResponse.getOffset());
     Assert.assertNull(pageResponse.getPreviousResource());
@@ -556,7 +556,7 @@ public class ClusterControllerImplTest {
     PageRequest pageRequest =
       new PageRequestImpl(PageRequest.StartingPoint.Beginning, 1, 0, null, null);
     PageResponse pageResponse =
-      controller.getResources(Resource.Type.Host, request, predicate, pageRequest, sortRequest);
+      controller.getPageResponse(Resource.Type.Host, request, predicate, pageRequest, sortRequest);
 
     Iterable<Resource> iterable = pageResponse.getIterable();
     List<Resource> list = new LinkedList<Resource>();
@@ -574,7 +574,7 @@ public class ClusterControllerImplTest {
 
     pageRequest =
       new PageRequestImpl(PageRequest.StartingPoint.OffsetStart, 1, 1, null, null);
-    pageResponse = controller.getResources(
+    pageResponse = controller.getPageResponse(
       Resource.Type.Host, request, predicate, pageRequest, sortRequest);
 
     iterable = pageResponse.getIterable();

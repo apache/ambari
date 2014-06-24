@@ -33,9 +33,11 @@ public interface ClusterController extends SchemaFactory {
    * Get the resources of the given type filtered by the given request and
    * predicate objects.
    *
-   * @param type      the type of the requested resources
-   * @param request   the request object which defines the desired set of properties
-   * @param predicate the predicate object which filters which resources are returned
+   * @param type        the type of the requested resources
+   * @param request     the request object which defines the desired set of properties
+   * @param predicate   the predicate object which filters which resources are returned
+   * @param pageRequest the page request for a paginated response
+   * @param sortRequest the sortRequest object which defines if the resources need to be sorted
    *
    * @return an iterable object of the requested resources
    *
@@ -45,7 +47,8 @@ public interface ClusterController extends SchemaFactory {
    * @throws NoSuchResourceException no matching resource(s) found
    * @throws NoSuchParentResourceException a specified parent resource doesn't exist
    */
-  Set<Resource> getResources(Resource.Type type, Request request, Predicate predicate)
+  Set<Resource> getResources(Resource.Type type, Request request,
+      Predicate predicate, PageRequest pageRequest, SortRequest sortRequest)
       throws UnsupportedPropertyException,
       NoSuchResourceException,
       NoSuchParentResourceException,
@@ -78,6 +81,8 @@ public interface ClusterController extends SchemaFactory {
    * @param providerResources  set of populated Resources
    * @param request            the request
    * @param predicate          the predicate object which filters which resources are returned
+   * @param pageRequest        the page request for a paginated response
+   * @param sortRequest        the sortRequest object which defines if the resources need to be sorted
    *
    * @return a page response representing the requested page of resources
    *

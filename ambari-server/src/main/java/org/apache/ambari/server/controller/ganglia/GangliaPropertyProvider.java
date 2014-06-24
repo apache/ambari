@@ -205,47 +205,49 @@ public abstract class GangliaPropertyProvider extends AbstractPropertyProvider {
         new HashMap<String, Map<TemporalInfo, RRDRequest>>();
 
     for (Resource resource : resources) {
-      String clusterName = (String) resource.getPropertyValue(clusterNamePropertyId);
-      Map<TemporalInfo, RRDRequest> requests = requestMap.get(clusterName);
-      if (requests == null) {
-        requests = new HashMap<TemporalInfo, RRDRequest>();
-        requestMap.put(clusterName, requests);
-      }
+      if (resource.getPopulateRequiredFlag()) {
+        String clusterName = (String) resource.getPropertyValue(clusterNamePropertyId);
+        Map<TemporalInfo, RRDRequest> requests = requestMap.get(clusterName);
+        if (requests == null) {
+          requests = new HashMap<TemporalInfo, RRDRequest>();
+          requestMap.put(clusterName, requests);
+        }
 
-      Set<String> gangliaClusterNames = getGangliaClusterNames(resource, clusterName);
+        Set<String> gangliaClusterNames = getGangliaClusterNames(resource, clusterName);
 
-      for (String gangliaClusterName : gangliaClusterNames) {
-        ResourceKey key =
+        for (String gangliaClusterName : gangliaClusterNames) {
+          ResourceKey key =
             new ResourceKey(getHostName(resource), gangliaClusterName);
 
-        for (String id : ids) {
-          Map<String, PropertyInfo> propertyInfoMap = new HashMap<String, PropertyInfo>();
+          for (String id : ids) {
+            Map<String, PropertyInfo> propertyInfoMap = new HashMap<String, PropertyInfo>();
 
-          Map<String, PropertyInfo> componentMetricMap =
-            getComponentMetrics().get(getComponentName(resource));
+            Map<String, PropertyInfo> componentMetricMap =
+              getComponentMetrics().get(getComponentName(resource));
 
-          // Not all components have metrics
-          if (componentMetricMap != null &&
+            // Not all components have metrics
+            if (componentMetricMap != null &&
               !componentMetricMap.containsKey(id)) {
-            updateComponentMetricMap(componentMetricMap, id);
-          }
+              updateComponentMetricMap(componentMetricMap, id);
+            }
 
-          getPropertyInfoMap(getComponentName(resource), id, propertyInfoMap);
+            getPropertyInfoMap(getComponentName(resource), id, propertyInfoMap);
 
-          for (Map.Entry<String, PropertyInfo> entry : propertyInfoMap.entrySet()) {
-            String propertyId = entry.getKey();
-            PropertyInfo propertyInfo = entry.getValue();
+            for (Map.Entry<String, PropertyInfo> entry : propertyInfoMap.entrySet()) {
+              String propertyId = entry.getKey();
+              PropertyInfo propertyInfo = entry.getValue();
 
-            TemporalInfo temporalInfo = request.getTemporalInfo(id);
+              TemporalInfo temporalInfo = request.getTemporalInfo(id);
 
-            if ((temporalInfo == null && propertyInfo.isPointInTime()) || (temporalInfo != null && propertyInfo.isTemporal())) {
-              RRDRequest rrdRequest = requests.get(temporalInfo);
-              if (rrdRequest == null) {
-                rrdRequest = new RRDRequest(clusterName, temporalInfo);
-                requests.put(temporalInfo, rrdRequest);
+              if ((temporalInfo == null && propertyInfo.isPointInTime()) || (temporalInfo != null && propertyInfo.isTemporal())) {
+                RRDRequest rrdRequest = requests.get(temporalInfo);
+                if (rrdRequest == null) {
+                  rrdRequest = new RRDRequest(clusterName, temporalInfo);
+                  requests.put(temporalInfo, rrdRequest);
+                }
+                rrdRequest.putResource(key, resource);
+                rrdRequest.putPropertyId(propertyInfo.getPropertyId(), propertyId);
               }
-              rrdRequest.putResource(key, resource);              
-              rrdRequest.putPropertyId(propertyInfo.getPropertyId(), propertyId);
             }
           }
         }
@@ -502,7 +504,7 @@ public abstract class GangliaPropertyProvider extends AbstractPropertyProvider {
 
           while(val!=null && !"[~EOM]".equals(val)) {
             if (val.startsWith("[~r]")) {
-              Integer repeat = Integer.valueOf(val.substring(4)) - 1;
+              int repeat = Integer.parseInt(val.substring(4)) - 1;
               for (int i = 0; i < repeat; ++i) {
                 if (! "[~n]".equals(lastVal)) {
                   GangliaMetric.TemporalMetric tm = new GangliaMetric.TemporalMetric(lastVal, time);

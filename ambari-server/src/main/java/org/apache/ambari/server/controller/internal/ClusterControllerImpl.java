@@ -110,7 +110,8 @@ public class ClusterControllerImpl implements ClusterController {
   // ----- ClusterController -------------------------------------------------
 
   @Override
-  public Set<Resource> getResources(Type type, Request request, Predicate predicate)
+  public Set<Resource> getResources(Type type, Request request,
+      Predicate predicate, PageRequest pageRequest, SortRequest sortRequest)
       throws UnsupportedPropertyException, NoSuchResourceException,
              NoSuchParentResourceException, SystemException {
     Set<Resource> resources;
@@ -132,6 +133,17 @@ public class ClusterControllerImpl implements ClusterController {
 
       // get the resources
       resources = provider.getResources(request, predicate);
+      Iterable<Resource> resourceIterable = resources;
+
+      //populate only resources in pageRequest
+      if ((pageRequest != null) || (sortRequest != null)) {
+        PageResponse page = getPage(type, resources, request, predicate, pageRequest, sortRequest);
+        resourceIterable = page.getIterable();
+      }
+
+      for (Resource resource: resourceIterable) {
+        resource.setPopulateRequiredFlag(true);
+      }
     }
     return resources;
   }
@@ -360,7 +372,7 @@ public class ClusterControllerImpl implements ClusterController {
       SystemException,
       NoSuchParentResourceException,
       NoSuchResourceException {
-    return getResources(type, request, predicate, null, null).getIterable();
+    return getPageResponse(type, request, predicate, null, null).getIterable();
   }
 
   /**
@@ -371,6 +383,7 @@ public class ClusterControllerImpl implements ClusterController {
    * @param request      the request
    * @param predicate    the predicate object which filters which resources are returned
    * @param pageRequest  the page request for a paginated response
+   * @param sortRequest  the sortRequest object which defines if the resources need to be sorted
    *
    * @return a page response representing the requested page of resources
    *
@@ -380,14 +393,15 @@ public class ClusterControllerImpl implements ClusterController {
    * @throws NoSuchResourceException no matching resource(s) found
    * @throws NoSuchParentResourceException a specified parent resource doesn't exist
    */
-  protected  PageResponse getResources(Type type, Request request, Predicate predicate,
-                                       PageRequest pageRequest, SortRequest sortRequest)
+  protected  PageResponse getPageResponse(Type type, Request request, Predicate predicate,
+                                          PageRequest pageRequest, SortRequest sortRequest)
       throws UnsupportedPropertyException,
       SystemException,
       NoSuchResourceException,
       NoSuchParentResourceException {
 
-    Set<Resource> providerResources = getResources(type, request, predicate);
+    Set<Resource> providerResources =
+      getResources(type, request, predicate, pageRequest, sortRequest);
     populateResources(type, providerResources, request, predicate);
     return getPage(type, providerResources, request, predicate, pageRequest, sortRequest);
   }

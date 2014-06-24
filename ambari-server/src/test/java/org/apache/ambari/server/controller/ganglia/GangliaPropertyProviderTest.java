@@ -115,6 +115,7 @@ public class GangliaPropertyProviderTest {
 
     resource.setProperty(HOST_NAME_PROPERTY_ID, "domU-12-31-39-0E-34-E1.compute-1.internal");
     resource.setProperty(COMPONENT_NAME_PROPERTY_ID, "DATANODE");
+    resource.setPopulateRequiredFlag(true);
 
     // only ask for one property
     Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
@@ -136,6 +137,7 @@ public class GangliaPropertyProviderTest {
     resource = new ResourceImpl(Resource.Type.HostComponent);
     resource.setProperty(HOST_NAME_PROPERTY_ID, "domU-12-31-39-0E-34-E1.compute-1.internal");
     resource.setProperty(COMPONENT_NAME_PROPERTY_ID, "TASKTRACKER");
+    resource.setPopulateRequiredFlag(true);
 
     // only ask for one property
     temporalInfoMap = new HashMap<String, TemporalInfo>();
@@ -228,6 +230,7 @@ public class GangliaPropertyProviderTest {
 
     resource.setProperty(HOST_NAME_PROPERTY_ID, "domU-12-31-39-0E-34-E1.compute-1.internal");
     resource.setProperty(COMPONENT_NAME_PROPERTY_ID, "DATANODE");
+    resource.setPopulateRequiredFlag(true);
 
     // only ask for one property
     Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
@@ -266,6 +269,7 @@ public class GangliaPropertyProviderTest {
     // host
     Resource resource = new ResourceImpl(Resource.Type.Host);
     resource.setProperty(HOST_NAME_PROPERTY_ID, "corp-hadoopda05.client.ext");
+    resource.setPopulateRequiredFlag(true);
 
     // only ask for one property
     Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
@@ -301,13 +305,16 @@ public class GangliaPropertyProviderTest {
     // host
     Resource resource = new ResourceImpl(Resource.Type.Host);
     resource.setProperty(HOST_NAME_PROPERTY_ID, "domU-12-31-39-0E-34-E1.compute-1.internal");
+    resource.setPopulateRequiredFlag(true);
     resources.add(resource);
 
     resource = new ResourceImpl(Resource.Type.Host);
     resource.setProperty(HOST_NAME_PROPERTY_ID, "domU-12-31-39-0E-34-E2.compute-1.internal");
+    resource.setPopulateRequiredFlag(true);
     resources.add(resource);
 
     resource = new ResourceImpl(Resource.Type.Host);
+    resource.setPopulateRequiredFlag(true);
     resource.setProperty(HOST_NAME_PROPERTY_ID, "domU-12-31-39-0E-34-E3.compute-1.internal");
     resources.add(resource);
 
@@ -361,6 +368,7 @@ public class GangliaPropertyProviderTest {
     for (int i = 0; i < 150; ++i) {
       Resource resource = new ResourceImpl(Resource.Type.Host);
       resource.setProperty(HOST_NAME_PROPERTY_ID, "host" + i);
+      resource.setPopulateRequiredFlag(true);
       resources.add(resource);
       
       if (hostsList.length() != 0)
@@ -419,6 +427,7 @@ public class GangliaPropertyProviderTest {
 
     resource.setProperty(HOST_NAME_PROPERTY_ID, "ip-10-39-113-33.ec2.internal");
     resource.setProperty(COMPONENT_NAME_PROPERTY_ID, "FLUME_HANDLER");
+    resource.setPopulateRequiredFlag(true);
 
     // only ask for one property
     Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
@@ -477,6 +486,7 @@ public class GangliaPropertyProviderTest {
 
     resource.setProperty(HOST_NAME_PROPERTY_ID, "ip-10-39-113-33.ec2.internal");
     resource.setProperty(COMPONENT_NAME_PROPERTY_ID, "FLUME_HANDLER");
+    resource.setPopulateRequiredFlag(true);
 
     // only ask for one property
     Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
@@ -539,6 +549,7 @@ public class GangliaPropertyProviderTest {
 
     resource.setProperty(HOST_NAME_PROPERTY_ID, "ip-10-39-113-33.ec2.internal");
     resource.setProperty(COMPONENT_NAME_PROPERTY_ID, "FLUME_HANDLER");
+    resource.setPopulateRequiredFlag(true);
 
     Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
     Request  request = PropertyHelper.getReadRequest(Collections.<String>emptySet(), temporalInfoMap);
@@ -574,6 +585,7 @@ public class GangliaPropertyProviderTest {
 
     resource.setProperty(HOST_NAME_PROPERTY_ID, "ip-10-39-113-33.ec2.internal");
     resource.setProperty(COMPONENT_NAME_PROPERTY_ID, "FLUME_HANDLER");
+    resource.setPopulateRequiredFlag(true);
 
     // only ask for one property
     Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
@@ -632,6 +644,7 @@ public class GangliaPropertyProviderTest {
 
     resource.setProperty(HOST_NAME_PROPERTY_ID, "ip-10-39-113-33.ec2.internal");
     resource.setProperty(COMPONENT_NAME_PROPERTY_ID, "FLUME_HANDLER");
+    resource.setPopulateRequiredFlag(true);
 
     // only ask for one property
     Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
@@ -690,6 +703,7 @@ public class GangliaPropertyProviderTest {
 
     resource.setProperty(HOST_NAME_PROPERTY_ID, "ip-10-39-113-33.ec2.internal");
     resource.setProperty(COMPONENT_NAME_PROPERTY_ID, "FLUME_HANDLER");
+    resource.setPopulateRequiredFlag(true);
 
     // only ask for one property
     Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
@@ -749,6 +763,7 @@ public class GangliaPropertyProviderTest {
 
     resource.setProperty(HOST_NAME_PROPERTY_ID, "ip-10-39-113-33.ec2.internal");
     resource.setProperty(COMPONENT_NAME_PROPERTY_ID, "FLUME_HANDLER");
+    resource.setPopulateRequiredFlag(true);
 
     // only ask for one property
     Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();

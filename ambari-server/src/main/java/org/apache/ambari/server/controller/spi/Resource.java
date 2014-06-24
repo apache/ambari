@@ -67,6 +67,19 @@ public interface Resource {
    */
   public Object getPropertyValue(String id);
 
+  /**
+   * Get the populateRequiredFlag
+   *
+   * @return the resource populateRequiredFlag
+   */
+  public boolean getPopulateRequiredFlag();
+
+  /**
+   * Set a populateRequiredFlag on this resource.
+   *
+   * @param populateRequiredFlag
+   */
+  public void setPopulateRequiredFlag(boolean populateRequiredFlag);
 
   // ----- Enum : InternalType -----------------------------------------------
 

@@ -193,7 +193,9 @@ public class JMXPropertyProvider extends AbstractPropertyProvider {
     // In a large cluster we could have thousands of resources to populate here.
     // Distribute the work across multiple threads.
     for (Resource resource : resources) {
-      completionService.submit(getPopulateResourceCallable(resource, request, predicate));
+      if (resource.getPopulateRequiredFlag()) {
+        completionService.submit(getPopulateResourceCallable(resource, request, predicate));
+      }
     }
 
     Set<Resource> keepers = new HashSet<Resource>();

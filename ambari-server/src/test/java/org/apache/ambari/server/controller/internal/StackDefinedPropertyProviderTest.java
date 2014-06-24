@@ -26,12 +26,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Map.Entry;
 
-import org.apache.ambari.server.controller.ganglia.GangliaHostComponentPropertyProvider;
-import org.apache.ambari.server.controller.ganglia.GangliaPropertyProvider;
 import org.apache.ambari.server.controller.ganglia.GangliaPropertyProviderTest.TestGangliaHostProvider;
-import org.apache.ambari.server.controller.jmx.JMXPropertyProvider;
 import org.apache.ambari.server.controller.jmx.TestStreamProvider;
 import org.apache.ambari.server.controller.jmx.JMXPropertyProviderTest.TestJMXHostProvider;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -49,7 +45,6 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.Metric;
-import org.apache.http.client.utils.URIBuilder;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -116,7 +111,8 @@ public class StackDefinedPropertyProviderTest {
     resource.setProperty("HostRoles/host_name", "h1");
     resource.setProperty("HostRoles/component_name", "NAMENODE");
     resource.setProperty("HostRoles/state", "STARTED");
-    
+    resource.setPopulateRequiredFlag(true);
+
     // request with an empty set should get all supported properties
     Request request = PropertyHelper.getReadRequest(Collections.<String>emptySet(), new HashMap<String, TemporalInfo>());
 
@@ -147,7 +143,8 @@ public class StackDefinedPropertyProviderTest {
     resource.setProperty("HostRoles/host_name", "h1");
     resource.setProperty("HostRoles/component_name", "DATANODE");
     resource.setProperty("HostRoles/state", "STARTED");
-    
+    resource.setPopulateRequiredFlag(true);
+
     // request with an empty set should get all supported properties
     Request request = PropertyHelper.getReadRequest(Collections.<String>emptySet(), new HashMap<String, TemporalInfo>());
 
@@ -313,6 +310,7 @@ public class StackDefinedPropertyProviderTest {
     resource.setProperty(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "domu-12-31-39-0e-34-e1.compute-1.internal");
     resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "RESOURCEMANAGER");
     resource.setProperty(HOST_COMPONENT_STATE_PROPERTY_ID, "STARTED");
+    resource.setPopulateRequiredFlag(true);
 
     // request with an empty set should get all supported properties
     Request request = PropertyHelper.getReadRequest(Collections.<String>emptySet());
@@ -372,6 +370,7 @@ public class StackDefinedPropertyProviderTest {
     resource.setProperty(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "h1");
     resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "RESOURCEMANAGER");
     resource.setProperty(HOST_COMPONENT_STATE_PROPERTY_ID, "STARTED");
+    resource.setPopulateRequiredFlag(true);
 
     // request with an empty set should get all supported properties
     Request request = PropertyHelper.getReadRequest(Collections.<String>emptySet());
@@ -423,6 +422,7 @@ public class StackDefinedPropertyProviderTest {
     resource.setProperty(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "h1");
     resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "RESOURCEMANAGER");
     resource.setProperty(HOST_COMPONENT_STATE_PROPERTY_ID, "STARTED");
+    resource.setPopulateRequiredFlag(true);
 
     // only ask for one property
     Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
@@ -459,6 +459,7 @@ public class StackDefinedPropertyProviderTest {
     resource.setProperty(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "h1");
     resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "RESOURCEMANAGER");
     resource.setProperty(HOST_COMPONENT_STATE_PROPERTY_ID, "STARTED");
+    resource.setPopulateRequiredFlag(true);
 
     // only ask for one property
     Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
@@ -510,6 +511,7 @@ public class StackDefinedPropertyProviderTest {
     resource.setProperty(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "h1");
     resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "RESOURCEMANAGER");
     resource.setProperty(HOST_COMPONENT_STATE_PROPERTY_ID, "STARTED");
+    resource.setPopulateRequiredFlag(true);
 
     // only ask for one property
     Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
@@ -567,6 +569,7 @@ public class StackDefinedPropertyProviderTest {
     resource.setProperty(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "domu-12-31-39-0e-34-e1.compute-1.internal");
     resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "JOURNALNODE");
     resource.setProperty(HOST_COMPONENT_STATE_PROPERTY_ID, "STARTED");
+    resource.setPopulateRequiredFlag(true);
 
     // request with an empty set should get all supported properties
     Request request = PropertyHelper.getReadRequest(Collections.<String>emptySet());
@@ -691,6 +694,7 @@ public class StackDefinedPropertyProviderTest {
     resource.setProperty(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "domu-12-31-39-0e-34-e1.compute-1.internal");
     resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "STORM_REST_API");
     resource.setProperty(HOST_COMPONENT_STATE_PROPERTY_ID, "STARTED");
+    resource.setPopulateRequiredFlag(true);
 
     // request with an empty set should get all supported properties
     Request request = PropertyHelper.getReadRequest(Collections.<String>emptySet());
@@ -767,7 +771,7 @@ public class StackDefinedPropertyProviderTest {
     resource.setProperty(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "domu-12-31-39-0e-34-e1.compute-1.internal");
     resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "HBASE_MASTER");
     resource.setProperty(HOST_COMPONENT_STATE_PROPERTY_ID, "STARTED");
-
+    resource.setPopulateRequiredFlag(true);
     
     // request with an empty set should get all supported properties
     Request request = PropertyHelper.getReadRequest(Collections.<String>emptySet());
@@ -809,6 +813,7 @@ public class StackDefinedPropertyProviderTest {
     resource.setProperty("HostRoles/cluster_name", "c1");
     resource.setProperty(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "dev01.ambari.apache.org");
     resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "RESOURCEMANAGER");
+    resource.setPopulateRequiredFlag(true);
 
     String RM_CATEGORY_1 = "metrics/yarn/Queue/root/default";
     String RM_AVAILABLE_MEMORY_PROPERTY = PropertyHelper.getPropertyId(RM_CATEGORY_1, "AvailableMB");
@@ -855,6 +860,7 @@ public class StackDefinedPropertyProviderTest {
     resource.setProperty("HostRoles/cluster_name", "c1");
     resource.setProperty(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "ip-10-39-113-33.ec2.internal");
     resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "JOURNALNODE");
+    resource.setPopulateRequiredFlag(true);
 
 
     Object[][] testData = {
@@ -977,7 +983,8 @@ public class StackDefinedPropertyProviderTest {
       resource.setProperty("HostRoles/cluster_name", "c1");
       resource.setProperty(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "ip-10-39-113-33.ec2.internal");
       resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "RESOURCEMANAGER");
-      
+      resource.setPopulateRequiredFlag(true);
+
       // only ask for one property
       Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
       temporalInfoMap.put(metric, new TemporalInfoImpl(10L, 20L, 1L));

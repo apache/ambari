@@ -65,6 +65,7 @@ public class JMXPropertyProviderTest {
     resource.setProperty(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "domu-12-31-39-0e-34-e1.compute-1.internal");
     resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "NAMENODE");
     resource.setProperty(HOST_COMPONENT_STATE_PROPERTY_ID, "STARTED");
+    resource.setPopulateRequiredFlag(true);
 
     // request with an empty set should get all supported properties
     Request request = PropertyHelper.getReadRequest(Collections.<String>emptySet());
@@ -90,6 +91,7 @@ public class JMXPropertyProviderTest {
 
     resource.setProperty(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "domu-12-31-39-14-ee-b3.compute-1.internal");
     resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "DATANODE");
+    resource.setPopulateRequiredFlag(true);
 
     // request with an empty set should get all supported properties
     request = PropertyHelper.getReadRequest(Collections.<String>emptySet());
@@ -111,6 +113,7 @@ public class JMXPropertyProviderTest {
 
     resource.setProperty(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "domu-12-31-39-14-ee-b3.compute-1.internal");
     resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "JOBTRACKER");
+    resource.setPopulateRequiredFlag(true);
 
     // only ask for specific properties
     Set<String> properties = new HashSet<String>();
@@ -153,6 +156,7 @@ public class JMXPropertyProviderTest {
 
     resource.setProperty(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "domu-12-31-39-14-ee-b3.compute-1.internal");
     resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "TASKTRACKER");
+    resource.setPopulateRequiredFlag(true);
 
     // only ask for specific properties
     properties = new HashSet<String>();
@@ -206,6 +210,7 @@ public class JMXPropertyProviderTest {
     resource.setProperty(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "domu-12-31-39-14-ee-b3.compute-1.internal");
     resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "HBASE_MASTER");
     resource.setProperty(HOST_COMPONENT_STATE_PROPERTY_ID, "STARTED");
+    resource.setPopulateRequiredFlag(true);
 
     // only ask for specific properties
     properties = new HashSet<String>();
@@ -251,6 +256,7 @@ public class JMXPropertyProviderTest {
     resource.setProperty(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "domu-12-31-39-0e-34-e1.compute-1.internal");
     resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "NAMENODE");
     resource.setProperty(HOST_COMPONENT_STATE_PROPERTY_ID, "STARTED");
+    resource.setPopulateRequiredFlag(true);
 
     // only ask for one property
     Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
@@ -286,6 +292,7 @@ public class JMXPropertyProviderTest {
     resource.setProperty(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "domu-12-31-39-0e-34-e1.compute-1.internal");
     resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "NAMENODE");
     resource.setProperty(HOST_COMPONENT_STATE_PROPERTY_ID, "STARTED");
+    resource.setPopulateRequiredFlag(true);
 
     // request with an empty set should get all supported properties
     // only ask for one property
@@ -322,6 +329,7 @@ public class JMXPropertyProviderTest {
 
     resource.setProperty(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "domu-12-31-39-0e-34-e1.compute-1.internal");
     resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "NAMENODE");
+    resource.setPopulateRequiredFlag(true);
 
     // request with an empty set should get all supported properties
     Request request = PropertyHelper.getReadRequest(Collections.<String>emptySet());
@@ -363,6 +371,7 @@ public class JMXPropertyProviderTest {
     resource.setProperty(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "domu-12-31-39-0e-34-e1.compute-1.internal");
     resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "NAMENODE");
     resource.setProperty(HOST_COMPONENT_STATE_PROPERTY_ID, "INSTALLED");
+    resource.setPopulateRequiredFlag(true);
 
     // request with an empty set should get all supported properties
     Request request = PropertyHelper.getReadRequest(Collections.<String>emptySet());
@@ -397,6 +406,7 @@ public class JMXPropertyProviderTest {
       resource.setProperty(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "domu-12-31-39-14-ee-b3.compute-1.internal");
       resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "DATANODE");
       resource.setProperty("unique_id", i);
+      resource.setPopulateRequiredFlag(true);
 
       resources.add(resource);
     }

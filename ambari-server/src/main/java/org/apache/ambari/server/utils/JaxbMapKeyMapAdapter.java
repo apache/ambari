@@ -35,10 +35,10 @@ public class JaxbMapKeyMapAdapter extends
     }
     JaxbMapKeyMap[] list = new JaxbMapKeyMap[map.size()];
     int index=0;
-    for (String key : map.keySet()) {
-      Map<String, String> value = map.get(key);
+    for (Map.Entry<String, Map<String, String>> stringMapEntry : map.entrySet()) {
+      Map<String, String> value = stringMapEntry.getValue();
       JaxbMapKeyVal[] keyValList = mapAdapter.marshal(value);
-      list[index++] = new JaxbMapKeyMap(key, keyValList);
+      list[index++] = new JaxbMapKeyMap(stringMapEntry.getKey(), keyValList);
     }
     return list;
   }

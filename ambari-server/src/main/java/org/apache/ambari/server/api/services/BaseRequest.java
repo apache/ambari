@@ -244,14 +244,14 @@ public abstract class BaseRequest implements Request {
       if(from.equals("start")) {
         startingPoint = PageRequest.StartingPoint.Beginning;
       } else {
-        offset = Integer.valueOf(from);
+        offset = Integer.parseInt(from);
         startingPoint = PageRequest.StartingPoint.OffsetStart;
       }
     } else if (to != null ) {
       if (to.equals("end")) {
         startingPoint = PageRequest.StartingPoint.End;
       } else {
-        offset = Integer.valueOf(to);
+        offset = Integer.parseInt(to);
         startingPoint = PageRequest.StartingPoint.OffsetEnd;
       }
     } else {

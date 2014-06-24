@@ -164,6 +164,7 @@ public class NagiosPropertyProviderTest {
     Resource resource = new ResourceImpl(Resource.Type.Cluster);
     resource.setProperty("Clusters/cluster_name", "c1");
     resource.setProperty("Clusters/version", "HDP-2.0.6");
+    resource.setPopulateRequiredFlag(true);
 
     // request with an empty set should get all supported properties
     Request request = PropertyHelper.getReadRequest(Collections.<String>emptySet(), new HashMap<String, TemporalInfo>());
@@ -246,6 +247,7 @@ public class NagiosPropertyProviderTest {
     Resource resource = new ResourceImpl(Resource.Type.Service);
     resource.setProperty("ServiceInfo/cluster_name", "c1");
     resource.setProperty("ServiceInfo/service_name", "HBASE");
+    resource.setPopulateRequiredFlag(true);
     
     // request with an empty set should get all supported properties
     Request request = PropertyHelper.getReadRequest(Collections.<String>emptySet(), new HashMap<String, TemporalInfo>());
@@ -297,6 +299,7 @@ public class NagiosPropertyProviderTest {
     Resource resource = new ResourceImpl(Resource.Type.Service);
     resource.setProperty("Hosts/cluster_name", "c1");
     resource.setProperty("Hosts/host_name", "c6403.ambari.apache.org");
+    resource.setPopulateRequiredFlag(true);
     
     // request with an empty set should get all supported properties
     Request request = PropertyHelper.getReadRequest(Collections.<String>emptySet(), new HashMap<String, TemporalInfo>());
@@ -348,6 +351,7 @@ public class NagiosPropertyProviderTest {
     Resource resource = new ResourceImpl(Resource.Type.Service);
     resource.setProperty("Hosts/cluster_name", "c1");
     resource.setProperty("Hosts/host_name", "c6401.ambari.apache.org");
+    resource.setPopulateRequiredFlag(true);
     
     // request with an empty set should get all supported properties
     Request request = PropertyHelper.getReadRequest(Collections.<String>emptySet(), new HashMap<String, TemporalInfo>());
@@ -403,6 +407,7 @@ public class NagiosPropertyProviderTest {
     Resource resource = new ResourceImpl(Resource.Type.Service);
     resource.setProperty("ServiceInfo/cluster_name", "c1");
     resource.setProperty("ServiceInfo/service_name", "HBASE");
+    resource.setPopulateRequiredFlag(true);
     
     // request with an empty set should get all supported properties
     Request request = PropertyHelper.getReadRequest(Collections.<String>emptySet(), new HashMap<String, TemporalInfo>());
@@ -476,6 +481,7 @@ public class NagiosPropertyProviderTest {
     Resource resource = new ResourceImpl(Resource.Type.Service);
     resource.setProperty("ServiceInfo/cluster_name", "c1");
     resource.setProperty("ServiceInfo/service_name", "GANGLIA");
+    resource.setPopulateRequiredFlag(true);
     
     // request with an empty set should get all supported properties
     Request request = PropertyHelper.getReadRequest(Collections.<String>emptySet(), new HashMap<String, TemporalInfo>());
@@ -529,6 +535,7 @@ public class NagiosPropertyProviderTest {
     Resource resource = new ResourceImpl(Resource.Type.Host);
     resource.setProperty("Hosts/cluster_name", "c1");
     resource.setProperty("Hosts/host_name", "c6404.ambari.apache.org");
+    resource.setPopulateRequiredFlag(true);
     
     // request with an empty set should get all supported properties
     Request request = PropertyHelper.getReadRequest(Collections.<String>emptySet(), new HashMap<String, TemporalInfo>());
@@ -617,6 +624,7 @@ public class NagiosPropertyProviderTest {
     Resource resource = new ResourceImpl(Resource.Type.Service);
     resource.setProperty("ServiceInfo/cluster_name", "c1");
     resource.setProperty("ServiceInfo/service_name", "GANGLIA");
+    resource.setPopulateRequiredFlag(true);
     
     // request with an empty set should get all supported properties
     Request request = PropertyHelper.getReadRequest(Collections.<String>emptySet(), new HashMap<String, TemporalInfo>());
