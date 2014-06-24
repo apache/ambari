@@ -399,7 +399,9 @@ App.AddHostController = App.WizardController.extend({
     var clusterName = this.get('content.cluster.name');
     var hostNames = [];
     for (var hostname in this.getDBProperty('hosts')) {
-      hostNames.push(hostname);
+      if(this.getDBProperty('hosts')[hostname].isInstalled == false){
+        hostNames.push(hostname);
+      }
     }
     if(!clusterName || hostNames.length === 0) return false;
 
