@@ -5,9 +5,9 @@
  * licenses this file to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
@@ -25,50 +25,82 @@ App.MainChartsHeatmapHostView = Em.View.extend({
   hostClass: 'hostBlock',
 
   /**
+   * link to host record in App.Host model
+   */
+  hostModelLink: function () {
+    return App.Host.find(this.get('content.hostName'));
+  }.property('content.hostName'),
+
+  /**
    * show Host details block and move it near the cursor
-   * 
-   * @param {Object} e
+   *
+   * @param {Object} event
    * @this App.MainChartsHeatmapHostView
    */
-  mouseEnter: function (e) {
+  mouseEnter: function (event) {
     var host = this.get('content');
     var view = App.MainChartsHeatmapHostDetailView.create();
-    $.each(view.get('details'), function(i){
-      var val = host.get(i);
-      if (i == 'diskUsage') {
-        if (val == undefined || isNaN(val) || val == Infinity || val == -Infinity) {
-          val = null;
-        } else {
+    var self = this;
+    var nonClientComponents = App.get('components.slaves').concat(App.get('components.masters'));
+
+    $.each(view.get('details'), function (i) {
+      var val = host[i];
+
+      switch (i) {
+        case 'diskUsage':
+          val = self.getUsage(host, 'diskTotal', 'diskFree');
+          break;
+        case 'cpuUsage':
+          val = 0;
+          if (Number.isFinite(host.cpuSystem) && Number.isFinite(host.cpuUser)) {
+            val = host.cpuSystem + host.cpuUser;
+          }
           val = val.toFixed(1);
-        }
-      } else if (i == 'cpuUsage') {
-        if (val == undefined || isNaN(val)) {
-          val = null;
-        } else {
-          val = val.toFixed(1);
-        }
-      } else if (i == 'memoryUsage') {
-        if (val == undefined || isNaN(val) || val == Infinity || val == -Infinity) {
-          val = null;
-        } else {
-          val = val.toFixed(1);
-        }
-      } else if (i == 'hostComponents') {
-        if (val == undefined) {
-          val = null;
-        } else {
-          val = val.filterProperty('isMaster').concat(val.filterProperty('isSlave')).mapProperty('displayName').join(', ');
-        }
+          break;
+        case 'memoryUsage':
+          val = self.getUsage(host, 'memTotal', 'memFree');
+          break;
+        case 'hostComponents':
+          val = [];
+          host[i].forEach(function (componentName) {
+            if (nonClientComponents.contains(componentName)) {
+              val.push(App.format.role(componentName));
+            }
+          }, this);
+          val = val.join(', ')
       }
+
       view.set('details.' + i, val);
     });
+    this.setMetric(view, host);
+    this.openDetailsBlock(event);
+  },
+
+  /**
+   * show tooltip with host's details
+   */
+  openDetailsBlock: function (event) {
+    var detailsBlock = $("#heatmapDetailsBlock");
+
+    detailsBlock.css('top', event.pageY + 10);
+    detailsBlock.css('left', event.pageX + 10);
+    detailsBlock.show();
+  },
+
+  /**
+   * set name and value of selected metric
+   * @param view
+   * @param host
+   */
+  setMetric: function (view, host) {
     var selectedMetric = this.get('controller.selectedMetric');
+
     if (selectedMetric) {
       var metricName = selectedMetric.get('name');
       var h2vMap = selectedMetric.get('hostToValueMap');
       if (h2vMap && metricName) {
-        var value = h2vMap[host.get('hostName')];
-        if (value == undefined || value == null) {
+        var value = h2vMap[host.hostName];
+        if (Em.isNone(value)) {
           value = this.t('charts.heatmap.unknown');
         } else {
           if (metricName == 'Garbage Collection Time') {
@@ -85,15 +117,27 @@ App.MainChartsHeatmapHostView = Em.View.extend({
         view.set('details.metricValue', value);
       }
     }
-    var detailsBlock = $("#heatmapDetailsBlock");
-    detailsBlock.css('top', e.pageY + 10);
-    detailsBlock.css('left', e.pageX + 10);
-    detailsBlock.show();
+  },
+  /**
+   * get relative usage of metric in percents
+   * @param item
+   * @param totalProperty
+   * @param freeProperty
+   * @return {String}
+   */
+  getUsage: function (item, totalProperty, freeProperty) {
+    var result = 0;
+    var total = item[totalProperty];
+
+    if (Number.isFinite(total) && Number.isFinite(item[freeProperty]) && total > 0) {
+      result = ((total - item[freeProperty]) / total) * 100;
+    }
+    return result.toFixed(1);
   },
 
   /**
    * hide Host details block
-   * 
+   *
    * @param {Object} e
    * @this App.MainChartsHeatmapHostView
    */

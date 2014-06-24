@@ -40,9 +40,12 @@
   <!--{{!/if}}-->
 <!--</div>-->
 <div class="isActive hosts clearfix">
-  {{#each view.hosts}}
-    <div {{bindAttr style="view.hostCssStyle"}}>
-      {{view App.MainChartsHeatmapHostView contentBinding="this"}}
-    </div>
-  {{/each}}
+  <div {{bindAttr  class="view.rack.isLoaded::hidden"}}>
+    {{#each view.hosts}}
+        <div {{bindAttr style="view.hostCssStyle"}}>
+          {{view App.MainChartsHeatmapHostView contentBinding="this"}}
+        </div>
+    {{/each}}
+  </div>
+  <div {{bindAttr  class="view.rack.isLoaded:hidden :spinner"}}></div>
 </div>

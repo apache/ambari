@@ -25,14 +25,12 @@ App.MainChartsHeatmapRackView = Em.View.extend({
   classNameBindings: ['visualSchema'],
 
   /** rack status block class */
-  statusIndicator:'statusIndicator',
+  statusIndicator: 'statusIndicator',
   /** loaded hosts of rack */
-  hosts: function() {
-    return this.get('rack.hosts').toArray();
-  }.property('rack.hosts', 'rack.hosts.length'),
+  hosts: [],
 
-  willInsertElement: function () {
-    this.set('rack.isLoaded', false);
+  willDestroyElement: function () {
+    this.get('hosts').clear();
   },
 
   /**
@@ -49,15 +47,119 @@ App.MainChartsHeatmapRackView = Em.View.extend({
   },
 
   getHostsSuccessCallback: function (data, opt, params) {
-    App.hostsMapper.map(data, true);
-    this.set('rack.isLoaded', true);
+    this.pushHostsToRack(data);
+    this.displayHosts();
   },
 
-  getHostsErrorCallback: function(request, ajaxOptions, error, opt, params){
+  /**
+   * display hosts of rack
+   */
+  displayHosts: function () {
+    var rackHosts = this.get('rack.hosts');
+
+    if (this.get('hosts.length') === 0) {
+      if (rackHosts.length > 100) {
+        lazyloading.run({
+          initSize: 100,
+          chunkSize: 200,
+          delay: 100,
+          destination: this.get('hosts'),
+          source: rackHosts,
+          context: this.get('rack')
+        });
+      } else {
+        this.set('hosts', rackHosts);
+        this.set('rack.isLoaded', true);
+      }
+    }
+  },
+
+  getHostsErrorCallback: function (request, ajaxOptions, error, opt, params) {
     this.set('rack.isLoaded', true);
   },
+  /**
+   * push hosts to rack
+   * @param data
+   */
+  pushHostsToRack: function (data) {
+    var newHostsData = [];
+    var rackHosts = this.get('rack.hosts');
+
+    data.items.forEach(function (item) {
+      newHostsData.push({
+        hostName: item.Hosts.host_name,
+        publicHostName: item.Hosts.public_host_name,
+        osType: item.Hosts.os_type,
+        ip: item.Hosts.ip,
+        diskTotal: item.metrics.disk.disk_total,
+        diskFree: item.metrics.disk.disk_free,
+        cpuSystem: item.metrics.cpu.cpu_system,
+        cpuUser: item.metrics.cpu.cpu_user,
+        memTotal: item.metrics.memory.mem_total,
+        memFree: item.metrics.memory.mem_free,
+        hostComponents: item.host_components.mapProperty('HostRoles.component_name')
+      })
+    });
+
+    if (rackHosts.length > 0) {
+      this.updateLoadedHosts(rackHosts, newHostsData);
+    } else {
+      this.set('rack.hosts', newHostsData);
+    }
+  },
+
+  updateLoadedHosts: function (rackHosts, newHostsData) {
+    var rackHostsMap = {};
+    var isNewHosts = false;
+
+    //create map
+    rackHosts.forEach(function (host) {
+      rackHostsMap[host.hostName] = host;
+    });
+
+    newHostsData.forEach(function (item) {
+      var currentHostInfo = rackHostsMap[item.hostName];
+
+      if (currentHostInfo) {
+        ['diskTotal', 'diskFree', 'cpuSystem', 'cpuUser', 'memTotal', 'memFree', 'hostComponents'].forEach(function (property) {
+          currentHostInfo[property] = item[property];
+        });
+        delete rackHostsMap[item.hostName];
+      } else {
+        isNewHosts = true;
+      }
+    }, this);
+
+    //if hosts were deleted or added then reload hosts view
+    if (!App.isEmptyObject(rackHostsMap) || isNewHosts) {
+      this.redrawHostsView(newHostsData)
+    }
+  },
+
+  /**
+   * reload hosts rack
+   * @param newHostsData
+   */
+  redrawHostsView: function (newHostsData) {
+    this.set('rack.isLoaded', false);
+    this.get('hosts').clear();
+    this.set('rack.hosts', newHostsData);
+  },
+
+  /**
+   * call metrics update after hosts of rack are loaded
+   */
+  updateMetrics: function(){
+    if (this.get('rack.isLoaded')) {
+      this.get('controller').loadMetrics();
+    }
+  }.observes('rack.isLoaded'),
 
   didInsertElement: function () {
+    this.set('rack.isLoaded', false);
+    if (this.get('rack.hosts.length') > 0) {
+      this.displayHosts();
+    }
     this.getHosts();
   },
   /**
@@ -68,12 +170,10 @@ App.MainChartsHeatmapRackView = Em.View.extend({
     var rack = this.get('rack');
     var widthPercent = 100;
     var hostCount = rack.get('hosts.length');
-    if (rack.get('isLoaded')) {
-      if (hostCount && hostCount < 11) {
-        widthPercent = (100 / hostCount) - 0.5;
-      } else {
-        widthPercent = 10; // max out at 10%
-      }
+    if (hostCount && hostCount < 11) {
+      widthPercent = (100 / hostCount) - 0.5;
+    } else {
+      widthPercent = 10; // max out at 10%
     }
     return "width:" + widthPercent + "%;float:left;";
   }.property('rack.isLoaded')
