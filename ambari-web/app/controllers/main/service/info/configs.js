@@ -161,7 +161,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
 
   getHash: function() {
     if (!this.get('stepConfigs')[0]) {
-      return "";
+      return null;
     }
     var hash = {};
     this.get('stepConfigs')[0].configs.forEach(function(config) {
