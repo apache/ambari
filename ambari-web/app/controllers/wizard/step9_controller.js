@@ -434,7 +434,9 @@ App.WizardStep9Controller = Em.Controller.extend({
       name = 'wizard.step9.add_host.launch_start_services';
       var hostnames = [];
       for (var hostname in this.get('wizardController').getDBProperty('hosts')) {
-        hostnames.push(hostname);
+        if(this.get('hosts').findProperty('name', hostname)){
+          hostnames.push(hostname);
+        }
       }
       data = {
         "RequestInfo": {
