@@ -827,6 +827,23 @@ public class ClusterControllerImplTest {
     Assert.assertFalse(comparator.compare(resource2, resource1) == 0);
   }
 
+  @Test
+  public void testPopulateResources_allTypes() throws Exception {
+
+    TestProviderModule providerModule = new TestProviderModule();
+    ClusterControllerImpl controller = new ClusterControllerImpl(providerModule);
+
+    Request request = PropertyHelper.getReadRequest();
+    Predicate predicate = new PredicateBuilder().property("c3/p6").equals(1).toPredicate();
+
+    for (Resource.Type type : Resource.Type.values()) {
+      Resource resource = new ResourceImpl(type);
+      // verify that we can call populateResources for all resource types even if there
+      // are no property providers defined for that type.
+      controller.populateResources(type, Collections.singleton(resource), request, predicate);
+    }
+  }
+
   public static class TestProviderModule implements ProviderModule {
     private Map<Resource.Type, ResourceProvider> providers = new HashMap<Resource.Type, ResourceProvider>();
 
@@ -855,6 +872,10 @@ public class ClusterControllerImplTest {
 
     @Override
     public List<PropertyProvider> getPropertyProviders(Resource.Type type) {
+      if (type.equals(Resource.Type.Configuration)) {
+        // simulate a resource type with no property providers.
+        return null;
+      }
       return propertyProviders;
     }
   }

@@ -528,7 +528,9 @@ public class ClusterControllerImpl implements ClusterController {
   private List<PropertyProvider> ensurePropertyProviders(Type type) {
     synchronized (propertyProviders) {
       if (!propertyProviders.containsKey(type)) {
-        propertyProviders.put(type, providerModule.getPropertyProviders(type));
+        List<PropertyProvider> providers = providerModule.getPropertyProviders(type);
+        propertyProviders.put(type,
+            providers == null ? Collections.<PropertyProvider>emptyList() : providers);
       }
     }
     return propertyProviders.get(type);
