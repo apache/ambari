@@ -77,6 +77,8 @@ App.WizardStep7Controller = Em.Controller.extend({
    */
   groupsToDelete: [],
 
+  preSelectedConfigGroup: null,
+
   /**
    * Currently selected config group
    * @type {object}
@@ -317,12 +319,20 @@ App.WizardStep7Controller = Em.Controller.extend({
           }, this);
         }, this);
       }
-      App.config.loadServiceConfigGroupOverrides(service.get('configs'), loadedGroupToOverrideSiteToTagMap, service.get('configGroups'));
+      this.set('preSelectedConfigGroup', selectedConfigGroup);
+      App.config.loadServiceConfigGroupOverrides(service.get('configs'), loadedGroupToOverrideSiteToTagMap, service.get('configGroups'), this.onLoadOverrides, this);
+    }
+  },
+
+  onLoadOverrides: function (configs) {
+    var serviceName = configs[0].serviceName,
+        service = this.get('stepConfigs').findProperty('serviceName', serviceName);
+    if (App.get('supports.hostOverrides')) {
       var serviceConfig = App.config.createServiceConfig(serviceName);
       if (serviceConfig.get('serviceName') === 'HDFS') {
         App.config.OnNnHAHideSnn(serviceConfig);
       }
-      service.set('selectedConfigGroup', selectedConfigGroup);
+      service.set('selectedConfigGroup', this.get('preSelectedConfigGroup'));
       this.loadComponentConfigs(service.get('configs'), serviceConfig, service);
     }
     service.set('configs', serviceConfig.get('configs'));

@@ -369,12 +369,7 @@ var urls = {
   },
   'config.host_overrides': {
     'real': '/clusters/{clusterName}/configurations?{params}',
-    'mock': '/data/configurations/host_level_overrides_configs.json?{params}',
-    'format': function() {
-      return {
-        async: false
-      };
-    }
+    'mock': '/data/configurations/host_level_overrides_configs.json?{params}'
   },
 
   'host.host_component.delete': {
@@ -898,16 +893,6 @@ var urls = {
     'real': '/clusters/{clusterName}/hosts/{hostName}?fields=metrics/process/proc_total[{fromSeconds},{toSeconds},{stepSeconds}],metrics/process/proc_run[{fromSeconds},{toSeconds},{stepSeconds}]',
     'mock': '/data/hosts/metrics/processes.json',
     'testInProduction': true
-  },
-  'host.service_config_hosts_overrides': {
-    'real': '/clusters/{clusterName}/configurations?{urlParams}',
-    'mock': '',
-    'format': function() {
-      return {
-        async: false,
-        timeout: 10000
-      };
-    }
   },
   'admin.security_status': {
     'real': '/clusters/{clusterName}?fields=Clusters/desired_configs',
@@ -1674,7 +1659,6 @@ var urls = {
     'mock': '',
     'format': function (data) {
       return {
-        async: false,
         type: 'POST',
         data: JSON.stringify([{
           "ConfigGroup": {
