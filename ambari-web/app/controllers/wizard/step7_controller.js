@@ -100,6 +100,16 @@ App.WizardStep7Controller = Em.Controller.extend({
   isAdvancedConfigLoaded: true,
 
   /**
+   * Are applied to service configs loaded
+   * @type {bool}
+   */
+  isAppliedConfigLoaded: true,
+
+  isConfigsLoaded: function () {
+    return (this.get('isAdvancedConfigLoaded') && this.get('isAppliedConfigLoaded'));
+  }.property('isAdvancedConfigLoaded', 'isAppliedConfigLoaded'),
+
+  /**
    * Should Next-button be disabled
    * @type {bool}
    */
@@ -178,7 +188,6 @@ App.WizardStep7Controller = Em.Controller.extend({
   /**
    * Clear controller's properties:
    *  <ul>
-   *    <li>serviceConfigTags</li>
    *    <li>stepConfigs</li>
    *    <li>filter</li>
    *  </ul>
@@ -186,7 +195,6 @@ App.WizardStep7Controller = Em.Controller.extend({
    * @method clearStep
    */
   clearStep: function () {
-    this.get('serviceConfigTags').clear();
     this.get('stepConfigs').clear();
     this.set('filter', '');
     this.get('filterColumns').setEach('selected', false);
@@ -621,20 +629,13 @@ App.WizardStep7Controller = Em.Controller.extend({
     }
   },
 
-  checkConfigLoad: function() {
-    if (this.get('wizardController.name') === 'addServiceController') {
-      this.set('isAdvancedConfigLoaded', false);
-    }
-  },
-
   /**
    * On load function
    * @method loadStep
    */
   loadStep: function () {
     console.log("TRACE: Loading step7: Configure Services");
-    if (!this.get('isAdvancedConfigLoaded')) {
-      this.getConfigTags();
+    if (!this.get('isConfigsLoaded')) {
       return;
     }
     this.clearStep();
@@ -747,6 +748,7 @@ App.WizardStep7Controller = Em.Controller.extend({
    * @method getConfigTags
    */
   getConfigTags: function () {
+    this.set('isAppliedConfigLoaded', false);
     return App.ajax.send({
       name: 'config.tags',
       sender: this,
@@ -781,7 +783,7 @@ App.WizardStep7Controller = Em.Controller.extend({
       }
     }
     this.set('serviceConfigTags', serviceConfigTags);
-    this.set('isAdvancedConfigLoaded', true);
+    this.set('isAppliedConfigLoaded', true);
   },
 
   /**
