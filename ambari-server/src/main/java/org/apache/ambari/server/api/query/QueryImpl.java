@@ -821,13 +821,6 @@ public class QueryImpl implements Query, ResourceInstance {
     // record the sub-resource properties on this query
     subResourcePredicateProperties.addAll(visitor.getSubResourceProperties());
 
-    if (hasSubResourcePredicate()) {
-      for (Map.Entry<String, QueryImpl> entry : requestedSubResources.entrySet()) {
-        subResourcePredicate = getSubResourcePredicate(predicate, entry.getKey());
-        entry.getValue().processUserPredicate(subResourcePredicate);
-      }
-    }
-
     processedPredicate = visitor.getProcessedPredicate();
     return processedPredicate;
   }
