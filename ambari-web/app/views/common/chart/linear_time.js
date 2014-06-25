@@ -403,7 +403,10 @@ App.ChartLinearTimeView = Ember.View.extend({
           name: timeUnitSeconds / 240 + ' minute',
           seconds: timeUnitSeconds / 4,
           formatter: function (d) {
-            return d.toLocaleString().match(/(\d+:\d+):/)[1];
+            // format locale specific time
+            var minutes = d.getMinutes() > 9 ? "" + d.getMinutes() : "0" + d.getMinutes();
+            var hours = d.getHours() > 9 ? "" + d.getHours() : "0" + d.getHours();
+            return hours + ":" + minutes;
           }
         };
     }
