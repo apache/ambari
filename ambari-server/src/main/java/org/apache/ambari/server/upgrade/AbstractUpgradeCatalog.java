@@ -192,6 +192,11 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
     if (clusterMap != null && !clusterMap.isEmpty()) {
       for (Cluster cluster : clusterMap.values()) {
         Config oldConfig = cluster.getDesiredConfigByType(configType);
+        if (oldConfig == null) {
+          LOG.info("Config " + configType + " not found. Assuming service not installed. " +
+              "Skipping configuration properties update");
+          return;
+        }
 
         if (properties != null) {
           Map<String, Config> all = cluster.getConfigsByType(configType);
