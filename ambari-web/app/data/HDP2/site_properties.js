@@ -1742,7 +1742,6 @@ module.exports =
       "isRequired": false,
       "displayType": "content",
       "serviceName": "FLUME",
-      "isCanBeEmpty": true,
       "category": "FlumeAgent",
       "filename": "flume-conf.xml"
     }

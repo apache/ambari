@@ -836,7 +836,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
           filename: _configProperties.get('filename'),
           displayType: _configProperties.get('displayType'),
           isRequiredByAgent: _configProperties.get('isRequiredByAgent'),
-          isCanBeEmpty: !!_configProperties.get('isCanBeEmpty') // flag that allow saving property with empty value
+          isRequired: _configProperties.get('isRequired') // flag that allow saving property with empty value
         };
         serviceConfigProperties.push(configProperty);
       }, this);
