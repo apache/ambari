@@ -18,13 +18,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
+from mock.mock import MagicMock, call, patch
+from resource_management import *
 from stacks.utils.RMFTestCase import *
-from resource_management.core.exceptions import *
 
+@patch.object(Hook, "run_custom_hook", new = MagicMock())
 class TestHookBeforeInstall(RMFTestCase):
   def test_hook_default(self):
     self.executeScript("2.0.6/hooks/before-INSTALL/scripts/hook.py",
-                       classname="BeforeConfigureHook",
+                       classname="BeforeInstallHook",
                        command="hook",
                        config_file="default.json"
     )
@@ -46,12 +48,6 @@ class TestHookBeforeInstall(RMFTestCase):
     self.assertResourceCalled('Execute', 'mkdir -p /usr/jdk64 ; cd /usr/jdk64 ; tar -xf /tmp/HDP-artifacts//jdk-7u45-linux-x64.tar.gz > /dev/null 2>&1',
         not_if = 'test -e /usr/jdk64/jdk1.7.0_45/bin/java',
         path = ['/bin', '/usr/bin/'],
-    )
-    self.assertResourceCalled('Execute', 'mkdir -p /tmp/HDP-artifacts/;     curl -kf --retry 10     http://c6401.ambari.apache.org:8080/resources//UnlimitedJCEPolicyJDK7.zip -o /tmp/HDP-artifacts//UnlimitedJCEPolicyJDK7.zip',
-        not_if = 'test -e /tmp/HDP-artifacts//UnlimitedJCEPolicyJDK7.zip',
-        ignore_failures = True,
-        path = ['/bin', '/usr/bin/'],
-        environment = {'no_proxy': 'c6401.ambari.apache.org'},
     )
     self.assertResourceCalled('Group', 'hadoop',
         ignore_failures = False,
@@ -159,15 +155,3 @@ class TestHookBeforeInstall(RMFTestCase):
         groups = ['users'],
     )
     self.assertNoMoreResources()
-
-
-  def test_that_jce_is_required_in_secured_cluster(self):
-    try:
-      self.executeScript("2.0.6/hooks/before-INSTALL/scripts/hook.py",
-                         classname="BeforeConfigureHook",
-                         command="hook",
-                         config_file="secured_no_jce_name.json"
-      )
-      self.fail("Should throw an exception")
-    except Fail:
-      pass  # Expected

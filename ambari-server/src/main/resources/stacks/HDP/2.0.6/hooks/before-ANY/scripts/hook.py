@@ -17,23 +17,17 @@ limitations under the License.
 
 """
 
-import sys
 from resource_management import *
 from shared_initialization import *
 
-class BeforeStartHook(Hook):
+class BeforeAnyHook(Hook):
 
   def hook(self, env):
     import params
-
-    self.run_custom_hook('before-ANY')
-    self.run_custom_hook('after-INSTALL')
     env.set_params(params)
     
-    setup_hadoop()
-    setup_database()
-    setup_configs()
-    create_javahome_symlink()
+    setup_jce()
 
 if __name__ == "__main__":
-  BeforeStartHook().execute()
+  BeforeAnyHook().execute()
+

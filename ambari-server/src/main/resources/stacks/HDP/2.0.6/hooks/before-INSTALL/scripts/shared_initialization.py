@@ -157,7 +157,7 @@ def set_uid(user, user_dirs):
        mode=0555)
   Execute(format("/tmp/changeUid.sh {user} {user_dirs} 2>/dev/null"),
           not_if = format("test $(id -u {user}) -gt 1000"))
-
+  
 def setup_java():
   """
   Installs jdk using specific params, that comes from ambari-server
@@ -191,30 +191,6 @@ def setup_java():
           path = ["/bin","/usr/bin/"],
           not_if = format("test -e {java_exec}")
   )
-
-  if params.jce_policy_zip is not None:
-    jce_curl_target = format("{artifact_dir}/{jce_policy_zip}")
-    download_jce = format("mkdir -p {artifact_dir}; \
-    curl -kf --retry 10 \
-    {jce_location}/{jce_policy_zip} -o {jce_curl_target}")
-    Execute( download_jce,
-             path = ["/bin","/usr/bin/"],
-             not_if =format("test -e {jce_curl_target}"),
-             ignore_failures = True,
-             environment = environment
-    )
-  elif params.security_enabled:
-    # Something weird is happening
-    raise Fail("Security is enabled, but JCE policy zip is not specified.")
-
-  if params.security_enabled:
-    security_dir = format("{java_home}/jre/lib/security")
-    extract_cmd = format("rm -f local_policy.jar; rm -f US_export_policy.jar; unzip -o -j -q {jce_curl_target}")
-    Execute(extract_cmd,
-            only_if = format("test -e {security_dir} && test -f {jce_curl_target}"),
-            cwd  = security_dir,
-            path = ['/bin/','/usr/bin']
-    )
 
 def install_packages():
   Package(['unzip', 'curl'])

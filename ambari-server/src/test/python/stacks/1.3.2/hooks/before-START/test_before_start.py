@@ -27,7 +27,7 @@ from stacks.utils.RMFTestCase import *
 class TestHookBeforeStart(RMFTestCase):
   def test_hook_default(self, mockHook):
     self.executeScript("1.3.2/hooks/before-START/scripts/hook.py",
-                       classname="BeforeConfigureHook",
+                       classname="BeforeStartHook",
                        command="hook",
                        config_file="default.json"
     )
@@ -85,7 +85,7 @@ class TestHookBeforeStart(RMFTestCase):
 
   def test_hook_secured(self, mockHook):
     self.executeScript("1.3.2/hooks/before-START/scripts/hook.py",
-                       classname="BeforeConfigureHook",
+                       classname="BeforeStartHook",
                        command="hook",
                        config_file="secured.json"
     )
@@ -136,3 +136,14 @@ class TestHookBeforeStart(RMFTestCase):
                               group = 'hadoop',
                               )
     self.assertNoMoreResources()
+    
+def test_that_jce_is_required_in_secured_cluster(self):
+  try:
+    self.executeScript("2.0.6/hooks/before-START/scripts/hook.py",
+                       classname="BeforeStartHook",
+                       command="hook",
+                       config_file="secured_no_jce_name.json"
+    )
+    self.fail("Should throw an exception")
+  except Fail:
+    pass  # Expected

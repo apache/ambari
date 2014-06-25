@@ -17,23 +17,17 @@ limitations under the License.
 
 """
 
-import sys
 from resource_management import *
-from shared_initialization import *
 
-class BeforeStartHook(Hook):
+config = Script.get_config()
 
-  def hook(self, env):
-    import params
+_authentication = config['configurations']['core-site']['hadoop.security.authentication']
+security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')
 
-    self.run_custom_hook('before-ANY')
-    self.run_custom_hook('after-INSTALL')
-    env.set_params(params)
-    
-    setup_hadoop()
-    setup_database()
-    setup_configs()
-    create_javahome_symlink()
+artifact_dir = "/tmp/HDP-artifacts/"
+jce_policy_zip = default("/hostLevelParams/jce_name", None) # None when jdk is already installed by user
+jce_location = config['hostLevelParams']['jdk_location']
+jdk_name = default("/hostLevelParams/jdk_name", None)
+java_home = config['hostLevelParams']['java_home']
 
-if __name__ == "__main__":
-  BeforeStartHook().execute()
+ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
