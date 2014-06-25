@@ -29,6 +29,7 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -60,13 +61,13 @@ public class SQLPropertyProviderTest {
 
     ConnectionFactory connectionFactory = createNiceMock(ConnectionFactory.class);
     Connection connection = createNiceMock(Connection.class);
-    PreparedStatement statement = createNiceMock(PreparedStatement.class);
+    Statement statement = createNiceMock(Statement.class);
     ResultSet resultSet = createNiceMock(ResultSet.class);
 
     // set expectations
     expect(connectionFactory.getConnection()).andReturn(connection).once();
-    expect(connection.prepareStatement((String) anyObject())).andReturn(statement).once();
-    expect(statement.executeQuery()).andReturn(resultSet).once();
+    expect(connection.createStatement()).andReturn(statement).once();
+    expect(statement.executeQuery(anyObject(String.class))).andReturn(resultSet).once();
     expect(resultSet.next()).andReturn(true);
     expect(resultSet.getLong("RecordTimeStamp")).andReturn(999990L);
     expect(resultSet.getNString("MetricValue")).andReturn("0");
@@ -124,13 +125,13 @@ public class SQLPropertyProviderTest {
 
     ConnectionFactory connectionFactory = createNiceMock(ConnectionFactory.class);
     Connection connection = createNiceMock(Connection.class);
-    PreparedStatement statement = createNiceMock(PreparedStatement.class);
+    Statement statement = createNiceMock(Statement.class);
     ResultSet resultSet = createNiceMock(ResultSet.class);
 
     // set expectations
     expect(connectionFactory.getConnection()).andReturn(connection).once();
-    expect(connection.prepareStatement((String) anyObject())).andReturn(statement).once();
-    expect(statement.executeQuery()).andReturn(resultSet).once();
+    expect(connection.createStatement()).andReturn(statement).once();
+    expect(statement.executeQuery(anyObject(String.class))).andReturn(resultSet).once();
     expect(resultSet.next()).andReturn(true);
     expect(resultSet.getLong("RecordTimeStamp")).andReturn(999990L);
     expect(resultSet.getNString("MetricValue")).andReturn("0");
@@ -190,13 +191,13 @@ public class SQLPropertyProviderTest {
 
     ConnectionFactory connectionFactory = createNiceMock(ConnectionFactory.class);
     Connection connection = createNiceMock(Connection.class);
-    PreparedStatement statement = createNiceMock(PreparedStatement.class);
+    Statement statement = createNiceMock(Statement.class);
     ResultSet resultSet = createNiceMock(ResultSet.class);
 
     // set expectations
     expect(connectionFactory.getConnection()).andReturn(connection).once();
-    expect(connection.prepareStatement((String) anyObject())).andReturn(statement).once();
-    expect(statement.executeQuery()).andReturn(resultSet).once();
+    expect(connection.createStatement()).andReturn(statement).once();
+    expect(statement.executeQuery(anyObject(String.class))).andReturn(resultSet).once();
     expect(resultSet.next()).andReturn(true);
     expect(resultSet.getLong("RecordTimeStamp")).andReturn(999990L);
     expect(resultSet.getNString("MetricValue")).andReturn("0");
@@ -251,13 +252,13 @@ public class SQLPropertyProviderTest {
 
     ConnectionFactory connectionFactory = createNiceMock(ConnectionFactory.class);
     Connection connection = createNiceMock(Connection.class);
-    PreparedStatement statement = createNiceMock(PreparedStatement.class);
+    Statement statement = createNiceMock(Statement.class);
     ResultSet resultSet = createNiceMock(ResultSet.class);
 
     // set expectations
     expect(connectionFactory.getConnection()).andReturn(connection).once();
-    expect(connection.prepareStatement((String) anyObject())).andReturn(statement).once();
-    expect(statement.executeQuery()).andReturn(resultSet).once();
+    expect(connection.createStatement()).andReturn(statement).once();
+    expect(statement.executeQuery(anyObject(String.class))).andReturn(resultSet).once();
     expect(resultSet.next()).andReturn(true);
     expect(resultSet.getLong("RecordTimeStamp")).andReturn(999990L);
     expect(resultSet.getNString("MetricValue")).andReturn("0");
@@ -311,23 +312,43 @@ public class SQLPropertyProviderTest {
 
     ConnectionFactory connectionFactory = createNiceMock(ConnectionFactory.class);
     Connection connection = createNiceMock(Connection.class);
-    PreparedStatement statement = createNiceMock(PreparedStatement.class);
+    Statement statement = createNiceMock(Statement.class);
     ResultSet resultSet = createNiceMock(ResultSet.class);
 
     // set expectations
     expect(connectionFactory.getConnection()).andReturn(connection).once();
-    expect(connection.prepareStatement((String) anyObject())).andReturn(statement).once();
-    expect(statement.executeQuery()).andReturn(resultSet).once();
+    expect(connection.createStatement()).andReturn(statement).once();
+    expect(statement.executeQuery(anyObject(String.class))).andReturn(resultSet).once();
     expect(resultSet.next()).andReturn(true);
+    expect(resultSet.getString("RecordTypeContext")).andReturn("rpc");
+    expect(resultSet.getString("RecordTypeName")).andReturn("rpc");
+    expect(resultSet.getString("MetricName")).andReturn("RpcSlowResponse_num_ops");
+    expect(resultSet.getString("ServiceName")).andReturn("datanode");
+    expect(resultSet.getString("NodeName")).andReturn("host1");
     expect(resultSet.getNString("MetricValue")).andReturn("0");
     expect(resultSet.getLong("RecordTimeStamp")).andReturn(999990L);
     expect(resultSet.next()).andReturn(true);
+    expect(resultSet.getString("RecordTypeContext")).andReturn("rpc");
+    expect(resultSet.getString("RecordTypeName")).andReturn("rpc");
+    expect(resultSet.getString("MetricName")).andReturn("RpcSlowResponse_num_ops");
+    expect(resultSet.getString("ServiceName")).andReturn("datanode");
+    expect(resultSet.getString("NodeName")).andReturn("host1");
     expect(resultSet.getNString("MetricValue")).andReturn("1");
     expect(resultSet.getLong("RecordTimeStamp")).andReturn(999991L);
     expect(resultSet.next()).andReturn(true);
+    expect(resultSet.getString("RecordTypeContext")).andReturn("rpc");
+    expect(resultSet.getString("RecordTypeName")).andReturn("rpc");
+    expect(resultSet.getString("MetricName")).andReturn("RpcSlowResponse_num_ops");
+    expect(resultSet.getString("ServiceName")).andReturn("datanode");
+    expect(resultSet.getString("NodeName")).andReturn("host1");
     expect(resultSet.getNString("MetricValue")).andReturn("2");
     expect(resultSet.getLong("RecordTimeStamp")).andReturn(999992L);
     expect(resultSet.next()).andReturn(true);
+    expect(resultSet.getString("RecordTypeContext")).andReturn("rpc");
+    expect(resultSet.getString("RecordTypeName")).andReturn("rpc");
+    expect(resultSet.getString("MetricName")).andReturn("RpcSlowResponse_num_ops");
+    expect(resultSet.getString("ServiceName")).andReturn("datanode");
+    expect(resultSet.getString("NodeName")).andReturn("host1");
     expect(resultSet.getNString("MetricValue")).andReturn("3");
     expect(resultSet.getLong("RecordTimeStamp")).andReturn(999993L);
     expect(resultSet.next()).andReturn(false);
@@ -369,26 +390,44 @@ public class SQLPropertyProviderTest {
 
     ConnectionFactory connectionFactory = createNiceMock(ConnectionFactory.class);
     Connection connection = createNiceMock(Connection.class);
-    PreparedStatement statement = createNiceMock(PreparedStatement.class);
+    Statement statement = createNiceMock(Statement.class);
     ResultSet resultSet = createNiceMock(ResultSet.class);
 
     // set expectations
     expect(connectionFactory.getConnection()).andReturn(connection).once();
-    expect(connection.prepareStatement((String) anyObject())).andReturn(statement).once();
-    expect(statement.executeQuery()).andReturn(resultSet).once();
+    expect(connection.createStatement()).andReturn(statement).once();
+    expect(statement.executeQuery(anyObject(String.class))).andReturn(resultSet).once();
     expect(resultSet.next()).andReturn(true);
+    expect(resultSet.getString("RecordTypeContext")).andReturn("rpc");
+    expect(resultSet.getString("RecordTypeName")).andReturn("rpc");
+    expect(resultSet.getString("MetricName")).andReturn("RpcQueueTime_avg_time");
+    expect(resultSet.getString("ServiceName")).andReturn("datanode");
+    expect(resultSet.getString("NodeName")).andReturn("host1");
     expect(resultSet.getLong("RecordTimeStamp")).andReturn(999990L);
     expect(resultSet.getNString("MetricValue")).andReturn("0");
     expect(resultSet.next()).andReturn(true);
+    expect(resultSet.getString("RecordTypeContext")).andReturn("rpc");
+    expect(resultSet.getString("RecordTypeName")).andReturn("rpc");
+    expect(resultSet.getString("MetricName")).andReturn("RpcQueueTime_avg_time");
+    expect(resultSet.getString("ServiceName")).andReturn("datanode");
+    expect(resultSet.getString("NodeName")).andReturn("host1");
     expect(resultSet.getLong("RecordTimeStamp")).andReturn(999991L);
     expect(resultSet.getNString("MetricValue")).andReturn("1");
-    expect(resultSet.next()).andReturn(false);
 
-    expect(statement.executeQuery()).andReturn(resultSet).once();
     expect(resultSet.next()).andReturn(true);
+    expect(resultSet.getString("RecordTypeContext")).andReturn("rpc");
+    expect(resultSet.getString("RecordTypeName")).andReturn("rpc");
+    expect(resultSet.getString("MetricName")).andReturn("RpcSlowResponse_num_ops");
+    expect(resultSet.getString("ServiceName")).andReturn("datanode");
+    expect(resultSet.getString("NodeName")).andReturn("host1");
     expect(resultSet.getLong("RecordTimeStamp")).andReturn(999992L);
     expect(resultSet.getNString("MetricValue")).andReturn("2");
     expect(resultSet.next()).andReturn(true);
+    expect(resultSet.getString("RecordTypeContext")).andReturn("rpc");
+    expect(resultSet.getString("RecordTypeName")).andReturn("rpc");
+    expect(resultSet.getString("MetricName")).andReturn("RpcSlowResponse_num_ops");
+    expect(resultSet.getString("ServiceName")).andReturn("datanode");
+    expect(resultSet.getString("NodeName")).andReturn("host1");
     expect(resultSet.getLong("RecordTimeStamp")).andReturn(999993L);
     expect(resultSet.getNString("MetricValue")).andReturn("3");
     expect(resultSet.next()).andReturn(false);
