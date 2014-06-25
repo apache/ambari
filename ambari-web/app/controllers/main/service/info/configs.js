@@ -818,7 +818,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
           "hosts": groupHosts,
           "desired_configs": this.buildGroupDesiredConfigs(overridenConfigs)
         }
-      });
+      }, true);
     }
   },
 
@@ -1057,18 +1057,23 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   },
   /**
    * persist properties of config groups to server
-   * @param data
+   * show result popup if <code>showPopup</code> is true
+   * @param data {Object}
+   * @param showPopup {Boolean}
    */
-  putConfigGroupChanges: function (data) {
-    App.ajax.send({
+  putConfigGroupChanges: function (data, showPopup) {
+    var ajaxOptions = {
       name: 'config_groups.update_config_group',
       sender: this,
       data: {
         id: data.ConfigGroup.id,
         configGroup: data
-      },
-      success: "putConfigGroupChangesSuccess"
-    });
+      }
+    };
+    if (showPopup) {
+      ajaxOptions.success = "putConfigGroupChangesSuccess";
+    }
+    App.ajax.send(ajaxOptions);
   },
 
   putConfigGroupChangesSuccess: function () {
