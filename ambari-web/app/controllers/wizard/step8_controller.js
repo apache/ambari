@@ -346,12 +346,9 @@ App.WizardStep8Controller = Em.Controller.extend({
     serviceConfigProperties.forEach(function (_config) {
       _config.value = (typeof _config.value === "boolean") ? _config.value.toString() : _config.value;
     });
-    var storedConfigs = serviceConfigProperties.filter(function (configProperty) {
-      return !!configProperty.value || configProperty.isCanBeEmpty;
-    });
     var mappedConfigs = App.config.excludeUnsupportedConfigs(this.get('configMapping'), this.get('selectedServices').mapProperty('serviceName'));
     var uiConfigs = this.loadUiSideConfigs(mappedConfigs);
-    this.set('configs', storedConfigs.concat(uiConfigs));
+    this.set('configs', serviceConfigProperties.concat(uiConfigs));
   },
 
   /**
