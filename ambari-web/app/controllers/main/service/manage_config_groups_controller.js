@@ -19,6 +19,7 @@
 
 var App = require('app');
 var hostsManagement = require('utils/hosts');
+var numberUtils = require('utils/number_utils');
 
 App.ManageConfigGroupsController = Em.Controller.extend({
   name: 'manageConfigGroupsController',
@@ -85,7 +86,17 @@ App.ManageConfigGroupsController = Em.Controller.extend({
 
     data.items.forEach(function (host) {
       var hostComponents = [];
-
+      var diskInfo = host.Hosts.disk_info.filter(function(item) {
+        return /^ext|^ntfs|^fat|^xfs/i.test(item.type);
+      });
+      if (diskInfo.length) {
+        diskInfo = diskInfo.reduce(function(a, b) {
+          return {
+            available: parseInt(a.available) + parseInt(b.available),
+            size: parseInt(a.size) + parseInt(b.size)
+          };
+        });
+      }
       host.host_components.forEach(function (hostComponent) {
         hostComponents.push(Em.Object.create({
           componentName: hostComponent.HostRoles.component_name,
@@ -101,8 +112,8 @@ App.ManageConfigGroupsController = Em.Controller.extend({
           publicHostName: host.Hosts.public_host_name,
           cpu: host.Hosts.cpu_count,
           memory: host.Hosts.total_mem,
-          diskTotal: host.metrics.disk.disk_total,
-          diskFree: host.metrics.disk.disk_free,
+          diskTotal: numberUtils.bytesToSize(diskInfo.size, 0, undefined, 1024),
+          diskFree: numberUtils.bytesToSize(diskInfo.available, 0, undefined, 1024),
           disksMounted: host.Hosts.disk_info.length,
           hostComponents: hostComponents
         }

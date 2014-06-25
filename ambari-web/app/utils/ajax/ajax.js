@@ -2153,7 +2153,7 @@ var urls = {
     }
   },
   'hosts.config_groups': {
-    'real': '/clusters/{clusterName}/hosts?fields=Hosts/cpu_count,Hosts/disk_info,Hosts/total_mem,Hosts/ip,Hosts/os_type,Hosts/os_arch,Hosts/public_host_name,metrics/disk,host_components&minimal_response=true',
+    'real': '/clusters/{clusterName}/hosts?fields=Hosts/cpu_count,Hosts/disk_info,Hosts/total_mem,Hosts/ip,Hosts/os_type,Hosts/os_arch,Hosts/public_host_name,host_components&minimal_response=true',
     'mock': ''
   },
   'cluster.fields': {
