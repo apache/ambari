@@ -2075,7 +2075,7 @@ var urls = {
     'mock': ''
   },
   'hosts.confirmed': {
-    'real': '/clusters/{clusterName}/hosts?fields=Hosts/cpu_count,Hosts/disk_info,Hosts/total_mem,host_components&minimal_response=true',
+    'real': '/clusters/{clusterName}/hosts?fields=Hosts/cpu_count,Hosts/disk_info,Hosts/total_mem,host_components/HostRoles/state&minimal_response=true',
     'mock': ''
   },
   'host_components.all': {
