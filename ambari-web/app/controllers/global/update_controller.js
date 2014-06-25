@@ -153,7 +153,10 @@ App.UpdateController = Em.Controller.extend({
       App.updater.updateInterval('updateHost', App.get('componentsUpdateInterval'));
     } else {
       callback();
-      return;
+      // On pages except for hosts/hostDetails, making sure hostsMapper loaded only once on page load, no need to update, but at least once
+      if (this.get('queryParams.Hosts') && this.get('queryParams.Hosts').length > 0) {
+        return;
+      }
     }
     this.get('queryParams').set('Hosts', App.router.get('mainHostController').getQueryParameters());
     var hostsUrl = this.getComplexUrl(testUrl, realUrl, this.get('queryParams.Hosts'));
