@@ -1221,11 +1221,19 @@ App.WizardStep8Controller = Em.Controller.extend({
             /**
              * check whether clients are already installed on selected master hosts!!!
              */
-            var clientHosts = App.HostComponent.find().filterProperty("componentName",_client.component_name).filterProperty("workStatus", "INSTALLED");
-            if (clientHosts.length>0) {
-              clientHosts.mapProperty('hostName').forEach(function (host) {
-                if (hostNames.contains(host)) {
-                  hostNames.splice(hostNames.indexOf(host), 1);
+            var clientHosts = [];
+            var installedHosts = this.get('content.hosts');
+            for (var hostName in installedHosts) {
+              if (installedHosts[hostName].isInstalled &&
+                  installedHosts[hostName].hostComponents.filterProperty('HostRoles.state', 'INSTALLED').mapProperty('HostRoles.component_name').contains(_client.component_name)) {
+                clientHosts.push(hostName);
+              }
+            }
+
+            if (clientHosts.length > 0) {
+              clientHosts.forEach(function (hostName) {
+                if (hostNames.contains(hostName)) {
+                  hostNames.splice(hostNames.indexOf(hostName), 1);
                 }
               }, this);
             }
