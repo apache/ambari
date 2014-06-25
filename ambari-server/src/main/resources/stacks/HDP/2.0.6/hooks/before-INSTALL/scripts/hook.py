@@ -21,17 +21,19 @@ import sys
 from resource_management import *
 from shared_initialization import *
 from repo_initialization import *
-#TODO this must be "CONFIGURE" hook when CONFIGURE command will be implemented
-class BeforeConfigureHook(Hook):
+
+class BeforeInstallHook(Hook):
 
   def hook(self, env):
     import params
 
+    self.run_custom_hook('before-ANY')
     env.set_params(params)
+    
     install_repos()
     install_packages()
     setup_java()
     setup_users()
 
 if __name__ == "__main__":
-  BeforeConfigureHook().execute()
+  BeforeInstallHook().execute()

@@ -19,11 +19,11 @@ limitations under the License.
 
 from resource_management import *
 
-class BeforeConfigureHook(Hook):
+class BeforeRestartHook(Hook):
 
   def hook(self, env):
     self.run_custom_hook('before-START')
 
 if __name__ == "__main__":
-  BeforeConfigureHook().execute()
+  BeforeRestartHook().execute()
 
