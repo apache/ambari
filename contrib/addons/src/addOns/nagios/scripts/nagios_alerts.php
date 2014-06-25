@@ -100,13 +100,12 @@ function hdp_mon_generate_response( $response_data )
   define ("WEBHCAT_SERVICE_CHECK", "WEBHCAT::WebHCat Server status check");
   define ("PUPPET_SERVICE_CHECK", "PUPPET::Puppet agent down");
 
-  /* If SUSE, status file is under /var/lib/nagios */
-  if (file_exists("/etc/SuSE-release")) {
-    $status_file="/var/nagios/status.dat";
-  } else {
-    $status_file="/var/nagios/status.dat";
+  // on SUSE, some versions of Nagios stored data in /var/lib
+  $status_file = "/var/nagios/status.dat";
+  if (!file_exists($status_file) && file_exists("/etc/SuSE-release")) {
+    $status_file = "/var/lib/nagios/status.dat";
   }
-
+  
   $q1="";
   if (array_key_exists('q1', $_GET)) {
     $q1=$_GET["q1"];
@@ -296,11 +295,10 @@ function hdp_mon_generate_response( $response_data )
     #echo $matches[1][0] . ", " . $matches[1][1] . "\n";
     $services_objects = array ();
     $i = 0;
-    foreach ($matches[1] as $object) {
+    foreach ($matches[1] as $object) {      
       $servicestatus = getParameterMap($object, $servicestatus_attributes);
       switch ($alert_type) {
       case "all":
-
         if (empty($host) || $servicestatus['host_name'] == $host) {
           $servicestatus['service_type'] = get_service_type($servicestatus['service_description']);
           $srv_desc = explode ("::",$servicestatus['service_description'],2);
@@ -353,12 +351,14 @@ function hdp_mon_generate_response( $response_data )
         }
         break;
       }
+      
       if (!empty($servicestatus)) {
         $services_objects[$i] = $servicestatus;
         $i++;
       }
     }
-    /* echo "COUNT : " . count ($services_objects) . "\n"; */
+
+    // echo "COUNT : " . count ($services_objects) . "\n";
     return $services_objects;
   }
 
@@ -459,6 +459,7 @@ function hdp_mon_generate_response( $response_data )
 
     return $map;
   }
+  
 function indent($json) {
 
     $result      = '';

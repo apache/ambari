@@ -20,17 +20,50 @@ Ambari Agent
 
 """
 
+import os
+import signal
+
 from resource_management import *
+from os.path import isfile
+
 
 def nagios_service(action='start'): # start or stop
   import params
+  
+  nagios_pid_file = format("{nagios_pid_file}")
 
-  if action == 'start':
-   command = "service nagios start"
+  command_path = "/usr/local/bin/:/bin/:/sbin/"
+
+  if action == 'start': 
+    Execute("service nagios start", path = command_path )   
   elif action == 'stop':
-   command = format("service nagios stop && rm -f {nagios_pid_file}")
+    # attempt to grab the pid in case we need it later
+    nagios_pid = 0  
+    if isfile(nagios_pid_file):   
+      with open(nagios_pid_file, "r") as file:
+        try:
+          nagios_pid = int(file.read())
+          Logger.info("Nagios is running with a PID of {0}".format(nagios_pid))
+        except:
+          Logger.info("Unable to read PID file {0}".format(nagios_pid_file))
+        finally:
+          file.close()
+  
+    Execute("service nagios stop", path = command_path)
 
-  Execute( command,
-     path    = "/usr/local/bin/:/bin/:/sbin/"      
-  )
+    # on SUSE, there is a bug where Nagios doesn't kill the process 
+    # but this could also affect any OS, so don't restrict this to SUSE
+    if nagios_pid > 0:
+      try:
+        os.kill(nagios_pid, 0)
+      except:
+        Logger.info("The Nagios process has successfully terminated")
+      else:
+        Logger.info("The Nagios process with ID {0} failed to terminate; explicitly killing.".format(nagios_pid))
+        os.kill(nagios_pid, signal.SIGKILL)
+
+    # in the event that the Nagios scripts don't remove the pid file
+    if isfile( nagios_pid_file ):   
+      Execute(format("rm -f {nagios_pid_file}"))
+        
   MonitorWebserver("restart")
