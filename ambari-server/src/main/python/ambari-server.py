@@ -68,6 +68,7 @@ SETUP_GANGLIA_HTTPS_ACTION = "setup-ganglia-https"
 SETUP_NAGIOS_HTTPS_ACTION = "setup-nagios-https"
 ENCRYPT_PASSWORDS_ACTION = "encrypt-passwords"
 SETUP_SECURITY_ACTION = "setup-security"
+REFRESH_STACK_HASH_ACTION = "refresh-stack-hash"
 
 ACTION_REQUIRE_RESTART = [RESET_ACTION, UPGRADE_ACTION, UPGRADE_STACK_ACTION,
                           SETUP_SECURITY_ACTION, LDAP_SETUP_ACTION]
@@ -2487,20 +2488,9 @@ def start(args):
             "without root privileges."
       print "Please do not forget to start PostgreSQL server."
 
-  properties = get_ambari_properties()
-  stack_location = get_stack_location(properties)
-  # Hack: we determine resource dir as a parent dir for stack_location
-  resources_location = os.path.dirname(stack_location)
-  resource_files_keeper = ResourceFilesKeeper(resources_location)
+  refresh_stack_hash()
 
-  try:
-    print "Organizing resource files at {0}...".format(resources_location,
-                                                       verbose=VERBOSE)
-    resource_files_keeper.perform_housekeeping()
-  except KeeperException, ex:
-    msg = "Can not organize resource files at {0}: {1}".format(
-                                                resources_location, str(ex))
-    raise FatalException(-1, msg)
+  properties = get_ambari_properties()
 
   isSecure = get_is_secure(properties)
   (isPersisted, masterKeyFile) = get_is_persisted(properties)
@@ -4113,6 +4103,22 @@ def setup_security(args):
 
   return need_restart
 
+def refresh_stack_hash():
+  properties = get_ambari_properties()
+  stack_location = get_stack_location(properties)
+  # Hack: we determine resource dir as a parent dir for stack_location
+  resources_location = os.path.dirname(stack_location)
+  resource_files_keeper = ResourceFilesKeeper(resources_location)
+
+  try:
+    print "Organizing resource files at {0}...".format(resources_location,
+                                                       verbose=VERBOSE)
+    resource_files_keeper.perform_housekeeping()
+  except KeeperException, ex:
+    msg = "Can not organize resource files at {0}: {1}".format(
+                                                resources_location, str(ex))
+    raise FatalException(-1, msg)
+
 
 #
 # Main.
@@ -4292,6 +4298,8 @@ def main():
       setup_ldap()
     elif action == SETUP_SECURITY_ACTION:
       need_restart = setup_security(options)
+    elif action == REFRESH_STACK_HASH_ACTION:
+      refresh_stack_hash()
     else:
       parser.error("Invalid action")
 

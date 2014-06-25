@@ -4933,3 +4933,16 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertTrue(run_metainfo_upgrade_mock.called)
     run_metainfo_upgrade_mock.assert_called_with({})
 
+  @patch.object(ambari_server, "get_ambari_properties")
+  @patch.object(ResourceFilesKeeper, "perform_housekeeping")
+  def test_refresh_stack_hash(self,
+    perform_housekeeping_mock,
+    get_ambari_properties_mock):
+
+    properties = ambari_server.Properties()
+    get_ambari_properties_mock.return_value = properties
+
+    ambari_server.refresh_stack_hash()
+
+    self.assertTrue(perform_housekeeping_mock.called)
+
