@@ -49,19 +49,22 @@ class TestNagiosServer(RMFTestCase):
     self.assertNoMoreResources()
 
 
-  def test_stop_default(self):
+  @patch('os.path.isfile')
+  def test_stop_default(self, os_path_isfile_mock):
+    src_dir = RMFTestCase._getSrcFolder()    
+    os_path_isfile_mock.side_effect = [False, True]
+       
     self.executeScript(
       "1.3.2/services/NAGIOS/package/scripts/nagios_service.py",
       classname="NagiosServer",
       command="stop",
       config_file="default.json"
     )
-    self.assertResourceCalled('Execute',
-                              'service nagios stop && rm -f /var/run/nagios/nagios.pid',
-                              path=['/usr/local/bin/:/bin/:/sbin/']
-    )
-    self.assertResourceCalled('MonitorWebserver', 'restart',
-    )
+    
+    self.assertResourceCalled('Execute','service nagios stop', path=['/usr/local/bin/:/bin/:/sbin/'])
+    self.assertResourceCalled('Execute','rm -f /var/run/nagios/nagios.pid')
+    self.assertResourceCalled('MonitorWebserver', 'restart')
+    
     self.assertNoMoreResources()
 
 
