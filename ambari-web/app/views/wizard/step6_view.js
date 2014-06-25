@@ -91,35 +91,11 @@ App.WizardStep6View = App.TableView.extend({
     this.set('label', label);
   },
 
-  /**
-   * Binding host property with dynamic name
-   * @type {Ember.Checkbox}
-   */
-  checkboxView: Em.Checkbox.extend({
-
-    /**
-     * Header object with host property name
-     * @type {object}
-     */
-    checkbox: null,
-
-    //if setAll true there is no need to check every checkbox whether all checked or not
-
-    checkedBinding: 'checkbox.checked',
-
-    disabledBinding: 'checkbox.isInstalled',
-
-    /**
-     * Click-handler on checkbox
-     * @method click
-     */
-    click: function () {
-      if ($.browser.mozilla) {
-        this.toggleProperty('checkbox.checked');
-      }
-      this.get('controller').checkCallback(this.get('checkbox.component'));
-    }
-  })
+  checkboxClick: function(e) {
+    var checkbox = e.context;
+    checkbox.toggleProperty('checked');
+    this.get('controller').checkCallback(checkbox.component);
+  }
 });
 
 App.WizardStep6HostView = Em.View.extend({
