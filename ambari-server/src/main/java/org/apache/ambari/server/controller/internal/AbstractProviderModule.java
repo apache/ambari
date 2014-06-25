@@ -70,8 +70,8 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
   private static final String GANGLIA_SERVER                            = "GANGLIA_SERVER";
   private static final String PROPERTIES_CATEGORY = "properties";
   private static final Map<Service.Type, String> serviceConfigVersions = new ConcurrentHashMap<Service.Type, String>();
-  private static final Map<Service.Type, String> serviceConfigTypes = new EnumMap<Service.Type, String>(Service.Type.class);
-  private static final Map<Service.Type, Map<String, String[]>> serviceDesiredProperties = new EnumMap<Service.Type, Map<String, String[]>>(Service.Type.class);
+  private static final Map<Service.Type, String> serviceConfigTypes = new HashMap<Service.Type, String>();
+  private static final Map<Service.Type, Map<String, String[]>> serviceDesiredProperties = new HashMap<Service.Type, Map<String, String[]>>();
   private static final Map<String, Service.Type> componentServiceMap = new HashMap<String, Service.Type>();
   
   private static final Map<String, Map<String, String[]>> jmxDesiredProperties = new HashMap<String, Map<String,String[]>>();
@@ -244,12 +244,12 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
             currVersion, serviceConfigTypes.get(service),
             serviceDesiredProperties.get(service));
           
-          for (Entry<String, String> entry : portMap.entrySet()) {
+          for (String compName : portMap.keySet()) {
             // portString will be null if the property defined for the component doesn't exist
             // this will trigger using the default port for the component
-            String portString = getPortString(entry.getValue());
+            String portString = getPortString(portMap.get(compName));
             if (null != portString)
-              clusterJmxPorts.put(entry.getKey(), portString);
+              clusterJmxPorts.put(compName, portString);
           }
         }
       } catch (Exception e) {
@@ -279,17 +279,17 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
           Map<String, String> refMap = new HashMap<String, String>();
           while(refValueString.contains("${")) {
               int startValueRef = refValueString.indexOf("${") + 2;
-              int endValueRef = refValueString.indexOf('}');
+              int endValueRef = refValueString.indexOf("}");
               String valueRef = refValueString.substring(startValueRef, endValueRef);
               refValueString = refValueString.substring(endValueRef+1);
               String trueValue = (String) postProcessPropertyValue(valueRef, properties.get(valueRef), properties, prevProps);
               if (trueValue != null){
-               refMap.put("${"+valueRef+ '}', trueValue);
+               refMap.put("${"+valueRef+"}", trueValue);
               } 
           }
-          for (Entry<String, String> entry : refMap.entrySet()){
-            refValueString = entry.getValue();
-            value = ((String)value).replace(entry.getKey(), refValueString);
+          for (String keyRef : refMap.keySet()){
+            refValueString = refMap.get(keyRef);
+            value = ((String)value).replace(keyRef, refValueString);
           }
           properties.put(key, value);
     }
@@ -655,7 +655,7 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
     Map<String, String> mConfigs = new HashMap<String, String>();
     if (configResources != null) {
       for (Resource res : configResources) {
-       Map<String, String> evaluatedProperties = null;
+       Map<String, String> evalutedProperties = null;                      
         for (Entry<String,String[]> entry : keys.entrySet()) {
           String propName = null;
           String value = null;
@@ -669,8 +669,8 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
           }
           
           if (value != null && value.contains("${")) {
-            if (evaluatedProperties == null){
-              evaluatedProperties = new HashMap<String, String>();
+            if (evalutedProperties == null){
+              evalutedProperties = new HashMap<String, String>();
               Map<String, Object> properties = res.getPropertiesMap().get(PROPERTIES_CATEGORY);
               for (Map.Entry<String, Object> subentry : properties.entrySet()) {
                 String keyString = subentry.getKey();
@@ -678,13 +678,13 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
                 String valueString;
                 if (object != null && object instanceof String){
                   valueString = (String)object;
-                  evaluatedProperties.put(keyString, valueString);
-                  postProcessPropertyValue(keyString, valueString, evaluatedProperties, null);
+                  evalutedProperties.put(keyString, valueString);
+                  postProcessPropertyValue(keyString, valueString, evalutedProperties, null);
                 }
               }              
             }
           }
-          value = postProcessPropertyValue(propName, value, evaluatedProperties, null);
+          value = postProcessPropertyValue(propName, value, evalutedProperties, null);
           LOG.debug("PROPERTY -> key: " + propName + ", " + "value: " + value);
           
           mConfigs.put(entry.getKey(), value);

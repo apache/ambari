@@ -32,8 +32,8 @@ public class JaxbMapKeyValAdapter extends
     }
     JaxbMapKeyVal[] list = new JaxbMapKeyVal[m.size()] ;
     int index = 0;
-    for (Map.Entry<String, String> entry : m.entrySet()) {
-      JaxbMapKeyVal jaxbMap = new JaxbMapKeyVal(entry.getKey(), entry.getValue());
+    for (String key : m.keySet()) {
+      JaxbMapKeyVal jaxbMap = new JaxbMapKeyVal(key, m.get(key));
       list[index++] = jaxbMap;
     }
     return list;

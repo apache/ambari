@@ -104,10 +104,6 @@ public class GangliaReportPropertyProvider extends AbstractPropertyProvider {
   private boolean populateResource(Resource resource, Request request, Predicate predicate)
       throws SystemException {
 
-    if (!resource.getPopulateRequiredFlag()) {
-      return false;
-    }
-
     Set<String> propertyIds = getPropertyIds();
 
     if (propertyIds.isEmpty()) {

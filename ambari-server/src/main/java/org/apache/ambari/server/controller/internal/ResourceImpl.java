@@ -37,11 +37,6 @@ public class ResourceImpl implements Resource {
   private final Type type;
 
   /**
-   * The resource populateRequiredFlag
-   */
-  private boolean populateRequiredFlag;
-
-  /**
    * The map of property maps keyed by property category.
    */
   private final Map<String, Map<String, Object>> propertiesMap = new TreeMap<String, Map<String, Object>>();
@@ -136,25 +131,6 @@ public class ResourceImpl implements Resource {
         null : properties.get(PropertyHelper.getPropertyName(id));
   }
 
-  /**
-   * Get the populateRequiredFlag
-   *
-   * @return the resource populateRequiredFlag
-   */
-  @Override
-  public boolean getPopulateRequiredFlag() {
-    return populateRequiredFlag;
-  }
-
-  /**
-   * Set a populateRequiredFlag on this resource.
-   *
-   * @param populateRequiredFlag
-   */
-  @Override
-  public void setPopulateRequiredFlag(boolean populateRequiredFlag) {
-    this.populateRequiredFlag = populateRequiredFlag;
-  }
 
   // ----- Object overrides --------------------------------------------------
 
@@ -190,6 +166,4 @@ public class ResourceImpl implements Resource {
   private String getCategoryKey(String category) {
     return category == null ? "" : category;
   }
-
-
 }

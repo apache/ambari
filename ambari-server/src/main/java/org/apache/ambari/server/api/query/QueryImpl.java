@@ -337,9 +337,10 @@ public class QueryImpl implements Query, ResourceInstance {
     Request       request     = createRequest();
     Set<Resource> resourceSet = new LinkedHashSet<Resource>();
 
-    Set<Resource> queryResources = doQuery(resourceType, request, queryPredicate, pageRequest, sortRequest);
-    providerResourceSet.addAll(queryResources);
-    resourceSet.addAll(queryResources);
+    for (Resource queryResource : doQuery(resourceType, request, queryPredicate)) {
+      providerResourceSet.add(queryResource);
+      resourceSet.add(queryResource);
+    }
 
     queryResults.put(null, new QueryResult(
         request, queryPredicate, userPredicate, getKeyValueMap(), resourceSet));
@@ -366,23 +367,21 @@ public class QueryImpl implements Query, ResourceInstance {
 
       for (QueryResult queryResult : queryResults.values()) {
         for (Resource resource : queryResult.getProviderResourceSet()) {
-          if (resource.getPopulateRequiredFlag()) {
-            Map<Resource.Type, String> map = getKeyValueMap(resource, queryResult.getKeyValueMap());
+          Map<Resource.Type, String> map = getKeyValueMap(resource, queryResult.getKeyValueMap());
 
-            Predicate     queryPredicate = subResource.createPredicate(map, subResource.processedPredicate);
-            Set<Resource> resourceSet    = new LinkedHashSet<Resource>();
+          Predicate     queryPredicate = subResource.createPredicate(map, subResource.processedPredicate);
+          Set<Resource> resourceSet    = new LinkedHashSet<Resource>();
 
-            try {
-              Set<Resource> queryResources =
-              subResource.doQuery(resourceType, request, queryPredicate, null, null);
-              providerResourceSet.addAll(queryResources);
-              resourceSet.addAll(queryResources);
-            } catch (NoSuchResourceException e) {
-              // do nothing ...
+          try {
+            for (Resource queryResource : subResource.doQuery(resourceType, request, queryPredicate)) {
+              providerResourceSet.add(queryResource);
+              resourceSet.add(queryResource);
             }
-            subResource.queryResults.put(resource,
-                new QueryResult(request, queryPredicate, subResourcePredicate, map, resourceSet));
+          } catch (NoSuchResourceException e) {
+            // do nothing ...
           }
+          subResource.queryResults.put(resource,
+              new QueryResult(request, queryPredicate, subResourcePredicate, map, resourceSet));
         }
       }
       clusterController.populateResources(resourceType, providerResourceSet, request, null);
@@ -393,8 +392,7 @@ public class QueryImpl implements Query, ResourceInstance {
   /**
    * Query the cluster controller for the resources.
    */
-  private Set<Resource> doQuery(Resource.Type type, Request request,
-      Predicate predicate, PageRequest pageRequest, SortRequest sortRequest)
+  private Set<Resource> doQuery(Resource.Type type, Request request, Predicate predicate)
       throws UnsupportedPropertyException,
       SystemException,
       NoSuchResourceException,
@@ -403,11 +401,8 @@ public class QueryImpl implements Query, ResourceInstance {
     if (LOG.isDebugEnabled()) {
       LOG.debug("Executing resource query: " + request + " where " + predicate);
     }
-    if (userPredicate != null) {
-      pageRequest = null;
-      sortRequest = null;
-    }
-    return clusterController.getResources(type, request, predicate, pageRequest, sortRequest);
+
+    return clusterController.getResources(type, request, predicate);
   }
 
   /**

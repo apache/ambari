@@ -128,33 +128,30 @@ public class StackDefinedPropertyProvider implements PropertyProvider {
     
     try {
       for (Resource r : resources) {
-        if (r.getPopulateRequiredFlag()) {
-          String clusterName = r.getPropertyValue(clusterNamePropertyId).toString();
-          String componentName = r.getPropertyValue(componentNamePropertyId).toString();
-
-          Cluster cluster = clusters.getCluster(clusterName);
-          StackId stack = cluster.getDesiredStackVersion();
-          String svc = metaInfo.getComponentToService(stack.getStackName(),
+        String clusterName = r.getPropertyValue(clusterNamePropertyId).toString();
+        String componentName = r.getPropertyValue(componentNamePropertyId).toString();
+        
+        Cluster cluster = clusters.getCluster(clusterName);
+        StackId stack = cluster.getDesiredStackVersion();
+        String svc = metaInfo.getComponentToService(stack.getStackName(),
             stack.getStackVersion(), componentName);
-
-          List<MetricDefinition> defs = metaInfo.getMetrics(
+        
+        List<MetricDefinition> defs = metaInfo.getMetrics(
             stack.getStackName(), stack.getStackVersion(), svc, componentName, type.name());
-
-          if (null == defs || 0 == defs.size())
-            continue;
-
-          for (MetricDefinition m : defs) {
-            if (m.getType().equals("ganglia")) {
-              gangliaMap.put(componentName, getPropertyInfo(m));
-            } else if (m.getType().equals("jmx")) {
-              jmxMap.put(componentName, getPropertyInfo(m));
-            } else {
-              PropertyProvider pp = getDelegate(m);
-              if (null != pp)
-                additional.add(pp);
-            }
+        
+        if (null == defs || 0 == defs.size())
+          continue;
+        
+        for (MetricDefinition m : defs) {
+          if (m.getType().equals("ganglia")) {
+            gangliaMap.put(componentName, getPropertyInfo(m));
+          } else if (m.getType().equals("jmx")) {
+            jmxMap.put(componentName, getPropertyInfo(m));
+          } else {
+            PropertyProvider pp = getDelegate(m);
+            if (null != pp)
+              additional.add(pp);
           }
-
         }
       }
         

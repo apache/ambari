@@ -89,7 +89,7 @@ public class HostImpl implements Host {
   private static final String TIMEZONE = "timezone";
   private static final String OS_RELEASE_VERSION = "os_release_version";
 
-
+  
   private final Gson gson;
 
   private static final Type hostAttributesType =
@@ -97,7 +97,7 @@ public class HostImpl implements Host {
   private static final Type maintMapType =
       new TypeToken<Map<Long, MaintenanceState>>() {}.getType();
 
-  private final ReadWriteLock rwLock;
+  ReadWriteLock rwLock;
   private final Lock readLock;
   private final Lock writeLock;
 
@@ -361,7 +361,7 @@ public class HostImpl implements Host {
   }
 
   /**
-   * @param hostInfo to be imported
+   * @param hostInfo
    */
   @Override
   public void importHostInfo(HostInfo hostInfo) {

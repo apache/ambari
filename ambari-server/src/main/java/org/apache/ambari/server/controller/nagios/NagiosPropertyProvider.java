@@ -177,12 +177,8 @@ public class NagiosPropertyProvider extends BaseProvider implements PropertyProv
     Set<String> propertyIds = getRequestPropertyIds(request, predicate);
     
     for (Resource res : resources) {
-      if (!res.getPopulateRequiredFlag()) {
-        continue;
-      }
-
       String matchValue = res.getPropertyValue(resourceTypeProperty).toString();
-
+      
       if (null == matchValue)
         continue;
 
@@ -193,18 +189,18 @@ public class NagiosPropertyProvider extends BaseProvider implements PropertyProv
       final String clusterName = clusterPropertyValue.toString();
       if (null == clusterName)
         continue;
-
+      
       if (!CLUSTER_ALERTS.containsKey(clusterName)) {
         // prevent endless looping for the first-time collection
         CLUSTER_ALERTS.put(clusterName, Collections.<NagiosAlert>emptyList());
-
+        
         Future<List<NagiosAlert>> f = scheduler.submit(new Callable<List<NagiosAlert>>() {
           @Override
           public List<NagiosAlert> call() throws Exception {
             return populateAlerts(clusterName);
           }
         });
-
+        
         if (waitOnFirstCall) {
           try {
             CLUSTER_ALERTS.put(clusterName, f.get());
@@ -214,9 +210,9 @@ public class NagiosPropertyProvider extends BaseProvider implements PropertyProv
           }
         }
       }
-
+      
       CLUSTER_NAMES.add(clusterName);
-
+      
       List<NagiosAlert> alerts = CLUSTER_ALERTS.get(clusterName);
       if (null != alerts) {
         updateAlerts (res, matchValue, alerts, propertyIds);
