@@ -90,36 +90,46 @@ App.MainServiceItemController = Em.Controller.extend({
     var serviceDisplayName = this.get('content.displayName');
     var isMaintenanceOFF = this.get('content.passiveState') === 'OFF';
     var bodyMessage = Em.Object.create({
+      putInMaintenance: (serviceHealth == 'INSTALLED' && isMaintenanceOFF) || (serviceHealth == 'STARTED' && !isMaintenanceOFF),
+      turnOnMmMsg: serviceHealth == 'INSTALLED' ? Em.I18n.t('passiveState.turnOnFor').format(serviceDisplayName) : Em.I18n.t('passiveState.turnOffFor').format(serviceDisplayName),
       confirmMsg: serviceHealth == 'INSTALLED'? Em.I18n.t('services.service.stop.confirmMsg').format(serviceDisplayName) : Em.I18n.t('question.sure'),
       confirmButton: serviceHealth == 'INSTALLED'? Em.I18n.t('services.service.stop.confirmButton') : Em.I18n.t('ok'),
       additionalWarningMsg:  isMaintenanceOFF && serviceHealth == 'INSTALLED'? Em.I18n.t('services.service.stop.warningMsg.turnOnMM').format(serviceDisplayName) : null
     });
 
-    return App.showConfirmationFeedBackPopup(function(query) {
+    return App.showConfirmationFeedBackPopup(function(query, runMmOperation) {
       self.set('isPending', true);
-      self.startStopPopupPrimary(serviceHealth, query);
+      self.startStopPopupPrimary(serviceHealth, query, runMmOperation);
     }, bodyMessage);
   },
 
-  startStopPopupPrimary: function (serviceHealth, query) {
+  startStopPopupPrimary: function (serviceHealth, query, runMmOperation) {
     var requestInfo = "";
+    var turnOnMM = "ON"
     if (serviceHealth == "STARTED") {
+      turnOnMM = "OFF"
       requestInfo = App.BackgroundOperationsController.CommandContexts.START_SERVICE.format(this.get('content.serviceName'));
     } else {
       requestInfo = App.BackgroundOperationsController.CommandContexts.STOP_SERVICE.format(this.get('content.serviceName'));
     }
 
+    var data = {
+      'requestInfo': requestInfo,
+      'serviceName': this.get('content.serviceName').toUpperCase(),
+      'ServiceInfo': {
+        'state': serviceHealth
+      },
+      'query': query
+    };
+    if (runMmOperation) {
+      data.ServiceInfo.maintenance_state = turnOnMM;
+    }
     App.ajax.send({
       'name': 'service.item.start_stop',
       'sender': this,
       'success': 'startStopPopupSuccessCallback',
       'error': 'startStopPopupErrorCallback',
-      'data': {
-        'requestInfo': requestInfo,
-        'serviceName': this.get('content.serviceName').toUpperCase(),
-        'state': serviceHealth,
-        'query': query
-      }
+      'data': data
     });
     this.set('isStopDisabled', true);
     this.set('isStartDisabled', true);
@@ -192,13 +202,15 @@ App.MainServiceItemController = Em.Controller.extend({
   restartAllHostComponents : function(serviceName) {
     var serviceDisplayName = this.get('content.displayName');
     var bodyMessage = Em.Object.create({
+      putInMaintenance: this.get('content.passiveState') === 'OFF',
+      turnOnMmMsg: Em.I18n.t('passiveState.turnOnFor').format(serviceDisplayName),
       confirmMsg: Em.I18n.t('services.service.restartAll.confirmMsg').format(serviceDisplayName),
       confirmButton: Em.I18n.t('services.service.restartAll.confirmButton'),
       additionalWarningMsg: this.get('content.passiveState') === 'OFF' ? Em.I18n.t('services.service.restartAll.warningMsg.turnOnMM').format(serviceDisplayName): null
      });
     var staleConfigsOnly = App.Service.find(serviceName).get('serviceTypes').contains('MONITORING');
-    return App.showConfirmationFeedBackPopup(function(query) {
-      batchUtils.restartAllServiceHostComponents(serviceName, staleConfigsOnly, query);
+    return App.showConfirmationFeedBackPopup(function(query, runMmOperation) {
+      batchUtils.restartAllServiceHostComponents(serviceName, staleConfigsOnly, query, runMmOperation);
     }, bodyMessage);
   },
 
@@ -207,7 +219,9 @@ App.MainServiceItemController = Em.Controller.extend({
     var state = this.get('content.passiveState') == 'OFF' ? 'ON' : 'OFF';
     var onOff = state === 'ON' ? "On" : "Off";
     return App.showConfirmationPopup(function() {
-          self.turnOnOffPassiveRequest(state, label)
+          batchUtils.turnOnOffPassiveRequest(state, label, self.get('content.serviceName').toUpperCase(), function(data, opt, params) {
+            self.set('content.passiveState', params.passive_state);
+            batchUtils.infoPassiveState(params.passive_state);})
         },
         Em.I18n.t('hosts.passiveMode.popup').format(onOff,self.get('content.displayName'))
     );
@@ -215,24 +229,6 @@ App.MainServiceItemController = Em.Controller.extend({
 
   rollingRestart: function(hostComponentName) {
     batchUtils.launchHostComponentRollingRestart(hostComponentName, this.get('content.displayName'), this.get('content.passiveState') === "ON", false, this.get('content.passiveState') === "ON");
-  },
-
-  turnOnOffPassiveRequest: function(state,message) {
-    App.ajax.send({
-      'name': 'service.item.passive',
-      'sender': this,
-      'data': {
-        'requestInfo': message,
-        'serviceName': this.get('content.serviceName').toUpperCase(),
-        'passive_state': state
-      },
-      'success':'updateService'
-    });
-  },
-
-  updateService: function(data, opt, params) {
-    this.set('content.passiveState', params.passive_state);
-    batchUtils.infoPassiveState(params.passive_state);
   },
 
   runSmokeTestPrimary: function(query) {

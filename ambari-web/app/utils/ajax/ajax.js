@@ -69,9 +69,7 @@ var urls = {
             }
           },
           Body: {
-            ServiceInfo: {
-              state: data.state
-            }
+            ServiceInfo: data.ServiceInfo
           }
         })
       };

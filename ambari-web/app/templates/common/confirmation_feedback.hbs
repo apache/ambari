@@ -24,4 +24,7 @@
     {{view.parentView.additionalWarningMsg}}
   </div>
 {{/if}}
+{{#if view.parentView.putInMaintenance}}
+  <label class="checkbox">{{view Ember.Checkbox checkedBinding="view.parentView.runMmOperation"}} {{view.parentView.turnOnMmMsg}}</label>
+{{/if}}
 

@@ -44,6 +44,12 @@ App.RollingRestartView = Em.View.extend({
    */
   isServiceInMM: false,
 
+  /**
+   * If true service will be put in Maintenance mode before rolling restart
+   * @type {bool}
+   */
+  turnOnMm: false,
+
 
   /**
    * Restart only components with <code>staleConfigs</code>

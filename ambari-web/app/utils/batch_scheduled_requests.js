@@ -69,11 +69,14 @@ module.exports = {
    * @param {String} serviceName for which service hostComponents should be restarted
    * @param {bool} staleConfigsOnly restart only hostComponents with <code>staleConfig</code> true
    */
-  restartAllServiceHostComponents: function(serviceName, staleConfigsOnly, query) {
+  restartAllServiceHostComponents: function(serviceName, staleConfigsOnly, query, runMmOperation) {
     var self = this;
     var context = staleConfigsOnly ? Em.I18n.t('rollingrestart.context.allWithStaleConfigsForSelectedService').format(serviceName) : Em.I18n.t('rollingrestart.context.allForSelectedService').format(serviceName);
     var services = (serviceName === 'HIVE' && App.Service.find('HCATALOG').get('isLoaded')) ? ['HIVE', 'HCATALOG'] : [serviceName];
 
+    if (runMmOperation) {
+      this.turnOnOffPassiveRequest('ON', Em.I18n.t('passiveState.turnOnFor').format(serviceName), serviceName);
+    }
     this.getComponentsFromServer({
       services: services,
       staleConfigs: staleConfigsOnly ? staleConfigsOnly : null,
@@ -263,6 +266,22 @@ module.exports = {
     }
     return operationLevel;
   },
+
+  turnOnOffPassiveRequest: function(state, message, serviceName, callback) {
+    App.ajax.send({
+      'name': 'service.item.passive',
+      'sender': {
+        'successCallback': callback || defaultSuccessCallback,
+        'errorCallback': defaultErrorCallback
+      },
+      'data': {
+        'requestInfo': message,
+        'serviceName': serviceName,
+        'passive_state': state
+      },
+      'success': 'successCallback'
+    });
+  },
   /**
    * Makes a REST call to the server requesting the rolling restart of the
    * provided host components.
@@ -374,6 +393,8 @@ module.exports = {
     }
     var title = Em.I18n.t('rollingrestart.dialog.title').format(componentDisplayName);
     var viewExtend = {
+      turnOnMmMsg: Em.I18n.t('passiveState.turnOnFor').format(serviceName),
+      turnOnMm: false,
       staleConfigsOnly : staleConfigsOnly,
       hostComponentName : hostComponentName,
       skipMaintenance: skipMaintenance,
@@ -431,6 +452,9 @@ module.exports = {
         var batchSize = this.get('innerView.batchSize');
         var waitTime = this.get('innerView.interBatchWaitTimeSeconds');
         var tolerateSize = this.get('innerView.tolerateSize');
+        if (this.get('innerView.turnOnMm')) {
+          self.turnOnOffPassiveRequest('ON', Em.I18n.t('passiveState.turnOnFor').format(serviceName), serviceName);
+        }
         self._doPostBatchRollingRestartRequest(restartComponents, batchSize, waitTime, tolerateSize, function(data, ajaxOptions, params) {
           dialog.hide();
           defaultSuccessCallback(data, ajaxOptions, params);

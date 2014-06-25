@@ -176,13 +176,20 @@ App.showConfirmationFeedBackPopup = function (primary, bodyMessage, secondary) {
       this.set('disableSecondary', true);
       this.set('statusMessage', Em.I18n.t('popup.confirmationFeedBack.sending'));
       this.hide();
-      primary(this.get('query'));
+      primary(this.get('query'), this.get('runMmOperation'));
     },
     statusMessage: function () {
       return bodyMessage? bodyMessage.confirmMsg : Em.I18n.t('question.sure');
     }.property('bodyMessage'),
     additionalWarningMsg: function () {
       return bodyMessage? bodyMessage.additionalWarningMsg : null;
+    }.property('bodyMessage'),
+    putInMaintenance: function () {
+      return bodyMessage ? bodyMessage.putInMaintenance : null;
+    }.property('bodyMessage'),
+    runMmOperation: false,
+    turnOnMmMsg: function () {
+      return bodyMessage ? bodyMessage.turnOnMmMsg : null;
     }.property('bodyMessage'),
     watchStatus: function() {
       if (this.get('query.status') === "SUCCESS") {
