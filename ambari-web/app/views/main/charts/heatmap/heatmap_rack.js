@@ -91,12 +91,12 @@ App.MainChartsHeatmapRackView = Em.View.extend({
         publicHostName: item.Hosts.public_host_name,
         osType: item.Hosts.os_type,
         ip: item.Hosts.ip,
-        diskTotal: item.metrics.disk.disk_total,
-        diskFree: item.metrics.disk.disk_free,
-        cpuSystem: item.metrics.cpu.cpu_system,
-        cpuUser: item.metrics.cpu.cpu_user,
-        memTotal: item.metrics.memory.mem_total,
-        memFree: item.metrics.memory.mem_free,
+        diskTotal: item.metrics ? item.metrics.disk.disk_total : 0,
+        diskFree: item.metrics ? item.metrics.disk.disk_free : 0,
+        cpuSystem: item.metrics ? item.metrics.cpu.cpu_system : 0,
+        cpuUser: item.metrics ? item.metrics.cpu.cpu_user : 0,
+        memTotal: item.metrics ? item.metrics.memory.mem_total : 0,
+        memFree: item.metrics ? item.metrics.memory.mem_free : 0,
         hostComponents: item.host_components.mapProperty('HostRoles.component_name')
       })
     });
