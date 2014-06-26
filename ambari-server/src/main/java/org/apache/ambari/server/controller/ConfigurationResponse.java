@@ -34,16 +34,19 @@ public class ConfigurationResponse {
 
   private Map<String, String> configs;
 
+  private Map<String, Map<String, String>> configAttributes;
 
   public ConfigurationResponse(String clusterName,
                                String type, String versionTag,
-                               Map<String, String> configs) {
+                               Map<String, String> configs,
+                               Map<String, Map<String, String>> configAttributes) {
     super();
     this.clusterName = clusterName;
     this.configs = configs;
     this.type = type;
     this.versionTag = versionTag;
     this.configs = configs;
+    this.configAttributes = configAttributes;
   }
 
 
@@ -73,6 +76,14 @@ public class ConfigurationResponse {
    */
   public void setConfigs(Map<String, String> configs) {
     this.configs = configs;
+  }
+
+  public Map<String, Map<String, String>> getConfigAttributes() {
+    return configAttributes;
+  }
+
+  public void setConfigAttributes(Map<String, Map<String, String>> configAttributes) {
+    this.configAttributes = configAttributes;
   }
 
   /**

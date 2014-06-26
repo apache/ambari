@@ -17,11 +17,15 @@
  */
 package org.apache.ambari.server.state;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
 import com.google.inject.persist.Transactional;
+
 import junit.framework.Assert;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
@@ -42,6 +46,7 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -96,7 +101,11 @@ public class ConfigGroupTest {
     Map<String, String> properties = new HashMap<String, String>();
     properties.put("a", "b");
     properties.put("c", "d");
-    Config config = configFactory.createNew(cluster, "hdfs-site", properties);
+    Map<String, Map<String, String>> propertiesAttributes = new HashMap<String, Map<String,String>>();
+    Map<String, String> attributes = new HashMap<String, String>();
+    attributes.put("a", "true");
+    propertiesAttributes.put("final", attributes);
+    Config config = configFactory.createNew(cluster, "hdfs-site", properties, propertiesAttributes);
     config.setVersionTag("testversion");
 
     Host host = clusters.getHost("h1");
@@ -130,6 +139,8 @@ public class ConfigGroupTest {
     Assert.assertNotNull(configMappingEntity.getClusterConfigEntity());
     Assert.assertTrue(configMappingEntity
       .getClusterConfigEntity().getData().contains("a"));
+    Assert.assertEquals("{\"final\":{\"a\":\"true\"}}", configMappingEntity
+        .getClusterConfigEntity().getAttributes());
     ConfigGroupHostMappingEntity hostMappingEntity = configGroupEntity
       .getConfigGroupHostMappingEntities().iterator().next();
     Assert.assertNotNull(hostMappingEntity);
@@ -154,8 +165,13 @@ public class ConfigGroupTest {
     // Create a new config
     Map<String, String> properties = new HashMap<String, String>();
     properties.put("key1", "value1");
+    Map<String, Map<String, String>> propertiesAttributes = new HashMap<String, Map<String,String>>();
+    Map<String, String> attributes = new HashMap<String, String>();
+    attributes.put("key1", "true");
+    propertiesAttributes.put("final", attributes);
     Config config = new ConfigImpl("test-site");
     config.setProperties(properties);
+    config.setPropertiesAttributes(propertiesAttributes);
     config.setVersionTag("version100");
 
     configGroup.addConfiguration(config);
@@ -177,8 +193,21 @@ public class ConfigGroupTest {
       .getConfigGroupConfigMappingEntities().size());
     Assert.assertEquals("NewTag", configGroupEntity.getTag());
     Assert.assertEquals("NewDesc", configGroupEntity.getDescription());
-
     Assert.assertNotNull(cluster.getConfig("test-site", "version100"));
+    
+    ConfigGroupConfigMappingEntity configMappingEntity = null;
+    Object[] array = configGroupEntity.getConfigGroupConfigMappingEntities().toArray();
+    for(Object o: array) {
+      if("test-site".equals(((ConfigGroupConfigMappingEntity)o).getConfigType())){
+        configMappingEntity = (ConfigGroupConfigMappingEntity) o;
+        break;
+      }
+    }
+    Assert.assertNotNull(configMappingEntity);
+    Assert.assertTrue(configMappingEntity
+        .getClusterConfigEntity().getData().contains("{\"key1\":\"value1\"}"));
+      Assert.assertEquals("{\"final\":{\"key1\":\"true\"}}", configMappingEntity
+          .getClusterConfigEntity().getAttributes());
   }
 
   @Test

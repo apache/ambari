@@ -384,6 +384,9 @@ public class ConfigGroupImpl implements ConfigGroup {
           clusterConfigEntity.setType(config.getType());
           clusterConfigEntity.setTag(config.getVersionTag());
           clusterConfigEntity.setData(gson.toJson(config.getProperties()));
+          if (null != config.getPropertiesAttributes()) {
+            clusterConfigEntity.setAttributes(gson.toJson(config.getPropertiesAttributes()));
+          }
           clusterConfigEntity.setTimestamp(System.currentTimeMillis());
 
           // TODO: Is locking necessary and functional ?

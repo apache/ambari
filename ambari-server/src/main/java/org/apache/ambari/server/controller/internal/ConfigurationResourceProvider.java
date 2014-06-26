@@ -39,12 +39,15 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
+import java.util.regex.Pattern;
 
 /**
  * Resource provider for configuration resources.
  */
 public class ConfigurationResourceProvider extends
   AbstractControllerResourceProvider {
+
+  private static Pattern propertiesAttributesPattern = Pattern.compile("^" + PROPERTIES_ATTRIBUTES_REGEX);
 
   // ----- Property ID constants ---------------------------------------------
 
@@ -98,15 +101,28 @@ public class ConfigurationResourceProvider extends
       String tag  = (String) map.get(CONFIGURATION_CONFIG_TAG_PROPERTY_ID);
 
       Map<String, String> configMap = new HashMap<String, String>();
+      Map<String, Map<String, String>> configAttributesMap = null;
 
       for (Entry<String, Object> entry : map.entrySet()) {
         String propertyCategory = PropertyHelper.getPropertyCategory(entry.getKey());
         if (propertyCategory != null && propertyCategory.equals("properties") && null != entry.getValue()) {
           configMap.put(PropertyHelper.getPropertyName(entry.getKey()), entry.getValue().toString());
         }
+        if (propertyCategory != null && propertiesAttributesPattern.matcher(propertyCategory).matches() && null != entry.getValue()) {
+          if (null == configAttributesMap) {
+            configAttributesMap = new HashMap<String, Map<String,String>>();
+          }
+          String attributeName = propertyCategory.substring(propertyCategory.lastIndexOf('/') + 1);
+          Map<String, String> attributesMap = configAttributesMap.get(attributeName);
+          if (attributesMap == null) {
+            attributesMap = new HashMap<String, String>();
+            configAttributesMap.put(attributeName, attributesMap);
+          }
+          attributesMap.put(PropertyHelper.getPropertyName(entry.getKey()), entry.getValue().toString());
+        }
       }
 
-      final ConfigurationRequest configRequest = new ConfigurationRequest(cluster, type, tag, configMap);
+      final ConfigurationRequest configRequest = new ConfigurationRequest(cluster, type, tag, configMap, configAttributesMap);
 
       createResources(new Command<Void>() {
         @Override
@@ -152,6 +168,13 @@ public class ConfigurationResourceProvider extends
           resource.setProperty(id, entry.getValue());
         }
       }
+      if (null != response.getConfigAttributes() && response.getConfigAttributes().size() > 0) {
+        Map<String, Map<String, String>> configAttributes = response.getConfigAttributes();
+        for (Entry<String, Map<String, String>> configAttribute : configAttributes.entrySet()) {
+          String id = PropertyHelper.getPropertyId("properties_attributes", configAttribute.getKey());
+          resource.setProperty(id, configAttribute.getValue());
+        }
+      }
       resources.add(resource);
     }
     return resources;
@@ -190,11 +213,11 @@ public class ConfigurationResourceProvider extends
       // for example, the tag property can come here as Config/tag, /tag or tag
       if (!propertyId.equals("tag") && !propertyId.equals("type") &&
           !propertyId.equals("/tag") && !propertyId.equals("/type") &&
-          !propertyId.equals("properties")) {
+          !propertyId.equals("properties") && !propertyId.equals("properties_attributes")) {
 
         String propertyCategory = PropertyHelper.getPropertyCategory(propertyId);
 
-        if (propertyCategory == null || !propertyCategory.equals("properties")) {
+        if (propertyCategory == null || !(propertyCategory.equals("properties") || propertiesAttributesPattern.matcher(propertyCategory).matches())) {
           unsupportedProperties.add(propertyId);
         }
       }
@@ -225,6 +248,6 @@ public class ConfigurationResourceProvider extends
 
     return new ConfigurationRequest(
         (String) properties.get(CONFIGURATION_CLUSTER_NAME_PROPERTY_ID),
-        type, tag, new HashMap<String, String>());
+        type, tag, new HashMap<String, String>(), new HashMap<String, Map<String, String>>());
   }
 }

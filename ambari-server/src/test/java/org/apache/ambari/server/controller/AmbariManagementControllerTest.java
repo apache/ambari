@@ -1536,14 +1536,15 @@ public class AmbariManagementControllerTest {
 
     Map<String, Config> configs = new HashMap<String, Config>();
     Map<String, String> properties = new HashMap<String, String>();
+    Map<String, Map<String, String>> propertiesAttributes = new HashMap<String, Map<String,String>>();
     properties.put("a", "a1");
     properties.put("b", "b1");
 
-    Config c1 = new ConfigImpl(cluster, "hdfs-site", properties, injector);
+    Config c1 = new ConfigImpl(cluster, "hdfs-site", properties, propertiesAttributes, injector);
     properties.put("c", "c1");
     properties.put("d", "d1");
-    Config c2 = new ConfigImpl(cluster, "core-site", properties, injector);
-    Config c3 = new ConfigImpl(cluster, "foo-site", properties, injector);
+    Config c2 = new ConfigImpl(cluster, "core-site", properties, propertiesAttributes, injector);
+    Config c3 = new ConfigImpl(cluster, "foo-site", properties, propertiesAttributes, injector);
 
     Map<String, String> mapRequestProps = new HashMap<String, String>();
     mapRequestProps.put("context", "Called from a test");
@@ -2189,7 +2190,7 @@ public class AmbariManagementControllerTest {
 
     ConfigurationRequest cr1;
     cr1 = new ConfigurationRequest(clusterName, "hdfs-site", "version1",
-        configs);
+        configs, null);
     ClusterRequest crReq = new ClusterRequest(null, clusterName, null, null);
     crReq.setDesiredConfig(cr1);
     controller.updateClusters(Collections.singleton(crReq), null);
@@ -3782,13 +3783,13 @@ public class AmbariManagementControllerTest {
     Config config1 = cf.createNew(cluster, "global",
         new HashMap<String, String>() {{
           put("key1", "value1");
-        }});
+        }}, new HashMap<String, Map<String,String>>());
     config1.setVersionTag("version1");
 
     Config config2 = cf.createNew(cluster, "core-site",
         new HashMap<String, String>() {{
           put("key1", "value1");
-        }});
+        }}, new HashMap<String, Map<String,String>>());
     config2.setVersionTag("version1");
 
     cluster.addConfig(config1);
@@ -3913,13 +3914,13 @@ public class AmbariManagementControllerTest {
     Config config1 = cf.createNew(cluster, "global",
       new HashMap<String, String>() {{
         put("key1", "value1");
-      }});
+      }}, new HashMap<String, Map<String,String>>());
     config1.setVersionTag("version1");
 
     Config config2 = cf.createNew(cluster, "core-site",
       new HashMap<String, String>() {{
         put("key1", "value1");
-      }});
+      }}, new HashMap<String, Map<String,String>>());
     config2.setVersionTag("version1");
 
     cluster.addConfig(config1);
@@ -4114,13 +4115,13 @@ public class AmbariManagementControllerTest {
     Config config1 = cf.createNew(cluster, "global",
         new HashMap<String, String>() {{
           put("key1", "value1");
-        }});
+        }}, new HashMap<String, Map<String,String>>());
     config1.setVersionTag("version1");
 
     Config config2 = cf.createNew(cluster, "core-site",
         new HashMap<String, String>() {{
           put("key1", "value1");
-        }});
+        }}, new HashMap<String, Map<String,String>>());
     config2.setVersionTag("version1");
 
     cluster.addConfig(config1);
@@ -4376,11 +4377,11 @@ public class AmbariManagementControllerTest {
 
     ConfigFactory cf = injector.getInstance(ConfigFactory.class);
     Config config1 = cf.createNew(cluster, "global",
-        new HashMap<String, String>(){{ put("key1", "value1"); }});
+        new HashMap<String, String>(){{ put("key1", "value1"); }}, new HashMap<String, Map<String,String>>());
     config1.setVersionTag("version1");
 
     Config config2 = cf.createNew(cluster, "core-site",
-        new HashMap<String, String>(){{ put("key1", "value1"); }});
+        new HashMap<String, String>(){{ put("key1", "value1"); }}, new HashMap<String, Map<String,String>>());
     config2.setVersionTag("version1");
 
     cluster.addConfig(config1);
@@ -4587,7 +4588,7 @@ public class AmbariManagementControllerTest {
 
     ClusterRequest cr = new ClusterRequest(null, clusterName, null, null);
     cr.setDesiredConfig(new ConfigurationRequest(clusterName, "global",
-        "v1", configs));
+        "v1", configs, null));
     controller.updateClusters(Collections.singleton(cr), Collections.<String, String>emptyMap());
 
     Set<ServiceRequest> sReqs = new HashSet<ServiceRequest>();
@@ -4736,14 +4737,14 @@ public class AmbariManagementControllerTest {
     configs.put("a", "b");
 
     ConfigurationRequest cr1, cr2, cr3, cr4, cr5, cr6, cr7, cr8;
-    cr1 = new ConfigurationRequest(clusterName, "typeA","v1", configs);
-    cr2 = new ConfigurationRequest(clusterName, "typeB","v1", configs);
-    cr3 = new ConfigurationRequest(clusterName, "typeC","v1", configs);
-    cr4 = new ConfigurationRequest(clusterName, "typeD","v1", configs);
-    cr5 = new ConfigurationRequest(clusterName, "typeA","v2", configs);
-    cr6 = new ConfigurationRequest(clusterName, "typeB","v2", configs);
-    cr7 = new ConfigurationRequest(clusterName, "typeC","v2", configs);
-    cr8 = new ConfigurationRequest(clusterName, "typeE","v1", configs);
+    cr1 = new ConfigurationRequest(clusterName, "typeA","v1", configs, null);
+    cr2 = new ConfigurationRequest(clusterName, "typeB","v1", configs, null);
+    cr3 = new ConfigurationRequest(clusterName, "typeC","v1", configs, null);
+    cr4 = new ConfigurationRequest(clusterName, "typeD","v1", configs, null);
+    cr5 = new ConfigurationRequest(clusterName, "typeA","v2", configs, null);
+    cr6 = new ConfigurationRequest(clusterName, "typeB","v2", configs, null);
+    cr7 = new ConfigurationRequest(clusterName, "typeC","v2", configs, null);
+    cr8 = new ConfigurationRequest(clusterName, "typeE","v1", configs, null);
     controller.createConfiguration(cr1);
     controller.createConfiguration(cr2);
     controller.createConfiguration(cr3);
@@ -4878,16 +4879,20 @@ public class AmbariManagementControllerTest {
 
     Map<String, String> configs = new HashMap<String, String>();
     configs.put("a", "b");
+    
+    Map<String, Map<String, String>> configAttributes = new HashMap<String, Map<String,String>>();
+    configAttributes.put("final", new HashMap<String, String>());
+    configAttributes.get("final").put("a", "true");
 
     ConfigurationRequest cr1, cr2, cr3, cr4, cr5, cr6, cr7, cr8;
-    cr1 = new ConfigurationRequest(clusterName, "typeA","v1", configs);
-    cr2 = new ConfigurationRequest(clusterName, "typeB","v1", configs);
-    cr3 = new ConfigurationRequest(clusterName, "typeC","v1", configs);
-    cr4 = new ConfigurationRequest(clusterName, "typeD","v1", configs);
-    cr5 = new ConfigurationRequest(clusterName, "typeA","v2", configs);
-    cr6 = new ConfigurationRequest(clusterName, "typeB","v2", configs);
-    cr7 = new ConfigurationRequest(clusterName, "typeC","v2", configs);
-    cr8 = new ConfigurationRequest(clusterName, "typeE","v1", configs);
+    cr1 = new ConfigurationRequest(clusterName, "typeA","v1", configs, configAttributes);
+    cr2 = new ConfigurationRequest(clusterName, "typeB","v1", configs, configAttributes);
+    cr3 = new ConfigurationRequest(clusterName, "typeC","v1", configs, configAttributes);
+    cr4 = new ConfigurationRequest(clusterName, "typeD","v1", configs, configAttributes);
+    cr5 = new ConfigurationRequest(clusterName, "typeA","v2", configs, configAttributes);
+    cr6 = new ConfigurationRequest(clusterName, "typeB","v2", configs, configAttributes);
+    cr7 = new ConfigurationRequest(clusterName, "typeC","v2", configs, configAttributes);
+    cr8 = new ConfigurationRequest(clusterName, "typeE","v1", configs, configAttributes);
     controller.createConfiguration(cr1);
     controller.createConfiguration(cr2);
     controller.createConfiguration(cr3);
@@ -5025,11 +5030,11 @@ public class AmbariManagementControllerTest {
 
     ConfigurationRequest cr1,cr2,cr3;
     cr1 = new ConfigurationRequest(clusterName, "core-site","version1",
-      configs);
+      configs, null);
     cr2 = new ConfigurationRequest(clusterName, "hdfs-site","version1",
-      configs);
+      configs, null);
     cr3 = new ConfigurationRequest(clusterName, "core-site","version122",
-      configs);
+      configs, null);
     controller.createConfiguration(cr1);
     controller.createConfiguration(cr2);
     controller.createConfiguration(cr3);
@@ -5179,9 +5184,9 @@ public class AmbariManagementControllerTest {
 
     ConfigurationRequest cr1,cr2,cr3;
     cr1 = new ConfigurationRequest(clusterName, "core-site","version1",
-      configs);
+      configs, null);
     cr2 = new ConfigurationRequest(clusterName, "hdfs-site","version1",
-      configs);
+      configs, null);
 
     ClusterRequest crReq = new ClusterRequest(null, clusterName, null, null);
     crReq.setDesiredConfig(cr1);
@@ -5208,7 +5213,7 @@ public class AmbariManagementControllerTest {
     configs.clear();
     configs.put("c", "d");
     cr3 = new ConfigurationRequest(clusterName, "core-site","version122",
-      configs);
+      configs, null);
     crReq = new ClusterRequest(null, clusterName, null, null);
     crReq.setDesiredConfig(cr3);
     controller.updateClusters(Collections.singleton(crReq), null);
@@ -5325,9 +5330,9 @@ public class AmbariManagementControllerTest {
 
     ConfigurationRequest cr1,cr2,cr3;
     cr1 = new ConfigurationRequest(clusterName, "core-site","version1",
-      configs);
+      configs, null);
     cr2 = new ConfigurationRequest(clusterName, "hdfs-site","version1",
-      configs);
+      configs, null);
 
     ClusterRequest crReq = new ClusterRequest(null, clusterName, null, null);
     crReq.setDesiredConfig(cr1);
@@ -5354,7 +5359,7 @@ public class AmbariManagementControllerTest {
     configs.clear();
     configs.put("c", "d");
     cr3 = new ConfigurationRequest(clusterName, "core-site","version122",
-      configs);
+      configs, null);
     crReq = new ClusterRequest(null, clusterName, null, null);
     crReq.setDesiredConfig(cr3);
     controller.updateClusters(Collections.singleton(crReq), null);
@@ -5930,7 +5935,7 @@ public class AmbariManagementControllerTest {
 
     ConfigurationRequest cr1;
     cr1 = new ConfigurationRequest(clusterName, "hive-site","version1",
-      configs);
+      configs, null);
     ClusterRequest crReq = new ClusterRequest(null, clusterName, null, null);
     crReq.setDesiredConfig(cr1);
     controller.updateClusters(Collections.singleton(crReq), null);
@@ -6005,7 +6010,7 @@ public class AmbariManagementControllerTest {
 
     ConfigurationRequest cr1;
     cr1 = new ConfigurationRequest(clusterName, "hdfs-site","version1",
-      configs);
+      configs, null);
     ClusterRequest crReq = new ClusterRequest(null, clusterName, null, null);
     crReq.setDesiredConfig(cr1);
     controller.updateClusters(Collections.singleton(crReq), null);
@@ -6146,13 +6151,13 @@ public class AmbariManagementControllerTest {
     Config config1 = cf.createNew(cluster, "global",
       new HashMap<String, String>() {{
         put("key1", "value1");
-      }});
+      }}, new HashMap<String, Map<String,String>>());
     config1.setVersionTag("version1");
 
     Config config2 = cf.createNew(cluster, "core-site",
       new HashMap<String, String>() {{
         put("key1", "value1");
-      }});
+      }}, new HashMap<String, Map<String,String>>());
     config2.setVersionTag("version1");
 
     cluster.addConfig(config1);
@@ -6242,13 +6247,13 @@ public class AmbariManagementControllerTest {
     Config config1 = cf.createNew(cluster, "global",
       new HashMap<String, String>() {{
         put("key1", "value1");
-      }});
+      }}, new HashMap<String, Map<String,String>>());
     config1.setVersionTag("version1");
 
     Config config2 = cf.createNew(cluster, "core-site",
       new HashMap<String, String>() {{
         put("key1", "value1");
-      }});
+      }}, new HashMap<String, Map<String,String>>());
     config2.setVersionTag("version1");
 
     cluster.addConfig(config1);
@@ -6379,9 +6384,9 @@ public class AmbariManagementControllerTest {
 
     ConfigurationRequest cr1,cr2;
     cr1 = new ConfigurationRequest(clusterName, "core-site","version1",
-      configs);
+      configs, null);
     cr2 = new ConfigurationRequest(clusterName, "hdfs-site","version1",
-      configs);
+      configs, null);
 
     ClusterRequest crReq = new ClusterRequest(null, clusterName, null, null);
     crReq.setDesiredConfig(cr1);
@@ -6454,9 +6459,9 @@ public class AmbariManagementControllerTest {
 
     ConfigurationRequest cr1,cr2;
     cr1 = new ConfigurationRequest(clusterName, "core-site","version1",
-      configs);
+      configs, null);
     cr2 = new ConfigurationRequest(clusterName, "hdfs-site","version1",
-      configs);
+      configs, null);
 
     // create, but don't assign
     controller.createConfiguration(cr1);
@@ -6589,11 +6594,11 @@ public class AmbariManagementControllerTest {
 
     ConfigurationRequest cr1,cr2,cr3;
     cr1 = new ConfigurationRequest(clusterName, "core-site","version1",
-      configs);
+      configs, null);
     cr2 = new ConfigurationRequest(clusterName, "hdfs-site","version1",
-      configs);
+      configs, null);
     cr3 = new ConfigurationRequest(clusterName, "mapred-site","version1",
-      configs);
+      configs, null);
 
     ClusterRequest crReq = new ClusterRequest(null, clusterName, null, null);
     crReq.setDesiredConfig(cr1);
@@ -6752,7 +6757,7 @@ public class AmbariManagementControllerTest {
 
     ConfigurationRequest cr1, cr2;
     cr1 = new ConfigurationRequest(clusterName, "hdfs-site", "version1",
-        configs);
+        configs, null);
     ClusterRequest crReq = new ClusterRequest(null, clusterName, null, null);
     crReq.setDesiredConfig(cr1);
     controller.updateClusters(Collections.singleton(crReq), null);
@@ -6852,9 +6857,9 @@ public class AmbariManagementControllerTest {
 
     ConfigurationRequest cr1,cr2;
     cr1 = new ConfigurationRequest(clusterName, "core-site","version1",
-      configs);
+      configs, null);
     cr2 = new ConfigurationRequest(clusterName, "hdfs-site","version1",
-      configs);
+      configs, null);
 
     ClusterRequest crReq = new ClusterRequest(null, clusterName, null, null);
     crReq.setDesiredConfig(cr1);
@@ -8553,7 +8558,7 @@ public class AmbariManagementControllerTest {
         }.getType();
 
         ConfigurationRequest configurationRequest = new ConfigurationRequest("c1", type, tag,
-            gson.<Map<String, String>>fromJson("{ \"fs.default.name\" : \"localhost:8020\"}", confType));
+            gson.<Map<String, String>>fromJson("{ \"fs.default.name\" : \"localhost:8020\"}", confType), null);
         amc.createConfiguration(configurationRequest);
 
         amc.createConfiguration(configurationRequest);
@@ -8619,7 +8624,7 @@ public class AmbariManagementControllerTest {
       amc.createCluster(cr);
 
       ConfigurationRequest configRequest = new ConfigurationRequest(CLUSTER_NAME, "global", "version1",
-          new HashMap<String, String>() {{ put("a", "b"); }});
+          new HashMap<String, String>() {{ put("a", "b"); }}, null);
       cr.setDesiredConfig(configRequest);
       amc.updateClusters(Collections.singleton(cr), new HashMap<String, String>());
 
@@ -8732,17 +8737,17 @@ public class AmbariManagementControllerTest {
       }.getType();
 
       ConfigurationRequest configurationRequest = new ConfigurationRequest("c1", "core-site", "version1",
-          gson.<Map<String, String>>fromJson("{ \"fs.default.name\" : \"localhost:8020\"}", confType)
+          gson.<Map<String, String>>fromJson("{ \"fs.default.name\" : \"localhost:8020\"}", confType), null
       );
       amc.createConfiguration(configurationRequest);
 
       configurationRequest = new ConfigurationRequest("c1", "hdfs-site", "version1",
-          gson.<Map<String, String>>fromJson("{ \"dfs.datanode.data.dir.perm\" : \"750\"}", confType)
+          gson.<Map<String, String>>fromJson("{ \"dfs.datanode.data.dir.perm\" : \"750\"}", confType), null
       );
       amc.createConfiguration(configurationRequest);
 
       configurationRequest = new ConfigurationRequest("c1", "global", "version1",
-          gson.<Map<String, String>>fromJson("{ \"hbase_hdfs_root_dir\" : \"/apps/hbase/\"}", confType)
+          gson.<Map<String, String>>fromJson("{ \"hbase_hdfs_root_dir\" : \"/apps/hbase/\"}", confType), null
       );
       amc.createConfiguration(configurationRequest);
 
@@ -8951,15 +8956,15 @@ public class AmbariManagementControllerTest {
       org.junit.Assert.assertEquals(1, ServiceResourceProviderTest.getServices(amc, serviceRequests).size());
       //Create new configs
       configurationRequest = new ConfigurationRequest("c1", "core-site", "version2",
-          gson.<Map<String, String>>fromJson("{ \"fs.default.name\" : \"localhost:8020\"}", confType)
+          gson.<Map<String, String>>fromJson("{ \"fs.default.name\" : \"localhost:8020\"}", confType), null
       );
       amc.createConfiguration(configurationRequest);
       configurationRequest = new ConfigurationRequest("c1", "hdfs-site", "version2",
-          gson.<Map<String, String>>fromJson("{ \"dfs.datanode.data.dir.perm\" : \"750\"}", confType)
+          gson.<Map<String, String>>fromJson("{ \"dfs.datanode.data.dir.perm\" : \"750\"}", confType), null
       );
       amc.createConfiguration(configurationRequest);
       configurationRequest = new ConfigurationRequest("c1", "global", "version2",
-          gson.<Map<String, String>>fromJson("{ \"hbase_hdfs_root_dir\" : \"/apps/hbase/\"}", confType)
+          gson.<Map<String, String>>fromJson("{ \"hbase_hdfs_root_dir\" : \"/apps/hbase/\"}", confType), null
       );
       amc.createConfiguration(configurationRequest);
       //Add configs to service
@@ -9847,21 +9852,21 @@ public class AmbariManagementControllerTest {
 
     // test null map with no prior
     cr.setDesiredConfig(
-        new ConfigurationRequest(clusterName, "typeA", "v1", null));
+        new ConfigurationRequest(clusterName, "typeA", "v1", null, null));
     controller.updateClusters(Collections.singleton(cr), new HashMap<String, String>());
     Config config = cluster.getDesiredConfigByType("typeA");
     Assert.assertNull(config);
     
     // test empty map with no prior
     cr.setDesiredConfig(
-        new ConfigurationRequest(clusterName, "typeA", "v1", new HashMap<String, String>()));
+        new ConfigurationRequest(clusterName, "typeA", "v1", new HashMap<String, String>(), new HashMap<String, Map<String,String>>()));
     controller.updateClusters(Collections.singleton(cr), new HashMap<String, String>());
     config = cluster.getDesiredConfigByType("typeA");
     Assert.assertNotNull(config);
     
     // test empty properties on a new version
     cr.setDesiredConfig(
-        new ConfigurationRequest(clusterName, "typeA", "v2", new HashMap<String, String>()));
+        new ConfigurationRequest(clusterName, "typeA", "v2", new HashMap<String, String>(), new HashMap<String, Map<String,String>>()));
     controller.updateClusters(Collections.singleton(cr), new HashMap<String, String>());
     config = cluster.getDesiredConfigByType("typeA");
     Assert.assertNotNull(config);
@@ -9871,8 +9876,11 @@ public class AmbariManagementControllerTest {
     Map<String, String> map = new HashMap<String, String>();
     map.clear();
     map.put("c", "d");
+    Map<String, Map<String, String>> attributesMap = new HashMap<String, Map<String,String>>();
+    attributesMap.put("final", new HashMap<String, String>());
+    attributesMap.get("final").put("c", "true");
     cr.setDesiredConfig(
-        new ConfigurationRequest(clusterName, "typeA", "v3", map));
+        new ConfigurationRequest(clusterName, "typeA", "v3", map, attributesMap));
     controller.updateClusters(Collections.singleton(cr), new HashMap<String, String>());
     config = cluster.getDesiredConfigByType("typeA");
     Assert.assertNotNull(config);
@@ -9880,7 +9888,7 @@ public class AmbariManagementControllerTest {
     
     // test reset to v2
     cr.setDesiredConfig(
-        new ConfigurationRequest(clusterName, "typeA", "v2", new HashMap<String, String>()));
+        new ConfigurationRequest(clusterName, "typeA", "v2", new HashMap<String, String>(), new HashMap<String, Map<String,String>>()));
     controller.updateClusters(Collections.singleton(cr), new HashMap<String, String>());
     config = cluster.getDesiredConfigByType("typeA");
     Assert.assertEquals("v2", config.getVersionTag());
@@ -9889,7 +9897,10 @@ public class AmbariManagementControllerTest {
     
     // test v2, but with properties
     cr.setDesiredConfig(
-        new ConfigurationRequest(clusterName, "typeA", "v2", new HashMap<String, String>() {{ put("a", "b"); }}));
+        new ConfigurationRequest(clusterName, "typeA", "v2", new HashMap<String, String>() {{ put("a", "b"); }}, 
+            new HashMap<String, Map<String,String>>(){{put("final", new HashMap<String, String>(){{put("a", "true");}});
+          }
+        }));
     try {
       controller.updateClusters(Collections.singleton(cr), new HashMap<String, String>());
       Assert.fail("Expect failure when creating a config that exists");
@@ -9981,6 +9992,104 @@ public class AmbariManagementControllerTest {
     Assert.assertTrue(cmd.getCommandParams().containsKey("some_custom_param"));
     Assert.assertEquals(null, cmd.getServiceName());
     Assert.assertEquals(null, cmd.getComponentName());
+  }
+
+  @Test
+  public void testConfigAttributesStaleConfigFilter() throws AmbariException {
+
+    final String host1 = "h1";
+    final String host2 = "h2";
+    String clusterName = "foo1";
+    setupClusterWithHosts(clusterName, "HDP-2.0.5", new ArrayList<String>() {
+      {
+        add(host1);
+        add(host2);
+      }
+    }, "centos5");
+    String serviceName = "HDFS";
+    createService(clusterName, serviceName, null);
+    String componentName1 = "NAMENODE";
+    String componentName2 = "DATANODE";
+    String componentName3 = "HDFS_CLIENT";
+
+    createServiceComponent(clusterName, serviceName, componentName1, State.INIT);
+    createServiceComponent(clusterName, serviceName, componentName2, State.INIT);
+    createServiceComponent(clusterName, serviceName, componentName3, State.INIT);
+
+    createServiceComponentHost(clusterName, serviceName, componentName1, host1, null);
+    createServiceComponentHost(clusterName, serviceName, componentName2, host1, null);
+    createServiceComponentHost(clusterName, serviceName, componentName3, host1, null);
+    createServiceComponentHost(clusterName, serviceName, componentName2, host2, null);
+    createServiceComponentHost(clusterName, serviceName, componentName3, host2, null);
+
+    // Install
+    installService(clusterName, serviceName, false, false);
+
+    // Create and attach config
+    // hdfs-site will not have config-attributes
+    Map<String, String> hdfsConfigs = new HashMap<String, String>();
+    hdfsConfigs.put("a", "b");
+    Map<String, Map<String, String>> hdfsConfigAttributes = new HashMap<String, Map<String, String>>() {
+      {
+        put("final", new HashMap<String, String>() {{put("a", "true");}});
+      }
+    };
+
+    ConfigurationRequest cr1 = new ConfigurationRequest(clusterName, "hdfs-site", "version1", hdfsConfigs, hdfsConfigAttributes);
+    ClusterRequest crReq1 = new ClusterRequest(null, clusterName, null, null);
+    crReq1.setDesiredConfig(cr1);
+    
+    controller.updateClusters(Collections.singleton(crReq1), null);
+
+    // Start
+    startService(clusterName, serviceName, false, false);
+
+    // Update actual config
+    HashMap<String, Map<String, String>> actualConfig = new HashMap<String, Map<String, String>>() {
+      {
+        put("hdfs-site", new HashMap<String, String>() {{put("tag", "version1");}});
+      }
+    };
+    HashMap<String, Map<String, String>> actualConfigOld = new HashMap<String, Map<String, String>>() {
+      {
+        put("hdfs-site", new HashMap<String, String>() {{put("tag", "version0");}});
+      }
+    };
+
+    Service s1 = clusters.getCluster(clusterName).getService(serviceName);
+    s1.getServiceComponent(componentName1).getServiceComponentHost(host1).updateActualConfigs(actualConfig);
+    s1.getServiceComponent(componentName2).getServiceComponentHost(host1).updateActualConfigs(actualConfig);
+    s1.getServiceComponent(componentName3).getServiceComponentHost(host1).updateActualConfigs(actualConfigOld);
+    s1.getServiceComponent(componentName2).getServiceComponentHost(host2).updateActualConfigs(actualConfigOld);
+    s1.getServiceComponent(componentName3).getServiceComponentHost(host2).updateActualConfigs(actualConfig);
+
+    ServiceComponentHostRequest r = new ServiceComponentHostRequest(clusterName, null, null, null, null);
+    Set<ServiceComponentHostResponse> resps = controller.getHostComponents(Collections.singleton(r));
+    Assert.assertEquals(5, resps.size());
+
+    // Get all host components with stale config = true
+    r = new ServiceComponentHostRequest(clusterName, null, null, null, null);
+    r.setStaleConfig("true");
+    resps = controller.getHostComponents(Collections.singleton(r));
+    Assert.assertEquals(2, resps.size());
+
+    // Get all host components with stale config = false
+    r = new ServiceComponentHostRequest(clusterName, null, null, null, null);
+    r.setStaleConfig("false");
+    resps = controller.getHostComponents(Collections.singleton(r));
+    Assert.assertEquals(3, resps.size());
+
+    // Get all host components with stale config = false and hostname filter
+    r = new ServiceComponentHostRequest(clusterName, null, null, host1, null);
+    r.setStaleConfig("false");
+    resps = controller.getHostComponents(Collections.singleton(r));
+    Assert.assertEquals(2, resps.size());
+
+    // Get all host components with stale config = false and hostname filter
+    r = new ServiceComponentHostRequest(clusterName, null, null, host2, null);
+    r.setStaleConfig("true");
+    resps = controller.getHostComponents(Collections.singleton(r));
+    Assert.assertEquals(1, resps.size());
   }
 
 }

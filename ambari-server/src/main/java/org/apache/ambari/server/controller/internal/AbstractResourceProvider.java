@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
+import java.util.regex.Pattern;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.DuplicateResourceException;
@@ -52,8 +53,9 @@ public abstract class AbstractResourceProvider extends BaseProvider implements R
    */
   private final Set<ResourceProviderObserver> observers = new HashSet<ResourceProviderObserver>();
 
-  protected final static Logger LOG =
-      LoggerFactory.getLogger(AbstractResourceProvider.class);
+  protected final static Logger LOG = LoggerFactory.getLogger(AbstractResourceProvider.class);
+  protected final static String PROPERTIES_ATTRIBUTES_REGEX = "properties_attributes/[a-zA-Z][a-zA-Z._-]*$";
+  private static Pattern propertiesAttributesPattern = Pattern.compile(".*/" + PROPERTIES_ATTRIBUTES_REGEX);
 
 
   // ----- Constructors ------------------------------------------------------
@@ -333,6 +335,20 @@ public abstract class AbstractResourceProvider extends BaseProvider implements R
         }
         else if (absCategory.endsWith("/properties")) {
           config.getProperties().put(propName, entry.getValue().toString());
+        }
+        else if (propertiesAttributesPattern.matcher(absCategory).matches()) {
+          String attributeName = absCategory.substring(absCategory.lastIndexOf('/') + 1);
+          Map<String, Map<String, String>> configAttributesMap = config.getPropertiesAttributes();
+          if (null == configAttributesMap) {
+            configAttributesMap = new HashMap<String, Map<String,String>>();
+            config.setPropertiesAttributes(configAttributesMap);
+          }
+          Map<String, String> attributesMap = configAttributesMap.get(attributeName);
+          if (null == attributesMap) {
+            attributesMap = new HashMap<String, String>();
+            configAttributesMap.put(attributeName, attributesMap);
+          }
+          attributesMap.put(PropertyHelper.getPropertyName(entry.getKey()), entry.getValue().toString());
         }
       }
     }

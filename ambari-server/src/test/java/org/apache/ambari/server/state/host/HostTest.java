@@ -376,7 +376,7 @@ public class HostTest {
     
     ConfigFactory configFactory = injector.getInstance(ConfigFactory.class);
     Config config = configFactory.createNew(c1, "global",
-        new HashMap<String,String>() {{ put("a", "b"); put("x", "y"); }});
+        new HashMap<String,String>() {{ put("a", "b"); put("x", "y"); }}, new HashMap<String, Map<String,String>>());
     
     try {
       host.addDesiredConfig(c1.getClusterId(), true, "_test", config);
@@ -403,7 +403,7 @@ public class HostTest {
     Assert.assertEquals("Expect global user to be '_test'", "_test", map.get("global").getUser());
     
     config = configFactory.createNew(c1, "global",
-        new HashMap<String,String>() {{ put("c", "d"); }});
+        new HashMap<String,String>() {{ put("c", "d"); }}, new HashMap<String, Map<String,String>>());
     config.setVersionTag("v2");
     host.addDesiredConfig(c1.getClusterId(), true, "_test1", config);
     

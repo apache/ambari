@@ -166,6 +166,7 @@ public class SchemaUpgradeHelper {
       catalogBinder.addBinding().to(UpgradeCatalog151.class);
       catalogBinder.addBinding().to(UpgradeCatalog160.class);
       catalogBinder.addBinding().to(UpgradeCatalog161.class);
+      catalogBinder.addBinding().to(UpgradeCatalog170.class);
     }
   }
 

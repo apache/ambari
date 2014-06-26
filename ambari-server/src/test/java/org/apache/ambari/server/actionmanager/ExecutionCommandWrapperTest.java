@@ -85,6 +85,7 @@ public class ExecutionCommandWrapperTest {
   private static Map<String, String> SERVICE_SITE_CLUSTER;
   private static Map<String, String> SERVICE_SITE_SERVICE;
   private static Map<String, String> SERVICE_SITE_HOST;
+  private static Map<String, Map<String, String>> CONFIG_ATTRIBUTES;
   
   private static Injector injector;
   private static Clusters clusters;
@@ -124,23 +125,25 @@ public class ExecutionCommandWrapperTest {
     GLOBAL_CLUSTER.put(GLOBAL_NAME1, GLOBAL_CLUSTER_VAL1);
     GLOBAL_CLUSTER.put(GLOBAL_NAME2, GLOBAL_CLUSTER_VAL2);
     
+    CONFIG_ATTRIBUTES = new HashMap<String, Map<String,String>>();
+    
     //Cluster level global config
-    Config globalConfig = configFactory.createNew(cluster1, GLOBAL_CONFIG, GLOBAL_CLUSTER);
+    Config globalConfig = configFactory.createNew(cluster1, GLOBAL_CONFIG, GLOBAL_CLUSTER, CONFIG_ATTRIBUTES);
     globalConfig.setVersionTag(CLUSTER_VERSION_TAG);
     cluster1.addConfig(globalConfig);
 
     //Cluster level service config
-    Config serviceSiteConfigCluster = configFactory.createNew(cluster1, SERVICE_SITE_CONFIG, SERVICE_SITE_CLUSTER);
+    Config serviceSiteConfigCluster = configFactory.createNew(cluster1, SERVICE_SITE_CONFIG, SERVICE_SITE_CLUSTER, CONFIG_ATTRIBUTES);
     serviceSiteConfigCluster.setVersionTag(CLUSTER_VERSION_TAG);
     cluster1.addConfig(serviceSiteConfigCluster);
     
     //Service level service config
-    Config serviceSiteConfigService = configFactory.createNew(cluster1, SERVICE_SITE_CONFIG, SERVICE_SITE_SERVICE);
+    Config serviceSiteConfigService = configFactory.createNew(cluster1, SERVICE_SITE_CONFIG, SERVICE_SITE_SERVICE, CONFIG_ATTRIBUTES);
     serviceSiteConfigService.setVersionTag(SERVICE_VERSION_TAG);
     cluster1.addConfig(serviceSiteConfigService);
     
     //Host level service config
-    Config serviceSiteConfigHost = configFactory.createNew(cluster1, SERVICE_SITE_CONFIG, SERVICE_SITE_HOST);
+    Config serviceSiteConfigHost = configFactory.createNew(cluster1, SERVICE_SITE_CONFIG, SERVICE_SITE_HOST, CONFIG_ATTRIBUTES);
     serviceSiteConfigHost.setVersionTag(HOST_VERSION_TAG);
     cluster1.addConfig(serviceSiteConfigHost);
     

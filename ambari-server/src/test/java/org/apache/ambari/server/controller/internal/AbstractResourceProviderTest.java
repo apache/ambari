@@ -264,9 +264,9 @@ public class AbstractResourceProviderTest {
     }
 
     public static ConfigurationRequest getConfigurationRequest(
-        String clusterName, String type, String tag, Map<String, String> configs)
+        String clusterName, String type, String tag, Map<String, String> configs, Map<String, Map<String, String>> configAttributes)
     {
-      EasyMock.reportMatcher(new ConfigurationRequestMatcher(clusterName, type, tag, configs));
+      EasyMock.reportMatcher(new ConfigurationRequestMatcher(clusterName, type, tag, configs, configAttributes));
       return null;
     }
 
@@ -370,8 +370,8 @@ public class AbstractResourceProviderTest {
    */
   public static class ConfigurationRequestMatcher extends ConfigurationRequest implements IArgumentMatcher {
 
-    public ConfigurationRequestMatcher(String clusterName, String type, String tag, Map<String, String> configs) {
-      super(clusterName, type, tag, configs);
+    public ConfigurationRequestMatcher(String clusterName, String type, String tag, Map<String, String> configs, Map<String, Map<String, String>> configsAttributes) {
+      super(clusterName, type, tag, configs, configsAttributes);
     }
 
     @Override
@@ -380,8 +380,8 @@ public class AbstractResourceProviderTest {
           eq(((ConfigurationRequest) o).getClusterName(), getClusterName()) &&
           eq(((ConfigurationRequest) o).getType(), getType()) &&
           eq(((ConfigurationRequest) o).getVersionTag(), getVersionTag()) &&
-          eq(((ConfigurationRequest) o).getProperties(), getProperties());
-
+          eq(((ConfigurationRequest) o).getProperties(), getProperties()) &&
+          eq(((ConfigurationRequest) o).getPropertiesAttributes(), getPropertiesAttributes());
     }
 
     @Override

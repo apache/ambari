@@ -78,7 +78,6 @@ import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.RequestOperationLevel;
-import org.apache.ambari.server.controller.internal.RequestResourceFilter;
 import org.apache.ambari.server.controller.internal.RequestStageContainer;
 import org.apache.ambari.server.controller.internal.URLStreamProvider;
 import org.apache.ambari.server.customactions.ActionDefinition;
@@ -613,6 +612,12 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       configs = new HashMap<String, Config>();
     }
 
+    // Configuration attributes are optional. If not present, use empty map
+    Map<String, Map<String, String>> propertiesAttributes = request.getPropertiesAttributes();
+    if (null == propertiesAttributes) {
+      propertiesAttributes = new HashMap<String, Map<String,String>>();
+    }
+
     if (configs.containsKey(request.getVersionTag())) {
       throw new AmbariException(MessageFormat.format("Configuration with tag ''{0}'' exists for ''{1}''",
           request.getVersionTag(),
@@ -620,7 +625,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
 
     Config config = configFactory.createNew (cluster, request.getType(),
-        request.getProperties());
+        request.getProperties(), propertiesAttributes);
     config.setVersionTag(request.getVersionTag());
 
     config.persist();
@@ -931,7 +936,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       if (null != config) {
         ConfigurationResponse response = new ConfigurationResponse(
             cluster.getClusterName(), config.getType(), config.getVersionTag(),
-            config.getProperties());
+            config.getProperties(), config.getPropertiesAttributes());
         responses.add(response);
       }
     }
@@ -944,7 +949,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           for (Entry<String, Config> entry : configs.entrySet()) {
             ConfigurationResponse response = new ConfigurationResponse(
                 cluster.getClusterName(), request.getType(),
-                entry.getValue().getVersionTag(), new HashMap<String, String>());
+                entry.getValue().getVersionTag(), new HashMap<String, String>(),
+                new HashMap<String, Map<String,String>>());
             responses.add(response);
           }
         }
@@ -955,7 +961,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         for (Config config : all) {
           ConfigurationResponse response = new ConfigurationResponse(
              cluster.getClusterName(), config.getType(), config.getVersionTag(),
-             new HashMap<String, String>());
+             new HashMap<String, String>(), new HashMap<String, Map<String,String>>());
 
           responses.add(response);
         }

@@ -211,6 +211,7 @@ public class ConfigGroupDAOTest {
     configEntity.setType("core-site");
     configEntity.setTag("version1");
     configEntity.setData("someData");
+    configEntity.setAttributes("someAttributes");
 
     List<ClusterConfigEntity> configEntities = new
       ArrayList<ClusterConfigEntity>();
@@ -231,5 +232,6 @@ public class ConfigGroupDAOTest {
     Assert.assertEquals("core-site", configEntities.get(0).getType());
     Assert.assertEquals("version1", configEntities.get(0).getTag());
     Assert.assertEquals("someData", configEntities.get(0).getData());
+    Assert.assertEquals("someAttributes", configEntities.get(0).getAttributes());
   }
 }

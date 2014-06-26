@@ -50,7 +50,7 @@ public class ConfigurationResourceProviderTest {
     RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
 
     managementController.createConfiguration(AbstractResourceProviderTest.Matcher.getConfigurationRequest(
-        "Cluster100", "type", "tag", new HashMap<String, String>()));
+        "Cluster100", "type", "tag", new HashMap<String, String>(), null));
 
     // replay
     replay(managementController, response);
@@ -80,19 +80,69 @@ public class ConfigurationResourceProviderTest {
   }
 
   @Test
+  public void testCreateAttributesResources() throws Exception {
+
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
+
+    managementController.createConfiguration(AbstractResourceProviderTest.Matcher.getConfigurationRequest(
+        "Cluster100", "type", "tag", new HashMap<String, String>(){
+          {
+            put("a", "b");
+          }
+        }, new HashMap<String, Map<String,String>>(){
+          {
+            put("final", new HashMap<String, String>(){
+              {
+                put("a", "true");
+              }
+            });
+          }
+        }));
+
+    // replay
+    replay(managementController, response);
+
+    ConfigurationResourceProvider provider = new ConfigurationResourceProvider(
+        PropertyHelper.getPropertyIds(Resource.Type.Configuration ),
+        PropertyHelper.getKeyPropertyIds(Resource.Type.Configuration),
+        managementController);
+
+    Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
+
+    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+
+    properties.put(ConfigurationResourceProvider.CONFIGURATION_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
+    properties.put(ConfigurationResourceProvider.CONFIGURATION_CONFIG_TAG_PROPERTY_ID, "tag");
+    properties.put(ConfigurationResourceProvider.CONFIGURATION_CONFIG_TYPE_PROPERTY_ID, "type");
+    properties.put("properties/a", "b");
+    properties.put("properties_attributes/final/a", "true");
+
+    propertySet.add(properties);
+
+    // create the request
+    Request request = PropertyHelper.getCreateRequest(propertySet, null);
+
+    provider.createResources(request);
+
+    // verify
+    verify(managementController, response);
+  }
+
+  @Test
   public void testGetResources() throws Exception {
     Resource.Type type = Resource.Type.Configuration;
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
 
     Set<ConfigurationResponse> allResponse = new HashSet<ConfigurationResponse>();
-    allResponse.add(new ConfigurationResponse("Cluster100", "type", "tag1", null));
-    allResponse.add(new ConfigurationResponse("Cluster100", "type", "tag2", null));
-    allResponse.add(new ConfigurationResponse("Cluster100", "type", "tag3", null));
+    allResponse.add(new ConfigurationResponse("Cluster100", "type", "tag1", null, null));
+    allResponse.add(new ConfigurationResponse("Cluster100", "type", "tag2", null, null));
+    allResponse.add(new ConfigurationResponse("Cluster100", "type", "tag3", null, null));
 
     Set<ConfigurationResponse> orResponse = new HashSet<ConfigurationResponse>();
-    orResponse.add(new ConfigurationResponse("Cluster100", "type", "tag1", null));
-    orResponse.add(new ConfigurationResponse("Cluster100", "type", "tag2", null));
+    orResponse.add(new ConfigurationResponse("Cluster100", "type", "tag1", null, null));
+    orResponse.add(new ConfigurationResponse("Cluster100", "type", "tag2", null, null));
 
     Capture<Set<ConfigurationRequest>> configRequestCapture1 = new Capture<Set<ConfigurationRequest>>();
     Capture<Set<ConfigurationRequest>> configRequestCapture2 = new Capture<Set<ConfigurationRequest>>();

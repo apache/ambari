@@ -38,12 +38,17 @@ public class ClusterConfigEntity {
   @Column(name = "version_tag")
   private String tag;
 
-  @Basic(fetch=FetchType.LAZY)
-  @Column(name = "config_data", nullable = false, insertable = true, updatable = false, length=32000)
+  @Basic(fetch = FetchType.LAZY)
+  @Column(name = "config_data", nullable = false, insertable = true, updatable = false, length = 32000)
   @Lob
   private String configJson;
 
-  @Column(name = "create_timestamp", nullable=false, insertable=true, updatable=false)
+  @Basic(fetch = FetchType.LAZY)
+  @Column(name = "config_attributes", nullable = true, insertable = true, updatable = false, length = 32000)
+  @Lob
+  private String configAttributesJson;
+
+  @Column(name = "create_timestamp", nullable = false, insertable = true, updatable = false)
   private long timestamp;
 
   @ManyToOne
@@ -93,6 +98,14 @@ public class ClusterConfigEntity {
     timestamp = stamp;
   }
 
+  public String getAttributes() {
+    return configAttributesJson;
+  }
+
+  public void setAttributes(String attributes) {
+    this.configAttributesJson = attributes;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
@@ -103,14 +116,18 @@ public class ClusterConfigEntity {
     if (clusterId != null ? !clusterId.equals(that.clusterId) : that.clusterId != null) return false;
     if (configJson != null ? !configJson.equals(that.configJson) : that.configJson != null)
       return false;
+    if (configAttributesJson != null ? !configAttributesJson
+        .equals(that.configAttributesJson) : that.configAttributesJson != null)
+      return false;
 
     return true;
   }
 
   @Override
   public int hashCode() {
-    int result = clusterId !=null ? clusterId.intValue() : 0;
+    int result = clusterId != null ? clusterId.intValue() : 0;
     result = 31 * result + (configJson != null ? configJson.hashCode() : 0);
+    result = 31 * result + (configAttributesJson != null ? configAttributesJson.hashCode() : 0);
     return result;
   }
 

@@ -42,6 +42,11 @@ public interface Config {
   public Map<String, String> getProperties();
 
   /**
+   * @return Map of attributes in this config-type to value per property
+   */
+  public Map<String, Map<String, String>> getPropertiesAttributes();
+
+  /**
    * Change the version tag
    * @param versionTag
    */
@@ -52,6 +57,12 @@ public interface Config {
    * @param properties Property Map to replace existing one
    */
   public void setProperties(Map<String, String> properties);
+
+  /**
+   * Replace property attributes with new provided set
+   * @param propertiesAttributes Property Attributes Map to replace existing one
+   */
+  public void setPropertiesAttributes(Map<String, Map<String, String>> propertiesAttributes);
 
   /**
    * Update provided properties' values.

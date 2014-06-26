@@ -32,21 +32,25 @@ public class ConfigurationRequest {
   private String tag;
   private Map<String, String> configs;
   private boolean selected = true;
+  private Map<String, Map<String, String>> configsAttributes;
 
   public ConfigurationRequest() {
     configs = new HashMap<String, String>();
+    configsAttributes = new HashMap<String, Map<String,String>>();
   }
   
   public ConfigurationRequest(String clusterName,
                               String type,
                               String tag,
-                              Map<String, String> configs) {
+                              Map<String, String> configs,
+                              Map<String, Map<String, String>> configsAttributes) {
 
     this.clusterName = clusterName;
     this.configs = configs;
     this.type = type;
     this.tag = tag;
     this.configs = configs;
+    this.configsAttributes = configsAttributes;
   }
 
   /**
@@ -120,5 +124,17 @@ public class ConfigurationRequest {
    */
   public boolean isSelected() {
     return selected;
+  }
+
+  /**
+   * @return Attributes of configs
+   */
+  public Map<String, Map<String, String>> getPropertiesAttributes() {
+    return configsAttributes;
+  }
+
+  public void setPropertiesAttributes(
+      Map<String, Map<String, String>> configsAttributes) {
+    this.configsAttributes = configsAttributes;
   }
 }

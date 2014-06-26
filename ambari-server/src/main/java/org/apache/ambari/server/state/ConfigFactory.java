@@ -21,14 +21,33 @@ import java.util.Map;
 
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 
+import com.google.inject.assistedinject.Assisted;
+
 /**
- * @author ncole
+ * Factory for creating configuration objects using {@link Assisted} constructor parameters
  *
+ * @author ncole
  */
 public interface ConfigFactory {
   
-  Config createNew(Cluster cluster, String type, Map<String, String> map);
+  /**
+   * Creates a new {@link Config} object using provided values.
+   *
+   * @param cluster
+   * @param type
+   * @param map
+   * @param mapAttributes
+   * @return
+   */
+  Config createNew(Cluster cluster, String type, Map<String, String> map, Map<String, Map<String, String>> mapAttributes);
   
+  /**
+   * Creates a new {@link Config} object using provided entity
+   *
+   * @param cluster
+   * @param entity
+   * @return
+   */
   Config createExisting(Cluster cluster, ClusterConfigEntity entity);
 
 }

@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.state;
 
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -41,6 +40,7 @@ public class ConfigImpl implements Config {
   private String type;
   private String versionTag;
   private Map<String, String> properties;
+  private Map<String, Map<String, String>> propertiesAttributes;
   private ClusterConfigEntity entity;
 
   @Inject
@@ -49,10 +49,12 @@ public class ConfigImpl implements Config {
   private Gson gson;
 
   @AssistedInject
-  public ConfigImpl(@Assisted Cluster cluster, @Assisted String type, @Assisted Map<String, String> properties, Injector injector) {
+  public ConfigImpl(@Assisted Cluster cluster, @Assisted String type, @Assisted Map<String, String> properties, 
+      @Assisted Map<String, Map<String, String>> propertiesAttributes, Injector injector) {
     this.cluster = cluster;
     this.type = type;
     this.properties = properties;
+    this.propertiesAttributes = propertiesAttributes;
     injector.injectMembers(this);
     
   }
@@ -95,6 +97,14 @@ public class ConfigImpl implements Config {
   }
 
   @Override
+  public synchronized Map<String, Map<String, String>> getPropertiesAttributes() {
+    if (null != entity && null == propertiesAttributes) {
+      propertiesAttributes = gson.<Map<String, Map<String, String>>>fromJson(entity.getAttributes(), Map.class);
+    }
+    return null == propertiesAttributes ? null : new HashMap<String, Map<String, String>>(propertiesAttributes);
+  }
+
+  @Override
   public synchronized void setVersionTag(String versionTag) {
     this.versionTag = versionTag;
   }
@@ -102,6 +112,11 @@ public class ConfigImpl implements Config {
   @Override
   public synchronized void setProperties(Map<String, String> properties) {
     this.properties = properties;
+  }
+
+  @Override
+  public void setPropertiesAttributes(Map<String, Map<String, String>> propertiesAttributes) {
+    this.propertiesAttributes = propertiesAttributes;
   }
 
   @Override
@@ -130,6 +145,9 @@ public class ConfigImpl implements Config {
     entity.setTimestamp(new Date().getTime());
     
     entity.setData(gson.toJson(getProperties()));
+    if (null != getPropertiesAttributes()) {
+      entity.setAttributes(gson.toJson(getPropertiesAttributes()));
+    }
     clusterDAO.createConfig(entity);
 
     clusterEntity.getClusterConfigEntities().add(entity);

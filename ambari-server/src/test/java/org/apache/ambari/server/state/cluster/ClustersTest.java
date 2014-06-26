@@ -318,14 +318,14 @@ public class ClustersTest {
     final Config config1 = injector.getInstance(ConfigFactory.class).createNew(cluster, "t1",
         new HashMap<String, String>() {{
           put("prop1", "val1");
-        }});
+        }}, new HashMap<String, Map<String,String>>());
     config1.setVersionTag("1");
     config1.persist();
     
     Config config2 = injector.getInstance(ConfigFactory.class).createNew(cluster, "t1",
         new HashMap<String, String>() {{
           put("prop2", "val2");
-        }});
+        }}, new HashMap<String, Map<String,String>>());
     config2.setVersionTag("2");
     config2.persist();
     
