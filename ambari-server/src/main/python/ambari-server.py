@@ -116,6 +116,7 @@ JAVA_SHARE_PATH = "/usr/share/java"
 SERVER_OUT_FILE = "/var/log/ambari-server/ambari-server.out"
 SERVER_LOG_FILE = "/var/log/ambari-server/ambari-server.log"
 BLIND_PASSWORD = "*****"
+ROOT_FS_PATH = "/"
 
 # terminal styles
 BOLD_ON = '\033[1m'
@@ -1117,7 +1118,7 @@ def check_postgre_up():
       if pg_status == PG_STATUS_RUNNING:
         return pg_status, 0, out, err
       else:
-        print_error_msg("Postgres start failed. " + str(e))    
+        print_error_msg("Postgres start failed. " + str(e))
     return pg_status, retcode, out, err
 
 
@@ -1403,7 +1404,7 @@ def execute_remote_script(args, scriptPath):
     # args.warnings.append('{0} not found. Please, run DDL script manually'.format(DATABASE_CLI_TOOLS[DATABASE_INDEX]))
     if VERBOSE:
       print_warning_msg('{0} not found'.format(DATABASE_CLI_TOOLS[DATABASE_INDEX]))
-    return -1, "Client wasn't found", "Client wasn't found"  
+    return -1, "Client wasn't found", "Client wasn't found"
   CMD = get_remote_script_line(args, scriptPath, False)
   if CMD:
     retcode, out, err = run_in_shell(CMD)
@@ -1417,7 +1418,7 @@ def get_remote_script_line(args, scriptPath, forPrint=True):
   if not tool:
     # args.warnings.append('{0} not found. Please, run DDL script manually'.format(DATABASE_CLI_TOOLS[DATABASE_INDEX]))
     if VERBOSE or args.persistence_type == "remote":
-      print_warning_msg('{0} not found'.format(DATABASE_CLI_TOOLS[DATABASE_INDEX]))  
+      print_warning_msg('{0} not found'.format(DATABASE_CLI_TOOLS[DATABASE_INDEX]))
     return None
   if args.dbms == "postgres":
     os.environ["PGPASSWORD"] = args.database_password
@@ -2392,7 +2393,7 @@ def reset(args):
 
   check_database_name_property()
   parse_properties_file(args)
-  
+
   if args.persistence_type == "remote":
     client_usage_cmd_drop = get_remote_script_line(args, DATABASE_DROP_SCRIPTS[DATABASE_INDEX])
     client_usage_cmd_init = get_remote_script_line(args, DATABASE_INIT_SCRIPTS[DATABASE_INDEX])
@@ -2572,19 +2573,20 @@ def start(args):
                            command_base.format(jdk_path,
                                                conf_dir,
                                                get_ambari_classpath(),
-                                               pidfile,
                                                os.path.join(PID_DIR, EXITCODE_NAME))
                            )
   if not os.path.exists(PID_DIR):
     os.makedirs(PID_DIR, 0755)
 
-    #For properly daemonization server should be started using shell as parent
+  # required to start properly server instance
+  os.chdir(ROOT_FS_PATH)
+
+  #For properly daemonization server should be started using shell as parent
   if is_root() and ambari_user != "root":
     # To inherit exported environment variables (especially AMBARI_PASSPHRASE),
     # from subprocess, we have to skip --login option of su command. That's why
     # we change dir to / (otherwise subprocess can face with 'permission denied'
     # errors while trying to list current directory
-    os.chdir("/")
     param_list = [utils.locate_file('su', '/bin'), ambari_user, "-s", utils.locate_file('sh', '/bin'), "-c", command]
   else:
     param_list = [utils.locate_file('sh', '/bin'), "-c", command]
@@ -2643,7 +2645,7 @@ def upgrade_stack(args, stack_id, repo_url=None, repo_url_os=None):
 
   if not retcode == 0:
     raise FatalException(retcode, 'Stack upgrade failed.')
-  
+
   return retcode
 
 
