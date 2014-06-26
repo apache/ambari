@@ -2405,11 +2405,6 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals("false", cmdParams.get("mark_draining_only"));
     Assert.assertEquals(Role.HBASE_MASTER, command.getRole());
     Assert.assertEquals(RoleCommand.CUSTOM_COMMAND, command.getRoleCommand());
-    Map<String, Set<String>> cInfo = execCmd.getClusterHostInfo();
-    Assert.assertTrue(cInfo.containsKey("decom_hbase_rs_hosts"));
-    Assert.assertTrue(cInfo.get("decom_hbase_rs_hosts").size() == 1);
-    Assert.assertEquals("h2",
-        cInfo.get("all_hosts").toArray()[Integer.parseInt(cInfo.get("decom_hbase_rs_hosts").iterator().next())]);
     Assert.assertEquals("DECOMMISSION", execCmd.getHostLevelParams().get("custom_command"));
 
     // RS stops
@@ -2436,8 +2431,6 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals(1, storedTasks.size());
     Assert.assertEquals(HostComponentAdminState.DECOMMISSIONED, scHost.getComponentAdminState());
     Assert.assertEquals(MaintenanceState.ON, scHost.getMaintenanceState());
-    cInfo = execCmd.getClusterHostInfo();
-    Assert.assertTrue(cInfo.containsKey("decom_hbase_rs_hosts"));
     command = storedTasks.get(0);
     Assert.assertEquals("DECOMMISSION", execCmd.getHostLevelParams().get("custom_command"));
     Assert.assertTrue("DECOMMISSION, Excluded: h2".equals(command.getCommandDetail()));
@@ -2474,8 +2467,6 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals("", cmdParams.get("excluded_hosts"));
     Assert.assertEquals(Role.HBASE_MASTER, command.getRole());
     Assert.assertEquals(RoleCommand.CUSTOM_COMMAND, command.getRoleCommand());
-    cInfo = execCmd.getClusterHostInfo();
-    Assert.assertFalse(cInfo.containsKey("decom_hbase_rs_hosts"));
     Assert.assertEquals("DECOMMISSION", execCmd.getHostLevelParams().get("custom_command"));
   }
 
@@ -6055,11 +6046,6 @@ public class AmbariManagementControllerTest {
     HostRoleCommand command =  storedTasks.get(0);
     Assert.assertEquals(Role.NAMENODE, command.getRole());
     Assert.assertEquals(RoleCommand.CUSTOM_COMMAND, command.getRoleCommand());
-    Map<String, Set<String>> cInfo = execCmd.getClusterHostInfo();
-    Assert.assertTrue(cInfo.containsKey("decom_dn_hosts"));
-    Assert.assertTrue(cInfo.get("decom_dn_hosts").size() == 1);
-    Assert.assertEquals("h2",
-        cInfo.get("all_hosts").toArray()[Integer.parseInt(cInfo.get("decom_dn_hosts").iterator().next())]);
     Assert.assertEquals("DECOMMISSION", execCmd.getHostLevelParams().get("custom_command"));
 
     // Decommission the other datanode
@@ -6085,9 +6071,6 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals(1, storedTasks.size());
     Assert.assertEquals(HostComponentAdminState.DECOMMISSIONED, scHost.getComponentAdminState());
     Assert.assertEquals(MaintenanceState.ON, scHost.getMaintenanceState());
-    cInfo = execCmd.getClusterHostInfo();
-    Assert.assertTrue(cInfo.containsKey("decom_dn_hosts"));
-    Assert.assertEquals("0,1", cInfo.get("decom_dn_hosts").iterator().next());
     Assert.assertEquals("DECOMMISSION", execCmd.getHostLevelParams().get("custom_command"));
 
     // Recommission the other datanode  (while adding NameNode HA)
@@ -6127,8 +6110,6 @@ public class AmbariManagementControllerTest {
         ().getExecutionCommand();
     Assert.assertNotNull(storedTasks);
     Assert.assertEquals(2, storedTasks.size());
-    cInfo = execCmd.getClusterHostInfo();
-    Assert.assertFalse(cInfo.containsKey("decom_dn_hosts"));
     int countRefresh = 0;
     for(HostRoleCommand hrc : storedTasks) {
       Assert.assertTrue("DECOMMISSION, Included: h1,h2".equals(hrc.getCommandDetail()));
@@ -6825,11 +6806,6 @@ public class AmbariManagementControllerTest {
     HostRoleCommand command =  storedTasks.get(0);
     Assert.assertEquals(Role.NAMENODE, command.getRole());
     Assert.assertEquals(RoleCommand.CUSTOM_COMMAND, command.getRoleCommand());
-    Map<String, Set<String>> cInfo = execCmd.getClusterHostInfo();
-    Assert.assertTrue(cInfo.containsKey("decom_dn_hosts"));
-    Assert.assertTrue(cInfo.get("decom_dn_hosts").size() == 1);
-    Assert.assertEquals("h1",
-        cInfo.get("all_hosts").toArray()[Integer.parseInt(cInfo.get("decom_dn_hosts").iterator().next())]);
     Assert.assertEquals("DECOMMISSION", execCmd.getHostLevelParams().get("custom_command"));
   }
 

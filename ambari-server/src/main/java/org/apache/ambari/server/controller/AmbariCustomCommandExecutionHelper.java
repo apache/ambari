@@ -253,8 +253,6 @@ public class AmbariCustomCommandExecutionHelper {
       execCmd.setConfigurations(configurations);
       execCmd.setConfigurationTags(configTags);
 
-      execCmd.setClusterHostInfo(
-          StageUtils.getClusterHostInfo(clusters.getHostsForCluster(clusterName), cluster));
 
       hostLevelParams.put(CUSTOM_COMMAND, commandName);
       // Set parameters required for re-installing clients on restart
