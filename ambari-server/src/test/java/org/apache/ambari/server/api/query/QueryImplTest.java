@@ -201,7 +201,6 @@ public class QueryImplTest {
 
     //test
     QueryImpl instance = new TestQuery(mapIds, resourceDefinition);
-    instance.addProperty("versions/operatingSystems/OperatingSystems/os_type/*", null);
 
     PredicateBuilder pb = new PredicateBuilder();
     Predicate predicate = pb.property("versions/operatingSystems/OperatingSystems/os_type").equals("centos5").toPredicate();
@@ -226,25 +225,14 @@ public class QueryImplTest {
 
     Assert.assertEquals(1, versionNode.getChildren().size());
     TreeNode<Resource> opSystemsNode = versionNode.getChild("operatingSystems");
-    Assert.assertEquals(3, opSystemsNode.getChildren().size());
+    Assert.assertEquals(1, opSystemsNode.getChildren().size());
 
     TreeNode<Resource> opSystemNode = opSystemsNode.getChild("OperatingSystem:1");
     Assert.assertEquals("OperatingSystem:1", opSystemNode.getName());
     Resource osResource = opSystemNode.getObject();
     Assert.assertEquals(Resource.Type.OperatingSystem, opSystemNode.getObject().getType());
+
     Assert.assertEquals("centos5", osResource.getPropertyValue("OperatingSystems/os_type"));
-
-    opSystemNode = opSystemsNode.getChild("OperatingSystem:2");
-    Assert.assertEquals("OperatingSystem:2", opSystemNode.getName());
-    osResource = opSystemNode.getObject();
-    Assert.assertEquals(Resource.Type.OperatingSystem, opSystemNode.getObject().getType());
-    Assert.assertEquals("centos6", osResource.getPropertyValue("OperatingSystems/os_type"));
-
-    opSystemNode = opSystemsNode.getChild("OperatingSystem:3");
-    Assert.assertEquals("OperatingSystem:3", opSystemNode.getName());
-    osResource = opSystemNode.getObject();
-    Assert.assertEquals(Resource.Type.OperatingSystem, opSystemNode.getObject().getType());
-    Assert.assertEquals("oraclelinux5", osResource.getPropertyValue("OperatingSystems/os_type"));
   }
 
   @Test
