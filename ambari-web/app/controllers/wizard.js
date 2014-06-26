@@ -598,7 +598,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
     }
     else {
       serviceConfigGroups.forEach(function(group) {
-        group.hosts.map(function(host_id) {
+        var hostNames = group.hosts.map(function(host_id) {
           for (var i = 0; i < host_names.length; i++) {
             if (hosts[host_names[i]].id === host_id) {
               return host_names[i];
@@ -606,7 +606,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
           }
           Em.assert('host is missing!!!!', false);
         });
-        Em.set(group, 'hosts', host_names);
+        Em.set(group, 'hosts', hostNames);
       });
     }
     this.set('content.configGroups', serviceConfigGroups);
