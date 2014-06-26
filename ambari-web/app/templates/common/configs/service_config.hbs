@@ -152,7 +152,7 @@
                   {{! For Advanced, Advanced Core Site, Advanced HDFS Site sections, show the 'Add Property' link.}}
                   {{#if App.isAdmin}}
                     {{#if view.canEdit}}
-                      {{#if category.canAddProperty }}
+                      {{#if category.customCanAddProperty }}
                         <div>
                           <a href="#" {{action "showAddPropertyWindow" this target="view" }} >{{t installer.step7.config.addProperty}}...</a>
                         </div>
