@@ -104,7 +104,15 @@ public class LatestRepoCallable implements Callable<Void> {
             if (null != baseUrl) {
               // !!! in the case where <name>.repo is defined with the base url, strip that off.
               // Agents do the reverse action (take the base url, and append <name>.repo)
-              String repoFileName = stack.getName().toLowerCase() + ".repo";
+              
+              String repo_file_format;
+              if(ri.getOsType().equals("debian12")) {
+                repo_file_format = "list";
+              } else {
+                repo_file_format = "repo";
+              }
+              
+              String repoFileName = stack.getName().toLowerCase() + "." + repo_file_format;
               int idx = baseUrl.toLowerCase().indexOf(repoFileName); 
               
               if (-1 != idx && baseUrl.toLowerCase().endsWith(repoFileName)) {
