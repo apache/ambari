@@ -28,6 +28,8 @@ App.ManageConfigGroupsController = Em.Controller.extend({
 
   isInstaller: false,
 
+  isAddService: false,
+
   serviceName: null,
 
   configGroups: [],
@@ -57,7 +59,8 @@ App.ManageConfigGroupsController = Em.Controller.extend({
   loadHosts: function() {
     this.set('isLoaded', false);
     if (this.get('isInstaller')) {
-      this.set('clusterHosts', App.router.get('installerController').get('allHosts'));
+      var allHosts = this.get('isAddService') ? App.router.get('addServiceController').get('allHosts') : App.router.get('installerController').get('allHosts');
+      this.set('clusterHosts', allHosts);
       this.loadConfigGroups(this.get('serviceName'));
     } else {
       this.loadHostsFromServer();

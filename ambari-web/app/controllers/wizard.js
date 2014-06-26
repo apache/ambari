@@ -65,18 +65,32 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
 
     for (var hostName in dbHosts) {
       hostComponents = [];
+      var disksOverallCapacity = 0;
+      var diskFree = 0;
       dbHosts[hostName].hostComponents.forEach(function (componentName) {
         hostComponents.push(Em.Object.create({
           componentName: componentName,
           displayName: App.format.role(componentName)
         }));
       });
+      dbHosts[hostName].disk_info.forEach(function (disk) {
+        disksOverallCapacity += parseFloat(disk.size);
+        diskFree += parseFloat(disk.available);
+      });
 
       hosts.push(Em.Object.create({
+        id: hostName,
         hostName: hostName,
+        publicHostName: hostName,
         diskInfo: dbHosts[hostName].disk_info,
+        diskTotal: disksOverallCapacity / (1024 * 1024),
+        diskFree: diskFree / (1024 * 1024),
+        disksMounted: dbHosts[hostName].disk_info.length,
         cpu: dbHosts[hostName].cpu,
         memory: dbHosts[hostName].memory,
+        osType: dbHosts[hostName].osType ? dbHosts[hostName].osType: 0,
+        osArch: dbHosts[hostName].osArch ? dbHosts[hostName].osArch : 0,
+        ip: dbHosts[hostName].ip ? dbHosts[hostName].ip: 0,
         hostComponents: hostComponents
       }))
     }
@@ -866,11 +880,12 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
   /**
    * save Config groups
    * @param stepController
+   * @param isAddService
    */
-  saveServiceConfigGroups: function (stepController) {
+  saveServiceConfigGroups: function (stepController, isAddService) {
     var serviceConfigGroups = [],
       isForUpdate = false,
-      hosts = this.getDBProperty('hosts');
+      hosts = isAddService ? App.router.get('addServiceController').getDBProperty('hosts') : this.getDBProperty('hosts');
     stepController.get('stepConfigs').forEach(function (service) {
       // mark group of installed service
       if (service.get('selected') === false) isForUpdate = true;

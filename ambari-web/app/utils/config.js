@@ -1130,7 +1130,7 @@ App.config = Em.Object.create({
     var installerController = App.router.get('installerController');
     var step7Controller = App.router.get('wizardStep7Controller');
     if (App.supports.hostOverridesInstaller) {
-      installerController.saveServiceConfigGroups(step7Controller);
+      installerController.saveServiceConfigGroups(step7Controller, step7Controller.get('content.controllerName') == 'addServiceController');
       App.clusterStatus.setClusterStatus({
         localdb: App.db.data
       });
