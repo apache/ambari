@@ -55,6 +55,7 @@ class GangliaServer(Script):
 
   def configure(self, env):
     import params
+    env.set_params(params)
 
     ganglia.groups_and_users()
     ganglia.config()
@@ -81,11 +82,11 @@ class GangliaServer(Script):
 def change_permission():
   import params
 
-  Directory('/var/lib/ganglia/dwoo',
-            mode=0777,
-            owner=params.gmetad_user,
+  Directory(params.dwoo_path,
+            mode=0755,
             recursive=True
   )
+  Execute(format("chown -R {web_user} {dwoo_path}"))
 
 
 def server_files():
@@ -109,6 +110,12 @@ def server_files():
             mode=0755,
             recursive=True
   )
+
+  if System.get_instance().os_family == "suse":
+    File( params.ganglia_apache_config_file,
+          content = Template("ganglia.conf.j2"),
+          mode = 0644
+    )
 
 
 if __name__ == "__main__":

@@ -62,13 +62,7 @@ then
     fi
 
     #Configure Ganglia Web to work with RRDCached
-    GANGLIA_WEB_CONFIG_FILE=""
-    if [ -f /etc/SuSE-release ]
-    then
-      GANGLIA_WEB_CONFIG_FILE=/srv/www/htdocs/ganglia/conf_default.php
-    else
-      GANGLIA_WEB_CONFIG_FILE=/var/www/html/ganglia/conf_default.php
-    fi
+    GANGLIA_WEB_CONFIG_FILE=${GANGLIA_WEB_PATH}/conf_default.php
 
     if [ -f $GANGLIA_WEB_CONFIG_FILE ]
     then
