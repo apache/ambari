@@ -528,7 +528,6 @@ App.HostPopup = Em.Object.create({
         isServiceListHidden: false,
         showTextArea: false,
         isServiceEmptyList: true,
-        isHostEmptyList: true,
         isTasksEmptyList: true,
         controller: this,
         sourceRequestScheduleId: -1,
@@ -572,9 +571,9 @@ App.HostPopup = Em.Object.create({
          * applied only to HOSTS_LIST and TASK_DETAILS levels, whereas async query used to obtain data
          */
         isLevelLoaded: true,
-        content: function() {
-          return this.get('hosts') || [];
-        }.property('hosts.length', 'isHostListHidden'),
+        isHostEmptyList: function() {
+          return !this.get('pageContent.length');
+        }.property('pageContent.length'),
 
         currentHost: function () {
           return this.get('hosts') && this.get('hosts').findProperty('name', this.get('controller.currentHostName'));
@@ -651,7 +650,7 @@ App.HostPopup = Em.Object.create({
         filter: function() {
           var _this = this,
               filter = this.get('hostCategory.value'),
-              hosts = this.get('content');
+              hosts = this.get('hosts') || [];
           if (!filter || !hosts.length) return;
           if (filter === 'all') {
             this.set('filteredContent', hosts);
@@ -660,8 +659,7 @@ App.HostPopup = Em.Object.create({
               return _this.get('filterMap')[filter].contains(item.status);
             }));
           }
-          this.set("isHostEmptyList", !this.get('pageContent.length'));
-        }.observes('content.length', 'hostCategory.value'),
+        }.observes('hosts.length', 'hostCategory.value'),
 
         /**
          * Reset startIndex property back to 1 when filter type has been changed.
