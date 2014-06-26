@@ -1950,6 +1950,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     var displayName = serviceData.get('displayName');
     App.router.get('manageConfigGroupsController').set('isInstaller', !!controller);
     App.router.get('manageConfigGroupsController').set('serviceName', serviceName);
+    if (controller) {
+      App.router.get('manageConfigGroupsController').set('isAddService', controller.get('content.controllerName') == 'addServiceController');
+    }
     return App.ModalPopup.show({
       header: Em.I18n.t('services.service.config_groups_popup.header').format(displayName),
       bodyClass: App.MainServiceManageConfigGroupView.extend({

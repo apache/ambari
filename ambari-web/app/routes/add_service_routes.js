@@ -208,7 +208,7 @@ module.exports = App.WizardRoute.extend({
       var wizardStep7Controller = router.get('wizardStep7Controller');
       addServiceController.saveServiceConfigProperties(wizardStep7Controller);
       if (App.supports.hostOverrides) {
-        addServiceController.saveServiceConfigGroups(wizardStep7Controller);
+        addServiceController.saveServiceConfigGroups(wizardStep7Controller, true);
       }
       router.transitionTo('step5');
     }
