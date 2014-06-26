@@ -18,6 +18,7 @@ limitations under the License.
 
 from resource_management import *
 from resource_management.core.system import System
+import os
 
 config = Script.get_config()
 
@@ -50,7 +51,6 @@ rrdcached_delay = default("/configurations/global/rrdcached_delay", 1800)
 rrdcached_write_threads = default("/configurations/global/rrdcached_write_threads", 10)
 
 ganglia_server_host = config["clusterHostInfo"]["ganglia_server_host"][0]
-ganglia_debian_apache_conf_file = "/etc/apache2/conf.d/ganglia.conf"
 
 hostname = config["hostname"]
 namenode_host = set(default("/clusterHostInfo/namenode_host", []))
@@ -133,9 +133,22 @@ if len(gmond_apps) > 0:
     for x in ganglia_cluster_names[gmond_app]:
       ganglia_clusters.append(x)
 
+ganglia_apache_config_file = "/etc/apache2/conf.d/ganglia.conf"
+ganglia_web_path="/var/www/html/ganglia"
 if System.get_instance().os_family == "suse":
   rrd_py_path = '/srv/www/cgi-bin'
+  dwoo_path = '/var/lib/ganglia-web/dwoo'
+  web_user = "wwwrun"
+  # for upgrade purposes as path to ganglia was changed
+  if not os.path.exists(ganglia_web_path):
+    ganglia_web_path='/srv/www/htdocs/ganglia'
+
 elif  System.get_instance().os_family == "redhat":
   rrd_py_path = '/var/www/cgi-bin'
+  dwoo_path = '/var/lib/ganglia/dwoo'
+  web_user = "apache"
 elif  System.get_instance().os_family == "debian":
   rrd_py_path = '/usr/lib/cgi-bin'
+  ganglia_web_path = '/usr/share/ganglia-webfrontend'
+  dwoo_path = '/var/lib/ganglia/dwoo'
+  web_user = "www-data"

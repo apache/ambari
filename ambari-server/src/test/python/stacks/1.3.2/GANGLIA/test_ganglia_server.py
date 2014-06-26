@@ -168,11 +168,11 @@ class TestGangliaServer(RMFTestCase):
            '/bin',
            '/usr/bin'],
     )
-    self.assertResourceCalled('Directory', '/var/lib/ganglia/dwoo',
-        owner = 'nobody',
+    self.assertResourceCalled('Directory', '/var/lib/ganglia-web/dwoo',
         recursive = True,
-        mode = 0777,
+        mode = 0755,
     )
+    self.assertResourceCalled('Execute', 'chown -R wwwrun /var/lib/ganglia-web/dwoo',)
     self.assertResourceCalled('Directory', '/srv/www/cgi-bin',
         recursive = True,
     )
@@ -187,6 +187,10 @@ class TestGangliaServer(RMFTestCase):
         recursive = True,
         mode = 0755,
     )
+    self.assertResourceCalled('File', '/etc/apache2/conf.d/ganglia.conf',
+                              content = Template('ganglia.conf.j2'),
+                              mode = 0644,
+                              )
     self.assertResourceCalled('File', '/etc/ganglia/gmetad.conf',
         owner = 'root',
         group = 'hadoop',
