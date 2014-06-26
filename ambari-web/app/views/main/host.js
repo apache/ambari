@@ -84,6 +84,11 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
   }.property('filteredCount', 'startIndex', 'endIndex'),
 
   /**
+   * Stub function
+   */
+  updatePaging: function () {},
+
+  /**
    * flag to toggle displaying selected hosts counter
    */
   showSelectedFilter: function () {

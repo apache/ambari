@@ -41,12 +41,6 @@ App.TableView = Em.View.extend(App.UserPref, {
   tableFilteringComplete: false,
 
   /**
-   * Loaded from local storage startIndex value
-   * @type {Number}
-   */
-  startIndexOnLoad: null,
-
-  /**
    * The number of rows to show on every page
    * The value should be a number converted into string type in order to support select element API
    * Example: "10", "25"
@@ -74,8 +68,9 @@ App.TableView = Em.View.extend(App.UserPref, {
   willInsertElement:function () {
     var self = this;
     var name = this.get('controller.name');
-
-    this.set('startIndexOnLoad', App.db.getStartIndex(name));
+    if (App.db.getStartIndex(name)) {
+      this.set('startIndex', App.db.getStartIndex(name));
+    }
     if (!this.get('displayLength')) {
       if (App.db.getDisplayLength(name)) {
         this.set('displayLength', App.db.getDisplayLength(name));
@@ -148,21 +143,6 @@ App.TableView = Em.View.extend(App.UserPref, {
   },
 
   /**
-   * Do pagination after filtering and sorting
-   * Don't call this method! It's already used where it's need
-   */
-  showProperPage: function() {
-    var self = this;
-    Em.run.next(function() {
-      Em.run.next(function() {
-        if(self.get('startIndexOnLoad')) {
-          self.set('startIndex', self.get('startIndexOnLoad'));
-        }
-      });
-    });
-  },
-
-  /**
    * Return pagination information displayed on the page
    * @type {String}
    */
@@ -179,7 +159,7 @@ App.TableView = Em.View.extend(App.UserPref, {
         return "paginate_previous";
       }
       return "paginate_disabled_previous";
-    }.property("parentView.startIndex", 'filteredCount'),
+    }.property("parentView.startIndex", 'parentView.filteredCount'),
 
     click: function () {
       if (this.get('class') === "paginate_previous") {
@@ -197,7 +177,7 @@ App.TableView = Em.View.extend(App.UserPref, {
         return "paginate_next";
       }
       return "paginate_disabled_next";
-    }.property("parentView.endIndex", 'filteredCount'),
+    }.property("parentView.endIndex", 'parentView.filteredCount'),
 
     click: function () {
       if (this.get('class') === "paginate_next") {
@@ -215,7 +195,7 @@ App.TableView = Em.View.extend(App.UserPref, {
         return "paginate_previous";
       }
       return "paginate_disabled_previous";
-    }.property("parentView.endIndex", 'filteredCount'),
+    }.property("parentView.endIndex", 'parentView.filteredCount'),
 
     click: function () {
       if (this.get('class') === "paginate_previous") {
@@ -233,7 +213,7 @@ App.TableView = Em.View.extend(App.UserPref, {
         return "paginate_next";
       }
       return "paginate_disabled_next";
-    }.property("parentView.endIndex", 'filteredCount'),
+    }.property("parentView.endIndex", 'parentView.filteredCount'),
 
     click: function () {
       if (this.get('class') === "paginate_next") {
@@ -362,9 +342,7 @@ App.TableView = Em.View.extend(App.UserPref, {
   },
 
   saveStartIndex: function() {
-    if (this.get('filteringComplete')) {
-      App.db.setStartIndex(this.get('controller.name'), this.get('startIndex'));
-    }
+    App.db.setStartIndex(this.get('controller.name'), this.get('startIndex'));
   }.observes('startIndex'),
 
   clearFilterCondition: function() {

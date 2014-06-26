@@ -62,7 +62,6 @@ var wrapperView = Em.View.extend({
         }
       });
     }
-    this.get('parentView').showProperPage();
   }.observes('parentView.filteringComplete'),
 
   /**
