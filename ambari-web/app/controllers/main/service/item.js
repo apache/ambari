@@ -196,9 +196,8 @@ App.MainServiceItemController = Em.Controller.extend({
       confirmButton: Em.I18n.t('services.service.restartAll.confirmButton'),
       additionalWarningMsg: this.get('content.passiveState') === 'OFF' ? Em.I18n.t('services.service.restartAll.warningMsg.turnOnMM').format(serviceDisplayName): null
      });
-    var staleConfigsOnly = App.Service.find(serviceName).get('serviceTypes').contains('MONITORING');
     return App.showConfirmationFeedBackPopup(function(query) {
-      batchUtils.restartAllServiceHostComponents(serviceName, staleConfigsOnly, query);
+      batchUtils.restartAllServiceHostComponents(serviceName, false, query);
     }, bodyMessage);
   },
 
