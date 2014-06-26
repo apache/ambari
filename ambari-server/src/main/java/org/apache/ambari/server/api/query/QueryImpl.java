@@ -77,6 +77,11 @@ public class QueryImpl implements Query, ResourceInstance {
   Map<Resource, QueryResult> queryResults = new LinkedHashMap<Resource, QueryResult>();
 
   /**
+   * Set of populated query results
+   */
+  Map<Resource, QueryResult> populatedQueryResults = new LinkedHashMap<Resource, QueryResult>();
+
+  /**
    * Sub-resources of the resource which is being operated on.
    * Should only be added via {@link #addSubResource(String, QueryImpl)}
    */
@@ -337,13 +342,28 @@ public class QueryImpl implements Query, ResourceInstance {
     Request       request     = createRequest();
     Set<Resource> resourceSet = new LinkedHashSet<Resource>();
 
-    for (Resource queryResource : doQuery(resourceType, request, queryPredicate)) {
-      providerResourceSet.add(queryResource);
-      resourceSet.add(queryResource);
+    Set<Resource> queryResources = doQuery(resourceType, request, queryPredicate);
+    // If there is a page request and there is no user predicate
+    if ((pageRequest != null || sortRequest != null )&&
+      userPredicate == null) {
+      PageResponse pageResponse = clusterController.getPage(resourceType,
+        queryResources, request, queryPredicate, pageRequest, sortRequest);
+
+      // build a new set
+      for (Resource r : pageResponse.getIterable()) {
+        resourceSet.add(r);
+        providerResourceSet.add(r);
+      }
+    } else {
+      resourceSet.addAll(queryResources);
+      providerResourceSet.addAll(queryResources);
     }
 
+    populatedQueryResults.put(null, new QueryResult(
+      request, queryPredicate, userPredicate, getKeyValueMap(), resourceSet));
+
     queryResults.put(null, new QueryResult(
-        request, queryPredicate, userPredicate, getKeyValueMap(), resourceSet));
+      request, queryPredicate, userPredicate, getKeyValueMap(), queryResources));
 
     clusterController.populateResources(resourceType, providerResourceSet, request, queryPredicate);
     queryForSubResources();
@@ -365,7 +385,7 @@ public class QueryImpl implements Query, ResourceInstance {
       Request       request             = subResource.createRequest();
       Set<Resource> providerResourceSet = new HashSet<Resource>();
 
-      for (QueryResult queryResult : queryResults.values()) {
+      for (QueryResult queryResult : populatedQueryResults.values()) {
         for (Resource resource : queryResult.getProviderResourceSet()) {
           Map<Resource.Type, String> map = getKeyValueMap(resource, queryResult.getKeyValueMap());
 
@@ -373,15 +393,16 @@ public class QueryImpl implements Query, ResourceInstance {
           Set<Resource> resourceSet    = new LinkedHashSet<Resource>();
 
           try {
-            for (Resource queryResource : subResource.doQuery(resourceType, request, queryPredicate)) {
-              providerResourceSet.add(queryResource);
-              resourceSet.add(queryResource);
-            }
+            Set<Resource> queryResources = subResource.doQuery(resourceType, request, queryPredicate);
+            providerResourceSet.addAll(queryResources);
+            resourceSet.addAll(queryResources);
           } catch (NoSuchResourceException e) {
             // do nothing ...
           }
           subResource.queryResults.put(resource,
               new QueryResult(request, queryPredicate, subResourcePredicate, map, resourceSet));
+          subResource.populatedQueryResults.put(resource,
+            new QueryResult(request, queryPredicate, subResourcePredicate, map, resourceSet));
         }
       }
       clusterController.populateResources(resourceType, providerResourceSet, request, null);
@@ -475,7 +496,7 @@ public class QueryImpl implements Query, ResourceInstance {
     Map<String, String> categoryPropertyIdMap =
         getPropertyIdsForCategory(propertyIds, category);
 
-    for (Map.Entry<Resource, QueryResult> queryResultEntry : queryResults.entrySet()) {
+    for (Map.Entry<Resource, QueryResult> queryResultEntry : populatedQueryResults.entrySet()) {
       QueryResult queryResult         = queryResultEntry.getValue();
       Resource    queryParentResource = queryResultEntry.getKey();
 
