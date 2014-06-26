@@ -200,9 +200,9 @@ def main(argv=None):
     retcode = getOptimalVersion("")
   else:
     retcode = getOptimalVersion(projectVersion)
-  
+
   tryStopAgent()
-  
+
   if retcode["exitstatus"] == 0 and retcode["log"] != None and retcode["log"] != "" and retcode["log"][0].strip() != "":
       availiableProjectVersion = retcode["log"].strip()
       if not isAgentPackageAlreadyInstalled(availiableProjectVersion):
