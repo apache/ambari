@@ -70,15 +70,18 @@ App.ServiceConfigView = Em.View.extend({
     if (!controller.get('selectedService.configCategories')) {
       return;
     }
-    var canAddProperty = true;
-    if (controller.get('selectedConfigGroup') && !controller.get('selectedConfigGroup').isDefault) {
-      canAddProperty = false;
-    }
-    controller.get('selectedService.configCategories').filterProperty('siteFileName').forEach(function (config) {
-      if (config.get('canAddProperty') !== false) {
-        config.set('canAddProperty', canAddProperty);
+
+    if (controller.get('selectedConfigGroup')) {
+      if (controller.get('selectedConfigGroup').isDefault) {
+        controller.get('selectedService.configCategories').filterProperty('siteFileName').forEach(function (config) {
+          config.set('customCanAddProperty', config.get('canAddProperty'));
+        });
       }
-    });
+      else {
+        controller.get('selectedService.configCategories').filterProperty('siteFileName').setEach('customCanAddProperty', false);
+      }
+    }
+
   }.observes(
     'App.router.mainServiceInfoConfigsController.selectedConfigGroup.name',
     'App.router.wizardStep7Controller.selectedConfigGroup.name'
@@ -399,8 +402,8 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
    * Should we show config group or not
    */
   isShowBlock: function () {
-    return this.get('category.canAddProperty') || this.get('filteredCategoryConfigs').length > 0;
-  }.property('category.canAddProperty', 'filteredCategoryConfigs.length'),
+    return this.get('category.customCanAddProperty') || this.get('filteredCategoryConfigs').length > 0;
+  }.property('category.customCanAddProperty', 'filteredCategoryConfigs.length'),
 
   didInsertElement: function () {
     var isCollapsed = this.get('category.isCollapsed') == undefined ? (this.get('category.name').indexOf('Advanced') != -1 || this.get('category.name').indexOf('CapacityScheduler') != -1) : this.get('category.isCollapsed');
