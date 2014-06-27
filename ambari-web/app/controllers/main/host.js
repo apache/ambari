@@ -253,12 +253,27 @@ App.MainHostController = Em.ArrayController.extend({
           result.type = this.getComparisonType(filter.value);
           result.value = this.getProperValue(filter.value);
         }
-        if (filter.type === 'ambari-bandwidth') {
+        // enter an exact number for RAM filter, need to do a range number match for this
+        if (filter.type === 'ambari-bandwidth' && result.type == 'EQUAL' && result.value) {
+          var valuePair = this.convertMemoryToRange(filter.value);
+          queryParams.push({
+            key: result.key,
+            value: valuePair[0],
+            type: 'MORE'
+          });
+          queryParams.push({
+            key: result.key,
+            value: valuePair[1],
+            type: 'LESS'
+          });
+        } else if (filter.type === 'ambari-bandwidth' && result.type != 'EQUAL' && result.value){
+          // enter a comparison type, eg > 1, just do regular match
           result.value = this.convertMemory(filter.value);
-        }
-        if (result.value) {
+          queryParams.push(result);
+        } else if (result.value) {
           queryParams.push(result);
         }
+
       }
     }, this);
 
@@ -375,6 +390,68 @@ App.MainHostController = Em.ArrayController.extend({
         parsedValue *= 1048576;
     }
     return Math.round(parsedValue);
+  },
+
+  /**
+   * Return value converted to a range of kilobytes
+   * @param {String} value
+   * @return {Array}
+   */
+  convertMemoryToRange: function (value) {
+    var scale = value.charAt(value.length - 1);
+    // first char may be predicate for comparison
+    value = this.getProperValue(value);
+    var parsedValue = parseFloat(value);
+    if (isNaN(parsedValue)) {
+      return value;
+    }
+    var parsedValuePair = this.rangeConvertNumber(parsedValue, scale);
+    var multiplyingFactor = 1;
+    switch (scale) {
+      case 'g':
+        multiplyingFactor = 1048576;
+        break;
+      case 'm':
+        multiplyingFactor = 1024;
+        break;
+      case 'k':
+        break;
+      default:
+        //default value in GB
+        multiplyingFactor = 1048576;
+    }
+    parsedValuePair[0]  = Math.round( parsedValuePair[0] * multiplyingFactor);
+    parsedValuePair[1]  = Math.round( parsedValuePair[1] * multiplyingFactor);
+    return parsedValuePair;
+  },
+
+  /**
+   * Return value converted to a range of kilobytes
+   * eg, return value 1.83 g will target 1.82500 ~ 1.83499 g
+   * eg, return value 1.8 k will target 1.7500 ~ 1.8499 k
+   * eg, return value 1.8 m will target 1.7500 ~ 1.8499 m
+   * @param {number} value
+   * @param {String} scale
+   * @return {Array}
+   */
+  rangeConvertNumber: function (value, scale) {
+    if (isNaN(value)) {
+      return value;
+    }
+    var valuePair = [];
+    switch (scale) {
+      case 'g':
+        valuePair = [value - 0.005000, value + 0.004999999];
+        break;
+      case 'm':
+      case 'k':
+        valuePair = [value - 0.05000, value + 0.04999];
+        break;
+      default:
+        //default value in GB
+        valuePair = [value - 0.005000, value + 0.004999999];
+    }
+    return valuePair;
   },
 
   /**
