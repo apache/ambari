@@ -317,23 +317,15 @@ public class ClusterControllerImpl implements ClusterController {
     return null;
   }
 
-
-  // ----- ClusterControllerImpl ---------------------------------------------
-
-  /**
-   * Get the resource provider for the given type, creating it if required.
-   *
-   * @param type  the resource type
-   *
-   * @return the resource provider
-   */
+  @Override
   public ResourceProvider ensureResourceProvider(Type type) {
     synchronized (resourceProviders) {
       if (!resourceProviders.containsKey(type)) {
         resourceProviders.put(type, providerModule.getResourceProvider(type));
       }
     }
-    return resourceProviders.get(type);   }
+    return resourceProviders.get(type);
+  }
 
 
   // ----- helper methods ----------------------------------------------------
