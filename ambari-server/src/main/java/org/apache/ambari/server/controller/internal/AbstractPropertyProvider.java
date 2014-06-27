@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -296,5 +297,33 @@ public abstract class AbstractPropertyProvider extends BaseProvider implements P
       }
 
     }
+  }
+
+  /**
+   * Verify that the component metrics contains the property id.
+   * @param componentName Name of the component
+   * @param propertyId Property Id
+   * @return true/false
+   */
+  protected boolean isSupportedPropertyId(String componentName, String propertyId) {
+    Map<String, PropertyInfo> componentMetricMap = componentMetrics.get(componentName);
+
+    return componentMetricMap != null
+      && (componentMetricMap.containsKey(propertyId) || checkPropertyCategory(propertyId));
+  }
+
+  /**
+   * Verify if the property category is supported
+   */
+  protected boolean checkPropertyCategory(String propertyId) {
+    String category = PropertyHelper.getPropertyCategory(propertyId);
+    Set<String> categoryIds = getCategoryIds();
+    while (category != null) {
+      if(categoryIds.contains(category)) {
+        return true;
+      }
+      category = PropertyHelper.getPropertyCategory(category);
+    }
+    return false;
   }
 }
