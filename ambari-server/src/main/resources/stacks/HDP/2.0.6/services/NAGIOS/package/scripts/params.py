@@ -228,22 +228,3 @@ hostgroup_defs = {
     'falcon-server' : _falcon_host,
     'ats-servers' : _app_timeline_server_hosts
 }
-
-'''
-This is done due to performance issues.
-Since exposing ALL the nagios macros to environment via enable_environment_macros 1
-varibles gives high CPU load on large clusters (~2K)
-Add here any nagios macros you want to expose to environmental variables.
-'''
-AVAILABLE_NAGIOS_ENV_MACROS = [
-  "NAGIOS_KEYTAB",
-  "NAGIOS_USER",
-  "NAGIOS_SERVICEGROUPNAME",
-  "NAGIOS_SERVICEDESC",
-  "NAGIOS_HOSTNAME"
-]
-
-nagios_env = ""
-for macros in AVAILABLE_NAGIOS_ENV_MACROS:
-  nagios_env += format("{macros}=${macros}$ ")
-nagios_env += "\\\n"
