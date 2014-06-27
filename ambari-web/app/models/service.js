@@ -138,7 +138,7 @@ App.Service = DS.Model.extend({
 
     var hc = {};
     rhc.forEach(function(_rhc) {
-      var hostName = _rhc.get('host.publicHostName');
+      var hostName = _rhc.get('hostName');
       if (!hc[hostName]) {
         hc[hostName] = [];
       }
