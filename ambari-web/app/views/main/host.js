@@ -849,5 +849,11 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
    */
   colPropAssoc: function () {
     return this.get('controller.colPropAssoc');
-  }.property('controller.colPropAssoc')
+  }.property('controller.colPropAssoc'),
+
+  resetStartIndex: function () {
+    if (this.get('controller.resetStartIndex')) {
+      this.set('startIndex', 1);
+    }
+  }.observes('controller.resetStartIndex')
 });
