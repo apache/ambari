@@ -2046,6 +2046,7 @@ Em.I18n.translations = {
   'menu.item.views':'<i class="icon-th"></i>',
   'menu.item.views.noViews':'No Views',
 
+  'bulkOperation.loading': 'Loading...',
   'jobs.nothingToShow': 'No jobs to display',
   'jobs.loadingTasks': 'Loading...',
   'jobs.error.ats.down': 'Jobs data cannot be shown since YARN App Timeline Server is not running.',

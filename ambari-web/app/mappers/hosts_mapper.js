@@ -63,7 +63,8 @@ App.hostsMapper = App.QuickDataMapper.create({
     stale_configs: 'HostRoles.stale_configs',
     host_name: 'host_name'
   },
-  map: function (json) {
+  map: function (json, returnMapped) {
+    returnMapped = !!returnMapped;
     console.time('App.hostsMapper execution time');
     if (json.items) {
       var hostsWithFullInfo = [];
@@ -91,6 +92,10 @@ App.hostsMapper = App.QuickDataMapper.create({
 
         hostsWithFullInfo.push(parsedItem);
       }, this);
+
+      if(returnMapped){
+        return hostsWithFullInfo;
+      }
 
       hostsWithFullInfo = hostsWithFullInfo.sortProperty('public_host_name');
 
