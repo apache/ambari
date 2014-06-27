@@ -141,6 +141,12 @@ App.showConfirmationPopup = function (primary, body, secondary) {
       if (secondary) {
         secondary();
       }
+    },
+    onClose:  function () {
+      this.hide();
+      if (secondary) {
+        secondary();
+      }
     }
   });
 };
