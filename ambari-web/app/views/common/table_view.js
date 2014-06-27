@@ -68,9 +68,6 @@ App.TableView = Em.View.extend(App.UserPref, {
   willInsertElement:function () {
     var self = this;
     var name = this.get('controller.name');
-    if (App.db.getStartIndex(name)) {
-      this.set('startIndex', App.db.getStartIndex(name));
-    }
     if (!this.get('displayLength')) {
       if (App.db.getDisplayLength(name)) {
         this.set('displayLength', App.db.getDisplayLength(name));
@@ -242,10 +239,10 @@ App.TableView = Em.View.extend(App.UserPref, {
    * Calculate end index for displayed content on the page
    */
   endIndex: function () {
-    if (this.get('pagination')) {
+    if (this.get('pagination') && this.get('displayLength')) {
       return Math.min(this.get('filteredCount'), this.get('startIndex') + parseInt(this.get('displayLength')) - 1);
     } else {
-      return this.get('filteredCount')
+      return this.get('filteredCount') || 0;
     }
   }.property('startIndex', 'displayLength', 'filteredCount'),
 
@@ -341,16 +338,8 @@ App.TableView = Em.View.extend(App.UserPref, {
     });
   },
 
-  saveStartIndex: function() {
-    App.db.setStartIndex(this.get('controller.name'), this.get('startIndex'));
-  }.observes('startIndex'),
-
   clearFilterCondition: function() {
     App.db.setFilterConditions(this.get('controller.name'), null);
-  },
-
-  clearStartIndex: function() {
-    App.db.setStartIndex(this.get('controller.name'), null);
   },
 
   /**

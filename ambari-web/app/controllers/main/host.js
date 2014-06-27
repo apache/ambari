@@ -18,7 +18,6 @@
 
 var App = require('app');
 var validator = require('utils/validator');
-var componentHelper = require('utils/component');
 var batchUtils = require('utils/batch_scheduled_requests');
 
 App.MainHostController = Em.ArrayController.extend({
@@ -35,6 +34,8 @@ App.MainHostController = Em.ArrayController.extend({
   isCountersUpdating: false,
 
   hostsCountMap: {},
+
+  startIndex: 1,
 
   /**
    * Components which will be shown in component filter

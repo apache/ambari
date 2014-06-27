@@ -165,8 +165,8 @@
     </div>
     <div class="info">{{view.paginationInfo}}</div>
     <div class="paging_two_button">
-      {{view view.paginationLeft}}
-      {{view view.paginationRight}}
+      <a {{bindAttr class="view.paginationLeftClass"}}{{action previousPage target="view"}}><i class="icon-arrow-left"></i></a>
+      <a {{bindAttr class="view.paginationRightClass"}}{{action nextPage target="view"}}><i class="icon-arrow-right"></i></a>
     </div>
   </div>
 </div>

@@ -78,7 +78,7 @@ App.db.cleanUp = function () {
 App.db.cleanTmp = function() {
   App.db.data.tmp = {};
   localStorage.setObject('ambari', App.db.data);
-}
+};
 
 App.db.updateStorage = function() {
   App.db.data = localStorage.getObject('ambari');

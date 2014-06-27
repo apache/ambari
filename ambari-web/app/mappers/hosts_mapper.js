@@ -104,10 +104,11 @@ App.hostsMapper = App.QuickDataMapper.create({
           host.set('isRequested', false);
         }
       });
+      App.store.commit();
       App.store.loadMany(App.HostComponent, components);
       App.store.loadMany(App.Host, hostsWithFullInfo);
       var itemTotal = parseInt(json.itemTotal);
-      if (itemTotal) {
+      if (!isNaN(itemTotal) && itemTotal!==undefined && itemTotal!==null) {
         App.router.set('mainHostController.filteredCount', itemTotal);
       }
       App.router.set('mainHostController.filteringComplete', true);      
