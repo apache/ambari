@@ -114,6 +114,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * clear and set properties to default value
    */
   clearStep: function () {
+    this.set("isApplyingChanges", false)
     this.set('isInit', true);
     this.set('hash', null);
     this.set('forceTransition', false);
@@ -768,6 +769,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     if (this.get("isSubmitDisabled")) {
       return;
     }
+    this.set("isApplyingChanges", true);
     var self = this;
     var header, message, messageClass, status;
     var serviceName = this.get('content.serviceName'),
@@ -781,7 +783,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       if (this.isDirChanged()) {
         App.showConfirmationPopup(function () {
           self.saveConfigs();
-        }, Em.I18n.t('services.service.config.confirmDirectoryChange').format(displayName));
+        }, Em.I18n.t('services.service.config.confirmDirectoryChange').format(displayName), function() { self.set('isApplyingChanges', false)});
       } else {
         this.saveConfigs();
       }
@@ -932,7 +934,13 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         this.hide();
         if (flag) {
           self.loadStep();
+        } else {
+          self.set('isApplyingChanges', false)
         }
+      },
+      onClose: function() {
+        this.hide();
+        self.set('isApplyingChanges', false)
       },
       bodyClass: Ember.View.extend({
         flag: flag,
