@@ -430,9 +430,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * @returns {{masterComponentHosts: Array, slaveComponentHosts: Array, hosts: {}}}
    */
   getInfoForDefaults: function() {
-
     App.ajax.send({
-      name: 'hosts.config_groups',
+      name: 'hosts.basic_info',
       sender: this,
       data: {
         clusterName: App.get('clusterName')
@@ -442,10 +441,55 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   },
 
   configGroupsHostsSuccessCallback: function(response) {
-    this.set('defaultsInfo', {
-      masterComponentHosts: this.getMasterComponents(response),
-      slaveComponentHosts: this.getSlaveComponents(response),
-      hosts: this.getHostsInfo(response)
+    // We load only basic host information. We do not load all host-components.
+    // Since some default providers need certain host-components, we load them
+    // very specifically on a need basis, and merge into 'response' parameter.
+    var mergeComponentResponse = function(componentResponse){
+      if(response && response.items && componentResponse &&
+          componentResponse.items && componentResponse.items.length > 0) {
+        componentResponse.items.forEach(function(nmHost){
+          var nmHostName = nmHost.Hosts.host_name;
+          response.items.forEach(function(host) {
+            if (nmHostName == host.Hosts.host_name) {
+              host.host_components = nmHost.host_components;
+            }
+          });
+        });
+      }
+    }
+    var self = this;
+    var oneComponentCallback = {
+      success: function(oneComponentResponse) {
+        mergeComponentResponse(oneComponentResponse);
+        var allComponentCallback = {
+          success: function(allComponentResponse) {
+            mergeComponentResponse(allComponentResponse);
+            self.set('defaultsInfo', {
+              masterComponentHosts: self.getMasterComponents(response),
+              slaveComponentHosts: self.getSlaveComponents(response),
+              hosts: self.getHostsInfo(response)
+            });
+          }
+        }
+        App.ajax.send({
+          name: 'hosts.all_components_of_type',
+          sender: allComponentCallback,
+          data: {
+            clusterName: App.get('clusterName'),
+            componentNames: ['HBASE_MASTER', 'FALCON_SERVER'].join(',')
+          },
+          success: 'success'
+        });
+      }
+    }
+    App.ajax.send({
+      name: 'hosts.one_component_of_type',
+      sender: oneComponentCallback,
+      data: {
+        clusterName: App.get('clusterName'),
+        componentNames: ['NODEMANAGER'].join(',')
+      },
+      success: 'success'
     });
   },
 
@@ -454,6 +498,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         slaves = [];
     response.items.forEach(function(item) {
       var hostName = item.Hosts.host_name;
+      if (!item.host_components) {
+        return;
+      }
       var _slaves = item.host_components.mapProperty('HostRoles.component_name').filter(function(componentName) {
         return App.StackServiceComponent.find().findProperty('componentName', componentName).get('isSlave');
       }).map(function(componentName) {
@@ -480,13 +527,21 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   },
 
   getMasterComponents: function (response) {
-    var serviceMasterComponents = this.get('content.hostComponents').filterProperty('isMaster', true).mapProperty('componentName').uniq(),
-        masterComponentHosts = [],
+    var masterComponentNames = App.StackServiceComponent.find().filterProperty('isMaster', true).mapProperty('componentName');
+    // For default config value calculation and validation, a service
+    // might need the master from another service. For example, YARN
+    // default configurations depend on HBASE_MASTER component being
+    // installed. So we need to provide all masters that are required
+    // for config default/validation calculations.
+    var masterComponentHosts = [],
         _this = this;
     response.items.forEach(function(item) {
       var hostName = item.Hosts.host_name;
+      if (!item.host_components) {
+        return;
+      }
       item.host_components.mapProperty('HostRoles.component_name').forEach(function(componentName) {
-        if (serviceMasterComponents.contains(componentName)) {
+        if (masterComponentNames.contains(componentName)) {
           masterComponentHosts.push({
             component: componentName,
             serviceId: _this.get('content.serviceName'),
