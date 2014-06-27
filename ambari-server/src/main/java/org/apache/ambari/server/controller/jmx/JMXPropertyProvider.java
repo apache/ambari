@@ -295,23 +295,14 @@ public class JMXPropertyProvider extends AbstractPropertyProvider {
       throws SystemException {
 
     Set<String> ids = getRequestPropertyIds(request, predicate);
-    Set<String> unsupportedIds = new HashSet<String>();
-    String componentName = (String) resource.getPropertyValue(componentNamePropertyId);
-
-    if (getComponentMetrics().get(componentName) == null) {
-      // If there are no metrics defined for the given component then there is nothing to do.
-      return resource;
-    }
+    Set<String> temporalIds = new HashSet<String>();
 
     for (String id : ids) {
       if (request.getTemporalInfo(id) != null) {
-        unsupportedIds.add(id);
-      }
-      if (!isSupportedPropertyId(componentName, id)) {
-        unsupportedIds.add(id);
+        temporalIds.add(id);
       }
     }
-    ids.removeAll(unsupportedIds);
+    ids.removeAll(temporalIds);
 
     if (ids.isEmpty()) {
       // no properties requested
@@ -324,6 +315,13 @@ public class JMXPropertyProvider extends AbstractPropertyProvider {
       if (state != null && !healthyStates.contains(state)) {
         return resource;
       }
+    }
+
+    String componentName = (String) resource.getPropertyValue(componentNamePropertyId);
+
+    if (getComponentMetrics().get(componentName) == null) {
+      // If there are no metrics defined for the given component then there is nothing to do.
+      return resource;
     }
 
     String clusterName = (String) resource.getPropertyValue(clusterNamePropertyId);
