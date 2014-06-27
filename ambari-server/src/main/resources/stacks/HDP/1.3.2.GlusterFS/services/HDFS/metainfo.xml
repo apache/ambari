@@ -16,31 +16,12 @@
    limitations under the License.
 -->
 <metainfo>
-    <user>root</user>
-    <comment>Apache Hadoop Distributed File System</comment>
-    <version>1.2.0.1.3.2.0</version>
-
-    <components>
-        <component>
-            <name>NAMENODE</name>
-            <category>MASTER</category>
-        </component>
-
-        <component>
-            <name>DATANODE</name>
-            <category>SLAVE</category>
-        </component>
-
-        <component>
-            <name>SECONDARY_NAMENODE</name>
-            <category>MASTER</category>
-        </component>
-
-        <component>
-            <name>HDFS_CLIENT</name>
-            <category>CLIENT</category>
-        </component>
-    </components>
-
-
+  <schemaVersion>2.0</schemaVersion>
+  <services>
+    <service>
+      <name>HDFS</name>
+      <comment>Apache Hadoop Distributed File System</comment>
+      <version>1.2.0.1.3.2.0</version>
+    </service>
+  </services>
 </metainfo>

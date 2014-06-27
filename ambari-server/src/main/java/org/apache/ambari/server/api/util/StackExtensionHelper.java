@@ -82,7 +82,7 @@ public class StackExtensionHelper {
       _jaxbContexts.put(StackMetainfoXml.class, ctx);
       _jaxbContexts.put(RepositoryXml.class, ctx);
       _jaxbContexts.put(ConfigurationXml.class, ctx);
-      _jaxbContexts.put(ServiceMetainfoV2Xml.class, JAXBContext.newInstance(ServiceMetainfoV2Xml.class));
+      _jaxbContexts.put(ServiceMetainfoXml.class, JAXBContext.newInstance(ServiceMetainfoXml.class));
     } catch (JAXBException e) {
       throw new RuntimeException (e);
     }
@@ -400,8 +400,8 @@ public class StackExtensionHelper {
 
           //Reading v2 service metainfo (may contain multiple services)
           // Get services from metadata
-          ServiceMetainfoV2Xml smiv2x =
-                  unmarshal(ServiceMetainfoV2Xml.class, metainfoFile);
+          ServiceMetainfoXml smiv2x =
+                  unmarshal(ServiceMetainfoXml.class, metainfoFile);
           List<ServiceInfo> serviceInfos = smiv2x.getServices();
           for (ServiceInfo serviceInfo : serviceInfos) {
             serviceInfo.setSchemaVersion(AmbariMetaInfo.SCHEMA_VERSION_2);

@@ -16,45 +16,37 @@
    limitations under the License.
 -->
 <metainfo>
-    <user>root</user>
-    <comment>Apache Hadoop Distributed File System</comment>
-    <version>2.2.0.2.0.6.0</version>
+  <schemaVersion>2.0</schemaVersion>
+  <services>
+    <service>
+      <name>GLUSTERFS</name>
+      <comment>An Hadoop Compatible File System</comment>
+      <version>2.2.0.2.0.6.0</version>
+      <components>
+        <component>
+          <name>GLUSTERFS_CLIENT</name>
+          <category>CLIENT</category>
+          <commandScript>
+            <script>scripts/glusterfs_client.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>600</timeout>
+          </commandScript>
+        </component>
+      </components>
 
-    <components>
-        <component>
-            <name>NAMENODE</name>
-            <category>MASTER</category>
-        </component>
+      <commandScript>
+        <script>scripts/service_check.py</script>
+        <scriptType>PYTHON</scriptType>
+        <timeout>300</timeout>
+      </commandScript>
 
-        <component>
-            <name>DATANODE</name>
-            <category>SLAVE</category>
-        </component>
+      <configuration-dependencies>
+        <config-type>core-site</config-type>
+        <config-type>global</config-type>
+        <config-type>hadoop-policy</config-type>
+        <config-type>hdfs-site</config-type>
+      </configuration-dependencies>
 
-        <component>
-            <name>SECONDARY_NAMENODE</name>
-            <category>MASTER</category>
-        </component>
-
-        <component>
-            <name>HDFS_CLIENT</name>
-            <category>CLIENT</category>
-        </component>
-        
-        <component>
-            <name>JOURNALNODE</name>
-            <category>MASTER</category>
-        </component>
-
-        <component>
-          <name>ZKFC</name>
-          <category>SLAVE</category>
-        </component>
-    </components>
-    <configuration-dependencies>
-      <config-type>core-site</config-type>
-      <config-type>global</config-type>
-      <config-type>hdfs-site</config-type>
-      <config-type>hadoop-policy</config-type>
-    </configuration-dependencies>
+    </service>
+  </services>
 </metainfo>
