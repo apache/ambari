@@ -2184,6 +2184,15 @@ var urls = {
         url: data.url
       }
     }
+  },
+  'hosts.bulk.operations': {
+    real: '',
+    mock: '',
+    format: function(data) {
+      return {
+        url: data.url
+      }
+    }
   }
 };
 /**

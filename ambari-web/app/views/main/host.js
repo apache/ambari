@@ -306,19 +306,74 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
    * Confirmation Popup for bulk Operations
    */
   bulkOperationConfirm: function(operationData, selection) {
-    var hosts = [];
-    var self = this;
+    var hostsNames = [],
+    realUrl = '/hosts?<parameters>fields=Hosts/host_name,Hosts/maintenance_state,' +
+      'host_components/HostRoles/state,host_components/HostRoles/maintenance_state,' +
+      'host_components/HostRoles/stale_configs&minimal_response=true' +
+    '';
+    var queryParams = [];
     switch(selection) {
       case 's':
-        hosts = this.get('content').filterProperty('selected');
+        hostsNames = App.db.data.app.tables.filterConditions[this.get('controller.name')].findProperty('iColumn', 10).value;
+        if(hostsNames.length > 0){
+          queryParams.push({
+            key: 'Hosts/host_name',
+            value: hostsNames,
+            type: 'MULTIPLE'
+          });
+        }
         break;
       case 'f':
-        hosts = this.get('filteredContent');
-        break;
-      case 'a':
-        hosts = this.get('content').toArray();
+        queryParams = this.getQueryParameters().filter(function (obj){
+          if(obj.key == 'page_size' || obj.key == 'from'){
+            return false;
+          }
+          return true;
+        });
         break;
     }
+
+    var loadingPopup = App.ModalPopup.show({
+      header: Em.I18n.t('jobs.loadingTasks'),
+      primary: false,
+      secondary: false,
+      bodyClass: Ember.View.extend({
+        template: Ember.Handlebars.compile('<p><div class="spinner"></div></p>')
+      })
+    });
+
+    App.ajax.send({
+      name: 'hosts.bulk.operations',
+      sender: this,
+      data: {
+        url: App.router.get('updateController').getComplexUrl("", realUrl, queryParams),
+        operationData: operationData,
+        loadingPopup: loadingPopup
+      },
+      success: 'getHostsForBulkOperationSuccessCallback'
+    });
+  },
+
+  convertHostsObjects: function(hosts) {
+    var newHostArr = [];
+    hosts.forEach(function (host) {
+      newHostArr.push({
+        index:host.index,
+        id:host.id,
+        clusterId: host.cluster_id,
+        passiveState: host.passive_state,
+        isRequested: host.is_requested,
+        hostName: host.host_name,
+        hostComponents: host.host_components
+      })
+    });
+    return newHostArr;
+  },
+
+  getHostsForBulkOperationSuccessCallback: function(json, opt, param) {
+    var self = this,
+    operationData = param.operationData,
+    hosts = this.convertHostsObjects(App.hostsMapper.map(json, true));
     // no hosts - no actions
     if (!hosts.length) {
       console.log('No bulk operation if no hosts selected.');
@@ -342,6 +397,7 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
     else {
       message = Em.I18n.t('hosts.bulkOperation.confirmation.hosts').format(operationData.message, hostNames.length);
     }
+    param.loadingPopup.hide();
     App.ModalPopup.show({
       header: Em.I18n.t('hosts.bulkOperation.confirmation.header'),
       hostNames: hostNames.join("\n"),
