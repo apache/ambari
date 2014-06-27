@@ -134,6 +134,14 @@ public interface ClusterController extends SchemaFactory {
    */
   public Schema getSchema(Resource.Type type);
 
+  /**
+   * Get the resource provider for the given type, creating it if required.
+   *
+   * @param type  the resource type
+   *
+   * @return the resource provider
+   */
+  public ResourceProvider ensureResourceProvider(Resource.Type type);
 
   // ----- Management -------------------------------------------------------
 

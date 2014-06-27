@@ -324,6 +324,17 @@ public class QueryImpl implements Query, ResourceInstance {
   }
 
   /**
+   * @param type the resource type
+   * @return whether sub-resources is in processed predicate
+   */
+  private boolean populateResourceRequired(Resource.Type type) {
+    ResourceProvider resourceProvider = clusterController.ensureResourceProvider(type);
+    Set<String> subResourcePropertiesInpredicate =
+      resourceProvider.checkPropertyIds(PredicateHelper.getPropertyIds(processedPredicate));
+    return !subResourcePropertiesInpredicate.isEmpty();
+  }
+
+  /**
    * Query the cluster controller for the top level resources.
    */
   private void queryForResources()
@@ -343,9 +354,10 @@ public class QueryImpl implements Query, ResourceInstance {
     Set<Resource> resourceSet = new LinkedHashSet<Resource>();
 
     Set<Resource> queryResources = doQuery(resourceType, request, queryPredicate);
-    // If there is a page request and there is no user predicate
-    if ((pageRequest != null || sortRequest != null )&&
-      userPredicate == null) {
+    // If there is a page request and the predicate does not contain properties
+    // that need to be set
+    if ((pageRequest != null || sortRequest != null ) &&
+      !populateResourceRequired(resourceType)) {
       PageResponse pageResponse = clusterController.getPage(resourceType,
         queryResources, request, queryPredicate, pageRequest, sortRequest);
 
