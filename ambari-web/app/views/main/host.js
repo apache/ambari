@@ -81,12 +81,7 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
     return content.sort(function (a, b) {
       return a.get('index') - b.get('index');
     });
-  }.property('filteredCount', 'startIndex', 'endIndex'),
-
-  /**
-   * Stub function
-   */
-  updatePaging: function () {},
+  }.property('filteredCount'),
 
   /**
    * flag to toggle displaying selected hosts counter
@@ -111,12 +106,85 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
     return this.t('tableView.filters.paginationInfo').format(this.get('startIndex'), this.get('endIndex'), this.get('filteredCount'));
   }.property('totalCount', 'endIndex', 'filteredCount'),
 
+  paginationLeftClass: function () {
+    if (this.get("startIndex") > 1 && this.get('filteringComplete')) {
+      return "paginate_previous";
+    }
+    return "paginate_disabled_previous";
+  }.property("startIndex", 'filteringComplete'),
+
+  previousPage: function () {
+    if (this.get('paginationLeftClass') === 'paginate_previous') {
+      this._super();
+    }
+  },
+
+  paginationRightClass: function () {
+    if ((this.get("endIndex")) < this.get("filteredCount") && this.get('filteringComplete')) {
+      return "paginate_next";
+    }
+    return "paginate_disabled_next";
+  }.property("endIndex", 'filteredCount', 'filteringComplete'),
+
+  nextPage: function () {
+    if (this.get('paginationRightClass') === 'paginate_next') {
+      this._super();
+    }
+  },
+
+  /**
+   * Select View with list of "rows-per-page" options
+   * @type {Ember.View}
+   */
+  rowsPerPageSelectView: Em.Select.extend({
+    content: ['10', '25', '50', '100'],
+    attributeBindings: ['disabled'],
+    disabled: function () {
+      return !this.get('parentView.filteringComplete');
+    }.property('parentView.filteringComplete'),
+
+    change: function () {
+      this.get('parentView').saveDisplayLength();
+      var self = this;
+      if (this.get('parentView.startIndex') === 1) {
+        Ember.run.next(function () {
+          self.get('parentView').updateViewProperty();
+        });
+      } else {
+        Ember.run.next(function () {
+          self.set('parentView.startIndex', 1);
+        });
+      }
+    }
+  }),
+
+  saveStartIndex: function () {
+    this.set('controller.startIndex', this.get('startIndex'));
+  }.observes('startIndex'),
+
+  /**
+   * Calculates default value for startIndex property after applying filter or changing displayLength
+   */
+  updatePaging: function (controller, property) {
+    var displayLength = this.get('displayLength');
+    var filteredContentLength = this.get('filteredCount');
+    if (property == 'displayLength' && this.get('filteringComplete')) {
+      this.set('startIndex', Math.min(1, filteredContentLength));
+    } else if (!filteredContentLength) {
+      this.set('startIndex', 0);
+    } else if (this.get('startIndex') > filteredContentLength) {
+      this.set('startIndex', Math.floor((filteredContentLength - 1) / displayLength) * displayLength + 1);
+    } else if (!this.get('startIndex')) {
+      this.set('startIndex', 1);
+    }
+  }.observes('displayLength', 'filteredCount'),
+
+
   clearFiltersObs: function() {
     var self = this;
     Em.run.next(function() {
       if (self.get('controller.clearFilters')) {
         self.clearFilters();
-        self.clearStartIndex();
       }
     });
   },
@@ -125,6 +193,7 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
    */
   willInsertElement: function () {
     this._super();
+    this.set('startIndex', this.get('controller.startIndex'));
     var filterConditions = App.db.getFilterConditions(this.get('controller.name'));
     if (filterConditions) {
       var childViews = this.get('childViews');
@@ -164,15 +233,17 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
     this.set('controller.isCountersUpdating', true);
     this.get('controller').updateStatusCounters();
     this.addObserver('filteringComplete', this, this.overlayObserver);
+    this.overlayObserver();
   },
 
   /**
    * synchronize properties of view with controller to generate query parameters
    */
-  updateViewProperty: function (context, property) {
-    this.get('controller.viewProperties').findProperty('key', property).set('viewValue', this.get(property));
+  updateViewProperty: function () {
+    this.get('controller.viewProperties').findProperty('key', 'displayLength').set('viewValue', this.get('displayLength'));
+    this.get('controller.viewProperties').findProperty('key', 'startIndex').set('viewValue', this.get('startIndex'));
     this.refresh();
-  }.observes('displayLength', 'startIndex'),
+  }.observes('startIndex'),
 
   willDestroyElement: function() {
     this.set('controller.isCountersUpdating', false);

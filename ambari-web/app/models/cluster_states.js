@@ -189,6 +189,7 @@ App.clusterStatus = Em.Object.create(App.UserPref, {
     if (App.get('testMode')) return false;
     var user = App.db.getUser();
     var login = App.db.getLoginName();
+    var displayLength = App.db.data.app.tables.displayLength;
     var val = {clusterName: this.get('clusterName')};
     if (newValue) {
       App.db.cleanTmp();
@@ -212,14 +213,18 @@ App.clusterStatus = Em.Object.create(App.UserPref, {
           delete newValue.localdb.app.user;
         if (newValue.localdb.app && newValue.localdb.app.loginName)
           delete newValue.localdb.app.loginName;
+        if (newValue.localdb.app && newValue.localdb.app.tables && newValue.localdb.app.tables.displayLength)
+          delete newValue.localdb.app.tables.displayLength;
         this.set('localdb', newValue.localdb);
         val.localdb = newValue.localdb;
       } else {
         delete App.db.data.app.user;
         delete App.db.data.app.loginName;
+        delete App.db.data.app.tables.displayLength;
         val.localdb = App.db.data;
         App.db.setUser(user);
         App.db.setLoginName(login);
+        App.db.data.app.tables.displayLength = displayLength;
       }
 
       if (opt) {
