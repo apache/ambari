@@ -63,59 +63,48 @@ App.hostsMapper = App.QuickDataMapper.create({
     stale_configs: 'HostRoles.stale_configs',
     host_name: 'host_name'
   },
-  map: function (json, isAll) {
-    var self = this;
+  map: function (json) {
     console.time('App.hostsMapper execution time');
-    if (json.items.length) {
-      var hostNames = json.items.mapProperty('Hosts.host_name');
-      var realUrl = '/hosts?<parameters>fields=host_components/HostRoles/component_name,host_components/HostRoles/service_name,host_components/HostRoles/stale_configs,host_components/HostRoles/state,host_components/HostRoles/host_name,host_components/HostRoles/maintenance_state&minimal_response=true';
-      var hostsUrl = App.apiPrefix + '/clusters/' + App.get('clusterName') + realUrl.replace('<parameters>', 'Hosts/host_name.in(' + hostNames.join(',') + ')&');
+    if (json.items) {
+      var hostsWithFullInfo = [];
+      var hostIds = {};
+      var components = [];
+      json.items.forEach(function (item, index) {
+        item.host_components = item.host_components || [];
+        item.host_components.forEach(function (host_component) {
+          host_component.id = host_component.HostRoles.component_name + "_" + item.Hosts.host_name;
+          var component = this.parseIt(host_component, this.hostComponentConfig);
+          component.id = host_component.HostRoles.component_name + "_" + item.Hosts.host_name;
+          component.host_id = item.Hosts.host_name;
+          component.host_name = item.Hosts.host_name;
+          components.push(component);
+        }, this);
+        item.critical_alerts_count = (item.alerts) ? item.alerts.summary.CRITICAL + item.alerts.summary.WARNING : 0;
+        item.cluster_id = App.get('clusterName');
+        item.index = index;
 
-      $.getJSON(hostsUrl, function (jsonHostComponents) {
-        var hostsWithFullInfo = [];
-        var hostIds = {};
-        var components = [];
-        json.items.forEach(function (item, index) {
-          item.host_components = jsonHostComponents.items.findProperty('Hosts.host_name',item.Hosts.host_name).host_components || [];
-          item.host_components.forEach(function (host_component) {
-            host_component.id = host_component.HostRoles.component_name + "_" + item.Hosts.host_name;
-            var component = self.parseIt(host_component, self.hostComponentConfig);
-            component.id = host_component.HostRoles.component_name + "_" + item.Hosts.host_name;
-            component.host_id = item.Hosts.host_name;
-            component.host_name = item.Hosts.host_name;
-            components.push(component);
-          });
-          item.critical_alerts_count = (item.alerts) ? item.alerts.summary.CRITICAL + item.alerts.summary.WARNING : 0;
-          item.cluster_id = App.get('clusterName');
-          item.index = index;
 
-          var parsedItem = self.parseIt(item, self.config);
-          parsedItem.is_requested = !isAll;
+        var parsedItem = this.parseIt(item, this.config);
+        parsedItem.is_requested = true;
 
-          hostIds[item.Hosts.host_name] = parsedItem;
+        hostIds[item.Hosts.host_name] = parsedItem;
 
-          hostsWithFullInfo.push(parsedItem);
-        });
+        hostsWithFullInfo.push(parsedItem);
+      }, this);
 
-        hostsWithFullInfo = hostsWithFullInfo.sortProperty('public_host_name');
+      hostsWithFullInfo = hostsWithFullInfo.sortProperty('public_host_name');
 
-        App.Host.find().forEach(function (host) {
-          if (isAll && host.get('isRequested')) {
-            hostIds[host.get('hostName')].is_requested = true;
-          } else if (!hostIds[host.get('hostName')]) {
-            host.set('isRequested', false);
-          }
-        });
-        App.store.loadMany(App.HostComponent, components);
-        App.store.loadMany(App.Host, hostsWithFullInfo);
-        App.router.set('mainHostController.filteredCount', parseInt(json.itemTotal));
-        App.router.set('mainHostController.filteringComplete', true);
-      });
-    }else{
       App.Host.find().forEach(function (host) {
-        host.set('isRequested', false);
-      })
-      App.router.set('mainHostController.filteredCount', 0);
+        if (!hostIds[host.get('hostName')]) {
+          host.set('isRequested', false);
+        }
+      });
+      App.store.loadMany(App.HostComponent, components);
+      App.store.loadMany(App.Host, hostsWithFullInfo);
+      var itemTotal = parseInt(json.itemTotal);
+      if (itemTotal) {
+        App.router.set('mainHostController.filteredCount', itemTotal);
+      }
       App.router.set('mainHostController.filteringComplete', true);      
     }
     console.timeEnd('App.hostsMapper execution time');

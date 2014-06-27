@@ -31,6 +31,11 @@ App.UpdateController = Em.Controller.extend({
     return App.router.get('location.lastSetURL');
   }.property('App.router.location.lastSetURL'),
 
+  /**
+   * keys which should be preloaded in order to filter hosts by host-components
+   */
+  hostsPreLoadKeys: ['host_components/HostRoles/component_name', 'host_components/HostRoles/stale_configs', 'host_components/HostRoles/maintenance_state'],
+
   getUrl: function (testUrl, url) {
     return (App.get('testMode')) ? testUrl : App.apiPrefix + '/clusters/' + this.get('clusterName') + url;
   },
@@ -142,10 +147,12 @@ App.UpdateController = Em.Controller.extend({
 
   updateHost: function (callback, error) {
     var testUrl = App.get('isHadoop2Stack') ? '/data/hosts/HDP2/hosts.json' : '/data/hosts/hosts.json';
+    var self = this;
     var realUrl = '/hosts?<parameters>fields=Hosts/host_name,Hosts/maintenance_state,Hosts/public_host_name,Hosts/cpu_count,Hosts/ph_cpu_count,Hosts/total_mem,' +
       'Hosts/host_status,Hosts/last_heartbeat_time,Hosts/os_arch,Hosts/os_type,Hosts/ip,host_components/HostRoles/state,host_components/HostRoles/maintenance_state,' +
       'host_components/HostRoles/stale_configs,host_components/HostRoles/service_name,metrics/disk,metrics/load/load_one,metrics/cpu/cpu_system,metrics/cpu/cpu_user,' +
       'metrics/memory/mem_total,metrics/memory/mem_free,alerts/summary&minimal_response=true';
+
     if (App.router.get('currentState.name') == 'index' && App.router.get('currentState.parentState.name') == 'hosts') {
       App.updater.updateInterval('updateHost', App.get('contentUpdateInterval'));
     } else if(App.router.get('currentState.name') == 'summary' && App.router.get('currentState.parentState.name') == 'hostDetails') {
@@ -159,11 +166,85 @@ App.UpdateController = Em.Controller.extend({
       }
     }
     this.get('queryParams').set('Hosts', App.router.get('mainHostController').getQueryParameters());
-    var hostsUrl = this.getComplexUrl(testUrl, realUrl, this.get('queryParams.Hosts'));
-    App.HttpClient.get(hostsUrl, App.hostsMapper, {
-      complete: callback,
-      error: error
-    });
+    var clientCallback = function (skipCall, queryParams) {
+      if (skipCall) {
+        App.hostsMapper.map({items: []});
+        callback();
+      } else {
+        var hostsUrl = self.getComplexUrl(testUrl, realUrl, queryParams);
+        App.HttpClient.get(hostsUrl, App.hostsMapper, {
+          complete: callback,
+          error: error
+        });
+      }
+    };
+
+    if (!this.preLoadHosts(clientCallback)) {
+      clientCallback(false, self.get('queryParams.Hosts'));
+    }
+  },
+
+  /**
+   * identify if any filter by host-component is active
+   * if so run @getHostByHostComponents
+   *
+   * @param callback
+   * @return {Boolean}
+   */
+  preLoadHosts: function (callback) {
+    var preLoadKeys = this.get('hostsPreLoadKeys');
+
+    if (this.get('queryParams.Hosts').length > 0 && this.get('queryParams.Hosts').filter(function (param) {
+      return (preLoadKeys.contains(param.key));
+    }, this).length > 0) {
+      this.getHostByHostComponents(callback);
+      return true;
+    }
+    return false;
+  },
+
+  /**
+   * get hosts' names which match filter by host-component
+   * @param callback
+   */
+  getHostByHostComponents: function (callback) {
+    var testUrl = App.get('isHadoop2Stack') ? '/data/hosts/HDP2/hosts.json' : '/data/hosts/hosts.json';
+    var realUrl = '/hosts?<parameters>minimal_response=true';
+
+    App.ajax.send({
+      name: 'hosts.host_components.pre_load',
+      sender: this,
+      data: {
+        url: this.getComplexUrl(testUrl, realUrl, this.get('queryParams.Hosts')),
+        callback: callback
+      },
+      success: 'getHostByHostComponentsSuccessCallback',
+      error: 'getHostByHostComponentsErrorCallback'
+    })
+  },
+  getHostByHostComponentsSuccessCallback: function (data, opt, params) {
+    var preLoadKeys = this.get('hostsPreLoadKeys');
+    var queryParams = this.get('queryParams.Hosts');
+    var hostNames = data.items.mapProperty('Hosts.host_name');
+    var skipCall = hostNames.length === 0;
+
+    if (skipCall) {
+      params.callback(skipCall);
+    } else {
+      queryParams = queryParams.filter(function (param) {
+        return !(preLoadKeys.contains(param.key));
+      });
+
+      queryParams.push({
+        key: 'Hosts/host_name',
+        value: hostNames,
+        type: 'MULTIPLE'
+      });
+      params.callback(skipCall, queryParams);
+    }
+  },
+  getHostByHostComponentsErrorCallback: function () {
+    console.warn('ERROR: filtering hosts by host-component failed');
   },
   graphs: [],
   graphsUpdate: function (callback) {

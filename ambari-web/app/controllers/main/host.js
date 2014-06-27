@@ -28,7 +28,6 @@ App.MainHostController = Em.ArrayController.extend({
   clearFilters: null,
 
   filteredCount: 0,
-  filteringComplete: true,
   /**
    * flag responsible for updating status counters of hosts
    */
