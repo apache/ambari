@@ -942,10 +942,18 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         this.hide();
         self.set('isApplyingChanges', false)
       },
+      disablePrimary: true,
       bodyClass: Ember.View.extend({
         flag: flag,
-        message: message,
-        messageClass: messageClass,
+        message: function() {
+          return this.get('isLoaded') ? message : Em.I18n.t('services.service.config.saving.message');
+        }.property('isLoaded'),
+        messageClass: function() {
+          return this.get('isLoaded') ? messageClass : 'alert alert-info';
+        }.property('isLoaded'),
+        setDisablePrimary: function() {
+          this.get('parentView').set('disablePrimary', !this.get('isLoaded'));
+        }.observes('isLoaded'),
         runningHosts: [],
         runningComponentCount: 0,
         unknownHosts: [],
