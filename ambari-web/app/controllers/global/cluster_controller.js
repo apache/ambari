@@ -151,14 +151,15 @@ App.ClusterController = Em.Controller.extend({
       return 'http://gangliaserver/ganglia/?t=yes';
     } else {
       // We want live data here
-      if (this.get('isLoaded')) {
+      var gangliaServer = App.HostComponent.find().findProperty('componentName', 'GANGLIA_SERVER');
+      if (this.get('isLoaded') && gangliaServer) {
         this.set('isGangliaUrlLoaded', true);
         App.ajax.send({
           name: 'hosts.for_quick_links',
           sender: this,
           data: {
             clusterName: App.get('clusterName'),
-            masterComponents: 'GANGLIA_SERVER',
+            masterHosts: gangliaServer.get('hostName'),
             urlParams: ''
           },
           success: 'setGangliaUrlSuccessCallback'
@@ -181,6 +182,7 @@ App.ClusterController = Em.Controller.extend({
       return 'http://nagiosserver/nagios';
     } else {
       // We want live data here
+      var nagiosServer = App.HostComponent.find().findProperty('componentName', 'NAGIOS_SERVER');
       if (this.get('isLoaded')) {
         this.set('isNagiosUrlLoaded', false);
         App.ajax.send({
@@ -188,7 +190,7 @@ App.ClusterController = Em.Controller.extend({
           sender: this,
           data: {
             clusterName: App.get('clusterName'),
-            masterComponents: 'NAGIOS_SERVER',
+            masterHosts: nagiosServer.get('hostName'),
             urlParams: ''
           },
           success: 'setNagiosUrlSuccessCallback'

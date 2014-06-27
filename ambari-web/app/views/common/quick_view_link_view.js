@@ -50,12 +50,14 @@ App.QuickViewLinks = Em.View.extend({
   },
 
   getQuickLinksHosts: function () {
+    var masterHosts = App.HostComponent.find().filterProperty('isMaster').mapProperty('hostName').uniq();
+
     App.ajax.send({
       name: 'hosts.for_quick_links',
       sender: this,
       data: {
         clusterName: App.get('clusterName'),
-        masterComponents: App.StackServiceComponent.find().filterProperty('isMaster', true).mapProperty('componentName').join(','),
+        masterHosts: masterHosts.join(','),
         urlParams: ',host_components/metrics/hbase/master/IsActiveMaster'
       },
       success: 'setQuickLinksSuccessCallback'
