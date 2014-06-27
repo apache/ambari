@@ -1923,38 +1923,6 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     ambari_server.download_jdk(args)
     self.assertTrue(exit_mock.called)
 
-    # Test case: JDK file does not exist, jdk-location argument passed
-    exit_mock.reset_mock()
-    write_property_mock.reset_mock()
-    remove_property_mock.reset_mock()
-    get_YN_input_mock.reset_mock()
-    get_YN_input_mock.return_value = True
-    args.jdk_location = "/existing/jdk/jdk-6u31-linux-x64.bin"
-    path_existsMock.return_value = True
-    ambari_server.download_jdk(args)
-    self.assertTrue(write_property_mock.call_count == 1)
-    self.assertTrue(remove_property_mock.call_count == 2)
-    self.assertTrue(copyfile_mock.called)
-
-    copyfile_mock.reset_mock()
-    # Negative test case: JDK file does not exist, jdk-location argument
-    # (non-accessible file) passed
-    p.__getitem__.return_value = "somewhere"
-    p.__getitem__.side_effect = None
-    args.jdk_location = "/existing/jdk/file"
-    path_existsMock.return_value = True
-
-    def copyfile_side_effect(s, d):
-      raise Exception("TerribleException")
-
-    copyfile_mock.side_effect = copyfile_side_effect
-    try:
-      ambari_server.download_jdk(args)
-      self.fail("Should throw exception")
-    except FatalException:
-      # Expected
-      self.assertTrue(copyfile_mock.called)
-    copyfile_mock.reset_mock()
     # Test case: jdk is already installed, ensure that JCE check is skipped if -j option is not supplied.
     p = MagicMock()
     args.jdk_location = None
@@ -2041,15 +2009,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
       self.fail("Should throw exception")
     except FatalException as fe:
       self.assertTrue("Path to java home somewhere or java binary file does not exists" in fe.reason)
-    #Test case: Setup ambari-server with jdk location passed. Path to JDK doesn't not exists
-    args.java_home = None
-    args.jdk_location = "/existing/jdk/file"
-    path_existsMock.return_value = False
-    try:
-      ambari_server.download_jdk(args)
-      self.fail("Should throw exception")
-    except FatalException as fe:
-      self.assertTrue("Path to jdk /existing/jdk/file does not exists" in fe.reason)
+      pass
 
 
   @patch.object(ambari_server, "run_os_command")
