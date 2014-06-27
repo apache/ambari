@@ -170,10 +170,10 @@ public abstract class BaseProvider {
    * Check the categories to account for map properties where the entries will not be
    * in the provider property list ids but the map (category) might be.
    */
-  private boolean checkCategory(String unsupportedPropertyId) {
+  protected boolean checkCategory(String unsupportedPropertyId) {
     String category = PropertyHelper.getPropertyCategory(unsupportedPropertyId);
     while (category != null) {
-      if( this.propertyIds.contains(category)) {
+      if(this.categoryIds.contains(category)) {
         return true;
       }
       category = PropertyHelper.getPropertyCategory(category);
