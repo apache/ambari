@@ -16,7 +16,7 @@
 * limitations under the License.
 }}
 
-<div class="{{unbound view.messageClass}}">{{view.message}}</div>
+<div {{bindAttr class="view.messageClass"}}>{{view.message}}</div>
 {{#unless view.flag}}
   <div class="pre-scrollable" style="max-height: 250px;">
     <ul>
