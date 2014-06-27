@@ -2175,6 +2175,15 @@ var urls = {
         fields: data.fields.join(',')
       }
     }
+  },
+  'hosts.host_components.pre_load': {
+    real: '',
+    mock: '',
+    format: function(data) {
+      return {
+        url: data.url
+      }
+    }
   }
 };
 /**
