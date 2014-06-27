@@ -28,6 +28,7 @@ App.MainHostController = Em.ArrayController.extend({
   clearFilters: null,
 
   filteredCount: 0,
+  resetStartIndex: false,
   /**
    * flag responsible for updating status counters of hosts
    */
@@ -226,7 +227,9 @@ App.MainHostController = Em.ArrayController.extend({
     var colPropAssoc = this.get('colPropAssoc');
     var filterProperties = this.get('filterProperties');
     var sortProperties = this.get('sortProps');
+    var oldProperties = App.router.get('updateController.queryParams.Hosts');
 
+    this.set('resetStartIndex', false);
     this.get('viewProperties').forEach(function (property) {
       queryParams.push({
         key: property.get('alias'),
@@ -240,7 +243,8 @@ App.MainHostController = Em.ArrayController.extend({
         var result = {
           key: property.alias,
           value: filter.value,
-          type: property.type
+          type: property.type,
+          isFilter: true
         };
         if (filter.type === 'string' && sortProperties.someProperty('key', colPropAssoc[filter.iColumn])) {
           result.value = this.getRegExp(filter.value);
@@ -257,6 +261,19 @@ App.MainHostController = Em.ArrayController.extend({
         }
       }
     }, this);
+
+    if (queryParams.filterProperty('isFilter').length !== oldProperties.filterProperty('isFilter').length) {
+      queryParams.findProperty('key', 'from').value = 0;
+      this.set('resetStartIndex', true);
+    } else {
+      queryParams.filterProperty('isFilter').forEach(function (queryParam) {
+        var oldProperty = oldProperties.filterProperty('isFilter').findProperty('key', queryParam.key);
+        if (!oldProperty || JSON.stringify(oldProperty.value) !== JSON.stringify(queryParam.value)) {
+          queryParams.findProperty('key', 'from').value = 0;
+          this.set('resetStartIndex', true);
+        }
+      }, this);
+    }
     savedSortConditions.forEach(function (sort) {
       var property = sortProperties.findProperty('key', sort.name);
 
