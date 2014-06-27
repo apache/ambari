@@ -34,8 +34,8 @@ class GangliaMonitor(Script):
     env.set_params(params)
     self.configure(env)
     
-    functions.chkconfigOff(params.gmond_service_name)
-    functions.chkconfigOff("gmetad")
+    functions.turn_off_autostart(params.gmond_service_name)
+    functions.turn_off_autostart("gmetad") # since the package is installed as well
 
   def start(self, env):
     import params

@@ -18,12 +18,13 @@
 from resource_management import *
 
 
-def chkconfigOff(service):
+def turn_off_autostart(service):
   if System.get_instance().os_family == "debian":
     Execute(format("update-rc.d {service} disable"),
             path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'
     )
-    Execute(format("service {service} stop"), ignore_failures=True)    
+    Execute(format("service {service} stop"), ignore_failures=True)
+    Execute(format("echo 'manual' > /etc/init/{service}.override")) # disbale upstart job
   else:
     Execute(format("chkconfig {service} off"),
             path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'
