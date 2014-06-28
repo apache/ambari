@@ -79,8 +79,8 @@
           {{#if view.pageContent}}
             {{#each host in view.pageContent}}
               {{#view App.HostStatusView objBinding="host" controllerBinding="controller"}}
-              <td>
-                {{host.name}}
+              <td class="host">
+                <span title="{{unbound host.name}}" class="trim_hostname">{{host.name}}</span>
               </td>
               <td>
                 <div class="progress-bar pull-left">

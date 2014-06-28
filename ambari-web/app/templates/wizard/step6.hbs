@@ -44,7 +44,7 @@
           {{#each host in view.pageContent}}
             <tr>
               {{#view App.WizardStep6HostView hostBinding="host" }}
-                {{host.hostName}}
+                <span class="trim_hostname">{{host.hostName}}</span>
                 {{#if host.hasMaster}}
                   <i class=icon-asterisks>&#10037;</i>
                 {{/if}}

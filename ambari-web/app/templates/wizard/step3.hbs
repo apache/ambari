@@ -54,7 +54,7 @@
     </div>
 
     <div class="pre-scrollable" style="max-height: 440px;">
-      <table class="table table-bordered table-striped">
+      <table id="confirm-hosts-table" class="table table-bordered table-striped">
         <thead>
         <tr>
           <th class="tinyspan">
@@ -77,8 +77,8 @@
               <td>
                 {{view Ember.Checkbox checkedBinding="host.isChecked"}}
               </td>
-              <td>
-                {{host.name}}
+              <td class="host">
+                <span title="{{unbound host.name}}" class="trim_hostname">{{host.name}}</span>
               </td>
               <td>
                 <div {{bindAttr class="host.bootBarColor host.isBootDone::progress-striped host.isBootDone::active :progress"}}>
