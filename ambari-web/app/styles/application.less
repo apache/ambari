@@ -749,6 +749,17 @@ h1 {
     .progress {
       margin-bottom: 0;
     }
+    #confirm-hosts-table {
+      td.host {
+        max-width: 290px;
+      }
+      td.host .trim_hostname {
+        max-width: 97% !important;
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
   }
   #step4, #step5, #step6 {
     a.selected {
@@ -766,6 +777,14 @@ h1 {
     .pre-scrollable {
       max-height: 440px;
       position: relative;
+      #component_assign_table {
+        .trim_hostname {
+          max-width: 180px;
+          display: block;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+      }
     }
     .spinner-overlay {
       position: absolute;
@@ -847,6 +866,15 @@ h1 {
       }
       th.messgage {
         width: 35%;
+      }
+      td.host {
+        max-width: 290px;
+      }
+      td.host .trim_hostname {
+        max-width: 97% !important;
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
       .progress-bar {
         width: 73%;
