@@ -453,9 +453,21 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
     var hostNames = hosts.mapProperty('hostName');
     var hostsToSkip = [];
     if (operationData.action == "DECOMMISSION") {
+      var hostComponentStatusMap = {}; // "DATANODE_c6401.ambari.apache.org" => "STARTED"
+      var hostComponentIdMap = {}; // "DATANODE_c6401.ambari.apache.org" => "DATANODE"
+      if (json.items) {
+        json.items.forEach(function(host) {
+          if (host.host_components) {
+            host.host_components.forEach(function(component) {
+              hostComponentStatusMap[component.id] = component.HostRoles.state;
+              hostComponentIdMap[component.id] = component.HostRoles.component_name;
+            });
+          }
+        });
+      }
       hostsToSkip = hosts.filter(function(host) {
-        var invalidStateComponents = host.get('hostComponents').filter(function(component) {
-          return component.get('componentName') == operationData.realComponentName && component.get('workStatus') == 'INSTALLED';
+        var invalidStateComponents = host.hostComponents.filter(function(component) {
+          return hostComponentIdMap[component] == operationData.realComponentName && hostComponentStatusMap[component] == 'INSTALLED';
         });
         return invalidStateComponents.length > 0;
       });
