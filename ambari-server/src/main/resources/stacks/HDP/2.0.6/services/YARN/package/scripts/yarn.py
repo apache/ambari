@@ -117,7 +117,8 @@ def yarn(name = None):
   elif name == 'apptimelineserver':
     Directory(params.ats_leveldb_dir,
        owner=params.yarn_user,
-       group=params.user_group
+       group=params.user_group,
+       recursive=True
     )
 
   File(params.rm_nodes_exclude_path,
