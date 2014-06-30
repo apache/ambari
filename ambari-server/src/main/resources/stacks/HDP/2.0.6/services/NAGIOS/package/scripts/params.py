@@ -133,8 +133,11 @@ if dfs_ha_enabled:
     nn_host = config['configurations']['hdfs-site'][format('dfs.namenode.rpc-address.{dfs_ha_nameservices}.{nn_id}')]
     nn_ha_host_port_map[nn_host.split(":")[0]] = nn_host.split(":")[1]
 else:
-  namenode_metadata_port = get_port_from_url(config['configurations']['core-site']['fs.defaultFS'])
-  nn_ha_host_port_map[config['clusterHostInfo']['namenode_host'][0]] = namenode_metadata_port
+  if 'namenode_host' in config['clusterHostInfo']:
+    namenode_metadata_port = get_port_from_url(config['configurations']['core-site']['fs.defaultFS'])
+    nn_ha_host_port_map[config['clusterHostInfo']['namenode_host'][0]] = namenode_metadata_port
+  else:
+    namenode_metadata_port = '8020'
 
 ganglia_port = "8651"
 ganglia_collector_slaves_port = "8660"
@@ -197,7 +200,9 @@ _falcon_host = default("/clusterHostInfo/falcon_server_hosts", None)
 _hbase_rs_hosts = default("/clusterHostInfo/hbase_rs_hosts", _slave_hosts)
 _hue_server_host = default("/clusterHostInfo/hue_server_host", None)
 all_hosts = config['clusterHostInfo']['all_hosts']
-nn_hosts_string = " ".join(namenode_host)
+
+if 'namenode_host' in config['clusterHostInfo']:
+  nn_hosts_string = " ".join(namenode_host)
 
 
 hostgroup_defs = {
