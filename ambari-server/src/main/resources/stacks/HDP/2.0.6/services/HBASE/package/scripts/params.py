@@ -64,8 +64,12 @@ regionserver_jaas_config_file = default('hbase_regionserver_jaas_config_file', f
 ganglia_server_hosts = default('/clusterHostInfo/ganglia_server_host', []) # is not passed when ganglia is not present
 ganglia_server_host = '' if len(ganglia_server_hosts) == 0 else ganglia_server_hosts[0]
 
-rs_hosts = default('hbase_rs_hosts', config['clusterHostInfo']['slave_hosts']) #if hbase_rs_hosts not given it is assumed that region servers on same nodes as slaves
-
+# if hbase is selected the hbase_rs_hosts, should not be empty, but still default just in case
+if 'slave_hosts' in config['clusterHostInfo']:
+  rs_hosts = default('/clusterHostInfo/hbase_rs_hosts', '/clusterHostInfo/slave_hosts') #if hbase_rs_hosts not given it is assumed that region servers on same nodes as slaves
+else:
+  rs_hosts = default('/clusterHostInfo/hbase_rs_hosts', '/clusterHostInfo/all_hosts') 
+  
 smoke_test_user = config['configurations']['global']['smokeuser']
 smokeuser_permissions = default('smokeuser_permissions', "RWXCA")
 service_check_data = functions.get_unique_id_and_date()
