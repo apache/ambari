@@ -155,17 +155,21 @@ App.UpdateController = Em.Controller.extend({
 
     if (App.router.get('currentState.name') == 'index' && App.router.get('currentState.parentState.name') == 'hosts') {
       App.updater.updateInterval('updateHost', App.get('contentUpdateInterval'));
+      this.get('queryParams').set('Hosts', App.router.get('mainHostController').getQueryParameters());
     } else if(App.router.get('currentState.name') == 'summary' && App.router.get('currentState.parentState.name') == 'hostDetails') {
       realUrl = realUrl.replace('<parameters>', 'Hosts/host_name=' + App.router.get('location.lastSetURL').match(/\/hosts\/(.*)\/summary/)[1] + '&');
       App.updater.updateInterval('updateHost', App.get('componentsUpdateInterval'));
+      this.get('queryParams').set('Hosts', App.router.get('mainHostController').getQueryParameters());
     } else {
       callback();
-      // On pages except for hosts/hostDetails, making sure hostsMapper loaded only once on page load, no need to update, but at least once
       if (this.get('queryParams.Hosts') && this.get('queryParams.Hosts').length > 0) {
+        // On pages except for hosts/hostDetails, making sure hostsMapper loaded only once on page load, no need to update, but at least once
         return;
+      } else {
+        // On pages except for hosts/hostDetails, set queryParams [] to ensure load all hosts, but not filtered hosts as shown on hosts page
+        this.get('queryParams').set('Hosts', []);
       }
     }
-    this.get('queryParams').set('Hosts', App.router.get('mainHostController').getQueryParameters());
     var clientCallback = function (skipCall, queryParams) {
       if (skipCall) {
         App.hostsMapper.map({items: []});
