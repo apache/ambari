@@ -145,6 +145,7 @@ class TestAppTimelineServer(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/log/hadoop-yarn/timeline',
                               owner = 'yarn',
                               group = 'hadoop',
+                              recursive = True
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/yarn.exclude',
                               owner = 'yarn',
