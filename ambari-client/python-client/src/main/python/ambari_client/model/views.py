@@ -1,4 +1,3 @@
-#
 #  Licensed to the Apache Software Foundation (ASF) under one
 #  or more contributor license agreements.  See the NOTICE file
 #  distributed with this work for additional information
@@ -14,3 +13,21 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
+
+import logging
+from ambari_client.model.base_model import BaseModel, ModelList
+from ambari_client.model import paths, utils, status
+
+
+LOG = logging.getLogger(__name__)
+
+# TODO
+
+
+def get_views(resource_root, blueprint_name):
+    pass
+
+
+# TODO
+class ViewModel(BaseModel):
+    pass

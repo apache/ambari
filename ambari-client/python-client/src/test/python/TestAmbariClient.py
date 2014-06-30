@@ -124,17 +124,18 @@ class TestAmbariClient(unittest.TestCase):
     
     ssh_key = 'abc!@#$%^&*()_:"|<>?[];\'\\./'
     host_list = ['dev05.hortonworks.com','dev06.hortonworks.com']
-    
+    ssh_user='root'
+ 
     expected_path = '//bootstrap'
     expected_headers = {'Content-Type': 'application/json'}
-    expected_request = {'hosts': host_list, 'sshKey': 'abc!@#$%^&*()_:"|<>?[];\\\'\\\\./'}
+    expected_request = {'user': ssh_user,'hosts': str(host_list),'verbose':True, 'sshKey': ssh_key}
     expected_response = {'status': 201, 'message': u'Running Bootstrap now.', 'requestId': 5}
                                
     client = self.create_client(http_client_mock)
-    resp = client.bootstrap_hosts(host_list, ssh_key)
+    resp = client.bootstrap_hosts(host_list, ssh_key, ssh_user)
 
     self.assertEqual(resp.to_json_dict(), expected_response)
-    http_client_mock.invoke.assert_called_with('POST', expected_path, headers=expected_headers, payload=expected_request)
+    http_client_mock.invoke.assert_called_with('POST', expected_path, headers=expected_headers, payload={'user': 'root', 'hosts': "['dev05.hortonworks.com', 'dev06.hortonworks.com']", 'verbose': True, 'sshKey': 'abc!@#$%^&*()_:"|<>?[];\\\'\\\\./'})
   
   def test_create_cluster(self):
     """
