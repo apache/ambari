@@ -69,6 +69,8 @@ public class DefaultProviderModule extends AbstractProviderModule {
         return new ViewInstanceResourceProvider();
       case StackServiceComponentDependency:
         return new StackDependencyResourceProvider(propertyIds, keyPropertyIds);
+      case Permission:
+        return new PermissionResourceProvider();
       default:
         return AbstractControllerResourceProvider.getResourceProvider(type, propertyIds,
             keyPropertyIds, managementController);

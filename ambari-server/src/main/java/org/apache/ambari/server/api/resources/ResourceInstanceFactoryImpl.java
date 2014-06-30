@@ -230,6 +230,10 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
         resourceDefinition = new HostComponentProcessResourceDefinition();
         break;
 
+      case Permission:
+        resourceDefinition = new PermissionResourceDefinition();
+        break;
+
       default:
         throw new IllegalArgumentException("Unsupported resource type: " + type);
     }
