@@ -316,8 +316,13 @@ public abstract class AbstractPropertyProvider extends BaseProvider implements P
    * Verify if the property category is supported
    */
   protected boolean checkPropertyCategory(String propertyId) {
-    String category = PropertyHelper.getPropertyCategory(propertyId);
     Set<String> categoryIds = getCategoryIds();
+    // Support query by category
+    if (categoryIds.contains(propertyId)) {
+      return true;
+    }
+
+    String category = PropertyHelper.getPropertyCategory(propertyId);
     while (category != null) {
       if(categoryIds.contains(category)) {
         return true;
