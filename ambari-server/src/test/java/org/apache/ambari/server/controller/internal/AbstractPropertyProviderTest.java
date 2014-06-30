@@ -60,6 +60,26 @@ public class AbstractPropertyProviderTest {
   }
 
   @Test
+  public void testGetJMXPropertyInfoMap() {
+    AbstractPropertyProvider provider = new TestPropertyProvider(
+      PropertyHelper.getJMXPropertyIds(Resource.Type.HostComponent));
+
+    // top level category
+    Map<String, PropertyInfo> propertyInfoMap = provider.getPropertyInfoMap("DATANODE", "metrics");
+    Assert.assertEquals(86, propertyInfoMap.size());
+
+    // specific property
+    propertyInfoMap = provider.getPropertyInfoMap("DATANODE", "metrics/rpc/RpcQueueTime_avg_time");
+    Assert.assertEquals(1, propertyInfoMap.size());
+    Assert.assertTrue(propertyInfoMap.containsKey("metrics/rpc/RpcQueueTime_avg_time"));
+
+    // category
+    propertyInfoMap = provider.getPropertyInfoMap("DATANODE", "metrics/rpc/");
+    Assert.assertEquals(12, propertyInfoMap.size());
+    Assert.assertTrue(propertyInfoMap.containsKey("metrics/rpc/RpcQueueTime_avg_time"));
+  }
+
+  @Test
   public void testSubstituteArguments() throws Exception
   {
     //simple substitute
