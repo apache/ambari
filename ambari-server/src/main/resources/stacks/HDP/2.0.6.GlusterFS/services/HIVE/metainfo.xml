@@ -17,44 +17,29 @@
 -->
 <metainfo>
     <user>root</user>
-    <comment>Apache Hadoop Distributed File System</comment>
-    <version>2.2.0.2.0.6.0</version>
+    <comment>Data warehouse system for ad-hoc queries &amp; analysis of large datasets and table &amp; storage management service</comment>
+    <version>0.12.0.2.0.6.1</version>
 
-    <components>
+    <components>        
         <component>
-            <name>NAMENODE</name>
+            <name>HIVE_METASTORE</name>
             <category>MASTER</category>
         </component>
-
         <component>
-            <name>DATANODE</name>
-            <category>SLAVE</category>
-        </component>
-
-        <component>
-            <name>SECONDARY_NAMENODE</name>
+            <name>HIVE_SERVER</name>
             <category>MASTER</category>
         </component>
-
         <component>
-            <name>HDFS_CLIENT</name>
+            <name>MYSQL_SERVER</name>
+            <category>MASTER</category>
+        </component>
+        <component>
+            <name>HIVE_CLIENT</name>
             <category>CLIENT</category>
-        </component>
-        
-        <component>
-            <name>JOURNALNODE</name>
-            <category>MASTER</category>
-        </component>
-
-        <component>
-          <name>ZKFC</name>
-          <category>SLAVE</category>
         </component>
     </components>
     <configuration-dependencies>
-      <config-type>core-site</config-type>
       <config-type>global</config-type>
-      <config-type>hdfs-site</config-type>
-      <config-type>hadoop-policy</config-type>
+      <config-type>hive-site</config-type>
     </configuration-dependencies>
 </metainfo>

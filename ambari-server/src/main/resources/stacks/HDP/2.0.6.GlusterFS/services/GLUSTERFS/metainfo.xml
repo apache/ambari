@@ -16,31 +16,17 @@
    limitations under the License.
 -->
 <metainfo>
-  <schemaVersion>2.0</schemaVersion>
-  <services>
-    <service>
-      <name>GLUSTERFS</name>
-      <comment>An Hadoop Compatible File System</comment>
-      <version>3.4.0</version>
-      <components>
+    <user>root</user>
+    <comment>Hadoop Compatible File System - GLUSTERFS</comment>
+    <version>3.4.0</version>
+    <components>
         <component>
-          <name>GLUSTERFS_CLIENT</name>
-          <category>CLIENT</category>
-          <commandScript>
-            <script>scripts/glusterfs_client.py</script>
-            <scriptType>PYTHON</scriptType>
-            <timeout>600</timeout>
-          </commandScript>
+            <name>GLUSTERFS_CLIENT</name>
+            <category>CLIENT</category>
         </component>
-      </components>
-
-      <configuration-dependencies>
-        <config-type>core-site</config-type>
-        <config-type>global</config-type>
-        <config-type>hadoop-policy</config-type>
-        <config-type>hdfs-site</config-type>
-      </configuration-dependencies>
-
-    </service>
-  </services>
+    </components>
+    <configuration-dependencies>
+      <config-type>core-site</config-type>
+      <config-type>global</config-type>
+    </configuration-dependencies>
 </metainfo>

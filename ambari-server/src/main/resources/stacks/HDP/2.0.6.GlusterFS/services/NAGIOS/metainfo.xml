@@ -16,7 +16,19 @@
    limitations under the License.
 -->
 <metainfo>
-    <versions>
-	  <active>false</active>
-    </versions>
+    <user>root</user>
+    <comment>Nagios Monitoring and Alerting system</comment>
+    <version>3.5.0</version>
+
+    <components>
+        <component>
+            <name>NAGIOS_SERVER</name>
+            <category>MASTER</category>
+        </component>
+    </components>
+
+  <configuration-dependencies>
+    <config-type>global</config-type>
+  </configuration-dependencies>
+
 </metainfo>

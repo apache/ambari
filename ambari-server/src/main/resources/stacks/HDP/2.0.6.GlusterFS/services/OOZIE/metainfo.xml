@@ -17,44 +17,22 @@
 -->
 <metainfo>
     <user>root</user>
-    <comment>Apache Hadoop Distributed File System</comment>
-    <version>2.2.0.2.0.6.0</version>
+    <comment>System for workflow coordination and execution of Apache Hadoop jobs.  This also includes the installation of the optional Oozie Web Console which relies on and will install the &lt;a target="_blank" href="http://www.sencha.com/products/extjs/license/"&gt;ExtJS&lt;/a&gt; Library.</comment>
+    <version>4.0.0.2.0.6.0</version>
 
     <components>
         <component>
-            <name>NAMENODE</name>
+            <name>OOZIE_SERVER</name>
             <category>MASTER</category>
         </component>
 
         <component>
-            <name>DATANODE</name>
-            <category>SLAVE</category>
-        </component>
-
-        <component>
-            <name>SECONDARY_NAMENODE</name>
-            <category>MASTER</category>
-        </component>
-
-        <component>
-            <name>HDFS_CLIENT</name>
+            <name>OOZIE_CLIENT</name>
             <category>CLIENT</category>
-        </component>
-        
-        <component>
-            <name>JOURNALNODE</name>
-            <category>MASTER</category>
-        </component>
-
-        <component>
-          <name>ZKFC</name>
-          <category>SLAVE</category>
         </component>
     </components>
     <configuration-dependencies>
-      <config-type>core-site</config-type>
       <config-type>global</config-type>
-      <config-type>hdfs-site</config-type>
-      <config-type>hadoop-policy</config-type>
+      <config-type>oozie-site</config-type>
     </configuration-dependencies>
 </metainfo>
