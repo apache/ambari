@@ -542,6 +542,8 @@ public class ConfigGroupResourceProvider extends
 
       configGroup.persist();
     }
+
+    getManagementController().getConfigHelper().invalidateStaleConfigsCache();
   }
 
   @SuppressWarnings("unchecked")

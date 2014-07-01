@@ -25,6 +25,7 @@ import org.apache.ambari.server.controller.internal.RequestStageContainer;
 import org.apache.ambari.server.scheduler.ExecutionScheduleManager;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
@@ -439,6 +440,13 @@ public interface AmbariManagementController {
    * @return the clusters
    */
   public Clusters getClusters();
+
+  /**
+   * Get config helper
+   *
+   * @return config helper
+   */
+  ConfigHelper getConfigHelper();
 
   /**
    * Get the meta info for this management controller.
