@@ -102,8 +102,18 @@ supervisor_port = "56431"
 storm_rest_api_port = "8745"
 falcon_port = config['configurations']['global']['falcon_port']
 ahs_port = get_port_from_url(config['configurations']['yarn-site']['yarn.timeline-service.webapp.address'])
-dfs_namenode_checkpoint_period = config['configurations']['hdfs-site']['dfs.namenode.checkpoint.period']
-dfs_namenode_checkpoint_txns = config['configurations']['hdfs-site']['dfs.namenode.checkpoint.txns']
+
+# use sensible defaults for checkpoint as they are required by Nagios and 
+# may not be part of hdfs-site.xml on an upgrade
+if 'dfs.namenode.checkpoint.period' in config['configurations']['hdfs-site']:
+  dfs_namenode_checkpoint_period = config['configurations']['hdfs-site']['dfs.namenode.checkpoint.period']
+else:
+  dfs_namenode_checkpoint_period = '21600'
+  
+if 'dfs.namenode.checkpoint.txns' in config['configurations']['hdfs-site']:
+  dfs_namenode_checkpoint_txns = config['configurations']['hdfs-site']['dfs.namenode.checkpoint.txns']
+else:
+  dfs_namenode_checkpoint_txns = '1000000'
 
 # this is different for HDP1
 nn_metrics_property = "FSNamesystem"

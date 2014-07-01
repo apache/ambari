@@ -578,7 +578,9 @@ HDFS_SITE = {
   "fs.permissions.umask-mode": "022",
   "ipc.server.max.response.size": "DELETE_OLD",
   "ipc.server.read.threadpool.size": "DELETE_OLD",
-  "dfs.support.append": "true"
+  "dfs.support.append": "true",
+  "dfs.namenode.checkpoint.txns": "1000000",
+  "dfs.namenode.checkpoint.period": "21600"
 }
 
 CORE_SITE = {
