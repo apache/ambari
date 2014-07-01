@@ -226,8 +226,14 @@ App.UpdateController = Em.Controller.extend({
     var preLoadKeys = this.get('hostsPreLoadKeys');
     var queryParams = this.get('queryParams.Hosts');
     var hostNames = data.items.mapProperty('Hosts.host_name');
-    var skipCall = hostNames.length === 0;
 
+    var itemTotal = parseInt(data.itemTotal);
+    if (!isNaN(itemTotal) && itemTotal!==undefined && itemTotal!==null) {
+      App.router.set('mainHostController.filteredCount', itemTotal);
+      App.router.set('mainHostController.setFilteredCount', false);
+    }
+
+    var skipCall = hostNames.length === 0;
     if (skipCall) {
       params.callback(skipCall);
     } else {

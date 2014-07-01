@@ -27,6 +27,10 @@ App.MainHostController = Em.ArrayController.extend({
   clearFilters: null,
 
   filteredCount: 0,
+
+  // either set <code>filteredCount</code> property in hosts mapper, or it will be set in <code>getHostByHostComponentsSuccessCallback</code>
+  setFilteredCount: true,
+
   resetStartIndex: false,
   /**
    * flag responsible for updating status counters of hosts
