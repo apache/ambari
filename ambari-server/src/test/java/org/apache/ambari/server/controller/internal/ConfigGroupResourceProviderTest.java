@@ -34,6 +34,7 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
@@ -55,6 +56,7 @@ import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 import static org.hamcrest.CoreMatchers.instanceOf;
@@ -218,6 +220,7 @@ public class ConfigGroupResourceProviderTest {
   public void testUpdateConfigGroup() throws Exception {
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
+    ConfigHelper configHelper = createNiceMock(ConfigHelper.class);
     Clusters clusters = createNiceMock(Clusters.class);
     Cluster cluster = createNiceMock(Cluster.class);
     Host h1 = createNiceMock(Host.class);
@@ -248,9 +251,12 @@ public class ConfigGroupResourceProviderTest {
         return configGroupMap;
       }
     });
+    expect(managementController.getConfigHelper()).andReturn(configHelper).once();
+    configHelper.invalidateStaleConfigsCache();
+    expectLastCall().once();
 
     replay(managementController, clusters, cluster,
-      configGroup, response, configGroupResponse);
+      configGroup, response, configGroupResponse, configHelper);
 
     ResourceProvider provider = getConfigGroupResourceProvider
       (managementController);
@@ -299,7 +305,7 @@ public class ConfigGroupResourceProviderTest {
     provider.updateResources(request, predicate);
 
     verify(managementController, clusters, cluster,
-      configGroup, response, configGroupResponse);
+      configGroup, response, configGroupResponse, configHelper);
   }
 
   @SuppressWarnings("unchecked")

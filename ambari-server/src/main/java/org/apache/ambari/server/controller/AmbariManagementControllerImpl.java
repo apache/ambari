@@ -3064,6 +3064,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   }
 
   @Override
+  public ConfigHelper getConfigHelper() {
+    return configHelper;
+  }
+
+  @Override
   public AmbariMetaInfo getAmbariMetaInfo() {
     return ambariMetaInfo;
   }
