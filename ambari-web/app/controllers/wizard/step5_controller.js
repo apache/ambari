@@ -152,7 +152,7 @@ App.WizardStep5Controller = Em.Controller.extend({
       if (!hostObj) return;
       var masterServices = this.get("selectedServicesMasters").filterProperty("selectedHost", item),
         masterServicesToDisplay = [];
-      masterServices.mapProperty('display_name').uniq().forEach(function(n) {
+      masterServices.mapProperty('display_name').uniq().forEach(function (n) {
         masterServicesToDisplay.pushObject(masterServices.findProperty('display_name', n));
       });
       mappingObject = Em.Object.create({
@@ -167,14 +167,14 @@ App.WizardStep5Controller = Em.Controller.extend({
 
     return mapping.sortProperty('host_name');
   }.property("selectedServicesMasters.@each.selectedHost", 'selectedServicesMasters.@each.isHostNameValid'),
-  
+
   /**
    * Count of hosts without masters
    * @type {number}
    */
   remainingHosts: function () {
     if (this.get('content.controllerName') === 'installerController') {
-     return 0;
+      return 0;
     } else {
       return (this.get("hosts.length") - this.get("masterHostMapping.length"));
     }
@@ -256,7 +256,7 @@ App.WizardStep5Controller = Em.Controller.extend({
    */
   updateComponent: function (componentName) {
     var component = this.last(componentName);
-    if(!component) {
+    if (!component) {
       return;
     }
     var services = this.get('content.services').filterProperty('isInstalled', true).mapProperty('serviceName');
@@ -320,15 +320,24 @@ App.WizardStep5Controller = Em.Controller.extend({
   loadComponents: function () {
 
     var services = this.get('content.services').filterProperty('isSelected', true).mapProperty('serviceName'); //list of shown services
+    var selectedServices = this.get('content.services').filterProperty('isSelected').filterProperty('isInstalled', false).mapProperty('serviceName');
 
     var masterComponents = App.StackServiceComponent.find().filterProperty('isShownOnInstallerAssignMasterPage', true); //get full list from mock data
     var masterHosts = this.get('content.masterComponentHosts'); //saved to local storage info
 
     var resultComponents = [];
 
-    var servicesLength = services.length;
-    for (var index = 0; index < servicesLength; index++) {
+    for (var index = 0; index < services.length; index++) {
       var componentInfo = masterComponents.filterProperty('serviceName', services[index]);
+      // If service is already installed and not being added as a new service then render on UI only those master components
+      // that have already installed hostComponents.
+      // NOTE: On upgrade there might be a prior installed service with non-installed newly introduced serviceComponent
+      var isNotSelectedService = !selectedServices.contains(services[index]);
+      if (isNotSelectedService) {
+        componentInfo = componentInfo.filter(function (_component) {
+          return App.HostComponent.find().someProperty('componentName',_component.get('componentName'));
+        });
+      }
 
       componentInfo.forEach(function (_componentInfo) {
         if (_componentInfo.get('componentName') == 'ZOOKEEPER_SERVER' || _componentInfo.get('componentName') == 'HBASE_MASTER') {
@@ -381,7 +390,7 @@ App.WizardStep5Controller = Em.Controller.extend({
    * @private
    * @method _isHiveCoHost
    */
-  _isHiveCoHost: function(componentName) {
+  _isHiveCoHost: function (componentName) {
     return ['HIVE_METASTORE', 'WEBHCAT_SERVER'].contains(componentName) && !this.get('isReassignWizard');
   },
 
@@ -582,13 +591,13 @@ App.WizardStep5Controller = Em.Controller.extend({
    * @returns {boolean} true - valid, false - invalid
    * @method isHostNameValid
    */
-  isHostNameValid: function(componentName, selectedHost) {
+  isHostNameValid: function (componentName, selectedHost) {
     return (selectedHost.trim() !== '') &&
       this.get('hosts').mapProperty('host_name').contains(selectedHost) &&
       (this.get('selectedServicesMasters').
         filterProperty('component_name', componentName).
         mapProperty('selectedHost').
-        filter(function(h) {
+        filter(function (h) {
           return h === selectedHost;
         }).length <= 1);
   },

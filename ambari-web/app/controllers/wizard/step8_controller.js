@@ -569,7 +569,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     if (['addHostController', 'addServiceController'].contains(this.get('content.controllerName'))) {
       this.loadRepoInfo();
     } else {
-     // from install wizard
+      // from install wizard
       var selectedStack = this.get('content.stacks').findProperty('isSelected', true);
       var allRepos = [];
       if (selectedStack && selectedStack.operatingSystems) {
@@ -655,7 +655,7 @@ App.WizardStep8Controller = Em.Controller.extend({
       if (Em.isNone(serviceObj)) return;
       serviceObj.get('service_components').forEach(function (_component) {
         this.assignComponentHosts(_component);
-        console.log(' ---INFO: step8: service component: ' + _service.serviceName);        
+        console.log(' ---INFO: step8: service component: ' + _service.serviceName);
       }, this);
       this.get('services').pushObject(serviceObj);
     }, this);
@@ -673,7 +673,7 @@ App.WizardStep8Controller = Em.Controller.extend({
       console.log(' --- ---INFO: step8: in customHandler');
     }
     else {
-      console.log(' --- ---INFO: step8: NOT in customHandler');    
+      console.log(' --- ---INFO: step8: NOT in customHandler');
       if (component.get('isMaster')) {
         console.log(' --- ---INFO: step8: component isMaster');
         componentValue = this.get('content.masterComponentHosts')
@@ -699,22 +699,22 @@ App.WizardStep8Controller = Em.Controller.extend({
   loadHiveDbValue: function (dbComponent) {
     var db,
       serviceConfigPreoprties = this.get('wizardController').getDBProperty('serviceConfigProperties'),
-      hiveDb = serviceConfigPreoprties .findProperty('name', 'hive_database');
+      hiveDb = serviceConfigPreoprties.findProperty('name', 'hive_database');
     if (hiveDb.value === 'New MySQL Database') {
       dbComponent.set('component_value', 'MySQL (New Database)');
     }
     else {
       if (hiveDb.value === 'Existing MySQL Database') {
-        db = serviceConfigPreoprties .findProperty('name', 'hive_existing_mysql_database');
+        db = serviceConfigPreoprties.findProperty('name', 'hive_existing_mysql_database');
         dbComponent.set('component_value', db.value + ' (' + hiveDb.value + ')');
       }
       else {
         if (hiveDb.value === Em.I18n.t('services.service.config.hive.oozie.postgresql')) {
-          db = serviceConfigPreoprties .findProperty('name', 'hive_existing_postgresql_database');
+          db = serviceConfigPreoprties.findProperty('name', 'hive_existing_postgresql_database');
           dbComponent.set('component_value', db.value + ' (' + hiveDb.value + ')');
         }
         else { // existing oracle database
-          db = serviceConfigPreoprties .findProperty('name', 'hive_existing_oracle_database');
+          db = serviceConfigPreoprties.findProperty('name', 'hive_existing_oracle_database');
           dbComponent.set('component_value', db.value + ' (' + hiveDb.value + ')');
         }
       }
@@ -1073,34 +1073,6 @@ App.WizardStep8Controller = Em.Controller.extend({
         }
       });
     }, this);
-
-    if (this.get('content.controllerName') == 'addServiceController' && !App.get('testMode')) {
-      // Add service-components which show up in newer versions but did not
-      // exist in older ones.
-      var self = this;
-      var newServiceComponents = {};
-      if (App.get('isHadoop21Stack')) {
-        if (App.YARNService.find().objectAt(0)) {
-          newServiceComponents['APP_TIMELINE_SERVER'] = 'YARN';
-        }
-      }
-      for (var componentName in newServiceComponents) {
-        if (newServiceComponents.hasOwnProperty(componentName)) {
-          var serviceName = newServiceComponents[componentName];
-          // Create only if it doesnt exist
-          App.ajax.send({
-            name: 'service.service_component',
-            sender: self,
-            data: {
-              serviceName: serviceName,
-              componentName: componentName,
-              async: false
-            },
-            error: 'newServiceComponentErrorCallback'
-          });
-        }
-      }
-    }
   },
 
   /**
@@ -1164,9 +1136,12 @@ App.WizardStep8Controller = Em.Controller.extend({
    * @method createMasterHostComponents
    */
   createMasterHostComponents: function () {
-    var masterHosts = this.get('content.masterComponentHosts');
-    masterHosts.mapProperty('component').uniq().forEach(function (component) {
-      var hostNames = masterHosts.filterProperty('component', component).filterProperty('isInstalled', false).mapProperty('hostName');
+    // create master components for only selected services.
+    var selectedMasterComponents = this.get('content.masterComponentHosts').filter(function (_component) {
+      return this.get('selectedServices').mapProperty('serviceName').contains(_component.serviceId)
+    }, this);
+    selectedMasterComponents.mapProperty('component').uniq().forEach(function (component) {
+      var hostNames = selectedMasterComponents.filterProperty('component', component).filterProperty('isInstalled', false).mapProperty('hostName');
       this.registerHostsToComponent(hostNames, component);
     }, this);
   },
@@ -1230,7 +1205,7 @@ App.WizardStep8Controller = Em.Controller.extend({
             var installedHosts = this.get('content.hosts');
             for (var hostName in installedHosts) {
               if (installedHosts[hostName].isInstalled &&
-                  installedHosts[hostName].hostComponents.filterProperty('HostRoles.state', 'INSTALLED').mapProperty('HostRoles.component_name').contains(_client.component_name)) {
+                installedHosts[hostName].hostComponents.filterProperty('HostRoles.state', 'INSTALLED').mapProperty('HostRoles.component_name').contains(_client.component_name)) {
                 clientHosts.push(hostName);
               }
             }
@@ -1250,10 +1225,10 @@ App.WizardStep8Controller = Em.Controller.extend({
              *    hostName: {String}
              * }
              * to content.additionalClients
-             * later it will be used to install client on host before istalling new services
+             * later it will be used to install client on host before installing new services
              */
             if (this.get('content.controllerName') === 'addServiceController' && hostNames.length > 0) {
-                hostNames.forEach(function (hostName) {
+              hostNames.forEach(function (hostName) {
                 this.get('content.additionalClients').push(Em.Object.create({
                   componentName: _client.component_name, hostName: hostName
                 }))
@@ -1599,7 +1574,7 @@ App.WizardStep8Controller = Em.Controller.extend({
   createCoreSiteObj: function () {
     var coreSiteObj = this.get('configs').filterProperty('filename', 'core-site.xml'),
       coreSiteProperties = {},
-      // some configs needs to be skipped if services are not selected
+    // some configs needs to be skipped if services are not selected
       isOozieSelected = this.get('selectedServices').someProperty('serviceName', 'OOZIE'),
       oozieUser = this.get('globals').someProperty('name', 'oozie_user') ? this.get('globals').findProperty('name', 'oozie_user').value : null,
       isHiveSelected = this.get('selectedServices').someProperty('serviceName', 'HIVE'),
@@ -1619,8 +1594,8 @@ App.WizardStep8Controller = Em.Controller.extend({
       // exclude some configs if service wasn't selected
       if (
         (isOozieSelected || (_coreSiteObj.name != 'hadoop.proxyuser.' + oozieUser + '.hosts' && _coreSiteObj.name != 'hadoop.proxyuser.' + oozieUser + '.groups')) &&
-        (isHiveSelected || (_coreSiteObj.name != 'hadoop.proxyuser.' + hiveUser + '.hosts' && _coreSiteObj.name != 'hadoop.proxyuser.' + hiveUser + '.groups')) &&
-        (isHcatSelected || (_coreSiteObj.name != 'hadoop.proxyuser.' + hcatUser + '.hosts' && _coreSiteObj.name != 'hadoop.proxyuser.' + hcatUser + '.groups'))) {
+          (isHiveSelected || (_coreSiteObj.name != 'hadoop.proxyuser.' + hiveUser + '.hosts' && _coreSiteObj.name != 'hadoop.proxyuser.' + hiveUser + '.groups')) &&
+          (isHcatSelected || (_coreSiteObj.name != 'hadoop.proxyuser.' + hcatUser + '.hosts' && _coreSiteObj.name != 'hadoop.proxyuser.' + hcatUser + '.groups'))) {
         coreSiteProperties[_coreSiteObj.name] = App.config.escapeXMLCharacters(_coreSiteObj.value);
       }
       if (isGLUSTERFSSelected && _coreSiteObj.name == "fs.default.name") {
