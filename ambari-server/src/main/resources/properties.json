@@ -162,6 +162,16 @@
         "Users/ldap_user",
         "_"
     ],
+    "Group":[
+        "Groups/group_name",
+        "Groups/ldap_group",
+        "_"
+    ],
+    "Member":[
+        "MemberInfo/group_name",
+        "MemberInfo/user_name",
+        "_"
+    ],
     "Stack":[
         "Stacks/stack_name",
         "_"

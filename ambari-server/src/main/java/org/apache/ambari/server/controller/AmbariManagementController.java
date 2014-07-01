@@ -75,15 +75,33 @@ public interface AmbariManagementController {
    */
   public void createConfiguration(ConfigurationRequest request)
       throws AmbariException;
-  
+
   /**
    * Creates users.
-   * 
-   * @param requests the request objects which defines the user.
-   * 
+   *
+   * @param requests the request objects which define the user.
+   *
    * @throws AmbariException when the user cannot be created.
    */
   public void createUsers(Set<UserRequest> requests) throws AmbariException;
+
+  /**
+   * Creates groups.
+   *
+   * @param requests the request objects which define the groups.
+   *
+   * @throws AmbariException when the groups cannot be created.
+   */
+  public void createGroups(Set<GroupRequest> requests) throws AmbariException;
+
+  /**
+   * Creates members of the group.
+   *
+   * @param requests the request objects which define the members.
+   *
+   * @throws AmbariException when the members cannot be created.
+   */
+  public void createMembers(Set<MemberRequest> requests) throws AmbariException;
 
 
   // ----- Read -------------------------------------------------------------
@@ -140,15 +158,39 @@ public interface AmbariManagementController {
   /**
    * Gets the users identified by the given request objects.
    *
-   * @param requests  the request objects
-   * 
-   * @return  a set of user responses
-   * 
+   * @param requests the request objects
+   *
+   * @return a set of user responses
+   *
    * @throws AmbariException if the users could not be read
    */
   public Set<UserResponse> getUsers(Set<UserRequest> requests)
       throws AmbariException;
-  
+
+  /**
+   * Gets the user groups identified by the given request objects.
+   *
+   * @param requests the request objects
+   *
+   * @return a set of group responses
+   *
+   * @throws AmbariException if the groups could not be read
+   */
+  public Set<GroupResponse> getGroups(Set<GroupRequest> requests)
+      throws AmbariException;
+
+  /**
+   * Gets the group members identified by the given request objects.
+   *
+   * @param requests the request objects
+   *
+   * @return a set of member responses
+   *
+   * @throws AmbariException if the members could not be read
+   */
+  public Set<MemberResponse> getMembers(Set<MemberRequest> requests)
+      throws AmbariException;
+
 
   // ----- Update -----------------------------------------------------------
 
@@ -186,15 +228,24 @@ public interface AmbariManagementController {
    */
   public RequestStatusResponse updateHostComponents(
       Set<ServiceComponentHostRequest> requests, Map<String, String> requestProperties, boolean runSmokeTest) throws AmbariException;
-  
+
   /**
    * Updates the users specified.
-   * 
-   * @param requests  the users to modify
-   * 
-   * @throws  AmbariException if the resources cannot be updated
+   *
+   * @param requests the users to modify
+   *
+   * @throws AmbariException if the resources cannot be updated
    */
   public void updateUsers(Set<UserRequest> requests) throws AmbariException;
+
+  /**
+   * Updates the groups specified.
+   *
+   * @param requests the groups to modify
+   *
+   * @throws AmbariException if the resources cannot be updated
+   */
+  public void updateGroups(Set<GroupRequest> requests) throws AmbariException;
 
 
   // ----- Delete -----------------------------------------------------------
@@ -219,16 +270,34 @@ public interface AmbariManagementController {
    */
   public RequestStatusResponse deleteHostComponents(
       Set<ServiceComponentHostRequest> requests) throws AmbariException;
-  
+
   /**
    * Deletes the users specified.
-   * 
-   * @param requests  the users to delete
-   * 
-   * @throws  AmbariException if the resources cannot be deleted
+   *
+   * @param requests the users to delete
+   *
+   * @throws AmbariException if the resources cannot be deleted
    */
   public void deleteUsers(Set<UserRequest> requests) throws AmbariException;
-  
+
+  /**
+   * Deletes the user groups specified.
+   *
+   * @param requests the groups to delete
+   *
+   * @throws AmbariException if the resources cannot be deleted
+   */
+  public void deleteGroups(Set<GroupRequest> requests) throws AmbariException;
+
+  /**
+   * Deletes the group members specified.
+   *
+   * @param requests the members to delete
+   *
+   * @throws AmbariException if the resources cannot be deleted
+   */
+  public void deleteMembers(Set<MemberRequest> requests) throws AmbariException;
+
   /**
    * Create the action defined by the attributes in the given request object.
    *
@@ -239,14 +308,14 @@ public interface AmbariManagementController {
    */
   public RequestStatusResponse createAction(ExecuteActionRequest actionRequest, Map<String, String> requestProperties)
       throws AmbariException;
-  
+
   /**
    * Get supported stacks.
-   * 
+   *
    * @param requests the stacks
-   * 
+   *
    * @return a set of stacks responses
-   * 
+   *
    * @throws  AmbariException if the resources cannot be read
    */
   public Set<StackResponse> getStacks(Set<StackRequest> requests) throws AmbariException;
@@ -258,105 +327,105 @@ public interface AmbariManagementController {
    * @throws AmbariException if
    */
   public RequestStatusResponse updateStacks() throws AmbariException;
-  
+
   /**
    * Get supported stacks versions.
-   * 
+   *
    * @param requests the stacks versions
-   * 
+   *
    * @return a set of stacks versions responses
-   * 
+   *
    * @throws  AmbariException if the resources cannot be read
    */
   public Set<StackVersionResponse> getStackVersions(Set<StackVersionRequest> requests) throws AmbariException;
 
-  
+
   /**
    * Get repositories by stack name, version and operating system.
-   * 
-   * @param requests the repositories 
-   * 
+   *
+   * @param requests the repositories
+   *
    * @return a set of repositories
-   * 
+   *
    * @throws  AmbariException if the resources cannot be read
    */
   public Set<RepositoryResponse> getRepositories(Set<RepositoryRequest> requests) throws AmbariException;
 
   /**
    * Updates repositories by stack name, version and operating system.
-   * 
+   *
    * @param requests the repositories
-   * 
+   *
    * @throws AmbariException
    */
   void updateRespositories(Set<RepositoryRequest> requests) throws AmbariException;
 
-  
+
   /**
    * Get repositories by stack name, version.
-   * 
-   * @param requests the services 
-   * 
+   *
+   * @param requests the services
+   *
    * @return a set of services
-   * 
+   *
    * @throws  AmbariException if the resources cannot be read
    */
   public Set<StackServiceResponse> getStackServices(Set<StackServiceRequest> requests) throws AmbariException;
 
-  
+
   /**
    * Get configurations by stack name, version and service.
-   * 
-   * @param requests the configurations 
-   * 
+   *
+   * @param requests the configurations
+   *
    * @return a set of configurations
-   * 
+   *
    * @throws  AmbariException if the resources cannot be read
    */
   public Set<StackConfigurationResponse> getStackConfigurations(Set<StackConfigurationRequest> requests) throws AmbariException;
-  
-  
+
+
   /**
    * Get components by stack name, version and service.
-   * 
-   * @param requests the components 
-   * 
+   *
+   * @param requests the components
+   *
    * @return a set of components
-   * 
+   *
    * @throws  AmbariException if the resources cannot be read
    */
   public Set<StackServiceComponentResponse> getStackComponents(Set<StackServiceComponentRequest> requests) throws AmbariException;
-  
-  
+
+
   /**
    * Get operating systems by stack name, version.
-   * 
-   * @param requests the operating systems 
-   * 
-   * @return a set of operating systems 
-   * 
+   *
+   * @param requests the operating systems
+   *
+   * @return a set of operating systems
+   *
    * @throws  AmbariException if the resources cannot be read
    */
   public Set<OperatingSystemResponse> getStackOperatingSystems(Set<OperatingSystemRequest> requests) throws AmbariException;
 
   /**
    * Get all top-level services of Ambari, not related to certain cluster.
-   * 
-   * @param requests the top-level services 
-   * 
-   * @return a set of top-level services 
-   * 
+   *
+   * @param requests the top-level services
+   *
+   * @return a set of top-level services
+   *
    * @throws  AmbariException if the resources cannot be read
    */
-  
+
   public Set<RootServiceResponse> getRootServices(Set<RootServiceRequest> requests) throws AmbariException;
   /**
    * Get all components of top-level services of Ambari, not related to certain cluster.
-   * 
-   * @param requests the components of top-level services 
-   * 
-   * @return a set of components 
-   * 
+   *
+   * @param requests the components of top-level services
+   *
+   * @return a set of components
+   *
    * @throws  AmbariException if the resources cannot be read
    */
   public Set<RootServiceComponentResponse> getRootServiceComponents(Set<RootServiceComponentRequest> requests) throws AmbariException;
@@ -561,4 +630,4 @@ public interface AmbariManagementController {
   public MaintenanceState getEffectiveMaintenanceState(ServiceComponentHost sch)
       throws AmbariException;
 }
-  
+

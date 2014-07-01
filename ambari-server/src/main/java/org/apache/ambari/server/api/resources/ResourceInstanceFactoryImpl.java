@@ -117,6 +117,14 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
         resourceDefinition = new UserResourceDefinition();
         break;
 
+      case Group:
+        resourceDefinition = new GroupResourceDefinition();
+        break;
+
+      case Member:
+        resourceDefinition = new MemberResourceDefinition();
+        break;
+
       case Request:
         resourceDefinition = new RequestResourceDefinition();
         break;
@@ -217,7 +225,7 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
       case Blueprint:
         resourceDefinition = new BlueprintResourceDefinition();
         break;
-        
+
       case HostComponentProcess:
         resourceDefinition = new HostComponentProcessResourceDefinition();
         break;

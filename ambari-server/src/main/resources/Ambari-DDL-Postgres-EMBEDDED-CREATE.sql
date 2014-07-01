@@ -67,6 +67,12 @@ GRANT ALL PRIVILEGES ON TABLE ambari.roles TO :username;
 CREATE TABLE ambari.users (user_id INTEGER, ldap_user INTEGER NOT NULL DEFAULT 0, user_name VARCHAR(255) NOT NULL, create_time TIMESTAMP DEFAULT NOW(), user_password VARCHAR(255), PRIMARY KEY (user_id), UNIQUE (ldap_user, user_name));
 GRANT ALL PRIVILEGES ON TABLE ambari.users TO :username;
 
+CREATE TABLE ambari.groups (group_id INTEGER, group_name VARCHAR(255) NOT NULL, ldap_group INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (group_id), UNIQUE (ldap_group, group_name));
+GRANT ALL PRIVILEGES ON TABLE ambari.groups TO :username;
+
+CREATE TABLE ambari.members (member_id INTEGER, group_id INTEGER NOT NULL, user_id INTEGER NOT NULL, PRIMARY KEY (member_id), UNIQUE(group_id, user_id));
+GRANT ALL PRIVILEGES ON TABLE ambari.members TO :username;
+
 CREATE TABLE ambari.execution_command (command BYTEA, task_id BIGINT NOT NULL, PRIMARY KEY (task_id));
 GRANT ALL PRIVILEGES ON TABLE ambari.execution_command TO :username;
 
@@ -148,6 +154,8 @@ GRANT ALL PRIVILEGES ON TABLE ambari.viewresource TO :username;
 GRANT ALL PRIVILEGES ON TABLE ambari.viewentity TO :username;
 
 --------altering tables by creating foreign keys----------
+ALTER TABLE members ADD CONSTRAINT FK_members_group_id FOREIGN KEY (group_id) REFERENCES groups (group_id);
+ALTER TABLE members ADD CONSTRAINT FK_members_user_id FOREIGN KEY (user_id) REFERENCES users (user_id);
 ALTER TABLE ambari.clusterconfig ADD CONSTRAINT FK_clusterconfig_cluster_id FOREIGN KEY (cluster_id) REFERENCES ambari.clusters (cluster_id);
 ALTER TABLE ambari.clusterservices ADD CONSTRAINT FK_clusterservices_cluster_id FOREIGN KEY (cluster_id) REFERENCES ambari.clusters (cluster_id);
 ALTER TABLE ambari.clusterconfigmapping ADD CONSTRAINT clusterconfigmappingcluster_id FOREIGN KEY (cluster_id) REFERENCES ambari.clusters (cluster_id);
@@ -199,6 +207,10 @@ INSERT INTO ambari.ambari_sequences (sequence_name, "value")
   SELECT 'cluster_id_seq', 1
   UNION ALL
   SELECT 'user_id_seq', 2
+  UNION ALL
+  SELECT 'group_id_seq', 1
+  UNION ALL
+  SELECT 'member_id_seq', 1
   UNION ALL
   SELECT 'host_role_command_id_seq', 1
   union all

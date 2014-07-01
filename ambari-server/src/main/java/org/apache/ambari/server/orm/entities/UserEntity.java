@@ -59,6 +59,9 @@ public class UserEntity {
   @ManyToMany(mappedBy = "userEntities")
   private Set<RoleEntity> roleEntities;
 
+  @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+  private Set<MemberEntity> memberEntities;
+
   public Integer getUserId() {
     return userId;
   }
@@ -103,6 +106,22 @@ public class UserEntity {
     this.createTime = createTime;
   }
 
+  public Set<RoleEntity> getRoleEntities() {
+    return roleEntities;
+  }
+
+  public void setRoleEntities(Set<RoleEntity> roleEntities) {
+    this.roleEntities = roleEntities;
+  }
+
+  public Set<MemberEntity> getMemberEntities() {
+    return memberEntities;
+  }
+
+  public void setMemberEntities(Set<MemberEntity> memberEntities) {
+    this.memberEntities = memberEntities;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
@@ -127,13 +146,5 @@ public class UserEntity {
     result = 31 * result + (ldapUser != null ? ldapUser.hashCode() : 0);
     result = 31 * result + (createTime != null ? createTime.hashCode() : 0);
     return result;
-  }
-
-  public Set<RoleEntity> getRoleEntities() {
-    return roleEntities;
-  }
-
-  public void setRoleEntities(Set<RoleEntity> roleEntities) {
-    this.roleEntities = roleEntities;
   }
 }

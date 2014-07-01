@@ -41,6 +41,13 @@
   "User": {
     "User": "Users/user_name"
   },
+  "Group": {
+    "Group": "Groups/group_name"
+  },
+  "Member": {
+    "Group": "MemberInfo/group_name",
+    "Member": "MemberInfo/user_name"
+  },
   "Stack": {
     "Stack": "Stacks/stack_name"
   },

@@ -85,6 +85,7 @@ import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
 import org.apache.ambari.server.scheduler.ExecutionScheduleManager;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
+import org.apache.ambari.server.security.authorization.Group;
 import org.apache.ambari.server.security.authorization.User;
 import org.apache.ambari.server.security.authorization.Users;
 import org.apache.ambari.server.stageplanner.RoleGraph;
@@ -197,7 +198,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
   final private static String JDK_RESOURCE_LOCATION =
       "/resources/";
-  
+
   final private static int REPO_URL_CONNECT_TIMEOUT = 3000;
   final private static int REPO_URL_READ_TIMEOUT = 2000;
 
@@ -234,19 +235,19 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       } else {
         this.masterProtocol = "http";
         this.masterPort = configs.getClientApiPort();
-      }  
+      }
       this.jdkResourceUrl = getAmbariServerURI(JDK_RESOURCE_LOCATION);
       this.javaHome = configs.getJavaHome();
       this.jdkName = configs.getJDKName();
       this.jceName = configs.getJCEName();
       this.ojdbcUrl = getAmbariServerURI(JDK_RESOURCE_LOCATION + "/" + configs.getOjdbcJarName());
       this.mysqljdbcUrl = getAmbariServerURI(JDK_RESOURCE_LOCATION + "/" + configs.getMySQLJarName());
-     
+
       this.serverDB = configs.getServerDBName();
     } else {
       this.masterProtocol = null;
       this.masterPort = null;
-      
+
       this.jdkResourceUrl = null;
       this.javaHome = null;
       this.jdkName = null;
@@ -256,17 +257,17 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       this.serverDB = null;
     }
   }
-  
+
   public String getAmbariServerURI(String path) {
     if(masterProtocol==null || masterHostname==null || masterPort==null)
       return null;
-    
+
     URIBuilder uriBuilder = new URIBuilder();
     uriBuilder.setScheme(masterProtocol);
     uriBuilder.setHost(masterHostname);
     uriBuilder.setPort(masterPort);
     uriBuilder.setPath(path);
-    
+
     return uriBuilder.toString();
   }
 
@@ -563,8 +564,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         }
       }
     }
-  } 
-  
+  }
+
   private void setRestartRequiredServices(
           Service service, String hostName) throws AmbariException {
 
@@ -661,6 +662,54 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
   }
 
+  @Override
+  public void createGroups(Set<GroupRequest> requests) throws AmbariException {
+    for (GroupRequest request : requests) {
+      if (StringUtils.isBlank(request.getGroupName())) {
+        throw new AmbariException("Group name must be supplied.");
+      }
+      final Group group = users.getGroup(request.getGroupName());
+      if (group != null) {
+        throw new AmbariException("Group already exists.");
+      }
+      users.createGroup(request.getGroupName());
+    }
+  }
+
+  @Override
+  public void createMembers(Set<MemberRequest> requests) throws AmbariException {
+    for (MemberRequest request : requests) {
+      if (StringUtils.isBlank(request.getGroupName()) || StringUtils.isBlank(request.getUserName())) {
+        throw new AmbariException("Both group name and user name must be supplied.");
+      }
+      users.addMemberToGroup(request.getGroupName(), request.getUserName());
+    }
+  }
+
+  @Override
+  public Set<MemberResponse> getMembers(Set<MemberRequest> requests)
+      throws AmbariException {
+    final Set<MemberResponse> responses = new HashSet<MemberResponse>();
+    for (MemberRequest request: requests) {
+      LOG.debug("Received a getMembers request, " + request.toString());
+      final Group group = users.getGroup(request.getGroupName());
+      if (null == group) {
+        if (requests.size() == 1) {
+          // only throw exception if there is a single request
+          // if there are multiple requests, this indicates an OR predicate
+          throw new ObjectNotFoundException("Cannot find group '"
+              + request.getGroupName() + "'");
+        }
+      } else {
+        for (User user: users.getGroupMembers(group.getGroupName())) {
+          final MemberResponse response = new MemberResponse(group.getGroupName(), user.getUserName());
+          responses.add(response);
+        }
+      }
+    }
+    return responses;
+  }
+
   private Stage createNewStage(long id, Cluster cluster, long requestId, String requestContext, String clusterHostInfo) {
     String logDir = BASE_LOG_DIR + File.pathSeparator + requestId;
     Stage stage =
@@ -671,7 +720,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     stage.setStageId(id);
     return stage;
   }
-
 
   private Set<ClusterResponse> getClusters(ClusterRequest request)
       throws AmbariException {
@@ -684,7 +732,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           + ", clusterId=" + request.getClusterId()
           + ", stackInfo=" + request.getStackVersion());
     }
-    
+
     if (request.getClusterName() != null) {
       Cluster c = clusters.getCluster(request.getClusterName());
       ClusterResponse cr = c.convertToResponse();
@@ -900,7 +948,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
             if (host == null) {
               throw new HostNotFoundException(cluster.getClusterName(), sch.getHostName());
             }
-            
+
             r.setMaintenanceState(maintenanceStateHelper.getEffectiveState(sch, host).name());
             response.add(r);
           }
@@ -909,14 +957,14 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
     return response;
   }
-  
+
   @Override
   public MaintenanceState getEffectiveMaintenanceState(ServiceComponentHost sch)
       throws AmbariException {
-    
+
     return maintenanceStateHelper.getEffectiveState(sch);
   }
-  
+
 
   private Set<ConfigurationResponse> getConfigurations(
       ConfigurationRequest request) throws AmbariException {
@@ -1008,7 +1056,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       ConfigurationRequest cr = request.getDesiredConfig();
 
       Config oldConfig = cluster.getDesiredConfigByType(cr.getType());
-      
+
       if (null != cr.getProperties()) {
         // !!! empty property sets are supported, and need to be able to use
         // previously-defined configs (revert)
@@ -1016,11 +1064,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         if (null == all ||                              // none set
             !all.containsKey(cr.getVersionTag()) ||     // tag not set
             cr.getProperties().size() > 0) {            // properties to set
-          
+
           LOG.info(MessageFormat.format("Applying configuration with tag ''{0}'' to cluster ''{1}''",
               cr.getVersionTag(),
               request.getClusterName()));
-  
+
           cr.setClusterName(cluster.getClusterName());
           createConfiguration(cr);
         }
@@ -1029,7 +1077,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       Config baseConfig = cluster.getConfig(cr.getType(), cr.getVersionTag());
       if (null != baseConfig) {
         String authName = getAuthName();
-        
+
         if (cluster.addDesiredConfig(authName, baseConfig)) {
           Logger logger = LoggerFactory.getLogger("configchange");
           logger.info("cluster '" + request.getClusterName() + "' "
@@ -1056,7 +1104,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       clusters.mapHostsToCluster(
           request.getHostNames(), request.getClusterName());
     }
-    
+
     // set the provisioning state of the cluster
     if (null != request.getProvisioningState()) {
       State oldProvisioningState = cluster.getProvisioningState();
@@ -1077,12 +1125,12 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       if (provisioningState != oldProvisioningState) {
         boolean isStateTransitionValid = State.isValidDesiredStateTransition(
             oldProvisioningState, provisioningState);
-        
+
         if (!isStateTransitionValid) {
           LOG.warn(
               "Invalid cluster provisioning state {} cannot be set on the cluster {} because the current state is {}",
               provisioningState, request.getClusterName(), oldProvisioningState);
-          
+
           throw new AmbariException("Invalid transition for"
               + " cluster provisioning state" + ", clusterName="
               + cluster.getClusterName() + ", clusterId="
@@ -1091,10 +1139,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
               + provisioningState);
         }
       }
-      
+
       cluster.setProvisioningState(provisioningState);
     }
-    
+
     return null;
   }
 
@@ -1694,7 +1742,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
                 requestParameters = new HashMap<String, String>();
               requestParameters.put(keyName, requestProperties.get(keyName));
             }
-            
+
             createHostAction(cluster, stage, scHost, configurations, configTags,
               roleCommand, requestParameters, event);
           }
@@ -1746,7 +1794,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     hostLevelParams.put(ORACLE_JDBC_URL, getOjdbcUrl());
     hostLevelParams.put(DB_DRIVER_FILENAME, configs.getMySQLJarName());
     hostLevelParams.putAll(getRcaParameters());
-    
+
     return hostLevelParams;
   }
 
@@ -1857,7 +1905,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     Set<State> seenNewStates = new HashSet<State>();
     Map<ServiceComponentHost, State> directTransitionScHosts = new HashMap<ServiceComponentHost, State>();
     Set<String> maintenanceClusters = new HashSet<String>();
-    
+
     for (ServiceComponentHostRequest request : requests) {
       validateServiceComponentHostRequest(request);
 
@@ -1921,13 +1969,13 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
               + " desired state, desiredState=" + newState.toString());
         }
       }
-      
+
       if (null != request.getMaintenanceState()) {
         MaintenanceStateHelper psh = injector.getInstance(MaintenanceStateHelper.class);
-        
+
         MaintenanceState newMaint = MaintenanceState.valueOf(request.getMaintenanceState());
         MaintenanceState oldMaint = psh.getEffectiveState(sch);
-        
+
         if (newMaint != oldMaint) {
           if (sc.isClientComponent()) {
             throw new IllegalArgumentException("Invalid arguments, cannot set " +
@@ -1938,7 +1986,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
               "maintenance state to one of " + EnumSet.of(MaintenanceState.OFF, MaintenanceState.ON));
           } else {
             sch.setMaintenanceState(newMaint);
-            
+
             maintenanceClusters.add(sch.getClusterName());
           }
         }
@@ -2062,7 +2110,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         throw new AmbariException("Internal error - not supported transition", e);
       }
     }
-    
+
     if (maintenanceClusters.size() > 0) {
       try {
         maintenanceStateHelper.createRequests(this, requestProperties, maintenanceClusters);
@@ -2158,7 +2206,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       for (String role : roolesToDelete) {
         users.removeRoleFromUser(u, role);
         u.getRoles().remove(role);
-      }      
+      }
       roolesToAdd.removeAll(u.getRoles());
       for (String role : roolesToAdd) {
         users.addRoleToUser(u, role);
@@ -2191,7 +2239,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       Set<ServiceComponentHostRequest> requests) throws AmbariException {
 
     Set<ServiceComponentHostRequest> expanded = new HashSet<ServiceComponentHostRequest>();
-    
+
     // if any request are for the whole host, they need to be expanded
     for (ServiceComponentHostRequest request : requests) {
       if (null == request.getComponentName()) {
@@ -2200,7 +2248,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           throw new IllegalArgumentException("Cluster name and hostname must be specified.");
         }
         Cluster cluster = clusters.getCluster(request.getClusterName());
-        
+
         for (ServiceComponentHost sch : cluster.getServiceComponentHosts(request.getHostname())) {
           ServiceComponentHostRequest schr = new ServiceComponentHostRequest(request.getClusterName(),
               sch.getServiceName(), sch.getServiceComponentName(), sch.getHostName(), null);
@@ -2211,9 +2259,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         expanded.add(request);
       }
     }
-    
+
     Map<ServiceComponent, Set<ServiceComponentHost>> safeToRemoveSCHs = new HashMap<ServiceComponent, Set<ServiceComponentHost>>();
-    
+
     for (ServiceComponentHostRequest request : expanded) {
 
       validateServiceComponentHostRequest(request);
@@ -2256,7 +2304,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       }
 
       setRestartRequiredServices(service, request.getHostname());
-              
+
       if (!safeToRemoveSCHs.containsKey(component)) {
         safeToRemoveSCHs.put(component, new HashSet<ServiceComponentHost>());
       }
@@ -2276,7 +2324,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
     return null;
   }
-  
+
   @Override
   public void deleteUsers(Set<UserRequest> requests)
     throws AmbariException {
@@ -2289,6 +2337,25 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       User u = users.getAnyUser(r.getUsername());
       if (null != u)
         users.removeUser(u);
+    }
+  }
+
+  @Override
+  public void deleteGroups(Set<GroupRequest> requests) throws AmbariException {
+    for (GroupRequest request: requests) {
+      LOG.debug("Received a delete group request, groupname=" + request.getGroupName());
+      final Group group = users.getGroup(request.getGroupName());
+      if (group != null) {
+        users.removeGroup(group);
+      }
+    }
+  }
+
+  @Override
+  public void deleteMembers(java.util.Set<MemberRequest> requests) throws AmbariException {
+    for (MemberRequest request : requests) {
+      LOG.debug("Received a delete member request, " + request);
+      users.removeMemberFromGroup(request.getGroupName(), request.getUserName());
     }
   }
 
@@ -2470,6 +2537,47 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     return responses;
   }
 
+  @Override
+  public Set<GroupResponse> getGroups(Set<GroupRequest> requests)
+      throws AmbariException {
+    final Set<GroupResponse> responses = new HashSet<GroupResponse>();
+    for (GroupRequest request: requests) {
+      LOG.debug("Received a getGroups request, groupRequest=" + request.toString());
+      // get them all
+      if (null == request.getGroupName()) {
+        for (Group group: users.getAllGroups()) {
+          final GroupResponse response = new GroupResponse(group.getGroupName(), group.isLdapGroup());
+          responses.add(response);
+        }
+      } else {
+        final Group group = users.getGroup(request.getGroupName());
+        if (null == group) {
+          if (requests.size() == 1) {
+            // only throw exception if there is a single request
+            // if there are multiple requests, this indicates an OR predicate
+            throw new ObjectNotFoundException("Cannot find group '"
+                + request.getGroupName() + "'");
+          }
+        } else {
+          final GroupResponse response = new GroupResponse(group.getGroupName(), group.isLdapGroup());
+          responses.add(response);
+        }
+      }
+    }
+    return responses;
+  }
+
+  @Override
+  public void updateGroups(Set<GroupRequest> requests) throws AmbariException {
+    for (GroupRequest request: requests) {
+      final Group group = users.getGroup(request.getGroupName());
+      if (group == null) {
+        continue;
+      }
+      // currently no group updates are supported
+    }
+  }
+
   private String getClientHostForRunningAction(Cluster cluster,
       Service service) throws AmbariException {
     StackId stackId = service.getDesiredStackVersion();
@@ -2527,7 +2635,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       Map<String, String> requestProperties)
       throws AmbariException {
     String clusterName = actionRequest.getClusterName();
-        
+
     String requestContext = "";
 
     if (requestProperties != null) {
@@ -2546,25 +2654,25 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         + ", clusterName=" + actionRequest.getClusterName()
         + ", request=" + actionRequest.toString());
     }
-    
+
     ActionExecutionContext actionExecContext = getActionExecutionContext(actionRequest);
     if (actionRequest.isCommand()) {
       customCommandExecutionHelper.validateAction(actionRequest);
     } else {
       actionExecutionHelper.validateAction(actionRequest);
     }
-    
+
     Map<String, String> params = new HashMap<String, String>();
     Map<String, Set<String>> clusterHostInfo = new HashMap<String, Set<String>>();
     String clusterHostInfoJson = "{}";
-    
+
     if (null != cluster) {
       clusterHostInfo = StageUtils.getClusterHostInfo(
         clusters.getHostsForCluster(cluster.getClusterName()), cluster);
       params = createDefaultHostParams(cluster);
       clusterHostInfoJson = StageUtils.getGson().toJson(clusterHostInfo);
     }
-    
+
     Stage stage = createNewStage(0, cluster, actionManager.getNextRequestId(), requestContext, clusterHostInfoJson);
 
     if (actionRequest.isCommand()) {
@@ -2573,7 +2681,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     } else {
       actionExecutionHelper.addExecutionCommandsToStage(actionExecContext, stage, params);
     }
-    
+
     RoleGraph rg = null;
     if (null != cluster) {
       RoleCommandOrder rco = getRoleCommandOrder(cluster);
@@ -2581,10 +2689,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     } else {
       rg = new RoleGraph();
     }
-    
-    rg.build(stage);    
+
+    rg.build(stage);
     List<Stage> stages = rg.getStages();
-    
+
     if (stages != null && !stages.isEmpty()) {
       actionManager.sendActions(stages, actionRequest);
       return getRequestStatusResponse(stage.getRequestId());
@@ -2671,7 +2779,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
     return response;
   }
-  
+
   private Set<RepositoryResponse> getRepositories(RepositoryRequest request) throws AmbariException {
 
     String stackName = request.getStackName();
@@ -2693,22 +2801,22 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       RepositoryInfo repository = this.ambariMetaInfo.getRepository(stackName, stackVersion, osType, repoId);
       response = Collections.singleton(repository.convertToResponse());
     }
-    
+
     return response;
   }
-  
+
   @Override
   public void updateRespositories(Set<RepositoryRequest> requests) throws AmbariException {
     for (RepositoryRequest rr : requests) {
       if (null == rr.getStackName() || rr.getStackName().isEmpty())
         throw new AmbariException("Stack name must be specified.");
-      
+
       if (null == rr.getStackVersion() || rr.getStackVersion().isEmpty())
         throw new AmbariException("Stack version must be specified.");
-      
+
       if (null == rr.getOsType() || rr.getOsType().isEmpty())
         throw new AmbariException("OS type must be specified.");
-      
+
       if (null == rr.getRepoId() || rr.getRepoId().isEmpty())
         throw new AmbariException("Repo ID must be specified.");
 
@@ -2725,19 +2833,19 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           String repoName = repositoryInfo.getRepoName();
 
           boolean bFound = false;
-          
+
           String[] suffixes = configs.getRepoValidationSuffixes(rr.getOsType());
           for (int i = 0; i < suffixes.length && !bFound; i++) {
             String suffix = String.format(suffixes[i], repoName);
             String spec = rr.getBaseUrl();
-            
+
             if (spec.charAt(spec.length()-1) != '/' && suffix.charAt(0) != '/')
               spec = rr.getBaseUrl() + "/" + suffix;
             else if (spec.charAt(spec.length()-1) == '/' && suffix.charAt(0) == '/')
               spec = rr.getBaseUrl() + suffix.substring(1);
             else
               spec = rr.getBaseUrl() + suffix;
-            
+
             try {
               IOUtils.readLines(usp.readFrom(spec));
               bFound = true;
@@ -2745,7 +2853,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
               LOG.error("IOException loading the base URL", ioe);
             }
           }
-            
+
           if (bFound) {
             ambariMetaInfo.updateRepoBaseURL(rr.getStackName(),
                 rr.getStackVersion(), rr.getOsType(), rr.getRepoId(),
@@ -3008,7 +3116,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     return response;
   }
-  
+
   @Override
   public String getAuthName() {
     return AuthorizationHelper.getAuthenticatedName(configs.getAnonymousAuditName());
@@ -3137,7 +3245,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   public String getMysqljdbcUrl() {
     return mysqljdbcUrl;
   }
-  
+
   public Map<String, String> getRcaParameters() {
 
     String hostName = StageUtils.getHostName();
@@ -3157,5 +3265,5 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     return rcaParameters;
   }
-  
+
 }

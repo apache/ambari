@@ -17,15 +17,22 @@
  */
 package org.apache.ambari.server.security.authorization;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Guice;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import java.util.List;
+import java.util.Properties;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.dao.GroupDAO;
+import org.apache.ambari.server.orm.dao.MemberDAO;
 import org.apache.ambari.server.orm.dao.RoleDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.entities.RoleEntity;
@@ -38,10 +45,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.util.List;
-import java.util.Properties;
-
-import static org.junit.Assert.*;
+import com.google.inject.Guice;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.persist.PersistService;
 
 public class TestUsers {
   private Injector injector;
@@ -50,6 +57,10 @@ public class TestUsers {
   protected Users users;
   @Inject
   protected UserDAO userDAO;
+  @Inject
+  protected GroupDAO groupDAO;
+  @Inject
+  protected MemberDAO memberDAO;
   @Inject
   protected RoleDAO roleDAO;
   @Inject
@@ -96,6 +107,87 @@ public class TestUsers {
     assertNotSame(userEntity.getUserPassword(), userDAO.findLocalUserByName("user").getUserPassword());
   }
 
+  @Test
+  public void testCreateGroup() throws Exception {
+    final String groupName = "engineering";
+    users.createGroup(groupName);
+    assertNotNull(groupDAO.findGroupByName(groupName));
+  }
+
+  @Test
+  public void testGetGroup() throws Exception {
+    final String groupName = "engineering";
+    users.createGroup(groupName);
+
+    final Group group = users.getGroup(groupName);
+    assertNotNull(group);
+    assertEquals(false, group.isLdapGroup());
+    assertEquals(groupName, group.getGroupName());
+
+    assertNotNull(groupDAO.findGroupByName(groupName));
+  }
+
+  @Test
+  public void testGetAllGroups() throws Exception {
+    users.createGroup("one");
+    users.createGroup("two");
+
+    final List<Group> groupList = users.getAllGroups();
+
+    assertEquals(2, groupList.size());
+    assertEquals(2, groupDAO.findAll().size());
+  }
+
+  @Test
+  public void testRemoveGroup() throws Exception {
+    final String groupName = "engineering";
+    users.createGroup(groupName);
+    final Group group = users.getGroup(groupName);
+    assertEquals(1, users.getAllGroups().size());
+    users.removeGroup(group);
+    assertEquals(0, users.getAllGroups().size());
+  }
+
+  @Test
+  public void testAddMemberToGroup() throws Exception {
+    final String groupName = "engineering";
+    users.createGroup(groupName);
+    users.createUser("user", "user");
+    users.addMemberToGroup(groupName, "user");
+    assertEquals(1, groupDAO.findGroupByName(groupName).getMemberEntities().size());
+  }
+
+  @Test
+  public void testRemoveMemberFromGroup() throws Exception {
+    final String groupName = "engineering";
+    users.createGroup(groupName);
+    users.createUser("user", "user");
+    users.addMemberToGroup(groupName, "user");
+    assertEquals(1, groupDAO.findGroupByName(groupName).getMemberEntities().size());
+    users.removeMemberFromGroup(groupName, "user");
+    assertEquals(0, groupDAO.findGroupByName(groupName).getMemberEntities().size());
+  }
+
+  @Test
+  public void testGetGroupMembers() throws Exception {
+    final String groupNameTwoMembers = "engineering";
+    final String groupNameZeroMembers = "management";
+    users.createGroup(groupNameTwoMembers);
+    users.createGroup(groupNameZeroMembers);
+    users.createUser("user", "user");
+    users.createUser("admin", "admin");
+    users.addMemberToGroup(groupNameTwoMembers, "user");
+    users.addMemberToGroup(groupNameTwoMembers, "admin");
+
+    assertEquals(users.getGroupMembers(groupNameTwoMembers).size(), 2);
+    assertEquals(users.getGroupMembers(groupNameZeroMembers).size(), 0);
+  }
+
+  @Test
+  public void testGetGroupMembersUnexistingGroup() throws Exception {
+    assertEquals(users.getGroupMembers("unexisting"), null);
+  }
+
   @Test(expected = AmbariException.class)
   public void testModifyPassword() throws Exception {
     users.createUser("user", "user");
@@ -132,12 +224,12 @@ public class TestUsers {
 
     user = users.getLocalUser("admin");
     assertFalse(user.getRoles().contains(users.getAdminRole()));
-    
+
     user = users.getLocalUser("admin2");
     users.demoteAdmin(user);
 
   }
-  
+
   @Test(expected = AmbariException.class)
   public void testRemoveUser() throws Exception {
     users.createUser("admin", "admin");

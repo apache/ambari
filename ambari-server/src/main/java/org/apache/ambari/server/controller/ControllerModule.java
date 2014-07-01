@@ -26,6 +26,7 @@ import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.name.Names;
 import com.google.inject.persist.PersistModule;
 import com.google.inject.persist.jpa.AmbariJpaPersistModule;
+
 import org.apache.ambari.server.actionmanager.ActionDBAccessor;
 import org.apache.ambari.server.actionmanager.ActionDBAccessorImpl;
 import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
@@ -37,6 +38,7 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.ComponentResourceProvider;
 import org.apache.ambari.server.controller.internal.HostComponentResourceProvider;
 import org.apache.ambari.server.controller.internal.HostResourceProvider;
+import org.apache.ambari.server.controller.internal.MemberResourceProvider;
 import org.apache.ambari.server.controller.internal.ServiceResourceProvider;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.orm.DBAccessor;
@@ -74,10 +76,12 @@ import org.apache.ambari.server.state.scheduler.RequestExecutionImpl;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostImpl;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.crypto.password.StandardPasswordEncoder;
+
 import java.security.SecureRandom;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
+
 import static org.eclipse.persistence.config.PersistenceUnitProperties.CREATE_JDBC_DDL_FILE;
 import static org.eclipse.persistence.config.PersistenceUnitProperties.CREATE_ONLY;
 import static org.eclipse.persistence.config.PersistenceUnitProperties.CREATE_OR_EXTEND;
@@ -252,6 +256,7 @@ public class ControllerModule extends AbstractModule {
         .implement(ResourceProvider.class, Names.named("hostComponent"), HostComponentResourceProvider.class)
         .implement(ResourceProvider.class, Names.named("service"), ServiceResourceProvider.class)
         .implement(ResourceProvider.class, Names.named("component"), ComponentResourceProvider.class)
+        .implement(ResourceProvider.class, Names.named("member"), MemberResourceProvider.class)
         .build(ResourceProviderFactory.class));
 
 

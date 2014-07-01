@@ -28,6 +28,8 @@ CREATE TABLE servicecomponentdesiredstate (component_name VARCHAR2(255) NOT NULL
 CREATE TABLE servicedesiredstate (cluster_id NUMBER(19) NOT NULL, desired_host_role_mapping NUMBER(10) NOT NULL, desired_stack_version VARCHAR2(255) NULL, desired_state VARCHAR2(255) NOT NULL, service_name VARCHAR2(255) NOT NULL, maintenance_state VARCHAR2(32) NOT NULL, PRIMARY KEY (cluster_id, service_name));
 CREATE TABLE roles (role_name VARCHAR2(255) NOT NULL, PRIMARY KEY (role_name));
 CREATE TABLE users (user_id NUMBER(10) NOT NULL, create_time TIMESTAMP NULL, ldap_user NUMBER(10) DEFAULT 0, user_name VARCHAR2(255) NULL, user_password VARCHAR2(255) NULL, PRIMARY KEY (user_id));
+CREATE TABLE groups (group_id NUMBER(10) NOT NULL, group_name VARCHAR2(255) NOT NULL, ldap_group NUMBER(10) DEFAULT 0, PRIMARY KEY (group_id));
+CREATE TABLE members (member_id NUMBER(10), group_id NUMBER(10) NOT NULL, user_id NUMBER(10) NOT NULL, PRIMARY KEY (member_id));
 CREATE TABLE execution_command (task_id NUMBER(19) NOT NULL, command BLOB NULL, PRIMARY KEY (task_id));
 CREATE TABLE host_role_command (task_id NUMBER(19) NOT NULL, attempt_count NUMBER(5) NOT NULL, event CLOB NULL, exitcode NUMBER(10) NOT NULL, host_name VARCHAR2(255) NOT NULL, last_attempt_time NUMBER(19) NOT NULL, request_id NUMBER(19) NOT NULL, role VARCHAR2(255) NULL, role_command VARCHAR2(255) NULL, stage_id NUMBER(19) NOT NULL, start_time NUMBER(19) NOT NULL, end_time NUMBER(19), status VARCHAR2(255) NULL, std_error BLOB NULL, std_out BLOB NULL, structured_out BLOB NULL,  command_detail VARCHAR2(255) NULL, custom_command_name VARCHAR2(255) NULL, PRIMARY KEY (task_id));
 CREATE TABLE role_success_criteria (role VARCHAR2(255) NOT NULL, request_id NUMBER(19) NOT NULL, stage_id NUMBER(19) NOT NULL, success_factor NUMBER(19,4) NOT NULL, PRIMARY KEY (role, request_id, stage_id));
@@ -61,6 +63,10 @@ CREATE TABLE viewresource (view_name VARCHAR(255) NOT NULL, name VARCHAR(255) NO
 CREATE TABLE viewentity (id NUMBER(19) NOT NULL, view_name VARCHAR(255) NOT NULL, view_instance_name VARCHAR(255) NOT NULL, class_name VARCHAR(255) NOT NULL, id_property VARCHAR(255), PRIMARY KEY(id));
 
 ALTER TABLE users ADD CONSTRAINT UNQ_users_0 UNIQUE (user_name, ldap_user);
+ALTER TABLE groups ADD CONSTRAINT UNQ_groups_0 UNIQUE (group_name, ldap_group);
+ALTER TABLE members ADD CONSTRAINT UNQ_members_0 UNIQUE (group_id, user_id);
+ALTER TABLE members ADD CONSTRAINT FK_members_group_id FOREIGN KEY (group_id) REFERENCES groups (group_id);
+ALTER TABLE members ADD CONSTRAINT FK_members_user_id FOREIGN KEY (user_id) REFERENCES users (user_id);
 ALTER TABLE clusterconfig ADD CONSTRAINT FK_clusterconfig_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id);
 ALTER TABLE clusterservices ADD CONSTRAINT FK_clusterservices_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id);
 ALTER TABLE clusterconfigmapping ADD CONSTRAINT clusterconfigmappingcluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id);
@@ -107,6 +113,8 @@ ALTER TABLE viewentity ADD CONSTRAINT FK_viewentity_view_name FOREIGN KEY (view_
 
 INSERT INTO ambari_sequences(sequence_name, value) values ('host_role_command_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, value) values ('user_id_seq', 1);
+INSERT INTO ambari_sequences(sequence_name, value) values ('group_id_seq', 0);
+INSERT INTO ambari_sequences(sequence_name, value) values ('member_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, value) values ('cluster_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, value) values ('configgroup_id_seq', 1);
 INSERT INTO ambari_sequences(sequence_name, value) values ('requestschedule_id_seq', 1);

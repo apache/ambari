@@ -18,13 +18,19 @@
 package org.apache.ambari.server.security.authorization;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.orm.dao.GroupDAO;
+import org.apache.ambari.server.orm.dao.MemberDAO;
 import org.apache.ambari.server.orm.dao.RoleDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
+import org.apache.ambari.server.orm.entities.GroupEntity;
+import org.apache.ambari.server.orm.entities.MemberEntity;
 import org.apache.ambari.server.orm.entities.RoleEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.slf4j.Logger;
@@ -38,7 +44,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
-import java.util.Set;
 
 /**
  * Provides high-level access to Users and Roles in database
@@ -52,6 +57,10 @@ public class Users {
   protected UserDAO userDAO;
   @Inject
   protected RoleDAO roleDAO;
+  @Inject
+  protected GroupDAO groupDAO;
+  @Inject
+  protected MemberDAO memberDAO;
   @Inject
   protected PasswordEncoder passwordEncoder;
   @Inject
@@ -191,6 +200,72 @@ public class Users {
   }
 
   /**
+   * Gets group by given name.
+   *
+   * @param groupName group name
+   * @return group
+   */
+  public Group getGroup(String groupName) {
+    final GroupEntity groupEntity = groupDAO.findGroupByName(groupName);
+    return (null == groupEntity) ? null : new Group(groupEntity);
+  }
+
+  /**
+   * Gets group members.
+   *
+   * @param groupName group name
+   * @return list of members
+   */
+  public Collection<User> getGroupMembers(String groupName) {
+    final GroupEntity groupEntity = groupDAO.findGroupByName(groupName);
+    if (groupEntity == null) {
+      return null;
+    } else {
+      final Set<User> users = new HashSet<User>();
+      for (MemberEntity memberEntity: groupEntity.getMemberEntities()) {
+        users.add(new User(memberEntity.getUser()));
+      }
+      return users;
+    }
+  }
+
+  /**
+   * Creates new local group with provided name
+   */
+  @Transactional
+  public synchronized void createGroup(String groupName) {
+    final GroupEntity groupEntity = new GroupEntity();
+    groupEntity.setGroupName(groupName);
+    groupDAO.create(groupEntity);
+  }
+
+  /**
+   * Gets all groups.
+   *
+   * @return list of groups
+   */
+  public List<Group> getAllGroups() {
+    final List<GroupEntity> groupEntities = groupDAO.findAll();
+    final List<Group> groups = new ArrayList<Group>(groupEntities.size());
+
+    for (GroupEntity groupEntity: groupEntities) {
+      groups.add(new Group(groupEntity));
+    }
+
+    return groups;
+  }
+
+  @Transactional
+  public synchronized void removeGroup(Group group) throws AmbariException {
+    final GroupEntity groupEntity = groupDAO.findByPK(group.getGroupId());
+    if (groupEntity != null) {
+      groupDAO.remove(groupEntity);
+    } else {
+      throw new AmbariException("Group " + group + " doesn't exist");
+    }
+  }
+
+  /**
    * Grants ADMIN role to provided user
    * @throws AmbariException
    */
@@ -243,6 +318,37 @@ public class Users {
   }
 
   @Transactional
+  public synchronized void addMemberToGroup(String groupName, String userName)
+      throws AmbariException {
+
+    final GroupEntity groupEntity = groupDAO.findGroupByName(groupName);
+    if (groupEntity == null) {
+      throw new AmbariException("Group " + groupName + " doesn't exist");
+    }
+
+    UserEntity userEntity = userDAO.findLocalUserByName(userName);
+    if (userEntity == null) {
+      userEntity = userDAO.findLdapUserByName(userName);
+      if (userEntity == null) {
+        throw new AmbariException("User " + userName + " doesn't exist");
+      }
+    }
+
+    if (isUserInGroup(userEntity, groupEntity)) {
+      throw new AmbariException("User " + userName + " is already present in group " + groupName);
+    } else {
+      final MemberEntity memberEntity = new MemberEntity();
+      memberEntity.setGroup(groupEntity);
+      memberEntity.setUser(userEntity);
+      userEntity.getMemberEntities().add(memberEntity);
+      groupEntity.getMemberEntities().add(memberEntity);
+      memberDAO.create(memberEntity);
+      userDAO.merge(userEntity);
+      groupDAO.merge(groupEntity);
+    }
+  }
+
+  @Transactional
   public synchronized void removeRoleFromUser(User user, String role)
       throws AmbariException {
 
@@ -269,7 +375,7 @@ public class Users {
         ". System should have at least one user with administrator role.");
       }
     }
-    
+
     if (userEntity.getRoleEntities().contains(roleEntity)) {
       userEntity.getRoleEntities().remove(roleEntity);
       roleEntity.getUserEntities().remove(userEntity);
@@ -281,13 +387,65 @@ public class Users {
 
   }
 
+  @Transactional
+  public synchronized void removeMemberFromGroup(String groupName, String userName)
+      throws AmbariException {
+
+    final GroupEntity groupEntity = groupDAO.findGroupByName(groupName);
+    if (groupEntity == null) {
+      throw new AmbariException("Group " + groupName + " doesn't exist");
+    }
+
+    UserEntity userEntity = userDAO.findLocalUserByName(userName);
+    if (userEntity == null) {
+      userEntity = userDAO.findLdapUserByName(userName);
+      if (userEntity == null) {
+        throw new AmbariException("User " + userName + " doesn't exist");
+      }
+    }
+
+    if (isUserInGroup(userEntity, groupEntity)) {
+      MemberEntity memberEntity = null;
+      for (MemberEntity entity: userEntity.getMemberEntities()) {
+        if (entity.getGroup().equals(groupEntity)) {
+          memberEntity = entity;
+          break;
+        }
+      }
+      userEntity.getMemberEntities().remove(memberEntity);
+      groupEntity.getMemberEntities().remove(memberEntity);
+      userDAO.merge(userEntity);
+      groupDAO.merge(groupEntity);
+      memberDAO.remove(memberEntity);
+    } else {
+      throw new AmbariException("User " + userName + " is not present in group " + groupName);
+    }
+
+  }
+
   public synchronized boolean isUserCanBeRemoved(UserEntity userEntity){
     RoleEntity roleEntity = new RoleEntity();
     roleEntity.setRoleName(getAdminRole());
     Set<UserEntity> userEntitysSet = new HashSet<UserEntity>(userDAO.findAllLocalUsersByRole(roleEntity));
     return (userEntitysSet.contains(userEntity) && userEntitysSet.size() < 2) ? false : true;
-  }  
-  
+  }
+
+  /**
+   * Performs a check if given user belongs to given group.
+   *
+   * @param userEntity user entity
+   * @param groupEntity group entity
+   * @return true if user presents in group
+   */
+  private boolean isUserInGroup(UserEntity userEntity, GroupEntity groupEntity) {
+    for (MemberEntity memberEntity: userEntity.getMemberEntities()) {
+      if (memberEntity.getGroup().equals(groupEntity)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   public String getUserRole() {
     return configuration.getConfigsMap().get(Configuration.USER_ROLE_NAME_KEY);
   }

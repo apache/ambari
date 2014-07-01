@@ -30,7 +30,9 @@ import java.util.Set;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ClusterRequest;
 import org.apache.ambari.server.controller.ConfigurationRequest;
+import org.apache.ambari.server.controller.GroupRequest;
 import org.apache.ambari.server.controller.HostRequest;
+import org.apache.ambari.server.controller.MemberRequest;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.ServiceComponentHostRequest;
 import org.apache.ambari.server.controller.StackConfigurationRequest;
@@ -47,7 +49,6 @@ import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
-import org.apache.ambari.server.state.State;
 import org.easymock.EasyMock;
 import org.easymock.IArgumentMatcher;
 import org.junit.Assert;
@@ -297,7 +298,19 @@ public class AbstractResourceProviderTest {
       EasyMock.reportMatcher(new UserRequestSetMatcher(name));
       return null;
     }
-    
+
+    public static Set<GroupRequest> getGroupRequestSet(String name)
+    {
+      EasyMock.reportMatcher(new GroupRequestSetMatcher(name));
+      return null;
+    }
+
+    public static Set<MemberRequest> getMemberRequestSet(String groupname, String username)
+    {
+      EasyMock.reportMatcher(new MemberRequestSetMatcher(groupname, username));
+      return null;
+    }
+
     public static Set<StackConfigurationRequest> getStackConfigurationRequestSet(String stackName, String stackVersion,
         String serviceName, String propertyName)
     {
@@ -547,7 +560,81 @@ public class AbstractResourceProviderTest {
       stringBuffer.append("UserRequestSetMatcher(").append(userRequest).append(")");
     }
   }
-  
+
+  /**
+   * Matcher for a GroupRequest set containing a single request.
+   */
+  public static class GroupRequestSetMatcher extends HashSet<GroupRequest> implements IArgumentMatcher {
+
+    private final GroupRequest groupRequest;
+
+    public GroupRequestSetMatcher(String name) {
+      this.groupRequest = new GroupRequest(name);
+      add(this.groupRequest);
+    }
+
+    @Override
+    public boolean matches(Object o) {
+
+      if (!(o instanceof Set)) {
+        return false;
+      }
+
+      Set set = (Set) o;
+
+      if (set.size() != 1) {
+        return false;
+      }
+
+      Object request = set.iterator().next();
+
+      return request instanceof GroupRequest &&
+          eq(((GroupRequest) request).getGroupName(), groupRequest.getGroupName());
+    }
+
+    @Override
+    public void appendTo(StringBuffer stringBuffer) {
+      stringBuffer.append("GroupRequestSetMatcher(").append(groupRequest).append(")");
+    }
+  }
+
+  /**
+   * Matcher for a MemberRequest set containing a single request.
+   */
+  public static class MemberRequestSetMatcher extends HashSet<MemberRequest> implements IArgumentMatcher {
+
+    private final MemberRequest memberRequest;
+
+    public MemberRequestSetMatcher(String groupname, String username) {
+      this.memberRequest = new MemberRequest(groupname, username);
+      add(this.memberRequest);
+    }
+
+    @Override
+    public boolean matches(Object o) {
+
+      if (!(o instanceof Set)) {
+        return false;
+      }
+
+      Set set = (Set) o;
+
+      if (set.size() != 1) {
+        return false;
+      }
+
+      Object request = set.iterator().next();
+
+      return request instanceof MemberRequest &&
+          eq(((MemberRequest) request).getGroupName(), memberRequest.getGroupName()) &&
+          eq(((MemberRequest) request).getUserName(), memberRequest.getUserName());
+    }
+
+    @Override
+    public void appendTo(StringBuffer stringBuffer) {
+      stringBuffer.append("MemberRequestSetMatcher(").append(memberRequest).append(")");
+    }
+  }
 
   /**
    * Matcher for a Stack set containing a single request.

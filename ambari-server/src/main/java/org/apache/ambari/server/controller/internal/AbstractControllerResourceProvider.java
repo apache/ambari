@@ -57,7 +57,7 @@ public abstract class AbstractControllerResourceProvider extends AbstractResourc
     super(propertyIds, keyPropertyIds);
     this.managementController = managementController;
   }
-  
+
   public static void init(ResourceProviderFactory factory) {
     resourceProviderFactory = factory;
   }
@@ -112,6 +112,10 @@ public abstract class AbstractControllerResourceProvider extends AbstractResourc
         return new TaskResourceProvider(propertyIds, keyPropertyIds, managementController);
       case User:
         return new UserResourceProvider(propertyIds, keyPropertyIds, managementController);
+      case Group:
+        return new GroupResourceProvider(propertyIds, keyPropertyIds, managementController);
+      case Member:
+        return resourceProviderFactory.getMemberResourceProvider(propertyIds, keyPropertyIds, managementController);
       case Stack:
         return new StackResourceProvider(propertyIds, keyPropertyIds, managementController);
       case StackVersion:
