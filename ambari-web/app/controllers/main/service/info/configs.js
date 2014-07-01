@@ -826,7 +826,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         }
       }
     } else if (serviceName === 'MAPREDUCE') {
-      var mapredConfigs = self.get('stepConfigs').findProperty('serviceName', 'MAPREDUCE').get('configs');
+      var mapredConfigs = this.get('stepConfigs').findProperty('serviceName', 'MAPREDUCE').get('configs');
       if (mapredConfigs.findProperty('name', 'mapred.local.dir').get('isNotDefaultValue') ||
           mapredConfigs.findProperty('name', 'mapred.system.dir').get('isNotDefaultValue')) {
         dirChanged = true;
