@@ -18,6 +18,7 @@
 
 var App = require('app');
 var numberUtils = require('utils/number_utils');
+var stringUtils = require('utils/string_utils');
 /**
  * By Step 7, we have the following information stored in App.db and set on this
  * controller by the router.
@@ -794,18 +795,44 @@ App.WizardStep7Controller = Em.Controller.extend({
    */
   setInstalledServiceConfigs: function (serviceConfigTags, configs) {
     var configsMap = {};
+    var configTypeMap = {};
+    var configMixin = App.get('config');
+
     App.router.get('configurationController').getConfigsByTags(serviceConfigTags).forEach(function (configSite) {
       $.extend(configsMap, configSite.properties);
+      for (var name in configSite.properties) {
+        configTypeMap[name] = configSite.type;
+      }
     });
     configs.forEach(function (_config) {
-      if (configsMap[_config.name] !== undefined) {
+      if (!Em.isNone(configsMap[_config.name])) {
         // prevent overriding already edited properties
         if (_config.defaultValue != configsMap[_config.name])
           _config.value = configsMap[_config.name];
         _config.defaultValue = configsMap[_config.name];
         App.config.handleSpecialProperties(_config);
+        delete configsMap[_config.name];
       }
-    })
+    });
+
+    //add user properties
+    for (var name in configsMap) {
+      configs.push(configMixin.addUserProperty({
+        id: 'site property',
+        name: name,
+        serviceName: configMixin.getServiceNameByConfigType(configTypeMap[name]),
+        value: configsMap[name],
+        defaultValue: configsMap[name],
+        filename: (configMixin.get('filenameExceptions').contains(configTypeMap[name])) ? configTypeMap[name] : configTypeMap[name] + '.xml',
+        category: 'Advanced',
+        isUserProperty: true,
+        isOverridable: true,
+        overrides: [],
+        isRequired: true,
+        isVisible: true,
+        showLabel: true
+      }, false, []));
+    }
   },
 
   /**
