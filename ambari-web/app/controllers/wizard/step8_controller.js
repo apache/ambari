@@ -152,6 +152,14 @@ App.WizardStep8Controller = Em.Controller.extend({
   }.property('content.services').cacheable(),
 
   /**
+   * List of installed and selected services
+   * @type {Object[]}
+   */
+  installedServices: function () {
+    return this.get('content.services').filterProperty('isSelected').filterProperty('isInstalled');
+  }.property('content.services').cacheable(),
+
+  /**
    * Ajax-requests count
    * @type {number}
    */
@@ -1339,16 +1347,21 @@ App.WizardStep8Controller = Em.Controller.extend({
     var self = this;
     var selectedServices = this.get('selectedServices');
     var coreSiteObject = this.createCoreSiteObj();
+    var tag = 'version1';
+
     if (this.get('content.controllerName') == 'installerController') {
       this.get('serviceConfigTags').pushObject(coreSiteObject);
-      this.get('serviceConfigTags').pushObject(this.createSiteObj('hdfs-site', false));
-      this.get('serviceConfigTags').pushObject(this.createLog4jObj('hdfs'));
+      this.get('serviceConfigTags').pushObject(this.createSiteObj('hdfs-site', false, tag));
+      this.get('serviceConfigTags').pushObject(this.createLog4jObj('hdfs', tag));
     }
-    var globalSiteObj = this.createGlobalSiteObj();
+    var globalSiteObj = this.createGlobalSiteObj(tag);
     if (this.get('content.controllerName') == 'addServiceController') {
-      globalSiteObj.tag = 'version' + (new Date).getTime();
-      coreSiteObject.tag = 'version' + (new Date).getTime();
+      tag = 'version' + (new Date).getTime();
+      globalSiteObj.tag = tag;
+      coreSiteObject.tag = tag;
       this.get('serviceConfigTags').pushObject(coreSiteObject);
+      //for Add Service save config of new and installed services either
+      selectedServices = selectedServices.concat(this.get('installedServices'));
     }
     this.get('serviceConfigTags').pushObject(globalSiteObj);
 
@@ -1405,20 +1418,20 @@ App.WizardStep8Controller = Em.Controller.extend({
       if (objMap.hasOwnProperty(serviceName)) {
         if (selectedServices.someProperty('serviceName', serviceName)) {
           objMap[serviceName].site.forEach(function (site) {
-            self.get('serviceConfigTags').pushObject(self.createSiteObj(site.filename, !site.isXmlFile));
+            self.get('serviceConfigTags').pushObject(self.createSiteObj(site.filename, !site.isXmlFile, tag));
           });
           objMap[serviceName].log4j.forEach(function (log4j) {
-            self.get('serviceConfigTags').pushObject(self.createLog4jObj(log4j));
+            self.get('serviceConfigTags').pushObject(self.createLog4jObj(log4j, tag));
           });
         }
       }
     }
 
     if (selectedServices.someProperty('serviceName', 'STORM')) {
-      this.get('serviceConfigTags').pushObject(this.createStormSiteObj());
+      this.get('serviceConfigTags').pushObject(this.createStormSiteObj(tag));
     }
     if (selectedServices.someProperty('serviceName', 'ZOOKEEPER')) {
-      this.get('serviceConfigTags').pushObject(this.createZooCfgObj());
+      this.get('serviceConfigTags').pushObject(this.createZooCfgObj(tag));
     }
   },
 
@@ -1549,7 +1562,7 @@ App.WizardStep8Controller = Em.Controller.extend({
    * @returns {{type: string, tag: string, properties: {}}}
    * @method createGlobalSiteObj
    */
-  createGlobalSiteObj: function () {
+  createGlobalSiteObj: function (tag) {
     var globalSiteProperties = {};
     var globalSiteObj = this.get('globals');
     var isGLUSTERFSSelected = this.get('selectedServices').someProperty('serviceName', 'GLUSTERFS');
@@ -1575,7 +1588,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     }, this);
     // we don't expose gmond_user to the user; it needs to be the same as gmetad_user
     globalSiteProperties['gmond_user'] = globalSiteProperties['gmetad_user'];
-    return {"type": "global", "tag": "version1", "properties": globalSiteProperties};
+    return {"type": "global", "tag": tag, "properties": globalSiteProperties};
   },
 
   /**
@@ -1628,10 +1641,11 @@ App.WizardStep8Controller = Em.Controller.extend({
    * Create siteObj for custom service with it own configs
    * @param {string} site
    * @param {bool} isNonXmlFile
+   * @param tag
    * @returns {{type: string, tag: string, properties: {}}}
    * @method createSiteObj
    */
-  createSiteObj: function (site, isNonXmlFile) {
+  createSiteObj: function (site, isNonXmlFile, tag) {
     var properties = {};
     if (!!isNonXmlFile) {
       this.get('configs').filterProperty('filename', site + '.xml').forEach(function (_configProperty) {
@@ -1642,39 +1656,42 @@ App.WizardStep8Controller = Em.Controller.extend({
         properties[_configProperty.name] = App.config.escapeXMLCharacters(_configProperty.value);
       }, this);
     }
-    return {"type": site, "tag": "version1", "properties": properties };
+    return {"type": site, "tag": tag, "properties": properties };
   },
 
   /**
    * Create log4j object for custom service with it own configs
    * @param {string} site
+   * @param {string} tag
    * @returns {{type: string, tag: string, properties: {}}}
    * @method createLog4jObj
    */
-  createLog4jObj: function (site) {
-    return this.createSiteObj(site + '-log4j', true);
+  createLog4jObj: function (site, tag) {
+    return this.createSiteObj(site + '-log4j', true, tag);
   },
 
   /**
    * Create ZooKeeper Cfg Object
+   * @param tag
    * @returns {{type: string, tag: string, properties: {}}}
    * @method createZooCfgObj
    */
-  createZooCfgObj: function () {
+  createZooCfgObj: function (tag) {
     var configs = this.get('configs').filterProperty('filename', 'zoo.cfg');
     var csProperties = {};
     configs.forEach(function (_configProperty) {
       csProperties[_configProperty.name] = App.config.escapeXMLCharacters(_configProperty.value);
     }, this);
-    return {type: 'zoo.cfg', tag: 'version1', properties: csProperties};
+    return {type: 'zoo.cfg', tag: tag, properties: csProperties};
   },
   /**
    * Create site obj for Storm
    * Some config-properties should be modified in custom way
+   * @param tag
    * @returns {{type: string, tag: string, properties: {}}}
    * @method createStormSiteObj
    */
-  createStormSiteObj: function () {
+  createStormSiteObj: function (tag) {
     var configs = this.get('configs').filterProperty('filename', 'storm-site.xml');
     var stormProperties = {};
     var specialProperties = ["storm.zookeeper.servers", "nimbus.childopts", "supervisor.childopts", "worker.childopts"];
@@ -1689,7 +1706,7 @@ App.WizardStep8Controller = Em.Controller.extend({
         stormProperties[_configProperty.name] = App.config.escapeXMLCharacters(_configProperty.value);
       }
     }, this);
-    return {type: 'storm-site', tag: 'version1', properties: stormProperties};
+    return {type: 'storm-site', tag: tag, properties: stormProperties};
   },
 
   /**

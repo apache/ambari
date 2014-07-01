@@ -183,7 +183,7 @@ App.ClusterController = Em.Controller.extend({
     } else {
       // We want live data here
       var nagiosServer = App.HostComponent.find().findProperty('componentName', 'NAGIOS_SERVER');
-      if (this.get('isLoaded')) {
+      if (this.get('isLoaded') && nagiosServer) {
         this.set('isNagiosUrlLoaded', false);
         App.ajax.send({
           name: 'hosts.for_quick_links',

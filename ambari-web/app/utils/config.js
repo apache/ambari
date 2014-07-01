@@ -423,7 +423,8 @@ App.config = Em.Object.create({
    * merge stored configs with pre-defined
    * @param storedConfigs
    * @param advancedConfigs
-   * @return {*}
+   * @param selectedServiceNames
+   * @return {array}
    */
   mergePreDefinedWithStored: function (storedConfigs, advancedConfigs, selectedServiceNames) {
     var mergedConfigs = [];
@@ -462,25 +463,7 @@ App.config = Em.Object.create({
           configData.isRequiredByAgent = (configData.isRequiredByAgent !== undefined) ? configData.isRequiredByAgent : true;
           configData.showLabel = stored.showLabel !== false;
         } else if (!preDefined && stored) {
-          configData = {
-            id: stored.id,
-            name: stored.name,
-            displayName: stored.name,
-            serviceName: stored.serviceName,
-            value: stored.value,
-            defaultValue: stored.defaultValue,
-            displayType: stringUtils.isSingleLine(stored.value) ? 'advanced' : 'multiLine',
-            filename: stored.filename,
-            category: 'Advanced',
-            isUserProperty: stored.isUserProperty === true,
-            isOverridable: true,
-            overrides: stored.overrides,
-            isRequired: true,
-            isVisible: stored.isVisible,
-            showLabel: stored.showLabel !== false
-          };
-          
-          this.calculateConfigProperties(configData, isAdvanced, advancedConfigs);
+          this.addUserProperty(stored, isAdvanced, advancedConfigs);
         } else if (preDefined && !stored) {
           configData = preDefined;
           configData.isRequiredByAgent = (configData.isRequiredByAgent !== undefined) ? configData.isRequiredByAgent : true;
@@ -973,6 +956,50 @@ App.config = Em.Object.create({
       }, this);
     }
   },
+
+  /**
+   * identify service name of config by its config's type
+   * @param type
+   * @return {string|null}
+   */
+  getServiceNameByConfigType: function (type) {
+    var preDefinedServiceConfigs = this.get('preDefinedServiceConfigs');
+    var service = preDefinedServiceConfigs.find(function (serviceConfig) {
+      return (serviceConfig.sites.contains(type));
+    }, this);
+    return service && service.serviceName;
+  },
+
+  /**
+   * add user property
+   * @param stored
+   * @param isAdvanced
+   * @param advancedConfigs
+   * @return {Object}
+   */
+  addUserProperty: function (stored, isAdvanced, advancedConfigs) {
+    var configData = {
+      id: stored.id,
+      name: stored.name,
+      displayName: stored.name,
+      serviceName: stored.serviceName,
+      value: stored.value,
+      defaultValue: stored.defaultValue,
+      displayType: stringUtils.isSingleLine(stored.value) ? 'advanced' : 'multiLine',
+      filename: stored.filename,
+      category: 'Advanced',
+      isUserProperty: stored.isUserProperty === true,
+      isOverridable: true,
+      overrides: stored.overrides,
+      isRequired: true,
+      isVisible: stored.isVisible,
+      showLabel: stored.showLabel !== false
+    };
+
+    App.get('config').calculateConfigProperties(configData, isAdvanced, advancedConfigs);
+    return configData;
+  },
+
   complexConfigs: [
     {
       "id": "site property",
