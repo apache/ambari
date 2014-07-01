@@ -21,32 +21,46 @@ var App = require('app');
  *
  */
 App.MainChartHeatmapYarnResourceUsedMetric = App.MainChartHeatmapYarnMetrics.extend({
-  metricUrlTemplate: '/clusters/{clusterName}/services/YARN/components/RESOURCEMANAGER?fields=ServiceComponentInfo/rm_metrics',
   name: Em.I18n.t('charts.heatmap.metrics.YarnMemoryUsed'),
   maximumValue: 100,
-  defaultMetric: 'ServiceComponentInfo.rm_metrics.cluster.nodeManagers',
+  defaultMetric: 'metrics.yarn',
   units: ' %',
   slotDefinitionLabelSuffix: ' %',
+
   metricMapper: function (json) {
     var hostToValueMap = {};
+    var self = this;
     var metricName = this.get('defaultMetric');
-    var props = metricName.split('.');
-    var value = json;
-    props.forEach(function (prop) {
-      if (value != null && prop in value) {
-        value = value[prop];
-      } else {
-        value = null;
-      }
-    });
-    if (value != null) {
-      value = JSON.parse(value);
-      if (value instanceof Array) {
-        value.forEach(function(host) {
-          hostToValueMap[host.HostName] = (host.UsedMemoryMB / host.AvailableMemoryMB * 100).toFixed(1);
+    if (json.host_components) {
+      var props = metricName.split('.');
+      json.host_components.forEach(function (host) {
+        var value = host;
+        props.forEach(function (prop) {
+          if (value != null && prop in value) {
+            value = value[prop];
+          } else {
+            value = null;
+          }
         });
-      }
+        if (value != null) {
+          value = self.memoryUsageFormatted(value.AllocatedGB, value.AvailableGB + value.AllocatedGB);
+          var hostName = host.HostRoles.host_name;
+          hostToValueMap[hostName] = value;
+        }
+      });
     }
     return hostToValueMap;
+  },
+
+  /**
+   * Format percent YARN memory used to float with 2 digits
+   */
+  memoryUsageFormatted: function(used, total) {
+    var usage = (used) / total * 100;
+    if (isNaN(usage) || usage < 0 || usage > 100) {
+      return Em.I18n.t('charts.heatmap.unknown');
+    }
+    var s = usage.toFixed(1);
+    return isNaN(s) ? 0 : s;
   }
 });
