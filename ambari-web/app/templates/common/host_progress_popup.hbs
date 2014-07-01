@@ -179,11 +179,11 @@
       <a class="task-detail-back" href="javascript:void(null)" {{action backToTaskList}} ><i class="icon-arrow-left"></i>&nbsp;{{t common.tasks}}</a>
       <div>
         <i {{bindAttr class="view.openedTask.status :task-detail-status-ico view.openedTask.icon"}} class="task-detail-status-ico"></i>
+        <div class="task-detail-ico-wrap">
+          <a title="Click to Copy" {{action "textTrigger" taskInfo target="view"}} class="task-detail-copy"><i class="icon-copy"></i> {{t common.copy}}</a>
+          <a title="Open in New Window" {{action openTaskLogInDialog}} class="task-detail-open-dialog"><i class="icon-external-link"></i> {{t common.open}}</a>
+        </div>
         <span class="task-detail-log-rolename" >{{view.openedTask.commandDetail}}</span>
-      </div>
-      <div class="task-detail-ico-wrap">
-        <a title="Click to Copy" {{action "textTrigger" taskInfo target="view"}} class="task-detail-copy"><i class="icon-copy"></i> {{t common.copy}}</a>
-        <a title="Open in New Window" {{action openTaskLogInDialog}} class="task-detail-open-dialog"><i class="icon-external-link"></i> {{t common.open}}</a>
       </div>
     </div>
     {{#if view.isLevelLoaded}}
