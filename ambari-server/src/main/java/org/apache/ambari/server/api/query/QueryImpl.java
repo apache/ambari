@@ -329,9 +329,9 @@ public class QueryImpl implements Query, ResourceInstance {
    */
   private boolean populateResourceRequired(Resource.Type type) {
     ResourceProvider resourceProvider = clusterController.ensureResourceProvider(type);
-    Set<String> subResourcePropertiesInpredicate =
+    Set<String> unsupportedProperties =
       resourceProvider.checkPropertyIds(PredicateHelper.getPropertyIds(processedPredicate));
-    return !subResourcePropertiesInpredicate.isEmpty();
+    return !unsupportedProperties.isEmpty() || hasSubResourcePredicate();
   }
 
   /**

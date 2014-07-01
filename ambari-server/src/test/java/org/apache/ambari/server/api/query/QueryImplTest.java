@@ -24,13 +24,20 @@ import org.apache.ambari.server.api.query.render.DefaultRenderer;
 import org.apache.ambari.server.api.resources.ResourceDefinition;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.resources.StackResourceDefinition;
+import org.apache.ambari.server.api.resources.StackVersionResourceDefinition;
 import org.apache.ambari.server.api.resources.SubResourceDefinition;
 import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.api.util.TreeNode;
 import org.apache.ambari.server.controller.internal.ClusterControllerImpl;
 import org.apache.ambari.server.controller.internal.ClusterControllerImplTest;
+import org.apache.ambari.server.controller.internal.PageRequestImpl;
+import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
+import org.apache.ambari.server.controller.spi.NoSuchResourceException;
+import org.apache.ambari.server.controller.spi.PageRequest;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.SystemException;
+import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.junit.Assert;
 import org.junit.Test;
@@ -286,6 +293,118 @@ public class QueryImplTest {
     Assert.assertEquals("centos5", repositoryResource.getPropertyValue("Repositories/os_type"));
     Assert.assertEquals("1.2.1", repositoryResource.getPropertyValue("Repositories/stack_version"));
     Assert.assertEquals("HDP", repositoryResource.getPropertyValue("Repositories/stack_name"));
+  }
+
+  @Test
+  public void testExecute_StackVersionPageResourcePredicate()
+    throws NoSuchParentResourceException, UnsupportedPropertyException,
+    NoSuchResourceException, SystemException {
+
+    ResourceDefinition resourceDefinition = new StackVersionResourceDefinition();
+
+    Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+
+    //test
+    QueryImpl instance = new TestQuery(mapIds, resourceDefinition);
+
+    PredicateBuilder pb = new PredicateBuilder();
+    Predicate predicate = pb.property("Versions/stack_version").equals("1.2.1").or()
+        .property("Versions/stack_version").equals("1.2.2").toPredicate();
+
+    instance.setUserPredicate(predicate);
+    //First page
+    instance.setPageRequest(new PageRequestImpl(PageRequest.StartingPoint.Beginning, 1, 0, null, null));
+
+    Result result = instance.execute();
+
+    TreeNode<Resource> tree = result.getResultTree();
+
+    Assert.assertEquals(1, tree.getChildren().size());
+    TreeNode<Resource> stackVersionNode = tree.getChild("StackVersion:1");
+    Assert.assertEquals("StackVersion:1", stackVersionNode.getName());
+    Assert.assertEquals(Resource.Type.StackVersion, stackVersionNode.getObject().getType());
+    Assert.assertEquals("1.2.1", stackVersionNode.getObject().getPropertyValue("Versions/stack_version"));
+
+    //Second page
+    instance.setPageRequest(new PageRequestImpl(PageRequest.StartingPoint.OffsetStart, 1, 1, null, null));
+    result = instance.execute();
+    tree = result.getResultTree();
+
+    Assert.assertEquals(1, tree.getChildren().size());
+    stackVersionNode = tree.getChild("StackVersion:1");
+    Assert.assertEquals("StackVersion:1", stackVersionNode.getName());
+    Assert.assertEquals(Resource.Type.StackVersion, stackVersionNode.getObject().getType());
+    Assert.assertEquals("1.2.2", stackVersionNode.getObject().getPropertyValue("Versions/stack_version"));
+
+  }
+
+  @Test
+  public void testExecute_StackVersionPageSubResourcePredicate()
+      throws NoSuchParentResourceException, UnsupportedPropertyException,
+    NoSuchResourceException, SystemException {
+
+    ResourceDefinition resourceDefinition = new StackVersionResourceDefinition();
+
+    Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+
+    QueryImpl instance = new TestQuery(mapIds, resourceDefinition);
+    instance.addProperty("operatingSystems/*", null);
+
+    PredicateBuilder pb = new PredicateBuilder();
+    Predicate predicate = pb.property("operatingSystems/OperatingSystems/os_type").equals("centos5").toPredicate();
+
+    instance.setUserPredicate(predicate);
+    instance.setPageRequest(new PageRequestImpl(PageRequest.StartingPoint.Beginning, 1, 0, null, null));
+
+    Result result = instance.execute();
+
+    TreeNode<Resource> tree = result.getResultTree();
+    Assert.assertEquals(1, tree.getChildren().size());
+    TreeNode<Resource> stackVersionNode = tree.getChild("StackVersion:1");
+    Assert.assertEquals("StackVersion:1", stackVersionNode.getName());
+
+    Assert.assertEquals(Resource.Type.StackVersion, stackVersionNode.getObject().getType());
+    Assert.assertEquals("1.2.1", stackVersionNode.getObject().getPropertyValue("Versions/stack_version"));
+
+    QueryImpl instance2 = new TestQuery(mapIds, resourceDefinition);
+    instance2.addProperty("operatingSystems/*", null);
+    instance2.setUserPredicate(predicate);
+    instance2.setPageRequest(new PageRequestImpl(PageRequest.StartingPoint.OffsetStart, 1, 1, null, null));
+
+    Result result2 = instance2.execute();
+
+    TreeNode<Resource> tree2 = result2.getResultTree();
+    Assert.assertEquals(1, tree2.getChildren().size());
+    TreeNode<Resource> stackVersionNode2 = tree2.getChild("StackVersion:1");
+    Assert.assertEquals("StackVersion:1", stackVersionNode2.getName());
+
+    Assert.assertEquals(Resource.Type.StackVersion, stackVersionNode2.getObject().getType());
+    Assert.assertEquals("1.2.2", stackVersionNode2.getObject().getPropertyValue("Versions/stack_version"));
+
+    QueryImpl instance3 = new TestQuery(mapIds, resourceDefinition);
+
+    instance3.addProperty("operatingSystems/*", null);
+
+    instance3.setUserPredicate(predicate);
+    //page_size = 2, offset = 1
+    instance3.setPageRequest(new PageRequestImpl(PageRequest.StartingPoint.OffsetStart, 2, 1, null, null));
+
+    Result result3 = instance3.execute();
+
+    TreeNode<Resource> tree3 = result3.getResultTree();
+    Assert.assertEquals(2, tree3.getChildren().size());
+    TreeNode<Resource> stackVersionNode3 = tree3.getChild("StackVersion:1");
+    Assert.assertEquals("StackVersion:1", stackVersionNode3.getName());
+
+    Assert.assertEquals(Resource.Type.StackVersion, stackVersionNode3.getObject().getType());
+    Assert.assertEquals("1.2.2", stackVersionNode3.getObject().getPropertyValue("Versions/stack_version"));
+
+    stackVersionNode3 = tree3.getChild("StackVersion:2");
+    Assert.assertEquals("StackVersion:2", stackVersionNode3.getName());
+
+    Assert.assertEquals(Resource.Type.StackVersion, stackVersionNode3.getObject().getType());
+    Assert.assertEquals("2.0.1", stackVersionNode3.getObject().getPropertyValue("Versions/stack_version"));
+
   }
 
   @Test
