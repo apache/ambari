@@ -17,7 +17,7 @@
 }}
 
 {{! #with view.categoryConfigProperty}}
-  <form class="form-horizontal" autocomplete="off">
+  <form class="form-horizontal mbm" autocomplete="off">
       <div class="override-controls">
         <div class="alert alert-info">{{view.parentView.dialogMessage}}</div>
         {{#if view.parentView.warningMessage}}
@@ -102,7 +102,7 @@
          </table>
         <div class="hosts-table-container">
           <table class="table table-striped hosts-table">
-          {{#each entry in view.parentView.availableHosts}}
+          {{#each entry in view.pageContent}}
             <tr {{bindAttr class="entry.filtered::hidden"}}>
               <td width="10%">
                 {{view Ember.Checkbox checkedBinding="entry.selected"}}
@@ -119,4 +119,19 @@
         </div>
       </div>
   </form>
+
+  {{#if view.isPaginate}}
+    <div class="page-bar pull-right no-borders">
+      <div class="items-on-page">
+        <label>{{t common.show}}: {{view view.rowsPerPageSelectView selectionBinding="view.displayLength"}}</label>
+      </div>
+      <div class="info">{{view.paginationInfo}}</div>
+      <div class="paging_two_button">
+        {{view view.paginationFirst}}
+        {{view view.paginationLeft}}
+        {{view view.paginationRight}}
+        {{view view.paginationLast}}
+      </div>
+    </div>
+  {{/if}}
 {{! /with}}

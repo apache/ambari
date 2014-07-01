@@ -15,6 +15,9 @@
  * the License.
  */
 
+require('views/common/table_view');
+
+var App = require('app');
 var lazyloading = require('utils/lazy_loading');
 
 module.exports = {
@@ -70,9 +73,13 @@ module.exports = {
         callback(null);
         this.hide();
       },
-      bodyClass: Ember.View.extend({
+      bodyClass: App.TableView.extend({
         templateName: require('templates/common/configs/overrideWindow'),
         controllerBinding: 'App.router.mainServiceInfoConfigsController',
+        isPaginate: true,
+        filteredContent: function() {
+          return this.get('parentView.availableHosts').filterProperty('filtered') || [];
+        }.property('parentView.availableHosts.@each.filtered'),
         filterText: '',
         filterTextPlaceholder: Em.I18n.t('hosts.selectHostsDialog.filter.placeHolder'),
         filterColumn: null,
@@ -137,6 +144,8 @@ module.exports = {
             }
             host.set('filtered', !skip);
           }, this);
+
+          this.set('startIndex', 1);
         }.observes('parentView.availableHosts', 'filterColumn', 'filterText', 'filterComponent', 'filterComponent.componentName', 'showOnlySelectedHosts'),
         hostSelectMessage: function () {
           var hosts = this.get('parentView.availableHosts');
