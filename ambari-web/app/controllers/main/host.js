@@ -872,6 +872,7 @@ App.MainHostController = Em.ArrayController.extend({
         host.host_components.forEach(function (hostComponent) {
           wrappedHostComponents.push(Em.Object.create({
             componentName: hostComponent.HostRoles.component_name,
+            serviceName: App.QuickDataMapper.componentServiceMap()[hostComponent.HostRoles.component_name],
             hostName: host.Hosts.host_name,
             hostPassiveState: host.Hosts.maintenance_state,
             staleConfigs: hostComponent.HostRoles.stale_configs,
