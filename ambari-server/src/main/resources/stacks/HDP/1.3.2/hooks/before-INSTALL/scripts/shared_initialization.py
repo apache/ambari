@@ -154,7 +154,7 @@ def setup_java():
     "no_proxy": format("{ambari_server_hostname}")
   }
 
-  Execute(format("mkdir -p {artifact_dir} ; curl -kf "
+  Execute(format("mkdir -p {artifact_dir} ; curl -kf -x \"\" "
                  "--retry 10 {jdk_location}/{jdk_name} -o {jdk_curl_target}"),
           path = ["/bin","/usr/bin/"],
           not_if = format("test -e {java_exec}"),

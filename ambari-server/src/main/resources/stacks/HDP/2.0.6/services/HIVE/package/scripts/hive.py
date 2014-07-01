@@ -71,7 +71,7 @@ def hive(name=None):
     "no_proxy": format("{ambari_server_hostname}")
   }
 
-  cmd = format("/bin/sh -c 'cd /usr/lib/ambari-agent/ && curl -kf "
+  cmd = format("/bin/sh -c 'cd /usr/lib/ambari-agent/ && curl -kf -x \"\" "
                "--retry 5 "
                "{jdk_location}{check_db_connection_jar_name} "
                "-o {check_db_connection_jar_name}'")
@@ -198,7 +198,7 @@ def jdbc_connector():
 
     cmd = format(
       "mkdir -p {artifact_dir} ; "
-      "curl -kf --retry 10 {driver_curl_source} -o {driver_curl_target} &&  "
+      "curl -kf -x \"\" --retry 10 {driver_curl_source} -o {driver_curl_target} &&  "
       "cp {driver_curl_target} {target}")
 
     Execute(cmd,

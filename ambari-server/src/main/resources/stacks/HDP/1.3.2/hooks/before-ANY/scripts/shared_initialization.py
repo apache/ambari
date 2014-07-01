@@ -36,7 +36,7 @@ def setup_jce():
   if params.jce_policy_zip is not None:
     jce_curl_target = format("{artifact_dir}/{jce_policy_zip}")
     download_jce = format("mkdir -p {artifact_dir}; \
-    curl -kf --retry 10 \
+    curl -kf -x \"\" --retry 10 \
     {jce_location}/{jce_policy_zip} -o {jce_curl_target}")
     Execute( download_jce,
              path = ["/bin","/usr/bin/"],
