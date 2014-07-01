@@ -26,7 +26,7 @@ import socket
 import subprocess
 
 logger = logging.getLogger()
-FUSER_CMD = "fuser {0}/tcp 2>\&1 \| awk \'{1}\'"
+FUSER_CMD = "fuser {0}/tcp 2>/dev/null | awk '{1}'"
 PSPF_CMD = "ps -fp {0}"
 PORT_IN_USE_MESSAGE = "Could not open port {0} because port already used by another process:\n{1}"
 
