@@ -22,6 +22,11 @@ var date = require('utils/date');
 App.MainHostDetailsView = Em.View.extend({
   templateName: require('templates/main/host/details'),
 
+  /**
+   * flag identify whether current host exist and loaded to model
+   */
+  isLoaded: false,
+
   content: function(){
     return App.router.get('mainHostDetailsController.content');
   }.property('App.router.mainHostDetailsController.content'),
@@ -40,12 +45,16 @@ App.MainHostDetailsView = Em.View.extend({
       {action: 'deleteHost', liClass:'', cssClass: 'icon-remove', 'label': this.t('hosts.host.details.deleteHost')}];
   }.property('controller.content','isActive', 'controller.content.isNotHeartBeating'),
   didInsertElement: function() {
-    //if host is not existed then route to list of hosts
-    if (!this.get('content.isLoaded')) {
-      App.router.transitionTo('main.hosts.index');
-      return;
-    }
-    App.router.get('updateController').updateHost(Em.K);
+    var self = this;
+
+    this.set('isLoaded', false);
+    App.router.get('updateController').updateHost(function () {
+      self.set('isLoaded', true);
+      if (!self.get('content.isLoaded')) {
+        //if host is not existed then route to list of hosts
+        App.router.transitionTo('main.hosts.index');
+      }
+    });
     App.tooltip($("[rel='HealthTooltip']"));
   }
 });
