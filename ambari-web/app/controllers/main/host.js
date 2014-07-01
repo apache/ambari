@@ -131,7 +131,7 @@ App.MainHostController = Em.ArrayController.extend({
     {
       key: 'componentsInPassiveStateCount',
       alias: 'host_components/HostRoles/maintenance_state',
-      type: 'EQUAL'
+      type: 'MULTIPLE'
     },
     {
       key: 'selected',
@@ -494,16 +494,6 @@ App.MainHostController = Em.ArrayController.extend({
       type: 'multiple'
     };
     App.db.setFilterConditions(this.get('name'), [filterForComponent]);
-  },
-
-  /**
-   * On click callback for delete button
-   */
-  deleteButtonPopup: function () {
-    var self = this;
-    App.showConfirmationPopup(function () {
-      self.removeHosts();
-    });
   },
 
   showAlertsPopup: function (event) {
