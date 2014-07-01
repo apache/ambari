@@ -41,7 +41,7 @@ CREATE TABLE servicedesiredstate (cluster_id BIGINT NOT NULL, desired_host_role_
 
 CREATE TABLE roles (role_name VARCHAR(255) NOT NULL, PRIMARY KEY (role_name));
 
-CREATE TABLE users (user_id INTEGER, ldap_user INTEGER NOT NULL DEFAULT 0, user_name VARCHAR(255) NOT NULL, create_time TIMESTAMP DEFAULT NOW(), user_password VARCHAR(255), PRIMARY KEY (user_id), UNIQUE (ldap_user, user_name));
+CREATE TABLE users (user_id INTEGER, ldap_user INTEGER NOT NULL DEFAULT 0, user_name VARCHAR(255) NOT NULL, create_time TIMESTAMP DEFAULT NOW(), user_password VARCHAR(255), PRIMARY KEY (user_id), active INTEGER NOT NULL DEFAULT 1, UNIQUE (ldap_user, user_name));
 
 CREATE TABLE groups (group_id INTEGER, group_name VARCHAR(255) NOT NULL, ldap_group INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (group_id), UNIQUE (ldap_group, group_name));
 

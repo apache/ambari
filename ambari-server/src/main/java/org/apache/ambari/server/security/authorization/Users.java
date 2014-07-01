@@ -163,6 +163,20 @@ public class Users {
   }
 
   /**
+   * Enables/disables user.
+   * @throws AmbariException
+   */
+  public synchronized void setUserActive(User user, boolean active) throws AmbariException {
+    UserEntity userEntity = userDAO.findByPK(user.getUserId());
+    if (userEntity != null) {
+      userEntity.setActive(active);
+      userDAO.merge(userEntity);
+    } else {
+      throw new AmbariException("User " + user + " doesn't exist");
+    }
+  }
+
+  /**
    * Creates new local user with provided userName and password
    */
   @Transactional

@@ -48,12 +48,12 @@ public class UserService extends BaseService {
   @Produces("text/plain")
   public Response getUsers(@Context HttpHeaders headers, @Context UriInfo ui) {
     return handleRequest(headers, null, ui, Request.Type.GET, createUserResource(null));
-  } 
+  }
 
   /**
    * Gets a single user.
    * Handles: GET /users/{username} requests
-   * 
+   *
    * @param headers     http headers
    * @param ui          uri info
    * @param userName    the username
@@ -66,55 +66,67 @@ public class UserService extends BaseService {
       @PathParam("userName") String userName) {
     return handleRequest(headers, null, ui, Request.Type.GET, createUserResource(userName));
   }
-  
+
   /**
    * Creates a user.
-   * Handles: POST /users/{userName}
+   * Handles: POST /users
+   *
+   * @param headers     http headers
+   * @param ui          uri info
+   * @return information regarding the created user
+   */
+  @POST
+  @Produces("text/plain")
+  public Response createUser(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
+    return handleRequest(headers, body, ui, Request.Type.POST, createUserResource(null));
+  }
+
+  /**
+   * Creates a user.
+   * Handles: POST /users/{username}
    *
    * @param headers     http headers
    * @param ui          uri info
    * @param userName    the username
    * @return information regarding the created user
    */
-   @POST
-   @Path("{userName}")
-   @Produces("text/plain")
-   public Response createUser(String body, @Context HttpHeaders headers, @Context UriInfo ui,
-                                 @PathParam("userName") String userName) {
-
+  @POST
+  @Path("{userName}")
+  @Produces("text/plain")
+  public Response createUser(String body, @Context HttpHeaders headers, @Context UriInfo ui,
+      @PathParam("userName") String userName) {
     return handleRequest(headers, body, ui, Request.Type.POST, createUserResource(userName));
   }
-  
-   
-   /**
-    * Updates a specific user.
-    * Handles: PUT /users/{userName}
-    *
-    * @param headers     http headers
-    * @param ui          uri info
-    * @param userName   the username
-    * @return information regarding the updated user
-    */
-   @PUT
-   @Path("{userName}")
-   @Produces("text/plain")
-   public Response updateUser(String body, @Context HttpHeaders headers, @Context UriInfo ui,
+
+  /**
+   * Updates a specific user.
+   * Handles: PUT /users/{userName}
+   *
+   * @param headers     http headers
+   * @param ui          uri info
+   * @param userName   the username
+   * @return information regarding the updated user
+   */
+  @PUT
+  @Path("{userName}")
+  @Produces("text/plain")
+  public Response updateUser(String body, @Context HttpHeaders headers, @Context UriInfo ui,
                                  @PathParam("userName") String userName) {
 
-     return handleRequest(headers, body, ui, Request.Type.PUT, createUserResource(userName));
-   }
-   
-   /**
-    * Deletes a user.
-    * Handles:  DELETE /users/{userName}
-    */
-   @DELETE
-   @Path("{userName}")
-   @Produces("text/plain")
-   public Response deleteUser(@Context HttpHeaders headers, @Context UriInfo ui,
+    return handleRequest(headers, body, ui, Request.Type.PUT, createUserResource(userName));
+  }
+
+  /**
+   * Deletes a user.
+   * Handles:  DELETE /users/{userName}
+   */
+  @DELETE
+  @Path("{userName}")
+  @Produces("text/plain")
+  public Response deleteUser(@Context HttpHeaders headers, @Context UriInfo ui,
                                  @PathParam("userName") String userName) {
-     return handleRequest(headers, null, ui, Request.Type.DELETE, createUserResource(userName));
-   }
+    return handleRequest(headers, null, ui, Request.Type.DELETE, createUserResource(userName));
+  }
 
   /**
    * Create a user resource instance.

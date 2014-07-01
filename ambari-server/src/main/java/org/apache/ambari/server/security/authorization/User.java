@@ -32,6 +32,7 @@ public class User {
   final String userName;
   final boolean ldapUser;
   final Date createTime;
+  final boolean active;
   final Collection<String> roles = new ArrayList<String>();
 
   User(UserEntity userEntity) {
@@ -39,6 +40,7 @@ public class User {
     userName = userEntity.getUserName();
     createTime = userEntity.getCreateTime();
     ldapUser = userEntity.getLdapUser();
+    active = userEntity.getActive();
     for (RoleEntity roleEntity : userEntity.getRoleEntities()) {
       roles.add(roleEntity.getRoleName());
     }
@@ -58,6 +60,10 @@ public class User {
 
   public Date getCreateTime() {
     return createTime;
+  }
+
+  public boolean isActive() {
+    return active;
   }
 
   public Collection<String> getRoles() {

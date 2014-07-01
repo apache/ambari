@@ -28,10 +28,12 @@ public class UserResponse {
   private Set<String> roles = Collections.emptySet();
   private final String userName;
   private final boolean isLdapUser;
+  private final boolean isActive;
 
-  public UserResponse(String name, boolean isLdapUser) {
+  public UserResponse(String name, boolean isLdapUser, boolean isActive) {
     this.userName = name;
     this.isLdapUser = isLdapUser;
+    this.isActive = isActive;
   }
 
   public String getUsername() {
@@ -74,4 +76,7 @@ public class UserResponse {
     return isLdapUser;
   }
 
+  public boolean isActive() {
+    return isActive;
+  }
 }

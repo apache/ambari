@@ -56,6 +56,9 @@ public class UserEntity {
   @Temporal(value = TemporalType.TIMESTAMP)
   private Date createTime = new Date();
 
+  @Column(name = "active")
+  private Integer active = 1;
+
   @ManyToMany(mappedBy = "userEntities")
   private Set<RoleEntity> roleEntities;
 
@@ -122,6 +125,18 @@ public class UserEntity {
     this.memberEntities = memberEntities;
   }
 
+  public Boolean getActive() {
+    return active == 0 ? Boolean.FALSE : Boolean.TRUE;
+  }
+
+  public void setActive(Boolean active) {
+    if (active == null) {
+      this.active = null;
+    } else {
+      this.active = active ? 1 : 0;
+    }
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
@@ -134,6 +149,7 @@ public class UserEntity {
     if (ldapUser != null ? !ldapUser.equals(that.ldapUser) : that.ldapUser != null) return false;
     if (userName != null ? !userName.equals(that.userName) : that.userName != null) return false;
     if (userPassword != null ? !userPassword.equals(that.userPassword) : that.userPassword != null) return false;
+    if (active != null ? !active.equals(that.active) : that.active != null) return false;
 
     return true;
   }
@@ -145,6 +161,7 @@ public class UserEntity {
     result = 31 * result + (userPassword != null ? userPassword.hashCode() : 0);
     result = 31 * result + (ldapUser != null ? ldapUser.hashCode() : 0);
     result = 31 * result + (createTime != null ? createTime.hashCode() : 0);
+    result = 31 * result + (active != null ? active.hashCode() : 0);
     return result;
   }
 }

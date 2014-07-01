@@ -27,6 +27,7 @@ public class UserRequest {
   private String userName;
   private String password;
   private String oldPassword;
+  private Boolean active;
   private Set<String> roles = new HashSet<String>();
 
   public UserRequest(String name) {
@@ -59,6 +60,14 @@ public class UserRequest {
 
   public void setOldPassword(String oldUserPass) {
     oldPassword = oldUserPass;
+  }
+
+  public Boolean isActive() {
+    return active;
+  }
+
+  public void setActive(Boolean active) {
+    this.active = active;
   }
 
   @Override

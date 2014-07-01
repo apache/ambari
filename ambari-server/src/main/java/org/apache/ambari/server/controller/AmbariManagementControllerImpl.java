@@ -659,6 +659,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           }
         }
       }
+
+      if (null != request.isActive() && null != user) {
+        users.setUserActive(user, request.isActive());
+      }
     }
   }
 
@@ -2212,6 +2216,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         users.addRoleToUser(u, role);
       }
 
+      if (null != request.isActive()) {
+        users.setUserActive(u, request.isActive());
+      }
     }
   }
 
@@ -2512,7 +2519,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       // get them all
       if (null == r.getUsername()) {
         for (User u : users.getAllUsers()) {
-          UserResponse resp = new UserResponse(u.getUserName(), u.isLdapUser());
+          UserResponse resp = new UserResponse(u.getUserName(), u.isLdapUser(), u.isActive());
           resp.setRoles(new HashSet<String>(u.getRoles()));
           responses.add(resp);
         }
@@ -2527,7 +2534,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
                 + r.getUsername() + "'");
           }
         } else {
-          UserResponse resp = new UserResponse(u.getUserName(), u.isLdapUser());
+          UserResponse resp = new UserResponse(u.getUserName(), u.isLdapUser(), u.isActive());
           resp.setRoles(new HashSet<String>(u.getRoles()));
           responses.add(resp);
         }

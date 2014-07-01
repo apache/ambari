@@ -160,6 +160,7 @@
         "Users/password",
         "Users/old_password",
         "Users/ldap_user",
+        "Users/active",
         "_"
     ],
     "Group":[

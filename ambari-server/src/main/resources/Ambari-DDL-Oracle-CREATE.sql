@@ -27,7 +27,7 @@ CREATE TABLE hoststate (agent_version VARCHAR2(255) NULL, available_mem NUMBER(1
 CREATE TABLE servicecomponentdesiredstate (component_name VARCHAR2(255) NOT NULL, cluster_id NUMBER(19) NOT NULL, desired_stack_version VARCHAR2(255) NULL, desired_state VARCHAR2(255) NOT NULL, service_name VARCHAR2(255) NOT NULL, PRIMARY KEY (component_name, cluster_id, service_name));
 CREATE TABLE servicedesiredstate (cluster_id NUMBER(19) NOT NULL, desired_host_role_mapping NUMBER(10) NOT NULL, desired_stack_version VARCHAR2(255) NULL, desired_state VARCHAR2(255) NOT NULL, service_name VARCHAR2(255) NOT NULL, maintenance_state VARCHAR2(32) NOT NULL, PRIMARY KEY (cluster_id, service_name));
 CREATE TABLE roles (role_name VARCHAR2(255) NOT NULL, PRIMARY KEY (role_name));
-CREATE TABLE users (user_id NUMBER(10) NOT NULL, create_time TIMESTAMP NULL, ldap_user NUMBER(10) DEFAULT 0, user_name VARCHAR2(255) NULL, user_password VARCHAR2(255) NULL, PRIMARY KEY (user_id));
+CREATE TABLE users (user_id NUMBER(10) NOT NULL, create_time TIMESTAMP NULL, ldap_user NUMBER(10) DEFAULT 0, user_name VARCHAR2(255) NULL, user_password VARCHAR2(255) NULL, active INTEGER NOT NULL DEFAULT 1, PRIMARY KEY (user_id));
 CREATE TABLE groups (group_id NUMBER(10) NOT NULL, group_name VARCHAR2(255) NOT NULL, ldap_group NUMBER(10) DEFAULT 0, PRIMARY KEY (group_id));
 CREATE TABLE members (member_id NUMBER(10), group_id NUMBER(10) NOT NULL, user_id NUMBER(10) NOT NULL, PRIMARY KEY (member_id));
 CREATE TABLE execution_command (task_id NUMBER(19) NOT NULL, command BLOB NULL, PRIMARY KEY (task_id));

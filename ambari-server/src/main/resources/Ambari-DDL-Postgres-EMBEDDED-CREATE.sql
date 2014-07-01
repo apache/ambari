@@ -64,7 +64,7 @@ GRANT ALL PRIVILEGES ON TABLE ambari.servicedesiredstate TO :username;
 CREATE TABLE ambari.roles (role_name VARCHAR(255) NOT NULL, PRIMARY KEY (role_name));
 GRANT ALL PRIVILEGES ON TABLE ambari.roles TO :username;
 
-CREATE TABLE ambari.users (user_id INTEGER, ldap_user INTEGER NOT NULL DEFAULT 0, user_name VARCHAR(255) NOT NULL, create_time TIMESTAMP DEFAULT NOW(), user_password VARCHAR(255), PRIMARY KEY (user_id), UNIQUE (ldap_user, user_name));
+CREATE TABLE ambari.users (user_id INTEGER, ldap_user INTEGER NOT NULL DEFAULT 0, user_name VARCHAR(255) NOT NULL, create_time TIMESTAMP DEFAULT NOW(), user_password VARCHAR(255), active INTEGER NOT NULL DEFAULT 1, PRIMARY KEY (user_id), UNIQUE (ldap_user, user_name));
 GRANT ALL PRIVILEGES ON TABLE ambari.users TO :username;
 
 CREATE TABLE ambari.groups (group_id INTEGER, group_name VARCHAR(255) NOT NULL, ldap_group INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (group_id), UNIQUE (ldap_group, group_name));
