@@ -174,7 +174,7 @@ App.RollingRestartView = Em.View.extend({
       hostComponents = hostComponents.filterProperty('staleConfigs');
     }
     return hostComponents;
-  }.property('nonMaintainanceHostComponents'),
+  }.property('nonMaintainanceHostComponents', 'staleConfigsOnly'),
   /**
    * @type {String}
    */
