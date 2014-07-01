@@ -52,7 +52,8 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
    * @type {Array}
    */
   content: function () {
-    var selectedHosts = this.getSelectedFilter();
+    var controllerName = this.get('controller.name');
+    var selectedHosts = App.db.getSelectedHosts(controllerName);
     if (this.get('controller')) {
       return this.get('controller.content').filter(function (host) {
         host.set('selected', selectedHosts.contains(host.get('hostName')));
@@ -276,7 +277,8 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
     }
     this.combineSelectedFilter();
     //10 is an index of selected column
-    this.saveFilterConditions(10, this.get('selectedHosts'), 'multiple', true);
+    var controllerName = this.get('controller.name');
+    App.db.setSelectedHosts(controllerName, this.get('selectedHosts'));
 
     this.addObserver('selectAllHosts', this, this.toggleAllHosts);
   },
