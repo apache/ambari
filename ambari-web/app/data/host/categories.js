@@ -84,6 +84,6 @@ module.exports = [
     healthStatus: 'health-status-PASSIVE_STATE',
     column: 9,
     type: 'string',
-    filterValue: 'ON'
+    filterValue: ['ON','IMPLIED_FROM_HOST','IMPLIED_FROM_SERVICE','IMPLIED_FROM_SERVICE_AND_HOST']
   }
 ];
