@@ -27,7 +27,7 @@ module.exports = Em.Route.extend({
     if (router.getAuthenticated()) {
       App.router.get('mainAdminAccessController').loadShowJobsForUsers().done(function () {
         App.router.get('clusterController').loadClusterName(false);
-        if (App.testMode) {
+        if (App.get('testMode')) {
           router.get('mainController').initialize();
         } else {
           App.router.get('mainController').checkServerClientVersion().done(function () {
@@ -684,6 +684,12 @@ module.exports = Em.Route.extend({
             router.get('mainServiceItemController').connectOutlet('mainServiceInfoSummary', item);
           } else {
             router.transitionTo('services.index');
+          }
+        },
+        exit: function(router) {
+          var request = router.get('mainAlertsController.servicesRequest');
+          if (request) {
+            request.abort();
           }
         }
       }),

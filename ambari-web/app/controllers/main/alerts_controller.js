@@ -93,13 +93,21 @@ App.MainAlertsController = Em.Controller.extend({
       return false;
     }
   },
+
+  /**
+   * Saved request for alerts
+   * Should be aborted if user navigate away from current page (aborting done in router)
+   * @type {$.ajax|null}
+   */
+  servicesRequest: null,
+
   /**
    * request alerts from server, which belong to particular service
    * @return {Boolean}
    */
   getAlertsByService: function () {
     if (this.get('resourceName')) {
-      App.ajax.send({
+      var request = App.ajax.send({
         name: 'alerts.get_by_service',
         sender: this,
         data: {
@@ -108,6 +116,7 @@ App.MainAlertsController = Em.Controller.extend({
         success: 'getAlertsSuccessCallback',
         error: 'getAlertsErrorCallback'
       });
+      this.set('servicesRequest', request);
       return true;
     } else {
       console.warn('GET Alerts error: serviceName parameter is missing');
