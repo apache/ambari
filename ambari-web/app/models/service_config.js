@@ -321,8 +321,11 @@ App.ServiceConfigProperty = Ember.Object.extend({
         this.set('value', masterComponentHostsInDB.findProperty('component', 'RESOURCEMANAGER').hostName);
         break;
       case 'ats_host':
-        if (!App.supports.appTimelineServer) return; // @todo remove test mode check after App Timeline service integration
-        this.set('value', masterComponentHostsInDB.findProperty('component', 'APP_TIMELINE_SERVER').hostName);
+        var atsHost =  masterComponentHostsInDB.findProperty('component', 'APP_TIMELINE_SERVER');
+        if (atsHost)
+          this.set('value', atsHost.hostName);
+        else
+          this.set('value', 'false');
         break;
       case 'yarn.resourcemanager.hostname':
         var rmHost = masterComponentHostsInDB.findProperty('component', 'RESOURCEMANAGER').hostName;
@@ -350,16 +353,22 @@ App.ServiceConfigProperty = Ember.Object.extend({
         this.setDefaultValue("(\\w*)(?=:)",rmHost);
         break;
       case 'yarn.timeline-service.webapp.address':
-        var hsHost = masterComponentHostsInDB.findProperty('component', 'APP_TIMELINE_SERVER').hostName;
-        this.setDefaultValue("(0.0.0.0)(?=:)", hsHost);
+        var atsHost =  masterComponentHostsInDB.findProperty('component', 'APP_TIMELINE_SERVER');
+        if (atsHost) {
+          this.setDefaultValue("(0.0.0.0)(?=:)", atsHost.hostName);
+        }
         break;
       case 'yarn.timeline-service.webapp.https.address':
-        var hsHost = masterComponentHostsInDB.findProperty('component', 'APP_TIMELINE_SERVER').hostName;
-        this.setDefaultValue("(0.0.0.0)(?=:)", hsHost);
+        var atsHost =  masterComponentHostsInDB.findProperty('component', 'APP_TIMELINE_SERVER');
+        if (atsHost) {
+          this.setDefaultValue("(0.0.0.0)(?=:)", atsHost.hostName);
+        }
         break;
       case 'yarn.timeline-service.address':
-        var hsHost = masterComponentHostsInDB.findProperty('component', 'APP_TIMELINE_SERVER').hostName;
-        this.setDefaultValue("(0.0.0.0)(?=:)", hsHost);
+        var atsHost =  masterComponentHostsInDB.findProperty('component', 'APP_TIMELINE_SERVER');
+        if (atsHost) {
+          this.setDefaultValue("(0.0.0.0)(?=:)", atsHost.hostName);
+        }
         break;
       case 'nm_hosts':
         this.set('value', slaveComponentHostsInDB.findProperty('componentName', 'NODEMANAGER').hosts.mapProperty('hostName'));
