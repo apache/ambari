@@ -155,21 +155,17 @@ App.UpdateController = Em.Controller.extend({
 
     if (App.router.get('currentState.name') == 'index' && App.router.get('currentState.parentState.name') == 'hosts') {
       App.updater.updateInterval('updateHost', App.get('contentUpdateInterval'));
-      this.get('queryParams').set('Hosts', App.router.get('mainHostController').getQueryParameters());
     } else if(App.router.get('currentState.name') == 'summary' && App.router.get('currentState.parentState.name') == 'hostDetails') {
       realUrl = realUrl.replace('<parameters>', 'Hosts/host_name=' + App.router.get('location.lastSetURL').match(/\/hosts\/(.*)\/summary/)[1] + '&');
       App.updater.updateInterval('updateHost', App.get('componentsUpdateInterval'));
-      this.get('queryParams').set('Hosts', App.router.get('mainHostController').getQueryParameters());
     } else {
       callback();
+      // On pages except for hosts/hostDetails, making sure hostsMapper loaded only once on page load, no need to update, but at least once
       if (this.get('queryParams.Hosts') && this.get('queryParams.Hosts').length > 0) {
-        // On pages except for hosts/hostDetails, making sure hostsMapper loaded only once on page load, no need to update, but at least once
         return;
-      } else {
-        // On pages except for hosts/hostDetails, set queryParams [] to ensure load all hosts, but not filtered hosts as shown on hosts page
-        this.get('queryParams').set('Hosts', []);
       }
     }
+    this.get('queryParams').set('Hosts', App.router.get('mainHostController').getQueryParameters());
     var clientCallback = function (skipCall, queryParams) {
       if (skipCall) {
         App.hostsMapper.map({items: []});
@@ -332,22 +328,22 @@ App.UpdateController = Em.Controller.extend({
     var conditionalFields = [];
     var serviceSpecificParams = {
       'FLUME': "host_components/metrics/flume/flume," +
-          "host_components/processes/HostComponentProcess",
+        "host_components/processes/HostComponentProcess",
       'YARN': "host_components/metrics/yarn/Queue," +
-          "ServiceComponentInfo/rm_metrics/cluster/activeNMcount," +
-          "ServiceComponentInfo/rm_metrics/cluster/unhealthyNMcount," +
-          "ServiceComponentInfo/rm_metrics/cluster/rebootedNMcount," +
-          "ServiceComponentInfo/rm_metrics/cluster/decommissionedNMcount",
+        "ServiceComponentInfo/rm_metrics/cluster/activeNMcount," +
+        "ServiceComponentInfo/rm_metrics/cluster/unhealthyNMcount," +
+        "ServiceComponentInfo/rm_metrics/cluster/rebootedNMcount," +
+        "ServiceComponentInfo/rm_metrics/cluster/decommissionedNMcount",
       'HBASE': "host_components/metrics/hbase/master/IsActiveMaster," +
-          "ServiceComponentInfo/MasterStartTime," +
-          "ServiceComponentInfo/MasterActiveTime," +
-          "ServiceComponentInfo/AverageLoad," +
-          "ServiceComponentInfo/Revision," +
-          "ServiceComponentInfo/RegionsInTransition",
+        "ServiceComponentInfo/MasterStartTime," +
+        "ServiceComponentInfo/MasterActiveTime," +
+        "ServiceComponentInfo/AverageLoad," +
+        "ServiceComponentInfo/Revision," +
+        "ServiceComponentInfo/RegionsInTransition",
       'MAPREDUCE': "ServiceComponentInfo/AliveNodes," +
-          "ServiceComponentInfo/GrayListedNodes," +
-          "ServiceComponentInfo/BlackListedNodes," +
-          "ServiceComponentInfo/jobtracker/*,",
+        "ServiceComponentInfo/GrayListedNodes," +
+        "ServiceComponentInfo/BlackListedNodes," +
+        "ServiceComponentInfo/jobtracker/*,",
       'STORM': "metrics/api/cluster/summary,"
     };
     var services = App.cache['services'];
@@ -376,7 +372,7 @@ App.UpdateController = Em.Controller.extend({
   updateComponentsState: function (callback) {
     var testUrl = '/data/services/HDP2/components_state.json';
     var realUrl = '/components/?ServiceComponentInfo/category.in(SLAVE,CLIENT)&fields=ServiceComponentInfo/service_name,' +
-        'ServiceComponentInfo/installed_count,ServiceComponentInfo/started_count,ServiceComponentInfo/total_count&minimal_response=true';
+      'ServiceComponentInfo/installed_count,ServiceComponentInfo/started_count,ServiceComponentInfo/total_count&minimal_response=true';
     var url = this.getUrl(testUrl, realUrl);
 
     App.HttpClient.get(url, App.componentsStateMapper, {
