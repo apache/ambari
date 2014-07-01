@@ -26,7 +26,8 @@ var InitialData =  {
       'filterConditions': {},
       'displayLength': {},
       'startIndex': {},
-      'sortingConditions': {}
+      'sortingConditions': {},
+      'selectedItems': {}
     }
   },
 
@@ -205,6 +206,16 @@ App.db.setSortingStatuses = function(name, sortingConditions) {
     App.db.data.app.tables.sortingConditions = {};
   }
   App.db.data.app.tables.sortingConditions[name] = sortingConditions;
+  localStorage.setObject('ambari', App.db.data);
+};
+
+App.db.setSelectedHosts = function(name, selectedHosts) {
+  console.log('TRACE: Entering db:setSelectedHosts function');
+  App.db.data = localStorage.getObject('ambari');
+  if (!App.db.data.app.tables.selectedItems) {
+    App.db.data.app.tables.selectedItems = {};
+  }
+  App.db.data.app.tables.selectedItems[name] = selectedHosts;
   localStorage.setObject('ambari', App.db.data);
 };
 
@@ -582,6 +593,15 @@ App.db.getSortingStatuses = function(name) {
     return App.db.data.app.tables.sortingConditions[name];
   }
   return null;
+};
+
+App.db.getSelectedHosts = function(name) {
+  console.log('TRACE: Entering db:getSelectedHosts function');
+  App.db.data = localStorage.getObject('ambari');
+  if (App.db.data.app.tables.selectedItems[name]) {
+    return App.db.data.app.tables.selectedItems[name];
+  }
+  return [];
 };
 
 /**
