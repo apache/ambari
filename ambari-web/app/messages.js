@@ -1336,6 +1336,8 @@ Em.I18n.translations = {
   'services.service.config_groups.add_config_group_popup.header':'Create New Configuration Group',
   'services.service.config_groups.duplicate_config_group_popup.header':'Duplicate Configuration Group',
   'services.service.config_groups.rename_config_group_popup.header':'Rename Configuration Group',
+  'services.service.config_groups.switchGroupTextFull':'Switch to \'{0}\' host config group',
+  'services.service.config_groups.switchGroupTextShort':'Switch to \'{0}\'',
   'services.reassign.closePopup':'Move {0} wizard is in progress. You must allow the wizard to complete for Ambari to be in usable state. If you choose to quit, you must follow manual instructions to complete or revert move {0} wizard as documented in the Ambari User Guide. Are you sure you want to exit the wizard?',
 
   'services.reassign.step1.header':'Get Started',

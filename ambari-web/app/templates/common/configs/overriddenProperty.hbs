@@ -16,22 +16,27 @@
 * limitations under the License.
 }}
 {{#each overriddenSCP in view.serviceConfigProperty.overrides}}
-    {{! Here serviceConfigBinding should ideally be serviceConfigPropertyBinding }}
-    <div {{bindAttr class="overriddenSCP.errorMessage:error: :control-group :overrideField"}}>
-      {{view overriddenSCP.viewClass serviceConfigBinding="overriddenSCP" categoryConfigsBinding="view.categoryConfigs"}}
-      {{#if view.isDefaultGroupSelected}}
-        {{#if overriddenSCP.group}}
-            <a class="action" {{action selectConfigGroup overriddenSCP.group target="controller"}}>{{overriddenSCP.group.displayName}}</a>
-        {{/if}}
+  {{! Here serviceConfigBinding should ideally be serviceConfigPropertyBinding }}
+  <div {{bindAttr class="overriddenSCP.errorMessage:error: :control-group :overrideField"}}>
+    {{view overriddenSCP.viewClass serviceConfigBinding="overriddenSCP" categoryConfigsBinding="view.categoryConfigs"}}
+    {{#if view.isDefaultGroupSelected}}
+      {{#if overriddenSCP.group}}
+        <a rel='SwitchGroupTooltip' {{bindAttr data-original-title="overriddenSCP.group.switchGroupTextFull" }} class="action" {{action selectConfigGroup overriddenSCP.group target="controller"}}>
+          {{overriddenSCP.group.switchGroupTextShort}}
+        </a>
       {{/if}}
+    {{else}}
       {{#if overriddenSCP.isEditable}}
-	      {{#if isNotDefaultValue}}
-	        <a class="action" {{action "doRestoreDefaultValue" this target="view" }} ><i class="icon-undo"></i>{{t common.undo}}</a>
-	      {{/if}}
-        {{#if App.isAdmin}}
-	        <a class="action" {{action "removeOverride" overriddenSCP target="view" }} ><i class="icon-minus-sign"></i>{{t common.remove}}</a>
+        {{#if isNotDefaultValue}}
+          <a class="action" {{action "doRestoreDefaultValue" this target="view" }} ><i class="icon-undo"></i>{{t common.undo}}</a>
         {{/if}}
-	      <span class="help-inline">{{overriddenSCP.errorMessage}}</span>
-	    {{/if}}
-    </div>
+        {{#if App.isAdmin}}
+          <a class="action" {{action "removeOverride" overriddenSCP target="view" }} ><i class="icon-minus-sign"></i>{{t common.remove}}</a>
+        {{/if}}
+          <span class="help-inline">{{overriddenSCP.errorMessage}}</span>
+      {{else}}
+        <a class="action">{{overriddenSCP.group.switchGroupTextShort}}</a> <i class="icon-spinner"></i>
+      {{/if}}
+    {{/if}}
+  </div>
 {{/each}}
