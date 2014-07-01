@@ -55,6 +55,15 @@ public class ParameterConfigTest {
     Assert.assertEquals(false, parameters.get(1).isRequired());
   }
 
+  @Test
+  public void testIsMasked() throws Exception {
+    List<ParameterConfig> parameters = getParameterConfigs();
+
+    Assert.assertEquals(2, parameters.size());
+    Assert.assertEquals(false, parameters.get(0).isMasked());
+    Assert.assertEquals(true, parameters.get(1).isMasked());
+  }
+
   public static List<ParameterConfig> getParameterConfigs() throws JAXBException {
     ViewConfig viewConfig = ViewConfigTest.getConfig();
     return viewConfig.getParameters ();

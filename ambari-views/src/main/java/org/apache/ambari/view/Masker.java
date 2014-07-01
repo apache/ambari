@@ -19,35 +19,25 @@
 package org.apache.ambari.view;
 
 /**
- * The view definition.
+ * Masker for view parameters.
  */
-public interface ViewDefinition {
+public interface Masker {
 
   /**
-   * Get the view name.
+   * Get a masked version of the given string.
    *
-   * @return the view name
+   * @param value the value to be masked
+   * @return the masked value
+   * @throws MaskException error happened during masking process
    */
-  public String getViewName();
+  public String mask(String value) throws MaskException;
 
   /**
-   * Get the view label (display name).
+   * Get the original string from a masked string.
    *
-   * @return the view label
+   * @param value the value to be unmasked
+   * @return the unmasked value
+   * @throws MaskException error happened during unmasking process
    */
-  public String getLabel();
-
-  /**
-   * Get the view version.
-   *
-   * @return the version
-   */
-  public String getVersion();
-
-  /**
-   * Get the mask class name.
-   *
-   * @return the mask class name.
-   */
-  public String getMask();
+  public String unmask(String value) throws MaskException;
 }

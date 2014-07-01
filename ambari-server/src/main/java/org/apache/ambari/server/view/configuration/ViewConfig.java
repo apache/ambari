@@ -18,12 +18,16 @@
 
 package org.apache.ambari.server.view.configuration;
 
+import org.apache.ambari.server.view.DefaultMasker;
+import org.apache.ambari.view.Masker;
 import org.apache.ambari.view.View;
+import org.apache.commons.lang.StringUtils;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+
 import java.util.Collections;
 import java.util.List;
 
@@ -68,6 +72,17 @@ public class ViewConfig {
    * The view class.
    */
   private Class<? extends View> viewClass = null;
+
+  /**
+   * The masker class name for parameters.
+   */
+  @XmlElement(name="masker-class")
+  private String masker;
+
+  /**
+   * The mask class.
+   */
+  private Class<? extends Masker> maskerClass = null;
 
   /**
    * The list of view parameters.
@@ -150,7 +165,7 @@ public class ViewConfig {
   /**
    * Get the view class.
    *
-   * @param cl  the class loader
+   * @param cl the class loader
    *
    * @return the view class
    *
@@ -161,6 +176,34 @@ public class ViewConfig {
       viewClass = cl.loadClass(view).asSubclass(View.class);
     }
     return viewClass;
+  }
+
+  /**
+   * Get the masker class name.
+   * @return the masker class name
+   */
+  public String getMasker() {
+    return masker;
+  }
+
+  /**
+   * Get the masker class.
+   *
+   * @param cl the class loader
+   *
+   * @return the masker class
+   *
+   * @throws ClassNotFoundException if the class can not be loaded
+   */
+  public Class<? extends Masker> getMaskerClass(ClassLoader cl) throws ClassNotFoundException {
+    if (maskerClass == null) {
+      if (StringUtils.isBlank(masker)) {
+        maskerClass = DefaultMasker.class;
+      } else {
+        maskerClass = cl.loadClass(masker).asSubclass(Masker.class);
+      }
+    }
+    return maskerClass;
   }
 
   /**

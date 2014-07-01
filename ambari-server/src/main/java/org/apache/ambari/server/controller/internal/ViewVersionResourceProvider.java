@@ -44,12 +44,13 @@ public class ViewVersionResourceProvider extends AbstractResourceProvider {
   /**
    * View property id constants.
    */
-  public static final String VIEW_NAME_PROPERTY_ID    = "ViewVersionInfo/view_name";
-  public static final String VIEW_VERSION_PROPERTY_ID = "ViewVersionInfo/version";
-  public static final String LABEL_PROPERTY_ID        = "ViewVersionInfo/label";
-  public static final String VERSION_PROPERTY_ID      = "ViewVersionInfo/version";
-  public static final String PARAMETERS_PROPERTY_ID   = "ViewVersionInfo/parameters";
-  public static final String ARCHIVE_PROPERTY_ID      = "ViewVersionInfo/archive";
+  public static final String VIEW_NAME_PROPERTY_ID      = "ViewVersionInfo/view_name";
+  public static final String VIEW_VERSION_PROPERTY_ID   = "ViewVersionInfo/version";
+  public static final String LABEL_PROPERTY_ID          = "ViewVersionInfo/label";
+  public static final String VERSION_PROPERTY_ID        = "ViewVersionInfo/version";
+  public static final String PARAMETERS_PROPERTY_ID     = "ViewVersionInfo/parameters";
+  public static final String ARCHIVE_PROPERTY_ID        = "ViewVersionInfo/archive";
+  public static final String MASKER_CLASS_PROPERTY_ID   = "ViewVersionInfo/masker_class";
 
   /**
    * The key property ids for a view resource.
@@ -71,6 +72,7 @@ public class ViewVersionResourceProvider extends AbstractResourceProvider {
     propertyIds.add(VERSION_PROPERTY_ID);
     propertyIds.add(PARAMETERS_PROPERTY_ID);
     propertyIds.add(ARCHIVE_PROPERTY_ID);
+    propertyIds.add(MASKER_CLASS_PROPERTY_ID);
   }
 
 
@@ -123,6 +125,7 @@ public class ViewVersionResourceProvider extends AbstractResourceProvider {
             setResourceProperty(resource, PARAMETERS_PROPERTY_ID,
                 viewDefinition.getConfiguration().getParameters(), requestedIds);
             setResourceProperty(resource, ARCHIVE_PROPERTY_ID, viewDefinition.getArchive(), requestedIds);
+            setResourceProperty(resource, MASKER_CLASS_PROPERTY_ID, viewDefinition.getMask(), requestedIds);
 
             resources.add(resource);
           }

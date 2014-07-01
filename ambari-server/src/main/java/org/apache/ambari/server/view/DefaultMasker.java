@@ -15,30 +15,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.apache.ambari.server.view;
 
-package org.apache.ambari.view;
+import java.io.UnsupportedEncodingException;
+
+import org.apache.ambari.view.MaskException;
+import org.apache.ambari.view.Masker;
+import org.apache.commons.codec.binary.Base64;
 
 /**
- * View persistence exception. Indicates that an error occurred while
- * persisting a view or view data.
+ * Provides simple masking of view parameters.
  */
-public class PersistenceException  extends Exception {
-  /**
-   * Constructor.
-   *
-   * @param msg        message
-   */
-  public PersistenceException(String msg) {
-    super(msg);
+public class DefaultMasker implements Masker {
+
+  @Override
+  public String mask(String value) throws MaskException {
+    try {
+      return Base64.encodeBase64String(value.getBytes("UTF-8"));
+    } catch (UnsupportedEncodingException e) {
+      throw new MaskException("UTF-8 is not supported", e);
+    }
   }
 
-  /**
-   * Constructor.
-   *
-   * @param msg        message
-   * @param throwable  root exception
-   */
-  public PersistenceException(String msg, Throwable throwable) {
-    super(msg, throwable);
+  @Override
+  public String unmask(String value) throws MaskException {
+    try {
+      return new String(Base64.decodeBase64(value), "UTF-8");
+    } catch (UnsupportedEncodingException e) {
+      throw new MaskException("UTF-8 is not supported", e);
+    }
   }
 }

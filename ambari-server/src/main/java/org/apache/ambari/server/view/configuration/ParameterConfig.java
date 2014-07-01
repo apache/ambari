@@ -42,6 +42,11 @@ public class ParameterConfig {
   private boolean required;
 
   /**
+   * Indicates whether or not the parameter is masked when persisted.
+   */
+  private boolean masked;
+
+  /**
    * Get the parameter name.
    *
    * @return the name
@@ -66,5 +71,14 @@ public class ParameterConfig {
    */
   public boolean isRequired() {
     return required;
+  }
+
+  /**
+   * Indicates whether or not the parameter is masked when persisted.
+   *
+   * @return true if the parameter is masked; false otherwise
+   */
+  public boolean isMasked() {
+    return masked;
   }
 }

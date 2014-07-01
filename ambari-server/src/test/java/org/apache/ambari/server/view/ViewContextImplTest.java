@@ -25,6 +25,7 @@ import org.apache.ambari.server.orm.entities.ViewEntityTest;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.apache.ambari.server.view.configuration.InstanceConfig;
 import org.apache.ambari.server.view.configuration.InstanceConfigTest;
+import org.apache.ambari.server.view.configuration.ViewConfigTest;
 import org.apache.ambari.view.ResourceProvider;
 import org.junit.Assert;
 import org.junit.Test;
@@ -77,7 +78,7 @@ public class ViewContextImplTest {
     ViewInstanceEntity viewInstanceDefinition = new ViewInstanceEntity(viewDefinition, instanceConfig);
     ViewRegistry viewRegistry = createNiceMock(ViewRegistry.class);
     viewInstanceDefinition.putProperty("p1", "v1");
-    viewInstanceDefinition.putProperty("p2", "v2");
+    viewInstanceDefinition.putProperty("p2", new DefaultMasker().mask("v2"));
     viewInstanceDefinition.putProperty("p3", "v3");
 
     ViewContextImpl viewContext = new ViewContextImpl(viewInstanceDefinition, viewRegistry);
@@ -96,18 +97,22 @@ public class ViewContextImplTest {
     replay(instanceConfig);
     ViewEntity viewDefinition = createNiceMock(ViewEntity.class);
     expect(viewDefinition.getCommonName()).andReturn("View").times(2);
+    expect(viewDefinition.getClassLoader()).andReturn(ViewContextImplTest.class.getClassLoader()).anyTimes();
+    expect(viewDefinition.getConfiguration()).andReturn(ViewConfigTest.getConfig()).anyTimes();
     replay(viewDefinition);
     ViewInstanceEntity viewInstanceDefinition = createMockBuilder(ViewInstanceEntity.class)
         .addMockedMethod("getUsername")
         .addMockedMethod("getName")
+        .addMockedMethod("getViewEntity")
         .withConstructor(viewDefinition, instanceConfig).createMock();
     expect(viewInstanceDefinition.getUsername()).andReturn("User").times(1);
     expect(viewInstanceDefinition.getUsername()).andReturn("User2").times(1);
     expect(viewInstanceDefinition.getName()).andReturn("Instance").times(3);
+    expect(viewInstanceDefinition.getViewEntity()).andReturn(viewDefinition).times(1);
     replay(viewInstanceDefinition);
     ViewRegistry viewRegistry = createNiceMock(ViewRegistry.class);
     viewInstanceDefinition.putProperty("p1", "/tmp/some/path/${username}");
-    viewInstanceDefinition.putProperty("p2", "/tmp/path/$viewName");
+    viewInstanceDefinition.putProperty("p2", new DefaultMasker().mask("/tmp/path/$viewName"));
     viewInstanceDefinition.putProperty("p3", "/path/$instanceName");
     viewInstanceDefinition.putProperty("p4", "/path/to/${unspecified_parameter}");
     viewInstanceDefinition.putProperty("p5", "/path/to/${incorrect_parameter");

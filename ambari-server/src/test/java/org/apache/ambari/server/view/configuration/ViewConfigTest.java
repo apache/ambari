@@ -48,6 +48,7 @@ public class ViewConfigTest {
       "    <version>1.0.0</version>\n" +
       "    <icon64>/this/is/the/icon/url/icon64.png</icon64>\n" +
       "    <icon>/this/is/the/icon/url/icon.png</icon>\n" +
+      "    <masker-class>org.apache.ambari.server.view.DefaultMasker</masker-class>" +
       "    <parameter>\n" +
       "        <name>p1</name>\n" +
       "        <description>Parameter 1.</description>\n" +
@@ -57,6 +58,7 @@ public class ViewConfigTest {
       "        <name>p2</name>\n" +
       "        <description>Parameter 2.</description>\n" +
       "        <required>false</required>\n" +
+      "        <masked>true</masked>" +
       "    </parameter>\n" +
       "    <resource>\n" +
       "        <name>resource</name>\n" +
@@ -142,6 +144,12 @@ public class ViewConfigTest {
   public void testGetIcon64() throws Exception {
     ViewConfig config = getConfig();
     Assert.assertEquals("/this/is/the/icon/url/icon64.png", config.getIcon64());
+  }
+
+  @Test
+  public void testMasker() throws Exception {
+    ViewConfig config = getConfig();
+    Assert.assertEquals("org.apache.ambari.server.view.DefaultMasker", config.getMasker());
   }
 
   @Test

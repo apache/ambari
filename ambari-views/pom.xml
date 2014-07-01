@@ -48,6 +48,10 @@
             <artifactId>jersey-core</artifactId>
             <version>1.8</version>
         </dependency>
+        <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
@@ -126,14 +130,14 @@
                         <exclude>**/*.json</exclude>
                     </excludes>
                 </configuration>
-              <executions>
-                <execution>
-                  <phase>test</phase>
-                  <goals>
-                    <goal>check</goal>
-                  </goals>
-                </execution>
-              </executions>
+                <executions>
+                    <execution>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
@@ -151,5 +155,4 @@
         </plugins>
     </build>
 </project>
-
 

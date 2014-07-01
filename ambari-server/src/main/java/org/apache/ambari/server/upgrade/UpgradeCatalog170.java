@@ -65,6 +65,12 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
     DBAccessor.DBColumnInfo clusterConfigAttributesColumn = new DBAccessor.DBColumnInfo(
         "config_attributes", String.class, 32000, null, true);
     dbAccessor.addColumn("clusterconfig", clusterConfigAttributesColumn);
+
+    // Add columns
+    dbAccessor.addColumn("viewmain", new DBAccessor.DBColumnInfo("mask",
+      String.class, 255, null, true));
+    dbAccessor.addColumn("viewparameter", new DBAccessor.DBColumnInfo("masked",
+      Character.class, 1, null, true));
   }
 
 

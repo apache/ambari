@@ -38,8 +38,6 @@ import org.apache.ambari.view.events.Listener;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
 import org.apache.velocity.exception.ParseErrorException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -51,11 +49,25 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+
+import org.apache.ambari.server.view.configuration.ParameterConfig;
+import org.apache.ambari.server.view.configuration.ViewConfig;
+import org.apache.ambari.view.MaskException;
+import org.apache.ambari.view.Masker;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /**
  * View context implementation.
  */
 public class ViewContextImpl implements ViewContext, ViewController {
+
+  /**
+   * Logger.
+   */
+  private static final Log LOG = LogFactory.getLog(ViewContextImpl.class);
 
   /**
    * The associated view definition.
@@ -82,14 +94,12 @@ public class ViewContextImpl implements ViewContext, ViewController {
    */
   private DataStore dataStore = null;
 
+  /**
+   * Masker for properties.
+   */
+  private Masker masker;
+
   private final VelocityContext velocityContext;
-
-
-  // ----- Constants ---------------------------------------------------------
-
-  protected final static Logger LOG =
-      LoggerFactory.getLogger(ViewContext.class);
-
 
   // ---- Constructors -------------------------------------------------------
 
@@ -118,6 +128,7 @@ public class ViewContextImpl implements ViewContext, ViewController {
     this.viewInstanceEntity = viewInstanceEntity;
     this.viewRegistry       = viewRegistry;
     this.streamProvider     = ViewURLStreamProvider.getProvider();
+    this.masker             = getMasker(viewEntity.getClassLoader(), viewEntity.getConfiguration());
     this.velocityContext    = initVelocityContext();
   }
 
@@ -147,18 +158,42 @@ public class ViewContextImpl implements ViewContext, ViewController {
   public Map<String, String> getProperties() {
     if (viewInstanceEntity == null) {
       return null;
-    }
-    Map<String, String> properties = viewInstanceEntity.getPropertyMap();
-    String rawValue;
-    for (String key : properties.keySet()) {
-      rawValue = properties.get(key);
-      try {
-        properties.put(key, parameterize(rawValue));
-      } catch (ParseErrorException ex) {
-        LOG.warn(String.format("Error during parsing '%s' parameter. Leaving original value.", key));
+    } else {
+      Map<String, String> properties = viewInstanceEntity.getPropertyMap();
+
+      // unmasking
+      for (Entry<String, String> entry: properties.entrySet()) {
+        ParameterConfig parameterConfig = null;
+        for (ParameterConfig paramConfig : viewEntity.getConfiguration().getParameters()) {
+          if (StringUtils.equals(paramConfig.getName(), entry.getKey())) {
+            parameterConfig = paramConfig;
+            break;
+          }
+        }
+        if (parameterConfig == null || !parameterConfig.isMasked()) {
+          properties.put(entry.getKey(), entry.getValue());
+        } else {
+          try {
+            properties.put(entry.getKey(), masker.unmask(entry.getValue()));
+          } catch (MaskException e) {
+            LOG.error("Failed to unmask view property", e);
+          }
+        }
       }
+
+      // parametrizing
+
+      String rawValue;
+      for (String key : properties.keySet()) {
+        rawValue = properties.get(key);
+        try {
+          properties.put(key, parameterize(rawValue));
+        } catch (ParseErrorException ex) {
+          LOG.warn(String.format("Error during parsing '%s' parameter. Leaving original value.", key));
+        }
+      }
+      return Collections.unmodifiableMap(properties);
     }
-    return Collections.unmodifiableMap(properties);
   }
 
   @Override
@@ -270,6 +305,14 @@ public class ViewContextImpl implements ViewContext, ViewController {
     }
   }
 
+  private Masker getMasker(ClassLoader cl, ViewConfig viewConfig) {
+    try {
+      return viewConfig.getMaskerClass(cl).newInstance();
+    } catch (Exception e) {
+      throw new InstantiationError("Could not create masker instance.");
+    }
+  }
+
   /**
    * Parameterize string using VelocityContext instance
    *
@@ -315,7 +358,6 @@ public class ViewContextImpl implements ViewContext, ViewController {
         });
     return context;
   }
-
 
   // ----- Inner class : ViewURLStreamProvider -------------------------------
 

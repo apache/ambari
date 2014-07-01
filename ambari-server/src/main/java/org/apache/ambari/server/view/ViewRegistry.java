@@ -21,6 +21,7 @@ package org.apache.ambari.server.view;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+
 import org.apache.ambari.server.api.resources.ResourceInstanceFactoryImpl;
 import org.apache.ambari.server.api.resources.SubResourceDefinition;
 import org.apache.ambari.server.api.resources.ViewExternalSubResourceDefinition;
@@ -43,6 +44,8 @@ import org.apache.ambari.server.view.configuration.PersistenceConfig;
 import org.apache.ambari.server.view.configuration.PropertyConfig;
 import org.apache.ambari.server.view.configuration.ResourceConfig;
 import org.apache.ambari.server.view.configuration.ViewConfig;
+import org.apache.ambari.view.MaskException;
+import org.apache.ambari.view.Masker;
 import org.apache.ambari.view.SystemException;
 import org.apache.ambari.view.View;
 import org.apache.ambari.view.ViewContext;
@@ -50,6 +53,7 @@ import org.apache.ambari.view.ViewDefinition;
 import org.apache.ambari.view.ViewResourceHandler;
 import org.apache.ambari.view.events.Event;
 import org.apache.ambari.view.events.Listener;
+import org.apache.commons.lang.StringUtils;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,6 +61,7 @@ import org.slf4j.LoggerFactory;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
+
 import java.beans.IntrospectionException;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -203,7 +208,7 @@ public class ViewRegistry {
   }
 
   /**
-   * Get the instance definition for the given view nam,e and instance name.
+   * Get the instance definition for the given view name and instance name.
    *
    * @param viewName      the view name
    * @param version       the version
@@ -338,7 +343,7 @@ public class ViewRegistry {
 
                 for (InstanceConfig instanceConfig : viewConfig.getInstances()) {
                   try {
-                    instanceDefinitions.add(createViewInstanceDefinition(viewDefinition, instanceConfig));
+                    instanceDefinitions.add(createViewInstanceDefinition(viewConfig, viewDefinition, instanceConfig));
                   } catch (Exception e) {
                     LOG.error("Caught exception adding view instance for view " +
                         viewDefinition.getViewName(), e);
@@ -603,6 +608,7 @@ public class ViewRegistry {
       viewParameterEntity.setName(parameterConfiguration.getName());
       viewParameterEntity.setDescription(parameterConfiguration.getDescription());
       viewParameterEntity.setRequired(parameterConfiguration.isRequired());
+      viewParameterEntity.setMasked(parameterConfiguration.isMasked());
       viewParameterEntity.setViewEntity(viewDefinition);
       parameters.add(viewParameterEntity);
     }
@@ -658,18 +664,32 @@ public class ViewRegistry {
       view = getView(viewConfig.getViewClass(cl), new ViewContextImpl(viewDefinition, this));
     }
     viewDefinition.setView(view);
+    viewDefinition.setMask(viewConfig.getMasker());
 
     return viewDefinition;
   }
 
   // create a new view instance definition
-  protected ViewInstanceEntity createViewInstanceDefinition(ViewEntity viewDefinition, InstanceConfig instanceConfig)
-      throws ClassNotFoundException, IllegalStateException {
+  protected ViewInstanceEntity createViewInstanceDefinition(ViewConfig viewConfig, ViewEntity viewDefinition, InstanceConfig instanceConfig)
+      throws ClassNotFoundException, IllegalStateException, MaskException {
     ViewInstanceEntity viewInstanceDefinition =
         new ViewInstanceEntity(viewDefinition, instanceConfig);
 
+    Masker masker = getMasker(viewConfig.getMaskerClass(viewDefinition.getClassLoader()));
     for (PropertyConfig propertyConfig : instanceConfig.getProperties()) {
-      viewInstanceDefinition.putProperty(propertyConfig.getKey(), propertyConfig.getValue());
+      ParameterConfig parameterConfig = null;
+      for (ParameterConfig paramConfig : viewConfig.getParameters()) {
+        if (StringUtils.equals(paramConfig.getName(), propertyConfig.getKey())) {
+          parameterConfig = paramConfig;
+          break;
+        }
+      }
+      if (parameterConfig != null && parameterConfig.isMasked()) {
+        viewInstanceDefinition.putProperty(propertyConfig.getKey(),
+            masker.mask(propertyConfig.getValue()));
+      } else {
+        viewInstanceDefinition.putProperty(propertyConfig.getKey(), propertyConfig.getValue());
+      }
     }
     viewInstanceDefinition.validate(viewDefinition);
 
@@ -786,6 +806,16 @@ public class ViewRegistry {
     return viewInstanceInjector.getInstance(clazz);
   }
 
+  // create masker from given class; probably replace with injector later
+  private static Masker getMasker(Class<? extends Masker> clazz) {
+    try {
+      return clazz.newInstance();
+    } catch (Exception e) {
+      LOG.error("Could not create masker instance", e);
+    }
+    return null;
+  }
+
   // remove undeployed views from the ambari db
   private void removeUndeployedViews() {
     for (ViewEntity viewEntity : viewDAO.findAll()) {
@@ -881,7 +911,7 @@ public class ViewRegistry {
   }
 
   // extract the given view archive to the given archive directory
-  private ClassLoader extractViewArchive(File viewArchive, File archiveDir) 
+  private ClassLoader extractViewArchive(File viewArchive, File archiveDir)
       throws IOException {
 
     // Skip if the archive has already been extracted
@@ -890,7 +920,7 @@ public class ViewRegistry {
       String archivePath = archiveDir.getAbsolutePath();
 
       LOG.info("Creating archive folder " + archivePath + ".");
-      
+
       if (archiveDir.mkdir()) {
         JarFile     viewJarFile = helper.getJarFile(viewArchive);
         Enumeration enumeration = viewJarFile.entries();
@@ -933,7 +963,7 @@ public class ViewRegistry {
   }
 
   // get a class loader for the given archive directory
-  private ClassLoader getArchiveClassLoader(File archiveDir) 
+  private ClassLoader getArchiveClassLoader(File archiveDir)
       throws MalformedURLException {
 
     String    archivePath = archiveDir.getAbsolutePath();
@@ -960,7 +990,7 @@ public class ViewRegistry {
       }
     }
 
-    // include the archive directory 
+    // include the archive directory
     urlList.add(archiveDir.toURI().toURL());
 
     return URLClassLoader.newInstance(urlList.toArray(new URL[urlList.size()]));

@@ -19,6 +19,7 @@
 package org.apache.ambari.server.upgrade;
 
 import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNull;
 import static junit.framework.Assert.assertTrue;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.capture;
@@ -58,7 +59,11 @@ public class UpgradeCatalog170Test {
     expect(configuration.getDatabaseUrl()).andReturn(Configuration.JDBC_IN_MEMORY_URL).anyTimes();
 
     Capture<DBAccessor.DBColumnInfo> clusterConfigAttributesColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
+    Capture<DBAccessor.DBColumnInfo> maskColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
+    Capture<DBAccessor.DBColumnInfo> maskedColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
 
+    setViewExpectations(dbAccessor, maskColumnCapture);
+    setViewParameterExpectations(dbAccessor, maskedColumnCapture);
     setClusterConfigExpectations(dbAccessor, clusterConfigAttributesColumnCapture);
     dbAccessor.executeSelect(anyObject(String.class));
     expectLastCall().andReturn(resultSet).anyTimes();
@@ -78,6 +83,8 @@ public class UpgradeCatalog170Test {
     verify(dbAccessor, configuration, resultSet);
 
     assertClusterConfigColumns(clusterConfigAttributesColumnCapture);
+    assertViewColumns(maskColumnCapture);
+    assertViewParameterColumns(maskedColumnCapture);
   }
 
   @Test
@@ -125,5 +132,39 @@ public class UpgradeCatalog170Test {
     final DBAccessor dbAccessor     = createNiceMock(DBAccessor.class);
     UpgradeCatalog upgradeCatalog = getUpgradeCatalog(dbAccessor);
     Assert.assertEquals("1.6.1", upgradeCatalog.getSourceVersion());
-  }   
+  }
+
+  private void setViewExpectations(DBAccessor dbAccessor,
+                                   Capture<DBAccessor.DBColumnInfo> maskColumnCapture)
+    throws SQLException {
+
+    dbAccessor.addColumn(eq("viewmain"), capture(maskColumnCapture));
+  }
+
+  private void setViewParameterExpectations(DBAccessor dbAccessor,
+                                            Capture<DBAccessor.DBColumnInfo> maskedColumnCapture)
+    throws SQLException {
+
+    dbAccessor.addColumn(eq("viewparameter"), capture(maskedColumnCapture));
+  }
+
+  private void assertViewColumns(
+    Capture<DBAccessor.DBColumnInfo> maskColumnCapture) {
+    DBAccessor.DBColumnInfo column = maskColumnCapture.getValue();
+    assertEquals("mask", column.getName());
+    assertEquals(255, (int) column.getLength());
+    assertEquals(String.class, column.getType());
+    assertNull(column.getDefaultValue());
+    assertTrue(column.isNullable());
+  }
+
+  private void assertViewParameterColumns(
+    Capture<DBAccessor.DBColumnInfo> maskedColumnCapture) {
+    DBAccessor.DBColumnInfo column = maskedColumnCapture.getValue();
+    assertEquals("masked", column.getName());
+    assertEquals(1, (int) column.getLength());
+    assertEquals(Character.class, column.getType());
+    assertNull(column.getDefaultValue());
+    assertTrue(column.isNullable());
+  }
 }

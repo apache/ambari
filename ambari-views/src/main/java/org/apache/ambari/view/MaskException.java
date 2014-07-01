@@ -15,39 +15,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.apache.ambari.view;
 
 /**
- * The view definition.
+ * Indicates that a mask exception occurred.
  */
-public interface ViewDefinition {
-
+public class MaskException extends Exception {
   /**
-   * Get the view name.
+   * Constructor.
    *
-   * @return the view name
+   * @param msg        message
+   * @param throwable  root exception
    */
-  public String getViewName();
-
-  /**
-   * Get the view label (display name).
-   *
-   * @return the view label
-   */
-  public String getLabel();
-
-  /**
-   * Get the view version.
-   *
-   * @return the version
-   */
-  public String getVersion();
-
-  /**
-   * Get the mask class name.
-   *
-   * @return the mask class name.
-   */
-  public String getMask();
+  public MaskException(String msg, Throwable throwable) {
+    super(msg, throwable);
+  }
 }

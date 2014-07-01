@@ -58,6 +58,13 @@ public class ViewParameterEntity {
   @Basic
   private char required;
 
+  /**
+   * Indicates whether or not the parameter is masked when persisted.
+   */
+  @Column
+  @Basic
+  private char masked;
+
   @ManyToOne
   @JoinColumn(name = "view_name", referencedColumnName = "view_name", nullable = false)
   private ViewEntity view;
@@ -135,6 +142,23 @@ public class ViewParameterEntity {
    */
   public void setRequired(boolean required) {
     this.required = (required ? 'Y' : 'N');
+  }
+
+  /**
+   * Determine whether or not the parameter is masked.
+   *
+   * @return true if parameter is masked
+   */
+  public boolean isMasked() {
+    return masked == 'y' || masked == 'Y';
+  }
+
+  /**
+   * Set the flag which indicate whether or not the parameter is masked
+   * @param masked the masked flag; true if the parameter is masked
+   */
+  public void setMasked(boolean masked) {
+    this.masked = (masked ? 'Y' : 'N');
   }
 
   /**

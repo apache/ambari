@@ -16,38 +16,32 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.view;
+package org.apache.ambari.server.view;
+
+import junit.framework.Assert;
+
+import org.apache.ambari.server.view.DefaultMasker;
+import org.junit.Test;
 
 /**
- * The view definition.
+ * DefaultMasker test.
  */
-public interface ViewDefinition {
+public class DefaultMaskerTest {
+  private DefaultMasker masker = new DefaultMasker();
 
-  /**
-   * Get the view name.
-   *
-   * @return the view name
-   */
-  public String getViewName();
+  @Test
+  public void testMask() throws Exception {
+    final String source = "unmasked";
+    final String masked = masker.mask(source);
+    Assert.assertNotNull(masked);
+    Assert.assertTrue(masked.length() > 0);
+  }
 
-  /**
-   * Get the view label (display name).
-   *
-   * @return the view label
-   */
-  public String getLabel();
-
-  /**
-   * Get the view version.
-   *
-   * @return the version
-   */
-  public String getVersion();
-
-  /**
-   * Get the mask class name.
-   *
-   * @return the mask class name.
-   */
-  public String getMask();
+  @Test
+  public void testMaskUnmask() throws Exception {
+    final String source = "unmasked";
+    final String masked = masker.mask(source);
+    final String unmasked = masker.unmask(masked);
+    Assert.assertEquals(source, unmasked);
+  }
 }

@@ -94,6 +94,13 @@ public class ViewEntity implements ViewDefinition {
   private String archive;
 
   /**
+   * The masker class for parameters.
+   */
+  @Column
+  @Basic
+  private String mask;
+
+  /**
    * The list of view parameters.
    */
   @OneToMany(cascade = CascadeType.ALL, mappedBy = "view")
@@ -202,6 +209,8 @@ public class ViewEntity implements ViewDefinition {
     this.name    = getViewName(configuration.getName(), version);
     this.label   = configuration.getLabel();
     this.version = version;
+
+    this.mask    = configuration.getMasker();
     this.icon    = configuration.getIcon();
     this.icon64  = configuration.getIcon64();
 
@@ -578,6 +587,24 @@ public class ViewEntity implements ViewDefinition {
    */
   public View getView() {
     return view;
+  }
+
+  /**
+   * Set the mask class name.
+   *
+   * @param mask the mask class name
+   */
+  public void setMask(String mask) {
+    this.mask = mask;
+  }
+
+  /**
+   * Get the mask class name.
+   *
+   * @return the mask class name.
+   */
+  public String getMask() {
+    return mask;
   }
 
 
