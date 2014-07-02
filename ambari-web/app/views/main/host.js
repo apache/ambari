@@ -993,7 +993,7 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
   }.property('controller.colPropAssoc'),
 
   resetStartIndex: function () {
-    if (this.get('controller.resetStartIndex')) {
+    if (this.get('controller.resetStartIndex') && this.get('filteredCount') > 0) {
       this.set('startIndex', 1);
     }
   }.observes('controller.resetStartIndex')
