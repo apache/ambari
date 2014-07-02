@@ -107,14 +107,9 @@ App.hostsMapper = App.QuickDataMapper.create({
       App.store.commit();
       App.store.loadMany(App.HostComponent, components);
       App.store.loadMany(App.Host, hostsWithFullInfo);
-
-      // check if <code>mainHostController.filteredCount</code> is already set in <code>getHostByHostComponentsSuccessCallback</code>
-      var setFilteredCount = App.router.get('mainHostController.setFilteredCount');
       var itemTotal = parseInt(json.itemTotal);
-      if (setFilteredCount && !isNaN(itemTotal) && itemTotal!==undefined && itemTotal!==null) {
+      if (!isNaN(itemTotal)) {
         App.router.set('mainHostController.filteredCount', itemTotal);
-      } else {
-        App.router.set('mainHostController.setFilteredCount', true);
       }
     }
     console.timeEnd('App.hostsMapper execution time');
