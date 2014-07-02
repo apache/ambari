@@ -37,7 +37,6 @@ import static org.junit.Assert.assertEquals;
  */
 public class PermissionServiceTest extends BaseServiceTest {
 
-
   public List<ServiceTestInvocation> getTestInvocations() throws Exception {
     List<ServiceTestInvocation> listInvocations = new ArrayList<ServiceTestInvocation>();
 
