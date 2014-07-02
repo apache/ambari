@@ -24,6 +24,8 @@ App.TableServerProvider = Em.Mixin.create({
   updaterBinding: 'App.router.updateController',
   filteringComplete: true,
   filterConditions: [],
+  filterWaitingTime: 500,
+  timeOut: null,
   /**
    * total number of entities in table
    */
@@ -48,9 +50,6 @@ App.TableServerProvider = Em.Mixin.create({
    */
   refresh: function () {
     var self = this;
-
-    if (!this.get('filteringComplete')) return false;
-
     this.set('filteringComplete', false);
     var updaterMethodName = this.get('updater.tableUpdaterMap')[this.get('tableName')];
     this.get('updater')[updaterMethodName](function () {
@@ -83,8 +82,17 @@ App.TableServerProvider = Em.Mixin.create({
    * @param type {String}
    */
   updateFilter: function (iColumn, value, type) {
-    this.saveFilterConditions(iColumn, value, type, false);
-    this.refresh();
+    var self = this;
+    if (!this.get('filteringComplete')) {
+      clearTimeout(this.get('timeOut'));
+      this.set('timeOut', setTimeout(function() {
+        self.updateFilter(iColumn, value, type);
+      }, this.get('filterWaitingTime')));
+    } else {
+      clearTimeout(this.get('timeOut'));
+      this.saveFilterConditions(iColumn, value, type, false);
+      this.refresh();
+    }
   },
 
   /**
