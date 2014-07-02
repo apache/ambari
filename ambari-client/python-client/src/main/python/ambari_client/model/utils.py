@@ -162,12 +162,20 @@ class ModelUtils(object):
         rw_dict = {}
         LOG.debug("model_dict =   " + str(model_dict))
 
+        # extract model /keyword
         if isinstance(model_dict, dict) and RESOURCE_KEY_WORD in model_dict:
             model_dict = model_dict[RESOURCE_KEY_WORD]
-            LOG.debug(
-                "model_dict has %s ;subset = %s" %
-                (RESOURCE_KEY_WORD, str(
-                    model_dict.items())))
+            if not isinstance(model_dict, list):
+                LOG.debug(
+                    "model_dict has %s ;subset = %s" %
+                    (RESOURCE_KEY_WORD, str(
+                        model_dict.items())))
+            else:
+                LOG.debug(
+                    "model_dict is list and has %s ;subset = %s" %
+                    (RESOURCE_KEY_WORD, str(
+                        model_dict)))
+        # check for Requests
         if isinstance(model_dict, dict) and "Requests" in model_dict:
             model_dict = model_dict["Requests"]
             LOG.debug(
@@ -175,12 +183,17 @@ class ModelUtils(object):
                 (str(
                     model_dict.items())))
 
-        for k, v in model_dict.items():
-            LOG.debug("key = %s ; value = %s " % (str(k), str(v)))
-            if k in model_cls.RW_ATTR:
-                LOG.debug(k + " is there in RW_ATTR")
-                rw_dict[k] = v
-                del model_dict[k]
+        # check for composition i.e list of Models
+        if isinstance(model_dict, list):
+            LOG.debug(
+                "model_dict is list")
+        else:
+            for k, v in model_dict.items():
+                LOG.debug("key = %s ; value = %s " % (str(k), str(v)))
+                if k in model_cls.RW_ATTR:
+                    LOG.debug(k + " is there in RW_ATTR")
+                    rw_dict[k] = v
+                    del model_dict[k]
 
         rw_dict = get_unicode_kw(rw_dict)
         obj = model_cls(resource_root, **rw_dict)
@@ -238,7 +251,7 @@ def get_REF_object(ref_class_name):
 
 
 def get_unicode(v):
-    #import unicodedata
+    # import unicodedata
     if v:
         if isinstance(v, unicode):
             v = unicodedata.normalize('NFKD', v).encode('ascii', 'ignore')
@@ -249,8 +262,8 @@ def get_unicode(v):
 
 
 def retain_self_helper(memclass, self=None, **kwargs):
-        # print locals()
-        #from ambari_client.model.base_model import  BaseModel
+    # print locals()
+        # from ambari_client.model.base_model import  BaseModel
     memclass.__init__(self, **kwargs)
 
 

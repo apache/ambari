@@ -40,6 +40,7 @@ HOSTS_ASSIGN_ROLE = "/clusters/%s/hosts?Hosts/host_name=%s"
 BOOTSTRAP_PATH = "/bootstrap"
 REQUEST_STATUS_PATH = "/clusters/%s/requests/%s?fields=tasks/Tasks/status"
 REQUEST_PATH = "clusters/%s/requests/%s"
+REQUEST_N_PATH = "clusters/%s/requests?to=end&page_size=%s&fields=Requests"
 
 CONFIGURATION_PATH = "/clusters/%s/configurations?type=%s&tag=%s"
 CONFIGURATION_ALL_PATH = "/clusters/%s/configurations?type=%s"
@@ -57,3 +58,4 @@ TASKS_PATH = "clusters/%s/requests/%s/tasks?fields=*"
 
 BLUEPRINT_ALL_PATH = "blueprints?fields=*"
 BLUEPRINT_PATH = "blueprints/%s"
+BLUEPRINT_CLUSTER_PATH = "clusters/%s?format=blueprint"

@@ -18,7 +18,7 @@
 import logging
 from ambari_client.core.http_client import HttpClient
 from ambari_client.core.rest_resource import RestResource
-from ambari_client.model import blueprint, stack, cluster, host
+from ambari_client.model import blueprint, stack, cluster, host, status
 
 __docformat__ = "epytext"
 
@@ -65,6 +65,13 @@ class AmbariClient(RestResource):
             protocol = "http"
             if port is None:
                 port = 8080
+
+        if not http_header:
+            http_header = {'X-Requested-By': 'pythonclient'}
+        elif 'X-Requested-By' not in http_header.keys():
+            http_header.update({'X-Requested-By': 'pythonclient'})
+        else:
+            pass
 
         host_url = "%s://%s:%s/api/v%s" % (protocol, host_name, port, version)
         if client is None:
@@ -224,6 +231,15 @@ class AmbariClient(RestResource):
         """
         return cluster._task_status(self, cluster_name, requestid)
 
+    def get_requests(self, cluster_name, noOfrequest=3):
+        """
+        get components from stack
+        @param version: The HDP version.
+        @param service_name: service name
+        @return: A ConfigModel object
+        """
+        return status._get_N_requests(self, cluster_name, noOfrequest)
+
     def get_blueprint(self, blueprint_name=None):
         """
         get blueprint
@@ -231,6 +247,14 @@ class AmbariClient(RestResource):
         @return: A BlueprintModel object
         """
         return blueprint.get_blueprint(self, blueprint_name)
+
+    def get_cluster_blueprint(self, cluster_name):
+        """
+        get blueprint
+        @param cluster_name:cluster_name name.
+        @return: A BlueprintModel object
+        """
+        return blueprint.get_cluster_blueprint(self, cluster_name)
 
     def delete_blueprint(self, blueprint_name=None):
         """

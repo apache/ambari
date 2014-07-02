@@ -15,7 +15,7 @@
 #  limitations under the License.
 
 import logging
-from ambari_client.model.base_model import BaseModel
+from ambari_client.model.base_model import BaseModel, ModelList
 from ambari_client.model import paths, utils
 
 
@@ -32,7 +32,7 @@ class StatusModel(BaseModel):
     REF_ATTR = ('cluster_name',)
 
     def __init__(self, resource_root, status, requestId=None, message=None):
-        #BaseModel.__init__(self, **locals())
+        # BaseModel.__init__(self, **locals())
         utils.retain_self_helper(BaseModel, **locals())
 
     def __str__(self):
@@ -72,3 +72,41 @@ class StatusModel(BaseModel):
             return self.status
         else:
             None
+
+
+def _get_N_requests(resource_root, cluster_name, noOfrequest):
+    """
+    Get all services in a cluster.
+    @param cluster_name :Cluster name.
+    @return: A  ModelList object.
+    """
+    path = paths.REQUEST_N_PATH % (cluster_name, noOfrequest)
+    dic = resource_root.get(path)
+    return utils.ModelUtils.get_model_list(
+        ModelList,
+        RequestModel,
+        dic,
+        resource_root,
+        "Requests")
+
+
+class RequestModel(BaseModel):
+
+    """
+    The RequestModel class
+    """
+    RO_ATTR = ("request_context",)
+    RW_ATTR = ('id', 'request_status')
+    REF_ATTR = ('cluster_name',)
+
+    def __init__(self, resource_root, id, request_status=None):
+        # BaseModel.__init__(self, **locals())
+        utils.retain_self_helper(BaseModel, **locals())
+
+    def __str__(self):
+        return "<<RequestModel>> id = %s ; request_status = %s" % (
+            self.id, self.request_status)
+
+    def is_error(self):
+        return (
+            self.status != 200 and self.status != 201 and self.status != 202)

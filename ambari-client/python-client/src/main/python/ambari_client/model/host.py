@@ -219,8 +219,11 @@ def _bootstrap_hosts(root_resource, hosts_list, ssh_key, ssh_user):
     @param hosts_list list of host_names.
     @return: A  StatusModel object.
     """
-    payload_dic = {"verbose":True, "sshKey": ssh_key.encode(
-        'string_escape')  , "hosts":str(hosts_list) , "user": ssh_user }
+    payload_dic = {
+        "verbose": True,
+        "sshKey": ssh_key,
+        "hosts": str(hosts_list),
+        "user": ssh_user}
     resp = root_resource.post(
         paths.BOOTSTRAP_PATH,
         payload_dic,

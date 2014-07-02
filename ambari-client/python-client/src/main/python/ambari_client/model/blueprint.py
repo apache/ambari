@@ -15,6 +15,7 @@
 #  limitations under the License.
 
 import logging
+import json
 from ambari_client.model.base_model import BaseModel, ModelList
 from ambari_client.model import paths, utils, status
 
@@ -44,6 +45,33 @@ def get_blueprint(resource_root, blueprint_name):
             dic,
             resource_root,
             "Blueprints")
+
+
+def get_cluster_blueprint(resource_root, cluster_name):
+    """
+    Get all Blueprint
+    @param root_resource: The root Resource .
+    @param name: blueprint_name
+    @return: A list of BlueprintModel objects.
+    """
+    resp = resource_root.get(paths.BLUEPRINT_CLUSTER_PATH % cluster_name)
+    result = json.dumps(resp)
+    resp_dictt = json.loads(result)
+    objects = [
+        utils.ModelUtils.create_model(
+            BlueprintHostModel,
+            x,
+            resource_root,
+            "NO_KEY") for x in resp_dictt['host_groups']]
+    LOG.debug(objects)
+
+    bluep = utils.ModelUtils.create_model(
+        BlueprintModel,
+        resp,
+        resource_root,
+        "Blueprints")
+
+    return bluep, ModelList(objects)
 
 
 def delete_blueprint(resource_root, blueprint_name):
@@ -92,6 +120,31 @@ class BlueprintModel(BaseModel):
     def __str__(self):
         return "<<BlueprintModel>> blueprint_name = %s " % (
             self.blueprint_name)
+
+    def _get_cluster_name(self):
+        if self.clusterRef:
+            return self.clusterRef.cluster_name
+        return None
+
+
+class BlueprintHostModel(BaseModel):
+
+    """
+    The BlueprintHostModel class
+    """
+    RO_ATTR = ('blueprint_name',)
+    RW_ATTR = ('name', 'components', 'cardinality')
+    REF_ATTR = ()
+
+    def __init__(self, resource_root, name, components, cardinality):
+        utils.retain_self_helper(BaseModel, **locals())
+
+    def __str__(self):
+        return "<<BlueprintHostModel>> name = %s ,components =%s" % (
+            self.name, str(self.components))
+
+    def to_json(self):
+        pass
 
 
 class BlueprintConfigModel(BaseModel):
