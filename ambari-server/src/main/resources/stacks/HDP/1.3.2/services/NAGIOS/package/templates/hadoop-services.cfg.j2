@@ -488,20 +488,21 @@ define service {
 #         retry_check_interval    1
 #         max_check_attempts      3
 # #}
-{%  for hbasemaster in hbase_master_hosts %}
 {% if check_cpu_on %}
 define service {
-        host_name               {{ hbasemaster }}
+        hostgroup_name          nagios-server
         use                     hadoop-service
-        service_description     HBASEMASTER::HBase Master CPU utilization on {{ hbasemaster }}
+        service_description     HBASEMASTER::HBase Master CPU utilization
         servicegroups           HBASE
 #        check_command           check_cpu!200%!250%
-        check_command           check_cpu!{{ hbase_master_port }}!200%!250%!{{ str(hadoop_ssl_enabled).lower() }}!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}!{{ str(security_enabled).lower() }}
+        check_command           check_hbase_cpu!{{ hbase_master_hosts_in_str }}!{{ hbase_master_port }}!200%!250%!{{ str(hadoop_ssl_enabled).lower() }}!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}!{{ str(security_enabled).lower() }}
         normal_check_interval   5
-        retry_check_interval    2 
+        retry_check_interval    2
         max_check_attempts      5
 }
 {%  endif %}
+
+{%  for hbasemaster in hbase_master_hosts %}
 define service {
         host_name               {{ hbasemaster }}
         use                     hadoop-service

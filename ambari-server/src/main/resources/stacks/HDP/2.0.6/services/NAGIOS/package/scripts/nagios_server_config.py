@@ -50,6 +50,7 @@ def nagios_server_config():
 
   nagios_server_check( 'check_cpu.pl')
   nagios_server_check( 'check_cpu.php')
+  nagios_server_check( 'check_hbase_cpu.php')
   nagios_server_check( 'check_datanode_storage.php')
   nagios_server_check( 'check_aggregate.php')
   nagios_server_check( 'check_hdfs_blocks.php')

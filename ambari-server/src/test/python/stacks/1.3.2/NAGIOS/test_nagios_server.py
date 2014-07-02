@@ -168,6 +168,10 @@ class TestNagiosServer(RMFTestCase):
                               content=StaticFile('check_cpu.php'),
                               mode=0755
     )
+    self.assertResourceCalled('File', '/usr/lib64/nagios/plugins/check_hbase_cpu.php',
+                              content=StaticFile('check_hbase_cpu.php'),
+                              mode=0755
+    )
     self.assertResourceCalled('File',
                               '/usr/lib64/nagios/plugins/check_datanode_storage.php',
                               content=StaticFile('check_datanode_storage.php'),
