@@ -604,7 +604,7 @@
     {
       "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/YARN/configurations/yarn.scheduler.minimum-allocation-mb",
       "StackConfigurations" : {
-        "property_description" : "\n      TThe minimum allocation for every container request at the RM,\n      in MBs. Memory requests lower than this won't take effect,\n      and the specified value will get allocated at minimum.\n    ",
+        "property_description" : "\n      The minimum allocation for every container request at the RM,\n      in MBs. Memory requests lower than this won't take effect,\n      and the specified value will get allocated at minimum.\n    ",
         "property_name" : "yarn.scheduler.minimum-allocation-mb",
         "property_value" : "512",
         "service_name" : "YARN",

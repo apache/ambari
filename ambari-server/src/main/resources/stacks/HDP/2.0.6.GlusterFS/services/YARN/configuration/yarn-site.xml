@@ -65,7 +65,7 @@
     <name>yarn.scheduler.minimum-allocation-mb</name>
     <value>512</value>
     <description>
-      TThe minimum allocation for every container request at the RM,
+      The minimum allocation for every container request at the RM,
       in MBs. Memory requests lower than this won't take effect,
       and the specified value will get allocated at minimum.
     </description>
