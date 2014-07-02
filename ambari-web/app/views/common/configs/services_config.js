@@ -420,6 +420,14 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
     });
   },
 
+  willDestroyElement: function () {
+    if (this.get('parentView.controller.name') == 'mainServiceInfoConfigsController') {
+      this.get('categoryConfigsAll').forEach(function (item) {
+        item.set('isVisible', false);
+      });
+    }
+  },
+
   /**
    * If added/removed a serverConfigObject, this property got updated.
    * Without this property, all serviceConfigs Objects will show up even if some was collapsed before.
