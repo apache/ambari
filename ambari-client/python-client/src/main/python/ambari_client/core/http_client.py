@@ -103,12 +103,6 @@ class HttpClient(object):
         self.c.setopt(pycurl.WRITEFUNCTION, buf.write)
         self.c.setopt(pycurl.SSL_VERIFYPEER, 0)
 
-        # make sure options are reset from previous requests or your GET might
-        # become a DELETE
-        self.c.setopt(pycurl.CUSTOMREQUEST, None)
-        self.c.setopt(pycurl.HTTPGET, 0)
-        self.c.setopt(pycurl.NOBODY, 0)
-        self.c.setopt(pycurl.POST, 0)
 
         LOG.debug("invoke : url = " + str(url))
         # set http_method
