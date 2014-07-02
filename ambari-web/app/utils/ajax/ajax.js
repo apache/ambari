@@ -375,8 +375,7 @@ var urls = {
     'mock': '',
     'format': function() {
       return {
-        type: 'DELETE',
-        async: false
+        type: 'DELETE'
       }
     }
   },
@@ -386,8 +385,7 @@ var urls = {
     'mock': '',
     'format': function() {
       return {
-        type: 'DELETE',
-        async: false
+        type: 'DELETE'
       }
     }
   },
@@ -409,7 +407,6 @@ var urls = {
     'format': function(data) {
       return {
         type: 'PUT',
-        async: false,
         data: data.data
       }
     }
@@ -584,12 +581,7 @@ var urls = {
   'host.delete': {
     'real': '/clusters/{clusterName}/hosts/{hostName}',
     'mock': '',
-    'type': 'DELETE',
-    'format': function() {
-      return {
-        async: false
-      }
-    }
+    'type': 'DELETE'
   },
   'hosts.metrics': {
     'real': '/clusters/{clusterName}/hosts?fields={metricName}',
@@ -1189,7 +1181,6 @@ var urls = {
     'format': function (data) {
       return {
         type: 'PUT',
-        async: false,
         data: data.data
       };
     }
@@ -1200,7 +1191,6 @@ var urls = {
     'format': function (data) {
       return {
         type: 'PUT',
-        async: false,
         data: data.data
       };
     }
@@ -1269,7 +1259,6 @@ var urls = {
     'format': function(data) {
       return {
         type: 'PUT',
-        async: false,
         data: data.data
       };
     }
@@ -1280,7 +1269,6 @@ var urls = {
     'type': 'PUT',
     'format': function (data) {
       return {
-        async: false,
         data: data.data
       };
     }
@@ -1291,7 +1279,6 @@ var urls = {
     'type': 'PUT',
     'format': function (data) {
       return {
-        async: false,
         data: data.data
       };
     }
@@ -1330,7 +1317,6 @@ var urls = {
     'format': function (data) {
       var d = {
         type: 'PUT',
-        async: false,
         data: data.data
       };
       if (App.testMode) {
@@ -1345,7 +1331,6 @@ var urls = {
     'format': function (data) {
       var d = {
         type: 'PUT',
-        async: false,
         data: data.data
       };
       if (App.testMode) {
@@ -1360,7 +1345,6 @@ var urls = {
     'format': function (data) {
       return {
         type: 'PUT',
-        async: false,
         data: data.data
       };
     }
@@ -1382,8 +1366,7 @@ var urls = {
     'mock': '',
     'format': function() {
       return {
-        type: 'DELETE',
-        async: false
+        type: 'DELETE'
       };
     }
   },

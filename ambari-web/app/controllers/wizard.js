@@ -311,14 +311,14 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
    * Invoke installation of selected services to the server and saves the request id returned by the server.
    * @param isRetry
    */
-  installServices: function (isRetry) {
-
+  installServices: function (isRetry, callback) {
     // clear requests since we are installing services
     // and we don't want to get tasks for previous install attempts
     this.set('content.cluster.oldRequestsId', []);
     var clusterName = this.get('content.cluster.name');
     var data;
     var name;
+    callback = callback || Em.K;
     if (isRetry) {
       name = 'wizard.install_services.installer_controller.is_retry';
       data = '{"RequestInfo": {"context" :"' + Em.I18n.t('requestInfo.installComponents') + '"}, "Body": {"HostRoles": {"state": "INSTALLED"}}}';
@@ -337,7 +337,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
       },
       success: 'installServicesSuccessCallback',
       error: 'installServicesErrorCallback'
-    });
+    }).then(callback, callback);
   },
 
   installServicesSuccessCallback: function (jsonData) {

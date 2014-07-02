@@ -338,12 +338,13 @@ module.exports = Em.Route.extend({
       var installerController = router.get('installerController');
       var wizardStep8Controller = router.get('wizardStep8Controller');
       // invoke API call to install selected services
-      installerController.installServices();
-      installerController.setInfoForStep9();
-      // We need to do recovery based on whether we are in Add Host or Installer wizard
-      installerController.saveClusterState('CLUSTER_INSTALLING_3');
-      wizardStep8Controller.set('servicesInstalled', true);
-      router.transitionTo('step9');
+      installerController.installServices(false, function () {
+        installerController.setInfoForStep9();
+        // We need to do recovery based on whether we are in Add Host or Installer wizard
+        installerController.saveClusterState('CLUSTER_INSTALLING_3');
+        wizardStep8Controller.set('servicesInstalled', true);
+        router.transitionTo('step9');
+      });
     }
   }),
 
@@ -368,13 +369,16 @@ module.exports = Em.Route.extend({
       if (wizardStep9Controller.get('showRetry')) {
         if (wizardStep9Controller.get('content.cluster.status') === 'INSTALL FAILED') {
           var isRetry = true;
-          installerController.installServices(isRetry);
-          installerController.setInfoForStep9();
-          wizardStep9Controller.resetHostsForRetry();
-          // We need to do recovery based on whether we are in Add Host or Installer wizard
-          installerController.saveClusterState('CLUSTER_INSTALLING_3');
+          installerController.installServices(isRetry, function () {
+            installerController.setInfoForStep9();
+            wizardStep9Controller.resetHostsForRetry();
+            // We need to do recovery based on whether we are in Add Host or Installer wizard
+            installerController.saveClusterState('CLUSTER_INSTALLING_3');
+            wizardStep9Controller.navigateStep();
+          });
+        } else {
+          wizardStep9Controller.navigateStep();
         }
-        wizardStep9Controller.navigateStep();
       }
     },
     unroutePath: function () {

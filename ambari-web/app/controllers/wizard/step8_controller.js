@@ -883,30 +883,12 @@ App.WizardStep8Controller = Em.Controller.extend({
     // delete any existing clusters to start from a clean slate
     // before creating a new cluster in install wizard
     // TODO: modify for multi-cluster support
-    if (this.get('content.controllerName') == 'installerController' && (!App.get('testMode'))) {
-      this.deleteClusters(this.getExistingClusterNames());
+    var clusterNames = this.getExistingClusterNames();
+    if (this.get('content.controllerName') == 'installerController' && (!App.get('testMode')) && clusterNames.length) {
+      this.deleteClusters(clusterNames);
+    } else {
+      this.deleteClustersSuccessCallback(null, null, {isLast: true});
     }
-    if (this.get('wizardController').getDBProperty('configsToUpdate')) {
-      this.updateConfigurations(this.get('wizardController').getDBProperty('configsToUpdate'));
-    }
-    this.setLocalRepositories();
-    this.createCluster();
-    this.createSelectedServices();
-    if (this.get('content.controllerName') !== 'addHostController') {
-      this.createConfigurations();
-      this.applyConfigurationsToCluster();
-    }
-    this.createComponents();
-    this.registerHostsToCluster();
-    if (App.get('supports.hostOverridesInstaller')) {
-      this.createConfigurationGroups();
-    }
-    this.createMasterHostComponents();
-    this.createSlaveAndClientsHostComponents();
-    this.createAdditionalHostComponents();
-
-    this.set('ajaxQueueLength', this.get('ajaxRequestsQueue.queue.length'));
-    this.get('ajaxRequestsQueue').start();
   },
 
   /**
@@ -954,16 +936,45 @@ App.WizardStep8Controller = Em.Controller.extend({
    * @method deleteClusters
    */
   deleteClusters: function (clusterNames) {
-    clusterNames.forEach(function (clusterName) {
+    clusterNames.forEach(function (clusterName, index) {
       App.ajax.send({
         name: 'wizard.step8.delete_cluster',
         sender: this,
         data: {
-          name: clusterName
-        }
+          name: clusterName,
+          isLast: index == clusterNames.length - 1
+        },
+        success: 'deleteClustersCallback',
+        error: 'deleteClustersCallback'
       });
     }, this);
 
+  },
+
+  deleteClustersCallback: function (response, request, data) {
+    if (data.isLast) {
+      if (this.get('wizardController').getDBProperty('configsToUpdate')) {
+        this.updateConfigurations(this.get('wizardController').getDBProperty('configsToUpdate'));
+      }
+      this.setLocalRepositories();
+      this.createCluster();
+      this.createSelectedServices();
+      if (this.get('content.controllerName') !== 'addHostController') {
+        this.createConfigurations();
+        this.applyConfigurationsToCluster();
+      }
+      this.createComponents();
+      this.registerHostsToCluster();
+      if (App.get('supports.hostOverridesInstaller')) {
+        this.createConfigurationGroups();
+      }
+      this.createMasterHostComponents();
+      this.createSlaveAndClientsHostComponents();
+      this.createAdditionalHostComponents();
+
+      this.set('ajaxQueueLength', this.get('ajaxRequestsQueue.queue.length'));
+      this.get('ajaxRequestsQueue').start();
+    }
   },
 
   /**

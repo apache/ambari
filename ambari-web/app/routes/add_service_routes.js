@@ -249,12 +249,13 @@ module.exports = App.WizardRoute.extend({
     next: function (router) {
       var addServiceController = router.get('addServiceController');
       var wizardStep8Controller = router.get('wizardStep8Controller');
-      addServiceController.installServices();
-      addServiceController.setInfoForStep9();
+      addServiceController.installServices(false, function () {
+        addServiceController.setInfoForStep9();
 
-      addServiceController.saveClusterState('ADD_SERVICES_INSTALLING_3');
-      wizardStep8Controller.set('servicesInstalled', true);
-      router.transitionTo('step6');
+        addServiceController.saveClusterState('ADD_SERVICES_INSTALLING_3');
+        wizardStep8Controller.set('servicesInstalled', true);
+        router.transitionTo('step6');
+      });
     }
   }),
 
@@ -281,13 +282,16 @@ module.exports = App.WizardRoute.extend({
       if (wizardStep9Controller.get('showRetry')) {
         if (wizardStep9Controller.get('content.cluster.status') === 'INSTALL FAILED') {
           var isRetry = true;
-          addServiceController.installServices(isRetry);
-          addServiceController.setInfoForStep9();
-          wizardStep9Controller.resetHostsForRetry();
-          // We need to do recovery based on whether we are in Add Host or Installer wizard
-          addServiceController.saveClusterState('ADD_SERVICES_INSTALLING_3');
+          addServiceController.installServices(isRetry, function () {
+            addServiceController.setInfoForStep9();
+            wizardStep9Controller.resetHostsForRetry();
+            // We need to do recovery based on whether we are in Add Host or Installer wizard
+            addServiceController.saveClusterState('ADD_SERVICES_INSTALLING_3');
+            wizardStep9Controller.navigateStep();
+          });
+        } else {
+          wizardStep9Controller.navigateStep();
         }
-        wizardStep9Controller.navigateStep();
       }
     },
     unroutePath: function() {

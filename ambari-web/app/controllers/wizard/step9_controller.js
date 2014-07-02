@@ -168,6 +168,39 @@ App.WizardStep9Controller = Em.Controller.extend({
   currentOpenTaskRequestId: 0,
 
   /**
+   * True if stage transition is completed.
+   * On true, polling will be stopped.
+   * @type {bool}s
+   */
+  parseHostInfo: false,
+
+  isPolling: true,
+
+  changeParseHostInfo: function (value) {
+    this.set('parseHostInfo', value);
+    this.parseHostInfoPolling();
+  },
+
+  parseHostInfoPolling: function () {
+    var self = this;
+    var result = this.get('parseHostInfo');
+    if (!this.get('isPolling')) {
+      if (this.get('content.cluster.status') === 'INSTALL FAILED') {
+        this.isAllComponentsInstalled();
+      }
+      return;
+    }
+    if (result !== true) {
+      window.setTimeout(function () {
+        if (self.get('currentOpenTaskId')) {
+          self.loadCurrentTaskLog();
+        }
+        self.doPolling();
+      }, this.get('POLL_INTERVAL'));
+    }
+  },
+
+  /**
    * Observer function: Updates {status} field of the controller.
    * @method updateStatus
    */
@@ -425,11 +458,11 @@ App.WizardStep9Controller = Em.Controller.extend({
    * @return {$.ajax|null}
    * @method launchStartServices
    */
-  launchStartServices: function () {
+  launchStartServices: function (callback) {
     var data = {};
     var name = '';
     var servicesList = [];
-
+    callback = callback || Em.K;
     if (this.get('content.controllerName') === 'addHostController') {
       name = 'wizard.step9.add_host.launch_start_services';
       var hostnames = [];
@@ -484,7 +517,7 @@ App.WizardStep9Controller = Em.Controller.extend({
       },
       success: 'launchStartServicesSuccessCallback',
       error: 'launchStartServicesErrorCallback'
-    });
+    }).then(callback, callback);
   },
 
   /**
@@ -736,20 +769,22 @@ App.WizardStep9Controller = Em.Controller.extend({
    * INSTALLED -> STARTED
    * INSTALLED -> START_FAILED
    * @param polledData json data retrieved from API
-   * @returns {bool} true if polling should stop; false otherwise
-   * @method finishState
+   * @method setFinishState
    */
-  finishState: function (polledData) {
+  setFinishState: function (polledData) {
     if (this.get('content.cluster.status') === 'INSTALLED') {
-      return this.isServicesStarted(polledData);
+      this.changeParseHostInfo(this.isServicesStarted(polledData));
+      return;
     } else if (this.get('content.cluster.status') === 'PENDING') {
-      return this.isServicesInstalled(polledData);
+      this.setIsServicesInstalled(polledData);
+      return;
     } else if (this.get('content.cluster.status') === 'INSTALL FAILED' || this.get('content.cluster.status') === 'START FAILED'
       || this.get('content.cluster.status') === 'STARTED') {
       this.set('progress', '100');
-      return true;
+      this.changeParseHostInfo(true);
+      return;
     }
-    return false;
+    this.changeParseHostInfo(true);
   },
 
   /**
@@ -782,11 +817,10 @@ App.WizardStep9Controller = Em.Controller.extend({
   },
 
   /**
-   * @param polledData Josn data retrieved from API
-   * @returns {bool} Has "Install All Services" request completed successfully
-   * @method isServicesInstalled
+   * @param polledData Json data retrieved from API
+   * @method setIsServicesInstalled
    */
-  isServicesInstalled: function (polledData) {
+  setIsServicesInstalled: function (polledData) {
     var clusterStatus = {};
     if (!polledData.someProperty('Tasks.status', 'PENDING') && !polledData.someProperty('Tasks.status', 'QUEUED') && !polledData.someProperty('Tasks.status', 'IN_PROGRESS')) {
       clusterStatus = {
@@ -806,14 +840,20 @@ App.WizardStep9Controller = Em.Controller.extend({
         this.set('progress', '34');
         if (this.get('content.controllerName') === 'installerController') {
           this.isAllComponentsInstalled();
+          this.saveInstalledHosts(this);
+          this.changeParseHostInfo(true);
+          return;
         } else {
-          this.launchStartServices();
+          var self = this;
+          this.launchStartServices(function () {
+            self.saveInstalledHosts(self);
+            self.changeParseHostInfo(true);
+          });
+          return;
         }
       }
-      this.saveInstalledHosts(this);
-      return true;
     }
-    return false;
+    this.changeParseHostInfo(false);
   },
 
   /**
@@ -839,11 +879,9 @@ App.WizardStep9Controller = Em.Controller.extend({
   /**
    * Parses the Json data retrieved from API and sets the task on the host of {hosts} array binded to template
    * @param polledData Json data retrieved from API
-   * @returns {bool} True if stage transition is completed.
-   * On true, polling will be stopped.
-   * @method parseHostInfo
+   * @method setParseHostInfo
    */
-  parseHostInfo: function (polledData) {
+  setParseHostInfo: function (polledData) {
     console.log('TRACE: Entering host info function');
     var self = this;
     var totalProgress = 0;
@@ -856,7 +894,8 @@ App.WizardStep9Controller = Em.Controller.extend({
       // determine the current install status.
       // Also, we don't want to keep polling if it is not the
       // current requestId.
-      return false;
+      this.changeParseHostInfo(false);
+      return;
     }
     this.replacePolledData(tasksData);
     var tasksHostMap = {};
@@ -898,7 +937,7 @@ App.WizardStep9Controller = Em.Controller.extend({
     totalProgress = Math.floor(totalProgress / this.get('hosts.length'));
     this.set('progress', totalProgress.toString());
     console.log("INFO: right now the progress is: " + this.get('progress'));
-    return this.finishState(tasksData);
+    this.setFinishState(tasksData);
   },
 
   /**
@@ -1010,25 +1049,11 @@ App.WizardStep9Controller = Em.Controller.extend({
    * @method getLogsByRequestSuccessCallback
    */
   getLogsByRequestSuccessCallback: function (data, opt, params) {
-    var self = this;
     var parsedData = jQuery.parseJSON(data);
     console.log("TRACE: In success function for the GET logs data");
     console.log("TRACE: Step9 -> The value is: ", parsedData);
-    var result = this.parseHostInfo(parsedData);
-    if (!params.polling) {
-      if (this.get('content.cluster.status') === 'INSTALL FAILED') {
-        this.isAllComponentsInstalled();
-      }
-      return;
-    }
-    if (result !== true) {
-      window.setTimeout(function () {
-        if (self.get('currentOpenTaskId')) {
-          self.loadCurrentTaskLog();
-        }
-        self.doPolling();
-      }, this.get('POLL_INTERVAL'));
-    }
+    this.set('isPolling', params.polling);
+    this.setParseHostInfo(parsedData);
   },
 
   /**

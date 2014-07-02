@@ -266,9 +266,11 @@ App.MainHostDetailsController = Em.Controller.extend({
         return Em.I18n.t('hosts.host.deleteComponent.popup.msg1').format(displayName);
       }.property(),
       onPrimary: function () {
-        self._doDeleteHostComponent(component);
-        self.set('redrawComponents', true);
-        this.hide();
+        var popup = this;
+        self._doDeleteHostComponent(component, function () {
+          self.set('redrawComponents', true);
+          popup.hide();
+        });
       }
     });
   },
@@ -288,7 +290,8 @@ App.MainHostDetailsController = Em.Controller.extend({
    *          when components failed to get deleted.
    * @method _doDeleteHostComponent
    */
-  _doDeleteHostComponent: function (component) {
+  _doDeleteHostComponent: function (component, callback) {
+    callback = callback || Em.K;
     App.ajax.send({
       name: (Em.isNone(component)) ? 'host.host_components.delete' : 'host.host_component.delete',
       sender: this,
@@ -298,8 +301,7 @@ App.MainHostDetailsController = Em.Controller.extend({
       },
       success: '_doDeleteHostComponentSuccessCallback',
       error: '_doDeleteHostComponentErrorCallback'
-    });
-    return this.get('_deletedHostComponentResult');
+    }).then(callback, callback);
   },
 
   /**
@@ -323,11 +325,11 @@ App.MainHostDetailsController = Em.Controller.extend({
    * @param {object} errorThrown
    * @method _doDeleteHostComponentErrorCallback
    */
-  _doDeleteHostComponentErrorCallback: function (xhr, textStatus, errorThrown) {
+  _doDeleteHostComponentErrorCallback: function (xhr, textStatus, errorThrown, data) {
     console.log('Error deleting host component');
     console.log(textStatus);
     console.log(errorThrown);
-    this.set('_deletedHostComponentResult', {xhr: xhr, url: url, method: 'DELETE'});
+    this.set('_deletedHostComponentResult', {xhr: xhr, url: data.url, method: 'DELETE'});
   },
 
   /**
@@ -1491,28 +1493,37 @@ App.MainHostDetailsController = Em.Controller.extend({
         self.set('fromDeleteHost', true);
         var allComponents = self.get('content.hostComponents');
         var deleteError = null;
-        allComponents.forEach(function (component) {
+        var dfd = $.Deferred();
+        var popup = this;
+        allComponents.forEach(function (component, index) {
+          var length = allComponents.get('length');
           if (!deleteError) {
-            deleteError = self._doDeleteHostComponent(component);
+            self._doDeleteHostComponent(component, function () {
+              deleteError = self.get('_deletedHostComponentResult');
+              if (index == length - 1) {
+                dfd.resolve();
+              }
+            });
           }
         });
-        if (!deleteError) {
-          App.ajax.send({
-            name: 'host.delete',
-            sender: this,
-            data: {
-              hostName: self.get('content.hostName')
-            },
-            success: 'deleteHostSuccessCallback',
-            error: 'deleteHostErrorCallback'
-          });
-
-        }
-        else {
-          this.hide();
-          deleteError.xhr.responseText = "{\"message\": \"" + deleteError.xhr.statusText + "\"}";
-          App.ajax.defaultErrorHandler(deleteError.xhr, deleteError.url, deleteError.method, deleteError.xhr.status);
-        }
+        dfd.done(function () {
+          if (!deleteError) {
+            App.ajax.send({
+              name: 'host.delete',
+              sender: popup,
+              data: {
+                hostName: self.get('content.hostName')
+              },
+              success: 'deleteHostSuccessCallback',
+              error: 'deleteHostErrorCallback'
+            });
+          }
+          else {
+            popup.hide();
+            deleteError.xhr.responseText = "{\"message\": \"" + deleteError.xhr.statusText + "\"}";
+            App.ajax.defaultErrorHandler(deleteError.xhr, deleteError.url, deleteError.method, deleteError.xhr.status);
+          }
+        });
       },
       deleteHostSuccessCallback: function (data) {
         var dialogSelf = this;
