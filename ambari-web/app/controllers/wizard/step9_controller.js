@@ -813,7 +813,7 @@ App.WizardStep9Controller = Em.Controller.extend({
       this.saveInstalledHosts(this);
       return true;
     }
-    return false;
+    this.changeParseHostInfo(false);
   },
 
   /**

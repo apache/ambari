@@ -1248,7 +1248,6 @@ var urls = {
     'format': function (data) {
       return {
         type: 'PUT',
-        async: false,
         data: data.data
       };
     }
