@@ -36,7 +36,6 @@ App.componentConfigMapper = App.QuickDataMapper.create({
     var hostComponents = [];
     var serviceToHostComponentIdMap = {};
     var cacheServices = App.cache['services'];
-    var componentsWithStaleConfigs = {};
     var loadedServiceComponentsMap = this.buildServiceComponentMap(cacheServices);
     var mapConfig = this.get('config');
     // We do not want to parse JSON if there is no need to
