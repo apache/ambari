@@ -887,7 +887,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     if (this.get('content.controllerName') == 'installerController' && (!App.get('testMode')) && clusterNames.length) {
       this.deleteClusters(clusterNames);
     } else {
-      this.deleteClustersSuccessCallback(null, null, {isLast: true});
+      this.deleteClustersCallback(null, null, {isLast: true});
     }
   },
 
