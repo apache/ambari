@@ -129,26 +129,16 @@ App.AddHostController = App.WizardController.extend({
   },
 
   /**
-   * return slaveComponents bound to hosts
-   * @return {Array}
-   */
-  getSlaveComponentHosts: function () {
-    return this._super().filter(function (component) {
-      return component.isInstalled;
-    });
-  },
-
-  /**
-   * Load master component hosts data for using in required step controllers
+   * Load slave component hosts data for using in required step controllers
    * TODO move to mixin
    */
   loadSlaveComponentHosts: function () {
-    var slaveComponentHosts = this.getDBProperty('slaveComponentHosts'),
-      hosts = this.getDBProperty('hosts'),
-      host_names = Em.keys(hosts);
-    if (!Em.isNone(slaveComponentHosts)) {
-      slaveComponentHosts.forEach(function(component) {
-        component.hosts.forEach(function(host) {
+    var slaveComponentHosts = this.getDBProperty('slaveComponentHosts') || [];
+    if (slaveComponentHosts.length) {
+      var hosts = this.getDBProperty('hosts'),
+          host_names = Em.keys(hosts);
+      slaveComponentHosts.forEach(function (component) {
+        component.hosts.forEach(function (host) {
           //Em.set(host, 'hostName', hosts[host.host_id].name);
           for (var i = 0; i < host_names.length; i++) {
             if (hosts[host_names[i]].id === host.host_id) {
@@ -158,9 +148,6 @@ App.AddHostController = App.WizardController.extend({
           }
         });
       });
-    }
-    if (!slaveComponentHosts) {
-      slaveComponentHosts = this.getSlaveComponentHosts();
     }
     this.set("content.slaveComponentHosts", slaveComponentHosts);
     console.log("AddHostController.loadSlaveComponentHosts: loaded hosts ", slaveComponentHosts);

@@ -163,6 +163,7 @@ module.exports = App.WizardRoute.extend({
       addHostController.saveClients();
 
       addHostController.setDBProperty('bootStatus', true);
+      addHostController.setDBProperty('slaveComponentHosts', undefined);
       router.transitionTo('step3');
     },
     /**
