@@ -101,23 +101,9 @@ module.exports = {
         didInsertElement: function(){
           var defaultFilterColumn = this.get('filterColumns').findProperty('selected');
           this.set('filterColumn', defaultFilterColumn);
-          this.initContent();
-        },
-        initContent: function () {
           initialHosts.setEach('filtered', true);
-          if (initialHosts.length > 100) {
-            lazyloading.run({
-              destination: this.get('parentView.availableHosts'),
-              source: initialHosts,
-              context: this.get('parentView'),
-              initSize: 50,
-              chunkSize: 100,
-              delay: 50
-            });
-          } else {
-            this.set('parentView.availableHosts', initialHosts);
-            this.set('parentView.isLoaded', true);
-          }
+          this.set('parentView.availableHosts', initialHosts);
+          this.set('parentView.isLoaded', true);
         },
         filterHosts: function () {
           var filterText = this.get('filterText');
