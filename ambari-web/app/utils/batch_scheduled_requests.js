@@ -215,8 +215,8 @@ module.exports = {
       }
     }
     if (hostComponentsList.length > 0) {
-      var operation_level = this.getOperationLevelobject(level, hosts.uniq().join(","),
-        componentServiceMap[hostComponentsList[0].get("componentName")], hostComponentsList[0].get("componentName"));
+      var operation_level = this.getOperationLevelobject(level, componentServiceMap[hostComponentsList[0].get("componentName")],
+        hostComponentsList[0].get("componentName"));
     }
 
 
@@ -241,23 +241,19 @@ module.exports = {
 
   /**
    * @param {String} level - operation level name, can be ("CLUSTER", "SERVICE", "HOST", "HOSTCOMPONENT")
-   * @param {String} hostName get host name or hostNames as String("host1,host2")
    * @param {String} serviceName
    * @param {String} componentName
    * @returns {Object} {{level: *, cluster_name: *}} - operation level object
    * @method getOperationLevelobject - create operation level object to be included into ajax query
    */
-  getOperationLevelobject: function(level, hostName, serviceName, componentName) {
+  getOperationLevelobject: function(level, serviceName, componentName) {
     var operationLevel = {
       "level": level,
       "cluster_name": App.get("clusterName")
     };
-    if (level === "HOST") {
-      operationLevel["host_name"] = hostName;
-    } else if (level === "SERVICE") {
+    if (level === "SERVICE") {
       operationLevel["service_name"] = serviceName;
-    } else {
-      operationLevel["host_name"] = hostName;
+    } else if(level !== "HOST") {
       operationLevel["service_name"] = serviceName;
       operationLevel["hostcomponent_name"] = componentName;
     }

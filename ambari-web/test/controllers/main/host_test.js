@@ -303,7 +303,7 @@ describe('MainHostController', function () {
 
   });
 
-  describe.only('#getRegExp()', function() {
+  describe('#getRegExp()', function() {
     before(function() {
       hostController = App.MainHostController.create({});
     });
