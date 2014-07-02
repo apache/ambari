@@ -168,7 +168,11 @@ App.UpdateController = Em.Controller.extend({
     this.get('queryParams').set('Hosts', App.router.get('mainHostController').getQueryParameters());
     var clientCallback = function (skipCall, queryParams) {
       if (skipCall) {
-        App.hostsMapper.map({items: []});
+        //no hosts match filter by component
+        App.hostsMapper.map({
+          items: [],
+          itemTotal: '0'
+        });
         callback();
       } else {
         var hostsUrl = self.getComplexUrl(testUrl, realUrl, queryParams);
@@ -226,14 +230,19 @@ App.UpdateController = Em.Controller.extend({
     var preLoadKeys = this.get('hostsPreLoadKeys');
     var queryParams = this.get('queryParams.Hosts');
     var hostNames = data.items.mapProperty('Hosts.host_name');
+    var skipCall = hostNames.length === 0;
+
+    /**
+     * exclude pagination parameters as they were applied in previous call
+     * to obtain hostnames of filtered hosts
+     */
+    preLoadKeys.pushObjects(['page_size', 'from']);
 
     var itemTotal = parseInt(data.itemTotal);
-    if (!isNaN(itemTotal) && itemTotal!==undefined && itemTotal!==null) {
+    if (!isNaN(itemTotal)) {
       App.router.set('mainHostController.filteredCount', itemTotal);
-      App.router.set('mainHostController.setFilteredCount', false);
     }
 
-    var skipCall = hostNames.length === 0;
     if (skipCall) {
       params.callback(skipCall);
     } else {
