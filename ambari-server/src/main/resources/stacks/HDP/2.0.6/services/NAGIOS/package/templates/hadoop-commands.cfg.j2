@@ -44,6 +44,10 @@ define command {
         command_name    check_cpu
         command_line    $USER1$/check_wrapper.sh php $USER1$/check_cpu.php -h $HOSTADDRESS$ -p $ARG1$ -w $ARG2$ -c $ARG3$ -e $ARG4$ -k $ARG5$ -r $ARG6$ -t $ARG7$ -u $ARG8$
        }
+define command {
+        command_name    check_hbase_cpu
+        command_line    $USER1$/check_wrapper.sh php $USER1$/check_hbase_cpu.php -h $ARG1$ -p $ARG2$ -w $ARG3$ -c $ARG4$ -e $ARG5$ -k $ARG6$ -r $ARG7$ -t $ARG8$ -u $ARG9$
+       }
 {% endif %}
 
 # Check data node storage full 
