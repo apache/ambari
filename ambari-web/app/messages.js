@@ -333,7 +333,7 @@ Em.I18n.translations = {
   'services.alerts.goToService': 'Go to Service',
   'services.alerts.goToNagios': 'Go to Nagios Web UI',
 
-  'topnav.logo.href':'http://ambari.apache.org/',
+  'topnav.logo.href':'/#/main/dashboard',
   'topnav.help.href':'https://cwiki.apache.org/confluence/display/AMBARI/Ambari',
 
   'installer.header':'Cluster Install Wizard',
