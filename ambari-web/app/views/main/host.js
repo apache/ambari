@@ -286,7 +286,8 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
    * combine selected hosts on page with selected hosts which are filtered out but added to cluster
    */
   combineSelectedFilter: function () {
-    var previouslySelectedHosts = this.getSelectedFilter();
+    var controllerName = this.get('controller.name');
+    var previouslySelectedHosts = App.db.getSelectedHosts(controllerName);
     var selectedHosts = [];
     var hostsOnPage = this.get('pageContent').mapProperty('hostName');
     selectedHosts = this.get('pageContent').filterProperty('selected').mapProperty('hostName');
@@ -305,24 +306,6 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
   filterSelected: function() {
     //10 is an index of selected column
     this.updateFilter(10, this.get('selectedHosts'), 'multiple');
-  },
-
-  /**
-   * get selected filter previous value
-   * @return {Array}
-   */
-  getSelectedFilter: function() {
-    var filterCondition = this.get('filterConditions').findProperty('iColumn', 10);
-    var dbFilterConditions = App.db.getFilterConditions(this.get('controller.name'));
-    var selectedFilter = [];
-
-    if (filterCondition) {
-      selectedFilter = filterCondition.value;
-    }
-    else if (dbFilterConditions && dbFilterConditions.findProperty('iColumn', 10)) {
-        selectedFilter = dbFilterConditions.findProperty('iColumn', 10).value;
-    }
-    return selectedFilter;
   },
 
   /**
