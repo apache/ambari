@@ -105,7 +105,7 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
    */
   paginationInfo: function () {
     return this.t('tableView.filters.paginationInfo').format(this.get('startIndex'), this.get('endIndex'), this.get('filteredCount'));
-  }.property('totalCount', 'endIndex', 'filteredCount'),
+  }.property('startIndex', 'endIndex', 'filteredCount'),
 
   paginationLeftClass: function () {
     if (this.get("startIndex") > 1 && this.get('filteringComplete')) {
@@ -147,7 +147,7 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
     change: function () {
       this.get('parentView').saveDisplayLength();
       var self = this;
-      if (this.get('parentView.startIndex') === 1) {
+      if (this.get('parentView.startIndex') === 1 || this.get('parentView.startIndex') === 0) {
         Ember.run.next(function () {
           self.get('parentView').updateViewProperty();
         });
@@ -178,7 +178,7 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
     } else if (!this.get('startIndex')) {
       this.set('startIndex', 1);
     }
-  }.observes('displayLength', 'filteredCount'),
+  },
 
 
   clearFiltersObs: function() {
@@ -195,21 +195,6 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
   willInsertElement: function () {
     this._super();
     this.set('startIndex', this.get('controller.startIndex'));
-    var filterConditions = App.db.getFilterConditions(this.get('controller.name'));
-    if (filterConditions) {
-      var childViews = this.get('childViews');
-      filterConditions.forEach(function(condition) {
-        var view = !Em.isNone(condition.iColumn) && childViews.findProperty('column', condition.iColumn);
-        if (view) {
-          view.set('value', condition.value);
-          Em.run.next(function() {
-            view.showClearFilter();
-          });
-        }
-      });
-    } else {
-      this.clearFilters();
-    }
     this.addObserver('pageContent.@each.selected', this, this.selectedHostsObserver);
   },
 
@@ -234,8 +219,16 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
     this.set('controller.isCountersUpdating', true);
     this.get('controller').updateStatusCounters();
     this.addObserver('filteringComplete', this, this.overlayObserver);
+    this.addObserver('displayLength', this, this.updatePaging);
+    this.addObserver('filteredCount', this, this.updatePaging);
     this.overlayObserver();
   },
+
+  onInitialLoad: function () {
+    if (this.get('tableFilteringComplete')) {
+      this.refresh();
+    }
+  }.observes('tableFilteringComplete'),
 
   /**
    * synchronize properties of view with controller to generate query parameters

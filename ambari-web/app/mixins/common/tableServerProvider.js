@@ -83,15 +83,18 @@ App.TableServerProvider = Em.Mixin.create({
    */
   updateFilter: function (iColumn, value, type) {
     var self = this;
-    if (!this.get('filteringComplete')) {
-      clearTimeout(this.get('timeOut'));
-      this.set('timeOut', setTimeout(function() {
-        self.updateFilter(iColumn, value, type);
-      }, this.get('filterWaitingTime')));
-    } else {
-      clearTimeout(this.get('timeOut'));
-      this.saveFilterConditions(iColumn, value, type, false);
-      this.refresh();
+    this.saveFilterConditions(iColumn, value, type, false);
+    // if initial load finished
+    if (this.get('tableFilteringComplete')) {
+      if (!this.get('filteringComplete')) {
+        clearTimeout(this.get('timeOut'));
+        this.set('timeOut', setTimeout(function () {
+          self.updateFilter(iColumn, value, type);
+        }, this.get('filterWaitingTime')));
+      } else {
+        clearTimeout(this.get('timeOut'));
+        this.refresh();
+      }
     }
   },
 

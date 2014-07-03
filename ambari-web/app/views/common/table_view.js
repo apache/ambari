@@ -82,19 +82,23 @@ App.TableView = Em.View.extend(App.UserPref, {
 
       var childViews = this.get('childViews');
 
-      filterConditions.forEach(function(condition) {
+      filterConditions.forEach(function(condition, index, filteredConditions) {
         var view = !Em.isNone(condition.iColumn) && childViews.findProperty('column', condition.iColumn);
         if (view) {
           view.set('value', condition.value);
           Em.run.next(function() {
             view.showClearFilter();
+            // check if it is the last iteration
+            if (filteredConditions.length - index - 1 === 0) {
+              self.set('tableFilteringComplete', true);
+            }
           });
         }
       });
     } else {
       this.clearFilters();
+      this.set('tableFilteringComplete', true);
     }
-    self.set('tableFilteringComplete', true);
   },
 
   /**

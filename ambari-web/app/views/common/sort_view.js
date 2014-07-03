@@ -199,7 +199,8 @@ var serverWrapperView = Em.View.extend({
       var self = this;
       statuses.forEach(function (st) {
         if (st.status !== 'sorting') {
-          self.sort(childViews.findProperty('name', st.name), (st.status === 'sorting_desc'));
+          self.get('childViews').findProperty('name', childViews.findProperty('name', st.name).get('name')).set('status', st.status);
+          self.saveSortStatuses();
           self.get('controller').set('sortingColumn', childViews.findProperty('name', st.name));
         } else {
           childViews.findProperty('name', st.name).set('status', st.status);
