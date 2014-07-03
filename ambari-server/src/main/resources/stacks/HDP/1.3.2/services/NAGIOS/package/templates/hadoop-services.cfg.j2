@@ -488,6 +488,7 @@ define service {
 #         retry_check_interval    1
 #         max_check_attempts      3
 # #}
+{% if hostgroup_defs['hbasemasters'] %}
 {% if check_cpu_on %}
 define service {
         hostgroup_name          nagios-server
@@ -500,6 +501,7 @@ define service {
         retry_check_interval    2
         max_check_attempts      5
 }
+{%  endif %}
 {%  endif %}
 
 {%  for hbasemaster in hbase_master_hosts %}
