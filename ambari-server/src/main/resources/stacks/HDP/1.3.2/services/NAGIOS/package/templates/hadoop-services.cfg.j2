@@ -70,7 +70,7 @@ define service {
         service_description     HDFS::Percent DataNodes with space available
         servicegroups           HDFS
         check_command           check_aggregate!"DATANODE::DataNode space"!10%!30%
-        normal_check_interval   2
+        normal_check_interval   0.5
         retry_check_interval    1 
         max_check_attempts      1
 }
