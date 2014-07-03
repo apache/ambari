@@ -478,9 +478,9 @@ App.format = {
  * @param {DOMElement} self
  * @param {object} options
  */
-App.popover = function(self, options) {
+App.popover = function (self, options) {
   self.popover(options);
-  self.on("remove", function () {
+  self.on("remove DOMNodeRemoved", function () {
     $(this).trigger('mouseleave');
   });
 };
@@ -493,10 +493,10 @@ App.popover = function(self, options) {
  * @param {DOMElement} self
  * @param {object} options
  */
-App.tooltip = function(self, options) {
+App.tooltip = function (self, options) {
   self.tooltip(options);
   /* istanbul ignore next */
-  self.on("remove", function () {
+  self.on("remove DOMNodeRemoved", function () {
     $(this).trigger('mouseleave');
   });
 };
