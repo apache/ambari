@@ -16,11 +16,13 @@
    limitations under the License.
 -->
 <reposinfo>
-  <latest>http://public-repo-1.hortonworks.com/HDP/hdp_urlinfo.json</latest>
+  <!--<latest>http://public-repo-1.hortonworks.com/HDP/hdp_urlinfo.json</latest>-->
+  <latest>http://s3.amazonaws.com/dev.hortonworks.com/HDP/hdp_urlinfo.json</latest>
   <os type="redhat6">
     <repo>
-      <baseurl>http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.1.2.0</baseurl>
-      <repoid>HDP-2.1.GlusterFS</repoid>
+      <!--<baseurl>http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.1.2.0</baseurl>-->
+      <baseurl>REPLACE_WITH_CENTOS6_URL</baseurl>
+      <repoid>HDP-2.1</repoid>
       <reponame>HDP</reponame>
     </repo>
     <repo>
@@ -31,8 +33,8 @@
   </os>
   <os type="redhat5">
     <repo>
-      <baseurl>http://public-repo-1.hortonworks.com/HDP/centos5/2.x/updates/2.1.2.0</baseurl>
-      <repoid>HDP-2.1.GlusterFS</repoid>
+      <baseurl>REPLACE_WITH_CENTOS5_URL</baseurl>      
+      <repoid>HDP-2.1</repoid>
       <reponame>HDP</reponame>
     </repo>
     <repo>
@@ -43,8 +45,8 @@
   </os>
   <os type="suse11">
     <repo>
-      <baseurl>http://public-repo-1.hortonworks.com/HDP/suse11/2.x/updates/2.1.2.0</baseurl>
-      <repoid>HDP-2.1.GlusterFS</repoid>
+      <baseurl>REPLACE_WITH_SUSE11_URL</baseurl>      
+      <repoid>HDP-2.1</repoid>
       <reponame>HDP</reponame>
     </repo>
     <repo>
