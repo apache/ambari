@@ -67,8 +67,10 @@ App.Decommissionable = Em.Mixin.create({
    * @type {bool}
    */
   isComponentDecommissionDisable: function() {
+    var masterComponent = this.get('content.service.hostComponents').findProperty('componentName', this.get('componentForCheckDecommission'));
+    if (masterComponent && masterComponent.get('workStatus') != App.HostComponentStatus.started) return true;
     return this.get('content.service.workStatus') != App.HostComponentStatus.started;
-  }.property('content.service.workStatus'),
+  }.property('content.service.workStatus', 'content.service.hostComponents.@each.workStatus'),
 
   /**
    * @override App.HostComponentView.isRestartableComponent
@@ -207,6 +209,7 @@ App.Decommissionable = Em.Mixin.create({
   getDecommissionStatusSuccessCallback: function (response) {
     var statusObject = response.ServiceComponentInfo;
     if ( statusObject != null) {
+      statusObject.component_state = response.host_components[0].HostRoles.state;
       this.set('decommissionedStatusObject', statusObject);
       return statusObject;
     }
