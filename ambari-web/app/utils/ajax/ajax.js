@@ -477,7 +477,7 @@ var urls = {
     'mock': ''
   },
   'host.host_component.decommission_status': {
-    'real': '/clusters/{clusterName}/services/{serviceName}/components/{componentName}/?fields=ServiceComponentInfo',
+    'real': '/clusters/{clusterName}/services/{serviceName}/components/{componentName}/?fields=ServiceComponentInfo,host_components/HostRoles/state',
     'mock': ''
   },
   'host.host_component.decommission_status_datanode': {

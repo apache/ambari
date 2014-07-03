@@ -42,9 +42,13 @@ App.NodeManagerComponentView = App.HostComponentView.extend(App.Decommissionable
         case "DECOMMISSIONED":
           var deferred = $.Deferred();
           self.getDecommissionStatus().done( function() {
-            var curObj = self.get('decommissionedStatusObject');
+            var curObj = self.get('decommissionedStatusObject'),
+                rmComponent = self.get('content.service.hostComponents').findProperty('componentName', self.get('componentForCheckDecommission'));
+
+            rmComponent.set('workStatus', curObj.component_state);
             self.set('decommissionedStatusObject', null);
             if (curObj && curObj.rm_metrics) {
+              // Update RESOURCEMANAGER status
               var nodeManagersArray = App.parseJSON(curObj.rm_metrics.cluster.nodeManagers);
               if (nodeManagersArray.findProperty('HostName', hostName)){
                 // decommisioning ..
@@ -57,6 +61,11 @@ App.NodeManagerComponentView = App.HostComponentView.extend(App.Decommissionable
                 self.set('isComponentDecommissioning', false);
                 self.set('isComponentDecommissionAvailable', false);
               }
+            } else {
+              // in this case ResourceManager not started. Set status to Decommissioned
+              self.set('isComponentRecommissionAvailable', true);
+              self.set('isComponentDecommissioning', false);
+              self.set('isComponentDecommissionAvailable', false);
             }
             deferred.resolve(curObj);
           });

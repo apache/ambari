@@ -24,6 +24,8 @@ App.serviceMapper = App.QuickDataMapper.create({
     json.items.forEach(function (service) {
       var cachedService = App.cache['services'].findProperty('ServiceInfo.service_name', service.ServiceInfo.service_name);
       if (cachedService) {
+        // restore service workStatus
+        App.Service.find(cachedService.ServiceInfo.service_name).set('workStatus', service.ServiceInfo.state);
         cachedService.ServiceInfo.state = service.ServiceInfo.state;
         cachedService.ServiceInfo.passive_state = service.ServiceInfo.maintenance_state;
 
