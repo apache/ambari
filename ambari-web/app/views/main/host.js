@@ -387,7 +387,7 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
     var queryParams = [];
     switch(selection) {
       case 's':
-        hostsNames = App.db.data.app.tables.filterConditions[this.get('controller.name')].findProperty('iColumn', 10).value;
+        hostsNames = this.get('selectedHosts');
         if(hostsNames.length > 0){
           queryParams.push({
             key: 'Hosts/host_name',
