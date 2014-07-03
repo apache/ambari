@@ -70,6 +70,7 @@ App.hostsMapper = App.QuickDataMapper.create({
       var hostsWithFullInfo = [];
       var hostIds = {};
       var components = [];
+      var componentsIdMap = {};
       json.items.forEach(function (item, index) {
         item.host_components = item.host_components || [];
         item.host_components.forEach(function (host_component) {
@@ -79,6 +80,7 @@ App.hostsMapper = App.QuickDataMapper.create({
           component.host_id = item.Hosts.host_name;
           component.host_name = item.Hosts.host_name;
           components.push(component);
+          componentsIdMap[component.id] = component;
         }, this);
         item.critical_alerts_count = (item.alerts) ? item.alerts.summary.CRITICAL + item.alerts.summary.WARNING : 0;
         item.cluster_id = App.get('clusterName');
@@ -103,6 +105,9 @@ App.hostsMapper = App.QuickDataMapper.create({
         if (!hostIds[host.get('hostName')]) {
           host.set('isRequested', false);
         }
+      });
+      App.HostComponent.find().filterProperty('isMaster').forEach(function(component) {
+        if (componentsIdMap[component.get('id')]) componentsIdMap[component.get('id')].display_name_advanced = component.get('displayNameAdvanced');
       });
       App.store.commit();
       App.store.loadMany(App.HostComponent, components);
