@@ -130,13 +130,23 @@
       <div class="box">
         <div class="box-header">
           <h4>{{t hosts.host.summary.hostMetrics}}</h4>
-          <div class="btn-group">
-            {{#if App.router.clusterController.isGangliaUrlLoaded}}
-              <a class="btn" rel="tooltip" title="Go to Ganglia" {{action "showGangliaCharts" target="view"}}><i class="icon-link"></i></a>
-            {{else}}
-              <div class="spinner"></div>
-            {{/if}}
-          </div>
+          {{#if App.router.clusterController.isGangliaInstalled}}
+            <div class="btn-group">
+              {{#if App.router.clusterController.isGangliaUrlLoaded}}
+                <a class="btn" rel="tooltip" title="Go to Ganglia" {{action "showGangliaCharts" target="view"}}><i class="icon-link"></i></a>
+              {{else}}
+                <div class="spinner"></div>
+              {{/if}}
+            </div>
+          {{/if}}
+            <div class="btn-group">
+              {{#if App.router.clusterController.isGangliaUrlLoaded}}
+                <a class="btn" rel="tooltip" title="Go to Ganglia" {{action "showGangliaCharts" target="view"}}><i class="icon-link"></i></a>
+              {{else}}
+                <div class="spinner"></div>
+              {{/if}}
+            </div>
+          {{/if}}
         </div>
         <div>
          {{view App.MainHostMetricsView contentBinding="view.content"}}
