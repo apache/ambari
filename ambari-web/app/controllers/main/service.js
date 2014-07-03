@@ -98,7 +98,7 @@ App.MainServiceController = Em.ArrayController.extend({
     }
     var self = this;
     App.showConfirmationFeedBackPopup(function(query) {
-      self.allServicesCall('startAllService', query);
+      self.allServicesCall('STARTED', query);
     });
   },
 
@@ -111,29 +111,21 @@ App.MainServiceController = Em.ArrayController.extend({
     }
     var self = this;
     App.showConfirmationFeedBackPopup(function(query) {
-      self.allServicesCall('stopAllService', query);
+      self.allServicesCall('INSTALLED', query);
     });
   },
 
   allServicesCall: function(state, query) {
-    var data;
-    if (state == 'stopAllService') {
-      data = '{"RequestInfo": {"context" :"' +
-        App.BackgroundOperationsController.CommandContexts.STOP_ALL_SERVICES +
-        '", "operation_level": {"level": "CLUSTER","cluster_name" : "' + App.get('clusterName') +
-        '"}}, "Body": {"ServiceInfo": {"state": "INSTALLED"}}}';
-    } else {
-      data = '{"RequestInfo": {"context" :"' +
-        App.BackgroundOperationsController.CommandContexts.START_ALL_SERVICES +
-        '", "operation_level": {"level": "CLUSTER","cluster_name" : "' + App.get('clusterName') +
-        '"}}, "Body": {"ServiceInfo": {"state": "STARTED"}}}';
-    }
-
+    var context = (state == 'INSTALLED') ? App.BackgroundOperationsController.CommandContexts.STOP_ALL_SERVICES :
+       App.BackgroundOperationsController.CommandContexts.START_ALL_SERVICES
     App.ajax.send({
-      name: 'service.start_stop',
+      name: 'common.services.update',
       sender: this,
       data: {
-        data: data,
+        context: context,
+        ServiceInfo: {
+          state: state
+        },
         query: query
       },
       success: 'allServicesCallSuccessCallback',

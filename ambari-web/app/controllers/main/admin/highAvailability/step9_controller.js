@@ -37,17 +37,17 @@ App.HighAvailabilityWizardStep9Controller = App.HighAvailabilityProgressPageCont
 
   startSecondNameNode: function () {
     var hostName = this.get('content.masterComponentHosts').findProperty('isAddNameNode', true).hostName;
-    this.startComponent('NAMENODE', hostName);
+    this.updateComponent('NAMENODE', hostName, "HDFS", "Start");
   },
 
   installZKFC: function () {
     var hostName = this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE').mapProperty('hostName');
-    this.createComponent('ZKFC', hostName);
+    this.createComponent('ZKFC', hostName, "HDFS");
   },
 
   startZKFC: function () {
     var hostName = this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE').mapProperty('hostName');
-    this.startComponent('ZKFC', hostName);
+    this.updateComponent('ZKFC', hostName, "HDFS", "Start");
   },
 
   reconfigureHBase: function () {
@@ -78,7 +78,13 @@ App.HighAvailabilityWizardStep9Controller = App.HighAvailabilityProgressPageCont
 
   startAllServices: function () {
     App.ajax.send({
-      name: 'admin.high_availability.start_all_services',
+      name: 'common.services.update',
+      data: {
+        context: "Start all services",
+        "ServiceInfo": {
+          "state": "STARTED"
+        }
+      },
       sender: this,
       success: 'startPolling',
       error: 'onTaskError'

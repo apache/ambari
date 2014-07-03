@@ -114,7 +114,7 @@ App.MainServiceItemController = Em.Controller.extend({
     }
 
     var data = {
-      'requestInfo': requestInfo,
+      'context': requestInfo,
       'serviceName': this.get('content.serviceName').toUpperCase(),
       'ServiceInfo': {
         'state': serviceHealth
@@ -125,7 +125,7 @@ App.MainServiceItemController = Em.Controller.extend({
       data.ServiceInfo.maintenance_state = turnOnMM;
     }
     App.ajax.send({
-      'name': 'service.item.start_stop',
+      'name': 'common.service.update',
       'sender': this,
       'success': 'startStopPopupSuccessCallback',
       'error': 'startStopPopupErrorCallback',

@@ -76,6 +76,82 @@ App.MainHostDetailsController = Em.Controller.extend({
   }.property('serviceActiveComponents'),
 
   /**
+   * send command to server to start selected host component
+   * @param {object} event
+   * @method startComponent
+   */
+  startComponent: function (event) {
+    var self = this;
+    return App.showConfirmationPopup(function () {
+      var component = event.context;
+      var context = Em.I18n.t('requestInfo.startHostComponent') + " " + component.get('displayName');
+      self.sendComponentCommand(component, context, App.HostComponentStatus.started);
+    });
+  },
+
+  /**
+   * send command to server to stop selected host component
+   * @param {object} event
+   * @method startComponent
+   */
+  stopComponent: function (event) {
+    var self = this;
+    return App.showConfirmationPopup(function () {
+      var component = event.context;
+      var context = Em.I18n.t('requestInfo.stopHostComponent') + " " + component.get('displayName');
+      self.sendComponentCommand(component, context, App.HostComponentStatus.stopped);
+    });
+  },
+  /**
+   * PUTs a command to server to start/stop a component. If no
+   * specific component is provided, all components are started.
+   * @param {object} component  When <code>null</code> all startable components are started.
+   * @param {String} context  Context under which this command is beign sent.
+   * @param {String} state - desired state of component can be 'STARTED' or 'STOPPED'
+   * @method sendStartComponentCommand
+   */
+  sendComponentCommand: function (component, context, state) {
+    var data = {
+      hostName: this.get('content.hostName'),
+      context: context,
+      component: component,
+      HostRoles: {
+        state: state
+      }
+    };
+    if (Array.isArray(component)) {
+      data.query = "HostRoles/component_name.in(" + component.mapProperty('componentName').join(',') + ")";
+    } else {
+      data.componentName = component.get('componentName');
+      data.serviceName = component.get('service.serviceName');
+    }
+    App.ajax.send({
+      name: (Array.isArray(component)) ? 'common.host_components.update' : 'common.host_component.update',
+      sender: this,
+      data: data,
+      success: 'sendComponentCommandSuccessCallback',
+      error: 'ajaxErrorCallback'
+    });
+  },
+
+  /**
+   * Success callback for stop/start host component request
+   * @param {object} data
+   * @param {object} opt
+   * @param {object} params
+   * @method stopComponentSuccessCallback
+   */
+  sendComponentCommandSuccessCallback: function (data, opt, params) {
+    var running = (params.HostRoles.state ===  App.HostComponentStatus.stopped) ? App.HostComponentStatus.stopping : App.HostComponentStatus.starting;
+    console.log('Send request for '+running+' successfully');
+    params.component.set('workStatus', running);
+    if (App.get('testMode')) {
+      this.mimicWorkStatusChange(params.component, running, params.HostRoles.state);
+    }
+    this.showBackgroundOperationsPopup();
+  },
+
+  /**
    * Default error-callback for ajax-requests in current page
    * @param {object} request
    * @param {object} ajaxOptions
@@ -88,112 +164,6 @@ App.MainHostDetailsController = Em.Controller.extend({
     console.log('error on change component host status');
     App.ajax.defaultErrorHandler(request, opt.url, opt.method);
   },
-
-  /**
-   * send command to server to start selected host component
-   * @param {object} event
-   * @method startComponent
-   */
-  startComponent: function (event) {
-    var self = this;
-    return App.showConfirmationPopup(function () {
-      var component = event.context;
-      var context = Em.I18n.t('requestInfo.startHostComponent') + " " + component.get('displayName');
-      self.sendStartComponentCommand(component, context);
-    });
-  },
-
-  /**
-   * PUTs a command to server to start a component. If no
-   * specific component is provided, all components are started.
-   * @param {object} component  When <code>null</code> all startable components are started.
-   * @param {string} context  Context under which this command is beign sent.
-   * @method sendStartComponentCommand
-   */
-  sendStartComponentCommand: function (component, context) {
-    var dataToSend = this.getDataToSend('STARTED', context, component);
-    var data = {
-      hostName: this.get('content.hostName'),
-      component: component
-    };
-    this.setComponentToData(data, dataToSend, component);
-    App.ajax.send({
-      name: (Array.isArray(component)) ? 'host.host_components.stop' : 'host.host_component.stop',
-      sender: this,
-      data: data,
-      success: 'startComponentSuccessCallback',
-      error: 'ajaxErrorCallback'
-    });
-  },
-  /**
-   * construct meta data for query
-   * @param {String} state
-   * @param {String} context
-   * @param {String|Array} component - componentName or Array of components
-   * @return {Object} request info
-   * @method getDataToSend creates request info to start/stop component(s)
-   */
-  getDataToSend: function (state, context, component) {
-    var operationLevel = {
-      "cluster_name":  App.get('clusterName'),
-      "host_name": this.get("content.hostName")
-    };
-
-    if (Array.isArray(component)) {
-      operationLevel["level"] = "HOST";
-    } else if(component){
-      operationLevel["level"] = "HOST_COMPONENT",
-      operationLevel["hostcomponent_name"] = component.get("componentName"),
-      operationLevel["service_name"] = component.get("service.serviceName")
-    }
-
-    return {
-      RequestInfo: {
-        "context": context,
-        "operation_level": operationLevel
-      },
-      Body: {
-        HostRoles: {
-          state: state
-        }
-      }
-    }
-  },
-  /**
-   * set additional data to query info depending on component
-   * @param data
-   * @param dataToSend
-   * @param component
-   * @return {Boolean}
-   */
-  setComponentToData: function (data, dataToSend, component) {
-    if (!dataToSend || !component || !data) return false;
-
-    if (Array.isArray(component)) {
-      dataToSend.RequestInfo.query = "HostRoles/component_name.in(" + component.mapProperty('componentName').join(',') + ")";
-    } else {
-      data.componentName = component.get('componentName');
-    }
-    data.data = JSON.stringify(dataToSend);
-    return true;
-  },
-
-  /**
-   * Success callback for start component(s) request
-   * @param {object} data
-   * @param {object} opt
-   * @param {object} params
-   * @method startComponentSuccessCallback
-   */
-  startComponentSuccessCallback: function (data, opt, params) {
-    console.log('Send request for STARTING successfully');
-    params.component.set('workStatus', 'STARTING');
-    if (App.testMode) {
-      this.mimicWorkStatusChange(params.component, App.HostComponentStatus.starting, App.HostComponentStatus.started);
-    }
-    this.showBackgroundOperationsPopup();
-  },
-
   /**
    * mimic status transition in test mode
    * @param entity
@@ -378,59 +348,6 @@ App.MainHostDetailsController = Em.Controller.extend({
 
     if (App.testMode) {
       this.mimicWorkStatusChange(params.component, App.HostComponentStatus.starting, App.HostComponentStatus.started);
-    }
-    this.showBackgroundOperationsPopup();
-  },
-
-  /**
-   * Send command to server to stop selected host component
-   * @param {object} event
-   * @method stopComponent
-   */
-  stopComponent: function (event) {
-    var self = this;
-    return App.showConfirmationPopup(function () {
-      var component = event.context;
-      var context = Em.I18n.t('requestInfo.stopHostComponent') + " " + component.get('displayName');
-      self.sendStopComponentCommand(component, context);
-    });
-  },
-
-  /**
-   * PUTs a command to server to stop a component. If no
-   * specific component is provided, all components are stopped.
-   * @param {object} component  When <code>null</code> all components are stopped.
-   * @param {object} context Context under which this command is beign sent.
-   * @method sendStopComponentCommand
-   */
-  sendStopComponentCommand: function (component, context) {
-    var dataToSend = this.getDataToSend('INSTALLED', context, component);
-    var data = {
-      hostName: this.get('content.hostName'),
-      component: component
-    };
-    this.setComponentToData(data, dataToSend, component);
-    App.ajax.send({
-      name: (Array.isArray(component)) ? 'host.host_components.stop' : 'host.host_component.stop',
-      sender: this,
-      data: data,
-      success: 'stopComponentSuccessCallback',
-      error: 'ajaxErrorCallback'
-    });
-  },
-
-  /**
-   * Success callback for stop host component request
-   * @param {object} data
-   * @param {object} opt
-   * @param {object} params
-   * @method stopComponentSuccessCallback
-   */
-  stopComponentSuccessCallback: function (data, opt, params) {
-    console.log('Send request for STOPPING successfully');
-    params.component.set('workStatus', 'STOPPING');
-    if (App.testMode) {
-      this.mimicWorkStatusChange(params.component, App.HostComponentStatus.stopping, App.HostComponentStatus.stopped);
     }
     this.showBackgroundOperationsPopup();
   },
@@ -864,22 +781,17 @@ App.MainHostDetailsController = Em.Controller.extend({
         this.hide();
 
         App.ajax.send({
-          name: 'host.host_component.install',
+          name: 'common.host_component.update',
           sender: self,
           data: {
             hostName: self.get('content.hostName'),
+            serviceName: component.get('service.serviceName'),
             componentName: componentName,
             component: component,
-            data: JSON.stringify({
-              RequestInfo: {
-                "context": Em.I18n.t('requestInfo.installHostComponent') + " " + displayName
-              },
-              Body: {
-                HostRoles: {
-                  state: 'INSTALLED'
-                }
-              }
-            })
+            context: Em.I18n.t('requestInfo.installHostComponent') + " " + displayName,
+            HostRoles: {
+              state: 'INSTALLED'
+            }
           },
           success: 'installComponentSuccessCallback',
           error: 'ajaxErrorCallback'
@@ -1304,7 +1216,7 @@ App.MainHostDetailsController = Em.Controller.extend({
     var componentsLength = Em.isNone(components) ? 0 : components.get('length');
     if (componentsLength > 0) {
       return App.showConfirmationPopup(function () {
-        self.sendStartComponentCommand(components, Em.I18n.t('hosts.host.maintainance.startAllComponents.context'));
+        self.sendComponentCommand(components, Em.I18n.t('hosts.host.maintainance.startAllComponents.context'), App.HostComponentStatus.started);
       });
     }
   },
@@ -1319,7 +1231,7 @@ App.MainHostDetailsController = Em.Controller.extend({
     var componentsLength = Em.isNone(components) ? 0 : components.get('length');
     if (componentsLength > 0) {
       return App.showConfirmationPopup(function () {
-        self.sendStopComponentCommand(components, Em.I18n.t('hosts.host.maintainance.stopAllComponents.context'));
+        self.sendComponentCommand(components, Em.I18n.t('hosts.host.maintainance.stopAllComponents.context'), App.HostComponentStatus.stopped);
       });
     }
   },

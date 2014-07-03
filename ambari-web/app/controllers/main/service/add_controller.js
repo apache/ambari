@@ -410,27 +410,22 @@ App.AddServiceController = App.WizardController.extend({
    * on host where some components require this
    * @method installAdditionalClients
    */
-  installAdditionalClients: function() {
-      this.get('content.additionalClients').forEach(function(c){
-        App.ajax.send({
-          name: 'host.host_component.install',
-          sender: this,
-          data: {
-            hostName: c.hostName,
-            componentName: c.componentName,
-            data: JSON.stringify({
-              RequestInfo: {
-                "context": Em.I18n.t('requestInfo.installHostComponent') + " " + c.hostName
-              },
-              Body: {
-                HostRoles: {
-                  state: 'INSTALLED'
-                }
-              }
-            })
+  installAdditionalClients: function () {
+    this.get('content.additionalClients').forEach(function (c) {
+      App.ajax.send({
+        name: 'common.host_component.update',
+        sender: this,
+        data: {
+          hostName: c.hostName,
+          componentName: c.componentName,
+          serviceName: c.componentName.slice(0, -7),
+          context: Em.I18n.t('requestInfo.installHostComponent') + " " + c.hostName,
+          HostRoles: {
+            state: 'INSTALLED'
           }
-        });
-      }, this);
+        }
+      });
+    }, this);
   },
 
   /**

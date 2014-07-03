@@ -81,8 +81,15 @@ App.ReassignMasterWizardStep6Controller = App.HighAvailabilityProgressPageContro
 
   startServices: function () {
     App.ajax.send({
-      name: 'reassign.start_services',
+      name: 'common.services.update',
       sender: this,
+      data: {
+        "context": "Start all services",
+        "ServiceInfo": {
+          "state": "STARTED"
+        },
+        urlParams: "params/run_smoke_test=true"
+      },
       success: 'startPolling',
       error: 'onTaskError'
     });

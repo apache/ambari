@@ -153,12 +153,15 @@ App.StackUpgradeStep3Controller = Em.Controller.extend({
       });
     }
     else {
-      var data = '{"RequestInfo": {"context": "'+ Em.I18n.t("requestInfo.stopAllServices") +'"}, "Body": {"ServiceInfo": {"state": "INSTALLED"}}}';
       App.ajax.send({
-        name: 'admin.stack_upgrade.stop_services',
+        name: 'common.services.update',
         sender: this,
         data: {
-          data: data
+          "context": Em.I18n.t("requestInfo.stopAllServices"),
+          "ServiceInfo": {
+            "state": "INSTALLED"
+          },
+          urlParams: "ServiceInfo/state=STARTED"
         },
         success: 'stopServicesSuccessCallback',
         error: 'stopServicesErrorCallback'

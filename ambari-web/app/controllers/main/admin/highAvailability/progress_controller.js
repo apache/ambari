@@ -260,7 +260,7 @@ App.HighAvailabilityProgressPageController = App.HighAvailabilityWizardControlle
     installedComponents = data.items;
   },
 
-  createComponent: function (componentName, hostName) {
+  createComponent: function (componentName, hostName, serviceName) {
     var hostNames = (Array.isArray(hostName)) ? hostName : [hostName];
 
     this.checkInstalledComponents(componentName, hostNames).forEach(function (host, index, array) {
@@ -271,6 +271,7 @@ App.HighAvailabilityProgressPageController = App.HighAvailabilityWizardControlle
           data: {
             hostName: host.hostName,
             componentName: host.componentName,
+            serviceName: serviceName,
             taskNum: array.length
           },
           success: 'onCreateComponent',
@@ -284,11 +285,11 @@ App.HighAvailabilityProgressPageController = App.HighAvailabilityWizardControlle
   },
 
   onCreateComponent: function () {
-    console.warn('func: onCreateComponent');
     var hostName = arguments[2].hostName;
     var componentName = arguments[2].componentName;
     var taskNum = arguments[2].taskNum;
-    this.installComponent(componentName, hostName, taskNum);
+    var serviceName = arguments[2].serviceName;
+    this.updateComponent(componentName, hostName, serviceName, "Install", taskNum);
   },
 
   onCreateComponentError: function (error) {
@@ -299,62 +300,24 @@ App.HighAvailabilityProgressPageController = App.HighAvailabilityWizardControlle
     }
   },
 
-  installComponent: function (componentName, hostName, taskNum) {
-    console.warn('func: installComponent');
+  updateComponent: function (componentName, hostName, serviceName, context, taskNum) {
     if (!(hostName instanceof Array)) {
       hostName = [hostName];
     }
+    var state = context.toLowerCase() == "start" ? "STARTED" : "INSTALLED";
     for (var i = 0; i < hostName.length; i++) {
       App.ajax.send({
-        name: 'admin.high_availability.install_component',
+        name: 'common.host_component.update',
         sender: this,
         data: {
+          context: context + " " + App.format.role(componentName),
           hostName: hostName[i],
+          serviceName: serviceName,
           componentName: componentName,
-          displayName: App.format.role(componentName),
-          taskNum: taskNum || hostName.length
-        },
-        success: 'startPolling',
-        error: 'onTaskError'
-      });
-    }
-  },
-
-  startComponent: function (componentName, hostName) {
-    console.warn('func: startComponent');
-    if (!(hostName instanceof Array)) {
-      hostName = [hostName];
-    }
-    for (var i = 0; i < hostName.length; i++) {
-      App.ajax.send({
-        name: 'admin.high_availability.start_component',
-        sender: this,
-        data: {
-          hostName: hostName[i],
-          componentName: componentName,
-          displayName: App.format.role(componentName),
-          taskNum: hostName.length
-        },
-        success: 'startPolling',
-        error: 'onTaskError'
-      });
-    }
-  },
-
-  stopComponent: function (componentName, hostName) {
-    console.warn('func: stopComponent');
-    if (!(hostName instanceof Array)) {
-      hostName = [hostName];
-    }
-    for (var i = 0; i < hostName.length; i++) {
-      App.ajax.send({
-        name: 'admin.high_availability.stop_component',
-        sender: this,
-        data: {
-          hostName: hostName[i],
-          componentName: componentName,
-          displayName: App.format.role(componentName),
-          taskNum: hostName.length
+          taskNum: taskNum || hostName.length,
+          HostRoles: {
+            state: state
+          }
         },
         success: 'startPolling',
         error: 'onTaskError'

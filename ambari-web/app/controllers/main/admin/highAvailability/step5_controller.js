@@ -31,7 +31,13 @@ App.HighAvailabilityWizardStep5Controller = App.HighAvailabilityProgressPageCont
 
   stopAllServices: function () {
     App.ajax.send({
-      name: 'admin.high_availability.stop_all_services',
+      name: 'common.services.update',
+      data: {
+        context: "Stop all services",
+        "ServiceInfo": {
+          "state": "INSTALLED"
+        }
+      },
       sender: this,
       success: 'startPolling',
       error: 'onTaskError'
@@ -40,17 +46,17 @@ App.HighAvailabilityWizardStep5Controller = App.HighAvailabilityProgressPageCont
 
   installNameNode: function () {
     var hostName = this.get('content.masterComponentHosts').findProperty('isAddNameNode').hostName;
-    this.createComponent('NAMENODE', hostName);
+    this.createComponent('NAMENODE', hostName, "HDFS");
   },
 
   installJournalNodes: function () {
     var hostNames = this.get('content.masterComponentHosts').filterProperty('component', 'JOURNALNODE').mapProperty('hostName');
-    this.createComponent('JOURNALNODE', hostNames);
+    this.createComponent('JOURNALNODE', hostNames, "HDFS");
   },
 
   startJournalNodes: function () {
     var hostNames = this.get('content.masterComponentHosts').filterProperty('component', 'JOURNALNODE').mapProperty('hostName');
-    this.startComponent('JOURNALNODE', hostNames);
+    this.updateComponent('JOURNALNODE', hostNames, "HDFS", "Start");
   },
 
   disableSNameNode: function () {

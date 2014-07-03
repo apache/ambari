@@ -28,12 +28,12 @@ App.HighAvailabilityWizardStep7Controller = App.HighAvailabilityProgressPageCont
 
   startZooKeeperServers: function () {
     var hostNames = this.get('content.masterComponentHosts').filterProperty('component', 'ZOOKEEPER_SERVER').mapProperty('hostName');
-    this.startComponent('ZOOKEEPER_SERVER', hostNames);
+    this.updateComponent('ZOOKEEPER_SERVER', hostNames, "ZOOKEEPER", "Start");
   },
 
   startNameNode: function () {
     var hostName = this.get('content.masterComponentHosts').findProperty('isCurNameNode').hostName;
-    this.startComponent('NAMENODE', hostName);
+    this.updateComponent('NAMENODE', hostName, "HDFS", "Start");
   }
 });
 

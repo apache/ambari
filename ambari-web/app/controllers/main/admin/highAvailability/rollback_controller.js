@@ -208,7 +208,13 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
   stopAllServices: function(){
     console.warn('func: stopAllServices');
     App.ajax.send({
-      name: 'admin.high_availability.stop_all_services',
+      name: 'common.services.update',
+      data: {
+        context: "Stop all services",
+        "ServiceInfo": {
+          "state": "INSTALLED"
+        }
+      },
       sender: this,
       success: 'startPolling',
       error: 'onTaskError'
@@ -232,7 +238,7 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
   stopFailoverControllers: function(){
     console.warn('func: stopFailoverControllers');
     var hostNames = this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE').mapProperty('hostName');
-    this.stopComponent('ZKFC', hostNames);
+    this.updateComponent('ZKFC', hostNames, "HDFS", "Stop");
   },
   deleteFailoverControllers: function(){
     console.warn('func: deleteFailoverControllers');
@@ -242,12 +248,12 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
   stopStandbyNameNode: function(){
     console.warn('func: stopStandbyNameNode');
     var hostName = this.get('content.masterComponentHosts').findProperty('isAddNameNode', true).hostName;
-    this.stopComponent('NAMENODE', hostName);
+    this.updateComponent('NAMENODE', hostName, "HDFS", "Stop");
   },
   stopNameNode: function(){
     console.warn('func: stopNameNode');
-    var hostNames = this.get('content.masterComponentHosts').findProperty('isCurNameNode').hostName;
-    this.stopComponent('NAMENODE', hostNames);
+    var hostName = this.get('content.masterComponentHosts').findProperty('isCurNameNode').hostName;
+    this.updateComponent('NAMENODE', hostName, "HDFS", "Stop");
   },
   restoreHDFSConfigs: function(){
     console.warn('func: restoreHDFSConfigs');
@@ -256,12 +262,12 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
   enableSecondaryNameNode: function(){
     console.warn('func: enableSecondaryNameNode');
     var hostName = this.get('content.masterComponentHosts').findProperty('component', 'SECONDARY_NAMENODE').hostName;
-    this.installComponent('SECONDARY_NAMENODE', hostName, hostName.length);
+    this.updateComponent('SECONDARY_NAMENODE', hostName, "HDFS", "Install", hostName.length);
   },
   stopJournalNodes: function(){
     console.warn('func: stopJournalNodes');
     var hostNames = this.get('content.masterComponentHosts').filterProperty('component', 'JOURNALNODE').mapProperty('hostName');
-    this.stopComponent('JOURNALNODE', hostNames);
+    this.updateComponent('JOURNALNODE', hostNames, "HDFS", "Stop");
   },
   deleteJournalNodes: function(){
     console.warn('func: deleteJournalNodes');
@@ -276,7 +282,13 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
   startAllServices: function(){
     console.warn('func: startAllServices');
     App.ajax.send({
-      name: 'admin.high_availability.start_all_services',
+      name: 'common.services.update',
+      data: {
+        context: "Start all services",
+        "ServiceInfo": {
+          "state": "STARTED"
+        }
+      },
       sender: this,
       success: 'startPolling',
       error: 'onTaskError'
@@ -296,27 +308,6 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
       success: 'onTaskCompleted',
       error: 'onTaskError'
     });
-  },
-
-  stopComponent: function (componentName, hostName) {
-    console.warn('func: stopComponent');
-    if (!(hostName instanceof Array)) {
-      hostName = [hostName];
-    }
-    for (var i = 0; i < hostName.length; i++) {
-      App.ajax.send({
-        name: 'admin.high_availability.stop_component',
-        sender: this,
-        data: {
-          hostName: hostName[i],
-          componentName: componentName,
-          displayName: App.format.role(componentName),
-          taskNum: hostName.length
-        },
-        success: 'startPolling',
-        error: 'onTaskError'
-      });
-    }
   },
 
   onDeletedHDFSClient: function () {

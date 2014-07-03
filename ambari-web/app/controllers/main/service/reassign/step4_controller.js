@@ -100,17 +100,28 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
     if(this.get('restartYarnMRComponents')) {
       var list = App.Service.find().mapProperty("serviceName").without("HDFS").join(',');
       var conf = {
-        name: 'reassign.stop_YMR2_services',
+        name: 'common.services.update',
         sender: this,
-        data: {servicesList: list},
+        data: {
+          "context": "Stop without HDFS",
+          "ServiceInfo": {
+            "state": "INSTALLED"
+          },
+          urlParams: "ServiceInfo/service_name.in("+list+")"},
         success: 'startPolling',
         error: 'onTaskError'
       };
       App.ajax.send(conf);
     } else {
       App.ajax.send({
-        name: 'reassign.stop_services',
+        name: 'common.services.update',
         sender: this,
+        data: {
+          "context": "Stop all services",
+          "ServiceInfo": {
+            "state": "INSTALLED"
+          }
+        },
         success: 'startPolling',
         error: 'onTaskError'
       });
@@ -122,7 +133,7 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
     var hostComponents = this.get('hostComponents');
     var hostName = this.get('content.reassignHosts.target');
     for (var i = 0; i < hostComponents.length; i++) {
-      this.createComponent(hostComponents[i], hostName);
+      this.createComponent(hostComponents[i], hostName, this.get('content.reassign.service_id'));
     }
   },
 
@@ -153,7 +164,7 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
     var hostComponents = this.get('hostComponents');
     var hostName = this.get('content.reassignHosts.target');
     for (var i = 0; i < hostComponents.length; i++) {
-      this.installComponent(hostComponents[i], hostName, hostComponents.length);
+      this.updateComponent(hostComponents[i], hostName, this.get('content.reassign.service_id'), "Install", hostComponents.length);
     }
   },
 
@@ -324,30 +335,42 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
   },
 
   startZooKeeperServers: function () {
-    var hostNames = this.get('content.masterComponentHosts').filterProperty('component', 'ZOOKEEPER_SERVER').mapProperty('hostName');
-    this.startComponent('ZOOKEEPER_SERVER', hostNames);
+    var components = this.get('content.masterComponentHosts').filterProperty('component', 'ZOOKEEPER_SERVER');
+    this.updateComponent('ZOOKEEPER_SERVER', components.mapProperty('hostName'), "ZOOKEEPER", "Start");
   },
 
   startNameNode: function () {
-    var hostName = this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE').mapProperty('hostName').without(this.get('content.reassignHosts.target'));
-    this.startComponent('NAMENODE', hostName);
+    var components = this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE');
+    this.updateComponent('NAMENODE', components.mapProperty('hostName').without(this.get('content.reassignHosts.target')), "HDFS", "Start");
   },
 
   startServices: function () {
     if(this.get('restartYarnMRComponents')) {
       var list = App.Service.find().mapProperty("serviceName").without("HDFS").join(',');
       var conf = {
-        name: 'reassign.start_YMR2_services',
+        name: 'common.services.update',
         sender: this,
-        data: {servicesList: list},
+        data: {
+          "context": "Start without HDFS",
+          "ServiceInfo": {
+            "state": "STARTED"
+          },
+          urlParams: "ServiceInfo/service_name.in("+list+")"},
         success: 'startPolling',
         error: 'onTaskError'
       };
       App.ajax.send(conf);
     } else {
       App.ajax.send({
-        name: 'reassign.start_services',
+        name: 'common.services.update',
         sender: this,
+        data: {
+          "context": "Start all services",
+          "ServiceInfo": {
+            "state": "STARTED"
+          },
+          urlParams: "params/run_smoke_test=true"
+        },
         success: 'startPolling',
         error: 'onTaskError'
       });
