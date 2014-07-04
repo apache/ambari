@@ -117,7 +117,28 @@ module.exports =
       "displayType": "checkbox",
       "category": "Advanced",
       "serviceName": "HDFS"
-
+    },
+    {
+      "id": "site property",
+      "name": "apache_artifacts_download_url",
+      "displayName": "apache_artifacts_download_url",
+      "description": "",
+      "isRequired": false,
+      "isRequiredByAgent": false,
+      "isVisible": false,
+      "category": "Advanced",
+      "serviceName": "HDFS"
+    },
+    {
+      "id": "site property",
+      "name": "gpl_artifacts_download_url",
+      "displayName": "gpl_artifacts_download_url",
+      "description": "",
+      "isRequiredByAgent": false,
+      "isRequired": false,
+      "isVisible": false,
+      "category": "Advanced",
+      "serviceName": "HDFS"
     },
 
   /**********************************************YARN***************************************/
