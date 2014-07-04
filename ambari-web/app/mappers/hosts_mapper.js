@@ -71,16 +71,26 @@ App.hostsMapper = App.QuickDataMapper.create({
       var hostIds = {};
       var components = [];
       var componentsIdMap = {};
+      var cacheServices = App.cache['services'];
+      var loadedServiceComponentsMap = App.get('componentConfigMapper').buildServiceComponentMap(cacheServices);
+      var serviceToHostComponentIdMap = {};
+
       json.items.forEach(function (item, index) {
         item.host_components = item.host_components || [];
         item.host_components.forEach(function (host_component) {
           host_component.id = host_component.HostRoles.component_name + "_" + item.Hosts.host_name;
           var component = this.parseIt(host_component, this.hostComponentConfig);
+          var serviceName = host_component.HostRoles.service_name;
+
           component.id = host_component.HostRoles.component_name + "_" + item.Hosts.host_name;
           component.host_id = item.Hosts.host_name;
           component.host_name = item.Hosts.host_name;
           components.push(component);
           componentsIdMap[component.id] = component;
+          if (!serviceToHostComponentIdMap[serviceName]) {
+            serviceToHostComponentIdMap[serviceName] = [];
+          }
+          serviceToHostComponentIdMap[serviceName].push(component.id);
         }, this);
         item.critical_alerts_count = (item.alerts) ? item.alerts.summary.CRITICAL + item.alerts.summary.WARNING : 0;
         item.cluster_id = App.get('clusterName');
@@ -116,6 +126,8 @@ App.hostsMapper = App.QuickDataMapper.create({
       if (!isNaN(itemTotal)) {
         App.router.set('mainHostController.filteredCount', itemTotal);
       }
+      //bind host-components with service records
+      App.get('componentConfigMapper').addNewHostComponents(loadedServiceComponentsMap, serviceToHostComponentIdMap, cacheServices);
     }
     console.timeEnd('App.hostsMapper execution time');
   }
