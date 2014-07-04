@@ -95,8 +95,6 @@ App.TableServerProvider = Em.Mixin.create({
         clearTimeout(this.get('timeOut'));
         this.refresh();
       }
-        this.refresh();
-      }
     }
   },
 
