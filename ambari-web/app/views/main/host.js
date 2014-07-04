@@ -331,6 +331,7 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
   clearSelection: function() {
     this.get('pageContent').setEach('selected', false);
     this.set('selectAllHosts', false);
+    App.db.setSelectedHosts(this.get('controller.name'), []);
     this.get('selectedHosts').clear();
     this.filterSelected();
   },
