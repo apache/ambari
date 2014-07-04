@@ -200,10 +200,11 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
 
   /**
    * get query parameters computed in controller
+   * @param {bool} flag should non-filters params be skipped
    * @return {Array}
    */
-  getQueryParameters: function () {
-    return this.get('controller').getQueryParameters();
+  getQueryParameters: function (flag) {
+    return this.get('controller').getQueryParameters(flag);
   },
   /**
    * stub for filter function in TableView
@@ -356,11 +357,7 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
    */
   bulkOperationConfirm: function(operationData, selection) {
     var hostsNames = [],
-    realUrl = '/hosts?<parameters>fields=Hosts/host_name,Hosts/maintenance_state,' +
-      'host_components/HostRoles/state,host_components/HostRoles/maintenance_state,' +
-      'host_components/HostRoles/stale_configs&minimal_response=true' +
-    '';
-    var queryParams = [];
+      queryParams = [];
     switch(selection) {
       case 's':
         hostsNames = this.get('selectedHosts');
@@ -373,11 +370,8 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
         }
         break;
       case 'f':
-        queryParams = this.getQueryParameters().filter(function (obj){
-          if(obj.key == 'page_size' || obj.key == 'from'){
-            return false;
-          }
-          return true;
+        queryParams = this.getQueryParameters(true).filter(function (obj) {
+          return !(obj.key == 'page_size' || obj.key == 'from');
         });
         break;
     }
@@ -387,15 +381,16 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
       primary: false,
       secondary: false,
       bodyClass: Ember.View.extend({
-        template: Ember.Handlebars.compile('<p><div class="spinner"></div></p>')
+        template: Ember.Handlebars.compile('<div class="spinner"></div>')
       })
     });
-
+    var parameters = App.router.get('updateController').computeParameters(queryParams);
+    if (!parameters.length) parameters = '&';
     App.ajax.send({
       name: 'hosts.bulk.operations',
       sender: this,
       data: {
-        url: App.router.get('updateController').getComplexUrl("", realUrl, queryParams),
+        parameters: parameters.substring(0, parameters.length - 1),
         operationData: operationData,
         loadingPopup: loadingPopup
       },

@@ -1335,7 +1335,7 @@ var urls = {
         async: false,
         data: data.data
       };
-      if (App.testMode) {
+      if (App.get('testMode')) {
         d.type = 'GET';
       }
       return d;
@@ -1350,7 +1350,7 @@ var urls = {
         async: false,
         data: data.data
       };
-      if (App.testMode) {
+      if (App.get('testMode')) {
         d.type = 'GET';
       }
       return d;
@@ -2038,12 +2038,18 @@ var urls = {
     'mock': ''
   },
   'host.host_components.filtered': {
-    'real': '/clusters/{clusterName}/hosts',
+    'real': '/clusters/{clusterName}/hosts?{fields}',
     'mock': '',
-    format: function(data, opt) {
+    format: function(data) {
       return {
-        url: opt.url + data.urlParams
-      }
+        headers: {
+          'X-Http-Method-Override': 'GET'
+        },
+        type: 'POST',
+        data: JSON.stringify({
+          "RequestInfo": {"query" : data.parameters}
+        })
+      };
     }
   },
   'host.status.counters': {
@@ -2188,11 +2194,19 @@ var urls = {
     }
   },
   'hosts.bulk.operations': {
-    real: '',
+    real: '/clusters/{clusterName}/hosts?fields=Hosts/host_name,Hosts/maintenance_state,' +
+      'host_components/HostRoles/state,host_components/HostRoles/maintenance_state,' +
+      'host_components/HostRoles/stale_configs&minimal_response=true',
     mock: '',
     format: function(data) {
       return {
-        url: data.url
+        headers: {
+          'X-Http-Method-Override': 'GET'
+        },
+        type: 'POST',
+        data: JSON.stringify({
+          "RequestInfo": {"query" : data.parameters }
+        })
       }
     }
   }
@@ -2235,7 +2249,7 @@ var formatRequest = function (data) {
     dataType: 'json',
     statusCode: require('data/statusCodes')
   };
-  if (App.testMode) {
+  if (App.get('testMode')) {
     opt.url = formatUrl(this.mock ? this.mock : '', data);
     opt.type = 'GET';
   }
@@ -2272,8 +2286,6 @@ var ajax = Em.Object.extend({
    *  callback - callback from <code>App.updater.run</code> library
    */
   send: function (config) {
-
-    console.warn('============== ajax ==============', config.name, config.data);
 
     if (!config.sender) {
       console.warn('Ajax sender should be defined!');
