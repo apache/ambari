@@ -196,6 +196,10 @@ App.WizardStep3Controller = Em.Controller.extend({
     this.set('hosts', []);
     this.get('bootHosts').clear();
     this.get('wizardController').setDBProperty('bootStatus', false);
+    this.set('isHostsWarningsLoaded', false);
+    this.set('isJDKWarningsLoaded', false);
+    this.set('registrationStartedAt', null);
+    this.set('isLoaded', false);
     this.set('isSubmitDisabled', true);
     this.set('isRetryDisabled', true);
   },
@@ -206,8 +210,6 @@ App.WizardStep3Controller = Em.Controller.extend({
    */
   loadStep: function () {
     console.log("TRACE: Loading step3: Confirm Hosts");
-    this.set('registrationStartedAt', null);
-    this.set('isLoaded', false);
     this.disablePreviousSteps();
     this.clearStep();
     App.router.get('clusterController').loadAmbariProperties();
