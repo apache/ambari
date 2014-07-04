@@ -96,12 +96,6 @@ limitations under the License.
   </property>
 
   <property>
-    <name>hive.semantic.analyzer.factory.impl</name>
-    <value>org.apache.hivealog.cli.HCatSemanticAnalyzerFactory</value>
-    <description>controls which SemanticAnalyzerFactory implemenation class is used by CLI</description>
-  </property>
-
-  <property>
     <name>hive.metastore.client.socket.timeout</name>
     <value>60</value>
     <description>MetaStore Client socket timeout in seconds</description>

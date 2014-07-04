@@ -125,7 +125,6 @@
         "hive.metastore.local" : "false",
         "fs.hdfs.impl.disable.cache" : "true",
         "javax.jdo.option.ConnectionURL" : "jdbc:mysql://dev.hortonworks.com/hive?createDatabaseIfNotExist=true",
-        "hive.semantic.analyzer.factory.impl" : "org.apache.hivealog.cli.HCatSemanticAnalyzerFactory",
         "hive.security.authorization.enabled" : "false",
         "javax.jdo.option.ConnectionUserName" : "hive",
         "hive.server2.enable.doAs" : "true",

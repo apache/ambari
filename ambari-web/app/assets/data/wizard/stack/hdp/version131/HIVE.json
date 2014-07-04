@@ -98,18 +98,6 @@
       }
     },
     {
-      "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HIVE/configurations/hive.semantic.analyzer.factory.impl",
-      "StackConfigurations" : {
-        "property_description" : "controls which SemanticAnalyzerFactory implemenation class is used by CLI",
-        "property_value" : "org.apache.hivealog.cli.HCatSemanticAnalyzerFactory",
-        "stack_version" : "1.3.1",
-        "property_name" : "hive.semantic.analyzer.factory.impl",
-        "filename" : "hive-site.xml",
-        "service_name" : "HIVE",
-        "stack_name" : "HDP"
-      }
-    },
-    {
       "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HIVE/configurations/hive_aux_jars_path",
       "StackConfigurations" : {
         "property_description" : "Hive auxiliary jar path.",

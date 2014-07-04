@@ -74,18 +74,6 @@
       }
     },
     {
-      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HIVE/configurations/hive.semantic.analyzer.factory.impl",
-      "StackConfigurations" : {
-        "property_description" : "controls which SemanticAnalyzerFactory implemenation class is used by CLI",
-        "property_value" : "org.apache.hivealog.cli.HCatSemanticAnalyzerFactory",
-        "stack_version" : "1.2.1",
-        "property_name" : "hive.semantic.analyzer.factory.impl",
-        "service_name" : "HIVE",
-        "stack_name" : "HDP",
-        "type" : "hive-site.xml"
-      }
-    },
-    {
       "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HIVE/configurations/hive.metastore.local",
       "StackConfigurations" : {
         "property_description" : "controls whether to connect to remove metastore server or\n    open a new metastore server in Hive Client JVM",

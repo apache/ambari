@@ -326,18 +326,6 @@
       }
     },
     {
-      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HIVE/configurations/hive.semantic.analyzer.factory.impl",
-      "StackConfigurations" : {
-        "property_description" : "controls which SemanticAnalyzerFactory implemenation class is used by CLI",
-        "property_name" : "hive.semantic.analyzer.factory.impl",
-        "property_value" : "org.apache.hivealog.cli.HCatSemanticAnalyzerFactory",
-        "service_name" : "HIVE",
-        "stack_name" : "HDP",
-        "stack_version" : "1.3.0",
-        "type" : "hive-site.xml"
-      }
-    },
-    {
       "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HIVE/configurations/hive.server2.enable.doAs",
       "StackConfigurations" : {
         "property_description" : null,

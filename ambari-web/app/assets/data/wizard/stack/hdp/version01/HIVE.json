@@ -24,11 +24,6 @@
     "description" : "List of comma separated metastore object types that should be pinned in the cache",
     "filename" : "hive-site.xml"
   }, {
-    "name" : "hive.semantic.analyzer.factory.impl",
-    "value" : "org.apache.hivealog.cli.HCatSemanticAnalyzerFactory",
-    "description" : "controls which SemanticAnalyzerFactory implemenation class is used by CLI",
-    "filename" : "hive-site.xml"
-  }, {
     "name" : "hadoop.clientside.fs.operations",
     "value" : "true",
     "description" : "FS operations are owned by client",
