@@ -26,7 +26,7 @@
     <li class="dropdown-submenu">
       <a {{bindAttr class="view.parentView.showSelectedFilter::disabled"}} tabindex="-1" href="javascript:void(null);">{{view.menuItems.s.label}}
         ({{view.parentView.selectedHosts.length}})</a>
-        <ul {{bindAttr class="view.parentView.selectedCategory.hasHosts::hidden :dropdown-menu"}}>
+        <ul {{bindAttr class="view.parentView.showSelectedFilter::hidden :dropdown-menu"}}>
           {{#view view.hostItemView}}
               <a href="javascript:void(null);">{{view.label}}</a>
               <ul class="dropdown-menu">
