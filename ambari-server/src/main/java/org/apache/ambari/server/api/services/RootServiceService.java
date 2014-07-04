@@ -39,30 +39,30 @@ public class RootServiceService extends BaseService {
   
   @GET
   @Produces("text/plain")
-  public Response getServices(@Context HttpHeaders headers, @Context UriInfo ui) {
+  public Response getServices(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
 
-    return handleRequest(headers, null, ui, Request.Type.GET,
+    return handleRequest(headers, body, ui, Request.Type.GET,
       createServiceResource(null));
   }
   
   @GET
   @Path("{serviceName}")
   @Produces("text/plain")
-  public Response getService(@Context HttpHeaders headers, @Context UriInfo ui,
+  public Response getService(String body, @Context HttpHeaders headers, @Context UriInfo ui,
       @PathParam("serviceName") String serviceName) {
 
-    return handleRequest(headers, null, ui, Request.Type.GET,
+    return handleRequest(headers, body, ui, Request.Type.GET,
       createServiceResource(serviceName));
   }
 
   @GET
   @Path("{serviceName}/components/{componentName}/hostComponents")
   @Produces("text/plain")
-  public Response getRootHostComponents(@Context HttpHeaders headers, @Context UriInfo ui,
+  public Response getRootHostComponents(String body, @Context HttpHeaders headers, @Context UriInfo ui,
       @PathParam("serviceName") String serviceName,
       @PathParam("componentName") String componentName) {
 
-    return handleRequest(headers, null, ui, Request.Type.GET,
+    return handleRequest(headers, body, ui, Request.Type.GET,
       createHostComponentResource(serviceName, null, componentName));
   }
   
@@ -70,19 +70,19 @@ public class RootServiceService extends BaseService {
   @GET
   @Path("{serviceName}/hosts/")
   @Produces("text/plain")
-  public Response getRootHosts(@Context HttpHeaders headers, @Context UriInfo ui) {
+  public Response getRootHosts(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
 
-    return handleRequest(headers, null, ui, Request.Type.GET,
+    return handleRequest(headers, body, ui, Request.Type.GET,
       createHostResource(null));
   }
   
   @GET
   @Path("{serviceName}/hosts/{hostName}")
   @Produces("text/plain")
-  public Response getRootHost(@Context HttpHeaders headers, @Context UriInfo ui,
+  public Response getRootHost(String body, @Context HttpHeaders headers, @Context UriInfo ui,
       @PathParam("hostName") String hostName) {
 
-    return handleRequest(headers, null, ui, Request.Type.GET,
+    return handleRequest(headers, body, ui, Request.Type.GET,
       createHostResource(hostName));
   }
   
@@ -95,23 +95,23 @@ public class RootServiceService extends BaseService {
   @GET
   @Path("{serviceName}/hosts/{hostName}/hostComponents/")
   @Produces("text/plain")
-  public Response getRootHostComponent(@Context HttpHeaders headers, @Context UriInfo ui,
+  public Response getRootHostComponent(String body, @Context HttpHeaders headers, @Context UriInfo ui,
       @PathParam("serviceName") String serviceName,
       @PathParam("hostName") String hostName) {
 
-    return handleRequest(headers, null, ui, Request.Type.GET,
+    return handleRequest(headers, body, ui, Request.Type.GET,
       createHostComponentResource(serviceName, hostName, null));
   }
   
   @GET
   @Path("{serviceName}/hosts/{hostName}/hostComponents/{hostComponent}")
   @Produces("text/plain")
-  public Response getRootHostComponent(@Context HttpHeaders headers, @Context UriInfo ui,
+  public Response getRootHostComponent(String body, @Context HttpHeaders headers, @Context UriInfo ui,
       @PathParam("serviceName") String serviceName,
       @PathParam("hostName") String hostName,
       @PathParam("hostComponent") String hostComponent) {
 
-    return handleRequest(headers, null, ui, Request.Type.GET,
+    return handleRequest(headers, body, ui, Request.Type.GET,
       createHostComponentResource(serviceName, hostName, hostComponent));
   }
   
@@ -129,21 +129,21 @@ public class RootServiceService extends BaseService {
   @GET
   @Path("{serviceName}/components/")
   @Produces("text/plain")
-  public Response getServiceComponents(@Context HttpHeaders headers, @Context UriInfo ui,
+  public Response getServiceComponents(String body, @Context HttpHeaders headers, @Context UriInfo ui,
       @PathParam("serviceName") String serviceName) {
 
-    return handleRequest(headers, null, ui, Request.Type.GET,
+    return handleRequest(headers, body, ui, Request.Type.GET,
       createServiceComponentResource(serviceName, null));
   }
   
   @GET
   @Path("{serviceName}/components/{componentName}")
   @Produces("text/plain")
-  public Response getServiceComponent(@Context HttpHeaders headers, @Context UriInfo ui,
+  public Response getServiceComponent(String body, @Context HttpHeaders headers, @Context UriInfo ui,
       @PathParam("serviceName") String serviceName,
       @PathParam("componentName") String componentName) {
 
-    return handleRequest(headers, null, ui, Request.Type.GET,
+    return handleRequest(headers, body, ui, Request.Type.GET,
         createServiceComponentResource(serviceName, componentName));
   }
   

@@ -43,14 +43,14 @@ public class FeedServiceTest extends BaseServiceTest {
 
     //getFeed
     FeedService feedService = new TestFeedService("feedName");
-    Method m = feedService.getClass().getMethod("getFeed", HttpHeaders.class, UriInfo.class, String.class);
-    Object[] args = new Object[] {getHttpHeaders(), getUriInfo(), "feedName"};
+    Method m = feedService.getClass().getMethod("getFeed", String.class, HttpHeaders.class, UriInfo.class, String.class);
+    Object[] args = new Object[] {null, getHttpHeaders(), getUriInfo(), "feedName"};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, feedService, m, args, null));
 
     //getFeeds
     feedService = new TestFeedService(null);
-    m = feedService.getClass().getMethod("getFeeds", HttpHeaders.class, UriInfo.class);
-    args = new Object[] {getHttpHeaders(), getUriInfo()};
+    m = feedService.getClass().getMethod("getFeeds", String.class, HttpHeaders.class, UriInfo.class);
+    args = new Object[] {null, getHttpHeaders(), getUriInfo()};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, feedService, m, args, null));
 
     //createFeed

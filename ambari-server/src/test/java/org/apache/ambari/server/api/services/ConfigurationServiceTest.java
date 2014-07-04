@@ -37,8 +37,8 @@ public class ConfigurationServiceTest extends BaseServiceTest {
 
     //getConfigurations
     ConfigurationService service = new TestConfigurationService("clusterName");
-    Method m = service.getClass().getMethod("getConfigurations", HttpHeaders.class, UriInfo.class);
-    Object[] args = new Object[] {getHttpHeaders(), getUriInfo()};
+    Method m = service.getClass().getMethod("getConfigurations", String.class, HttpHeaders.class, UriInfo.class);
+    Object[] args = new Object[] {null, getHttpHeaders(), getUriInfo()};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
 
     //createConfigurations

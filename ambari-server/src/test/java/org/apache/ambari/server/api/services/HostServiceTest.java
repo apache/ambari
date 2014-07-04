@@ -42,14 +42,14 @@ public class HostServiceTest extends BaseServiceTest {
 
     //getHost
     HostService service = new TestHostService("clusterName", "hostName");
-    Method m = service.getClass().getMethod("getHost", HttpHeaders.class, UriInfo.class, String.class);
-    Object[] args = new Object[] {getHttpHeaders(), getUriInfo(), "hostName"};
+    Method m = service.getClass().getMethod("getHost", String.class, HttpHeaders.class, UriInfo.class, String.class);
+    Object[] args = new Object[] {null, getHttpHeaders(), getUriInfo(), "hostName"};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
 
     //getHosts
     service = new TestHostService("clusterName", null);
-    m = service.getClass().getMethod("getHosts", HttpHeaders.class, UriInfo.class);
-    args = new Object[] {getHttpHeaders(), getUriInfo()};
+    m = service.getClass().getMethod("getHosts", String.class, HttpHeaders.class, UriInfo.class);
+    args = new Object[] {null, getHttpHeaders(), getUriInfo()};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
 
     //createHost

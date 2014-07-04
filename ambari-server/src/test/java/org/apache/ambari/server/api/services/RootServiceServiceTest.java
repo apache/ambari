@@ -42,44 +42,44 @@ public class RootServiceServiceTest extends BaseServiceTest {
     
     //getServices
     RootServiceService service = new TestRootServiceService(null, null, null);
-    Method m = service.getClass().getMethod("getServices", HttpHeaders.class, UriInfo.class);
-    Object[] args = new Object[] {getHttpHeaders(), getUriInfo()};
+    Method m = service.getClass().getMethod("getServices", String.class, HttpHeaders.class, UriInfo.class);
+    Object[] args = new Object[] {null, getHttpHeaders(), getUriInfo()};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
     
     //getService
     service = new TestRootServiceService("AMBARI", null, null);
-    m = service.getClass().getMethod("getService", HttpHeaders.class, UriInfo.class, String.class);
-    args = new Object[] {getHttpHeaders(), getUriInfo(), "AMBARI"};
+    m = service.getClass().getMethod("getService", String.class, HttpHeaders.class, UriInfo.class, String.class);
+    args = new Object[] {null, getHttpHeaders(), getUriInfo(), "AMBARI"};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
     
     //getServiceComponents
     service = new TestRootServiceService("AMBARI", null, null);
-    m = service.getClass().getMethod("getServiceComponents", HttpHeaders.class, UriInfo.class, String.class);
-    args = new Object[] {getHttpHeaders(), getUriInfo(), "AMBARI"};
+    m = service.getClass().getMethod("getServiceComponents", String.class, HttpHeaders.class, UriInfo.class, String.class);
+    args = new Object[] {null, getHttpHeaders(), getUriInfo(), "AMBARI"};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
     
     //getServiceComponent
     service = new TestRootServiceService("AMBARI", "AMBARI_SERVER", null);
-    m = service.getClass().getMethod("getServiceComponent", HttpHeaders.class, UriInfo.class, String.class, String.class);
-    args = new Object[] {getHttpHeaders(), getUriInfo(), "AMBARI", "AMBARI_SERVER"};
+    m = service.getClass().getMethod("getServiceComponent", String.class, HttpHeaders.class, UriInfo.class, String.class, String.class);
+    args = new Object[] {null, getHttpHeaders(), getUriInfo(), "AMBARI", "AMBARI_SERVER"};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
     
     //getRootHostComponents
     service = new TestRootServiceService("AMBARI", "AMBARI_SERVER", null);
-    m = service.getClass().getMethod("getRootHostComponents", HttpHeaders.class, UriInfo.class, String.class, String.class);
-    args = new Object[] {getHttpHeaders(), getUriInfo(), "AMBARI", "AMBARI_SERVER"};
+    m = service.getClass().getMethod("getRootHostComponents", String.class, HttpHeaders.class, UriInfo.class, String.class, String.class);
+    args = new Object[] {null, getHttpHeaders(), getUriInfo(), "AMBARI", "AMBARI_SERVER"};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
     
     //getRootHosts
     service = new TestRootServiceService("AMBARI", "AMBARI_SERVER", null);
-    m = service.getClass().getMethod("getRootHosts", HttpHeaders.class, UriInfo.class);
-    args = new Object[] {getHttpHeaders(), getUriInfo()};
+    m = service.getClass().getMethod("getRootHosts", String.class, HttpHeaders.class, UriInfo.class);
+    args = new Object[] {null, getHttpHeaders(), getUriInfo()};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
     
     //getRootHost
     service = new TestRootServiceService("AMBARI", "AMBARI_SERVER", "host1");
-    m = service.getClass().getMethod("getRootHost", HttpHeaders.class, UriInfo.class, String.class);
-    args = new Object[] {getHttpHeaders(), getUriInfo(), "host1"};
+    m = service.getClass().getMethod("getRootHost", String.class, HttpHeaders.class, UriInfo.class, String.class);
+    args = new Object[] {null, getHttpHeaders(), getUriInfo(), "host1"};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
     
     

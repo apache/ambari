@@ -42,40 +42,40 @@ public class Stacks2ServiceTest extends BaseServiceTest {
 
     //getStack
     Stacks2Service service = new TestStacksService("stackName", null);
-    Method m = service.getClass().getMethod("getStack", HttpHeaders.class, UriInfo.class, String.class);
-    Object[] args = new Object[] {getHttpHeaders(), getUriInfo(), "stackName"};
+    Method m = service.getClass().getMethod("getStack", String.class, HttpHeaders.class, UriInfo.class, String.class);
+    Object[] args = new Object[] {null, getHttpHeaders(), getUriInfo(), "stackName"};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
 
     //getStacks
     service = new TestStacksService(null, null);
-    m = service.getClass().getMethod("getStacks", HttpHeaders.class, UriInfo.class);
-    args = new Object[] {getHttpHeaders(), getUriInfo()};
+    m = service.getClass().getMethod("getStacks", String.class, HttpHeaders.class, UriInfo.class);
+    args = new Object[] {null, getHttpHeaders(), getUriInfo()};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
 
     //getStackVersion
     service = new TestStacksService("stackName", "stackVersion");
-    m = service.getClass().getMethod("getStackVersion", HttpHeaders.class, UriInfo.class, String.class, String.class);
-    args = new Object[] {getHttpHeaders(), getUriInfo(), "stackName", "stackVersion"};
+    m = service.getClass().getMethod("getStackVersion", String.class, HttpHeaders.class, UriInfo.class, String.class, String.class);
+    args = new Object[] {null, getHttpHeaders(), getUriInfo(), "stackName", "stackVersion"};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
 
     //getStackVersions
     service = new TestStacksService("stackName", null);
-    m = service.getClass().getMethod("getStackVersions", HttpHeaders.class, UriInfo.class, String.class);
-    args = new Object[] {getHttpHeaders(), getUriInfo(), "stackName"};
+    m = service.getClass().getMethod("getStackVersions", String.class, HttpHeaders.class, UriInfo.class, String.class);
+    args = new Object[] {null, getHttpHeaders(), getUriInfo(), "stackName"};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
 
     // getRepository
     service = new TestStacksService("stackName", "stackVersion");
-    m = service.getClass().getMethod("getRepository", HttpHeaders.class, UriInfo.class, String.class,
+    m = service.getClass().getMethod("getRepository", String.class, HttpHeaders.class, UriInfo.class, String.class,
         String.class, String.class, String.class);
-    args = new Object[] {getHttpHeaders(), getUriInfo(), "stackName", "stackVersion", "os", "repo-id"};
+    args = new Object[] {null, getHttpHeaders(), getUriInfo(), "stackName", "stackVersion", "os", "repo-id"};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
 
     // getRepositories
     service = new TestStacksService("stackName", "stackVersion");
-    m = service.getClass().getMethod("getRepositories", HttpHeaders.class, UriInfo.class, String.class,
+    m = service.getClass().getMethod("getRepositories", String.class, HttpHeaders.class, UriInfo.class, String.class,
         String.class, String.class);
-    args = new Object[] {getHttpHeaders(), getUriInfo(), "stackName", "stackVersion", "os"};
+    args = new Object[] {null, getHttpHeaders(), getUriInfo(), "stackName", "stackVersion", "os"};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
 
     // updateRepository
@@ -87,57 +87,57 @@ public class Stacks2ServiceTest extends BaseServiceTest {
 
     // getStackService
     service = new TestStacksService("stackName", null);
-    m = service.getClass().getMethod("getStackService", HttpHeaders.class, UriInfo.class, String.class,
+    m = service.getClass().getMethod("getStackService", String.class, HttpHeaders.class, UriInfo.class, String.class,
         String.class, String.class);
-    args = new Object[] {getHttpHeaders(), getUriInfo(), "stackName", "stackVersion", "service-name"};
+    args = new Object[] {null, getHttpHeaders(), getUriInfo(), "stackName", "stackVersion", "service-name"};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
 
     // getStackServices
     service = new TestStacksService("stackName", null);
-    m = service.getClass().getMethod("getStackServices", HttpHeaders.class, UriInfo.class, String.class, String.class);
-    args = new Object[] {getHttpHeaders(), getUriInfo(), "stackName", "stackVersion"};
+    m = service.getClass().getMethod("getStackServices", String.class, HttpHeaders.class, UriInfo.class, String.class, String.class);
+    args = new Object[] {null, getHttpHeaders(), getUriInfo(), "stackName", "stackVersion"};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
 
     // getStackConfiguration
     service = new TestStacksService("stackName", "stackVersion");
-    m = service.getClass().getMethod("getStackConfiguration", HttpHeaders.class, UriInfo.class,
+    m = service.getClass().getMethod("getStackConfiguration", String.class, HttpHeaders.class, UriInfo.class,
         String.class, String.class, String.class, String.class);
-    args = new Object[] {getHttpHeaders(), getUriInfo(), "stackName", "stackVersion", "service-name", "property-name"};
+    args = new Object[] {null, getHttpHeaders(), getUriInfo(), "stackName", "stackVersion", "service-name", "property-name"};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
 
     // getStackConfigurations
     service = new TestStacksService("stackName", null);
-    m = service.getClass().getMethod("getStackConfigurations", HttpHeaders.class, UriInfo.class,
+    m = service.getClass().getMethod("getStackConfigurations", String.class, HttpHeaders.class, UriInfo.class,
         String.class, String.class, String.class);
-    args = new Object[] {getHttpHeaders(), getUriInfo(), "stackName", "stackVersion", "service-name"};
+    args = new Object[] {null, getHttpHeaders(), getUriInfo(), "stackName", "stackVersion", "service-name"};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
 
     // getServiceComponent
     service = new TestStacksService("stackName", "stackVersion");
-    m = service.getClass().getMethod("getServiceComponent", HttpHeaders.class, UriInfo.class,
+    m = service.getClass().getMethod("getServiceComponent", String.class, HttpHeaders.class, UriInfo.class,
         String.class, String.class, String.class, String.class);
-    args = new Object[] {getHttpHeaders(), getUriInfo(), "stackName", "stackVersion", "service-name", "component-name"};
+    args = new Object[] {null, getHttpHeaders(), getUriInfo(), "stackName", "stackVersion", "service-name", "component-name"};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
 
     // getServiceComponents
     service = new TestStacksService("stackName", "stackVersion");
-    m = service.getClass().getMethod("getServiceComponents", HttpHeaders.class, UriInfo.class,
+    m = service.getClass().getMethod("getServiceComponents", String.class, HttpHeaders.class, UriInfo.class,
         String.class, String.class, String.class);
-    args = new Object[] {getHttpHeaders(), getUriInfo(), "stackName", "stackVersion", "service-name"};
+    args = new Object[] {null, getHttpHeaders(), getUriInfo(), "stackName", "stackVersion", "service-name"};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
 
     // getOperationSystem
     service = new TestStacksService("stackName", "stackVersion");
-    m = service.getClass().getMethod("getOperatingSystem", HttpHeaders.class, UriInfo.class,
+    m = service.getClass().getMethod("getOperatingSystem", String.class, HttpHeaders.class, UriInfo.class,
         String.class, String.class, String.class);
-    args = new Object[] {getHttpHeaders(), getUriInfo(), "stackName", "stackVersion", "os-type"};
+    args = new Object[] {null, getHttpHeaders(), getUriInfo(), "stackName", "stackVersion", "os-type"};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
 
     // getOperationSystems
     service = new TestStacksService("stackName", "stackVersion");
-    m = service.getClass().getMethod("getOperatingSystems", HttpHeaders.class, UriInfo.class,
+    m = service.getClass().getMethod("getOperatingSystems", String.class, HttpHeaders.class, UriInfo.class,
         String.class, String.class);
-    args = new Object[] {getHttpHeaders(), getUriInfo(), "stackName", "stackVersion"};
+    args = new Object[] {null, getHttpHeaders(), getUriInfo(), "stackName", "stackVersion"};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
 
     return listInvocations;

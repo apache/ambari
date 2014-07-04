@@ -75,10 +75,10 @@ public class InstanceService extends BaseService {
   @GET
   @Path("{instanceID}")
   @Produces("text/plain")
-  public Response getInstance(@Context HttpHeaders headers, @Context UriInfo ui,
+  public Response getInstance(String body, @Context HttpHeaders headers, @Context UriInfo ui,
                           @PathParam("instanceID") String instanceID) {
 
-    return handleRequest(headers, null, ui, Request.Type.GET,
+    return handleRequest(headers, body, ui, Request.Type.GET,
         createInstanceResource(m_feedName, instanceID, ui));
   }
 
@@ -92,8 +92,8 @@ public class InstanceService extends BaseService {
    */
   @GET
   @Produces("text/plain")
-  public Response getInstances(@Context HttpHeaders headers, @Context UriInfo ui) {
-    return handleRequest(headers, null, ui, Request.Type.GET,
+  public Response getInstances(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
+    return handleRequest(headers, body, ui, Request.Type.GET,
         createInstanceResource(m_feedName, null, ui));
   }
 

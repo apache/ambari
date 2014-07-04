@@ -42,16 +42,16 @@ public class TaskAttemptServiceTest extends BaseServiceTest {
     TestTaskAttemptService service = new TestTaskAttemptService("clusterName",
         "workflowId", "jobId");
     Method m = service.getClass().getMethod("getTaskAttempt",
-        HttpHeaders.class, UriInfo.class, String.class);
-    Object[] args = new Object[] {getHttpHeaders(), getUriInfo(), "jobId"};
+      String.class, HttpHeaders.class, UriInfo.class, String.class);
+    Object[] args = new Object[] {null, getHttpHeaders(), getUriInfo(), "jobId"};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m,
         args, null));
 
     // getTaskAttempts
     service = new TestTaskAttemptService("clusterName", "workflowId", "jobId");
-    m = service.getClass().getMethod("getTaskAttempts", HttpHeaders.class,
+    m = service.getClass().getMethod("getTaskAttempts", String.class, HttpHeaders.class,
         UriInfo.class);
-    args = new Object[] {getHttpHeaders(), getUriInfo()};
+    args = new Object[] {null, getHttpHeaders(), getUriInfo()};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m,
         args, null));
 

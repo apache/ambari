@@ -63,10 +63,10 @@ public class ComponentService extends BaseService {
   @GET
   @Path("{componentName}")
   @Produces("text/plain")
-  public Response getComponent(@Context HttpHeaders headers, @Context UriInfo ui,
+  public Response getComponent(String body, @Context HttpHeaders headers, @Context UriInfo ui,
                                @PathParam("componentName") String componentName) {
 
-    return handleRequest(headers, null, ui, Request.Type.GET,
+    return handleRequest(headers, body, ui, Request.Type.GET,
         createComponentResource(m_clusterName, m_serviceName, componentName));
   }
 
@@ -80,8 +80,8 @@ public class ComponentService extends BaseService {
    */
   @GET
   @Produces("text/plain")
-  public Response getComponents(@Context HttpHeaders headers, @Context UriInfo ui) {
-    return handleRequest(headers, null, ui, Request.Type.GET,
+  public Response getComponents(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
+    return handleRequest(headers, body, ui, Request.Type.GET,
         createComponentResource(m_clusterName, m_serviceName, null));
   }
 

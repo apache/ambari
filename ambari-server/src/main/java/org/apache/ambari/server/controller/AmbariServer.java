@@ -34,6 +34,7 @@ import org.apache.ambari.server.agent.HeartBeatHandler;
 import org.apache.ambari.server.agent.rest.AgentResource;
 import org.apache.ambari.server.api.AmbariErrorHandler;
 import org.apache.ambari.server.api.AmbariPersistFilter;
+import org.apache.ambari.server.api.MethodOverrideFilter;
 import org.apache.ambari.server.api.rest.BootStrapResource;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.KeyService;
@@ -216,6 +217,8 @@ public class AmbariServer {
       //session-per-request strategy for api and agents
       root.addFilter(new FilterHolder(injector.getInstance(AmbariPersistFilter.class)), "/api/*", 1);
       root.addFilter(new FilterHolder(injector.getInstance(AmbariPersistFilter.class)), "/proxy/*", 1);
+      root.addFilter(new FilterHolder(new MethodOverrideFilter()), "/api/*", 1);
+      root.addFilter(new FilterHolder(new MethodOverrideFilter()), "/proxy/*", 1);
       agentroot.addFilter(new FilterHolder(injector.getInstance(AmbariPersistFilter.class)), "/agent/*", 1);
 
       agentroot.addFilter(SecurityFilter.class, "/*", 1);

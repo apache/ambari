@@ -60,8 +60,8 @@ public class ConfigurationService extends BaseService {
    */
   @GET
   @Produces("text/plain")
-  public Response getConfigurations(@Context HttpHeaders headers, @Context UriInfo ui) {
-    return handleRequest(headers, null, ui, Request.Type.GET, createConfigurationResource(m_clusterName));
+  public Response getConfigurations(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
+    return handleRequest(headers, body, ui, Request.Type.GET, createConfigurationResource(m_clusterName));
   }
 
   /**

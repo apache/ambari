@@ -62,9 +62,10 @@ public class RequestScheduleService extends BaseService {
    */
   @GET
   @Produces("text/plain")
-  public Response getRequestSchedules(@Context HttpHeaders headers,
+  public Response getRequestSchedules(String body,
+                                      @Context HttpHeaders headers,
                                       @Context UriInfo ui) {
-    return handleRequest(headers, null, ui, Request.Type.GET,
+    return handleRequest(headers, body, ui, Request.Type.GET,
       createRequestSchedule(m_clusterName, null));
   }
 
@@ -77,10 +78,11 @@ public class RequestScheduleService extends BaseService {
   @GET
   @Path("{requestScheduleId}")
   @Produces("text/plain")
-  public Response getRequestSchedule(@Context HttpHeaders headers,
+  public Response getRequestSchedule(String body,
+                                     @Context HttpHeaders headers,
                                      @Context UriInfo ui,
                                      @PathParam("requestScheduleId") String requestScheduleId) {
-    return handleRequest(headers, null, ui, Request.Type.GET,
+    return handleRequest(headers, body, ui, Request.Type.GET,
       createRequestSchedule(m_clusterName, requestScheduleId));
   }
 

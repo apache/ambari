@@ -43,40 +43,40 @@ public class Stacks2Service extends BaseService {
 
   @GET
   @Produces("text/plain")
-  public Response getStacks(@Context HttpHeaders headers, @Context UriInfo ui) {
+  public Response getStacks(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
 
-    return handleRequest(headers, null, ui, Request.Type.GET,
+    return handleRequest(headers, body, ui, Request.Type.GET,
       createStackResource(null));
   }
 
   @GET
   @Path("{stackName}")
   @Produces("text/plain")
-  public Response getStack(@Context HttpHeaders headers, @Context UriInfo ui,
+  public Response getStack(String body, @Context HttpHeaders headers, @Context UriInfo ui,
       @PathParam("stackName") String stackName) {
 
-    return handleRequest(headers, null, ui, Request.Type.GET,
+    return handleRequest(headers, body, ui, Request.Type.GET,
         createStackResource(stackName));
   }
 
   @GET
   @Path("{stackName}/versions")
   @Produces("text/plain")
-  public Response getStackVersions(@Context HttpHeaders headers,
+  public Response getStackVersions(String body, @Context HttpHeaders headers,
       @Context UriInfo ui, @PathParam("stackName") String stackName) {
 
-    return handleRequest(headers, null, ui, Request.Type.GET,
+    return handleRequest(headers, body, ui, Request.Type.GET,
         createStackVersionResource(stackName, null));
   }
 
   @GET
   @Path("{stackName}/versions/{stackVersion}")
   @Produces("text/plain")
-  public Response getStackVersion(@Context HttpHeaders headers,
+  public Response getStackVersion(String body, @Context HttpHeaders headers,
       @Context UriInfo ui, @PathParam("stackName") String stackName,
       @PathParam("stackVersion") String stackVersion) {
 
-    return handleRequest(headers, null, ui, Request.Type.GET,
+    return handleRequest(headers, body, ui, Request.Type.GET,
         createStackVersionResource(stackName, stackVersion));
   }
 
@@ -84,25 +84,25 @@ public class Stacks2Service extends BaseService {
   @GET
   @Path("{stackName}/versions/{stackVersion}/operatingSystems/{osType}/repositories")
   @Produces("text/plain")
-  public Response getRepositories(@Context HttpHeaders headers,
+  public Response getRepositories(String body, @Context HttpHeaders headers,
       @Context UriInfo ui, @PathParam("stackName") String stackName,
       @PathParam("stackVersion") String stackVersion,
       @PathParam("osType") String osType) {
 
-    return handleRequest(headers, null, ui, Request.Type.GET,
+    return handleRequest(headers, body, ui, Request.Type.GET,
         createRepositoryResource(stackName, stackVersion, osType, null));
   }
 
   @GET
   @Path("{stackName}/versions/{stackVersion}/operatingSystems/{osType}/repositories/{repoId}")
   @Produces("text/plain")
-  public Response getRepository(@Context HttpHeaders headers,
+  public Response getRepository(String body, @Context HttpHeaders headers,
       @Context UriInfo ui, @PathParam("stackName") String stackName,
       @PathParam("stackVersion") String stackVersion,
       @PathParam("osType") String osType,
       @PathParam("repoId") String repoId) {
 
-    return handleRequest(headers, null, ui, Request.Type.GET,
+    return handleRequest(headers, body, ui, Request.Type.GET,
         createRepositoryResource(stackName, stackVersion, osType, repoId));
   }
   
@@ -123,36 +123,36 @@ public class Stacks2Service extends BaseService {
   @GET
   @Path("{stackName}/versions/{stackVersion}/stackServices")
   @Produces("text/plain")
-  public Response getStackServices(@Context HttpHeaders headers,
+  public Response getStackServices(String body, @Context HttpHeaders headers,
       @Context UriInfo ui, @PathParam("stackName") String stackName,
       @PathParam("stackVersion") String stackVersion) {
 
-    return handleRequest(headers, null, ui, Request.Type.GET,
+    return handleRequest(headers, body, ui, Request.Type.GET,
         createStackServiceResource(stackName, stackVersion, null));
   }
   
   @GET
   @Path("{stackName}/versions/{stackVersion}/stackServices/{serviceName}")
   @Produces("text/plain")
-  public Response getStackService(@Context HttpHeaders headers,
+  public Response getStackService(String body, @Context HttpHeaders headers,
       @Context UriInfo ui, @PathParam("stackName") String stackName,
       @PathParam("stackVersion") String stackVersion,
       @PathParam("serviceName") String serviceName) {
 
-    return handleRequest(headers, null, ui, Request.Type.GET,
+    return handleRequest(headers, body, ui, Request.Type.GET,
         createStackServiceResource(stackName, stackVersion, serviceName));
   }
-  
+
   
   @GET
   @Path("{stackName}/versions/{stackVersion}/stackServices/{serviceName}/configurations")
   @Produces("text/plain")
-  public Response getStackConfigurations(@Context HttpHeaders headers,
+  public Response getStackConfigurations(String body, @Context HttpHeaders headers,
       @Context UriInfo ui, @PathParam("stackName") String stackName,
       @PathParam("stackVersion") String stackVersion,
       @PathParam("serviceName") String serviceName) {
 
-    return handleRequest(headers, null, ui, Request.Type.GET,
+    return handleRequest(headers, body, ui, Request.Type.GET,
         createStackConfigurationResource(stackName, stackVersion, serviceName, null));
   }
   
@@ -160,38 +160,38 @@ public class Stacks2Service extends BaseService {
   @GET
   @Path("{stackName}/versions/{stackVersion}/stackServices/{serviceName}/configurations/{propertyName}")
   @Produces("text/plain")
-  public Response getStackConfiguration(@Context HttpHeaders headers,
+  public Response getStackConfiguration(String body, @Context HttpHeaders headers,
       @Context UriInfo ui, @PathParam("stackName") String stackName,
       @PathParam("stackVersion") String stackVersion,
       @PathParam("serviceName") String serviceName,
       @PathParam("propertyName") String propertyName) {
 
-    return handleRequest(headers, null, ui, Request.Type.GET,
+    return handleRequest(headers, body, ui, Request.Type.GET,
         createStackConfigurationResource(stackName, stackVersion, serviceName, propertyName));
   }
   
   @GET
   @Path("{stackName}/versions/{stackVersion}/stackServices/{serviceName}/serviceComponents")
   @Produces("text/plain")
-  public Response getServiceComponents(@Context HttpHeaders headers,
+  public Response getServiceComponents(String body, @Context HttpHeaders headers,
       @Context UriInfo ui, @PathParam("stackName") String stackName,
       @PathParam("stackVersion") String stackVersion,
       @PathParam("serviceName") String serviceName) {
 
-    return handleRequest(headers, null, ui, Request.Type.GET,
+    return handleRequest(headers, body, ui, Request.Type.GET,
         createStackServiceComponentResource(stackName, stackVersion, serviceName, null));
   }
   
   @GET
   @Path("{stackName}/versions/{stackVersion}/stackServices/{serviceName}/serviceComponents/{componentName}")
   @Produces("text/plain")
-  public Response getServiceComponent(@Context HttpHeaders headers,
+  public Response getServiceComponent(String body, @Context HttpHeaders headers,
       @Context UriInfo ui, @PathParam("stackName") String stackName,
       @PathParam("stackVersion") String stackVersion,
       @PathParam("serviceName") String serviceName,
       @PathParam("componentName") String componentName) {
 
-    return handleRequest(headers, null, ui, Request.Type.GET,
+    return handleRequest(headers, body, ui, Request.Type.GET,
         createStackServiceComponentResource(stackName, stackVersion, serviceName, componentName));
   }
   
@@ -199,23 +199,23 @@ public class Stacks2Service extends BaseService {
   @GET
   @Path("{stackName}/versions/{stackVersion}/operatingSystems")
   @Produces("text/plain")
-  public Response getOperatingSystems(@Context HttpHeaders headers,
+  public Response getOperatingSystems(String body, @Context HttpHeaders headers,
       @Context UriInfo ui, @PathParam("stackName") String stackName,
       @PathParam("stackVersion") String stackVersion) {
 
-    return handleRequest(headers, null, ui, Request.Type.GET,
+    return handleRequest(headers, body, ui, Request.Type.GET,
         createOperatingSystemResource(stackName, stackVersion, null));
   }
   
   @GET
   @Path("{stackName}/versions/{stackVersion}/operatingSystems/{osType}")
   @Produces("text/plain")
-  public Response getOperatingSystem(@Context HttpHeaders headers,
+  public Response getOperatingSystem(String body, @Context HttpHeaders headers,
       @Context UriInfo ui, @PathParam("stackName") String stackName,
       @PathParam("stackVersion") String stackVersion,
       @PathParam("osType") String osType) {
 
-    return handleRequest(headers, null, ui, Request.Type.GET,
+    return handleRequest(headers, body, ui, Request.Type.GET,
         createOperatingSystemResource(stackName, stackVersion, osType));
   }
   

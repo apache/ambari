@@ -72,10 +72,10 @@ public class RequestService extends BaseService {
   @GET
   @Path("{requestId}")
   @Produces("text/plain")
-  public Response getRequest(@Context HttpHeaders headers, @Context UriInfo ui,
+  public Response getRequest(String body, @Context HttpHeaders headers, @Context UriInfo ui,
                              @PathParam("requestId") String requestId) {
 
-    return handleRequest(headers, null, ui, Request.Type.GET,
+    return handleRequest(headers, body, ui, Request.Type.GET,
         createRequestResource(m_clusterName, requestId));
   }
 
@@ -90,8 +90,8 @@ public class RequestService extends BaseService {
    */
   @GET
   @Produces("text/plain")
-  public Response getRequests(@Context HttpHeaders headers, @Context UriInfo ui) {
-    return handleRequest(headers, null, ui, Request.Type.GET,
+  public Response getRequests(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
+    return handleRequest(headers, body, ui, Request.Type.GET,
         createRequestResource(m_clusterName, null));
   }
 
