@@ -41,14 +41,14 @@ public class ActionServiceTest extends BaseServiceTest {
 
     //getActionDefinition
     ActionService service = new TestActionDefinitionService("actionName");
-    Method m = service.getClass().getMethod("getActionDefinition", HttpHeaders.class, UriInfo.class, String.class);
-    Object[] args = new Object[] {getHttpHeaders(), getUriInfo(), "actionName"};
+    Method m = service.getClass().getMethod("getActionDefinition", String.class, HttpHeaders.class, UriInfo.class, String.class);
+    Object[] args = new Object[] {null, getHttpHeaders(), getUriInfo(), "actionName"};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
 
     //getActionDefinitions
     service = new TestActionDefinitionService(null);
-    m = service.getClass().getMethod("getActionDefinitions", HttpHeaders.class, UriInfo.class);
-    args = new Object[] {getHttpHeaders(), getUriInfo()};
+    m = service.getClass().getMethod("getActionDefinitions", String.class, HttpHeaders.class, UriInfo.class);
+    args = new Object[] {null, getHttpHeaders(), getUriInfo()};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
 
     //createActionDefinition

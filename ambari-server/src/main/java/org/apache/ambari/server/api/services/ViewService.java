@@ -54,10 +54,10 @@ public class ViewService extends BaseService {
   @GET
   @Path("{viewName}")
   @Produces("text/plain")
-  public Response getView(@Context HttpHeaders headers, @Context UriInfo ui,
+  public Response getView(String body, @Context HttpHeaders headers, @Context UriInfo ui,
                              @PathParam("viewName") String viewName) {
 
-    return handleRequest(headers, null, ui, Request.Type.GET, createViewResource(viewName));
+    return handleRequest(headers, body, ui, Request.Type.GET, createViewResource(viewName));
   }
 
   /**
@@ -71,8 +71,8 @@ public class ViewService extends BaseService {
    */
   @GET
   @Produces("text/plain")
-  public Response getViews(@Context HttpHeaders headers, @Context UriInfo ui) {
-    return handleRequest(headers, null, ui, Request.Type.GET, createViewResource(null));
+  public Response getViews(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
+    return handleRequest(headers, body, ui, Request.Type.GET, createViewResource(null));
   }
 
   /**

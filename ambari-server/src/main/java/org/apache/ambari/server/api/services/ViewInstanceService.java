@@ -81,10 +81,10 @@ public class ViewInstanceService extends BaseService {
   @GET
   @Path("{instanceName}")
   @Produces("text/plain")
-  public Response getService(@Context HttpHeaders headers, @Context UriInfo ui,
+  public Response getService(String body, @Context HttpHeaders headers, @Context UriInfo ui,
                              @PathParam("instanceName") String instanceName) {
 
-    return handleRequest(headers, null, ui, Request.Type.GET,
+    return handleRequest(headers, body, ui, Request.Type.GET,
         createResource(viewName, version, instanceName));
   }
 
@@ -99,8 +99,8 @@ public class ViewInstanceService extends BaseService {
    */
   @GET
   @Produces("text/plain")
-  public Response getServices(@Context HttpHeaders headers, @Context UriInfo ui) {
-    return handleRequest(headers, null, ui, Request.Type.GET,
+  public Response getServices(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
+    return handleRequest(headers, body, ui, Request.Type.GET,
         createResource(viewName, version,  null));
   }
 

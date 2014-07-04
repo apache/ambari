@@ -40,17 +40,17 @@ public class WorkflowServiceTest extends BaseServiceTest {
 
     // getWorkflow
     WorkflowService service = new TestWorkflowService("clusterName");
-    Method m = service.getClass().getMethod("getWorkflow", HttpHeaders.class,
+    Method m = service.getClass().getMethod("getWorkflow", String.class, HttpHeaders.class,
         UriInfo.class, String.class);
-    Object[] args = new Object[] {getHttpHeaders(), getUriInfo(), "jobId"};
+    Object[] args = new Object[] {null, getHttpHeaders(), getUriInfo(), "jobId"};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m,
         args, null));
 
     // getWorkflows
     service = new TestWorkflowService("clusterName");
-    m = service.getClass().getMethod("getWorkflows", HttpHeaders.class,
+    m = service.getClass().getMethod("getWorkflows", String.class, HttpHeaders.class,
         UriInfo.class);
-    args = new Object[] {getHttpHeaders(), getUriInfo()};
+    args = new Object[] {null, getHttpHeaders(), getUriInfo()};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m,
         args, null));
 

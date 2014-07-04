@@ -74,10 +74,10 @@ public class ViewVersionService extends BaseService {
   @GET
   @Path("{version}")
   @Produces("text/plain")
-  public Response getVersions(@Context HttpHeaders headers, @Context UriInfo ui,
+  public Response getVersions(String body, @Context HttpHeaders headers, @Context UriInfo ui,
                           @PathParam("version") String version) {
 
-    return handleRequest(headers, null, ui, Request.Type.GET, createResource(viewName, version));
+    return handleRequest(headers, body, ui, Request.Type.GET, createResource(viewName, version));
   }
 
   /**
@@ -91,9 +91,9 @@ public class ViewVersionService extends BaseService {
    */
   @GET
   @Produces("text/plain")
-  public Response getVersions(@Context HttpHeaders headers, @Context UriInfo ui) {
+  public Response getVersions(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
 
-    return handleRequest(headers, null, ui, Request.Type.GET, createResource(viewName, null));
+    return handleRequest(headers, body, ui, Request.Type.GET, createResource(viewName, null));
   }
 
   /**

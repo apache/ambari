@@ -67,9 +67,9 @@ public class JobService extends BaseService {
   @GET
   @Path("{jobId}")
   @Produces("text/plain")
-  public Response getJob(@Context HttpHeaders headers, @Context UriInfo ui,
+  public Response getJob(String body, @Context HttpHeaders headers, @Context UriInfo ui,
       @PathParam("jobId") String jobId) {
-    return handleRequest(headers, null, ui, Request.Type.GET,
+    return handleRequest(headers, body, ui, Request.Type.GET,
         createJobResource(clusterName, workflowId, jobId));
   }
 
@@ -84,8 +84,8 @@ public class JobService extends BaseService {
    */
   @GET
   @Produces("text/plain")
-  public Response getJobs(@Context HttpHeaders headers, @Context UriInfo ui) {
-    return handleRequest(headers, null, ui, Request.Type.GET,
+  public Response getJobs(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
+    return handleRequest(headers, body, ui, Request.Type.GET,
         createJobResource(clusterName, workflowId, null));
   }
 

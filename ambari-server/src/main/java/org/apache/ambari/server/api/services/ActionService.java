@@ -53,10 +53,10 @@ public class ActionService extends BaseService {
   @GET
   @Path("{actionName}")
   @Produces("text/plain")
-  public Response getActionDefinition(@Context HttpHeaders headers, @Context UriInfo ui,
+  public Response getActionDefinition(String body, @Context HttpHeaders headers, @Context UriInfo ui,
                              @PathParam("actionName") String actionName) {
 
-    return handleRequest(headers, null, ui, Request.Type.GET, createActionDefinitionResource(actionName));
+    return handleRequest(headers, body, ui, Request.Type.GET, createActionDefinitionResource(actionName));
   }
 
   /**
@@ -69,8 +69,8 @@ public class ActionService extends BaseService {
    */
   @GET
   @Produces("text/plain")
-  public Response getActionDefinitions(@Context HttpHeaders headers, @Context UriInfo ui) {
-    return handleRequest(headers, null, ui, Request.Type.GET, createActionDefinitionResource(null));
+  public Response getActionDefinitions(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
+    return handleRequest(headers, body, ui, Request.Type.GET, createActionDefinitionResource(null));
   }
 
   /**

@@ -74,11 +74,11 @@ public class TaskAttemptService extends BaseService {
   @GET
   @Path("{taskAttemptId}")
   @Produces("text/plain")
-  public Response getTaskAttempt(@Context HttpHeaders headers,
+  public Response getTaskAttempt(String body, @Context HttpHeaders headers,
       @Context UriInfo ui, @PathParam("taskAttemptId") String taskAttemptId) {
     return handleRequest(
         headers,
-        null,
+        body,
         ui,
         Request.Type.GET,
         createTaskAttemptResource(clusterName, workflowId, jobId, taskAttemptId));
@@ -97,9 +97,9 @@ public class TaskAttemptService extends BaseService {
    */
   @GET
   @Produces("text/plain")
-  public Response getTaskAttempts(@Context HttpHeaders headers,
+  public Response getTaskAttempts(String body, @Context HttpHeaders headers,
       @Context UriInfo ui) {
-    return handleRequest(headers, null, ui, Request.Type.GET,
+    return handleRequest(headers, body, ui, Request.Type.GET,
         createTaskAttemptResource(clusterName, workflowId, jobId, null));
   }
 

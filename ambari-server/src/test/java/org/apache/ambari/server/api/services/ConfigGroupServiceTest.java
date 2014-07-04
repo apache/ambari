@@ -39,16 +39,16 @@ public class ConfigGroupServiceTest extends BaseServiceTest {
     ConfigGroupService configGroupService = new TestConfigGroupService
       ("clusterName", null);
     Method m = configGroupService.getClass().getMethod("getConfigGroups",
-      HttpHeaders.class, UriInfo.class);
-    Object[] args = new Object[] {getHttpHeaders(), getUriInfo()};
+      String.class, HttpHeaders.class, UriInfo.class);
+    Object[] args = new Object[] {null, getHttpHeaders(), getUriInfo()};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET,
       configGroupService, m, args, null));
 
     // Get Config Group
     configGroupService = new TestConfigGroupService("clusterName", "groupId");
     m = configGroupService.getClass().getMethod("getConfigGroup",
-      HttpHeaders.class, UriInfo.class, String.class);
-    args = new Object[] {getHttpHeaders(), getUriInfo(), "groupId"};
+      String.class, HttpHeaders.class, UriInfo.class, String.class);
+    args = new Object[] {null, getHttpHeaders(), getUriInfo(), "groupId"};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET,
       configGroupService, m, args, null));
 

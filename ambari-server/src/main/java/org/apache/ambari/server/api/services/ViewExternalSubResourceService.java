@@ -88,8 +88,8 @@ public class ViewExternalSubResourceService  extends BaseService {
    */
   @GET
   @Produces("text/plain")
-  public Response getResources(@Context HttpHeaders headers, @Context UriInfo ui) {
-    return handleRequest(headers, null, ui, Request.Type.GET,
+  public Response getResources(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
+    return handleRequest(headers, body, ui, Request.Type.GET,
         createResource(viewName, instanceName));
   }
 

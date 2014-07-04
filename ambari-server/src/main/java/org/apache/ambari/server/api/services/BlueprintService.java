@@ -52,8 +52,8 @@ public class BlueprintService extends BaseService {
    */
   @GET
   @Produces("text/plain")
-  public Response getBlueprints(@Context HttpHeaders headers, @Context UriInfo ui) {
-    return handleRequest(headers, null, ui, Request.Type.GET, createBlueprintResource(null));
+  public Response getBlueprints(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
+    return handleRequest(headers, body, ui, Request.Type.GET, createBlueprintResource(null));
   }
 
   /**
@@ -68,10 +68,10 @@ public class BlueprintService extends BaseService {
   @GET
   @Path("{blueprintName}")
   @Produces("text/plain")
-  public Response getBlueprint(@Context HttpHeaders headers, @Context UriInfo ui,
+  public Response getBlueprint(String body, @Context HttpHeaders headers, @Context UriInfo ui,
                              @PathParam("blueprintName") String blueprintName) {
 
-    return handleRequest(headers, null, ui, Request.Type.GET, createBlueprintResource(blueprintName));
+    return handleRequest(headers, body, ui, Request.Type.GET, createBlueprintResource(blueprintName));
   }
 
   /**

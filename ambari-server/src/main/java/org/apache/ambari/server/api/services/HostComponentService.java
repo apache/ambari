@@ -73,7 +73,7 @@ public class HostComponentService extends BaseService {
   @GET
   @Path("{hostComponentName}")
   @Produces("text/plain")
-  public Response getHostComponent(@Context HttpHeaders headers, @Context UriInfo ui,
+  public Response getHostComponent(String body, @Context HttpHeaders headers, @Context UriInfo ui,
                                    @PathParam("hostComponentName") String hostComponentName) {
 
     //todo: needs to be refactored when properly handling exceptions
@@ -83,7 +83,7 @@ public class HostComponentService extends BaseService {
       return Response.status(400).entity(s).build();
     }
 
-    return handleRequest(headers, null, ui, Request.Type.GET,
+    return handleRequest(headers, body, ui, Request.Type.GET,
         createHostComponentResource(m_clusterName, m_hostName, hostComponentName));
   }
 
@@ -97,8 +97,8 @@ public class HostComponentService extends BaseService {
    */
   @GET
   @Produces("text/plain")
-  public Response getHostComponents(@Context HttpHeaders headers, @Context UriInfo ui) {
-    return handleRequest(headers, null, ui, Request.Type.GET,
+  public Response getHostComponents(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
+    return handleRequest(headers, body, ui, Request.Type.GET,
         createHostComponentResource(m_clusterName, m_hostName, null));
   }
 

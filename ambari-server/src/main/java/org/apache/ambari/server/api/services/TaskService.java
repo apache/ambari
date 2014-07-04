@@ -70,10 +70,10 @@ public class TaskService extends BaseService {
   @GET
   @Path("{taskId}")
   @Produces("text/plain")
-  public Response getTask(@Context HttpHeaders headers, @Context UriInfo ui,
+  public Response getTask(String body, @Context HttpHeaders headers, @Context UriInfo ui,
                           @PathParam("taskId") String taskId) {
 
-    return handleRequest(headers, null, ui, Request.Type.GET,
+    return handleRequest(headers, body, ui, Request.Type.GET,
         createTaskResource(m_clusterName, m_requestId, taskId));
   }
 
@@ -88,8 +88,8 @@ public class TaskService extends BaseService {
    */
   @GET
   @Produces("text/plain")
-  public Response getComponents(@Context HttpHeaders headers, @Context UriInfo ui) {
-    return handleRequest(headers, null, ui, Request.Type.GET,
+  public Response getComponents(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
+    return handleRequest(headers, body, ui, Request.Type.GET,
         createTaskResource(m_clusterName, m_requestId, null));
   }
 

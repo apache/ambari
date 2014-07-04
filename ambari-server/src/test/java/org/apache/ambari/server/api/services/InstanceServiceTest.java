@@ -42,14 +42,14 @@ public class InstanceServiceTest extends BaseServiceTest {
 
     //getInstance
     InstanceService service = new TestInstanceService("clusterName", "instanceName");
-    Method m = service.getClass().getMethod("getInstance", HttpHeaders.class, UriInfo.class, String.class);
-    Object[] args = new Object[] {getHttpHeaders(), getUriInfo(), "instanceName"};
+    Method m = service.getClass().getMethod("getInstance", String.class, HttpHeaders.class, UriInfo.class, String.class);
+    Object[] args = new Object[] {null, getHttpHeaders(), getUriInfo(), "instanceName"};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
 
     //getInstances
     service = new TestInstanceService("clusterName", null);
-    m = service.getClass().getMethod("getInstances", HttpHeaders.class, UriInfo.class);
-    args = new Object[] {getHttpHeaders(), getUriInfo()};
+    m = service.getClass().getMethod("getInstances", String.class, HttpHeaders.class, UriInfo.class);
+    args = new Object[] {null, getHttpHeaders(), getUriInfo()};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
 
     //createInstance

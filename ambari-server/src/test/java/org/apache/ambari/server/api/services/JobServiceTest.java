@@ -40,17 +40,17 @@ public class JobServiceTest extends BaseServiceTest {
 
     // getJob
     JobService service = new TestJobService("clusterName", "jobId");
-    Method m = service.getClass().getMethod("getJob", HttpHeaders.class,
+    Method m = service.getClass().getMethod("getJob", String.class, HttpHeaders.class,
         UriInfo.class, String.class);
-    Object[] args = new Object[] {getHttpHeaders(), getUriInfo(), "jobId"};
+    Object[] args = new Object[] {null, getHttpHeaders(), getUriInfo(), "jobId"};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m,
         args, null));
 
     // getJobs
     service = new TestJobService("clusterName", null);
-    m = service.getClass().getMethod("getJobs", HttpHeaders.class,
+    m = service.getClass().getMethod("getJobs", String.class, HttpHeaders.class,
         UriInfo.class);
-    args = new Object[] {getHttpHeaders(), getUriInfo()};
+    args = new Object[] {null, getHttpHeaders(), getUriInfo()};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m,
         args, null));
 
