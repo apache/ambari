@@ -834,18 +834,6 @@ module.exports =
     },
     {
       "id": "puppet var",
-      "name": "mysql_connector_url",
-      "displayName": "MySQL connector url",
-      "description": "",
-      "defaultValue": "${download_url}/mysql-connector-java-5.1.18.zip",
-      "isReconfigurable": false,
-      "displayType": "directory",
-      "isVisible": false,
-      "serviceName": "HIVE",
-      "category": "Advanced"
-    },
-    {
-      "id": "puppet var",
       "name": "hive_aux_jars_path",
       "displayName": "Hive auxilary jar path",
       "description": "",

@@ -42,11 +42,6 @@
     <description>ZooKeeper Pid Dir</description>
   </property>
   <property>
-    <name>zk_pid_file</name>
-    <value>/var/run/zookeeper/zookeeper_server.pid</value>
-    <description>ZooKeeper Pid File</description>
-  </property>
-  <property>
     <name>tickTime</name>
     <value>2000</value>
     <description>The length of a single tick in milliseconds, which is the basic time unit used by ZooKeeper</description>

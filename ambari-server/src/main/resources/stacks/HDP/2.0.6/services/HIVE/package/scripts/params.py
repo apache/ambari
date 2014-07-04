@@ -103,7 +103,6 @@ driver_curl_source = format("{jdk_location}/{jdbc_symlink_name}")
 start_hiveserver2_path = "/tmp/start_hiveserver2_script"
 start_metastore_path = "/tmp/start_metastore_script"
 
-hive_aux_jars_path = config['configurations']['global']['hive_aux_jars_path']
 hadoop_heapsize = config['configurations']['global']['hadoop_heapsize']
 hive_heapsize = config['configurations']['hive-site']['hive.heapsize']
 java64_home = config['hostLevelParams']['java_home']

@@ -234,30 +234,6 @@ module.exports =
       "serviceName": "HDFS",
       "category": "Advanced"
     },
-    {
-      "id": "puppet var",
-      "name": "hcat_conf_dir",
-      "displayName": "HCat conf directory",
-      "description": "",
-      "defaultValue": "",
-      "isRequired": false,
-      "isReconfigurable": false,
-      "displayType": "directory",
-      "isVisible": false,
-      "serviceName": "HDFS",
-      "category": "Advanced"
-    },
-    {
-      "id": "puppet var",
-      "name": "lzo_enabled",
-      "displayName": "LZO compression",
-      "description": "LZO compression enabled",
-      "defaultValue": true,
-      "displayType": "checkbox",
-      "isOverridable": false,
-      "isVisible": false,
-      "serviceName": "HDFS"
-    },
 
   /**********************************************MAPREDUCE2***************************************/
     {
@@ -897,18 +873,6 @@ module.exports =
       "displayType": "directory",
       "isOverridable": false,
       "isVisible": true,
-      "serviceName": "HIVE",
-      "category": "Advanced"
-    },
-    {
-      "id": "puppet var",
-      "name": "hive_aux_jars_path",
-      "displayName": "Hive auxilary jar path",
-      "description": "",
-      "defaultValue": "/usr/lib/hcatalog/share/hcatalog/hcatalog-core.jar",
-      "isReconfigurable": false,
-      "displayType": "directory",
-      "isVisible": false,
       "serviceName": "HIVE",
       "category": "Advanced"
     },

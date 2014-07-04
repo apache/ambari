@@ -41,7 +41,6 @@ hadoop_jar_location = "/usr/lib/hadoop/"
 # for HDP1 it's "/usr/share/HDP-oozie/ext.zip"
 ext_js_path = "/usr/share/HDP-oozie/ext-2.2.zip"
 oozie_libext_dir = "/usr/lib/oozie/libext"
-lzo_enabled = config['configurations']['global']['lzo_enabled']
 _authentication = config['configurations']['core-site']['hadoop.security.authentication']
 security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')
 

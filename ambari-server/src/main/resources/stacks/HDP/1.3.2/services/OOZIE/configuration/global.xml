@@ -37,22 +37,6 @@
     <description>Oozie Derby Database.</description>
   </property>
   <property>
-    <name>oozie_database_name</name>
-    <value>oozie</value>
-    <description>Database name used for the Oozie.</description>
-  </property>
-  <property>
-    <name>oozie_metastore_user_name</name>
-    <value>oozie</value>
-    <description>Database user name to use to connect to the database</description>
-  </property>
-  <property require-input = "true">
-    <name>oozie_metastore_user_passwd</name>
-    <value></value>
-    <type>PASSWORD</type>
-    <description>Database password to use to connect to the database</description>
-  </property>
-  <property>
     <name>oozie_data_dir</name>
     <value>/hadoop/oozie/data</value>
     <description>Data directory in which the Oozie DB exists</description>

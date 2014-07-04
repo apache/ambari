@@ -183,10 +183,5 @@
     <value>hdfs</value>
     <description>User and Groups.</description>
   </property>
-  <property>
-    <name>lzo_enabled</name>
-    <value>true</value>
-    <description>LZO compression enabled</description>
-  </property>
   
 </configuration>
