@@ -33,12 +33,12 @@ App.HttpClient = Em.Object.create({
   defaultErrorHandler: function (jqXHR, textStatus, errorThrown, url) {
     try {
       var json = $.parseJSON(jqXHR.responseText);
-    } catch (err) {
-    }
+    } catch (err) { }
     App.ajax.defaultErrorHandler(jqXHR, url);
     if (json) {
       Em.assert("HttpClient:", json);
-    } else {
+    }
+    else {
       if (!$.mocho) { // don't use this assert on tests
         Em.assert("HttpClient:", errorThrown);
       }
@@ -62,6 +62,34 @@ App.HttpClient = Em.Object.create({
 
     xhr.open('GET', url + (url.indexOf('?') >= 0 ? '&_=' : '?_=') + curTime, true);
     xhr.send(null);
+
+    this.onReady(xhr, "", ajaxOptions, mapper, errorHandler, url);
+  },
+
+  /**
+   * Do POST-request equal to GET-request but with some params put to body
+   * @param {string} url
+   * @param {{params: string, success: callback, error: callback}} ajaxOptions
+   * @param {App.QuickDataMapper} mapper
+   * @param errorHandler
+   * @method getAsPostRequest
+   */
+  getAsPostRequest: function (url, ajaxOptions, mapper, errorHandler) {
+
+    if (!errorHandler) {
+      errorHandler = this.defaultErrorHandler;
+    }
+
+    var xhr = new XMLHttpRequest(),
+      curTime = App.dateTime(),
+      params = JSON.stringify({
+        "RequestInfo": {"query" : ajaxOptions.params }
+      });
+
+    xhr.open('POST', url + (url.indexOf('?') >= 0 ? '&_=' : '?_=') + curTime, true);
+    xhr.setRequestHeader("X-Http-Method-Override", "GET");
+    xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    xhr.send(params);
 
     this.onReady(xhr, "", ajaxOptions, mapper, errorHandler, url);
   },
@@ -92,8 +120,8 @@ App.HttpClient = Em.Object.create({
         xhr = null;
         clearTimeout(timeout);
         timeout = null;
-
-      } else {
+      }
+      else {
         self.onReady(xhr, timeout, tmp_val, mapper, errorHandler, url);
       }
     }, 10);
@@ -110,19 +138,25 @@ App.HttpClient = Em.Object.create({
     if (!errorHandler && data.error) {
       errorHandler = data.error;
     }
-    var client = this;
-    var request = function () {
-      client.request(url, data, mapper, errorHandler);
-      url = null;
-      data = null;
-      mapper = null;
-      errorHandler = null;
-    };
+    var client = this,
+      request = function () {
+        if (data.doGetAsPost) {
+          client.getAsPostRequest(url, data, mapper, errorHandler);
+        }
+        else {
+          client.request(url, data, mapper, errorHandler);
+        }
+        url = null;
+        data = null;
+        mapper = null;
+        errorHandler = null;
+      };
 
     interval = "" + interval;
     if (interval.match(/\d+/)) {
       $.periodic({period: interval}, request);
-    } else {
+    }
+    else {
       request();
     }
   },

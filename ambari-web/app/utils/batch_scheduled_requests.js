@@ -99,22 +99,22 @@ module.exports = {
   /**
    * construct URL from parameters for request in <code>getComponentsFromServer()</code>
    * @param options
-   * @return {String}
+   * @return {{fields: string, params: string}}
    */
   constructComponentsCallUrl: function (options) {
     var multipleValueParams = {
-      'services': 'host_components/HostRoles/service_name.in(<entity-names>)',
-      'hosts': 'Hosts/host_name.in(<entity-names>)',
-      'components': 'host_components/HostRoles/component_name.in(<entity-names>)'
-    };
-    var singleValueParams = {
-      staleConfigs: 'host_components/HostRoles/stale_configs=',
-      passiveState: 'Hosts/maintenance_state=',
-      workStatus: 'host_components/HostRoles/state='
-    };
-    var displayParams = options.displayParams || [];
-    var urlParams = '?';
-    var addAmpersand = false;
+        'services': 'host_components/HostRoles/service_name.in(<entity-names>)',
+        'hosts': 'Hosts/host_name.in(<entity-names>)',
+        'components': 'host_components/HostRoles/component_name.in(<entity-names>)'
+      },
+      singleValueParams = {
+        staleConfigs: 'host_components/HostRoles/stale_configs=',
+        passiveState: 'Hosts/maintenance_state=',
+        workStatus: 'host_components/HostRoles/state='
+      },
+      displayParams = options.displayParams || [],
+      urlParams = '',
+      addAmpersand = false;
 
     for (var i in multipleValueParams) {
       var arrayParams = options[i];
@@ -136,17 +136,19 @@ module.exports = {
         addAmpersand = true;
       }
     }
-
+    var params = urlParams,
+      fields = '';
     displayParams.forEach(function (displayParam, index, array) {
       if (index === 0) {
-        urlParams += (addAmpersand) ? '&' : '';
-        urlParams += 'fields=';
+        fields += (addAmpersand) ? '&' : '';
+        fields += 'fields=';
       }
-      urlParams += displayParam;
-      urlParams += (array.length === (index + 1)) ? '' : ",";
+      fields += displayParam;
+      fields += (array.length === (index + 1)) ? '' : ",";
     });
+    fields += '&minimal_response=true';
 
-    return urlParams + '&minimal_response=true';
+    return {fields: fields.substring(1, fields.length), params: params};
   },
 
   /**
@@ -156,13 +158,13 @@ module.exports = {
    * @param callback
    */
   getComponentsFromServer: function (options, callback) {
-    var urlParams = this.constructComponentsCallUrl(options);
-
-    App.ajax.send({
+    var request_parameters = this.constructComponentsCallUrl(options);
+    return App.ajax.send({
       name: 'host.host_components.filtered',
       sender: this,
       data: {
-        urlParams: urlParams,
+        parameters: request_parameters.params,
+        fields: request_parameters.fields,
         callback: callback
       },
       success: 'getComponentsFromServerSuccessCallback'

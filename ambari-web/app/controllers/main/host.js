@@ -218,26 +218,62 @@ App.MainHostController = Em.ArrayController.extend({
   },
 
   /**
-   * get query parameters computed from filter properties, sort properties and custom properties of view
-   * @return {Array}
+   * Transform <code>viewProperties</code> to queryParameters
+   * @returns {Object[]}
+   * @method getViewProperties
    */
-  getQueryParameters: function () {
-    var queryParams = [];
-    var savedFilterConditions = App.db.getFilterConditions(this.get('name')) || [];
-    var savedSortConditions = App.db.getSortingStatuses(this.get('name')) || [];
-    var colPropAssoc = this.get('colPropAssoc');
-    var filterProperties = this.get('filterProperties');
-    var sortProperties = this.get('sortProps');
-    var oldProperties = App.router.get('updateController.queryParams.Hosts');
-
-    this.set('resetStartIndex', false);
-    this.get('viewProperties').forEach(function (property) {
-      queryParams.push({
+  getViewProperties: function() {
+    return this.get('viewProperties').map(function (property) {
+      return {
         key: property.get('alias'),
         value: property.getValue(this),
         type: 'EQUAL'
-      })
+      };
     }, this);
+  },
+
+  /**
+   * Transform <code>sortProps</code> to queryParameters
+   * @returns {Object[]}
+   * @method getSortProperties
+   */
+  getSortProperties: function() {
+    var savedSortConditions = App.db.getSortingStatuses(this.get('name')) || [],
+      sortProperties = this.get('sortProps'),
+      queryParams = [];
+    savedSortConditions.forEach(function (sort) {
+      var property = sortProperties.findProperty('key', sort.name);
+
+      if (property && (sort.status === 'sorting_asc' || sort.status === 'sorting_desc')) {
+        queryParams.push({
+          key: property.alias,
+          value: sort.status.replace('sorting_', ''),
+          type: 'SORT'
+        });
+      }
+    });
+    return queryParams;
+  },
+
+  /**
+   * get query parameters computed from filter properties, sort properties and custom properties of view
+   * @return {Array}
+   * @method getQueryParameters
+   */
+  getQueryParameters: function (skipNonFilterProperties) {
+    skipNonFilterProperties = skipNonFilterProperties || false;
+    var queryParams = [],
+      savedFilterConditions = App.db.getFilterConditions(this.get('name')) || [],
+      savedSortConditions = App.db.getSortingStatuses(this.get('name')) || [],
+      colPropAssoc = this.get('colPropAssoc'),
+      filterProperties = this.get('filterProperties'),
+      sortProperties = this.get('sortProps'),
+      oldProperties = App.router.get('updateController.queryParams.Hosts');
+
+    this.set('resetStartIndex', false);
+
+    queryParams.pushObjects(this.getViewProperties());
+
     savedFilterConditions.forEach(function (filter) {
       var property = filterProperties.findProperty('key', colPropAssoc[filter.iColumn]);
       if (property && filter.value.length > 0 && !filter.skipFilter) {
@@ -290,17 +326,10 @@ App.MainHostController = Em.ArrayController.extend({
         }
       }, this);
     }
-    savedSortConditions.forEach(function (sort) {
-      var property = sortProperties.findProperty('key', sort.name);
 
-      if (property && (sort.status === 'sorting_asc' || sort.status === 'sorting_desc')) {
-        queryParams.push({
-          key: property.alias,
-          value: sort.status.replace('sorting_', ''),
-          type: 'SORT'
-        });
-      }
-    });
+    if (!skipNonFilterProperties) {
+      queryParams.pushObjects(this.getSortProperties());
+    }
 
     return queryParams;
   },

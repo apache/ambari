@@ -48,8 +48,8 @@ App.UpdateController = Em.Controller.extend({
    * @return {String}
    */
   getComplexUrl: function (testUrl, realUrl, queryParams) {
-    var prefix = App.apiPrefix + '/clusters/' + App.get('clusterName');
-    var params = '';
+    var prefix = App.get('apiPrefix') + '/clusters/' + App.get('clusterName'),
+      params = '';
 
     if (App.get('testMode')) {
       return testUrl;
@@ -146,8 +146,9 @@ App.UpdateController = Em.Controller.extend({
   },
 
   updateHost: function (callback, error) {
-    var testUrl = App.get('isHadoop2Stack') ? '/data/hosts/HDP2/hosts.json' : '/data/hosts/hosts.json';
-    var self = this;
+    var testUrl = App.get('isHadoop2Stack') ? '/data/hosts/HDP2/hosts.json' : '/data/hosts/hosts.json',
+      self = this,
+      p = '';
     var realUrl = '/hosts?<parameters>fields=Hosts/host_name,Hosts/maintenance_state,Hosts/public_host_name,Hosts/cpu_count,Hosts/ph_cpu_count,Hosts/total_mem,' +
       'Hosts/host_status,Hosts/last_heartbeat_time,Hosts/os_arch,Hosts/os_type,Hosts/ip,host_components/HostRoles/state,host_components/HostRoles/maintenance_state,' +
       'host_components/HostRoles/stale_configs,host_components/HostRoles/service_name,metrics/disk,metrics/load/load_one,metrics/cpu/cpu_system,metrics/cpu/cpu_user,' +
@@ -155,17 +156,24 @@ App.UpdateController = Em.Controller.extend({
 
     if (App.router.get('currentState.name') == 'index' && App.router.get('currentState.parentState.name') == 'hosts') {
       App.updater.updateInterval('updateHost', App.get('contentUpdateInterval'));
-    } else if(App.router.get('currentState.name') == 'summary' && App.router.get('currentState.parentState.name') == 'hostDetails') {
-      realUrl = realUrl.replace('<parameters>', 'Hosts/host_name=' + App.router.get('location.lastSetURL').match(/\/hosts\/(.*)\/summary/)[1] + '&');
-      App.updater.updateInterval('updateHost', App.get('componentsUpdateInterval'));
-    } else {
-      callback();
-      // On pages except for hosts/hostDetails, making sure hostsMapper loaded only once on page load, no need to update, but at least once
-      if (this.get('queryParams.Hosts') && this.get('queryParams.Hosts').length > 0) {
-        return;
+    }
+    else {
+      if(App.router.get('currentState.name') == 'summary' && App.router.get('currentState.parentState.name') == 'hostDetails') {
+        p = 'Hosts/host_name=' + App.router.get('location.lastSetURL').match(/\/hosts\/(.*)\/summary/)[1] + '&';
+        App.updater.updateInterval('updateHost', App.get('componentsUpdateInterval'));
+      }
+      else {
+        callback();
+        // On pages except for hosts/hostDetails, making sure hostsMapper loaded only once on page load, no need to update, but at least once
+        if (this.get('queryParams.Hosts') && this.get('queryParams.Hosts').length > 0) {
+          return;
+        }
       }
     }
-    this.get('queryParams').set('Hosts', App.router.get('mainHostController').getQueryParameters());
+    var mainHostController = App.router.get('mainHostController'),
+      viewProperties = mainHostController.getViewProperties(),
+      sortProperties = mainHostController.getSortProperties();
+    this.get('queryParams').set('Hosts', mainHostController.getQueryParameters(true));
     var clientCallback = function (skipCall, queryParams) {
       if (skipCall) {
         //no hosts match filter by component
@@ -174,12 +182,33 @@ App.UpdateController = Em.Controller.extend({
           itemTotal: '0'
         });
         callback();
-      } else {
-        var hostsUrl = self.getComplexUrl(testUrl, realUrl, queryParams);
-        App.HttpClient.get(hostsUrl, App.hostsMapper, {
-          complete: callback,
-          error: error
-        });
+      }
+      else {
+        var params = p + self.computeParameters(queryParams),
+          viewProps = self.computeParameters(viewProperties),
+          sortProps = self.computeParameters(sortProperties);
+        if (!viewProps.length) viewProps = '&';
+        if (!sortProps.length) sortProps = '&';
+        if ((params.length + viewProps.length + sortProps.length) > 0) {
+          realUrl = App.get('apiPrefix') + '/clusters/' + App.get('clusterName') +
+            realUrl.replace('<parameters>', '') + '&' +
+            viewProps.substring(0, viewProps.length - 1) + '&' +
+            sortProps.substring(0, sortProps.length - 1);
+          App.HttpClient.get(realUrl, App.hostsMapper, {
+            complete: callback,
+            doGetAsPost: true,
+            params: params.substring(0, params.length - 1),
+            error: error
+          });
+        }
+        else {
+          var hostsUrl = self.getComplexUrl(testUrl, realUrl, queryParams);
+          App.HttpClient.get(hostsUrl, App.hostsMapper, {
+            complete: callback,
+            doGetAsPost: false,
+            error: error
+          });
+        }
       }
     };
 
