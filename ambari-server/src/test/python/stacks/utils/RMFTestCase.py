@@ -161,7 +161,9 @@ class RMFTestCase(TestCase):
   
   def assertResourceCalled(self, resource_type, name, **kwargs):
     with patch.object(UnknownConfiguration, '__getattr__', return_value=lambda: "UnknownConfiguration()"): 
+      self.assertNotEqual(len(RMFTestCase.env.resource_list), 0, "There was no more resources executed!")
       resource = RMFTestCase.env.resource_list.pop(0)
+      
       self.assertEquals(resource_type, resource.__class__.__name__)
       self.assertEquals(name, resource.name)
       self.assertEquals(kwargs, resource.arguments)
