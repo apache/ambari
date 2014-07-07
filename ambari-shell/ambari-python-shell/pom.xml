@@ -76,24 +76,6 @@
           <execution>
             <configuration>
               <executable>${project.basedir}/../../ambari-common/src/main/unix/ambari-python-wrap</executable>
-              <workingDirectory>src/test/python</workingDirectory>
-              <arguments>
-                <argument>unitTests.py</argument>
-              </arguments>
-              <environmentVariables>
-                <PYTHONPATH>${project.basedir}/../../ambari-common/src/test/python:${project.basedir}/../../ambari-client/python-client/src/test/python:${project.basedir}/../../ambari-client/python-client/src/main/python/ambari_client:${project.basedir}/src/main/python/ambari_shell:${project.basedir}/src/test/python/utils:$PYTHONPATH</PYTHONPATH>
-              </environmentVariables>
-              <skip>${skipTests}</skip>
-            </configuration>
-            <id>python-test</id>
-            <phase>test</phase>
-            <goals>
-              <goal>exec</goal>
-            </goals>
-          </execution>
-          <execution>
-            <configuration>
-              <executable>${project.basedir}/../../ambari-common/src/main/unix/ambari-python-wrap</executable>
               <workingDirectory>target/ambari-python-shell-${project.version}</workingDirectory>
               <arguments>
                 <argument>${project.basedir}/src/main/python/setup.py</argument>
