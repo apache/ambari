@@ -297,7 +297,8 @@ class TestHostInfo(TestCase):
   @patch.object(HostInfo, 'hadoopVarRunCount')
   @patch.object(HostInfo, 'hadoopVarLogCount')
   @patch.object(HostInfo, 'checkIptables')
-  def test_hostinfo_register(self, cit_mock, hvlc_mock, hvrc_mock, eac_mock, cf_mock, jp_mock,
+  @patch.object(HostInfo, 'getTransparentHugePage')
+  def test_hostinfo_register(self, get_transparentHuge_page_mock, cit_mock, hvlc_mock, hvrc_mock, eac_mock, cf_mock, jp_mock,
                              cls_mock, cu_mock, gir_mock, gipbr_mock, gipbn_mock,
                              gpd_mock, aip_mock, aap_mock, whcf_mock, os_umask_mock, get_os_type_mock):
     cit_mock.return_value = True
@@ -576,6 +577,27 @@ class TestHostInfo(TestCase):
       firewall = firewallType()
       run_os_command_mock.return_value = firewall.get_stopped_result()
       self.assertFalse(firewall.check_iptables())
+
+  @patch("os.path.isfile")
+  @patch('__builtin__.open')
+  def test_transparent_huge_page(self, open_mock, os_path_isfile_mock):
+    context_manager_mock = MagicMock()
+    open_mock.return_value = context_manager_mock
+    file_mock = MagicMock()
+    file_mock.read.return_value = "[never] always"
+    enter_mock = MagicMock()
+    enter_mock.return_value = file_mock
+    exit_mock  = MagicMock()
+    setattr( context_manager_mock, '__enter__', enter_mock )
+    setattr( context_manager_mock, '__exit__', exit_mock )
+
+    hostInfo = HostInfo()
+
+    os_path_isfile_mock.return_value = True
+    self.assertEqual("never", hostInfo.getTransparentHugePage())
+
+    os_path_isfile_mock.return_value = False
+    self.assertEqual("", hostInfo.getTransparentHugePage())
 
 if __name__ == "__main__":
   unittest.main()

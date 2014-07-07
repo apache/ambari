@@ -58,6 +58,8 @@ public class AgentEnv {
   
   private Integer umask;
 
+  private String transparentHugePage;
+
   private Boolean iptablesIsRunning;
 
   private Boolean reverseLookup;
@@ -76,6 +78,14 @@ public class AgentEnv {
 
   public void setUmask(Integer umask) {
     this.umask = umask;
+  }
+
+  public String getTransparentHugePage() {
+    return transparentHugePage;
+  }
+
+  public void setTransparentHugePage(String transparentHugePage) {
+    this.transparentHugePage = transparentHugePage;
   }
 
   public Directory[] getStackFoldersAndFiles() {

@@ -119,6 +119,8 @@ class HostInfo:
   DEFAULT_SERVICE_NAME = "ntpd"
   SERVICE_STATUS_CMD = "%s %s status" % (SERVICE_CMD, DEFAULT_SERVICE_NAME)
 
+  THP_FILE = "/sys/kernel/mm/redhat_transparent_hugepage/enabled"
+
   event = threading.Event()
 
   current_umask = -1
@@ -279,6 +281,16 @@ class HostInfo:
     else:
      return self.current_umask
 
+  def getTransparentHugePage(self):
+    # This file exist only on redhat 6
+    thp_regex = "\[(.+)\]"
+    if os.path.isfile(self.THP_FILE):
+      with open(self.THP_FILE) as f:
+        file_content = f.read()
+        return re.search(thp_regex, file_content).groups()[0]
+    else:
+      return ""
+
   def getFirewallObject(self):
     if OS_TYPE == OSConst.OS_UBUNTU:
       return UbuntuFirewallChecks()
@@ -316,6 +328,7 @@ class HostInfo:
 
     dict['umask'] = str(self.getUMask())
 
+    dict['transparentHugePage'] = self.getTransparentHugePage()
     dict['iptablesIsRunning'] = self.checkIptables()
     dict['reverseLookup'] = self.checkReverseLookup()
     # If commands are in progress or components are already mapped to this host
