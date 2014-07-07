@@ -158,10 +158,8 @@ define service {
         max_check_attempts      4
 }
 
-{% if hostgroup_defs['namenode'] %}
-{% for hostname in hostgroup_defs['namenode'] %}
 define service {
-        host_name	        {{ hostname }}
+        hostgroup_name	        ganglia-server
         use                     hadoop-service
         service_description     GANGLIA::Ganglia Monitor process for NameNode
         servicegroups           GANGLIA
@@ -170,13 +168,9 @@ define service {
         retry_check_interval    0.25
         max_check_attempts      4
 }
-{% endfor %}
-{% endif %}
 
-{% if hostgroup_defs['hbasemasters'] %}
-{% for hostname in hostgroup_defs['hbasemasters'] %}
 define service {
-        host_name	        {{ hostname }}
+        hostgroup_name	        ganglia-server
         use                     hadoop-service
         service_description     GANGLIA::Ganglia Monitor process for HBase Master
         servicegroups           GANGLIA
@@ -185,13 +179,9 @@ define service {
         retry_check_interval    0.25
         max_check_attempts      4
 }
-{% endfor %}
-{% endif %}
 
-{% if hostgroup_defs['resourcemanager'] %}
-{% for hostname in hostgroup_defs['resourcemanager'] %}
 define service {
-        host_name	        {{ hostname }}
+        hostgroup_name	        ganglia-server
         use                     hadoop-service
         service_description     GANGLIA::Ganglia Monitor process for ResourceManager
         servicegroups           GANGLIA
@@ -200,13 +190,9 @@ define service {
         retry_check_interval    0.25
         max_check_attempts      4
 }
-{% endfor %}
-{% endif %}
 
-{% if hostgroup_defs['historyserver2'] %}
-{% for hostname in hostgroup_defs['historyserver2'] %}
 define service {
-        host_name	        {{ hostname }}
+        hostgroup_name	        ganglia-server
         use                     hadoop-service
         service_description     GANGLIA::Ganglia Monitor process for HistoryServer
         servicegroups           GANGLIA
@@ -215,9 +201,6 @@ define service {
         retry_check_interval    0.25
         max_check_attempts      4
 }
-{% endfor %}
-{% endif %}
-
 {% endif %}
 
 
