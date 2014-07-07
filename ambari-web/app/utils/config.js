@@ -462,16 +462,20 @@ App.config = Em.Object.create({
           configData.isRequired = (configData.isRequired !== undefined) ? configData.isRequired : true;
           configData.isRequiredByAgent = (configData.isRequiredByAgent !== undefined) ? configData.isRequiredByAgent : true;
           configData.showLabel = stored.showLabel !== false;
-        } else if (!preDefined && stored) {
-          this.addUserProperty(stored, isAdvanced, advancedConfigs);
-        } else if (preDefined && !stored) {
-          configData = preDefined;
-          configData.isRequiredByAgent = (configData.isRequiredByAgent !== undefined) ? configData.isRequiredByAgent : true;
-          if (isAdvanced) {
-            var advanced = advancedConfigs.findProperty('name', configData.name);
-            this.setPropertyFromStack(configData,advanced);
-          }
         }
+        else
+          if (!preDefined && stored) {
+            configData = this.addUserProperty(stored, isAdvanced, advancedConfigs);
+          }
+          else
+            if (preDefined && !stored) {
+              configData = preDefined;
+              configData.isRequiredByAgent = (configData.isRequiredByAgent !== undefined) ? configData.isRequiredByAgent : true;
+              if (isAdvanced) {
+                var advanced = advancedConfigs.findProperty('name', configData.name);
+                this.setPropertyFromStack(configData,advanced);
+              }
+            }
         
         if (configData.displayType === 'checkbox') {
           configData.value = configData.value === 'true'; // convert {String} value to {Boolean}
