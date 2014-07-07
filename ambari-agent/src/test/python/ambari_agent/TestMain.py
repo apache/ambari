@@ -19,14 +19,14 @@ limitations under the License.
 '''
 import StringIO
 import sys
-from mock.mock import MagicMock, patch, ANY
 import unittest
 import logging
 import signal
-import ConfigParser
 import os
+import socket
 import tempfile
-from optparse import OptionParser
+
+from mock.mock import MagicMock, patch, ANY
 
 with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
   from ambari_agent import NetUtil, security
@@ -226,6 +226,7 @@ class TestMain(unittest.TestCase):
     os.remove(tmpoutfile)
 
 
+  @patch.object(socket, "gethostbyname")
   @patch.object(main, "setup_logging")
   @patch.object(main, "bind_signal_handlers")
   @patch.object(main, "stop_agent")
@@ -241,11 +242,12 @@ class TestMain(unittest.TestCase):
   @patch.object(DataCleaner,"start")
   @patch.object(DataCleaner,"__init__")
   @patch.object(PingPortListener,"start")
-  @patch.object(PingPortListener,"__init__")
+  @patch.object(PingPortListener,"__init__")  
   def test_main(self, ping_port_init_mock, ping_port_start_mock, data_clean_init_mock,data_clean_start_mock,
                 parse_args_mock, join_mock, start_mock, Controller_init_mock, try_to_connect_mock,
                 update_log_level_mock, daemonize_mock, perform_prestart_checks_mock,
-                resolve_ambari_config_mock, stop_mock, bind_signal_handlers_mock, setup_logging_mock):
+                resolve_ambari_config_mock, stop_mock, bind_signal_handlers_mock, 
+                setup_logging_mock, socket_mock):
     data_clean_init_mock.return_value = None
     Controller_init_mock.return_value = None
     ping_port_init_mock.return_value = None

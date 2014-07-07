@@ -307,7 +307,7 @@ class TestController(unittest.TestCase):
 
     conMock = MagicMock()
     security_mock.CachedHTTPSConnection.return_value = conMock
-    url = "url"
+    url = "http://ambari.apache.org:8081/agent"
     data = "data"
     requestMock.return_value = "request"
 
@@ -329,9 +329,10 @@ class TestController(unittest.TestCase):
                                          + '; Response: {invalid_object}')}
     self.assertEqual(actual, expected)
 
-    conMock.request.side_effect = Exception()
+    exceptionMessage = "Connection Refused"
+    conMock.request.side_effect = Exception(exceptionMessage)
     actual = self.controller.sendRequest(url, data)
-    expected = {'exitstatus': 1, 'log': 'Request failed! Data: ' + data}
+    expected = {'exitstatus': 1, 'log': 'Request to ' + url + ' failed due to ' + exceptionMessage}
 
     self.assertEqual(actual, expected)
 

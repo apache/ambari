@@ -58,7 +58,6 @@ class LiveStatus:
     """
     global SERVICES, CLIENT_COMPONENTS, COMPONENTS, LIVE_STATUS, DEAD_STATUS
 
-    livestatus = None
     component = {"serviceName" : self.service, "componentName" : self.component}
     if forsed_component_status: # If already determined
       status = forsed_component_status  # Nothing to do
@@ -73,7 +72,7 @@ class LiveStatus:
         logger.warn("There is no service to pid mapping for " + self.component)
       status = self.LIVE_STATUS if serviceStatus else self.DEAD_STATUS
 
-    livestatus ={"componentName" : self.component,
+    livestatus = {"componentName" : self.component,
                  "msg" : "",
                  "status" : status,
                  "clusterName" : self.cluster,
@@ -81,6 +80,7 @@ class LiveStatus:
                  "stackVersion": self.versionsHandler.
                  read_stack_version(self.component)
     }
+    
     active_config = self.actualConfigHandler.read_actual_component(self.component)
     if not active_config is None:
       livestatus['configurationTags'] = active_config

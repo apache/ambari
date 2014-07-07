@@ -18,7 +18,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-import logging
 import logging.handlers
 import signal
 from optparse import OptionParser
@@ -30,12 +29,11 @@ import ConfigParser
 import ProcessHelper
 from Controller import Controller
 import AmbariConfig
-from security import CertificateManager
 from NetUtil import NetUtil
 from PingPortListener import PingPortListener
-import security
 import hostname
 from DataCleaner import DataCleaner
+import socket
 
 logger = logging.getLogger()
 formatstr = "%(levelname)s %(asctime)s %(filename)s:%(lineno)d - %(message)s"
@@ -222,9 +220,14 @@ def main():
 
   update_log_level(config)
 
-  server_url = 'https://' + config.get('server', 'hostname') + ':' + config.get('server', 'url_port')
-  print("Connecting to the server at " + server_url + "...")
-  logger.info('Connecting to the server at: ' + server_url)
+  server_hostname = config.get('server', 'hostname')
+  server_url = 'https://' + server_hostname + ':' + config.get('server', 'url_port') 
+  
+  try:
+    server_ip = socket.gethostbyname(server_hostname)
+    logger.info('Connecting to Ambari server at %s (%s)', server_url, server_ip)
+  except socket.error:
+    logger.warn("Unable to determine the IP address of the Ambari server '%s'", server_hostname)  
 
   # Wait until server is reachable
   netutil = NetUtil()

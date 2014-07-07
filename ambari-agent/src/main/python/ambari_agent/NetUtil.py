@@ -39,18 +39,22 @@ class NetUtil:
     """Try to connect to a given url. Result is True if url returns HTTP code 200, in any other case
     (like unreachable server or wrong HTTP code) result will be False
     """
-    logger.info("Connecting to the following url " + url);
+    logger.info("Connecting to " + url);
+    
     try:
       parsedurl = urlparse(url)
       ca_connection = httplib.HTTPSConnection(parsedurl[1])
-      ca_connection.request("GET", parsedurl[2])
+      ca_connection.request("HEAD", parsedurl[2])
       response = ca_connection.getresponse()  
       status = response.status    
-      logger.info("Calling url received " + str(status))
       
-      if status == 200: 
+      requestLogMessage = "HEAD %s -> %s"
+      
+      if status == 200:
+        logger.debug(requestLogMessage, url, str(status) ) 
         return True
       else: 
+        logger.warning(requestLogMessage, url, str(status) )
         return False
     except SSLError as slerror:
       logger.error(str(slerror))
@@ -69,7 +73,8 @@ class NetUtil:
     Returns count of retries
     """
     if logger is not None:
-      logger.info("DEBUG: Trying to connect to the server at " + server_url)
+      logger.debug("Trying to connect to %s", server_url)
+      
     retries = 0
     while (max_retries == -1 or retries < max_retries) and not self.DEBUG_STOP_RETRIES_FLAG:
       server_is_up = self.checkURL(self.SERVER_STATUS_REQUEST.format(server_url))
@@ -77,7 +82,7 @@ class NetUtil:
         break
       else:
         if logger is not None:
-          logger.info('Server at {0} is not reachable, sleeping for {1} seconds...'.format(server_url,
+          logger.warn('Server at {0} is not reachable, sleeping for {1} seconds...'.format(server_url,
             self.CONNECT_SERVER_RETRY_INTERVAL_SEC))
         retries += 1
         time.sleep(self.CONNECT_SERVER_RETRY_INTERVAL_SEC)
