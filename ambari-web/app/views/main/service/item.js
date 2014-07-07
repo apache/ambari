@@ -47,6 +47,15 @@ App.MainServiceItemView = Em.View.extend({
       if (serviceName == 'FLUME') {
         options.push({action: 'refreshConfigs', cssClass: 'icon-refresh', 'label': Em.I18n.t('hosts.host.details.refreshConfigs'), disabled: disableRefreshConfgis});
       }
+      if (serviceName == 'HDFS') {
+        if (App.isHaEnabled) {
+          if (App.supports.autoRollbackHA) {
+            options.push({action: 'disableHighAvailability', cssClass: 'icon-arrow-down', 'label': Em.I18n.t('admin.highAvailability.button.disable')});
+          }
+        } else {
+          options.push({action: 'enableHighAvailability', cssClass: 'icon-arrow-up', 'label': Em.I18n.t('admin.highAvailability.button.enable')});
+        }
+      }
       // Service Check and Reassign Master actions
       switch (serviceName) {
         case 'GANGLIA':

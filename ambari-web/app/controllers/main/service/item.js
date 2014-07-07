@@ -358,6 +358,18 @@ App.MainServiceItemController = Em.Controller.extend({
     return (this.get('content.healthStatus') != 'green');
   }.property('content.healthStatus','isPending'),
 
+  enableHighAvailability: function() {
+    var ability_controller = App.router.get('mainAdminHighAvailabilityController');
+    ability_controller.setSecurityStatus();
+    ability_controller.enableHighAvailability();
+  },
+
+  disableHighAvailability: function() {
+    var ability_controller = App.router.get('mainAdminHighAvailabilityController');
+    ability_controller.setSecurityStatus();
+    ability_controller.disableHighAvailability();
+  },
+
   isPending:true
 
 });

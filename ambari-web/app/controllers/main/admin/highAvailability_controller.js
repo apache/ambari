@@ -55,7 +55,7 @@ App.MainAdminHighAvailabilityController = Em.Controller.extend({
         return false;
       }
     }
-    App.router.transitionTo('enableHighAvailability');
+    App.router.transitionTo('main.admin.enableHighAvailability');
     return true;
   },
 
@@ -78,7 +78,7 @@ App.MainAdminHighAvailabilityController = Em.Controller.extend({
   },
 
   disableHighAvailability: function () {
-    App.router.transitionTo('rollbackHighAvailability');
+    App.router.transitionTo('main.admin.rollbackHighAvailability');
   },
 
   setSecurityStatus: function () {
