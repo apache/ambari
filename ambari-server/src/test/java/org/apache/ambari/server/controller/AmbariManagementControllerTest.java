@@ -33,7 +33,11 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.lang.reflect.Type;
+import java.net.MalformedURLException;
+import java.net.UnknownHostException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -8058,7 +8062,7 @@ public class AmbariManagementControllerTest {
     assertEquals(original, repo.getDefaultBaseUrl());
   }
 
-  @Ignore
+  @Test
   public void testUpdateRepoUrlController() throws Exception {
     RepositoryInfo repo = ambariMetaInfo.getRepository(STACK_NAME, STACK_VERSION, OS_TYPE, REPO_ID);
 
@@ -8071,15 +8075,49 @@ public class AmbariManagementControllerTest {
     // test bad url
     try {
       controller.updateRespositories(requests);
-      fail ("Expected exception on invalid url");
     } catch (Exception e) {
+      assertNotNull(e);
+      Assert.assertTrue(e.getMessage().contains(FileNotFoundException.class.getName()));
     }
-
     // test bad url, but allow to set anyway
     request.setVerifyBaseUrl(false);
     controller.updateRespositories(requests);
     Assert.assertEquals(request.getBaseUrl(), repo.getBaseUrl());
+    
+    requests.clear();
+    request = new RepositoryRequest(STACK_NAME, STACK_VERSION, OS_TYPE, REPO_ID);
+    request.setBaseUrl("https://hortonworks.com");
+    requests.add(request);
+    // test bad url
+    try {
+      controller.updateRespositories(requests);
+    } catch (Exception e) {
+      System.err.println(e.getMessage());
+      assertTrue(e.getMessage().contains(IOException.class.getName()));
+    }    
 
+    requests.clear();
+    request = new RepositoryRequest(STACK_NAME, STACK_VERSION, OS_TYPE, REPO_ID);
+    request.setBaseUrl("pro://hortonworks.com");
+    requests.add(request);
+    // test bad url
+    try {
+      controller.updateRespositories(requests);
+    } catch (Exception e) {
+      assertTrue(e.getMessage().contains(MalformedURLException.class.getName()));
+    } 
+
+    requests.clear();
+    request = new RepositoryRequest(STACK_NAME, STACK_VERSION, OS_TYPE, REPO_ID);
+    request.setBaseUrl("http://rrr1.cccc");
+    requests.add(request);
+    // test bad url
+    try {
+      controller.updateRespositories(requests);
+    } catch (Exception e) {
+      assertTrue(e.getMessage().contains(UnknownHostException.class.getName()));
+    }      
+    
     // reset repo
     requests.clear();
     request = new RepositoryRequest(STACK_NAME, STACK_VERSION, OS_TYPE, REPO_ID);

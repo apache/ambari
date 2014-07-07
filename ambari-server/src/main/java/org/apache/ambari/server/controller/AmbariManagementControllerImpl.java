@@ -18,6 +18,44 @@
 
 package org.apache.ambari.server.controller;
 
+import com.google.gson.Gson;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.Singleton;
+import com.google.inject.persist.Transactional;
+import java.io.File;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.TreeMap;
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.ClusterNotFoundException;
+import org.apache.ambari.server.DuplicateResourceException;
+import org.apache.ambari.server.HostNotFoundException;
+import org.apache.ambari.server.ObjectNotFoundException;
+import org.apache.ambari.server.ParentObjectNotFoundException;
+import org.apache.ambari.server.Role;
+import org.apache.ambari.server.RoleCommand;
+import org.apache.ambari.server.ServiceComponentHostNotFoundException;
+import org.apache.ambari.server.ServiceComponentNotFoundException;
+import org.apache.ambari.server.ServiceNotFoundException;
+import org.apache.ambari.server.StackAccessException;
+import org.apache.ambari.server.actionmanager.ActionManager;
+import org.apache.ambari.server.actionmanager.HostRoleCommand;
+import org.apache.ambari.server.actionmanager.RequestFactory;
+import org.apache.ambari.server.actionmanager.Stage;
+import org.apache.ambari.server.actionmanager.StageFactory;
+import org.apache.ambari.server.agent.ExecutionCommand;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_DB_RCA_DRIVER;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_DB_RCA_PASSWORD;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_DB_RCA_URL;
@@ -40,41 +78,6 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_P
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_REPO_INFO;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_NAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_VERSION;
-
-import java.io.File;
-import java.io.IOException;
-import java.net.InetAddress;
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.TreeMap;
-
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.ClusterNotFoundException;
-import org.apache.ambari.server.DuplicateResourceException;
-import org.apache.ambari.server.HostNotFoundException;
-import org.apache.ambari.server.ObjectNotFoundException;
-import org.apache.ambari.server.ParentObjectNotFoundException;
-import org.apache.ambari.server.Role;
-import org.apache.ambari.server.RoleCommand;
-import org.apache.ambari.server.ServiceComponentHostNotFoundException;
-import org.apache.ambari.server.ServiceComponentNotFoundException;
-import org.apache.ambari.server.ServiceNotFoundException;
-import org.apache.ambari.server.StackAccessException;
-import org.apache.ambari.server.actionmanager.ActionManager;
-import org.apache.ambari.server.actionmanager.HostRoleCommand;
-import org.apache.ambari.server.actionmanager.RequestFactory;
-import org.apache.ambari.server.actionmanager.Stage;
-import org.apache.ambari.server.actionmanager.StageFactory;
-import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.RequestOperationLevel;
@@ -129,12 +132,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.gson.Gson;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.Singleton;
-import com.google.inject.persist.Transactional;
 
 @Singleton
 public class AmbariManagementControllerImpl implements AmbariManagementController {
@@ -2839,10 +2836,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           RepositoryInfo repositoryInfo = ambariMetaInfo.getRepository(rr.getStackName(), rr.getStackVersion(), rr.getOsType(), rr.getRepoId());
           String repoName = repositoryInfo.getRepoName();
 
-          boolean bFound = false;
+          boolean bFound = true;
+          String errorMessage = null;
 
           String[] suffixes = configs.getRepoValidationSuffixes(rr.getOsType());
-          for (int i = 0; i < suffixes.length && !bFound; i++) {
+          for (int i = 0; i < suffixes.length; i++) {
             String suffix = String.format(suffixes[i], repoName);
             String spec = rr.getBaseUrl();
 
@@ -2852,12 +2850,19 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
               spec = rr.getBaseUrl() + suffix.substring(1);
             else
               spec = rr.getBaseUrl() + suffix;
-
+             
             try {
               IOUtils.readLines(usp.readFrom(spec));
-              bFound = true;
             } catch (IOException ioe) {
-              LOG.error("IOException loading the base URL", ioe);
+              errorMessage = "Could not access base url . " + rr.getBaseUrl() + " . ";
+              if (LOG.isDebugEnabled()) {
+                errorMessage += ioe;
+              }
+              else {
+                errorMessage += ioe.getMessage();
+              }
+              bFound = false;
+              break;
             }
           }
 
@@ -2866,8 +2871,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
                 rr.getStackVersion(), rr.getOsType(), rr.getRepoId(),
                 rr.getBaseUrl());
           } else {
-            throw new IllegalArgumentException("Could not access base url '" +
-                rr.getBaseUrl() + "'");
+            LOG.error(errorMessage);
+            throw new IllegalArgumentException(errorMessage);
           }
         }
       }
