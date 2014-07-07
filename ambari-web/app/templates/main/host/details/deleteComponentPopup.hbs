@@ -23,4 +23,8 @@
         <div class='span10'>{{view lastComponentError}}</div>
     </div>
 {{/if}}
+{{#if isZkServer}}
+  <br />
+  <div class='alert'>{{view deleteZkServerMsg}}</div>
+{{/if}}
 <div class='alert'>{{view restartNagiosMsg}}</div>

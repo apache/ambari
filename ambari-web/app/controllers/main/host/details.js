@@ -226,6 +226,9 @@ App.MainHostDetailsController = Em.Controller.extend({
         this.set('isChecked', !isLastComponent);
         return isLastComponent;
       }.property(),
+      isZkServer: function () {
+        return componentName == 'ZOOKEEPER_SERVER';
+      }.property(),
       lastComponentError: Em.View.extend({
         template: Em.Handlebars.compile(Em.I18n.t('hosts.host.deleteComponent.popup.warning').format(displayName))
       }),
@@ -235,6 +238,9 @@ App.MainHostDetailsController = Em.Controller.extend({
       deleteComponentMsg: function () {
         return Em.I18n.t('hosts.host.deleteComponent.popup.msg1').format(displayName);
       }.property(),
+      deleteZkServerMsg: Em.View.extend({
+        template: Em.Handlebars.compile(Em.I18n.t('hosts.host.deleteComponent.popup.deleteZooKeeperServer'))
+      }),
       onPrimary: function () {
         var popup = this;
         self._doDeleteHostComponent(component, function () {
@@ -284,8 +290,12 @@ App.MainHostDetailsController = Em.Controller.extend({
    * Success callback for delete host component request
    * @method _doDeleteHostComponentSuccessCallback
    */
-  _doDeleteHostComponentSuccessCallback: function () {
+  _doDeleteHostComponentSuccessCallback: function (response, request, data) {
     this.set('_deletedHostComponentResult', null);
+    if (data.componentName == 'ZOOKEEPER_SERVER') {
+      this.set('fromDeleteZkServer', true);
+      this.loadConfigs();
+    }
   },
 
   /**
@@ -741,14 +751,21 @@ App.MainHostDetailsController = Em.Controller.extend({
   fromDeleteHost: false,
 
   /**
+   * Is ZooKeeper Server being deleted from host
+   * @type {bool}
+   */
+  fromDeleteZkServer: false,
+
+  /**
    * Get list of hostnames where ZK Server is installed
    * @returns {string[]}
    * @method getZkServerHosts
    */
   getZkServerHosts: function () {
     var zks = App.HostComponent.find().filterProperty('componentName', 'ZOOKEEPER_SERVER').mapProperty('hostName');
-    if (this.get('fromDeleteHost')) {
+    if (this.get('fromDeleteHost') || this.get('fromDeleteZkServer')) {
       this.set('fromDeleteHost', false);
+      this.set('fromDeleteZkServer', false);
       return zks.without(this.get('content.hostName'));
     }
     return zks;

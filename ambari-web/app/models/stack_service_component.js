@@ -47,7 +47,7 @@ App.StackServiceComponent = DS.Model.extend({
   }.property('componentName'),
 
   isDeletable: function() {
-    return ['SUPERVISOR', 'HBASE_MASTER', 'DATANODE', 'TASKTRACKER', 'NODEMANAGER', 'HBASE_REGIONSERVER', 'GANGLIA_MONITOR'].contains(this.get('componentName'));
+    return ['SUPERVISOR', 'HBASE_MASTER', 'DATANODE', 'TASKTRACKER', 'NODEMANAGER', 'HBASE_REGIONSERVER', 'GANGLIA_MONITOR', 'ZOOKEEPER_SERVER'].contains(this.get('componentName'));
   }.property('componentName'),
 
   isRollinRestartAllowed: function() {
