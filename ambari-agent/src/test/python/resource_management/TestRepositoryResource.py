@@ -116,7 +116,7 @@ class TestRepositoryResource(TestCase):
             self.assertEqual(expected_template_arguments, template_item.context._dict)
             self.assertEqual('dummy.j2', template)
     
-    
+    @patch("resource_management.libraries.providers.repository.checked_call")
     @patch.object(tempfile, "NamedTemporaryFile")
     @patch("resource_management.libraries.providers.repository.Execute")
     @patch("resource_management.libraries.providers.repository.File")
@@ -124,9 +124,11 @@ class TestRepositoryResource(TestCase):
     @patch("filecmp.cmp", new=MagicMock(return_value=False))
     @patch.object(System, "os_release_name", new='precise')        
     @patch.object(System, "os_family", new='debian')
-    def test_create_repo_debian_repo_exists(self, file_mock, execute_mock, tempfile_mock):
+    def test_create_repo_debian_repo_exists(self, file_mock, execute_mock, 
+                                            tempfile_mock, checked_call_mock):
       tempfile_mock.return_value = MagicMock(spec=file)
       tempfile_mock.return_value.__enter__.return_value.name = "/tmp/1.txt"
+      checked_call_mock.return_value = 0, "The following signatures couldn't be verified because the public key is not available: NO_PUBKEY 123ABCD"
       
       with Environment('/') as env:
         with patch.object(repository,"Template", new=DummyTemplate.create(DEBIAN_DEFAUTL_TEMPLATE)):
@@ -146,9 +148,11 @@ class TestRepositoryResource(TestCase):
       
       copy_item = str(file_mock.call_args_list[1])
       self.assertEqual(copy_item, "call('/etc/apt/sources.list.d/HDP.list', content=StaticFile('/tmp/1.txt'))")
-      
+      #'apt-get update -qq -o Dir::Etc::sourcelist="sources.list.d/HDP.list" -o APT::Get::List-Cleanup="0"')
       execute_command_item = execute_mock.call_args_list[0][0][0]
-      self.assertEqual(execute_command_item, 'apt-get update -o Dir::Etc::sourcelist="sources.list.d/HDP.list" -o APT::Get::List-Cleanup="0"')
+
+      self.assertEqual(checked_call_mock.call_args_list[0][0][0], 'apt-get update -qq -o Dir::Etc::sourcelist="sources.list.d/HDP.list" -o APT::Get::List-Cleanup="0"')
+      self.assertEqual(execute_command_item, 'apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 123ABCD')
 
     @patch.object(tempfile, "NamedTemporaryFile")
     @patch("resource_management.libraries.providers.repository.Execute")
@@ -193,7 +197,7 @@ class TestRepositoryResource(TestCase):
           )
           
       self.assertEqual(str(file_mock.call_args), "call('/etc/apt/sources.list.d/HDP.list', action='delete')")
-      self.assertEqual(execute_mock.call_args[0][0], 'apt-get update -o Dir::Etc::sourcelist="sources.list.d/HDP.list" -o APT::Get::List-Cleanup="0"')
+      self.assertEqual(execute_mock.call_args[0][0], 'apt-get update -qq -o Dir::Etc::sourcelist="sources.list.d/HDP.list" -o APT::Get::List-Cleanup="0"')
 
     @patch("os.path.isfile", new=MagicMock(return_value=False))
     @patch.object(System, "os_family", new='debian')

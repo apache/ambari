@@ -54,7 +54,9 @@ repos_dirs = {
 class DebianRepositoryProvider(Provider):
   package_type = "deb"
   repo_dir = "/etc/apt/sources.list.d"
-  update_cmd = 'apt-get update -o Dir::Etc::sourcelist="sources.list.d/{repo_file_name}" -o APT::Get::List-Cleanup="0"'
+  update_cmd = 'apt-get update -qq -o Dir::Etc::sourcelist="sources.list.d/{repo_file_name}" -o APT::Get::List-Cleanup="0"'
+  missing_pkey_regex = "The following signatures couldn't be verified because the public key is not available: NO_PUBKEY (.+)"
+  add_pkey_cmd = "apt-key adv --recv-keys --keyserver keyserver.ubuntu.com {pkey}"
 
   def action_create(self):
     with Environment.get_instance_copy() as env:
@@ -73,7 +75,15 @@ class DebianRepositoryProvider(Provider):
           )
           
           # this is time expensive
-          Execute(format(self.update_cmd))
+          retcode, out = checked_call(format(self.update_cmd))
+          
+          # add public keys for new repos
+          missing_pkeys = set(re.findall(self.missing_pkey_regex, out))
+          for pkey in missing_pkeys:
+            Execute(format(self.add_pkey_cmd),
+                    timeout = 15, # in case we are on the host w/o internet (using localrepo), we should ignore hanging
+                    ignore_failures = True
+            )
   
   def action_remove(self):
     with Environment.get_instance_copy() as env:
