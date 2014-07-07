@@ -34,8 +34,9 @@ gmond_user = config['configurations']['global']["gmond_user"]
 webserver_group = "apache"
 rrdcached_base_dir = config['configurations']['global']["rrdcached_base_dir"]
 rrdcached_timeout = default("/configurations/global/rrdcached_timeout", 3600)
+rrdcached_flush_timeout = default("/configurations/global/rrdcached_flush_timeout", 7200)
 rrdcached_delay = default("/configurations/global/rrdcached_delay", 1800)
-rrdcached_write_threads = default("/configurations/global/rrdcached_write_threads", 10)
+rrdcached_write_threads = default("/configurations/global/rrdcached_write_threads", 4)
 
 ganglia_server_host = config["clusterHostInfo"]["ganglia_server_host"][0]
 
