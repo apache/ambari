@@ -58,7 +58,11 @@ App.AddHostView = Em.View.extend({
   },
 
   willInsertElement: function () {
-    this.loadHosts();
+    if (this.get('controller').getDBProperty('hosts')) {
+      this.set('isLoaded', true);
+    } else {
+      this.loadHosts();
+    }
   },
 
   loadHosts: function () {

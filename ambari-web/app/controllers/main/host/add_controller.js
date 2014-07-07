@@ -346,11 +346,11 @@ App.AddHostController = App.WizardController.extend({
         this.loadServices();
         this.loadMasterComponentHosts();
         this.loadSlaveComponentHosts();
-        this.load('hosts',true);
+        this.load('hosts');
       case '2':
         this.loadServices();
       case '1':
-        this.load('hosts',true);
+        this.load('hosts');
         this.load('installOptions');
         this.load('cluster');
     }
