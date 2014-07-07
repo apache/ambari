@@ -187,13 +187,11 @@ App.UpdateController = Em.Controller.extend({
         var params = p + self.computeParameters(queryParams),
           viewProps = self.computeParameters(viewProperties),
           sortProps = self.computeParameters(sortProperties);
-        if (!viewProps.length) viewProps = '&';
-        if (!sortProps.length) sortProps = '&';
         if ((params.length + viewProps.length + sortProps.length) > 0) {
           realUrl = App.get('apiPrefix') + '/clusters/' + App.get('clusterName') +
-            realUrl.replace('<parameters>', '') + '&' +
-            viewProps.substring(0, viewProps.length - 1) + '&' +
-            sortProps.substring(0, sortProps.length - 1);
+            realUrl.replace('<parameters>', '') +
+            (viewProps.length > 0 ? '&' + viewProps.substring(0, viewProps.length - 1) : '') +
+            (sortProps.length > 0 ? '&' + sortProps.substring(0, sortProps.length - 1) : '');
           App.HttpClient.get(realUrl, App.hostsMapper, {
             complete: callback,
             doGetAsPost: true,
