@@ -641,19 +641,12 @@ class FatalException(Exception):
     def __str__(self):
         return repr("Fatal exception: %s, exit code %s" % (self.reason, self.code))
 
-    def _get_message(self):
-      return str(self)
-
-
 class NonFatalException(Exception):
   def __init__(self, reason):
     self.reason = reason
 
   def __str__(self):
     return repr("NonFatal exception: %s" % self.reason)
-
-  def _get_message(self):
-    return str(self)
 
 
 def is_root():
@@ -860,7 +853,7 @@ def check_ambari_user():
     print_error_msg("Failed: %s" % e.strerror)
     return 4
   except Exception as e:
-    print_error_msg("Unexpected error %s" % e.message)
+    print_error_msg("Unexpected error %s" % e)
     return 1
   return 0
 
@@ -1715,7 +1708,7 @@ def install_jce_manualy(args):
         shutil.copy(args.jce_policy, jce_destination)
       except Exception, e:
         err = "Can not copy file {0} to {1} due to: {2}. Please check file " \
-              "permissions and free disk space.".format(args.jce_policy, jce_destination, e.message)
+              "permissions and free disk space.".format(args.jce_policy, jce_destination, e)
         raise FatalException(-1, err)
       print "JCE policy copied from " + args.jce_policy + " to " + jce_destination
       return 0
@@ -1848,7 +1841,7 @@ def download_jdk(args):
        jdk_version = re.search(JDK_VERSION_REs[JDK_INDEX], out).group(1)
        write_property(JDK_NAME_PROPERTY, JDK_FILENAME)
     except Exception, e:
-       print "Installation of JDK has failed: %s\n" % e.message
+       print "Installation of JDK has failed: %s\n" % e
        file_exists = os.path.isfile(dest_file)
        if file_exists:
           ok = get_YN_input("JDK found at "+dest_file+". "
@@ -1865,7 +1858,7 @@ def download_jdk(args):
                  jdk_version = re.search(JDK_VERSION_REs[JDK_INDEX], out).group(1)
                  write_property(JDK_NAME_PROPERTY, JDK_FILENAME)
              except Exception, e:
-               print "Installation of JDK was failed: %s\n" % e.message
+               print "Installation of JDK was failed: %s\n" % e
                err = "Unable to install JDK. Please remove JDK, file found at " + \
                      dest_file + " and re-run Ambari Server setup"
                raise FatalException(1, err)
@@ -2090,7 +2083,7 @@ def copy_file(src, dest_file):
     shutil.copyfile(src, dest_file)
   except Exception, e:
     err = "Can not copy file {0} to {1} due to: {2} . Please check file " \
-              "permissions and free disk space.".format(src, dest_file, e.message)
+              "permissions and free disk space.".format(src, dest_file, e)
     raise FatalException(1, err)
 
 
@@ -2329,7 +2322,7 @@ def proceedJDBCProperties(args):
       shutil.copy(args.jdbc_driver, resources_dir)
     except Exception, e:
       err = "Can not copy file {0} to {1} due to: {2} . Please check file " \
-            "permissions and free disk space.".format(args.jdbc_driver, resources_dir, e.message)
+            "permissions and free disk space.".format(args.jdbc_driver, resources_dir, e)
       raise FatalException(1, err)
 
   os.symlink(os.path.join(resources_dir,jdbc_name), jdbc_symlink)
