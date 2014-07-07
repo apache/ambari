@@ -26,7 +26,7 @@ from resource_management.core.resources import Package
 from resource_management.core import shell
 
 class TestPackageResource(TestCase):
-  
+
   @patch.object(shell, "call")
   @patch.object(shell, "checked_call")
   @patch.object(System, "os_family", new = 'debian')
@@ -35,8 +35,8 @@ class TestPackageResource(TestCase):
     with Environment('/') as env:
       Package("some_package",
       )
-    call_mock.assert_called_with('dpkg --get-selections some_package | grep -v deinstall')    
-    shell_mock.assert_called_with("env DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get -q -o Dpkg::Options::='--force-confdef' --force-yes --assume-yes install some_package")
+    call_mock.assert_called_with('dpkg --get-selections some_package | grep -v deinstall')
+    shell_mock.assert_called_with("env DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get -q -o Dpkg::Options::='--force-confdef' --allow-unauthenticated --assume-yes install some_package")
 
 
   @patch.object(shell, "call")
@@ -47,7 +47,7 @@ class TestPackageResource(TestCase):
     with Environment('/') as env:
       Package("some_package",
       )
-    call_mock.assert_called_with('rpm -q --quiet some_package')    
+    call_mock.assert_called_with('rpm -q --quiet some_package')
     shell_mock.assert_called_with("/usr/bin/yum -d 0 -e 0 -y install some_package")
 
   @patch.object(shell, "call")
@@ -58,7 +58,7 @@ class TestPackageResource(TestCase):
     with Environment('/') as env:
       Package("some_package",
       )
-    call_mock.assert_called_with('rpm -q --quiet some_package')    
+    call_mock.assert_called_with('rpm -q --quiet some_package')
     shell_mock.assert_called_with("/usr/bin/zypper --quiet install --auto-agree-with-licenses --no-confirm some_package")
 
   @patch.object(shell, "call", new = MagicMock(return_value=(0, None)))
@@ -86,7 +86,7 @@ class TestPackageResource(TestCase):
     with Environment('/') as env:
       Package("some_package",
               action = "remove"
-      )    
+      )
     shell_mock.assert_called_with("/usr/bin/yum -d 0 -e 0 -y erase some_package")
 
   @patch.object(shell, "call", new = MagicMock(return_value=(0, None)))
@@ -96,7 +96,7 @@ class TestPackageResource(TestCase):
     with Environment('/') as env:
       Package("some_package",
               action = "remove"
-      )    
+      )
     shell_mock.assert_called_with("/usr/bin/zypper --quiet remove --no-confirm some_package")
 
   @patch.object(shell, "call", new = MagicMock(return_value=(1, None)))
@@ -106,5 +106,5 @@ class TestPackageResource(TestCase):
     with Environment('/') as env:
       Package("some_package",
               version = "3.5.0"
-      )    
+      )
     shell_mock.assert_called_with("/usr/bin/yum -d 0 -e 0 -y install some_package-3.5.0")

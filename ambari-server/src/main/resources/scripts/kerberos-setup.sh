@@ -254,7 +254,7 @@ getEnvironmentCMD () {
   case $os in
   'debian12' )
     pkgmgr='apt-get'
-    inst_cmd="env DEBIAN_FRONTEND=noninteractive /usr/bin/$pkgmgr --force-yes --assume-yes install -f "
+    inst_cmd="env DEBIAN_FRONTEND=noninteractive /usr/bin/$pkgmgr --allow-unauthenticated --assume-yes install -f "
     client_packages="krb5-user libpam-krb5 libpam-ccreds auth-client-config"
     server_packages="krb5-kdc krb5-admin-server $client_packages"
     rng_tools="rng-tools"

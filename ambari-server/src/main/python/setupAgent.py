@@ -48,7 +48,7 @@ def installAgent(projectVersion):
     Command = ["zypper", "install", "-y", "ambari-agent-" + projectVersion]
   elif OSCheck.is_debian_family():
     # add * to end of version in case of some test releases
-    Command = ["apt-get", "install", "-y", "--force-yes", "ambari-agent=" + projectVersion + "*"]
+    Command = ["apt-get", "install", "-y", "--allow-unauthenticated", "ambari-agent=" + projectVersion + "*"]
   else:
     Command = ["yum", "-y", "install", "--nogpgcheck", "ambari-agent-" + projectVersion]
   return execOsCommand(Command)
