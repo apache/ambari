@@ -82,6 +82,32 @@ App.ReassignMasterWizardStep2Controller = App.WizardStep5Controller.extend({
       }
       item.set("availableHosts", preparedAvailableHosts.sortProperty('host_name'));
     }, this);
+  },
+  /**
+   * Determines if hostName is valid for component:
+   * <ul>
+   *  <li>host should have only one component with <code>componentName</code></li>
+   * </ul>
+   * @param {string} componentName
+   * @param {string} selectedHost
+   * @returns {boolean} true - valid, false - invalid
+   * @method isHostNameValid
+   */
+  isHostNameValid: function (componentName, selectedHost) {
+    var isValid = this._super(componentName, selectedHost);
+
+    if (isValid) {
+      var reassigned = 0;
+      var existedComponents = App.HostComponent.find().filterProperty('componentName', this.get('content.reassign.component_name')).mapProperty('hostName');
+      var newComponents = this.get('servicesMasters').mapProperty('selectedHost');
+      existedComponents.forEach(function (host) {
+        if (!newComponents.contains(host)) {
+          reassigned++;
+        }
+      }, this);
+      isValid = !(reassigned !== 1);
+    }
+    return isValid;
   }
 });
 

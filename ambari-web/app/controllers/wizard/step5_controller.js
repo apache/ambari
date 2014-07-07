@@ -185,39 +185,10 @@ App.WizardStep5Controller = Em.Controller.extend({
    * @metohd getIsSubmitDisabled
    */
   getIsSubmitDisabled: function () {
-    if (!this.get('isReassignWizard')) {
-      this.set('submitDisabled', this.get('servicesMasters').someProperty('isHostNameValid', false));
-    }
-    else {
-      App.ajax.send({
-        name: 'host_components.all',
-        sender: this,
-        data: {
-          clusterName: App.get('clusterName')
-        },
-        success: 'getIsSubmitDisabledSuccessCallBack'
-      });
-    }
+    var isSubmitDisabled = this.get('servicesMasters').someProperty('isHostNameValid', false);
+    this.set('submitDisabled', isSubmitDisabled);
+    return isSubmitDisabled;
   }.observes('servicesMasters.@each.selectedHost', 'servicesMasters.@each.isHostNameValid'),
-
-  /**
-   * Success callback for getIsSubmitDisabled method
-   * Set true for Reassign Master Wizard and if more than one master component was reassigned.
-   * For installer, addHost and addService verify that provided host names for components are valid
-   * @param {object} response
-   * @method getIsSubmitDisabledSuccessCallBack
-   */
-  getIsSubmitDisabledSuccessCallBack: function (response) {
-    var reassigned = 0;
-    var arr1 = response.items.mapProperty('HostRoles').filterProperty('component_name', this.get('content.reassign.component_name')).mapProperty('host_name');
-    var arr2 = this.get('servicesMasters').mapProperty('selectedHost');
-    arr1.forEach(function (host) {
-      if (!arr2.contains(host)) {
-        reassigned++;
-      }
-    }, this);
-    this.set('submitDisabled', reassigned !== 1);
-  },
 
   /**
    * Clear controller data (hosts, masters etc)
