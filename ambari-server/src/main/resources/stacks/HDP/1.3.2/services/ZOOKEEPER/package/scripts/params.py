@@ -58,8 +58,7 @@ java64_home = config['hostLevelParams']['java_home']
 zookeeper_hosts = config['clusterHostInfo']['zookeeper_hosts']
 zookeeper_hosts.sort()
 
-keytab_path = "/etc/security/keytabs"
-zk_keytab_path = format("{keytab_path}/zk.service.keytab")
+zk_keytab_path = config['configurations']['global']['zookeeper_keytab_path']
 zk_server_jaas_file = format("{config_dir}/zookeeper_jaas.conf")
 zk_client_jaas_file = format("{config_dir}/zookeeper_client_jaas.conf")
 _authentication = config['configurations']['core-site']['hadoop.security.authentication']
