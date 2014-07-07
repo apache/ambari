@@ -183,38 +183,21 @@ installKDC () {
   scriptDir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
   krb5_new_conf=$scriptDir"/krb5.conf"
   krb5_conf="/etc/krb5.conf"
+  #export additional path for suse and centos5
+  PATH=$PATH:/usr/lib/mit/sbin/:/usr/kerberos/sbin/:/usr/sbin/:/sbin/
   # Install rng tools
-  $inst_cmd rng-tools
-  if [ $os == 'debian' ] || [ $os == 'suse' ]; then
-    echo "HRNGDEVICE=/dev/urandom" >> /etc/default/rng-tools
-    /etc/init.d/rng-tools start
-  else
-    sed -i "s/\(EXTRAOPTIONS *= *\).*/\1\"-r \/dev\/urandom\"/" "/etc/sysconfig/rngd"
-    # start rngd
-    /etc/init.d/rngd start
-  fi
+  installRngtools
   # Install kdc server on this host
-  if [ $os == 'debian' ]; then
-    $inst_cmd krb5-kdc krb5-admin-server krb5-user libpam-krb5 libpam-ccreds auth-client-config
-  elif [ $os == 'suse' ] ; then
-    $inst_cmd krb5 krb5-server krb5-client
-  else
-    $inst_cmd krb5-server krb5-libs krb5-auth-dialog krb5-workstation
-  fi
+  $inst_cmd $server_packages
   # Configure /etc/krb5.conf
   cp $krb5_conf $krb5_conf".bak"
   cp $krb5_new_conf $krb5_conf
   sed -i "s/\(kdc *= *\).*kerberos.example.com.*/\1$HOSTNAME/" $krb5_conf
   sed -i "s/\(admin_server *= *\).*kerberos.example.com.*/\1$HOSTNAME/" $krb5_conf
-  # Install rng tools
-  if [ $os == 'debian' ]; then
+  # Create principal key and start services
+  if [[ ! -f $principal_file ]]; then
     echo -ne '\n\n' | kdb5_util create -s
-    /usr/sbin/service krb5-admin-server start
-    /usr/sbin/service krb5-kdc start
-  else
-    echo -ne '\n\n' | kdb5_util create -s
-    /sbin/service krb5kdc start
-    /sbin/service kadmin start
+    $kdc_services_start
   fi
   # Install pdsh on this host
   $inst_cmd pdsh;
@@ -232,14 +215,15 @@ installKDC () {
       hostNames=$hostNames,$hostName;
     fi
   done < $csvFile
+  # Check all hosts for passwordless ssh
+  OLD_IFS=$IFS
+  IFS=,
+  for host in $hostNames; do
+    checkSSH $host
+  done
+  IFS=$OLD_IFS
   export PDSH_SSH_ARGS_APPEND="-q -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o PreferredAuthentications=publickey"
-  if [ $os == 'debian' ]; then
-    pdsh -R ssh -w $hostNames "$inst_cmd krb5-user libpam-krb5 libpam-ccreds auth-client-config"
-  elif [ $os == 'suse' ] ; then
-    pdsh -R ssh -w $hostNames "$inst_cmd krb5-client"
-  else
-    pdsh -R ssh -w $hostNames "$inst_cmd krb5-workstation"
-  fi
+  pdsh -R ssh -w $hostNames "$inst_cmd $client_packages"
   pdsh -R ssh -w $hostNames "$inst_cmd pdsh"
   pdsh -R ssh -w $hostNames chown root:root -R /usr
   pdcp -R ssh -w $hostNames $krb5_conf $krb5_conf
@@ -265,18 +249,44 @@ distributeKeytabs () {
 ########################
 getEnvironmentCMD () {
   os=`python -c 'import sys; sys.path.append("/usr/lib/python2.6/site-packages/"); from ambari_commons import OSCheck; print OSCheck.get_os_family()'`
+  version=`python -c 'import sys; sys.path.append("/usr/lib/python2.6/site-packages/"); from ambari_commons import OSCheck; print OSCheck.get_os_major_version()'`
+  os=$os$version;
   case $os in
-  'debian' )
+  'debian12' )
     pkgmgr='apt-get'
-    inst_cmd="env DEBIAN_FRONTEND=noninteractive /usr/bin/$pkgmgr --force-yes --assume-yes install "
+    inst_cmd="env DEBIAN_FRONTEND=noninteractive /usr/bin/$pkgmgr --force-yes --assume-yes install -f "
+    client_packages="krb5-user libpam-krb5 libpam-ccreds auth-client-config"
+    server_packages="krb5-kdc krb5-admin-server $client_packages"
+    rng_tools="rng-tools"
+    principal_file="/etc/krb5kdc/principal"
+    kdc_services_start="service krb5-admin-server start; service krb5-kdc start"
     ;;
-  'redhat' )
+  'redhat5' )
     pkgmgr='yum'
-    inst_cmd="/usr/bin/$pkgmgr -d 0 -e 0 -y install "
+    inst_cmd="/usr/bin/$pkgmgr -y install "
+    client_packages="krb5-workstation"
+    server_packages="krb5-server krb5-libs krb5-auth-dialog $client_packages"
+    rng_tools="rng-utils"
+    principal_file="/var/kerberos/krb5kdc/principal"
+    kdc_services_start="service kadmin start; service krb5kdc start"
     ;;
-  'suse' )
+  'redhat6' )
+    pkgmgr='yum'
+    inst_cmd="/usr/bin/$pkgmgr -y install "
+    client_packages="krb5-workstation"
+    server_packages="krb5-server krb5-libs krb5-auth-dialog $client_packages"
+    rng_tools="rng-tools"
+    principal_file="/var/kerberos/krb5kdc/principal"
+    kdc_services_start="service kadmin start; service krb5kdc start"
+    ;;
+  'suse11' )
     pkgmgr='zypper'
-    inst_cmd="/usr/bin/$pkgmgr --quiet install --auto-agree-with-licenses --no-confirm "
+    inst_cmd="/usr/bin/$pkgmgr install --auto-agree-with-licenses --no-confirm "
+    client_packages="krb5-client"
+    server_packages="krb5 krb5-server $client_packages"
+    rng_tools="rng-tools"
+    principal_file="/var/lib/kerberos/krb5kdc/principal"
+    kdc_services_start="krb5kdc"
     ;;
   esac
 }
@@ -292,11 +302,41 @@ checkUser () {
   fi
 }
 
+########################
+## checkSSH () : If passwordless ssh for root is not configured then exit
+########################
+checkSSH () {
+  host=$1
+  ssh -oPasswordAuthentication=no -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $host "exit 0" && return_value=0 || return_value=$? && true
+  if [[ $return_value != 0 ]]; then
+    echo "ERROR: Passwordless ssh for user root is not configured for host $host"
+    exit 1;
+  fi
+}
+
+########################
+## installRngtools () : Install and start rng-tools
+########################
+installRngtools () {
+  $inst_cmd $rng_tools
+  echo $inst_cmd $rng_utils
+  if [ $os == 'debian12' ] || [ $os == 'suse11' ]; then
+    echo "HRNGDEVICE=/dev/urandom" >> /etc/default/rng-tools
+    /etc/init.d/rng-tools start || true
+  elif [ $os == 'redhat5' ]; then
+    /sbin/rngd -r /dev/urandom -o /dev/random -f -t .001 --background
+  else
+    sed -i "s/\(EXTRAOPTIONS *= *\).*/\1\"-r \/dev\/urandom\"/" "/etc/sysconfig/rngd"
+    # start rngd
+    /etc/init.d/rngd start
+  fi
+}
 
 if (($# != 2)); then
     usage
 fi
 
+set -e
 checkUser
 getEnvironmentCMD
 installKDC $@
