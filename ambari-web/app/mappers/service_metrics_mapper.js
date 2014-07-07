@@ -206,6 +206,15 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
 
       this.computeAdditionalRelations(hostComponents, services);
       //load master components to model
+      App.HostComponent.find().filterProperty('isMaster').forEach(function (hostComponent) {
+        if (hostComponent && !hostComponents.someProperty('id', hostComponent.get('id'))) {
+          this.deleteRecord(hostComponent);
+          var serviceCache = services.findProperty('ServiceInfo.service_name', hostComponent.get('service.serviceName'));
+          if (serviceCache) {
+            serviceCache.host_components = serviceCache.host_components.without(hostComponent.get('id'));
+          }
+        }
+      }, this);
       App.store.loadMany(this.get('model3'), hostComponents);
 
       //parse service metrics from components
