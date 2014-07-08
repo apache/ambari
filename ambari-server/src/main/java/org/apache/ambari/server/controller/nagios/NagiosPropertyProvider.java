@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -50,7 +49,6 @@ import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.utilities.StreamProvider;
-import org.apache.ambari.server.state.Alert;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Service;
@@ -371,15 +369,6 @@ public class NagiosPropertyProvider extends BaseProvider implements PropertyProv
       
       if (!hosts.isEmpty())
         nagiosHost = hosts.keySet().iterator().next();
-      
-      // !!! use the cluster to retrieve alerts that are not from Nagios, but
-      // from agents themselves.
-      Collection<Alert> currentAlerts = cluster.getAlerts();
-      if (null != currentAlerts) {
-        for (Alert alert : currentAlerts) {
-          results.add(new NagiosAlert(alert));
-        }
-      }
       
     } catch (AmbariException e) {
       LOG.debug("Cannot find a nagios service.  Skipping alerts.");

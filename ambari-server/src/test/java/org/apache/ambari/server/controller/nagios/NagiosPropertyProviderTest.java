@@ -38,7 +38,6 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.TemporalInfo;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.state.Alert;
-import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Service;
@@ -578,81 +577,4 @@ public class NagiosPropertyProviderTest {
     }
   }
 
-  @Test
-  public void testNagiosServiceAlertsWithAgentAlerts() throws Exception {
-    Injector inj = Guice.createInjector(new GuiceModule());
-    
-    Clusters clusters = inj.getInstance(Clusters.class);
-    Cluster cluster = createMock(Cluster.class);
-    
-    Alert alert = new Alert("ganglia_madeup", null, "GANGLIA", "GANGLIA_MYSTERY",
-        "h1", AlertState.CRITICAL);
-    
-    expect(cluster.getAlerts()).andReturn(Collections.singleton(alert)).anyTimes();
-    expect(clusters.getCluster("c1")).andReturn(cluster);
-
-    Service nagiosService = createMock(Service.class);
-    expect(cluster.getService("NAGIOS")).andReturn(nagiosService);
-    
-    ServiceComponent nagiosServiceComponent = createMock(ServiceComponent.class);
-    expect(nagiosService.getServiceComponent("NAGIOS_SERVER")).andReturn(nagiosServiceComponent);
-    
-    ServiceComponentHost nagiosScHost = createMock(ServiceComponentHost.class);
-    Map<String, ServiceComponentHost> map1 = new HashMap<String, ServiceComponentHost>();
-    map1.put(HOST, nagiosScHost);
-    expect(nagiosServiceComponent.getServiceComponentHosts()).andReturn(map1);
-    
-    replay(clusters, cluster, nagiosService, nagiosServiceComponent);
-
-    
-    TestStreamProvider streamProvider = new TestStreamProvider("nagios_alerts.txt");
-
-    NagiosPropertyProvider npp = new NagiosPropertyProvider(Resource.Type.Service,
-        streamProvider,
-        "ServiceInfo/cluster_name",
-        "ServiceInfo/service_name");
-    npp.forceReset();
-    NagiosPropertyProvider.init(inj);
-    
-    Resource resource = new ResourceImpl(Resource.Type.Service);
-    resource.setProperty("ServiceInfo/cluster_name", "c1");
-    resource.setProperty("ServiceInfo/service_name", "GANGLIA");
-    
-    // request with an empty set should get all supported properties
-    Request request = PropertyHelper.getReadRequest(Collections.<String>emptySet(), new HashMap<String, TemporalInfo>());
-
-    Set<Resource> set = npp.populateResources(Collections.singleton(resource), request, null);
-    Assert.assertEquals(1, set.size());
-    
-    Resource res = set.iterator().next();
-    
-    Map<String, Map<String, Object>> values = res.getPropertiesMap();
-    
-    Assert.assertTrue(values.containsKey("alerts"));
-    Assert.assertTrue(values.containsKey("alerts/summary"));
-    Assert.assertTrue(values.get("alerts").containsKey("detail"));
-    Assert.assertTrue(List.class.isInstance(values.get("alerts").get("detail")));
-    
-    List<?> list = (List<?>) values.get("alerts").get("detail");
-    // removed an additional one
-    Assert.assertEquals(Integer.valueOf(5), Integer.valueOf(list.size()));
-    for (Object o : list) {
-      Assert.assertTrue(Map.class.isInstance(o));
-      Map<?, ?> map = (Map<?, ?>) o;
-      Assert.assertTrue(map.containsKey("service_name"));
-      String serviceName = map.get("service_name").toString();
-      Assert.assertEquals(serviceName, "GANGLIA");
-    }
-    
-    Map<String, Object> summary = values.get("alerts/summary");
-    Assert.assertTrue(summary.containsKey("OK"));
-    Assert.assertTrue(summary.containsKey("WARNING"));
-    Assert.assertTrue(summary.containsKey("CRITICAL"));
-    Assert.assertTrue(summary.containsKey("PASSIVE"));
-    
-    Assert.assertEquals(Integer.valueOf(3), summary.get("OK"));
-    Assert.assertEquals(Integer.valueOf(0), summary.get("WARNING"));
-    Assert.assertEquals(Integer.valueOf(1), summary.get("CRITICAL"));
-    Assert.assertEquals(Integer.valueOf(1), summary.get("PASSIVE"));
-  }  
 }

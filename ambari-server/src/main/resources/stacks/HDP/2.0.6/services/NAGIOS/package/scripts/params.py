@@ -34,8 +34,8 @@ else:
 
 conf_dir = format("/etc/{nagios_service_name}")
 nagios_obj_dir = format("{conf_dir}/objects")
-nagios_var_dir = "/var/nagios"
-nagios_rw_dir = "/var/nagios/rw"
+nagios_var_dir = status_params.nagios_var_dir
+nagios_rw_dir = status_params.nagios_rw_dir
 
 if System.get_instance().os_family == "debian":
   host_template = "generic-host"

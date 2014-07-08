@@ -149,3 +149,8 @@ define command{
         command_name check_tcp_wrapper_sasl
         command_line  $USER1$/check_wrapper.sh $USER1$/check_tcp -H $HOSTADDRESS$ -p $ARG1$ $ARG2$ -s \"$ARG3$\"
        }
+
+define command{
+        command_name check_ambari
+        command_line $USER1$/check_wrapper.sh /var/lib/ambari-agent/ambari-python-wrap $USER1$/check_ambari_alerts.py -H $HOSTADDRESS$ -f $ARG1$ -n $ARG2$
+       }

@@ -110,3 +110,10 @@ define servicegroup {
   alias  FALCON Checks
 }
 {% endif %}
+
+{%if hostgroup_defs['flume-servers'] %}
+define servicegroup {
+  servicegroup_name  FLUME
+  alias  FLUME Checks
+}
+{% endif %}

@@ -24,6 +24,7 @@ import sys
 from resource_management import *
 from nagios import nagios
 from nagios_service import nagios_service
+from nagios_service import update_active_alerts
 
          
 class NagiosServer(Script):
@@ -59,21 +60,20 @@ class NagiosServer(Script):
     import status_params
     env.set_params(status_params)
     check_process_status(status_params.nagios_pid_file)
+
+    # check for alert structures
+    update_active_alerts()
+
     
 def remove_conflicting_packages():  
-  Package( 'hdp_mon_nagios_addons',
-    action = "remove"
-  )
+  Package('hdp_mon_nagios_addons', action = "remove")
 
-  Package( 'nagios-plugins',
-    action = "remove"
-  )
+  Package('nagios-plugins', action = "remove")
   
   if System.get_instance().os_family in ["redhat","suse"]:
-    Execute( "rpm -e --allmatches --nopostun nagios",
-      path    = "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
-      ignore_failures = True 
-    )
+    Execute("rpm -e --allmatches --nopostun nagios",
+      path  = "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+      ignore_failures = True)
 
 def update_ignorable(params):
   if not params.config.has_key('passiveInfo'):

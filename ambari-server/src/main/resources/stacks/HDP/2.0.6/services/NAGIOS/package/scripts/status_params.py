@@ -24,3 +24,6 @@ config = Script.get_config()
 
 nagios_pid_dir = "/var/run/nagios"
 nagios_pid_file = format("{nagios_pid_dir}/nagios.pid")
+
+nagios_var_dir = "/var/nagios"
+nagios_rw_dir = "/var/nagios/rw"

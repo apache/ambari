@@ -20,6 +20,7 @@ Ambari Agent
 
 """
 
+import json
 import os
 import signal
 
@@ -67,3 +68,36 @@ def nagios_service(action='start'): # start or stop
       Execute(format("rm -f {nagios_pid_file}"))
         
   MonitorWebserver("restart")
+
+def update_active_alerts():
+  import status_params
+
+  alerts = None
+  if 'alerts' in status_params.config and status_params.config['alerts'] is not None:
+    alerts = status_params.config['alerts']
+
+  if alerts is None:
+    return
+
+  output = {}
+
+  for a in alerts:
+    alert_name = a['name']
+    alert_text = a['text']
+    alert_state = a['state']
+    alert_host = a['host']
+    if not output.has_key(alert_name):
+      output[alert_name] = {}
+
+    if not output[alert_name].has_key(alert_host):
+      output[alert_name][alert_host] = []
+
+    host_items = output[alert_name][alert_host]
+    alert_out = {}
+    alert_out['state'] = alert_state
+    alert_out['text'] = alert_text
+    host_items.append(alert_out)
+
+  with open(os.path.join(status_params.nagios_var_dir, 'ambari.json'), 'w') as f:
+    json.dump(output, f)
+

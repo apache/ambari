@@ -268,6 +268,11 @@ class TestNagiosServer(RMFTestCase):
         content = StaticFile('sys_logger.py'),
         mode = 0755,
     )
+    self.assertResourceCalled('File',
+                              '/usr/lib64/nagios/plugins/check_ambari_alerts.py',
+                              content=StaticFile('check_ambari_alerts.py'),
+                              mode=0755
+    )
     self.assertResourceCalled('Execute',
                               'htpasswd2 -c -b  /etc/nagios/htpasswd.users nagiosadmin \'!`"\'"\'"\' 1\'',
                               not_if="grep nagiosadmin /etc/nagios/htpasswd.users"
