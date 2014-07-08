@@ -16,7 +16,8 @@
    limitations under the License.
 -->
 <metainfo>
-    <versions>
+  <versions>
 	  <active>false</active>
-    </versions>
+  </versions>
+  <extends>2.0.6</extends>
 </metainfo>
