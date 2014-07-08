@@ -49,6 +49,8 @@ if System.get_instance().os_family == "debian":
     format("{conf_dir}/conf.d/generic-service_nagios2.cfg"),
     format("{conf_dir}/conf.d/timeperiods_nagios2.cfg"),
   ]
+  cgi_dir = "/usr/lib/cgi-bin/nagios3"
+  cgi_weblink = "/cgi-bin/nagios3"
 else:
   host_template = "linux-server"
   plugins_dir = "/usr/lib64/nagios/plugins"
@@ -60,6 +62,9 @@ else:
     format("{nagios_obj_dir}/timeperiods.cfg"),
     format("{nagios_obj_dir}/templates.cfg"),
   ]
+  
+  cgi_dir = "/usr/lib/nagios/cgi"
+  cgi_weblink = "/nagios/cgi-bin"
   
 check_result_path = "/var/nagios/spool/checkresults"
 nagios_log_dir = "/var/log/nagios"

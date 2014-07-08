@@ -44,9 +44,9 @@
 # needed to fit your system.
 #
 
-ScriptAlias /nagios/cgi-bin "/usr/lib/nagios/cgi"
+ScriptAlias {{cgi_weblink}} "{{cgi_dir}}"
 
-<Directory "/usr/lib/nagios/cgi">
+<Directory "{{cgi_dir}}">
 #  SSLRequireSSL
    Options ExecCGI
    AllowOverride None
@@ -61,7 +61,7 @@ ScriptAlias /nagios/cgi-bin "/usr/lib/nagios/cgi"
    Require valid-user
 </Directory>
 
-Alias /nagios "{{nagios_web_dir}}"
+Alias /{{nagios_service_name}} "{{nagios_web_dir}}"
 
 <Directory "{{nagios_web_dir}}">
 #  SSLRequireSSL
