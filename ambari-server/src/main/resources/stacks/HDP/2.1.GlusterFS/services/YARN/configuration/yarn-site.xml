@@ -365,7 +365,7 @@
 
   <property>
     <name>yarn.timeline-service.leveldb-timeline-store.path</name>
-    <value>/var/log/hadoop-yarn/timeline</value>
+    <value>/mnt/glusterfs/hadoop/yarn/timeline</value>
     <description>
       Store file name for leveldb timeline store
     </description>
