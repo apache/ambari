@@ -810,6 +810,7 @@ App.WizardStep7Controller = Em.Controller.extend({
         if (_config.defaultValue != configsMap[_config.name])
           _config.value = configsMap[_config.name];
         _config.defaultValue = configsMap[_config.name];
+        _config.hasInitialValue = true;
         App.config.handleSpecialProperties(_config);
         delete configsMap[_config.name];
       }
