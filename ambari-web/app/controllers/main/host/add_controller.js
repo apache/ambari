@@ -190,7 +190,7 @@ App.AddHostController = App.WizardController.extend({
    *  Apply config groups from step4 Configurations
    */
   applyConfigGroup: function () {
-    var serviceConfigGroups = this.get('content.serviceConfigGroups');
+    var serviceConfigGroups = this.get('content.configGroups');
     serviceConfigGroups.forEach(function (group) {
       if (group.configGroups.someProperty('ConfigGroup.group_name', group.selectedConfigGroup)) {
         var configGroup = group.configGroups.findProperty('ConfigGroup.group_name', group.selectedConfigGroup);
@@ -217,26 +217,25 @@ App.AddHostController = App.WizardController.extend({
    */
   getServiceConfigGroups: function () {
     var serviceConfigGroups = this.getDBProperty('serviceConfigGroups');
-    this.set('content.serviceConfigGroups', serviceConfigGroups);
+    this.set('content.configGroups', serviceConfigGroups);
   },
 
   /**
    * Save information about selected config groups
    */
   saveServiceConfigGroups: function () {
-    this.setDBProperty('serviceConfigGroups', this.get('content.serviceConfigGroups'));
-    this.set('content.serviceConfigGroups', this.get('content.serviceConfigGroups'));
+    this.setDBProperty('serviceConfigGroups', this.get('content.configGroups'));
   },
 
   /**
-   * Set content.serviceConfigGroups for step4
+   * Set content.configGroups for step4
    */
   loadServiceConfigGroups: function () {
     var selectedServices = [];
     this.loadServiceConfigGroupsBySlaves(selectedServices);
     this.loadServiceConfigGroupsByClients(selectedServices);
     this.sortServiceConfigGroups(selectedServices);
-    this.set('content.serviceConfigGroups', selectedServices);
+    this.set('content.configGroups', selectedServices);
   },
   /**
    * sort config groups by name
@@ -366,13 +365,34 @@ App.AddHostController = App.WizardController.extend({
     this.set('content.cluster', this.getCluster());
   },
 
+  clearStorageData: function () {
+    this._super();
+    App.db.cleanAddHost();
+  },
+
+  /**
+   * save the local db data stored on the server as value to the key api/v1/persist/CLUSTER_CURRENT_STATUS
+   */
+  saveClusterState: function () {
+    App.clusterStatus.setClusterStatus({
+      clusterName: App.router.getClusterName(),
+      clusterState: 'DEFAULT'
+    });
+  },
+
+  clearData: function () {
+    // Clear Add Host namespace in Browser Local storage and save it to server persist data
+    this.clearStorageData();
+    this.saveClusterState();
+  },
+
   /**
    * Clear all temporary data
    */
   finish: function () {
     this.setCurrentStep('1');
     this.clearAllSteps();
-    this.clearStorageData();
+    this.clearData();
     App.router.get('updateController').updateAll();
     App.updater.immediateRun('updateHost');
   },

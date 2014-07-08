@@ -81,6 +81,11 @@ App.db.cleanTmp = function() {
   localStorage.setObject('ambari', App.db.data);
 };
 
+App.db.cleanAddHost = function() {
+  App.db.data.AddHost = {};
+  localStorage.setObject('ambari', App.db.data);
+};
+
 App.db.updateStorage = function() {
   App.db.data = localStorage.getObject('ambari');
   if (App.db.data && App.db.data.app && App.db.data.app.tables && App.db.data.app.configs) {

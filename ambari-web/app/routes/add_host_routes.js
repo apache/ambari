@@ -22,13 +22,9 @@ module.exports = App.WizardRoute.extend({
   route: '/host/add',
 
   clearData: function (router) {
+    var addHostController = router.get('addHostController');
     App.router.get('updateController').set('isWorking', true);
-    App.clusterStatus.setClusterStatus({
-      clusterName: App.router.get('content.cluster.name'),
-      clusterState: 'DEFAULT',
-      wizardControllerName: App.router.get('addHostController.name'),
-      localdb: App.db.data
-    });
+    addHostController.finish();
     router.transitionTo('hosts.index');
   },
 
@@ -62,8 +58,6 @@ module.exports = App.WizardRoute.extend({
               body: Em.I18n.t('hosts.add.exit.body'),
               onPrimary: function () {
                 this.hide();
-                addHostController.finish();
-                App.router.get('updateController').set('isWorking', true);
                 self.clearData(router);
                 location.reload();
               }
@@ -353,12 +347,7 @@ module.exports = App.WizardRoute.extend({
         console.log('Request for hosts, with immutable parameters')
       });
       router.get('updateController').updateAll();
-      addHostController.finish();
       $(context.currentTarget).parents("#modal").find(".close").trigger('click');
-
-      // We need to do recovery based on whether we are in Add Host or Installer wizard
-      addHostController.saveClusterState('DEFAULT');
-
       location.reload();
     }
   }),
