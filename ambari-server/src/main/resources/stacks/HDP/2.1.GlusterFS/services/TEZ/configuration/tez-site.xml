@@ -21,7 +21,7 @@
 
   <property>
     <name>tez.lib.uris</name>
-    <value>hdfs:///apps/tez/,hdfs:///apps/tez/lib/</value>
+    <value>glusterfs:///apps/tez/,glusterfs:///apps/tez/lib/</value>
     <description>The location of the Tez libraries which will be localized for DAGs</description>
   </property>
 

@@ -56,7 +56,7 @@ limitations under the License.
 
   <property>
     <name>templeton.pig.archive</name>
-    <value>hdfs:///apps/webhcat/pig.tar.gz</value>
+    <value>glusterfs:///apps/webhcat/pig.tar.gz</value>
     <description>The path to the Pig archive.</description>
   </property>
 
@@ -74,7 +74,7 @@ limitations under the License.
 
   <property>
     <name>templeton.hive.archive</name>
-    <value>hdfs:///apps/webhcat/hive.tar.gz</value>
+    <value>glusterfs:///apps/webhcat/hive.tar.gz</value>
     <description>The path to the Hive archive.</description>
   </property>
 
@@ -124,8 +124,8 @@ limitations under the License.
 
  <property>
     <name>templeton.streaming.jar</name>
-    <value>hdfs:///apps/webhcat/hadoop-streaming.jar</value>
-    <description>The hdfs path to the Hadoop streaming jar file.</description>
+    <value>glusterfs:///apps/webhcat/hadoop-streaming.jar</value>
+    <description>The glusterfs path to the Hadoop streaming jar file.</description>
   </property> 
 
   <property>
