@@ -172,6 +172,13 @@ App.WizardStep1View = Em.View.extend({
   },
 
   /**
+   * Onclick handler for recheck repos urls. Used in Advanced Repository Options.
+   */
+  retryRepoUrls: function () {
+    App.router.get('installerController').checkRepoURL();
+  },
+
+  /**
    * Format repo values and set it to <code>allRepositories</code>
    * @method loadRepositories
    */

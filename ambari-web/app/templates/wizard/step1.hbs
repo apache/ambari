@@ -102,7 +102,10 @@
             <div class="alert">{{t installer.step1.attentionNeeded}}</div>
           {{/if}}
           {{#if view.invalidUrlExist}}
-            <div class="alert">{{t installer.step1.invalidURLAttention}}</div>
+            <div class="alert">
+              {{t installer.step1.invalidURLAttention}}
+              <a href="javascript:void(null)" {{action "retryRepoUrls" target="view"}}>{{t installer.step1.retryRepoUrls}}</a>
+            </div>
           {{/if}}
           {{#if view.allRepoUnchecked}}
             <div class="alert">{{t installer.step1.checkAtLeastOneAttention}}</div>

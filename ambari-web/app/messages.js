@@ -379,6 +379,7 @@ Em.I18n.translations = {
   'installer.step1.attentionNeeded':'<b>Attention:</b> Repository URLs are REQUIRED before you can proceed.',
   'installer.step1.invalidURLAttention': '<b>Attention:</b> Please make sure all repository URLs are valid before proceeding.',
   'installer.step1.checkAtLeastOneAttention': '<b>Attention:</b> Please check at least one repository.',
+  'installer.step1.retryRepoUrls': 'Click <b>here</b> to retry.',
 
   'installer.step2.header':'Install Options',
   'installer.step2.body':'Enter the list of hosts to be included in the cluster and provide your SSH key.',
