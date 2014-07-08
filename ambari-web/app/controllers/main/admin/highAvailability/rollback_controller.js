@@ -393,11 +393,12 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
     }
     for (var i = 0; i < hostName.length; i++) {
       App.ajax.send({
-        name: 'admin.high_availability.maintenance_mode',
+        name: 'common.host.host_component.passive',
         sender: this,
         data: {
           hostName: hostName[i],
           componentName: componentName,
+          passive_state: "ON",
           taskNum: hostName.length,
           callback: 'checkBeforeDelete'
         },

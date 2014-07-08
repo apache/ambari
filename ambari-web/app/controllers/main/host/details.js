@@ -1221,6 +1221,40 @@ App.MainHostDetailsController = Em.Controller.extend({
   },
 
   /**
+   * Send request to get passive state for hostComponent
+   * @param {object} component - hostComponentn object
+   * @param {string} state
+   * @param {string} message
+   * @method hostPassiveModeRequest
+   */
+  updateComponentPassiveState: function (component, state, message) {
+    App.ajax.send({
+      name: 'common.host.host_component.passive',
+      sender: this,
+      data: {
+        hostName: this.get('content.hostName'),
+        componentName: component.get('componentName'),
+        component: component,
+        passive_state: state,
+        context: message
+      },
+      success: 'updateHostComponent'
+    });
+  },
+
+  /**
+   * Success callback for receiving hostComponent passive state
+   * @param {object} data
+   * @param {object} opt
+   * @param {object} params
+   * @method updateHost
+   */
+  updateHostComponent: function (data, opt, params) {
+    params.component.set('passiveState', params.passive_state)
+    batchUtils.infoPassiveState(params.passive_state);
+  },
+
+  /**
    * Show confirmation popup for action "start all components"
    * @method doStartAllComponents
    */
@@ -1514,5 +1548,14 @@ App.MainHostDetailsController = Em.Controller.extend({
         batchUtils.restartHostComponents(components, Em.I18n.t('rollingrestart.context.allClientsOnSelectedHost').format(self.get('content.hostName')), "HOST");
       });
     }
+  },
+
+  toggleMaintenanceMode: function(event) {
+    var self = this;
+    var state = event.context.get('passiveState') === "ON" ? "OFF" : "ON";
+    var message = Em.I18n.t('passiveState.turn' + state.toCapital() +'For').format(event.context.get('displayName'));
+    return App.showConfirmationPopup(function () {
+      self.updateComponentPassiveState(event.context, state, message);
+    });
   }
 });

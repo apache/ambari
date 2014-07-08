@@ -185,14 +185,6 @@ App.HostComponentView = Em.View.extend({
   }.property('content.passiveState'),
 
   /**
-   * For PASSIVE <code>passiveState</code> of host or service
-   * @type {bool}
-   */
-  isImplied: function() {
-    return (this.get('parentView.content.passiveState') === 'ON' || this.get('content.service.passiveState') === 'ON');
-  }.property('parentView.content.passiveState', 'content.service.passiveState'),
-
-  /**
    * Shows whether we need to show Delete button
    * @type {bool}
    */

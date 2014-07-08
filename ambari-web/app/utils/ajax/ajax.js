@@ -147,13 +147,68 @@ var urls = {
     }
   },
 
+  'common.service.passive': {
+    'real': '/clusters/{clusterName}/services/{serviceName}',
+    'mock': '',
+    'format': function (data) {
+      return {
+        type: 'PUT',
+        data: JSON.stringify({
+          RequestInfo: {
+            "context": data.requestInfo
+          },
+          Body: {
+            ServiceInfo: {
+              maintenance_state: data.passive_state
+            }
+          }
+        })
+      };
+    }
+  },
+
+  'common.host.host_component.passive': {
+    'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}',
+    'mock': '',
+    'type': 'PUT',
+    'format': function(data) {
+      return {
+        data: JSON.stringify({
+          RequestInfo: {
+            "context": data.context
+          },
+          Body: {
+            HostRoles: {
+              maintenance_state: data.passive_state
+            }
+          }
+        })
+      };
+    }
+  },
+
   'common.delete.host': {
     'real': '/clusters/{clusterName}/hosts/{hostName}',
     'type': 'DELETE'
   },
-
   'common.delete.host_component': {
     'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}',
+    'type': 'DELETE'
+  },
+  'common.delete.user': {
+    'real': '/users/{user}',
+    'type': 'DELETE'
+  },
+  'common.delete.config_group': {
+    'real': '/clusters/{clusterName}/config_groups/{id}',
+    'type': 'DELETE'
+  },
+  'common.delete.cluster': {
+    'real': '/clusters/{name}',
+    'type': 'DELETE'
+  },
+  'common.delete.request_schedule': {
+    'real': '/clusters/{clusterName}/request_schedules/{request_schedule_id}',
     'type': 'DELETE'
   },
 
@@ -196,25 +251,6 @@ var urls = {
       };
     }
   },
-  'service.item.passive': {
-    'real': '/clusters/{clusterName}/services/{serviceName}',
-    'mock': '',
-    'format': function (data) {
-      return {
-        type: 'PUT',
-        data: JSON.stringify({
-          RequestInfo: {
-            "context": data.requestInfo
-          },
-          Body: {
-            ServiceInfo: {
-              maintenance_state: data.passive_state
-            }
-          }
-        })
-      };
-    }
-  },
   'service.load_config_groups': {
     'real': '/clusters/{clusterName}/config_groups?ConfigGroup/tag={serviceName}&fields=*',
     'mock': '/data/configurations/config_group.json'
@@ -239,22 +275,6 @@ var urls = {
       }
     }
   },
-  'reassign.maintenance_mode': {
-    'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}',
-    'mock': '',
-    'type': 'PUT',
-    'format': function () {
-      return {
-        data: JSON.stringify(
-          {
-            "HostRoles": {
-              "maintenance_state": "ON"
-            }
-          }
-        )
-      }
-    }
-  },
   'reassign.load_configs': {
     'real': '/clusters/{clusterName}/configurations?{urlParams}',
     'mock': ''
@@ -276,26 +296,6 @@ var urls = {
           }
         })
       }
-    }
-  },
-
-  'host_component.passive': {
-    'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}',
-    'mock': '',
-    'type': 'PUT',
-    'format': function(data) {
-      return {
-        data: JSON.stringify({
-          RequestInfo: {
-            "context": data.requestInfo
-          },
-          Body: {
-            HostRoles: {
-              maintenance_state: data.passive_state
-            }
-          }
-        })
-      };
     }
   },
 
@@ -353,11 +353,6 @@ var urls = {
         )
       }
     }
-  },
-  'config_groups.delete_config_group': {
-    'real': '/clusters/{clusterName}/config_groups/{id}',
-    'mock': '',
-    'type': 'DELETE'
   },
   'config.on_site': {
     'real': '/clusters/{clusterName}/configurations?{params}',
@@ -434,26 +429,6 @@ var urls = {
             } ]
           }
         } ])
-      }
-    }
-  },
-  'host.host_component.recommission_slave' : {
-    'real' : '/clusters/{clusterName}/requests',
-    'mock' : '',
-    'format' : function(data) {
-      return {
-        type : 'POST',
-        data : JSON.stringify({
-          RequestInfo: {
-            context: data.context,
-            command: data.command,
-            parameters: {
-              slave_type: data.slaveType,
-              included_hosts: data.hostName
-            }
-          },
-          "Requests/resource_filters": [{"service_name" : data.serviceName, "component_name" : data.componentName}]
-        })
       }
     }
   },
@@ -855,20 +830,6 @@ var urls = {
       }
     }
   },
-  'admin.high_availability.maintenance_mode': {
-    'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}',
-    'mock': '',
-    'type': 'PUT',
-    'format': function () {
-      return {
-        data: JSON.stringify({
-          "HostRoles": {
-            "state": "DISABLED"
-          }
-        })
-      }
-    }
-  },
   'admin.high_availability.load_configs': {
     'real': '/clusters/{clusterName}/configurations?(type=core-site&tag={coreSiteTag})|(type=hdfs-site&tag={hdfsSiteTag})',
     'mock': ''
@@ -967,16 +928,6 @@ var urls = {
     }
   },
 
-  'admin.user.delete': {
-    'real': '/users/{user}',
-    'mock': '/data/users/users.json',
-    'format': function() {
-      return {
-        type: 'DELETE'
-      }
-    }
-  },
-
   'admin.user.edit': {
     'real': '/users/{user}',
     'mock':'/data/users/users.json',
@@ -1031,15 +982,6 @@ var urls = {
     }
   },
 
-  'wizard.step8.delete_cluster': {
-    'real': '/clusters/{name}',
-    'mock': '',
-    'format': function() {
-      return {
-        type: 'DELETE'
-      };
-    }
-  },
   'wizard.step8.existing_cluster_names': {
     'real': '/clusters',
     'mock': '',
@@ -1354,15 +1296,6 @@ var urls = {
       }
     }
   },
-  'request_schedule.delete': {
-    'real': '/clusters/{clusterName}/request_schedules/{request_schedule_id}',
-    'mock': '',
-    'format' : function() {
-      return {
-        type : 'DELETE'
-      }
-    }
-  },
   'request_schedule.get': {
     'real': '/clusters/{clusterName}/request_schedules/{request_schedule_id}',
     'mock': ''
@@ -1413,7 +1346,6 @@ var urls = {
     'mock': '/data/mirroring/{dataset}_instances.json',
     'apiPrefix': ''
   },
-
 
   'mirroring.create_new_dataset': {
     'real': '/proxy?url=http://{falconServer}:15000/api/entities/submitAndSchedule/feed?user.name=ambari-qa',

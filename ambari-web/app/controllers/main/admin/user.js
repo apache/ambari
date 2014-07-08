@@ -46,7 +46,7 @@ App.MainAdminUserController = Em.Controller.extend({
 
       onPrimary: function () {
         App.ajax.send({
-          name: 'admin.user.delete',
+          name: 'common.delete.user',
           sender: self,
           data: {
             user: event.context.get("userName"),

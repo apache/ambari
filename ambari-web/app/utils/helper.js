@@ -67,6 +67,16 @@ String.prototype.capitalize = function () {
 };
 
 /**
+ * Capitalize the first letter of string.
+ * And set to lowercase other part of string
+ * @method toCapital
+ * @return {string}
+ */
+String.prototype.toCapital = function () {
+  return this.charAt(0).toUpperCase() + this.slice(1).toLowerCase();
+};
+
+/**
  * Finds the value in an object where this string is a key.
  * Optionally, the index of the key can be provided where the
  * value of the nth key in the hierarchy is returned.

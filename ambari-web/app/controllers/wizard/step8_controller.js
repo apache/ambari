@@ -938,7 +938,7 @@ App.WizardStep8Controller = Em.Controller.extend({
   deleteClusters: function (clusterNames) {
     clusterNames.forEach(function (clusterName, index) {
       App.ajax.send({
-        name: 'wizard.step8.delete_cluster',
+        name: 'common.delete.cluster',
         sender: this,
         data: {
           name: clusterName,

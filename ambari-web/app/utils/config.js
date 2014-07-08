@@ -19,7 +19,6 @@
 var App = require('app');
 var stringUtils = require('utils/string_utils');
 
-var categotyConfigs = require('data/service_configs');
 var configGroupsByTag = [];
 
 App.config = Em.Object.create({
@@ -1460,7 +1459,7 @@ App.config = Em.Object.create({
 
   deleteConfigGroup: function (configGroup, successCallback, errorCallback) {
     var sendData = {
-      name: 'config_groups.delete_config_group',
+      name: 'common.delete.config_group',
       sender: this,
       data: {
         id: configGroup.get('id')

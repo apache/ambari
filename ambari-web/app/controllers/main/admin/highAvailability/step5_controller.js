@@ -62,10 +62,11 @@ App.HighAvailabilityWizardStep5Controller = App.HighAvailabilityProgressPageCont
   disableSNameNode: function () {
     var hostName = this.get('content.masterComponentHosts').findProperty('component', 'SECONDARY_NAMENODE').hostName;
     App.ajax.send({
-      name: 'admin.high_availability.maintenance_mode',
+      name: 'common.host.host_component.passive',
       sender: this,
       data: {
         hostName: hostName,
+        passive_state: "ON",
         componentName: 'SECONDARY_NAMENODE'
       },
       success: 'onTaskCompleted',

@@ -187,49 +187,6 @@ describe('App.HostComponentView', function() {
 
   });
 
-  describe('#isImplied', function() {
-
-    var tests = Em.A([
-      {
-        content: {service: {passiveState: 'ON'}},
-        parentView: {content: {passiveState: 'ON'}},
-        m: 'service in ON, host in ON',
-        e: true
-      },
-      {
-        content: {service: {passiveState: 'ON', serviceName:'SERVICE_NAME'}},
-        parentView: {content: {passiveState: 'OFF'}},
-        m: 'service in ON, host in OFF',
-        e: true
-      },
-      {
-        content: {service: {passiveState: 'OFF', serviceName:'SERVICE_NAME'}},
-        parentView: {content: {passiveState: 'ON'}},
-        m: 'service in OFF, host in ON',
-        e: true
-      },
-      {
-        content: {service: {passiveState: 'OFF'}},
-        parentView: {content: {passiveState: 'OFF'}},
-        m: 'service in OFF, host in OFF',
-        e: false
-      }
-    ]);
-
-    tests.forEach(function(test) {
-      it(test.m, function() {
-        hostComponentView = App.HostComponentView.create({
-          startBlinking: function(){},
-          doBlinking: function(){},
-          parentView: test.parentView,
-          content: test.content
-        });
-        expect(hostComponentView.get('isImplied')).to.equal(test.e);
-      });
-    });
-
-  });
-
   describe('#isRestartComponentDisabled', function() {
 
     var tests = ['STARTED'];

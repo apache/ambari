@@ -37,9 +37,9 @@
   {{#if component.staleConfigs}}
     <span class="text-warning icon-refresh"></span>
   {{/if}}
-  {{#if component.service.isInPassive}}
+  {{#unless component.isActive}}
     <span class="icon-medkit"></span>
-  {{/if}}
+  {{/unless}}
 </div>
 <div class="span5 pull-right">
   {{#if App.isAdmin}}
@@ -100,6 +100,16 @@
               </a>
             </li>
           {{/if}}
+          <li {{bindAttr class="view.noActionAvailable"}}>
+            <a href="javascript:void(null)"
+               data-toggle="modal" {{action "toggleMaintenanceMode" view.content target="controller"}}>
+              {{#if view.isActive}}
+                {{t passiveState.turnOn}}
+              {{else}}
+                {{t passiveState.turnOff}}
+              {{/if}}
+            </a>
+          </li>
         {{/unless}}
         {{#if view.isInit}}
           <li {{bindAttr class="view."}}>

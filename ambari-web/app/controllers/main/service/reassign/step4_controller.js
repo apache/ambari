@@ -147,10 +147,11 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
     var hostName = this.get('content.reassignHosts.source');
     for (var i = 0; i < hostComponents.length; i++) {
       App.ajax.send({
-        name: 'reassign.maintenance_mode',
+        name: 'common.host.host_component.passive',
         sender: this,
         data: {
           hostName: hostName,
+          passive_state: "ON",
           componentName: hostComponents[i]
         },
         success: 'onComponentsTasksSuccess',

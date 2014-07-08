@@ -267,7 +267,7 @@ module.exports = {
 
   turnOnOffPassiveRequest: function(state, message, serviceName, callback) {
     App.ajax.send({
-      'name': 'service.item.passive',
+      'name': 'common.service.passive',
       'sender': {
         'successCallback': callback || defaultSuccessCallback,
         'errorCallback': defaultErrorCallback
@@ -551,7 +551,7 @@ module.exports = {
     if (requestScheduleId != null && !isNaN(requestScheduleId) && requestScheduleId > -1) {
       errorCallback = errorCallback || defaultErrorCallback;
       App.ajax.send({
-        name : 'request_schedule.delete',
+        name : 'common.delete.request_schedule',
         sender : {
           successCallbackFunction : function(data) {
             successCallback(data);
