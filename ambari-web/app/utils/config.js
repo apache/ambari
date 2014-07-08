@@ -616,7 +616,7 @@ App.config = Em.Object.create({
         _config.isOverridable = (_config.isOverridable === undefined) ? true : _config.isOverridable;
         var serviceConfigProperty = App.ServiceConfigProperty.create(_config);
         this.updateHostOverrides(serviceConfigProperty, _config);
-        if (!storedConfigs) {
+        if (!storedConfigs && !serviceConfigProperty.get('hasInitialValue')) {
           serviceConfigProperty.initialValue(localDB);
         }
         this.tweakDynamicDefaults(localDB, serviceConfigProperty, _config);
