@@ -1698,16 +1698,12 @@ var urls = {
       }
     }
   },
-  'hosts.basic_info': {
-    'real': '/clusters/{clusterName}/hosts?fields=Hosts/cpu_count,Hosts/disk_info,Hosts/total_mem,Hosts/ip,Hosts/os_type,Hosts/os_arch,Hosts/public_host_name&minimal_response=true',
+  'hosts.by_component.one': {
+    'real': '/clusters/{clusterName}/hosts?host_components/HostRoles/component_name.in({componentNames})&fields=host_components,Hosts/cpu_count,Hosts/disk_info,Hosts/total_mem,Hosts/ip,Hosts/os_type,Hosts/os_arch,Hosts/public_host_name&page_size=1&minimal_response=true',
     'mock': ''
   },
-  'hosts.one_component_of_type': {
-    'real': '/clusters/{clusterName}/hosts?host_components/HostRoles/component_name.in({componentNames})&fields=host_components&page_size=1&minimal_response=true',
-    'mock': ''
-  },
-  'hosts.all_components_of_type': {
-    'real': '/clusters/{clusterName}/hosts?host_components/HostRoles/component_name.in({componentNames})&fields=host_components&minimal_response=true',
+  'hosts.by_component.all': {
+    'real': '/clusters/{clusterName}/hosts?host_components/HostRoles/component_name.in({componentNames})&fields=host_components,Hosts/cpu_count,Hosts/disk_info,Hosts/total_mem,Hosts/ip,Hosts/os_type,Hosts/os_arch,Hosts/public_host_name&minimal_response=true',
     'mock': ''
   },
   'hosts.config_groups': {

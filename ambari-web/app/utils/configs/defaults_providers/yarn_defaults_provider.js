@@ -20,6 +20,8 @@ require('utils/configs/defaults_providers/defaultsProvider');
 
 App.YARNDefaultsProvider = App.DefaultsProvider.extend({
 
+  slaveHostDependency: ['NODEMANAGER'],
+
   /**
    * List of the configs that should be calculated
    * @type {Object}
@@ -256,7 +258,7 @@ App.YARNDefaultsProvider = App.DefaultsProvider.extend({
    */
   getClusterData: function (localDB) {
     this._super();
-    var components = ['NODEMANAGER'];
+    var components = this.get('slaveHostDependency').concat(this.get('masterHostDependency'));
     var hosts = [];
     if (!localDB.hosts || !(localDB.masterComponentHosts || localDB.slaveComponentHosts)) return;
     var hBaseInstalled = !!localDB.masterComponentHosts.filterProperty('component', 'HBASE_MASTER').length;

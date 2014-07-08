@@ -20,6 +20,15 @@ var App = require('app');
 App.DefaultsProvider = Em.Object.extend({
 
   /**
+   * contains slave components assigned to hosts which has info required by config provider
+   */
+  slaveHostDependency: [],
+  /**
+   * contains master components assigned to hosts which has info required by config provider
+   */
+  masterHostDependency: [],
+
+  /**
    * Look at cluster setup, the provided properties, and provide an object where keys are property-names, and values are the recommended defaults
    * @param {App.ServiceConfigProperty} serviceConfigProperty
    */

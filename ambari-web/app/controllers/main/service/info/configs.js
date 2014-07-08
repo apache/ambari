@@ -430,133 +430,95 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * Get info about hosts and host components to configDefaultsProviders
    * @returns {{masterComponentHosts: Array, slaveComponentHosts: Array, hosts: {}}}
    */
-  getInfoForDefaults: function() {
-    App.ajax.send({
-      name: 'hosts.basic_info',
-      sender: this,
-      data: {
-        clusterName: App.get('clusterName')
-      },
-      success: 'configGroupsHostsSuccessCallback'
-    });
-  },
+  getInfoForDefaults: function(providers) {
+    var requiredComponents = [];
 
-  configGroupsHostsSuccessCallback: function(response) {
-    // We load only basic host information. We do not load all host-components.
-    // Since some default providers need certain host-components, we load them
-    // very specifically on a need basis, and merge into 'response' parameter.
-    var mergeComponentResponse = function(componentResponse){
-      if(response && response.items && componentResponse &&
-          componentResponse.items && componentResponse.items.length > 0) {
-        componentResponse.items.forEach(function(nmHost){
-          var nmHostName = nmHost.Hosts.host_name;
-          response.items.forEach(function(host) {
-            if (nmHostName == host.Hosts.host_name) {
-              host.host_components = nmHost.host_components;
-            }
-          });
-        });
-      }
-    }
-    var self = this;
-    var oneComponentCallback = {
-      success: function(oneComponentResponse) {
-        mergeComponentResponse(oneComponentResponse);
-        var allComponentCallback = {
-          success: function(allComponentResponse) {
-            mergeComponentResponse(allComponentResponse);
-            self.set('defaultsInfo', {
-              masterComponentHosts: self.getMasterComponents(response),
-              slaveComponentHosts: self.getSlaveComponents(response),
-              hosts: self.getHostsInfo(response)
-            });
-          }
-        }
-        App.ajax.send({
-          name: 'hosts.all_components_of_type',
-          sender: allComponentCallback,
-          data: {
-            clusterName: App.get('clusterName'),
-            componentNames: ['HBASE_MASTER', 'FALCON_SERVER'].join(',')
-          },
-          success: 'success'
-        });
-      }
-    }
-    App.ajax.send({
-      name: 'hosts.one_component_of_type',
-      sender: oneComponentCallback,
-      data: {
-        clusterName: App.get('clusterName'),
-        componentNames: ['NODEMANAGER'].join(',')
-      },
-      success: 'success'
+    providers.forEach(function (provider) {
+      requiredComponents = provider.get('slaveHostDependency').concat(provider.get('masterHostDependency'));
     });
-  },
 
-  getSlaveComponents: function (response) {
-    var slaveComponentHosts = [],
-        slaves = [];
-    response.items.forEach(function(item) {
-      var hostName = item.Hosts.host_name;
-      if (!item.host_components) {
-        return;
-      }
-      var _slaves = item.host_components.mapProperty('HostRoles.component_name').filter(function(componentName) {
-        return App.StackServiceComponent.find().findProperty('componentName', componentName).get('isSlave');
-      }).map(function(componentName) {
-        return Em.Object.create({
-          host: hostName,
-          componentName: componentName
-        });
+    if (requiredComponents.length > 0) {
+      App.ajax.send({
+        name: 'hosts.by_component.' + ((requiredComponents.length === 1) ? 'one' : 'all'),
+        sender: this,
+        data: {
+          componentNames: requiredComponents.join(',')
+        },
+        success: 'getInfoForDefaultsSuccessCallback'
       });
-      slaves = slaves.concat(_slaves);
+    } else {
+      //if no components required then slaveComponentHosts and hosts stay empty
+      this.set('defaultsInfo', {
+        masterComponentHosts: this.getMasterComponents(),
+        slaveComponentHosts: [],
+        hosts: {}
+      });
+    }
+  },
+
+  getInfoForDefaultsSuccessCallback: function (response) {
+    var defaultsInfo = {
+      masterComponentHosts: this.getMasterComponents(),
+      slaveComponentHosts: this.getSlaveComponents(response),
+      hosts: this.getHostsInfo(response)
+    };
+    this.set('defaultsInfo', defaultsInfo);
+  },
+
+  /**
+   * parse json response and build slave components array
+   * @param response
+   * @return {Array}
+   */
+  getSlaveComponents: function (response) {
+    var hostComponentMap = {};
+    var slaves = App.StackServiceComponent.find().filterProperty('isSlave').mapProperty('componentName');
+    var slaveComponentHosts = [];
+
+    response.items.forEach(function (host) {
+      host.host_components.forEach(function (hostComponent) {
+        if (slaves.contains(hostComponent.HostRoles.component_name)) {
+          if (!hostComponentMap[hostComponent.HostRoles.component_name]) {
+            hostComponentMap[hostComponent.HostRoles.component_name] = [];
+          }
+          hostComponentMap[hostComponent.HostRoles.component_name].push({hostName: host.Hosts.host_name});
+        }
+      })
     });
-    slaves.forEach(function(slave) {
-      var s = slaveComponentHosts.findProperty('componentName', slave.componentName);
-      if (s) {
-        s.hosts.push({hostName: slave.host});
-      }
-      else {
-        slaveComponentHosts.push({
-          componentName: slave.get('componentName'),
-          hosts: [{hostName: slave.host}]
-        });
-      }
-    });
+
+    for (var componentName in hostComponentMap) {
+      slaveComponentHosts.push({
+        componentName: componentName,
+        hosts: hostComponentMap[componentName]
+      });
+    }
     return slaveComponentHosts;
   },
 
-  getMasterComponents: function (response) {
-    var masterComponentNames = App.StackServiceComponent.find().filterProperty('isMaster', true).mapProperty('componentName');
-    // For default config value calculation and validation, a service
-    // might need the master from another service. For example, YARN
-    // default configurations depend on HBASE_MASTER component being
-    // installed. So we need to provide all masters that are required
-    // for config default/validation calculations.
-    var masterComponentHosts = [],
-        _this = this;
-    response.items.forEach(function(item) {
-      var hostName = item.Hosts.host_name;
-      if (!item.host_components) {
-        return;
-      }
-      item.host_components.mapProperty('HostRoles.component_name').forEach(function(componentName) {
-        if (masterComponentNames.contains(componentName)) {
-          masterComponentHosts.push({
-            component: componentName,
-            serviceId: _this.get('content.serviceName'),
-            host: hostName
-          });
-        }
+  /**
+   * build master components array of data from HostComponent model
+   * @return {Array}
+   */
+  getMasterComponents: function () {
+    var masterComponentHosts = [];
+
+    App.HostComponent.find().filterProperty('isMaster').forEach(function (masterComponent) {
+      masterComponentHosts.push({
+        component: masterComponent.get('componentName'),
+        serviceId: masterComponent.get('service.serviceName'),
+        host: masterComponent.get('hostName')
       });
     });
-
     return masterComponentHosts;
   },
-
+  /**
+   * parse json response and build hosts map
+   * @param response
+   * @return {Object}
+   */
   getHostsInfo: function (response) {
     var hosts = {};
+
     response.items.mapProperty('Hosts').map(function(host) {
       hosts[host.host_name] = {
         name: host.host_name,
@@ -565,7 +527,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         disk_info: host.disk_info
       };
     });
-
     return hosts;
   },
 
@@ -639,7 +600,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       dfd.resolve();
       return dfd.promise();
     }
-    this.getInfoForDefaults();
+    this.getInfoForDefaults(s.defaultsProviders);
     this.addObserver('defaultsInfo.hosts.length', this, function() {
       var localDB = this.get('defaultsInfo');
       var recommendedDefaults = {};

@@ -696,8 +696,8 @@ module.exports =
         },
         {
           displayName: 'Existing PostgreSQL Database',
-          foreignKeys: ['hive_existing_postgresql_database', 'hive_existing_postgresql_host'],
-          },
+          foreignKeys: ['hive_existing_postgresql_database', 'hive_existing_postgresql_host']
+        },
         {
           displayName: 'Existing Oracle Database',
           foreignKeys: ['hive_existing_oracle_database', 'hive_existing_oracle_host'],
