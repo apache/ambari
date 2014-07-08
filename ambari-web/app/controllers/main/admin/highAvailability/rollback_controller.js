@@ -374,7 +374,7 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
     var hostName = this.get("content.hdfsClientHostNames");
     for (var i = 0; i < hostName.length; i++) {
       App.ajax.send({
-        name: 'admin.delete_component',
+        name: 'common.delete.host_component',
         sender: this,
         data: {
           componentName: 'HDFS_CLIENT',
@@ -466,7 +466,7 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
     this.set('numOfDelOperations', hostName.length);
     for (var i = 0; i < hostName.length; i++) {
       App.ajax.send({
-        name: 'admin.delete_component',
+        name: 'common.delete.host_component',
         sender: this,
         data: {
           componentName: componentName,

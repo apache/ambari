@@ -1027,9 +1027,13 @@ App.WizardStep8Controller = Em.Controller.extend({
       name: 'wizard.step8.create_cluster',
       data: {
         data: JSON.stringify({ "Clusters": {"version": stackVersion }})
-      }
+      },
+      success: 'createClusterSuccess'
     });
+  },
 
+  createClusterSuccess: function(data, xhr, params) {
+    App.set('clusterName', params.cluster)
   },
 
   /**

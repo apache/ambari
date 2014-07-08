@@ -507,7 +507,7 @@ App.MainAdminSecurityAddStep4Controller = App.MainAdminSecurityProgressControlle
    */
   deleteComponents: function(componentName, hostName) {
     App.ajax.send({
-      name: 'admin.delete_component',
+      name: 'common.delete.host_component',
       sender: this,
       data: {
         componentName: componentName,

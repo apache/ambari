@@ -94,7 +94,7 @@ App.HighAvailabilityWizardStep9Controller = App.HighAvailabilityProgressPageCont
   deleteSNameNode: function () {
     var hostName = this.get('content.masterComponentHosts').findProperty('component', 'SECONDARY_NAMENODE').hostName;
     App.ajax.send({
-      name: 'admin.delete_component',
+      name: 'common.delete.host_component',
       sender: this,
       data: {
         componentName: 'SECONDARY_NAMENODE',

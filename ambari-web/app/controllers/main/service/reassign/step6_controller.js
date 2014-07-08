@@ -101,7 +101,7 @@ App.ReassignMasterWizardStep6Controller = App.HighAvailabilityProgressPageContro
     var hostName = this.get('content.reassignHosts.source');
     for (var i = 0; i < hostComponents.length; i++) {
       App.ajax.send({
-        name: 'reassign.remove_component',
+        name: 'common.delete.host_component',
         sender: this,
         data: {
           hostName: hostName,

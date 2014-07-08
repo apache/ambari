@@ -126,7 +126,7 @@ App.MainHostDetailsController = Em.Controller.extend({
       data.serviceName = component.get('service.serviceName');
     }
     App.ajax.send({
-      name: (Array.isArray(component)) ? 'common.host_components.update' : 'common.host_component.update',
+      name: (Array.isArray(component)) ? 'common.host.host_components.update' : 'common.host.host_component.update',
       sender: this,
       data: data,
       success: 'sendComponentCommandSuccessCallback',
@@ -269,7 +269,7 @@ App.MainHostDetailsController = Em.Controller.extend({
   _doDeleteHostComponent: function (component, callback) {
     callback = callback || Em.K;
     App.ajax.send({
-      name: (Em.isNone(component)) ? 'host.host_components.delete' : 'host.host_component.delete',
+      name: (Em.isNone(component)) ? 'common.delete.host' : 'common.delete.host_component',
       sender: this,
       data: {
         componentName: (component) ? component.get('componentName') : '',
@@ -442,7 +442,8 @@ App.MainHostDetailsController = Em.Controller.extend({
           scs.forEach(function (sc) {
             var c = Em.Object.create({
               displayName: App.format.role(sc),
-              componentName: sc
+              componentName: sc,
+              serviceName: sc.replace("_CLIENT", "")
             });
             self.primary(c);
           });
@@ -515,23 +516,19 @@ App.MainHostDetailsController = Em.Controller.extend({
   addNewComponentSuccessCallback: function (data, opt, params) {
     console.log('Send request for ADDING NEW COMPONENT successfully');
     App.ajax.send({
-      name: 'host.host_component.install_new_component',
+      name: 'common.host.host_component.update',
       sender: this,
       data: {
         hostName: this.get('content.hostName'),
         componentName: params.component.get('componentName'),
+        serviceName: params.component.get('serviceName'),
         component: params.component,
-        data: JSON.stringify({
-          RequestInfo: {
-            "context": Em.I18n.t('requestInfo.installNewHostComponent') + " " + params.component.get('displayName')
-          },
-          Body: {
-            HostRoles: {
-              state: 'INSTALLED'
-            }
-          }
-        })
-      },
+        "context": Em.I18n.t('requestInfo.installNewHostComponent') + " " + params.component.get('displayName'),
+        HostRoles: {
+          state: 'INSTALLED'
+        },
+        urlParams: "HostRoles/state=INIT"
+      } ,
       success: 'installNewComponentSuccessCallback',
       error: 'ajaxErrorCallback'
     });
@@ -798,7 +795,7 @@ App.MainHostDetailsController = Em.Controller.extend({
         this.hide();
 
         App.ajax.send({
-          name: 'common.host_component.update',
+          name: 'common.host.host_component.update',
           sender: self,
           data: {
             hostName: self.get('content.hostName'),
@@ -1438,7 +1435,7 @@ App.MainHostDetailsController = Em.Controller.extend({
         dfd.done(function () {
           if (!deleteError) {
             App.ajax.send({
-              name: 'host.delete',
+              name: 'common.delete.host',
               sender: popup,
               data: {
                 hostName: self.get('content.hostName')

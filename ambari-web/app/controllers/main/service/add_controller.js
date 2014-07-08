@@ -384,22 +384,22 @@ App.AddServiceController = App.WizardController.extend({
       this.getFailedHostComponents(callback);
     }
     else {
-      var clusterName = this.get('content.cluster.name');
-      var name = 'wizard.install_services.installer_controller.not_is_retry';
-      var data = '{"RequestInfo": {"context" :"' + Em.I18n.t('requestInfo.installServices') + '"}, "Body": {"ServiceInfo": {"state": "INSTALLED"}}}';
-      this.installServicesRequest(clusterName, name, data, callback);
+      var name = 'common.services.update';
+      var data = {
+        "context": Em.I18n.t('requestInfo.installServices'),
+        "ServiceInfo": {"state": "INSTALLED"},
+        "urlParams": "ServiceInfo/state=INIT"
+      };
+      this.installServicesRequest(name, data, callback);
     }
   },
 
-  installServicesRequest: function (clusterName, name, data, callback) {
+  installServicesRequest: function (name, data, callback) {
     callback = callback || Em.K;
     App.ajax.send({
       name: name,
       sender: this,
-      data: {
-        data: data,
-        cluster: clusterName
-      },
+      data: data,
       success: 'installServicesSuccessCallback',
       error: 'installServicesErrorCallback'
     }).then(callback, callback);
@@ -413,7 +413,7 @@ App.AddServiceController = App.WizardController.extend({
   installAdditionalClients: function () {
     this.get('content.additionalClients').forEach(function (c) {
       App.ajax.send({
-        name: 'common.host_component.update',
+        name: 'common.host.host_component.update',
         sender: this,
         data: {
           hostName: c.hostName,
@@ -464,24 +464,17 @@ App.AddServiceController = App.WizardController.extend({
   },
 
   sendInstallServicesRequest: function (callback) {
-    var name;
-    var data;
-    var clusterName = this.get('content.cluster.name');
     console.log('failedHostComponents', this.get('failedHostComponents'));
-    name = 'wizard.install_services.installer_controller.is_retry';
-    data = {
-      "RequestInfo": {
-        "context" : Em.I18n.t('requestInfo.installComponents'),
-        "query": "HostRoles/component_name.in(" + this.get('failedHostComponents').join(',') + ")"
+    var name = 'common.host_components.update';
+    var data = {
+      "context" : Em.I18n.t('requestInfo.installComponents'),
+      "query": "HostRoles/component_name.in(" + this.get('failedHostComponents').join(',') + ")",
+      "HostRoles": {
+        "state": "INSTALLED"
       },
-      "Body": {
-        "HostRoles": {
-          "state": "INSTALLED"
-        }
-      }
+      "urlParams": "HostRoles/state=INSTALLED"
     };
-    data = JSON.stringify(data);
-    this.installServicesRequest(clusterName, name, data, callback);
+    this.installServicesRequest(name, data, callback);
   }
 
 });

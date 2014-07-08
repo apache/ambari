@@ -659,12 +659,14 @@ App.MainHostController = Em.ArrayController.extend({
     if (query.length) {
       query = query.join('|');
       App.ajax.send({
-        name: 'bulk_request.hosts.all_components',
+        name: 'common.host_components.update',
         sender: this,
         data: {
           query: query,
-          state: operationData.action,
-          requestInfo: operationData.message,
+          HostRoles: {
+            state: operationData.action
+          },
+          context: operationData.message,
           hostName: hostNames
         },
         success: 'bulkOperationForHostComponentsSuccessCallback'
@@ -762,13 +764,14 @@ App.MainHostController = Em.ArrayController.extend({
       if (data.items.length) {
         var hostsWithComponentInProperState = data.items.mapProperty('Hosts.host_name');
         App.ajax.send({
-          name: 'bulk_request.host_components',
+          name: 'common.host_components.update',
           sender: self,
           data: {
-            hostNames: hostsWithComponentInProperState.join(','),
-            state: operationData.action,
-            requestInfo: operationData.message + ' ' + operationData.componentNameFormatted,
-            componentName: operationData.componentName
+            HostRoles: {
+              state: operationData.action
+            },
+            query: 'HostRoles/component_name=' + operationData.componentName + '&HostRoles/host_name.in(' + hostsWithComponentInProperState.join(',') + ')&HostRoles/maintenance_state=OFF',
+            context: operationData.message + ' ' + operationData.componentNameFormatted
           },
           success: 'bulkOperationForHostComponentsSuccessCallback'
         });

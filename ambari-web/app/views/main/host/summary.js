@@ -262,7 +262,7 @@ App.MainHostSummaryView = Em.View.extend({
 
     addableToHostComponents.forEach(function(addableComponent) {
       if(installedServices.contains(componentServiceMap[addableComponent]) && !installedComponents.contains(addableComponent)) {
-        components.pushObject(self.addableComponentObject.create({'componentName': addableComponent}));
+        components.pushObject(self.addableComponentObject.create({'componentName': addableComponent, 'serviceName': componentServiceMap[addableComponent]}));
       }
     });
     if (installableClients.length > 0) {

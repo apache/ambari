@@ -315,26 +315,26 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
     // clear requests since we are installing services
     // and we don't want to get tasks for previous install attempts
     this.set('content.cluster.oldRequestsId', []);
-    var clusterName = this.get('content.cluster.name');
     var data;
-    var name;
     callback = callback || Em.K;
     if (isRetry) {
-      name = 'wizard.install_services.installer_controller.is_retry';
-      data = '{"RequestInfo": {"context" :"' + Em.I18n.t('requestInfo.installComponents') + '"}, "Body": {"HostRoles": {"state": "INSTALLED"}}}';
-    }
-    else {
-      name = 'wizard.install_services.installer_controller.not_is_retry';
-      data = '{"RequestInfo": {"context" :"' + Em.I18n.t('requestInfo.installServices') + '"}, "Body": {"ServiceInfo": {"state": "INSTALLED"}}}';
+      data = {
+        context: Em.I18n.t('requestInfo.installComponents'),
+        HostRoles: {"state": "INSTALLED"},
+        urlParams: "HostRoles/state=INSTALLED"
+      }
+    } else {
+      data = {
+        context: Em.I18n.t('requestInfo.installServices'),
+        ServiceInfo: {"state": "INSTALLED"},
+        urlParams: "ServiceInfo/state=INIT"
+      }
     }
 
     App.ajax.send({
-      name: name,
+      name: isRetry ? 'common.host_components.update' : 'common.services.update',
       sender: this,
-      data: {
-        data: data,
-        cluster: clusterName
-      },
+      data: data,
       success: 'installServicesSuccessCallback',
       error: 'installServicesErrorCallback'
     }).then(callback, callback);

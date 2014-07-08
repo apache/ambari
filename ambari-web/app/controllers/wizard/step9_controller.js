@@ -461,60 +461,48 @@ App.WizardStep9Controller = Em.Controller.extend({
   launchStartServices: function (callback) {
     var data = {};
     var name = '';
-    var servicesList = [];
     callback = callback || Em.K;
-    if (this.get('content.controllerName') === 'addHostController') {
-      name = 'wizard.step9.add_host.launch_start_services';
-      var hostnames = [];
-      for (var hostname in this.get('wizardController').getDBProperty('hosts')) {
-        if(this.get('hosts').findProperty('name', hostname)){
-          hostnames.push(hostname);
+    switch(this.get('content.controllerName')) {
+      case 'addHostController':
+        name = 'common.host_components.update';
+        var hostnames = [];
+        for (var hostname in this.get('wizardController').getDBProperty('hosts')) {
+          if(this.get('hosts').findProperty('name', hostname)){
+            hostnames.push(hostname);
+          }
         }
-      }
-      data = {
-        "RequestInfo": {
+        data = {
           "context": Em.I18n.t("requestInfo.startHostComponents"),
-          "query": "HostRoles/component_name.in(" + App.get('components.slaves').join(',') + ")&HostRoles/state=INSTALLED&HostRoles/host_name.in(" + hostnames.join(',') + ")"
-        },
-        "Body": {
+          "query": "HostRoles/component_name.in(" + App.get('components.slaves').join(',') + ")&HostRoles/state=INSTALLED&HostRoles/host_name.in(" + hostnames.join(',') + ")",
           "HostRoles": { "state": "STARTED" }
-        }
-      };
-    } else if (this.get('content.controllerName') === 'addServiceController') {
-      servicesList = this.get('content.services').filterProperty('isSelected', true).filterProperty('isDisabled', false).mapProperty('serviceName');
-      name = 'wizard.step9.add_service.launch_start_services';
-      data = {
-        "RequestInfo": {
-          "context": Em.I18n.t("requestInfo.startAddedServices")
-        },
-        "Body": {
-          "ServiceInfo": { "state": "STARTED" }
-        }
-      };
-    } else {
-      name = 'wizard.step9.installer.launch_start_services';
-      data = {
-        "RequestInfo": {
-          "context": Em.I18n.t("requestInfo.startServices")
-        },
-        "Body": {
-          "ServiceInfo": { "state": "STARTED" }
-        }
-      };
+        };
+        break;
+      case 'addServiceController':
+        var servicesList = this.get('content.services').filterProperty('isSelected', true).filterProperty('isDisabled', false).mapProperty('serviceName').join(",");
+        name = 'common.services.update';
+        data = {
+          "context": Em.I18n.t("requestInfo.startAddedServices"),
+          "ServiceInfo": { "state": "STARTED" },
+          "urlParams": "ServiceInfo/state=INSTALLED&ServiceInfo/service_name.in(" + servicesList + ")&params/reconfigure_client=false"
+        };
+        break;
+      default:
+        name = 'common.services.update';
+        data = {
+          "context": Em.I18n.t("requestInfo.startServices"),
+          "ServiceInfo": { "state": "STARTED" },
+          "urlParams": "ServiceInfo/state=INSTALLED&params/run_smoke_test=true&params/reconfigure_client=false"
+        };
     }
-    data = JSON.stringify(data);
-    if (App.testMode) {
+
+    if (App.get('testMode')) {
       this.set('numPolls', 6);
     }
 
     return App.ajax.send({
       name: name,
       sender: this,
-      data: {
-        data: data,
-        cluster: this.get('content.cluster.name'),
-        servicesList: servicesList    // used only for Add Service wizard
-      },
+      data: data,
       success: 'launchStartServicesSuccessCallback',
       error: 'launchStartServicesErrorCallback'
     }).then(callback, callback);

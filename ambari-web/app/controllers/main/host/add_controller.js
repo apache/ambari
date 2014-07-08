@@ -393,24 +393,13 @@ App.AddHostController = App.WizardController.extend({
     }
     if(!clusterName || hostNames.length === 0) return false;
 
-    var name = 'wizard.install_services.add_host_controller.';
-    name += (isRetry) ? 'is_retry' : 'not_is_retry';
-
-    var data = JSON.stringify({
-      "RequestInfo": {
-        "context": Em.I18n.t('requestInfo.installComponents'),
-        "query": "HostRoles/host_name.in(" + hostNames.join(',') + ")"
-      },
-      "Body": {
-        "HostRoles": {"state": "INSTALLED"}
-      }
-    });
     App.ajax.send({
-      name: name,
+      name: "common.host_components.update",
       sender: this,
       data: {
-        data: data,
-        cluster: clusterName
+        "context": Em.I18n.t('requestInfo.installComponents'),
+        "query": "HostRoles/host_name.in(" + hostNames.join(',') + ")",
+        "HostRoles": {"state": "INSTALLED"}
       },
       success: 'installServicesSuccessCallback',
       error: 'installServicesErrorCallback'

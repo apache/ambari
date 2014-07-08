@@ -76,7 +76,7 @@ var urls = {
     }
   },
 
-  'common.host_components.update': {
+  'common.host.host_components.update': {
     'real': '/clusters/{clusterName}/hosts/{hostName}/host_components?{urlParams}',
     'mock': '',
     'type': 'PUT',
@@ -100,8 +100,8 @@ var urls = {
     }
   },
 
-  'common.host_component.update': {
-    'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}',
+  'common.host.host_component.update': {
+    'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}?{urlParams}',
     'mock': '/data/wizard/deploy/poll_1.json',
     'type': 'PUT',
     'format': function (data) {
@@ -122,6 +122,39 @@ var urls = {
         })
       }
     }
+  },
+
+  'common.host_components.update': {
+    'real': '/clusters/{clusterName}/host_components?{urlParams}',
+    'mock': '/data/wizard/deploy/poll_1.json',
+    'type': 'PUT',
+    'format': function (data) {
+      return {
+        data: JSON.stringify({
+          RequestInfo: {
+            "context": data.context,
+            "operation_level": {
+              level: "CLUSTER",
+              cluster_name: data.clusterName
+            },
+            query: data.query
+          },
+          Body: {
+            "HostRoles": data.HostRoles
+          }
+        })
+      }
+    }
+  },
+
+  'common.delete.host': {
+    'real': '/clusters/{clusterName}/hosts/{hostName}',
+    'type': 'DELETE'
+  },
+
+  'common.delete.host_component': {
+    'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}',
+    'type': 'DELETE'
   },
 
   'alerts.get_by_service': {
@@ -222,12 +255,6 @@ var urls = {
       }
     }
   },
-  'reassign.remove_component': {
-    'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}',
-    'mock': '',
-    'type': 'DELETE'
-  },
-
   'reassign.load_configs': {
     'real': '/clusters/{clusterName}/configurations?{urlParams}',
     'mock': ''
@@ -346,43 +373,12 @@ var urls = {
     'mock': '/data/configurations/host_level_overrides_configs.json?{params}'
   },
 
-  'host.host_component.delete': {
-    'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}',
-    'mock': '',
-    'format': function() {
-      return {
-        type: 'DELETE'
-      }
-    }
-  },
-
-  'host.host_components.delete': {
-    'real': '/clusters/{clusterName}/hosts/{hostName}',
-    'mock': '',
-    'format': function() {
-      return {
-        type: 'DELETE'
-      }
-    }
-  },
-
   'host.host_component.add_new_component': {
     'real': '/clusters/{clusterName}/hosts?Hosts/host_name={hostName}',
     'mock': '/data/wizard/deploy/poll_1.json',
     'format': function(data) {
       return {
         type: 'POST',
-        data: data.data
-      }
-    }
-  },
-
-  'host.host_component.install_new_component': {
-    'real': '/clusters/{clusterName}/host_components?HostRoles/host_name={hostName}\&HostRoles/component_name={componentName}\&HostRoles/state=INIT',
-    'mock': '/data/wizard/deploy/poll_1.json',
-    'format': function(data) {
-      return {
-        type: 'PUT',
         data: data.data
       }
     }
@@ -479,11 +475,6 @@ var urls = {
     }
   },
 
-  'host.delete': {
-    'real': '/clusters/{clusterName}/hosts/{hostName}',
-    'mock': '',
-    'type': 'DELETE'
-  },
   'hosts.metrics': {
     'real': '/clusters/{clusterName}/hosts?fields={metricName}',
     'mock': '/data/cluster_metrics/cpu_1hr.json'
@@ -824,7 +815,6 @@ var urls = {
   'cluster.load_repositories': {
     'real': '/stacks/{stackName}/versions/{stackVersion}/operating_systems?fields=repositories/*',
     'mock': '',
-    'type': 'GET',
     'format': function (data) {
       return {
         data: data.data
@@ -833,13 +823,11 @@ var urls = {
   },
   'admin.high_availability.polling': {
     'real': '/clusters/{clusterName}/requests/{requestId}?fields=tasks/*,Requests/*',
-    'mock': '',
-    'type': 'GET'
+    'mock': ''
   },
   'admin.high_availability.getNnCheckPointStatus': {
     'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/NAMENODE',
-    'mock': '',
-    'type': 'GET'
+    'mock': ''
   },
   'admin.high_availability.getJnCheckPointStatus': {
     'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/JOURNALNODE?fields=metrics',
@@ -883,8 +871,7 @@ var urls = {
   },
   'admin.high_availability.load_configs': {
     'real': '/clusters/{clusterName}/configurations?(type=core-site&tag={coreSiteTag})|(type=hdfs-site&tag={hdfsSiteTag})',
-    'mock': '',
-    'type': 'GET'
+    'mock': ''
   },
   'admin.high_availability.save_configs': {
     'real': '/clusters/{clusterName}',
@@ -907,13 +894,7 @@ var urls = {
   },
   'admin.high_availability.load_hbase_configs': {
     'real': '/clusters/{clusterName}/configurations?type=hbase-site&tag={hbaseSiteTag}',
-    'mock': '',
-    'type': 'GET'
-  },
-  'admin.delete_component': {
-    'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}',
-    'mock': '',
-    'type': 'DELETE'
+    'mock': ''
   },
   'admin.security.cluster_configs': {
     'real': '/clusters/{clusterName}',
@@ -923,11 +904,6 @@ var urls = {
         timeout: 10000
       };
     }
-  },
-  'admin.delete_host': {
-    'real': '/clusters/{clusterName}/hosts/{hostName}',
-    'mock': '',
-    'type': 'DELETE'
   },
   'admin.get.all_configurations': {
     'real': '/clusters/{clusterName}/configurations?{urlParams}',
@@ -1026,55 +1002,6 @@ var urls = {
       }
     }
   },
-  'wizard.install_services.add_host_controller.is_retry': {
-    'real': '/clusters/{cluster}/host_components',
-    'mock': '',
-    'format': function (data) {
-      return {
-        type: 'PUT',
-        data: data.data
-      };
-    }
-  },
-  'wizard.install_services.add_host_controller.not_is_retry': {
-    'real': '/clusters/{cluster}/host_components',
-    'mock': '',
-    'format': function(data) {
-      return {
-        type: 'PUT',
-        data: data.data
-      };
-    }
-  },
-  'wizard.install_services.installer_controller.is_retry': {
-    'real': '/clusters/{cluster}/host_components?HostRoles/state=INSTALLED',
-    'mock': '/data/wizard/deploy/2_hosts/poll_1.json',
-    'type': 'PUT',
-    'format': function (data) {
-      return {
-        data: data.data
-      };
-    }
-  },
-  'wizard.install_services.installer_controller.not_is_retry': {
-    'real': '/clusters/{cluster}/services?ServiceInfo/state=INIT',
-    'mock': '/data/wizard/deploy/2_hosts/poll_1.json',
-    'type': 'PUT',
-    'format': function (data) {
-      return {
-        data: data.data
-      };
-    }
-  },
-  'wizard.install_services.add_service_controller.get_failed_host_components': {
-    'real': '/clusters/{clusterName}/host_components?fields=HostRoles/state,component/ServiceComponentInfo/service_name',
-    'mock': '',
-    'format': function() {
-      return {
-        async: false
-      };
-    }
-  },
   'wizard.service_components': {
     'real': '{stackUrl}/services?fields=StackServices/comments,StackServices/service_version,serviceComponents/*',
     'mock': '/data/stacks/HDP-2.1/service_components.json',
@@ -1094,51 +1021,11 @@ var urls = {
       };
     }
   },
-  'wizard.step9.installer.launch_start_services': {
-    'real': '/clusters/{cluster}/services?ServiceInfo/state=INSTALLED&params/run_smoke_test=true&params/reconfigure_client=false',
-    'mock': '/data/wizard/deploy/5_hosts/poll_6.json',
-    'format': function (data) {
-      var d = {
-        type: 'PUT',
-        data: data.data
-      };
-      if (App.get('testMode')) {
-        d.type = 'GET';
-      }
-      return d;
-    }
-  },
-  'wizard.step9.add_service.launch_start_services': {
-    'real': '/clusters/{cluster}/services?ServiceInfo/state=INSTALLED&ServiceInfo/service_name.in({servicesList})&params/reconfigure_client=false',
-    'mock': '/data/wizard/deploy/5_hosts/poll_6.json',
-    'format': function (data) {
-      var d = {
-        type: 'PUT',
-        data: data.data
-      };
-      if (App.get('testMode')) {
-        d.type = 'GET';
-      }
-      return d;
-    }
-  },
-  'wizard.step9.add_host.launch_start_services': {
-    'real': '/clusters/{cluster}/host_components',
-    'mock': '/data/wizard/deploy/5_hosts/poll_6.json',
-    'format': function (data) {
-      return {
-        type: 'PUT',
-        data: data.data
-      };
-    }
-  },
-
   'wizard.step9.load_log': {
     'real': '/clusters/{cluster}/requests/{requestId}?fields=tasks/Tasks/command,tasks/Tasks/exit_code,tasks/Tasks/start_time,tasks/Tasks/end_time,tasks/Tasks/host_name,tasks/Tasks/id,tasks/Tasks/role,tasks/Tasks/status&minimal_response=true',
     'mock': '/data/wizard/deploy/5_hosts/poll_{numPolls}.json',
     'format': function () {
       return {
-        type: 'GET',
         dataType: 'text'
       };
     }
@@ -1649,53 +1536,6 @@ var urls = {
     'type': 'POST'
   },
 
-  'bulk_request.host_components': {
-    'real': '/clusters/{clusterName}/host_components',
-    'mock': '',
-    'format': function(data) {
-      return {
-        type: 'PUT',
-        data: JSON.stringify({
-          RequestInfo: {
-            context: data.requestInfo,
-            query: 'HostRoles/component_name=' + data.componentName + '&HostRoles/host_name.in(' + data.hostNames + ')&HostRoles/maintenance_state=OFF'
-          },
-          Body: {
-            HostRoles: {
-              state: data.state
-            }
-          }
-        })
-      }
-    }
-  },
-
-  'bulk_request.hosts.all_components': {
-    'real': '/clusters/{clusterName}/host_components',
-    'mock': '',
-    'format': function(data) {
-      return {
-        type: 'PUT',
-        data: JSON.stringify({
-          RequestInfo: {
-            context: data.requestInfo,
-            query: data.query,
-            operation_level: {
-              level: "HOST",
-              cluster_name: data.clusterName,
-              host_name: data.hostName
-            }
-          },
-          Body: {
-            HostRoles: {
-              state: data.state
-            }
-          }
-        })
-      }
-    }
-  },
-
   'bulk_request.decommission': {
     'real' : '/clusters/{clusterName}/requests',
     'mock' : '',
@@ -1706,7 +1546,11 @@ var urls = {
           'RequestInfo': {
             'context': data.context,
             'command': 'DECOMMISSION',
-            'parameters': data.parameters
+            'parameters': data.parameters,
+            'operation_level': {
+              'level': "CLUSTER",
+              'cluster_name': data.clusterName
+            }
           },
           "Requests/resource_filters": [{"service_name" : data.serviceName, "component_name" : data.componentName}]
         })
