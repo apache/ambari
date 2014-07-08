@@ -71,6 +71,8 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
       String.class, 255, null, true));
     dbAccessor.addColumn("viewparameter", new DBAccessor.DBColumnInfo("masked",
       Character.class, 1, null, true));
+    dbAccessor.addColumn("users", new DBAccessor.DBColumnInfo("active",
+      Integer.class, 1, 1, false));    
   }
 
 

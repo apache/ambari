@@ -77,7 +77,7 @@ public class StackExtensionHelperTest {
         assertEquals("MASTER", components.get(0).getCategory());
         List<PropertyInfo> properties = serviceInfo.getProperties();
         // Check some property
-        assertEquals(38, properties.size());
+        assertEquals(37, properties.size());
         boolean found = false;
         for (PropertyInfo property : properties) {
           if (property.getName().equals("javax.jdo.option.ConnectionDriverName")) {
