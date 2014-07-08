@@ -35,6 +35,7 @@ App.WizardStep3Controller = Em.Controller.extend({
   hostCheckWarnings: [],
   repoCategoryWarnings: [],
   diskCategoryWarnings: [],
+  thpCategoryWarnings: [],
   jdkCategoryWarnings: null,
   jdkRequestIndex: null,
 
@@ -955,7 +956,8 @@ App.WizardStep3Controller = Em.Controller.extend({
     var hosts = this.get('bootHosts'),
       self = this,
       repoWarnings = [], hostsRepoNames = [], hostsContext = [],
-      diskWarnings = [], hostsDiskContext = [], hostsDiskNames = [];
+      diskWarnings = [], hostsDiskContext = [], hostsDiskNames = [],
+      thpWarnings = [], thpContext = [], thpHostsNames = [];
 
     // parse host checks warning
     this.parseWarnings(jsonData);
@@ -979,6 +981,12 @@ App.WizardStep3Controller = Em.Controller.extend({
             hostsDiskContext.push(diskContext);
             hostsDiskNames.push(host_name);
           }
+          // "Transparent Huge Pages" check
+          context = self.checkTHP(host_name, host.Hosts.last_agent_env.transparentHugePage);
+          if (context) {
+            thpContext.push(context);
+            thpHostsNames.push(host_name);
+          }
         }
       }
     });
@@ -1000,9 +1008,19 @@ App.WizardStep3Controller = Em.Controller.extend({
         onSingleHost: false
       });
     }
+    if (thpContext.length > 0) { // THP warning existed
+      thpWarnings.push({
+        name: Em.I18n.t('installer.step3.hostWarningsPopup.thp.name'),
+        hosts: thpContext,
+        hostsNames: thpHostsNames,
+        category: 'thp',
+        onSingleHost: false
+      });
+    }
 
     this.set('repoCategoryWarnings', repoWarnings);
     this.set('diskCategoryWarnings', diskWarnings);
+    this.set('thpCategoryWarnings', thpWarnings);
     this.stopRegistration();
   },
 
@@ -1063,6 +1081,22 @@ App.WizardStep3Controller = Em.Controller.extend({
   stopRegistration: function () {
     this.set('isSubmitDisabled', !this.get('bootHosts').someProperty('bootStatus', 'REGISTERED'));
     this.set('isRetryDisabled', !this.get('bootHosts').someProperty('bootStatus', 'FAILED'));
+  },
+
+  /**
+   * Check if the 'Transparent Huge Pages' enabled.
+   * @param {string} transparentHugePage
+   * @param {string} hostName
+   * @return {string} error-message or empty string
+   * @method checkTHP
+   */
+  checkTHP: function (hostName, transparentHugePage) {
+    if (transparentHugePage == "always") {
+      console.log('WARNING: Transparent Huge Page enabled on host: '+ hostName);
+      return Em.I18n.t('installer.step3.hostWarningsPopup.thp.context').format(hostName);
+    } else {
+      return '';
+    }
   },
 
   /**
