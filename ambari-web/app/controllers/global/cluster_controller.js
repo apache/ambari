@@ -278,7 +278,7 @@ App.ClusterController = Em.Controller.extend({
     if (App.testMode) {
       self.updateLoadStatus('clusterStatus');
     } else {
-      App.clusterStatus.updateFromServer(true).complete(function () {
+      App.clusterStatus.updateFromServer().complete(function () {
         self.updateLoadStatus('clusterStatus');
       });
     }

@@ -28,12 +28,6 @@ App.MainAdminAccessController = Em.Controller.extend(App.UserPref, {
   showJobs: true,
 
   /**
-   * User pref request should be sync
-   * @type {bool}
-   */
-  makeRequestAsync: false,
-
-  /**
    * User pref key
    * @type {string}
    */

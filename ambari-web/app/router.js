@@ -187,6 +187,7 @@ App.Router = Em.Router.extend({
     console.log('login success');
     var d = data;
     var isAdmin = data.Users.roles.indexOf('admin') >= 0;
+    var self = this;
     if (isAdmin) {
       App.set('isAdmin', true);
       var controller = this.get('loginController');
@@ -194,8 +195,10 @@ App.Router = Em.Router.extend({
       this.setLoginName(params.loginName);
       App.usersMapper.map({"items": [data]});
       this.setUser(App.User.find().findProperty('id', params.loginName));
-      this.transitionTo(this.getSection());
-      controller.postLogin(true,true);
+      this.getSection(function(route){
+        self.transitionTo(route);
+        controller.postLogin(true,true);
+      });
     }
     else {
       App.ajax.send({
@@ -225,13 +228,16 @@ App.Router = Em.Router.extend({
 
   login2SuccessCallback: function (clusterResp, opt, params) {
     var controller = this.get('loginController');
+    var self = this;
     if (clusterResp.items.length) {
       this.setAuthenticated(true);
       this.setLoginName(params.loginName);
       App.usersMapper.map({"items": [params.loginData]});
       this.setUser(App.User.find().findProperty('id', params.loginName));
-      this.transitionTo(this.getSection());
-      controller.postLogin(true,true);
+      this.getSection(function(route){
+        self.transitionTo(route);
+        controller.postLogin(true,true);
+      });
     }
     else {
       controller.set('errorMessage', Em.I18n.t('router.hadoopClusterNotSetUp'));
@@ -270,43 +276,44 @@ App.Router = Em.Router.extend({
     console.log('Error message is: ' + request.responseText);
   },
 
-  getSection: function () {
+  getSection: function (callback) {
     if (App.testMode) {
       if (App.alwaysGoToInstaller) {
-        return 'installer';
+        callback('installer');
       } else {
-        return 'main.dashboard.index';
+        callback('main.dashboard.index');
       }
     }
-    App.clusterStatus.updateFromServer(false, false);
-    var clusterStatusOnServer = App.clusterStatus.get('value');
-    if (!App.get('isAdmin') || clusterStatusOnServer && (clusterStatusOnServer.clusterState === 'DEFAULT' || clusterStatusOnServer.clusterState === 'CLUSTER_STARTED_5')) {
-      return 'main.dashboard.index';
-    } else if (clusterStatusOnServer && clusterStatusOnServer.wizardControllerName === App.router.get('addHostController.name')) {
-      // if wizardControllerName == "addHostController", then it means someone closed the browser or the browser was crashed when we were last in Add Hosts wizard
-      return 'main.hostAdd';
-    } else if (clusterStatusOnServer && (clusterStatusOnServer.wizardControllerName === App.router.get('addSecurityController.name') || clusterStatusOnServer.wizardControllerName === App.router.get('mainAdminSecurityDisableController.name'))) {
-      // if wizardControllerName == "addSecurityController", then it means someone closed the browser or the browser was crashed when we were last in Add Security wizard
-      return 'main.admin.adminSecurity';
-    } else if (clusterStatusOnServer && clusterStatusOnServer.wizardControllerName === App.router.get('addServiceController.name')) {
-      // if wizardControllerName == "addHostController", then it means someone closed the browser or the browser was crashed when we were last in Add Hosts wizard
-      return 'main.serviceAdd';
-    } else if (clusterStatusOnServer && clusterStatusOnServer.wizardControllerName === App.router.get('stackUpgradeController.name')) {
-      // if wizardControllerName == "stackUpgradeController", then it means someone closed the browser or the browser was crashed when we were last in Stack Upgrade wizard
-      return 'main.stackUpgrade';
-    } else if (clusterStatusOnServer && clusterStatusOnServer.wizardControllerName === App.router.get('reassignMasterController.name')) {
-      // if wizardControllerName == "reassignMasterController", then it means someone closed the browser or the browser was crashed when we were last in Reassign Master wizard
-      return 'main.reassign';
-    } else if (clusterStatusOnServer && clusterStatusOnServer.wizardControllerName === App.router.get('highAvailabilityWizardController.name')) {
-      // if wizardControllerName == "highAvailabilityWizardController", then it means someone closed the browser or the browser was crashed when we were last in NameNode High Availability wizard
-      return 'main.admin.enableHighAvailability';
-    }else if (clusterStatusOnServer && clusterStatusOnServer.wizardControllerName === App.router.get('rollbackHighAvailabilityWizardController.name')) {
-      // if wizardControllerName == "highAvailabilityRollbackController", then it means someone closed the browser or the browser was crashed when we were last in NameNode High Availability Rollback wizard
-      return 'main.admin.rollbackHighAvailability';
-    } else {
+    App.clusterStatus.updateFromServer(false).complete(function () {
+      var clusterStatusOnServer = App.clusterStatus.get('value');
       // if wizardControllerName == "installerController", then it means someone closed the browser or the browser was crashed when we were last in Installer wizard
-      return 'installer';
-    }
+      var route = 'installer';
+      if (!App.get('isAdmin') || clusterStatusOnServer && (clusterStatusOnServer.clusterState === 'DEFAULT' || clusterStatusOnServer.clusterState === 'CLUSTER_STARTED_5')) {
+        route = 'main.dashboard.index';
+      } else if (clusterStatusOnServer && clusterStatusOnServer.wizardControllerName === App.router.get('addHostController.name')) {
+        // if wizardControllerName == "addHostController", then it means someone closed the browser or the browser was crashed when we were last in Add Hosts wizard
+        route = 'main.hostAdd';
+      } else if (clusterStatusOnServer && (clusterStatusOnServer.wizardControllerName === App.router.get('addSecurityController.name') || clusterStatusOnServer.wizardControllerName === App.router.get('mainAdminSecurityDisableController.name'))) {
+        // if wizardControllerName == "addSecurityController", then it means someone closed the browser or the browser was crashed when we were last in Add Security wizard
+        route = 'main.admin.adminSecurity';
+      } else if (clusterStatusOnServer && clusterStatusOnServer.wizardControllerName === App.router.get('addServiceController.name')) {
+        // if wizardControllerName == "addHostController", then it means someone closed the browser or the browser was crashed when we were last in Add Hosts wizard
+        route = 'main.serviceAdd';
+      } else if (clusterStatusOnServer && clusterStatusOnServer.wizardControllerName === App.router.get('stackUpgradeController.name')) {
+        // if wizardControllerName == "stackUpgradeController", then it means someone closed the browser or the browser was crashed when we were last in Stack Upgrade wizard
+        route = 'main.stackUpgrade';
+      } else if (clusterStatusOnServer && clusterStatusOnServer.wizardControllerName === App.router.get('reassignMasterController.name')) {
+        // if wizardControllerName == "reassignMasterController", then it means someone closed the browser or the browser was crashed when we were last in Reassign Master wizard
+        route = 'main.reassign';
+      } else if (clusterStatusOnServer && clusterStatusOnServer.wizardControllerName === App.router.get('highAvailabilityWizardController.name')) {
+        // if wizardControllerName == "highAvailabilityWizardController", then it means someone closed the browser or the browser was crashed when we were last in NameNode High Availability wizard
+        route = 'main.admin.enableHighAvailability';
+      } else if (clusterStatusOnServer && clusterStatusOnServer.wizardControllerName === App.router.get('rollbackHighAvailabilityWizardController.name')) {
+        // if wizardControllerName == "highAvailabilityRollbackController", then it means someone closed the browser or the browser was crashed when we were last in NameNode High Availability Rollback wizard
+        route = 'main.admin.rollbackHighAvailability';
+      }
+      callback(route);
+    });
   },
 
   logOff: function (context) {
@@ -378,7 +385,9 @@ App.Router = Em.Router.extend({
         if (router.getAuthenticated()) {
           Ember.run.next(function () {
             console.log(router.getLoginName() + ' already authenticated.  Redirecting...');
-            router.transitionTo(router.getSection(), context);
+            router.getSection(function (route) {
+              router.transitionTo(route, context);
+            });
           });
         }
       },

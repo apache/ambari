@@ -57,23 +57,24 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, {
         if (!App.testMode) {
           // update persist then translate to real
           var widgetsArray = $('div[viewid]'); // get all in DOM
-          self.getUserPref(self.get('persistKey'));
-          var oldValue = self.get('currentPrefObject') || self.getDBProperty(self.get('persistKey'));
-          var newValue = Em.Object.create({
-            dashboardVersion: oldValue.dashboardVersion,
-            visible: [],
-            hidden: oldValue.hidden,
-            threshold: oldValue.threshold
+          self.getUserPref(self.get('persistKey')).complete(function () {
+            var oldValue = self.get('currentPrefObject') || self.getDBProperty(self.get('persistKey'));
+            var newValue = Em.Object.create({
+              dashboardVersion: oldValue.dashboardVersion,
+              visible: [],
+              hidden: oldValue.hidden,
+              threshold: oldValue.threshold
+            });
+            var size = oldValue.visible.length;
+            for (var j = 0; j <= size - 1; j++) {
+              var viewID = widgetsArray.get(j).getAttribute('viewid');
+              var id = viewID.split("-").get(1);
+              newValue.visible.push(id);
+            }
+            self.postUserPref(self.get('persistKey'), newValue);
+            self.setDBProperty(self.get('persistKey'), newValue);
+            //self.translateToReal(newValue);
           });
-          var size = oldValue.visible.length;
-          for(var j = 0; j <= size -1; j++){
-            var viewID = widgetsArray.get(j).getAttribute('viewid');
-            var id = viewID.split("-").get(1);
-            newValue.visible.push(id);
-          }
-          self.postUserPref(self.get('persistKey'), newValue);
-          self.setDBProperty(self.get('persistKey'), newValue);
-          //self.translateToReal(newValue);
         }
       }
     }).disableSelection();
@@ -224,24 +225,25 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, {
           }, this);
         } else {
           //save in persist
-          parent.getUserPref(parent.get('persistKey'));
-          var oldValue = parent.get('currentPrefObject') || parent.getDbProperty(parent.get('persistKey'));
-          var newValue = Em.Object.create({
-            dashboardVersion: oldValue.dashboardVersion,
-            visible: oldValue.visible,
-            hidden: [],
-            threshold: oldValue.threshold
+          parent.getUserPref(parent.get('persistKey')).complete(function () {
+            var oldValue = parent.get('currentPrefObject') || parent.getDbProperty(parent.get('persistKey'));
+            var newValue = Em.Object.create({
+              dashboardVersion: oldValue.dashboardVersion,
+              visible: oldValue.visible,
+              hidden: [],
+              threshold: oldValue.threshold
+            });
+            checkedWidgets.forEach(function (item) {
+              newValue.visible.push(item.id);
+              hiddenWidgets.removeObject(item);
+            }, this);
+            hiddenWidgets.forEach(function (item) {
+              newValue.hidden.push([item.id, item.displayName]);
+            }, this);
+            parent.postUserPref(parent.get('persistKey'), newValue);
+            parent.setDBProperty(parent.get('persistKey'), newValue);
+            parent.translateToReal(newValue);
           });
-          checkedWidgets.forEach(function(item){
-            newValue.visible.push(item.id);
-            hiddenWidgets.removeObject(item);
-          }, this);
-          hiddenWidgets.forEach(function(item){
-            newValue.hidden.push([item.id, item.displayName]);
-          }, this);
-          parent.postUserPref(parent.get('persistKey'), newValue);
-          parent.setDBProperty(parent.get('persistKey'), newValue);
-          parent.translateToReal(newValue);
         }
       }
   }),
@@ -288,27 +290,29 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, {
    * Set visibility-status for widgets
    */
   setOnLoadVisibleWidgets: function () {
+    var self = this;
     if (App.testMode) {
       this.translateToReal(this.get('initPrefObject'));
     } else {
       // called when first load/refresh/jump back page
-      this.getUserPref(this.get('persistKey'));
-      var currentPrefObject = this.get('currentPrefObject') || this.getDBProperty(this.get('persistKey'));
-      if (currentPrefObject) { // fit for no dashboard version
-        if (!currentPrefObject.dashboardVersion) {
-          currentPrefObject.dashboardVersion = 'new';
-          this.postUserPref(this.get('persistKey'), currentPrefObject);
-          this.setDBProperty(this.get('persistKey'), currentPrefObject);
+      self.getUserPref(this.get('persistKey')).complete(function () {
+        var currentPrefObject = self.get('currentPrefObject') || self.getDBProperty(self.get('persistKey'));
+        if (currentPrefObject) { // fit for no dashboard version
+          if (!currentPrefObject.dashboardVersion) {
+            currentPrefObject.dashboardVersion = 'new';
+            self.postUserPref(self.get('persistKey'), currentPrefObject);
+            self.setDBProperty(self.get('persistKey'), currentPrefObject);
+          }
+          self.set('currentPrefObject', self.checkServicesChange(currentPrefObject));
+          self.translateToReal(self.get('currentPrefObject'));
         }
-        this.set('currentPrefObject', this.checkServicesChange(currentPrefObject));
-        this.translateToReal(this.get('currentPrefObject'));
-      }
-      else {
-        // post persist then translate init object
-        this.postUserPref(this.get('persistKey'), this.get('initPrefObject'));
-        this.setDBProperty(this.get('persistKey'), this.get('initPrefObject'));
-        this.translateToReal(this.get('initPrefObject'));
-      }
+        else {
+          // post persist then translate init object
+          self.postUserPref(self.get('persistKey'), self.get('initPrefObject'));
+          self.setDBProperty(self.get('persistKey'), self.get('initPrefObject'));
+          self.translateToReal(self.get('initPrefObject'));
+        }
+      });
     }
   },
 
@@ -501,8 +505,6 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, {
   persistKey: function () {
     return 'user-pref-' + App.router.get('loginName') + '-dashboard';
   }.property(),
-
-  makeRequestAsync: false,
 
   getUserPrefSuccessCallback: function (response, request, data) {
     if (response) {

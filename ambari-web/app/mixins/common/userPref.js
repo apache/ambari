@@ -34,12 +34,6 @@ var App = require('app');
 App.UserPref = Em.Mixin.create({
 
   /**
-   * Should <code>getUserPref</code> and <code>postUserPref</code> be async
-   * @type {bool}
-   */
-  makeRequestAsync: true,
-
-  /**
    * Additional to request data
    * @type {object}
    */
@@ -55,7 +49,6 @@ App.UserPref = Em.Mixin.create({
       sender: this,
       data: {
         key: key,
-        async: this.get('makeRequestAsync'),
         data: this.get('additionalData')
       },
       success: 'getUserPrefSuccessCallback',
@@ -95,7 +88,6 @@ App.UserPref = Em.Mixin.create({
       'sender': this,
       'beforeSend': 'postUserPrefBeforeSend',
       'data': {
-        'async': this.get('makeRequestAsync'),
         'keyValuePair': keyValuePair
       },
       'success': 'postUserPrefSuccessCallback',

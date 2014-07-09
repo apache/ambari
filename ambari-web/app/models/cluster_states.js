@@ -103,19 +103,16 @@ App.clusterStatus = Em.Object.create(App.UserPref, {
 
   /**
    * get cluster data from server and update cluster status
-   * @param {bool} isAsync set this to true if the call is to be made asynchronously.  if unspecified, false is assumed
    * @param {bool} overrideLocaldb
    * @return promise object for the get call
    * @method updateFromServer
    */
-  updateFromServer: function (isAsync, overrideLocaldb) {
-    // if isAsync is undefined, set it to false
-    this.set('makeRequestAsync', isAsync || false);
+  updateFromServer: function (overrideLocaldb) {
     // if overrideLocaldb is undefined, set it to true
     this.set('additionalData', {
       user: App.db.getUser(),
       login: App.db.getLoginName(),
-      overrideLocaldb: Em.isNone(overrideLocaldb) ? true : overrideLocaldb
+      overrideLocaldb: !overrideLocaldb
     });
     return this.getUserPref(this.get('key'));
   },
@@ -234,7 +231,6 @@ App.clusterStatus = Em.Object.create(App.UserPref, {
           name: 'settings.post.user_pref',
           sender: opt.sender || this,
           data: {
-            async: !!opt.async,
             keyValuePair: keyValuePair
           },
           success: opt.success,
@@ -243,7 +239,6 @@ App.clusterStatus = Em.Object.create(App.UserPref, {
         });
       }
       else {
-        this.set('makeRequestAsync', false);
         this.postUserPref(this.get('key'), val);
       }
       return newValue;

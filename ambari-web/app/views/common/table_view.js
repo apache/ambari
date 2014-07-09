@@ -72,21 +72,34 @@ App.TableView = Em.View.extend(App.UserPref, {
       if (App.db.getDisplayLength(name)) {
         this.set('displayLength', App.db.getDisplayLength(name));
       } else {
-        this.getUserPref(this.displayLengthKey());
+        this.getUserPref(this.displayLengthKey()).complete(function(){
+          self.initFilters();
+        });
+        return;
       }
     }
+    this.initFilters();
+  },
 
+  /**
+   * initialize filters
+   * restore values from local DB
+   * or clear filters in case there is no filters to restore
+   */
+  initFilters: function () {
+    var name = this.get('controller.name');
+    var self = this;
     var filterConditions = App.db.getFilterConditions(name);
     if (filterConditions) {
       this.set('filterConditions', filterConditions);
 
       var childViews = this.get('childViews');
 
-      filterConditions.forEach(function(condition, index, filteredConditions) {
+      filterConditions.forEach(function (condition, index, filteredConditions) {
         var view = !Em.isNone(condition.iColumn) && childViews.findProperty('column', condition.iColumn);
         if (view) {
           view.set('value', condition.value);
-          Em.run.next(function() {
+          Em.run.next(function () {
             view.showClearFilter();
             // check if it is the last iteration
             if (filteredConditions.length - index - 1 === 0) {

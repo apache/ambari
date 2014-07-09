@@ -57,30 +57,32 @@ App.DashboardWidgetView = Em.View.extend({
 
   deleteWidget: function (event) {
     var parent = this.get('parentView');
-    if (App.testMode) {
+    var self = this;
+    if (App.get('testMode')) {
       //update view on dashboard
       var objClass = parent.widgetsMapper(this.id);
       parent.get('visibleWidgets').removeObject(objClass);
       parent.get('hiddenWidgets').pushObject(Em.Object.create({displayName: this.get('title'), id: this.get('id'), checked: false}));
     } else {
       //reconstruct new persist value then post in persist
-      parent.getUserPref(parent.get('persistKey'));
-      var oldValue = parent.get('currentPrefObject');
-      var deletedId = this.get('id');
-      var newValue = Em.Object.create({
-        dashboardVersion: oldValue.dashboardVersion,
-        visible: [],
-        hidden: oldValue.hidden,
-        threshold: oldValue.threshold
-      });
-      for (var i = 0; i <= oldValue.visible.length - 1; i++) {
-        if (oldValue.visible[i] != deletedId) {
-          newValue.visible.push(oldValue.visible[i]);
+      parent.getUserPref(parent.get('persistKey')).complete(function(){
+        var oldValue = parent.get('currentPrefObject');
+        var deletedId = self.get('id');
+        var newValue = Em.Object.create({
+          dashboardVersion: oldValue.dashboardVersion,
+          visible: [],
+          hidden: oldValue.hidden,
+          threshold: oldValue.threshold
+        });
+        for (var i = 0; i <= oldValue.visible.length - 1; i++) {
+          if (oldValue.visible[i] != deletedId) {
+            newValue.visible.push(oldValue.visible[i]);
+          }
         }
-      }
-      newValue.hidden.push([deletedId, this.get('title')]);
-      parent.postUserPref(parent.get('persistKey'), newValue);
-      parent.translateToReal(newValue);
+        newValue.hidden.push([deletedId, self.get('title')]);
+        parent.postUserPref(parent.get('persistKey'), newValue);
+        parent.translateToReal(newValue);
+      });
     }
   },
 
@@ -155,10 +157,11 @@ App.DashboardWidgetView = Em.View.extend({
           if (!App.testMode) {
             // save to persist
             var parent = self.get('parentView');
-            parent.getUserPref(parent.get('persistKey'));
-            var oldValue = parent.get('currentPrefObject');
-            oldValue.threshold[parseInt(self.get('id'))] = [configObj.get('thresh1'), configObj.get('thresh2')];
-            parent.postUserPref(parent.get('persistKey'), oldValue);
+            parent.getUserPref(parent.get('persistKey')).complete(function () {
+              var oldValue = parent.get('currentPrefObject');
+              oldValue.threshold[parseInt(self.get('id'))] = [configObj.get('thresh1'), configObj.get('thresh2')];
+              parent.postUserPref(parent.get('persistKey'), oldValue);
+            });
           }
 
           this.hide();

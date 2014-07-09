@@ -41,39 +41,40 @@ module.exports = Em.Route.extend({
           Ember.run.next(function () {
             var installerController = router.get('installerController');
 
-            App.clusterStatus.updateFromServer();
-            var currentClusterStatus = App.clusterStatus.get('value');
+            App.clusterStatus.updateFromServer().complete(function () {
+              var currentClusterStatus = App.clusterStatus.get('value');
 
-            if (currentClusterStatus) {
-              switch (currentClusterStatus.clusterState) {
-                case 'CLUSTER_NOT_CREATED_1' :
-                  router.transitionTo('step' + installerController.get('currentStep'));
-                  break;
-                case 'CLUSTER_DEPLOY_PREP_2' :
-                  installerController.setCurrentStep('8');
-                  App.db.data = currentClusterStatus.localdb;
-                  router.transitionTo('step' + installerController.get('currentStep'));
-                  break;
-                case 'CLUSTER_INSTALLING_3' :
-                case 'SERVICE_STARTING_3' :
-                  if (!installerController.get('isStep9')) {
-                    installerController.setCurrentStep('9');
-                  }
-                  router.transitionTo('step' + installerController.get('currentStep'));
-                  break;
-                case 'CLUSTER_INSTALLED_4' :
-                  if (!installerController.get('isStep10')) {
-                    installerController.setCurrentStep('10');
-                  }
-                  App.db.data = currentClusterStatus.localdb;
-                  router.transitionTo('step' + installerController.get('currentStep'));
-                  break;
-                case 'DEFAULT' :
-                default:
-                  router.transitionTo('main.dashboard.index');
-                  break;
+              if (currentClusterStatus) {
+                switch (currentClusterStatus.clusterState) {
+                  case 'CLUSTER_NOT_CREATED_1' :
+                    router.transitionTo('step' + installerController.get('currentStep'));
+                    break;
+                  case 'CLUSTER_DEPLOY_PREP_2' :
+                    installerController.setCurrentStep('8');
+                    App.db.data = currentClusterStatus.localdb;
+                    router.transitionTo('step' + installerController.get('currentStep'));
+                    break;
+                  case 'CLUSTER_INSTALLING_3' :
+                  case 'SERVICE_STARTING_3' :
+                    if (!installerController.get('isStep9')) {
+                      installerController.setCurrentStep('9');
+                    }
+                    router.transitionTo('step' + installerController.get('currentStep'));
+                    break;
+                  case 'CLUSTER_INSTALLED_4' :
+                    if (!installerController.get('isStep10')) {
+                      installerController.setCurrentStep('10');
+                    }
+                    App.db.data = currentClusterStatus.localdb;
+                    router.transitionTo('step' + installerController.get('currentStep'));
+                    break;
+                  case 'DEFAULT' :
+                  default:
+                    router.transitionTo('main.dashboard.index');
+                    break;
+                }
               }
-            }
+            });
           });
         } else {
           Em.run.next(function () {

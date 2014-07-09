@@ -751,12 +751,7 @@ var urls = {
   },
   'settings.get.user_pref': {
     'real': '/persist/{key}',
-    'mock': '/data/user_settings/{key}.json',
-    'format': function(data) {
-      return {
-        async: data.async
-      };
-    }
+    'mock': '/data/user_settings/{key}.json'
   },
   'settings.post.user_pref': {
     'real': '/persist',
@@ -764,7 +759,6 @@ var urls = {
     'type': 'POST',
     'format': function (data) {
       return {
-        async: data.async,
         data: JSON.stringify(data.keyValuePair)
       }
     }
