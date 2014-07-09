@@ -858,37 +858,6 @@ App.WizardStep8Controller = Em.Controller.extend({
       return this.submitProceed();
     }
   },
-
-  /**
-   * Update configurations for installed services.
-   * Do separated PUT-request for each siteName for each service
-   *
-   * @param {Array} configsToUpdate - configs need to update
-   * Format:
-   * <code>
-   *   [
-   *    {serviceName: 's1', id: 'site property', filename: 'f1.xml', name: 'n1', value: 'v1'},
-   *    {serviceName: 's2', id: 'site property', filename: 'f1.xml', name: 'n2', value: 'v2'},
-   *    {serviceName: 's2', id: '', filename: 'f2.xml', name: 'n3', value: 'v3'}
-   *   ]
-   * </code>
-   * @method updateConfigurations
-   */
-  updateConfigurations: function (configsToUpdate) {
-    var configurationController = App.router.get('mainServiceInfoConfigsController');
-    var serviceNames = configsToUpdate.mapProperty('serviceName').uniq();
-    serviceNames.forEach(function (serviceName) {
-      var configs = configsToUpdate.filterProperty('serviceName', serviceName);
-      configurationController.setNewTagNames(configs);
-      var tagName = configs.objectAt(0).newTagName;
-      var siteConfigs = configs.filterProperty('id', 'site property');
-      siteConfigs.mapProperty('filename').uniq().forEach(function (siteName) {
-        var formattedConfigs = configurationController.createSiteObj(siteName.replace(".xml", ""), tagName, configs.filterProperty('filename', siteName));
-        configurationController.doPUTClusterConfigurationSite(formattedConfigs);
-      });
-    });
-  },
-
   /**
    * Prepare <code>ajaxQueue</code> and start to execute it
    * @method submitProceed
@@ -1003,7 +972,7 @@ App.WizardStep8Controller = Em.Controller.extend({
   deleteClustersCallback: function (response, request, data) {
     if (data.isLast) {
       if (this.get('wizardController').getDBProperty('configsToUpdate')) {
-        this.updateConfigurations(this.get('wizardController').getDBProperty('configsToUpdate'));
+        $.extend(true, this.get('configs'), this.get('wizardController').getDBProperty('configsToUpdate'));
       }
       this.setLocalRepositories();
       this.createCluster();

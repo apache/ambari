@@ -819,6 +819,7 @@ App.WizardStep7Controller = Em.Controller.extend({
       }
     });
 
+    this.setServiceDatabaseConfigs(configs);
     //add user properties
     for (var name in configsMap) {
       configs.push(configMixin.addUserProperty({
@@ -838,7 +839,26 @@ App.WizardStep7Controller = Em.Controller.extend({
       }, false, []));
     }
   },
-
+  /**
+   * Check if Oozie or Hive use existing database then need
+   * to restore missed properties
+   *
+   * @param {Object[]} configs
+   **/
+  setServiceDatabaseConfigs: function(configs) {
+    var serviceNames = this.get('installedServiceNames').filter(function(serviceName) {
+      return ['OOZIE', 'HIVE'].contains(serviceName);
+    });
+    serviceNames.forEach(function(serviceName) {
+      var dbTypeConfig = configs.findProperty('name', serviceName.toLowerCase() + '_database');
+      if (!/existing/gi.test(dbTypeConfig.value)) return;
+      var dbHostName = serviceName.toLowerCase() + '_hostname';
+      var database = dbTypeConfig.value.match(/MySQL|PostgreSQL|Oracle|Derby/gi)[0];
+      var existingDBConfig = configs.findProperty('name', serviceName.toLowerCase() + '_existing_' + database.toLowerCase() + '_host');
+      if (!existingDBConfig.value)
+        existingDBConfig.value = existingDBConfig.defaultValue = configs.findProperty('name', dbHostName).value;
+    }, this);
+  },
   /**
    * Add group ids to <code>groupsToDelete</code>
    * Also save <code>groupsToDelete</code> to local storage

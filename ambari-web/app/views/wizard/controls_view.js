@@ -203,6 +203,7 @@ App.ServiceConfigRadioButtons = Ember.View.extend({
   },
 
   configs: function () {
+    if (this.get('controller.name') == 'mainServiceInfoConfigsController') return this.get('categoryConfigsAll');
     return this.get('categoryConfigsAll').filterProperty('isObserved', true);
   }.property('categoryConfigsAll'),
 
@@ -735,6 +736,9 @@ App.CheckDBConnectionView = Ember.View.extend({
   pollInterval: 3000,
   /** @property {string} hostNameProperty - host name property based on service and database names **/
   hostNameProperty: function() {
+    if (!/wizard/i.test(this.get('controller.name')) && this.get('parentView.service.serviceName') === 'HIVE') {
+      return this.get('parentView.service.serviceName').toLowerCase() + '_hostname';
+    }
     return '{0}_existing_{1}_host'.format(this.get('parentView.service.serviceName').toLowerCase(), this.get('databaseName').toLowerCase());
   }.property('databaseName'),
   /** @property {boolean} isBtnDisabled - disable button on failed validation or active request **/
@@ -808,7 +812,8 @@ App.CheckDBConnectionView = Ember.View.extend({
     var properties = [].concat(this.get('requiredProperties'));
     properties.push(this.get('hostNameProperty'));
     properties.forEach(function(propertyName) {
-      if(!this.get('parentView.categoryConfigsAll').findProperty('name', propertyName).get('isValid')) isValid = false;
+      var property = this.get('parentView.categoryConfigsAll').findProperty('name', propertyName);
+      if(property && !property.get('isValid')) isValid = false;
     }, this);
     this.set('isValidationPassed', isValid);
   }.observes('parentView.categoryConfigsAll.@each.isValid', 'parentView.categoryConfigsAll.@each.value', 'databaseName'),
