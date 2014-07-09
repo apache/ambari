@@ -339,33 +339,6 @@ module.exports = [
     "serviceName": "HIVE"
   },
   {
-    "name": "hive.security.authorization.manager",
-    "templateName": [],
-    "foreignKey": null,
-    "value": "org.apache.hadoop.hive.ql.security.authorization.StorageBasedAuthorizationProvider",
-    "nonSecureValue": "NONE",
-    "filename": "hive-site.xml",
-    "serviceName": "HIVE"
-  },
-  {
-    "name": "hive.security.metastore.authorization.manager",
-    "templateName": [],
-    "foreignKey": null,
-    "value": "org.apache.hadoop.hive.ql.security.authorization.StorageBasedAuthorizationProvider",
-    "nonSecureValue": "NONE",
-    "filename": "hive-site.xml",
-    "serviceName": "HIVE"
-  },
-  {
-    "name": "hive.security.authenticator.manager",
-    "templateName": [],
-    "foreignKey": null,
-    "value": "org.apache.hadoop.hive.ql.security.ProxyUserAuthenticator",
-    "nonSecureValue": "NONE",
-    "filename": "hive-site.xml",
-    "serviceName": "HIVE"
-  },
-  {
     "name": "hive.server2.authentication",
     "templateName": [],
     "foreignKey": null,
