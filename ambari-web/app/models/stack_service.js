@@ -59,6 +59,11 @@ App.StackService = DS.Model.extend(App.ServiceModelMixin, {
     return this.get('serviceName') === 'HDFS';
   }.property('serviceName'),
 
+  configTypesRendered: function () {
+    if (this.get('serviceName') == 'HDFS') return this.get('configTypes');
+    else return this.get('configTypes').without('core-site')
+  }.property('serviceName','configTypes'),
+
   displayNameOnSelectServicePage: function () {
     var displayName = this.get('displayName');
     var services = this.get('coSelectedServices').slice();

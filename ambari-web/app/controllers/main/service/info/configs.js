@@ -62,7 +62,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
 
   /**
    * Map, which contains relation between group and site
-   * to upload overriden properties
+   * to upload overridden properties
    */
   loadedGroupToOverrideSiteToTagMap: {},
   /**
@@ -159,17 +159,17 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     this.loadServiceConfigs();
   },
 
-  getHash: function() {
+  getHash: function () {
     if (!this.get('stepConfigs')[0]) {
       return null;
     }
     var hash = {};
-    this.get('stepConfigs')[0].configs.forEach(function(config) {
+    this.get('stepConfigs')[0].configs.forEach(function (config) {
       hash[config.get('name')] = {value: config.get('value'), overrides: []};
       if (!config.get('overrides')) return;
       if (!config.get('overrides.length')) return;
 
-      config.get('overrides').forEach(function(override) {
+      config.get('overrides').forEach(function (override) {
         hash[config.get('name')].overrides.push(override.get('value'));
       });
     });
@@ -206,7 +206,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     });
   },
 
-  loadServiceConfigsSuccess: function(data, opt, params) {
+  loadServiceConfigsSuccess: function (data, opt, params) {
     if (data) {
       this.setConfigGroups.apply(this, Array.prototype.slice.call(arguments, 0));
     } else {
@@ -228,8 +228,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     var selectedConfigGroup;
     var siteToTagMap = {};
     var hostsLength = App.router.get('mainHostController.hostsCountMap.TOTAL');
-    serviceConfigsDef.get('configTypes').forEach(function(siteName){
-      if(data.Clusters.desired_configs[siteName]){
+    serviceConfigsDef.get('configTypesRendered').forEach(function (siteName) {
+      if (data.Clusters.desired_configs[siteName]) {
         siteToTagMap[siteName] = data.Clusters.desired_configs[siteName].tag;
       } else {
         siteToTagMap[siteName] = 'version1';
@@ -287,7 +287,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       selectedConfigGroup = defaultConfigGroup;
     }
 
-    this.get('configGroups').sort(function(configGroupA, configGroupB){
+    this.get('configGroups').sort(function (configGroupA, configGroupB) {
       return (configGroupA.name > configGroupB.name);
     });
     this.get('configGroups').unshift(defaultConfigGroup);
@@ -300,17 +300,15 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     var serviceName = this.get('content.serviceName');
     //STEP 1: handle tags from JSON data for host overrides
     this.loadedGroupToOverrideSiteToTagMap = {};
-    if (App.supports.hostOverrides) {
-      var configGroupsWithOverrides = selectedConfigGroup.get('isDefault') && !this.get('isHostsConfigsPage') ? this.get('configGroups') : [selectedConfigGroup];
-      configGroupsWithOverrides.forEach(function (item) {
-        var groupName = item.get('name');
-        this.loadedGroupToOverrideSiteToTagMap[groupName] = {};
-        item.get('configSiteTags').forEach(function (siteTag) {
-          var site = siteTag.get('site');
-          this.loadedGroupToOverrideSiteToTagMap[groupName][site] = siteTag.get('tag');
-        }, this);
+    var configGroupsWithOverrides = selectedConfigGroup.get('isDefault') && !this.get('isHostsConfigsPage') ? this.get('configGroups') : [selectedConfigGroup];
+    configGroupsWithOverrides.forEach(function (item) {
+      var groupName = item.get('name');
+      this.loadedGroupToOverrideSiteToTagMap[groupName] = {};
+      item.get('configSiteTags').forEach(function (siteTag) {
+        var site = siteTag.get('site');
+        this.loadedGroupToOverrideSiteToTagMap[groupName][site] = siteTag.get('tag');
       }, this);
-    }
+    }, this);
     //STEP 2: Create an array of objects defining tag names to be polled and new tag names to be set after submit
     this.setServiceConfigTags(this.loadedClusterSiteToTagMap);
     //STEP 3: Load advanced configs
@@ -344,7 +342,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   checkDatabaseProperties: function (serviceConfig) {
     if (!['OOZIE', 'HIVE'].contains(this.get('content.serviceName'))) return;
     var configsToHide = ['oozie_hostname'];
-    configsToHide.forEach(function(configName) {
+    configsToHide.forEach(function (configName) {
       var property = serviceConfig.configs.findProperty('name', configName);
       if (property) property.set('isVisible', false);
     });
@@ -363,7 +361,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
 
     if (serviceName || serviceConfig.serviceName === 'MISC') {
       //STEP 11: render configs and wrap each in ServiceConfigProperty object
-      var self =this;
+      var self = this;
       // set recommended Defaults first then load the configs (including set validator)
       this.setRecommendedDefaults(advancedConfigs).done(function () {
         self.loadConfigs(allConfigs, serviceConfig);
@@ -441,7 +439,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * Get info about hosts and host components to configDefaultsProviders
    * @returns {{masterComponentHosts: Array, slaveComponentHosts: Array, hosts: {}}}
    */
-  getInfoForDefaults: function(providers) {
+  getInfoForDefaults: function (providers) {
     var requiredComponents = [];
 
     providers.forEach(function (provider) {
@@ -530,7 +528,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   getHostsInfo: function (response) {
     var hosts = {};
 
-    response.items.mapProperty('Hosts').map(function(host) {
+    response.items.mapProperty('Hosts').map(function (host) {
       hosts[host.host_name] = {
         name: host.host_name,
         cpu: host.cpu_count,
@@ -547,7 +545,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * @param {Object} componentConfig - component config object
    * @method loadConfigs
    */
-  loadConfigs: function(configs, componentConfig) {
+  loadConfigs: function (configs, componentConfig) {
     var serviceConfigsData = App.StackService.find().findProperty('serviceName', this.get('content.serviceName'));
     var defaultGroupSelected = this.get('selectedConfigGroup.isDefault');
     configs.forEach(function (_serviceConfigProperty) {
@@ -565,7 +563,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * @returns {Ember.Object|null}
    * @method createConfigProperty
    */
-  createConfigProperty: function(_serviceConfigProperty, defaultGroupSelected, serviceConfigsData) {
+  createConfigProperty: function (_serviceConfigProperty, defaultGroupSelected, serviceConfigsData) {
     console.log("config", _serviceConfigProperty);
     if (!_serviceConfigProperty) return null;
     var overrides = _serviceConfigProperty.overrides;
@@ -588,7 +586,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * @param {Object} componentConfig
    * @method checkOverrideProperty
    */
-  checkOverrideProperty: function(componentConfig) {
+  checkOverrideProperty: function (componentConfig) {
     var overrideToAdd = this.get('overrideToAdd');
     if (overrideToAdd) {
       overrideToAdd = componentConfig.configs.findProperty('name', overrideToAdd.name);
@@ -614,7 +612,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       return dfd.promise();
     }
     this.getInfoForDefaults(defaultsProvider);
-    this.addObserver('defaultsInfo.hosts.length', this, function() {
+    this.addObserver('defaultsInfo.hosts.length', this, function () {
       var localDB = this.get('defaultsInfo');
       var recommendedDefaults = {};
       if (defaultsProvider) {
@@ -660,7 +658,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * @param {Object} serviceConfigsData
    * @method setValidator
    */
-  setValidator: function(serviceConfigProperty, serviceConfigsData) {
+  setValidator: function (serviceConfigProperty, serviceConfigsData) {
     if (serviceConfigProperty.get('serviceName') === this.get('content.serviceName')) {
       if (serviceConfigsData.get('configsValidator')) {
         for (var validatorName in serviceConfigsData.get('configsValidator.configValidators')) {
@@ -684,16 +682,16 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    */
   setValuesForOverrides: function (overrides, _serviceConfigProperty, serviceConfigProperty, defaultGroupSelected) {
     if (Em.isNone(overrides)) return;
-      overrides.forEach(function (override) {
-        var newSCP = this.createNewSCP(override, _serviceConfigProperty, serviceConfigProperty, defaultGroupSelected);
-        var parentOverridesArray = serviceConfigProperty.get('overrides');
-        if (parentOverridesArray == null) {
-          parentOverridesArray = Em.A([]);
-          serviceConfigProperty.set('overrides', parentOverridesArray);
-        }
-        parentOverridesArray.pushObject(newSCP);
-        console.debug("createOverrideProperty(): Added:", newSCP, " to main-property:", serviceConfigProperty)
-      }, this);
+    overrides.forEach(function (override) {
+      var newSCP = this.createNewSCP(override, _serviceConfigProperty, serviceConfigProperty, defaultGroupSelected);
+      var parentOverridesArray = serviceConfigProperty.get('overrides');
+      if (parentOverridesArray == null) {
+        parentOverridesArray = Em.A([]);
+        serviceConfigProperty.set('overrides', parentOverridesArray);
+      }
+      parentOverridesArray.pushObject(newSCP);
+      console.debug("createOverrideProperty(): Added:", newSCP, " to main-property:", serviceConfigProperty)
+    }, this);
   },
 
   /**
@@ -704,7 +702,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * @param defaultGroupSelected
    * @returns {*}
    */
-  createNewSCP: function(override, _serviceConfigProperty, serviceConfigProperty, defaultGroupSelected) {
+  createNewSCP: function (override, _serviceConfigProperty, serviceConfigProperty, defaultGroupSelected) {
     var newSCP = App.ServiceConfigProperty.create(_serviceConfigProperty);
     newSCP.set('value', override.value);
     newSCP.set('isOriginalSCP', false); // indicated this is overridden value,
@@ -720,7 +718,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * convert string values to boolean for checkboxes
    * @param {Ember.Object} serviceConfigProperty
    */
-  setValueForCheckBox: function(serviceConfigProperty) {
+  setValueForCheckBox: function (serviceConfigProperty) {
     if (serviceConfigProperty.get("displayType") == 'checkbox') {
       switch (serviceConfigProperty.get("value")) {
         case 'true':
@@ -746,17 +744,19 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     var self = this;
     var header, message, messageClass, status;
     var serviceName = this.get('content.serviceName'),
-        displayName = this.get('content.displayName'),
-        urlParams = '';
+      displayName = this.get('content.displayName'),
+      urlParams = '';
 
     if (App.supports.hostOverrides ||
-        (serviceName !== 'HDFS' && this.get('content.isStopped') === true) ||
-        ((serviceName === 'HDFS') && this.get('content.isStopped') === true && (!App.Service.find().someProperty('id', 'MAPREDUCE') || App.Service.find('MAPREDUCE').get('isStopped')))) {
+      (serviceName !== 'HDFS' && this.get('content.isStopped') === true) ||
+      ((serviceName === 'HDFS') && this.get('content.isStopped') === true && (!App.Service.find().someProperty('id', 'MAPREDUCE') || App.Service.find('MAPREDUCE').get('isStopped')))) {
 
       if (this.isDirChanged()) {
         App.showConfirmationPopup(function () {
           self.saveConfigs();
-        }, Em.I18n.t('services.service.config.confirmDirectoryChange').format(displayName), function() { self.set('isApplyingChanges', false)});
+        }, Em.I18n.t('services.service.config.confirmDirectoryChange').format(displayName), function () {
+          self.set('isApplyingChanges', false)
+        });
       } else {
         this.saveConfigs();
       }
@@ -787,21 +787,21 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       var hdfsConfigs = this.get('stepConfigs').findProperty('serviceName', 'HDFS').get('configs');
       if (App.get('isHadoop2Stack')) {
         if (hdfsConfigs.findProperty('name', 'dfs.namenode.name.dir').get('isNotDefaultValue') ||
-            hdfsConfigs.findProperty('name', 'dfs.namenode.checkpoint.dir').get('isNotDefaultValue') ||
-            hdfsConfigs.findProperty('name', 'dfs.datanode.data.dir').get('isNotDefaultValue')) {
+          hdfsConfigs.findProperty('name', 'dfs.namenode.checkpoint.dir').get('isNotDefaultValue') ||
+          hdfsConfigs.findProperty('name', 'dfs.datanode.data.dir').get('isNotDefaultValue')) {
           dirChanged = true;
         }
       } else {
         if (hdfsConfigs.findProperty('name', 'dfs.name.dir').get('isNotDefaultValue') ||
-            hdfsConfigs.findProperty('name', 'fs.checkpoint.dir').get('isNotDefaultValue') ||
-            hdfsConfigs.findProperty('name', 'dfs.data.dir').get('isNotDefaultValue')) {
+          hdfsConfigs.findProperty('name', 'fs.checkpoint.dir').get('isNotDefaultValue') ||
+          hdfsConfigs.findProperty('name', 'dfs.data.dir').get('isNotDefaultValue')) {
           dirChanged = true;
         }
       }
     } else if (serviceName === 'MAPREDUCE') {
       var mapredConfigs = this.get('stepConfigs').findProperty('serviceName', 'MAPREDUCE').get('configs');
       if (mapredConfigs.findProperty('name', 'mapred.local.dir').get('isNotDefaultValue') ||
-          mapredConfigs.findProperty('name', 'mapred.system.dir').get('isNotDefaultValue')) {
+        mapredConfigs.findProperty('name', 'mapred.system.dir').get('isNotDefaultValue')) {
         dirChanged = true;
       }
     }
@@ -911,20 +911,20 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
           self.set('isApplyingChanges', false)
         }
       },
-      onClose: function() {
+      onClose: function () {
         this.hide();
         self.set('isApplyingChanges', false)
       },
       disablePrimary: true,
       bodyClass: Ember.View.extend({
         flag: flag,
-        message: function() {
+        message: function () {
           return this.get('isLoaded') ? message : Em.I18n.t('services.service.config.saving.message');
         }.property('isLoaded'),
-        messageClass: function() {
+        messageClass: function () {
           return this.get('isLoaded') ? messageClass : 'alert alert-info';
         }.property('isLoaded'),
-        setDisablePrimary: function() {
+        setDisablePrimary: function () {
           this.get('parentView').set('disablePrimary', !this.get('isLoaded'));
         }.observes('isLoaded'),
         runningHosts: [],
@@ -935,52 +935,52 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         isLoaded: false,
         componentsFilterSuccessCallback: function (response) {
           var count = 0,
-              view = this,
-              lazyLoadHosts = function (dest) {
-                lazyLoading.run({
-                  initSize: 20,
-                  chunkSize: 50,
-                  delay: 50,
-                  destination: dest,
-                  source: hosts,
-                  context: view
+            view = this,
+            lazyLoadHosts = function (dest) {
+              lazyLoading.run({
+                initSize: 20,
+                chunkSize: 50,
+                delay: 50,
+                destination: dest,
+                source: hosts,
+                context: view
+              });
+            },
+            setComponents = function (item, components) {
+              item.host_components.forEach(function (c) {
+                var name = c.HostRoles.host_name;
+                if (!components[name]) {
+                  components[name] = [];
+                } else {
+                  components[name].push(App.format.role(item.ServiceComponentInfo.component_name));
+                }
+              });
+              return components;
+            },
+            setHosts = function (components) {
+              var hosts = [];
+              Em.keys(components).forEach(function (key) {
+                hosts.push({
+                  name: key,
+                  components: components[key].join(', ')
                 });
-              },
-              setComponents = function (item, components) {
-                item.host_components.forEach(function (c) {
-                  var name = c.HostRoles.host_name;
-                  if (!components[name]) {
-                    components[name] = [];
-                  } else {
-                    components[name].push(App.format.role(item.ServiceComponentInfo.component_name));
-                  }
-                });
-                return components;
-              },
-              setHosts = function (components) {
-                var hosts = [];
-                Em.keys(components).forEach(function (key) {
-                  hosts.push({
-                    name: key,
-                    components: components[key].join(', ')
-                  });
-                });
-                return hosts;
-              },
-              components = {},
-              hosts = [];
+              });
+              return hosts;
+            },
+            components = {},
+            hosts = [];
           switch (status) {
             case 'unknown':
               response.items.filter(function (item) {
                 return (item.ServiceComponentInfo.total_count > item.ServiceComponentInfo.started_count + item.ServiceComponentInfo.installed_count);
               }).forEach(function (item) {
-                    var total = item.ServiceComponentInfo.total_count,
-                        started = item.ServiceComponentInfo.started_count,
-                        installed = item.ServiceComponentInfo.installed_count,
-                        unknown = total - started + installed;
-                    components = setComponents(item, components);
-                    count += unknown;
-                  });
+                  var total = item.ServiceComponentInfo.total_count,
+                    started = item.ServiceComponentInfo.started_count,
+                    installed = item.ServiceComponentInfo.installed_count,
+                    unknown = total - started + installed;
+                  components = setComponents(item, components);
+                  count += unknown;
+                });
               hosts = setHosts(components);
               this.set('unknownComponentCount', count);
               lazyLoadHosts(this.get('unknownHosts'));
@@ -1274,7 +1274,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     }
 
     if (dbHostPropertyName) {
-      var oozieHostNameProperty = App.ServiceConfigProperty.create(App.config.get('preDefinedGlobalProperties').findProperty('name','oozie_hostname'));
+      var oozieHostNameProperty = App.ServiceConfigProperty.create(App.config.get('preDefinedGlobalProperties').findProperty('name', 'oozie_hostname'));
       oozieHostNameProperty.set('value', globals.findProperty('name', dbHostPropertyName).get('value'));
       globals.pushObject(oozieHostNameProperty);
     }
@@ -1293,7 +1293,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     this.set('uiConfigs', serviceConfigProperties.concat(allUiConfigs));
   },
 
-  formatConfigValues: function(serviceConfigProperties){
+  formatConfigValues: function (serviceConfigProperties) {
     serviceConfigProperties.forEach(function (_config) {
       if (typeof _config.get('value') === "boolean") _config.set('value', _config.value.toString());
       _config.set('value', App.config.trimProperty(_config, true));
@@ -1379,7 +1379,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     return this.getValueWithOverrides(value, overrideHostToValue)
   },
 
-  getValueWithOverrides: function(value, overrideHostToValue) {
+  getValueWithOverrides: function (value, overrideHostToValue) {
     var valueWithOverrides = {
       value: value,
       overrides: {}
@@ -1430,13 +1430,13 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * @returns {Object|null}
    * @method createConfigObject
    */
-  createConfigObject: function(siteName, tagName) {
+  createConfigObject: function (siteName, tagName) {
     console.log("TRACE: Inside " + siteName);
-    switch(siteName) {
+    switch (siteName) {
       case 'global':
         return this.createGlobalSiteObj(tagName, this.get('globalConfigs'));
       case 'core-site':
-        if(this.get('content.serviceName') === 'HDFS' || this.get('content.serviceName') === 'GLUSTERFS') {
+        if (this.get('content.serviceName') === 'HDFS' || this.get('content.serviceName') === 'GLUSTERFS') {
           return this.createCoreSiteObj(tagName);
         }
         return null;
@@ -1445,7 +1445,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         if (filename === 'mapred-queue-acls.xml' && !App.supports.capacitySchedulerUi) {
           return null;
         }
-      return this.createSiteObj(siteName, tagName, this.get('uiConfigs').filterProperty('filename', filename));
+        return this.createSiteObj(siteName, tagName, this.get('uiConfigs').filterProperty('filename', filename));
     }
   },
 
@@ -1456,9 +1456,11 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * @param {Object} configs
    * @method doPUTClusterConfiguration
    */
-  doPUTClusterConfiguration: function(siteName, configs) {
+  doPUTClusterConfiguration: function (siteName, configs) {
     var loadedProperties;
-    loadedProperties = App.router.get('configurationController').getConfigsByTags([{siteName: siteName, tagName: this.loadedClusterSiteToTagMap[siteName]}]);
+    loadedProperties = App.router.get('configurationController').getConfigsByTags([
+      {siteName: siteName, tagName: this.loadedClusterSiteToTagMap[siteName]}
+    ]);
     if (loadedProperties && loadedProperties[0]) {
       loadedProperties = loadedProperties[0].properties;
     }
@@ -1542,13 +1544,13 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     });
   },
 
-  doPUTClusterConfigurationSiteSuccessCallback: function() {
+  doPUTClusterConfigurationSiteSuccessCallback: function () {
     if (this.decrementProperty('putClusterConfigsCallsNumber') === 0) {
       this.onDoPUTClusterConfigurations();
     }
   },
 
-  doPUTClusterConfigurationSiteErrorCallback: function() {
+  doPUTClusterConfigurationSiteErrorCallback: function () {
     this.set('saveConfigsFlag', false);
     this.doPUTClusterConfigurationSiteSuccessCallback();
   },
@@ -1616,7 +1618,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   createSiteObj: function (siteName, tagName, siteObj) {
     var siteProperties = {};
     siteObj.forEach(function (_siteObj) {
-      switch(siteName) {
+      switch (siteName) {
         case 'falcon-startup.properties':
         case 'falcon-runtime.properties':
         case 'pig-properties':
@@ -1787,10 +1789,10 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       console.log("No NameNode Host available.  This is expected if you're using GLUSTERFS rather than HDFS.");
     }
 
-    var hostProperties = this.get('hostComponentsmapping').filter(function(h) {
+    var hostProperties = this.get('hostComponentsmapping').filter(function (h) {
       return h.serviceUseThis.contains(serviceName) || h.serviceName == serviceName;
     });
-    hostProperties.forEach(function(h) {
+    hostProperties.forEach(function (h) {
       this.setHostForService(h.serviceName, h.componentName, h.hostProperty, h.m);
     }, this);
 
@@ -1815,7 +1817,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * @param {Boolean} multiple - true if can be more than one component
    * @method setHostForService
    */
-  setHostForService: function(serviceName, componentName, hostProperty, multiple) {
+  setHostForService: function (serviceName, componentName, hostProperty, multiple) {
     var globalConfigs = this.get('globalConfigs');
     var serviceConfigs = this.get('serviceConfigs').findProperty('serviceName', serviceName).get('configs');
     var hostConfig = serviceConfigs.findProperty('name', hostProperty);
@@ -1832,7 +1834,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * @return {String|Array|Boolean} hostName|hostNames|false if missing component
    * @method getMasterComponentHostValue
    */
-  getMasterComponentHostValue: function(componentName, multiple) {
+  getMasterComponentHostValue: function (componentName, multiple) {
     var components = this.get('content.hostComponents').filterProperty('componentName', componentName);
     if (components.length > 0) {
       return multiple ? components.mapProperty('hostName') : components[0].get('hostName');
@@ -1877,15 +1879,15 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * @method restartAllStaleConfigComponents
    * @return App.showConfirmationFeedBackPopup
    */
-  restartAllStaleConfigComponents: function() {
+  restartAllStaleConfigComponents: function () {
     var self = this;
     var serviceDisplayName = this.get('content.displayName');
     var bodyMessage = Em.Object.create({
       confirmMsg: Em.I18n.t('services.service.restartAll.confirmMsg').format(serviceDisplayName),
       confirmButton: Em.I18n.t('services.service.restartAll.confirmButton'),
-      additionalWarningMsg: this.get('content.passiveState') === 'OFF' ? Em.I18n.t('services.service.restartAll.warningMsg.turnOnMM').format(serviceDisplayName): null
+      additionalWarningMsg: this.get('content.passiveState') === 'OFF' ? Em.I18n.t('services.service.restartAll.warningMsg.turnOnMM').format(serviceDisplayName) : null
     });
-    return App.showConfirmationFeedBackPopup(function(query) {
+    return App.showConfirmationFeedBackPopup(function (query) {
       var selectedService = self.get('content.id');
       batchUtils.restartAllServiceHostComponents(selectedService, true, query);
     }, bodyMessage);
@@ -1895,7 +1897,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * trigger launchHostComponentRollingRestart(batchUtils)
    * @method rollingRestartStaleConfigSlaveComponents
    */
-  rollingRestartStaleConfigSlaveComponents: function(componentName) {
+  rollingRestartStaleConfigSlaveComponents: function (componentName) {
     batchUtils.launchHostComponentRollingRestart(componentName.context, this.get('content.displayName'), this.get('content.passiveState') === "ON", true);
   },
 
@@ -1903,9 +1905,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * trigger showItemsShouldBeRestarted popup with hosts that requires resetart
    * @method showHostsShouldBeRestarted
    */
-  showHostsShouldBeRestarted: function() {
+  showHostsShouldBeRestarted: function () {
     var hosts = [];
-    for(var hostName in this.get('content.restartRequiredHostsAndComponents')) {
+    for (var hostName in this.get('content.restartRequiredHostsAndComponents')) {
       hosts.push(hostName);
     }
     var hostsText = hosts.length == 1 ? Em.I18n.t('common.host') : Em.I18n.t('common.hosts');
@@ -1917,14 +1919,14 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * trigger showItemsShouldBeRestarted popup with components that requires resetart
    * @method showComponentsShouldBeRestarted
    */
-  showComponentsShouldBeRestarted: function() {
+  showComponentsShouldBeRestarted: function () {
     var rhc = this.get('content.restartRequiredHostsAndComponents');
     var hostsComponets = [];
     var componentsObject = {};
-    for(var hostName in rhc) {
-      rhc[hostName].forEach(function(hostComponent) {
+    for (var hostName in rhc) {
+      rhc[hostName].forEach(function (hostComponent) {
         hostsComponets.push(hostComponent);
-        if(componentsObject[hostComponent] != undefined) {
+        if (componentsObject[hostComponent] != undefined) {
           componentsObject[hostComponent]++;
         } else {
           componentsObject[hostComponent] = 1;
@@ -1932,7 +1934,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       })
     }
     var componentsList = [];
-    for( var obj in componentsObject) {
+    for (var obj in componentsObject) {
       var componentDisplayName = (componentsObject[obj] > 1) ? obj + 's' : obj;
       componentsList.push(componentsObject[obj] + ' ' + componentDisplayName);
     }
@@ -1941,22 +1943,22 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     this.showItemsShouldBeRestarted(hostsComponets, Em.I18n.t('service.service.config.restartService.shouldBeRestarted').format(componentsText));
   },
 
-  showItemsShouldBeRestarted: function(content, header) {
+  showItemsShouldBeRestarted: function (content, header) {
     App.ModalPopup.show({
       content: content,
       header: header,
       bodyClass: Em.View.extend({
         templateName: require('templates/common/selectable_popup'),
         textareaVisible: false,
-        textTrigger: function() {
+        textTrigger: function () {
           this.set('textareaVisible', !this.get('textareaVisible'));
         },
-        putContentToTextarea: function() {
+        putContentToTextarea: function () {
           var content = this.get('parentView.content');
           if (this.get('textareaVisible')) {
             var wrapper = $(".task-detail-log-maintext");
             $('.task-detail-log-clipboard').html(content).width(wrapper.width()).height(wrapper.height());
-            Em.run.next(function() {
+            Em.run.next(function () {
               $('.task-detail-log-clipboard').select();
             });
           }
@@ -1971,7 +1973,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * @param {object} serviceConfigProperty - config property object
    * @method addOverrideProperty
    */
-  addOverrideProperty: function(serviceConfigProperty) {
+  addOverrideProperty: function (serviceConfigProperty) {
     var overrides = serviceConfigProperty.get('overrides');
     if (!overrides) {
       overrides = [];
@@ -2013,7 +2015,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       }),
       classNames: ['sixty-percent-width-modal', 'manage-configuration-group-popup'],
       primary: Em.I18n.t('common.save'),
-      onPrimary: function() {
+      onPrimary: function () {
         var modifiedConfigGroups = this.get('subViewController.hostsModifiedConfigGroups');
         // Save modified config-groups
         if (!!controller) {
@@ -2083,7 +2085,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
             runNextQuery();
           }
         };
-       runNextQuery();
+        runNextQuery();
       },
       onSecondary: function () {
         this.hide();
@@ -2113,11 +2115,11 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         }
       },
 
-      updateButtons: function(){
+      updateButtons: function () {
         var modified = this.get('subViewController.isHostsModified');
         this.set('disablePrimary', !modified);
       }.observes('subViewController.isHostsModified'),
-      secondary : Em.I18n.t('common.cancel'),
+      secondary: Em.I18n.t('common.cancel'),
       didInsertElement: Em.K
     });
   },
@@ -2141,7 +2143,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * Are some unsaved changes available
    * @returns {boolean}
    */
-  hasUnsavedChanges: function() {
+  hasUnsavedChanges: function () {
     return this.get('hash') != this.getHash();
   },
 
@@ -2158,7 +2160,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       body: Em.I18n.t('services.service.config.exitPopup.body'),
       footerClass: Ember.View.extend({
         templateName: require('templates/main/service/info/save_popup_footer'),
-        isSaveDisabled: function() {
+        isSaveDisabled: function () {
           return self.get('isSubmitDisabled');
         }.property()
       }),
