@@ -64,7 +64,6 @@ App.ReassignMasterWizardStep2Controller = App.WizardStep5Controller.extend({
 
   rebalanceSingleComponentHosts:function (componentName) {
     var currentComponents = this.get("selectedServicesMasters").filterProperty("component_name", componentName),
-      componentHosts = currentComponents.mapProperty("selectedHost"),
       availableComponentHosts = [],
       preparedAvailableHosts = null;
     this.get("hosts").forEach(function (item) {
@@ -83,20 +82,10 @@ App.ReassignMasterWizardStep2Controller = App.WizardStep5Controller.extend({
       item.set("availableHosts", preparedAvailableHosts.sortProperty('host_name'));
     }, this);
   },
-  /**
-   * Determines if hostName is valid for component:
-   * <ul>
-   *  <li>host should have only one component with <code>componentName</code></li>
-   * </ul>
-   * @param {string} componentName
-   * @param {string} selectedHost
-   * @returns {boolean} true - valid, false - invalid
-   * @method isHostNameValid
-   */
-  isHostNameValid: function (componentName, selectedHost) {
-    var isValid = this._super(componentName, selectedHost);
 
-    if (isValid) {
+  getIsSubmitDisabled: function () {
+    var isSubmitDisabled = this._super();
+    if (!isSubmitDisabled) {
       var reassigned = 0;
       var existedComponents = App.HostComponent.find().filterProperty('componentName', this.get('content.reassign.component_name')).mapProperty('hostName');
       var newComponents = this.get('servicesMasters').mapProperty('selectedHost');
@@ -105,9 +94,10 @@ App.ReassignMasterWizardStep2Controller = App.WizardStep5Controller.extend({
           reassigned++;
         }
       }, this);
-      isValid = !(reassigned !== 1);
+      isSubmitDisabled = reassigned !== 1;
     }
-    return isValid;
-  }
+    this.set('submitDisabled', isSubmitDisabled);
+    return isSubmitDisabled;
+  }.observes('servicesMasters.@each.selectedHost', 'servicesMasters.@each.isHostNameValid')
 });
 
