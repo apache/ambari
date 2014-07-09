@@ -222,6 +222,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   setConfigGroups: function (data, opt, params) {
     var serviceConfigsDef = params.serviceConfigsDef;
     var serviceName = this.get('content.serviceName');
+    var displayName = this.get('content.displayName');
     console.debug("loadServiceConfigs(): data=", data);
     // Create default configuration group
     var selectedConfigGroup;
@@ -271,7 +272,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       this.set('configGroups', configGroups);
     }
     var defaultConfigGroup = App.ConfigGroup.create({
-      name: App.Service.DisplayNames[serviceName] + " Default",
+      name: displayName + " Default",
       description: "Default cluster level " + serviceName + " configuration",
       isDefault: true,
       hosts: {

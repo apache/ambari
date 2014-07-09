@@ -159,8 +159,9 @@ App.ManageConfigGroupsController = Em.Controller.extend({
     var usedHosts = [];
     var unusedHosts = [];
     var serviceName = this.get('serviceName');
+    var serviceDisplayName =  this.get('displayName');
     var defaultConfigGroup = App.ConfigGroup.create({
-      name: App.Service.DisplayNames[serviceName] + " Default",
+      name: serviceDisplayName + " Default",
       description: "Default cluster level " + this.get('serviceName') + " configuration",
       isDefault: true,
       parentConfigGroup: null,
@@ -273,7 +274,7 @@ App.ManageConfigGroupsController = Em.Controller.extend({
     var availableHosts = this.get('selectedConfigGroup.availableHosts');
     var popupDescription = {
       header: Em.I18n.t('hosts.selectHostsDialog.title'),
-      dialogMessage: Em.I18n.t('hosts.selectHostsDialog.message').format(App.Service.DisplayNames[this.get('serviceName')])
+      dialogMessage: Em.I18n.t('hosts.selectHostsDialog.message').format(this.get('displayName'))
     };
     hostsManagement.launchHostsSelectionDialog(availableHosts, [], false, this.get('componentsForFilter'), this.addHostsCallback.bind(this), popupDescription);
   },

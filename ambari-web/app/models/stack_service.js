@@ -125,6 +125,16 @@ App.StackService = DS.Model.extend(App.ServiceModelMixin, {
     return serviceComponents.someProperty('isClient');
   }.property('serviceName'),
 
+  hasMaster: function () {
+    var serviceComponents = this.get('serviceComponents');
+    return serviceComponents.someProperty('isMaster');
+  }.property('serviceName'),
+
+  hasSlave: function () {
+    var serviceComponents = this.get('serviceComponents');
+    return serviceComponents.someProperty('isSlave');
+  }.property('serviceName'),
+
   isClientOnlyService: function () {
     var serviceComponents = this.get('serviceComponents');
     return serviceComponents.everyProperty('isClient');

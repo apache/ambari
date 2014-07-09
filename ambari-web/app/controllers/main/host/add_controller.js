@@ -257,20 +257,19 @@ App.AddHostController = App.WizardController.extend({
    * @param selectedServices
    */
   loadServiceConfigGroupsBySlaves: function (selectedServices) {
-    var componentServiceMap = App.QuickDataMapper.componentServiceMap();
     var slaveComponentHosts = this.get('content.slaveComponentHosts');
     if (slaveComponentHosts && slaveComponentHosts.length > 0) {
       slaveComponentHosts.forEach(function (slave) {
         if (slave.hosts.length > 0) {
           if (slave.componentName !== "CLIENT") {
-            var service = componentServiceMap[slave.componentName];
+            var service = App.StackServiceComponent.find(slave.componentName).get('stackService');
             var configGroups = this.get('content.configGroups').filterProperty('ConfigGroup.tag', service);
             var configGroupsNames = configGroups.mapProperty('ConfigGroup.group_name');
-            var defaultGroupName = App.Service.DisplayNames[service] + ' Default';
+            var defaultGroupName = service.get('displayName') + ' Default';
             configGroupsNames.unshift(defaultGroupName);
             selectedServices.push({
-              serviceId: service,
-              displayName: App.Service.DisplayNames[service],
+              serviceId: service.get('serviceName'),
+              displayName: service.get('displayName'),
               hosts: slave.hosts.mapProperty('hostName'),
               configGroupsNames: configGroupsNames,
               configGroups: configGroups,
@@ -289,7 +288,6 @@ App.AddHostController = App.WizardController.extend({
    * @param selectedServices
    */
   loadServiceConfigGroupsByClients: function (selectedServices) {
-    var componentServiceMap = App.QuickDataMapper.componentServiceMap();
     var slaveComponentHosts = this.get('content.slaveComponentHosts');
     var clients = this.get('content.clients');
     var client = slaveComponentHosts && slaveComponentHosts.findProperty('componentName', 'CLIENT');
@@ -297,18 +295,19 @@ App.AddHostController = App.WizardController.extend({
     if (clients && selectedClientHosts && clients.length > 0 && selectedClientHosts.length > 0) {
       this.loadClients();
       clients.forEach(function (client) {
-        var service = componentServiceMap[client.component_name];
-        var serviceMatch = selectedServices.findProperty('serviceId', service);
+        var service = App.StackServiceComponent.find(client.component_name).get('stackService');
+        var serviceName = service.get('serviceName');
+        var serviceMatch = selectedServices.findProperty('serviceId', serviceName);
         if (serviceMatch) {
           serviceMatch.hosts = serviceMatch.hosts.concat(selectedClientHosts).uniq();
         } else {
-          var configGroups = this.get('content.configGroups').filterProperty('ConfigGroup.tag', service);
+          var configGroups = this.get('content.configGroups').filterProperty('ConfigGroup.tag', serviceName);
           var configGroupsNames = configGroups.mapProperty('ConfigGroup.group_name').sort();
-          var defaultGroupName = App.Service.DisplayNames[service] + ' Default';
+          var defaultGroupName = service.get('displayName') + ' Default';
           configGroupsNames.unshift(defaultGroupName);
           selectedServices.push({
-            serviceId: service,
-            displayName: App.Service.DisplayNames[service],
+            serviceId: serviceName,
+            displayName: service.get('displayName'),
             hosts: selectedClientHosts,
             configGroupsNames: configGroupsNames,
             configGroups: configGroups,

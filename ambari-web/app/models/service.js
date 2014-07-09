@@ -83,10 +83,6 @@ App.Service = DS.Model.extend(App.ServiceModelMixin, {
     return typeServiceMap[this.get('serviceName')] || [];
   }.property('serviceName'),
 
-  displayName: function () {
-    return App.Service.DisplayNames[this.get('serviceName')];
-  }.property('serviceName'),
-
   /**
    * For each host-component, if the desired_configs dont match the
    * actual_configs, then a restart is required. Except for Global site
@@ -175,29 +171,6 @@ App.Service.Health = {
     }
     return 'none';
   }
-};
-
-App.Service.DisplayNames = {
-  'HDFS': 'HDFS',
-  'GLUSTERFS': 'GLUSTERFS',
-  'YARN': 'YARN',
-  'MAPREDUCE': 'MapReduce',
-  'MAPREDUCE2': 'MapReduce2',
-  'TEZ': 'Tez',
-  'HBASE': 'HBase',
-  'OOZIE': 'Oozie',
-  'HIVE': 'Hive',
-  'HCATALOG': 'HCat',
-  'ZOOKEEPER': 'ZooKeeper',
-  'PIG': 'Pig',
-  'SQOOP': 'Sqoop',
-  'WEBHCAT': 'WebHCat',
-  'GANGLIA': 'Ganglia',
-  'NAGIOS': 'Nagios',
-  'HUE': 'Hue',
-  'FLUME': 'Flume',
-  'FALCON': 'Falcon',
-  'STORM': 'Storm'
 };
 
 /**

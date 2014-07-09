@@ -114,10 +114,9 @@ App.AddServiceController = App.WizardController.extend({
         item.set('isSelected', isSelected);
         item.set('isInstalled', isInstalled);
       },this);
-      var serviceNames = App.StackService.find().filterProperty('isSelected', true).filterProperty('isInstalled', false).mapProperty('serviceName');
-      console.log('selected services ', serviceNames);
+      var isServiceWithSlave = App.StackService.find().filterProperty('isSelected').filterProperty('hasSlave').filterProperty('isInstalled', false).mapProperty('serviceName').length;
 
-      this.set('content.skipSlavesStep', !serviceNames.contains('MAPREDUCE') && !serviceNames.contains('HBASE')  && !serviceNames.contains('STORM') && !serviceNames.contains('YARN'));
+      this.set('content.skipSlavesStep', !isServiceWithSlave);
       if (this.get('content.skipSlavesStep')) {
         this.get('isStepDisabled').findProperty('step', 3).set('value', this.get('content.skipSlavesStep'));
       }
@@ -130,7 +129,6 @@ App.AddServiceController = App.WizardController.extend({
    * @param stepController App.WizardStep4Controller
    */
   saveServices: function (stepController) {
-    var serviceNames = [];
     var services = {
       selectedServices: [],
       installedServices: []
@@ -143,8 +141,8 @@ App.AddServiceController = App.WizardController.extend({
 
     this.set('content.selectedServiceNames', selectedServices);
     this.setDBProperty('selectedServiceNames',selectedServices);
-
-    this.set('content.skipSlavesStep', !serviceNames.contains('MAPREDUCE') && !serviceNames.contains('HBASE') && !serviceNames.contains('STORM') && !serviceNames.contains('YARN'));
+    var isServiceWithSlave = stepController.get('content').filterProperty('isSelected').filterProperty('hasSlave').filterProperty('isInstalled', false).mapProperty('serviceName').length;
+    this.set('content.skipSlavesStep', !isServiceWithSlave);
     if (this.get('content.skipSlavesStep')) {
       this.get('isStepDisabled').findProperty('step', 3).set('value', this.get('content.skipSlavesStep'));
     }

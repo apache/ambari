@@ -103,9 +103,18 @@ module.exports = Em.Application.create({
       return App.StackService.find().filterProperty('hasClient').mapProperty('serviceName');
     }.property('App.router.clusterController.isLoaded'),
 
+    hasMaster: function () {
+      return App.StackService.find().filterProperty('hasMaster').mapProperty('serviceName');
+    }.property('App.router.clusterController.isLoaded'),
+
+    hasSlave: function () {
+      return App.StackService.find().filterProperty('hasSlave').mapProperty('serviceName');
+    }.property('App.router.clusterController.isLoaded'),
+
     noConfigTypes: function () {
       return App.StackService.find().filterProperty('isNoConfigTypes').mapProperty('serviceName');
     }.property('App.router.clusterController.isLoaded'),
+
     monitoring: function () {
       return App.StackService.find().filterProperty('isMonitoringService').mapProperty('serviceName');
     }.property('App.router.clusterController.isLoaded')

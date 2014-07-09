@@ -199,7 +199,6 @@ module.exports = {
      */
     var componentToHostsMap = {};
     var hosts = [];
-    var componentServiceMap = App.QuickDataMapper.componentServiceMap();
     hostComponentsList.forEach(function(hc) {
       var hostName = hc.get('hostName');
       var componentName = hc.get('componentName');
@@ -213,15 +212,17 @@ module.exports = {
     for (var componentName in componentToHostsMap) {
       if (componentToHostsMap.hasOwnProperty(componentName)) {
         resource_filters.push({
-          service_name: componentServiceMap[componentName],
+          service_name: App.StackServiceComponent.find(componentName).get('serviceName'),
           component_name: componentName,
           hosts: componentToHostsMap[componentName].join(",")
         });
       }
     }
     if (hostComponentsList.length > 0) {
-      var operation_level = this.getOperationLevelobject(level, componentServiceMap[hostComponentsList[0].get("componentName")],
-        hostComponentsList[0].get("componentName"));
+      var serviceComponentName = hostComponentsList[0].get("componentName");
+      var serviceName = App.StackServiceComponent.find(serviceComponentName).get('serviceName');
+      var operation_level = this.getOperationLevelobject(level, serviceName,
+        serviceComponentName);
     }
 
 
@@ -415,7 +416,7 @@ module.exports = {
               host.host_components.forEach(function(hostComponent){
                 wrappedHostComponents.push(Em.Object.create({
                   componentName: hostComponent.HostRoles.component_name,
-                  serviceName: App.QuickDataMapper.componentServiceMap()[hostComponent.HostRoles.component_name],
+                  serviceName: App.StackServiceComponent.find(hostComponent.HostRoles.component_name).get('serviceName'),
                   hostName: host.Hosts.host_name,
                   staleConfigs: hostComponent.HostRoles.stale_configs,
                   hostPassiveState: host.Hosts.maintenance_state,

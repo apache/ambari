@@ -44,6 +44,11 @@ App.WizardStep7Controller = Em.Controller.extend({
   slaveHostToGroup: null,
 
   /**
+   * used in services_config.js view to mark a config with security icon
+   */
+  secureConfigs: require('data/secure_mapping'),
+
+  /**
    * If miscConfigChange Modal is shown
    * @type {bool}
    */
@@ -300,7 +305,7 @@ App.WizardStep7Controller = Em.Controller.extend({
       }
     }
     var defaultConfigGroup = App.ConfigGroup.create({
-      name: App.Service.DisplayNames[serviceName] + " Default",
+      name: App.format.role(serviceName) + " Default",
       description: "Default cluster level " + serviceName + " configuration",
       isDefault: true,
       hosts: defaultConfigGroupHosts,
@@ -910,7 +915,7 @@ App.WizardStep7Controller = Em.Controller.extend({
       if (!serviceRawGroups.length) {
         service.set('configGroups', [
           App.ConfigGroup.create({
-            name: App.Service.DisplayNames[service.serviceName] + " Default",
+            name: service.displayName + " Default",
             description: "Default cluster level " + service.serviceName + " configuration",
             isDefault: true,
             hosts: Em.copy(hosts),

@@ -28,6 +28,7 @@ App.MainServiceItemView = Em.View.extend({
     var allMasters = this.get('controller.content.hostComponents').filterProperty('isMaster').mapProperty('componentName').uniq();
     var disabled = this.get('controller.isStopDisabled');
     var serviceName = service.get('serviceName');
+    var displayName = service.get('displayName');
     var disableRefreshConfgis = !service.get('isRestartRequired');
 
     if (this.get('controller.isClientsOnlyService')) {
@@ -76,8 +77,8 @@ App.MainServiceItemView = Em.View.extend({
           options.push({action: 'runSmokeTest', cssClass: 'icon-thumbs-up-alt', 'label': Em.I18n.t('services.service.actions.run.smoke'), disabled:disabled});
       }
       var requestLabel = service.get('passiveState') === "OFF" ?
-          Em.I18n.t('passiveState.turnOnFor').format(App.Service.DisplayNames[serviceName]) :
-          Em.I18n.t('passiveState.turnOffFor').format(App.Service.DisplayNames[serviceName]);
+          Em.I18n.t('passiveState.turnOnFor').format(displayName) :
+          Em.I18n.t('passiveState.turnOffFor').format(displayName);
       var passiveLabel = service.get('passiveState') === "OFF" ?
           Em.I18n.t('passiveState.turnOn') :
           Em.I18n.t('passiveState.turnOff');

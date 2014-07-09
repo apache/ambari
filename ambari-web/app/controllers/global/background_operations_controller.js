@@ -283,7 +283,7 @@ App.BackgroundOperationsController = Em.Controller.extend({
           if (service === 'ALL_SERVICES') {
             parsedRequestContext = Em.I18n.t("requestInfo." + contextCommand.toLowerCase()).format(Em.I18n.t('common.allServices'));
           } else {
-            parsedRequestContext = Em.I18n.t("requestInfo." + contextCommand.toLowerCase()).format(App.Service.DisplayNames[service]);
+            parsedRequestContext = Em.I18n.t("requestInfo." + contextCommand.toLowerCase()).format(App.format.role(service));
           }
           break;
         case "ROLLING-RESTART":

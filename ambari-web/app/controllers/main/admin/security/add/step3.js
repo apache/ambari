@@ -256,7 +256,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
 
       if (hostComponents.someProperty('componentName', component.componentName)) {
         var configs = this.get('content.serviceConfigProperties');
-        var serviceName = App.QuickDataMapper.componentServiceMap()[component.componentName];
+        var serviceName = App.StackServiceComponent.find(component.componentName).get('serviceName');
         var serviceConfigs = configs.filterProperty('serviceName', serviceName);
         var servicePrincipal = serviceConfigs.findProperty('name', component.principal);
         var serviceKeytabPath = serviceConfigs.findProperty('name', component.keytab).value;

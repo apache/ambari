@@ -237,14 +237,14 @@ App.MainHostSummaryView = Em.View.extend({
     if (!App.supports.deleteHost) {
       return [];
     }
-    var componentServiceMap = App.QuickDataMapper.componentServiceMap();
-    var allClients = App.StackServiceComponent.find().filterProperty('isClient',true).mapProperty('componentName');
+    var clientComponents = App.StackServiceComponent.find().filterProperty('isClient');
     var installedServices = this.get('installedServices');
     var installedClients = this.get('clients').mapProperty('componentName');
-    return allClients.filter(function(componentName) {
+    var installableClients = clientComponents.filter(function(componentName) {
       // service for current client is installed but client isn't installed on current host
-      return installedServices.contains(componentServiceMap[componentName]) && !installedClients.contains(componentName);
+      return installedServices.contains(clientComponents.get('serviceName')) && !installedClients.contains(clientComponents.get('componentName'));
     });
+    return installableClients.mapProperty('componentName');
   }.property('content.hostComponents.length', 'installedServices.length', 'App.supports.deleteHost'),
 
   /**
@@ -256,13 +256,12 @@ App.MainHostSummaryView = Em.View.extend({
     var self = this;
     var installableClients = this.get('installableClientComponents');
     var installedComponents = this.get('content.hostComponents').mapProperty('componentName');
-    var addableToHostComponents = App.get('components.addableToHost');
+    var addableToHostComponents = App.StackServiceComponent.find().filterProperty('isAddableToHost');
     var installedServices = this.get('installedServices');
-    var componentServiceMap = App.QuickDataMapper.componentServiceMap();
 
     addableToHostComponents.forEach(function(addableComponent) {
-      if(installedServices.contains(componentServiceMap[addableComponent]) && !installedComponents.contains(addableComponent)) {
-        components.pushObject(self.addableComponentObject.create({'componentName': addableComponent, 'serviceName': componentServiceMap[addableComponent]}));
+      if(installedServices.contains(addableComponent.get('serviceName')) && !installedComponents.contains(addableComponent.get('componentName'))) {
+        components.pushObject(self.addableComponentObject.create({'componentName': addableComponent.get('componentName'), 'serviceName': addableComponent.get('serviceName')}));
       }
     });
     if (installableClients.length > 0) {

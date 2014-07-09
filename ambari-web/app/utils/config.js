@@ -1238,7 +1238,7 @@ App.config = Em.Object.create({
     availableConfigGroups = result;
     var selectedConfigGroup = availableConfigGroups && availableConfigGroups.length > 0 ?
       availableConfigGroups[0] : null;
-    var serviceName = App.Service.DisplayNames[serviceId];
+    var serviceName = App.format.role(serviceId);
     App.ModalPopup.show({
       classNames: [ 'sixty-percent-width-modal' ],
       header: Em.I18n.t('config.group.selection.dialog.title').format(serviceName),
