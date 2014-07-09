@@ -33,6 +33,7 @@ App.QuickViewLinks = Em.View.extend({
   },
 
   loadTagsSuccess: function (data) {
+    this.get('actualTags').clear();
     var tags = [];
     for (var prop in data.Clusters.desired_configs) {
       tags.push(Em.Object.create({
@@ -40,7 +41,7 @@ App.QuickViewLinks = Em.View.extend({
         tagName: data.Clusters.desired_configs[prop]['tag']
       }));
     }
-    this.set('actualTags', tags);
+    this.get('actualTags').pushObjects(tags);
     this.setConfigProperties();
     this.getQuickLinksHosts();
   },
@@ -85,14 +86,13 @@ App.QuickViewLinks = Em.View.extend({
   },
 
   setConfigProperties: function () {
-    this.set('configProperties', []);
+    this.get('configProperties').clear();
     var requiredSiteNames = this.get('requiredSiteNames');
     var tags = this.get('actualTags').filter(function (tag) {
       return requiredSiteNames.contains(tag.siteName);
     });
     var data = App.router.get('configurationController').getConfigsByTags(tags);
-    this.set('configProperties', data);
-
+    this.get('configProperties').pushObjects(data);
   },
 
   ambariProperties: function () {
@@ -263,7 +263,7 @@ App.QuickViewLinks = Em.View.extend({
     var properties = this.ambariProperties();
     var configProperties = this.get('configProperties');
     var hadoopSslEnabled = false;
-    if (configProperties) {
+    if (configProperties && configProperties.length > 0) {
       var site = configProperties.findProperty('type', 'core-site');
       site.properties['hadoop.ssl.enabled'] && site.properties['hadoop.ssl.enabled'] === 'true' ? hadoopSslEnabled = true : null;
     }
