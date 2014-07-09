@@ -177,16 +177,22 @@ all_ping_ports = config['clusterHostInfo']['all_ping_ports']
 if System.get_instance().os_family == "suse":
   nagios_p1_pl = "/usr/lib/nagios/p1.pl"
   htpasswd_cmd = "htpasswd2"
-  nagios_httpd_config_file = format("/etc/apache2/conf.d/nagios.conf")
+  web_conf_dir = "/etc/apache2/conf.d"
 elif System.get_instance().os_family == "debian":
   nagios_p1_pl = "/usr/lib/nagios3/p1.pl"
   htpasswd_cmd = "htpasswd"
-  nagios_httpd_config_file = format("/etc/apache2/conf.d/nagios3.conf")
+  web_conf_dir = "/etc/apache2/conf.d"
 elif System.get_instance().os_family == "redhat":
   nagios_p1_pl = "/usr/bin/p1.pl"
   htpasswd_cmd = "htpasswd"
-  nagios_httpd_config_file = format("/etc/httpd/conf.d/nagios.conf")
-  
+  web_conf_dir = "/etc/httpd/conf.d"
+
+nagios_httpd_config_file = format("{web_conf_dir}/{nagios_service_name}.conf")
+hdp_mon_nagios_addons_path = format("{web_conf_dir}/hdp_mon_nagios_addons.conf")
+
+ambarinagios_php_dir = "/usr/share/hdp/nagios/"
+ambarinagios_php_filename = "nagios_alerts.php"
+
 nagios_user = config['configurations']['global']['nagios_user']
 nagios_group = config['configurations']['global']['nagios_group']
 nagios_web_login = config['configurations']['global']['nagios_web_login']

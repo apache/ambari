@@ -104,6 +104,11 @@ class TestNagiosServer(RMFTestCase):
                               group='nagios',
                               recursive=True
     )
+    self.assertResourceCalled('Directory', '/usr/share/hdp/nagios/',
+                              owner='nagios',
+                              group='nagios',
+                              recursive=True
+    )
     self.assertResourceCalled('Directory', '/var/log/nagios',
                               owner='nagios',
                               group='nagios',
@@ -259,6 +264,10 @@ class TestNagiosServer(RMFTestCase):
                               content=StaticFile('check_checkpoint_time.py'),
                               mode=0755
     )
+    self.assertResourceCalled('File', '/usr/lib64/nagios/plugins/sys_logger.py',
+        content = StaticFile('sys_logger.py'),
+        mode = 0755,
+    )
     self.assertResourceCalled('Execute',
                               'htpasswd2 -c -b  /etc/nagios/htpasswd.users nagiosadmin \'!`"\'"\'"\' 1\'',
                               not_if="grep nagiosadmin /etc/nagios/htpasswd.users"
@@ -273,6 +282,12 @@ class TestNagiosServer(RMFTestCase):
     self.assertResourceCalled('File', '/etc/nagios/command.cfg',
                               owner='nagios',
                               group='nagios'
+    )
+    self.assertResourceCalled('File', '/usr/share/hdp/nagios//nagios_alerts.php',
+        content = StaticFile('nagios_alerts.php'),
+    )
+    self.assertResourceCalled('File', '/etc/apache2/conf.d/hdp_mon_nagios_addons.conf',
+        content = StaticFile('hdp_mon_nagios_addons.conf'),
     )
     self.assertResourceCalled('File', '/var/nagios/ignore.dat',
                               owner='nagios',

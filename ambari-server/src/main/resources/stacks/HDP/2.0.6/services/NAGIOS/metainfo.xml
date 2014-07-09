@@ -88,9 +88,6 @@
             <package>
               <name>fping</name>
             </package>
-            <package>
-              <name>hdp_mon_nagios_addons</name>
-            </package>
           </packages>
         </osSpecific>
         <osSpecific>

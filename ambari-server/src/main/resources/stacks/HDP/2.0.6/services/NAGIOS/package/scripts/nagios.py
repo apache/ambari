@@ -47,7 +47,7 @@ def nagios():
     recursive = True
   )
 
-  Directory( [params.nagios_var_dir, params.check_result_path, params.nagios_rw_dir],
+  Directory( [params.nagios_var_dir, params.check_result_path, params.nagios_rw_dir, params.ambarinagios_php_dir],
     owner = params.nagios_user,
     group = params.nagios_group,
     recursive = True
@@ -66,6 +66,14 @@ def nagios():
   File( format("{conf_dir}/command.cfg"),
     owner = params.nagios_user,
     group = params.nagios_group
+  )
+
+  File( format("{ambarinagios_php_dir}/{ambarinagios_php_filename}"),
+    content = StaticFile(params.ambarinagios_php_filename),
+  )
+
+  File( params.hdp_mon_nagios_addons_path,
+    content = StaticFile("hdp_mon_nagios_addons.conf"),
   )
 
   File(format("{nagios_var_dir}/ignore.dat"),

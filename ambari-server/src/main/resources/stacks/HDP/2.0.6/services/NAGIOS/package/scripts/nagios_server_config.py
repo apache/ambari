@@ -68,7 +68,7 @@ def nagios_server_config():
   nagios_server_check( 'check_wrapper.sh')
   nagios_server_check( 'hdp_nagios_init.php')
   nagios_server_check( 'check_checkpoint_time.py' )
-
+  nagios_server_check( 'sys_logger.py' )
 
 def nagios_server_configfile(
   name,
