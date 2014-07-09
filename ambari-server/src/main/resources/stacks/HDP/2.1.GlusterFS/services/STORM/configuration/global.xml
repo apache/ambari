@@ -20,7 +20,7 @@
  */
 -->
 
-<configuration>
+<configuration supports_final="false">
   <property>
     <name>storm_user</name>
     <value>storm</value>

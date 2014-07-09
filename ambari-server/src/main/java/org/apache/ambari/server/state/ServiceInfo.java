@@ -32,6 +32,7 @@ import javax.xml.bind.annotation.*;
 @XmlAccessorType(XmlAccessType.FIELD)
 @JsonFilter("propertiesfilter")
 public class ServiceInfo {
+
   /**
    * Format version. Added at schema ver 2
    */
@@ -57,6 +58,9 @@ public class ServiceInfo {
   @XmlElementWrapper(name="configuration-dependencies")
   @XmlElement(name="config-type")
   private List<String> configDependencies;
+
+  @XmlTransient
+  private Map<String, Map<String, Map<String, String>>> configTypes;
 
   @JsonIgnore
   private Boolean monitoringService;
@@ -212,12 +216,14 @@ public class ServiceInfo {
         getConfigTypes());
   }
   
-  public List<String> getConfigTypes() {
-    return configDependencies != null ? configDependencies :
-      Collections.unmodifiableList(new ArrayList<String>());
+  public Map<String, Map<String, Map<String, String>>> getConfigTypes() {
+    return configTypes;
   }
 
-  
+  public void setConfigTypes(Map<String, Map<String, Map<String, String>>> configTypes) {
+    this.configTypes = configTypes;
+  }
+
   /**
    * @param type the config type
    * @return <code>true</code> if the service defines the supplied type

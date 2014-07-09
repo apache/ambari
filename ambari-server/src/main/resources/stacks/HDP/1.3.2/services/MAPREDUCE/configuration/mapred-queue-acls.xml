@@ -19,7 +19,7 @@
 -->
 
 <!-- mapred-queue-acls.xml -->
-<configuration>
+<configuration supports_final="true">
 
 
 <!-- queue default -->

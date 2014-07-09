@@ -22,6 +22,7 @@ package org.apache.ambari.server.state;
 import org.apache.ambari.server.controller.StackConfigurationResponse;
 
 import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
 
 public class PropertyInfo {
   private String name;
@@ -31,6 +32,7 @@ public class PropertyInfo {
   private boolean deleted;
   private boolean requireInput;
   private PropertyType type = PropertyType.DEFAULT;
+  private boolean isFinal;
 
   public String getName() {
     return name;
@@ -66,7 +68,7 @@ public class PropertyInfo {
   
   public StackConfigurationResponse convertToResponse() {
     return new StackConfigurationResponse(getName(), getValue(),
-      getDescription() , getFilename(), isRequireInput(), getType().name());
+      getDescription() , getFilename(), isRequireInput(), getType().name(), isFinal());
   }
 
   public boolean isDeleted() {
@@ -75,6 +77,15 @@ public class PropertyInfo {
 
   public void setDeleted(boolean deleted) {
     this.deleted = deleted;
+  }
+
+  @XmlElement(name="final")
+  public boolean isFinal() {
+    return isFinal;
+  }
+
+  public void setFinal(boolean isFinal) {
+    this.isFinal = isFinal;
   }
 
   @XmlAttribute(name = "require-input")

@@ -21,7 +21,7 @@ limitations under the License.
 <!-- Edit templeton-site.xml to change settings for your local -->
 <!-- install. -->
 
-<configuration>
+<configuration supports_final="true">
 
   <property>
     <name>templeton.port</name>

@@ -18,10 +18,15 @@
 package org.apache.ambari.server.state.stack;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import javax.xml.bind.annotation.XmlAnyAttribute;
+import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.namespace.QName;
 
 import org.apache.ambari.server.state.PropertyInfo;
 
@@ -31,6 +36,9 @@ import org.apache.ambari.server.state.PropertyInfo;
 @XmlRootElement(name="configuration")
 public class ConfigurationXml {
   
+  @XmlAnyAttribute
+  private Map<QName, String> attributes = new HashMap<QName, String>();
+
   @XmlElement(name="property")
   private List<PropertyInfo> properties = new ArrayList<PropertyInfo>();
   
@@ -39,6 +47,10 @@ public class ConfigurationXml {
    */
   public List<PropertyInfo> getProperties() {
     return properties;
+  }
+
+  public Map<QName, String> getAttributes() {
+    return attributes;
   }
 
 }

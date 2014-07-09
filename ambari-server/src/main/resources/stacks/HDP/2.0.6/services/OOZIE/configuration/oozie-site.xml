@@ -17,7 +17,7 @@
   limitations under the License.
 -->
 
-<configuration>
+<configuration supports_final="true">
 
   <!--
       Refer to the oozie-default.xml file for the complete list of

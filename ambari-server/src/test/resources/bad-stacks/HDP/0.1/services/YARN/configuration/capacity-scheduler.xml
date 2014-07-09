@@ -1,5 +1,3 @@
-<?xml version="1.0"?>
-<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
 <!--
    Licensed to the Apache Software Foundation (ASF) under one or more
    contributor license agreements.  See the NOTICE file distributed with
@@ -16,5 +14,29 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 -->
-<configuration supports_final="true">
+
+<configuration supports_final="true" supports_deletable="false">
+
+  <property require-input="false">
+    <name>yarn.scheduler.capacity.maximum-applications</name>
+    <value>10000</value>
+    <description>Maximum number of applications that can be pending and running.</description>
+    <final>true</final>
+  </property>
+
+  <property>
+    <name>yarn.scheduler.capacity.maximum-am-resource-percent</name>
+    <value>0.2</value>
+    <deleted>true</deleted>
+    <description>Maximum percent of resources in the cluster.</description>
+    <final>false</final>
+  </property>
+
+  <property require-input="true">
+    <name>yarn.scheduler.capacity.root.queues</name>
+    <value>default</value>
+    <deleted>false</deleted>
+    <description>The queues at the this level (root is the root queue).</description>
+  </property>
+
 </configuration>

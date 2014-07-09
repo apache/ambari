@@ -20,7 +20,7 @@
  */
 -->
 
-<configuration>
+<configuration supports_final="false">
   <property>
     <name>flume_conf_dir</name>
     <value>/etc/flume/conf</value>

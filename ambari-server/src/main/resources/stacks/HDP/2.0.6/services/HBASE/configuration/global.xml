@@ -20,7 +20,7 @@
  */
 -->
 
-<configuration>
+<configuration supports_final="false">
   <property>
     <name>hbase_log_dir</name>
     <value>/var/log/hbase</value>

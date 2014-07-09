@@ -20,7 +20,7 @@
  */
 -->
 
-<configuration>
+<configuration supports_final="true">
   <property>
     <name>java.library.path</name>
     <value>/usr/local/lib:/opt/local/lib:/usr/lib</value>

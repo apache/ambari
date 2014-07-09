@@ -17,7 +17,7 @@
   limitations under the License.
 -->
 
-<configuration>
+<configuration supports_final="true">
   <property>
     <name>oozie.service.ELService.ext.functions.coord-job-submit-instances</name>
     <value>

@@ -41,6 +41,7 @@ public class StackConfigurationResourceProviderTest {
   private static final String PROPERTY_VALUE = "value";
   private static final String PROPERTY_DESC = "Desc";
   private static final String TYPE = "type.xml";
+  private static final Boolean FINAL = false;
 
   @Test
   public void testGetResources() throws Exception{
@@ -51,7 +52,7 @@ public class StackConfigurationResourceProviderTest {
 
     Set<StackConfigurationResponse> allResponse = new HashSet<StackConfigurationResponse>();
     
-    allResponse.add(new StackConfigurationResponse(PROPERTY_NAME, PROPERTY_VALUE, PROPERTY_DESC, TYPE));
+    allResponse.add(new StackConfigurationResponse(PROPERTY_NAME, PROPERTY_VALUE, PROPERTY_DESC, TYPE, FINAL));
    
     // set expectations
     expect(managementController.getStackConfigurations(
@@ -75,6 +76,7 @@ public class StackConfigurationResourceProviderTest {
     propertyIds.add(StackConfigurationResourceProvider.PROPERTY_VALUE_PROPERTY_ID);
     propertyIds.add(StackConfigurationResourceProvider.PROPERTY_DESCRIPTION_PROPERTY_ID);
     propertyIds.add(StackConfigurationResourceProvider.PROPERTY_TYPE_PROPERTY_ID);
+    propertyIds.add(StackConfigurationResourceProvider.PROPERTY_FINAL_PROPERTY_ID);
 
     // create the request
     Request request = PropertyHelper.getReadRequest(propertyIds);
@@ -91,11 +93,14 @@ public class StackConfigurationResourceProviderTest {
           resource.getPropertyValue(StackConfigurationResourceProvider.PROPERTY_DESCRIPTION_PROPERTY_ID);
       String propertyType = (String) 
           resource.getPropertyValue(StackConfigurationResourceProvider.PROPERTY_TYPE_PROPERTY_ID);
+      Boolean propertyIsFinal = (Boolean)
+          resource.getPropertyValue(StackConfigurationResourceProvider.PROPERTY_FINAL_PROPERTY_ID);
       
       Assert.assertEquals(PROPERTY_NAME, propertyName);
       Assert.assertEquals(PROPERTY_VALUE, propertyValue);
       Assert.assertEquals(PROPERTY_DESC, propertyDesc);
       Assert.assertEquals(TYPE, propertyType);
+      Assert.assertEquals(FINAL, propertyIsFinal);
 
     }
 

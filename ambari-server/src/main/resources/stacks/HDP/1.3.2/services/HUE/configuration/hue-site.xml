@@ -17,7 +17,7 @@
    limitations under the License.# limitations under the License.
 -->
 
-<configuration>
+<configuration supports_final="true">
   <!-- General Hue server configuration properties -->
   <property>
       <name>send_debug_messages</name>

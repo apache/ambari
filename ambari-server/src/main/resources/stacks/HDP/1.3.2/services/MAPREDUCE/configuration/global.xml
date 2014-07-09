@@ -20,7 +20,7 @@
  */
 -->
 
-<configuration>
+<configuration supports_final="false">
   <property>
     <name>mapred_local_dir</name>
     <value>/hadoop/mapred</value>

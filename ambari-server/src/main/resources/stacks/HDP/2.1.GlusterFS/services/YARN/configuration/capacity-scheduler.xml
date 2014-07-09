@@ -15,7 +15,7 @@
    limitations under the License.
 -->
 
-<configuration>
+<configuration supports_final="true">
 
   <property>
     <name>yarn.scheduler.capacity.maximum-applications</name>

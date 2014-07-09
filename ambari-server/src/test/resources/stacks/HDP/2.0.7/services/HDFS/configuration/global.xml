@@ -20,7 +20,7 @@
  */
 -->
 
-<configuration>
+<configuration supports_final="true">
   <property>
     <name>namenode_host</name>
     <value></value>

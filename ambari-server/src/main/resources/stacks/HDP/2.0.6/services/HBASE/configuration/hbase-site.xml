@@ -19,7 +19,7 @@
  * limitations under the License.
  */
 -->
-<configuration>
+<configuration supports_final="true">
   <property>
     <name>hbase.rootdir</name>
     <value>hdfs://localhost:8020/apps/hbase/data</value>

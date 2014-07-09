@@ -27,12 +27,14 @@ public class StackConfigurationResponse {
    * @param propertyValue Property Value
    * @param propertyDescription Property Description
    * @param type Configuration type
+   * @param isFinal Is property final
    */
-  public StackConfigurationResponse(String propertyName, String propertyValue, String propertyDescription, String type) {
+  public StackConfigurationResponse(String propertyName, String propertyValue, String propertyDescription, String type, Boolean isFinal) {
     setPropertyName(propertyName);
     setPropertyValue(propertyValue);
     setPropertyDescription(propertyDescription);
     setType(type);
+    setFinal(isFinal);
   }
 
   /**
@@ -43,16 +45,18 @@ public class StackConfigurationResponse {
    * @param type Configuration type
    * @param isRequired Is required to be set
    * @param propertyType Property Type
+   * @param isFinal Is property final
    */
   public StackConfigurationResponse(String propertyName, String propertyValue,
                                     String propertyDescription, String type,
-                                    Boolean isRequired, String propertyType) {
+                                    Boolean isRequired, String propertyType, Boolean isFinal) {
     setPropertyName(propertyName);
     setPropertyValue(propertyValue);
     setPropertyDescription(propertyDescription);
     setType(type);
     setRequired(isRequired);
     setPropertyType(propertyType);
+    setFinal(isFinal);
   }
 
   private String stackName;
@@ -62,6 +66,7 @@ public class StackConfigurationResponse {
   private String propertyValue;
   private String propertyDescription;
   private String type;
+  private Boolean isFinal;
   private Boolean isRequired;
   private String propertyType;
 
@@ -123,6 +128,14 @@ public class StackConfigurationResponse {
   
   public void setType(String type) {
     this.type = type;
+  }
+
+  public Boolean isFinal() {
+    return isFinal;
+  }
+
+  public void setFinal(Boolean isFinal) {
+    this.isFinal = isFinal;
   }
 
   /**

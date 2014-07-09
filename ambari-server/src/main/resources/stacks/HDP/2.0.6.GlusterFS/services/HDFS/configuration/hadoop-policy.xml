@@ -20,7 +20,7 @@
 
 <!-- Put site-specific property overrides in this file. -->
 
-<configuration>
+<configuration supports_final="true">
   <property>
     <name>security.client.protocol.acl</name>
     <value>*</value>

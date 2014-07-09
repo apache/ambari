@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 -->
-<configuration>
+<configuration supports_final="false">
   <property>
     <name>*.domain</name>
     <value>${falcon.app.type}</value>

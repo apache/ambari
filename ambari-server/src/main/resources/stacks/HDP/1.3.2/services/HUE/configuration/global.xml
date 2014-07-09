@@ -20,7 +20,7 @@
  */
 -->
 
-<configuration>
+<configuration supports_final="false">
   <property>
     <name>hue_pid_dir</name>
     <value>/var/run/hue</value>

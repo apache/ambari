@@ -18,7 +18,7 @@
 
 package org.apache.ambari.server.controller;
 
-import java.util.List;
+import java.util.Map;
 
 public class StackServiceResponse {
 
@@ -32,10 +32,10 @@ public class StackServiceResponse {
   
   private String serviceVersion;
   
-  private List<String> configTypes;
+  private Map<String, Map<String, Map<String, String>>> configTypes;
 
   public StackServiceResponse(String serviceName, String userName, String comments, String serviceVersion,
-      List<String> types) {
+      Map<String, Map<String, Map<String, String>>> types) {
     setServiceName(serviceName);
     setUserName(userName);
     setComments(comments);
@@ -91,7 +91,7 @@ public class StackServiceResponse {
     this.serviceVersion = serviceVersion;
   }
   
-  public List<String> getConfigTypes() {
+  public Map<String, Map<String, Map<String, String>>> getConfigTypes() {
     return configTypes;
   }
 

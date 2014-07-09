@@ -30,6 +30,7 @@ import java.util.Map;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -131,8 +132,11 @@ public class StackExtensionHelper {
     mergedServiceInfo.setComment(childService.getComment());
     mergedServiceInfo.setVersion(childService.getVersion());
     mergedServiceInfo.setConfigDependencies(
-      childService.getConfigDependencies() != null ?
-        childService.getConfigDependencies() : new ArrayList<String>());
+        childService.getConfigDependencies() != null ?
+            childService.getConfigDependencies() : parentService.getConfigDependencies());
+    mergedServiceInfo.setConfigTypes(
+        childService.getConfigTypes() != null ?
+            childService.getConfigTypes() : parentService.getConfigTypes());
     
     mergedServiceInfo.setRestartRequiredAfterChange(
             (childService.isRestartRequiredAfterChange() != null) 
@@ -396,7 +400,6 @@ public class StackExtensionHelper {
           // get metrics file, if it exists
           File metricsJson = new File(serviceFolder.getAbsolutePath()
             + File.separator + AmbariMetaInfo.SERVICE_METRIC_FILE_NAME);
-          String version = getSchemaVersion(metainfoFile);
 
           //Reading v2 service metainfo (may contain multiple services)
           // Get services from metadata
@@ -405,6 +408,7 @@ public class StackExtensionHelper {
           List<ServiceInfo> serviceInfos = smiv2x.getServices();
           for (ServiceInfo serviceInfo : serviceInfos) {
             serviceInfo.setSchemaVersion(AmbariMetaInfo.SCHEMA_VERSION_2);
+            populateConfigTypesFromDependencies(serviceInfo);
 
             // Find service package folder
             String servicePackageDir = resolveServicePackageFolder(
@@ -421,7 +425,7 @@ public class StackExtensionHelper {
 
             // Add now to be removed while iterating extension graph
             services.add(serviceInfo);
-            }
+          }
         }
       } catch (Exception e) {
         LOG.error("Error while parsing metainfo.xml for a service", e);
@@ -587,26 +591,73 @@ public class StackExtensionHelper {
     return stackInfo;
   }
 
+  private List<PropertyInfo> getProperties(ConfigurationXml configuration, String fileName) {
+    List<PropertyInfo> list = new ArrayList<PropertyInfo>();
+    for (PropertyInfo pi : configuration.getProperties()) {
+      pi.setFilename(fileName);
+      list.add(pi);
+    }
+    return list;
+  }
 
-  private List<PropertyInfo> getProperties(File propertyFile) {
-    
-    try {
-      ConfigurationXml cx = unmarshal(ConfigurationXml.class, propertyFile);
-
-      List<PropertyInfo> list = new ArrayList<PropertyInfo>();
-      
-      for (PropertyInfo pi : cx.getProperties()) {
-        pi.setFilename(propertyFile.getName());
-        list.add(pi);
-
+  /**
+   * Add properties and config type's properties from configuration file
+   */
+  void populateServiceProperties(File configFile, ServiceInfo serviceInfo) throws JAXBException {
+    ConfigurationXml configuration = unmarshal(ConfigurationXml.class, configFile);
+    String fileName = configFile.getName();
+    serviceInfo.getProperties().addAll(getProperties(configuration, fileName));
+    int extIndex = fileName.indexOf(AmbariMetaInfo.SERVICE_CONFIG_FILE_NAME_POSTFIX);
+    String configType = fileName.substring(0, extIndex);
+    for (Map.Entry<QName, String> attribute : configuration.getAttributes().entrySet()) {
+      for (Supports supportsProperty : Supports.values()) {
+        String attributeName = attribute.getKey().getLocalPart();
+        String attributeValue = attribute.getValue();
+        if (attributeName.equals(supportsProperty.getXmlAttributeName())) {
+          addConfigTypeProperty(serviceInfo, configType, Supports.KEYWORD,
+              supportsProperty.getPropertyName(), Boolean.valueOf(attributeValue).toString());
+        }
       }
-      return list;
-    } catch (Exception e) {
-      LOG.error("Could not load configuration for " + propertyFile, e);
-      return null;
     }
   }
 
+  /**
+   * Populate ServiceInfo#configTypes with default entries based on ServiceInfo#configDependencies property
+   */
+  void populateConfigTypesFromDependencies(ServiceInfo serviceInfo) {
+    List<String> configDependencies = serviceInfo.getConfigDependencies();
+    if (configDependencies != null) {
+      Map<String, Map<String, Map<String, String>>> configTypes = new HashMap<String, Map<String, Map<String, String>>>();
+      for (String configDependency : configDependencies) {
+        if (!configTypes.containsKey(configDependency)) {
+          Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+          Map<String, String> supportsProperties = new HashMap<String, String>();
+          for (Supports supportsProperty : Supports.values()) {
+            supportsProperties.put(supportsProperty.getPropertyName(), supportsProperty.getDefaultValue());
+          }
+          properties.put(Supports.KEYWORD, supportsProperties);
+          configTypes.put(configDependency, properties);
+        }
+      }
+      serviceInfo.setConfigTypes(configTypes);
+    }
+  }
+
+  /**
+   * Put new property entry to ServiceInfo#configTypes collection for specified configType
+   */
+  void addConfigTypeProperty(ServiceInfo serviceInfo, String configType,
+                             String propertiesGroupName, String key, String value) {
+    Map<String, Map<String, Map<String, String>>> configTypes = serviceInfo.getConfigTypes();
+    if (configTypes.containsKey(configType)) {
+      Map<String, Map<String, String>> configDependencyProperties = configTypes.get(configType);
+      if (!configDependencyProperties.containsKey(propertiesGroupName)) {
+        configDependencyProperties.put(propertiesGroupName, new HashMap<String, String>());
+      }
+      Map<String, String> propertiesGroup = configDependencyProperties.get(propertiesGroupName);
+      propertiesGroup.put(key, value);
+    }
+  }
 
   /**
    * Get all properties from all "configs/*-site.xml" files
@@ -621,9 +672,13 @@ public class StackExtensionHelper {
     
     File[] configFiles = serviceConfigFolder.listFiles(AmbariMetaInfo.FILENAME_FILTER);
     if (configFiles != null) {
-      for (File config : configFiles) {
-        if (config.getName().endsWith(AmbariMetaInfo.SERVICE_CONFIG_FILE_NAME_POSTFIX)) {
-          serviceInfo.getProperties().addAll(getProperties(config));
+      for (File configFile : configFiles) {
+        if (configFile.getName().endsWith(AmbariMetaInfo.SERVICE_CONFIG_FILE_NAME_POSTFIX)) {
+          try {
+            populateServiceProperties(configFile, serviceInfo);
+          } catch (Exception e) {
+            LOG.error("Could not load configuration for " + configFile, e);
+          }
         }
       }
     }
@@ -635,4 +690,41 @@ public class StackExtensionHelper {
     return clz.cast(u.unmarshal(file));
   }  
   
+  /**
+   * Service configuration-types can support different abilities. This
+   * enumerates the various abilities that configuration-types can support.
+   * 
+   * For example, Hadoop configuration types like 'core-site' and 'hdfs-site'
+   * can support the ability to define certain configs as 'final'.
+   */
+  protected enum Supports {
+
+    FINAL("supports_final");
+
+    public static final String KEYWORD = "supports";
+
+    private String defaultValue;
+    private String xmlAttributeName;
+
+    private Supports(String xmlAttributeName) {
+      this(xmlAttributeName, Boolean.FALSE.toString());
+    }
+
+    private Supports(String xmlAttributeName, String defaultValue) {
+      this.defaultValue = defaultValue;
+      this.xmlAttributeName = xmlAttributeName;
+    }
+
+    public String getDefaultValue() {
+      return defaultValue;
+    }
+
+    public String getXmlAttributeName() {
+      return xmlAttributeName;
+    }
+
+    public String getPropertyName() {
+      return name().toLowerCase();
+    }
+  }
 }
