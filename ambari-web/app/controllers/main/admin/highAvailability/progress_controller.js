@@ -307,7 +307,7 @@ App.HighAvailabilityProgressPageController = App.HighAvailabilityWizardControlle
     var state = context.toLowerCase() == "start" ? "STARTED" : "INSTALLED";
     for (var i = 0; i < hostName.length; i++) {
       App.ajax.send({
-        name: 'common.host.host_components.update',
+        name: 'common.host.host_component.update',
         sender: this,
         data: {
           context: context + " " + App.format.role(componentName),
