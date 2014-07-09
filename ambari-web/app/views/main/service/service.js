@@ -52,7 +52,8 @@ App.MainDashboardServiceHealthView = Em.View.extend({
   },
 
   healthStatus: function () {
-    if (this.get('service.isClientsOnly')) {
+    var isClientOnlyService = App.get('services.clientOnly').contains(this.get('service.serviceName'));
+    if (isClientOnlyService) {
       return 'icon-laptop';
     }
     if (this.get('service.passiveState') != 'OFF') {
@@ -82,7 +83,7 @@ App.MainDashboardServiceHealthView = Em.View.extend({
     }
 
     return 'health-status-' + status;
-  }.property('service.healthStatus','service.passiveState','service.isClientsOnly'),
+  }.property('service.healthStatus','service.passiveState','service.serviceName'),
 
   healthStatusClass: function () {
     switch (this.get('healthStatus')) {

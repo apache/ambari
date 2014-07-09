@@ -19,9 +19,8 @@
 <h2>{{title}}</h2>
 <div class="alert alert-info">
   {{t installer.step5.body}}
-  {{#if hasHiveServer}}
-    <br>
-    {{t installer.step5.body.hive}}
+  {{#if view.coHostedComponentText}}
+    {{{view.coHostedComponentText}}}
   {{/if}}
 </div>
 {{#if controller.isLoaded}}
@@ -47,38 +46,34 @@
                   <div class="span4">
                     <div class="control-group">
                       <label class="pts pull-right">
-                        {{#if controller.isReassignHive}}
-                          {{t installer.step5.hiveGroup}}
-                        {{else}}
-                          {{display_name}}:
-                        {{/if}}
+                        {{display_name}}:
                       </label>
                     </div>
                   </div>
                   <div class="span8">
-                    {{#if isHiveCoHost}}
+                    {{#if isServiceCoHost}}
                       <div class="hostName">
                         {{selectedHost}}<i class="icon-asterisks">&#10037;</i>
                       </div>
                     {{else}}
-                    <div class="control-group">
-                      {{#if view.shouldUseInputs}}
-                        {{view App.InputHostView
-                        componentBinding="this"
-                        disabledBinding="isInstalled" }}
-                      {{else}}
-                        {{view App.SelectHostView
-                        componentBinding="this"
-                        disabledBinding="isInstalled"
-                        optionValuePath="content.host_name"
-                        optionLabelPath="content.host_info" }}
-                      {{/if}}
-                      {{#if showAddControl}}
-                        {{view App.AddControlView componentNameBinding="component_name"}}
-                      {{/if}}
-                      {{#if showRemoveControl}}
-                        {{view App.RemoveControlView componentNameBinding="component_name" zIdBinding="zId"}}
-                      {{/if}}
+                      <div class="control-group">
+                        {{#if view.shouldUseInputs}}
+                          {{view App.InputHostView
+                          componentBinding="this"
+                          disabledBinding="isInstalled" }}
+                        {{else}}
+                          {{view App.SelectHostView
+                          componentBinding="this"
+                          disabledBinding="isInstalled"
+                          optionValuePath="content.host_name"
+                          optionLabelPath="content.host_info" }}
+                        {{/if}}
+                        {{#if showAddControl}}
+                          {{view App.AddControlView componentNameBinding="component_name"}}
+                        {{/if}}
+                        {{#if showRemoveControl}}
+                          {{view App.RemoveControlView componentNameBinding="component_name" serviceComponentIdBinding="serviceComponentId"}}
+                        {{/if}}
                       </div>
                     {{/if}}
                   </div>

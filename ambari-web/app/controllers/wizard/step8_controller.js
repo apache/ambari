@@ -27,7 +27,28 @@ App.WizardStep8Controller = Em.Controller.extend({
    * List of raw data about cluster that should be displayed
    * @type {Array}
    */
-  rawContent: require('data/review_configs'),
+  rawContent: [
+    {
+      config_name: 'Admin',
+      display_name: 'Admin Name',
+      config_value: ''
+    },
+    {
+      config_name: 'cluster',
+      display_name: 'Cluster Name',
+      config_value: ''
+    },
+    {
+      config_name: 'hosts',
+      display_name: 'Total Hosts',
+      config_value: ''
+    },
+    {
+      config_name: 'Repo',
+      display_name: 'Local Repository',
+      config_value: ''
+    }
+  ],
 
   /**
    * List of data about cluster (based on formatted <code>rawContent</code>)
@@ -644,19 +665,43 @@ App.WizardStep8Controller = Em.Controller.extend({
    * @method loadServices
    */
   loadServices: function () {
-    var reviewService = this.get('rawContent').findProperty('config_name', 'services');
-    if (Em.isNone(reviewService)) return;
-
-    var config_value = Em.get(reviewService, 'config_value');
-    if (Em.isNone(config_value)) return;
-
-    this.get('selectedServices').forEach(function (_service) {
-      var serviceObj = config_value.findProperty('service_name', _service.serviceName);
-      if (Em.isNone(serviceObj)) return;
-      serviceObj.get('service_components').forEach(function (_component) {
-        this.assignComponentHosts(_component);
-        console.log(' ---INFO: step8: service component: ' + _service.serviceName);
+    this.get('selectedServices').filterProperty('isHiddenOnSelectServicePage', false).forEach(function (service) {
+      console.log('INFO: step8: Name of the service from getService function: ' + service.get('serviceName'));
+      var serviceObj = Em.Object.create({
+        service_name: service.get('serviceName'),
+        display_name: service.get('displayNameOnSelectServicePage'),
+        service_components: Em.A([])
+      });
+      service.get('serviceComponents').forEach(function(component) {
+        // show clients for services that have only clients components
+        if ((component.get('isClient') || component.get('isClientBehavior')) && !service.get('isClientOnlyService')) return;
+        // skip components that was hide on assign master page
+        if (component.get('isMaster') && !component.get('isShownOnInstallerAssignMasterPage')) return;
+        // no HA component
+        if (App.get('isHaEnabled') && component.get('isHAComponentOnly')) return;
+        var displayName;
+        if (component.get('isClient')) {
+          displayName = Em.I18n.t('common.clients')
+        } else {
+          // remove service name from component display name
+          displayName = component.get('displayName').replace(new RegExp('^' + service.get('serviceName') + '\\s','i'), '');
+        }
+        serviceObj.get('service_components').pushObject(Em.Object.create({
+          component_name: component.get('isClient') ? Em.I18n.t('common.client').toUpperCase() : component.get('componentName'),
+          display_name: displayName,
+          component_value: this.assignComponentHosts(component)
+        }));
       }, this);
+      if (service.get('customReviewHandler')) {
+        for (var displayName in service.get('customReviewHandler')) {
+          serviceObj.get('service_components').pushObject(Em.Object.create({
+            display_name: displayName,
+            component_value: this.assignComponentHosts(Em.Object.create({
+              customHandler: service.get('customReviewHandler.' + displayName)
+            }))
+          }));
+        }
+      }
       this.get('services').pushObject(serviceObj);
     }, this);
   },
@@ -664,31 +709,35 @@ App.WizardStep8Controller = Em.Controller.extend({
   /**
    * Set <code>component_value</code> property to <code>component</code>
    * @param {Em.Object} component
+   * @return {String}
    * @method assignComponentHosts
    */
   assignComponentHosts: function (component) {
     var componentValue;
     if (component.get('customHandler')) {
-      this[component.get('customHandler')].call(this, component);
-      console.log(' --- ---INFO: step8: in customHandler');
+      componentValue = this[component.get('customHandler')].call(this, component);
     }
     else {
-      console.log(' --- ---INFO: step8: NOT in customHandler');
-      if (component.get('isMaster')) {
-        console.log(' --- ---INFO: step8: component isMaster');
-        componentValue = this.get('content.masterComponentHosts')
-          .findProperty('component', component.component_name).hostName;
+      if (component.get('isMaster') || component.get('isMasterBehavior')) {
+        componentValue = this.getMasterComponentValue(component.get('componentName'));
       }
       else {
         console.log(' --- ---INFO: step8: NOT component isMaster');
         var hostsLength = this.get('content.slaveComponentHosts')
-          .findProperty('componentName', component.component_name)
+          .findProperty('componentName', component.get('isClient') ? Em.I18n.t('common.client').toUpperCase() : component.get('componentName'))
           .hosts.length;
         componentValue = hostsLength + Em.I18n.t('installer.step8.host' + ((hostsLength > 1) ? 's' : ''));
       }
-      console.log(' --- --- --- INFO: step8: componentValue: ' + componentValue);
-      component.set('component_value', componentValue);
     }
+    return componentValue;
+  },
+
+  getMasterComponentValue: function(componentName) {
+    var masterComponents = this.get('content.masterComponentHosts');
+    var hostsCount = masterComponents.filterProperty('component', componentName).length;
+    return stringUtils.pluralize(hostsCount,
+      masterComponents.findProperty('component', componentName).hostName,
+      hostsCount + ' ' + Em.I18n.t('installer.step8.hosts'));
   },
 
   /**
@@ -696,26 +745,26 @@ App.WizardStep8Controller = Em.Controller.extend({
    * @param {Ember.Object} dbComponent
    * @method loadHiveDbValue
    */
-  loadHiveDbValue: function (dbComponent) {
+  loadHiveDbValue: function () {
     var db,
       serviceConfigPreoprties = this.get('wizardController').getDBProperty('serviceConfigProperties'),
       hiveDb = serviceConfigPreoprties.findProperty('name', 'hive_database');
     if (hiveDb.value === 'New MySQL Database') {
-      dbComponent.set('component_value', 'MySQL (New Database)');
+      return 'MySQL (New Database)';
     }
     else {
       if (hiveDb.value === 'Existing MySQL Database') {
-        db = serviceConfigPreoprties.findProperty('name', 'hive_existing_mysql_database');
-        dbComponent.set('component_value', db.value + ' (' + hiveDb.value + ')');
+        db = serviceConfigPreoprties .findProperty('name', 'hive_existing_mysql_database');
+        return db.value + ' (' + hiveDb.value + ')';
       }
       else {
         if (hiveDb.value === Em.I18n.t('services.service.config.hive.oozie.postgresql')) {
-          db = serviceConfigPreoprties.findProperty('name', 'hive_existing_postgresql_database');
-          dbComponent.set('component_value', db.value + ' (' + hiveDb.value + ')');
+          db = serviceConfigPreoprties .findProperty('name', 'hive_existing_postgresql_database');
+          return db.value + ' (' + hiveDb.value + ')';
         }
         else { // existing oracle database
-          db = serviceConfigPreoprties.findProperty('name', 'hive_existing_oracle_database');
-          dbComponent.set('component_value', db.value + ' (' + hiveDb.value + ')');
+          db = serviceConfigPreoprties .findProperty('name', 'hive_existing_oracle_database');
+          return db.value + ' (' + hiveDb.value + ')';
         }
       }
     }
@@ -756,25 +805,25 @@ App.WizardStep8Controller = Em.Controller.extend({
    * @param {Object} dbComponent
    * @method loadOozieDbValue
    */
-  loadOozieDbValue: function (dbComponent) {
+  loadOozieDbValue: function () {
     var db, oozieDb = this.get('wizardController').getDBProperty('serviceConfigProperties').findProperty('name', 'oozie_database');
     if (oozieDb.value === 'New Derby Database') {
       db = this.get('wizardController').getDBProperty('serviceConfigProperties').findProperty('name', 'oozie_derby_database');
-      dbComponent.set('component_value', db.value + ' (' + oozieDb.value + ')');
+      return db.value + ' (' + oozieDb.value + ')';
     }
     else {
       if (oozieDb.value === 'Existing MySQL Database') {
         db = this.get('wizardController').getDBProperty('serviceConfigProperties').findProperty('name', 'oozie_existing_mysql_database');
-        dbComponent.set('component_value', db.value + ' (' + oozieDb.value + ')');
+        return db.value + ' (' + oozieDb.value + ')';
       }
       else {
         if (oozieDb.value === Em.I18n.t('services.service.config.hive.oozie.postgresql')) {
           db = this.get('wizardController').getDBProperty('serviceConfigProperties').findProperty('name', 'oozie_existing_postgresql_database');
-          dbComponent.set('component_value', db.value + ' (' + oozieDb.value + ')');
+          return db.value + ' (' + oozieDb.value + ')';
         }
         else { // existing oracle database
           db = this.get('wizardController').getDBProperty('serviceConfigProperties').findProperty('name', 'oozie_existing_oracle_database');
-          dbComponent.set('component_value', db.value + ' (' + oozieDb.value + ')');
+          return db.value + ' (' + oozieDb.value + ')';
         }
       }
     }
@@ -785,11 +834,11 @@ App.WizardStep8Controller = Em.Controller.extend({
    * @param {Object} nagiosAdmin
    * @method loadNagiosAdminValue
    */
-  loadNagiosAdminValue: function (nagiosAdmin) {
+  loadNagiosAdminValue: function () {
     var config = this.get('content.serviceConfigProperties');
     var adminLoginName = config.findProperty('name', 'nagios_web_login');
     var adminEmail = config.findProperty('name', 'nagios_contact');
-    nagiosAdmin.set('component_value', adminLoginName.value + ' / (' + adminEmail.value + ')');
+    return adminLoginName.value + ' / (' + adminEmail.value + ')';
   },
 
   /**
@@ -1161,6 +1210,19 @@ App.WizardStep8Controller = Em.Controller.extend({
     }, this);
   },
 
+  getClientsToMasterMap: function () {
+    var clientNames = App.StackServiceComponent.find().filterProperty('isClient').mapProperty('componentName'),
+        clientsMap = {},
+        dependedComponents = App.StackServiceComponent.find().filterProperty('isMaster');
+    clientNames.forEach(function(clientName) {
+      clientsMap[clientName] = Em.A([]);
+      dependedComponents.forEach(function(component) {
+        if (component.get('dependencies').contains(clientName)) clientsMap[clientName].push(component.get('componentName'));
+      });
+      if (!clientsMap[clientName].length) delete clientsMap[clientName];
+    });
+    return clientsMap;
+  },
   /**
    * Register slave components and clients
    * @uses registerHostsToComponent
@@ -1183,16 +1245,7 @@ App.WizardStep8Controller = Em.Controller.extend({
      *  }
      * </code>
      */
-    var clientsToMasterMap = {
-      HDFS_CLIENT: Em.A(['HBASE_MASTER', 'HBASE_REGIONSERVER', 'WEBHCAT_SERVER', 'HISTORYSERVER', 'OOZIE_SERVER']),
-      MAPREDUCE_CLIENT: Em.A(['HIVE_SERVER', 'OOZIE_SERVER', 'NAGIOS_SERVER', 'WEBHCAT_SERVER']),
-      OOZIE_CLIENT: Em.A(['NAGIOS_SERVER']),
-      ZOOKEEPER_CLIENT: Em.A(['WEBHCAT_SERVER']),
-      HIVE_CLIENT: Em.A(['WEBHCAT_SERVER', 'HIVE_SERVER']),
-      HCAT: Em.A(['NAGIOS_SERVER']),
-      YARN_CLIENT: Em.A(['NAGIOS_SERVER', 'HIVE_SERVER', 'OOZIE_SERVER', 'WEBHCAT_SERVER']),
-      TEZ_CLIENT: Em.A(['NAGIOS_SERVER', 'HIVE_SERVER'])
-    };
+    var clientsToMasterMap = this.getClientsToMasterMap();
 
     slaveHosts.forEach(function (_slave) {
       if (_slave.componentName !== 'CLIENT') {
@@ -1267,9 +1320,9 @@ App.WizardStep8Controller = Em.Controller.extend({
    */
   createAdditionalHostComponents: function () {
     var masterHosts = this.get('content.masterComponentHosts');
-
+    // add MySQL Server if Hive is selected
     // add Ganglia Monitor (Slave) to all hosts if Ganglia service is selected
-    var gangliaService = this.get('content.services').filterProperty('isSelected', true).findProperty('serviceName', 'GANGLIA');
+    var gangliaService = this.get('content.services').filterProperty('isSelected').findProperty('serviceName', 'GANGLIA');
     if (gangliaService) {
       var hosts = this.getRegisteredHosts();
       if (gangliaService.get('isInstalled')) {
@@ -1279,7 +1332,6 @@ App.WizardStep8Controller = Em.Controller.extend({
         this.registerHostsToComponent(hosts.mapProperty('hostName'), 'GANGLIA_MONITOR');
       }
     }
-    // add MySQL Server if Hive is selected
     var hiveService = this.get('content.services').filterProperty('isSelected', true).filterProperty('isInstalled', false).findProperty('serviceName', 'HIVE');
     if (hiveService) {
       var hiveDb = this.get('content.serviceConfigProperties').findProperty('name', 'hive_database');

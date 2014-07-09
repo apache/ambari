@@ -23,6 +23,8 @@ require('models/stack_service_component');
 require('models/hosts');
 require('controllers/wizard/step9_controller');
 require('utils/helper');
+require('utils/ajax/ajax');
+
 var modelSetup = require('test/init_model_test');
 var c, obj;
 describe('App.InstallerStep9Controller', function () {

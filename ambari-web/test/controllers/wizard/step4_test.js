@@ -30,7 +30,7 @@ describe('App.WizardStep4Controller', function () {
   var controller = App.WizardStep4Controller.create();
   services.forEach(function(serviceName, index){
     controller.pushObject(Ember.Object.create({
-      'serviceName':serviceName, 'isSelected': true, 'canBeSelected': true, 'isInstalled': false, 'isDisabled': 'HDFS' === serviceName
+      'serviceName':serviceName, 'isSelected': true, 'canBeSelected': true, 'isInstalled': false, 'isDisabled': 'HDFS' === serviceName, isDFS: 'HDFS' === serviceName
     }));
   });
 
@@ -78,142 +78,11 @@ describe('App.WizardStep4Controller', function () {
   });
 
   describe('#selectMinimum()', function () {
-    it('should set isSelected false for all not disabled services', function () {
+    it('should set isSelected false for all services', function () {
       controller.setEach('isSelected', true);
       controller.selectMinimum();
-      expect(controller.findProperty('serviceName', 'HDFS').get('isSelected')).to.equal(true);
+      expect(controller.findProperty('serviceName', 'HDFS').get('isSelected')).to.equal(false);
       expect(controller.filterProperty('isDisabled', false).everyProperty('isSelected', false)).to.equal(true);
-    });
-  });
-
-  describe('#needToAddMapReduce()', function () {
-    it('should return true if Pig is selected and MapReduce is not selected', function () {
-      controller.setEach('isSelected', false);
-      controller.findProperty('serviceName', 'PIG').set('isSelected', true);
-      expect(controller.needToAddMapReduce()).to.equal(true);
-    });
-
-    it('should return true if Oozie is selected and MapReduce is not selected', function () {
-      controller.setEach('isSelected', false);
-      controller.findProperty('serviceName', 'OOZIE').set('isSelected', true);
-      expect(controller.needToAddMapReduce()).to.equal(true);
-    });
-
-    it('should return true if Hive is selected and MapReduce is not selected', function () {
-      controller.setEach('isSelected', false);
-      controller.findProperty('serviceName', 'HIVE').set('isSelected', true);
-      expect(controller.needToAddMapReduce()).to.equal(true);
-    });
-
-    it('should return false if MapReduce is selected or Pig, Oozie and Hive are not selected', function () {
-      controller.findProperty('serviceName', 'MAPREDUCE').set('isSelected', true);
-      expect(controller.needToAddMapReduce()).to.equal(false);
-      controller.setEach('isSelected', false);
-      expect(controller.needToAddMapReduce()).to.equal(false);
-    });
-  });
-
-  describe('#needToAddYarnMapReduce2()', function () {
-    it('should return true if Pig is selected and YARN+MapReduce2 is not selected', function () {
-      controller.setEach('isSelected', false);
-      controller.findProperty('serviceName', 'PIG').set('isSelected', true);
-      expect(controller.needToAddYarnMapReduce2()).to.equal(true);
-    });
-
-    it('should return true if Oozie is selected and YARN+MapReduce2 is not selected', function () {
-      controller.setEach('isSelected', false);
-      controller.findProperty('serviceName', 'OOZIE').set('isSelected', true);
-      expect(controller.needToAddYarnMapReduce2()).to.equal(true);
-    });
-
-    it('should return true if Hive is selected and YARN+MapReduce2 is not selected', function () {
-      controller.setEach('isSelected', false);
-      controller.findProperty('serviceName', 'HIVE').set('isSelected', true);
-      expect(controller.needToAddYarnMapReduce2()).to.equal(true);
-    });
-
-    it('should return false if YARN+MapReduce2 is selected or Pig, Oozie and Hive are not selected', function () {
-      controller.findProperty('serviceName', 'YARN').set('isSelected', true);
-      expect(controller.needToAddYarnMapReduce2()).to.equal(false);
-      controller.setEach('isSelected', false);
-      expect(controller.needToAddYarnMapReduce2()).to.equal(false);
-    });
-  });
-
-  describe('#needToAddZooKeeper()', function () {
-    beforeEach(function() {
-      ajax_send = App.ajax.send;
-      App.ajax.send = function() {};
-    });
-
-    afterEach(function() {
-      App.ajax.send = ajax_send;
-    });
-    var originalStackVersion = App.get('currentStackVersion');
-
-    it('should return false if ZOOKEEPER is selected and Hadoop version above 2', function () {
-      App.set('currentStackVersion', 'HDP-2.1.1');
-      controller.findProperty('serviceName', 'ZOOKEEPER').set('isSelected', true);
-      expect(controller.needToAddZooKeeper()).to.equal(false);
-    });
-    it('should return true if ZOOKEEPER is not selected and Hadoop version above 2', function () {
-      controller.findProperty('serviceName', 'ZOOKEEPER').set('isSelected', false);
-      expect(controller.needToAddZooKeeper()).to.equal(true);
-    });
-    it('should return false if none of the HBASE, HIVE, WEBHCAT, STORM is selected and Hadoop version below 2', function () {
-      App.set('currentStackVersion', 'HDP-1.3.0');
-      expect(controller.needToAddZooKeeper()).to.equal(false);
-    });
-    it('should return true if HBASE is not selected and Hadoop version below 2', function () {
-      controller.findProperty('serviceName', 'HBASE').set('isSelected', true);
-      expect(controller.needToAddZooKeeper()).to.equal(true);
-    });
-    it('should return true if HBASE, HIVE, WEBHCAT, STORM are selected and Hadoop version below 2', function () {
-      controller.findProperty('serviceName', 'HIVE').set('isSelected', true);
-      controller.findProperty('serviceName', 'WEBHCAT').set('isSelected', true);
-      controller.findProperty('serviceName', 'STORM').set('isSelected', true);
-      expect(controller.needToAddZooKeeper()).to.equal(true);
-      App.set('currentStackVersion', originalStackVersion);
-    });
-  });
-
-  describe('#gangliaOrNagiosNotSelected()', function () {
-    it('should return true if Nagios or Ganglia is not selected', function () {
-      controller.setEach('isSelected', true);
-      controller.findProperty('serviceName', 'NAGIOS').set('isSelected', false);
-      expect(controller.gangliaOrNagiosNotSelected()).to.equal(true);
-      controller.setEach('isSelected', true);
-      controller.findProperty('serviceName', 'GANGLIA').set('isSelected', false);
-      expect(controller.gangliaOrNagiosNotSelected()).to.equal(true);
-    });
-
-    it('should return false if Nagios and Ganglia is selected', function () {
-      controller.setEach('isSelected', false);
-      controller.findProperty('serviceName', 'GANGLIA').set('isSelected', true);
-      controller.findProperty('serviceName', 'NAGIOS').set('isSelected', true);
-      expect(controller.gangliaOrNagiosNotSelected()).to.equal(false);
-    });
-  });
-
-  describe('#needToAddTez()', function () {
-    it('should return false if YARN is present, but not selected', function () {
-      controller.findProperty('serviceName', 'YARN').set('isSelected', false);
-      expect(controller.needToAddTez()).to.equal(false);
-    });
-    it('should return true if YARN is selected', function () {
-      controller.findProperty('serviceName', 'YARN').set('isSelected', true);
-      expect(controller.needToAddTez()).to.equal(true);
-    });
-  });
-
-  describe('#needToAddOozie()', function () {
-    it('should return false if FALCON is present, but not selected', function () {
-      controller.findProperty('serviceName', 'FALCON').set('isSelected', false);
-      expect(controller.needToAddOozie()).to.equal(false);
-    });
-    it('should return true if FALCON is selected', function () {
-      controller.findProperty('serviceName', 'FALCON').set('isSelected', true);
-      expect(controller.needToAddOozie()).to.equal(true);
     });
   });
 
@@ -228,7 +97,7 @@ describe('App.WizardStep4Controller', function () {
     });
     it('should return true if HDFS is not selected and GLUSTERFS is not selected, but present', function () {
       controller.pushObject(Ember.Object.create({
-        'serviceName':'GLUSTERFS', 'isSelected': false, 'canBeSelected': true, 'isInstalled': false, 'isDisabled': false
+        'serviceName':'GLUSTERFS', 'isSelected': false, 'canBeSelected': true, 'isInstalled': false, 'isDisabled': false, 'isDFS': true
       }));
       controller.findProperty('serviceName', 'HDFS').set('isSelected', false);
       expect(controller.noDFSs()).to.equal(true);
@@ -256,7 +125,7 @@ describe('App.WizardStep4Controller', function () {
     });
   });
 
-  describe('#checkDependencies()', function () {
+  describe('#setGroupedServices()', function () {
     var testCases = [
       {
         title: 'should set HCATALOG and WEBHCAT isSelected to true when HIVE is selected',
@@ -327,10 +196,13 @@ describe('App.WizardStep4Controller', function () {
         controller.clear();
         for(var id in testCase.condition) {
           controller.pushObject(Ember.Object.create({
-            'serviceName':id, 'isSelected': testCase.condition[id], 'canBeSelected': true, 'isInstalled': false
+            'serviceName':id, 'isSelected': testCase.condition[id], 'canBeSelected': true, 'isInstalled': false,
+            coSelectedServices: function() {
+              return App.StackService.coSelected[this.get('serviceName')] || [];
+            }.property('serviceName')
           }));
         }
-        controller.checkDependencies();
+        controller.setGroupedServices();
         for(var service in testCase.result) {
           expect(controller.findProperty('serviceName', service).get('isSelected')).to.equal(testCase.result[service]);
         }
@@ -381,6 +253,14 @@ describe('App.WizardStep4Controller', function () {
   });
 
   describe('#validateMonitoring', function() {
+    beforeEach(function() {
+      sinon.stub(controller, 'monitoringCheckPopup', Em.K);
+      sinon.stub(App.router, 'send', Em.K);
+    });
+    afterEach(function() {
+      controller.monitoringCheckPopup.restore();
+      App.router.send.restore();
+    });
     Em.A([
         {
           gangliaOrNagiosNotSelected: true,
@@ -398,12 +278,11 @@ describe('App.WizardStep4Controller', function () {
         }
       ]).forEach(function (test) {
         it(test.m, function () {
-          sinon.stub(controller, 'monitoringCheckPopup', Em.K);
-          sinon.stub(App.router, 'send', Em.K);
           sinon.stub(controller, 'gangliaOrNagiosNotSelected', function() {
             return test.gangliaOrNagiosNotSelected;
           });
           controller.validateMonitoring();
+          controller.gangliaOrNagiosNotSelected.restore();
           if (test.e.monitoringCheckPopup) {
            expect(controller.monitoringCheckPopup.calledOnce).to.equal(true);
           }
@@ -416,9 +295,6 @@ describe('App.WizardStep4Controller', function () {
           else {
             expect(App.router.send.called).to.equal(false);
           }
-          controller.gangliaOrNagiosNotSelected.restore();
-          controller.monitoringCheckPopup.restore();
-          App.router.send.restore();
         });
       });
   });
@@ -426,9 +302,11 @@ describe('App.WizardStep4Controller', function () {
   describe('#submit', function() {
     beforeEach(function() {
       sinon.stub(controller, 'validateMonitoring', Em.K);
+      sinon.stub(controller, 'setGroupedServices', Em.K);
     });
     afterEach(function() {
       controller.validateMonitoring.restore();
+      controller.setGroupedServices.restore();
     });
     it('if not isSubmitDisabled shound\'t do nothing', function() {
       controller.reopen({isSubmitDisabled: true});
@@ -436,19 +314,20 @@ describe('App.WizardStep4Controller', function () {
       expect(controller.validateMonitoring.called).to.equal(false);
     });
     it('if isSubmitDisabled and not submitChecks should call validateMonitoring', function() {
+      sinon.stub(controller, 'isSubmitChecksFailed', function() { return false; });
       controller.reopen({
         isSubmitDisabled: false,
         submitChecks: []
       });
       controller.submit();
       expect(controller.validateMonitoring.calledOnce).to.equal(true);
+      controller.isSubmitChecksFailed.restore();
     });
     it('if isSubmitDisabled and some submitChecks true shouldn\'t call validateMonitoring', function() {
       controller.reopen({
         isSubmitDisabled: false,
         submitChecks: [
           {
-            checkCallback: 'needToAddMapReduce',
             popupParams: [
               {serviceName: 'MAPREDUCE', selected: true},
               'mapreduceCheck'
@@ -456,10 +335,10 @@ describe('App.WizardStep4Controller', function () {
           }
         ]
       });
-      sinon.stub(controller, 'needToAddMapReduce', function() {return true;});
+      sinon.stub(controller, 'isSubmitChecksFailed', function() { return true; });
       controller.submit();
+      controller.isSubmitChecksFailed.restore();
       expect(controller.validateMonitoring.called).to.equal(false);
-      controller.needToAddMapReduce.restore();
     });
     it('if isSubmitDisabled and some submitChecks false should call validateMonitoring', function() {
       controller.reopen({
@@ -474,10 +353,10 @@ describe('App.WizardStep4Controller', function () {
           }
         ]
       });
-      sinon.stub(controller, 'needToAddMapReduce', function() {return false;});
+      sinon.stub(controller, 'isSubmitChecksFailed', function() { return false; });
       controller.submit();
+      controller.isSubmitChecksFailed.restore();
       expect(controller.validateMonitoring.calledOnce).to.equal(true);
-      controller.needToAddMapReduce.restore();
     });
   });
 

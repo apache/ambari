@@ -64,7 +64,9 @@ App.MainServiceInfoSummaryView = Em.View.extend({
    */
   collapsedSections: null,
 
-  servicesHaveClients: ["GLUSTERFS", "OOZIE", "ZOOKEEPER", "HIVE", "MAPREDUCE2", "TEZ", "SQOOP", "PIG","FALCON"],
+  servicesHaveClients: function() {
+    return App.get('services.hasClient');
+  }.property('App.services.hasClient'),
 
   sumMasterComponentView : Em.View.extend({
     didInsertElement: function() {
@@ -382,7 +384,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
    * Alerts panel not display for PIG, SQOOP and TEZ Service
    */
   isNoAlertsService: function () {
-    return !!this.get('service.serviceName') && ['PIG', 'SQOOP', 'TEZ'].contains(this.get('service.serviceName'));
+    return !!this.get('service.serviceName') && App.get('services.clientOnly').contains(this.get('service.serviceName'));
   }.property(''),
 
   gangliaUrl:function () {

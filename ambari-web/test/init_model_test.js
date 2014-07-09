@@ -19,21 +19,15 @@
 var App = require('app');
 require('models/stack_service_component');
 require('mappers/server_data_mapper');
-require('mappers/stack_service_component_mapper');
+require('mappers/stack_service_mapper');
 
 module.exports = {
   setupStackServiceComponent: function() {
     /**
-     * initialization of App.StackServiceComponent model
+     * initialization of App.StackServiceComponent and App.StackService models
      * @type {*}
      */
-    var data = {items: Em.A([])};
-    require('test/service_components').items.forEach(function(i) {
-      i.serviceComponents.forEach(function(sc) {
-        data.items.pushObject(sc.StackServiceComponents);
-      });
-    });
-    App.stackServiceComponentMapper.map(data);
+    App.stackServiceMapper.map(require('test/service_components'));
   },
   cleanStackServiceComponent: function(){
     App.StackServiceComponent.find().set('content',[]);

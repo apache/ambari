@@ -159,5 +159,41 @@ module.exports = {
     }
     var last_slash = path.lastIndexOf('/');
     return (last_slash!=0)?path.substr(0,last_slash):'/';
+  },
+
+  /**
+   * @method getFormattedStringFromArray Get formatted string of elements to display on the UI
+   * Example:
+   * var arr = [ambari, bigdata, hadoop]
+   * getFormattedStringFromArray(arr);  // ambari, bigdata and hadoop
+   * @param array {Array}  Array of elements
+   * @returns {String}
+   */
+  getFormattedStringFromArray: function (array) {
+    var label = '';
+    array.forEach(function (_arrElement) {
+      if (array.length === 1) {
+        label = _arrElement;
+      }
+      else {
+        if (_arrElement !== array[array.length - 1]) {           // [clients.length - 1]
+          label = label + ' ' + _arrElement;
+          if (_arrElement !== array[array.length - 2]) {
+            label = label + ',';
+          }
+        }
+        else {
+          label = label + ' ' + Em.I18n.t('and') + ' ' + _arrElement;
+        }
+      }
+    }, this);
+    return label.trim();
+  },
+
+  pluralize: function(count, singular, plural) {
+    if (count > 1) {
+      return plural;
+    }
+    return singular;
   }
 };

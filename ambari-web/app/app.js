@@ -88,154 +88,28 @@ module.exports = Em.Application.create({
   }.property('router.clusterController.isLoaded', 'isHadoop2Stack'),
 
   /**
-   * List of disabled components for the current stack with related info.
-   * Each element has followed structure:
-   * @type {Em.Enumerable.<Em.Object>}
-   *   @property componentName {String} - name of the component
-   *   @property properties {Object} - mapped properties by site files,
-   *    for example:
-   *      properties: { global_properties: [], site_properties: [], etc. }
-   *   @property reviewConfigs {Ember.Object} - reference review_configs.js
+   * Object with utility functions for list of service names with similar behavior
    */
-  stackDependedComponents: [],
+  services: Em.Object.create({
+    all: function () {
+      return App.StackService.find().mapProperty('serviceName');
+    }.property('App.router.clusterController.isLoaded'),
 
-  /**
-   * Restore component data that was excluded from stack.
-   *
-   * @param component {Ember.Object} - #stackDependedComponents item
-   */
-  enableComponent: function (component) {
-    var propertyFileNames = ['global_properties', 'site_properties'];
-    var requirePrefix = this.get('isHadoop2Stack') ? 'data/HDP2/' : 'data/';
-    // add properties
-    propertyFileNames.forEach(function (fileName) {
-      require(requirePrefix + fileName).configProperties = require(requirePrefix + fileName).configProperties.concat(component.get('properties.' + fileName));
-    });
-    var reviewConfigsService = require('data/review_configs')
-      .findProperty('config_name', 'services').config_value
-      .findProperty('service_name', component.get('serviceName'));
-    reviewConfigsService.get('service_components').pushObject(component.get('reviewConfigs'));
-  },
-  /**
-   * Disabling component. Remove related data from lists such as
-   * properties, review configs, service components.
-   *
-   * @param component {Object} - stack service component
-   *
-   * @return {Ember.Object} - item of <code>stackDependedComponents</code> property
-   */
-  disableComponent: function (component) {
-    var componentCopy, propertyFileNames;
-    var service_configs = require('data/service_configs');
-    propertyFileNames = ['global_properties', 'site_properties'];
-    componentCopy = Em.Object.create({
-      componentName: component.get('componentName'),
-      serviceName: component.get('serviceName'),
-      properties: {},
-      reviewConfigs: {},
-      configCategory: {}
-    });
+    clientOnly: function () {
+      return App.StackService.find().filterProperty('isClientOnlyService').mapProperty('serviceName');
+    }.property('App.router.clusterController.isLoaded'),
 
-    var serviceConfigsCategoryName, requirePrefix, serviceConfig;
-    // get service category name related to component
-    serviceConfig = service_configs.findProperty('serviceName', component.get('serviceName'));
-    serviceConfig.configCategories = serviceConfig.configCategories.filter(function (configCategory) {
-      if (configCategory.get('hostComponentNames')) {
-        serviceConfigsCategoryName = configCategory.get('name');
-        if (configCategory.get('hostComponentNames').contains(component.get('componentName'))) {
-          componentCopy.set('configCategory', configCategory);
-        }
-      }
-      return true;
-    });
-    requirePrefix = this.get('isHadoop2Stack') ? 'data/HDP2/' : 'data/';
-    var propertyObj = {};
-    propertyFileNames.forEach(function (propertyFileName) {
-      propertyObj[propertyFileName] = [];
-    });
-    // remove config properties related to this component
-    propertyFileNames.forEach(function (propertyFileName) {
-      var properties = require(requirePrefix + propertyFileName);
-      properties.configProperties = properties.configProperties.filter(function (property) {
-        if (property.category == serviceConfigsCategoryName) {
-          propertyObj[propertyFileName].push(property);
-          return false;
-        } else {
-          return true;
-        }
-      });
-    });
-    componentCopy.set('properties', propertyObj);
-    // remove component from review configs
-    var reviewConfigsService = require('data/review_configs')
-      .findProperty('config_name', 'services').config_value
-      .findProperty('service_name', component.get('serviceName'));
-    //review_configs might not contain particular service
-    if (reviewConfigsService) {
-      reviewConfigsService.set('service_components', reviewConfigsService.get('service_components').filter(function (serviceComponent) {
-        if (serviceComponent.get('component_name') != component.get('componentName')) {
-          return true;
-        } else {
-          componentCopy.set('reviewConfigs', serviceComponent);
-          return false;
-        }
-      }));
-    }
-    return componentCopy;
-  },
-  /**
-   * Resolve dependency in components.
-   * if component with config category from "data/service_configs" doesn't match components from stack
-   * then disable it and push to stackDependedComponents
-   * otherwise enable component and remove it from stackDependedComponents
-   * Check forbidden/allowed components and
-   * remove/restore related data.
-   *
-   * @method handleStackDependedComponents
-   */
-  handleStackDependedComponents: function () {
-    // need for unit testing and test mode
-    if (this.get('handleStackDependencyTest') || this.testMode) return;
-    var stackDependedComponents = this.get('stackDependedComponents');
-    var service_configs = require('data/service_configs');
-    var stackServiceComponents = this.StackServiceComponent.find();
-    var stackServices = stackServiceComponents.mapProperty('serviceName').uniq();
-    if (!stackServiceComponents.mapProperty('componentName').length) {
-      return;
-    }
-    // disable components
-    service_configs.forEach(function (service) {
-      service.configCategories.forEach(function (serviceConfigCategory) {
-        var categoryComponents = serviceConfigCategory.get('hostComponentNames');
-        if (categoryComponents && categoryComponents.length) {
-          categoryComponents.forEach(function (categoryComponent) {
-            var stackServiceComponent = stackServiceComponents.findProperty('componentName', categoryComponent);
-            // populate App.stackDependedComponents if the service config category for the serviceComponent
-            // exists in the 'data/service_configs.js' and the service to which the component belongs also exists in the
-            // stack but the serviceComponent does not exists in the stack. Also check App.stackDependedComponents doesn't already have the componentName
-            if (!stackServiceComponent && stackServices.contains(service.serviceName) && !stackDependedComponents.mapProperty('componentName').contains['categoryComponent']) {
-              var _stackServiceComponent = Ember.Object.create({
-                componentName: categoryComponent,
-                serviceName: service.serviceName
-              });
-              stackDependedComponents.push(this.disableComponent(_stackServiceComponent));
-            }
-          }, this);
-        }
-      }, this);
-    }, this);
+    hasClient: function () {
+      return App.StackService.find().filterProperty('hasClient').mapProperty('serviceName');
+    }.property('App.router.clusterController.isLoaded'),
 
-    // enable components
-    if (stackDependedComponents.length > 0) {
-      stackDependedComponents.forEach(function (component) {
-        if (stackServiceComponents.someProperty('componentName', component.get('componentName'))) {
-          this.enableComponent(component);
-          stackDependedComponents.removeObject(component);
-        }
-      }, this);
-    }
-    this.set('stackDependedComponents', stackDependedComponents);
-  },
+    noConfigTypes: function () {
+      return App.StackService.find().filterProperty('isNoConfigTypes').mapProperty('serviceName');
+    }.property('App.router.clusterController.isLoaded'),
+    monitoring: function () {
+      return App.StackService.find().filterProperty('isMonitoringService').mapProperty('serviceName');
+    }.property('App.router.clusterController.isLoaded')
+  }),
 
   /**
    * List of components with allowed action for them
@@ -272,6 +146,14 @@ module.exports = Em.Application.create({
 
     addableToHost: function () {
       return App.StackServiceComponent.find().filterProperty('isAddableToHost', true).mapProperty('componentName')
+    }.property('App.router.clusterController.isLoaded'),
+
+    addableMasterInstallerWizard: function () {
+      return App.StackServiceComponent.find().filterProperty('isMasterWithMultipleInstances', true).mapProperty('componentName')
+    }.property('App.router.clusterController.isLoaded'),
+
+    addableMasterHaWizard: function () {
+      return App.StackServiceComponent.find().filterProperty('isMasterWithMultipleInstancesHaWizard', true).mapProperty('componentName')
     }.property('App.router.clusterController.isLoaded'),
 
     slaves: function () {

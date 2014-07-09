@@ -33,11 +33,7 @@ App.HostComponent = DS.Model.extend({
    * @returns {bool}
    */
   isClient:function () {
-    if(['PIG', 'SQOOP', 'HCAT', 'MAPREDUCE2_CLIENT'].contains(this.get('componentName'))){
-      return true;
-    }
-
-    return Boolean(this.get('componentName').match(/_client/gi));
+    return App.get('components.clients').contains(this.get('componentName'));
   }.property('componentName'),
   /**
    * Determine if component is running now

@@ -913,6 +913,7 @@ describe('App.MainHostDetailsController', function () {
       controller.doDecommissionRegionServer.restore();
       controller.doDecommission.restore();
       controller.showBackgroundOperationsPopup.restore();
+      controller.doDecommissionRegionServer.restore();
     });
 
     it('HDFS service', function () {

@@ -305,9 +305,14 @@ App.ClusterController = Em.Controller.extend({
      * 10. update stale_configs of host-components (depends on App.supports.hostOverrides)
      */
     this.loadStackServiceComponents(function (data) {
+      data.items.forEach(function(service) {
+        service.StackServices.is_selected = true;
+        service.StackServices.is_installed = false;
+      },this);
+      App.stackServiceMapper.map(data);
+      App.config.setPreDefinedGlobalProperties();
+      App.config.setPreDefinedServiceConfigs();
       var updater = App.router.get('updateController');
-
-      require('utils/component').loadStackServiceComponentModel(data);
       self.updateLoadStatus('stackComponents');
       updater.updateServices(function () {
         self.updateLoadStatus('services');

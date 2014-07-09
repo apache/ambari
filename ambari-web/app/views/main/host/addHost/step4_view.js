@@ -20,12 +20,5 @@
 var App = require('app');
 
 App.AddHostStep4View = Em.View.extend({
-
-  templateName: require('templates/main/host/addHost/step4'),
-
-
-  didInsertElement: function() {
-
-  }
-
+  templateName: require('templates/main/host/addHost/step4')
 });

@@ -34,7 +34,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   globalConfigs: [],
   uiConfigs: [],
   customConfig: [],
-  serviceConfigsData: require('data/service_configs'),
   isApplyingChanges: false,
   saveConfigsFlag: true,
   putClusterConfigsCallsNumber: null,
@@ -228,7 +227,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     var selectedConfigGroup;
     var siteToTagMap = {};
     var hostsLength = App.router.get('mainHostController.hostsCountMap.TOTAL');
-    serviceConfigsDef.sites.forEach(function(siteName){
+    serviceConfigsDef.get('configTypes').forEach(function(siteName){
       if(data.Clusters.desired_configs[siteName]){
         siteToTagMap[siteName] = data.Clusters.desired_configs[siteName].tag;
       } else {
@@ -537,7 +536,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * @method loadConfigs
    */
   loadConfigs: function(configs, componentConfig) {
-    var serviceConfigsData = this.get('serviceConfigsData').findProperty('serviceName', this.get('content.serviceName'));
+    var serviceConfigsData = App.StackService.find().findProperty('serviceName', this.get('content.serviceName'));
     var defaultGroupSelected = this.get('selectedConfigGroup.isDefault');
     configs.forEach(function (_serviceConfigProperty) {
       var serviceConfigProperty = this.createConfigProperty(_serviceConfigProperty, defaultGroupSelected, serviceConfigsData);
@@ -594,18 +593,20 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * @mrethod setRecommendedDefaults
    */
   setRecommendedDefaults: function (advancedConfigs) {
-    var s = this.get('serviceConfigsData').findProperty('serviceName', this.get('content.serviceName'));
+    var s = App.StackService.find().findProperty('serviceName', this.get('content.serviceName'));
     var dfd = $.Deferred();
-    if (!s.defaultsProviders) {
+    var defaultsProvider = s.get('defaultsProviders');
+    var configsValidator = s.get('configsValidator');
+    if (!defaultsProvider) {
       dfd.resolve();
       return dfd.promise();
     }
-    this.getInfoForDefaults(s.defaultsProviders);
+    this.getInfoForDefaults(defaultsProvider);
     this.addObserver('defaultsInfo.hosts.length', this, function() {
       var localDB = this.get('defaultsInfo');
       var recommendedDefaults = {};
-      if (s.defaultsProviders) {
-        s.defaultsProviders.forEach(function (defaultsProvider) {
+      if (defaultsProvider) {
+        defaultsProvider.forEach(function (defaultsProvider) {
           var d = defaultsProvider.getDefaults(localDB);
           for (var name in d) {
             if (!!d[name]) {
@@ -619,8 +620,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
           }
         });
       }
-      if (s.configsValidator) {
-        s.configsValidator.set('recommendedDefaults', recommendedDefaults);
+      if (configsValidator) {
+        configsValidator.set('recommendedDefaults', recommendedDefaults);
       }
       dfd.resolve();
     });
@@ -650,10 +651,10 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    */
   setValidator: function(serviceConfigProperty, serviceConfigsData) {
     if (serviceConfigProperty.get('serviceName') === this.get('content.serviceName')) {
-      if (serviceConfigsData.configsValidator) {
-        for (var validatorName in serviceConfigsData.configsValidator.get('configValidators')) {
+      if (serviceConfigsData.get('configsValidator')) {
+        for (var validatorName in serviceConfigsData.get('configsValidator.configValidators')) {
           if (serviceConfigProperty.get("name") == validatorName) {
-            serviceConfigProperty.set('serviceValidator', serviceConfigsData.configsValidator);
+            serviceConfigProperty.set('serviceValidator', serviceConfigsData.get('configsValidator'));
           }
         }
       }
@@ -1798,7 +1799,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    */
   setHostForService: function(serviceName, componentName, hostProperty, multiple) {
     var globalConfigs = this.get('globalConfigs');
-    var serviceConfigs = this.get('serviceConfigs').findProperty('serviceName', serviceName).configs;
+    var serviceConfigs = this.get('serviceConfigs').findProperty('serviceName', serviceName).get('configs');
     var hostConfig = serviceConfigs.findProperty('name', hostProperty);
     if (hostConfig) {
       hostConfig.defaultValue = this.getMasterComponentHostValue(componentName, multiple);

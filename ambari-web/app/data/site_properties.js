@@ -30,7 +30,7 @@ module.exports =
       "isOverridable": false,
       "isVisible": true,
       "serviceName": "HDFS",
-      "category": "SNameNode",
+      "category": "SECONDARY_NAMENODE",
       "index": 1
     },
     {
@@ -70,7 +70,7 @@ module.exports =
       "isOverridable": false,
       "isVisible": true,
       "serviceName": "HDFS",
-      "category": "NameNode",
+      "category": "NAMENODE",
       "index": 1
     },
     {
@@ -93,7 +93,7 @@ module.exports =
       "defaultValue": "",
       "displayType": "int",
       "isVisible": true,
-      "category": "DataNode",
+      "category": "DATANODE",
       "serviceName": "HDFS",
       "index": 3
     },
@@ -106,7 +106,7 @@ module.exports =
       "defaultDirectory": "/hadoop/hdfs/data",
       "displayType": "directories",
       "isVisible": true,
-      "category": "DataNode",
+      "category": "DATANODE",
       "serviceName": "HDFS",
       "index": 1
     },
@@ -118,7 +118,7 @@ module.exports =
       "defaultValue": "",
       "displayType": "int",
       "isVisible": true,
-      "category": "DataNode",
+      "category": "DATANODE",
       "serviceName": "HDFS"
     },
     {
@@ -156,7 +156,7 @@ module.exports =
       "defaultDirectory": "/hadoop/mapred",
       "displayType": "directories",
       "serviceName": "MAPREDUCE",
-      "category": "TaskTracker",
+      "category": "TASKTRACKER",
       "index": 1
     },
     {
@@ -178,7 +178,7 @@ module.exports =
       "defaultValue": "",
       "displayType": "int",
       "serviceName": "MAPREDUCE",
-      "category": "TaskTracker",
+      "category": "TASKTRACKER",
       "index": 2
     },
     {
@@ -189,7 +189,7 @@ module.exports =
       "defaultValue": "",
       "displayType": "int",
       "serviceName": "MAPREDUCE",
-      "category": "TaskTracker",
+      "category": "TASKTRACKER",
       "index": 3
     },
     {
@@ -341,7 +341,7 @@ module.exports =
       "description": "Java options for the TaskTracker child processes.",
       "defaultValue": "",
       "displayType": "advanced",
-      "category": "TaskTracker",
+      "category": "TASKTRACKER",
       "serviceName": "MAPREDUCE",
       "index": 4
     },
@@ -357,7 +357,7 @@ module.exports =
       "displayType": "host",
       "isVisible": true,
       "isObserved": true,
-      "category": "Oozie Server",
+      "category": "OOZIE_SERVER",
       "serviceName": "OOZIE",
       "index": 3
     },
@@ -369,7 +369,7 @@ module.exports =
       "defaultValue": "",
       "isOverridable": false,
       "displayType": "host",
-      "category": "Oozie Server",
+      "category": "OOZIE_SERVER",
       "serviceName": "OOZIE",
       "index": 4
     },
@@ -382,7 +382,7 @@ module.exports =
       "isOverridable": false,
       "displayType": "password",
       "isVisible": true,
-      "category": "Oozie Server",
+      "category": "OOZIE_SERVER",
       "serviceName": "OOZIE",
       "filename": "oozie-site.xml",
       "index": 5
@@ -396,7 +396,7 @@ module.exports =
       "isVisible": true,
       "isOverridable": false,
       "description": "Database name used for the Oozie",
-      "category": "Oozie Server",
+      "category": "OOZIE_SERVER",
       "serviceName": "OOZIE",
       "index": 6
     },
@@ -408,7 +408,7 @@ module.exports =
       "defaultValue": "",
       "isOverridable": false,
       "displayType": "advanced",
-      "category": "Oozie Server",
+      "category": "OOZIE_SERVER",
       "serviceName": "OOZIE",
       "index": 7
     },
@@ -423,7 +423,7 @@ module.exports =
       "isVisible": true,
       "isOverridable": false,
       "description": "Driver class name for a JDBC metastore",
-      "category": "Hive Metastore",
+      "category": "HIVE_METASTORE",
       "serviceName": "HIVE",
       "index": 7
     },
@@ -448,7 +448,7 @@ module.exports =
       "defaultValue": "hive",
       "displayType": "host",
       "isOverridable": false,
-      "category": "Hive Metastore",
+      "category": "HIVE_METASTORE",
       "serviceName": "HIVE",
       "index": 5
     },
@@ -461,7 +461,7 @@ module.exports =
       "displayType": "password",
       "isOverridable": false,
       "isVisible": true,
-      "category": "Hive Metastore",
+      "category": "HIVE_METASTORE",
       "serviceName": "HIVE",
       "index": 6
     },
@@ -475,7 +475,7 @@ module.exports =
       "displayType": "advanced",
       "isOverridable": false,
       "isVisible": true,
-      "category": "Hive Metastore",
+      "category": "HIVE_METASTORE",
       "serviceName": "HIVE",
       "index": 8
     },
@@ -490,7 +490,7 @@ module.exports =
       "isOverridable": false,
       "isObserved": true,
       "serviceName": "HIVE",
-      "category": "Hive Metastore",
+      "category": "HIVE_METASTORE",
       "index": 4
     },
     {
@@ -610,7 +610,7 @@ module.exports =
       "description": "Count of RPC Listener instances spun up on RegionServers",
       "defaultValue": "60",
       "displayType": "int",
-      "category": "RegionServer",
+      "category": "HBASE_REGIONSERVER",
       "serviceName": "HBASE",
       "index": 2
     },
@@ -623,7 +623,7 @@ module.exports =
       "displayType": "int",
       "unit": "ms",
       "isVisible": true,
-      "category": "RegionServer",
+      "category": "HBASE_REGIONSERVER",
       "serviceName": "HBASE",
       "index": 3
     },
@@ -634,7 +634,7 @@ module.exports =
       "description": "Block updates if memstore has \"Multiplier * HBase Region Memstore Flush Size\" bytes. Useful preventing runaway memstore during spikes in update traffic",
       "defaultValue": "",
       "displayType": "int",
-      "category": "RegionServer",
+      "category": "HBASE_REGIONSERVER",
       "serviceName": "HBASE",
       "index": 4
     },
@@ -659,7 +659,7 @@ module.exports =
       "defaultValue": "",
       "displayType": "int",
       "unit": "bytes",
-      "category": "RegionServer",
+      "category": "HBASE_REGIONSERVER",
       "serviceName": "HBASE",
       "index": 5
     },

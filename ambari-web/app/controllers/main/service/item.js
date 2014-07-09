@@ -43,6 +43,15 @@ App.MainServiceItemController = Em.Controller.extend({
       's': 'stop'
     }
   },
+
+  isClientsOnlyService: function() {
+    return App.get('services.clientOnly').contains(this.get('content.serviceName'));
+  }.property('content.serviceName'),
+
+  isConfigurable: function () {
+    return !App.get('services.noConfigTypes').concat('HCATALOG').contains('content.serviceName');
+  }.property('App.services.noConfigTypes','content.serviceName'),
+
   /**
    * Common method for ajax (start/stop service) responses
    * @param data
@@ -301,8 +310,7 @@ App.MainServiceItemController = Em.Controller.extend({
    */
   refreshConfigs: function () {
     var self = this;
-
-    if (this.get('content.isClientsOnly')) {
+    if (this.get('isClientsOnlyService')) {
       return App.showConfirmationFeedBackPopup(function (query) {
         batchUtils.getComponentsFromServer({
           services: [self.get('content.serviceName')]

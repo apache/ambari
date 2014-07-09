@@ -55,7 +55,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
   },
 
   slaveComponents: function () {
-    return App.StackServiceComponent.find().filterProperty('isSlave',true);
+    return App.StackServiceComponent.find().filterProperty('isSlave', true);
   }.property('App.router.clusterController.isLoaded'),
 
   allHosts: function () {
@@ -511,10 +511,20 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
   loadedServiceComponents: null,
 
   /**
+   * Clean store from already loaded data.
+   **/
+  clearStackModels: function () {
+    if (App.StackService.find().get('content').length) {
+      App.StackServiceComponent.find().set('content', []);
+      App.StackService.find().set('content', []);
+    }
+  },
+  /**
    * Generate serviceComponents as pr the stack definition  and save it to localdata
    * called form stepController step4WizardController
    */
   loadServiceComponents: function () {
+    this.clearStackModels();
     App.ajax.send({
       name: 'wizard.service_components',
       sender: this,
@@ -526,14 +536,40 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
       success: 'loadServiceComponentsSuccessCallback',
       error: 'loadServiceComponentsErrorCallback'
     });
-    return this.get('loadedServiceComponents');
   },
 
   loadServiceComponentsSuccessCallback: function (jsonData) {
-    this.setServices(jsonData);
-    this.setServiceComponents(jsonData);
-    console.log("TRACE: getService ajax call  -> In success function for the getServiceComponents call");
-    console.log("TRACE: jsonData.services : " + jsonData.items);
+    var savedSelectedServices = this.getDBProperty('selectedServiceNames');
+    var savedInstalledServices = this.getDBProperty('installedServiceNames');
+    this.set('content.selectedServiceNames', savedSelectedServices);
+    this.set('content.installedServiceNames', savedInstalledServices);
+    if (!savedSelectedServices) {
+      jsonData.items.forEach(function (service) {
+        service.StackServices.is_selected = true;
+      }, this);
+    } else {
+      jsonData.items.forEach(function (service) {
+        if (savedSelectedServices.contains(service.StackServices.service_name))
+          service.StackServices.is_selected = true;
+        else
+          service.StackServices.is_selected = false;
+      }, this);
+    }
+
+    if (!savedInstalledServices) {
+      jsonData.items.forEach(function (service) {
+        service.StackServices.is_installed = false;
+      }, this);
+    } else {
+      jsonData.items.forEach(function (service) {
+        if (savedInstalledServices.contains(service.StackServices.service_name))
+          service.StackServices.is_installed = true;
+        else
+          service.StackServices.is_installed = false;
+      }, this);
+    }
+
+    App.stackServiceMapper.map(jsonData);
   },
 
   loadServiceComponentsErrorCallback: function (request, ajaxOptions, error) {
@@ -542,64 +578,6 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
     console.log('Step8: Error message is: ' + request.responseText);
   },
 
-  /**
-   *
-   * @param jsonData
-   */
-  setServices: function(jsonData) {
-    var displayOrderConfig = require('data/services');
-    // Creating Model
-    var Service = Ember.Object.extend({
-      serviceName: null,
-      displayName: null,
-      isDisabled: true,
-      isSelected: true,
-      isInstalled: false,
-      description: null,
-      version: null
-    });
-
-    var data = [];
-    // loop through all the service components
-    for (var i = 0; i < displayOrderConfig.length; i++) {
-      var entry = jsonData.items.findProperty("StackServices.service_name", displayOrderConfig[i].serviceName);
-      if (entry) {
-        var myService = Service.create({
-          serviceName: entry.StackServices.service_name,
-          displayName: displayOrderConfig[i].displayName,
-          isDisabled: displayOrderConfig[i].isDisabled,
-          isSelected: displayOrderConfig[i].isSelected,
-          canBeSelected: displayOrderConfig[i].canBeSelected,
-          isInstalled: false,
-          isHidden: displayOrderConfig[i].isHidden,
-          description: entry.StackServices.comments,
-          version: entry.StackServices.service_version
-        });
-
-        data.push(myService);
-      }
-      else {
-        console.warn('Service not found - ', displayOrderConfig[i].serviceName);
-      }
-    }
-
-    this.set('loadedServiceComponents', data);
-  },
-
-  /**
-   *
-   * @param jsonData
-   */
-  setServiceComponents: function(jsonData) {
-    var serviceComponents = require('utils/component').loadStackServiceComponentModel(jsonData);
-    this.setDBProperty('serviceComponents', serviceComponents);
-  },
-
-  loadServicesFromServer: function () {
-    var apiService = this.loadServiceComponents();
-    this.set('content.services', apiService);
-    this.setDBProperty('service', apiService);
-  },
   /**
    * Load config groups from local DB
    */
@@ -800,10 +778,13 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
    */
   loadAdvancedConfigs: function (dependentController) {
     var self = this;
-    var counter = this.get('content.services').filterProperty('isSelected').length;
+    var stackServices = this.get('content.services').filter(function(service){
+      return service.get('isInstalled') || service.get('isSelected');
+    }).mapProperty('serviceName');
+    var counter = stackServices.length;
     var loadAdvancedConfigResult = [];
     dependentController.set('isAdvancedConfigLoaded', false);
-    this.get('content.services').filterProperty('isSelected').mapProperty('serviceName').forEach(function (_serviceName) {
+    stackServices.forEach(function (_serviceName) {
       App.config.loadAdvancedConfig(_serviceName, function (properties) {
         loadAdvancedConfigResult.pushObjects(properties);
         counter--;
@@ -857,18 +838,18 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
       // check for configs that need to update for installed services
       if (stepController.get('installedServiceNames') && stepController.get('installedServiceNames').contains(_content.get('serviceName'))) {
         // get only modified configs
-        var configs = _content.get('configs').filterProperty('isNotDefaultValue').filter(function(config) {
+        var configs = _content.get('configs').filterProperty('isNotDefaultValue').filter(function (config) {
           var notAllowed = ['masterHost', 'masterHosts', 'slaveHosts', 'slaveHost'];
           return !notAllowed.contains(config.get('displayType'));
         });
         // if modified configs detected push all service's configs for update
         if (configs.length)
-          updateServiceConfigProperties = updateServiceConfigProperties.concat(serviceConfigProperties.filterProperty('serviceName',_content.get('serviceName')));
+          updateServiceConfigProperties = updateServiceConfigProperties.concat(serviceConfigProperties.filterProperty('serviceName', _content.get('serviceName')));
         // watch for properties that are not modified but have to be updated
         if (_content.get('configs').someProperty('forceUpdate')) {
           // check for already added modified properties
           if (!updateServiceConfigProperties.findProperty('serviceName', _content.get('serviceName'))) {
-            updateServiceConfigProperties = updateServiceConfigProperties.concat(serviceConfigProperties.filterProperty('serviceName',_content.get('serviceName')));
+            updateServiceConfigProperties = updateServiceConfigProperties.concat(serviceConfigProperties.filterProperty('serviceName', _content.get('serviceName')));
           }
         }
       }
@@ -923,7 +904,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
     var components = this.get('slaveComponents');
     var result = [];
     var installedServices = App.Service.find().mapProperty('serviceName');
-    var selectedServices = this.get('content.services').filterProperty('isSelected', true).mapProperty('serviceName');
+    var selectedServices = App.StackService.find().filterProperty('isSelected', true).mapProperty('serviceName');
     var installedComponentsMap = {};
     var uninstalledComponents = [];
 

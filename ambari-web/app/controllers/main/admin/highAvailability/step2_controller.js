@@ -25,9 +25,15 @@ App.HighAvailabilityWizardStep2Controller = App.WizardStep5Controller.extend({
   name:"highAvailabilityWizardStep2Controller",
 
   /**
-   * master components which could be assigned to multiple hosts
+   * master components which could be assigned to multiple hosts in HA wizard
    */
-  multipleComponents: ['NAMENODE', 'JOURNALNODE'],
+  multipleComponentsHaWizard: ['NAMENODE', 'JOURNALNODE'],
+
+  /**
+   * master components supported by Ambari
+   */
+
+  multipleComponents: ['NAMENODE', 'JOURNALNODE','ZOOKEEPER_SERVER','HBASE_MASTER'],
 
   /**
    * overrides method in wizardStep5Controller
@@ -53,7 +59,7 @@ App.HighAvailabilityWizardStep2Controller = App.WizardStep5Controller.extend({
 
       var masterServices = self.get("selectedServicesMasters").filterProperty("selectedHost", item);
       masterServices.forEach(function(item){
-        if(this.get('multipleComponents').contains(item.component_name)){
+        if(this.get('multipleComponentsHaWizard').contains(item.component_name)){
           item.set('color','green');
         }else{
           item.set('color','grey');
@@ -77,14 +83,13 @@ App.HighAvailabilityWizardStep2Controller = App.WizardStep5Controller.extend({
    * @param masterComponents
    */
   renderComponents:function (masterComponents) {
-    var services = this.get('content.services')
-      .filterProperty('isInstalled', true).filterProperty('isInstalled', true).mapProperty('serviceName'); //list of shown services
+    var services = this.get('content.services').filterProperty('isInstalled', true).mapProperty('serviceName'); //list of shown services
 
     var result = [];
 
     var curNameNode = masterComponents.findProperty('component_name',"NAMENODE");
     curNameNode.isCurNameNode = true;
-    curNameNode.zId = 0;
+    curNameNode.serviceComponentId = 0;
 
     //Create JOURNALNODE
     for (var index = 0; index < 3; index++) {
@@ -92,11 +97,11 @@ App.HighAvailabilityWizardStep2Controller = App.WizardStep5Controller.extend({
         {
           component_name: "JOURNALNODE",
           display_name: "JournalNode",
-          isHiveCoHost: false,
+          isServiceCoHost: false,
           isInstalled: false,
           selectedHost: this.get("hosts")[index].get("host_name"),
           serviceId: "HDFS",
-          zId: index
+          serviceComponentId: index
         }
       )
     }
@@ -105,12 +110,12 @@ App.HighAvailabilityWizardStep2Controller = App.WizardStep5Controller.extend({
       {
         component_name: "NAMENODE",
         display_name: "NameNode",
-        isHiveCoHost: false,
+        isServiceCoHost: false,
         isInstalled: false,
         selectedHost: this.get("hosts").mapProperty('host_name').without(curNameNode.selectedHost)[0],
         serviceId: "HDFS",
         isAddNameNode: true,
-        zId: 1
+        serviceComponentId: 1
       }
     );
 

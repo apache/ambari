@@ -102,7 +102,6 @@ module.exports = App.WizardRoute.extend({
       controller.setCurrentStep('1');
       controller.set('hideBackButton', true);
       controller.dataLoading().done(function () {
-        controller.loadServicesFromServer();
         controller.loadAllPriorSteps();
         var wizardStep2Controller = router.get('wizardStep2Controller');
         wizardStep2Controller.set('wizardController', controller);
@@ -184,7 +183,6 @@ module.exports = App.WizardRoute.extend({
         var wizardStep6Controller = router.get('wizardStep6Controller');
         wizardStep6Controller.set('wizardController', controller);
         controller.connectOutlet('wizardStep6', controller.get('content'));
-        wizardStep6Controller.set('isMasters', false);
       });
     },
     back: Em.Router.transitionTo('step2'),

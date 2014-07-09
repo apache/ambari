@@ -20,7 +20,6 @@ var App = require('app');
 
 App.MainServiceController = Em.ArrayController.extend({
   name:'mainServiceController',
-  stackServices: [],
   content: function(){
     if(!App.router.get('clusterController.isLoaded')){
       return [];
@@ -37,46 +36,22 @@ App.MainServiceController = Em.ArrayController.extend({
 
   isAllServicesInstalled: function() {
     if (!this.get('content.content')) return false;
-    if (!this.get('stackServices').length) {
-      this.loadAvailableServices();
-    }
+
+    var availableServices = App.StackService.find().mapProperty('serviceName');
     if (!App.supports.hue) {
-      var stackServices = this.get('stackServices').without('HUE');
-      this.set('stackServices',stackServices);
+      availableServices = availableServices.without('HUE');
     }
-    return this.get('content.content').length == this.get('stackServices').length;
+    return this.get('content.content').length == availableServices.length;
   }.property('content.content.@each', 'content.content.length'),
-
-  loadAvailableServices: function() {
-    App.ajax.send({
-      name: 'wizard.service_components',
-      sender: this,
-      data: {
-        stackUrl: App.get('stackVersionURL'),
-        stackVersion: App.get('currentStackVersionNumber')
-      },
-      success: 'loadAvailableServicesSuccessCallback'
-    });
-  },
-
-  loadAvailableServicesSuccessCallback: function(jsonData) {
-    var data = [];
-    var displayOrderConfig = require('data/services');
-    for (var i = 0; i < displayOrderConfig.length; i++) {
-      var entry = jsonData.items.findProperty("StackServices.service_name", displayOrderConfig[i].serviceName);
-      if (entry) {
-        data.push(entry.StackServices.service_name);
-      }
-    }
-    this.set('stackServices',data);
-  },
 
   isStartAllDisabled: function(){
     if(this.get('isStartStopAllClicked') == true) {
       return true;
     }
-    var stoppedServiceLength = this.get('content').filterProperty('healthStatus','red').filterProperty('isClientsOnly', false).length;
-    return (stoppedServiceLength === 0); // all green status
+    var stoppedServices =  this.get('content').filter(function(_service){
+      return (_service.get('healthStatus') === 'red' && !App.get('services.clientOnly').contains(_service.get('serviceName')));
+    });
+    return (stoppedServices.length === 0); // all green status
   }.property('isStartStopAllClicked', 'content.@each.healthStatus'),
   isStopAllDisabled: function(){
     if(this.get('isStartStopAllClicked') == true) {
@@ -158,5 +133,4 @@ App.MainServiceController = Em.ArrayController.extend({
     }
     App.router.transitionTo('main.serviceAdd');
   }
-
 });

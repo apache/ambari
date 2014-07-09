@@ -55,7 +55,7 @@ App.ReassignMasterWizardStep2Controller = App.WizardStep5Controller.extend({
         selectedHost: master.hostName,
         isInstalled: true,
         serviceId: App.HostComponent.find().findProperty('componentName', master.component).get('serviceName'),
-        isHiveCoHost: ['HIVE_METASTORE', 'WEBHCAT_SERVER'].contains(master.component),
+        isServiceCoHost: ['HIVE_METASTORE', 'WEBHCAT_SERVER'].contains(master.component),
         color: color
       });
     }, this);

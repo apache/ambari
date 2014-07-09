@@ -954,7 +954,7 @@ var urls = {
     }
   },
   'wizard.service_components': {
-    'real': '{stackUrl}/services?fields=StackServices/comments,StackServices/service_version,serviceComponents/*',
+    'real': '{stackUrl}/services?fields=StackServices/*,serviceComponents/*',
     'mock': '/data/stacks/HDP-2.1/service_components.json',
     'format': function(data) {
       return {

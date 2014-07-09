@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var stringUtils = require('utils/string_utils');
 
 App.WizardStep5View = Em.View.extend({
 
@@ -33,14 +34,30 @@ App.WizardStep5View = Em.View.extend({
 
   didInsertElement: function () {
     this.get('controller').loadStep();
-  }
+    this.setCoHostedComponentText();
+  },
 
+  coHostedComponentText: '',
+
+  setCoHostedComponentText: function () {
+    var coHostedComponents = App.StackServiceComponent.find().filterProperty('isOtherComponentCoHosted').filterProperty('stackService.isSelected');
+    var coHostedComponentsText = '';
+    coHostedComponents.forEach(function (serviceComponent, index) {
+      var coHostedComponentsDisplayNames = serviceComponent.get('coHostedComponents').map(function (item) {
+        return App.StackServiceComponent.find().findProperty('componentName', item).get('displayName');
+      });
+      var componentTextArr = [serviceComponent.get('displayName')].concat(coHostedComponentsDisplayNames);
+      coHostedComponents[index] = stringUtils.getFormattedStringFromArray(componentTextArr);
+      coHostedComponentsText += '<br/>' + Em.I18n.t('installer.step5.body.coHostedComponents').format(coHostedComponents[index]);
+    }, this);
+
+    this.set('coHostedComponentText', coHostedComponentsText);
+  }
 });
 
 App.InputHostView = Em.TextField.extend(App.SelectHost, {
 
   attributeBindings: ['disabled'],
-
   /**
    * Saved typeahead component
    * @type {$}
@@ -162,7 +179,7 @@ App.RemoveControlView = Em.View.extend({
    * Index for multiple component
    * @type {number}
    */
-  zId: null,
+  serviceComponentId: null,
 
   /**
    * Current component name
@@ -182,6 +199,6 @@ App.RemoveControlView = Em.View.extend({
    * @method click
    */
   click: function () {
-    this.get('controller').removeComponent(this.get('componentName'), this.get("zId"));
+    this.get('controller').removeComponent(this.get('componentName'), this.get("serviceComponentId"));
   }
 });

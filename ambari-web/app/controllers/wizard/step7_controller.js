@@ -43,8 +43,6 @@ App.WizardStep7Controller = Em.Controller.extend({
 
   slaveHostToGroup: null,
 
-  secureConfigs: require('data/secure_mapping'),
-
   /**
    * If miscConfigChange Modal is shown
    * @type {bool}
@@ -131,7 +129,9 @@ App.WizardStep7Controller = Em.Controller.extend({
    * @type {string[]}
    */
   allSelectedServiceNames: function () {
-    return this.get('content.services').filterProperty('isSelected').mapProperty('serviceName');
+    return this.get('content.services').filter(function (service) {
+      return service.get('isInstalled') || service.get('isSelected');
+    }).mapProperty('serviceName');
   }.property('content.services').cacheable(),
 
   /**
@@ -142,7 +142,9 @@ App.WizardStep7Controller = Em.Controller.extend({
   installedServiceNames: function () {
     var serviceNames = this.get('content.services').filterProperty('isInstalled').mapProperty('serviceName');
     if (this.get('content.controllerName') !== 'installerController') {
-      return serviceNames.without('SQOOP').without('HCATALOG');
+      serviceNames = serviceNames.filter(function(_serviceName){
+        return !App.get('services.noConfigTypes').concat('HCATALOG').contains(_serviceName);
+      });
     }
     return serviceNames;
   }.property('content.services').cacheable(),
@@ -260,7 +262,7 @@ App.WizardStep7Controller = Em.Controller.extend({
     var serviceName = params.serviceName,
       service = this.get('stepConfigs').findProperty('serviceName', serviceName),
       defaultConfigGroupHosts = this.get('wizardController.allHosts').mapProperty('hostName'),
-      siteToTagMap = this._createSiteToTagMap(data.Clusters.desired_configs, params.serviceConfigsDef.sites),
+      siteToTagMap = this._createSiteToTagMap(data.Clusters.desired_configs, params.serviceConfigsDef.get('configTypes')),
       selectedConfigGroup;
 
     this.set('loadedClusterSiteToTagMap', siteToTagMap);
@@ -362,11 +364,11 @@ App.WizardStep7Controller = Em.Controller.extend({
    * @method _getRecommendedDefaultsForComponent
    */
   _getRecommendedDefaultsForComponent: function (serviceName) {
-    var s = this.get('serviceConfigsData').findProperty('serviceName', serviceName),
+    var s = App.StackService.find(serviceName),
       recommendedDefaults = {},
       localDB = this.getInfoForDefaults();
-    if (s.defaultsProviders) {
-      s.defaultsProviders.forEach(function (defaultsProvider) {
+    if (s.get('defaultsProvider')) {
+      s.get('defaultsProvider').forEach(function (defaultsProvider) {
         var d = defaultsProvider.getDefaults(localDB);
         for (var name in d) {
           if (d.hasOwnProperty(name)) {
@@ -384,7 +386,7 @@ App.WizardStep7Controller = Em.Controller.extend({
    * @slaveComponentHosts - contains slaves and clients as well
    * @returns {{masterComponentHosts: Array, slaveComponentHosts: Array, hosts: {}}}
    */
-  getInfoForDefaults: function() {
+  getInfoForDefaults: function () {
     var slaveComponentHosts = [];
     var hosts = this.get('content.hosts');
     var slaveHostMap = {};
@@ -407,7 +409,7 @@ App.WizardStep7Controller = Em.Controller.extend({
 
     //push slaves and clients into @slaveComponentHosts
     for (var componentName in slaveHostMap) {
-      if(slaveHostMap[componentName].length > 0) {
+      if (slaveHostMap[componentName].length > 0) {
         slaveComponentHosts.push({
           componentName: componentName,
           hosts: slaveHostMap[componentName]
@@ -415,7 +417,7 @@ App.WizardStep7Controller = Em.Controller.extend({
       }
     }
 
-    var masterComponentHosts = App.HostComponent.find().filterProperty('isMaster', true).map(function(item) {
+    var masterComponentHosts = App.HostComponent.find().filterProperty('isMaster', true).map(function (item) {
       return {
         component: item.get('componentName'),
         serviceId: item.get('service.serviceName'),
@@ -531,12 +533,12 @@ App.WizardStep7Controller = Em.Controller.extend({
    */
   _updateValidatorsForConfig: function (serviceConfigProperty, component, serviceConfigsData) {
     if (serviceConfigProperty.get('serviceName') === component.get('serviceName')) {
-      if (serviceConfigsData.configsValidator) {
-        var validators = serviceConfigsData.configsValidator.get('configValidators');
+      if (serviceConfigsData.get('configsValidator')) {
+        var validators = serviceConfigsData.get('configsValidator').get('configValidators');
         for (var validatorName in validators) {
           if (validators.hasOwnProperty(validatorName)) {
             if (serviceConfigProperty.get('name') == validatorName) {
-              serviceConfigProperty.set('serviceValidator', serviceConfigsData.configsValidator);
+              serviceConfigProperty.set('serviceValidator', serviceConfigsData.get('configsValidator'));
             }
           }
         }
@@ -556,12 +558,12 @@ App.WizardStep7Controller = Em.Controller.extend({
    * @method loadComponentConfigs
    */
   loadComponentConfigs: function (configs, componentConfig, component) {
-    var s = this.get('serviceConfigsData').findProperty('serviceName', component.get('serviceName')),
+    var s = App.StackService.find(component.get('serviceName')),
       defaultGroupSelected = component.get('selectedConfigGroup.isDefault');
 
-    if (s.configsValidator) {
+    if (s && s.get('configsValidator')) {
       var recommendedDefaults = this._getRecommendedDefaultsForComponent(component.get('serviceName'));
-      s.configsValidator.set('recommendedDefaults', recommendedDefaults);
+      s.get('configsValidator').set('recommendedDefaults', recommendedDefaults);
     }
 
     configs.forEach(function (serviceConfigProperty) {
@@ -640,6 +642,9 @@ App.WizardStep7Controller = Em.Controller.extend({
       return;
     }
     this.clearStep();
+    App.config.setPreDefinedGlobalProperties();
+    App.config.setPreDefinedServiceConfigs();
+
     //STEP 1: Load advanced configs
     var advancedConfigs = this.get('content.advancedServiceConfig');
     //STEP 2: Load on-site configs by service from local DB
@@ -718,7 +723,7 @@ App.WizardStep7Controller = Em.Controller.extend({
       // Remove SNameNode if HA is enabled
       if (App.get('isHaEnabled')) {
         var c = serviceConfigs.findProperty('serviceName', 'HDFS').configs;
-        var removedConfigs = c.filterProperty('category', 'SNameNode');
+        var removedConfigs = c.filterProperty('category', 'SECONDARY_NAMENODE');
         removedConfigs.map(function (config) {
           c = c.without(config);
         });
@@ -765,10 +770,8 @@ App.WizardStep7Controller = Em.Controller.extend({
    */
   getConfigTagsSuccess: function (data) {
     var installedServiceSites = [];
-    this.get('serviceConfigsData').filter(function (service) {
-      if (this.get('installedServiceNames').contains(service.serviceName)) {
-        installedServiceSites = installedServiceSites.concat(service.sites);
-      }
+    App.StackService.find().filterProperty('isSelected').filter(function (service) {
+      installedServiceSites = installedServiceSites.concat(service.get('configTypes'));
     }, this);
     installedServiceSites = installedServiceSites.uniq();
     var serviceConfigTags = [];
@@ -1044,10 +1047,10 @@ App.WizardStep7Controller = Em.Controller.extend({
   },
 
   /**
-    * Check whether hive New MySQL database is on the same host as Ambari server MySQL server
-    * @return {$.ajax|null}
-    * @method checkMySQLHost
-    */
+   * Check whether hive New MySQL database is on the same host as Ambari server MySQL server
+   * @return {$.ajax|null}
+   * @method checkMySQLHost
+   */
   checkMySQLHost: function () {
     // get ambari database type and hostname
     return App.ajax.send({
@@ -1081,7 +1084,7 @@ App.WizardStep7Controller = Em.Controller.extend({
    *
    * @method resolveHiveMysqlDatabase
    **/
-  resolveHiveMysqlDatabase: function() {
+  resolveHiveMysqlDatabase: function () {
     var hiveService = this.get('content.services').findProperty('serviceName', 'HIVE');
     if (!hiveService || !hiveService.get('isSelected') || hiveService.get('isInstalled')) {
       this.moveNext();
@@ -1089,7 +1092,7 @@ App.WizardStep7Controller = Em.Controller.extend({
     }
     var hiveDBType = this.get('stepConfigs').findProperty('serviceName', 'HIVE').configs.findProperty('name', 'hive_database').value;
     if (hiveDBType == 'New MySQL Database') {
-      var self= this;
+      var self = this;
       this.checkMySQLHost().done(function () {
         if (self.get('mySQLServerConflict')) {
           // error popup before you can proceed
@@ -1100,14 +1103,14 @@ App.WizardStep7Controller = Em.Controller.extend({
             }),
             secondary: Em.I18n.t('installer.step7.popup.mySQLWarning.button.gotostep5'),
             primary: Em.I18n.t('installer.step7.popup.mySQLWarning.button.dismiss'),
-            onSecondary: function (){
+            onSecondary: function () {
               var parent = this;
               return App.ModalPopup.show({
                 header: Em.I18n.t('installer.step7.popup.mySQLWarning.confirmation.header'),
                 bodyClass: Ember.View.extend({
-                  template: Ember.Handlebars.compile( Em.I18n.t('installer.step7.popup.mySQLWarning.confirmation.body'))
+                  template: Ember.Handlebars.compile(Em.I18n.t('installer.step7.popup.mySQLWarning.confirmation.body'))
                 }),
-                onPrimary: function (){
+                onPrimary: function () {
                   this.hide();
                   parent.hide();
                   // go back to step 5: assign masters and disable default navigation warning
@@ -1125,7 +1128,7 @@ App.WizardStep7Controller = Em.Controller.extend({
     }
   },
 
-  checkDatabaseConnectionTest: function() {
+  checkDatabaseConnectionTest: function () {
     var deferred = $.Deferred();
     if (!App.supports.databaseConnection) {
       deferred.resolve();
@@ -1141,7 +1144,7 @@ App.WizardStep7Controller = Em.Controller.extend({
         ignored: Em.I18n.t('installer.step7.hive.database.new')
       }
     ];
-    configMap.forEach(function(config) {
+    configMap.forEach(function (config) {
       var isConnectionNotTested = false;
       var service = this.get('content.services').findProperty('serviceName', config.serviceName);
       if (service && service.get('isSelected') && !service.get('isInstalled')) {
@@ -1163,8 +1166,8 @@ App.WizardStep7Controller = Em.Controller.extend({
     }, this);
     var ignoredServices = configMap.filterProperty('isCheckIgnored', true);
     if (ignoredServices.length) {
-      var displayedServiceNames = ignoredServices.mapProperty('serviceName').map(function(serviceName) {
-        return App.Service.DisplayNames[serviceName];
+      var displayedServiceNames = ignoredServices.mapProperty('serviceName').map(function (serviceName) {
+        return this.get('content.services').findProperty('serviceName', serviceName).get('displayName');
       }, this);
       this.showDatabaseConnectionWarningPopup(displayedServiceNames, deferred);
     }
@@ -1174,17 +1177,17 @@ App.WizardStep7Controller = Em.Controller.extend({
     return deferred;
   },
 
-  showDatabaseConnectionWarningPopup: function(serviceNames, deferred) {
+  showDatabaseConnectionWarningPopup: function (serviceNames, deferred) {
     return App.ModalPopup.show({
       header: Em.I18n.t('installer.step7.popup.database.connection.header'),
       body: Em.I18n.t('installer.step7.popup.database.connection.body').format(serviceNames.join(', ')),
       secondary: Em.I18n.t('common.cancel'),
       primary: Em.I18n.t('common.proceedAnyway'),
-      onPrimary: function() {
+      onPrimary: function () {
         deferred.resolve();
         this._super();
       },
-      onSecondary: function() {
+      onSecondary: function () {
         deferred.reject();
         this._super();
       }
@@ -1193,7 +1196,7 @@ App.WizardStep7Controller = Em.Controller.extend({
   /**
    * Proceed to the next step
    **/
-  moveNext: function() {
+  moveNext: function () {
     App.router.send('next');
   },
 
@@ -1204,7 +1207,7 @@ App.WizardStep7Controller = Em.Controller.extend({
   submit: function () {
     var _this = this;
     if (!this.get('isSubmitDisabled')) {
-      this.checkDatabaseConnectionTest().done(function() {
+      this.checkDatabaseConnectionTest().done(function () {
         _this.resolveHiveMysqlDatabase();
       });
     }

@@ -18,6 +18,7 @@
 
 <div id="step6">
   <h2>{{view.title}}</h2>
+
   <div class="alert alert-info">{{{view.label}}}</div>
   {{#if errorMessage}}
     <div class="alert alert-error">{{errorMessage}}</div>
@@ -26,39 +27,41 @@
   <div class="pre-scrollable">
     <table class="table table-striped" id="component_assign_table">
       <thead>
-        <tr>
-          <th>{{t common.host}}</th>
-          {{#each header in controller.headers}}
+      <tr>
+        <th>{{t common.host}}</th>
+        {{#each header in controller.headers}}
 
-            <th>
-              <a href="#" {{bindAttr class="header.allChecked:selected:deselected"}}
-                {{action "selectAllNodes" header target="controller"}}>{{t all}}</a>&nbsp;|&nbsp;<a href="#" {{bindAttr class="header.noChecked:selected:deselected"}}
-                {{action "deselectAllNodes" header target="controller"}}>{{t none}}</a>
-            </th>
+          <th>
+            <a href="#" {{bindAttr class="header.allChecked:selected:deselected header.isDisabled:remove-link"}}
+              {{action "selectAllNodes" header target="controller"}}>{{t all}}</a> &nbsp;|&nbsp; <a
+                  href="#" {{bindAttr class="header.noChecked:selected:deselected header.isDisabled:remove-link"}}
+            {{action "deselectAllNodes" header target="controller"}}>{{t none}}</a>
+          </th>
 
-          {{/each}}
-        </tr>
+        {{/each}}
+      </tr>
       </thead>
       <tbody>
-        {{#if view.pageContent}}
-          {{#each host in view.pageContent}}
-            <tr>
-              {{#view App.WizardStep6HostView hostBinding="host" }}
-                <span class="trim_hostname">{{host.hostName}}</span>
-                {{#if host.hasMaster}}
-                  <i class="icon-asterisks">&#10037;</i>
-                {{/if}}
-              {{/view}}
-              {{#each checkbox in host.checkboxes}}
-                <td>
-                  <label class="checkbox">
-                      <input {{bindAttr checked = "checkbox.checked" disabled="checkbox.isInstalled"}} {{action "checkboxClick" checkbox target="view" }} type="checkbox"/>{{checkbox.title}}
-                  </label>
-                </td>
-              {{/each}}
-            </tr>
-          {{/each}}
-        {{/if}}
+      {{#if view.pageContent}}
+        {{#each host in view.pageContent}}
+          <tr>
+            {{#view App.WizardStep6HostView hostBinding="host" }}
+              <span class="trim_hostname">{{host.hostName}}</span>
+              {{#if host.hasMaster}}
+                <i class=icon-asterisks>&#10037;</i>
+              {{/if}}
+            {{/view}}
+            {{#each checkbox in host.checkboxes}}
+              <td>
+                <label class="checkbox">
+                  <input {{bindAttr checked = "checkbox.checked" disabled="checkbox.isInstalled"}} {{action "checkboxClick" checkbox target="view" }}
+                          type="checkbox"/>{{checkbox.title}}
+                </label>
+              </td>
+            {{/each}}
+          </tr>
+        {{/each}}
+      {{/if}}
       </tbody>
     </table>
   </div>

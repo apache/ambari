@@ -706,7 +706,7 @@ module.exports = Em.Route.extend({
           var item = router.get('mainServiceItemController.content');
           //if service is not existed then route to default service
           if (item.get('isLoaded')) {
-            if (item.get('isConfigurable')) {
+            if (router.get('mainServiceItemController.isConfigurable')) {
               router.get('mainServiceItemController').connectOutlet('mainServiceInfoConfigs', item);
             }
             else {

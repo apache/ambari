@@ -92,14 +92,15 @@ describe('#App', function() {
 
     var globalProperties = require('data/HDP2/global_properties');
     var siteProperties = require('data/HDP2/site_properties');
+
     var reviewConfigs = require('data/review_configs');
     var disableResult = App.disableComponent(testableComponent);
+
 
     describe('#disableComponent()', function() {
       // copy
       var _globalProperties = $.extend({}, globalProperties);
       var _siteProperties = $.extend({}, siteProperties);
-      var _reviewConfigs = JSON.parse(JSON.stringify(reviewConfigs));
 
       describe('result validation', function() {
 
@@ -139,12 +140,6 @@ describe('#App', function() {
           expect(_siteProperties.configProperties.mapProperty('name')).to.not.include.members(expectedInfo.properties.site_properties);
         });
 
-        it('should remove review config for component', function() {
-          var reviewConfig = _reviewConfigs.findProperty('config_name', 'services')
-            .config_value.findProperty('service_name', testableComponent.get('serviceName'))
-            .service_components.mapProperty('component_name');
-          expect(reviewConfig).to.not.include(expectedInfo.reviewConfigs.component_name);
-        });
       });
     });
 
@@ -157,13 +152,6 @@ describe('#App', function() {
 
       it('should add site properties of component', function() {
         expect(siteProperties.configProperties.mapProperty('name')).to.include.members(expectedInfo.properties.site_properties);
-      });
-
-      it('should add review config for component', function() {
-        var reviewConfig = reviewConfigs.findProperty('config_name', 'services')
-          .config_value.findProperty('service_name', testableComponent.get('serviceName'))
-          .get('service_components').mapProperty('component_name');
-        expect(reviewConfig).to.include(expectedInfo.reviewConfigs.component_name);
       });
     });
 

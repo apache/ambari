@@ -31,7 +31,7 @@ module.exports =
       "displayType": "directory",
       "isOverridable": false,
       "serviceName": "HDFS",
-      "category": "SNameNode",
+      "category": "SECONDARY_NAMENODE",
       "index": 1
     },
     {
@@ -52,7 +52,7 @@ module.exports =
       "displayType": "directories",
       "isOverridable": false,
       "serviceName": "HDFS",
-      "category": "NameNode",
+      "category": "NAMENODE",
       "index": 1
     },
     {
@@ -70,7 +70,7 @@ module.exports =
       "name": "dfs.datanode.failed.volumes.tolerated",
       "displayName": "DataNode volumes failure toleration",
       "displayType": "int",
-      "category": "DataNode",
+      "category": "DATANODE",
       "serviceName": "HDFS",
       "index": 3
     },
@@ -80,7 +80,7 @@ module.exports =
       "displayName": "DataNode directories",
       "defaultDirectory": "/hadoop/hdfs/data",
       "displayType": "directories",
-      "category": "DataNode",
+      "category": "DATANODE",
       "serviceName": "HDFS",
       "index": 1
     },
@@ -89,7 +89,7 @@ module.exports =
       "name": "dfs.datanode.data.dir.perm",
       "displayName": "DataNode directories permission",
       "displayType": "int",
-      "category": "DataNode",
+      "category": "DATANODE",
       "serviceName": "HDFS"
     },
     {
@@ -148,7 +148,7 @@ module.exports =
       "displayName": "yarn.acl.enable",
       "displayType": "checkbox",
       "serviceName": "YARN",
-      "category": "ResourceManager"
+      "category": "RESOURCEMANAGER"
     },
     {
       "id": "site property",
@@ -156,7 +156,7 @@ module.exports =
       "displayName": "yarn.admin.acl",
       "isRequired": false,
       "serviceName": "YARN",
-      "category": "ResourceManager"
+      "category": "RESOURCEMANAGER"
     },
     {
       "id": "site property",
@@ -164,7 +164,7 @@ module.exports =
       "displayName": "yarn.log-aggregation-enable",
       "displayType": "checkbox",
       "serviceName": "YARN",
-      "category": "ResourceManager"
+      "category": "RESOURCEMANAGER"
     },
     {
       "id": "site property",
@@ -195,21 +195,21 @@ module.exports =
       "displayName": "yarn.nodemanager.resource.memory-mb",
       "displayType": "int",
       "serviceName": "YARN",
-      "category": "NodeManager"
+      "category": "NODEMANAGER"
     },
     {
       "id": "site property",
       "name": "yarn.nodemanager.vmem-pmem-ratio",
       "displayName": "yarn.nodemanager.vmem-pmem-ratio",
       "serviceName": "YARN",
-      "category": "NodeManager"
+      "category": "NODEMANAGER"
     },
     {
       "id": "site property",
       "name": "yarn.nodemanager.linux-container-executor.group",
       "displayName": "yarn.nodemanager.linux-container-executor.group",
       "serviceName": "YARN",
-      "category": "NodeManager"
+      "category": "NODEMANAGER"
     },
     {
       "id": "site property",
@@ -218,7 +218,7 @@ module.exports =
       "defaultDirectory": "/hadoop/yarn/log",
       "displayType": "directories",
       "serviceName": "YARN",
-      "category": "NodeManager"
+      "category": "NODEMANAGER"
     },
     {
       "id": "site property",
@@ -227,7 +227,7 @@ module.exports =
       "defaultDirectory": "/hadoop/yarn/local",
       "displayType": "directories",
       "serviceName": "YARN",
-      "category": "NodeManager"
+      "category": "NODEMANAGER"
     },
     {
       "id": "site property",
@@ -235,28 +235,28 @@ module.exports =
       "displayName": "yarn.nodemanager.remote-app-log-dir",
       "displayType": "directory",
       "serviceName": "YARN",
-      "category": "NodeManager"
+      "category": "NODEMANAGER"
     },
     {
       "id": "site property",
       "name": "yarn.nodemanager.remote-app-log-dir-suffix",
       "displayName": "yarn.nodemanager.remote-app-log-dir-suffix",
       "serviceName": "YARN",
-      "category": "NodeManager"
+      "category": "NODEMANAGER"
     },
     {
       "id": "site property",
       "name": "yarn.nodemanager.aux-services",
       "displayName": "yarn.nodemanager.aux-services",
       "serviceName": "YARN",
-      "category": "NodeManager"
+      "category": "NODEMANAGER"
     },
     {
       "id": "site property",
       "name": "yarn.nodemanager.log.retain-second",
       "displayName": "yarn.nodemanager.log.retain-second",
       "serviceName": "YARN",
-      "category": "NodeManager"
+      "category": "NODEMANAGER"
     },
     {
       "id": "site property",
@@ -269,7 +269,7 @@ module.exports =
       "id": "site property",
       "name": "yarn.timeline-service.enabled",
       "displayName": "yarn.timeline-service.enabled",
-      "category": "AppTimelineServer",
+      "category": "APP_TIMELINE_SERVER",
       "displayType": "checkbox",
       "serviceName": "YARN"
     },
@@ -278,7 +278,7 @@ module.exports =
       "name": "yarn.timeline-service.leveldb-timeline-store.path",
       "displayName": "yarn.timeline-service.leveldb-timeline-store.path",
       "defaultDirectory": "/hadoop/yarn/timeline",
-      "category": "AppTimelineServer",
+      "category": "APP_TIMELINE_SERVER",
       "displayType": "directory",
       "serviceName": "YARN"
     },
@@ -287,14 +287,14 @@ module.exports =
       "name": "yarn.timeline-service.leveldb-timeline-store.ttl-interval-ms",
       "displayName": "yarn.timeline-service.leveldb-timeline-store.ttl-interval-ms",
       "displayType": "int",
-      "category": "AppTimelineServer",
+      "category": "APP_TIMELINE_SERVER",
       "serviceName": "YARN"
     },
     {
       "id": "site property",
       "name": "yarn.timeline-service.store-class",
       "displayName": "yarn.timeline-service.store-class",
-      "category": "AppTimelineServer",
+      "category": "APP_TIMELINE_SERVER",
       "serviceName": "YARN"
     },
     {
@@ -302,7 +302,7 @@ module.exports =
       "name": "yarn.timeline-service.ttl-enable",
       "displayName": "yarn.timeline-service.ttl-enable",
       "displayType": "checkbox",
-      "category": "AppTimelineServer",
+      "category": "APP_TIMELINE_SERVER",
       "serviceName": "YARN"
     },
     {
@@ -310,14 +310,14 @@ module.exports =
       "name": "yarn.timeline-service.ttl-ms",
       "displayName": "yarn.timeline-service.ttl-ms",
       "displayType": "int",
-      "category": "AppTimelineServer",
+      "category": "APP_TIMELINE_SERVER",
       "serviceName": "YARN"
     },
     {
       "id": "site property",
       "name": "yarn.timeline-service.generic-application-history.store-class",
       "displayName": "yarn.timeline-service.generic-application-history.store-class",
-      "category": "AppTimelineServer",
+      "category": "APP_TIMELINE_SERVER",
       "serviceName": "YARN"
     },
     {
@@ -325,7 +325,7 @@ module.exports =
       "name": "yarn.timeline-service.webapp.address",
       "displayName": "yarn.timeline-service.webapp.address",
       "displayType": "string",
-      "category": "AppTimelineServer",
+      "category": "APP_TIMELINE_SERVER",
       "serviceName": "YARN"
     },
     {
@@ -333,7 +333,7 @@ module.exports =
       "name": "yarn.timeline-service.webapp.https.address",
       "displayName": "yarn.timeline-service.webapp.https.address",
       "displayType": "string",
-      "category": "AppTimelineServer",
+      "category": "APP_TIMELINE_SERVER",
       "serviceName": "YARN"
     },
     {
@@ -341,7 +341,7 @@ module.exports =
       "name": "yarn.timeline-service.address",
       "displayName": "yarn.timeline-service.address",
       "displayType": "string",
-      "category": "AppTimelineServer",
+      "category": "APP_TIMELINE_SERVER",
       "serviceName": "YARN"
     },
   /**********************************************MAPREDUCE2***************************************/
@@ -397,7 +397,7 @@ module.exports =
       "isOverridable": false,
       "displayType": "host",
       "isObserved": true,
-      "category": "Oozie Server",
+      "category": "OOZIE_SERVER",
       "serviceName": "OOZIE",
       "index": 4
     },
@@ -407,7 +407,7 @@ module.exports =
       "displayName": "Database Username",
       "isOverridable": false,
       "displayType": "host",
-      "category": "Oozie Server",
+      "category": "OOZIE_SERVER",
       "serviceName": "OOZIE",
       "index": 5
     },
@@ -417,7 +417,7 @@ module.exports =
       "displayName": "Database Password",
       "isOverridable": false,
       "displayType": "password",
-      "category": "Oozie Server",
+      "category": "OOZIE_SERVER",
       "serviceName": "OOZIE",
       "filename": "oozie-site.xml",
       "index": 6
@@ -427,7 +427,7 @@ module.exports =
       "name": "oozie.service.JPAService.jdbc.driver", // the default value of this property is overriden in code
       "displayName": "JDBC Driver Class",
       "isOverridable": false,
-      "category": "Oozie Server",
+      "category": "OOZIE_SERVER",
       "serviceName": "OOZIE",
       "index": 7
     },
@@ -437,7 +437,7 @@ module.exports =
       "displayName": "Database URL",
       "isOverridable": false,
       "displayType": "advanced",
-      "category": "Oozie Server",
+      "category": "OOZIE_SERVER",
       "serviceName": "OOZIE",
       "index": 8
     },
@@ -448,7 +448,7 @@ module.exports =
       "name": "javax.jdo.option.ConnectionDriverName",  // the default value is overwritten in code
       "displayName": "JDBC Driver Class",
       "isOverridable": false,
-      "category": "Hive Metastore",
+      "category": "HIVE_METASTORE",
       "serviceName": "HIVE",
       "index": 7
     },
@@ -469,7 +469,7 @@ module.exports =
       "displayName": "Database Username",
       "displayType": "host",
       "isOverridable": false,
-      "category": "Hive Metastore",
+      "category": "HIVE_METASTORE",
       "serviceName": "HIVE",
       "index": 5
     },
@@ -479,7 +479,7 @@ module.exports =
       "displayName": "Database Password",
       "displayType": "password",
       "isOverridable": false,
-      "category": "Hive Metastore",
+      "category": "HIVE_METASTORE",
       "serviceName": "HIVE",
       "index": 6
     },
@@ -489,7 +489,7 @@ module.exports =
       "displayName": "Database URL",
       "displayType": "advanced",
       "isOverridable": false,
-      "category": "Hive Metastore",
+      "category": "HIVE_METASTORE",
       "serviceName": "HIVE",
       "index": 8
     },
@@ -501,7 +501,7 @@ module.exports =
       "isOverridable": false,
       "isObserved": true,
       "serviceName": "HIVE",
-      "category": "Hive Metastore",
+      "category": "HIVE_METASTORE",
       "index": 4
     },
     {
@@ -685,7 +685,7 @@ module.exports =
       "name": "hbase.regionserver.handler.count",
       "displayName": "RegionServer Handler",
       "displayType": "int",
-      "category": "RegionServer",
+      "category": "HBASE_REGIONSERVER",
       "serviceName": "HBASE",
       "index": 2
     },
@@ -695,7 +695,7 @@ module.exports =
       "displayName": "HBase Region Major Compaction",
       "displayType": "int",
       "unit": "ms",
-      "category": "RegionServer",
+      "category": "HBASE_REGIONSERVER",
       "serviceName": "HBASE",
       "index": 3
     },
@@ -704,7 +704,7 @@ module.exports =
       "name": "hbase.hregion.memstore.block.multiplier",
       "displayName": "HBase Region Block Multiplier",
       "displayType": "int",
-      "category": "RegionServer",
+      "category": "HBASE_REGIONSERVER",
       "serviceName": "HBASE",
       "index": 4
     },
@@ -722,7 +722,7 @@ module.exports =
       "displayName": "HBase Region Memstore Flush Size",
       "displayType": "int",
       "unit": "bytes",
-      "category": "RegionServer",
+      "category": "HBASE_REGIONSERVER",
       "serviceName": "HBASE",
       "index": 5
     },
@@ -946,7 +946,7 @@ module.exports =
       "displayType": "masterHost",
       "isOverridable": false,
       "serviceName": "STORM",
-      "category": "Nimbus"
+      "category": "NIMBUS"
     },
     {
       "id": "site property",
@@ -954,7 +954,7 @@ module.exports =
       "displayName": "nimbus.thrift.port",
       "displayType": "int",
       "serviceName": "STORM",
-      "category": "Nimbus"
+      "category": "NIMBUS"
     },
     {
       "id": "site property",
@@ -962,7 +962,7 @@ module.exports =
       "displayName": "nimbus.thrift.max_buffer_size",
       "displayType": "int",
       "serviceName": "STORM",
-      "category": "Nimbus",
+      "category": "NIMBUS",
       "unit": "bytes"
     },
     {
@@ -972,7 +972,7 @@ module.exports =
       "displayType": "multiLine",
       "isOverridable": false,
       "serviceName": "STORM",
-      "category": "Nimbus",
+      "category": "NIMBUS",
       "filename": "storm-site.xml"
     },
     {
@@ -981,7 +981,7 @@ module.exports =
       "displayName": "nimbus.task.timeout.secs",
       "displayType": "int",
       "serviceName": "STORM",
-      "category": "Nimbus",
+      "category": "NIMBUS",
       "unit": "seconds"
     },
     {
@@ -990,7 +990,7 @@ module.exports =
       "displayName": "nimbus.supervisor.timeout.secs",
       "displayType": "int",
       "serviceName": "STORM",
-      "category": "Nimbus",
+      "category": "NIMBUS",
       "unit": "seconds"
     },
     {
@@ -999,7 +999,7 @@ module.exports =
       "displayName": "nimbus.monitor.freq.secs",
       "displayType": "int",
       "serviceName": "STORM",
-      "category": "Nimbus",
+      "category": "NIMBUS",
       "unit": "seconds"
     },
     {
@@ -1008,7 +1008,7 @@ module.exports =
       "displayName": "nimbus.cleanup.inbox.freq.secs",
       "displayType": "int",
       "serviceName": "STORM",
-      "category": "Nimbus",
+      "category": "NIMBUS",
       "unit": "seconds"
     },
     {
@@ -1017,7 +1017,7 @@ module.exports =
       "displayName": "nimbus.inbox.jar.expiration.secs",
       "displayType": "int",
       "serviceName": "STORM",
-      "category": "Nimbus",
+      "category": "NIMBUS",
       "unit": "seconds"
     },
     {
@@ -1026,7 +1026,7 @@ module.exports =
       "displayName": "nimbus.task.launch.secs",
       "displayType": "int",
       "serviceName": "STORM",
-      "category": "Nimbus",
+      "category": "NIMBUS",
       "unit": "seconds"
     },
     {
@@ -1036,7 +1036,7 @@ module.exports =
       "displayType": "checkbox",
       "isReconfigurable": true,
       "serviceName": "STORM",
-      "category": "Nimbus"
+      "category": "NIMBUS"
     },
     {
       "id": "site property",
@@ -1044,7 +1044,7 @@ module.exports =
       "displayName": "nimbus.file.copy.expiration.secs",
       "displayType": "int",
       "serviceName": "STORM",
-      "category": "Nimbus",
+      "category": "NIMBUS",
       "unit": "seconds"
     },
     {
@@ -1052,7 +1052,7 @@ module.exports =
       "name": "nimbus.topology.validator",
       "displayName": "nimbus.topology.validator",
       "serviceName": "STORM",
-      "category": "Nimbus"
+      "category": "NIMBUS"
     },
     {
       "id": "site property",
@@ -1060,13 +1060,13 @@ module.exports =
       "displayName": "supervisor.slots.ports",
       "displayType": "string",
       "serviceName": "STORM",
-      "category": "Supervisor"
+      "category": "SUPERVISOR"
     },
     {
       "id": "site property",
       "isOverrideable": false,
       "serviceName": "STORM",
-      "category": "Supervisor",
+      "category": "SUPERVISOR",
       "displayName": "supervisor.childopts",
       "name": "supervisor.childopts",
       "displayType": "multiLine",
@@ -1075,7 +1075,7 @@ module.exports =
     {
       "id": "site property",
       "serviceName": "STORM",
-      "category": "Supervisor",
+      "category": "SUPERVISOR",
       "displayName": "supervisor.worker.start.timeout.secs",
       "name": "supervisor.worker.start.timeout.secs",
       "displayType": "int",
@@ -1084,7 +1084,7 @@ module.exports =
     {
       "id": "site property",
       "serviceName": "STORM",
-      "category": "Supervisor",
+      "category": "SUPERVISOR",
       "displayName": "supervisor.worker.timeout.secs",
       "name": "supervisor.worker.timeout.secs",
       "displayType": "int",
@@ -1093,7 +1093,7 @@ module.exports =
     {
       "id": "site property",
       "serviceName": "STORM",
-      "category": "Supervisor",
+      "category": "SUPERVISOR",
       "displayName": "supervisor.monitor.frequency.secs",
       "name": "supervisor.monitor.frequency.secs",
       "displayType": "int",
@@ -1102,7 +1102,7 @@ module.exports =
     {
       "id": "site property",
       "serviceName": "STORM",
-      "category": "Supervisor",
+      "category": "SUPERVISOR",
       "displayName": "supervisor.heartbeat.frequency.secs",
       "name": "supervisor.heartbeat.frequency.secs",
       "displayType": "int",
@@ -1111,7 +1111,7 @@ module.exports =
     {
       "id": "site property",
       "serviceName": "STORM",
-      "category": "DRPCServer",
+      "category": "DRPC_SERVER",
       "displayName": "drpc.port",
       "name": "drpc.port",
       "displayType": "int"
@@ -1119,7 +1119,7 @@ module.exports =
     {
       "id": "site property",
       "serviceName": "STORM",
-      "category": "DRPCServer",
+      "category": "DRPC_SERVER",
       "displayName": "drpc.worker.threads",
       "name": "drpc.worker.threads",
       "displayType": "int"
@@ -1127,7 +1127,7 @@ module.exports =
     {
       "id": "site property",
       "serviceName": "STORM",
-      "category": "DRPCServer",
+      "category": "DRPC_SERVER",
       "displayName": "drpc.queue.size",
       "name": "drpc.queue.size",
       "displayType": "int"
@@ -1135,7 +1135,7 @@ module.exports =
     {
       "id": "site property",
       "serviceName": "STORM",
-      "category": "DRPCServer",
+      "category": "DRPC_SERVER",
       "displayName": "drpc.invocations.port",
       "name": "drpc.invocations.port",
       "displayType": "int"
@@ -1143,7 +1143,7 @@ module.exports =
     {
       "id": "site property",
       "serviceName": "STORM",
-      "category": "DRPCServer",
+      "category": "DRPC_SERVER",
       "displayName": "drpc.request.timeout.secs",
       "name": "drpc.request.timeout.secs",
       "displayType": "int",
@@ -1152,7 +1152,7 @@ module.exports =
     {
       "id": "site property",
       "serviceName": "STORM",
-      "category": "DRPCServer",
+      "category": "DRPC_SERVER",
       "displayName": "drpc.childopts",
       "name": "drpc.childopts",
       "displayType": "string"
@@ -1160,7 +1160,7 @@ module.exports =
     {
       "id": "site property",
       "serviceName": "STORM",
-      "category": "StormUIServer",
+      "category": "STORM_UI_SERVER",
       "displayName": "ui.port",
       "name": "ui.port",
       "displayType": "int"
@@ -1168,7 +1168,7 @@ module.exports =
     {
       "id": "site property",
       "serviceName": "STORM",
-      "category": "StormUIServer",
+      "category": "STORM_UI_SERVER",
       "displayName": "ui.childopts",
       "name": "ui.childopts",
       "displayType": "string"
@@ -1763,7 +1763,7 @@ module.exports =
       "isRequired": false,
       "displayType": "content",
       "serviceName": "FLUME",
-      "category": "FlumeAgent",
+      "category": "FLUME_HANDLER",
       "filename": "flume-conf.xml"
     }
   ]

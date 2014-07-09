@@ -20,15 +20,15 @@ var App = require('app');
 var stringUtils = require('utils/string_utils');
 
 App.MainAdminClusterController = Em.Controller.extend({
-  name:'mainAdminClusterController',
+  name: 'mainAdminClusterController',
   services: [],
   allRepos: [],
   upgradeVersion: '',
   /**
    * get the newest version of HDP from server
    */
-  updateUpgradeVersion: function(){
-    if(App.router.get('clusterController.isLoaded')){
+  updateUpgradeVersion: function () {
+    if (App.router.get('clusterController.isLoaded')) {
       App.ajax.send({
         name: 'cluster.update_upgrade_version',
         sender: this,
@@ -36,25 +36,25 @@ App.MainAdminClusterController = Em.Controller.extend({
         error: 'updateUpgradeVersionErrorCallback'
       });
     }
-  }.observes('App.router.clusterController.isLoaded', 'App.currentStackVersion','App.router.mainServiceController.content.length'),
+  }.observes('App.router.clusterController.isLoaded', 'App.currentStackVersion', 'App.router.mainServiceController.content.length'),
 
-  updateUpgradeVersionSuccessCallback: function(data) {
+  updateUpgradeVersionSuccessCallback: function (data) {
     var upgradeVersion = this.get('upgradeVersion') || App.defaultStackVersion;
     var currentVersion = App.get('currentStackVersionNumber');
     upgradeVersion = upgradeVersion.replace(/HDP-/, '');
-    data.items.mapProperty('Versions.stack_version').forEach(function(version){
+    data.items.mapProperty('Versions.stack_version').forEach(function (version) {
       upgradeVersion = (stringUtils.compareVersions(upgradeVersion, version) === -1) ? version : upgradeVersion;
     });
     var currentStack = data.items.findProperty('Versions.stack_version', currentVersion);
     var upgradeStack = data.items.findProperty('Versions.stack_version', upgradeVersion);
     var minUpgradeVersion = upgradeStack.Versions.min_upgrade_version;
-    if(minUpgradeVersion && (stringUtils.compareVersions(minUpgradeVersion, currentVersion) === 1)){
+    if (minUpgradeVersion && (stringUtils.compareVersions(minUpgradeVersion, currentVersion) === 1)) {
       upgradeVersion = currentVersion;
       upgradeStack = currentStack;
     }
     upgradeVersion = 'HDP-' + upgradeVersion;
     this.set('upgradeVersion', upgradeVersion);
-    if(currentStack && upgradeStack) {
+    if (currentStack && upgradeStack) {
       this.parseServicesInfo(currentStack, upgradeStack);
     }
     else {
@@ -62,7 +62,7 @@ App.MainAdminClusterController = Em.Controller.extend({
     }
   },
 
-  updateUpgradeVersionErrorCallback: function(request, ajaxOptions, error) {
+  updateUpgradeVersionErrorCallback: function (request, ajaxOptions, error) {
     console.log('Error message is: ' + request.responseText);
     console.log('HDP stack doesn\'t have services with defaultStackVersion');
   },
@@ -70,8 +70,8 @@ App.MainAdminClusterController = Em.Controller.extend({
   /**
    * get the installed repositories of HDP from server
    */
-  loadRepositories: function(){
-    if(App.router.get('clusterController.isLoaded')){
+  loadRepositories: function () {
+    if (App.router.get('clusterController.isLoaded')) {
       var nameVersionCombo = App.get('currentStackVersion');
       var stackName = nameVersionCombo.split('-')[0];
       var stackVersion = nameVersionCombo.split('-')[1];
@@ -119,7 +119,7 @@ App.MainAdminClusterController = Em.Controller.extend({
     this.set('allRepos', allRepos);
   },
 
-  loadRepositoriesErrorCallback: function(request, ajaxOptions, error) {
+  loadRepositoriesErrorCallback: function (request, ajaxOptions, error) {
     console.log('Error message is: ' + request.responseText);
   },
 
@@ -129,42 +129,32 @@ App.MainAdminClusterController = Em.Controller.extend({
   parseServicesInfo: function (currentStack, upgradeStack) {
     var result = [];
     var installedServices = App.Service.find().mapProperty('serviceName');
-    var displayOrderConfig = require('data/services');
-    if(currentStack.stackServices.length && upgradeStack.stackServices.length){
+    var displayOrder = App.StackService.displayOrder;
+    if (currentStack.stackServices.length && upgradeStack.stackServices.length) {
       // loop through all the service components
-      for (var i = 0; i < displayOrderConfig.length; i++) {
+      displayOrder.forEach(function (_stackServiceName) {
         var entry = currentStack.stackServices.
-          findProperty("StackServices.service_name", displayOrderConfig[i].serviceName);
-        if (entry) {
-          entry = entry.StackServices;
-          if (installedServices.contains(entry.service_name)) {
-            var myService = Em.Object.create({
-              serviceName: entry.service_name,
-              displayName: displayOrderConfig[i].displayName,
-              isDisabled: displayOrderConfig[i].isDisabled,
-              isSelected: true,
-              isInstalled: false,
-              isHidden: displayOrderConfig[i].isHidden,
-              description: entry.comments,
-              version: entry.service_version,
-              newVersion: ''
-            });
-            // it's possible that there is no corresponding service in the new stack
-            var matchedService = upgradeStack.stackServices.findProperty("StackServices.service_name", displayOrderConfig[i].serviceName);
-            if (matchedService) {
-              myService.newVersion = matchedService.StackServices.service_version;
-            }
-            //From 1.3.0 for Hive we display only "Hive" (but it install HCat and WebHCat as well)
-            if (this.get('upgradeVersion').replace(/HDP-/, '') >= '1.3.0' && displayOrderConfig[i].serviceName == 'HIVE') {
-              myService.set('displayName', 'Hive');
-            }
-            result.push(myService);
+          findProperty("StackServices.service_name", _stackServiceName);
+        var stackService = App.StackService.find().findProperty('serviceName', _stackServiceName);
+        if (!!stackService) {
+          var myService = Em.Object.create({
+            serviceName: stackService.get('serviceName'),
+            displayName: stackService.get('displayNameOnSelectServicePage'),
+            isSelected: true,
+            isInstalled: false,
+            isHidden:  stackService.get('isHiddenOnSelectServicePage'),
+            description: stackService.get('comments'),
+            version: stackService.get('serviceVersion'),
+            newVersion: ''
+          });
+          // it's possible that there is no corresponding service in the new stack
+          var matchedService = upgradeStack.stackServices.findProperty("StackServices.service_name", stackService.get('serviceName'));
+          if (matchedService) {
+            myService.newVersion = matchedService.StackServices.service_version;
           }
+          result.push(myService);
         }
-        else {
-          console.warn('Service not found - ', displayOrderConfig[i].serviceName);
-        }
-      }
+      }, this);
     }
     this.set('services', result);
   }

@@ -204,7 +204,8 @@ module.exports = Em.Route.extend({
       var wizardStep3Controller = router.get('wizardStep3Controller');
       installerController.saveConfirmedHosts(wizardStep3Controller);
       installerController.setDBProperty('bootStatus', true);
-      installerController.loadServicesFromServer();
+      installerController.setDBProperty('selectedServiceNames', undefined);
+      installerController.setDBProperty('installedServiceNames', undefined);
       router.transitionTo('step4');
     },
     exit: function (router) {
@@ -230,7 +231,7 @@ module.exports = Em.Route.extend({
       var controller = router.get('installerController');
       controller.setCurrentStep('4');
       controller.loadAllPriorSteps();
-      controller.connectOutlet('wizardStep4', controller.get('content.services'));
+      controller.connectOutlet('wizardStep4', App.StackService.find());
     },
     back: Em.Router.transitionTo('step3'),
 

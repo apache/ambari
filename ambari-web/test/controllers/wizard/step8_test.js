@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var modelSetup = require('test/init_model_test');
 require('utils/ajax/ajax_queue');
 require('controllers/main/admin/security');
 require('controllers/main/service/info/configs');
@@ -485,6 +486,158 @@ describe('App.WizardStep8Controller', function () {
           expect(installerStep8Controller.get('globals').mapProperty('name')).to.eql(test.e.globals);
         });
       });
+  });
+
+  describe('#loadServices()', function() {
+    var serviceComponentGenerator = function(componentName, displayName, componentValue) {
+      return Em.Object.create({
+        component_name: componentName,
+        display_name: displayName,
+        component_value: componentValue
+      })
+    };
+
+    var slaveComponentGenerator = function(componentName, hosts) {
+      return Em.Object.create({
+        componentName: componentName,
+        hosts: hosts.map(function(host) { return {'hostName' : host } })
+      });
+    };
+    var masterComponentGenerator = function(componentName, hostName) {
+      return Em.Object.create({
+        component: componentName,
+        hostName: hostName
+      });
+    };
+
+    var serviceConfigGenerator = function(name, value) {
+      return Em.Object.create({
+        name: name,
+        value: value
+      });
+    }
+    before(function() {
+      modelSetup.setupStackServiceComponent();
+      var services = ['HDFS', 'YARN', 'TEZ', 'NAGIOS', 'GANGLIA','OOZIE'];
+      this.controller = App.WizardStep8Controller.create({
+        content: {
+          services: App.StackService.find().setEach('isSelected', true).setEach('isInstalled', false).filterProperty('stackVersion', '2.1').filter(function(service) {
+            return services.contains(service.get('serviceName'));
+          }),
+          slaveComponentHosts: Em.A([
+            slaveComponentGenerator('DATANODE', ['h1','h2']),
+            slaveComponentGenerator('NODEMANAGER', ['h1']),
+            slaveComponentGenerator('CLIENT', ['h1'])
+          ]),
+          masterComponentHosts: Em.A([
+            masterComponentGenerator('NAMENODE', 'h1'),
+            masterComponentGenerator('SECONDARY_NAMENODE', 'h2'),
+            masterComponentGenerator('APP_TIMELINE_SERVER', 'h1'),
+            masterComponentGenerator('RESOURCEMANAGER', 'h1'),
+            masterComponentGenerator('NAGIOS_SERVER', 'h1'),
+            masterComponentGenerator('GANGLIA_SERVER', 'h2'),
+            masterComponentGenerator('OOZIE_SERVER', 'h2')
+          ]),
+          serviceConfigProperties: Em.A([
+            serviceConfigGenerator('nagios_web_login', 'admin'),
+            serviceConfigGenerator('nagios_contact', 'admin@admin.com'),
+            serviceConfigGenerator('oozie_database', 'New Derby Database'),
+            serviceConfigGenerator('oozie_derby_database', '')
+          ])
+        }
+      });
+      var _this = this;
+      this.controller.reopen({
+        wizardController: {
+          getDBProperty: function() {
+            return _this.controller.get('content.serviceConfigProperties')
+          }
+        }
+      });
+      this.controller.loadServices();
+    });
+
+    var tests = [
+      {
+        service_name: 'HDFS',
+        display_name: 'HDFS',
+        service_components: Em.A([
+          serviceComponentGenerator('NAMENODE', 'NameNode', 'h1'),
+          serviceComponentGenerator('DATANODE', 'DataNode', '2 hosts'),
+          serviceComponentGenerator('SECONDARY_NAMENODE', 'SNameNode', 'h2')
+        ])
+      },
+      {
+        service_name: 'YARN',
+        display_name: 'YARN + MapReduce2',
+        service_components: Em.A([
+          serviceComponentGenerator('RESOURCEMANAGER', 'ResourceManager', 'h1'),
+          serviceComponentGenerator('NODEMANAGER', 'NodeManager', '1 host'),
+          serviceComponentGenerator('APP_TIMELINE_SERVER', 'App Timeline Server', 'h1')
+        ])
+      },
+      {
+        service_name: 'TEZ',
+        display_name: 'Tez',
+        service_components: Em.A([
+          serviceComponentGenerator('CLIENT', 'Clients', '1 host')
+        ])
+      },
+      {
+        service_name: 'NAGIOS',
+        display_name: 'Nagios',
+        service_components: Em.A([
+          serviceComponentGenerator('NAGIOS_SERVER', 'Server', 'h1'),
+          serviceComponentGenerator('Custom', 'Administrator', 'admin / (admin@admin.com)')
+        ])
+      },
+      {
+        service_name: 'GANGLIA',
+        display_name: 'Ganglia',
+        service_components: Em.A([
+          serviceComponentGenerator('GANGLIA_SERVER', 'Server', 'h2')
+        ])
+      },
+      {
+        service_name: 'OOZIE',
+        display_name: 'Oozie',
+        service_components: Em.A([
+          serviceComponentGenerator('OOZIE_SERVER', 'Server', 'h2'),
+          serviceComponentGenerator('Custom', 'Database', ' (New Derby Database)')
+        ])
+      }
+    ];
+
+    tests.forEach(function(test) {
+      describe('Load review for `' + test.service_name + '` service', function(){
+        it('{0} service should be displayed as {1}'.format(test.service_name, test.display_name), function() {
+          expect(this.controller.get('services').findProperty('service_name', test.service_name).get('display_name')).to.eql(test.display_name);
+        });
+        it('{0}: all components present'.format(test.service_name), function() {
+          var serviceObj = this.controller.get('services').findProperty('service_name', test.service_name);
+          expect(test.service_components.length).to.be.eql(serviceObj.get('service_components.length'));
+        });
+        test.service_components.forEach(function(serviceComponent) {
+          var testMessage = '`{0}` component present with `{1}` value and displayed as `{2}`';
+          it(testMessage.format(serviceComponent.get('component_name'), serviceComponent.get('component_value'), serviceComponent.get('display_name')), function() {
+            var serviceObj = this.controller.get('services').findProperty('service_name', test.service_name);
+            var component;
+            if (serviceComponent.get('component_name') === 'Custom') {
+              component = serviceObj.get('service_components').findProperty('display_name', serviceComponent.get('display_name'));
+            } else
+              component = serviceObj.get('service_components').findProperty('component_name', serviceComponent.get('component_name'));
+            if (serviceComponent.get('component_name') !== 'Custom')
+              expect(component.get('component_name')).to.eql(serviceComponent.get('component_name'));
+            expect(component.get('component_value')).to.eql(serviceComponent.get('component_value'));
+            expect(component.get('display_name')).to.eql(serviceComponent.get('display_name'));
+          });
+        });
+      })
+    });
+
+    after(function() {
+      modelSetup.cleanStackServiceComponent();
+    });
   });
 
   describe('#removeHiveConfigs', function () {

@@ -25,53 +25,54 @@
     <form class="form-horizontal" autocomplete="off">
       <!-- View for array controller -->
       {{#each servicesMasters}}
-      <div class="control-group">
-        <label class="control-label">
-          {{#if isCurNameNode}}
-            {{t common.current}}
-          {{/if}}
-          {{#if isAddNameNode}}
-            {{t common.additional}}
-          {{/if}}
-          {{display_name}}:
-        </label>
-        <div class="controls">
-          {{#if view.shouldUseInputs}}
-            {{view App.InputHostView
-            componentBinding="this"
-            disabledBinding="isInstalled" }}
-          {{else}}
-            {{view App.SelectHostView
-            componentBinding="this"
-            disabledBinding="isInstalled"
-            optionValuePath="content.host_name"
-            optionLabelPath="content.host_info" }}
-          {{/if}}
-          {{#if showAddControl}}
-          {{view App.AddControlView componentNameBinding="component_name"}}
-          {{/if}}
-          {{#if showRemoveControl}}
-          {{view App.RemoveControlView componentNameBinding="component_name" zIdBinding="zId"}}
-          {{/if}}
+        <div class="control-group">
+          <label class="control-label">
+            {{#if isCurNameNode}}
+              {{t common.current}}
+            {{/if}}
+            {{#if isAddNameNode}}
+              {{t common.additional}}
+            {{/if}}
+            {{display_name}}:
+          </label>
+
+          <div class="controls">
+            {{#if view.shouldUseInputs}}
+              {{view App.InputHostView
+              componentBinding="this"
+              disabledBinding="isInstalled" }}
+            {{else}}
+              {{view App.SelectHostView
+              componentBinding="this"
+              disabledBinding="isInstalled"
+              optionValuePath="content.host_name"
+              optionLabelPath="content.host_info" }}
+            {{/if}}
+            {{#if showAddControl}}
+              {{view App.AddControlView componentNameBinding="component_name"}}
+            {{/if}}
+            {{#if showRemoveControl}}
+              {{view App.RemoveControlView componentNameBinding="component_name" serviceComponentIddBinding="serviceComponentId"}}
+            {{/if}}
+          </div>
         </div>
-      </div>
       {{/each}}
     </form>
   </div>
 
   <div class="host-assignments span5">
     {{#each masterHostMapping}}
-    <div class="mapping-box round-corners well">
-      <div class="hostString"><span>{{hostInfo}}</span></div>
-      {{#each masterServices}}
-      <span {{bindAttr class="isInstalled:assignedService:newService :round-corners"}}>{{display_name}}</span>
-      {{/each}}
-    </div>
+      <div class="mapping-box round-corners well">
+        <div class="hostString"><span>{{hostInfo}}</span></div>
+        {{#each masterServices}}
+          <span {{bindAttr class="isInstalled:assignedService:newService :round-corners"}}>{{display_name}}</span>
+        {{/each}}
+      </div>
     {{/each}}
 
     {{#if remainingHosts}}
-    <div class="remaining-hosts round-corners well">
-      <span><strong>{{remainingHosts}}</strong> {{t installer.step5.attention}}</span></div>
+      <div class="remaining-hosts round-corners well">
+        <span><strong>{{remainingHosts}}</strong> {{t installer.step5.attention}}</span></div>
     {{/if}}
   </div>
   <div style="clear: both;"></div>

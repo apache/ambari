@@ -49,7 +49,7 @@ App.MainAdminMiscController = App.MainServiceInfoConfigsController.extend({
     var loadedClusterSiteToTagMap = {};
 
     for (var site in data.Clusters.desired_configs) {
-      if (serviceConfigsDef.sites.indexOf(site) > -1) {
+      if (serviceConfigsDef.configTypes.contains(site)) {
         loadedClusterSiteToTagMap[site] = data.Clusters.desired_configs[site]['tag'];
       }
     }

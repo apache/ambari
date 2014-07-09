@@ -64,7 +64,7 @@
         <!-- dropdown menu links -->
 
         <!-- Start/Stop service actions -->
-        {{#unless controller.content.isClientsOnly}}
+        {{#unless controller.isClientsOnlyService}}
           <li {{bindAttr class="controller.isStartDisabled:disabled"}}>
             <a href="javascript:void(null)" {{bindAttr class="controller.isStartDisabled:disabled" }}
               {{action "startService" target="controller"}}>

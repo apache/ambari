@@ -56,9 +56,6 @@ describe('App.WizardStep6Controller', function () {
       masterComponentHosts: {},
       services: services
     });
-    sinon.stub(controller, 'getComponentDisplayName', function (c) {
-      return App.format.components[c];
-    });
 
     var h = {}, m = [];
     Em.A(['host0', 'host1', 'host2', 'host3']).forEach(function (hostName) {
@@ -77,9 +74,6 @@ describe('App.WizardStep6Controller', function () {
 
   });
 
-  afterEach(function () {
-    controller.getComponentDisplayName.restore();
-  });
 
   describe('#loadStep', function () {
     Em.A([

@@ -100,32 +100,34 @@ App.AddHostController = App.WizardController.extend({
   },
 
   /**
-   * Load services data from server.
-   * TODO move to mixin
-   */
-  loadServicesFromServer: function () {
-    var apiService = this.loadServiceComponents();
-    apiService.forEach(function (item, index) {
-      apiService[index].isSelected = App.Service.find().someProperty('id', item.serviceName);
-      apiService[index].isDisabled = apiService[index].isSelected;
-      apiService[index].isInstalled = apiService[index].isSelected;
-    });
-    this.set('content.services', apiService);
-    this.setDBProperty('service', apiService);
-  },
-
-  /**
    * Load services data. Will be used at <code>Select services(step4)</code> step
    */
   loadServices: function () {
-    var servicesInfo = this.getDBProperty('service');
-    console.log('AddHostController.loadServices: loaded data ', servicesInfo);
-    servicesInfo.forEach(function (item, index) {
-      servicesInfo[index] = Em.Object.create(item);
-    });
-    this.set('content.services', servicesInfo);
-    var serviceNames = servicesInfo.filterProperty('isSelected', true).mapProperty('serviceName');
-    console.log('selected services ', serviceNames);
+    var services = this.getDBProperty('services');
+    if (!services) {
+      services = {
+        selectedServices: [],
+        installedServices: []
+      };
+      App.StackService.find().forEach(function(item){
+        var isInstalled = App.Service.find().someProperty('id', item.get('serviceName'));
+        item.set('isSelected', isInstalled);
+        item.set('isInstalled', isInstalled);
+        if (isInstalled) {
+          services.selectedServices.push(item.get('serviceName'));
+          services.installedServices.push(item.get('serviceName'));
+        }
+      },this);
+      this.setDBProperty('services',services);
+    } else {
+      App.StackService.find().forEach(function(item) {
+        var isSelected =   services.selectedServices.contains(item.get('serviceName'));
+        var isInstalled = services.installedServices.contains(item.get('serviceName'));
+        item.set('isSelected', isSelected);
+        item.set('isInstalled', isInstalled);
+      },this);
+    }
+    this.set('content.services', App.StackService.find());
   },
 
   /**
@@ -171,7 +173,7 @@ App.AddHostController = App.WizardController.extend({
     }
 
     this.get('content.services').filterProperty('isSelected').forEach(function (_service) {
-      var client = serviceComponents.filterProperty('serviceName', _service.serviceName).findProperty('isClient');
+      var client = serviceComponents.filterProperty('serviceName', _service.get('serviceName')).findProperty('isClient');
       if (client) {
         clients.push({
           component_name: client.get('componentName'),
@@ -180,7 +182,6 @@ App.AddHostController = App.WizardController.extend({
         });
       }
     }, this);
-
     this.setDBProperty('clientInfo', clients);
     this.set('content.clients', clients);
     console.log("AddHostController.saveClients: saved list ", clients);

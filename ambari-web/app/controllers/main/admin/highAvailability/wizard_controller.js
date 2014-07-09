@@ -66,14 +66,31 @@ App.HighAvailabilityWizardController = App.WizardController.extend({
    * Load services data from server.
    */
   loadServicesFromServer: function() {
-    var apiService = this.loadServiceComponents();
-    apiService.forEach(function(item, index){
-      apiService[index].isSelected = App.Service.find().someProperty('id', item.serviceName);
-      apiService[index].isDisabled = apiService[index].isSelected;
-      apiService[index].isInstalled = apiService[index].isSelected;
-    });
-    this.set('content.services', apiService);
-    App.db.setService(apiService);
+    var services = this.getDBProperty('services');
+    if (!services) {
+      services = {
+        selectedServices: [],
+        installedServices: []
+      };
+      App.StackService.find().forEach(function(item){
+        var isInstalled = App.Service.find().someProperty('id', item.get('serviceName'));
+        item.set('isSelected', isInstalled);
+        item.set('isInstalled', isInstalled);
+        if (isInstalled) {
+          services.selectedServices.push(item.get('serviceName'));
+          services.installedServices.push(item.get('serviceName'));
+        }
+      },this);
+      this.setDBProperty('services',services);
+    } else {
+      App.StackService.find().forEach(function(item) {
+        var isSelected =   services.selectedServices.contains(item.get('serviceName'));
+        var isInstalled = services.installedServices.contains(item.get('serviceName'));
+        item.set('isSelected', isSelected);
+        item.set('isInstalled', isInstalled);
+      },this);
+    }
+    this.set('content.services', App.StackService.find());
   },
 
   /**

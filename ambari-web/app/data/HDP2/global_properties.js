@@ -92,7 +92,7 @@ module.exports =
       "isVisible": true,
       "isRequiredByAgent": false,
       "serviceName": "HDFS",
-      "category": "NameNode",
+      "category": "NAMENODE",
       "index": 0
     },
     {
@@ -106,7 +106,7 @@ module.exports =
       "isOverridable": false,
       "isVisible": true,
       "serviceName": "HDFS",
-      "category": "NameNode",
+      "category": "NAMENODE",
       "index": 2
     },
     {
@@ -120,7 +120,7 @@ module.exports =
       "isOverridable": false,
       "isVisible": true,
       "serviceName": "HDFS",
-      "category": "NameNode",
+      "category": "NAMENODE",
       "index": 3
     },
     {
@@ -134,7 +134,7 @@ module.exports =
       "isOverridable": false,
       "isVisible": true,
       "serviceName": "HDFS",
-      "category": "NameNode",
+      "category": "NAMENODE",
       "index": 4
     },
     {
@@ -149,7 +149,7 @@ module.exports =
       "isRequiredByAgent": false,
       "isVisible": true,
       "serviceName": "HDFS",
-      "category": "SNameNode",
+      "category": "SECONDARY_NAMENODE",
       "index": 0
     },
     {
@@ -166,7 +166,7 @@ module.exports =
       "isRequiredByAgent": false,
       "domain": "datanode-global",
       "serviceName": "HDFS",
-      "category": "DataNode",
+      "category": "DATANODE",
       "index": 0
     },
     {
@@ -180,7 +180,7 @@ module.exports =
       "isVisible": true,
       "domain": "datanode-global",
       "serviceName": "HDFS",
-      "category": "DataNode",
+      "category": "DATANODE",
       "index": 2
     },
     {
@@ -247,7 +247,7 @@ module.exports =
       "isRequiredByAgent": false,
       "isVisible": true,
       "serviceName": "MAPREDUCE2",
-      "category": "HistoryServer",
+      "category": "HISTORYSERVER",
       "index": 0
     },
     {
@@ -261,7 +261,7 @@ module.exports =
       "displayType": "int",
       "isVisible": true,
       "serviceName": "MAPREDUCE2",
-      "category": "HistoryServer",
+      "category": "HISTORYSERVER",
       "index": 1
     },
     {
@@ -316,7 +316,7 @@ module.exports =
       "isRequiredByAgent": false,
       "isVisible": true,
       "serviceName": "YARN",
-      "category": "ResourceManager",
+      "category": "RESOURCEMANAGER",
       "index": 0
     },
     {
@@ -330,7 +330,7 @@ module.exports =
       "unit": "MB",
       "isVisible": true,
       "serviceName": "YARN",
-      "category": "ResourceManager",
+      "category": "RESOURCEMANAGER",
       "index": 1
     },
     {
@@ -344,7 +344,7 @@ module.exports =
       "isRequiredByAgent": false,
       "isVisible": true,
       "serviceName": "YARN",
-      "category": "NodeManager",
+      "category": "NODEMANAGER",
       "index": 0
     },
     {
@@ -358,7 +358,7 @@ module.exports =
       "unit": "MB",
       "isVisible": true,
       "serviceName": "YARN",
-      "category": "NodeManager",
+      "category": "NODEMANAGER",
       "index": 0
     },
     {
@@ -398,7 +398,7 @@ module.exports =
       "isRequiredByAgent": false,
       "isVisible": true,
       "serviceName": "YARN",
-      "category": "AppTimelineServer",
+      "category": "APP_TIMELINE_SERVER",
       "index": 0
     },
     {
@@ -412,7 +412,7 @@ module.exports =
       "unit": "MB",
       "isVisible": true,
       "serviceName": "YARN",
-      "category": "AppTimelineServer",
+      "category": "APP_TIMELINE_SERVER",
       "index": 1
     },
   /**********************************************HBASE***************************************/
@@ -428,7 +428,7 @@ module.exports =
       "isRequiredByAgent": false,
       "isVisible": true,
       "serviceName": "HBASE",
-      "category": "HBase Master",
+      "category": "HBASE_MASTER",
       "index": 0
     },
     {
@@ -442,7 +442,7 @@ module.exports =
       "isOverridable": true,
       "isVisible": true,
       "serviceName": "HBASE",
-      "category": "HBase Master",
+      "category": "HBASE_MASTER",
       "index": 1
     },
     {
@@ -457,9 +457,8 @@ module.exports =
       "isRequiredByAgent": false,
       "isVisible": true,
       "isRequired": false,
-      "domain": "regionserver-global",
       "serviceName": "HBASE",
-      "category": "RegionServer",
+      "category": "HBASE_REGIONSERVER",
       "index": 0
     },
     {
@@ -471,9 +470,8 @@ module.exports =
       "displayType": "int",
       "unit": "MB",
       "isVisible": true,
-      "domain": "regionserver-global",
       "serviceName": "HBASE",
-      "category": "RegionServer",
+      "category": "HBASE_REGIONSERVER",
       "index": 1
     },
     {
@@ -631,7 +629,7 @@ module.exports =
       "isRequiredByAgent": false,
       "isVisible": true,
       "serviceName": "HIVE",
-      "category": "Hive Metastore",
+      "category": "HIVE_METASTORE",
       "index": 0
     },
     // for existing MySQL
@@ -647,7 +645,7 @@ module.exports =
       "isVisible": false,
       "isReconfigurable": false,
       "serviceName": "HIVE",
-      "category": "Hive Metastore",
+      "category": "HIVE_METASTORE",
       "index": 1
     },
     // for existing PostgreSQL
@@ -663,7 +661,7 @@ module.exports =
       "isVisible": false,
       "isReconfigurable": false,
       "serviceName": "HIVE",
-      "category": "Hive Metastore",
+      "category": "HIVE_METASTORE",
       "index": 1
     },
     // for existing Oracle
@@ -679,7 +677,7 @@ module.exports =
       "isOverridable": false,
       "isReconfigurable": false,
       "serviceName": "HIVE",
-      "category": "Hive Metastore",
+      "category": "HIVE_METASTORE",
       "index": 1
     },
     // for new MySQL
@@ -694,7 +692,7 @@ module.exports =
       "isOverridable": false,
       "isVisible": false,
       "serviceName": "HIVE",
-      "category": "Hive Metastore",
+      "category": "HIVE_METASTORE",
       "index": 1
     },
     {
@@ -729,7 +727,7 @@ module.exports =
       "isOverridable": false,
       "isVisible": true,
       "serviceName": "HIVE",
-      "category": "Hive Metastore",
+      "category": "HIVE_METASTORE",
       "index": 2
     },
     {
@@ -744,7 +742,7 @@ module.exports =
       "isVisible": false,
       "isObserved": true,
       "serviceName": "HIVE",
-      "category": "Hive Metastore",
+      "category": "HIVE_METASTORE",
       "index": 3
     },
     {
@@ -760,7 +758,7 @@ module.exports =
       "isVisible": false,
       "isObserved": true,
       "serviceName": "HIVE",
-      "category": "Hive Metastore",
+      "category": "HIVE_METASTORE",
       "index": 3
     },
     {
@@ -776,7 +774,7 @@ module.exports =
       "isVisible": false,
       "isObserved": true,
       "serviceName": "HIVE",
-      "category": "Hive Metastore",
+      "category": "HIVE_METASTORE",
       "index": 3
     },
     {
@@ -792,7 +790,7 @@ module.exports =
       "isVisible": false,
       "isObserved": true,
       "serviceName": "HIVE",
-      "category": "Hive Metastore",
+      "category": "HIVE_METASTORE",
       "index": 3
     },
     {
@@ -808,7 +806,7 @@ module.exports =
       "isOverridable": false,
       "isVisible": false,
       "serviceName": "HIVE",
-      "category": "Hive Metastore",
+      "category": "HIVE_METASTORE",
       "index": 3
     },
     {
@@ -889,7 +887,7 @@ module.exports =
       "isVisible": true,
       "isRequiredByAgent": false,
       "serviceName": "WEBHCAT",
-      "category": "WebHCat Server"
+      "category": "WEBHCAT_SERVER"
     },
     {
       "id": "puppet var",
@@ -930,7 +928,7 @@ module.exports =
       "isVisible": true,
       "isRequiredByAgent": false,
       "serviceName": "OOZIE",
-      "category": "Oozie Server",
+      "category": "OOZIE_SERVER",
       "index": 0
     },
     // for existing Oracle
@@ -947,7 +945,7 @@ module.exports =
       "isReconfigurable": false,
       "isOverridable": false,
       "serviceName": "OOZIE",
-      "category": "Oozie Server",
+      "category": "OOZIE_SERVER",
       "index": 1
     },
     // for existing PostgreSQL
@@ -963,7 +961,7 @@ module.exports =
       "isVisible": false,
       "isReconfigurable": false,
       "serviceName": "OOZIE",
-      "category": "Oozie Server",
+      "category": "OOZIE_SERVER",
       "index": 1
     },
     // for new MySQL
@@ -978,7 +976,7 @@ module.exports =
       "isVisible": false,
       "isOverridable": false,
       "serviceName": "OOZIE",
-      "category": "Oozie Server",
+      "category": "OOZIE_SERVER",
       "index": 1
     },
     // for current derby
@@ -994,7 +992,7 @@ module.exports =
       "isReconfigurable": false,
       "isOverridable": false,
       "serviceName": "OOZIE",
-      "category": "Oozie Server",
+      "category": "OOZIE_SERVER",
       "index": 1
     },
     // for existing MySQL oozie
@@ -1010,7 +1008,7 @@ module.exports =
       "isReconfigurable": false,
       "isOverridable": false,
       "serviceName": "OOZIE",
-      "category": "Oozie Server",
+      "category": "OOZIE_SERVER",
       "index": 1
     },
     {
@@ -1052,7 +1050,7 @@ module.exports =
       "radioName": "oozie-database",
       "isVisible": true,
       "serviceName": "OOZIE",
-      "category": "Oozie Server",
+      "category": "OOZIE_SERVER",
       "index": 2
     },
     {
@@ -1068,7 +1066,7 @@ module.exports =
       "isVisible": true,
       "isRequired": false,
       "serviceName": "OOZIE",
-      "category": "Oozie Server",
+      "category": "OOZIE_SERVER",
       "index": 9
     },
     {
@@ -1082,7 +1080,7 @@ module.exports =
       "displayType": "host",
       "isVisible": false,
       "serviceName": "OOZIE",
-      "category": "Oozie Server",
+      "category": "OOZIE_SERVER",
       "index": 3
     },
     {
@@ -1097,7 +1095,7 @@ module.exports =
       "isVisible": false,
       "isObserved": true,
       "serviceName": "OOZIE",
-      "category": "Oozie Server",
+      "category": "OOZIE_SERVER",
       "index": 3
     },
     {
@@ -1112,7 +1110,7 @@ module.exports =
       "isVisible": false,
       "isObserved": true,
       "serviceName": "OOZIE",
-      "category": "Oozie Server",
+      "category": "OOZIE_SERVER",
       "index": 3
     },
     {
@@ -1127,7 +1125,7 @@ module.exports =
       "isVisible": false,
       "isObserved": true,
       "serviceName": "OOZIE",
-      "category": "Oozie Server",
+      "category": "OOZIE_SERVER",
       "index": 3
     },
     {
@@ -1143,7 +1141,7 @@ module.exports =
       "isVisible": false,
       "isRequiredByAgent": false,
       "serviceName": "OOZIE",
-      "category": "Oozie Server"
+      "category": "OOZIE_SERVER"
     },
     {
       "id": "puppet var",
@@ -1235,7 +1233,7 @@ module.exports =
       "isOverridable": false,
       "isRequired": false,
       "serviceName": "ZOOKEEPER",
-      "category": "ZooKeeper Server",
+      "category": "ZOOKEEPER_SERVER",
       "index": 0
     },
     {
@@ -1249,7 +1247,7 @@ module.exports =
       "displayType": "directory",
       "isVisible": true,
       "serviceName": "ZOOKEEPER",
-      "category": "ZooKeeper Server",
+      "category": "ZOOKEEPER_SERVER",
       "index": 1
     },
     {
@@ -1263,7 +1261,7 @@ module.exports =
       "isOverridable": false,
       "isVisible": true,
       "serviceName": "ZOOKEEPER",
-      "category": "ZooKeeper Server",
+      "category": "ZOOKEEPER_SERVER",
       "index": 2
     },
     {
@@ -1276,7 +1274,7 @@ module.exports =
       "isOverridable": false,
       "isVisible": true,
       "serviceName": "ZOOKEEPER",
-      "category": "ZooKeeper Server",
+      "category": "ZOOKEEPER_SERVER",
       "index": 3
     },
     {
@@ -1289,7 +1287,7 @@ module.exports =
       "isOverridable": false,
       "isVisible": true,
       "serviceName": "ZOOKEEPER",
-      "category": "ZooKeeper Server",
+      "category": "ZOOKEEPER_SERVER",
       "index": 4
     },
     {
@@ -1302,7 +1300,7 @@ module.exports =
       "isOverridable": false,
       "isVisible": true,
       "serviceName": "ZOOKEEPER",
-      "category": "ZooKeeper Server",
+      "category": "ZOOKEEPER_SERVER",
       "index": 5
     },
     {
@@ -1401,7 +1399,7 @@ module.exports =
       "isVisible": true,
       "isRequiredByAgent": false,
       "serviceName": "FALCON",
-      "category": "Falcon"
+      "category": "FALCON_SERVER"
     },
     {
       "id": "puppet var",
@@ -1414,7 +1412,7 @@ module.exports =
       "isVisible": true,
       "isRequiredByAgent": true,
       "serviceName": "FALCON",
-      "category": "Falcon"
+      "category": "FALCON_SERVER"
     },
     {
       "id": "puppet var",
@@ -1427,7 +1425,7 @@ module.exports =
       "isVisible": true,
       "isRequiredByAgent": true,
       "serviceName": "FALCON",
-      "category": "Falcon"
+      "category": "FALCON_SERVER"
     },
     {
       "id": "puppet var",
@@ -1440,7 +1438,7 @@ module.exports =
       "isVisible": true,
       "isRequiredByAgent": true,
       "serviceName": "FALCON",
-      "category": "Falcon"
+      "category": "FALCON_SERVER"
     },
     {
       "id": "puppet var",
@@ -1550,7 +1548,7 @@ module.exports =
       "isVisible": true,
       "isRequiredByAgent": false,
       "serviceName": "STORM",
-      "category": "StormUIServer",
+      "category": "STORM_UI_SERVER",
       "filename": "global.xml"
     },
     {
@@ -1564,7 +1562,7 @@ module.exports =
       "isVisible": true,
       "isRequiredByAgent": false,
       "serviceName": "STORM",
-      "category": "DRPCServer",
+      "category": "DRPC_SERVER",
       "filename": "global.xml"
     },
     {
@@ -1579,7 +1577,7 @@ module.exports =
       "isRequiredByAgent": false,
       "serviceName": "STORM",
       "isOverridable": false,
-      "category": "Supervisor",
+      "category": "SUPERVISOR",
       "filename": "global.xml"
     },
     {
@@ -1594,7 +1592,7 @@ module.exports =
       "isRequiredByAgent": false,
       "serviceName": "STORM",
       "isOverridable": false,
-      "category": "StormRestApi",
+      "category": "STORM_REST_API",
       "filename": "global.xml"
     },
   /**********************************************MISC***************************************/

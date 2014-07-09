@@ -30,7 +30,7 @@ App.MainServiceItemView = Em.View.extend({
     var serviceName = service.get('serviceName');
     var disableRefreshConfgis = !service.get('isRestartRequired');
 
-    if (service.get('isClientsOnly')) {
+    if (this.get('controller.isClientsOnlyService')) {
       if (serviceName != 'TEZ') {
         options.push({action: 'runSmokeTest', cssClass: 'icon-thumbs-up-alt', 'label': Em.I18n.t('services.service.actions.run.smoke')});
       }
@@ -84,13 +84,13 @@ App.MainServiceItemView = Em.View.extend({
       options.push({action:'turnOnOffPassive', cssClass: 'icon-medkit', context:requestLabel, 'label':passiveLabel , disabled: false});
     }
     return options;
-  }.property('controller.content', 'controller.isStopDisabled'),
+  }.property('controller.content', 'controller.isStopDisabled','controller.isClientsOnlyService'),
   isMaintenanceActive: function() {
     return this.get('maintenance').length !== 0;
   }.property('maintenance'),
-  hasConfigTab: function(){
-    return this.get("controller.content.isConfigurable");
-  }.property('controller.content.isConfigurable'),
+  hasConfigTab: function() {
+    return !App.get('services.noConfigTypes').concat('HCATALOG').contains('controller.content.serviceName');
+  }.property('controller.content.serviceName','App.services.noConfigTypes'),
 
   didInsertElement: function () {
     this.get('controller').setStartStopState();

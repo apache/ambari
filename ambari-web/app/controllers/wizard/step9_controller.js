@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 var App = require('app');
+var stringUtils = require('utils/string_utils');
 
 App.WizardStep9Controller = Em.Controller.extend({
 
@@ -474,11 +475,11 @@ App.WizardStep9Controller = Em.Controller.extend({
         data = {
           "context": Em.I18n.t("requestInfo.startHostComponents"),
           "query": "HostRoles/component_name.in(" + App.get('components.slaves').join(',') + ")&HostRoles/state=INSTALLED&HostRoles/host_name.in(" + hostnames.join(',') + ")",
-          "HostRoles": { "state": "STARTED" }
+          "HostRoles": { "state": "STARTED"}
         };
         break;
       case 'addServiceController':
-        var servicesList = this.get('content.services').filterProperty('isSelected', true).filterProperty('isDisabled', false).mapProperty('serviceName').join(",");
+        var servicesList = this.get('content.services').filterProperty('isSelected').filterProperty('isInstalled', false).mapProperty('serviceName').join(",");
         name = 'common.services.update';
         data = {
           "context": Em.I18n.t("requestInfo.startAddedServices"),
@@ -1104,7 +1105,7 @@ App.WizardStep9Controller = Em.Controller.extend({
         var componentName = App.format.role(_hostComponent.HostRoles.component_name);
         componentArr.pushObject(componentName);
       }, this);
-      hostComponentObj.componentNames = this.getComponentMessage(componentArr);
+      hostComponentObj.componentNames = stringUtils.getFormattedStringFromArray(componentArr);
       hostsWithHeartbeatLost.pushObject(hostComponentObj);
     }, this);
     this.set('hostsWithHeartbeatLost', hostsWithHeartbeatLost);
@@ -1143,33 +1144,6 @@ App.WizardStep9Controller = Em.Controller.extend({
       }
     });
     this.saveClusterStatus(clusterStatus);
-  },
-
-  /**
-   * Get formatted string of components to display on the UI
-   * @param componentArr {Array}  Array of components
-   * @returns {String}
-   * @method getComponentMessage
-   */
-  getComponentMessage: function (componentArr) {
-    var label = '';
-    componentArr.forEach(function (_component) {
-      if (componentArr.length === 1) {
-        label = _component;
-      }
-      else {
-        if (_component !== componentArr[componentArr.length - 1]) {           // [clients.length - 1]
-          label = label + ' ' + _component;
-          if (_component !== componentArr[componentArr.length - 2]) {
-            label = label + ',';
-          }
-        }
-        else {
-          label = label + ' ' + Em.I18n.t('and') + ' ' + _component;
-        }
-      }
-    }, this);
-    return label.trim();
   },
 
   /**

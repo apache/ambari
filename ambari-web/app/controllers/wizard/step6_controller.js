@@ -52,13 +52,6 @@ App.WizardStep6Controller = Em.Controller.extend({
   headers: [],
 
   /**
-   * true - assign ZK, HB
-   * false - slaves and clients
-   * @type {bool}
-   */
-  isMasters: false,
-
-  /**
    * @type {bool}
    */
   isLoaded: false,
@@ -80,7 +73,7 @@ App.WizardStep6Controller = Em.Controller.extend({
   }.property('content.controllerName'),
 
   /**
-   * Check if <code>addHerviceWizard</code> used
+   * Check if <code>addServiceWizard</code> used
    * @type {bool}
    */
   isAddServiceWizard: function () {
@@ -118,21 +111,16 @@ App.WizardStep6Controller = Em.Controller.extend({
     }
 
     if (this.get('isAddHostWizard')) {
-      if (this.get('isMasters')) {
-        this.set('errorMessage', '');
-      }
-      else {
-        hosts.forEach(function (host) {
-          isError = false;
-          headers.forEach(function (header) {
-            isError |= host.get('checkboxes').findProperty('title', header.get('label')).checked;
-          });
-          isError = !isError;
-          if (!isError) {
-            self.set('errorMessage', '');
-          }
+      hosts.forEach(function (host) {
+        isError = false;
+        headers.forEach(function (header) {
+          isError |= host.get('checkboxes').findProperty('title', header.get('label')).checked;
         });
-      }
+        isError = !isError;
+        if (!isError) {
+          self.set('errorMessage', '');
+        }
+      });
     }
   },
 
@@ -195,8 +183,11 @@ App.WizardStep6Controller = Em.Controller.extend({
    * @method isServiceSelected
    */
   isServiceSelected: function (name) {
-    return !!(this.get('content.services').findProperty('serviceName', name) &&
-      this.get('content.services').findProperty('serviceName', name).get('isSelected'));
+    var serviceName = this.get('content.services').findProperty('serviceName', name);
+    if (!serviceName) {
+      return !!serviceName;
+    }
+    return serviceName.get('isSelected') || serviceName.get('isInstalled');
   },
 
   /**
@@ -226,16 +217,6 @@ App.WizardStep6Controller = Em.Controller.extend({
   },
 
   /**
-   * Get <code>displayName</code> for component by <code>componentName</code>
-   * @param componentName
-   * @returns {string}
-   * @method getComponentDisplayName
-   */
-  getComponentDisplayName: function (componentName) {
-    return App.StackServiceComponent.find().findProperty('componentName', componentName).get('displayName');
-  },
-
-  /**
    * Init step6 data
    * @method loadStep
    */
@@ -245,82 +226,39 @@ App.WizardStep6Controller = Em.Controller.extend({
 
     console.log("WizardStep6Controller: Loading step6: Assign Slaves");
     this.clearStep();
+    var selectedServices = App.StackService.find().filterProperty('isSelected');
+    var installedServices = App.StackService.find().filterProperty('isInstalled');
+    var services;
+    if (this.get('isInstallerWizard')) services = selectedServices;
+    else if (this.get('isAddHostWizard')) services = installedServices;
+    else if (this.get('isAddServiceWizard')) services = installedServices.concat(selectedServices);
 
     var headers = Em.A([]);
+    services.forEach(function (stackService) {
+      stackService.get('serviceComponents').forEach(function (serviceComponent) {
+        if (serviceComponent.get('isShownOnInstallerSlaveClientPage')) {
+          headers.pushObject(Em.Object.create({
+            name: serviceComponent.get('componentName'),
+            label: serviceComponent.get('displayName'),
+            allChecked: false,
+            noChecked: true
+          }));
+        }
+      }, this);
+    }, this);
 
-    if (this.get('isMasters')) {
-      if (this.isServiceSelected('HBASE') && App.supports.multipleHBaseMasters) {
-        headers.pushObject(Em.Object.create({
-          name: 'HBASE_MASTER',
-          label: self.getComponentDisplayName('HBASE_MASTER')
-        }));
-      }
-      if (this.isServiceSelected('ZOOKEEPER')) {
-        headers.pushObject(Em.Object.create({
-          name: 'ZOOKEEPER_SERVER',
-          label: self.getComponentDisplayName('ZOOKEEPER_SERVER')
-        }));
-      }
-    }
-    else {
-      if (this.isServiceSelected('HDFS')) {
-        headers.pushObject(Em.Object.create({
-          name: 'DATANODE',
-          label: self.getComponentDisplayName('DATANODE')
-        }));
-      }
-      if (this.isServiceSelected('MAPREDUCE')) {
-        headers.pushObject(Em.Object.create({
-          name: 'TASKTRACKER',
-          label: self.getComponentDisplayName('TASKTRACKER')
-        }));
-      }
-      if (this.isServiceSelected('YARN')) {
-        headers.pushObject(Em.Object.create({
-          name: 'NODEMANAGER',
-          label: self.getComponentDisplayName('NODEMANAGER')
-        }));
-      }
-      if (this.isServiceSelected('HBASE')) {
-        headers.pushObject(Em.Object.create({
-          name: 'HBASE_REGIONSERVER',
-          label: self.getComponentDisplayName('HBASE_REGIONSERVER')
-        }));
-      }
-      if (this.isServiceSelected('STORM')) {
-        headers.pushObject(Em.Object.create({
-          name: 'SUPERVISOR',
-          label: self.getComponentDisplayName('SUPERVISOR')
-        }));
-      }
-      if (this.isServiceSelected('FLUME')) {
-        headers.pushObject(Em.Object.create({
-          name: 'FLUME_HANDLER',
-          label: self.getComponentDisplayName('FLUME_HANDLER')
-        }));
-      }
-      headers.pushObject(Em.Object.create({
-        name: 'CLIENT',
-        label: App.format.role('CLIENT')
-      }));
-    }
-
-    headers.forEach(function (header) {
-      header.setProperties({ allChecked: false, noChecked: true });
-    });
+    headers.pushObject(Em.Object.create({
+      name: 'CLIENT',
+      label: App.format.role('CLIENT'),
+      allChecked: false,
+      noChecked: true
+    }));
 
     this.get('headers').pushObjects(headers);
 
     this.render();
-    if (this.get('isMasters')) {
-      if (this.get('content.skipMasterStep')) {
-        App.router.send('next');
-      }
-    }
-    else {
-      if (this.get('content.skipSlavesStep')) {
-        App.router.send('next');
-      }
+    if (this.get('content.skipSlavesStep')) {
+      App.router.send('next');
     }
   },
 
@@ -383,13 +321,7 @@ App.WizardStep6Controller = Em.Controller.extend({
     });
     //hosts with master components should be in the beginning of list
     hostsObj.unshift.apply(hostsObj, masterHosts);
-
-    if (this.get('isMasters')) {
-      hostsObj = this.selectMasterComponents(hostsObj);
-    } else {
-      hostsObj = this.renderSlaves(hostsObj);
-    }
-
+    hostsObj = this.renderSlaves(hostsObj);
     this.set('hosts', hostsObj);
     headers.forEach(function (header) {
       this.checkCallback(header.get('name'));
@@ -404,7 +336,6 @@ App.WizardStep6Controller = Em.Controller.extend({
    * @method renderSlaves
    */
   renderSlaves: function (hostsObj) {
-    var self = this;
     var headers = this.get('headers');
     var slaveComponents = this.get('content.slaveComponentHosts');
     if (!slaveComponents) { // we are at this page for the first time
@@ -416,9 +347,11 @@ App.WizardStep6Controller = Em.Controller.extend({
         checkboxes.findProperty('title', headers.findProperty('name', 'CLIENT').get('label')).set('checked', false);
         // First not Master should have Client (only first!)
         if (!client_is_set) {
-          if (self.isServiceSelected("HDFS")) {
-            var checkboxDatanode = checkboxes.findProperty('title', headers.findProperty('name', 'DATANODE').get('label'));
-            if (checkboxDatanode && checkboxDatanode.get('checked')) {
+          var dfs = App.StackService.find().findProperty('isPrimaryDFS');
+          if (dfs.get('isSelected') || dfs.get('isInstalled')) {
+            var checkboxServiceComponent = checkboxes.findProperty('title', headers.findProperty('name', dfs.get('serviceComponents').
+              findProperty('isShownOnInstallerSlaveClientPage').get('componentName')).get('label'));
+            if (checkboxServiceComponent && checkboxServiceComponent.get('checked')) {
               checkboxes.findProperty('title', headers.findProperty('name', 'CLIENT').get('label')).set('checked', true);
               client_is_set = true;
             }
@@ -430,8 +363,7 @@ App.WizardStep6Controller = Em.Controller.extend({
         var lastHost = hostsObj[hostsObj.length - 1];
         lastHost.get('checkboxes').setEach('checked', true);
       }
-    }
-    else {
+    } else {
       this.get('headers').forEach(function (header) {
         var nodes = slaveComponents.findProperty('componentName', header.get('name'));
         if (nodes) {

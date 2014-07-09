@@ -122,18 +122,11 @@ App.InstallerController = App.WizardController.extend({
    * Load services data. Will be used at <code>Select services(step4)</code> step
    */
   loadServices: function () {
-    var servicesInfo = this.getDBProperty('service');
-    if(servicesInfo && servicesInfo.length) {
-      servicesInfo.forEach(function (item, index) {
-        servicesInfo[index] = Em.Object.create(item);
-        servicesInfo[index].isInstalled = false;
-      });
-      this.set('content.services', servicesInfo);
-      console.log('installerController.loadServices: loaded data ', JSON.stringify(servicesInfo));
-      console.log('selected services ', servicesInfo.filterProperty('isSelected', true).mapProperty('serviceName'));
-    } else {
-      console.log("Failed to load Services");
-   }
+    var stackServices = App.StackService.find().mapProperty('serviceName');
+    if (!(stackServices && !!stackServices.length && App.StackService.find().objectAt(0).get('stackVersion') == App.get('currentStackVersionNumber'))) {
+      this.loadServiceComponents();
+      this.set('content.services', App.StackService.find());
+    }
   },
 
   /**
@@ -206,18 +199,6 @@ App.InstallerController = App.WizardController.extend({
     }
     return hosts;
   }.property('content.hosts'),
-
-  /**
-   * Load service components.
-   */
-  loadServiceComponentsDb: function () {
-    var serviceComponents = this.getDBProperty('serviceComponents');
-    if(serviceComponents && serviceComponents.items && serviceComponents.items.length) {
-      App.stackServiceComponentMapper.map(serviceComponents);
-    } else {
-      console.log("Failed to load Service components");
-    }
-  },
 
   stacks: [],
 
@@ -391,11 +372,19 @@ App.InstallerController = App.WizardController.extend({
    * @param stepController App.WizardStep4Controller
    */
   saveServices: function (stepController) {
-    this.setDBProperty('service', stepController.get('content'));
-    var serviceNames = stepController.filterProperty('isSelected', true).mapProperty('serviceName');
-    this.set('content.selectedServiceNames', serviceNames);
-    this.setDBProperty('selectedServiceNames', serviceNames);
-    console.log('installerController.saveServices: saved data ', serviceNames);
+    var selectedServiceNames = [];
+    var installedServiceNames = [];
+    stepController.filterProperty('isSelected').forEach(function (item) {
+      selectedServiceNames.push(item.get('serviceName'));
+    });
+    stepController.filterProperty('isInstalled').forEach(function (item) {
+      installedServiceNames.push(item.get('serviceName'));
+    });
+    this.set('content.services', App.StackService.find());
+    this.set('content.selectedServiceNames', selectedServiceNames);
+    this.setDBProperty('selectedServiceNames', selectedServiceNames);
+    this.set('content.installedServiceNames', installedServiceNames);
+    this.setDBProperty('installedServiceNames', installedServiceNames);
   },
 
   /**
@@ -486,21 +475,19 @@ App.InstallerController = App.WizardController.extend({
   saveClients: function (stepController) {
     var clients = [];
     var serviceComponents = App.StackServiceComponent.find();
-
+    var services =
     stepController.get('content').filterProperty('isSelected', true).forEach(function (_service) {
-      var client = serviceComponents.filterProperty('serviceName', _service.serviceName).findProperty('isClient', true);
-      if (client) {
+      var client = _service.get('serviceComponents').filterProperty('isClient', true);
+      client.forEach(function(clientComponent){
         clients.pushObject({
-          component_name: client.get('componentName'),
-          display_name: client.get('displayName'),
+          component_name: clientComponent.get('componentName'),
+          display_name: clientComponent.get('displayName'),
           isInstalled: false
         });
-      }
+      },this);
     }, this);
-
     this.setDBProperty('clientInfo', clients);
     this.set('content.clients', clients);
-    console.log("InstallerController.saveClients: saved list ", clients);
   },
 
   /**
@@ -614,8 +601,8 @@ App.InstallerController = App.WizardController.extend({
         this.loadMasterComponentHosts();
         this.loadConfirmedHosts();
       case '4':
+        this.loadStacks();
         this.loadServices();
-        this.loadServiceComponentsDb();
       case '3':
         this.loadConfirmedHosts();
       case '2':

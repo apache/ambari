@@ -273,7 +273,8 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
         }
       }, this);
 
-      result = misc.sortByOrder(App.Service.servicesSortOrder, result);
+      var stackServices = App.StackService.find().mapProperty('serviceName');
+      result = misc.sortByOrder(stackServices, result);
 
       //load services to model
       App.store.loadMany(this.get('model'), result);
@@ -308,7 +309,7 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     var isSecondaryNamenode = hostComponents.findProperty('component_name', 'SECONDARY_NAMENODE');
     services.setEach('tool_tip_content', '');
     // set tooltip for client-only services
-    var clientOnlyServiceNames = Em.A(['TEZ', 'SQOOP', 'PIG']);
+    var clientOnlyServiceNames = App.get('services.clientOnly');
     clientOnlyServiceNames.forEach(function(serviceName) {
       var service = services.findProperty('ServiceInfo.service_name', serviceName);
       if (service) {

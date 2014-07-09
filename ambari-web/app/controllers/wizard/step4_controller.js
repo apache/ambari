@@ -42,7 +42,7 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    * @type {bool}
    */
   isAll: function () {
-    return this.filterProperty('canBeSelected', true).everyProperty('isSelected', true);
+    return this.everyProperty('isSelected', true);
   }.property('@each.isSelected'),
 
   /**
@@ -50,96 +50,15 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    * @type {bool}
    */
   isMinimum: function () {
-    return this.filterProperty('isDisabled', false).everyProperty('isSelected', false);
+    return this.everyProperty('isSelected', false);
   }.property('@each.isSelected'),
-
-  /**
-   * submit checks describe dependency rules between services
-   * checkCallback - callback, which check for dependency
-   * popupParams - parameters for popup
-   * @type {{checkCallback: string, popupParams: Ember.Enumerable}[]}
-   */
-  submitChecks: [
-    {
-      checkCallback: 'needToAddMapReduce',
-      popupParams: [
-        {serviceName: 'MAPREDUCE', selected: true},
-        'mapreduceCheck'
-      ]
-    },
-    {
-      checkCallback: 'noDFSs',
-      popupParams: [
-        {serviceName: 'HDFS', selected: true},
-        'hdfsCheck'
-      ]
-    },
-    {
-      checkCallback: 'needToAddYarnMapReduce2',
-      popupParams: [
-        {serviceName: 'YARN', selected: true},
-        'yarnCheck'
-      ]
-    },
-    {
-      checkCallback: 'needToAddZooKeeper',
-      popupParams: [
-        {serviceName: 'ZOOKEEPER', selected: true},
-        'zooKeeperCheck'
-      ]
-    },
-    {
-      checkCallback: 'multipleDFSs',
-      popupParams: [
-        [
-          {serviceName: 'HDFS', selected: true},
-          {serviceName: 'GLUSTERFS', selected: false}
-        ],
-        'multipleDFS'
-      ]
-    },
-    {
-      checkCallback: 'needToAddOozie',
-      popupParams: [
-        {serviceName: 'OOZIE', selected: true},
-        'oozieCheck'
-      ]
-    },
-    {
-      checkCallback: 'needToAddTez',
-      popupParams: [
-        {serviceName: 'TEZ', selected: true},
-        'tezCheck'
-      ]
-    }
-  ],
-
-  /**
-   * Update hidden services. Make them to have the same status as master ones.
-   * @method checkDependencies
-   */
-  checkDependencies: function () {
-    var services = {};
-    this.forEach(function (service) {
-      services[service.get('serviceName')] = service;
-    });
-
-    // prevent against getting error when not all elements have been loaded yet
-    if (services['HBASE'] && services['ZOOKEEPER'] && services['HIVE'] && services['HCATALOG'] && services['WEBHCAT']) {
-      if (services['YARN'] && services['MAPREDUCE2']) {
-        services['MAPREDUCE2'].set('isSelected', services['YARN'].get('isSelected'));
-      }
-      services['HCATALOG'].set('isSelected', services['HIVE'].get('isSelected'));
-      services['WEBHCAT'].set('isSelected', services['HIVE'].get('isSelected'));
-    }
-  }.observes('@each.isSelected'),
 
   /**
    * Onclick handler for <code>select all</code> link
    * @method selectAll
    */
   selectAll: function () {
-    this.filterProperty('canBeSelected', true).setEach('isSelected', true);
+    this.setEach('isSelected', true);
   },
 
   /**
@@ -147,76 +66,7 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    * @method selectMinimum
    */
   selectMinimum: function () {
-    this.filterProperty('isDisabled', false).setEach('isSelected', false);
-  },
-
-  /**
-   * Check whether we should turn on <code>serviceName</code> service according to selected <code>dependentServices</code>
-   * @param serviceName checked service
-   * @param dependentServices list of dependent services
-   * @returns {bool}
-   * @method needAddService
-   */
-  needAddService: function (serviceName, dependentServices) {
-    if (!(dependentServices instanceof Array)) {
-      dependentServices = [dependentServices];
-    }
-    if (this.findProperty('serviceName', serviceName) && this.findProperty('serviceName', serviceName).get('isSelected') === false) {
-      var ds = this.filter(function (item) {
-        return dependentServices.contains(item.get('serviceName')) && item.get('isSelected');
-      });
-      return (ds.get('length') > 0);
-    }
-    return false;
-  },
-
-  /**
-   * Check whether we should turn on <code>Oozie</code> service
-   * @return {bool}
-   * @method needToAddOozie
-   */
-  needToAddOozie: function () {
-    return this.needAddService('OOZIE', ['FALCON']);
-  },
-
-  /**
-   * Check whether we should turn on <code>MapReduce</code> service
-   * @return {bool}
-   * @method needToAddMapReduce
-   */
-  needToAddMapReduce: function () {
-    return this.needAddService('MAPREDUCE', ['PIG', 'OOZIE', 'HIVE']);
-  },
-
-  /**
-   * Check whether we should turn on <code>MapReduce2</code> service
-   * @return {bool}
-   * @method needToAddYarnMapReduce2
-   */
-  needToAddYarnMapReduce2: function () {
-    return this.needAddService('YARN', ['PIG', 'OOZIE', 'HIVE', 'TEZ']);
-  },
-
-  /**
-   * Check whether we should turn on <code>Tez</code> service
-   * @return {bool}
-   * @method needToAddTez
-   */
-  needToAddTez: function () {
-    return this.needAddService('TEZ', ['YARN']);
-  },
-
-  /**
-   * Check whether we should turn on <code>ZooKeeper</code> service
-   * @return {bool}
-   * @method needToAddZooKeeper
-   */
-  needToAddZooKeeper: function () {
-    if (App.get('isHadoop2Stack')) {
-      return this.findProperty('serviceName', 'ZOOKEEPER') && this.findProperty('serviceName', 'ZOOKEEPER').get('isSelected') === false;
-    } else {
-      return this.needAddService('ZOOKEEPER', ['HBASE', 'HIVE', 'WEBHCAT', 'STORM']);
-    }
+    this.setEach('isSelected', false);
   },
 
   /**
@@ -225,8 +75,7 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    * @method noDFSs
    */
   noDFSs: function () {
-    return (this.findProperty('serviceName', 'HDFS').get('isSelected') === false &&
-      (!this.findProperty('serviceName', 'GLUSTERFS') || this.findProperty('serviceName', 'GLUSTERFS').get('isSelected') === false));
+    return  !this.filterProperty('isDFS',true).someProperty('isSelected',true);
   },
 
   /**
@@ -235,8 +84,8 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    * @method multipleDFSs
    */
   multipleDFSs: function () {
-    return (this.findProperty('serviceName', 'HDFS').get('isSelected') === true &&
-      (this.findProperty('serviceName', 'GLUSTERFS') && this.findProperty('serviceName', 'GLUSTERFS').get('isSelected') === true));
+    var dfsServices = this.filterProperty('isDFS',true).filterProperty('isSelected',true);
+	  return  dfsServices.length > 1;
   },
 
   /**
@@ -244,8 +93,9 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    * @return {bool}
    * @method gangliaOrNagiosNotSelected
    */
-  gangliaOrNagiosNotSelected: function () {
-    return (this.findProperty('serviceName', 'GANGLIA').get('isSelected') === false || this.findProperty('serviceName', 'NAGIOS').get('isSelected') === false);
+  isMonitoringServiceNotSelected: function () {
+    var stackMonitoringServices = this.filterProperty('isMonitoringService',true);
+    return stackMonitoringServices.someProperty('isSelected',false);
   },
 
   /**
@@ -253,8 +103,12 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    * @method validateMonitoring
    */
   validateMonitoring: function () {
-    if (this.gangliaOrNagiosNotSelected()) {
-      this.monitoringCheckPopup();
+    var monitoringServices =  this.filterProperty('isMonitoringService',true);
+    var notSelectedService = monitoringServices.filterProperty('isSelected',false);
+    if (!!notSelectedService.length) {
+      notSelectedService = stringUtils.getFormattedStringFromArray(notSelectedService.mapProperty('displayNameOnSelectServicePage'));
+      monitoringServices = stringUtils.getFormattedStringFromArray(monitoringServices.mapProperty('displayNameOnSelectServicePage'));
+      this.monitoringCheckPopup(notSelectedService,monitoringServices);
     } else {
       App.router.send('next');
     }
@@ -265,21 +119,87 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    * @method submit
    */
   submit: function () {
-    var submitChecks = this.get('submitChecks');
-    var doValidateMonitoring = true;
-    if (!this.get("isSubmitDisabled")) {
-      for (var i = 0; i < submitChecks.length; i++) {
-        if (this[submitChecks[i].checkCallback].call(this)) {
-          doValidateMonitoring = false;
-          this.needToAddServicePopup.apply(this, submitChecks[i].popupParams);
-          break;
-        }
-      }
-      if (doValidateMonitoring) {
-        this.validateMonitoring();
-      }
+    this.setGroupedServices();
+    if (!this.get("isSubmitDisabled") && !this.isSubmitChecksFailed()) {
+      this.validateMonitoring();
     }
   },
+
+  /**
+   * @method  {isSubmitChecksFailed} Do the required checks on Next button click event
+   * @returns {boolean}
+   */
+  isSubmitChecksFailed: function() {
+    return this.isFileSystemCheckFailed() || this.isServiceDependencyCheckFailed();
+  },
+
+  /**
+   * @method: isFileSystemCheckFailed - Checks if a filesystem is selected and only one filesystem is selected
+   * @return: {boolean}
+   */
+  isFileSystemCheckFailed: function() {
+    var isCheckFailed = false;
+    var primaryDFS = this.findProperty('isPrimaryDFS',true);
+    var primaryDfsDisplayName = primaryDFS.get('displayNameOnSelectServicePage');
+    var primaryDfsServiceName = primaryDFS.get('serviceName');
+     if (this.noDFSs()) {
+       isCheckFailed = true;
+       this.needToAddServicePopup.apply(this, [{serviceName: primaryDfsServiceName, selected: true},'fsCheck',primaryDfsDisplayName]);
+     } else if (this.multipleDFSs()) {
+       var dfsServices = this.filterProperty('isDFS',true).filterProperty('isSelected',true).mapProperty('serviceName');
+       var services = dfsServices.map(function (item){
+         var mappedObj = {
+           serviceName: item,
+           selected: false
+         };
+         if (item ===  primaryDfsServiceName) {
+           mappedObj.selected = true;
+         }
+         return mappedObj;
+       });
+       isCheckFailed = true;
+       this.needToAddServicePopup.apply(this, [services,'multipleDFS',primaryDfsDisplayName]);
+     }
+    return isCheckFailed;
+  },
+
+  /**
+   * @method: isServiceDependencyCheckFailed - Checks if a dependent service is selected without selecting the main service
+   * @return {boolean}
+   */
+  isServiceDependencyCheckFailed: function() {
+    var isCheckFailed = false;
+    var notSelectedServices = this.filterProperty('isSelected',false);
+    notSelectedServices.forEach(function(service){
+      var showWarningPopup;
+      var dependentServices =  service.get('dependentServices');
+      if (!!dependentServices) {
+        showWarningPopup = false;
+        dependentServices.forEach(function(_dependentService){
+          var dependentService = this.findProperty('serviceName', _dependentService);
+          if (dependentService.get('isSelected') === true) {
+            showWarningPopup = true;
+            isCheckFailed = true;
+          }
+        },this);
+        if (showWarningPopup) {
+          this.needToAddServicePopup.apply(this, [{serviceName: service.get('serviceName'), selected: true},'serviceCheck',service.get('displayNameOnSelectServicePage')]);
+        }
+      }
+    },this);
+    return isCheckFailed;
+  },
+
+  setGroupedServices: function() {
+    this.forEach(function(service){
+      var coSelectedServices = service.get('coSelectedServices');
+      coSelectedServices.forEach(function(groupedServiceName) {
+        var groupedService = this.findProperty('serviceName', groupedServiceName);
+        groupedService.set('isSelected',service.get('isSelected'));
+      },this);
+    },this);
+  },
+
 
   /**
    * Select/deselect services
@@ -294,17 +214,19 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    *    ]
    *  </code>
    * @param {string} i18nSuffix
+   * @param {string} serviceName
    * @return {App.ModalPopup}
    * @method needToAddServicePopup
    */
-  needToAddServicePopup: function (services, i18nSuffix) {
+
+  needToAddServicePopup: function(services, i18nSuffix, serviceName) {
     if (!(services instanceof Array)) {
       services = [services];
     }
     var self = this;
     return App.ModalPopup.show({
-      header: Em.I18n.t('installer.step4.' + i18nSuffix + '.popup.header'),
-      body: Em.I18n.t('installer.step4.' + i18nSuffix + '.popup.body'),
+      header: Em.I18n.t('installer.step4.' + i18nSuffix + '.popup.header').format(serviceName),
+      body: Em.I18n.t('installer.step4.' + i18nSuffix + '.popup.body').format(serviceName),
       onPrimary: function () {
         services.forEach(function (service) {
           self.findProperty('serviceName', service.serviceName).set('isSelected', service.selected);
@@ -320,10 +242,10 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    * @return {App.ModalPopup}
    * @method monitoringCheckPopup
    */
-  monitoringCheckPopup: function () {
+  monitoringCheckPopup: function (notSelectedServiceNames,monitoringServicesNames) {
     return App.ModalPopup.show({
       header: Em.I18n.t('installer.step4.monitoringCheck.popup.header'),
-      body: Em.I18n.t('installer.step4.monitoringCheck.popup.body'),
+      body: Em.I18n.t('installer.step4.monitoringCheck.popup.body').format(notSelectedServiceNames,monitoringServicesNames),
       onPrimary: function () {
         this.hide();
         App.router.send('next');

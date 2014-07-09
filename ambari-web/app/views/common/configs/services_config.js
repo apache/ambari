@@ -488,14 +488,13 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
     var serviceName = this.get('service.serviceName');
     var serviceConfigsMetaData = App.config.get('preDefinedServiceConfigs');
     var serviceConfigMetaData = serviceConfigsMetaData.findProperty('serviceName', serviceName);
-    var categoryMetaData = serviceConfigMetaData == null ? null : serviceConfigMetaData.configCategories.findProperty('name', category.get('name'));
+    var categoryMetaData = serviceConfigMetaData == null ? null : serviceConfigMetaData.get('configCategories').findProperty('name', category.get('name'));
     if (categoryMetaData != null) {
       serviceConfigObj.filename = categoryMetaData.siteFileName;
     }
 
     var self = this;
     App.ModalPopup.show({
-      // classNames: ['big-modal'],
       classNames: [ 'sixty-percent-width-modal'],
       header: "Add Property",
       primary: 'Add',

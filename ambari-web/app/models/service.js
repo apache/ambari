@@ -19,10 +19,9 @@
 
 var App = require('app');
 require('utils/config');
+require('mixins/models/service_mixin');
 
-App.Service = DS.Model.extend({
-
-  serviceName: DS.attr('string'),
+App.Service = DS.Model.extend(App.ServiceModelMixin, {
   passiveState: DS.attr('string'),
   workStatus: DS.attr('string'),
   rand: DS.attr('string'),
@@ -71,35 +70,6 @@ App.Service = DS.Model.extend({
   isStarted: function () {
     return this.get('workStatus') === 'STARTED';
   }.property('workStatus'),
-
-  isClientsOnly: function() {
-    var clientsOnly = ['GLUSTERFS','SQOOP','PIG','TEZ','HCATALOG'];
-    return clientsOnly.contains(this.get('serviceName'));
-  }.property('serviceName'),
-
-  isConfigurable: function () {
-    var configurableServices = [
-      "HDFS",
-      "GLUSTERFS",
-      "YARN",
-      "MAPREDUCE",
-      "MAPREDUCE2",
-      "HBASE",
-      "OOZIE",
-      "HIVE",
-      "WEBHCAT",
-      "ZOOKEEPER",
-      "PIG",
-      "NAGIOS",
-      "GANGLIA",
-      "HUE",
-      "TEZ",
-      "STORM",
-      "FALCON",
-      "FLUME"
-    ];
-    return configurableServices.contains(this.get('serviceName'));
-  }.property('serviceName'),
 
   /**
    * Service Tagging by their type.
@@ -229,29 +199,6 @@ App.Service.DisplayNames = {
   'FALCON': 'Falcon',
   'STORM': 'Storm'
 };
-
-App.Service.servicesSortOrder = [
-  'HDFS',
-  'GLUSTERFS',
-  'YARN',
-  'MAPREDUCE',
-  'MAPREDUCE2',
-  'TEZ',
-  'HBASE',
-  'HIVE',
-  'HCATALOG',
-  'WEBHCAT',
-  'FLUME',
-  'FALCON',
-  'STORM',
-  'OOZIE',
-  'GANGLIA',
-  'NAGIOS',
-  'ZOOKEEPER',
-  'PIG',
-  'SQOOP',
-  'HUE'
-];
 
 /**
  * association between service and extended model name

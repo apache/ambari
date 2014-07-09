@@ -204,6 +204,92 @@ describe('utils/helper', function() {
           });
         });
       });
+      describe('#normalizeName()', function() {
+        var testMessage = '`{0}` should be converted to `{1}`';
+        var tests = {
+          'APP_TIMELINE_SERVER': 'App Timeline Server',
+          'DATANODE': 'DataNode',
+          'DECOMMISSION_DATANODE': 'Update Exclude File',
+          'DRPC_SERVER': 'DRPC Server',
+          'FALCON': 'Falcon',
+          'FALCON_CLIENT': 'Falcon Client',
+          'FALCON_SERVER': 'Falcon Server',
+          'FALCON_SERVICE_CHECK': 'Falcon Service Check',
+          'FLUME_HANDLER': 'Flume Agent',
+          'FLUME_SERVICE_CHECK': 'Flume Service Check',
+          'GANGLIA_MONITOR': 'Ganglia Monitor',
+          'GANGLIA_SERVER': 'Ganglia Server',
+          'GLUSTERFS_CLIENT': 'GLUSTERFS Client',
+          'GLUSTERFS_SERVICE_CHECK': 'GLUSTERFS Service Check',
+          'GMETAD_SERVICE_CHECK': 'Gmetad Service Check',
+          'GMOND_SERVICE_CHECK': 'Gmond Service Check',
+          'HADOOP_CLIENT': 'Hadoop Client',
+          'HBASE_CLIENT': 'HBase Client',
+          'HBASE_MASTER': 'HBase Master',
+          'HBASE_REGIONSERVER': 'RegionServer',
+          'HBASE_SERVICE_CHECK': 'HBase Service Check',
+          'HCAT': 'HCat',
+          'HCAT_SERVICE_CHECK': 'HCat Service Check',
+          'HDFS': 'HDFS',
+          'HDFS_CLIENT': 'HDFS Client',
+          'HDFS_SERVICE_CHECK': 'HDFS Service Check',
+          'HISTORYSERVER': 'History Server',
+          'HIVE_CLIENT': 'Hive Client',
+          'HIVE_METASTORE': 'Hive Metastore',
+          'HIVE_SERVER': 'HiveServer2',
+          'HIVE_SERVICE_CHECK': 'Hive Service Check',
+          'HUE_SERVER': 'Hue Server',
+          'JAVA_JCE': 'Java JCE',
+          'JOBTRACKER': 'JobTracker',
+          'JOBTRACKER_SERVICE_CHECK': 'JobTracker Service Check',
+          'JOURNALNODE': 'JournalNode',
+          'KERBEROS_ADMIN_CLIENT': 'Kerberos Admin Client',
+          'KERBEROS_CLIENT': 'Kerberos Client',
+          'KERBEROS_SERVER': 'Kerberos Server',
+          'MAPREDUCE2_CLIENT': 'MapReduce2 Client',
+          'MAPREDUCE2_SERVICE_CHECK': 'MapReduce2 Service Check',
+          'MAPREDUCE_CLIENT': 'MapReduce Client',
+          'MAPREDUCE_SERVICE_CHECK': 'MapReduce Service Check',
+          'MYSQL_SERVER': 'MySQL Server',
+          'NAGIOS_SERVER': 'Nagios Server',
+          'NAMENODE': 'NameNode',
+          'NAMENODE_SERVICE_CHECK': 'NameNode Service Check',
+          'NIMBUS': 'Nimbus',
+          'NODEMANAGER': 'NodeManager',
+          'OOZIE_CLIENT': 'Oozie Client',
+          'OOZIE_SERVER': 'Oozie Server',
+          'OOZIE_SERVICE_CHECK': 'Oozie Service Check',
+          'PIG': 'Pig',
+          'PIG_SERVICE_CHECK': 'Pig Service Check',
+          'RESOURCEMANAGER': 'ResourceManager',
+          'SECONDARY_NAMENODE': 'SNameNode',
+          'SQOOP': 'Sqoop',
+          'SQOOP_SERVICE_CHECK': 'Sqoop Service Check',
+          'STORM_REST_API': 'Storm REST API Server',
+          'STORM_SERVICE_CHECK': 'Storm Service Check',
+          'STORM_UI_SERVER': 'Storm UI Server',
+          'SUPERVISOR': 'Supervisor',
+          'TASKTRACKER': 'TaskTracker',
+          'TEZ_CLIENT': 'Tez Client',
+          'WEBHCAT_SERVER': 'WebHCat Server',
+          'WEBHCAT_SERVICE_CHECK': 'WebHCat Service Check',
+          'YARN_CLIENT': 'YARN Client',
+          'YARN_SERVICE_CHECK': 'YARN Service Check',
+          'ZKFC': 'ZKFailoverController',
+          'ZOOKEEPER_CLIENT': 'ZooKeeper Client',
+          'ZOOKEEPER_QUORUM_SERVICE_CHECK': 'ZK Quorum Service Check',
+          'ZOOKEEPER_SERVER': 'ZooKeeper Server',
+          'ZOOKEEPER_SERVICE_CHECK': 'ZooKeeper Service Check',
+          'CLIENT': 'Client'
+        };
+        for (var inputName in tests) {
+          (function(name) {
+            it(testMessage.format(name, tests[name]), function() {
+              expect(App.format.normalizeName(name)).to.eql(tests[name]);
+            });
+          })(inputName)
+        }
+      });
     });
   });
   describe('#App.permit()', function() {

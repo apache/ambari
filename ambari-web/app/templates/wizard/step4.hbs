@@ -37,16 +37,16 @@
     </tr>
     </thead>
     <tbody>
-      {{#each controller}}
-        {{#unless isHidden}}
+    {{#each controller}}
+      {{#unless isHiddenOnSelectServicePage}}
         <tr {{bindAttr class="isSelected:success:"}}>
-          <td><label class="checkbox">{{view Ember.Checkbox disabledBinding="isDisabled" checkedBinding="isSelected"}}{{displayName}}</label>
+          <td><label class="checkbox">{{view Ember.Checkbox disabledBinding="isInstalled" checkedBinding="isSelected"}}{{displayNameOnSelectServicePage}}</label>
           </td>
-          <td>{{version}}</td>
-          <td>{{{description}}}</td>
+          <td>{{serviceVersion}}</td>
+          <td>{{{comments}}}</td>
         </tr>
-        {{/unless}}
-      {{/each}}
+      {{/unless}}
+    {{/each}}
     </tbody>
   </table>
 

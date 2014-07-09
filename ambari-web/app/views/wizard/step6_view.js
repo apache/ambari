@@ -53,14 +53,9 @@ App.WizardStep6View = App.TableView.extend({
    */
   didInsertElement: function () {
     var controller = this.get('controller');
-    if (controller.get('isMasters')) {
-      this.set('label', Em.I18n.t('installer.step6.addHostWizard.body'));
-      this.set('title', Em.I18n.t('installer.step5.header'));
-    }
-    else {
-      this.set('title', Em.I18n.t('installer.step6.header'));
-      this.setLabel();
-    }
+    this.set('title', Em.I18n.t('installer.step6.header'));
+    this.setLabel();
+
     App.tooltip($('body'), {selector: '[rel=tooltip]'});
     controller.loadStep();
   },
@@ -113,8 +108,6 @@ App.WizardStep6HostView = Em.View.extend({
    * @method didInsertElement
    */
   didInsertElement: function () {
-    if(this.get('controller.isMasters')) return;
-
     var components = this.get('controller').getMasterComponentsForHost(this.get('host.hostName'));
     if (components && components.length > 0) {
       components = components.map(function (_component) {

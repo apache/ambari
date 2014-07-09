@@ -119,30 +119,30 @@ describe('App.AddHostController', function () {
       {
         title: 'Service is not in stack',
         services: [
-          {
+          Em.Object.create({
             serviceName: 'TEST',
             isSelected: true
-          }
+          })
         ],
         result: []
       },
       {
         title: 'Service does not have any clients',
         services: [
-          {
+          Em.Object.create({
             serviceName: 'GANGLIA',
             isSelected: true
-          }
+          })
         ],
         result: []
       },
       {
         title: 'StackServiceComponent is empty',
         services: [
-          {
+          Em.Object.create({
             serviceName: 'HDFS',
             isSelected: true
-          }
+          })
         ],
         result: []
       }
@@ -160,10 +160,10 @@ describe('App.AddHostController', function () {
     it('HDFS has uninstalled client', function () {
       modelSetup.setupStackServiceComponent();
       var services = [
-        {
+        Em.Object.create({
           serviceName: 'HDFS',
           isSelected: true
-        }
+        })
       ];
       controller.set('content.services', services);
       controller.saveClients();
@@ -186,10 +186,10 @@ describe('App.AddHostController', function () {
     it('HDFS has installed client', function () {
       modelSetup.setupStackServiceComponent();
       var services = [
-        {
+        Em.Object.create({
           serviceName: 'HDFS',
           isSelected: true
-        }
+        })
       ];
       App.store.load(App.HostComponent, {
         id: 'HDFS_CLIENT_host1',

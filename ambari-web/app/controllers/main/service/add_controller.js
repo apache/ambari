@@ -22,8 +22,6 @@ App.AddServiceController = App.WizardController.extend({
 
   name: 'addServiceController',
 
-  serviceConfigs:require('data/service_configs'),
-
   totalSteps: 7,
 
   /**
@@ -80,7 +78,6 @@ App.AddServiceController = App.WizardController.extend({
       return;
     }
     var apiService = this.loadServiceComponents();
-    //
     apiService.forEach(function(item, index){
       apiService[index].isSelected = App.Service.find().someProperty('id', item.serviceName);
       apiService[index].isDisabled = apiService[index].isSelected;
@@ -94,20 +91,38 @@ App.AddServiceController = App.WizardController.extend({
    * Load services data. Will be used at <code>Select services(step4)</code> step
    */
   loadServices: function () {
-    var servicesInfo = this.getDBProperty('service');
-    servicesInfo.forEach(function (item, index) {
-      servicesInfo[index] = Em.Object.create(item);
-    });
-    this.set('content.services', servicesInfo);
-    console.log('AddServiceController.loadServices: loaded data ', servicesInfo);
+    var services = this.getDBProperty('services');
+    if (!services) {
+      services = {
+        selectedServices: [],
+        installedServices: []
+      };
+      App.StackService.find().forEach(function(item){
+        var isInstalled = App.Service.find().someProperty('id', item.get('serviceName'));
+        item.set('isSelected', isInstalled);
+        item.set('isInstalled', isInstalled);
+        if (isInstalled) {
+          services.selectedServices.push(item.get('serviceName'));
+          services.installedServices.push(item.get('serviceName'));
+        }
+      },this);
+      this.setDBProperty('services',services);
+    } else {
+      App.StackService.find().forEach(function(item) {
+        var isSelected =   services.selectedServices.contains(item.get('serviceName'));
+        var isInstalled = services.installedServices.contains(item.get('serviceName'));
+        item.set('isSelected', isSelected);
+        item.set('isInstalled', isInstalled);
+      },this);
+      var serviceNames = App.StackService.find().filterProperty('isSelected', true).filterProperty('isInstalled', false).mapProperty('serviceName');
+      console.log('selected services ', serviceNames);
 
-    var serviceNames = servicesInfo.filterProperty('isSelected', true).filterProperty('isDisabled', false).mapProperty('serviceName');
-    console.log('selected services ', serviceNames);
-
-    this.set('content.skipSlavesStep', !serviceNames.contains('MAPREDUCE') && !serviceNames.contains('HBASE')  && !serviceNames.contains('STORM') && !serviceNames.contains('YARN'));
-    if (this.get('content.skipSlavesStep')) {
-      this.get('isStepDisabled').findProperty('step', 3).set('value', this.get('content.skipSlavesStep'));
+      this.set('content.skipSlavesStep', !serviceNames.contains('MAPREDUCE') && !serviceNames.contains('HBASE')  && !serviceNames.contains('STORM') && !serviceNames.contains('YARN'));
+      if (this.get('content.skipSlavesStep')) {
+        this.get('isStepDisabled').findProperty('step', 3).set('value', this.get('content.skipSlavesStep'));
+      }
     }
+    this.set('content.services', App.StackService.find());
   },
 
   /**
@@ -116,14 +131,18 @@ App.AddServiceController = App.WizardController.extend({
    */
   saveServices: function (stepController) {
     var serviceNames = [];
-    this.setDBProperty('service', stepController.get('content'));
+    var services = {
+      selectedServices: [],
+      installedServices: []
+    };
+    var selectedServices = stepController.get('content').filterProperty('isSelected',true).filterProperty('isInstalled', false).mapProperty('serviceName');
+    services.selectedServices.pushObjects(selectedServices);
+    services.installedServices.pushObjects(stepController.get('content').filterProperty('isInstalled',true).mapProperty('serviceName'));
+    this.setDBProperty('services',services);
     console.log('AddServiceController.saveServices: saved data', stepController.get('content'));
-    stepController.filterProperty('isSelected', true).filterProperty('isInstalled', false).forEach(function (item) {
-      serviceNames.push(item.serviceName);
-    });
-    this.set('content.selectedServiceNames', serviceNames);
-    this.setDBProperty('selectedServiceNames',serviceNames);
-    console.log('AddServiceController.selectedServiceNames:', serviceNames);
+
+    this.set('content.selectedServiceNames', selectedServices);
+    this.setDBProperty('selectedServiceNames',selectedServices);
 
     this.set('content.skipSlavesStep', !serviceNames.contains('MAPREDUCE') && !serviceNames.contains('HBASE') && !serviceNames.contains('STORM') && !serviceNames.contains('YARN'));
     if (this.get('content.skipSlavesStep')) {
@@ -172,8 +191,8 @@ App.AddServiceController = App.WizardController.extend({
    * @param {string} serviceName
    * @returns {boolean}
    */
-  isServiceConfigurable: function(serviceName) {
-    return this.get('serviceConfigs').mapProperty('serviceName').contains(serviceName);
+  isServiceNotConfigurable: function(serviceName) {
+    return App.get('services.noConfigTypes').contains(serviceName);
   },
 
   /**
@@ -184,7 +203,7 @@ App.AddServiceController = App.WizardController.extend({
     var skipConfigStep = true;
     var selectedServices = this.get('content.services').filterProperty('isSelected', true).filterProperty('isInstalled', false).mapProperty('serviceName');
     selectedServices.map(function(serviceName) {
-      skipConfigStep = skipConfigStep && !this.isServiceConfigurable(serviceName);
+      skipConfigStep = skipConfigStep && this.isServiceNotConfigurable(serviceName);
     }, this);
     return skipConfigStep;
   },

@@ -26,7 +26,8 @@ App.MainServiceMenuView = Em.CollectionView.extend({
     var items = App.router.get('mainServiceController.content').filter(function(item){
       return !this.get('disabledServices').contains(item.get('id'));
     }, this);
-    return misc.sortByOrder(App.Service.servicesSortOrder, items);
+    var stackServices = App.StackService.find().mapProperty('serviceName');
+    return misc.sortByOrder(stackServices, items);
   }.property('App.router.mainServiceController.content', 'App.router.mainServiceController.content.length'),
 
   didInsertElement:function () {
@@ -73,12 +74,16 @@ App.MainServiceMenuView = Em.CollectionView.extend({
       return this.get('content.criticalAlertsCount');
     }.property('content.criticalAlertsCount'),
 
+    isConfigurable: function () {
+      return !App.get('services.noConfigTypes').concat('HCATALOG').contains('content.serviceName');
+    }.property('App.services.noConfigTypes','content.serviceName'),
+
     link: function() {
       var stateName = (['summary','configs'].contains(App.router.get('currentState.name')))
-        ? this.get('content.isConfigurable') ?  App.router.get('currentState.name') : 'summary'
+        ? this.get('isConfigurable') ?  App.router.get('currentState.name') : 'summary'
         : 'summary';
       return "#/main/services/" + this.get('content.id') + "/" + stateName;
-    }.property('App.router.currentState.name', 'parentView.activeServiceId'),
+    }.property('App.router.currentState.name', 'parentView.activeServiceId', 'isConfigurable'),
 
     refreshRestartRequiredMessage: function() {
       var restarted, componentsCount, hostsCount, message, tHosts, tComponents;
@@ -115,7 +120,8 @@ App.TopNavServiceMenuView = Em.CollectionView.extend({
     var items = App.router.get('mainServiceController.content').filter(function(item){
       return !this.get('disabledServices').contains(item.get('id'));
     }, this);
-    return misc.sortByOrder(App.Service.servicesSortOrder, items);
+    var stackServices = App.StackService.find().mapProperty('serviceName');
+    return misc.sortByOrder(stackServices, items);
   }.property('App.router.mainServiceController.content', 'App.router.mainServiceController.content.length'),
 
   didInsertElement:function () {
@@ -160,12 +166,16 @@ App.TopNavServiceMenuView = Em.CollectionView.extend({
       return this.get('content.criticalAlertsCount');
     }.property('content.criticalAlertsCount'),
 
+    isConfigurable: function () {
+      return !App.get('services.noConfigTypes').concat('HCATALOG').contains('content.serviceName');
+    }.property('App.services.noConfigTypes','content.serviceName'),
+
     link: function() {
       var stateName = (['summary','configs'].contains(App.router.get('currentState.name')))
-        ? this.get('content.isConfigurable') ?  App.router.get('currentState.name') : 'summary'
+        ? this.get('isConfigurable') ?  App.router.get('currentState.name') : 'summary'
         : 'summary';
       return "#/main/services/" + this.get('content.id') + "/" + stateName;
-    }.property('App.router.currentState.name', 'parentView.activeServiceId'),
+    }.property('App.router.currentState.name', 'parentView.activeServiceId','isConfigurable'),
 
     refreshRestartRequiredMessage: function() {
       var restarted, componentsCount, hostsCount, message, tHosts, tComponents;

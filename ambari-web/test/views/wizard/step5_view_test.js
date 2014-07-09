@@ -52,6 +52,7 @@ describe('App.WizardStep5View', function() {
 });
 
 describe('App.SelectHostView', function() {
+  var models = require('test/init_model_test');
 
   beforeEach(function() {
     view = App.SelectHostView.create({
@@ -65,17 +66,18 @@ describe('App.SelectHostView', function() {
 
     beforeEach(function() {
       sinon.stub(view, 'initContent', Em.K);
+      models.setupStackServiceComponent();
     });
 
     afterEach(function() {
       view.initContent.restore();
+      models.cleanStackServiceComponent();
     });
 
     it('should call initContent', function() {
       view.click();
       expect(view.initContent.calledOnce).to.be.true;
     });
-
   });
 
   describe('#didInsertElement', function() {

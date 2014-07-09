@@ -28,8 +28,8 @@ App.MainHostServiceMenuView = Em.CollectionView.extend({
       hostComponents.forEach(function (hc) {
         var service = hc.get('service');
         if (service) {
-        var serviceName = service.get('serviceName');
-          if(!['PIG', 'SQOOP', 'HCATALOG', 'GANGLIA'].contains(serviceName)){
+          var serviceName = service.get('serviceName');
+          if(!App.get('services.noConfigTypes').concat('HCATALOG').contains(serviceName)){
             if (!services.findProperty('serviceName', serviceName)) {
               services.push(service);
             }
@@ -39,7 +39,8 @@ App.MainHostServiceMenuView = Em.CollectionView.extend({
         }
       });
     }
-    return misc.sortByOrder(App.Service.servicesSortOrder, services);
+    var stackServices = App.StackService.find().mapProperty('serviceName');
+    return misc.sortByOrder(stackServices, services);
   }.property('host'),
   
   host: function(){
