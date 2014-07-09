@@ -64,6 +64,7 @@ define service {
 }
 
 # NAGIOS SERVER HDFS Checks
+{% if hostgroup_defs['namenode'] != None %}
 define service {
         hostgroup_name          nagios-server
         use                     hadoop-service
@@ -85,8 +86,9 @@ define service {
         retry_check_interval    0.25
         max_check_attempts      3
 }
+{% endif %}
 {# used only for HDP2 #}
-{% if hostgroup_defs['namenode'] and dfs_ha_enabled %}
+{% if hostgroup_defs['namenode'] and hostgroup_defs['namenode'] != None and dfs_ha_enabled %}
 define service {
         hostgroup_name          nagios-server
         use                     hadoop-service
@@ -204,7 +206,7 @@ define service {
 {% endif %}
 
 
-{% if hostgroup_defs['snamenode'] %}
+{% if hostgroup_defs['snamenode'] and hostgroup_defs['namenode'] != None %}
 # Secondary namenode checks
 define service {
         hostgroup_name          snamenode
@@ -313,7 +315,7 @@ define service {
 }
 {%  endif %}
 
-{% if hostgroup_defs['namenode'] %}
+{% if hostgroup_defs['namenode'] and hostgroup_defs['namenode'] != None %}
 # HDFS Checks
 {%  for namenode_hostname in namenode_host %}
 {# TODO: check if we can get rid of str, lower #}
@@ -575,7 +577,7 @@ define service {
 {% endif %}
 {% endif %}
 
-{% if hostgroup_defs['slaves'] %}
+{% if hostgroup_defs['slaves'] and hostgroup_defs['namenode'] != None %}
 # HDFS::DATANODE Checks
 define service {
         hostgroup_name          slaves
