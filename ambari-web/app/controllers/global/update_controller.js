@@ -36,6 +36,8 @@ App.UpdateController = Em.Controller.extend({
    */
   hostsPreLoadKeys: ['host_components/HostRoles/component_name', 'host_components/HostRoles/stale_configs', 'host_components/HostRoles/maintenance_state'],
 
+  paginationKeys: ['page_size', 'from'],
+
   getUrl: function (testUrl, url) {
     return (App.get('testMode')) ? testUrl : App.apiPrefix + '/clusters/' + this.get('clusterName') + url;
   },
@@ -148,7 +150,7 @@ App.UpdateController = Em.Controller.extend({
   updateHost: function (callback, error) {
     var testUrl = App.get('isHadoop2Stack') ? '/data/hosts/HDP2/hosts.json' : '/data/hosts/hosts.json',
       self = this,
-      p = '';
+      hostDetailsFilter = '';
     var realUrl = '/hosts?<parameters>fields=Hosts/host_name,Hosts/maintenance_state,Hosts/public_host_name,Hosts/cpu_count,Hosts/ph_cpu_count,Hosts/total_mem,' +
       'Hosts/host_status,Hosts/last_heartbeat_time,Hosts/os_arch,Hosts/os_type,Hosts/ip,host_components/HostRoles/state,host_components/HostRoles/maintenance_state,' +
       'host_components/HostRoles/stale_configs,host_components/HostRoles/service_name,metrics/disk,metrics/load/load_one,metrics/cpu/cpu_system,metrics/cpu/cpu_user,' +
@@ -159,7 +161,7 @@ App.UpdateController = Em.Controller.extend({
     }
     else {
       if(App.router.get('currentState.name') == 'summary' && App.router.get('currentState.parentState.name') == 'hostDetails') {
-        p = 'Hosts/host_name=' + App.router.get('location.lastSetURL').match(/\/hosts\/(.*)\/summary/)[1] + '&';
+        hostDetailsFilter = App.router.get('location.lastSetURL').match(/\/hosts\/(.*)\/summary/)[1];
         App.updater.updateInterval('updateHost', App.get('componentsUpdateInterval'));
       }
       else {
@@ -171,9 +173,19 @@ App.UpdateController = Em.Controller.extend({
       }
     }
     var mainHostController = App.router.get('mainHostController'),
-      viewProperties = mainHostController.getViewProperties(),
       sortProperties = mainHostController.getSortProperties();
-    this.get('queryParams').set('Hosts', mainHostController.getQueryParameters(true));
+    if (hostDetailsFilter) {
+      //if host details page opened then request info only of one displayed host
+      this.get('queryParams').set('Hosts', [
+        {
+          key: 'Hosts/host_name',
+          value: [hostDetailsFilter],
+          type: 'MULTIPLE'
+        }
+      ]);
+    } else {
+      this.get('queryParams').set('Hosts', mainHostController.getQueryParameters(true));
+    }
     var clientCallback = function (skipCall, queryParams) {
       if (skipCall) {
         //no hosts match filter by component
@@ -184,13 +196,16 @@ App.UpdateController = Em.Controller.extend({
         callback();
       }
       else {
-        var params = p + self.computeParameters(queryParams),
-          viewProps = self.computeParameters(viewProperties),
+        var params = self.computeParameters(queryParams),
+          paginationProps = self.computeParameters(queryParams.filter(function (param) {
+            return (this.get('paginationKeys').contains(param.key));
+          }, self)),
           sortProps = self.computeParameters(sortProperties);
-        if ((params.length + viewProps.length + sortProps.length) > 0) {
+
+        if ((params.length + paginationProps.length + sortProps.length) > 0) {
           realUrl = App.get('apiPrefix') + '/clusters/' + App.get('clusterName') +
             realUrl.replace('<parameters>', '') +
-            (viewProps.length > 0 ? '&' + viewProps.substring(0, viewProps.length - 1) : '') +
+            (paginationProps.length > 0 ? '&' + paginationProps.substring(0, paginationProps.length - 1) : '') +
             (sortProps.length > 0 ? '&' + sortProps.substring(0, sortProps.length - 1) : '');
           App.HttpClient.get(realUrl, App.hostsMapper, {
             complete: callback,
@@ -263,7 +278,7 @@ App.UpdateController = Em.Controller.extend({
      * exclude pagination parameters as they were applied in previous call
      * to obtain hostnames of filtered hosts
      */
-    preLoadKeys.pushObjects(['page_size', 'from']);
+    preLoadKeys = preLoadKeys.concat(this.get('paginationKeys'));
 
     var itemTotal = parseInt(data.itemTotal);
     if (!isNaN(itemTotal)) {
