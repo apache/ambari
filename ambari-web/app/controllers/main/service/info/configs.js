@@ -341,6 +341,16 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     App.config.loadServiceConfigGroupOverrides(allConfigs, this.loadedGroupToOverrideSiteToTagMap, this.get('configGroups'), this.onLoadOverrides, this);
   }.observes('selectedConfigGroup'),
 
+  checkDatabaseProperties: function (serviceConfig) {
+    if (!['OOZIE', 'HIVE'].contains(this.get('content.serviceName'))) return;
+    var configsToHide = ['oozie_hostname'];
+    configsToHide.forEach(function(configName) {
+      var property = serviceConfig.configs.findProperty('name', configName);
+      if (property) property.set('isVisible', false);
+    });
+  },
+
+
   onLoadOverrides: function (allConfigs) {
     var serviceName = this.get('content.serviceName');
     var advancedConfigs = this.get('advancedConfigs');
@@ -358,6 +368,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       this.setRecommendedDefaults(advancedConfigs).done(function () {
         self.loadConfigs(allConfigs, serviceConfig);
         self.checkOverrideProperty(serviceConfig);
+        self.checkDatabaseProperties(serviceConfig);
         self.get('stepConfigs').pushObject(serviceConfig);
         self.set('selectedService', self.get('stepConfigs').objectAt(0));
         self.checkForSecureConfig(self.get('selectedService'));
@@ -610,7 +621,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
 
     return serviceConfigProperty;
   },
-
   /**
    * trigger addOverrideProperty
    * @param {Object} componentConfig
@@ -1237,6 +1247,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * @param globals
    */
   setOozieHostName: function (globals) {
+    var dbHostPropertyName = null;
     if (globals.someProperty('name', 'oozie_database')) {
       var oozieDb = globals.findProperty('name', 'oozie_database');
       if (oozieDb.value === 'New Derby Database') {
@@ -1264,7 +1275,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       } else if (oozieDb.value === 'Existing MySQL Database') {
         var existingMySqlHost = globals.findProperty('name', 'oozie_existing_mysql_host');
         if (existingMySqlHost) {
-          existingMySqlHost.name = 'oozie_hostname';
+          dbHostPropertyName = 'oozie_existing_mysql_host';
         }
         globals = globals.without(globals.findProperty('name', 'oozie_ambari_host'));
         globals = globals.without(globals.findProperty('name', 'oozie_ambari_database'));
@@ -1276,7 +1287,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       } else if (oozieDb.value === Em.I18n.t('services.service.config.hive.oozie.postgresql')) {
         var existingPostgreSqlHost = globals.findProperty('name', 'oozie_existing_postgresql_host');
         if (existingPostgreSqlHost) {
-          existingPostgreSqlHost.name = 'oozie_hostname';
+          dbHostPropertyName = 'oozie_existing_postgresql_host';
         }
         globals = globals.without(globals.findProperty('name', 'oozie_ambari_host'));
         globals = globals.without(globals.findProperty('name', 'oozie_ambari_database'));
@@ -1288,7 +1299,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       else { //existing oracle database
         var existingOracleHost = globals.findProperty('name', 'oozie_existing_oracle_host');
         if (existingOracleHost) {
-          existingOracleHost.name = 'oozie_hostname';
+          dbHostPropertyName = 'oozie_existing_oracle_host';
         }
         globals = globals.without(globals.findProperty('name', 'oozie_ambari_host'));
         globals = globals.without(globals.findProperty('name', 'oozie_ambari_database'));
@@ -1297,6 +1308,12 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         globals = globals.without(globals.findProperty('name', 'oozie_derby_database'));
       }
 
+    }
+
+    if (dbHostPropertyName) {
+      var oozieHostNameProperty = App.ServiceConfigProperty.create(App.config.get('preDefinedGlobalProperties').findProperty('name','oozie_hostname'));
+      oozieHostNameProperty.set('value', globals.findProperty('name', dbHostPropertyName).get('value'));
+      globals.pushObject(oozieHostNameProperty);
     }
   },
 
@@ -1816,13 +1833,13 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
 
     if (serviceName === 'HIVE') {
       var hiveDb = globalConfigs.findProperty('name', 'hive_database').value;
-      if (['Existing MySQL Database', 'Existing Oracle Database'].contains(hiveDb)) {
+      if (['Existing MySQL Database', 'Existing Oracle Database', 'Existing PostgreSQL Database'].contains(hiveDb)) {
         globalConfigs.findProperty('name', 'hive_hostname').isVisible = true;
       }
     }
     if (serviceName === 'OOZIE') {
       var oozieDb = globalConfigs.findProperty('name', 'oozie_database').value;
-      if (['Existing MySQL Database', 'Existing Oracle Database'].contains(oozieDb)) {
+      if (['Existing MySQL Database', 'Existing Oracle Database', 'Existing PostgreSQL Database'].contains(oozieDb)) {
         globalConfigs.findProperty('name', 'oozie_hostname').isVisible = true;
       }
     }
