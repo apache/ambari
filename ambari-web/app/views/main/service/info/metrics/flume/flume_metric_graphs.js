@@ -20,43 +20,18 @@ require('views/main/service/service');
 
 App.MainServiceInfoFlumeGraphsView = App.MainServiceInfoSummaryMetricGraphsView.extend({
 
-  serviceMetricGraphs: function() {
+  serviceMetricGraphs: [],
+
+  loadMetrics: function () {
     var graphRows = [];
     var viewData = this.get('viewData');
     if (viewData != null) {
       var metricType = viewData.metricType;
       var hostName = viewData.agent.get('hostName');
-      var metricNamesGatherer = {
-        success: function(data) {
-          var metricNames = {};
-          if (data != null && data.metrics != null && data.metrics.flume != null && data.metrics.flume.flume != null && data.metrics.flume.flume[metricType] != null) {
-            for ( var name in data.metrics.flume.flume[metricType]) {
-              for ( var metricName in data.metrics.flume.flume[metricType][name]) {
-                metricNames[metricName] = name;
-              }
-            }
-          }
-          // Now that we have collected all metric names, we create
-          // views for each of them and store them 4 in a row.
-          graphRows.push([]);
-          var graphs = graphRows[0];
-          for (var metricName in metricNames) {
-            if (graphs.length > 3) {
-              graphRows.push([]);
-              graphs = graphRows[graphRows.length - 1];
-            }
-            graphs.push(App.ChartServiceFlumeMetricGraph.extend({
-              metricType: metricType,
-              metricName: metricName,
-              hostName: hostName
-            }));
-          }
-        }
-      };
       App.ajax.send({
         'name': 'host.host_component.flume.metrics',
-        'sender': metricNamesGatherer,
-        'success': 'success',
+        'sender': this,
+        'success': 'onLoadMetricsSuccess',
         'data': {
           async: false,
           hostName: hostName,
@@ -65,6 +40,44 @@ App.MainServiceInfoFlumeGraphsView = App.MainServiceInfoSummaryMetricGraphsView.
       });
     }
     return graphRows;
-  }.property('viewData', 'metricType')
+  }.observes('viewData', 'metricType'),
+
+  onLoadMetricsSuccess: function (data) {
+    var graphRows = [];
+    var viewData = this.get('viewData');
+    var metricType = viewData.metricType;
+    var hostName = viewData.agent.get('hostName');
+    var metricNames = {};
+    var metricItems = [];
+    if (data != null && data.metrics != null && data.metrics.flume != null && data.metrics.flume.flume != null && data.metrics.flume.flume[metricType] != null) {
+      for (var name in data.metrics.flume.flume[metricType]) {
+        for (var metricName in data.metrics.flume.flume[metricType][name]) {
+          metricNames[metricName] = name;
+        }
+        metricItems.push(name);
+      }
+    }
+    // Now that we have collected all metric names, we create
+    // views for each of them and store them 4 in a row.
+    graphRows.push([]);
+    var graphs = graphRows[0];
+    for (var metricName in metricNames) {
+      if (graphs.length > 3) {
+        graphRows.push([]);
+        graphs = graphRows[graphRows.length - 1];
+      }
+      graphs.push(App.ChartServiceFlumeMetricGraph.extend({
+        metricType: metricType,
+        metricName: metricName,
+        hostName: hostName,
+        metricItems: metricItems
+      }));
+    }
+    this.set('serviceMetricGraphs', graphRows);
+  },
+
+  didInsertElement: function () {
+    this.loadMetrics();
+  }
 
 });

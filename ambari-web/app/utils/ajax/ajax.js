@@ -1574,8 +1574,13 @@ var urls = {
     }
   },
   'host.host_component.flume.metrics.timeseries': {
-    'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/FLUME_HANDLER?fields=metrics/flume/flume/{flumeComponent}/*/{flumeComponentMetric}[{fromSeconds},{toSeconds},{stepSeconds}]',
-    'mock': ''
+    'real': '',
+    'mock': '',
+    format: function (data) {
+      return {
+        url: data.url
+      }
+    }
   },
   'host.host_components.filtered': {
     'real': '/clusters/{clusterName}/hosts?{fields}',
