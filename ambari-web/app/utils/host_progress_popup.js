@@ -734,12 +734,16 @@ App.HostPopup = Em.Object.create({
             levelInfo.set('name', levelName);
             if (levelName === 'HOSTS_LIST') {
               this.set('isLevelLoaded', dataSourceController.requestMostRecent());
+              this.set('hostCategory', this.get('categories').findProperty('value','all'));
             } else if (levelName === 'TASK_DETAILS') {
               dataSourceController.requestMostRecent();
               this.set('isLevelLoaded', false);
             } else if (levelName === 'REQUESTS_LIST') {
+              this.set('serviceCategory', this.get('categories').findProperty('value','all'));
               this.get('controller.hosts').clear();
               dataSourceController.requestMostRecent();
+            } else {
+              this.set('taskCategory', this.get('categories').findProperty('value','all'));
             }
           } else if (securityControllers.contains(dataSourceController.get('name'))) {
             if (levelName === 'TASK_DETAILS') {
