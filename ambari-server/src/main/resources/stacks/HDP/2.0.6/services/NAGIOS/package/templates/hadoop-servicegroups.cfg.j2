@@ -17,14 +17,17 @@
 #}
 
 
-{% if hostgroup_defs['namenode'] or
+
+{% if hostgroup_defs['namenode'] or 
   hostgroup_defs['snamenode']  or
   hostgroup_defs['slaves'] %}
-define servicegroup {
-  servicegroup_name  HDFS
-  alias  HDFS Checks
-}
-{% endif %}
+  {% if hostgroup_defs['namenode'] != None %}
+  define servicegroup {
+    servicegroup_name  HDFS
+    alias  HDFS Checks
+  }
+  {% endif %}
+{% endif %} 
 {%if hostgroup_defs['jobtracker'] or
   hostgroup_defs['historyserver2']-%}
 define servicegroup {

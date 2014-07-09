@@ -78,17 +78,26 @@ nagios_principal_name = default("nagios_principal_name", "nagios")
 hadoop_ssl_enabled = False
 
 oozie_server_port = get_port_from_url(config['configurations']['oozie-site']['oozie.base.url'])
+
 # different to HDP1    
-namenode_port = get_port_from_url(config['configurations']['hdfs-site']['dfs.namenode.http-address'])
-# different to HDP1  
-snamenode_port = get_port_from_url(config['configurations']['hdfs-site']["dfs.namenode.secondary.http-address"])
+if 'dfs.namenode.http-address' in config['configurations']['hdfs-site']:
+  namenode_port = get_port_from_url(config['configurations']['hdfs-site']['dfs.namenode.http-address'])
+else:
+  namenode_port = "50070" 
+
+if 'dfs.namenode.secondary.http-address' in config['configurations']['hdfs-site']:
+  snamenode_port = get_port_from_url(config['configurations']['hdfs-site']['dfs.namenode.secondary.http-address'])
+else:
+  snamenode_port = "50071"
+
+if 'dfs.journalnode.http-address' in config['configurations']['hdfs-site']:
+  journalnode_port = get_port_from_url(config['configurations']['hdfs-site']['dfs.journalnode.http-address'])
+  datanode_port = get_port_from_url(config['configurations']['hdfs-site']['dfs.datanode.http.address'])
 
 hbase_master_rpc_port = default('/configurations/hbase-site/hbase.master.port', "60000")
 rm_port = get_port_from_url(config['configurations']['yarn-site']['yarn.resourcemanager.webapp.address'])
 nm_port = "8042"
 hs_port = get_port_from_url(config['configurations']['mapred-site']['mapreduce.jobhistory.webapp.address'])
-journalnode_port = get_port_from_url(config['configurations']['hdfs-site']['dfs.journalnode.http-address'])
-datanode_port = get_port_from_url(config['configurations']['hdfs-site']['dfs.datanode.http.address'])
 flume_port = "4159"
 hive_metastore_port = get_port_from_url(config['configurations']['hive-site']['hive.metastore.uris']) #"9083"
 hive_server_port = default('/configurations/hive-site/hive.server2.thrift.port',"10000")
@@ -180,7 +189,14 @@ nagios_web_password = config['configurations']['global']['nagios_web_password']
 user_group = config['configurations']['global']['user_group']
 nagios_contact = config['configurations']['global']['nagios_contact']
 
-namenode_host = default("/clusterHostInfo/namenode_host", None)
+# - test for HDFS or HCFS (glusterfs)
+if 'namenode_host' in config['clusterHostInfo']:
+  namenode_host = default("/clusterHostInfo/namenode_host", None)
+  ishdfs_value = "HDFS"
+else:
+  namenode_host = None
+  ishdfs_value = None 
+
 _snamenode_host = default("/clusterHostInfo/snamenode_host", None)
 _jtnode_host = default("/clusterHostInfo/jtnode_host", None)
 _slave_hosts = default("/clusterHostInfo/slave_hosts", None)
@@ -215,6 +231,8 @@ all_hosts = config['clusterHostInfo']['all_hosts']
 
 if 'namenode_host' in config['clusterHostInfo']:
   nn_hosts_string = " ".join(namenode_host)
+else:
+  nn_hosts_string = " ".join(config['clusterHostInfo']['ambari_server_host'])
 
 
 hostgroup_defs = {
