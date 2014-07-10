@@ -193,10 +193,9 @@ var serverWrapperView = Em.View.extend({
 
   loadSortStatuses: function () {
     var statuses = App.db.getSortingStatuses(this.get('controller.name'));
-
+    var childViews = this.get('childViews');
+    var self = this;
     if (statuses) {
-      var childViews = this.get('childViews');
-      var self = this;
       statuses.forEach(function (st) {
         if (st.status !== 'sorting') {
           self.get('childViews').findProperty('name', childViews.findProperty('name', st.name).get('name')).set('status', st.status);
@@ -206,6 +205,19 @@ var serverWrapperView = Em.View.extend({
           childViews.findProperty('name', st.name).set('status', st.status);
         }
       });
+    } else {
+      // setup and save initial sort statuses when first login : publicHostName sorting_asc, used only once
+      var statuses = [];
+      childViews.forEach(function (childView) {
+        var sortStatus = (childView.get('name') == 'publicHostName' && childView.get('status') == 'sorting') ? 'sorting_asc' : childView.get('status');
+        statuses.push({
+          name: childView.get('name'),
+          status: sortStatus
+        });
+        childView.set('status', sortStatus);
+      });
+      App.db.setSortingStatuses(self.get('controller.name'), statuses);
+      self.get('controller').set('sortingColumn', childViews.findProperty('name', 'publicHostName'));
     }
   },
 
