@@ -1012,9 +1012,9 @@ App.config = Em.Object.create({
   getServiceNameByConfigType: function (type) {
     var preDefinedServiceConfigs = this.get('preDefinedServiceConfigs');
     var service = preDefinedServiceConfigs.find(function (serviceConfig) {
-      return (serviceConfig.sites.contains(type));
+      return (serviceConfig.get('configTypes').contains(type));
     }, this);
-    return service && service.serviceName;
+    return service && service.get('serviceName');
   },
 
   /**
