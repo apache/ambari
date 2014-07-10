@@ -647,7 +647,7 @@ Em.I18n.translations = {
   'installer.step9.status.failed':'Failed to install/start the services.',
   'installer.step9.status.start.services.failed':'Start all services API call failed.',
   'installer.step9.status.install.components.failed': 'Some service components are still not known to have installed successfully. Please Retry',
-  'installer.step9.status.hosts.heartbeat_lost': 'Ambari agent is not runnig on {0} host.',
+  'installer.step9.status.hosts.heartbeat_lost': 'Ambari agent is not running on {0} hosts.',
   'installer.step9.host.heartbeat_lost': 'Heartbeat lost for the host',
   'installer.step9.host.heartbeat_lost_popup': 'Ambari agent process is not heartbeating on the host',
   'installer.step9.host.heartbeat_lost.header' : 'Hosts with heartbeat lost',
