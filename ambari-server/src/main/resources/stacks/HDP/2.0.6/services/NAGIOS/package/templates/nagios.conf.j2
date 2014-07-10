@@ -61,7 +61,11 @@ ScriptAlias {{cgi_weblink}} "{{cgi_dir}}"
    Require valid-user
 </Directory>
 
-Alias /{{nagios_service_name}} "{{nagios_web_dir}}"
+Alias /nagios "{{nagios_web_dir}}"
+{# Ubuntu has different nagios url #}
+{% if os_family == "debian" %}
+Alias /nagios3 "{{nagios_web_dir}}"
+{% endif %}
 
 <Directory "{{nagios_web_dir}}">
 #  SSLRequireSSL

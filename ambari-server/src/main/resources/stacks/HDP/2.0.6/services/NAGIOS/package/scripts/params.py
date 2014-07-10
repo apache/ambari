@@ -162,6 +162,8 @@ else:
     nn_ha_host_port_map[config['clusterHostInfo']['namenode_host'][0]] = namenode_metadata_port
   else:
     namenode_metadata_port = '8020'
+    
+os_family = System.get_instance().os_family
 
 ganglia_port = "8651"
 ganglia_collector_slaves_port = "8660"
