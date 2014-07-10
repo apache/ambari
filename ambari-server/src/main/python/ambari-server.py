@@ -2553,19 +2553,26 @@ def start(args):
   print_info_msg("Running server: " + str(param_list))
   subprocess.Popen(param_list, env=environ)
 
+  print "Server PID at: "+pidfile
+  print "Server out at: "+SERVER_OUT_FILE
+  print "Server log at: "+SERVER_LOG_FILE
+
   #wait for server process for SERVER_START_TIMEOUT seconds
-  print "Waiting for server start..."
+  sys.stdout.write('Waiting for server start...')
+  sys.stdout.flush()
 
   pids = utils.looking_for_pid(SERVER_SEARCH_PATTERN, SERVER_INIT_TIMEOUT)
-  if utils.wait_for_pid(pids, SERVER_START_TIMEOUT) <= 0:
+  found_pids = utils.wait_for_pid(pids, SERVER_START_TIMEOUT)
+
+  sys.stdout.write('\n')
+  sys.stdout.flush()
+
+  if found_pids <= 0:
     exitcode = utils.check_exitcode(os.path.join(PID_DIR, EXITCODE_NAME))
     raise FatalException(-1, AMBARI_SERVER_DIE_MSG.format(exitcode, SERVER_OUT_FILE))
   else:
     utils.save_main_pid_ex(pids, pidfile, [utils.locate_file('sh', '/bin'),
                                  utils.locate_file('bash', '/bin')], True)
-    print "Server PID at: "+pidfile
-    print "Server out at: "+SERVER_OUT_FILE
-    print "Server log at: "+SERVER_LOG_FILE
 
 
 #

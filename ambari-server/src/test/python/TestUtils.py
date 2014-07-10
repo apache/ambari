@@ -16,6 +16,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
+import StringIO
+import sys
 from unittest import TestCase
 from mock.mock import patch
 
@@ -88,9 +90,14 @@ class TestUtils(TestCase):
     open_mock.return_value = test_obj
     listdir_mock.return_value = ['1000']
     get_symlink_path_mock.return_value = "/symlinkpath"
-    time_mock.side_effect = [0, 0, 2]
+    time_mock.side_effect = [0, 0, 0, 0, 0, 0, 6]
 
-    r = utils.looking_for_pid("test args", 1)
+    out = StringIO.StringIO()
+    sys.stdout = out
+    r = utils.looking_for_pid("test args", 5)
+    self.assertEqual(".....", out.getvalue())
+    sys.stdout = sys.__stdout__
+
     self.assertEquals(len(r), 1)
     self.assertEquals(r[0], {
        "pid": "1000",
@@ -112,7 +119,10 @@ class TestUtils(TestCase):
   @patch('time.sleep')
   def test_wait_for_pid(self, sleep_mock, pid_exists_mock, time_mock):
     pid_exists_mock.return_value = True
-    time_mock.side_effect = [0, 0, 2]
+    time_mock.side_effect = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11]
+
+    out = StringIO.StringIO()
+    sys.stdout = out
     live_pids = utils.wait_for_pid([
                                    {"pid": "111",
                                     "exe": "",
@@ -122,7 +132,9 @@ class TestUtils(TestCase):
                                     "exe": "",
                                     "cmd": ""
                                     },
-                                   ], 1)
+                                   ], 10)
+    self.assertEqual("..........", out.getvalue())
+    sys.stdout = sys.__stdout__
 
     self.assertEquals(2, live_pids)
 

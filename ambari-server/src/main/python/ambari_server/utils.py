@@ -19,6 +19,7 @@ limitations under the License.
 '''
 import os
 import signal
+import sys
 import time
 from ambari_commons import OSConst
 
@@ -100,6 +101,8 @@ def wait_for_pid(pids, timeout):
   tstart = time.time()
   pid_live = 0
   while int(time.time()-tstart) <= timeout and len(pids) > 0:
+    sys.stdout.write('.')
+    sys.stdout.flush()
     pid_live = 0
     for item in pids:
       if pid_exists(item["pid"]):
@@ -130,6 +133,8 @@ def looking_for_pid(pattern, wait_time=1):
   found_pids = []
 
   while int(time.time()-tstart) <= wait_time:
+    sys.stdout.write('.')
+    sys.stdout.flush()
     pids = [pid for pid in os.listdir(PROC_DIR) if pid.isdigit()]
     found_pids = []  # clear list
     for pid in pids:
