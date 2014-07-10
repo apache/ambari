@@ -2,7 +2,7 @@
   "configurations": [
     {
       "global": {
-        "nagios_contact": ""
+        "nagios_contact": "me@my-awesome-domain.example"
       }
     }
   ],
