@@ -766,6 +766,7 @@ module.exports = Em.Route.extend({
     if (!component.context)
       return;
     router.get('mainHostController').filterByComponent(component.context);
+    router.get('mainHostController').set('showFilterConditionsFirstLoad', true);
     router.transitionTo('hosts.index');
   },
   showDetails: function (router, event) {
