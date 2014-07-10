@@ -145,6 +145,9 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     super_visors_installed: 'super_visors_installed',
     super_visors_total: 'super_visors_total'
   },
+  flumeConfig: {
+    flume_handlers_total: 'flume_handlers_total'
+  },
   flumeAgentConfig: {
     name: 'HostComponentProcess.name',
     status: 'HostComponentProcess.status',
@@ -597,7 +600,10 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
    */
   flumeMapper: function (item) {
     var self = this;
-    var finalJson = self.parseIt(item, self.config);
+    var finalConfig = jQuery.extend({}, this.config);
+    var flumeConfig = this.flumeConfig;
+    finalConfig = jQuery.extend(finalConfig, flumeConfig);
+    var finalJson = self.parseIt(item, finalConfig);
     var flumeHandlers = item.components[0].host_components;
     finalJson.agents = [];
     finalJson.agentJsons = [];
