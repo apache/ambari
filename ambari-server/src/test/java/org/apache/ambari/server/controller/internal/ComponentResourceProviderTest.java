@@ -21,6 +21,7 @@ package org.apache.ambari.server.controller.internal;
 import static org.easymock.EasyMock.anyBoolean;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createMockBuilder;
+import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
@@ -350,37 +351,259 @@ public class ComponentResourceProviderTest {
         requestStatusResponse, stackId, maintenanceStateHelper);
   }
 
-  @Test
-  public void testDeleteResources() throws Exception {
+  public void testSuccessDeleteResources() throws Exception {
     Resource.Type type = Resource.Type.Component;
 
-    MaintenanceStateHelper maintenanceStateHelper = createNiceMock(MaintenanceStateHelper.class);
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    MaintenanceStateHelper maintenanceStateHelper = createNiceMock(MaintenanceStateHelper.class);
 
+    Clusters clusters = createNiceMock(Clusters.class);
+    Cluster cluster = createNiceMock(Cluster.class);
+    Service service = createNiceMock(Service.class);
+    AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
+    ServiceComponent serviceComponent = createNiceMock(ServiceComponent.class);
+    ServiceComponentHost serviceComponentHost = createNiceMock(ServiceComponentHost.class);
+    StackId stackId = createNiceMock(StackId.class);
+
+    Map<String, ServiceComponentHost> serviceComponentHosts = new HashMap<String, ServiceComponentHost>();
+    serviceComponentHosts.put("", serviceComponentHost);
+
+    expect(managementController.getClusters()).andReturn(clusters);
+    expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo);
+
+    expect(clusters.getCluster("Cluster100")).andReturn(cluster);
+    expect(cluster.getService("Service100")).andReturn(service);
+
+    expect(service.getServiceComponent("Component100")).andReturn(serviceComponent);
+
+    expect(serviceComponent.getDesiredState()).andReturn(State.INSTALLED);
+    expect(serviceComponent.getServiceComponentHosts()).andReturn(serviceComponentHosts);
+
+    expect(serviceComponentHost.getDesiredState()).andReturn(State.INSTALLED);
+
+
+    service.deleteServiceComponent("Component100");
+    expectLastCall().once();
     // replay
-    replay(managementController);
+
+    replay(managementController, clusters, cluster, service, stackId, ambariMetaInfo,
+           serviceComponent, serviceComponentHost, maintenanceStateHelper);
 
     ResourceProvider provider = new ComponentResourceProvider(
-        PropertyHelper.getPropertyIds(type),
-        PropertyHelper.getKeyPropertyIds(type),
-        managementController, maintenanceStateHelper);
+                PropertyHelper.getPropertyIds(type),
+                PropertyHelper.getKeyPropertyIds(type),
+                managementController, maintenanceStateHelper);
 
     AbstractResourceProviderTest.TestObserver observer = new AbstractResourceProviderTest.TestObserver();
 
     ((ObservableResourceProvider)provider).addObserver(observer);
 
-    Predicate  predicate = new PredicateBuilder().property(
-        ComponentResourceProvider.COMPONENT_COMPONENT_NAME_PROPERTY_ID).equals("Component100").toPredicate();
+
+    Predicate predicate = new PredicateBuilder()
+                .property(ComponentResourceProvider.COMPONENT_CLUSTER_NAME_PROPERTY_ID)
+                .equals("Cluster100")
+                .and()
+                .property(ComponentResourceProvider.COMPONENT_SERVICE_NAME_PROPERTY_ID)
+                .equals("Service100")
+                .and()
+                .property(ComponentResourceProvider.COMPONENT_COMPONENT_NAME_PROPERTY_ID)
+                .equals("Component100").toPredicate();
+
+    provider.deleteResources(predicate);
+
+    // verify
+    verify(managementController, service);
+  }
+
+  @Test
+  public void testDeleteResourcesWithEmptyClusterComponentNames() throws Exception {
+    Resource.Type type = Resource.Type.Component;
+
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    MaintenanceStateHelper maintenanceStateHelper = createNiceMock(MaintenanceStateHelper.class);
+
+    Clusters clusters = createNiceMock(Clusters.class);
+    AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
+
+    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
+    expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
+
+    replay(managementController, clusters, ambariMetaInfo, maintenanceStateHelper);
+
+    ResourceProvider provider = new ComponentResourceProvider(
+                PropertyHelper.getPropertyIds(type),
+                PropertyHelper.getKeyPropertyIds(type),
+                managementController,maintenanceStateHelper);
+
+    AbstractResourceProviderTest.TestObserver observer = new AbstractResourceProviderTest.TestObserver();
+
+    ((ObservableResourceProvider)provider).addObserver(observer);
+
+    Predicate predicate1 = new PredicateBuilder()
+                .property(ComponentResourceProvider.COMPONENT_SERVICE_NAME_PROPERTY_ID)
+                .equals("Service100")
+                .and()
+                .property(ComponentResourceProvider.COMPONENT_COMPONENT_NAME_PROPERTY_ID)
+                .equals("Component100").toPredicate();
+
     try {
-      provider.deleteResources(predicate);
-      Assert.fail("Expected exception.");
-    } catch (Exception e) {
-      // expected
+      provider.deleteResources(predicate1);
+      Assert.fail("Expected IllegalArgumentException exception.");
+    } catch (IllegalArgumentException e) {
+      //expected
+    }
+
+    Predicate predicate2 = new PredicateBuilder()
+                .property(ComponentResourceProvider.COMPONENT_CLUSTER_NAME_PROPERTY_ID)
+                .equals("Cluster100")
+                .and()
+                .property(ComponentResourceProvider.COMPONENT_SERVICE_NAME_PROPERTY_ID)
+                .equals("Service100")
+                .and().toPredicate();
+
+    try {
+      provider.deleteResources(predicate2);
+      Assert.fail("Expected IllegalArgumentException exception.");
+    } catch (IllegalArgumentException e) {
+      //expected
     }
 
     // verify
     verify(managementController);
   }
+
+  @Test
+  public void testDeleteResourcesWithServiceComponentStarted() throws Exception {
+    Resource.Type type = Resource.Type.Component;
+
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    MaintenanceStateHelper maintenanceStateHelper = createNiceMock(MaintenanceStateHelper.class);
+
+    Clusters clusters = createNiceMock(Clusters.class);
+    Cluster cluster = createNiceMock(Cluster.class);
+    Service service = createNiceMock(Service.class);
+    AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
+    ServiceComponent serviceComponent = createNiceMock(ServiceComponent.class);
+    ServiceComponentHost serviceComponentHost = createNiceMock(ServiceComponentHost.class);
+    StackId stackId = createNiceMock(StackId.class);
+
+    Map<String, ServiceComponentHost> serviceComponentHosts = new HashMap<String, ServiceComponentHost>();
+    serviceComponentHosts.put("", serviceComponentHost);
+
+    expect(managementController.getClusters()).andReturn(clusters);
+    expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo);
+
+    expect(clusters.getCluster("Cluster100")).andReturn(cluster);
+    expect(cluster.getService("Service100")).andReturn(service);
+
+    expect(service.getServiceComponent("Component100")).andReturn(serviceComponent);
+
+    expect(serviceComponent.getDesiredState()).andReturn(State.STARTED);
+    expect(serviceComponent.getServiceComponentHosts()).andReturn(serviceComponentHosts);
+
+    expect(serviceComponentHost.getDesiredState()).andReturn(State.INSTALLED);
+
+
+    // replay
+    replay(managementController, clusters, cluster, service, stackId, ambariMetaInfo,
+           serviceComponent, serviceComponentHost, maintenanceStateHelper);
+
+    ResourceProvider provider = new ComponentResourceProvider(
+                PropertyHelper.getPropertyIds(type),
+                PropertyHelper.getKeyPropertyIds(type),
+                managementController, maintenanceStateHelper);
+
+    AbstractResourceProviderTest.TestObserver observer = new AbstractResourceProviderTest.TestObserver();
+
+    ((ObservableResourceProvider)provider).addObserver(observer);
+
+    Predicate predicate = new PredicateBuilder()
+                .property(ComponentResourceProvider.COMPONENT_CLUSTER_NAME_PROPERTY_ID)
+                .equals("Cluster100")
+                .and()
+                .property(ComponentResourceProvider.COMPONENT_SERVICE_NAME_PROPERTY_ID)
+                .equals("Service100")
+                .and()
+                .property(ComponentResourceProvider.COMPONENT_COMPONENT_NAME_PROPERTY_ID)
+                .equals("Component100").toPredicate();
+
+    try {
+      provider.deleteResources(predicate);
+      Assert.fail("Expected exception.");
+    } catch(Exception e) {
+      //expected
+    }
+
+    // verify
+    verify(managementController);
+  }
+
+  @Test
+  public void testDeleteResourcesWithServiceComponentHostStarted() throws Exception {
+    Resource.Type type = Resource.Type.Component;
+
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    MaintenanceStateHelper maintenanceStateHelper = createNiceMock(MaintenanceStateHelper.class);
+
+    Clusters clusters = createNiceMock(Clusters.class);
+    Cluster cluster = createNiceMock(Cluster.class);
+    Service service = createNiceMock(Service.class);
+    AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
+    ServiceComponent serviceComponent = createNiceMock(ServiceComponent.class);
+    ServiceComponentHost serviceComponentHost = createNiceMock(ServiceComponentHost.class);
+    StackId stackId = createNiceMock(StackId.class);
+
+    Map<String, ServiceComponentHost> serviceComponentHosts = new HashMap<String, ServiceComponentHost>();
+    serviceComponentHosts.put("", serviceComponentHost);
+
+    expect(managementController.getClusters()).andReturn(clusters);
+    expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo);
+
+    expect(clusters.getCluster("Cluster100")).andReturn(cluster);
+    expect(cluster.getService("Service100")).andReturn(service);
+
+    expect(service.getServiceComponent("Component100")).andReturn(serviceComponent);
+
+    expect(serviceComponent.getDesiredState()).andReturn(State.INSTALLED);
+    expect(serviceComponent.getServiceComponentHosts()).andReturn(serviceComponentHosts);
+
+    expect(serviceComponentHost.getDesiredState()).andReturn(State.STARTED);
+
+
+    // replay
+    replay(managementController, clusters, cluster, service, stackId, ambariMetaInfo,
+           serviceComponent, serviceComponentHost, maintenanceStateHelper);
+
+    ResourceProvider provider = new ComponentResourceProvider(
+                PropertyHelper.getPropertyIds(type),
+                PropertyHelper.getKeyPropertyIds(type),
+                managementController,maintenanceStateHelper);
+
+    AbstractResourceProviderTest.TestObserver observer = new AbstractResourceProviderTest.TestObserver();
+
+    ((ObservableResourceProvider)provider).addObserver(observer);
+
+    Predicate predicate = new PredicateBuilder()
+                .property(ComponentResourceProvider.COMPONENT_CLUSTER_NAME_PROPERTY_ID)
+                .equals("Cluster100")
+                .and()
+                .property(ComponentResourceProvider.COMPONENT_SERVICE_NAME_PROPERTY_ID)
+                .equals("Service100")
+                .and()
+                .property(ComponentResourceProvider.COMPONENT_COMPONENT_NAME_PROPERTY_ID)
+                .equals("Component100").toPredicate();
+
+    try {
+      provider.deleteResources(predicate);
+      Assert.fail("Expected exception.");
+    } catch(Exception e) {
+      //expected
+    }
+
+    // verify
+    verify(managementController);
+  }
+
 
   @Test
   public void testGetComponents() throws Exception {

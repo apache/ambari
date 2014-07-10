@@ -206,10 +206,15 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
   public RequestStatus deleteResources(Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
+    final Set<ServiceComponentRequest> requests = new HashSet<ServiceComponentRequest>();
+      for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
+        requests.add(getRequest(propertyMap));
+      }
+    final Predicate finalPredicate = predicate;
     RequestStatusResponse response = modifyResources(new Command<RequestStatusResponse>() {
       @Override
       public RequestStatusResponse invoke() throws AmbariException {
-        return deleteComponents();
+        return deleteComponents(requests);
       }
     });
 
@@ -838,8 +843,84 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
         ignoredScHosts, runSmokeTest, false);
   }
 
-  // Delete the components for the given request.
-  protected RequestStatusResponse deleteComponents() throws AmbariException {
-    throw new AmbariException("Delete components not supported");
+  protected RequestStatusResponse deleteComponents(Set<ServiceComponentRequest> requests) throws AmbariException {
+    AmbariManagementController controller = getManagementController();
+    Clusters clusters = controller.getClusters();
+    AmbariMetaInfo ambariMetaInfo = controller.getAmbariMetaInfo();
+
+    for (ServiceComponentRequest request : requests) {
+
+      if (request.getClusterName() == null || request.getClusterName().isEmpty()
+          || request.getComponentName() == null || request.getComponentName().isEmpty()) {
+          throw new IllegalArgumentException("Invalid arguments"
+          + ", clustername and componentname should be"
+          + " non-null and non-empty when trying to create a"
+          + " component");
+      }
+
+      Cluster cluster;
+      try {
+        cluster = clusters.getCluster(request.getClusterName());
+      } catch (ClusterNotFoundException e) {
+        throw new ParentObjectNotFoundException(
+              "Attempted to add a component to a cluster which doesn't exist:", e);
+      }
+
+      if (request.getServiceName() == null || request.getServiceName().isEmpty()) {
+        StackId stackId = cluster.getDesiredStackVersion();
+        String serviceName = ambariMetaInfo.getComponentToService(stackId.getStackName(),
+                                                                stackId.getStackVersion(), request.getComponentName());
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Looking up service name for component"
+                    + ", componentName=" + request.getComponentName()
+                    + ", serviceName=" + serviceName);
+        }
+
+        if (serviceName == null || serviceName.isEmpty()) {
+            throw new AmbariException("Could not find service for component"
+                         + ", componentName=" + request.getComponentName()
+                         + ", clusterName=" + cluster.getClusterName()
+                         + ", stackInfo=" + stackId.getStackId());
+        }
+        request.setServiceName(serviceName);
+        }
+
+      Service s;
+      try {
+        s = cluster.getService(request.getServiceName());
+      } catch (ServiceNotFoundException e) {
+        throw new ParentObjectNotFoundException(
+                    "Attempted to add a component to a service which doesn't exist:", e);
+      }
+
+      ServiceComponent sc = s.getServiceComponent(request.getComponentName());
+      if (sc != null) {
+        if (!sc.getDesiredState().isRemovableState()) {
+          throw new AmbariException("Could not delete service component from cluster. To remove service component," +
+                 " it must be in DISABLED/INIT/INSTALLED/INSTALL_FAILED/UNKNOWN/UNINSTALLED/INSTALLING state."
+                 + ", clusterName=" + request.getClusterName()
+                 + ", serviceName=" + request.getServiceName()
+                 + ", componentName=" + request.getComponentName()
+                 + ", current state=" + sc.getDesiredState() + ".");
+          }
+
+        for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
+          if (!sch.getDesiredState().isRemovableState()) {
+            throw new AmbariException("Found non removable host component when trying to delete service component." +
+                      " To remove host component, it must be in DISABLED/INIT/INSTALLED/INSTALL_FAILED/UNKNOWN" +
+                      "/UNINSTALLED/INSTALLING state."
+                      + ", clusterName=" + request.getClusterName()
+                      + ", serviceName=" + request.getServiceName()
+                      + ", componentName=" + request.getComponentName()
+                      + ", current state=" + sc.getDesiredState() + ".");
+
+          }
+        }
+
+        s.deleteServiceComponent(request.getComponentName());
+      }
+    }
+    return null;
   }
+
 }
