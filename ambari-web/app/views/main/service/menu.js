@@ -85,6 +85,11 @@ App.MainServiceMenuView = Em.CollectionView.extend({
       return "#/main/services/" + this.get('content.id') + "/" + stateName;
     }.property('App.router.currentState.name', 'parentView.activeServiceId', 'isConfigurable'),
 
+    goToConfigs: function () {
+      App.router.transitionTo('service.configs', this.get('content'));
+      App.router.set('currentState.name', 'configs');
+    },
+
     refreshRestartRequiredMessage: function() {
       var restarted, componentsCount, hostsCount, message, tHosts, tComponents;
       restarted = this.get('content.restartRequiredHostsAndComponents');
@@ -176,6 +181,11 @@ App.TopNavServiceMenuView = Em.CollectionView.extend({
         : 'summary';
       return "#/main/services/" + this.get('content.id') + "/" + stateName;
     }.property('App.router.currentState.name', 'parentView.activeServiceId','isConfigurable'),
+
+    goToConfigs: function () {
+      App.router.transitionTo('service.configs', this.get('content'));
+      App.router.set('currentState.name', 'configs');
+    },
 
     refreshRestartRequiredMessage: function() {
       var restarted, componentsCount, hostsCount, message, tHosts, tComponents;
