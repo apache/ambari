@@ -263,14 +263,13 @@ App.WizardStep2Controller = Em.Controller.extend({
     this.set('hasSubmitted', true);
 
     this.checkHostError();
-    if (this.get('hostsError') || this.get('sshUserError') || this.get('sshKeyError')) {
-      return false;
-    }
-
     this.updateHostNameArr();
 
     if (!this.get('hostNameArr.length')) {
       this.set('hostsError', Em.I18n.t('installer.step2.hostName.error.already_installed'));
+    }
+
+    if (this.get('hostsError') || this.get('sshUserError') || this.get('sshKeyError')) {
       return false;
     }
 
