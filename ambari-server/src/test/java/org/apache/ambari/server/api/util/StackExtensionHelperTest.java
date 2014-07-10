@@ -332,6 +332,24 @@ public class StackExtensionHelperTest {
   }
 
   @Test
+  public void testAddConfigTypeProperty_configTypesIsNull() {
+    // init
+    File stackRoot = new File(stackRootStr);
+    StackExtensionHelper helper = new StackExtensionHelper(injector, stackRoot);
+    ServiceInfo serviceInfo = createMock(ServiceInfo.class);
+
+    // expectations
+    expect(serviceInfo.getConfigTypes()).andReturn(null);
+    replay(serviceInfo);
+
+    // eval
+    helper.addConfigTypeProperty(serviceInfo, "dep", "group", "key", "value");
+
+    // verification
+    verify(serviceInfo);
+  }
+
+  @Test
   public void testAddConfigTypeProperty_groupDoesNotExist() {
     // init
     File stackRoot = new File(stackRootStr);
@@ -511,6 +529,30 @@ public class StackExtensionHelperTest {
 
     // verification
     verify(properties, serviceInfo, helper);
+  }
+
+  @Test
+  public void testPopulateServiceProperties_configTypesIsNull() throws Exception {
+    // init
+    File stackRoot = new File(stackRootStr);
+    StackExtensionHelper helper = new StackExtensionHelper(injector, stackRoot);
+    File config = new File(stackRootStr
+        + "HDP/2.1.1/services/PIG/configuration/pig-properties.xml".replaceAll("/", File.separator));
+    ServiceInfo serviceInfo = createMock(ServiceInfo.class);
+    List<PropertyInfo> properties = createNiceMock(List.class);
+
+    // expectations
+    expect(serviceInfo.getProperties()).andReturn(properties).times(1);
+    expect(properties.addAll((Collection) anyObject())).andReturn(true).times(1);
+    expect(serviceInfo.getConfigTypes()).andReturn(null).times(1);
+    replay(properties);
+    replay(serviceInfo);
+
+    // eval
+    helper.populateServiceProperties(config, serviceInfo);
+
+    // verification
+    verify(properties, serviceInfo);
   }
 
   @Test

@@ -649,7 +649,7 @@ public class StackExtensionHelper {
   void addConfigTypeProperty(ServiceInfo serviceInfo, String configType,
                              String propertiesGroupName, String key, String value) {
     Map<String, Map<String, Map<String, String>>> configTypes = serviceInfo.getConfigTypes();
-    if (configTypes.containsKey(configType)) {
+    if (configTypes != null && configTypes.containsKey(configType)) {
       Map<String, Map<String, String>> configDependencyProperties = configTypes.get(configType);
       if (!configDependencyProperties.containsKey(propertiesGroupName)) {
         configDependencyProperties.put(propertiesGroupName, new HashMap<String, String>());
