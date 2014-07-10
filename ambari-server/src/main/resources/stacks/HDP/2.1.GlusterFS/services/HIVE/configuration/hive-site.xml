@@ -315,7 +315,7 @@ limitations under the License.
 
   <property>
     <name>hive.vectorized.groupby.maxentries</name>
-    <value>1024</value>
+    <value>100000</value>
     <description>Max number of entries in the vector group by aggregation hashtables.
       Exceeding this will trigger a flush irrelevant of memory pressure condition.
     </description>
@@ -329,7 +329,7 @@ limitations under the License.
 
   <property>
     <name>hive.vectorized.groupby.flush.percent</name>
-    <value>1.0</value>
+    <value>0.1</value>
     <description>Percent of entries in the group by aggregation hash flushed when the memory treshold is exceeded.</description>
   </property>
 
