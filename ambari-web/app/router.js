@@ -248,34 +248,6 @@ App.Router = Em.Router.extend({
     console.log("Server not responding: " + req.statusCode);
   },
 
-  setAmbariStacks: function () {
-    App.ajax.send({
-      name: 'router.set_ambari_stacks',
-      sender: this,
-      success: 'setAmbariStacksSuccessCallback',
-      error: 'setAmbariStacksErrorCallback'
-    });
-  },
-
-  setAmbariStacksSuccessCallback: function (jsonData) {
-    console.log("TRACE: In success function for the setAmbariStacks call");
-    var stacks = [];
-    jsonData.forEach(function (_stack) {
-      stacks.pushObject({
-        name: _stack.name,
-        version: _stack.version
-      });
-    }, this);
-    App.db.setAmbariStacks(stacks);
-    console.log('TRACEIINNGG: ambaristacks: ' + JSON.stringify(App.db.getAmbariStacks()));
-  },
-
-  setAmbariStacksErrorCallback: function (request, ajaxOptions, error) {
-    console.log("TRACE: In error function for the setAmbariStacks call");
-    console.log("TRACE: error code status is: " + request.status);
-    console.log('Error message is: ' + request.responseText);
-  },
-
   getSection: function (callback) {
     if (App.testMode) {
       if (App.alwaysGoToInstaller) {

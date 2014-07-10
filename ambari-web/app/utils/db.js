@@ -144,13 +144,6 @@ App.db.setLoginName = function (name) {
   localStorage.setObject('ambari', App.db.data);
 };
 
-App.db.setAmbariStacks = function (stacks) {
-  console.log('TRACE: Entering db:setAmbariStacks function');
-  App.db.data = localStorage.getObject('ambari');
-  App.db.data.app.stacks = stacks;
-  localStorage.setObject('ambari', App.db.data);
-};
-
 /**
  * Set user model to db
  * @param user
@@ -556,12 +549,6 @@ App.db.getAuthenticated = function () {
   console.log('Trace: Entering db:getAuthenticated function');
   App.db.data = localStorage.getObject('ambari');
   return App.db.data.app.authenticated;
-};
-
-App.db.getAmbariStacks = function () {
-  console.log('TRACE: Entering db:setAmbariStacks function');
-  App.db.data = localStorage.getObject('ambari');
-  return App.db.data.app.stacks;
 };
 
 App.db.getFilterConditions = function(name) {

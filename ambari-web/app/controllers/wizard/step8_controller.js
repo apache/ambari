@@ -863,6 +863,7 @@ App.WizardStep8Controller = Em.Controller.extend({
    * @method submitProceed
    */
   submitProceed: function () {
+    var self = this;
     this.set('isSubmitDisabled', true);
     this.set('isBackBtnDisabled', true);
     if (this.get('content.controllerName') == 'addHostController') {
@@ -901,30 +902,30 @@ App.WizardStep8Controller = Em.Controller.extend({
     // delete any existing clusters to start from a clean slate
     // before creating a new cluster in install wizard
     // TODO: modify for multi-cluster support
-    var clusterNames = this.getExistingClusterNames();
-    if (this.get('content.controllerName') == 'installerController' && (!App.get('testMode')) && clusterNames.length) {
-      this.deleteClusters(clusterNames);
-    } else {
-      this.deleteClustersCallback(null, null, {isLast: true});
-    }
+    this.getExistingClusterNames().complete(function () {
+      var clusterNames = self.get('clusterNames');
+      if (self.get('content.controllerName') == 'installerController' && (!App.get('testMode')) && clusterNames.length) {
+        self.deleteClusters(clusterNames);
+      } else {
+        self.deleteClustersCallback(null, null, {isLast: true});
+      }
+    });
   },
 
   /**
    * Get list of existing cluster names
-   * @returns {string[]}
+   * @returns {object|null}
    * returns an array of existing cluster names.
    * returns an empty array if there are no existing clusters.
    * @method getExistingClusterNames
    */
   getExistingClusterNames: function () {
-    App.ajax.send({
+    return App.ajax.send({
       name: 'wizard.step8.existing_cluster_names',
       sender: this,
       success: 'getExistingClusterNamesSuccessCallBack',
       error: 'getExistingClusterNamesErrorCallback'
     });
-
-    return this.get('clusterNames');
   },
 
   /**

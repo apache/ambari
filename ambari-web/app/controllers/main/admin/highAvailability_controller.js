@@ -47,7 +47,7 @@ App.MainAdminHighAvailabilityController = Em.Controller.extend({
         message.push(Em.I18n.t('admin.highAvailability.error.zooKeeperNum'));
       }
 
-      if (this.getTotalHosts() < 3) {
+      if (App.router.get('mainHostController.hostsCountMap.TOTAL') < 3) {
         message.push(Em.I18n.t('admin.highAvailability.error.hostsNum'));
       }
       if (message.length > 0) {
@@ -57,24 +57,6 @@ App.MainAdminHighAvailabilityController = Em.Controller.extend({
     }
     App.router.transitionTo('main.admin.enableHighAvailability');
     return true;
-  },
-
-  /**
-   * get total hosts count from cluster API
-   * @return {Number}
-   */
-  getTotalHosts: function () {
-    App.ajax.send({
-      name: 'hosts.total_count',
-      data: {},
-      sender: this,
-      success: 'getTotalHostsSuccessCallback'
-    });
-    return totalHosts;
-  },
-
-  getTotalHostsSuccessCallback: function (data, opt, params) {
-    totalHosts = data.Clusters.total_hosts;
   },
 
   disableHighAvailability: function () {

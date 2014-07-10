@@ -811,6 +811,8 @@ App.WizardStep9Controller = Em.Controller.extend({
    */
   setIsServicesInstalled: function (polledData) {
     var clusterStatus = {};
+    var self = this;
+
     if (!polledData.someProperty('Tasks.status', 'PENDING') && !polledData.someProperty('Tasks.status', 'QUEUED') && !polledData.someProperty('Tasks.status', 'IN_PROGRESS')) {
       clusterStatus = {
         status: 'PENDING',
@@ -824,16 +826,19 @@ App.WizardStep9Controller = Em.Controller.extend({
         this.get('hosts').forEach(function (host) {
           host.set('progress', '100');
         });
-        this.isAllComponentsInstalled();
+        this.isAllComponentsInstalled().done(function(){
+          self.changeParseHostInfo(false);
+        });
+        return;
       } else {
         this.set('progress', '34');
         if (this.get('content.controllerName') === 'installerController') {
-          this.isAllComponentsInstalled();
-          this.saveInstalledHosts(this);
-          this.changeParseHostInfo(true);
+          this.isAllComponentsInstalled().done(function(){
+            self.saveInstalledHosts(self);
+            self.changeParseHostInfo(true);
+          });
           return;
         } else {
-          var self = this;
           this.launchStartServices(function () {
             self.saveInstalledHosts(self);
             self.changeParseHostInfo(true);
@@ -1071,19 +1076,23 @@ App.WizardStep9Controller = Em.Controller.extend({
    * @return {$.ajax|null}
    */
   isAllComponentsInstalled: function () {
+    var dfd = $.Deferred();
     if (this.get('content.controllerName') !== 'installerController') {
-      return null;
+      dfd.resolve();
+    } else {
+      App.ajax.send({
+        name: 'wizard.step9.installer.get_host_status',
+        sender: this,
+        data: {
+          cluster: this.get('content.cluster.name')
+        },
+        success: 'isAllComponentsInstalledSuccessCallback',
+        error: 'isAllComponentsInstalledErrorCallback'
+      }).complete(function(){
+          dfd.resolve();
+        });
     }
-    var name = 'wizard.step9.installer.get_host_status';
-    return App.ajax.send({
-      name: name,
-      sender: this,
-      data: {
-        cluster: this.get('content.cluster.name')
-      },
-      success: 'isAllComponentsInstalledSuccessCallback',
-      error: 'isAllComponentsInstalledErrorCallback'
-    });
+    return dfd.promise()
   },
 
   /**

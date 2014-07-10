@@ -325,12 +325,7 @@ var urls = {
   },
   'config.ambari.database.info': {
     'real': '/services/AMBARI/components/AMBARI_SERVER?fields=hostComponents/RootServiceHostComponents/properties/server.jdbc.database,hostComponents/RootServiceHostComponents/properties/server.jdbc.url',
-    'mock': '',
-    'format': function() {
-      return {
-        async: false
-      };
-    }
+    'mock': ''
   },
   'config_groups.all_fields': {
     'real': '/clusters/{clusterName}/config_groups?fields=*',
@@ -457,15 +452,6 @@ var urls = {
   'hosts.metrics.host_component': {
     'real': '/clusters/{clusterName}/services/{serviceName}/components/{componentName}?fields=host_components/{metricName}',
     'mock': '/data/cluster_metrics/cpu_1hr.json'
-  },
-  'service.service_component': {
-    'real': '/clusters/{clusterName}/services/{serviceName}/components/{componentName}',
-    'mock': '',
-    'format': function(data) {
-      return {
-        async: data.async
-      };
-    }
   },
   'service.metrics.flume.channel_fill_percent': {
     'real': '/clusters/{clusterName}/services/FLUME/components/FLUME_HANDLER?fields=host_components/metrics/flume/flume/CHANNEL/*/ChannelFillPercentage[{fromSeconds},{toSeconds},{stepSeconds}]',
@@ -765,21 +751,11 @@ var urls = {
   },
   'cluster.load_cluster_name': {
     'real': '/clusters',
-    'mock': '/data/clusters/info.json',
-    'format': function() {
-      return {
-        async: false
-      };
-    }
+    'mock': '/data/clusters/info.json'
   },
   'cluster.update_upgrade_version': {
     'real': '/stacks/HDP/versions?fields=stackServices/StackServices,Versions',
-    'mock': '/data/wizard/stack/stacks.json',
-    'format': function() {
-      return {
-        async: false
-      };
-    }
+    'mock': '/data/wizard/stack/stacks.json'
   },
   'cluster.load_repositories': {
     'real': '/stacks/{stackName}/versions/{stackVersion}/operating_systems?fields=repositories/*',
@@ -946,12 +922,7 @@ var urls = {
   },
   'wizard.step9.installer.get_host_status': {
     'real': '/clusters/{cluster}/hosts?fields=Hosts/host_state,host_components/HostRoles/state',
-    'mock': '/data/wizard/deploy/5_hosts/get_host_state.json',
-    'format': function () {
-      return {
-        async: false
-      };
-    }
+    'mock': '/data/wizard/deploy/5_hosts/get_host_state.json'
   },
   'wizard.step9.load_log': {
     'real': '/clusters/{cluster}/requests/{requestId}?fields=tasks/Tasks/command,tasks/Tasks/exit_code,tasks/Tasks/start_time,tasks/Tasks/end_time,tasks/Tasks/host_name,tasks/Tasks/id,tasks/Tasks/role,tasks/Tasks/status&minimal_response=true',
@@ -965,12 +936,7 @@ var urls = {
 
   'wizard.step8.existing_cluster_names': {
     'real': '/clusters',
-    'mock': '',
-    'format': function() {
-      return {
-        async: false
-      };
-    }
+    'mock': ''
   },
 
   'wizard.step8.create_cluster': {
@@ -1192,15 +1158,6 @@ var urls = {
   'router.logoff': {
     'real': '/logout',
     'mock': ''
-  },
-  'router.set_ambari_stacks': {
-    'real': '/stacks',
-    'mock': '/data/wizard/stack/stacks.json',
-    'format': function() {
-      return {
-        async: false
-      };
-    }
   },
   'router.authentication': {
     'real': '/clusters',
@@ -1547,12 +1504,7 @@ var urls = {
   },
   'host.host_component.flume.metrics': {
     'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/FLUME_HANDLER?fields=metrics/flume/flume/{flumeComponent}/*',
-    'mock': '',
-    'format': function(data) {
-      return {
-        async: data.async
-      }
-    }
+    'mock': ''
   },
   'host.host_component.flume.metrics.timeseries': {
     'real': '',
@@ -1658,15 +1610,6 @@ var urls = {
       }
     }
   },
-  'hosts.total_count': {
-    'real': '/clusters/{clusterName}?fields=Clusters/total_hosts&minimal_response=true',
-    'mock': '',
-    'format': function() {
-      return {
-        async: false
-      }
-    }
-  },
   'hosts.high_availability.wizard': {
     'real': '/clusters/{clusterName}/hosts?fields=Hosts/cpu_count,Hosts/disk_info,Hosts/total_mem&minimal_response=true',
     'mock': ''
@@ -1677,12 +1620,7 @@ var urls = {
   },
   'host_component.installed.on_hosts': {
     'real': '/clusters/{clusterName}/host_components?HostRoles/component_name={componentName}&HostRoles/host_name.in({hostNames})&fields=HostRoles/host_name&minimal_response=true',
-    'mock': '',
-    'format': function() {
-      return {
-        async: false
-      }
-    }
+    'mock': ''
   },
   'hosts.by_component.one': {
     'real': '/clusters/{clusterName}/hosts?host_components/HostRoles/component_name.in({componentNames})&fields=host_components,Hosts/cpu_count,Hosts/disk_info,Hosts/total_mem,Hosts/ip,Hosts/os_type,Hosts/os_arch,Hosts/public_host_name&page_size=1&minimal_response=true',

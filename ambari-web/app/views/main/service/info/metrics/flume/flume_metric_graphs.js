@@ -33,7 +33,6 @@ App.MainServiceInfoFlumeGraphsView = App.MainServiceInfoSummaryMetricGraphsView.
         'sender': this,
         'success': 'onLoadMetricsSuccess',
         'data': {
-          async: false,
           hostName: hostName,
           flumeComponent: metricType
         }

@@ -84,20 +84,24 @@ App.ClusterController = Em.Controller.extend({
    * load cluster name
    */
   loadClusterName: function (reload) {
+    var dfd = $.Deferred();
+
     if (this.get('clusterName') && !reload) {
-      return false;
+      dfd.resolve();
+    } else {
+      App.ajax.send({
+        name: 'cluster.load_cluster_name',
+        sender: this,
+        success: 'loadClusterNameSuccessCallback',
+        error: 'loadClusterNameErrorCallback'
+      }).complete(function () {
+          if (!App.get('currentStackVersion')) {
+            App.set('currentStackVersion', App.defaultStackVersion);
+          }
+          dfd.resolve();
+        });
     }
-
-    App.ajax.send({
-      name: 'cluster.load_cluster_name',
-      sender: this,
-      success: 'loadClusterNameSuccessCallback',
-      error: 'loadClusterNameErrorCallback'
-    });
-
-    if (!App.get('currentStackVersion')) {
-      App.set('currentStackVersion', App.defaultStackVersion);
-    }
+    return dfd.promise()
   },
 
   loadClusterNameSuccessCallback: function (data) {

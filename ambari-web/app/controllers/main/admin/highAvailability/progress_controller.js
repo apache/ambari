@@ -232,12 +232,10 @@ App.HighAvailabilityProgressPageController = App.HighAvailabilityWizardControlle
    * check whether component installed on specified hosts
    * @param componentName
    * @param hostNames
-   * @return {Array}
+   * @return {$.ajax}
    */
   checkInstalledComponents: function (componentName, hostNames) {
-    var result = [];
-
-    App.ajax.send({
+    return App.ajax.send({
       name: 'host_component.installed.on_hosts',
       sender: this,
       data: {
@@ -246,14 +244,6 @@ App.HighAvailabilityProgressPageController = App.HighAvailabilityWizardControlle
       },
       success: 'checkInstalledComponentsSuccessCallback'
     });
-    hostNames.forEach(function (hostName) {
-      result.push({
-        componentName: componentName,
-        hostName: hostName,
-        hasComponent: installedComponents.someProperty('HostRoles.host_name', hostName)
-      });
-    });
-    return result;
   },
 
   checkInstalledComponentsSuccessCallback: function (data, opt, params) {
@@ -262,26 +252,39 @@ App.HighAvailabilityProgressPageController = App.HighAvailabilityWizardControlle
 
   createComponent: function (componentName, hostName, serviceName) {
     var hostNames = (Array.isArray(hostName)) ? hostName : [hostName];
+    var self = this;
 
-    this.checkInstalledComponents(componentName, hostNames).forEach(function (host, index, array) {
-      if (!host.hasComponent) {
-        App.ajax.send({
-          name: 'admin.high_availability.create_component',
-          sender: this,
-          data: {
-            hostName: host.hostName,
-            componentName: host.componentName,
-            serviceName: serviceName,
-            taskNum: array.length
-          },
-          success: 'onCreateComponent',
-          error: 'onCreateComponentError'
+    this.checkInstalledComponents(componentName, hostNames).complete(function () {
+      var result = [];
+
+      hostNames.forEach(function (hostName) {
+        result.push({
+          componentName: componentName,
+          hostName: hostName,
+          hasComponent: installedComponents.someProperty('HostRoles.host_name', hostName)
         });
-      } else {
-        // Simulates format returned from ajax.send
-        this.onCreateComponent(null, null, {hostName: host.hostName, componentName: host.componentName, taskNum: array.length});
-      }
-    }, this)
+      });
+
+      result.forEach(function (host, index, array) {
+        if (!host.hasComponent) {
+          App.ajax.send({
+            name: 'admin.high_availability.create_component',
+            sender: this,
+            data: {
+              hostName: host.hostName,
+              componentName: host.componentName,
+              serviceName: serviceName,
+              taskNum: array.length
+            },
+            success: 'onCreateComponent',
+            error: 'onCreateComponentError'
+          });
+        } else {
+          // Simulates format returned from ajax.send
+          this.onCreateComponent(null, null, {hostName: host.hostName, componentName: host.componentName, taskNum: array.length});
+        }
+      }, self)
+    });
   },
 
   onCreateComponent: function () {
