@@ -78,7 +78,8 @@ App.Service = DS.Model.extend(App.ServiceModelMixin, {
   serviceTypes: function() {
     var typeServiceMap = {
       GANGLIA: ['MONITORING'],
-      NAGIOS:  ['MONITORING']
+      NAGIOS:  ['MONITORING'],
+      HDFS: ['HA_MODE']
     };
     return typeServiceMap[this.get('serviceName')] || [];
   }.property('serviceName'),

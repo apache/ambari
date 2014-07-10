@@ -21,74 +21,125 @@ var batchUtils = require('utils/batch_scheduled_requests');
 
 App.MainServiceItemView = Em.View.extend({
   templateName: require('templates/main/service/item'),
+
+  serviceName: function() {
+    return this.get('controller.content.serviceName');
+  }.property('controller.content.serviceName'),
+
+  displayName: function() {
+    return this.get('controller.content.displayName');
+  }.property('controller.content.displayName'),
+
+  isPassive: function() {
+    return this.get('controller.content.passiveState') === 'ON';
+  }.property('controller.content.passiveState'),
+
+  actionMap: function() {
+    return {
+      RESTART_ALL: {
+        action: 'restartAllHostComponents',
+        context: this.get('serviceName'),
+        label: Em.I18n.t('restart.service.all'),
+        cssClass: 'icon-repeat',
+        disabled: false
+      },
+      RUN_SMOKE_TEST: {
+        action: 'runSmokeTest',
+        label: Em.I18n.t('services.service.actions.run.smoke'),
+        cssClass: 'icon-thumbs-up-alt'
+      },
+      REFRESH_CONFIGS: {
+        action: 'refreshConfigs',
+        label: Em.I18n.t('hosts.host.details.refreshConfigs'),
+        cssClass: 'icon-refresh',
+        disabled: !this.get('controller.content.isRestartRequired')
+      },
+      ROLLING_RESTART: {
+        action: 'rollingRestart',
+        context: this.get('rollingRestartComponent'),
+        label: Em.I18n.t('rollingrestart.dialog.title'),
+        cssClass: 'icon-time',
+        disabled: false
+      },
+      TOGGLE_PASSIVE: {
+        action: 'turnOnOffPassive',
+        context: this.get('isPassive') ? Em.I18n.t('passiveState.turnOffFor').format(this.get('displayName')) : Em.I18n.t('passiveState.turnOnFor').format(this.get('displayName')),
+        label: this.get('isPassive') ? Em.I18n.t('passiveState.turnOff') : Em.I18n.t('passiveState.turnOn'),
+        cssClass: 'icon-medkit',
+        disabled: false
+      },
+      TOGGLE_HA: {
+        action: App.isHaEnabled ? 'disableHighAvailability' : 'enableHighAvailability',
+        label: App.isHaEnabled ? Em.I18n.t('admin.highAvailability.button.disable') : Em.I18n.t('admin.highAvailability.button.enable'),
+        cssClass: App.isHaEnabled ? 'icon-arrow-down' : 'icon-arrow-up',
+        isHidden: (App.isHAEnabled && !App.autoRollbackHA)
+      },
+      MOVE_COMPONENT: {
+        action: 'reassignMaster',
+        context: '',
+        label: Em.I18n.t('services.service.actions.reassign.master'),
+        cssClass: 'icon-share-alt',
+        disabled: false
+      }
+    }
+  },
+  /**
+   * Create option for MOVE_COMPONENT or ROLLING_RESTART task.
+   *
+   * @param {Object} option - one of the options that return by <code>actionMap()</code>
+   * @param {Object} fields - option fields to add/rewrite
+   * @return {Object}
+   */
+  createOption: function(option, fields) {
+    return $.extend(true, {}, option, fields);
+  },
+
   maintenance: function(){
+    var self = this;
     var options = [];
     var service = this.get('controller.content');
-    var hosts = App.router.get('mainHostController.hostsCountMap')['TOTAL'];
     var allMasters = this.get('controller.content.hostComponents').filterProperty('isMaster').mapProperty('componentName').uniq();
-    var disabled = this.get('controller.isStopDisabled');
-    var serviceName = service.get('serviceName');
-    var displayName = service.get('displayName');
-    var disableRefreshConfgis = !service.get('isRestartRequired');
+    var allSlaves = this.get('controller.content.hostComponents').filterProperty('isSlave').mapProperty('componentName').uniq();
+    var actionMap = this.actionMap();
 
     if (this.get('controller.isClientsOnlyService')) {
-      if (serviceName != 'TEZ') {
-        options.push({action: 'runSmokeTest', cssClass: 'icon-thumbs-up-alt', 'label': Em.I18n.t('services.service.actions.run.smoke')});
+      options.push(actionMap.RUN_SMOKE_TEST);
+      options.push(actionMap.REFRESH_CONFIGS);
+      if (this.get('serviceName') === 'TEZ') {
+        options = options.without(actionMap.RUN_SMOKE_TEST);
       }
-      options.push({action: 'refreshConfigs', cssClass: 'icon-refresh', 'label': Em.I18n.t('hosts.host.details.refreshConfigs'), disabled: disableRefreshConfgis});
     } else {
-      // Restart All action
-      options.push({action:'restartAllHostComponents', cssClass: 'icon-repeat', context: serviceName, 'label': Em.I18n.t('restart.service.all'), disabled: false});
-      // Rolling Restart action
-      var rrComponentName = batchUtils.getRollingRestartComponentName(serviceName);
-      if (rrComponentName) {
-        var label = Em.I18n.t('rollingrestart.dialog.title').format(App.format.role(rrComponentName));
-        options.push({action:'rollingRestart', cssClass: 'icon-time', context: rrComponentName, 'label': label, disabled: false});
+      if (this.get('serviceName') === 'FLUME') {
+        options.push(actionMap.REFRESH_CONFIGS);
       }
-      if (serviceName == 'FLUME') {
-        options.push({action: 'refreshConfigs', cssClass: 'icon-refresh', 'label': Em.I18n.t('hosts.host.details.refreshConfigs'), disabled: disableRefreshConfgis});
+      options.push(actionMap.RESTART_ALL);
+      allSlaves.forEach(function(slave) {
+        options.push(self.createOption(actionMap.ROLLING_RESTART, {
+          context: slave,
+          label: actionMap.ROLLING_RESTART.label.format(App.format.role(slave))
+        }));
+      });
+      allMasters.filter(function(master) {
+        return App.get('components.reassignable').contains(master);
+      }).forEach(function(master) {
+        options.push(self.createOption(actionMap.MOVE_COMPONENT, {
+          context: master,
+          label: actionMap.MOVE_COMPONENT.label.format(App.format.role(master))
+        }));
+      });
+      if (service.get('serviceTypes').contains('HA_MODE')) {
+        options.push(actionMap.TOGGLE_HA);
       }
-      if (serviceName == 'HDFS') {
-        if (App.isHaEnabled) {
-          if (App.supports.autoRollbackHA) {
-            options.push({action: 'disableHighAvailability', cssClass: 'icon-arrow-down', 'label': Em.I18n.t('admin.highAvailability.button.disable')});
-          }
-        } else {
-          options.push({action: 'enableHighAvailability', cssClass: 'icon-arrow-up', 'label': Em.I18n.t('admin.highAvailability.button.enable')});
-        }
-      }
-      // Service Check and Reassign Master actions
-      switch (serviceName) {
-        case 'GANGLIA':
-        case 'NAGIOS':
-          break;
-        case 'YARN':
-        case 'HDFS':
-        case 'MAPREDUCE':
-          if (App.supports.reassignMaster && hosts > 1) {
-            allMasters.forEach(function (hostComponent) {
-              if (App.get('components.reassignable').contains(hostComponent)) {
-                options.push({action: 'reassignMaster', context: hostComponent, cssClass: 'icon-share-alt',
-                  'label': Em.I18n.t('services.service.actions.reassign.master').format(App.format.role(hostComponent)), disabled: false});
-              }
-            })
-          }
-        default:
-          options.push({action: 'runSmokeTest', cssClass: 'icon-thumbs-up-alt', 'label': Em.I18n.t('services.service.actions.run.smoke'), disabled:disabled});
-      }
-      var requestLabel = service.get('passiveState') === "OFF" ?
-          Em.I18n.t('passiveState.turnOnFor').format(displayName) :
-          Em.I18n.t('passiveState.turnOffFor').format(displayName);
-      var passiveLabel = service.get('passiveState') === "OFF" ?
-          Em.I18n.t('passiveState.turnOn') :
-          Em.I18n.t('passiveState.turnOff');
-      options.push({action:'turnOnOffPassive', cssClass: 'icon-medkit', context:requestLabel, 'label':passiveLabel , disabled: false});
+      options.push(actionMap.RUN_SMOKE_TEST);
+      options.push(actionMap.TOGGLE_PASSIVE);
     }
     return options;
   }.property('controller.content', 'controller.isStopDisabled','controller.isClientsOnlyService'),
+
   isMaintenanceActive: function() {
     return this.get('maintenance').length !== 0;
   }.property('maintenance'),
+
   hasConfigTab: function() {
     return !App.get('services.noConfigTypes').concat('HCATALOG').contains('controller.content.serviceName');
   }.property('controller.content.serviceName','App.services.noConfigTypes'),

@@ -83,7 +83,7 @@
 
         <!-- Other service actions -->
         {{#each option in view.maintenance}}
-        <li {{bindAttr class="option.disabled:disabled"}}>
+        <li {{bindAttr class="option.disabled:disabled option.isHidden:hidden"}}>
           <a {{action "doAction" option target="controller" href=true}}><i {{bindAttr class="option.cssClass"}}></i>
 {{option.label}}</a>
         </li>
