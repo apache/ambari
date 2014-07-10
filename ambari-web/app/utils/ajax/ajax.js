@@ -834,7 +834,6 @@ var urls = {
     'type': 'PUT',
     'format': function (data) {
       return {
-        async: false,
         data: JSON.stringify({
           Clusters: {
             desired_config: {
@@ -877,18 +876,6 @@ var urls = {
         type: 'PUT',
         timeout: 10000,
         data: data.configData
-      };
-    }
-  },
-  'admin.security.apply_configuration': {
-    'real': '/clusters/{clusterName}',
-    'mock': '',
-    'format': function(data) {
-      return {
-        type: 'PUT',
-        async: false,
-        timeout: 5000,
-        data: JSON.stringify(data.clusterData)
       };
     }
   },

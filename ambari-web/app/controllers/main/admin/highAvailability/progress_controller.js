@@ -178,7 +178,7 @@ App.HighAvailabilityProgressPageController = App.HighAvailabilityWizardControlle
       clusterState: this.get('clusterDeployState'),
       wizardControllerName: this.get('content.controllerName'),
       localdb: App.db.data
-    }, { async: true, success: 'statusChangeCallback', sender: this });
+    }, {success: 'statusChangeCallback', sender: this });
   },
   /**
    * Method that called after saving persist data to server.
