@@ -34,6 +34,7 @@ import org.apache.ambari.server.ParentObjectNotFoundException;
 import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.ServiceComponentRequest;
 import org.apache.ambari.server.controller.ServiceComponentResponse;
@@ -89,6 +90,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
           COMPONENT_SERVICE_NAME_PROPERTY_ID,
           COMPONENT_COMPONENT_NAME_PROPERTY_ID}));
 
+  private MaintenanceStateHelper maintenanceStateHelper;
 
   // ----- Constructors ----------------------------------------------------
 
@@ -102,8 +104,10 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
   @AssistedInject
   ComponentResourceProvider(@Assisted Set<String> propertyIds,
                             @Assisted Map<Resource.Type, String> keyPropertyIds,
-                            @Assisted AmbariManagementController managementController) {
+                            @Assisted AmbariManagementController managementController,
+                            MaintenanceStateHelper maintenanceStateHelper) {
     super(propertyIds, keyPropertyIds, managementController);
+    this.maintenanceStateHelper = maintenanceStateHelper;
   }
 
 
@@ -588,55 +592,72 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
         new HashMap<String, Map<String,Set<String>>>();
     Set<State> seenNewStates = new HashSet<State>();
 
+    // Determine operation level
+    Resource.Type reqOpLvl;
+    if (requestProperties.containsKey(RequestOperationLevel.OPERATION_LEVEL_ID)) {
+      RequestOperationLevel operationLevel = new RequestOperationLevel(requestProperties);
+      reqOpLvl = operationLevel.getLevel();
+    } else {
+      String message = "Can not determine request operation level. " +
+              "Operation level property should " +
+              "be specified for this request.";
+      LOG.warn(message);
+      reqOpLvl = Resource.Type.Cluster;
+    }
+
     for (ServiceComponentRequest request : requests) {
-      if (request.getClusterName() == null
-          || request.getClusterName().isEmpty()
-          || request.getComponentName() == null
-          || request.getComponentName().isEmpty()) {
+      final String clusterName = request.getClusterName();
+      String componentName = request.getComponentName();
+      if (clusterName == null
+          || clusterName.isEmpty()
+          || componentName == null
+          || componentName.isEmpty()) {
         throw new IllegalArgumentException("Invalid arguments, cluster name"
             + ", service name and component name should be provided to"
             + " update components");
       }
 
+      String serviceName = request.getServiceName();
       LOG.info("Received a updateComponent request"
-          + ", clusterName=" + request.getClusterName()
-          + ", serviceName=" + request.getServiceName()
-          + ", componentName=" + request.getComponentName()
+          + ", clusterName=" + clusterName
+          + ", serviceName=" + serviceName
+          + ", componentName=" + componentName
           + ", request=" + request.toString());
 
-      Cluster cluster = clusters.getCluster(request.getClusterName());
+      Cluster cluster = clusters.getCluster(clusterName);
 
-      if (request.getServiceName() == null
-          || request.getServiceName().isEmpty()) {
+      if (serviceName == null
+          || serviceName.isEmpty()) {
         StackId stackId = cluster.getDesiredStackVersion();
-        String serviceName =
+        String alternativeServiceName =
             ambariMetaInfo.getComponentToService(stackId.getStackName(),
-                stackId.getStackVersion(), request.getComponentName());
+                stackId.getStackVersion(), componentName);
         if (LOG.isDebugEnabled()) {
           LOG.debug("Looking up service name for component"
-              + ", componentName=" + request.getComponentName()
-              + ", serviceName=" + serviceName);
+              + ", componentName=" + componentName
+              + ", serviceName=" + alternativeServiceName);
         }
 
-        if (serviceName == null
-            || serviceName.isEmpty()) {
+        if (alternativeServiceName == null
+            || alternativeServiceName.isEmpty()) {
           throw new AmbariException("Could not find service for component"
-              + ", componentName=" + request.getComponentName()
+              + ", componentName=" + componentName
               + ", clusterName=" + cluster.getClusterName()
               + ", stackInfo=" + stackId.getStackId());
         }
-        request.setServiceName(serviceName);
+        request.setServiceName(alternativeServiceName);
+        serviceName = alternativeServiceName;
       }
 
       if (LOG.isDebugEnabled()) {
         LOG.debug("Received a updateComponent request"
-            + ", clusterName=" + request.getClusterName()
-            + ", serviceName=" + request.getServiceName()
-            + ", componentName=" + request.getComponentName()
-            + ", request=" + request);
+                + ", clusterName=" + clusterName
+                + ", serviceName=" + serviceName
+                + ", componentName=" + componentName
+                + ", request=" + request);
       }
 
-      clusterNames.add(request.getClusterName());
+      clusterNames.add(clusterName);
 
       if (clusterNames.size() > 1) {
         // FIXME throw correct error
@@ -644,27 +665,26 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
             + " supported");
       }
 
-      if (!componentNames.containsKey(request.getClusterName())) {
-        componentNames.put(request.getClusterName(),
+      if (!componentNames.containsKey(clusterName)) {
+        componentNames.put(clusterName,
             new HashMap<String, Set<String>>());
       }
-      if (!componentNames.get(request.getClusterName())
-          .containsKey(request.getServiceName())) {
-        componentNames.get(request.getClusterName()).put(
-            request.getServiceName(), new HashSet<String>());
+      if (!componentNames.get(clusterName)
+          .containsKey(serviceName)) {
+        componentNames.get(clusterName).put(
+                serviceName, new HashSet<String>());
       }
-      if (componentNames.get(request.getClusterName())
-          .get(request.getServiceName()).contains(request.getComponentName())){
+      if (componentNames.get(clusterName)
+          .get(serviceName).contains(componentName)){
         // throw error later for dup
         throw new IllegalArgumentException("Invalid request contains duplicate"
             + " service components");
       }
-      componentNames.get(request.getClusterName())
-          .get(request.getServiceName()).add(request.getComponentName());
+      componentNames.get(clusterName)
+          .get(serviceName).add(componentName);
 
-      Service s = cluster.getService(request.getServiceName());
-      ServiceComponent sc = s.getServiceComponent(
-          request.getComponentName());
+      Service s = cluster.getService(serviceName);
+      ServiceComponent sc = s.getServiceComponent(componentName);
       State newState = null;
       if (request.getDesiredState() != null) {
         newState = State.valueOf(request.getDesiredState());
@@ -674,12 +694,19 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
         }
       }
 
+      if (! maintenanceStateHelper.isOperationAllowed(reqOpLvl, s)) {
+        LOG.info("Operations cannot be applied to component " + componentName
+                + " because service " + serviceName +
+                " is in the maintenance state of " + s.getMaintenanceState());
+        continue;
+      }
+
       if (newState == null) {
         if (LOG.isDebugEnabled()) {
           LOG.debug("Nothing to do for new updateServiceComponent request"
-              + ", clusterName=" + request.getClusterName()
-              + ", serviceName=" + request.getServiceName()
-              + ", componentName=" + request.getComponentName()
+              + ", clusterName=" + clusterName
+              + ", serviceName=" + serviceName
+              + ", componentName=" + componentName
               + ", newDesiredState=null");
         }
         continue;
@@ -711,8 +738,8 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
         }
         if (LOG.isDebugEnabled()) {
           LOG.debug("Handling update to ServiceComponent"
-              + ", clusterName=" + request.getClusterName()
-              + ", serviceName=" + s.getName()
+              + ", clusterName=" + clusterName
+              + ", serviceName=" + serviceName
               + ", componentName=" + sc.getName()
               + ", currentDesiredState=" + oldScState
               + ", newDesiredState=" + newState);
@@ -725,8 +752,8 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
         if (oldSchState == State.DISABLED || oldSchState == State.UNKNOWN) {
           if (LOG.isDebugEnabled()) {
             LOG.debug("Ignoring ServiceComponentHost"
-                + ", clusterName=" + request.getClusterName()
-                + ", serviceName=" + s.getName()
+                + ", clusterName=" + clusterName
+                + ", serviceName=" + serviceName
                 + ", componentName=" + sc.getName()
                 + ", hostname=" + sch.getHostName()
                 + ", currentState=" + oldSchState
@@ -739,8 +766,8 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
           ignoredScHosts.add(sch);
           if (LOG.isDebugEnabled()) {
             LOG.debug("Ignoring ServiceComponentHost"
-                + ", clusterName=" + request.getClusterName()
-                + ", serviceName=" + s.getName()
+                + ", clusterName=" + clusterName
+                + ", serviceName=" + serviceName
                 + ", componentName=" + sc.getName()
                 + ", hostname=" + sch.getHostName()
                 + ", currentState=" + oldSchState
@@ -750,15 +777,14 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
         }
 
         // do not update or alter any HC that is not active
-        MaintenanceState schMaint = controller.getEffectiveMaintenanceState(sch);
-        if (MaintenanceState.OFF != schMaint) {
+        if (! maintenanceStateHelper.isOperationAllowed(reqOpLvl, sch)) {
+          ignoredScHosts.add(sch);
           if (LOG.isDebugEnabled()) {
-            LOG.debug("Ignoring ServiceComponentHost"
-                + ", clusterName=" + request.getClusterName()
-                + ", serviceName=" + s.getName()
+            LOG.debug("Ignoring ServiceComponentHost in maintenance state"
+                + ", clusterName=" + clusterName
+                + ", serviceName=" + serviceName
                 + ", componentName=" + sc.getName()
-                + ", hostname=" + sch.getHostName()
-                + ", maintenance=" + schMaint);
+                + ", hostname=" + sch.getHostName());
           }
           continue;
         }
@@ -785,8 +811,8 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
         }
         if (LOG.isDebugEnabled()) {
           LOG.debug("Handling update to ServiceComponentHost"
-              + ", clusterName=" + request.getClusterName()
-              + ", serviceName=" + s.getName()
+              + ", clusterName=" + clusterName
+              + ", serviceName=" + serviceName
               + ", componentName=" + sc.getName()
               + ", hostname=" + sch.getHostName()
               + ", currentState=" + oldSchState

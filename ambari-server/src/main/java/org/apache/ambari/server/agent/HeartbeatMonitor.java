@@ -78,7 +78,6 @@ public class HeartbeatMonitor implements Runnable {
   private final AmbariMetaInfo ambariMetaInfo;
   private final AmbariManagementController ambariManagementController;
   private final Configuration configuration;
-  private final MaintenanceStateHelper maintenanceStateHelper;
 
   public HeartbeatMonitor(Clusters clusters, ActionQueue aq, ActionManager am,
                           int threadWakeupInterval, Injector injector) {
@@ -91,7 +90,6 @@ public class HeartbeatMonitor implements Runnable {
     this.ambariManagementController = injector.getInstance(
             AmbariManagementController.class);
     this.configuration = injector.getInstance(Configuration.class);
-    this.maintenanceStateHelper = injector.getInstance(MaintenanceStateHelper.class);
   }
 
   public void shutdown() {

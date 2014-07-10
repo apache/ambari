@@ -17,23 +17,9 @@
  */
 package org.apache.ambari.server.controller;
 
-import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.createMockBuilder;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.createStrictMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
-
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.google.inject.Injector;
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.controller.internal.RequestOperationLevel;
 import org.apache.ambari.server.controller.internal.RequestResourceFilter;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.state.Cluster;
@@ -43,9 +29,33 @@ import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.controller.spi.Resource.Type;
 import org.easymock.Capture;
+import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static org.easymock.EasyMock.anyInt;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.createMockBuilder;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.createStrictMock;
+import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
 
 /**
  * Tests the {@link MaintenanceStateHelper} class
@@ -231,6 +241,52 @@ public class MaintenanceStateHelperTest {
   }
 
   @Test
+  public void testisOperationAllowed() throws Exception {
+    // Tests that isOperationAllowed() falls
+    // back to guessing req op level if operation level is not specified
+    // explicitly
+    Injector injector = createStrictMock(Injector.class);
+    Cluster cluster = createMock(Cluster.class);
+    Method isOperationAllowed = MaintenanceStateHelper.class.getDeclaredMethod(
+            "isOperationAllowed", new Class[]{Cluster.class, Type.class,
+            String.class, String.class, String.class});
+    MaintenanceStateHelper maintenanceStateHelper =
+            createMockBuilder(MaintenanceStateHelper.class)
+                    .withConstructor(injector)
+                    .addMockedMethod(isOperationAllowed)
+                    .createNiceMock();
+
+    RequestResourceFilter filter = createMock(RequestResourceFilter.class);
+    RequestOperationLevel level = createMock(RequestOperationLevel.class);
+    expect(level.getLevel()).andReturn(Type.Cluster);
+    expect(maintenanceStateHelper.isOperationAllowed(
+            anyObject(Cluster.class), anyObject(Type.class),
+            anyObject(String.class),
+            anyObject(String.class), anyObject(String.class))).andStubReturn(true);
+    // Case when level is defined
+    replay(cluster, maintenanceStateHelper, level);
+    maintenanceStateHelper.isOperationAllowed(cluster, level, filter, "service", "component", "hostname");
+    verify(maintenanceStateHelper, level);
+
+    maintenanceStateHelper =
+            createMockBuilder(MaintenanceStateHelper.class)
+                    .withConstructor(injector)
+                    .addMockedMethod(isOperationAllowed)
+                    .addMockedMethod("guessOperationLevel")
+                    .createNiceMock();
+
+    expect(maintenanceStateHelper.guessOperationLevel(anyObject(RequestResourceFilter.class))).andReturn(Type.Cluster);
+    expect(maintenanceStateHelper.isOperationAllowed(
+            anyObject(Cluster.class), anyObject(Type.class),
+            anyObject(String.class),
+            anyObject(String.class), anyObject(String.class))).andStubReturn(true);
+    // Case when level is not defined
+    replay(maintenanceStateHelper);
+    maintenanceStateHelper.isOperationAllowed(cluster, null, filter, "service", "component", "hostname");
+    verify(maintenanceStateHelper);
+  }
+
+  @Test
   public void testHostComponentImpliedState() throws Exception {
     Injector injector = createStrictMock(Injector.class);
     MaintenanceStateHelper maintenanceStateHelper =
@@ -263,10 +319,7 @@ public class MaintenanceStateHelperTest {
     expect(service.getMaintenanceState()).andReturn(MaintenanceState.OFF);
     expect(host.getMaintenanceState(1L)).andReturn(MaintenanceState.ON);
 
-    Class<?> maintenanceHelperClass = MaintenanceStateHelper.class;
-    Field f = maintenanceHelperClass.getDeclaredField("clusters");
-    f.setAccessible(true);
-    f.set(maintenanceStateHelper, clusters);
+    injectField(maintenanceStateHelper, clusters);
 
     replay(maintenanceStateHelper, clusters, cluster, sch, host, service);
 
@@ -286,43 +339,104 @@ public class MaintenanceStateHelperTest {
   }
 
   @Test
+  public void testServiceOperationsAllowance() throws Exception {
+    Injector injector = createStrictMock(Injector.class);
+    MaintenanceStateHelper maintenanceStateHelper =
+            createMockBuilder(MaintenanceStateHelper.class)
+                    .withConstructor(injector)
+                    .createNiceMock();
+
+    Service service = createMock(Service.class);
+
+    // only called for Cluster level
+    expect(service.getMaintenanceState()).andReturn(MaintenanceState.ON);
+    expect(service.getMaintenanceState()).andReturn(MaintenanceState.OFF);
+
+    replay(maintenanceStateHelper, service);
+
+
+    Assert.assertEquals(false, maintenanceStateHelper.isOperationAllowed(Resource.Type.Cluster, service));
+    Assert.assertEquals(true, maintenanceStateHelper.isOperationAllowed(Resource.Type.Service, service));
+    Assert.assertEquals(true, maintenanceStateHelper.isOperationAllowed(Resource.Type.Host, service));
+    Assert.assertEquals(true, maintenanceStateHelper.isOperationAllowed(Resource.Type.HostComponent, service));
+
+    Assert.assertEquals(true, maintenanceStateHelper.isOperationAllowed(Resource.Type.Cluster, service));
+    Assert.assertEquals(true, maintenanceStateHelper.isOperationAllowed(Resource.Type.Service, service));
+    Assert.assertEquals(true, maintenanceStateHelper.isOperationAllowed(Resource.Type.Host, service));
+    Assert.assertEquals(true, maintenanceStateHelper.isOperationAllowed(Resource.Type.HostComponent, service));
+
+    verify(maintenanceStateHelper, service);
+  }
+
+  @Test
+  public void testHostOperationsAllowance() throws Exception {
+    Injector injector = createStrictMock(Injector.class);
+    MaintenanceStateHelper maintenanceStateHelper =
+            createMockBuilder(MaintenanceStateHelper.class)
+                    .withConstructor(injector)
+                    .createNiceMock();
+
+    Host host = createMock(Host.class);
+
+    // only called for Cluster level
+    expect(host.getMaintenanceState(anyInt())).andReturn(MaintenanceState.ON);
+    expect(host.getMaintenanceState(anyInt())).andReturn(MaintenanceState.OFF);
+
+    replay(maintenanceStateHelper, host);
+
+
+    Assert.assertEquals(false, maintenanceStateHelper.isOperationAllowed(host, 1, Resource.Type.Cluster));
+    Assert.assertEquals(true, maintenanceStateHelper.isOperationAllowed(host, 1, Resource.Type.Service));
+    Assert.assertEquals(true, maintenanceStateHelper.isOperationAllowed(host, 1, Resource.Type.Host));
+    Assert.assertEquals(true, maintenanceStateHelper.isOperationAllowed(host, 1, Resource.Type.HostComponent));
+
+    Assert.assertEquals(true, maintenanceStateHelper.isOperationAllowed(host, 1, Resource.Type.Cluster));
+    Assert.assertEquals(true, maintenanceStateHelper.isOperationAllowed(host, 1, Resource.Type.Service));
+    Assert.assertEquals(true, maintenanceStateHelper.isOperationAllowed(host, 1, Resource.Type.Host));
+    Assert.assertEquals(true, maintenanceStateHelper.isOperationAllowed(host, 1, Resource.Type.HostComponent));
+
+    verify(maintenanceStateHelper, host);
+  }
+
+  @Test
   public void testHostComponentOperationsAllowance() throws Exception {
     Injector injector = createStrictMock(Injector.class);
+    Method getEffectiveState = MaintenanceStateHelper.class.getMethod("getEffectiveState", new Class[]{ServiceComponentHost.class});
     MaintenanceStateHelper maintenanceStateHelper =
       createMockBuilder(MaintenanceStateHelper.class)
         .withConstructor(injector)
+        .addMockedMethod(getEffectiveState)
         .createNiceMock();
 
     ServiceComponentHost sch = createMock(ServiceComponentHost.class);
 
     // Cluster
-    expect(sch.getMaintenanceState()).andReturn(MaintenanceState.ON);
-    expect(sch.getMaintenanceState()).andReturn(MaintenanceState.IMPLIED_FROM_HOST);
-    expect(sch.getMaintenanceState()).andReturn(MaintenanceState.IMPLIED_FROM_SERVICE);
-    expect(sch.getMaintenanceState()).andReturn(MaintenanceState.IMPLIED_FROM_SERVICE_AND_HOST);
-    expect(sch.getMaintenanceState()).andReturn(MaintenanceState.OFF);
+    expect(maintenanceStateHelper.getEffectiveState(anyObject(ServiceComponentHost.class))).andReturn(MaintenanceState.ON);
+    expect(maintenanceStateHelper.getEffectiveState(anyObject(ServiceComponentHost.class))).andReturn(MaintenanceState.IMPLIED_FROM_HOST);
+    expect(maintenanceStateHelper.getEffectiveState(anyObject(ServiceComponentHost.class))).andReturn(MaintenanceState.IMPLIED_FROM_SERVICE);
+    expect(maintenanceStateHelper.getEffectiveState(anyObject(ServiceComponentHost.class))).andReturn(MaintenanceState.IMPLIED_FROM_SERVICE_AND_HOST);
+    expect(maintenanceStateHelper.getEffectiveState(anyObject(ServiceComponentHost.class))).andReturn(MaintenanceState.OFF);
 
     // Service
-    expect(sch.getMaintenanceState()).andReturn(MaintenanceState.ON);
-    expect(sch.getMaintenanceState()).andReturn(MaintenanceState.IMPLIED_FROM_HOST);
-    expect(sch.getMaintenanceState()).andReturn(MaintenanceState.IMPLIED_FROM_SERVICE);
-    expect(sch.getMaintenanceState()).andReturn(MaintenanceState.IMPLIED_FROM_SERVICE_AND_HOST);
-    expect(sch.getMaintenanceState()).andReturn(MaintenanceState.OFF);
+    expect(maintenanceStateHelper.getEffectiveState(anyObject(ServiceComponentHost.class))).andReturn(MaintenanceState.ON);
+    expect(maintenanceStateHelper.getEffectiveState(anyObject(ServiceComponentHost.class))).andReturn(MaintenanceState.IMPLIED_FROM_HOST);
+    expect(maintenanceStateHelper.getEffectiveState(anyObject(ServiceComponentHost.class))).andReturn(MaintenanceState.IMPLIED_FROM_SERVICE);
+    expect(maintenanceStateHelper.getEffectiveState(anyObject(ServiceComponentHost.class))).andReturn(MaintenanceState.IMPLIED_FROM_SERVICE_AND_HOST);
+    expect(maintenanceStateHelper.getEffectiveState(anyObject(ServiceComponentHost.class))).andReturn(MaintenanceState.OFF);
 
     // Host
-    expect(sch.getMaintenanceState()).andReturn(MaintenanceState.ON);
-    expect(sch.getMaintenanceState()).andReturn(MaintenanceState.IMPLIED_FROM_HOST);
-    expect(sch.getMaintenanceState()).andReturn(MaintenanceState.IMPLIED_FROM_SERVICE);
-    expect(sch.getMaintenanceState()).andReturn(MaintenanceState.IMPLIED_FROM_SERVICE_AND_HOST);
-    expect(sch.getMaintenanceState()).andReturn(MaintenanceState.OFF);
+    expect(maintenanceStateHelper.getEffectiveState(anyObject(ServiceComponentHost.class))).andReturn(MaintenanceState.ON);
+    expect(maintenanceStateHelper.getEffectiveState(anyObject(ServiceComponentHost.class))).andReturn(MaintenanceState.IMPLIED_FROM_HOST);
+    expect(maintenanceStateHelper.getEffectiveState(anyObject(ServiceComponentHost.class))).andReturn(MaintenanceState.IMPLIED_FROM_SERVICE);
+    expect(maintenanceStateHelper.getEffectiveState(anyObject(ServiceComponentHost.class))).andReturn(MaintenanceState.IMPLIED_FROM_SERVICE_AND_HOST);
+    expect(maintenanceStateHelper.getEffectiveState(anyObject(ServiceComponentHost.class))).andReturn(MaintenanceState.OFF);
 
     // HostComponent
-    expect(sch.getMaintenanceState()).andReturn(MaintenanceState.ON);
-    expect(sch.getMaintenanceState()).andReturn(MaintenanceState.IMPLIED_FROM_HOST);
-    expect(sch.getMaintenanceState()).andReturn(MaintenanceState.IMPLIED_FROM_SERVICE);
-    expect(sch.getMaintenanceState()).andReturn(MaintenanceState.IMPLIED_FROM_SERVICE_AND_HOST);
-    expect(sch.getMaintenanceState()).andReturn(MaintenanceState.OFF);
-
+    expect(maintenanceStateHelper.getEffectiveState(anyObject(ServiceComponentHost.class))).andReturn(MaintenanceState.ON);
+    expect(maintenanceStateHelper.getEffectiveState(anyObject(ServiceComponentHost.class))).andReturn(MaintenanceState.IMPLIED_FROM_HOST);
+    expect(maintenanceStateHelper.getEffectiveState(anyObject(ServiceComponentHost.class))).andReturn(MaintenanceState.IMPLIED_FROM_SERVICE);
+    expect(maintenanceStateHelper.getEffectiveState(anyObject(ServiceComponentHost.class))).andReturn(MaintenanceState.IMPLIED_FROM_SERVICE_AND_HOST);
+    expect(maintenanceStateHelper.getEffectiveState(anyObject(ServiceComponentHost.class))).andReturn(MaintenanceState.OFF);
 
     replay(maintenanceStateHelper, sch);
 
@@ -355,5 +469,91 @@ public class MaintenanceStateHelperTest {
     Assert.assertEquals(true, maintenanceStateHelper.isOperationAllowed(Resource.Type.HostComponent, sch));
 
     verify(maintenanceStateHelper, sch);
+  }
+
+  @Test
+  public void testGuessOperationLevel() {
+    Injector injector = createStrictMock(Injector.class);
+    MaintenanceStateHelper maintenanceStateHelper =
+            createMockBuilder(MaintenanceStateHelper.class)
+                    .withConstructor(injector)
+                    .createNiceMock();
+    replay(maintenanceStateHelper);
+
+    Assert.assertEquals(Resource.Type.Cluster, maintenanceStateHelper.guessOperationLevel(null));
+
+    RequestResourceFilter resourceFilter = new RequestResourceFilter(null, null, null);
+    Assert.assertEquals(Resource.Type.Cluster, maintenanceStateHelper.guessOperationLevel(resourceFilter));
+
+    resourceFilter = new RequestResourceFilter("HDFS", null, null);
+    Assert.assertEquals(Resource.Type.Service, maintenanceStateHelper.guessOperationLevel(resourceFilter));
+
+    resourceFilter = new RequestResourceFilter("HDFS", "NAMENODE", null);
+    Assert.assertEquals(Resource.Type.Service, maintenanceStateHelper.guessOperationLevel(resourceFilter));
+
+    ArrayList<String> hosts = new ArrayList<String>();
+    hosts.add("host1");
+    hosts.add("host2");
+    resourceFilter = new RequestResourceFilter("HDFS", null, hosts);
+    Assert.assertEquals(Resource.Type.Cluster, maintenanceStateHelper.guessOperationLevel(resourceFilter));
+
+    resourceFilter = new RequestResourceFilter(null, null, hosts);
+    Assert.assertEquals(Resource.Type.Host, maintenanceStateHelper.guessOperationLevel(resourceFilter));
+
+    resourceFilter = new RequestResourceFilter("HDFS", "NAMENODE", hosts);
+    Assert.assertEquals(Resource.Type.HostComponent, maintenanceStateHelper.guessOperationLevel(resourceFilter));
+
+  }
+
+  @Test
+  public void testCutOffHosts() throws AmbariException {
+    MaintenanceStateHelper.HostPredicate predicate = createMock(MaintenanceStateHelper.HostPredicate.class);
+    expect(predicate.shouldHostBeRemoved(eq("host1"))).andReturn(true);
+    expect(predicate.shouldHostBeRemoved(eq("host2"))).andReturn(false);
+    expect(predicate.shouldHostBeRemoved(eq("host3"))).andReturn(true);
+    expect(predicate.shouldHostBeRemoved(eq("host4"))).andReturn(false);
+    Set<String> candidates = new HashSet<String>();
+    candidates.add("host1");
+    candidates.add("host2");
+    candidates.add("host3");
+    candidates.add("host4");
+    Injector injector = createStrictMock(Injector.class);
+    MaintenanceStateHelper maintenanceStateHelper =
+            createMockBuilder(MaintenanceStateHelper.class)
+                    .withConstructor(injector)
+                    .createNiceMock();
+    replay(predicate, maintenanceStateHelper);
+
+    Set<String> ignored = maintenanceStateHelper.filterHostsInMaintenanceState(candidates, predicate);
+
+    verify(predicate, maintenanceStateHelper);
+
+    Assert.assertEquals(candidates.size(), 2);
+    Assert.assertTrue(candidates.contains("host2"));
+    Assert.assertTrue(candidates.contains("host4"));
+
+    Assert.assertEquals(ignored.size(), 2);
+    Assert.assertTrue(ignored.contains("host1"));
+    Assert.assertTrue(ignored.contains("host3"));
+  }
+
+  private static void injectField(MaintenanceStateHelper maintenanceStateHelper, Clusters clusters)
+          throws NoSuchFieldException, IllegalAccessException {
+    Class<?> maintenanceHelperClass = MaintenanceStateHelper.class;
+    Field f = maintenanceHelperClass.getDeclaredField("clusters");
+    f.setAccessible(true);
+    f.set(maintenanceStateHelper, clusters);
+  }
+
+  public static MaintenanceStateHelper getMaintenanceStateHelperInstance(
+    Clusters clusters) throws NoSuchFieldException, IllegalAccessException {
+    Injector injector = createNiceMock(Injector.class);
+    injector.injectMembers(anyObject(MaintenanceStateHelper.class));
+    EasyMock.expectLastCall().once();
+    replay(injector);
+
+    MaintenanceStateHelper maintenanceStateHelper = new MaintenanceStateHelper(injector);
+    injectField(maintenanceStateHelper, clusters);
+    return maintenanceStateHelper;
   }
 }

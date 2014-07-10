@@ -28,6 +28,7 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ClusterRequest;
 import org.apache.ambari.server.controller.ConfigurationRequest;
+import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.controller.ServiceComponentHostRequest;
 import org.apache.ambari.server.controller.ServiceComponentRequest;
 import org.apache.ambari.server.controller.ServiceRequest;
@@ -53,6 +54,9 @@ import org.junit.Test;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
+
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.replay;
 
 public class JMXHostProviderTest {
   private Injector injector;
@@ -381,9 +385,14 @@ public class JMXHostProviderTest {
       .Cluster), PropertyHelper.getKeyPropertyIds(Resource.Type.Cluster),
       controller);
 
+    MaintenanceStateHelper maintenanceStateHelper = createNiceMock(MaintenanceStateHelper.class);
+    {
+      replay(maintenanceStateHelper);
+    }
+
     ResourceProvider serviceResourceProvider = new ServiceResourceProvider(PropertyHelper
       .getPropertyIds(Resource.Type.Service),
-      PropertyHelper.getKeyPropertyIds(Resource.Type.Service), controller);
+      PropertyHelper.getKeyPropertyIds(Resource.Type.Service), controller, maintenanceStateHelper);
 
     ResourceProvider hostCompResourceProvider = new
       HostComponentResourceProvider(PropertyHelper.getPropertyIds(Resource

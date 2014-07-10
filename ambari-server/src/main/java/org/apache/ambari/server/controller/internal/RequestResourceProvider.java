@@ -84,14 +84,6 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
       new HashSet<String>(Arrays.asList(new String[]{
           REQUEST_ID_PROPERTY_ID}));
 
-  /**
-   * Operation level-related parameters
-   */
-  protected static final String OPERATION_LEVEL_ID = "operation_level/level";
-  protected static final String OPERATION_CLUSTER_ID = "operation_level/cluster_name";
-  protected static final String OPERATION_SERVICE_ID = "operation_level/service_name";
-  protected static final String OPERATION_HOSTCOMPONENT_ID = "operation_level/hostcomponent_name";
-  protected static final String OPERATION_HOST_ID = "operation_level/host_name";
 
   // ----- Constructors ----------------------------------------------------
 
@@ -238,32 +230,8 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
     }
     // Extract operation level property
     RequestOperationLevel operationLevel = null;
-    Object operationLevelObj = requestInfoProperties.get(OPERATION_LEVEL_ID);
-    if (operationLevelObj != null) {
-      Resource.Type level;
-      try {
-        String internalOpLevelNameStr =
-                RequestOperationLevel.getInternalLevelName(
-                        (String)operationLevelObj);
-        level = Resource.Type.valueOf(internalOpLevelNameStr);
-      } catch (IllegalArgumentException e) {
-        String message = String.format(
-                "Wrong operation level value: %s", operationLevelObj);
-        throw new UnsupportedOperationException(message, e);
-      }
-      if (!requestInfoProperties.containsKey(OPERATION_CLUSTER_ID)) {
-        String message = String.format(
-                "Mandatory key %s for operation level is not specified",
-                OPERATION_CLUSTER_ID);
-        throw new UnsupportedOperationException(message);
-      }
-      String clusterName = requestInfoProperties.get(OPERATION_CLUSTER_ID);
-      String serviceName = requestInfoProperties.get(OPERATION_SERVICE_ID);
-      String hostComponentName =
-              requestInfoProperties.get(OPERATION_HOSTCOMPONENT_ID);
-      String hostName = requestInfoProperties.get(OPERATION_HOST_ID);
-      operationLevel = new RequestOperationLevel(level, clusterName,
-              serviceName, hostComponentName, hostName);
+    if (requestInfoProperties.containsKey(RequestOperationLevel.OPERATION_LEVEL_ID)) {
+      operationLevel = new RequestOperationLevel(requestInfoProperties);
     }
 
     Map<String, String> params = new HashMap<String, String>();

@@ -20,6 +20,8 @@ package org.apache.ambari.server.controller.internal;
 
 import static org.easymock.EasyMock.anyBoolean;
 import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.createMockBuilder;
+import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
@@ -32,6 +34,7 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -85,6 +88,7 @@ public class ComponentResourceProviderTest {
   public void testCreateResources() throws Exception {
     Resource.Type type = Resource.Type.Component;
 
+    MaintenanceStateHelper maintenanceStateHelper = createNiceMock(MaintenanceStateHelper.class);
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     Clusters clusters = createNiceMock(Clusters.class);
     Cluster cluster = createNiceMock(Cluster.class);
@@ -118,7 +122,7 @@ public class ComponentResourceProviderTest {
 
     ResourceProvider provider = new ComponentResourceProvider(PropertyHelper.getPropertyIds(type),
         PropertyHelper.getKeyPropertyIds(type),
-        managementController);
+        managementController, maintenanceStateHelper);
 
     // add the property map to a set for the request.  add more maps for multiple creates
     Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
@@ -147,6 +151,7 @@ public class ComponentResourceProviderTest {
   public void testGetResources() throws Exception {
     Resource.Type type = Resource.Type.Component;
 
+    MaintenanceStateHelper maintenanceStateHelper = createNiceMock(MaintenanceStateHelper.class);
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     Clusters clusters = createNiceMock(Clusters.class);
     Cluster cluster = createNiceMock(Cluster.class);
@@ -196,7 +201,7 @@ public class ComponentResourceProviderTest {
     ResourceProvider provider = new ComponentResourceProvider(
         PropertyHelper.getPropertyIds(type),
         PropertyHelper.getKeyPropertyIds(type),
-        managementController);
+        managementController, maintenanceStateHelper);
 
     Set<String> propertyIds = new HashSet<String>();
 
@@ -242,6 +247,7 @@ public class ComponentResourceProviderTest {
   public void testUpdateResources() throws Exception {
     Resource.Type type = Resource.Type.Component;
 
+    MaintenanceStateHelper maintenanceStateHelper = createNiceMock(MaintenanceStateHelper.class);
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     Clusters clusters = createNiceMock(Clusters.class);
     Cluster cluster = createNiceMock(Cluster.class);
@@ -296,6 +302,7 @@ public class ComponentResourceProviderTest {
     expect(serviceComponent2.getServiceComponentHosts()).andReturn(serviceComponentHosts).anyTimes();
     expect(serviceComponent3.getServiceComponentHosts()).andReturn(serviceComponentHosts).anyTimes();
 
+    expect(maintenanceStateHelper.isOperationAllowed(anyObject(Resource.Type.class), anyObject(Service.class))).andReturn(true).anyTimes();
 
     Capture<Map<String, String>> requestPropertiesCapture = new Capture<Map<String, String>>();
     Capture<Map<State, List<Service>>> changedServicesCapture = new Capture<Map<State, List<Service>>>();
@@ -317,12 +324,12 @@ public class ComponentResourceProviderTest {
     // replay
     replay(managementController, clusters, cluster, ambariMetaInfo, service,
         serviceComponent1, serviceComponent2, serviceComponent3, serviceComponentHost,
-        requestStatusResponse, stackId);
+        requestStatusResponse, stackId, maintenanceStateHelper);
 
     ResourceProvider provider = new ComponentResourceProvider(
         PropertyHelper.getPropertyIds(type),
         PropertyHelper.getKeyPropertyIds(type),
-        managementController);
+        managementController, maintenanceStateHelper);
 
     Map<String, Object> properties = new LinkedHashMap<String, Object>();
 
@@ -340,13 +347,14 @@ public class ComponentResourceProviderTest {
     // verify
     verify(managementController, clusters, cluster, ambariMetaInfo, service,
         serviceComponent1, serviceComponent2, serviceComponent3, serviceComponentHost,
-        requestStatusResponse, stackId);
+        requestStatusResponse, stackId, maintenanceStateHelper);
   }
 
   @Test
   public void testDeleteResources() throws Exception {
     Resource.Type type = Resource.Type.Component;
 
+    MaintenanceStateHelper maintenanceStateHelper = createNiceMock(MaintenanceStateHelper.class);
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
 
     // replay
@@ -355,7 +363,7 @@ public class ComponentResourceProviderTest {
     ResourceProvider provider = new ComponentResourceProvider(
         PropertyHelper.getPropertyIds(type),
         PropertyHelper.getKeyPropertyIds(type),
-        managementController);
+        managementController, maintenanceStateHelper);
 
     AbstractResourceProviderTest.TestObserver observer = new AbstractResourceProviderTest.TestObserver();
 
@@ -489,13 +497,20 @@ public class ComponentResourceProviderTest {
     verify(clusters, cluster, service, component1,  component2, response1, response2, ambariMetaInfo, stackId, managementController);
   }
 
-  public static ComponentResourceProvider getComponentResourceProvider(AmbariManagementController managementController) {
+  public static ComponentResourceProvider getComponentResourceProvider(AmbariManagementController managementController)
+          throws AmbariException {
     Resource.Type type = Resource.Type.Component;
+    MaintenanceStateHelper maintenanceStateHelper = createNiceMock(MaintenanceStateHelper.class);
+    expect(maintenanceStateHelper.isOperationAllowed(anyObject(Resource.Type.class),
+            anyObject(Service.class))).andReturn(true).anyTimes();
+    expect(maintenanceStateHelper.isOperationAllowed(anyObject(Resource.Type.class),
+            anyObject(ServiceComponentHost.class))).andReturn(true).anyTimes();
+    replay(maintenanceStateHelper);
 
     return new ComponentResourceProvider(
         PropertyHelper.getPropertyIds(type),
         PropertyHelper.getKeyPropertyIds(type),
-        managementController);
+        managementController, maintenanceStateHelper);
   }
 
   /**

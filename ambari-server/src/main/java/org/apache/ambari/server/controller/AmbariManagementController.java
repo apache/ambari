@@ -301,6 +301,7 @@ public interface AmbariManagementController {
 
   /**
    * Create the action defined by the attributes in the given request object.
+   * Used only for custom commands/actions.
    *
    * @param actionRequest the request object which defines the action to be created
    * @param requestProperties the request properties

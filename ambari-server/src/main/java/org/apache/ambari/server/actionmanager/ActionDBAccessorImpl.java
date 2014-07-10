@@ -235,8 +235,9 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
 
         HostEntity hostEntity = hostDAO.findByName(hostRoleCommandEntity.getHostName());
         if (hostEntity == null) {
-          LOG.error("Host {} doesn't exists in database" + hostRoleCommandEntity.getHostName());
-          throw new RuntimeException("Host '" + hostRoleCommandEntity.getHostName() + "' doesn't exists in database");
+          String msg = String.format("Host %s doesn't exist in database", hostRoleCommandEntity.getHostName());
+          LOG.error(msg);
+          throw new RuntimeException(msg);
         }
         hostRoleCommandEntity.setHost(hostEntity);
         hostRoleCommandDAO.create(hostRoleCommandEntity);

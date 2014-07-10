@@ -19,18 +19,21 @@
 package org.apache.ambari.server.api.resources;
 
 import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.anyObject;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.handlers.BaseManagementHandler;
 import org.apache.ambari.server.api.query.render.DefaultRenderer;
 import org.apache.ambari.server.api.query.render.MinimalRenderer;
 import org.apache.ambari.server.api.util.TreeNode;
 import org.apache.ambari.server.api.util.TreeNodeImpl;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.controller.ResourceProviderFactory;
 import org.apache.ambari.server.controller.internal.AbstractControllerResourceProvider;
 import org.apache.ambari.server.controller.internal.ResourceImpl;
@@ -38,6 +41,7 @@ import org.apache.ambari.server.controller.internal.ServiceResourceProvider;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.state.Service;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -51,7 +55,7 @@ import java.util.Set;
 public class BaseResourceDefinitionTest {
 
   @Test
-  public void testGetPostProcessors() {
+  public void testGetPostProcessors() throws AmbariException {
     BaseResourceDefinition resourceDefinition = getResourceDefinition();
 
     List<ResourceDefinition.PostProcessor> postProcessors = resourceDefinition.getPostProcessors();
@@ -69,12 +73,14 @@ public class BaseResourceDefinitionTest {
     parentNode.setProperty("isCollection", "true");
     
     ResourceProviderFactory factory = createMock(ResourceProviderFactory.class);
+    MaintenanceStateHelper maintenanceStateHelper = createNiceMock(MaintenanceStateHelper.class);
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
-    
+    expect(maintenanceStateHelper.isOperationAllowed(anyObject(Resource.Type.class),
+            anyObject(Service.class))).andReturn(true).anyTimes();
     ResourceProvider serviceResourceProvider = new ServiceResourceProvider(PropertyHelper
         .getPropertyIds(Resource.Type.Service),
         PropertyHelper.getKeyPropertyIds(Resource.Type.Service),
-        managementController);
+        managementController, maintenanceStateHelper);
     
     expect(factory.getServiceResourceProvider(anyObject(Set.class),
         anyObject(Map.class),
@@ -82,7 +88,7 @@ public class BaseResourceDefinitionTest {
     
     AbstractControllerResourceProvider.init(factory);
     
-    replay(factory, managementController);
+    replay(factory, managementController, maintenanceStateHelper);
     
     processor.process(null, serviceNode, "http://c6401.ambari.apache.org:8080/api/v1/clusters/c1/services");
 

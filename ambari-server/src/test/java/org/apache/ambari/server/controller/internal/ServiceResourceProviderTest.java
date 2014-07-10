@@ -28,6 +28,7 @@ import static org.easymock.EasyMock.isNull;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 
+import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -41,6 +42,7 @@ import java.util.Set;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.ServiceComponentHostRequest;
 import org.apache.ambari.server.controller.ServiceComponentHostResponse;
@@ -251,6 +253,7 @@ public class ServiceResourceProviderTest {
 
   @Test
   public void testUpdateResources() throws Exception{
+    MaintenanceStateHelper maintenanceStateHelper = createNiceMock(MaintenanceStateHelper.class);
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     Clusters clusters = createNiceMock(Clusters.class);
     Cluster cluster = createNiceMock(Cluster.class);
@@ -289,12 +292,13 @@ public class ServiceResourceProviderTest {
     )).andReturn(requestStages);
     requestStages.persist();
     expect(requestStages.getRequestStatusResponse()).andReturn(requestStatusResponse);
+    expect(maintenanceStateHelper.isOperationAllowed(anyObject(Resource.Type.class), anyObject(Service.class))).andReturn(true).anyTimes();
 
     // replay
-    replay(managementController, clusters, cluster,
+    replay(managementController, clusters, cluster, maintenanceStateHelper,
         service0, serviceFactory, ambariMetaInfo, requestStages, requestStatusResponse);
 
-    ResourceProvider provider = getServiceProvider(managementController);
+    ServiceResourceProvider provider = getServiceProvider(managementController, maintenanceStateHelper);
 
     // add the property map to a set for the request.
     Map<String, Object> properties = new LinkedHashMap<String, Object>();
@@ -310,12 +314,13 @@ public class ServiceResourceProviderTest {
     provider.updateResources(request, predicate);
 
     // verify
-    verify(managementController, clusters, cluster,
+    verify(managementController, clusters, cluster, maintenanceStateHelper,
         service0, serviceFactory, ambariMetaInfo, requestStages, requestStatusResponse);
   }
 
   @Test
   public void testReconfigureClientsFlag() throws Exception {
+    MaintenanceStateHelper maintenanceStateHelper = createNiceMock(MaintenanceStateHelper.class);
     AmbariManagementController managementController1 = createMock(AmbariManagementController.class);
     AmbariManagementController managementController2 = createMock
         (AmbariManagementController.class);
@@ -381,13 +386,15 @@ public class ServiceResourceProviderTest {
     requestStages2.persist();
     expect(requestStages2.getRequestStatusResponse()).andReturn(response2);
 
+    expect(maintenanceStateHelper.isOperationAllowed(anyObject(Resource.Type.class), anyObject(Service.class))).andReturn(true).anyTimes();
+
     // replay
     replay(managementController1, response1, managementController2, requestStages1, requestStages2, response2,
-        clusters, cluster, service0, serviceResponse0, ambariMetaInfo);
+        clusters, cluster, service0, serviceResponse0, ambariMetaInfo, maintenanceStateHelper);
 
-    ResourceProvider provider1 = getServiceProvider(managementController1);
+    ServiceResourceProvider provider1 = getServiceProvider(managementController1, maintenanceStateHelper);
 
-    ResourceProvider provider2 = getServiceProvider(managementController2);
+    ServiceResourceProvider provider2 = getServiceProvider(managementController2, maintenanceStateHelper);
 
     // add the property map to a set for the request.
     Map<String, Object> properties = new LinkedHashMap<String, Object>();
@@ -416,7 +423,7 @@ public class ServiceResourceProviderTest {
 
     // verify
     verify(managementController1, response1, managementController2, requestStages1, requestStages2, response2,
-        clusters, cluster, service0, serviceResponse0, ambariMetaInfo);
+        clusters, cluster, service0, serviceResponse0, ambariMetaInfo, maintenanceStateHelper);
   }
 
   @Test
@@ -559,11 +566,11 @@ public class ServiceResourceProviderTest {
     Map<Resource.Type, String> keyPropertyIds = new HashMap<Resource.Type, String>();
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
-    
-    
+
+    MaintenanceStateHelper maintenanceStateHelperMock = createNiceMock(MaintenanceStateHelper.class);
     AbstractResourceProvider provider = new ServiceResourceProvider(propertyIds,
         keyPropertyIds,
-        managementController);
+        managementController, maintenanceStateHelperMock);
 
     Set<String> unsupported = provider.checkPropertyIds(Collections.singleton("foo"));
     Assert.assertTrue(unsupported.isEmpty());
@@ -1243,12 +1250,28 @@ public class ServiceResourceProviderTest {
     verify(managementController, clusters, cluster);
   }
 
-  
-  public static ServiceResourceProvider getServiceProvider(AmbariManagementController managementController) {
+
+  /**
+   * This factory method creates default MaintenanceStateHelper mock.
+   * It's useful in most cases (when we don't care about Maintenance State)
+   */
+  public static ServiceResourceProvider getServiceProvider(AmbariManagementController managementController) throws  AmbariException {
+    MaintenanceStateHelper maintenanceStateHelperMock = createNiceMock(MaintenanceStateHelper.class);
+    expect(maintenanceStateHelperMock.isOperationAllowed(anyObject(Resource.Type.class), anyObject(Service.class))).andReturn(true).anyTimes();
+    expect(maintenanceStateHelperMock.isOperationAllowed(anyObject(Resource.Type.class), anyObject(ServiceComponentHost.class))).andReturn(true).anyTimes();
+    replay(maintenanceStateHelperMock);
+    return getServiceProvider(managementController, maintenanceStateHelperMock);
+  }
+
+  /**
+   * This factory method allows to define custom MaintenanceStateHelper mock.
+   */
+  public static ServiceResourceProvider getServiceProvider(AmbariManagementController managementController,
+                                                           MaintenanceStateHelper maintenanceStateHelper) {
     Resource.Type type = Resource.Type.Service;
     return new ServiceResourceProvider(PropertyHelper.getPropertyIds(type),
             PropertyHelper.getKeyPropertyIds(type),
-            managementController);
+            managementController, maintenanceStateHelper);
   }
 
   public static void createServices(AmbariManagementController controller, Set<ServiceRequest> requests) throws AmbariException {
@@ -1267,12 +1290,32 @@ public class ServiceResourceProviderTest {
                                                      Map<String, String> requestProperties, boolean runSmokeTest,
                                                      boolean reconfigureClients) throws AmbariException
   {
-    ServiceResourceProvider provider = getServiceProvider(controller);
+    return updateServices(controller, requests, requestProperties, runSmokeTest, reconfigureClients, null);
+  }
+
+  /**
+   * Allows to set maintenanceStateHelper. For use when there is anything to test
+   * with maintenance mode.
+   */
+  public static RequestStatusResponse updateServices(AmbariManagementController controller,
+                                                     Set<ServiceRequest> requests,
+                                                     Map<String, String> requestProperties, boolean runSmokeTest,
+                                                     boolean reconfigureClients,
+                                                     MaintenanceStateHelper maintenanceStateHelper) throws AmbariException
+  {
+    ServiceResourceProvider provider;
+    if (maintenanceStateHelper != null) {
+      provider = getServiceProvider(controller, maintenanceStateHelper);
+    } else {
+      provider = getServiceProvider(controller);
+    }
 
     RequestStageContainer request = provider.updateServices(null, requests, requestProperties, runSmokeTest, reconfigureClients);
     request.persist();
     return request.getRequestStatusResponse();
   }
+
+
 
   public static RequestStatusResponse deleteServices(AmbariManagementController controller, Set<ServiceRequest> requests)
       throws AmbariException {

@@ -388,6 +388,14 @@ public class AmbariManagementControllerTest {
   private long startService(String clusterName, String serviceName,
                             boolean runSmokeTests, boolean reconfigureClients) throws
       AmbariException {
+    return startService(clusterName, serviceName, runSmokeTests, reconfigureClients, null);
+  }
+
+
+  private long startService(String clusterName, String serviceName,
+                            boolean runSmokeTests, boolean reconfigureClients,
+                            MaintenanceStateHelper maintenanceStateHelper) throws
+      AmbariException {
     ServiceRequest r = new ServiceRequest(clusterName, serviceName,
         State.STARTED.toString());
     Set<ServiceRequest> requests = new HashSet<ServiceRequest>();
@@ -395,7 +403,7 @@ public class AmbariManagementControllerTest {
     Map<String, String> mapRequestProps = new HashMap<String, String>();
     mapRequestProps.put("context", "Called from a test");
     RequestStatusResponse resp = ServiceResourceProviderTest.updateServices(controller, requests,
-        mapRequestProps, runSmokeTests, reconfigureClients);
+        mapRequestProps, runSmokeTests, reconfigureClients, maintenanceStateHelper);
 
     Assert.assertEquals(State.STARTED,
         clusters.getCluster(clusterName).getService(serviceName)
@@ -416,9 +424,22 @@ public class AmbariManagementControllerTest {
     }
   }
 
+
   private long installService(String clusterName, String serviceName,
-                              boolean runSmokeTests, boolean reconfigureClients) throws
-      AmbariException {
+                              boolean runSmokeTests, boolean reconfigureClients)
+          throws AmbariException {
+    return installService(clusterName, serviceName, runSmokeTests, reconfigureClients, null);
+  }
+
+
+  /**
+   * Allows to set maintenanceStateHelper. For use when there is anything to test
+   * with maintenance mode.
+   */
+  private long installService(String clusterName, String serviceName,
+                              boolean runSmokeTests, boolean reconfigureClients,
+                              MaintenanceStateHelper maintenanceStateHelper)
+          throws AmbariException {
     ServiceRequest r = new ServiceRequest(clusterName, serviceName,
         State.INSTALLED.toString());
     Set<ServiceRequest> requests = new HashSet<ServiceRequest>();
@@ -426,7 +447,7 @@ public class AmbariManagementControllerTest {
     Map<String, String> mapRequestProps = new HashMap<String, String>();
     mapRequestProps.put("context", "Called from a test");
     RequestStatusResponse resp = ServiceResourceProviderTest.updateServices(controller, requests,
-        mapRequestProps, runSmokeTests, reconfigureClients);
+        mapRequestProps, runSmokeTests, reconfigureClients, maintenanceStateHelper);
 
     Assert.assertEquals(State.INSTALLED,
         clusters.getCluster(clusterName).getService(serviceName)
@@ -444,6 +465,7 @@ public class AmbariManagementControllerTest {
       return -1;
     }
   }
+
 
   private boolean checkExceptionType(Throwable e, Class<? extends Exception> exceptionClass) {
     return e != null && (exceptionClass.isAssignableFrom(e.getClass()) || checkExceptionType(e.getCause(), exceptionClass));
@@ -6329,7 +6351,7 @@ public class AmbariManagementControllerTest {
     // Test service checks - specific host
     resourceFilters.clear();
     resourceFilter = new RequestResourceFilter("HDFS", null,
-      new ArrayList<String>() {{ add("h2"); }});
+      new ArrayList<String>() {{ add("h1"); }});
     resourceFilters.add(resourceFilter);
     request = new ExecuteActionRequest("c1", Role.HDFS_SERVICE_CHECK.name(),
       null, resourceFilters, null, null);
@@ -6340,7 +6362,7 @@ public class AmbariManagementControllerTest {
     Assert.assertNotNull(storedTasks);
     Assert.assertEquals(Role.HDFS_SERVICE_CHECK.name(),
       storedTasks.get(0).getRole().name());
-    Assert.assertEquals("h2", storedTasks.get(0).getHostName());
+    Assert.assertEquals("h1", storedTasks.get(0).getHostName());
   }
 
 
@@ -9577,12 +9599,15 @@ public class AmbariManagementControllerTest {
     Cluster cluster = clusters.getCluster(clusterName);
     Service service = cluster.getService(serviceName);
     Map<String, Host> hosts = clusters.getHostsForCluster(clusterName);
+
+    MaintenanceStateHelper maintenanceStateHelper =
+            MaintenanceStateHelperTest.getMaintenanceStateHelperInstance(clusters);
     
     // test updating a service
     ServiceRequest sr = new ServiceRequest(clusterName, serviceName, null);
     sr.setMaintenanceState(MaintenanceState.ON.name());
     ServiceResourceProviderTest.updateServices(controller, Collections.singleton(sr),
-        requestProperties, false, false);
+        requestProperties, false, false, maintenanceStateHelper);
     Assert.assertEquals(MaintenanceState.ON, service.getMaintenanceState());
     
     // check the host components implied state vs desired state
@@ -9597,7 +9622,7 @@ public class AmbariManagementControllerTest {
     // reset
     sr.setMaintenanceState(MaintenanceState.OFF.name());
     ServiceResourceProviderTest.updateServices(controller, Collections.singleton(sr),
-        requestProperties, false, false);
+        requestProperties, false, false, maintenanceStateHelper);
     Assert.assertEquals(MaintenanceState.OFF, service.getMaintenanceState());
     
     // check the host components implied state vs desired state
@@ -9717,8 +9742,8 @@ public class AmbariManagementControllerTest {
       }
     }    
 
-    long id1 = installService(clusterName, serviceName, false, false);
-    long id2 = installService(clusterName, nagiosService, false, false);
+    long id1 = installService(clusterName, serviceName, false, false, maintenanceStateHelper);
+    long id2 = installService(clusterName, nagiosService, false, false, maintenanceStateHelper);
 
     List<HostRoleCommand> hdfsCmds = actionDB.getRequestTasks(id1);
     List<HostRoleCommand> nagiosCmds = actionDB.getRequestTasks(id2);
@@ -9790,7 +9815,6 @@ public class AmbariManagementControllerTest {
     createServiceComponent(clusterName, serviceName2, componentName2_2,
         State.INIT);
     
-
     String host1 = "h1";
     String host2 = "h2";
     
@@ -9803,16 +9827,19 @@ public class AmbariManagementControllerTest {
     
     createServiceComponentHost(clusterName, serviceName2, componentName2_1, host1, null);
     createServiceComponentHost(clusterName, serviceName2, componentName2_2, host2, null);
+
+    MaintenanceStateHelper maintenanceStateHelper =
+            MaintenanceStateHelperTest.getMaintenanceStateHelperInstance(clusters);
     
-    installService(clusterName, serviceName1, false, false);
-    installService(clusterName, serviceName2, false, false);
+    installService(clusterName, serviceName1, false, false, maintenanceStateHelper);
+    installService(clusterName, serviceName2, false, false, maintenanceStateHelper);
     
-    startService(clusterName, serviceName1, false, false);
-    startService(clusterName, serviceName2, false, false);
+    startService(clusterName, serviceName1, false, false, maintenanceStateHelper);
+    startService(clusterName, serviceName2, false, false, maintenanceStateHelper);
     
     Map<String, String> requestProperties = new HashMap<String, String>();
     requestProperties.put("context", "Called from a test");
-    
+
     Cluster cluster = clusters.getCluster(clusterName);
     
     for (Service service : cluster.getServices().values()) {
@@ -9825,7 +9852,8 @@ public class AmbariManagementControllerTest {
     Set<ServiceRequest> srs = new HashSet<ServiceRequest>();
     srs.add(new ServiceRequest(clusterName, serviceName1, State.INSTALLED.name()));
     srs.add(new ServiceRequest(clusterName, serviceName2, State.INSTALLED.name()));
-    RequestStatusResponse rsr = ServiceResourceProviderTest.updateServices(controller, srs, requestProperties, false, false);
+    RequestStatusResponse rsr = ServiceResourceProviderTest.updateServices(controller, srs,
+            requestProperties, false, false, maintenanceStateHelper);
     
     for (ShortTaskStatus sts : rsr.getTasks()) {
       String role = sts.getRole();
@@ -9841,13 +9869,14 @@ public class AmbariManagementControllerTest {
     }
     
     service2.setMaintenanceState(MaintenanceState.OFF);
-    ServiceResourceProviderTest.updateServices(controller, srs, requestProperties, false, false);
+    ServiceResourceProviderTest.updateServices(controller, srs, requestProperties,
+            false, false, maintenanceStateHelper);
     for (Service service : cluster.getServices().values()) {
       Assert.assertEquals(State.INSTALLED, service.getDesiredState());
     }
     
-    startService(clusterName, serviceName1, false, false);
-    startService(clusterName, serviceName2, false, false);
+    startService(clusterName, serviceName1, false, false, maintenanceStateHelper);
+    startService(clusterName, serviceName2, false, false, maintenanceStateHelper);
     
     // test host
     Host h1 = clusters.getHost(host1);
@@ -9857,25 +9886,25 @@ public class AmbariManagementControllerTest {
     srs.add(new ServiceRequest(clusterName, serviceName1, State.INSTALLED.name()));
     srs.add(new ServiceRequest(clusterName, serviceName2, State.INSTALLED.name()));
     
-    rsr = ServiceResourceProviderTest.updateServices(controller, srs, requestProperties, false, false);
+    rsr = ServiceResourceProviderTest.updateServices(controller, srs, requestProperties,
+            false, false, maintenanceStateHelper);
     
     for (ShortTaskStatus sts : rsr.getTasks()) {
       Assert.assertFalse(sts.getHostName().equals(host1));
     }
     
     h1.setMaintenanceState(cluster.getClusterId(), MaintenanceState.OFF);
-    startService(clusterName, serviceName2, false, false);
+    startService(clusterName, serviceName2, false, false, maintenanceStateHelper);
     
     service2.setMaintenanceState(MaintenanceState.ON);
-    
+
     ServiceRequest sr = new ServiceRequest(clusterName, serviceName2, State.INSTALLED.name());
     rsr = ServiceResourceProviderTest.updateServices(controller,
-        Collections.singleton(sr), requestProperties, false, false);
+        Collections.singleton(sr), requestProperties, false, false, maintenanceStateHelper);
     
-    System.out.println(rsr.getTasks());
-    
-    Assert.assertTrue("Service is started, command should create tasks",
-        rsr.getTasks().size() > 0);
+    Assert.assertTrue("Service start request defaults to Cluster operation level," +
+                    "command does not create tasks",
+        rsr == null || rsr.getTasks().size() == 0);
     
   }
   

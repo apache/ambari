@@ -19,6 +19,8 @@
 package org.apache.ambari.server.controller.internal;
 
 import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.replay;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -32,6 +34,7 @@ import org.apache.ambari.server.controller.ClusterRequest;
 import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.controller.GroupRequest;
 import org.apache.ambari.server.controller.HostRequest;
+import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.controller.MemberRequest;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.ServiceComponentHostRequest;
@@ -73,11 +76,12 @@ public class AbstractResourceProviderTest {
     Map<Resource.Type, String> keyPropertyIds = new HashMap<Resource.Type, String>();
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
-
+    MaintenanceStateHelper maintenanceStateHelper = createNiceMock(MaintenanceStateHelper.class);
+    replay(maintenanceStateHelper);
     AbstractResourceProvider provider = new ServiceResourceProvider(
             propertyIds,
             keyPropertyIds,
-            managementController);
+            managementController, maintenanceStateHelper);
 
     Set<String> unsupported = provider.checkPropertyIds(Collections.singleton("foo"));
     Assert.assertTrue(unsupported.isEmpty());
@@ -111,11 +115,13 @@ public class AbstractResourceProviderTest {
     Map<Resource.Type, String> keyPropertyIds = new HashMap<Resource.Type, String>();
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    MaintenanceStateHelper maintenanceStateHelper = createNiceMock(MaintenanceStateHelper.class);
+    replay(maintenanceStateHelper);
 
     AbstractResourceProvider provider = new ServiceResourceProvider(
             propertyIds,
             keyPropertyIds,
-            managementController);
+            managementController, maintenanceStateHelper);
 
     Set<String> supportedPropertyIds = provider.getPropertyIds();
     Assert.assertTrue(supportedPropertyIds.containsAll(propertyIds));
@@ -126,11 +132,13 @@ public class AbstractResourceProviderTest {
     Set<String> propertyIds = new HashSet<String>();
     Map<Resource.Type, String> keyPropertyIds = new HashMap<Resource.Type, String>();
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    MaintenanceStateHelper maintenanceStateHelper = createNiceMock(MaintenanceStateHelper.class);
+    replay(maintenanceStateHelper);
 
     AbstractResourceProvider provider = new ServiceResourceProvider(
             propertyIds,
             keyPropertyIds,
-            managementController);
+            managementController, maintenanceStateHelper);
 
     RequestStatus status = provider.getRequestStatus(null);
 

@@ -19,6 +19,8 @@ package org.apache.ambari.server.controller.internal;
 
 import org.apache.ambari.server.controller.spi.Resource;
 
+import java.util.Map;
+
 /**
  * Operation level is specified along with some requests. It identifies
  * the logical level, at which the operation is executed.
@@ -40,6 +42,13 @@ public class RequestOperationLevel {
 
   private static final int ALIAS_COLUMN = 0;
   private static final int INTERNAL_NAME_COLUMN = 1;
+
+  // Identifiers of properties as they appear at request properties
+  public static final String OPERATION_LEVEL_ID = "operation_level/level";
+  public static final String OPERATION_CLUSTER_ID = "operation_level/cluster_name";
+  public static final String OPERATION_SERVICE_ID = "operation_level/service_name";
+  public static final String OPERATION_HOSTCOMPONENT_ID = "operation_level/hostcomponent_name";
+  public static final String OPERATION_HOST_ID = "operation_level/host_name";
 
   /**
    * Converts external operation level alias to an internal name
@@ -79,6 +88,36 @@ public class RequestOperationLevel {
     this.serviceName = serviceName;
     this.hostComponentName = hostComponentName;
     this.hostName = hostName;
+  }
+
+  /**
+   * Constructs a new entity from
+   * @param requestInfoProperties
+   * @throws IllegalArgumentException
+   */
+  public RequestOperationLevel(Map<String, String> requestInfoProperties)
+          throws IllegalArgumentException {
+    String operationLevelStr = requestInfoProperties.get(
+            RequestOperationLevel.OPERATION_LEVEL_ID);
+    try {
+      String internalOpLevelNameStr = getInternalLevelName(operationLevelStr);
+      this.level = Resource.Type.valueOf(internalOpLevelNameStr);
+    } catch (IllegalArgumentException e) {
+      String message = String.format(
+              "Wrong operation level value: %s", operationLevelStr);
+      throw new IllegalArgumentException(message, e);
+    }
+    if (!requestInfoProperties.containsKey(OPERATION_CLUSTER_ID)) {
+      String message = String.format(
+              "Mandatory key %s for operation level is not specified",
+              OPERATION_CLUSTER_ID);
+      throw new IllegalArgumentException(message);
+    }
+    this.clusterName = requestInfoProperties.get(OPERATION_CLUSTER_ID);
+    this.serviceName = requestInfoProperties.get(OPERATION_SERVICE_ID);
+    this.hostComponentName =
+            requestInfoProperties.get(OPERATION_HOSTCOMPONENT_ID);
+    this.hostName = requestInfoProperties.get(OPERATION_HOST_ID);
   }
 
   /**

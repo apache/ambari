@@ -18,14 +18,71 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import junit.framework.TestCase;
+import org.junit.Assert;
 import org.junit.Test;
-import static junit.framework.TestCase.*;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import static junit.framework.TestCase.assertEquals;
+import static junit.framework.TestCase.fail;
 
 public class RequestOperationLevelTest {
 
   private final String host_component = "HOST_COMPONENT";
   private final String hostComponent = "HostComponent";
+
+  @Test
+  public void test_ConstructionFromRequestProperties() throws Exception {
+    String c1 = "c1";
+    String host_component = "HOST_COMPONENT";
+    String service_id = "HDFS";
+    String hostcomponent_id = "Namenode";
+    String host_id = "host1";
+
+    Map<String, String> requestInfoProperties = new HashMap<String, String>();
+    requestInfoProperties.put(RequestResourceProvider.COMMAND_ID, "RESTART");
+
+    requestInfoProperties.put(RequestOperationLevel.OPERATION_LEVEL_ID,
+            host_component);
+    requestInfoProperties.put(RequestOperationLevel.OPERATION_CLUSTER_ID, c1);
+    requestInfoProperties.put(RequestOperationLevel.OPERATION_SERVICE_ID,
+            service_id);
+    requestInfoProperties.put(RequestOperationLevel.OPERATION_HOSTCOMPONENT_ID,
+            hostcomponent_id);
+    requestInfoProperties.put(RequestOperationLevel.OPERATION_HOST_ID,
+            host_id);
+
+    // Check normal creation
+    RequestOperationLevel opLevel = new RequestOperationLevel(requestInfoProperties);
+    assertEquals(opLevel.getLevel().toString(), "HostComponent");
+    assertEquals(opLevel.getClusterName(), c1);
+    assertEquals(opLevel.getServiceName(), service_id);
+    assertEquals(opLevel.getHostComponentName(), hostcomponent_id);
+    assertEquals(opLevel.getHostName(), host_id);
+
+
+    // Check exception wrong operation level is specified
+    requestInfoProperties.put(RequestOperationLevel.OPERATION_LEVEL_ID,
+            "wrong_value");
+    try {
+      new RequestOperationLevel(requestInfoProperties);
+      Assert.fail("Should throw an exception");
+    } catch (IllegalArgumentException e) {
+      // expected
+    }
+    requestInfoProperties.put(RequestOperationLevel.OPERATION_LEVEL_ID,
+            host_component);
+
+    // Check exception when cluster name is not specified
+    requestInfoProperties.remove(RequestOperationLevel.OPERATION_CLUSTER_ID);
+    try {
+      new RequestOperationLevel(requestInfoProperties);
+      Assert.fail("Should throw an exception");
+    } catch (IllegalArgumentException e) {
+      // expected
+    }
+  }
 
   @Test
   public void testGetInternalLevelName() throws Exception {

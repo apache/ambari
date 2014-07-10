@@ -209,30 +209,33 @@ public class AmbariActionExecutionHelper {
    * @param hostLevelParams host level params to send with the command
    * @throws AmbariException
    */
-  public void addExecutionCommandsToStage(ActionExecutionContext
-    actionContext, Stage stage, Map<String, String> hostLevelParams)
+  public void addExecutionCommandsToStage(
+          final ActionExecutionContext actionContext,
+          Stage stage, Map<String, String> hostLevelParams)
       throws AmbariException {
 
     String actionName = actionContext.getActionName();
     String clusterName = actionContext.getClusterName();
-    Cluster cluster = null;
+    final Cluster cluster;
     if (null != clusterName)
       cluster = clusters.getCluster(clusterName);
-    
+    else 
+      cluster = null;
+
     ComponentInfo componentInfo = null;
-
     List<RequestResourceFilter> resourceFilters = actionContext.getResourceFilters();
-
-    RequestResourceFilter resourceFilter = new RequestResourceFilter();
+    final RequestResourceFilter resourceFilter;
     if (resourceFilters != null && !resourceFilters.isEmpty()) {
       resourceFilter = resourceFilters.get(0);
+    } else {
+      resourceFilter = new RequestResourceFilter();
     }
 
     // List of host to select from
     Set<String> candidateHosts = new HashSet<String>();
 
-    String serviceName = actionContext.getExpectedServiceName();
-    String componentName = actionContext.getExpectedComponentName();
+    final String serviceName = actionContext.getExpectedServiceName();
+    final String componentName = actionContext.getExpectedComponentName();
     
     if (null != cluster) {
       StackId stackId = cluster.getCurrentStackVersion();
@@ -256,15 +259,32 @@ public class AmbariActionExecutionHelper {
         // All hosts are valid target host
         candidateHosts.addAll(clusters.getHostsForCluster(cluster.getClusterName()).keySet());
       }
+
+      // Filter hosts that are in MS
+      Set<String> ignoredHosts = maintenanceStateHelper.filterHostsInMaintenanceState(
+              candidateHosts, new MaintenanceStateHelper.HostPredicate() {
+                @Override
+                public boolean shouldHostBeRemoved(final String hostname)
+                        throws AmbariException {
+                  return ! maintenanceStateHelper.isOperationAllowed(
+                          cluster, actionContext.getOperationLevel(),
+                          resourceFilter, serviceName, componentName, hostname);
+                }
+              }
+      );
+      LOG.debug("Ignoring action for hosts due to maintenance state." +
+            "Ignored hosts =" + ignoredHosts + ", component="
+            + componentName + ", service=" + serviceName
+            + ", cluster=" + cluster.getClusterName() + ", " +
+            "actionName=" + actionContext.getActionName());
     }
 
     // If request did not specify hosts and there exists no host
     if (resourceFilter.getHostNames().isEmpty() && candidateHosts.isEmpty()) {
       throw new AmbariException("Suitable hosts not found, component="
-        + componentName + ", service=" + serviceName
-        + ((null == cluster) ? "" : ", cluster=" + cluster.getClusterName() + ", ")
-//        + ", cluster=" + cluster.getClusterName() + ", "
-        + "actionName=" + actionContext.getActionName());
+              + componentName + ", service=" + serviceName
+              + ((null == cluster) ? "" : ", cluster=" + cluster.getClusterName() + ", ")
+              + "actionName=" + actionContext.getActionName());
     }
 
     // Compare specified hosts to available hosts
@@ -301,11 +321,6 @@ public class AmbariActionExecutionHelper {
           throw new AmbariException("Unsupported target type = " + hostType);
       }
     }
-
-    Set<Map<String, String>> maintenanceSCHs = new HashSet<Map<String, String>>();
-        
-    if (null != cluster)
-      maintenanceSCHs = maintenanceStateHelper.getMaintenanceHostComponents(clusters, cluster);
 
     //create tasks for each host
     for (String hostName : targetHosts) {
@@ -359,6 +374,13 @@ public class AmbariActionExecutionHelper {
           StageUtils.getClusterHostInfo(clusters.getHostsForCluster(clusterName), cluster));
 
       // cluster passive map
+      Set<Map<String, String>> maintenanceSCHs;
+      if (null != cluster) {
+        maintenanceSCHs = maintenanceStateHelper.
+                getMaintenanceHostComponents(clusters, cluster);
+      } else {
+        maintenanceSCHs = new HashSet<Map<String, String>>();
+      }
       execCmd.setPassiveInfo(maintenanceSCHs);
     }
   }

@@ -38,6 +38,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.DuplicateResourceException;
@@ -83,6 +84,7 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.RequestOperationLevel;
 import org.apache.ambari.server.controller.internal.RequestStageContainer;
 import org.apache.ambari.server.controller.internal.URLStreamProvider;
+import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.customactions.ActionDefinition;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
@@ -1166,21 +1168,29 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
              Map<String, Map<State, List<ServiceComponentHost>>> changedScHosts,
              boolean runSmokeTest) throws AmbariException {
 
+    // We choose the most general (high-level) op level here. As a result,
+    // service checks will be only launched for services/components that
+    // are not in a Maintenance state.
+    Resource.Type opLvl = Resource.Type.Cluster;
+
     Set<String> smokeTestServices = new HashSet<String>();
 
+    // Adding smoke checks for changed services
     if (changedServices != null) {
       for (Entry<State, List<Service>> entry : changedServices.entrySet()) {
         if (State.STARTED != entry.getKey()) {
           continue;
         }
         for (Service s : entry.getValue()) {
-          if (runSmokeTest && (State.INSTALLED == s.getDesiredState())) {
+          if (runSmokeTest && (State.INSTALLED == s.getDesiredState() &&
+                  maintenanceStateHelper.isOperationAllowed(opLvl, s))) {
             smokeTestServices.add(s.getName());
           }
         }
       }
     }
 
+    // Adding smoke checks for changed host components
     Map<String, Map<String, Integer>> changedComponentCount =
       new HashMap<String, Map<String, Integer>>();
     for (Map<State, List<ServiceComponentHost>> stateScHostMap :
@@ -1192,6 +1202,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         }
         for (ServiceComponentHost sch : entry.getValue()) {
           if (State.INSTALLED != sch.getState()) {
+            continue;
+          }
+          if (! maintenanceStateHelper.isOperationAllowed(opLvl, sch)) {
             continue;
           }
           if (!changedComponentCount.containsKey(sch.getServiceName())) {
@@ -1212,26 +1225,32 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       }
     }
 
+    // Add service checks for any changed master component hosts or if
+    // more then one component has been changed for a service
     for (Entry<String, Map<String, Integer>> entry :
       changedComponentCount.entrySet()) {
       String serviceName = entry.getKey();
+      Service s = cluster.getService(serviceName);
       // smoke test service if more than one component is started
-      if (runSmokeTest && (entry.getValue().size() > 1)) {
+      if (runSmokeTest && (entry.getValue().size() > 1) &&
+              maintenanceStateHelper.isOperationAllowed(opLvl, s)) {
         smokeTestServices.add(serviceName);
         continue;
       }
       for (String componentName :
         changedComponentCount.get(serviceName).keySet()) {
-        ServiceComponent sc = cluster.getService(serviceName)
-          .getServiceComponent(componentName);
+        ServiceComponent sc = cluster.getService(serviceName).
+          getServiceComponent(componentName);
         StackId stackId = sc.getDesiredStackVersion();
         ComponentInfo compInfo = ambariMetaInfo.getComponentCategory(
           stackId.getStackName(), stackId.getStackVersion(), serviceName,
           componentName);
-        if (runSmokeTest && compInfo.isMaster()) {
+        if (runSmokeTest && compInfo.isMaster() &&
+                // op lvl handling for service component
+                // is the same as for service
+                maintenanceStateHelper.isOperationAllowed(opLvl, s)) {
           smokeTestServices.add(serviceName);
         }
-
         // FIXME if master check if we need to run a smoke test for the master
       }
     }
@@ -1907,6 +1926,19 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     Map<ServiceComponentHost, State> directTransitionScHosts = new HashMap<ServiceComponentHost, State>();
     Set<String> maintenanceClusters = new HashSet<String>();
 
+    // Determine operation level
+    Resource.Type reqOpLvl;
+    if (requestProperties.containsKey(RequestOperationLevel.OPERATION_LEVEL_ID)) {
+      RequestOperationLevel operationLevel = new RequestOperationLevel(requestProperties);
+      reqOpLvl = operationLevel.getLevel();
+    } else {
+      String message = "Can not determine request operation level. " +
+              "Operation level property should " +
+              "be specified for this request.";
+      LOG.warn(message);
+      reqOpLvl = Resource.Type.Cluster;
+    }
+
     for (ServiceComponentHostRequest request : requests) {
       validateServiceComponentHostRequest(request);
 
@@ -1971,6 +2003,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         }
       }
 
+      // Setting Maintenance state for host component
       if (null != request.getMaintenanceState()) {
         MaintenanceStateHelper psh = injector.getInstance(MaintenanceStateHelper.class);
 
@@ -2026,6 +2059,18 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
               + ", hostname=" + sch.getHostName()
               + ", currentState=" + oldSchState
               + ", newDesiredState=" + newState);
+        }
+        continue;
+      }
+
+      if (! maintenanceStateHelper.isOperationAllowed(reqOpLvl, sch)) {
+        ignoredScHosts.add(sch);
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Ignoring ServiceComponentHost"
+                  + ", clusterName=" + request.getClusterName()
+                  + ", serviceName=" + s.getName()
+                  + ", componentName=" + sc.getName()
+                  + ", hostname=" + sch.getHostName());
         }
         continue;
       }
@@ -2125,6 +2170,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     return createAndPersistStages(cluster, requestProperties, null, null, null,
       changedScHosts, ignoredScHosts, runSmokeTest, false);
   }
+
 
   private void validateServiceComponentHostRequest(ServiceComponentHostRequest request) {
     if (request.getClusterName() == null
@@ -2584,6 +2630,14 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
   private String getClientHostForRunningAction(Cluster cluster,
       Service service) throws AmbariException {
+    /*
+     * We assume Cluster level here. That means that we never run service
+     * checks on clients/hosts that are in maintenance state.
+     * That also means that we can not run service check if the only host
+     * that has client component is in maintenance state
+     */
+    Resource.Type opLvl = Resource.Type.Cluster;
+
     StackId stackId = service.getDesiredStackVersion();
     ComponentInfo compInfo =
         ambariMetaInfo.getServiceInfo(stackId.getStackName(),
@@ -2593,15 +2647,15 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         ServiceComponent serviceComponent =
             service.getServiceComponent(compInfo.getName());
         if (!serviceComponent.getServiceComponentHosts().isEmpty()) {
-          return getHealthyHost(serviceComponent.getServiceComponentHosts().keySet());
+          Set<String> candidateHosts = serviceComponent.getServiceComponentHosts().keySet();
+          filterHostsForAction(candidateHosts, service, cluster, opLvl);
+          return getHealthyHost(candidateHosts);
         }
       } catch (ServiceComponentNotFoundException e) {
         LOG.warn("Could not find required component to run action"
             + ", clusterName=" + cluster.getClusterName()
             + ", serviceName=" + service.getName()
             + ", componentName=" + compInfo.getName());
-
-
       }
     }
 
@@ -2615,9 +2669,36 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       if (serviceComponent.getServiceComponentHosts().isEmpty()) {
         continue;
       }
-      return getHealthyHost(serviceComponent.getServiceComponentHosts().keySet());
+      Set<String> candidateHosts = serviceComponent.getServiceComponentHosts().keySet();
+      filterHostsForAction(candidateHosts, service, cluster, opLvl);
+      return getHealthyHost(candidateHosts);
     }
     return null;
+  }
+
+  /**
+   * Utility method that filters out hosts from set based on their maintenance
+   * state status.
+   */
+  private void filterHostsForAction(Set<String> candidateHosts, Service service,
+                                    final Cluster cluster,
+                                    final Resource.Type level)
+                                    throws AmbariException {
+    Set<String> ignoredHosts = maintenanceStateHelper.filterHostsInMaintenanceState(
+            candidateHosts, new MaintenanceStateHelper.HostPredicate() {
+              @Override
+              public boolean shouldHostBeRemoved(final String hostname)
+                      throws AmbariException {
+                Host host = clusters.getHost(hostname);
+                return !maintenanceStateHelper.isOperationAllowed(
+                        host, cluster.getClusterId(), level);
+              }
+            }
+    );
+    LOG.debug("Ignoring hosts when selecting available hosts for action" +
+            " due to maintenance state." +
+            "Ignored hosts =" + ignoredHosts + ", cluster="
+            + cluster.getClusterName() + ", service=" + service.getName());
   }
 
 
@@ -2667,7 +2748,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
 
     Map<String, String> params = new HashMap<String, String>();
-    Map<String, Set<String>> clusterHostInfo = new HashMap<String, Set<String>>();
+    Map<String, Set<String>> clusterHostInfo;
     String clusterHostInfoJson = "{}";
 
     if (null != cluster) {
@@ -2686,7 +2767,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       actionExecutionHelper.addExecutionCommandsToStage(actionExecContext, stage, params);
     }
 
-    RoleGraph rg = null;
+    RoleGraph rg;
     if (null != cluster) {
       RoleCommandOrder rco = getRoleCommandOrder(cluster);
       rg = new RoleGraph(rco);

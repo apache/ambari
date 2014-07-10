@@ -1011,14 +1011,14 @@ public class RequestResourceProviderTest {
     Map<String, String> requestInfoProperties = new HashMap<String, String>();
     requestInfoProperties.put(RequestResourceProvider.COMMAND_ID, "RESTART");
 
-    requestInfoProperties.put(RequestResourceProvider.OPERATION_LEVEL_ID,
+    requestInfoProperties.put(RequestOperationLevel.OPERATION_LEVEL_ID,
             host_component);
-    requestInfoProperties.put(RequestResourceProvider.OPERATION_CLUSTER_ID, c1);
-    requestInfoProperties.put(RequestResourceProvider.OPERATION_SERVICE_ID,
+    requestInfoProperties.put(RequestOperationLevel.OPERATION_CLUSTER_ID, c1);
+    requestInfoProperties.put(RequestOperationLevel.OPERATION_SERVICE_ID,
             service_id);
-    requestInfoProperties.put(RequestResourceProvider.OPERATION_HOSTCOMPONENT_ID,
+    requestInfoProperties.put(RequestOperationLevel.OPERATION_HOSTCOMPONENT_ID,
             hostcomponent_id);
-    requestInfoProperties.put(RequestResourceProvider.OPERATION_HOST_ID,
+    requestInfoProperties.put(RequestOperationLevel.OPERATION_HOST_ID,
             host_id);
 
     Request request = PropertyHelper.getCreateRequest(propertySet, requestInfoProperties);
@@ -1028,27 +1028,7 @@ public class RequestResourceProviderTest {
             PropertyHelper.getKeyPropertyIds(type),
             managementController);
 
-    // Check exception wrong operation level is specified
-    requestInfoProperties.put(RequestResourceProvider.OPERATION_LEVEL_ID,
-            "wrong_value");
-    try {
-      provider.createResources(request);
-      Assert.fail("Should throw an exception");
-    } catch (UnsupportedOperationException e) {
-      // expected
-    }
-    requestInfoProperties.put(RequestResourceProvider.OPERATION_LEVEL_ID,
-            host_component);
-
-    // Check exception when cluster name is not specified
-    requestInfoProperties.remove(RequestResourceProvider.OPERATION_CLUSTER_ID);
-    try {
-      provider.createResources(request);
-      Assert.fail("Should throw an exception");
-    } catch (UnsupportedOperationException e) {
-      // expected
-    }
-    requestInfoProperties.put(RequestResourceProvider.OPERATION_CLUSTER_ID, c1);
+    requestInfoProperties.put(RequestOperationLevel.OPERATION_CLUSTER_ID, c1);
 
     // create request in a normal way (positive scenario)
     provider.createResources(request);

@@ -110,7 +110,6 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
 
   private static final ServiceState DEFAULT_SERVICE_STATE = new DefaultServiceState();
 
-  @Inject
   private MaintenanceStateHelper maintenanceStateHelper;
 
   // ----- Constructors ----------------------------------------------------
@@ -125,8 +124,10 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
   @AssistedInject
   public ServiceResourceProvider(@Assisted Set<String> propertyIds,
                           @Assisted Map<Resource.Type, String> keyPropertyIds,
-                          @Assisted AmbariManagementController managementController) {
+                          @Assisted AmbariManagementController managementController,
+                          MaintenanceStateHelper maintenanceStateHelper) {
     super(propertyIds, keyPropertyIds, managementController);
+    this.maintenanceStateHelper = maintenanceStateHelper;
   }
 
   // ----- ResourceProvider ------------------------------------------------
@@ -568,6 +569,18 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
     Map<String, Set<String>> serviceNames = new HashMap<String, Set<String>>();
     Set<State> seenNewStates = new HashSet<State>();
 
+    // Determine operation level
+    Resource.Type reqOpLvl;
+    if (requestProperties.containsKey(RequestOperationLevel.OPERATION_LEVEL_ID)) {
+      RequestOperationLevel operationLevel = new RequestOperationLevel(requestProperties);
+      reqOpLvl = operationLevel.getLevel();
+    } else {
+      String message = "Can not determine request operation level. " +
+              "Operation level property should " +
+              "be specified for this request.";
+      LOG.warn(message);
+      reqOpLvl = Resource.Type.Cluster;
+    }
 
     Clusters       clusters        = controller.getClusters();
     AmbariMetaInfo ambariMetaInfo   = controller.getAmbariMetaInfo();
@@ -616,7 +629,8 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
               + " desired state, desiredState=" + newState);
         }
       }
-      
+
+      // Setting Maintenance state for service
       if (null != request.getMaintenanceState()) {
         MaintenanceState newMaint = MaintenanceState.valueOf(request.getMaintenanceState());
         if (newMaint  != s.getMaintenanceState()) {
@@ -641,14 +655,13 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
         }
         continue;
       }
-      
-      if (requests.size() > 1 && MaintenanceState.OFF != s.getMaintenanceState()) {
+
+      if (! maintenanceStateHelper.isOperationAllowed(reqOpLvl, s)) {
         LOG.info("Operations cannot be applied to service " + s.getName() +
             " in the maintenance state of " + s.getMaintenanceState());
         continue;
       }
       
-
       seenNewStates.add(newState);
 
       if (newState != oldState) {
@@ -732,12 +745,10 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
             continue;
           }
           
-          MaintenanceState schMaint = controller.getEffectiveMaintenanceState(sch);
-          if (MaintenanceState.ON == schMaint ||
-              (requests.size() > 1 && MaintenanceState.OFF != schMaint)) {
+          if (! maintenanceStateHelper.isOperationAllowed(reqOpLvl, sch)) {
             ignoredScHosts.add(sch);
             if (LOG.isDebugEnabled()) {
-              LOG.debug("Ignoring " + schMaint + " ServiceComponentHost"
+              LOG.debug("Ignoring ServiceComponentHost"
                   + ", clusterName=" + request.getClusterName()
                   + ", serviceName=" + s.getName()
                   + ", componentName=" + sc.getName()
@@ -745,24 +756,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
             }
             continue;
           }
-          Host host = clusters.getHost(sch.getHostName());
 
-          if (schMaint == MaintenanceState.IMPLIED_FROM_HOST
-             && host != null
-             && host.getMaintenanceState(cluster.getClusterId()) != MaintenanceState.OFF) {
-
-            // Host is in Passive mode, ignore the SCH
-            ignoredScHosts.add(sch);
-            LOG.info("Ignoring ServiceComponentHost since "
-              + "the host is in passive mode"
-              + ", clusterName=" + request.getClusterName()
-              + ", serviceName=" + s.getName()
-              + ", componentName=" + sc.getName()
-              + ", hostname=" + sch.getHostName());
-            continue;
-          }
-          
-          
           if (sc.isClientComponent() &&
               !newState.isValidClientComponentState()) {
             continue;

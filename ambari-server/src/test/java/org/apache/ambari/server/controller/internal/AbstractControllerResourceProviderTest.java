@@ -20,6 +20,7 @@ package org.apache.ambari.server.controller.internal;
 
 import junit.framework.Assert;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.controller.ResourceProviderFactory;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Resource;
@@ -33,6 +34,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 
@@ -56,13 +58,14 @@ public class AbstractControllerResourceProviderTest {
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     
     ResourceProviderFactory factory = createMock(ResourceProviderFactory.class);
-    
-    ResourceProvider serviceResourceProvider = new ServiceResourceProvider(propertyIds, keyPropertyIds, managementController);
+
+    MaintenanceStateHelper maintenanceStateHelper = createNiceMock(MaintenanceStateHelper.class);
+    ResourceProvider serviceResourceProvider = new ServiceResourceProvider(propertyIds, keyPropertyIds, managementController, maintenanceStateHelper);
     expect(factory.getServiceResourceProvider(propertyIds, keyPropertyIds, managementController)).andReturn(serviceResourceProvider);
     
     AbstractControllerResourceProvider.init(factory);
     
-    replay(managementController, factory);
+    replay(managementController, factory, maintenanceStateHelper);
 
     AbstractResourceProvider provider =
         (AbstractResourceProvider) AbstractControllerResourceProvider.getResourceProvider(
