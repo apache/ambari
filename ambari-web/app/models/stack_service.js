@@ -179,7 +179,7 @@ App.StackService = DS.Model.extend(App.ServiceModelMixin, {
     var configTypes = this.get('configTypes');
     var serviceComponents = this.get('serviceComponents');
     if (configTypes && Object.keys(configTypes).length) {
-      var pattern = ["General", "CapacityScheduler", "^Advanced", "^Custom", "Falcon - Oozie integration", "FalconStartupSite", "FalconRuntimeSite"];
+      var pattern = ["General", "CapacityScheduler", "^Advanced", "Env$", "^Custom", "Falcon - Oozie integration", "FalconStartupSite", "FalconRuntimeSite"];
       configCategories = App.StackService.configCategories.call(this).filter(function (_configCategory) {
         var serviceComponentName = _configCategory.get('name');
         var isServiceComponent = serviceComponents.someProperty('componentName', serviceComponentName);
@@ -272,7 +272,8 @@ App.StackService.configCategories = function () {
         App.ServiceConfigCategory.create({ name: 'Advanced', displayName: 'Advanced'}),
         App.ServiceConfigCategory.create({ name: 'Advanced core-site', displayName: 'Custom core-site.xml', siteFileName: 'core-site.xml', canAddProperty: true}),
         App.ServiceConfigCategory.create({ name: 'Advanced hdfs-site', displayName: 'Custom hdfs-site.xml', siteFileName: 'hdfs-site.xml', canAddProperty: true}),
-        App.ServiceConfigCategory.create({ name: 'Advanced hdfs-log4j', displayName: 'Custom log4j.properties', siteFileName: 'hdfs-log4j.xml', canAddProperty: false})
+        App.ServiceConfigCategory.create({ name: 'Advanced hdfs-log4j', displayName: 'Custom log4j.properties', siteFileName: 'hdfs-log4j.xml', canAddProperty: false}),
+        App.ServiceConfigCategory.create({ name: 'HadoopEnv', displayName: 'Custom Hadoop Env', siteFileName: 'hadoop-env.xml', canAddProperty: false})
       ]);
       break;
     case 'GLUSTERFS':
@@ -289,7 +290,8 @@ App.StackService.configCategories = function () {
         App.ServiceConfigCategory.create({ name: 'General', displayName: 'General'}),
         App.ServiceConfigCategory.create({ name: 'Advanced', displayName: 'Advanced'}),
         App.ServiceConfigCategory.create({ name: 'Advanced mapred-site', displayName: 'Custom mapred-site.xml', siteFileName: 'mapred-site.xml', canAddProperty: true}),
-        App.ServiceConfigCategory.create({ name: 'Advanced mapreduce-log4j', displayName: 'Custom log4j.properties', siteFileName: 'mapreduce-log4j.xml', canAddProperty: false})
+        App.ServiceConfigCategory.create({ name: 'Advanced mapreduce-log4j', displayName: 'Custom log4j.properties', siteFileName: 'mapreduce-log4j.xml', canAddProperty: false}),
+        App.ServiceConfigCategory.create({ name: 'MapredEnv', displayName: 'Custom Mapreduce Env', siteFileName: 'mapred-env.xml', canAddProperty: false})
       ]);
       break;
     case 'YARN':
@@ -301,7 +303,8 @@ App.StackService.configCategories = function () {
         App.ServiceConfigCategory.create({ name: 'CapacityScheduler', displayName: 'Scheduler', isCapacityScheduler: true, isCustomView: true, siteFileName: 'capacity-scheduler.xml', siteFileNames: ['capacity-scheduler.xml', 'mapred-queue-acls.xml'], canAddProperty: App.supports.capacitySchedulerUi}),
         App.ServiceConfigCategory.create({ name: 'Advanced', displayName: 'Advanced'}),
         App.ServiceConfigCategory.create({ name: 'Advanced yarn-site', displayName: 'Custom yarn-site.xml', siteFileName: 'yarn-site.xml', canAddProperty: true}),
-        App.ServiceConfigCategory.create({ name: 'Advanced yarn-log4j', displayName: 'Custom log4j.properties', siteFileName: 'yarn-log4j.xml', canAddProperty: false})
+        App.ServiceConfigCategory.create({ name: 'Advanced yarn-log4j', displayName: 'Custom log4j.properties', siteFileName: 'yarn-log4j.xml', canAddProperty: false}),
+        App.ServiceConfigCategory.create({ name: 'YarnEnv', displayName: 'Custom Yarn Env', siteFileName: 'yarn-env.xml', canAddProperty: false})
       ]);
       break;
     case 'MAPREDUCE2':
@@ -309,7 +312,8 @@ App.StackService.configCategories = function () {
         App.ServiceConfigCategory.create({ name: 'HISTORYSERVER', displayName: 'History Server'}),
         App.ServiceConfigCategory.create({ name: 'General', displayName: 'General'}),
         App.ServiceConfigCategory.create({ name: 'Advanced', displayName: 'Advanced'}),
-        App.ServiceConfigCategory.create({ name: 'AdvancedMapredSite', displayName: 'Custom mapred-site.xml', siteFileName: 'mapred-site.xml', canAddProperty: true})
+        App.ServiceConfigCategory.create({ name: 'AdvancedMapredSite', displayName: 'Custom mapred-site.xml', siteFileName: 'mapred-site.xml', canAddProperty: true}),
+        App.ServiceConfigCategory.create({ name: 'MapredEnv', displayName: 'Custom Mapred Env', siteFileName: 'mapred-env.xml', canAddProperty: false})
       ]);
       break;
     case 'HIVE':
@@ -318,14 +322,16 @@ App.StackService.configCategories = function () {
         App.ServiceConfigCategory.create({ name: 'Advanced', displayName: 'Advanced'}),
         App.ServiceConfigCategory.create({ name: 'Advanced hive-site', displayName: 'Custom hive-site.xml', siteFileName: 'hive-site.xml', canAddProperty: true}),
         App.ServiceConfigCategory.create({ name: 'Advanced hive-log4j', displayName: 'Custom log4j.properties', siteFileName: 'hive-log4j.xml', canAddProperty: false}),
-        App.ServiceConfigCategory.create({ name: 'Advanced hive-exec-log4j', displayName: 'Custom hive-exec-log4j', siteFileName: 'hive-exec-log4j.xml', canAddProperty: false})
+        App.ServiceConfigCategory.create({ name: 'Advanced hive-exec-log4j', displayName: 'Custom hive-exec-log4j', siteFileName: 'hive-exec-log4j.xml', canAddProperty: false}),
+        App.ServiceConfigCategory.create({ name: 'HiveEnv', displayName: 'Custom Hive Env', siteFileName: 'hive-env.xml', canAddProperty: false})
       ]);
       break;
     case 'WEBHCAT':
       serviceConfigCategories.pushObjects([
         App.ServiceConfigCategory.create({ name: 'WEBHCAT_SERVER', displayName: 'WebHCat Server'}),
         App.ServiceConfigCategory.create({ name: 'Advanced', displayName: 'Advanced'}),
-        App.ServiceConfigCategory.create({ name: 'Advanced webhcat-site', displayName: 'Custom webhcat-site.xml', siteFileName: 'webhcat-site.xml', canAddProperty: true})
+        App.ServiceConfigCategory.create({ name: 'Advanced webhcat-site', displayName: 'Custom webhcat-site.xml', siteFileName: 'webhcat-site.xml', canAddProperty: true}),
+        App.ServiceConfigCategory.create({ name: 'WebhcatEnv', displayName: 'Custom WebHCat Env', siteFileName: 'webhcat-env.xml', canAddProperty: false})
       ]);
       break;
     case 'HBASE':
@@ -335,7 +341,8 @@ App.StackService.configCategories = function () {
         App.ServiceConfigCategory.create({ name: 'General', displayName: 'General'}),
         App.ServiceConfigCategory.create({ name: 'Advanced', displayName: 'Advanced'}),
         App.ServiceConfigCategory.create({ name: 'Advanced hbase-site', displayName: 'Custom hbase-site.xml', siteFileName: 'hbase-site.xml', canAddProperty: true}),
-        App.ServiceConfigCategory.create({ name: 'Advanced hbase-log4j', displayName: 'Custom log4j.properties', siteFileName: 'hbase-log4j.xml', canAddProperty: false})
+        App.ServiceConfigCategory.create({ name: 'Advanced hbase-log4j', displayName: 'Custom log4j.properties', siteFileName: 'hbase-log4j.xml', canAddProperty: false}),
+        App.ServiceConfigCategory.create({ name: 'HbaseEnv', displayName: 'Custom Hbase Env', siteFileName: 'hbase-env.xml', canAddProperty: false})
       ]);
       break;
     case 'ZOOKEEPER':
@@ -343,7 +350,8 @@ App.StackService.configCategories = function () {
         App.ServiceConfigCategory.create({ name: 'ZOOKEEPER_SERVER', displayName: 'ZooKeeper Server'}),
         App.ServiceConfigCategory.create({ name: 'Advanced', displayName: 'Advanced'}),
         App.ServiceConfigCategory.create({ name: 'Advanced zookeeper-log4j', displayName: 'Custom log4j.properties', siteFileName: 'zookeeper-log4j.xml', canAddProperty: false}),
-        App.ServiceConfigCategory.create({ name: 'Advanced zoo.cfg', displayName: 'Custom zoo.cfg', siteFileName: 'zoo.cfg', canAddProperty: true})
+        App.ServiceConfigCategory.create({ name: 'Advanced zoo.cfg', displayName: 'Custom zoo.cfg', siteFileName: 'zoo.cfg', canAddProperty: true}),
+        App.ServiceConfigCategory.create({ name: 'ZookeeperEnv', displayName: 'Custom Zookeeper Env', siteFileName: 'zookeeper-env.xml', canAddProperty: false})
       ]);
       break;
     case 'OOZIE':
@@ -351,13 +359,15 @@ App.StackService.configCategories = function () {
         App.ServiceConfigCategory.create({ name: 'OOZIE_SERVER', displayName: 'Oozie Server'}),
         App.ServiceConfigCategory.create({ name: 'Advanced', displayName: 'Advanced'}),
         App.ServiceConfigCategory.create({ name: 'Advanced oozie-site', displayName: 'Custom oozie-site.xml', siteFileName: 'oozie-site.xml', canAddProperty: true}),
-        App.ServiceConfigCategory.create({ name: 'Advanced oozie-log4j', displayName: 'Custom log4j.properties', siteFileName: 'oozie-log4j.xml', canAddProperty: false})
+        App.ServiceConfigCategory.create({ name: 'Advanced oozie-log4j', displayName: 'Custom log4j.properties', siteFileName: 'oozie-log4j.xml', canAddProperty: false}),
+        App.ServiceConfigCategory.create({ name: 'OozieEnv', displayName: 'Custom Oozie Env', siteFileName: 'oozie-env.xml', canAddProperty: false})
       ]);
       break;
     case 'PIG':
       serviceConfigCategories.pushObjects([
         App.ServiceConfigCategory.create({ name: 'Advanced', displayName: 'Custom pig.properties', siteFileName: 'pig-properties.xml', canAddProperty: false}),
-        App.ServiceConfigCategory.create({ name: 'Advanced pig-log4j', displayName: 'Custom log4j.properties', siteFileName: 'pig-log4j.xml', canAddProperty: false})
+        App.ServiceConfigCategory.create({ name: 'Advanced pig-log4j', displayName: 'Custom log4j.properties', siteFileName: 'pig-log4j.xml', canAddProperty: false}),
+        App.ServiceConfigCategory.create({ name: 'PigEnv', displayName: 'Custom Pig Env', siteFileName: 'pig-env.xml', canAddProperty: false})
       ]);
       break;
     case 'FALCON':
@@ -368,7 +378,8 @@ App.StackService.configCategories = function () {
         App.ServiceConfigCategory.create({ name: 'FalconRuntimeSite', displayName: 'Falcon runtime.properties'}),
         App.ServiceConfigCategory.create({ name: 'Advanced', displayName: 'Advanced'}),
         App.ServiceConfigCategory.create({ name: 'Advanced falcon-startup.properties', displayName: 'Custom startup.properties', siteFileName: 'falcon-startup.properties.xml', canAddProperty: true}),
-        App.ServiceConfigCategory.create({ name: 'Advanced falcon-runtime.properties', displayName: 'Custom runtime.properties', siteFileName: 'falcon-runtime.properties.xml', canAddProperty: true})
+        App.ServiceConfigCategory.create({ name: 'Advanced falcon-runtime.properties', displayName: 'Custom runtime.properties', siteFileName: 'falcon-runtime.properties.xml', canAddProperty: true}),
+        App.ServiceConfigCategory.create({ name: 'FalconEnv', displayName: 'Custom Falcon Env', siteFileName: 'falcon-env.xml', canAddProperty: false})
       ]);
       break;
     case 'STORM':
@@ -380,19 +391,22 @@ App.StackService.configCategories = function () {
         App.ServiceConfigCategory.create({ name: 'DRPC_SERVER', displayName: 'DRPC Server'}),
         App.ServiceConfigCategory.create({ name: 'General', displayName: 'General'}),
         App.ServiceConfigCategory.create({ name: 'Advanced', displayName: 'Advanced'}),
-        App.ServiceConfigCategory.create({ name: 'Advanced storm-site', displayName: 'Custom storm.yaml', siteFileName: 'storm-site.xml', canAddProperty: true})
+        App.ServiceConfigCategory.create({ name: 'Advanced storm-site', displayName: 'Custom storm.yaml', siteFileName: 'storm-site.xml', canAddProperty: true}),
+        App.ServiceConfigCategory.create({ name: 'StormEnv', displayName: 'Custom Storm Env', siteFileName: 'storm-env.xml', canAddProperty: false})
       ]);
       break;
     case 'TEZ':
       serviceConfigCategories.pushObjects([
         App.ServiceConfigCategory.create({ name: 'General', displayName: 'General'}),
         App.ServiceConfigCategory.create({ name: 'Advanced', displayName: 'Advanced'}),
-        App.ServiceConfigCategory.create({ name: 'Advanced tez-site', displayName: 'Custom tez-site.xml', siteFileName: 'tez-site.xml', canAddProperty: true})
+        App.ServiceConfigCategory.create({ name: 'Advanced tez-site', displayName: 'Custom tez-site.xml', siteFileName: 'tez-site.xml', canAddProperty: true}),
+        App.ServiceConfigCategory.create({ name: 'TezpEnv', displayName: 'Custom Tez Env', siteFileName: 'tez-env.xml', canAddProperty: false})
       ]);
       break;
     case 'FLUME':
       serviceConfigCategories.pushObjects([
-        App.ServiceConfigCategory.create({ name: 'FLUME_HANDLER', displayName: 'flume.conf', siteFileName: 'flume-conf', canAddProperty: false})
+        App.ServiceConfigCategory.create({ name: 'FLUME_HANDLER', displayName: 'flume.conf', siteFileName: 'flume-conf', canAddProperty: false}),
+        App.ServiceConfigCategory.create({ name: 'FlumeEnv', displayName: 'Custom Flume Env', siteFileName: 'flume-env.xml', canAddProperty: false})
       ]);
       break;
     case 'HCATALOG':

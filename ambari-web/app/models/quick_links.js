@@ -408,7 +408,7 @@ App.QuickLinks.FIXTURES = [
     service_id: 'FALCON',
     template:'%@://%@:%@/',
     http_config: 'falcon_port',
-    site: 'global',
+    site: 'falcon-env',
     regex: '^(\\d+)$',
     default_http_port: 15000
   }

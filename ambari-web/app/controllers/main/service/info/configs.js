@@ -33,7 +33,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   selectedServiceConfigTypes: [],
   selectedServiceSupportsFinal: [],
   configGroups: [],
-  globalConfigs: [],
+  allConfigs: [],
   uiConfigs: [],
   customConfig: [],
   isApplyingChanges: false,
@@ -51,8 +51,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     return App.config.get('configMapping');
   }.property('App.config.configMapping'),
   configs: function () {
-    return  App.config.get('preDefinedGlobalProperties');
-  }.property('App.config.preDefinedGlobalProperties'),
+    return  App.config.get('preDefinedSiteProperties');
+  }.property('App.config.preDefinedSiteProperties'),
 
   secureConfigs: function () {
     if (App.get('isHadoop2Stack')) {
@@ -73,7 +73,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    *
    * Example:
    * {
-   *  'global': 'version1',
    *  'hdfs-site': 'version1',
    *  'core-site': 'version1'
    * }
@@ -123,7 +122,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     this.set('filter', '');
     this.get('filterColumns').setEach('selected', false);
     this.get('stepConfigs').clear();
-    this.get('globalConfigs').clear();
+    this.get('allConfigs').clear();
     this.get('uiConfigs').clear();
     this.get('customConfig').clear();
     this.set('loadedGroupToOverrideSiteToTagMap', {});
@@ -342,33 +341,29 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     var advancedConfigs = this.get('advancedConfigs');
     //STEP 4: Load on-site config by service from server
     var configGroups = App.router.get('configurationController').getConfigsByTags(this.get('serviceConfigTags'));
-    //STEP 5: Merge global and on-site configs with pre-defined
+    //STEP 5: Merge on-site configs with pre-defined
     var configSet = App.config.mergePreDefinedWithLoaded(configGroups, advancedConfigs, this.get('serviceConfigTags'), serviceName);
     configSet = App.config.syncOrderWithPredefined(configSet);
     //var serviceConfigs = this.getSitesConfigProperties(advancedConfigs);
     var configs = configSet.configs;
-    //put global configs into globalConfigs to save them separately
-    this.set('globalConfigs', configSet.globalConfigs);
-
     //STEP 6: add advanced configs
-    //App.config.addAdvancedConfigs(configs, advancedConfigs, serviceName);
+    App.config.addAdvancedConfigs(configs, advancedConfigs, serviceName);
     //STEP 7: add custom configs
     App.config.addCustomConfigs(configs);
     //put properties from capacity-scheduler.xml into one config with textarea view
     if (this.get('content.serviceName') === 'YARN' && !App.supports.capacitySchedulerUi) {
       configs = App.config.fileConfigsIntoTextarea(configs, 'capacity-scheduler.xml');
     }
+    this.set('allConfigs', configs);
     //STEP 8: add configs as names of host components
-    this.addHostNamesToGlobalConfig();
-
-    var allConfigs = this.get('globalConfigs').concat(configs);
+    this.addHostNamesToConfig();
     //STEP 9: Load and add overriden configs of group
-    App.config.loadServiceConfigGroupOverrides(allConfigs, this.loadedGroupToOverrideSiteToTagMap, this.get('configGroups'), this.onLoadOverrides, this);
+    App.config.loadServiceConfigGroupOverrides(this.get('allConfigs'), this.loadedGroupToOverrideSiteToTagMap, this.get('configGroups'), this.onLoadOverrides, this);
   }.observes('selectedConfigGroup'),
 
   checkDatabaseProperties: function (serviceConfig) {
     if (!['OOZIE', 'HIVE'].contains(this.get('content.serviceName'))) return;
-    var configsToHide = ['oozie_hostname'];
+    var configsToHide = ['oozie_hostname', 'hive_hostname'];
     configsToHide.forEach(function (configName) {
       var property = serviceConfig.configs.findProperty('name', configName);
       if (property) property.set('isVisible', false);
@@ -387,29 +382,35 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     }
 
     if (serviceName || serviceConfig.serviceName === 'MISC') {
-      //STEP 11: render configs and wrap each in ServiceConfigProperty object
-      var self = this;
       // set recommended Defaults first then load the configs (including set validator)
-      this.setRecommendedDefaults(advancedConfigs).done(function () {
-        self.loadConfigs(allConfigs, serviceConfig);
-        self.checkOverrideProperty(serviceConfig);
-        self.checkDatabaseProperties(serviceConfig);
-        self.get('stepConfigs').pushObject(serviceConfig);
-        self.set('selectedService', self.get('stepConfigs').objectAt(0));
-        self.checkForSecureConfig(self.get('selectedService'));
-        self.set('dataIsLoaded', true);
-        self.set('hash', self.getHash());
-        self.set('isInit', false);
-      });
+      var s = App.StackService.find().findProperty('serviceName', this.get('content.serviceName'));
+      var defaultsProvider = s.get('defaultsProviders');
+      if (defaultsProvider) {
+        this.getInfoForDefaults(defaultsProvider);
+      } else {
+        Em.run(this, 'setDefaults');
+      }
     } else {
       this.set('selectedService', this.get('stepConfigs').objectAt(0));
       this.checkForSecureConfig(this.get('selectedService'));
       this.set('dataIsLoaded', true);
-
       this.set('hash', this.getHash());
       this.set('isInit', false);
     }
   },
+
+  setDefaults: function(){
+    var serviceConfig = App.config.createServiceConfig(this.get('content.serviceName'));
+    this.loadConfigs(this.get('allConfigs'), serviceConfig);
+    this.checkOverrideProperty(serviceConfig);
+    this.checkDatabaseProperties(serviceConfig);
+    this.get('stepConfigs').pushObject(serviceConfig);
+    this.set('selectedService', this.get('stepConfigs').objectAt(0));
+    this.checkForSecureConfig(this.get('selectedService'));
+    this.set('dataIsLoaded', true);
+    this.set('hash', this.getHash());
+    this.set('isInit', false);
+  }.observes('defaultsInfo'),
 
   /**
    * Changes format from Object to Array
@@ -417,7 +418,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * {
    *  'core-site': 'version1',
    *  'hdfs-site': 'version1',
-   *  'global': 'version2',
    *  ...
    * }
    *
@@ -499,6 +499,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       hosts: this.getHostsInfo(response)
     };
     this.set('defaultsInfo', defaultsInfo);
+    this.setRecommendedDefaults(this.get('advancedConfigs'));
   },
 
   /**
@@ -632,15 +633,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    */
   setRecommendedDefaults: function (advancedConfigs) {
     var s = App.StackService.find().findProperty('serviceName', this.get('content.serviceName'));
-    var dfd = $.Deferred();
     var defaultsProvider = s.get('defaultsProviders');
     var configsValidator = s.get('configsValidator');
-    if (!defaultsProvider) {
-      dfd.resolve();
-      return dfd.promise();
-    }
-    this.getInfoForDefaults(defaultsProvider);
-    this.addObserver('defaultsInfo.hosts.length', this, function () {
       var localDB = this.get('defaultsInfo');
       var recommendedDefaults = {};
       if (defaultsProvider) {
@@ -661,9 +655,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       if (configsValidator) {
         configsValidator.set('recommendedDefaults', recommendedDefaults);
       }
-      dfd.resolve();
-    });
-    return dfd.promise();
   },
   /**
    * set isEditable property of config for admin
@@ -857,7 +848,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     var configs = this.get('stepConfigs').findProperty('serviceName', this.get('content.serviceName')).get('configs');
 
     if (selectedConfigGroup.get('isDefault')) {
-      this.saveGlobalConfigs(configs);
       if (this.get('content.serviceName') === 'YARN' && !App.supports.capacitySchedulerUi) {
         configs = App.config.textareaIntoFileConfigs(configs, 'capacity-scheduler.xml');
       }
@@ -1132,11 +1122,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       }
     });
     sites.forEach(function (site) {
-      if (site.type === 'global') {
-        site.properties = this.createGlobalSiteObj(site.tag, site.properties).properties;
-      } else {
-        site.properties = this.createSiteObj(site.type, site.tag, site.properties).properties;
-      }
+      site.properties = this.createSiteObj(site.type, site.tag, site.properties).properties;
     }, this);
     return sites;
   },
@@ -1166,158 +1152,134 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     this.onDoPUTClusterConfigurations();
   },
   /**
-   * save new or change exist configs in global configs
+   * set hive hostnames in configs
    * @param configs
    */
-  saveGlobalConfigs: function (configs) {
-    var globalConfigs = this.get('globalConfigs');
-    configs.filterProperty('id', 'puppet var').forEach(function (uiConfigProperty) {
-      uiConfigProperty.set('value', App.config.trimProperty(uiConfigProperty));
-      if (globalConfigs.someProperty('name', uiConfigProperty.name)) {
-        var modelGlobalConfig = globalConfigs.findProperty('name', uiConfigProperty.name);
-        modelGlobalConfig.value = uiConfigProperty.value;
-      } else {
-        globalConfigs.pushObject({
-          name: uiConfigProperty.name,
-          value: uiConfigProperty.value
-        });
-      }
-    }, this);
-
-    this.setHiveHostName(globalConfigs);
-    this.setOozieHostName(globalConfigs);
-    this.set('globalConfigs', globalConfigs);
-  },
-
-  /**
-   * set hive hostnames in global configs
-   * @param globals
-   */
-  setHiveHostName: function (globals) {
-    if (globals.someProperty('name', 'hive_database')) {
-      var hiveDb = globals.findProperty('name', 'hive_database');
+  setHiveHostName: function (configs) {
+    if (configs.someProperty('name', 'hive_database')) {
+      var hiveDb = configs.findProperty('name', 'hive_database');
       if (hiveDb.value === 'New MySQL Database') {
-        var ambariHost = globals.findProperty('name', 'hive_ambari_host');
+        var ambariHost = configs.findProperty('name', 'hive_ambari_host');
         if (ambariHost) {
           ambariHost.name = 'hive_hostname';
         }
-        globals = globals.without(globals.findProperty('name', 'hive_existing_mysql_host'));
-        globals = globals.without(globals.findProperty('name', 'hive_existing_mysql_database'));
-        globals = globals.without(globals.findProperty('name', 'hive_existing_oracle_host'));
-        globals = globals.without(globals.findProperty('name', 'hive_existing_oracle_database'));
-        globals = globals.without(globals.findProperty('name', 'hive_existing_postgresql_host'));
-        globals = globals.without(globals.findProperty('name', 'hive_existing_postgresql_database'));
+        configs = configs.without(configs.findProperty('name', 'hive_existing_mysql_host'));
+        configs = configs.without(configs.findProperty('name', 'hive_existing_mysql_database'));
+        configs = configs.without(configs.findProperty('name', 'hive_existing_oracle_host'));
+        configs = configs.without(configs.findProperty('name', 'hive_existing_oracle_database'));
+        configs = configs.without(configs.findProperty('name', 'hive_existing_postgresql_host'));
+        configs = configs.without(configs.findProperty('name', 'hive_existing_postgresql_database'));
       } else if (hiveDb.value === 'Existing MySQL Database') {
-        var existingMySqlHost = globals.findProperty('name', 'hive_existing_mysql_host');
+        var existingMySqlHost = configs.findProperty('name', 'hive_existing_mysql_host');
         if (existingMySqlHost) {
           existingMySqlHost.name = 'hive_hostname';
         }
-        globals = globals.without(globals.findProperty('name', 'hive_ambari_host'));
-        globals = globals.without(globals.findProperty('name', 'hive_ambari_database'));
-        globals = globals.without(globals.findProperty('name', 'hive_existing_oracle_host'));
-        globals = globals.without(globals.findProperty('name', 'hive_existing_oracle_database'));
-        globals = globals.without(globals.findProperty('name', 'hive_existing_postgresql_host'));
-        globals = globals.without(globals.findProperty('name', 'hive_existing_postgresql_database'));
+        configs = configs.without(configs.findProperty('name', 'hive_ambari_host'));
+        configs = configs.without(configs.findProperty('name', 'hive_ambari_database'));
+        configs = configs.without(configs.findProperty('name', 'hive_existing_oracle_host'));
+        configs = configs.without(configs.findProperty('name', 'hive_existing_oracle_database'));
+        configs = configs.without(configs.findProperty('name', 'hive_existing_postgresql_host'));
+        configs = configs.without(configs.findProperty('name', 'hive_existing_postgresql_database'));
       } else if (hiveDb.value === Em.I18n.t('services.service.config.hive.oozie.postgresql')) {
-        var existingPostgreSqlHost = globals.findProperty('name', 'hive_existing_postgresql_host');
+        var existingPostgreSqlHost = configs.findProperty('name', 'hive_existing_postgresql_host');
         if (existingPostgreSqlHost) {
           existingPostgreSqlHost.name = 'hive_hostname';
         }
-        globals = globals.without(globals.findProperty('name', 'hive_ambari_host'));
-        globals = globals.without(globals.findProperty('name', 'hive_ambari_database'));
-        globals = globals.without(globals.findProperty('name', 'hive_existing_mysql_host'));
-        globals = globals.without(globals.findProperty('name', 'hive_existing_mysql_database'));
-        globals = globals.without(globals.findProperty('name', 'hive_existing_oracle_host'));
-        globals = globals.without(globals.findProperty('name', 'hive_existing_oracle_database'));
+        configs = configs.without(configs.findProperty('name', 'hive_ambari_host'));
+        configs = configs.without(configs.findProperty('name', 'hive_ambari_database'));
+        configs = configs.without(configs.findProperty('name', 'hive_existing_mysql_host'));
+        configs = configs.without(configs.findProperty('name', 'hive_existing_mysql_database'));
+        configs = configs.without(configs.findProperty('name', 'hive_existing_oracle_host'));
+        configs = configs.without(configs.findProperty('name', 'hive_existing_oracle_database'));
       }
       else { //existing oracle database
-        var existingOracleHost = globals.findProperty('name', 'hive_existing_oracle_host');
+        var existingOracleHost = configs.findProperty('name', 'hive_existing_oracle_host');
         if (existingOracleHost) {
           existingOracleHost.name = 'hive_hostname';
         }
-        globals = globals.without(globals.findProperty('name', 'hive_ambari_host'));
-        globals = globals.without(globals.findProperty('name', 'hive_ambari_database'));
-        globals = globals.without(globals.findProperty('name', 'hive_existing_mysql_host'));
-        globals = globals.without(globals.findProperty('name', 'hive_existing_mysql_database'));
-        globals = globals.without(globals.findProperty('name', 'hive_existing_postgresql_host'));
-        globals = globals.without(globals.findProperty('name', 'hive_existing_postgresql_database'));
+        configs = configs.without(configs.findProperty('name', 'hive_ambari_host'));
+        configs = configs.without(configs.findProperty('name', 'hive_ambari_database'));
+        configs = configs.without(configs.findProperty('name', 'hive_existing_mysql_host'));
+        configs = configs.without(configs.findProperty('name', 'hive_existing_mysql_database'));
+        configs = configs.without(configs.findProperty('name', 'hive_existing_postgresql_host'));
+        configs = configs.without(configs.findProperty('name', 'hive_existing_postgresql_database'));
       }
 
     }
   },
 
   /**
-   * set oozie hostnames in global configs
-   * @param globals
+   * set oozie hostnames in configs
+   * @param configs
    */
-  setOozieHostName: function (globals) {
+  setOozieHostName: function (configs) {
     var dbHostPropertyName = null;
-    if (globals.someProperty('name', 'oozie_database')) {
-      var oozieDb = globals.findProperty('name', 'oozie_database');
+    if (configs.someProperty('name', 'oozie_database')) {
+      var oozieDb = configs.findProperty('name', 'oozie_database');
       if (oozieDb.value === 'New Derby Database') {
-        globals = globals.without(globals.findProperty('name', 'oozie_ambari_host'));
-        globals = globals.without(globals.findProperty('name', 'oozie_ambari_database'));
-        globals = globals.without(globals.findProperty('name', 'oozie_existing_mysql_host'));
-        globals = globals.without(globals.findProperty('name', 'oozie_existing_mysql_database'));
-        globals = globals.without(globals.findProperty('name', 'oozie_existing_oracle_host'));
-        globals = globals.without(globals.findProperty('name', 'oozie_existing_oracle_database'));
-        globals = globals.without(globals.findProperty('name', 'oozie_existing_postgresql_host'));
-        globals = globals.without(globals.findProperty('name', 'oozie_existing_postgresql_database'));
+        configs = configs.without(configs.findProperty('name', 'oozie_ambari_host'));
+        configs = configs.without(configs.findProperty('name', 'oozie_ambari_database'));
+        configs = configs.without(configs.findProperty('name', 'oozie_existing_mysql_host'));
+        configs = configs.without(configs.findProperty('name', 'oozie_existing_mysql_database'));
+        configs = configs.without(configs.findProperty('name', 'oozie_existing_oracle_host'));
+        configs = configs.without(configs.findProperty('name', 'oozie_existing_oracle_database'));
+        configs = configs.without(configs.findProperty('name', 'oozie_existing_postgresql_host'));
+        configs = configs.without(configs.findProperty('name', 'oozie_existing_postgresql_database'));
       } else if (oozieDb.value === 'New MySQL Database') {
-        var ambariHost = globals.findProperty('name', 'oozie_ambari_host');
+        var ambariHost = configs.findProperty('name', 'oozie_ambari_host');
         if (ambariHost) {
           ambariHost.name = 'oozie_hostname';
         }
-        globals = globals.without(globals.findProperty('name', 'oozie_existing_mysql_host'));
-        globals = globals.without(globals.findProperty('name', 'oozie_existing_mysql_database'));
-        globals = globals.without(globals.findProperty('name', 'oozie_existing_oracle_host'));
-        globals = globals.without(globals.findProperty('name', 'oozie_existing_oracle_database'));
-        globals = globals.without(globals.findProperty('name', 'oozie_derby_database'));
-        globals = globals.without(globals.findProperty('name', 'oozie_existing_postgresql_host'));
-        globals = globals.without(globals.findProperty('name', 'oozie_existing_postgresql_database'));
+        configs = configs.without(configs.findProperty('name', 'oozie_existing_mysql_host'));
+        configs = configs.without(configs.findProperty('name', 'oozie_existing_mysql_database'));
+        configs = configs.without(configs.findProperty('name', 'oozie_existing_oracle_host'));
+        configs = configs.without(configs.findProperty('name', 'oozie_existing_oracle_database'));
+        configs = configs.without(configs.findProperty('name', 'oozie_derby_database'));
+        configs = configs.without(configs.findProperty('name', 'oozie_existing_postgresql_host'));
+        configs = configs.without(configs.findProperty('name', 'oozie_existing_postgresql_database'));
 
       } else if (oozieDb.value === 'Existing MySQL Database') {
-        var existingMySqlHost = globals.findProperty('name', 'oozie_existing_mysql_host');
+        var existingMySqlHost = configs.findProperty('name', 'oozie_existing_mysql_host');
         if (existingMySqlHost) {
           dbHostPropertyName = 'oozie_existing_mysql_host';
         }
-        globals = globals.without(globals.findProperty('name', 'oozie_ambari_host'));
-        globals = globals.without(globals.findProperty('name', 'oozie_ambari_database'));
-        globals = globals.without(globals.findProperty('name', 'oozie_existing_oracle_host'));
-        globals = globals.without(globals.findProperty('name', 'oozie_existing_oracle_database'));
-        globals = globals.without(globals.findProperty('name', 'oozie_derby_database'));
-        globals = globals.without(globals.findProperty('name', 'oozie_existing_postgresql_host'));
-        globals = globals.without(globals.findProperty('name', 'oozie_existing_postgresql_database'));
+        configs = configs.without(configs.findProperty('name', 'oozie_ambari_host'));
+        configs = configs.without(configs.findProperty('name', 'oozie_ambari_database'));
+        configs = configs.without(configs.findProperty('name', 'oozie_existing_oracle_host'));
+        configs = configs.without(configs.findProperty('name', 'oozie_existing_oracle_database'));
+        configs = configs.without(configs.findProperty('name', 'oozie_derby_database'));
+        configs = configs.without(configs.findProperty('name', 'oozie_existing_postgresql_host'));
+        configs = configs.without(configs.findProperty('name', 'oozie_existing_postgresql_database'));
       } else if (oozieDb.value === Em.I18n.t('services.service.config.hive.oozie.postgresql')) {
-        var existingPostgreSqlHost = globals.findProperty('name', 'oozie_existing_postgresql_host');
+        var existingPostgreSqlHost = configs.findProperty('name', 'oozie_existing_postgresql_host');
         if (existingPostgreSqlHost) {
           dbHostPropertyName = 'oozie_existing_postgresql_host';
         }
-        globals = globals.without(globals.findProperty('name', 'oozie_ambari_host'));
-        globals = globals.without(globals.findProperty('name', 'oozie_ambari_database'));
-        globals = globals.without(globals.findProperty('name', 'oozie_existing_mysql_host'));
-        globals = globals.without(globals.findProperty('name', 'oozie_existing_mysql_database'));
-        globals = globals.without(globals.findProperty('name', 'oozie_existing_oracle_host'));
-        globals = globals.without(globals.findProperty('name', 'oozie_existing_oracle_database'));
+        configs = configs.without(configs.findProperty('name', 'oozie_ambari_host'));
+        configs = configs.without(configs.findProperty('name', 'oozie_ambari_database'));
+        configs = configs.without(configs.findProperty('name', 'oozie_existing_mysql_host'));
+        configs = configs.without(configs.findProperty('name', 'oozie_existing_mysql_database'));
+        configs = configs.without(configs.findProperty('name', 'oozie_existing_oracle_host'));
+        configs = configs.without(configs.findProperty('name', 'oozie_existing_oracle_database'));
       }
       else { //existing oracle database
-        var existingOracleHost = globals.findProperty('name', 'oozie_existing_oracle_host');
+        var existingOracleHost = configs.findProperty('name', 'oozie_existing_oracle_host');
         if (existingOracleHost) {
           dbHostPropertyName = 'oozie_existing_oracle_host';
         }
-        globals = globals.without(globals.findProperty('name', 'oozie_ambari_host'));
-        globals = globals.without(globals.findProperty('name', 'oozie_ambari_database'));
-        globals = globals.without(globals.findProperty('name', 'oozie_existing_mysql_host'));
-        globals = globals.without(globals.findProperty('name', 'oozie_existing_mysql_database'));
-        globals = globals.without(globals.findProperty('name', 'oozie_derby_database'));
+        configs = configs.without(configs.findProperty('name', 'oozie_ambari_host'));
+        configs = configs.without(configs.findProperty('name', 'oozie_ambari_database'));
+        configs = configs.without(configs.findProperty('name', 'oozie_existing_mysql_host'));
+        configs = configs.without(configs.findProperty('name', 'oozie_existing_mysql_database'));
+        configs = configs.without(configs.findProperty('name', 'oozie_derby_database'));
       }
 
     }
 
     if (dbHostPropertyName) {
-      var oozieHostNameProperty = App.ServiceConfigProperty.create(App.config.get('preDefinedGlobalProperties').findProperty('name', 'oozie_hostname'));
-      oozieHostNameProperty.set('value', globals.findProperty('name', dbHostPropertyName).get('value'));
-      globals.pushObject(oozieHostNameProperty);
+      var oozieHostNameProperty = App.ServiceConfigProperty.create(App.config.get('preDefinedSiteProperties').findProperty('name', 'oozie_hostname'));
+      oozieHostNameProperty.set('value', configs.findProperty('name', dbHostPropertyName).get('value'));
+      configs.pushObject(oozieHostNameProperty);
     }
   },
 
@@ -1327,11 +1289,12 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    */
   saveSiteConfigs: function (configs) {
     //storedConfigs contains custom configs as well
-    var serviceConfigProperties = configs.filterProperty('id', 'site property');
-    this.formatConfigValues(serviceConfigProperties);
+    this.setHiveHostName(configs);
+    this.setOozieHostName(configs);
+    this.formatConfigValues(configs);
     var mappedConfigs = App.config.excludeUnsupportedConfigs(this.get('configMapping').all(), App.Service.find().mapProperty('serviceName'));
     var allUiConfigs = this.loadUiSideConfigs(mappedConfigs);
-    this.set('uiConfigs', serviceConfigProperties.concat(allUiConfigs));
+    this.set('uiConfigs', configs.concat(allUiConfigs));
   },
 
   formatConfigValues: function (serviceConfigProperties) {
@@ -1381,7 +1344,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   },
 
   /**
-   * return global config value
+   * return config value
    * @param templateName
    * @param expression
    * @return {Object}
@@ -1400,7 +1363,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     if (express != null) {
       express.forEach(function (_express) {
         var index = parseInt(_express.match(/\[([\d]*)(?=\])/)[1]);
-        var globalObj = this.get('globalConfigs').findProperty('name', templateName[index]);
+        var globalObj = this.get('allConfigs').findProperty('name', templateName[index]);
         if (globalObj) {
           var globOverride = globalObj.overrides;
           if (globOverride != null) {
@@ -1475,9 +1438,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     console.log("TRACE: Inside " + siteName);
     var configObject;
     switch (siteName) {
-      case 'global':
-        configObject = this.createGlobalSiteObj(tagName, this.get('globalConfigs'));
-        break;
       case 'core-site':
         if (this.get('content.serviceName') === 'HDFS' || this.get('content.serviceName') === 'GLUSTERFS') {
           configObject = this.createCoreSiteObj(tagName);
@@ -1674,37 +1634,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   },
 
   /**
-   * create global site object
-   * @param {String} tagName
-   * @param {Array} globalConfigs array of config objects
-   * @return {{"type": String, "tag": String, "properties": Object}}
-   * @method createGlobalSiteObj
-   */
-  createGlobalSiteObj: function (tagName, globalConfigs) {
-    var heapsizeException = ['hadoop_heapsize', 'yarn_heapsize', 'nodemanager_heapsize', 'resourcemanager_heapsize', 'apptimelineserver_heapsize', 'jobhistory_heapsize'];
-    var globalSiteProperties = {};
-    globalConfigs.forEach(function (_globalSiteObj) {
-      // do not pass any globalConfigs whose name ends with _host or _hosts
-      if (_globalSiteObj.isRequiredByAgent !== false) {
-        // append "m" to JVM memory options except for hadoop_heapsize
-        if (/_heapsize|_newsize|_maxnewsize$/.test(_globalSiteObj.name) && !heapsizeException.contains(_globalSiteObj.name)) {
-          _globalSiteObj.value += "m";
-        }
-        globalSiteProperties[_globalSiteObj.name] = App.config.escapeXMLCharacters(_globalSiteObj.value);
-        //this.recordHostOverride(_globalSiteObj, 'global', tagName, this);
-        //console.log("TRACE: name of the global property is: " + _globalSiteObj.name);
-        //console.log("TRACE: value of the global property is: " + _globalSiteObj.value);
-      }
-    }, this);
-    var result = {"type": "global", "tag": tagName, "properties": globalSiteProperties};
-    var attributes = this.getConfigAttributes(globalConfigs);
-    if (attributes) {
-      result['properties_attributes'] = attributes;
-    }
-    return result;
-  },
-
-  /**
    * create core site object
    * @param tagName
    * @return {{"type": String, "tag": String, "properties": Object}}
@@ -1733,8 +1662,15 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * @return {Object}
    */
   createSiteObj: function (siteName, tagName, siteObj) {
+    var heapsizeException = ['hadoop_heapsize', 'yarn_heapsize', 'nodemanager_heapsize', 'resourcemanager_heapsize', 'apptimelineserver_heapsize', 'jobhistory_heapsize'];
     var siteProperties = {};
     siteObj.forEach(function (_siteObj) {
+      if (_siteObj.isRequiredByAgent !== false) {
+        if (/_heapsize|_newsize|_maxnewsize$/.test(_siteObj.name) && !heapsizeException.contains(_siteObj.name)) {
+          Em.set(_siteObj, "value",  _siteObj.value + "m");
+        }
+        siteProperties[_siteObj.name] = App.config.escapeXMLCharacters(_siteObj.value);
+      }
       switch (siteName) {
         case 'falcon-startup.properties':
         case 'falcon-runtime.properties':
@@ -1792,13 +1728,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    */
 
   hostComponentsmapping: [
-    {
-      hostProperty: 'namenode_host',
-      componentName: 'NAMENODE',
-      serviceName: 'HDFS',
-      serviceUseThis: [],
-      m: true
-    },
     {
       hostProperty: 'snamenode_host',
       componentName: 'SECONDARY_NAMENODE',
@@ -1902,12 +1831,12 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   ],
 
   /**
-   * Adds host name of master component to global config;
+   * Adds host name of master component to config;
    * @method addHostNamesToGlobalConfig
    */
-  addHostNamesToGlobalConfig: function () {
+  addHostNamesToConfig: function () {
     var serviceName = this.get('content.serviceName');
-    var globalConfigs = this.get('globalConfigs');
+    var configs = this.get('allConfigs');
     //namenode_host is required to derive "fs.default.name" a property of core-site
     try {
       this.setHostForService('HDFS', 'NAMENODE', 'namenode_host', true);
@@ -1923,15 +1852,15 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     }, this);
 
     if (serviceName === 'HIVE') {
-      var hiveDb = globalConfigs.findProperty('name', 'hive_database').value;
+      var hiveDb = configs.findProperty('name', 'hive_database').value;
       if (['Existing MySQL Database', 'Existing Oracle Database', 'Existing PostgreSQL Database'].contains(hiveDb)) {
-        globalConfigs.findProperty('name', 'hive_hostname').isVisible = true;
+        configs.findProperty('name', 'hive_hostname').isVisible = true;
       }
     }
     if (serviceName === 'OOZIE') {
-      var oozieDb = globalConfigs.findProperty('name', 'oozie_database').value;
+      var oozieDb = configs.findProperty('name', 'oozie_database').value;
       if (['Existing MySQL Database', 'Existing Oracle Database', 'Existing PostgreSQL Database'].contains(oozieDb)) {
-        globalConfigs.findProperty('name', 'oozie_hostname').isVisible = true;
+        configs.findProperty('name', 'oozie_hostname').isVisible = true;
       }
     }
   },
@@ -1944,12 +1873,12 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * @method setHostForService
    */
   setHostForService: function (serviceName, componentName, hostProperty, multiple) {
-    var globalConfigs = this.get('globalConfigs');
+    var configs = this.get('allConfigs');
     var serviceConfigs = this.get('serviceConfigs').findProperty('serviceName', serviceName).get('configs');
     var hostConfig = serviceConfigs.findProperty('name', hostProperty);
     if (hostConfig) {
       hostConfig.defaultValue = this.getMasterComponentHostValue(componentName, multiple);
-      globalConfigs.push(hostConfig);
+      configs.push(hostConfig);
     }
   },
 

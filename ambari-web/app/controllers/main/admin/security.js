@@ -266,8 +266,8 @@ App.MainAdminSecurityController = Em.Controller.extend({
   getSecurityStatusFromServerSuccessCallback: function (data) {
     var configs = data.Clusters.desired_configs;
     this.set('desiredConfigs', configs);
-    if ('global' in configs && 'hdfs-site' in configs) {
-      this.set('tag.global', configs['global'].tag);
+    if ('hadoop-env' in configs && 'hdfs-site' in configs) {
+      this.set('tag.hadoop-env', configs['hadoop-env'].tag);
       this.set('tag.hdfs-site', configs['hdfs-site'].tag);
       this.getServiceConfigsFromServer();
     }
@@ -279,8 +279,8 @@ App.MainAdminSecurityController = Em.Controller.extend({
   getServiceConfigsFromServer: function () {
     var tags = [
       {
-        siteName: "global",
-        tagName: this.get('tag.global')
+        siteName: "hadoop-env",
+        tagName: this.get('tag.hadoop-env')
       },
       {
         siteName: "hdfs-site",
@@ -289,7 +289,7 @@ App.MainAdminSecurityController = Em.Controller.extend({
     ];
 
     var data = App.router.get('configurationController').getConfigsByTags(tags);
-    var configs = data.findProperty('tag', this.get('tag.global')).properties;
+    var configs = data.findProperty('tag', this.get('tag.hadoop-env')).properties;
     if (configs && (configs['security_enabled'] === 'true' || configs['security_enabled'] === true)) {
       this.set('securityEnabled', true);
     }

@@ -17,7 +17,6 @@
  */
 
 var App = require('app');
-var totalHosts = 0;
 
 App.MainAdminHighAvailabilityController = Em.Controller.extend({
   name: 'mainAdminHighAvailabilityController',
@@ -106,8 +105,8 @@ App.MainAdminHighAvailabilityController = Em.Controller.extend({
 
   getSecurityStatusFromServerSuccessCallback: function (data) {
     var configs = data.Clusters.desired_configs;
-    if ('global' in configs) {
-      this.set('tag', configs['global'].tag);
+    if ('hadoop-env' in configs) {
+      this.set('tag', configs['hadoop-env'].tag);
       this.getServiceConfigsFromServer();
     } else {
       this.showErrorPopup(Em.I18n.t('admin.security.status.error'));
@@ -121,7 +120,7 @@ App.MainAdminHighAvailabilityController = Em.Controller.extend({
   getServiceConfigsFromServer: function () {
     var tags = [
       {
-        siteName: "global",
+        siteName: "hadoop-env",
         tagName: this.get('tag')
       }
     ];

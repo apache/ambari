@@ -57,7 +57,7 @@ App.MainAdminMiscController = App.MainServiceInfoConfigsController.extend({
     var configGroups = App.router.get('configurationController').getConfigsByTags(this.get('serviceConfigTags'));
     var configSet = App.config.mergePreDefinedWithLoaded(configGroups, [], this.get('serviceConfigTags'), serviceName);
 
-    var misc_configs = configSet.globalConfigs.filterProperty('serviceName', this.get('selectedService')).filterProperty('category', 'Users and Groups').filterProperty('isVisible', true);
+    var misc_configs = configSet.configs.filterProperty('serviceName', this.get('selectedService')).filterProperty('category', 'Users and Groups').filterProperty('isVisible', true);
 
     misc_configs = App.config.miscConfigVisibleProperty(misc_configs, installedServices);
 

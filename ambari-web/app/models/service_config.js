@@ -149,7 +149,7 @@ App.ServiceConfigProperty = Ember.Object.extend({
   isFinal: false,
   supportsFinal: false,
   isVisible: true,
-  isRequiredByAgent: true, // Setting it to true implies property will be stored in global configuration
+  isRequiredByAgent: true, // Setting it to true implies property will be stored in configuration
   isSecureConfig: false,
   errorMessage: '',
   warnMessage: '',

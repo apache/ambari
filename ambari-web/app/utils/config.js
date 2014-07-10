@@ -77,50 +77,15 @@ App.config = Em.Object.create({
     }
   },
 
-  preDefinedGlobalProperties: [],
-
-  setPreDefinedGlobalProperties: function () {
-    var globalProperties = [];
-    if (App.get('isHadoop2Stack')) {
-      globalProperties = require('data/HDP2/global_properties').configProperties;
-    } else {
-      globalProperties = require('data/global_properties').configProperties;
-    }
-    var preDefinedGlobalProperties = globalProperties;
-    var categories = [];
-    var nonServicePages = require('data/service_configs');
-    var services = App.StackService.find().filterProperty('id');
-
-    // Only services that have configTypes associated with it should display service config page
-    // Also Remove HCatalog from this list. HCatalog has global and hive-site related to it but none of them should be exposed under HCatalog Service
-    // HCatalog should be eventually made a part of Hive Service. See AMBARI-6302 description for further details
-    var servicesWithConfigTypes = services.filter(function (service) {
-      var configtypes = service.get('configTypes');
-      return configtypes && !!Object.keys(configtypes).length && service.get('serviceName') != 'HCATALOG';
-    }, this);
-    var serviceTabs = servicesWithConfigTypes.concat(nonServicePages);
-    serviceTabs.forEach(function (stackService) {
-      categories.pushObjects(stackService.get('configCategories'));
-    });
-    var categoryNames = categories.mapProperty('name').uniq();
-    if (!!categoryNames.length) {
-      preDefinedGlobalProperties = globalProperties.filter(function (_globalProperty) {
-        return !_globalProperty.category || (serviceTabs.someProperty('serviceName', _globalProperty.serviceName) &&
-          categoryNames.contains(_globalProperty.category));
-      });
-    }
-    this.set('preDefinedGlobalProperties', preDefinedGlobalProperties);
-  },
-
   preDefinedServiceConfigs: [],
 
   setPreDefinedServiceConfigs: function () {
-    var configs = this.get('preDefinedGlobalProperties');
+    var configs = this.get('preDefinedSiteProperties');
     var services = [];
     var nonServiceTab = require('data/service_configs');
     var stackServices = App.StackService.find().filterProperty('id');
     // Only include services that has configTypes related to them for service configuration page
-    // Also Remove HCatalog from this list. HCatalog has global and hive-site related to it but none of them should be exposed under HCatalog Service
+    // Also Remove HCatalog from this list. HCatalog has and hive-site related to it but none of them should be exposed under HCatalog Service
     // HCatalog should be eventually made a part of Hive Service. See AMBARI-6302 description for further details
     var servicesWithConfigTypes = stackServices.filter(function (service) {
       var configtypes = service.get('configTypes');
@@ -130,9 +95,6 @@ App.config = Em.Object.create({
     var allTabs = servicesWithConfigTypes.concat(nonServiceTab);
     allTabs.forEach(function (service) {
       var serviceConfigs = configs.filterProperty('serviceName', service.get('serviceName'));
-      serviceConfigs = serviceConfigs.filter(function (_globalProperty) {
-        !_globalProperty.category || service.get('configCategories').someProperty('name', _globalProperty.category);
-      });
       service.set('configs', serviceConfigs);
       services.push(service);
     });
@@ -236,21 +198,13 @@ App.config = Em.Object.create({
    *
    * Example:
    * {
-   *  'global_version1': {...},
-   *  'global_version2': {...},
    *  'hdfs-site_version3': {...},
    * }
    */
   loadedConfigurationsCache: {},
 
-  /**
-   * Array of global "service/desired_tag/actual_tag" strings which
-   * indicate different configurations. We cache these so that
-   * we don't have to recalculate if two tags are difference.
-   */
-  differentGlobalTagsCache: [],
-
   identifyCategory: function (config) {
+    if(config.filename.indexOf("env")!=-1) return;
     var category = null;
     var serviceConfigMetaData = this.get('preDefinedServiceConfigs').findProperty('serviceName', config.serviceName);
     if (serviceConfigMetaData) {
@@ -320,7 +274,6 @@ App.config = Em.Object.create({
   /**
    * return:
    *   configs,
-   *   globalConfigs,
    *   mappingConfigs
    *
    * @param configGroups
@@ -331,9 +284,8 @@ App.config = Em.Object.create({
    */
   mergePreDefinedWithLoaded: function (configGroups, advancedConfigs, tags, serviceName) {
     var configs = [];
-    var globalConfigs = [];
     var log4jContentProperties = this.createLog4jContent();
-    var preDefinedConfigs = this.get('preDefinedGlobalProperties').concat(this.get('preDefinedSiteProperties')).concat(log4jContentProperties);
+    var preDefinedConfigs = this.get('preDefinedSiteProperties').concat(log4jContentProperties);
     var mappingConfigs = [];
     var filenameExceptions = this.get('filenameExceptions');
     var selectedServiceNames = App.Service.find().mapProperty('serviceName');
@@ -349,23 +301,14 @@ App.config = Em.Object.create({
       var finalAttributes = attributes.final || {};
       var properties = siteConfig.properties || {};
       for (var index in properties) {
-        var configsPropertyDef = null;
-        var preDefinedConfig = [];
-        if (_tag.siteName === 'global') {
-          // Unlike other site where one site maps to ones service, global site contains configurations for multiple services
-          // So Global Configuration should not be filtered out with serviceName.
-          preDefinedConfig = preDefinedConfigs.filterProperty('name', index);
-          preDefinedConfig.forEach(function (_preDefinedConfig) {
-            var isServiceInstalled = selectedServiceNames.contains(_preDefinedConfig.serviceName);
-            if (isServiceInstalled || _preDefinedConfig.serviceName === 'MISC') {
-              configsPropertyDef = _preDefinedConfig;
-            }
-          }, this);
-        } else {
-          configsPropertyDef = preDefinedConfigs.filterProperty('name', index).findProperty('filename', filename);
+        var configsPropertyDef = preDefinedConfigs.filterProperty('name', index).findProperty('filename', filename);
           if (!configsPropertyDef) {
-            configsPropertyDef = preDefinedConfigs.filterProperty('name', index).findProperty('serviceName', serviceName);
-          }
+            preDefinedConfigs.filterProperty('name', index).forEach(function (_preDefinedConfig) {
+              var isServiceInstalled = selectedServiceNames.contains(_preDefinedConfig.serviceName);
+              if (isServiceInstalled || _preDefinedConfig.serviceName === 'MISC') {
+                configsPropertyDef = _preDefinedConfig;
+              }
+            }, this);
         }
 
         var serviceConfigObj = App.ServiceConfig.create({
@@ -386,27 +329,21 @@ App.config = Em.Object.create({
           this.setServiceConfigUiAttributes(serviceConfigObj, configsPropertyDef);
         }
 
-        if (_tag.siteName === 'global') {
+        if (!this.getBySitename(serviceConfigObj.get('filename')).someProperty('name', index)) {
+          isAdvanced = advancedConfigs.someProperty('name', index);
+          serviceConfigObj.id = 'site property';
           if (configsPropertyDef) {
             if (configsPropertyDef.isRequiredByAgent === false) {
               continue;
             }
             this.handleSpecialProperties(serviceConfigObj);
           } else {
-            serviceConfigObj.isVisible = false;  // if the global property is not defined on ui metadata global_properties.js then it shouldn't be a part of errorCount
-          }
-          serviceConfigObj.id = 'puppet var';
-          serviceConfigObj.displayName = configsPropertyDef ? configsPropertyDef.displayName : null;
-          serviceConfigObj.options = configsPropertyDef ? configsPropertyDef.options : null;
-          globalConfigs.push(serviceConfigObj);
-        } else if (!this.getBySitename(serviceConfigObj.get('filename')).someProperty('name', index)) {
-          isAdvanced = advancedConfigs.someProperty('name', index);
-          serviceConfigObj.id = 'site property';
-          if (!configsPropertyDef) {
+            serviceConfigObj.isVisible = false;  // if the property is not defined on ui metadata site_properties.js then it shouldn't be a part of errorCount
             serviceConfigObj.displayType = stringUtils.isSingleLine(serviceConfigObj.value) ? 'advanced' : 'multiLine';
           }
 
           serviceConfigObj.displayName = configsPropertyDef ? configsPropertyDef.displayName : index;
+          serviceConfigObj.options = configsPropertyDef ? configsPropertyDef.options : null;
           this.calculateConfigProperties(serviceConfigObj, isAdvanced, advancedConfigs);
 
           if (serviceConfigObj.get('displayType') == 'directories'
@@ -438,7 +375,6 @@ App.config = Em.Object.create({
     }, this);
     return {
       configs: configs,
-      globalConfigs: globalConfigs,
       mappingConfigs: mappingConfigs
     }
   },
@@ -472,18 +408,9 @@ App.config = Em.Object.create({
    * @return {Object}
    */
   syncOrderWithPredefined: function (configSet) {
-    var globalConfigs = configSet.globalConfigs,
-      siteConfigs = configSet.configs,
-      globalStart = [],
+    var siteConfigs = configSet.configs,
       siteStart = [];
 
-    this.get('preDefinedGlobalProperties').mapProperty('name').forEach(function (name) {
-      var _global = globalConfigs.findProperty('name', name);
-      if (_global) {
-        globalStart.push(_global);
-        globalConfigs = globalConfigs.without(_global);
-      }
-    }, this);
     var preDefinedSiteProperties = this.get('preDefinedSiteProperties').mapProperty('name');
     var log4jContentProperties = this.createLog4jContent().mapProperty('name');
     var siteProperties = preDefinedSiteProperties.concat(log4jContentProperties);
@@ -501,7 +428,6 @@ App.config = Em.Object.create({
     }, this);
 
     return {
-      globalConfigs: globalStart.concat(globalConfigs.sortProperty('name')),
       configs: siteStart.concat(siteConfigs.sortProperty('name')),
       mappingConfigs: configSet.mappingConfigs
     }
@@ -517,7 +443,7 @@ App.config = Em.Object.create({
   mergePreDefinedWithStored: function (storedConfigs, advancedConfigs, selectedServiceNames) {
     var mergedConfigs = [];
     var log4jContentProperties = this.createLog4jContent();
-    var preDefinedConfigs = this.get('preDefinedGlobalProperties').concat(this.get('preDefinedSiteProperties')).concat(log4jContentProperties);
+    var preDefinedConfigs = this.get('preDefinedSiteProperties').concat(log4jContentProperties);
 
     storedConfigs = (storedConfigs) ? storedConfigs : [];
 
@@ -882,7 +808,7 @@ App.config = Em.Object.create({
     if (data.items.length) {
       data.items.forEach(function (item) {
         item = item.StackConfigurations;
-        item.isVisible = item.type !== 'global.xml';
+        item.isVisible = true;
         var serviceName = item.service_name;
         var fileName = item.type;
         var isHDP2 = App.get('isHadoop2Stack');
@@ -993,7 +919,7 @@ App.config = Em.Object.create({
   /**
    * Set all site property that are derived from other site-properties
    */
-  setConfigValue: function (mappedConfigs, allConfigs, config, globalConfigs) {
+  setConfigValue: function (mappedConfigs, allConfigs, config) {
     var globalValue;
     if (config.value == null) {
       return;
@@ -1040,8 +966,8 @@ App.config = Em.Object.create({
     if (templateValue) {
       templateValue.forEach(function (_value) {
         var index = parseInt(_value.match(/\[([\d]*)(?=\])/)[1]);
-        if (globalConfigs.someProperty('name', config.templateName[index])) {
-          var globalValue = globalConfigs.findProperty('name', config.templateName[index]).value;
+        if (allConfigs.someProperty('name', config.templateName[index])) {
+          var globalValue = allConfigs.findProperty('name', config.templateName[index]).value;
           config.value = config.value.replace(_value, globalValue);
         } else {
           config.value = null;

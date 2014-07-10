@@ -87,8 +87,7 @@ App.Service = DS.Model.extend(App.ServiceModelMixin, {
 
   /**
    * For each host-component, if the desired_configs dont match the
-   * actual_configs, then a restart is required. Except for Global site
-   * properties, which need to be checked with map.
+   * actual_configs, then a restart is required.
    */
   isRestartRequired: function () {
     var rhc = this.get('hostComponents').filterProperty('staleConfigs', true);

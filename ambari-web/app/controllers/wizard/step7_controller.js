@@ -647,7 +647,6 @@ App.WizardStep7Controller = Em.Controller.extend({
       return;
     }
     this.clearStep();
-    App.config.setPreDefinedGlobalProperties();
     App.config.setPreDefinedServiceConfigs();
 
     //STEP 1: Load advanced configs

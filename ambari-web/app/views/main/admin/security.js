@@ -43,9 +43,9 @@ App.MainAdminSecurityView = Em.View.extend({
   }.property('configProperties'),
 
   onRealmNameChange: function () {
-    this.get('configProperties').forEach(function (_globalProperty) {
-      if (/principal_name?$/.test(_globalProperty.get('name'))) {
-        _globalProperty.set('unit', '@' + this.get('realmName.value'));
+    this.get('configProperties').forEach(function (_property) {
+      if (/principal_name?$/.test(_property.get('name'))) {
+        _property.set('unit', '@' + this.get('realmName.value'));
       }
     }, this);
   }.observes('realmName.value')

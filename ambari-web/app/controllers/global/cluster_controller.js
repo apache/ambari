@@ -314,7 +314,6 @@ App.ClusterController = Em.Controller.extend({
         service.StackServices.is_installed = false;
       },this);
       App.stackServiceMapper.map(data);
-      App.config.setPreDefinedGlobalProperties();
       App.config.setPreDefinedServiceConfigs();
       var updater = App.router.get('updateController');
       self.updateLoadStatus('stackComponents');
