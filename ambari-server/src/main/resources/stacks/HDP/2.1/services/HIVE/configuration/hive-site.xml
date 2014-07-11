@@ -377,6 +377,12 @@ limitations under the License.
   </property>
 
   <property>
+    <name>hive.limit.optimize.enable</name>
+    <value>true</value>
+    <description>Whether to enable the optimization of trying a smaller subset of data for simple LIMIT first.</description>
+  </property>
+
+  <property>
     <name>hive.limit.pushdown.memory.usage</name>
     <value>0.04</value>
     <description>The max memory to be used for hash in RS operator for top K selection.</description>
