@@ -33,6 +33,7 @@
     <hdpLatestUrl>http://public-repo-1.hortonworks.com/HDP/hdp_urlinfo.json</hdpLatestUrl>
     <ambari_commons.install.dir>/usr/lib/ambari-server/lib/ambari_commons</ambari_commons.install.dir>
     <ambari-web-dir>${basedir}/../ambari-web/public</ambari-web-dir>
+    <ambari-admin-dir>${basedir}/../ambari-admin</ambari-admin-dir>
   </properties>
   <build>
     <plugins>
@@ -401,6 +402,15 @@
               </sources>
             </mapping>
             <mapping>
+              <directory>/var/lib/ambari-server/resources/views</directory>
+              <filemode>755</filemode>
+              <sources>
+                <source>
+                  <location>${ambari-admin-dir}/target/ambari-admin-${project.version}.jar</location>
+                </source>
+              </sources>
+            </mapping>
+            <mapping>
               <directory>/var/lib/ambari-server/resources/upgrade</directory>
             </mapping>
             <mapping>
@@ -723,6 +733,14 @@
               <type>perm</type>
               <prefix>/var/lib/ambari-server/resources/scripts</prefix>
               <filemode>755</filemode>
+            </mapper>
+          </data>
+          <data>
+            <src>${ambari-admin-dir}/target/ambari-admin-${project.version}.jar</src>
+            <type>file</type>
+            <mapper>
+              <type>perm</type>
+              <prefix>/var/lib/ambari-server/resources/views</prefix>
             </mapper>
           </data>
           <data>
