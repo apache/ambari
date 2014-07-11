@@ -248,7 +248,7 @@ App.WizardStep7Controller = Em.Controller.extend({
     var siteToTagMap = {};
     for (var site in desired_configs) {
       if (desired_configs.hasOwnProperty(site)) {
-        if (sites.indexOf(site) > -1) {
+        if (!!sites[site]) {
           siteToTagMap[site] = desired_configs[site].tag;
         }
       }
@@ -776,7 +776,8 @@ App.WizardStep7Controller = Em.Controller.extend({
   getConfigTagsSuccess: function (data) {
     var installedServiceSites = [];
     App.StackService.find().filterProperty('isInstalled').forEach(function (service) {
-      installedServiceSites = installedServiceSites.concat(service.get('configTypes'));
+      var configTypes = Object.keys(service.get('configTypes'));
+      installedServiceSites = installedServiceSites.concat(configTypes);
     }, this);
     installedServiceSites = installedServiceSites.uniq();
     var serviceConfigTags = [];

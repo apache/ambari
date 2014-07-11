@@ -228,7 +228,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     var selectedConfigGroup;
     var siteToTagMap = {};
     var hostsLength = App.router.get('mainHostController.hostsCountMap.TOTAL');
-    serviceConfigsDef.get('configTypesRendered').forEach(function (siteName) {
+    var configTypesRendered = Object.keys(serviceConfigsDef.get('configTypesRendered'));
+    configTypesRendered.forEach(function (siteName) {
       if (data.Clusters.desired_configs[siteName]) {
         siteToTagMap[siteName] = data.Clusters.desired_configs[siteName].tag;
       } else {

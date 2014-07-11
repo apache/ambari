@@ -38,7 +38,7 @@ require('utils/configs/validators/storm_configs_validator');
  */
 App.StackService = DS.Model.extend(App.ServiceModelMixin, {
   comments: DS.attr('string'),
-  configTypes: DS.attr('array'),
+  configTypes: DS.attr('object'),
   serviceVersion: DS.attr('string'),
   stackName: DS.attr('string'),
   stackVersion: DS.attr('string'),
@@ -60,8 +60,13 @@ App.StackService = DS.Model.extend(App.ServiceModelMixin, {
   }.property('serviceName'),
 
   configTypesRendered: function () {
-    if (this.get('serviceName') == 'HDFS') return this.get('configTypes');
-    else return this.get('configTypes').without('core-site')
+    var configTypes =  this.get('configTypes');
+    if (this.get('serviceName') == 'HDFS') return configTypes;
+    else {
+      var renderedConfigTypes = $.extend(true,{}, configTypes);
+      delete renderedConfigTypes['core-site'];
+      return renderedConfigTypes
+    }
   }.property('serviceName','configTypes'),
 
   displayNameOnSelectServicePage: function () {
@@ -146,7 +151,8 @@ App.StackService = DS.Model.extend(App.ServiceModelMixin, {
   }.property('serviceName'),
 
   isNoConfigTypes: function () {
-   return !(this.get('configTypes') && this.get('configTypes').length);
+    var configTypes = this.get('configTypes');
+    return !(configTypes && !!Object.keys(configTypes).length);
   }.property('configTypes'),
 
   customReviewHandler: function () {
@@ -172,7 +178,7 @@ App.StackService = DS.Model.extend(App.ServiceModelMixin, {
     var serviceName = this.get('serviceName');
     var configTypes = this.get('configTypes');
     var serviceComponents = this.get('serviceComponents');
-    if (configTypes.length) {
+    if (configTypes && Object.keys(configTypes).length) {
       var pattern = ["General", "CapacityScheduler", "^Advanced", "^Custom", "Falcon - Oozie integration", "FalconStartupSite", "FalconRuntimeSite"];
       configCategories = App.StackService.configCategories(serviceName).filter(function (_configCategory) {
         var serviceComponentName = _configCategory.get('name');

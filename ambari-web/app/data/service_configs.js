@@ -35,7 +35,7 @@ module.exports = [
       App.ServiceConfigCategory.create({ name: 'General', displayName : 'General'}),
       App.ServiceConfigCategory.create({ name: 'Users and Groups', displayName : 'Users and Groups'})
     ],
-    configTypes: ['global'],
+    configTypes: {global: {supports: {final: false}}},
     configs: []
   })
 ];

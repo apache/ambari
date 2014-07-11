@@ -96,7 +96,7 @@ App.config = Em.Object.create({
     // HCatalog should be eventually made a part of Hive Service. See AMBARI-6302 description for further details
     var servicesWithConfigTypes = services.filter(function (service) {
       var configtypes = service.get('configTypes');
-      return configtypes && !!configtypes.length && service.get('serviceName') != 'HCATALOG';
+      return configtypes && !!Object.keys(configtypes).length && service.get('serviceName') != 'HCATALOG';
     }, this);
     var serviceTabs = servicesWithConfigTypes.concat(nonServicePages);
     serviceTabs.forEach(function (stackService) {
@@ -124,7 +124,7 @@ App.config = Em.Object.create({
     // HCatalog should be eventually made a part of Hive Service. See AMBARI-6302 description for further details
     var servicesWithConfigTypes = stackServices.filter(function (service) {
       var configtypes = service.get('configTypes');
-      return configtypes && !!configtypes.length && service.get('serviceName') != 'HCATALOG';
+      return configtypes && !!Object.keys(configtypes).length && service.get('serviceName') != 'HCATALOG';
     }, this);
 
     var allTabs = servicesWithConfigTypes.concat(nonServiceTab);
@@ -1012,7 +1012,7 @@ App.config = Em.Object.create({
   getServiceNameByConfigType: function (type) {
     var preDefinedServiceConfigs = this.get('preDefinedServiceConfigs');
     var service = preDefinedServiceConfigs.find(function (serviceConfig) {
-      return (serviceConfig.get('configTypes').contains(type));
+      return !!serviceConfig.get('configTypes')[type];
     }, this);
     return service && service.get('serviceName');
   },
