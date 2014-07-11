@@ -134,7 +134,7 @@ App.MainServiceItemView = Em.View.extend({
       options.push(actionMap.TOGGLE_PASSIVE);
     }
     return options;
-  }.property('controller.content', 'controller.isStopDisabled','controller.isClientsOnlyService'),
+  }.property('controller.content', 'controller.isStopDisabled','controller.isClientsOnlyService', 'controller.content.isRestartRequired', 'isPassive'),
 
   isMaintenanceActive: function() {
     return this.get('maintenance').length !== 0;
