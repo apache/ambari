@@ -135,6 +135,9 @@
 	                                    <a class="action" {{action "removeProperty" this target="view" }} ><i class="icon-minus-sign"></i>{{t common.remove}}</a>
                                     {{/if}}
 	                                {{/if}}
+                                  {{#if supportsFinal}}
+                                    <label class="checkbox inline">{{view Ember.Checkbox checkedBinding="isFinal"}}{{t services.service.config.final}}</label>
+                                  {{/if}}
                                 {{/if}}
                                   <span class="help-inline">{{errorMessage}}</span>
                                   <span class="help-inline">{{warnMessage}}</span>

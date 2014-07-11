@@ -1060,6 +1060,12 @@ h1 {
         padding: 5px;
         margin-left: -5px;
       }
+      .checkbox.inline {
+        vertical-align: baseline;
+        &>.ember-checkbox{
+          margin-left: -14px;
+        }
+      }
     }
     .entry-row {
       margin: 10px 0;
@@ -1086,6 +1092,9 @@ h1 {
           display: inline-block;
         }
         .error {
+        }
+        &>.ember-checkbox{
+          margin-bottom: 5px;
         }
       }
     }

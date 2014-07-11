@@ -73,6 +73,7 @@ App.ConfigurationController = Em.Controller.extend({
       if (storedSite) {
         storedSite.tag = loadedSite.tag;
         storedSite.properties = loadedSite.properties;
+        storedSite.properties_attributes = loadedSite.properties_attributes;
       } else {
         storedConfigs.push(loadedSite);
       }

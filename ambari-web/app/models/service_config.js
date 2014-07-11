@@ -146,6 +146,8 @@ App.ServiceConfigProperty = Ember.Object.extend({
   isRequired: true, // by default a config property is required
   isReconfigurable: true, // by default a config property is reconfigurable
   isEditable: true, // by default a config property is editable
+  isFinal: false,
+  supportsFinal: false,
   isVisible: true,
   isRequiredByAgent: true, // Setting it to true implies property will be stored in global configuration
   isSecureConfig: false,

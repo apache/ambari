@@ -315,6 +315,10 @@ var urls = {
     'real': '{stackVersionUrl}/services/{serviceName}/configurations?fields=*',
     'mock': '/data/wizard/stack/hdp/version{stackVersion}/{serviceName}.json'
   },
+  'config.config_types': {
+    'real': '{stackVersionUrl}/services/{serviceName}?fields=StackServices/config_types',
+    'mock': ''
+  },
   'config.tags': {
     'real': '/clusters/{clusterName}?fields=Clusters/desired_configs',
     'mock': '/data/clusters/cluster.json'

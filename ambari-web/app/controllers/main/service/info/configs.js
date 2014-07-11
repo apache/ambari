@@ -30,6 +30,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   selectedService: null,
   serviceConfigTags: null,
   selectedConfigGroup: null,
+  selectedServiceConfigTypes: [],
+  selectedServiceSupportsFinal: [],
   configGroups: [],
   globalConfigs: [],
   uiConfigs: [],
@@ -182,8 +184,32 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   loadServiceConfigs: function () {
     var advancedConfigs = [];
     var self = this;
+    var serviceName = this.get('content.serviceName');
 
-    App.config.loadAdvancedConfig(this.get('content.serviceName'), function (properties) {
+    var stackService = App.StackService.find().findProperty('serviceName', serviceName);
+    if (stackService != null) {
+      var configTypes = stackService.get('configTypes');
+      if (configTypes) {
+        var configTypesInfo = {
+          items : [],
+          supportsFinal : []
+        };
+        for ( var key in configTypes) {
+          if (configTypes.hasOwnProperty(key)) {
+            configTypesInfo.items.push(key);
+            if (configTypes[key].supports && configTypes[key].supports.final === "true") {
+              configTypesInfo.supportsFinal.push(key);
+            }
+          }
+        }
+        for ( var configType in configTypes) {
+          self.set('selectedServiceConfigTypes', configTypesInfo.items || []);
+          self.set('selectedServiceSupportsFinal', configTypesInfo.supportsFinal || []);
+        }
+      }
+    }
+
+    App.config.loadAdvancedConfig(serviceName, function (properties) {
       advancedConfigs.pushObjects(properties);
       self.set('advancedConfigs', advancedConfigs);
       self.loadServiceTags();
@@ -578,6 +604,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     this.setValidator(serviceConfigProperty, serviceConfigsData);
     this.setValuesForOverrides(overrides, _serviceConfigProperty, serviceConfigProperty, defaultGroupSelected);
     this.setEditability(serviceConfigProperty, defaultGroupSelected);
+    this.setSupportsFinal(serviceConfigProperty);
 
     return serviceConfigProperty;
   },
@@ -650,6 +677,19 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     if (App.get('isAdmin') && defaultGroupSelected && !this.get('isHostsConfigsPage')) {
       serviceConfigProperty.set('isEditable', serviceConfigProperty.get('isReconfigurable'));
     }
+  },
+
+  /**
+   * set supportsFinal property of config for admin
+   * @param {Ember.Object} serviceConfigProperty
+   * @method setSupportsFinal
+   */
+  setSupportsFinal: function (serviceConfigProperty) {
+    var fileName = serviceConfigProperty.get('filename');
+    var matchingConfigTypes = this.get('selectedServiceSupportsFinal').filter(function(configType) {
+      return fileName.startsWith(configType);
+    });
+    serviceConfigProperty.set('supportsFinal', matchingConfigTypes.length > 0);
   },
 
   /**
@@ -1433,14 +1473,18 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    */
   createConfigObject: function (siteName, tagName) {
     console.log("TRACE: Inside " + siteName);
+    var configObject;
     switch (siteName) {
       case 'global':
-        return this.createGlobalSiteObj(tagName, this.get('globalConfigs'));
+        configObject = this.createGlobalSiteObj(tagName, this.get('globalConfigs'));
+        break;
       case 'core-site':
         if (this.get('content.serviceName') === 'HDFS' || this.get('content.serviceName') === 'GLUSTERFS') {
-          return this.createCoreSiteObj(tagName);
+          configObject = this.createCoreSiteObj(tagName);
+        } else {
+          return null;
         }
-        return null;
+        break;
       default:
         var filename = (App.config.get('filenameExceptions').contains(siteName)) ? siteName : siteName + '.xml';
         if (filename === 'mapred-queue-acls.xml' && !App.supports.capacitySchedulerUi) {
@@ -1448,28 +1492,27 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         }
         return this.createSiteObj(siteName, tagName, this.get('uiConfigs').filterProperty('filename', filename));
     }
+    return configObject;
   },
 
   /**
    * load existen properties and compare them with current if there are
    * differences - trigger doPUTClusterConfigurationSite to save new properties
    * @param {String} siteName
-   * @param {Object} configs
+   * @param {Object} newConfig
    * @method doPUTClusterConfiguration
    */
-  doPUTClusterConfiguration: function (siteName, configs) {
-    var loadedProperties;
-    loadedProperties = App.router.get('configurationController').getConfigsByTags([
+  doPUTClusterConfiguration: function (siteName, newConfig) {
+    var oldConfig = App.router.get('configurationController').getConfigsByTags([
       {siteName: siteName, tagName: this.loadedClusterSiteToTagMap[siteName]}
     ]);
-    if (loadedProperties && loadedProperties[0]) {
-      loadedProperties = loadedProperties[0].properties;
-    }
-    if (!loadedProperties) {
-      loadedProperties = {};
-    }
-    if (this.isConfigChanged(loadedProperties, configs.properties)) {
-      this.doPUTClusterConfigurationSite(configs);
+    oldConfig = oldConfig[0] || {};
+    var oldProperties = oldConfig.properties || {};
+    var oldAttributes = oldConfig["properties_attributes"] || {};
+    var newProperties = newConfig.properties || {};
+    var newAttributes = newConfig["properties_attributes"] || {};
+    if (this.isAttributesChanged(oldAttributes, newAttributes) || this.isConfigChanged(oldProperties, newProperties)) {
+      this.doPUTClusterConfigurationSite(newConfig);
     } else {
       if (this.decrementProperty('putClusterConfigsCallsNumber') === 0) {
         this.onDoPUTClusterConfigurations();
@@ -1493,7 +1536,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * @method isConfigChanged
    */
   isConfigChanged: function (loadedConfig, savingConfig) {
-    var changed = false;
     if (loadedConfig != null && savingConfig != null) {
       var seenLoadKeys = [];
       for (var loadKey in loadedConfig) {
@@ -1508,18 +1550,59 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
           saveValue = "null";
         }
         if (loadValue !== saveValue) {
-          changed = true;
-          break;
+          return true;
         }
       }
       for (var saveKey in savingConfig) {
         if (seenLoadKeys.indexOf(saveKey) < 0) {
-          changed = true;
-          break;
+          return true;
         }
       }
     }
-    return changed;
+    return false;
+  },
+
+  /**
+   * Compares the loaded config properties attributes with the saving config properties attributes.
+   * @param {Object} oldAttributes -
+   * oldAttributes: {
+   *   supports: {
+   *     final: {
+   *       "configValue1" : "true",
+   *       "configValue2" : "true"
+   *     }
+   *   }
+   * }
+   * @param {Object} newAttributes
+   * newAttributes: {
+   *   supports: {
+   *     final: {
+   *       "configValue1" : "true",
+   *       "configValue2" : "true"
+   *     }
+   *   }
+   * }
+   * @returns {boolean}
+   * @method isConfigChanged
+   */
+  isAttributesChanged: function (oldAttributes, newAttributes) {
+    oldAttributes = oldAttributes.final || {};
+    newAttributes = newAttributes.final || {};
+
+    var key;
+    for (key in oldAttributes) {
+      if (oldAttributes.hasOwnProperty(key)
+        && (!newAttributes.hasOwnProperty(key) || newAttributes[key] !== oldAttributes[key])) {
+        return true;
+      }
+    }
+    for (key in newAttributes) {
+      if (newAttributes.hasOwnProperty(key)
+        && (!oldAttributes.hasOwnProperty(key) || newAttributes[key] !== oldAttributes[key])) {
+        return true;
+      }
+    }
+    return false;
   },
 
   /**
@@ -1568,6 +1651,29 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   },
 
   /**
+   * Save "final" attribute for properties
+   * @param {Array} properties - array of properties
+   * @returns {Object|null}
+   * */
+  getConfigAttributes: function(properties) {
+    var attributes = {
+      final: {}
+    };
+    var finalAttributes = attributes.final;
+    var hasAttributes = false;
+    properties.forEach(function (property) {
+      if (property.isRequiredByAgent !== false && property.isFinal) {
+        hasAttributes = true;
+        finalAttributes[property.name] = "true";
+      }
+    });
+    if (hasAttributes) {
+      return attributes;
+    }
+    return null;
+  },
+
+  /**
    * create global site object
    * @param {String} tagName
    * @param {Array} globalConfigs array of config objects
@@ -1590,7 +1696,12 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         //console.log("TRACE: value of the global property is: " + _globalSiteObj.value);
       }
     }, this);
-    return {"type": "global", "tag": tagName, "properties": globalSiteProperties};
+    var result = {"type": "global", "tag": tagName, "properties": globalSiteProperties};
+    var attributes = this.getConfigAttributes(globalConfigs);
+    if (attributes) {
+      result['properties_attributes'] = attributes;
+    }
+    return result;
   },
 
   /**
@@ -1606,7 +1717,12 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       coreSiteProperties[_coreSiteObj.name] = App.config.escapeXMLCharacters(_coreSiteObj.value);
       //this.recordHostOverride(_coreSiteObj, 'core-site', tagName, this);
     }, this);
-    return {"type": "core-site", "tag": tagName, "properties": coreSiteProperties};
+    var result = {"type": "core-site", "tag": tagName, "properties": coreSiteProperties};
+    var attributes = this.getConfigAttributes(coreSiteObj);
+    if (attributes) {
+      result['properties_attributes'] = attributes;
+    }
+    return result;
   },
 
   /**
@@ -1629,7 +1745,12 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
           siteProperties[_siteObj.name] = this.setServerConfigValue(_siteObj.name, _siteObj.value);
       }
     }, this);
-    return {"type": siteName, "tag": tagName, "properties": siteProperties};
+    var result = {"type": siteName, "tag": tagName, "properties": siteProperties};
+    var attributes = this.getConfigAttributes(siteObj);
+    if (attributes) {
+      result['properties_attributes'] = attributes;
+    }
+    return result;
   },
   /**
    * This method will be moved to config's decorators class.
