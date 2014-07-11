@@ -50,6 +50,15 @@ App.HighAvailabilityWizardStep5Controller = App.HighAvailabilityProgressPageCont
   },
 
   installJournalNodes: function () {
+    App.ajax.send({
+      name: 'admin.high_availability.create_journalnode',
+      sender: this,
+      success: 'onJournalNodeCreate',
+      error: 'onJournalNodeCreate'
+    });
+  },
+
+  onJournalNodeCreate: function () {
     var hostNames = this.get('content.masterComponentHosts').filterProperty('component', 'JOURNALNODE').mapProperty('hostName');
     this.createComponent('JOURNALNODE', hostNames, "HDFS");
   },
