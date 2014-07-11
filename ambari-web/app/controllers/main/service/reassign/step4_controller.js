@@ -342,7 +342,7 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
 
   startNameNode: function () {
     var components = this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE');
-    this.updateComponent('NAMENODE', components.mapProperty('hostName').without(this.get('content.reassignHosts.target')), "HDFS", "Start");
+    this.updateComponent('NAMENODE', components.mapProperty('hostName').without(this.get('content.reassignHosts.source')), "HDFS", "Start");
   },
 
   startServices: function () {
