@@ -859,6 +859,58 @@ App.WizardStep8Controller = Em.Controller.extend({
     }
   },
   /**
+   * Update configurations for installed services.
+   * Do separated PUT-request for each siteName for each service
+   *
+   * @param {Array} configsToUpdate - configs need to update
+   * Format:
+   * <code>
+   *   [
+   *    {serviceName: 's1', id: 'site property', filename: 'f1.xml', name: 'n1', value: 'v1'},
+   *    {serviceName: 's2', id: 'site property', filename: 'f1.xml', name: 'n2', value: 'v2'},
+   *    {serviceName: 's2', id: '', filename: 'f2.xml', name: 'n3', value: 'v3'}
+   *   ]
+   * </code>
+   * @method updateConfigurations
+   */
+  updateConfigurations: function (configsToUpdate) {
+    var configs = configsToUpdate.filter(function(config) {
+      return !!config.filename && !/^(global|core)/.test(config.filename);
+    });
+    var fileNames = configs.mapProperty('filename').uniq();
+    var configsMap = [];
+    fileNames.forEach(function(fileName) {
+      var properties = {};
+      var tagVersion = 'version' + (new Date).getTime();
+      configs.filterProperty('filename', fileName).forEach(function(config) {
+        properties[config.name] = config.value;
+      });
+      configsMap.push({
+        type: fileName.replace('.xml',''),
+        tag: tagVersion,
+        properties: properties
+      });
+    });
+    if (!configsMap.length) return;
+    var configData = configsMap.map(function (_serviceConfig) {
+      return JSON.stringify({
+        Clusters: {
+          desired_config: {
+            type: _serviceConfig.type,
+            tag: _serviceConfig.tag,
+            properties: _serviceConfig.properties
+          }
+        }
+      });
+    }, this).toString();
+    this.addRequestToAjaxQueue({
+      name: 'wizard.step8.apply_configuration_to_cluster',
+      data: {
+        data: '[' + configData + ']'
+      }
+    });
+  },
+  /**
    * Prepare <code>ajaxQueue</code> and start to execute it
    * @method submitProceed
    */
@@ -972,13 +1024,13 @@ App.WizardStep8Controller = Em.Controller.extend({
 
   deleteClustersCallback: function (response, request, data) {
     if (data.isLast) {
-      if (this.get('wizardController').getDBProperty('configsToUpdate')) {
-        $.extend(true, this.get('configs'), this.get('wizardController').getDBProperty('configsToUpdate'));
-      }
       this.setLocalRepositories();
       this.createCluster();
       this.createSelectedServices();
       if (this.get('content.controllerName') !== 'addHostController') {
+        if (this.get('wizardController').getDBProperty('configsToUpdate')) {
+          this.updateConfigurations(this.get('wizardController').getDBProperty('configsToUpdate'));
+        }
         this.createConfigurations();
         this.applyConfigurationsToCluster();
       }
@@ -1465,7 +1517,6 @@ App.WizardStep8Controller = Em.Controller.extend({
         }
       });
     }, this).toString();
-
     this.addRequestToAjaxQueue({
       name: 'wizard.step8.apply_configuration_to_cluster',
       data: {
@@ -1609,16 +1660,19 @@ App.WizardStep8Controller = Em.Controller.extend({
    * @method createCoreSiteObj
    */
   createCoreSiteObj: function () {
+    var installedAndSelectedServices = Em.A([]);
+    installedAndSelectedServices.pushObjects(this.get('installedServices'));
+    installedAndSelectedServices.pushObjects(this.get('selectedServices'));
     var coreSiteObj = this.get('configs').filterProperty('filename', 'core-site.xml'),
       coreSiteProperties = {},
     // some configs needs to be skipped if services are not selected
-      isOozieSelected = this.get('selectedServices').someProperty('serviceName', 'OOZIE'),
+      isOozieSelected = installedAndSelectedServices.someProperty('serviceName', 'OOZIE'),
       oozieUser = this.get('globals').someProperty('name', 'oozie_user') ? this.get('globals').findProperty('name', 'oozie_user').value : null,
-      isHiveSelected = this.get('selectedServices').someProperty('serviceName', 'HIVE'),
+      isHiveSelected = installedAndSelectedServices.someProperty('serviceName', 'HIVE'),
       hiveUser = this.get('globals').someProperty('name', 'hive_user') ? this.get('globals').findProperty('name', 'hive_user').value : null,
-      isHcatSelected = this.get('selectedServices').someProperty('serviceName', 'WEBHCAT'),
+      isHcatSelected = installedAndSelectedServices.someProperty('serviceName', 'WEBHCAT'),
       hcatUser = this.get('globals').someProperty('name', 'hcat_user') ? this.get('globals').findProperty('name', 'hcat_user').value : null,
-      isGLUSTERFSSelected = this.get('selectedServices').someProperty('serviceName', 'GLUSTERFS');
+      isGLUSTERFSSelected = installedAndSelectedServices.someProperty('serviceName', 'GLUSTERFS');
 
     // screen out the GLUSTERFS-specific core-site.xml entries when they are not needed
     if (!isGLUSTERFSSelected) {
