@@ -1679,7 +1679,11 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   setServerConfigValue: function (configName, value) {
     switch (configName) {
       case 'storm.zookeeper.servers':
-        return JSON.stringify(value).replace(/"/g, "'");
+        if( Object.prototype.toString.call( value ) === '[object Array]' ) {
+          return JSON.stringify(value).replace(/"/g, "'");
+        } else {
+          return value;
+        }
         break;
       case 'content':
         return value;
