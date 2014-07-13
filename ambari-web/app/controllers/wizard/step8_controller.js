@@ -874,23 +874,21 @@ App.WizardStep8Controller = Em.Controller.extend({
    * @method updateConfigurations
    */
   updateConfigurations: function (configsToUpdate) {
+    var configurationController = App.router.get('mainServiceInfoConfigsController');
     var configs = configsToUpdate.filter(function(config) {
       return !!config.filename && !/^(global|core)/.test(config.filename);
     });
-    var fileNames = configs.mapProperty('filename').uniq();
+    var serviceNames = configs.mapProperty('serviceName').uniq();
     var configsMap = [];
-    fileNames.forEach(function(fileName) {
-      var properties = {};
-      var tagVersion = 'version' + (new Date).getTime();
-      configs.filterProperty('filename', fileName).forEach(function(config) {
-        properties[config.name] = config.value;
-      });
-      configsMap.push({
-        type: fileName.replace('.xml',''),
-        tag: tagVersion,
-        properties: properties
+
+    serviceNames.forEach(function (serviceName) {
+      var serviceConfigs = configs.filterProperty('serviceName', serviceName);
+      var tagName = 'version' + (new Date).getTime();
+      serviceConfigs.mapProperty('filename').uniq().forEach(function (siteName) {
+        configsMap.push(configurationController.createSiteObj(siteName.replace(".xml", ""), tagName, serviceConfigs.filterProperty('filename', siteName)));
       });
     });
+
     if (!configsMap.length) return;
     var configData = configsMap.map(function (_serviceConfig) {
       return JSON.stringify({
@@ -1028,7 +1026,7 @@ App.WizardStep8Controller = Em.Controller.extend({
       this.createCluster();
       this.createSelectedServices();
       if (this.get('content.controllerName') !== 'addHostController') {
-        if (this.get('wizardController').getDBProperty('configsToUpdate')) {
+        if (this.get('wizardController').getDBProperty('configsToUpdate') && this.get('wizardController').getDBProperty('configsToUpdate').length) {
           this.updateConfigurations(this.get('wizardController').getDBProperty('configsToUpdate'));
         }
         this.createConfigurations();
@@ -1424,8 +1422,6 @@ App.WizardStep8Controller = Em.Controller.extend({
       globalSiteObj.tag = tag;
       coreSiteObject.tag = tag;
       this.get('serviceConfigTags').pushObject(coreSiteObject);
-      //for Add Service save config of new and installed services either
-      selectedServices = selectedServices.concat(this.get('installedServices'));
     }
     this.get('serviceConfigTags').pushObject(globalSiteObj);
 
