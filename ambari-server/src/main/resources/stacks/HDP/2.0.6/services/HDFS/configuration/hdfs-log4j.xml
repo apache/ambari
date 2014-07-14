@@ -190,6 +190,9 @@ log4j.appender.NullAppender=org.apache.log4j.varia.NullAppender
 # Sends counts of logging messages at different severity levels to Hadoop Metrics.
 #
 log4j.appender.EventCounter=org.apache.hadoop.log.metrics.EventCounter
+
+# Removes "deprecated" messages
+log4j.logger.org.apache.hadoop.conf.Configuration.deprecation=WARN
     </value>
   </property>
 
