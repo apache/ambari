@@ -19,7 +19,7 @@
 <div class="host-component-popup-wrap">
 
     {{#if view.parentView.isLoaded}}
-    <!-- SERVICES --->
+    {{!-- SERVICES --}}
 
     <div {{bindAttr class="view.isServiceListHidden:hidden :task-list-main-warp"}}>
       <div class="task-top-wrap">
@@ -62,11 +62,14 @@
             </div>
           {{/each}}
         {{/if}}
+        {{#if view.isShowMore}}
+            <div class="show-more" {{action requestMoreOperations}}><a href="#">{{t hostPopup.serviceInfo.showMore}}</a></div>
+        {{/if}}
       </div>
     </div>
 
 
-  <!-- HOSTS --->
+  {{!-- HOSTS ---}}
 
   <div {{bindAttr class="view.isHostListHidden:hidden :task-list-main-warp"}}>
     <div class="task-top-wrap">
@@ -134,7 +137,7 @@
   </div>
 
 
-  <!-- TASKS --->
+  {{!-- TASKS ---}}
 
   <div {{bindAttr class="view.isTaskListHidden:hidden :task-list-main-warp"}}>
     <div class="task-top-wrap">

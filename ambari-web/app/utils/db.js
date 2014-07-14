@@ -167,6 +167,16 @@ App.db.setAuthenticated = function (authenticated) {
   console.log('Now present value of authentication is: ' + App.db.data.app.authenticated);
 };
 
+App.db.setBGOOperationsCount = function(count) {
+  console.log('TRACE: Entering db:setBGOOperationsCount function');
+  App.db.data = localStorage.getObject('ambari');
+  if (!App.db.data.app.BGOOperationsCount) {
+    App.db.data.app.BGOOperationsCount = 10;
+  }
+  App.db.data.app.BGOOperationsCount = count;
+  localStorage.setObject('ambari', App.db.data);
+};
+
 App.db.setFilterConditions = function(name, filterConditions) {
   console.log('TRACE: Entering db:setFilterConditions function');
   App.db.data = localStorage.getObject('ambari');
@@ -549,6 +559,15 @@ App.db.getAuthenticated = function () {
   console.log('Trace: Entering db:getAuthenticated function');
   App.db.data = localStorage.getObject('ambari');
   return App.db.data.app.authenticated;
+};
+
+App.db.getBGOOperationsCount = function () {
+  console.log('Trace: Entering db:getBGOOperationsCount function');
+  App.db.data = localStorage.getObject('ambari');
+  if (App.db.data.app.BGOOperationsCount) {
+    return App.db.data.app.BGOOperationsCount;
+  }
+  return 10;
 };
 
 App.db.getFilterConditions = function(name) {

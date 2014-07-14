@@ -71,6 +71,7 @@ App.BackgroundOperationsController = Em.Controller.extend({
     });
     return !this.isInitLoading();
   },
+
   /**
    * indicate whether data for current level has already been loaded or not
    * @return {Boolean}
@@ -89,10 +90,13 @@ App.BackgroundOperationsController = Em.Controller.extend({
    */
   getQueryParams: function () {
     var levelInfo = this.get('levelInfo');
+    var count = App.db.getBGOOperationsCount();
     var result = {
       name: 'background_operations.get_most_recent',
       successCallback: 'callBackForMostRecent',
-      data: {}
+      data: {
+        'operationsCount': count
+      }
     };
     if (levelInfo.get('name') === 'TASK_DETAILS' && !App.testMode) {
       result.name = 'background_operations.get_by_task';
@@ -176,13 +180,16 @@ App.BackgroundOperationsController = Em.Controller.extend({
   callBackForMostRecent: function (data) {
     var runningServices = 0;
     var currentRequestIds = [];
-
+    var countIssued = App.db.getBGOOperationsCount();
+    var countGot = data.itemTotal;
+   
     data.items.forEach(function (request) {
       var rq = this.get("services").findProperty('id', request.Requests.id);
       var isRunning = this.isRequestRunning(request);
       var requestParams = this.parseRequestContext(request.Requests.request_context);
       this.assignScheduleId(request, requestParams);
       currentRequestIds.push(request.Requests.id);
+
       if (rq) {
         rq.set('progress', Math.ceil(request.Requests.progress_percent));
         rq.set('status', request.Requests.request_status);
@@ -207,16 +214,20 @@ App.BackgroundOperationsController = Em.Controller.extend({
           contextCommand: requestParams.contextCommand
         });
         this.get("services").unshift(rq);
+        //To sort DESC by request id
+        this.set("services", this.get("services").sort( function(a,b) { return b.get('id') - a.get('id'); })) ;
       }
       runningServices += ~~isRunning;
     }, this);
     this.removeOldRequests(currentRequestIds);
     this.set("allOperationsCount", runningServices);
+    this.set('isShowMoreAvailable', countGot >= countIssued);
     this.set('serviceTimestamp', App.dateTime());
   },
+  isShowMoreAvailable: null,
   /**
    * remove old requests
-   * as API returns 10 latest request, the requests that absent in response should be removed
+   * as API returns 10, or  20 , or 30 ...etc latest request, the requests that absent in response should be removed
    * @param currentRequestIds
    */
   removeOldRequests: function (currentRequestIds) {

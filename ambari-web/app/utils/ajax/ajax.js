@@ -221,7 +221,7 @@ var urls = {
     'mock': '/data/alerts/HDP2/host_alerts.json'
   },
   'background_operations.get_most_recent': {
-    'real': '/clusters/{clusterName}/requests?to=end&page_size=10&fields=Requests',
+    'real': '/clusters/{clusterName}/requests?to=end&page_size={operationsCount}&fields=Requests',
     'mock': '/data/background_operations/list_on_start.json',
     'testInProduction': true
   },
