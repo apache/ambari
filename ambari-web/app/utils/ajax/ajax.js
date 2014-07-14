@@ -1865,7 +1865,7 @@ var ajax = Em.Object.extend({
     var statusCode = jqXHR.status + " status code";
     if (jqXHR.status === showStatus && !this.modalPopup) {
       this.modalPopup = App.ModalPopup.show({
-        header: jqXHR.statusText,
+        header: Em.I18n.t('common.error'),
         secondary: false,
         onPrimary: function () {
           this.hide();
