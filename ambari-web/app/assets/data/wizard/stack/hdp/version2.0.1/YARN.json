@@ -578,18 +578,6 @@
       }
     },
     {
-      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/YARN/configurations/yarn.scheduler.capacity.root.unfunded.capacity",
-      "StackConfigurations" : {
-        "property_description" : "\n      No description\n    ",
-        "property_name" : "yarn.scheduler.capacity.root.unfunded.capacity",
-        "property_value" : "50",
-        "service_name" : "YARN",
-        "stack_name" : "HDP",
-        "stack_version" : "2.0.1",
-        "type" : "capacity-scheduler.xml"
-      }
-    },
-    {
       "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/YARN/configurations/yarn.scheduler.maximum-allocation-mb",
       "StackConfigurations" : {
         "property_description" : "\n      The maximum allocation for every container request at the RM,\n      in MBs. Memory requests higher than this won't take effect,\n      and will get capped to this value.\n    ",

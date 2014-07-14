@@ -108,13 +108,5 @@
       allocations.
     </description>
   </property>
-  
-  <property>
-    <name>yarn.scheduler.capacity.root.unfunded.capacity</name>
-    <value>50</value>
-    <description>
-      No description
-    </description>
-  </property>
 
 </configuration>

@@ -334,8 +334,7 @@ CAPACITY_SCHEDULER = {
   "yarn.scheduler.capacity.root.default.maximum-capacity": "100",
   "yarn.scheduler.capacity.root.default.state": "RUNNING",
   "yarn.scheduler.capacity.root.default.user-limit-factor": "1",
-  "yarn.scheduler.capacity.root.queues": "default",
-  "yarn.scheduler.capacity.root.unfunded.capacity": "50"
+  "yarn.scheduler.capacity.root.queues": "default"
 }
 
 MAPRED_SITE = {

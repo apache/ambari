@@ -110,13 +110,6 @@
   </property>
   
   <property>
-    <name>yarn.scheduler.capacity.root.unfunded.capacity</name>
-    <value>50</value>
-    <description>
-      No description
-    </description>
-  </property>
-  <property>
     <name>yarn.scheduler.capacity.node-locality-delay</name>
     <value>40</value>
     <description>
