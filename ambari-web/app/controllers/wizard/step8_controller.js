@@ -835,6 +835,9 @@ App.WizardStep8Controller = Em.Controller.extend({
     serviceNames.forEach(function (serviceName) {
       var serviceConfigs = configs.filterProperty('serviceName', serviceName);
       var tagName = 'version' + (new Date).getTime();
+      serviceConfigs.forEach(function(config) {
+        config.value = App.config.trimProperty(config, false);
+      });
       serviceConfigs.mapProperty('filename').uniq().forEach(function (siteName) {
         configsMap.push(configurationController.createSiteObj(siteName.replace(".xml", ""), tagName, serviceConfigs.filterProperty('filename', siteName)));
       });
