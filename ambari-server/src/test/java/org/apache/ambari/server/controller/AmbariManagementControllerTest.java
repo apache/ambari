@@ -36,6 +36,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.net.ConnectException;
 import java.net.MalformedURLException;
 import java.net.UnknownHostException;
 import java.text.MessageFormat;
@@ -8137,7 +8138,9 @@ public class AmbariManagementControllerTest {
     try {
       controller.updateRespositories(requests);
     } catch (Exception e) {
-      assertTrue(e.getMessage().contains(UnknownHostException.class.getName()));
+      String exceptionMsg = e.getMessage();
+      assertTrue(exceptionMsg.contains(UnknownHostException.class.getName())
+        || exceptionMsg.contains(ConnectException.class.getName()));
     }      
     
     // reset repo

@@ -173,6 +173,7 @@ public enum State {
         }
       case DISABLED:
         if (startState == State.INSTALLED
+            || startState == State.INSTALL_FAILED
             || startState == State.UNKNOWN) {
           return true;
         }

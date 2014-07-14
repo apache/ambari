@@ -2225,6 +2225,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         break;
       case DISABLED:
         if (oldState == State.INSTALLED ||
+          oldState == State.INSTALL_FAILED ||
           oldState == State.UNKNOWN) {
           return true;
         }

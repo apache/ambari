@@ -340,15 +340,20 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
           State.DISABLED,
           ServiceComponentHostEventType.HOST_SVCCOMP_DISABLE,
           new ServiceComponentHostOpCompletedTransition())
+      .addTransition(State.UNKNOWN,
+                  State.DISABLED,
+                  ServiceComponentHostEventType.HOST_SVCCOMP_DISABLE,
+                  new ServiceComponentHostOpCompletedTransition())
+      .addTransition(State.INSTALL_FAILED,
+                  State.DISABLED,
+                  ServiceComponentHostEventType.HOST_SVCCOMP_DISABLE,
+                  new ServiceComponentHostOpCompletedTransition())
+
       .addTransition(State.DISABLED,
           State.INSTALLED,
           ServiceComponentHostEventType.HOST_SVCCOMP_RESTORE,
           new ServiceComponentHostOpCompletedTransition())
-      
-      .addTransition(State.UNKNOWN,
-          State.DISABLED,
-          ServiceComponentHostEventType.HOST_SVCCOMP_DISABLE,
-          new ServiceComponentHostOpCompletedTransition())
+
 
      .installTopology();
 

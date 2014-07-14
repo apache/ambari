@@ -19,6 +19,7 @@
 package org.apache.ambari.server.state.svccomphost;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 import javax.persistence.EntityManager;
@@ -216,6 +217,9 @@ public class ServiceComponentHostTest {
             impl.getServiceComponentName(), impl.getHostName(), timestamp);
       case HOST_SVCCOMP_OP_RESTART:
         return new ServiceComponentHostOpRestartedEvent(
+            impl.getServiceComponentName(), impl.getHostName(), timestamp);
+      case HOST_SVCCOMP_DISABLE:
+          return new ServiceComponentHostDisableEvent(
             impl.getServiceComponentName(), impl.getHostName(), timestamp);
       case HOST_SVCCOMP_WIPEOUT:
         return new ServiceComponentHostWipeoutEvent(
@@ -610,6 +614,63 @@ public class ServiceComponentHostTest {
     Assert.assertEquals(State.STOPPING,
         impl.getState());
   }
+
+   @Test
+   public void TestDisableInVariousStates() throws AmbariException,
+           InvalidStateTransitionException {
+       ServiceComponentHost sch =
+               createNewServiceComponentHost("HDFS", "DATANODE", "h1", false);
+       ServiceComponentHostImpl impl =  (ServiceComponentHostImpl) sch;
+
+       // Test valid states in which host component can be disabled
+       long timestamp = 0;
+       HashSet<State> validStates = new HashSet<State>();
+       validStates.add(State.INSTALLED);
+       validStates.add(State.INSTALL_FAILED);
+       validStates.add(State.UNKNOWN);
+       validStates.add(State.DISABLED);
+       for (State state : validStates)
+       {
+         sch.setState(state);
+         ServiceComponentHostEvent disableEvent = createEvent(
+                   impl, ++timestamp, ServiceComponentHostEventType.HOST_SVCCOMP_DISABLE);
+         impl.handleEvent(disableEvent);
+         // TODO: At present operation timestamps are not getting updated.
+         Assert.assertEquals(-1, impl.getLastOpStartTime());
+         Assert.assertEquals(-1, impl.getLastOpLastUpdateTime());
+         Assert.assertEquals(-1, impl.getLastOpEndTime());
+         Assert.assertEquals(State.DISABLED, impl.getState());
+       }
+
+       // Test invalid states in which host component cannot be disabled
+       HashSet<State> invalidStates = new HashSet<State>();
+       invalidStates.add(State.INIT);
+       invalidStates.add(State.INSTALLING);
+       invalidStates.add(State.STARTING);
+       invalidStates.add(State.STARTED);
+       invalidStates.add(State.STOPPING);
+       invalidStates.add(State.UNINSTALLING);
+       invalidStates.add(State.UNINSTALLED);
+       invalidStates.add(State.UPGRADING);
+
+       for(State state : invalidStates)
+       {
+           sch.setState(state);
+           ServiceComponentHostEvent disableEvent = createEvent(
+                   impl, ++timestamp, ServiceComponentHostEventType.HOST_SVCCOMP_DISABLE);
+           boolean exceptionThrown = false;
+           try {
+               impl.handleEvent(disableEvent);
+           } catch (Exception e) {
+               exceptionThrown = true;
+           }
+           Assert.assertTrue("Exception not thrown on invalid event", exceptionThrown);
+           // TODO: At present operation timestamps are not getting updated.
+           Assert.assertEquals(-1, impl.getLastOpStartTime());
+           Assert.assertEquals(-1, impl.getLastOpLastUpdateTime());
+           Assert.assertEquals(-1, impl.getLastOpEndTime());
+       }
+   }
 
   @Test
   public void testCanBeRemoved() throws Exception{

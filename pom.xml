@@ -173,7 +173,7 @@
             <exclude>derby.log</exclude>
             <exclude>CHANGES.txt</exclude>
             <exclude>pass.txt</exclude>
-                   <exclude>contrib/addons/test/dataServices/jmx/data/cluster_configuration.json.nohbase</exclude>
+            <exclude>contrib/addons/test/dataServices/jmx/data/cluster_configuration.json.nohbase</exclude>
             <exclude>contrib/ambari-scom/msi/src/GUI_Ambari.sln</exclude>
             <exclude>version</exclude>
             <!--IDE and GIT files-->
@@ -222,7 +222,8 @@
             <exclude>contrib/views/*/.classpath</exclude>
             <exclude>contrib/views/*/.project</exclude>
             <exclude>contrib/views/*/.settings/**</exclude>
-			
+            <exclude>contrib/views/jobs/src/main/resources/ui/**</exclude>
+
             <!--Velocity log -->
             <exclude>**/velocity.log*</exclude>
           </excludes>
