@@ -69,10 +69,10 @@ App.MainServiceItemView = Em.View.extend({
         disabled: false
       },
       TOGGLE_HA: {
-        action: App.isHaEnabled ? 'disableHighAvailability' : 'enableHighAvailability',
-        label: App.isHaEnabled ? Em.I18n.t('admin.highAvailability.button.disable') : Em.I18n.t('admin.highAvailability.button.enable'),
-        cssClass: App.isHaEnabled ? 'icon-arrow-down' : 'icon-arrow-up',
-        isHidden: (App.isHAEnabled && !App.autoRollbackHA)
+        action: App.get('isHaEnabled') ? 'disableHighAvailability' : 'enableHighAvailability',
+        label: App.get('isHaEnabled') ? Em.I18n.t('admin.highAvailability.button.disable') : Em.I18n.t('admin.highAvailability.button.enable'),
+        cssClass: App.get('isHaEnabled') ? 'icon-arrow-down' : 'icon-arrow-up',
+        isHidden: (App.get('isHaEnabled') && !App.get('autoRollbackHA'))
       },
       MOVE_COMPONENT: {
         action: 'reassignMaster',
