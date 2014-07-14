@@ -16,16 +16,26 @@
  * limitations under the License.
  */
 
-var App = window.App = Ember.Application.create();
+App.Helpers.misc = {
 
-App.Helpers = Ember.Namespace.create();
+  /**
+   * Convert value from bytes to appropriate measure
+   */
+  formatBandwidth: function (value) {
+    if (value) {
+      if (value < 1024) {
+        value = '<1KB';
+      } else {
+        if (value < 1048576) {
+          value = (value / 1024).toFixed(1) + 'KB';
+        } else  if (value >= 1048576 && value < 1073741824){
+          value = (value / 1048576).toFixed(1) + 'MB';
+        } else {
+          value = (value / 1073741824).toFixed(2) + 'GB';
+        }
+      }
+    }
+    return value;
+  }
 
-/* Order and include as you please. */
-require('scripts/helpers/*');
-require('scripts/controllers/*');
-require('scripts/store');
-require('scripts/models/**/*');
-require('scripts/routes/*');
-require('scripts/components/*');
-require('scripts/views/*');
-require('scripts/router');
+};

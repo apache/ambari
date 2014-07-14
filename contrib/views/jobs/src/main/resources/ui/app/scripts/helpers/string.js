@@ -16,16 +16,30 @@
  * limitations under the License.
  */
 
-var App = window.App = Ember.Application.create();
+App.Helpers.string = {
 
-App.Helpers = Ember.Namespace.create();
+  /**
+   * Determines whether string end within another string.
+   *
+   * @method endsWith
+   * @param {string} str string
+   * @param {string} suffix substring for search
+   * @return {boolean}
+   */
+  endsWith: function (str, suffix) {
+    return str.indexOf(suffix, this.length - suffix.length) !== -1;
+  },
 
-/* Order and include as you please. */
-require('scripts/helpers/*');
-require('scripts/controllers/*');
-require('scripts/store');
-require('scripts/models/**/*');
-require('scripts/routes/*');
-require('scripts/components/*');
-require('scripts/views/*');
-require('scripts/router');
+  /**
+   * Determines whether string start within another string.
+   *
+   * @method startsWith
+   * @param {string} str string
+   * @param {string} prefix substring for search
+   * @return {boolean}
+   */
+  startsWith: function (str, prefix) {
+    return str.indexOf(prefix) == 0;
+  }
+
+};
