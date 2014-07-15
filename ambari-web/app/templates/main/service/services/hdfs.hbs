@@ -97,7 +97,7 @@
 <tr>
   <td>{{t services.service.summary.pendingUpgradeStatus}}</td>
   <td>
-    {{view.upgradeStatus}}
+    <span {{bindAttr class="view.isUpgradeStatusWarning:upgrade-status-warning"}}>{{view.upgradeStatus}}</span>
   </td>
 </tr>
 <!-- Safe Mode Status -->

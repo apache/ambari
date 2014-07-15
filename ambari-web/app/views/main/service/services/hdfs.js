@@ -190,9 +190,15 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
     if (upgradeStatus) {
       return Em.I18n.t('services.service.summary.pendingUpgradeStatus.notPending');
     } else if (healthStatus == 'green') {
-      return Em.I18n.t('services.service.summary.pendingUpgradeStatus.pending');
+      return Em.I18n.t('services.service.summary.pendingUpgradeStatus.notFinalized');
     } else {
       return Em.I18n.t("services.service.summary.notAvailable");
     }
+  }.property('service.upgradeStatus', 'service.healthStatus'),
+  isUpgradeStatusWarning: function () {
+    var upgradeStatus = this.get('service.upgradeStatus');
+    var healthStatus = this.get('service.healthStatus');
+    return !upgradeStatus && healthStatus == 'green';
   }.property('service.upgradeStatus', 'service.healthStatus')
+
 });

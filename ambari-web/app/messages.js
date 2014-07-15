@@ -1106,7 +1106,7 @@ Em.I18n.translations = {
   'services.service.summary.nameNode.active':'Active NameNode',
   'services.service.summary.nameNode.standby':'Standby NameNode',
   'services.service.summary.pendingUpgradeStatus':'Upgrade Status',
-  'services.service.summary.pendingUpgradeStatus.pending':'Pending upgrade',
+  'services.service.summary.pendingUpgradeStatus.notFinalized':'Upgrade not finalized',
   'services.service.summary.pendingUpgradeStatus.notPending':'No pending upgrade',
   'services.service.summary.safeModeStatus':'Safe Mode Status',
   'services.service.summary.safeModeStatus.inSafeMode':'In safe mode',
