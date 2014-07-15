@@ -44,14 +44,14 @@ def main():
     exit(-1)
 
   if not os.path.exists(options.alert_file):
-    print "Alert file must exist"
-    exit(-1)
+    print "Status is unreported"
+    exit(3)
 
   try:
     with open(options.alert_file, 'r') as f:
       data = json.load(f)
 
-      first = True
+      found = False
       buf = ''
 
       for_hosts = data[options.alert_name]
@@ -66,13 +66,17 @@ def main():
             print str(alert_text)
             exit(1)
           else:
-            if not first:
+            if found:
               buf = buf + ', '
             buf = buf + alert_text
-            first = False
+            found = True
 
-      print buf
-      exit(0)
+      if not found:
+        print "Status is not reported"
+        exit(3)
+      else:
+        print buf
+        exit(0)
       
   except Exception:
     traceback.print_exc()
