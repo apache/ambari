@@ -393,7 +393,9 @@ GET_FQDN_SERVICE_URL = "server.fqdn.service.url"
 
 JDK_DOWNLOAD_CMD = "curl --create-dirs -o {0} {1}"
 JDK_DOWNLOAD_SIZE_CMD = "curl -I {0}"
-UNTAR_JDK_ARVHIVE = "tar -xvf {0}"
+
+# use --no-same-owner when running as root to prevent uucp as the user (AMBARI-6478)
+UNTAR_JDK_ARCHIVE = "tar --no-same-owner -xvf {0}"
 
 #JCE Policy files
 JCE_POLICY_FILENAMES = ["UnlimitedJCEPolicyJDK7.zip", "jce_policy-6.zip"]
@@ -1973,7 +1975,7 @@ def install_jdk(dest_file):
     retcode, out, err = run_os_command(MAKE_FILE_EXECUTABLE_CMD.format(dest_file))
     retcode, out, err = run_os_command(dest_file + ' -noregister')
   elif dest_file.endswith(".gz"):
-    retcode, out, err = run_os_command(UNTAR_JDK_ARVHIVE.format(dest_file))
+    retcode, out, err = run_os_command(UNTAR_JDK_ARCHIVE.format(dest_file))
   else:
     err = "JDK installation failed.Unknown file mask."
     raise FatalException(1, err)
