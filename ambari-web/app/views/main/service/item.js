@@ -68,11 +68,17 @@ App.MainServiceItemView = Em.View.extend({
         cssClass: 'icon-medkit',
         disabled: false
       },
-      TOGGLE_HA: {
+      TOGGLE_NN_HA: {
         action: App.get('isHaEnabled') ? 'disableHighAvailability' : 'enableHighAvailability',
         label: App.get('isHaEnabled') ? Em.I18n.t('admin.highAvailability.button.disable') : Em.I18n.t('admin.highAvailability.button.enable'),
         cssClass: App.get('isHaEnabled') ? 'icon-arrow-down' : 'icon-arrow-up',
-        isHidden: (App.get('isHaEnabled') && !App.get('autoRollbackHA'))
+        isHidden: (App.get('isHaEnabled') && !App.get('supports.autoRollbackHA'))
+      },
+      TOGGLE_RM_HA: {
+        action: 'enableRMHighAvailability',
+        label: Em.I18n.t('admin.rm_highAvailability.button.enable'),
+        cssClass: 'icon-arrow-up',
+        isHidden: !App.get('supports.resourceManagerHighAvailability')
       },
       MOVE_COMPONENT: {
         action: 'reassignMaster',
@@ -98,8 +104,8 @@ App.MainServiceItemView = Em.View.extend({
     var self = this;
     var options = [];
     var service = this.get('controller.content');
-    var allMasters = this.get('controller.content.hostComponents').filterProperty('isMaster').mapProperty('componentName').uniq();
-    var allSlaves = this.get('controller.content.hostComponents').filterProperty('isSlave').mapProperty('componentName').uniq();
+    var allMasters = service.get('hostComponents').filterProperty('isMaster').mapProperty('componentName').uniq();
+    var allSlaves = service.get('hostComponents').filterProperty('isSlave').mapProperty('componentName').uniq();
     var actionMap = this.actionMap();
 
     if (this.get('controller.isClientsOnlyService')) {
@@ -128,7 +134,14 @@ App.MainServiceItemView = Em.View.extend({
         }));
       });
       if (service.get('serviceTypes').contains('HA_MODE')) {
-        options.push(actionMap.TOGGLE_HA);
+        switch (service.get('serviceName')) {
+          case 'HDFS':
+            options.push(actionMap.TOGGLE_NN_HA);
+            break;
+          case 'YARN':
+            options.push(actionMap.TOGGLE_RM_HA);
+            break;
+        }
       }
       options.push(actionMap.RUN_SMOKE_TEST);
       options.push(actionMap.TOGGLE_PASSIVE);

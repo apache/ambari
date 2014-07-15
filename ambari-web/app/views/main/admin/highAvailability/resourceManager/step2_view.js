@@ -19,7 +19,8 @@
 
 var App = require('app');
 
-App.HighAvailabilityWizardStep7View = App.HighAvailabilityProgressPageView.extend({
+App.RMHighAvailabilityWizardStep2View = Em.View.extend({
 
-  templateName: require('templates/main/admin/highAvailability/step7')
+  templateName: require('templates/main/admin/highAvailability/resourceManager/step2')
+
 });

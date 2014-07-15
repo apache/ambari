@@ -63,13 +63,6 @@ App.AddServiceController = App.WizardController.extend({
   },
 
   /**
-   * return new object extended from clusterStatusTemplate
-   * @return Object
-   */
-  getCluster: function(){
-    return jQuery.extend({}, this.get('clusterStatusTemplate'), {name: App.router.getClusterName()});
-  },
-  /**
    * Load services data. Will be used at <code>Select services(step4)</code> step
    */
   loadServices: function () {

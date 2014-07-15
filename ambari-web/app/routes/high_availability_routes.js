@@ -19,7 +19,7 @@
 var App = require('app');
 
 module.exports = App.WizardRoute.extend({
-  route: '/highAvailability/enable',
+  route: '/highAvailability/NameNode/enable',
 
   enter: function (router) {
     Em.run.next(function () {

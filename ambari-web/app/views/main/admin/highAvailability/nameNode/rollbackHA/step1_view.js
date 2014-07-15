@@ -21,7 +21,7 @@ var App = require('app');
 
 App.RollbackHighAvailabilityWizardStep1View = Em.View.extend({
 
-  templateName: require('templates/main/admin/rollbackHA/step1'),
+  templateName: require('templates/main/admin/highAvailability/nameNode/rollbackHA/step1'),
 
   addNNHosts: null,
   sNNHosts: null,

@@ -16,21 +16,11 @@
  * limitations under the License.
  */
 
-
 var App = require('app');
 
-App.RollbackHighAvailabilityWizardStep2View = App.HighAvailabilityWizardStep4View.extend({
+require('controllers/main/admin/misc_controller');
 
-  templateName: require('templates/main/admin/rollbackHA/step2'),
-
-  step2BodyText: function () {
-    var activeNN = App.HostComponent.find().findProperty('displayNameAdvanced','Active NameNode');
-    if(!activeNN){
-      activeNN = App.HostComponent.find().findProperty('componentName','NAMENODE');
-    }
-    activeNN = activeNN.get('hostName');
-    this.get('controller.content').set('activeNNHost', activeNN);
-    return Em.I18n.t('admin.highAvailability.rollback.step2.body').format(this.get('controller.content.hdfsUser'), activeNN);
-  }.property()
-
+App.RMHighAvailabilityWizardStep4Controller = Em.Controller.extend({
+  name:"rMHighAvailabilityWizardStep4Controller"
 });
+

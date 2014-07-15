@@ -43,13 +43,6 @@ App.StackUpgradeController = App.WizardController.extend({
   }),
 
   /**
-   * return new object extended from clusterStatusTemplate
-   * @return Object
-   */
-  getCluster: function(){
-    return jQuery.extend({}, this.get('clusterStatusTemplate'), {name: App.router.getClusterName()});
-  },
-  /**
    * return new object extended from upgradeOptionsTemplate
    * @return Object
    */

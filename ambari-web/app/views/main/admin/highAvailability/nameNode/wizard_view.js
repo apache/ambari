@@ -70,7 +70,7 @@ App.HighAvailabilityWizardView = Em.View.extend({
     }
   },
 
-  templateName: require('templates/main/admin/highAvailability/wizard'),
+  templateName: require('templates/main/admin/highAvailability/nameNode/wizard'),
 
   isStep1Disabled: function () {
     return this.isStepDisabled(1);

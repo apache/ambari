@@ -19,7 +19,7 @@
 var App = require('app');
 
 module.exports = App.WizardRoute.extend({
-  route: '/highAvailability/rollbackHA',
+  route: '/highAvailability/NameNode/rollbackHA',
 
   enter: function (router) {
     Em.run.next(function () {

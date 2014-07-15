@@ -19,11 +19,8 @@
 
 var App = require('app');
 
-App.HighAvailabilityRollbackView = App.HighAvailabilityProgressPageView.extend({
-  templateName: require('templates/main/admin/highAvailability/rollback'),
+App.RMHighAvailabilityWizardStep1View = Em.View.extend({
 
-  notice: Em.I18n.t('admin.highAvailability.rollback.notice.inProgress'),
-  submitButtonText: Em.I18n.t('common.done')
-
+  templateName: require('templates/main/admin/highAvailability/resourceManager/step1')
 
 });

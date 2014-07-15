@@ -63,6 +63,28 @@ App.MainAdminHighAvailabilityController = Em.Controller.extend({
     App.router.transitionTo('main.admin.rollbackHighAvailability');
   },
 
+  /**
+   * enable ResourceManager High Availability
+   * @return {Boolean}
+   */
+  enableRMHighAvailability: function () {
+    //Prerequisite Checks
+    var message = [];
+    if (App.HostComponent.find().filterProperty('componentName', 'ZOOKEEPER_SERVER').length < 3) {
+      message.push(Em.I18n.t('admin.rm_highAvailability.error.zooKeeperNum'));
+    }
+
+    if (App.router.get('mainHostController.hostsCountMap.TOTAL') < 3) {
+      message.push(Em.I18n.t('admin.rm_highAvailability.error.hostsNum'));
+    }
+    if (message.length > 0) {
+      this.showErrorPopup(message);
+      return false;
+    }
+    App.router.transitionTo('main.admin.enableRMHighAvailability');
+    return true;
+  },
+
   setSecurityStatus: function () {
     if (App.testMode) {
       this.set('securityEnabled', !App.testEnableSecurity);

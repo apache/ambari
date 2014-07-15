@@ -38,6 +38,7 @@ var InitialData =  {
   'ReassignMaster' : {},
   'AddSecurity': {},
   'HighAvailabilityWizard': {},
+  'RMHighAvailabilityWizard': {},
   'RollbackHighAvailabilityWizard': {},
   'tmp': {}
 

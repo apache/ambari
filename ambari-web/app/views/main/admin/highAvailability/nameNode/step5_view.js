@@ -19,12 +19,7 @@
 
 var App = require('app');
 
-App.RollbackHighAvailabilityWizardStep3View = Em.View.extend({
+App.HighAvailabilityWizardStep5View = App.HighAvailabilityProgressPageView.extend({
 
-  templateName: require('templates/main/admin/rollbackHA/step3'),
-
-  didInsertElement: function() {
-
-  }
-
+  templateName: require('templates/main/admin/highAvailability/nameNode/step5')
 });

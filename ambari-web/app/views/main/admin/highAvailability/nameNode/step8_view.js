@@ -19,7 +19,14 @@
 
 var App = require('app');
 
-App.HighAvailabilityWizardStep5View = App.HighAvailabilityProgressPageView.extend({
+App.HighAvailabilityWizardStep8View = Em.View.extend({
 
-  templateName: require('templates/main/admin/highAvailability/step5')
+  templateName: require('templates/main/admin/highAvailability/nameNode/step8'),
+
+  step8BodyText: function () {
+    var nN = this.get('controller.content.masterComponentHosts').findProperty('isCurNameNode', true);
+    var addNN = this.get('controller.content.masterComponentHosts').findProperty('isAddNameNode', true);
+    return Em.I18n.t('admin.highAvailability.wizard.step8.body').format(this.get('controller.content.hdfsUser'), nN.hostName, addNN.hostName);
+  }.property('controller.content.masterComponentHosts')
+
 });

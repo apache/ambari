@@ -1012,5 +1012,13 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
     }).start();
 
     return dfd.promise();
+  },
+
+  /**
+   * return new object extended from clusterStatusTemplate
+   * @return Object
+   */
+  getCluster: function () {
+    return jQuery.extend({}, this.get('clusterStatusTemplate'), {name: App.router.getClusterName()});
   }
 });

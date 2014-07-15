@@ -19,26 +19,18 @@
 
 var App = require('app');
 
-App.HighAvailabilityWizardStep6View = Em.View.extend({
+App.RollbackHighAvailabilityWizardStep2View = App.HighAvailabilityWizardStep4View.extend({
 
-  templateName: require('templates/main/admin/highAvailability/step6'),
+  templateName: require('templates/main/admin/highAvailability/nameNode/rollbackHA/step2'),
 
-  didInsertElement: function() {
-    this.get('controller').pullCheckPointStatus();
-  },
-
-  step6BodyText: function () {
-    var nN = this.get('controller.content.masterComponentHosts').findProperty('isCurNameNode', true);
-    return Em.I18n.t('admin.highAvailability.wizard.step6.body').format(this.get('controller.content.hdfsUser'), nN.hostName);
-  }.property('controller.content.masterComponentHosts'),
-
-  jnCheckPointText: function () {
-    var curStatus = this.get('controller.isNextEnabled');
-    if (curStatus) {
-      return Em.I18n.t('admin.highAvailability.wizard.step6.jsInit');
-    } else {
-      return Em.I18n.t('admin.highAvailability.wizard.step6.jsNoInit');
+  step2BodyText: function () {
+    var activeNN = App.HostComponent.find().findProperty('displayNameAdvanced','Active NameNode');
+    if(!activeNN){
+      activeNN = App.HostComponent.find().findProperty('componentName','NAMENODE');
     }
-  }.property('controller.isNextEnabled')
+    activeNN = activeNN.get('hostName');
+    this.get('controller.content').set('activeNNHost', activeNN);
+    return Em.I18n.t('admin.highAvailability.rollback.step2.body').format(this.get('controller.content.hdfsUser'), activeNN);
+  }.property()
 
 });

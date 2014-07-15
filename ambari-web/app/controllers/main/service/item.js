@@ -378,6 +378,11 @@ App.MainServiceItemController = Em.Controller.extend({
     ability_controller.disableHighAvailability();
   },
 
+  enableRMHighAvailability: function() {
+    var ability_controller = App.router.get('mainAdminHighAvailabilityController');
+    ability_controller.enableRMHighAvailability();
+  },
+
   isPending:true
 
 });

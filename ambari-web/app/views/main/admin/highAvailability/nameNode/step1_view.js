@@ -19,26 +19,16 @@
 
 var App = require('app');
 
-App.HighAvailabilityWizardStep4View = Em.View.extend({
+App.HighAvailabilityWizardStep1View = Em.View.extend({
 
-  templateName: require('templates/main/admin/highAvailability/step4'),
+  templateName: require('templates/main/admin/highAvailability/nameNode/step1'),
 
   didInsertElement: function() {
-    this.get('controller').pullCheckPointStatus();
+    App.popover($("div.controls input[type=text]"), {'placement': 'right', 'trigger': 'hover', 'title': this.t('admin.highAvailability.wizard.step1.nameserviceid.tooltip.title'), 'content': this.t('admin.highAvailability.wizard.step1.nameserviceid.tooltip.content')});
   },
 
-  step4BodyText: function () {
-    var nN = this.get('controller.content.masterComponentHosts').findProperty('isCurNameNode', true);
-    return Em.I18n.t('admin.highAvailability.wizard.step4.body').format(this.get('controller.content.hdfsUser'), nN.hostName);
-  }.property('controller.content.masterComponentHosts'),
-
-  nnCheckPointText: function () {
-    var curStatus = this.get('controller.isNextEnabled');
-    if(curStatus){
-      return Em.I18n.t('admin.highAvailability.wizard.step4.ckCreated');
-    }else{
-      return Em.I18n.t('admin.highAvailability.wizard.step4.ckNotCreated');
-    }
-  }.property('controller.isNextEnabled')
+  showInputError: function () {
+    return !this.get('controller.isNameServiceIdValid') && this.get('controller.content.nameServiceId').length != 0 ;
+  }.property('controller.isNameServiceIdValid', 'controller.nameServiceId')
 
 });

@@ -470,6 +470,7 @@ module.exports = Em.Route.extend({
 
     rollbackHighAvailability: require('routes/rollbackHA_routes'),
 
+    enableRMHighAvailability: require('routes/rm_high_availability_routes'),
 
     adminSecurity: Em.Route.extend({
       route: '/security',

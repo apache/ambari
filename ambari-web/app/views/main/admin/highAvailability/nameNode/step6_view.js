@@ -19,26 +19,26 @@
 
 var App = require('app');
 
-App.HighAvailabilityWizardStep3View = Em.View.extend({
+App.HighAvailabilityWizardStep6View = Em.View.extend({
 
-  templateName: require('templates/main/admin/highAvailability/step3'),
-  didInsertElement: function () {
-    this.get('controller').loadStep();
+  templateName: require('templates/main/admin/highAvailability/nameNode/step6'),
+
+  didInsertElement: function() {
+    this.get('controller').pullCheckPointStatus();
   },
-  curNameNode: function () {
+
+  step6BodyText: function () {
     var nN = this.get('controller.content.masterComponentHosts').findProperty('isCurNameNode', true);
-    return nN.hostName;
+    return Em.I18n.t('admin.highAvailability.wizard.step6.body').format(this.get('controller.content.hdfsUser'), nN.hostName);
   }.property('controller.content.masterComponentHosts'),
-  addNameNode: function () {
-    var addNN = this.get('controller.content.masterComponentHosts').findProperty('isAddNameNode', true);
-    return addNN.hostName;
-  }.property('controller.content.masterComponentHosts'),
-  secondaryNameNode: function () {
-    var sn = this.get('controller.content.masterComponentHosts').findProperty('component', "SECONDARY_NAMENODE");
-    return sn.hostName;
-  }.property('controller.content.masterComponentHosts'),
-  journalNodes: function () {
-    return this.get('controller.content.masterComponentHosts').filterProperty('component', "JOURNALNODE");
-  }.property('controller.content.masterComponentHosts')
+
+  jnCheckPointText: function () {
+    var curStatus = this.get('controller.isNextEnabled');
+    if (curStatus) {
+      return Em.I18n.t('admin.highAvailability.wizard.step6.jsInit');
+    } else {
+      return Em.I18n.t('admin.highAvailability.wizard.step6.jsNoInit');
+    }
+  }.property('controller.isNextEnabled')
 
 });

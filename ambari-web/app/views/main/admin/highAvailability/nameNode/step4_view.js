@@ -19,31 +19,26 @@
 
 var App = require('app');
 
-App.RollbackHighAvailabilityWizardView = Em.View.extend({
+App.HighAvailabilityWizardStep4View = Em.View.extend({
+
+  templateName: require('templates/main/admin/highAvailability/nameNode/step4'),
 
   didInsertElement: function() {
-    var currentStep = this.get('controller.currentStep');
-    if (currentStep > 4) {
-      this.get('controller').setLowerStepsDisable(currentStep);
-    }
+    this.get('controller').pullCheckPointStatus();
   },
 
-  templateName: require('templates/main/admin/rollbackHA/rollback_wizard'),
+  step4BodyText: function () {
+    var nN = this.get('controller.content.masterComponentHosts').findProperty('isCurNameNode', true);
+    return Em.I18n.t('admin.highAvailability.wizard.step4.body').format(this.get('controller.content.hdfsUser'), nN.hostName);
+  }.property('controller.content.masterComponentHosts'),
 
-  isStep1Disabled: function () {
-    return this.isStepDisabled(1);
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
-
-  isStep2Disabled: function () {
-    return this.isStepDisabled(2);
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
-
-  isStep3Disabled: function () {
-    return this.isStepDisabled(3);
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
-
-  isStepDisabled: function (index) {
-    return this.get('controller.isStepDisabled').findProperty('step', index).get('value');
-  }
+  nnCheckPointText: function () {
+    var curStatus = this.get('controller.isNextEnabled');
+    if(curStatus){
+      return Em.I18n.t('admin.highAvailability.wizard.step4.ckCreated');
+    }else{
+      return Em.I18n.t('admin.highAvailability.wizard.step4.ckNotCreated');
+    }
+  }.property('controller.isNextEnabled')
 
 });

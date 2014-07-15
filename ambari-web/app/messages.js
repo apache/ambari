@@ -818,8 +818,11 @@ Em.I18n.translations = {
   'admin.highAvailability':' High Availability',
   'admin.highAvailability.button.enable':'Enable NameNode HA',
   'admin.highAvailability.button.disable':'Disable NameNode HA',
+  'admin.rm_highAvailability.button.enable':'Enable ResourceManager HA',
+  'admin.rm_highAvailability.button.disable':'Disable ResourceManager HA',
   'admin.highAvailability.disabled':'NameNode HA is disabled',
   'admin.highAvailability.enabled':'NameNode HA is enabled',
+  'admin.rm_highAvailability.disabled':'ResourceManager HA is disabled',
   'admin.highAvailability.confirmRollbackHeader':'Confirm Rollback',
   'admin.highAvailability.confirmRollbackBody':'This will rollback all operations that were done in HA wizard',
   'admin.highAvailability.confirmManualRollbackBody':'You are in the process of enabling NameNode HA. If you exit now, you must follow manual instructions to revert back to the non-HA setup as documented in the Ambari User Guide\'s <i>Rolling Back NameNode HA</i> section.  Are you sure you want to exit the wizard?',
@@ -827,6 +830,9 @@ Em.I18n.translations = {
   'admin.highAvailability.error.namenodeStarted':'NameNode must be running before you enable NameNode HA.',
   'admin.highAvailability.error.zooKeeperNum':'You must have at least 3 ZooKeeper Servers in your cluster to enable NameNode HA.',
   'admin.highAvailability.error.security':'You cannot enable NameNode HA via this wizard as your cluster is already secured.  First, disable security by going to Admin > Security, and then run this Enable NameNode HA wizard again.  After NameNode HA is enabled, you can go back to Admin > Security to secure the cluster.',
+  'admin.rm_highAvailability.error.hostsNum':'You must have at least 3 hosts in your cluster to enable ResourceManager HA.',
+  'admin.rm_highAvailability.error.zooKeeperNum':'You must have at least 3 ZooKeeper Servers in your cluster to enable ResourceManager HA.',
+
   'admin.highAvailability.wizard.header':'Enable NameNode HA Wizard',
   'admin.highAvailability.wizard.progressPage.notice.inProgress':'Please wait while NameNode HA is being deployed.',
   'admin.highAvailability.wizard.progressPage.notice.completed':'Please proceed to the next step.',
@@ -966,6 +972,13 @@ Em.I18n.translations = {
     '<b>manual steps</b> (that you must perform in sequence as instructed by the wizard).<br/><br/>' +
     '<b>You should plan a cluster maintenance window and prepare for cluster downtime when enabling NameNode HA.</b>',
   'admin.highAvailability.wizard.step1.alert':'If you have HBase running, please exit this wizard and stop HBase first.',
+
+  'admin.rm_highAvailability.wizard.header': 'Enable ResourceManager HA Wizard',
+  'admin.rm_highAvailability.wizard.step1.header': 'Get Started',
+  'admin.rm_highAvailability.wizard.step2.header': 'Select Host',
+  'admin.rm_highAvailability.wizard.step3.header': 'Review',
+  'admin.rm_highAvailability.wizard.step4.header': 'Configure Components',
+
   'admin.security.title':'Kerberos security has not been enabled',
   'admin.security.enabled': 'Kerberos security is enabled',
   'admin.security.disabled': 'Kerberos security is disabled',

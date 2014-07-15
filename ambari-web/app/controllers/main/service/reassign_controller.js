@@ -130,14 +130,6 @@ App.ReassignMasterController = App.WizardController.extend({
   },
 
   /**
-   * return new object extended from clusterStatusTemplate
-   * @return Object
-   */
-  getCluster: function () {
-    return jQuery.extend({}, this.get('clusterStatusTemplate'), {name: App.router.getClusterName()});
-  },
-
-  /**
    * Load services data from server.
    */
   loadServicesFromServer: function () {

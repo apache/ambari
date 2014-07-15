@@ -33,10 +33,18 @@
     {{#if controller.dataIsLoaded}}
       <p class="muted">
         {{t admin.highAvailability.disabled}}
-        <a class="btn btn-padding btn-success" {{action enableHighAvailability target="controller"}}>{{t admin.highAvailability.button.enable}}</a>
       </p>
+      <a class="btn btn-padding btn-success ha-btn" {{action enableHighAvailability target="controller"}}>{{t admin.highAvailability.button.enable}}</a>
     {{else}}
       <div class="spinner"></div>
     {{/if}}
+  {{/if}}
+  {{#if App.supports.resourceManagerHighAvailability}}
+    <div class="rm-ha">
+      <p class="muted">
+        {{t admin.rm_highAvailability.disabled}}
+      </p>
+      <a class="btn btn-padding btn-success ha-btn" {{action enableRMHighAvailability target="controller"}}>{{t admin.rm_highAvailability.button.enable}}</a>
+    </div>
   {{/if}}
 </div>
