@@ -401,15 +401,17 @@ App.MainJobsController = Em.Controller.extend({
   },
 
   loadJobs : function() {
-    var self = this;
-    var timeout = this.get('loadTimeout');
-    var yarnService = App.YARNService.find().objectAt(0);
-    var retryLoad = this.checkDataLoadingError();
-    if (yarnService != null) {
+    var self = this,
+      timeout = this.get('loadTimeout'),
+      yarnService = App.YARNService.find().objectAt(0),
+      atsComponent = App.HostComponent.find().findProperty('componentName','APP_TIMELINE_SERVER'),
+      atsInValidState = !!atsComponent && atsComponent.get('workStatus') === "STARTED",
+      retryLoad = this.checkDataLoadingError();
+    if (yarnService != null && atsInValidState) {
       this.set('loading', true);
-      var historyServerHostName = yarnService.get('appTimelineServer.hostName');
-      var filtersLink = this.get('filterObject').createJobsFiltersLink();
-      var hiveQueriesUrl = App.testMode ? "/data/jobs/hive-queries.json" : "/proxy?url=http://" + historyServerHostName
+      var historyServerHostName = yarnService.get('appTimelineServer.hostName'),
+        filtersLink = this.get('filterObject').createJobsFiltersLink(),
+        hiveQueriesUrl = App.get('testMode') ? "/data/jobs/hive-queries.json" : "/proxy?url=http://" + historyServerHostName
         + ":" + yarnService.get('ahsWebPort') + "/ws/v1/timeline/HIVE_QUERY_ID" + filtersLink;
       App.ajax.send({
         name: 'jobs.lastID',
@@ -420,7 +422,7 @@ App.MainJobsController = Em.Controller.extend({
         },
         success: 'lastIDSuccessCallback',
         error : 'lastIDErrorCallback'
-      }),
+      });
       App.HttpClient.get(hiveQueriesUrl, App.hiveJobsMapper, {
         complete : function(data, jqXHR, textStatus) {
           self.set('loading', false);
@@ -435,6 +437,7 @@ App.MainJobsController = Em.Controller.extend({
         self.checkDataLoadingError(jqXHR);
       });
     }else{
+      this.checkDataLoadingError();
       clearTimeout(timeout);
       timeout = setTimeout(function(){
         self.loadJobs();
