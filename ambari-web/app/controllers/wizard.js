@@ -25,6 +25,12 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
   isStepDisabled: null,
 
   /**
+   * map of actions which load data required by which step
+   * used by <code>loadAllPriorSteps</code>
+   */
+  loadMap: {},
+
+  /**
    * Wizard properties in local storage, which should be cleaned right after wizard has been finished
    */
   dbPropertiesToClean: [
@@ -525,7 +531,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
    */
   loadServiceComponents: function () {
     this.clearStackModels();
-    App.ajax.send({
+    return App.ajax.send({
       name: 'wizard.service_components',
       sender: this,
       data: {
@@ -981,5 +987,30 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
     var clients = this.getDBProperty('clientInfo');
     this.set('content.clients', clients);
     console.log(this.get('content.controllerName') + ".loadClients: loaded list ", clients);
+  },
+
+  /**
+   * load methods assigned to each step
+   * methods executed in exact order as they described in map
+   * @return {object}
+   */
+  loadAllPriorSteps: function () {
+    var currentStep = this.get('currentStep');
+    var loadMap = this.get('loadMap');
+    var operationStack = [];
+    var dfd = $.Deferred();
+
+    for (var s in loadMap) {
+      if (parseInt(s) <= parseInt(currentStep)) {
+        operationStack.pushObjects(loadMap[s]);
+      }
+    }
+
+    var sequence = App.actionSequence.create({context: this});
+    sequence.setSequence(operationStack).onFinish(function () {
+      dfd.resolve();
+    }).start();
+
+    return dfd.promise();
   }
 });

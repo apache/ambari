@@ -69,24 +69,6 @@ App.AddServiceController = App.WizardController.extend({
   getCluster: function(){
     return jQuery.extend({}, this.get('clusterStatusTemplate'), {name: App.router.getClusterName()});
   },
-
-  /**
-   * Load services data from server.
-   */
-  loadServicesFromServer: function() {
-    if(this.getDBProperty('service')){
-      return;
-    }
-    var apiService = this.loadServiceComponents();
-    apiService.forEach(function(item, index){
-      apiService[index].isSelected = App.Service.find().someProperty('id', item.serviceName);
-      apiService[index].isDisabled = apiService[index].isSelected;
-      apiService[index].isInstalled = apiService[index].isSelected;
-    });
-    this.set('content.services', apiService);
-    this.setDBProperty('service', apiService);
-  },
-
   /**
    * Load services data. Will be used at <code>Select services(step4)</code> step
    */

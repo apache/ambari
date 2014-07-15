@@ -79,21 +79,21 @@ App.InstallerController = App.WizardController.extend({
    * @param view
    * @param content
    */
-  connectOutlet: function(view, content) {
-    if(App.db.getAuthenticated()) {
+  connectOutlet: function (view, content) {
+    if (App.db.getAuthenticated()) {
       this._super(view, content);
     }
   },
 
-  getCluster: function(){
+  getCluster: function () {
     return jQuery.extend({}, this.get('clusterStatusTemplate'));
   },
 
-  getInstallOptions: function(){
+  getInstallOptions: function () {
     return jQuery.extend({}, this.get('installOptionsTemplate'));
   },
 
-  getHosts: function(){
+  getHosts: function () {
     return [];
   },
 
@@ -122,11 +122,18 @@ App.InstallerController = App.WizardController.extend({
    * Load services data. Will be used at <code>Select services(step4)</code> step
    */
   loadServices: function () {
+    var dfd = $.Deferred();
+    var self = this;
     var stackServices = App.StackService.find().mapProperty('serviceName');
     if (!(stackServices && !!stackServices.length && App.StackService.find().objectAt(0).get('stackVersion') == App.get('currentStackVersionNumber'))) {
-      this.loadServiceComponents();
-      this.set('content.services', App.StackService.find());
+      this.loadServiceComponents().complete(function () {
+        self.set('content.services', App.StackService.find());
+        dfd.resolve();
+      });
+    } else {
+      dfd.resolve();
     }
+    return dfd.promise();
   },
 
   /**
@@ -203,10 +210,16 @@ App.InstallerController = App.WizardController.extend({
   stacks: [],
 
   /**
+   * stack names used as auxiliary data to query stacks by name
+   */
+  stackNames: [],
+
+  /**
    * Load stacks data from server or take exist data from local db
    */
   loadStacks: function () {
     var stacks = App.db.getStacks();
+    var dfd = $.Deferred();
     if (stacks && stacks.length) {
       var convertedStacks = [];
       stacks.forEach(function (stack) {
@@ -214,37 +227,35 @@ App.InstallerController = App.WizardController.extend({
       });
       App.set('currentStackVersion', convertedStacks.findProperty('isSelected').get('name'));
       this.set('content.stacks', convertedStacks);
+      dfd.resolve(true);
     } else {
       App.ajax.send({
         name: 'wizard.stacks',
         sender: this,
         success: 'loadStacksSuccessCallback',
         error: 'loadStacksErrorCallback'
-      });
+      }).complete(function () {
+          dfd.resolve(false);
+        });
     }
+    return dfd.promise();
   },
 
   /**
    * Send queries to load versions for each stack
    */
   loadStacksSuccessCallback: function (data) {
-    var stacks = data.items;
-    var result;
     this.get('stacks').clear();
-    stacks.forEach(function (stack) {
-      App.ajax.send({
-        name: 'wizard.stacks_versions',
-        sender: this,
-        data: {
-          stackName: stack.Stacks.stack_name
-        },
-        success: 'loadStacksVersionsSuccessCallback',
-        error: 'loadStacksVersionsErrorCallback'
-      });
-    }, this);
-    result = this.get('stacks');
+    this.set('stackNames', data.items.mapProperty('Stacks.stack_name'));
+  },
+
+  /**
+   * set stacks from server to content and local DB
+   */
+  setStacks: function() {
+    var result = this.get('stacks');
     if (!result.length) {
-      console.log('Error: therea are no active stacks');
+      console.log('Error: there are no active stacks');
     } else {
       var defaultStackVersion = result.findProperty('name', App.defaultStackVersion);
       if (defaultStackVersion) {
@@ -262,6 +273,26 @@ App.InstallerController = App.WizardController.extend({
    */
   loadStacksErrorCallback: function () {
     console.log('Error in loading stacks');
+  },
+
+  /**
+   * query every stack names from server
+   * @return {Array}
+   */
+  loadStacksVersions: function () {
+    var requests = [];
+    this.get('stackNames').forEach(function (stackName) {
+      requests.push(App.ajax.send({
+        name: 'wizard.stacks_versions',
+        sender: this,
+        data: {
+          stackName: stackName
+        },
+        success: 'loadStacksVersionsSuccessCallback',
+        error: 'loadStacksVersionsErrorCallback'
+      }));
+    }, this);
+    return requests;
   },
 
   /**
@@ -316,11 +347,11 @@ App.InstallerController = App.WizardController.extend({
         });
       }
       result.push(
-          Em.Object.create({
-            name: version.Versions.stack_name + "-" + version.Versions.stack_version,
-            isSelected: false,
-            operatingSystems: oses
-          })
+        Em.Object.create({
+          name: version.Versions.stack_name + "-" + version.Versions.stack_version,
+          isSelected: false,
+          operatingSystems: oses
+        })
       );
     }, this);
     this.get('stacks').pushObjects(result);
@@ -344,7 +375,7 @@ App.InstallerController = App.WizardController.extend({
     });
     return dfd.promise();
   },
-  getServerVersion: function(){
+  getServerVersion: function () {
     return App.ajax.send({
       name: 'ambari.service.load_server_version',
       sender: this,
@@ -423,7 +454,7 @@ App.InstallerController = App.WizardController.extend({
       masterComponentHosts = [];
     }
     else {
-      masterComponentHosts.forEach(function(component) {
+      masterComponentHosts.forEach(function (component) {
         for (var i = 0; i < host_names.length; i++) {
           if (hosts[host_names[i]].id === component.host_id) {
             component.hostName = host_names[i];
@@ -443,8 +474,8 @@ App.InstallerController = App.WizardController.extend({
       hosts = this.getDBProperty('hosts'),
       host_names = Em.keys(hosts);
     if (!Em.isNone(slaveComponentHosts)) {
-      slaveComponentHosts.forEach(function(component) {
-        component.hosts.forEach(function(host) {
+      slaveComponentHosts.forEach(function (component) {
+        component.hosts.forEach(function (host) {
           for (var i = 0; i < host_names.length; i++) {
             if (hosts[host_names[i]].id === host.host_id) {
               host.hostName = host_names[i];
@@ -476,16 +507,16 @@ App.InstallerController = App.WizardController.extend({
     var clients = [];
     var serviceComponents = App.StackServiceComponent.find();
     var services =
-    stepController.get('content').filterProperty('isSelected', true).forEach(function (_service) {
-      var client = _service.get('serviceComponents').filterProperty('isClient', true);
-      client.forEach(function(clientComponent){
-        clients.pushObject({
-          component_name: clientComponent.get('componentName'),
-          display_name: clientComponent.get('displayName'),
-          isInstalled: false
-        });
-      },this);
-    }, this);
+      stepController.get('content').filterProperty('isSelected', true).forEach(function (_service) {
+        var client = _service.get('serviceComponents').filterProperty('isClient', true);
+        client.forEach(function (clientComponent) {
+          clients.pushObject({
+            component_name: clientComponent.get('componentName'),
+            display_name: clientComponent.get('displayName'),
+            isInstalled: false
+          });
+        }, this);
+      }, this);
     this.setDBProperty('clientInfo', clients);
     this.set('content.clients', clients);
   },
@@ -520,8 +551,8 @@ App.InstallerController = App.WizardController.extend({
       selectedStack.operatingSystems.forEach(function (os) {
         os.errorTitle = null;
         os.errorContent = null;
-        var verifyBaseUrl = os.skipValidation ? false: true;
-        if (os.selected ) {
+        var verifyBaseUrl = os.skipValidation ? false : true;
+        if (os.selected) {
           os.validation = 'icon-repeat';
           selectedStack.set('reload', !selectedStack.get('reload'));
           App.ajax.send({
@@ -555,7 +586,7 @@ App.InstallerController = App.WizardController.extend({
    * onSuccess callback for check Repo URL.
    */
   checkRepoURLSuccessCallback: function (response, request, data) {
-    console.log('Success in check Repo URL. data osType: ' + data.osType );
+    console.log('Success in check Repo URL. data osType: ' + data.osType);
     var selectedStack = this.get('content.stacks').findProperty('isSelected', true);
     if (selectedStack && selectedStack.operatingSystems) {
       var os = selectedStack.operatingSystems.findProperty('id', data.osId);
@@ -582,36 +613,98 @@ App.InstallerController = App.WizardController.extend({
     }
   },
 
-  /**
-   * Load data for all steps until <code>current step</code>
-   */
-  loadAllPriorSteps: function () {
-    var step = this.get('currentStep');
-    switch (step) {
-      case '10':
-      case '9':
-      case '8':
-      case '7':
-        this.loadServiceConfigGroups();
-        this.loadServiceConfigProperties();
-      case '6':
-        this.loadSlaveComponentHosts();
-        this.loadClients();
-      case '5':
-        this.loadMasterComponentHosts();
-        this.loadConfirmedHosts();
-      case '4':
-        this.loadStacks();
-        this.loadServices();
-      case '3':
-        this.loadConfirmedHosts();
-      case '2':
-        this.load('installOptions');
-      case '1':
-        this.loadStacks();
-      case '0':
-        this.load('cluster');
-    }
+  loadMap: {
+    '0': [
+      {
+        type: 'sync',
+        callback: function () {
+          this.load('cluster');
+        }
+      }
+    ],
+    '1': [
+      {
+        type: 'async',
+        callback: function () {
+          return this.loadStacks();
+        }
+      },
+      {
+        type: 'async',
+        callback: function (stacksLoaded) {
+          var dfd = $.Deferred();
+
+          if (!stacksLoaded) {
+            $.when.apply(this, this.loadStacksVersions()).done(function () {
+              dfd.resolve(stacksLoaded);
+            });
+          } else {
+            dfd.resolve(stacksLoaded);
+          }
+
+          return dfd.promise();
+        }
+      },
+      {
+        type: 'sync',
+        callback: function (stacksLoaded) {
+          if (!stacksLoaded) {
+            this.setStacks();
+          }
+        }
+      }
+    ],
+    '2': [
+      {
+        type: 'sync',
+        callback: function () {
+          this.load('installOptions');
+        }
+      }
+    ],
+    '3': [
+      {
+        type: 'sync',
+        callback: function () {
+          this.loadConfirmedHosts();
+        }
+      }
+    ],
+    '4': [
+      {
+        type: 'async',
+        callback: function () {
+          return this.loadServices();
+        }
+      }
+    ],
+    '5': [
+      {
+        type: 'sync',
+        callback: function () {
+          this.loadMasterComponentHosts();
+          this.loadConfirmedHosts();
+        }
+      }
+    ],
+    '6': [
+      {
+        type: 'sync',
+        callback: function () {
+          this.loadSlaveComponentHosts();
+          this.loadClients();
+        }
+      }
+    ],
+    '7': [
+      {
+        type: 'sync',
+        callback: function () {
+          this.loadServiceConfigGroups();
+          this.loadServiceConfigProperties();
+        }
+      }
+    ]
   },
   /**
    * Clear all temporary data
@@ -620,7 +713,7 @@ App.InstallerController = App.WizardController.extend({
     this.setCurrentStep('0');
     this.clearStorageData();
     var persists = App.router.get('applicationController').persistKey();
-    App.router.get('applicationController').postUserPref(persists,true);
+    App.router.get('applicationController').postUserPref(persists, true);
   },
 
   setStepsEnable: function () {

@@ -36,6 +36,7 @@ require('router');
 require('utils/ajax/ajax');
 require('utils/ajax/ajax_queue');
 require('utils/updater');
+require('utils/action_sequence');
 
 require('mappers');
 

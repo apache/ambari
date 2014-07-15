@@ -955,8 +955,7 @@ var urls = {
     'mock': '/data/stacks/HDP-2.1/service_components.json',
     'format': function(data) {
       return {
-        timeout: 10000,
-        async: !!data.async
+        timeout: 10000
       };
     }
   },
@@ -1150,21 +1149,11 @@ var urls = {
   },
   'wizard.stacks': {
     'real': '/stacks',
-    'mock': '/data/wizard/stack/stacks2.json',
-    'format': function() {
-      return {
-        async: false
-      };
-    }
+    'mock': '/data/wizard/stack/stacks2.json'
   },
   'wizard.stacks_versions': {
     'real': '/stacks/{stackName}/versions?fields=Versions,operatingSystems/repositories/Repositories',
-    'mock': '/data/wizard/stack/{stackName}_versions.json',
-    'format': function() {
-      return {
-        async: false
-      };
-    }
+    'mock': '/data/wizard/stack/{stackName}_versions.json'
   },
   'wizard.launch_bootstrap': {
     'real': '/bootstrap',

@@ -25,11 +25,11 @@ module.exports = Em.Route.extend({
   enter: function (router) {
     console.log('in /installer:enter');
 
-    App.clusterStatus.set('wizardControllerName',App.router.get('installerController.name'));
+    App.clusterStatus.set('wizardControllerName', App.router.get('installerController.name'));
 
     if (router.getAuthenticated()) {
       // check server/web client versions match
-      App.router.get('installerController').checkServerClientVersion().done(function() {
+      App.router.get('installerController').checkServerClientVersion().done(function () {
 
         var name = 'Cluster Install Wizard';
         $('title').text('Ambari - ' + name);
@@ -117,8 +117,9 @@ module.exports = Em.Route.extend({
       console.log('in installer.step0:connectOutlets');
       var controller = router.get('installerController');
       controller.setCurrentStep('0');
-      controller.loadAllPriorSteps();
-      controller.connectOutlet('wizardStep0', controller.get('content'));
+      controller.loadAllPriorSteps().done(function () {
+        controller.connectOutlet('wizardStep0', controller.get('content'));
+      });
     },
 
     next: function (router) {
@@ -134,8 +135,9 @@ module.exports = Em.Route.extend({
       console.log('in installer.step1:connectOutlets');
       var controller = router.get('installerController');
       controller.setCurrentStep('1');
-      controller.loadAllPriorSteps();
-      controller.connectOutlet('wizardStep1', controller.get('content'));
+      controller.loadAllPriorSteps().done(function () {
+        controller.connectOutlet('wizardStep1', controller.get('content'));
+      });
     },
     back: Em.Router.transitionTo('step0'),
     next: function (router) {
@@ -149,7 +151,7 @@ module.exports = Em.Route.extend({
       }
       // make sure got all validations feedback and no invalid url, then proceed
       var myVar = setInterval(
-        function(){
+        function () {
           var cnt = installerController.get('validationCnt');
           var invalidCnt = installerController.get('invalidCnt');
           if (cnt == 0 && invalidCnt == 0) { // all feedback exist and no invalid url
@@ -158,11 +160,11 @@ module.exports = Em.Route.extend({
             installerController.clearInstallOptions();
             router.transitionTo('step2');
             clearInterval(myVar);
-          } else if ( cnt == 0 && invalidCnt != 0) {
+          } else if (cnt == 0 && invalidCnt != 0) {
             clearInterval(myVar);
           }
         },
-      1000);
+        1000);
     }
   }),
 
@@ -173,8 +175,9 @@ module.exports = Em.Route.extend({
 
       var controller = router.get('installerController');
       controller.setCurrentStep('2');
-      controller.loadAllPriorSteps();
-      controller.connectOutlet('wizardStep2', controller.get('content'));
+      controller.loadAllPriorSteps().done(function () {
+        controller.connectOutlet('wizardStep2', controller.get('content'));
+      });
     },
     back: Em.Router.transitionTo('step1'),
     next: function (router) {
@@ -192,13 +195,14 @@ module.exports = Em.Route.extend({
       console.log('in installer.step3:connectOutlets');
       var controller = router.get('installerController');
       controller.setCurrentStep('3');
-      controller.loadAllPriorSteps();
-      var wizardStep3Controller = router.get('wizardStep3Controller');
-      wizardStep3Controller.set('wizardController', controller);
-      controller.connectOutlet('wizardStep3', controller.get('content'));
+      controller.loadAllPriorSteps().done(function () {
+        var wizardStep3Controller = router.get('wizardStep3Controller');
+        wizardStep3Controller.set('wizardController', controller);
+        controller.connectOutlet('wizardStep3', controller.get('content'));
+      });
     },
-    back: function(router){
-        router.transitionTo('step2');
+    back: function (router) {
+      router.transitionTo('step2');
     },
     next: function (router, context) {
       var installerController = router.get('installerController');
@@ -231,8 +235,9 @@ module.exports = Em.Route.extend({
       router.setNavigationFlow('step4');
       var controller = router.get('installerController');
       controller.setCurrentStep('4');
-      controller.loadAllPriorSteps();
-      controller.connectOutlet('wizardStep4', App.StackService.find());
+      controller.loadAllPriorSteps().done(function () {
+        controller.connectOutlet('wizardStep4', App.StackService.find());
+      });
     },
     back: Em.Router.transitionTo('step3'),
 
@@ -255,8 +260,9 @@ module.exports = Em.Route.extend({
       var controller = router.get('installerController');
       router.get('wizardStep5Controller').set('servicesMasters', []);
       controller.setCurrentStep('5');
-      controller.loadAllPriorSteps();
-      controller.connectOutlet('wizardStep5', controller.get('content'));
+      controller.loadAllPriorSteps().done(function () {
+        controller.connectOutlet('wizardStep5', controller.get('content'));
+      });
     },
     back: Em.Router.transitionTo('step4'),
     next: function (router) {
@@ -276,8 +282,9 @@ module.exports = Em.Route.extend({
       var controller = router.get('installerController');
       router.get('wizardStep6Controller').set('hosts', []);
       controller.setCurrentStep('6');
-      controller.loadAllPriorSteps();
-      controller.connectOutlet('wizardStep6', controller.get('content'));
+      controller.loadAllPriorSteps().done(function () {
+        controller.connectOutlet('wizardStep6', controller.get('content'));
+      });
     },
     back: Em.Router.transitionTo('step5'),
 
@@ -304,13 +311,15 @@ module.exports = Em.Route.extend({
       console.log('in /wizardStep7Controller:enter');
       var controller = router.get('installerController');
       controller.setCurrentStep('7');
-      controller.loadAllPriorSteps();
     },
     connectOutlets: function (router, context) {
       var controller = router.get('installerController');
-      var wizardStep7Controller = router.get('wizardStep7Controller');
-      wizardStep7Controller.set('wizardController', controller);
-      controller.connectOutlet('wizardStep7', controller.get('content'));
+
+      controller.loadAllPriorSteps().done(function () {
+        var wizardStep7Controller = router.get('wizardStep7Controller');
+        wizardStep7Controller.set('wizardController', controller);
+        controller.connectOutlet('wizardStep7', controller.get('content'));
+      });
     },
     back: Em.Router.transitionTo('step6'),
     next: function (router) {
@@ -330,10 +339,11 @@ module.exports = Em.Route.extend({
       console.log('in installer.step8:connectOutlets');
       var controller = router.get('installerController');
       controller.setCurrentStep('8');
-      controller.loadAllPriorSteps();
-      var wizardStep8Controller = router.get('wizardStep8Controller');
-      wizardStep8Controller.set('wizardController', controller);
-      controller.connectOutlet('wizardStep8', controller.get('content'));
+      controller.loadAllPriorSteps().done(function () {
+        var wizardStep8Controller = router.get('wizardStep8Controller');
+        wizardStep8Controller.set('wizardController', controller);
+        controller.connectOutlet('wizardStep8', controller.get('content'));
+      });
     },
     back: Em.Router.transitionTo('step7'),
     next: function (router) {
@@ -356,13 +366,14 @@ module.exports = Em.Route.extend({
       console.log('in installer.step9:connectOutlets');
       var controller = router.get('installerController');
       controller.setCurrentStep('9');
-      controller.loadAllPriorSteps();
-      if (!App.testMode) {
-        controller.setLowerStepsDisable(9);
-      }
-      var wizardStep9Controller = router.get('wizardStep9Controller');
-      wizardStep9Controller.set('wizardController', controller);
-      controller.connectOutlet('wizardStep9', controller.get('content'));
+      controller.loadAllPriorSteps().done(function () {
+        if (!App.testMode) {
+          controller.setLowerStepsDisable(9);
+        }
+        var wizardStep9Controller = router.get('wizardStep9Controller');
+        wizardStep9Controller.set('wizardController', controller);
+        controller.connectOutlet('wizardStep9', controller.get('content'));
+      });
     },
     back: Em.Router.transitionTo('step8'),
     retry: function (router) {
@@ -402,11 +413,12 @@ module.exports = Em.Route.extend({
       console.log('in installer.step10:connectOutlets');
       var controller = router.get('installerController');
       controller.setCurrentStep('10');
-      controller.loadAllPriorSteps();
-      if (!App.testMode) {
-        controller.setLowerStepsDisable(10);
-      }
-      controller.connectOutlet('wizardStep10', controller.get('content'));
+      controller.loadAllPriorSteps().done(function () {
+        if (!App.testMode) {
+          controller.setLowerStepsDisable(10);
+        }
+        controller.connectOutlet('wizardStep10', controller.get('content'));
+      });
     },
     back: Em.Router.transitionTo('step9'),
     complete: function (router, context) {

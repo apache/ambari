@@ -403,8 +403,7 @@ App.ClusterController = Em.Controller.extend({
       name: 'wizard.service_components',
       data: {
         stackUrl: App.get('stackVersionURL'),
-        stackVersion: App.get('currentStackVersionNumber'),
-        async: true
+        stackVersion: App.get('currentStackVersionNumber')
       },
       sender: callbackObj,
       success: 'loadStackServiceComponentsSuccess'
