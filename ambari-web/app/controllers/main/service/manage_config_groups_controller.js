@@ -159,7 +159,7 @@ App.ManageConfigGroupsController = Em.Controller.extend({
     var usedHosts = [];
     var unusedHosts = [];
     var serviceName = this.get('serviceName');
-    var serviceDisplayName =  this.get('displayName');
+    var serviceDisplayName =  App.StackService.find().findProperty('serviceName', this.get('serviceName')).get('displayName');
     var defaultConfigGroup = App.ConfigGroup.create({
       name: serviceDisplayName + " Default",
       description: "Default cluster level " + this.get('serviceName') + " configuration",
