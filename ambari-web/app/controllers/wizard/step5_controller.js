@@ -359,8 +359,6 @@ App.WizardStep5Controller = Em.Controller.extend({
   },
 
   /**
-<<<<<<< HEAD
-=======
    * @param {string} componentName
    * @returns {bool}
    * @private
@@ -371,7 +369,6 @@ App.WizardStep5Controller = Em.Controller.extend({
   },
 
   /**
->>>>>>> apache-ref/trunk
    * Put master components to <code>selectedServicesMasters</code>, which will be automatically rendered in template
    * @param {Ember.Enumerable} masterComponents
    * @method renderComponents

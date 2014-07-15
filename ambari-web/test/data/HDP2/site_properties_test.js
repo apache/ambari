@@ -22,12 +22,6 @@ var siteProperties = require('data/HDP2/site_properties').configProperties;
 
 describe('hdp2SiteProperties', function () {
 
-
-  //@TODO: log4j propeties should not be a part of site properties file. A separate file  should address this logic. site_properties.js should be used only to provide ui attributes to existing stack properties
-  //Exclude log4j properties from unit tests for now
-  siteProperties = siteProperties.filter(function(item, index){
-    return !(item.filename && item.filename.endsWith('log4j.xml'));
-  });
   // No site properties should be made invisible
   siteProperties.forEach(function(siteProperty){
     it('Check invisible attribute of "' + siteProperty.name  + '"' + '. It should not be defined ', function () {

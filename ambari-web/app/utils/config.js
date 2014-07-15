@@ -163,6 +163,42 @@ App.config = Em.Object.create({
   //categories which contain custom configs
   categoriesWithCustom: ['CapacityScheduler'],
 
+
+  /**
+   * Create array of service properties for Log4j files
+   * @returns {Array}
+   */
+  createLog4jContent: function () {
+    var services = App.StackService.find();
+    var contentProperties = [];
+    services.forEach(function (service) {
+      if (service.get('configTypes')) {
+        Object.keys(service.get('configTypes')).forEach(function (type) {
+          if (type.endsWith('-log4j')) {
+            var property = {
+              "id": "site property",
+              "name": "content",
+              "displayName": "content",
+              "value": "",
+              "defaultValue": "",
+              "description": "log4j properties",
+              "displayType": "content",
+              "isOverridable": true,
+              "isRequired": false,
+              "isVisible": true,
+              "showLabel": false,
+              "serviceName": service.get('serviceName'),
+              "filename": type + '.xml',
+              "category": "Advanced " + type
+            };
+            contentProperties.pushObject(property);
+          }
+        }, this);
+      }
+    }, this);
+    return contentProperties;
+  },
+
   //configs with these filenames go to appropriate category not in Advanced
   customFileNames: function () {
     var customFiles = ['flume-conf.xml'];
@@ -296,7 +332,8 @@ App.config = Em.Object.create({
   mergePreDefinedWithLoaded: function (configGroups, advancedConfigs, tags, serviceName) {
     var configs = [];
     var globalConfigs = [];
-    var preDefinedConfigs = this.get('preDefinedGlobalProperties').concat(this.get('preDefinedSiteProperties'));
+    var log4jContentProperties = this.createLog4jContent();
+    var preDefinedConfigs = this.get('preDefinedGlobalProperties').concat(this.get('preDefinedSiteProperties')).concat(log4jContentProperties);
     var mappingConfigs = [];
     var filenameExceptions = this.get('filenameExceptions');
     var selectedServiceNames = App.Service.find().mapProperty('serviceName');
@@ -447,8 +484,10 @@ App.config = Em.Object.create({
         globalConfigs = globalConfigs.without(_global);
       }
     }, this);
-
-    this.get('preDefinedSiteProperties').mapProperty('name').forEach(function (name) {
+    var preDefinedSiteProperties = this.get('preDefinedSiteProperties').mapProperty('name');
+    var log4jContentProperties = this.createLog4jContent().mapProperty('name');
+    var siteProperties = preDefinedSiteProperties.concat(log4jContentProperties);
+    siteProperties.forEach(function (name) {
       var _site = siteConfigs.filterProperty('name', name);
       if (_site.length == 1) {
         siteStart.push(_site[0]);
@@ -477,7 +516,8 @@ App.config = Em.Object.create({
    */
   mergePreDefinedWithStored: function (storedConfigs, advancedConfigs, selectedServiceNames) {
     var mergedConfigs = [];
-    var preDefinedConfigs = this.get('preDefinedGlobalProperties').concat(this.get('preDefinedSiteProperties'));
+    var log4jContentProperties = this.createLog4jContent();
+    var preDefinedConfigs = this.get('preDefinedGlobalProperties').concat(this.get('preDefinedSiteProperties')).concat(log4jContentProperties);
 
     storedConfigs = (storedConfigs) ? storedConfigs : [];
 
