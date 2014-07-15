@@ -182,9 +182,9 @@ module.exports = App.WizardRoute.extend({
       console.log('in reassignMaster.step4:connectOutlets');
       var controller = router.get('reassignMasterController');
       controller.setCurrentStep('4');
+      controller.setLowerStepsDisable(4);
       controller.dataLoading().done(function () {
         controller.loadAllPriorSteps();
-        controller.setLowerStepsDisable(4);
         controller.connectOutlet('reassignMasterWizardStep4', controller.get('content'));
       })
     },
@@ -256,9 +256,9 @@ module.exports = App.WizardRoute.extend({
       console.log('in reassignMaster.step6:connectOutlets');
       var controller = router.get('reassignMasterController');
       controller.setCurrentStep('6');
+      controller.setLowerStepsDisable(6);
       controller.dataLoading().done(function () {
         controller.loadAllPriorSteps();
-        controller.setLowerStepsDisable(6);
         controller.connectOutlet('reassignMasterWizardStep6', controller.get('content'));
       })
     },
