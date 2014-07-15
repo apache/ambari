@@ -86,8 +86,9 @@ App.MainServiceMenuView = Em.CollectionView.extend({
     }.property('App.router.currentState.name', 'parentView.activeServiceId', 'isConfigurable'),
 
     goToConfigs: function () {
-      App.router.transitionTo('service.configs', this.get('content'));
-      App.router.set('currentState.name', 'configs');
+      this.set('content.routeToConfigs', true);
+      App.router.transitionTo('services.service.configs', this.get('content'));
+      this.set('content.routeToConfigs', false);
     },
 
     refreshRestartRequiredMessage: function() {
@@ -183,8 +184,9 @@ App.TopNavServiceMenuView = Em.CollectionView.extend({
     }.property('App.router.currentState.name', 'parentView.activeServiceId','isConfigurable'),
 
     goToConfigs: function () {
-      App.router.transitionTo('service.configs', this.get('content'));
-      App.router.set('currentState.name', 'configs');
+      this.set('content.routeToConfigs', true);
+      App.router.transitionTo('services.service.configs', this.get('content'));
+      this.set('content.routeToConfigs', false);
     },
 
     refreshRestartRequiredMessage: function() {

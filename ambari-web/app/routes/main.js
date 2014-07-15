@@ -670,7 +670,11 @@ module.exports = Em.Route.extend({
       route: '/:service_id',
       connectOutlets: function (router, service) {
         router.get('mainServiceController').connectOutlet('mainServiceItem', service);
-        router.transitionTo('summary');
+        if (service && service.get('routeToConfigs')) {
+          router.transitionTo('configs');
+        } else {
+          router.transitionTo('summary');
+        }
       },
       index: Ember.Route.extend({
         route: '/'
