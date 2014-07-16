@@ -22,8 +22,6 @@
  */
 App.AbstractJob = DS.Model.extend({
 
-  id : DS.attr('string'),
-
   name : DS.attr('string'),
 
   user : DS.attr('string'),
@@ -52,9 +50,9 @@ App.AbstractJob = DS.Model.extend({
     var startTime = this.get('startTime');
     var endTime = this.get('endTime');
     if(endTime < startTime || endTime == undefined) {
-      endTime =  App.dateTime();
+      endTime =  new Date().getTime();
     }
-    return dateUtils.duration(startTime, endTime);
+    return App.Helpers.date.duration(startTime, endTime);
   }.property('startTime', 'endTime'),
 
   durationDisplay : function() {

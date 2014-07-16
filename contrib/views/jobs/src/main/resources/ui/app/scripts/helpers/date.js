@@ -138,7 +138,8 @@ App.Helpers.date = {
       return '' + this.timingFormat(endTimestamp - startTimestamp, 1); //lasted for xx secs
     } else {
       // still running, duration till now
-      var time = (App.dateTime() - startTimestamp) < 0 ? 0 : (App.dateTime() - startTimestamp);
+      var t = new Date().getTime(),
+        time = (t - startTimestamp) < 0 ? 0 : (t - startTimestamp);
       durationSummary = '' + this.timingFormat(time, 1);
     }
     return durationSummary;
@@ -207,7 +208,7 @@ App.Helpers.date = {
     var duration = 0;
     if (startTime && startTime > 0) {
       if (!endTime || endTime < 1) {
-        endTime = App.dateTime();
+        endTime = new Date().getTime();
       }
       duration = endTime - startTime;
     }

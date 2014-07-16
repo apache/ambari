@@ -17,8 +17,6 @@
 
 App.TezDag = DS.Model.extend({
 
-  id : DS.attr('string'),
-
   /**
    * When DAG is actually running on server, a unique ID is assigned.
    */
@@ -30,21 +28,19 @@ App.TezDag = DS.Model.extend({
 
   stage : DS.attr('string'),
 
-  vertices : DS.hasMany('App.TezDagVertex'),
+  vertices : DS.hasMany('tezDagVertex', {async:true}),
 
-  edges : DS.hasMany('App.TezDagEdge')
+  edges : DS.hasMany('tezDagEdge', {async:true})
 
 });
 
 App.TezDagEdge = DS.Model.extend({
 
-  id : DS.attr('string'),
-
   instanceId : DS.attr('string'),
 
-  fromVertex : DS.belongsTo('App.TezDagVertex'),
+  fromVertex : DS.belongsTo('tezDagVertex', {async:true}),
 
-  toVertex : DS.belongsTo('App.TezDagVertex'),
+  toVertex : DS.belongsTo('tezDagVertex', {async:true}),
 
   /**
    * Type of this edge connecting vertices. Should be one of constants defined
@@ -55,7 +51,6 @@ App.TezDagEdge = DS.Model.extend({
 
 App.TezDagVertex = DS.Model.extend({
 
-  id : DS.attr('string'),
   /**
    * When DAG vertex is actually running on server, a unique ID is assigned.
    */
@@ -78,12 +73,12 @@ App.TezDagVertex = DS.Model.extend({
   /**
    * A vertex can have multiple incoming edges.
    */
-  incomingEdges : DS.hasMany('App.TezDagEdge'),
+  incomingEdges : DS.hasMany('tezDagEdge', {async:true}),
 
   /**
    * This vertex can have multiple outgoing edges.
    */
-  outgoingEdges : DS.hasMany('App.TezDagEdge'),
+  outgoingEdges : DS.hasMany('tezDagEdge', {async:true}),
 
   startTime : DS.attr('number'),
 

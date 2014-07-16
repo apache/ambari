@@ -25,7 +25,7 @@ App.HiveJob = App.AbstractJob.extend({
 
   hasTezDag: DS.attr('boolean'),
 
-  tezDag : DS.belongsTo('App.TezDag'),
+  tezDag : DS.belongsTo('tezDag', {async:true}),
 
   failed: DS.attr('boolean')
 

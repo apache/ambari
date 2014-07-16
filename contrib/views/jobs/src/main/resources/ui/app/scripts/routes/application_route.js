@@ -17,9 +17,29 @@
  */
 
 App.ApplicationRoute = Ember.Route.extend({
-  // admittedly, this should be in IndexRoute and not in the
-  // top level ApplicationRoute; we're in transition... :-)
+
   model: function () {
-    return ['red', 'yellow', 'blue'];
+    return this.modelFor('hiveJobs');
+  },
+
+  redirect: function () {
+    this.transitionTo('jobs');
   }
+
+});
+
+App.JobsRoute = Ember.Route.extend({
+
+  model: function () {
+    return this.store.all('hiveJob');
+  }
+
+});
+
+App.JobRoute = Ember.Route.extend({
+
+  model: function (params) {
+    return this.store.all('hiveJob', params.id);
+  }
+
 });

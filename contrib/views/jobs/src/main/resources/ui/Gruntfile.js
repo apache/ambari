@@ -255,10 +255,11 @@ module.exports = function (grunt) {
             cwd: '<%= yeoman.app %>',
             dest: '<%= yeoman.dist %>',
             src: [
-              '*.{ico,txt,php}',
+              '*.{ico,txt}',
               '.htaccess',
               'images/{,*/}*.{webp,gif}',
-              'styles/fonts/*'
+              'styles/fonts/*',
+              'scripts/assets/**/*'
             ]
           }
         ]
@@ -366,7 +367,7 @@ module.exports = function (grunt) {
     'concat',
     'cssmin',
     //'uglify',
-    'copy',
+    'copy:dist',
     //'rev',
     'usemin'
   ]);

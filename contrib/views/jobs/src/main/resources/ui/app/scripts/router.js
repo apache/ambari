@@ -17,5 +17,6 @@
  */
 
 App.Router.map(function () {
-  // Add your routes here
+  this.resource("jobs", { path: "/" });
+  this.resource('job', { path: 'jobs/:job_id' });
 });

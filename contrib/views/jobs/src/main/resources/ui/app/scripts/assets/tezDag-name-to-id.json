@@ -1,0 +1,552 @@
+{
+  "entities": [
+    {
+      "starttime": 1394569228227,
+      "events": [
+        {
+          "timestamp": 1394569303577,
+          "eventtype": "DAG_FINISHED",
+          "eventinfo": {}
+        },
+        {
+          "timestamp": 1394569229560,
+          "eventtype": "DAG_STARTED",
+          "eventinfo": {}
+        },
+        {
+          "timestamp": 1394569229460,
+          "eventtype": "DAG_INITIALIZED",
+          "eventinfo": {}
+        },
+        {
+          "timestamp": 1394569228227,
+          "eventtype": "DAG_SUBMITTED",
+          "eventinfo": {}
+        }
+      ],
+      "otherinfo": {
+        "startTime": 1394569229560,
+        "status": "FAILED",
+        "initTime": 1394569229460,
+        "timeTaken": 74017,
+        "dagPlan": {
+          "dagName": "hrt_qa_20140311131919_1d932567-71c2-4341-9b50-6df1f58a9114:1",
+          "version": 1,
+          "vertices": [
+            {
+              "vertexName": "Reducer 6",
+              "processorClass": "org.apache.hadoop.hive.ql.exec.tez.ReduceTezProcessor",
+              "inEdgeIds": [
+                "910557679"
+              ],
+              "additionalOutputs": [
+                {
+                  "name": "out_Reducer 6",
+                  "class": "org.apache.tez.mapreduce.output.MROutput"
+                }
+              ]
+            },
+            {
+              "vertexName": "Map 5",
+              "processorClass": "org.apache.hadoop.hive.ql.exec.tez.MapTezProcessor",
+              "inEdgeIds": [
+                "500242152",
+                "1208124175"
+              ],
+              "outEdgeIds": [
+                "910557679"
+              ],
+              "additionalInputs": [
+                {
+                  "name": "customer",
+                  "class": "org.apache.tez.mapreduce.input.MRInputLegacy",
+                  "initializer": "org.apache.tez.mapreduce.common.MRInputAMSplitGenerator"
+                }
+              ]
+            },
+            {
+              "vertexName": "Map 7",
+              "processorClass": "org.apache.hadoop.hive.ql.exec.tez.MapTezProcessor",
+              "outEdgeIds": [
+                "500242152"
+              ],
+              "additionalInputs": [
+                {
+                  "name": "current_addr",
+                  "class": "org.apache.tez.mapreduce.input.MRInputLegacy",
+                  "initializer": "org.apache.tez.mapreduce.common.MRInputAMSplitGenerator"
+                }
+              ]
+            },
+            {
+              "vertexName": "Reducer 3",
+              "processorClass": "org.apache.hadoop.hive.ql.exec.tez.ReduceTezProcessor",
+              "inEdgeIds": [
+                "654658809"
+              ],
+              "outEdgeIds": [
+                "1208124175"
+              ]
+            },
+            {
+              "vertexName": "Map 2",
+              "processorClass": "org.apache.hadoop.hive.ql.exec.tez.MapTezProcessor",
+              "inEdgeIds": [
+                "760294521",
+                "1982385791",
+                "813939446",
+                "1182578556"
+              ],
+              "outEdgeIds": [
+                "654658809"
+              ],
+              "additionalInputs": [
+                {
+                  "name": "store_sales",
+                  "class": "org.apache.tez.mapreduce.input.MRInputLegacy",
+                  "initializer": "org.apache.tez.mapreduce.common.MRInputAMSplitGenerator"
+                }
+              ]
+            },
+            {
+              "vertexName": "Map 9",
+              "processorClass": "org.apache.hadoop.hive.ql.exec.tez.MapTezProcessor",
+              "outEdgeIds": [
+                "760294521"
+              ],
+              "additionalInputs": [
+                {
+                  "name": "store",
+                  "class": "org.apache.tez.mapreduce.input.MRInputLegacy",
+                  "initializer": "org.apache.tez.mapreduce.common.MRInputAMSplitGenerator"
+                }
+              ]
+            },
+            {
+              "vertexName": "Map 8",
+              "processorClass": "org.apache.hadoop.hive.ql.exec.tez.MapTezProcessor",
+              "outEdgeIds": [
+                "1982385791"
+              ],
+              "additionalInputs": [
+                {
+                  "name": "customer_address",
+                  "class": "org.apache.tez.mapreduce.input.MRInputLegacy",
+                  "initializer": "org.apache.tez.mapreduce.common.MRInputAMSplitGenerator"
+                }
+              ]
+            },
+            {
+              "vertexName": "Map 4",
+              "processorClass": "org.apache.hadoop.hive.ql.exec.tez.MapTezProcessor",
+              "outEdgeIds": [
+                "813939446"
+              ],
+              "additionalInputs": [
+                {
+                  "name": "date_dim",
+                  "class": "org.apache.tez.mapreduce.input.MRInputLegacy",
+                  "initializer": "org.apache.tez.mapreduce.common.MRInputAMSplitGenerator"
+                }
+              ]
+            },
+            {
+              "vertexName": "Map 1",
+              "processorClass": "org.apache.hadoop.hive.ql.exec.tez.MapTezProcessor",
+              "outEdgeIds": [
+                "1182578556"
+              ],
+              "additionalInputs": [
+                {
+                  "name": "household_demographics",
+                  "class": "org.apache.tez.mapreduce.input.MRInputLegacy",
+                  "initializer": "org.apache.tez.mapreduce.common.MRInputAMSplitGenerator"
+                }
+              ]
+            }
+          ],
+          "edges": [
+            {
+              "edgeId": "760294521",
+              "inputVertexName": "Map 9",
+              "outputVertexName": "Map 2",
+              "dataMovementType": "BROADCAST",
+              "dataSourceType": "PERSISTED",
+              "schedulingType": "SEQUENTIAL",
+              "edgeSourceClass": "org.apache.tez.runtime.library.output.OnFileUnorderedKVOutput",
+              "edgeDestinationClass": "org.apache.tez.runtime.library.input.ShuffledUnorderedKVInput"
+            },
+            {
+              "edgeId": "1208124175",
+              "inputVertexName": "Reducer 3",
+              "outputVertexName": "Map 5",
+              "dataMovementType": "BROADCAST",
+              "dataSourceType": "PERSISTED",
+              "schedulingType": "SEQUENTIAL",
+              "edgeSourceClass": "org.apache.tez.runtime.library.output.OnFileUnorderedKVOutput",
+              "edgeDestinationClass": "org.apache.tez.runtime.library.input.ShuffledUnorderedKVInput"
+            },
+            {
+              "edgeId": "500242152",
+              "inputVertexName": "Map 7",
+              "outputVertexName": "Map 5",
+              "dataMovementType": "BROADCAST",
+              "dataSourceType": "PERSISTED",
+              "schedulingType": "SEQUENTIAL",
+              "edgeSourceClass": "org.apache.tez.runtime.library.output.OnFileUnorderedKVOutput",
+              "edgeDestinationClass": "org.apache.tez.runtime.library.input.ShuffledUnorderedKVInput"
+            },
+            {
+              "edgeId": "1182578556",
+              "inputVertexName": "Map 1",
+              "outputVertexName": "Map 2",
+              "dataMovementType": "BROADCAST",
+              "dataSourceType": "PERSISTED",
+              "schedulingType": "SEQUENTIAL",
+              "edgeSourceClass": "org.apache.tez.runtime.library.output.OnFileUnorderedKVOutput",
+              "edgeDestinationClass": "org.apache.tez.runtime.library.input.ShuffledUnorderedKVInput"
+            },
+            {
+              "edgeId": "910557679",
+              "inputVertexName": "Map 5",
+              "outputVertexName": "Reducer 6",
+              "dataMovementType": "SCATTER_GATHER",
+              "dataSourceType": "PERSISTED",
+              "schedulingType": "SEQUENTIAL",
+              "edgeSourceClass": "org.apache.tez.runtime.library.output.OnFileSortedOutput",
+              "edgeDestinationClass": "org.apache.tez.runtime.library.input.ShuffledMergedInputLegacy"
+            },
+            {
+              "edgeId": "813939446",
+              "inputVertexName": "Map 4",
+              "outputVertexName": "Map 2",
+              "dataMovementType": "BROADCAST",
+              "dataSourceType": "PERSISTED",
+              "schedulingType": "SEQUENTIAL",
+              "edgeSourceClass": "org.apache.tez.runtime.library.output.OnFileUnorderedKVOutput",
+              "edgeDestinationClass": "org.apache.tez.runtime.library.input.ShuffledUnorderedKVInput"
+            },
+            {
+              "edgeId": "654658809",
+              "inputVertexName": "Map 2",
+              "outputVertexName": "Reducer 3",
+              "dataMovementType": "SCATTER_GATHER",
+              "dataSourceType": "PERSISTED",
+              "schedulingType": "SEQUENTIAL",
+              "edgeSourceClass": "org.apache.tez.runtime.library.output.OnFileSortedOutput",
+              "edgeDestinationClass": "org.apache.tez.runtime.library.input.ShuffledMergedInputLegacy"
+            },
+            {
+              "edgeId": "1982385791",
+              "inputVertexName": "Map 8",
+              "outputVertexName": "Map 2",
+              "dataMovementType": "BROADCAST",
+              "dataSourceType": "PERSISTED",
+              "schedulingType": "SEQUENTIAL",
+              "edgeSourceClass": "org.apache.tez.runtime.library.output.OnFileUnorderedKVOutput",
+              "edgeDestinationClass": "org.apache.tez.runtime.library.input.ShuffledUnorderedKVInput"
+            }
+          ]
+        },
+        "endTime": 1394569303577,
+        "diagnostics": "Vertex re-running, vertexName=Map 7, vertexId=vertex_1394502141829_0425_1_02\nVertex re-running, vertexName=Map 2, vertexId=vertex_1394502141829_0425_1_04\nVertex re-running, vertexName=Map 9, vertexId=vertex_1394502141829_0425_1_05\nVertex re-running, vertexName=Map 1, vertexId=vertex_1394502141829_0425_1_08\nVertex re-running, vertexName=Map 4, vertexId=vertex_1394502141829_0425_1_07\nVertex re-running, vertexName=Map 8, vertexId=vertex_1394502141829_0425_1_06\nVertex re-running, vertexName=Reducer 3, vertexId=vertex_1394502141829_0425_1_03\nVertex failed, vertexName=Map 5, vertexId=vertex_1394502141829_0425_1_01, diagnostics=[Task failed, taskId=task_1394502141829_0425_1_01_000000, diagnostics=[AttemptID:attempt_1394502141829_0425_1_01_000000_0 Info:Error: java.lang.RuntimeException: org.apache.hadoop.hive.ql.metadata.HiveException: Hive Runtime Error while processing row \n\tat org.apache.hadoop.hive.ql.exec.tez.MapRecordProcessor.processRow(MapRecordProcessor.java:205)\n\tat org.apache.hadoop.hive.ql.exec.tez.MapRecordProcessor.run(MapRecordProcessor.java:171)\n\tat org.apache.hadoop.hive.ql.exec.tez.TezProcessor.run(TezProcessor.java:152)\n\tat org.apache.tez.runtime.LogicalIOProcessorRuntimeTask.run(LogicalIOProcessorRuntimeTask.java:306)\n\tat org.apache.hadoop.mapred.YarnTezDagChild$4.run(YarnTezDagChild.java:526)\n\tat java.security.AccessController.doPrivileged(Native Method)\n\tat javax.security.auth.Subject.doAs(Subject.java:415)\n\tat org.apache.hadoop.security.UserGroupInformation.doAs(UserGroupInformation.java:1548)\n\tat org.apache.hadoop.mapred.YarnTezDagChild.main(YarnTezDagChild.java:515)\nCaused by: org.apache.hadoop.hive.ql.metadata.HiveException: Hive Runtime Error while processing row \n\tat org.apache.hadoop.hive.ql.exec.vector.VectorMapOperator.process(VectorMapOperator.java:45)\n\tat org.apache.hadoop.hive.ql.exec.tez.MapRecordProcessor.processRow(MapRecordProcessor.java:193)\n\t... 8 more\nCaused by: java.lang.ClassCastException: org.apache.hadoop.hive.ql.exec.vector.LongColumnVector cannot be cast to org.apache.hadoop.hive.ql.exec.vector.BytesColumnVector\n\tat org.apache.hadoop.hive.ql.exec.vector.expressions.VectorExpressionWriterFactory$VectorExpressionWriterBytes.writeValue(VectorExpressionWriterFactory.java:268)\n\tat org.apache.hadoop.hive.ql.exec.vector.VectorReduceSinkOperator.populatedCachedDistributionKeys(VectorReduceSinkOperator.java:335)\n\tat org.apache.hadoop.hive.ql.exec.vector.VectorReduceSinkOperator.processOp(VectorReduceSinkOperator.java:237)\n\tat org.apache.hadoop.hive.ql.exec.Operator.forward(Operator.java:791)\n\tat org.apache.hadoop.hive.ql.exec.vector.VectorSelectOperator.processOp(VectorSelectOperator.java:129)\n\tat org.apache.hadoop.hive.ql.exec.Operator.forward(Operator.java:791)\n\tat org.apache.hadoop.hive.ql.exec.vector.VectorFilterOperator.processOp(VectorFilterOperator.java:102)\n\tat org.apache.hadoop.hive.ql.exec.Operator.forward(Operator.java:791)\n\tat org.apache.hadoop.hive.ql.exec.vector.VectorMapJoinOperator.flushOutput(VectorMapJoinOperator.java:249)\n\tat org.apache.hadoop.hive.ql.exec.vector.VectorMapJoinOperator.internalForward(VectorMapJoinOperator.java:244)\n\tat org.apache.hadoop.hive.ql.exec.CommonJoinOperator.genAllOneUniqueJoinObject(CommonJoinOperator.java:670)\n\tat org.apache.hadoop.hive.ql.exec.CommonJoinOperator.checkAndGenObject(CommonJoinOperator.java:754)\n\tat org.apache.hadoop.hive.ql.exec.MapJoinOperator.processOp(MapJoinOperator.java:215)\n\tat org.apache.hadoop.hive.ql.exec.vector.VectorMapJoinOperator.processOp(VectorMapJoinOperator.java:292)\n\tat org.apache.hadoop.hive.ql.exec.Operator.forward(Operator.java:791)\n\tat org.apache.hadoop.hive.ql.exec.vector.VectorMapJoinOperator.flushOutput(VectorMapJoinOperator.java:249)\n\tat org.apache.hadoop.hive.ql.exec.vector.VectorMapJoinOperator.internalForward(VectorMapJoinOperator.java:244)\n\tat org.apache.hadoop.hive.ql.exec.CommonJoinOperator.genAllOneUniqueJoinObject(CommonJoinOperator.java:670)\n\tat org.apache.hadoop.hive.ql.exec.CommonJoinOperator.checkAndGenObject(CommonJoinOperator.java:754)\n\tat org.apache.hadoop.hive.ql.exec.MapJoinOperator.processOp(MapJoinOperator.java:215)\n\tat org.apache.hadoop.hive.ql.exec.vector.VectorMapJoinOperator.processOp(VectorMapJoinOperator.java:292)\n\tat org.apache.hadoop.hive.ql.exec.Operator.forward(Operator.java:791)\n\tat org.apache.hadoop.hive.ql.exec.TableScanOperator.processOp(TableScanOperator.java:92)\n\tat org.apache.hadoop.hive.ql.exec.Operator.forward(Operator.java:791)\n\tat org.apache.hadoop.hive.ql.exec.vector.VectorMapOperator.process(VectorMapOperator.java:43)\n\t... 9 more\n\nContainer released by application, AttemptID:attempt_1394502141829_0425_1_01_000000_1 Info:Error: java.lang.RuntimeException: org.apache.hadoop.hive.ql.metadata.HiveException: Hive Runtime Error while processing row \n\tat org.apache.hadoop.hive.ql.exec.tez.MapRecordProcessor.processRow(MapRecordProcessor.java:205)\n\tat org.apache.hadoop.hive.ql.exec.tez.MapRecordProcessor.run(MapRecordProcessor.java:171)\n\tat org.apache.hadoop.hive.ql.exec.tez.TezProcessor.run(TezProcessor.java:152)\n\tat org.apache.tez.runtime.LogicalIOProcessorRuntimeTask.run(LogicalIOProcessorRuntimeTask.java:306)\n\tat org.apache.hadoop.mapred.YarnTezDagChild$4.run(YarnTezDagChild.java:526)\n\tat java.security.AccessController.doPrivileged(Native Method)\n\tat javax.security.auth.Subject.doAs(Subject.java:415)\n\tat org.apache.hadoop.security.UserGroupInformation.doAs(UserGroupInformation.java:1548)\n\tat org.apache.hadoop.mapred.YarnTezDagChild.main(YarnTezDagChild.java:515)\nCaused by: org.apache.hadoop.hive.ql.metadata.HiveException: Hive Runtime Error while processing row \n\tat org.apache.hadoop.hive.ql.exec.vector.VectorMapOperator.process(VectorMapOperator.java:45)\n\tat org.apache.hadoop.hive.ql.exec.tez.MapRecordProcessor.processRow(MapRecordProcessor.java:193)\n\t... 8 more\nCaused by: java.lang.ClassCastException: org.apache.hadoop.hive.ql.exec.vector.LongColumnVector cannot be cast to org.apache.hadoop.hive.ql.exec.vector.BytesColumnVector\n\tat org.apache.hadoop.hive.ql.exec.vector.expressions.VectorExpressionWriterFactory$VectorExpressionWriterBytes.writeValue(VectorExpressionWriterFactory.java:268)\n\tat org.apache.hadoop.hive.ql.exec.vector.VectorReduceSinkOperator.populatedCachedDistributionKeys(VectorReduceSinkOperator.java:335)\n\tat org.apache.hadoop.hive.ql.exec.vector.VectorReduceSinkOperator.processOp(VectorReduceSinkOperator.java:237)\n\tat org.apache.hadoop.hive.ql.exec.Operator.forward(Operator.java:791)\n\tat org.apache.hadoop.hive.ql.exec.vector.VectorSelectOperator.processOp(VectorSelectOperator.java:129)\n\tat org.apache.hadoop.hive.ql.exec.Operator.forward(Operator.java:791)\n\tat org.apache.hadoop.hive.ql.exec.vector.VectorFilterOperator.processOp(VectorFilterOperator.java:102)\n\tat org.apache.hadoop.hive.ql.exec.Operator.forward(Operator.java:791)\n\tat org.apache.hadoop.hive.ql.exec.vector.VectorMapJoinOperator.flushOutput(VectorMapJoinOperator.java:249)\n\tat org.apache.hadoop.hive.ql.exec.vector.VectorMapJoinOperator.internalForward(VectorMapJoinOperator.java:244)\n\tat org.apache.hadoop.hive.ql.exec.CommonJoinOperator.genAllOneUniqueJoinObject(CommonJoinOperator.java:670)\n\tat org.apache.hadoop.hive.ql.exec.CommonJoinOperator.checkAndGenObject(CommonJoinOperator.java:754)\n\tat org.apache.hadoop.hive.ql.exec.MapJoinOperator.processOp(MapJoinOperator.java:215)\n\tat org.apache.hadoop.hive.ql.exec.vector.VectorMapJoinOperator.processOp(VectorMapJoinOperator.java:292)\n\tat org.apache.hadoop.hive.ql.exec.Operator.forward(Operator.java:791)\n\tat org.apache.hadoop.hive.ql.exec.vector.VectorMapJoinOperator.flushOutput(VectorMapJoinOperator.java:249)\n\tat org.apache.hadoop.hive.ql.exec.vector.VectorMapJoinOperator.internalForward(VectorMapJoinOperator.java:244)\n\tat org.apache.hadoop.hive.ql.exec.CommonJoinOperator.genAllOneUniqueJoinObject(CommonJoinOperator.java:670)\n\tat org.apache.hadoop.hive.ql.exec.CommonJoinOperator.checkAndGenObject(CommonJoinOperator.java:754)\n\tat org.apache.hadoop.hive.ql.exec.MapJoinOperator.processOp(MapJoinOperator.java:215)\n\tat org.apache.hadoop.hive.ql.exec.vector.VectorMapJoinOperator.processOp(VectorMapJoinOperator.java:292)\n\tat org.apache.hadoop.hive.ql.exec.Operator.forward(Operator.java:791)\n\tat org.apache.hadoop.hive.ql.exec.TableScanOperator.processOp(TableScanOperator.java:92)\n\tat org.apache.hadoop.hive.ql.exec.Operator.forward(Operator.java:791)\n\tat org.apache.hadoop.hive.ql.exec.vector.VectorMapOperator.process(VectorMapOperator.java:43)\n\t... 9 more\n\nContainer released by application, AttemptID:attempt_1394502141829_0425_1_01_000000_2 Info:Error: java.lang.RuntimeException: org.apache.hadoop.hive.ql.metadata.HiveException: Hive Runtime Error while processing row \n\tat org.apache.hadoop.hive.ql.exec.tez.MapRecordProcessor.processRow(MapRecordProcessor.java:205)\n\tat org.apache.hadoop.hive.ql.exec.tez.MapRecordProcessor.run(MapRecordProcessor.java:171)\n\tat org.apache.hadoop.hive.ql.exec.tez.TezProcessor.run(TezProcessor.java:152)\n\tat org.apache.tez.runtime.LogicalIOProcessorRuntimeTask.run(LogicalIOProcessorRuntimeTask.java:306)\n\tat org.apache.hadoop.mapred.YarnTezDagChild$4.run(YarnTezDagChild.java:526)\n\tat java.security.AccessController.doPrivileged(Native Method)\n\tat javax.security.auth.Subject.doAs(Subject.java:415)\n\tat org.apache.hadoop.security.UserGroupInformation.doAs(UserGroupInformation.java:1548)\n\tat org.apache.hadoop.mapred.YarnTezDagChild.main(YarnTezDagChild.java:515)\nCaused by: org.apache.hadoop.hive.ql.metadata.HiveException: Hive Runtime Error while processing row \n\tat org.apache.hadoop.hive.ql.exec.vector.VectorMapOperator.process(VectorMapOperator.java:45)\n\tat org.apache.hadoop.hive.ql.exec.tez.MapRecordProcessor.processRow(MapRecordProcessor.java:193)\n\t... 8 more\nCaused by: java.lang.ClassCastException: org.apache.hadoop.hive.ql.exec.vector.LongColumnVector cannot be cast to org.apache.hadoop.hive.ql.exec.vector.BytesColumnVector\n\tat org.apache.hadoop.hive.ql.exec.vector.expressions.VectorExpressionWriterFactory$VectorExpressionWriterBytes.writeValue(VectorExpressionWriterFactory.java:268)\n\tat org.apache.hadoop.hive.ql.exec.vector.VectorReduceSinkOperator.populatedCachedDistributionKeys(VectorReduceSinkOperator.java:335)\n\tat org.apache.hadoop.hive.ql.exec.vector.VectorReduceSinkOperator.processOp(VectorReduceSinkOperator.java:237)\n\tat org.apache.hadoop.hive.ql.exec.Operator.forward(Operator.java:791)\n\tat org.apache.hadoop.hive.ql.exec.vector.VectorSelectOperator.processOp(VectorSelectOperator.java:129)\n\tat org.apache.hadoop.hive.ql.exec.Operator.forward(Operator.java:791)\n\tat org.apache.hadoop.hive.ql.exec.vector.VectorFilterOperator.processOp(VectorFilterOperator.java:102)\n\tat org.apache.hadoop.hive.ql.exec.Operator.forward(Operator.java:791)\n\tat org.apache.hadoop.hive.ql.exec.vector.VectorMapJoinOperator.flushOutput(VectorMapJoinOperator.java:249)\n\tat org.apache.hadoop.hive.ql.exec.vector.VectorMapJoinOperator.internalForward(VectorMapJoinOperator.java:244)\n\tat org.apache.hadoop.hive.ql.exec.CommonJoinOperator.genAllOneUniqueJoinObject(CommonJoinOperator.java:670)\n\tat org.apache.hadoop.hive.ql.exec.CommonJoinOperator.checkAndGenObject(CommonJoinOperator.java:754)\n\tat org.apache.hadoop.hive.ql.exec.MapJoinOperator.processOp(MapJoinOperator.java:215)\n\tat org.apache.hadoop.hive.ql.exec.vector.VectorMapJoinOperator.processOp(VectorMapJoinOperator.java:292)\n\tat org.apache.hadoop.hive.ql.exec.Operator.forward(Operator.java:791)\n\tat org.apache.hadoop.hive.ql.exec.vector.VectorMapJoinOperator.flushOutput(VectorMapJoinOperator.java:249)\n\tat org.apache.hadoop.hive.ql.exec.vector.VectorMapJoinOperator.internalForward(VectorMapJoinOperator.java:244)\n\tat org.apache.hadoop.hive.ql.exec.CommonJoinOperator.genAllOneUniqueJoinObject(CommonJoinOperator.java:670)\n\tat org.apache.hadoop.hive.ql.exec.CommonJoinOperator.checkAndGenObject(CommonJoinOperator.java:754)\n\tat org.apache.hadoop.hive.ql.exec.MapJoinOperator.processOp(MapJoinOperator.java:215)\n\tat org.apache.hadoop.hive.ql.exec.vector.VectorMapJoinOperator.processOp(VectorMapJoinOperator.java:292)\n\tat org.apache.hadoop.hive.ql.exec.Operator.forward(Operator.java:791)\n\tat org.apache.hadoop.hive.ql.exec.TableScanOperator.processOp(TableScanOperator.java:92)\n\tat org.apache.hadoop.hive.ql.exec.Operator.forward(Operator.java:791)\n\tat org.apache.hadoop.hive.ql.exec.vector.VectorMapOperator.process(VectorMapOperator.java:43)\n\t... 9 more\n\nContainer released by application, AttemptID:attempt_1394502141829_0425_1_01_000000_3 Info:Error: java.lang.RuntimeException: org.apache.hadoop.hive.ql.metadata.HiveException: Hive Runtime Error while processing row \n\tat org.apache.hadoop.hive.ql.exec.tez.MapRecordProcessor.processRow(MapRecordProcessor.java:205)\n\tat org.apache.hadoop.hive.ql.exec.tez.MapRecordProcessor.run(MapRecordProcessor.java:171)\n\tat org.apache.hadoop.hive.ql.exec.tez.TezProcessor.run(TezProcessor.java:152)\n\tat org.apache.tez.runtime.LogicalIOProcessorRuntimeTask.run(LogicalIOProcessorRuntimeTask.java:306)\n\tat org.apache.hadoop.mapred.YarnTezDagChild$4.run(YarnTezDagChild.java:526)\n\tat java.security.AccessController.doPrivileged(Native Method)\n\tat javax.security.auth.Subject.doAs(Subject.java:415)\n\tat org.apache.hadoop.security.UserGroupInformation.doAs(UserGroupInformation.java:1548)\n\tat org.apache.hadoop.mapred.YarnTezDagChild.main(YarnTezDagChild.java:515)\nCaused by: org.apache.hadoop.hive.ql.metadata.HiveException: Hive Runtime Error while processing row \n\tat org.apache.hadoop.hive.ql.exec.vector.VectorMapOperator.process(VectorMapOperator.java:45)\n\tat org.apache.hadoop.hive.ql.exec.tez.MapRecordProcessor.processRow(MapRecordProcessor.java:193)\n\t... 8 more\nCaused by: java.lang.ClassCastException: org.apache.hadoop.hive.ql.exec.vector.LongColumnVector cannot be cast to org.apache.hadoop.hive.ql.exec.vector.BytesColumnVector\n\tat org.apache.hadoop.hive.ql.exec.vector.expressions.VectorExpressionWriterFactory$VectorExpressionWriterBytes.writeValue(VectorExpressionWriterFactory.java:268)\n\tat org.apache.hadoop.hive.ql.exec.vector.VectorReduceSinkOperator.populatedCachedDistributionKeys(VectorReduceSinkOperator.java:335)\n\tat org.apache.hadoop.hive.ql.exec.vector.VectorReduceSinkOperator.processOp(VectorReduceSinkOperator.java:237)\n\tat org.apache.hadoop.hive.ql.exec.Operator.forward(Operator.java:791)\n\tat org.apache.hadoop.hive.ql.exec.vector.VectorSelectOperator.processOp(VectorSelectOperator.java:129)\n\tat org.apache.hadoop.hive.ql.exec.Operator.forward(Operator.java:791)\n\tat org.apache.hadoop.hive.ql.exec.vector.VectorFilterOperator.processOp(VectorFilterOperator.java:102)\n\tat org.apache.hadoop.hive.ql.exec.Operator.forward(Operator.java:791)\n\tat org.apache.hadoop.hive.ql.exec.vector.VectorMapJoinOperator.flushOutput(VectorMapJoinOperator.java:249)\n\tat org.apache.hadoop.hive.ql.exec.vector.VectorMapJoinOperator.internalForward(VectorMapJoinOperator.java:244)\n\tat org.apache.hadoop.hive.ql.exec.CommonJoinOperator.genAllOneUniqueJoinObject(CommonJoinOperator.java:670)\n\tat org.apache.hadoop.hive.ql.exec.CommonJoinOperator.checkAndGenObject(CommonJoinOperator.java:754)\n\tat org.apache.hadoop.hive.ql.exec.MapJoinOperator.processOp(MapJoinOperator.java:215)\n\tat org.apache.hadoop.hive.ql.exec.vector.VectorMapJoinOperator.processOp(VectorMapJoinOperator.java:292)\n\tat org.apache.hadoop.hive.ql.exec.Operator.forward(Operator.java:791)\n\tat org.apache.hadoop.hive.ql.exec.vector.VectorMapJoinOperator.flushOutput(VectorMapJoinOperator.java:249)\n\tat org.apache.hadoop.hive.ql.exec.vector.VectorMapJoinOperator.internalForward(VectorMapJoinOperator.java:244)\n\tat org.apache.hadoop.hive.ql.exec.CommonJoinOperator.genAllOneUniqueJoinObject(CommonJoinOperator.java:670)\n\tat org.apache.hadoop.hive.ql.exec.CommonJoinOperator.checkAndGenObject(CommonJoinOperator.java:754)\n\tat org.apache.hadoop.hive.ql.exec.MapJoinOperator.processOp(MapJoinOperator.java:215)\n\tat org.apache.hadoop.hive.ql.exec.vector.VectorMapJoinOperator.processOp(VectorMapJoinOperator.java:292)\n\tat org.apache.hadoop.hive.ql.exec.Operator.forward(Operator.java:791)\n\tat org.apache.hadoop.hive.ql.exec.TableScanOperator.processOp(TableScanOperator.java:92)\n\tat org.apache.hadoop.hive.ql.exec.Operator.forward(Operator.java:791)\n\tat org.apache.hadoop.hive.ql.exec.vector.VectorMapOperator.process(VectorMapOperator.java:43)\n\t... 9 more\n], Vertex failed as one or more tasks failed. failedTasks:1]\nVertex killed, vertexName=Reducer 6, vertexId=vertex_1394502141829_0425_1_00, diagnostics=[Vertex received Kill while in RUNNING state., Vertex killed as other vertex failed. failedTasks:0]\nVertex killed, vertexName=Map 2, vertexId=vertex_1394502141829_0425_1_04, diagnostics=[Vertex received Kill while in RUNNING state., Vertex killed as other vertex failed. failedTasks:0]\nDAG failed due to vertex failure. failedVertices:1 killedVertices:2",
+        "counters": {
+          "counterGroups": [
+            {
+              "counterGroupName": "org.apache.tez.common.counters.DAGCounter",
+              "counterGroupDisplayName": "org.apache.tez.common.counters.DAGCounter",
+              "counters": [
+                {
+                  "counterName": "NUM_FAILED_TASKS",
+                  "counterDisplayName": "NUM_FAILED_TASKS",
+                  "counterValue": 4
+                },
+                {
+                  "counterName": "NUM_KILLED_TASKS",
+                  "counterDisplayName": "NUM_KILLED_TASKS",
+                  "counterValue": 14
+                },
+                {
+                  "counterName": "TOTAL_LAUNCHED_TASKS",
+                  "counterDisplayName": "TOTAL_LAUNCHED_TASKS",
+                  "counterValue": 28
+                },
+                {
+                  "counterName": "DATA_LOCAL_TASKS",
+                  "counterDisplayName": "DATA_LOCAL_TASKS",
+                  "counterValue": 9
+                }
+              ]
+            },
+            {
+              "counterGroupName": "org.apache.tez.common.counters.FileSystemCounter",
+              "counterGroupDisplayName": "File System Counters",
+              "counters": [
+                {
+                  "counterName": "FILE_BYTES_READ",
+                  "counterDisplayName": "FILE: BYTES_READ",
+                  "counterValue": 503348
+                },
+                {
+                  "counterName": "FILE_BYTES_WRITTEN",
+                  "counterDisplayName": "FILE: BYTES_WRITTEN",
+                  "counterValue": 4315294
+                },
+                {
+                  "counterName": "FILE_READ_OPS",
+                  "counterDisplayName": "FILE: READ_OPS",
+                  "counterValue": 0
+                },
+                {
+                  "counterName": "FILE_LARGE_READ_OPS",
+                  "counterDisplayName": "FILE: LARGE_READ_OPS",
+                  "counterValue": 0
+                },
+                {
+                  "counterName": "FILE_WRITE_OPS",
+                  "counterDisplayName": "FILE: WRITE_OPS",
+                  "counterValue": 0
+                },
+                {
+                  "counterName": "HDFS_BYTES_READ",
+                  "counterDisplayName": "HDFS: BYTES_READ",
+                  "counterValue": 13041650
+                },
+                {
+                  "counterName": "HDFS_BYTES_WRITTEN",
+                  "counterDisplayName": "HDFS: BYTES_WRITTEN",
+                  "counterValue": 0
+                },
+                {
+                  "counterName": "HDFS_READ_OPS",
+                  "counterDisplayName": "HDFS: READ_OPS",
+                  "counterValue": 27
+                },
+                {
+                  "counterName": "HDFS_LARGE_READ_OPS",
+                  "counterDisplayName": "HDFS: LARGE_READ_OPS",
+                  "counterValue": 0
+                },
+                {
+                  "counterName": "HDFS_WRITE_OPS",
+                  "counterDisplayName": "HDFS: WRITE_OPS",
+                  "counterValue": 0
+                }
+              ]
+            },
+            {
+              "counterGroupName": "org.apache.tez.common.counters.TaskCounter",
+              "counterGroupDisplayName": "org.apache.tez.common.counters.TaskCounter",
+              "counters": [
+                {
+                  "counterName": "REDUCE_INPUT_GROUPS",
+                  "counterDisplayName": "REDUCE_INPUT_GROUPS",
+                  "counterValue": 10730
+                },
+                {
+                  "counterName": "REDUCE_INPUT_RECORDS",
+                  "counterDisplayName": "REDUCE_INPUT_RECORDS",
+                  "counterValue": 10731
+                },
+                {
+                  "counterName": "COMBINE_INPUT_RECORDS",
+                  "counterDisplayName": "COMBINE_INPUT_RECORDS",
+                  "counterValue": 0
+                },
+                {
+                  "counterName": "SPILLED_RECORDS",
+                  "counterDisplayName": "SPILLED_RECORDS",
+                  "counterValue": 17925
+                },
+                {
+                  "counterName": "NUM_SHUFFLED_INPUTS",
+                  "counterDisplayName": "NUM_SHUFFLED_INPUTS",
+                  "counterValue": 22
+                },
+                {
+                  "counterName": "NUM_FAILED_SHUFFLE_INPUTS",
+                  "counterDisplayName": "NUM_FAILED_SHUFFLE_INPUTS",
+                  "counterValue": 0
+                },
+                {
+                  "counterName": "MERGED_MAP_OUTPUTS",
+                  "counterDisplayName": "MERGED_MAP_OUTPUTS",
+                  "counterValue": 6
+                },
+                {
+                  "counterName": "GC_TIME_MILLIS",
+                  "counterDisplayName": "GC_TIME_MILLIS",
+                  "counterValue": 2402
+                },
+                {
+                  "counterName": "CPU_MILLISECONDS",
+                  "counterDisplayName": "CPU_MILLISECONDS",
+                  "counterValue": -33880
+                },
+                {
+                  "counterName": "PHYSICAL_MEMORY_BYTES",
+                  "counterDisplayName": "PHYSICAL_MEMORY_BYTES",
+                  "counterValue": 3241504768
+                },
+                {
+                  "counterName": "VIRTUAL_MEMORY_BYTES",
+                  "counterDisplayName": "VIRTUAL_MEMORY_BYTES",
+                  "counterValue": 17864921088
+                },
+                {
+                  "counterName": "COMMITTED_HEAP_BYTES",
+                  "counterDisplayName": "COMMITTED_HEAP_BYTES",
+                  "counterValue": 2839543808
+                },
+                {
+                  "counterName": "INPUT_RECORDS_PROCESSED",
+                  "counterDisplayName": "INPUT_RECORDS_PROCESSED",
+                  "counterValue": 2063651
+                },
+                {
+                  "counterName": "OUTPUT_RECORDS",
+                  "counterDisplayName": "OUTPUT_RECORDS",
+                  "counterValue": 120051
+                },
+                {
+                  "counterName": "OUTPUT_BYTES",
+                  "counterDisplayName": "OUTPUT_BYTES",
+                  "counterValue": 3571464
+                },
+                {
+                  "counterName": "OUTPUT_BYTES_WITH_OVERHEAD",
+                  "counterDisplayName": "OUTPUT_BYTES_WITH_OVERHEAD",
+                  "counterValue": 3811586
+                },
+                {
+                  "counterName": "OUTPUT_BYTES_PHYSICAL",
+                  "counterDisplayName": "OUTPUT_BYTES_PHYSICAL",
+                  "counterValue": 3811626
+                },
+                {
+                  "counterName": "ADDITIONAL_SPILLS_BYTES_WRITTEN",
+                  "counterDisplayName": "ADDITIONAL_SPILLS_BYTES_WRITTEN",
+                  "counterValue": 503348
+                },
+                {
+                  "counterName": "ADDITIONAL_SPILLS_BYTES_READ",
+                  "counterDisplayName": "ADDITIONAL_SPILLS_BYTES_READ",
+                  "counterValue": 503348
+                },
+                {
+                  "counterName": "ADDITIONAL_SPILL_COUNT",
+                  "counterDisplayName": "ADDITIONAL_SPILL_COUNT",
+                  "counterValue": 0
+                },
+                {
+                  "counterName": "SHUFFLE_BYTES",
+                  "counterDisplayName": "SHUFFLE_BYTES",
+                  "counterValue": 6627422
+                },
+                {
+                  "counterName": "SHUFFLE_BYTES_DECOMPRESSED",
+                  "counterDisplayName": "SHUFFLE_BYTES_DECOMPRESSED",
+                  "counterValue": 6627334
+                },
+                {
+                  "counterName": "SHUFFLE_BYTES_TO_MEM",
+                  "counterDisplayName": "SHUFFLE_BYTES_TO_MEM",
+                  "counterValue": 6627422
+                },
+                {
+                  "counterName": "SHUFFLE_BYTES_TO_DISK",
+                  "counterDisplayName": "SHUFFLE_BYTES_TO_DISK",
+                  "counterValue": 0
+                },
+                {
+                  "counterName": "NUM_MEM_TO_DISK_MERGES",
+                  "counterDisplayName": "NUM_MEM_TO_DISK_MERGES",
+                  "counterValue": 0
+                },
+                {
+                  "counterName": "NUM_DISK_TO_DISK_MERGES",
+                  "counterDisplayName": "NUM_DISK_TO_DISK_MERGES",
+                  "counterValue": 0
+                }
+              ]
+            },
+            {
+              "counterGroupName": "Shuffle Errors",
+              "counterGroupDisplayName": "Shuffle Errors",
+              "counters": [
+                {
+                  "counterName": "BAD_ID",
+                  "counterDisplayName": "BAD_ID",
+                  "counterValue": 0
+                },
+                {
+                  "counterName": "CONNECTION",
+                  "counterDisplayName": "CONNECTION",
+                  "counterValue": 0
+                },
+                {
+                  "counterName": "IO_ERROR",
+                  "counterDisplayName": "IO_ERROR",
+                  "counterValue": 0
+                },
+                {
+                  "counterName": "WRONG_LENGTH",
+                  "counterDisplayName": "WRONG_LENGTH",
+                  "counterValue": 0
+                },
+                {
+                  "counterName": "WRONG_MAP",
+                  "counterDisplayName": "WRONG_MAP",
+                  "counterValue": 0
+                },
+                {
+                  "counterName": "WRONG_REDUCE",
+                  "counterDisplayName": "WRONG_REDUCE",
+                  "counterValue": 0
+                }
+              ]
+            },
+            {
+              "counterGroupName": "org.apache.hadoop.hive.ql.exec.FilterOperator$Counter",
+              "counterGroupDisplayName": "org.apache.hadoop.hive.ql.exec.FilterOperator$Counter",
+              "counters": [
+                {
+                  "counterName": "FILTERED",
+                  "counterDisplayName": "FILTERED",
+                  "counterValue": 72735
+                },
+                {
+                  "counterName": "PASSED",
+                  "counterDisplayName": "PASSED",
+                  "counterValue": 96225
+                }
+              ]
+            },
+            {
+              "counterGroupName": "org.apache.hadoop.hive.ql.exec.MapOperator$Counter",
+              "counterGroupDisplayName": "org.apache.hadoop.hive.ql.exec.MapOperator$Counter",
+              "counters": [
+                {
+                  "counterName": "DESERIALIZE_ERRORS",
+                  "counterDisplayName": "DESERIALIZE_ERRORS",
+                  "counterValue": 0
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "primaryfilters": {
+        "dagName": [
+          "hrt_qa_20140311131919_1d932567-71c2-4341-9b50-6df1f58a9114:1"
+        ],
+        "user": [
+          "hrt_qa"
+        ]
+      },
+      "entity": "dag_1394502141829_0425_1",
+      "entitytype": "TEZ_DAG_ID",
+      "relatedentities": {}
+    }
+  ]
+}

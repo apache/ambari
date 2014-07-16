@@ -20,12 +20,32 @@ var App = window.App = Ember.Application.create();
 
 App.Helpers = Ember.Namespace.create();
 
+App.initializer({
+
+  name: "preload",
+
+  initialize: function(container, application) {
+
+    application.reopen({
+      /**
+       * Test mode is automatically enabled if running on localhost
+       * @type {bool}
+       */
+      testMode: (location.hostname == 'localhost')
+    });
+
+  }
+});
+
+
 /* Order and include as you please. */
-require('scripts/helpers/*');
-require('scripts/controllers/*');
+require('scripts/router');
 require('scripts/store');
+require('scripts/helpers/*');
 require('scripts/models/**/*');
+require('scripts/mappers/server_data_mapper.js');
+require('scripts/mappers/**/*');
+require('scripts/controllers/*');
 require('scripts/routes/*');
 require('scripts/components/*');
 require('scripts/views/*');
-require('scripts/router');

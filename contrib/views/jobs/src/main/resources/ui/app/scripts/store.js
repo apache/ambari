@@ -16,4 +16,4 @@
  * limitations under the License.
  */
 
-App.ApplicationAdapter = DS.FixtureAdapter;
+App.ApplicationAdapter = DS.FixtureAdapter.extend();

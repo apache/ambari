@@ -1,0 +1,221 @@
+{
+  "starttime": 1394569231815,
+  "otherinfo": {
+    "startTime": 1394569231819,
+    "status": "KILLED",
+    "numTasks": 6,
+    "initTime": 1394569231815,
+    "vertexName": "Map 2",
+    "timeTaken": 71735,
+    "processorClassName": "org.apache.hadoop.hive.ql.exec.tez.MapTezProcessor",
+    "endTime": 1394569303554,
+    "initRequestedTime": 1394569230142,
+    "counters": {
+      "counterGroups": [
+        {
+          "counterGroupName": "org.apache.tez.common.counters.DAGCounter",
+          "counterGroupDisplayName": "org.apache.tez.common.counters.DAGCounter",
+          "counters": [
+            {
+              "counterName": "DATA_LOCAL_TASKS",
+              "counterDisplayName": "DATA_LOCAL_TASKS",
+              "counterValue": 4
+            }
+          ]
+        },
+        {
+          "counterGroupName": "org.apache.tez.common.counters.FileSystemCounter",
+          "counterGroupDisplayName": "File System Counters",
+          "counters": [
+            {
+              "counterName": "FILE_BYTES_READ",
+              "counterDisplayName": "FILE: BYTES_READ",
+              "counterValue": 0
+            },
+            {
+              "counterName": "FILE_BYTES_WRITTEN",
+              "counterDisplayName": "FILE: BYTES_WRITTEN",
+              "counterValue": 337559
+            },
+            {
+              "counterName": "FILE_READ_OPS",
+              "counterDisplayName": "FILE: READ_OPS",
+              "counterValue": 0
+            },
+            {
+              "counterName": "FILE_LARGE_READ_OPS",
+              "counterDisplayName": "FILE: LARGE_READ_OPS",
+              "counterValue": 0
+            },
+            {
+              "counterName": "FILE_WRITE_OPS",
+              "counterDisplayName": "FILE: WRITE_OPS",
+              "counterValue": 0
+            },
+            {
+              "counterName": "HDFS_BYTES_READ",
+              "counterDisplayName": "HDFS: BYTES_READ",
+              "counterValue": 12854749
+            },
+            {
+              "counterName": "HDFS_BYTES_WRITTEN",
+              "counterDisplayName": "HDFS: BYTES_WRITTEN",
+              "counterValue": 0
+            },
+            {
+              "counterName": "HDFS_READ_OPS",
+              "counterDisplayName": "HDFS: READ_OPS",
+              "counterValue": 12
+            },
+            {
+              "counterName": "HDFS_LARGE_READ_OPS",
+              "counterDisplayName": "HDFS: LARGE_READ_OPS",
+              "counterValue": 0
+            },
+            {
+              "counterName": "HDFS_WRITE_OPS",
+              "counterDisplayName": "HDFS: WRITE_OPS",
+              "counterValue": 0
+            }
+          ]
+        },
+        {
+          "counterGroupName": "org.apache.tez.common.counters.TaskCounter",
+          "counterGroupDisplayName": "org.apache.tez.common.counters.TaskCounter",
+          "counters": [
+            {
+              "counterName": "SPILLED_RECORDS",
+              "counterDisplayName": "SPILLED_RECORDS",
+              "counterValue": 7194
+            },
+            {
+              "counterName": "NUM_SHUFFLED_INPUTS",
+              "counterDisplayName": "NUM_SHUFFLED_INPUTS",
+              "counterValue": 16
+            },
+            {
+              "counterName": "NUM_FAILED_SHUFFLE_INPUTS",
+              "counterDisplayName": "NUM_FAILED_SHUFFLE_INPUTS",
+              "counterValue": 0
+            },
+            {
+              "counterName": "GC_TIME_MILLIS",
+              "counterDisplayName": "GC_TIME_MILLIS",
+              "counterValue": 2047
+            },
+            {
+              "counterName": "CPU_MILLISECONDS",
+              "counterDisplayName": "CPU_MILLISECONDS",
+              "counterValue": -11970
+            },
+            {
+              "counterName": "PHYSICAL_MEMORY_BYTES",
+              "counterDisplayName": "PHYSICAL_MEMORY_BYTES",
+              "counterValue": 1791279104
+            },
+            {
+              "counterName": "VIRTUAL_MEMORY_BYTES",
+              "counterDisplayName": "VIRTUAL_MEMORY_BYTES",
+              "counterValue": 7152783360
+            },
+            {
+              "counterName": "COMMITTED_HEAP_BYTES",
+              "counterDisplayName": "COMMITTED_HEAP_BYTES",
+              "counterValue": 1588592640
+            },
+            {
+              "counterName": "INPUT_RECORDS_PROCESSED",
+              "counterDisplayName": "INPUT_RECORDS_PROCESSED",
+              "counterValue": 1990495
+            },
+            {
+              "counterName": "OUTPUT_RECORDS",
+              "counterDisplayName": "OUTPUT_RECORDS",
+              "counterValue": 7194
+            },
+            {
+              "counterName": "OUTPUT_BYTES",
+              "counterDisplayName": "OUTPUT_BYTES",
+              "counterValue": 323019
+            },
+            {
+              "counterName": "OUTPUT_BYTES_WITH_OVERHEAD",
+              "counterDisplayName": "OUTPUT_BYTES_WITH_OVERHEAD",
+              "counterValue": 337415
+            },
+            {
+              "counterName": "OUTPUT_BYTES_PHYSICAL",
+              "counterDisplayName": "OUTPUT_BYTES_PHYSICAL",
+              "counterValue": 337431
+            },
+            {
+              "counterName": "ADDITIONAL_SPILLS_BYTES_WRITTEN",
+              "counterDisplayName": "ADDITIONAL_SPILLS_BYTES_WRITTEN",
+              "counterValue": 0
+            },
+            {
+              "counterName": "ADDITIONAL_SPILLS_BYTES_READ",
+              "counterDisplayName": "ADDITIONAL_SPILLS_BYTES_READ",
+              "counterValue": 0
+            },
+            {
+              "counterName": "ADDITIONAL_SPILL_COUNT",
+              "counterDisplayName": "ADDITIONAL_SPILL_COUNT",
+              "counterValue": 0
+            },
+            {
+              "counterName": "SHUFFLE_BYTES",
+              "counterDisplayName": "SHUFFLE_BYTES",
+              "counterValue": 6124044
+            },
+            {
+              "counterName": "SHUFFLE_BYTES_DECOMPRESSED",
+              "counterDisplayName": "SHUFFLE_BYTES_DECOMPRESSED",
+              "counterValue": 6123980
+            },
+            {
+              "counterName": "SHUFFLE_BYTES_TO_MEM",
+              "counterDisplayName": "SHUFFLE_BYTES_TO_MEM",
+              "counterValue": 6124044
+            },
+            {
+              "counterName": "SHUFFLE_BYTES_TO_DISK",
+              "counterDisplayName": "SHUFFLE_BYTES_TO_DISK",
+              "counterValue": 0
+            }
+          ]
+        },
+        {
+          "counterGroupName": "org.apache.hadoop.hive.ql.exec.FilterOperator$Counter",
+          "counterGroupDisplayName": "org.apache.hadoop.hive.ql.exec.FilterOperator$Counter",
+          "counters": [
+            {
+              "counterName": "FILTERED",
+              "counterDisplayName": "FILTERED",
+              "counterValue": 0
+            },
+            {
+              "counterName": "PASSED",
+              "counterDisplayName": "PASSED",
+              "counterValue": 95911
+            }
+          ]
+        },
+        {
+          "counterGroupName": "org.apache.hadoop.hive.ql.exec.MapOperator$Counter",
+          "counterGroupDisplayName": "org.apache.hadoop.hive.ql.exec.MapOperator$Counter",
+          "counters": [
+            {
+              "counterName": "DESERIALIZE_ERRORS",
+              "counterDisplayName": "DESERIALIZE_ERRORS",
+              "counterValue": 0
+            }
+          ]
+        }
+      ]
+    },
+    "startRequestedTime": 1394569231792
+  },
+  "entity": "vertex_1394502141829_0425_1_04",
+  "entitytype": "TEZ_VERTEX_ID"
+}
