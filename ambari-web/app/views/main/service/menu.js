@@ -75,7 +75,7 @@ App.MainServiceMenuView = Em.CollectionView.extend({
     }.property('content.criticalAlertsCount'),
 
     isConfigurable: function () {
-      return !App.get('services.noConfigTypes').concat('HCATALOG').contains('content.serviceName');
+      return !App.get('services.noConfigTypes').concat('HCATALOG').contains(this.get('content.serviceName'));
     }.property('App.services.noConfigTypes','content.serviceName'),
 
     link: function() {
@@ -173,7 +173,7 @@ App.TopNavServiceMenuView = Em.CollectionView.extend({
     }.property('content.criticalAlertsCount'),
 
     isConfigurable: function () {
-      return !App.get('services.noConfigTypes').concat('HCATALOG').contains('content.serviceName');
+      return !App.get('services.noConfigTypes').concat('HCATALOG').contains(this.get('content.serviceName'));
     }.property('App.services.noConfigTypes','content.serviceName'),
 
     link: function() {

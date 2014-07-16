@@ -49,7 +49,7 @@ App.MainServiceItemController = Em.Controller.extend({
   }.property('content.serviceName'),
 
   isConfigurable: function () {
-    return !App.get('services.noConfigTypes').concat('HCATALOG').contains('content.serviceName');
+    return !App.get('services.noConfigTypes').concat('HCATALOG').contains(this.get('content.serviceName'));
   }.property('App.services.noConfigTypes','content.serviceName'),
 
   /**
