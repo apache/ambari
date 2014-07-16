@@ -50,7 +50,8 @@ public class RoleCommandOrder {
   private final static String GENERAL_DEPS_KEY = "general_deps";
   private final static String GLUSTERFS_DEPS_KEY = "optional_glusterfs";
   private final static String NO_GLUSTERFS_DEPS_KEY = "optional_no_glusterfs";
-  private final static String HA_DEPS_KEY = "optional_ha";
+  private final static String NAMENODE_HA_DEPS_KEY = "namenode_optional_ha";
+  private final static String RESOURCEMANAGER_HA_DEPS_KEY = "resourcemanager_optional_ha";
   private final static String COMMENT_STR = "_comment";
   private static final String ROLE_COMMAND_ORDER_FILE = "role_command_order.json";
 
@@ -172,7 +173,8 @@ public class RoleCommandOrder {
 
   public void initialize(Cluster cluster) {
     Boolean hasGLUSTERFS = false;
-    Boolean isHAEnabled = false;
+    Boolean isNameNodeHAEnabled = false;
+    Boolean isResourceManagerHAEnabled = false;
 
     try {
       if (cluster != null && cluster.getService("GLUSTERFS") != null) {
@@ -185,7 +187,16 @@ public class RoleCommandOrder {
       if (cluster != null &&
               cluster.getService("HDFS") != null &&
               cluster.getService("HDFS").getServiceComponent("JOURNALNODE") != null) {
-        isHAEnabled = true;
+        isNameNodeHAEnabled = true;
+      }
+    } catch (AmbariException e) {
+    }
+
+    try {
+      if (cluster != null &&
+              cluster.getService("YARN") != null &&
+              cluster.getService("YARN").getServiceComponent("RESOURCEMANAGER").getServiceComponentHosts().size() > 1) {
+        isResourceManagerHAEnabled = true;
       }
     } catch (AmbariException e) {
     }
@@ -226,9 +237,13 @@ public class RoleCommandOrder {
       Map<String,Object> noGlusterFSSection = (Map<String, Object>) userData.get(NO_GLUSTERFS_DEPS_KEY);
       addDependencies(noGlusterFSSection);
     }
-    if (isHAEnabled) {
-      Map<String,Object> isHASection = (Map<String, Object>) userData.get(HA_DEPS_KEY);
-      addDependencies(isHASection);
+    if (isNameNodeHAEnabled) {
+      Map<String,Object> NAMENODEHASection = (Map<String, Object>) userData.get(NAMENODE_HA_DEPS_KEY);
+      addDependencies(NAMENODEHASection);
+    }
+    if (isResourceManagerHAEnabled) {
+      Map<String,Object> ResourceManagerHASection = (Map<String, Object>) userData.get(RESOURCEMANAGER_HA_DEPS_KEY);
+      addDependencies(ResourceManagerHASection);
     }
     extendTransitiveDependency();
   }
