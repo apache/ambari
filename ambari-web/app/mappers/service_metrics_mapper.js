@@ -604,7 +604,8 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     var flumeConfig = this.flumeConfig;
     finalConfig = jQuery.extend(finalConfig, flumeConfig);
     var finalJson = self.parseIt(item, finalConfig);
-    var flumeHandlers = item.components[0].host_components;
+    var flumeHandlers = item.components.findProperty('ServiceComponentInfo.component_name', "FLUME_HANDLER");
+    flumeHandlers = flumeHandlers ? flumeHandlers.host_components : [];
     finalJson.agents = [];
     finalJson.agentJsons = [];
     flumeHandlers.forEach(function(flumeHandler){
