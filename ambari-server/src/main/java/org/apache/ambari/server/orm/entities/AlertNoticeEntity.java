@@ -1,0 +1,155 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.apache.ambari.server.orm.entities;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.NamedQuery;
+import javax.persistence.Table;
+
+import org.apache.ambari.server.state.NotificationState;
+
+/**
+ * The {@link AlertNoticeEntity} class represents the need to dispatch a
+ * notification to an {@link AlertTargetEntity}. There are three
+ * {@link NotificationState}s that a single notice can exist in. These instances
+ * are persisted indefinitely for historical reference.
+ * 
+ */
+@Entity
+@Table(name = "alert_notice")
+@NamedQuery(name = "AlertNoticeEntity.findAll", query = "SELECT alertNotice FROM AlertNoticeEntity alertNotice")
+public class AlertNoticeEntity {
+
+  @Id
+  @GeneratedValue(strategy = GenerationType.TABLE)
+  @Column(name = "notification_id", unique = true, nullable = false, updatable = false)
+  private Long notificationId;
+
+  @Enumerated(value = EnumType.STRING)
+  @Column(name = "notify_state", nullable = false, length = 255)
+  private NotificationState notifyState;
+
+  /**
+   * Bi-directional many-to-one association to {@link AlertHistoryEntity}.
+   */
+  @ManyToOne
+  @JoinColumn(name = "history_id", nullable = false)
+  private AlertHistoryEntity alertHistory;
+
+  /**
+   * Bi-directional many-to-one association to {@link AlertTargetEntity}
+   */
+  @ManyToOne
+  @JoinColumn(name = "target_id", nullable = false)
+  private AlertTargetEntity alertTarget;
+
+  /**
+   * Constructor.
+   */
+  public AlertNoticeEntity() {
+  }
+
+  /**
+   * Gets the unique ID for this alert notice.
+   * 
+   * @return the ID (never {@code null}).
+   */
+  public Long getNotificationId() {
+    return notificationId;
+  }
+
+  /**
+   * Sets the unique ID for this alert notice.
+   * 
+   * @param notificationId
+   *          the ID (not {@code null}).
+   */
+  public void setNotificationId(Long notificationId) {
+    this.notificationId = notificationId;
+  }
+
+  /**
+   * Gets the notification state for this alert notice. Alert notices are
+   * pending until they are processed, after which they will either be
+   * successful or failed.
+   * 
+   * @return the notification state (never {@code null}).
+   */
+  public NotificationState getNotifyState() {
+    return notifyState;
+  }
+
+  /**
+   * Sets the notification state for this alert notice.
+   * 
+   * @param notifyState
+   *          the notification state (not {@code null}).
+   */
+  public void setNotifyState(NotificationState notifyState) {
+    this.notifyState = notifyState;
+  }
+
+  /**
+   * Gets the associated alert history entry for this alert notice.
+   * 
+   * @return the historical event that traiggered this notice's creation (never
+   *         {@code null}).
+   */
+  public AlertHistoryEntity getAlertHistory() {
+    return alertHistory;
+  }
+
+  /**
+   * Sets the associated alert history entry for this alert notice.
+   * 
+   * @param alertHistory
+   *          the historical event that traiggered this notice's creation (not
+   *          {@code null}).
+   */
+  public void setAlertHistory(AlertHistoryEntity alertHistory) {
+    this.alertHistory = alertHistory;
+  }
+
+  /**
+   * Gets the intended audience for the notification.
+   * 
+   * @return the recipient of this notification (never {@code null}).
+   */
+  public AlertTargetEntity getAlertTarget() {
+    return alertTarget;
+  }
+
+  /**
+   * Sets the intended audience for the notification.
+   * 
+   * @param alertTarget
+   *          the recipient of this notification (not {@code null}).
+   */
+  public void setAlertTarget(AlertTargetEntity alertTarget) {
+    this.alertTarget = alertTarget;
+  }
+
+}

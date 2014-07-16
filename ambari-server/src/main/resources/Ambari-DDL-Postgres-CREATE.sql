@@ -143,6 +143,96 @@ ALTER TABLE viewinstanceproperty ADD CONSTRAINT FK_viewinstprop_view_name FOREIG
 ALTER TABLE viewinstancedata ADD CONSTRAINT FK_viewinstdata_view_name FOREIGN KEY (view_instance_id, view_name, view_instance_name) REFERENCES viewinstance(view_instance_id, view_name, name);
 ALTER TABLE viewentity ADD CONSTRAINT FK_viewentity_view_name FOREIGN KEY (view_name, view_instance_name) REFERENCES viewinstance(view_name, name);
 
+-- Alerting Framework
+CREATE TABLE alert_definition (
+  definition_id BIGINT NOT NULL, 
+  cluster_id BIGINT NOT NULL, 
+  definition_name VARCHAR(255) NOT NULL,
+  service_name VARCHAR(255) NOT NULL,
+  component_name VARCHAR(255),
+  enabled SMALLINT DEFAULT 1 NOT NULL,
+  schedule_interval BIGINT NOT NULL,
+  source_type VARCHAR(255) NOT NULL,
+  alert_source TEXT NOT NULL,
+  hash VARCHAR(64) NOT NULL,
+  PRIMARY KEY (definition_id),
+  FOREIGN KEY (cluster_id) REFERENCES clusters(cluster_id),
+  CONSTRAINT uni_alert_def_name UNIQUE(cluster_id,definition_name)
+);
+
+CREATE TABLE alert_history (
+  alert_id BIGINT NOT NULL,
+  cluster_id BIGINT NOT NULL,
+  alert_definition_id BIGINT NOT NULL,
+  service_name VARCHAR(255) NOT NULL,
+  component_name VARCHAR(255),
+  host_name VARCHAR(255),
+  alert_instance VARCHAR(255),
+  alert_timestamp BIGINT NOT NULL,
+  alert_label VARCHAR(1024),
+  alert_state VARCHAR(255) NOT NULL,
+  alert_text TEXT,
+  PRIMARY KEY (alert_id),
+  FOREIGN KEY (alert_definition_id) REFERENCES alert_definition(definition_id),
+  FOREIGN KEY (cluster_id) REFERENCES clusters(cluster_id)
+);
+
+CREATE TABLE alert_current (
+  alert_id BIGINT NOT NULL,
+  maintenance_state VARCHAR(255),
+  original_timestamp BIGINT NOT NULL,
+  latest_timestamp BIGINT NOT NULL,
+  PRIMARY KEY (alert_id),
+  FOREIGN KEY (alert_id) REFERENCES alert_history(alert_id)
+);
+
+CREATE TABLE alert_group (
+  group_id BIGINT NOT NULL,
+  cluster_id BIGINT NOT NULL,
+  group_name VARCHAR(255) NOT NULL,
+  is_default SMALLINT NOT NULL DEFAULT 0,
+  PRIMARY KEY (group_id),
+  CONSTRAINT uni_group_name UNIQUE(cluster_id,group_name)
+);
+
+CREATE TABLE alert_target (
+  target_id BIGINT NOT NULL,
+  target_name VARCHAR(255) NOT NULL UNIQUE,
+  notification_type VARCHAR(64) NOT NULL,
+  properties TEXT,
+  description VARCHAR(1024),
+  PRIMARY KEY (target_id)
+);
+
+CREATE TABLE alert_group_target (
+  group_id BIGINT NOT NULL,
+  target_id BIGINT NOT NULL,
+  FOREIGN KEY (group_id) REFERENCES alert_group(group_id),
+  FOREIGN KEY (target_id) REFERENCES alert_target(target_id)
+);
+
+CREATE TABLE alert_grouping (
+  definition_id BIGINT NOT NULL,
+  group_id BIGINT NOT NULL,
+  FOREIGN KEY (definition_id) REFERENCES alert_definition(definition_id),
+  FOREIGN KEY (group_id) REFERENCES alert_group(group_id)
+);
+
+CREATE TABLE alert_notice (
+  notification_id BIGINT NOT NULL,
+  target_id BIGINT NOT NULL,
+  history_id BIGINT NOT NULL,
+  notify_state VARCHAR(255) NOT NULL,
+  PRIMARY KEY (notification_id),
+  FOREIGN KEY (target_id) REFERENCES alert_target(target_id),  
+  FOREIGN KEY (history_id) REFERENCES alert_history(alert_id)
+);
+
+CREATE INDEX idx_alert_history_service on alert_history(service_name);
+CREATE INDEX idx_alert_history_host on alert_history(host_name);
+CREATE INDEX idx_alert_history_time on alert_history(alert_timestamp);
+CREATE INDEX idx_alert_history_state on alert_history(alert_state);
+CREATE INDEX idx_alert_group_name on alert_group(group_name);
 
 ---------inserting some data-----------
 BEGIN;

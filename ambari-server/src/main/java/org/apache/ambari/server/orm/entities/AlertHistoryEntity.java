@@ -1,0 +1,344 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.apache.ambari.server.orm.entities;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.NamedQuery;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
+
+import org.apache.ambari.server.state.AlertState;
+
+/**
+ * The {@link AlertHistoryEntity} class is an instance of an alert state change
+ * that was received. Instances are only stored in the history if there is a
+ * state change event. Subsequent alerts that are received for the same state
+ * update the timestamps in {@link AlertNoticeEntity} but do not receive a new
+ * {@link AlertHistoryEntity}.
+ */
+@Entity
+@Table(name = "alert_history")
+@NamedQuery(name = "AlertHistoryEntity.findAll", query = "SELECT alertHistory FROM AlertHistoryEntity alertHistory")
+public class AlertHistoryEntity {
+
+  @Id
+  @GeneratedValue(strategy = GenerationType.TABLE)
+  @Column(name = "alert_id", unique = true, nullable = false, updatable = false)
+  private Long alertId;
+
+  @Column(name = "alert_instance", length = 255)
+  private String alertInstance;
+
+  @Column(name = "alert_label", length = 1024)
+  private String alertLabel;
+
+  @Enumerated(value = EnumType.STRING)
+  @Column(name = "alert_state", nullable = false, length = 255)
+  private AlertState alertState;
+
+  @Column(name = "alert_text", length = 2147483647)
+  private String alertText;
+
+  @Column(name = "alert_timestamp", nullable = false)
+  private Long alertTimestamp;
+
+  @Column(name = "cluster_id", nullable = false)
+  private Long clusterId;
+
+  @Column(name = "component_name", length = 255)
+  private String componentName;
+
+  @Column(name = "host_name", length = 255)
+  private String hostName;
+
+  @Column(name = "service_name", nullable = false, length = 255)
+  private String serviceName;
+
+  /**
+   * Bi-directional one-to-one association to {@link AlertCurrentEntity}.
+   */
+  @OneToOne(mappedBy = "alertHistory")
+  private AlertCurrentEntity alertCurrent;
+
+  /**
+   * Bi-directional many-to-one association to {@link AlertDefinitionEntity}
+   */
+  @ManyToOne
+  @JoinColumn(name = "alert_definition_id", nullable = false)
+  private AlertDefinitionEntity alertDefinition;
+
+  /**
+   * Constructor.
+   */
+  public AlertHistoryEntity() {
+  }
+
+  /**
+   * Gets the unique ID for this alert instance.
+   * 
+   * @return the unique ID (never {@code null}).
+   */
+  public Long getAlertId() {
+    return alertId;
+  }
+
+  /**
+   * Sets the unique ID for this alert instance.
+   * 
+   * @param alertId
+   *          the unique ID (not {@code null}).
+   */
+  public void setAlertId(Long alertId) {
+    this.alertId = alertId;
+  }
+
+  /**
+   * Gets the instance identifier, if any, for this alert instance.
+   * 
+   * @return the instance ID or {@code null} if none.
+   */
+  public String getAlertInstance() {
+    return alertInstance;
+  }
+
+  /**
+   * Sets the instance identifier, if any, for this alert instance.
+   * 
+   * @param alertInstance
+   *          the instance ID or {@code null} if none.
+   */
+  public void setAlertInstance(String alertInstance) {
+    this.alertInstance = alertInstance;
+  }
+
+  /**
+   * Gets the label for this alert instance. The label is typically an
+   * abbreviated form of the alert text.
+   * 
+   * @return the alert instance label or {@code null} if none.
+   * @see #getAlertText()
+   */
+  public String getAlertLabel() {
+    return alertLabel;
+  }
+
+  /**
+   * Sets the label for this alert instance.
+   * 
+   * @param alertLabel
+   *          the label or {@code null} if none.
+   */
+  public void setAlertLabel(String alertLabel) {
+    this.alertLabel = alertLabel;
+  }
+
+  /**
+   * Gets the state of this alert instance.
+   * 
+   * @return the alert state (never {@code null}).
+   */
+  public AlertState getAlertState() {
+    return alertState;
+  }
+
+  /**
+   * Sets the state of this alert instance.
+   * 
+   * @param alertState
+   *          the alert state (not {@code null}).
+   */
+  public void setAlertState(AlertState alertState) {
+    this.alertState = alertState;
+  }
+
+  /**
+   * Gets the text of the alert instance.
+   * 
+   * @return the text of the alert instance or {@code null} if none.
+   */
+  public String getAlertText() {
+    return alertText;
+  }
+
+  /**
+   * Sets the text of the alert instance.
+   * 
+   * @param alertText
+   *          the text, or {@code null} if none.
+   */
+  public void setAlertText(String alertText) {
+    this.alertText = alertText;
+  }
+
+  /**
+   * Gets the time that the alert instace was received.
+   * 
+   * @return the time of the alert instance (never {@code null}).
+   */
+  public Long getAlertTimestamp() {
+    return alertTimestamp;
+  }
+
+  /**
+   * Sets the time that the alert instace was received.
+   * 
+   * @param alertTimestamp
+   *          the time of the alert instance (not {@code null}).
+   */
+  public void setAlertTimestamp(Long alertTimestamp) {
+    this.alertTimestamp = alertTimestamp;
+  }
+
+  /**
+   * Gets the ID of the cluster that this alert is associated with.
+   * 
+   * @return the ID of the cluster for the server that this alert is for (never
+   *         {@code null}).
+   */
+  public Long getClusterId() {
+    return clusterId;
+  }
+
+  /**
+   * Sets the ID of the cluster that this alert is associated with.
+   * 
+   * @param clusterId
+   *          the ID of the cluster for the server that this alert is for (never
+   *          {@code null}).
+   */
+  public void setClusterId(Long clusterId) {
+    this.clusterId = clusterId;
+  }
+
+  /**
+   * Gets the name of the component, if any, that this alert instance is for.
+   * Some alerts, such as those that are scoped for the entire service, do not
+   * have component names.
+   * 
+   * @return the name of the component, or {@code null} for none.
+   */
+  public String getComponentName() {
+    return componentName;
+  }
+
+  /**
+   * Sets the name of the component that this alert instance is associated with.
+   * Component names are not required if the alert definition is scoped for a
+   * service. If specified, there is always a 1:1 mapping between alert
+   * definitions and components.
+   * 
+   * @param componentName
+   *          the name of the component, or {@code null} if none.
+   */
+  public void setComponentName(String componentName) {
+    this.componentName = componentName;
+  }
+
+  /**
+   * Gets the name of the host that the alert is for. Some alerts do not run
+   * against hosts, such as aggregate alert definitions, so this may be
+   * {@code null}.
+   * 
+   * @return the name of the host or {@code null} if none.
+   */
+  public String getHostName() {
+    return hostName;
+  }
+
+  /**
+   * Sets the name of the host that the alert is for.
+   * 
+   * @param hostName
+   *          the name of the host or {@code null} if none.
+   */
+  public void setHostName(String hostName) {
+    this.hostName = hostName;
+  }
+
+  /**
+   * Gets the name of the service that the alert is defined for.
+   * 
+   * @return the name of the service (never {@code null}).
+   */
+  public String getServiceName() {
+    return serviceName;
+  }
+
+  /**
+   * Sets the name of the service that the alert is defined for. Every alert
+   * definition is related to exactly 1 service.
+   * 
+   * @param serviceName
+   *          the name of the service (not {@code null}).
+   */
+  public void setServiceName(String serviceName) {
+    this.serviceName = serviceName;
+  }
+
+  /**
+   * Gets the current, active alert that is associated with this historical
+   * instance, if any. Once an alert state changes, the association between
+   * current and historical will be removed in favor of the newly received alert
+   * instance.
+   * 
+   * @return the associated current alert or {@code null} if this historical
+   *         item is not the most recent.
+   */
+  public AlertCurrentEntity getAlertCurrent() {
+    return alertCurrent;
+  }
+
+  /**
+   * Sets the associated current active alert with this historical instance.
+   * 
+   * @param alertCurrent
+   *          the current alert or {@code null} for none.
+   */
+  public void setAlertCurrent(AlertCurrentEntity alertCurrent) {
+    this.alertCurrent = alertCurrent;
+  }
+
+  /**
+   * Gets the associated alert definition for this alert instance. The alert
+   * definition can be used to retrieve global information about an alert such
+   * as the interval and the name.
+   * 
+   * @return the alert definition (never {@code null}).
+   */
+  public AlertDefinitionEntity getAlertDefinition() {
+    return alertDefinition;
+  }
+
+  /**
+   * Sets the associated alert definition for this alert instance.
+   * 
+   * @param alertDefinition
+   *          the alert definition (not {@code null}).
+   */
+  public void setAlertDefinition(AlertDefinitionEntity alertDefinition) {
+    this.alertDefinition = alertDefinition;
+  }
+}
