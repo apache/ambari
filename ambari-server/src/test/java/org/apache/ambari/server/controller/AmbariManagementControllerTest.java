@@ -78,8 +78,10 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.ComponentResourceProviderTest;
 import org.apache.ambari.server.controller.internal.HostResourceProviderTest;
+import org.apache.ambari.server.controller.internal.RequestOperationLevel;
 import org.apache.ambari.server.controller.internal.RequestResourceFilter;
 import org.apache.ambari.server.controller.internal.ServiceResourceProviderTest;
+import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.customactions.ActionDefinition;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
@@ -2388,6 +2390,9 @@ public class AmbariManagementControllerTest {
     createServiceComponentHost(clusterName, serviceName, componentName2,
         host2, null);
 
+    RequestOperationLevel level = new RequestOperationLevel(
+            Resource.Type.HostComponent, clusterName, null, null, null);
+
     // Install
     installService(clusterName, serviceName, false, false);
 
@@ -2410,7 +2415,7 @@ public class AmbariManagementControllerTest {
     resourceFilters.add(resourceFilter);
 
     ExecuteActionRequest request = new ExecuteActionRequest(clusterName,
-      "DECOMMISSION", null, resourceFilters, null, params);
+      "DECOMMISSION", null, resourceFilters, level, params);
 
     Map<String, String> requestProperties = new HashMap<String, String>();
     requestProperties.put(REQUEST_CONTEXT_PROPERTY, "Called from a test");
@@ -2446,9 +2451,11 @@ public class AmbariManagementControllerTest {
           put("slave_type", "HBASE_REGIONSERVER");
           put("align_maintenance_state", "true");
         }};
-    request = new ExecuteActionRequest(clusterName, "DECOMMISSION", params);
     resourceFilter = new RequestResourceFilter("HBASE", "HBASE_MASTER", null);
-    request.getResourceFilters().add(resourceFilter);
+    ArrayList<RequestResourceFilter> filters = new ArrayList<RequestResourceFilter>();
+    filters.add(resourceFilter);
+    request = new ExecuteActionRequest(clusterName, "DECOMMISSION", null,
+            filters, level, params);
 
     response = controller.createAction(request, requestProperties);
 
@@ -2472,7 +2479,7 @@ public class AmbariManagementControllerTest {
       put("included_hosts", "h2");
     }};
     request = new ExecuteActionRequest(clusterName, "DECOMMISSION", null,
-      resourceFilters, null, params);
+      resourceFilters, level, params);
 
     response = controller.createAction(request,
         requestProperties);
@@ -6028,6 +6035,9 @@ public class AmbariManagementControllerTest {
     createServiceComponentHost(clusterName, serviceName, componentName3,
       host2, null);
 
+    RequestOperationLevel level = new RequestOperationLevel(
+            Resource.Type.HostComponent, clusterName, null, null, null);
+
     // Install
     installService(clusterName, serviceName, false, false);
 
@@ -6058,8 +6068,10 @@ public class AmbariManagementControllerTest {
       put("align_maintenance_state", "true");
     }};
     RequestResourceFilter resourceFilter = new RequestResourceFilter("HDFS", "NAMENODE", null);
-    ExecuteActionRequest request = new ExecuteActionRequest(clusterName, "DECOMMISSION", params);
-    request.getResourceFilters().add(resourceFilter);
+    ArrayList<RequestResourceFilter> filters = new ArrayList<RequestResourceFilter>();
+    filters.add(resourceFilter);
+    ExecuteActionRequest request = new ExecuteActionRequest(clusterName,
+            "DECOMMISSION", null, filters, level, params);
 
     Map<String, String> requestProperties = new HashMap<String, String>();
     requestProperties.put(REQUEST_CONTEXT_PROPERTY, "Called from a test");
@@ -6087,8 +6099,11 @@ public class AmbariManagementControllerTest {
       put("align_maintenance_state", "true");
     }};
     resourceFilter = new RequestResourceFilter("HDFS", "NAMENODE", null);
-    request = new ExecuteActionRequest(clusterName, "DECOMMISSION", params);
-    request.getResourceFilters().add(resourceFilter);
+    filters = new ArrayList<RequestResourceFilter>();
+    filters.add(resourceFilter);
+
+    request = new ExecuteActionRequest(clusterName, "DECOMMISSION",
+            null, filters, level, params);
 
     response = controller.createAction(request,
         requestProperties);
@@ -6127,8 +6142,10 @@ public class AmbariManagementControllerTest {
       put("align_maintenance_state", "true");
     }};
     resourceFilter = new RequestResourceFilter("HDFS", "NAMENODE", null);
-    request = new ExecuteActionRequest(clusterName, "DECOMMISSION", params);
-    request.getResourceFilters().add(resourceFilter);
+    filters = new ArrayList<RequestResourceFilter>();
+    filters.add(resourceFilter);
+    request = new ExecuteActionRequest(clusterName, "DECOMMISSION", null,
+            filters, level, params);
 
     response = controller.createAction(request,
         requestProperties);

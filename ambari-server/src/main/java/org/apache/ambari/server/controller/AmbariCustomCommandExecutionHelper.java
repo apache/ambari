@@ -230,9 +230,7 @@ public class AmbariCustomCommandExecutionHelper {
                       "because components on them are in Maintenance state.",
               ignoredHosts);
       LOG.debug(message);
-    }
-
-    if (candidateHosts.isEmpty()) {
+    } else if (candidateHosts.isEmpty()) {
       String message = "Invalid request : No hosts specified.";
       throw new AmbariException(message);
     }
@@ -521,15 +519,15 @@ public class AmbariCustomCommandExecutionHelper {
    * Processes decommission command. Modifies the host components as needed and then
    * calls into the implementation of a custom command
    */
-  private void addDecommissionAction(ActionExecutionContext actionExecutionContext,
-                                     RequestResourceFilter resourceFilter,
+  private void addDecommissionAction(final ActionExecutionContext actionExecutionContext,
+                                     final RequestResourceFilter resourceFilter,
                                      Stage stage, Map<String, String> hostLevelParams)
                                      throws AmbariException {
 
     String clusterName = actionExecutionContext.getClusterName();
-    Cluster cluster = clusters.getCluster(clusterName);
-    String serviceName = resourceFilter.getServiceName();
-    String componentName = resourceFilter.getComponentName();
+    final Cluster cluster = clusters.getCluster(clusterName);
+    final String serviceName = resourceFilter.getServiceName();
+    String masterCompType = resourceFilter.getComponentName();
     List<String> hosts = resourceFilter.getHostNames();
 
     if (hosts != null && !hosts.isEmpty()) {
@@ -542,7 +540,7 @@ public class AmbariCustomCommandExecutionHelper {
                                             DECOM_EXCLUDED_HOSTS);
     Set<String> includedHosts = getHostList(actionExecutionContext.getParameters(),
                                             DECOM_INCLUDED_HOSTS);
-    String slaveCompType = actionExecutionContext.getParameters().get(DECOM_SLAVE_COMPONENT);
+
 
     Set<String> cloneSet = new HashSet<String>(excludedHosts);
     cloneSet.retainAll(includedHosts);
@@ -557,7 +555,6 @@ public class AmbariCustomCommandExecutionHelper {
         " is not a valid/deployed service.");
     }
 
-    String masterCompType = componentName;
     Map<String, ServiceComponent> svcComponents = service.getServiceComponents();
     if (!svcComponents.containsKey(masterCompType)) {
       throw new AmbariException("Specified component " + masterCompType +
@@ -575,10 +572,15 @@ public class AmbariCustomCommandExecutionHelper {
     }
 
     // Find the slave component
-    if (slaveCompType == null || slaveCompType.equals("")) {
+    String slaveCompStr = actionExecutionContext.getParameters().get(DECOM_SLAVE_COMPONENT);
+    final String slaveCompType;
+    if (slaveCompStr == null || slaveCompStr.equals("")) {
       slaveCompType = masterToSlaveMappingForDecom.get(masterCompType);
-    } else if (!masterToSlaveMappingForDecom.get(masterCompType).equals(slaveCompType)) {
-      throw new AmbariException("Component " + slaveCompType + " is not supported for decommissioning.");
+    } else {
+      slaveCompType = slaveCompStr;
+      if (!masterToSlaveMappingForDecom.get(masterCompType).equals(slaveCompType)) {
+        throw new AmbariException("Component " + slaveCompType + " is not supported for decommissioning.");
+      }
     }
 
     String isDrainOnlyRequest = actionExecutionContext.getParameters().get(HBASE_MARK_DRAINING_ONLY);
@@ -586,9 +588,44 @@ public class AmbariCustomCommandExecutionHelper {
       throw new AmbariException(HBASE_MARK_DRAINING_ONLY + " is not a valid parameter for " + masterCompType);
     }
 
+    // Filtering hosts based on Maintenance State
+    MaintenanceStateHelper.HostPredicate hostPredicate =
+      new MaintenanceStateHelper.HostPredicate() {
+        @Override
+        public boolean shouldHostBeRemoved(final String hostname)
+                throws AmbariException {
+          return ! maintenanceStateHelper.isOperationAllowed(
+                  cluster, actionExecutionContext.getOperationLevel(),
+                  resourceFilter, serviceName, slaveCompType, hostname);
+        }
+    };
+    // Filter excluded hosts
+    Set<String> filteredExcludedHosts = new HashSet<String>(excludedHosts);
+    Set<String> ignoredHosts = maintenanceStateHelper.filterHostsInMaintenanceState(
+            filteredExcludedHosts, hostPredicate);
+    if (! ignoredHosts.isEmpty()) {
+      String message = String.format("Some hosts (%s) from host exclude list " +
+                      "have been ignored " +
+                      "because components on them are in Maintenance state.",
+              ignoredHosts);
+      LOG.debug(message);
+    }
+
+    // Filter included hosts
+    Set<String> filteredIncludedHosts = new HashSet<String>(includedHosts);
+    ignoredHosts = maintenanceStateHelper.filterHostsInMaintenanceState(
+            filteredIncludedHosts, hostPredicate);
+    if (! ignoredHosts.isEmpty()) {
+      String message = String.format("Some hosts (%s) from host include list " +
+                      "have been ignored " +
+                      "because components on them are in Maintenance state.",
+              ignoredHosts);
+      LOG.debug(message);
+    }
+
     // Decommission only if the sch is in state STARTED or INSTALLED
     for (ServiceComponentHost sch : svcComponents.get(slaveCompType).getServiceComponentHosts().values()) {
-      if (excludedHosts.contains(sch.getHostName())
+      if (filteredExcludedHosts.contains(sch.getHostName())
           && !"true".equals(isDrainOnlyRequest)
           && sch.getState() != State.STARTED) {
         throw new AmbariException("Component " + slaveCompType + " on host " + sch.getHostName() + " cannot be " +
@@ -601,7 +638,7 @@ public class AmbariCustomCommandExecutionHelper {
     // Set/reset decommissioned flag on all components
     List<String> listOfExcludedHosts = new ArrayList<String>();
     for (ServiceComponentHost sch : svcComponents.get(slaveCompType).getServiceComponentHosts().values()) {
-      if (excludedHosts.contains(sch.getHostName())) {
+      if (filteredExcludedHosts.contains(sch.getHostName())) {
         sch.setComponentAdminState(HostComponentAdminState.DECOMMISSIONED);
         listOfExcludedHosts.add(sch.getHostName());
         if (alignMtnState) {
@@ -609,7 +646,7 @@ public class AmbariCustomCommandExecutionHelper {
         }
         LOG.info("Decommissioning " + slaveCompType + " and marking Maintenance=ON on " + sch.getHostName());
       }
-      if (includedHosts.contains(sch.getHostName())) {
+      if (filteredIncludedHosts.contains(sch.getHostName())) {
         sch.setComponentAdminState(HostComponentAdminState.INSERVICE);
         if (alignMtnState) {
           sch.setMaintenanceState(MaintenanceState.OFF);
@@ -637,7 +674,7 @@ public class AmbariCustomCommandExecutionHelper {
     }
 
     StringBuilder commandDetail = getReadableDecommissionCommandDetail
-      (actionExecutionContext, includedHosts, listOfExcludedHosts);
+      (actionExecutionContext, filteredIncludedHosts, listOfExcludedHosts);
 
     for (String hostName : masterSchs.keySet()) {
       RequestResourceFilter commandFilter = new RequestResourceFilter(serviceName,
