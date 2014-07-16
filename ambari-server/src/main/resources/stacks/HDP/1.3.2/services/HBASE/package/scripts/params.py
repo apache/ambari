@@ -76,7 +76,7 @@ if security_enabled:
 master_keytab_path = config['configurations']['hbase-site']['hbase.master.keytab.file']
 regionserver_keytab_path = config['configurations']['hbase-site']['hbase.regionserver.keytab.file']
 smoke_user_keytab = config['configurations']['hadoop-env']['smokeuser_keytab']
-hbase_user_keytab = config['configurations']['hadoop-env']['hbase_user_keytab']
+hbase_user_keytab = config['configurations']['hbase-env']['hbase_user_keytab']
 kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
 if security_enabled:
   kinit_cmd = format("{kinit_path_local} -kt {hbase_user_keytab} {hbase_user};")

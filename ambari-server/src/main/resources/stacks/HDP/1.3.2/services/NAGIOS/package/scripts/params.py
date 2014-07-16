@@ -45,7 +45,7 @@ nagios_servicegroup_cfg = format("{nagios_obj_dir}/hadoop-servicegroups.cfg")
 nagios_service_cfg = format("{nagios_obj_dir}/hadoop-services.cfg")
 nagios_command_cfg = format("{nagios_obj_dir}/hadoop-commands.cfg")
 eventhandlers_dir = "/usr/lib/nagios/eventhandlers"
-nagios_principal_name = default("/configurations/hadoop-env/nagios_principal_name", "nagios")
+nagios_principal_name = default("/configurations/nagios-env/nagios_principal_name", "nagios")
 hadoop_ssl_enabled = False
 
 namenode_metadata_port = get_port_from_url(config['configurations']['core-site']['fs.default.name'])
@@ -82,7 +82,7 @@ check_cpu_on = is_jdk_greater_6(java64_home)
 _authentication = config['configurations']['core-site']['hadoop.security.authentication']
 security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')
 
-nagios_keytab_path = default("/configurations/hadoop-env/nagios_keytab_path", "/etc/security/keytabs/nagios.service.keytab")
+nagios_keytab_path = default("/configurations/nagios-env/nagios_keytab_path", "/etc/security/keytabs/nagios.service.keytab")
 kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
 
 ganglia_port = "8651"

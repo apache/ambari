@@ -465,7 +465,8 @@
             "oozie_user": "oozie", 
             "oozie_database": "New Derby Database", 
             "oozie_data_dir": "/hadoop/oozie/data", 
-            "oozie_log_dir": "/var/log/oozie"
+            "oozie_log_dir": "/var/log/oozie",
+            "oozie_keytab": "/etc/security/keytabs/oozie.service.keytab"
         }, 
         "pig-env": {
             "content": "\nJAVA_HOME={{java64_home}}\nHADOOP_HOME=${HADOOP_HOME:-{{hadoop_home}}}\n    "
@@ -506,7 +507,9 @@
             "nagios_user": "nagios", 
             "nagios_group": "nagios", 
             "nagios_web_login": "nagiosadmin", 
-            "nagios_contact": "user@com.ua"
+            "nagios_contact": "user@com.ua",
+            "nagios_principal_name": "nagios/c6402.ambari.apache.org@EXAMPLE.COM",
+            "nagios_keytab_path": "/etc/security/keytabs/nagios.service.keytab"
         }, 
         "hive-env": {
             "hive_metastore_user_passwd": "password", 
@@ -527,7 +530,7 @@
             "hive_database": "New MySQL Database"
         }, 
         "hadoop-env": {
-            "security_enabled": "false", 
+            "security_enabled": "true", 
             "namenode_opt_maxnewsize": "200m", 
             "hdfs_log_dir_prefix": "/var/log/hadoop", 
             "ignore_groupsusers_create": "false", 
@@ -542,41 +545,8 @@
             "smokeuser": "ambari-qa", 
             "hadoop_heapsize": "1024", 
             "hadoop_pid_dir_prefix": "/var/run/hadoop",
-            "oozie_keytab": "/etc/security/keytabs/oozie.service.keytab", 
-            "hadoop_http_principal_name": "HTTP/_HOST", 
-            "nagios_keytab_path": "/etc/security/keytabs/nagios.service.keytab", 
-            "namenode_principal_name": "nn/_HOST", 
-            "namenode_keytab": "/etc/security/keytabs/nn.service.keytab", 
-            "nagios_principal_name": "nagios/c6402.ambari.apache.org@EXAMPLE.COM", 
-            "hbase_user_keytab": "/etc/security/keytabs/hbase.headless.keytab", 
-            "hbase_master_keytab": "/etc/security/keytabs/hbase.service.keytab", 
-            "jobtracker_principal_name": "jt/_HOST", 
-            "datanode_principal_name": "dn/_HOST", 
-            "hive_metastore_keytab": "/etc/security/keytabs/hive.service.keytab", 
-            "keytab_path": "/etc/security/keytabs",
-            "tasktracker_principal_name": "tt/_HOST", 
-            "jobtracker_keytab": "/etc/security/keytabs/jt.service.keytab", 
-            "tasktracker_keytab": "/etc/security/keytabs/tt.service.keytab", 
-            "zookeeper_keytab_path": "/etc/security/keytabs/zk.service.keytab", 
-            "smokeuser_keytab": "/etc/security/keytabs/smokeuser.headless.keytab", 
-            "kerberos_domain": "EXAMPLE.COM", 
-            "snamenode_keytab": "/etc/security/keytabs/nn.service.keytab", 
-            "oozie_principal_name": "oozie/c6402.ambari.apache.org", 
-            "hive_metastore_principal_name": "hive/_HOST", 
-            "datanode_keytab": "/etc/security/keytabs/dn.service.keytab", 
-            "oozie_http_principal_name": "HTTP/c6402.ambari.apache.org", 
-            "hadoop_http_keytab": "/etc/security/keytabs/spnego.service.keytab", 
-            "oozie_http_keytab": "/etc/security/keytabs/spnego.service.keytab", 
-            "zookeeper_principal_name": "zookeeper/_HOST@EXAMPLE.COM", 
-            "webhcat_http_keytab": "/etc/security/keytabs/spnego.service.keytab", 
-            "hdfs_user_keytab": "/etc/security/keytabs/hdfs.headless.keytab", 
-            "hbase_master_principal_name": "hbase/_HOST", 
-            "hbase_regionserver_principal_name": "hbase/_HOST", 
-            "webHCat_http_principal_name": "HTTP/c6402.ambari.apache.org", 
-            "snamenode_principal_name": "nn/_HOST", 
-            "hbase_regionserver_keytab": "/etc/security/keytabs/hbase.service.keytab", 
-            "hbase_principal_name": "hbase", 
-            "hdfs_principal_name": "hdfs"
+            "smokeuser_keytab": "/etc/security/keytabs/smokeuser.headless.keytab",
+            "hdfs_user_keytab": "/etc/security/keytabs/hdfs.headless.keytab"
         }, 
         "hbase-env": {
             "hbase_pid_dir": "/var/run/hbase", 
@@ -584,7 +554,8 @@
             "hbase_master_heapsize": "1024m", 
             "content": "\n# Set environment variables here.\n\n# The java implementation to use. Java 1.6 required.\nexport JAVA_HOME={{java64_home}}\n\n# HBase Configuration directory\nexport HBASE_CONF_DIR=${HBASE_CONF_DIR:-{{hbase_conf_dir}}}\n\n# Extra Java CLASSPATH elements. Optional.\nexport HBASE_CLASSPATH=${HBASE_CLASSPATH}\n\n# The maximum amount of heap to use, in MB. Default is 1000.\n# export HBASE_HEAPSIZE=1000\n\n# Extra Java runtime options.\n# Below are what we set by default. May only work with SUN JVM.\n# For more on why as well as other possible settings,\n# see http://wiki.apache.org/hadoop/PerformanceTuning\nexport HBASE_OPTS=\"-XX:+UseConcMarkSweepGC -XX:ErrorFile={{log_dir}}/hs_err_pid%p.log\"\nexport SERVER_GC_OPTS=\"-verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps -Xloggc:{{log_dir}}/gc.log-`date +'%Y%m%d%H%M'`\"\n# Uncomment below to enable java garbage collection logging.\n# export HBASE_OPTS=\"$HBASE_OPTS -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps -Xloggc:$HBASE_HOME/logs/gc-hbase.log\"\n\n# Uncomment and adjust to enable JMX exporting\n# See jmxremote.password and jmxremote.access in $JRE_HOME/lib/management to configure remote password access.\n# More details at: http://java.sun.com/javase/6/docs/technotes/guides/management/agent.html\n#\n# export HBASE_JMX_BASE=\"-Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false\"\nexport HBASE_MASTER_OPTS=\"-Xmx{{master_heapsize}}\"\nexport HBASE_REGIONSERVER_OPTS=\"-Xmn{{regionserver_xmn_size}} -XX:CMSInitiatingOccupancyFraction=70  -Xms{{regionserver_heapsize}} -Xmx{{regionserver_heapsize}}\"\n# export HBASE_THRIFT_OPTS=\"$HBASE_JMX_BASE -Dcom.sun.management.jmxremote.port=10103\"\n# export HBASE_ZOOKEEPER_OPTS=\"$HBASE_JMX_BASE -Dcom.sun.management.jmxremote.port=10104\"\n\n# File naming hosts on which HRegionServers will run. $HBASE_HOME/conf/regionservers by default.\nexport HBASE_REGIONSERVERS=${HBASE_CONF_DIR}/regionservers\n\n# Extra ssh options. Empty by default.\n# export HBASE_SSH_OPTS=\"-o ConnectTimeout=1 -o SendEnv=HBASE_CONF_DIR\"\n\n# Where log files are stored. $HBASE_HOME/logs by default.\nexport HBASE_LOG_DIR={{log_dir}}\n\n# A string representing this instance of hbase. $USER by default.\n# export HBASE_IDENT_STRING=$USER\n\n# The scheduling priority for daemon processes. See 'man nice'.\n# export HBASE_NICENESS=10\n\n# The directory where pid files are stored. /tmp by default.\nexport HBASE_PID_DIR={{pid_dir}}\n\n# Seconds to sleep between slave commands. Unset by default. This\n# can be useful in large clusters, where, e.g., slave rsyncs can\n# otherwise arrive faster than the master can service them.\n# export HBASE_SLAVE_SLEEP=0.1\n\n# Tell HBase whether it should manage it's own instance of Zookeeper or not.\nexport HBASE_MANAGES_ZK=false\n\n{% if security_enabled %}\nexport HBASE_OPTS=\"$HBASE_OPTS -Djava.security.auth.login.config={{client_jaas_config_file}}\"\nexport HBASE_MASTER_OPTS=\"$HBASE_MASTER_OPTS -Djava.security.auth.login.config={{master_jaas_config_file}}\"\nexport HBASE_REGIONSERVER_OPTS=\"$HBASE_REGIONSERVER_OPTS -Djava.security.auth.login.config={{regionserver_jaas_config_file}}\"\n{% endif %}\n    ", 
             "hbase_regionserver_heapsize": "1024m", 
-            "hbase_log_dir": "/var/log/hbase"
+            "hbase_log_dir": "/var/log/hbase",
+            "hbase_user_keytab": "/etc/security/keytabs/hbase.headless.keytab"
         }, 
         "ganglia-env": {
             "gmond_user": "nobody", 
@@ -606,7 +577,9 @@
             "initLimit": "10", 
             "zk_pid_dir": "/var/run/zookeeper", 
             "zk_data_dir": "/hadoop/zookeeper", 
-            "tickTime": "2000"
+            "tickTime": "2000",
+            "zookeeper_principal_name": "zookeeper/_HOST@EXAMPLE.COM",
+            "zookeeper_keytab_path": "/etc/security/keytabs/zk.service.keytab"
         }, 
         "hdfs-log4j": {
             "content": "log4jproperties\nline2"

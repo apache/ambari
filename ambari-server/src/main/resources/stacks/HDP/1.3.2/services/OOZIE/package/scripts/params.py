@@ -50,7 +50,7 @@ kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/
 oozie_service_keytab = config['configurations']['oozie-site']['oozie.service.HadoopAccessorService.keytab.file']
 oozie_principal = config['configurations']['oozie-site']['oozie.service.HadoopAccessorService.kerberos.principal']
 smokeuser_keytab = config['configurations']['hadoop-env']['smokeuser_keytab']
-oozie_keytab = config['configurations']['hadoop-env']['oozie_keytab']
+oozie_keytab = config['configurations']['oozie-env']['oozie_keytab']
 
 oracle_driver_jar_name = "ojdbc6.jar"
 java_share_dir = "/usr/share/java"

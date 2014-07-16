@@ -55,6 +55,6 @@ security_enabled = ( not is_empty(_authentication) and _authentication == 'kerbe
 if security_enabled:
   _hostname_lowercase = config['hostname'].lower()
   _kerberos_domain = config['configurations']['hadoop-env']['kerberos_domain']
-  _storm_principal_name = config['configurations']['hadoop-env']['storm_principal_name']
+  _storm_principal_name = config['configurations']['storm-env']['storm_principal_name']
   storm_jaas_principal = _storm_principal_name.replace('_HOST',_hostname_lowercase)
-  storm_keytab_path = config['configurations']['hadoop-env']['storm_keytab']
+  storm_keytab_path = config['configurations']['storm-env']['storm_keytab']

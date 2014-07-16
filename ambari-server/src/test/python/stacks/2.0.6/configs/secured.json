@@ -482,52 +482,8 @@
             "smokeuser": "ambari-qa", 
             "hadoop_heapsize": "1024", 
             "hadoop_pid_dir_prefix": "/var/run/hadoop",
-			"jobhistory_http_keytab": "/etc/security/keytabs/spnego.service.keytab", 
-            "resourcemanager_principal_name": "rm/_HOST", 
-            "hadoop_http_principal_name": "HTTP/_HOST", 
-            "kinit_path_local": "/usr/bin",
-            "nagios_keytab_path": "/etc/security/keytabs/nagios.service.keytab", 
-            "namenode_principal_name": "nn/_HOST", 
-            "namenode_keytab": "/etc/security/keytabs/nn.service.keytab", 
-            "nagios_principal_name": "nagios/c6402.ambari.apache.org@EXAMPLE.COM",  
-            "hbase_user_keytab": "/etc/security/keytabs/hbase.headless.keytab", 
-            "journalnode_keytab": "/etc/security/keytabs/jn.service.keytab", 
-            "hbase_master_keytab": "/etc/security/keytabs/hbase.service.keytab", 
-            "datanode_principal_name": "dn/_HOST", 
-            "hive_metastore_keytab": "/etc/security/keytabs/hive.service.keytab", 
-            "jobhistory_keytab": "/etc/security/keytabs/jhs.service.keytab",
-            "zookeeper_keytab_path": "/etc/security/keytabs/zk.service.keytab", 
-            "smokeuser_keytab": "/etc/security/keytabs/smokeuser.headless.keytab", 
-            "kerberos_domain": "EXAMPLE.COM", 
-            "snamenode_keytab": "/etc/security/keytabs/nn.service.keytab", 
-            "oozie_principal_name": "oozie/c6402.ambari.apache.org", 
-            "hive_metastore_principal_name": "hive/_HOST", 
-            "datanode_keytab": "/etc/security/keytabs/dn.service.keytab", 
-            "oozie_http_principal_name": "HTTP/c6402.ambari.apache.org", 
-            "oozie_http_keytab": "/etc/security/keytabs/spnego.service.keytab", 
-            "nodemanager_keytab": "/etc/security/keytabs/nm.service.keytab", 
-            "journalnode_principal_name": "jn/_HOST", 
-            "zookeeper_principal_name": "zookeeper/_HOST@EXAMPLE.COM", 
-            "nodemanager_http_keytab": "/etc/security/keytabs/spnego.service.keytab", 
-            "webhcat_http_keytab": "/etc/security/keytabs/spnego.service.keytab", 
-            "hdfs_user_keytab": "/etc/security/keytabs/hdfs.headless.keytab", 
-            "hbase_master_principal_name": "hbase/_HOST", 
-            "oozie_keytab": "/etc/security/keytabs/oozie.service.keytab", 
-            "keytab_path": "/etc/security/keytabs", 
-            "resourcemanager_http_keytab": "/etc/security/keytabs/spnego.service.keytab", 
-            "hbase_regionserver_principal_name": "hbase/_HOST", 
-            "hadoop_http_keytab": "/etc/security/keytabs/spnego.service.keytab", 
-            "jobhistory_principal_name": "jhs/_HOST", 
-            "webHCat_http_principal_name": "HTTP/c6402.ambari.apache.org", 
-            "jobhistory_http_principal_name": "HTTP/_HOST", 
-            "resourcemanager_keytab": "/etc/security/keytabs/rm.service.keytab", 
-            "snamenode_principal_name": "nn/_HOST", 
-            "nodemanager_principal_name": "nm/_HOST", 
-            "nodemanager_http_principal_name": "HTTP/_HOST", 
-            "resourcemanager_http_principal_name": "HTTP/_HOST", 
-            "hbase_regionserver_keytab": "/etc/security/keytabs/hbase.service.keytab", 
-            "hbase_principal_name": "hbase", 
-            "hdfs_principal_name": "hdfs"
+            "smokeuser_keytab": "/etc/security/keytabs/smokeuser.headless.keytab",
+            "hdfs_user_keytab": "/etc/security/keytabs/hdfs.headless.keytab"
         },
         "hive-env": {
             "hcat_pid_dir": "/var/run/webhcat", 
@@ -551,7 +507,8 @@
             "hbase_master_heapsize": "1024m", 
             "content": "\n# Set environment variables here.\n\n# The java implementation to use. Java 1.6 required.\nexport JAVA_HOME={{java64_home}}\n\n# HBase Configuration directory\nexport HBASE_CONF_DIR=${HBASE_CONF_DIR:-{{hbase_conf_dir}}}\n\n# Extra Java CLASSPATH elements. Optional.\nexport HBASE_CLASSPATH=${HBASE_CLASSPATH}\n\n# The maximum amount of heap to use, in MB. Default is 1000.\n# export HBASE_HEAPSIZE=1000\n\n# Extra Java runtime options.\n# Below are what we set by default. May only work with SUN JVM.\n# For more on why as well as other possible settings,\n# see http://wiki.apache.org/hadoop/PerformanceTuning\nexport HBASE_OPTS=\"-XX:+UseConcMarkSweepGC -XX:ErrorFile={{log_dir}}/hs_err_pid%p.log\"\nexport SERVER_GC_OPTS=\"-verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps -Xloggc:{{log_dir}}/gc.log-`date +'%Y%m%d%H%M'`\"\n# Uncomment below to enable java garbage collection logging.\n# export HBASE_OPTS=\"$HBASE_OPTS -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps -Xloggc:$HBASE_HOME/logs/gc-hbase.log\"\n\n# Uncomment and adjust to enable JMX exporting\n# See jmxremote.password and jmxremote.access in $JRE_HOME/lib/management to configure remote password access.\n# More details at: http://java.sun.com/javase/6/docs/technotes/guides/management/agent.html\n#\n# export HBASE_JMX_BASE=\"-Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false\"\nexport HBASE_MASTER_OPTS=\"-Xmx{{master_heapsize}}\"\nexport HBASE_REGIONSERVER_OPTS=\"-Xmn{{regionserver_xmn_size}} -XX:CMSInitiatingOccupancyFraction=70  -Xms{{regionserver_heapsize}} -Xmx{{regionserver_heapsize}}\"\n# export HBASE_THRIFT_OPTS=\"$HBASE_JMX_BASE -Dcom.sun.management.jmxremote.port=10103\"\n# export HBASE_ZOOKEEPER_OPTS=\"$HBASE_JMX_BASE -Dcom.sun.management.jmxremote.port=10104\"\n\n# File naming hosts on which HRegionServers will run. $HBASE_HOME/conf/regionservers by default.\nexport HBASE_REGIONSERVERS=${HBASE_CONF_DIR}/regionservers\n\n# Extra ssh options. Empty by default.\n# export HBASE_SSH_OPTS=\"-o ConnectTimeout=1 -o SendEnv=HBASE_CONF_DIR\"\n\n# Where log files are stored. $HBASE_HOME/logs by default.\nexport HBASE_LOG_DIR={{log_dir}}\n\n# A string representing this instance of hbase. $USER by default.\n# export HBASE_IDENT_STRING=$USER\n\n# The scheduling priority for daemon processes. See 'man nice'.\n# export HBASE_NICENESS=10\n\n# The directory where pid files are stored. /tmp by default.\nexport HBASE_PID_DIR={{pid_dir}}\n\n# Seconds to sleep between slave commands. Unset by default. This\n# can be useful in large clusters, where, e.g., slave rsyncs can\n# otherwise arrive faster than the master can service them.\n# export HBASE_SLAVE_SLEEP=0.1\n\n# Tell HBase whether it should manage it's own instance of Zookeeper or not.\nexport HBASE_MANAGES_ZK=false\n\n{% if security_enabled %}\nexport HBASE_OPTS=\"$HBASE_OPTS -Djava.security.auth.login.config={{client_jaas_config_file}}\"\nexport HBASE_MASTER_OPTS=\"$HBASE_MASTER_OPTS -Djava.security.auth.login.config={{master_jaas_config_file}}\"\nexport HBASE_REGIONSERVER_OPTS=\"$HBASE_REGIONSERVER_OPTS -Djava.security.auth.login.config={{regionserver_jaas_config_file}}\"\n{% endif %}", 
             "hbase_regionserver_heapsize": "1024m", 
-            "hbase_log_dir": "/var/log/hbase"
+            "hbase_log_dir": "/var/log/hbase",
+            "hbase_user_keytab": "/etc/security/keytabs/hbase.headless.keytab"
         },
         "ganglia-env": {
             "gmond_user": "nobody", 
@@ -572,7 +529,9 @@
             "initLimit": "10", 
             "zk_pid_dir": "/var/run/zookeeper", 
             "zk_data_dir": "/hadoop/zookeeper", 
-            "tickTime": "2000"
+            "tickTime": "2000",
+            "zookeeper_principal_name": "zookeeper/_HOST@EXAMPLE.COM",
+            "zookeeper_keytab_path": "/etc/security/keytabs/zk.service.keytab"
         },
         "mapred-env": {
             "content": "\n# export JAVA_HOME=/home/y/libexec/jdk1.6.0/\n\nexport HADOOP_JOB_HISTORYSERVER_HEAPSIZE={{jobhistory_heapsize}}\n\nexport HADOOP_MAPRED_ROOT_LOGGER=INFO,RFA\n\n#export HADOOP_JOB_HISTORYSERVER_OPTS=\n#export HADOOP_MAPRED_LOG_DIR=\"\" # Where log files are stored.  $HADOOP_MAPRED_HOME/logs by default.\n#export HADOOP_JHS_LOGGER=INFO,RFA # Hadoop JobSummary logger.\n#export HADOOP_MAPRED_PID_DIR= # The pid files are stored. /tmp by default.\n#export HADOOP_MAPRED_IDENT_STRING= #A string representing this instance of hadoop. $USER by default\n#export HADOOP_MAPRED_NICENESS= #The scheduling priority for daemons. Defaults to 0.", 
@@ -587,30 +546,10 @@
             "nagios_user": "nagios", 
             "nagios_group": "nagios", 
             "nagios_web_login": "nagiosadmin", 
-            "nagios_contact": "user@com.ua"
-        }, 
-        "tez-env": {
-            "content": "\n# Tez specific configuration\nexport TEZ_CONF_DIR={{config_dir}}\n\n# Set HADOOP_HOME to point to a specific hadoop install directory\nexport HADOOP_HOME=${HADOOP_HOME:-{{hadoop_home}}}\n\n# The java implementation to use.\nexport JAVA_HOME={{java64_home}}", 
-            "tez_user": "tez"
-        }, 
-        "storm-env": {
-            "content": "\n#!/bin/bash\n\n# Set Storm specific environment variables here.\n\n# The java implementation to use.\nexport JAVA_HOME={{java_home}}\n\n# export STORM_CONF_DIR=\"\"", 
-            "storm_log_dir": "/var/log/storm", 
-            "storm_pid_dir": "/var/run/storm", 
-            "storm_user": "storm"
-        }, 
-        "falcon-env": {
-            "falcon_port": "15000", 
-            "falcon_pid_dir": "/var/run/falcon", 
-            "falcon_log_dir": "/var/log/falcon", 
-            "falcon.emeddedmq.port": "61616", 
-            "falcon_user": "falcon", 
-            "falcon_local_dir": "/hadoop/falcon", 
-            "content": "\n# The java implementation to use. If JAVA_HOME is not found we expect java and jar to be in path\nexport JAVA_HOME={{java_home}}\n\n# any additional java opts you want to set. This will apply to both client and server operations\n#export FALCON_OPTS=\n\n# any additional java opts that you want to set for client only\n#export FALCON_CLIENT_OPTS=\n\n# java heap size we want to set for the client. Default is 1024MB\n#export FALCON_CLIENT_HEAP=\n\n# any additional opts you want to set for prisim service.\n#export FALCON_PRISM_OPTS=\n\n# java heap size we want to set for the prisim service. Default is 1024MB\n#export FALCON_PRISM_HEAP=\n\n# any additional opts you want to set for falcon service.\nexport FALCON_SERVER_OPTS=\"-Dfalcon.embeddedmq={{falcon_embeddedmq_enabled}} -Dfalcon.emeddedmq.port={{falcon_emeddedmq_port}}\"\n\n# java heap size we want to set for the falcon server. Default is 1024MB\n#export FALCON_SERVER_HEAP=\n\n# What is is considered as falcon home dir. Default is the base locaion of the installed software\n#export FALCON_HOME_DIR=\n\n# Where log files are stored. Defatult is logs directory under the base install location\nexport FALCON_LOG_DIR={{falcon_log_dir}}\n\n# Where pid files are stored. Defatult is logs directory under the base install location\nexport FALCON_PID_DIR={{falcon_pid_dir}}\n\n# where the falcon active mq data is stored. Defatult is logs/data directory under the base install location\nexport FALCON_DATA_DIR={{falcon_embeddedmq_data}}\n\n# Where do you want to expand the war file. By Default it is in /server/webapp dir under the base install dir.\n#export FALCON_EXPANDED_WEBAPP_DIR=", 
-            "falcon.embeddedmq.data": "/hadoop/falcon/embeddedmq/data", 
-            "falcon.embeddedmq": "true", 
-            "falcon_store_uri": "file:///hadoop/falcon/store"
-        }, 
+            "nagios_contact": "user@com.ua",
+            "nagios_principal_name": "nagios/c6402.ambari.apache.org@EXAMPLE.COM",
+            "nagios_keytab_path": "/etc/security/keytabs/nagios.service.keytab"
+        },
         "oozie-env": {
             "oozie_derby_database": "Derby", 
             "oozie_admin_port": "11001", 
@@ -620,7 +559,8 @@
             "oozie_user": "oozie", 
             "oozie_database": "New Derby Database", 
             "oozie_data_dir": "/hadoop/oozie/data", 
-            "oozie_log_dir": "/var/log/oozie"
+            "oozie_log_dir": "/var/log/oozie",
+            "oozie_keytab": "/etc/security/keytabs/oozie.service.keytab"
         }, 
         "webhcat-env": {
             "content": "\n# The file containing the running pid\nPID_FILE={{pid_file}}\n\nTEMPLETON_LOG_DIR={{templeton_log_dir}}/\n\n\nWEBHCAT_LOG_DIR={{templeton_log_dir}}/\n\n# The console error log\nERROR_LOG={{templeton_log_dir}}/webhcat-console-error.log\n\n# The console log\nCONSOLE_LOG={{templeton_log_dir}}/webhcat-console.log\n\n#TEMPLETON_JAR=templeton_jar_name\n\n#HADOOP_PREFIX=hadoop_prefix\n\n#HCAT_PREFIX=hive_prefix\n\n# Set HADOOP_HOME to point to a specific hadoop install directory\nexport HADOOP_HOME=/usr/lib/hadoop"

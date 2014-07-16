@@ -51,7 +51,7 @@ else:
   zoo_cfg_properties_map = {}
 zoo_cfg_properties_map_length = len(zoo_cfg_properties_map)
 
-zk_principal_name = default("/configurations/hadoop-env/zookeeper_principal_name", "zookeeper@EXAMPLE.COM")
+zk_principal_name = default("/configurations/zookeeper-env/zookeeper_principal_name", "zookeeper@EXAMPLE.COM")
 zk_principal = zk_principal_name.replace('_HOST',hostname.lower())
 
 java64_home = config['hostLevelParams']['java_home']
@@ -59,7 +59,7 @@ java64_home = config['hostLevelParams']['java_home']
 zookeeper_hosts = config['clusterHostInfo']['zookeeper_hosts']
 zookeeper_hosts.sort()
 
-zk_keytab_path = config['configurations']['hadoop-env']['zookeeper_keytab_path']
+zk_keytab_path = config['configurations']['zookeeper-env']['zookeeper_keytab_path']
 zk_server_jaas_file = format("{config_dir}/zookeeper_jaas.conf")
 zk_client_jaas_file = format("{config_dir}/zookeeper_client_jaas.conf")
 _authentication = config['configurations']['core-site']['hadoop.security.authentication']

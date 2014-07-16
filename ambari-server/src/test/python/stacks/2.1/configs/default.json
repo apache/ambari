@@ -579,6 +579,14 @@
             "hbase_regionserver_heapsize": "1024m", 
             "hbase_log_dir": "/var/log/hbase"
         },
+        "nagios-env": {
+            "hive_metastore_user_passwd": "password", 
+            "nagios_web_password": "!`\"' 1",
+            "nagios_user": "nagios", 
+            "nagios_group": "nagios", 
+            "nagios_web_login": "nagiosadmin", 
+            "nagios_contact": "user@com.ua"
+        }, 
         "ganglia-env": {
             "gmond_user": "nobody", 
             "ganglia_runtime_dir": "/var/run/ganglia/hdp", 
