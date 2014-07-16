@@ -409,6 +409,11 @@ App.StackService.configCategories = function () {
         App.ServiceConfigCategory.create({ name: 'FlumeEnv', displayName: 'Custom Flume Env', siteFileName: 'flume-env.xml', canAddProperty: false})
       ]);
       break;
+    case 'SQOOP':
+      serviceConfigCategories.pushObjects([
+        App.ServiceConfigCategory.create({ name: 'SqoopEnv', displayName: 'Custom Sqoop Env', siteFileName: 'sqoop-env.xml', canAddProperty: false})
+      ]);
+      break;
     case 'HCATALOG':
       break;
     default:

@@ -1639,6 +1639,21 @@ module.exports =
       "filename": "hive-env.xml",
       "category": "Advanced"
     },
+  /**********************************************SQOOP***************************************/
+    {
+      "id": "site property",
+      "name": "content",
+      "displayName": "content",
+      "value": "",
+      "defaultValue": "",
+      "description": "-env.sh content",
+      "displayType": "content",
+      "isRequired": false,
+      "showLabel": false,
+      "serviceName": "SQOOP",
+      "filename": "sqoop-env.xml",
+      "category": "SqoopEnv"
+    },
   /**********************************************WEBHCAT***************************************/
     {
       "id": "puppet var",
