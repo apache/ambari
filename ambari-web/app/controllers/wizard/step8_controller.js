@@ -68,11 +68,6 @@ App.WizardStep8Controller = Em.Controller.extend({
   configs: [],
 
   /**
-   * @type {Object[]}
-   */
-  globals: [],
-
-  /**
    * All configs
    * @type {Array}
    */
@@ -131,28 +126,6 @@ App.WizardStep8Controller = Em.Controller.extend({
   }.property('App.router.mainAdminSecurityController.securityEnabled'),
 
   /**
-   * During page save time, we set the host overrides to the server.
-   * The new host -> site:tag map is stored below. This will be
-   * useful during save, to update the host's host components. Also,
-   * it will be useful in deletion of overrides.
-   *
-   * Example:
-   * {
-   *  'hostname1': {
-   *    'global': {
-   *      'tagName': 'tag3187261938_hostname1',
-   *      'map': {
-   *        'hadoop_heapsize': '2048m'
-   *      }
-   *    }
-   *  }
-   * }
-   *
-   * @see loadedHostToOverrideSiteToTagMap
-   */
-  savedHostToOverrideSiteToTagMap: {},
-
-  /**
    * Selected config group
    * @type {Object}
    */
@@ -207,7 +180,6 @@ App.WizardStep8Controller = Em.Controller.extend({
   clearStep: function () {
     this.get('services').clear();
     this.get('configs').clear();
-    this.get('globals').clear();
     this.get('clusterInfo').clear();
     this.get('serviceConfigTags').clear();
     this.set('servicesInstalled', false);
@@ -228,7 +200,6 @@ App.WizardStep8Controller = Em.Controller.extend({
     this.clearStep();
     if (this.get('content.serviceConfigProperties')) {
       this.formatProperties();
-      this.loadGlobals();
       this.loadConfigs();
     }
     this.loadClusterInfo();
@@ -248,39 +219,20 @@ App.WizardStep8Controller = Em.Controller.extend({
   },
 
   /**
-   * Load global configs and remove some of them:
-   * <ul>
-   *   <li>Unused DB properties for Hive</li>
-   *   <li>Unused DB properties for Oozie</li>
-   * <ul>
-   * @method loadGlobals
-   */
-  loadGlobals: function () {
-    var globals = this.get('content.serviceConfigProperties').filterProperty('id', 'puppet var');
-    if (globals.someProperty('name', 'hive_database')) {
-      globals = this.removeHiveConfigs(globals);
-    }
-    if (globals.someProperty('name', 'oozie_database')) {
-      globals = this.removeOozieConfigs(globals);
-    }
-    this.set('globals', globals);
-  },
-
-  /**
    * Remove unused Hive configs
-   * @param {Ember.Enumerable} globals
+   * @param {Ember.Enumerable} configs
    * @returns {Ember.Enumerable}
    * @method removeHiveConfigs
    */
-  removeHiveConfigs: function (globals) {
-    var hiveDb = globals.findProperty('name', 'hive_database');
+  removeHiveConfigs: function (configs) {
+    var hiveDb = configs.findProperty('name', 'hive_database');
     var hiveDbType = {name: 'hive_database_type', value: 'mysql'};
 
     var hive_properties = Em.A([]);
 
     if (hiveDb.value === 'New MySQL Database') {
-      if (globals.someProperty('name', 'hive_ambari_host')) {
-        globals.findProperty('name', 'hive_hostname').value = globals.findProperty('name', 'hive_ambari_host').value;
+      if (configs.someProperty('name', 'hive_ambari_host')) {
+        configs.findProperty('name', 'hive_hostname').value = configs.findProperty('name', 'hive_ambari_host').value;
         hiveDbType.value = 'mysql';
       }
       hive_properties = Em.A(['hive_existing_mysql_host', 'hive_existing_mysql_database', 'hive_existing_oracle_host',
@@ -288,20 +240,20 @@ App.WizardStep8Controller = Em.Controller.extend({
     }
     else {
       if (hiveDb.value === 'Existing MySQL Database') {
-        globals.findProperty('name', 'hive_hostname').value = globals.findProperty('name', 'hive_existing_mysql_host').value;
+        configs.findProperty('name', 'hive_hostname').value = configs.findProperty('name', 'hive_existing_mysql_host').value;
         hiveDbType.value = 'mysql';
         hive_properties = Em.A(['hive_ambari_host', 'hive_ambari_database', 'hive_existing_oracle_host',
           'hive_existing_oracle_database', 'hive_existing_postgresql_host', 'hive_existing_postgresql_database']);
       }
       else {
         if (hiveDb.value === Em.I18n.t('services.service.config.hive.oozie.postgresql')) {
-          globals.findProperty('name', 'hive_hostname').value = globals.findProperty('name', 'hive_existing_postgresql_host').value;
+          configs.findProperty('name', 'hive_hostname').value = configs.findProperty('name', 'hive_existing_postgresql_host').value;
           hiveDbType.value = 'postgres';
           hive_properties = Em.A(['hive_ambari_host', 'hive_ambari_database', 'hive_existing_oracle_host',
             'hive_existing_oracle_database', 'hive_existing_mysql_host', 'hive_existing_mysql_database']);
         }
         else { //existing oracle database
-          globals.findProperty('name', 'hive_hostname').value = globals.findProperty('name', 'hive_existing_oracle_host').value;
+          configs.findProperty('name', 'hive_hostname').value = configs.findProperty('name', 'hive_existing_oracle_host').value;
           hiveDbType.value = 'oracle';
           hive_properties = Em.A(['hive_ambari_host', 'hive_ambari_database', 'hive_existing_mysql_host',
             'hive_existing_mysql_database', 'hive_existing_postgresql_host', 'hive_existing_postgresql_database']);
@@ -310,27 +262,27 @@ App.WizardStep8Controller = Em.Controller.extend({
     }
 
     hive_properties.forEach(function (property) {
-      globals = globals.without(globals.findProperty('name', property));
+      configs = configs.without(configs.findProperty('name', property));
     });
 
-    globals.pushObject(hiveDbType);
-    return globals;
+    configs.pushObject(hiveDbType);
+    return configs;
   },
 
   /**
    * Remove unused Oozie configs
-   * @param {Ember.Enumerable} globals
+   * @param {Ember.Enumerable} configs
    * @returns {Ember.Enumerable}
    * @method removeOozieConfigs
    */
-  removeOozieConfigs: function (globals) {
-    var oozieDb = globals.findProperty('name', 'oozie_database');
+  removeOozieConfigs: function (configs) {
+    var oozieDb = configs.findProperty('name', 'oozie_database');
     var oozieDbType = {name: 'oozie_database_type'};
 
     var oozie_properties = Em.A(['oozie_ambari_host', 'oozie_ambari_database']);
 
     if (oozieDb.value === 'New Derby Database') {
-      globals.findProperty('name', 'oozie_hostname').value = globals.findProperty('name', 'oozie_ambari_host').value;
+      configs.findProperty('name', 'oozie_hostname').value = configs.findProperty('name', 'oozie_ambari_host').value;
       oozieDbType.value = 'derby';
       oozie_properties = Em.A(['oozie_ambari_host', 'oozie_ambari_database', 'oozie_existing_mysql_host',
         'oozie_existing_mysql_database', 'oozie_existing_oracle_host', 'oozie_existing_oracle_database',
@@ -338,20 +290,20 @@ App.WizardStep8Controller = Em.Controller.extend({
     }
     else {
       if (oozieDb.value === 'Existing MySQL Database') {
-        globals.findProperty('name', 'oozie_hostname').value = globals.findProperty('name', 'oozie_existing_mysql_host').value;
+        configs.findProperty('name', 'oozie_hostname').value = configs.findProperty('name', 'oozie_existing_mysql_host').value;
         oozieDbType.value = 'mysql';
         oozie_properties = Em.A(['oozie_ambari_host', 'oozie_ambari_database', 'oozie_existing_oracle_host',
           'oozie_existing_oracle_database', 'oozie_derby_database', 'oozie_existing_postgresql_host', 'oozie_existing_postgresql_database']);
       }
       else {
         if (oozieDb.value === Em.I18n.t('services.service.config.hive.oozie.postgresql')) {
-          globals.findProperty('name', 'oozie_hostname').value = globals.findProperty('name', 'oozie_existing_postgresql_host').value;
+          configs.findProperty('name', 'oozie_hostname').value = configs.findProperty('name', 'oozie_existing_postgresql_host').value;
           oozieDbType.value = 'postgresql';
           oozie_properties = Em.A(['oozie_ambari_host', 'oozie_ambari_database', 'oozie_existing_oracle_host',
             'oozie_existing_oracle_database', 'oozie_existing_mysql_host', 'oozie_existing_mysql_database']);
         }
         else { // existing oracle database
-          globals.findProperty('name', 'oozie_hostname').value = globals.findProperty('name', 'oozie_existing_oracle_host').value;
+          configs.findProperty('name', 'oozie_hostname').value = configs.findProperty('name', 'oozie_existing_oracle_host').value;
           oozieDbType.value = 'oracle';
           oozie_properties = Em.A(['oozie_ambari_host', 'oozie_ambari_database', 'oozie_existing_mysql_host',
             'oozie_existing_mysql_database', 'oozie_derby_database', 'oozie_existing_postgresql_host', 'oozie_existing_postgresql_database']);
@@ -359,10 +311,10 @@ App.WizardStep8Controller = Em.Controller.extend({
       }
     }
     oozie_properties.forEach(function (property) {
-      globals = globals.without(globals.findProperty('name', property));
+      configs = configs.without(configs.findProperty('name', property));
     });
-    globals.pushObject(oozieDbType);
-    return globals;
+    configs.pushObject(oozieDbType);
+    return configs;
   },
 
   /**
@@ -371,13 +323,19 @@ App.WizardStep8Controller = Em.Controller.extend({
    */
   loadConfigs: function () {
     //storedConfigs contains custom configs as well
-    var serviceConfigProperties = this.get('content.serviceConfigProperties').filterProperty('id', 'site property');
-    serviceConfigProperties.forEach(function (_config) {
+    var configs = this.get('content.serviceConfigProperties');
+    if (configs.someProperty('name', 'hive_database')) {
+      configs = this.removeHiveConfigs(configs);
+    }
+    if (configs.someProperty('name', 'oozie_database')) {
+      configs = this.removeOozieConfigs(configs);
+    }
+    configs.forEach(function (_config) {
       _config.value = (typeof _config.value === "boolean") ? _config.value.toString() : _config.value;
     });
     var mappedConfigs = App.config.excludeUnsupportedConfigs(this.get('configMapping'), this.get('selectedServices').mapProperty('serviceName'));
     var uiConfigs = this.loadUiSideConfigs(mappedConfigs);
-    this.set('configs', serviceConfigProperties.concat(uiConfigs));
+    this.set('configs', configs.concat(uiConfigs));
   },
 
   /**
@@ -402,7 +360,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     }, this);
     var dependentConfig = $.extend(true, [], configMapping.filterProperty('foreignKey'));
     dependentConfig.forEach(function (_config) {
-      App.config.setConfigValue(uiConfig, this.get('content.serviceConfigProperties'), _config, this.get('globals'));
+      App.config.setConfigValue(uiConfig, this.get('content.serviceConfigProperties'), _config);
       uiConfig.pushObject({
         "id": "site property",
         "name": _config._name || _config.name,
@@ -482,9 +440,9 @@ App.WizardStep8Controller = Em.Controller.extend({
     express.forEach(function (_express) {
       //console.log("The value of template is: " + _express);
       var index = parseInt(_express.match(/\[([\d]*)(?=\])/)[1]);
-      if (this.get('globals').someProperty('name', templateName[index])) {
+      if (this.get('configs').someProperty('name', templateName[index])) {
         //console.log("The name of the variable is: " + this.get('content.serviceConfigProperties').findProperty('name', templateName[index]).name);
-        var globalObj = this.get('globals').findProperty('name', templateName[index]);
+        var globalObj = this.get('configs').findProperty('name', templateName[index]);
         var globValue = globalObj.value;
         // Hack for templeton.zookeeper.hosts
         var preReplaceValue = null;
@@ -876,7 +834,7 @@ App.WizardStep8Controller = Em.Controller.extend({
   updateConfigurations: function (configsToUpdate) {
     var configurationController = App.router.get('mainServiceInfoConfigsController');
     var configs = configsToUpdate.filter(function(config) {
-      return !!config.filename && !/^(global|core)/.test(config.filename);
+      return !!config.filename && !/^(core)/.test(config.filename) && config.filename.indexOf('env')==-1;
     });
     var serviceNames = configs.mapProperty('serviceName').uniq();
     var configsMap = [];
@@ -1419,54 +1377,81 @@ App.WizardStep8Controller = Em.Controller.extend({
       this.get('serviceConfigTags').pushObject(this.createSiteObj('hdfs-site', false, tag));
       this.get('serviceConfigTags').pushObject(this.createLog4jObj('hdfs', tag));
     }
-    var globalSiteObj = this.createGlobalSiteObj(tag);
     if (this.get('content.controllerName') == 'addServiceController') {
       tag = 'version' + (new Date).getTime();
-      globalSiteObj.tag = tag;
       coreSiteObject.tag = tag;
       this.get('serviceConfigTags').pushObject(coreSiteObject);
+      //for Add Service save config of new and installed services either
+      selectedServices = selectedServices.concat(this.get('installedServices'));
     }
-    this.get('serviceConfigTags').pushObject(globalSiteObj);
 
     var objMap = {
+      HDFS: {site: [
+        {filename: 'hdfs-site', isXmlFile: true},
+        {filename: 'hadoop-env', isXmlFile: true}
+      ], log4j: ['hdfs']},
+      GANGLIA: {site: [
+        {filename: 'ganglia-env', isXmlFile: true}
+      ], log4j: []},
+      NAGIOS: {site: [
+        {filename: 'nagios-env', isXmlFile: true}
+      ], log4j: []},
+      STORM: {site: [
+        {filename: 'storm-env', isXmlFile: true}
+      ], log4j: []},
       MAPREDUCE: {site: [
-        {filename: 'mapred-site', isXmlFile: true}
+        {filename: 'mapred-site', isXmlFile: true},
+        {filename: 'mapred-env', isXmlFile: true}
       ], log4j: ['mapreduce']},
       MAPREDUCE2: {site: [
-        {filename: 'mapred-site', isXmlFile: true}
+        {filename: 'mapred-site', isXmlFile: true},
+        {filename: 'mapred-env', isXmlFile: true}
       ], log4j: ['mapreduce2']},
       YARN: {site: [
         {filename: 'yarn-site', isXmlFile: true},
-        {filename: 'capacity-scheduler', isXmlFile: true}
+        {filename: 'capacity-scheduler', isXmlFile: true},
+        {filename: 'yarn-env', isXmlFile: true}
       ], log4j: ['yarn']},
       HBASE: {site: [
-        {filename: 'hbase-site', isXmlFile: true}
+        {filename: 'hbase-site', isXmlFile: true},
+        {filename: 'hbase-env', isXmlFile: true}
       ], log4j: ['hbase']},
       OOZIE: {site: [
-        {filename: 'oozie-site', isXmlFile: true}
+        {filename: 'oozie-site', isXmlFile: true},
+        {filename: 'oozie-env', isXmlFile: true}
       ], log4j: ['oozie']},
       HIVE: {site: [
-        {filename: 'hive-site', isXmlFile: true}
+        {filename: 'hive-site', isXmlFile: true},
+        {filename: 'hive-env', isXmlFile: true}
       ], log4j: ['hive', 'hive-exec']},
       WEBHCAT: {site: [
-        {filename: 'webhcat-site', isXmlFile: true}
+        {filename: 'webhcat-site', isXmlFile: true},
+        {filename: 'webhcat-env', isXmlFile: true}
       ], log4j: []},
       HUE: {site: [
-        {filename: 'hue-site', isXmlFile: true}
+        {filename: 'hue-site', isXmlFile: true},
+        {filename: 'hue-env', isXmlFile: true}
       ], log4j: []},
       PIG: {site: [
-        {filename: 'pig-properties', isXmlFile: false}
+        {filename: 'pig-properties', isXmlFile: false},
+        {filename: 'pig-env', isXmlFile: true}
       ], log4j: ['pig']},
       FALCON: {site: [
         {filename: 'falcon-startup.properties', isXmlFile: false},
-        {filename: 'falcon-runtime.properties', isXmlFile: false}
+        {filename: 'falcon-runtime.properties', isXmlFile: false},
+        {filename: 'falcon-env', isXmlFile: true}
       ], log4j: []},
       TEZ: {site: [
-        {filename: 'tez-site', isXmlFile: true}
+        {filename: 'tez-site', isXmlFile: true},
+        {filename: 'tez-env', isXmlFile: true}
       ], log4j: []},
-      ZOOKEEPER: {site: [], log4j: ['zookeeper']},
+      SQOOP: {site: [
+        {filename: 'sqoop-env', isXmlFile: true}
+      ], log4j: []},
+      ZOOKEEPER: {site: [{filename: 'zookeeper-env', isXmlFile: true}], log4j: ['zookeeper']},
       FLUME: {site: [
-        {filename: 'flume-conf', isXmlFile: false}
+        {filename: 'flume-conf', isXmlFile: false},
+        {filename: 'flume-env', isXmlFile: true}
       ], log4j: []}
     };
 
@@ -1620,40 +1605,6 @@ App.WizardStep8Controller = Em.Controller.extend({
   },
 
   /**
-   * Create Global Site object
-   * @returns {{type: string, tag: string, properties: {}}}
-   * @method createGlobalSiteObj
-   */
-  createGlobalSiteObj: function (tag) {
-    var globalSiteProperties = {};
-    var globalSiteObj = this.get('globals');
-    var isGLUSTERFSSelected = this.get('selectedServices').someProperty('serviceName', 'GLUSTERFS');
-
-    // screen out the GLUSTERFS-specific global config entries when they are not required
-    if (!isGLUSTERFSSelected) {
-      globalSiteObj = globalSiteObj.filter(function (_config) {
-        return !_config.name.contains("fs_glusterfs");
-      });
-    }
-
-    globalSiteObj.forEach(function (globalConfig) {
-      var heapsizeExceptions = ['hadoop_heapsize', 'yarn_heapsize', 'nodemanager_heapsize', 'resourcemanager_heapsize', 'apptimelineserver_heapsize', 'jobhistory_heapsize'];
-      // do not pass any globals whose name ends with _host or _hosts
-      if (globalConfig.isRequiredByAgent !== false) {
-        // append "m" to JVM memory options except for heapsizeExtensions
-        if (/_heapsize|_newsize|_maxnewsize$/.test(globalConfig.name) && !heapsizeExceptions.contains(globalConfig.name)) {
-          globalSiteProperties[globalConfig.name] = globalConfig.value + "m";
-        } else {
-          globalSiteProperties[globalConfig.name] = App.config.escapeXMLCharacters(globalConfig.value);
-        }
-      }
-    }, this);
-    // we don't expose gmond_user to the user; it needs to be the same as gmetad_user
-    globalSiteProperties['gmond_user'] = globalSiteProperties['gmetad_user'];
-    return {"type": "global", "tag": tag, "properties": globalSiteProperties};
-  },
-
-  /**
    * Create Core Site object
    * @returns {{type: string, tag: string, properties: {}}}
    * @method createCoreSiteObj
@@ -1666,11 +1617,11 @@ App.WizardStep8Controller = Em.Controller.extend({
       coreSiteProperties = {},
     // some configs needs to be skipped if services are not selected
       isOozieSelected = installedAndSelectedServices.someProperty('serviceName', 'OOZIE'),
-      oozieUser = this.get('globals').someProperty('name', 'oozie_user') ? this.get('globals').findProperty('name', 'oozie_user').value : null,
+      oozieUser = this.get('configs').someProperty('name', 'oozie_user') ? this.get('configs').findProperty('name', 'oozie_user').value : null,
       isHiveSelected = installedAndSelectedServices.someProperty('serviceName', 'HIVE'),
-      hiveUser = this.get('globals').someProperty('name', 'hive_user') ? this.get('globals').findProperty('name', 'hive_user').value : null,
+      hiveUser = this.get('configs').someProperty('name', 'hive_user') ? this.get('configs').findProperty('name', 'hive_user').value : null,
       isHcatSelected = installedAndSelectedServices.someProperty('serviceName', 'WEBHCAT'),
-      hcatUser = this.get('globals').someProperty('name', 'hcat_user') ? this.get('globals').findProperty('name', 'hcat_user').value : null,
+      hcatUser = this.get('configs').someProperty('name', 'hcat_user') ? this.get('configs').findProperty('name', 'hcat_user').value : null,
       isGLUSTERFSSelected = installedAndSelectedServices.someProperty('serviceName', 'GLUSTERFS');
 
     // screen out the GLUSTERFS-specific core-site.xml entries when they are not needed
@@ -1690,13 +1641,13 @@ App.WizardStep8Controller = Em.Controller.extend({
       }
       if (isGLUSTERFSSelected && _coreSiteObj.name == "fs.default.name") {
         coreSiteProperties[_coreSiteObj.name] =
-          this.get('globals').someProperty('name', 'fs_glusterfs_default_name') ?
-            App.config.escapeXMLCharacters(this.get('globals').findProperty('name', 'fs_glusterfs_default_name').value) : null;
+          this.get('configs').someProperty('name', 'fs_glusterfs_default_name') ?
+            App.config.escapeXMLCharacters(this.get('configs').findProperty('name', 'fs_glusterfs_default_name').value) : null;
       }
       if (isGLUSTERFSSelected && _coreSiteObj.name == "fs.defaultFS") {
         coreSiteProperties[_coreSiteObj.name] =
-          this.get('globals').someProperty('name', 'glusterfs_defaultFS_name') ?
-            App.config.escapeXMLCharacters(this.get('globals').findProperty('name', 'glusterfs_defaultFS_name').value) : null;
+          this.get('configs').someProperty('name', 'glusterfs_defaultFS_name') ?
+            App.config.escapeXMLCharacters(this.get('configs').findProperty('name', 'glusterfs_defaultFS_name').value) : null;
       }
     }, this);
     return {"type": "core-site", "tag": "version1", "properties": coreSiteProperties};
@@ -1718,7 +1669,16 @@ App.WizardStep8Controller = Em.Controller.extend({
       }, this);
     } else {
       this.get('configs').filterProperty('filename', site + '.xml').forEach(function (_configProperty) {
-        properties[_configProperty.name] = App.config.escapeXMLCharacters(_configProperty.value);
+        var heapsizeExceptions = ['hadoop_heapsize', 'yarn_heapsize', 'nodemanager_heapsize', 'resourcemanager_heapsize', 'apptimelineserver_heapsize', 'jobhistory_heapsize'];
+        // do not pass any globals whose name ends with _host or _hosts
+        if (_configProperty.isRequiredByAgent !== false) {
+          // append "m" to JVM memory options except for heapsizeExtensions
+          if (/_heapsize|_newsize|_maxnewsize$/.test(_configProperty.name) && !heapsizeExceptions.contains(_configProperty.name)) {
+            properties[_configProperty.name] = _configProperty.value + "m";
+          } else {
+            properties[_configProperty.name] = App.config.escapeXMLCharacters(_configProperty.value);
+           }
+        }
       }, this);
     }
     return {"type": site, "tag": tag, "properties": properties };

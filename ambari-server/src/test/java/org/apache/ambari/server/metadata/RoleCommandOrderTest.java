@@ -21,6 +21,7 @@ package org.apache.ambari.server.metadata;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertTrue;
+import static junit.framework.Assert.assertNotNull;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
@@ -28,18 +29,23 @@ import static org.easymock.EasyMock.verify;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
+import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.metadata.RoleCommandOrder.RoleCommandPair;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
+import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.cluster.ClusterImpl;
+import org.apache.ambari.server.state.svccomphost.ServiceComponentHostImpl;
 import org.codehaus.jackson.annotate.JsonAutoDetect;
 import org.codehaus.jackson.annotate.JsonMethod;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -83,6 +89,7 @@ public class RoleCommandOrderTest {
     expect(cluster.getCurrentStackVersion()).andReturn(new StackId("HDP", "2.0.6"));
     expect(cluster.getService("GLUSTERFS")).andReturn(service);
     expect(cluster.getService("HDFS")).andReturn(null);
+    expect(cluster.getService("YARN")).andReturn(null);
     replay(cluster);
 
     Map<RoleCommandPair, Set<RoleCommandPair>> deps = rco.getDependencies();
@@ -128,6 +135,7 @@ public class RoleCommandOrderTest {
     Service hdfsService = createMock(Service.class);
 
     expect(cluster.getService("HDFS")).andReturn(hdfsService).atLeastOnce();
+    expect(cluster.getService("YARN")).andReturn(null);
     expect(hdfsService.getServiceComponent("JOURNALNODE")).andReturn(null);
     expect(cluster.getCurrentStackVersion()).andReturn(new StackId("HDP", "2.0.6"));
 
@@ -172,6 +180,7 @@ public class RoleCommandOrderTest {
     ServiceComponent journalnodeSC = createMock(ServiceComponent.class);
 
     expect(cluster.getService("HDFS")).andReturn(hdfsService).atLeastOnce();
+    expect(cluster.getService("YARN")).andReturn(null);
     expect(hdfsService.getServiceComponent("JOURNALNODE")).andReturn(journalnodeSC);
     expect(cluster.getCurrentStackVersion()).andReturn(new StackId("HDP", "2.0.6"));
 
@@ -199,6 +208,60 @@ public class RoleCommandOrderTest {
     // Check that some HA NN dependencies are present
     assertTrue(dependenciesContainBlockerRole(deps, Role.JOURNALNODE));
     assertTrue(dependenciesContainBlockedRole(deps, Role.ZKFC));
+  }
+
+  @Test
+  public void testInitializeAtHaRMCluster() throws AmbariException {
+    RoleCommandOrder rco = injector.getInstance(RoleCommandOrder.class);
+    ClusterImpl cluster = createMock(ClusterImpl.class);
+    ServiceComponentHost sch1 = createMock(ServiceComponentHostImpl.class);
+    ServiceComponentHost sch2 = createMock(ServiceComponentHostImpl.class);
+    expect(cluster.getService("GLUSTERFS")).andReturn(null);
+
+
+    Map<String, ServiceComponentHost> hostComponents = new HashMap<String, ServiceComponentHost>();
+    hostComponents.put("1",sch1);
+    hostComponents.put("2",sch2);
+
+    Service yarnService = createMock(Service.class);
+    ServiceComponent resourcemanagerSC = createMock(ServiceComponent.class);
+
+    expect(cluster.getService("YARN")).andReturn(yarnService).atLeastOnce();
+    expect(cluster.getService("HDFS")).andReturn(null);
+    expect(yarnService.getServiceComponent("RESOURCEMANAGER")).andReturn(resourcemanagerSC).anyTimes();
+    expect(resourcemanagerSC.getServiceComponentHosts()).andReturn(hostComponents).anyTimes();
+    expect(cluster.getCurrentStackVersion()).andReturn(new StackId("HDP", "2.0.6"));
+
+    replay(cluster, yarnService, sch1, sch2, resourcemanagerSC);
+
+    Map<RoleCommandPair, Set<RoleCommandPair>> deps = rco.getDependencies();
+    assertTrue("Dependencies are empty before initialization", deps.size() == 0);
+    rco.initialize(cluster);
+    assertTrue("Dependencies are loaded after initialization", deps.size() > 0);
+    verify(cluster, yarnService);
+    // Check that GLUSTERFS components are not present in dependencies
+    // Checking blocked roles
+    assertFalse(dependenciesContainBlockedRole(deps, Role.PEERSTATUS));
+    assertFalse(dependenciesContainBlockedRole(deps, Role.GLUSTERFS_SERVICE_CHECK));
+    assertFalse(dependenciesContainBlockedRole(deps, Role.GLUSTERFS_CLIENT));
+    // Checking blocker roles
+    assertFalse(dependenciesContainBlockerRole(deps, Role.PEERSTATUS));
+    assertFalse(dependenciesContainBlockerRole(deps, Role.GLUSTERFS_SERVICE_CHECK));
+    assertFalse(dependenciesContainBlockerRole(deps, Role.GLUSTERFS_CLIENT));
+
+    // And that some HDFS components are present (section has been loaded)
+    assertTrue(dependenciesContainBlockerRole(deps, Role.DATANODE));
+    // Check that some HA RM dependencies are present
+    RoleCommandPair rmPair = new RoleCommandPair(Role.RESOURCEMANAGER, RoleCommand.START);
+    Set<RoleCommandPair> rmRoleCommandPairs = deps.get(rmPair);
+    assertNotNull(rmRoleCommandPairs);
+    boolean isZookeeperStartPresent = false;
+    for (RoleCommandPair pair : rmRoleCommandPairs) {
+      if (pair.cmd == RoleCommand.START && pair.getRole() == Role.ZOOKEEPER_SERVER) {
+        isZookeeperStartPresent = true;
+      }
+    }
+    assertTrue(isZookeeperStartPresent);
   }
 
 
@@ -240,6 +303,7 @@ public class RoleCommandOrderTest {
     Service hdfsService = createMock(Service.class);
 
     expect(cluster.getService("HDFS")).andReturn(hdfsService).atLeastOnce();
+    expect(cluster.getService("YARN")).andReturn(null);
     expect(hdfsService.getServiceComponent("JOURNALNODE")).andReturn(null);
     //There is no rco file in this stack, should use default
     expect(cluster.getCurrentStackVersion()).andReturn(new StackId("HDP", "2.0.5"));

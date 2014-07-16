@@ -25,13 +25,13 @@ import status_params
 # server configurations
 config = Script.get_config()
 
-hcat_user = config['configurations']['global']['hcat_user']
-webhcat_user = config['configurations']['global']['webhcat_user']
-download_url = config['configurations']['global']['apache_artifacts_download_url']
+hcat_user = config['configurations']['hive-env']['hcat_user']
+webhcat_user = config['configurations']['hive-env']['webhcat_user']
+webhcat_env_sh_template = config['configurations']['webhcat-env']['content']
 
 config_dir = '/etc/hcatalog/conf'
 
-templeton_log_dir = config['configurations']['global']['hcat_log_dir']
+templeton_log_dir = config['configurations']['hive-env']['hcat_log_dir']
 templeton_pid_dir = status_params.templeton_pid_dir
 
 pid_file = status_params.pid_file
@@ -40,16 +40,16 @@ hadoop_conf_dir = config['configurations']['webhcat-site']['templeton.hadoop.con
 templeton_jar = config['configurations']['webhcat-site']['templeton.jar']
 
 hadoop_home = '/usr'
-user_group = config['configurations']['global']['user_group']
+user_group = config['configurations']['hadoop-env']['user_group']
 
 webhcat_server_host = config['clusterHostInfo']['webhcat_server_host']
 
 webhcat_apps_dir = "/apps/webhcat"
-smoke_user_keytab = config['configurations']['global']['smokeuser_keytab']
-smokeuser = config['configurations']['global']['smokeuser']
+smoke_user_keytab = config['configurations']['hadoop-env']['smokeuser_keytab']
+smokeuser = config['configurations']['hadoop-env']['smokeuser']
 _authentication = config['configurations']['core-site']['hadoop.security.authentication']
 security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')
-kinit_path_local = functions.get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
 
 #hdfs directories
 webhcat_apps_dir = "/apps/webhcat"
@@ -61,9 +61,9 @@ webhcat_hdfs_user_mode = 0755
 hostname = config["hostname"]
 security_param = "true" if security_enabled else "false"
 hadoop_conf_dir = "/etc/hadoop/conf"
-hdfs_user_keytab = config['configurations']['global']['hdfs_user_keytab']
-hdfs_user = config['configurations']['global']['hdfs_user']
-kinit_path_local = functions.get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
+hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
+kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
 import functools
 #create partial functions with common arguments for every HdfsDirectory call
 #to create hdfs directory we need to call params.HdfsDirectory in code

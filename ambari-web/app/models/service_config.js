@@ -36,7 +36,10 @@ App.ServiceConfig = Ember.Object.extend({
         }
       })
     });
-    var masterErrors = this.get('configs').filterProperty('isValid', false).filterProperty('isVisible', true).get('length');
+    var categoryNames = this.get('configCategories').mapProperty('name');
+    var masterErrors = this.get('configs').filter(function (item) {
+      return categoryNames.contains(item.get('category'));
+    }).filterProperty('isValid', false).filterProperty('isVisible', true).get('length');
     var slaveErrors = 0;
     this.get('configCategories').forEach(function (_category) {
       slaveErrors += _category.get('slaveErrorCount');
@@ -149,7 +152,7 @@ App.ServiceConfigProperty = Ember.Object.extend({
   isFinal: false,
   supportsFinal: false,
   isVisible: true,
-  isRequiredByAgent: true, // Setting it to true implies property will be stored in global configuration
+  isRequiredByAgent: true, // Setting it to true implies property will be stored in configuration
   isSecureConfig: false,
   errorMessage: '',
   warnMessage: '',

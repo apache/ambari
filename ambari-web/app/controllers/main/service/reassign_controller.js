@@ -102,8 +102,8 @@ App.ReassignMasterController = App.WizardController.extend({
 
   getSecurityStatusSuccessCallback: function (data) {
     var configs = data.Clusters.desired_configs;
-    if ('global' in configs) {
-      this.getServiceConfigsFromServer(configs['global'].tag);
+    if ('hadoop-env' in configs) {
+      this.getServiceConfigsFromServer(configs['hadoop-env'].tag);
     }
     else {
       console.error('Cannot get security status from server');
@@ -111,21 +111,23 @@ App.ReassignMasterController = App.WizardController.extend({
   },
 
   getServiceConfigsFromServer: function (tag) {
+    var self = this;
     var tags = [
       {
-        siteName: "global",
+        siteName: "hadoop-env",
         tagName: tag
       }
     ];
-    var data = App.router.get('configurationController').getConfigsByTags(tags);
-    var configs = data.findProperty('tag', tag).properties;
-    var result = configs && (configs['security_enabled'] === 'true' || configs['security_enabled'] === true);
-    this.saveSecurityEnabled(result);
-    App.clusterStatus.setClusterStatus({
-      clusterName: this.get('content.cluster.name'),
-      clusterState: 'DEFAULT',
-      wizardControllerName: 'reassignMasterController',
-      localdb: App.db.data
+    App.router.get('configurationController').getConfigsByTags(tags).data(function (data) {
+      var configs = data.findProperty('tag', tag).properties;
+      var result = configs && (configs['security_enabled'] === 'true' || configs['security_enabled'] === true);
+      self.saveSecurityEnabled(result);
+      App.clusterStatus.setClusterStatus({
+        clusterName: self.get('content.cluster.name'),
+        clusterState: 'DEFAULT',
+        wizardControllerName: 'reassignMasterController',
+        localdb: App.db.data
+      });
     });
   },
 

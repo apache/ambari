@@ -38,7 +38,7 @@ def setup_hadoop_env():
   
   File(os.path.join(params.hadoop_conf_dir, 'hadoop-env.sh'),
        owner=tc_owner,
-       content=Template('hadoop-env.sh.j2')
+       content=InlineTemplate(params.hadoop_env_sh_template)
   )
 
 def setup_config():

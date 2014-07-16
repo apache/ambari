@@ -53,9 +53,9 @@
       </commandScript>
 
       <configuration-dependencies>
+        <config-type>flume-env</config-type>
         <config-type>flume-conf</config-type>
         <config-type>flume-log4j</config-type>
-        <config-type>global</config-type>
       </configuration-dependencies>
 
     </service>

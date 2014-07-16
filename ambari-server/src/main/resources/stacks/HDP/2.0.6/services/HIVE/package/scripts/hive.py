@@ -83,7 +83,7 @@ def hive(name=None):
   File(format("{hive_config_dir}/hive-env.sh"),
        owner=params.hive_user,
        group=params.user_group,
-       content=Template('hive-env.sh.j2', conf_dir=hive_config_dir)
+       content=InlineTemplate(params.hive_env_sh_template, conf_dir=hive_config_dir)
   )
 
   if name == 'metastore':

@@ -22,5 +22,5 @@ from resource_management import *
 
 config = Script.get_config()
 
-templeton_pid_dir = config['configurations']['global']['hcat_pid_dir']
+templeton_pid_dir = config['configurations']['hive-env']['hcat_pid_dir']
 pid_file = format('{templeton_pid_dir}/webhcat.pid')

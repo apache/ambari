@@ -20,7 +20,7 @@ limitations under the License.
 
 from stacks.utils.RMFTestCase import *
 
-class TestHcatClient(RMFTestCase):
+class TestPigClient(RMFTestCase):
 
   def test_configure_default(self):
     self.executeScript("1.3.2/services/PIG/package/scripts/pig_client.py",
@@ -33,8 +33,9 @@ class TestHcatClient(RMFTestCase):
       owner = 'hdfs',
       group = 'hadoop',
     )
-    self.assertResourceCalled('TemplateConfig', '/etc/pig/conf/pig-env.sh',
+    self.assertResourceCalled('File', '/etc/pig/conf/pig-env.sh',
       owner = 'hdfs',
+      content = InlineTemplate(self.getConfig()['configurations']['pig-env']['content'])
     )
     self.assertResourceCalled('TemplateConfig', '/etc/pig/conf/pig.properties',
       owner = 'hdfs',
@@ -58,8 +59,9 @@ class TestHcatClient(RMFTestCase):
       owner = 'hdfs',
       group = 'hadoop',
     )
-    self.assertResourceCalled('TemplateConfig', '/etc/pig/conf/pig-env.sh',
+    self.assertResourceCalled('File', '/etc/pig/conf/pig-env.sh',
       owner = 'hdfs',
+      content = InlineTemplate(self.getConfig()['configurations']['pig-env']['content']),
     )
     self.assertResourceCalled('TemplateConfig', '/etc/pig/conf/pig.properties',
       owner = 'hdfs',

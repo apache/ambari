@@ -35,6 +35,7 @@ App.QuickViewLinks = Em.View.extend({
   loadTagsSuccess: function (data) {
     this.get('actualTags').clear();
     var tags = [];
+    var self = this;
     for (var prop in data.Clusters.desired_configs) {
       tags.push(Em.Object.create({
         siteName: prop,
@@ -42,8 +43,10 @@ App.QuickViewLinks = Em.View.extend({
       }));
     }
     this.get('actualTags').pushObjects(tags);
-    this.setConfigProperties();
-    this.getQuickLinksHosts();
+    this.setConfigProperties().done(function (data) {
+      self.get('configProperties').pushObjects(data);
+      self.getQuickLinksHosts();
+    });
   },
 
   loadTagsError: function() {
@@ -72,7 +75,7 @@ App.QuickViewLinks = Em.View.extend({
   /**
    * list of files that contains properties for enabling/disabling ssl
    */
-  requiredSiteNames: ['global','core-site', 'hdfs-site', 'hbase-site', 'oozie-site', 'yarn-site', 'mapred-site'],
+  requiredSiteNames: ['hadoop-env','yarn-env','hbase-env','oozie-env','mapred-env','core-site', 'hdfs-site', 'hbase-site', 'oozie-site', 'yarn-site', 'mapred-site'],
   /**
    * Get public host name by its host name.
    *
@@ -91,8 +94,7 @@ App.QuickViewLinks = Em.View.extend({
     var tags = this.get('actualTags').filter(function (tag) {
       return requiredSiteNames.contains(tag.siteName);
     });
-    var data = App.router.get('configurationController').getConfigsByTags(tags);
-    this.get('configProperties').pushObjects(data);
+    return App.router.get('configurationController').getConfigsByTags(tags);
   },
 
   ambariProperties: function () {

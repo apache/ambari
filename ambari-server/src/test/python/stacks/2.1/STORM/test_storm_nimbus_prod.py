@@ -20,7 +20,7 @@ limitations under the License.
 
 from mock.mock import MagicMock, call, patch
 from stacks.utils.RMFTestCase import *
-import  resource_management.core.source
+import resource_management.core.source
 
 @patch.object(resource_management.core.source, "InlineTemplate", new = MagicMock(return_value='InlineTemplateMock'))
 class TestStormNimbus(RMFTestCase):
@@ -125,8 +125,9 @@ class TestStormNimbus(RMFTestCase):
       group = 'hadoop',
       mode = None,
     )
-    self.assertResourceCalled('TemplateConfig', '/etc/storm/conf/storm-env.sh',
+    self.assertResourceCalled('File', '/etc/storm/conf/storm-env.sh',
                               owner = 'storm',
+                              content = 'InlineTemplate'
                               )
 
   def assert_configure_secured(self):
@@ -161,8 +162,9 @@ class TestStormNimbus(RMFTestCase):
       group = 'hadoop',
       mode = None,
     )
-    self.assertResourceCalled('TemplateConfig', '/etc/storm/conf/storm-env.sh',
+    self.assertResourceCalled('File', '/etc/storm/conf/storm-env.sh',
                               owner = 'storm',
+                              content = 'InlineTemplate'
                               )
     self.assertResourceCalled('TemplateConfig', '/etc/storm/conf/storm_jaas.conf',
       owner = 'storm',

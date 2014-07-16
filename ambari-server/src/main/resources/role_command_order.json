@@ -90,11 +90,15 @@
     "JOBTRACKER-UPGRADE": ["HDFS_CLIENT-UPGRADE"]
   },
   "_comment" : "Dependencies that are used in HA NameNode cluster",
-  "optional_ha": {
+  "namenode_optional_ha": {
     "NAMENODE-START": ["JOURNALNODE-START", "ZOOKEEPER_SERVER-START"],
     "ZKFC-START": ["NAMENODE-START"],
     "NAGIOS_SERVER-START": ["ZKFC-START", "JOURNALNODE-START"],
     "HDFS_SERVICE_CHECK-SERVICE_CHECK": ["ZKFC-START"]
+  },
+  "_comment" : "Dependencies that are used in ResourceManager HA cluster",
+  "resourcemanager_optional_ha" : {
+    "RESOURCEMANAGER-START": ["ZOOKEEPER_SERVER-START"]
   }
 }
 

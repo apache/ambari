@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.upgrade;
 
+import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Provider;
@@ -202,30 +203,36 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
           Map<String, Config> all = cluster.getConfigsByType(configType);
           if (all == null || !all.containsKey(newTag) || properties.size() > 0) {
 
+            Map<String, String> oldConfigProperties = oldConfig.getProperties();
+
             Map<String, String> mergedProperties =
-              mergeProperties(oldConfig.getProperties(), properties, updateIfExists);
+              mergeProperties(oldConfigProperties, properties, updateIfExists);
 
-            LOG.info("Applying configuration with tag '%s' to " +
-              "cluster '%s'", newTag, cluster.getClusterName());
+            if (!Maps.difference(oldConfigProperties, mergedProperties).areEqual()) {
+              LOG.info("Applying configuration with tag '%s' to " +
+                "cluster '%s'", newTag, cluster.getClusterName());
 
-            ConfigurationRequest cr = new ConfigurationRequest();
-            cr.setClusterName(cluster.getClusterName());
-            cr.setVersionTag(newTag);
-            cr.setType(configType);
-            cr.setProperties(mergedProperties);
-            controller.createConfiguration(cr);
+              ConfigurationRequest cr = new ConfigurationRequest();
+              cr.setClusterName(cluster.getClusterName());
+              cr.setVersionTag(newTag);
+              cr.setType(configType);
+              cr.setProperties(mergedProperties);
+              controller.createConfiguration(cr);
 
-            Config baseConfig = cluster.getConfig(cr.getType(), cr.getVersionTag());
-            if (baseConfig != null) {
-              String authName = "ambari-upgrade";
+              Config baseConfig = cluster.getConfig(cr.getType(), cr.getVersionTag());
+              if (baseConfig != null) {
+                String authName = "ambari-upgrade";
 
-              if (cluster.addDesiredConfig(authName, baseConfig)) {
-                LOG.info("cluster '" + cluster.getClusterName() + "' "
-                  + "changed by: '" + authName + "'; "
-                  + "type='" + baseConfig.getType() + "' "
-                  + "tag='" + baseConfig.getVersionTag() + "'"
-                  + " from='"+ oldConfig.getVersionTag() + "'");
+                if (cluster.addDesiredConfig(authName, baseConfig)) {
+                  LOG.info("cluster '" + cluster.getClusterName() + "' "
+                    + "changed by: '" + authName + "'; "
+                    + "type='" + baseConfig.getType() + "' "
+                    + "tag='" + baseConfig.getVersionTag() + "'"
+                    + " from='" + oldConfig.getVersionTag() + "'");
+                }
               }
+            } else {
+              LOG.info("No changes detected to config " + configType + ". Skipping configuration properties update");
             }
           }
         }

@@ -25,7 +25,7 @@ from stacks.utils.RMFTestCase import *
 @patch("os.path.exists", new = MagicMock(return_value=True))
 class TestHookAfterInstall(RMFTestCase):
   def test_hook_default(self):
-    self.executeScript("1.3.2/hooks/after-INSTALL/scripts/hook.py",
+    self.executeScript("2.0.6/hooks/after-INSTALL/scripts/hook.py",
                        classname="AfterInstallHook",
                        command="hook",
                        config_file="default.json"
@@ -40,7 +40,7 @@ class TestHookAfterInstall(RMFTestCase):
                               not_if = 'ls /etc/hadoop/conf'
     )
     self.assertResourceCalled('File', '/etc/hadoop/conf/hadoop-env.sh',
-                              content = Template('hadoop-env.sh.j2'),
+                              content = InlineTemplate(self.getConfig()['configurations']['hadoop-env']['content']),
                               owner = 'hdfs',
                               )
     self.assertResourceCalled('XmlConfig', 'core-site.xml',

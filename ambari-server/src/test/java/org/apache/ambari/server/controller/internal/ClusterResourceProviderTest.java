@@ -214,6 +214,8 @@ public class ClusterResourceProviderTest {
     Capture<Map<String, String>> updateClusterPropertyMapCapture3 = new Capture<Map<String, String>>();
     Capture<Set<ClusterRequest>> updateClusterRequestCapture4 = new Capture<Set<ClusterRequest>>();
     Capture<Map<String, String>> updateClusterPropertyMapCapture4 = new Capture<Map<String, String>>();
+    Capture<Set<ClusterRequest>> updateClusterRequestCapture5 = new Capture<Set<ClusterRequest>>();
+    Capture<Map<String, String>> updateClusterPropertyMapCapture5 = new Capture<Map<String, String>>();
 
     Capture<Request> serviceRequestCapture = new Capture<Request>();
     Capture<Request> componentRequestCapture = new Capture<Request>();
@@ -347,7 +349,7 @@ public class ClusterResourceProviderTest {
     expect(blueprintConfig.getType()).andReturn("core-site").anyTimes();
     expect(blueprintConfig.getConfigData()).andReturn(new Gson().toJson(blueprintCoreConfigProperties)).anyTimes();
     expect(blueprintConfig2.getBlueprintName()).andReturn("test-blueprint").anyTimes();
-    expect(blueprintConfig2.getType()).andReturn("global").anyTimes();
+    expect(blueprintConfig2.getType()).andReturn("hive-env").anyTimes();
     expect(blueprintConfig2.getConfigData()).andReturn(new Gson().toJson(blueprintGlobalConfigProperties)).anyTimes();
 
     expect(blueprint.getHostGroups()).andReturn(Collections.singleton(hostGroup)).anyTimes();
@@ -372,6 +374,8 @@ public class ClusterResourceProviderTest {
         capture(updateClusterPropertyMapCapture3))).andReturn(null);
     expect(managementController.updateClusters(capture(updateClusterRequestCapture4),
         capture(updateClusterPropertyMapCapture4))).andReturn(null);
+    expect(managementController.updateClusters(capture(updateClusterRequestCapture5),
+        capture(updateClusterPropertyMapCapture5))).andReturn(null);
 
     expect(serviceResourceProvider.createResources(capture(serviceRequestCapture))).andReturn(null);
     expect(componentResourceProvider.createResources(capture(componentRequestCapture))).andReturn(null);
@@ -452,39 +456,47 @@ public class ClusterResourceProviderTest {
     Set<ClusterRequest> updateClusterRequest2 = updateClusterRequestCapture2.getValue();
     Set<ClusterRequest> updateClusterRequest3 = updateClusterRequestCapture3.getValue();
     Set<ClusterRequest> updateClusterRequest4 = updateClusterRequestCapture4.getValue();
+    Set<ClusterRequest> updateClusterRequest5 = updateClusterRequestCapture5.getValue();
     assertEquals(1, updateClusterRequest1.size());
     assertEquals(1, updateClusterRequest2.size());
     assertEquals(1, updateClusterRequest3.size());
     assertEquals(1, updateClusterRequest4.size());
+    assertEquals(1, updateClusterRequest5.size());
     ClusterRequest ucr1 = updateClusterRequest1.iterator().next();
     ClusterRequest ucr2 = updateClusterRequest2.iterator().next();
     ClusterRequest ucr3 = updateClusterRequest3.iterator().next();
     ClusterRequest ucr4 = updateClusterRequest4.iterator().next();
+    ClusterRequest ucr5 = updateClusterRequest5.iterator().next();
     assertEquals(clusterName, ucr1.getClusterName());
     assertEquals(clusterName, ucr2.getClusterName());
     assertEquals(clusterName, ucr3.getClusterName());
     assertEquals(clusterName, ucr4.getClusterName());
+    assertEquals(clusterName, ucr5.getClusterName());
     ConfigurationRequest cr1 = ucr1.getDesiredConfig();
     ConfigurationRequest cr2 = ucr2.getDesiredConfig();
     ConfigurationRequest cr3 = ucr3.getDesiredConfig();
     ConfigurationRequest cr4 = ucr4.getDesiredConfig();
+    ConfigurationRequest cr5 = ucr5.getDesiredConfig();
     assertEquals("1", cr1.getVersionTag());
     assertEquals("1", cr2.getVersionTag());
     assertEquals("1", cr3.getVersionTag());
     assertEquals("1", cr4.getVersionTag());
+    assertEquals("1", cr5.getVersionTag());
     Map<String, ConfigurationRequest> mapConfigRequests = new HashMap<String, ConfigurationRequest>();
     mapConfigRequests.put(cr1.getType(), cr1);
     mapConfigRequests.put(cr2.getType(), cr2);
     mapConfigRequests.put(cr3.getType(), cr3);
     mapConfigRequests.put(cr4.getType(), cr4);
-    assertEquals(4, mapConfigRequests.size());
+    mapConfigRequests.put(cr5.getType(), cr5);
+    assertEquals(5, mapConfigRequests.size());
     ConfigurationRequest globalConfigRequest = mapConfigRequests.get("global");
-    assertEquals(5, globalConfigRequest.getProperties().size());
+    assertEquals(4, globalConfigRequest.getProperties().size());
     assertEquals("hadoop", globalConfigRequest.getProperties().get("user_group"));
     assertEquals("ambari-qa", globalConfigRequest.getProperties().get("smokeuser"));
     assertEquals("default@REPLACEME.NOWHERE", globalConfigRequest.getProperties().get("nagios_contact"));
     assertEquals("oozie", globalConfigRequest.getProperties().get("oozie_user"));
-    assertEquals("New MySQL Database", globalConfigRequest.getProperties().get("hive_database"));
+    ConfigurationRequest hiveEnvConfigRequest = mapConfigRequests.get("hive-env");
+    assertEquals("New MySQL Database", hiveEnvConfigRequest.getProperties().get("hive_database"));
     ConfigurationRequest hdfsConfigRequest = mapConfigRequests.get("hdfs-site");
     assertEquals(1, hdfsConfigRequest.getProperties().size());
     assertEquals("value2", hdfsConfigRequest.getProperties().get("property2"));
@@ -1349,7 +1361,9 @@ public class ClusterResourceProviderTest {
     Capture<Map<String, String>> updateClusterPropertyMapCapture2 = new Capture<Map<String, String>>();
     Capture<Set<ClusterRequest>> updateClusterRequestCapture3 = new Capture<Set<ClusterRequest>>();
     Capture<Map<String, String>> updateClusterPropertyMapCapture3 = new Capture<Map<String, String>>();
-
+    Capture<Set<ClusterRequest>> updateClusterRequestCapture4 = new Capture<Set<ClusterRequest>>();
+    Capture<Map<String, String>> updateClusterPropertyMapCapture4 = new Capture<Map<String, String>>();
+    
     Capture<Request> serviceRequestCapture = new Capture<Request>();
     Capture<Request> componentRequestCapture = new Capture<Request>();
     Capture<Request> componentRequestCapture2 = new Capture<Request>();
@@ -1980,7 +1994,7 @@ public class ClusterResourceProviderTest {
 
     Map<String, String> configs = new HashMap<String, String>();
     configs.put("hive_database", "External MySQL Database");
-    mapConfigurations.put("global", configs);
+    mapConfigurations.put("hive-env", configs);
     entry = databaseProperty.entrySet().iterator().next();
     newValue = propertyUpdaterMap.get(entry.getKey()).update(hostGroups, entry.getValue());
     Assert.assertEquals("localhost:12345", newValue);

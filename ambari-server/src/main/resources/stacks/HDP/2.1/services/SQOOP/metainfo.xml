@@ -25,5 +25,9 @@
       </comment>
       <version>1.4.4.2.1</version>
     </service>
+    
+    <configuration-dependencies>
+      <config-type>sqoop-env</config-type>
+    </configuration-dependencies>
   </services>
 </metainfo>

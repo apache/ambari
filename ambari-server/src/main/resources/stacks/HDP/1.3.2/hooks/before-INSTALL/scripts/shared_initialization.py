@@ -87,12 +87,6 @@ def setup_users():
          ignore_failures = params.ignore_groupsusers_create
     )
 
-  if params.has_resourcemanager:
-    User(params.yarn_user,
-         gid = params.user_group,
-         ignore_failures = params.ignore_groupsusers_create
-    )
-
   if params.has_ganglia_server:
     Group(params.gmetad_user,
          ignore_failures = params.ignore_groupsusers_create

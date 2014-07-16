@@ -37,7 +37,7 @@ class HdfsRebalance(Script):
 
     if security_enabled:
       kinit_path_local = functions.get_kinit_path(
-        [default('kinit_path_local', None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+        ["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
       principal = config['commandParams']['principal']
       keytab = config['commandParams']['keytab']
       Execute(format("{kinit_path_local}  -kt {keytab} {principal}"))

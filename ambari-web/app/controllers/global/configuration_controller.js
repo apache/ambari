@@ -21,6 +21,12 @@ var App = require('app');
 App.ConfigurationController = Em.Controller.extend({
   name: 'configurationController',
 
+  /**
+   * get configs by tags
+   * return Deferred object with configs as argument
+   * @param tags
+   * @return {object}
+   */
   getConfigsByTags: function (tags) {
     var storedTags = [];
     App.db.getConfigs().forEach(function (site) {
@@ -54,10 +60,12 @@ App.ConfigurationController = Em.Controller.extend({
     return isDifferent;
   },
   loadFromDB: function (siteNames) {
-    var configs = App.db.getConfigs();
-    return configs.filter(function (site) {
+    var dfd = $.Deferred();
+    var configs = App.db.getConfigs().filter(function (site) {
       return (siteNames.contains(site.type));
-    })
+    });
+    dfd.resolve(configs);
+    return dfd.promise()
   },
   /**
    * load configs from server
@@ -66,19 +74,30 @@ App.ConfigurationController = Em.Controller.extend({
    * @return {Array}
    */
   loadFromServer: function (tags) {
-    var loadedConfigs = App.config.loadConfigsByTags(tags);
-    var storedConfigs = App.db.getConfigs();
-    loadedConfigs.forEach(function (loadedSite) {
-      var storedSite = storedConfigs.findProperty('type', loadedSite.type);
-      if (storedSite) {
-        storedSite.tag = loadedSite.tag;
-        storedSite.properties = loadedSite.properties;
-        storedSite.properties_attributes = loadedSite.properties_attributes;
-      } else {
-        storedConfigs.push(loadedSite);
+    var dfd = $.Deferred();
+    var loadedConfigs = [];
+    App.config.loadConfigsByTags(tags).done(function (data) {
+      if (data.items) {
+        data.items.forEach(function (item) {
+          App.config.loadedConfigurationsCache[item.type + "_" + item.tag] = item.properties;
+          loadedConfigs.push(item);
+        });
       }
-    });
-    App.db.setConfigs(storedConfigs);
-    return loadedConfigs;
+    }).complete(function () {
+        var storedConfigs = App.db.getConfigs();
+        loadedConfigs.forEach(function (loadedSite) {
+          var storedSite = storedConfigs.findProperty('type', loadedSite.type);
+          if (storedSite) {
+            storedSite.tag = loadedSite.tag;
+            storedSite.properties = loadedSite.properties;
+            storedSite.properties_attributes = loadedSite.properties_attributes;
+          } else {
+            storedConfigs.push(loadedSite);
+          }
+        });
+        App.db.setConfigs(storedConfigs);
+        dfd.resolve(loadedConfigs);
+      });
+    return dfd.promise();
   }
 });

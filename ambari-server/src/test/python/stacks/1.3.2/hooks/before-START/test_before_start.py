@@ -57,11 +57,11 @@ class TestHookBeforeStart(RMFTestCase):
                               owner = 'hdfs',
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/log4j.properties',
-                              content = 'log4jproperties\nline2log4jproperties\nline2\n\nlog4j.appender.JHA=org.apache.ambari.log4j.hadoop.mapreduce.jobhistory.JobHistoryAppender\nlog4j.appender.JHA.database=jdbc:postgresql://c6401.ambari.apache.org/ambarirca\nlog4j.appender.JHA.driver=org.postgresql.Driver\nlog4j.appender.JHA.user=mapred\nlog4j.appender.JHA.password=mapred\n\nlog4j.logger.org.apache.hadoop.mapred.JobHistory$JobHistoryLogger=DEBUG,JHA\nlog4j.additivity.org.apache.hadoop.mapred.JobHistory$JobHistoryLogger=true\n\n',
+                              content = 'log4jproperties\nline2log4jproperties\nline2',
                               owner = 'hdfs',
                               group = 'hadoop',
                               mode = 0644,
-                              )
+    )
     self.assertResourceCalled('File', '/etc/hadoop/conf/hadoop-metrics2.properties',
                               content = Template('hadoop-metrics2.properties.j2'),
                               owner = 'hdfs',

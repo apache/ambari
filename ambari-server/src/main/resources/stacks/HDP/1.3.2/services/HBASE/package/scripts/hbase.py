@@ -73,7 +73,10 @@ def hbase(name=None # 'master' or 'regionserver' or 'client'
       group = params.user_group
     )
   
-  hbase_TemplateConfig( 'hbase-env.sh')     
+  File(format("{hbase_conf_dir}/hbase-env.sh"),
+       owner=params.hbase_user,
+       content=InlineTemplate(params.hbase_env_sh_template)
+  )     
        
   hbase_TemplateConfig( params.metric_prop_file_name,
     tag = 'GANGLIA-MASTER' if name == 'master' else 'GANGLIA-RS'

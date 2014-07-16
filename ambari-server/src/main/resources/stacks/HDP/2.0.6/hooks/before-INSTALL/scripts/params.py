@@ -24,26 +24,26 @@ import os
 config = Script.get_config()
 
 #users and groups
-yarn_user = config['configurations']['global']['yarn_user']
-hbase_user = config['configurations']['global']['hbase_user']
-nagios_user = config['configurations']['global']['nagios_user']
-oozie_user = config['configurations']['global']['oozie_user']
-webhcat_user = config['configurations']['global']['hcat_user']
-hcat_user = config['configurations']['global']['hcat_user']
-hive_user = config['configurations']['global']['hive_user']
-smoke_user =  config['configurations']['global']['smokeuser']
-mapred_user = config['configurations']['global']['mapred_user']
-hdfs_user = config['configurations']['global']['hdfs_user']
-zk_user = config['configurations']['global']['zk_user']
-gmetad_user = config['configurations']['global']["gmetad_user"]
-gmond_user = config['configurations']['global']["gmond_user"]
-storm_user = config['configurations']['global']['storm_user']
-tez_user = config['configurations']['global']['tez_user']
-falcon_user = config['configurations']['global']['falcon_user']
+yarn_user = config['configurations']['yarn-env']['yarn_user']
+hbase_user = config['configurations']['hbase-env']['hbase_user']
+nagios_user = config['configurations']['nagios-env']['nagios_user']
+oozie_user = config['configurations']['oozie-env']['oozie_user']
+webhcat_user = config['configurations']['hive-env']['hcat_user']
+hcat_user = config['configurations']['hive-env']['hcat_user']
+hive_user = config['configurations']['hive-env']['hive_user']
+smoke_user =  config['configurations']['hadoop-env']['smokeuser']
+mapred_user = config['configurations']['mapred-env']['mapred_user']
+hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
+zk_user = config['configurations']['zookeeper-env']['zk_user']
+gmetad_user = config['configurations']['ganglia-env']["gmetad_user"]
+gmond_user = config['configurations']['ganglia-env']["gmond_user"]
+storm_user = config['configurations']['storm-env']['storm_user']
+tez_user = config['configurations']['tez-env']['tez_user']
+falcon_user = config['configurations']['falcon-env']['falcon_user']
 
-user_group = config['configurations']['global']['user_group']
-proxyuser_group =  config['configurations']['global']['proxyuser_group']
-nagios_group = config['configurations']['global']['nagios_group']
+user_group = config['configurations']['hadoop-env']['user_group']
+proxyuser_group =  config['configurations']['hadoop-env']['proxyuser_group']
+nagios_group = config['configurations']['nagios-env']['nagios_group']
 smoke_user_group =  "users"
 mapred_tt_group = default("/configurations/mapred-site/mapreduce.tasktracker.group", user_group)
 
@@ -100,7 +100,7 @@ jdk_name = default("/hostLevelParams/jdk_name", None) # None when jdk is already
 jce_policy_zip = default("/hostLevelParams/jce_name", None) # None when jdk is already installed by user
 jce_location = config['hostLevelParams']['jdk_location']
 jdk_location = config['hostLevelParams']['jdk_location']
-ignore_groupsusers_create = default("ignore_groupsusers_create", False)
+ignore_groupsusers_create = default("/configurations/hadoop-env/ignore_groupsusers_create", False)
 
 #repo params
 repo_info = config['hostLevelParams']['repo_info']

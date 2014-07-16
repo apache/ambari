@@ -146,7 +146,7 @@ App.MainAdminSecurityDisableController = App.MainAdminSecurityProgressController
     } else {
       serviceConfigTags.forEach(function (_serviceConfigTags) {
         _serviceConfigTags.newTagName = 'version' + (new Date).getTime();
-        if (_serviceConfigTags.siteName === 'global') {
+        if (_serviceConfigTags.siteName === 'hadoop-env') {
           this.deleteDisabledGlobalConfigs(secureProperties, _serviceConfigTags);
           _serviceConfigTags.configs.security_enabled = 'false';
         } else {

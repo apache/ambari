@@ -22,21 +22,21 @@ import os
 
 config = Script.get_config()
 
-user_group = config['configurations']['global']["user_group"]
-ganglia_conf_dir = default("/configurations/global/ganglia_conf_dir","/etc/ganglia/hdp")
+user_group = config['configurations']['hadoop-env']["user_group"]
+ganglia_conf_dir = default("/configurations/ganglia-env/ganglia_conf_dir","/etc/ganglia/hdp")
 ganglia_dir = "/etc/ganglia"
-ganglia_runtime_dir = config['configurations']['global']["ganglia_runtime_dir"]
+ganglia_runtime_dir = config['configurations']['ganglia-env']["ganglia_runtime_dir"]
 ganglia_shell_cmds_dir = "/usr/libexec/hdp/ganglia"
 
-gmetad_user = config['configurations']['global']["gmetad_user"]
-gmond_user = config['configurations']['global']["gmond_user"]
+gmetad_user = config['configurations']['ganglia-env']["gmetad_user"]
+gmond_user = config['configurations']['ganglia-env']["gmond_user"]
 
 webserver_group = "apache"
-rrdcached_base_dir = config['configurations']['global']["rrdcached_base_dir"]
-rrdcached_timeout = default("/configurations/global/rrdcached_timeout", 3600)
-rrdcached_flush_timeout = default("/configurations/global/rrdcached_flush_timeout", 7200)
-rrdcached_delay = default("/configurations/global/rrdcached_delay", 1800)
-rrdcached_write_threads = default("/configurations/global/rrdcached_write_threads", 4)
+rrdcached_base_dir = config['configurations']['ganglia-env']["rrdcached_base_dir"]
+rrdcached_timeout = default("/configurations/ganglia-env/rrdcached_timeout", 3600)
+rrdcached_flush_timeout = default("/configurations/ganglia-env/rrdcached_flush_timeout", 7200)
+rrdcached_delay = default("/configurations/ganglia-env/rrdcached_delay", 1800)
+rrdcached_write_threads = default("/configurations/ganglia-env/rrdcached_write_threads", 4)
 
 ganglia_server_host = config["clusterHostInfo"]["ganglia_server_host"][0]
 

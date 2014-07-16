@@ -355,12 +355,7 @@ var urls = {
   },
   'config.on_site': {
     'real': '/clusters/{clusterName}/configurations?{params}',
-    'mock': '/data/configurations/cluster_level_configs.json?{params}',
-    'format': function() {
-      return {
-        async: false
-      };
-    }
+    'mock': '/data/configurations/cluster_level_configs.json?{params}'
   },
   'config.host_overrides': {
     'real': '/clusters/{clusterName}/configurations?{params}',

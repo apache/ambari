@@ -25,7 +25,7 @@ module.exports =
       App.ServiceConfigCategory.create({ name: 'HDFS', displayName: 'HDFS'}),
       App.ServiceConfigCategory.create({ name: 'HBASE', displayName: 'HBase'})
     ],
-    sites: ['global', 'core-site', 'hdfs-site','hbase-site'],
+    sites: ['core-site', 'hdfs-site','hbase-site'],
     configs: [
     /**********************************************HDFS***************************************/
       {

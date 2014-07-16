@@ -292,13 +292,14 @@ App.MainMirroringController = Em.ArrayController.extend({
 
   onLoadConfigTagsSuccess: function (data, opt, params) {
     this.set('tag', data.Clusters.desired_configs['core-site'].tag);
-    var configs = App.router.get('configurationController').getConfigsByTags([
+    App.router.get('configurationController').getConfigsByTags([
       {
         siteName: "core-site",
         tagName: this.get('tag')
       }
-    ]);
-    params.callback(configs[0].properties['fs.defaultFS']);
+    ]).done(function (configs) {
+        params.callback(configs[0].properties['fs.defaultFS']);
+      });
   },
 
   onLoadConfigTagsError: function (request, ajaxOptions, error, opt, params) {

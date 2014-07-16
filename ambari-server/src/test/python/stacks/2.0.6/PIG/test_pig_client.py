@@ -33,8 +33,9 @@ class TestPigClient(RMFTestCase):
       owner = 'hdfs',
       group = 'hadoop'
     )
-    self.assertResourceCalled('TemplateConfig', '/etc/pig/conf/pig-env.sh',
-      owner = 'hdfs'
+    self.assertResourceCalled('File', '/etc/pig/conf/pig-env.sh',
+      owner = 'hdfs',
+      content = InlineTemplate(self.getConfig()['configurations']['pig-env']['content'])
     )
     self.assertResourceCalled('File', '/etc/pig/conf/pig.properties',
       owner = 'hdfs',
@@ -61,8 +62,9 @@ class TestPigClient(RMFTestCase):
       owner = 'hdfs',
       group = 'hadoop'
     )
-    self.assertResourceCalled('TemplateConfig', '/etc/pig/conf/pig-env.sh',
-      owner = 'hdfs'
+    self.assertResourceCalled('File', '/etc/pig/conf/pig-env.sh',
+      owner = 'hdfs',
+      content = InlineTemplate(self.getConfig()['configurations']['pig-env']['content'])
     )
     self.assertResourceCalled('File', '/etc/pig/conf/pig.properties',
       owner = 'hdfs',

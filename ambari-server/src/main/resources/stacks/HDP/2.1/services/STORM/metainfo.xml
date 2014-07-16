@@ -109,7 +109,7 @@
 
       <configuration-dependencies>
         <config-type>storm-site</config-type>
-        <config-type>global</config-type>
+        <config-type>storm-env</config-type>
       </configuration-dependencies>
     </service>
   </services>

@@ -33,9 +33,9 @@ class TestSqoop(RMFTestCase):
     self.assertResourceCalled('Directory', '/usr/lib/sqoop/conf',
                               owner = 'sqoop',
                               group = 'hadoop',)
-    self.assertResourceCalled('TemplateConfig', '/usr/lib/sqoop/conf/sqoop-env.sh',
+    self.assertResourceCalled('File', '/usr/lib/sqoop/conf/sqoop-env.sh',
                               owner = 'sqoop',
-                              template_tag = None,)
+                              content = InlineTemplate(self.getConfig()['configurations']['sqoop-env']['content']),)
     self.assertResourceCalled('File', '/usr/lib/sqoop/conf/sqoop-env-template.sh',
                               owner = 'sqoop',
                               group = 'hadoop',)

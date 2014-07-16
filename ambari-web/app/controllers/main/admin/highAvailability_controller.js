@@ -17,7 +17,6 @@
  */
 
 var App = require('app');
-var totalHosts = 0;
 
 App.MainAdminHighAvailabilityController = Em.Controller.extend({
   name: 'mainAdminHighAvailabilityController',
@@ -106,8 +105,8 @@ App.MainAdminHighAvailabilityController = Em.Controller.extend({
 
   getSecurityStatusFromServerSuccessCallback: function (data) {
     var configs = data.Clusters.desired_configs;
-    if ('global' in configs) {
-      this.set('tag', configs['global'].tag);
+    if ('hadoop-env' in configs) {
+      this.set('tag', configs['hadoop-env'].tag);
       this.getServiceConfigsFromServer();
     } else {
       this.showErrorPopup(Em.I18n.t('admin.security.status.error'));
@@ -119,17 +118,19 @@ App.MainAdminHighAvailabilityController = Em.Controller.extend({
    * indicate whether security is enabled
    */
   getServiceConfigsFromServer: function () {
+    var self = this;
     var tags = [
       {
-        siteName: "global",
+        siteName: "hadoop-env",
         tagName: this.get('tag')
       }
     ];
-    var data = App.router.get('configurationController').getConfigsByTags(tags);
-    var configs = data.findProperty('tag', this.get('tag')).properties;
-    var securityEnabled = !!(configs && (configs['security_enabled'] === 'true' || configs['security_enabled'] === true));
-    this.set('securityEnabled', securityEnabled);
-    this.set('dataIsLoaded', true);
+    App.router.get('configurationController').getConfigsByTags(tags).done(function (data) {
+      var configs = data.findProperty('tag', self.get('tag')).properties;
+      var securityEnabled = !!(configs && (configs['security_enabled'] === 'true' || configs['security_enabled'] === true));
+      self.set('securityEnabled', securityEnabled);
+      self.set('dataIsLoaded', true);
+    });
   },
   /**
    * join or wrap message depending on whether it is array or string

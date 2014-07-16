@@ -37,8 +37,11 @@ def tez():
             group = params.user_group,
             mode = 0664
   )
-
-  tez_TemplateConfig( ['tez-env.sh'])
+  
+  File(format("{config_dir}/tez-env.sh"),
+    owner=params.tez_user,
+    content=InlineTemplate(params.tez_env_sh_template)
+  )  
 
 
 def tez_TemplateConfig(name):

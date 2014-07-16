@@ -147,7 +147,7 @@ class TestWebHCatServer(RMFTestCase):
       configurations = self.getConfig()['configurations']['webhcat-site'], # don't hardcode all the properties
     )
     self.assertResourceCalled('File', '/etc/hcatalog/conf/webhcat-env.sh',
-      content = Template('webhcat-env.sh.j2'),
+      content = InlineTemplate(self.getConfig()['configurations']['webhcat-env']['content']),
       owner = 'hcat',
       group = 'hadoop',
     )
@@ -225,7 +225,7 @@ class TestWebHCatServer(RMFTestCase):
       configurations = self.getConfig()['configurations']['webhcat-site'], # don't hardcode all the properties
     )
     self.assertResourceCalled('File', '/etc/hcatalog/conf/webhcat-env.sh',
-      content = Template('webhcat-env.sh.j2'),
+      content = InlineTemplate(self.getConfig()['configurations']['webhcat-env']['content']),
       owner = 'hcat',
       group = 'hadoop',
     )
