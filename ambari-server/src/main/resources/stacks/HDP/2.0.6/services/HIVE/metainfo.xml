@@ -182,8 +182,8 @@
         <timeout>300</timeout>
       </commandScript>
       <configuration-dependencies>
-        <config-type>global</config-type>
         <config-type>hive-site</config-type>
+        <config-type>hive-env</config-type>
       </configuration-dependencies>
     </service>
 

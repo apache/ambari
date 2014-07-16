@@ -1,0 +1,13 @@
+--- ambari-server/src/main/resources/stacks/HDP/2.1/services/HIVE/metainfo.xml
++++ ambari-server/src/main/resources/stacks/HDP/2.1/services/HIVE/metainfo.xml
+@@ -25,9 +25,9 @@
+ 
+       <configuration-dependencies>
+         <config-type>hive-site</config-type>
++        <config-type>hive-env</config-type>
+         <config-type>hive-log4j</config-type>
+         <config-type>hive-exec-log4j</config-type>
+-        <config-type>global</config-type>
+         <config-type>mapred-site</config-type>
+       </configuration-dependencies>
+     </service>

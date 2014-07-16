@@ -140,7 +140,7 @@ def yarn(name = None):
        owner=params.yarn_user,
        group=params.user_group,
        mode=0755,
-       content=Template('yarn-env.sh.j2')
+       content=InlineTemplate(params.yarn_env_sh_template)
   )
 
   if params.security_enabled:
@@ -166,7 +166,7 @@ def yarn(name = None):
 
   File(format("{config_dir}/mapred-env.sh"),
        owner=tc_owner,
-       content=Template('mapred-env.sh.j2')
+       content=InlineTemplate(params.mapred_env_sh_template)
   )
 
   if params.security_enabled:

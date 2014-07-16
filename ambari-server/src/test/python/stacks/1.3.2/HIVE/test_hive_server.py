@@ -249,7 +249,7 @@ class TestHiveServer(RMFTestCase):
       recursive = True,
     )
     self.assertResourceCalled('File', '/etc/hive/conf.server/hive-env.sh',
-      content = Template('hive-env.sh.j2', conf_dir="/etc/hive/conf.server"),
+      content = InlineTemplate(self.getConfig()['configurations']['hive-env']['content'], conf_dir="/etc/hive/conf.server"),
       owner = 'hive',
       group = 'hadoop',
     )
@@ -335,7 +335,7 @@ class TestHiveServer(RMFTestCase):
       recursive = True,
     )
     self.assertResourceCalled('File', '/etc/hive/conf.server/hive-env.sh',
-      content = Template('hive-env.sh.j2', conf_dir="/etc/hive/conf.server"),
+      content = InlineTemplate(self.getConfig()['configurations']['hive-env']['content'], conf_dir="/etc/hive/conf.server"),
       owner = 'hive',
       group = 'hadoop',
     )

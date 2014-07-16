@@ -170,8 +170,9 @@ class TestStormSupervisor(RMFTestCase):
       group = 'hadoop',
       mode = None,
     )
-    self.assertResourceCalled('TemplateConfig', '/etc/storm/conf/storm-env.sh',
+    self.assertResourceCalled('File', '/etc/storm/conf/storm-env.sh',
                               owner = 'storm',
+                              content = 'InlineTemplate'
                               )
 
   def assert_configure_secured(self):
@@ -206,8 +207,9 @@ class TestStormSupervisor(RMFTestCase):
       group = 'hadoop',
       mode = None,
     )
-    self.assertResourceCalled('TemplateConfig', '/etc/storm/conf/storm-env.sh',
+    self.assertResourceCalled('File', '/etc/storm/conf/storm-env.sh',
                               owner = 'storm',
+                              content = 'InlineTemplate'
                               )
     self.assertResourceCalled('TemplateConfig', '/etc/storm/conf/storm_jaas.conf',
       owner = 'storm',

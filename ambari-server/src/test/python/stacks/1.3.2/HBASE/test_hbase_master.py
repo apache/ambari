@@ -195,9 +195,9 @@ class TestHBaseMaster(RMFTestCase):
       owner = 'hbase',
       group = 'hadoop',
     )
-    self.assertResourceCalled('TemplateConfig', '/etc/hbase/conf/hbase-env.sh',
+    self.assertResourceCalled('File', '/etc/hbase/conf/hbase-env.sh',
       owner = 'hbase',
-      template_tag = None,
+      content = InlineTemplate(self.getConfig()['configurations']['hbase-env']['content']),
     )
     self.assertResourceCalled('TemplateConfig', '/etc/hbase/conf/hadoop-metrics.properties',
       owner = 'hbase',
@@ -282,9 +282,9 @@ class TestHBaseMaster(RMFTestCase):
       owner = 'hbase',
       group = 'hadoop',
     )
-    self.assertResourceCalled('TemplateConfig', '/etc/hbase/conf/hbase-env.sh',
+    self.assertResourceCalled('File', '/etc/hbase/conf/hbase-env.sh',
       owner = 'hbase',
-      template_tag = None,
+      content = InlineTemplate(self.getConfig()['configurations']['hbase-env']['content']),
     )
     self.assertResourceCalled('TemplateConfig', '/etc/hbase/conf/hadoop-metrics.properties',
       owner = 'hbase',

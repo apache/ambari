@@ -24,11 +24,11 @@ import status_params
 # server configurations
 config = Script.get_config()
 
-oozie_user = config['configurations']['global']['oozie_user']
-smokeuser = config['configurations']['global']['smokeuser']
+oozie_user = config['configurations']['oozie-env']['oozie_user']
+smokeuser = config['configurations']['hadoop-env']['smokeuser']
 conf_dir = "/etc/oozie/conf"
 hadoop_conf_dir = "/etc/hadoop/conf"
-user_group = config['configurations']['global']['user_group']
+user_group = config['configurations']['hadoop-env']['user_group']
 jdk_location = config['hostLevelParams']['jdk_location']
 check_db_connection_jar_name = "DBConnectionVerification.jar"
 check_db_connection_jar = format("/usr/lib/ambari-agent/{check_db_connection_jar_name}")
@@ -44,11 +44,12 @@ oozie_libext_dir = "/usr/lib/oozie/libext"
 _authentication = config['configurations']['core-site']['hadoop.security.authentication']
 security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')
 
-kinit_path_local = functions.get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
 oozie_service_keytab = config['configurations']['oozie-site']['oozie.service.HadoopAccessorService.keytab.file']
 oozie_principal = config['configurations']['oozie-site']['oozie.service.HadoopAccessorService.kerberos.principal']
-smokeuser_keytab = config['configurations']['global']['smokeuser_keytab']
-oozie_keytab = config['configurations']['global']['oozie_keytab']
+smokeuser_keytab = config['configurations']['hadoop-env']['smokeuser_keytab']
+oozie_keytab = config['configurations']['hadoop-env']['oozie_keytab']
+oozie_env_sh_template = config['configurations']['oozie-env']['content']
 
 oracle_driver_jar_name = "ojdbc6.jar"
 java_share_dir = "/usr/share/java"
@@ -57,10 +58,11 @@ java_home = config['hostLevelParams']['java_home']
 oozie_metastore_user_name = config['configurations']['oozie-site']['oozie.service.JPAService.jdbc.username']
 oozie_metastore_user_passwd = default("/configurations/oozie-site/oozie.service.JPAService.jdbc.password","")
 oozie_jdbc_connection_url = default("/configurations/oozie-site/oozie.service.JPAService.jdbc.url", "")
-oozie_log_dir = config['configurations']['global']['oozie_log_dir']
-oozie_data_dir = config['configurations']['global']['oozie_data_dir']
+oozie_log_dir = config['configurations']['oozie-env']['oozie_log_dir']
+oozie_data_dir = config['configurations']['oozie-env']['oozie_data_dir']
 oozie_server_port = get_port_from_url(config['configurations']['oozie-site']['oozie.base.url'])
-oozie_server_admin_port = config['configurations']['global']['oozie_admin_port']
+oozie_server_admin_port = config['configurations']['oozie-env']['oozie_admin_port']
+oozie_env_sh_template = config['configurations']['oozie-env']['content']
 oozie_lib_dir = "/var/lib/oozie/"
 oozie_webapps_dir = "/var/lib/oozie/oozie-server/webapps/"
 
@@ -92,9 +94,9 @@ oozie_hdfs_user_mode = 0775
 #for create_hdfs_directory
 hostname = config["hostname"]
 hadoop_conf_dir = "/etc/hadoop/conf"
-hdfs_user_keytab = config['configurations']['global']['hdfs_user_keytab']
-hdfs_user = config['configurations']['global']['hdfs_user']
-kinit_path_local = functions.get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
+hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
+kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
 import functools
 #create partial functions with common arguments for every HdfsDirectory call
 #to create hdfs directory we need to call params.HdfsDirectory in code

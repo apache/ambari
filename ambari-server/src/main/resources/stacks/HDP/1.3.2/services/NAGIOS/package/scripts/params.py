@@ -45,7 +45,7 @@ nagios_servicegroup_cfg = format("{nagios_obj_dir}/hadoop-servicegroups.cfg")
 nagios_service_cfg = format("{nagios_obj_dir}/hadoop-services.cfg")
 nagios_command_cfg = format("{nagios_obj_dir}/hadoop-commands.cfg")
 eventhandlers_dir = "/usr/lib/nagios/eventhandlers"
-nagios_principal_name = default("nagios_principal_name", "nagios")
+nagios_principal_name = default("/configurations/hadoop-env/nagios_principal_name", "nagios")
 hadoop_ssl_enabled = False
 
 namenode_metadata_port = get_port_from_url(config['configurations']['core-site']['fs.default.name'])
@@ -74,7 +74,7 @@ mapred_local_dir = config['configurations']['mapred-site']['mapred.local.dir']
 
 # this is different for HDP2
 nn_metrics_property = "FSNamesystemMetrics"
-clientPort = config['configurations']['global']['clientPort'] #ZK 
+clientPort = config['configurations']['zookeeper-env']['clientPort'] #ZK 
 
 
 java64_home = config['hostLevelParams']['java_home']
@@ -82,8 +82,8 @@ check_cpu_on = is_jdk_greater_6(java64_home)
 _authentication = config['configurations']['core-site']['hadoop.security.authentication']
 security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')
 
-nagios_keytab_path = default("nagios_keytab_path", "/etc/security/keytabs/nagios.service.keytab")
-kinit_path_local = functions.get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+nagios_keytab_path = default("/configurations/hadoop-env/nagios_keytab_path", "/etc/security/keytabs/nagios.service.keytab")
+kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
 
 ganglia_port = "8651"
 ganglia_collector_slaves_port = "8660"
@@ -105,12 +105,12 @@ else:
   htpasswd_cmd = "htpasswd"
   nagios_httpd_config_file = format("/etc/httpd/conf.d/nagios.conf")
   
-nagios_user = config['configurations']['global']['nagios_user']
-nagios_group = config['configurations']['global']['nagios_group']
-nagios_web_login = config['configurations']['global']['nagios_web_login']
-nagios_web_password = config['configurations']['global']['nagios_web_password']
-user_group = config['configurations']['global']['user_group']
-nagios_contact = config['configurations']['global']['nagios_contact']
+nagios_user = config['configurations']['nagios-env']['nagios_user']
+nagios_group = config['configurations']['nagios-env']['nagios_group']
+nagios_web_login = config['configurations']['nagios-env']['nagios_web_login']
+nagios_web_password = config['configurations']['nagios-env']['nagios_web_password']
+user_group = config['configurations']['hadoop-env']['user_group']
+nagios_contact = config['configurations']['nagios-env']['nagios_contact']
 
 namenode_host = default("/clusterHostInfo/namenode_host", None)
 _snamenode_host = default("/clusterHostInfo/snamenode_host", None)

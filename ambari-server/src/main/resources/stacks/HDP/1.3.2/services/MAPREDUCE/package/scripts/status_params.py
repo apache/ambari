@@ -23,8 +23,8 @@ from resource_management import *
 
 config = Script.get_config()
 
-mapred_user = config['configurations']['global']['mapred_user']
-pid_dir_prefix = config['configurations']['global']['hadoop_pid_dir_prefix']
+mapred_user = config['configurations']['mapred-env']['mapred_user']
+pid_dir_prefix = config['configurations']['hadoop-env']['hadoop_pid_dir_prefix']
 mapred_pid_dir = format("{pid_dir_prefix}/{mapred_user}")
 
 jobtracker_pid_file = format("{mapred_pid_dir}/hadoop-{mapred_user}-jobtracker.pid")

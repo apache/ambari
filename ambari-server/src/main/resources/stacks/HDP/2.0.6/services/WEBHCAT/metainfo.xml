@@ -95,6 +95,7 @@
       </commandScript>
       <configuration-dependencies>
         <config-type>webhcat-site</config-type>
+        <config-type>webhcat-env</config-type>
       </configuration-dependencies>
     </service>
   </services>

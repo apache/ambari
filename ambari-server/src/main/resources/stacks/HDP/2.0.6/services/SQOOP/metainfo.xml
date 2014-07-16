@@ -70,6 +70,9 @@
         <scriptType>PYTHON</scriptType>
         <timeout>300</timeout>
       </commandScript>
+      <configuration-dependencies>
+        <config-type>sqoop-env</config-type>
+      </configuration-dependencies>
     </service>
   </services>
 </metainfo>

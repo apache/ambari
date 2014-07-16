@@ -44,9 +44,10 @@ def oozie(is_server=False
     group = params.user_group
   )
   
-  TemplateConfig( format("{conf_dir}/oozie-env.sh"),
-    owner = params.oozie_user
-  )
+  File(format("{conf_dir}/oozie-env.sh"),
+       owner=params.oozie_user,
+       content=InlineTemplate(params.oozie_env_sh_template)
+  )  
 
   if (params.log4j_props != None):
     File(format("{params.conf_dir}/oozie-log4j.properties"),

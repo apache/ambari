@@ -28,11 +28,11 @@ _authentication = config['configurations']['core-site']['hadoop.security.authent
 security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')
 
 #users and groups
-mapred_user = config['configurations']['global']['mapred_user']
-hdfs_user = config['configurations']['global']['hdfs_user']
-yarn_user = config['configurations']['global']['yarn_user']
+mapred_user = config['configurations']['mapred-env']['mapred_user']
+hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
+yarn_user = config['configurations']['yarn-env']['yarn_user']
 
-user_group = config['configurations']['global']['user_group']
+user_group = config['configurations']['hadoop-env']['user_group']
 
 #hosts
 hostname = config["hostname"]
@@ -72,13 +72,13 @@ if has_ganglia_server:
 hadoop_tmp_dir = format("/tmp/hadoop-{hdfs_user}")
 hadoop_lib_home = "/usr/lib/hadoop/lib"
 hadoop_conf_dir = "/etc/hadoop/conf"
-hadoop_pid_dir_prefix = config['configurations']['global']['hadoop_pid_dir_prefix']
+hadoop_pid_dir_prefix = config['configurations']['hadoop-env']['hadoop_pid_dir_prefix']
 hadoop_home = "/usr"
 hadoop_bin = "/usr/lib/hadoop/sbin"
 
 task_log4j_properties_location = os.path.join(hadoop_conf_dir, "task-log4j.properties")
 
-hdfs_log_dir_prefix = config['configurations']['global']['hdfs_log_dir_prefix']
+hdfs_log_dir_prefix = config['configurations']['hadoop-env']['hdfs_log_dir_prefix']
 hbase_tmp_dir = config['configurations']['hbase-site']['hbase.tmp.dir']
 #db params
 server_db_name = config['hostLevelParams']['db_name']
@@ -94,8 +94,8 @@ ambari_db_rca_driver = config['hostLevelParams']['ambari_db_rca_driver'][0]
 ambari_db_rca_username = config['hostLevelParams']['ambari_db_rca_username'][0]
 ambari_db_rca_password = config['hostLevelParams']['ambari_db_rca_password'][0]
 
-if 'rca_enabled' in config['configurations']['global']:
-  rca_enabled =  config['configurations']['global']['rca_enabled']
+if 'rca_enabled' in config['configurations']['hadoop-env']:
+  rca_enabled =  config['configurations']['hadoop-env']['rca_enabled']
 else:
   rca_enabled = False
 rca_disabled_prefix = "###"
@@ -113,25 +113,25 @@ if str(config['hostLevelParams']['stack_version']).startswith('2.0') and System.
 else:
   jsvc_path = "/usr/lib/bigtop-utils"
 
-hadoop_heapsize = config['configurations']['global']['hadoop_heapsize']
-namenode_heapsize = config['configurations']['global']['namenode_heapsize']
-namenode_opt_newsize =  config['configurations']['global']['namenode_opt_newsize']
-namenode_opt_maxnewsize =  config['configurations']['global']['namenode_opt_maxnewsize']
+hadoop_heapsize = config['configurations']['hadoop-env']['hadoop_heapsize']
+namenode_heapsize = config['configurations']['hadoop-env']['namenode_heapsize']
+namenode_opt_newsize =  config['configurations']['hadoop-env']['namenode_opt_newsize']
+namenode_opt_maxnewsize =  config['configurations']['hadoop-env']['namenode_opt_maxnewsize']
 
-jtnode_opt_newsize = default("jtnode_opt_newsize","200m")
-jtnode_opt_maxnewsize = default("jtnode_opt_maxnewsize","200m")
-jtnode_heapsize =  default("jtnode_heapsize","1024m")
+jtnode_opt_newsize = "200m"
+jtnode_opt_maxnewsize = "200m"
+jtnode_heapsize =  "1024m"
 ttnode_heapsize = "1024m"
 
-dtnode_heapsize = config['configurations']['global']['dtnode_heapsize']
-mapred_pid_dir_prefix = default("mapred_pid_dir_prefix","/var/run/hadoop-mapreduce")
+dtnode_heapsize = config['configurations']['hadoop-env']['dtnode_heapsize']
+mapred_pid_dir_prefix = default("/configurations/mapred-env/mapred_pid_dir_prefix","/var/run/hadoop-mapreduce")
 mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
 hadoop_libexec_dir = "/usr/lib/hadoop/libexec"
-mapred_log_dir_prefix = default("mapred_log_dir_prefix","/var/log/hadoop-mapreduce")
+mapred_log_dir_prefix = default("/configurations/mapred-env/mapred_log_dir_prefix","/var/log/hadoop-mapreduce")
 
 #log4j.properties
 
-yarn_log_dir_prefix = default("yarn_log_dir_prefix","/var/log/hadoop-yarn")
+yarn_log_dir_prefix = default("/configurations/yarn-env/yarn_log_dir_prefix","/var/log/hadoop-yarn")
 
 dfs_hosts = default('/configurations/hdfs-site/dfs.hosts', None)
 

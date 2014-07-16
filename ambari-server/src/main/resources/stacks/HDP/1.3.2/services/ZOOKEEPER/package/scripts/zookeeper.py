@@ -34,7 +34,13 @@ def zookeeper(type = None):
   )
 
   configFile("zoo.cfg", template_name="zoo.cfg.j2")
-  configFile("zookeeper-env.sh", template_name="zookeeper-env.sh.j2")
+  
+  File(format("{config_dir}/zookeeper-env.sh"),
+       content=InlineTemplate(params.zk_env_sh_template),
+       owner=params.zk_user,
+       group=params.user_group
+  )
+  
   configFile("configuration.xsl", template_name="configuration.xsl.j2")
 
   Directory(params.zk_pid_dir,

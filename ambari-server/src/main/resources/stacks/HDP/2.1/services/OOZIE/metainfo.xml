@@ -69,8 +69,8 @@
         
       </osSpecifics>
       <configuration-dependencies>
-        <config-type>global</config-type>
         <config-type>oozie-site</config-type>
+        <config-type>oozie-env</config-type>
         <config-type>oozie-log4j</config-type>
       </configuration-dependencies>
     </service>

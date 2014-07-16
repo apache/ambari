@@ -22,5 +22,5 @@ from resource_management import *
 
 config = Script.get_config()
 
-zk_pid_dir = config['configurations']['global']['zk_pid_dir']
+zk_pid_dir = config['configurations']['zookeeper-env']['zk_pid_dir']
 zk_pid_file = format("{zk_pid_dir}/zookeeper_server.pid")

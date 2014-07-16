@@ -30,7 +30,10 @@ def pig():
     group = params.user_group
   )
 
-  pig_TemplateConfig( ['pig-env.sh'])
+  File(format("{pig_conf_dir}/pig-env.sh"),
+    owner=params.hdfs_user,
+    content=InlineTemplate(params.pig_env_sh_template)
+  )
 
   # pig_properties is always set to a default even if it's not in the payload
   File(format("{params.pig_conf_dir}/pig.properties"),

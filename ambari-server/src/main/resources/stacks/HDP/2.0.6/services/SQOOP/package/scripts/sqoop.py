@@ -29,7 +29,12 @@ def sqoop(type=None):
             owner = params.sqoop_user,
             group = params.user_group
   )
-  sqoop_TemplateConfig("sqoop-env.sh")
+  
+  File(format("{sqoop_conf_dir}/sqoop-env.sh"),
+    owner=params.sqoop_user,
+    content=InlineTemplate(params.sqoop_env_sh_template)
+  )
+  
   File (params.sqoop_conf_dir + "/sqoop-env-template.sh",
           owner = params.sqoop_user,
           group = params.user_group

@@ -30,8 +30,13 @@ def pig():
     group = params.user_group
   )
 
-  pig_TemplateConfig( ['pig-env.sh','pig.properties'])
-
+  File(format("{pig_conf_dir}/pig-env.sh"),
+       owner=params.hdfs_user,
+       content=InlineTemplate(params.pig_env_sh_template)
+  )
+  
+  pig_TemplateConfig( ['pig.properties'])
+  
   if (params.log4j_props != None):
     File(format("{params.pig_conf_dir}/log4j.properties"),
          mode=0644,

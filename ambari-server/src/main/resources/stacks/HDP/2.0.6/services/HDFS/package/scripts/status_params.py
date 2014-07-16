@@ -21,8 +21,8 @@ from resource_management import *
 
 config = Script.get_config()
 
-hadoop_pid_dir_prefix = config['configurations']['global']['hadoop_pid_dir_prefix']
-hdfs_user = config['configurations']['global']['hdfs_user']
+hadoop_pid_dir_prefix = config['configurations']['hadoop-env']['hadoop_pid_dir_prefix']
+hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 hdp_pid_dir = format("{hadoop_pid_dir_prefix}/{hdfs_user}")
 datanode_pid_file = format("{hdp_pid_dir}/hadoop-{hdfs_user}-datanode.pid")
 namenode_pid_file = format("{hdp_pid_dir}/hadoop-{hdfs_user}-namenode.pid")

@@ -122,7 +122,7 @@ public class TestHeartbeatMonitor {
     }};
     
     ConfigFactory configFactory = injector.getInstance(ConfigFactory.class);
-    Config config = configFactory.createNew(cluster, "global",
+    Config config = configFactory.createNew(cluster, "hadoop-env",
         new HashMap<String,String>() {{ put("a", "b"); }}, new HashMap<String, Map<String,String>>());
     config.setVersionTag("version1");
     cluster.addConfig(config);
@@ -203,7 +203,7 @@ public class TestHeartbeatMonitor {
     }};
 
     ConfigFactory configFactory = injector.getInstance(ConfigFactory.class);
-    Config config = configFactory.createNew(cluster, "global",
+    Config config = configFactory.createNew(cluster, "hadoop-env",
       new HashMap<String, String>() {{
         put("a", "b");
       }}, new HashMap<String, Map<String,String>>());

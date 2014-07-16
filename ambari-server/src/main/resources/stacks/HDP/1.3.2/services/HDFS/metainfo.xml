@@ -126,8 +126,8 @@
 
       <configuration-dependencies>
         <config-type>core-site</config-type>
-        <config-type>global</config-type>
         <config-type>hdfs-site</config-type>
+        <config-type>hadoop-env</config-type>
         <config-type>hadoop-policy</config-type>
         <config-type>hdfs-log4j</config-type>
       </configuration-dependencies>

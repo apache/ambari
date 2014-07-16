@@ -602,7 +602,6 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
       clusterProperties.put(CLUSTER_DESIRED_CONFIGS_PROPERTY_ID +
           "/properties/" + entry.getKey(), entry.getValue());
     }
-
     getManagementController().updateClusters(
         Collections.singleton(getRequest(clusterProperties)), null);
   }
@@ -861,7 +860,7 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
     propertyUpdaters.put("hive.metastore.uris", new SingleHostPropertyUpdater("HIVE_SERVER"));
     propertyUpdaters.put("hive_ambari_host", new SingleHostPropertyUpdater("HIVE_SERVER"));
     propertyUpdaters.put("javax.jdo.option.ConnectionURL",
-        new DBPropertyUpdater("MYSQL_SERVER", "global", "hive_database"));
+        new DBPropertyUpdater("MYSQL_SERVER", "hive-env", "hive_database"));
 
     // OOZIE_SERVER
     propertyUpdaters.put("oozie.base.url", new SingleHostPropertyUpdater("OOZIE_SERVER"));

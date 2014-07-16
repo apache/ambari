@@ -28,9 +28,9 @@ _authentication = config['configurations']['core-site']['hadoop.security.authent
 security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')
 
 #users and groups
-hdfs_user = config['configurations']['global']['hdfs_user']
+hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 
-user_group = config['configurations']['global']['user_group']
+user_group = config['configurations']['hadoop-env']['user_group']
 
 #hosts
 hostname = config["hostname"]
@@ -70,14 +70,14 @@ if has_ganglia_server:
 hadoop_tmp_dir = format("/tmp/hadoop-{hdfs_user}")
 hadoop_lib_home = "/usr/lib/hadoop/lib"
 hadoop_conf_dir = "/etc/hadoop/conf"
-hadoop_pid_dir_prefix = config['configurations']['global']['hadoop_pid_dir_prefix']
+hadoop_pid_dir_prefix = config['configurations']['hadoop-env']['hadoop_pid_dir_prefix']
 hadoop_home = "/usr"
 hadoop_bin = "/usr/lib/hadoop/bin"
 
 task_log4j_properties_location = os.path.join(hadoop_conf_dir, "task-log4j.properties")
 limits_conf_dir = "/etc/security/limits.d"
 
-hdfs_log_dir_prefix = config['configurations']['global']['hdfs_log_dir_prefix']
+hdfs_log_dir_prefix = config['configurations']['hadoop-env']['hdfs_log_dir_prefix']
 hbase_tmp_dir = config['configurations']['hbase-site']['hbase.tmp.dir']
 #db params
 server_db_name = config['hostLevelParams']['db_name']
@@ -93,8 +93,8 @@ ambari_db_rca_driver = config['hostLevelParams']['ambari_db_rca_driver']
 ambari_db_rca_username = config['hostLevelParams']['ambari_db_rca_username']
 ambari_db_rca_password = config['hostLevelParams']['ambari_db_rca_password']
 
-if 'rca_enabled' in config['configurations']['global']:
-  rca_enabled =  config['configurations']['global']['rca_enabled']
+if 'rca_enabled' in config['configurations']['hadoop-env']:
+  rca_enabled =  config['configurations']['hadoop-env']['rca_enabled']
 else:
   rca_enabled = False
 rca_disabled_prefix = "###"
@@ -110,21 +110,21 @@ if System.get_instance().os_family == "suse":
 else:
   jsvc_path = "/usr/libexec/bigtop-utils"
 
-hadoop_heapsize = config['configurations']['global']['hadoop_heapsize']
-namenode_heapsize = config['configurations']['global']['namenode_heapsize']
-namenode_opt_newsize =  config['configurations']['global']['namenode_opt_newsize']
-namenode_opt_maxnewsize =  config['configurations']['global']['namenode_opt_maxnewsize']
+hadoop_heapsize = config['configurations']['hadoop-env']['hadoop_heapsize']
+namenode_heapsize = config['configurations']['hadoop-env']['namenode_heapsize']
+namenode_opt_newsize =  config['configurations']['hadoop-env']['namenode_opt_newsize']
+namenode_opt_maxnewsize =  config['configurations']['hadoop-env']['namenode_opt_maxnewsize']
 
-jtnode_opt_newsize = default("jtnode_opt_newsize","200m")
-jtnode_opt_maxnewsize = default("jtnode_opt_maxnewsize","200m")
-jtnode_heapsize =  default("jtnode_heapsize","1024m")
-ttnode_heapsize = default("ttnode_heapsize","1024m")
+jtnode_opt_newsize = default("/configurations/mapred-env/jtnode_opt_newsize","200m")
+jtnode_opt_maxnewsize = default("/configurations/mapred-env/jtnode_opt_maxnewsize","200m")
+jtnode_heapsize =  default("/configurations/mapred-env/jtnode_heapsize","1024m")
+ttnode_heapsize = default("/configurations/mapred-env/ttnode_heapsize","1024m")
 
-dtnode_heapsize = config['configurations']['global']['dtnode_heapsize']
-mapred_pid_dir_prefix = default("mapred_pid_dir_prefix","/var/run/hadoop-mapreduce")
+dtnode_heapsize = config['configurations']['hadoop-env']['dtnode_heapsize']
+mapred_pid_dir_prefix = "/var/run/hadoop-mapreduce"
 mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
 hadoop_libexec_dir = "/usr/lib/hadoop/libexec"
-mapred_log_dir_prefix = default("mapred_log_dir_prefix",hdfs_log_dir_prefix)
+mapred_log_dir_prefix = hdfs_log_dir_prefix
 
 #taskcontroller.cfg
 

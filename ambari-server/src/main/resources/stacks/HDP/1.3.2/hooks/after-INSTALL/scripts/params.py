@@ -31,31 +31,32 @@ java_home = config['hostLevelParams']['java_home']
 #hadoop params
 hadoop_conf_dir = "/etc/hadoop/conf"
 hadoop_conf_empty_dir = "/etc/hadoop/conf.empty"
-hdfs_log_dir_prefix = config['configurations']['global']['hdfs_log_dir_prefix']
-hadoop_pid_dir_prefix = config['configurations']['global']['hadoop_pid_dir_prefix']
+hdfs_log_dir_prefix = config['configurations']['hadoop-env']['hdfs_log_dir_prefix']
+hadoop_pid_dir_prefix = config['configurations']['hadoop-env']['hadoop_pid_dir_prefix']
+hadoop_env_sh_template = config['configurations']['hadoop-env']['content']
 
 #hadoop-env.sh
 if System.get_instance().os_family == "suse":
   jsvc_path = "/usr/lib/bigtop-utils"
 else:
   jsvc_path = "/usr/libexec/bigtop-utils"
-hadoop_heapsize = config['configurations']['global']['hadoop_heapsize']
-namenode_heapsize = config['configurations']['global']['namenode_heapsize']
-namenode_opt_newsize =  config['configurations']['global']['namenode_opt_newsize']
-namenode_opt_maxnewsize =  config['configurations']['global']['namenode_opt_maxnewsize']
+hadoop_heapsize = config['configurations']['hadoop-env']['hadoop_heapsize']
+namenode_heapsize = config['configurations']['hadoop-env']['namenode_heapsize']
+namenode_opt_newsize =  config['configurations']['hadoop-env']['namenode_opt_newsize']
+namenode_opt_maxnewsize =  config['configurations']['hadoop-env']['namenode_opt_maxnewsize']
 
-jtnode_opt_newsize = default("jtnode_opt_newsize","200m")
-jtnode_opt_maxnewsize = default("jtnode_opt_maxnewsize","200m")
-jtnode_heapsize =  default("jtnode_heapsize","1024m")
-ttnode_heapsize = default("ttnode_heapsize","1024m")
+jtnode_opt_newsize = default("/configurations/mapred-env/jtnode_opt_newsize","200m")
+jtnode_opt_maxnewsize = default("/configurations/mapred-env/jtnode_opt_maxnewsize","200m")
+jtnode_heapsize =  default("/configurations/mapred-env/jtnode_heapsize","1024m")
+ttnode_heapsize = default("/configurations/mapred-env/ttnode_heapsize","1024m")
 
-dtnode_heapsize = config['configurations']['global']['dtnode_heapsize']
+dtnode_heapsize = config['configurations']['hadoop-env']['dtnode_heapsize']
 
-mapred_pid_dir_prefix = default("mapred_pid_dir_prefix","/var/run/hadoop-mapreduce")
+mapred_pid_dir_prefix = default("/configurations/hadoop-env/mapred_pid_dir_prefix","/var/run/hadoop-mapreduce")
 mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
 hadoop_libexec_dir = "/usr/lib/hadoop/libexec"
 
 
 #users and groups
-hdfs_user = config['configurations']['global']['hdfs_user']
-user_group = config['configurations']['global']['user_group']
+hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
+user_group = config['configurations']['hadoop-env']['user_group']

@@ -22,10 +22,10 @@ from resource_management import *
 
 config = Script.get_config()
 
-mapred_user = config['configurations']['global']['mapred_user']
-yarn_user = config['configurations']['global']['yarn_user']
-yarn_pid_dir_prefix = config['configurations']['global']['yarn_pid_dir_prefix']
-mapred_pid_dir_prefix = config['configurations']['global']['mapred_pid_dir_prefix']
+mapred_user = config['configurations']['mapred-env']['mapred_user']
+yarn_user = config['configurations']['yarn-env']['yarn_user']
+yarn_pid_dir_prefix = config['configurations']['yarn-env']['yarn_pid_dir_prefix']
+mapred_pid_dir_prefix = config['configurations']['mapred-env']['mapred_pid_dir_prefix']
 yarn_pid_dir = format("{yarn_pid_dir_prefix}/{yarn_user}")
 mapred_pid_dir = format("{mapred_pid_dir_prefix}/{mapred_user}")
 
