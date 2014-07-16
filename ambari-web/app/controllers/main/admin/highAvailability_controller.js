@@ -118,17 +118,19 @@ App.MainAdminHighAvailabilityController = Em.Controller.extend({
    * indicate whether security is enabled
    */
   getServiceConfigsFromServer: function () {
+    var self = this;
     var tags = [
       {
         siteName: "hadoop-env",
         tagName: this.get('tag')
       }
     ];
-    var data = App.router.get('configurationController').getConfigsByTags(tags);
-    var configs = data.findProperty('tag', this.get('tag')).properties;
-    var securityEnabled = !!(configs && (configs['security_enabled'] === 'true' || configs['security_enabled'] === true));
-    this.set('securityEnabled', securityEnabled);
-    this.set('dataIsLoaded', true);
+    App.router.get('configurationController').getConfigsByTags(tags).done(function (data) {
+      var configs = data.findProperty('tag', self.get('tag')).properties;
+      var securityEnabled = !!(configs && (configs['security_enabled'] === 'true' || configs['security_enabled'] === true));
+      self.set('securityEnabled', securityEnabled);
+      self.set('dataIsLoaded', true);
+    });
   },
   /**
    * join or wrap message depending on whether it is array or string

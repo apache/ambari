@@ -111,21 +111,23 @@ App.ReassignMasterController = App.WizardController.extend({
   },
 
   getServiceConfigsFromServer: function (tag) {
+    var self = this;
     var tags = [
       {
         siteName: "hadoop-env",
         tagName: tag
       }
     ];
-    var data = App.router.get('configurationController').getConfigsByTags(tags);
-    var configs = data.findProperty('tag', tag).properties;
-    var result = configs && (configs['security_enabled'] === 'true' || configs['security_enabled'] === true);
-    this.saveSecurityEnabled(result);
-    App.clusterStatus.setClusterStatus({
-      clusterName: this.get('content.cluster.name'),
-      clusterState: 'DEFAULT',
-      wizardControllerName: 'reassignMasterController',
-      localdb: App.db.data
+    App.router.get('configurationController').getConfigsByTags(tags).data(function (data) {
+      var configs = data.findProperty('tag', tag).properties;
+      var result = configs && (configs['security_enabled'] === 'true' || configs['security_enabled'] === true);
+      self.saveSecurityEnabled(result);
+      App.clusterStatus.setClusterStatus({
+        clusterName: self.get('content.cluster.name'),
+        clusterState: 'DEFAULT',
+        wizardControllerName: 'reassignMasterController',
+        localdb: App.db.data
+      });
     });
   },
 

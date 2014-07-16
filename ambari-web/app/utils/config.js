@@ -757,7 +757,7 @@ App.config = Em.Object.create({
   /**
    * GETs all cluster level sites in one call.
    *
-   * @return Array of all site configs
+   * @return {object}
    */
   loadConfigsByTags: function (tags) {
     var urlParams = [];
@@ -765,25 +765,13 @@ App.config = Em.Object.create({
       urlParams.push('(type=' + _tag.siteName + '&tag=' + _tag.tagName + ')');
     });
     var params = urlParams.join('|');
-    App.ajax.send({
+    return App.ajax.send({
       name: 'config.on_site',
       sender: this,
       data: {
         params: params
-      },
-      success: 'loadConfigsByTagsSuccess'
+      }
     });
-    return configGroupsByTag;
-  },
-
-  loadConfigsByTagsSuccess: function (data) {
-    if (data.items) {
-      configGroupsByTag = [];
-      data.items.forEach(function (item) {
-        this.loadedConfigurationsCache[item.type + "_" + item.tag] = item.properties;
-        configGroupsByTag.push(item);
-      }, this);
-    }
   },
 
   /**

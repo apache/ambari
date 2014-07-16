@@ -90,6 +90,7 @@ App.MainAdminSecurityController = Em.Controller.extend({
   loadStep: function () {
     var step2Controller = App.router.get('mainAdminSecurityAddStep2Controller');
     var services = this.get('services');
+    var self = this;
     step2Controller.set('content', Em.Object.create({services: []}));
     step2Controller.set('content.services', services);
     this.get('stepConfigs').clear();
@@ -106,10 +107,10 @@ App.MainAdminSecurityController = Em.Controller.extend({
     services.forEach(function (_secureService) {
       this.setServiceTagNames(_secureService, this.get('desiredConfigs'));
     }, this);
-    var serverConfigs = App.router.get('configurationController').getConfigsByTags(this.get('serviceConfigTags'));
-    this.setConfigValuesFromServer(this.get('stepConfigs'), serverConfigs);
-
-    this.set('installedServices', App.Service.find().mapProperty('serviceName'));
+    App.router.get('configurationController').getConfigsByTags(this.get('serviceConfigTags')).done(function (serverConfigs) {
+      self.setConfigValuesFromServer(self.get('stepConfigs'), serverConfigs);
+      self.set('installedServices', App.Service.find().mapProperty('serviceName'));
+    });
   },
 
   /**
