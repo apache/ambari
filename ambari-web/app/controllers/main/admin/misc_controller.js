@@ -43,6 +43,7 @@ App.MainAdminMiscController = App.MainServiceInfoConfigsController.extend({
     });
   },
   loadServiceTagSuccess: function (data, opt, params) {
+    var self = this;
     var installedServices = App.Service.find().mapProperty("serviceName");
     var serviceConfigsDef = params.serviceConfigsDef;
     var serviceName = this.get('content.serviceName');
@@ -54,24 +55,25 @@ App.MainAdminMiscController = App.MainServiceInfoConfigsController.extend({
       }
     }
     this.setServiceConfigTags(loadedClusterSiteToTagMap);
-    var configGroups = App.router.get('configurationController').getConfigsByTags(this.get('serviceConfigTags'));
-    var configSet = App.config.mergePreDefinedWithLoaded(configGroups, [], this.get('serviceConfigTags'), serviceName);
+    App.router.get('configurationController').getConfigsByTags(this.get('serviceConfigTags')).done(function(configGroups){
+      var configSet = App.config.mergePreDefinedWithLoaded(configGroups, [], self.get('serviceConfigTags'), serviceName);
 
-    var misc_configs = configSet.configs.filterProperty('serviceName', this.get('selectedService')).filterProperty('category', 'Users and Groups').filterProperty('isVisible', true);
+      var misc_configs = configSet.globalConfigs.filterProperty('serviceName', self.get('selectedService')).filterProperty('category', 'Users and Groups').filterProperty('isVisible', true);
 
-    misc_configs = App.config.miscConfigVisibleProperty(misc_configs, installedServices);
+      misc_configs = App.config.miscConfigVisibleProperty(misc_configs, installedServices);
 
-    var sortOrder = this.get('configs').filterProperty('serviceName', this.get('selectedService')).filterProperty('category', 'Users and Groups').filterProperty('isVisible', true).mapProperty('name');
+      var sortOrder = self.get('configs').filterProperty('serviceName', self.get('selectedService')).filterProperty('category', 'Users and Groups').filterProperty('isVisible', true).mapProperty('name');
 
-    //stack, with version lower than 2.1, doesn't have Falcon service
-    this.setProxyUserGroupLabel(misc_configs);
+      //stack, with version lower than 2.1, doesn't have Falcon service
+      self.setProxyUserGroupLabel(misc_configs);
 
-    this.set('users', this.sortByOrder(sortOrder, misc_configs));
+      self.set('users', self.sortByOrder(sortOrder, misc_configs));
 
-    this.setContentProperty('hdfsUser', 'hdfs_user', misc_configs);
-    this.setContentProperty('group', 'user_group', misc_configs);
+      self.setContentProperty('hdfsUser', 'hdfs_user', misc_configs);
+      self.setContentProperty('group', 'user_group', misc_configs);
 
-    this.set('dataIsLoaded', true);
+      self.set('dataIsLoaded', true);
+    });
   },
   /**
    * set config value to property of "content"

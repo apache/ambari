@@ -975,6 +975,10 @@ Em.I18n.translations = {
 
   'admin.rm_highAvailability.wizard.header': 'Enable ResourceManager HA Wizard',
   'admin.rm_highAvailability.wizard.step1.header': 'Get Started',
+  'admin.rm_highAvailability.wizard.step1.body':'This wizard will walk you through enabling ResourceManager HA on your cluster.<br/>' +
+      'Once enabled, you will be running a Standby ResourceManager in addition to your Active ResourceManager.<br/>' +
+      'This allows for an Active-Standby ResourceManager configuration that automatically performs failover.<br/><br/>' +
+      '<b>You should plan a cluster maintenance window and prepare for cluster downtime when enabling ResourceManager HA.</b>',
   'admin.rm_highAvailability.wizard.step2.header': 'Select Host',
   'admin.rm_highAvailability.wizard.step3.header': 'Review',
   'admin.rm_highAvailability.wizard.step4.header': 'Configure Components',

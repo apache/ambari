@@ -805,44 +805,47 @@ App.WizardStep7Controller = Em.Controller.extend({
     var configsMap = {};
     var configTypeMap = {};
     var configMixin = App.get('config');
+    var self = this;
 
-    App.router.get('configurationController').getConfigsByTags(serviceConfigTags).forEach(function (configSite) {
-      $.extend(configsMap, configSite.properties);
-      for (var name in configSite.properties) {
-        configTypeMap[name] = configSite.type;
+    App.router.get('configurationController').getConfigsByTags(serviceConfigTags).done(function (configsByTags) {
+      configsByTags.forEach(function (configSite) {
+        $.extend(configsMap, configSite.properties);
+        for (var name in configSite.properties) {
+          configTypeMap[name] = configSite.type;
+        }
+      });
+      configs.forEach(function (_config) {
+        if (!Em.isNone(configsMap[_config.name])) {
+          // prevent overriding already edited properties
+          if (_config.defaultValue != configsMap[_config.name])
+            _config.value = configsMap[_config.name];
+          _config.defaultValue = configsMap[_config.name];
+          _config.hasInitialValue = true;
+          App.config.handleSpecialProperties(_config);
+          delete configsMap[_config.name];
+        }
+      });
+
+      self.setServiceDatabaseConfigs(configs);
+      //add user properties
+      for (var name in configsMap) {
+        configs.push(configMixin.addUserProperty({
+          id: 'site property',
+          name: name,
+          serviceName: configMixin.getServiceNameByConfigType(configTypeMap[name]),
+          value: configsMap[name],
+          defaultValue: configsMap[name],
+          filename: (configMixin.get('filenameExceptions').contains(configTypeMap[name])) ? configTypeMap[name] : configTypeMap[name] + '.xml',
+          category: 'Advanced',
+          isUserProperty: true,
+          isOverridable: true,
+          overrides: [],
+          isRequired: true,
+          isVisible: true,
+          showLabel: true
+        }, false, []));
       }
     });
-    configs.forEach(function (_config) {
-      if (!Em.isNone(configsMap[_config.name])) {
-        // prevent overriding already edited properties
-        if (_config.defaultValue != configsMap[_config.name])
-          _config.value = configsMap[_config.name];
-        _config.defaultValue = configsMap[_config.name];
-        _config.hasInitialValue = true;
-        App.config.handleSpecialProperties(_config);
-        delete configsMap[_config.name];
-      }
-    });
-
-    this.setServiceDatabaseConfigs(configs);
-    //add user properties
-    for (var name in configsMap) {
-      configs.push(configMixin.addUserProperty({
-        id: 'site property',
-        name: name,
-        serviceName: configMixin.getServiceNameByConfigType(configTypeMap[name]),
-        value: configsMap[name],
-        defaultValue: configsMap[name],
-        filename: (configMixin.get('filenameExceptions').contains(configTypeMap[name])) ? configTypeMap[name] : configTypeMap[name] + '.xml',
-        category: 'Advanced',
-        isUserProperty: true,
-        isOverridable: true,
-        overrides: [],
-        isRequired: true,
-        isVisible: true,
-        showLabel: true
-      }, false, []));
-    }
   },
   /**
    * Check if Oozie or Hive use existing database then need

@@ -321,6 +321,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   },
 
   onConfigGroupChange: function () {
+    var self = this;
     this.get('stepConfigs').clear();
     var selectedConfigGroup = this.get('selectedConfigGroup');
     var serviceName = this.get('content.serviceName');
@@ -340,25 +341,26 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     //STEP 3: Load advanced configs
     var advancedConfigs = this.get('advancedConfigs');
     //STEP 4: Load on-site config by service from server
-    var configGroups = App.router.get('configurationController').getConfigsByTags(this.get('serviceConfigTags'));
-    //STEP 5: Merge on-site configs with pre-defined
-    var configSet = App.config.mergePreDefinedWithLoaded(configGroups, advancedConfigs, this.get('serviceConfigTags'), serviceName);
-    configSet = App.config.syncOrderWithPredefined(configSet);
-    //var serviceConfigs = this.getSitesConfigProperties(advancedConfigs);
-    var configs = configSet.configs;
-    //STEP 6: add advanced configs
-    App.config.addAdvancedConfigs(configs, advancedConfigs, serviceName);
-    //STEP 7: add custom configs
-    App.config.addCustomConfigs(configs);
-    //put properties from capacity-scheduler.xml into one config with textarea view
-    if (this.get('content.serviceName') === 'YARN' && !App.supports.capacitySchedulerUi) {
-      configs = App.config.fileConfigsIntoTextarea(configs, 'capacity-scheduler.xml');
-    }
-    this.set('allConfigs', configs);
-    //STEP 8: add configs as names of host components
-    this.addHostNamesToConfig();
-    //STEP 9: Load and add overriden configs of group
-    App.config.loadServiceConfigGroupOverrides(this.get('allConfigs'), this.loadedGroupToOverrideSiteToTagMap, this.get('configGroups'), this.onLoadOverrides, this);
+    App.router.get('configurationController').getConfigsByTags(this.get('serviceConfigTags')).done(function(configGroups){
+      //STEP 5: Merge on-site configs with pre-defined
+      var configSet = App.config.mergePreDefinedWithLoaded(configGroups, advancedConfigs, self.get('serviceConfigTags'), serviceName);
+      configSet = App.config.syncOrderWithPredefined(configSet);
+      //var serviceConfigs = this.getSitesConfigProperties(advancedConfigs);
+      var configs = configSet.configs;
+      //STEP 6: add advanced configs
+      App.config.addAdvancedConfigs(configs, advancedConfigs, serviceName);
+      //STEP 7: add custom configs
+      App.config.addCustomConfigs(configs);
+      //put properties from capacity-scheduler.xml into one config with textarea view
+      if (self.get('content.serviceName') === 'YARN' && !App.supports.capacitySchedulerUi) {
+        configs = App.config.fileConfigsIntoTextarea(configs, 'capacity-scheduler.xml');
+      }
+      self.set('allConfigs', configs);
+      //STEP 8: add configs as names of host components
+      self.addHostNamesToConfig();
+      //STEP 9: Load and add overriden configs of group
+      App.config.loadServiceConfigGroupOverrides(self.get('allConfigs'), self.get('loadedGroupToOverrideSiteToTagMap'), self.get('configGroups'), self.onLoadOverrides, self);
+    });
   }.observes('selectedConfigGroup'),
 
   checkDatabaseProperties: function (serviceConfig) {
