@@ -36,7 +36,10 @@ App.ServiceConfig = Ember.Object.extend({
         }
       })
     });
-    var masterErrors = this.get('configs').filterProperty('isValid', false).filterProperty('isVisible', true).get('length');
+    var categoryNames = this.get('configCategories').mapProperty('name');
+    var masterErrors = this.get('configs').filter(function (item) {
+      return categoryNames.contains(item.get('category'));
+    }).filterProperty('isValid', false).filterProperty('isVisible', true).get('length');
     var slaveErrors = 0;
     this.get('configCategories').forEach(function (_category) {
       slaveErrors += _category.get('slaveErrorCount');
