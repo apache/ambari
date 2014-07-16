@@ -298,8 +298,9 @@ App.TableView = Em.View.extend({
    * @param {Object} value
    * @param {String} type
    */
-  updateFilter: function (iColumn, value, type) {
+  updateFilter: function (iColumn, value, type, defaultValue) {
     var filterCondition = this.get('filterConditions').findProperty('iColumn', iColumn);
+    defaultValue = defaultValue ? defaultValue : "";
     if (filterCondition) {
       filterCondition.value = value;
     }
@@ -307,7 +308,8 @@ App.TableView = Em.View.extend({
       filterCondition = {
         iColumn: iColumn,
         value: value,
-        type: type
+        type: type,
+        defaultValue: defaultValue
       };
       this.get('filterConditions').push(filterCondition);
     }
@@ -357,7 +359,7 @@ App.TableView = Em.View.extend({
          var match = true;
         filterConditions.forEach(function (condition) {
           var filterFunc = filters.getFilterByType(condition.type, false);
-          if (match) {
+          if (match && condition.value != condition.defaultValue) {
             match = filterFunc(Em.get(item, assoc[condition.iColumn]), condition.value);
           }
         });
@@ -387,7 +389,7 @@ App.TableView = Em.View.extend({
     }
     var filtersUsed = false;
     filterConditions.forEach(function(filterCondition) {
-      if (filterCondition.value.toString() !== '') {
+      if (filterCondition.value.toString() !== '' && filterCondition.value.toString() !== filterCondition.defaultValue.toString()) {
         filtersUsed = true;
       }
     });

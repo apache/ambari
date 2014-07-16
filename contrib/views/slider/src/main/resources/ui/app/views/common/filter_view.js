@@ -76,7 +76,7 @@ var wrapperView = Ember.View.extend({
    * @return {Boolean}
    */
   isEmpty: function(){
-    if(this.get('value') === null){
+    if(this.get('value') === null || this.get('value') == this.get('defaultValue')){
       return true;
     }
     return this.get('value').toString() === this.get('emptyValue').toString();
@@ -286,6 +286,36 @@ module.exports = {
       case 'boolean':
         return function (origin, compareValue){
           return origin === compareValue;
+        };
+        break;
+      case 'date':
+        return function (rowValue, rangeExp) {
+          var match = false;
+          var timePassed = new Date().getTime() - rowValue;
+          switch (rangeExp) {
+            case 'Past 1 hour':
+              match = timePassed <= 3600000;
+              break;
+            case 'Past 1 Day':
+              match = timePassed <= 86400000;
+              break;
+            case 'Past 2 Days':
+              match = timePassed <= 172800000;
+              break;
+            case 'Past 7 Days':
+              match = timePassed <= 604800000;
+              break;
+            case 'Past 14 Days':
+              match = timePassed <= 1209600000;
+              break;
+            case 'Past 30 Days':
+              match = timePassed <= 2592000000;
+              break;
+            case 'Any':
+              match = true;
+              break;
+          }
+          return match;
         };
         break;
       case 'number':

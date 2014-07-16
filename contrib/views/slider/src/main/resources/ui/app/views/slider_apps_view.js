@@ -21,7 +21,7 @@ var sort = require('views/common/sort_view');
 App.SliderAppsView = App.TableView.extend({
 
   statusList: [
-    "",
+    "All Status",
     App.SliderApp.Status.accepted,
     App.SliderApp.Status.failed,
     App.SliderApp.Status.finished,
@@ -102,12 +102,13 @@ App.SliderAppsView = App.TableView.extend({
 
   statusFilterView: filters.createSelectView({
     column: 1,
+    defaultValue: "All Status",
     fieldType: 'filter-input-width',
     content: function() {
       return this.get('parentView.statusList');
     }.property('parentView.statusList'),
     onChangeValue: function(){
-      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'string');
+      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'string', this.get('defaultValue'));
     }
   }),
 
@@ -135,6 +136,17 @@ App.SliderAppsView = App.TableView.extend({
       this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'date');
     },
     type: 'number'
+  }),
+
+  startFilterView: filters.createSelectView({
+    column: 4,
+    defaultValue: "All Dates",
+    fieldType: 'filter-input-width',
+    content: ['All Dates', 'Past 1 hour',  'Past 1 Day', 'Past 2 Days', 'Past 7 Days', 'Past 14 Days', 'Past 30 Days'],
+    onChangeValue: function(){
+      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'date', this.get('defaultValue'));
+    },
+    type: 'date'
   }),
 
   /**
