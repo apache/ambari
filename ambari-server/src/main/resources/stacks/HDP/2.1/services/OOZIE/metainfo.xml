@@ -72,6 +72,7 @@
         <config-type>oozie-site</config-type>
         <config-type>oozie-env</config-type>
         <config-type>oozie-log4j</config-type>
+        <config-type>yarn-site</config-type>
       </configuration-dependencies>
     </service>
   </services>
