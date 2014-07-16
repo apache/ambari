@@ -182,7 +182,7 @@ public class UpgradeCatalogTest {
       Collections.singletonMap("x", "y"), false);
     config = cluster.getDesiredConfigByType("global");
     Assert.assertNotNull(config);
-    Assert.assertNotSame(version, config.getVersionTag());
+    Assert.assertSame(version, config.getVersionTag());
     Assert.assertTrue(config.getProperties().containsKey("x"));
     Assert.assertEquals("z", config.getProperties().get("x"));
   }
