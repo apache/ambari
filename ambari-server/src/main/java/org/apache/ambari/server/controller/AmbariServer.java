@@ -346,9 +346,9 @@ public class AmbariServer {
 
       if (configs.csrfProtectionEnabled()) {
         sh.setInitParameter("com.sun.jersey.spi.container.ContainerRequestFilters",
-                    "com.sun.jersey.api.container.filter.CsrfProtectionFilter");
+                    "org.apache.ambari.server.api.AmbariCsrfProtectionFilter");
         proxy.setInitParameter("com.sun.jersey.spi.container.ContainerRequestFilters",
-                    "com.sun.jersey.api.container.filter.CsrfProtectionFilter");
+                    "com.sun.jersey.api.container.filter.AmbariCsrfProtectionFilter");
       }
 
       //Set jetty thread pool
