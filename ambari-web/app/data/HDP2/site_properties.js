@@ -1598,6 +1598,20 @@ module.exports =
       "filename": "pig-properties.xml",
       "category": "Advanced"
     },
+    {
+      "id": "site property",
+      "name": "content",
+      "displayName": "content",
+      "value": "",
+      "defaultValue": "",
+      "description": "-env.sh content",
+      "displayType": "content",
+      "isRequired": false,
+      "showLabel": false,
+      "serviceName": "PIG",
+      "filename": "pig-env.xml",
+      "category": "PigEnv"
+    },
 
     //***************************************** GLUSTERFS stack********************************************
 
