@@ -634,6 +634,13 @@ App.config = Em.Object.create({
         if (!storedConfigs && !serviceConfigProperty.get('hasInitialValue')) {
           serviceConfigProperty.initialValue(localDB);
         }
+        if (storedConfigs && storedConfigs.filterProperty('name', _config.name).length && !!_config.filename) {
+          var storedConfig = storedConfigs.filterProperty('name', _config.name).findProperty('filename', _config.filename);
+          if (storedConfig) {
+            serviceConfigProperty.set('defaultValue', storedConfig.defaultValue);
+            serviceConfigProperty.set('value', storedConfig.value);
+          }
+        }
         this.tweakDynamicDefaults(localDB, serviceConfigProperty, _config);
         serviceConfigProperty.validate();
         configsByService.pushObject(serviceConfigProperty);
