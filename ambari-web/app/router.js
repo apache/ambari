@@ -92,6 +92,8 @@ App.Router = Em.Router.extend({
   }.property('loggedIn'),
 
   getAuthenticated: function () {
+    var dfd = $.Deferred();
+    var self = this;
     var auth = App.db.getAuthenticated();
     var authResp = (auth && auth === true);
     if (authResp) {
@@ -100,11 +102,14 @@ App.Router = Em.Router.extend({
         sender: this,
         success: 'onAuthenticationSuccess',
         error: 'onAuthenticationError'
-      });
+      }).complete(function () {
+          dfd.resolve(self.get('loggedIn'));
+        });
     } else {
       this.set('loggedIn', false);
+      dfd.resolve(false);
     }
-    return this.get('loggedIn');
+    return dfd.promise();
   },
 
   onAuthenticationSuccess: function (data) {
@@ -354,14 +359,16 @@ App.Router = Em.Router.extend({
        *  If the user is already logged in, redirect to where the user was previously
        */
       enter: function (router, context) {
-        if (router.getAuthenticated()) {
-          Ember.run.next(function () {
-            console.log(router.getLoginName() + ' already authenticated.  Redirecting...');
-            router.getSection(function (route) {
-              router.transitionTo(route, context);
+        router.getAuthenticated().done(function (loggedIn) {
+          if (loggedIn) {
+            Ember.run.next(function () {
+              console.log(router.getLoginName() + ' already authenticated.  Redirecting...');
+              router.getSection(function (route) {
+                router.transitionTo(route, context);
+              });
             });
-          });
-        }
+          }
+        });
       },
 
       connectOutlets: function (router, context) {

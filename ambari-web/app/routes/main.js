@@ -24,26 +24,28 @@ module.exports = Em.Route.extend({
   enter: function (router) {
     App.db.updateStorage();
     console.log('in /main:enter');
-    if (router.getAuthenticated()) {
-      App.router.get('mainAdminAccessController').loadShowJobsForUsers().done(function () {
-        App.router.get('clusterController').loadClusterName(false).done(function () {
-          if (App.get('testMode')) {
-            router.get('mainController').initialize();
-          } else {
-            App.router.get('mainController').checkServerClientVersion().done(function () {
-              App.router.get('clusterController').loadClientServerClockDistance().done(function () {
-                router.get('mainController').initialize();
+    router.getAuthenticated().done(function (loggedIn) {
+      if (loggedIn) {
+        App.router.get('mainAdminAccessController').loadShowJobsForUsers().done(function () {
+          App.router.get('clusterController').loadClusterName(false).done(function () {
+            if (App.get('testMode')) {
+              router.get('mainController').initialize();
+            } else {
+              App.router.get('mainController').checkServerClientVersion().done(function () {
+                App.router.get('clusterController').loadClientServerClockDistance().done(function () {
+                  router.get('mainController').initialize();
+                });
               });
-            });
-          }
+            }
+          });
         });
-      });
-      // TODO: redirect to last known state
-    } else {
-      Em.run.next(function () {
-        router.transitionTo('login');
-      });
-    }
+        // TODO: redirect to last known state
+      } else {
+        Em.run.next(function () {
+          router.transitionTo('login');
+        });
+      }
+    });
   },
   /*
    routePath: function(router,event) {
