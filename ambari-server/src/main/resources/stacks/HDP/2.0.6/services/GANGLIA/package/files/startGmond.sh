@@ -29,11 +29,12 @@ function startGmondForCluster()
     gmondClusterName=${1};
 
     gmondRunningPid=`getGmondRunningPid ${gmondClusterName}`;
+    gmondPidFileName=`getGmondPidFileName ${gmondClusterName}`;
 
     # Only attempt to start gmond if there's not already one running.
-    if [ -f "${gmondRunningPid}" ]
+    if [ -f "${gmondPidFileName}" ] && [ -z "${gmondRunningPid}" ]
     then
-      ps -p `cat ${gmondRunningPid}` | grep `cat ${gmondRunningPid}` || rm -f ${gmondRunningPid}
+      rm -f ${gmondPidFileName}
     fi
     if [ -z "${gmondRunningPid}" ]
     then

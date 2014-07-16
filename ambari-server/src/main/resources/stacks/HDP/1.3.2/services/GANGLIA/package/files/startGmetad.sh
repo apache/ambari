@@ -34,9 +34,9 @@ then
     gmetadRunningPid=`getGmetadRunningPid`;
 
     # Only attempt to start gmetad if there's not already one running.
-    if [ -f "${gmetadRunningPid}" ]
+    if [ -f "${GMETAD_PID_FILE}" ] && [ -z "${gmetadRunningPid}" ]
     then
-      ps -p `cat ${gmetadRunningPid}` | grep `cat ${gmetadRunningPid}` || rm -f ${gmetadRunningPid}; rm -f /var/lock/subsys/hdp-gmetad
+      rm -f ${GMETAD_PID_FILE}; rm -f /var/lock/subsys/hdp-gmetad
     fi
     if [ -z "${gmetadRunningPid}" ]
     then
