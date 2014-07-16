@@ -26,63 +26,8 @@
       <div class="service-content">
         <table id="summary-info" class="table no-borders table-condensed">
           <tbody>
-            {{#if view.noTemplateService}}
-              {{view view.sumMasterComponentView}}
-            {{/if}}
-            {{#if view.serviceStatus.hdfs}}
-              {{view App.MainDashboardServiceHdfsView serviceBinding="view.service"}}
-            {{/if}}
-            {{#if view.serviceStatus.mapreduce}}
-              {{view App.MainDashboardServiceMapreduceView serviceBinding="view.service"}}
-            {{/if}}
-            {{#if view.serviceStatus.yarn}}
-              {{view App.MainDashboardServiceYARNView serviceBinding="view.service"}}
-            {{/if}}
-            {{#if view.serviceStatus.mapreduce2}}
-              {{template "templates/main/service/info/summary/mapreduce2"}}
-            {{/if}}
-            {{#if view.serviceStatus.hbase}}
-              {{view App.MainDashboardServiceHbaseView serviceBinding="view.service"}}
-            {{/if}}
-            {{#if view.serviceStatus.zookeeper}}
-              {{template "templates/main/service/info/summary/zookeeper"}}
-            {{/if}}
-            {{#if view.serviceStatus.oozie}}
-              {{template "templates/main/service/info/summary/oozie"}}
-            {{/if}}
-            {{#if view.serviceStatus.ganglia}}
-              {{template "templates/main/service/info/summary/ganglia"}}
-            {{/if}}
-            {{#if view.serviceStatus.hive}}
-              {{template "templates/main/service/info/summary/hive"}}
-            {{/if}}
-            {{#if view.serviceStatus.hue}}
-              {{template "templates/main/service/info/summary/hue"}}
-            {{/if}}
-            {{#if view.serviceStatus.flume}}
-              <tr>
-                <td>
-                  {{view App.MainDashboardServiceFlumeView serviceBinding="view.service"}}
-                </td>
-              </tr>
-            {{/if}}
-            {{#if view.serviceStatus.falcon}}
-              {{template "templates/main/service/info/summary/falcon"}}
-            {{/if}}
-            {{#if view.serviceStatus.storm}}
-              {{view App.MainDashboardServiceStormView serviceBinding="view.service"}}
-            {{/if}}
-            {{#if view.serviceStatus.tez}}
-              {{template "templates/main/service/info/summary/tez"}}
-            {{/if}}
-            {{#if view.serviceStatus.pig}}
-              {{template "templates/main/service/info/summary/pig"}}
-            {{/if}}
-            {{#if view.serviceStatus.glusterfs}}
-              {{template "templates/main/service/info/summary/glusterfs"}}
-            {{/if}}            
-            {{#if view.serviceStatus.sqoop}}
-              {{template "templates/main/service/info/summary/sqoop"}}
+            {{#if view.serviceSummaryView}}
+              {{view view.serviceSummaryView}}
             {{/if}}
           </tbody>
         </table>

@@ -15,12 +15,19 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
+<tr class="hidden"><td></td></tr>
 
-{{view view.sumMasterComponentView}}
-
-<tr>
-    <td class="summary-label"><a {{action filterHosts view.clientObj}} href="javascript:void(null)" >{{pluralize view.service.installedClients singular="t:services.hive.client" plural="t:services.hive.clients"}}</a></td>
-    <td>
-        <span class="green-live">{{view.service.installedClients}} </span>{{pluralize view.service.installedClients singular="t:services.hive.client" plural="t:services.hive.clients"}} {{t common.installed}}
+{{#each slaveComponent in view.slavesObj}}
+  <tr>
+    <td><a href="#" {{action filterHosts slaveComponent}}>{{slaveComponent.displayNamePluralized}}</a>
     </td>
-</tr>
+    <td>
+      <span>
+        {{#view App.ComponentLiveTextView liveComponentsBinding="slaveComponent.startedCount" totalComponentsBinding="slaveComponent.totalCount"}}
+          {{view.liveComponents}}/{{view.totalComponents}}
+        {{/view}}
+      </span>
+      {{slaveComponent.displayNamePluralized}} {{t dashboard.services.summary.slaves.live}}
+    </td>
+  </tr>
+{{/each}}

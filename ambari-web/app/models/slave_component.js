@@ -16,9 +16,13 @@
  * limitations under the License.
  */
 
+var App = require('app');
+var stringUtils = require('utils/string_utils');
 
+App.SlaveComponent = App.ClientComponent.extend({
+  displayNamePluralized: function() {
+    return stringUtils.pluralize(this.get('startedCount'), this.get('displayName'));
+  }.property('startedCount')
+});
 
-// load templates here
-
-require('templates/main/service/info/summary/base');
-require('templates/main/admin/highAvailability/progress');
+App.SlaveComponent.FIXTURES = [];

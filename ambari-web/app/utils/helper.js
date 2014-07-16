@@ -514,9 +514,10 @@ App.registerBoundHelper = function(name, view) {
 };
 
 /*
- * Return singular or plural word based on Em.I18n property key.
+ * Return singular or plural word based on Em.I18n, view|controller context property key.
  *
  *  Example: {{pluralize hostsCount singular="t:host" plural="t:hosts"}}
+ *           {{pluralize hostsCount singular="@view.hostName"}}
  */
 App.registerBoundHelper('pluralize', Em.View.extend({
   tagName: 'span',
@@ -529,10 +530,20 @@ App.registerBoundHelper('pluralize', Em.View.extend({
     plural = this.get('plural');
     return this.getWord(count, singular, plural);
   }.property('content'),
-
+  /**
+   * Get computed word.
+   *
+   * @param {Number} count
+   * @param {String} singular
+   * @param {String} [plural]
+   * @return {String}
+   * @method getWord
+   */
   getWord: function(count, singular, plural) {
-    singular = this.tDetect(singular);
-    plural = this.tDetect(plural);
+    singular = this.parseValue(singular);
+    // if plural not passed
+    if (!plural) plural = singular + 's';
+    else plural = this.parseValue(plural);
     if (singular && plural) {
       if (count > 1) {
         return plural;
@@ -541,6 +552,26 @@ App.registerBoundHelper('pluralize', Em.View.extend({
       }
     }
     return '';
+  },
+  /**
+   * Detect and return value from its instance.
+   *
+   * @param {String} value
+   * @return {*}
+   * @method parseValue
+   **/
+  parseValue: function(value) {
+    switch (value[0]) {
+      case '@':
+        value = this.getViewPropertyValue(value);
+        break;
+      case 't':
+        value = this.tDetect(value);
+        break;
+      default:
+        break;
+    }
+    return value;
   },
   /*
    * Detect for Em.I18n.t reference call
@@ -553,6 +584,25 @@ App.registerBoundHelper('pluralize', Em.View.extend({
       return Em.I18n.t(splitted[1]);
     } else {
       return splitted[0];
+    }
+  },
+  /**
+   * Get property value from view|controller by its key path.
+   *
+   * @param {String} value - key path
+   * @return {*}
+   * @method getViewPropertyValue
+   **/
+  getViewPropertyValue: function(value) {
+    value = value.substr(1);
+    var keyword = value.split('.')[0]; // return 'controller' or 'view'
+    switch (keyword) {
+      case 'controller':
+        return Em.get(this, value);
+      case 'view':
+        return Em.get(this, value.replace(/^view/, 'parentView'))
+      default:
+        break;
     }
   }
   })

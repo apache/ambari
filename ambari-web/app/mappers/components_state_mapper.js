@@ -21,6 +21,21 @@ var stringUtils = require('utils/string_utils');
 App.componentsStateMapper = App.QuickDataMapper.create({
 
   model: App.Service,
+
+  clientModel: App.ClientComponent,
+  clientMap: {
+    id: 'ServiceComponentInfo.component_name',
+    service_id: 'ServiceComponentInfo.service_name',
+    stack_info_id: 'ServiceComponentInfo.component_name',
+    component_name: 'ServiceComponentInfo.component_name',
+    service_name: 'ServiceComponentInfo.service_name',
+    installed_count: 'ServiceComponentInfo.installed_count',
+    started_count: 'ServiceComponentInfo.started_count',
+    total_count: 'ServiceComponentInfo.total_count'
+  },
+
+  slaveModel: App.SlaveComponent,
+
   paths: {
     INSTALLED_PATH: 'ServiceComponentInfo.installed_count',
     STARTED_PATH: 'ServiceComponentInfo.started_count',
@@ -123,6 +138,9 @@ App.componentsStateMapper = App.QuickDataMapper.create({
   map: function (json) {
     console.time('App.componentsStateMapper execution time');
 
+    var clients = [];
+    var slaves = [];
+
     if (json.items) {
       json.items.forEach(function (item) {
         var componentConfig = this.getComponentConfig(item.ServiceComponentInfo.component_name);
@@ -130,6 +148,17 @@ App.componentsStateMapper = App.QuickDataMapper.create({
         var service = App.Service.find(item.ServiceComponentInfo.service_name);
         var extendedModel = this.getExtendedModel(item.ServiceComponentInfo.service_name);
         var cacheService = App.cache['services'].findProperty('ServiceInfo.service_name', item.ServiceComponentInfo.service_name);
+
+        if (item.ServiceComponentInfo.category === 'CLIENT') {
+          clients.push(this.parseIt(item, this.clientMap));
+        }
+        if (item.ServiceComponentInfo.category === 'SLAVE') {
+          // for now map for slaves and clients are equal but it may vary in future.
+          slaves.push(this.parseIt(item, this.clientMap));
+        }
+
+        cacheService.client_components = clients.filterProperty('service_name', cacheService.ServiceInfo.service_name).mapProperty('component_name');
+        cacheService.slave_components = slaves.filterProperty('service_name', cacheService.ServiceInfo.service_name).mapProperty('component_name');
 
         for (var i in parsedItem) {
           if (service.get('isLoaded')) {
@@ -142,6 +171,9 @@ App.componentsStateMapper = App.QuickDataMapper.create({
         }
       }, this)
     }
+    App.store.loadMany(this.clientModel, clients);
+    App.store.loadMany(this.slaveModel, slaves);
+
     console.timeEnd('App.componentsStateMapper execution time');
   }
 });

@@ -166,6 +166,7 @@ require('views/main/service/all_services_actions');
 require('views/main/service/menu');
 require('views/main/service/item');
 require('views/main/service/reconfigure');
+require('views/main/service/info/components_list_view');
 require('views/main/service/info/menu');
 require('views/main/service/info/summary');
 require('views/main/service/info/configs');

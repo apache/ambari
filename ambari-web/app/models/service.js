@@ -36,6 +36,9 @@ App.Service = DS.Model.extend(App.ServiceModelMixin, {
    */
   installedClients: DS.attr('number'),
 
+  clientComponents: DS.hasMany('App.ClientComponent'),
+  slaveComponents: DS.hasMany('App.SlaveComponent'),
+
   /**
    * @type {bool}
    */
@@ -178,7 +181,7 @@ App.Service.Health = {
  * association between service and extended model name
  * @type {Object}
  */
-App.Service.extendedModel = {
+  App.Service.extendedModel = {
   'HDFS': 'HDFSService',
   'MAPREDUCE': 'MapReduceService',
   'HBASE': 'HBaseService',

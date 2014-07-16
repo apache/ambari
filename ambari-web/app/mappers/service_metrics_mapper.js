@@ -33,7 +33,9 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     $alerts: [ 1, 2, 3 ],
     host_components: 'host_components',
     tool_tip_content: 'tool_tip_content',
-    installed_clients: 'installed_clients'
+    installed_clients: 'installed_clients',
+    client_components: 'client_components',
+    slave_components: 'slave_components'
   },
   hdfsConfig: {
     version: 'nameNodeComponent.host_components[0].metrics.dfs.namenode.Version',

@@ -189,8 +189,17 @@ module.exports = {
     }, this);
     return label.trim();
   },
-
+  /**
+   * Get plural|singular value of string by related count.
+   *
+   * @param {Number} count
+   * @param {String} singular
+   * @param {String} [plural]
+   * @return {String}
+   * @method pluralize
+   */
   pluralize: function(count, singular, plural) {
+    plural = plural || singular + 's';
     if (count > 1) {
       return plural;
     }

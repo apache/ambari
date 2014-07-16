@@ -35,26 +35,37 @@ App.AlertItemView = Em.View.extend({
 App.MainServiceInfoSummaryView = Em.View.extend({
   templateName: require('templates/main/service/info/summary'),
   attributes:null,
-  serviceStatus:{
-    hdfs:false,
-    yarn:false,
-    mapreduce:false,
-    mapreduce2:false,
-    hbase:false,
-    zookeeper:false,
-    oozie:false,
-    hive:false,
-    ganglia:false,
-    nagios:false,
-    hue: false,
-    flume: false,
-    falcon: false,
-    storm: false,
-    tez: false,
-    pig :false,
-    glusterfs: false,    
-    sqoop: false
-  },
+  /**
+   *  @property {String} templatePathPrefix - base path for custom templates
+   *    if you want to add custom template, add <service_name>.hbs file to
+   *    templates/main/service/info/summary folder.
+   */
+  templatePathPrefix: 'templates/main/service/info/summary/',
+  /** @property {Ember.View} serviceSummaryView - view to embed, computed in
+   *  <code>loadServiceSummary()</code>
+   */
+  serviceSummaryView: null,
+  /**
+   * @property {Object} serviceCustomViewsMap - custom views to embed
+   *
+   */
+  serviceCustomViewsMap: function() {
+    return {
+      HBASE: App.MainDashboardServiceHbaseView,
+      HDFS: App.MainDashboardServiceHdfsView,
+      MAPREDUCE: App.MainDashboardServiceMapreduceView,
+      STORM: App.MainDashboardServiceStormView,
+      YARN: App.MainDashboardServiceYARNView,
+      FLUME: Em.View.extend({
+        template: Em.Handlebars.compile('' +
+          '<tr>' +
+            '<td>' +
+              '{{view App.MainDashboardServiceFlumeView serviceBinding="view.service"}}' +
+            '</td>' +
+          '</tr>')
+      })
+    }
+  }.property('serviceName'),
   /** @property collapsedMetrics {object[]} - metrics list for collapsed section
    *    structure of element from list:
    *      @property {string} header - title for section
@@ -67,16 +78,6 @@ App.MainServiceInfoSummaryView = Em.View.extend({
   servicesHaveClients: function() {
     return App.get('services.hasClient');
   }.property('App.services.hasClient'),
-
-  sumMasterComponentView : Em.View.extend({
-    didInsertElement: function() {
-      App.tooltip($('[rel=healthTooltip]'));
-    },
-    templateName: require('templates/main/service/info/summary/master_components'),
-    mastersComp : function(){
-      return this.get('parentView.service.hostComponents').filterProperty('isMaster', true);
-    }.property("service")
-  }),
 
   alertsControllerBinding: 'App.router.mainAlertsController',
   alerts: function () {
@@ -105,7 +106,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
 
   hasManyClients: function () {
     return this.get('controller.content.installedClients').length > 1;
-  }.property('controller.content.installedClients'),
+  }.property('service.installedClients'),
 
   servers: function () {
     var result = [];
@@ -143,36 +144,6 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     var service=this.get('controller.content');
     return (App.singleNodeInstall ? "http://" + App.singleNodeAlias + ":19888" : "http://" + service.get("hostComponents").findProperty('isMaster', true).get("host").get("publicHostName")+":19888");
   }.property('controller.content'),
-
-  monitors: function () {
-    var result = '';
-    var service = this.get('controller.content');
-    if (service.get("id") == "GANGLIA") {
-      var totalMonitors = service.get('gangliaMonitorsTotal');
-      var liveMonitors = service.get('gangliaMonitorsStarted');
-      if (totalMonitors) {
-        result = Em.I18n.t('services.service.info.summary.hostsRunningMonitor').format(liveMonitors, totalMonitors);
-      }
-    }
-    return result;
-  }.property('controller.content'),
-
-  /**
-   * Property related to GANGLIA service, is unused for other services
-   * @type {Object}
-   */
-  monitorsObj: function () {
-    if (this.get('controller.content.id') == "GANGLIA") {
-      var monitors = App.StackServiceComponent.find().filterProperty('serviceName', 'GANGLIA').filterProperty('isMaster', false);
-      if (monitors.length) {
-        return Em.Object.create({
-          componentName: monitors.objectAt(0).get('componentName')
-        });
-      }
-    }
-    return {};
-  }.property('controller.content.id'),
-
   /**
    * Property related to ZOOKEEPER service, is unused for other services
    * @return {Object}
@@ -188,22 +159,27 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     return {};
   }.property('controller.content'),
 
+  mastersObj: function() {
+    return this.get('service.hostComponents').filterProperty('isMaster', true);
+  }.property('service'),
+
   /**
-   * Contain Object with <code>componentName</code> property for <code>filterByComponent</code> method
-   * @type {Object}
+   * Contain array with list of client components models <code>App.ClientComponent</code>.
+   * @type {Array}
    */
   clientObj: function () {
-    var serviceName = this.get('controller.content.id');
-    if (this.get('servicesHaveClients').contains(serviceName)) {
-      var clients = App.StackServiceComponent.find().filterProperty('serviceName', serviceName).filterProperty('isClient');
-      if (clients.length) {
-        return Em.Object.create({
-          componentName: clients.objectAt(0).get('componentName')
-        });
-      }
-    }
-    return {};
-  }.property('controller.content.id'),
+    var clientComponents = this.get('controller.content.clientComponents').toArray();
+    return clientComponents.get('length') ? clientComponents : [];
+  }.property('service.clientComponents.@each.totalCount'),
+
+  /**
+   * Contain array with list of slave components models <code>App.SlaveComponent</code>.
+   * @type {Array}
+   */
+  slavesObj: function() {
+    var slaveComponents = this.get('controller.content.slaveComponents').toArray();
+    return slaveComponents.get('length') ? slaveComponents : [];
+  }.property('service.slaveComponents.@each.totalCount', 'service.slaveComponents.@each.startedCount'),
 
   data:{
     hive:{
@@ -353,9 +329,10 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     return graphs;
   }.property(''),
 
-  loadServiceSummary:function (serviceName) {
-
+  loadServiceSummary: function (serviceName) {
     var serviceName = this.get('serviceName');
+    var serviceSummaryView = null;
+
     if (!serviceName) {
       return;
     }
@@ -365,19 +342,19 @@ App.MainServiceInfoSummaryView = Em.View.extend({
       return;
     }
 
-    var summaryView = this;
-    var serviceStatus = summaryView.get('serviceStatus');
-    $.each(serviceStatus, function (key, value) {
-      if (key.toUpperCase() == serviceName) {
-        summaryView.set('serviceStatus.' + key, true);
-      } else {
-        summaryView.set('serviceStatus.' + key, false);
-      }
-    });
-
-    console.log('load ', serviceName, ' info');
+    var customServiceView = this.get('serviceCustomViewsMap')[serviceName];
+    if (customServiceView) {
+      serviceSummaryView  = customServiceView.extend({
+        service: this.get('service')
+      });
+    } else  {
+      serviceSummaryView = Em.View.extend({
+        templateName: this.get('templatePathPrefix') + 'base',
+        content: this
+      });
+    }
+    this.set('serviceSummaryView', serviceSummaryView);
     this.set('oldServiceName', serviceName);
-    serviceName = serviceName.toLowerCase();
   }.observes('serviceName'),
 
   /*

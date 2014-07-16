@@ -16,9 +16,22 @@
  * limitations under the License.
  */
 
+var App = require('app');
 
+App.SummaryMasterComponentsView = Em.View.extend({
+  templateName: require('templates/main/service/info/summary/master_components'),
+  masterComp: null,
+  didInsertElement: function() {
+    App.tooltip($('[rel=healthTooltip]'));
+  }
+});
 
-// load templates here
+App.SummaryClientComponentsView = Em.View.extend({
+  templateName: require('templates/main/service/info/summary/client_components'),
+  clientsObj: []
+});
 
-require('templates/main/service/info/summary/base');
-require('templates/main/admin/highAvailability/progress');
+App.SummarySlaveComponentsView = Em.View.extend({
+  templateName: require('templates/main/service/info/summary/slave_components'),
+  slavesObj: []
+});

@@ -775,6 +775,7 @@ App.WizardStep7Controller = Em.Controller.extend({
   getConfigTagsSuccess: function (data) {
     var installedServiceSites = [];
     App.StackService.find().filterProperty('isInstalled').forEach(function (service) {
+      if (!service.get('configTypes')) return;
       var configTypes = Object.keys(service.get('configTypes'));
       installedServiceSites = installedServiceSites.concat(configTypes);
     }, this);

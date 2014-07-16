@@ -1791,6 +1791,7 @@ Em.I18n.translations = {
   'dashboard.services':'Services',
   'dashboard.services.hosts':'Hosts',
   'dashboard.services.uptime':'{0}',
+  'dashboard.services.summary.slaves.live': 'Live',
   'dashboard.services.hdfs.summary':'{0} of {1} nodes live, {2}% capacity used',
   'dashboard.services.hdfs.nanmenode':'NameNode',
   'dashboard.services.hdfs.snanmenode':'Secondary NameNode',
