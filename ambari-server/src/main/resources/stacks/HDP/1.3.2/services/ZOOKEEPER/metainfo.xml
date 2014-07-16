@@ -64,7 +64,7 @@
       </commandScript>
 
       <configuration-dependencies>
-        <config-type>global</config-type>
+        <config-type>zookeeper-env</config-type>
         <config-type>zookeeper-log4j</config-type>
       </configuration-dependencies>
       <restartRequiredAfterChange>true</restartRequiredAfterChange>      

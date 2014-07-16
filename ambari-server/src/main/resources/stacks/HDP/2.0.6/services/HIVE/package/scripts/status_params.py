@@ -22,12 +22,12 @@ from resource_management import *
 
 config = Script.get_config()
 
-hive_pid_dir = config['configurations']['global']['hive_pid_dir']
+hive_pid_dir = config['configurations']['hive-env']['hive_pid_dir']
 hive_pid = 'hive-server.pid'
 
 hive_metastore_pid = 'hive.pid'
 
-hcat_pid_dir = config['configurations']['global']['hcat_pid_dir'] #hcat_pid_dir
+hcat_pid_dir = config['configurations']['hive-env']['hcat_pid_dir'] #hcat_pid_dir
 
 if System.get_instance().os_family == "suse" or System.get_instance().os_family == "debian":
   daemon_name = 'mysql'

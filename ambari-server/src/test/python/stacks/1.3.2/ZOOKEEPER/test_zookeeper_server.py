@@ -112,7 +112,7 @@ class TestZookeeperServer(RMFTestCase):
     )
     self.assertResourceCalled('File', '/etc/zookeeper/conf/zookeeper-env.sh',
       owner = 'zookeeper',
-      content = Template('zookeeper-env.sh.j2'),
+      content = InlineTemplate(self.getConfig()['configurations']['zookeeper-env']['content']),
       group = 'hadoop',
     )
     self.assertResourceCalled('File', '/etc/zookeeper/conf/configuration.xsl',
@@ -165,7 +165,7 @@ class TestZookeeperServer(RMFTestCase):
     )
     self.assertResourceCalled('File', '/etc/zookeeper/conf/zookeeper-env.sh',
       owner = 'zookeeper',
-      content = Template('zookeeper-env.sh.j2'),
+      content = InlineTemplate(self.getConfig()['configurations']['zookeeper-env']['content']),
       group = 'hadoop',
     )
     self.assertResourceCalled('File', '/etc/zookeeper/conf/configuration.xsl',

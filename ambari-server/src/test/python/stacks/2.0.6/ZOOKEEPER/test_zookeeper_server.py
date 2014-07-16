@@ -102,14 +102,14 @@ class TestZookeeperServer(RMFTestCase):
       group = 'hadoop',
       recursive = True,
     )
+    self.assertResourceCalled('File', '/etc/zookeeper/conf/zookeeper-env.sh',
+      owner = 'zookeeper',
+      content = InlineTemplate(self.getConfig()['configurations']['zookeeper-env']['content']),
+      group = 'hadoop',
+    )
     self.assertResourceCalled('File', '/etc/zookeeper/conf/zoo.cfg',
       owner = 'zookeeper',
       content = Template('zoo.cfg.j2'),
-      group = 'hadoop',
-    )
-    self.assertResourceCalled('File', '/etc/zookeeper/conf/zookeeper-env.sh',
-      owner = 'zookeeper',
-      content = Template('zookeeper-env.sh.j2'),
       group = 'hadoop',
     )
     self.assertResourceCalled('File', '/etc/zookeeper/conf/configuration.xsl',
@@ -154,14 +154,14 @@ class TestZookeeperServer(RMFTestCase):
       group = 'hadoop',
       recursive = True,
     )
+    self.assertResourceCalled('File', '/etc/zookeeper/conf/zookeeper-env.sh',
+      owner = 'zookeeper',
+      content = InlineTemplate(self.getConfig()['configurations']['zookeeper-env']['content']),
+      group = 'hadoop',
+    )
     self.assertResourceCalled('File', '/etc/zookeeper/conf/zoo.cfg',
       owner = 'zookeeper',
       content = Template('zoo.cfg.j2'),
-      group = 'hadoop',
-    )
-    self.assertResourceCalled('File', '/etc/zookeeper/conf/zookeeper-env.sh',
-      owner = 'zookeeper',
-      content = Template('zookeeper-env.sh.j2'),
       group = 'hadoop',
     )
     self.assertResourceCalled('File', '/etc/zookeeper/conf/configuration.xsl',

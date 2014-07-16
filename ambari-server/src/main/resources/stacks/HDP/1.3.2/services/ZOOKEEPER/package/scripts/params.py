@@ -26,23 +26,24 @@ import status_params
 config = Script.get_config()
 
 config_dir = "/etc/zookeeper/conf"
-zk_user =  config['configurations']['global']['zk_user']
+zk_user =  config['configurations']['zookeeper-env']['zk_user']
 hostname = config['hostname']
 zk_bin = '/usr/lib/zookeeper/bin'
-user_group = config['configurations']['global']['user_group']
+user_group = config['configurations']['hadoop-env']['user_group']
+zk_env_sh_template = config['configurations']['zookeeper-env']['content']
 
 smoke_script = "/usr/lib/zookeeper/bin/zkCli.sh"
 
-zk_log_dir = config['configurations']['global']['zk_log_dir']
-zk_data_dir = config['configurations']['global']['zk_data_dir']
+zk_log_dir = config['configurations']['zookeeper-env']['zk_log_dir']
+zk_data_dir = config['configurations']['zookeeper-env']['zk_data_dir']
 zk_pid_dir = status_params.zk_pid_dir
 zk_pid_file = status_params.zk_pid_file
 zk_server_heapsize = "-Xmx1024m"
 
-tickTime = config['configurations']['global']['tickTime']
-initLimit = config['configurations']['global']['initLimit']
-syncLimit = config['configurations']['global']['syncLimit']
-clientPort = config['configurations']['global']['clientPort']
+tickTime = config['configurations']['zookeeper-env']['tickTime']
+initLimit = config['configurations']['zookeeper-env']['initLimit']
+syncLimit = config['configurations']['zookeeper-env']['syncLimit']
+clientPort = config['configurations']['zookeeper-env']['clientPort']
 
 if 'zoo.cfg' in config['configurations']:
   zoo_cfg_properties_map = config['configurations']['zoo.cfg']
@@ -50,7 +51,7 @@ else:
   zoo_cfg_properties_map = {}
 zoo_cfg_properties_map_length = len(zoo_cfg_properties_map)
 
-zk_principal_name = default("zookeeper_principal_name", "zookeeper@EXAMPLE.COM")
+zk_principal_name = default("/configurations/hadoop-env/zookeeper_principal_name", "zookeeper@EXAMPLE.COM")
 zk_principal = zk_principal_name.replace('_HOST',hostname.lower())
 
 java64_home = config['hostLevelParams']['java_home']
@@ -58,15 +59,15 @@ java64_home = config['hostLevelParams']['java_home']
 zookeeper_hosts = config['clusterHostInfo']['zookeeper_hosts']
 zookeeper_hosts.sort()
 
-zk_keytab_path = config['configurations']['global']['zookeeper_keytab_path']
+zk_keytab_path = config['configurations']['hadoop-env']['zookeeper_keytab_path']
 zk_server_jaas_file = format("{config_dir}/zookeeper_jaas.conf")
 zk_client_jaas_file = format("{config_dir}/zookeeper_client_jaas.conf")
 _authentication = config['configurations']['core-site']['hadoop.security.authentication']
 security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')
 
-smoke_user_keytab = config['configurations']['global']['smokeuser_keytab']
-smokeuser = config['configurations']['global']['smokeuser']
-kinit_path_local = functions.get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+smoke_user_keytab = config['configurations']['hadoop-env']['smokeuser_keytab']
+smokeuser = config['configurations']['hadoop-env']['smokeuser']
+kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
 
 #log4j.properties
 if (('zookeeper-log4j' in config['configurations']) and ('content' in config['configurations']['zookeeper-log4j'])):

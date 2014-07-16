@@ -21,7 +21,7 @@ from resource_management import *
 
 config = Script.get_config()
 
-pid_dir = config['configurations']['global']['storm_pid_dir']
+pid_dir = config['configurations']['storm-env']['storm_pid_dir']
 pid_nimbus = format("{pid_dir}/nimbus.pid")
 pid_supervisor = format("{pid_dir}/supervisor.pid")
 pid_drpc = format("{pid_dir}/drpc.pid")

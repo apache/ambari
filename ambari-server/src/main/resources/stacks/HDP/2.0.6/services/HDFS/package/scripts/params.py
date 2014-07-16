@@ -31,16 +31,16 @@ else:
 #security params
 _authentication = config['configurations']['core-site']['hadoop.security.authentication']
 security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')
-smoke_user_keytab = config['configurations']['global']['smokeuser_keytab']
-hdfs_user_keytab = config['configurations']['global']['hdfs_user_keytab']
-falcon_user = config['configurations']['global']['falcon_user']
+smoke_user_keytab = config['configurations']['hadoop-env']['smokeuser_keytab']
+hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
+falcon_user = config['configurations']['falcon-env']['falcon_user']
 
 #exclude file
 hdfs_exclude_file = default("/clusterHostInfo/decom_dn_hosts", [])
 exclude_file_path = config['configurations']['hdfs-site']['dfs.hosts.exclude']
 update_exclude_file_only = config['commandParams']['update_exclude_file_only']
 
-kinit_path_local = functions.get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
 #hosts
 hostname = config["hostname"]
 rm_host = default("/clusterHostInfo/rm_host", [])
@@ -86,20 +86,20 @@ if has_ganglia_server:
   ganglia_server_host = ganglia_server_hosts[0]
 
 #users and groups
-yarn_user = config['configurations']['global']['yarn_user']
-hbase_user = config['configurations']['global']['hbase_user']
-nagios_user = config['configurations']['global']['nagios_user']
-oozie_user = config['configurations']['global']['oozie_user']
-webhcat_user = config['configurations']['global']['hcat_user']
-hcat_user = config['configurations']['global']['hcat_user']
-hive_user = config['configurations']['global']['hive_user']
-smoke_user =  config['configurations']['global']['smokeuser']
-mapred_user = config['configurations']['global']['mapred_user']
+yarn_user = config['configurations']['yarn-env']['yarn_user']
+hbase_user = config['configurations']['hbase-env']['hbase_user']
+nagios_user = config['configurations']['nagios-env']['nagios_user']
+oozie_user = config['configurations']['oozie-env']['oozie_user']
+webhcat_user = config['configurations']['hive-env']['hcat_user']
+hcat_user = config['configurations']['hive-env']['hcat_user']
+hive_user = config['configurations']['hive-env']['hive_user']
+smoke_user =  config['configurations']['hadoop-env']['smokeuser']
+mapred_user = config['configurations']['mapred-env']['mapred_user']
 hdfs_user = status_params.hdfs_user
 
-user_group = config['configurations']['global']['user_group']
-proxyuser_group =  config['configurations']['global']['proxyuser_group']
-nagios_group = config['configurations']['global']['nagios_group']
+user_group = config['configurations']['hadoop-env']['user_group']
+proxyuser_group =  config['configurations']['hadoop-env']['proxyuser_group']
+nagios_group = config['configurations']['nagios-env']['nagios_group']
 smoke_user_group = "users"
 
 #hadoop params
@@ -107,7 +107,7 @@ hadoop_conf_dir = "/etc/hadoop/conf"
 hadoop_pid_dir_prefix = status_params.hadoop_pid_dir_prefix
 hadoop_bin = "/usr/lib/hadoop/sbin"
 
-hdfs_log_dir_prefix = config['configurations']['global']['hdfs_log_dir_prefix']
+hdfs_log_dir_prefix = config['configurations']['hadoop-env']['hdfs_log_dir_prefix']
 
 dfs_domain_socket_path = config['configurations']['hdfs-site']['dfs.domain.socket.path']
 dfs_domain_socket_dir = os.path.dirname(dfs_domain_socket_path)

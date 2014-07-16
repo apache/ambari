@@ -69,7 +69,7 @@ def webhcat():
   File(format("{config_dir}/webhcat-env.sh"),
        owner=params.webhcat_user,
        group=params.user_group,
-       content=Template('webhcat-env.sh.j2')
+       content=InlineTemplate(params.webhcat_env_sh_template)
   )
 
   if params.security_enabled:

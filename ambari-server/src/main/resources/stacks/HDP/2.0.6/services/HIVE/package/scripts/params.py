@@ -29,10 +29,10 @@ hive_server_conf_dir = "/etc/hive/conf.server"
 hive_jdbc_connection_url = config['configurations']['hive-site']['javax.jdo.option.ConnectionURL']
 
 hive_metastore_user_passwd = config['configurations']['hive-site']['javax.jdo.option.ConnectionPassword']
-hive_metastore_db_type = config['configurations']['global']['hive_database_type']
+hive_metastore_db_type = config['configurations']['hive-env']['hive_database_type']
 
 #users
-hive_user = config['configurations']['global']['hive_user']
+hive_user = config['configurations']['hive-env']['hive_user']
 hive_lib = '/usr/lib/hive/lib/'
 #JDBC driver jar name
 hive_jdbc_driver = config['configurations']['hive-site']['javax.jdo.option.ConnectionDriverName']
@@ -59,26 +59,26 @@ hive_server_host = config['clusterHostInfo']['hive_server_host'][0]
 hive_server_port = default('/configurations/hive-site/hive.server2.thrift.port',"10000")
 hive_url = format("jdbc:hive2://{hive_server_host}:{hive_server_port}")
 
-smokeuser = config['configurations']['global']['smokeuser']
+smokeuser = config['configurations']['hadoop-env']['smokeuser']
 smoke_test_sql = "/tmp/hiveserver2.sql"
 smoke_test_path = "/tmp/hiveserver2Smoke.sh"
-smoke_user_keytab = config['configurations']['global']['smokeuser_keytab']
+smoke_user_keytab = config['configurations']['hadoop-env']['smokeuser_keytab']
 
 _authentication = config['configurations']['core-site']['hadoop.security.authentication']
 security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')
 
-kinit_path_local = functions.get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
 hive_metastore_keytab_path =  config['configurations']['hive-site']['hive.metastore.kerberos.keytab.file']
 
 #hive_env
 hive_conf_dir = "/etc/hive/conf"
-hive_dbroot = config['configurations']['global']['hive_dbroot']
-hive_log_dir = config['configurations']['global']['hive_log_dir']
+hive_dbroot = config['configurations']['hive-env']['hive_dbroot']
+hive_log_dir = config['configurations']['hive-env']['hive_log_dir']
 hive_pid_dir = status_params.hive_pid_dir
 hive_pid = status_params.hive_pid
 
 #hive-site
-hive_database_name = config['configurations']['global']['hive_database_name']
+hive_database_name = config['configurations']['hive-env']['hive_database_name']
 
 #Starting hiveserver2
 start_hiveserver2_script = 'startHiveserver2.sh.j2'
@@ -91,8 +91,8 @@ hive_metastore_pid = status_params.hive_metastore_pid
 java_share_dir = '/usr/share/java'
 driver_curl_target = format("{java_share_dir}/{jdbc_jar_name}")
 
-hdfs_user =  config['configurations']['global']['hdfs_user']
-user_group = config['configurations']['global']['user_group']
+hdfs_user =  config['configurations']['hadoop-env']['hdfs_user']
+user_group = config['configurations']['hadoop-env']['user_group']
 artifact_dir = "/tmp/HDP-artifacts/"
 
 target = format("{hive_lib}/{jdbc_jar_name}")
@@ -103,13 +103,13 @@ driver_curl_source = format("{jdk_location}/{jdbc_symlink_name}")
 start_hiveserver2_path = "/tmp/start_hiveserver2_script"
 start_metastore_path = "/tmp/start_metastore_script"
 
-hadoop_heapsize = config['configurations']['global']['hadoop_heapsize']
+hadoop_heapsize = config['configurations']['hadoop-env']['hadoop_heapsize']
 hive_heapsize = config['configurations']['hive-site']['hive.heapsize']
 java64_home = config['hostLevelParams']['java_home']
 
 ##### MYSQL
 
-db_name = config['configurations']['global']['hive_database_name']
+db_name = config['configurations']['hive-env']['hive_database_name']
 mysql_user = "mysql"
 mysql_group = 'mysql'
 mysql_host = config['clusterHostInfo']['hive_mysql_host']
@@ -135,11 +135,11 @@ else:
 
 hcat_dbroot = hcat_lib
 
-hcat_user = config['configurations']['global']['hcat_user']
-webhcat_user = config['configurations']['global']['webhcat_user']
+hcat_user = config['configurations']['hive-env']['hcat_user']
+webhcat_user = config['configurations']['hive-env']['webhcat_user']
 
 hcat_pid_dir = status_params.hcat_pid_dir
-hcat_log_dir = config['configurations']['global']['hcat_log_dir']
+hcat_log_dir = config['configurations']['hive-env']['hcat_log_dir']
 
 hadoop_conf_dir = '/etc/hadoop/conf'
 
@@ -156,6 +156,7 @@ else:
   log4j_exec_props = None
 
 daemon_name = status_params.daemon_name
+hive_env_sh_template = config['configurations']['hive-env']['content']
 
 hive_hdfs_user_dir = format("/user/{hive_user}")
 hive_hdfs_user_mode = 0700
@@ -163,15 +164,15 @@ hive_apps_whs_dir = config['configurations']['hive-site']["hive.metastore.wareho
 #for create_hdfs_directory
 hostname = config["hostname"]
 hadoop_conf_dir = "/etc/hadoop/conf"
-hdfs_user_keytab = config['configurations']['global']['hdfs_user_keytab']
-hdfs_user = config['configurations']['global']['hdfs_user']
-kinit_path_local = functions.get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
+hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
+kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
 
 # Tez libraries
 tez_lib_uris = default("/configurations/tez-site/tez.lib.uris", None)
 tez_local_api_jars = '/usr/lib/tez/tez*.jar'
 tez_local_lib_jars = '/usr/lib/tez/lib/*.jar'
-tez_user = config['configurations']['global']['tez_user']
+tez_user = config['configurations']['tez-env']['tez_user']
 
 if System.get_instance().os_family == "debian":
   mysql_configname = '/etc/mysql/my.cnf'

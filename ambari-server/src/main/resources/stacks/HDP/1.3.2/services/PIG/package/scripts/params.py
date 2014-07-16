@@ -26,13 +26,14 @@ config = Script.get_config()
 
 pig_conf_dir = "/etc/pig/conf"
 hadoop_conf_dir = "/etc/hadoop/conf"
-hdfs_user = config['configurations']['global']['hdfs_user']
-smokeuser = config['configurations']['global']['smokeuser']
-user_group = config['configurations']['global']['user_group']
+hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
+smokeuser = config['configurations']['hadoop-env']['smokeuser']
+user_group = config['configurations']['hadoop-env']['user_group']
 _authentication = config['configurations']['core-site']['hadoop.security.authentication']
 security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')
-smoke_user_keytab = config['configurations']['global']['smokeuser_keytab']
-kinit_path_local = functions.get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+smoke_user_keytab = config['configurations']['hadoop-env']['smokeuser_keytab']
+kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+pig_env_sh_template = config['configurations']['pig-env']['content']
 
 # not supporting 32 bit jdk.
 java64_home = config['hostLevelParams']['java_home']

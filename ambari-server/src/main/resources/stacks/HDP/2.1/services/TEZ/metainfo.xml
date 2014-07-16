@@ -46,8 +46,8 @@
       </osSpecifics>
 
       <configuration-dependencies>
-        <config-type>global</config-type>
         <config-type>tez-site</config-type>
+        <config-type>tez-env</config-type>
       </configuration-dependencies>
 
     </service>

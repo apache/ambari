@@ -46,8 +46,9 @@ def oozie(is_server=False # TODO: see if see can remove this
     group = params.user_group
   )
   
-  TemplateConfig( format("{conf_dir}/oozie-env.sh"),
-    owner = params.oozie_user
+  File(format("{conf_dir}/oozie-env.sh"),
+    owner=params.oozie_user,
+    content=InlineTemplate(params.oozie_env_sh_template)
   )
 
   if (params.log4j_props != None):

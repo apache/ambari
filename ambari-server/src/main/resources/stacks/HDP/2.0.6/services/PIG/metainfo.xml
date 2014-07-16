@@ -52,7 +52,7 @@
       </commandScript>
 
       <configuration-dependencies>
-        <config-type>global</config-type>
+        <config-type>pig-env</config-type>
         <config-type>pig-log4j</config-type>
         <config-type>pig-properties</config-type>
       </configuration-dependencies>

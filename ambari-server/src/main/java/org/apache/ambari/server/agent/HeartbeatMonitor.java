@@ -240,37 +240,44 @@ public class HeartbeatMonitor implements Runnable {
 
     Map<String, Map<String, String>> configurations = new TreeMap<String, Map<String, String>>();
 
-    // get the cluster config for type 'global'
+    // get the cluster config for type '*-env'
     // apply config group overrides
 
-    Config clusterConfig = cluster.getDesiredConfigByType(GLOBAL);
-    if (clusterConfig != null) {
-      // cluster config for 'global'
-      Map<String, String> props = new HashMap<String, String>(clusterConfig.getProperties());
-
-      // Apply global properties for this host from all config groups
-      Map<String, Map<String, String>> allConfigTags = configHelper
-              .getEffectiveDesiredTags(cluster, hostname);
-
-      Map<String, Map<String, String>> configTags = new HashMap<String,
-              Map<String, String>>();
-
-      for (Map.Entry<String, Map<String, String>> entry : allConfigTags.entrySet()) {
-        if (entry.getKey().equals(GLOBAL)) {
-          configTags.put(GLOBAL, entry.getValue());
+    //Config clusterConfig = cluster.getDesiredConfigByType(GLOBAL);
+    Collection<Config> clusterConfigs = cluster.getAllConfigs();
+    
+    for(Config clusterConfig: clusterConfigs) {
+      if(!clusterConfig.getType().endsWith("-env"))
+        continue;
+    
+      if (clusterConfig != null) {
+        // cluster config for 'global'
+        Map<String, String> props = new HashMap<String, String>(clusterConfig.getProperties());
+  
+        // Apply global properties for this host from all config groups
+        Map<String, Map<String, String>> allConfigTags = configHelper
+                .getEffectiveDesiredTags(cluster, hostname);
+  
+        Map<String, Map<String, String>> configTags = new HashMap<String,
+                Map<String, String>>();
+  
+        for (Map.Entry<String, Map<String, String>> entry : allConfigTags.entrySet()) {
+          if (entry.getKey().equals(clusterConfig.getType())) {
+            configTags.put(clusterConfig.getType(), entry.getValue());
+          }
         }
-      }
-
-      Map<String, Map<String, String>> properties = configHelper
-              .getEffectiveConfigProperties(cluster, configTags);
-
-      if (!properties.isEmpty()) {
-        for (Map<String, String> propertyMap : properties.values()) {
-          props.putAll(propertyMap);
+  
+        Map<String, Map<String, String>> properties = configHelper
+                .getEffectiveConfigProperties(cluster, configTags);
+  
+        if (!properties.isEmpty()) {
+          for (Map<String, String> propertyMap : properties.values()) {
+            props.putAll(propertyMap);
+          }
         }
+  
+        configurations.put(clusterConfig.getType(), props);
       }
-
-      configurations.put(GLOBAL, props);
     }
 
     StatusCommand statusCmd = new StatusCommand();

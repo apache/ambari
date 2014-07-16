@@ -22,4 +22,4 @@ from resource_management import *
 
 config = Script.get_config()
 
-pid_dir = config['configurations']['global']['ganglia_runtime_dir']
+pid_dir = config['configurations']['ganglia-env']['ganglia_runtime_dir']

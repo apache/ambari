@@ -120,13 +120,13 @@ class TestMapReduce2Client(RMFTestCase):
       mode = 0644,
     )
     self.assertResourceCalled('File', '/etc/hadoop/conf/yarn-env.sh',
-      content = Template('yarn-env.sh.j2'),
+      content = InlineTemplate(self.getConfig()['configurations']['yarn-env']['content']),
       owner = 'yarn',
       group = 'hadoop',
       mode = 0755,
     )
     self.assertResourceCalled('File', '/etc/hadoop/conf/mapred-env.sh',
-                              content = Template('mapred-env.sh.j2'),
+                              content = InlineTemplate(self.getConfig()['configurations']['mapred-env']['content']),
                               owner = 'hdfs',
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/taskcontroller.cfg',
@@ -246,7 +246,7 @@ class TestMapReduce2Client(RMFTestCase):
       mode = 0644,
     )
     self.assertResourceCalled('File', '/etc/hadoop/conf/yarn-env.sh',
-      content = Template('yarn-env.sh.j2'),
+      content = InlineTemplate(self.getConfig()['configurations']['yarn-env']['content']),
       owner = 'yarn',
       group = 'hadoop',
       mode = 0755,
@@ -261,7 +261,7 @@ class TestMapReduce2Client(RMFTestCase):
       mode = 0644,
     )
     self.assertResourceCalled('File', '/etc/hadoop/conf/mapred-env.sh',
-                              content = Template('mapred-env.sh.j2'),
+                              content = InlineTemplate(self.getConfig()['configurations']['mapred-env']['content']),
                               owner = 'root',
                               )
     self.assertResourceCalled('File', '/usr/lib/hadoop/sbin/task-controller',

@@ -44,9 +44,10 @@ def storm():
               owner=params.storm_user,
               group=params.user_group
   )
-
-  TemplateConfig(format("{conf_dir}/storm-env.sh"),
-                 owner=params.storm_user
+  
+  File(format("{conf_dir}/storm-env.sh"),
+    owner=params.storm_user,
+    content="InlineTemplate"
   )
 
   if params.security_enabled:

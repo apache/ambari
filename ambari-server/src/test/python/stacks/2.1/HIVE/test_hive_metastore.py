@@ -43,8 +43,10 @@ class TestHiveMetastore(RMFTestCase):
                               user = 'hive'
     )
 
-    self.assertResourceCalled('Execute', '/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/share/java/mysql-connector-java.jar org.apache.ambari.server.DBConnectionVerification jdbc:mysql://c6402.ambari.apache.org/hive?createDatabaseIfNotExist=true hive asd com.mysql.jdbc.Driver',
-                              path=['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'], tries=5, try_sleep=10
+    self.assertResourceCalled('Execute', '/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/share/java/mysql-connector-java.jar org.apache.ambari.server.DBConnectionVerification jdbc:mysql://c6402.ambari.apache.org/hive?createDatabaseIfNotExist=true hive aaa com.mysql.jdbc.Driver',
+        path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
+        tries = 5,
+        try_sleep = 10,
     )
 
     self.assertNoMoreResources()
@@ -67,7 +69,7 @@ class TestHiveMetastore(RMFTestCase):
                        command = "configure",
                        config_file="../../2.1/configs/secured.json"
     )
-    self.assert_configure_default()
+    self.assert_configure_secured()
     self.assertNoMoreResources()
 
   def test_start_secured(self):
@@ -131,7 +133,7 @@ class TestHiveMetastore(RMFTestCase):
       environment = {'no_proxy': 'c6401.ambari.apache.org'},
     )
     self.assertResourceCalled('File', '/etc/hive/conf.server/hive-env.sh',
-      content = Template('hive-env.sh.j2', conf_dir="/etc/hive/conf.server"),
+      content = InlineTemplate(self.getConfig()['configurations']['hive-env']['content'], conf_dir="/etc/hive/conf.server"),
       owner = 'hive',
       group = 'hadoop',
     )
@@ -139,8 +141,8 @@ class TestHiveMetastore(RMFTestCase):
       content = StaticFile('startMetastore.sh'),
       mode = 0755,
     )
-    self.assertResourceCalled('Execute', "export HIVE_CONF_DIR=/etc/hive/conf.server ; /usr/lib/hive/bin/schematool -initSchema -dbType postgres -userName hive -passWord asd",
-      not_if = 'export HIVE_CONF_DIR=/etc/hive/conf.server ; /usr/lib/hive/bin/schematool -info -dbType postgres -userName hive -passWord asd',
+    self.assertResourceCalled('Execute', 'export HIVE_CONF_DIR=/etc/hive/conf.server ; /usr/lib/hive/bin/schematool -initSchema -dbType mysql -userName hive -passWord aaa',
+        not_if = 'export HIVE_CONF_DIR=/etc/hive/conf.server ; /usr/lib/hive/bin/schematool -info -dbType mysql -userName hive -passWord aaa',
     )
     self.assertResourceCalled('Directory', '/var/run/hive',
       owner = 'hive',
@@ -199,7 +201,7 @@ class TestHiveMetastore(RMFTestCase):
       environment = {'no_proxy': 'c6401.ambari.apache.org'},
     )
     self.assertResourceCalled('File', '/etc/hive/conf.server/hive-env.sh',
-      content = Template('hive-env.sh.j2', conf_dir="/etc/hive/conf.server"),
+      content = InlineTemplate(self.getConfig()['configurations']['hive-env']['content'], conf_dir="/etc/hive/conf.server"),
       owner = 'hive',
       group = 'hadoop',
     )
@@ -207,8 +209,8 @@ class TestHiveMetastore(RMFTestCase):
       content = StaticFile('startMetastore.sh'),
       mode = 0755,
     )
-    self.assertResourceCalled('Execute', "export HIVE_CONF_DIR=/etc/hive/conf.server ; /usr/lib/hive/bin/schematool -initSchema -dbType postgres -userName hive -passWord asd",
-      not_if = 'export HIVE_CONF_DIR=/etc/hive/conf.server ; /usr/lib/hive/bin/schematool -info -dbType postgres -userName hive -passWord asd',
+    self.assertResourceCalled('Execute', "export HIVE_CONF_DIR=/etc/hive/conf.server ; /usr/lib/hive/bin/schematool -initSchema -dbType mysql -userName hive -passWord asd",
+      not_if = 'export HIVE_CONF_DIR=/etc/hive/conf.server ; /usr/lib/hive/bin/schematool -info -dbType mysql -userName hive -passWord asd',
     )
     self.assertResourceCalled('Directory', '/var/run/hive',
       owner = 'hive',

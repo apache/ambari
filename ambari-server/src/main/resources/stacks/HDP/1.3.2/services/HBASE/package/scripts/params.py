@@ -34,37 +34,38 @@ hbase_excluded_hosts = config['commandParams']['excluded_hosts']
 hbase_drain_only = config['commandParams']['mark_draining_only']
 
 hbase_user = status_params.hbase_user
-smokeuser = config['configurations']['global']['smokeuser']
+smokeuser = config['configurations']['hadoop-env']['smokeuser']
 _authentication = config['configurations']['core-site']['hadoop.security.authentication']
 security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')
-user_group = config['configurations']['global']['user_group']
+user_group = config['configurations']['hadoop-env']['user_group']
 
 # this is "hadoop-metrics2-hbase.properties" for 2.x stacks
 metric_prop_file_name = "hadoop-metrics.properties"
 
 # not supporting 32 bit jdk.
 java64_home = config['hostLevelParams']['java_home']
+hbase_env_sh_template = config['configurations']['hbase-env']['content']
 
-log_dir = config['configurations']['global']['hbase_log_dir']
-master_heapsize = config['configurations']['global']['hbase_master_heapsize']
+log_dir = config['configurations']['hbase-env']['hbase_log_dir']
+master_heapsize = config['configurations']['hbase-env']['hbase_master_heapsize']
 
-regionserver_heapsize = config['configurations']['global']['hbase_regionserver_heapsize']
+regionserver_heapsize = config['configurations']['hbase-env']['hbase_regionserver_heapsize']
 regionserver_xmn_size = calc_xmn_from_xms(regionserver_heapsize, 0.2, 512)
 
 pid_dir = status_params.pid_dir
 tmp_dir = config['configurations']['hbase-site']['hbase.tmp.dir']
 
-client_jaas_config_file = default('hbase_client_jaas_config_file', format("{hbase_conf_dir}/hbase_client_jaas.conf"))
-master_jaas_config_file = default('hbase_master_jaas_config_file', format("{hbase_conf_dir}/hbase_master_jaas.conf"))
-regionserver_jaas_config_file = default('hbase_regionserver_jaas_config_file', format("{hbase_conf_dir}/hbase_regionserver_jaas.conf"))
+client_jaas_config_file = format("{hbase_conf_dir}/hbase_client_jaas.conf")
+master_jaas_config_file = format("{hbase_conf_dir}/hbase_master_jaas.conf")
+regionserver_jaas_config_file = format("{hbase_conf_dir}/hbase_regionserver_jaas.conf")
 
 ganglia_server_hosts = default('/clusterHostInfo/ganglia_server_host', []) # is not passed when ganglia is not present
 ganglia_server_host = '' if len(ganglia_server_hosts) == 0 else ganglia_server_hosts[0]
 
-rs_hosts = default('hbase_rs_hosts', config['clusterHostInfo']['slave_hosts']) #if hbase_rs_hosts not given it is assumed that region servers on same nodes as slaves
+rs_hosts = config['clusterHostInfo']['slave_hosts'] #if hbase_rs_hosts not given it is assumed that region servers on same nodes as slaves
 
-smoke_test_user = config['configurations']['global']['smokeuser']
-smokeuser_permissions = default('smokeuser_permissions', "RWXCA")
+smoke_test_user = config['configurations']['hadoop-env']['smokeuser']
+smokeuser_permissions = "RWXCA"
 service_check_data = functions.get_unique_id_and_date()
 
 if security_enabled:
@@ -74,9 +75,9 @@ if security_enabled:
 
 master_keytab_path = config['configurations']['hbase-site']['hbase.master.keytab.file']
 regionserver_keytab_path = config['configurations']['hbase-site']['hbase.regionserver.keytab.file']
-smoke_user_keytab = config['configurations']['global']['smokeuser_keytab']
-hbase_user_keytab = config['configurations']['global']['hbase_user_keytab']
-kinit_path_local = functions.get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+smoke_user_keytab = config['configurations']['hadoop-env']['smokeuser_keytab']
+hbase_user_keytab = config['configurations']['hadoop-env']['hbase_user_keytab']
+kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
 if security_enabled:
   kinit_cmd = format("{kinit_path_local} -kt {hbase_user_keytab} {hbase_user};")
 else:
@@ -94,9 +95,9 @@ hbase_staging_dir = "/apps/hbase/staging"
 #for create_hdfs_directory
 hostname = config["hostname"]
 hadoop_conf_dir = "/etc/hadoop/conf"
-hdfs_user_keytab = config['configurations']['global']['hdfs_user_keytab']
-hdfs_user = config['configurations']['global']['hdfs_user']
-kinit_path_local = functions.get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
+hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
+kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
 import functools
 #create partial functions with common arguments for every HdfsDirectory call
 #to create hdfs directory we need to call params.HdfsDirectory in code

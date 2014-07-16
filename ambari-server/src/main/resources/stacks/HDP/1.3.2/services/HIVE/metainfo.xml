@@ -128,7 +128,7 @@
 
       <configuration-dependencies>
         <config-type>hive-site</config-type>
-        <config-type>global</config-type>
+        <config-type>hive-env</config-type>
         <config-type>hive-log4j</config-type>
         <config-type>hive-exec-log4j</config-type>
       </configuration-dependencies>
@@ -165,8 +165,8 @@
       </commandScript>
 
       <configuration-dependencies>
-        <config-type>global</config-type>
         <config-type>hive-site</config-type>
+        <config-type>hive-env</config-type>
       </configuration-dependencies>
 
     </service>

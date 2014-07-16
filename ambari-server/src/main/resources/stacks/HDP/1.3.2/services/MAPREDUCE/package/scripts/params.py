@@ -36,18 +36,18 @@ tasktracker_pid_file = status_params.tasktracker_pid_file
 
 hadoop_libexec_dir = '/usr/lib/hadoop/libexec'
 hadoop_bin = "/usr/lib/hadoop/bin"
-user_group = config['configurations']['global']['user_group']
-hdfs_log_dir_prefix = config['configurations']['global']['hdfs_log_dir_prefix']
-mapred_log_dir_prefix = default("mapred_log_dir_prefix",hdfs_log_dir_prefix)
+user_group = config['configurations']['hadoop-env']['user_group']
+hdfs_log_dir_prefix = config['configurations']['hadoop-env']['hdfs_log_dir_prefix']
+mapred_log_dir_prefix = hdfs_log_dir_prefix
 mapred_local_dir = config['configurations']['mapred-site']['mapred.local.dir']
 update_exclude_file_only = config['commandParams']['update_exclude_file_only']
 
 hadoop_jar_location = "/usr/lib/hadoop/"
-smokeuser = config['configurations']['global']['smokeuser']
+smokeuser = config['configurations']['hadoop-env']['smokeuser']
 _authentication = config['configurations']['core-site']['hadoop.security.authentication']
 security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')
-smoke_user_keytab = config['configurations']['global']['smokeuser_keytab']
-kinit_path_local = functions.get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+smoke_user_keytab = config['configurations']['hadoop-env']['smokeuser_keytab']
+kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
 
 #exclude file
 mr_exclude_hosts = default("/clusterHostInfo/decom_tt_hosts", [])
@@ -60,9 +60,9 @@ mapreduce_jobhistory_done_dir = config['configurations']['mapred-site']['mapred.
 #for create_hdfs_directory
 hostname = config["hostname"]
 hadoop_conf_dir = "/etc/hadoop/conf"
-hadoop_pid_dir_prefix = config['configurations']['global']['hadoop_pid_dir_prefix']
-hdfs_user_keytab = config['configurations']['global']['hdfs_user_keytab']
-hdfs_user = config['configurations']['global']['hdfs_user']
+hadoop_pid_dir_prefix = config['configurations']['hadoop-env']['hadoop_pid_dir_prefix']
+hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
+hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 import functools
 #create partial functions with common arguments for every HdfsDirectory call
 #to create hdfs directory we need to call params.HdfsDirectory in code
