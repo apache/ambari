@@ -21,8 +21,13 @@
     <div class="navbar navbar-static-top">
       <div class="navbar-inner">
         <div class="container main-container">
-          <a {{translateAttr href="topnav.logo.href"}} class="logo"><img src="/img/logo-white.png" alt="Apache Ambari" title="Apache Ambari"></a>
-          <a class="brand" {{translateAttr href="topnav.logo.href"}} title="Apache Ambari">{{t app.name}}</a>
+          {{#if isClusterDataLoaded}}
+            <a {{translateAttr href="topnav.logo.href"}} class="logo"><img src="/img/logo-white.png" alt="Apache Ambari" title="Apache Ambari"></a>
+            <a class="brand" {{translateAttr href="topnav.logo.href"}} title="Apache Ambari">{{t app.name}}</a>
+          {{else}}
+            <a class="logo"><img src="/img/logo-white.png" alt="Apache Ambari" title="Apache Ambari"></a>
+            <a class="brand" title="Apache Ambari">{{t app.name}}</a>
+          {{/if}}
 
           {{#if isClusterDataLoaded}}
             <a class="brand cluster-name" href="javascript:void(null);" {{bindAttr title="clusterName"}}>
