@@ -177,7 +177,7 @@ App.WizardStep4Controller = Em.ArrayController.extend({
         showWarningPopup = false;
         dependentServices.forEach(function(_dependentService){
           var dependentService = this.findProperty('serviceName', _dependentService);
-          if (dependentService.get('isSelected') === true) {
+          if (dependentService && dependentService.get('isSelected') === true) {
             showWarningPopup = true;
             isCheckFailed = true;
           }
