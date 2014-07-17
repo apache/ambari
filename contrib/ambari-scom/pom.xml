@@ -63,6 +63,9 @@
                         <exclude>**/*.cs</exclude>
                         <exclude>**/*.json</exclude>
                         <exclude>**/*.sln</exclude>
+                        <exclude>**/pass.txt</exclude>
+                        <exclude>**/target/*</exclude>
+                        <exclude>**/rat.txt</exclude>
                     </excludes>
                 </configuration>
                 <executions>
