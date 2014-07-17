@@ -75,6 +75,7 @@ App.stackServiceMapper = App.QuickDataMapper.create({
         result.push(this.parseIt(stackService, this.get('config')));
       }
     }, this);
+    App.store.commit();
     App.store.loadMany(this.get('component_model'), stackServiceComponents);
     App.store.loadMany(model, result);
   },

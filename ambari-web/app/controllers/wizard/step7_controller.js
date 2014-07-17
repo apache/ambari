@@ -127,7 +127,7 @@ App.WizardStep7Controller = Em.Controller.extend({
    */
   selectedServiceNames: function () {
     return this.get('content.services').filterProperty('isSelected', true).filterProperty('isInstalled', false).mapProperty('serviceName');
-  }.property('content.services').cacheable(),
+  }.property('content.services', 'content.stacks.@each.isSelected').cacheable(),
 
   /**
    * List of installed and selected to install service names
@@ -137,7 +137,7 @@ App.WizardStep7Controller = Em.Controller.extend({
     return this.get('content.services').filter(function (service) {
       return service.get('isInstalled') || service.get('isSelected');
     }).mapProperty('serviceName');
-  }.property('content.services').cacheable(),
+  }.property('content.services', 'content.stacks.@each.isSelected').cacheable(),
 
   /**
    * List of installed service names
