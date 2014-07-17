@@ -21,6 +21,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -124,7 +125,7 @@ public class StackExtensionHelper {
   }
 
 
-  private ServiceInfo mergeServices(ServiceInfo parentService,
+  ServiceInfo mergeServices(ServiceInfo parentService,
                                     ServiceInfo childService) {
     ServiceInfo mergedServiceInfo = new ServiceInfo();
     mergedServiceInfo.setSchemaVersion(childService.getSchemaVersion());
@@ -133,10 +134,16 @@ public class StackExtensionHelper {
     mergedServiceInfo.setVersion(childService.getVersion());
     mergedServiceInfo.setConfigDependencies(
         childService.getConfigDependencies() != null ?
-            childService.getConfigDependencies() : parentService.getConfigDependencies());
+            childService.getConfigDependencies() :
+            parentService.getConfigDependencies() != null ?
+                parentService.getConfigDependencies() :
+                Collections.<String>emptyList());
     mergedServiceInfo.setConfigTypes(
         childService.getConfigTypes() != null ?
-            childService.getConfigTypes() : parentService.getConfigTypes());
+            childService.getConfigTypes() :
+            parentService.getConfigTypes() != null ?
+                parentService.getConfigTypes() :
+                Collections.<String, Map<String, Map<String, String>>>emptyMap());
     
     mergedServiceInfo.setRestartRequiredAfterChange(
             (childService.isRestartRequiredAfterChange() != null) 

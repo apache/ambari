@@ -605,5 +605,26 @@ public class StackExtensionHelperTest {
     assertEquals(true, propertyInfo.isRequireInput());
     assertEquals(PropertyInfo.PropertyType.DEFAULT, propertyInfo.getType());
   }
+
+  @Test
+  public void testMergeServices_BothConfigTypesAreNull() throws Exception {
+    File stackRoot = new File(stackRootStr);
+    StackExtensionHelper helper = new StackExtensionHelper(injector, stackRoot);
+    ServiceInfo child = new ServiceInfo();
+    ServiceInfo parent = new ServiceInfo();
+
+    child.setConfigTypes(null);
+    child.setConfigDependencies(null);
+
+    parent.setConfigTypes(null);
+    parent.setConfigDependencies(null);
+
+    ServiceInfo merged = helper.mergeServices(parent, child);
+
+    assertNotNull(merged.getConfigDependencies());
+    assertEquals(0, merged.getConfigDependencies().size());
+    assertNotNull(merged.getConfigTypes());
+    assertEquals(0, merged.getConfigTypes().size());
+  }
 }
 
