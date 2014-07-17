@@ -31,6 +31,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -58,6 +59,7 @@ import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.Stack;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
+import org.apache.ambari.server.state.alert.AlertDefinition;
 import org.apache.ambari.server.state.stack.LatestRepoCallable;
 import org.apache.ambari.server.state.stack.MetricDefinition;
 import org.apache.ambari.server.state.stack.RepositoryXml;
@@ -86,6 +88,7 @@ public class AmbariMetaInfo {
   public static final String SERVICE_CONFIG_FILE_NAME_POSTFIX = ".xml";
   public static final String RCO_FILE_NAME = "role_command_order.json";
   public static final String SERVICE_METRIC_FILE_NAME = "metrics.json";
+  public static final String SERVICE_ALERT_FILE_NAME = "alerts.json";
   /**
    * This string is used in placeholder in places that are common for
    * all operating systems or in situations where os type is not important.
@@ -1048,6 +1051,46 @@ public class AmbariMetaInfo {
       }
     }
     return requiredProperties;
+  }
+  
+  public Set<AlertDefinition> getAlertDefinitions(String stackName, String stackVersion,
+      String serviceName) throws AmbariException {
+    
+    ServiceInfo svc = getService(stackName, stackVersion, serviceName);
+
+    if (null == svc.getAlertsFile() || !svc.getAlertsFile().exists()) {
+      LOG.debug("Alerts file for " + stackName + "/" + stackVersion + "/" + serviceName + " not found.");
+      return null;
+    }
+    
+    
+    Map<String, List<AlertDefinition>> map = null;
+    
+    Type type = new TypeToken<Map<String, List<AlertDefinition>>>(){}.getType();
+    
+    Gson gson = new Gson();
+
+    try {
+      map = gson.fromJson(new FileReader(svc.getAlertsFile()), type);
+
+    } catch (Exception e) {
+      LOG.error ("Could not read the alert definition file", e);
+      throw new AmbariException("Could not read alert definition file", e);
+    }
+
+    Set<AlertDefinition> defs = new HashSet<AlertDefinition>();
+    
+    for (Entry<String, List<AlertDefinition>> entry : map.entrySet()) {
+      for (AlertDefinition ad : entry.getValue()) {
+        ad.setServiceName(serviceName);
+        if (!entry.getKey().equals("service")) {
+          ad.setComponentName(entry.getKey());
+        }
+      }
+      defs.addAll(entry.getValue());
+    }
+    
+    return defs;
   }
 
 }

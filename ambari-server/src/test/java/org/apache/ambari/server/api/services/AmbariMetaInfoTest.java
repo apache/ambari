@@ -61,6 +61,7 @@ import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.Stack;
 import org.apache.ambari.server.state.StackInfo;
+import org.apache.ambari.server.state.alert.AlertDefinition;
 import org.apache.ambari.server.state.stack.MetricDefinition;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
@@ -1382,4 +1383,25 @@ public class AmbariMetaInfoTest {
     Assert.assertNotNull(passwordProperty);
     Assert.assertEquals("javax.jdo.option.ConnectionPassword", passwordProperty.getName());
   }
+  
+  @Test
+  public void testAlertsJson() throws Exception {
+    ServiceInfo svc = metaInfo.getService(STACK_NAME_HDP, "2.0.5", "HDFS");
+    Assert.assertNotNull(svc);
+    Assert.assertNotNull(svc.getAlertsFile());
+
+    svc = metaInfo.getService(STACK_NAME_HDP, "2.0.6", "HDFS");
+    Assert.assertNotNull(svc);
+    Assert.assertNotNull(svc.getAlertsFile());
+
+    svc = metaInfo.getService(STACK_NAME_HDP, "1.3.4", "HDFS");
+    Assert.assertNotNull(svc);
+    Assert.assertNull(svc.getAlertsFile());
+    
+    Set<AlertDefinition> set = metaInfo.getAlertDefinitions(STACK_NAME_HDP,
+        "2.0.5", "HDFS");
+    Assert.assertNotNull(set);
+    Assert.assertTrue(set.size() > 0);
+    
+  }  
 }

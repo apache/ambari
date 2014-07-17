@@ -144,6 +144,8 @@ public abstract class AbstractControllerResourceProvider extends AbstractResourc
         return new HostComponentProcessResourceProvider(propertyIds, keyPropertyIds, managementController);
       case Blueprint:
         return new BlueprintResourceProvider(propertyIds, keyPropertyIds, managementController);
+      case AlertDefinition:
+        return new AlertDefinitionResourceProvider(propertyIds, keyPropertyIds, managementController);
       default:
         throw new IllegalArgumentException("Unknown type " + type);
     }

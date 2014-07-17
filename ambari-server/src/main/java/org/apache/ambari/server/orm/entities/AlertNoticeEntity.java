@@ -152,4 +152,33 @@ public class AlertNoticeEntity {
     this.alertTarget = alertTarget;
   }
 
+  /**
+   *
+   */
+  @Override
+  public boolean equals(Object object) {
+    if (this == object)
+      return true;
+
+    if (object == null || getClass() != object.getClass())
+      return false;
+
+    AlertNoticeEntity that = (AlertNoticeEntity) object;
+
+    if (notificationId != null ? !notificationId.equals(that.notificationId)
+        : that.notificationId != null)
+      return false;
+
+    return true;
+  }
+
+  /**
+   *
+   */
+  @Override
+  public int hashCode() {
+    int result = null != notificationId ? notificationId.hashCode() : 0;
+    return result;
+  }
+
 }

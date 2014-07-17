@@ -44,6 +44,7 @@ import org.apache.ambari.server.bootstrap.BootStrapImpl;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.AbstractControllerResourceProvider;
+import org.apache.ambari.server.controller.internal.AlertDefinitionResourceProvider;
 import org.apache.ambari.server.controller.internal.BlueprintResourceProvider;
 import org.apache.ambari.server.controller.internal.ClusterResourceProvider;
 import org.apache.ambari.server.controller.internal.StackDefinedPropertyProvider;
@@ -51,6 +52,7 @@ import org.apache.ambari.server.controller.internal.StackDependencyResourceProvi
 import org.apache.ambari.server.controller.nagios.NagiosPropertyProvider;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.PersistenceType;
+import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.BlueprintDAO;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
 import org.apache.ambari.server.orm.dao.ViewDAO;
@@ -527,6 +529,7 @@ public class AmbariServer {
     StackDependencyResourceProvider.init(ambariMetaInfo);
     ClusterResourceProvider.init(injector.getInstance(BlueprintDAO.class), ambariMetaInfo);
     ViewRegistry.init(injector.getInstance(ViewDAO.class), injector.getInstance(ViewInstanceDAO.class));
+    AlertDefinitionResourceProvider.init(injector.getInstance(AlertDefinitionDAO.class));
   }
   
   /**

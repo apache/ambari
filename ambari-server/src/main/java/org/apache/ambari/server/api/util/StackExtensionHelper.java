@@ -185,6 +185,10 @@ public class StackExtensionHelper {
     // metrics
     if (null == childService.getMetricsFile() && null != parentService.getMetricsFile())
       mergedServiceInfo.setMetricsFile(parentService.getMetricsFile());
+    
+    // alerts
+    if (null == childService.getAlertsFile() && null != parentService.getAlertsFile())
+      mergedServiceInfo.setAlertsFile(parentService.getAlertsFile());    
 
     populateComponents(mergedServiceInfo, parentService, childService);
 
@@ -407,6 +411,9 @@ public class StackExtensionHelper {
           // get metrics file, if it exists
           File metricsJson = new File(serviceFolder.getAbsolutePath()
             + File.separator + AmbariMetaInfo.SERVICE_METRIC_FILE_NAME);
+          
+          File alertsJson = new File(serviceFolder.getAbsolutePath() +
+              File.separator + AmbariMetaInfo.SERVICE_ALERT_FILE_NAME);
 
           //Reading v2 service metainfo (may contain multiple services)
           // Get services from metadata
@@ -426,7 +433,10 @@ public class StackExtensionHelper {
             // process metrics.json
             if (metricsJson.exists())
               serviceInfo.setMetricsFile(metricsJson);
-
+            
+            if (alertsJson.exists())
+              serviceInfo.setAlertsFile(alertsJson);
+            
             // Get all properties from all "configs/*-site.xml" files
             setPropertiesFromConfigs(serviceFolder, serviceInfo);
 

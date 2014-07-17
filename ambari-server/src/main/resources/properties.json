@@ -355,5 +355,16 @@
       "HostComponentProcess/component_name",
       "HostComponentProcess/name",
       "HostComponentProcess/status"
+    ],
+    "AlertDefinition": [
+      "AlertDefinition/cluster_name",
+      "AlertDefinition/service_name",
+      "AlertDefinition/component_name",
+      "AlertDefinition/id",
+      "AlertDefinition/name",
+      "AlertDefinition/interval",
+      "AlertDefinition/source",
+      "AlertDefinition/enabled",
+      "AlertDefinition/scope"      
     ]
 }

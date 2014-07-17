@@ -81,7 +81,9 @@ public class ServiceInfo {
   private File metricsFile = null;
   @XmlTransient
   private Map<String, Map<String, List<MetricDefinition>>> metrics = null;
-
+  
+  @XmlTransient
+  private File alertsFile = null;
 
   /**
    * Internal list of os-specific details (loaded from xml). Added at schema ver 2
@@ -404,5 +406,19 @@ public class ServiceInfo {
    */
   public void setMonitoringService(Boolean monitoringService) {
     this.monitoringService = monitoringService;
+  }
+
+  /**
+   * @param file the file containing the alert definitions
+   */
+  public void setAlertsFile(File file) {
+    alertsFile = file;
+  }
+  
+  /**
+   * @return the alerts file, or <code>null</code> if none exists
+   */
+  public File getAlertsFile() {
+    return alertsFile;
   }
 }
