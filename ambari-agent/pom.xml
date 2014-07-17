@@ -204,6 +204,8 @@
           <mappings>
             <mapping>
               <directory>${agent.install.dir}</directory>
+              <username>root</username>
+              <groupname>root</groupname>
               <sources>
                 <source>
                   <location>${project.build.directory}/${project.artifactId}-${project.version}/ambari_agent</location>
@@ -224,6 +226,8 @@
             </mapping>
             <mapping>
               <directory>${resmgmt.install.dir}</directory>
+              <username>root</username>
+              <groupname>root</groupname>
               <sources>
                 <source>
                   <location>${project.build.directory}/${project.artifactId}-${project.version}/resource_management</location>
@@ -232,6 +236,8 @@
             </mapping>
             <mapping>
               <directory>${ambari_commons.install.dir}</directory>
+              <username>root</username>
+              <groupname>root</groupname>
               <sources>
                 <source>
                   <location>${project.basedir}/../ambari-common/src/main/python/ambari_commons</location>
@@ -240,6 +246,8 @@
             </mapping>
             <mapping>
               <directory>${jinja.install.dir}</directory>
+              <username>root</username>
+              <groupname>root</groupname>
               <sources>
                 <source>
                   <location>${project.basedir}/../ambari-common/src/main/python/jinja2/jinja2</location>
@@ -389,6 +397,8 @@
               <mapper>
                 <type>perm</type>
                 <prefix>${agent.install.dir}</prefix>
+                <user>root</user>
+                <group>root</group>
               </mapper>
             </data>
             <data>
@@ -397,6 +407,8 @@
               <mapper>
                 <type>perm</type>
                 <prefix>${resmgmt.install.dir}</prefix>
+                <user>root</user>
+                <group>root</group>
               </mapper>
             </data>
             <data>
@@ -406,6 +418,8 @@
               <mapper>
                 <type>perm</type>
                 <prefix>${jinja.install.dir}</prefix>
+                <user>root</user>
+                <group>root</group>
               </mapper>
             </data>
             <data>
