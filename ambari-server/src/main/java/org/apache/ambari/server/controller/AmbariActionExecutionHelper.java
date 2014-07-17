@@ -331,6 +331,7 @@ public class AmbariActionExecutionHelper {
               serviceName);
 
       Map<String, Map<String, String>> configurations = new TreeMap<String, Map<String, String>>();
+      Map<String, Map<String, Map<String, String>>> configurationAttributes = new TreeMap<String, Map<String, Map<String, String>>>();
       Map<String, Map<String, String>> configTags = null;
       if (!serviceName.isEmpty() && null != cluster) {
         configTags = managementController.findConfigurationTagsWithOverrides(cluster, hostName);
@@ -350,6 +351,7 @@ public class AmbariActionExecutionHelper {
         * combined with the same code at createHostAction()
         */
       execCmd.setConfigurations(configurations);
+      execCmd.setConfigurationAttributes(configurationAttributes);
       execCmd.setConfigurationTags(configTags);
       execCmd.setHostLevelParams(hostLevelParams);
       execCmd.setCommandParams(commandParams);

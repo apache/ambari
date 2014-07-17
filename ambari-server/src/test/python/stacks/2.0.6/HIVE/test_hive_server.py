@@ -269,6 +269,7 @@ class TestHiveServer(RMFTestCase):
       mode = 0600,
       conf_dir = '/etc/hive/conf.server',
       configurations = self.getConfig()['configurations']['mapred-site'],
+      configuration_attributes = self.getConfig()['configuration_attributes']['mapred-site']
     )
     self.assertResourceCalled('XmlConfig', 'hive-site.xml',
       owner = 'hive',
@@ -276,6 +277,7 @@ class TestHiveServer(RMFTestCase):
       mode = 0600,
       conf_dir = '/etc/hive/conf.server',
       configurations = self.getConfig()['configurations']['hive-site'],
+      configuration_attributes = self.getConfig()['configuration_attributes']['hive-site']
     )
     self.assertResourceCalled('Execute', "/bin/sh -c 'cd /usr/lib/ambari-agent/ && curl -kf -x \"\" --retry 5 http://c6401.ambari.apache.org:8080/resources/DBConnectionVerification.jar -o DBConnectionVerification.jar'",
       not_if = '[ -f DBConnectionVerification.jar]',
@@ -363,6 +365,7 @@ class TestHiveServer(RMFTestCase):
       mode = 0600,
       conf_dir = '/etc/hive/conf.server',
       configurations = self.getConfig()['configurations']['mapred-site'],
+      configuration_attributes = self.getConfig()['configuration_attributes']['mapred-site']
     )
     self.assertResourceCalled('XmlConfig', 'hive-site.xml',
       owner = 'hive',
@@ -370,6 +373,7 @@ class TestHiveServer(RMFTestCase):
       mode = 0600,
       conf_dir = '/etc/hive/conf.server',
       configurations = self.getConfig()['configurations']['hive-site'],
+      configuration_attributes = self.getConfig()['configuration_attributes']['hive-site']
     )
     self.assertResourceCalled('Execute', "/bin/sh -c 'cd /usr/lib/ambari-agent/ && curl -kf -x \"\" --retry 5 http://c6401.ambari.apache.org:8080/resources/DBConnectionVerification.jar -o DBConnectionVerification.jar'",
       not_if = '[ -f DBConnectionVerification.jar]',

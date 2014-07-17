@@ -45,6 +45,7 @@ def hdfs(name=None):
     XmlConfig("hadoop-policy.xml",
               conf_dir=params.hadoop_conf_dir,
               configurations=params.config['configurations']['hadoop-policy'],
+              configuration_attributes=params.config['configuration_attributes']['hadoop_policy'],
               owner=params.hdfs_user,
               group=params.user_group
     )
@@ -52,6 +53,7 @@ def hdfs(name=None):
   XmlConfig("hdfs-site.xml",
             conf_dir=params.hadoop_conf_dir,
             configurations=params.config['configurations']['hdfs-site'],
+            configuration_attributes=params.config['configuration_attributes']['hdfs-site'],
             owner=params.hdfs_user,
             group=params.user_group
   )

@@ -1357,6 +1357,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   private void createHostAction(Cluster cluster,
                                 Stage stage, ServiceComponentHost scHost,
                                 Map<String, Map<String, String>> configurations,
+                                Map<String, Map<String, Map<String, String>>> configurationAttributes,
                                 Map<String, Map<String, String>> configTags,
                                 RoleCommand roleCommand,
                                 Map<String, String> commandParams,
@@ -1402,6 +1403,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
 
     execCmd.setConfigurations(configurations);
+    execCmd.setConfigurationAttributes(configurationAttributes);
     execCmd.setConfigurationTags(configTags);
     if (commandParams == null) { // if not defined
       commandParams = new TreeMap<String, String>();
@@ -1741,6 +1743,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
             // [ type -> [ key, value ] ]
             Map<String, Map<String, String>> configurations = new TreeMap<String, Map<String, String>>();
+            Map<String, Map<String, Map<String, String>>> configurationAttributes = new TreeMap<String, Map<String, Map<String, String>>>();
             Host host = clusters.getHost(scHost.getHostName());
 
             Map<String, Map<String, String>> configTags =
@@ -1763,7 +1766,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
               requestParameters.put(keyName, requestProperties.get(keyName));
             }
 
-            createHostAction(cluster, stage, scHost, configurations, configTags,
+            createHostAction(cluster, stage, scHost, configurations, configurationAttributes, configTags,
               roleCommand, requestParameters, event);
           }
         }

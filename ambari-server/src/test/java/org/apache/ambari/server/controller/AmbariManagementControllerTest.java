@@ -4413,10 +4413,12 @@ public class AmbariManagementControllerTest {
     Config config1 = cf.createNew(cluster, "global",
         new HashMap<String, String>(){{ put("key1", "value1"); }}, new HashMap<String, Map<String,String>>());
     config1.setVersionTag("version1");
+    config1.setPropertiesAttributes(new HashMap<String, Map<String, String>>(){{ put("attr1", new HashMap<String, String>()); }});
 
     Config config2 = cf.createNew(cluster, "core-site",
         new HashMap<String, String>(){{ put("key1", "value1"); }}, new HashMap<String, Map<String,String>>());
     config2.setVersionTag("version1");
+    config2.setPropertiesAttributes(new HashMap<String, Map<String, String>>(){{ put("attr2", new HashMap<String, String>()); }});
 
     cluster.addConfig(config1);
     cluster.addConfig(config2);

@@ -80,6 +80,7 @@ class TestMapreduceClient(RMFTestCase):
                               group = 'hadoop',
                               conf_dir = '/etc/hadoop/conf',
                               configurations = self.getConfig()['configurations']['mapred-site'],
+                              configuration_attributes = self.getConfig()['configuration_attributes']['mapred-site']
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/fair-scheduler.xml',
                               owner = 'mapred',
@@ -150,6 +151,7 @@ class TestMapreduceClient(RMFTestCase):
                               group = 'hadoop',
                               conf_dir = '/etc/hadoop/conf',
                               configurations = self.getConfig()['configurations']['mapred-site'],
+                              configuration_attributes = self.getConfig()['configuration_attributes']['mapred-site']
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/fair-scheduler.xml',
                               owner = 'mapred',

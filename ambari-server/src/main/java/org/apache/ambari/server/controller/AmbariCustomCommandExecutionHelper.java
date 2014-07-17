@@ -256,6 +256,8 @@ public class AmbariCustomCommandExecutionHelper {
 
       Map<String, Map<String, String>> configurations =
           new TreeMap<String, Map<String, String>>();
+      Map<String, Map<String, Map<String, String>>> configurationAttributes =
+          new TreeMap<String, Map<String, Map<String, String>>>();
       Map<String, Map<String, String>> configTags =
           managementController.findConfigurationTagsWithOverrides(cluster, hostName);
 
@@ -269,6 +271,7 @@ public class AmbariCustomCommandExecutionHelper {
           componentName).getExecutionCommand();
 
       execCmd.setConfigurations(configurations);
+      execCmd.setConfigurationAttributes(configurationAttributes);
       execCmd.setConfigurationTags(configTags);
 
 
@@ -447,6 +450,8 @@ public class AmbariCustomCommandExecutionHelper {
     // [ type -> [ key, value ] ]
     Map<String, Map<String, String>> configurations =
         new TreeMap<String, Map<String, String>>();
+    Map<String, Map<String, Map<String, String>>> configurationAttributes =
+        new TreeMap<String, Map<String, Map<String, String>>>();
     Map<String, Map<String, String>> configTags =
         managementController.findConfigurationTagsWithOverrides(cluster, hostname);
 
@@ -454,6 +459,7 @@ public class AmbariCustomCommandExecutionHelper {
         smokeTestRole).getExecutionCommand();
 
     execCmd.setConfigurations(configurations);
+    execCmd.setConfigurationAttributes(configurationAttributes);
     execCmd.setConfigurationTags(configTags);
 
     // Generate cluster host info

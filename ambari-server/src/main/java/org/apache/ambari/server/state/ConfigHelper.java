@@ -182,6 +182,55 @@ public class ConfigHelper {
   }
 
   /**
+   * Get all config attributes for a cluster given a set of configType to
+   * versionTags map. This helper method merges all the override tags with a
+   * the attributes from parent cluster config properties
+   *
+   * @param cluster
+   * @param desiredTags
+   * @return {type : {attribute : {property, attributeValue}}
+   */
+  public Map<String, Map<String, Map<String, String>>> getEffectiveConfigAttributes(
+      Cluster cluster, Map<String, Map<String, String>> desiredTags) {
+
+    Map<String, Map<String, Map<String, String>>> attributes = new HashMap<String, Map<String, Map<String, String>>>();
+
+    if (desiredTags != null) {
+      for (Entry<String, Map<String, String>> entry : desiredTags.entrySet()) {
+
+        String type = entry.getKey();
+        Map<String, Map<String, String>> attributesMap = null;
+
+        Map<String, String> tags = new HashMap<String, String>(entry.getValue());
+        String clusterTag = tags.get(CLUSTER_DEFAULT_TAG);
+
+        if (clusterTag != null) {
+          Config config = cluster.getConfig(type, clusterTag);
+          if (config != null) {
+            attributesMap = new TreeMap<String, Map<String, String>>();
+            cloneAttributesMap(config.getPropertiesAttributes(), attributesMap);
+          }
+          tags.remove(CLUSTER_DEFAULT_TAG);
+        }
+        for (Entry<String, String> overrideEntry : tags.entrySet()) {
+          Config overrideConfig = cluster.getConfig(type,
+              overrideEntry.getValue());
+
+          // TODO clarify correct behavior for attributes overriding
+          if (overrideConfig != null) {
+            cloneAttributesMap(overrideConfig.getPropertiesAttributes(), attributesMap);
+          }
+        }
+        if (attributesMap != null) {
+          attributes.put(type, attributesMap);
+        }
+      }
+    }
+
+    return attributes;
+  }
+
+  /**
    * Merge override with original, if original property doesn't exist,
    * add it to the properties
    *
@@ -198,7 +247,7 @@ public class ConfigHelper {
       for (Entry<String, String> entry : override.entrySet()) {
         Boolean deleted = 0 == entry.getKey().indexOf(DELETED);
         String nameToUse = deleted ?
-          entry.getKey().substring(DELETED.length()) : entry.getKey();
+            entry.getKey().substring(DELETED.length()) : entry.getKey();
         if (finalConfig.containsKey(nameToUse)) {
           finalConfig.remove(nameToUse);
         }
@@ -209,6 +258,21 @@ public class ConfigHelper {
     }
 
     return finalConfig;
+  }
+
+  public void cloneAttributesMap(Map<String, Map<String, String>> sourceAttributesMap,
+                                 Map<String, Map<String, String>> targetAttributesMap) {
+    if (sourceAttributesMap != null && targetAttributesMap != null) {
+      for (Entry<String, Map<String, String>> attributesEntry : sourceAttributesMap.entrySet()) {
+        String attributeName = attributesEntry.getKey();
+        if (!targetAttributesMap.containsKey(attributeName)) {
+          targetAttributesMap.put(attributeName, new TreeMap<String, String>());
+        }
+        for (Entry<String, String> attributesValue : attributesEntry.getValue().entrySet()) {
+          targetAttributesMap.get(attributeName).put(attributesValue.getKey(), attributesValue.getValue());
+        }
+      }
+    }
   }
 
   public void applyCustomConfig(Map<String, Map<String, String>> configurations,

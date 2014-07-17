@@ -178,6 +178,14 @@ public class StageUtils {
         new TreeMap<String, Map<String, String>>();
     configurations.put("hdfs-site", hdfsSite);
     execCmd.setConfigurations(configurations);
+    Map<String, Map<String, Map<String, String>>> configurationAttributes =
+        new TreeMap<String, Map<String, Map<String, String>>>();
+    Map<String, Map<String, String>> hdfsSiteAttributes = new TreeMap<String, Map<String, String>>();
+    Map<String, String> finalAttribute = new TreeMap<String, String>();
+    finalAttribute.put("dfs.block.size", "true");
+    hdfsSiteAttributes.put("final", finalAttribute);
+    configurationAttributes.put("hdfsSite", hdfsSiteAttributes);
+    execCmd.setConfigurationAttributes(configurationAttributes);
     Map<String, String> params = new TreeMap<String, String>();
     params.put("jdklocation", "/x/y/z");
     params.put("stack_version", "1.2.0");

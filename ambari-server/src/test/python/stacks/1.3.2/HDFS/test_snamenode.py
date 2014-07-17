@@ -177,6 +177,7 @@ class TestSNamenode(RMFTestCase):
                               group = 'hadoop',
                               conf_dir = '/etc/hadoop/conf',
                               configurations = self.getConfig()['configurations']['hdfs-site'],
+                              configuration_attributes = self.getConfig()['configuration_attributes']['hdfs-site']
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/slaves',
                               content = Template('slaves.j2'),
@@ -201,6 +202,7 @@ class TestSNamenode(RMFTestCase):
                               group = 'hadoop',
                               conf_dir = '/etc/hadoop/conf',
                               configurations = self.getConfig()['configurations']['hdfs-site'],
+                              configuration_attributes = self.getConfig()['configuration_attributes']['hdfs-site']
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/slaves',
                               content = Template('slaves.j2'),

@@ -60,6 +60,7 @@ def webhcat():
   XmlConfig("webhcat-site.xml",
             conf_dir=params.config_dir,
             configurations=params.config['configurations']['webhcat-site'],
+            configuration_attributes=params.config['configuration_attributes']['webhcat-site'],
             owner=params.webhcat_user,
             group=params.user_group,
   )

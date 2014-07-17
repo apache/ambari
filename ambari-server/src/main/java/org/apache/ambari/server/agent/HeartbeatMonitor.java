@@ -239,10 +239,10 @@ public class HeartbeatMonitor implements Runnable {
             stackId.getStackVersion());
 
     Map<String, Map<String, String>> configurations = new TreeMap<String, Map<String, String>>();
+    Map<String, Map<String,  Map<String, String>>> configurationAttributes = new TreeMap<String, Map<String, Map<String, String>>>();
 
     // get the cluster config for type '*-env'
     // apply config group overrides
-
     //Config clusterConfig = cluster.getDesiredConfigByType(GLOBAL);
     Collection<Config> clusterConfigs = cluster.getAllConfigs();
     
@@ -277,6 +277,16 @@ public class HeartbeatMonitor implements Runnable {
         }
   
         configurations.put(clusterConfig.getType(), props);
+
+        Map<String, Map<String, String>> attrs = new TreeMap<String, Map<String, String>>();
+        configHelper.cloneAttributesMap(clusterConfig.getPropertiesAttributes(), attrs);
+
+        Map<String, Map<String, Map<String, String>>> attributes = configHelper
+            .getEffectiveConfigAttributes(cluster, configTags);
+        for (Map<String, Map<String, String>> attributesMap : attributes.values()) {
+          configHelper.cloneAttributesMap(attributesMap, attrs);
+        }
+        configurationAttributes.put(clusterConfig.getType(), attrs);
       }
     }
 
@@ -295,6 +305,7 @@ public class HeartbeatMonitor implements Runnable {
     statusCmd.setServiceName(serviceName);
     statusCmd.setComponentName(componentName);
     statusCmd.setConfigurations(configurations);
+    statusCmd.setConfigurationAttributes(configurationAttributes);
 
     // Fill command params
     Map<String, String> commandParams = statusCmd.getCommandParams();

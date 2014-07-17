@@ -32,6 +32,7 @@ import org.apache.commons.logging.LogFactory;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 public class ExecutionCommandWrapper {
   @Inject
@@ -93,6 +94,21 @@ public class ExecutionCommandWrapper {
             } else {
               executionCommand.getConfigurations().put(type, new HashMap<String, String>());
               executionCommand.getConfigurations().get(type).putAll(allLevelMergedConfig);
+            }
+          }
+
+          Map<String, Map<String, Map<String, String>>> configAttributes = configHelper.getEffectiveConfigAttributes(cluster,
+              executionCommand.getConfigurationTags());
+
+          for (Map.Entry<String, Map<String, Map<String, String>>> attributesOccurance : configAttributes.entrySet()) {
+            String type = attributesOccurance.getKey();
+            Map<String, Map<String, String>> attributes = attributesOccurance.getValue();
+
+            if (executionCommand.getConfigurationAttributes() != null) {
+              if (!executionCommand.getConfigurationAttributes().containsKey(type)) {
+                executionCommand.getConfigurationAttributes().put(type, new TreeMap<String, Map<String, String>>());
+              }
+              configHelper.cloneAttributesMap(attributes, executionCommand.getConfigurationAttributes().get(type));
             }
           }
 

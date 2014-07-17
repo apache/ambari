@@ -86,6 +86,12 @@ public class ConfigHelperTest {
       put("ipc.client.connect.max.retries", "30");
       put("fs.trash.interval", "30");
     }});
+    cr.setPropertiesAttributes(new HashMap<String, Map<String, String>>() {{
+      Map<String, String> attrs = new HashMap<String, String>();
+      attrs.put("ipc.client.connect.max.retries", "1");
+      attrs.put("fs.trash.interval", "2");
+      put("attribute1", attrs);
+    }});
 
     final ClusterRequest clusterRequest1 =
       new ClusterRequest(cluster.getClusterId(), clusterName,
@@ -101,6 +107,12 @@ public class ConfigHelperTest {
     cr.setProperties(new HashMap<String, String>() {{
       put("dfs_namenode_name_dir", "/hadoop/hdfs/namenode");
       put("namenode_heapsize", "1024");
+    }});
+    cr.setPropertiesAttributes(new HashMap<String, Map<String, String>>() {{
+      Map<String, String> attrs = new HashMap<String, String>();
+      attrs.put("dfs_namenode_name_dir", "3");
+      attrs.put("namenode_heapsize", "4");
+      put("attribute2", attrs);
     }});
 
     final ClusterRequest clusterRequest2 =
@@ -205,5 +217,166 @@ public class ConfigHelperTest {
     Assert.assertTrue(coreProps.containsKey("a"));
     Assert.assertTrue(coreProps.containsKey("c"));
     Assert.assertEquals("30", coreProps.get("ipc.client.connect.max.retries"));
+  }
+
+  @Test
+  public void testEffectivePropertiesAttributesWithOverrides() throws Exception {
+    final Config config1 = new ConfigImpl("core-site");
+    config1.setVersionTag("version122");
+
+    Map<String, String> attributes = new HashMap<String, String>();
+    attributes.put("fs.trash.interval", "11");
+    attributes.put("b", "y");
+    Map<String, Map<String, String>> config1Attributes = new HashMap<String, Map<String, String>>();
+    config1Attributes.put("attribute1", attributes);
+    config1.setPropertiesAttributes(config1Attributes);
+
+    final Config config2 = new ConfigImpl("global");
+    config2.setVersionTag("version122");
+    attributes = new HashMap<String, String>();
+    attributes.put("namenode_heapsize", "z");
+    attributes.put("c", "q");
+    Map<String, Map<String, String>> config2Attributes = new HashMap<String, Map<String, String>>();
+    config2Attributes.put("attribute2", attributes);
+    config2.setPropertiesAttributes(config2Attributes);
+
+    Long groupId = addConfigGroup("g1", "t1", new ArrayList<String>() {{
+      add("h1");}}, new ArrayList<Config>() {{ add(config1); add(config2);
+    }});
+
+    Assert.assertNotNull(groupId);
+
+    Map<String, Map<String, Map<String, String>>> effectiveAttributes = configHelper
+        .getEffectiveConfigAttributes(cluster,
+            configHelper.getEffectiveDesiredTags(cluster, "h1"));
+
+    Assert.assertNotNull(effectiveAttributes);
+    Assert.assertEquals(2, effectiveAttributes.size());
+
+    Assert.assertTrue(effectiveAttributes.containsKey("global"));
+    Map<String, Map<String, String>> globalAttrs = effectiveAttributes.get("global");
+    Assert.assertEquals(1, globalAttrs.size());
+    Assert.assertTrue(globalAttrs.containsKey("attribute2"));
+    Map<String, String> attribute2Occurances = globalAttrs.get("attribute2");
+    Assert.assertEquals(3, attribute2Occurances.size());
+    Assert.assertTrue(attribute2Occurances.containsKey("namenode_heapsize"));
+    Assert.assertEquals("z", attribute2Occurances.get("namenode_heapsize"));
+    Assert.assertTrue(attribute2Occurances.containsKey("dfs_namenode_name_dir"));
+    Assert.assertEquals("3", attribute2Occurances.get("dfs_namenode_name_dir"));
+    Assert.assertTrue(attribute2Occurances.containsKey("c"));
+    Assert.assertEquals("q", attribute2Occurances.get("c"));
+
+    Assert.assertTrue(effectiveAttributes.containsKey("core-site"));
+    Map<String, Map<String, String>> coreAttrs = effectiveAttributes.get("core-site");
+    Assert.assertEquals(1, coreAttrs.size());
+    Assert.assertTrue(coreAttrs.containsKey("attribute1"));
+    Map<String, String> attribute1Occurances = coreAttrs.get("attribute1");
+    Assert.assertEquals(3, attribute1Occurances.size());
+    Assert.assertTrue(attribute1Occurances.containsKey("ipc.client.connect.max.retries"));
+    Assert.assertEquals("1", attribute1Occurances.get("ipc.client.connect.max.retries"));
+    Assert.assertTrue(attribute1Occurances.containsKey("fs.trash.interval"));
+    Assert.assertEquals("11", attribute1Occurances.get("fs.trash.interval"));
+    Assert.assertTrue(attribute1Occurances.containsKey("b"));
+    Assert.assertEquals("y", attribute1Occurances.get("b"));
+  }
+
+  @Test
+  public void testCloneAttributesMap() throws Exception {
+    // init
+    Map<String, Map<String, String>> targetAttributesMap = new HashMap<String, Map<String, String>>();
+    Map<String, String> attributesValues = new HashMap<String, String>();
+    attributesValues.put("a", "1");
+    attributesValues.put("b", "2");
+    attributesValues.put("f", "3");
+    attributesValues.put("q", "4");
+    targetAttributesMap.put("attr", attributesValues);
+    Map<String, Map<String, String>> sourceAttributesMap = new HashMap<String, Map<String, String>>();
+    attributesValues = new HashMap<String, String>();
+    attributesValues.put("a", "5");
+    attributesValues.put("f", "6");
+    sourceAttributesMap.put("attr", attributesValues);
+    attributesValues = new HashMap<String, String>();
+    attributesValues.put("f", "7");
+    attributesValues.put("q", "8");
+    sourceAttributesMap.put("attr1", attributesValues);
+
+    // eval
+    configHelper.cloneAttributesMap(sourceAttributesMap, targetAttributesMap);
+
+    // verification
+    Assert.assertEquals(2, targetAttributesMap.size());
+    Assert.assertTrue(targetAttributesMap.containsKey("attr"));
+    Assert.assertTrue(targetAttributesMap.containsKey("attr1"));
+    Map<String, String> attributes = targetAttributesMap.get("attr");
+    Assert.assertEquals(4, attributes.size());
+    Assert.assertEquals("5", attributes.get("a"));
+    Assert.assertEquals("2", attributes.get("b"));
+    Assert.assertEquals("6", attributes.get("f"));
+    Assert.assertEquals("4", attributes.get("q"));
+    attributes = targetAttributesMap.get("attr1");
+    Assert.assertEquals(2, attributes.size());
+    Assert.assertEquals("7", attributes.get("f"));
+    Assert.assertEquals("8", attributes.get("q"));
+  }
+
+  @Test
+  public void testCloneAttributesMap_sourceIsNull() throws Exception {
+    // init
+    Map<String, Map<String, String>> targetAttributesMap = new HashMap<String, Map<String, String>>();
+    Map<String, String> attributesValues = new HashMap<String, String>();
+    attributesValues.put("a", "1");
+    attributesValues.put("b", "2");
+    attributesValues.put("f", "3");
+    attributesValues.put("q", "4");
+    targetAttributesMap.put("attr", attributesValues);
+    Map<String, Map<String, String>> sourceAttributesMap = null;
+
+    // eval
+    configHelper.cloneAttributesMap(sourceAttributesMap, targetAttributesMap);
+
+    // verification
+    // No exception should be thrown
+    // targetMap should not be changed
+    Assert.assertEquals(1, targetAttributesMap.size());
+    Assert.assertTrue(targetAttributesMap.containsKey("attr"));
+    Map<String, String> attributes = targetAttributesMap.get("attr");
+    Assert.assertEquals(4, attributes.size());
+    Assert.assertEquals("1", attributes.get("a"));
+    Assert.assertEquals("2", attributes.get("b"));
+    Assert.assertEquals("3", attributes.get("f"));
+    Assert.assertEquals("4", attributes.get("q"));
+  }
+
+  @Test
+  public void testCloneAttributesMap_targetIsNull() throws Exception {
+    // init
+    Map<String, Map<String, String>> targetAttributesMap = null;
+    Map<String, Map<String, String>> sourceAttributesMap = new HashMap<String, Map<String, String>>();
+    Map<String, String> attributesValues = new HashMap<String, String>();
+    attributesValues.put("a", "5");
+    attributesValues.put("f", "6");
+    sourceAttributesMap.put("attr", attributesValues);
+    attributesValues = new HashMap<String, String>();
+    attributesValues.put("f", "7");
+    attributesValues.put("q", "8");
+    sourceAttributesMap.put("attr1", attributesValues);
+
+    // eval
+    configHelper.cloneAttributesMap(sourceAttributesMap, targetAttributesMap);
+
+    // verification
+    // No exception should be thrown
+    // sourceMap should not be changed
+    Assert.assertEquals(2, sourceAttributesMap.size());
+    Assert.assertTrue(sourceAttributesMap.containsKey("attr"));
+    Assert.assertTrue(sourceAttributesMap.containsKey("attr1"));
+    Map<String, String> attributes = sourceAttributesMap.get("attr");
+    Assert.assertEquals(2, attributes.size());
+    Assert.assertEquals("5", attributes.get("a"));
+    Assert.assertEquals("6", attributes.get("f"));
+    attributes = sourceAttributesMap.get("attr1");
+    Assert.assertEquals(2, attributes.size());
+    Assert.assertEquals("7", attributes.get("f"));
+    Assert.assertEquals("8", attributes.get("q"));
   }
 }

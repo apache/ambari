@@ -166,6 +166,7 @@ class TestResourceManager(RMFTestCase):
       mode = 0644,
       conf_dir = '/etc/hadoop/conf',
       configurations = self.getConfig()['configurations']['core-site'],
+      configuration_attributes = self.getConfig()['configuration_attributes']['core-site']
     )
     self.assertResourceCalled('XmlConfig', 'mapred-site.xml',
       owner = 'yarn',
@@ -173,6 +174,7 @@ class TestResourceManager(RMFTestCase):
       mode = 0644,
       conf_dir = '/etc/hadoop/conf',
       configurations = self.getConfig()['configurations']['mapred-site'],
+      configuration_attributes = self.getConfig()['configuration_attributes']['mapred-site']
     )
     self.assertResourceCalled('XmlConfig', 'yarn-site.xml',
       owner = 'yarn',
@@ -180,6 +182,7 @@ class TestResourceManager(RMFTestCase):
       mode = 0644,
       conf_dir = '/etc/hadoop/conf',
       configurations = self.getConfig()['configurations']['yarn-site'],
+      configuration_attributes = self.getConfig()['configuration_attributes']['yarn-site']
     )
     self.assertResourceCalled('XmlConfig', 'capacity-scheduler.xml',
       owner = 'yarn',
@@ -187,6 +190,7 @@ class TestResourceManager(RMFTestCase):
       mode = 0644,
       conf_dir = '/etc/hadoop/conf',
       configurations = self.getConfig()['configurations']['capacity-scheduler'],
+      configuration_attributes = self.getConfig()['configuration_attributes']['capacity-scheduler']
     )
     self.assertResourceCalled('File', '/var/log/hadoop-yarn/yarn/hadoop-mapreduce.jobsummary.log',
       owner = 'yarn',
@@ -223,6 +227,7 @@ class TestResourceManager(RMFTestCase):
                               group = 'hadoop',
                               conf_dir = '/etc/hadoop/conf',
                               configurations = self.getConfig()['configurations']['mapred-site'],
+                              configuration_attributes = self.getConfig()['configuration_attributes']['mapred-site']
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/mapred-queue-acls.xml',
                               owner = 'mapred',
@@ -233,6 +238,7 @@ class TestResourceManager(RMFTestCase):
                               group = 'hadoop',
                               conf_dir = '/etc/hadoop/conf',
                               configurations = self.getConfig()['configurations']['capacity-scheduler'],
+                              configuration_attributes = self.getConfig()['configuration_attributes']['capacity-scheduler']
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/fair-scheduler.xml',
                               owner = 'mapred',
@@ -290,6 +296,7 @@ class TestResourceManager(RMFTestCase):
       mode = 0644,
       conf_dir = '/etc/hadoop/conf',
       configurations = self.getConfig()['configurations']['core-site'],
+      configuration_attributes = self.getConfig()['configuration_attributes']['core-site']
     )
     self.assertResourceCalled('XmlConfig', 'mapred-site.xml',
       owner = 'yarn',
@@ -297,6 +304,7 @@ class TestResourceManager(RMFTestCase):
       mode = 0644,
       conf_dir = '/etc/hadoop/conf',
       configurations = self.getConfig()['configurations']['mapred-site'],
+      configuration_attributes = self.getConfig()['configuration_attributes']['mapred-site']
     )
     self.assertResourceCalled('XmlConfig', 'yarn-site.xml',
       owner = 'yarn',
@@ -304,6 +312,7 @@ class TestResourceManager(RMFTestCase):
       mode = 0644,
       conf_dir = '/etc/hadoop/conf',
       configurations = self.getConfig()['configurations']['yarn-site'],
+      configuration_attributes = self.getConfig()['configuration_attributes']['yarn-site']
     )
     self.assertResourceCalled('XmlConfig', 'capacity-scheduler.xml',
       owner = 'yarn',
@@ -311,6 +320,7 @@ class TestResourceManager(RMFTestCase):
       mode = 0644,
       conf_dir = '/etc/hadoop/conf',
       configurations = self.getConfig()['configurations']['capacity-scheduler'],
+      configuration_attributes = self.getConfig()['configuration_attributes']['capacity-scheduler']
     )
     self.assertResourceCalled('File', '/var/log/hadoop-yarn/yarn/hadoop-mapreduce.jobsummary.log',
       owner = 'yarn',
@@ -363,6 +373,7 @@ class TestResourceManager(RMFTestCase):
                               group = 'hadoop',
                               conf_dir = '/etc/hadoop/conf',
                               configurations = self.getConfig()['configurations']['mapred-site'],
+                              configuration_attributes = self.getConfig()['configuration_attributes']['mapred-site']
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/mapred-queue-acls.xml',
                               owner = 'mapred',
@@ -373,6 +384,7 @@ class TestResourceManager(RMFTestCase):
                               group = 'hadoop',
                               conf_dir = '/etc/hadoop/conf',
                               configurations = self.getConfig()['configurations']['capacity-scheduler'],
+                              configuration_attributes = self.getConfig()['configuration_attributes']['capacity-scheduler']
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/fair-scheduler.xml',
                               owner = 'mapred',

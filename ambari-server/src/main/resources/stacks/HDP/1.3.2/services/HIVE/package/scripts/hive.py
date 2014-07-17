@@ -56,6 +56,7 @@ def hive(name=None):
   XmlConfig("hive-site.xml",
             conf_dir=hive_config_dir,
             configurations=params.config['configurations']['hive-site'],
+            configuration_attributes=params.config['configuration_attributes']['hive-site'],
             owner=params.hive_user,
             group=params.user_group,
             mode=config_file_mode

@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.google.gson.annotations.SerializedName;
 import org.codehaus.jackson.annotate.JsonProperty;
 
 /**
@@ -36,6 +37,8 @@ public class StatusCommand extends AgentCommand {
   private String serviceName;
   private String componentName;
   private Map<String, Map<String, String>> configurations;
+  @SerializedName("configuration_attributes")
+  private Map<String, Map<String, Map<String, String>>> configurationAttributes;
   private Map<String, String> commandParams = new HashMap<String, String>();
   private Map<String, String> hostLevelParams = new HashMap<String, String>();
 
@@ -77,6 +80,16 @@ public class StatusCommand extends AgentCommand {
   @JsonProperty("configurations")
   public void setConfigurations(Map<String, Map<String, String>> configurations) {
     this.configurations = configurations;
+  }
+
+  @JsonProperty("configuration_attributes")
+  public Map<String, Map<String, Map<String, String>>> getConfigurationAttributes() {
+    return configurationAttributes;
+  }
+
+  @JsonProperty("configuration_attributes")
+  public void setConfigurationAttributes(Map<String, Map<String, Map<String, String>>> configurationAttributes) {
+    this.configurationAttributes = configurationAttributes;
   }
 
   @JsonProperty("hostLevelParams")

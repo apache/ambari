@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.gson.annotations.SerializedName;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.logging.Log;
@@ -51,6 +52,8 @@ public class ExecutionCommand extends AgentCommand {
   private Map<String, Set<String>> clusterHostInfo = 
       new HashMap<String, Set<String>>();
   private Map<String, Map<String, String>> configurations;
+  @SerializedName("configuration_attributes")
+  private Map<String, Map<String, Map<String, String>>> configurationAttributes;
   private Map<String, Map<String, String>> configurationTags;
   private Map<String, String> commandParams;
   private String serviceName;
@@ -186,6 +189,16 @@ public class ExecutionCommand extends AgentCommand {
   @JsonProperty("configurations")
   public void setConfigurations(Map<String, Map<String, String>> configurations) {
     this.configurations = configurations;
+  }
+
+  @JsonProperty("configuration_attributes")
+  public Map<String, Map<String, Map<String, String>>> getConfigurationAttributes() {
+    return configurationAttributes;
+  }
+
+  @JsonProperty("configuration_attributes")
+  public void setConfigurationAttributes(Map<String, Map<String, Map<String, String>>> configurationAttributes) {
+    this.configurationAttributes = configurationAttributes;
   }
 
   @JsonProperty("commandParams")

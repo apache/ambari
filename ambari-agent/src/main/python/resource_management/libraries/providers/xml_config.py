@@ -35,9 +35,19 @@ class XmlConfigProvider(Provider):
     <property>
       <name>{{ key|e }}</name>
       <value>{{ value|e }}</value>
+      {%- if not configuration_attrs is none -%}
+      {%- for attrib_name, attrib_occurances in  configuration_attrs.items() -%}
+      {%- for property_name, attrib_value in  attrib_occurances.items() -%}
+      {% if property_name == key and attrib_name %}
+      <{{attrib_name|e}}>{{attrib_value|e}}</{{attrib_name|e}}>
+      {%- endif -%}
+      {%- endfor -%}
+      {%- endfor -%}
+      {%- endif %}
     </property>
     {% endfor %}
-  </configuration>''', extra_imports=[time], configurations_dict=self.resource.configurations)
+  </configuration>''', extra_imports=[time], configurations_dict=self.resource.configurations,
+                                    configuration_attrs=self.resource.configuration_attributes)
    
   
     Logger.info(format("Generating config: {conf_dir}/{filename}"))

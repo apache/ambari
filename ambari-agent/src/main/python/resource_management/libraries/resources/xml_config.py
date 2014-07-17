@@ -28,6 +28,7 @@ class XmlConfig(Resource):
   filename = ResourceArgument(default=lambda obj: obj.name)
   
   configurations = ResourceArgument()
+  configuration_attributes = ResourceArgument()
   conf_dir = ResourceArgument()
   
   mode = ResourceArgument()
