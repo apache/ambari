@@ -22,11 +22,11 @@ module.exports =
     {
       "id": "site property",
       "name": "fs.checkpoint.dir",
-      "displayName": "SecondaryNameNode Checkpoint directory",
+      "displayName": "SecondaryNameNode Checkpoint directories",
       "description": "Directory on the local filesystem where the Secondary NameNode should store the temporary images to merge",
       "defaultValue": "",
       "defaultDirectory": "/hadoop/hdfs/namesecondary",
-      "displayType": "directory",
+      "displayType": "directories",
       "isOverridable": false,
       "isVisible": true,
       "serviceName": "HDFS",

@@ -26,9 +26,9 @@ module.exports =
     {
       "id": "site property",
       "name": "dfs.namenode.checkpoint.dir",
-      "displayName": "SecondaryNameNode Checkpoint directory",
+      "displayName": "SecondaryNameNode Checkpoint directories",
       "defaultDirectory": "/hadoop/hdfs/namesecondary",
-      "displayType": "directory",
+      "displayType": "directories",
       "isOverridable": false,
       "serviceName": "HDFS",
       "category": "SECONDARY_NAMENODE",
