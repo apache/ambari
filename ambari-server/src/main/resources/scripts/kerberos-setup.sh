@@ -197,8 +197,9 @@ installKDC () {
   # Create principal key and start services
   if [[ ! -f $principal_file ]]; then
     echo -ne '\n\n' | kdb5_util create -s
-    $kdc_services_start
   fi
+  eval $kdc_service_start
+  eval $kadmin_service_start
   # Install pdsh on this host
   $inst_cmd pdsh;
   chown root:root -R /usr;
@@ -259,7 +260,8 @@ getEnvironmentCMD () {
     server_packages="krb5-kdc krb5-admin-server $client_packages"
     rng_tools="rng-tools"
     principal_file="/etc/krb5kdc/principal"
-    kdc_services_start="service krb5-admin-server start; service krb5-kdc start"
+    kdc_service_start="service krb5-kdc start || service krb5-kdc status"
+    kadmin_service_start="service krb5-admin-server start || service krb5-admin-server status"
     ;;
   'redhat5' )
     pkgmgr='yum'
@@ -268,7 +270,8 @@ getEnvironmentCMD () {
     server_packages="krb5-server krb5-libs krb5-auth-dialog $client_packages"
     rng_tools="rng-utils"
     principal_file="/var/kerberos/krb5kdc/principal"
-    kdc_services_start="service kadmin start; service krb5kdc start"
+    kdc_service_start="service kadmin start; service kadmin status"
+    kadmin_service_start="service krb5kdc start || service krb5kdc status"
     ;;
   'redhat6' )
     pkgmgr='yum'
@@ -277,7 +280,8 @@ getEnvironmentCMD () {
     server_packages="krb5-server krb5-libs krb5-auth-dialog $client_packages"
     rng_tools="rng-tools"
     principal_file="/var/kerberos/krb5kdc/principal"
-    kdc_services_start="service kadmin start; service krb5kdc start"
+    kdc_service_start="service kadmin start; service kadmin status"
+    kadmin_service_start="service krb5kdc start || service krb5kdc status"
     ;;
   'suse11' )
     pkgmgr='zypper'
@@ -286,7 +290,8 @@ getEnvironmentCMD () {
     server_packages="krb5 krb5-server $client_packages"
     rng_tools="rng-tools"
     principal_file="/var/lib/kerberos/krb5kdc/principal"
-    kdc_services_start="krb5kdc"
+    kdc_service_start="service kadmind start || service kadmind status"
+    kadmin_service_start="service krb5kdc start || service krb5kdc status"
     ;;
   esac
 }
