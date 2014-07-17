@@ -84,8 +84,7 @@ module.exports = App.WizardRoute.extend({
               App.clusterStatus.setClusterStatus({
                 clusterName: router.get('content.cluster.name'),
                 clusterState: 'DEFAULT'
-              });
-              router.transitionTo('adminSecurity.index');
+              },{alwaysCallback: function() {router.transitionTo('adminSecurity.index');location.reload();}});
             },
             didInsertElement: function () {
               this.fitHeight();
@@ -230,7 +229,6 @@ module.exports = App.WizardRoute.extend({
       var controller = router.get('mainAdminSecurityAddStep4Controller');
       if (!controller.get('isSubmitDisabled')) {
         $(context.currentTarget).parents("#modal").find(".close").trigger('click');
-        location.reload();
       }
     }
   }),

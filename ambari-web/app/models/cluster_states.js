@@ -178,14 +178,21 @@ App.clusterStatus = Em.Object.create(App.UserPref, {
   },
 
   /**
-   * update cluster status and post it on server
+   * update cluster status and post it on server.
+   * This function should always be called by admin user
    * @param {object} newValue
-   * @param {object} opt - used for additional ajax request options, by default ajax used synchronous mode
+   * @param {object} opt - Can have additional params for ajax callBacks
+   *                 opt.successCallback
+   *                 opt.errorCallback
+   *                 opt.alwaysCallback
    * @method setClusterStatus
    * @return {*}
    */
   setClusterStatus: function (newValue, opt) {
     if (App.get('testMode')) return false;
+    if (!App.get('isAdmin')) {
+      Em.assert('Non-Admin user should not execute setClusterStatus function', true);
+    }
     var user = App.db.getUser();
     var login = App.db.getLoginName();
     var val = {clusterName: this.get('clusterName')};
@@ -223,24 +230,13 @@ App.clusterStatus = Em.Object.create(App.UserPref, {
         App.db.setUser(user);
         App.db.setLoginName(login);
       }
-
-      if (opt) {
-        var keyValuePair = {};
-        keyValuePair[this.get('key')] = JSON.stringify(val);
-        App.ajax.send({
-          name: 'settings.post.user_pref',
-          sender: opt.sender || this,
-          data: {
-            keyValuePair: keyValuePair
-          },
-          success: opt.success,
-          beforeSend: opt.beforeSend,
-          error: opt.error
-        });
-      }
-      else {
-        this.postUserPref(this.get('key'), val);
-      }
+      this.postUserPref(this.get('key'), val).then(function() {
+        !!opt && Em.typeOf(opt.successCallback) === 'function' && opt.successCallback();
+        !!opt && Em.typeOf(opt.alwaysCallback) === 'function' && opt.alwaysCallback();
+      },function() {
+        !!opt && Em.typeOf(opt.errorCallback) === 'function' && opt.errorCallback();
+        !!opt && Em.typeOf(opt.alwaysCallback) === 'function' && opt.alwaysCallback();
+      });
       return newValue;
     }
   },

@@ -83,7 +83,7 @@ App.UserPref = Em.Mixin.create({
     if(!App.get('isAdmin')) return;
     var keyValuePair = {};
     keyValuePair[key] = JSON.stringify(value);
-    App.ajax.send({
+    return App.ajax.send({
       'name': 'settings.post.user_pref',
       'sender': this,
       'beforeSend': 'postUserPrefBeforeSend',
