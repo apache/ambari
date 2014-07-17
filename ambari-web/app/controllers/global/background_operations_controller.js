@@ -191,7 +191,7 @@ App.BackgroundOperationsController = Em.Controller.extend({
       currentRequestIds.push(request.Requests.id);
 
       if (rq) {
-        rq.set('progress', Math.ceil(request.Requests.progress_percent));
+        rq.set('progress', Math.floor(request.Requests.progress_percent));
         rq.set('status', request.Requests.request_status);
         rq.set('isRunning', isRunning);
         rq.set('startTime', request.Requests.start_time);
