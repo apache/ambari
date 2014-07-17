@@ -360,7 +360,22 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
      }
     });
     filteredResult = this.sortByIndex(filteredResult);
-    var categoryBlock = $('.' + this.get('category.name') + '>.accordion-body');
+
+    if (filter && filteredResult.length ) {
+      if (typeof this.get('category.collapsedByDefault') === 'undefined') {
+        // Save state
+        this.set('category.collapsedByDefault', this.get('category.isCollapsed'));
+      }
+      this.set('category.isCollapsed', false);
+    } else if (filter && !filteredResult.length) {
+      this.set('category.isCollapsed', true);
+    } else if (!filter && typeof this.get('category.collapsedByDefault') !== 'undefined') {
+      // If user clear filter -- restore defaults
+      this.set('category.isCollapsed', this.get('category.collapsedByDefault'));
+      this.set('category.collapsedByDefault', undefined);
+    }
+
+    var categoryBlock = $('.' + this.get('category.name').split(' ').join('.') + '>.accordion-body');
     filteredResult.length && !this.get('category.isCollapsed') ? categoryBlock.show() : categoryBlock.hide();
     return filteredResult;
   }.property('categoryConfigs', 'parentView.filter', 'parentView.columns.@each.selected'),
