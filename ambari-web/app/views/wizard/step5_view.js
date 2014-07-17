@@ -73,10 +73,10 @@ App.InputHostView = Em.TextField.extend(App.SelectHost, {
     if (!this.shouldChangeHandlerBeCalled()) return;
     var host = this.get('controller.hosts').findProperty('host_info', this.get('value'));
     if (Em.isNone(host)) {
-      this.get('controller').updateIsHostNameValidFlag(this.get("component.component_name"), this.get("component.zId"), false);
+      this.get('controller').updateIsHostNameValidFlag(this.get("component.component_name"), this.get("component.serviceComponentId"), false);
       return;
     }
-    this.get('controller').assignHostToMaster(this.get("component.component_name"), host.get('host_name'), this.get("component.zId"));
+    this.get('controller').assignHostToMaster(this.get("component.component_name"), host.get('host_name'), this.get("component.serviceComponentId"));
     this.tryTriggerRebalanceForMultipleComponents();
   }.observes('controller.hostNameCheckTrigger'),
 
@@ -135,7 +135,7 @@ App.SelectHostView = Em.Select.extend(App.SelectHost, {
    */
   changeHandler: function () {
     if (!this.shouldChangeHandlerBeCalled()) return;
-    this.get('controller').assignHostToMaster(this.get("component.component_name"), this.get("value"), this.get("component.zId"));
+    this.get('controller').assignHostToMaster(this.get("component.component_name"), this.get("value"), this.get("component.serviceComponentId"));
     this.tryTriggerRebalanceForMultipleComponents();
   }.observes('controller.hostNameCheckTrigger'),
 

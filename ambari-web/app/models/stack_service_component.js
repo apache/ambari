@@ -94,6 +94,11 @@ App.StackServiceComponent = DS.Model.extend({
   }.property('isShownOnInstallerAssignMasterPage','App.isHaEnabled'),
 
   isMasterWithMultipleInstances: function() {
+    var masters = ['ZOOKEEPER_SERVER', 'HBASE_MASTER', 'NAMENODE', 'JOURNALNODE'];
+    return masters.contains(this.get('componentName'));
+  }.property('componentName'),
+
+  isMasterAddableInstallerWizard: function() {
     var masters = ['ZOOKEEPER_SERVER', 'HBASE_MASTER'];
     return masters.contains(this.get('componentName'));
   }.property('componentName'),
