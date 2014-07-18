@@ -288,19 +288,21 @@ App.MainAdminSecurityController = Em.Controller.extend({
         tagName: this.get('tag.hdfs-site')
       }
     ];
+    var self = this;
 
-    var data = App.router.get('configurationController').getConfigsByTags(tags);
-    var configs = data.findProperty('tag', this.get('tag.hadoop-env')).properties;
-    if (configs && (configs['security_enabled'] === 'true' || configs['security_enabled'] === true)) {
-      this.set('securityEnabled', true);
-    }
-    else {
-      this.set('securityEnabled', false);
-      var hdfsConfigs = data.findProperty('tag', this.get('tag.hdfs-site')).properties;
-      this.setNnHaStatus(hdfsConfigs);
-    }
-    this.loadUsers(configs);
-    this.set('dataIsLoaded', true);
+    App.router.get('configurationController').getConfigsByTags(tags).done(function(data) {
+      var configs = data.findProperty('tag', self.get('tag.hadoop-env')).properties;
+      if (configs && (configs['security_enabled'] === 'true' || configs['security_enabled'] === true)) {
+        self.set('securityEnabled', true);
+      }
+      else {
+        self.set('securityEnabled', false);
+        var hdfsConfigs = data.findProperty('tag', self.get('tag.hdfs-site')).properties;
+        self.setNnHaStatus(hdfsConfigs);
+      }
+      self.loadUsers(configs);
+      self.set('dataIsLoaded', true);
+    });
   },
 
   setNnHaStatus: function (hdfsConfigs) {

@@ -1598,20 +1598,6 @@ module.exports =
       "filename": "pig-properties.xml",
       "category": "Advanced"
     },
-    {
-      "id": "site property",
-      "name": "content",
-      "displayName": "content",
-      "value": "",
-      "defaultValue": "",
-      "description": "-env.sh content",
-      "displayType": "content",
-      "isRequired": false,
-      "showLabel": false,
-      "serviceName": "PIG",
-      "filename": "pig-env.xml",
-      "category": "PigEnv"
-    },
 
     //***************************************** GLUSTERFS stack********************************************
 
@@ -1664,20 +1650,6 @@ module.exports =
       "filename": "flume-conf.xml"
     },
   /**********************************************HDFS***************************************/
-    {
-      "id": "site property",
-      "name": "content",
-      "displayName": "content",
-      "value": "",
-      "defaultValue": "",
-      "description": "-env.sh content",
-      "displayType": "content",
-      "isRequired": false,
-      "showLabel": false,
-      "serviceName": "HDFS",
-      "filename": "hadoop-env.xml",
-      "category": "HadoopEnv"
-    },
     {
       "id": "puppet var",
       "name": "namenode_host",
@@ -1846,20 +1818,6 @@ module.exports =
 
   /**********************************************MAPREDUCE2***************************************/
     {
-      "id": "site property",
-      "name": "content",
-      "displayName": "content",
-      "value": "",
-      "defaultValue": "",
-      "description": "-env.sh content",
-      "displayType": "content",
-      "isRequired": false,
-      "showLabel": false,
-      "serviceName": "MAPREDUCE2",
-      "filename": "mapred-env.xml",
-      "category": "MapredEnv"
-    },
-    {
       "id": "puppet var",
       "name": "hs_host",
       "displayName": "History Server",
@@ -1918,20 +1876,6 @@ module.exports =
       "category": "Advanced"
     },
   /**********************************************YARN***************************************/
-    {
-      "id": "site property",
-      "name": "content",
-      "displayName": "content",
-      "value": "",
-      "defaultValue": "",
-      "description": "-env.sh content",
-      "displayType": "content",
-      "isRequired": false,
-      "showLabel": false,
-      "serviceName": "YARN",
-      "filename": "yarn-env.xml",
-      "category": "YarnEnv"
-    },
     {
       "id": "puppet var",
       "name": "yarn_heapsize",
@@ -2067,20 +2011,6 @@ module.exports =
     },
   /**********************************************HBASE***************************************/
     {
-      "id": "site property",
-      "name": "content",
-      "displayName": "content",
-      "value": "",
-      "defaultValue": "",
-      "description": "-env.sh content",
-      "displayType": "content",
-      "isRequired": false,
-      "showLabel": false,
-      "serviceName": "HBASE",
-      "filename": "hbase-env.xml",
-      "category": "HbaseEnv"
-    },
-    {
       "id": "puppet var",
       "name": "hbasemaster_host",
       "displayName": "HBase Master hosts",
@@ -2171,20 +2101,6 @@ module.exports =
       "category": "Advanced"
     },
   /**********************************************GLUSTERFS***************************************/
-    {
-      "id": "site property",
-      "name": "content",
-      "displayName": "content",
-      "value": "",
-      "defaultValue": "",
-      "description": "-env.sh content",
-      "displayType": "content",
-      "isRequired": false,
-      "showLabel": false,
-      "serviceName": "GLUSTERFS",
-      "filename": "glusterfs-env.xml",
-      "category": "GlusterfsEnv"
-    },
     {
       "id": "puppet var",
       "name": "glusterfs_defaultFS_name",
@@ -2310,20 +2226,6 @@ module.exports =
       "category": "Advanced"
     },
   /**********************************************HIVE***************************************/
-    {
-      "id": "site property",
-      "name": "content",
-      "displayName": "content",
-      "value": "",
-      "defaultValue": "",
-      "description": "-env.sh content",
-      "displayType": "content",
-      "isRequired": false,
-      "showLabel": false,
-      "serviceName": "HIVE",
-      "filename": "hive-env.xml",
-      "category": "HiveEnv"
-    },
     {
       "id": "puppet var",
       "name": "hivemetastore_host",
@@ -2596,36 +2498,7 @@ module.exports =
       "filename": "hive-env.xml",
       "category": "Advanced"
     },
-  /**********************************************SQOOP***************************************/
-    {
-      "id": "site property",
-      "name": "content",
-      "displayName": "content",
-      "value": "",
-      "defaultValue": "",
-      "description": "-env.sh content",
-      "displayType": "content",
-      "isRequired": false,
-      "showLabel": false,
-      "serviceName": "SQOOP",
-      "filename": "sqoop-env.xml",
-      "category": "SqoopEnv"
-    },
   /**********************************************WEBHCAT***************************************/
-    {
-      "id": "site property",
-      "name": "content",
-      "displayName": "content",
-      "value": "",
-      "defaultValue": "",
-      "description": "-env.sh content",
-      "displayType": "content",
-      "isRequired": false,
-      "showLabel": false,
-      "serviceName": "WEBHCAT",
-      "filename": "webhcat-env.xml",
-      "category": "WebhcatEnv"
-    },
     {
       "id": "puppet var",
       "name": "webhcatserver_host",
@@ -2670,20 +2543,6 @@ module.exports =
       "category": "Advanced"
     },
   /**********************************************OOZIE***************************************/
-    {
-      "id": "site property",
-      "name": "content",
-      "displayName": "content",
-      "value": "",
-      "defaultValue": "",
-      "description": "-env.sh content",
-      "displayType": "content",
-      "isRequired": false,
-      "showLabel": false,
-      "serviceName": "OOZIE",
-      "filename": "oozie-env.xml",
-      "category": "OozieEnv"
-    },
     {
       "id": "puppet var",
       "name": "oozieserver_host",
@@ -3005,20 +2864,6 @@ module.exports =
     },
   /**********************************************ZOOKEEPER***************************************/
     {
-      "id": "site property",
-      "name": "content",
-      "displayName": "content",
-      "value": "",
-      "defaultValue": "",
-      "description": "-env.sh content",
-      "displayType": "content",
-      "isRequired": false,
-      "showLabel": false,
-      "serviceName": "ZOOKEEPER",
-      "filename": "zookeeper-env.xml",
-      "category": "ZookeeperEnv"
-    },
-    {
       "id": "puppet var",
       "name": "zookeeperserver_hosts",
       "displayName": "ZooKeeper Server hosts",
@@ -3139,20 +2984,6 @@ module.exports =
     },
   /**********************************************HUE***************************************/
     {
-      "id": "site property",
-      "name": "content",
-      "displayName": "content",
-      "value": "",
-      "defaultValue": "",
-      "description": "-env.sh content",
-      "displayType": "content",
-      "isRequired": false,
-      "showLabel": false,
-      "serviceName": "HUE",
-      "filename": "hue-env.xml",
-      "category": "HueEnv"
-    },
-    {
       "id": "puppet var",
       "name": "hueserver_host",
       "displayName": "Hue Server host",
@@ -3213,20 +3044,6 @@ module.exports =
       "category": "Advanced"
     },
   /**********************************************FALCON***************************************/
-    {
-      "id": "site property",
-      "name": "content",
-      "displayName": "content",
-      "value": "",
-      "defaultValue": "",
-      "description": "-env.sh content",
-      "displayType": "content",
-      "isRequired": false,
-      "showLabel": false,
-      "serviceName": "FALCON",
-      "filename": "falcon-env.xml",
-      "category": "FalconEnv"
-    },
     {
       "id": "puppet var",
       "name": "falconserver_host",
@@ -3359,20 +3176,6 @@ module.exports =
     },
   /**********************************************STORM***************************************/
     {
-      "id": "site property",
-      "name": "content",
-      "displayName": "content",
-      "value": "",
-      "defaultValue": "",
-      "description": "-env.sh content",
-      "displayType": "content",
-      "isRequired": false,
-      "showLabel": false,
-      "serviceName": "STORM",
-      "filename": "storm-env.xml",
-      "category": "StormEnv"
-    },
-    {
       "id": "puppet var",
       "name": "storm_log_dir",
       "displayName": "storm_log_dir",
@@ -3457,21 +3260,6 @@ module.exports =
       "filename": "storm-env.xml",
       "isOverridable": false,
       "category": "STORM_REST_API"
-    },
-  /**********************************************TEZ***************************************/
-    {
-      "id": "site property",
-      "name": "content",
-      "displayName": "content",
-      "value": "",
-      "defaultValue": "",
-      "description": "-env.sh content",
-      "displayType": "content",
-      "isRequired": false,
-      "showLabel": false,
-      "serviceName": "TEZ",
-      "filename": "tez-env.xml",
-      "category": "TezEnv"
     },
   /**********************************************MISC***************************************/
     {
