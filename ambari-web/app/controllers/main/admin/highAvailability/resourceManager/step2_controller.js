@@ -18,7 +18,33 @@
 
 var App = require('app');
 
-App.RMHighAvailabilityWizardStep2Controller = Em.Controller.extend({
-  name:"rMHighAvailabilityWizardStep2Controller"
+App.RMHighAvailabilityWizardStep2Controller = App.WizardStep5Controller.extend({
+  name: "rMHighAvailabilityWizardStep2Controller",
+
+  loadStep: function () {
+    this._super();
+    this.hideUnusedComponents();
+  },
+
+  renderComponents: function (masterComponents) {
+    var existedRM = masterComponents.findProperty('component_name', 'RESOURCEMANAGER');
+    existedRM.isAdditional = false;
+    var additionalRM = $.extend({}, existedRM, {
+      isInstalled: false,
+      isAdditional: true,
+      selectedHost: this.get('hosts').mapProperty('host_name').without(existedRM.selectedHost)[0]
+    });
+    masterComponents.push(additionalRM);
+    this._super(masterComponents);
+  },
+
+  /**
+   * Remove service masters, that should be hidden in this wizard
+   */
+  hideUnusedComponents: function () {
+    var servicesMasters = this.get('servicesMasters');
+    servicesMasters = servicesMasters.filterProperty('component_name', 'RESOURCEMANAGER');
+    this.set('servicesMasters', servicesMasters);
+  }
 });
 

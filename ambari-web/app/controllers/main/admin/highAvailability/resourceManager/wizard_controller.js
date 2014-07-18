@@ -40,6 +40,23 @@ App.RMHighAvailabilityWizardController = App.WizardController.extend({
   },
 
   /**
+   * Load data for all steps until <code>current step</code>
+   */
+  loadAllPriorSteps: function () {
+    var step = this.get('currentStep');
+    switch (step) {
+      case '4':
+      case '3':
+      case '2':
+        this.loadServicesFromServer();
+        this.loadMasterComponentHosts();
+        this.loadConfirmedHosts();
+      case '1':
+        this.load('cluster');
+    }
+  },
+
+  /**
    * Remove all loaded data.
    * Created as copy for App.router.clearAllSteps
    */

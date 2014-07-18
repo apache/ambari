@@ -94,7 +94,7 @@ App.StackServiceComponent = DS.Model.extend({
   }.property('isShownOnInstallerAssignMasterPage','App.isHaEnabled'),
 
   isMasterWithMultipleInstances: function() {
-    var masters = ['ZOOKEEPER_SERVER', 'HBASE_MASTER', 'NAMENODE', 'JOURNALNODE'];
+    var masters = ['ZOOKEEPER_SERVER', 'HBASE_MASTER', 'NAMENODE', 'JOURNALNODE', 'RESOURCEMANAGER'];
     return masters.contains(this.get('componentName'));
   }.property('componentName'),
 
@@ -136,18 +136,13 @@ App.StackServiceComponent = DS.Model.extend({
   // default number of master hosts on Assign Master page:
   defaultNoOfMasterHosts: function() {
     var componentName = this.get('componentName');
-     if (this.get('isMasterWithMultipleInstances')) {
+     if (this.get('isMasterAddableInstallerWizard')) {
        return App.StackServiceComponent.cardinality(componentName).min;
      }
   }.property('componentName'),
 
   selectionSchemeForMasterComponent: function() {
     return App.StackServiceComponent.selectionScheme(this.get('componentName'));
-  }.property('componentName'),
-
-  isMasterWithMultipleInstancesHaWizard: function() {
-    var masters = ['NAMENODE', 'JOURNALNODE'];
-    return masters.contains(this.get('componentName'));
   }.property('componentName'),
 
   // components that are co-hosted with this component

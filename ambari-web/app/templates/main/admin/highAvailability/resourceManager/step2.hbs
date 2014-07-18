@@ -15,10 +15,78 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-<div>
-  <h2>{{t admin.rm_highAvailability.wizard.step2.header}}</h2>
-
-  <div class="btn-area">
-    <a class="btn btn-success pull-right" {{action next}}>{{t common.next}} &rarr;</a>
-  </div>
+<h2>{{t admin.rm_highAvailability.wizard.step2.header}}</h2>
+<div class="alert alert-info">
+  {{t admin.rm_highAvailability.wizard.step2.body}}
 </div>
+{{#if controller.isLoaded}}
+  <div class="assign-masters row-fluid">
+    <div class="select-hosts span7">
+      <div class="row-fluid">
+        <div class="clearfix"></div>
+        <div class="row-fluid">
+          <div class="span12 control-group">
+            <form class="form-horizontal" autocomplete="off">
+              <!-- View for array controller -->
+              {{#each servicesMasters}}
+                <div class="row-fluid">
+                  <div class="span5">
+                    <div class="control-group">
+                      <label class="pts pull-right">
+                        {{#if isAdditional}}
+                          {{t common.additional}}
+                        {{else}}
+                          {{t common.current}}
+                        {{/if}}
+                        {{display_name}}:
+                      </label>
+                    </div>
+                  </div>
+                  <div class="span7">
+                    <div class="control-group">
+                      {{#if view.shouldUseInputs}}
+                        {{view App.InputHostView
+                        componentBinding="this"
+                        disabledBinding="isInstalled" }}
+                      {{else}}
+                        {{view App.SelectHostView
+                        componentBinding="this"
+                        class="rm-host-select"
+                        disabledBinding="isInstalled"
+                        optionValuePath="content.host_name"
+                        optionLabelPath="content.host_info" }}
+                      {{/if}}
+                    </div>
+                  </div>
+                </div>
+              {{/each}}
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="host-assignments span5">
+      {{#each masterHostMapping}}
+        <div class="mapping-box round-corners well">
+          <div class="hostString"><span>{{hostInfo}}</span></div>
+          {{#each masterServicesToDisplay}}
+            <span {{bindAttr class="isInstalled:assignedService:newService :round-corners"}}>{{display_name}}</span>
+          {{/each}}
+        </div>
+      {{/each}}
+
+      {{#if remainingHosts}}
+        <div class="remaining-hosts round-corners well">
+          <span><strong>{{remainingHosts}}</strong> {{t installer.step5.attention}}</span></div>
+      {{/if}}
+    </div>
+    <div class="clearfix"></div>
+  </div>
+{{else}}
+  <div class="spinner"></div>
+{{/if}}
+<div class="btn-area">
+  <a class="btn btn-success pull-right" {{bindAttr disabled="submitDisabled"}} {{action submit target="controller"}}>{{t common.next}} &rarr;</a>
+</div>
+

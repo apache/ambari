@@ -93,6 +93,7 @@ module.exports = App.WizardRoute.extend({
       var controller = router.get('rMHighAvailabilityWizardController');
       controller.setCurrentStep('2');
       controller.dataLoading().done(function () {
+        controller.loadAllPriorSteps();
         controller.connectOutlet('rMHighAvailabilityWizardStep2', controller.get('content'));
       })
     },

@@ -980,6 +980,7 @@ Em.I18n.translations = {
       'This allows for an Active-Standby ResourceManager configuration that automatically performs failover.<br/><br/>' +
       '<b>You should plan a cluster maintenance window and prepare for cluster downtime when enabling ResourceManager HA.</b>',
   'admin.rm_highAvailability.wizard.step2.header': 'Select Host',
+  'admin.rm_highAvailability.wizard.step2.body': 'Select a host that will be running the additional ResourceManager',
   'admin.rm_highAvailability.wizard.step3.header': 'Review',
   'admin.rm_highAvailability.wizard.step4.header': 'Configure Components',
 

@@ -1021,5 +1021,48 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
    */
   getCluster: function () {
     return jQuery.extend({}, this.get('clusterStatusTemplate'), {name: App.router.getClusterName()});
+  },
+
+  /**
+   * Load services data from server.
+   */
+  loadServicesFromServer: function () {
+    var services = this.getDBProperty('services');
+    if (!services) {
+      services = {
+        selectedServices: [],
+        installedServices: []
+      };
+      App.StackService.find().forEach(function(item){
+        var isInstalled = App.Service.find().someProperty('id', item.get('serviceName'));
+        item.set('isSelected', isInstalled);
+        item.set('isInstalled', isInstalled);
+        if (isInstalled) {
+          services.selectedServices.push(item.get('serviceName'));
+          services.installedServices.push(item.get('serviceName'));
+        }
+      },this);
+      this.setDBProperty('services',services);
+    } else {
+      App.StackService.find().forEach(function(item) {
+        var isSelected =   services.selectedServices.contains(item.get('serviceName'));
+        var isInstalled = services.installedServices.contains(item.get('serviceName'));
+        item.set('isSelected', isSelected);
+        item.set('isInstalled', isInstalled);
+      },this);
+    }
+    this.set('content.services', App.StackService.find());
+  },
+
+  /**
+   * Load confirmed hosts.
+   * Will be used at <code>Assign Masters(step5)</code> step
+   */
+  loadConfirmedHosts: function () {
+    var hosts = App.db.getHosts();
+
+    if (hosts) {
+      this.set('content.hosts', hosts);
+    }
   }
 });

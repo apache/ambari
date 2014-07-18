@@ -64,6 +64,14 @@ App.WizardStep5Controller = Em.Controller.extend({
    * @type {string[]}
    */
   multipleComponents: function () {
+    return App.get('components.multipleMasters');
+  }.property('App.components.multipleMasters'),
+
+  /**
+   * Master components which could be assigned to multiple hosts
+   * @type {string[]}
+   */
+  addableComponents: function () {
     return App.get('components.addableMasterInstallerWizard');
   }.property('App.components.addableMasterInstallerWizard'),
 
@@ -208,7 +216,7 @@ App.WizardStep5Controller = Em.Controller.extend({
     this.clearStep();
     this.renderHostInfo();
     this.renderComponents(this.loadComponents());
-    this.get('multipleComponents').forEach(function (componentName) {
+    this.get('addableComponents').forEach(function (componentName) {
       this.updateComponent(componentName);
     }, this);
     if (!this.get("selectedServicesMasters").filterProperty('isInstalled', false).length) {
