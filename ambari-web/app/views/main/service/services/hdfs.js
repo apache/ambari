@@ -42,10 +42,26 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
       App.tooltip($('[rel=healthTooltip]'));
     },
     templateName: require('templates/main/service/info/summary/master_components'),
-    mastersComp : function() {
-      return this.get('parentView.service.hostComponents').filter(function(comp){
-        return comp.get('isMaster') && comp.get('componentName') !== 'JOURNALNODE';
-      });
+    mastersComp: function() {
+      if (App.get('isHaEnabled')) {
+        // return all Namenodes followed by its ZKFC
+        var namenodes = this.get('parentView.service.hostComponents').filter(function(comp){
+          return comp.get('isMaster') && comp.get('componentName') !== 'JOURNALNODE';
+        });
+        var zkfcs = this.get('parentView.service.hostComponents').filter(function(comp){
+          return comp.get('componentName') == 'ZKFC';
+        });
+        var nnZkfc = [];
+        namenodes.forEach( function(namenode) {
+          nnZkfc.push(namenode);
+          nnZkfc.push(zkfcs.findProperty('host.publicHostName', namenode.get('host.publicHostName')).set('isZkfc', true));
+        });
+        return nnZkfc;
+      } else {
+        return this.get('parentView.service.hostComponents').filter(function(comp){
+          return comp.get('isMaster') && comp.get('componentName') !== 'JOURNALNODE';
+        });
+      }
     }.property('parentView.service.hostComponents')
   }),
 

@@ -16,20 +16,23 @@
 * limitations under the License.
 }}
 <tr class="hidden"><td></td></tr>
-{{#each masterComp in view.mastersComp}}
-  <tr>
+{{#each comp in view.mastersComp}}
+  <tr {{bindAttr class="comp.isZkfc:component-small"}}>
     <td>
-      <a href="#" {{action showDetails masterComp.host}} title="{{unbound masterComp.host.publicHostName}}" rel="UsageTooltip">
-       {{#if masterComp.displayNameAdvanced}}
-         {{masterComp.displayNameAdvanced}}
-       {{else}}
-         {{masterComp.displayName}}
-       {{/if}}
+      <a href="#" {{action showDetails comp.host}} title="{{unbound comp.host.publicHostName}}" rel="UsageTooltip">
+        {{#if comp.displayNameAdvanced}}
+          {{comp.displayNameAdvanced}}
+        {{else}}
+          {{comp.displayName}}
+        {{/if}}
       </a>
     </td>
     <td>
-      <span rel='healthTooltip' {{bindAttr class="masterComp.statusClass masterComp.statusIconClass" data-original-title="masterComp.passiveTooltip"}}></span>
-      {{masterComp.componentTextStatus}}
+      <span rel='healthTooltip' {{bindAttr class="comp.statusClass comp.statusIconClass" data-original-title="comp.passiveTooltip"}}></span>
+      {{comp.componentTextStatus}}
     </td>
   </tr>
 {{/each}}
+
+
+

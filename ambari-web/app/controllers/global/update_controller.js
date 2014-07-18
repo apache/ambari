@@ -338,7 +338,7 @@ App.UpdateController = Em.Controller.extend({
       isATSInstalled = App.cache['services'].mapProperty('ServiceInfo.service_name').contains('YARN') && App.get('isHadoop21Stack'),
       flumeHandlerParam = isFlumeInstalled ? 'ServiceComponentInfo/component_name=FLUME_HANDLER|' : '',
       atsHandlerParam = isATSInstalled ? 'ServiceComponentInfo/component_name=APP_TIMELINE_SERVER|' : '',
-      haComponents = App.get('isHaEnabled') ? 'ServiceComponentInfo/component_name=JOURNALNODE|' : '',
+      haComponents = App.get('isHaEnabled') ? 'ServiceComponentInfo/component_name=JOURNALNODE|ServiceComponentInfo/component_name=ZKFC|' : '',
       realUrl = '/components/?' + flumeHandlerParam + atsHandlerParam + haComponents +
         'ServiceComponentInfo/category=MASTER&fields=' +
         'ServiceComponentInfo/Version,' +
