@@ -22,11 +22,13 @@ import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.orm.RequiresSession;
+import org.apache.ambari.server.orm.entities.PrincipalEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
+import java.util.Collections;
 import java.util.List;
 import org.apache.ambari.server.orm.entities.RoleEntity;
 
@@ -78,6 +80,22 @@ public class UserDAO {
     }
   }
 
+  /**
+   * Find the user entities for the given list of admin principal entities.
+   *
+   * @param principalList  the list of principal entities
+   *
+   * @return the matching list of user entities
+   */
+  public List<UserEntity> findUsersByPrincipal(List<PrincipalEntity> principalList) {
+    if (principalList == null || principalList.isEmpty()) {
+      return Collections.emptyList();
+    }
+    TypedQuery<UserEntity> query = entityManagerProvider.get().createQuery("SELECT user FROM UserEntity user WHERE user.principal IN :principalList", UserEntity.class);
+    query.setParameter("principalList", principalList);
+    return daoUtils.selectList(query);
+  }
+
   @Transactional
   public void create(UserEntity user) {
     user.setUserName(user.getUserName().toLowerCase());
@@ -99,5 +117,4 @@ public class UserDAO {
   public void removeByPK(Integer userPK) {
     remove(findByPK(userPK));
   }
-
 }

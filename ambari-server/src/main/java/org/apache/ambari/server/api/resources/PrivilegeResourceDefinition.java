@@ -20,29 +20,22 @@ package org.apache.ambari.server.api.resources;
 
 import org.apache.ambari.server.controller.spi.Resource;
 
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.Set;
 
 
 /**
- * View instance resource definition.
+ * Privilege resource definition.
  */
-public class ViewInstanceResourceDefinition extends BaseResourceDefinition {
-
-  /**
-   * The parent view name.
-   */
-  private final Set<SubResourceDefinition> subResourceDefinitions;
+public class PrivilegeResourceDefinition extends BaseResourceDefinition {
 
   // ----- Constructors ------------------------------------------------------
 
   /**
-   * Construct a view instance resource definition.
+   * Construct a privilege resource definition.
    */
-  public ViewInstanceResourceDefinition(Set<SubResourceDefinition> subResourceDefinitions) {
-    super(Resource.Type.ViewInstance);
-    this.subResourceDefinitions = new HashSet<SubResourceDefinition>(subResourceDefinitions);
-    this.subResourceDefinitions.add(new SubResourceDefinition(Resource.Type.ViewPrivilege));
+  public PrivilegeResourceDefinition(Resource.Type type) {
+    super(type);
   }
 
 
@@ -50,16 +43,16 @@ public class ViewInstanceResourceDefinition extends BaseResourceDefinition {
 
   @Override
   public String getPluralName() {
-    return "instances";
+    return "privileges";
   }
 
   @Override
   public String getSingularName() {
-    return "instance";
+    return "privilege";
   }
 
   @Override
   public Set<SubResourceDefinition> getSubResourceDefinitions() {
-    return subResourceDefinitions;
+    return Collections.emptySet();
   }
 }

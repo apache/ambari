@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.orm.dao;
 
+import java.util.Collections;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -30,6 +31,7 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
+import org.apache.ambari.server.orm.entities.PrincipalEntity;
 
 @Singleton
 public class GroupDAO {
@@ -58,6 +60,22 @@ public class GroupDAO {
     } catch (NoResultException e) {
       return null;
     }
+  }
+
+  /**
+   * Find the group entities for the given list of principals
+   *
+   * @param principalList  the list of principal entities
+   *
+   * @return the list of groups matching the query
+   */
+  public List<GroupEntity> findGroupsByPrincipal(List<PrincipalEntity> principalList) {
+    if (principalList == null || principalList.isEmpty()) {
+      return Collections.emptyList();
+    }
+    TypedQuery<GroupEntity> query = entityManagerProvider.get().createQuery("SELECT grp FROM GroupEntity grp WHERE grp.principal IN :principalList", GroupEntity.class);
+    query.setParameter("principalList", principalList);
+    return daoUtils.selectList(query);
   }
 
   @Transactional

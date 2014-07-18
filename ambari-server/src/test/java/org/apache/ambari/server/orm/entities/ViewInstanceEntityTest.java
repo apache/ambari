@@ -361,7 +361,20 @@ public class ViewInstanceEntityTest {
   public static ViewInstanceEntity getViewInstanceEntity() throws Exception {
     InstanceConfig instanceConfig = InstanceConfigTest.getInstanceConfigs().get(0);
     ViewEntity viewDefinition = ViewEntityTest.getViewEntity();
-    return new ViewInstanceEntity(viewDefinition, instanceConfig);
+    ViewInstanceEntity viewInstanceEntity = new ViewInstanceEntity(viewDefinition, instanceConfig);
+
+    ResourceTypeEntity resourceTypeEntity = new ResourceTypeEntity();
+    resourceTypeEntity.setId(10);
+    resourceTypeEntity.setName(viewDefinition.getName());
+
+    viewDefinition.setResourceType(resourceTypeEntity);
+
+    ResourceEntity resourceEntity = new ResourceEntity();
+    resourceEntity.setId(20L);
+    resourceEntity.setResourceType(resourceTypeEntity);
+    viewInstanceEntity.setResource(resourceEntity);
+
+    return viewInstanceEntity;
   }
 
   public static Set<ViewInstanceEntity> getViewInstanceEntities(ViewEntity viewDefinition) throws Exception {

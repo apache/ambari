@@ -108,6 +108,15 @@ public class OrmTestHelper {
 
   @Transactional
   public void createTestUsers() {
+    PrincipalTypeEntity principalTypeEntity = new PrincipalTypeEntity();
+    principalTypeEntity.setName(PrincipalTypeEntity.USER_PRINCIPAL_TYPE_NAME);
+    getEntityManager().persist(principalTypeEntity);
+
+    PrincipalEntity principalEntity = new PrincipalEntity();
+    principalEntity.setPrincipalType(principalTypeEntity);
+
+    getEntityManager().persist(principalEntity);
+
     PasswordEncoder encoder = injector.getInstance(PasswordEncoder.class);
 
     RoleEntity adminRole = new RoleEntity();
@@ -116,6 +125,7 @@ public class OrmTestHelper {
     UserEntity admin = new UserEntity();
     admin.setUserName("administrator");
     admin.setUserPassword(encoder.encode("admin"));
+    admin.setPrincipal(principalEntity);
 
     Set<RoleEntity> roles = new HashSet<RoleEntity>();
     Set<UserEntity> users = new HashSet<UserEntity>();
@@ -129,9 +139,14 @@ public class OrmTestHelper {
     userDAO.create(admin);
     roleDAO.create(adminRole);
 
+    principalEntity = new PrincipalEntity();
+    principalEntity.setPrincipalType(principalTypeEntity);
+    getEntityManager().persist(principalEntity);
+
     UserEntity userWithoutRoles = new UserEntity();
     userWithoutRoles.setUserName("userWithoutRoles");
     userWithoutRoles.setUserPassword(encoder.encode("test"));
+    userWithoutRoles.setPrincipal(principalEntity);
     userDAO.create(userWithoutRoles);
 
   }

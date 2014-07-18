@@ -19,10 +19,13 @@ package org.apache.ambari.server.security.authorization;
 
 import com.google.inject.Inject;
 import com.google.inject.persist.Transactional;
-import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.orm.dao.PrincipalDAO;
+import org.apache.ambari.server.orm.dao.PrincipalTypeDAO;
 import org.apache.ambari.server.orm.dao.RoleDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
+import org.apache.ambari.server.orm.entities.PrincipalEntity;
+import org.apache.ambari.server.orm.entities.PrincipalTypeEntity;
 import org.apache.ambari.server.orm.entities.RoleEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.slf4j.Logger;
@@ -43,16 +46,21 @@ public class AmbariLdapAuthoritiesPopulator implements LdapAuthoritiesPopulator 
   private AuthorizationHelper authorizationHelper;
   UserDAO userDAO;
   RoleDAO roleDAO;
+  PrincipalDAO principalDAO;
+  PrincipalTypeDAO principalTypeDAO;
 
   private static final String AMBARI_ADMIN_LDAP_ATTRIBUTE_KEY = "ambari_admin";
 
   @Inject
   public AmbariLdapAuthoritiesPopulator(Configuration configuration, AuthorizationHelper authorizationHelper,
-                                        UserDAO userDAO, RoleDAO roleDAO) {
+                                        UserDAO userDAO, RoleDAO roleDAO,
+                                        PrincipalDAO principalDAO, PrincipalTypeDAO principalTypeDAO) {
     this.configuration = configuration;
     this.authorizationHelper = authorizationHelper;
     this.userDAO = userDAO;
     this.roleDAO = roleDAO;
+    this.principalDAO = principalDAO;
+    this.principalTypeDAO = principalTypeDAO;
   }
 
   @Override
@@ -95,9 +103,22 @@ public class AmbariLdapAuthoritiesPopulator implements LdapAuthoritiesPopulator 
    */
   @Transactional
   void createLdapUser(String username) {
+    // create an admin principal to represent this user
+    PrincipalTypeEntity principalTypeEntity = principalTypeDAO.findById(PrincipalTypeEntity.USER_PRINCIPAL_TYPE);
+    if (principalTypeEntity == null) {
+      principalTypeEntity = new PrincipalTypeEntity();
+      principalTypeEntity.setId(PrincipalTypeEntity.USER_PRINCIPAL_TYPE);
+      principalTypeEntity.setName(PrincipalTypeEntity.USER_PRINCIPAL_TYPE_NAME);
+      principalTypeDAO.create(principalTypeEntity);
+    }
+    PrincipalEntity principalEntity = new PrincipalEntity();
+    principalEntity.setPrincipalType(principalTypeEntity);
+    principalDAO.create(principalEntity);
+
     UserEntity newUser = new UserEntity();
     newUser.setLdapUser(true);
     newUser.setUserName(username);
+    newUser.setPrincipal(principalEntity);
 
     userDAO.create(newUser);
 
@@ -143,8 +164,9 @@ public class AmbariLdapAuthoritiesPopulator implements LdapAuthoritiesPopulator 
 
   /**
    * Remove role "roleName" from user "user"
-   * @param user
-   * @param roleName
+   *
+   * @param user      the user entity
+   * @param roleName  the role name
    */
   @Transactional
   void removeRole(UserEntity user, String roleName) {

@@ -238,6 +238,18 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
         resourceDefinition = new AlertDefResourceDefinition();
         break;
 
+      case AmbariPrivilege:
+        resourceDefinition = new PrivilegeResourceDefinition(Resource.Type.AmbariPrivilege);
+        break;
+
+      case ClusterPrivilege:
+        resourceDefinition = new PrivilegeResourceDefinition(Resource.Type.ClusterPrivilege);
+        break;
+
+      case ViewPrivilege:
+        resourceDefinition = new PrivilegeResourceDefinition(Resource.Type.ViewPrivilege);
+        break;
+
       default:
         throw new IllegalArgumentException("Unsupported resource type: " + type);
     }

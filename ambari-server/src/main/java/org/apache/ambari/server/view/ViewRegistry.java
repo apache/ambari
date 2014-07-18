@@ -29,8 +29,12 @@ import org.apache.ambari.server.api.services.ViewExternalSubResourceService;
 import org.apache.ambari.server.api.services.ViewSubResourceService;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.orm.dao.ResourceDAO;
+import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
 import org.apache.ambari.server.orm.dao.ViewDAO;
 import org.apache.ambari.server.orm.dao.ViewInstanceDAO;
+import org.apache.ambari.server.orm.entities.ResourceEntity;
+import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.ViewEntity;
 import org.apache.ambari.server.orm.entities.ViewEntityEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceDataEntity;
@@ -108,6 +112,12 @@ public class ViewRegistry {
       new HashMap<ViewEntity, Map<String, ViewInstanceEntity>>();
 
   /**
+   * Mapping of view instances keyed by resource id.
+   */
+  private Map<Long, ViewInstanceEntity> viewInstances =
+      new HashMap<Long, ViewInstanceEntity>();
+
+  /**
    * Mapping of view names to sub-resources.
    */
   private final Map<String, Set<SubResourceDefinition>> subResourceDefinitionsMap =
@@ -143,6 +153,16 @@ public class ViewRegistry {
    * View instance data access object.
    */
   private static ViewInstanceDAO instanceDAO;
+
+  /**
+   * Admin resource data access object.
+   */
+  private static ResourceDAO resourceDAO;
+
+  /**
+   * Admin resource type data access object.
+   */
+  private static ResourceTypeDAO resourceTypeDAO;
 
 
   // ----- Constructors ------------------------------------------------------
@@ -208,14 +228,25 @@ public class ViewRegistry {
   }
 
   /**
-   * Get the instance definition for the given view name and instance name.
+   * Get the instance definition for the given resource id.
    *
-   * @param viewName      the view name
-   * @param version       the version
-   * @param instanceName  the instance name
+   * @param resourceId  the resource id.
    *
-   * @return the view instance definition for the given view and instance name
+   * @return the view instance for the given resource id
    */
+  public ViewInstanceEntity getInstanceDefinition(Long resourceId) {
+    return viewInstances.get(resourceId);
+  }
+
+  /**
+    * Get the instance definition for the given view name and instance name.
+    *
+    * @param viewName      the view name
+    * @param version       the version
+    * @param instanceName  the instance name
+    *
+    * @return the view instance definition for the given view and instance name
+    */
   public ViewInstanceEntity getInstanceDefinition(String viewName, String version, String instanceName) {
     Map<String, ViewInstanceEntity> viewInstanceDefinitionMap =
         viewInstanceDefinitions.get(getDefinition(viewName, version));
@@ -241,6 +272,7 @@ public class ViewRegistry {
       view.onCreate(instanceDefinition);
     }
     instanceDefinitions.put(instanceDefinition.getName(), instanceDefinition);
+    viewInstances.put(instanceDefinition.getResource().getId(), instanceDefinition);
   }
 
   /**
@@ -260,6 +292,7 @@ public class ViewRegistry {
           view.onDestroy(instanceDefinition);
         }
         instanceDefinitions.remove(instanceName);
+        viewInstances.remove(instanceDefinition.getResource().getId());
       }
     }
   }
@@ -399,6 +432,14 @@ public class ViewRegistry {
               version + "/" + instanceName);
         }
         instanceEntity.validate(viewEntity);
+
+        // create an admin resource to represent this view instance
+        ResourceEntity resourceEntity = new ResourceEntity();
+        resourceEntity.setResourceType(viewEntity.getResourceType());
+        resourceDAO.create(resourceEntity);
+
+        instanceEntity.setResource(resourceEntity);
+
         instanceDAO.merge(instanceEntity);
 
         ViewInstanceEntity persistedInstance = instanceDAO.findByName(ViewEntity.getViewName(viewName, version), instanceName);
@@ -844,6 +885,25 @@ public class ViewRegistry {
       if (LOG.isDebugEnabled()) {
         LOG.debug("Creating View " + viewName + ".");
       }
+      // get or create an admin resource type to represent this view
+      ResourceTypeEntity resourceTypeEntity = resourceTypeDAO.findByName(viewName);
+      if (resourceTypeEntity == null) {
+        resourceTypeEntity = new ResourceTypeEntity();
+        resourceTypeEntity.setName(view.getName());
+        resourceTypeDAO.create(resourceTypeEntity);
+      }
+
+      view.setResourceType(resourceTypeEntity);
+
+      for( ViewInstanceEntity instance : view.getInstances()) {
+
+        // create an admin resource to represent this view instance
+        ResourceEntity resourceEntity = new ResourceEntity();
+        resourceEntity.setResourceType(resourceTypeEntity);
+        resourceDAO.create(resourceEntity);
+
+        instance.setResource(resourceEntity);
+      }
       // ... merge it
       viewDAO.merge(view);
 
@@ -886,6 +946,10 @@ public class ViewRegistry {
       instance.setData(persistedInstance.getData());
       instance.setProperties(persistedInstance.getProperties());
       instance.setEntities(persistedInstance.getEntities());
+
+      if (instance.getResource() == null) {
+        instance.setResource(persistedInstance.getResource());
+      }
     }
 
     // these instances appear in the archive but have been deleted
@@ -1010,12 +1074,16 @@ public class ViewRegistry {
   /**
    * Static initialization of DAO.
    *
-   * @param viewDAO      view data access object
-   * @param instanceDAO  view instance data access object
+   * @param viewDAO          view data access object
+   * @param instanceDAO      view instance data access object
+   * @param resourceDAO      resource data access object
+   * @param resourceTypeDAO  resource type data access object
    */
-  public static void init(ViewDAO viewDAO, ViewInstanceDAO instanceDAO) {
+  public static void init(ViewDAO viewDAO, ViewInstanceDAO instanceDAO, ResourceDAO resourceDAO, ResourceTypeDAO resourceTypeDAO) {
     setViewDAO(viewDAO);
     setInstanceDAO(instanceDAO);
+    setResourceDAO(resourceDAO);
+    setResourceTypeDAO(resourceTypeDAO);
   }
 
   /**
@@ -1034,6 +1102,24 @@ public class ViewRegistry {
    */
   protected static void setInstanceDAO(ViewInstanceDAO instanceDAO) {
     ViewRegistry.instanceDAO = instanceDAO;
+  }
+
+  /**
+   * Set the resource DAO.
+   *
+   * @param resourceDAO  the resource DAO
+   */
+  protected static void setResourceDAO(ResourceDAO resourceDAO) {
+    ViewRegistry.resourceDAO = resourceDAO;
+  }
+
+  /**
+   * Set the resource type DAO.
+   *
+   * @param resourceTypeDAO  the resource type DAO
+   */
+  protected static void setResourceTypeDAO(ResourceTypeDAO resourceTypeDAO) {
+    ViewRegistry.resourceTypeDAO = resourceTypeDAO;
   }
 
 

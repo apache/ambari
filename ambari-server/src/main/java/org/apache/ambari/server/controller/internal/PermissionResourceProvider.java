@@ -27,6 +27,8 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+import org.apache.ambari.server.orm.dao.PermissionDAO;
+import org.apache.ambari.server.orm.entities.PermissionEntity;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -37,6 +39,12 @@ import java.util.Set;
  * Resource provider for permission instances.
  */
 public class PermissionResourceProvider extends AbstractResourceProvider {
+
+  /**
+   * Data access object used to obtain permission entities.
+   */
+  protected static PermissionDAO permissionDAO;
+
   /**
    * Permission property id constants.
    */
@@ -64,42 +72,6 @@ public class PermissionResourceProvider extends AbstractResourceProvider {
   }
 
 
-  /**
-   * Builtin permissions
-   */
-  private static final Set<Resource> builtinPermissions = new HashSet<Resource>();
-
-  static {
-    // AMBARI.ADMIN
-    Resource resource = new ResourceImpl(Resource.Type.Permission);
-    resource.setProperty(PERMISSION_ID_PROPERTY_ID, 0);
-    resource.setProperty(PERMISSION_NAME_PROPERTY_ID, "ADMIN");
-    resource.setProperty(RESOURCE_NAME_PROPERTY_ID, "AMBARI");
-    builtinPermissions.add(resource);
-
-    // CLUSTER.READ
-    resource = new ResourceImpl(Resource.Type.Permission);
-    resource.setProperty(PERMISSION_ID_PROPERTY_ID, 1);
-    resource.setProperty(PERMISSION_NAME_PROPERTY_ID, "READ");
-    resource.setProperty(RESOURCE_NAME_PROPERTY_ID, "CLUSTER");
-    builtinPermissions.add(resource);
-
-    // CLUSTER.OPERATE
-    resource = new ResourceImpl(Resource.Type.Permission);
-    resource.setProperty(PERMISSION_ID_PROPERTY_ID, 2);
-    resource.setProperty(PERMISSION_NAME_PROPERTY_ID, "OPERATE");
-    resource.setProperty(RESOURCE_NAME_PROPERTY_ID, "CLUSTER");
-    builtinPermissions.add(resource);
-
-    // CLUSTER.OPERATE
-    resource = new ResourceImpl(Resource.Type.Permission);
-    resource.setProperty(PERMISSION_ID_PROPERTY_ID, 3);
-    resource.setProperty(PERMISSION_NAME_PROPERTY_ID, "USE");
-    resource.setProperty(RESOURCE_NAME_PROPERTY_ID, "VIEW");
-    builtinPermissions.add(resource);
-  }
-
-
   // ----- Constructors ------------------------------------------------------
 
   /**
@@ -107,6 +79,18 @@ public class PermissionResourceProvider extends AbstractResourceProvider {
    */
   public PermissionResourceProvider() {
     super(propertyIds, keyPropertyIds);
+  }
+
+
+  // ----- PermissionResourceProvider ----------------------------------------
+
+  /**
+   * Static initialization.
+   *
+   * @param dao  permission data access object
+   */
+  public static void init(PermissionDAO dao) {
+    permissionDAO = dao;
   }
 
 
@@ -122,8 +106,16 @@ public class PermissionResourceProvider extends AbstractResourceProvider {
   @Override
   public Set<Resource> getResources(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
-    // TODO : add custom permissions.
-    return new HashSet<Resource>(builtinPermissions);
+
+    Set<Resource> resources    = new HashSet<Resource>();
+    Set<String>   requestedIds = getRequestPropertyIds(request, predicate);
+
+    for(PermissionEntity permissionEntity : permissionDAO.findAll()){
+
+      resources.add(toResource(permissionEntity, requestedIds));
+    }
+
+    return resources;
   }
 
   @Override
@@ -149,5 +141,19 @@ public class PermissionResourceProvider extends AbstractResourceProvider {
   @Override
   protected Set<String> getPKPropertyIds() {
     return new HashSet<String>(keyPropertyIds.values());
+  }
+
+
+  // ----- helper methods ----------------------------------------------------
+
+  // convert the given permission entity to a resource
+  private Resource toResource(PermissionEntity entity, Set<String> requestedIds) {
+    Resource resource = new ResourceImpl(Resource.Type.Permission);
+
+    setResourceProperty(resource, PERMISSION_ID_PROPERTY_ID, entity.getId(), requestedIds);
+    setResourceProperty(resource, PERMISSION_NAME_PROPERTY_ID, entity.getPermissionName(), requestedIds);
+    setResourceProperty(resource, RESOURCE_NAME_PROPERTY_ID, entity.getResourceType().getName(), requestedIds);
+
+    return resource;
   }
 }

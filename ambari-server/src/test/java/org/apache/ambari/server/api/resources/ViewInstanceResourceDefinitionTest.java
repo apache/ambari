@@ -46,11 +46,11 @@ public class ViewInstanceResourceDefinitionTest {
     ViewInstanceResourceDefinition viewInstanceResourceDefinition = getViewInstanceResourceDefinition();
     Set<SubResourceDefinition> subResourceDefinitions = viewInstanceResourceDefinition.getSubResourceDefinitions();
 
-    Assert.assertEquals(2, subResourceDefinitions.size());
+    Assert.assertEquals(3, subResourceDefinitions.size());
 
     for (SubResourceDefinition subResourceDefinition : subResourceDefinitions) {
       Resource.Type type = subResourceDefinition.getType();
-      Assert.assertTrue(type.name().equals("sub1") || type.name().equals("sub2"));
+      Assert.assertTrue(type.name().equals("sub1") || type.name().equals("sub2") || type.equals(Resource.Type.ViewPrivilege));
     }
   }
 

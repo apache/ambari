@@ -33,8 +33,12 @@ import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.GroupDAO;
 import org.apache.ambari.server.orm.dao.MemberDAO;
+import org.apache.ambari.server.orm.dao.PrincipalDAO;
+import org.apache.ambari.server.orm.dao.PrincipalTypeDAO;
 import org.apache.ambari.server.orm.dao.RoleDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
+import org.apache.ambari.server.orm.entities.PrincipalEntity;
+import org.apache.ambari.server.orm.entities.PrincipalTypeEntity;
 import org.apache.ambari.server.orm.entities.RoleEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.junit.After;
@@ -63,6 +67,10 @@ public class TestUsers {
   protected MemberDAO memberDAO;
   @Inject
   protected RoleDAO roleDAO;
+  @Inject
+  protected PrincipalTypeDAO principalTypeDAO;
+  @Inject
+  protected PrincipalDAO principalDAO;
   @Inject
   protected PasswordEncoder passwordEncoder;
   private Properties properties;
@@ -284,11 +292,21 @@ public class TestUsers {
   }
 
   private void createLdapUser() {
+
+    PrincipalTypeEntity principalTypeEntity = new PrincipalTypeEntity();
+    principalTypeEntity.setName(PrincipalTypeEntity.USER_PRINCIPAL_TYPE_NAME);
+    principalTypeDAO.create(principalTypeEntity);
+
+    PrincipalEntity principalEntity = new PrincipalEntity();
+    principalEntity.setPrincipalType(principalTypeEntity);
+    principalDAO.create(principalEntity);
+
     RoleEntity role = roleDAO.findByName(users.getUserRole());
     UserEntity ldapUser = new UserEntity();
 
     ldapUser.setUserName("ldapUser");
     ldapUser.setLdapUser(true);
+    ldapUser.setPrincipal(principalEntity);
 
     userDAO.create(ldapUser);
 

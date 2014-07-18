@@ -27,10 +27,14 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.dao.GroupDAO;
 import org.apache.ambari.server.orm.dao.MemberDAO;
+import org.apache.ambari.server.orm.dao.PrincipalDAO;
+import org.apache.ambari.server.orm.dao.PrincipalTypeDAO;
 import org.apache.ambari.server.orm.dao.RoleDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.entities.GroupEntity;
 import org.apache.ambari.server.orm.entities.MemberEntity;
+import org.apache.ambari.server.orm.entities.PrincipalEntity;
+import org.apache.ambari.server.orm.entities.PrincipalTypeEntity;
 import org.apache.ambari.server.orm.entities.RoleEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.slf4j.Logger;
@@ -61,6 +65,10 @@ public class Users {
   protected GroupDAO groupDAO;
   @Inject
   protected MemberDAO memberDAO;
+  @Inject
+  protected PrincipalDAO principalDAO;
+  @Inject
+  protected PrincipalTypeDAO principalTypeDAO;
   @Inject
   protected PasswordEncoder passwordEncoder;
   @Inject
@@ -181,10 +189,24 @@ public class Users {
    */
   @Transactional
   public synchronized void createUser(String userName, String password) {
+
+    // create an admin principal to represent this user
+    PrincipalTypeEntity principalTypeEntity = principalTypeDAO.findById(PrincipalTypeEntity.USER_PRINCIPAL_TYPE);
+    if (principalTypeEntity == null) {
+      principalTypeEntity = new PrincipalTypeEntity();
+      principalTypeEntity.setId(PrincipalTypeEntity.USER_PRINCIPAL_TYPE);
+      principalTypeEntity.setName(PrincipalTypeEntity.USER_PRINCIPAL_TYPE_NAME);
+      principalTypeDAO.create(principalTypeEntity);
+    }
+    PrincipalEntity principalEntity = new PrincipalEntity();
+    principalEntity.setPrincipalType(principalTypeEntity);
+    principalDAO.create(principalEntity);
+
     UserEntity userEntity = new UserEntity();
     userEntity.setUserName(userName);
     userEntity.setUserPassword(passwordEncoder.encode(password));
     userEntity.setRoleEntities(new HashSet<RoleEntity>());
+    userEntity.setPrincipal(principalEntity);
 
     RoleEntity roleEntity = roleDAO.findByName(getUserRole());
     if (roleEntity == null) {
@@ -248,8 +270,22 @@ public class Users {
    */
   @Transactional
   public synchronized void createGroup(String groupName) {
+    // create an admin principal to represent this group
+    PrincipalTypeEntity principalTypeEntity = principalTypeDAO.findById(PrincipalTypeEntity.GROUP_PRINCIPAL_TYPE);
+    if (principalTypeEntity == null) {
+      principalTypeEntity = new PrincipalTypeEntity();
+      principalTypeEntity.setId(PrincipalTypeEntity.GROUP_PRINCIPAL_TYPE);
+      principalTypeEntity.setName(PrincipalTypeEntity.GROUP_PRINCIPAL_TYPE_NAME);
+      principalTypeDAO.create(principalTypeEntity);
+    }
+    PrincipalEntity principalEntity = new PrincipalEntity();
+    principalEntity.setPrincipalType(principalTypeEntity);
+    principalDAO.create(principalEntity);
+
     final GroupEntity groupEntity = new GroupEntity();
     groupEntity.setGroupName(groupName);
+    groupEntity.setPrincipal(principalEntity);
+
     groupDAO.create(groupEntity);
   }
 

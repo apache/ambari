@@ -18,8 +18,12 @@
 package org.apache.ambari.server.security.authorization;
 
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.orm.dao.PrincipalDAO;
+import org.apache.ambari.server.orm.dao.PrincipalTypeDAO;
 import org.apache.ambari.server.orm.dao.RoleDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
+import org.apache.ambari.server.orm.entities.PrincipalEntity;
+import org.apache.ambari.server.orm.entities.PrincipalTypeEntity;
 import org.apache.ambari.server.orm.entities.RoleEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.easymock.Capture;
@@ -34,7 +38,6 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.easymock.EasyMock.*;
-import static org.easymock.EasyMock.createMock;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -44,6 +47,8 @@ public class TestAmbariLdapAuthoritiesPopulator extends EasyMockSupport {
   Configuration configuration = createMock(Configuration.class);
   UserDAO userDAO = createMock(UserDAO.class);
   RoleDAO roleDAO = createMock(RoleDAO.class);
+  PrincipalDAO principalDAO = createMock(PrincipalDAO.class);
+  PrincipalTypeDAO principalTypeDAO = createMock(PrincipalTypeDAO.class);
   LdapServerProperties ldapServerProperties = createMock(LdapServerProperties.class);
   DirContextOperations userData = createMock(DirContextOperations.class);
   UserEntity userEntity = createMock(UserEntity.class);
@@ -74,7 +79,7 @@ public class TestAmbariLdapAuthoritiesPopulator extends EasyMockSupport {
     AmbariLdapAuthoritiesPopulator populator = createMockBuilder(AmbariLdapAuthoritiesPopulator.class)
         .addMockedMethod("createLdapUser")
         .withConstructor(
-            configuration, helper, userDAO, roleDAO
+            configuration, helper, userDAO, roleDAO, principalDAO, principalTypeDAO
         ).createMock();
 
 
@@ -106,7 +111,7 @@ public class TestAmbariLdapAuthoritiesPopulator extends EasyMockSupport {
         .addMockedMethod("addRole")
         .addMockedMethod("removeRole")
         .withConstructor(
-            configuration, helper, userDAO, roleDAO
+            configuration, helper, userDAO, roleDAO, principalDAO, principalTypeDAO
         ).createMock();
 
     expect(userData.getObjectAttribute("ambari_admin")).andReturn(Boolean.TRUE).andReturn(Boolean.FALSE);
@@ -144,17 +149,26 @@ public class TestAmbariLdapAuthoritiesPopulator extends EasyMockSupport {
         .addMockedMethod("addRole")
         .addMockedMethod("removeRole")
         .withConstructor(
-            configuration, helper, userDAO, roleDAO
+            configuration, helper, userDAO, roleDAO, principalDAO, principalTypeDAO
         ).createMock();
 
     Capture<UserEntity> createEntity = new Capture<UserEntity>();
     Capture<UserEntity> addRoleEntity = new Capture<UserEntity>();
+    Capture<PrincipalEntity> principalEntity = new Capture<PrincipalEntity>();
 
     userDAO.create(capture(createEntity));
     expectLastCall();
 
     populator.addRole(capture(addRoleEntity), eq(userRole));
     expectLastCall();
+
+    PrincipalTypeEntity principalTypeEntity = new PrincipalTypeEntity();
+    principalTypeEntity.setId(PrincipalTypeEntity.USER_PRINCIPAL_TYPE);
+    principalTypeEntity.setName(PrincipalTypeEntity.USER_PRINCIPAL_TYPE_NAME);
+
+    expect(principalTypeDAO.findById(1)).andReturn(principalTypeEntity);
+
+    principalDAO.create(capture(principalEntity));
 
     replayAll();
 
@@ -176,7 +190,7 @@ public class TestAmbariLdapAuthoritiesPopulator extends EasyMockSupport {
   @Test
   public void testAddRole() throws Exception {
     AmbariLdapAuthoritiesPopulator populator =
-        new AmbariLdapAuthoritiesPopulator(configuration, helper, userDAO, roleDAO);
+        new AmbariLdapAuthoritiesPopulator(configuration, helper, userDAO, roleDAO, principalDAO, principalTypeDAO);
 
     RoleEntity roleEntity = createMock(RoleEntity.class);
     Set<UserEntity> userEntities = createMock(Set.class);
@@ -229,7 +243,7 @@ public class TestAmbariLdapAuthoritiesPopulator extends EasyMockSupport {
     int userId = 123;
 
     AmbariLdapAuthoritiesPopulator populator =
-        new AmbariLdapAuthoritiesPopulator(configuration, helper, userDAO, roleDAO);
+        new AmbariLdapAuthoritiesPopulator(configuration, helper, userDAO, roleDAO, principalDAO, principalTypeDAO);
 
     RoleEntity roleEntity = createMock(RoleEntity.class);
     Set<UserEntity> userEntities = createMock(Set.class);

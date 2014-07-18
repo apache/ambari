@@ -21,17 +21,42 @@ package org.apache.ambari.server.controller.internal;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.orm.dao.PermissionDAO;
+import org.apache.ambari.server.orm.entities.PermissionEntity;
+import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.junit.Assert;
+import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 
 import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.createStrictMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
+import static org.easymock.EasyMock.verify;
 
 /**
  * PermissionResourceProvider tests.
  */
 public class PermissionResourceProviderTest {
+
+  private final static PermissionDAO dao = createStrictMock(PermissionDAO.class);
+
+  @BeforeClass
+  public static void initClass() {
+    PermissionResourceProvider.init(dao);
+  }
+
+  @Before
+  public void resetGlobalMocks() {
+    reset(dao);
+  }
+
   @Test
   public void testCreateResources() throws Exception {
     PermissionResourceProvider provider = new PermissionResourceProvider();
@@ -48,10 +73,30 @@ public class PermissionResourceProviderTest {
 
   @Test
   public void testGetResources() throws Exception {
+    List<PermissionEntity> permissionEntities = new LinkedList<PermissionEntity>();
+
+    PermissionEntity permissionEntity = createNiceMock(PermissionEntity.class);
+    ResourceTypeEntity resourceTypeEntity = createNiceMock(ResourceTypeEntity.class);
+
+    permissionEntities.add(permissionEntity);
+
+    expect(dao.findAll()).andReturn(permissionEntities);
+    expect(permissionEntity.getId()).andReturn(99);
+    expect(permissionEntity.getPermissionName()).andReturn("AMBARI.ADMIN");
+    expect(permissionEntity.getResourceType()).andReturn(resourceTypeEntity);
+    expect(resourceTypeEntity.getName()).andReturn("AMBARI");
+
+    replay(dao, permissionEntity, resourceTypeEntity);
     PermissionResourceProvider provider = new PermissionResourceProvider();
     Set<Resource> resources = provider.getResources(PropertyHelper.getReadRequest(), null);
     // built in permissions
-    Assert.assertEquals(4, resources.size());
+    Assert.assertEquals(1, resources.size());
+    Resource resource = resources.iterator().next();
+
+    Assert.assertEquals(99, resource.getPropertyValue(PermissionResourceProvider.PERMISSION_ID_PROPERTY_ID));
+    Assert.assertEquals("AMBARI.ADMIN", resource.getPropertyValue(PermissionResourceProvider.PERMISSION_NAME_PROPERTY_ID));
+    Assert.assertEquals("AMBARI", resource.getPropertyValue(PermissionResourceProvider.RESOURCE_NAME_PROPERTY_ID));
+    verify(dao, permissionEntity, resourceTypeEntity);
   }
 
   @Test

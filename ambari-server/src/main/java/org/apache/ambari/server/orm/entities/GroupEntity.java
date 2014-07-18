@@ -25,9 +25,12 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinColumns;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 import javax.persistence.UniqueConstraint;
@@ -59,6 +62,15 @@ public class GroupEntity {
 
   @OneToMany(mappedBy = "group", cascade = CascadeType.ALL)
   private Set<MemberEntity> memberEntities;
+
+  @OneToOne
+  @JoinColumns({
+      @JoinColumn(name = "principal_id", referencedColumnName = "principal_id", nullable = false),
+  })
+  private PrincipalEntity principal;
+
+
+  // ----- GroupEntity -------------------------------------------------------
 
   public Integer getGroupId() {
     return groupId;
@@ -95,6 +107,27 @@ public class GroupEntity {
   public void setMemberEntities(Set<MemberEntity> memberEntities) {
     this.memberEntities = memberEntities;
   }
+
+  /**
+   * Get the admin principal entity.
+   *
+   * @return the principal entity
+   */
+  public PrincipalEntity getPrincipal() {
+    return principal;
+  }
+
+  /**
+   * Set the admin principal entity.
+   *
+   * @param principal  the principal entity
+   */
+  public void setPrincipal(PrincipalEntity principal) {
+    this.principal = principal;
+  }
+
+
+  // ----- Object overrides --------------------------------------------------
 
   @Override
   public boolean equals(Object o) {

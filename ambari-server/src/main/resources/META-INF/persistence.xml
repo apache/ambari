@@ -62,6 +62,12 @@
     <class>org.apache.ambari.server.orm.entities.AlertHistoryEntity</class>
     <class>org.apache.ambari.server.orm.entities.AlertNoticeEntity</class>
     <class>org.apache.ambari.server.orm.entities.AlertTargetEntity</class>
+    <class>org.apache.ambari.server.orm.entities.ResourceTypeEntity</class>
+    <class>org.apache.ambari.server.orm.entities.ResourceEntity</class>
+    <class>org.apache.ambari.server.orm.entities.PrincipalTypeEntity</class>
+    <class>org.apache.ambari.server.orm.entities.PrincipalEntity</class>
+    <class>org.apache.ambari.server.orm.entities.PermissionEntity</class>
+    <class>org.apache.ambari.server.orm.entities.PrivilegeEntity</class>
 
     <properties>
       <!--<property name="javax.persistence.jdbc.url" value="jdbc:postgresql://localhost/ambari" />-->

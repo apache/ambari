@@ -32,9 +32,11 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.JoinColumns;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 import javax.persistence.Transient;
@@ -143,6 +145,12 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
   @ManyToOne
   @JoinColumn(name = "view_name", referencedColumnName = "view_name", nullable = false)
   private ViewEntity view;
+
+  @OneToOne
+  @JoinColumns({
+      @JoinColumn(name = "resource_id", referencedColumnName = "resource_id", nullable = false),
+  })
+  private ResourceEntity resource;
 
 
   // ----- transient data ----------------------------------------------------
@@ -640,6 +648,24 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
    */
   public String getUsername() {
     return userNameProvider.getUsername();
+  }
+
+  /**
+   * Get the admin resource entity.
+   *
+   * @return the resource entity
+   */
+  public ResourceEntity getResource() {
+    return resource;
+  }
+
+  /**
+   * Set the admin resource entity.
+   *
+   * @param resource  the resource entity
+   */
+  public void setResource(ResourceEntity resource) {
+    this.resource = resource;
   }
 
   /**

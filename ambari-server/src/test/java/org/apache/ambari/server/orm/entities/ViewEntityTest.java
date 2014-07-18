@@ -55,7 +55,22 @@ public class ViewEntityTest {
     properties.put("p3", "v3");
 
     Configuration ambariConfig = new Configuration(properties);
-    return new ViewEntity(viewConfig, ambariConfig, ViewEntityTest.class.getClassLoader(), "view.jar");
+    ViewEntity viewEntity = new ViewEntity(viewConfig, ambariConfig, ViewEntityTest.class.getClassLoader(), "view.jar");
+
+    ResourceTypeEntity resourceTypeEntity = new ResourceTypeEntity();
+    resourceTypeEntity.setId(10);
+    resourceTypeEntity.setName(viewEntity.getName());
+
+    viewEntity.setResourceType(resourceTypeEntity);
+
+    long id = 20L;
+    for (ViewInstanceEntity viewInstanceEntity : viewEntity.getInstances()) {
+      ResourceEntity resourceEntity = new ResourceEntity();
+      resourceEntity.setId(id++);
+      resourceEntity.setResourceType(resourceTypeEntity);
+      viewInstanceEntity.setResource(resourceEntity);
+    }
+    return viewEntity;
   }
 
   @Test

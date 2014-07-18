@@ -65,6 +65,15 @@ public class UserEntity {
   @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
   private Set<MemberEntity> memberEntities;
 
+  @OneToOne
+  @JoinColumns({
+      @JoinColumn(name = "principal_id", referencedColumnName = "principal_id", nullable = false),
+  })
+  private PrincipalEntity principal;
+
+
+  // ----- UserEntity --------------------------------------------------------
+
   public Integer getUserId() {
     return userId;
   }
@@ -136,6 +145,27 @@ public class UserEntity {
       this.active = active ? 1 : 0;
     }
   }
+
+  /**
+   * Get the admin principal entity.
+   *
+   * @return the principal entity
+   */
+  public PrincipalEntity getPrincipal() {
+    return principal;
+  }
+
+  /**
+   * Set the admin principal entity.
+   *
+   * @param principal  the principal entity
+   */
+  public void setPrincipal(PrincipalEntity principal) {
+    this.principal = principal;
+  }
+
+
+  // ----- Object overrides --------------------------------------------------
 
   @Override
   public boolean equals(Object o) {

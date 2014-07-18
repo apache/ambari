@@ -32,6 +32,9 @@ import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinColumns;
+import javax.persistence.ManyToOne;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
@@ -118,6 +121,11 @@ public class ViewEntity implements ViewDefinition {
   @OneToMany(cascade = CascadeType.ALL, mappedBy = "view")
   private Collection<ViewInstanceEntity> instances = new HashSet<ViewInstanceEntity>();
 
+  @ManyToOne
+  @JoinColumns({
+      @JoinColumn(name = "resource_type_id", referencedColumnName = "resource_type_id", nullable = false),
+  })
+  private ResourceTypeEntity resourceType;
 
   // ----- Transient data ----------------------------------------------------
 
@@ -607,8 +615,26 @@ public class ViewEntity implements ViewDefinition {
     return mask;
   }
 
+  /**
+   * Get the admin resource type entity.
+   *
+   * @return the resource type entity
+   */
+  public ResourceTypeEntity getResourceType() {
+    return resourceType;
+  }
 
-  // ----- helper methods ----------------------------------------------------
+  /**
+   * Set the admin resource type entity.
+   *
+   * @param resourceType  the resource type entity
+   */
+  public void setResourceType(ResourceTypeEntity resourceType) {
+    this.resourceType = resourceType;
+  }
+
+
+// ----- helper methods ----------------------------------------------------
 
   /**
    * Get the internal view name from the given common name and version.

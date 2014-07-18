@@ -64,10 +64,10 @@ GRANT ALL PRIVILEGES ON TABLE ambari.servicedesiredstate TO :username;
 CREATE TABLE ambari.roles (role_name VARCHAR(255) NOT NULL, PRIMARY KEY (role_name));
 GRANT ALL PRIVILEGES ON TABLE ambari.roles TO :username;
 
-CREATE TABLE ambari.users (user_id INTEGER, ldap_user INTEGER NOT NULL DEFAULT 0, user_name VARCHAR(255) NOT NULL, create_time TIMESTAMP DEFAULT NOW(), user_password VARCHAR(255), active INTEGER NOT NULL DEFAULT 1, PRIMARY KEY (user_id), UNIQUE (ldap_user, user_name));
+CREATE TABLE ambari.users (user_id INTEGER, principal_id BIGINT NOT NULL, ldap_user INTEGER NOT NULL DEFAULT 0, user_name VARCHAR(255) NOT NULL, create_time TIMESTAMP DEFAULT NOW(), user_password VARCHAR(255), active INTEGER NOT NULL DEFAULT 1, PRIMARY KEY (user_id), UNIQUE (ldap_user, user_name));
 GRANT ALL PRIVILEGES ON TABLE ambari.users TO :username;
 
-CREATE TABLE ambari.groups (group_id INTEGER, group_name VARCHAR(255) NOT NULL, ldap_group INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (group_id), UNIQUE (ldap_group, group_name));
+CREATE TABLE ambari.groups (group_id INTEGER, principal_id BIGINT NOT NULL, group_name VARCHAR(255) NOT NULL, ldap_group INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (group_id), UNIQUE (ldap_group, group_name));
 GRANT ALL PRIVILEGES ON TABLE ambari.groups TO :username;
 
 CREATE TABLE ambari.members (member_id INTEGER, group_id INTEGER NOT NULL, user_id INTEGER NOT NULL, PRIMARY KEY (member_id), UNIQUE(group_id, user_id));
@@ -138,9 +138,9 @@ GRANT ALL PRIVILEGES ON TABLE ambari.hostgroup_component TO :username;
 GRANT ALL PRIVILEGES ON TABLE ambari.blueprint_configuration TO :username;
 GRANT ALL PRIVILEGES ON TABLE ambari.hostgroup_configuration TO :username;
 
-CREATE TABLE ambari.viewmain (view_name VARCHAR(255) NOT NULL, label VARCHAR(255), version VARCHAR(255), icon VARCHAR(255), icon64 VARCHAR(255), archive VARCHAR(255), mask VARCHAR(255), PRIMARY KEY(view_name));
+CREATE TABLE ambari.viewmain (view_name VARCHAR(255) NOT NULL, label VARCHAR(255), version VARCHAR(255), resource_type_id INTEGER NOT NULL, icon VARCHAR(255), icon64 VARCHAR(255), archive VARCHAR(255), mask VARCHAR(255), PRIMARY KEY(view_name));
 CREATE TABLE ambari.viewinstancedata (view_instance_id BIGINT, view_name VARCHAR(255) NOT NULL, view_instance_name VARCHAR(255) NOT NULL, name VARCHAR(255) NOT NULL, user_name VARCHAR(255) NOT NULL, value VARCHAR(2000) NOT NULL, PRIMARY KEY(view_instance_id, name, user_name));
-CREATE TABLE ambari.viewinstance (view_instance_id BIGINT, view_name VARCHAR(255) NOT NULL, name VARCHAR(255) NOT NULL, label VARCHAR(255), description VARCHAR(255), visible CHAR(1), icon VARCHAR(255), icon64 VARCHAR(255), PRIMARY KEY(view_instance_id));
+CREATE TABLE ambari.viewinstance (view_instance_id BIGINT, resource_id BIGINT NOT NULL, view_name VARCHAR(255) NOT NULL, name VARCHAR(255) NOT NULL, label VARCHAR(255), description VARCHAR(255), visible CHAR(1), icon VARCHAR(255), icon64 VARCHAR(255), PRIMARY KEY(view_instance_id));
 CREATE TABLE ambari.viewinstanceproperty (view_name VARCHAR(255) NOT NULL, view_instance_name VARCHAR(255) NOT NULL, name VARCHAR(255) NOT NULL, value VARCHAR(2000) NOT NULL, PRIMARY KEY(view_name, view_instance_name, name));
 CREATE TABLE ambari.viewparameter (view_name VARCHAR(255) NOT NULL, name VARCHAR(255) NOT NULL, description VARCHAR(255), required CHAR(1), masked CHAR(1), PRIMARY KEY(view_name, name));
 CREATE TABLE ambari.viewresource (view_name VARCHAR(255) NOT NULL, name VARCHAR(255) NOT NULL, plural_name VARCHAR(255), id_property VARCHAR(255), subResource_names VARCHAR(255), provider VARCHAR(255), service VARCHAR(255), resource VARCHAR(255), PRIMARY KEY(view_name, name));
@@ -152,6 +152,19 @@ GRANT ALL PRIVILEGES ON TABLE ambari.viewinstanceproperty TO :username;
 GRANT ALL PRIVILEGES ON TABLE ambari.viewparameter TO :username;
 GRANT ALL PRIVILEGES ON TABLE ambari.viewresource TO :username;
 GRANT ALL PRIVILEGES ON TABLE ambari.viewentity TO :username;
+
+CREATE TABLE ambari.adminresourcetype (resource_type_id INTEGER NOT NULL, resource_type_name VARCHAR(255) NOT NULL, PRIMARY KEY(resource_type_id));
+CREATE TABLE ambari.adminresource (resource_id BIGINT NOT NULL, resource_type_id INTEGER NOT NULL, PRIMARY KEY(resource_id));
+CREATE TABLE ambari.adminprincipaltype (principal_type_id INTEGER NOT NULL, principal_type_name VARCHAR(255) NOT NULL, PRIMARY KEY(principal_type_id));
+CREATE TABLE ambari.adminprincipal (principal_id BIGINT NOT NULL, principal_type_id INTEGER NOT NULL, PRIMARY KEY(principal_id));
+CREATE TABLE ambari.adminpermission (permission_id BIGINT NOT NULL, permission_name VARCHAR(255) NOT NULL, resource_type_id INTEGER NOT NULL, PRIMARY KEY(permission_id));
+CREATE TABLE ambari.adminprivilege (privilege_id BIGINT, permission_id BIGINT NOT NULL, resource_id BIGINT NOT NULL, principal_id BIGINT NOT NULL, PRIMARY KEY(privilege_id));
+GRANT ALL PRIVILEGES ON TABLE ambari.adminresourcetype TO :username;
+GRANT ALL PRIVILEGES ON TABLE ambari.adminresource TO :username;
+GRANT ALL PRIVILEGES ON TABLE ambari.adminprincipaltype TO :username;
+GRANT ALL PRIVILEGES ON TABLE ambari.adminprincipal TO :username;
+GRANT ALL PRIVILEGES ON TABLE ambari.adminpermission TO :username;
+GRANT ALL PRIVILEGES ON TABLE ambari.adminprivilege TO :username;
 
 --------altering tables by creating foreign keys----------
 ALTER TABLE members ADD CONSTRAINT FK_members_group_id FOREIGN KEY (group_id) REFERENCES groups (group_id);
@@ -199,6 +212,16 @@ ALTER TABLE ambari.viewinstance ADD CONSTRAINT FK_viewinst_view_name FOREIGN KEY
 ALTER TABLE ambari.viewinstanceproperty ADD CONSTRAINT FK_viewinstprop_view_name FOREIGN KEY (view_name, view_instance_name) REFERENCES ambari.viewinstance(view_name, name);
 ALTER TABLE ambari.viewinstancedata ADD CONSTRAINT FK_viewinstdata_view_name FOREIGN KEY (view_instance_id, view_name, view_instance_name) REFERENCES ambari.viewinstance(view_instance_id, view_name, name);
 ALTER TABLE ambari.viewentity ADD CONSTRAINT FK_viewentity_view_name FOREIGN KEY (view_name, view_instance_name) REFERENCES ambari.viewinstance(view_name, name);
+ALTER TABLE ambari.adminresource ADD CONSTRAINT FK_resource_resource_type_id FOREIGN KEY (resource_type_id) REFERENCES adminresourcetype(resource_type_id);
+ALTER TABLE ambari.adminprincipal ADD CONSTRAINT FK_principal_principal_type_id FOREIGN KEY (principal_type_id) REFERENCES adminprincipaltype(principal_type_id);
+ALTER TABLE ambari.adminpermission ADD CONSTRAINT FK_permission_resource_type_id FOREIGN KEY (resource_type_id) REFERENCES adminresourcetype(resource_type_id);
+ALTER TABLE ambari.adminprivilege ADD CONSTRAINT FK_privilege_permission_id FOREIGN KEY (permission_id) REFERENCES adminpermission(permission_id);
+ALTER TABLE ambari.adminprivilege ADD CONSTRAINT FK_privilege_resource_id FOREIGN KEY (resource_id) REFERENCES adminresource(resource_id);
+ALTER TABLE viewmain ADD CONSTRAINT FK_view_resource_type_id FOREIGN KEY (resource_type_id) REFERENCES adminresourcetype(resource_type_id);
+ALTER TABLE ambari.viewinstance ADD CONSTRAINT FK_viewinstance_resource_id FOREIGN KEY (resource_id) REFERENCES adminresource(resource_id);
+ALTER TABLE ambari.adminprivilege ADD CONSTRAINT FK_privilege_principal_id FOREIGN KEY (principal_id) REFERENCES adminprincipal(principal_id);
+ALTER TABLE ambari.users ADD CONSTRAINT FK_users_principal_id FOREIGN KEY (principal_id) REFERENCES adminprincipal(principal_id);
+ALTER TABLE ambari.groups ADD CONSTRAINT FK_groups_principal_id FOREIGN KEY (principal_id) REFERENCES adminprincipal(principal_id);
 
 -- Alerting Framework
 CREATE TABLE ambari.alert_definition (
@@ -325,19 +348,61 @@ INSERT INTO ambari.ambari_sequences (sequence_name, "value")
   union all
   select 'operation_level_id_seq', 1
   union all
-  select 'view_instance_id_seq', 1;
+  select 'view_instance_id_seq', 1
+  union all
+  select 'resource_type_id_seq', 4
+  union all
+  select 'resource_id_seq', 2
+  union all
+  select 'principal_type_id_seq', 3
+  union all
+  select 'principal_id_seq', 2
+  union all
+  select 'permission_id_seq', 5
+  union all
+  select 'privilege_id_seq', 1;
 
+
+INSERT INTO ambari.adminresourcetype (resource_type_id, resource_type_name)
+  SELECT 1, 'AMBARI'
+  UNION ALL
+  SELECT 2, 'CLUSTER'
+  UNION ALL
+  SELECT 3, 'VIEW';
+
+INSERT INTO ambari.adminresource (resource_id, resource_type_id)
+  SELECT 1, 1;
 
 INSERT INTO ambari.Roles (role_name)
   SELECT 'admin'
   UNION ALL
   SELECT 'user';
 
-INSERT INTO ambari.Users (user_id, user_name, user_password)
-  SELECT 1, 'admin', '538916f8943ec225d97a9a86a2c6ec0818c1cd400e09e03b660fdaaec4af29ddbb6f2b1033b81b00';
+INSERT INTO ambari.adminprincipaltype (principal_type_id, principal_type_name)
+  SELECT 1, 'USER'
+  UNION ALL
+  SELECT 2, 'GROUP';
+
+INSERT INTO ambari.adminprincipal (principal_id, principal_type_id)
+  SELECT 1, 1;
+
+INSERT INTO ambari.Users (user_id, principal_id, user_name, user_password)
+  SELECT 1, 1, 'admin', '538916f8943ec225d97a9a86a2c6ec0818c1cd400e09e03b660fdaaec4af29ddbb6f2b1033b81b00';
 
 INSERT INTO ambari.user_roles (role_name, user_id)
   SELECT 'admin', 1;
+
+INSERT INTO ambari.adminpermission(permission_id, permission_name, resource_type_id)
+  SELECT 1, 'AMBARI.ADMIN', 1
+  UNION ALL
+  SELECT 2, 'CLUSTER.READ', 2
+  UNION ALL
+  SELECT 3, 'CLUSTER.OPERATE', 2
+  UNION ALL
+  SELECT 4, 'VIEW.USE', 3;
+
+INSERT INTO ambari.adminprivilege (privilege_id, permission_id, resource_id, principal_id)
+  SELECT 1, 1, 1, 1;
 
 INSERT INTO ambari.metainfo (metainfo_key, metainfo_value)
   SELECT 'version', '${ambariVersion}';

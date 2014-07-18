@@ -22,8 +22,6 @@ package org.apache.ambari.server.controller.spi;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import org.apache.ambari.server.controller.spi.Resource.Type;
-
 /**
  * The resource object represents a requested resource.  The resource
  * contains a collection of values for the requested properties.
@@ -113,7 +111,10 @@ public interface Resource {
     Blueprint,
     HostComponentProcess,
     Permission,
-    AlertDefinition;
+    AlertDefinition,
+    AmbariPrivilege,
+    ClusterPrivilege,
+    ViewPrivilege;
 
     /**
      * Get the {@link Type} that corresponds to this InternalType.
@@ -186,6 +187,9 @@ public interface Resource {
     public static final Type HostComponentProcess = InternalType.HostComponentProcess.getType();
     public static final Type Permission = InternalType.Permission.getType();
     public static final Type AlertDefinition = InternalType.AlertDefinition.getType();
+    public static final Type AmbariPrivilege = InternalType.AmbariPrivilege.getType();
+    public static final Type ClusterPrivilege = InternalType.ClusterPrivilege.getType();
+    public static final Type ViewPrivilege = InternalType.ViewPrivilege.getType();
 
     /**
      * The type name.

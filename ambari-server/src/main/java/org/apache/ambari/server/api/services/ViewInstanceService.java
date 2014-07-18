@@ -226,6 +226,13 @@ public class ViewInstanceService extends BaseService {
     return service;
   }
 
+  /**
+   * Gets the admin privilege service
+   */
+  @Path("{instanceName}/privileges")
+  public PrivilegeService getPrivilegeService(@PathParam ("instanceName") String instanceName) {
+    return new ViewPrivilegeService(viewName, version, instanceName);
+  }
 
   // ----- helper methods ----------------------------------------------------
 

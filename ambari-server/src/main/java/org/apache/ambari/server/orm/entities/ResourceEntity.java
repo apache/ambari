@@ -1,0 +1,115 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.apache.ambari.server.orm.entities;
+
+import javax.persistence.*;
+
+/**
+ * Represents a resource.
+ */
+@Table(name = "adminresource")
+@Entity
+@TableGenerator(name = "resource_id_generator",
+    table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "value"
+    , pkColumnValue = "resource_id_seq"
+    , initialValue = 2
+    , allocationSize = 1
+)
+public class ResourceEntity {
+
+  /**
+   * The Ambari admin resource ID.
+   */
+  public final static long AMBARI_RESOURCE_ID = 1L;
+
+  /**
+   * The type id.
+   */
+  @Id
+  @Column(name = "resource_id")
+  @GeneratedValue(strategy = GenerationType.TABLE, generator = "resource_id_generator")
+  private Long id;
+
+  @ManyToOne
+  @JoinColumns({
+      @JoinColumn(name = "resource_type_id", referencedColumnName = "resource_type_id", nullable = false)
+  })
+  private ResourceTypeEntity resourceType;
+
+
+  // ----- ResourceEntity ---------------------------------------------------
+
+  /**
+   * Get the resource type id.
+   *
+   * @return the resource type id.
+   */
+  public Long getId() {
+    return id;
+  }
+
+  /**
+   * Set the resource id.
+   *
+   * @param id  the type id.
+   */
+  public void setId(Long id) {
+    this.id = id;
+  }
+
+  /**
+   * Get the resource type entity.
+   *
+   * @return  the resource type entity
+   */
+  public ResourceTypeEntity getResourceType() {
+    return resourceType;
+  }
+
+  /**
+   * Set the resource type entity.
+   *
+   * @param resourceType  the resource type entity
+   */
+  public void setResourceType(ResourceTypeEntity resourceType) {
+    this.resourceType = resourceType;
+  }
+
+
+  // ----- Object overrides --------------------------------------------------
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    ResourceEntity that = (ResourceEntity) o;
+
+    return id.equals(that.id) && !(resourceType != null ?
+        !resourceType.equals(that.resourceType) : that.resourceType != null);
+
+  }
+
+  @Override
+  public int hashCode() {
+    int result = id.hashCode();
+    result = 31 * result + (resourceType != null ? resourceType.hashCode() : 0);
+    return result;
+  }
+}
