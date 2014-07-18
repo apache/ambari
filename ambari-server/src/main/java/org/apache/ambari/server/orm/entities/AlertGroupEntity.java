@@ -17,7 +17,7 @@
  */
 package org.apache.ambari.server.orm.entities;
 
-import java.util.List;
+import java.util.Set;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -42,7 +42,9 @@ import javax.persistence.UniqueConstraint;
     "cluster_id", "group_name" }))
 @NamedQueries({
     @NamedQuery(name = "AlertGroupEntity.findAll", query = "SELECT alertGroup FROM AlertGroupEntity alertGroup"),
-    @NamedQuery(name = "AlertGroupEntity.findByName", query = "SELECT alertGroup FROM AlertGroupEntity alertGroup WHERE alertGroup.groupName = :groupName"), })
+    @NamedQuery(name = "AlertGroupEntity.findAllInCluster", query = "SELECT alertGroup FROM AlertGroupEntity alertGroup WHERE alertGroup.clusterId = :clusterId"),
+    @NamedQuery(name = "AlertGroupEntity.findByName", query = "SELECT alertGroup FROM AlertGroupEntity alertGroup WHERE alertGroup.groupName = :groupName"),
+    @NamedQuery(name = "AlertGroupEntity.findByNameInCluster", query = "SELECT alertGroup FROM AlertGroupEntity alertGroup WHERE alertGroup.groupName = :groupName AND alertGroup.clusterId = :clusterId"), })
 public class AlertGroupEntity {
 
   @Id
@@ -64,13 +66,13 @@ public class AlertGroupEntity {
    */
   @ManyToMany
   @JoinTable(name = "alert_grouping", joinColumns = { @JoinColumn(name = "group_id", nullable = false) }, inverseJoinColumns = { @JoinColumn(name = "definition_id", nullable = false) })
-  private List<AlertDefinitionEntity> alertDefinitions;
+  private Set<AlertDefinitionEntity> alertDefinitions;
 
   /**
    * Bi-directional many-to-many association to {@link AlertTargetEntity}
    */
   @ManyToMany(mappedBy = "alertGroups")
-  private List<AlertTargetEntity> alertTargets;
+  private Set<AlertTargetEntity> alertTargets;
 
   /**
    * Constructor.
@@ -164,7 +166,7 @@ public class AlertGroupEntity {
    * 
    * @return the alert definitions or {@code null} if none.
    */
-  public List<AlertDefinitionEntity> getAlertDefinitions() {
+  public Set<AlertDefinitionEntity> getAlertDefinitions() {
     return alertDefinitions;
   }
 
@@ -174,7 +176,7 @@ public class AlertGroupEntity {
    * @param alertDefinitions
    *          the definitions, or {@code null} for none.
    */
-  public void setAlertDefinitions(List<AlertDefinitionEntity> alertDefinitions) {
+  public void setAlertDefinitions(Set<AlertDefinitionEntity> alertDefinitions) {
     this.alertDefinitions = alertDefinitions;
   }
 
@@ -184,7 +186,7 @@ public class AlertGroupEntity {
    * 
    * @return the targets, or {@code null} if there are none.
    */
-  public List<AlertTargetEntity> getAlertTargets() {
+  public Set<AlertTargetEntity> getAlertTargets() {
     return alertTargets;
   }
 
@@ -195,7 +197,35 @@ public class AlertGroupEntity {
    * @param alertTargets
    *          the targets, or {@code null} if there are none.
    */
-  public void setAlertTargets(List<AlertTargetEntity> alertTargets) {
+  public void setAlertTargets(Set<AlertTargetEntity> alertTargets) {
     this.alertTargets = alertTargets;
+  }
+
+  /**
+   *
+   */
+  @Override
+  public boolean equals(Object object) {
+    if (this == object)
+      return true;
+
+    if (object == null || getClass() != object.getClass())
+      return false;
+
+    AlertGroupEntity that = (AlertGroupEntity) object;
+
+    if (groupId != null ? !groupId.equals(that.groupId) : that.groupId != null)
+      return false;
+
+    return true;
+  }
+
+  /**
+   *
+   */
+  @Override
+  public int hashCode() {
+    int result = null != groupId ? groupId.hashCode() : 0;
+    return result;
   }
 }

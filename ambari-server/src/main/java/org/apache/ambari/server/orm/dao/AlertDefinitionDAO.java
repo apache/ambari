@@ -62,17 +62,21 @@ public class AlertDefinitionDAO {
   }
 
   /**
-   * Gets an alert definition with the specified name.
+   * Gets an alert definition with the specified name. Alert definition names
+   * are unique within a cluster.
    * 
+   * @param clusterId
+   *          the ID of the cluster.
    * @param definitionName
    *          the name of the definition (not {@code null}).
    * @return the alert definition or {@code null} if none exists.
    */
   @RequiresSession
-  public AlertDefinitionEntity findByName(String definitionName) {
+  public AlertDefinitionEntity findByName(long clusterId, String definitionName) {
     TypedQuery<AlertDefinitionEntity> query = entityManagerProvider.get().createNamedQuery(
         "AlertDefinitionEntity.findByName", AlertDefinitionEntity.class);
 
+    query.setParameter("clusterId", clusterId);
     query.setParameter("definitionName", definitionName);
 
     return daoUtils.selectSingle(query);
@@ -81,12 +85,29 @@ public class AlertDefinitionDAO {
   /**
    * Gets all alert definitions stored in the database.
    * 
-   * @return all alert definitions or {@code null} if none exist.
+   * @return all alert definitions or an empty list if none exist (never
+   *         {@code null}).
    */
   @RequiresSession
   public List<AlertDefinitionEntity> findAll() {
     TypedQuery<AlertDefinitionEntity> query = entityManagerProvider.get().createNamedQuery(
         "AlertDefinitionEntity.findAll", AlertDefinitionEntity.class);
+
+    return daoUtils.selectList(query);
+  }
+
+  /**
+   * Gets all alert definitions stored in the database.
+   * 
+   * @return all alert definitions or empty list if none exist (never
+   *         {@code null}).
+   */
+  @RequiresSession
+  public List<AlertDefinitionEntity> findAll(long clusterId) {
+    TypedQuery<AlertDefinitionEntity> query = entityManagerProvider.get().createNamedQuery(
+        "AlertDefinitionEntity.findAllInCluster", AlertDefinitionEntity.class);
+
+    query.setParameter("clusterId", clusterId);
 
     return daoUtils.selectList(query);
   }

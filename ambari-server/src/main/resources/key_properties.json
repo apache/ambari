@@ -130,5 +130,9 @@
     "Component": "HostComponentProcess/component_name",
     "HostComponent": "HostComponentProcess/component_name",
     "HostComponentProcess": "HostComponentProcess/name"
+  },
+  "AlertDefinition": {
+    "Cluster": "AlertDefinition/cluster_name",
+    "AlertDefinition": "AlertDefinition/id"
   }
 }

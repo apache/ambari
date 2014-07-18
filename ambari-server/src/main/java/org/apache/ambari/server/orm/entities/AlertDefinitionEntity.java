@@ -17,7 +17,7 @@
  */
 package org.apache.ambari.server.orm.entities;
 
-import java.util.List;
+import java.util.Set;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -40,7 +40,8 @@ import javax.persistence.UniqueConstraint;
     "cluster_id", "definition_name" }))
 @NamedQueries({
     @NamedQuery(name = "AlertDefinitionEntity.findAll", query = "SELECT alertDefinition FROM AlertDefinitionEntity alertDefinition"),
-    @NamedQuery(name = "AlertDefinitionEntity.findByName", query = "SELECT alertDefinition FROM AlertDefinitionEntity alertDefinition WHERE alertDefinition.definitionName = :definitionName"), })
+    @NamedQuery(name = "AlertDefinitionEntity.findAllInCluster", query = "SELECT alertDefinition FROM AlertDefinitionEntity alertDefinition WHERE alertDefinition.clusterId = :clusterId"),
+    @NamedQuery(name = "AlertDefinitionEntity.findByName", query = "SELECT alertDefinition FROM AlertDefinitionEntity alertDefinition WHERE alertDefinition.definitionName = :definitionName AND alertDefinition.clusterId = :clusterId"), })
 public class AlertDefinitionEntity {
 
   @Id
@@ -49,7 +50,7 @@ public class AlertDefinitionEntity {
   private Long definitionId;
 
   @Column(name = "alert_source", nullable = false, length = 2147483647)
-  private String alertSource;
+  private String source;
 
   @Column(name = "cluster_id", nullable = false)
   private Long clusterId;
@@ -59,6 +60,9 @@ public class AlertDefinitionEntity {
 
   @Column(name = "definition_name", nullable = false, length = 255)
   private String definitionName;
+  
+  @Column(name = "scope", length = 255)
+  private String scope;
 
   @Column(nullable = false)
   private Integer enabled = Integer.valueOf(1);
@@ -79,7 +83,7 @@ public class AlertDefinitionEntity {
    * Bi-directional many-to-many association to {@link AlertGroupEntity}
    */
   @ManyToMany(mappedBy = "alertDefinitions")
-  private List<AlertGroupEntity> alertGroups;
+  private Set<AlertGroupEntity> alertGroups;
 
   /**
    * Constructor.
@@ -113,8 +117,8 @@ public class AlertDefinitionEntity {
    * 
    * @return the alert source (never {@code null}).
    */
-  public String getAlertSource() {
-    return alertSource;
+  public String getSource() {
+    return source;
   }
 
   /**
@@ -124,8 +128,8 @@ public class AlertDefinitionEntity {
    * @param alertSource
    *          the alert source (not {@code null}).
    */
-  public void setAlertSource(String alertSource) {
-    this.alertSource = alertSource;
+  public void setSource(String alertSource) {
+    this.source = alertSource;
   }
 
   /**
@@ -173,6 +177,27 @@ public class AlertDefinitionEntity {
   }
 
   /**
+   * Gets the scope of the alert definition. The scope is defined as either
+   * being for a SERVICE or a HOST.
+   * 
+   * @return the scope, or {@code null} if not defined.
+   */
+  public String getScope() {
+    return scope;
+  }
+
+  /**
+   * Sets the scope of the alert definition. The scope is defined as either
+   * being for a SERVICE or a HOST.
+   * 
+   * @param scope
+   *          the scope to set, or {@code null} for none.
+   */
+  public void setScope(String scope) {
+    this.scope = scope;
+  }
+
+  /**
    * Gets the name of this alert definition. Alert definition names are unique
    * within a cluster.
    * 
@@ -201,8 +226,8 @@ public class AlertDefinitionEntity {
    * @return {@code true} if this alert definition is enabled, {@code false}
    *         otherwise.
    */
-  public Integer getEnabled() {
-    return enabled;
+  public boolean getEnabled() {
+    return enabled == 0 ? false : true;
   }
 
   /**
@@ -298,7 +323,7 @@ public class AlertDefinitionEntity {
    * 
    * @return the groups, or {@code null} if none.
    */
-  public List<AlertGroupEntity> getAlertGroups() {
+  public Set<AlertGroupEntity> getAlertGroups() {
     return alertGroups;
   }
 
@@ -308,7 +333,36 @@ public class AlertDefinitionEntity {
    * @param alertGroups
    *          the groups, or {@code null} for none.
    */
-  public void setAlertGroups(List<AlertGroupEntity> alertGroups) {
+  public void setAlertGroups(Set<AlertGroupEntity> alertGroups) {
     this.alertGroups = alertGroups;
+  }
+
+  /**
+   *
+   */
+  @Override
+  public boolean equals(Object object) {
+    if (this == object)
+      return true;
+
+    if (object == null || getClass() != object.getClass())
+      return false;
+
+    AlertDefinitionEntity that = (AlertDefinitionEntity) object;
+
+    if (definitionId != null ? !definitionId.equals(that.definitionId)
+        : that.definitionId != null)
+      return false;
+
+    return true;
+  }
+
+  /**
+   *
+   */
+  @Override
+  public int hashCode() {
+    int result = null != definitionId ? definitionId.hashCode() : 0;
+    return result;
   }
 }

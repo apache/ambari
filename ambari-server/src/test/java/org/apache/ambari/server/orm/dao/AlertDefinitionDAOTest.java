@@ -81,7 +81,9 @@ public class AlertDefinitionDAOTest {
   public void testFindByName() {
     AlertDefinitionEntity entity = new AlertDefinitionEntity();
     TypedQuery<AlertDefinitionEntity> query = createStrictMock(TypedQuery.class);
-    
+
+    expect(query.setParameter("clusterId", 12345L)).andReturn(query);
+
     expect(query.setParameter("definitionName", "alert-definition-1")).andReturn(
         query);
 
@@ -93,7 +95,7 @@ public class AlertDefinitionDAOTest {
 
     replay(query, entityManager);
 
-    AlertDefinitionEntity result = dao.findByName("alert-definition-1");
+    AlertDefinitionEntity result = dao.findByName(12345L, "alert-definition-1");
 
     assertSame(result, entity);
     verify(entityManagerProvider, entityManager);

@@ -17,7 +17,7 @@
  */
 package org.apache.ambari.server.orm.entities;
 
-import java.util.List;
+import java.util.Set;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -64,7 +64,7 @@ public class AlertTargetEntity {
    */
   @ManyToMany
   @JoinTable(name = "alert_group_target", joinColumns = { @JoinColumn(name = "target_id", nullable = false) }, inverseJoinColumns = { @JoinColumn(name = "group_id", nullable = false) })
-  private List<AlertGroupEntity> alertGroups;
+  private Set<AlertGroupEntity> alertGroups;
 
   /**
    * Constructor.
@@ -163,7 +163,7 @@ public class AlertTargetEntity {
    * @return the groups that will send to this target when an alert in that
    *         group is received, or {@code null} for none.
    */
-  public List<AlertGroupEntity> getAlertGroups() {
+  public Set<AlertGroupEntity> getAlertGroups() {
     return alertGroups;
   }
 
@@ -174,7 +174,37 @@ public class AlertTargetEntity {
    *          the groups that will send to this target when an alert in that
    *          group is received, or {@code null} for none.
    */
-  public void setAlertGroups(List<AlertGroupEntity> alertGroups) {
+  public void setAlertGroups(Set<AlertGroupEntity> alertGroups) {
     this.alertGroups = alertGroups;
   }
+
+  /**
+   *
+   */
+  @Override
+  public boolean equals(Object object) {
+    if (this == object)
+      return true;
+
+    if (object == null || getClass() != object.getClass())
+      return false;
+
+    AlertTargetEntity that = (AlertTargetEntity) object;
+
+    if (targetId != null ? !targetId.equals(that.targetId)
+        : that.targetId != null)
+      return false;
+
+    return true;
+  }
+
+  /**
+   *
+   */
+  @Override
+  public int hashCode() {
+    int result = null != targetId ? targetId.hashCode() : 0;
+    return result;
+  }
+
 }

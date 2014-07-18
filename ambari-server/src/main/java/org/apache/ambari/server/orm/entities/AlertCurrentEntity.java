@@ -175,4 +175,31 @@ public class AlertCurrentEntity {
     this.alertHistory = alertHistory;
   }
 
+  /**
+   *
+   */
+  @Override
+  public boolean equals(Object object) {
+    if (this == object)
+      return true;
+
+    if (object == null || getClass() != object.getClass())
+      return false;
+
+    AlertCurrentEntity that = (AlertCurrentEntity) object;
+
+    if (alertId != null ? !alertId.equals(that.alertId) : that.alertId != null)
+      return false;
+
+    return true;
+  }
+
+  /**
+   *
+   */
+  @Override
+  public int hashCode() {
+    int result = null != alertId ? alertId.hashCode() : 0;
+    return result;
+  }
 }

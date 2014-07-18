@@ -26,6 +26,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
@@ -41,7 +42,9 @@ import org.apache.ambari.server.state.AlertState;
  */
 @Entity
 @Table(name = "alert_history")
-@NamedQuery(name = "AlertHistoryEntity.findAll", query = "SELECT alertHistory FROM AlertHistoryEntity alertHistory")
+@NamedQueries({
+    @NamedQuery(name = "AlertHistoryEntity.findAll", query = "SELECT alertHistory FROM AlertHistoryEntity alertHistory"),
+    @NamedQuery(name = "AlertHistoryEntity.findAllInCluster", query = "SELECT alertHistory FROM AlertHistoryEntity alertHistory WHERE alertHistory.clusterId = :clusterId") })
 public class AlertHistoryEntity {
 
   @Id
@@ -80,7 +83,7 @@ public class AlertHistoryEntity {
   /**
    * Bi-directional one-to-one association to {@link AlertCurrentEntity}.
    */
-  @OneToOne(mappedBy = "alertHistory")
+  @OneToOne(mappedBy = "alertHistory", orphanRemoval = true)
   private AlertCurrentEntity alertCurrent;
 
   /**
@@ -341,4 +344,33 @@ public class AlertHistoryEntity {
   public void setAlertDefinition(AlertDefinitionEntity alertDefinition) {
     this.alertDefinition = alertDefinition;
   }
+
+  /**
+   *
+   */
+  @Override
+  public boolean equals(Object object) {
+    if (this == object)
+      return true;
+
+    if (object == null || getClass() != object.getClass())
+      return false;
+
+    AlertHistoryEntity that = (AlertHistoryEntity) object;
+
+    if (alertId != null ? !alertId.equals(that.alertId) : that.alertId != null)
+      return false;
+
+    return true;
+  }
+
+  /**
+   *
+   */
+  @Override
+  public int hashCode() {
+    int result = null != alertId ? alertId.hashCode() : 0;
+    return result;
+  }
+
 }

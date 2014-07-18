@@ -207,6 +207,15 @@ public class ClusterService extends BaseService {
                              (@PathParam ("clusterName") String clusterName) {
     return new RequestScheduleService(clusterName);
   }
+  
+  /**
+   * Gets the alert definition service
+   */
+  @Path("{clusterName}/alert_definitions")
+  public AlertDefinitionService getAlertDefinitionService(
+      @PathParam("clusterName") String clusterName) {
+    return new AlertDefinitionService(clusterName);
+  }
 
   /**
    * Create a cluster resource instance.
