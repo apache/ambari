@@ -252,10 +252,10 @@ App.ManageConfigGroupsController = Em.Controller.extend({
       App.config.loadedConfigurationsCache[configs.type + "_" + configs.tag] = configs.properties;
       var group = params.typeTagToGroupMap[configs.type + "///" + configs.tag];
       for (var config in configs.properties) {
-        typeTagConfigs.push({
+        typeTagConfigs.push(Em.Object.create({
           name: config,
           value: configs.properties[config]
-        });
+        }));
       }
       this.get('configGroups').findProperty('name', group).get('properties').pushObjects(typeTagConfigs);
     }, this);
