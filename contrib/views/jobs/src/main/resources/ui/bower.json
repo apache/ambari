@@ -3,9 +3,11 @@
   "version": "0.0.1",
   "dependencies": {
     "ember": "1.5.0",
+    "moment": ">=2.7.0",
     "handlebars": "1.2.1",
     "ember-data": "1.0.0-beta.7",
-    "bootstrap": ">3.0",
+    "ember-i18n": "1.6.*",
+    "bootstrap": "2.3.*",
     "ember-addons.bs_for_ember": ">=0.7",
     "ember-json-mapper": "master"
   },

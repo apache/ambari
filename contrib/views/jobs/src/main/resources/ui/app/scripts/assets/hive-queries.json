@@ -227,6 +227,162 @@
       },
       "entity": "root_20140221171313_c9710dd6-0d1c-4d9c-9dff-031edbd20b66",
       "entitytype": "HIVE_QUERY_ID"
+    },
+    {
+      "starttime": 1393443850756,
+      "events": [
+        {
+          "timestamp": 1393443850756,
+          "eventtype": "QUERY_COMPLETED",
+          "eventinfo": {}
+        },
+        {
+          "timestamp": 1393443850756,
+          "eventtype": "QUERY_SUBMITTED",
+          "eventinfo": {}
+        }
+      ],
+      "otherinfo": {
+        "status": false,
+        "query": "{}"
+      },
+      "primaryfilters": {
+        "user": [
+          "hive"
+        ]
+      },
+      "entity": "hive_20188952544444_6301b51e-d52c-4618-995f-573e3f59006c",
+      "entitytype": "HIVE_QUERY_ID"
+    },
+    {
+      "starttime": 1393443850756,
+      "events": [
+        {
+          "timestamp": 1393443850756,
+          "eventtype": "QUERY_COMPLETED",
+          "eventinfo": {}
+        },
+        {
+          "timestamp": 1393443850756,
+          "eventtype": "QUERY_SUBMITTED",
+          "eventinfo": {}
+        }
+      ],
+      "otherinfo": {
+        "status": false,
+        "query": "{}"
+      },
+      "primaryfilters": {
+        "user": [
+          "hive"
+        ]
+      },
+      "entity": "hive_20196139444444_6301b51e-d52c-4618-995f-573e3f59006c",
+      "entitytype": "HIVE_QUERY_ID"
+    },
+    {
+      "starttime": 1393443850756,
+      "events": [
+        {
+          "timestamp": 1393443850756,
+          "eventtype": "QUERY_COMPLETED",
+          "eventinfo": {}
+        },
+        {
+          "timestamp": 1393443850756,
+          "eventtype": "QUERY_SUBMITTED",
+          "eventinfo": {}
+        }
+      ],
+      "otherinfo": {
+        "status": false,
+        "query": "{}"
+      },
+      "primaryfilters": {
+        "user": [
+          "hive"
+        ]
+      },
+      "entity": "hive_20127273144444_6301b51e-d52c-4618-995f-573e3f59006c",
+      "entitytype": "HIVE_QUERY_ID"
+    },
+    {
+      "starttime": 1393443850756,
+      "events": [
+        {
+          "timestamp": 1393443850756,
+          "eventtype": "QUERY_COMPLETED",
+          "eventinfo": {}
+        },
+        {
+          "timestamp": 1393443850756,
+          "eventtype": "QUERY_SUBMITTED",
+          "eventinfo": {}
+        }
+      ],
+      "otherinfo": {
+        "status": false,
+        "query": "{}"
+      },
+      "primaryfilters": {
+        "user": [
+          "hive"
+        ]
+      },
+      "entity": "hive_20113100844444_6301b51e-d52c-4618-995f-573e3f59006c",
+      "entitytype": "HIVE_QUERY_ID"
+    },
+    {
+      "starttime": 1393443850756,
+      "events": [
+        {
+          "timestamp": 1393443850756,
+          "eventtype": "QUERY_COMPLETED",
+          "eventinfo": {}
+        },
+        {
+          "timestamp": 1393443850756,
+          "eventtype": "QUERY_SUBMITTED",
+          "eventinfo": {}
+        }
+      ],
+      "otherinfo": {
+        "status": false,
+        "query": "{}"
+      },
+      "primaryfilters": {
+        "user": [
+          "hive"
+        ]
+      },
+      "entity": "hive_20167400444444_6301b51e-d52c-4618-995f-573e3f59006c",
+      "entitytype": "HIVE_QUERY_ID"
+    },
+    {
+      "starttime": 1393443850756,
+      "events": [
+        {
+          "timestamp": 1393443850756,
+          "eventtype": "QUERY_COMPLETED",
+          "eventinfo": {}
+        },
+        {
+          "timestamp": 1393443850756,
+          "eventtype": "QUERY_SUBMITTED",
+          "eventinfo": {}
+        }
+      ],
+      "otherinfo": {
+        "status": false,
+        "query": "{}"
+      },
+      "primaryfilters": {
+        "user": [
+          "hive"
+        ]
+      },
+      "entity": "hive_20110915544444_6301b51e-d52c-4618-995f-573e3f59006c",
+      "entitytype": "HIVE_QUERY_ID"
     }
   ]
 }

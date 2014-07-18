@@ -28,7 +28,21 @@
  *
  * @type {Object}
  */
-var urls = {};
+var urls = {
+
+  'load_jobs': {
+    real: '/proxy?url=http://{historyServerHostName}:{ahsWebPort}/ws/v1/timeline/HIVE_QUERY_ID{filtersLink}',
+    mock: '/scripts/assets/hive-queries.json',
+    apiPrefix: ''
+  },
+
+  'jobs_lastID': {
+    real: '/proxy?url=http://{historyServerHostName}:{ahsWebPort}/ws/v1/timeline/HIVE_QUERY_ID?limit=1&secondaryFilter=tez:true',
+    mock: '/scripts/assets/hive-queries.json',
+    apiPrefix: ''
+  }
+
+};
 /**
  * Replace data-placeholders to its values
  *

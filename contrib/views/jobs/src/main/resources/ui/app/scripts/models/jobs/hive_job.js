@@ -21,8 +21,6 @@ App.HiveJob = App.AbstractJob.extend({
 
   queryText : DS.attr('string'),
 
-  stages : DS.attr('array'),
-
   hasTezDag: DS.attr('boolean'),
 
   tezDag : DS.belongsTo('tezDag', {async:true}),
