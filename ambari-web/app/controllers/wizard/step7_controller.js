@@ -648,7 +648,7 @@ App.WizardStep7Controller = Em.Controller.extend({
     }
     this.clearStep();
     App.config.setPreDefinedServiceConfigs();
-
+    var self = this;
     //STEP 1: Load advanced configs
     var advancedConfigs = this.get('content.advancedServiceConfig');
     //STEP 2: Load on-site configs by service from local DB
@@ -671,14 +671,21 @@ App.WizardStep7Controller = Em.Controller.extend({
     this.set('groupsToDelete', this.get('wizardController').getDBProperty('groupsToDelete') || []);
 
     if (this.get('wizardController.name') === 'addServiceController') {
-      this.setInstalledServiceConfigs(this.get('serviceConfigTags'), configs);
+      App.router.get('configurationController').getConfigsByTags(this.get('serviceConfigTags')).done(function (loadedConfigs) {
+        self.setInstalledServiceConfigs(self.get('serviceConfigTags'), configs, loadedConfigs);
+        self.applyServicesConfigs(configs, storedConfigs);
+      });
+    } else {
+      this.applyServicesConfigs(configs, storedConfigs);
     }
+  },
+
+  applyServicesConfigs: function (configs, storedConfigs) {
     if (this.get('allSelectedServiceNames').contains('STORM') || this.get('installedServiceNames').contains('STORM')) {
       this.resolveServiceDependencyConfigs('STORM', configs);
     }
     //STEP 6: Distribute configs by service and wrap each one in App.ServiceConfigProperty (configs -> serviceConfigs)
     this.setStepConfigs(configs, storedConfigs);
-
     this.checkHostOverrideInstaller();
     this.activateSpecialConfigs();
     this.selectProperService();
@@ -686,7 +693,6 @@ App.WizardStep7Controller = Em.Controller.extend({
       App.router.send('next');
     }
   },
-
   /**
    * If <code>App.supports.hostOverridesInstaller</code> is enabled should load config groups
    * and (if some services are already installed) load config groups for installed services
@@ -802,51 +808,49 @@ App.WizardStep7Controller = Em.Controller.extend({
    * @param configs
    * @method setInstalledServiceConfigs
    */
-  setInstalledServiceConfigs: function (serviceConfigTags, configs) {
+  setInstalledServiceConfigs: function (serviceConfigTags, configs, configsByTags) {
     var configsMap = {};
     var configTypeMap = {};
     var configMixin = App.get('config');
     var self = this;
 
-    App.router.get('configurationController').getConfigsByTags(serviceConfigTags).done(function (configsByTags) {
-      configsByTags.forEach(function (configSite) {
-        $.extend(configsMap, configSite.properties);
-        for (var name in configSite.properties) {
-          configTypeMap[name] = configSite.type;
-        }
-      });
-      configs.forEach(function (_config) {
-        if (!Em.isNone(configsMap[_config.name])) {
-          // prevent overriding already edited properties
-          if (_config.defaultValue != configsMap[_config.name])
-            _config.value = configsMap[_config.name];
-          _config.defaultValue = configsMap[_config.name];
-          _config.hasInitialValue = true;
-          App.config.handleSpecialProperties(_config);
-          delete configsMap[_config.name];
-        }
-      });
-
-      self.setServiceDatabaseConfigs(configs);
-      //add user properties
-      for (var name in configsMap) {
-        configs.push(configMixin.addUserProperty({
-          id: 'site property',
-          name: name,
-          serviceName: configMixin.getServiceNameByConfigType(configTypeMap[name]),
-          value: configsMap[name],
-          defaultValue: configsMap[name],
-          filename: (configMixin.get('filenameExceptions').contains(configTypeMap[name])) ? configTypeMap[name] : configTypeMap[name] + '.xml',
-          category: 'Advanced',
-          isUserProperty: true,
-          isOverridable: true,
-          overrides: [],
-          isRequired: true,
-          isVisible: true,
-          showLabel: true
-        }, false, []));
+    configsByTags.forEach(function (configSite) {
+      $.extend(configsMap, configSite.properties);
+      for (var name in configSite.properties) {
+        configTypeMap[name] = configSite.type;
       }
     });
+    configs.forEach(function (_config) {
+      if (!Em.isNone(configsMap[_config.name])) {
+        // prevent overriding already edited properties
+        if (_config.defaultValue != configsMap[_config.name])
+          _config.value = configsMap[_config.name];
+        _config.defaultValue = configsMap[_config.name];
+        _config.hasInitialValue = true;
+        App.config.handleSpecialProperties(_config);
+        delete configsMap[_config.name];
+      }
+    });
+    self.setServiceDatabaseConfigs(configs);
+    //add user properties
+    for (var name in configsMap) {
+      configs.push(configMixin.addUserProperty({
+        id: 'site property',
+        name: name,
+        serviceName: configMixin.getServiceNameByConfigType(configTypeMap[name]),
+        value: configsMap[name],
+        defaultValue: configsMap[name],
+        filename: (configMixin.get('filenameExceptions').contains(configTypeMap[name])) ? configTypeMap[name] : configTypeMap[name] + '.xml',
+        category: 'Advanced',
+        hasInitialValue: true,
+        isUserProperty: true,
+        isOverridable: true,
+        overrides: [],
+        isRequired: true,
+        isVisible: true,
+        showLabel: true
+      }, false, []));
+    }
   },
   /**
    * Check if Oozie or Hive use existing database then need

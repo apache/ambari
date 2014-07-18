@@ -817,7 +817,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
    */
   saveServiceConfigProperties: function (stepController) {
     var serviceConfigProperties = [];
-    var updateServiceConfigProperties = [];
+    var fileNamesToUpdate = [];
     stepController.get('stepConfigs').forEach(function (_content) {
 
       if (_content.serviceName === 'YARN' && !App.supports.capacitySchedulerUi) {
@@ -837,6 +837,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
           filename: _configProperties.get('filename'),
           displayType: _configProperties.get('displayType'),
           isRequiredByAgent: _configProperties.get('isRequiredByAgent'),
+          hasInitialValue: !!_configProperties.get('hasInitialValue'),
           isRequired: _configProperties.get('isRequired') // flag that allow saving property with empty value
         };
         serviceConfigProperties.push(configProperty);
@@ -846,23 +847,23 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
         // get only modified configs
         var configs = _content.get('configs').filterProperty('isNotDefaultValue').filter(function (config) {
           var notAllowed = ['masterHost', 'masterHosts', 'slaveHosts', 'slaveHost'];
-          return !notAllowed.contains(config.get('displayType'));
+          return !notAllowed.contains(config.get('displayType')) && !!config.filename;
         });
         // if modified configs detected push all service's configs for update
-        if (configs.length)
-          updateServiceConfigProperties = updateServiceConfigProperties.concat(serviceConfigProperties.filterProperty('serviceName', _content.get('serviceName')));
+        if (configs.length) {
+          fileNamesToUpdate = fileNamesToUpdate.concat(configs.mapProperty('filename').uniq());
+        }
         // watch for properties that are not modified but have to be updated
         if (_content.get('configs').someProperty('forceUpdate')) {
           // check for already added modified properties
-          if (!updateServiceConfigProperties.findProperty('serviceName', _content.get('serviceName'))) {
-            updateServiceConfigProperties = updateServiceConfigProperties.concat(serviceConfigProperties.filterProperty('serviceName', _content.get('serviceName')));
-          }
+          var forceUpdatedFileNames = configs.filterProperty('forceUpdate', true).mapProperty('filename').uniq();
+          fileNamesToUpdate = fileNamesToUpdate.concat(forceUpdatedFileNames).uniq();
         }
       }
     }, this);
     this.setDBProperty('serviceConfigProperties', serviceConfigProperties);
     this.set('content.serviceConfigProperties', serviceConfigProperties);
-    this.setDBProperty('configsToUpdate', updateServiceConfigProperties);
+    this.setDBProperty('fileNamesToUpdate', fileNamesToUpdate);
   },
   /**
    * save Config groups

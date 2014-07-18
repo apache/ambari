@@ -1002,6 +1002,7 @@ App.config = Em.Object.create({
       filename: stored.filename,
       category: 'Advanced',
       isUserProperty: stored.isUserProperty === true,
+      hasInitialValue: !!stored.hasInitialValue,
       isOverridable: true,
       overrides: stored.overrides,
       isRequired: true,

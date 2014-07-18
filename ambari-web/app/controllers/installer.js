@@ -58,7 +58,7 @@ App.InstallerController = App.WizardController.extend({
     'selectedServiceNames',
     'serviceConfigGroups',
     'serviceConfigProperties',
-    'configsToUpdate',
+    'fileNamesToUpdate',
     'bootStatus',
     'stacksVersions',
     'currentStep',

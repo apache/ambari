@@ -1667,12 +1667,11 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     var heapsizeException = ['hadoop_heapsize', 'yarn_heapsize', 'nodemanager_heapsize', 'resourcemanager_heapsize', 'apptimelineserver_heapsize', 'jobhistory_heapsize'];
     var siteProperties = {};
     siteObj.forEach(function (_siteObj) {
-      if (_siteObj.isRequiredByAgent !== false) {
-        if (/_heapsize|_newsize|_maxnewsize$/.test(_siteObj.name) && !heapsizeException.contains(_siteObj.name)) {
-          Em.set(_siteObj, "value",  _siteObj.value + "m");
-        }
-        siteProperties[_siteObj.name] = App.config.escapeXMLCharacters(_siteObj.value);
+      if (_siteObj.isRequiredByAgent == false) return;
+      if (/_heapsize|_newsize|_maxnewsize$/.test(_siteObj.name) && !heapsizeException.contains(_siteObj.name)) {
+        Em.set(_siteObj, "value",  _siteObj.value + "m");
       }
+      siteProperties[_siteObj.name] = App.config.escapeXMLCharacters(_siteObj.value);
       switch (siteName) {
         case 'falcon-startup.properties':
         case 'falcon-runtime.properties':
