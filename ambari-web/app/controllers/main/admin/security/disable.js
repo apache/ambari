@@ -146,8 +146,8 @@ App.MainAdminSecurityDisableController = App.MainAdminSecurityProgressController
     } else {
       serviceConfigTags.forEach(function (_serviceConfigTags) {
         _serviceConfigTags.newTagName = 'version' + (new Date).getTime();
-        if (_serviceConfigTags.siteName === 'hadoop-env') {
-          this.deleteDisabledGlobalConfigs(secureProperties, _serviceConfigTags);
+        if (_serviceConfigTags.siteName.contains('-env')) {
+          this.deleteDisabledConfigs(secureProperties, _serviceConfigTags);
           _serviceConfigTags.configs.security_enabled = 'false';
         } else {
           this.modifySiteConfigs(secureMapping, _serviceConfigTags);
@@ -157,12 +157,12 @@ App.MainAdminSecurityDisableController = App.MainAdminSecurityProgressController
     }
   },
   /**
-   * delete global configs, which aren't required when security disabled
+   * delete configs, which aren't required when security disabled
    * @param secureProperties
    * @param _serviceConfigTags
    * @return {Boolean}
    */
-  deleteDisabledGlobalConfigs: function (secureProperties, _serviceConfigTags) {
+  deleteDisabledConfigs: function (secureProperties, _serviceConfigTags) {
     if (!secureProperties || !_serviceConfigTags) return false;
     secureProperties.forEach(function (_config) {
       if (_config.name in _serviceConfigTags.configs) {

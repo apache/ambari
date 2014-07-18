@@ -99,8 +99,8 @@ App.MainAdminSecurityController = Em.Controller.extend({
     this.loadSecurityUsers();
     //loadSecurityUsers - desired configs fetched from server
     step2Controller.addUserPrincipals(services, this.get('securityUsers'));
-    step2Controller.addMasterHostToGlobals();
-    step2Controller.addSlaveHostToGlobals();
+    step2Controller.addMasterHostToConfigs();
+    step2Controller.addSlaveHostToConfigs();
     this.renderServiceConfigs(services);
     step2Controller.changeCategoryOnHa(services, this.get('stepConfigs'));
 

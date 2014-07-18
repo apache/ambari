@@ -25,7 +25,7 @@ App.MainAdminSecurityAddStep4Controller = App.MainAdminSecurityProgressControlle
   serviceUsersBinding: 'App.router.mainAdminSecurityController.serviceUsers',
 
   /**
-   * component configs which should be added to global
+   * component configs which should be added to configs
    */
   componentsConfig: [
     {
@@ -200,7 +200,7 @@ App.MainAdminSecurityAddStep4Controller = App.MainAdminSecurityProgressControlle
       if (_config.hasOwnProperty('dependedServiceName')) {
         value = this.checkServiceForConfigValue(value, _config.dependedServiceName);
       }
-      value = this.getGlobConfigValue(_config.templateName, value);
+      value = this.getConfigValue(_config.templateName, value);
       uiConfig.push({
         "id": "site property",
         "name": _config.name,
@@ -245,24 +245,24 @@ App.MainAdminSecurityAddStep4Controller = App.MainAdminSecurityProgressControlle
    * @param expression
    * @return {String|null}
    */
-  getGlobConfigValue: function (templateName, expression) {
+  getConfigValue: function (templateName, expression) {
     var express = expression.match(/<(.*?)>/g);
     var value = expression;
     if (Em.isNone(express)) return expression;
 
     express.forEach(function (_express) {
       var index = parseInt(_express.match(/\[([\d]*)(?=\])/)[1]);
-      var globalConfig = this.get('globalProperties').findProperty('name', templateName[index]);
+      var configs = this.get('configs').findProperty('name', templateName[index]);
 
       if (!!value) {
-        value = (globalConfig) ? value.replace(_express, globalConfig.value) : null;
+        value = (configs) ? value.replace(_express, configs.value) : null;
       }
     }, this);
     return value;
   },
 
   /**
-   * format name of config values of global configs which match foreignKey
+   * format name of config values of configs which match foreignKey
    * @param uiConfig
    * @param config
    * @return {Boolean}
@@ -274,13 +274,13 @@ App.MainAdminSecurityAddStep4Controller = App.MainAdminSecurityProgressControlle
     if (fkValue) {
       fkValue.forEach(function (_fkValue) {
         var index = parseInt(_fkValue.match(/\[([\d]*)(?=\])/)[1]);
-        var globalValue;
+        var value;
         if (uiConfig.someProperty('name', config.foreignKey[index])) {
-          globalValue = uiConfig.findProperty('name', config.foreignKey[index]).value;
-          config._name = config.name.replace(_fkValue, globalValue);
-        } else if (this.get('globalProperties').someProperty('name', config.foreignKey[index])) {
-          globalValue = this.get('globalProperties').findProperty('name', config.foreignKey[index]).value;
-          config._name = config.name.replace(_fkValue, globalValue);
+          value = uiConfig.findProperty('name', config.foreignKey[index]).value;
+          config._name = config.name.replace(_fkValue, value);
+        } else if (this.get('configs').someProperty('name', config.foreignKey[index])) {
+          value = this.get('configs').findProperty('name', config.foreignKey[index]).value;
+          config._name = config.name.replace(_fkValue, value);
         }
       }, this);
       return true;
@@ -289,7 +289,7 @@ App.MainAdminSecurityAddStep4Controller = App.MainAdminSecurityProgressControlle
   },
 
   /**
-   * Set config value with values of global configs which match template
+   * Set config value with values of configs which match template
    * @param config
    * @return {Boolean}
    */
@@ -301,9 +301,9 @@ App.MainAdminSecurityAddStep4Controller = App.MainAdminSecurityProgressControlle
     if (templateValue) {
       templateValue.forEach(function (_value) {
         var index = parseInt(_value.match(/\[([\d]*)(?=\])/)[1]);
-        var globValue = this.get('globalProperties').findProperty('name', config.templateName[index]);
+        var cfgValue = this.get('configs').findProperty('name', config.templateName[index]);
 
-        config.value = (globValue) ? config.value.replace(_value, globValue.value) : null;
+        config.value = (cfgValue) ? config.value.replace(_value, cfgValue.value) : null;
       }, this);
       return true;
     }
@@ -314,33 +314,26 @@ App.MainAdminSecurityAddStep4Controller = App.MainAdminSecurityProgressControlle
    * prepare secure configs
    */
   prepareSecureConfigs: function () {
-    this.loadGlobals();
-    var storedConfigs = this.get('content.serviceConfigProperties').filterProperty('id', 'site property');
+    var configs = this.get('content.serviceConfigProperties');
+    this.set('configs', configs);
+    this.loadStaticConfigs(); //Hack for properties which are declared in site_properties.js and not able to retrieve values declared in secure_properties.js
+    this.loadUsersToConfigs();
+    this.loadHostNames();
+    this.loadPrimaryNames();
     var uiConfigs = this.loadUiSideConfigs();
-    this.set('configs', storedConfigs.concat(uiConfigs));
+    this.set('configs', this.get('configs').concat(uiConfigs));
   },
 
-  /**
-   * load global configs
-   */
-  loadGlobals: function () {
-    var globals = this.get('content.serviceConfigProperties').filterProperty('id', 'puppet var');
-    this.set('globalProperties', globals);
-    this.loadStaticGlobal(); //Hack for properties which are declared in global_properties.js and not able to retrieve values declared in secure_properties.js
-    this.loadUsersToGlobal();
-    this.loadHostNamesToGlobal();
-    this.loadPrimaryNamesToGlobals();
-  },
 
   /**
-   * push users to global configs
+   * push users to configs
    */
-  loadUsersToGlobal: function () {
+  loadUsersToConfigs: function () {
     if (!this.get('serviceUsers').length)  {
       this.loadUsersFromServer();
     }
     App.router.get('mainAdminSecurityController.serviceUsers').forEach(function (_user) {
-      this.get('globalProperties').pushObject(_user);
+      this.get('configs').pushObject(_user);
     }, this);
   },
 
@@ -359,7 +352,7 @@ App.MainAdminSecurityAddStep4Controller = App.MainAdminSecurityProgressControlle
       var hostComponent = service.get('hostComponents').findProperty('componentName', componentName);
       if (hostComponent) {
         var hostName = hostComponent.get('hostName');
-        this.get('globalProperties').push({
+        this.get('configs').push({
           id: 'puppet var',
           name: configName,
           value: hostName
@@ -371,9 +364,9 @@ App.MainAdminSecurityAddStep4Controller = App.MainAdminSecurityProgressControlle
   },
 
   /**
-   * add hosts' names to global configs
+   * add hosts' names to configs
    */
-  loadHostNamesToGlobal: function () {
+  loadHostNames: function () {
     var componentsConfig = this.get('componentsConfig');
     componentsConfig.forEach(function (host) {
       this.addHostConfig(host.serviceName, host.componentName, host.configName);
@@ -381,10 +374,10 @@ App.MainAdminSecurityAddStep4Controller = App.MainAdminSecurityProgressControlle
   },
 
   /**
-   * load static global
+   * load static configs
    */
-  loadStaticGlobal: function () {
-    this.get('globalProperties').forEach(function (_property) {
+  loadStaticConfigs: function () {
+    this.get('configs').forEach(function (_property) {
       switch (_property.name) {
         case 'security_enabled':
           _property.value = 'true';
@@ -394,26 +387,26 @@ App.MainAdminSecurityAddStep4Controller = App.MainAdminSecurityProgressControlle
   },
 
   /**
-   * add principals to global properties
+   * add principals to properties
    */
-  loadPrimaryNamesToGlobals: function () {
+  loadPrimaryNames: function () {
     var principalProperties = this.getPrincipalNames();
     principalProperties.forEach(function (_principalProperty) {
       var name = _principalProperty.name.replace('principal', 'primary');
       var value = _principalProperty.value.split('/')[0];
-      this.get('globalProperties').push({name: name, value: value});
+      this.get('configs').push({name: name, value: value});
     }, this);
   },
 
   /**
-   * gather and return global properties with "principal_name"
+   * gather and return properties with "principal_name"
    * @return {Array}
    */
   getPrincipalNames: function () {
     var principalNames = [];
-    this.get('globalProperties').forEach(function (_globalProperty) {
-      if (/principal_name?$/.test(_globalProperty.name)) {
-        principalNames.push(_globalProperty);
+    this.get('configs').forEach(function (_property) {
+      if (/principal_name?$/.test(_property.name)) {
+        principalNames.push(_property);
       }
     }, this);
     this.get('secureProperties').forEach(function (_secureProperty) {
@@ -450,27 +443,18 @@ App.MainAdminSecurityAddStep4Controller = App.MainAdminSecurityProgressControlle
   manageSecureConfigs: function () {
     var serviceConfigTags = this.get('serviceConfigTags');
     var secureConfigs = this.get('secureConfigs');
-    var siteProperties = this.get('configs').filterProperty('id', 'site property');
-    var globalProperties = this.get('globalProperties');
-
+    var siteProperties = this.get('configs');
     if (serviceConfigTags) {
+      secureConfigs.forEach(function (config) {
+        this.setPrincipalValue(config.serviceName, config.name);
+      }, this);
       serviceConfigTags.forEach(function (_serviceConfigTags) {
         _serviceConfigTags.newTagName = 'version' + (new Date).getTime();
-
-        if (_serviceConfigTags.siteName === 'global') {
-          secureConfigs.forEach(function (config) {
-            this.setPrincipalValue(config.serviceName, config.name);
-          }, this);
-          globalProperties.forEach(function (_globalProperty) {
-            if (!/_hosts?$/.test(_globalProperty.name)) {
-              _serviceConfigTags.configs[_globalProperty.name] = _globalProperty.value;
-            }
-          }, this);
-        } else {
-          siteProperties.filterProperty('filename', _serviceConfigTags.siteName + '.xml').forEach(function (_config) {
+        siteProperties.filterProperty('filename', _serviceConfigTags.siteName + '.xml').forEach(function (_config) {
+          if (!/_hosts?$/.test(_config.name)) {
             _serviceConfigTags.configs[_config.name] = _config.value;
-          }, this);
-        }
+          }
+        }, this);
       }, this);
       return true;
     } else {
@@ -489,11 +473,11 @@ App.MainAdminSecurityAddStep4Controller = App.MainAdminSecurityProgressControlle
    * @return {Boolean}
    */
   setPrincipalValue: function (serviceName, principalName) {
-    var globalProperties = this.get('globalProperties');
-    var realmName = globalProperties.findProperty('name', 'kerberos_domain');
+    var siteProperties = this.get('configs');
+    var realmName = siteProperties.findProperty('name', 'kerberos_domain');
 
     if (this.get('secureServices').someProperty('serviceName', serviceName)) {
-      var principalProperty = globalProperties.findProperty('name', principalName);
+      var principalProperty = siteProperties.findProperty('name', principalName);
       principalProperty.value = principalProperty.value + '@' + realmName.value;
       return true;
     }

@@ -31,7 +31,7 @@ module.exports = [
       App.ServiceConfigCategory.create({ name: 'KERBEROS', displayName: 'Kerberos'}),
       App.ServiceConfigCategory.create({ name: 'AMBARI', displayName: 'Ambari'})
     ],
-    sites: ['global'],
+    sites: ['hadoop-env', 'oozie-env', 'nagios-env', 'zookeeper-env', 'storm-env', 'hbase-env'],
     configs: configProperties.filterProperty('serviceName', 'GENERAL')
   },
   {

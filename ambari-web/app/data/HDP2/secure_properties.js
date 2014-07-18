@@ -28,6 +28,7 @@ module.exports =
       "isVisible": false,
       "isOverridable": false,
       "serviceName": "GENERAL",
+      "filename": "hadoop-env.xml",
       "category": "KERBEROS"
     },
     {
@@ -66,6 +67,7 @@ module.exports =
       "isVisible": true,
       "isOverridable": false,
       "serviceName": "GENERAL",
+      "filename": "hadoop-env.xml",
       "category": "KERBEROS"
     },
     {
@@ -106,6 +108,7 @@ module.exports =
       "isVisible": true,
       "isOverridable": false,
       "serviceName": "GENERAL",
+      "filename": "hadoop-env.xml",
       "category": "AMBARI"
     },
     {
@@ -133,6 +136,7 @@ module.exports =
       "isVisible": true,
       "isOverridable": false,
       "serviceName": "GENERAL",
+      "filename": "hadoop-env.xml",
       "category": "AMBARI"
     },
     {
@@ -160,6 +164,7 @@ module.exports =
       "isVisible": false,
       "isOverridable": false,
       "serviceName": "GENERAL",
+      "filename": "hbase-env.xml",
       "category": "AMBARI"
     },
 
@@ -806,6 +811,7 @@ module.exports =
       "isVisible": true,
       "isOverridable": false,
       "serviceName": "OOZIE",
+      "filename": "oozie-env.xml",
       "category": "Oozie Server",
       "component": "OOZIE_SERVER"
     },
@@ -861,6 +867,7 @@ module.exports =
       "isVisible": true,
       "isOverridable": false,
       "serviceName": "ZOOKEEPER",
+      "filename": "zookeeper-env.xml",
       "category": "ZooKeeper Server",
       "component": "ZOOKEEPER_SERVER"
     },
@@ -875,6 +882,7 @@ module.exports =
       "isVisible": true,
       "isOverridable": false,
       "serviceName": "ZOOKEEPER",
+      "filename": "zookeeper-env.xml",
       "category": "ZooKeeper Server",
       "component": "ZOOKEEPER_SERVER"
     },
@@ -904,6 +912,7 @@ module.exports =
       "isVisible": true,
       "isOverridable": false,
       "serviceName": "NAGIOS",
+      "filename": "nagios-env.xml",
       "category": "Nagios Server",
       "component": "NAGIOS_SERVER"
     },
@@ -918,6 +927,7 @@ module.exports =
       "isVisible": true,
       "isOverridable": false,
       "serviceName": "NAGIOS",
+      "filename": "nagios-env.xml",
       "category": "Nagios Server",
       "component": "NAGIOS_SERVER"
     },
@@ -946,6 +956,7 @@ module.exports =
       "isVisible": true,
       "isOverridable": false,
       "serviceName": "STORM",
+      "filename": "storm-env.xml",
       "category": "Storm Topology",
       "components": ["SUPERVISOR", "NIMBUS", "STORM_UI_SERVER"]
     },
@@ -960,6 +971,7 @@ module.exports =
       "isVisible": true,
       "isOverridable": false,
       "serviceName": "STORM",
+      "filename": "storm-env.xml",
       "category": "Storm Topology",
       "components": ["SUPERVISOR", "NIMBUS"]
     },

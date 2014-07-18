@@ -24,7 +24,6 @@ App.MainAdminSecurityProgressController = Em.Controller.extend({
   commands: [],
   configs: [],
   serviceConfigTags: [],
-  globalProperties: [],
   totalSteps: 3,
   isSubmitDisabled: true,
   hasHostPopup: true,
