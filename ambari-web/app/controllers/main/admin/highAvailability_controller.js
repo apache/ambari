@@ -39,7 +39,7 @@ App.MainAdminHighAvailabilityController = Em.Controller.extend({
       this.showErrorPopup(Em.I18n.t('admin.highAvailability.error.security'));
       return false;
     } else {
-     if (hostComponents.findProperty('componentName', 'NAMENODE').get('workStatus') !== 'STARTED') {
+      if (hostComponents.findProperty('componentName', 'NAMENODE').get('workStatus') !== 'STARTED') {
         message.push(Em.I18n.t('admin.highAvailability.error.namenodeStarted'));
       }
       if (hostComponents.filterProperty('componentName', 'ZOOKEEPER_SERVER').length < 3) {
@@ -126,11 +126,16 @@ App.MainAdminHighAvailabilityController = Em.Controller.extend({
       }
     ];
     App.router.get('configurationController').getConfigsByTags(tags).done(function (data) {
-      var configs = data.findProperty('tag', self.get('tag')).properties;
-      var securityEnabled = !!(configs && (configs['security_enabled'] === 'true' || configs['security_enabled'] === true));
-      self.set('securityEnabled', securityEnabled);
+      self.set('securityEnabled', self.isSecurityEnabled(data.findProperty('tag', self.get('tag')).properties));
       self.set('dataIsLoaded', true);
     });
+  },
+
+  /**
+   * identify whether security is enabled by security config
+   */
+  isSecurityEnabled: function(properties){
+    return !!(properties && (properties['security_enabled'] === 'true' || properties['security_enabled'] === true));
   },
   /**
    * join or wrap message depending on whether it is array or string

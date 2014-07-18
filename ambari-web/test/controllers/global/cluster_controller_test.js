@@ -66,28 +66,40 @@ describe('App.clusterController', function () {
 
     beforeEach(function () {
       modelSetup.setupStackVersion(this, 'HDP-2.0.5');
-      sinon.spy(App.ajax, 'send');
+      sinon.stub(App.ajax, 'send', function () {
+        return {
+          complete: function (callback) {
+            App.set('clusterName', 'clusterNameFromServer');
+            App.set('currentStackVersion', 'HDP-2.0.5');
+            callback();
+          }
+        }
+      });
     });
     afterEach(function () {
       modelSetup.restoreStackVersion(this);
       App.ajax.send.restore();
     });
 
-    it('if clusterName is "mycluster" and reload is false then loadClusterName should return false', function () {
-      controller.set('cluster', {Clusters: {cluster_name: 'mycluster'}});
-      expect(controller.loadClusterName(false)).to.equal(false);
+    it('if clusterName is "mycluster" and reload is false then clusterName stays the same', function () {
+      App.set('clusterName', 'mycluster');
+      controller.loadClusterName(false);
+      expect(App.ajax.send.called).to.be.false;
+      expect(App.get('clusterName')).to.equal('mycluster');
     });
 
     it('reload is true and clusterName is not empty', function () {
       controller.loadClusterName(true);
-      expect(App.ajax.send.calledOnce).to.equal(true);
+      expect(App.ajax.send.calledOnce).to.be.true;
+      expect(App.get('clusterName')).to.equal('clusterNameFromServer');
       expect(App.get('currentStackVersion')).to.equal('HDP-2.0.5');
     });
 
     it('reload is false and clusterName is empty', function () {
-      controller.set('cluster', {Clusters: {cluster_name: ''}});
+      App.set('clusterName', '');
       controller.loadClusterName(false);
-      expect(App.ajax.send.calledOnce).to.equal(true);
+      expect(App.ajax.send.calledOnce).to.be.true;
+      expect(App.get('clusterName')).to.equal('clusterNameFromServer');
       expect(App.get('currentStackVersion')).to.equal('HDP-2.0.5');
     });
 
@@ -107,9 +119,8 @@ describe('App.clusterController', function () {
     };
     it('Check cluster', function () {
       controller.loadClusterNameSuccessCallback(test_data);
-      expect(controller.get('cluster.Clusters.cluster_name')).to.equal('tdk');
-      expect(controller.get('cluster.Clusters.version')).to.equal('HDP-1.3.0');
       expect(App.get('clusterName')).to.equal('tdk');
+      expect(App.get('currentStackVersion')).to.equal('HDP-1.3.0');
     });
   });
 
@@ -189,118 +200,96 @@ describe('App.clusterController', function () {
     });
   });
 
-  describe('#gangliaUrl', function () {
+  describe('#setGangliaUrl()', function () {
+    beforeEach(function () {
+      controller.set('gangliaUrl', null);
+    });
+
     it('testMode = true', function () {
       App.testMode = true;
+      controller.setGangliaUrl();
       expect(controller.get('gangliaUrl')).to.equal('http://gangliaserver/ganglia/?t=yes');
+      expect(controller.get('isGangliaUrlLoaded')).to.be.true;
     });
-    it('Ganglia service is absent', function () {
+    it('Cluster is not loaded', function () {
       App.testMode = false;
-      controller.set('gangliaWebProtocol', '');
+      controller.set('isLoaded', false);
+      controller.setGangliaUrl();
       expect(controller.get('gangliaUrl')).to.equal(null);
     });
-    it('Ganglia doesn\'t  have any components', function () {
-      App.store.load(App.Service, {
-        id: 'GANGLIA',
-        service_name: 'GANGLIA'
+    it('GANGLIA_SERVER component is absent', function () {
+      controller.set('isLoaded', true);
+      App.testMode = false;
+      sinon.stub(App.HostComponent, 'find', function(){
+        return [];
       });
-      controller.set('gangliaWebProtocol', '');
+      controller.setGangliaUrl();
       expect(controller.get('gangliaUrl')).to.equal(null);
-      expect(controller.get('isGangliaInstalled')).to.equal(true);
-    });
-    it('Ganglia Server doesn\'t  have host', function () {
-      App.store.load(App.HostComponent, {
-        id: 'GANGLIA_SERVER_GANGLIA_host',
-        component_name: 'GANGLIA_SERVER',
-        service_id: 'GANGLIA',
-        host_id: 'GANGLIA_host'
-      });
-      App.store.load(App.Service, {
-        id: 'GANGLIA',
-        service_name: 'GANGLIA',
-        host_components: ['GANGLIA_SERVER_GANGLIA_host']
-      });
-      controller.set('gangliaWebProtocol', '');
-      expect(controller.get('gangliaUrl')).to.equal(null);
+      App.HostComponent.find.restore();
     });
     it('Ganglia Server host is "GANGLIA_host"', function () {
-      App.store.load(App.Host, {
-        id: 'GANGLIA_host',
-        host_name: 'GANGLIA_host',
-        host_components: ['GANGLIA_SERVER_GANGLIA_host'],
-        public_host_name: 'GANGLIA_host'
+      controller.set('isLoaded', true);
+      App.testMode = false;
+      sinon.stub(App.HostComponent, 'find', function(){
+        return [Em.Object.create({
+          componentName: 'GANGLIA_SERVER',
+          hostName: 'GANGLIA_host'
+        })];
       });
-      controller.set('gangliaWebProtocol', '');
-      expect(controller.get('gangliaUrl')).to.equal("http://GANGLIA_host/ganglia");
-    });
-    it('singleNodeInstall = true', function () {
-      App.set('singleNodeInstall', true);
-      controller.set('gangliaWebProtocol', '');
-      expect(controller.get('gangliaUrl')).to.equal("http://" + location.hostname + ":42080/ganglia");
-    });
-    it('singleNodeAlias is "alias"', function () {
-      App.set('singleNodeAlias', 'alias');
-      controller.set('gangliaWebProtocol', '');
-      expect(controller.get('gangliaUrl')).to.equal("http://alias:42080/ganglia");
-      App.set('singleNodeInstall', false);
-      App.set('singleNodeAlias', '');
+      sinon.spy(App.ajax, 'send');
+
+      controller.setGangliaUrl();
+      expect(App.ajax.send.calledOnce).to.be.true;
+      expect(controller.get('isGangliaUrlLoaded')).to.be.false;
+
+      App.HostComponent.find.restore();
+      App.ajax.send.restore();
     });
   });
 
-  describe('#nagiosUrl', function () {
+  describe('#setNagiosUrl()', function () {
+    beforeEach(function () {
+      controller.set('nagiosUrl', null);
+    });
+
     it('testMode = true', function () {
       App.testMode = true;
-      controller.set('nagiosWebProtocol', '');
+      controller.setNagiosUrl();
       expect(controller.get('nagiosUrl')).to.equal('http://nagiosserver/nagios');
+      expect(controller.get('isNagiosUrlLoaded')).to.be.true;
+
     });
-    it('Nagios service is absent', function () {
+    it('Cluster is not loaded', function () {
       App.testMode = false;
-      controller.set('nagiosWebProtocol', '');
+      controller.set('isLoaded', false);
+      controller.setNagiosUrl();
       expect(controller.get('nagiosUrl')).to.equal(null);
     });
-    it('Nagios doesn\'t  have any components', function () {
-      App.store.load(App.Service, {
-        id: 'NAGIOS',
-        service_name: 'NAGIOS'
+    it('GANGLIA_SERVER component is absent', function () {
+      controller.set('isLoaded', true);
+      App.testMode = false;
+      sinon.stub(App.HostComponent, 'find', function(){
+        return [];
       });
-      controller.set('nagiosWebProtocol', '');
+      controller.setNagiosUrl();
       expect(controller.get('nagiosUrl')).to.equal(null);
-      expect(controller.get('isNagiosInstalled')).to.equal(true);
+      App.HostComponent.find.restore();
     });
-    it('NAGIOS Server doesn\'t  have host', function () {
-      App.store.load(App.HostComponent, {
-        id: 'NAGIOS_SERVER_NAGIOS_host',
-        component_name: 'NAGIOS_SERVER',
-        service_id: 'NAGIOS',
-        host_id: 'NAGIOS_host'
+    it('Ganglia Server host is "NAGIOS_host"', function () {
+      controller.set('isLoaded', true);
+      App.testMode = false;
+      sinon.stub(App.HostComponent, 'find', function(){
+        return [Em.Object.create({
+          componentName: 'NAGIOS_SERVER',
+          hostName: 'NAGIOS_host'
+        })];
       });
-      App.store.load(App.Service, {
-        id: 'NAGIOS',
-        service_name: 'NAGIOS',
-        host_components: ['NAGIOS_SERVER_NAGIOS_host']
-      });
-      controller.set('nagiosWebProtocol', '');
-      expect(controller.get('nagiosUrl')).to.equal(null);
-    });
-    it('NAGIOS Server host is "NAGIOS_host"', function () {
-      App.store.load(App.Host, {
-        id: 'NAGIOS_host',
-        host_name: 'NAGIOS_host',
-        host_components: ['NAGIOS_SERVER_NAGIOS_host'],
-        public_host_name: 'NAGIOS_host'
-      });
-      controller.set('nagiosWebProtocol', '');
-      expect(controller.get('nagiosUrl')).to.equal("http://NAGIOS_host/nagios");
-    });
-    it('singleNodeInstall = true', function () {
-      App.set('singleNodeInstall', true);
-      controller.set('nagiosWebProtocol', '');
-      expect(controller.get('nagiosUrl')).to.equal("http://:42080/nagios");
-    });
-    it('singleNodeAlias is "alias"', function () {
-      App.set('singleNodeAlias', 'alias');
-      controller.set('nagiosWebProtocol', '');
-      expect(controller.get('nagiosUrl')).to.equal("http://alias:42080/nagios");
+      sinon.spy(App.ajax, 'send');
+      controller.setNagiosUrl();
+      expect(App.ajax.send.calledOnce).to.be.true;
+      expect(controller.get('isNagiosUrlLoaded')).to.be.false;
+      App.ajax.send.restore();
+      App.HostComponent.find.restore();
     });
   });
 
@@ -368,60 +357,78 @@ describe('App.clusterController', function () {
     });
   });
 
-  describe('#startPolling()', function () {
 
-    beforeEach(function () {
-      sinon.spy(App.updater, 'run');
-    });
-    afterEach(function () {
-      App.updater.run.restore();
-    });
-    it('isWorking = false', function () {
-      controller.set('isWorking', false);
-      expect(App.updater.run.calledOnce).to.equal(false);
-      expect(controller.startPolling()).to.equal(false);
-    });
+  describe('#setGangliaUrlSuccessCallback()', function () {
 
-    it('isWorking = true', function () {
-      controller.set('isWorking', true);
-      expect(App.updater.run.calledOnce).to.equal(true);
-      expect(controller.startPolling()).to.equal(true);
+    it('Query return no hosts', function () {
+      controller.setGangliaUrlSuccessCallback({items: []});
+      expect(controller.get('gangliaUrl')).to.equal(null);
+      expect(controller.get('isGangliaUrlLoaded')).to.be.true;
     });
-  });
-
-  describe('#clusterName', function () {
-    var testCases = [
-      {
-        title: 'if cluster is null then clusterName should be null',
-        data: null,
-        result: null
-      },
-      {
-        title: 'if cluster.Clusters.cluster_name is null then clusterName should be null',
-        data: {
-          Clusters: {
-            cluster_name: null
-          }
-        },
-        result: null
-      },
-      {
-        title: 'if cluster.Clusters.cluster_name is null then clusterName should be null',
-        data: {
-          Clusters: {
-            cluster_name: 'mycluster'
-          }
-        },
-        result: 'mycluster'
-      }
-    ];
-
-    testCases.forEach(function (test) {
-      it(test.title, function () {
-        controller.set('cluster', test.data);
-        expect(controller.get('clusterName')).to.equal(test.result);
+    it('App.singleNodeInstall is true', function () {
+      controller.reopen({
+        gangliaWebProtocol: 'http'
       });
+      App.set('singleNodeInstall', true);
+      App.set('singleNodeAlias', 'localhost');
+      controller.setGangliaUrlSuccessCallback({items: [{
+        Hosts: {
+          public_host_name: 'host1'
+        }
+      }]});
+      expect(controller.get('gangliaUrl')).to.equal('http://localhost:42080/ganglia');
+      expect(controller.get('isGangliaUrlLoaded')).to.be.true;
+    });
+    it('App.singleNodeInstall is false', function () {
+      controller.reopen({
+        gangliaWebProtocol: 'http'
+      });
+      App.set('singleNodeInstall', false);
+      App.set('singleNodeAlias', 'localhost');
+      controller.setGangliaUrlSuccessCallback({items: [{
+        Hosts: {
+          public_host_name: 'host1'
+        }
+      }]});
+      expect(controller.get('gangliaUrl')).to.equal('http://host1/ganglia');
+      expect(controller.get('isGangliaUrlLoaded')).to.be.true;
     });
   });
 
+  describe('#setNagiosUrlSuccessCallback()', function () {
+
+    it('Query return no hosts', function () {
+      controller.setNagiosUrlSuccessCallback({items: []});
+      expect(controller.get('nagiosUrl')).to.equal(null);
+      expect(controller.get('isNagiosUrlLoaded')).to.be.true;
+    });
+    it('App.singleNodeInstall is true', function () {
+      controller.reopen({
+        nagiosWebProtocol: 'http'
+      });
+      App.set('singleNodeInstall', true);
+      App.set('singleNodeAlias', 'localhost');
+      controller.setNagiosUrlSuccessCallback({items: [{
+        Hosts: {
+          public_host_name: 'host1'
+        }
+      }]});
+      expect(controller.get('nagiosUrl')).to.equal('http://localhost:42080/nagios');
+      expect(controller.get('isNagiosUrlLoaded')).to.be.true;
+    });
+    it('App.singleNodeInstall is false', function () {
+      controller.reopen({
+        nagiosWebProtocol: 'http'
+      });
+      App.set('singleNodeInstall', false);
+      App.set('singleNodeAlias', 'localhost');
+      controller.setNagiosUrlSuccessCallback({items: [{
+        Hosts: {
+          public_host_name: 'host1'
+        }
+      }]});
+      expect(controller.get('nagiosUrl')).to.equal('http://host1/nagios');
+      expect(controller.get('isNagiosUrlLoaded')).to.be.true;
+    });
+  });
 });

@@ -150,11 +150,6 @@ describe('App.MainAdminSecurityDisableController', function () {
   });
 
   describe('#syncStopServicesCommand()', function () {
-    App.router = Em.Object.create({
-      backgroundOperationsController: Em.Object.create({
-        services: []
-      })
-    });
 
     it('No background operations', function () {
       controller.set('commands', [Em.Object.create({
@@ -262,17 +257,17 @@ describe('App.MainAdminSecurityDisableController', function () {
 
       expect(controller.manageSecureConfigs()).to.be.true;
     });
-    it('serviceConfigTags has global site', function () {
+    it('serviceConfigTags has hadoop-env site', function () {
       controller.set('serviceConfigTags', [
         {
-          siteName: 'global',
+          siteName: 'hadoop-env',
           configs: {}
         }
       ]);
 
       expect(controller.manageSecureConfigs()).to.be.true;
       expect(controller.deleteDisabledGlobalConfigs.calledOnce).to.be.true;
-      expect(controller.get('serviceConfigTags').findProperty('siteName', 'global').configs.security_enabled).to.equal('false');
+      expect(controller.get('serviceConfigTags').findProperty('siteName', 'hadoop-env').configs.security_enabled).to.equal('false');
     });
     it('serviceConfigTags has site.xml', function () {
       controller.set('serviceConfigTags', [

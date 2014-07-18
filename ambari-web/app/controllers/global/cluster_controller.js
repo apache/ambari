@@ -20,7 +20,6 @@ var App = require('app');
 
 App.ClusterController = Em.Controller.extend({
   name: 'clusterController',
-  cluster: null,
   isLoaded: false,
   ambariProperties: null,
   ambariViews: [],
@@ -45,6 +44,11 @@ App.ClusterController = Em.Controller.extend({
    * If null is returned, it means NAGIOS service is not installed.
    */
   nagiosUrl: null,
+
+  clusterName: function () {
+    return App.get('clusterName');
+  }.property('App.clusterName'),
+
   updateLoadStatus: function (item) {
     var loadList = this.get('dataLoadList');
     var loaded = true;
@@ -86,7 +90,7 @@ App.ClusterController = Em.Controller.extend({
   loadClusterName: function (reload) {
     var dfd = $.Deferred();
 
-    if (this.get('clusterName') && !reload) {
+    if (App.get('clusterName') && !reload) {
       dfd.resolve();
     } else {
       App.ajax.send({
@@ -105,7 +109,6 @@ App.ClusterController = Em.Controller.extend({
   },
 
   loadClusterNameSuccessCallback: function (data) {
-    this.set('cluster', data.items[0]);
     App.set('clusterName', data.items[0].Clusters.cluster_name);
     App.set('currentStackVersion', data.items[0].Clusters.version);
   },
@@ -147,17 +150,18 @@ App.ClusterController = Em.Controller.extend({
   },
 
   getUrl: function (testUrl, url) {
-    return (App.testMode) ? testUrl : App.apiPrefix + '/clusters/' + this.get('clusterName') + url;
+    return (App.testMode) ? testUrl : App.apiPrefix + '/clusters/' + App.get('clusterName') + url;
   },
 
   setGangliaUrl: function () {
     if (App.testMode) {
-      return 'http://gangliaserver/ganglia/?t=yes';
+      this.set('gangliaUrl', 'http://gangliaserver/ganglia/?t=yes');
+      this.set('isGangliaUrlLoaded', true);
     } else {
       // We want live data here
       var gangliaServer = App.HostComponent.find().findProperty('componentName', 'GANGLIA_SERVER');
       if (this.get('isLoaded') && gangliaServer) {
-        this.set('isGangliaUrlLoaded', true);
+        this.set('isGangliaUrlLoaded', false);
         App.ajax.send({
           name: 'hosts.for_quick_links',
           sender: this,
@@ -183,7 +187,8 @@ App.ClusterController = Em.Controller.extend({
 
   setNagiosUrl: function () {
     if (App.testMode) {
-      return 'http://nagiosserver/nagios';
+      this.set('nagiosUrl', 'http://nagiosserver/nagios');
+      this.set('isNagiosUrlLoaded', true);
     } else {
       // We want live data here
       var nagiosServer = App.HostComponent.find().findProperty('componentName', 'NAGIOS_SERVER');
@@ -245,7 +250,7 @@ App.ClusterController = Em.Controller.extend({
     var self = this;
     this.loadAmbariProperties();
     this.loadAmbariViews();
-    if (!this.get('clusterName')) {
+    if (!App.get('clusterName')) {
       return;
     }
 
@@ -426,10 +431,6 @@ App.ClusterController = Em.Controller.extend({
   loadAmbariPropertiesError: function () {
     console.warn('can\'t get ambari properties');
   },
-
-  clusterName: function () {
-    return (this.get('cluster')) ? this.get('cluster').Clusters.cluster_name : null;
-  }.property('cluster'),
 
   updateClusterData: function () {
     var testUrl = App.get('isHadoop2Stack') ? '/data/clusters/HDP2/cluster.json' : '/data/clusters/cluster.json';

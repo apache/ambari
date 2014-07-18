@@ -194,32 +194,29 @@ describe('App.MainAdminMiscController', function () {
       controller.setProxyUserGroupLabel(misc_configs);
       expect(misc_configs.findProperty('name', 'proxyuser_group')).to.be.undefined;
     });
-    it('if currentStackVersionNumber less than 2.1 then label should be omitting "FALCON" service', function () {
+    it('proxyuser_group config defined and isHadoop21Stack is true', function () {
       var misc_configs = [Em.Object.create({
         name: 'proxyuser_group',
         displayName: 'test'
       })];
-      App.set('currentStackVersion', "HDP-2.0");
+      sinon.stub(App, 'get', function(){
+        return true;
+      });
+      controller.setProxyUserGroupLabel(misc_configs);
+      expect(misc_configs.findProperty('name', 'proxyuser_group').get('displayName')).to.equal('test');
+      App.get.restore();
+    });
+    it('proxyuser_group config defined and isHadoop21Stack is false', function () {
+      var misc_configs = [Em.Object.create({
+        name: 'proxyuser_group',
+        displayName: 'test'
+      })];
+      sinon.stub(App, 'get', function(){
+        return false;
+      });
       controller.setProxyUserGroupLabel(misc_configs);
       expect(misc_configs.findProperty('name', 'proxyuser_group').get('displayName')).to.equal('Proxy group for Hive, WebHCat and Oozie');
-    });
-    it('if currentStackVersionNumber equal 2.1 then label should stay the same', function () {
-      var misc_configs = [Em.Object.create({
-        name: 'proxyuser_group',
-        displayName: 'test'
-      })];
-      App.set('currentStackVersion', "HDP-2.1");
-      controller.setProxyUserGroupLabel(misc_configs);
-      expect(misc_configs.findProperty('name', 'proxyuser_group').get('displayName')).to.equal('test');
-    });
-    it('if currentStackVersionNumber higher than 2.1 then label should stay the same', function () {
-      var misc_configs = [Em.Object.create({
-        name: 'proxyuser_group',
-        displayName: 'test'
-      })];
-      App.set('currentStackVersion', "HDP-2.2");
-      controller.setProxyUserGroupLabel(misc_configs);
-      expect(misc_configs.findProperty('name', 'proxyuser_group').get('displayName')).to.equal('test');
+      App.get.restore();
     });
   })
 });

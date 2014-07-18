@@ -32,6 +32,7 @@ require('views');
 require('router');
 require('mappers');
 
+require('test/init_router_test');
 require('test/init_model_test');
 require('test/app_test');
 require('test/data/HDP2/site_properties_test');

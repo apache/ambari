@@ -29,11 +29,17 @@ describe('App.MainAdminHighAvailabilityController', function () {
 
   describe('#enableHighAvailability()', function () {
 
+    var hostComponents = [];
+
     beforeEach(function () {
+      sinon.stub(App.HostComponent, 'find', function(){
+        return hostComponents;
+      });
       sinon.spy(controller, "showErrorPopup");
     });
     afterEach(function () {
       controller.showErrorPopup.restore();
+      App.HostComponent.find.restore();
     });
 
     it('Security enabled', function () {
@@ -41,41 +47,105 @@ describe('App.MainAdminHighAvailabilityController', function () {
       expect(controller.enableHighAvailability()).to.be.false;
       expect(controller.showErrorPopup.calledOnce).to.be.true;
     });
-    it('less than 3 ZooKeeper Servers', function () {
+    it('NAMENODE in INSTALLED state', function () {
       controller.set('securityEnabled', false);
-      App.store.load(App.HostComponent, {
-        id: "NAMENODE_host1",
-        component_name: 'NAMENODE',
-        work_status: 'STARTED'
+      hostComponents = [
+        Em.Object.create({
+          componentName: 'NAMENODE',
+          workStatus: 'INSTALLED'
+        }),
+        Em.Object.create({
+          componentName: 'ZOOKEEPER_SERVER',
+          workStatus: 'INSTALLED'
+        }),
+        Em.Object.create({
+          componentName: 'ZOOKEEPER_SERVER',
+          workStatus: 'INSTALLED'
+        }),
+        Em.Object.create({
+          componentName: 'ZOOKEEPER_SERVER',
+          workStatus: 'INSTALLED'
+        })
+      ];
+
+      sinon.stub(App.router, 'get', function(){
+        return 3;
       });
       expect(controller.enableHighAvailability()).to.be.false;
       expect(controller.showErrorPopup.calledOnce).to.be.true;
-      App.store.loadMany(App.HostComponent, [
-        {
-          id: "ZOOKEEPER_SERVER_host1",
-          component_name: 'ZOOKEEPER_SERVER'
-        },
-        {
-          id: "ZOOKEEPER_SERVER_host2",
-          component_name: 'ZOOKEEPER_SERVER'
-        },
-        {
-          id: "ZOOKEEPER_SERVER_host3",
-          component_name: 'ZOOKEEPER_SERVER'
-        }
-      ]);
+      App.router.get.restore();
     });
-    it('Security disabled and all checks passed', function () {
-      App.router.set('transitionTo', function () {
+    it('Cluster has less than 3 ZOOKEPER_SERVER components', function () {
+      hostComponents = [
+        Em.Object.create({
+          componentName: 'NAMENODE',
+          workStatus: 'STARTED'
+        })
+      ];
+
+      sinon.stub(App.router, 'get', function(){
+        return 3;
       });
+      expect(controller.enableHighAvailability()).to.be.false;
+      expect(controller.showErrorPopup.called).to.be.true;
+      App.router.get.restore();
+    });
+    it('total hosts number less than 3', function () {
+      controller.set('securityEnabled', false);
+      hostComponents = [
+        Em.Object.create({
+          componentName: 'NAMENODE',
+          workStatus: 'STARTED'
+        }),
+        Em.Object.create({
+          componentName: 'ZOOKEEPER_SERVER',
+          workStatus: 'INSTALLED'
+        }),
+        Em.Object.create({
+          componentName: 'ZOOKEEPER_SERVER',
+          workStatus: 'INSTALLED'
+        }),
+        Em.Object.create({
+          componentName: 'ZOOKEEPER_SERVER',
+          workStatus: 'INSTALLED'
+        })
+      ];
+      sinon.stub(App.router, 'get', function () {
+        return 1;
+      });
+      expect(controller.enableHighAvailability()).to.be.false;
+      expect(controller.showErrorPopup.calledOnce).to.be.true;
+      App.router.get.restore();
+    });
+    it('All checks passed', function () {
+      controller.set('securityEnabled', false);
+      hostComponents = [
+        Em.Object.create({
+          componentName: 'NAMENODE',
+          workStatus: 'STARTED'
+        }),
+        Em.Object.create({
+          componentName: 'ZOOKEEPER_SERVER',
+          workStatus: 'INSTALLED'
+        }),
+        Em.Object.create({
+          componentName: 'ZOOKEEPER_SERVER',
+          workStatus: 'INSTALLED'
+        }),
+        Em.Object.create({
+          componentName: 'ZOOKEEPER_SERVER',
+          workStatus: 'INSTALLED'
+        })
+      ];
+      sinon.stub(App.router, 'get', function(){
+        return 3;
+      });
+      sinon.spy(App.router, 'transitionTo');
       expect(controller.enableHighAvailability()).to.be.true;
-      expect(controller.showErrorPopup.called).to.be.false;
-    });
-    it('NameNode is started', function () {
-      App.HostComponent.find('NAMENODE_host1').set('workStatus', 'INSTALLED');
-      expect(controller.enableHighAvailability()).to.be.false;
-      expect(controller.showErrorPopup.calledOnce).to.be.true;
-      App.HostComponent.find('NAMENODE_host1').set('workStatus', 'STARTED');
+      expect(App.router.transitionTo.calledWith('main.admin.enableHighAvailability')).to.be.true;
+      expect(controller.showErrorPopup.calledOnce).to.be.false;
+      App.router.transitionTo.restore();
+      App.router.get.restore();
     });
   });
 
@@ -130,7 +200,7 @@ describe('App.MainAdminHighAvailabilityController', function () {
       controller.getSecurityStatusFromServerSuccessCallback(data);
       expect(controller.showErrorPopup.calledOnce).to.be.true;
     });
-    it('desired_configs does not have "global"', function () {
+    it('desired_configs does not have "hadoop-env"', function () {
       var data = {
         Clusters: {
           desired_configs: {
@@ -141,11 +211,11 @@ describe('App.MainAdminHighAvailabilityController', function () {
       controller.getSecurityStatusFromServerSuccessCallback(data);
       expect(controller.showErrorPopup.calledOnce).to.be.true;
     });
-    it('desired_configs does not have "global"', function () {
+    it('desired_configs has "hadoop-env"', function () {
       var data = {
         Clusters: {
           desired_configs: {
-            'global': {
+            'hadoop-env': {
               tag: 1
             }
           }
@@ -178,7 +248,7 @@ describe('App.MainAdminHighAvailabilityController', function () {
       controller.getSecurityStatusFromServerSuccessCallback(data);
       expect(controller.showErrorPopup.calledOnce).to.be.true;
     });
-    it('desired_configs does not have "global"', function () {
+    it('desired_configs does not have "hadoop-env"', function () {
       var data = {
         Clusters: {
           desired_configs: {
@@ -189,11 +259,11 @@ describe('App.MainAdminHighAvailabilityController', function () {
       controller.getSecurityStatusFromServerSuccessCallback(data);
       expect(controller.showErrorPopup.calledOnce).to.be.true;
     });
-    it('desired_configs does not have "global"', function () {
+    it('desired_configs has "hadoop-env"', function () {
       var data = {
         Clusters: {
           desired_configs: {
-            'global': {
+            'hadoop-env': {
               tag: 1
             }
           }
@@ -222,85 +292,49 @@ describe('App.MainAdminHighAvailabilityController', function () {
   });
 
   describe('#getServiceConfigsFromServer()', function () {
+    it('configs present', function () {
+      sinon.stub(App.router.get('configurationController'), 'getConfigsByTags', function () {
+        return {
+          done: function (callback) {
+            callback([{tag: '1'}]);
+          }
+        }
+      });
+      sinon.stub(controller, 'isSecurityEnabled', function(){
+        return true;
+      });
+      controller.set('tag', '1');
+      controller.getServiceConfigsFromServer();
 
+      expect(App.router.get('configurationController').getConfigsByTags.calledWith([
+        {
+          siteName: "hadoop-env",
+          tagName: '1'
+        }
+      ])).to.be.true;
+      expect(controller.isSecurityEnabled.calledOnce).to.be.true;
+      expect(controller.get('dataIsLoaded')).to.be.true;
+      expect(controller.get('securityEnabled')).to.be.true;
+
+      App.router.get('configurationController').getConfigsByTags.restore();
+      controller.isSecurityEnabled.restore();
+    });
+  });
+  describe('#isSecurityEnabled()', function () {
     it('properties is null', function () {
-      App.router.set('configurationController', Em.Object.create({
-        getConfigsByTags: function () {
-          return this.get('data');
-        },
-        data: [
-          {
-            tag: 1,
-            properties: null
-          }
-        ]
-      }));
-      controller.getServiceConfigsFromServer();
-      expect(controller.get('dataIsLoaded')).to.be.true;
-      expect(controller.get('securityEnabled')).to.be.false;
+      expect(controller.isSecurityEnabled(null)).to.be.false;
     });
-    it('"security_enabled" config is absent', function () {
-      App.router.set('configurationController.data', [
-        {
-          tag: 1,
-          properties: {}
-        }
-      ]);
-      controller.getServiceConfigsFromServer();
-      expect(controller.get('dataIsLoaded')).to.be.true;
-      expect(controller.get('securityEnabled')).to.be.false;
+    it('properties is empty object', function () {
+      expect(controller.isSecurityEnabled({})).to.be.false;
     });
-    it('"security_enabled" is false', function () {
-      App.router.set('configurationController.data', [
-        {
-          tag: 1,
-          properties: {
-            'security_enabled': false
-          }
-        }
-      ]);
-      controller.getServiceConfigsFromServer();
-      expect(controller.get('dataIsLoaded')).to.be.true;
-      expect(controller.get('securityEnabled')).to.be.false;
+    it('security_enabled is false', function () {
+      expect(controller.isSecurityEnabled({security_enabled: false})).to.be.false;
     });
-    it('"security_enabled" is "false"', function () {
-      App.router.set('configurationController.data', [
-        {
-          tag: 1,
-          properties: {
-            'security_enabled': "false"
-          }
-        }
-      ]);
-      controller.getServiceConfigsFromServer();
-      expect(controller.get('dataIsLoaded')).to.be.true;
-      expect(controller.get('securityEnabled')).to.be.false;
+    it('security_enabled is true', function () {
+      expect(controller.isSecurityEnabled({security_enabled: true})).to.be.true;
     });
-    it('"security_enabled" is "true"', function () {
-      App.router.set('configurationController.data', [
-        {
-          tag: 1,
-          properties: {
-            'security_enabled': "true"
-          }
-        }
-      ]);
-      controller.getServiceConfigsFromServer();
-      expect(controller.get('dataIsLoaded')).to.be.true;
-      expect(controller.get('securityEnabled')).to.be.true;
-    });
-    it('"security_enabled" is true', function () {
-      App.router.set('configurationController.data', [
-        {
-          tag: 1,
-          properties: {
-            'security_enabled': true
-          }
-        }
-      ]);
-      controller.getServiceConfigsFromServer();
-      expect(controller.get('dataIsLoaded')).to.be.true;
-      expect(controller.get('securityEnabled')).to.be.true;
+    it('security_enabled is "true"', function () {
+      expect(controller.isSecurityEnabled({security_enabled: 'true'})).to.be.true;
     });
   });
 });

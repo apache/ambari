@@ -313,7 +313,7 @@ describe('App.MainAdminSecurityAddStep2Controller', function () {
           hostComponents: [
             Em.Object.create({
               componentName: 'comp1',
-              host: {hostName: 'host1'}
+              hostName: 'host1'
             })
           ]
         });

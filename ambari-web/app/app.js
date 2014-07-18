@@ -56,7 +56,7 @@ module.exports = Em.Application.create({
   falconServerURL: function () {
     var falconService = this.Service.find().findProperty('serviceName', 'FALCON');
     if (falconService) {
-      return falconService.get('hostComponents').findProperty('componentName', 'FALCON_SERVER').get('host.hostName');
+      return falconService.get('hostComponents').findProperty('componentName', 'FALCON_SERVER').get('hostName');
     }
     return '';
   }.property().volatile(),
@@ -130,51 +130,51 @@ module.exports = Em.Application.create({
     }.property('App.router.clusterController.isLoaded'),
 
     reassignable: function () {
-      return App.StackServiceComponent.find().filterProperty('isReassignable', true).mapProperty('componentName')
+      return App.StackServiceComponent.find().filterProperty('isReassignable').mapProperty('componentName')
     }.property('App.router.clusterController.isLoaded'),
 
     restartable: function () {
-      return App.StackServiceComponent.find().filterProperty('isRestartable', true).mapProperty('componentName')
+      return App.StackServiceComponent.find().filterProperty('isRestartable').mapProperty('componentName')
     }.property('App.router.clusterController.isLoaded'),
 
     deletable: function () {
-      return App.StackServiceComponent.find().filterProperty('isDeletable', true).mapProperty('componentName')
+      return App.StackServiceComponent.find().filterProperty('isDeletable').mapProperty('componentName')
     }.property('App.router.clusterController.isLoaded'),
 
     rollinRestartAllowed: function () {
-      return App.StackServiceComponent.find().filterProperty('isRollinRestartAllowed', true).mapProperty('componentName')
+      return App.StackServiceComponent.find().filterProperty('isRollinRestartAllowed').mapProperty('componentName')
     }.property('App.router.clusterController.isLoaded'),
 
     decommissionAllowed: function () {
-      return App.StackServiceComponent.find().filterProperty('isDecommissionAllowed', true).mapProperty('componentName')
+      return App.StackServiceComponent.find().filterProperty('isDecommissionAllowed').mapProperty('componentName')
     }.property('App.router.clusterController.isLoaded'),
 
     refreshConfigsAllowed: function () {
-      return App.StackServiceComponent.find().filterProperty('isRefreshConfigsAllowed', true).mapProperty('componentName')
+      return App.StackServiceComponent.find().filterProperty('isRefreshConfigsAllowed').mapProperty('componentName')
     }.property('App.router.clusterController.isLoaded'),
 
     addableToHost: function () {
-      return App.StackServiceComponent.find().filterProperty('isAddableToHost', true).mapProperty('componentName')
+      return App.StackServiceComponent.find().filterProperty('isAddableToHost').mapProperty('componentName')
     }.property('App.router.clusterController.isLoaded'),
 
     addableMasterInstallerWizard: function () {
-      return App.StackServiceComponent.find().filterProperty('isMasterAddableInstallerWizard', true).mapProperty('componentName')
+      return App.StackServiceComponent.find().filterProperty('isMasterAddableInstallerWizard').mapProperty('componentName')
     }.property('App.router.clusterController.isLoaded'),
 
     multipleMasters: function () {
-      return App.StackServiceComponent.find().filterProperty('isMasterWithMultipleInstances', true).mapProperty('componentName')
+      return App.StackServiceComponent.find().filterProperty('isMasterWithMultipleInstances').mapProperty('componentName')
     }.property('App.router.clusterController.isLoaded'),
 
     slaves: function () {
-      return App.StackServiceComponent.find().filterProperty('isMaster', false).filterProperty('isClient', false).mapProperty('componentName')
+      return App.StackServiceComponent.find().filterProperty('isSlave').mapProperty('componentName')
     }.property('App.router.clusterController.isLoaded'),
 
     masters: function () {
-      return App.StackServiceComponent.find().filterProperty('isMaster', true).mapProperty('componentName')
+      return App.StackServiceComponent.find().filterProperty('isMaster').mapProperty('componentName')
     }.property('App.router.clusterController.isLoaded'),
 
     clients: function () {
-      return App.StackServiceComponent.find().filterProperty('isClient', true).mapProperty('componentName')
+      return App.StackServiceComponent.find().filterProperty('isClient').mapProperty('componentName')
     }.property('App.router.clusterController.isLoaded')
   })
 });

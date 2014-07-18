@@ -151,6 +151,10 @@ describe('App.MainAdminSecurityAddStep4Controller', function () {
 
     beforeEach(function () {
       controller.get('commands').clear();
+      sinon.stub(App.clusterStatus, 'setClusterStatus', Em.K);
+    });
+    afterEach(function () {
+      App.clusterStatus.setClusterStatus.restore();
     });
 
     it('No YARN in secureServices', function() {
@@ -765,7 +769,7 @@ describe('App.MainAdminSecurityAddStep4Controller', function () {
           isLoaded: true,
           hostComponents: [Em.Object.create({
             componentName: 'comp1',
-            host: {hostName: 'host1'}
+            hostName: 'host1'
           })]
         });
       });

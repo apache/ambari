@@ -22,146 +22,13 @@ require('models/host_component');
 require('models/stack_service_component');
 var modelSetup = require('test/init_model_test');
 
-describe('#App', function() {
-
-  describe('App.isHadoop21Stack', function() {
-    var tests = [{
-      v:'',
-      e:false
-    }, {
-      v:'HDP',
-      e: false
-    }, {
-      v:'HDP1',
-      e: false
-    }, {
-      v:'HDP-1',
-      e: false
-    }, {
-      v:'HDP-2.0',
-      e: false
-    }, {
-      v:'HDP-2.0.1000',
-      e: false
-    }, {
-      v:'HDP-2.1',
-      e: true
-    }, {
-      v:'HDP-2.1.3434',
-      e: true
-    }, {
-      v:'HDP-2.2',
-      e: true
-    }, {
-      v:'HDP-2.2.1212',
-      e: true
-    }];
-    tests.forEach(function(test){
-      it(test.v, function() {
-        App.QuickViewLinks.prototype.setQuickLinks = function(){};
-        App.set('currentStackVersion', test.v);
-        var calculated = App.get('isHadoop21Stack');
-        var expected = test.e;
-        expect(calculated).to.equal(expected);
-      });
-    });
-  });
-
-  describe('Disable/enable components', function() {
-
-    App.set('handleStackDependencyTest', true);
-    modelSetup.setupStackVersion(this, 'HDP-2.1');
-
-    var testableComponent =  Em.Object.create({
-      componentName: 'APP_TIMELINE_SERVER',
-      serviceName: 'YARN'
-    });
-    var expectedInfo = {
-      componentName: 'APP_TIMELINE_SERVER',
-      properties: {
-        global_properties: ['ats_host', 'apptimelineserver_heapsize'],
-        site_properties: ['yarn.timeline-service.generic-application-history.store-class', 'yarn.timeline-service.store-class', 'yarn.timeline-service.leveldb-timeline-store.path']
-      },
-      reviewConfigs: {
-        component_name: 'APP_TIMELINE_SERVER'
-      },
-      configCategory: {
-        name: 'AppTimelineServer'
-      }
-    };
-
-    var globalProperties = require('data/HDP2/global_properties');
-    var siteProperties = require('data/HDP2/site_properties');
-
-    var reviewConfigs = require('data/review_configs');
-    var disableResult = App.disableComponent(testableComponent);
-
-
-    describe('#disableComponent()', function() {
-      // copy
-      var _globalProperties = $.extend({}, globalProperties);
-      var _siteProperties = $.extend({}, siteProperties);
-
-      describe('result validation', function() {
-
-        it('component name should be "' + expectedInfo.componentName + '"', function() {
-          expect(disableResult.get('componentName')).to.eql(expectedInfo.componentName);
-        });
-
-        it('config category name should be "' + expectedInfo.configCategory.name +'"', function() {
-          expect(disableResult.get('configCategory.name')).to.eql(expectedInfo.configCategory.name);
-        });
-
-        for(var siteName in expectedInfo.properties) {
-          (function(site) {
-            expectedInfo.properties[site].forEach(function(property) {
-              it(property + ' present in ' + site, function() {
-                expect(disableResult.get('properties.' + site).mapProperty('name')).to.include(property);
-              });
-            }, this);
-          })(siteName);
-        }
-
-        it('site and global properties should not be equal', function() {
-          expect(disableResult.get('properties.global_properties')).to.not.include.members(disableResult.get('properties.site_properties'));
-        });
-
-
-      });
-
-      describe('effect validation',function() {
-
-
-        it('should remove global properties of component', function() {
-          expect(_globalProperties.configProperties.mapProperty('name')).to.not.include.members(expectedInfo.properties.global_properties);
-        });
-
-        it('should remove site properties of component', function() {
-          expect(_siteProperties.configProperties.mapProperty('name')).to.not.include.members(expectedInfo.properties.site_properties);
-        });
-
-      });
-    });
-
-    describe('#enableComponent', function() {
-      App.enableComponent(disableResult);
-
-      it('should add global properties of component', function() {
-        expect(globalProperties.configProperties.mapProperty('name')).to.include.members(expectedInfo.properties.global_properties);
-      });
-
-      it('should add site properties of component', function() {
-        expect(siteProperties.configProperties.mapProperty('name')).to.include.members(expectedInfo.properties.site_properties);
-      });
-    });
-
-    modelSetup.restoreStackVersion(this);
-  });
+describe('App', function () {
 
   describe('#stackVersionURL', function () {
 
     App.QuickViewLinks.reopen({
-      loadTags: function () {}
+      loadTags: function () {
+      }
     });
 
     var testCases = [
@@ -169,37 +36,37 @@ describe('#App', function() {
         title: 'if currentStackVersion and defaultStackVersion are empty then stackVersionURL should contain prefix',
         currentStackVersion: '',
         defaultStackVersion: '',
-        result: '/stacks/HDP/version/'
+        result: '/stacks/HDP/versions/'
       },
       {
-        title: 'if currentStackVersion is "HDP-1.3.1" then stackVersionURL should be "/stacks/HDP/version/1.3.1"',
+        title: 'if currentStackVersion is "HDP-1.3.1" then stackVersionURL should be "/stacks/HDP/versions/1.3.1"',
         currentStackVersion: 'HDP-1.3.1',
         defaultStackVersion: '',
-        result: '/stacks/HDP/version/1.3.1'
+        result: '/stacks/HDP/versions/1.3.1'
       },
       {
-        title: 'if defaultStackVersion is "HDP-1.3.1" then stackVersionURL should be "/stacks/HDP/version/1.3.1"',
+        title: 'if defaultStackVersion is "HDP-1.3.1" then stackVersionURL should be "/stacks/HDP/versions/1.3.1"',
         currentStackVersion: '',
         defaultStackVersion: 'HDP-1.3.1',
-        result: '/stacks/HDP/version/1.3.1'
+        result: '/stacks/HDP/versions/1.3.1'
       },
       {
         title: 'if defaultStackVersion and currentStackVersion are different then stackVersionURL should have currentStackVersion value',
         currentStackVersion: 'HDP-1.3.2',
         defaultStackVersion: 'HDP-1.3.1',
-        result: '/stacks/HDP/version/1.3.2'
+        result: '/stacks/HDP/versions/1.3.2'
       },
       {
-        title: 'if defaultStackVersion is "HDPLocal-1.3.1" then stackVersionURL should be "/stacks/HDPLocal/version/1.3.1"',
+        title: 'if defaultStackVersion is "HDPLocal-1.3.1" then stackVersionURL should be "/stacks/HDPLocal/versions/1.3.1"',
         currentStackVersion: '',
         defaultStackVersion: 'HDPLocal-1.3.1',
-        result: '/stacks/HDPLocal/version/1.3.1'
+        result: '/stacks/HDPLocal/versions/1.3.1'
       },
       {
-        title: 'if currentStackVersion is "HDPLocal-1.3.1" then stackVersionURL should be "/stacks/HDPLocal/version/1.3.1"',
+        title: 'if currentStackVersion is "HDPLocal-1.3.1" then stackVersionURL should be "/stacks/HDPLocal/versions/1.3.1"',
         currentStackVersion: 'HDPLocal-1.3.1',
         defaultStackVersion: '',
-        result: '/stacks/HDPLocal/version/1.3.1'
+        result: '/stacks/HDPLocal/versions/1.3.1'
       }
     ];
 
@@ -262,6 +129,51 @@ describe('#App', function() {
         expect(App.get('stack2VersionURL')).to.equal(test.result);
         App.set('currentStackVersion', "HDP-1.2.2");
         App.set('defaultStackVersion', "HDP-1.2.2");
+      });
+    });
+  });
+
+  describe('#falconServerURL', function () {
+
+    var testCases = [
+      {
+        title: 'No services installed, url should be empty',
+        service: Em.A([]),
+        result: ''
+      },
+      {
+        title: 'FALCON is not installed, url should be empty',
+        service: Em.A([
+          {
+            serviceName: 'HDFS'
+          }
+        ]),
+        result: ''
+      },
+      {
+        title: 'FALCON is installed, url should be "host1"',
+        service: Em.A([
+          Em.Object.create({
+            serviceName: 'FALCON',
+            hostComponents: [
+              Em.Object.create({
+                componentName: 'FALCON_SERVER',
+                hostName: 'host1'
+              })
+            ]
+          })
+        ]),
+        result: 'host1'
+      }
+    ];
+
+    testCases.forEach(function (test) {
+      it(test.title, function () {
+        sinon.stub(App.Service, 'find', function () {
+          return test.service;
+        });
+        expect(App.get('falconServerURL')).to.equal(test.result);
+        App.Service.find.restore();
       });
     });
   });
@@ -329,6 +241,61 @@ describe('#App', function() {
     });
   });
 
+  describe('#isHadoop21Stack', function () {
+    var tests = [
+      {
+        v: '',
+        e: false
+      },
+      {
+        v: 'HDP',
+        e: false
+      },
+      {
+        v: 'HDP1',
+        e: false
+      },
+      {
+        v: 'HDP-1',
+        e: false
+      },
+      {
+        v: 'HDP-2.0',
+        e: false
+      },
+      {
+        v: 'HDP-2.0.1000',
+        e: false
+      },
+      {
+        v: 'HDP-2.1',
+        e: true
+      },
+      {
+        v: 'HDP-2.1.3434',
+        e: true
+      },
+      {
+        v: 'HDP-2.2',
+        e: true
+      },
+      {
+        v: 'HDP-2.2.1212',
+        e: true
+      }
+    ];
+    tests.forEach(function (test) {
+      it(test.v, function () {
+        App.QuickViewLinks.prototype.setQuickLinks = function () {
+        };
+        App.set('currentStackVersion', test.v);
+        var calculated = App.get('isHadoop21Stack');
+        var expected = test.e;
+        expect(calculated).to.equal(expected);
+      });
+    });
+  });
+
   describe('#isHaEnabled', function () {
 
     it('if hadoop stack version less than 2 then isHaEnabled should be false', function () {
@@ -352,78 +319,197 @@ describe('#App', function() {
     });
   });
 
-  describe('#handleStackDependedComponents()', function () {
+  describe('#services', function () {
+    var stackServices = [
+      Em.Object.create({
+        serviceName: 'S1',
+        isClientOnlyService: true
+      }),
+      Em.Object.create({
+        serviceName: 'S2',
+        hasClient: true
+      }),
+      Em.Object.create({
+        serviceName: 'S3',
+        hasMaster: true
+      }),
+      Em.Object.create({
+        serviceName: 'S4',
+        hasSlave: true
+      }),
+      Em.Object.create({
+        serviceName: 'S5',
+        isNoConfigTypes: true
+      }),
+      Em.Object.create({
+        serviceName: 'S6',
+        isMonitoringService: true
+      }),
+      Em.Object.create({
+        serviceName: 'S7'
+      })
+    ];
 
-    beforeEach(function(){
-      modelSetup.setupStackServiceComponent();
-    });
-
-    afterEach(function(){
-      modelSetup.cleanStackServiceComponent();
-    });
-
-    it('if handleStackDependencyTest is true then stackDependedComponents should be unmodified', function () {
-      App.set('testMode', false);
-      App.set('handleStackDependencyTest', true);
-      App.handleStackDependedComponents();
-      expect(App.get('stackDependedComponents')).to.be.empty;
-    });
-
-    it('if testMode is true then stackDependedComponents should be unmodified', function () {
-      App.set('handleStackDependencyTest', false);
-      App.set('testMode', true);
-      App.handleStackDependedComponents();
-      expect(App.get('stackDependedComponents')).to.be.empty;
-    });
-
-    it('if stack contains all components then stackDependedComponents should be empty', function () {
-      App.set('testMode', false);
-      App.set('handleStackDependencyTest', false);
-      App.handleStackDependedComponents();
-      expect(App.get('stackDependedComponents')).to.be.empty;
-    });
-
-    it('if stack is missing component then push it to stackDependedComponents', function () {
-      App.set('testMode', false);
-      App.set('handleStackDependencyTest', false);
-      var dtRecord = App.StackServiceComponent.find('DATANODE');
-      dtRecord.deleteRecord();
-      dtRecord.get('stateManager').transitionTo('loading');
-      App.handleStackDependedComponents();
-      expect(App.get('stackDependedComponents').mapProperty('componentName')).to.eql(["DATANODE"]);
-      App.store.load(App.StackServiceComponent, {
-        id: 'DATANODE',
-        component_name: 'DATANODE',
-        service_name: 'HDFS',
-        component_category: 'SLAVE',
-        is_master: false,
-        is_client: false,
-        stack_name: 'HDP',
-        stack_version: '2.1'
+    it('distribute services by categories', function () {
+      sinon.stub(App.StackService, 'find', function () {
+        return stackServices;
       });
-    });
 
-    it('remove stack components from stackDependedComponents', function () {
-      App.set('testMode', false);
-      App.set('handleStackDependencyTest', false);
-      App.set('stackDependedComponents', [
-        Em.Object.create({
-          componentName: "DATANODE",
-          serviceName: "HDFS",
-          properties: {},
-          reviewConfigs: {},
-          configCategory: {}
-        }),
-        Em.Object.create({
-          componentName: "categoryComponent",
-          serviceName: "",
-          properties: {},
-          reviewConfigs: {},
-          configCategory: {}
-        })
-      ]);
-      App.handleStackDependedComponents();
-      expect(App.get('stackDependedComponents').mapProperty('componentName')).to.eql(["categoryComponent"]);
+      expect(App.get('services.all')).to.eql(['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7']);
+      expect(App.get('services.clientOnly')).to.eql(['S1']);
+      expect(App.get('services.hasClient')).to.eql(['S2']);
+      expect(App.get('services.hasMaster')).to.eql(['S3']);
+      expect(App.get('services.hasSlave')).to.eql(['S4']);
+      expect(App.get('services.noConfigTypes')).to.eql(['S5']);
+      expect(App.get('services.monitoring')).to.eql(['S6']);
+      App.StackService.find.restore();
     });
+  });
+
+
+  describe('#components', function () {
+    var testCases = [
+      {
+        key: 'allComponents',
+        data: [
+          Em.Object.create({
+            componentName: 'C1'
+          })
+        ],
+        result: ['C1']
+      },
+      {
+        key: 'reassignable',
+        data: [
+          Em.Object.create({
+            componentName: 'C2',
+            isReassignable: true
+          })
+        ],
+        result: ['C2']
+      },
+      {
+        key: 'restartable',
+        data: [
+          Em.Object.create({
+            componentName: 'C3',
+            isRestartable: true
+          })
+        ],
+        result: ['C3']
+      },
+      {
+        key: 'deletable',
+        data: [
+          Em.Object.create({
+            componentName: 'C4',
+            isDeletable: true
+          })
+        ],
+        result: ['C4']
+      },
+      {
+        key: 'rollinRestartAllowed',
+        data: [
+          Em.Object.create({
+            componentName: 'C5',
+            isRollinRestartAllowed: true
+          })
+        ],
+        result: ['C5']
+      },
+      {
+        key: 'decommissionAllowed',
+        data: [
+          Em.Object.create({
+            componentName: 'C6',
+            isDecommissionAllowed: true
+          })
+        ],
+        result: ['C6']
+      },
+      {
+        key: 'refreshConfigsAllowed',
+        data: [
+          Em.Object.create({
+            componentName: 'C7',
+            isRefreshConfigsAllowed: true
+          })
+        ],
+        result: ['C7']
+      },
+      {
+        key: 'addableToHost',
+        data: [
+          Em.Object.create({
+            componentName: 'C8',
+            isAddableToHost: true
+          })
+        ],
+        result: ['C8']
+      },
+      {
+        key: 'addableMasterInstallerWizard',
+        data: [
+          Em.Object.create({
+            componentName: 'C9',
+            isMasterAddableInstallerWizard: true
+          })
+        ],
+        result: ['C9']
+      },
+      {
+        key: 'multipleMasters',
+        data: [
+          Em.Object.create({
+            componentName: 'C10',
+            isMasterWithMultipleInstances: true
+          })
+        ],
+        result: ['C10']
+      },
+      {
+        key: 'slaves',
+        data: [
+          Em.Object.create({
+            componentName: 'C11',
+            isSlave: true
+          })
+        ],
+        result: ['C11']
+      },
+      {
+        key: 'masters',
+        data: [
+          Em.Object.create({
+            componentName: 'C12',
+            isMaster: true
+          })
+        ],
+        result: ['C12']
+      },
+      {
+        key: 'clients',
+        data: [
+          Em.Object.create({
+            componentName: 'C13',
+            isClient: true
+          })
+        ],
+        result: ['C13']
+      }
+    ];
+
+    testCases.forEach(function (test) {
+      it(test.key + ' should contain ' + test.result, function () {
+        sinon.stub(App.StackServiceComponent, 'find', function () {
+          return test.data;
+        });
+
+        expect(App.get('components.' + test.key)).to.eql(test.result);
+
+        App.StackServiceComponent.find.restore();
+      })
+    })
   });
 });
