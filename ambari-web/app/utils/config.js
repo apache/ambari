@@ -130,20 +130,20 @@ App.config = Em.Object.create({
    * Create array of service properties for Log4j files
    * @returns {Array}
    */
-  createLog4jContent: function () {
+  createContentProperties: function () {
     var services = App.StackService.find();
     var contentProperties = [];
     services.forEach(function (service) {
       if (service.get('configTypes')) {
         Object.keys(service.get('configTypes')).forEach(function (type) {
-          if (type.endsWith('-log4j')) {
+          if (type.endsWith('-log4j') || type.endsWith('-env')) {
             var property = {
               "id": "site property",
               "name": "content",
               "displayName": "content",
               "value": "",
               "defaultValue": "",
-              "description": "log4j properties",
+              "description": type + " properties",
               "displayType": "content",
               "isOverridable": true,
               "isRequired": false,
@@ -259,7 +259,6 @@ App.config = Em.Object.create({
 
   capacitySchedulerFilter: function () {
     var yarnRegex = /^yarn\.scheduler\.capacity\.root\.([a-z]([\_\-a-z0-9]{0,50}))\.(acl_administer_jobs|acl_submit_jobs|state|user-limit-factor|maximum-capacity|capacity)$/i;
-    var self = this;
     if (App.get('isHadoop2Stack')) {
       return function (_config) {
         return (yarnRegex.test(_config.name));
@@ -284,8 +283,8 @@ App.config = Em.Object.create({
    */
   mergePreDefinedWithLoaded: function (configGroups, advancedConfigs, tags, serviceName) {
     var configs = [];
-    var log4jContentProperties = this.createLog4jContent();
-    var preDefinedConfigs = this.get('preDefinedSiteProperties').concat(log4jContentProperties);
+    var contentProperties = this.createContentProperties();
+    var preDefinedConfigs = this.get('preDefinedSiteProperties').concat(contentProperties);
     var mappingConfigs = [];
     var filenameExceptions = this.get('filenameExceptions');
     var selectedServiceNames = App.Service.find().mapProperty('serviceName');
@@ -412,8 +411,8 @@ App.config = Em.Object.create({
       siteStart = [];
 
     var preDefinedSiteProperties = this.get('preDefinedSiteProperties').mapProperty('name');
-    var log4jContentProperties = this.createLog4jContent().mapProperty('name');
-    var siteProperties = preDefinedSiteProperties.concat(log4jContentProperties);
+    var contentProperties = this.createContentProperties().mapProperty('name');
+    var siteProperties = preDefinedSiteProperties.concat(contentProperties);
     siteProperties.forEach(function (name) {
       var _site = siteConfigs.filterProperty('name', name);
       if (_site.length == 1) {
@@ -442,8 +441,8 @@ App.config = Em.Object.create({
    */
   mergePreDefinedWithStored: function (storedConfigs, advancedConfigs, selectedServiceNames) {
     var mergedConfigs = [];
-    var log4jContentProperties = this.createLog4jContent();
-    var preDefinedConfigs = this.get('preDefinedSiteProperties').concat(log4jContentProperties);
+    var contentProperties = this.createContentProperties();
+    var preDefinedConfigs = this.get('preDefinedSiteProperties').concat(contentProperties);
 
     storedConfigs = (storedConfigs) ? storedConfigs : [];
 
