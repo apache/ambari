@@ -951,6 +951,12 @@ App.MainHostDetailsController = Em.Controller.extend({
                 "parameters": {
                   "slave_type": slaveType,
                   "excluded_hosts": hostNames
+                },
+                'operation_level': {
+                  level: "HOST_COMPONENT",
+                  cluster_name: App.get('clusterName'),
+                  host_name: hostNames,
+                  service_name: serviceName
                 }
               },
               "Requests/resource_filters": [
@@ -1057,6 +1063,12 @@ App.MainHostDetailsController = Em.Controller.extend({
                 "parameters": {
                   "slave_type": slaveType,
                   "included_hosts": hostNames
+                },
+                'operation_level': {
+                  level: "HOST_COMPONENT",
+                  cluster_name: App.get('clusterName'),
+                  host_name: hostNames,
+                  service_name: serviceName
                 }
               },
               "Requests/resource_filters": [
@@ -1118,6 +1130,12 @@ App.MainHostDetailsController = Em.Controller.extend({
                 "parameters": {
                   "slave_type": slaveType,
                   "included_hosts": hostNames
+                },
+                'operation_level': {
+                  level: "HOST_COMPONENT",
+                  cluster_name: App.get('clusterName'),
+                  host_name: hostNames,
+                  service_name: serviceName
                 }
               },
               "Requests/resource_filters": [

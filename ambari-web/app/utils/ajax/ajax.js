@@ -124,6 +124,33 @@ var urls = {
     }
   },
 
+  'service.flume.agent.command': {
+    'real': '/clusters/{clusterName}/hosts/{host}/host_components/FLUME_HANDLER',
+    'mock': '',
+    'format': function (data) {
+      return {
+        type: 'PUT',
+        data: JSON.stringify({
+          "RequestInfo": {
+            "context": data.context,
+            "flume_handler": data.agentName,
+            "operation_level": {
+              level: "HOST_COMPONENT",
+              cluster_name: data.clusterName,
+              service_name: "FLUME",
+              host_name: data.host
+            }
+          },
+          "Body": {
+            "HostRoles": {
+              "state": data.state
+            }
+          }
+        })
+      }
+    }
+  },
+
   'common.host_components.update': {
     'real': '/clusters/{clusterName}/host_components?{urlParams}',
     'mock': '/data/wizard/deploy/poll_1.json',
@@ -134,7 +161,7 @@ var urls = {
           RequestInfo: {
             "context": data.context,
             "operation_level": {
-              level: "CLUSTER",
+              level: data.level || "CLUSTER",
               cluster_name: data.clusterName
             },
             query: data.query
@@ -254,26 +281,6 @@ var urls = {
   'service.load_config_groups': {
     'real': '/clusters/{clusterName}/config_groups?ConfigGroup/tag={serviceName}&fields=*',
     'mock': '/data/configurations/config_group.json'
-  },
-  'service.flume.agent.command': {
-    'real': '/clusters/{clusterName}/hosts/{host}/host_components/FLUME_HANDLER',
-    'mock': '',
-    'format': function (data) {
-      return {
-        type: 'PUT',
-        data: JSON.stringify({
-          "RequestInfo": {
-            "context": data.context,
-            "flume_handler": data.agentName
-          },
-          "Body": {
-            "HostRoles": {
-              "state": data.state
-            }
-          }
-        })
-      }
-    }
   },
   'reassign.load_configs': {
     'real': '/clusters/{clusterName}/configurations?{urlParams}',
@@ -398,6 +405,12 @@ var urls = {
             'parameters': {
               'slave_type': data.slaveType,
               'excluded_hosts': data.hostName
+            },
+            'operation_level': {
+              level: "HOST_COMPONENT",
+              cluster_name: data.clusterName,
+              host_name: data.hostName,
+              service_name: data.serviceName
             }
           },
           "Requests/resource_filters": [{"service_name" : data.serviceName, "component_name" : data.componentName}]
