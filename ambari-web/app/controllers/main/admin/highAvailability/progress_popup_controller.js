@@ -57,12 +57,30 @@ App.HighAvailabilityProgressPopupController = Ember.Controller.extend({
   hostsData: [],
 
   /**
+   * During loading and calculations show popup with spinner
+   * @type {Object}
+   */
+  spinnerPopup: null,
+
+  /**
    * Get info for <code>requestIds</code> and initialize <code>App.HostPopup</code>
    * @param popupTitle {String}
    * @param requestIds {Array}
    * @param progressController {App.HighAvailabilityProgressPageController}
+   * @param showSpinner {Boolean}
    */
-  initPopup: function (popupTitle, requestIds, progressController) {
+  initPopup: function (popupTitle, requestIds, progressController, showSpinner) {
+    if(showSpinner){
+      var loadingPopup = App.ModalPopup.show({
+        header: Em.I18n.t('jobs.loadingTasks'),
+        primary: false,
+        secondary: false,
+        bodyClass: Ember.View.extend({
+          template: Ember.Handlebars.compile('<div class="spinner"></div>')
+        })
+      });
+      this.set('spinnerPopup', loadingPopup);
+    }
     this.set('progressController', progressController);
     this.set('popupTitle', popupTitle);
     this.set('requestIds', requestIds);
@@ -101,6 +119,10 @@ App.HighAvailabilityProgressPopupController = Ember.Controller.extend({
       if (this.isRequestRunning(hostsData)) {
         this.addObserver('progressController.logs.length', this, 'getDataFromProgressController');
       }
+    }
+    if(this.get('spinnerPopup')){
+      this.get('spinnerPopup').hide();
+      this.set('spinnerPopup', null);
     }
   },
 

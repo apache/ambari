@@ -400,7 +400,7 @@ App.HighAvailabilityProgressPageController = App.HighAvailabilityWizardControlle
     var popupTitle = event.contexts[0].title;
     var requestIds = event.contexts[0].requestIds;
     var hostProgressPopupController = App.router.get('highAvailabilityProgressPopupController');
-    hostProgressPopupController.initPopup(popupTitle, requestIds, this);
+    hostProgressPopupController.initPopup(popupTitle, requestIds, this, true);
   },
 
   done: function () {
