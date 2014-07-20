@@ -52,7 +52,7 @@ Introduction
 
 Getting Started with Ambari
 
-  Follow the {{{https://cwiki.apache.org/confluence/display/AMBARI/Installation+Guide+for+Ambari+1.6.0} installation guide for Ambari 1.6.0}}.
+  Follow the {{{https://cwiki.apache.org/confluence/display/AMBARI/Installation+Guide+for+Ambari+1.6.1} installation guide for Ambari 1.6.1}}.
 
   Note: Ambari currently supports the 64-bit version of the following Operating Systems:
 

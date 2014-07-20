@@ -22,13 +22,13 @@
     <name>Ambari</name>
     <description>
       Ambari is a web-based tool for performing installation, management, and monitoring of Apache Hadoop clusters. The stack of components that are currently supported by
-      Ambari includes HBase, HCatalog, HDFS, Hive, MapReduce, Oozie, Pig, Scoop, Templeton, and Zookeeper.
+      Ambari includes Falcon, HBase, HCatalog, HDFS, Hive, MapReduce, Oozie, Pig, Scoop, Storm, Templeton, Tez, YARN and Zookeeper.
     </description>
-    <url>http://incubator.apache.org/ambari</url>
+    <url>http://ambari.apache.org</url>
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.apache.ambari</groupId>
-    <version>1.6.0</version>
+    <version>1.6.1</version>
     <artifactId>ambari</artifactId>
     <packaging>pom</packaging>
 
@@ -249,7 +249,19 @@
             <organization>
                 IBM            
             </organization>            
-        </developer> 
+        </developer>
+        <developer>
+            <id>eboyd</id>
+            <name>Erin A. Boyd</name>
+            <email>eboyd@apache.org</email>
+            <timezone>-8</timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                 Redhat
+            </organization>
+        </developer>
         <developer>
             <id>hitesh</id>
             <name>Hitesh Shah</name>
@@ -475,7 +487,7 @@
                 <role>PMC</role>
             </roles>
             <organization>
-                HP
+                Redhat
             </organization>
         </developer>
         <developer>

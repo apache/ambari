@@ -16,11 +16,22 @@
 
 What's New with Ambari?
 
- * The latest release Ambari 1.6.0 added the following features:
+ * The latest release Ambari 1.6.1 added the following features:
 
-   * Support for PostgreSQL DB (Ambari, Oozie, Hive Metastore)
+   * Performance improvements - optimized REST API that makes requests as efficient as possible,
+     improved backend caching to makes operational information readily available, better tuning
+     of Ganglia and Nagios facilitate metrics collection and alerts
 
-   * {{{https://cwiki.apache.org/confluence/display/AMBARI/Blueprints}Blueprints}}
+   * Custom jdk checking to ensure that installed services do not run into problems when they start up
+
+   * Ambari also now makes it easier to get your JDBC driver in place within the cluster and also tests
+     the database connections to make sure that your configuration is correct and working properly
+
+   * Ambari allows you to perform a blueprint validation based on dependency and cardinality information
+     provided in the associated Ambari Stack definition
+
+   * Host check has been enhanced to include checking for reverse hostname lookup as well as perform
+     hostname resolution checks on each host
 
 Getting Ambari Source
 
@@ -35,7 +46,7 @@ JIRA
 
 User Guide
 
-  Take a look at {{{https://cwiki.apache.org/confluence/display/AMBARI/Installation+Guide+for+Ambari+1.6.0} how to install a Hadoop cluster using Ambari 1.6.0}}.
+  Take a look at {{{https://cwiki.apache.org/confluence/display/AMBARI/Installation+Guide+for+Ambari+1.6.1} how to install a Hadoop cluster using Ambari 1.6.1}}.
 
 Stay Tuned
 

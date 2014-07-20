@@ -103,6 +103,7 @@
     </menu>
 
     <menu name="Releases">
+        <item name="1.6.1" href="http://www.apache.org/dyn/closer.cgi/ambari/ambari-1.6.1"/>
         <item name="1.6.0" href="http://www.apache.org/dyn/closer.cgi/ambari/ambari-1.6.0"/>
         <item name="1.5.1" href="http://www.apache.org/dyn/closer.cgi/ambari/ambari-1.5.1"/>
         <item name="1.5.0" href="http://www.apache.org/dyn/closer.cgi/ambari/ambari-1.5.0"/>
@@ -120,6 +121,7 @@
     </menu>
 
     <menu name="Documentation">
+        <item name="Install Guide for 1.6.1" href="https://cwiki.apache.org/confluence/display/AMBARI/Installation+Guide+for+Ambari+1.6.1"/>
         <item name="Install Guide for 1.6.0" href="https://cwiki.apache.org/confluence/display/AMBARI/Installation+Guide+for+Ambari+1.6.0"/>
         <item name="Install Guide for 1.5.1" href="https://cwiki.apache.org/confluence/display/AMBARI/Installation+Guide+for+Ambari+1.5.1"/>
         <item name="Install Guide for 1.5.0" href="https://cwiki.apache.org/confluence/display/AMBARI/Installation+Guide+for+Ambari+1.5.0"/>
