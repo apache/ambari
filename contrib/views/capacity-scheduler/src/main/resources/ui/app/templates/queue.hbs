@@ -1,0 +1,229 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+<div class="well">
+  
+  <div class="row queue-heading-row">
+      <div class="col-md-12">
+          {{#if content.isNew}}
+            <div class="input-group">
+              {{focus-input value=content.name class="form-control" classBinding="content.isValid::input-error" action="createQ" revert="delQ" placeholder="Enter queue name..."}}
+              <span class="input-group-btn">
+                <button {{action "delQ" content target="controllers.queues"}} {{bind-attr class=":btn :btn-danger"}} type="button">Cancel</button>
+                <button {{action "createQ" content target="controllers.queues"}} {{bind-attr class=":btn :btn-default content.isValid::disabled"}} type="button">Create</button>
+              </span>
+            </div>
+            {{else}}
+              {{#unless isRenaming}}
+                <h3>
+                  {{content.name}}
+                  {{#unless isRoot}}
+                  <small>
+                    <a href="#" {{action "renameQ" 'ask'}} class="">
+                      <i class="fa fa-edit"></i>
+                    </a>
+                  </small>
+                  <small>
+                    {{comfirm-delete action="delQ" param=content}}
+                  </small>
+                  {{/unless}}
+                </h3>
+              {{else}}
+              <div class="input-group">
+                {{focus-input value=content.name class="form-control" action="renameQ" revert="renameQ" classBinding="content.isValid::input-error" placeholder="Enter queue name..."}}
+                <span class="input-group-btn">
+                  <button {{action "renameQ" 'cancel'}} {{bind-attr class=":btn :btn-danger"}} type="button">Cancel</button>
+                  <button {{action "renameQ" 'rename'}} {{bind-attr class=":btn :btn-default content.isValid::disabled"}} type="button">Rename</button>
+                </span>
+              </div>
+              {{/unless}}
+          {{/if}}
+            {{#each pathErrors}}
+                <p class="help-block red">{{this}}</p>
+            {{/each}}
+          <h4 ><small>{{content.path}}</small>
+            <div class="btn-group btn-group-xs" data-toggle="buttons" >
+              <label  {{action 'setState' 'running'}} {{bind-attr class=":btn isRunning:btn-success:btn-default isRunning:active" }}>
+                <input type="radio" name="options"> Running
+              </label>
+              <label  {{action 'setState' 'stopped'}} {{bind-attr class=":btn isRunning:btn-default:btn-danger isRunning::active" }}>
+                <input type="radio" name="options"> Stopped
+              </label>
+            </div>
+          </h4>
+      </div>
+  </div>
+  <div class="row queue-capacity-row">
+    <div class="col-md-12">
+      {{total-capacity 
+        currentQueue=content 
+        allQueues=allQueues 
+        allQueuesArranged=allQueuesArranged 
+        addQueue="addQ" 
+        createQueue="createQ" 
+        deleteQueue="delQ" 
+        hasNew=controllers.queues.hasNewQueue
+      }}
+    </div>
+  </div>
+  <div class="row queue-acl-row">
+    <div class="col-md-6">
+      <div class="panel panel-default panel-capacity">
+        <div class="panel-heading">
+          <div class="panel-title">
+            Access control
+            <a href="#" {{action 'toggleEditACL'}} class="text-right"> 
+              {{#if isEditACL}}
+                <small><i class="fa fa-edit">  Hide edit</i> </small>
+              {{else}}
+                <small><i class="fa fa-edit">Show edit</i> </small>
+              {{/if}}
+            </a>
+          </div>
+        </div>
+        <div class="panel-body">
+          <form class="form-horizontal form-acl" role="form">
+          {{#if isEditACL}}
+
+            <div class="form-group row">
+              <label class="col-lg-6 col-md-6 col-sm-4 col-xs-5 control-label">Administer Queue ACL</label>
+              <div class="col-lg-6 col-md-6 col-sm-8 col-xs-7">
+                <div class="btn-group btn-group-xs" data-toggle="buttons">
+                  {{radio-button label="Anyone" selectionBinding="acl_administer_queue" value="*"}}
+                  {{radio-button label="Custom" selectionBinding="acl_administer_queue" value="custom"}}
+                </div>
+                {{#if aaq_dirty}}
+                  <a {{action 'rollbackProp' 'acl_administer_queue'}} href="#"><i class="fa fa-undo"></i></a>
+                {{/if}}
+              </div>
+            </div>
+            {{#unless aaq_anyone}}
+              {{user-group-input ug=content.acl_administer_queue disabled=aaq_anyone}}
+            {{/unless}}
+
+            <div class="form-group row">
+              <label class="col-lg-6 col-md-6 col-sm-4 col-xs-5 control-label">Administer Jobs ACL</label>
+              <div class="col-lg-6 col-md-6 col-sm-8 col-xs-7">
+                <div class="btn-group btn-group-xs" data-toggle="buttons">
+                  {{radio-button label="Anyone" selectionBinding="acl_administer_jobs" value="*"}}
+                  {{radio-button label="Custom" selectionBinding="acl_administer_jobs" value="custom"}}
+                </div>
+                {{#if aaj_dirty}}
+                  <a {{action 'rollbackProp' 'acl_administer_jobs'}} href="#"><i class="fa fa-undo"></i></a>
+                {{/if}}
+              </div>
+            </div>
+            {{#unless aaj_anyone}}
+              {{user-group-input ug=content.acl_administer_jobs disabled=aaj_anyone}}
+            {{/unless}}
+
+
+            <div class="form-group row">
+              <label class="col-lg-6 col-md-6 col-sm-4 col-xs-5 control-label">Submit Applications ACL</label>
+              <div class="col-lg-6 col-md-6 col-sm-8 col-xs-7">
+                <div class="btn-group btn-group-xs" data-toggle="buttons">
+                  {{radio-button label="Anyone" selectionBinding="acl_submit_applications" value="*"}}
+                  {{radio-button label="Custom" selectionBinding="acl_submit_applications" value="custom"}}
+                </div>
+                {{#if asa_dirty}}
+                  <a {{action 'rollbackProp' 'acl_submit_applications'}} href="#"><i class="fa fa-undo"></i></a>
+                {{/if}}
+              </div>
+            </div>
+            {{#unless asa_anyone}}
+              {{user-group-input ug=content.acl_submit_applications disabled=asa_anyone}}
+            {{/unless}}
+            
+          {{else}}
+            <div class="form-group">
+              <label class="col-lg-6 col-md-6 col-sm-6 col-xs-6 control-label">Administer Queue ACL</label>
+              <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6">
+               <p class="form-control-static">
+                {{escapeACL content.acl_administer_queue}}
+               </p> 
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="col-lg-6 col-md-6 col-sm-6 col-xs-6 control-label">Administer Jobs ACL</label>
+              <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6">
+               <p class="form-control-static">
+                {{escapeACL content.acl_administer_jobs}}
+               </p> 
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="col-lg-6 col-md-6 col-sm-6 col-xs-6 control-label">Submit Applications ACL</label>
+              <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6">
+               <p class="form-control-static">
+                {{escapeACL content.acl_submit_applications}}
+               </p> 
+              </div>
+            </div>
+          {{/if}}
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="panel panel-default panel-capacity">
+        <div class="panel-heading">
+          <div class="panel-title">
+            Resource Allocation
+            <a href="#" {{action 'toggleEditRA'}} class="text-right"> 
+              {{#if isEditRA}}
+                <small><i class="fa fa-edit">  Hide edit</i> </small>
+              {{else}}
+                <small><i class="fa fa-edit">Show edit</i> </small>
+              {{/if}}
+            </a>
+          </div>
+        </div>
+        <div class="panel-body">
+          <form class="form-horizontal" role="form">
+            <div class="form-group">
+              <label class="col-lg-6 col-md-6 col-sm-6 col-xs-6 control-label">User Limit Factor</label>
+              <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6">
+              {{#if isEditRA}}
+                {{int-input value=content.user_limit_factor class="input-sm"}}
+              {{else}}
+                <p class="form-control-static">{{content.user_limit_factor}}</p>
+              {{/if}}
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="col-lg-6 col-md-6 col-sm-6 col-xs-6 control-label">Minimum User Limit</label>
+              <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6">
+                {{#if isEditRA}}  
+                  <div class="input-group">
+                    {{int-input value=content.minimum_user_limit_percent class="input-sm" maxVal=100}}
+                    <span class="input-group-addon">%</span>
+                  </div>
+                {{else}}
+                  <p class="form-control-static">{{content.minimum_user_limit_percent}} %</p>
+                {{/if}}
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

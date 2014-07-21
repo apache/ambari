@@ -1,0 +1,85 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+<div class="col-md-4">
+  {{!-- BUTTONS --}}
+  <div class="row">
+      {{#if isWaitingPath}}
+        <div class="add-queue col-md-12">
+          {{path-input queues=content action="addQ" activeFlag=isWaitingPath}}
+        </div>
+      {{else}}
+        <div {{bind-attr class=":add-queue needRefresh:col-md-5:col-md-6 :col-sm-6" }} >
+          <button {{action askPath}} {{bind-attr class=":btn :btn-default :btn-block hasNewQueue:disabled"}} ><i class="fa fa-plus"></i> Add queue</button>
+        </div>
+        <div  {{bind-attr class=":add-queue needRefresh:col-md-7:col-md-6 :col-sm-6" }} >
+          <div class="btn-group btn-group-justified btn-group-save">
+            <div class="btn-group">
+            {{#if needRestart}}
+              <button {{action saveConfig 'restart'}} {{bind-attr class=":btn :btn-save :btn-success canNotSave:disabled"}} ><i class="fa fa-fw fa fa-cogs"></i> Save and restart</button>
+              {{else}}
+              {{#if needRefresh}}
+              <button {{action saveConfig 'refresh'}} {{bind-attr class=":btn :btn-save :btn-success canNotSave:disabled"}} ><i class="fa fa-fw fa-refresh"></i> Save and refresh</button>
+              {{else}}
+              <button {{action saveConfig}} {{bind-attr class=":btn :btn-save :btn-success canNotSave:disabled"}} ><i class="fa fa-save"></i> Save</button>
+              {{/if}}
+            {{/if}}
+            </div>
+            <div class="btn-group">
+                <button type="button" {{bind-attr class=":btn :btn-success canNotSave:disabled :dropdown-toggle"}} data-toggle="dropdown">
+                  <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu pull-right" role="menu">
+                  <li><a href="#" {{action saveConfig 'restart'}}><i class="fa fa-fw fa fa-cogs"></i> Save and restart ResourceManager</a></li>
+                  <li><a href="#" {{action saveConfig 'refresh'}}><i class="fa fa-fw fa-refresh"></i> Save and refresh Queues</a></li>
+                  <li><a href="#" {{action saveConfig}}><i class="fa fa-fw fa-save"></i> Save only</a></li>
+                </ul>
+            </div>
+          </div>
+        </div>
+      {{/if}}
+  </div>
+  {{!-- QUEUE LIST --}}
+  <div class="list-group queue-list">
+    {{recurce-queues depth=0}}
+  </div>
+  {{!-- SHEDULER --}}
+  <div class="hidden-sm hidden-xs">
+    {{partial "schedulerPanel"}}
+  </div>
+  {{!-- ALERT --}}
+  {{#if alertMessage}}
+  <div class="alert alert-danger">
+    <button {{action 'clearAlert'}}type="button" class="close" aria-hidden="true">&times;</button>
+    <strong> {{alertMessage.status}} </strong> {{alertMessage.message}}
+    <br>
+    {{#link-to 'trace' class="alert-link"}}Trace{{/link-to}}
+  </div>
+  {{/if}}
+</div>
+
+{{!-- QUEUE --}}
+<div class="col-md-8">
+  {{outlet}}
+</div>
+
+{{!-- SHEDULER --}}
+<div class="col-md-12 hidden-lg hidden-md">
+  {{partial "schedulerPanel"}}
+</div>
+

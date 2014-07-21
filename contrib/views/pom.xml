@@ -26,6 +26,7 @@
     <module>files</module>
     <module>pig</module>
     <module>slider</module>
+    <module>capacity-scheduler</module>
   </modules>
   <build>
     <pluginManagement>
