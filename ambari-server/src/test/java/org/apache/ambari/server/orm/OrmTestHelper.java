@@ -18,33 +18,64 @@
 
 package org.apache.ambari.server.orm;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import javax.persistence.EntityManager;
+
+import org.apache.ambari.server.Role;
+import org.apache.ambari.server.RoleCommand;
+import org.apache.ambari.server.actionmanager.HostRoleStatus;
+import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
+import org.apache.ambari.server.orm.dao.ClusterDAO;
+import org.apache.ambari.server.orm.dao.HostDAO;
+import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
+import org.apache.ambari.server.orm.dao.RequestDAO;
+import org.apache.ambari.server.orm.dao.RoleDAO;
+import org.apache.ambari.server.orm.dao.StageDAO;
+import org.apache.ambari.server.orm.dao.UserDAO;
+import org.apache.ambari.server.orm.entities.ClusterEntity;
+import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
+import org.apache.ambari.server.orm.entities.HostEntity;
+import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
+import org.apache.ambari.server.orm.entities.HostStateEntity;
+import org.apache.ambari.server.orm.entities.PrincipalEntity;
+import org.apache.ambari.server.orm.entities.PrincipalTypeEntity;
+import org.apache.ambari.server.orm.entities.RequestEntity;
+import org.apache.ambari.server.orm.entities.RoleEntity;
+import org.apache.ambari.server.orm.entities.StageEntity;
+import org.apache.ambari.server.orm.entities.UserEntity;
+import org.apache.ambari.server.state.HostState;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.util.Assert;
+
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
-import org.apache.ambari.server.Role;
-import org.apache.ambari.server.RoleCommand;
-import org.apache.ambari.server.actionmanager.HostRoleStatus;
-import org.apache.ambari.server.orm.dao.*;
-import org.apache.ambari.server.orm.entities.*;
-import org.apache.ambari.server.state.HostState;
-import org.springframework.security.crypto.password.PasswordEncoder;
-
-import javax.persistence.EntityManager;
-import java.util.*;
 
 @Singleton
 public class OrmTestHelper {
 
   @Inject
   public Provider<EntityManager> entityManagerProvider;
+
   @Inject
   public Injector injector;
+
   @Inject
   public UserDAO userDAO;
+
   @Inject
   public RoleDAO roleDAO;
+
+  @Inject
+  public AlertDefinitionDAO alertDefinitionDAO;
 
   public EntityManager getEntityManager() {
     return entityManagerProvider.get();
@@ -52,10 +83,9 @@ public class OrmTestHelper {
 
   /**
    * creates some test data
-    */
+   */
   @Transactional
   public void createDefaultData() {
-
     ClusterEntity clusterEntity = new ClusterEntity();
     clusterEntity.setClusterName("test_cluster1");
     clusterEntity.setClusterInfo("test_cluster_info1");
@@ -77,7 +107,7 @@ public class OrmTestHelper {
 
     clusterEntity.setHostEntities(hostEntities);
 
-    //both sides of relation should be set when modifying in runtime
+    // both sides of relation should be set when modifying in runtime
     host1.setClusterEntities(Arrays.asList(clusterEntity));
     host2.setClusterEntities(Arrays.asList(clusterEntity));
 
@@ -103,7 +133,6 @@ public class OrmTestHelper {
     getEntityManager().persist(hostStateEntity1);
     getEntityManager().persist(hostStateEntity2);
     getEntityManager().persist(clusterServiceEntity);
-
   }
 
   @Transactional
@@ -214,7 +243,26 @@ public class OrmTestHelper {
     hostRoleCommandDAO.create(commandEntity2);
     hostDAO.merge(host1);
     hostDAO.merge(host2);
-
   }
 
+  /**
+   * Creates an empty cluster with an ID.
+   * 
+   * @return the cluster ID.
+   */
+  @Transactional
+  public Long createCluster() {
+    ClusterDAO clusterDAO = injector.getInstance(ClusterDAO.class);
+
+    ClusterEntity clusterEntity = new ClusterEntity();
+    clusterEntity.setClusterName("test_cluster1");
+    clusterEntity.setClusterInfo("test_cluster_info1");
+
+    clusterDAO.create(clusterEntity);
+
+    clusterEntity = clusterDAO.findByName(clusterEntity.getClusterName());
+    Assert.notNull(clusterEntity);
+    Assert.isTrue(clusterEntity.getClusterId() > 0);
+    return clusterEntity.getClusterId();
+  }
 }

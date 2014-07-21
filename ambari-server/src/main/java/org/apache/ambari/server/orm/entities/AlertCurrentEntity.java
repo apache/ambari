@@ -21,10 +21,9 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
@@ -41,12 +40,14 @@ import org.apache.ambari.server.state.MaintenanceState;
  */
 @Entity
 @Table(name = "alert_current")
-@NamedQuery(name = "AlertCurrentEntity.findAll", query = "SELECT currentAlert FROM AlertCurrentEntity currentAlert")
+@NamedQueries({
+    @NamedQuery(name = "AlertCurrentEntity.findAll", query = "SELECT alert FROM AlertCurrentEntity alert"),
+    @NamedQuery(name = "AlertCurrentEntity.findByService", query = "SELECT alert FROM AlertCurrentEntity alert JOIN alert.alertHistory history WHERE history.clusterId = :clusterId AND history.serviceName = :serviceName"),
+    @NamedQuery(name = "AlertCurrentEntity.findByHost", query = "SELECT alert FROM AlertCurrentEntity alert JOIN alert.alertHistory history WHERE history.clusterId = :clusterId AND history.hostName = :hostName") })
 public class AlertCurrentEntity {
 
   @Id
-  @GeneratedValue(strategy = GenerationType.TABLE)
-  @Column(name = "alert_id", unique = true, nullable = false, updatable = false)
+  @Column(name = "alert_id", nullable = false, updatable = false)
   private Long alertId;
 
   @Column(name = "latest_timestamp", nullable = false)

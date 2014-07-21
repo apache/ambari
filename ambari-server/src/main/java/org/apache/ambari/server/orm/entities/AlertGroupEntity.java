@@ -49,7 +49,7 @@ public class AlertGroupEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE)
-  @Column(name = "group_id", unique = true, nullable = false, updatable = false)
+  @Column(name = "group_id", nullable = false, updatable = false)
   private Long groupId;
 
   @Column(name = "cluster_id", nullable = false)

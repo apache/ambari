@@ -28,19 +28,25 @@ import static org.junit.Assert.assertSame;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
+import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Provider;
+import com.google.inject.persist.PersistService;
 
 /**
  * Tests {@link AlertDefinitionDAO} for interacting with
@@ -49,11 +55,41 @@ import com.google.inject.Provider;
 @SuppressWarnings("unchecked")
 public class AlertDefinitionDAOTest {
 
-  AlertDefinitionDAO dao;
-  Provider<EntityManager> entityManagerProvider = createStrictMock(Provider.class);
+  AlertDefinitionDAO realDAO;
+  AlertDefinitionDAO mockDAO;
+  Provider<EntityManager> mockEntityManagerProvider = createStrictMock(Provider.class);
   EntityManager entityManager = createStrictMock(EntityManager.class);
 
-  private Injector injector;
+  private static Injector injector;
+  private static Long clusterId;
+
+  @BeforeClass
+  public static void beforeClass() {
+    injector = Guice.createInjector(new InMemoryDefaultTestModule());
+    injector.getInstance(GuiceJpaInitializer.class);
+    AlertDefinitionDAO alertDefinitionDAO = injector.getInstance(AlertDefinitionDAO.class);
+    clusterId = injector.getInstance(OrmTestHelper.class).createCluster();
+
+    for (int i = 0; i < 8; i++) {
+      AlertDefinitionEntity definition = new AlertDefinitionEntity();
+      definition.setDefinitionName("Alert Definition " + i);
+      definition.setServiceName("HDFS");
+      definition.setComponentName(null);
+      definition.setClusterId(clusterId);
+      definition.setHash(UUID.randomUUID().toString());
+      definition.setScheduleInterval(60L);
+      definition.setScope("SERVICE");
+      definition.setSource("Source " + i);
+      definition.setSourceType("SCRIPT");
+      alertDefinitionDAO.create(definition);
+    }
+  }
+
+  @AfterClass
+  public static void afterClass() {
+    injector.getInstance(PersistService.class).stop();
+    injector = null;
+  }
 
   /**
    * 
@@ -64,14 +100,16 @@ public class AlertDefinitionDAOTest {
     injector.getInstance(GuiceJpaInitializer.class);
     injector.injectMembers(this);
 
-    reset(entityManagerProvider);
-    expect(entityManagerProvider.get()).andReturn(entityManager).atLeastOnce();
-    replay(entityManagerProvider);
+    reset(mockEntityManagerProvider);
+    expect(mockEntityManagerProvider.get()).andReturn(entityManager).atLeastOnce();
+    replay(mockEntityManagerProvider);
 
-    dao = new AlertDefinitionDAO();
-    injector.injectMembers(dao);
+    realDAO = new AlertDefinitionDAO();
+    mockDAO = new AlertDefinitionDAO();
+    injector.injectMembers(realDAO);
+    injector.injectMembers(mockDAO);
 
-    dao.entityManagerProvider = entityManagerProvider;
+    mockDAO.entityManagerProvider = mockEntityManagerProvider;
   }
 
   /**
@@ -95,10 +133,19 @@ public class AlertDefinitionDAOTest {
 
     replay(query, entityManager);
 
-    AlertDefinitionEntity result = dao.findByName(12345L, "alert-definition-1");
+    AlertDefinitionEntity result = mockDAO.findByName(12345L,
+        "alert-definition-1");
 
     assertSame(result, entity);
-    verify(entityManagerProvider, entityManager);
+    verify(mockEntityManagerProvider, entityManager);
+
+    List<AlertDefinitionEntity> definitions = realDAO.findAll();
+    Assert.assertNotNull(definitions);
+    AlertDefinitionEntity definition = definitions.get(2);
+    AlertDefinitionEntity retrieved = realDAO.findByName(
+        definition.getClusterId(), definition.getDefinitionName());
+
+    Assert.assertEquals(definition, retrieved);
   }
 
   /**
@@ -117,11 +164,15 @@ public class AlertDefinitionDAOTest {
 
     replay(query, entityManager);
 
-    List<AlertDefinitionEntity> entities = dao.findAll();
+    List<AlertDefinitionEntity> entities = mockDAO.findAll();
 
     assertSame(1, entities.size());
     assertSame(entity, entities.get(0));
-    verify(entityManagerProvider, entityManager);
+    verify(mockEntityManagerProvider, entityManager);
+
+    List<AlertDefinitionEntity> definitions = realDAO.findAll();
+    Assert.assertNotNull(definitions);
+    Assert.assertEquals(8, definitions.size());
   }
 
   /**
@@ -136,10 +187,17 @@ public class AlertDefinitionDAOTest {
 
     replay(entityManager);
 
-    AlertDefinitionEntity result = dao.findById(12345L);
+    AlertDefinitionEntity result = mockDAO.findById(12345L);
 
     assertSame(result, entity);
-    verify(entityManagerProvider, entityManager);
+    verify(mockEntityManagerProvider, entityManager);
+
+    List<AlertDefinitionEntity> definitions = realDAO.findAll();
+    Assert.assertNotNull(definitions);
+    AlertDefinitionEntity definition = definitions.get(2);
+    AlertDefinitionEntity retrieved = realDAO.findById(definition.getDefinitionId());
+
+    Assert.assertEquals(definition, retrieved);
   }
 
   @Test
@@ -150,10 +208,10 @@ public class AlertDefinitionDAOTest {
     entityManager.refresh(eq(entity));
     replay(entityManager);
 
-    dao.entityManagerProvider = entityManagerProvider;
-    dao.refresh(entity);
+    mockDAO.entityManagerProvider = mockEntityManagerProvider;
+    mockDAO.refresh(entity);
 
-    verify(entityManagerProvider, entityManager);
+    verify(mockEntityManagerProvider, entityManager);
   }
 
   @Test
@@ -164,10 +222,10 @@ public class AlertDefinitionDAOTest {
     entityManager.persist(eq(entity));
     replay(entityManager);
 
-    dao.entityManagerProvider = entityManagerProvider;
-    dao.create(entity);
+    mockDAO.entityManagerProvider = mockEntityManagerProvider;
+    mockDAO.create(entity);
 
-    verify(entityManagerProvider, entityManager);
+    verify(mockEntityManagerProvider, entityManager);
   }
 
   @Test
@@ -179,10 +237,10 @@ public class AlertDefinitionDAOTest {
     expect(entityManager.merge(eq(entity))).andReturn(entity2);
     replay(entityManager);
 
-    dao.entityManagerProvider = entityManagerProvider;
-    assertSame(entity2, dao.merge(entity));
+    mockDAO.entityManagerProvider = mockEntityManagerProvider;
+    assertSame(entity2, mockDAO.merge(entity));
 
-    verify(entityManagerProvider, entityManager);
+    verify(mockEntityManagerProvider, entityManager);
   }
 
   @Test
@@ -195,9 +253,9 @@ public class AlertDefinitionDAOTest {
     entityManager.remove(eq(entity2));
     replay(entityManager);
 
-    dao.entityManagerProvider = entityManagerProvider;
-    dao.remove(entity);
+    mockDAO.entityManagerProvider = mockEntityManagerProvider;
+    mockDAO.remove(entity);
 
-    verify(entityManagerProvider, entityManager);
+    verify(mockEntityManagerProvider, entityManager);
   }
 }

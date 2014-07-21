@@ -33,8 +33,8 @@ import com.google.inject.persist.Transactional;
 
 /**
  * The {@link AlertsDAO} class manages the {@link AlertHistoryEntity} and
- * {@link AlertCurrentEntity} instances.Each {@link AlertHistoryEntity} is known
- * as an "alert" that has been triggered and received.
+ * {@link AlertCurrentEntity} instances. Each {@link AlertHistoryEntity} is
+ * known as an "alert" that has been triggered and received.
  */
 @Singleton
 public class AlertsDAO {
@@ -65,7 +65,7 @@ public class AlertsDAO {
   /**
    * Gets all alerts stored in the database across all clusters.
    * 
-   * @return all alerts or empty list if none exist (never {@code null}).
+   * @return all alerts or an empty list if none exist (never {@code null}).
    */
   @RequiresSession
   public List<AlertHistoryEntity> findAll() {
@@ -78,7 +78,7 @@ public class AlertsDAO {
   /**
    * Gets all alerts stored in the database for the given cluster.
    * 
-   * @return all alerts in the specified cluster or empty list if none exist
+   * @return all alerts in the specified cluster or an empty list if none exist
    *         (never {@code null}).
    */
   @RequiresSession
@@ -87,6 +87,56 @@ public class AlertsDAO {
         "AlertHistoryEntity.findAllInCluster", AlertHistoryEntity.class);
 
     query.setParameter("clusterId", clusterId);
+
+    return daoUtils.selectList(query);
+  }
+
+  /**
+   * Gets the current alerts.
+   * 
+   * @return the current alerts or an empty list if none exist (never
+   *         {@code null}).
+   */
+  @RequiresSession
+  public List<AlertCurrentEntity> findCurrent() {
+    TypedQuery<AlertCurrentEntity> query = entityManagerProvider.get().createNamedQuery(
+        "AlertCurrentEntity.findAll", AlertCurrentEntity.class);
+
+    return daoUtils.selectList(query);
+  }
+
+  /**
+   * Gets the current alerts for a given service.
+   * 
+   * @return the current alerts for the given service or an empty list if none
+   *         exist (never {@code null}).
+   */
+  @RequiresSession
+  public List<AlertCurrentEntity> findCurrentByService(long clusterId,
+      String serviceName) {
+    TypedQuery<AlertCurrentEntity> query = entityManagerProvider.get().createNamedQuery(
+        "AlertCurrentEntity.findByService", AlertCurrentEntity.class);
+
+    query.setParameter("clusterId", clusterId);
+    query.setParameter("serviceName", serviceName);
+
+    return daoUtils.selectList(query);
+  }
+
+  /**
+   * Gets the current alerts for a given host.
+   * 
+   * @return the current alerts for the given host or an empty list if none
+   *         exist (never {@code null}).
+   */
+  @RequiresSession
+  public List<AlertCurrentEntity> findCurrentByHost(long clusterId,
+      String hostName) {
+    TypedQuery<AlertCurrentEntity> query = entityManagerProvider.get().createNamedQuery(
+        "AlertCurrentEntity.findByHost", AlertCurrentEntity.class);
+
+    query.setParameter("clusterId", clusterId);
+    query.setParameter("hostName", hostName);
 
     return daoUtils.selectList(query);
   }
@@ -133,6 +183,51 @@ public class AlertsDAO {
    */
   @Transactional
   public void remove(AlertHistoryEntity alert) {
+    entityManagerProvider.get().remove(merge(alert));
+  }
+
+  /**
+   * Persists a new current alert.
+   * 
+   * @param alert
+   *          the current alert to persist (not {@code null}).
+   */
+  @Transactional
+  public void create(AlertCurrentEntity alert) {
+    entityManagerProvider.get().persist(alert);
+  }
+
+  /**
+   * Refresh the state of the current alert from the database.
+   * 
+   * @param alert
+   *          the current alert to refresh (not {@code null}).
+   */
+  @Transactional
+  public void refresh(AlertCurrentEntity alert) {
+    entityManagerProvider.get().refresh(alert);
+  }
+
+  /**
+   * Merge the speicified current alert with the existing alert in the database.
+   * 
+   * @param alert
+   *          the current alert to merge (not {@code null}).
+   * @return the updated current alert with merged content (never {@code null}).
+   */
+  @Transactional
+  public AlertCurrentEntity merge(AlertCurrentEntity alert) {
+    return entityManagerProvider.get().merge(alert);
+  }
+
+  /**
+   * Removes the specified current alert from the database.
+   * 
+   * @param alert
+   *          the current alert to remove.
+   */
+  @Transactional
+  public void remove(AlertCurrentEntity alert) {
     entityManagerProvider.get().remove(merge(alert));
   }
 }

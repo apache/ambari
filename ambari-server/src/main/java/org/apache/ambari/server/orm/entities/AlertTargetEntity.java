@@ -44,7 +44,7 @@ public class AlertTargetEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE)
-  @Column(name = "target_id", unique = true, nullable = false, updatable = false)
+  @Column(name = "target_id", nullable = false, updatable = false)
   private Long targetId;
 
   @Column(length = 1024)
@@ -53,7 +53,7 @@ public class AlertTargetEntity {
   @Column(name = "notification_type", nullable = false, length = 64)
   private String notificationType;
 
-  @Column(length = 2147483647)
+  @Column(length = 32672)
   private String properties;
 
   @Column(name = "target_name", unique = true, nullable = false, length = 255)
@@ -183,17 +183,20 @@ public class AlertTargetEntity {
    */
   @Override
   public boolean equals(Object object) {
-    if (this == object)
+    if (this == object) {
       return true;
+    }
 
-    if (object == null || getClass() != object.getClass())
+    if (object == null || getClass() != object.getClass()) {
       return false;
+    }
 
     AlertTargetEntity that = (AlertTargetEntity) object;
 
     if (targetId != null ? !targetId.equals(that.targetId)
-        : that.targetId != null)
+        : that.targetId != null) {
       return false;
+    }
 
     return true;
   }

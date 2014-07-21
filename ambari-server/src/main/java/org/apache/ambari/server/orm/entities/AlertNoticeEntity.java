@@ -45,7 +45,7 @@ public class AlertNoticeEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE)
-  @Column(name = "notification_id", unique = true, nullable = false, updatable = false)
+  @Column(name = "notification_id", nullable = false, updatable = false)
   private Long notificationId;
 
   @Enumerated(value = EnumType.STRING)

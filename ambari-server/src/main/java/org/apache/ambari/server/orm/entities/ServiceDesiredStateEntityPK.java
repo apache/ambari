@@ -39,7 +39,7 @@ public class ServiceDesiredStateEntityPK implements Serializable {
   private String serviceName;
 
   @Id
-  @Column(name = "service_name", nullable = false, insertable = true, updatable = true, length = 2147483647, precision = 0)
+  @Column(name = "service_name", nullable = false, insertable = true, updatable = true, length = 32672, precision = 0)
   public String getServiceName() {
     return serviceName;
   }

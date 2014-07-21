@@ -84,7 +84,7 @@ public class AlertDispatchDAO {
   @RequiresSession
   public AlertGroupEntity findGroupByName(String groupName) {
     TypedQuery<AlertGroupEntity> query = entityManagerProvider.get().createNamedQuery(
-        "AlertGroup.findByName", AlertGroupEntity.class);
+        "AlertGroupEntity.findByName", AlertGroupEntity.class);
 
     query.setParameter("groupName", groupName);
 
@@ -104,7 +104,7 @@ public class AlertDispatchDAO {
   @RequiresSession
   public AlertGroupEntity findGroupByName(long clusterId, String groupName) {
     TypedQuery<AlertGroupEntity> query = entityManagerProvider.get().createNamedQuery(
-        "AlertGroup.findByNameInCluster", AlertGroupEntity.class);
+        "AlertGroupEntity.findByNameInCluster", AlertGroupEntity.class);
 
     query.setParameter("clusterId", clusterId);
     query.setParameter("groupName", groupName);
@@ -123,7 +123,7 @@ public class AlertDispatchDAO {
   @RequiresSession
   public AlertTargetEntity findTargetByName(String targetName) {
     TypedQuery<AlertTargetEntity> query = entityManagerProvider.get().createNamedQuery(
-        "AlertGroup.findByName", AlertTargetEntity.class);
+        "AlertTargetEntity.findByName", AlertTargetEntity.class);
 
     query.setParameter("targetName", targetName);
 

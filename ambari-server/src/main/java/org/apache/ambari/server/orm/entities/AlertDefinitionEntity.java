@@ -46,10 +46,10 @@ public class AlertDefinitionEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE)
-  @Column(name = "definition_id", unique = true, nullable = false, updatable = false)
+  @Column(name = "definition_id", nullable = false, updatable = false)
   private Long definitionId;
 
-  @Column(name = "alert_source", nullable = false, length = 2147483647)
+  @Column(name = "alert_source", nullable = false, length = 32672)
   private String source;
 
   @Column(name = "cluster_id", nullable = false)

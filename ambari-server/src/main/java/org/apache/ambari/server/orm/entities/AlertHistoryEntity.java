@@ -49,7 +49,7 @@ public class AlertHistoryEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE)
-  @Column(name = "alert_id", unique = true, nullable = false, updatable = false)
+  @Column(name = "alert_id", nullable = false, updatable = false)
   private Long alertId;
 
   @Column(name = "alert_instance", length = 255)
@@ -62,7 +62,7 @@ public class AlertHistoryEntity {
   @Column(name = "alert_state", nullable = false, length = 255)
   private AlertState alertState;
 
-  @Column(name = "alert_text", length = 2147483647)
+  @Column(name = "alert_text", length = 32672)
   private String alertText;
 
   @Column(name = "alert_timestamp", nullable = false)
