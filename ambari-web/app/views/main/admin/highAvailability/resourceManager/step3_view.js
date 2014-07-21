@@ -21,6 +21,9 @@ var App = require('app');
 
 App.RMHighAvailabilityWizardStep3View = Em.View.extend({
 
-  templateName: require('templates/main/admin/highAvailability/resourceManager/step3')
+  templateName: require('templates/main/admin/highAvailability/resourceManager/step3'),
 
+  didInsertElement: function () {
+    this.get('controller').loadStep();
+  }
 });

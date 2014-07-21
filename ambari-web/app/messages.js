@@ -982,6 +982,13 @@ Em.I18n.translations = {
   'admin.rm_highAvailability.wizard.step2.header': 'Select Host',
   'admin.rm_highAvailability.wizard.step2.body': 'Select a host that will be running the additional ResourceManager',
   'admin.rm_highAvailability.wizard.step3.header': 'Review',
+  'admin.rm_highAvailability.wizard.step3.confirm.host.body':'<b>Confirm your host selections.</b>',
+  'admin.rm_highAvailability.wizard.step3.confirm.config.body':'<div class="alert alert-info">' +
+      '<b>Review Configuration Changes.</b></br>' +
+      'The following lists the configuration changes that will be made by the Wizard to enable ResourceManager HA. This information is for <b> review only </b> and is not editable.' +
+      '</div>',
+  'admin.rm_highAvailability.wizard.step3.currentRM': 'Current ResourceManager',
+  'admin.rm_highAvailability.wizard.step3.additionalRM': 'Additional ResourceManager',
   'admin.rm_highAvailability.wizard.step4.header': 'Configure Components',
 
   'admin.security.title':'Kerberos security has not been enabled',

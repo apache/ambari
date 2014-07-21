@@ -101,6 +101,15 @@ module.exports = App.WizardRoute.extend({
       return false;
     },
     next: function (router) {
+      var wizardController = router.get('rMHighAvailabilityWizardController');
+      var stepController = router.get('rMHighAvailabilityWizardStep2Controller');
+      var currentRM = stepController.get('servicesMasters').findProperty('isAdditional', false);
+      var additionalRM = stepController.get('servicesMasters').findProperty('isAdditional', true);
+      var rmHost = {
+        currentRM: currentRM.get('selectedHost'),
+        additionalRM: additionalRM.get('selectedHost')
+      };
+      wizardController.saveRmHosts(rmHost);
       router.transitionTo('step3');
     },
     back: function (router) {
@@ -114,6 +123,7 @@ module.exports = App.WizardRoute.extend({
       var controller = router.get('rMHighAvailabilityWizardController');
       controller.setCurrentStep('3');
       controller.dataLoading().done(function () {
+        controller.loadAllPriorSteps();
         controller.connectOutlet('rMHighAvailabilityWizardStep3',  controller.get('content'));
       })
     },

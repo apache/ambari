@@ -40,6 +40,23 @@ App.RMHighAvailabilityWizardController = App.WizardController.extend({
   },
 
   /**
+   * Save hosts for additional and current ResourceManagers to local db and <code>controller.content</code>
+   * @param rmHosts
+   */
+  saveRmHosts: function (rmHosts) {
+    this.set('content.rmHosts', rmHosts);
+    this.setDBProperty('rmHosts', rmHosts);
+  },
+
+  /**
+   * Load hosts for additional and current ResourceManagers from local db to <code>controller.content</code>
+   */
+  loadRmHosts: function() {
+    var rmHosts = this.getDBProperty('rmHosts');
+    this.set('content.rmHosts', rmHosts);
+  },
+
+  /**
    * Load data for all steps until <code>current step</code>
    */
   loadAllPriorSteps: function () {
@@ -47,6 +64,7 @@ App.RMHighAvailabilityWizardController = App.WizardController.extend({
     switch (step) {
       case '4':
       case '3':
+        this.loadRmHosts();
       case '2':
         this.loadServicesFromServer();
         this.loadMasterComponentHosts();

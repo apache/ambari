@@ -15,10 +15,42 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-<div>
-  <h2>{{t admin.rm_highAvailability.wizard.step3.header}}</h2>
+<h2>{{t admin.rm_highAvailability.wizard.step3.header}}</h2>
 
-  <div class="btn-area">
+<div class="alert alert-info">
+  {{t admin.rm_highAvailability.wizard.step3.confirm.host.body}}
+</div>
+
+<div id="ha-step3-content" class="well pre-scrollable">
+    <div id="step8-info">
+        <table id="ha-step3-review-table">
+            <tr>
+                <td>
+                    <b>{{t admin.rm_highAvailability.wizard.step3.currentRM}}</b>:
+                </td>
+                <td>{{controller.content.rmHosts.currentRM}}</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>
+                  <b>{{t admin.rm_highAvailability.wizard.step3.additionalRM}}</b>:
+                </td>
+                <td>{{controller.content.rmHosts.additionalRM}}</td>
+                <td><span class="to-be-installed-green"><i class="icon-plus"></i>&nbsp;{{t admin.highAvailability.wizard.step3.toBeInstalled}}</span></td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+
+<div id="serviceConfig">
+
+  {{{t admin.rm_highAvailability.wizard.step3.confirm.config.body}}}
+
+  {{view App.ServiceConfigView}}
+</div>
+
+<div class="btn-area">
+    <a class="btn" {{action back}}>&larr; {{t common.back}}</a>
     <a class="btn btn-success pull-right" {{action next}}>{{t common.next}} &rarr;</a>
-  </div>
 </div>
