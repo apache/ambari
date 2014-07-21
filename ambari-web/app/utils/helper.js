@@ -223,6 +223,8 @@ Em.CoreObject.reopen({
   }
 });
 
+Em.TextArea.reopen(Em.I18n.TranslateableAttributes);
+
 /** @namespace Em.Handlebars **/
 Em.Handlebars.registerHelper('log', function (variable) {
   console.log(variable);

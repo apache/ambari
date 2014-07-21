@@ -15,29 +15,59 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-  <form class="form-horizontal" autocomplete="off">
-    <div class="each-row">
-      <label class="control-label">Type</label>
+  <form class="form-horizontal add-property-window" autocomplete="off">
+    <div class="each-row control-group">
+      <label class="control-label">{{t common.type}}</label>
       <div class="controls">
-        {{view.serviceConfigProperty.filename}}
+        <input class="span4" type="text" disabled {{bindAttr value="view.fileName"}}/>
+        <div class="btn-group add-mode pull-right" {{action toggleBulkMode target="view" }}>
+          <a href="#"
+            {{bindAttr class=":btn view.serviceConfigObj.isBulkMode::active"}}
+            {{translateAttr title="services.service.config.addPropertyWindow.singleMode" }}
+            data-toggle="tooltip"><i class="icon-tag"></i></a>
+          <a href="#"
+            {{bindAttr class=":btn view.serviceConfigObj.isBulkMode:active"}}
+            {{translateAttr data-original-title="services.service.config.addPropertyWindow.bulkMode" }}
+            data-toggle="tooltip"><i class="icon-tags"></i></a>
+        </div>
       </div>
     </div>
-    <div {{bindAttr class="view.serviceConfigProperty.isKeyError:error :each-row :control-group"}}>
-      <label class="control-label">Key</label>
+    {{#if view.serviceConfigObj.isBulkMode}}
+    <div {{bindAttr class="view.serviceConfigObj.bulkConfigError:error :each-row :control-group"}}>
+      <label class="control-label">
+        {{t services.service.config.addPropertyWindow.properties}}
+        <br>
+        <small>{{t services.service.config.addPropertyWindow.propertiesHelper}}</small>
+      </label>
       <div class="controls">
-        {{view Ember.TextField valueBinding="view.serviceConfigProperty.name" class="span4"}}
-        <span class="help-inline">{{view.serviceConfigProperty.errorMessage}}</span>
-        {{#if view.serviceConfigProperty.showFilterLink}}
+        {{view Ember.TextArea
+          valueBinding="view.serviceConfigObj.bulkConfigValue" rows="4"
+          classNames="input-block-level"
+          placeholderTranslation="services.service.config.addPropertyWindow.propertiesPlaceholder"
+        }}
+        <span class="help-inline">{{{view.serviceConfigObj.bulkConfigErrorMessage}}}</span>
+      </div>
+    </div>
+    {{else}}
+    <div {{bindAttr class="view.serviceConfigObj.isKeyError:error :each-row :control-group"}}>
+      <label class="control-label">{{t common.key}}</label>
+      <div class="controls">
+        {{view Ember.TextField valueBinding="view.serviceConfigObj.name" class="input-block-level"}}
+        {{#if view.serviceConfigObj.isKeyError}}
+          <span class="help-inline">{{view.serviceConfigObj.errorMessage}}</span>
+        {{/if}}
+        {{#if view.serviceConfigObj.showFilterLink}}
           <a href="#" class="btn-padding" {{action filterByKey target="view" }}>
             {{t services.service.config.addPropertyWindow.filterKeyLink}}
           </a>
         {{/if}}
       </div>
     </div>
-    <div class="each-row">
-      <label class="control-label">Value</label>
+    <div class="each-row control-group">
+      <label class="control-label">{{t common.value}}</label>
       <div class="controls">
-        {{view Ember.TextArea valueBinding="view.serviceConfigProperty.value" rows="4" classNames="span6" }}
+        {{view Ember.TextArea valueBinding="view.serviceConfigObj.value" rows="4" classNames="input-block-level"}}
       </div>
     </div>
+    {{/if}}
   </form>
