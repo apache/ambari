@@ -25,30 +25,6 @@ describe('App.MainServiceController', function () {
 
   var tests = Em.A([
     {
-      isStartStopAllClicked: false,
-      content: Em.A([
-        Em.Object.create({
-          healthStatus: 'green',
-          serviceName: 'HIVE',
-          isClientsOnly: false
-        }),
-        Em.Object.create({
-          healthStatus: 'green',
-          serviceName: 'HDFS',
-          isClientsOnly: false
-        }),
-        Em.Object.create({
-          healthStatus: 'red',
-          serviceName: 'TEZ',
-          isClientsOnly: true
-        })
-      ]),
-      eStart: true,
-      eStop: false,
-      mStart: 'mainServiceController StartAll is Disabled 1',
-      mStop: 'mainServiceController StopAll is Enabled 1'
-    },
-    {
       isStartStopAllClicked: true,
       content: Em.A([
         Em.Object.create({

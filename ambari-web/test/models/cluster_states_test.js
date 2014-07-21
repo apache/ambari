@@ -73,7 +73,14 @@ describe('App.clusterStatus', function () {
 
   describe('#setClusterStatus', function () {
 
+    beforeEach(function() {
+      sinon.stub(status, 'postUserPref', function() {
+        return {then: Em.K};
+      });
+    });
+
     afterEach(function () {
+      status.postUserPref.restore();
       App.get.restore();
     });
 
@@ -94,21 +101,6 @@ describe('App.clusterStatus', function () {
       expect(clusterStatus).to.eql(newValue);
     });
 
-  });
-
-  describe('#makeRequestAsync', function () {
-    it('should be false after synchronous updateFromServer', function () {
-      status.updateFromServer();
-      expect(status.get('makeRequestAsync')).to.be.false;
-    });
-    it('should be true after asynchronous updateFromServer', function () {
-      status.updateFromServer(true);
-      expect(status.get('makeRequestAsync')).to.be.true;
-    });
-    it('should be false after synchronous setClusterStatus with no opt specified', function () {
-      status.setClusterStatus({clusterName: 'name'});
-      expect(status.get('makeRequestAsync')).to.be.false;
-    });
   });
 
 });

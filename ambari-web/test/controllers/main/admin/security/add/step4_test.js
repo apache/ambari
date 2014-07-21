@@ -356,9 +356,6 @@ describe('App.MainAdminSecurityAddStep4Controller', function () {
   describe('#loadUiSideConfigs()', function() {
 
     beforeEach(function(){
-      sinon.stub(controller, 'getGlobConfigValue', function(arg1, arg2){
-        return arg2;
-      });
       sinon.stub(controller, 'checkServiceForConfigValue', function() {
         return 'value2';
       });
@@ -366,7 +363,6 @@ describe('App.MainAdminSecurityAddStep4Controller', function () {
       sinon.stub(controller, 'formatConfigName', Em.K);
     });
     afterEach(function(){
-      controller.getGlobConfigValue.restore();
       controller.checkServiceForConfigValue.restore();
       controller.setConfigValue.restore();
       controller.formatConfigName.restore();
@@ -477,53 +473,6 @@ describe('App.MainAdminSecurityAddStep4Controller', function () {
     });
   });
 
-  describe('#getGlobConfigValue()', function() {
-    var testCases = [
-      {
-        title: 'Incorrect expression',
-        arguments: {
-          templateName: [],
-          expression: 'expression'
-        },
-        result: 'expression'
-      },
-      {
-        title: 'No such property in global configs',
-        arguments: {
-          templateName: ['config2'],
-          expression: '<[0]>'
-        },
-        result: null
-      },
-      {
-        title: 'Property in global configs',
-        arguments: {
-          templateName: ['config1'],
-          expression: '<[0]>'
-        },
-        result: 'value1'
-      },
-      {
-        title: 'First property not in global configs',
-        arguments: {
-          templateName: ['config2','config1'],
-          expression: '<[0]>@<[1]>'
-        },
-        result: null
-      }
-    ];
-
-    testCases.forEach(function(test){
-      it(test.title, function() {
-        controller.set('globalProperties', [{
-          name: 'config1',
-          value: 'value1'
-        }]);
-        expect(controller.getGlobConfigValue(test.arguments.templateName, test.arguments.expression)).to.equal(test.result);
-      });
-    });
-  });
-
   describe('#formatConfigName()', function() {
     it('config.value is null', function() {
       var config = {
@@ -555,21 +504,7 @@ describe('App.MainAdminSecurityAddStep4Controller', function () {
       expect(controller.formatConfigName(uiConfig, config)).to.be.true;
       expect(config._name).to.equal('globalValue1');
     });
-    it('uiConfig is empty, use globalProperties', function() {
-      var config = {
-        value: 'value1',
-        name: '<foreignKey[0]>',
-        foreignKey: ['key1']
-      };
-      controller.set('globalProperties', [{
-        name: 'key1',
-        value: 'globalValue1'
-      }]);
-      var uiConfig = [];
 
-      expect(controller.formatConfigName(uiConfig, config)).to.be.true;
-      expect(config._name).to.equal('globalValue1');
-    });
   });
 
   describe('#setConfigValue()', function() {
@@ -597,31 +532,17 @@ describe('App.MainAdminSecurityAddStep4Controller', function () {
       expect(controller.setConfigValue(config)).to.be.true;
       expect(config.value).to.be.null;
     });
-    it('Property in global configs', function() {
-      var config = {
-        value: '<templateName[0]>',
-        templateName: ['config1']
-      };
-      controller.set('globalProperties', [{
-        name: 'config1',
-        value: 'value1'
-      }]);
 
-      expect(controller.setConfigValue(config)).to.be.true;
-      expect(config.value).to.equal('value1');
-    });
   });
 
   describe('#prepareSecureConfigs()', function() {
 
     beforeEach(function(){
-      sinon.stub(controller, 'loadGlobals', Em.K);
       sinon.stub(controller, 'loadUiSideConfigs', function(){
         return [{name: 'config1'}];
       });
     });
     afterEach(function(){
-      controller.loadGlobals.restore();
       controller.loadUiSideConfigs.restore();
     });
 
@@ -629,7 +550,6 @@ describe('App.MainAdminSecurityAddStep4Controller', function () {
       controller.set('content.serviceConfigProperties', []);
 
       controller.prepareSecureConfigs();
-      expect(controller.loadGlobals.calledOnce).to.be.true;
       expect(controller.loadUiSideConfigs.calledOnce).to.be.true;
       expect(controller.get('configs')).to.eql([{name: 'config1'}]);
     });
@@ -640,7 +560,6 @@ describe('App.MainAdminSecurityAddStep4Controller', function () {
       }]);
 
       controller.prepareSecureConfigs();
-      expect(controller.loadGlobals.calledOnce).to.be.true;
       expect(controller.loadUiSideConfigs.calledOnce).to.be.true;
       expect(controller.get('configs')).to.eql([
         {
@@ -649,49 +568,6 @@ describe('App.MainAdminSecurityAddStep4Controller', function () {
         },
         {name: 'config1'}
       ]);
-    });
-  });
-
-  describe('#loadGlobals()', function() {
-
-    beforeEach(function(){
-      sinon.stub(controller, 'loadStaticGlobal', Em.K);
-      sinon.stub(controller, 'loadUsersToGlobal', Em.K);
-      sinon.stub(controller, 'loadHostNamesToGlobal', Em.K);
-      sinon.stub(controller, 'loadPrimaryNamesToGlobals', Em.K);
-    });
-    afterEach(function(){
-      controller.loadStaticGlobal.restore();
-      controller.loadUsersToGlobal.restore();
-      controller.loadHostNamesToGlobal.restore();
-      controller.loadPrimaryNamesToGlobals.restore();
-    });
-
-    it('content.serviceConfigProperties is empty', function() {
-      controller.set('content.serviceConfigProperties', []);
-
-      controller.loadGlobals();
-      expect(controller.loadStaticGlobal.calledOnce).to.be.true;
-      expect(controller.loadUsersToGlobal.calledOnce).to.be.true;
-      expect(controller.loadHostNamesToGlobal.calledOnce).to.be.true;
-      expect(controller.loadPrimaryNamesToGlobals.calledOnce).to.be.true;
-      expect(controller.get('globalProperties')).to.be.empty;
-    });
-    it('content.serviceConfigProperties is correct', function() {
-      controller.set('content.serviceConfigProperties', [{
-        id: 'puppet var',
-        name: 'config1'
-      }]);
-
-      controller.loadGlobals();
-      expect(controller.loadStaticGlobal.calledOnce).to.be.true;
-      expect(controller.loadUsersToGlobal.calledOnce).to.be.true;
-      expect(controller.loadHostNamesToGlobal.calledOnce).to.be.true;
-      expect(controller.loadPrimaryNamesToGlobals.calledOnce).to.be.true;
-      expect(controller.get('globalProperties')).to.eql([{
-        id: 'puppet var',
-        name: 'config1'
-      }]);
     });
   });
 
@@ -926,7 +802,10 @@ describe('App.MainAdminSecurityAddStep4Controller', function () {
         value: 'value1'
       }]);
       controller.set('serviceUsers', []);
-      App.testMode = true;
+      sinon.stub(App, 'get', function(k) {
+        if ('testMode' === k) return true;
+        return Em.get(App, k);
+      });
 
       controller.loadUsersFromServer();
       expect(controller.get('serviceUsers')).to.eql([{
@@ -934,19 +813,24 @@ describe('App.MainAdminSecurityAddStep4Controller', function () {
         value: 'value1',
         id: 'puppet var'
       }]);
+      App.get.restore();
     });
     it('testMode = false', function() {
       sinon.stub(App.router, 'set', Em.K);
       sinon.stub(App.db, 'getSecureUserInfo', function(){
         return [];
       });
-      App.testMode = false;
+      sinon.stub(App, 'get', function(k) {
+        if ('testMode' === k) return false;
+        return Em.get(App, k);
+      });
 
       controller.loadUsersFromServer();
       expect(App.db.getSecureUserInfo.calledOnce).to.be.true;
       expect(App.router.set.calledWith('mainAdminSecurityController.serviceUsers', [])).to.be.true;
 
       App.router.set.restore();
+      App.get.restore();
       App.db.getSecureUserInfo.restore();
     });
   });

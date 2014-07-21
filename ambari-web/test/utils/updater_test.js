@@ -17,7 +17,7 @@
  */
 
 var App = require('app');
-
+require('utils/updater');
 describe('utils/updater', function() {
   describe('#App.updater', function() {
     beforeEach(function() {

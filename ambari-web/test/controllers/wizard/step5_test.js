@@ -286,6 +286,7 @@ describe('App.WizardStep5Controller', function () {
 
     tests.forEach(function (test) {
       it(test.componentName + ' ' + test.hostsCount, function () {
+        controller.reopen({multipleComponents: ['HBASE_MASTER', 'ZOOKEEPER_SERVER']});
         controller.set('hosts', d3.range(1, test.hostsCount + 1).map(function (i) {
           return {host_name: 'host' + i.toString()};
         }));
@@ -336,13 +337,6 @@ describe('App.WizardStep5Controller', function () {
       })
     });
 
-  });
-
-  describe('#isSubmitDisabled', function () {
-    it('should be false if it\'s not a isReassignWizard', function () {
-      c.set('controllerName', 'addServiceController');
-      expect(c.get('isSubmitDisabled')).to.equal(false);
-    });
   });
 
   describe('#remainingHosts', function () {
@@ -530,25 +524,6 @@ describe('App.WizardStep5Controller', function () {
           showRemoveControl: [false, false],
           serviceComponentId: [1, 2]
         }
-      },
-      {
-        masterComponents: Em.A([
-          {component_name: 'ZOOKEEPER_SERVER'},
-          {component_name: 'ZOOKEEPER_SERVER'},
-          {component_name: 'NAMENODE'}
-        ]),
-        services: Em.A([
-          Em.Object.create({serviceName: 'ZOOKEEPER', isInstalled: false, isSelected: true})
-        ]),
-        controllerName: 'addServiceController',
-        m: 'Two components, but service is not installed',
-        component_name: 'ZOOKEEPER_SERVER',
-        e: {
-          selectedServicesMasters: ['ZOOKEEPER_SERVER', 'ZOOKEEPER_SERVER', 'NAMENODE'],
-          servicesMasters: ['ZOOKEEPER_SERVER', 'ZOOKEEPER_SERVER', 'NAMENODE'],
-          showRemoveControl: [true, true, undefined],
-          serviceComponentId: [1, 2, undefined]
-        }
       }
     ]);
     tests.forEach(function (test) {
@@ -633,10 +608,7 @@ describe('App.WizardStep5Controller', function () {
 
   describe('#submit', function () {
     beforeEach(function () {
-      if (!App.router) {
-        App.router = Em.Object.create({send: Em.K});
-      }
-      sinon.spy(App.router, 'send');
+      sinon.stub(App.router, 'send', Em.K);
     });
     afterEach(function () {
       App.router.send.restore();
@@ -646,9 +618,11 @@ describe('App.WizardStep5Controller', function () {
       c.submit();
       expect(App.router.send.calledWith('next')).to.equal(true);
     });
-    it('shouldn\'t go next if isSubmitDisabled', function () {
-      c.reopen({isSubmitDisabled: true});
+    it('shouldn\'t go next if submitDisabled true', function () {
+      sinon.stub(c, 'getIsSubmitDisabled', Em.K);
+      c.reopen({submitDisabled: true});
       c.submit();
+      c.getIsSubmitDisabled.restore();
       expect(App.router.send.called).to.equal(false);
     });
   });
@@ -820,37 +794,6 @@ describe('App.WizardStep5Controller', function () {
     });
   });
 
-  describe('#loadStep', function () {
-    var methods = Em.A(['clearStep', 'renderHostInfo', 'renderComponents', 'loadComponents']);
-    describe('should call several methods', function () {
-      beforeEach(function () {
-        methods.forEach(function (m) {
-          sinon.spy(c, m);
-        });
-        c.reopen({content: {services: Em.A([])}});
-      });
-      afterEach(function () {
-        methods.forEach(function (m) {
-          c[m].restore();
-        });
-      });
-      methods.forEach(function (m) {
-        it(m, function () {
-          c.loadStep();
-          expect(c[m].calledOnce).to.equal(true);
-        });
-      });
-    });
-    it('should update HBASE if App.supports.multipleHBaseMasters is true', function () {
-      App.set('supports.multipleHBaseMasters', true);
-      sinon.spy(c, 'updateComponent');
-      c.reopen({content: {services: Em.A([])}});
-      c.loadStep();
-      expect(c.updateComponent.calledTwice).to.equal(true);
-      c.updateComponent.restore();
-    });
-  });
-
   describe('#title', function () {
     it('should be custom title for reassignMasterController', function () {
       c.set('content', {controllerName: 'reassignMasterController'});
@@ -860,63 +803,6 @@ describe('App.WizardStep5Controller', function () {
       c.set('content', {controllerName: 'notReassignMasterController'});
       expect(c.get('title')).to.equal(Em.I18n.t('installer.step5.header'));
     });
-  });
-
-  describe('#isSubmitDisabled', function () {
-    it('should be false if no isReassignWizard', function () {
-      c.reopen({isReassignWizard: false});
-      expect(c.get('isSubmitDisabled')).to.equal(false);
-    });
-    it('should be true if isReassignWizard', function () {
-      var hostComponents = Em.A([
-        Em.Object.create({componentName: 'c1', host: Em.Object.create({hostName: 'h1'})}),
-        Em.Object.create({componentName: 'c1', host: Em.Object.create({hostName: 'h2'})})
-      ]);
-      sinon.stub(App.HostComponent, 'find', function () {
-        return hostComponents;
-      });
-      c.reopen({
-        isReassignWizard: true,
-        content: {
-          reassign: {
-            component_name: 'c1'
-          }
-        },
-        servicesMasters: [
-          {selectedHost: 'h5'},
-          {selectedHost: 'h4'},
-          {selectedHost: 'h3'}
-        ]
-      });
-      expect(c.get('isSubmitDisabled')).to.equal(true);
-      App.HostComponent.find.restore();
-    });
-
-    it('should be false if isReassignWizard', function () {
-      var hostComponents = Em.A([
-        Em.Object.create({componentName: 'c1', host: Em.Object.create({hostName: 'h1'})}),
-        Em.Object.create({componentName: 'c1', host: Em.Object.create({hostName: 'h2'})}),
-        Em.Object.create({componentName: 'c1', host: Em.Object.create({hostName: 'h3'})})
-      ]);
-      sinon.stub(App.HostComponent, 'find', function () {
-        return hostComponents;
-      });
-      c.reopen({
-        isReassignWizard: true,
-        content: {
-          reassign: {
-            component_name: 'c1'
-          }
-        },
-        servicesMasters: [
-          {selectedHost: 'h1'},
-          {selectedHost: 'h2'}
-        ]
-      });
-      expect(c.get('isSubmitDisabled')).to.equal(false);
-      App.HostComponent.find.restore();
-    });
-
   });
 
   describe('#masterHostMapping', function () {
@@ -981,153 +867,4 @@ describe('App.WizardStep5Controller', function () {
       });
   });
 
-  describe('#loadComponents', function () {
-    Em.A([
-        {
-          services: [
-            Em.Object.create({isSelected: true, serviceName: 's1'})
-          ],
-          masterComponents: Em.A([
-            Em.Object.create({displayName: 'c1d', serviceName: 's1', componentName: 'c1', isShownOnInstallerAssignMasterPage: true})
-          ]),
-          masterComponentHosts: Em.A([
-            {component: 'c1', hostName: 'h2', isInstalled: true}
-          ]),
-          selectHost: 'h3',
-          m: 'savedComponent exists',
-          e: {
-            component_name: 'c1',
-            display_name: 'c1d',
-            selectedHost: 'h2',
-            isInstalled: true,
-            serviceId: 's1'
-          }
-        },
-        {
-          services: [
-            Em.Object.create({isSelected: true, serviceName: 's1'})
-          ],
-          masterComponents: Em.A([
-            Em.Object.create({displayName: 'c1d', serviceName: 's1', componentName: 'c1', isShownOnInstallerAssignMasterPage: true})
-          ]),
-          masterComponentHosts: Em.A([
-            {component: 'c2', hostName: 'h2', isInstalled: true}
-          ]),
-          selectHost: 'h3',
-          m: 'savedComponent doesn\'t exist',
-          e: {
-            component_name: 'c1',
-            display_name: 'c1d',
-            selectedHost: 'h3',
-            isInstalled: false,
-            serviceId: 's1'
-          }
-        },
-        {
-          services: [
-            Em.Object.create({isSelected: true, serviceName: 's1'})
-          ],
-          masterComponents: Em.A([
-            Em.Object.create({displayName: 'c1d', serviceName: 's1', componentName: 'ZOOKEEPER_SERVER', isShownOnInstallerAssignMasterPage: true})
-          ]),
-          masterComponentHosts: Em.A([
-            {component: 'c1', hostName: 'h2', isInstalled: true}
-          ]),
-          selectHost: ['h3'],
-          m: 'component ZOOKEEPER_SERVER',
-          e: {
-            component_name: 'ZOOKEEPER_SERVER',
-            display_name: 'c1d',
-            selectedHost: 'h3',
-            isInstalled: false,
-            serviceId: 's1'
-          }
-        },
-        {
-          services: [
-            Em.Object.create({isSelected: true, serviceName: 's1'})
-          ],
-          masterComponents: Em.A([
-            Em.Object.create({displayName: 'c1d', serviceName: 's1', componentName: 'HBASE_MASTER', isShownOnInstallerAssignMasterPage: true})
-          ]),
-          masterComponentHosts: Em.A([
-            {component: 'c1', hostName: 'h2', isInstalled: true}
-          ]),
-          selectHost: ['h3'],
-          m: 'component HBASE_MASTER',
-          e: {
-            component_name: 'HBASE_MASTER',
-            display_name: 'c1d',
-            selectedHost: 'h3',
-            isInstalled: false,
-            serviceId: 's1'
-          }
-        },
-        {
-          services: [
-            Em.Object.create({isSelected: true, serviceName: 's1'})
-          ],
-          masterComponents: Em.A([
-            Em.Object.create({displayName: 'c1d', serviceName: 's1', componentName: 'ZOOKEEPER_SERVER', isShownOnInstallerAssignMasterPage: true})
-          ]),
-          masterComponentHosts: Em.A([
-            {component: 'ZOOKEEPER_SERVER', hostName: 'h2', isInstalled: true}
-          ]),
-          selectHost: ['h3'],
-          m: 'component ZOOKEEPER_SERVER(2)',
-          e: {
-            component_name: 'ZOOKEEPER_SERVER',
-            display_name: 'c1d',
-            selectedHost: 'h2',
-            isInstalled: true,
-            serviceId: 's1'
-          }
-        },
-        {
-          services: [
-            Em.Object.create({isSelected: true, serviceName: 's1'})
-          ],
-          masterComponents: Em.A([
-            Em.Object.create({displayName: 'c1d', serviceName: 's1', componentName: 'HBASE_MASTER', isShownOnInstallerAssignMasterPage: true})
-          ]),
-          masterComponentHosts: Em.A([
-            {component: 'HBASE_MASTER', hostName: 'h2', isInstalled: true}
-          ]),
-          selectHost: ['h3'],
-          m: 'component HBASE_MASTER (2)',
-          e: {
-            component_name: 'HBASE_MASTER',
-            display_name: 'c1d',
-            selectedHost: 'h2',
-            isInstalled: true,
-            serviceId: 's1'
-          }
-        }
-      ]).forEach(function (test) {
-        it(test.m, function () {
-          c.reopen({
-            content: {
-              masterComponentHosts: test.masterComponentHosts
-            }
-          });
-          sinon.stub(App.StackService, 'find', function () {
-            return test.services;
-          });
-          sinon.stub(App.StackServiceComponent, 'find', function () {
-            return test.masterComponents;
-          });
-          sinon.stub(c, 'selectHost', function () {
-            return test.selectHost;
-          });
-          var r = c.loadComponents();
-          App.StackService.find.restore();
-          App.StackServiceComponent.find.restore();
-          c.selectHost.restore();
-          expect(r.length).to.equal(1);
-          Em.keys(test.e).forEach(function (k) {
-            expect(r[0][k]).to.equal(test.e[k]);
-          });
-        });
-      });
-  });
 });

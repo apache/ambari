@@ -22,38 +22,42 @@ require('controllers/main/host/details');
 require('models/service');
 require('models/host_component');
 var batchUtils = require('utils/batch_scheduled_requests');
-
+var controller;
 
 describe('App.MainHostDetailsController', function () {
 
-  var controller = App.MainHostDetailsController.create({
-    getSecurityStatus: function () {
-      return this.get('mockSecurityStatus');
-    },
-    mockSecurityStatus: false
+
+  beforeEach(function() {
+    controller = App.MainHostDetailsController.create({
+      getSecurityStatus: function () {
+        return this.get('mockSecurityStatus');
+      },
+      mockSecurityStatus: false
+    });
   });
+
 
   describe('#serviceActiveComponents', function () {
 
     it('No host-components', function () {
-      controller.set('content.hostComponents', []);
+      controller.set('content', {hostComponents: []});
       expect(controller.get('serviceActiveComponents')).to.be.empty;
     });
 
     it('No host-components in active state', function () {
-      controller.set('content.hostComponents', [Em.Object.create({
+      controller.set('content', {hostComponents: [Em.Object.create({
         service: {
           isInPassive: true
         }
-      })]);
+      })]});
       expect(controller.get('serviceActiveComponents')).to.be.empty;
     });
     it('Host-components in active state', function () {
-      controller.set('content.hostComponents', [Em.Object.create({
+      controller.set('content', {hostComponents: [Em.Object.create({
         service: {
           isInPassive: false
         }
-      })]);
+      })]});
       expect(controller.get('serviceActiveComponents')).to.eql([Em.Object.create({
         service: {
           isInPassive: false
@@ -73,178 +77,18 @@ describe('App.MainHostDetailsController', function () {
     });
 
     it('Active host-component is client', function () {
-      controller.set('serviceActiveComponents', [Em.Object.create({
+      controller.reopen({serviceActiveComponents: [Em.Object.create({
         isClient: true
-      })]);
+      })]});
       expect(controller.get('serviceNonClientActiveComponents')).to.be.empty;
     });
     it('Active host-component is not client', function () {
-      controller.set('serviceActiveComponents', [Em.Object.create({
+      controller.reopen({serviceActiveComponents: [Em.Object.create({
         isClient: false
-      })]);
+      })]});
       expect(controller.get('serviceNonClientActiveComponents')).to.eql( [Em.Object.create({
         isClient: false
       })]);
-    });
-  });
-
-  describe('#startComponent()', function () {
-
-    beforeEach(function () {
-      sinon.spy(App, "showConfirmationPopup");
-      sinon.stub(controller, "sendStartComponentCommand", Em.K);
-    });
-    afterEach(function () {
-      App.showConfirmationPopup.restore();
-      controller.sendStartComponentCommand.restore();
-    });
-
-    it('popup should be displayed', function () {
-      var popup = controller.startComponent({context: Em.Object.create({'displayName': 'Comp1'})});
-      expect(App.showConfirmationPopup.calledOnce).to.be.true;
-      popup.onPrimary();
-      expect(controller.sendStartComponentCommand.calledOnce).to.be.true;
-    });
-  });
-
-  describe('#sendStartComponentCommand()', function () {
-
-    beforeEach(function () {
-      sinon.stub(App.ajax, "send", Em.K);
-    });
-    afterEach(function () {
-      App.ajax.send.restore();
-    });
-
-    it('Query should be sent', function () {
-      var component = Em.Object.create({
-        componentName: 'comp1'
-      });
-      controller.sendStartComponentCommand(component, '');
-      expect(App.ajax.send.calledOnce).to.be.true;
-    });
-  });
-
-  describe('#getDataToSend()', function () {
-    var component = Em.Object.create({
-      componentName: 'comp1',
-      host: {
-        hostName: 'host1'
-      },
-      service: {
-        serviceName: 'serv1'
-      }
-    });
-    it('should return correct query info', function () {
-      controller.set("content.hostName", "host1");
-      expect(controller.getDataToSend('STATE1', 'context', component)).to.deep.eql({
-        RequestInfo: {
-          "context": 'context',
-          "operation_level": {
-            "cluster_name": "tdk",
-            "host_name": "host1",
-            "hostcomponent_name": "comp1",
-            "service_name": "serv1",
-            "level": "HOST_COMPONENT"
-          }
-        },
-        Body: {
-          HostRoles: {
-            state: 'STATE1'
-          }
-        }
-      });
-      expect(controller.getDataToSend('STATE1', 'context', [component])).to.deep.eql({
-        RequestInfo: {
-          "context": 'context',
-          "operation_level": {
-            "cluster_name": "tdk",
-            "host_name": "host1",
-            "level": "HOST"
-          }
-        },
-        Body: {
-          HostRoles: {
-            state: 'STATE1'
-          }
-        }
-      });
-    });
-  });
-
-  describe('#setComponentToData()', function () {
-    var testCases = [
-      {
-        title: 'dataToSend is null',
-        content: {
-          data: {},
-          dataToSend: null,
-          component: {}
-        },
-        result: {
-          output: false,
-          data: {}
-        }
-      },
-      {
-        title: 'component is null',
-        content: {
-          data: {},
-          dataToSend: {},
-          component: null
-        },
-        result: {
-          output: false,
-          data: {}
-        }
-      },
-      {
-        title: 'data is null',
-        content: {
-          data: null,
-          dataToSend: {},
-          component: {}
-        },
-        result: {
-          output: false,
-          data: null
-        }
-      },
-      {
-        title: 'component is object',
-        content: {
-          data: {},
-          dataToSend: {},
-          component: Em.Object.create({componentName: 'comp1'})
-        },
-        result: {
-          output: true,
-          data: {
-            componentName: 'comp1',
-            data: '{}'
-          }
-        }
-      },
-      {
-        title: 'component is array',
-        content: {
-          data: {},
-          dataToSend: {RequestInfo: {}},
-          component: [Em.Object.create({componentName: 'comp1'})]
-        },
-        result: {
-          output: true,
-          data: {
-            data: '{\"RequestInfo\":{\"query\":\"HostRoles/component_name.in(comp1)\"}}'
-          }
-        }
-      }
-    ];
-    testCases.forEach(function (test) {
-      it(test.title, function () {
-        expect(controller.setComponentToData(test.content.data, test.content.dataToSend, test.content.component)).to.equal(test.result.output);
-        expect(test.content.data).to.eql(test.result.data);
-      });
     });
   });
 
@@ -263,27 +107,6 @@ describe('App.MainHostDetailsController', function () {
       };
       controller.deleteComponent(event);
       expect(App.ModalPopup.show.calledOnce).to.be.true;
-    });
-  });
-
-  describe('#_doDeleteHostComponent()', function () {
-
-    beforeEach(function () {
-      sinon.stub(App.ajax, "send", Em.K);
-    });
-    afterEach(function () {
-      App.ajax.send.restore();
-    });
-
-    it('delete request should be sent, component is null', function () {
-      controller.set('_deletedHostComponentResult', null);
-      expect(controller._doDeleteHostComponent()).to.equal(null);
-      expect(App.ajax.send.calledOnce).to.be.true;
-    });
-    it('delete request should be sent, component is correct', function () {
-      controller.set('_deletedHostComponentResult', {});
-      expect(controller._doDeleteHostComponent(Em.Object.create({componentName: 'COMP1'}))).to.eql({});
-      expect(App.ajax.send.calledOnce).to.be.true;
     });
   });
 
@@ -332,43 +155,6 @@ describe('App.MainHostDetailsController', function () {
       var popup = controller.upgradeComponent({context: Em.Object.create()});
       expect(App.showConfirmationPopup.calledOnce).to.be.true;
       popup.onPrimary();
-      expect(App.ajax.send.calledOnce).to.be.true;
-    });
-  });
-
-  describe('#stopComponent()', function () {
-
-    beforeEach(function () {
-      sinon.spy(App, "showConfirmationPopup");
-      sinon.stub(controller, "sendStopComponentCommand", Em.K);
-    });
-    afterEach(function () {
-      App.showConfirmationPopup.restore();
-      controller.sendStopComponentCommand.restore();
-    });
-
-    it('popup should be displayed', function () {
-      var popup = controller.stopComponent({context: Em.Object.create({'displayName': 'Comp1'})});
-      expect(App.showConfirmationPopup.calledOnce).to.be.true;
-      popup.onPrimary();
-      expect(controller.sendStopComponentCommand.calledOnce).to.be.true;
-    });
-  });
-
-  describe('#sendStopComponentCommand()', function () {
-
-    beforeEach(function () {
-      sinon.stub(App.ajax, "send", Em.K);
-    });
-    afterEach(function () {
-      App.ajax.send.restore();
-    });
-
-    it('Query should be sent', function () {
-      var component = Em.Object.create({
-        componentName: 'comp1'
-      });
-      controller.sendStopComponentCommand(component, '');
       expect(App.ajax.send.calledOnce).to.be.true;
     });
   });
@@ -826,34 +612,53 @@ describe('App.MainHostDetailsController', function () {
   });
 
   describe('#getZkServerHosts()', function () {
-    controller.set('content', {});
+
+    beforeEach(function() {
+      controller.set('content', {});
+    });
+
+    afterEach(function() {
+      App.HostComponent.find.restore();
+    });
 
     it('No ZooKeeper hosts, fromDeleteHost = false', function () {
-      App.HostComponent.find().clear();
+      sinon.stub(App.HostComponent, 'find', function() {return []});
       controller.set('fromDeleteHost', false);
       expect(controller.getZkServerHosts()).to.be.empty;
     });
+
     it('No ZooKeeper hosts, fromDeleteHost = true', function () {
+      sinon.stub(App.HostComponent, 'find', function() {return []});
       controller.set('fromDeleteHost', true);
       expect(controller.getZkServerHosts()).to.be.empty;
       expect(controller.get('fromDeleteHost')).to.be.false;
     });
+
     it('One ZooKeeper host, fromDeleteHost = false', function () {
       controller.set('fromDeleteHost', false);
-      App.store.load(App.HostComponent, {
-        id: 'ZOOKEEPER_SERVER_host1',
-        component_name: 'ZOOKEEPER_SERVER',
-        host_id: 'host1'
-      });
+      sinon.stub(App.HostComponent, 'find', function() {return [{id: 'ZOOKEEPER_SERVER_host1',
+        componentName: 'ZOOKEEPER_SERVER',
+        hostName: 'host1'
+      }]});
       expect(controller.getZkServerHosts()).to.eql(['host1']);
     });
+
     it('One ZooKeeper host match current host name, fromDeleteHost = true', function () {
+      sinon.stub(App.HostComponent, 'find', function() {return [{id: 'ZOOKEEPER_SERVER_host1',
+        componentName: 'ZOOKEEPER_SERVER',
+        hostName: 'host1'
+      }]});
       controller.set('fromDeleteHost', true);
       controller.set('content.hostName', 'host1');
       expect(controller.getZkServerHosts()).to.be.empty;
       expect(controller.get('fromDeleteHost')).to.be.false;
     });
+
     it('One ZooKeeper host does not match current host name, fromDeleteHost = true', function () {
+      sinon.stub(App.HostComponent, 'find', function() {return [{id: 'ZOOKEEPER_SERVER_host1',
+        componentName: 'ZOOKEEPER_SERVER',
+        hostName: 'host1'
+      }]});
       controller.set('fromDeleteHost', true);
       controller.set('content.hostName', 'host2');
       expect(controller.getZkServerHosts()[0]).to.equal("host1");
@@ -906,14 +711,11 @@ describe('App.MainHostDetailsController', function () {
     beforeEach(function () {
       sinon.stub(controller, "doDecommission", Em.K);
       sinon.stub(controller, "showBackgroundOperationsPopup", Em.K);
-      sinon.stub(controller, "doDecommissionRegionServer", Em.K);
     });
 
     afterEach(function () {
-      controller.doDecommissionRegionServer.restore();
       controller.doDecommission.restore();
       controller.showBackgroundOperationsPopup.restore();
-      controller.doDecommissionRegionServer.restore();
     });
 
     it('HDFS service', function () {
@@ -929,11 +731,6 @@ describe('App.MainHostDetailsController', function () {
     it('MAPREDUCE service', function () {
       controller.runDecommission('host1', 'MAPREDUCE');
       expect(controller.doDecommission.calledWith('host1', 'MAPREDUCE', "JOBTRACKER", "TASKTRACKER")).to.be.true;
-      expect(controller.showBackgroundOperationsPopup.calledOnce).to.be.true;
-    });
-    it('HBASE service', function () {
-      controller.runDecommission('host1', 'HBASE');
-      expect(controller.doDecommissionRegionServer.calledWith('host1', 'HBASE', "HBASE_MASTER", "HBASE_REGIONSERVER")).to.be.true;
       expect(controller.showBackgroundOperationsPopup.calledOnce).to.be.true;
     });
   });
@@ -1007,36 +804,36 @@ describe('App.MainHostDetailsController', function () {
   /**
    * TODO uncomment test when final rules will be implemented into warnBeforeDecommission function
    */
- /* describe('#warnBeforeDecommission()', function () {
+  /* describe('#warnBeforeDecommission()', function () {
 
-    beforeEach(function () {
-      sinon.stub(controller, "doDecommissionRegionServer", Em.K);
-      sinon.stub(App.ModalPopup, "show", Em.K);
-    });
-    afterEach(function () {
-      App.ModalPopup.show.restore();
-      controller.doDecommissionRegionServer.restore();
-    });
+   beforeEach(function () {
+   sinon.stub(controller, "doDecommissionRegionServer", Em.K);
+   sinon.stub(App.ModalPopup, "show", Em.K);
+   });
+   afterEach(function () {
+   App.ModalPopup.show.restore();
+   controller.doDecommissionRegionServer.restore();
+   });
 
-    it('Component in passive state', function () {
-      controller.set('content.hostComponents', [Em.Object.create({
-        componentName: 'HBASE_REGIONSERVER',
-        passiveState: 'ON'
-      })]);
-      controller.warnBeforeDecommission('host1', 'HBASE', 'HBASE_REGIONSERVER', 'SLAVE');
-      expect(App.ModalPopup.show.called).to.be.false;
-      expect(controller.doDecommissionRegionServer.calledWith('host1', 'HBASE', 'HBASE_REGIONSERVER', 'SLAVE')).to.be.true;
-    });
-    it('Component is not in passive state', function () {
-      controller.set('content.hostComponents', [Em.Object.create({
-        componentName: 'HBASE_REGIONSERVER',
-        passiveState: 'OFF'
-      })]);
-      controller.warnBeforeDecommission('host1', 'HBASE', 'HBASE_REGIONSERVER', 'SLAVE');
-      expect(App.ModalPopup.show.calledOnce).to.be.true;
-      expect(controller.doDecommissionRegionServer.called).to.be.false;
-    });
-  });*/
+   it('Component in passive state', function () {
+   controller.set('content.hostComponents', [Em.Object.create({
+   componentName: 'HBASE_REGIONSERVER',
+   passiveState: 'ON'
+   })]);
+   controller.warnBeforeDecommission('host1', 'HBASE', 'HBASE_REGIONSERVER', 'SLAVE');
+   expect(App.ModalPopup.show.called).to.be.false;
+   expect(controller.doDecommissionRegionServer.calledWith('host1', 'HBASE', 'HBASE_REGIONSERVER', 'SLAVE')).to.be.true;
+   });
+   it('Component is not in passive state', function () {
+   controller.set('content.hostComponents', [Em.Object.create({
+   componentName: 'HBASE_REGIONSERVER',
+   passiveState: 'OFF'
+   })]);
+   controller.warnBeforeDecommission('host1', 'HBASE', 'HBASE_REGIONSERVER', 'SLAVE');
+   expect(App.ModalPopup.show.calledOnce).to.be.true;
+   expect(controller.doDecommissionRegionServer.called).to.be.false;
+   });
+   });*/
 
   describe('#doRecommissionAndStart()', function () {
 
@@ -1116,42 +913,49 @@ describe('App.MainHostDetailsController', function () {
       controller.doAction(option);
       expect(controller.validateAndDeleteHost.calledOnce).to.be.true;
     });
+
     it('"startAllComponents" action, isNotHeartBeating = false', function () {
       var option = {context: {action: "startAllComponents"}};
-      controller.set('content.isNotHeartBeating', false);
+      controller.set('content', {isNotHeartBeating: false});
       controller.doAction(option);
       expect(controller.doStartAllComponents.calledOnce).to.be.true;
     });
+
     it('"startAllComponents" action, isNotHeartBeating = true', function () {
       var option = {context: {action: "startAllComponents"}};
-      controller.set('content.isNotHeartBeating', true);
+      controller.set('content', {isNotHeartBeating: true});
       controller.doAction(option);
       expect(controller.doStartAllComponents.called).to.be.false;
     });
+
     it('"stopAllComponents" action, isNotHeartBeating = false', function () {
       var option = {context: {action: "stopAllComponents"}};
-      controller.set('content.isNotHeartBeating', false);
+      controller.set('content', {isNotHeartBeating: false});
       controller.doAction(option);
       expect(controller.doStopAllComponents.calledOnce).to.be.true;
     });
+
     it('"stopAllComponents" action, isNotHeartBeating = true', function () {
       var option = {context: {action: "stopAllComponents"}};
-      controller.set('content.isNotHeartBeating', true);
+      controller.set('content', {isNotHeartBeating: true});
       controller.doAction(option);
       expect(controller.doStopAllComponents.called).to.be.false;
     });
+
     it('"restartAllComponents" action, isNotHeartBeating = false', function () {
       var option = {context: {action: "restartAllComponents"}};
-      controller.set('content.isNotHeartBeating', false);
+      controller.set('content', {isNotHeartBeating: false});
       controller.doAction(option);
       expect(controller.doRestartAllComponents.calledOnce).to.be.true;
     });
+
     it('"restartAllComponents" action, isNotHeartBeating = true', function () {
       var option = {context: {action: "restartAllComponents"}};
-      controller.set('content.isNotHeartBeating', true);
+      controller.set('content', {isNotHeartBeating: true});
       controller.doAction(option);
       expect(controller.doRestartAllComponents.called).to.be.false;
     });
+
     it('"onOffPassiveModeForHost" action', function () {
       var option = {context: {action: "onOffPassiveModeForHost"}};
       controller.doAction(option);
@@ -1203,32 +1007,27 @@ describe('App.MainHostDetailsController', function () {
 
     beforeEach(function () {
       sinon.stub(App, "showConfirmationPopup", Em.K);
-      sinon.stub(controller, "sendStartComponentCommand", Em.K);
+      controller.reopen({serviceActiveComponents: []});
     });
     afterEach(function () {
       App.showConfirmationPopup.restore();
-      controller.sendStartComponentCommand.restore();
     });
 
-    it('serviceNonClientActiveComponents is null', function () {
+    it('serviceNonClientActiveComponents is empty', function () {
       controller.reopen({
         serviceNonClientActiveComponents: []
       });
-      controller.set('serviceNonClientActiveComponents', null);
-      controller.doStartAllComponents();
-      expect(App.showConfirmationPopup.called).to.be.false;
-    });
-    it('serviceNonClientActiveComponents is empty', function () {
-      controller.set('serviceNonClientActiveComponents', []);
       controller.doStartAllComponents();
       expect(App.showConfirmationPopup.called).to.be.false;
     });
     it('serviceNonClientActiveComponents is correct', function () {
-      controller.set('serviceNonClientActiveComponents', [{}]);
+      controller.reopen({
+        serviceNonClientActiveComponents: [{}]
+      });
       var popup = controller.doStartAllComponents();
       expect(App.showConfirmationPopup.calledOnce).to.be.true;
       /*popup.onPrimary();
-      expect(controller.sendStartComponentCommand.calledWith([{}])).to.be.true;*/
+       expect(controller.sendStartComponentCommand.calledWith([{}])).to.be.true;*/
     });
   });
 
@@ -1236,29 +1035,28 @@ describe('App.MainHostDetailsController', function () {
 
     beforeEach(function () {
       sinon.stub(App, "showConfirmationPopup", Em.K);
-      sinon.stub(controller, "sendStartComponentCommand", Em.K);
+      controller.reopen({serviceActiveComponents: []});
     });
     afterEach(function () {
       App.showConfirmationPopup.restore();
-      controller.sendStartComponentCommand.restore();
     });
 
-    it('serviceNonClientActiveComponents is null', function () {
-      controller.set('serviceNonClientActiveComponents', null);
-      controller.doStopAllComponents();
-      expect(App.showConfirmationPopup.called).to.be.false;
-    });
     it('serviceNonClientActiveComponents is empty', function () {
-      controller.set('serviceNonClientActiveComponents', []);
+      controller.reopen({
+        serviceNonClientActiveComponents: []
+      });
       controller.doStopAllComponents();
       expect(App.showConfirmationPopup.called).to.be.false;
     });
+
     it('serviceNonClientActiveComponents is correct', function () {
-      controller.set('serviceNonClientActiveComponents', [{}]);
+      controller.reopen({
+        serviceNonClientActiveComponents: [{}]
+      });
       var popup = controller.doStopAllComponents();
       expect(App.showConfirmationPopup.calledOnce).to.be.true;
       /*popup.onPrimary();
-      expect(controller.sendStopComponentCommand.calledWith([{}])).to.be.true;*/
+       expect(controller.sendStopComponentCommand.calledWith([{}])).to.be.true;*/
     });
   });
 
@@ -1266,25 +1064,23 @@ describe('App.MainHostDetailsController', function () {
 
     beforeEach(function () {
       sinon.stub(App, "showConfirmationPopup", Em.K);
-      sinon.stub(controller, "sendStartComponentCommand", Em.K);
     });
     afterEach(function () {
       App.showConfirmationPopup.restore();
-      controller.sendStartComponentCommand.restore();
     });
 
-    it('serviceActiveComponents is null', function () {
-      controller.set('serviceActiveComponents', null);
-      controller.doRestartAllComponents();
-      expect(App.showConfirmationPopup.called).to.be.false;
-    });
     it('serviceActiveComponents is empty', function () {
-      controller.set('serviceActiveComponents', []);
+      controller.reopen({
+        serviceActiveComponents: []
+      });
       controller.doRestartAllComponents();
       expect(App.showConfirmationPopup.called).to.be.false;
     });
+
     it('serviceActiveComponents is correct', function () {
-      controller.set('serviceActiveComponents', [{}]);
+      controller.reopen({
+        serviceActiveComponents: [{}]
+      });
       var popup = controller.doRestartAllComponents();
       expect(App.showConfirmationPopup.calledOnce).to.be.true;
       /*popup.onPrimary();
@@ -1304,73 +1100,103 @@ describe('App.MainHostDetailsController', function () {
     };
 
     it('content.hostComponents is null', function () {
-      controller.set('content.hostComponents', null);
+      controller.set('content', {hostComponents: null});
       expect(controller.getHostComponentsInfo()).to.eql(result);
     });
     it('content.hostComponents is empty', function () {
-      controller.set('content.hostComponents', []);
+      controller.set('content', {hostComponents :[]});
       expect(controller.getHostComponentsInfo()).to.eql(result);
     });
     it('content.hostComponents has ZOOKEEPER_SERVER', function () {
       App.HostComponent.find().clear();
-      controller.set('content.hostComponents', [Em.Object.create({
+      controller.set('content', {hostComponents: [Em.Object.create({
         componentName: 'ZOOKEEPER_SERVER',
         workStatus: 'INIT',
         isDeletable: true
-      })]);
+      })]});
       expect(controller.getHostComponentsInfo().zkServerInstalled).to.be.true;
     });
     it('content.hostComponents has last component', function () {
-      App.store.load(App.HostComponent, {
-        id: 'TASKTRACKER_host1',
-        component_name: 'TASKTRACKER'
+      sinon.stub(App.HostComponent, 'find', function() {
+        return [{
+          id: 'TASKTRACKER_host1',
+          componentName: 'TASKTRACKER'
+        }];
       });
-      controller.set('content.hostComponents', [Em.Object.create({
+      controller.set('content', {hostComponents: [Em.Object.create({
         componentName: 'TASKTRACKER',
         displayName: 'TaskTracker',
         workStatus: 'INIT',
         isDeletable: true
-      })]);
+      })]});
       expect(controller.getHostComponentsInfo().lastComponents).to.eql(['TaskTracker']);
-      App.HostComponent.find().clear();
+      App.HostComponent.find.restore();
     });
     it('content.hostComponents has master non-deletable component', function () {
-      controller.set('content.hostComponents', [Em.Object.create({
+      sinon.stub(App.HostComponent, 'find', function() {
+        return [{
+          id: 'TASKTRACKER_host1',
+          componentName: 'TASKTRACKER'
+        }];
+      });
+      controller.set('content', {hostComponents :[Em.Object.create({
         componentName: 'TASKTRACKER',
         workStatus: 'INIT',
         isDeletable: false,
         isMaster: true,
         displayName: 'ZK1'
-      })]);
+      })]});
       expect(controller.getHostComponentsInfo().masterComponents).to.eql(['ZK1']);
       expect(controller.getHostComponentsInfo().nonDeletableComponents).to.eql(['ZK1']);
+      App.HostComponent.find.restore();
     });
     it('content.hostComponents has running component', function () {
-      controller.set('content.hostComponents', [Em.Object.create({
+      sinon.stub(App.HostComponent, 'find', function() {
+        return [{
+          id: 'TASKTRACKER_host1',
+          componentName: 'TASKTRACKER'
+        }];
+      });
+      controller.set('content', {hostComponents: [Em.Object.create({
         componentName: 'TASKTRACKER',
         workStatus: 'STARTED',
         isDeletable: true,
         displayName: 'ZK1'
-      })]);
+      })]});
       expect(controller.getHostComponentsInfo().runningComponents).to.eql(['ZK1']);
+      App.HostComponent.find.restore();
     });
     it('content.hostComponents has non-deletable component', function () {
-      controller.set('content.hostComponents', [Em.Object.create({
+      sinon.stub(App.HostComponent, 'find', function() {
+        return [{
+          id: 'TASKTRACKER_host1',
+          componentName: 'TASKTRACKER'
+        }];
+      });
+      controller.set('content', {hostComponents: [Em.Object.create({
         componentName: 'TASKTRACKER',
         workStatus: 'INIT',
         isDeletable: false,
         displayName: 'ZK1'
-      })]);
+      })]});
       expect(controller.getHostComponentsInfo().nonDeletableComponents).to.eql(['ZK1']);
+      App.HostComponent.find.restore();
     });
     it('content.hostComponents has component with UNKNOWN state', function () {
-      controller.set('content.hostComponents', [Em.Object.create({
+      sinon.stub(App.HostComponent, 'find', function() {
+        return [{
+          id: 'TASKTRACKER_host1',
+          componentName: 'TASKTRACKER'
+        }];
+      });
+      controller.set('content', {hostComponents: [Em.Object.create({
         componentName: 'TASKTRACKER',
         workStatus: 'UNKNOWN',
         isDeletable: false,
         displayName: 'ZK1'
-      })]);
+      })]});
       expect(controller.getHostComponentsInfo().unknownComponents).to.eql(['ZK1']);
+      App.HostComponent.find.restore();
     });
   });
 
@@ -1429,8 +1255,8 @@ describe('App.MainHostDetailsController', function () {
       });
       var popup = controller.validateAndDeleteHost();
       expect(App.showConfirmationPopup.calledOnce).to.be.true;
-     /* popup.onPrimary();
-      expect(controller._doDeleteHost.calledWith([], [])).to.be.true;*/
+      /* popup.onPrimary();
+       expect(controller._doDeleteHost.calledWith([], [])).to.be.true;*/
     });
     it('zkServerInstalled = false', function () {
       controller.set('mockHostComponentsInfo', {
@@ -1488,7 +1314,7 @@ describe('App.MainHostDetailsController', function () {
     });
 
     it('popup should be displayed', function () {
-      controller.set('content.componentsWithStaleConfigs', [{}]);
+      controller.set('content', {componentsWithStaleConfigs :[{}]});
       var popup = controller.restartAllStaleConfigComponents();
       expect(App.showConfirmationPopup.calledOnce).to.be.true;
       popup.onPrimary();

@@ -18,7 +18,6 @@
 
 var App = require('app');
 var validator = require('utils/validator');
-require('utils/component');
 require('utils/batch_scheduled_requests');
 require('controllers/main/host');
 require('mappers/server_data_mapper');
@@ -309,20 +308,20 @@ describe('MainHostController', function () {
     });
 
     var message = '`{0}` should convert to `{1}`',
-        tests = [
-      { value: '.*', expected: '.*' },
-      { value: '.', expected: '.*' },
-      { value: '.*.*', expected: '.*' },
-      { value: '*', expected: '^$' },
-      { value: '........', expected: '.*' },
-      { value: '........*', expected: '.*' },
-      { value: 'a1', expected: '.*a1.*' },
-      { value: 'a1.', expected: '.*a1.*' },
-      { value: 'a1...', expected: '.*a1.*' },
-      { value: 'a1.*', expected: '.*a1.*' },
-      { value: 'a1.*.a2.a3', expected: '.*a1.*.a2.a3.*' },
-      { value: 'a1.*.a2...a3', expected: '.*a1.*.a2...a3.*' }
-    ]
+      tests = [
+        { value: '.*', expected: '.*' },
+        { value: '.', expected: '.*' },
+        { value: '.*.*', expected: '.*' },
+        { value: '*', expected: '^$' },
+        { value: '........', expected: '.*' },
+        { value: '........*', expected: '.*' },
+        { value: 'a1', expected: '.*a1.*' },
+        { value: 'a1.', expected: '.*a1.*' },
+        { value: 'a1...', expected: '.*a1.*' },
+        { value: 'a1.*', expected: '.*a1.*' },
+        { value: 'a1.*.a2.a3', expected: '.*a1.*.a2.a3.*' },
+        { value: 'a1.*.a2...a3', expected: '.*a1.*.a2...a3.*' }
+      ]
 
     tests.forEach(function(test){
       it(message.format(test.value, test.expected), function() {

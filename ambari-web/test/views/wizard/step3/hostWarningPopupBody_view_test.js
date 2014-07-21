@@ -75,6 +75,15 @@ describe('App.WizardStep3HostWarningPopupBody', function() {
         repoCategoryWarnings: [
           {hostsNames: ['h1', 'h4']}
         ],
+        thpCategoryWarnings: [
+          {hostsNames: ['h2', 'h3']}
+        ],
+        jdkCategoryWarnings: [
+          {hostsNames: ['h3', 'h5']}
+        ],
+        hostCheckWarnings: [
+          {hostsNames: ['h1', 'h2']}
+        ],
         diskCategoryWarnings: [
           {hostsNames: ['h2', 'h5']}
         ],
@@ -85,7 +94,7 @@ describe('App.WizardStep3HostWarningPopupBody', function() {
           { name: 'h3', warnings: [] }
         ]
       }));
-      expect(view.warningHostsNamesCount()).to.equal(4);
+      expect(view.warningHostsNamesCount()).to.equal(5);
     });
   });
 
@@ -155,14 +164,15 @@ describe('App.WizardStep3HostWarningPopupBody', function() {
       },
       {category: 'package', warnings: [{name: 'n10'}, {name: 'n11'}, {name: 'n12'}]},
       {category: 'service', warnings: [{name: 'n13'}, {name: 'n14'}, {name: 'n15'}]},
-      {category: 'user', warnings: [{name: 'n16'}, {name: 'n17'}, {name: 'n18'}]}
-    ], warningsByHost = [
-      {},
-      {name: 'c', warnings: [{}, {}, {}]},
-      {name: 'd', warnings: [{}]}
+      {category: 'user', warnings: [{name: 'n16'}, {name: 'n17'}, {name: 'n18'}]},
+      {category: 'jdk', warnings: []},
+      {category: 'disk', warnings: []},
+      {category: 'repositories', warnings: []},
+      {category: 'hostNameResolution', warnings: []},
+      {category: 'thp', warnings: []}
     ];
     beforeEach(function() {
-      view.reopen({content: content, warningsByHost: warningsByHost});
+      view.reopen({content: content, warningsByHost: [], hostNamesWithWarnings: ['c', 'd']});
     });
     it('should map hosts', function() {
       var newContent = view.get('contentInDetails');

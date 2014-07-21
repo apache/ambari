@@ -26,7 +26,7 @@ var serviceConfig,
   serviceConfigProperty,
   serviceConfigPropertyInit,
   configsData = [
-    {
+    Ember.Object.create({
       overrides: [
         {
           error: true,
@@ -37,18 +37,19 @@ var serviceConfig,
         },
         {}
       ]
-    },
-    {
+    }),
+    Ember.Object.create({
       isValid: false,
       isVisible: true
-    },
-    {
+    }),
+      Ember.Object.create({
       isValid: true,
       isVisible: true
-    },    {
+    }),
+    Ember.Object.create({
       isValid: false,
       isVisible: false
-    }
+    })
   ],
   configCategoriesData = [
     Em.Object.create({

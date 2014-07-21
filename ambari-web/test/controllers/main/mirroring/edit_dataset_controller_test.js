@@ -318,10 +318,10 @@ describe('App.MainMirroringEditDataSetController', function () {
       var startDate = new Date('01/19/2038 03:15 AM').toISOString().replace(/\:\d{2}\.\d{3}/, '');
       var endDate = new Date('01/19/2039 03:15 AM').toISOString().replace(/\:\d{2}\.\d{3}/, '');
       var expectedResult = '<?xml version="1.0"?><feed description="" name="' + App.mirroringDatasetNamePrefix + 'test" xmlns="uri:falcon:feed:0.1"><frequency>days(1)' +
-          '</frequency><clusters><cluster name="' + App.get('clusterName') + '" type="source"><validity start="' + startDate + '" end="' + endDate +
-          '"/><retention limit="days(7)" action="delete"/></cluster><cluster name="test" type="target"><validity start="' + startDate + '" end="' + endDate +
-          '"/><retention limit="months(1)" action="delete"/><locations><location type="data" path="/test" /></locations></cluster></clusters><locations><location type="data" path="' +
-          '/test" /></locations><ACL owner="hue" group="users" permission="0755" /><schema location="/none" provider="none"/></feed>';
+        '</frequency><clusters><cluster name="' + App.get('clusterName') + '" type="source"><validity start="' + startDate + '" end="' + endDate +
+        '"/><retention limit="days(7)" action="delete"/></cluster><cluster name="test" type="target"><validity start="' + startDate + '" end="' + endDate +
+        '"/><retention limit="months(1)" action="delete"/><locations><location type="data" path="/test" /></locations></cluster></clusters><locations><location type="data" path="' +
+        '/test" /></locations><ACL owner="hue" group="users" permission="0755" /><schema location="/none" provider="none"/></feed>';
       var result = mainMirroringEditDataSetController.createDatasetXML();
       expect(result).to.equal(expectedResult);
     });
@@ -407,10 +407,6 @@ describe('App.MainMirroringEditDataSetController', function () {
   });
 
   describe('#saveDisabled', function () {
-    it('should return false if there are no errors', function () {
-      var mainMirroringEditDataSetController = App.MainMirroringEditDataSetController.create({});
-      expect(mainMirroringEditDataSetController.get('saveDisabled')).to.be.false;
-    });
     it('should return true if there are some errors', function () {
       var mainMirroringEditDataSetController = App.MainMirroringEditDataSetController.create();
       mainMirroringEditDataSetController.set('errors.isNameError', true);

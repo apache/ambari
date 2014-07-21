@@ -94,6 +94,7 @@ describe('App.SelectHostView', function() {
   describe('#changeHandler', function() {
 
     beforeEach(function() {
+      view.get('controller').reopen({multipleComponents: ['HBASE_MASTER', 'ZOOKEEPER_SERVER']});
       view.set('component', {component_name: 'ZOOKEEPER_SERVER', serviceComponentId: 1});
       view.set('controller.hosts', [Em.Object.create({host_info: 'h1 info', host_name: 'h1'})]);
       view.set('value', 'h1 info');
@@ -173,6 +174,7 @@ describe('App.InputHostView', function() {
   describe('#changeHandler', function() {
 
     beforeEach(function() {
+      view.get('controller').reopen({multipleComponents: ['HBASE_MASTER', 'ZOOKEEPER_SERVER']});
       view.set('component', {component_name: 'ZOOKEEPER_SERVER', serviceComponentId: 1});
       view.set('controller.hosts', [Em.Object.create({host_info: 'h1 info', host_name: 'h1'})]);
       view.set('value', 'h1 info');
@@ -267,6 +269,7 @@ describe('App.InputHostView', function() {
     tests.forEach(function(test) {
       it(test.m, function() {
         view.set('controller.hosts', test.hosts);
+        view.get('controller').reopen({multipleComponents: ['HBASE_MASTER', 'ZOOKEEPER_SERVER']});
         view.set('component', {component_name: test.componentName});
         view.set('controller.selectedServicesMasters', test.selectedServicesMasters);
         var r = view.getAvailableHosts();

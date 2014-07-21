@@ -18,13 +18,13 @@
 
 App = require('app');
 require('ember');
-require('models/host_component')
+require('models/host_component');
 require('views/common/modal_popup');
 require('mixins/common/userPref');
 require('controllers/application');
 require('controllers/global/background_operations_controller');
 require('controllers/global/cluster_controller');
-require('controllers/main/service/reassign_controller')
+require('controllers/main/service/reassign_controller');
 require('controllers/main/service/item');
 var batchUtils = require('utils/batch_scheduled_requests');
 
@@ -106,39 +106,35 @@ describe('App.MainServiceItemController', function () {
       }
     ];
 
-
     tests.forEach(function (test) {
       it(test.m, function () {
-        var backgroundOperationsController = App.BackgroundOperationsController.create();
-        backgroundOperationsController.set('services', []);
-        test.backgroundOperationsController.services.forEach(function (service) {
-          backgroundOperationsController.get('services').push(service);
+        sinon.stub(App.router, 'get', function(k) {
+          if ('backgroundOperationsController.services' === k) return test.backgroundOperationsController.services;
+          return Em.get(App.router, k);
         });
-        backgroundOperationsController.set("serviceTimestamp", new Date().getTime());
-        App.router.set('backgroundOperationsController', backgroundOperationsController);
         var mainServiceItemController = App.MainServiceItemController.create({content: {serviceName: test.serviceController.serviceName}});
         mainServiceItemController.setStartStopState();
+        App.router.get.restore();
         expect(mainServiceItemController.get('isPending')).to.equal(test.isPending);
       });
     })
   });
 
   describe('#reassignMaster()', function () {
-    var v;
     var tests = [
       {
         host_components: [
-          {component_name: "RESOURCEMANGER"}
+          {componentName: "RESOURCEMANGER"}
         ],
-        conponentName: "RESOURCEMANGER",
+        componentName: "RESOURCEMANGER",
         result: true,
         m: 'run reassignMaster'
       },
       {
         host_components: [
-          {component_name: "RESOURCEMANGER"}
+          {componentName: "RESOURCEMANGER"}
         ],
-        conponentName: "DATANODE",
+        componentName: "DATANODE",
         result: false,
         m: 'don\t run reassignMaster'
       }
@@ -146,56 +142,38 @@ describe('App.MainServiceItemController', function () {
 
     tests.forEach(function (test) {
       var reassignMasterController = App.ReassignMasterController.create({currentStep: ''});
+
       beforeEach(function () {
-        sinon.spy(reassignMasterController, 'saveComponentToReassign');
-        sinon.spy(reassignMasterController, 'getSecurityStatus');
-        sinon.spy(reassignMasterController, 'setCurrentStep');
-        App.router.transitionTo = Em.K;
+        sinon.stub(reassignMasterController, 'saveComponentToReassign', Em.K);
+        sinon.stub(reassignMasterController, 'getSecurityStatus', Em.K);
+        sinon.stub(reassignMasterController, 'setCurrentStep', Em.K);
       });
+
       afterEach(function () {
         reassignMasterController.saveComponentToReassign.restore();
         reassignMasterController.getSecurityStatus.restore();
         reassignMasterController.setCurrentStep.restore();
-        App.router.transitionTo = v;
       });
+
       it(test.m, function () {
-        v = App.router.transitionTo;
+        sinon.stub(App.router, 'transitionTo', Em.K);
         var mainServiceItemController = App.MainServiceItemController.create({});
-        App.router.set('reassignMasterController', reassignMasterController);
-        App.store.loadMany(App.HostComponent, test.host_components);
-        mainServiceItemController.reassignMaster(test.conponentName);
+        sinon.stub(App.HostComponent, 'find', function() {
+          return test.host_components
+        });
+        sinon.stub(App.router, 'get', function(k) {
+          if ('reassignMasterController' === k) return reassignMasterController;
+          return Em.get(App.router, k);
+        });
+        mainServiceItemController.reassignMaster(test.componentName);
         expect(reassignMasterController.saveComponentToReassign.calledOnce).to.equal(test.result);
         expect(reassignMasterController.getSecurityStatus.calledOnce).to.equal(test.result);
         expect(reassignMasterController.setCurrentStep.calledOnce).to.equal(test.result);
+        App.HostComponent.find.restore();
+        App.router.transitionTo.restore();
+        App.router.get.restore();
       });
     }, this);
-  });
-
-  describe("#updateService", function () {
-
-    var tests = [
-      {
-        params: {
-          passive_state: "ON"
-        },
-        m: "turn on passive"
-      },
-      {
-        params: {
-          passive_state: "OFF"
-        },
-        m: "turn off passive"
-      }
-    ];
-    tests.forEach(function (test) {
-      it(test.m, function () {
-        var clusterController = App.ClusterController.create();
-        App.router.set('clusterController', clusterController);
-        var mainServiceItemController = App.MainServiceItemController.create({content: {passiveState: "ON"}});
-        mainServiceItemController.updateService(null, null, test.params);
-        expect(mainServiceItemController.get('content.passiveState')).to.equal(test.params.passive_state);
-      });
-    });
   });
 
   describe("#doAction", function () {
@@ -325,50 +303,6 @@ describe('App.MainServiceItemController', function () {
 
   });
 
-  describe("#startStopPopupSuccessCallback", function () {
-
-    var data = {
-      Requests: true
-    };
-    var params = Em.Object.create({
-      query: Em.Object.create()
-    });
-    var ajaxOptions = {
-      data: '{"RequestInfo":{"context":"_PARSE_.STOP.ZOOKEEPER"},"Body":{"ServiceInfo":{"state":"INSTALLED"}}}'
-    };
-
-    var content = {
-      workStatus: "",
-      hostComponents: [
-        {
-          workStatus: ""
-        }
-      ]
-    };
-
-    var mainServiceItemController = App.MainServiceItemController.create({content: content});
-    var applicationController = App.ApplicationController.create(App.UserPref, {});
-    var clusterController = App.ClusterController.create({loadUpdatedStatusDelayed: Em.K});
-    var backgroundOperationsController = App.BackgroundOperationsController.create({showPopup: Em.K});
-    App.testMode = false;
-    beforeEach(function () {
-      App.testMode = false;
-      sinon.spy(clusterController, "loadUpdatedStatusDelayed");
-    });
-    afterEach(function () {
-      clusterController.loadUpdatedStatusDelayed.restore();
-      App.testMode = true;
-    });
-    it("open bgo popup", function () {
-      App.router.set('applicationController', applicationController);
-      App.router.set('clusterController', clusterController);
-      App.router.set('backgroundOperationsController', backgroundOperationsController);
-      mainServiceItemController.startStopPopupSuccessCallback(data, ajaxOptions, params);
-      expect(clusterController.loadUpdatedStatusDelayed.calledOnce).to.equal(true);
-    })
-  });
-
-
   describe("#startService , #stopService", function () {
     var mainServiceItemController = App.MainServiceItemController.create({startStopPopup: Em.K});
     beforeEach(function () {
@@ -391,14 +325,15 @@ describe('App.MainServiceItemController', function () {
   describe("#turnOnOffPassive", function () {
     var mainServiceItemController = App.MainServiceItemController.create({turnOnOffPassiveRequest: Em.K});
     beforeEach(function () {
-      sinon.spy(mainServiceItemController, "turnOnOffPassiveRequest");
+      sinon.spy(batchUtils, "turnOnOffPassiveRequest");
+      mainServiceItemController.set('content', {serviceName: ''});
     });
     afterEach(function () {
-      mainServiceItemController.turnOnOffPassiveRequest.restore();
+      batchUtils.turnOnOffPassiveRequest.restore();
     });
     it("turns on/off passive mode for service", function () {
       mainServiceItemController.turnOnOffPassive({}).onPrimary();
-      expect(mainServiceItemController.turnOnOffPassiveRequest.calledOnce).to.equal(true);
+      expect(batchUtils.turnOnOffPassiveRequest.calledOnce).to.equal(true);
     });
   });
 
@@ -433,7 +368,7 @@ describe('App.MainServiceItemController', function () {
 
     tests.forEach(function (test) {
       var mainServiceItemController = test.default ? App.MainServiceItemController.create({runSmokeTestPrimary: Em.K}) :
-          App.MainServiceItemController.create({content: {serviceName: test.serviceName}, runSmokeTestPrimary: Em.K});
+        App.MainServiceItemController.create({content: {serviceName: test.serviceName}, runSmokeTestPrimary: Em.K});
       beforeEach(function () {
         sinon.spy(mainServiceItemController, "runSmokeTestPrimary");
       });
@@ -450,49 +385,12 @@ describe('App.MainServiceItemController', function () {
     });
   });
 
-  describe("#refreshConfigs", function () {
-    var temp = batchUtils.restartHostComponents;
-    beforeEach(function () {
-      sinon.stub(App.ajax, 'send', function(opt) {
-        return opt.data.callback({ items: [] });
-      });
-      batchUtils.restartHostComponents = Em.K;
-      sinon.spy(batchUtils, "restartHostComponents");
-    });
-    afterEach(function () {
-      batchUtils.restartHostComponents.restore();
-      batchUtils.restartHostComponents = temp;
-      App.ajax.send.restore();
-    });
-    var tests = [
-      {
-        isClientsOnly: true,
-        m: "run refresh for clients"
-      },
-      {
-        isClientsOnly: false,
-        m: "don't run refresh for non clients"
-      }
-    ];
-    tests.forEach(function (test) {
-      var mainServiceItemController = App.MainServiceItemController.create({content: {isClientsOnly: test.isClientsOnly}});
-      it(test.m, function () {
-        if (test.isClientsOnly) {
-          mainServiceItemController.refreshConfigs().onPrimary();
-        } else {
-          mainServiceItemController.refreshConfigs();
-        }
-        expect(batchUtils.restartHostComponents.calledOnce).to.equal(test.isClientsOnly);
-      });
-    }, this);
-  });
-
   describe("#startStopPopup", function () {
     var el = document.createElement("BUTTON");
     el.disabled = false;
     var event = {
       target: el
-    }
+    };
     var mainServiceItemController = App.MainServiceItemController.create({content: {serviceName: "HDFS"}});
     beforeEach(function () {
       sinon.spy(mainServiceItemController, "startStopPopupPrimary");
@@ -511,10 +409,14 @@ describe('App.MainServiceItemController', function () {
     beforeEach(function () {
       batchUtils.restartAllServiceHostComponents = Em.K;
       sinon.spy(batchUtils, "restartAllServiceHostComponents");
+      sinon.stub(App.Service, 'find', function() {
+        return Em.Object.create({serviceTypes: []});
+      });
     });
     afterEach(function () {
       batchUtils.restartAllServiceHostComponents.restore();
       batchUtils.restartAllServiceHostComponents = temp;
+      App.Service.find.restore();
     });
 
     var mainServiceItemController = App.MainServiceItemController.create({content: {displayName: "HDFS"}});
@@ -616,56 +518,39 @@ describe('App.MainServiceItemController', function () {
 
   describe("#runRebalancer", function () {
     it("run rebalancer", function () {
+      sinon.stub(App.router, 'get', function(k) {
+        if ('applicationController' === k) {
+          return Em.Object.create({
+            dataLoading: function() {
+              return {done: Em.K}
+            }
+          });
+        }
+        return Em.get(App.router, k);
+      });
       var mainServiceItemController = App.MainServiceItemController.create({content: {runRebalancer: false}});
       mainServiceItemController.runRebalancer().onPrimary();
       expect(mainServiceItemController.get("content.runRebalancer")).to.equal(true);
+      App.router.get.restore();
     });
   });
 
   describe("#runCompaction", function () {
     it("run compaction", function () {
+      sinon.stub(App.router, 'get', function(k) {
+        if ('applicationController' === k) {
+          return Em.Object.create({
+            dataLoading: function() {
+              return {done: Em.K}
+            }
+          });
+        }
+        return Em.get(App.router, k);
+      });
       var mainServiceItemController = App.MainServiceItemController.create({content: {runCompaction: false}});
       mainServiceItemController.runCompaction().onPrimary();
       expect(mainServiceItemController.get("content.runCompaction")).to.equal(true);
-    });
-  });
-
-  describe("#turnOnOffPassiveRequest", function () {
-    var tests = [
-      {
-        data: {
-          "requestInfo": 'Turn On Maintenance Mode',
-          "serviceName" : "HDFS",
-          "passive_state": "ON"
-        },
-        RequestInfo: {
-          "context": 'Turn On Maintenance Mode'
-        },
-        Body: {
-          ServiceInfo: {
-            maintenance_state: "ON"
-          }
-        }
-      }
-    ];
-
-    beforeEach(function () {
-      sinon.spy($, 'ajax');
-    });
-
-    afterEach(function () {
-      $.ajax.restore();
-    });
-
-    tests.forEach(function (test) {
-      it('send request to turn on passive state', function () {
-        var mainServiceItemController = App.MainServiceItemController.create({content: {serviceName: test.data.serviceName}});
-        mainServiceItemController.turnOnOffPassiveRequest(test.data.passive_state, test.data.requestInfo);
-        expect($.ajax.calledOnce).to.equal(true);
-
-        expect(JSON.parse($.ajax.args[0][0].data).Body.ServiceInfo.maintenance_state).to.equal(test.Body.ServiceInfo.maintenance_state);
-        expect(JSON.parse($.ajax.args[0][0].data).RequestInfo.context).to.equal(test.RequestInfo.context);
-      });
+      App.router.get.restore();
     });
   });
 
@@ -686,17 +571,17 @@ describe('App.MainServiceItemController', function () {
     ];
     tests.forEach(function (test) {
 
-    var mainServiceItemController = App.MainServiceItemController.create({content: {serviceName: test.data.serviceName,
-      displayName: test.data.displayName}});
-    beforeEach(function () {
-      mainServiceItemController.set("runSmokeTestErrorCallBack", Em.K);
-      mainServiceItemController.set("runSmokeTestSuccessCallBack", Em.K);
-      sinon.spy($, 'ajax');
-    });
+      var mainServiceItemController = App.MainServiceItemController.create({content: {serviceName: test.data.serviceName,
+        displayName: test.data.displayName}});
+      beforeEach(function () {
+        mainServiceItemController.set("runSmokeTestErrorCallBack", Em.K);
+        mainServiceItemController.set("runSmokeTestSuccessCallBack", Em.K);
+        sinon.spy($, 'ajax');
+      });
 
-    afterEach(function () {
-      $.ajax.restore();
-    });
+      afterEach(function () {
+        $.ajax.restore();
+      });
 
       it('send request to run smoke test', function () {
 
@@ -709,4 +594,5 @@ describe('App.MainServiceItemController', function () {
       });
     });
   });
+
 });

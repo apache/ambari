@@ -37,13 +37,13 @@ var decommissionable,
       HostRoles: {
         desired_admin_state: 'state'
       },
-      ServiceComponentInfo: 'info'
+      ServiceComponentInfo: {component_state: ''}
     },
     {
       HostRoles: {
         desired_admin_state: null
       },
-      ServiceComponentInfo: null
+      ServiceComponentInfo: {component_state: ''}
     }
   ],
   textCases = [
@@ -61,53 +61,6 @@ describe('App.Decommissionable', function () {
 
   beforeEach(function () {
     decommissionable = Em.Object.create(App.Decommissionable);
-  });
-
-  describe('#isComponentDecommissionDisable', function () {
-    statusCases.forEach(function (item) {
-      it('should be ' + item.expected, function () {
-        decommissionable.set('content', {
-          service: {
-            workStatus: item.status
-          }
-        });
-        expect(decommissionable.get('isComponentDecommissionDisable')).to.equal(item.expected);
-      });
-    });
-  });
-
-  describe('#getDesiredAdminStateSuccessCallback', function () {
-    responseCases.forEach(function (item) {
-      var state = item.HostRoles.desired_admin_state;
-      it('should return ' + state, function () {
-        decommissionable.getDesiredAdminStateSuccessCallback(item);
-        expect(decommissionable.get('desiredAdminState')).to.equal(state);
-      });
-    });
-  });
-
-  describe('#getDesiredAdminStateErrorCallback', function () {
-    it('should return null', function () {
-      decommissionable.getDesiredAdminStateErrorCallback();
-      expect(decommissionable.get('desiredAdminState')).to.be.a('null');
-    });
-  });
-
-  describe('#getDecommissionStatusSuccessCallback', function () {
-    responseCases.forEach(function (item) {
-      var state = item.ServiceComponentInfo;
-      it('should return ' + state, function () {
-        decommissionable.getDecommissionStatusSuccessCallback(item);
-        expect(decommissionable.get('decommissionedStatusObject')).to.equal(state);
-      });
-    });
-  });
-
-  describe('#getDecommissionStatusErrorCallback', function () {
-    it('should return null', function () {
-      decommissionable.getDecommissionStatusErrorCallback();
-      expect(decommissionable.get('decommissionedStatusObject')).to.be.a('null');
-    });
   });
 
   describe('#decommissionView.text', function () {

@@ -27,17 +27,20 @@ var configGroup,
   hosts = [
     Em.Object.create({
       id: 'host0',
-      hostName: 'host0'
+      hostName: 'host0',
+      hostComponents: []
     }),
     Em.Object.create({
       id: 'host1',
-      hostName: 'host1'
+      hostName: 'host1',
+      hostComponents: []
     })
   ],
-  host = {
+  host = Em.Object.create({
     id: 'host0',
-    host_name: 'host0'
-  },
+    hostName: 'host0',
+    hostComponents: []
+  }),
   properties = [
     {
       name: 'n0',
@@ -89,13 +92,14 @@ describe('App.ConfigGroup', function () {
 
     beforeEach(function () {
       App.clusterStatus.set('clusterState', 'DEFAULT');
-      App.store.load(App.Host, host);
-      hostRecord = App.Host.find().findProperty('hostName', 'host0');
+      sinon.stub(App.Host, 'find', function() {
+        return [host];
+      });
       setParentConfigGroup(configGroup, hosts);
     });
 
     afterEach(function () {
-      modelSetup.deleteRecord(hostRecord);
+      App.Host.find.restore();
     });
 
     it('should return an empty array as default', function () {
@@ -110,6 +114,7 @@ describe('App.ConfigGroup', function () {
 
     it('should take hosts from parentConfigGroup', function () {
       setParentConfigGroup(configGroup, hosts);
+      configGroup.set('clusterHosts', hosts);
       expect(configGroup.get('availableHosts')).to.have.length(2);
     });
   });
@@ -120,7 +125,7 @@ describe('App.ConfigGroup', function () {
       hostRecord = App.Host.createRecord(host);
       setParentConfigGroup(configGroup, hosts);
       configGroup.set('isDefault', false);
-      configGroup.set('availableHosts', []);
+      configGroup.reopen({availableHosts: [{}]});
     });
 
     afterEach(function () {

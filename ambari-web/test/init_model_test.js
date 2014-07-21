@@ -29,8 +29,9 @@ module.exports = {
      */
     App.stackServiceMapper.map(require('test/service_components'));
   },
-  cleanStackServiceComponent: function(){
+  cleanStackServiceComponent: function() {
     App.StackServiceComponent.find().set('content',[]);
+    App.StackService.find().set('content',[]);
   },
   setupStackVersion: function(context, version) {
     context.prevStackVersion = App.get('currentStackVersion');

@@ -95,16 +95,6 @@ describe('App.HostPopup', function () {
     }
   ];
 
-  var bgController = App.BackgroundOperationsController.create();
-  bgController.set('services', services);
-
-  describe('#initPopup', function() {
-    App.HostPopup.initPopup("", bgController, true);
-    it('services loaded', function() {
-      expect(App.HostPopup.get('inputData').length).to.equal(services.length);
-    });
-  });
-
   var test_tasks = [
     {
       t: [

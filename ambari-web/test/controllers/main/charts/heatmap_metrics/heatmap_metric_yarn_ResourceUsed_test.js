@@ -21,7 +21,7 @@ require('controllers/main/charts/heatmap_metrics/heatmap_metric');
 require('controllers/main/charts/heatmap_metrics/heatmap_metric_yarn');
 require('controllers/main/charts/heatmap_metrics/heatmap_metric_yarn_ResourceUsed');
 
-describe('App.MainChartHeatmapYarnResourceUsedMetric', function () {
+describe.skip('App.MainChartHeatmapYarnResourceUsedMetric', function () {
 
   var mainChartHeatmapYarnResourceUsedMetric = App.MainChartHeatmapYarnResourceUsedMetric.create({});
 

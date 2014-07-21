@@ -116,9 +116,9 @@ describe('App.MainAdminSecurityAddStep3Controller', function () {
   });
 
   describe('#setComponentsConfig()', function() {
-    modelSetup.setupStackServiceComponent();
 
     beforeEach(function(){
+      modelSetup.setupStackServiceComponent();
       controller.set('content.serviceConfigProperties', [
         {
           serviceName: 'HDFS',
@@ -131,6 +131,10 @@ describe('App.MainAdminSecurityAddStep3Controller', function () {
           value: 'value1'
         }
       ]);
+    });
+
+    afterEach(function() {
+      modelSetup.cleanStackServiceComponent();
     });
 
     it('componentToConfigMap is empty', function() {

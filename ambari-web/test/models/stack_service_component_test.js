@@ -121,16 +121,6 @@ describe('App.StackServiceComponent', function () {
     modelSetup.deleteRecord(stackServiceComponent);
   });
 
-  describe('#displayName', function () {
-    components.forEach(function (item) {
-      var displayName = App.format.components[item.name];
-      it('should be ' + displayName, function () {
-        stackServiceComponent.set('componentName', item.name);
-        expect(stackServiceComponent.get('displayName')).to.equal(displayName);
-      });
-    });
-  });
-
   describe('#isSlave', function () {
     it('should be true', function () {
       stackServiceComponent.set('componentCategory', 'SLAVE');

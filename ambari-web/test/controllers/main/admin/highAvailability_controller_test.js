@@ -32,12 +32,14 @@ describe('App.MainAdminHighAvailabilityController', function () {
     var hostComponents = [];
 
     beforeEach(function () {
+      sinon.stub(App.router, 'transitionTo', Em.K);
       sinon.stub(App.HostComponent, 'find', function(){
         return hostComponents;
       });
       sinon.spy(controller, "showErrorPopup");
     });
     afterEach(function () {
+      App.router.transitionTo.restore();
       controller.showErrorPopup.restore();
       App.HostComponent.find.restore();
     });
@@ -140,11 +142,9 @@ describe('App.MainAdminHighAvailabilityController', function () {
       sinon.stub(App.router, 'get', function(){
         return 3;
       });
-      sinon.spy(App.router, 'transitionTo');
       expect(controller.enableHighAvailability()).to.be.true;
       expect(App.router.transitionTo.calledWith('main.admin.enableHighAvailability')).to.be.true;
       expect(controller.showErrorPopup.calledOnce).to.be.false;
-      App.router.transitionTo.restore();
       App.router.get.restore();
     });
   });
@@ -320,6 +320,7 @@ describe('App.MainAdminHighAvailabilityController', function () {
       controller.isSecurityEnabled.restore();
     });
   });
+
   describe('#isSecurityEnabled()', function () {
     it('properties is null', function () {
       expect(controller.isSecurityEnabled(null)).to.be.false;

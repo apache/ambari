@@ -80,7 +80,7 @@ describe('App.ServiceConfigView', function () {
       }
     }
   ];
-  describe('#checkCanEdit', function () {
+  describe.skip('#checkCanEdit', function () {
     testCases.forEach(function (test) {
       it(test.title, function () {
         controller.set('selectedService', test.selectedService);

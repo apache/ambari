@@ -252,54 +252,7 @@ describe('App.WizardStep4Controller', function () {
       });
   });
 
-  describe('#validateMonitoring', function() {
-    beforeEach(function() {
-      sinon.stub(controller, 'monitoringCheckPopup', Em.K);
-      sinon.stub(App.router, 'send', Em.K);
-    });
-    afterEach(function() {
-      controller.monitoringCheckPopup.restore();
-      App.router.send.restore();
-    });
-    Em.A([
-        {
-          gangliaOrNagiosNotSelected: true,
-          e: {
-            monitoringCheckPopup: true,
-            send: false
-          }
-        },
-        {
-          gangliaOrNagiosNotSelected: false,
-          e: {
-            monitoringCheckPopup: false,
-            send: true
-          }
-        }
-      ]).forEach(function (test) {
-        it(test.m, function () {
-          sinon.stub(controller, 'gangliaOrNagiosNotSelected', function() {
-            return test.gangliaOrNagiosNotSelected;
-          });
-          controller.validateMonitoring();
-          controller.gangliaOrNagiosNotSelected.restore();
-          if (test.e.monitoringCheckPopup) {
-           expect(controller.monitoringCheckPopup.calledOnce).to.equal(true);
-          }
-          else {
-            expect(controller.monitoringCheckPopup.called).to.equal(false);
-          }
-          if (test.e.send) {
-            expect(App.router.send.calledWith('next')).to.equal(true);
-          }
-          else {
-            expect(App.router.send.called).to.equal(false);
-          }
-        });
-      });
-  });
-
-  describe('#submit', function() {
+ describe('#submit', function() {
     beforeEach(function() {
       sinon.stub(controller, 'validateMonitoring', Em.K);
       sinon.stub(controller, 'setGroupedServices', Em.K);

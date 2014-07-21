@@ -18,8 +18,8 @@
 
 
 var App = require('app');
+require('utils/updater');
 require('controllers/global/update_controller');
-
 
 describe('App.UpdateController', function () {
   var controller = App.UpdateController.create({

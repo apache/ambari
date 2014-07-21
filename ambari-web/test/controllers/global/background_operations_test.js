@@ -31,7 +31,9 @@ require('utils/host_progress_popup');
 
 describe('App.BackgroundOperationsController', function () {
 
-  var controller = App.BackgroundOperationsController.create();
+  var controller = App.BackgroundOperationsController.create({
+    isInitLoading: Em.K
+  });
 
   describe('#getQueryParams', function () {
     /**

@@ -251,16 +251,6 @@ describe('App.Service', function () {
     });
   });
 
-  describe('#displayName', function () {
-    services.forEach(function (item) {
-      var displayName = App.Service.DisplayNames[item.name];
-      it('should return ' + displayName, function () {
-        service.set('serviceName', item.name);
-        expect(service.get('displayName')).to.equal(displayName);
-      });
-    });
-  });
-
   describe('#isRestartRequired', function () {
     hostComponentsDataFalse.forEach(function (item) {
       it('should be false', function () {

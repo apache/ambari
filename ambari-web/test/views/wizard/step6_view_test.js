@@ -73,11 +73,6 @@ describe('App.WizardStep6View', function() {
       view.didInsertElement();
       expect(view.setLabel.calledOnce).to.equal(true);
     });
-    it('shouldn\'t call setLabel if controller.isMasters', function() {
-      view.set('controller.isMasters', true);
-      view.didInsertElement();
-      expect(view.setLabel.called).to.equal(false);
-    });
   });
 
   describe('#setLabel', function() {
@@ -116,18 +111,6 @@ describe('App.WizardStep6View', function() {
       });
     });
   });
-  
-  describe('#checkboxView', function() {
-    it('should call checkCallback', function() {
-      var v = view.get('checkboxView').create({
-        controller: App.WizardStep6Controller.create()
-      });
-      sinon.stub(v.get('controller'), 'checkCallback', Em.K);
-      v.click();
-      expect(v.get('controller').checkCallback.calledOnce).to.equal(true);
-      v.get('controller').checkCallback.restore();
-    });
-  });
 
 });
 
@@ -152,11 +135,6 @@ describe('App.WizardStep6HostView', function() {
       view.didInsertElement();
       expect(App.popover.calledOnce).to.equal(true);
       view.get('controller').getMasterComponentsForHost.restore();
-    });
-    it('shouldn\'t create popover if controller.isMasters', function() {
-      view.set('controller.isMasters', true);
-      view.didInsertElement();
-      expect(App.popover.called).to.equal(false);
     });
     it('shouldn\'t create popover if controller.getMasterComponentsForHost returns empty array', function() {
       sinon.stub(view.get('controller'), 'getMasterComponentsForHost', function() {return [];});

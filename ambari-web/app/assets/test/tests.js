@@ -32,174 +32,182 @@ require('views');
 require('router');
 require('mappers');
 
-require('test/init_router_test');
-require('test/init_model_test');
-require('test/app_test');
-require('test/data/HDP2/site_properties_test');
-require('test/data/HDP2/secure_mapping_test');
-require('test/controllers/global/background_operations_test');
-require('test/controllers/global/cluster_controller_test');
-require('test/controllers/global/update_controller_test');
-require('test/controllers/global/configuration_controller_test');
-require('test/controllers/main/app_contoller_test');
-require('test/controllers/main/admin/cluster_test');
-require('test/controllers/main/admin/misc_controller_test');
-require('test/controllers/main/admin/highAvailability_controller_test');
-require('test/controllers/main/admin/security_test');
-require('test/controllers/main/admin/security/disable_test');
-require('test/controllers/main/admin/security/security_progress_controller_test');
-require('test/controllers/main/admin/security/add/addSecurity_controller_test');
-require('test/controllers/main/admin/security/add/step1_test');
-require('test/controllers/main/admin/security/add/step2_test');
-require('test/controllers/main/admin/security/add/step3_test');
-require('test/controllers/main/admin/security/add/step4_test');
-require('test/controllers/main/charts/heatmap_test');
-require('test/controllers/main/charts/heatmap_metrics/heatmap_metric_test');
-require('test/controllers/main/charts/heatmap_metrics/heatmap_metric_yarn_test');
-require('test/controllers/main/charts/heatmap_metrics/heatmap_metric_hbase_test');
-require('test/controllers/main/charts/heatmap_metrics/heatmap_metric_dfs_test');
-require('test/controllers/main/charts/heatmap_metrics/heatmap_metric_dfs_bytesread_test');
-require('test/controllers/main/charts/heatmap_metrics/heatmap_metric_dfs_byteswritten_test');
-require('test/controllers/main/charts/heatmap_metrics/heatmap_metric_cpuWaitIO_test');
-require('test/controllers/main/charts/heatmap_metrics/heatmap_metric_diskspaceused_test');
-require('test/controllers/main/charts/heatmap_metrics/heatmap_metric_memoryused_test');
-require('test/controllers/main/charts/heatmap_metrics/heatmap_metric_yarn_ResourceUsed_test');
-require('test/controllers/main/host/add_controller_test');
-require('test/controllers/main/host/configs_service_test');
-require('test/controllers/main/host/details_test');
-require('test/controllers/main/service/add_controller_test');
-require('test/controllers/main/service/reassign_controller_test');
-require('test/controllers/main/dashboard_test');
-require('test/controllers/main/host_test');
-require('test/controllers/main/service/item_test');
-require('test/controllers/main/service/info/config_test');
-require('test/controllers/main/jobs_controller_test');
-require('test/controllers/main/jobs/hive_job_details_controller_test');
-require('test/controllers/main/service_test');
-require('test/controllers/main/admin_test');
-require('test/controllers/main/alerts_controller_test');
-require('test/controllers/main/mirroring/edit_dataset_controller_test');
-require('test/controllers/installer_test');
-require('test/controllers/wizard_test');
-require('test/controllers/wizard/step0_test');
-require('test/controllers/wizard/step2_test');
-require('test/controllers/wizard/step3_test');
-require('test/controllers/wizard/step4_test');
-require('test/controllers/wizard/step5_test');
-require('test/controllers/wizard/step6_test');
-require('test/controllers/wizard/step7_test');
-require('test/controllers/wizard/step8_test');
-require('test/controllers/wizard/step9_test');
-require('test/controllers/wizard/step10_test');
-require('test/controllers/wizard/stack_upgrade/step3_controller_test');
-require('test/login_test');
-require('test/mappers/server_data_mapper_test');
-require('test/mappers/hosts_mapper_test');
-require('test/mappers/jobs_mapper_test');
-require('test/mappers/runs_mapper_test');
-require('test/mappers/service_mapper_test');
-require('test/mappers/status_mapper_test');
-require('test/mappers/users_mapper_test');
-require('test/mixins/common/chart/storm_linear_time_test');
-require('test/mixins/common/localStorage_test');
-require('test/mixins/main/host/details/host_components/decommissionable_test');
-require('test/utils/configs/defaults_providers/yarn_defaults_provider_test');
-require('test/utils/configs/defaults_providers/tez_defaults_provider_test');
-require('test/utils/configs/defaults_providers/hive_defaults_provider_test');
-require('test/utils/configs/validators/service_configs_validator_test');
-require('test/utils/ajax/ajax_test');
-require('test/utils/ajax/ajax_queue_test');
-require('test/utils/batch_scheduled_requests_test');
-require('test/utils/config_test');
-require('test/utils/date_test');
-require('test/utils/config_test');
-require('test/utils/date_test');
-require('test/utils/form_field_test');
-require('test/utils/misc_test');
-require('test/utils/number_utils_test');
-require('test/utils/validator_test');
-require('test/utils/config_test');
-require('test/utils/string_utils_test');
-require('test/utils/lazy_loading_test');
-require('test/utils/helper_test');
-require('test/utils/component_test');
-require('test/utils/object_utils_test');
-require('test/utils/ui_effects_test');
-require('test/utils/updater_test');
-require('test/views/common/chart/linear_time_test');
-require('test/views/common/filter_view_test');
-require('test/views/common/table_view_test');
-require('test/views/common/quick_link_view_test');
-require('test/views/common/rolling_restart_view_test');
-require('test/views/main/admin/user/create_test');
-require('test/views/main/admin/user/edit_test');
-require('test/views/main/dashboard_test');
-require('test/views/main/dashboard/widget_test');
-require('test/views/main/dashboard/widgets_test');
-require('test/views/main/dashboard/widgets/text_widget_test');
-require('test/views/main/dashboard/widgets/uptime_text_widget_test');
-require('test/views/main/dashboard/widgets/node_managers_live_test');
-require('test/views/main/dashboard/widgets/datanode_live_test');
-require('test/views/main/dashboard/widgets/tasktracker_live_test');
-require('test/views/main/dashboard/widgets/hbase_average_load_test');
-require('test/views/main/dashboard/widgets/hbase_regions_in_transition_test');
-require('test/views/main/dashboard/widgets/jobtracker_rpc_test');
-require('test/views/main/dashboard/widgets/namenode_rpc_test');
-require('test/views/main/dashboard/widgets/hbase_master_uptime_test');
-require('test/views/main/dashboard/widgets/jobtracker_uptime_test');
-require('test/views/main/dashboard/widgets/namenode_uptime_test');
-require('test/views/main/dashboard/widgets/resource_manager_uptime_test');
-require('test/views/main/dashboard/widgets/links_widget_test');
-require('test/views/main/dashboard/widgets/pie_chart_widget_test');
-require('test/views/main/dashboard/widgets/namenode_cpu_test');
-require('test/views/main/host/summary_test');
-require('test/views/main/host/details/host_component_view_test');
-require('test/views/main/host/details/host_component_views/decommissionable_test');
-require('test/views/main/jobs_view_test');
-require('test/views/main/jobs/hive_job_details_tez_dag_view_test');
-require('test/views/main/jobs/hive_job_details_view_test');
-require('test/views/main/charts/heatmap/heatmap_host_test');
-require('test/views/main/charts/heatmap/heatmap_rack_test');
-require('test/views/main/service/info/config_test');
-require('test/views/main/mirroring/edit_dataset_view_test');
-require('test/views/common/configs/services_config_test');
-require('test/views/wizard/controls_view_test');
-require('test/views/wizard/step3/hostLogPopupBody_view_test');
-require('test/views/wizard/step3/hostWarningPopupBody_view_test');
-require('test/views/wizard/step3/hostWarningPopupFooter_view_test');
-require('test/views/wizard/step0_view_test');
-require('test/views/wizard/step1_view_test');
-require('test/views/wizard/step2_view_test');
-require('test/views/wizard/step3_view_test');
-require('test/views/wizard/step5_view_test');
-require('test/views/wizard/step6_view_test');
-require('test/views/wizard/step8_view_test');
-require('test/views/wizard/step9_view_test');
-require('test/views/wizard/step9/hostLogPopupBody_view_test');
-require('test/views/wizard/step10_view_test');
-require('test/views/application_test');
-require('test/views/experimental_test');
-require('test/views/installer_test');
-require('test/views/login_test');
-require('test/models/jobs/job_test');
-require('test/models/jobs/tez_dag_test');
-require('test/models/service/flume_test');
-require('test/models/service/hdfs_test');
-require('test/models/service/yarn_test');
-require('test/models/alert_test');
-require('test/models/authentication_test');
-require('test/models/cluster_states_test');
-require('test/models/config_group_test');
-require('test/models/dataset_test');
-require('test/models/dataset_job_test');
-require('test/models/form_test');
-require('test/models/host_test');
-require('test/models/host_component_test');
-require('test/models/hosts_test');
-require('test/models/job_test');
-require('test/models/rack_test');
-require('test/models/run_test');
-require('test/models/service_test');
-require('test/models/service_config_test');
-require('test/models/stack_service_component_test');
-require('test/models/user_test');
+require('utils/ajax/ajax');
+require('utils/ajax/ajax_queue');
+
+var files = ['test/init_model_test',
+  'test/app_test',
+  'test/data/HDP2/secure_mapping_test',
+  'test/controllers/global/background_operations_test',
+  'test/controllers/global/cluster_controller_test',
+  'test/controllers/global/update_controller_test',
+  'test/controllers/global/configuration_controller_test',
+  'test/controllers/main/app_contoller_test',
+  'test/controllers/main/admin/cluster_test',
+  'test/controllers/main/admin/misc_controller_test',
+  'test/controllers/main/admin/highAvailability_controller_test',
+  'test/controllers/main/admin/security_test',
+  'test/controllers/main/admin/security/disable_test',
+  'test/controllers/main/admin/security/security_progress_controller_test',
+  'test/controllers/main/admin/security/add/addSecurity_controller_test',
+  'test/controllers/main/admin/security/add/step1_test',
+  'test/controllers/main/admin/security/add/step2_test',
+  'test/controllers/main/admin/security/add/step3_test',
+  //'test/controllers/main/admin/security/add/step4_test',
+  'test/controllers/main/charts/heatmap_test',
+  'test/controllers/main/charts/heatmap_metrics/heatmap_metric_test',
+  'test/controllers/main/charts/heatmap_metrics/heatmap_metric_yarn_test',
+  'test/controllers/main/charts/heatmap_metrics/heatmap_metric_hbase_test',
+  'test/controllers/main/charts/heatmap_metrics/heatmap_metric_dfs_test',
+  'test/controllers/main/charts/heatmap_metrics/heatmap_metric_dfs_bytesread_test',
+  'test/controllers/main/charts/heatmap_metrics/heatmap_metric_dfs_byteswritten_test',
+  'test/controllers/main/charts/heatmap_metrics/heatmap_metric_cpuWaitIO_test',
+  'test/controllers/main/charts/heatmap_metrics/heatmap_metric_diskspaceused_test',
+  'test/controllers/main/charts/heatmap_metrics/heatmap_metric_memoryused_test',
+  'test/controllers/main/charts/heatmap_metrics/heatmap_metric_yarn_ResourceUsed_test',
+  'test/controllers/main/host/add_controller_test',
+  'test/controllers/main/host/configs_service_test',
+  'test/controllers/main/host/details_test',
+  'test/controllers/main/service/add_controller_test',
+  'test/controllers/main/service/reassign_controller_test',
+  'test/controllers/main/dashboard_test',
+  'test/controllers/main/host_test',
+  'test/controllers/main/service/item_test',
+  'test/controllers/main/service/info/config_test',
+  'test/controllers/main/jobs_controller_test',
+  'test/controllers/main/jobs/hive_job_details_controller_test',
+  'test/controllers/main/service_test',
+  'test/controllers/main/admin_test',
+  'test/controllers/main/alerts_controller_test',
+  'test/controllers/main/mirroring/edit_dataset_controller_test',
+  'test/controllers/installer_test',
+  'test/controllers/wizard_test',
+  'test/controllers/wizard/step0_test',
+  'test/controllers/wizard/step2_test',
+  'test/controllers/wizard/step3_test',
+  'test/controllers/wizard/step4_test',
+  'test/controllers/wizard/step5_test',
+  'test/controllers/wizard/step6_test',
+  'test/controllers/wizard/step7_test',
+  'test/controllers/wizard/step8_test',
+  //'test/controllers/wizard/step9_test',
+  'test/controllers/wizard/step10_test',
+  'test/controllers/wizard/stack_upgrade/step3_controller_test',
+  'test/login_test',
+  'test/mappers/server_data_mapper_test',
+  'test/mappers/hosts_mapper_test',
+  'test/mappers/jobs_mapper_test',
+  'test/mappers/runs_mapper_test',
+  'test/mappers/service_mapper_test',
+  'test/mappers/status_mapper_test',
+  'test/mappers/users_mapper_test',
+  'test/mixins/common/chart/storm_linear_time_test',
+  'test/mixins/common/localStorage_test',
+  'test/mixins/main/host/details/host_components/decommissionable_test',
+  'test/utils/configs/defaults_providers/yarn_defaults_provider_test',
+  'test/utils/configs/defaults_providers/tez_defaults_provider_test',
+  'test/utils/configs/defaults_providers/hive_defaults_provider_test',
+  'test/utils/configs/validators/service_configs_validator_test',
+  'test/utils/ajax/ajax_test',
+  'test/utils/ajax/ajax_queue_test',
+  'test/utils/batch_scheduled_requests_test',
+  'test/utils/config_test',
+  'test/utils/date_test',
+  'test/utils/config_test',
+  'test/utils/form_field_test',
+  'test/utils/misc_test',
+  'test/utils/number_utils_test',
+  'test/utils/validator_test',
+  'test/utils/config_test',
+  'test/utils/string_utils_test',
+  'test/utils/lazy_loading_test',
+  'test/utils/helper_test',
+  'test/utils/object_utils_test',
+  'test/utils/ui_effects_test',
+  'test/utils/updater_test',
+  'test/views/common/chart/linear_time_test',
+  'test/views/common/filter_view_test',
+  'test/views/common/table_view_test',
+  'test/views/common/quick_link_view_test',
+  'test/views/common/rolling_restart_view_test',
+  'test/views/main/admin/user/create_test',
+  'test/views/main/admin/user/edit_test',
+  'test/views/main/dashboard_test',
+  'test/views/main/dashboard/widget_test',
+  'test/views/main/dashboard/widgets_test',
+  'test/views/main/dashboard/widgets/text_widget_test',
+  'test/views/main/dashboard/widgets/uptime_text_widget_test',
+  'test/views/main/dashboard/widgets/node_managers_live_test',
+  'test/views/main/dashboard/widgets/datanode_live_test',
+  'test/views/main/dashboard/widgets/tasktracker_live_test',
+  'test/views/main/dashboard/widgets/hbase_average_load_test',
+  'test/views/main/dashboard/widgets/hbase_regions_in_transition_test',
+  'test/views/main/dashboard/widgets/jobtracker_rpc_test',
+  'test/views/main/dashboard/widgets/namenode_rpc_test',
+  'test/views/main/dashboard/widgets/hbase_master_uptime_test',
+  'test/views/main/dashboard/widgets/jobtracker_uptime_test',
+  'test/views/main/dashboard/widgets/namenode_uptime_test',
+  'test/views/main/dashboard/widgets/resource_manager_uptime_test',
+  'test/views/main/dashboard/widgets/links_widget_test',
+  'test/views/main/dashboard/widgets/pie_chart_widget_test',
+  'test/views/main/dashboard/widgets/namenode_cpu_test',
+  'test/views/main/host/summary_test',
+  'test/views/main/host/details/host_component_view_test',
+  'test/views/main/host/details/host_component_views/decommissionable_test',
+  'test/views/main/jobs_view_test',
+  'test/views/main/jobs/hive_job_details_tez_dag_view_test',
+  'test/views/main/jobs/hive_job_details_view_test',
+  'test/views/main/charts/heatmap/heatmap_host_test',
+  'test/views/main/service/info/config_test',
+  'test/views/main/mirroring/edit_dataset_view_test',
+  'test/views/common/configs/services_config_test',
+  'test/views/wizard/step3/hostLogPopupBody_view_test',
+  'test/views/wizard/step3/hostWarningPopupBody_view_test',
+  'test/views/wizard/step3/hostWarningPopupFooter_view_test',
+  'test/views/wizard/step0_view_test',
+  'test/views/wizard/step1_view_test',
+  'test/views/wizard/step2_view_test',
+  'test/views/wizard/step3_view_test',
+  'test/views/wizard/step5_view_test',
+  'test/views/wizard/step6_view_test',
+  'test/views/wizard/step8_view_test',
+  'test/views/wizard/step9_view_test',
+  'test/views/wizard/step9/hostLogPopupBody_view_test',
+  'test/views/wizard/step10_view_test',
+  'test/views/application_test',
+  'test/views/experimental_test',
+  'test/views/installer_test',
+  'test/views/login_test',
+  'test/models/jobs/job_test',
+  'test/models/jobs/tez_dag_test',
+  'test/models/service/flume_test',
+  'test/models/service/hdfs_test',
+  'test/models/service/yarn_test',
+  'test/models/alert_test',
+  'test/models/authentication_test',
+  'test/models/cluster_states_test',
+  'test/models/config_group_test',
+  'test/models/dataset_test',
+  'test/models/dataset_job_test',
+  'test/models/form_test',
+  'test/models/host_test',
+  'test/models/host_component_test',
+  'test/models/hosts_test',
+  'test/models/job_test',
+  'test/models/run_test',
+  'test/models/service_config_test',
+  'test/models/stack_service_component_test',
+  'test/models/user_test'
+];
+App.initialize();
+describe('Ambari Web Unit tests', function() {
+
+  for (var i = 0; i < files.length; i++) {
+
+    describe(files[i], function() {
+      require(files[i]);
+    });
+
+  }
+
+});

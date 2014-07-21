@@ -272,67 +272,7 @@ describe('App.MainHostSummaryView', function() {
 
   });
 
-  describe('#installableClientComponents', function() {
-
-    it('delete host not supported', function() {
-      App.set('supports.deleteHost', false);
-      expect(mainHostSummaryView.get('installableClientComponents')).to.eql([]);
-      App.set('supports.deleteHost', true);
-    });
-
-    var tests = Em.A([
-      {
-        content: Em.Object.create({
-          hostComponents: Em.A([])
-        }),
-        services: ['HDFS', 'YARN', 'MAPREDUCE2'],
-        e: ['HDFS_CLIENT', 'YARN_CLIENT', 'MAPREDUCE2_CLIENT'],
-        m: 'no one client installed'
-      },
-      {
-        content: Em.Object.create({
-          hostComponents: Em.A([
-            Em.Object.create({
-              componentName: 'HDFS_CLIENT'
-            })
-          ])
-        }),
-        services: ['HDFS', 'YARN', 'MAPREDUCE2'],
-        e: ['YARN_CLIENT', 'MAPREDUCE2_CLIENT'],
-        m: 'some clients are already installed'
-      },
-      {
-        content: Em.Object.create({
-          hostComponents: Em.A([
-            Em.Object.create({
-              componentName: 'HDFS_CLIENT'
-            }),
-            Em.Object.create({
-              componentName: 'YARN_CLIENT'
-            }),
-            Em.Object.create({
-              componentName: 'MAPREDUCE2_CLIENT'
-            })
-          ])
-        }),
-        services: ['HDFS', 'YARN', 'MAPREDUCE2'],
-        e: [],
-        m: 'all clients are already installed'
-      }
-    ]);
-
-    tests.forEach(function(test) {
-      it(test.m, function() {
-        mainHostSummaryView.set('content', test.content);
-        mainHostSummaryView.set('installedServices', test.services);
-        expect(mainHostSummaryView.get('installableClientComponents')).to.include.members(test.e);
-        expect(test.e).to.include.members(mainHostSummaryView.get('installableClientComponents'));
-      });
-    });
-
-  });
-
-  describe('#addableComponents', function() {
+ describe.skip('#addableComponents', function() {
     var tests = Em.A([
       {
         content: Em.Object.create({
