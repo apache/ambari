@@ -425,7 +425,7 @@ App.MainAdminSecurityAddStep4Controller = App.MainAdminSecurityProgressControlle
    * load users from server
    */
   loadUsersFromServer: function () {
-    if (App.testMode) {
+    if (App.get('testMode')) {
       var serviceUsers = this.get('serviceUsers');
       this.get('testModeUsers').forEach(function (user) {
         user.id = 'puppet var';

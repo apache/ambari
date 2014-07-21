@@ -117,7 +117,7 @@ App.WizardStep9Controller = Em.Controller.extend({
    * @method togglePreviousSteps
    */
   togglePreviousSteps: function () {
-    if (App.testMode) {
+    if (App.get('testMode')) {
       return;
     }
     var installerController = App.router.get('installerController');
@@ -258,7 +258,7 @@ App.WizardStep9Controller = Em.Controller.extend({
    * @method navigateStep
    */
   navigateStep: function () {
-    if (App.testMode) {
+    if (App.get('testMode')) {
       // this is for repeatedly testing out installs in test mode
       this.set('content.cluster.status', 'PENDING');
       this.set('content.cluster.isCompleted', false);
@@ -949,7 +949,7 @@ App.WizardStep9Controller = Em.Controller.extend({
    */
   loadLogData: function (startPolling) {
     var requestsId = this.get('wizardController').getDBProperty('cluster').oldRequestsId;
-    if (App.testMode) {
+    if (App.get('testMode')) {
       this.set('POLL_INTERVAL', 1);
     }
     this.getLogsByRequest(!!startPolling, requestsId[requestsId.length-1]);
@@ -1064,7 +1064,7 @@ App.WizardStep9Controller = Em.Controller.extend({
    */
   doPolling: function () {
     var requestId = this.get('content.cluster.requestId');
-    if (App.testMode) {
+    if (App.get('testMode')) {
       this.incrementProperty('numPolls');
     }
     this.getLogsByRequest(true, requestId);
@@ -1161,7 +1161,7 @@ App.WizardStep9Controller = Em.Controller.extend({
    * @method saveClusterStatus
    */
   saveClusterStatus: function (clusterStatus) {
-    if (!App.testMode) {
+    if (!App.get('testMode')) {
       App.router.get(this.get('content.controllerName')).saveClusterStatus(clusterStatus);
     }
     else {
@@ -1175,7 +1175,7 @@ App.WizardStep9Controller = Em.Controller.extend({
    * @method saveInstalledHosts
    */
   saveInstalledHosts: function (context) {
-    if (!App.testMode) {
+    if (!App.get('testMode')) {
       App.router.get(this.get('content.controllerName')).saveInstalledHosts(context);
     }
   }

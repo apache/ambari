@@ -85,12 +85,12 @@ App.MainAdminHighAvailabilityController = Em.Controller.extend({
   },
 
   setSecurityStatus: function () {
-    if (App.testMode) {
-      this.set('securityEnabled', !App.testEnableSecurity);
+    if (App.get('testMode')) {
+      this.set('securityEnabled', !App.get('testEnableSecurity'));
       this.set('dataIsLoaded', true);
     } else {
       //get Security Status From Server
-      App.ajax.send({
+      return App.ajax.send({
         name: 'admin.security_status',
         sender: this,
         success: 'getSecurityStatusFromServerSuccessCallback',

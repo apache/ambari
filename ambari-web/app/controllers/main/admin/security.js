@@ -163,7 +163,7 @@ App.MainAdminSecurityController = Em.Controller.extend({
   loadSecurityUsers: function () {
     var securityUsers = this.get('serviceUsers');
     if (!securityUsers || securityUsers.length < 1) { // Page could be refreshed in middle
-      if (App.testMode) {
+      if (App.get('testMode')) {
         securityUsers.pushObject({id: 'puppet var', name: 'hdfs_user', value: 'hdfs'});
         securityUsers.pushObject({id: 'puppet var', name: 'mapred_user', value: 'mapred'});
         securityUsers.pushObject({id: 'puppet var', name: 'hbase_user', value: 'hbase'});
@@ -241,8 +241,8 @@ App.MainAdminSecurityController = Em.Controller.extend({
   },
 
   setSecurityStatus: function () {
-    if (App.testMode) {
-      this.set('securityEnabled', !App.testEnableSecurity);
+    if (App.get('testMode')) {
+      this.set('securityEnabled', !App.get('testEnableSecurity'));
       this.set('dataIsLoaded', true);
     } else {
       //get Security Status From Server

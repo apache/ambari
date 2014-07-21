@@ -277,7 +277,7 @@ module.exports = App.WizardRoute.extend({
         var wizardStep9Controller = router.get('wizardStep9Controller');
         wizardStep9Controller.set('wizardController', controller);
         controller.loadAllPriorSteps();
-        if (!App.testMode) {              //if test mode is ON don't disable prior steps link.
+        if (!App.get('testMode')) {              //if test mode is ON don't disable prior steps link.
           controller.setLowerStepsDisable(6);
         }
         controller.connectOutlet('wizardStep9', controller.get('content'));
@@ -328,7 +328,7 @@ module.exports = App.WizardRoute.extend({
         controller.loadAllPriorSteps();
         var wizardStep10Controller = router.get('wizardStep10Controller');
         wizardStep10Controller.set('wizardController', controller);
-        if (!App.testMode) {              //if test mode is ON don't disable prior steps link.
+        if (!App.get('testMode')) {              //if test mode is ON don't disable prior steps link.
           controller.setLowerStepsDisable(7);
         }
         controller.connectOutlet('wizardStep10', controller.get('content'));

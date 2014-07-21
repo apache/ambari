@@ -83,8 +83,8 @@ App.ReassignMasterController = App.WizardController.extend({
   }.observes('content.reassign.component_name', 'content.securityEnabled'),
 
   getSecurityStatus: function () {
-    if (App.testMode) {
-      this.set('securityEnabled', !App.testEnableSecurity);
+    if (App.get('testMode')) {
+      this.set('securityEnabled', !App.get('testEnableSecurity'));
     } else {
       //get Security Status From Server
       App.ajax.send({

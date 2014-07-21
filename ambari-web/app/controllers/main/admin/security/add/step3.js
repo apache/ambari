@@ -385,7 +385,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
    */
   getSecurityUsers: function () {
     var securityUsers = [];
-    if (App.testMode) {
+    if (App.get('testMode')) {
       this.get('testModeUsers').forEach(function (user) {
         securityUsers.push({
           id: 'puppet var',

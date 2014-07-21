@@ -58,7 +58,7 @@ module.exports = {
     var ahsWebPort = yarnService.get('ahsWebPort');
     var hiveJobId = hiveJob.get('id');
     // First refresh query
-    var hiveQueriesUrl = App.testMode ? "/data/jobs/hive-query-2.json" : "/proxy?url=http://" + historyServerHostName
+    var hiveQueriesUrl = App.get('testMode') ? "/data/jobs/hive-query-2.json" : "/proxy?url=http://" + historyServerHostName
         + ":" + ahsWebPort + "/ws/v1/timeline/HIVE_QUERY_ID/" + hiveJob.get('id') + "?fields=events,otherinfo";
     App.HttpClient.get(hiveQueriesUrl, App.hiveJobMapper, {
       complete : function(jqXHR, textStatus) {

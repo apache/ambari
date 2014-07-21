@@ -60,7 +60,7 @@ App.Poll = Em.Object.extend({
   },
 
   setRequestId: function () {
-    if (App.testMode) {
+    if (App.get('testMode')) {
       this.set('requestId', '1');
       this.doPolling();
       return;

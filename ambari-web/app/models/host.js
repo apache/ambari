@@ -186,7 +186,7 @@ App.Host = DS.Model.extend({
    * @returns {bool}
    */
   isNotHeartBeating : function() {
-    return (App.testMode) ? false : (this.get('healthStatus') === "UNKNOWN");
+    return (App.get('testMode')) ? false : (this.get('healthStatus') === "UNKNOWN");
   }.property('lastHeartBeatTime'),
 
   /**

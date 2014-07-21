@@ -124,7 +124,7 @@ App.NameNodeRpcView = App.TextDashboardWidgetView.extend({
         if (!configObj.isThresh1Error && !configObj.isThresh2Error) {
           parent.set('thresh1', parseFloat(configObj.get('thresh1')) );
           parent.set('thresh2', parseFloat(configObj.get('thresh2')) );
-          if (!App.testMode) {
+          if (!App.get('testMode')) {
             //save to persist
             var big_parent = parent.get('parentView');
             big_parent.getUserPref(big_parent.get('persistKey'));

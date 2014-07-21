@@ -47,7 +47,7 @@ App.WizardStep8View = Em.View.extend({
    * @method showLoadingIndicator
    */
   showLoadingIndicator: function () {
-    if (!this.get('controller.isSubmitDisabled') || App.testMode) {
+    if (!this.get('controller.isSubmitDisabled') || App.get('testMode')) {
       if (this.get('modalPopup')) {
         this.get('modalPopup').hide();
         this.set('modalPopup', null);

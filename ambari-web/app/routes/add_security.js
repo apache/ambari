@@ -103,7 +103,7 @@ module.exports = App.WizardRoute.extend({
     route: '/start',
     enter: function (router) {
       router.get('addSecurityController').setCurrentStep('1');
-      if(!App.testMode){
+      if(!App.get('testMode')){
         App.clusterStatus.setClusterStatus({
           clusterName: this.get('clusterName'),
           clusterState: 'ADD_SECURITY_STEP_1',
@@ -139,7 +139,7 @@ module.exports = App.WizardRoute.extend({
 
     enter: function (router) {
       router.get('addSecurityController').setCurrentStep('2');
-      if(!App.testMode){
+      if(!App.get('testMode')){
         App.clusterStatus.setClusterStatus({
           clusterName: this.get('clusterName'),
           clusterState: 'ADD_SECURITY_STEP_2',
@@ -173,7 +173,7 @@ module.exports = App.WizardRoute.extend({
 
     enter: function (router) {
       router.get('addSecurityController').setCurrentStep('3');
-      if(!App.testMode){
+      if(!App.get('testMode')){
         App.clusterStatus.setClusterStatus({
           clusterName: this.get('clusterName'),
           clusterState: 'ADD_SECURITY_STEP_3',

@@ -496,7 +496,7 @@ App.HostPopup = Em.Object.create({
       updateNotShowBgChecked: function () {
         var curVal = !this.get('isNotShowBgChecked');
         var key = App.router.get('applicationController').persistKey();
-        if (!App.testMode) {
+        if (!App.get('testMode')) {
           App.router.get('applicationController').postUserPref(key, curVal);
         }
       }.observes('isNotShowBgChecked'),

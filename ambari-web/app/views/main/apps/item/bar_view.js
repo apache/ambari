@@ -49,7 +49,7 @@ App.MainAppsItemBarView = Em.View.extend({
   finish:false,
 
   updateTasksView:function () {
-    var url = App.testMode ? '/data/apps/jobs/taskview.json' : App.apiPrefix + "/jobhistory/tasklocality?workflowId=" + this.get('controller.content.id');
+    var url = App.get('testMode') ? '/data/apps/jobs/taskview.json' : App.get('apiPrefix') + "/jobhistory/tasklocality?workflowId=" + this.get('controller.content.id');
     var mapper = App.jobTasksMapper;
     mapper.set('model', this);
     var self = this;

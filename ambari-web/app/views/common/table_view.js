@@ -346,7 +346,7 @@ App.TableView = Em.View.extend(App.UserPref, {
     var self = this;
     Em.run.next(function() {
       App.db.setDisplayLength(self.get('controller.name'), self.get('displayLength'));
-      if (!App.testMode) {
+      if (!App.get('testMode')) {
         if (App.get('isAdmin')) {
           self.postUserPref(self.displayLengthKey(), self.get('displayLength'));
         }

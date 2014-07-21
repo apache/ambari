@@ -81,7 +81,7 @@ App.StackUpgradeStep3Controller = Em.Controller.extend({
     clusterStatus = jQuery.extend(oldStatus, clusterStatus);
     this.set('content.cluster', clusterStatus);
     App.router.get(this.get('content.controllerName')).save('cluster');
-    if(!App.testMode){
+    if(!App.get('testMode')){
       App.clusterStatus.setClusterStatus({
         clusterName: this.get('content.cluster.name'),
         clusterState: clusterStatus.status,
@@ -144,7 +144,7 @@ App.StackUpgradeStep3Controller = Em.Controller.extend({
   stopServices: function () {
     var process = this.get('processes').findProperty('name', 'STOP_SERVICES');
     process.set('isRunning', true);
-    if (App.testMode) {
+    if (App.get('testMode')) {
       this.startPolling();
       this.saveClusterStatus({
         requestId: 1,
@@ -193,7 +193,7 @@ App.StackUpgradeStep3Controller = Em.Controller.extend({
   runUpgrade: function () {
     var process = this.get('processes').findProperty('name', 'UPGRADE_SERVICES');
     process.set('isRunning', true);
-    if (App.testMode) {
+    if (App.get('testMode')) {
       this.startPolling();
       this.saveClusterStatus({
         requestId: 1,
@@ -239,7 +239,7 @@ App.StackUpgradeStep3Controller = Em.Controller.extend({
   startPolling: function(){
     if(!this.get('isPolling')){
       this.set('isPolling', true);
-      if (App.testMode) {
+      if (App.get('testMode')) {
         this.simulatePolling();
       } else {
         //pass an interval "1" to start poll immediately first time
@@ -285,7 +285,7 @@ App.StackUpgradeStep3Controller = Em.Controller.extend({
   getUrl:function(){
     var requestId = this.get('content.cluster.requestId');
     var clusterName = this.get('content.cluster.name');
-    if(App.testMode){
+    if(App.get('testMode')){
       return this.get('mockUrl');
     }
     return App.apiPrefix + '/clusters/' + clusterName + '/requests/' + requestId + '?fields=tasks/*';
@@ -326,7 +326,7 @@ App.StackUpgradeStep3Controller = Em.Controller.extend({
   doPollSuccessCallback: function (data) {
     var result = this.parseTasks(data);
     if(result){
-      if (App.testMode) {
+      if (App.get('testMode')) {
         this.simulatePolling();
       }
       else {
@@ -508,7 +508,7 @@ App.StackUpgradeStep3Controller = Em.Controller.extend({
     var clusterStatus = this.get('content.cluster.status');
     var upgrade = this.get('processes').findProperty('name', 'UPGRADE_SERVICES');
     var stop = this.get('processes').findProperty('name', 'STOP_SERVICES');
-    if(App.testMode){
+    if(App.get('testMode')){
       if(this.get('processes').everyProperty('isRunning', false)){
         stop.set('isRunning', true);
       }

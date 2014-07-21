@@ -266,7 +266,7 @@ module.exports = App.WizardRoute.extend({
         controller.loadAllPriorSteps();
         var wizardStep9Controller = router.get('wizardStep9Controller');
         wizardStep9Controller.set('wizardController', controller);
-        if (!App.testMode) {              //if test mode is ON don't disable prior steps link.
+        if (!App.get('testMode')) {              //if test mode is ON don't disable prior steps link.
           controller.setLowerStepsDisable(6);
         }
         controller.connectOutlet('wizardStep9', controller.get('content'));

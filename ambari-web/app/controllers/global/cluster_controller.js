@@ -150,11 +150,11 @@ App.ClusterController = Em.Controller.extend({
   },
 
   getUrl: function (testUrl, url) {
-    return (App.testMode) ? testUrl : App.apiPrefix + '/clusters/' + App.get('clusterName') + url;
+    return (App.get('testMode')) ? testUrl : App.get('apiPrefix') + '/clusters/' + App.get('clusterName') + url;
   },
 
   setGangliaUrl: function () {
-    if (App.testMode) {
+    if (App.get('testMode')) {
       this.set('gangliaUrl', 'http://gangliaserver/ganglia/?t=yes');
       this.set('isGangliaUrlLoaded', true);
     } else {
@@ -186,7 +186,7 @@ App.ClusterController = Em.Controller.extend({
   },
 
   setNagiosUrl: function () {
-    if (App.testMode) {
+    if (App.get('testMode')) {
       this.set('nagiosUrl', 'http://nagiosserver/nagios');
       this.set('isNagiosUrlLoaded', true);
     } else {
@@ -259,7 +259,7 @@ App.ClusterController = Em.Controller.extend({
       return;
     }
     var clusterUrl = this.getUrl('/data/clusters/cluster.json', '?fields=Clusters');
-    var usersUrl = App.testMode ? '/data/users/users.json' : App.apiPrefix + '/users/?fields=*';
+    var usersUrl = App.get('testMode') ? '/data/users/users.json' : App.get('apiPrefix') + '/users/?fields=*';
     var racksUrl = "/data/racks/racks.json";
 
 
@@ -284,7 +284,7 @@ App.ClusterController = Em.Controller.extend({
       self.updateLoadStatus('cluster');
     });
 
-    if (App.testMode) {
+    if (App.get('testMode')) {
       self.updateLoadStatus('clusterStatus');
     } else {
       App.clusterStatus.updateFromServer().complete(function () {

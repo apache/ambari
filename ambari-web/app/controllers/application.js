@@ -106,7 +106,7 @@ App.ApplicationController = Em.Controller.extend(App.UserPref, {
             curValue = initValue;
           }
           var key = self.persistKey();
-          if (!App.testMode) {
+          if (!App.get('testMode')) {
             self.postUserPref(key, curValue);
           }
           this.hide();

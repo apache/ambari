@@ -134,7 +134,8 @@ App.WizardStep3HostWarningPopupBody = Em.View.extend({
   categoryWarnings: function () {
     var warningsByHost = this.get('warningsByHost');
     if (Em.isNone(warningsByHost)) return [];
-    return warningsByHost.findProperty('name', this.get('category')).warnings;
+    var category = warningsByHost.findProperty('name', this.get('category'));
+    return Em.isNone(category) ? []: category.warnings;
   }.property('warningsByHost', 'category'),
 
   /**

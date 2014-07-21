@@ -154,7 +154,7 @@ App.DashboardWidgetView = Em.View.extend({
           self.set('thresh1', parseFloat(configObj.get('thresh1')) );
           self.set('thresh2', parseFloat(configObj.get('thresh2')) );
 
-          if (!App.testMode) {
+          if (!App.get('testMode')) {
             // save to persist
             var parent = self.get('parentView');
             parent.getUserPref(parent.get('persistKey')).complete(function () {

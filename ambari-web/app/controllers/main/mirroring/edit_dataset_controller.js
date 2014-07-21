@@ -289,7 +289,7 @@ App.MainMirroringEditDataSetController = Ember.Controller.extend({
    * @return {String}
    */
   createDatasetXML: function () {
-    var datasetNamePrefix = App.mirroringDatasetNamePrefix;
+    var datasetNamePrefix = App.get('mirroringDatasetNamePrefix');
     var datasetName = this.get('formFields.datasetName');
     var prefixedDatasetName = datasetNamePrefix + datasetName;
     var sourceCluster = App.get('clusterName');
@@ -315,7 +315,7 @@ App.MainMirroringEditDataSetController = Ember.Controller.extend({
    * @param {String} datasetXML
    */
   sendDatasetToServer: function (datasetXML) {
-    var datasetNamePrefix = App.mirroringDatasetNamePrefix;
+    var datasetNamePrefix = App.get('mirroringDatasetNamePrefix');
     var datasetName = this.get('formFields.datasetName');
     var prefixedDatasetName = datasetNamePrefix + datasetName;
     return App.ajax.send({

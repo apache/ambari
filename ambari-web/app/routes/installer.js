@@ -145,7 +145,7 @@ module.exports = Em.Route.extend({
     next: function (router) {
       var wizardStep1Controller = router.get('wizardStep1Controller');
       var installerController = router.get('installerController');
-      if (App.testMode) {
+      if (App.get('testMode')) {
         installerController.set('validationCnt', 0);
         installerController.set('invalidCnt', 0);
       } else {
@@ -369,7 +369,7 @@ module.exports = Em.Route.extend({
       var controller = router.get('installerController');
       controller.setCurrentStep('9');
       controller.loadAllPriorSteps().done(function () {
-        if (!App.testMode) {
+        if (!App.get('testMode')) {
           controller.setLowerStepsDisable(9);
         }
         var wizardStep9Controller = router.get('wizardStep9Controller');
@@ -416,7 +416,7 @@ module.exports = Em.Route.extend({
       var controller = router.get('installerController');
       controller.setCurrentStep('10');
       controller.loadAllPriorSteps().done(function () {
-        if (!App.testMode) {
+        if (!App.get('testMode')) {
           controller.setLowerStepsDisable(10);
         }
         controller.connectOutlet('wizardStep10', controller.get('content'));

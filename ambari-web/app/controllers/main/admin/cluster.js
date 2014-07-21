@@ -39,7 +39,7 @@ App.MainAdminClusterController = Em.Controller.extend({
   }.observes('App.router.clusterController.isLoaded', 'App.currentStackVersion', 'App.router.mainServiceController.content.length'),
 
   updateUpgradeVersionSuccessCallback: function (data) {
-    var upgradeVersion = this.get('upgradeVersion') || App.defaultStackVersion;
+    var upgradeVersion = this.get('upgradeVersion') || App.get('defaultStackVersion');
     var currentVersion = App.get('currentStackVersionNumber');
     upgradeVersion = upgradeVersion.replace(/HDP-/, '');
     data.items.mapProperty('Versions.stack_version').forEach(function (version) {
@@ -91,7 +91,7 @@ App.MainAdminClusterController = Em.Controller.extend({
   loadRepositoriesSuccessCallback: function (data) {
     var allRepos = [];
     data.items.forEach(function (os) {
-      if (!App.supports.ubuntu && os.OperatingSystems.os_type == 'debian12') return; // @todo: remove after Ubuntu support confirmation
+      if (!App.get('supports.ubuntu') && os.OperatingSystems.os_type == 'debian12') return; // @todo: remove after Ubuntu support confirmation
       os.repositories.forEach(function (repository) {
         var osType = repository.Repositories.os_type;
         var repo = Em.Object.create({

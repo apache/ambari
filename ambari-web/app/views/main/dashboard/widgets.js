@@ -54,7 +54,7 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, {
       //placeholder: "sortable-placeholder",
       cursor: "move",
       update: function (event, ui) {
-        if (!App.testMode) {
+        if (!App.get('testMode')) {
           // update persist then translate to real
           var widgetsArray = $('div[viewid]'); // get all in DOM
           self.getUserPref(self.get('persistKey')).complete(function () {
@@ -216,7 +216,7 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, {
         var hiddenWidgets = this.get('hiddenWidgets');
         var checkedWidgets = hiddenWidgets.filterProperty('checked', true);
 
-        if (App.testMode) {
+        if (App.get('testMode')) {
           var visibleWidgets = this.get('visibleWidgets');
           checkedWidgets.forEach(function(item){
             var newObj = parent.widgetsMapper(item.id);
@@ -291,7 +291,7 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, {
    */
   setOnLoadVisibleWidgets: function () {
     var self = this;
-    if (App.testMode) {
+    if (App.get('testMode')) {
       this.translateToReal(this.get('initPrefObject'));
     } else {
       // called when first load/refresh/jump back page
@@ -526,7 +526,7 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, {
   resetAllWidgets: function() {
     var self = this;
     App.showConfirmationPopup(function() {
-      if(!App.testMode) {
+      if(!App.get('testMode')) {
         self.postUserPref(self.get('persistKey'), self.get('initPrefObject'));
         self.setDBProperty(self.get('persistKey'), self.get('initPrefObject'));
       }

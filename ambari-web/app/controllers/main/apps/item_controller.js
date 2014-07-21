@@ -34,7 +34,7 @@ App.MainAppsItemController = Em.Controller.extend({
     }
     var self = this;
 
-    var url = App.testMode ? '/data/apps/jobs/'+ currentId +'.json' :
+    var url = App.get('testMode') ? '/data/apps/jobs/'+ currentId +'.json' :
       App.apiPrefix + "/jobhistory/job?workflowId=" + currentId;
 
     var mapper = App.jobsMapper;

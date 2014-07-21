@@ -148,7 +148,7 @@ App.WizardStep3Controller = Em.Controller.extend({
    * @type {bool}
    */
   isWarningsBoxVisible: function () {
-    return (App.testMode) ? true : !this.get('isRegistrationInProgress');
+    return (App.get('testMode')) ? true : !this.get('isRegistrationInProgress');
   }.property('isRegistrationInProgress'),
 
   /**
@@ -225,7 +225,7 @@ App.WizardStep3Controller = Em.Controller.extend({
     var hostsInfo = this.get('content.hosts');
     var hosts = [];
     var bootStatus = (this.get('content.installOptions.manualInstall')) ? 'DONE' : 'PENDING';
-    if (App.testMode) {
+    if (App.get('testMode')) {
       bootStatus = 'REGISTERED';
     }
 
@@ -574,7 +574,7 @@ App.WizardStep3Controller = Em.Controller.extend({
     var stopPolling = true;
     hosts.forEach(function (_host, index) {
       // Change name of first host for test mode.
-      if (App.testMode) {
+      if (App.get('testMode')) {
         if (index == 0) {
           _host.set('name', 'localhost.localdomain');
         }
@@ -840,7 +840,7 @@ App.WizardStep3Controller = Em.Controller.extend({
     var resource_filters = {
       "hosts": hosts
     };
-    if (App.testMode) {
+    if (App.get('testMode')) {
       this.getHostNameResolutionSuccess();
     } else {
       return App.ajax.send({
@@ -857,7 +857,7 @@ App.WizardStep3Controller = Em.Controller.extend({
   },
 
   getHostNameResolutionSuccess: function(response) {
-    if (!App.testMode) {
+    if (!App.get('testMode')) {
       this.set("requestId", response.Requests.id);
     }
     this.getHostCheckTasks();
@@ -982,7 +982,7 @@ App.WizardStep3Controller = Em.Controller.extend({
             hostsDiskNames.push(host_name);
           }
           // "Transparent Huge Pages" check
-          context = self.checkTHP(host_name, host.Hosts.last_agent_env.transparentHugePage);
+          context = self.checkTHP(host_name, Em.get(host, 'Hosts.last_agent_env.transparentHugePage'));
           if (context) {
             thpContext.push(context);
             thpHostsNames.push(host_name);
@@ -1305,7 +1305,7 @@ App.WizardStep3Controller = Em.Controller.extend({
    * @method parseWarnings
    */
   parseWarnings: function (data) {
-    data = App.testMode ? data : this.filterBootHosts(data);
+    data = App.get('testMode') ? data : this.filterBootHosts(data);
     var warnings = [];
     var warning;
     var hosts = [];

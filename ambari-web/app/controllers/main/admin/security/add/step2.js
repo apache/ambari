@@ -320,7 +320,7 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
   loadUsers: function () {
     var securityUsers = App.router.get('mainAdminSecurityController').get('serviceUsers');
     if (Em.isNone(securityUsers) || securityUsers.length === 0) {
-      if (App.testMode) {
+      if (App.get('testMode')) {
         securityUsers = securityUsers || [];
         securityUsers.pushObject({id: 'puppet var', name: 'hdfs_user', value: 'hdfs'});
         securityUsers.pushObject({id: 'puppet var', name: 'mapred_user', value: 'mapred'});
@@ -404,7 +404,7 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
     if (hdfsService) {
       var properties = stepConfigs.findProperty('serviceName', 'HDFS').get('configs');
       var configCategories = hdfsService.configCategories;
-      if ((App.testMode && App.testNameNodeHA) || (this.get('content.isNnHa') === 'true')) {
+      if ((App.get('testMode') && App.get('testNameNodeHA')) || (this.get('content.isNnHa') === 'true')) {
         this.removeConfigCategory(properties, configCategories, 'SNameNode');
       } else {
         this.removeConfigCategory(properties, configCategories, 'JournalNode');

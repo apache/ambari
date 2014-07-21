@@ -98,7 +98,7 @@ App.BackgroundOperationsController = Em.Controller.extend({
         'operationsCount': count
       }
     };
-    if (levelInfo.get('name') === 'TASK_DETAILS' && !App.testMode) {
+    if (levelInfo.get('name') === 'TASK_DETAILS' && !App.get('testMode')) {
       result.name = 'background_operations.get_by_task';
       result.successCallback = 'callBackFilteredByTask';
       result.data = {

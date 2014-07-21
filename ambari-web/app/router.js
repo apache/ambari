@@ -161,7 +161,7 @@ App.Router = Em.Router.extend({
     var hash = window.btoa(loginName + ":" + controller.get('password'));
     var usr = '';
 
-    if (App.testMode) {
+    if (App.get('testMode')) {
       if (loginName === "admin" && controller.get('password') === 'admin') {
         usr = 'admin';
       } else if (loginName === 'user' && controller.get('password') === 'user') {
@@ -254,7 +254,7 @@ App.Router = Em.Router.extend({
   },
 
   getSection: function (callback) {
-    if (App.testMode) {
+    if (App.get('testMode')) {
       if (App.alwaysGoToInstaller) {
         callback('installer');
       } else {
@@ -309,7 +309,7 @@ App.Router = Em.Router.extend({
     this.set('loginController.loginName', '');
     this.set('loginController.password', '');
     // When logOff is called by Sign Out button, context contains event object. As it is only case we should send logoff request, we are checking context below.
-    if (!App.testMode && context) {
+    if (!App.get('testMode') && context) {
       App.ajax.send({
         name: 'router.logoff',
         sender: this,

@@ -48,7 +48,7 @@ App.MainAppsController = Em.ArrayController.extend({
     var self = this;
 
     //var runsUrl = App.testMode ? "/data/apps/runs.json" : App.apiPrefix + "/jobhistory/workflow?orderBy=startTime&sortDir=DESC&limit=" + App.maxRunsForAppBrowser;
-    var runsUrl = App.testMode ? "/data/apps/runs.json" : App.apiPrefix + this.get("runUrl");
+    var runsUrl = App.get('testMode') ? "/data/apps/runs.json" : App.get('apiPrefix') + this.get("runUrl");
 
     App.HttpClient.get(runsUrl, App.runsMapper, {
       complete:function (jqXHR, textStatus) {
