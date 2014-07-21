@@ -17,8 +17,10 @@
  */
 package org.apache.ambari.server.api.query;
 
+import org.apache.ambari.server.api.resources.HostResourceDefinition;
 import org.apache.ambari.server.api.resources.ResourceDefinition;
 import org.apache.ambari.server.api.resources.StackResourceDefinition;
+import org.apache.ambari.server.controller.predicate.AndPredicate;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
@@ -58,6 +60,31 @@ public class ProcessingPredicateVisitorTest {
 
     Assert.assertEquals(expectedPredicate, processedPredicate);
   }
+
+  @Test
+  public void testGetSubResourceForNotPredicate() throws Exception {
+    ResourceDefinition resourceDefinition = new HostResourceDefinition();
+
+    Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+    mapIds.put(Resource.Type.Host, null);
+
+    //test
+    QueryImpl instance = new QueryImplTest.TestQuery(mapIds, resourceDefinition);
+
+    Predicate notPredicate1 = new PredicateBuilder().not().property("host_components/HostRoles/component_name").
+            equals("ZOOKEEPER_SERVER").toPredicate();
+    Predicate notPredicate2 = new PredicateBuilder().not().property("host_components/HostRoles/component_name").
+            equals("HBASE_MASTER").toPredicate();
+    Predicate andPredicate = new AndPredicate(notPredicate1,notPredicate2);
+
+    ProcessingPredicateVisitor visitor = new ProcessingPredicateVisitor(instance);
+    PredicateHelper.visit(andPredicate, visitor);
+
+    Set<String> categories = visitor.getSubResourceCategories();
+
+    Assert.assertEquals(categories.iterator().next(), "host_components");
+  }
+
 
   @Test
   public void testGetSubResourceCategories() throws Exception {

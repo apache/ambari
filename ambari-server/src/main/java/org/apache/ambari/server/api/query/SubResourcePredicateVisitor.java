@@ -24,6 +24,7 @@ import org.apache.ambari.server.controller.predicate.CategoryPredicate;
 import org.apache.ambari.server.controller.predicate.ComparisonPredicate;
 import org.apache.ambari.server.controller.predicate.PredicateVisitor;
 import org.apache.ambari.server.controller.predicate.UnaryPredicate;
+import org.apache.ambari.server.controller.predicate.NotPredicate;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.utilities.PredicateHelper;
 
@@ -100,7 +101,22 @@ public class SubResourcePredicateVisitor implements PredicateVisitor {
 
   @Override
   public void acceptUnaryPredicate(UnaryPredicate predicate) {
-    lastVisited = predicate;
+    if (predicate.getPredicate() instanceof ComparisonPredicate) {
+      ComparisonPredicate innerPredicate = (ComparisonPredicate) predicate.getPredicate();
+      String propertyId = innerPredicate.getPropertyId();
+
+      int    index    = propertyId.indexOf("/");
+      String category = index == -1 ? propertyId : propertyId.substring(0, index);
+
+      if(index > -1 && category.equals(this.category)) {
+        // copy and strip off category
+        lastVisited = new NotPredicate(innerPredicate.copy(propertyId.substring(index + 1)));
+      } else {
+        lastVisited = AlwaysPredicate.INSTANCE;
+      }
+    } else {
+      lastVisited = predicate;
+    }
   }
 
   @Override
