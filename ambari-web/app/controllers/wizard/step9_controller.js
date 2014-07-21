@@ -1077,7 +1077,7 @@ App.WizardStep9Controller = Em.Controller.extend({
    */
   isAllComponentsInstalled: function () {
     var dfd = $.Deferred();
-    if (this.get('content.controllerName') !== 'installerController') {
+    if (this.get('content.controllerName') !== 'installerController' && this.get('content.controllerName') !== 'addHostController') {
       dfd.resolve();
     } else {
       App.ajax.send({
