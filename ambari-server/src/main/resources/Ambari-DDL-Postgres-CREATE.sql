@@ -287,7 +287,17 @@ BEGIN;
   union all
   select 'permission_id_seq', 5
   union all
-  select 'privilege_id_seq', 1;
+  select 'privilege_id_seq', 1
+  union all
+  select 'alert_definition_id_seq', 0
+  union all
+  select 'alert_group_id_seq', 0
+  union all
+  select 'alert_target_id_seq', 0
+  union all
+  select 'alert_history_id_seq', 0
+  union all
+  select 'alert_notice_id_seq', 0;
 
   INSERT INTO adminresourcetype (resource_type_id, resource_type_name)
   SELECT 1, 'AMBARI'

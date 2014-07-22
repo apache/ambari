@@ -85,10 +85,13 @@ public class UpgradeCatalog170Test {
     assertClusterConfigColumns(clusterConfigAttributesColumnCapture);
     assertViewColumns(maskColumnCapture);
     assertViewParameterColumns(maskedColumnCapture);
+
+    // !!! TODO: alerting DDL upgrade
   }
 
   @Test
   public void testExecuteDMLUpdates() throws Exception {
+    // !!! TODO: alerting DML updates (sequences)
   }
 
 

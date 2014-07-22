@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.orm.dao;
 
+import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -25,6 +27,7 @@ import javax.persistence.TypedQuery;
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.AlertCurrentEntity;
 import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
+import org.apache.ambari.server.state.AlertState;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -78,6 +81,8 @@ public class AlertsDAO {
   /**
    * Gets all alerts stored in the database for the given cluster.
    * 
+   * @param clusterId
+   *          the ID of the cluster.
    * @return all alerts in the specified cluster or an empty list if none exist
    *         (never {@code null}).
    */
@@ -87,6 +92,91 @@ public class AlertsDAO {
         "AlertHistoryEntity.findAllInCluster", AlertHistoryEntity.class);
 
     query.setParameter("clusterId", clusterId);
+
+    return daoUtils.selectList(query);
+  }
+
+  /**
+   * Gets all alerts stored in the database for the given cluster that have one
+   * of the specified alert states.
+   * 
+   * @param clusterId
+   *          the ID of the cluster.
+   * @param alertStates
+   *          the states to match for the retrieved alerts (not {@code null}).
+   * @return the alerts matching the specified states and cluster, or an empty
+   *         list if none.
+   */
+  public List<AlertHistoryEntity> findAll(long clusterId,
+      List<AlertState> alertStates) {
+    if (null == alertStates || alertStates.size() == 0) {
+      return Collections.emptyList();
+    }
+
+    TypedQuery<AlertHistoryEntity> query = entityManagerProvider.get().createNamedQuery(
+        "AlertHistoryEntity.findAllInClusterWithState",
+        AlertHistoryEntity.class);
+
+    query.setParameter("clusterId", clusterId);
+    query.setParameter("alertStates", alertStates);
+
+    return daoUtils.selectList(query);
+  }
+
+  /**
+   * Gets all alerts stored in the database for the given cluster and that fall
+   * withing the specified date range. Dates are expected to be in milliseconds
+   * since the epoch, normalized to UTC time.
+   * 
+   * @param clusterId
+   *          the ID of the cluster.
+   * @param startDate
+   *          the date that the earliest entry must occur after, normalized to
+   *          UTC, or {@code null} for all entries that occur before the given
+   *          end date.
+   * @param endDate
+   *          the date that the latest entry must occur before, normalized to
+   *          UTC, or {@code null} for all entries that occur after the given
+   *          start date.
+   * @return the alerts matching the specified date range.
+   */
+  public List<AlertHistoryEntity> findAll(long clusterId, Date startDate,
+      Date endDate) {
+    if (null == startDate && null == endDate)
+      return Collections.emptyList();
+
+    TypedQuery<AlertHistoryEntity> query = null;
+
+    if (null != startDate && null != endDate) {
+      if (startDate.after(endDate)) {
+        return Collections.emptyList();
+      }
+
+      query = entityManagerProvider.get().createNamedQuery(
+          "AlertHistoryEntity.findAllInClusterBetweenDates",
+          AlertHistoryEntity.class);
+
+      query.setParameter("clusterId", clusterId);
+      query.setParameter("startDate", startDate.getTime());
+      query.setParameter("endDate", endDate.getTime());
+    } else if (null != startDate) {
+      query = entityManagerProvider.get().createNamedQuery(
+          "AlertHistoryEntity.findAllInClusterAfterDate",
+          AlertHistoryEntity.class);
+
+      query.setParameter("clusterId", clusterId);
+      query.setParameter("afterDate", startDate.getTime());
+    } else if (null != endDate) {
+      query = entityManagerProvider.get().createNamedQuery(
+          "AlertHistoryEntity.findAllInClusterBeforeDate",
+          AlertHistoryEntity.class);
+
+      query.setParameter("clusterId", clusterId);
+      query.setParameter("beforeDate", endDate.getTime());
+    }
+
+    if (null == query)
+      return Collections.emptyList();
 
     return daoUtils.selectList(query);
   }
