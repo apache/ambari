@@ -47,9 +47,11 @@ class TestCustomServiceOrchestrator(TestCase):
     sys.stdout = out
     # generate sample config
     tmpdir = tempfile.gettempdir()
+    exec_tmp_dir = os.path.join(tmpdir, 'tmp')
     self.config = ConfigParser.RawConfigParser()
     self.config.add_section('agent')
     self.config.set('agent', 'prefix', tmpdir)
+    self.config.set('agent', 'tmp_dir', exec_tmp_dir)
     self.config.set('agent', 'cache_dir', "/cachedir")
     self.config.add_section('python')
     self.config.set('python', 'custom_actions_dir', tmpdir)
@@ -206,9 +208,9 @@ class TestCustomServiceOrchestrator(TestCase):
     ret = orchestrator.runCommand(command, "out.txt", "err.txt",
               forced_command_name=CustomServiceOrchestrator.COMMAND_NAME_STATUS)
     ## Check that override_output_files was true only during first call
-    self.assertEquals(run_file_mock.call_args_list[0][0][7], True)
-    self.assertEquals(run_file_mock.call_args_list[1][0][7], False)
-    self.assertEquals(run_file_mock.call_args_list[2][0][7], False)
+    self.assertEquals(run_file_mock.call_args_list[0][0][8], True)
+    self.assertEquals(run_file_mock.call_args_list[1][0][8], False)
+    self.assertEquals(run_file_mock.call_args_list[2][0][8], False)
     ## Check that forced_command_name was taken into account
     self.assertEqual(run_file_mock.call_args_list[0][0][1][0],
                                   CustomServiceOrchestrator.COMMAND_NAME_STATUS)

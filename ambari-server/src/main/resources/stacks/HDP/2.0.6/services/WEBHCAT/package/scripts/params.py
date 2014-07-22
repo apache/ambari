@@ -24,6 +24,7 @@ import status_params
 
 # server configurations
 config = Script.get_config()
+tmp_dir = Script.get_tmp_dir()
 
 hcat_user = config['configurations']['hive-env']['hcat_user']
 webhcat_user = config['configurations']['hive-env']['webhcat_user']

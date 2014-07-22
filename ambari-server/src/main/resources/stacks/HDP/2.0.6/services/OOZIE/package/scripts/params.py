@@ -23,6 +23,7 @@ import status_params
 
 # server configurations
 config = Script.get_config()
+tmp_dir = Script.get_tmp_dir()
 
 oozie_user = config['configurations']['oozie-env']['oozie_user']
 smokeuser = config['configurations']['hadoop-env']['smokeuser']

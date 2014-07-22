@@ -26,12 +26,12 @@ class WebHCatServiceCheck(Script):
 
     env.set_params(params)
 
-    File('/tmp/templetonSmoke.sh',
+    File(format("{tmp_dir}/templetonSmoke.sh"),
          content= StaticFile('templetonSmoke.sh'),
          mode=0755
     )
 
-    cmd = format("/tmp/templetonSmoke.sh {webhcat_server_host[0]} {smokeuser} {smokeuser_keytab}"
+    cmd = format("{tmp_dir}/templetonSmoke.sh {webhcat_server_host[0]} {smokeuser} {smokeuser_keytab}"
                  " {security_param} {kinit_path_local}",
                  smokeuser_keytab=params.smoke_user_keytab if params.security_enabled else "no_keytab")
 

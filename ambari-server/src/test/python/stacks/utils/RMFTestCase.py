@@ -88,10 +88,11 @@ class RMFTestCase(TestCase):
     with Environment(basedir, test_mode=True) as RMFTestCase.env:
       with patch('resource_management.core.shell.checked_call', return_value=shell_mock_value): # we must always mock any shell calls
         with patch.object(Script, 'get_config', return_value=self.config_dict): # mocking configurations
-          with patch.object(Script, 'install_packages'):
-            with patch('resource_management.libraries.functions.get_kinit_path', return_value=kinit_path_local):
-              with patch.object(platform, 'linux_distribution', return_value=os_type):
-                method(RMFTestCase.env)
+          with patch.object(Script, 'get_tmp_dir', return_value="/tmp"):
+            with patch.object(Script, 'install_packages'):
+              with patch('resource_management.libraries.functions.get_kinit_path', return_value=kinit_path_local):
+                with patch.object(platform, 'linux_distribution', return_value=os_type):
+                  method(RMFTestCase.env)
     sys.path.remove(scriptsdir)
   
   def getConfig(self):

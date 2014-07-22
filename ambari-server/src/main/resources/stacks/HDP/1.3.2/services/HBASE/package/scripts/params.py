@@ -24,6 +24,7 @@ import status_params
 
 # server configurations
 config = Script.get_config()
+exec_tmp_dir = Script.get_tmp_dir()
 
 hbase_conf_dir = "/etc/hbase/conf"
 daemon_script = "/usr/lib/hbase/bin/hbase-daemon.sh"

@@ -30,9 +30,9 @@ class HbaseServiceCheck(Script):
     output_file = "/apps/hbase/data/ambarismoketest"
     test_cmd = format("fs -test -e {output_file}")
     smokeuser_kinit_cmd = format("{kinit_path_local} -kt {smoke_user_keytab} {smoke_test_user};") if params.security_enabled else ""
-    hbase_servicecheck_file = '/tmp/hbase-smoke.sh'
+    hbase_servicecheck_file = format("{exec_tmp_dir}/hbase-smoke.sh")
   
-    File( '/tmp/hbaseSmokeVerify.sh',
+    File( format("{exec_tmp_dir}/hbaseSmokeVerify.sh"),
       content = StaticFile("hbaseSmokeVerify.sh"),
       mode = 0755
     )
@@ -43,7 +43,7 @@ class HbaseServiceCheck(Script):
     )
     
     if params.security_enabled:    
-      hbase_grant_premissions_file = '/tmp/hbase_grant_permissions.sh'
+      hbase_grant_premissions_file = format("{exec_tmp_dir}/hbase_grant_permissions.sh")
       grantprivelegecmd = format("{kinit_cmd} hbase shell {hbase_grant_premissions_file}")
   
       File( hbase_grant_premissions_file,
@@ -58,7 +58,7 @@ class HbaseServiceCheck(Script):
       )
 
     servicecheckcmd = format("{smokeuser_kinit_cmd} hbase --config {hbase_conf_dir} shell {hbase_servicecheck_file}")
-    smokeverifycmd = format("{smokeuser_kinit_cmd} /tmp/hbaseSmokeVerify.sh {hbase_conf_dir} {service_check_data}")
+    smokeverifycmd = format("{smokeuser_kinit_cmd} {exec_tmp_dir}/hbaseSmokeVerify.sh {hbase_conf_dir} {service_check_data}")
   
     Execute( servicecheckcmd,
       tries     = 3,

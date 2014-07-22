@@ -24,6 +24,7 @@ import status_params
 
 # server configurations
 config = Script.get_config()
+tmp_dir = Script.get_tmp_dir()
 
 config_dir = "/etc/zookeeper/conf"
 zk_user =  config['configurations']['zookeeper-env']['zk_user']

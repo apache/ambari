@@ -22,6 +22,7 @@ import status_params
 import os
 
 config = Script.get_config()
+tmp_dir = Script.get_tmp_dir()
 
 if System.get_instance().os_type == "oraclelinux":
   ulimit_cmd = ''

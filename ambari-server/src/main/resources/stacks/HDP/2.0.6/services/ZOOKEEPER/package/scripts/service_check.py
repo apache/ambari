@@ -26,12 +26,12 @@ class ZookeeperServiceCheck(Script):
     import params
     env.set_params(params)
 
-    File("/tmp/zkSmoke.sh",
+    File(format("{tmp_dir}/zkSmoke.sh"),
          mode=0755,
          content=StaticFile('zkSmoke.sh')
     )
 
-    cmd_qourum = format("/tmp/zkSmoke.sh {smoke_script} {smokeuser} {config_dir} {clientPort} "
+    cmd_qourum = format("{tmp_dir}/zkSmoke.sh {smoke_script} {smokeuser} {config_dir} {clientPort} "
                   "{security_enabled} {kinit_path_local} {smokeUserKeytab}",
                   smokeUserKeytab=params.smoke_user_keytab if params.security_enabled else "no_keytab")
 

@@ -23,6 +23,7 @@ from resource_management import *
 
 # server configurations
 config = Script.get_config()
+tmp_dir = Script.get_tmp_dir()
 
 pig_conf_dir = "/etc/pig/conf"
 hadoop_conf_dir = "/etc/hadoop/conf"

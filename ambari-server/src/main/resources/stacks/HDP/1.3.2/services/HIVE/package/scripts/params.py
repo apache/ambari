@@ -23,6 +23,7 @@ import status_params
 
 # server configurations
 config = Script.get_config()
+tmp_dir = Script.get_tmp_dir()
 
 hive_metastore_user_name = config['configurations']['hive-site']['javax.jdo.option.ConnectionUserName']
 hive_server_conf_dir = "/etc/hive/conf.server"
@@ -57,8 +58,8 @@ hive_server_port = default('/configurations/hive-site/hive.server2.thrift.port',
 hive_url = format("jdbc:hive2://{hive_server_host}:{hive_server_port}")
 
 smokeuser = config['configurations']['hadoop-env']['smokeuser']
-smoke_test_sql = "/tmp/hiveserver2.sql"
-smoke_test_path = "/tmp/hiveserver2Smoke.sh"
+smoke_test_sql = format("{tmp_dir}/hiveserver2.sql")
+smoke_test_path = format("{tmp_dir}/hiveserver2Smoke.sh")
 smoke_user_keytab = config['configurations']['hadoop-env']['smokeuser_keytab']
 
 _authentication = config['configurations']['core-site']['hadoop.security.authentication']
@@ -97,8 +98,8 @@ target = format("{hive_lib}/{jdbc_jar_name}")
 jdk_location = config['hostLevelParams']['jdk_location']
 driver_curl_source = format("{jdk_location}/{jdbc_symlink_name}")
 
-start_hiveserver2_path = "/tmp/start_hiveserver2_script"
-start_metastore_path = "/tmp/start_metastore_script"
+start_hiveserver2_path = format("{tmp_dir}/start_hiveserver2_script")
+start_metastore_path = format("{tmp_dir}/start_metastore_script")
 
 hive_aux_jars_path = config['configurations']['hive-env']['hive_aux_jars_path']
 hadoop_heapsize = config['configurations']['hadoop-env']['hadoop_heapsize']
@@ -113,7 +114,7 @@ mysql_user = "mysql"
 mysql_group = 'mysql'
 mysql_host = config['clusterHostInfo']['hive_mysql_host']
 
-mysql_adduser_path = "/tmp/addMysqlUser.sh"
+mysql_adduser_path = format("{tmp_dir}/addMysqlUser.sh")
 
 ########## HCAT
 

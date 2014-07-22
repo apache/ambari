@@ -52,6 +52,7 @@ class CustomServiceOrchestrator():
   def __init__(self, config, controller):
     self.config = config
     self.tmp_dir = config.get('agent', 'prefix')
+    self.exec_tmp_dir = config.get('agent', 'tmp_dir')
     self.file_cache = FileCache(config)
     self.python_executor = PythonExecutor(self.tmp_dir, config)
     self.status_commands_stdout = os.path.join(self.tmp_dir,
@@ -130,7 +131,7 @@ class CustomServiceOrchestrator():
       for py_file, current_base_dir in filtered_py_file_list:
         script_params = [command_name, json_path, current_base_dir]
         ret = self.python_executor.run_file(py_file, script_params,
-                               tmpoutfile, tmperrfile, timeout,
+                               self.exec_tmp_dir, tmpoutfile, tmperrfile, timeout,
                                tmpstrucoutfile, logger_level, override_output_files)
         # Next run_file() invocations should always append to current output
         override_output_files = False

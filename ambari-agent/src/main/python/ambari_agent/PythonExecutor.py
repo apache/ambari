@@ -47,7 +47,7 @@ class PythonExecutor:
     self.config = config
     pass
 
-  def run_file(self, script, script_params, tmpoutfile, tmperrfile, timeout,
+  def run_file(self, script, script_params, tmp_dir, tmpoutfile, tmperrfile, timeout,
                tmpstructedoutfile, logger_level, override_output_files = True):
     """
     Executes the specified python file in a separate subprocess.
@@ -73,7 +73,7 @@ class PythonExecutor:
     except OSError:
       pass # no error
 
-    script_params += [tmpstructedoutfile, logger_level]
+    script_params += [tmpstructedoutfile, logger_level, tmp_dir]
     pythonCommand = self.python_command(script, script_params)
     logger.info("Running command " + pprint.pformat(pythonCommand))
     process = self.launch_python_subprocess(pythonCommand, tmpout, tmperr)

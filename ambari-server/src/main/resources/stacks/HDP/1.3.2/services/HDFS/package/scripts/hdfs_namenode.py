@@ -95,11 +95,11 @@ def format_namenode(force=None):
       ExecuteHadoop('namenode -format',
                     kinit_override=True)
     else:
-      File('/tmp/checkForFormat.sh',
+      File(format("{tmp_dir}/checkForFormat.sh"),
            content=StaticFile("checkForFormat.sh"),
            mode=0755)
       Execute(format(
-        "sh /tmp/checkForFormat.sh {hdfs_user} {hadoop_conf_dir} {mark_dir} "
+        "sh {tmp_dir}/checkForFormat.sh {hdfs_user} {hadoop_conf_dir} {mark_dir} "
         "{dfs_name_dir}"),
               not_if=format("test -d {mark_dir}"),
               path="/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin")

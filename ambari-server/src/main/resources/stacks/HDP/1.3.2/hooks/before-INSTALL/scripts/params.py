@@ -22,6 +22,7 @@ from resource_management.core.system import System
 import os
 
 config = Script.get_config()
+tmp_dir = Script.get_tmp_dir()
 
 #java params
 artifact_dir = "/tmp/HDP-artifacts/"

@@ -22,6 +22,7 @@ from resource_management.core.system import System
 import os
 
 config = Script.get_config()
+tmp_dir = Script.get_tmp_dir()
 
 #users and groups
 yarn_user = config['configurations']['yarn-env']['yarn_user']

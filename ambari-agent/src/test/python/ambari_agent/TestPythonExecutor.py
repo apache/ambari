@@ -56,7 +56,7 @@ class TestPythonExecutor(TestCase):
     executor.runShellKillPgrp = runShellKillPgrp_method
     subproc_mock.returncode = None
     thread = Thread(target =  executor.run_file, args = ("fake_puppetFile",
-      ["arg1", "arg2"], tmpoutfile, tmperrfile, PYTHON_TIMEOUT_SECONDS, tmpstrucout,"INFO"))
+      ["arg1", "arg2"], "/fake_tmp_dir", tmpoutfile, tmperrfile, PYTHON_TIMEOUT_SECONDS, tmpstrucout,"INFO"))
     thread.start()
     time.sleep(0.1)
     subproc_mock.finished_event.wait()
@@ -84,7 +84,7 @@ class TestPythonExecutor(TestCase):
     executor.runShellKillPgrp = runShellKillPgrp_method
     subproc_mock.returncode = 0
     thread = Thread(target =  executor.run_file, args = ("fake_puppetFile", ["arg1", "arg2"],
-                                                      tmpoutfile, tmperrfile,
+                                                      "/fake_tmp_dir", tmpoutfile, tmperrfile,
                                                       PYTHON_TIMEOUT_SECONDS, tmpstrucout, "INFO"))
     thread.start()
     time.sleep(0.1)
@@ -112,7 +112,7 @@ class TestPythonExecutor(TestCase):
     executor.runShellKillPgrp = runShellKillPgrp_method
     subproc_mock.returncode = 0
     subproc_mock.should_finish_event.set()
-    result = executor.run_file("file", ["arg1", "arg2"], tmpoutfile, tmperrfile, PYTHON_TIMEOUT_SECONDS, tmpstroutfile, "INFO")
+    result = executor.run_file("file", ["arg1", "arg2"], "/fake_tmp_dir", tmpoutfile, tmperrfile, PYTHON_TIMEOUT_SECONDS, tmpstroutfile, "INFO")
     self.assertEquals(result, {'exitcode': 0, 'stderr': 'Dummy err', 'stdout': 'Dummy output',
                                'structuredOut': {}})
 

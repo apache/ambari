@@ -36,7 +36,7 @@ class ServiceCheck(Script):
       component_address = params.rm_webui_address
 
     validateStatusFileName = "validateYarnComponentStatus.py"
-    validateStatusFilePath = format("/tmp/{validateStatusFileName}")
+    validateStatusFilePath = format("{tmp_dir}/{validateStatusFileName}")
     python_executable = sys.executable
     validateStatusCmd = format("{python_executable} {validateStatusFilePath} {component_type} -p {component_address} -s {hadoop_ssl_enabled}")
 

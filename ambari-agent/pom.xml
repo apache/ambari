@@ -327,6 +327,12 @@
               <groupname>root</groupname>
             </mapping>
             <mapping>
+              <directory>/var/lib/${project.artifactId}/data/tmp</directory>
+              <filemode>755</filemode>
+              <username>root</username>
+              <groupname>root</groupname>
+            </mapping>
+            <mapping>
               <directory>/var/lib/${project.artifactId}/keys</directory>
               <filemode>755</filemode>
               <username>root</username>

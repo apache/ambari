@@ -30,13 +30,14 @@ from resource_management.core.exceptions import Fail, ClientComponentHasNoStatus
 from resource_management.core.resources.packaging import Package
 from resource_management.libraries.script.config_dictionary import ConfigDictionary
 
-USAGE = """Usage: {0} <COMMAND> <JSON_CONFIG> <BASEDIR> <STROUTPUT> <LOGGING_LEVEL>
+USAGE = """Usage: {0} <COMMAND> <JSON_CONFIG> <BASEDIR> <STROUTPUT> <LOGGING_LEVEL> <TMP_DIR>
 
 <COMMAND> command type (INSTALL/CONFIGURE/START/STOP/SERVICE_CHECK...)
 <JSON_CONFIG> path to command json file. Ex: /var/lib/ambari-agent/data/command-2.json
 <BASEDIR> path to service metadata dir. Ex: /var/lib/ambari-agent/cache/stacks/HDP/2.0.6/services/HDFS
 <STROUTPUT> path to file with structured command output (file will be created). Ex:/tmp/my.txt
 <LOGGING_LEVEL> log level for stdout. Ex:DEBUG,INFO
+<TMP_DIR> temporary directory for executable scripts. Ex: /var/lib/ambari-agent/data/tmp
 """
 
 class Script(object):
@@ -82,8 +83,8 @@ class Script(object):
     logger.addHandler(chout)
     
     # parse arguments
-    if len(sys.argv) < 6: 
-     logger.error("Script expects at least 5 arguments")
+    if len(sys.argv) < 7: 
+     logger.error("Script expects at least 6 arguments")
      print USAGE.format(os.path.basename(sys.argv[0])) # print to stdout
      sys.exit(1)
     
@@ -92,7 +93,8 @@ class Script(object):
     basedir = sys.argv[3]
     self.stroutfile = sys.argv[4]
     logging_level = sys.argv[5]
-    
+    Script.tmp_dir = sys.argv[6]
+
     logging_level_str = logging._levelNames[logging_level]
     chout.setLevel(logging_level_str)
     logger.setLevel(logging_level_str)
@@ -137,6 +139,15 @@ class Script(object):
      it a configuration instance.
     """
     return Script.config
+
+
+  @staticmethod
+  def get_tmp_dir():
+    """
+    HACK. Uses static field to avoid "circular dependency" issue when
+    importing params.py.
+    """
+    return Script.tmp_dir
 
 
   def install(self, env):
