@@ -21,6 +21,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ConfigGroupNotFoundException;
 import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.ConfigGroupRequest;
 import org.apache.ambari.server.controller.ConfigGroupResponse;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
@@ -523,5 +524,57 @@ public class ConfigGroupResourceProviderTest {
     Assert.assertNull(lastEvent.getRequest());
 
     verify(managementController, clusters, cluster);
+  }
+
+  @Test
+  public void testGetConfigGroupRequest_populatesConfigAttributes() throws Exception {
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    ConfigGroupResourceProvider resourceProvider = getConfigGroupResourceProvider
+        (managementController);
+
+    Set<Map<String, String>> desiredConfigProperties = new HashSet<Map<String, String>>();
+    Map<String, String> desiredConfig1 = new HashMap<String, String>();
+    desiredConfig1.put("tag", "version2");
+    desiredConfig1.put("type", "type1");
+    desiredConfig1.put("properties/key1", "value1");
+    desiredConfig1.put("properties/key2", "value2");
+    desiredConfig1.put("properties_attributes/attr1/key1", "true");
+    desiredConfig1.put("properties_attributes/attr1/key2", "false");
+    desiredConfig1.put("properties_attributes/attr2/key1", "15");
+    desiredConfigProperties.add(desiredConfig1);
+
+    Map<String, Object> properties = new HashMap<String, Object>();
+    properties.put("ConfigGroup/hosts", new HashMap<String, String>(){{put("host_name", "ambari1");}});
+    properties.put("ConfigGroup/cluster_name", "c");
+    properties.put("ConfigGroup/desired_configs", desiredConfigProperties);
+
+    ConfigGroupRequest request = resourceProvider.getConfigGroupRequest(properties);
+
+    assertNotNull(request);
+    Map<String, Config> configMap = request.getConfigs();
+    assertNotNull(configMap);
+    assertEquals(1, configMap.size());
+    assertTrue(configMap.containsKey("type1"));
+    Config config = configMap.get("type1");
+    assertEquals("type1", config.getType());
+    Map<String, String> configProperties = config.getProperties();
+    assertNotNull(configProperties);
+    assertEquals(2, configProperties.size());
+    assertEquals("value1", configProperties.get("key1"));
+    assertEquals("value2", configProperties.get("key2"));
+    Map<String, Map<String, String>> configAttributes = config.getPropertiesAttributes();
+    assertNotNull(configAttributes);
+    assertEquals(2, configAttributes.size());
+    assertTrue(configAttributes.containsKey("attr1"));
+    Map<String, String> attr1 = configAttributes.get("attr1");
+    assertNotNull(attr1);
+    assertEquals(2, attr1.size());
+    assertEquals("true", attr1.get("key1"));
+    assertEquals("false", attr1.get("key2"));
+    assertTrue(configAttributes.containsKey("attr2"));
+    Map<String, String> attr2 = configAttributes.get("attr2");
+    assertNotNull(attr2);
+    assertEquals(1, attr2.size());
+    assertEquals("15", attr2.get("key1"));
   }
 }

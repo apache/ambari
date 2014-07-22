@@ -547,7 +547,7 @@ public class ConfigGroupResourceProvider extends
   }
 
   @SuppressWarnings("unchecked")
-  private ConfigGroupRequest getConfigGroupRequest(Map<String, Object> properties) {
+  ConfigGroupRequest getConfigGroupRequest(Map<String, Object> properties) {
     Object groupIdObj = properties.get(CONFIGGROUP_ID_PROPERTY_ID);
     Long groupId = null;
     if (groupIdObj != null)  {
@@ -599,20 +599,31 @@ public class ConfigGroupResourceProvider extends
             .CONFIGURATION_CONFIG_TAG_PROPERTY_ID);
 
           Map<String, String> configProperties = new HashMap<String, String>();
+          Map<String, Map<String, String>> configAttributes = new HashMap<String, Map<String, String>>();
 
           for (Map.Entry<String, Object> entry : configMap.entrySet()) {
             String propertyCategory = PropertyHelper.getPropertyCategory(entry.getKey());
-            if (propertyCategory != null
-                && propertyCategory.equals("properties")
-                  && null != entry.getValue()) {
-              configProperties.put(PropertyHelper.getPropertyName(entry.getKey()),
-                entry.getValue().toString());
+            if (propertyCategory != null && entry.getValue() != null) {
+              if ("properties".equals(propertyCategory)) {
+                configProperties.put(PropertyHelper.getPropertyName(entry.getKey()),
+                    entry.getValue().toString());
+              } else if ("properties_attributes".equals(PropertyHelper.getPropertyCategory(propertyCategory))) {
+                String attributeName = PropertyHelper.getPropertyName(propertyCategory);
+                if (!configAttributes.containsKey(attributeName)) {
+                  configAttributes.put(attributeName, new HashMap<String, String>());
+                }
+                Map<String, String> attributeValues
+                    = configAttributes.get(attributeName);
+                attributeValues.put(PropertyHelper.getPropertyName(entry.getKey()),
+                    entry.getValue().toString());
+              }
             }
           }
 
           Config config = new ConfigImpl(type);
           config.setVersionTag(tag);
           config.setProperties(configProperties);
+          config.setPropertiesAttributes(configAttributes);
 
           configurations.put(config.getType(), config);
         }
