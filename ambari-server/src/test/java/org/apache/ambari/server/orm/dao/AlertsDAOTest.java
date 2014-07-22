@@ -18,8 +18,15 @@
 
 package org.apache.ambari.server.orm.dao;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 import java.util.UUID;
 
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
@@ -31,7 +38,6 @@ import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
 import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.junit.AfterClass;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -47,6 +53,8 @@ public class AlertsDAOTest {
 
   static Long clusterId;
   static Injector injector;
+  static Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+
   AlertsDAO dao;
 
   @BeforeClass
@@ -73,12 +81,15 @@ public class AlertsDAOTest {
     }
 
     List<AlertDefinitionEntity> definitions = alertDefinitionDAO.findAll();
-    Assert.assertNotNull(definitions);
-    Assert.assertEquals(5, definitions.size());
+    assertNotNull(definitions);
+    assertEquals(5, definitions.size());
 
-    // create 5 historical alerts for each definition
+    // create 10 historical alerts for each definition, 8 OK and 2 CRIT
+    calendar.clear();
+    calendar.set(2014, Calendar.JANUARY, 1);
+
     for (AlertDefinitionEntity definition : definitions) {
-      for (int i = 0; i < 5; i++) {
+      for (int i = 0; i < 10; i++) {
         AlertHistoryEntity history = new AlertHistoryEntity();
         history.setServiceName(definition.getServiceName());
         history.setClusterId(clusterId);
@@ -86,8 +97,18 @@ public class AlertsDAOTest {
         history.setAlertLabel(definition.getDefinitionName() + " " + i);
         history.setAlertState(AlertState.OK);
         history.setAlertText(definition.getDefinitionName() + " " + i);
-        history.setAlertTimestamp(new Date().getTime());
+        history.setAlertTimestamp(calendar.getTimeInMillis());
+
+        // increase the days for each
+        calendar.add(Calendar.DATE, 1);
+
         alertDAO.create(history);
+
+        if (i == 0 || i == 1) {
+          history.setAlertId(null);
+          history.setAlertState(AlertState.CRITICAL);
+          alertDAO.create(history);
+        }
       }
     }
 
@@ -101,7 +122,7 @@ public class AlertsDAOTest {
         }
       }
 
-      Assert.assertNotNull(history);
+      assertNotNull(history);
 
       AlertCurrentEntity current = new AlertCurrentEntity();
       current.setAlertId(history.getAlertId());
@@ -137,8 +158,8 @@ public class AlertsDAOTest {
   @Test
   public void testFindAll() {
     List<AlertHistoryEntity> alerts = dao.findAll(clusterId);
-    Assert.assertNotNull(alerts);
-    Assert.assertEquals(25, alerts.size());
+    assertNotNull(alerts);
+    assertEquals(60, alerts.size());
   }
 
   /**
@@ -147,8 +168,8 @@ public class AlertsDAOTest {
   @Test
   public void testFindAllCurrent() {
     List<AlertCurrentEntity> currentAlerts = dao.findCurrent();
-    Assert.assertNotNull(currentAlerts);
-    Assert.assertEquals(5, currentAlerts.size());
+    assertNotNull(currentAlerts);
+    assertEquals(5, currentAlerts.size());
   }
 
   /**
@@ -160,17 +181,88 @@ public class AlertsDAOTest {
     AlertCurrentEntity current = currentAlerts.get(0);
     AlertHistoryEntity history = current.getAlertHistory();
     
-    Assert.assertNotNull(history);    
+    assertNotNull(history);
     
     currentAlerts = dao.findCurrentByService(clusterId,
         history.getServiceName());
 
-    Assert.assertNotNull(currentAlerts);
-    Assert.assertEquals(1, currentAlerts.size());
+    assertNotNull(currentAlerts);
+    assertEquals(1, currentAlerts.size());
 
     currentAlerts = dao.findCurrentByService(clusterId, "foo");
 
-    Assert.assertNotNull(currentAlerts);
-    Assert.assertEquals(0, currentAlerts.size());
+    assertNotNull(currentAlerts);
+    assertEquals(0, currentAlerts.size());
+  }
+
+  /**
+   * 
+   */
+  @Test
+  public void testFindByState() {
+    List<AlertState> allStates = new ArrayList<AlertState>();
+    allStates.add(AlertState.OK);
+    allStates.add(AlertState.WARNING);
+    allStates.add(AlertState.CRITICAL);
+        
+    List<AlertHistoryEntity> history = dao.findAll(clusterId, allStates);
+    assertNotNull(history);
+    assertEquals(60, history.size());
+
+    history = dao.findAll(clusterId, Collections.singletonList(AlertState.OK));
+    assertNotNull(history);
+    assertEquals(50, history.size());
+
+    history = dao.findAll(clusterId,
+        Collections.singletonList(AlertState.CRITICAL));
+    assertNotNull(history);
+    assertEquals(10, history.size());
+    
+    history = dao.findAll(clusterId,
+        Collections.singletonList(AlertState.WARNING));
+    assertNotNull(history);
+    assertEquals(0, history.size());        
+  }
+
+  /**
+   * 
+   */
+  @Test
+  public void testFindByDate() {
+    calendar.clear();
+    calendar.set(2014, Calendar.JANUARY, 1);
+    
+    // on or after 1/1/2014
+    List<AlertHistoryEntity> history = dao.findAll(clusterId,
+        calendar.getTime(), null);
+
+    assertNotNull(history);
+    assertEquals(60, history.size());
+
+    // on or before 1/1/2014
+    history = dao.findAll(clusterId, null, calendar.getTime());
+    assertNotNull(history);
+    assertEquals(2, history.size());
+
+    // between 1/5 and 1/10
+    calendar.set(2014, Calendar.JANUARY, 5);
+    Date startDate = calendar.getTime();
+
+    calendar.set(2014, Calendar.JANUARY, 10);
+    Date endDate = calendar.getTime();
+
+    history = dao.findAll(clusterId, startDate, endDate);
+    assertNotNull(history);
+    assertEquals(6, history.size());
+
+    // after 3/1
+    calendar.set(2014, Calendar.MARCH, 5);
+    history = dao.findAll(clusterId, calendar.getTime(), null);
+    assertNotNull(history);
+    assertEquals(0, history.size());
+
+    history = dao.findAll(clusterId, endDate, startDate);
+    assertNotNull(history);
+    assertEquals(0, history.size());
   }
 }

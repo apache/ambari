@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,6 +65,7 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
 
   @Override
   protected void executeDDLUpdates() throws AmbariException, SQLException {
+    // !!! TODO: alerting DDL upgrade
 
     List<DBAccessor.DBColumnInfo> columns;
 
@@ -162,7 +164,32 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
 
   @Override
   protected void executeDMLUpdates() throws AmbariException, SQLException {
-    // TODO : create admin principals for existing users and groups.
-    // TODO : create admin resources for existing clusters and view instances
+    // !!! TODO: create admin principals for existing users and groups.
+    // !!! TODO: create admin resources for existing clusters and view instances
+    // !!! TODO: alerting DML updates (sequences)
+
+    String dbType = getDbType();
+
+    // add new sequences for view entity
+    String valueColumnName = "\"value\"";
+    if (Configuration.ORACLE_DB_NAME.equals(dbType)
+        || Configuration.MYSQL_DB_NAME.equals(dbType)) {
+      valueColumnName = "value";
+    }
+
+    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, "
+        + valueColumnName + ") " + "VALUES('alert_definition_id_seq', 0)", true);
+
+    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, "
+        + valueColumnName + ") " + "VALUES('alert_group_id_seq', 0)", true);
+
+    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, "
+        + valueColumnName + ") " + "VALUES('alert_target_id_seq', 0)", true);
+
+    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, "
+        + valueColumnName + ") " + "VALUES('alert_history_id_seq', 0)", true);
+
+    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, "
+        + valueColumnName + ") " + "VALUES('alert_notice_id_seq', 0)", true);
   }
 }

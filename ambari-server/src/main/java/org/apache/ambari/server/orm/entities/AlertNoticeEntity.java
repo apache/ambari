@@ -28,6 +28,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
+import javax.persistence.TableGenerator;
 
 import org.apache.ambari.server.state.NotificationState;
 
@@ -40,11 +41,12 @@ import org.apache.ambari.server.state.NotificationState;
  */
 @Entity
 @Table(name = "alert_notice")
+@TableGenerator(name = "alert_notice_id_generator", table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "value", pkColumnValue = "alert_notice_id_seq", initialValue = 0, allocationSize = 1)
 @NamedQuery(name = "AlertNoticeEntity.findAll", query = "SELECT alertNotice FROM AlertNoticeEntity alertNotice")
 public class AlertNoticeEntity {
 
   @Id
-  @GeneratedValue(strategy = GenerationType.TABLE)
+  @GeneratedValue(strategy = GenerationType.TABLE, generator = "alert_notice_id_generator")
   @Column(name = "notification_id", nullable = false, updatable = false)
   private Long notificationId;
 

@@ -30,6 +30,7 @@ import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
+import javax.persistence.TableGenerator;
 
 import org.apache.ambari.server.state.AlertState;
 
@@ -42,13 +43,18 @@ import org.apache.ambari.server.state.AlertState;
  */
 @Entity
 @Table(name = "alert_history")
+@TableGenerator(name = "alert_history_id_generator", table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "value", pkColumnValue = "alert_history_id_seq", initialValue = 0, allocationSize = 1)
 @NamedQueries({
     @NamedQuery(name = "AlertHistoryEntity.findAll", query = "SELECT alertHistory FROM AlertHistoryEntity alertHistory"),
-    @NamedQuery(name = "AlertHistoryEntity.findAllInCluster", query = "SELECT alertHistory FROM AlertHistoryEntity alertHistory WHERE alertHistory.clusterId = :clusterId") })
+    @NamedQuery(name = "AlertHistoryEntity.findAllInCluster", query = "SELECT alertHistory FROM AlertHistoryEntity alertHistory WHERE alertHistory.clusterId = :clusterId"),
+    @NamedQuery(name = "AlertHistoryEntity.findAllInClusterWithState", query = "SELECT alertHistory FROM AlertHistoryEntity alertHistory WHERE alertHistory.clusterId = :clusterId AND alertHistory.alertState IN :alertStates"),
+    @NamedQuery(name = "AlertHistoryEntity.findAllInClusterBetweenDates", query = "SELECT alertHistory FROM AlertHistoryEntity alertHistory WHERE alertHistory.clusterId = :clusterId AND alertHistory.alertTimestamp BETWEEN :startDate AND :endDate"),
+    @NamedQuery(name = "AlertHistoryEntity.findAllInClusterBeforeDate", query = "SELECT alertHistory FROM AlertHistoryEntity alertHistory WHERE alertHistory.clusterId = :clusterId AND alertHistory.alertTimestamp <= :beforeDate"),
+    @NamedQuery(name = "AlertHistoryEntity.findAllInClusterAfterDate", query = "SELECT alertHistory FROM AlertHistoryEntity alertHistory WHERE alertHistory.clusterId = :clusterId AND alertHistory.alertTimestamp >= :afterDate") })
 public class AlertHistoryEntity {
 
   @Id
-  @GeneratedValue(strategy = GenerationType.TABLE)
+  @GeneratedValue(strategy = GenerationType.TABLE, generator = "alert_history_id_generator")
   @Column(name = "alert_id", nullable = false, updatable = false)
   private Long alertId;
 
@@ -87,10 +93,10 @@ public class AlertHistoryEntity {
   private AlertCurrentEntity alertCurrent;
 
   /**
-   * Bi-directional many-to-one association to {@link AlertDefinitionEntity}
+   * Unidirectional many-to-one association to {@link AlertDefinitionEntity}
    */
   @ManyToOne
-  @JoinColumn(name = "alert_definition_id", nullable = false)
+  @JoinColumn(name = "definition_id", nullable = false)
   private AlertDefinitionEntity alertDefinition;
 
   /**
@@ -197,7 +203,8 @@ public class AlertHistoryEntity {
   }
 
   /**
-   * Gets the time that the alert instace was received.
+   * Gets the time that the alert instace was received. This will be the value,
+   * in milliseconds, since the UNIX/Java epoch, represented in UTC time.
    * 
    * @return the time of the alert instance (never {@code null}).
    */
@@ -206,7 +213,8 @@ public class AlertHistoryEntity {
   }
 
   /**
-   * Sets the time that the alert instace was received.
+   * Sets the time that the alert instace was received. This should be the
+   * value, in milliseconds, since the UNIX/Java epoch, represented in UTC time.
    * 
    * @param alertTimestamp
    *          the time of the alert instance (not {@code null}).

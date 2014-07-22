@@ -30,6 +30,7 @@ import javax.persistence.ManyToMany;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
+import javax.persistence.TableGenerator;
 import javax.persistence.UniqueConstraint;
 
 /**
@@ -40,6 +41,7 @@ import javax.persistence.UniqueConstraint;
 @Entity
 @Table(name = "alert_group", uniqueConstraints = @UniqueConstraint(columnNames = {
     "cluster_id", "group_name" }))
+@TableGenerator(name = "alert_group_id_generator", table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "value", pkColumnValue = "alert_group_id_seq", initialValue = 0, allocationSize = 1)
 @NamedQueries({
     @NamedQuery(name = "AlertGroupEntity.findAll", query = "SELECT alertGroup FROM AlertGroupEntity alertGroup"),
     @NamedQuery(name = "AlertGroupEntity.findAllInCluster", query = "SELECT alertGroup FROM AlertGroupEntity alertGroup WHERE alertGroup.clusterId = :clusterId"),
@@ -48,7 +50,7 @@ import javax.persistence.UniqueConstraint;
 public class AlertGroupEntity {
 
   @Id
-  @GeneratedValue(strategy = GenerationType.TABLE)
+  @GeneratedValue(strategy = GenerationType.TABLE, generator = "alert_group_id_generator")
   @Column(name = "group_id", nullable = false, updatable = false)
   private Long groupId;
 
