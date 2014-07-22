@@ -24,8 +24,8 @@ App.MainDashboardView = Em.View.extend({
   templateName: require('templates/main/dashboard'),
 
   selectedBinding: 'controller.selectedCategory',
-  categories: function() {
-    var items = [{
+  categories: [
+    {
       name: 'widgets',
       url: 'dashboard.index',
       label: Em.I18n.t('dashboard.widgets.title')
@@ -34,9 +34,13 @@ App.MainDashboardView = Em.View.extend({
       name: 'charts',
       url: 'dashboard.charts.index',
       label: Em.I18n.t('dashboard.heatmaps.title')
-    }];
-    return items;
-  }.property(''),
+    },
+    {
+      name: 'configHistory',
+      url: 'dashboard.configHistory',
+      label: Em.I18n.t('dashboard.configHistory.title')
+    }
+  ],
   NavItemView: Ember.View.extend({
     tagName: 'li',
     classNameBindings: 'isActive:active'.w(),

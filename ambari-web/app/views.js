@@ -148,6 +148,7 @@ require('views/main/dashboard/widgets/node_managers_live');
 require('views/main/dashboard/widgets/yarn_memory');
 require('views/main/dashboard/widgets/supervisor_live');
 require('views/main/dashboard/widgets/flume_agent_live');
+require('views/main/dashboard/config_history_view');
 
 
 require('views/main/service');

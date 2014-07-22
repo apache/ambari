@@ -44,6 +44,12 @@ App.MainServiceItemController = Em.Controller.extend({
     }
   },
 
+  /**
+   * flag to control router switch between service summary and configs
+   * @type {boolean}
+   */
+  routeToConfigs: false,
+
   isClientsOnlyService: function() {
     return App.get('services.clientOnly').contains(this.get('content.serviceName'));
   }.property('content.serviceName'),

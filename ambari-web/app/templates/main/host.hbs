@@ -55,7 +55,7 @@
     </div>
   </div>
 
-  <table class="datatable table table-bordered table-striped" id="hosts-table">
+  <table class="table table-bordered table-striped" id="hosts-table">
     <thead>
       {{#view view.sortView classNames="label-row" contentBinding="view.filteredContent"}}
         <th class="first"> </th>
@@ -70,7 +70,7 @@
         {{view view.parentView.loadAvgSort}}
         <th class="sort-view-6">{{t common.components}}</th>
       {{/view}}
-      <tr id="filter-row">
+      <tr class="filter-row">
         <th class="first"><div class="ember-view view-wrapper">{{view Ember.Checkbox checkedBinding="view.selectAllHosts"}}</div></th>
         <th> </th>
         <th>{{view view.nameFilterView}}</th>
@@ -147,7 +147,7 @@
   </div>
 
   <div class="page-bar">
-    <div class="filtered-hosts-info span4">
+    <div class="filtered-info span4">
       <label>{{view.filteredContentInfo}} - <a {{action clearFilters target="view"}} href="#">{{t tableView.filters.clearAllFilters}}</a></label>
     </div>
     <div class="selected-hosts-info span4">

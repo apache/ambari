@@ -18,7 +18,6 @@
 
 var App = require('app');
 var filters = require('views/common/filter_view');
-var sort = require('views/common/sort_view');
 
 App.TableView = Em.View.extend(App.UserPref, {
 
@@ -410,6 +409,26 @@ App.TableView = Em.View.extend(App.UserPref, {
       this.set('filteredContent', content.toArray());
     }
   }.observes('content.length'),
+
+  /**
+   * sort content by active sort column
+   */
+  sortContent: function() {
+    var activeSort = App.db.getSortingStatuses(this.get('controller.name')).find(function (sort) {
+      return (sort.status === 'sorting_asc' || sort.status === 'sorting_desc');
+    });
+    var sortIndexes = {
+      'sorting_asc': 1,
+      'sorting_desc': -1
+    };
+
+    this.get('content').sort(function (a, b) {
+      if (a.get(activeSort.name) > b.get(activeSort.name)) return sortIndexes[activeSort.status];
+      if (a.get(activeSort.name) < b.get(activeSort.name)) return -(sortIndexes[activeSort.status]);
+      return 0;
+    });
+    this.filter();
+  },
 
   /**
    * Does any filter is used on the page
