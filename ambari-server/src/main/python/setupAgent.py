@@ -117,7 +117,7 @@ def findNearestAgentPackageVersion(projectVersion):
 
 def isAgentPackageAlreadyInstalled(projectVersion):
     if OSCheck.is_debian_family():
-      Command = ["bash", "-c", "dpkg -s ambari-agent  2>&1|grep 'Version\:'|grep " + projectVersion]
+      Command = ["bash", "-c", "dpkg-query -W -f='${Status} ${Version}\n' ambari-agent | grep -v deinstall | grep " + projectVersion]
     else:
       Command = ["bash", "-c", "rpm -qa | grep ambari-agent-"+projectVersion]
     ret = execOsCommand(Command)
