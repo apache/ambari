@@ -210,6 +210,8 @@ Em.I18n.translations = {
   'common.free': 'free',
   'common.type.string': 'string',
   'common.type.number': 'number',
+  'common.author': 'Author',
+  'common.notes': 'Notes',
 
   'passiveState.turnOn':'Turn On Maintenance Mode',
   'passiveState.turnOff':'Turn Off Maintenance Mode',
@@ -1917,6 +1919,14 @@ Em.I18n.translations = {
   'dashboard.services.configs.popup.stopService.body' : 'Service needs to be stopped for reconfiguration',
   'dashboard.services.configs.popup.restartService.header' : 'Restart service',
   'dashboard.services.configs.popup.restartService.body' : 'Service needs to be restarted for reconfiguration',
+
+  'dashboard.configHistory.title': 'Configs',
+  'dashboard.configHistory.table.version.title' : 'Service: version',
+  'dashboard.configHistory.table.modified.title' : 'Modified',
+  'dashboard.configHistory.table.empty' : 'No history to display',
+  'dashboard.configHistory.table.filteredHostsInfo': '{0} of {1} versions showing',
+  'dashboard.configHistory.table.current': '(Current)',
+
   'timeRange.presets.1hour':'1h',
   'timeRange.presets.12hour':'12h',
   'timeRange.presets.1day':'1d',

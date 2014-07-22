@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.state;
 
+import org.codehaus.jackson.annotate.JsonProperty;
 /**
  * An alert represents a problem or notice for a cluster.
  */
@@ -50,10 +51,15 @@ public class Alert {
     host = hostName;
     state = alertState;
   }
+
+  public Alert() {
+  }
  
   /**
    * @return the name
    */
+
+  @JsonProperty("name")     
   public String getName() {
     return name;
   }
@@ -61,6 +67,7 @@ public class Alert {
   /**
    * @return the service
    */
+  @JsonProperty("service")    
   public String getService() {
     return service;
   }
@@ -68,6 +75,7 @@ public class Alert {
   /**
    * @return the component
    */
+  @JsonProperty("component")  
   public String getComponent() {
     return component;
   }
@@ -75,6 +83,7 @@ public class Alert {
   /**
    * @return the host
    */
+  @JsonProperty("host")
   public String getHost() {
     return host;
   }
@@ -82,6 +91,7 @@ public class Alert {
   /**
    * @return the state
    */
+  @JsonProperty("state")
   public AlertState getState() {
     return state;
   }
@@ -89,6 +99,7 @@ public class Alert {
   /**
    * @return a short descriptive label for the alert
    */
+  @JsonProperty("label")  
   public String getLabel() {
     return label;
   }
@@ -96,6 +107,7 @@ public class Alert {
   /**
    * @param alertLabel a short descriptive label for the alert
    */
+  @JsonProperty("label")   
   public void setLabel(String alertLabel) {
     label = alertLabel;
   }
@@ -103,6 +115,7 @@ public class Alert {
   /**
    * @return detail text about the alert
    */
+  @JsonProperty("text")   
   public String getText() {
     return text;
   }
@@ -110,9 +123,47 @@ public class Alert {
   /**
    * @param alertText detail text about the alert
    */
+  @JsonProperty("text")   
   public void setText(String alertText) {
     text = alertText;
   }
+
+  @JsonProperty("instance")  
+  public String getInstance() {
+    return instance;
+  }
+  
+  @JsonProperty("instance")
+  public void setInstance(String instance) {
+    this.instance = instance;
+  }
+
+  @JsonProperty("name")
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  @JsonProperty("service")
+  public void setService(String service) {
+    this.service = service;
+  }
+
+  @JsonProperty("component")
+  public void setComponent(String component) {
+    this.component = component;
+  }
+
+  @JsonProperty("host")
+  public void setHost(String host) {
+    this.host = host;
+  }
+
+  @JsonProperty("state")
+  public void setState(AlertState state) {
+    this.state = state;
+  }
+
+  
   
   @Override
   public int hashCode() {
@@ -148,7 +199,8 @@ public class Alert {
     sb.append("service=").append(service).append(", ");
     sb.append("component=").append(component).append(", ");
     sb.append("host=").append(host).append(", ");
-    sb.append("instance=").append(instance);
+    sb.append("instance=").append(instance).append(", ");
+    sb.append("text='").append(text).append("'");
     sb.append('}');
     return sb.toString();
   }

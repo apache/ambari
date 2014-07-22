@@ -17,14 +17,18 @@
  */
 package org.apache.ambari.server.agent;
 
+import com.google.gson.Gson;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.Singleton;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
-
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.HostNotFoundException;
 import org.apache.ambari.server.RoleCommand;
@@ -38,6 +42,7 @@ import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.state.AgentVersion;
 import org.apache.ambari.server.state.Alert;
+import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
@@ -68,11 +73,6 @@ import org.apache.ambari.server.utils.StageUtils;
 import org.apache.ambari.server.utils.VersionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import com.google.gson.Gson;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.Singleton;
 
 
 /**
@@ -195,6 +195,8 @@ public class HeartBeatHandler {
     // Calculate host status
     // NOTE: This step must be after processing command/status reports
     processHostStatus(heartbeat, hostname);
+    
+    calculateHostAlerts(heartbeat, hostname);
 
     // Send commands if node is active
     if (hostObject.getState().equals(HostState.HEALTHY)) {
@@ -204,6 +206,15 @@ public class HeartBeatHandler {
     return response;
   }
 
+  protected void calculateHostAlerts(HeartBeat heartbeat, String hostname)
+          throws AmbariException {
+      if (heartbeat != null && hostname != null) {
+        for (Cluster cluster : clusterFsm.getClustersForHost(hostname)) {
+          cluster.addAlerts(heartbeat.getNodeStatus().getAlerts());
+        }
+      }
+  }
+   
   protected void processHostStatus(HeartBeat heartbeat, String hostname) throws AmbariException {
 
     Host host = clusterFsm.getHost(hostname);

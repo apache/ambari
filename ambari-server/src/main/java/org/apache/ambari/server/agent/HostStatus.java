@@ -17,6 +17,10 @@
  */
 package org.apache.ambari.server.agent;
 
+import java.util.ArrayList;
+import java.util.List;
+import org.apache.ambari.server.state.Alert;
+import org.codehaus.jackson.annotate.JsonProperty;
 
 /**
  * Status of the host as described by the agent.
@@ -38,24 +42,43 @@ public class HostStatus {
   }
   Status status;
   String cause;
+  List<Alert> alerts = new ArrayList<Alert>();
+      
+  @JsonProperty("status")
   public Status getStatus() {
     return status;
   }
+    
+  @JsonProperty("status")
   public void setStatus(Status status) {
     this.status = status;
   }
+  
+  @JsonProperty("cause")  
   public String getCause() {
     return cause;
   }
+  
+  @JsonProperty("cause")
   public void setCause(String cause) {
     this.cause = cause;
   }
-
+  
+  @JsonProperty("alerts")
+  public List<Alert> getAlerts() {
+    return alerts;
+  }
+  
+  @JsonProperty("alerts")
+  public void setAlerts(List<Alert> alerts) {
+    this.alerts = alerts;
+  }
+ 
   @Override
   public String toString() {
     return "HostStatus{" +
             "status=" + status +
             ", cause='" + cause + '\'' +
-            '}';
+            ", alerts=" + alerts.size() + '}';
   }
 }

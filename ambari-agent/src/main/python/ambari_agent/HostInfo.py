@@ -28,6 +28,7 @@ import subprocess
 import threading
 import shlex
 import platform
+import hostname
 from PackagesAnalyzer import PackagesAnalyzer
 from HostCheckReportFileHandler import HostCheckReportFileHandler
 from Hardware import Hardware
@@ -220,6 +221,37 @@ class HostInfo:
     except:
       pass
     return diskInfo
+
+  def createAlerts(self, alerts):
+    existingUsers = []
+    self.checkUsers(self.DEFAULT_USERS, existingUsers)
+    dirs = []
+    self.checkFolders(self.DEFAULT_DIRS, self.DEFAULT_PROJECT_NAMES, existingUsers, dirs)
+    alert = {
+      'name': 'host_alert',
+      'instance': None,
+      'service': 'AMBARI',
+      'component': 'host',
+      'host': hostname.hostname(),
+      'state': 'OK',
+      'label': 'Disk space',
+      'text': 'Used disk space less than 80%'}
+    message = ""
+    mountinfoSet = []
+    for dir in dirs:
+      if dir["type"] == 'directory':
+        mountinfo = self.osdiskAvailableSpace(dir['name'])
+        if int(mountinfo["percent"].strip('%')) >= 80:
+          if not mountinfo in mountinfoSet:
+            mountinfoSet.append(mountinfo)
+          message += str(dir['name']) + ";\n"
+
+    if message != "":
+      message = "These discs have low space:\n" + str(mountinfoSet) + "\n They include following critical directories:\n" + message
+      alert['state'] = 'WARNING'
+      alert['text'] = message
+    alerts.append(alert)
+    return alerts
 
   def checkFolders(self, basePaths, projectNames, existingUsers, dirs):
     foldersToIgnore = []

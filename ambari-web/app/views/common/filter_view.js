@@ -271,7 +271,7 @@ module.exports = {
       attributeBindings: ['disabled','multiple'],
       disabled: false
     });
-    config.emptyValue = Em.I18n.t('any');
+    config.emptyValue = config.emptyValue || 'Any';
 
     return wrapperView.extend(config);
   },
@@ -478,6 +478,12 @@ module.exports = {
       case 'boolean':
         return function (origin, compareValue){
           return origin === compareValue;
+        };
+        break;
+      case 'select':
+        return function (origin, compareValue){
+          //TODO add filter by select value
+          return true;
         };
         break;
       case 'string':

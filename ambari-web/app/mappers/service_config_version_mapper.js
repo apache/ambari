@@ -16,20 +16,29 @@
  * limitations under the License.
  */
 
-//load all mappers
-require('mappers/server_data_mapper');
-require('mappers/stack_service_mapper');
-require('mappers/hosts_mapper');
-require('mappers/cluster_mapper');
-require('mappers/jobs_mapper');
-require('mappers/runs_mapper');
-require('mappers/racks_mapper');
-require('mappers/users_mapper');
-require('mappers/service_mapper');
-require('mappers/service_metrics_mapper');
-require('mappers/target_cluster_mapper');
-require('mappers/dataset_mapper');
-require('mappers/component_config_mapper');
-require('mappers/components_state_mapper');
-require('mappers/jobs/hive_jobs_mapper');
-require('mappers/service_config_version_mapper');
+var App = require('app');
+
+App.serviceConfigVersionsMapper = App.QuickDataMapper.create({
+  model: App.ServiceConfigVersion,
+  config: {
+    service_name: 'servicename',
+    version: "serviceconfigversion",
+    create_time: 'createtime',
+    applied_time: 'appliedtime',
+    author: 'author',
+    notes: 'notes'
+  },
+  map: function (json) {
+    var result = [];
+
+    if (json && json.items) {
+      json.items.forEach(function (item) {
+        var parsedItem = this.parseIt(item, this.get('config'));
+        parsedItem.id = parsedItem.service_name + '_' + parsedItem.version;
+        result.push(parsedItem);
+      }, this);
+
+      App.store.loadMany(this.get('model'), result);
+    }
+  }
+});

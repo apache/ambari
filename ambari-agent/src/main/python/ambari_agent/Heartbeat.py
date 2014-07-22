@@ -47,7 +47,10 @@ class Heartbeat:
 
     
     nodeStatus = { "status" : "HEALTHY",
-                   "cause" : "NONE"}
+                   "cause" : "NONE" }
+    nodeStatus["alerts"] = []
+    
+    
     
     heartbeat = { 'responseId'        : int(id),
                   'timestamp'         : timestamp,
@@ -77,13 +80,12 @@ class Heartbeat:
     if logger.isEnabledFor(logging.DEBUG):
       logger.debug("Heartbeat: %s", pformat(heartbeat))
 
+    hostInfo = HostInfo(self.config)
     if (int(id) >= 0) and state_interval > 0 and (int(id) % state_interval) == 0:
-      hostInfo = HostInfo(self.config)
       nodeInfo = { }
-      
       # for now, just do the same work as registration
       # this must be the last step before returning heartbeat
-      hostInfo.register(nodeInfo, componentsMapped, commandsInProgress)
+      hostInfo.register(nodeInfo, componentsMapped, commandsInProgress)      
       heartbeat['agentEnv'] = nodeInfo
       mounts = Hardware.osdisks()
       heartbeat['mounts'] = mounts
@@ -92,6 +94,7 @@ class Heartbeat:
         logger.debug("agentEnv: %s", str(nodeInfo))
         logger.debug("mounts: %s", str(mounts))
 
+    nodeStatus["alerts"] = hostInfo.createAlerts(nodeStatus["alerts"])
     return heartbeat
 
 def main(argv=None):

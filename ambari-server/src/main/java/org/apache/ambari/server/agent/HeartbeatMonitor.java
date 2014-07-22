@@ -62,6 +62,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.google.inject.Injector;
+import java.util.HashSet;
 
 /**
  * Monitors the node state and heartbeats.
@@ -294,8 +295,12 @@ public class HeartbeatMonitor implements Runnable {
     if (sch.getServiceComponentName().equals("NAGIOS_SERVER")) {
       // this requires special treatment
 
-      Collection<Alert> alerts = cluster.getAlerts();
-      if (null != alerts && alerts.size() > 0) {
+      Collection<Alert> clusterAlerts = cluster.getAlerts();
+      Collection<Alert> alerts = new HashSet<Alert>();
+      for (Alert alert : clusterAlerts) {
+        if (!alert.getName().equals("host_alert")) alerts.add(alert);
+      }
+      if (alerts.size() > 0) {
         statusCmd = new NagiosAlertCommand();
         ((NagiosAlertCommand) statusCmd).setAlerts(alerts);
       }

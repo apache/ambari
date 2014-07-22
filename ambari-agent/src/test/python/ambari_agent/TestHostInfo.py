@@ -523,6 +523,22 @@ class TestHostInfo(TestCase):
       run_os_command_mock.return_value = firewall.get_running_result()
       self.assertTrue(firewall.check_iptables())
 
+  @patch.object(HostInfo, "osdiskAvailableSpace")
+  def test_createAlerts(self, osdiskAvailableSpace_mock):
+    hostInfo = HostInfo()
+    osdiskAvailableSpace_mock.return_value = {
+      'size': '100',
+      'used': '50',
+      'available': '50',
+      'percent': '50%',
+      'mountpoint': '/testmount',
+      'type': 'ext4',
+      'device': 'device'}
+    result = hostInfo.createAlerts([])
+    self.assertEquals(1, len(result))
+
+
+
   @patch("subprocess.Popen")
   def test_run_os_command_exception(self, popen_mock):
     def base_test():

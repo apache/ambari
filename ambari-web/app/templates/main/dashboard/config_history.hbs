@@ -1,0 +1,83 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+<div id="config_history">
+    <table class="table table-bordered table-striped" >
+        <thead>
+        {{#view view.sortView classNames="label-row"}}
+            {{view view.parentView.versionSort}}
+            {{view view.parentView.modifiedSort}}
+            {{view view.parentView.authorSort}}
+            {{view view.parentView.notesSort}}
+        {{/view}}
+
+        <tr class="filter-row">
+            <th class="first">{{view view.versionFilterView}}</th>
+            <th>{{view view.modifiedFilterView}}</th>
+            <th>{{view view.authorFilterView}}</th>
+            <th>{{view view.notesFilterView}}</th>
+        </tr>
+        </thead>
+        <tbody>
+        {{#if view.pageContent}}
+          {{#each item in view.pageContent}}
+              <tr>
+                  <td class="first"><a {{action goToServiceConfigs item.serviceName}}>
+                    {{item.serviceVersion}}{{#if item.isCurrent}}&nbsp;{{t dashboard.configHistory.table.current}}{{/if}}
+                  </a></td>
+                  <td>{{item.modifiedDate}}</td>
+                  <td>{{item.author}}</td>
+                  <td>{{item.notes}}</td>
+              </tr>
+          {{/each}}
+        {{else}}
+            <tr>
+                <td class="first" colspan="4">
+                  {{t dashboard.configHistory.table.empty}}
+                </td>
+            </tr>
+        {{/if}}
+        </tbody>
+    </table>
+
+    <div class="page-bar">
+        <div class="filtered-info span4">
+            <label>{{view.filteredContentInfo}} - <a {{action clearFilters target="view"}}
+                    href="#">{{t tableView.filters.clearAllFilters}}</a></label>
+        </div>
+        <div class="selected-hosts-info span4">
+          {{#if view.showSelectedFilter}}
+              <div>
+                  <a {{action filterSelected target="view"}} href="#">
+                    {{view.selectedHosts.length}}
+                    {{pluralize view.selectedHostsCount singular="t:hosts.filters.selectedHostInfo" plural="t:hosts.filters.selectedHostsInfo"}}
+                  </a>
+              </div>
+              - <a {{action clearSelection target="view"}} href="#">{{t hosts.filters.clearSelection}}</a>
+          {{/if}}
+        </div>
+        <div class="items-on-page">
+            <label>{{t common.show}}: {{view view.rowsPerPageSelectView selectionBinding="view.displayLength"}}</label>
+        </div>
+        <div class="info">{{view.paginationInfo}}</div>
+        <div class="paging_two_button">
+          {{view view.paginationLeft}}
+          {{view view.paginationRight}}
+        </div>
+    </div>
+</div>

@@ -16,20 +16,25 @@
  * limitations under the License.
  */
 
-//load all mappers
-require('mappers/server_data_mapper');
-require('mappers/stack_service_mapper');
-require('mappers/hosts_mapper');
-require('mappers/cluster_mapper');
-require('mappers/jobs_mapper');
-require('mappers/runs_mapper');
-require('mappers/racks_mapper');
-require('mappers/users_mapper');
-require('mappers/service_mapper');
-require('mappers/service_metrics_mapper');
-require('mappers/target_cluster_mapper');
-require('mappers/dataset_mapper');
-require('mappers/component_config_mapper');
-require('mappers/components_state_mapper');
-require('mappers/jobs/hive_jobs_mapper');
-require('mappers/service_config_version_mapper');
+
+var App = require('app');
+var dateUtil = require('utils/date');
+
+
+App.ServiceConfigVersion = DS.Model.extend({
+  serviceName: DS.attr('string'),
+  version: DS.attr('number'),
+  createTime: DS.attr('number'),
+  appliedTime: DS.attr('number'),
+  author: DS.attr('string'),
+  notes: DS.attr('string'),
+  serviceVersion: function(){
+    return this.get('serviceName') + ': '+ this.get('version');
+  }.property('serviceName', 'version'),
+  modifiedDate: function() {
+    return dateUtil.dateFormat(this.get('createTime'));
+  }.property('createTime'),
+  isCurrent: true
+});
+
+App.ServiceConfigVersion.FIXTURES = [];

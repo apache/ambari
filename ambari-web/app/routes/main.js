@@ -118,7 +118,6 @@ module.exports = Em.Route.extend({
         });
       }
     }),
-    //on click nav tabs events, go to widgets view or heatmap view
     goToDashboardView: function (router, event) {
       router.transitionTo(event.context);
     },
@@ -161,7 +160,19 @@ module.exports = Em.Route.extend({
         event.view.set('active', "active");
         router.transitionTo(event.context);
       }
-    })
+    }),
+    configHistory: Em.Route.extend({
+      route: '/config_history',
+      connectOutlets: function (router, context) {
+        router.set('mainDashboardController.selectedCategory', 'configHistory');
+        router.get('mainDashboardController').connectOutlet('mainConfigHistory');
+      }
+    }),
+    goToServiceConfigs: function (router, event) {
+      router.get('mainServiceItemController').set('routeToConfigs', true);
+      App.router.transitionTo('main.services.service.configs', App.Service.find(event.context));
+      router.get('mainServiceItemController').set('routeToConfigs', false);
+    }
   }),
 
   apps: Em.Route.extend({
@@ -656,7 +667,7 @@ module.exports = Em.Route.extend({
             if (!service || !service.get('isLoaded')) {
               service = App.Service.find().objectAt(0); // getting the first service to display
             }
-            if (service.get('routeToConfigs')) {
+            if (router.get('mainServiceItemController').get('routeToConfigs')) {
               router.transitionTo('service.configs', service);
             }
             else {
