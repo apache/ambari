@@ -28,7 +28,7 @@ App.MainViewsDetailsView = Em.View.extend({
   seamless: "seamless",
 
   src: function() {
-    return window.location.origin + App.router.get('mainViewsController.selectedView.href');
-  }.property('App.MainViewsController.selectedView')
+    return window.location.origin + this.get('controller.content.href');
+  }.property('controller.content')
 
 });

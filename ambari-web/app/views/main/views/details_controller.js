@@ -16,14 +16,6 @@
  * limitations under the License.
  */
 
-var App = require('app');
-
-App.MainViewsController = Em.Controller.extend({
-  name:'mainViewsController',
-
-  setView: function(event) {
-    if(event.context){
-      App.router.transitionTo('main.views.viewDetails', event.context);
-    }
-  }
+App.MainViewsDetailsController = Em.Controller.extend({
+  name:'mainViewsDetailsController'
 });

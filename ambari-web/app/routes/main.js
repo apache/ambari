@@ -72,18 +72,7 @@ module.exports = Em.Route.extend({
 
   views: Em.Route.extend({
     route: '/views',
-    connectOutlets: function (router, context) {
-      router.get('mainController').connectOutlet('mainViews');
-    },
     index: Em.Route.extend({
-      route: '/',
-      enter: function (router) {
-        Em.run.next(function () {
-          router.transitionTo('allViews');
-        });
-      }
-    }),
-    allViews: Em.Route.extend({
       route: '/',
       connectOutlets: function (router, context) {
         router.get('mainController').connectOutlet('mainViews');
@@ -91,8 +80,12 @@ module.exports = Em.Route.extend({
     }),
     viewDetails: Em.Route.extend({
       route: '/:viewName/:version/:instanceName',
-      connectOutlets: function (router, view) {
-        router.get('mainController').connectOutlet('mainViewsDetails');
+      connectOutlets: function (router, params) {
+        router.get('mainController').dataLoading().done(function() {
+          // find and set content for `mainViewsDetails` and associated controller
+          router.get('mainController').connectOutlet('mainViewsDetails', App.router.get('clusterController.ambariViews')
+            .findProperty('href', ['/views', params.viewName, params.version, params.instanceName].join('/')));
+        });
       }
     })
   }),
