@@ -1,0 +1,94 @@
+{
+  "items" : [
+    {
+      "ServiceComponentInfo" : {
+        "component_name" : "DATANODE",
+        "state" : "STARTED"
+      }
+    },
+    {
+      "ServiceComponentInfo" : {
+        "component_name" : "HDFS_CLIENT",
+        "state" : "INSTALLED"
+      }
+    },
+    {
+      "ServiceComponentInfo" : {
+        "component_name" : "JOURNALNODE",
+        "state" : "STARTED"
+      }
+    },
+    {
+      "ServiceComponentInfo" : {
+        "component_name" : "NAMENODE",
+        "state" : "STARTED"
+      }
+    },
+    {
+      "ServiceComponentInfo" : {
+        "component_name" : "SECONDARY_NAMENODE",
+        "state" : "STARTED"
+      }
+    },
+    {
+      "ServiceComponentInfo" : {
+        "component_name" : "ZKFC",
+        "state" : "STARTED"
+      }
+    },
+    {
+      "ServiceComponentInfo" : {
+        "component_name" : "HISTORYSERVER",
+        "state" : "STARTED"
+      }
+    },
+    {
+      "ServiceComponentInfo" : {
+        "component_name" : "MAPREDUCE2_CLIENT",
+        "state" : "INSTALLED"
+      }
+    },
+    {
+      "ServiceComponentInfo" : {
+        "component_name" : "TEZ_CLIENT",
+        "state" : "INSTALLED"
+      }
+    },
+    {
+      "ServiceComponentInfo" : {
+        "component_name" : "APP_TIMELINE_SERVER",
+        "state" : "STARTED"
+      }
+    },
+    {
+      "ServiceComponentInfo" : {
+        "component_name" : "NODEMANAGER",
+        "state" : "STARTED"
+      }
+    },
+    {
+      "ServiceComponentInfo" : {
+        "component_name" : "RESOURCEMANAGER",
+        "state" : "STARTED"
+      }
+    },
+    {
+      "ServiceComponentInfo" : {
+        "component_name" : "YARN_CLIENT",
+        "state" : "INSTALLED"
+      }
+    },
+    {
+      "ServiceComponentInfo" : {
+        "component_name" : "ZOOKEEPER_CLIENT",
+        "state" : "INSTALLED"
+      }
+    },
+    {
+      "ServiceComponentInfo" : {
+        "component_name" : "ZOOKEEPER_SERVER",
+        "state" : "STARTED"
+      }
+    }
+  ]
+}

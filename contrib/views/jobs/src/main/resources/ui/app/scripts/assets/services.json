@@ -1,0 +1,39 @@
+{
+  "items" : [
+    {
+      "ServiceInfo" : {
+        "maintenance_state" : "OFF",
+        "service_name" : "HDFS",
+        "state" : "STARTED"
+      }
+    },
+    {
+      "ServiceInfo" : {
+        "maintenance_state" : "OFF",
+        "service_name" : "MAPREDUCE2",
+        "state" : "STARTED"
+      }
+    },
+    {
+      "ServiceInfo" : {
+        "maintenance_state" : "OFF",
+        "service_name" : "TEZ",
+        "state" : "INSTALLED"
+      }
+    },
+    {
+      "ServiceInfo" : {
+        "maintenance_state" : "OFF",
+        "service_name" : "YARN",
+        "state" : "STARTED"
+      }
+    },
+    {
+      "ServiceInfo" : {
+        "maintenance_state" : "OFF",
+        "service_name" : "ZOOKEEPER",
+        "state" : "STARTED"
+      }
+    }
+  ]
+}

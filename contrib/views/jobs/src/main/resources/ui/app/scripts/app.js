@@ -38,9 +38,17 @@ App.initializer({
        * Prefix for API-requests
        * @type {string}
        */
-      urlPrefix: '/api/v1'
+      urlPrefix: '/api/v1',
+
+      /**
+       * Current cluster name
+       * @type {null|string}
+       */
+      clusterName: null
 
     });
+
+    application.ApplicationStatusMapper.getClusterName();
 
   }
 });

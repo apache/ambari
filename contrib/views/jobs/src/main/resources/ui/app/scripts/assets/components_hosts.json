@@ -1,0 +1,16 @@
+{
+  "items" : [
+    {
+      "Hosts" : {
+        "host_name" : "tdk-2.c.apache.org"
+      },
+      "host_components" : [
+        {
+          "HostRoles" : {
+            "component_name" : "APP_TIMELINE_SERVER"
+          }
+        }
+      ]
+    }
+  ]
+}

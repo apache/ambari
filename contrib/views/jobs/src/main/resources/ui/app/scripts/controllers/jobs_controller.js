@@ -340,19 +340,6 @@ App.JobsController = Ember.ArrayController.extend(App.RunPeriodically, {
     }
   }),
 
-  /*columnsName: Ember.ArrayController.create({
-    content: [
-      { name: Em.I18n.t('jobs.column.id'), index: 0 },
-      { name: Em.I18n.t('jobs.column.user'), index: 1 },
-      { name: Em.I18n.t('jobs.column.start.time'), index: 2 },
-      { name: Em.I18n.t('jobs.column.end.time'), index: 3 },
-      { name: Em.I18n.t('jobs.column.duration'), index: 4 }
-    ],
-    columnsCount: function () {
-      return this.get('content.length') + 1;
-    }.property('content.length')
-  }),*/
-
   lastIDSuccessCallback: function(data) {
     if(!data.entities[0]){
       return;
@@ -378,16 +365,23 @@ App.JobsController = Ember.ArrayController.extend(App.RunPeriodically, {
   },
 
   checkDataLoadingError: function (jqXHR){
-    /*var atsComponent = App.HostComponent.find().findProperty('componentName','APP_TIMELINE_SERVER');
+    var atsComponent = App.HiveJob.store.getById('component', 'APP_TIMELINE_SERVER');
     if(atsComponent && atsComponent.get('workStatus') != "STARTED") {
       this.set('jobsMessage', Em.I18n.t('jobs.error.ats.down'));
-    }else if (jqXHR && jqXHR.status == 400) {
-      this.set('jobsMessage', Em.I18n.t('jobs.error.400'));
-    }else if ((!jqXHR && this.get('loaded') && !this.get('loading')) || (jqXHR && jqXHR.status == 500)) {
-      this.set('jobsMessage', Em.I18n.t('jobs.nothingToShow'));
-    }else{
-      this.set('jobsMessage', Em.I18n.t('jobs.loadingTasks'));
-    }*/
+    }
+    else {
+      if (jqXHR && jqXHR.status == 400) {
+        this.set('jobsMessage', Em.I18n.t('jobs.error.400'));
+      }
+      else {
+        if ((!jqXHR && this.get('loaded') && !this.get('loading')) || (jqXHR && jqXHR.status == 500)) {
+          this.set('jobsMessage', Em.I18n.t('jobs.nothingToShow'));
+        }
+        else {
+          this.set('jobsMessage', Em.I18n.t('jobs.loadingTasks'));
+        }
+      }
+    }
   },
 
   init: function() {
@@ -396,37 +390,35 @@ App.JobsController = Ember.ArrayController.extend(App.RunPeriodically, {
   },
 
   loadJobs : function() {
-      //var yarnService = App.YARNService.find().objectAt(0),
-      //atsComponent = App.HostComponent.find().findProperty('componentName','APP_TIMELINE_SERVER'),
-      //atsInValidState = !!atsComponent && atsComponent.get('workStatus') === "STARTED",
-      //retryLoad = this.checkDataLoadingError();
-    //if (yarnService != null && atsInValidState) {
-    this.set('loading', true);
-    /*var historyServerHostName = yarnService.get('appTimelineServer.hostName'),
-      filtersLink = this.get('filterObject').createJobsFiltersLink(),
-      hiveQueriesUrl = App.get('testMode') ? "/scripts/assets/hive-queries.json" : "/proxy?url=http://" + historyServerHostName
-        + ":" + yarnService.get('ahsWebPort') + "/ws/v1/timeline/HIVE_QUERY_ID" + filtersLink;*/
-    /*App.ajax.send({
-      name: 'jobs.lastID',
-      sender: self,
-      data: {
-        historyServerHostName: '',//historyServerHostName,
-        ahsWebPort: ''//yarnService.get('ahsWebPort')
-      },
-      success: 'lastIDSuccessCallback',
-      error : 'lastIDErrorCallback'
-    });*/
-    App.ajax.send({
-      name: 'load_jobs',
-      sender: this,
-      data: {
-        historyServerHostName: '',
-        ahsWebPort: '',
-        filtersLink: this.get('filterObject').createJobsFiltersLink()
-      },
-      success: 'loadJobsSuccessCallback',
-      error : 'loadJobsErrorCallback'
-    });
+    var yarnService = App.HiveJob.store.getById('service', 'YARN'),
+      atsComponent = App.HiveJob.store.getById('component', 'APP_TIMELINE_SERVER'),
+      atsInValidState = !!atsComponent && atsComponent.get('workStatus') === "STARTED";
+    this.checkDataLoadingError();
+    if (!Em.isNone(yarnService) && atsInValidState) {
+      this.set('loading', true);
+      var historyServerHostName = atsComponent.get('hostName');
+      /*App.ajax.send({
+        name: 'jobs.lastID',
+        sender: self,
+        data: {
+          historyServerHostName: '',//historyServerHostName,
+          ahsWebPort: ''//yarnService.get('ahsWebPort')
+        },
+        success: 'lastIDSuccessCallback',
+        error : 'lastIDErrorCallback'
+      });*/
+      App.ajax.send({
+        name: 'load_jobs',
+        sender: this,
+        data: {
+          historyServerHostName: historyServerHostName,
+          ahsWebPort: '',
+          filtersLink: this.get('filterObject').createJobsFiltersLink()
+        },
+        success: 'loadJobsSuccessCallback',
+        error : 'loadJobsErrorCallback'
+      });
+    }
   },
 
   loadJobsSuccessCallback: function(data) {

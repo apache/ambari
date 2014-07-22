@@ -1,0 +1,10 @@
+{
+  "items" : [
+    {
+      "Clusters" : {
+        "cluster_name" : "tdk",
+        "version" : "HDP-2.1"
+      }
+    }
+  ]
+}

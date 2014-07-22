@@ -40,6 +40,26 @@ var urls = {
     real: '/proxy?url=http://{historyServerHostName}:{ahsWebPort}/ws/v1/timeline/HIVE_QUERY_ID?limit=1&secondaryFilter=tez:true',
     mock: '/scripts/assets/hive-queries.json',
     apiPrefix: ''
+  },
+
+  'cluster_name': {
+    real: 'clusters',
+    mock: '/scripts/assets/clusters.json'
+  },
+
+  'services': {
+    real: 'clusters/{clusterName}/services?fields=ServiceInfo/state,ServiceInfo/maintenance_state&minimal_response=true',
+    mock: '/scripts/assets/services.json'
+  },
+
+  'components': {
+    real: 'clusters/{clusterName}/components/?fields=ServiceComponentInfo/state&minimal_response=true',
+    mock: '/scripts/assets/components.json'
+  },
+
+  'components_hosts': {
+    real: 'clusters/{clusterName}/hosts?host_components/HostRoles/component_name={componentName}&minimal_response=true',
+    mock: '/scripts/assets/components_hosts.json'
   }
 
 };
@@ -122,7 +142,7 @@ var ajax = Em.Object.extend({
     Ember.assert('Invalid config.name provided - ' + config.name, urls[config.name]);
 
     var opt = {},
-      params = {};
+      params = {clusterName: App.get('clusterName')};
 
     if (config.data) {
       jQuery.extend(params, config.data);

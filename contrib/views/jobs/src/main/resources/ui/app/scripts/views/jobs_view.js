@@ -34,11 +34,7 @@ App.JobsView = App.TableView.extend({
    If no jobs to display set noDataToShow to true, else set emptyData to false.
    */
   noDataToShowObserver: function () {
-    if(this.get("controller.content.length") > 0){
-      this.set("noDataToShow",false);
-    }else{
-      this.set("noDataToShow",true);
-    }
+    this.set("noDataToShow", this.get("controller.content.length") === 0);
   }.observes("controller.content.length"),
 
   willInsertElement: function () {

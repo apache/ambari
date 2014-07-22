@@ -50,11 +50,11 @@
     </thead>
     <tbody>
       {{#if view.noDataToShow}}
-      <tr>
-        <td class="no-data" colspan="6">
-          {{controller.jobsMessage}}
-        </td>
-      </tr>
+        <tr>
+          <td class="no-data" colspan="6">
+            {{controller.jobsMessage}}
+          </td>
+        </tr>
       {{else}}
         {{#each job in controller.sortedContent}}
           <tr>
