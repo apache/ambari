@@ -337,7 +337,6 @@ App.config = Em.Object.create({
             }
             this.handleSpecialProperties(serviceConfigObj);
           } else {
-            serviceConfigObj.isVisible = false;  // if the property is not defined on ui metadata site_properties.js then it shouldn't be a part of errorCount
             serviceConfigObj.displayType = stringUtils.isSingleLine(serviceConfigObj.value) ? 'advanced' : 'multiLine';
           }
 
