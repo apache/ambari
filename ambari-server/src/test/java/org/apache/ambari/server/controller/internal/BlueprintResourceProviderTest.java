@@ -41,6 +41,7 @@ import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.BlueprintDAO;
 import org.apache.ambari.server.orm.entities.BlueprintConfigEntity;
+import org.apache.ambari.server.orm.entities.BlueprintConfiguration;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
 import org.apache.ambari.server.orm.entities.HostGroupComponentEntity;
 import org.apache.ambari.server.orm.entities.HostGroupConfigEntity;
@@ -49,6 +50,7 @@ import org.apache.ambari.server.state.AutoDeployInfo;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.DependencyInfo;
 import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.server.utils.StageUtils;
 import org.easymock.Capture;
 
 import static org.easymock.EasyMock.expectLastCall;
@@ -60,9 +62,12 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertNotNull;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -72,6 +77,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.apache.ambari.server.controller.internal.BlueprintResourceProvider.*;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
@@ -90,6 +96,10 @@ public class BlueprintResourceProviderTest {
 
   private static String BLUEPRINT_NAME = "test-blueprint";
 
+  @Rule
+  public ExpectedException expectedException = ExpectedException.none();
+
+  private final static BlueprintResourceProvider provider = createProvider();
   private final static BlueprintDAO dao = createStrictMock(BlueprintDAO.class);
   private final static Gson gson = new Gson();
   private final static AmbariMetaInfo metaInfo = createMock(AmbariMetaInfo.class);
@@ -312,7 +322,6 @@ public class BlueprintResourceProviderTest {
                                                    NoSuchParentResourceException, NoSuchResourceException {
     Request request = createNiceMock(Request.class);
 
-    ResourceProvider provider = createProvider();
     BlueprintEntity entity = createEntity(getTestProperties().iterator().next());
 
     List<BlueprintEntity> results = new ArrayList<BlueprintEntity>();
@@ -334,7 +343,6 @@ public class BlueprintResourceProviderTest {
       NoSuchParentResourceException, NoSuchResourceException {
     Request request = createNiceMock(Request.class);
 
-    ResourceProvider provider = createProvider();
     Set<Map<String, Object>> testProperties = getTestProperties();
     setConfigurationProperties(testProperties);
     BlueprintEntity entity = createEntity(testProperties.iterator().next());
@@ -358,7 +366,6 @@ public class BlueprintResourceProviderTest {
   public void testDeleteResources() throws SystemException, UnsupportedPropertyException,
                                            NoSuchParentResourceException, NoSuchResourceException {
 
-    ResourceProvider provider = createProvider();
     BlueprintEntity blueprintEntity = createEntity(getTestProperties().iterator().next());
 
     // set expectations
@@ -400,7 +407,6 @@ public class BlueprintResourceProviderTest {
     replay(dao, metaInfo, request);
     // end expectations
 
-    ResourceProvider provider = createProvider();
     try {
       provider.createResources(request);
       fail("Exception expected");
@@ -444,7 +450,6 @@ public class BlueprintResourceProviderTest {
     replay(dao, metaInfo, request);
     // end expectations
 
-    ResourceProvider provider = createProvider();
     try {
       provider.createResources(request);
       fail("Exception expected");
@@ -488,7 +493,6 @@ public class BlueprintResourceProviderTest {
     replay(dao, metaInfo, request);
     // end expectations
 
-    ResourceProvider provider = createProvider();
     try {
       provider.createResources(request);
       fail("Exception expected");
@@ -532,7 +536,6 @@ public class BlueprintResourceProviderTest {
     replay(dao, metaInfo, request);
     // end expectations
 
-    ResourceProvider provider = createProvider();
     try {
       provider.createResources(request);
       fail("Exception expected");
@@ -575,7 +578,6 @@ public class BlueprintResourceProviderTest {
     replay(dao, metaInfo, request);
     // end expectations
 
-    ResourceProvider provider = createProvider();
     try {
       provider.createResources(request);
       fail("Exception expected");
@@ -1127,8 +1129,9 @@ public class BlueprintResourceProviderTest {
 
   private void setConfigurationProperties(Set<Map<String, Object>> properties ) {
     Map<String, String> clusterProperties = new HashMap<String, String>();
-    clusterProperties.put("core-site/fs.trash.interval", "480");
-    clusterProperties.put("core-site/ipc.client.idlethreshold", "8500");
+    clusterProperties.put("core-site/properties/fs.trash.interval", "480");
+    clusterProperties.put("core-site/properties/ipc.client.idlethreshold", "8500");
+    clusterProperties.put("core-site/properties_attributes/final/ipc.client.idlethreshold", "true");
 
     // single entry in set which was created in getTestProperties
     Map<String, Object> mapProperties = properties.iterator().next();
@@ -1252,14 +1255,26 @@ public class BlueprintResourceProviderTest {
 
       Map<String, Object> typeConfigs = blueprintConfigurations.iterator().next();
       assertEquals(1, typeConfigs.size());
-      Map<String, String> properties = (Map<String, String>) typeConfigs.get("core-site");
-      assertEquals(2, properties.size());
+      Map<String, Map<String, Object>> coreSiteConfig = (Map<String, Map<String, Object>>) typeConfigs.get("core-site");
+      assertEquals(2, coreSiteConfig.size());
+      assertTrue(coreSiteConfig.containsKey(BlueprintResourceProvider.PROPERTIES_PROPERTY_ID));
+      Map<String, Object> properties = coreSiteConfig.get(BlueprintResourceProvider.PROPERTIES_PROPERTY_ID);
+      assertNotNull(properties);
       assertEquals("480", properties.get("fs.trash.interval"));
       assertEquals("8500", properties.get("ipc.client.idlethreshold"));
+
+      assertTrue(coreSiteConfig.containsKey(BlueprintResourceProvider.PROPERTIES_ATTRIBUTES_PROPERTY_ID));
+      Map<String, Object> attributes = coreSiteConfig.get(BlueprintResourceProvider.PROPERTIES_ATTRIBUTES_PROPERTY_ID);
+      assertNotNull(attributes);
+      assertEquals(1, attributes.size());
+      assertTrue(attributes.containsKey("final"));
+      Map<String, String> finalAttrs = (Map<String, String>) attributes.get("final");
+      assertEquals(1, finalAttrs.size());
+      assertEquals("true", finalAttrs.get("ipc.client.idlethreshold"));
     }
   }
 
-  private BlueprintResourceProvider createProvider() {
+  private static BlueprintResourceProvider createProvider() {
     return new BlueprintResourceProvider(
         PropertyHelper.getPropertyIds(Resource.Type.Blueprint),
         PropertyHelper.getKeyPropertyIds(Resource.Type.Blueprint),
@@ -1300,27 +1315,238 @@ public class BlueprintResourceProviderTest {
 
     Collection<Map<String, String>> configProperties = (Collection<Map<String, String>>) properties.get(
         BlueprintResourceProvider.CONFIGURATION_PROPERTY_ID);
-    Map<String, String> configData = new HashMap<String, String>();
-    Collection<BlueprintConfigEntity> configs = new ArrayList<BlueprintConfigEntity>();
-    if (configProperties != null) {
-      for (Map<String, String> config : configProperties) {
-        BlueprintConfigEntity configEntity = new BlueprintConfigEntity();
-        for (Map.Entry<String, String> entry : config.entrySet()) {
-          String absolutePropName = entry.getKey();
-
-          int idx = absolutePropName.indexOf('/');
-          if (configEntity.getType() == null) {
-            configEntity.setType(absolutePropName.substring(0, idx));
-          }
-          configData.put(absolutePropName.substring(idx + 1), entry.getValue());
-        }
-        configEntity.setConfigData(gson.toJson(configData));
-        configs.add(configEntity);
-      }
-    }
-    entity.setConfigurations(configs);
-
+    createProvider().createBlueprintConfigEntities(configProperties, entity);
     return entity;
+  }
+
+  @Test
+  public void testPopulateConfigurationEntity_oldSchema() throws Exception {
+    Map<String, String> configuration = new HashMap<String, String>();
+    configuration.put("global/property1", "val1");
+    configuration.put("global/property2", "val2");
+    BlueprintConfiguration config = new BlueprintConfigEntity();
+
+    provider.populateConfigurationEntity(configuration, config);
+
+    assertNotNull(config.getConfigData());
+    assertNotNull(config.getConfigAttributes());
+    Map<?, ?> configData = StageUtils.getGson().fromJson(config.getConfigData(), Map.class);
+    Map<?, Map<?, ?>> configAttrs = StageUtils.getGson().fromJson(config.getConfigAttributes(), Map.class);
+    assertNotNull(configData);
+    assertNotNull(configAttrs);
+    assertEquals(2, configData.size());
+    assertTrue(configData.containsKey("property1"));
+    assertTrue(configData.containsKey("property2"));
+    assertEquals("val1", configData.get("property1"));
+    assertEquals("val2", configData.get("property2"));
+    assertEquals(0, configAttrs.size());
+  }
+
+  @Test
+  public void testPopulateConfigurationEntity_newSchema() throws Exception {
+    Map<String, String> configuration = new HashMap<String, String>();
+    configuration.put("global/properties/property1", "val1");
+    configuration.put("global/properties/property2", "val2");
+    configuration.put("global/properties_attributes/final/property1", "true");
+    configuration.put("global/properties_attributes/final/property2", "false");
+    configuration.put("global/properties_attributes/deletable/property1", "true");
+    BlueprintConfiguration config = new BlueprintConfigEntity();
+
+    provider.populateConfigurationEntity(configuration, config);
+
+    assertNotNull(config.getConfigData());
+    assertNotNull(config.getConfigAttributes());
+    Map<?, ?> configData = StageUtils.getGson().fromJson(config.getConfigData(), Map.class);
+    Map<?, Map<?, ?>> configAttrs = StageUtils.getGson().fromJson(config.getConfigAttributes(), Map.class);
+    assertNotNull(configData);
+    assertNotNull(configAttrs);
+    assertEquals(2, configData.size());
+    assertTrue(configData.containsKey("property1"));
+    assertTrue(configData.containsKey("property2"));
+    assertEquals("val1", configData.get("property1"));
+    assertEquals("val2", configData.get("property2"));
+    assertEquals(2, configAttrs.size());
+    assertTrue(configAttrs.containsKey("final"));
+    assertTrue(configAttrs.containsKey("deletable"));
+    Map<?, ?> finalAttrs = configAttrs.get("final");
+    assertNotNull(finalAttrs);
+    assertEquals(2, finalAttrs.size());
+    assertTrue(finalAttrs.containsKey("property1"));
+    assertTrue(finalAttrs.containsKey("property2"));
+    assertEquals("true", finalAttrs.get("property1"));
+    assertEquals("false", finalAttrs.get("property2"));
+
+    Map<?, ?> deletableAttrs = configAttrs.get("deletable");
+    assertNotNull(deletableAttrs);
+    assertEquals(1, deletableAttrs.size());
+    assertTrue(deletableAttrs.containsKey("property1"));
+    assertEquals("true", deletableAttrs.get("property1"));
+  }
+
+  @Test
+  public void testPopulateConfigurationEntity_configIsNull() throws Exception {
+    Map<String, String> configuration = null;
+    BlueprintConfiguration config = new BlueprintConfigEntity();
+
+    provider.populateConfigurationEntity(configuration, config);
+
+    assertNotNull(config.getConfigAttributes());
+    assertNotNull(config.getConfigData());
+  }
+
+  @Test
+  public void testPopulateConfigurationEntity_configIsEmpty() throws Exception {
+    Map<String, String> configuration = new HashMap<String, String>();
+    BlueprintConfiguration config = new BlueprintConfigEntity();
+
+    provider.populateConfigurationEntity(configuration, config);
+
+    assertNotNull(config.getConfigAttributes());
+    assertNotNull(config.getConfigData());
+  }
+
+  @Test
+  public void testDecidePopulationStrategy_configIsEmpty() throws Exception {
+    Map<String, String> configMap = new HashMap<String, String>();
+
+    BlueprintConfigPopulationStrategy provisioner =
+        provider.decidePopulationStrategy(configMap);
+
+    assertNotNull(provisioner);
+    assertTrue(provisioner instanceof BlueprintConfigPopulationStrategyV2);
+  }
+
+  @Test
+  public void testDecidePopulationStrategy_configIsNull() throws Exception {
+    Map<String, String> configMap = null;
+
+    BlueprintConfigPopulationStrategy provisioner =
+        provider.decidePopulationStrategy(configMap);
+
+    assertNotNull(provisioner);
+    assertTrue(provisioner instanceof BlueprintConfigPopulationStrategyV2);
+  }
+
+  @Test
+  public void testDecidePopulationStrategy_withOldSchema() throws Exception {
+    Map<String, String> configMap = new HashMap<String, String>();
+    configMap.put("global/hive_database", "db");
+
+    BlueprintConfigPopulationStrategy provisioner =
+        provider.decidePopulationStrategy(configMap);
+
+    assertNotNull(provisioner);
+    assertTrue(provisioner instanceof BlueprintConfigPopulationStrategyV1);
+  }
+
+  @Test
+  public void testDecidePopulationStrategy_withNewSchema_attributes() throws Exception {
+    Map<String, String> configMap = new HashMap<String, String>();
+    configMap.put("global/properties_attributes/final/nagios_contact", "true");
+
+    BlueprintConfigPopulationStrategy provisioner =
+        provider.decidePopulationStrategy(configMap);
+
+    assertNotNull(provisioner);
+    assertTrue(provisioner instanceof BlueprintConfigPopulationStrategyV2);
+  }
+
+  @Test
+  public void testDecidePopulationStrategy_withNewSchema_properties() throws Exception {
+    Map<String, String> configMap = new HashMap<String, String>();
+    configMap.put("global/properties/nagios_contact", "foo@ffl.dsfds");
+
+    BlueprintConfigPopulationStrategy provisioner =
+        provider.decidePopulationStrategy(configMap);
+
+    assertNotNull(provisioner);
+    assertTrue(provisioner instanceof BlueprintConfigPopulationStrategyV2);
+  }
+
+  @Test
+  public void testDecidePopulationStrategy_unsupportedSchema() throws Exception {
+    Map<String, String> configMap = new HashMap<String, String>();
+    configMap.put("global/properties/lot/nagios_contact", "foo@ffl.dsfds");
+    expectedException.expect(IllegalArgumentException.class);
+    expectedException.expectMessage("Configuration definition schema is not supported");
+
+    provider.decidePopulationStrategy(configMap);
+  }
+
+  @Test
+  public void testPopulateConfigurationList() throws Exception {
+    // attributes is null
+    BlueprintConfiguration config1 = new BlueprintConfigEntity();
+    config1.setType("type1");
+    config1.setConfigData("{\"key1\":\"value1\"}");
+    // attributes is empty
+    BlueprintConfiguration config2 = new BlueprintConfigEntity();
+    config2.setType("type2");
+    config2.setConfigData("{\"key2\":\"value2\"}");
+    config2.setConfigAttributes("{}");
+    // attributes is provided
+    BlueprintConfiguration config3 = new BlueprintConfigEntity();
+    config3.setType("type3");
+    config3.setConfigData("{\"key3\":\"value3\",\"key4\":\"value4\"}");
+    config3.setConfigAttributes("{\"final\":{\"key3\":\"attrValue1\",\"key4\":\"attrValue2\"}}");
+
+    List<Map<String, Map<String, Object>>> configs =
+        provider.populateConfigurationList(Arrays.asList(config1, config2, config3));
+
+    assertNotNull(configs);
+    assertEquals(3, configs.size());
+    Map<String, Map<String, Object>> configuration1 = configs.get(0);
+    assertNotNull(configuration1);
+    assertEquals(1, configuration1.size());
+    assertTrue(configuration1.containsKey("type1"));
+    Map<String, Object> typeConfig1 = configuration1.get("type1");
+    assertNotNull(typeConfig1);
+    assertEquals(1, typeConfig1.size());
+    assertTrue(typeConfig1.containsKey(BlueprintResourceProvider.PROPERTIES_PROPERTY_ID));
+    Map<String, String> confProperties1
+        = (Map<String, String>) typeConfig1.get(BlueprintResourceProvider.PROPERTIES_PROPERTY_ID);
+    assertNotNull(confProperties1);
+    assertEquals(1, confProperties1.size());
+    assertEquals("value1", confProperties1.get("key1"));
+
+    Map<String, Map<String, Object>> configuration2 = configs.get(1);
+    assertNotNull(configuration2);
+    assertEquals(1, configuration2.size());
+    assertTrue(configuration2.containsKey("type2"));
+    Map<String, Object> typeConfig2 = configuration2.get("type2");
+    assertNotNull(typeConfig2);
+    assertEquals(1, typeConfig2.size());
+    assertTrue(typeConfig2.containsKey(BlueprintResourceProvider.PROPERTIES_PROPERTY_ID));
+    Map<String, String> confProperties2
+        = (Map<String, String>) typeConfig2.get(BlueprintResourceProvider.PROPERTIES_PROPERTY_ID);
+    assertNotNull(confProperties2);
+    assertEquals(1, confProperties2.size());
+    assertEquals("value2", confProperties2.get("key2"));
+
+    Map<String, Map<String, Object>> configuration3 = configs.get(2);
+    assertNotNull(configuration3);
+    assertEquals(1, configuration3.size());
+    assertTrue(configuration3.containsKey("type3"));
+    Map<String, Object> typeConfig3 = configuration3.get("type3");
+    assertNotNull(typeConfig3);
+    assertEquals(2, typeConfig3.size());
+    assertTrue(typeConfig3.containsKey(BlueprintResourceProvider.PROPERTIES_PROPERTY_ID));
+    Map<String, String> confProperties3
+        = (Map<String, String>) typeConfig3.get(BlueprintResourceProvider.PROPERTIES_PROPERTY_ID);
+    assertNotNull(confProperties3);
+    assertEquals(2, confProperties3.size());
+    assertEquals("value3", confProperties3.get("key3"));
+    assertEquals("value4", confProperties3.get("key4"));
+    assertTrue(typeConfig3.containsKey(BlueprintResourceProvider.PROPERTIES_ATTRIBUTES_PROPERTY_ID));
+    Map<String, Map<String, String>> confAttributes3
+        = (Map<String, Map<String, String>>) typeConfig3.get(BlueprintResourceProvider.PROPERTIES_ATTRIBUTES_PROPERTY_ID);
+    assertNotNull(confAttributes3);
+    assertEquals(1, confAttributes3.size());
+    assertTrue(confAttributes3.containsKey("final"));
+    Map<String, String> finalAttrs = confAttributes3.get("final");
+    assertEquals(2, finalAttrs.size());
+    assertEquals("attrValue1", finalAttrs.get("key3"));
+    assertEquals("attrValue2", finalAttrs.get("key4"));
   }
 }
 

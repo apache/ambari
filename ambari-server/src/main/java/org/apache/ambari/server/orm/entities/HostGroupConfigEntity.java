@@ -52,6 +52,11 @@ public class HostGroupConfigEntity implements BlueprintConfiguration {
   @Basic
   private String configData;
 
+  @Column(name = "config_attributes", nullable = true, insertable = true, updatable = false)
+  @Basic
+  private String configAttributes;
+
+
   @ManyToOne
   @JoinColumns({
       @JoinColumn(name = "hostgroup_name", referencedColumnName = "name", nullable = false),
@@ -148,5 +153,23 @@ public class HostGroupConfigEntity implements BlueprintConfiguration {
    */
   public void setConfigData(String configData) {
     this.configData = configData;
+  }
+
+  /**
+   * Gets the attributes of configs in this host group.
+   *
+   * @return config attributes in JSON format
+   */
+  public String getConfigAttributes() {
+    return configAttributes;
+  }
+
+  /**
+   * Sets attributes of configs in this host group.
+   *
+   * @param configAttributes  all attribute values of configs in JSON format
+   */
+  public void setConfigAttributes(String configAttributes) {
+    this.configAttributes = configAttributes;
   }
 }

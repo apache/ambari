@@ -65,4 +65,20 @@ public interface BlueprintConfiguration {
    * @return json representation of property map
    */
   public String getConfigData();
+
+  /**
+   * Get the configuration attributes.
+   *
+   * @return json representation of attributes map
+   */
+  public String getConfigAttributes();
+
+  /**
+   * Set the configuration attributes.
+   * Data must be a map of configuration attributes in
+   * json format.
+   *
+   * @param configAttributes json representation of attributes map
+   */
+  public void setConfigAttributes(String configAttributes);
 }

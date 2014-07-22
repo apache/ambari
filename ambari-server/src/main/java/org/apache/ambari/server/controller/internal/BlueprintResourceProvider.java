@@ -82,6 +82,8 @@ public class BlueprintResourceProvider extends BaseBlueprintProcessor {
 
   // Configurations
   protected static final String CONFIGURATION_PROPERTY_ID = "configurations";
+  protected static final String PROPERTIES_PROPERTY_ID = "properties";
+  protected static final String PROPERTIES_ATTRIBUTES_PROPERTY_ID = "properties_attributes";
 
   // Primary Key Fields
   private static Set<String> pkPropertyIds =
@@ -435,16 +437,23 @@ public class BlueprintResourceProvider extends BaseBlueprintProcessor {
    *
    * @return list of configuration property maps
    */
-  private List<Map<String, Object>> populateConfigurationList(
+  List<Map<String, Map<String, Object>>> populateConfigurationList(
       Collection<? extends BlueprintConfiguration> configurations) {
 
-    List<Map<String, Object>> listConfigurations = new ArrayList<Map<String, Object>>();
+    List<Map<String, Map<String, Object>>> listConfigurations = new ArrayList<Map<String, Map<String, Object>>>();
     for (BlueprintConfiguration config : configurations) {
-      Map<String, Object> mapConfigurations = new HashMap<String, Object>();
+      Map<String, Map<String, Object>> mapConfigurations = new HashMap<String, Map<String, Object>>();
+      Map<String, Object> configTypeDefinition = new HashMap<String, Object>();
       String type = config.getType();
-      Map<String, String> properties = jsonSerializer.<Map<String, String>>fromJson(
+      Map<String, Object> properties = jsonSerializer.<Map<String, Object>>fromJson(
           config.getConfigData(), Map.class);
-      mapConfigurations.put(type, properties);
+      configTypeDefinition.put(PROPERTIES_PROPERTY_ID, properties);
+      Map<String, Map<String, String>> attributes = jsonSerializer.<Map<String, Map<String, String>>>fromJson(
+          config.getConfigAttributes(), Map.class);
+      if (attributes != null && !attributes.isEmpty()) {
+        configTypeDefinition.put(PROPERTIES_ATTRIBUTES_PROPERTY_ID, attributes);
+      }
+      mapConfigurations.put(type, configTypeDefinition);
       listConfigurations.add(mapConfigurations);
     }
 
@@ -457,7 +466,7 @@ public class BlueprintResourceProvider extends BaseBlueprintProcessor {
    * @param propertyMaps  collection of configuration property maps
    * @param blueprint     blueprint entity to set configurations on
    */
-  private void createBlueprintConfigEntities(Collection<Map<String, String>> propertyMaps,
+  void createBlueprintConfigEntities(Collection<Map<String, String>> propertyMaps,
                                              BlueprintEntity blueprint) {
 
     Collection<BlueprintConfigEntity> configurations = new ArrayList<BlueprintConfigEntity>();
@@ -465,7 +474,8 @@ public class BlueprintResourceProvider extends BaseBlueprintProcessor {
       for (Map<String, String> configuration : propertyMaps) {
         BlueprintConfigEntity configEntity = new BlueprintConfigEntity();
         configEntity.setBlueprintEntity(blueprint);
-        populateConfigurationEntity(blueprint.getBlueprintName(), configuration, configEntity);
+        configEntity.setBlueprintName(blueprint.getBlueprintName());
+        populateConfigurationEntity(configuration, configEntity);
         configurations.add(configEntity);
       }
     }
@@ -487,7 +497,8 @@ public class BlueprintResourceProvider extends BaseBlueprintProcessor {
         HostGroupConfigEntity configEntity = new HostGroupConfigEntity();
         configEntity.setHostGroupEntity(hostGroup);
         configEntity.setHostGroupName(hostGroup.getName());
-        populateConfigurationEntity(hostGroup.getBlueprintName(), configuration, configEntity);
+        configEntity.setBlueprintName(hostGroup.getBlueprintName());
+        populateConfigurationEntity(configuration, configEntity);
         configurations.add(configEntity);
       }
     }
@@ -497,26 +508,31 @@ public class BlueprintResourceProvider extends BaseBlueprintProcessor {
   /**
    * Populate a configuration entity from properties.
    *
-   * @param blueprintName  name of blueprint
    * @param configuration  property map
    * @param configEntity   config entity to populate
    */
-  private void populateConfigurationEntity(String blueprintName, Map<String, String> configuration,
-                                           BlueprintConfiguration configEntity) {
+  void populateConfigurationEntity(Map<String, String> configuration, BlueprintConfiguration configEntity) {
+    BlueprintConfigPopulationStrategy p = decidePopulationStrategy(configuration);
+    p.applyConfiguration(configuration, configEntity);
+  }
 
-    configEntity.setBlueprintName(blueprintName);
-    Map<String, String> configData = new HashMap<String, String>();
-
-    for (Map.Entry<String, String> entry : configuration.entrySet()) {
-      String absolutePropName = entry.getKey();
-
-      int idx = absolutePropName.indexOf('/');
-      if (configEntity.getType() == null) {
-        configEntity.setType(absolutePropName.substring(0, idx));
+  BlueprintConfigPopulationStrategy decidePopulationStrategy(Map<String, String> configuration) {
+    if (configuration != null && !configuration.isEmpty()) {
+      String keyEntry = configuration.keySet().iterator().next();
+      String[] keyNameTokens = keyEntry.split("/");
+      int levels = keyNameTokens.length;
+      String propertiesType = keyNameTokens[1];
+      if (levels == 2) {
+        return new BlueprintConfigPopulationStrategyV1();
+      } else if ((levels == 3 && PROPERTIES_PROPERTY_ID.equals(propertiesType))
+          || (levels == 4 && PROPERTIES_ATTRIBUTES_PROPERTY_ID.equals(propertiesType))) {
+        return new BlueprintConfigPopulationStrategyV2();
+      } else {
+        throw new IllegalArgumentException("Configuration format provided in Blueprint is not supported");
       }
-      configData.put(absolutePropName.substring(idx + 1), entry.getValue());
+    } else {
+      return new BlueprintConfigPopulationStrategyV2();
     }
-    configEntity.setConfigData(jsonSerializer.toJson(configData));
   }
 
   /**
@@ -562,5 +578,87 @@ public class BlueprintResourceProvider extends BaseBlueprintProcessor {
         return null;
       }
     };
+  }
+
+  /**
+   * The structure of blueprints is evolving where multiple resource
+   * structures are to be supported. This class abstracts the population
+   * of configurations which have changed from a map of key-value strings,
+   * to an map containing 'properties' and 'properties_attributes' maps.
+   *
+   * Extending classes can determine how they want to populate the
+   * configuration maps depending on input.
+   */
+  protected static abstract class BlueprintConfigPopulationStrategy {
+
+    public void applyConfiguration(Map<String, String> configuration, BlueprintConfiguration blueprintConfiguration) {
+      Map<String, String> configData = new HashMap<String, String>();
+      Map<String, Map<String, String>> configAttributes = new HashMap<String, Map<String, String>>();
+
+      if (configuration != null) {
+        for (Map.Entry<String, String> entry : configuration.entrySet()) {
+          String absolutePropName = entry.getKey();
+          String propertyValue = entry.getValue();
+          String[] propertyNameTokens = absolutePropName.split("/");
+
+          if (blueprintConfiguration.getType() == null) {
+            blueprintConfiguration.setType(propertyNameTokens[0]);
+          }
+
+          addProperty(configData, configAttributes, propertyNameTokens, propertyValue);
+        }
+      }
+
+      blueprintConfiguration.setConfigData(jsonSerializer.toJson(configData));
+      blueprintConfiguration.setConfigAttributes(jsonSerializer.toJson(configAttributes));
+    }
+
+    protected abstract void addProperty(Map<String, String> configData,
+                                        Map<String, Map<String, String>> configAttributes,
+                                        String[] propertyNameTokens, String propertyValue);
+  }
+
+  /**
+   * Original blueprint configuration format where configs were a map
+   * of strings.
+   */
+  protected static class BlueprintConfigPopulationStrategyV1 extends BlueprintConfigPopulationStrategy {
+
+    @Override
+    protected void addProperty(Map<String, String> configData,
+                               Map<String, Map<String, String>> configAttributes,
+                               String[] propertyNameTokens, String propertyValue) {
+      configData.put(propertyNameTokens[1], propertyValue);
+    }
+
+  }
+
+  /**
+   * New blueprint configuration format where configs are a map from 'properties' and
+   * 'properties_attributes' to a map of strings.
+   * 
+   * @since 1.7.0
+   */
+  protected static class BlueprintConfigPopulationStrategyV2 extends BlueprintConfigPopulationStrategy {
+
+    @Override
+    protected void addProperty(Map<String, String> configData,
+                               Map<String, Map<String, String>> configAttributes,
+                               String[] propertyNameTokens, String propertyValue) {
+      if (PROPERTIES_PROPERTY_ID.equals(propertyNameTokens[1])) {
+        configData.put(propertyNameTokens[2], propertyValue);
+      } else if (PROPERTIES_ATTRIBUTES_PROPERTY_ID.equals(propertyNameTokens[1])) {
+        addConfigAttribute(configAttributes, propertyNameTokens, propertyValue);
+      }
+    }
+
+    private void addConfigAttribute(Map<String, Map<String, String>> configDependencyProperties,
+                                    String[] propertyNameTokens, String value) {
+      if (!configDependencyProperties.containsKey(propertyNameTokens[2])) {
+        configDependencyProperties.put(propertyNameTokens[2], new HashMap<String, String>());
+      }
+      Map<String, String> propertiesGroup = configDependencyProperties.get(propertyNameTokens[2]);
+      propertiesGroup.put(propertyNameTokens[3], value);
+    }
   }
 }
