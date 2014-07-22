@@ -27,6 +27,7 @@ from mock.mock import patch, MagicMock, call
 import StringIO
 import sys
 
+
 with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
   from ambari_agent.Heartbeat import Heartbeat
   from ambari_agent.ActionQueue import ActionQueue
@@ -64,7 +65,7 @@ class TestHeartbeat(TestCase):
     self.assertEquals(result['componentStatus'] is not None, True, "Heartbeat should contain componentStatus")
     self.assertEquals(result['reports'] is not None, True, "Heartbeat should contain reports")
     self.assertEquals(result['timestamp'] >= 1353679373880L, True)
-    self.assertEquals(len(result['nodeStatus']), 2)
+    self.assertEquals(len(result['nodeStatus']), 3)
     self.assertEquals(result['nodeStatus']['cause'], "NONE")
     self.assertEquals(result['nodeStatus']['status'], "HEALTHY")
     # result may or may NOT have an agentEnv structure in it
@@ -102,9 +103,10 @@ class TestHeartbeat(TestCase):
     hb = heartbeat.build(id = 0, state_interval=1, componentsMapped=True)
     self.assertEqual(register_mock.call_args_list[0][0][1], False)
 
-
+  @patch.object(HostInfo, "createAlerts")
   @patch.object(ActionQueue, "result")
-  def test_build_long_result(self, result_mock):
+  def test_build_long_result(self, result_mock, createAlerts_mock):
+    createAlerts_mock.return_value = []
     config = AmbariConfig.AmbariConfig().getConfig()
     config.set('agent', 'prefix', 'tmp')
     config.set('agent', 'cache_dir', "/var/lib/ambari-agent/cache")
@@ -169,6 +171,7 @@ class TestHeartbeat(TestCase):
     hb['timestamp'] = 'timestamp'
     expected = {'nodeStatus':
                   {'status': 'HEALTHY',
+                   'alerts': [],
                    'cause': 'NONE'},
                 'timestamp': 'timestamp', 'hostname': 'hostname',
                 'responseId': 10, 'reports': [

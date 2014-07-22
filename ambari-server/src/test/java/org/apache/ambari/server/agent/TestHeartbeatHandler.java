@@ -165,10 +165,25 @@ public class TestHeartbeatHandler {
     aq.enqueue(DummyHostname1, new ExecutionCommand());
     HeartBeat hb = new HeartBeat();
     hb.setResponseId(0);
-    hb.setNodeStatus(new HostStatus(Status.HEALTHY, DummyHostStatus));
+    HostStatus hs = new HostStatus(Status.HEALTHY, DummyHostStatus);
+    List<Alert> al = new ArrayList<Alert>();
+    al.add(new Alert());
+    hs.setAlerts(al);
+    hb.setNodeStatus(hs);
     hb.setHostname(DummyHostname1);
+    
+    for (Map.Entry<String, Cluster> entry : clusters.getClusters().entrySet()) {
+      Cluster cl = entry.getValue();
+      assertEquals(0, cl.getAlerts().size());
+    }
 
     handler.handleHeartBeat(hb);
+    
+    for (Map.Entry<String, Cluster> entry : clusters.getClusters().entrySet()) {
+      Cluster cl = entry.getValue();
+      assertEquals(1, cl.getAlerts().size());
+    }
+    
     assertEquals(HostState.HEALTHY, hostObject.getState());
     assertEquals(0, aq.dequeueAll(DummyHostname1).size());
   }

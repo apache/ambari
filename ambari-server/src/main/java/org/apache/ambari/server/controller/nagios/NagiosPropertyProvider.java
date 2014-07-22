@@ -17,15 +17,20 @@
  */
 package org.apache.ambari.server.controller.nagios;
 
+import com.google.gson.Gson;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -37,8 +42,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import java.util.regex.Pattern;
-
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.configuration.Configuration;
@@ -49,6 +54,7 @@ import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.utilities.StreamProvider;
+import org.apache.ambari.server.state.Alert;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Service;
@@ -56,10 +62,6 @@ import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.gson.Gson;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
 
 /**
  * Used to populate resources that have Nagios alertable properties.
@@ -147,16 +149,42 @@ public class NagiosPropertyProvider extends BaseProvider implements PropertyProv
       @Override
       public void run() {
         for (String clusterName : CLUSTER_NAMES) {
+          List<NagiosAlert> alerts = new LinkedList<NagiosAlert>();
           try {
-            List<NagiosAlert> alerts = populateAlerts(clusterName);
-            
-            CLUSTER_ALERTS.put(clusterName, alerts);
+            alerts = populateAlerts(clusterName);
           } catch (Exception e) {
             LOG.error("Could not load Nagios alerts: " + e.getMessage());
           }
+          alerts.addAll(convertAlerts(clusterName));
+          CLUSTER_ALERTS.put(clusterName, alerts);
         }
       }
     }, 0L, 30L, TimeUnit.SECONDS);    
+  }
+
+  
+  /**
+   * Convert Alert from cluster to NagiosAlert
+   * @param clusterName the cluster name
+   * @return Collection of NagiosAlerts
+   * @throws AmbariException 
+   */
+  public List<NagiosAlert> convertAlerts(String clusterName) {
+    Cluster cluster;
+    try {
+      cluster = clusters.getCluster(clusterName);
+    } catch (AmbariException ex) {
+      return new ArrayList<NagiosAlert>();
+    }
+    Collection<Alert> clusterAlerts = cluster.getAlerts();
+    List<NagiosAlert> results = new ArrayList<NagiosAlert>();
+    if (clusterAlerts != null) {
+      for (Alert alert : clusterAlerts) {
+        NagiosAlert a = new NagiosAlert(alert);
+        results.add(a);
+      }
+    }
+    return results;
   }
   
   /**
