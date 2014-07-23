@@ -994,6 +994,12 @@ Em.I18n.translations = {
   'admin.rm_highAvailability.wizard.step3.currentRM': 'Current ResourceManager',
   'admin.rm_highAvailability.wizard.step3.additionalRM': 'Additional ResourceManager',
   'admin.rm_highAvailability.wizard.step4.header': 'Configure Components',
+  'admin.rm_highAvailability.wizard.step4.task0.title': 'Stop Required Services',
+  'admin.rm_highAvailability.wizard.step4.task1.title': 'Install Additional ResourceManager',
+  'admin.rm_highAvailability.wizard.step4.task2.title': 'Reconfigure YARN',
+  'admin.rm_highAvailability.wizard.step4.task3.title': 'Start All Services',
+  'admin.rm_highAvailability.wizard.step4.notice.inProgress':'Please wait while ResourceManager HA is being deployed.',
+  'admin.rm_highAvailability.wizard.step4.notice.completed':'NameNode HA has been enabled successfully.',
 
   'admin.security.title':'Kerberos security has not been enabled',
   'admin.security.enabled': 'Kerberos security is enabled',

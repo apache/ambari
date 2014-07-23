@@ -22,7 +22,7 @@
   {{#each task in controller.tasks}}
   {{#view view.taskView contentBinding="task"}}
     <div class="item">
-      <div {{bindAttr class=":pull-left view.linkClass controller.isHA:span4 controller.isRollback:span3 controller.isReassign:span5"}}>
+      <div {{bindAttr class=":pull-left view.linkClass controller.isHA:span4 controller.isRMHA:span5 controller.isRollback:span3 controller.isReassign:span5"}}>
         <i {{bindAttr class="view.icon view.iconColor"}}></i>
         <a {{action "showHostProgressPopup" task target="controller"}} >{{task.title}}</a>
       </div>

@@ -33,6 +33,7 @@ App.HighAvailabilityProgressPageController = App.HighAvailabilityWizardControlle
   POLL_INTERVAL: 4000,
   isSubmitDisabled: true,
   isRollback: false,
+  tasksMessagesPrefix: 'admin.highAvailability.wizard.step',
 
   loadStep: function () {
     console.warn('func: loadStep');
@@ -53,17 +54,18 @@ App.HighAvailabilityProgressPageController = App.HighAvailabilityWizardControlle
   initializeTasks: function () {
     console.warn('func: initializeTasks');
     var commands = this.get('commands');
-    var currentStep = App.router.get('highAvailabilityWizardController.currentStep');
+    var currentStep = App.router.get(this.get('content.controllerName') + '.currentStep');
+    var tasksMessagesPrefix = this.get('tasksMessagesPrefix');
     for (var i = 0; i < commands.length; i++) {
       this.get('tasks').pushObject(Ember.Object.create({
-        title: Em.I18n.t('admin.highAvailability.wizard.step' + currentStep + '.task' + i + '.title'),
+        title: Em.I18n.t(tasksMessagesPrefix + currentStep + '.task' + i + '.title'),
         status: 'PENDING',
         id: i,
         command: commands[i],
         showRetry: false,
         showRollback: false,
-        name: Em.I18n.t('admin.highAvailability.wizard.step' + currentStep + '.task' + i + '.title'),
-        displayName: Em.I18n.t('admin.highAvailability.wizard.step' + currentStep + '.task' + i + '.title'),
+        name: Em.I18n.t(tasksMessagesPrefix + currentStep + '.task' + i + '.title'),
+        displayName: Em.I18n.t(tasksMessagesPrefix + currentStep + '.task' + i + '.title'),
         progress: 0,
         isRunning: false,
         requestIds: []

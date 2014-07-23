@@ -131,18 +131,23 @@ module.exports = App.WizardRoute.extend({
       return false;
     },
     next: function (router) {
+      var wizardController = router.get('rMHighAvailabilityWizardController');
+      var stepController = router.get('rMHighAvailabilityWizardStep3Controller');
+      var configs = stepController.get('selectedService.configs');
+      wizardController.saveConfigs(configs);
       router.transitionTo('step4');
     },
     back: Em.Router.transitionTo('step2')
   }),
 
   step4: Em.Route.extend({
-    route: '/step9',
+    route: '/step4',
     connectOutlets: function (router) {
       var controller = router.get('rMHighAvailabilityWizardController');
       controller.setCurrentStep('4');
       controller.setLowerStepsDisable(4);
       controller.dataLoading().done(function () {
+        controller.loadAllPriorSteps();
         controller.connectOutlet('rMHighAvailabilityWizardStep4',  controller.get('content'));
       })
     },
