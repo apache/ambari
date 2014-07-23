@@ -424,7 +424,7 @@ App.StackService.configCategories = function () {
       var configTypes = Object.keys(this.get('configTypes')).without('core-site').without('global');
       configTypes.forEach(function (type) {
         var displayName = 'Custom ' + type;
-        var canAddProperty = !type.endsWith('-log4j') || !type.endsWith('-env');
+        var canAddProperty = !(type.endsWith('-log4j') || type.endsWith('-env'));
         var siteFileName = type + '.xml';
         serviceConfigCategories.pushObject(App.ServiceConfigCategory.create({ name: 'Advanced ' + type, displayName: displayName, siteFileName: siteFileName,
           canAddProperty: canAddProperty}));

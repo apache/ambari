@@ -78,7 +78,7 @@ App.supports = {
   jobs: true,
   ubuntu: true,
   views: false,
-  flume: false,
+  flume: true,
   databaseConnection: true
 };
 
