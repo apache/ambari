@@ -20,8 +20,10 @@ package org.apache.ambari.server.api.services;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -38,10 +40,10 @@ import org.apache.ambari.server.controller.spi.Resource;
  */
 public class AlertDefinitionService extends BaseService {
 
-  private String m_clusterName = null;
+  private String clusterName = null;
   
   AlertDefinitionService(String clusterName) {
-    m_clusterName = clusterName;
+    this.clusterName = clusterName;
   }
   
   @GET
@@ -50,7 +52,7 @@ public class AlertDefinitionService extends BaseService {
       @Context HttpHeaders headers,
       @Context UriInfo ui) {
     return handleRequest(headers, body, ui, Request.Type.GET,
-      createResourceInstance(m_clusterName, null));
+      createResourceInstance(clusterName, null));
   }
   
   @POST
@@ -59,9 +61,31 @@ public class AlertDefinitionService extends BaseService {
       @Context HttpHeaders headers,
       @Context UriInfo ui) {
     return handleRequest(headers, body, ui, Request.Type.POST,
-      createResourceInstance(m_clusterName, null));
+      createResourceInstance(clusterName, null));
   }
   
+  @PUT
+  @Path("{alertDefinitionId}")
+  @Produces("text/plain")
+  public Response updateDefinition(String body,
+      @Context HttpHeaders headers,
+      @Context UriInfo ui,
+      @PathParam("alertDefinitionId") Long id) {
+    return handleRequest(headers, body, ui, Request.Type.PUT,
+      createResourceInstance(clusterName, id));
+  }
+  
+  @DELETE
+  @Path("{alertDefinitionId}")
+  @Produces("text/plain")
+  public Response deleteDefinition(String body,
+      @Context HttpHeaders headers,
+      @Context UriInfo ui,
+      @PathParam("alertDefinitionId") Long id) {
+    return handleRequest(headers, body, ui, Request.Type.DELETE,
+      createResourceInstance(clusterName, id));
+  }
+
   
   @GET
   @Path("{alertDefinitionId}")
@@ -71,7 +95,7 @@ public class AlertDefinitionService extends BaseService {
       @Context UriInfo ui,
       @PathParam("alertDefinitionId") Long id) {
     return handleRequest(headers, body, ui, Request.Type.GET,
-      createResourceInstance(m_clusterName, id));
+      createResourceInstance(clusterName, id));
   }
   
   

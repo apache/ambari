@@ -17,11 +17,9 @@
  */
 package org.apache.ambari.server.state.alert;
 
-import com.google.gson.annotations.SerializedName;
 
 /**
- * @author ncole
- *
+ * Represents information required to run and collection of alerts.
  */
 public class AlertDefinition {
 
@@ -31,25 +29,35 @@ public class AlertDefinition {
   private String name = null;
   private String label = null;
   private String scope = null;
-  private String source = null;
   private int interval = 1;
   private boolean enabled = true;
-  
-  @SerializedName("metric")
-  private MetricAlert metricAlert = null;
-  
+  private Source source = null;
+
+  /**
+   * @return the service name
+   */
   public String getServiceName() {
     return serviceName;
   }
   
+  /**
+   * @param name the service name
+   */
   public void setServiceName(String name) {
     serviceName = name;
   }
-  
+
+  /**
+   * @return the component name
+   */
   public String getComponentName() {
     return componentName;
   }
   
+  /**
+   * 
+   * @param name the component name
+   */
   public void setComponentName(String name) {
     componentName = name;
   }
@@ -76,24 +84,21 @@ public class AlertDefinition {
   }
   
   /**
-   * @return the source
-   */
-  public String getSource() {
-    return source;
-  }
-  
-  /**
-  * @return the interval
+   * @return the interval
    */
   public int getInterval() {
     return interval;
   }
   
   /**
-   * @return <code>true</code> if enabled
+   * @return {@code true} if enabled
    */
   public boolean isEnabled() {
     return enabled;
+  }
+  
+  public Source getSource() {
+    return source;
   }
   
   @Override

@@ -363,8 +363,8 @@
       "AlertDefinition/id",
       "AlertDefinition/name",
       "AlertDefinition/interval",
-      "AlertDefinition/source",
       "AlertDefinition/enabled",
-      "AlertDefinition/scope"      
+      "AlertDefinition/scope",
+      "AlertDefinition/source"
     ]
 }

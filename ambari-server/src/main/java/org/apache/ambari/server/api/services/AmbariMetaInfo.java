@@ -60,6 +60,9 @@ import org.apache.ambari.server.state.Stack;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.alert.AlertDefinition;
+import org.apache.ambari.server.state.alert.MetricSource;
+import org.apache.ambari.server.state.alert.Source;
+import org.apache.ambari.server.state.alert.SourceType;
 import org.apache.ambari.server.state.stack.LatestRepoCallable;
 import org.apache.ambari.server.state.stack.MetricDefinition;
 import org.apache.ambari.server.state.stack.RepositoryXml;
@@ -69,6 +72,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
 import com.google.gson.reflect.TypeToken;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
@@ -1053,6 +1062,13 @@ public class AmbariMetaInfo {
     return requiredProperties;
   }
   
+  /**
+   * @param stackName the stack name
+   * @param stackVersion the stack version
+   * @param serviceName the service name
+   * @return the alert definitions for a stack
+   * @throws AmbariException
+   */
   public Set<AlertDefinition> getAlertDefinitions(String stackName, String stackVersion,
       String serviceName) throws AmbariException {
     
@@ -1063,16 +1079,38 @@ public class AmbariMetaInfo {
       return null;
     }
     
-    
     Map<String, List<AlertDefinition>> map = null;
+
+    GsonBuilder builder = new GsonBuilder().registerTypeAdapter(Source.class,
+        new JsonDeserializer<Source>() {
+          @Override
+          public Source deserialize(JsonElement json, Type typeOfT,
+              JsonDeserializationContext context) throws JsonParseException {
+            JsonObject jsonObj = (JsonObject) json;
+
+            SourceType type = SourceType.valueOf(jsonObj.get("type").getAsString());
+            Class<? extends Source> cls = null;
+            
+            switch (type) {
+              case METRIC:
+                cls = MetricSource.class;
+                break;
+              default:
+                break;
+            }
+
+            if (null != cls)
+              return context.deserialize(json, cls);
+            else
+              return null;
+          }
+        });
     
-    Type type = new TypeToken<Map<String, List<AlertDefinition>>>(){}.getType();
-    
-    Gson gson = new Gson();
+    Gson gson = builder.create();
 
     try {
+      Type type = new TypeToken<Map<String, List<AlertDefinition>>>(){}.getType();
       map = gson.fromJson(new FileReader(svc.getAlertsFile()), type);
-
     } catch (Exception e) {
       LOG.error ("Could not read the alert definition file", e);
       throw new AmbariException("Could not read alert definition file", e);
@@ -1092,5 +1130,5 @@ public class AmbariMetaInfo {
     
     return defs;
   }
-
+  
 }

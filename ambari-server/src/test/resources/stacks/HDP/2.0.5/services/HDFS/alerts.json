@@ -7,10 +7,9 @@
       "label": "Secondary NameNode process",
       "interval": 1,
       "scope": "service",
-      "source": "port",
-      "port": {
-        "config": "{{hdfs-site/dfs.namenode.secondary.http-address}}:50071",
-        "default": 50071
+      "source": {
+        "type": "PORT",
+        "config": "{{hdfs-site/dfs.namenode.secondary.http-address}}:50071"
       }
     }
   ],
@@ -19,8 +18,8 @@
       "name": "namenode_cpu",
       "label": "NameNode host CPU Utilization",
       "scope": "host",
-      "source": "metric",
-      "metric": {
+      "source": {
+        "type": "METRIC",
         "jmx": "java.lang:type=OperatingSystem/SystemCpuLoad",
         "host": "{{hdfs-site/dfs.namenode.secondary.http-address}}"
       }
@@ -30,8 +29,8 @@
       "label": "NameNode process",
       "interval": 1,
       "scope": "host",
-      "source": "port",
-      "port": {
+      "source": {
+        "type": "PORT",
         "uri": "{{hdfs-site/dfs.namenode.http-address}}:50070"
        }
     },
@@ -40,9 +39,9 @@
       "label": "Last Checkpoint Time",
       "interval": 1,
       "scope": "service",
-      "source": "script",
       "enabled": false,
-      "script": {
+      "source": {
+        "type": "SCRIPT",
         "path": "scripts/alerts/last_checkpoint.py"
       }
     }

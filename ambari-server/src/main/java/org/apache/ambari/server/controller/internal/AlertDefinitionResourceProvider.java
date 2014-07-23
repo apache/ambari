@@ -17,11 +17,15 @@
  */
 package org.apache.ambari.server.controller.internal;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
+import java.util.UUID;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -34,12 +38,14 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.alert.MetricAlert;
+import org.apache.ambari.server.state.alert.SourceType;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.google.inject.Inject;
 
 /**
@@ -51,7 +57,8 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
   protected static final String ALERT_DEF_ID = "AlertDefinition/id";
   protected static final String ALERT_DEF_NAME = "AlertDefinition/name";
   protected static final String ALERT_DEF_INTERVAL = "AlertDefinition/interval";
-  protected static final String ALERT_DEF_SOURCE_TYPE = "AlertDefinition/source";
+  protected static final String ALERT_DEF_SOURCE_TYPE = "AlertDefinition/source/type";
+  protected static final String ALERT_DEF_SOURCE = "AlertDefinition/source";
   protected static final String ALERT_DEF_SERVICE_NAME = "AlertDefinition/service_name";
   protected static final String ALERT_DEF_COMPONENT_NAME = "AlertDefinition/component_name";
   protected static final String ALERT_DEF_ENABLED = "AlertDefinition/enabled";
@@ -60,6 +67,8 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
   private static Set<String> pkPropertyIds = new HashSet<String>(
       Arrays.asList(ALERT_DEF_ID, ALERT_DEF_NAME));
   private static AlertDefinitionDAO alertDefinitionDAO = null;
+  
+  private static Gson gson = new Gson();
   
   /**
    * @param instance
@@ -81,11 +90,92 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
   }
 
   @Override
-  public RequestStatus createResources(Request request) throws SystemException,
+  public RequestStatus createResources(final Request request) throws SystemException,
       UnsupportedPropertyException, ResourceAlreadyExistsException,
       NoSuchParentResourceException {
-    // TODO Auto-generated method stub
-    return null;
+
+    createResources(new Command<Void>() {
+      @Override
+      public Void invoke() throws AmbariException {
+        createAlertDefinitions(request.getProperties());
+        return null;
+      }
+    });
+    notifyCreate(Resource.Type.AlertDefinition, request);
+    
+    return getRequestStatus(null);
+  }
+  
+  private void createAlertDefinitions(Set<Map<String, Object>> requestMaps)
+    throws AmbariException {
+    List<AlertDefinitionEntity> entities = new ArrayList<AlertDefinitionEntity>();
+    
+    for (Map<String, Object> requestMap : requestMaps) {
+      entities.add(toCreateEntity(requestMap));
+    }
+
+    // !!! TODO multi-create in a transaction
+    for (AlertDefinitionEntity entity : entities)
+      alertDefinitionDAO.create(entity);
+  }
+  
+  private AlertDefinitionEntity toCreateEntity(Map<String, Object> requestMap)
+    throws AmbariException {
+
+    String clusterName = (String) requestMap.get(ALERT_DEF_CLUSTER_NAME);
+    
+    if (null == clusterName || clusterName.isEmpty())
+      throw new IllegalArgumentException("Invalid argument, cluster name is required");
+    
+    if (!requestMap.containsKey(ALERT_DEF_INTERVAL))
+      throw new IllegalArgumentException("Check interval must be specified");
+    Long interval = Long.valueOf((String) requestMap.get(ALERT_DEF_INTERVAL));
+    
+    if (!requestMap.containsKey(ALERT_DEF_NAME))
+      throw new IllegalArgumentException("Definition name must be specified");
+    
+    if (!requestMap.containsKey(ALERT_DEF_SERVICE_NAME))
+      throw new IllegalArgumentException("Service name must be specified");
+    
+    if (!requestMap.containsKey(ALERT_DEF_SOURCE_TYPE))
+      throw new IllegalArgumentException(String.format(
+          "Source type must be specified and one of %s", EnumSet.allOf(
+              SourceType.class)));
+
+    JsonObject jsonObj = new JsonObject();
+    
+    for (Entry<String, Object> entry : requestMap.entrySet()) {
+      String propCat = PropertyHelper.getPropertyCategory(entry.getKey());
+      String propName = PropertyHelper.getPropertyName(entry.getKey());
+
+      if (propCat.equals(ALERT_DEF_SOURCE)) {
+        jsonObj.addProperty(propName, entry.getValue().toString());
+      }
+    }
+
+    if (0 == jsonObj.entrySet().size())
+      throw new IllegalArgumentException("Source must be specified");
+    
+    Cluster cluster = getManagementController().getClusters().getCluster(clusterName);
+    
+    AlertDefinitionEntity entity = new AlertDefinitionEntity();
+    
+    entity.setClusterId(Long.valueOf(cluster.getClusterId()));
+    entity.setComponentName((String) requestMap.get(ALERT_DEF_COMPONENT_NAME));
+    entity.setDefinitionName((String) requestMap.get(ALERT_DEF_NAME));
+
+    boolean b = requestMap.containsKey(ALERT_DEF_ENABLED) ?
+        Boolean.parseBoolean((String)requestMap.get(ALERT_DEF_ENABLED)) : true;
+    entity.setEnabled(b);
+    
+    entity.setHash(UUID.randomUUID().toString());
+    entity.setScheduleInterval(interval);
+    entity.setScope((String) requestMap.get(ALERT_DEF_SCOPE));
+    entity.setServiceName((String) requestMap.get(ALERT_DEF_SERVICE_NAME));
+    entity.setSourceType((String) requestMap.get(ALERT_DEF_SOURCE_TYPE));
+    entity.setSource(jsonObj.toString());
+    
+    return entity;
   }
 
   @Override
@@ -134,16 +224,90 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
   public RequestStatus updateResources(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
-    throw new UnsupportedOperationException("Not currently supported.");
+
+    for (Map<String, Object> requestPropMap : request.getProperties()) {
+      for (Map<String, Object> propertyMap : getPropertyMaps(requestPropMap, predicate)) {
+        Long id = (Long) propertyMap.get(ALERT_DEF_ID);
+        
+        AlertDefinitionEntity entity = alertDefinitionDAO.findById(id.longValue());
+        if (null == entity)
+          continue;
+
+        if (propertyMap.containsKey(ALERT_DEF_NAME))
+          entity.setDefinitionName((String) propertyMap.get(ALERT_DEF_NAME));
+        
+        if (propertyMap.containsKey(ALERT_DEF_ENABLED)) {
+          entity.setEnabled(Boolean.parseBoolean(
+              (String) propertyMap.get(ALERT_DEF_ENABLED)));
+        }
+        
+        if (propertyMap.containsKey(ALERT_DEF_INTERVAL)) {
+          entity.setScheduleInterval(Long.valueOf(
+              (String) propertyMap.get(ALERT_DEF_INTERVAL)));
+        }
+        
+        if (propertyMap.containsKey(ALERT_DEF_SCOPE))
+          entity.setScope((String) propertyMap.get(ALERT_DEF_SCOPE));
+        
+
+        if (propertyMap.containsKey(ALERT_DEF_SOURCE_TYPE))
+          entity.setSourceType((String) propertyMap.get(ALERT_DEF_SOURCE_TYPE));
+          
+        JsonObject jsonObj = new JsonObject();
+        
+        for (Entry<String, Object> entry : propertyMap.entrySet()) {
+          String propCat = PropertyHelper.getPropertyCategory(entry.getKey());
+          String propName = PropertyHelper.getPropertyName(entry.getKey());
+
+          if (propCat.equals(ALERT_DEF_SOURCE)) {
+            jsonObj.addProperty(propName, entry.getValue().toString());
+          }
+        }
+        
+        entity.setHash(UUID.randomUUID().toString());
+        
+        alertDefinitionDAO.merge(entity);
+      }
+    }
+    
+    notifyUpdate(Resource.Type.AlertDefinition, request, predicate);
+
+    return getRequestStatus(null);    
   }
 
   @Override
   public RequestStatus deleteResources(Predicate predicate)
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
-    throw new UnsupportedOperationException("Not currently supported.");
-  }
 
+    Set<Resource> resources = getResources(
+        new RequestImpl(null, null, null, null), predicate);
+    
+    Set<Long> definitionIds = new HashSet<Long>();
+
+    for (final Resource resource : resources) {
+      definitionIds.add((Long) resource.getPropertyValue(ALERT_DEF_ID));
+    }
+
+    for (Long definitionId : definitionIds) {
+
+      LOG.info("Deleting alert definition {}", definitionId);
+      
+      final AlertDefinitionEntity ad = alertDefinitionDAO.findById(definitionId.longValue());
+
+      modifyResources(new Command<Void>() {
+        @Override
+        public Void invoke() throws AmbariException {
+          alertDefinitionDAO.remove(ad);
+          return null;
+        }
+      });
+    }
+
+    notifyDelete(Resource.Type.AlertDefinition, predicate);
+    return getRequestStatus(null);
+
+  }
   
   private Resource toResource(boolean isCollection, String clusterName,
       AlertDefinitionEntity entity, Set<String> requestedIds) {
@@ -153,22 +317,23 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
     setResourceProperty(resource, ALERT_DEF_ID, entity.getDefinitionId(), requestedIds);
     setResourceProperty(resource, ALERT_DEF_NAME, entity.getDefinitionName(), requestedIds);
     setResourceProperty(resource, ALERT_DEF_INTERVAL, entity.getScheduleInterval(), requestedIds);
-    setResourceProperty(resource, ALERT_DEF_SOURCE_TYPE, entity.getSourceType(), requestedIds);
     setResourceProperty(resource, ALERT_DEF_SERVICE_NAME, entity.getServiceName(), requestedIds);
     setResourceProperty(resource, ALERT_DEF_COMPONENT_NAME, entity.getComponentName(), requestedIds);
     setResourceProperty(resource, ALERT_DEF_ENABLED, Boolean.valueOf(entity.getEnabled()), requestedIds);
     setResourceProperty(resource, ALERT_DEF_SCOPE, entity.getScope(), requestedIds);
+    setResourceProperty(resource, ALERT_DEF_SOURCE_TYPE, entity.getSourceType(), requestedIds);
     
     if (!isCollection && null != resource.getPropertyValue(ALERT_DEF_SOURCE_TYPE)) {
-      Gson gson = new Gson();
       
-      if (entity.getSourceType().equals("metric")) {
-        try {
-          MetricAlert ma = gson.fromJson(entity.getSource(), MetricAlert.class);
-          resource.setProperty("AlertDefinition/metric", ma);
-        } catch (Exception e) {
-          LOG.error("Could not coerce alert source into a type");
+      try {
+        Map<String, String> map = gson.<Map<String, String>>fromJson(entity.getSource(), Map.class);
+        
+        for (Entry<String, String> entry : map.entrySet()) {
+          String subProp = PropertyHelper.getPropertyId(ALERT_DEF_SOURCE, entry.getKey());
+          resource.setProperty(subProp, entry.getValue());  
         }
+      } catch (Exception e) {
+        LOG.error("Could not coerce alert JSON into a type");
       }
     }
     

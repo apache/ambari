@@ -22,7 +22,7 @@ import com.google.gson.annotations.SerializedName;
 /**
  * Alert when the source type is defined as {@link SourceType#METRIC}
  */
-public class MetricAlert {
+public class MetricSource extends Source {
   
   private String host = null;
   
