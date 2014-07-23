@@ -42,7 +42,9 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    * @type {bool}
    */
   isAll: function () {
-    return this.everyProperty('isSelected', true);
+    return this.filterProperty('isInstalled', false).
+      filterProperty('isHiddenOnSelectServicePage', false).
+      everyProperty('isSelected', true);
   }.property('@each.isSelected'),
 
   /**
@@ -50,7 +52,9 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    * @type {bool}
    */
   isMinimum: function () {
-    return this.everyProperty('isSelected', false);
+    return this.filterProperty('isInstalled', false).
+      filterProperty('isHiddenOnSelectServicePage', false).
+      everyProperty('isSelected', false);
   }.property('@each.isSelected'),
 
   /**
@@ -58,7 +62,7 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    * @method selectAll
    */
   selectAll: function () {
-    this.setEach('isSelected', true);
+    this.filterProperty('isInstalled', false).setEach('isSelected', true);
   },
 
   /**
@@ -66,7 +70,7 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    * @method selectMinimum
    */
   selectMinimum: function () {
-    this.setEach('isSelected', false);
+    this.filterProperty('isInstalled', false).setEach('isSelected', false);
   },
 
   /**
