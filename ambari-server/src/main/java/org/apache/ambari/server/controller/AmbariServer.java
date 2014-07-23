@@ -87,7 +87,6 @@ import org.apache.ambari.server.view.ViewRegistry;
 import org.apache.ambari.view.SystemException;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.server.nio.SelectChannelConnector;
 import org.eclipse.jetty.server.ssl.SslSelectChannelConnector;
 import org.eclipse.jetty.servlet.DefaultServlet;
@@ -303,12 +302,12 @@ public class AmbariServer {
       root.addServlet(sh, "/api/v1/*");
       sh.setInitOrder(2);
 
-      HandlerList handlerList = new HandlerList();
+      FailsafeHandlerList handlerList = new FailsafeHandlerList();
 
       try {
         ViewRegistry viewRegistry = ViewRegistry.getInstance();
         for (ViewInstanceEntity entity : viewRegistry.readViewArchives(configs)){
-          handlerList.addHandler(viewRegistry.getWebAppContext(entity));
+          handlerList.addFailsafeHandler(viewRegistry.getWebAppContext(entity));
         }
       } catch (SystemException e) {
         LOG.error("Caught exception deploying views.", e);
@@ -506,7 +505,7 @@ public class AmbariServer {
 
     LOG.info("DB store version is compatible");
   }
-  
+
   public void stop() throws Exception {
     try {
       server.stop();
@@ -545,7 +544,7 @@ public class AmbariServer {
     ViewRegistry.init(injector.getInstance(ViewDAO.class), injector.getInstance(ViewInstanceDAO.class),
         injector.getInstance(ResourceDAO.class), injector.getInstance(ResourceTypeDAO.class));
   }
-  
+
   /**
    * Sets up proxy authentication.  This must be done before the server is
    * initialized since <code>AmbariMetaInfo</code> requires potential URL
@@ -554,13 +553,13 @@ public class AmbariServer {
   static void setupProxyAuth() {
     final String proxyUser = System.getProperty("http.proxyUser");
     final String proxyPass = System.getProperty("http.proxyPassword");
-    
+
     // to skip some hosts from proxy, pipe-separate names using, i.e.:
     // -Dhttp.nonProxyHosts=*.domain.com|host.internal.net
-    
+
     if (null != proxyUser && null != proxyPass) {
       LOG.info("Proxy authentication enabled");
-      
+
       Authenticator.setDefault(new Authenticator() {
         @Override
         protected PasswordAuthentication getPasswordAuthentication() {
@@ -570,17 +569,17 @@ public class AmbariServer {
     } else {
       LOG.debug("Proxy authentication not specified");
     }
-  }  
+  }
 
   public static void main(String[] args) throws Exception {
     Injector injector = Guice.createInjector(new ControllerModule());
-    
+
     AmbariServer server = null;
     try {
       LOG.info("Getting the controller");
 
       setupProxyAuth();
-      
+
       injector.getInstance(GuiceJpaInitializer.class);
       server = injector.getInstance(AmbariServer.class);
       CertificateManager certMan = injector.getInstance(CertificateManager.class);
