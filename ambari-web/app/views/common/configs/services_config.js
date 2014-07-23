@@ -48,6 +48,10 @@ App.ServiceConfigView = Em.View.extend({
         return false;
     }
   }.property('controller.name', 'controller.selectedService'),
+  showConfigHistoryFlow: function() {
+    //TODO change condition to actual
+    return (this.get('controller.name') === 'mainServiceInfoConfigsController' && this.get('controller.selectedConfigGroup.isDefault'))
+  }.property('controller.name', 'controller.selectedConfigGroup.isDefault'),
   toggleRestartMessageView: function () {
     this.$('.service-body').toggle('blind', 200);
     this.set('isRestartMessageCollapsed', !this.get('isRestartMessageCollapsed'));

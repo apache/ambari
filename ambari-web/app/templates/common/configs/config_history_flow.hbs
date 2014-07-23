@@ -1,0 +1,62 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+
+<div id="config_history_flow">
+  <div class="version-slider">
+      <div {{bindAttr class=":pull-left :arrow-left :visibleArrow view.showLeftArrow::hide"}} {{action shiftBack target="view"}}></div>
+      {{#each serviceVersion in view.visibleServiceVersion}}
+          <div {{bindAttr class=":flow-element :pull-left serviceVersion.first:first"}}>
+              <div class="arrow-box pull-left"><div class="big-arrow-right"></div></div>
+              <div class="box pull-right">
+                  <div class="top-right-label">{{serviceVersion.version}}</div>
+                  <p class="date">{{serviceVersion.date}}</p>
+                  <p class="content">{{serviceVersion.author}}:&nbsp;{{serviceVersion.notes}}</p>
+                  {{#if serviceVersion.current}}
+                    <div class="current-label label label-success">{{t common.current}}</div>
+                  {{/if}}
+              </div>
+          </div>
+      {{/each}}
+      <div {{bindAttr class=":arrow-right :visibleArrow view.showRightArrow::hide"}} {{action shiftForward target="view"}}></div>
+  </div>
+  <div class="version-info-bar">
+    <div class="row-fluid">
+        <div class="btn-group pull-left">
+            <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
+                <i class="icon-random"></i>
+                <span class="caret"></span>
+            </a>
+            <ul class="dropdown-menu">
+
+            </ul>
+        </div>
+        <div class="label-wrapper span8">
+            <span class="label label-success">{{t common.current}}: {{view.currentServiceVersion.version}}</span>
+            <strong>{{view.currentServiceVersion.author}}</strong>&nbsp;{{t dashboard.configHistory.info-bar.authoredOn}}&nbsp;<strong>{{view.currentServiceVersion.date}}</strong>
+        </div>
+        <div class="pull-right">
+            <div class="btn">{{t common.cancel}}</div>
+            <div class="btn btn-success">{{t common.save}}</div>
+        </div>
+    </div>
+    <div class="label-wrapper">
+      {{view.shortNotes}} {{#if view.showMoreLink}}<a class="pointer">{{t jobs.hive.more}}</a>{{/if}}
+    </div>
+  </div>
+</div>

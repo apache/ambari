@@ -1932,6 +1932,7 @@ Em.I18n.translations = {
   'dashboard.configHistory.table.empty' : 'No history to display',
   'dashboard.configHistory.table.filteredHostsInfo': '{0} of {1} versions showing',
   'dashboard.configHistory.table.current': '(Current)',
+  'dashboard.configHistory.info-bar.authoredOn': 'authored on',
 
   'timeRange.presets.1hour':'1h',
   'timeRange.presets.12hour':'12h',

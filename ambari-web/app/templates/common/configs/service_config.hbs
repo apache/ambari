@@ -76,6 +76,11 @@
      </div>
 	</div>
 {{/if}}
+
+{{#if view.showConfigHistoryFlow}}
+  {{view App.ConfigHistoryFlowView serviceBinding="selectedService"}}
+{{/if}}
+
 <div class="accordion">
   {{#each category in selectedService.configCategories}}
     {{#if category.isCustomView}}
