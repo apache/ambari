@@ -21,7 +21,7 @@ require('controllers/main/charts/heatmap_metrics/heatmap_metric');
 require('controllers/main/charts/heatmap_metrics/heatmap_metric_yarn');
 require('controllers/main/charts/heatmap_metrics/heatmap_metric_yarn_ResourceUsed');
 
-describe.skip('App.MainChartHeatmapYarnResourceUsedMetric', function () {
+describe('App.MainChartHeatmapYarnResourceUsedMetric', function () {
 
   var mainChartHeatmapYarnResourceUsedMetric = App.MainChartHeatmapYarnResourceUsedMetric.create({});
 
@@ -30,94 +30,92 @@ describe.skip('App.MainChartHeatmapYarnResourceUsedMetric', function () {
       {
         m: 'Correct JSON #1',
         i: {
-          "ServiceComponentInfo" : {
-            "rm_metrics" : {
-              "cluster" : {
-                "nodeManagers" : "[{\"HostName\":\"dev01.hortonworks.com\",\"Rack\":\"/default-rack\",\"State\":\"RUNNING\",\"NodeId\":\"dev01.hortonworks.com:45454\",\"NodeHTTPAddress\":\"dev01.hortonworks.com:8042\",\"LastHealthUpdate\":1375869232870,\"HealthReport\":\"\",\"NumContainers\":0,\"UsedMemoryMB\":10,\"AvailableMemoryMB\":100}]"
+          ServiceComponentInfo: {
+            cluster_name: "c1",
+            component_name: "NODEMANAGER",
+            service_name: "YARN"
+          },
+          host_components: [{
+            HostRoles: {
+              cluster_name: "c1",
+              component_name: "NODEMANAGER",
+              host_name: "host1"
+            },
+            metrics: {
+              yarn: {
+                AllocatedGB: 0,
+                AvailableGB: 2
               }
             }
-          }
+          }]
         },
         e: {
           length: 1,
-          val: '10.0',
-          host: 'dev01.hortonworks.com'
+          val: '0.0',
+          host: 'host1'
         }
       },
       {
         m: 'Correct JSON #2',
         i: {
-          "ServiceComponentInfo" : {
-            "rm_metrics" : {
-              "cluster" : {
-                "nodeManagers" : "[{\"HostName\":\"dev01.hortonworks.com\",\"Rack\":\"/default-rack\",\"State\":\"RUNNING\",\"NodeId\":\"dev01.hortonworks.com:45454\",\"NodeHTTPAddress\":\"dev01.hortonworks.com:8042\",\"LastHealthUpdate\":1375869232870,\"HealthReport\":\"\",\"NumContainers\":0,\"UsedMemoryMB\":0,\"AvailableMemoryMB\":100}]"
+          ServiceComponentInfo: {
+            cluster_name: "c1",
+            component_name: "NODEMANAGER",
+            service_name: "YARN"
+          },
+          host_components: [{
+            HostRoles: {
+              cluster_name: "c1",
+              component_name: "NODEMANAGER",
+              host_name: "host1"
+            },
+            metrics: {
+              yarn: {
+                AllocatedGB: 1,
+                AvailableGB: 2
               }
             }
-          }
+          }]
         },
         e: {
           length: 1,
-          val: '0.0',
-          host: 'dev01.hortonworks.com'
+          val: '33.3',
+          host: 'host1'
         }
       },
       {
-        m: 'JSON without "cluster"',
+        m: 'Correct JSON #3',
         i: {
-          "ServiceComponentInfo" : {
-            "rm_metrics" : {
-            }
-          }
-        },
-        e: {
-          length: 0,
-          val: null,
-          host: null
-        }
-      },
-      {
-        m: 'JSON without "nodeManagers"',
-        i: {
-          "ServiceComponentInfo" : {
-            "rm_metrics" : {
-              "cluster" : {
+          ServiceComponentInfo: {
+            cluster_name: "c1",
+            component_name: "NODEMANAGER",
+            service_name: "YARN"
+          },
+          host_components: [{
+            HostRoles: {
+              cluster_name: "c1",
+              component_name: "NODEMANAGER",
+              host_name: "host1"
+            },
+            metrics: {
+              yarn: {
+                AllocatedGB: 0,
+                AvailableGB: 0
               }
             }
-          }
+          }]
         },
         e: {
-          length: 0,
-          val: null,
-          host: null
-        }
-      },
-      {
-        m: 'Correct JSON #3 (with two nodeManagers)',
-        i: {
-          "ServiceComponentInfo" : {
-            "rm_metrics" : {
-              "cluster" : {
-                "nodeManagers" : "[{\"HostName\":\"dev01.hortonworks.com\",\"Rack\":\"/default-rack\",\"State\":\"RUNNING\",\"NodeId\":\"dev01.hortonworks.com:45454\",\"NodeHTTPAddress\":\"dev01.hortonworks.com:8042\",\"LastHealthUpdate\":1375869232870,\"HealthReport\":\"\",\"NumContainers\":0,\"UsedMemoryMB\":0,\"AvailableMemoryMB\":100}, {\"HostName\":\"dev02.hortonworks.com\",\"Rack\":\"/default-rack\",\"State\":\"RUNNING\",\"NodeId\":\"dev02.hortonworks.com:45454\",\"NodeHTTPAddress\":\"dev01.hortonworks.com:8042\",\"LastHealthUpdate\":1375869232870,\"HealthReport\":\"\",\"NumContainers\":0,\"UsedMemoryMB\":100,\"AvailableMemoryMB\":100}]"
-              }
-            }
-          }
-        },
-        e: {
-          length: 2,
-          val: '100.0',
-          host: 'dev02.hortonworks.com'
+          length: 1,
+          val: 'Unknown',
+          host: 'host1'
         }
       }
     ];
     tests.forEach(function(test) {
       it(test.m, function () {
-        var result = mainChartHeatmapYarnResourceUsedMetric.metricMapper(test.i);
-        var length = 0;
-        for(var p in result) {
-          if (result.hasOwnProperty(p)) {
-            length++;
-          }
-        }
+        var result = mainChartHeatmapYarnResourceUsedMetric.metricMapper(test.i),
+          length = Em.keys(result).length;
         expect(length).to.equal(test.e.length);
         if (test.e.host) {
           expect(result.hasOwnProperty(test.e.host)).to.equal(true);

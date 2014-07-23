@@ -30,7 +30,7 @@ describe('App.WizardStep4Controller', function () {
   var controller = App.WizardStep4Controller.create();
   services.forEach(function(serviceName, index){
     controller.pushObject(Ember.Object.create({
-      'serviceName':serviceName, 'isSelected': true, 'canBeSelected': true, 'isInstalled': false, 'isDisabled': 'HDFS' === serviceName, isDFS: 'HDFS' === serviceName
+      'serviceName':serviceName, 'isSelected': true, 'isHiddenOnSelectServicePage': false, 'isInstalled': false, 'isDisabled': 'HDFS' === serviceName, isDFS: 'HDFS' === serviceName
     }));
   });
 
@@ -47,6 +47,7 @@ describe('App.WizardStep4Controller', function () {
 
   describe('#isAll', function () {
     it('should return true if all services are selected', function () {
+      controller.setEach('isInstalled', false);
       controller.findProperty('serviceName', 'HDFS').set('isSelected', true);
       expect(controller.get('isAll')).to.equal(true);
     });

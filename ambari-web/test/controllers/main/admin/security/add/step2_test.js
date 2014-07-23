@@ -275,7 +275,7 @@ describe('App.MainAdminSecurityAddStep2Controller', function () {
     });
   });
 
-  describe.skip('#setHostsToConfig()', function () {
+  describe('#setHostsToConfig()', function () {
     it('service is null', function () {
       expect(controller.setHostsToConfig(null)).to.be.false;
     });
@@ -318,7 +318,7 @@ describe('App.MainAdminSecurityAddStep2Controller', function () {
     });
   });
 
-  describe.skip('#setHostToPrincipal()', function () {
+  describe('#setHostToPrincipal()', function () {
     it('service is null', function () {
       expect(controller.setHostToPrincipal(null)).to.be.false;
     });
@@ -538,52 +538,6 @@ describe('App.MainAdminSecurityAddStep2Controller', function () {
       var userPrincipal = {};
       expect(controller.setUserPrincipalValue(user, userPrincipal)).to.be.true;
       expect(userPrincipal.defaultValue).to.equal('value1');
-    });
-  });
-
-  describe.skip('#addSlaveHostToGlobals()', function () {
-    it('slaveComponentMap is empty', function () {
-      sinon.stub(controller, 'setHostsToConfig', Em.K);
-      controller.set('slaveComponentMap', []);
-      controller.addSlaveHostToGlobals();
-      expect(controller.setHostsToConfig.called).to.be.false;
-      controller.setHostsToConfig.restore();
-    });
-    it('Correct data', function () {
-      sinon.stub(controller, 'setHostsToConfig', Em.K);
-      controller.set('slaveComponentMap', [
-        {
-          serviceName: 'HDFS',
-          configName: 'datanode_hosts',
-          component: 'DATANODE'
-        }
-      ]);
-      controller.addSlaveHostToGlobals();
-      expect(controller.setHostsToConfig.calledWith('HDFS', 'datanode_hosts', ['DATANODE'])).to.be.true;
-      controller.setHostsToConfig.restore();
-    });
-  });
-
-  describe.skip('#addMasterHostToGlobals()', function () {
-    it('masterComponentMap is empty', function () {
-      sinon.stub(controller, 'setHostsToConfig', Em.K);
-      controller.set('masterComponentMap', []);
-      controller.addMasterHostToGlobals();
-      expect(controller.setHostsToConfig.called).to.be.false;
-      controller.setHostsToConfig.restore();
-    });
-    it('Correct data', function () {
-      sinon.stub(controller, 'setHostsToConfig', Em.K);
-      controller.set('masterComponentMap', [
-        {
-          serviceName: 'HDFS',
-          configName: 'datanode_hosts',
-          components: ['DATANODE']
-        }
-      ]);
-      controller.addMasterHostToGlobals();
-      expect(controller.setHostsToConfig.calledWith('HDFS', 'datanode_hosts', ['DATANODE'])).to.be.true;
-      controller.setHostsToConfig.restore();
     });
   });
 

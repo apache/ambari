@@ -94,16 +94,22 @@ describe('batch_scheduled_requests', function() {
     });
   });
 
-  describe.skip('#launchHostComponentRollingRestart', function() {
+  describe('#launchHostComponentRollingRestart', function() {
 
     beforeEach(function() {
       sinon.spy(batchUtils, 'showRollingRestartPopup');
       sinon.spy(batchUtils, 'showWarningRollingRestartPopup');
+      sinon.stub(App, 'get', function(k) {
+        if ('components.rollinRestartAllowed' === k)
+          return ['DATANODE', 'TASKTRACKER', 'NODEMANAGER', 'HBASE_REGIONSERVER', 'SUPERVISOR'];
+        return Em.get(App, k);
+      });
     });
 
     afterEach(function() {
       batchUtils.showRollingRestartPopup.restore();
       batchUtils.showWarningRollingRestartPopup.restore();
+      App.get.restore();
     });
 
     var tests = Em.A([

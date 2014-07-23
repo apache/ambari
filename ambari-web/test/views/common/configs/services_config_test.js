@@ -63,24 +63,9 @@ describe('App.ServiceConfigView', function () {
           App.ServiceConfigCategory.create({ name: 'category3', siteFileName: 'xml', canAddProperty: false})
         ]
       }
-    },
-    {
-      title: 'selectedConfigGroup is not default group',
-      result: {
-        'category1': false,
-        'category2': false
-      },
-      selectedConfigGroup: {},
-      selectedService: {
-        serviceName: 'TEST',
-        configCategories: [
-          App.ServiceConfigCategory.create({ name: 'category1', siteFileName: 'xml', canAddProperty: true}),
-          App.ServiceConfigCategory.create({ name: 'category2', siteFileName: 'xml', canAddProperty: false})
-        ]
-      }
     }
   ];
-  describe.skip('#checkCanEdit', function () {
+  describe('#checkCanEdit', function () {
     testCases.forEach(function (test) {
       it(test.title, function () {
         controller.set('selectedService', test.selectedService);

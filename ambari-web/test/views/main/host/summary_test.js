@@ -272,17 +272,11 @@ describe('App.MainHostSummaryView', function() {
 
   });
 
- describe.skip('#addableComponents', function() {
+ describe('#addableComponents', function() {
+
     var tests = Em.A([
       {
-        content: Em.Object.create({
-          hostComponents: Em.A([])
-        }),
-        services: ['HDFS', 'YARN', 'MAPREDUCE2'],
-        e: ['DATANODE', 'NODEMANAGER', 'CLIENTS'],
-        m: 'no components on host (impossible IRL, but should be tested)'
-      },
-      {
+        installableClientComponents: [{}, {}],
         content: Em.Object.create({
           hostComponents: Em.A([
             Em.Object.create({
@@ -298,6 +292,7 @@ describe('App.MainHostSummaryView', function() {
         m: 'some components are already installed'
       },
       {
+        installableClientComponents: [],
         content: Em.Object.create({
           hostComponents: Em.A([
             Em.Object.create({
@@ -322,6 +317,7 @@ describe('App.MainHostSummaryView', function() {
 
     tests.forEach(function(test) {
       it(test.m, function() {
+        mainHostSummaryView.reopen({installableClientComponents: test.installableClientComponents});
         mainHostSummaryView.set('content', test.content);
         mainHostSummaryView.set('installedServices', test.services);
         expect(mainHostSummaryView.get('addableComponents').mapProperty('componentName')).to.eql(test.e);
