@@ -118,7 +118,8 @@ App.WizardStep7Controller = Em.Controller.extend({
    * @type {bool}
    */
   isSubmitDisabled: function () {
-    return (!this.stepConfigs.filterProperty('showConfig', true).everyProperty('errorCount', 0) || this.get("miscModalVisible"));
+    if (!this.get('stepConfigs.length')) return true;
+    return (!this.get('stepConfigs').filterProperty('showConfig', true).everyProperty('errorCount', 0) || this.get("miscModalVisible"));
   }.property('stepConfigs.@each.errorCount', 'miscModalVisible'),
 
   /**
