@@ -181,10 +181,11 @@ App.clusterStatus = Em.Object.create(App.UserPref, {
    * update cluster status and post it on server.
    * This function should always be called by admin user
    * @param {object} newValue
-   * @param {object} opt - Can have additional params for ajax callBacks
+   * @param {object} opt - Can have additional params for ajax callBacks and sender
    *                 opt.successCallback
    *                 opt.errorCallback
    *                 opt.alwaysCallback
+   *                 opt.sender
    * @method setClusterStatus
    * @return {*}
    */
@@ -230,13 +231,16 @@ App.clusterStatus = Em.Object.create(App.UserPref, {
         App.db.setUser(user);
         App.db.setLoginName(login);
       }
-      this.postUserPref(this.get('key'), val).then(function() {
-        !!opt && Em.typeOf(opt.successCallback) === 'function' && opt.successCallback();
-        !!opt && Em.typeOf(opt.alwaysCallback) === 'function' && opt.alwaysCallback();
-      },function() {
-        !!opt && Em.typeOf(opt.errorCallback) === 'function' && opt.errorCallback();
-        !!opt && Em.typeOf(opt.alwaysCallback) === 'function' && opt.alwaysCallback();
-      });
+      this.postUserPref(this.get('key'), val)
+          .done(function () {
+            !!opt && Em.typeOf(opt.successCallback) === 'function' && opt.successCallback.call(opt.sender || this);
+          })
+          .fail(function () {
+            !!opt && Em.typeOf(opt.errorCallback) === 'function' && opt.errorCallback.call(opt.sender || this);
+          })
+          .always(function () {
+            !!opt && Em.typeOf(opt.alwaysCallback) === 'function' && opt.alwaysCallback.call(opt.sender || this);
+          });
       return newValue;
     }
   },
