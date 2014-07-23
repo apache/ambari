@@ -212,3 +212,4 @@ App.StackServiceComponent.coHost = {
   'HIVE_METASTORE': 'HIVE_SERVER',
   'WEBHCAT_SERVER': 'HIVE_SERVER'
 };
+

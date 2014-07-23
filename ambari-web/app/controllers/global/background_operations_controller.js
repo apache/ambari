@@ -123,6 +123,7 @@ App.BackgroundOperationsController = Em.Controller.extend({
    */
   callBackFilteredByRequest: function (data, ajaxQuery, params) {
     var requestId = data.Requests.id;
+    var requestInputs = data.Requests.inputs;
     var request = this.get('services').findProperty('id', requestId);
     var hostsMap = {};
     var previousTaskStatusMap = request.get('previousTaskStatusMap');
@@ -130,6 +131,7 @@ App.BackgroundOperationsController = Em.Controller.extend({
     data.tasks.forEach(function (task) {
       var host = hostsMap[task.Tasks.host_name];
       task.Tasks.request_id = requestId;
+      task.Tasks.request_inputs = requestInputs;
       if (host) {
         host.logTasks.push(task);
         host.isModified = (host.isModified) ? true : previousTaskStatusMap[task.Tasks.id] !== task.Tasks.status;

@@ -406,9 +406,10 @@ App.format = {
    * @memberof App.format
    * @method commandDetail
    * @param {string} command_detail
+   * @param {string} request_inputs
    * @return {string}
    */
-  commandDetail: function (command_detail) {
+  commandDetail: function (command_detail, request_inputs) {
     var detailArr = command_detail.split(' ');
     var self = this;
     var result = '';
@@ -417,9 +418,9 @@ App.format = {
       if (item.contains('/')) {
         item = item.split('/')[1];
       }
-      // ignore 'DECOMMISSION', command came from 'excluded/included'
       if (item == 'DECOMMISSION,') {
-        item = '';
+        // ignore text 'DECOMMISSION,'( command came from 'excluded/included'), here get the component name from request_inputs
+        item = (jQuery.parseJSON(request_inputs)) ? jQuery.parseJSON(request_inputs).slave_type : '';
       }
       if (self.components[item]) {
         result = result + ' ' + self.components[item];
