@@ -136,6 +136,15 @@ limitations under the License.
   </property>
 
   <property>
+    <name>hive.metastore.pre.event.listeners</name>
+    <value>org.apache.hadoop.hive.ql.security.authorization.AuthorizationPreEventListener</value>
+    <description>Pre-event listener classes to be loaded on the metastore side to run code
+      whenever databases, tables, and partitions are created, altered, or dropped.
+      Set to org.apache.hadoop.hive.ql.security.authorization.AuthorizationPreEventListener
+      if metastore-side authorization is desired.</description>
+  </property>
+
+  <property>
     <name>hive.security.authenticator.manager</name>
     <value>org.apache.hadoop.hive.ql.security.ProxyUserAuthenticator</value>
     <description>Hive client authenticator manager class name. The user-defined authenticator class should implement interface org.apache.hadoop.hive.ql.security.HiveAuthenticationProvider.  </description>
