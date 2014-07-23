@@ -371,7 +371,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     if (svcName) {
       switch (svcName.toLowerCase()) {
         case 'hdfs':
-          gangliaUrl += "/?r=hour&cs=&ce=&m=&s=by+name&c=HDPNameNode&tab=m&vn=";
+          gangliaUrl += "/?r=hour&cs=&ce=&m=&s=by+name&c=HDPSlaves&tab=m&vn=";
           break;
         case 'mapreduce':
           gangliaUrl += "/?r=hour&cs=&ce=&m=&s=by+name&c=HDPJobTracker&tab=m&vn=";
