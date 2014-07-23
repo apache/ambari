@@ -104,6 +104,8 @@ zk_hosts = default("/clusterHostInfo/zookeeper_hosts", [])
 ganglia_server_hosts = default("/clusterHostInfo/ganglia_server_host", [])
 
 has_resourcemanager = not len(rm_host) == 0
+has_namenode = not len(namenode_host) == 0
+has_jt = not len(jtnode_host) == 0
 has_slaves = not len(slave_hosts) == 0
 has_nagios = not len(hagios_server_hosts) == 0
 has_oozie_server = not len(oozie_servers)  == 0

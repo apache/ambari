@@ -110,16 +110,19 @@ def setup_users():
          ignore_failures = params.ignore_groupsusers_create
     )
 
-  User(params.hdfs_user,
-        gid=params.user_group,
-        groups=[params.user_group],
-        ignore_failures = params.ignore_groupsusers_create
-  )
-  User(params.mapred_user,
-       gid=params.user_group,
-       groups=[params.user_group],
-       ignore_failures = params.ignore_groupsusers_create
-  )
+  if params.has_namenode:
+    User(params.hdfs_user,
+          gid=params.user_group,
+          groups=[params.user_group],
+          ignore_failures = params.ignore_groupsusers_create
+    )
+  
+  if params.has_hs:
+    User(params.mapred_user,
+         gid=params.user_group,
+         groups=[params.user_group],
+         ignore_failures = params.ignore_groupsusers_create
+    )
   
   if params.has_zk_host:
     User(params.zk_user,
