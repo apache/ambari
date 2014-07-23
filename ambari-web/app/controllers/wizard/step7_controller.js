@@ -673,7 +673,7 @@ App.WizardStep7Controller = Em.Controller.extend({
 
     if (this.get('wizardController.name') === 'addServiceController') {
       App.router.get('configurationController').getConfigsByTags(this.get('serviceConfigTags')).done(function (loadedConfigs) {
-        self.setInstalledServiceConfigs(self.get('serviceConfigTags'), configs, loadedConfigs);
+        self.setInstalledServiceConfigs(self.get('serviceConfigTags'), configs, loadedConfigs, self.get('installedServiceNames'));
         self.applyServicesConfigs(configs, storedConfigs);
       });
     } else {
@@ -809,7 +809,7 @@ App.WizardStep7Controller = Em.Controller.extend({
    * @param configs
    * @method setInstalledServiceConfigs
    */
-  setInstalledServiceConfigs: function (serviceConfigTags, configs, configsByTags) {
+  setInstalledServiceConfigs: function (serviceConfigTags, configs, configsByTags, installedServiceNames) {
     var configsMap = {};
     var configTypeMap = {};
     var configMixin = App.get('config');
@@ -822,7 +822,7 @@ App.WizardStep7Controller = Em.Controller.extend({
       }
     });
     configs.forEach(function (_config) {
-      if (!Em.isNone(configsMap[_config.name])) {
+      if (!Em.isNone(configsMap[_config.name]) && installedServiceNames && installedServiceNames.contains(_config.serviceName)) {
         // prevent overriding already edited properties
         if (_config.defaultValue != configsMap[_config.name])
           _config.value = configsMap[_config.name];
