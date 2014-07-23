@@ -26,7 +26,7 @@ class HdfsServiceCheck(Script):
 
     env.set_params(params)
     unique = functions.get_unique_id_and_date()
-    dir = params.tmp_dir
+    dir = '/tmp'
     tmp_file = format("{dir}/{unique}")
 
     safemode_command = "dfsadmin -safemode get | grep OFF"
