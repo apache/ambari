@@ -75,7 +75,7 @@ describe('App.clusterStatus', function () {
 
     beforeEach(function() {
       sinon.stub(status, 'postUserPref', function() {
-        return {then: Em.K};
+        return $.ajax();
       });
     });
 
