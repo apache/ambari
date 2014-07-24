@@ -271,10 +271,14 @@ public class MaintenanceStateHelper {
       new RequestResourceFilter(NAGIOS_SERVICE, NAGIOS_COMPONENT, null);
 
     for (String clusterName : clusterNames) {
+      RequestOperationLevel level =
+              new RequestOperationLevel(Resource.Type.HostComponent,
+              clusterName, NAGIOS_SERVICE, NAGIOS_COMPONENT, null);
+
       ExecuteActionRequest actionRequest = new ExecuteActionRequest(
         clusterName, null, NAGIOS_ACTION_NAME,
         Collections.singletonList(resourceFilter),
-        null, params);
+        level, params);
       
       if (null == response) {
         // createAction() may throw an exception if Nagios is in MS or

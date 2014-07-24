@@ -120,7 +120,8 @@ public class MaintenanceStateHelperTest {
     Assert.assertEquals("NAGIOS", resourceFilter.getServiceName());
     Assert.assertEquals("NAGIOS_SERVER", resourceFilter.getComponentName());
     Assert.assertEquals("c1", ear.getClusterName());
-    Assert.assertTrue(map.containsKey("context"));  
+    Assert.assertTrue(map.containsKey("context"));
+    Assert.assertEquals(ear.getOperationLevel().getLevel(), Type.HostComponent);
   }
 
   private void testHost(MaintenanceState state) throws Exception {
@@ -178,7 +179,8 @@ public class MaintenanceStateHelperTest {
     Assert.assertEquals("NAGIOS", resourceFilter.getServiceName());
     Assert.assertEquals("NAGIOS_SERVER", resourceFilter.getComponentName());
     Assert.assertEquals("c1", ear.getClusterName());
-    Assert.assertTrue(map.containsKey("context"));    
+    Assert.assertTrue(map.containsKey("context"));
+    Assert.assertEquals(ear.getOperationLevel().getLevel(), Type.HostComponent);
   }
   
   private void testService(MaintenanceState state) throws Exception {
@@ -238,6 +240,7 @@ public class MaintenanceStateHelperTest {
     Assert.assertEquals("NAGIOS_SERVER", resourceFilter.getComponentName());
     Assert.assertEquals("c1", ear.getClusterName());
     Assert.assertTrue(map.containsKey("context"));
+    Assert.assertEquals(ear.getOperationLevel().getLevel(), Type.HostComponent);
   }
 
   @Test
