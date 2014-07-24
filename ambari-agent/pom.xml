@@ -488,6 +488,7 @@
               <paths>
                 <path>${package.pid.dir}</path>
                 <path>/var/lib/${project.artifactId}/data</path>
+                <path>/var/lib/${project.artifactId}/data/tmp</path>
                 <path>/var/lib/${project.artifactId}/keys</path>
                 <path>${package.log.dir}</path>
               </paths>
