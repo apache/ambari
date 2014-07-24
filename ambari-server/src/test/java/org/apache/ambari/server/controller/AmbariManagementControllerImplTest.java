@@ -20,6 +20,7 @@ package org.apache.ambari.server.controller;
 
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.createMockBuilder;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.createStrictMock;
 import static org.easymock.EasyMock.expect;
@@ -29,6 +30,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.*;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -39,6 +41,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.TreeMap;
 
 import junit.framework.Assert;
 import org.apache.ambari.server.AmbariException;
@@ -49,7 +52,9 @@ import org.apache.ambari.server.ServiceComponentHostNotFoundException;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.actionmanager.ActionManager;
+import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
@@ -1207,6 +1212,61 @@ public class AmbariManagementControllerImplTest {
 
     assertEquals(serviceOsSpecific.getPackages().size(), 3);
   }
+
+  @Test
+  public void testCreateDefaultHostParams() throws Exception {
+    String SOME_STACK_NAME = "SomeStackName";
+    String SOME_STACK_VERSION = "1.0";
+    String MYSQL_JAR = "MYSQL_JAR";
+    String JAVA_HOME = "javaHome";
+    String JDK_NAME = "jdkName";
+    String JCE_NAME = "jceName";
+    String OJDBC_JAR_NAME = "OjdbcJarName";
+    String SERVER_DB_NAME = "ServerDBName";
+
+    ActionManager manager = createNiceMock(ActionManager.class);
+    Clusters clusters = createNiceMock(Clusters.class);
+    StackId stackId = createNiceMock(StackId.class);
+    Cluster cluster = createNiceMock(Cluster.class);
+    Injector injector = createNiceMock(Injector.class);
+    Configuration configuration = createNiceMock(Configuration.class);
+
+    expect(cluster.getDesiredStackVersion()).andReturn(stackId);
+    expect(stackId.getStackName()).andReturn(SOME_STACK_NAME).anyTimes();
+    expect(stackId.getStackVersion()).andReturn(SOME_STACK_VERSION).anyTimes();
+    expect(configuration.getMySQLJarName()).andReturn(MYSQL_JAR);
+    expect(configuration.getJavaHome()).andReturn(JAVA_HOME);
+    expect(configuration.getJDKName()).andReturn(JDK_NAME);
+    expect(configuration.getJCEName()).andReturn(JCE_NAME);
+    expect(configuration.getOjdbcJarName()).andReturn(OJDBC_JAR_NAME);
+    expect(configuration.getServerDBName()).andReturn(SERVER_DB_NAME);
+
+    replay(manager, clusters, cluster, injector, stackId, configuration);
+
+    AmbariManagementControllerImpl ambariManagementControllerImpl =
+            createMockBuilder(AmbariManagementControllerImpl.class)
+            .addMockedMethod("getRcaParameters")
+            .withConstructor(manager, clusters, injector).createNiceMock();
+
+    expect(ambariManagementControllerImpl.
+            getRcaParameters()).andReturn(new HashMap<String, String>());
+    replay(ambariManagementControllerImpl);
+
+    // Inject configuration manually
+    Class<?> amciClass = AmbariManagementControllerImpl.class;
+    Field f = amciClass.getDeclaredField("configs");
+    f.setAccessible(true);
+    f.set(ambariManagementControllerImpl, configuration);
+
+    TreeMap<String, String> defaultHostParams =
+            ambariManagementControllerImpl.createDefaultHostParams(cluster);
+
+    assertEquals(defaultHostParams.size(), 10);
+    assertEquals(defaultHostParams.get(DB_DRIVER_FILENAME), MYSQL_JAR);
+    assertEquals(defaultHostParams.get(STACK_NAME), SOME_STACK_NAME);
+    assertEquals(defaultHostParams.get(STACK_VERSION), SOME_STACK_VERSION);
+  }
+
 
   private class NestedTestClass extends AmbariManagementControllerImpl {
 

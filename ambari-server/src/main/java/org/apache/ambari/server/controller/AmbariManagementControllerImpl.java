@@ -1445,17 +1445,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         + ", repoInfo=" + repoInfo);
     }
 
-    Map<String, String> hostParams = new TreeMap<String, String>();
+    Map<String, String> hostParams = createDefaultHostParams(cluster);
     hostParams.put(REPO_INFO, repoInfo);
-    hostParams.put(JDK_LOCATION, getJdkResourceUrl());
-    hostParams.put(JAVA_HOME, getJavaHome());
-    hostParams.put(JDK_NAME, getJDKName());
-    hostParams.put(JCE_NAME, getJCEName());
-    hostParams.put(STACK_NAME, stackId.getStackName());
-    hostParams.put(STACK_VERSION, stackId.getStackVersion());
-    hostParams.put(DB_NAME, getServerDB());
-    hostParams.put(MYSQL_JDBC_URL, getMysqljdbcUrl());
-    hostParams.put(ORACLE_JDBC_URL, getOjdbcUrl());
     hostParams.putAll(getRcaParameters());
 
     // Write down os specific info for the service
@@ -1805,7 +1796,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     return null;
   }
 
-  private TreeMap<String, String> createDefaultHostParams(Cluster cluster) {
+  TreeMap<String, String> createDefaultHostParams(Cluster cluster) {
     StackId stackId = cluster.getDesiredStackVersion();
     TreeMap<String, String> hostLevelParams = new TreeMap<String, String>();
     hostLevelParams.put(JDK_LOCATION, getJdkResourceUrl());
