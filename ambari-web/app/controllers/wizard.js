@@ -796,10 +796,10 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
         var supportsFinal = App.config.getConfigTypesInfoFromService(service).supportsFinal;
 
         function shouldSupportFinal(filename) {
-          var matchingConfigTypes = supportsFinal.filter(function (configType) {
+          var matchingConfigType = supportsFinal.find(function (configType) {
             return filename.startsWith(configType);
           });
-          return (matchingConfigTypes.length > 0);
+          return !!matchingConfigType;
         }
 
         properties.forEach(function (property) {

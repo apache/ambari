@@ -665,10 +665,10 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    */
   setSupportsFinal: function (serviceConfigProperty) {
     var fileName = serviceConfigProperty.get('filename');
-    var matchingConfigTypes = this.get('configTypesInfo').supportsFinal.filter(function(configType) {
+    var matchingConfigType = this.get('configTypesInfo').supportsFinal.find(function(configType) {
       return fileName.startsWith(configType);
     });
-    serviceConfigProperty.set('supportsFinal', matchingConfigTypes.length > 0);
+    serviceConfigProperty.set('supportsFinal', !!matchingConfigType);
   },
 
   /**

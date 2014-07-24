@@ -493,6 +493,17 @@ App.ServiceConfigsByCategoryView = Ember.View.extend(App.UserPref, {
       var configsOfFile = service.get('configs').filterProperty('filename', siteFileName);
       var siteFileProperties = App.config.get('configMapping').all().filterProperty('filename', siteFileName);
 
+      function shouldSupportFinal(filename) {
+        var stackService = App.StackService.find().findProperty('serviceName', serviceName);
+        var supportsFinal = App.config.getConfigTypesInfoFromService(stackService).supportsFinal;
+        var matchingConfigType = supportsFinal.find(function (configType) {
+          return filename.startsWith(configType);
+        });
+        return !!matchingConfigType;
+      }
+
+      var supportsFinal = shouldSupportFinal(siteFileName);
+
       function isDuplicatedConfigKey(name) {
         return siteFileProperties.findProperty('name', name) || configsOfFile.findProperty('name', name);
       }
@@ -510,6 +521,7 @@ App.ServiceConfigsByCategoryView = Ember.View.extend(App.UserPref, {
           id: 'site property',
           serviceName: serviceName,
           defaultValue: null,
+          supportsFinal: supportsFinal,
           filename: siteFileName || '',
           isUserProperty: true,
           isNotSaved: true
