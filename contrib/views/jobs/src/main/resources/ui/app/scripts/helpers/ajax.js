@@ -60,6 +60,16 @@ var urls = {
   'components_hosts': {
     real: 'clusters/{clusterName}/hosts?host_components/HostRoles/component_name={componentName}&minimal_response=true',
     mock: '/scripts/assets/components_hosts.json'
+  },
+
+  'config_tags': {
+    real: 'clusters/{clusterName}/?fields=Clusters/desired_configs',
+    mock: '/scripts/assets/desired_configs.json'
+  },
+
+  'configurations': {
+    real: 'clusters/{clusterName}/configurations?{params}',
+    mock: '/scripts/assets/configurations.json'
   }
 
 };

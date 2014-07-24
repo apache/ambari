@@ -60,6 +60,18 @@ App.ApplicationStatusMapper = Em.Object.createWithMixins(App.RunPeriodically, {
   },
 
   /**
+   * Is ATS host loaded
+   * @type {bool}
+   */
+  hostForComponentIsLoaded: false,
+
+  /**
+   * Is <code>ahsWebPort</code> loaded
+   * @type {bool}
+   */
+  portIsLoaded: false,
+
+  /**
    * Start mapping when <code>App.clusterName</code> is loaded
    * @method mapInit
    */
@@ -78,7 +90,10 @@ App.ApplicationStatusMapper = Em.Object.createWithMixins(App.RunPeriodically, {
     var self = this;
     this.getServices().then(function() {
       self.getComponents().then(function() {
-        self.getHostsForComponents();
+        if (!self.get('hostForComponentIsLoaded'))
+          self.getHostsForComponents();
+        if (!self.get('portIsLoaded'))
+          self.getDesiredConfigs();
       });
     });
   },
@@ -183,16 +198,14 @@ App.ApplicationStatusMapper = Em.Object.createWithMixins(App.RunPeriodically, {
    * @method getHostsForComponents
    */
   getHostsForComponents: function() {
-    if (!App.HiveJob.store.getById('component', 'APP_TIMELINE_SERVER').get('hostName')) {
-      return App.ajax.send({
-        name: 'components_hosts',
-        sender: this,
-        data: {
-          componentName: 'APP_TIMELINE_SERVER'
-        },
-        success: 'getHostsForComponentsSuccessCallback'
-      });
-    }
+    return App.ajax.send({
+      name: 'components_hosts',
+      sender: this,
+      data: {
+        componentName: 'APP_TIMELINE_SERVER'
+      },
+      success: 'getHostsForComponentsSuccessCallback'
+    });
   },
 
   /**
@@ -203,6 +216,70 @@ App.ApplicationStatusMapper = Em.Object.createWithMixins(App.RunPeriodically, {
    */
   getHostsForComponentsSuccessCallback: function(data) {
     App.HiveJob.store.getById('component', 'APP_TIMELINE_SERVER').set('hostName', Em.get(data.items[0], 'Hosts.host_name'));
+    this.set('hostForComponentIsLoaded', true);
+  },
+
+  /**
+   * Get Ambari desired configs
+   * @returns {$.ajax}
+   * @method getDesiredConfigs
+   */
+  getDesiredConfigs: function() {
+    return App.ajax.send({
+      name: 'config_tags',
+      sender: this,
+      success: 'getDesiredConfigsSuccessCallback'
+    });
+  },
+
+  /**
+   * Success callback for Ambari desired configs request
+   * Make request for YARN configs
+   * @param {object} data
+   * @returns {$.ajax|null}
+   * @method getDesiredConfigsSuccessCallback
+   */
+  getDesiredConfigsSuccessCallback: function(data) {
+    var c = Em.get(data, 'Clusters.desired_configs')['yarn-site'];
+    if (!Em.isNone(c)) {
+      return this.getConfigurations(c);
+    }
+  },
+
+  /**
+   * Get YARN configs
+   * @param {{user: string, tag: string}} config
+   * @returns {$.ajax}
+   * @method getConfigurations
+   */
+  getConfigurations: function(config) {
+    return App.ajax.send({
+      name: 'configurations',
+      sender: this,
+      data: {
+        params: '(type=yarn-site&tag=%@1)'.fmt(config.tag)
+      },
+      success: 'getConfigurationSuccessCallback'
+    });
+  },
+
+  /**
+   * Success callback for YARN configs
+   * Set <code>ahsWebPort</code> property using <code>yarn.timeline-service.webapp.address</code> or '8188' as default
+   * @param {object} data
+   * @method getConfigurationSuccessCallback
+   */
+  getConfigurationSuccessCallback: function(data) {
+    var c = data.items.findBy('type', 'yarn-site');
+    if (!Em.isNone(c)) {
+      var properties = Em.get(c, 'properties'),
+        port = '8188';
+      if (!Em.isNone(properties)) {
+        port = properties['yarn.timeline-service.webapp.address'].match(/:(\d+)/)[1];
+      }
+      App.HiveJob.store.getById('service', 'YARN').set('ahsWebPort', port);
+      this.set('portIsLoaded', true);
+    }
   }
 
 });

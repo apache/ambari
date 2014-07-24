@@ -1,0 +1,20 @@
+{
+  "Clusters" : {
+    "cluster_name" : "tdk",
+    "version" : "HDP-2.1",
+    "desired_configs" : {
+      "yarn-env" : {
+        "user" : "admin",
+        "tag" : "version1406204965090"
+      },
+      "yarn-log4j" : {
+        "user" : "admin",
+        "tag" : "version1406204965090"
+      },
+      "yarn-site" : {
+        "user" : "admin",
+        "tag" : "version1406204965090"
+      }
+    }
+  }
+}

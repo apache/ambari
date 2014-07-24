@@ -430,7 +430,7 @@ App.JobsController = Ember.ArrayController.extend(App.RunPeriodically, {
         sender: this,
         data: {
           historyServerHostName: historyServerHostName,
-          ahsWebPort: '',
+          ahsWebPort: yarnService.get('ahsWebPort'),
           filtersLink: this.get('filterObject').createJobsFiltersLink()
         },
         success: 'loadJobsSuccessCallback',

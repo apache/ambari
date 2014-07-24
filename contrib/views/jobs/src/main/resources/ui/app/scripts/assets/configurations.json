@@ -1,0 +1,14 @@
+{
+  "items" : [
+    {
+      "tag" : "version1406204965090",
+      "type" : "yarn-site",
+      "Config" : {
+        "cluster_name" : "tdk"
+      },
+      "properties" : {
+        "yarn.timeline-service.webapp.address" : "host1:8188"
+      }
+    }
+  ]
+}

@@ -33,7 +33,7 @@ App.Service = DS.Model.extend({
    *
    * @type {string}
    */
-  ahsWebPort: '8088'
+  ahsWebPort: '8188'
 
 });
 
