@@ -77,7 +77,7 @@ module.exports = Em.Application.create({
   }.property('currentStackVersionNumber'),
 
   /**
-   * If High Availability is enabled
+   * If NameNode High Availability is enabled
    * Based on <code>clusterStatus.isInstalled</code>, stack version, <code>SNameNode</code> availability
    *
    * @type {bool}
@@ -85,6 +85,17 @@ module.exports = Em.Application.create({
   isHaEnabled: function () {
     if (!this.get('isHadoop2Stack')) return false;
     return !this.HostComponent.find().someProperty('componentName', 'SECONDARY_NAMENODE');
+  }.property('router.clusterController.isLoaded', 'isHadoop2Stack'),
+
+  /**
+   * If ResourceManager High Availability is enabled
+   * Based on number of ResourceManager components host components installed
+   *
+   * @type {bool}
+   */
+  isRMHaEnabled: function () {
+    if (!this.get('isHadoop2Stack')) return false;
+    return this.HostComponent.find().filterProperty('componentName', 'RESOURCEMANAGER').length > 1;
   }.property('router.clusterController.isLoaded', 'isHadoop2Stack'),
 
   /**

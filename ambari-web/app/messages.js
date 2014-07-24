@@ -827,6 +827,7 @@ Em.I18n.translations = {
   'admin.highAvailability.disabled':'NameNode HA is disabled',
   'admin.highAvailability.enabled':'NameNode HA is enabled',
   'admin.rm_highAvailability.disabled':'ResourceManager HA is disabled',
+  'admin.rm_highAvailability.enabled':'ResourceManager HA is enabled',
   'admin.highAvailability.confirmRollbackHeader':'Confirm Rollback',
   'admin.highAvailability.confirmRollbackBody':'This will rollback all operations that were done in HA wizard',
   'admin.highAvailability.confirmManualRollbackBody':'You are in the process of enabling NameNode HA. If you exit now, you must follow manual instructions to revert back to the non-HA setup as documented in the Ambari User Guide\'s <i>Rolling Back NameNode HA</i> section.  Are you sure you want to exit the wizard?',
@@ -999,7 +1000,7 @@ Em.I18n.translations = {
   'admin.rm_highAvailability.wizard.step4.task2.title': 'Reconfigure YARN',
   'admin.rm_highAvailability.wizard.step4.task3.title': 'Start All Services',
   'admin.rm_highAvailability.wizard.step4.notice.inProgress':'Please wait while ResourceManager HA is being deployed.',
-  'admin.rm_highAvailability.wizard.step4.notice.completed':'NameNode HA has been enabled successfully.',
+  'admin.rm_highAvailability.wizard.step4.notice.completed':'ResourceManager HA has been enabled successfully.',
 
   'admin.security.title':'Kerberos security has not been enabled',
   'admin.security.enabled': 'Kerberos security is enabled',
