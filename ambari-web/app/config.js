@@ -79,7 +79,8 @@ App.supports = {
   ubuntu: true,
   views: false,
   flume: true,
-  databaseConnection: true
+  databaseConnection: true,
+  configHistory: true
 };
 
 if (App.enableExperimental) {

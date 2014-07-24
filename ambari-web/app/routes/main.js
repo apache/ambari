@@ -157,13 +157,17 @@ module.exports = Em.Route.extend({
     configHistory: Em.Route.extend({
       route: '/config_history',
       connectOutlets: function (router, context) {
-        router.set('mainDashboardController.selectedCategory', 'configHistory');
-        router.get('mainDashboardController').connectOutlet('mainConfigHistory');
+        if (App.get('supports.configHistory')) {
+          router.set('mainDashboardController.selectedCategory', 'configHistory');
+          router.get('mainDashboardController').connectOutlet('mainConfigHistory');
+        } else {
+          router.transitionTo('main.dashboard.widgets');
+        }
       }
     }),
     goToServiceConfigs: function (router, event) {
       router.get('mainServiceItemController').set('routeToConfigs', true);
-      App.router.transitionTo('main.services.service.configs', App.Service.find(event.context));
+      router.transitionTo('main.services.service.configs', App.Service.find(event.context));
       router.get('mainServiceItemController').set('routeToConfigs', false);
     }
   }),

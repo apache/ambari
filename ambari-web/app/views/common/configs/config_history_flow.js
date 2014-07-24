@@ -27,6 +27,10 @@ App.ConfigHistoryFlowView = Em.View.extend({
   startIndex: 0,
   showLeftArrow: true,
   showRightArrow: false,
+  /**
+   * flag identify whether to show all versions or short list of them
+   */
+  showFullList: false,
 
   currentServiceVersion: function () {
     return this.get('serviceVersions').findProperty('current');
@@ -55,6 +59,26 @@ App.ConfigHistoryFlowView = Em.View.extend({
     return this.get('serviceVersions').slice(this.get('startIndex'), (this.get('startIndex') + 5));
   }.property('startIndex'),
 
+  /**
+   * list of service versions
+   * by default 6 is number of items in short list
+   */
+  dropDownList: function () {
+    var serviceVersions = this.get('serviceVersions').without(this.get('currentServiceVersion')).reverse();
+    if (this.get('showFullList')) {
+      return serviceVersions;
+    }
+    return serviceVersions.slice(0, 6);
+  }.property('serviceVersions', 'showFullList'),
+
+  openFullList: function (event) {
+    event.stopPropagation();
+    this.set('showFullList', true);
+  },
+  hideFullList: function (event) {
+    this.set('showFullList', false);
+  },
+
   willInsertElement: function () {
     var serviceVersions = this.get('serviceVersions');
     var startIndex = 0;
@@ -78,6 +102,61 @@ App.ConfigHistoryFlowView = Em.View.extend({
     });
     this.set('showLeftArrow', (startIndex !== 0));
     this.set('showRightArrow', ((startIndex + 5) !== this.get('serviceVersions.length')));
+  },
+
+  /**
+   * switch configs view version to chosen
+   */
+  view: function () {
+
+  },
+  /**
+   * add config values of chosen version to view for comparison
+   */
+  compare: function () {
+
+  },
+  /**
+   * revert config values to chosen version
+   */
+  revert: function () {
+
+  },
+  /**
+   * cancel configuration saving
+   */
+  cancel: function () {
+
+  },
+  /**
+   * save configuration
+   * @return {object}
+   */
+  save: function () {
+    return App.ModalPopup.show({
+      header: Em.I18n.t('dashboard.configHistory.info-bar.save.popup.title'),
+      bodyClass: Em.View.extend({
+        templateName: require('templates/common/configs/save_configuration'),
+        notesArea: Em.TextArea.extend({
+          classNames: ['full-width'],
+          placeholder: Em.I18n.t('dashboard.configHistory.info-bar.save.popup.placeholder')
+        })
+      }),
+      footerClass: Ember.View.extend({
+        templateName: require('templates/main/service/info/save_popup_footer')
+      }),
+      primary: Em.I18n.t('common.save'),
+      secondary: Em.I18n.t('common.cancel'),
+      onSave: function () {
+        this.hide();
+      },
+      onDiscard: function () {
+        this.hide();
+      },
+      onCancel: function () {
+        this.hide();
+      }
+    });
   },
   serviceVersions: [
     Em.Object.create({

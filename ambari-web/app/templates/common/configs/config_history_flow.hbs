@@ -38,12 +38,35 @@
   <div class="version-info-bar">
     <div class="row-fluid">
         <div class="btn-group pull-left">
-            <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
+            <a class="btn dropdown-toggle" data-toggle="dropdown" href="#" {{action hideFullList target="view"}}>
                 <i class="icon-random"></i>
                 <span class="caret"></span>
             </a>
             <ul class="dropdown-menu">
-
+              {{#each serviceVersion in view.dropDownList}}
+                  <li class="pointer dropdown-submenu">
+                      <div class="row-fluid">
+                          <div class="span2">{{t common.version}}:&nbsp;{{serviceVersion.version}}</div>
+                          <div class="span3">{{serviceVersion.date}}</div>
+                          <div class="span2">{{serviceVersion.author}}</div>
+                          <div class="span4"><span class="ellipsis">{{t dashboard.configHistory.info-bar.changesToHandle}}</span></div>
+                          <div class="pull-right"><i class="icon-caret-right"></i></div>
+                      </div>
+                      <ul class="dropdown-menu">
+                          <li><a {{action "view" serviceVersion target="view"}}>{{t common.view}}</a></li>
+                          <li><a {{action compare serviceVersion target="view"}}>{{t common.compare}}</a></li>
+                          <li><a {{action revert serviceVersion target="view"}}>{{t common.revert}}</a></li>
+                      </ul>
+                  </li>
+              {{/each}}
+              {{#unless view.showFullList}}
+                  <li class="align-center pointer" id="show_more">
+                      <a {{action openFullList target="view"}}>
+                        {{t dashboard.configHistory.info-bar.showMore}}&nbsp;{{view.currentServiceVersion.serviceName}}
+                          &nbsp;<span class="lowercase ellipsis">{{t dashboard.configHistory.title}}</span>
+                      </a>
+                  </li>
+              {{/unless}}
             </ul>
         </div>
         <div class="label-wrapper span8">
@@ -51,8 +74,8 @@
             <strong>{{view.currentServiceVersion.author}}</strong>&nbsp;{{t dashboard.configHistory.info-bar.authoredOn}}&nbsp;<strong>{{view.currentServiceVersion.date}}</strong>
         </div>
         <div class="pull-right">
-            <div class="btn">{{t common.cancel}}</div>
-            <div class="btn btn-success">{{t common.save}}</div>
+            <button class="btn" {{action cancel target="view"}}>{{t common.cancel}}</button>
+            <button class="btn btn-success" {{action save target="view"}}>{{t common.save}}</button>
         </div>
     </div>
     <div class="label-wrapper">

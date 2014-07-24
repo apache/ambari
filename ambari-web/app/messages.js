@@ -212,6 +212,8 @@ Em.I18n.translations = {
   'common.type.number': 'number',
   'common.author': 'Author',
   'common.notes': 'Notes',
+  'common.view': 'View',
+  'common.compare': 'Compare',
 
   'passiveState.turnOn':'Turn On Maintenance Mode',
   'passiveState.turnOff':'Turn Off Maintenance Mode',
@@ -1934,6 +1936,10 @@ Em.I18n.translations = {
   'dashboard.configHistory.table.filteredHostsInfo': '{0} of {1} versions showing',
   'dashboard.configHistory.table.current': '(Current)',
   'dashboard.configHistory.info-bar.authoredOn': 'authored on',
+  'dashboard.configHistory.info-bar.changesToHandle': 'Changes to handle',
+  'dashboard.configHistory.info-bar.showMore': 'Show more',
+  'dashboard.configHistory.info-bar.save.popup.title': 'Save Configuration',
+  'dashboard.configHistory.info-bar.save.popup.placeholder': 'What did you change?',
 
   'timeRange.presets.1hour':'1h',
   'timeRange.presets.12hour':'12h',

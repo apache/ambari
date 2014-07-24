@@ -129,6 +129,7 @@ footer {
 @top-nav-menu-dropdown-border-color: #c3c3c3;
 @top-nav-menu-dropdown-bg-color: #ffffff;
 @top-nav-menu-dropdown-text-color: #333333;
+@default-font-size: 14px;
 
 #top-nav {
 
@@ -2496,7 +2497,7 @@ width:100%;
   }
 }
 
-.modal-footer.align-center {
+.align-center {
   text-align: center;
 }
 
@@ -4847,6 +4848,7 @@ ul.inline li {
 }
 
 #config_history_flow {
+  margin-bottom: 100px;
   .version-slider {
     width: 100%;
     height: 100px;
@@ -4860,24 +4862,27 @@ ul.inline li {
         height: 100%;
         background-color: #dcdcdc;
         border: 1px solid #000000;
+        font-size: 0.9em;
         .top-right-label {
+          font-size: @default-font-size;
           background-color: white;
           position: absolute;
           top: 0;
           left: 0;
-          width: 20px;
+          min-width: 20px;
           border: solid #000000;
           border-width: 0 1px 1px 0;
           padding: 5px;
           text-align: center;
         }
         .date {
-          margin-left: 35px;
+          margin-left: 40px;
           line-height: 30px;
           white-space: nowrap;
         }
         .content {
           padding: 0 5px;
+          line-height: 16px;
         }
         .current-label {
           position: absolute;
@@ -4933,8 +4938,12 @@ ul.inline li {
     height: 60px;
     border: 2px solid #a9a9a9;
     background-color: #dcdcdc;
-    margin: 10px 0;
+    margin: 5px 0;
     padding: 5px;
+    position: fixed;
+    width: 52%;
+    z-index: 2;
+    min-width: 743px;
 
     .label-wrapper {
       line-height: 30px;
@@ -4944,12 +4953,45 @@ ul.inline li {
         padding: 5px;
       }
     }
+    .dropdown-menu {
+      min-width: 660px;
+      li {
+        line-height: 30px;
+      }
+      li:hover {
+        background-color: #666666;
+        background-image: linear-gradient(to bottom, #666666, #555555);
+        color: white;
+      }
+      .icon-caret-right {
+        font-size: 20px;
+        margin-right: 20px;
+      }
+      div.row-fluid, a {
+        padding-left: 10px;
+      }
+    }
+    .dropdown-submenu .dropdown-menu {
+      min-width: 80px;
+    }
   }
 }
 
 .pointer {
   cursor: pointer;
 }
+
+.lowercase {
+  text-transform:lowercase;
+}
+.ellipsis:after {
+  content: '...';
+}
+
+.full-width {
+  width: 100%
+}
+
 
 .big-arrow-right {
   background-repeat: no-repeat;

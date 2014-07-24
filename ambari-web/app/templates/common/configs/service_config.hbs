@@ -77,8 +77,10 @@
 	</div>
 {{/if}}
 
-{{#if view.showConfigHistoryFlow}}
-  {{view App.ConfigHistoryFlowView serviceBinding="selectedService"}}
+{{#if App.supports.configHistory}}
+  {{#if view.showConfigHistoryFlow}}
+    {{view App.ConfigHistoryFlowView serviceBinding="selectedService"}}
+  {{/if}}
 {{/if}}
 
 <div class="accordion">
