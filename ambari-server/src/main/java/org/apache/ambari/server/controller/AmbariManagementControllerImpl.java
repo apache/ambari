@@ -30,6 +30,7 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -270,7 +271,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     return uriBuilder.toString();
   }
 
-  private RoleCommandOrder getRoleCommandOrder(Cluster cluster) {
+  @Override
+  public RoleCommandOrder getRoleCommandOrder(Cluster cluster) {
       RoleCommandOrder rco;
       rco = injector.getInstance(RoleCommandOrder.class);
       rco.initialize(cluster);
@@ -1281,10 +1283,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     // Flatten changed Schs that are going to be Started
     List<ServiceComponentHost> serviceComponentHosts = new ArrayList<ServiceComponentHost>();
     if (changedScHosts != null && !changedScHosts.isEmpty()) {
-      for (String sc : changedScHosts.keySet()) {
-        for (State state : changedScHosts.get(sc).keySet()) {
+      for (Entry<String, Map<State, List<ServiceComponentHost>>> stringMapEntry : changedScHosts.entrySet()) {
+        for (State state : stringMapEntry.getValue().keySet()) {
           if (state == State.STARTED) {
-            serviceComponentHosts.addAll(changedScHosts.get(sc).get(state));
+            serviceComponentHosts.addAll(stringMapEntry.getValue().get(state));
           }
         }
       }
@@ -1326,10 +1328,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     LOG.info("Client hosts for reinstall : " + clientSchs.size());
 
     if (changedScHosts != null) {
-      for (String sc : clientSchs.keySet()) {
-        Map<State, List<ServiceComponentHost>> schMap = new HashMap<State, List<ServiceComponentHost>>();
-        schMap.put(State.INSTALLED, clientSchs.get(sc));
-        changedScHosts.put(sc, schMap);
+      for (Entry<String, List<ServiceComponentHost>> stringListEntry : clientSchs.entrySet()) {
+        Map<State, List<ServiceComponentHost>> schMap = new EnumMap<State, List<ServiceComponentHost>>(State.class);
+        schMap.put(State.INSTALLED, stringListEntry.getValue());
+        changedScHosts.put(stringListEntry.getKey(), schMap);
       }
     }
   }
@@ -1411,7 +1413,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     String commandTimeout = configs.getDefaultAgentTaskTimeout();
     /*
      * This script is only used for
-     * default commads like INSTALL/STOP/START
+     * default commands like INSTALL/STOP/START
      */
     CommandScriptDefinition script = componentInfo.getCommandScript();
     if (serviceInfo.getSchemaVersion().equals(AmbariMetaInfo.SCHEMA_VERSION_2)) {
@@ -2104,7 +2106,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       } else {
         if (!changedScHosts.containsKey(sc.getName())) {
           changedScHosts.put(sc.getName(),
-              new HashMap<State, List<ServiceComponentHost>>());
+              new EnumMap<State, List<ServiceComponentHost>>(State.class));
         }
         if (!changedScHosts.get(sc.getName()).containsKey(newState)) {
           changedScHosts.get(sc.getName()).put(newState,

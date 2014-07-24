@@ -23,6 +23,7 @@ import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.isNull;
 import static org.easymock.EasyMock.replay;
@@ -40,6 +41,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
@@ -55,6 +57,7 @@ import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.metadata.RoleCommandOrder;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
@@ -262,6 +265,7 @@ public class ServiceResourceProviderTest {
     AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
     RequestStageContainer requestStages = createNiceMock(RequestStageContainer.class);
     RequestStatusResponse requestStatusResponse = createNiceMock(RequestStatusResponse.class);
+    RoleCommandOrder rco = createNiceMock(RoleCommandOrder.class);
 
     Map<String, String> mapRequestProps = new HashMap<String, String>();
     mapRequestProps.put("context", "Called from a test");
@@ -294,8 +298,14 @@ public class ServiceResourceProviderTest {
     expect(requestStages.getRequestStatusResponse()).andReturn(requestStatusResponse);
     expect(maintenanceStateHelper.isOperationAllowed(anyObject(Resource.Type.class), anyObject(Service.class))).andReturn(true).anyTimes();
 
+    expect(service0.getCluster()).andReturn(cluster).anyTimes();
+    expect(managementController.getRoleCommandOrder(cluster)).andReturn(rco).
+    anyTimes();
+    expect(rco.getTransitiveServices(eq(service0), eq(RoleCommand.START))).
+    andReturn(Collections.<Service>emptySet()).anyTimes();
+
     // replay
-    replay(managementController, clusters, cluster, maintenanceStateHelper,
+    replay(managementController, clusters, cluster, rco, maintenanceStateHelper,
         service0, serviceFactory, ambariMetaInfo, requestStages, requestStatusResponse);
 
     ServiceResourceProvider provider = getServiceProvider(managementController, maintenanceStateHelper);
@@ -335,6 +345,7 @@ public class ServiceResourceProviderTest {
     RequestStatusResponse response1 = createNiceMock(RequestStatusResponse.class);
     RequestStatusResponse response2 = createNiceMock(RequestStatusResponse
       .class);
+    RoleCommandOrder rco = createNiceMock(RoleCommandOrder.class);
 
     Map<String, String> mapRequestProps = new HashMap<String, String>();
     mapRequestProps.put("context", "Called from a test");
@@ -388,9 +399,17 @@ public class ServiceResourceProviderTest {
 
     expect(maintenanceStateHelper.isOperationAllowed(anyObject(Resource.Type.class), anyObject(Service.class))).andReturn(true).anyTimes();
 
+    expect(service0.getCluster()).andReturn(cluster).anyTimes();
+    expect(managementController1.getRoleCommandOrder(cluster)).andReturn(rco).
+    anyTimes();
+    expect(managementController2.getRoleCommandOrder(cluster)).andReturn(rco).
+    anyTimes();
+    expect(rco.getTransitiveServices(eq(service0), eq(RoleCommand.START))).
+    andReturn(Collections.<Service>emptySet()).anyTimes();
+
     // replay
     replay(managementController1, response1, managementController2, requestStages1, requestStages2, response2,
-        clusters, cluster, service0, serviceResponse0, ambariMetaInfo, maintenanceStateHelper);
+        clusters, cluster, service0, serviceResponse0, ambariMetaInfo, rco, maintenanceStateHelper);
 
     ServiceResourceProvider provider1 = getServiceProvider(managementController1, maintenanceStateHelper);
 
@@ -1310,7 +1329,7 @@ public class ServiceResourceProviderTest {
       provider = getServiceProvider(controller);
     }
 
-    RequestStageContainer request = provider.updateServices(null, requests, requestProperties, runSmokeTest, reconfigureClients);
+    RequestStageContainer request = provider.updateServices(null, requests, requestProperties, runSmokeTest, reconfigureClients, true);
     request.persist();
     return request.getRequestStatusResponse();
   }

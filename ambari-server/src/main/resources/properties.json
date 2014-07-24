@@ -20,6 +20,7 @@
         "Services/attributes",
         "params/run_smoke_test",
         "params/reconfigure_client",
+        "params/start_dependencies",
         "_"
     ],
     "Host":[

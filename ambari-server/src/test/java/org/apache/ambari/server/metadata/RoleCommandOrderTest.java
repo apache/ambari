@@ -29,11 +29,13 @@ import static org.easymock.EasyMock.verify;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import junit.framework.Assert;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
@@ -50,6 +52,7 @@ import org.codehaus.jackson.annotate.JsonAutoDetect;
 import org.codehaus.jackson.annotate.JsonMethod;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
+import org.easymock.IExpectationSetters;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -135,7 +138,7 @@ public class RoleCommandOrderTest {
     Service hdfsService = createMock(Service.class);
 
     expect(cluster.getService("HDFS")).andReturn(hdfsService).atLeastOnce();
-    expect(cluster.getService("YARN")).andReturn(null);
+    expect(cluster.getService("YARN")).andReturn(null).atLeastOnce();
     expect(hdfsService.getServiceComponent("JOURNALNODE")).andReturn(null);
     expect(cluster.getCurrentStackVersion()).andReturn(new StackId("HDP", "2.0.6"));
 
@@ -316,7 +319,57 @@ public class RoleCommandOrderTest {
     verify(cluster);
     verify(hdfsService);
   }
-  
+
+  @Test
+  public void testTransitiveServices() throws AmbariException {
+    RoleCommandOrder rco = injector.getInstance(RoleCommandOrder.class);
+    ClusterImpl cluster = createMock(ClusterImpl.class);
+
+    Service hdfsService = createMock(Service.class);
+
+    ServiceComponent namenode = createMock(ServiceComponent.class);
+    expect(namenode.getName()).andReturn("NAMENODE").anyTimes();
+
+    Map<String,ServiceComponent> hdfsComponents = Collections.singletonMap("NAMENODE", namenode);
+    expect(hdfsService.getServiceComponents()).andReturn(hdfsComponents).anyTimes();
+
+    Service nagiosService = createMock(Service.class);
+    expect(cluster.getService("NAGIOS")).andReturn(nagiosService).atLeastOnce();
+    expect(nagiosService.getCluster()).andReturn(cluster).anyTimes();
+
+    ServiceComponent nagiosServer = createMock(ServiceComponent.class);
+    expect(nagiosServer.getName()).andReturn("NAGIOS_SERVER").anyTimes();
+
+    Map<String,ServiceComponent> nagiosComponents = Collections.singletonMap("NAGIOS_SERVER", nagiosServer);
+    expect(nagiosService.getServiceComponents()).andReturn(nagiosComponents).anyTimes();
+
+    Map<String, Service> installedServices = new HashMap<String, Service>();
+    installedServices.put("HDFS", hdfsService);
+    installedServices.put("NAGIOS", nagiosService);
+    expect(cluster.getServices()).andReturn(installedServices).atLeastOnce();
+
+
+    expect(cluster.getService("HDFS")).andReturn(hdfsService).atLeastOnce();
+    expect(cluster.getService("GLUSTERFS")).andReturn(null);
+    expect(cluster.getService("YARN")).andReturn(null);
+    expect(hdfsService.getServiceComponent("JOURNALNODE")).andReturn(null);
+    expect(cluster.getCurrentStackVersion()).andReturn(new StackId("HDP", "2.0.5"));
+
+    //replay
+    replay(cluster, hdfsService, nagiosService, nagiosServer, namenode);
+
+    rco.initialize(cluster);
+
+    Set<Service> transitiveServices =
+      rco.getTransitiveServices(cluster.getService("NAGIOS"), RoleCommand.START);
+
+    //HDFS should be started before NAGIOS start
+    Assert.assertNotNull(transitiveServices);
+    Assert.assertFalse(transitiveServices.isEmpty());
+    Assert.assertEquals(1, transitiveServices.size());
+    Assert.assertTrue(transitiveServices.contains(hdfsService));
+  }
+
   private boolean dependenciesContainBlockedRole(Map<RoleCommandPair,
           Set<RoleCommandPair>> deps, Role blocked) {
     for (RoleCommandPair blockedPair : deps.keySet()) {

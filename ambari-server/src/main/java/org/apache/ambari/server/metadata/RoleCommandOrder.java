@@ -27,6 +27,8 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.stageplanner.RoleGraphNode;
 import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -207,7 +209,7 @@ public class RoleCommandOrder {
     String stackName = currentStackVersion.getStackName();
     String stackVersion = currentStackVersion.getStackVersion();
     File rcoFile = getRCOFile(stackName, stackVersion);
-    Map<String,Object> userData = null;
+    Map<String,Object> userData;
     
     try {
       
@@ -228,21 +230,26 @@ public class RoleCommandOrder {
       return;
     }
 
-    Map<String,Object> generalSection = (Map<String, Object>) userData.get(GENERAL_DEPS_KEY);
+    Map<String,Object> generalSection =
+      (Map<String, Object>) userData.get(GENERAL_DEPS_KEY);
     addDependencies(generalSection);
     if (hasGLUSTERFS) {
-      Map<String,Object> glusterfsSection = (Map<String, Object>) userData.get(GLUSTERFS_DEPS_KEY);
+      Map<String,Object> glusterfsSection =
+        (Map<String, Object>) userData.get(GLUSTERFS_DEPS_KEY);
       addDependencies(glusterfsSection);
     } else {
-      Map<String,Object> noGlusterFSSection = (Map<String, Object>) userData.get(NO_GLUSTERFS_DEPS_KEY);
+      Map<String,Object> noGlusterFSSection =
+        (Map<String, Object>) userData.get(NO_GLUSTERFS_DEPS_KEY);
       addDependencies(noGlusterFSSection);
     }
     if (isNameNodeHAEnabled) {
-      Map<String,Object> NAMENODEHASection = (Map<String, Object>) userData.get(NAMENODE_HA_DEPS_KEY);
+      Map<String,Object> NAMENODEHASection =
+        (Map<String, Object>) userData.get(NAMENODE_HA_DEPS_KEY);
       addDependencies(NAMENODEHASection);
     }
     if (isResourceManagerHAEnabled) {
-      Map<String,Object> ResourceManagerHASection = (Map<String, Object>) userData.get(RESOURCEMANAGER_HA_DEPS_KEY);
+      Map<String,Object> ResourceManagerHASection =
+        (Map<String, Object>) userData.get(RESOURCEMANAGER_HA_DEPS_KEY);
       addDependencies(ResourceManagerHASection);
     }
     extendTransitiveDependency();
@@ -273,19 +280,52 @@ public class RoleCommandOrder {
   }
 
   /**
+   * Returns transitive dependencies as a services list
+   * @param service to check if it depends on another services
+   * @return tramsitive services
+   */
+  public Set<Service> getTransitiveServices(Service service, RoleCommand cmd)
+    throws AmbariException {
+
+    Set<Service> transitiveServices = new HashSet<Service>();
+    Cluster cluster = service.getCluster();
+
+    Set<RoleCommandPair> allDeps = new HashSet<RoleCommandPair>();
+    for (ServiceComponent sc : service.getServiceComponents().values()) {
+      RoleCommandPair rcp = new RoleCommandPair(Role.valueOf(sc.getName()), cmd);
+      Set<RoleCommandPair> deps = this.dependencies.get(rcp);
+      if (deps != null) {
+        allDeps.addAll(deps);
+      }
+    }
+
+    for (Service s : cluster.getServices().values()) {
+      for (RoleCommandPair rcp : allDeps) {
+        ServiceComponent sc = s.getServiceComponents().get(rcp.getRole().toString());
+        if (sc != null) {
+          transitiveServices.add(s);
+          break;
+        }
+      }
+    }
+
+    return transitiveServices;
+  }
+
+  /**
    * Adds transitive dependencies to each node.
    * A => B and B => C implies A => B,C and B => C
    */
   private void extendTransitiveDependency() {
-    for (RoleCommandPair rcp : this.dependencies.keySet()) {
+    for (Map.Entry<RoleCommandPair, Set<RoleCommandPair>> roleCommandPairSetEntry : this.dependencies.entrySet()) {
       HashSet<RoleCommandPair> visited = new HashSet<RoleCommandPair>();
       HashSet<RoleCommandPair> transitiveDependencies = new HashSet<RoleCommandPair>();
-      for (RoleCommandPair directlyBlockedOn : this.dependencies.get(rcp)) {
+      for (RoleCommandPair directlyBlockedOn : this.dependencies.get(roleCommandPairSetEntry.getKey())) {
         visited.add(directlyBlockedOn);
         identifyTransitiveDependencies(directlyBlockedOn, visited, transitiveDependencies);
       }
       if (transitiveDependencies.size() > 0) {
-        this.dependencies.get(rcp).addAll(transitiveDependencies);
+        this.dependencies.get(roleCommandPairSetEntry.getKey()).addAll(transitiveDependencies);
       }
     }
   }
@@ -336,7 +376,8 @@ public class RoleCommandOrder {
   }
 
   public int compareDeps(RoleCommandOrder rco) {
-    Set<RoleCommandPair> v1 = null, v2 = null;
+    Set<RoleCommandPair> v1;
+    Set<RoleCommandPair> v2;
     if (this == rco) {
       return 0;
     }
@@ -350,12 +391,13 @@ public class RoleCommandOrder {
 
     // So far so good.  Since the keysets match, let's check the
     // actual entries against each other
-    for (RoleCommandPair key: this.dependencies.keySet()) {
-      v1 = this.dependencies.get(key);
-      v2 = rco.dependencies.get(key);
+    for (Map.Entry<RoleCommandPair, Set<RoleCommandPair>> roleCommandPairSetEntry : this.dependencies.entrySet()) {
+      v1 = this.dependencies.get(roleCommandPairSetEntry.getKey());
+      v2 = rco.dependencies.get(roleCommandPairSetEntry.getKey());
       if (!v1.equals(v2)) {
-        LOG.debug("different entry found for key (" + key.role.toString() + ", "
-                                                    + key.cmd.toString() + ")" );
+        LOG.debug("different entry found for key ("
+          + roleCommandPairSetEntry.getKey().role.toString() + ", "
+          + roleCommandPairSetEntry.getKey().cmd.toString() + ")" );
         return 1;
       }
     }
