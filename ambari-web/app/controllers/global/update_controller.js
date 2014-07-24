@@ -350,6 +350,7 @@ App.UpdateController = Em.Controller.extend({
         'host_components/HostRoles/state,' +
         'host_components/HostRoles/maintenance_state,' +
         'host_components/HostRoles/stale_configs,' +
+        'host_components/HostRoles/ha_state,' +
         'host_components/metrics/jvm/memHeapUsedM,' +
         'host_components/metrics/jvm/HeapMemoryMax,' +
         'host_components/metrics/jvm/HeapMemoryUsed,' +

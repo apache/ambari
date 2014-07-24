@@ -1851,6 +1851,8 @@ Em.I18n.translations = {
   'dashboard.services.yarn.clients':'YARN Clients',
   'dashboard.services.yarn.client':'YARN Client',
   'dashboard.services.yarn.resourceManager.uptime':'ResourceManager Uptime',
+  'dashboard.services.yarn.resourceManager.active':'Active ResourceManager',
+  'dashboard.services.yarn.resourceManager.standby':'Standby ResourceManager',
   'dashboard.services.resourceManager.nodes.heap':'ResourceManager Heap',
   'dashboard.services.yarn.nodeManagers.status': 'NodeManagers Status',
   'dashboard.services.yarn.nodeManagers.status.msg': '{0} active / {1} lost / {2} unhealthy / {3} rebooted / {4} decommissioned',
