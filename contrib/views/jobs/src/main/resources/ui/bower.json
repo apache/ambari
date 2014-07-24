@@ -9,7 +9,8 @@
     "ember-i18n": "1.6.*",
     "bootstrap": "2.3.*",
     "ember-addons.bs_for_ember": ">=0.7",
-    "ember-json-mapper": "master"
+    "ember-json-mapper": "master",
+    "jquery-ui": ">=1.11"
   },
   "devDependencies": {
     "ember-mocha-adapter": "0.1.2"

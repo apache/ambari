@@ -261,6 +261,12 @@ module.exports = function (grunt) {
               'styles/fonts/*',
               'scripts/assets/**/*'
             ]
+          },
+          {
+            expand: true,
+            flatten: true,
+            src: '<%= yeoman.app %>/bower_components/jquery-ui/themes/base/images/*',
+            dest: '<%= yeoman.dist %>/styles/images/'
           }
         ]
       }

@@ -1,0 +1,39 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+<div class="jobs-custom-dates">
+  <div>
+    <label>{{t jobs.customDateFilter.startTime}}</label>
+    {{view Ember.TextField valueBinding="controller.filterObject.customDateFormFields.startDate" class="input-small datepicker"}}
+    {{view Ember.Select contentBinding="view.hourOptions" selectionBinding="controller.filterObject.customDateFormFields.hoursForStart" class="input-mini"}}
+    {{view Ember.Select contentBinding="view.minuteOptions" selectionBinding="controller.filterObject.customDateFormFields.minutesForStart" class="input-mini"}}
+    {{view Ember.Select contentBinding="view.middayPeriodOptions" selectionBinding="controller.filterObject.customDateFormFields.middayPeriodForStart" class="input-mini"}}
+    <span class="help-inline">{{controller.filterObject.errorMessages.startDate}}</span>
+  </div>
+  <div>
+
+  </div>
+  <div>
+    <label>{{t jobs.customDateFilter.endTime}}</label>
+    {{view Ember.TextField valueBinding="controller.filterObject.customDateFormFields.endDate" class="input-small datepicker"}}
+    {{view Ember.Select contentBinding="view.hourOptions" selectionBinding="controller.filterObject.customDateFormFields.hoursForEnd" class="input-mini"}}
+    {{view Ember.Select contentBinding="view.minuteOptions" selectionBinding="controller.filterObject.customDateFormFields.minutesForEnd" class="input-mini"}}
+    {{view Ember.Select contentBinding="view.middayPeriodOptions" selectionBinding="controller.filterObject.customDateFormFields.middayPeriodForEnd" class="input-mini"}}
+    <span class="help-inline">{{controller.filterObject.errorMessages.endDate}}</span>
+  </div>
+</div>

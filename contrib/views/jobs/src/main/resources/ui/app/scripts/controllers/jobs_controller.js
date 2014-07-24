@@ -18,57 +18,12 @@
 
 App.JobsController = Ember.ArrayController.extend(App.RunPeriodically, {
 
-  name:'mainJobsController',
+  name: 'mainJobsController',
 
   /**
    * Sorted ArrayProxy
    */
   sortedContent: [],
-
-  contentAndSortObserver : function() {
-    Ember.run.once(this, 'contentAndSortUpdater');
-  }.observes('content.length', 'content.@each.id', 'content.@each.startTime', 'content.@each.endTime', 'sortProperties', 'sortAscending'),
-
-  contentAndSortUpdater: function() {
-    this.set('sortingDone', false);
-    var content = this.get('content');
-    var sortedContent = content.toArray();
-    var sortProperty = this.get('sortProperty');
-    var sortAscending = this.get('sortAscending');
-    sortedContent.sort(function(r1, r2) {
-      var r1id = r1.get(sortProperty);
-      var r2id = r2.get(sortProperty);
-      if (r1id < r2id)
-        return sortAscending ? -1 : 1;
-      if (r1id > r2id)
-        return sortAscending ? 1 : -1;
-      return 0;
-    });
-    var sortedArray = this.get('sortedContent');
-    var count = 0;
-    sortedContent.forEach(function(sortedJob){
-      if(sortedArray.length <= count) {
-        sortedArray.pushObject(Ember.Object.create());
-      }
-      sortedArray[count].set('failed', sortedJob.get('failed'));
-      sortedArray[count].set('hasTezDag', sortedJob.get('hasTezDag'));
-      sortedArray[count].set('queryText', sortedJob.get('queryText'));
-      sortedArray[count].set('name', sortedJob.get('name'));
-      sortedArray[count].set('user', sortedJob.get('user'));
-      sortedArray[count].set('id', sortedJob.get('id'));
-      sortedArray[count].set('startTimeDisplay', sortedJob.get('startTimeDisplay'));
-      sortedArray[count].set('endTimeDisplay', sortedJob.get('endTimeDisplay'));
-      sortedArray[count].set('durationDisplay', sortedJob.get('durationDisplay'));
-      count ++;
-    });
-    if(sortedArray.length > count) {
-      for(var c = sortedArray.length-1; c >= count; c--){
-        sortedArray.removeObject(sortedArray[c]);
-      }
-    }
-    sortedContent.length = 0;
-    this.set('sortingDone', true);
-  },
 
   navIDs: {
     backIDs: [],
@@ -79,9 +34,9 @@ App.JobsController = Ember.ArrayController.extend(App.RunPeriodically, {
 
   hasNewJobs: false,
 
-  loaded : false,
+  loaded: false,
 
-  loading : false,
+  loading: false,
 
   resetPagination: false,
 
@@ -103,40 +58,68 @@ App.JobsController = Ember.ArrayController.extend(App.RunPeriodically, {
 
   jobsMessage: Em.I18n.t('jobs.loadingTasks'),
 
-  sortingColumnObserver: function () {
-    if(this.get('sortingColumn')){
-      this.set('sortProperty', this.get('sortingColumn').get('name'));
-      this.set('sortAscending', this.get('sortingColumn').get('status') !== "sorting_desc");
-    }
-  }.observes('sortingColumn.name','sortingColumn.status'),
-
-  updateJobsByClick: function () {
-    this.set('navIDs.backIDs', []);
-    this.set('navIDs.nextID', '');
-    this.get('filterObject').set('nextFromId', '');
-    this.get('filterObject').set('backFromId', '');
-    this.get('filterObject').set('fromTs', '');
-    this.set('hasNewJobs', false);
-    this.set('resetPagination', true);
-    this.loadJobs();
-  },
-
-  updateJobs: function (controllerName, funcName) {
-    clearInterval(this.get('jobsUpdate'));
-    var self = this;
-    var interval = setInterval(function () {
-      App.router.get(controllerName)[funcName]();
-    }, this.jobsUpdateInterval);
-    this.set('jobsUpdate', interval);
-  },
-
   totalOfJobs: 0,
 
-  setTotalOfJobs: function () {
-    if(this.get('totalOfJobs') < this.get('content.length')){
-      this.set('totalOfJobs', this.get('content.length'));
+  customDatePopupButtons: [
+    Ember.Object.create({title: Em.I18n.t('ok'), clicked: 'submitCustomDate'}),
+    Ember.Object.create({title: Em.I18n.t('cancel'), dismiss: 'modal', clicked: 'dismissCustomDate'})
+  ],
+
+  actions: {
+    submitCustomDate: function () {
+      if(this.get('filterObject').submitCustomDate())
+        Bootstrap.ModalManager.close('customDate');
+    },
+
+    dismissCustomDate: function() {
+      this.set('filterObject.startTime', 'Any');
     }
-  }.observes('content.length'),
+  },
+
+  contentAndSortObserver: function () {
+    Ember.run.once(this, 'contentAndSortUpdater');
+  }.observes('content.length', 'content.@each.id', 'content.@each.startTime', 'content.@each.endTime', 'sortProperties', 'sortAscending'),
+
+  contentAndSortUpdater: function () {
+    this.set('sortingDone', false);
+    var content = this.get('content');
+    var sortedContent = content.toArray();
+    var sortProperty = this.get('sortProperty');
+    var sortAscending = this.get('sortAscending');
+    sortedContent.sort(function (r1, r2) {
+      var r1id = r1.get(sortProperty);
+      var r2id = r2.get(sortProperty);
+      if (r1id < r2id)
+        return sortAscending ? -1 : 1;
+      if (r1id > r2id)
+        return sortAscending ? 1 : -1;
+      return 0;
+    });
+    var sortedArray = this.get('sortedContent');
+    var count = 0;
+    sortedContent.forEach(function (sortedJob) {
+      if (sortedArray.length <= count) {
+        sortedArray.pushObject(Ember.Object.create());
+      }
+      sortedArray[count].set('failed', sortedJob.get('failed'));
+      sortedArray[count].set('hasTezDag', sortedJob.get('hasTezDag'));
+      sortedArray[count].set('queryText', sortedJob.get('queryText'));
+      sortedArray[count].set('name', sortedJob.get('name'));
+      sortedArray[count].set('user', sortedJob.get('user'));
+      sortedArray[count].set('id', sortedJob.get('id'));
+      sortedArray[count].set('startTimeDisplay', sortedJob.get('startTimeDisplay'));
+      sortedArray[count].set('endTimeDisplay', sortedJob.get('endTimeDisplay'));
+      sortedArray[count].set('durationDisplay', sortedJob.get('durationDisplay'));
+      count++;
+    });
+    if (sortedArray.length > count) {
+      for (var c = sortedArray.length - 1; c >= count; c--) {
+        sortedArray.removeObject(sortedArray[c]);
+      }
+    }
+    sortedContent.length = 0;
+    this.set('sortingDone', true);
+  },
 
   filterObject: Ember.Object.create({
     id: "",
@@ -158,41 +141,6 @@ App.JobsController = Ember.ArrayController.extend(App.RunPeriodically, {
      * Direct binding to startTime filter field
      */
     startTime: "",
-
-    onStartTimeChange:function(){
-      var time = "";
-      var curTime = new Date().getTime();
-      switch (this.get('startTime')) {
-        case 'Past 1 hour':
-          time = curTime - 3600000;
-          break;
-        case 'Past 1 Day':
-          time = curTime - 86400000;
-          break;
-        case 'Past 2 Days':
-          time = curTime - 172800000;
-          break;
-        case 'Past 7 Days':
-          time = curTime - 604800000;
-          break;
-        case 'Past 14 Days':
-          time = curTime - 1209600000;
-          break;
-        case 'Past 30 Days':
-          time = curTime - 2592000000;
-          break;
-        case 'Custom':
-          this.showCustomDatePopup();
-          break;
-        case 'Any':
-          time = "";
-          break;
-      }
-      if(this.get('startTime') != "Custom"){
-        this.set("windowStart", time);
-        this.set("windowEnd", "");
-      }
-    }.observes("startTime"),
 
     // Fields values from Select Custom Dates form
     customDateFormFields: Ember.Object.create({
@@ -216,36 +164,30 @@ App.JobsController = Ember.ArrayController.extend(App.RunPeriodically, {
       endDate: ''
     }),
 
-    showCustomDatePopup: function () {
-      var self = this,
-        windowEnd = "",
-        windowStart = "";
-      /*App.ModalPopup.show({
-        header: Em.I18n.t('jobs.table.custom.date.header'),
-        onPrimary: function () {
-          self.validate();
-          if(self.get('errors.isStartDateError') || self.get('errors.isEndDateError')){
-            return;
-          }
+    columnsName: Ember.ArrayController.create({
+      content: [
+        { name: Em.I18n.t('jobs.column.id'), index: 0 },
+        { name: Em.I18n.t('jobs.column.user'), index: 1 },
+        { name: Em.I18n.t('jobs.column.start.time'), index: 2 },
+        { name: Em.I18n.t('jobs.column.end.time'), index: 3 },
+        { name: Em.I18n.t('jobs.column.duration'), index: 4 }
+      ],
+      columnsCount: 6
+    }),
 
-          var windowStart = self.createCustomStartDate();
-          var windowEnd = self.createCustomEndDate();
-
-          self.set("windowStart", windowStart.getTime());
-          self.set("windowEnd", windowEnd.getTime());
-          this.hide();
-        },
-        onSecondary: function () {
-          self.set('startTime','Any');
-          this.hide();
-        },
-        bodyClass: App.JobsCustomDatesSelectView.extend({
-          controller: self
-        })
-      });*/
+    submitCustomDate: function() {
+      this.validate();
+      if (this.get('errors.isStartDateError') || this.get('errors.isEndDateError')) {
+        return false;
+      }
+      var windowStart = this.createCustomStartDate(),
+        windowEnd = this.createCustomEndDate();
+      this.set("windowStart", windowStart.getTime());
+      this.set("windowEnd", windowEnd.getTime());
+      return true;
     },
 
-    createCustomStartDate : function () {
+    createCustomStartDate: function () {
       var startDate = this.get('customDateFormFields.startDate'),
         hoursForStart = this.get('customDateFormFields.hoursForStart'),
         minutesForStart = this.get('customDateFormFields.minutesForStart'),
@@ -256,7 +198,7 @@ App.JobsController = Ember.ArrayController.extend(App.RunPeriodically, {
       return null;
     },
 
-    createCustomEndDate : function () {
+    createCustomEndDate: function () {
       var endDate = this.get('customDateFormFields.endDate'),
         hoursForEnd = this.get('customDateFormFields.hoursForEnd'),
         minutesForEnd = this.get('customDateFormFields.minutesForEnd'),
@@ -304,31 +246,31 @@ App.JobsController = Ember.ArrayController.extend(App.RunPeriodically, {
      * Create link for server request
      * @return {String}
      */
-    createJobsFiltersLink: function() {
+    createJobsFiltersLink: function () {
       var link = "?fields=events,primaryfilters,otherinfo&secondaryFilter=tez:true",
         numberOfAppliedFilters = 0;
 
-      if(this.get("id") !== "") {
+      if (this.get("id") !== "") {
         link = "/" + this.get("id") + link;
         numberOfAppliedFilters++;
       }
 
       link += "&limit=" + (parseInt(this.get("jobsLimit")) + 1);
 
-      if(this.get("user") !== ""){
+      if (this.get("user") !== "") {
         link += "&primaryFilter=user:" + this.get("user");
         numberOfAppliedFilters++;
       }
-      if(this.get("backFromId") != ""){
+      if (this.get("backFromId") != "") {
         link += "&fromId=" + this.get("backFromId");
       }
-      if(this.get("nextFromId") != ""){
+      if (this.get("nextFromId") != "") {
         link += "&fromId=" + this.get("nextFromId");
       }
-      if(this.get("fromTs") != ""){
+      if (this.get("fromTs") != "") {
         link += "&fromTs=" + this.get("fromTs");
       }
-      if(this.get("startTime") !== "" && this.get("startTime") !== "Any"){
+      if (this.get("startTime") !== "" && this.get("startTime") !== "Any") {
         link += this.get("windowStart") !== "" ? ("&windowStart=" + this.get("windowStart")) : "";
         link += this.get("windowEnd") !== "" ? ("&windowEnd=" + this.get("windowEnd")) : "";
         numberOfAppliedFilters++;
@@ -340,33 +282,109 @@ App.JobsController = Ember.ArrayController.extend(App.RunPeriodically, {
     }
   }),
 
-  lastIDSuccessCallback: function(data) {
-    if(!data.entities[0]){
+  sortingColumnObserver: function () {
+    if (this.get('sortingColumn')) {
+      this.set('sortProperty', this.get('sortingColumn').get('name'));
+      this.set('sortAscending', this.get('sortingColumn').get('status') !== "sorting_desc");
+    }
+  }.observes('sortingColumn.name', 'sortingColumn.status'),
+
+  updateJobsByClick: function () {
+    this.set('navIDs.backIDs', []);
+    this.set('navIDs.nextID', '');
+    this.get('filterObject').set('nextFromId', '');
+    this.get('filterObject').set('backFromId', '');
+    this.get('filterObject').set('fromTs', '');
+    this.set('hasNewJobs', false);
+    this.set('resetPagination', true);
+    this.loadJobs();
+  },
+
+  updateJobs: function (controllerName, funcName) {
+    clearInterval(this.get('jobsUpdate'));
+    var interval = setInterval(function () {
+      App.router.get(controllerName)[funcName]();
+    }, this.get('jobsUpdateInterval'));
+    this.set('jobsUpdate', interval);
+  },
+
+  setTotalOfJobs: function () {
+    if (this.get('totalOfJobs') < this.get('content.length')) {
+      this.set('totalOfJobs', this.get('content.length'));
+    }
+  }.observes('content.length'),
+
+  startTimeObserver: function () {
+    var time = "";
+    var curTime = new Date().getTime();
+    switch (this.get('filterObject.startTime')) {
+      case 'Past 1 hour':
+        time = curTime - 3600000;
+        break;
+      case 'Past 1 Day':
+        time = curTime - 86400000;
+        break;
+      case 'Past 2 Days':
+        time = curTime - 172800000;
+        break;
+      case 'Past 7 Days':
+        time = curTime - 604800000;
+        break;
+      case 'Past 14 Days':
+        time = curTime - 1209600000;
+        break;
+      case 'Past 30 Days':
+        time = curTime - 2592000000;
+        break;
+      case 'Custom':
+        this.showCustomDatePopup();
+        break;
+      case 'Any':
+        time = "";
+        break;
+    }
+    if (this.get('filterObject.startTime') != "Custom") {
+      this.set("filterObject.windowStart", time);
+      this.set("filterObject.windowEnd", "");
+    }
+  }.observes('filterObject.startTime'),
+
+  showCustomDatePopup: function () {
+    Bootstrap.ModalManager.open(
+      'customDate',
+      Em.I18n.t('jobs.table.custom.date.header'),
+      App.JobsCustomDatesSelectView,
+      this.get('customDatePopupButtons'),
+      this
+    );
+  },
+
+  lastIDSuccessCallback: function (data) {
+    if (!data.entities[0]) {
       return;
     }
     var lastReceivedID = data.entities[0].entity;
-    if(this.get('lastJobID') == '') {
+    if (this.get('lastJobID') == '') {
       this.set('lastJobID', lastReceivedID);
       if (this.get('loaded') && App.HiveJob.find().get('length') < 1) {
         this.set('hasNewJobs', true);
       }
     }
-    else
-      if (this.get('lastJobID') !== lastReceivedID) {
-        this.set('lastJobID', lastReceivedID);
-        if(!App.HiveJob.find().findProperty('id', lastReceivedID)) {
-          this.set('hasNewJobs', true);
-        }
+    else if (this.get('lastJobID') !== lastReceivedID) {
+      this.set('lastJobID', lastReceivedID);
+      if (!App.HiveJob.find().findProperty('id', lastReceivedID)) {
+        this.set('hasNewJobs', true);
       }
+    }
   },
 
-  lastIDErrorCallback: function(data, jqXHR, textStatus) {
+  lastIDErrorCallback: function (data, jqXHR, textStatus) {
     console.debug(jqXHR);
   },
 
-  checkDataLoadingError: function (jqXHR){
+  checkDataLoadingError: function (jqXHR) {
     var atsComponent = App.HiveJob.store.getById('component', 'APP_TIMELINE_SERVER');
-    if(atsComponent && atsComponent.get('workStatus') != "STARTED") {
+    if (atsComponent && atsComponent.get('workStatus') != "STARTED") {
       this.set('jobsMessage', Em.I18n.t('jobs.error.ats.down'));
     }
     else {
@@ -384,12 +402,12 @@ App.JobsController = Ember.ArrayController.extend(App.RunPeriodically, {
     }
   },
 
-  init: function() {
+  init: function () {
     this.set('interval', 6000);
     this.loop('loadJobs');
   },
 
-  loadJobs : function() {
+  loadJobs: function () {
     var yarnService = App.HiveJob.store.getById('service', 'YARN'),
       atsComponent = App.HiveJob.store.getById('component', 'APP_TIMELINE_SERVER'),
       atsInValidState = !!atsComponent && atsComponent.get('workStatus') === "STARTED";
@@ -398,15 +416,15 @@ App.JobsController = Ember.ArrayController.extend(App.RunPeriodically, {
       this.set('loading', true);
       var historyServerHostName = atsComponent.get('hostName');
       /*App.ajax.send({
-        name: 'jobs.lastID',
-        sender: self,
-        data: {
-          historyServerHostName: '',//historyServerHostName,
-          ahsWebPort: ''//yarnService.get('ahsWebPort')
-        },
-        success: 'lastIDSuccessCallback',
-        error : 'lastIDErrorCallback'
-      });*/
+       name: 'jobs.lastID',
+       sender: self,
+       data: {
+       historyServerHostName: '',//historyServerHostName,
+       ahsWebPort: ''//yarnService.get('ahsWebPort')
+       },
+       success: 'lastIDSuccessCallback',
+       error : 'lastIDErrorCallback'
+       });*/
       App.ajax.send({
         name: 'load_jobs',
         sender: this,
@@ -416,40 +434,40 @@ App.JobsController = Ember.ArrayController.extend(App.RunPeriodically, {
           filtersLink: this.get('filterObject').createJobsFiltersLink()
         },
         success: 'loadJobsSuccessCallback',
-        error : 'loadJobsErrorCallback'
+        error: 'loadJobsErrorCallback'
       });
     }
   },
 
-  loadJobsSuccessCallback: function(data) {
+  loadJobsSuccessCallback: function (data) {
     App.hiveJobsMapper.map(data);
     this.set('loading', false);
-    if(this.get('loaded') == false || this.get('resetPagination') == true) {
+    if (this.get('loaded') == false || this.get('resetPagination') == true) {
       this.initializePagination();
       this.set('resetPagination', false);
     }
     this.set('loaded', true);
   },
 
-  loadJobsErrorCallback: function(jqXHR) {
-    App.hiveJobsMapper.map({entities : []});
+  loadJobsErrorCallback: function (jqXHR) {
+    App.hiveJobsMapper.map({entities: []});
     this.checkDataLoadingError(jqXHR);
   },
 
-  initializePagination: function() {
+  initializePagination: function () {
     var back_link_IDs = this.get('navIDs.backIDs.[]');
-    if(!back_link_IDs.contains(this.get('lastJobID'))) {
+    if (!back_link_IDs.contains(this.get('lastJobID'))) {
       back_link_IDs.push(this.get('lastJobID'));
     }
     this.set('filterObject.backFromId', this.get('lastJobID'));
     this.get('filterObject').set('fromTs', new Date().getTime());
   },
 
-  navigateNext: function() {
+  navigateNext: function () {
     this.set("filterObject.backFromId", '');
     var back_link_IDs = this.get('navIDs.backIDs.[]');
     var lastBackID = this.get('navIDs.nextID');
-    if(!back_link_IDs.contains(lastBackID)) {
+    if (!back_link_IDs.contains(lastBackID)) {
       back_link_IDs.push(lastBackID);
     }
     this.set('navIDs.backIDs.[]', back_link_IDs);
@@ -458,7 +476,7 @@ App.JobsController = Ember.ArrayController.extend(App.RunPeriodically, {
     this.loadJobs();
   },
 
-  navigateBack: function() {
+  navigateBack: function () {
     this.set("filterObject.nextFromId", '');
     var back_link_IDs = this.get('navIDs.backIDs.[]');
     back_link_IDs.pop();
@@ -468,7 +486,7 @@ App.JobsController = Ember.ArrayController.extend(App.RunPeriodically, {
     this.loadJobs();
   },
 
-  refreshLoadedJobs : function() {
+  refreshLoadedJobs: function () {
     this.loadJobs();
   }.observes(
       'filterObject.id',

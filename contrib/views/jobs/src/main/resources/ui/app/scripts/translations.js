@@ -20,6 +20,8 @@ Ember.I18n.translations = {
 
   'any': 'Any',
   'apply': 'Apply',
+  'ok': 'Ok',
+  'cancel': 'Cancel',
 
   'jobs.type':'Jobs Type',
   'jobs.type.hive':'Hive',
@@ -76,6 +78,6 @@ Ember.I18n.translations = {
   'jobs.hive.tez.edge.':'Unknown',
   'jobs.hive.tez.edge.contains':'Contains',
   'jobs.hive.tez.edge.broadcast':'Broadcast',
-  'jobs.hive.tez.edge.scatter_gather':'Shuffle',
+  'jobs.hive.tez.edge.scatter_gather':'Shuffle'
 
 };

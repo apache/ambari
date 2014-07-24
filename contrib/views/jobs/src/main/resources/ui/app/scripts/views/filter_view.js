@@ -63,6 +63,9 @@ var wrapperView = Ember.View.extend({
   actions: {
     actionSetValueOnApply: function() {
       this.setValueOnApply();
+    },
+    actionClearFilter: function() {
+      this.clearFilter();
     }
   },
 

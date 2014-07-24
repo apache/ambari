@@ -69,4 +69,4 @@ require('scripts/components/*');
 require('scripts/views/sort_view');
 require('scripts/views/filter_view');
 require('scripts/views/table_view');
-require('scripts/views/*');
+require('scripts/views/**/*');
