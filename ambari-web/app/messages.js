@@ -34,6 +34,7 @@ Em.I18n.translations = {
     '<br>You must resolve this error in order to continue.',
   'app.signout':'Sign out',
   'app.settings':'Settings',
+  'app.manageAmbari': 'Manage Ambari',
   'app.aboutAmbari':'About',
   'app.settings.notshowBgOperationsPopup': 'Do not show the Background Operations dialog when starting an operation',
   'app.settings.notShowBgOperations': 'Do not show this dialog again when starting a background operation',

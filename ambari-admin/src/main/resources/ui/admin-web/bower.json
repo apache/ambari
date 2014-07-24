@@ -1,0 +1,12 @@
+{
+  "name": "adminconsole",
+  "private": true,
+  "dependencies": {
+    "bootstrap": "~3.1.1",
+    "angular": "~1.2.18",
+    "angular-route": "~1.2.18",
+    "angular-bootstrap": "~0.11.0",
+    "restangular": "~1.4.0"
+  },
+  "devDependencies": {}
+}

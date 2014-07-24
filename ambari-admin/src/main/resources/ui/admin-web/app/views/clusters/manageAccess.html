@@ -1,0 +1,63 @@
+<!--
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+-->
+<div class="cluster-manage-access-pane">
+  <div class="clearfix">
+    <h3 class="pull-left">My Cluster Permissions</h3>
+    <div class="pull-right top-buffer">
+      <a href class="btn btn-primary"  ng-click="toggleEditMode()"><span class="glyphicon glyphicon-pencil"></span> Edit</a>
+    </div>
+  </div>
+  <hr>
+  <form class="form-horizontal">
+    <div class="form-group">
+      <div class="col-sm-2"></div>
+      <label class="col-sm-5 control-label text-left">Users</label>
+      <label class="col-sm-5 control-label text-left">Groups</label>
+    </div>
+    <div class="form-group">
+      <label class="col-sm-2 control-label">READ</label>
+      <div class="col-sm-5" ng-switch="isEditMode">
+        <textarea ng-switch-when="true" name="" id="" cols="30" rows="4" class="form-control" ng-model="permissions.read.users"></textarea>
+        <div class="well" ng-switch-default>
+          <a href="#" ng-repeat="user in permissions.read.users">{{user}}{{$last ? '' :', '}}</a>
+        </div>
+      </div>
+      <div class="col-sm-5" ng-switch="isEditMode">
+        <textarea ng-switch-when="true" name="" id="" cols="30" rows="4" class="form-control" ng-model="permissions.read.groups"></textarea>
+        <div class="well" ng-switch-default>
+          <a href="#" ng-repeat="group in permissions.read.groups">{{group}}{{$last ? '' :', '}}</a>
+        </div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="col-sm-2 control-label">OPERATE</label>
+      <div class="col-sm-5" ng-switch="isEditMode">
+        <textarea ng-switch-when="true" name="" id="" cols="30" rows="4" class="form-control" ng-model="permissions.operate.users"></textarea>
+        <div class="well" ng-switch-default>
+          <a href="#" ng-repeat="user in permissions.operate.users">{{user}}{{$last ? '' :', '}}</a>
+        </div>
+      </div>
+      <div class="col-sm-5" ng-switch="isEditMode">
+        <textarea ng-switch-when="true" name="" id="" cols="30" rows="4" class="form-control" ng-model="permissions.operate.groups"></textarea>
+        <div class="well" ng-switch-default>
+          <a href="#" ng-repeat="group in permissions.operate.groups">{{group}}{{$last ? '' :', '}}</a>
+        </div>
+      </div>
+    </div>
+</div>
+
