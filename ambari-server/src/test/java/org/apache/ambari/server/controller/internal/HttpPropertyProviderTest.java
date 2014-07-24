@@ -265,7 +265,7 @@ public class HttpPropertyProviderTest {
         throw new IOException("Fake error");
       }
       
-      String responseStr = "{\"alerts\": [{\"Alert Body\": \"Body\"}],\"clusterInfo\": [{\"haState\": \"ACTIVE\"}],"
+      String responseStr = "{\"alerts\": [{\"Alert Body\": \"Body\"}],\"clusterInfo\": {\"haState\": \"ACTIVE\"},"
           + " \"hostcounts\": {\"up_hosts\":\"1\", \"down_hosts\":\"0\"}}";
         return new ByteArrayInputStream(responseStr.getBytes("UTF-8"));
     }
