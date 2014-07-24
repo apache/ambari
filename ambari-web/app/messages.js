@@ -1244,6 +1244,10 @@ Em.I18n.translations = {
   'services.service.info.metrics.hdfs.spaceUtilization.displayNames.capacityRemainingGB':'Capacity Remaining',
   'services.service.info.metrics.hdfs.spaceUtilization.displayNames.capacityUsedGB':'Capacity Used',
   'services.service.info.metrics.hdfs.spaceUtilization.displayNames.capacityTotalGB':'Capacity Total',
+  'services.service.info.metrics.hdfs.spaceUtilization.displayNames.capacityRemaining':'Capacity Remaining',
+  'services.service.info.metrics.hdfs.spaceUtilization.displayNames.capacityUsed':'Capacity Used',
+  'services.service.info.metrics.hdfs.spaceUtilization.displayNames.capacityTotal':'Capacity Total',
+  'services.service.info.metrics.hdfs.spaceUtilization.displayNames.capacityNonDFSUsed':'Non DFS Capacity Used',
 
   'services.service.info.metrics.mapreduce.gc':'Garbage Collection',
   'services.service.info.metrics.mapreduce.gc.displayNames.gcTimeMillis':'Time',

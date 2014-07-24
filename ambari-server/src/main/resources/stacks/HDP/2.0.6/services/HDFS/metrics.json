@@ -9,6 +9,26 @@
             "pointInTime": false,
             "temporal": true
           },
+          "metrics/dfs/FSNamesystem/CapacityTotal": {
+            "metric": "dfs.FSNamesystem.CapacityTotal",
+            "pointInTime": false,
+            "temporal": true
+          },
+          "metrics/dfs/FSNamesystem/CapacityUsed": {
+            "metric": "dfs.FSNamesystem.CapacityUsed",
+            "pointInTime": false,
+            "temporal": true
+          },
+          "metrics/dfs/FSNamesystem/CapacityRemaining": {
+            "metric": "dfs.FSNamesystem.CapacityRemaining",
+            "pointInTime": false,
+            "temporal": true
+          },
+          "metrics/dfs/FSNamesystem/CapacityNonDFSUsed": {
+            "metric": "dfs.FSNamesystem.CapacityUsedNonDFS",
+            "pointInTime": false,
+            "temporal": true
+          },          
           "metrics/dfs/FSNamesystem/BlockCapacity": {
             "metric": "dfs.FSNamesystem.BlockCapacity",
             "pointInTime": false,
@@ -1403,6 +1423,26 @@
         "metrics": {
           "metrics/dfs/FSNamesystem/TotalLoad": {
             "metric": "dfs.FSNamesystem.TotalLoad",
+            "pointInTime": false,
+            "temporal": true
+          },
+          "metrics/dfs/FSNamesystem/CapacityTotal": {
+            "metric": "dfs.FSNamesystem.CapacityTotal",
+            "pointInTime": false,
+            "temporal": true
+          },
+          "metrics/dfs/FSNamesystem/CapacityUsed": {
+            "metric": "dfs.FSNamesystem.CapacityUsed",
+            "pointInTime": false,
+            "temporal": true
+          },
+          "metrics/dfs/FSNamesystem/CapacityRemaining": {
+            "metric": "dfs.FSNamesystem.CapacityRemaining",
+            "pointInTime": false,
+            "temporal": true
+          },
+          "metrics/dfs/FSNamesystem/CapacityNonDFSUsed": {
+            "metric": "dfs.FSNamesystem.CapacityUsedNonDFS",
             "pointInTime": false,
             "temporal": true
           },
