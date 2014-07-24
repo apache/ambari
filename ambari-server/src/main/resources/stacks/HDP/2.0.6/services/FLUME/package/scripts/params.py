@@ -34,6 +34,9 @@ flume_run_dir = '/var/run/flume'
 flume_user = 'flume'
 flume_group = 'flume'
 
+if 'flume-env' in config['configurations'] and 'flume_user' in config['configurations']['flume-env']:
+  flume_user = config['configurations']['flume-env']['flume_user']
+
 if (('flume-conf' in config['configurations']) and('content' in config['configurations']['flume-conf'])):
   flume_conf_content = config['configurations']['flume-conf']['content']
 else:

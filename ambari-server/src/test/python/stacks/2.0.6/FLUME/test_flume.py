@@ -49,18 +49,18 @@ class TestFlumeHandler(RMFTestCase):
 
     self.assert_configure_default()
 
-    self.assertResourceCalled('Execute', format('env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/bin/flume-ng agent '
+    self.assertResourceCalled('Execute', format('su -s /bin/bash flume -c "export JAVA_HOME=/usr/jdk64/jdk1.7.0_45; /usr/bin/flume-ng agent '
       '--name a1 '
       '--conf /etc/flume/conf/a1 '
       '--conf-file /etc/flume/conf/a1/flume.conf '
       '-Dflume.monitoring.type=ganglia '
-      '-Dflume.monitoring.hosts=c6401.ambari.apache.org:8655'),
+      '-Dflume.monitoring.hosts=c6401.ambari.apache.org:8655"'),
       wait_for_finish = False)
 
-    self.assertResourceCalled('Execute', 'pgrep -o -f /etc/flume/conf/a1/flume.conf > /var/run/flume/a1.pid',
+    self.assertResourceCalled('Execute', 'pgrep -o -u flume -f ^/usr/jdk64/jdk1.7.0_45 > /var/run/flume/a1.pid',
       logoutput = True,
-      tries = 5,
-      try_sleep = 10)
+      tries = 10,
+      try_sleep = 1)
 
     self.assertNoMoreResources()
 
@@ -197,18 +197,18 @@ class TestFlumeHandler(RMFTestCase):
 
     self.assert_configure_many()
 
-    self.assertResourceCalled('Execute', format('env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/bin/flume-ng agent '
+    self.assertResourceCalled('Execute', format('su -s /bin/bash flume -c "export JAVA_HOME=/usr/jdk64/jdk1.7.0_45; /usr/bin/flume-ng agent '
       '--name b1 '
       '--conf /etc/flume/conf/b1 '
       '--conf-file /etc/flume/conf/b1/flume.conf '
       '-Dflume.monitoring.type=ganglia '
-      '-Dflume.monitoring.hosts=c6401.ambari.apache.org:8655'),
+      '-Dflume.monitoring.hosts=c6401.ambari.apache.org:8655"'),
       wait_for_finish = False)
 
-    self.assertResourceCalled('Execute', 'pgrep -o -f /etc/flume/conf/b1/flume.conf > /var/run/flume/b1.pid',
+    self.assertResourceCalled('Execute', 'pgrep -o -u flume -f ^/usr/jdk64/jdk1.7.0_45 > /var/run/flume/b1.pid',
       logoutput = True,
-      tries = 5,
-      try_sleep = 10)
+      tries = 10,
+      try_sleep = 1)
 
     self.assertNoMoreResources()
 
@@ -225,18 +225,18 @@ class TestFlumeHandler(RMFTestCase):
 
     self.assert_configure_many()
 
-    self.assertResourceCalled('Execute', format('env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/bin/flume-ng agent '
+    self.assertResourceCalled('Execute', format('su -s /bin/bash flume -c "export JAVA_HOME=/usr/jdk64/jdk1.7.0_45; /usr/bin/flume-ng agent '
       '--name b1 '
       '--conf /etc/flume/conf/b1 '
       '--conf-file /etc/flume/conf/b1/flume.conf '
       '-Dflume.monitoring.type=ganglia '
-      '-Dflume.monitoring.hosts=c6401.ambari.apache.org:8655'),
+      '-Dflume.monitoring.hosts=c6401.ambari.apache.org:8655"'),
       wait_for_finish = False)
 
-    self.assertResourceCalled('Execute', 'pgrep -o -f /etc/flume/conf/b1/flume.conf > /var/run/flume/b1.pid',
+    self.assertResourceCalled('Execute', 'pgrep -o -u flume -f ^/usr/jdk64/jdk1.7.0_45 > /var/run/flume/b1.pid',
       logoutput = True,
-      tries = 5,
-      try_sleep = 10)
+      tries = 10,
+      try_sleep = 1)
 
     self.assertNoMoreResources()
 

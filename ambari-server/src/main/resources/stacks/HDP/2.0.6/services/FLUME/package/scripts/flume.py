@@ -58,11 +58,8 @@ def flume(action = None):
         mode = 0644)
 
   elif action == 'start':
-    flume_base = format('env JAVA_HOME={java_home} /usr/bin/flume-ng agent '
-      '--name {{0}} '
-      '--conf {{1}} '
-      '--conf-file {{2}} '
-      '{{3}}')
+    flume_base = format('su -s /bin/bash {flume_user} -c "export JAVA_HOME={java_home}; '
+      '/usr/bin/flume-ng agent --name {{0}} --conf {{1}} --conf-file {{2}} {{3}}"')
 
     for agent in cmd_target_names():
       flume_agent_conf_dir = params.flume_conf_dir + os.sep + agent
@@ -85,9 +82,8 @@ def flume(action = None):
         Execute(flume_cmd, wait_for_finish=False)
 
         # sometimes startup spawns a couple of threads - so only the first line may count
-        pid_cmd = format('pgrep -o -f {flume_agent_conf_file} > {flume_agent_pid_file}')
-
-        Execute(pid_cmd, logoutput=True, tries=5, try_sleep=10)
+        pid_cmd = format('pgrep -o -u {flume_user} -f ^{java_home} > {flume_agent_pid_file}')
+        Execute(pid_cmd, logoutput=True, tries=10, try_sleep=1)
 
     pass
   elif action == 'stop':
