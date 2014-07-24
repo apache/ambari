@@ -30,6 +30,10 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   selectedService: null,
   serviceConfigTags: null,
   selectedConfigGroup: null,
+  configTypesInfo: {
+    items: [],
+    supportsFinal: []
+  },
   selectedServiceConfigTypes: [],
   selectedServiceSupportsFinal: [],
   configGroups: [],
@@ -186,26 +190,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     var serviceName = this.get('content.serviceName');
 
     var stackService = App.StackService.find().findProperty('serviceName', serviceName);
-    if (stackService != null) {
-      var configTypes = stackService.get('configTypes');
-      if (configTypes) {
-        var configTypesInfo = {
-          items : [],
-          supportsFinal : []
-        };
-        for ( var key in configTypes) {
-          if (configTypes.hasOwnProperty(key)) {
-            configTypesInfo.items.push(key);
-            if (configTypes[key].supports && configTypes[key].supports.final === "true") {
-              configTypesInfo.supportsFinal.push(key);
-            }
-          }
-        }
-        for ( var configType in configTypes) {
-          self.set('selectedServiceConfigTypes', configTypesInfo.items || []);
-          self.set('selectedServiceSupportsFinal', configTypesInfo.supportsFinal || []);
-        }
-      }
+    if (stackService) {
+      self.set('configTypesInfo', App.config.getConfigTypesInfoFromService(stackService));
     }
 
     App.config.loadAdvancedConfig(serviceName, function (properties) {
@@ -679,7 +665,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    */
   setSupportsFinal: function (serviceConfigProperty) {
     var fileName = serviceConfigProperty.get('filename');
-    var matchingConfigTypes = this.get('selectedServiceSupportsFinal').filter(function(configType) {
+    var matchingConfigTypes = this.get('configTypesInfo').supportsFinal.filter(function(configType) {
       return fileName.startsWith(configType);
     });
     serviceConfigProperty.set('supportsFinal', matchingConfigTypes.length > 0);

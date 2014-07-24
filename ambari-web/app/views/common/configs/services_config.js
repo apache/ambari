@@ -673,11 +673,17 @@ App.ServiceConfigsByCategoryView = Ember.View.extend(App.UserPref, {
     var serviceConfigProperty = event.contexts[0];
     var value = serviceConfigProperty.get('value');
     var dValue = serviceConfigProperty.get('defaultValue');
+    var supportsFinal = serviceConfigProperty.get('supportsFinal');
+    var defaultIsFinal = serviceConfigProperty.get('defaultIsFinal');
+
     if (dValue != null) {
       if (serviceConfigProperty.get('displayType') === 'password') {
         serviceConfigProperty.set('retypedPassword', dValue);
       }
       serviceConfigProperty.set('value', dValue);
+    }
+    if (supportsFinal) {
+      serviceConfigProperty.set('isFinal', defaultIsFinal);
     }
     this.miscConfigChange(serviceConfigProperty);
   },

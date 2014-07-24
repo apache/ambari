@@ -784,14 +784,27 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
    */
   loadAdvancedConfigs: function (dependentController) {
     var self = this;
-    var stackServices = this.get('content.services').filter(function(service){
+    var stackServices = this.get('content.services').filter(function (service) {
       return service.get('isInstalled') || service.get('isSelected');
-    }).mapProperty('serviceName');
+    });
     var counter = stackServices.length;
     var loadAdvancedConfigResult = [];
     dependentController.set('isAdvancedConfigLoaded', false);
-    stackServices.forEach(function (_serviceName) {
-      App.config.loadAdvancedConfig(_serviceName, function (properties) {
+    stackServices.forEach(function (service) {
+      var serviceName = service.get('serviceName');
+      App.config.loadAdvancedConfig(serviceName, function (properties) {
+        var supportsFinal = App.config.getConfigTypesInfoFromService(service).supportsFinal;
+
+        function shouldSupportFinal(filename) {
+          var matchingConfigTypes = supportsFinal.filter(function (configType) {
+            return filename.startsWith(configType);
+          });
+          return (matchingConfigTypes.length > 0);
+        }
+
+        properties.forEach(function (property) {
+          property.supportsFinal = shouldSupportFinal(property.filename);
+        });
         loadAdvancedConfigResult.pushObjects(properties);
         counter--;
         //pass configs to controller after last call is completed
@@ -834,6 +847,9 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
           serviceName: _configProperties.get('serviceName'),
           domain: _configProperties.get('domain'),
           isVisible: _configProperties.get('isVisible'),
+          isFinal: _configProperties.get('isFinal'),
+          defaultIsFinal: _configProperties.get('isFinal'),
+          supportsFinal: _configProperties.get('supportsFinal'),
           filename: _configProperties.get('filename'),
           displayType: _configProperties.get('displayType'),
           isRequiredByAgent: _configProperties.get('isRequiredByAgent'),

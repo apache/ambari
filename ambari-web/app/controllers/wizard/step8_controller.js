@@ -845,7 +845,8 @@ App.WizardStep8Controller = Em.Controller.extend({
           desired_config: {
             type: siteConfigObject.type,
             tag: siteConfigObject.tag,
-            properties: siteConfigObject.properties
+            properties: siteConfigObject.properties,
+            properties_attributes: siteConfigObject.properties_attributes
           }
         }
       });
@@ -1508,7 +1509,8 @@ App.WizardStep8Controller = Em.Controller.extend({
           desired_config: {
             type: _serviceConfig.type,
             tag: _serviceConfig.tag,
-            properties: _serviceConfig.properties
+            properties: _serviceConfig.properties,
+            properties_attributes: _serviceConfig.properties_attributes
           }
         }
       });
@@ -1662,7 +1664,12 @@ App.WizardStep8Controller = Em.Controller.extend({
             App.config.escapeXMLCharacters(this.get('configs').findProperty('name', 'glusterfs_defaultFS_name').value) : null;
       }
     }, this);
-    return {"type": "core-site", "tag": "version1", "properties": coreSiteProperties};
+    var attributes = App.router.get('mainServiceInfoConfigsController').getConfigAttributes(coreSiteObj);
+    var configObj = {"type": "core-site", "tag": "version1", "properties": coreSiteProperties};
+    if (attributes) {
+      configObj['properties_attributes'] = attributes;
+    }
+    return  configObj;
   },
 
   /**
@@ -1675,12 +1682,12 @@ App.WizardStep8Controller = Em.Controller.extend({
    */
   createSiteObj: function (site, isNonXmlFile, tag) {
     var properties = {};
-    if (!!isNonXmlFile) {
-      this.get('configs').filterProperty('filename', site + '.xml').forEach(function (_configProperty) {
+    var configs  = this.get('configs').filterProperty('filename', site + '.xml');
+    var attributes = App.router.get('mainServiceInfoConfigsController').getConfigAttributes(configs);
+    configs.forEach(function (_configProperty) {
+      if (isNonXmlFile) {
         properties[_configProperty.name] = _configProperty.value;
-      }, this);
-    } else {
-      this.get('configs').filterProperty('filename', site + '.xml').forEach(function (_configProperty) {
+      } else {
         var heapsizeExceptions = ['hadoop_heapsize', 'yarn_heapsize', 'nodemanager_heapsize', 'resourcemanager_heapsize', 'apptimelineserver_heapsize', 'jobhistory_heapsize'];
         // do not pass any globals whose name ends with _host or _hosts
         if (_configProperty.isRequiredByAgent !== false) {
@@ -1689,11 +1696,15 @@ App.WizardStep8Controller = Em.Controller.extend({
             properties[_configProperty.name] = _configProperty.value + "m";
           } else {
             properties[_configProperty.name] = App.config.escapeXMLCharacters(_configProperty.value);
-           }
+          }
         }
-      }, this);
+      }
+    }, this);
+    var configObj = {"type": site, "tag": tag, "properties": properties };
+    if (attributes) {
+      configObj['properties_attributes'] = attributes;
     }
-    return {"type": site, "tag": tag, "properties": properties };
+    return configObj;
   },
 
   /**
