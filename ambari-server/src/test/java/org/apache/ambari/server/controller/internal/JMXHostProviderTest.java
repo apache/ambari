@@ -57,6 +57,7 @@ import com.google.inject.persist.PersistService;
 
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.expect;
 
 public class JMXHostProviderTest {
   private Injector injector;
@@ -385,9 +386,11 @@ public class JMXHostProviderTest {
       .Cluster), PropertyHelper.getKeyPropertyIds(Resource.Type.Cluster),
       controller);
 
+    Injector injector = createNiceMock(Injector.class);
     MaintenanceStateHelper maintenanceStateHelper = createNiceMock(MaintenanceStateHelper.class);
     {
-      replay(maintenanceStateHelper);
+      expect(injector.getInstance(Clusters.class)).andReturn(null);
+      replay(maintenanceStateHelper, injector);
     }
 
     ResourceProvider serviceResourceProvider = new ServiceResourceProvider(PropertyHelper
@@ -397,7 +400,7 @@ public class JMXHostProviderTest {
     ResourceProvider hostCompResourceProvider = new
       HostComponentResourceProvider(PropertyHelper.getPropertyIds(Resource
       .Type.HostComponent), PropertyHelper.getKeyPropertyIds(Resource.Type
-      .HostComponent), controller);
+      .HostComponent), controller, injector);
 
     ResourceProvider configResourceProvider = new
       ConfigurationResourceProvider(PropertyHelper.getPropertyIds(Resource

@@ -101,6 +101,7 @@ public class SubResourcePredicateVisitor implements PredicateVisitor {
 
   @Override
   public void acceptUnaryPredicate(UnaryPredicate predicate) {
+    //TODO implement subresource parsing not only for ComparisonPredicate
     if (predicate.getPredicate() instanceof ComparisonPredicate) {
       ComparisonPredicate innerPredicate = (ComparisonPredicate) predicate.getPredicate();
       String propertyId = innerPredicate.getPropertyId();

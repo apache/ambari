@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import com.google.inject.Injector;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.ResourceProviderFactory;
@@ -29,8 +30,10 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
+import org.apache.ambari.server.state.cluster.ClustersImpl;
 import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.junit.Test;
@@ -62,17 +65,18 @@ public class HostComponentResourceProviderTest {
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
     ResourceProviderFactory resourceProviderFactory = createNiceMock(ResourceProviderFactory.class);
-    HostComponentResourceProvider hostComponentResourceProvider = 
+    Injector injector = createNiceMock(Injector.class);
+    HostComponentResourceProvider hostComponentResourceProvider =
         new HostComponentResourceProvider(PropertyHelper.getPropertyIds(type),
         PropertyHelper.getKeyPropertyIds(type),
-        managementController);
-    
+        managementController, injector);
+
     AbstractControllerResourceProvider.init(resourceProviderFactory);
 
     managementController.createHostComponents(
         AbstractResourceProviderTest.Matcher.getHostComponentRequestSet(
             "Cluster100", "Service100", "Component100", "Host100", null, null));
-    
+
     expect(resourceProviderFactory.getHostComponentResourceProvider(anyObject(Set.class),
         anyObject(Map.class),
         eq(managementController))).
@@ -236,6 +240,7 @@ public class HostComponentResourceProviderTest {
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
     ResourceProviderFactory resourceProviderFactory = createNiceMock(ResourceProviderFactory.class);
+    Injector injector = createNiceMock(Injector.class);
 
     Map<String, String> mapRequestProps = new HashMap<String, String>();
     mapRequestProps.put("context", "Called from a test");
@@ -247,7 +252,7 @@ public class HostComponentResourceProviderTest {
     HostComponentResourceProvider provider = 
         new HostComponentResourceProvider(PropertyHelper.getPropertyIds(type),
         PropertyHelper.getKeyPropertyIds(type),
-        managementController);
+        managementController, injector);
 
     // set expectations
     expect(managementController.getHostComponents(
@@ -287,11 +292,12 @@ public class HostComponentResourceProviderTest {
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
+    Injector injector = createNiceMock(Injector.class);
     
     HostComponentResourceProvider provider = 
         new HostComponentResourceProvider(PropertyHelper.getPropertyIds(type),
         PropertyHelper.getKeyPropertyIds(type),
-        managementController);
+        managementController, injector);
 
     // set expectations
     expect(managementController.deleteHostComponents(
@@ -336,11 +342,12 @@ public class HostComponentResourceProviderTest {
     Map<Resource.Type, String> keyPropertyIds = new HashMap<Resource.Type, String>();
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    Injector injector = createNiceMock(Injector.class);
 
-    HostComponentResourceProvider provider = 
+    HostComponentResourceProvider provider =
         new HostComponentResourceProvider(propertyIds,
         keyPropertyIds,
-        managementController);
+        managementController, injector);
 
     Set<String> unsupported = provider.checkPropertyIds(Collections.singleton("foo"));
     Assert.assertTrue(unsupported.isEmpty());

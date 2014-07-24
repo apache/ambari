@@ -26,6 +26,8 @@ import java.util.Map;
 import java.util.Set;
 
 import com.google.gson.JsonSyntaxException;
+import com.google.inject.Injector;
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.PropertyProvider;
@@ -34,6 +36,8 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.controller.utilities.StreamProvider;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,11 +55,26 @@ public class HttpProxyPropertyProvider extends BaseProvider implements PropertyP
 
   private static final Map<String, String> URL_TEMPLATES = new HashMap<String, String>();
   private static final Map<String, String> MAPPINGS = new HashMap<String, String>();
+  private static final Map<String, String> PROPERTIES_TO_FILTER = new HashMap<String, String>();
+
+  private static final String COMPONENT_RESOURCEMANAGER = "RESOURCEMANAGER";
+  private static final String COMPONENT_NAGIOS_SERVER = "NAGIOS_SERVER";
+  private static final String CONFIG_YARN_SITE = "yarn-site";
+  private static final String CONFIG_CORE_SITE = "core-site";
+  private static final String PROPERTY_YARN_HTTP_POLICY = "yarn.http.policy";
+  private static final String PROPERTY_HADOOP_SSL_ENABLED = "hadoop.ssl.enabled";
+  private static final String PROPERTY_YARN_HTTP_POLICY_VALUE_HTTPS_ONLY = "HTTPS_ONLY";
+  private static final String PROPERTY_HADOOP_SSL_ENABLED_VALUE_TRUE = "true";
 
   static {
-    URL_TEMPLATES.put("NAGIOS_SERVER", "http://%s/ambarinagios/nagios/nagios_alerts.php?q1=alerts&alert_type=all");
+    URL_TEMPLATES.put(COMPONENT_NAGIOS_SERVER, "http://%s/ambarinagios/nagios/nagios_alerts.php?q1=alerts&" +
+            "alert_type=all");
+    URL_TEMPLATES.put(COMPONENT_RESOURCEMANAGER, "http://%s:8088/ws/v1/cluster/info");
     
-    MAPPINGS.put("NAGIOS_SERVER", PropertyHelper.getPropertyId("HostRoles", "nagios_alerts"));
+    MAPPINGS.put(COMPONENT_NAGIOS_SERVER, PropertyHelper.getPropertyId("HostRoles", "nagios_alerts"));
+    MAPPINGS.put(COMPONENT_RESOURCEMANAGER, PropertyHelper.getPropertyId("HostRoles", "ha_state"));
+
+    PROPERTIES_TO_FILTER.put(COMPONENT_RESOURCEMANAGER, "clusterInfo/haState");
   }
 
   private final ComponentSSLConfiguration configuration;
@@ -65,10 +84,14 @@ public class HttpProxyPropertyProvider extends BaseProvider implements PropertyP
   private String clusterNamePropertyId = null;
   private String hostNamePropertyId = null;
   private String componentNamePropertyId = null;
+
+  private Injector injector;
+  private Clusters clusters;
   
   public HttpProxyPropertyProvider(
       StreamProvider stream,
       ComponentSSLConfiguration configuration,
+      Injector inject,
       String clusterNamePropertyId,
       String hostNamePropertyId,
       String componentNamePropertyId) {
@@ -79,6 +102,8 @@ public class HttpProxyPropertyProvider extends BaseProvider implements PropertyP
     this.clusterNamePropertyId = clusterNamePropertyId;
     this.hostNamePropertyId = hostNamePropertyId;
     this.componentNamePropertyId = componentNamePropertyId;
+    this.injector = inject;
+    this.clusters = injector.getInstance(Clusters.class);
   }
 
   /**
@@ -98,12 +123,13 @@ public class HttpProxyPropertyProvider extends BaseProvider implements PropertyP
       
       Object hostName = resource.getPropertyValue(hostNamePropertyId);
       Object componentName = resource.getPropertyValue(componentNamePropertyId);
-      
+      Object clusterName = resource.getPropertyValue(clusterNamePropertyId);
+
       if (null != hostName && null != componentName &&
           MAPPINGS.containsKey(componentName.toString()) &&
           URL_TEMPLATES.containsKey(componentName.toString())) {
         
-        String template = getTemplate(componentName.toString());
+        String template = getTemplate(componentName.toString(), clusterName.toString());
         String propertyId = MAPPINGS.get(componentName.toString());
         String url = String.format(template, hostName);
         
@@ -114,16 +140,48 @@ public class HttpProxyPropertyProvider extends BaseProvider implements PropertyP
     return resources;
   }
 
-  private String getTemplate(String key) {
+  private String getTemplate(String componentName, String clusterName) throws SystemException {
+    String template = URL_TEMPLATES.get(componentName);
 
-    String template = URL_TEMPLATES.get(key);
-
-    if (key.equals("NAGIOS_SERVER")) {
+    if (componentName.equals(COMPONENT_NAGIOS_SERVER)) {
       if (configuration.isNagiosSSL()) {
         template = template.replace("http", "https");
       }
+    } else if (componentName.equals(COMPONENT_RESOURCEMANAGER)) {
+      try {
+        Cluster cluster = this.clusters.getCluster(clusterName);
+        Map<String, String> yarnConfigProperties = cluster.getDesiredConfigByType(CONFIG_YARN_SITE).getProperties();
+        Map<String, String> coreConfigProperties = cluster.getDesiredConfigByType(CONFIG_CORE_SITE).getProperties();
+        String yarnHttpPolicy = yarnConfigProperties.get(PROPERTY_YARN_HTTP_POLICY);
+        String hadoopSslEnabled = coreConfigProperties.get(PROPERTY_HADOOP_SSL_ENABLED);
+        if ((yarnHttpPolicy != null && yarnHttpPolicy.equals(PROPERTY_YARN_HTTP_POLICY_VALUE_HTTPS_ONLY)) ||
+             hadoopSslEnabled != null && hadoopSslEnabled.equals(PROPERTY_HADOOP_SSL_ENABLED_VALUE_TRUE)) {
+          template = template.replace("http", "https");
+        }
+      } catch (AmbariException e) {
+          LOG.debug(String.format("Could not load cluster with name %s. %s", clusterName, e.getMessage()));
+          throw new SystemException(String.format("Could not load cluster with name %s.", clusterName),e);
+      }
     }
     return template;
+  }
+
+  private Object getPropertyValueToSet(Map<String, Object> propertyValueFromJson, Object componentName) throws SystemException {
+    Object result = propertyValueFromJson;
+    //TODO need refactoring for universalization
+    try {
+      if (PROPERTIES_TO_FILTER.get(componentName) != null) {
+        for (String key : PROPERTIES_TO_FILTER.get(componentName).split("/")) {
+          result = ((Map)result).get(key);
+        }
+      }
+    } catch (ClassCastException e) {
+        LOG.error(String.format("Error getting property value for %s. %s", PROPERTIES_TO_FILTER.get(componentName),
+              e.getMessage()));
+        throw new SystemException(String.format("Error getting property value for %s.",
+                PROPERTIES_TO_FILTER.get(componentName)),e);
+    }
+    return result;
   }
 
   private void getHttpResponse(Resource r, String url, String propertyIdToSet) throws SystemException {
@@ -132,7 +190,9 @@ public class HttpProxyPropertyProvider extends BaseProvider implements PropertyP
       in = streamProvider.readFrom(url);
       Type mapType = new TypeToken<Map<String, Object>>(){}.getType();
       Map<String, Object> propertyValueFromJson = new Gson().fromJson(IOUtils.toString(in, "UTF-8"), mapType);
-      r.setProperty(propertyIdToSet, propertyValueFromJson);
+      Object propertyValueToSet = getPropertyValueToSet(propertyValueFromJson,
+              r.getPropertyValue(componentNamePropertyId));
+      r.setProperty(propertyIdToSet, propertyValueToSet);
     }
     catch (IOException ioe) {
       LOG.error("Error reading HTTP response from " + url);

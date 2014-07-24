@@ -24,6 +24,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.inject.Injector;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -80,25 +81,9 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
       = "HostRoles/maintenance_state";
   
   //Component name mappings
-  private static final Map<String, PropertyProvider> HOST_COMPONENT_PROPERTIES_PROVIDER = new HashMap<String, PropertyProvider>();
+  private final Map<String, PropertyProvider> HOST_COMPONENT_PROPERTIES_PROVIDER = new HashMap<String, PropertyProvider>();
   private static final int HOST_COMPONENT_HTTP_PROPERTY_REQUEST_CONNECT_TIMEOUT = 1500;   //milliseconds
   private static final int HOST_COMPONENT_HTTP_PROPERTY_REQUEST_READ_TIMEOUT = 10000;  //milliseconds
-
-  static {
-    ComponentSSLConfiguration configuration = ComponentSSLConfiguration.instance();
-    URLStreamProvider streamProvider = new URLStreamProvider(
-        HOST_COMPONENT_HTTP_PROPERTY_REQUEST_CONNECT_TIMEOUT,
-        HOST_COMPONENT_HTTP_PROPERTY_REQUEST_READ_TIMEOUT,
-        configuration.getTruststorePath(), configuration.getTruststorePassword(), configuration.getTruststoreType());
-
-    HOST_COMPONENT_PROPERTIES_PROVIDER.put(
-        "NAGIOS_SERVER",
-        new HttpProxyPropertyProvider(
-            streamProvider, configuration,
-            PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
-            PropertyHelper.getPropertyId("HostRoles", "host_name"),
-            PropertyHelper.getPropertyId("HostRoles", "component_name")));
-  }
 
   //Parameters from the predicate
   private static final String QUERY_PARAMETERS_RUN_SMOKE_TEST_ID =
@@ -122,8 +107,24 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
   @AssistedInject
   public HostComponentResourceProvider(@Assisted Set<String> propertyIds,
                                        @Assisted Map<Resource.Type, String> keyPropertyIds,
-                                       @Assisted AmbariManagementController managementController) {
+                                       @Assisted AmbariManagementController managementController,
+                                       Injector injector) {
     super(propertyIds, keyPropertyIds, managementController);
+    ComponentSSLConfiguration configuration = ComponentSSLConfiguration.instance();
+    URLStreamProvider streamProvider = new URLStreamProvider(
+            HOST_COMPONENT_HTTP_PROPERTY_REQUEST_CONNECT_TIMEOUT,
+            HOST_COMPONENT_HTTP_PROPERTY_REQUEST_READ_TIMEOUT,
+            configuration.getTruststorePath(), configuration.getTruststorePassword(), configuration.getTruststoreType());
+
+    HttpProxyPropertyProvider httpPropertyProvider = new HttpProxyPropertyProvider(streamProvider,
+            configuration, injector,
+            PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
+            PropertyHelper.getPropertyId("HostRoles", "host_name"),
+            PropertyHelper.getPropertyId("HostRoles", "component_name"));
+
+    HOST_COMPONENT_PROPERTIES_PROVIDER.put("NAGIOS_SERVER", httpPropertyProvider);
+
+    HOST_COMPONENT_PROPERTIES_PROVIDER.put("RESOURCEMANAGER", httpPropertyProvider);
   }
 
   // ----- ResourceProvider ------------------------------------------------
