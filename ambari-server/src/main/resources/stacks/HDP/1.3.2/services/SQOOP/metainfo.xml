@@ -29,7 +29,7 @@
         <component>
           <name>SQOOP</name>
           <category>CLIENT</category>
-          <cardinality>0+</cardinality>
+          <cardinality>1+</cardinality>
           <dependencies>
             <dependency>
               <name>HDFS/HDFS_CLIENT</name>

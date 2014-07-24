@@ -28,7 +28,7 @@
         <component>
           <name>HBASE_MASTER</name>
           <category>MASTER</category>
-          <cardinality>1</cardinality>
+          <cardinality>1+</cardinality>
           <dependencies>
             <dependency>
               <name>HDFS/HDFS_CLIENT</name>
@@ -86,7 +86,7 @@
         <component>
           <name>HBASE_CLIENT</name>
           <category>CLIENT</category>
-          <cardinality>0+</cardinality>
+          <cardinality>1+</cardinality>
           <commandScript>
             <script>scripts/hbase_client.py</script>
             <scriptType>PYTHON</scriptType>

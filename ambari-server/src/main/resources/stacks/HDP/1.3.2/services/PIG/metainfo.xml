@@ -26,7 +26,7 @@
         <component>
           <name>PIG</name>
           <category>CLIENT</category>
-          <cardinality>0+</cardinality>
+          <cardinality>1+</cardinality>
           <commandScript>
             <script>scripts/pig_client.py</script>
             <scriptType>PYTHON</scriptType>
