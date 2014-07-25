@@ -2175,7 +2175,8 @@ Em.I18n.translations = {
   'number.validate.moreThanMaximum': 'value greater than {0}',
 
   'common.combobox.placeholder': 'Filter...',
-  'common.combobox.dropdown.1': 'Overridden properties',
+  'common.combobox.dropdown.overridden': 'Overridden properties',
+  'common.combobox.dropdown.final': 'Final properties',
 
   'quick.links.error.label': 'Hostname is undefined',
   'quick.links.publicHostName': '{0} ({1})',

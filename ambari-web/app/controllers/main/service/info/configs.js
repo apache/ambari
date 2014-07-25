@@ -101,18 +101,31 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   filter: '',
 
   /**
+   * List of filters for config properties to populate filter combobox
+   */
+  propertyFilters: [
+    {
+      attributeName: 'isOverridden',
+      caption: 'common.combobox.dropdown.overridden'
+    },
+    {
+      attributeName: 'isFinal',
+      caption: 'common.combobox.dropdown.final'
+    }
+  ],
+
+  /**
    * Dropdown menu items in filter combobox
    */
   filterColumns: function () {
-    var result = [];
-    for (var i = 1; i < 2; i++) {
-      result.push(Ember.Object.create({
-        name: this.t('common.combobox.dropdown.' + i),
+    return this.get('propertyFilters').map(function(filter) {
+      return Ember.Object.create({
+        attributeName: filter.attributeName,
+        name: this.t(filter.caption),
         selected: false
-      }));
-    }
-    return result;
-  }.property(),
+      })
+    }, this);
+  }.property('propertyFilters'),
 
   /**
    * clear and set properties to default value
