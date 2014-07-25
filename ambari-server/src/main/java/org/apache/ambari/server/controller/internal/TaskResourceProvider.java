@@ -57,6 +57,8 @@ class TaskResourceProvider extends AbstractControllerResourceProvider {
   protected static final String TASK_EXIT_CODE_PROPERTY_ID    = PropertyHelper.getPropertyId("Tasks", "exit_code");
   protected static final String TASK_STDERR_PROPERTY_ID       = PropertyHelper.getPropertyId("Tasks", "stderr");
   protected static final String TASK_STOUT_PROPERTY_ID        = PropertyHelper.getPropertyId("Tasks", "stdout");
+  protected static final String TASK_OUTPUTLOG_PROPERTY_ID    = PropertyHelper.getPropertyId("Tasks", "output_log");
+  protected static final String TASK_ERRORLOG_PROPERTY_ID     = PropertyHelper.getPropertyId("Tasks", "error_log");
   protected static final String TASK_STRUCT_OUT_PROPERTY_ID   = PropertyHelper.getPropertyId("Tasks", "structured_out");
   protected static final String TASK_START_TIME_PROPERTY_ID   = PropertyHelper.getPropertyId("Tasks", "start_time");
   protected static final String TASK_END_TIME_PROPERTY_ID     = PropertyHelper.getPropertyId("Tasks", "end_time");
@@ -153,6 +155,8 @@ class TaskResourceProvider extends AbstractControllerResourceProvider {
         setResourceProperty(resource, TASK_EXIT_CODE_PROPERTY_ID, response.getExitCode(), requestedIds);
         setResourceProperty(resource, TASK_STDERR_PROPERTY_ID, response.getStderr(), requestedIds);
         setResourceProperty(resource, TASK_STOUT_PROPERTY_ID, response.getStdout(), requestedIds);
+        setResourceProperty(resource, TASK_OUTPUTLOG_PROPERTY_ID, response.getOutputLog(), requestedIds);
+        setResourceProperty(resource, TASK_ERRORLOG_PROPERTY_ID, response.getErrorLog(), requestedIds);
         setResourceProperty(resource, TASK_STRUCT_OUT_PROPERTY_ID, parseStructuredOutput(response.getStructuredOut()), requestedIds);
         setResourceProperty(resource, TASK_START_TIME_PROPERTY_ID, response.getStartTime(), requestedIds);
         setResourceProperty(resource, TASK_END_TIME_PROPERTY_ID, response.getEndTime(), requestedIds);

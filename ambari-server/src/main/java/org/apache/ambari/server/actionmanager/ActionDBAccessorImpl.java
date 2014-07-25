@@ -23,6 +23,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import com.google.inject.persist.Transactional;
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
@@ -42,6 +43,7 @@ import org.apache.ambari.server.orm.entities.RequestScheduleEntity;
 import org.apache.ambari.server.orm.entities.RoleSuccessCriteriaEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.utils.StageUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -243,8 +245,25 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
         hostRoleCommandDAO.create(hostRoleCommandEntity);
 
         assert hostRoleCommandEntity.getTaskId() != null;
-
         hostRoleCommand.setTaskId(hostRoleCommandEntity.getTaskId());
+
+        try {
+          // Get the in-memory host object and its prefix to construct the output and error log paths.
+          Host hostObject = clusters.getHost(hostRoleCommandEntity.getHostName());
+          String prefix = hostObject.getPrefix();
+          if (null != prefix && !prefix.isEmpty()) {
+            if (!prefix.endsWith("/")) {
+              prefix = prefix + "/";
+            }
+            hostRoleCommand.setOutputLog(prefix + "output-" + hostRoleCommandEntity.getTaskId() + ".txt");
+            hostRoleCommand.setErrorLog(prefix + "errors-" + hostRoleCommandEntity.getTaskId() + ".txt");
+            hostRoleCommandEntity.setOutputLog(hostRoleCommand.getOutputLog());
+            hostRoleCommandEntity.setErrorLog(hostRoleCommand.getErrorLog());
+          }
+        } catch (AmbariException e) {
+          LOG.warn("Exception in getting prefix for host and setting output and error log files.");
+        }
+
         ExecutionCommandEntity executionCommandEntity = hostRoleCommand.constructExecutionCommandEntity();
         executionCommandEntity.setHostRoleCommand(hostRoleCommandEntity);
 

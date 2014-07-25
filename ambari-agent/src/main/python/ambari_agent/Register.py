@@ -52,7 +52,8 @@ class Register:
                  'publicHostname'    : hostname.public_hostname(),
                  'hardwareProfile'   : self.hardware.get(),
                  'agentEnv'          : agentEnv,
-                 'agentVersion'      : version
+                 'agentVersion'      : version,
+                 'prefix'            : self.config.get('agent', 'prefix')
                }
     return register
 

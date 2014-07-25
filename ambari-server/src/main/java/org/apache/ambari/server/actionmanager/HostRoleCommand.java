@@ -46,6 +46,8 @@ public class HostRoleCommand {
   private HostRoleStatus status = HostRoleStatus.PENDING;
   private String stdout = "";
   private String stderr = "";
+  public String outputLog = null;
+  public String errorLog = null;
   private String structuredOut = "";
   private int exitCode = 999; //Default is unknown
   private long startTime = -1;
@@ -76,6 +78,8 @@ public class HostRoleCommand {
     status = hostRoleCommandEntity.getStatus();
     stdout = hostRoleCommandEntity.getStdOut() != null ? new String(hostRoleCommandEntity.getStdOut()) : "";
     stderr = hostRoleCommandEntity.getStdError() != null ? new String(hostRoleCommandEntity.getStdError()) : "";
+    outputLog = hostRoleCommandEntity.getOutputLog();
+    errorLog = hostRoleCommandEntity.getErrorLog();
     structuredOut = hostRoleCommandEntity.getStructuredOut() != null ? new String(hostRoleCommandEntity.getStructuredOut()) : "";
     exitCode = hostRoleCommandEntity.getExitcode();
     startTime = hostRoleCommandEntity.getStartTime();
@@ -185,6 +189,18 @@ public class HostRoleCommand {
     this.stderr = stderr;
   }
 
+  public String getOutputLog() { return outputLog; }
+
+  public void setOutputLog(String outputLog)  {
+    this.outputLog = outputLog;
+  }
+
+  public String getErrorLog() { return errorLog; }
+
+  public void setErrorLog(String errorLog) {
+      this.errorLog = errorLog;
+  }
+
   public int getExitCode() {
     return exitCode;
   }
@@ -291,6 +307,8 @@ public class HostRoleCommand {
     builder.append("  Role: ").append(role).append("\n");
     builder.append("  Status: ").append(status).append("\n");
     builder.append("  Event: ").append(event).append("\n");
+    builder.append("  Output log: ").append(outputLog).append("\n");
+    builder.append("  Error log: ").append(errorLog).append("\n");
     builder.append("  stdout: ").append(stdout).append("\n");
     builder.append("  stderr: ").append(stderr).append("\n");
     builder.append("  exitcode: ").append(exitCode).append("\n");

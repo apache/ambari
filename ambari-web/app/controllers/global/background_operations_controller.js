@@ -170,6 +170,8 @@ App.BackgroundOperationsController = Em.Controller.extend({
     task.Tasks.status = data.Tasks.status;
     task.Tasks.stdout = data.Tasks.stdout;
     task.Tasks.stderr = data.Tasks.stderr;
+    task.Tasks.output_log = data.Tasks.output_log;
+    task.Tasks.error_log = data.Tasks.error_log;
     this.set('serviceTimestamp', App.dateTime());
   },
 

@@ -668,6 +668,7 @@ public class TestHeartbeatHandler {
     reg.setCurrentPingPort(DummyCurrentPingPort);
     reg.setHardwareProfile(hi);
     reg.setAgentVersion(metaInfo.getServerVersion());
+    reg.setPrefix(Configuration.PREFIX_DIR);
     handler.handleRegistration(reg);
     assertEquals(hostObject.getState(), HostState.HEALTHY);
     assertEquals(DummyOsType, hostObject.getOsType());
@@ -698,6 +699,7 @@ public class TestHeartbeatHandler {
     reg.setHostname(DummyHostname1);
     reg.setHardwareProfile(hi);
     reg.setAgentVersion(""); // Invalid agent version
+    reg.setPrefix(Configuration.PREFIX_DIR);
     try {
       handler.handleRegistration(reg);
       fail ("Expected failure for non compatible agent version");
@@ -823,12 +825,14 @@ public class TestHeartbeatHandler {
     reg.setHostname(DummyHostname1);
     reg.setHardwareProfile(hi);
     reg.setAgentVersion(metaInfo.getServerVersion());
+    reg.setPrefix(Configuration.PREFIX_DIR);
     RegistrationResponse response = handler.handleRegistration(reg);
 
     assertEquals(hostObject.getState(), HostState.HEALTHY);
     assertEquals("redhat5", hostObject.getOsType());
     assertEquals(RegistrationStatus.OK, response.getResponseStatus());
     assertEquals(0, response.getResponseId());
+    assertEquals(reg.getPrefix(), hostObject.getPrefix());
     assertTrue(response.getStatusCommands().isEmpty());
   }
 

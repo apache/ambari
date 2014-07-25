@@ -203,7 +203,7 @@ Em.I18n.translations = {
   'common.additional': 'Additional',
   'common.time.start': 'Start Time',
   'common.time.end': 'End Time',
-  'common.hostLog.popup.logDir.path':'/var/lib/ambari-agent/data/',
+  'common.hostLog.popup.logDir.path':'/var/lib/ambari-agent/data/',   // TODO, this hardcoded path needs to be removed.
   'common.hostLog.popup.outputLog.value': 'output-{0}.txt',
   'common.hostLog.popup.errorLog.value': 'errors-{0}.txt',
   'common.maintenance.task': ' Toggle Maintenance Mode',

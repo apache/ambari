@@ -37,8 +37,8 @@ public class TaskStatusResponse extends ShortTaskStatus {
   public TaskStatusResponse(long requestId,
                             int taskId, long stageId, String hostName, String role, String command, String status,
                             int exitCode, String stderr, String stdout, long startTime, short attemptCount,
-                            String commandDetail, String customCommandName) {
-    super(taskId, stageId, hostName, role, command, status, customCommandName);
+                            String commandDetail, String customCommandName, String outputLog, String errorLog) {
+    super(taskId, stageId, hostName, role, command, status, customCommandName, outputLog, errorLog);
     this.requestId = requestId;
     this.exitCode = exitCode;
     this.stderr = stderr;

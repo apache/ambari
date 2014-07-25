@@ -28,12 +28,14 @@ public class ShortTaskStatus {
   protected String command;
   protected String status;
   protected String customCommandName;
+  protected String outputLog;
+  protected String errorLog;
 
   public ShortTaskStatus() {
   }
 
   public ShortTaskStatus(int taskId, long stageId, String hostName, String role, String command, String status,
-                         String customCommandName) {
+                         String customCommandName, String outputLog, String errorLog) {
     this.taskId = taskId;
     this.stageId = stageId;
     this.hostName = hostName;
@@ -41,6 +43,8 @@ public class ShortTaskStatus {
     this.command = command;
     this.status = status;
     this.customCommandName = customCommandName;
+    this.outputLog = outputLog;
+    this.errorLog = errorLog;
   }
 
   public ShortTaskStatus(HostRoleCommand hostRoleCommand) {
@@ -51,6 +55,8 @@ public class ShortTaskStatus {
     this.role = hostRoleCommand.getRole().toString();
     this.status = hostRoleCommand.getStatus().toString();
     this.customCommandName = hostRoleCommand.getCustomCommandName();
+    this.outputLog = hostRoleCommand.getOutputLog();
+    this.errorLog = hostRoleCommand.getErrorLog();
   }
 
   public String getCustomCommandName() {
@@ -101,6 +107,22 @@ public class ShortTaskStatus {
     this.command = command;
   }
 
+  public String getOutputLog() {
+    return outputLog;
+  }
+
+  public void setOutputLog(String outputLog) {
+    this.outputLog = outputLog;
+  }
+
+  public String getErrorLog() {
+    return errorLog;
+  }
+
+  public void setErrorLog(String errorLog) {
+    this.errorLog = errorLog;
+  }
+
   public String getStatus() {
     return status;
   }
@@ -117,7 +139,10 @@ public class ShortTaskStatus {
         + ", hostname=" + hostName
         + ", role=" + role
         + ", command=" + command
-        + ", status=" + status);
+        + ", status=" + status
+        + ", outputLog=" + outputLog
+        + ", errorLog=" + errorLog
+    );
     return sb.toString();
   }
 

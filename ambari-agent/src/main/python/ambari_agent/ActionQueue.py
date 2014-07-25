@@ -122,9 +122,6 @@ class ActionQueue(threading.Thread):
       except (Queue.Empty):
         pass
 
-
-
-
   def process_command(self, command):
     logger.debug("Took an element of Queue: " + pprint.pformat(command))
     # make sure we log failures
@@ -157,6 +154,8 @@ class ActionQueue(threading.Thread):
     taskId = command['taskId']
     # Preparing 'IN_PROGRESS' report
     in_progress_status = self.commandStatuses.generate_report_template(command)
+    # The path of the files that contain the output log and error log use a prefix that the agent advertises to the
+    # server. The prefix is defined in agent-config.ini
     in_progress_status.update({
       'tmpout': self.tmpdir + os.sep + 'output-' + str(taskId) + '.txt',
       'tmperr': self.tmpdir + os.sep + 'errors-' + str(taskId) + '.txt',

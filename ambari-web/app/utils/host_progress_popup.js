@@ -301,8 +301,6 @@ App.HostPopup = Em.Object.create({
       commandDetail: App.format.commandDetail(_task.Tasks.command_detail),
       status: App.format.taskStatus(_task.Tasks.status),
       role: App.format.role(_task.Tasks.role),
-      outputLog: Em.I18n.t('common.hostLog.popup.logDir.path') + Em.I18n.t('common.hostLog.popup.outputLog.value').format(_task.Tasks.id),
-      errorLog: Em.I18n.t('common.hostLog.popup.logDir.path') + Em.I18n.t('common.hostLog.popup.errorLog.value').format(_task.Tasks.id),
       stderr: _task.Tasks.stderr,
       stdout: _task.Tasks.stdout,
       isVisible: true,
@@ -377,6 +375,9 @@ App.HostPopup = Em.Object.create({
                   existTask.set('status', App.format.taskStatus(_task.Tasks.status));
                   existTask.set('stdout', _task.Tasks.stdout);
                   existTask.set('stderr', _task.Tasks.stderr);
+                  // Verified that this is needed.
+                  existTask.set('outputLog', _task.Tasks.output_log);
+                  existTask.set('errorLog', _task.Tasks.error_log);
                   existTask.set('startTime', date.startTime(_task.Tasks.start_time));
                   existTask.set('duration', date.durationSummary(_task.Tasks.start_time, _task.Tasks.end_time));
                 } else {

@@ -98,7 +98,7 @@ public class TaskResourceProviderTest {
 
     Set<TaskStatusResponse> allResponse = new HashSet<TaskStatusResponse>();
     allResponse.add(new TaskStatusResponse(100L, 100, 100L, "HostName100", "", "", "", 0, "", "", 0L, (short) 0,
-        "commandDetail", "customCommandName"));
+        "commandDetail", "customCommandName", null, null));
 
     // set expectations
     expect(managementController.getTaskStatus(AbstractResourceProviderTest.Matcher.getTaskRequestSet(100L, 100L))).

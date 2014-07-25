@@ -1563,6 +1563,50 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
+  /**
+   * Create a cluster with a service, and verify that the request tasks have the correct output log and error log paths.
+   */
+  public void testRequestStatusLogs() throws Exception {
+    testCreateServiceComponentHostSimple();
+
+    String clusterName = "foo1";
+    String serviceName = "HDFS";
+
+    Cluster cluster = clusters.getCluster(clusterName);
+    for (Host h : clusters.getHosts()) {
+      // Simulate each agent registering and setting the prefix path on its host
+      h.setPrefix(Configuration.PREFIX_DIR);
+    }
+
+    Map<String, Config> configs = new HashMap<String, Config>();
+    Map<String, String> properties = new HashMap<String, String>();
+    Map<String, Map<String, String>> propertiesAttributes = new HashMap<String, Map<String,String>>();
+
+    Config c1 = new ConfigImpl(cluster, "hdfs-site", properties, propertiesAttributes, injector);
+    c1.setVersionTag("v1");
+    cluster.addConfig(c1);
+    c1.persist();
+    configs.put(c1.getType(), c1);
+
+    ServiceRequest r = new ServiceRequest(clusterName, serviceName, State.INSTALLED.toString());
+    Set<ServiceRequest> requests = new HashSet<ServiceRequest>();
+    requests.add(r);
+
+    Map<String, String> mapRequestProps = new HashMap<String, String>();
+    mapRequestProps.put("context", "Called from a test");
+
+    RequestStatusResponse trackAction =
+        ServiceResourceProviderTest.updateServices(controller, requests, mapRequestProps, true, false);
+
+    List<ShortTaskStatus> taskStatuses = trackAction.getTasks();
+    Assert.assertFalse(taskStatuses.isEmpty());
+    for (ShortTaskStatus task : taskStatuses) {
+      Assert.assertEquals("Task output logs don't match", Configuration.PREFIX_DIR + "/output-" + task.getTaskId() + ".txt", task.getOutputLog());
+      Assert.assertEquals("Task error logs don't match", Configuration.PREFIX_DIR + "/errors-" + task.getTaskId() + ".txt", task.getErrorLog());
+    }
+  }
+
+  @Test
   public void testInstallAndStartService() throws Exception {
     testCreateServiceComponentHostSimple();
 

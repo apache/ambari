@@ -60,6 +60,7 @@ class TestRegistration(TestCase):
     print data['agentEnv']['umask']
     self.assertEquals(not data['agentEnv']['umask']== "", True, "agents umask should not be empty")
     self.assertEquals(data['currentPingPort'] == 33777, True, "current ping port should be 33777")
-    self.assertEquals(len(data), 8)
+    self.assertEquals(data['prefix'], config.get('agent', 'prefix'), 'The prefix path does not match')
+    self.assertEquals(len(data), 9)
 
     os.remove(ver_file)

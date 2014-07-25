@@ -33,9 +33,9 @@ public class InMemoryDefaultTestModule extends AbstractModule {
   protected void configure() {
     properties.setProperty(Configuration.SERVER_PERSISTENCE_TYPE_KEY, "in-memory");
     properties.setProperty(Configuration.METADETA_DIR_PATH,
-        "src/test/resources/stacks");
+        "ambari-server/src/test/resources/stacks");
     properties.setProperty(Configuration.SERVER_VERSION_FILE,
-            "target/version");
+            "ambari-server/target/version");
     properties.setProperty(Configuration.OS_VERSION_KEY,
         "centos5");
     try {

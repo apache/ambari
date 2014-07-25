@@ -276,6 +276,18 @@ public interface Host {
   public void setState(HostState state);
 
   /**
+   * Get the prefix path of all logs
+   * @return prefix
+   */
+  public String getPrefix();
+
+  /**
+   * Set the prefix path of all logs of the host
+   * @param prefix the prefix path to set
+   */
+  public void setPrefix(String prefix);
+
+  /**
    * Send an event to the Host's StateMachine
    * @param event HostEvent
    * @throws InvalidStateTransitionException

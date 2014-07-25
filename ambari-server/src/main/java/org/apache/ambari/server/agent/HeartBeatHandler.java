@@ -641,6 +641,9 @@ public class HeartBeatHandler {
     // Get status of service components
     List<StatusCommand> cmds = heartbeatMonitor.generateStatusCommands(hostname);
 
+    // Save the prefix of the log file paths
+    hostObject.setPrefix(register.getPrefix());
+
     hostObject.handleEvent(new HostRegistrationRequestEvent(hostname,
         null != register.getPublicHostname() ? register.getPublicHostname() : hostname,
         new AgentVersion(register.getAgentVersion()), now, register.getHardwareProfile(),

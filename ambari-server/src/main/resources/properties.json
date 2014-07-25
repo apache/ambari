@@ -147,6 +147,8 @@
         "Tasks/exit_code",
         "Tasks/stderr",
         "Tasks/stdout",
+        "Tasks/output_log",
+        "Tasks/error_log",
         "Tasks/start_time",
         "Tasks/end_time",
         "Tasks/structured_out",

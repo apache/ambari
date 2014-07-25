@@ -120,8 +120,11 @@ public class HostImpl implements Host {
 
   
   
-  //In-memory status, based on host components states
+  // In-memory status, based on host components states
   private String status;
+
+  // In-memory prefix of log file paths that is retrieved when the agent registers with the server
+  private String prefix;
 
   private static final StateMachineFactory
     <HostImpl, HostState, HostEventType, HostEvent>
@@ -858,6 +861,21 @@ public class HostImpl implements Host {
       saveIfPersisted();
     } finally {
       writeLock.unlock();
+    }
+  }
+
+  @Override
+  public String getPrefix() { return prefix; }
+
+  @Override
+  public void setPrefix(String prefix) {
+    if (prefix != null && !prefix.equals(this.prefix)) {
+      try {
+        writeLock.lock();
+        this.prefix = prefix;
+      } finally {
+        writeLock.unlock();
+      }
     }
   }
 

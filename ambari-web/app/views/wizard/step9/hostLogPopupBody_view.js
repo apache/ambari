@@ -147,8 +147,6 @@ App.WizardStep9HostLogPopupBodyView = Em.View.extend({
         taskInfo.set('isVisible', true);
         taskInfo.set('icon', '');
         taskInfo.set('hostName', _task.Tasks.host_name);
-        taskInfo.set('outputLog', Em.I18n.t('common.hostLog.popup.logDir.path') + Em.I18n.t('common.hostLog.popup.outputLog.value').format(_task.Tasks.id));
-        taskInfo.set('errorLog', Em.I18n.t('common.hostLog.popup.logDir.path') + Em.I18n.t('common.hostLog.popup.errorLog.value').format(_task.Tasks.id));
         if (taskInfo.get('status') == 'pending' || taskInfo.get('status') == 'queued') {
           taskInfo.set('icon', 'icon-cog');
         } else if (taskInfo.get('status') == 'in_progress') {

@@ -18,6 +18,7 @@
 package org.apache.ambari.server.agent;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -97,6 +98,7 @@ public class LocalAgentSimulator implements Runnable {
       reg.setTimestamp(System.currentTimeMillis());
       reg.setHostname(this.hostname);
       reg.setAgentVersion(this.agentVersion);
+      reg.setPrefix(Configuration.PREFIX_DIR);
     }
     RegistrationResponse response;
     try {

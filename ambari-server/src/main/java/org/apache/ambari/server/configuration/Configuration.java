@@ -51,6 +51,13 @@ public class Configuration {
 
   public static final String CONFIG_FILE = "ambari.properties";
   public static final String BOOTSTRAP_DIR = "bootstrap.dir";
+
+  /**
+   *  PREFIX_DIR is shared in ambari-agent.ini and should only be called by unit tests.
+   *  For all server-side processing, it should be retrieved from <code>HostImpl.getPrefix()</code>
+   */
+  public static final String PREFIX_DIR = "/var/lib/ambari-agent/data";
+
   public static final String BOOTSTRAP_DIR_DEFAULT = "/var/run/ambari-server/bootstrap";
   public static final String VIEWS_DIR = "views.dir";
   public static final String VIEWS_DIR_DEFAULT = "/var/lib/ambari-server/resources/views";

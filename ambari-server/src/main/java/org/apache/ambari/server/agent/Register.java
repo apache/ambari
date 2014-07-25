@@ -34,6 +34,7 @@ public class Register {
   private String publicHostname;
   private AgentEnv agentEnv;
   private String agentVersion;
+  private String prefix;
 
   @JsonProperty("responseId")
   public int getResponseId() {
@@ -89,6 +90,10 @@ public class Register {
     return agentVersion;
   }
 
+  public String getPrefix() { return prefix; }
+
+  public void setPrefix(String prefix) { this.prefix = prefix; }
+
   public void setAgentVersion(String agentVersion) {
     this.agentVersion = agentVersion;
   }
@@ -106,7 +111,8 @@ public class Register {
     String ret = "responseId=" + responseId + "\n" +
              "timestamp=" + timestamp + "\n" +
              "hostname="  + hostname + "\n" +
-             "currentPingPort=" + currentPingPort + "\n";
+             "currentPingPort=" + currentPingPort + "\n" +
+             "prefix=" + prefix + "\n";
 
     if (hardwareProfile != null)
       ret = ret + "hardwareprofile=" + this.hardwareProfile.toString();
