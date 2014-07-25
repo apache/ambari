@@ -1468,7 +1468,7 @@ public class BlueprintResourceProviderTest {
     Map<String, String> configMap = new HashMap<String, String>();
     configMap.put("global/properties/lot/nagios_contact", "foo@ffl.dsfds");
     expectedException.expect(IllegalArgumentException.class);
-    expectedException.expectMessage("Configuration definition schema is not supported");
+    expectedException.expectMessage(provider.SCHEMA_IS_NOT_SUPPORTED_MESSAGE);
 
     provider.decidePopulationStrategy(configMap);
   }

@@ -84,6 +84,8 @@ public class BlueprintResourceProvider extends BaseBlueprintProcessor {
   protected static final String CONFIGURATION_PROPERTY_ID = "configurations";
   protected static final String PROPERTIES_PROPERTY_ID = "properties";
   protected static final String PROPERTIES_ATTRIBUTES_PROPERTY_ID = "properties_attributes";
+  protected static final String SCHEMA_IS_NOT_SUPPORTED_MESSAGE =
+      "Configuration format provided in Blueprint is not supported";
 
   // Primary Key Fields
   private static Set<String> pkPropertyIds =
@@ -528,7 +530,7 @@ public class BlueprintResourceProvider extends BaseBlueprintProcessor {
           || (levels == 4 && PROPERTIES_ATTRIBUTES_PROPERTY_ID.equals(propertiesType))) {
         return new BlueprintConfigPopulationStrategyV2();
       } else {
-        throw new IllegalArgumentException("Configuration format provided in Blueprint is not supported");
+        throw new IllegalArgumentException(SCHEMA_IS_NOT_SUPPORTED_MESSAGE);
       }
     } else {
       return new BlueprintConfigPopulationStrategyV2();
