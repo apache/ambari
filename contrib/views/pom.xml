@@ -22,6 +22,9 @@
   <packaging>pom</packaging>
   <version>0.1.0-SNAPSHOT</version>
   <name>Ambari Contrib Views</name>
+  <properties>
+    <ambari.version>1.3.0-SNAPSHOT</ambari.version>
+  </properties>
   <modules>
     <module>files</module>
     <module>pig</module>
@@ -118,7 +121,7 @@
       <dependency>
         <groupId>org.apache.ambari</groupId>
         <artifactId>ambari-views</artifactId>
-        <version>[1.5.0.1,)</version>
+        <version>[${ambari.version},)</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
