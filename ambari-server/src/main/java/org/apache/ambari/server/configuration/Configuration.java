@@ -908,7 +908,7 @@ public class Configuration {
   }
 
   /**
-   * @return cache expiration time in seconds
+   * @return whether staleConfig's flag is cached. 
    */
   public boolean isStaleConfigCacheEnabled() {
     String stringValue =

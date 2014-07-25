@@ -90,3 +90,11 @@ class ActualConfigHandler:
       self.configTags[componentName] = \
         self.read_file(componentName + "_" + self.CONFIG_NAME)
     return self.configTags[componentName]
+  
+  def update_component_tag(self, componentName, tag, version):
+    self.read_actual_component(componentName)
+    self.configTags[componentName][tag] = version
+    
+    filename = componentName + "_" + self.CONFIG_NAME
+    self.write_file(filename, self.configTags[componentName])
+    

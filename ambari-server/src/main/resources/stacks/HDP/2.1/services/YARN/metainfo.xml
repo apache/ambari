@@ -35,6 +35,14 @@
             <timeout>600</timeout>
           </commandScript>
         </component>
+        
+       <component>
+         <name>RESOURCEMANAGER</name>
+         <category>MASTER</category>
+          <configuration-dependencies>
+            <config-type>capacity-scheduler</config-type>
+          </configuration-dependencies>
+        </component>
 
 
       </components>
@@ -56,7 +64,6 @@
       <configuration-dependencies>
         <config-type>yarn-site</config-type>
         <config-type>yarn-env</config-type>
-        <config-type>capacity-scheduler</config-type>
         <config-type>core-site</config-type>
         <config-type>yarn-log4j</config-type>
       </configuration-dependencies>

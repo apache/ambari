@@ -43,8 +43,17 @@ import javax.xml.xpath.XPathFactory;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.metadata.ActionMetadata;
-import org.apache.ambari.server.state.*;
-import org.apache.ambari.server.state.stack.*;
+import org.apache.ambari.server.state.CommandScriptDefinition;
+import org.apache.ambari.server.state.ComponentInfo;
+import org.apache.ambari.server.state.CustomCommandDefinition;
+import org.apache.ambari.server.state.PropertyInfo;
+import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.server.state.ServiceOsSpecific;
+import org.apache.ambari.server.state.StackInfo;
+import org.apache.ambari.server.state.stack.ConfigurationXml;
+import org.apache.ambari.server.state.stack.RepositoryXml;
+import org.apache.ambari.server.state.stack.ServiceMetainfoXml;
+import org.apache.ambari.server.state.stack.StackMetainfoXml;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -278,6 +287,10 @@ public class StackExtensionHelper {
     } else {
       result.setCommandScript(parent.getCommandScript());
     }
+    //keep the same semantic as for ServiceInfo
+    result.setConfigDependencies(
+        child.getConfigDependencies() != null ?
+            child.getConfigDependencies() : parent.getConfigDependencies());
 
     // Merge custom command definitions for service
     List<CustomCommandDefinition> mergedCustomCommands =
@@ -433,10 +446,9 @@ public class StackExtensionHelper {
             // process metrics.json
             if (metricsJson.exists())
               serviceInfo.setMetricsFile(metricsJson);
-            
             if (alertsJson.exists())
               serviceInfo.setAlertsFile(alertsJson);
-            
+
             // Get all properties from all "configs/*-site.xml" files
             setPropertiesFromConfigs(serviceFolder, serviceInfo);
 
@@ -642,7 +654,7 @@ public class StackExtensionHelper {
    * Populate ServiceInfo#configTypes with default entries based on ServiceInfo#configDependencies property
    */
   void populateConfigTypesFromDependencies(ServiceInfo serviceInfo) {
-    List<String> configDependencies = serviceInfo.getConfigDependencies();
+    List<String> configDependencies = serviceInfo.getConfigDependenciesWithComponents();
     if (configDependencies != null) {
       Map<String, Map<String, Map<String, String>>> configTypes = new HashMap<String, Map<String, Map<String, String>>>();
       for (String configDependency : configDependencies) {
@@ -664,9 +676,9 @@ public class StackExtensionHelper {
    * Put new property entry to ServiceInfo#configTypes collection for specified configType
    */
   void addConfigTypeProperty(ServiceInfo serviceInfo, String configType,
-                             String propertiesGroupName, String key, String value) {
-    Map<String, Map<String, Map<String, String>>> configTypes = serviceInfo.getConfigTypes();
-    if (configTypes != null && configTypes.containsKey(configType)) {
+      String propertiesGroupName, String key, String value) {
+   Map<String, Map<String, Map<String, String>>> configTypes = serviceInfo.getConfigTypes();
+   if (configTypes != null && configTypes.containsKey(configType)) {
       Map<String, Map<String, String>> configDependencyProperties = configTypes.get(configType);
       if (!configDependencyProperties.containsKey(propertiesGroupName)) {
         configDependencyProperties.put(propertiesGroupName, new HashMap<String, String>());
@@ -677,7 +689,7 @@ public class StackExtensionHelper {
   }
 
   /**
-   * Get all properties from all "configs/*-site.xml" files
+   * Get all properties from all "configs/*.xml" files. See {@see AmbariMetaInfo#SERVICE_CONFIG_FILE_NAME_POSTFIX}
    */
   void setPropertiesFromConfigs(File serviceFolder, ServiceInfo serviceInfo) {
     

@@ -62,7 +62,7 @@ def service(componentName, action='start', serviceName='yarn'):
     )
 
   elif action == 'refreshQueues':
-    refresh_cmd = format("yarn rmadmin -refreshQueues")
+    refresh_cmd = format("export HADOOP_LIBEXEC_DIR={hadoop_libexec_dir} && {yarn_container_bin}/yarn rmadmin -refreshQueues")
 
     Execute(refresh_cmd,
             user=usr,

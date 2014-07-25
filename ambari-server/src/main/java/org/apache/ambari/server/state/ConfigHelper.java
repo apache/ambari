@@ -374,7 +374,7 @@ public class ConfigHelper {
     
     ServiceInfo serviceInfo = ambariMetaInfo.getService(stackId.getStackName(),
         stackId.getStackVersion(), sch.getServiceName());
-
+    ComponentInfo componentInfo = getComponentInfo(serviceInfo,sch.getServiceComponentName());
     // Configs are considered stale when:
     // - desired type DOES NOT exist in actual
     // --- desired type DOES NOT exist in stack: not_stale
@@ -396,7 +396,7 @@ public class ConfigHelper {
       if (!actual.containsKey(type)) {
         // desired is set, but actual is not
         if (!serviceInfo.hasConfigType(type)) {
-          stale = false;
+          stale = componentInfo != null && componentInfo.hasConfigType(type);
         } else if (type.equals(Configuration.GLOBAL_CONFIG_TAG)) {
           // find out if the keys are stale by first checking the target service,
           // then all services
@@ -425,11 +425,20 @@ public class ConfigHelper {
             stale = true;
           }
         } else {
-          stale = serviceInfo.hasConfigType(type);
+          stale = serviceInfo.hasConfigType(type) || componentInfo.hasConfigType(type);
         }
       }
     }
     return stale;
+  }
+
+  private ComponentInfo getComponentInfo(ServiceInfo serviceInfo, String componentName) {
+    for(ComponentInfo componentInfo : serviceInfo.getComponents()) {
+      if(componentInfo.getName().equals(componentName)){
+        return componentInfo;
+      }
+    }
+    return null;
   }
 
   /**

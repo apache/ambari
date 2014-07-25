@@ -571,7 +571,8 @@ public class AmbariMetaInfoTest {
     Assert.assertEquals("mapreduce.shuffle", originalProperty.getValue());
     Assert.assertEquals("Auxilliary services of NodeManager",
       originalProperty.getDescription());
-    Assert.assertEquals(7, redefinedService.getConfigDependencies().size());
+    Assert.assertEquals(6, redefinedService.getConfigDependencies().size());
+    Assert.assertEquals(7, redefinedService.getConfigDependenciesWithComponents().size());
   }
 
   @Test

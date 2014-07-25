@@ -54,6 +54,12 @@ App.MainServiceItemView = Em.View.extend({
         cssClass: 'icon-refresh',
         disabled: !this.get('controller.content.isRestartRequired')
       },
+      REFRESH_YARN_QUEUE: {
+        action: 'refreshYarnQueues',
+        label: Em.I18n.t('services.service.actions.run.yarnRefreshQueues.menu'),
+        cssClass: 'icon-refresh',
+        disabled: false
+      },
       ROLLING_RESTART: {
         action: 'rollingRestart',
         context: this.get('rollingRestartComponent'),
@@ -117,6 +123,9 @@ App.MainServiceItemView = Em.View.extend({
     } else {
       if (this.get('serviceName') === 'FLUME') {
         options.push(actionMap.REFRESH_CONFIGS);
+      }
+      if (this.get('serviceName') === 'YARN') {
+        options.push(actionMap.REFRESH_YARN_QUEUE);
       }
       options.push(actionMap.RESTART_ALL);
       allSlaves.forEach(function(slave) {

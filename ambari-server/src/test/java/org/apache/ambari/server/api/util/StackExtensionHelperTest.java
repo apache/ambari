@@ -46,7 +46,7 @@ import javax.xml.namespace.QName;
 public class StackExtensionHelperTest {
 
   private final String stackRootStr = "./src/test/resources/stacks/".
-          replaceAll("/", File.separator);
+      replaceAll("/", File.separator);
 
   private Injector injector = Guice.createInjector(new MockModule());
   
@@ -315,6 +315,7 @@ public class StackExtensionHelperTest {
     helper.populateConfigTypesFromDependencies(serviceInfo);
 
     Map<String, Map<String, Map<String, String>>> configTypes = serviceInfo.getConfigTypes();
+    assertNotNull(configTypes);
     assertEquals(0, configTypes.size());
   }
 
@@ -328,7 +329,7 @@ public class StackExtensionHelperTest {
     helper.populateConfigTypesFromDependencies(serviceInfo);
 
     Map<String, Map<String, Map<String, String>>> configTypes = serviceInfo.getConfigTypes();
-    assertTrue(configTypes == null);
+    assertNull(configTypes);
   }
 
   @Test

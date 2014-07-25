@@ -7125,7 +7125,19 @@ public class AmbariManagementControllerTest {
 
 
   }
-
+  @Test
+  public void testConfigInComponent() throws Exception {
+    StackServiceRequest requestWithParams = new StackServiceRequest(STACK_NAME, "2.0.6", "YARN");
+    Set<StackServiceResponse> responsesWithParams = controller.getStackServices(Collections.singleton(requestWithParams));
+    
+    Assert.assertEquals(1, responsesWithParams.size());
+    
+    for (StackServiceResponse responseWithParams: responsesWithParams) {
+      Assert.assertEquals(responseWithParams.getServiceName(), "YARN");
+      Assert.assertTrue(responseWithParams.getConfigTypes().containsKey("capacity-scheduler"));
+    }
+  }
+  
   @Test
   public void testGetStackConfigurations() throws Exception {
 

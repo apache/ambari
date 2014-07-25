@@ -78,6 +78,7 @@ public class ComponentInfo {
     customCommands = prototype.customCommands;
     dependencies = prototype.dependencies;
     autoDeploy = prototype.autoDeploy;
+    configDependencies = prototype.configDependencies;
   }
 
   public String getName() {
@@ -154,6 +155,21 @@ public class ComponentInfo {
 
   public List<DependencyInfo> getDependencies() {
     return dependencies;
+  }
+  @XmlElementWrapper(name="configuration-dependencies")
+  @XmlElements(@XmlElement(name="config-type"))
+  private List<String> configDependencies;
+  
+
+  public List<String> getConfigDependencies() {
+    return configDependencies;
+  }
+  
+  public void setConfigDependencies(List<String> configDependencies) {
+    this.configDependencies = configDependencies;
+  }
+  public boolean hasConfigType(String type) {
+    return configDependencies != null && configDependencies.contains(type);
   }
 
   public AutoDeployInfo getAutoDeploy() {

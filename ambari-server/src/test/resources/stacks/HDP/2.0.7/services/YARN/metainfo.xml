@@ -42,6 +42,9 @@
               </commandScript>
             </customCommand>
           </customCommands>
+          <configuration-dependencies>
+            <config-type>capacity-scheduler</config-type>
+          </configuration-dependencies>
         </component>
 
         <component>
@@ -96,7 +99,6 @@
 
       <configuration-dependencies>
         <config-type>yarn-site</config-type>
-        <config-type>capacity-scheduler</config-type>
         <config-type>core-site</config-type>
         <config-type>global</config-type>
         <config-type>mapred-site</config-type>
@@ -154,7 +156,6 @@
 
       <configuration-dependencies>
         <config-type>yarn-site</config-type>
-        <config-type>capacity-scheduler</config-type>
         <config-type>core-site</config-type>
         <config-type>global</config-type>
         <config-type>mapred-site</config-type>

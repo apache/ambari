@@ -18,6 +18,7 @@
 package org.apache.ambari.server.agent;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -55,6 +56,7 @@ public class ExecutionCommand extends AgentCommand {
   @SerializedName("configuration_attributes")
   private Map<String, Map<String, Map<String, String>>> configurationAttributes;
   private Map<String, Map<String, String>> configurationTags;
+  private Set<String> forceRefreshConfigTags = new HashSet<String>();
   private Map<String, String> commandParams;
   private String serviceName;
   private String componentName;
@@ -190,6 +192,16 @@ public class ExecutionCommand extends AgentCommand {
   public void setConfigurations(Map<String, Map<String, String>> configurations) {
     this.configurations = configurations;
   }
+  /**
+   * @return Returns the set of config-types that have to be propagated to actual-config of component of given custom command, if command is successfully finished. 
+   */
+  public Set<String> getForceRefreshConfigTags() {
+    return forceRefreshConfigTags;
+  }
+
+  public void setForceRefreshConfigTags(Set<String> forceRefreshConfigTags) {
+    this.forceRefreshConfigTags = forceRefreshConfigTags;
+  }
 
   @JsonProperty("configuration_attributes")
   public Map<String, Map<String, Map<String, String>>> getConfigurationAttributes() {
@@ -290,6 +302,7 @@ public class ExecutionCommand extends AgentCommand {
     String AMBARI_DB_RCA_USERNAME = "ambari_db_rca_username";
     String AMBARI_DB_RCA_PASSWORD = "ambari_db_rca_password";
     String COMPONENT_CATEGORY = "component_category";
+    String REFRESH_ADITIONAL_COMPONENT_TAGS = "forceRefreshConfigTags";
 
     String SERVICE_CHECK = "SERVICE_CHECK"; // TODO: is it standart command? maybe add it to RoleCommand enum?
     String CUSTOM_COMMAND = "custom_command";

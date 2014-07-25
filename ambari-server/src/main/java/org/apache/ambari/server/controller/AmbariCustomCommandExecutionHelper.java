@@ -43,6 +43,7 @@ import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.RequestResourceFilter;
@@ -273,7 +274,10 @@ public class AmbariCustomCommandExecutionHelper {
       execCmd.setConfigurations(configurations);
       execCmd.setConfigurationAttributes(configurationAttributes);
       execCmd.setConfigurationTags(configTags);
-
+      
+      if(actionExecutionContext.getParameters() != null && actionExecutionContext.getParameters().containsKey(KeyNames.REFRESH_ADITIONAL_COMPONENT_TAGS)){
+        execCmd.setForceRefreshConfigTags(parseAndValidateComponentsMapping(actionExecutionContext.getParameters().get(KeyNames.REFRESH_ADITIONAL_COMPONENT_TAGS)));
+      }
 
       hostLevelParams.put(CUSTOM_COMMAND, commandName);
       // Set parameters required for re-installing clients on restart
@@ -339,6 +343,20 @@ public class AmbariCustomCommandExecutionHelper {
     }
   }
 
+  /**
+   * splits the passed commaseparated value and returns it as set
+   * @param comma separated list
+   * @return set of items or null
+   * @throws AmbariException
+   */
+  private Set<String> parseAndValidateComponentsMapping(String commaSeparatedTags) {
+    Set<String> retVal = null;
+    if(commaSeparatedTags != null && !commaSeparatedTags.trim().isEmpty()){
+      Collections.addAll(retVal = new HashSet<String>(), commaSeparatedTags.split(","));
+    }
+    return retVal;
+  }
+  
   private void findHostAndAddServiceCheckAction(
           final ActionExecutionContext actionExecutionContext,
           final RequestResourceFilter resourceFilter,
@@ -716,6 +734,7 @@ public class AmbariCustomCommandExecutionHelper {
     }
   }
 
+
   private StringBuilder getReadableDecommissionCommandDetail(
       ActionExecutionContext actionExecutionContext, Set<String> includedHosts,
       List<String> listOfExcludedHosts) {
@@ -802,7 +821,10 @@ public class AmbariCustomCommandExecutionHelper {
           extraParams = new HashMap<String, String>();
           extraParams.put(componentName, requestParams.get(componentName));
         }
-          
+        
+        if(requestParams.containsKey(KeyNames.REFRESH_ADITIONAL_COMPONENT_TAGS)){
+          actionExecutionContext.getParameters().put(KeyNames.REFRESH_ADITIONAL_COMPONENT_TAGS, requestParams.get(KeyNames.REFRESH_ADITIONAL_COMPONENT_TAGS));
+        }
         addCustomCommandAction(actionExecutionContext, resourceFilter, stage,
           hostLevelParams, extraParams, commandDetail);
       } else {
