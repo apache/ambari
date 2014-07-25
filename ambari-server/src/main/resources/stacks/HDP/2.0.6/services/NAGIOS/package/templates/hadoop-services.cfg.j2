@@ -160,6 +160,7 @@ define service {
         max_check_attempts      4
 }
 
+{% if hostgroup_defs['namenode'] %}
 define service {
         hostgroup_name	        ganglia-server
         use                     hadoop-service
@@ -170,7 +171,9 @@ define service {
         retry_check_interval    0.25
         max_check_attempts      4
 }
+{% endif %}
 
+{% if hostgroup_defs['hbasemasters'] %}
 define service {
         hostgroup_name	        ganglia-server
         use                     hadoop-service
@@ -181,7 +184,9 @@ define service {
         retry_check_interval    0.25
         max_check_attempts      4
 }
+{% endif %}
 
+{% if hostgroup_defs['resourcemanager'] %}
 define service {
         hostgroup_name	        ganglia-server
         use                     hadoop-service
@@ -192,7 +197,9 @@ define service {
         retry_check_interval    0.25
         max_check_attempts      4
 }
+{% endif %}
 
+{% if hostgroup_defs['historyserver2'] %}
 define service {
         hostgroup_name	        ganglia-server
         use                     hadoop-service
@@ -203,6 +210,7 @@ define service {
         retry_check_interval    0.25
         max_check_attempts      4
 }
+{% endif %}
 {% endif %}
 
 
