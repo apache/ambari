@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.orm.entities;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import javax.persistence.Column;
@@ -71,9 +72,10 @@ public class AlertGroupEntity {
   private Set<AlertDefinitionEntity> alertDefinitions;
 
   /**
-   * Bi-directional many-to-many association to {@link AlertTargetEntity}
+   * Unidirectional many-to-many association to {@link AlertTargetEntity}
    */
-  @ManyToMany(mappedBy = "alertGroups")
+  @ManyToMany
+  @JoinTable(name = "alert_group_target", joinColumns = { @JoinColumn(name = "group_id", nullable = false) }, inverseJoinColumns = { @JoinColumn(name = "target_id", nullable = false) })
   private Set<AlertTargetEntity> alertTargets;
 
   /**
@@ -201,6 +203,16 @@ public class AlertGroupEntity {
    */
   public void setAlertTargets(Set<AlertTargetEntity> alertTargets) {
     this.alertTargets = alertTargets;
+
+    if (null != alertTargets) {
+      for (AlertTargetEntity target : alertTargets) {
+        Set<AlertGroupEntity> groups = target.getAlertGroups();
+        if (null == groups)
+          groups = new HashSet<AlertGroupEntity>();
+
+        groups.add(this);
+      }
+    }
   }
 
   /**

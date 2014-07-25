@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.orm.dao;
 
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -37,6 +38,7 @@ import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
 import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.alert.Scope;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -54,16 +56,23 @@ public class AlertsDAOTest {
   static Long clusterId;
   static Injector injector;
   static Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+  static OrmTestHelper helper;
+  static AlertsDAO dao;
+  static AlertDefinitionDAO definitionDao;
+  static AlertDispatchDAO dispatchDao;
 
-  AlertsDAO dao;
-
+  /**
+   * 
+   */
   @BeforeClass
   public static void beforeClass() {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
     injector.getInstance(GuiceJpaInitializer.class);
-    clusterId = injector.getInstance(OrmTestHelper.class).createCluster();
-    AlertsDAO alertDAO = injector.getInstance(AlertsDAO.class);
-    AlertDefinitionDAO alertDefinitionDAO = injector.getInstance(AlertDefinitionDAO.class);
+    helper = injector.getInstance(OrmTestHelper.class);
+    clusterId = helper.createCluster();
+    dao = injector.getInstance(AlertsDAO.class);
+    definitionDao = injector.getInstance(AlertDefinitionDAO.class);
+    dispatchDao = injector.getInstance(AlertDispatchDAO.class);
 
     // create 5 definitions
     for (int i = 0; i < 5; i++) {
@@ -73,14 +82,14 @@ public class AlertsDAOTest {
       definition.setComponentName(null);
       definition.setClusterId(clusterId);
       definition.setHash(UUID.randomUUID().toString());
-      definition.setScheduleInterval(60L);
-      definition.setScope("SERVICE");
+      definition.setScheduleInterval(60);
+      definition.setScope(Scope.SERVICE);
       definition.setSource("Source " + i);
       definition.setSourceType("SCRIPT");
-      alertDefinitionDAO.create(definition);
+      definitionDao.create(definition);
     }
 
-    List<AlertDefinitionEntity> definitions = alertDefinitionDAO.findAll();
+    List<AlertDefinitionEntity> definitions = definitionDao.findAll();
     assertNotNull(definitions);
     assertEquals(5, definitions.size());
 
@@ -95,26 +104,24 @@ public class AlertsDAOTest {
         history.setClusterId(clusterId);
         history.setAlertDefinition(definition);
         history.setAlertLabel(definition.getDefinitionName() + " " + i);
-        history.setAlertState(AlertState.OK);
         history.setAlertText(definition.getDefinitionName() + " " + i);
         history.setAlertTimestamp(calendar.getTimeInMillis());
+
+        history.setAlertState(AlertState.OK);
+        if (i == 0 || i == 5) {
+          history.setAlertState(AlertState.CRITICAL);
+        }
 
         // increase the days for each
         calendar.add(Calendar.DATE, 1);
 
-        alertDAO.create(history);
-
-        if (i == 0 || i == 1) {
-          history.setAlertId(null);
-          history.setAlertState(AlertState.CRITICAL);
-          alertDAO.create(history);
-        }
+        dao.create(history);
       }
     }
 
     // for each definition, create a current alert
     for (AlertDefinitionEntity definition : definitions) {
-      List<AlertHistoryEntity> alerts = alertDAO.findAll();
+      List<AlertHistoryEntity> alerts = dao.findAll();
       AlertHistoryEntity history = null;
       for (AlertHistoryEntity alert : alerts) {
         if (definition.equals(alert.getAlertDefinition())) {
@@ -125,12 +132,11 @@ public class AlertsDAOTest {
       assertNotNull(history);
 
       AlertCurrentEntity current = new AlertCurrentEntity();
-      current.setAlertId(history.getAlertId());
       current.setAlertHistory(history);
       current.setLatestTimestamp(new Date().getTime());
       current.setOriginalTimestamp(new Date().getTime() - 10800000);
       current.setMaintenanceState(MaintenanceState.OFF);
-      alertDAO.create(current);
+      dao.create(current);
     }
   }
 
@@ -148,8 +154,6 @@ public class AlertsDAOTest {
    */
   @Before
   public void setup() {
-    dao = new AlertsDAO();
-    injector.injectMembers(dao);
   }
 
   /**
@@ -159,7 +163,7 @@ public class AlertsDAOTest {
   public void testFindAll() {
     List<AlertHistoryEntity> alerts = dao.findAll(clusterId);
     assertNotNull(alerts);
-    assertEquals(60, alerts.size());
+    assertEquals(50, alerts.size());
   }
 
   /**
@@ -207,11 +211,11 @@ public class AlertsDAOTest {
         
     List<AlertHistoryEntity> history = dao.findAll(clusterId, allStates);
     assertNotNull(history);
-    assertEquals(60, history.size());
+    assertEquals(50, history.size());
 
     history = dao.findAll(clusterId, Collections.singletonList(AlertState.OK));
     assertNotNull(history);
-    assertEquals(50, history.size());
+    assertEquals(40, history.size());
 
     history = dao.findAll(clusterId,
         Collections.singletonList(AlertState.CRITICAL));
@@ -237,12 +241,12 @@ public class AlertsDAOTest {
         calendar.getTime(), null);
 
     assertNotNull(history);
-    assertEquals(60, history.size());
+    assertEquals(50, history.size());
 
     // on or before 1/1/2014
     history = dao.findAll(clusterId, null, calendar.getTime());
     assertNotNull(history);
-    assertEquals(2, history.size());
+    assertEquals(1, history.size());
 
     // between 1/5 and 1/10
     calendar.set(2014, Calendar.JANUARY, 5);

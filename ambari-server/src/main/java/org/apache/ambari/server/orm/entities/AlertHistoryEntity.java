@@ -28,7 +28,6 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 
@@ -50,7 +49,8 @@ import org.apache.ambari.server.state.AlertState;
     @NamedQuery(name = "AlertHistoryEntity.findAllInClusterWithState", query = "SELECT alertHistory FROM AlertHistoryEntity alertHistory WHERE alertHistory.clusterId = :clusterId AND alertHistory.alertState IN :alertStates"),
     @NamedQuery(name = "AlertHistoryEntity.findAllInClusterBetweenDates", query = "SELECT alertHistory FROM AlertHistoryEntity alertHistory WHERE alertHistory.clusterId = :clusterId AND alertHistory.alertTimestamp BETWEEN :startDate AND :endDate"),
     @NamedQuery(name = "AlertHistoryEntity.findAllInClusterBeforeDate", query = "SELECT alertHistory FROM AlertHistoryEntity alertHistory WHERE alertHistory.clusterId = :clusterId AND alertHistory.alertTimestamp <= :beforeDate"),
-    @NamedQuery(name = "AlertHistoryEntity.findAllInClusterAfterDate", query = "SELECT alertHistory FROM AlertHistoryEntity alertHistory WHERE alertHistory.clusterId = :clusterId AND alertHistory.alertTimestamp >= :afterDate") })
+    @NamedQuery(name = "AlertHistoryEntity.findAllInClusterAfterDate", query = "SELECT alertHistory FROM AlertHistoryEntity alertHistory WHERE alertHistory.clusterId = :clusterId AND alertHistory.alertTimestamp >= :afterDate"),
+    @NamedQuery(name = "AlertHistoryEntity.removeByDefinitionId", query = "DELETE FROM AlertHistoryEntity alertHistory WHERE alertHistory.alertDefinition.definitionId = :definitionId") })
 public class AlertHistoryEntity {
 
   @Id
@@ -85,12 +85,6 @@ public class AlertHistoryEntity {
 
   @Column(name = "service_name", nullable = false, length = 255)
   private String serviceName;
-
-  /**
-   * Bi-directional one-to-one association to {@link AlertCurrentEntity}.
-   */
-  @OneToOne(mappedBy = "alertHistory", orphanRemoval = true)
-  private AlertCurrentEntity alertCurrent;
 
   /**
    * Unidirectional many-to-one association to {@link AlertDefinitionEntity}
@@ -307,29 +301,6 @@ public class AlertHistoryEntity {
    */
   public void setServiceName(String serviceName) {
     this.serviceName = serviceName;
-  }
-
-  /**
-   * Gets the current, active alert that is associated with this historical
-   * instance, if any. Once an alert state changes, the association between
-   * current and historical will be removed in favor of the newly received alert
-   * instance.
-   * 
-   * @return the associated current alert or {@code null} if this historical
-   *         item is not the most recent.
-   */
-  public AlertCurrentEntity getAlertCurrent() {
-    return alertCurrent;
-  }
-
-  /**
-   * Sets the associated current active alert with this historical instance.
-   * 
-   * @param alertCurrent
-   *          the current alert or {@code null} for none.
-   */
-  public void setAlertCurrent(AlertCurrentEntity alertCurrent) {
-    this.alertCurrent = alertCurrent;
   }
 
   /**

@@ -22,8 +22,8 @@ import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 
-import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.AlertGroupEntity;
+import org.apache.ambari.server.orm.entities.AlertNoticeEntity;
 import org.apache.ambari.server.orm.entities.AlertTargetEntity;
 
 import com.google.inject.Inject;
@@ -56,7 +56,6 @@ public class AlertDispatchDAO {
    *          the ID of the group to retrieve.
    * @return the group or {@code null} if none exists.
    */
-  @RequiresSession
   public AlertGroupEntity findGroupById(long groupId) {
     return entityManagerProvider.get().find(AlertGroupEntity.class, groupId);
   }
@@ -68,9 +67,19 @@ public class AlertDispatchDAO {
    *          the ID of the target to retrieve.
    * @return the target or {@code null} if none exists.
    */
-  @RequiresSession
   public AlertTargetEntity findTargetById(long targetId) {
     return entityManagerProvider.get().find(AlertTargetEntity.class, targetId);
+  }
+
+  /**
+   * Gets a notification with the specified ID.
+   * 
+   * @param noticeId
+   *          the ID of the notification to retrieve.
+   * @return the notification or {@code null} if none exists.
+   */
+  public AlertNoticeEntity findNoticeById(long noticeId) {
+    return entityManagerProvider.get().find(AlertNoticeEntity.class, noticeId);
   }
 
   /**
@@ -81,7 +90,6 @@ public class AlertDispatchDAO {
    *          the name of the group (not {@code null}).
    * @return the alert group or {@code null} if none exists.
    */
-  @RequiresSession
   public AlertGroupEntity findGroupByName(String groupName) {
     TypedQuery<AlertGroupEntity> query = entityManagerProvider.get().createNamedQuery(
         "AlertGroupEntity.findByName", AlertGroupEntity.class);
@@ -101,7 +109,6 @@ public class AlertDispatchDAO {
    *          the name of the group (not {@code null}).
    * @return the alert group or {@code null} if none exists.
    */
-  @RequiresSession
   public AlertGroupEntity findGroupByName(long clusterId, String groupName) {
     TypedQuery<AlertGroupEntity> query = entityManagerProvider.get().createNamedQuery(
         "AlertGroupEntity.findByNameInCluster", AlertGroupEntity.class);
@@ -120,7 +127,6 @@ public class AlertDispatchDAO {
    *          the name of the target (not {@code null}).
    * @return the alert target or {@code null} if none exists.
    */
-  @RequiresSession
   public AlertTargetEntity findTargetByName(String targetName) {
     TypedQuery<AlertTargetEntity> query = entityManagerProvider.get().createNamedQuery(
         "AlertTargetEntity.findByName", AlertTargetEntity.class);
@@ -135,7 +141,6 @@ public class AlertDispatchDAO {
    * 
    * @return all alert groups or empty list if none exist (never {@code null}).
    */
-  @RequiresSession
   public List<AlertGroupEntity> findAllGroups() {
     TypedQuery<AlertGroupEntity> query = entityManagerProvider.get().createNamedQuery(
         "AlertGroupEntity.findAll", AlertGroupEntity.class);
@@ -149,7 +154,6 @@ public class AlertDispatchDAO {
    * @return all alert groups in the specified cluster or empty list if none
    *         exist (never {@code null}).
    */
-  @RequiresSession
   public List<AlertGroupEntity> findAllGroups(long clusterId) {
     TypedQuery<AlertGroupEntity> query = entityManagerProvider.get().createNamedQuery(
         "AlertGroupEntity.findAllInCluster", AlertGroupEntity.class);
@@ -164,10 +168,22 @@ public class AlertDispatchDAO {
    * 
    * @return all alert targets or empty list if none exist (never {@code null}).
    */
-  @RequiresSession
   public List<AlertTargetEntity> findAllTargets() {
     TypedQuery<AlertTargetEntity> query = entityManagerProvider.get().createNamedQuery(
         "AlertTargetEntity.findAll", AlertTargetEntity.class);
+
+    return daoUtils.selectList(query);
+  }
+
+  /**
+   * Gets all alert notifications stored in the database.
+   * 
+   * @return all alert notifications or empty list if none exist (never
+   *         {@code null}).
+   */
+  public List<AlertNoticeEntity> findAllNotices() {
+    TypedQuery<AlertNoticeEntity> query = entityManagerProvider.get().createNamedQuery(
+        "AlertNoticeEntity.findAll", AlertNoticeEntity.class);
 
     return daoUtils.selectList(query);
   }
@@ -260,5 +276,69 @@ public class AlertDispatchDAO {
   @Transactional
   public void remove(AlertTargetEntity alertTarget) {
     entityManagerProvider.get().remove(merge(alertTarget));
+  }
+
+  /**
+   * Persists a new notification.
+   * 
+   * @param alertNotice
+   *          the notification to persist (not {@code null}).
+   */
+  @Transactional
+  public void create(AlertNoticeEntity alertNotice) {
+    entityManagerProvider.get().persist(alertNotice);
+  }
+
+  /**
+   * Refresh the state of the notification from the database.
+   * 
+   * @param alertNotice
+   *          the notification to refresh (not {@code null}).
+   */
+  @Transactional
+  public void refresh(AlertNoticeEntity alertNotice) {
+    entityManagerProvider.get().refresh(alertNotice);
+  }
+
+  /**
+   * Merge the specified notification with the existing target in the database.
+   * 
+   * @param alertNotice
+   *          the notification to merge (not {@code null}).
+   * @return the updated notification with merged content (never {@code null}).
+   */
+  @Transactional
+  public AlertNoticeEntity merge(AlertNoticeEntity alertNotice) {
+    return entityManagerProvider.get().merge(alertNotice);
+  }
+
+  /**
+   * Removes the specified notification from the database.
+   * 
+   * @param alertNotice
+   *          the notification to remove.
+   */
+  @Transactional
+  public void remove(AlertNoticeEntity alertNotice) {
+    entityManagerProvider.get().remove(merge(alertNotice));
+  }
+
+  /**
+   * Removes notifications for the specified alert definition ID. This will
+   * invoke {@link EntityManager#clear()} when completed since the JPQL
+   * statement will remove entries without going through the EM.
+   * 
+   * @param definitionId
+   *          the ID of the definition to remove.
+   */
+  @Transactional
+  public void removeNoticeByDefinitionId(long definitionId) {
+    EntityManager entityManager = entityManagerProvider.get();
+    TypedQuery<AlertNoticeEntity> currentQuery = entityManager.createNamedQuery(
+        "AlertNoticeEntity.removeByDefinitionId", AlertNoticeEntity.class);
+
+    currentQuery.setParameter("definitionId", definitionId);
+    currentQuery.executeUpdate();
+    entityManager.clear();
   }
 }

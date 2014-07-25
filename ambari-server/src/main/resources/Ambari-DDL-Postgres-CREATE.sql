@@ -169,7 +169,7 @@ CREATE TABLE alert_definition (
   component_name VARCHAR(255),
   scope VARCHAR(255),
   enabled SMALLINT DEFAULT 1 NOT NULL,
-  schedule_interval BIGINT NOT NULL,
+  schedule_interval INTEGER NOT NULL,
   source_type VARCHAR(255) NOT NULL,
   alert_source TEXT NOT NULL,
   hash VARCHAR(64) NOT NULL,
@@ -197,11 +197,14 @@ CREATE TABLE alert_history (
 
 CREATE TABLE alert_current (
   alert_id BIGINT NOT NULL,
+  definition_id BIGINT NOT NULL,
+  history_id BIGINT NOT NULL UNIQUE,
   maintenance_state VARCHAR(255),
   original_timestamp BIGINT NOT NULL,
   latest_timestamp BIGINT NOT NULL,
   PRIMARY KEY (alert_id),
-  FOREIGN KEY (alert_id) REFERENCES alert_history(alert_id)
+  FOREIGN KEY (definition_id) REFERENCES alert_definition(definition_id),
+  FOREIGN KEY (history_id) REFERENCES alert_history(alert_id)
 );
 
 CREATE TABLE alert_group (
@@ -225,6 +228,7 @@ CREATE TABLE alert_target (
 CREATE TABLE alert_group_target (
   group_id BIGINT NOT NULL,
   target_id BIGINT NOT NULL,
+  PRIMARY KEY (group_id, target_id),
   FOREIGN KEY (group_id) REFERENCES alert_group(group_id),
   FOREIGN KEY (target_id) REFERENCES alert_target(target_id)
 );
@@ -232,6 +236,7 @@ CREATE TABLE alert_group_target (
 CREATE TABLE alert_grouping (
   definition_id BIGINT NOT NULL,
   group_id BIGINT NOT NULL,
+  PRIMARY KEY (group_id, definition_id),
   FOREIGN KEY (definition_id) REFERENCES alert_definition(definition_id),
   FOREIGN KEY (group_id) REFERENCES alert_group(group_id)
 );
@@ -246,11 +251,13 @@ CREATE TABLE alert_notice (
   FOREIGN KEY (history_id) REFERENCES alert_history(alert_id)
 );
 
+CREATE INDEX idx_alert_history_def_id on alert_history(alert_definition_id);
 CREATE INDEX idx_alert_history_service on alert_history(service_name);
 CREATE INDEX idx_alert_history_host on alert_history(host_name);
 CREATE INDEX idx_alert_history_time on alert_history(alert_timestamp);
 CREATE INDEX idx_alert_history_state on alert_history(alert_state);
 CREATE INDEX idx_alert_group_name on alert_group(group_name);
+CREATE INDEX idx_alert_notice_state on alert_notice(notify_state);
 
 ---------inserting some data-----------
 BEGIN;
@@ -297,7 +304,9 @@ BEGIN;
   union all
   select 'alert_history_id_seq', 0
   union all
-  select 'alert_notice_id_seq', 0;
+  select 'alert_notice_id_seq', 0,
+  union all
+  select 'alert_current_id_seq', 0;
 
   INSERT INTO adminresourcetype (resource_type_id, resource_type_name)
   SELECT 1, 'AMBARI'

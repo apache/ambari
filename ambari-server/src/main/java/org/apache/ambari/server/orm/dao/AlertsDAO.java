@@ -60,7 +60,6 @@ public class AlertsDAO {
    *          the ID of the alert to retrieve.
    * @return the alert or {@code null} if none exists.
    */
-  @RequiresSession
   public AlertHistoryEntity findById(long alertId) {
     return entityManagerProvider.get().find(AlertHistoryEntity.class, alertId);
   }
@@ -70,7 +69,6 @@ public class AlertsDAO {
    * 
    * @return all alerts or an empty list if none exist (never {@code null}).
    */
-  @RequiresSession
   public List<AlertHistoryEntity> findAll() {
     TypedQuery<AlertHistoryEntity> query = entityManagerProvider.get().createNamedQuery(
         "AlertHistoryEntity.findAll", AlertHistoryEntity.class);
@@ -86,7 +84,6 @@ public class AlertsDAO {
    * @return all alerts in the specified cluster or an empty list if none exist
    *         (never {@code null}).
    */
-  @RequiresSession
   public List<AlertHistoryEntity> findAll(long clusterId) {
     TypedQuery<AlertHistoryEntity> query = entityManagerProvider.get().createNamedQuery(
         "AlertHistoryEntity.findAllInCluster", AlertHistoryEntity.class);
@@ -196,6 +193,18 @@ public class AlertsDAO {
   }
 
   /**
+   * Gets a current alert with the specified ID.
+   * 
+   * @param alertId
+   *          the ID of the alert to retrieve.
+   * @return the alert or {@code null} if none exists.
+   */
+  @RequiresSession
+  public AlertCurrentEntity findCurrentById(long alertId) {
+    return entityManagerProvider.get().find(AlertCurrentEntity.class, alertId);
+  }
+
+  /**
    * Gets the current alerts for a given service.
    * 
    * @return the current alerts for the given service or an empty list if none
@@ -229,6 +238,47 @@ public class AlertsDAO {
     query.setParameter("hostName", hostName);
 
     return daoUtils.selectList(query);
+  }
+
+  /**
+   * Removes alert history and current alerts for the specified alert defintiion
+   * ID. This will invoke {@link EntityManager#clear()} when completed since the
+   * JPQL statement will remove entries without going through the EM.
+   * 
+   * @param definitionId
+   *          the ID of the definition to remove.
+   */
+  @Transactional
+  public void removeByDefinitionId(long definitionId) {
+    EntityManager entityManager = entityManagerProvider.get();
+    TypedQuery<AlertCurrentEntity> currentQuery = entityManager.createNamedQuery(
+        "AlertCurrentEntity.removeByDefinitionId", AlertCurrentEntity.class);
+
+    currentQuery.setParameter("definitionId", definitionId);
+    currentQuery.executeUpdate();
+
+    TypedQuery<AlertHistoryEntity> historyQuery = entityManager.createNamedQuery(
+        "AlertHistoryEntity.removeByDefinitionId", AlertHistoryEntity.class);
+
+    historyQuery.setParameter("definitionId", definitionId);
+    historyQuery.executeUpdate();
+
+    entityManager.clear();
+  }
+
+  /**
+   * Remove a current alert whose history entry matches the specfied ID.
+   * 
+   * @param   historyId the ID of the history entry.
+   * @return  the number of alerts removed.
+   */
+  @Transactional
+  public int removeCurrentByHistoryId(long historyId) {
+    TypedQuery<AlertCurrentEntity> query = entityManagerProvider.get().createNamedQuery(
+        "AlertCurrentEntity.removeByHistoryId", AlertCurrentEntity.class);
+
+    query.setParameter("historyId", historyId);
+    return query.executeUpdate();
   }
 
   /**
@@ -273,7 +323,10 @@ public class AlertsDAO {
    */
   @Transactional
   public void remove(AlertHistoryEntity alert) {
-    entityManagerProvider.get().remove(merge(alert));
+    alert = merge(alert);
+
+    removeCurrentByHistoryId(alert.getAlertId());
+    entityManagerProvider.get().remove(alert);
   }
 
   /**

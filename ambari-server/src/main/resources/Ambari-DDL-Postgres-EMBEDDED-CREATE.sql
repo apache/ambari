@@ -232,7 +232,7 @@ CREATE TABLE ambari.alert_definition (
   component_name VARCHAR(255),
   scope VARCHAR(255),
   enabled SMALLINT DEFAULT 1 NOT NULL,
-  schedule_interval BIGINT NOT NULL,
+  schedule_interval INTEGER NOT NULL,
   source_type VARCHAR(255) NOT NULL,
   alert_source TEXT NOT NULL,
   hash VARCHAR(64) NOT NULL,
@@ -260,11 +260,14 @@ CREATE TABLE ambari.alert_history (
 
 CREATE TABLE ambari.alert_current (
   alert_id BIGINT NOT NULL,
+  definition_id BIGINT NOT NULL,
+  history_id BIGINT NOT NULL UNIQUE,
   maintenance_state VARCHAR(255),
   original_timestamp BIGINT NOT NULL,
   latest_timestamp BIGINT NOT NULL,
   PRIMARY KEY (alert_id),
-  FOREIGN KEY (alert_id) REFERENCES ambari.alert_history(alert_id)
+  FOREIGN KEY (definition_id) REFERENCES ambari.alert_definition(definition_id),
+  FOREIGN KEY (history_id) REFERENCES ambari.alert_history(alert_id)
 );
 
 CREATE TABLE ambari.alert_group (
@@ -288,15 +291,17 @@ CREATE TABLE ambari.alert_target (
 CREATE TABLE ambari.alert_group_target (
   group_id BIGINT NOT NULL,
   target_id BIGINT NOT NULL,
+  PRIMARY KEY (group_id, target_id),
   FOREIGN KEY (group_id) REFERENCES ambari.alert_group(group_id),
-  FOREIGN KEY (target_id) REFERENCES ambari.alert_target(target_id)
+  FOREIGN KEY (target_id) REFERENCES ambari.alert_target(target_id)  
 );
 
 CREATE TABLE ambari.alert_grouping (
   definition_id BIGINT NOT NULL,
   group_id BIGINT NOT NULL,
+  PRIMARY KEY (group_id, definition_id),
   FOREIGN KEY (definition_id) REFERENCES ambari.alert_definition(definition_id),
-  FOREIGN KEY (group_id) REFERENCES ambari.alert_group(group_id)
+  FOREIGN KEY (group_id) REFERENCES ambari.alert_group(group_id)  
 );
 
 CREATE TABLE ambari.alert_notice (
@@ -318,12 +323,13 @@ GRANT ALL PRIVILEGES ON TABLE ambari.alert_group_target TO :username;
 GRANT ALL PRIVILEGES ON TABLE ambari.alert_grouping TO :username;
 GRANT ALL PRIVILEGES ON TABLE ambari.alert_notice TO :username;
 
-
+CREATE INDEX idx_alert_history_def_id on ambari.alert_history(alert_definition_id);
 CREATE INDEX idx_alert_history_service on ambari.alert_history(service_name);
 CREATE INDEX idx_alert_history_host on ambari.alert_history(host_name);
 CREATE INDEX idx_alert_history_time on ambari.alert_history(alert_timestamp);
 CREATE INDEX idx_alert_history_state on ambari.alert_history(alert_state);
 CREATE INDEX idx_alert_group_name on ambari.alert_group(group_name);
+CREATE INDEX idx_alert_notice_state on ambari.alert_notice(notify_state);
 
 ---------inserting some data-----------
 BEGIN;
@@ -370,7 +376,9 @@ INSERT INTO ambari.ambari_sequences (sequence_name, "value")
   union all
   select 'alert_history_id_seq', 0
   union all
-  select 'alert_notice_id_seq', 0;
+  select 'alert_notice_id_seq', 0,
+  union all
+  select 'alert_current_id_seq', 0;
   
 
 INSERT INTO ambari.adminresourcetype (resource_type_id, resource_type_name)

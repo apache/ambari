@@ -24,10 +24,16 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.verify;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 
+import java.util.Calendar;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 import java.util.UUID;
 
 import javax.persistence.EntityManager;
@@ -36,7 +42,15 @@ import javax.persistence.TypedQuery;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
+import org.apache.ambari.server.orm.entities.AlertCurrentEntity;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
+import org.apache.ambari.server.orm.entities.AlertGroupEntity;
+import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
+import org.apache.ambari.server.orm.entities.AlertNoticeEntity;
+import org.apache.ambari.server.state.AlertState;
+import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.NotificationState;
+import org.apache.ambari.server.state.alert.Scope;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
@@ -54,21 +68,30 @@ import com.google.inject.persist.PersistService;
  */
 @SuppressWarnings("unchecked")
 public class AlertDefinitionDAOTest {
+  static Injector injector;
+  static Long clusterId;
+  static AlertDefinitionDAO dao;
+  static AlertsDAO alertsDao;
+  static AlertDispatchDAO dispatchDao;
+  static OrmTestHelper helper;
+  static Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
 
-  AlertDefinitionDAO realDAO;
   AlertDefinitionDAO mockDAO;
   Provider<EntityManager> mockEntityManagerProvider = createStrictMock(Provider.class);
   EntityManager entityManager = createStrictMock(EntityManager.class);
 
-  private static Injector injector;
-  private static Long clusterId;
-
+  /**
+   * 
+   */
   @BeforeClass
   public static void beforeClass() {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
     injector.getInstance(GuiceJpaInitializer.class);
-    AlertDefinitionDAO alertDefinitionDAO = injector.getInstance(AlertDefinitionDAO.class);
-    clusterId = injector.getInstance(OrmTestHelper.class).createCluster();
+    dao = injector.getInstance(AlertDefinitionDAO.class);
+    alertsDao = injector.getInstance(AlertsDAO.class);
+    dispatchDao = injector.getInstance(AlertDispatchDAO.class);
+    helper = injector.getInstance(OrmTestHelper.class);
+    clusterId = helper.createCluster();
 
     for (int i = 0; i < 8; i++) {
       AlertDefinitionEntity definition = new AlertDefinitionEntity();
@@ -77,11 +100,11 @@ public class AlertDefinitionDAOTest {
       definition.setComponentName(null);
       definition.setClusterId(clusterId);
       definition.setHash(UUID.randomUUID().toString());
-      definition.setScheduleInterval(60L);
-      definition.setScope("SERVICE");
+      definition.setScheduleInterval(60);
+      definition.setScope(Scope.SERVICE);
       definition.setSource("Source " + i);
       definition.setSourceType("SCRIPT");
-      alertDefinitionDAO.create(definition);
+      dao.create(definition);
     }
   }
 
@@ -95,7 +118,7 @@ public class AlertDefinitionDAOTest {
    * 
    */
   @Before
-  public void init() {
+  public void before() {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
     injector.getInstance(GuiceJpaInitializer.class);
     injector.injectMembers(this);
@@ -104,11 +127,7 @@ public class AlertDefinitionDAOTest {
     expect(mockEntityManagerProvider.get()).andReturn(entityManager).atLeastOnce();
     replay(mockEntityManagerProvider);
 
-    realDAO = new AlertDefinitionDAO();
-    mockDAO = new AlertDefinitionDAO();
-    injector.injectMembers(realDAO);
-    injector.injectMembers(mockDAO);
-
+    mockDAO = injector.getInstance(AlertDefinitionDAO.class);
     mockDAO.entityManagerProvider = mockEntityManagerProvider;
   }
 
@@ -139,10 +158,10 @@ public class AlertDefinitionDAOTest {
     assertSame(result, entity);
     verify(mockEntityManagerProvider, entityManager);
 
-    List<AlertDefinitionEntity> definitions = realDAO.findAll();
+    List<AlertDefinitionEntity> definitions = dao.findAll();
     Assert.assertNotNull(definitions);
     AlertDefinitionEntity definition = definitions.get(2);
-    AlertDefinitionEntity retrieved = realDAO.findByName(
+    AlertDefinitionEntity retrieved = dao.findByName(
         definition.getClusterId(), definition.getDefinitionName());
 
     Assert.assertEquals(definition, retrieved);
@@ -170,7 +189,7 @@ public class AlertDefinitionDAOTest {
     assertSame(entity, entities.get(0));
     verify(mockEntityManagerProvider, entityManager);
 
-    List<AlertDefinitionEntity> definitions = realDAO.findAll();
+    List<AlertDefinitionEntity> definitions = dao.findAll();
     Assert.assertNotNull(definitions);
     Assert.assertEquals(8, definitions.size());
   }
@@ -192,10 +211,10 @@ public class AlertDefinitionDAOTest {
     assertSame(result, entity);
     verify(mockEntityManagerProvider, entityManager);
 
-    List<AlertDefinitionEntity> definitions = realDAO.findAll();
+    List<AlertDefinitionEntity> definitions = dao.findAll();
     Assert.assertNotNull(definitions);
     AlertDefinitionEntity definition = definitions.get(2);
-    AlertDefinitionEntity retrieved = realDAO.findById(definition.getDefinitionId());
+    AlertDefinitionEntity retrieved = dao.findById(definition.getDefinitionId());
 
     Assert.assertEquals(definition, retrieved);
   }
@@ -244,18 +263,83 @@ public class AlertDefinitionDAOTest {
   }
 
   @Test
-  public void testRemove() {
-    AlertDefinitionEntity entity = new AlertDefinitionEntity();
-    AlertDefinitionEntity entity2 = new AlertDefinitionEntity();
+  public void testRemove() throws Exception {
+    AlertDefinitionEntity definition = helper.createAlertDefinition(clusterId);
+    definition = dao.findById(definition.getDefinitionId());
+    assertNotNull(definition);
+    dao.remove(definition);
+    definition = dao.findById(definition.getDefinitionId());
+    assertNull(definition);
+  }
 
-    // set expectations
-    expect(entityManager.merge(eq(entity))).andReturn(entity2);
-    entityManager.remove(eq(entity2));
-    replay(entityManager);
+  /**
+   * @throws Exception
+   */
+  @Test
+  public void testCascadeDelete() throws Exception {
+    AlertDefinitionEntity definition = helper.createAlertDefinition(clusterId);
 
-    mockDAO.entityManagerProvider = mockEntityManagerProvider;
-    mockDAO.remove(entity);
+    AlertGroupEntity group = helper.createAlertGroup(clusterId, null);
+    group.getAlertDefinitions().add(definition);
+    dispatchDao.merge(group);
 
-    verify(mockEntityManagerProvider, entityManager);
+    AlertHistoryEntity history = new AlertHistoryEntity();
+    history.setServiceName(definition.getServiceName());
+    history.setClusterId(clusterId);
+    history.setAlertDefinition(definition);
+    history.setAlertLabel("Label");
+    history.setAlertState(AlertState.OK);
+    history.setAlertText("Alert Text");
+    history.setAlertTimestamp(calendar.getTimeInMillis());
+    alertsDao.create(history);
+
+    AlertCurrentEntity current = new AlertCurrentEntity();
+    current.setAlertHistory(history);
+    current.setLatestTimestamp(new Date().getTime());
+    current.setOriginalTimestamp(new Date().getTime() - 10800000);
+    current.setMaintenanceState(MaintenanceState.OFF);
+    alertsDao.create(current);
+
+    AlertNoticeEntity notice = new AlertNoticeEntity();
+    notice.setAlertHistory(history);
+    notice.setAlertTarget(helper.createAlertTarget());
+    notice.setNotifyState(NotificationState.PENDING);
+    dispatchDao.create(notice);
+
+    group = dispatchDao.findGroupById(group.getGroupId());
+    assertNotNull(group);
+    assertNotNull(group.getAlertDefinitions());
+    assertEquals(1, group.getAlertDefinitions().size());
+
+    history = alertsDao.findById(history.getAlertId());
+    assertNotNull(history);
+
+    current = alertsDao.findCurrentById(current.getAlertId());
+    assertNotNull(current);
+    assertNotNull(current.getAlertHistory());
+
+    notice = dispatchDao.findNoticeById(notice.getNotificationId());
+    assertNotNull(notice);
+    assertNotNull(notice.getAlertHistory());
+    assertNotNull(notice.getAlertTarget());
+
+    // delete the definition
+    definition = dao.findById(definition.getDefinitionId());
+    dao.refresh(definition);
+    dao.remove(definition);
+
+    notice = dispatchDao.findNoticeById(notice.getNotificationId());
+    assertNull(notice);
+
+    current = alertsDao.findCurrentById(current.getAlertId());
+    assertNull(current);
+
+    history = alertsDao.findById(history.getAlertId());
+    assertNull(history);
+
+    group = dispatchDao.findGroupById(group.getGroupId());
+    assertNotNull(group);
+    assertNotNull(group.getAlertDefinitions());
+    assertEquals(0, group.getAlertDefinitions().size());
   }
 }

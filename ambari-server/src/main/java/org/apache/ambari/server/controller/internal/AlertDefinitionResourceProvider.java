@@ -42,6 +42,7 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.alert.Scope;
 import org.apache.ambari.server.state.alert.SourceType;
 
 import com.google.gson.Gson;
@@ -129,8 +130,9 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
     
     if (!requestMap.containsKey(ALERT_DEF_INTERVAL))
       throw new IllegalArgumentException("Check interval must be specified");
-    Long interval = Long.valueOf((String) requestMap.get(ALERT_DEF_INTERVAL));
     
+    Integer interval = Integer.valueOf((String) requestMap.get(ALERT_DEF_INTERVAL));
+
     if (!requestMap.containsKey(ALERT_DEF_NAME))
       throw new IllegalArgumentException("Definition name must be specified");
     
@@ -159,22 +161,28 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
     Cluster cluster = getManagementController().getClusters().getCluster(clusterName);
     
     AlertDefinitionEntity entity = new AlertDefinitionEntity();
-    
     entity.setClusterId(Long.valueOf(cluster.getClusterId()));
     entity.setComponentName((String) requestMap.get(ALERT_DEF_COMPONENT_NAME));
     entity.setDefinitionName((String) requestMap.get(ALERT_DEF_NAME));
 
-    boolean b = requestMap.containsKey(ALERT_DEF_ENABLED) ?
+    boolean enabled = requestMap.containsKey(ALERT_DEF_ENABLED) ?
         Boolean.parseBoolean((String)requestMap.get(ALERT_DEF_ENABLED)) : true;
-    entity.setEnabled(b);
     
+    entity.setEnabled(enabled);
     entity.setHash(UUID.randomUUID().toString());
     entity.setScheduleInterval(interval);
-    entity.setScope((String) requestMap.get(ALERT_DEF_SCOPE));
     entity.setServiceName((String) requestMap.get(ALERT_DEF_SERVICE_NAME));
     entity.setSourceType((String) requestMap.get(ALERT_DEF_SOURCE_TYPE));
     entity.setSource(jsonObj.toString());
     
+    Scope scope = null;
+    String desiredScope = (String) requestMap.get(ALERT_DEF_SCOPE);
+    if (null != desiredScope && desiredScope.length() > 0) {
+      scope = Scope.valueOf(desiredScope);
+    }
+
+    entity.setScope(scope);
+
     return entity;
   }
 
@@ -242,12 +250,19 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
         }
         
         if (propertyMap.containsKey(ALERT_DEF_INTERVAL)) {
-          entity.setScheduleInterval(Long.valueOf(
+          entity.setScheduleInterval(Integer.valueOf(
               (String) propertyMap.get(ALERT_DEF_INTERVAL)));
         }
-        
-        if (propertyMap.containsKey(ALERT_DEF_SCOPE))
-          entity.setScope((String) propertyMap.get(ALERT_DEF_SCOPE));
+                
+        if (propertyMap.containsKey(ALERT_DEF_SCOPE)){
+          Scope scope = null;
+          String desiredScope = (String) propertyMap.get(ALERT_DEF_SCOPE);
+              
+          if (null != desiredScope && desiredScope.length() > 0)
+            scope = Scope.valueOf((desiredScope));
+         
+          entity.setScope(scope);
+        }
         
 
         if (propertyMap.containsKey(ALERT_DEF_SOURCE_TYPE))

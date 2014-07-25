@@ -19,17 +19,24 @@ package org.apache.ambari.server.orm.entities;
 
 import java.util.Set;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EntityManager;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
+import javax.persistence.PreRemove;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 import javax.persistence.UniqueConstraint;
+
+import org.apache.ambari.server.state.alert.Scope;
 
 /**
  * The {@link AlertDefinitionEntity} class is used to model an alert that needs
@@ -64,7 +71,8 @@ public class AlertDefinitionEntity {
   private String definitionName;
   
   @Column(name = "scope", length = 255)
-  private String scope;
+  @Enumerated(value = EnumType.STRING)
+  private Scope scope;
 
   @Column(nullable = false)
   private Integer enabled = Integer.valueOf(1);
@@ -73,7 +81,7 @@ public class AlertDefinitionEntity {
   private String hash;
 
   @Column(name = "schedule_interval", nullable = false)
-  private Long scheduleInterval;
+  private Integer scheduleInterval;
 
   @Column(name = "service_name", nullable = false, length = 255)
   private String serviceName;
@@ -84,7 +92,8 @@ public class AlertDefinitionEntity {
   /**
    * Bi-directional many-to-many association to {@link AlertGroupEntity}
    */
-  @ManyToMany(mappedBy = "alertDefinitions")
+  @ManyToMany(mappedBy = "alertDefinitions", cascade = { CascadeType.PERSIST,
+      CascadeType.MERGE, CascadeType.REFRESH })
   private Set<AlertGroupEntity> alertGroups;
 
   /**
@@ -180,22 +189,22 @@ public class AlertDefinitionEntity {
 
   /**
    * Gets the scope of the alert definition. The scope is defined as either
-   * being for a SERVICE or a HOST.
+   * being for a {@link Scope#SERVICE} or {@link Scope#HOST}.
    * 
    * @return the scope, or {@code null} if not defined.
    */
-  public String getScope() {
+  public Scope getScope() {
     return scope;
   }
 
   /**
    * Sets the scope of the alert definition. The scope is defined as either
-   * being for a SERVICE or a HOST.
+   * being for a {@link Scope#SERVICE} or {@link Scope#HOST}.
    * 
    * @param scope
    *          the scope to set, or {@code null} for none.
    */
-  public void setScope(String scope) {
+  public void setScope(Scope scope) {
     this.scope = scope;
   }
 
@@ -269,7 +278,7 @@ public class AlertDefinitionEntity {
    * 
    * @return the interval, in seconds.
    */
-  public Long getScheduleInterval() {
+  public Integer getScheduleInterval() {
     return scheduleInterval;
   }
 
@@ -279,7 +288,7 @@ public class AlertDefinitionEntity {
    * @param scheduleInterval
    *          the interval, in seconds.
    */
-  public void setScheduleInterval(Long scheduleInterval) {
+  public void setScheduleInterval(Integer scheduleInterval) {
     this.scheduleInterval = scheduleInterval;
   }
 
@@ -337,6 +346,23 @@ public class AlertDefinitionEntity {
    */
   public void setAlertGroups(Set<AlertGroupEntity> alertGroups) {
     this.alertGroups = alertGroups;
+  }
+
+  /**
+   * Called before {@link EntityManager#remove(Object)} for this entity, removes
+   * the non-owning relationship between definitions and groups.
+   */
+  @PreRemove
+  public void preRemove() {
+    Set<AlertGroupEntity> groups = getAlertGroups();
+    if (null == groups || groups.size() == 0)
+      return;
+
+    for (AlertGroupEntity group : groups) {
+      Set<AlertDefinitionEntity> definitions = group.getAlertDefinitions();
+      if (null != definitions)
+        definitions.remove(this);
+    }
   }
 
   /**

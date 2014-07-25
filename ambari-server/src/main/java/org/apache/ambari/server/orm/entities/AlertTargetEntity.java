@@ -19,16 +19,17 @@ package org.apache.ambari.server.orm.entities;
 
 import java.util.Set;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EntityManager;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
+import javax.persistence.PreRemove;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 
@@ -64,8 +65,8 @@ public class AlertTargetEntity {
   /**
    * Bi-directional many-to-many association to {@link AlertGroupEntity}
    */
-  @ManyToMany
-  @JoinTable(name = "alert_group_target", joinColumns = { @JoinColumn(name = "target_id", nullable = false) }, inverseJoinColumns = { @JoinColumn(name = "group_id", nullable = false) })
+  @ManyToMany(mappedBy = "alertTargets", cascade = { CascadeType.PERSIST,
+      CascadeType.MERGE })
   private Set<AlertGroupEntity> alertGroups;
 
   /**
@@ -178,6 +179,23 @@ public class AlertTargetEntity {
    */
   public void setAlertGroups(Set<AlertGroupEntity> alertGroups) {
     this.alertGroups = alertGroups;
+  }
+
+  /**
+   * Called before {@link EntityManager#remove(Object)} for this entity, removes
+   * the non-owning relationship between targets and groups.
+   */
+  @PreRemove
+  public void preRemove() {
+    Set<AlertGroupEntity> groups = getAlertGroups();
+    if (null == groups || groups.size() == 0)
+      return;
+
+    for (AlertGroupEntity group : groups) {
+      Set<AlertTargetEntity> targets = group.getAlertTargets();
+      if (null != targets)
+        targets.remove(this);
+    }
   }
 
   /**

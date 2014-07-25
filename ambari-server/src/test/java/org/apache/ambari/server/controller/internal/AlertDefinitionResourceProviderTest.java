@@ -181,7 +181,7 @@ public class AlertDefinitionResourceProviderTest {
     Assert.assertEquals("my_def", entity.getDefinitionName());
     Assert.assertTrue(entity.getEnabled());
     Assert.assertNotNull(entity.getHash());
-    Assert.assertEquals(Long.valueOf(1), entity.getScheduleInterval());
+    Assert.assertEquals(Integer.valueOf(1), entity.getScheduleInterval());
     Assert.assertNull(entity.getScope());
     Assert.assertEquals("HDFS", entity.getServiceName());
     Assert.assertNotNull(entity.getSource());
@@ -321,7 +321,7 @@ public class AlertDefinitionResourceProviderTest {
     entity.setDefinitionName("my_def");
     entity.setEnabled(true);
     entity.setHash("tmphash");
-    entity.setScheduleInterval(Long.valueOf(2L));
+    entity.setScheduleInterval(Integer.valueOf(2));
     entity.setServiceName(null);
     entity.setSourceType("metric");
     entity.setSource("{'jmx': 'beanName/attributeName', 'host': '{{aa:123445}}'}");
