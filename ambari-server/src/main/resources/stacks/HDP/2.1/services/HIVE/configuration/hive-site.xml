@@ -490,4 +490,12 @@ limitations under the License.
     <description>Determines caching mechanism DataNucleus L2 cache will use. It is strongly recommended to use default value of 'none' as other values may cause consistency errors in Hive.</description>
   </property>
 
+  <property>
+    <name>hive.server2.thrift.port</name>
+    <value>10000</value>
+    <description>
+      TCP port number to listen on, default 10000.
+    </description>
+  </property>
+
 </configuration>
