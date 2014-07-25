@@ -324,7 +324,6 @@ public class ClustersImpl implements Clusters {
   }
 
   @Override
-  @Transactional
   public void updateHostWithClusterAndAttributes(Map<String, Set<String>> hostClusters, Map<String,
       Map<String, String>> hostAttributes)
       throws AmbariException {
@@ -370,7 +369,8 @@ public class ClustersImpl implements Clusters {
               }
 
               mapHostClusterEntities(hostname, cluster.getClusterId());
-
+              host.refresh();
+              cluster.refresh();
               hostClusterMap.get(hostname).add(cluster);
               clusterHostMap.get(clusterName).add(host);
 
@@ -458,7 +458,8 @@ public class ClustersImpl implements Clusters {
       }
 
       mapHostClusterEntities(hostname, cluster.getClusterId());
-
+      host.refresh();
+      cluster.refresh();
       hostClusterMap.get(hostname).add(cluster);
       clusterHostMap.get(clusterName).add(host);
 
@@ -472,7 +473,7 @@ public class ClustersImpl implements Clusters {
       w.unlock();
     }
   }
-  
+
   @Transactional
   void mapHostClusterEntities(String hostName, Long clusterId) {
     HostEntity hostEntity = hostDAO.findByName(hostName);
@@ -607,8 +608,10 @@ public class ClustersImpl implements Clusters {
             + ", clusterId=" + cluster.getClusterId()
             + ", hostname=" + hostname);
       }
-      
+
       unmapHostClusterEntities(hostname, cluster.getClusterId());
+      host.refresh();
+      cluster.refresh();
 
       hostClusterMap.get(hostname).remove(cluster);
       clusterHostMap.get(clusterName).remove(host);

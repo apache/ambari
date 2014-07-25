@@ -237,39 +237,14 @@ public class HostEntity {
 
     HostEntity that = (HostEntity) o;
 
-    if (cpuCount != null ? !cpuCount.equals(that.cpuCount) : that.cpuCount != null) return false;
-    if (lastRegistrationTime != null ? !lastRegistrationTime.equals(that.lastRegistrationTime) : that.lastRegistrationTime != null) return false;
-    if (totalMem != null ? !totalMem.equals(that.totalMem) : that.totalMem != null) return false;
-    if (cpuInfo != null ? !cpuInfo.equals(that.cpuInfo) : that.cpuInfo != null) return false;
-    if (discoveryStatus != null ? !discoveryStatus.equals(that.discoveryStatus) : that.discoveryStatus != null)
-      return false;
-    if (hostAttributes != null ? !hostAttributes.equals(that.hostAttributes) : that.hostAttributes != null)
-      return false;
-    if (hostName != null ? !hostName.equals(that.hostName) : that.hostName != null) return false;
-    if (ipv4 != null ? !ipv4.equals(that.ipv4) : that.ipv4 != null) return false;
-    if (osArch != null ? !osArch.equals(that.osArch) : that.osArch != null) return false;
-    if (osInfo != null ? !osInfo.equals(that.osInfo) : that.osInfo != null) return false;
-    if (osType != null ? !osType.equals(that.osType) : that.osType != null) return false;
-    if (rackInfo != null ? !rackInfo.equals(that.rackInfo) : that.rackInfo != null) return false;
+    if (!hostName.equals(that.hostName)) return false;
 
     return true;
   }
 
   @Override
   public int hashCode() {
-    int result = hostName != null ? hostName.hashCode() : 0;
-    result = 31 * result + (ipv4 != null ? ipv4.hashCode() : 0);
-    result = 31 * result + (totalMem != null ? totalMem.intValue() : 0);
-    result = 31 * result + cpuCount;
-    result = 31 * result + (cpuInfo != null ? cpuInfo.hashCode() : 0);
-    result = 31 * result + (osArch != null ? osArch.hashCode() : 0);
-    result = 31 * result + (osInfo != null ? osInfo.hashCode() : 0);
-    result = 31 * result + (osType != null ? osType.hashCode() : 0);
-    result = 31 * result + (discoveryStatus != null ? discoveryStatus.hashCode() : 0);
-    result = 31 * result + (lastRegistrationTime != null ? lastRegistrationTime.intValue() : 0);
-    result = 31 * result + (rackInfo != null ? rackInfo.hashCode() : 0);
-    result = 31 * result + (hostAttributes != null ? hostAttributes.hashCode() : 0);
-    return result;
+    return hostName.hashCode();
   }
 
   public Collection<HostComponentDesiredStateEntity> getHostComponentDesiredStateEntities() {
