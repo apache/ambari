@@ -36,18 +36,30 @@ module.exports = App.WizardRoute.extend({
         secondary: null,
 
         onClose: function () {
-          var controller = App.router.get('rMHighAvailabilityWizardController');
-          controller.clearStorageData();
-          controller.setCurrentStep('1');
-          App.router.get('updateController').set('isWorking', true);
-          App.clusterStatus.setClusterStatus({
-            clusterName: App.router.get('content.cluster.name'),
-            clusterState: 'DEFAULT',
-            wizardControllerName: App.router.get('rMHighAvailabilityWizardController.name'),
-            localdb: App.db.data
-          });
-          this.hide();
-          App.router.transitionTo('main.admin.adminHighAvailability');
+          var rMHighAvailabilityWizardController = router.get('rMHighAvailabilityWizardController');
+          var currStep = rMHighAvailabilityWizardController.get('currentStep');
+
+          if (parseInt(currStep) === 4) {
+            var self = this;
+            App.showConfirmationPopup(function () {
+              self.hide();
+              rMHighAvailabilityWizardController.setCurrentStep('1');
+              App.clusterStatus.setClusterStatus({
+                clusterName: App.router.getClusterName(),
+                clusterState: 'DEFAULT',
+                wizardControllerName: rMHighAvailabilityWizardController.get('name'),
+                localdb: App.db.data
+              });
+              router.get('updateController').set('isWorking', true);
+              router.transitionTo('main.admin.adminHighAvailability.index');
+              location.reload();
+            }, Em.I18n.t('admin.rm_highAvailability.closePopup'));
+          } else {
+            this.hide();
+            rMHighAvailabilityWizardController.setCurrentStep('1');
+            router.get('updateController').set('isWorking', true);
+            router.transitionTo('main.admin.adminHighAvailability.index')
+          }
         },
         didInsertElement: function () {
           this.fitHeight();
@@ -164,7 +176,8 @@ module.exports = App.WizardRoute.extend({
         wizardControllerName: 'rMHighAvailabilityWizardController',
         localdb: App.db.data
       });
-      router.transitionTo('main.index');
+      router.transitionTo('main.admin.adminHighAvailability.index');
+      location.reload();
     }
   }),
 
