@@ -18,6 +18,7 @@
 
 var App = require('app');
 var db = require('utils/db');
+var stringUtils = require('utils/string_utils');
 
 /**
  * By Step 6, we have the following information stored in App.db and set on this
@@ -79,6 +80,10 @@ App.WizardStep6Controller = Em.Controller.extend({
   isAddServiceWizard: function () {
     return this.get('content.controllerName') === 'addServiceController';
   }.property('content.controllerName'),
+
+  installedServiceNames: function() {
+    return this.get('content.services').filterProperty('isInstalled').mapProperty('serviceName');
+  }.property('content.services').cacheable(),
 
   /**
    * Verify condition that at least one checkbox of each component was checked
@@ -241,6 +246,7 @@ App.WizardStep6Controller = Em.Controller.extend({
             name: serviceComponent.get('componentName'),
             label: serviceComponent.get('displayName'),
             allChecked: false,
+            isRequired: serviceComponent.get('isRequired'),
             noChecked: true
           }));
         }
@@ -468,7 +474,8 @@ App.WizardStep6Controller = Em.Controller.extend({
   },
 
   /**
-   * Validate a component for all hosts. Return do we have errors or not
+   * Check for minimum required count of components to install.
+   *
    * @return {bool}
    * @method validateEachComponent
    */
@@ -476,17 +483,36 @@ App.WizardStep6Controller = Em.Controller.extend({
     var isError = false;
     var hosts = this.get('hosts');
     var headers = this.get('headers');
+    var componentsToInstall = [];
     headers.forEach(function (header) {
-      var all_false = true;
-      hosts.forEach(function (host) {
-        var checkboxes = host.get('checkboxes');
-        all_false = all_false && !checkboxes.findProperty('title', header.get('label')).checked;
-      });
-      isError = isError || all_false;
-    });
-    if (isError) {
-      this.set('errorMessage', Em.I18n.t('installer.step6.error.mustSelectOne'));
+      var checkboxes = hosts.mapProperty('checkboxes').reduce(function(cItem, pItem) { return cItem.concat(pItem); });
+      var selectedCount = checkboxes.filterProperty('component', header.get('name')).filterProperty('checked').length;
+      if (header.get('name') == 'CLIENT') {
+        var clientsMinCount = 0;
+        var serviceNames = this.get('installedServiceNames').concat(this.get('content.selectedServiceNames'));
+        // find max value for `minToInstall` property
+        serviceNames.forEach(function(serviceName) {
+          App.StackServiceComponent.find().filterProperty('stackService.serviceName', serviceName).filterProperty('isClient')
+            .mapProperty('minToInstall').forEach(function(ctMinCount) { clientsMinCount = ctMinCount > clientsMinCount ? ctMinCount : clientsMinCount; });
+        });
+        if (selectedCount < clientsMinCount) {
+          isError = true;
+          var requiredQuantity = (clientsMinCount > hosts.length ? hosts.length : clientsMinCount) - selectedCount;
+          componentsToInstall.push(requiredQuantity + ' ' + stringUtils.pluralize(requiredQuantity, Em.I18n.t('common.client')));
+        }
+      } else {
+        var stackComponent = App.StackServiceComponent.find().findProperty('componentName', header.get('name'));
+        if (selectedCount < stackComponent.get('minToInstall')) {
+          isError = true;
+          var requiredQuantity = (stackComponent.get('minToInstall') > hosts.length ? hosts.length : stackComponent.get('minToInstall')) - selectedCount;
+          componentsToInstall.push(requiredQuantity + ' ' + stringUtils.pluralize(requiredQuantity, stackComponent.get('displayName')));
+        }
+      }
+    }, this);
+    if (componentsToInstall.length) {
+      this.set('errorMessage', Em.I18n.t('installer.step6.error.mustSelectComponents').format(componentsToInstall.join(', ')));
     }
+
     return !isError;
   }
 

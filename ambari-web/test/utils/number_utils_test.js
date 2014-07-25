@@ -18,7 +18,7 @@
 
 var numberUtils = require('utils/number_utils');
 
-describe('', function() {
+describe('utils/number_utils', function() {
 
   describe('#bytesToSize', function() {
 
@@ -245,4 +245,32 @@ describe('', function() {
     });
   });
 
+  describe('#getCardinalityValue()', function() {
+    var generateTestObject = function(cardinality, isMax, expected) {
+      return {
+        cardinality: cardinality,
+        isMax: isMax,
+        e: expected
+      }
+    };
+    var tests = [
+      generateTestObject(null, true, 0),
+      generateTestObject(undefined, true, 0),
+      generateTestObject('1', true, 1),
+      generateTestObject('1', false, 1),
+      generateTestObject('0+', true, Infinity),
+      generateTestObject('0+', false, 0),
+      generateTestObject('1+', true, Infinity),
+      generateTestObject('1-2', false, 1),
+      generateTestObject('1-2', true, 2),
+      generateTestObject('ALL', true, Infinity),
+      generateTestObject('ALL', false, Infinity)
+    ];
+    var message = 'cardinality `{0}`. {1} value should be {2}';
+    tests.forEach(function(test) {
+      it(message.format('' + test.cardinality, (test.isMax ? 'maximum' : 'minimum'), test.e), function() {
+        expect(numberUtils.getCardinalityValue(test.cardinality, test.isMax)).to.be.eql(test.e);
+      });
+    })
+  });
 });

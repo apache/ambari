@@ -21,224 +21,306 @@ var App = require('app');
 var modelSetup = require('test/init_model_test');
 require('models/stack_service_component');
 
-var stackServiceComponent,
-  stackServiceComponentData = {
-    id: 'ssc'
-  },
-  components = [
-    {
-      name: 'NAMENODE',
-      isReassignable: true
-    },
-    {
-      name: 'SECONDARY_NAMENODE',
-      isReassignable: true
-    },
-    {
-      name: 'JOBTRACKER',
-      isReassignable: true
-    },
-    {
-      name: 'RESOURCEMANAGER',
-      isReassignable: true
-    },
-    {
-      name: 'SUPERVISOR',
+/**
+
+  Component properties template:
+
+  {
+    componentName: 'SUPERVISOR',
+    expected: {
+      displayName: 'Supervisor',
+      minToInstall: 1,
+      maxToInstall: Infinity,
+      isRequired: true,
+      isMultipleAllowed: true,
+      isSlave: true,
+      isMaster: false,
+      isClient: false,
+      isRestartable: true,
+      isReassignable: false,
       isDeletable: true,
       isRollinRestartAllowed: true,
-      isAddableToHost: true
-    },
-    {
-      name: 'HBASE_MASTER',
-      isDeletable: true,
-      isAddableToHost: true
-    },
-    {
-      name: 'DATANODE',
-      isDeletable: true,
-      isRollinRestartAllowed: true,
-      isDecommissionAllowed: true,
-      isAddableToHost: true
-    },
-    {
-      name: 'TASKTRACKER',
-      isDeletable: true,
-      isRollinRestartAllowed: true,
-      isDecommissionAllowed: true,
-      isAddableToHost: true
-    },
-    {
-      name: 'NODEMANAGER',
-      isDeletable: true,
-      isRollinRestartAllowed: true,
-      isDecommissionAllowed: true,
-      isAddableToHost: true
-    },
-    {
-      name: 'HBASE_REGIONSERVER',
-      isDeletable: true,
-      isRollinRestartAllowed: true,
-      isDecommissionAllowed: true,
-      isAddableToHost: true
-    },
-    {
-      name: 'GANGLIA_MONITOR',
-      isDeletable: true,
-      isAddableToHost: true
-    },
-    {
-      name: 'FLUME_HANDLER',
-      isRefreshConfigsAllowed: true
-    },
-    {
-      name: 'ZOOKEEPER_SERVER',
-      isAddableToHost: true
-    },
-    {
-      name: 'MYSQL_SERVER',
-      mastersNotShown: true
-    },
-    {
-      name: 'JOURNALNODE',
-      mastersNotShown: true
+      isDecommissionAllowed: false,
+      isRefreshConfigsAllowed: false,
+      isAddableToHost: true,
+      isShownOnInstallerAssignMasterPage: false,
+      isShownOnInstallerSlaveClientPage: true,
+      isShownOnAddServiceAssignMasterPage: false,
+      isMasterWithMultipleInstances: false,
+      isMasterAddableInstallerWizard: false,
+      isMasterBehavior: false,
+      isHAComponentOnly: false,
+      isRequiredOnAllHosts: false,
+      isNotPreferableOnAmbariServerHost: false,
+      defaultNoOfMasterHosts: 1,
+      coHostedComponents: [],
+      isOtherComponentCoHosted: false,
+      isCoHostedComponent: false,
+      selectionSchemeForMasterComponent: {"else": 0}
     }
-  ],
-  reassignable = components.filterProperty('isReassignable').mapProperty('name'),
-  deletable = components.filterProperty('isDeletable').mapProperty('name'),
-  rollingRestartable = components.filterProperty('isRollinRestartAllowed').mapProperty('name'),
-  decommissionable = components.filterProperty('isDecommissionAllowed').mapProperty('name'),
-  refreshable = components.filterProperty('isRefreshConfigsAllowed').mapProperty('name'),
-  addable = components.filterProperty('isAddableToHost').mapProperty('name'),
-  mastersNotShown = components.filterProperty('mastersNotShown').mapProperty('name');
+  }
 
-describe('App.StackServiceComponent', function () {
+**/
+var componentPropertiesValidationTests = [
+  {
+    componentName: 'SUPERVISOR',
+    expected: {
+      displayName: 'Supervisor',
+      minToInstall: 1,
+      maxToInstall: Infinity,
+      isRequired: true,
+      isMultipleAllowed: true,
+      isSlave: true,
+      isRestartable: true,
+      isReassignable: false,
+      isDeletable: true,
+      isRollinRestartAllowed: true,
+      isRefreshConfigsAllowed: false,
+      isAddableToHost: true,
+      isShownOnInstallerSlaveClientPage: true,
+      isHAComponentOnly: false,
+      isRequiredOnAllHosts: false,
+      isCoHostedComponent: false
+    }
+  },
+  {
+    componentName: 'ZOOKEEPER_SERVER',
+    expected: {
+      minToInstall: 1,
+      maxToInstall: Infinity,
+      isRequired: true,
+      isMultipleAllowed: true,
+      isMaster: true,
+      isRestartable: true,
+      isReassignable: false,
+      isDeletable: true,
+      isRollinRestartAllowed: false,
+      isDecommissionAllowed: false,
+      isRefreshConfigsAllowed: false,
+      isAddableToHost: true,
+      isShownOnInstallerAssignMasterPage: true,
+      isShownOnInstallerSlaveClientPage: false,
+      isShownOnAddServiceAssignMasterPage: true,
+      isMasterWithMultipleInstances: true,
+      isMasterAddableInstallerWizard: true,
+      isMasterBehavior: false,
+      isHAComponentOnly: false,
+      isRequiredOnAllHosts: false,
+      isNotPreferableOnAmbariServerHost: false,
+      defaultNoOfMasterHosts: 3,
+      coHostedComponents: [],
+      isOtherComponentCoHosted: false,
+      isCoHostedComponent: false
+    }
+  },
+  {
+    componentName: 'APP_TIMELINE_SERVER',
+    expected: {
+      displayName: 'App Timeline Server',
+      minToInstall: 0,
+      maxToInstall: 1,
+      isRequired: false,
+      isMultipleAllowed: false,
+      isSlave: true,
+      isMaster: false,
+      isRestartable: true,
+      isReassignable: false,
+      isDeletable: false,
+      isRollinRestartAllowed: false,
+      isDecommissionAllowed: false,
+      isRefreshConfigsAllowed: false,
+      isAddableToHost: false,
+      isShownOnInstallerAssignMasterPage: true,
+      isShownOnInstallerSlaveClientPage: false,
+      isShownOnAddServiceAssignMasterPage: true,
+      isMasterWithMultipleInstances: false,
+      isMasterAddableInstallerWizard: false,
+      isMasterBehavior: true,
+      isHAComponentOnly: false,
+      isRequiredOnAllHosts: false,
+      isNotPreferableOnAmbariServerHost: false,
+      coHostedComponents: [],
+      isOtherComponentCoHosted: false,
+      isCoHostedComponent: false
+    }
+  },
+  {
+    componentName: 'GANGLIA_MONITOR',
+    expected: {
+      displayName: 'Ganglia Monitor',
+      minToInstall: Infinity,
+      maxToInstall: Infinity,
+      isRequired: true,
+      isMultipleAllowed: true,
+      isSlave: true,
+      isMaster: false,
+      isRestartable: true,
+      isReassignable: false,
+      isDeletable: true,
+      isRollinRestartAllowed: true,
+      isDecommissionAllowed: false,
+      isRefreshConfigsAllowed: false,
+      isAddableToHost: true,
+      isShownOnInstallerAssignMasterPage: false,
+      isShownOnInstallerSlaveClientPage: false,
+      isShownOnAddServiceAssignMasterPage: false,
+      isMasterWithMultipleInstances: false,
+      isMasterAddableInstallerWizard: false,
+      isMasterBehavior: false,
+      isHAComponentOnly: false,
+      isRequiredOnAllHosts: true,
+      isNotPreferableOnAmbariServerHost: false,
+      coHostedComponents: [],
+      isOtherComponentCoHosted: false,
+      isCoHostedComponent: false
+    }
+  },
+  {
+    componentName: 'FLUME_HANDLER',
+    expected: {
+      displayName: 'Flume Agent',
+      minToInstall: 0,
+      maxToInstall: Infinity,
+      isRequired: false,
+      isMultipleAllowed: true,
+      isSlave: true,
+      isMaster: false,
+      isRestartable: true,
+      isReassignable: false,
+      isDeletable: true,
+      isRollinRestartAllowed: true,
+      isDecommissionAllowed: false,
+      isRefreshConfigsAllowed: true,
+      isAddableToHost: true,
+      isShownOnInstallerAssignMasterPage: false,
+      isShownOnInstallerSlaveClientPage: true,
+      isShownOnAddServiceAssignMasterPage: false,
+      isMasterWithMultipleInstances: false,
+      isMasterAddableInstallerWizard: false,
+      isMasterBehavior: false,
+      isHAComponentOnly: false,
+      isRequiredOnAllHosts: false,
+      isNotPreferableOnAmbariServerHost: false,
+      coHostedComponents: [],
+      isOtherComponentCoHosted: false,
+      isCoHostedComponent: false
+    }
+  },
+  {
+    componentName: 'HIVE_METASTORE',
+    expected: {
+      displayName: 'Hive Metastore',
+      minToInstall: 1,
+      maxToInstall: 1,
+      isRequired: true,
+      isMultipleAllowed: false,
+      isSlave: false,
+      isMaster: true,
+      isRestartable: true,
+      isReassignable: false,
+      isDeletable: false,
+      isRollinRestartAllowed: false,
+      isDecommissionAllowed: false,
+      isRefreshConfigsAllowed: false,
+      isAddableToHost: false,
+      isShownOnInstallerAssignMasterPage: true,
+      isShownOnInstallerSlaveClientPage: false,
+      isShownOnAddServiceAssignMasterPage: true,
+      isMasterWithMultipleInstances: false,
+      isMasterAddableInstallerWizard: false,
+      isMasterBehavior: false,
+      isHAComponentOnly: false,
+      isRequiredOnAllHosts: false,
+      isNotPreferableOnAmbariServerHost: false,
+      coHostedComponents: [],
+      isOtherComponentCoHosted: false,
+      isCoHostedComponent: true
+    }
+  },
+  {
+    componentName: 'HIVE_SERVER',
+    expected: {
+      displayName: 'HiveServer2',
+      minToInstall: 1,
+      maxToInstall: 1,
+      isRequired: true,
+      isMultipleAllowed: false,
+      isSlave: false,
+      isMaster: true,
+      isRestartable: true,
+      isReassignable: false,
+      isDeletable: false,
+      isRollinRestartAllowed: false,
+      isDecommissionAllowed: false,
+      isRefreshConfigsAllowed: false,
+      isAddableToHost: false,
+      isShownOnInstallerAssignMasterPage: true,
+      isShownOnInstallerSlaveClientPage: false,
+      isShownOnAddServiceAssignMasterPage: true,
+      isMasterWithMultipleInstances: false,
+      isMasterAddableInstallerWizard: false,
+      isMasterBehavior: false,
+      isHAComponentOnly: false,
+      isRequiredOnAllHosts: false,
+      isNotPreferableOnAmbariServerHost: false,
+      coHostedComponents: ['HIVE_METASTORE','WEBHCAT_SERVER'],
+      isOtherComponentCoHosted: true,
+      isCoHostedComponent: false
+    }
+  },
+  {
+    componentName: 'DATANODE',
+    expected: {
+      displayName: 'DataNode',
+      minToInstall: 1,
+      maxToInstall: Infinity,
+      isRequired: true,
+      isMultipleAllowed: true,
+      isSlave: true,
+      isMaster: false,
+      isRestartable: true,
+      isReassignable: false,
+      isDeletable: true,
+      isRollinRestartAllowed: true,
+      isDecommissionAllowed: true,
+      isRefreshConfigsAllowed: false,
+      isAddableToHost: true,
+      isShownOnInstallerAssignMasterPage: false,
+      isShownOnInstallerSlaveClientPage: true,
+      isShownOnAddServiceAssignMasterPage: false,
+      isMasterWithMultipleInstances: false,
+      isMasterAddableInstallerWizard: false,
+      isMasterBehavior: false,
+      isHAComponentOnly: false,
+      isRequiredOnAllHosts: false,
+      isNotPreferableOnAmbariServerHost: false,
+      coHostedComponents: [],
+      isOtherComponentCoHosted: false,
+      isCoHostedComponent: false
+    }
+  }
+];
 
-  beforeEach(function () {
-    stackServiceComponent = App.StackServiceComponent.createRecord(stackServiceComponentData);
+describe('App.StackServiceComponent', function() {
+  before(function() {
+    modelSetup.setupStackServiceComponent();
   });
 
-  afterEach(function () {
-    modelSetup.deleteRecord(stackServiceComponent);
-  });
-
-  describe('#isSlave', function () {
-    it('should be true', function () {
-      stackServiceComponent.set('componentCategory', 'SLAVE');
-      expect(stackServiceComponent.get('isSlave')).to.be.true;
-    });
-    it('should be false', function () {
-      stackServiceComponent.set('componentCategory', 'cc');
-      expect(stackServiceComponent.get('isSlave')).to.be.false;
-    });
-  });
-
-  describe('#isRestartable', function () {
-    it('should be true', function () {
-      stackServiceComponent.set('isClient', false);
-      expect(stackServiceComponent.get('isRestartable')).to.be.true;
-    });
-    it('should be false', function () {
-      stackServiceComponent.set('isClient', true);
-      expect(stackServiceComponent.get('isRestartable')).to.be.false;
-    });
-  });
-
-  describe('#isReassignable', function () {
-    reassignable.forEach(function (item) {
-      it('should be true', function () {
-        stackServiceComponent.set('componentName', item);
-        expect(stackServiceComponent.get('isReassignable')).to.be.true;
+  describe('component properties validation', function() {
+    componentPropertiesValidationTests.forEach(function(test) {
+      describe('properties validation for ' + test.componentName + ' component', function() {
+        var component = App.StackServiceComponent.find(test.componentName);
+        var properties = Em.keys(test.expected);
+        properties.forEach(function(property) {
+          it('#{0} should be {1}'.format(property, JSON.stringify(test.expected[property])), function() {
+            expect(component.get(property)).to.be.eql(test.expected[property]);
+          })
+        });
       });
     });
-    it('should be false', function () {
-      stackServiceComponent.set('componentName', 'name');
-      expect(stackServiceComponent.get('isReassignable')).to.be.false;
-    });
   });
 
-  describe('#isDeletable', function () {
-    deletable.forEach(function (item) {
-      it('should be true', function () {
-        stackServiceComponent.set('componentName', item);
-        expect(stackServiceComponent.get('isDeletable')).to.be.true;
-      });
-    });
-    it('should be false', function () {
-      stackServiceComponent.set('componentName', 'name');
-      expect(stackServiceComponent.get('isDeletable')).to.be.false;
-    });
+  after(function() {
+    modelSetup.cleanStackServiceComponent();
   });
-
-  describe('#isRollinRestartAllowed', function () {
-    rollingRestartable.forEach(function (item) {
-      it('should be true', function () {
-        stackServiceComponent.set('componentName', item);
-        expect(stackServiceComponent.get('isRollinRestartAllowed')).to.be.true;
-      });
-    });
-    it('should be false', function () {
-      stackServiceComponent.set('componentName', 'name');
-      expect(stackServiceComponent.get('isRollinRestartAllowed')).to.be.false;
-    });
-  });
-
-  describe('#isDecommissionAllowed', function () {
-    decommissionable.forEach(function (item) {
-      it('should be true', function () {
-        stackServiceComponent.set('componentName', item);
-        expect(stackServiceComponent.get('isDecommissionAllowed')).to.be.true;
-      });
-    });
-    it('should be false', function () {
-      stackServiceComponent.set('componentName', 'name');
-      expect(stackServiceComponent.get('isDecommissionAllowed')).to.be.false;
-    });
-  });
-
-  describe('#isRefreshConfigsAllowed', function () {
-    refreshable.forEach(function (item) {
-      it('should be true', function () {
-        stackServiceComponent.set('componentName', item);
-        expect(stackServiceComponent.get('isRefreshConfigsAllowed')).to.be.true;
-      });
-    });
-    it('should be false', function () {
-      stackServiceComponent.set('componentName', 'name');
-      expect(stackServiceComponent.get('isRefreshConfigsAllowed')).to.be.false;
-    });
-  });
-
-  describe('#isAddableToHost', function () {
-    addable.forEach(function (item) {
-      it('should be true', function () {
-        stackServiceComponent.set('componentName', item);
-        expect(stackServiceComponent.get('isAddableToHost')).to.be.true;
-      });
-    });
-    it('should be false', function () {
-      stackServiceComponent.set('componentName', 'name');
-      expect(stackServiceComponent.get('isAddableToHost')).to.be.false;
-    });
-  });
-
-  describe('#isShownOnInstallerAssignMasterPage', function () {
-    mastersNotShown.forEach(function (item) {
-      it('should be false', function () {
-        stackServiceComponent.set('componentName', item);
-        expect(stackServiceComponent.get('isShownOnInstallerAssignMasterPage')).to.be.false;
-      });
-    });
-    it('should be true', function () {
-      stackServiceComponent.set('componentName', 'APP_TIMELINE_SERVER');
-      expect(stackServiceComponent.get('isShownOnInstallerAssignMasterPage')).to.be.true;
-    });
-    it('should be true', function () {
-      stackServiceComponent.setProperties({
-        componentName: 'name',
-        isMaster: true
-      });
-      expect(stackServiceComponent.get('isShownOnInstallerAssignMasterPage')).to.be.true;
-    });
-  });
-
 });

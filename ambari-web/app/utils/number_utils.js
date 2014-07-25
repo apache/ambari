@@ -85,5 +85,23 @@ module.exports = {
       }
     }
     return null;
+  },
+  /**
+   * @param {String|Number} cardinality - value to parse
+   * @param {Boolean} isMax - return maximum count
+   * @return {Number}
+   **/
+  getCardinalityValue: function(cardinality, isMax) {
+    if (cardinality) {
+      var isOptional = cardinality.toString().split('-').length > 1;
+      if (isOptional) {
+        return parseInt(cardinality.split('-')[(isMax) ? 1 : 0]);
+      } else {
+        if (isMax) return /^\d+\+/.test(cardinality) || cardinality == 'ALL' ? Infinity : parseInt(cardinality);
+        return cardinality == 'ALL' ? Infinity : parseInt(cardinality.toString().replace('+', ''))
+      }
+    } else {
+      return 0;
+    }
   }
 };

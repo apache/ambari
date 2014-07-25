@@ -608,6 +608,7 @@ Em.I18n.translations = {
   'installer.step6.body':'Assign slave and client components to hosts you want to run them on.<br/>Hosts that are assigned master components are shown with <i class=icon-asterisks>&#10037;</i>. <br/>&quot;Client&quot; will install ',
   'installer.step6.error.mustSelectOne':'You must assign at least one host to each component.',
   'installer.step6.error.mustSelectOneForHost':'You must assign at least one slave/client component to each.',
+  'installer.step6.error.mustSelectComponents': 'You must assign at least: {0}',
   'installer.step6.wizardStep6Host.title':'master components hosted on {0}',
   'installer.step6.addHostWizard.body':'Assign HBase master and ZooKeeper server.',
   'installer.step6.error.mustSelectOneForSlaveHost': 'You must assign at least one slave/client component to each host with no master component',

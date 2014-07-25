@@ -41,6 +41,7 @@ App.stackServiceMapper = App.QuickDataMapper.create({
   component_config: {
     id: 'component_name',
     component_name: 'component_name',
+    cardinality: 'cardinality',
     service_name: 'service_name',
     component_category: 'component_category',
     is_master: 'is_master',

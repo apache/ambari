@@ -17,12 +17,14 @@
  */
 
 var App = require('app');
+var numberUtils = require('utils/number_utils');
 /**
  * This model loads all serviceComponents supported by the stack
  * @type {*}
  */
 App.StackServiceComponent = DS.Model.extend({
   componentName: DS.attr('string'),
+  cardinality: DS.attr('string'),
   dependencies: DS.attr('array'),
   serviceName: DS.attr('string'),
   componentCategory: DS.attr('string'),
@@ -33,6 +35,25 @@ App.StackServiceComponent = DS.Model.extend({
   stackService: DS.belongsTo('App.StackService'),
   serviceComponentId: DS.attr('number', {defaultValue: 1}), // this is used on Assign Master page for multiple masters
 
+  /**
+   * Minimum required count for installation.
+   *
+   * @property {Number} minToInstall
+   **/
+  minToInstall: function() {
+    return numberUtils.getCardinalityValue(this.get('cardinality'), false);
+  }.property('cardinality'),
+
+  /**
+   * Maximum required count for installation.
+   *
+   * @property {Number} maxToInstall
+   **/
+  maxToInstall: function() {
+    return numberUtils.getCardinalityValue(this.get('cardinality'), true);
+  }.property('cardinality'),
+
+  /** @property {String} displayName**/
   displayName: function() {
     if (App.format.role(this.get('componentName'))) {
       return App.format.role(this.get('componentName'));
@@ -41,50 +62,71 @@ App.StackServiceComponent = DS.Model.extend({
     }
   }.property('componentName'),
 
+  /** @property {Boolean} isRequired - component required to install **/
+  isRequired: function() {
+    return this.get('minToInstall') > 0;
+  }.property('cardinality'),
+
+  /** @property {Boolean} isMultipleAllowed - component can be assigned for more than one host **/
+  isMultipleAllowed: function() {
+    return this.get('maxToInstall') > 1;
+  }.property('cardinality'),
+
+  /** @property {Boolean} isSlave **/
   isSlave: function() {
    return this.get('componentCategory') === 'SLAVE';
   }.property('componentCategory'),
 
+  /** @property {Boolean} isRestartable - component supports restart action **/
   isRestartable: function() {
     return !this.get('isClient');
   }.property('isClient'),
 
+  /** @property {Boolean} isReassignable - component supports reassign action **/
   isReassignable: function() {
     return ['NAMENODE', 'SECONDARY_NAMENODE', 'JOBTRACKER', 'RESOURCEMANAGER'].contains(this.get('componentName'));
   }.property('componentName'),
 
-  isDeletable: function() {
-    return ['SUPERVISOR', 'HBASE_MASTER', 'DATANODE', 'TASKTRACKER', 'NODEMANAGER', 'HBASE_REGIONSERVER', 'GANGLIA_MONITOR', 'ZOOKEEPER_SERVER'].contains(this.get('componentName'));
-  }.property('componentName'),
-
+  /** @property {Boolean} isRollinRestartAllowed - component supports rolling restart action **/
   isRollinRestartAllowed: function() {
-    return ["DATANODE", "TASKTRACKER", "NODEMANAGER", "HBASE_REGIONSERVER", "SUPERVISOR"].contains(this.get('componentName'));
+    return this.get('isSlave') && !this.get('isMasterBehavior');
   }.property('componentName'),
 
+  /** @property {Boolean} isDecommissionAllowed - component supports decommission action **/
   isDecommissionAllowed: function() {
     return ["DATANODE", "TASKTRACKER", "NODEMANAGER", "HBASE_REGIONSERVER"].contains(this.get('componentName'));
   }.property('componentName'),
 
+  /** @property {Boolean} isRefreshConfigsAllowed - component supports refresh configs action **/
   isRefreshConfigsAllowed: function() {
     return ["FLUME_HANDLER"].contains(this.get('componentName'));
   }.property('componentName'),
 
+  /** @property {Boolean} isAddableToHost - component can be added on host details page **/
   isAddableToHost: function() {
-    return ["DATANODE", "TASKTRACKER", "NODEMANAGER", "HBASE_REGIONSERVER", "HBASE_MASTER", "ZOOKEEPER_SERVER", "SUPERVISOR", "GANGLIA_MONITOR"].contains(this.get('componentName'));
+    return ((this.get('isMasterAddableInstallerWizard') || (this.get('isSlave') && this.get('maxToInstall') > 2)) && !this.get('isHAComponentOnly'));
   }.property('componentName'),
 
+  /** @property {Boolean} isDeletable - component supports delete action **/
+  isDeletable: function() {
+    return this.get('isAddableToHost');
+  }.property('componentName'),
+
+  /** @property {Boolean} isShownOnInstallerAssignMasterPage - component visible on "Assign Masters" step of Install Wizard **/
   isShownOnInstallerAssignMasterPage: function() {
     var component = this.get('componentName');
     var mastersNotShown = ['MYSQL_SERVER'];
     return ((this.get('isMaster') && !mastersNotShown.contains(component)) || component === 'APP_TIMELINE_SERVER');
   }.property('isMaster','componentName'),
 
+  /** @property {Boolean} isShownOnInstallerSlaveClientPage - component visible on "Assign Slaves and Clients" step of Install Wizard**/
   isShownOnInstallerSlaveClientPage: function() {
     var component = this.get('componentName');
     var slavesNotShown = ['JOURNALNODE','ZKFC','APP_TIMELINE_SERVER','GANGLIA_MONITOR'];
     return this.get('isSlave') && !slavesNotShown.contains(component);
   }.property('isSlave','componentName'),
 
+  /** @property {Boolean} isShownOnAddServiceAssignMasterPage - component visible on "Assign Masters" step of Add Service Wizard **/
   isShownOnAddServiceAssignMasterPage: function() {
     var isVisible = this.get('isShownOnInstallerAssignMasterPage');
     if (App.get('isHaEnabled')) {
@@ -93,51 +135,60 @@ App.StackServiceComponent = DS.Model.extend({
     return isVisible;
   }.property('isShownOnInstallerAssignMasterPage','App.isHaEnabled'),
 
+  /** @property {Boolean} isMasterWithMultipleInstances **/
   isMasterWithMultipleInstances: function() {
-    var masters = ['ZOOKEEPER_SERVER', 'HBASE_MASTER', 'NAMENODE', 'JOURNALNODE', 'RESOURCEMANAGER'];
-    return masters.contains(this.get('componentName'));
+    // @todo: safe removing JOURNALNODE from masters list
+    return (this.get('isMaster') && this.get('isMultipleAllowed')) || this.get('componentName') == 'JOURNALNODE';
   }.property('componentName'),
 
+  /**
+   * Master component list that could be assigned for more than 1 host.
+   * Some components like NameNode and ResourceManager have range cardinality value
+   * like 1-2. We can assign only components with cardinality 1+/0+. Strict range value
+   * show that this components will be assigned for 2 hosts only if HA mode activated.
+   *
+   * @property {Boolean} isMasterAddableInstallerWizard
+   **/
   isMasterAddableInstallerWizard: function() {
-    var masters = ['ZOOKEEPER_SERVER', 'HBASE_MASTER'];
-    return masters.contains(this.get('componentName'));
+    return this.get('isMaster') && this.get('isMultipleAllowed') && this.get('maxToInstall') > 2;
   }.property('componentName'),
 
-  /** Some non master components can be assigned as master **/
+  /** @property {Boolean} isMasterBehavior - Some non master components can be assigned as master **/
   isMasterBehavior: function() {
     var componentsName = ['APP_TIMELINE_SERVER'];
     return componentsName.contains(this.get('componentName'));
   }.property('componentName'),
 
-  /** Some non client components can be assigned as clients **/
+  /** @property {Boolean} isClientBehavior - Some non client components can be assigned as clients.
+   *
+   * Used for ignoring such components as Ganglia Monitor on Installer "Review" step.
+   **/
   isClientBehavior: function() {
     var componentName = ['GANGLIA_MONITOR'];
     return componentName.contains(this.get('componentName'));
   }.property('componentName'),
 
-  /** Components that can be installed only if HA enabled **/
+  /** @property {Boolean} isHAComponentOnly - Components that can be installed only if HA enabled **/
   isHAComponentOnly: function() {
     var HAComponentNames = ['ZKFC','JOURNALNODE'];
     return HAComponentNames.contains(this.get('componentName'));
   }.property('componentName'),
 
-  // Is It require to install the components on all hosts. used in step-6 wizard controller
+  /** @property {Boolean} isRequiredOnAllHosts - Is It require to install the components on all hosts. used in step-6 wizard controller **/
   isRequiredOnAllHosts: function() {
-    var service = this.get('stackService');
-    return service.get('isMonitoringService') && this.get('isSlave') ;
+    return this.get('minToInstall') == Infinity;
   }.property('stackService','isSlave'),
 
-  // components that are not to be installed with ambari server
+  /** components that are not to be installed with ambari server **/
   isNotPreferableOnAmbariServerHost: function() {
     var service = ['STORM_UI_SERVER', 'DRPC_SERVER', 'STORM_REST_API', 'NIMBUS', 'GANGLIA_SERVER', 'NAGIOS_SERVER', 'HUE_SERVER'];
     return service.contains(this.get('componentName'));
   }.property('componentName'),
 
-  // default number of master hosts on Assign Master page:
+  /** @property {Number} defaultNoOfMasterHosts - default number of master hosts on Assign Master page: **/
   defaultNoOfMasterHosts: function() {
-    var componentName = this.get('componentName');
      if (this.get('isMasterAddableInstallerWizard')) {
-       return App.StackServiceComponent.cardinality(componentName).min;
+       return this.get('componentName') == 'ZOOKEEPER_SERVER' ? 3 : this.get('minToInstall');
      }
   }.property('componentName'),
 
@@ -145,7 +196,7 @@ App.StackServiceComponent = DS.Model.extend({
     return App.StackServiceComponent.selectionScheme(this.get('componentName'));
   }.property('componentName'),
 
-  // components that are co-hosted with this component
+  /** @property {Boolean} coHostedComponents - components that are co-hosted with this component **/
   coHostedComponents: function() {
     var componentName = this.get('componentName');
     var key, coHostedComponents = [];
@@ -157,12 +208,12 @@ App.StackServiceComponent = DS.Model.extend({
     return coHostedComponents;
   }.property('componentName'),
 
-  // Is any other component co-hosted with this component
+  /** @property {Boolean} isOtherComponentCoHosted - Is any other component co-hosted with this component **/
   isOtherComponentCoHosted: function() {
     return !!this.get('coHostedComponents').length;
   }.property('coHostedComponents'),
 
-  // Is this component co-hosted with other component
+  /** @property {Boolean} isCoHostedComponent - Is this component co-hosted with other component **/
   isCoHostedComponent: function() {
     var componentName = this.get('componentName');
     return !!App.StackServiceComponent.coHost[componentName];
@@ -194,17 +245,6 @@ App.StackServiceComponent.selectionScheme = function (componentName){
       return {"6": 1, "31": 2, "else": 4};
     default:
       return {"else": 0};
-  }
-};
-
-App.StackServiceComponent.cardinality = function (componentName) {
-  switch (componentName) {
-    case 'ZOOKEEPER_SERVER':
-      return {min: 3};
-    case 'HBASE_MASTER':
-      return {min: 1};
-    default:
-      return {min:1, max:1};
   }
 };
 
