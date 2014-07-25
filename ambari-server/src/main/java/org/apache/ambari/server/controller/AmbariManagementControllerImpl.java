@@ -23,6 +23,7 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -58,6 +59,7 @@ import org.apache.ambari.server.actionmanager.RequestFactory;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.agent.ExecutionCommand;
+
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_DB_RCA_DRIVER;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_DB_RCA_PASSWORD;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_DB_RCA_URL;
@@ -80,6 +82,7 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_P
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_REPO_INFO;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_NAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_VERSION;
+
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.RequestOperationLevel;
@@ -130,6 +133,7 @@ import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStopEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostUpgradeEvent;
 import org.apache.ambari.server.utils.StageUtils;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.client.utils.URIBuilder;
@@ -713,6 +717,31 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       }
     }
     return responses;
+  }
+
+  @Override
+  public synchronized void updateMembers(Set<MemberRequest> requests) throws AmbariException {
+    final Map<String, List<String>> membersPerGroup = new HashMap<String, List<String>>();
+    for (MemberRequest request : requests) {
+      if (StringUtils.isBlank(request.getGroupName()) || StringUtils.isBlank(request.getUserName())) {
+        throw new AmbariException("Both group name and user name must be supplied.");
+      }
+      if (membersPerGroup.get(request.getGroupName()) == null) {
+        membersPerGroup.put(request.getGroupName(), new ArrayList<String>());
+      }
+      membersPerGroup.get(request.getGroupName()).add(request.getUserName());
+    }
+    for (Entry<String, List<String>> entry: membersPerGroup.entrySet()) {
+      final String groupName = entry.getKey();
+      final List<String> requiredMembers = entry.getValue();
+      final List<String> currentMembers = users.getAllMembers(groupName);
+      for (String user: (Collection<String>) CollectionUtils.subtract(currentMembers, requiredMembers)) {
+        users.removeMemberFromGroup(groupName, user);
+      }
+      for (String user: (Collection<String>) CollectionUtils.subtract(requiredMembers, currentMembers)) {
+        users.addMemberToGroup(groupName, user);
+      }
+    }
   }
 
   private Stage createNewStage(long id, Cluster cluster, long requestId, String requestContext, String clusterHostInfo) {
@@ -2910,7 +2939,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         } else {
           URLStreamProvider usp = new URLStreamProvider(REPO_URL_CONNECT_TIMEOUT,
               REPO_URL_READ_TIMEOUT, null, null, null);
-          
+
           RepositoryInfo repositoryInfo = ambariMetaInfo.getRepository(rr.getStackName(), rr.getStackVersion(), rr.getOsType(), rr.getRepoId());
           String repoName = repositoryInfo.getRepoName();
 
@@ -2928,7 +2957,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
               spec = rr.getBaseUrl() + suffix.substring(1);
             else
               spec = rr.getBaseUrl() + suffix;
-             
+
             try {
               IOUtils.readLines(usp.readFrom(spec));
             } catch (IOException ioe) {

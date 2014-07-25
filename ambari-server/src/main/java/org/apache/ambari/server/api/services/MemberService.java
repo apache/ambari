@@ -23,6 +23,7 @@ import java.util.Map;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -129,6 +130,20 @@ public class MemberService extends BaseService {
   public Response getMember(@Context HttpHeaders headers, @Context UriInfo ui,
       @PathParam("userName") String userName) {
     return handleRequest(headers, null, ui, Request.Type.GET, createMemberResource(groupName, userName));
+  }
+
+  /**
+   * Updates all members.
+   * Handles: PUT /groups/{groupname}/members requests.
+   *
+   * @param headers    http headers
+   * @param ui         uri info
+   * @return status of the request
+   */
+  @PUT
+  @Produces("text/plain")
+  public Response updateMembers(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
+    return handleRequest(headers, body, ui, Request.Type.PUT, createMemberResource(groupName, null));
   }
 
   /**

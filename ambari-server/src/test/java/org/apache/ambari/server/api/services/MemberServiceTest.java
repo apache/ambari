@@ -73,6 +73,12 @@ public class MemberServiceTest extends BaseServiceTest {
     args = new Object[] {getHttpHeaders(), getUriInfo(), "joe"};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, memberService, m, args, null));
 
+    //updateMembers
+    memberService = new TestMemberService("engineering");
+    m = memberService.getClass().getMethod("updateMembers", String.class, HttpHeaders.class, UriInfo.class);
+    args = new Object[] {"body", getHttpHeaders(), getUriInfo()};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.PUT, memberService, m, args, "body"));
+
     return listInvocations;
   }
 

@@ -305,6 +305,24 @@ public class Users {
     return groups;
   }
 
+  /**
+   * Gets all members of a group specified.
+   *
+   * @param groupName group name
+   * @return list of user names
+   */
+  public List<String> getAllMembers(String groupName) throws AmbariException {
+    final List<String> members = new ArrayList<String>();
+    final GroupEntity groupEntity = groupDAO.findGroupByName(groupName);
+    if (groupEntity == null) {
+      throw new AmbariException("Group " + groupName + " doesn't exist");
+    }
+    for (MemberEntity member: groupEntity.getMemberEntities()) {
+      members.add(member.getUser().getUserName());
+    }
+    return members;
+  }
+
   @Transactional
   public synchronized void removeGroup(Group group) throws AmbariException {
     final GroupEntity groupEntity = groupDAO.findByPK(group.getGroupId());

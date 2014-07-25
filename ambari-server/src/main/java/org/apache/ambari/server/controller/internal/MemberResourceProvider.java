@@ -143,7 +143,7 @@ public class MemberResourceProvider extends AbstractControllerResourceProvider {
     modifyResources(new Command<Void>() {
       @Override
       public Void invoke() throws AmbariException {
-        // do nothing
+        getManagementController().updateMembers(requests);
         return null;
       }
     });

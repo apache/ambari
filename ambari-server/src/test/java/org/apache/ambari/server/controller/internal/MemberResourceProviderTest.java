@@ -90,7 +90,44 @@ public class MemberResourceProviderTest {
 
   @Test
   public void testUpdateResources() throws Exception {
-    // currently provider.updateResources() does nothing, nothing to test
+    Resource.Type type = Resource.Type.Member;
+
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
+    ResourceProviderFactory resourceProviderFactory = createNiceMock(ResourceProviderFactory.class);
+    ResourceProvider memberResourceProvider = createNiceMock(MemberResourceProvider.class);
+
+    AbstractControllerResourceProvider.init(resourceProviderFactory);
+
+    // set expectations
+    expect(resourceProviderFactory.getMemberResourceProvider(anyObject(Set.class), anyObject(Map.class),
+        eq(managementController))).andReturn(memberResourceProvider).anyTimes();
+
+    // replay
+    replay(managementController, response, resourceProviderFactory, memberResourceProvider);
+
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
+        type,
+        PropertyHelper.getPropertyIds(type),
+        PropertyHelper.getKeyPropertyIds(type),
+        managementController);
+
+    // add the property map to a set for the request.
+    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+
+    properties.put(MemberResourceProvider.MEMBER_GROUP_NAME_PROPERTY_ID, "engineering");
+    properties.put(MemberResourceProvider.MEMBER_USER_NAME_PROPERTY_ID, "joe");
+
+    // create the request
+    Request request = PropertyHelper.getUpdateRequest(properties, null);
+
+    PredicateBuilder builder = new PredicateBuilder();
+    builder.property(MemberResourceProvider.MEMBER_GROUP_NAME_PROPERTY_ID).equals("engineering");
+    Predicate predicate = builder.toPredicate();
+    provider.updateResources(request, predicate);
+
+    // verify
+    verify(managementController, response);
   }
 
   @Test

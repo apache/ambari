@@ -249,6 +249,15 @@ public interface AmbariManagementController {
    */
   public void updateGroups(Set<GroupRequest> requests) throws AmbariException;
 
+  /**
+   * Updates the members of the group specified.
+   *
+   * @param requests the members to be set for this group
+   *
+   * @throws AmbariException if the resources cannot be updated
+   */
+  public void updateMembers(Set<MemberRequest> requests) throws AmbariException;
+
 
   // ----- Delete -----------------------------------------------------------
 
