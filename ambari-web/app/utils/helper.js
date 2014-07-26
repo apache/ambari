@@ -740,3 +740,29 @@ DS.attr.transforms.array = {
     return deserialized;
   }
 };
+
+/**
+ *  Utility method to delete all existing records of a DS.Model type from the model's associated map and
+ *  store's persistence layer (recordCache)
+ * @param type DS.Model Class
+ */
+App.resetDsStoreTypeMap = function(type) {
+  var allRecords = App.get('store.recordCache');  //This fetches all records in the ember-data persistence layer
+  var typeMaps = App.get('store.typeMaps');
+  var guidForType = Em.guidFor(type);
+  var typeMap = typeMaps[guidForType];
+  if (typeMap) {
+    var idToClientIdMap = typeMap.idToCid;
+    for (var id in idToClientIdMap) {
+      if (idToClientIdMap.hasOwnProperty(id) && idToClientIdMap[id]) {
+        delete allRecords[idToClientIdMap[id]];  // deletes the cached copy of the record from the store
+      }
+    }
+    typeMaps[guidForType] = {
+      idToCid: {},
+      clientIds: [],
+      cidToHash: {},
+      recordArrays: []
+    };
+  }
+};

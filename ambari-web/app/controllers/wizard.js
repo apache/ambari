@@ -517,20 +517,10 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
   loadedServiceComponents: null,
 
   /**
-   * Clean store from already loaded data.
-   **/
-  clearStackModels: function () {
-    if (App.StackService.find().get('content').length) {
-      App.StackServiceComponent.find().set('content', []);
-      App.StackService.find().set('content', []);
-    }
-  },
-  /**
    * Generate serviceComponents as pr the stack definition  and save it to localdata
    * called form stepController step4WizardController
    */
   loadServiceComponents: function () {
-    this.clearStackModels();
     return App.ajax.send({
       name: 'wizard.service_components',
       sender: this,
@@ -575,7 +565,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
       }, this);
     }
 
-    App.stackServiceMapper.map(jsonData);
+    App.stackServiceMapper.mapStackServices(jsonData);
   },
 
   loadServiceComponentsErrorCallback: function (request, ajaxOptions, error) {

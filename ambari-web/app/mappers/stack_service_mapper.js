@@ -55,6 +55,13 @@ App.stackServiceMapper = App.QuickDataMapper.create({
     }
   },
 
+  mapStackServices: function(json) {
+    this.clearStackModels();
+    App.resetDsStoreTypeMap(App.StackServiceComponent);
+    App.resetDsStoreTypeMap(App.StackService);
+    this.map(json);
+  },
+
   map: function (json) {
     var model = this.get('model');
     var result = [];
@@ -75,10 +82,23 @@ App.stackServiceMapper = App.QuickDataMapper.create({
         result.push(this.parseIt(stackService, this.get('config')));
       }
     }, this);
-    if (!$.mocho)
-      App.store.commit();
     App.store.loadMany(this.get('component_model'), stackServiceComponents);
     App.store.loadMany(model, result);
+  },
+
+  /**
+   * Clean store from already loaded data.
+   **/
+  clearStackModels: function () {
+    var models = [App.StackServiceComponent, App.StackService];
+    models.forEach(function (model) {
+      var records = App.get('store').findAll(model).filterProperty('id');
+      records.forEach(function (rec) {
+        Ember.run(this, function () {
+          rec.deleteRecord();
+        });
+      }, this);
+    }, this);
   },
 
   rearrangeServicesForDisplayOrder: function (array, displayOrderArray) {
