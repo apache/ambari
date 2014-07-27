@@ -29,6 +29,7 @@
     <module>phone-list-view</module>
     <module>calculator-view</module>
     <module>weather-view</module>
+    <module>restricted-view</module>
   </modules>
   <build>
     <pluginManagement>

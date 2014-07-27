@@ -22,8 +22,11 @@ import org.apache.ambari.server.api.resources.SubResourceDefinition;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
+import org.apache.ambari.server.orm.dao.MemberDAO;
+import org.apache.ambari.server.orm.dao.PrivilegeDAO;
 import org.apache.ambari.server.orm.dao.ResourceDAO;
 import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
+import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.dao.ViewDAO;
 import org.apache.ambari.server.orm.dao.ViewInstanceDAO;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
@@ -175,11 +178,21 @@ public class ViewRegistryTest {
     ViewRegistry.setViewDAO(vDAO);
 
     ViewEntity viewDefinition = ViewEntityTest.getViewEntity();
+    viewDefinition.setResourceType(resourceTypeEntity);
 
-    viewDefinition.setInstances(ViewInstanceEntityTest.getViewInstanceEntities(viewDefinition));
+    Set<ViewInstanceEntity> viewInstanceEntities = ViewInstanceEntityTest.getViewInstanceEntities(viewDefinition);
+    viewDefinition.setInstances(viewInstanceEntities);
 
     Map<File, ViewConfig> viewConfigs =
         Collections.singletonMap(viewArchive, viewDefinition.getConfiguration());
+
+    long resourceId = 99L;
+    for (ViewInstanceEntity viewInstanceEntity : viewInstanceEntities) {
+      ResourceEntity resourceEntity = new ResourceEntity();
+      resourceEntity.setId(resourceId);
+      resourceEntity.setResourceType(resourceTypeEntity);
+      viewInstanceEntity.setResource(resourceEntity);
+    }
 
     Map<String, File> files = new HashMap<String, File>();
 
@@ -242,16 +255,9 @@ public class ViewRegistryTest {
     Capture<ViewEntity> captureViewEntity = new Capture<ViewEntity>();
 
     expect(vDAO.findByName("MY_VIEW{1.0.0}")).andReturn(null);
-    expect(vDAO.merge(capture(captureViewEntity))).andReturn(null);
-    expect(vDAO.findByName("MY_VIEW{1.0.0}")).andReturn(viewDefinition);
+    expect(vDAO.merge(capture(captureViewEntity))).andReturn(viewDefinition);
 
     expect(vDAO.findAll()).andReturn(Collections.<ViewEntity>emptyList());
-
-    expect(rtDAO.findByName("MY_VIEW{1.0.0}")).andReturn(resourceTypeEntity);
-
-    Capture<ResourceEntity> resourceEntityCapture = new Capture<ResourceEntity>();
-    rDAO.create(capture(resourceEntityCapture));
-    rDAO.create(capture(resourceEntityCapture));
 
     // replay mocks
     replay(configuration, viewDir, extractedArchiveDir, viewArchive, archiveDir, entryFile, classesDir,
@@ -305,9 +311,21 @@ public class ViewRegistryTest {
     ViewRegistry.setViewDAO(vDAO);
 
     ViewEntity viewDefinition = ViewEntityTest.getViewEntity();
+    viewDefinition.setResourceType(resourceTypeEntity);
+
+    Set<ViewInstanceEntity> viewInstanceEntities = ViewInstanceEntityTest.getViewInstanceEntities(viewDefinition);
+    viewDefinition.setInstances(viewInstanceEntities);
 
     Map<File, ViewConfig> viewConfigs =
         Collections.singletonMap(viewArchive, viewDefinition.getConfiguration());
+
+    long resourceId = 99L;
+    for (ViewInstanceEntity viewInstanceEntity : viewInstanceEntities) {
+      ResourceEntity resourceEntity = new ResourceEntity();
+      resourceEntity.setId(resourceId);
+      resourceEntity.setResourceType(resourceTypeEntity);
+      viewInstanceEntity.setResource(resourceEntity);
+    }
 
     Map<String, File> files = new HashMap<String, File>();
 
@@ -374,11 +392,7 @@ public class ViewRegistryTest {
 
     expect(vDAO.findAll()).andReturn(Collections.<ViewEntity>emptyList());
 
-    expect(rtDAO.findByName("MY_VIEW{1.0.0}")).andReturn(resourceTypeEntity);
-
     Capture<ResourceEntity> resourceEntityCapture = new Capture<ResourceEntity>();
-    rDAO.create(capture(resourceEntityCapture));
-    rDAO.create(capture(resourceEntityCapture));
 
     // replay mocks
     replay(configuration, viewDir, extractedArchiveDir, viewArchive, archiveDir, entryFile, classesDir,
@@ -511,8 +525,11 @@ public class ViewRegistryTest {
     ViewInstanceDAO viewInstanceDAO = createNiceMock(ViewInstanceDAO.class);
     ResourceDAO resourceDAO = createNiceMock(ResourceDAO.class);
     ResourceTypeDAO resourceTypeDAO = createNiceMock(ResourceTypeDAO.class);
+    UserDAO userDAO = createNiceMock(UserDAO.class);
+    MemberDAO memberDAO = createNiceMock(MemberDAO.class);
+    PrivilegeDAO privilegeDAO = createNiceMock(PrivilegeDAO.class);
 
-    ViewRegistry.init(viewDAO, viewInstanceDAO, resourceDAO, resourceTypeDAO);
+    ViewRegistry.init(viewDAO, viewInstanceDAO, resourceDAO, resourceTypeDAO, userDAO, memberDAO, privilegeDAO);
 
     ViewRegistry registry = ViewRegistry.getInstance();
 
@@ -549,8 +566,11 @@ public class ViewRegistryTest {
     ViewInstanceDAO viewInstanceDAO = createNiceMock(ViewInstanceDAO.class);
     ResourceDAO resourceDAO = createNiceMock(ResourceDAO.class);
     ResourceTypeDAO resourceTypeDAO = createNiceMock(ResourceTypeDAO.class);
+    UserDAO userDAO = createNiceMock(UserDAO.class);
+    MemberDAO memberDAO = createNiceMock(MemberDAO.class);
+    PrivilegeDAO privilegeDAO = createNiceMock(PrivilegeDAO.class);
 
-    ViewRegistry.init(viewDAO, viewInstanceDAO, resourceDAO, resourceTypeDAO);
+    ViewRegistry.init(viewDAO, viewInstanceDAO, resourceDAO, resourceTypeDAO, userDAO, memberDAO, privilegeDAO);
 
     ViewRegistry registry = ViewRegistry.getInstance();
 
@@ -582,8 +602,11 @@ public class ViewRegistryTest {
     ViewInstanceDAO viewInstanceDAO = createNiceMock(ViewInstanceDAO.class);
     ResourceDAO resourceDAO = createNiceMock(ResourceDAO.class);
     ResourceTypeDAO resourceTypeDAO = createNiceMock(ResourceTypeDAO.class);
+    UserDAO userDAO = createNiceMock(UserDAO.class);
+    MemberDAO memberDAO = createNiceMock(MemberDAO.class);
+    PrivilegeDAO privilegeDAO = createNiceMock(PrivilegeDAO.class);
 
-    ViewRegistry.init(viewDAO, viewInstanceDAO, resourceDAO, resourceTypeDAO);
+    ViewRegistry.init(viewDAO, viewInstanceDAO, resourceDAO, resourceTypeDAO, userDAO, memberDAO, privilegeDAO);
 
     ViewRegistry registry = ViewRegistry.getInstance();
 
@@ -616,8 +639,11 @@ public class ViewRegistryTest {
     ViewInstanceDAO viewInstanceDAO = createNiceMock(ViewInstanceDAO.class);
     ResourceDAO resourceDAO = createNiceMock(ResourceDAO.class);
     ResourceTypeDAO resourceTypeDAO = createNiceMock(ResourceTypeDAO.class);
+    UserDAO userDAO = createNiceMock(UserDAO.class);
+    MemberDAO memberDAO = createNiceMock(MemberDAO.class);
+    PrivilegeDAO privilegeDAO = createNiceMock(PrivilegeDAO.class);
 
-    ViewRegistry.init(viewDAO, viewInstanceDAO, resourceDAO, resourceTypeDAO);
+    ViewRegistry.init(viewDAO, viewInstanceDAO, resourceDAO, resourceTypeDAO, userDAO, memberDAO, privilegeDAO);
 
     ViewRegistry registry = ViewRegistry.getInstance();
 
@@ -658,8 +684,11 @@ public class ViewRegistryTest {
     ViewInstanceDAO viewInstanceDAO = createNiceMock(ViewInstanceDAO.class);
     ResourceDAO resourceDAO = createNiceMock(ResourceDAO.class);
     ResourceTypeDAO resourceTypeDAO = createNiceMock(ResourceTypeDAO.class);
+    UserDAO userDAO = createNiceMock(UserDAO.class);
+    MemberDAO memberDAO = createNiceMock(MemberDAO.class);
+    PrivilegeDAO privilegeDAO = createNiceMock(PrivilegeDAO.class);
 
-    ViewRegistry.init(viewDAO, viewInstanceDAO, resourceDAO, resourceTypeDAO);
+    ViewRegistry.init(viewDAO, viewInstanceDAO, resourceDAO, resourceTypeDAO, userDAO, memberDAO, privilegeDAO);
 
     ViewRegistry registry = ViewRegistry.getInstance();
 
@@ -698,8 +727,11 @@ public class ViewRegistryTest {
     ViewInstanceDAO viewInstanceDAO = createNiceMock(ViewInstanceDAO.class);
     ResourceDAO resourceDAO = createNiceMock(ResourceDAO.class);
     ResourceTypeDAO resourceTypeDAO = createNiceMock(ResourceTypeDAO.class);
+    UserDAO userDAO = createNiceMock(UserDAO.class);
+    MemberDAO memberDAO = createNiceMock(MemberDAO.class);
+    PrivilegeDAO privilegeDAO = createNiceMock(PrivilegeDAO.class);
 
-    ViewRegistry.init(viewDAO, viewInstanceDAO, resourceDAO, resourceTypeDAO);
+    ViewRegistry.init(viewDAO, viewInstanceDAO, resourceDAO, resourceTypeDAO, userDAO, memberDAO, privilegeDAO);
 
     ViewRegistry registry = ViewRegistry.getInstance();
 

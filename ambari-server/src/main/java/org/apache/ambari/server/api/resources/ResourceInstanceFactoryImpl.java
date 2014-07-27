@@ -254,6 +254,10 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
         resourceDefinition = new PrivilegeResourceDefinition(Resource.Type.ViewPrivilege);
         break;
 
+      case ViewPermission:
+        resourceDefinition = new ViewPermissionResourceDefinition();
+        break;
+
       default:
         throw new IllegalArgumentException("Unsupported resource type: " + type);
     }

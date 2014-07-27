@@ -40,6 +40,7 @@ import org.apache.ambari.server.orm.entities.GroupEntity;
 import org.apache.ambari.server.orm.entities.PrincipalEntity;
 import org.apache.ambari.server.orm.entities.PrincipalTypeEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
+import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 
 import java.util.Collections;
@@ -303,22 +304,26 @@ public abstract class PrivilegeResourceProvider<T> extends AbstractResourceProvi
    * @return the new privilege entity
    */
   protected PrivilegeEntity toEntity(Map<String, Object> properties, Long resourceId) {
-    PrivilegeEntity entity = new PrivilegeEntity();
+    PrivilegeEntity entity         = new PrivilegeEntity();
+    String          permissionName = (String) properties.get(PERMISSION_NAME_PROPERTY_ID);
+    ResourceEntity  resourceEntity = resourceDAO.findById(resourceId);
 
-    String permissionName = (String) properties.get(PERMISSION_NAME_PROPERTY_ID);
-
-    entity.setPermission(permissionDAO.findPermissionByName(permissionName));
-    entity.setResource(resourceDAO.findById(resourceId));
+    entity.setResource(resourceEntity);
+    entity.setPermission(permissionDAO.findPermissionByNameAndType(permissionName, resourceEntity.getResourceType()));
 
     String principalName = (String) properties.get(PRINCIPAL_NAME_PROPERTY_ID);
     String principalType = (String) properties.get(PRINCIPAL_TYPE_PROPERTY_ID);
 
     if (PrincipalTypeEntity.GROUP_PRINCIPAL_TYPE_NAME.equalsIgnoreCase(principalType)) {
       GroupEntity groupEntity = groupDAO.findGroupByName(principalName);
-      entity.setPrincipal(principalDAO.findById(groupEntity.getPrincipal().getId()));
+      if (groupEntity != null) {
+        entity.setPrincipal(principalDAO.findById(groupEntity.getPrincipal().getId()));
+      }
     } else if (PrincipalTypeEntity.USER_PRINCIPAL_TYPE_NAME.equalsIgnoreCase(principalType)) {
       UserEntity userEntity = userDAO.findLocalUserByName(principalName);
-      entity.setPrincipal(principalDAO.findById(userEntity.getPrincipal().getId()));
+      if (userEntity != null) {
+        entity.setPrincipal(principalDAO.findById(userEntity.getPrincipal().getId()));
+      }
     }
     return entity;
   }
@@ -335,6 +340,10 @@ public abstract class PrivilegeResourceProvider<T> extends AbstractResourceProvi
 
         PrivilegeEntity entity = toEntity(properties, resourceId);
 
+        if (entity.getPrincipal() == null) {
+          throw new AmbariException("Can't find principal " + properties.get(PRINCIPAL_TYPE_PROPERTY_ID) +
+              " " + properties.get(PRINCIPAL_NAME_PROPERTY_ID) + " for privilege.");
+        }
         if (privilegeDAO.exists(entity)) {
             throw new DuplicateResourceException("The privilege already exists.");
         }

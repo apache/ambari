@@ -22,9 +22,9 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
+import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 
 import javax.persistence.EntityManager;
-import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
 import java.util.List;
 
@@ -58,24 +58,22 @@ public class PermissionDAO {
    * @return all entities or an empty List
    */
   public List<PermissionEntity> findAll() {
-    TypedQuery<PermissionEntity> query = entityManagerProvider.get().createQuery("SELECT resource FROM PermissionEntity resource", PermissionEntity.class);
+    TypedQuery<PermissionEntity> query = entityManagerProvider.get().createQuery("SELECT p FROM PermissionEntity p", PermissionEntity.class);
     return daoUtils.selectList(query);
   }
 
   /**
-   * Find a permission entity by name.
+   * Find a permission entity by name and type.
    *
-   * @param name  the permission name
+   * @param name         the permission name
+   * @param resourceType the resource type
    *
    * @return  a matching permission entity or null
    */
-  public PermissionEntity findPermissionByName(String name) {
-    final TypedQuery<PermissionEntity> query = entityManagerProvider.get().createNamedQuery("permissionByName", PermissionEntity.class);
+  public PermissionEntity findPermissionByNameAndType(String name, ResourceTypeEntity resourceType) {
+    TypedQuery<PermissionEntity> query = entityManagerProvider.get().createQuery("SELECT p FROM PermissionEntity p WHERE p.permissionName=:permissionname AND p.resourceType=:resourcetype", PermissionEntity.class);
     query.setParameter("permissionname", name);
-    try {
-      return query.getSingleResult();
-    } catch (NoResultException e) {
-      return null;
-    }
+    query.setParameter("resourcetype", resourceType);
+    return daoUtils.selectSingle(query);
   }
 }

@@ -22,7 +22,10 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
+import org.apache.ambari.server.orm.entities.PermissionEntity;
+import org.apache.ambari.server.orm.entities.PrincipalEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
+import org.apache.ambari.server.orm.entities.ResourceEntity;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
@@ -63,19 +66,33 @@ public class PrivilegeDAO {
   }
 
   /**
-   * Determine whether or not the given privilege entity already exists.
+   * Determine whether or not the given privilege entity exists.
    *
    * @param entity  the privilege entity
    *
    * @return true if the given privilege entity already exists
    */
   public boolean exists(PrivilegeEntity entity) {
+    return exists(entity.getPrincipal(), entity.getResource(), entity.getPermission());
+  }
+
+  /**
+   * Determine whether or not the privilege entity exists defined by the given principal, resource and
+   * permission exists.
+   *
+   * @param principalEntity   the principal entity
+   * @param resourceEntity    the resource entity
+   * @param permissionEntity  the permission entity
+   *
+   * @return true if the privilege entity already exists
+   */
+  public boolean exists(PrincipalEntity principalEntity, ResourceEntity resourceEntity, PermissionEntity permissionEntity) {
     TypedQuery<PrivilegeEntity> query = entityManagerProvider.get().createQuery(
         "SELECT privilege FROM PrivilegeEntity privilege WHERE privilege.principal = :principal AND privilege.resource = :resource AND privilege.permission = :permission", PrivilegeEntity.class);
 
-    query.setParameter("principal", entity.getPrincipal());
-    query.setParameter("resource", entity.getResource());
-    query.setParameter("permission", entity.getPermission());
+    query.setParameter("principal", principalEntity);
+    query.setParameter("resource", resourceEntity);
+    query.setParameter("permission", permissionEntity);
 
     List<PrivilegeEntity> privilegeEntities = daoUtils.selectList(query);
     return !(privilegeEntities == null || privilegeEntities.isEmpty());

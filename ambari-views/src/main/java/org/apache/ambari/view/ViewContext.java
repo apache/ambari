@@ -41,6 +41,18 @@ public interface ViewContext {
   public String getUsername();
 
   /**
+   * Determine whether or not the access specified by the given permission name
+   * is permitted for the given user.
+   *
+   * @param userName        the user name
+   * @param permissionName  the permission name
+   *
+   * @throws SecurityException if the access specified by the given permission name
+   *         is not permitted
+   */
+  public void hasPermission(String userName, String permissionName) throws SecurityException;
+
+  /**
    * Get the view name.
    *
    * @return the view name

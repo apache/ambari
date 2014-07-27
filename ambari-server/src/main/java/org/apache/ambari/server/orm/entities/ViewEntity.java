@@ -121,6 +121,18 @@ public class ViewEntity implements ViewDefinition {
   @OneToMany(cascade = CascadeType.ALL, mappedBy = "view")
   private Collection<ViewInstanceEntity> instances = new HashSet<ViewInstanceEntity>();
 
+  /**
+   * The list of view permissions.
+   */
+  @OneToMany(cascade = CascadeType.ALL)
+  @JoinColumns({
+      @JoinColumn(name = "resource_type_id", referencedColumnName = "resource_type_id", nullable = false),
+  })
+  private Collection<PermissionEntity> permissions = new HashSet<PermissionEntity>();
+
+  /**
+   * The resource type.
+   */
   @ManyToOne
   @JoinColumns({
       @JoinColumn(name = "resource_type_id", referencedColumnName = "resource_type_id", nullable = false),
@@ -349,6 +361,41 @@ public class ViewEntity implements ViewDefinition {
    */
   public void setParameters(Collection<ViewParameterEntity> parameters) {
     this.parameters = parameters;
+  }
+
+  /**
+   * Get the view custom permissions.
+   *
+   * @return the view permissions
+   */
+  public Collection<PermissionEntity> getPermissions() {
+    return permissions;
+  }
+
+  /**
+   * Set the custom view permissions.
+   *
+   * @param permissions  the permissions
+   */
+  public void setPermissions(Collection<PermissionEntity> permissions) {
+    this.permissions = permissions;
+  }
+
+  /**
+   * Get the permission entity for the given permission name.
+   *
+   * @param permissionName  the permission name
+   *
+   * @return the matching permission entity or null
+   */
+  public PermissionEntity getPermission(String permissionName) {
+
+    for (PermissionEntity permissionEntity : permissions) {
+      if (permissionEntity.getPermissionName().equals(permissionName)) {
+        return permissionEntity;
+      }
+    }
+    return null;
   }
 
   /**

@@ -20,22 +20,22 @@ package org.apache.ambari.server.api.resources;
 
 import org.apache.ambari.server.controller.spi.Resource;
 
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.Set;
 
 
 /**
- * View version resource definition.
+ * Permission resource definition.
  */
-public class ViewVersionResourceDefinition extends BaseResourceDefinition {
+public class ViewPermissionResourceDefinition extends BaseResourceDefinition {
 
   // ----- Constructors ------------------------------------------------------
 
   /**
-   * Construct a view version resource definition.
+   * Construct a permission resource definition.
    */
-  public ViewVersionResourceDefinition() {
-    super(Resource.Type.ViewVersion);
+  public ViewPermissionResourceDefinition() {
+    super(Resource.Type.ViewPermission);
   }
 
 
@@ -43,19 +43,16 @@ public class ViewVersionResourceDefinition extends BaseResourceDefinition {
 
   @Override
   public String getPluralName() {
-    return "versions";
+    return "permissions";
   }
 
   @Override
   public String getSingularName() {
-    return "version";
+    return "permission";
   }
 
   @Override
   public Set<SubResourceDefinition> getSubResourceDefinitions() {
-    Set<SubResourceDefinition> subResourceDefinitions = new HashSet<SubResourceDefinition>();
-    subResourceDefinitions.add(new SubResourceDefinition(Resource.Type.ViewInstance));
-    subResourceDefinitions.add(new SubResourceDefinition(Resource.Type.ViewPermission));
-    return subResourceDefinitions;
+    return Collections.emptySet();
   }
 }

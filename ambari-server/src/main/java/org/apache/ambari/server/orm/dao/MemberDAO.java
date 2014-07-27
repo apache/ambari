@@ -29,6 +29,7 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
+import org.apache.ambari.server.orm.entities.UserEntity;
 
 @Singleton
 public class MemberDAO {
@@ -44,7 +45,13 @@ public class MemberDAO {
 
   @RequiresSession
   public List<MemberEntity> findAll() {
-    final TypedQuery<MemberEntity> query = entityManagerProvider.get().createQuery("SELECT member FROM MemberEntity member", MemberEntity.class);
+    final TypedQuery<MemberEntity> query = entityManagerProvider.get().createQuery("SELECT m FROM MemberEntity m", MemberEntity.class);
+    return daoUtils.selectList(query);
+  }
+
+  public List<MemberEntity> findAllMembersByUser(UserEntity userEntity) {
+    TypedQuery<MemberEntity> query = entityManagerProvider.get().createQuery("SELECT m FROM MemberEntity m WHERE m.user = :userEntity", MemberEntity.class);
+    query.setParameter("userEntity", userEntity);
     return daoUtils.selectList(query);
   }
 

@@ -24,31 +24,26 @@ import org.junit.Test;
 import java.util.Set;
 
 /**
- * ViewVersionResourceDefinition tests.
+ * ViewPermissionResourceDefinition tests.
  */
-public class ViewVersionResourceDefinitionTest {
+public class ViewPermissionResourceDefinitionTest {
   @Test
   public void testGetPluralName() throws Exception {
-    ViewVersionResourceDefinition viewVersionResourceDefinition = new ViewVersionResourceDefinition();
-    Assert.assertEquals("versions", viewVersionResourceDefinition.getPluralName());
+    ViewPermissionResourceDefinition ViewPermissionResourceDefinition = new ViewPermissionResourceDefinition();
+    Assert.assertEquals("permissions", ViewPermissionResourceDefinition.getPluralName());
   }
 
   @Test
   public void testGetSingularName() throws Exception {
-    ViewVersionResourceDefinition viewVersionResourceDefinition = new ViewVersionResourceDefinition();
-    Assert.assertEquals("version", viewVersionResourceDefinition.getSingularName());
+    ViewPermissionResourceDefinition ViewPermissionResourceDefinition = new ViewPermissionResourceDefinition();
+    Assert.assertEquals("permission", ViewPermissionResourceDefinition.getSingularName());
   }
 
   @Test
   public void testGetSubResourceDefinitions() throws Exception {
-    ViewVersionResourceDefinition viewVersionResourceDefinition = new ViewVersionResourceDefinition();
-    Set<SubResourceDefinition> subResourceDefinitions = viewVersionResourceDefinition.getSubResourceDefinitions ();
+    ViewPermissionResourceDefinition ViewPermissionResourceDefinition = new ViewPermissionResourceDefinition();
+    Set<SubResourceDefinition> subResourceDefinitions = ViewPermissionResourceDefinition.getSubResourceDefinitions ();
 
-    Assert.assertEquals(2, subResourceDefinitions.size());
-
-    for (SubResourceDefinition subResourceDefinition : subResourceDefinitions) {
-      String name = subResourceDefinition.getType().name();
-      Assert.assertTrue(name.equals("ViewInstance") || name.equals("ViewPermission"));
-    }
+    Assert.assertTrue(subResourceDefinitions.isEmpty());
   }
 }

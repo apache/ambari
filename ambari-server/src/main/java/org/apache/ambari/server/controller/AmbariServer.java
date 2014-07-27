@@ -53,12 +53,14 @@ import org.apache.ambari.server.controller.internal.PrivilegeResourceProvider;
 import org.apache.ambari.server.controller.internal.RecommendationResourceProvider;
 import org.apache.ambari.server.controller.internal.StackDefinedPropertyProvider;
 import org.apache.ambari.server.controller.internal.StackDependencyResourceProvider;
+import org.apache.ambari.server.controller.internal.ViewPermissionResourceProvider;
 import org.apache.ambari.server.controller.nagios.NagiosPropertyProvider;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.PersistenceType;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.BlueprintDAO;
 import org.apache.ambari.server.orm.dao.GroupDAO;
+import org.apache.ambari.server.orm.dao.MemberDAO;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
 import org.apache.ambari.server.orm.dao.PermissionDAO;
 import org.apache.ambari.server.orm.dao.PrincipalDAO;
@@ -541,11 +543,14 @@ public class AmbariServer {
     ClusterResourceProvider.init(injector.getInstance(BlueprintDAO.class), ambariMetaInfo);
     AlertDefinitionResourceProvider.init(injector.getInstance(AlertDefinitionDAO.class));
     PermissionResourceProvider.init(injector.getInstance(PermissionDAO.class));
+    ViewPermissionResourceProvider.init(injector.getInstance(PermissionDAO.class));
     PrivilegeResourceProvider.init(injector.getInstance(PrivilegeDAO.class), injector.getInstance(UserDAO.class),
         injector.getInstance(GroupDAO.class), injector.getInstance(PrincipalDAO.class),
         injector.getInstance(PermissionDAO.class), injector.getInstance(ResourceDAO.class));
     ViewRegistry.init(injector.getInstance(ViewDAO.class), injector.getInstance(ViewInstanceDAO.class),
-        injector.getInstance(ResourceDAO.class), injector.getInstance(ResourceTypeDAO.class));
+        injector.getInstance(ResourceDAO.class), injector.getInstance(ResourceTypeDAO.class),
+        injector.getInstance(UserDAO.class), injector.getInstance(MemberDAO.class),
+        injector.getInstance(PrivilegeDAO.class));
   }
 
   /**

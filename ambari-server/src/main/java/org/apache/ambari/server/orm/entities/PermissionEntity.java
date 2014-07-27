@@ -43,10 +43,6 @@ import javax.persistence.TableGenerator;
     , initialValue = 5
     , allocationSize = 1
 )
-
-@NamedQueries({
-    @NamedQuery(name = "permissionByName", query = "SELECT permission_entity FROM PermissionEntity permission_entity where permission_entity.permissionName=:permissionname")
-})
 public class PermissionEntity {
 
   /**
@@ -137,17 +133,14 @@ public class PermissionEntity {
 
     PermissionEntity that = (PermissionEntity) o;
 
-    if (!id.equals(that.id)) return false;
-    if (permissionName != null ? !permissionName.equals(that.permissionName) : that.permissionName != null)
-      return false;
-    if (resourceType != null ? !resourceType.equals(that.resourceType) : that.resourceType != null) return false;
-
-    return true;
+    return !(id != null ? !id.equals(that.id) : that.id != null) &&
+        !(permissionName != null ? !permissionName.equals(that.permissionName) : that.permissionName != null) &&
+        !(resourceType != null ? !resourceType.equals(that.resourceType) : that.resourceType != null);
   }
 
   @Override
   public int hashCode() {
-    int result = id.hashCode();
+    int result = id != null ? id.hashCode() : 0;
     result = 31 * result + (permissionName != null ? permissionName.hashCode() : 0);
     result = 31 * result + (resourceType != null ? resourceType.hashCode() : 0);
     return result;

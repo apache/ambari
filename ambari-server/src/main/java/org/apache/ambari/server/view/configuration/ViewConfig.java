@@ -109,6 +109,12 @@ public class ViewConfig {
   private PersistenceConfig persistence;
 
   /**
+   * The list of view parameters.
+   */
+  @XmlElement(name="permission")
+  private List<PermissionConfig> permissions;
+
+  /**
    * Get the unique name.
    *
    * @return the view name
@@ -240,5 +246,14 @@ public class ViewConfig {
    */
   public PersistenceConfig getPersistence() {
     return persistence;
+  }
+
+  /**
+   * Get the list of custom permissions defined for the view.
+   *
+   * @return the list of custom permissions
+   */
+  public List<PermissionConfig> getPermissions() {
+    return permissions == null ? Collections.<PermissionConfig>emptyList() : permissions;
   }
 }
