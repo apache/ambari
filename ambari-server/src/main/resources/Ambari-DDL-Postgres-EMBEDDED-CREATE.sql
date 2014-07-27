@@ -376,7 +376,7 @@ INSERT INTO ambari.ambari_sequences (sequence_name, "value")
   union all
   select 'alert_history_id_seq', 0
   union all
-  select 'alert_notice_id_seq', 0,
+  select 'alert_notice_id_seq', 0
   union all
   select 'alert_current_id_seq', 0;
   
