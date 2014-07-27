@@ -2982,52 +2982,6 @@ module.exports =
       "category": "Advanced",
       "index": 1
     },
-  /**********************************************HUE***************************************/
-    {
-      "id": "puppet var",
-      "name": "hueserver_host",
-      "displayName": "Hue Server host",
-      "value": "",
-      "defaultValue": "",
-      "description": "The host that has been assigned to run Hue Server",
-      "displayType": "masterHost",
-      "isOverridable": false,
-      "isRequiredByAgent": false,
-      "isVisible": true,
-      "serviceName": "HUE",
-      "filename": "hue-env.xml",
-      "category": "Hue Server"
-    },
-    {
-      "id": "puppet var",
-      "name": "hue_log_dir",
-      "displayName": "HUE Log Dir",
-      "description": "Directory for HUE logs",
-      "defaultValue": "/var/log/hue",
-      "isReconfigurable": false,
-      "displayType": "directory",
-      "isOverridable": false,
-      "isRequiredByAgent": false,
-      "isVisible": true,
-      "serviceName": "HUE",
-      "filename": "hue-env.xml",
-      "category": "Advanced"
-    },
-    {
-      "id": "puppet var",
-      "name": "hue_pid_dir",
-      "displayName": "HUE Pid Dir",
-      "description": "Directory in which the pid files for HUE processes will be created",
-      "defaultValue": "/var/run/hue",
-      "isReconfigurable": false,
-      "displayType": "directory",
-      "isOverridable": false,
-      "isRequiredByAgent": false,
-      "isVisible": true,
-      "serviceName": "HUE",
-      "filename": "hue-env.xml",
-      "category": "Advanced"
-    },
   /**********************************************GANGLIA***************************************/
     {
       "id": "puppet var",
