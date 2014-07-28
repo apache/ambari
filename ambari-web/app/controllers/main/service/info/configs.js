@@ -957,12 +957,14 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * On save configs handler. Open save configs popup with appropriate message.
    */
   onDoPUTClusterConfigurations: function () {
-    var header, message, messageClass, value, status, urlParams = '';
-    var result = {
+    var header, message, messageClass, value, status, urlParams = '',
+    result = {
       flag: this.get('saveConfigsFlag'),
       message: null,
       value: null
-    };
+    },
+    extendedModel = App.Service.extendedModel[this.get('content.serviceName')],
+    currentService = extendedModel ? App[extendedModel].find(this.get('content.serviceName')) : App.Service.find(this.get('content.serviceName'));
 
     if (!result.flag) {
       result.message = Em.I18n.t('services.service.config.failSaveConfig');
@@ -991,6 +993,10 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       message = result.message;
       messageClass = 'alert alert-error';
       value = result.value;
+    }
+    if(currentService){
+      App.QuickViewLinks.proto().set('content', currentService);
+      App.QuickViewLinks.proto().loadTags();
     }
     this.showSaveConfigsPopup(header, flag, message, messageClass, value, status, urlParams);
   },
