@@ -246,7 +246,7 @@ module.exports = App.WizardRoute.extend({
     next: function (router) {
       var addServiceController = router.get('addServiceController');
       var wizardStep8Controller = router.get('wizardStep8Controller');
-      addServiceController.installServices(false, function () {
+      addServiceController.installServices(function () {
         addServiceController.setInfoForStep9();
 
         addServiceController.saveClusterState('ADD_SERVICES_INSTALLING_3');
@@ -278,8 +278,7 @@ module.exports = App.WizardRoute.extend({
       var wizardStep9Controller = router.get('wizardStep9Controller');
       if (wizardStep9Controller.get('showRetry')) {
         if (wizardStep9Controller.get('content.cluster.status') === 'INSTALL FAILED') {
-          var isRetry = true;
-          addServiceController.installServices(isRetry, function () {
+          addServiceController.installServices(function () {
             addServiceController.setInfoForStep9();
             wizardStep9Controller.resetHostsForRetry();
             // We need to do recovery based on whether we are in Add Host or Installer wizard
