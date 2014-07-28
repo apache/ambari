@@ -578,11 +578,11 @@
       <contributors>
          <contributor>
          <name>Scott Creeley</name>
-         <organization>RedHat</organization>
+         <organization>Redhat</organization>
          </contributor>
          <contributor>
          <name>Michael Harp</name>
-         <organization>TeraData</organization>
+         <organization>Teradata</organization>
          </contributor>
          <contributor>
          <name>Janos Matyas</name>
@@ -590,11 +590,11 @@
          </contributor>
          <contributor>
          <name>Greg Hill</name>
-         <organization>OpenStack</organization>
+         <organization>Rackspace</organization>
          </contributor>
          <contributor>
          <name>Steve Ratay</name>
-         <organization>TeraData</organization>
+         <organization>Teradata</organization>
          </contributor>
        </contributors>
 
