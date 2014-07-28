@@ -20,7 +20,7 @@ var App = require('app');
 
 App.SummaryMasterComponentsView = Em.View.extend({
   templateName: require('templates/main/service/info/summary/master_components'),
-  masterComp: null,
+  mastersComp: null,
   didInsertElement: function() {
     App.tooltip($('[rel=healthTooltip]'));
   }

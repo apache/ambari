@@ -57,34 +57,7 @@ App.HostComponent = DS.Model.extend({
    * @returns {bool}
    */
   isMaster: function () {
-    switch (this.get('componentName')) {
-      case 'NAMENODE':
-      case 'SECONDARY_NAMENODE':
-      case 'SNAMENODE':
-      case 'JOURNALNODE':
-      case 'JOBTRACKER':
-      case 'ZOOKEEPER_SERVER':
-      case 'HIVE_SERVER':
-      case 'HIVE_METASTORE':
-      case 'MYSQL_SERVER':
-      case 'HBASE_MASTER':
-      case 'NAGIOS_SERVER':
-      case 'GANGLIA_SERVER':
-      case 'OOZIE_SERVER':
-      case 'WEBHCAT_SERVER':
-      case 'HUE_SERVER':
-      case 'HISTORYSERVER':
-      case 'FALCON_SERVER':
-      case 'NIMBUS':
-      case 'STORM_UI_SERVER':
-      case 'DRPC_SERVER':
-      case 'STORM_REST_API':
-      case 'RESOURCEMANAGER':
-      case 'APP_TIMELINE_SERVER':
-        return true;
-      default:
-        return false;
-    }
+    return App.get('components.masters').contains(this.get('componentName'));
   }.property('componentName'),
 
   /**
@@ -92,19 +65,7 @@ App.HostComponent = DS.Model.extend({
    * @returns {bool}
    */
   isSlave: function(){
-    switch (this.get('componentName')) {
-      case 'DATANODE':
-      case 'TASKTRACKER':
-      case 'HBASE_REGIONSERVER':
-      case 'GANGLIA_MONITOR':
-      case 'NODEMANAGER':
-      case 'ZKFC':
-      case 'SUPERVISOR':
-      case 'FLUME_HANDLER':
-        return true;
-      default:
-        return false;
-    }
+    return App.get('components.slaves').contains(this.get('componentName'));
   }.property('componentName'),
   /**
    * Only certain components can be deleted.
@@ -114,24 +75,8 @@ App.HostComponent = DS.Model.extend({
    * @returns {bool}
    */
   isDeletable: function() {
-    var canDelete = false;
-    switch (this.get('componentName')) {
-      case 'DATANODE':
-      case 'TASKTRACKER':
-      case 'ZOOKEEPER_SERVER':
-      case 'HBASE_REGIONSERVER':
-      case 'GANGLIA_MONITOR':
-      case 'SUPERVISOR':
-      case 'NODEMANAGER':
-        canDelete = true;
-        break;
-      default:
-    }
-    if (!canDelete) {
-      canDelete = this.get('isClient');
-    }
-    return canDelete;
-  }.property('componentName', 'isClient'),
+    return App.get('components.deletable').contains(this.get('componentName'));
+  }.property('componentName'),
   /**
    * A host-component is decommissioning when it is in HDFS service's list of
    * decomNodes.

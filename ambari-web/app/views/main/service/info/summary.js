@@ -329,7 +329,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     return graphs;
   }.property(''),
 
-  loadServiceSummary: function (serviceName) {
+  loadServiceSummary: function () {
     var serviceName = this.get('serviceName');
     var serviceSummaryView = null;
 
