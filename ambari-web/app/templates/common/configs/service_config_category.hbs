@@ -1,0 +1,101 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+<div class="accordion-heading" {{action "onToggleBlock" category target="view"}}>
+  <i {{bindAttr class=":pull-left :accordion-toggle view.category.isCollapsed:icon-caret-right:icon-caret-down"}}></i>
+  <a class="accordion-toggle">{{view.category.displayName}}</a>
+</div>
+
+<div class="accordion-body collapse in" {{bindAttr style="view.isCategoryBodyVisible"}}>
+  <div class="accordion-inner service-config-section">
+    <form class="form-horizontal" autocomplete="off">
+
+      {{#each view.filteredCategoryConfigs}}
+        <div {{bindAttr class=":entry-row isOverridden:overridden-property isComparison:overridden-property"}}>
+          {{#if showLabel}}
+            <span {{bindAttr class="errorMessage:error: :control-group :control-label-span"}}>
+                              <label class="control-label">
+                                {{formatWordBreak displayName}}
+                                {{#if App.supports.secureCluster}}
+                                  {{#if isSecureConfig}}
+                                    <a href="javascript:void(null);"><i class="icon-lock" rel="tooltip" data-toggle="tooltip" title="security knob"></i></a>
+                                  {{/if}}
+                                {{/if}}
+                                {{#if view.supportsHostOverrides}}
+                                  {{#if isRestartRequired}}
+                                    <i class="icon-refresh restart-required-property" rel="tooltip" {{bindAttr title="restartRequiredMessage"}}></i>
+                                  {{/if}}
+                                {{/if}}
+                              </label>
+                            </span>
+          {{/if}}
+          <div {{bindAttr class="showLabel:controls"}}>
+            {{! Here serviceConfigBinding should ideally be serviceConfigPropertyBinding }}
+            <div {{bindAttr class="errorMessage:error: warnMessage:warning: :control-group"}}>
+              {{view viewClass serviceConfigBinding="this" categoryConfigsAllBinding="view.categoryConfigsAll" }}
+              {{#if view.canEdit}}
+                {{#if isPropertyOverridable}}
+                  {{#if view.supportsHostOverrides}}
+                    {{#if App.isAdmin}}
+                      <a class="action" {{action "createOverrideProperty" this target="view" }} ><i class="icon-plus-sign"></i>{{t common.override}}</a>
+                    {{/if}}
+                  {{/if}}
+                {{/if}}
+                {{#unless cantBeUndone}}
+                  {{#if isNotDefaultValue}}
+                    <a class="action" {{action "doRestoreDefaultValue" this target="view" }} ><i class="icon-undo"></i>{{t common.undo}}</a>
+                  {{/if}}
+                {{/unless}}
+                {{#if isRemovable}}
+                  {{#if App.isAdmin}}
+                    <a class="action" {{action "removeProperty" this target="view" }} ><i class="icon-minus-sign"></i>{{t common.remove}}</a>
+                  {{/if}}
+                {{/if}}
+                {{#if supportsFinal}}
+                  <label class="checkbox inline">{{view Ember.Checkbox checkedBinding="isFinal"}}{{t services.service.config.final}}</label>
+                {{/if}}
+              {{/if}}
+              <span class="help-inline">{{errorMessage}}</span>
+              <span class="help-inline">{{warnMessage}}</span>
+            </div>
+            {{#if this.isOverridden}}
+              {{view App.ServiceConfigView.SCPOverriddenRowsView serviceConfigPropertyBinding="this" isDefaultGroupSelectedBinding="controller.selectedConfigGroup.isDefault"}}
+            {{/if}}
+            {{#if this.isComparison}}
+              {{view App.ServiceConfigView.SCPComparisonRowsView serviceConfigPropertyBinding="this"}}
+            {{/if}}
+          </div>
+        </div>
+        {{#if this.additionalView}}
+          {{view additionalView}}
+        {{/if}}
+      {{/each}}
+
+      {{! For Advanced, Advanced Core Site, Advanced HDFS Site sections, show the 'Add Property' link.}}
+      {{#if App.isAdmin}}
+        {{#if view.canEdit}}
+          {{#if view.category.customCanAddProperty }}
+            <div>
+              <a href="#" {{action "showAddPropertyWindow" this target="view" }} >{{t installer.step7.config.addProperty}}...</a>
+            </div>
+          {{/if}}
+        {{/if}}
+      {{/if}}
+    </form>
+  </div>
+</div>

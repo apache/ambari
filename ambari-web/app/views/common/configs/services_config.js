@@ -60,7 +60,9 @@ App.ServiceConfigView = Em.View.extend({
     if(this.get('isNotEditable') === true) {
       this.set('canEdit', false);
     }
-    this.$('.service-body').hide();
+    if (this.$('.service-body')) {
+      this.$('.service-body').hide();
+    }
     App.tooltip($(".restart-required-property"), {html: true});
     App.tooltip($(".icon-lock"), {placement: 'right'});
     this.checkCanEdit();
@@ -94,6 +96,8 @@ App.ServiceConfigView = Em.View.extend({
 
 
 App.ServiceConfigsByCategoryView = Ember.View.extend(App.UserPref, {
+
+  templateName: require('templates/common/configs/service_config_category'),
 
   classNames: ['accordion-group', 'common-config-category'],
   classNameBindings: ['category.name', 'isShowBlock::hidden'],
@@ -375,7 +379,7 @@ App.ServiceConfigsByCategoryView = Ember.View.extend(App.UserPref, {
     var categoryBlock = $('.' + this.get('category.name').split(' ').join('.') + '>.accordion-body');
     filteredResult.length && !this.get('category.isCollapsed') ? categoryBlock.show() : categoryBlock.hide();
     return filteredResult;
-  }.property('categoryConfigs', 'parentView.filter', 'parentView.columns.@each.selected'),
+  }.property('categoryConfigs', 'parentView.filter', 'parentView.columns.@each.selected').cacheable(),
 
   /**
    * sort configs in current category by index
@@ -723,6 +727,60 @@ App.ServiceConfigsByCategoryView = Ember.View.extend(App.UserPref, {
       serviceConfigController.addOverrideProperty(serviceConfigProperty);
     }
   }
+});
+
+App.ServiceConfigContainerView = Em.ContainerView.extend({
+  view: null,
+  pushView: function () {
+    if (this.get('controller.selectedService')) {
+      var self = this;
+      var controllerRoute = 'App.router.' + this.get('controller.name');
+      if (!this.get('view')) {
+        this.get('childViews').pushObject(App.ServiceConfigView.create({
+          templateName: require('templates/common/configs/service_config_wizard'),
+          controllerBinding: controllerRoute,
+          isNotEditableBinding: controllerRoute + '.isNotEditable',
+          filterBinding: controllerRoute + '.filter',
+          columnsBinding: controllerRoute + '.filterColumns',
+          selectedServiceBinding: controllerRoute + '.selectedService',
+          serviceConfigsByCategoryView: Em.ContainerView.create(),
+          willDestroyElement: function () {
+            $('.loading').append(Em.I18n.t('app.loadingPlaceholder'));
+          },
+          didInsertElement: function () {
+            $('.loading').empty();
+            this._super();
+          }
+        }));
+      } else {
+        this.get('childViews').pushObject(this.get('view'));
+      }
+      this.get('controller.selectedService.configCategories').forEach(function (item) {
+        var categoryView = item.get('isCustomView') ? (App.get('supports.capacitySchedulerUi') ? item.get('customView') : null) : App.ServiceConfigsByCategoryView;
+        if (categoryView !== null) {
+          self.get('childViews.lastObject.serviceConfigsByCategoryView.childViews').pushObject(categoryView.extend({
+            category: item,
+            controllerBinding: controllerRoute,
+            canEditBinding: 'parentView.canEdit',
+            serviceBinding: controllerRoute + '.selectedService',
+            serviceConfigsBinding: controllerRoute + '.selectedService.configs',
+            supportsHostOverridesBinding: 'parentView.supportsHostOverrides'
+          }));
+        }
+      });
+    }
+  },
+  selectedServiceObserver: function () {
+    if (this.get('childViews.length')) {
+      var view = this.get('childViews.firstObject');
+      if (view.get('serviceConfigsByCategoryView.childViews.length')) {
+        view.get('serviceConfigsByCategoryView.childViews').clear();
+      }
+      view.removeFromParent();
+      this.set('view', view);
+    }
+    this.pushView();
+  }.observes('controller.selectedService')
 });
 
 App.ServiceConfigTab = Ember.View.extend({
