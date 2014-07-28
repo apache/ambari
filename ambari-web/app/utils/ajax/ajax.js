@@ -405,6 +405,10 @@ var urls = {
     'real': '/clusters/{clusterName}/services/{serviceName}/components/{componentName}/?fields=ServiceComponentInfo,host_components/HostRoles/state',
     'mock': ''
   },
+  'host_components.hbase_regionserver.active': {
+    'real': '/clusters/{clusterName}/host_components?HostRoles/component_name=HBASE_REGIONSERVER&HostRoles/maintenance_state=OFF&HostRoles/desired_admin_state=INSERVICE&HostRoles/host_name.in({hostNames})',
+    'mock': ''
+  },
   'host.host_component.decommission_status_datanode': {
     'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}?fields=metrics/dfs/namenode',
     'mock': ''

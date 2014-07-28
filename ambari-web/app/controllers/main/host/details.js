@@ -858,9 +858,8 @@ App.MainHostDetailsController = Em.Controller.extend({
         this.doDecommission(hostName, svcName, "JOBTRACKER", "TASKTRACKER");
         break;
       case 'HBASE':
-        this.doDecommissionRegionServer(hostName, svcName, "HBASE_MASTER", "HBASE_REGIONSERVER");
+        this.warnBeforeDecommission(hostName);
     }
-    this.showBackgroundOperationsPopup();
   },
 
   /**
@@ -925,9 +924,42 @@ App.MainHostDetailsController = Em.Controller.extend({
   },
 
   /**
+   * check is hbase regionserver in mm. If so - run decommission
+   * otherwise shows warning
+   * @method warnBeforeDecommission
+   * @param {string} hostNames - list of host when run from bulk operations or current host
+   */
+
+  warnBeforeDecommission: function(hostNames) {
+    if (this.get('content.hostComponents').findProperty('componentName', 'HBASE_REGIONSERVER').get('passiveState') == "OFF") {
+      this.showHbaseActiveWarning();
+    } else {
+      this.doDecommissionRegionServer(hostNames, "HBASE", "HBASE_MASTER", "HBASE_REGIONSERVER");
+    }
+  },
+
+  /**
+   * shows warning: put hbase regionserver in passive state
+   * @method showHbaseActiveWarning
+   * @return {App.ModalPopup}
+   */
+  showHbaseActiveWarning: function() {
+    return App.ModalPopup.show({
+      header: Em.I18n.t('common.warning'),
+      message: function(){
+        return Em.I18n.t('hostPopup.reccomendation.beforeDecommission').format(App.format.components["HBASE_REGIONSERVER"]);
+      }.property(),
+      bodyClass: Ember.View.extend({
+        template: Em.Handlebars.compile('<div class="alert alert-warning">{{message}}</div>')
+      }),
+      secondary: false
+    });
+  },
+
+  /**
    * Performs Decommission (for RegionServer)
    * @method doDecommissionRegionServer
-   * @param {string[]} hostNames - list of host when run from bulk operations or current host
+   * @param {string} hostNames - list of host when run from bulk operations or current host
    * @param {string} serviceName - serviceName
    * @param {string} componentName - master compoent name
    * @param {string} slaveType - slave component name
@@ -943,7 +975,7 @@ App.MainHostDetailsController = Em.Controller.extend({
           {
             "order_id": 1,
             "type": "POST",
-            "uri": App.apiPrefix + "/clusters/" + App.get('clusterName') + "/requests",
+            "uri": App.get('apiPrefix') + "/clusters/" + App.get('clusterName') + "/requests",
             "RequestBodyInfo": {
               "RequestInfo": {
                 "context": Em.I18n.t('hosts.host.regionserver.decommission.batch1'),
@@ -967,7 +999,7 @@ App.MainHostDetailsController = Em.Controller.extend({
           {
             "order_id": 2,
             "type": "PUT",
-            "uri": App.apiPrefix + "/clusters/" + App.get('clusterName') + "/host_components",
+            "uri": App.get('apiPrefix') + "/clusters/" + App.get('clusterName') + "/host_components",
             "RequestBodyInfo": {
               "RequestInfo": {
                 context: Em.I18n.t('hosts.host.regionserver.decommission.batch2'),
@@ -983,7 +1015,7 @@ App.MainHostDetailsController = Em.Controller.extend({
           {
             "order_id": 3,
             "type": "POST",
-            "uri": App.apiPrefix + "/clusters/" + App.get('clusterName') + "/requests",
+            "uri": App.get('apiPrefix') + "/clusters/" + App.get('clusterName') + "/requests",
             "RequestBodyInfo": {
               "RequestInfo": {
                 "context": Em.I18n.t('hosts.host.regionserver.decommission.batch3'),

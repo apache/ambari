@@ -721,17 +721,14 @@ describe('App.MainHostDetailsController', function () {
     it('HDFS service', function () {
       controller.runDecommission('host1', 'HDFS');
       expect(controller.doDecommission.calledWith('host1', 'HDFS', "NAMENODE", "DATANODE")).to.be.true;
-      expect(controller.showBackgroundOperationsPopup.calledOnce).to.be.true;
     });
     it('YARN service', function () {
       controller.runDecommission('host1', 'YARN');
       expect(controller.doDecommission.calledWith('host1', 'YARN', "RESOURCEMANAGER", "NODEMANAGER")).to.be.true;
-      expect(controller.showBackgroundOperationsPopup.calledOnce).to.be.true;
     });
     it('MAPREDUCE service', function () {
       controller.runDecommission('host1', 'MAPREDUCE');
       expect(controller.doDecommission.calledWith('host1', 'MAPREDUCE', "JOBTRACKER", "TASKTRACKER")).to.be.true;
-      expect(controller.showBackgroundOperationsPopup.calledOnce).to.be.true;
     });
   });
 

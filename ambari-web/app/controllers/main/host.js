@@ -844,7 +844,7 @@ App.MainHostController = Em.ArrayController.extend({
         //For decommession
         if (svcName == "HBASE") {
           // HBASE service, decommission RegionServer in batch requests
-          App.router.get('mainHostDetailsController').doDecommissionRegionServer(hostNames, svcName, masterName, slaveName);
+          this.warnBeforeDecommission(hostNames);
         } else {
           var parameters = {
             "slave_type": slaveName
@@ -880,6 +880,39 @@ App.MainHostController = Em.ArrayController.extend({
     }
   },
 
+
+  /**
+   * get info about regionserver passive_state
+   * @method warnBeforeDecommission
+   * @param {String} hostNames
+   * @return {$.ajax}
+   */
+  warnBeforeDecommission: function (hostNames) {
+    return App.ajax.send({
+      'name': 'host_components.hbase_regionserver.active',
+      'sender': this,
+      'data': {
+        hostNames: hostNames
+      },
+      success: 'warnBeforeDecommissionSuccess'
+    });
+  },
+
+  /**
+   * check is hbase regionserver in mm. If so - run decommission
+   * otherwise shows warning
+   * @method warnBeforeDecommission
+   * @param {Object} data
+   * @param {Object} opt
+   * @param {Object} params
+   */
+  warnBeforeDecommissionSuccess: function(data, opt, params) {
+    if (Em.get(data, 'items.length')) {
+      App.router.get('mainHostDetailsController').showHbaseActiveWarning();
+    } else {
+      App.router.get('mainHostDetailsController').doDecommissionRegionServer(params.hostNames, "HBASE", "HBASE_MASTER", "HBASE_REGIONSERVER");
+    }
+  },
   /**
    * Bulk restart for selected hostComponents
    * @param {Object} operationData
