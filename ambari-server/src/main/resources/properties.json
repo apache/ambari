@@ -352,6 +352,23 @@
         "configurations",
         "validate_topology"
     ],
+    "Recommendation":[
+        "Recommendation/id",
+        "Versions/stack_name",
+        "Versions/stack_version",
+        "hosts",
+        "services",
+        "recommendations",
+        "recommendations/blueprint",
+        "recommendations/blueprint/configurations",
+        "recommendations/blueprint/host_groups",
+        "recommendations/blueprint/host_groups/name",
+        "recommendations/blueprint/host_groups/components",
+        "recommendations/blueprint_cluster_binding",
+        "recommendations/blueprint_cluster_binding/host_groups",
+        "recommendations/blueprint_cluster_binding/host_groups/name",
+        "recommendations/blueprint_cluster_binding/host_groups/hosts"
+    ],
     "HostComponentProcess": [
       "HostComponentProcess/cluster_name",
       "HostComponentProcess/host_name",

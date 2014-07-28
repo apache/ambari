@@ -67,6 +67,10 @@ public class Configuration {
   public static final String BOOTSTRAP_SETUP_AGENT_SCRIPT = "bootstrap.setup_agent.script";
   public static final String BOOTSTRAP_SETUP_AGENT_PASSWORD = "bootstrap.setup_agent.password";
   public static final String BOOTSTRAP_MASTER_HOSTNAME = "bootstrap.master_host_name";
+  public static final String RECOMMENDATIONS_DIR = "recommendations.dir";
+  public static final String RECOMMENDATIONS_DIR_DEFAULT = "/var/run/ambari-server/stack-recommendations";
+  public static final String STACK_ADVISOR_SCRIPT = "stackadvisor.script";
+  public static final String STACK_ADVISOR_SCRIPT_DEFAULT = "/var/lib/ambari-server/resources/scripts/stack_advisor.py";
   public static final String API_AUTHENTICATE = "api.authenticate";
   public static final String API_USE_SSL = "api.ssl";
   public static final String API_CSRF_PREVENTION_KEY = "api.csrfPrevention.enabled";
@@ -524,6 +528,15 @@ public class Configuration {
 
     // fallback
     return properties.getProperty(BOOTSTRAP_SETUP_AGENT_PASSWORD, "password");
+  }
+
+  public File getRecommendationsDir() {
+    String fileName = properties.getProperty(RECOMMENDATIONS_DIR, RECOMMENDATIONS_DIR_DEFAULT);
+    return new File(fileName);
+  }
+
+  public String getStackAdvisorScript() {
+    return properties.getProperty(STACK_ADVISOR_SCRIPT, STACK_ADVISOR_SCRIPT_DEFAULT);
   }
 
   /**

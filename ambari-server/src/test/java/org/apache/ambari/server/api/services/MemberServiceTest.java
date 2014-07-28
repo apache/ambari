@@ -88,7 +88,7 @@ public class MemberServiceTest extends BaseServiceTest {
     }
 
     @Override
-    ResourceInstance createResource(Type type, Map<Type, String> mapIds) {
+    protected ResourceInstance createResource(Type type, Map<Type, String> mapIds) {
       return getTestResource();
     }
 

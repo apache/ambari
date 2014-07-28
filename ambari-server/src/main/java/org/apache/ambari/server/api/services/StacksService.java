@@ -358,10 +358,10 @@ public class StacksService extends BaseService {
    * This should be removed when /stacks2 is removed and we can change the property names
    * in the resource definitions to the new form.
    */
-  private static class StackUriInfo implements UriInfo {
+  public static class StackUriInfo implements UriInfo {
     private UriInfo m_delegate;
 
-    private StackUriInfo(UriInfo delegate) {
+    public StackUriInfo(UriInfo delegate) {
       m_delegate = delegate;
     }
     @Override

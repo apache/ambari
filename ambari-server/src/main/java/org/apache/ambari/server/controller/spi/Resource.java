@@ -109,6 +109,7 @@ public interface Resource {
     ViewVersion,
     ViewInstance,
     Blueprint,
+    Recommendation,
     HostComponentProcess,
     Permission,
     AlertDefinition,
@@ -184,6 +185,7 @@ public interface Resource {
     public static final Type ViewVersion = InternalType.ViewVersion.getType();
     public static final Type ViewInstance = InternalType.ViewInstance.getType();
     public static final Type Blueprint = InternalType.Blueprint.getType();
+    public static final Type Recommendation = InternalType.Recommendation.getType();
     public static final Type HostComponentProcess = InternalType.HostComponentProcess.getType();
     public static final Type Permission = InternalType.Permission.getType();
     public static final Type AlertDefinition = InternalType.AlertDefinition.getType();

@@ -135,7 +135,7 @@ public abstract class BaseService {
    *
    * @return a newly created resource instance
    */
-  ResourceInstance createResource(Resource.Type type, Map<Resource.Type, String> mapIds) {
+  protected ResourceInstance createResource(Resource.Type type, Map<Resource.Type, String> mapIds) {
     return m_resourceFactory.createResource(type, mapIds);
   }
 

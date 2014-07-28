@@ -78,7 +78,7 @@ public class GroupServiceTest extends BaseServiceTest {
 
   private class TestGroupService extends GroupService {
     @Override
-    ResourceInstance createResource(Type type, Map<Type, String> mapIds) {
+    protected ResourceInstance createResource(Type type, Map<Type, String> mapIds) {
       return getTestResource();
     }
 

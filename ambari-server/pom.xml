@@ -352,6 +352,9 @@
               <directory>/var/run/ambari-server/bootstrap</directory>
             </mapping>
             <mapping>
+              <directory>/var/run/ambari-server/stack-recommendations</directory>
+            </mapping>
+            <mapping>
               <directory>/var/log/ambari-server</directory>
             </mapping>
             <mapping>
@@ -515,6 +518,7 @@
                 <path>/usr/lib/ambari-server</path>
                 <path>/var/run/ambari-server</path>
                 <path>/var/run/ambari-server/bootstrap</path>
+                <path>/var/run/ambari-server/stack-recommendations</path>
                 <path>/var/log/ambari-server</path>
                 <path>/var/lib/ambari-server/resources/upgrade</path>
               </paths>

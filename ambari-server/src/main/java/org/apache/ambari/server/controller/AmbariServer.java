@@ -40,6 +40,7 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.KeyService;
 import org.apache.ambari.server.api.services.PersistKeyValueImpl;
 import org.apache.ambari.server.api.services.PersistKeyValueService;
+import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorHelper;
 import org.apache.ambari.server.bootstrap.BootStrapImpl;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.configuration.Configuration;
@@ -49,6 +50,7 @@ import org.apache.ambari.server.controller.internal.BlueprintResourceProvider;
 import org.apache.ambari.server.controller.internal.ClusterResourceProvider;
 import org.apache.ambari.server.controller.internal.PermissionResourceProvider;
 import org.apache.ambari.server.controller.internal.PrivilegeResourceProvider;
+import org.apache.ambari.server.controller.internal.RecommendationResourceProvider;
 import org.apache.ambari.server.controller.internal.StackDefinedPropertyProvider;
 import org.apache.ambari.server.controller.internal.StackDependencyResourceProvider;
 import org.apache.ambari.server.controller.nagios.NagiosPropertyProvider;
@@ -525,6 +527,7 @@ public class AmbariServer {
     PersistKeyValueService.init(injector.getInstance(PersistKeyValueImpl.class));
     KeyService.init(injector.getInstance(PersistKeyValueImpl.class));
     BootStrapResource.init(injector.getInstance(BootStrapImpl.class));
+    RecommendationResourceProvider.init(injector.getInstance(StackAdvisorHelper.class));
     StageUtils.setGson(injector.getInstance(Gson.class));
     WorkflowJsonService.setDBProperties(
         injector.getInstance(Configuration.class));

@@ -226,6 +226,10 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
         resourceDefinition = new BlueprintResourceDefinition();
         break;
 
+      case Recommendation:
+        resourceDefinition = new RecommendationResourceDefinition();
+        break;
+
       case HostComponentProcess:
         resourceDefinition = new HostComponentProcessResourceDefinition();
         break;
