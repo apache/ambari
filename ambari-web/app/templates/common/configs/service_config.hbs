@@ -102,7 +102,7 @@
                 <form class="form-horizontal" autocomplete="off">
 
                   {{#each view.filteredCategoryConfigs}}
-                      <div {{bindAttr class=":entry-row isOverridden:overridden-property"}}>
+                      <div {{bindAttr class=":entry-row isOverridden:overridden-property isComparison:overridden-property"}}>
                           {{#if showLabel}}
                             <span {{bindAttr class="errorMessage:error: :control-group :control-label-span"}}>
                               <label class="control-label">
@@ -151,6 +151,9 @@
                               </div>
                             {{#if this.isOverridden}}
                               {{view App.ServiceConfigView.SCPOverriddenRowsView serviceConfigPropertyBinding="this" isDefaultGroupSelectedBinding="controller.selectedConfigGroup.isDefault"}}
+                            {{/if}}
+                            {{#if this.isComparison}}
+                              {{view App.ServiceConfigView.SCPComparisonRowsView serviceConfigPropertyBinding="this"}}
                             {{/if}}
                           </div>
                       </div>

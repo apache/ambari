@@ -80,7 +80,7 @@ App.supports = {
   views: false,
   flume: true,
   databaseConnection: true,
-  configHistory: true
+  configHistory: false
 };
 
 if (App.enableExperimental) {

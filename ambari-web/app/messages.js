@@ -1951,6 +1951,7 @@ Em.I18n.translations = {
   'dashboard.configHistory.info-bar.showMore': 'Show more',
   'dashboard.configHistory.info-bar.save.popup.title': 'Save Configuration',
   'dashboard.configHistory.info-bar.save.popup.placeholder': 'What did you change?',
+  'dashboard.configHistory.info-bar.revert.button': 'Revert to this version',
 
   'timeRange.presets.1hour':'1h',
   'timeRange.presets.12hour':'12h',

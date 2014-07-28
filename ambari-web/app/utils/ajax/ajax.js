@@ -1723,6 +1723,16 @@ var urls = {
         })
       }
     }
+  },
+  'service.config.version.get': {
+    //TODO set actual url when API is ready
+    'real': '',
+    'mock': '',
+    format: function(data) {
+      return {
+        url: data.url
+      }
+    }
   }
 };
 /**

@@ -32,9 +32,13 @@ App.ConfigHistoryFlowView = Em.View.extend({
    */
   showFullList: false,
 
-  currentServiceVersion: function () {
-    return this.get('serviceVersions').findProperty('current');
-  }.property('serviceVersions.@each.current'),
+  serviceName: function () {
+    return this.get('controller.selectedService.serviceName');
+  }.property('controller.selectedService.serviceName'),
+
+  displayedServiceVersion: function () {
+    return this.get('serviceVersions').findProperty('isDisplayed');
+  }.property('serviceVersions.@each.isDisplayed'),
   /**
    * identify whether to show link that open whole content of notes
    */
@@ -64,7 +68,7 @@ App.ConfigHistoryFlowView = Em.View.extend({
    * by default 6 is number of items in short list
    */
   dropDownList: function () {
-    var serviceVersions = this.get('serviceVersions').without(this.get('currentServiceVersion')).reverse();
+    var serviceVersions = this.get('serviceVersions').without(this.get('currentServiceVersion')).slice(0).reverse();
     if (this.get('showFullList')) {
       return serviceVersions;
     }
@@ -84,11 +88,40 @@ App.ConfigHistoryFlowView = Em.View.extend({
     var startIndex = 0;
     var numberOfDisplayed = 5;
 
+    this.get('serviceVersions').findProperty('appliedTime', Math.max.apply(this, this.get('serviceVersions').mapProperty('appliedTime'))).set('isCurrent', true);
+    this.get('serviceVersions').findProperty('isCurrent').set('isDisplayed', true);
+
     if (serviceVersions.length > numberOfDisplayed) {
       startIndex = serviceVersions.length - numberOfDisplayed;
       this.set('startIndex', startIndex);
       this.adjustFlowView();
     }
+    this.keepInfoBarAtTop()
+  },
+
+  /**
+   * initialize event to keep info bar position at the top of the page
+   */
+  keepInfoBarAtTop: function () {
+    var defaultTop;
+    //reset defaultTop value in closure
+    $(window).unbind('scroll');
+
+    $(window).on('scroll', function (event) {
+      var infoBar = $('#config_history_flow>.version-info-bar');
+      var scrollTop = $(window).scrollTop();
+
+      //290 - default "top" property in px
+      defaultTop = defaultTop || (infoBar.get(0).getBoundingClientRect() && infoBar.get(0).getBoundingClientRect().top) || 290;
+
+      if (scrollTop > defaultTop) {
+        infoBar.css('top', '10px');
+      } else if (scrollTop > 0) {
+        infoBar.css('top', (defaultTop - scrollTop) + 'px');
+      } else {
+        infoBar.css('top', 'auto');
+      }
+    })
   },
   /**
    *  define the first element in viewport
@@ -107,21 +140,28 @@ App.ConfigHistoryFlowView = Em.View.extend({
   /**
    * switch configs view version to chosen
    */
-  view: function () {
-
+  switchVersion: function (event) {
+    var version = event.context.get('version');
+    this.get('serviceVersions').forEach(function (serviceVersion) {
+      serviceVersion.set('isDisplayed', serviceVersion.get('version') === version);
+    });
+    //TODO implement load configs for chosen version
   },
+
   /**
    * add config values of chosen version to view for comparison
    */
-  compare: function () {
-
+  compare: function (event) {
+    this.set('controller.compareServiceVersion', event.context);
+    this.get('controller').onConfigGroupChange();
   },
   /**
-   * revert config values to chosen version
+   * revert config values to chosen version and apply reverted configs to server
    */
   revert: function () {
-
+    //TODO implement put configs of chosen version to server
   },
+
   /**
    * cancel configuration saving
    */
@@ -162,73 +202,82 @@ App.ConfigHistoryFlowView = Em.View.extend({
     Em.Object.create({
       serviceName: 'HDFS',
       version: '1',
-      date: 'Apr 4, 2014',
+      modifiedDate: 'Apr 4, 2014',
       author: 'admin',
-      notes: 'notes'
+      notes: 'notes',
+      appliedTime: 1
     }),
     Em.Object.create({
       serviceName: 'HDFS',
       version: '2',
-      date: 'Apr 4, 2014',
+      modifiedDate: 'Apr 4, 2014',
       author: 'admin',
-      notes: 'notes'
+      notes: 'notes',
+      appliedTime: 2
     }),
     Em.Object.create({
       serviceName: 'HDFS',
       version: '3',
-      date: 'Apr 4, 2014',
+      modifiedDate: 'Apr 4, 2014',
       author: 'user',
-      notes: 'notes'
+      notes: 'notes',
+      appliedTime: 3
     }),
     Em.Object.create({
       serviceName: 'HDFS',
       version: '4',
-      date: 'Apr 4, 2014',
+      modifiedDate: 'Apr 4, 2014',
       author: 'user',
-      notes: 'notes'
+      notes: 'notes',
+      appliedTime: 4
     }),
     Em.Object.create({
       serviceName: 'HDFS',
       version: '5',
-      date: 'Apr 4, 2014',
+      modifiedDate: 'Apr 4, 2014',
       author: 'admin',
-      notes: 'notes'
+      notes: 'notes',
+      appliedTime: 5
     }),
     Em.Object.create({
       serviceName: 'HDFS',
       version: '22',
-      date: 'Apr 9, 2014',
+      modifiedDate: 'Apr 9, 2014',
       author: 'admin',
-      notes: 'notes'
+      notes: 'notes',
+      appliedTime: 6
     }),
     Em.Object.create({
       serviceName: 'HDFS',
       version: '33',
-      date: 'Apr 9, 2014',
+      modifiedDate: 'Apr 9, 2014',
       author: 'admin',
-      notes: 'notes'
+      notes: 'notes',
+      appliedTime: 7
     }),
     Em.Object.create({
       serviceName: 'HDFS',
       version: '44',
-      date: 'Apr 9, 2014',
+      modifiedDate: 'Apr 9, 2014',
       author: 'admin',
-      notes: 'notes'
+      notes: 'notes',
+      appliedTime: 8
     }),
     Em.Object.create({
       serviceName: 'HDFS',
       version: '55',
-      date: 'Apr 9, 2014',
+      modifiedDate: 'Apr 9, 2014',
       author: 'admin',
-      notes: 'notes'
+      notes: 'notes',
+      appliedTime: 9
     }),
     Em.Object.create({
       serviceName: 'HDFS',
       version: '666',
-      date: 'Apr 9, 2014',
+      modifiedDate: 'Apr 9, 2014',
       author: 'admin',
       notes: 'notes',
-      current: true
+      appliedTime: 10
     })
   ],
   /**

@@ -912,20 +912,7 @@ App.config = Em.Object.create({
       for (var prop in properties) {
         var serviceConfig = params.configKeyToConfigMap[config.type + ".xml"][prop];
         var hostOverrideValue = properties[prop];
-        if (serviceConfig && serviceConfig.displayType === 'int') {
-          if (/\d+m$/.test(hostOverrideValue)) {
-            hostOverrideValue = hostOverrideValue.slice(0, hostOverrideValue.length - 1);
-          }
-        } else if (serviceConfig && serviceConfig.displayType === 'checkbox') {
-          switch (hostOverrideValue) {
-            case 'true':
-              hostOverrideValue = true;
-              break;
-            case 'false':
-              hostOverrideValue = false;
-              break;
-          }
-        }
+        this.formatOverrideValue(serviceConfig, hostOverrideValue);
         if (serviceConfig) {
           // Value of this property is different for this host.
           var overrides = 'overrides';
@@ -939,8 +926,29 @@ App.config = Em.Object.create({
           serviceConfig.overrides.push({value: hostOverrideValue, group: group});
         }
       }
-    });
+    }, this);
     params.callback.call(params.sender, params.serviceConfigs);
+  },
+  /**
+   * format value of override of config
+   * @param serviceConfig
+   * @param hostOverrideValue
+   */
+  formatOverrideValue: function (serviceConfig, hostOverrideValue) {
+    if (serviceConfig && serviceConfig.displayType === 'int') {
+      if (/\d+m$/.test(hostOverrideValue)) {
+        hostOverrideValue = hostOverrideValue.slice(0, hostOverrideValue.length - 1);
+      }
+    } else if (serviceConfig && serviceConfig.displayType === 'checkbox') {
+      switch (hostOverrideValue) {
+        case 'true':
+          hostOverrideValue = true;
+          break;
+        case 'false':
+          hostOverrideValue = false;
+          break;
+      }
+    }
   },
 
   /**
