@@ -291,7 +291,7 @@ App.StackService.configCategories = function () {
         App.ServiceConfigCategory.create({ name: 'Advanced', displayName: 'Advanced'}),
         App.ServiceConfigCategory.create({ name: 'Advanced mapred-site', displayName: 'Custom mapred-site.xml', siteFileName: 'mapred-site.xml', canAddProperty: true}),
         App.ServiceConfigCategory.create({ name: 'Advanced mapreduce-log4j', displayName: 'Custom log4j.properties', siteFileName: 'mapreduce-log4j.xml', canAddProperty: false}),
-        App.ServiceConfigCategory.create({ name: 'Advanced mapreduce-env', displayName: 'Custom Mapreduce env', siteFileName: 'mapred-env.xml', canAddProperty: false})
+        App.ServiceConfigCategory.create({ name: 'Advanced mapred-env', displayName: 'Custom Mapreduce env', siteFileName: 'mapred-env.xml', canAddProperty: false})
       ]);
       break;
     case 'YARN':
@@ -313,7 +313,7 @@ App.StackService.configCategories = function () {
         App.ServiceConfigCategory.create({ name: 'General', displayName: 'General'}),
         App.ServiceConfigCategory.create({ name: 'Advanced', displayName: 'Advanced'}),
         App.ServiceConfigCategory.create({ name: 'AdvancedMapredSite', displayName: 'Custom mapred-site.xml', siteFileName: 'mapred-site.xml', canAddProperty: true}),
-        App.ServiceConfigCategory.create({ name: 'Advanced mapreduce-env', displayName: 'Custom Mapred env', siteFileName: 'mapred-env.xml', canAddProperty: false})
+        App.ServiceConfigCategory.create({ name: 'Advanced mapred-env', displayName: 'Custom Mapred env', siteFileName: 'mapred-env.xml', canAddProperty: false})
       ]);
       break;
     case 'HIVE':
