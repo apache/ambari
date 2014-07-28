@@ -575,6 +575,33 @@
             </organization>
         </developer>
       </developers>
+      <contributors>
+         <contributor>
+         <name>Scott Creeley</name>
+         <organization>RedHat</organization>
+         </contributor>
+         <contributor>
+         <name>Michael Harp</name>
+         <organization>TeraData</organization>
+         </contributor>
+         <contributor>
+         <name>Janos Matyas</name>
+         <organization>SequenceIQ</organization>
+         </contributor>
+         <contributor>
+         <name>Greg Hill</name>
+         <organization>OpenStack</organization>
+         </contributor>
+         <contributor>
+         <name>Steve Ratay</name>
+         <organization>TeraData</organization>
+         </contributor>
+         <contributor>
+
+       </contributors>
+
+
+
     <organization>
         <name>Apache Software Foundation</name>
         <url>http://www.apache.org/</url>
