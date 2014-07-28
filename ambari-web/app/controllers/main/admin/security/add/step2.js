@@ -25,6 +25,8 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
   installedServices: [],
   selectedService: null,
   securityUsers: [],
+  filter: '',
+  filterColumns: [],
 
   /**
    * map which depict connection between config and slave component

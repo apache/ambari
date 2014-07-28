@@ -326,15 +326,11 @@ App.ServiceConfigsByCategoryView = Ember.View.extend(App.UserPref, {
    */
   filteredCategoryConfigs: function () {
     $('.popover').remove();
-    var filter = this.get('parentView.filter');
-    var columns = this.get('parentView.columns');
-    if (filter != null) {
-      filter = filter.toLowerCase();
-    }
-    var selectedFilters = this.get('parentView.columns').filterProperty('selected', true);
+    var filter = this.get('parentView.filter').toLowerCase();
+    var selectedFilters = this.get('parentView.columns').filterProperty('selected');
     var filteredResult = this.get('categoryConfigs').filter(function (config) {
-
       var passesFilters = true;
+
       selectedFilters.forEach(function (filter) {
         if (!config.get(filter.attributeName)) {
           passesFilters = false;
