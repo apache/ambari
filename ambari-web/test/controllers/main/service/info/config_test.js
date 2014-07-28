@@ -1018,12 +1018,18 @@ describe("App.MainServiceInfoConfigsController", function () {
   describe("#checkOverrideProperty", function () {
     var tests = [{
       overrideToAdd: {
-        name: "name1"
+        name: "name1",
+        filename: "filename1"
       },
       componentConfig: {
         configs: [
           {
-            name: "name1"
+            name: "name1",
+            filename: "filename2"
+          },
+          {
+            name: "name1",
+            filename: "filename1"
           }
         ]
       },
@@ -1045,6 +1051,22 @@ describe("App.MainServiceInfoConfigsController", function () {
         m: "don't add property, different names"
       },
       {
+        overrideToAdd: {
+          name: "name1",
+          filename: "filename1"
+        },
+        componentConfig: {
+          configs: [
+            {
+              name: "name1",
+              filename: "filename2"
+            }
+          ]
+        },
+        add: false,
+        m: "don't add property, different filenames"
+      },
+      {
         overrideToAdd: null,
         componentConfig: {},
         add: false,
@@ -1062,7 +1084,7 @@ describe("App.MainServiceInfoConfigsController", function () {
         mainServiceInfoConfigsController.set("overrideToAdd", t.overrideToAdd);
         mainServiceInfoConfigsController.checkOverrideProperty(t.componentConfig);
         if(t.add) {
-          expect(mainServiceInfoConfigsController.addOverrideProperty.calledOnce).to.equal(true);
+          expect(mainServiceInfoConfigsController.addOverrideProperty.calledWith(t.overrideToAdd)).to.equal(true);
           expect(mainServiceInfoConfigsController.get("overrideToAdd")).to.equal(null);
         } else {
           expect(mainServiceInfoConfigsController.addOverrideProperty.calledOnce).to.equal(false);

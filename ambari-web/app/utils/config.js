@@ -870,7 +870,10 @@ App.config = Em.Object.create({
   loadServiceConfigGroupOverrides: function (serviceConfigs, loadedGroupToOverrideSiteToTagMap, configGroups, callback, sender) {
     var configKeyToConfigMap = {};
     serviceConfigs.forEach(function (item) {
-      configKeyToConfigMap[item.name] = item;
+      if (!configKeyToConfigMap[item.filename]) {
+        configKeyToConfigMap[item.filename] = {};
+      }
+      configKeyToConfigMap[item.filename][item.name] = item;
     });
     var typeTagToGroupMap = {};
     var urlParams = [];
@@ -907,7 +910,7 @@ App.config = Em.Object.create({
       var group = params.typeTagToGroupMap[config.type + "///" + config.tag];
       var properties = config.properties;
       for (var prop in properties) {
-        var serviceConfig = params.configKeyToConfigMap[prop];
+        var serviceConfig = params.configKeyToConfigMap[config.type + ".xml"][prop];
         var hostOverrideValue = properties[prop];
         if (serviceConfig && serviceConfig.displayType === 'int') {
           if (/\d+m$/.test(hostOverrideValue)) {

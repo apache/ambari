@@ -619,9 +619,11 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   checkOverrideProperty: function (componentConfig) {
     var overrideToAdd = this.get('overrideToAdd');
     if (overrideToAdd) {
-      overrideToAdd = componentConfig.configs.findProperty('name', overrideToAdd.name);
-      if (overrideToAdd) {
-        this.addOverrideProperty(overrideToAdd);
+      overrideToAdd = componentConfig.configs.filter(function(c){
+        return c.name == overrideToAdd.name && c.filename == overrideToAdd.filename;
+      });
+      if (overrideToAdd[0]) {
+        this.addOverrideProperty(overrideToAdd[0]);
         this.set('overrideToAdd', null);
       }
     }
