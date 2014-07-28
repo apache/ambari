@@ -45,7 +45,7 @@ def hdfs(name=None):
     XmlConfig("hadoop-policy.xml",
               conf_dir=params.hadoop_conf_dir,
               configurations=params.config['configurations']['hadoop-policy'],
-              configuration_attributes=params.config['configuration_attributes']['hadoop_policy'],
+              configuration_attributes=params.config['configuration_attributes']['hadoop-policy'],
               owner=params.hdfs_user,
               group=params.user_group
     )
