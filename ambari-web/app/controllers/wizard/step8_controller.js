@@ -630,7 +630,7 @@ App.WizardStep8Controller = Em.Controller.extend({
         display_name: service.get('displayNameOnSelectServicePage'),
         service_components: Em.A([])
       });
-      service.get('serviceComponents').forEach(function(component) {
+      service.get('serviceComponents').forEach(function (component) {
         // show clients for services that have only clients components
         if ((component.get('isClient') || component.get('isClientBehavior')) && !service.get('isClientOnlyService')) return;
         // skip components that was hide on assign master page
@@ -642,7 +642,7 @@ App.WizardStep8Controller = Em.Controller.extend({
           displayName = Em.I18n.t('common.clients')
         } else {
           // remove service name from component display name
-          displayName = component.get('displayName').replace(new RegExp('^' + service.get('serviceName') + '\\s','i'), '');
+          displayName = component.get('displayName').replace(new RegExp('^' + service.get('serviceName') + '\\s', 'i'), '');
         }
         serviceObj.get('service_components').pushObject(Em.Object.create({
           component_name: component.get('isClient') ? Em.I18n.t('common.client').toUpperCase() : component.get('componentName'),
@@ -690,7 +690,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     return componentValue;
   },
 
-  getMasterComponentValue: function(componentName) {
+  getMasterComponentValue: function (componentName) {
     var masterComponents = this.get('content.masterComponentHosts');
     var hostsCount = masterComponents.filterProperty('component', componentName).length;
     return stringUtils.pluralize(hostsCount,
@@ -712,16 +712,16 @@ App.WizardStep8Controller = Em.Controller.extend({
     }
     else {
       if (hiveDb.value === 'Existing MySQL Database') {
-        db = serviceConfigPreoprties .findProperty('name', 'hive_existing_mysql_database');
+        db = serviceConfigPreoprties.findProperty('name', 'hive_existing_mysql_database');
         return db.value + ' (' + hiveDb.value + ')';
       }
       else {
         if (hiveDb.value === Em.I18n.t('services.service.config.hive.oozie.postgresql')) {
-          db = serviceConfigPreoprties .findProperty('name', 'hive_existing_postgresql_database');
+          db = serviceConfigPreoprties.findProperty('name', 'hive_existing_postgresql_database');
           return db.value + ' (' + hiveDb.value + ')';
         }
         else { // existing oracle database
-          db = serviceConfigPreoprties .findProperty('name', 'hive_existing_oracle_database');
+          db = serviceConfigPreoprties.findProperty('name', 'hive_existing_oracle_database');
           return db.value + ' (' + hiveDb.value + ')';
         }
       }
@@ -828,11 +828,11 @@ App.WizardStep8Controller = Em.Controller.extend({
     var configs = this.get('configs').slice(0);
     var configsMap = [];
 
-    fileNamesToUpdate.forEach(function(fileName){
+    fileNamesToUpdate.forEach(function (fileName) {
       if (!fileName || /^(core)/.test(fileName)) return;
       var tagName = 'version' + (new Date).getTime();
       var configsToSave = configs.filterProperty('filename', fileName);
-      configsToSave.forEach(function(item) {
+      configsToSave.forEach(function (item) {
         item.value = App.config.trimProperty(item, false);
       });
       configsMap.push(configurationController.createSiteObj(fileName.replace(".xml", ""), tagName, configsToSave));
@@ -1051,7 +1051,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     });
   },
 
-  createClusterSuccess: function(data, xhr, params) {
+  createClusterSuccess: function (data, xhr, params) {
     App.set('clusterName', params.cluster)
   },
 
@@ -1182,11 +1182,11 @@ App.WizardStep8Controller = Em.Controller.extend({
 
   getClientsToMasterMap: function () {
     var clientNames = App.StackServiceComponent.find().filterProperty('isClient').mapProperty('componentName'),
-        clientsMap = {},
-        dependedComponents = App.StackServiceComponent.find().filterProperty('isMaster');
-    clientNames.forEach(function(clientName) {
+      clientsMap = {},
+      dependedComponents = App.StackServiceComponent.find().filterProperty('isMaster');
+    clientNames.forEach(function (clientName) {
       clientsMap[clientName] = Em.A([]);
-      dependedComponents.forEach(function(component) {
+      dependedComponents.forEach(function (component) {
         if (component.get('dependencies').contains(clientName)) clientsMap[clientName].push(component.get('componentName'));
       });
       if (!clientsMap[clientName].length) delete clientsMap[clientName];
@@ -1380,120 +1380,36 @@ App.WizardStep8Controller = Em.Controller.extend({
    * @method createConfigurations
    */
   createConfigurations: function () {
-    var self = this;
     var selectedServices = this.get('selectedServices');
     var coreSiteObject = this.createCoreSiteObj();
     var tag = 'version1';
 
-    if (this.get('content.controllerName') == 'installerController') {
-      this.get('serviceConfigTags').pushObject(coreSiteObject);
-      this.get('serviceConfigTags').pushObject(this.createSiteObj('hdfs-site', false, tag));
-      this.get('serviceConfigTags').pushObject(this.createLog4jObj('hdfs', tag));
-    }
     if (this.get('content.controllerName') == 'addServiceController') {
       tag = 'version' + (new Date).getTime();
       coreSiteObject.tag = tag;
-      var coreSiteConfigs = this.get('configs').filterProperty('filename','core-site.xml');
+      var coreSiteConfigs = this.get('configs').filterProperty('filename', 'core-site.xml');
       if (this.isConfigsChanged(coreSiteObject.properties, coreSiteConfigs))
         this.get('serviceConfigTags').pushObject(coreSiteObject);
     }
 
-    var objMap = {
-      HDFS: {site: [
-        {filename: 'hdfs-site', isXmlFile: true},
-        {filename: 'hadoop-env', isXmlFile: true}
-      ], log4j: ['hdfs']},
-      GANGLIA: {site: [
-        {filename: 'ganglia-env', isXmlFile: true}
-      ], log4j: []},
-      NAGIOS: {site: [
-        {filename: 'nagios-env', isXmlFile: true}
-      ], log4j: []},
-      STORM: {site: [
-        {filename: 'storm-env', isXmlFile: true}
-      ], log4j: []},
-      MAPREDUCE: {site: [
-        {filename: 'mapred-site', isXmlFile: true},
-        {filename: 'mapred-env', isXmlFile: true}
-      ], log4j: ['mapreduce']},
-      MAPREDUCE2: {site: [
-        {filename: 'mapred-site', isXmlFile: true},
-        {filename: 'mapred-env', isXmlFile: true}
-      ], log4j: ['mapreduce2']},
-      YARN: {site: [
-        {filename: 'yarn-site', isXmlFile: true},
-        {filename: 'capacity-scheduler', isXmlFile: true},
-        {filename: 'yarn-env', isXmlFile: true}
-      ], log4j: ['yarn']},
-      HBASE: {site: [
-        {filename: 'hbase-site', isXmlFile: true},
-        {filename: 'hbase-env', isXmlFile: true}
-      ], log4j: ['hbase']},
-      OOZIE: {site: [
-        {filename: 'oozie-site', isXmlFile: true},
-        {filename: 'oozie-env', isXmlFile: true}
-      ], log4j: ['oozie']},
-      HIVE: {site: [
-        {filename: 'hive-site', isXmlFile: true},
-        {filename: 'hive-env', isXmlFile: true}
-      ], log4j: ['hive', 'hive-exec']},
-      WEBHCAT: {site: [
-        {filename: 'webhcat-site', isXmlFile: true},
-        {filename: 'webhcat-env', isXmlFile: true}
-      ], log4j: []},
-      HUE: {site: [
-        {filename: 'hue-site', isXmlFile: true},
-        {filename: 'hue-env', isXmlFile: true}
-      ], log4j: []},
-      PIG: {site: [
-        {filename: 'pig-properties', isXmlFile: false},
-        {filename: 'pig-env', isXmlFile: true}
-      ], log4j: ['pig']},
-      FALCON: {site: [
-        {filename: 'falcon-startup.properties', isXmlFile: false},
-        {filename: 'falcon-runtime.properties', isXmlFile: false},
-        {filename: 'falcon-env', isXmlFile: true}
-      ], log4j: []},
-      TEZ: {site: [
-        {filename: 'tez-site', isXmlFile: true},
-        {filename: 'tez-env', isXmlFile: true}
-      ], log4j: []},
-      SQOOP: {site: [
-        {filename: 'sqoop-env', isXmlFile: true}
-      ], log4j: []},
-      ZOOKEEPER: {site: [{filename: 'zookeeper-env', isXmlFile: true}], log4j: ['zookeeper']},
-      FLUME: {site: [
-        {filename: 'flume-conf', isXmlFile: false},
-        {filename: 'flume-env', isXmlFile: true}
-      ], log4j: []}
-    };
-
-    if (App.supports.capacitySchedulerUi) {
-      objMap['MAPREDUCE'].site.pushObjects([
-        {filename: 'capacity-scheduler', isXmlFile: true},
-        {filename: 'mapred-queue-acls', isXmlFile: true}
-      ]);
-    }
-
-    for (var serviceName in objMap) {
-      if (objMap.hasOwnProperty(serviceName)) {
-        if (selectedServices.someProperty('serviceName', serviceName)) {
-          objMap[serviceName].site.forEach(function (site) {
-            self.get('serviceConfigTags').pushObject(self.createSiteObj(site.filename, !site.isXmlFile, tag));
-          });
-          objMap[serviceName].log4j.forEach(function (log4j) {
-            self.get('serviceConfigTags').pushObject(self.createLog4jObj(log4j, tag));
-          });
+    selectedServices.forEach(function (service) {
+      Object.keys(service.get('configTypes')).forEach(function (type) {
+        if (!this.get('serviceConfigTags').someProperty('type', type)) {
+          if (!App.supports.capacitySchedulerUi && service.get('serviceName') === 'MAPREDUCE' && (type === 'capacity-scheduler' || type === 'mapred-queue-acls')) {
+            return;
+          } else if (type === 'core-site') {
+            this.get('serviceConfigTags').pushObject(coreSiteObject);
+          } else if (type === 'storm-site') {
+            this.get('serviceConfigTags').pushObject(this.createStormSiteObj(tag));
+          } else if (type === 'zoo.cfg') {
+            this.get('serviceConfigTags').pushObject(this.createZooCfgObj(tag));
+          } else {
+            var isNonXmlFile = type.endsWith('log4j') || type.endsWith('env') || type.endsWith('properties') || type.endsWith('conf');
+            this.get('serviceConfigTags').pushObject(this.createSiteObj(type, isNonXmlFile, tag));
+          }
         }
-      }
-    }
-
-    if (selectedServices.someProperty('serviceName', 'STORM')) {
-      this.get('serviceConfigTags').pushObject(this.createStormSiteObj(tag));
-    }
-    if (selectedServices.someProperty('serviceName', 'ZOOKEEPER')) {
-      this.get('serviceConfigTags').pushObject(this.createZooCfgObj(tag));
-    }
+      }, this);
+    }, this);
   },
 
   /**
@@ -1682,12 +1598,10 @@ App.WizardStep8Controller = Em.Controller.extend({
    */
   createSiteObj: function (site, isNonXmlFile, tag) {
     var properties = {};
-    var configs  = this.get('configs').filterProperty('filename', site + '.xml');
+    var configs = this.get('configs').filterProperty('filename', site + '.xml');
     var attributes = App.router.get('mainServiceInfoConfigsController').getConfigAttributes(configs);
     configs.forEach(function (_configProperty) {
       if (isNonXmlFile) {
-        properties[_configProperty.name] = _configProperty.value;
-      } else {
         var heapsizeExceptions = ['hadoop_heapsize', 'yarn_heapsize', 'nodemanager_heapsize', 'resourcemanager_heapsize', 'apptimelineserver_heapsize', 'jobhistory_heapsize'];
         // do not pass any globals whose name ends with _host or _hosts
         if (_configProperty.isRequiredByAgent !== false) {
@@ -1695,9 +1609,11 @@ App.WizardStep8Controller = Em.Controller.extend({
           if (/_heapsize|_newsize|_maxnewsize$/.test(_configProperty.name) && !heapsizeExceptions.contains(_configProperty.name)) {
             properties[_configProperty.name] = _configProperty.value + "m";
           } else {
-            properties[_configProperty.name] = App.config.escapeXMLCharacters(_configProperty.value);
+            properties[_configProperty.name] = _configProperty.value;
           }
         }
+      } else {
+        properties[_configProperty.name] = App.config.escapeXMLCharacters(_configProperty.value);
       }
     }, this);
     var configObj = {"type": site, "tag": tag, "properties": properties };
@@ -1705,17 +1621,6 @@ App.WizardStep8Controller = Em.Controller.extend({
       configObj['properties_attributes'] = attributes;
     }
     return configObj;
-  },
-
-  /**
-   * Create log4j object for custom service with it own configs
-   * @param {string} site
-   * @param {string} tag
-   * @returns {{type: string, tag: string, properties: {}}}
-   * @method createLog4jObj
-   */
-  createLog4jObj: function (site, tag) {
-    return this.createSiteObj(site + '-log4j', true, tag);
   },
 
   /**
