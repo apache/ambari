@@ -38,7 +38,8 @@ security_enabled = ( not is_empty(_authentication) and _authentication == 'kerbe
 smoke_user_keytab = config['configurations']['global']['smokeuser_keytab']
 yarn_executor_container_group = config['configurations']['yarn-site']['yarn.nodemanager.linux-container-executor.group']
 kinit_path_local = functions.get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
-rm_host = config['clusterHostInfo']['rm_host'][0]
+rm_hosts = config['clusterHostInfo']['rm_host']
+rm_host = rm_hosts[0]
 rm_port = config['configurations']['yarn-site']['yarn.resourcemanager.webapp.address'].split(':')[-1]
 rm_https_port = "8090"
 rm_nodes_exclude_path = config['configurations']['yarn-site']['yarn.resourcemanager.nodes.exclude-path']
@@ -57,8 +58,14 @@ yarn_pid_dir_prefix = status_params.yarn_pid_dir_prefix
 mapred_pid_dir_prefix = status_params.mapred_pid_dir_prefix
 mapred_log_dir_prefix = config['configurations']['global']['mapred_log_dir_prefix']
 
-rm_webui_address = format("{rm_host}:{rm_port}")
-rm_webui_https_address = format("{rm_host}:{rm_https_port}")
+if len(rm_hosts) > 1:
+  additional_rm_host = rm_hosts[1]
+  rm_webui_address = format("{rm_host}:{rm_port},{additional_rm_host}:{rm_port}")
+  rm_webui_https_address = format("{rm_host}:{rm_https_port},{additional_rm_host}:{rm_https_port}")
+else:
+  rm_webui_address = format("{rm_host}:{rm_port}")
+  rm_webui_https_address = format("{rm_host}:{rm_https_port}")
+
 nm_webui_address = config['configurations']['yarn-site']['yarn.nodemanager.webapp.address']
 hs_webui_address = config['configurations']['mapred-site']['mapreduce.jobhistory.webapp.address']
 

@@ -40,30 +40,31 @@ def getResponse(path, address, ssl_enabled):
     url = 'https://' + address + path
   else:
     url = 'http://' + address + path
-      
+
   command_with_flags = [command,httpGssnegotiate,userpswd,insecure,url]
-  try:
-    proc = subprocess.Popen(command_with_flags, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    (stdout, stderr) = proc.communicate()
-    response = json.loads(stdout)
-    if response == None:
-      print 'There is no response for url: ' + str(url)
-      exit(1)
-    return response
-  except Exception as e:
-    print 'Error getting response for url:' + str(url), e
-    exit(1)
+
+  proc = subprocess.Popen(command_with_flags, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+  (stdout, stderr) = proc.communicate()
+  response = json.loads(stdout)
+  if response == None:
+    print 'There is no response for url: ' + str(url)
+    raise Exception('There is no response for url: ' + str(url))
+  return response
 
 #Verify that REST api is available for given component
-def validateAvailability(component, path, address, ssl_enabled):
+def validateAvailability(component, path, addresses, ssl_enabled):
+  responses = {}
+  for address in addresses.split(','):
+    try:
+      responses[address] = getResponse(path, address, ssl_enabled)
+    except Exception as e:
+      print 'Error checking availability status of component.', e
 
-  try:
-    response = getResponse(path, address, ssl_enabled)
-    is_valid = validateAvailabilityResponse(component, response)
-    if not is_valid:
-      exit(1)
-  except Exception as e:
-    print 'Error checking availability status of component', e
+  if not responses:
+    exit(1)
+
+  is_valid = validateAvailabilityResponse(component, responses.values()[0])
+  if not is_valid:
     exit(1)
 
 #Validate component-specific response
@@ -96,15 +97,19 @@ def validateAvailabilityResponse(component, response):
     return False
 
 #Verify that component has required resources to work
-def validateAbility(component, path, address, ssl_enabled):
+def validateAbility(component, path, addresses, ssl_enabled):
+  responses = {}
+  for address in addresses.split(','):
+    try:
+      responses[address] = getResponse(path, address, ssl_enabled)
+    except Exception as e:
+      print 'Error checking ability of component.', e
 
-  try:
-    response = getResponse(path, address, ssl_enabled)
-    is_valid = validateAbilityResponse(component, response)
-    if not is_valid:
-      exit(1)
-  except Exception as e:
-    print 'Error checking ability of component', e
+  if not responses:
+    exit(1)
+
+  is_valid = validateAbilityResponse(component, responses.values()[0])
+  if not is_valid:
     exit(1)
 
 #Validate component-specific response that it has required resources to work
@@ -143,7 +148,7 @@ def main():
   (options, args) = parser.parse_args()
 
   component = args[0]
-  
+
   address = options.address
   ssl_enabled = (options.ssl_enabled) in 'true'
   if component == RESOURCEMANAGER:
