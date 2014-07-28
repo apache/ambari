@@ -180,8 +180,10 @@ public class StackExtensionHelperTest {
           }
         }
         assertEquals(28, emptyValueProperties.size());
-        assertEquals(66, properties.size());
-        boolean found = false;
+        assertEquals(68, properties.size());
+        boolean foundHBaseClusterDistributed = false;
+        boolean foundHBaseRegionServerXmnMax = false;
+        boolean foundHBaseRegionServerXmnRatio = false;
         for (PropertyInfo property : properties) {
           if (property.getName().equals("hbase.cluster.distributed")) {
             assertEquals("true",
@@ -189,10 +191,27 @@ public class StackExtensionHelperTest {
             assertTrue(property.getDescription().startsWith("The mode the"));
             assertEquals("hbase-site.xml",
                     property.getFilename());
-            found = true;
+            foundHBaseClusterDistributed = true;
+          } else if (property.getName().equals("hbase_regionserver_xmn_max")) {
+            assertEquals("512", property.getValue());
+            assertEquals("global.xml",
+                property.getFilename());
+            foundHBaseRegionServerXmnMax = true;
+          } else if (property.getName().equals("hbase_regionserver_xmn_ratio")) {
+            assertEquals("global.xml",
+                property.getFilename());
+            assertEquals("0.2", property.getValue());
+            foundHBaseRegionServerXmnRatio = true;
           }
         }
-        assertTrue("Property not found in a list of properties", found);
+
+        assertTrue("Property hbase.cluster.distributed not found in a list of properties",
+            foundHBaseClusterDistributed);
+        assertTrue("Property hbase_regionserver_xmn_max not found in a list of properties",
+            foundHBaseRegionServerXmnMax);
+        assertTrue("Property hbase_regionserver_xmn_ratio not found in a list of properties",
+            foundHBaseRegionServerXmnRatio);
+
         List<String> configDependencies = serviceInfo.getConfigDependencies();
         assertEquals(3, configDependencies.size());
         assertEquals("global", configDependencies.get(0));

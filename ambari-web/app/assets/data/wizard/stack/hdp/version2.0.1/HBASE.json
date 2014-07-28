@@ -376,9 +376,33 @@
     {
       "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/HBASE/configurations/hbase_regionserver_heapsize",
       "StackConfigurations" : {
-        "property_description" : "Log Directories for HBase.",
+        "property_description" : "RegionServers heap size.",
         "property_name" : "hbase_regionserver_heapsize",
         "property_value" : "1024",
+        "service_name" : "HBASE",
+        "stack_name" : "HDP",
+        "stack_version" : "2.0.1",
+        "type" : "global.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/HBASE/configurations/hbase_regionserver_xmn_max",
+      "StackConfigurations" : {
+        "property_description" : "Maximum value for minimum RegionServers Java heap size",
+        "property_name" : "hbase_regionserver_xmn_max",
+        "property_value" : "512",
+        "service_name" : "HBASE",
+        "stack_name" : "HDP",
+        "stack_version" : "2.0.1",
+        "type" : "global.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/HBASE/configurations/hbase_regionserver_xmn_ratio",
+      "StackConfigurations" : {
+        "property_description" : "RegionServers -Xmn is calculated as a percentage of -Xmx",
+        "property_name" : "hbase_regionserver_xmn_ratio",
+        "property_value" : "0.2",
         "service_name" : "HBASE",
         "stack_name" : "HDP",
         "stack_version" : "2.0.1",

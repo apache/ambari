@@ -218,6 +218,8 @@
         "webhcat_user" : "hcat",
         "regionserver_handlers" : "30",
         "hbase_regionserver_heapsize" : "1024m",
+        "hbase_regionserver_xmn_max": "512",
+        "hbase_regionserver_xmn_ratio": "0.2",
         "dfs_include" : "dfs.include",
         "dfs_webhdfs_enabled" : "false",
         "scheduler_name" : "org.apache.hadoop.mapred.CapacityTaskScheduler",

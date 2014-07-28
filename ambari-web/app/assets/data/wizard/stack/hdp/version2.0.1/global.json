@@ -916,6 +916,26 @@
           }
         },
         {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HBASE/configurations/hbase_regionserver_xmn_max",
+          "StackConfigurations" : {
+            "stack_version" : "1.3.0",
+            "property_name" : "hbase_regionserver_xmn_max",
+            "filename" : "global.xml",
+            "service_name" : "HBASE",
+            "stack_name" : "HDP"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HBASE/configurations/hbase_regionserver_xmn_ratio",
+          "StackConfigurations" : {
+            "stack_version" : "1.3.0",
+            "property_name" : "hbase_regionserver_xmn_ratio",
+            "filename" : "global.xml",
+            "service_name" : "HBASE",
+            "stack_name" : "HDP"
+          }
+        },
+        {
           "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HBASE/configurations/client_scannercaching",
           "StackConfigurations" : {
             "stack_version" : "1.3.0",

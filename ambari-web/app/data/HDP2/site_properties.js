@@ -2073,6 +2073,27 @@ module.exports =
       "index": 1
     },
     {
+     "id": "puppet var",
+     "name": "hbase_regionserver_xmn_max",
+     "displayName": "RegionServers maximum value for -Xmn",
+     "displayType": "int",
+     "unit": "MB",
+     "isVisible": true,
+     "serviceName": "HBASE",
+     "category": "HBASE_REGIONSERVER",
+     "index": 6
+    },
+    {
+      "id": "puppet var",
+      "name": "hbase_regionserver_xmn_ratio",
+      "displayName": "RegionServers -Xmn in -Xmx ratio",
+      "displayType": "float",
+      "isVisible": true,
+      "serviceName": "HBASE",
+      "category": "HBASE_REGIONSERVER",
+      "index": 7
+    },
+    {
       "id": "puppet var",
       "name": "hbase_log_dir",
       "displayName": "HBase Log Dir",

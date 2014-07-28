@@ -51,7 +51,9 @@ log_dir = config['configurations']['hbase-env']['hbase_log_dir']
 master_heapsize = config['configurations']['hbase-env']['hbase_master_heapsize']
 
 regionserver_heapsize = config['configurations']['hbase-env']['hbase_regionserver_heapsize']
-regionserver_xmn_size = calc_xmn_from_xms(regionserver_heapsize, 0.2, 512)
+regionserver_xmn_max = config['configurations']['hbase-env']['hbase_regionserver_xmn_max']
+regionserver_xmn_percent = config['configurations']['hbase-env']['hbase_regionserver_xmn_ratio']
+regionserver_xmn_size = calc_xmn_from_xms(regionserver_heapsize, regionserver_xmn_percent, regionserver_xmn_max)
 
 pid_dir = status_params.pid_dir
 tmp_dir = config['configurations']['hbase-site']['hbase.tmp.dir']

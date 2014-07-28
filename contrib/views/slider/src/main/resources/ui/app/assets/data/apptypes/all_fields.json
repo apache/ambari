@@ -425,6 +425,8 @@
         "site.global.ganglia_server_port" : "8667",
         "site.global.hbase_master_heapsize" : "1024m",
         "site.global.hbase_regionserver_heapsize" : "1024m",
+        "site.global.hbase_regionserver_xmn_size" : "512",
+        "site.global.hbase_regionserver_xmn_ratio" : "0.2",
         "site.global.security_enabled" : "false",
         "site.global.user_group" : "hadoop",
         "site.hbase-site.hbase.client.keyvalue.maxsize" : "10485760",
