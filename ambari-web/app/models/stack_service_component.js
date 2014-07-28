@@ -192,10 +192,6 @@ App.StackServiceComponent = DS.Model.extend({
      }
   }.property('componentName'),
 
-  selectionSchemeForMasterComponent: function() {
-    return App.StackServiceComponent.selectionScheme(this.get('componentName'));
-  }.property('componentName'),
-
   /** @property {Boolean} coHostedComponents - components that are co-hosted with this component **/
   coHostedComponents: function() {
     var componentName = this.get('componentName');
@@ -222,31 +218,6 @@ App.StackServiceComponent = DS.Model.extend({
 });
 
 App.StackServiceComponent.FIXTURES = [];
-
-App.StackServiceComponent.selectionScheme = function (componentName){
-  switch (componentName) {
-    case 'NAMENODE' :
-      return {"else": 0};
-    case 'SECONDARY_NAMENODE' :
-      return {"else": 1};
-    case 'HBASE_MASTER':
-      return {"6": 0, "31": 2, "else": 3};
-    case 'JOBTRACKER':
-    case 'HISTORYSERVER':
-    case 'RESOURCEMANAGER':
-    case 'APP_TIMELINE_SERVER':
-      return {"31": 1, "else": 2};
-    case 'OOZIE_SERVER':
-    case 'FALCON_SERVER' :
-      return {"6": 1, "31": 2, "else": 3};
-    case 'HIVE_SERVER' :
-    case 'HIVE_METASTORE' :
-    case 'WEBHCAT_SERVER' :
-      return {"6": 1, "31": 2, "else": 4};
-    default:
-      return {"else": 0};
-  }
-};
 
 App.StackServiceComponent.coHost = {
   'HIVE_METASTORE': 'HIVE_SERVER',

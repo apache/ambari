@@ -1140,6 +1140,20 @@ var urls = {
     }
   },
 
+  'wizard.step5.recommendations': {
+    'real': '{stackVersionUrl}/recommendations',
+    'mock': '/data/stacks/HDP-2.1/recommendations.json',
+    'type': 'POST',
+    'format': function (data) {
+      return {
+        data: JSON.stringify({
+          hosts: data.hosts,
+          services: data.services
+        })
+      }
+    }
+  },
+
   'preinstalled.checks': {
     'real':'/requests',
     'mock':'',

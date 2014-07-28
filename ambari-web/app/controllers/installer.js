@@ -732,6 +732,13 @@ App.InstallerController = App.WizardController.extend({
       var step = this.get('isStepDisabled').findProperty('step', i);
       step.set('value', true);
     }
+  },
+
+  /**
+   * Clear loaded recommendations
+   */
+  clearRecommendations: function() {
+    this.set('recommendations', undefined)
   }
 });
 
