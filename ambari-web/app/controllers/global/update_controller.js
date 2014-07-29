@@ -151,23 +151,24 @@ App.UpdateController = Em.Controller.extend({
     var testUrl = App.get('isHadoop2Stack') ? '/data/hosts/HDP2/hosts.json' : '/data/hosts/hosts.json',
       self = this,
       hostDetailsFilter = '';
-    var realUrl = '/hosts?<parameters>fields=Hosts/host_name,Hosts/maintenance_state,Hosts/public_host_name,Hosts/cpu_count,Hosts/ph_cpu_count,Hosts/total_mem,' +
-      'Hosts/host_status,Hosts/last_heartbeat_time,Hosts/os_arch,Hosts/os_type,Hosts/ip,host_components/HostRoles/state,host_components/HostRoles/maintenance_state,' +
-      'host_components/HostRoles/stale_configs,host_components/HostRoles/service_name,metrics/disk,metrics/load/load_one,metrics/cpu/cpu_system,metrics/cpu/cpu_user,' +
-      'metrics/memory/mem_total,metrics/memory/mem_free,alerts/summary&minimal_response=true';
+    var realUrl = '/hosts?<parameters>fields=Hosts/host_name,Hosts/maintenance_state,Hosts/public_host_name,Hosts/cpu_count,Hosts/ph_cpu_count,' +
+      'Hosts/host_status,Hosts/last_heartbeat_time,Hosts/ip,host_components/HostRoles/state,host_components/HostRoles/maintenance_state,' +
+      'host_components/HostRoles/stale_configs,host_components/HostRoles/service_name,metrics/disk,metrics/load/load_one,Hosts/total_mem,' +
+      'alerts/summary<hostAuxiliaryInfo>&minimal_response=true';
+    var hostAuxiliaryInfo = ',Hosts/os_arch,Hosts/os_type,metrics/cpu/cpu_system,metrics/cpu/cpu_user,metrics/memory/mem_total,metrics/memory/mem_free';
 
     if (App.router.get('currentState.name') == 'index' && App.router.get('currentState.parentState.name') == 'hosts') {
       App.updater.updateInterval('updateHost', App.get('contentUpdateInterval'));
     }
     else {
-      if(App.router.get('currentState.name') == 'summary' && App.router.get('currentState.parentState.name') == 'hostDetails') {
+      if (App.router.get('currentState.name') == 'summary' && App.router.get('currentState.parentState.name') == 'hostDetails') {
         hostDetailsFilter = App.router.get('location.lastSetURL').match(/\/hosts\/(.*)\/summary/)[1];
         App.updater.updateInterval('updateHost', App.get('componentsUpdateInterval'));
       }
       else {
         callback();
         // On pages except for hosts/hostDetails, making sure hostsMapper loaded only once on page load, no need to update, but at least once
-        if (this.get('queryParams.Hosts') && this.get('queryParams.Hosts').length > 0) {
+        if (App.router.get('clusterController.isLoaded')) {
           return;
         }
       }
@@ -184,8 +185,11 @@ App.UpdateController = Em.Controller.extend({
         }
       ]);
     } else {
+      hostAuxiliaryInfo = '';
       this.get('queryParams').set('Hosts', mainHostController.getQueryParameters(true));
     }
+    realUrl = realUrl.replace('<hostAuxiliaryInfo>', hostAuxiliaryInfo);
+
     var clientCallback = function (skipCall, queryParams) {
       if (skipCall) {
         //no hosts match filter by component
