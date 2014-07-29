@@ -89,7 +89,7 @@ public class UpgradeCatalog160Test {
     DBAccessor dbAccessor = createNiceMock(DBAccessor.class);
 
     Method m = AbstractUpgradeCatalog.class.getDeclaredMethod
-      ("updateConfigurationProperties", String.class, Map.class, boolean.class);
+      ("updateConfigurationProperties", String.class, Map.class, boolean.class, boolean.class);
 
     UpgradeCatalog160 upgradeCatalog = createMockBuilder(UpgradeCatalog160.class)
       .addMockedMethod(m).createMock();

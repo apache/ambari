@@ -124,7 +124,7 @@ public class UpgradeCatalog161Test {
     TypedQuery query = createMock(TypedQuery.class);
 
     Method m = AbstractUpgradeCatalog.class.getDeclaredMethod
-        ("updateConfigurationProperties", String.class, Map.class, boolean.class);
+        ("updateConfigurationProperties", String.class, Map.class, boolean.class, boolean.class);
 
     UpgradeCatalog161 upgradeCatalog = createMockBuilder(UpgradeCatalog161.class)
       .addMockedMethod(m).createMock();
