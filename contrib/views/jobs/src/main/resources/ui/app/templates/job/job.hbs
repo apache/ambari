@@ -24,29 +24,19 @@
       <a {{action "actionRouteToJobs" target="controller"}} href="#">{{t menu.item.jobs}}</a> > {{view.content.name}}
       <a {{action "toggleShowQuery" target="view"}} href="#" id="toggle-query">{{view.toggleShowQueryText}}</a>
 
-      <div class="pull-right">Job Type: <span class="label label-info">{{view.content.jobType}}</span></div>
+      <div class="pull-right">{{t apps.item.dag.type}}: <span class="label label-info">{{view.content.jobType}}</span></div>
       <div class="alert alert-info query-info">
         <table id="job-more-details-table">
           <tr>
-            <td>
-              {{t jobs.hive.query}}
-            </td>
-            <td>
-              {{view.content.queryText}}
-            </td>
+            <td>{{t jobs.hive.query}}</td>
+            <td>{{view.content.queryText}}</td>
           </tr>
           <tr>
-            <td>
-              {{t jobs.hive.yarnApplication}}
-            </td>
-            <td>
-              {{view.content.tezDag.yarnApplicationId}}
-            </td>
+            <td>{{t jobs.hive.yarnApplication}}</td>
+            <td>{{view.content.tezDag.yarnApplicationId}}</td>
           </tr>
           <tr>
-            <td>
-              {{t jobs.hive.stages}}
-            </td>
+            <td>{{t jobs.hive.stages}}</td>
             <td>
               <ol>
                 {{#each stage in view.content.stages}}
@@ -103,17 +93,15 @@
               </div>
             </div>
             <div id="tez-dag-section-body">
-                {{#if controller.loaded}}
-                  {{view App.MainHiveJobDetailsTezDagView
-                    contentBinding="view.content"
-                    tezDagBinding="view.content.tezDag"
-                    selectedVertexBinding="view.selectedVertex"
-                    summaryMetricTypeBinding="view.summaryMetricType"
-                    zoomScaleBinding="view.zoomScale"
-                    zoomScaleFromBinding="view.zoomScaleFrom"
-                    zoomScaleToBinding="view.zoomScaleTo"
-                  }}
-                {{/if}}
+              {{view App.MainHiveJobDetailsTezDagView
+                contentBinding="view.content"
+                tezDagBinding="view.content.tezDag"
+                selectedVertexBinding="view.selectedVertex"
+                summaryMetricTypeBinding="view.summaryMetricType"
+                zoomScaleBinding="view.zoomScale"
+                zoomScaleFromBinding="view.zoomScaleFrom"
+                zoomScaleToBinding="view.zoomScaleTo"
+              }}
             </div>
           </div>
         </div>
