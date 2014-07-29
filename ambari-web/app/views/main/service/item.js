@@ -128,7 +128,9 @@ App.MainServiceItemView = Em.View.extend({
         options.push(actionMap.REFRESH_YARN_QUEUE);
       }
       options.push(actionMap.RESTART_ALL);
-      allSlaves.forEach(function(slave) {
+      allSlaves.filter(function (slave) {
+        return App.get('components.rollinRestartAllowed').contains(slave);
+      }).forEach(function(slave) {
         options.push(self.createOption(actionMap.ROLLING_RESTART, {
           context: slave,
           label: actionMap.ROLLING_RESTART.label.format(App.format.role(slave))
