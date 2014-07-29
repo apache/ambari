@@ -234,17 +234,17 @@ public class UpgradeCatalog160Test {
     assertNull(column.getDefaultValue());
     assertTrue(column.isNullable());
   }
-  
+
   @Test
   public void testGetSourceVersion() {
     final DBAccessor dbAccessor     = createNiceMock(DBAccessor.class);
     UpgradeCatalog upgradeCatalog = getUpgradeCatalog(dbAccessor);
     Assert.assertEquals("1.5.1", upgradeCatalog.getSourceVersion());
-  }  
+  }
   /**
    * Checks that the restart_require column was created correct when using a
    * non-Postgres DB (MySQL, Oracle, etc).
-   * 
+   *
    * @param restartRequiredColumnCapture
    */
   private void assertRestartRequiredColumn(

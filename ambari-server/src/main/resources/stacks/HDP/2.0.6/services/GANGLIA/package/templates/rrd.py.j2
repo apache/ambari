@@ -19,22 +19,20 @@ limitations under the License.
 '''
 
 import cgi
+import glob
 import os
+import re
 import rrdtool
 import sys
 import time
-import re
 import urlparse
 
 # place this script in /var/www/cgi-bin of the Ganglia collector
 # requires 'yum install rrdtool-python' on the Ganglia collector
-
-
-def printMetric(clusterName, hostName, metricName, file, cf, start, end,
-                resolution, pointInTime):
-  if clusterName.endswith("rrds"):
-    clusterName = ""
-
+'''
+  Loads rrd file info
+'''
+def loadRRDData(file, cf, start, end, resolution):
   args = [file, cf, "--daemon", "unix:{{ganglia_runtime_dir}}/rrdcached.limited.sock"]
 
   if start is not None:
@@ -48,7 +46,139 @@ def printMetric(clusterName, hostName, metricName, file, cf, start, end,
   if resolution is not None:
     args.extend(["-r", resolution])
 
-  rrdMetric = rrdtool.fetch(args)
+  return rrdtool.fetch(args)
+
+'''
+  Collects metrics across several matching filenames.
+'''
+def collectStatMetrics(clusterName, hostName, metricName, files, cf, start, end, resolution):
+  if clusterName[0] is not '/':
+    clusterName.insert(0, '/')
+
+  metricParts = metricName.split('.')
+
+  # already know there's at least one
+  metricStat = metricParts[-1]
+  metricName = '.'.join(metricParts[:-1])
+
+  isRate = False
+  if len(metricParts) > 1 and metricParts[-2] == '_rate':
+    isRate = True
+    metricName = '.'.join(metricParts[:-2])
+
+  pattern = re.compile(metricName + '\.rrd$')
+  matchedFiles = filter(pattern.match, files)
+
+  parentPath = os.path.join(*clusterName)
+
+  actualFiles = []
+  for matchedFile in matchedFiles:
+    if hostName != "__SummaryInfo__":
+      osFiles = glob.glob(os.path.join(parentPath, hostName, matchedFile))
+    else:
+      osFiles = glob.glob(os.path.join(parentPath, '*', matchedFile))
+
+    for f in osFiles:
+      if -1 == f.find("__SummaryInfo__"):
+        actualFiles.append(f)
+
+  if len(actualFiles) == 0:
+    return
+
+  '''
+  [
+    {
+      "step_value": update each iteration
+      "count": increase by 1 each iteration
+      "sum": increase by value each iteration
+      "avg": update each iteration as sum/count
+      "min": update each iteration if step_value < old min OR min is missing (first time)
+      "max": update each iteration if step_value > old max OR max is missing (first time)
+    }
+  ]
+  '''
+
+  timestamp = None
+  stepsize = None
+  concreteMetricName = None
+  vals = None # values across all files
+
+  for file in actualFiles:
+    rrdMetric = loadRRDData(file, cf, start, end, resolution)
+    
+    if timestamp is None and stepsize is None and concreteMetricName is None:
+      timestamp = rrdMetric[0][0]
+      stepsize = rrdMetric[0][2]
+      suffix = metricStat if not isRate else '_rate.' + metricStat
+      concreteMetricName = file.split(os.sep).pop().replace('rrd', suffix)
+
+    metricValues = rrdMetric[2]
+
+    if vals is None:
+      vals = [None] * len(metricValues)
+
+    i = 0
+    for tuple in metricValues:
+      if vals[i] is None:
+        vals[i] = {}
+        vals[i]['count'] = 0
+        vals[i]['_sum'] = 0
+        vals[i]['_avg'] = 0
+        vals[i]['_min'] = 0
+        vals[i]['_max'] = 0
+
+      rawValue = tuple[0]
+      vals[i]['step_value'] = rawValue
+      if rawValue is None:
+        i += 1
+        continue
+
+      if isRate:
+        if 0 == i:
+          rawValue = 0.0
+        elif vals[i-1]['step_value'] is None:
+          rawValue = 0.0
+        else:
+          rawValue = (rawValue - vals[i-1]['step_value']) / stepsize
+      
+      vals[i]['count'] += 1 
+      vals[i]['_sum'] += rawValue
+
+      vals[i]['_avg'] = vals[i]['_sum']/vals[i]['count']
+
+      if rawValue < vals[i]['_min']:
+        vals[i]['_min'] = rawValue
+
+      if rawValue > vals[i]['_max']:
+        vals[i]['_max'] = rawValue
+      
+      i += 1
+
+  sys.stdout.write("sum\n")
+  sys.stdout.write(clusterName[len(clusterName)-1] + "\n")
+  sys.stdout.write(hostName + "\n")
+  sys.stdout.write(concreteMetricName + "\n")
+  sys.stdout.write(str(timestamp) + "\n")
+  sys.stdout.write(str(stepsize) + "\n")
+
+  for val in vals:
+    if val['step_value'] is None:
+      sys.stdout.write("[~n]")
+    else:
+      sys.stdout.write(str(val[metricStat]))
+    sys.stdout.write("\n")
+
+  sys.stdout.write("[~EOM]\n")
+
+  return
+
+def printMetric(clusterName, hostName, metricName, file, cf, start, end,
+                resolution, pointInTime):
+  if clusterName.endswith("rrds"):
+    clusterName = ""
+ 
+  rrdMetric = loadRRDData(file, cf, start, end, resolution)
+
   # ds_name
   sys.stdout.write(rrdMetric[1][0])
   sys.stdout.write("\n")
@@ -198,14 +328,22 @@ for cluster in clusterParts:
                       os.path.join(path, file), cf, start, end, resolution,
                       pointInTime)
         else:
-          #Regex as metric name
-          metricRegex = metric + '\.rrd$'
-          p = re.compile(metricRegex)
-          matchedFiles = filter(p.match, files)
-          for matchedFile in matchedFiles:
-            printMetric(pathParts[-2], pathParts[-1], matchedFile[:-4],
-                        os.path.join(path, matchedFile), cf, start, end,
-                        resolution, pointInTime)
+          need_stats = False
+          parts = metric.split(".")
+          if len(parts) > 0 and parts[-1] in ['_min', '_max', '_avg', '_sum']:
+              need_stats = True
+
+          if need_stats and not pointInTime:
+            collectStatMetrics(pathParts[:-1], pathParts[-1], metric, files, cf, start, end, resolution)
+          else:
+            #Regex as metric name
+            metricRegex = metric + '\.rrd$'
+            p = re.compile(metricRegex)
+            matchedFiles = filter(p.match, files)
+            for matchedFile in matchedFiles:
+              printMetric(pathParts[-2], pathParts[-1], matchedFile[:-4],
+                         os.path.join(path, matchedFile), cf, start, end,
+                         resolution, pointInTime)
 
 sys.stdout.write("[~EOF]\n")
 # write end time

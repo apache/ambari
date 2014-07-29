@@ -82,7 +82,7 @@ def flume(action = None):
         Execute(flume_cmd, wait_for_finish=False)
 
         # sometimes startup spawns a couple of threads - so only the first line may count
-        pid_cmd = format('pgrep -o -u {flume_user} -f ^{java_home} > {flume_agent_pid_file}')
+        pid_cmd = format('pgrep -o -u {flume_user} -f ^{java_home}.*{agent}.* > {flume_agent_pid_file}')
         Execute(pid_cmd, logoutput=True, tries=10, try_sleep=1)
 
     pass

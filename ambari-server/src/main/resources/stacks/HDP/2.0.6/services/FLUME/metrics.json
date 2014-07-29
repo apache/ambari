@@ -288,7 +288,71 @@
             "metric":"(\\w+).SOURCE.(\\w+).EventAcceptedCount",
             "pointInTime":true,
             "temporal":true
+          },
+
+          "metrics/flume/$1.substring(0)/CHANNEL/$2.replaceAll(\"[^-]+\",\"\")EventTakeSuccessCount/rate/min": {
+            "metric":"(\\w+).CHANNEL.(\\w+).EventTakeSuccessCount._rate._min",
+            "pointInTime":false,
+            "temporal":true
+          },
+          "metrics/flume/$1.substring(0)/CHANNEL/$2.replaceAll(\"[^-]+\",\"\")EventTakeSuccessCount/rate/max": {
+            "metric":"(\\w+).CHANNEL.(\\w+).EventTakeSuccessCount._rate._max",
+            "pointInTime":false,
+            "temporal":true
+          },
+          "metrics/flume/$1.substring(0)/CHANNEL/$2.replaceAll(\"[^-]+\",\"\")EventTakeSuccessCount/rate/avg": {
+            "metric":"(\\w+).CHANNEL.(\\w+).EventTakeSuccessCount._rate._avg",
+            "pointInTime":false,
+            "temporal":true
+          },
+          "metrics/flume/$1.substring(0)/CHANNEL/$2.replaceAll(\"[^-]+\",\"\")EventTakeSuccessCount/rate/sum": {
+            "metric":"(\\w+).CHANNEL.(\\w+).EventTakeSuccessCount._rate._sum",
+            "pointInTime":false,
+            "temporal":true
+          },
+
+          "metrics/flume/$1.substring(0)/CHANNEL/$2.replaceAll(\"[^-]+\",\"\")EventPutSuccessCount/rate/avg": {
+            "metric":"(\\w+).CHANNEL.(\\w+).EventPutSuccessCount._rate._avg",
+            "pointInTime":false,
+            "temporal":true
+          },
+          "metrics/flume/$1.substring(0)/CHANNEL/$2.replaceAll(\"[^-]+\",\"\")EventPutSuccessCount/rate/max": {
+            "metric":"(\\w+).CHANNEL.(\\w+).EventPutSuccessCount._rate._max",
+            "pointInTime":false,
+            "temporal":true
+          },
+          "metrics/flume/$1.substring(0)/CHANNEL/$2.replaceAll(\"[^-]+\",\"\")EventPutSuccessCount/rate/min": {
+            "metric":"(\\w+).CHANNEL.(\\w+).EventPutSuccessCount._rate._min",
+            "pointInTime":false,
+            "temporal":true
+          },
+          "metrics/flume/$1.substring(0)/CHANNEL/$2.replaceAll(\"[^-]+\",\"\")EventPutSuccessCount/rate/sum": {
+            "metric":"(\\w+).CHANNEL.(\\w+).EventPutSuccessCount._rate._sum",
+            "pointInTime":false,
+            "temporal":true
+          },
+          
+          "metrics/flume/$1.substring(0)/CHANNEL/$2.replaceAll(\"[^-]+\",\"\")ChannelSize/avg": {
+            "metric":"(\\w+).CHANNEL.(\\w+).ChannelSize._avg",
+            "pointInTime":false,
+            "temporal":true
+          },
+          "metrics/flume/$1.substring(0)/CHANNEL/$2.replaceAll(\"[^-]+\",\"\")ChannelSize/max": {
+            "metric":"(\\w+).CHANNEL.(\\w+).ChannelSize._max",
+            "pointInTime":false,
+            "temporal":true
+          },
+          "metrics/flume/$1.substring(0)/CHANNEL/$2.replaceAll(\"[^-]+\",\"\")ChannelSize/min": {
+            "metric":"(\\w+).CHANNEL.(\\w+).ChannelSize._min",
+            "pointInTime":false,
+            "temporal":true
+          },
+          "metrics/flume/$1.substring(0)/CHANNEL/$2.replaceAll(\"[^-]+\",\"\")ChannelSize/sum": {
+            "metric":"(\\w+).CHANNEL.(\\w+).ChannelSize._sum",
+            "pointInTime":false,
+            "temporal":true
           }
+
         }
       }
     ],
@@ -580,7 +644,71 @@
             "metric":"(\\w+).SOURCE.(\\w+).EventAcceptedCount",
             "pointInTime":true,
             "temporal":true
+          },
+
+          "metrics/flume/$1.substring(0)/CHANNEL/$2.replaceAll(\"[^-]+\",\"\")EventTakeSuccessCount/rate/avg": {
+            "metric":"(\\w+).CHANNEL.(\\w+).EventTakeSuccessCount._rate._avg",
+            "pointInTime":false,
+            "temporal":true
+          },
+          "metrics/flume/$1.substring(0)/CHANNEL/$2.replaceAll(\"[^-]+\",\"\")EventTakeSuccessCount/rate/max": {
+            "metric":"(\\w+).CHANNEL.(\\w+).EventTakeSuccessCount._rate._max",
+            "pointInTime":false,
+            "temporal":true
+          },
+          "metrics/flume/$1.substring(0)/CHANNEL/$2.replaceAll(\"[^-]+\",\"\")EventTakeSuccessCount/rate/min": {
+            "metric":"(\\w+).CHANNEL.(\\w+).EventTakeSuccessCount._rate._min",
+            "pointInTime":false,
+            "temporal":true
+          },
+          "metrics/flume/$1.substring(0)/CHANNEL/$2.replaceAll(\"[^-]+\",\"\")EventTakeSuccessCount/rate/sum": {
+            "metric":"(\\w+).CHANNEL.(\\w+).EventTakeSuccessCount._rate._sum",
+            "pointInTime":false,
+            "temporal":true
+          },
+
+          "metrics/flume/$1.substring(0)/CHANNEL/$2.replaceAll(\"[^-]+\",\"\")EventPutSuccessCount/rate/avg": {
+            "metric":"(\\w+).CHANNEL.(\\w+).EventPutSuccessCount._rate._avg",
+            "pointInTime":false,
+            "temporal":true
+          },
+          "metrics/flume/$1.substring(0)/CHANNEL/$2.replaceAll(\"[^-]+\",\"\")EventPutSuccessCount/rate/max": {
+            "metric":"(\\w+).CHANNEL.(\\w+).EventPutSuccessCount._rate._max",
+            "pointInTime":false,
+            "temporal":true
+          },
+          "metrics/flume/$1.substring(0)/CHANNEL/$2.replaceAll(\"[^-]+\",\"\")EventPutSuccessCount/rate/min": {
+            "metric":"(\\w+).CHANNEL.(\\w+).EventPutSuccessCount._rate._min",
+            "pointInTime":false,
+            "temporal":true
+          },
+          "metrics/flume/$1.substring(0)/CHANNEL/$2.replaceAll(\"[^-]+\",\"\")EventPutSuccessCount/rate/sum": {
+            "metric":"(\\w+).CHANNEL.(\\w+).EventPutSuccessCount._rate._sum",
+            "pointInTime":false,
+            "temporal":true
+          },
+          
+          "metrics/flume/$1.substring(0)/CHANNEL/$2.replaceAll(\"[^-]+\",\"\")ChannelSize/avg": {
+            "metric":"(\\w+).CHANNEL.(\\w+).ChannelSize._avg",
+            "pointInTime":false,
+            "temporal":true
+          },
+          "metrics/flume/$1.substring(0)/CHANNEL/$2.replaceAll(\"[^-]+\",\"\")ChannelSize/max": {
+            "metric":"(\\w+).CHANNEL.(\\w+).ChannelSize._max",
+            "pointInTime":false,
+            "temporal":true
+          },
+          "metrics/flume/$1.substring(0)/CHANNEL/$2.replaceAll(\"[^-]+\",\"\")ChannelSize/min": {
+            "metric":"(\\w+).CHANNEL.(\\w+).ChannelSize._min",
+            "pointInTime":false,
+            "temporal":true
+          },
+          "metrics/flume/$1.substring(0)/CHANNEL/$2.replaceAll(\"[^-]+\",\"\")ChannelSize/sum": {
+            "metric":"(\\w+).CHANNEL.(\\w+).ChannelSize._sum",
+            "pointInTime":false,
+            "temporal":true
           }
+          
         }
       }
     ]

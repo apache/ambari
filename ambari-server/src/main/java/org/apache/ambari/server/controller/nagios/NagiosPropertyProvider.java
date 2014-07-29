@@ -155,37 +155,12 @@ public class NagiosPropertyProvider extends BaseProvider implements PropertyProv
           } catch (Exception e) {
             LOG.error("Could not load Nagios alerts: " + e.getMessage());
           }
-          alerts.addAll(convertAlerts(clusterName));
           CLUSTER_ALERTS.put(clusterName, alerts);
         }
       }
     }, 0L, 30L, TimeUnit.SECONDS);    
   }
 
-  
-  /**
-   * Convert Alert from cluster to NagiosAlert
-   * @param clusterName the cluster name
-   * @return Collection of NagiosAlerts
-   * @throws AmbariException 
-   */
-  public List<NagiosAlert> convertAlerts(String clusterName) {
-    Cluster cluster;
-    try {
-      cluster = clusters.getCluster(clusterName);
-    } catch (AmbariException ex) {
-      return new ArrayList<NagiosAlert>();
-    }
-    Collection<Alert> clusterAlerts = cluster.getAlerts();
-    List<NagiosAlert> results = new ArrayList<NagiosAlert>();
-    if (clusterAlerts != null) {
-      for (Alert alert : clusterAlerts) {
-        NagiosAlert a = new NagiosAlert(alert);
-        results.add(a);
-      }
-    }
-    return results;
-  }
   
   /**
    * Use only for testing to remove all cached alerts.

@@ -57,7 +57,7 @@ class TestFlumeHandler(RMFTestCase):
       '-Dflume.monitoring.hosts=c6401.ambari.apache.org:8655"'),
       wait_for_finish = False)
 
-    self.assertResourceCalled('Execute', 'pgrep -o -u flume -f ^/usr/jdk64/jdk1.7.0_45 > /var/run/flume/a1.pid',
+    self.assertResourceCalled('Execute', 'pgrep -o -u flume -f ^/usr/jdk64/jdk1.7.0_45.*a1.* > /var/run/flume/a1.pid',
       logoutput = True,
       tries = 10,
       try_sleep = 1)
@@ -205,7 +205,7 @@ class TestFlumeHandler(RMFTestCase):
       '-Dflume.monitoring.hosts=c6401.ambari.apache.org:8655"'),
       wait_for_finish = False)
 
-    self.assertResourceCalled('Execute', 'pgrep -o -u flume -f ^/usr/jdk64/jdk1.7.0_45 > /var/run/flume/b1.pid',
+    self.assertResourceCalled('Execute', 'pgrep -o -u flume -f ^/usr/jdk64/jdk1.7.0_45.*b1.* > /var/run/flume/b1.pid',
       logoutput = True,
       tries = 10,
       try_sleep = 1)
@@ -233,7 +233,7 @@ class TestFlumeHandler(RMFTestCase):
       '-Dflume.monitoring.hosts=c6401.ambari.apache.org:8655"'),
       wait_for_finish = False)
 
-    self.assertResourceCalled('Execute', 'pgrep -o -u flume -f ^/usr/jdk64/jdk1.7.0_45 > /var/run/flume/b1.pid',
+    self.assertResourceCalled('Execute', 'pgrep -o -u flume -f ^/usr/jdk64/jdk1.7.0_45.*b1.* > /var/run/flume/b1.pid',
       logoutput = True,
       tries = 10,
       try_sleep = 1)
