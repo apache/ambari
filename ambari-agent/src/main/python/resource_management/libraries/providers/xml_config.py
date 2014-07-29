@@ -31,7 +31,7 @@ class XmlConfigProvider(Provider):
     # |e - for html-like escaping of <,>,',"
     config_content = InlineTemplate('''<!--{{time.asctime(time.localtime())}}-->
     <configuration>
-    {% for key, value in configurations_dict.items() %}
+    {% for key, value in configurations_dict|dictsort %}
     <property>
       <name>{{ key|e }}</name>
       <value>{{ value|e }}</value>

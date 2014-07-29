@@ -156,4 +156,41 @@ class TestXmlConfigResource(TestCase):
                 })
 
     open_mock.assert_called_with('/dir/conf/file.xml', 'wb')
-    result_file.__enter__().write.assert_called_with(u'<!--Wed 2014-02-->\n    <configuration>\n    \n    <property>\n      <name></name>\n      <value></value>\n    </property>\n    \n    <property>\n      <name>prop.empty</name>\n      <value></value>\n      <attr_value_empty></attr_value_empty>\n    </property>\n    \n    <property>\n      <name>prop.3</name>\n      <value>%d{ISO8601} %5p %c{1}:%L - %m%n</value>\n      <attr2>value3</attr2>\n    </property>\n    \n    <property>\n      <name>prop.2</name>\n      <value>INFO, openjpa</value>\n    </property>\n    \n    <property>\n      <name>prop.1</name>\n      <value>&#39;.&#39;yyyy-MM-dd-HH</value>\n      <attr1>x</attr1>\n    </property>\n    \n    <property>\n      <name>prop.4</name>\n      <value>${oozie.log.dir}/oozie.log</value>\n      <attr_value_empty></attr_value_empty>\n      <attr2>value4</attr2>\n    </property>\n    \n  </configuration>\n')
+    result_file.__enter__().write.assert_called_with(u'<!--Wed 2014-02-->\n    <configuration>\n    \n    <property>\n      <name></name>\n      <value></value>\n    </property>\n    \n    <property>\n      <name>prop.1</name>\n      <value>&#39;.&#39;yyyy-MM-dd-HH</value>\n      <attr1>x</attr1>\n    </property>\n    \n    <property>\n      <name>prop.2</name>\n      <value>INFO, openjpa</value>\n    </property>\n    \n    <property>\n      <name>prop.3</name>\n      <value>%d{ISO8601} %5p %c{1}:%L - %m%n</value>\n      <attr2>value3</attr2>\n    </property>\n    \n    <property>\n      <name>prop.4</name>\n      <value>${oozie.log.dir}/oozie.log</value>\n      <attr_value_empty></attr_value_empty>\n      <attr2>value4</attr2>\n    </property>\n    \n    <property>\n      <name>prop.empty</name>\n      <value></value>\n      <attr_value_empty></attr_value_empty>\n    </property>\n    \n  </configuration>\n')
+
+  @patch("resource_management.core.providers.system._ensure_metadata")
+  @patch("__builtin__.open")
+  @patch.object(os.path, "exists")
+  @patch.object(os.path, "isdir")
+  @patch.object(time, "asctime")
+  def test_action_create_xml_config_sorted_by_key(self,
+                                                  time_asctime_mock,
+                                                  os_path_isdir_mock,
+                                                  os_path_exists_mock,
+                                                  open_mock,
+                                                  ensure_mock):
+    """
+    Tests if 'create' action - creates new non existent xml file and writes proper data
+    where configurations={"Key":"Value"} are stored in sorted by key order
+    """
+    os_path_isdir_mock.side_effect = [False, True]
+    os_path_exists_mock.return_value = False
+    time_asctime_mock.return_value = 'Wed 2014-02'
+
+    result_file = MagicMock()
+    open_mock.return_value = result_file
+
+    with Environment('/') as env:
+      XmlConfig('file.xml',
+                conf_dir='/dir/conf',
+                configurations={"": "",
+                                "third": "should be third",
+                                "first": "should be first",
+                                "z_last": "should be last",
+                                "second": "should be second",
+                                },
+                configuration_attributes={}
+                )
+
+    open_mock.assert_called_with('/dir/conf/file.xml', 'wb')
+    result_file.__enter__().write.assert_called_with(u'<!--Wed 2014-02-->\n    <configuration>\n    \n    <property>\n      <name></name>\n      <value></value>\n    </property>\n    \n    <property>\n      <name>first</name>\n      <value>should be first</value>\n    </property>\n    \n    <property>\n      <name>second</name>\n      <value>should be second</value>\n    </property>\n    \n    <property>\n      <name>third</name>\n      <value>should be third</value>\n    </property>\n    \n    <property>\n      <name>z_last</name>\n      <value>should be last</value>\n    </property>\n    \n  </configuration>\n')
