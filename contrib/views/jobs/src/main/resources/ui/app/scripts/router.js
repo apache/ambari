@@ -18,5 +18,5 @@
 
 App.Router.map(function () {
   this.resource("jobs", { path: "/" });
-  this.resource('job', { path: 'jobs/:job_id' });
+  this.resource('job', { path: 'jobs/:hive_job_id' });
 });

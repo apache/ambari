@@ -30,7 +30,7 @@ App.Helpers.number = {
    * @return {String} Returns converted value with abbreviation.
    */
   bytesToSize: function (bytes, precision, parseType, multiplyBy) {
-    if (bytes === null || bytes === undefined) {
+    if (Em.isNone(bytes)) {
       return 'n/a';
     } else {
       if (arguments[2] === undefined) {
@@ -52,6 +52,40 @@ App.Helpers.number = {
       var parsedValue = window[parseType](value);
       return parsedValue.toFixed(precision) + " " + sizes[posttxt];
     }
+  },
+
+  /**
+   * Validates if the given string or number is an integer between the
+   * values of min and max (inclusive). The minimum and maximum
+   * checks are ignored if their valid is NaN.
+   *
+   * @method validateInteger
+   * @param {string|number} str - input string
+   * @param {string|number} [min]
+   * @param {string|number} [max]
+   */
+  validateInteger : function(str, min, max) {
+    if (str==null || str==undefined || (str + "").trim().length < 1) {
+      return Em.I18n.t('number.validate.empty');
+    } else {
+      str = (str + "").trim();
+      var number = parseInt(str);
+      if (isNaN(number)) {
+        return Em.I18n.t('number.validate.notValidNumber');
+      } else {
+        if (str.length != (number + "").length) {
+          // parseInt("1abc") returns 1 as integer
+          return Em.I18n.t('number.validate.notValidNumber');
+        }
+        if (!isNaN(min) && number < min) {
+          return Em.I18n.t('number.validate.lessThanMinumum').fmt(min);
+        }
+        if (!isNaN(max) && number > max) {
+          return Em.I18n.t('number.validate.moreThanMaximum').fmt(max);
+        }
+      }
+    }
+    return null;
   }
 
 };

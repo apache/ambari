@@ -16,7 +16,14 @@
  * limitations under the License.
  */
 
-var App = window.App = Ember.Application.create();
+var App = window.App = Ember.Application.createWithMixins(Bootstrap, {
+  LOG_TRANSITIONS: false,
+  LOG_TRANSITIONS_INTERNAL: false
+});
+
+require('scripts/router');
+require('scripts/routes/*');
+require('scripts/store');
 
 App.Helpers = Ember.Namespace.create();
 
@@ -56,15 +63,12 @@ App.initializer({
 
 /* Order and include as you please. */
 require('scripts/translations');
-require('scripts/router');
-require('scripts/store');
 require('scripts/mixins/*');
 require('scripts/helpers/*');
 require('scripts/models/**/*');
 require('scripts/mappers/server_data_mapper.js');
 require('scripts/mappers/**/*');
-require('scripts/controllers/*');
-require('scripts/routes/*');
+require('scripts/controllers/**/*');
 require('scripts/components/*');
 require('scripts/views/sort_view');
 require('scripts/views/filter_view');

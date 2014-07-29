@@ -10,7 +10,9 @@
     "bootstrap": "2.3.*",
     "ember-addons.bs_for_ember": ">=0.7",
     "ember-json-mapper": "master",
-    "jquery-ui": ">=1.11"
+    "jquery-ui": ">=1.11",
+    "d3": "2.10.2",
+    "font-awesome": "3.2.1"
   },
   "devDependencies": {
     "ember-mocha-adapter": "0.1.2"

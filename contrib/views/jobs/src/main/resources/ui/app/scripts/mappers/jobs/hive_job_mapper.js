@@ -34,7 +34,6 @@
  */
 App.hiveJobMapper = App.QuickDataMapper.create({
 
-  model : App.HiveJob,
   map : function(json) {
     var model = this.get('model'),
       hiveJob = {};
@@ -80,8 +79,8 @@ App.hiveJobMapper = App.QuickDataMapper.create({
             var vertexObj = {
               id : dagName + "/" + vertexName,
               name : vertexName,
-              incoming_edges : [],
-              outgoing_edges : []
+              incomingEdges : [],
+              outgoingEdges : []
             };
             vertexIds.push(vertexObj.id);
             var operatorExtractor = function(obj) {
@@ -104,13 +103,13 @@ App.hiveJobMapper = App.QuickDataMapper.create({
             if (vertex["Map Operator Tree:"] != null) {
               vertexObj.type = App.TezDagVertexType.MAP;
               vertexObj.operations = operatorExtractor(vertex["Map Operator Tree:"]);
-              vertexObj.operation_plan = JSON.stringify(vertex["Map Operator Tree:"], undefined, "  ");
+              vertexObj.operationPlan = JSON.stringify(vertex["Map Operator Tree:"], undefined, "  ");
             }
             else
               if (vertex["Reduce Operator Tree:"] != null) {
                 vertexObj.type = App.TezDagVertexType.REDUCE;
                 vertexObj.operations = operatorExtractor(vertex["Reduce Operator Tree:"]);
-                vertexObj.operation_plan = JSON.stringify(vertex["Reduce Operator Tree:"], undefined, "  ");
+                vertexObj.operationPlan = JSON.stringify(vertex["Reduce Operator Tree:"], undefined, "  ");
               }
               else
                 if (vertex["Vertex:"] != null && vertexName==vertex['Vertex:']) {
@@ -141,21 +140,21 @@ App.hiveJobMapper = App.QuickDataMapper.create({
               }
               var edgeObj = {
                 id : dagName + "/" + parentVertex + "-" + childVertex,
-                from_vertex_id : dagName + "/" + parentVertex,
-                to_vertex_id : dagName + "/" + childVertex
+                fromVertex: dagName + "/" + parentVertex,
+                toVertex : dagName + "/" + childVertex
               };
-              vertexIdMap[edgeObj.from_vertex_id].outgoing_edges.push(edgeObj.id);
-              vertexIdMap[edgeObj.to_vertex_id].incoming_edges.push(edgeObj.id);
+              vertexIdMap[edgeObj.fromVertex].outgoingEdges.push(edgeObj.id);
+              vertexIdMap[edgeObj.toVertex].incomingEdges.push(edgeObj.id);
               edgeIds.push(edgeObj.id);
               switch (e.type) {
               case "BROADCAST_EDGE":
-                edgeObj.edge_type = App.TezDagEdgeType.BROADCAST;
+                edgeObj.edgeType = App.TezDagEdgeType.BROADCAST;
                 break;
               case "SIMPLE_EDGE":
-                edgeObj.edge_type = App.TezDagEdgeType.SCATTER_GATHER;
+                edgeObj.edgeType = App.TezDagEdgeType.SCATTER_GATHER;
                 break;
               case "CONTAINS":
-                edgeObj.edge_type = App.TezDagEdgeType.CONTAINS;
+                edgeObj.edgeType = App.TezDagEdgeType.CONTAINS;
                 break;
               default:
                 break;
@@ -175,40 +174,43 @@ App.hiveJobMapper = App.QuickDataMapper.create({
           // reload as the structure does not change. Reloading
           // here causes missing data (got from other calls)
           // to propagate into UI - causing flashing.
-          var newVertices = [];
-          var newEdges = [];
+          var newVertices = [],
+            newEdges = [];
           vertices.forEach(function(v) {
-            var vertexRecord = App.TezDagVertex.find(v.id);
-            if (!vertexRecord.get('isLoaded')) {
+            var vertexRecord = App.HiveJob.store.getById('tezDagVertex', v.id);
+            if (!vertexRecord || !vertexRecord.get('isLoaded')) {
               newVertices.push(v);
             }
           });
           edges.forEach(function(e) {
-            var edgeRecord = App.TezDagEdge.find(e.id);
-            if (!edgeRecord.get('isLoaded')) {
+            var edgeRecord = App.HiveJob.store.getById('tezDagEdge', e.id);
+            if (!edgeRecord || !edgeRecord.get('isLoaded')) {
               newEdges.push(e);
             }
           });
-          App.store.loadMany(App.TezDagVertex, newVertices);
-          App.store.loadMany(App.TezDagEdge, newEdges);
-          var dagRecord = App.TezDag.find(tezDag.id);
-          if (!dagRecord.get('isLoaded')) {
-            App.store.load(App.TezDag, tezDag);
+
+          App.HiveJob.store.pushMany('tezDagVertex', newVertices);
+          App.HiveJob.store.pushMany('tezDagEdge', newEdges);
+
+          var dagRecord = App.HiveJob.store.getById('tezDag', tezDag.id);
+          if (!dagRecord || !dagRecord.get('isLoaded')) {
+            App.HiveJob.store.push('tezDag', tezDag);
           }
           hiveJob.tezDag = tezDag.id;
         }
       }
-      if(App.HiveJob.find().get('content').length == 0){
-        App.store.load(model, hiveJob);
+
+      if(App.HiveJob.store.all('hiveJob').length == 0){
+        App.HiveJob.store.push('hiveJob', hiveJob);
       }
-      var hiveJobRecord = App.HiveJob.find(hiveJob.id);
+      var hiveJobRecord = App.HiveJob.store.getById('hiveJob', hiveJob.id);
       if (hiveJobRecord != null) {
-        hiveJobRecord.set('stages', hiveJob.stages.sortProperty('id'));
+        hiveJobRecord.set('stages', hiveJob.stages.sortBy('id'));
         hiveJobRecord.set('startTime', hiveJob.startTime);
         hiveJobRecord.set('endTime', hiveJob.endTime);
         if (hiveJob.tezDag != null) {
           // Some hive queries dont use Tez
-          hiveJobRecord.set('tezDag', App.TezDag.find(hiveJob.tezDag));
+          hiveJobRecord.set('tezDag', App.HiveJob.store.getById('tezDag', hiveJob.tezDag));
         }
       }
     }

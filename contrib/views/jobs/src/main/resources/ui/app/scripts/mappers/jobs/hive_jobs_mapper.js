@@ -83,6 +83,10 @@ App.hiveJobsMapper = App.QuickDataMapper.create({
           });
         }
         hiveJobs.push(hiveJob);
+        var tezDag = App.HiveJob.store.all('tezDag').findBy('hiveJob.id', hiveJob.id);
+        if (!Em.isNone(tezDag)) {
+          hiveJob.tezDag = tezDag.id;
+        }
         jobsToDelete = jobsToDelete.without(hiveJob.id);
       });
 

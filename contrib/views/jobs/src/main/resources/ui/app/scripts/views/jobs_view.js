@@ -219,9 +219,9 @@ App.JobsView = App.TableView.extend({
     templateName: 'jobs/jobs_name',
 
     click: function(event) {
-      /*if (this.get('job.hasTezDag')) {
-        App.router.transitionTo('main.jobs.jobDetails', this.get('job'));
-      }*/
+      if (this.get('job.hasTezDag')) {
+        this.get('controller').transitionToRoute('job', this.get('job'));
+      }
       return false;
     },
 

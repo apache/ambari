@@ -42,6 +42,30 @@ var urls = {
     apiPrefix: ''
   },
 
+  'job_details': {
+    real: '/proxy?url=http://{historyServerHostName}:{ahsWebPort}/ws/v1/timeline/HIVE_QUERY_ID/{job_id}?fields=events,otherinfo',
+    mock: '/scripts/assets/hive-query-2.json',
+    apiPrefix: ''
+  },
+
+  'jobs.tezDag.NametoID': {
+    'real': '/proxy?url=http://{historyServerHostName}:{ahsWebPort}/ws/v1/timeline/TEZ_DAG_ID?primaryFilter=dagName:{tezDagName}',
+    'mock': '/scripts/assets/tezDag-name-to-id.json',
+    'apiPrefix': ''
+  },
+
+  'jobs.tezDag.tezDagId': {
+    'real': '/proxy?url=http://{historyServerHostName}:{ahsWebPort}/ws/v1/timeline/TEZ_DAG_ID/{tezDagId}?fields=relatedentities,otherinfo',
+    'mock': '/scripts/assets/tezDag.json',
+    'apiPrefix': ''
+  },
+
+  'jobs.tezDag.tezDagVertexId': {
+    'real': '/proxy?url=http://{historyServerHostName}:{ahsWebPort}/ws/v1/timeline/TEZ_VERTEX_ID/{tezDagVertexId}?fields=otherinfo',
+    'mock': '/scripts/assets/tezDagVertex.json',
+    'apiPrefix': ''
+  },
+
   'cluster_name': {
     real: 'clusters',
     mock: '/scripts/assets/clusters.json'

@@ -20,33 +20,38 @@ App.TezDag = DS.Model.extend({
   /**
    * When DAG is actually running on server, a unique ID is assigned.
    */
-  instanceId : DS.attr('string'),
+  instanceId: DS.attr('string'),
 
-  name : DS.attr('string'),
+  name: DS.attr('string'),
 
   yarnApplicationId: DS.attr('string'),
 
-  stage : DS.attr('string'),
+  stage: DS.attr('string'),
 
-  vertices : DS.hasMany('tezDagVertex', {async:true}),
+  vertices: DS.hasMany('tezDagVertex'),
 
-  edges : DS.hasMany('tezDagEdge', {async:true})
+  edges: DS.hasMany('tezDagEdge'),
+
+  hiveJob: DS.belongsTo('hiveJob')
 
 });
 
 App.TezDagEdge = DS.Model.extend({
 
-  instanceId : DS.attr('string'),
+  instanceId: DS.attr('string'),
 
-  fromVertex : DS.belongsTo('tezDagVertex', {async:true}),
+  fromVertex: DS.belongsTo('tezDagVertex'),
 
-  toVertex : DS.belongsTo('tezDagVertex', {async:true}),
+  toVertex: DS.belongsTo('tezDagVertex'),
 
   /**
    * Type of this edge connecting vertices. Should be one of constants defined
    * in 'App.TezDagEdgeType'.
    */
-  edgeType : DS.attr('string')
+  edgeType: DS.attr('string'),
+
+  tezDag: DS.belongsTo('tezDag')
+
 });
 
 App.TezDagVertex = DS.Model.extend({
@@ -54,35 +59,37 @@ App.TezDagVertex = DS.Model.extend({
   /**
    * When DAG vertex is actually running on server, a unique ID is assigned.
    */
-  instanceId : DS.attr('string'),
+  instanceId: DS.attr('string'),
 
-  name : DS.attr('string'),
+  name: DS.attr('string'),
+
+  tezDag: DS.belongsTo('tezDag'),
 
   /**
    * State of this vertex. Should be one of constants defined in
    * App.TezDagVertexState.
    */
-  state : DS.attr('string'),
+  state: DS.attr('string'),
 
   /**
    * Vertex type has to be one of the types defined in 'App.TezDagVertexType'
    * @return {string}
    */
-  type : DS.attr('string'),
+  type: DS.attr('string'),
 
   /**
    * A vertex can have multiple incoming edges.
    */
-  incomingEdges : DS.hasMany('tezDagEdge', {async:true}),
+  incomingEdges: DS.hasMany('tezDagEdge'),
 
   /**
    * This vertex can have multiple outgoing edges.
    */
-  outgoingEdges : DS.hasMany('tezDagEdge', {async:true}),
+  outgoingEdges: DS.hasMany('tezDagEdge'),
 
-  startTime : DS.attr('number'),
+  startTime: DS.attr('number'),
 
-  endTime : DS.attr('number'),
+  endTime: DS.attr('number'),
 
   /**
    * Provides the duration of this job. If the job has not started, duration
@@ -90,7 +97,7 @@ App.TezDagVertex = DS.Model.extend({
    *
    * @return {Number} Duration in milliseconds.
    */
-  duration : function() {
+  duration: function () {
     return App.Helpers.date.duration(this.get('startTime'), this.get('endTime'))
   }.property('startTime', 'endTime'),
 
@@ -101,89 +108,89 @@ App.TezDagVertex = DS.Model.extend({
    *
    * Array of strings. [{string}]
    */
-  operations : DS.attr('array'),
+  operations: DS.attr('array'),
 
   /**
    * Provides additional information about the 'operations' performed in this
    * vertex. This is shown directly to the user.
    */
-  operationPlan : DS.attr('string'),
+  operationPlan: DS.attr('string'),
 
   /**
    * Number of actual Map/Reduce tasks in this vertex
    */
-  tasksCount : DS.attr('number'),
+  tasksCount: DS.attr('number'),
 
   tasksNumber: function () {
-    return this.get('tasksCount') ? this.get('tasksCount') : 0;
+    return this.getWithDefault('tasksCount', 0);
   }.property('tasksCount'),
 
   /**
    * Local filesystem usage metrics for this vertex
    */
-  fileReadBytes : DS.attr('number'),
+  fileReadBytes: DS.attr('number'),
 
-  fileWriteBytes : DS.attr('number'),
+  fileWriteBytes: DS.attr('number'),
 
-  fileReadOps : DS.attr('number'),
+  fileReadOps: DS.attr('number'),
 
-  fileWriteOps : DS.attr('number'),
+  fileWriteOps: DS.attr('number'),
 
   /**
    * Spilled records
    */
-  spilledRecords : DS.attr('number'),
+  spilledRecords: DS.attr('number'),
 
   /**
    * HDFS usage metrics for this vertex
    */
-  hdfsReadBytes : DS.attr('number'),
+  hdfsReadBytes: DS.attr('number'),
 
-  hdfsWriteBytes : DS.attr('number'),
+  hdfsWriteBytes: DS.attr('number'),
 
-  hdfsReadOps : DS.attr('number'),
+  hdfsReadOps: DS.attr('number'),
 
-  hdfsWriteOps : DS.attr('number'),
+  hdfsWriteOps: DS.attr('number'),
 
   /**
    * Record metrics for this vertex
    */
-  recordReadCount : DS.attr('number'),
+  recordReadCount: DS.attr('number'),
 
-  recordWriteCount : DS.attr('number'),
+  recordWriteCount: DS.attr('number'),
 
-  totalReadBytes : function() {
+  totalReadBytes: function () {
     return this.get('fileReadBytes') + this.get('hdfsReadBytes');
   }.property('fileReadBytes', 'hdfsReadBytes'),
 
-  totalWriteBytes : function() {
+  totalWriteBytes: function () {
     return this.get('fileWriteBytes') + this.get('hdfsWriteBytes');
   }.property('fileWriteBytes', 'hdfsWriteBytes'),
 
-  totalReadBytesDisplay : function() {
+  totalReadBytesDisplay: function () {
     return  App.Helpers.number.bytesToSize(this.get('totalReadBytes'));
   }.property('totalReadBytes'),
 
-  totalWriteBytesDisplay : function() {
+  totalWriteBytesDisplay: function () {
     return  App.Helpers.number.bytesToSize(this.get('totalWriteBytes'));
   }.property('totalWriteBytes'),
 
-  durationDisplay : function() {
+  durationDisplay: function () {
     return App.Helpers.date.timingFormat(this.get('duration'), true);
   }.property('duration')
 
 });
 
 App.TezDagVertexState = {
-  NEW : "NEW",
-  INITIALIZING : "INITIALIZING",
-  INITED : "INITED",
-  RUNNING : "RUNNING",
-  SUCCEEDED : "SUCCEEDED",
-  FAILED : "FAILED",
-  KILLED : "KILLED",
-  ERROR : "ERROR",
-  TERMINATING : "TERMINATING",
+  NEW: "NEW",
+  INITIALIZING: "INITIALIZING",
+  INITED: "INITED",
+  RUNNING: "RUNNING",
+  SUCCEEDED: "SUCCEEDED",
+  FAILED: "FAILED",
+  KILLED: "KILLED",
+  ERROR: "ERROR",
+  TERMINATING: "TERMINATING",
   JOBFAILED: "JOB FAILED"
 };
 
@@ -194,8 +201,8 @@ App.TezDagVertexType = {
 };
 
 App.TezDagEdgeType = {
-  SCATTER_GATHER : "SCATTER_GATHER",
-  BROADCAST : "BROADCAST",
+  SCATTER_GATHER: "SCATTER_GATHER",
+  BROADCAST: "BROADCAST",
   CONTAINS: "CONTAINS"
 };
 

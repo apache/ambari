@@ -23,6 +23,20 @@ Ember.I18n.translations = {
   'ok': 'Ok',
   'cancel': 'Cancel',
 
+
+  'common.status':'Status',
+  'common.time.start': 'Start Time',
+  'common.time.end': 'End Time',
+  'common.name': 'Name',
+  'common.tasks':'Tasks',
+  'common.na': 'n/a',
+  'common.value': 'Value',
+
+  'number.validate.empty': 'cannot be empty',
+  'number.validate.notValidNumber': 'not a valid number',
+  'number.validate.lessThanMinumum': 'value less than %@1',
+  'number.validate.moreThanMaximum': 'value greater than %@1',
+
   'jobs.type':'Jobs Type',
   'jobs.type.hive':'Hive',
   'jobs.show.up.to':'Show up to',
@@ -58,9 +72,9 @@ Ember.I18n.translations = {
   'jobs.hive.tez.localFiles':'Local Files',
   'jobs.hive.tez.spilledRecords':'Spilled Records',
   'jobs.hive.tez.records':'Records',
-  'jobs.hive.tez.reads':'{0} reads',
-  'jobs.hive.tez.writes':'{0} writes',
-  'jobs.hive.tez.records.count':'{0} Records',
+  'jobs.hive.tez.reads':'%@1 reads',
+  'jobs.hive.tez.writes':'%@1 writes',
+  'jobs.hive.tez.records.count':'%@1 Records',
   'jobs.hive.tez.operatorPlan':'Operator Plan',
   'jobs.hive.tez.dag.summary.metric':'Summary Metric',
   'jobs.hive.tez.dag.error.noDag.title':'No Tez Information',
@@ -78,6 +92,21 @@ Ember.I18n.translations = {
   'jobs.hive.tez.edge.':'Unknown',
   'jobs.hive.tez.edge.contains':'Contains',
   'jobs.hive.tez.edge.broadcast':'Broadcast',
-  'jobs.hive.tez.edge.scatter_gather':'Shuffle'
+  'jobs.hive.tez.edge.scatter_gather':'Shuffle',
+
+  'app.loadingPlaceholder': 'Loading...',
+  'apps.item.dag.job': 'Job',
+  'apps.item.dag.jobId': 'Job Id',
+  'apps.item.dag.type': 'Job Type',
+  'apps.item.dag.status': 'Status',
+  'apps.item.dag.num_stages': 'Total Stages',
+  'apps.item.dag.stages': 'Tasks per Stage',
+  'apps.item.dag.maps': 'Maps',
+  'apps.item.dag.reduces': 'Reduces',
+  'apps.item.dag.input': 'Input',
+  'apps.item.dag.output': 'Output',
+  'apps.item.dag.duration': 'Duration',
+
+  'menu.item.jobs':'Jobs'
 
 };

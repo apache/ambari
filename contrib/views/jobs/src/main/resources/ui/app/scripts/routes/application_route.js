@@ -16,13 +16,13 @@
  * limitations under the License.
  */
 
-App.ApplicationRoute = Ember.Route.extend({
+App.IndexRoute = Ember.Route.extend({
 
   model: function () {
     return this.modelFor('hiveJobs');
   },
 
-  redirect: function () {
+  beforeModel: function () {
     this.transitionTo('jobs');
   }
 
@@ -31,15 +31,20 @@ App.ApplicationRoute = Ember.Route.extend({
 App.JobsRoute = Ember.Route.extend({
 
   model: function () {
-    return this.store.all('hiveJob');
+    return this.get('store').find('hiveJob');
   }
 
 });
 
 App.JobRoute = Ember.Route.extend({
 
+  setupController: function(controller, model) {
+    this._super(controller, model);
+    controller.set('loaded', false);
+  },
+
   model: function (params) {
-    return this.store.all('hiveJob', params.id);
+    return this.get('store').getById('hiveJob', params.hive_job_id);
   }
 
 });
