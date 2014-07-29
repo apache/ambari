@@ -23,7 +23,8 @@ from resource_management.core.providers.package import PackageProvider
 from resource_management.core import shell
 from resource_management.core.logger import Logger
 
-INSTALL_CMD = "env DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get -q -o Dpkg::Options::='--force-confdef' --allow-unauthenticated --assume-yes install %s"
+INSTALL_CMD = "DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get -q -o Dpkg::Options::='--force-confdef' --allow-unauthenticated --assume-yes install %s"
+REPO_UPDATE_CMD = "apt-get update -qq"
 REMOVE_CMD = "/usr/bin/apt-get -y -q remove %s"
 CHECK_CMD = "dpkg --get-selections %s | grep -v deinstall"
 
@@ -32,7 +33,14 @@ class AptProvider(PackageProvider):
     if not self._check_existence(name):
       cmd = INSTALL_CMD % (name)
       Logger.info("Installing package %s ('%s')" % (name, cmd))
-      shell.checked_call(cmd)
+      code = shell.call(cmd)[0]
+      
+      # apt-get update wasn't done too long
+      if code:
+        Logger.info("Failed to install package %s. Executing `apt-get update`" % (name))
+        shell.checked_call(REPO_UPDATE_CMD)
+        Logger.info("Retrying to install package %s" % (name))
+        shell.checked_call(cmd)
     else:
       Logger.info("Skipping installing existent package %s" % (name))
 

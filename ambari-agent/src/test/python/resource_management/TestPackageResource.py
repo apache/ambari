@@ -17,7 +17,7 @@ limitations under the License.
 '''
 
 from unittest import TestCase
-from mock.mock import patch, MagicMock
+from mock.mock import patch, MagicMock, call
 
 from resource_management.core import Environment, Fail
 from resource_management.core.system import System
@@ -26,17 +26,38 @@ from resource_management.core.resources import Package
 from resource_management.core import shell
 
 class TestPackageResource(TestCase):
-
   @patch.object(shell, "call")
   @patch.object(shell, "checked_call")
   @patch.object(System, "os_family", new = 'debian')
-  def test_action_install_debian(self, shell_mock, call_mock):
+  def test_action_install_debian_update(self, shell_mock, call_mock):
     call_mock.return_value= (1, None)
     with Environment('/') as env:
       Package("some_package",
       )
-    call_mock.assert_called_with('dpkg --get-selections some_package | grep -v deinstall')
-    shell_mock.assert_called_with("env DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get -q -o Dpkg::Options::='--force-confdef' --allow-unauthenticated --assume-yes install some_package")
+    call_mock.assert_has_calls([call("dpkg --get-selections some_package | grep -v deinstall"),
+                                call("DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get -q -o Dpkg::Options::='--force-confdef'"
+                                      " --allow-unauthenticated --assume-yes install some_package")
+                              ])
+    
+    shell_mock.assert_has_calls([call("apt-get update -qq"),
+                                call("DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get -q -o Dpkg::Options::='--force-confdef' --allow-unauthenticated --assume-yes install some_package")
+                              ])
+  
+  @patch.object(shell, "call")
+  @patch.object(shell, "checked_call")
+  @patch.object(System, "os_family", new = 'debian')
+  def test_action_install_debian(self, shell_mock, call_mock):
+    call_mock.side_effect = [(1, None), (0, None)]
+    with Environment('/') as env:
+      Package("some_package",
+      )
+    call_mock.assert_has_calls([call("dpkg --get-selections some_package | grep -v deinstall"),
+                                call("DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get -q -o Dpkg::Options::='--force-confdef'"
+                                      " --allow-unauthenticated --assume-yes install some_package")
+                              ])
+    
+    self.assertEqual(shell_mock.call_count, 0, "shell.checked_call shouldn't be called")
+
 
 
   @patch.object(shell, "call")
