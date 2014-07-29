@@ -83,10 +83,10 @@ class TestCheckHost(TestCase):
                      'DBConnectionVerification.jar from Ambari Server resources. Check network access to Ambari ' \
                      'Server.\ntest exception', 'exit_code': 1}})
     
-    self.assertEquals(format_mock.call_args_list[2][0][0], "/bin/sh -c 'cd /usr/lib/ambari-agent/ && curl -kf " \
+    self.assertEquals(format_mock.call_args_list[1][0][0], "/bin/sh -c 'cd /usr/lib/ambari-agent/ && curl -kf " \
                       "--retry 5 {jdk_location}{check_db_connection_jar_name} -o {check_db_connection_jar_name}'")
     
-    self.assertEquals(format_mock.call_args_list[3][0][0], "[ -f /usr/lib/ambari-agent/{check_db_connection_jar_name}]")
+    self.assertEquals(format_mock.call_args_list[2][0][0], "[ -f /usr/lib/ambari-agent/{check_db_connection_jar_name}]")
 
     # test, download jdbc driver failed
     mock_config.return_value = {"commandParams" : {"check_execute_list" : "db_connection_check",
@@ -111,10 +111,10 @@ class TestCheckHost(TestCase):
                   'Server host to make the JDBC driver available for download and to enable testing '
                   'the database connection.\n')
     self.assertEquals(structured_out_mock.call_args[0][0]['db_connection_check']['exit_code'], 1)
-    self.assertEquals(format_mock.call_args_list[4][0][0], "/bin/sh -c 'cd /usr/lib/ambari-agent/ && curl -kf " \
+    self.assertEquals(format_mock.call_args_list[3][0][0], "/bin/sh -c 'cd /usr/lib/ambari-agent/ && curl -kf " \
                                                             "--retry 5 {jdbc_url} -o {jdbc_name}'")
     
-    self.assertEquals(format_mock.call_args_list[5][0][0], "[ -f /usr/lib/ambari-agent/{jdbc_name}]")
+    self.assertEquals(format_mock.call_args_list[4][0][0], "[ -f /usr/lib/ambari-agent/{jdbc_name}]")
 
     # test, no connection to remote db
     mock_config.return_value = {"commandParams" : {"check_execute_list" : "db_connection_check",

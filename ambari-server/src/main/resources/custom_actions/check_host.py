@@ -136,14 +136,13 @@ class CheckHost(Script):
 
     environment = { "no_proxy": format("{ambari_server_hostname}") }
     artifact_dir = "/tmp/HDP-artifacts/"
-    jdk_name = config['commandParams']['jdk_name']
-    jdk_curl_target = format("{artifact_dir}/{jdk_name}")
     java_dir = os.path.dirname(java64_home)
 
-    # download DBConnectionVerification.jar from ambari-server resources
-
+    # download and install java if it doesn't exists
     if not os.path.isfile(java_exec):
       try:
+        jdk_name = config['commandParams']['jdk_name']
+        jdk_curl_target = format("{artifact_dir}/{jdk_name}")
         Execute(format("mkdir -p {artifact_dir} ; curl -kf "
                 "--retry 10 {jdk_location}/{jdk_name} -o {jdk_curl_target}"),
                 path = ["/bin","/usr/bin/"],
@@ -169,6 +168,7 @@ class CheckHost(Script):
         db_connection_check_structured_output = {"exit_code" : 1, "message": message}
         return db_connection_check_structured_output
 
+    # download DBConnectionVerification.jar from ambari-server resources
     try:
       cmd = format("/bin/sh -c 'cd /usr/lib/ambari-agent/ && curl -kf "
                    "--retry 5 {jdk_location}{check_db_connection_jar_name} "
