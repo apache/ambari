@@ -93,6 +93,14 @@ public class ClusterDAO {
   public void createConfig(ClusterConfigEntity entity) {
     entityManagerProvider.get().persist(entity);
   }
+  
+  /**
+   * Remove a cluster configuration in the DB.
+   */
+  @Transactional
+  public void removeConfig(ClusterConfigEntity entity) {
+    entityManagerProvider.get().remove(entity);
+  }
 
   /**
    * Retrieve entity data from DB

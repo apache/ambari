@@ -159,7 +159,7 @@ public class UpgradeCatalogTest {
     // Add new
     UpgradeCatalog149 testCatalog = injector.getInstance(UpgradeCatalog149.class);
     testCatalog.updateConfigurationProperties("global",
-      Collections.singletonMap("x", "y"), false);
+      Collections.singletonMap("x", "y"), false, false);
     config = cluster.getDesiredConfigByType("global");
     String version = config.getVersionTag();
     Assert.assertNotNull(config);
@@ -169,7 +169,7 @@ public class UpgradeCatalogTest {
 
     // Override value
     testCatalog.updateConfigurationProperties("global",
-      Collections.singletonMap("x", "z"), true);
+      Collections.singletonMap("x", "z"), true, false);
     config = cluster.getDesiredConfigByType("global");
     Assert.assertNotNull(config);
     Assert.assertNotSame(version, config.getVersionTag());
@@ -179,7 +179,7 @@ public class UpgradeCatalogTest {
 
     // Retain original
     testCatalog.updateConfigurationProperties("global",
-      Collections.singletonMap("x", "y"), false);
+      Collections.singletonMap("x", "y"), false, false);
     config = cluster.getDesiredConfigByType("global");
     Assert.assertNotNull(config);
     Assert.assertSame(version, config.getVersionTag());

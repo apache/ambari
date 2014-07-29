@@ -97,7 +97,7 @@ public class UpgradeCatalog160Test {
     expect(configuration.getDatabaseUrl()).andReturn(Configuration.JDBC_IN_MEMORY_URL).anyTimes();
 
     upgradeCatalog.updateConfigurationProperties("global",
-      Collections.singletonMap("jobhistory_heapsize", "900"), false);
+      Collections.singletonMap("jobhistory_heapsize", "900"), false, false);
 
     expectLastCall();
 

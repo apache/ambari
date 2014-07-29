@@ -111,7 +111,7 @@ public class UpgradeCatalog160 extends AbstractUpgradeCatalog {
         "VALUES('viewentity_id_seq', 0)", true);
 
     // Add missing property for YARN
-    updateConfigurationProperties("global", Collections.singletonMap("jobhistory_heapsize", "900"), false);
+    updateConfigurationProperties("global", Collections.singletonMap("jobhistory_heapsize", "900"), false, false);
   }
 
   @Override

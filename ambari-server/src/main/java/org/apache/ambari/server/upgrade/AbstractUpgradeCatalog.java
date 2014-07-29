@@ -22,7 +22,9 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Provider;
 import com.google.inject.persist.Transactional;
+
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ConfigurationRequest;
@@ -32,11 +34,13 @@ import org.apache.ambari.server.orm.entities.MetainfoEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.utils.VersionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
+
 import java.sql.SQLException;
 import java.text.MessageFormat;
 import java.util.Comparator;
@@ -179,7 +183,7 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
    * @param properties Map of key value pairs to add / update.
    */
   protected void updateConfigurationProperties(String configType,
-        Map<String, String> properties, boolean updateIfExists) throws
+        Map<String, String> properties, boolean updateIfExists, boolean createNewConfigType) throws
     AmbariException {
     AmbariManagementController controller = injector.getInstance(AmbariManagementController.class);
     String newTag = "version" + System.currentTimeMillis();
@@ -192,18 +196,22 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
 
     if (clusterMap != null && !clusterMap.isEmpty()) {
       for (Cluster cluster : clusterMap.values()) {
-        Config oldConfig = cluster.getDesiredConfigByType(configType);
-        if (oldConfig == null) {
-          LOG.info("Config " + configType + " not found. Assuming service not installed. " +
-              "Skipping configuration properties update");
-          return;
-        }
-
         if (properties != null) {
           Map<String, Config> all = cluster.getConfigsByType(configType);
           if (all == null || !all.containsKey(newTag) || properties.size() > 0) {
-
-            Map<String, String> oldConfigProperties = oldConfig.getProperties();
+            Map<String, String> oldConfigProperties;
+            Config oldConfig = cluster.getDesiredConfigByType(configType);
+            
+            if (oldConfig == null && !createNewConfigType) {
+              LOG.info("Config " + configType + " not found. Assuming service not installed. " +
+                  "Skipping configuration properties update");
+              return;
+            } else if (oldConfig == null) {
+              oldConfigProperties = new HashMap<String, String>();
+              newTag = "version1";
+            } else {
+              oldConfigProperties = oldConfig.getProperties();
+            }
 
             Map<String, String> mergedProperties =
               mergeProperties(oldConfigProperties, properties, updateIfExists);
@@ -224,11 +232,12 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
                 String authName = "ambari-upgrade";
 
                 if (cluster.addDesiredConfig(authName, baseConfig)) {
+                  String oldConfigString = (oldConfig != null) ? " from='" + oldConfig.getVersionTag() + "'" : "";
                   LOG.info("cluster '" + cluster.getClusterName() + "' "
                     + "changed by: '" + authName + "'; "
                     + "type='" + baseConfig.getType() + "' "
                     + "tag='" + baseConfig.getVersionTag() + "'"
-                    + " from='" + oldConfig.getVersionTag() + "'");
+                    + oldConfigString);
                 }
               }
             } else {

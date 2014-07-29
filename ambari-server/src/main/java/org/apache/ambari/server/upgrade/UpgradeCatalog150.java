@@ -699,7 +699,7 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
               configEntityPK.setType(configType);
               configEntityPK.setTag(defaultVersionTag);
               ClusterConfigEntity configEntity = clusterDAO.findConfig(configEntityPK);
-
+              
               if (configEntity == null) {
                 String filename = configType + ".xml";
                 Map<String, String> properties = new HashMap<String, String>();

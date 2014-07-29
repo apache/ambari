@@ -140,19 +140,19 @@ public class UpgradeCatalog161Test {
     expect(query.executeUpdate()).andReturn(0);
     
     upgradeCatalog.updateConfigurationProperties("hbase-site",
-        Collections.singletonMap("hbase.regionserver.info.port", "60030"), false);
+        Collections.singletonMap("hbase.regionserver.info.port", "60030"), false, false);
     expectLastCall();
 
     upgradeCatalog.updateConfigurationProperties("hbase-site",
-        Collections.singletonMap("hbase.master.info.port", "60010"), false);
+        Collections.singletonMap("hbase.master.info.port", "60010"), false, false);
     expectLastCall();
     
     upgradeCatalog.updateConfigurationProperties("global",
-        Collections.singletonMap("oozie_admin_port", "11001"), false);
+        Collections.singletonMap("oozie_admin_port", "11001"), false, false);
     expectLastCall();
     
     upgradeCatalog.updateConfigurationProperties("hive-site",
-        Collections.singletonMap("hive.heapsize", "1024"), false);
+        Collections.singletonMap("hive.heapsize", "1024"), false, false);
     expectLastCall();
 
     replay(upgradeCatalog, dbAccessor, configuration, injector, provider, em,

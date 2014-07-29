@@ -33,12 +33,19 @@ import java.util.concurrent.TimeUnit;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.inject.Singleton;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 
 import com.google.inject.Inject;
-import org.apache.ambari.server.configuration.Configuration;
+import com.google.inject.persist.Transactional;
 
+import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.ConfigurationRequest;
+import org.apache.ambari.server.orm.dao.ClusterDAO;
+import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
+import org.apache.ambari.server.orm.entities.ClusterConfigEntityPK;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 /**
@@ -49,6 +56,7 @@ public class ConfigHelper {
 
   private Clusters clusters = null;
   private AmbariMetaInfo ambariMetaInfo = null;
+  private ClusterDAO clusterDAO = null;
   private static final String DELETED = "DELETED_";
   public static final String CLUSTER_DEFAULT_TAG = "tag";
   private final boolean STALE_CONFIGS_CACHE_ENABLED;
@@ -59,9 +67,10 @@ public class ConfigHelper {
     LoggerFactory.getLogger(ConfigHelper.class);
 
   @Inject
-  public ConfigHelper(Clusters c, AmbariMetaInfo metaInfo, Configuration configuration) {
+  public ConfigHelper(Clusters c, AmbariMetaInfo metaInfo, Configuration configuration, ClusterDAO clusterDAO) {
     clusters = c;
     ambariMetaInfo = metaInfo;
+    this.clusterDAO = clusterDAO;
     STALE_CONFIGS_CACHE_ENABLED = configuration.isStaleConfigCacheEnabled();
     staleConfigsCache = CacheBuilder.newBuilder().
       expireAfterWrite(STALE_CONFIGS_CACHE_EXPIRATION_TIME, TimeUnit.SECONDS).build();
@@ -354,6 +363,105 @@ public class ConfigHelper {
    */
   public void invalidateStaleConfigsCache(ServiceComponentHost sch) {
     staleConfigsCache.invalidate(sch);
+  }
+  
+  /**
+   * Remove configs by type
+   * @param type config Type
+   */
+  @Transactional
+  public void removeConfigsByType(Cluster cluster, String type) {
+    Set<String> globalVersions = cluster.getConfigsByType(type).keySet();
+    
+    for(String version:globalVersions) {
+      ClusterConfigEntityPK clusterConfigEntityPK = new ClusterConfigEntityPK();
+      clusterConfigEntityPK.setClusterId(cluster.getClusterId());
+      clusterConfigEntityPK.setTag(version);
+      clusterConfigEntityPK.setType(type);
+      ClusterConfigEntity clusterConfigEntity = clusterDAO.findConfig
+        (clusterConfigEntityPK);
+      
+      clusterDAO.removeConfig(clusterConfigEntity);
+    }
+  }
+  
+  /**
+   * Gets all the config dictionary where property with the given name is present in stack definitions
+   * @param cluster
+   * @param propertyName
+   */
+  public Set<String> findConfigTypesByPropertyName(Cluster cluster, String propertyName) throws AmbariException {
+    StackId stackId = cluster.getCurrentStackVersion();
+    StackInfo stack = ambariMetaInfo.getStackInfo(stackId.getStackName(),
+        stackId.getStackVersion());
+    
+    Set<String> result = new HashSet<String>();
+    
+    for(ServiceInfo serviceInfo:stack.getServices()) {
+      // skip not installed services
+      if(!cluster.getServices().containsKey(serviceInfo.getName())) {
+        continue;
+      }
+      
+      Set<PropertyInfo> stackProperties = ambariMetaInfo.getProperties(stack.getName(), stack.getVersion(), serviceInfo.getName());
+      
+      for (PropertyInfo stackProperty : stackProperties) {
+        if(stackProperty.getName().equals(propertyName)) {
+          int extIndex = stackProperty.getFilename().indexOf(AmbariMetaInfo.SERVICE_CONFIG_FILE_NAME_POSTFIX);
+          String configType = stackProperty.getFilename().substring(0, extIndex);
+          
+          result.add(configType);
+        }
+      }
+      
+    }
+    
+    return result;
+  }
+  
+  public String getPropertyValueFromStackDefenitions(Cluster cluster, String configType, String propertyName) throws AmbariException {
+    StackId stackId = cluster.getCurrentStackVersion();
+    StackInfo stack = ambariMetaInfo.getStackInfo(stackId.getStackName(),
+        stackId.getStackVersion());
+    
+    for(ServiceInfo serviceInfo:stack.getServices()) {     
+      Set<PropertyInfo> stackProperties = ambariMetaInfo.getProperties(stack.getName(), stack.getVersion(), serviceInfo.getName());
+      
+      for (PropertyInfo stackProperty : stackProperties) {
+        int extIndex = stackProperty.getFilename().indexOf(AmbariMetaInfo.SERVICE_CONFIG_FILE_NAME_POSTFIX);
+        String stackPropertyConfigType = stackProperty.getFilename().substring(0, extIndex);
+        
+        if(stackProperty.getName().equals(propertyName) && stackPropertyConfigType.equals(configType)) {
+          return stackProperty.getValue();
+        }
+      }
+      
+    }
+    
+    return null;
+  }
+  
+  public void createConfigType(Cluster cluster, AmbariManagementController ambariManagementController, 
+      String configType, Map<String, String> properties, String authName) throws AmbariException {
+    String tag;
+    if(cluster.getConfigsByType(configType) == null) {
+      tag = "version1";
+    } else {
+      tag = "version" + System.currentTimeMillis();
+    }
+    
+    ConfigurationRequest cr = new ConfigurationRequest();
+    cr.setClusterName(cluster.getClusterName());
+    cr.setVersionTag(tag);
+    cr.setType(configType);
+    cr.setProperties(properties);
+    ambariManagementController.createConfiguration(cr);
+    
+    Config baseConfig = cluster.getConfig(cr.getType(), cr.getVersionTag());
+    
+    if (baseConfig != null) {
+      cluster.addDesiredConfig(authName, baseConfig);
+    }
   }
 
   private boolean calculateIsStaleConfigs(ServiceComponentHost sch) throws AmbariException {

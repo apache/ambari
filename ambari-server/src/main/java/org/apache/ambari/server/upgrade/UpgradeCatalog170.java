@@ -20,14 +20,25 @@ package org.apache.ambari.server.upgrade;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.ConfigHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.apache.ambari.server.configuration.Configuration;
 
 import com.google.inject.Inject;
 import com.google.inject.Injector;
@@ -36,6 +47,9 @@ import com.google.inject.Injector;
  * Upgrade catalog for version 1.7.0.
  */
 public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
+  private Injector injector;
+  private static final String CONTENT_FIELD_NAME = "content";
+  private static final String ENV_CONFIGS_POSTFIX = "-env";
 
   //SourceVersion is only for book-keeping purpos
   @Override
@@ -59,6 +73,7 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
   @Inject
   public UpgradeCatalog170(Injector injector) {
     super(injector);
+    this.injector = injector;
   }
 
 
@@ -139,7 +154,7 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
     dbAccessor.createTable("adminprivilege", columns, "privilege_id");
 
     dbAccessor.executeQuery("insert into adminprivilege (privilege_id, permission_id, resource_id, principal_id)\n" +
-        "  select 1, 1, 1, 1", true);
+        "  select 1, 1, 1, injector1", true);
 
 
     DBAccessor.DBColumnInfo clusterConfigAttributesColumn = new DBAccessor.DBColumnInfo(
@@ -207,5 +222,124 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
 
     dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, "
         + valueColumnName + ") " + "VALUES('alert_notice_id_seq', 0)", true);
+    
+    moveGlobalsToEnv();
+    addEnvContentFields();
+  }
+  
+  protected void addEnvContentFields() throws AmbariException {
+    ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
+    AmbariManagementController ambariManagementController = injector.getInstance(
+        AmbariManagementController.class);
+
+    Clusters clusters = ambariManagementController.getClusters();
+    if (clusters == null) {
+      return;
+    }
+ 
+    Map<String, Cluster> clusterMap = clusters.getClusters();
+
+    if (clusterMap != null && !clusterMap.isEmpty()) {
+      for (final Cluster cluster : clusterMap.values()) {
+        Set<String> configTypes = configHelper.findConfigTypesByPropertyName(cluster, CONTENT_FIELD_NAME);  
+        
+        for(String configType:configTypes) {
+          if(!configType.endsWith(ENV_CONFIGS_POSTFIX)) {
+            continue;
+          }
+          
+          String value = configHelper.getPropertyValueFromStackDefenitions(cluster, configType, CONTENT_FIELD_NAME);
+          updateConfigurationProperties(configType, Collections.singletonMap(CONTENT_FIELD_NAME, value), true, true);
+        }
+      }
+    }
+  }
+  
+  protected void moveGlobalsToEnv() throws AmbariException {
+    ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
+    
+    AmbariManagementController ambariManagementController = injector.getInstance(
+        AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+    if (clusters == null) {
+      return;
+    }
+    Map<String, Cluster> clusterMap = clusters.getClusters();
+
+    if (clusterMap != null && !clusterMap.isEmpty()) {
+      for (final Cluster cluster : clusterMap.values()) {
+        Config config = cluster.getDesiredConfigByType(Configuration.GLOBAL_CONFIG_TAG);
+        if (config == null) {
+          LOG.info("Config " + Configuration.GLOBAL_CONFIG_TAG + " not found. Assuming upgrade already done.");
+          return;
+        }
+        
+        Map<String, Map<String, String>> newProperties = new HashMap<String, Map<String, String>>();
+        Map<String, String> globalProperites = config.getProperties();
+        Map<String, String> unmappedGlobalProperties = new HashMap<String, String>();
+        
+        for (Map.Entry<String, String> property : globalProperites.entrySet()) {
+          String propertyName = property.getKey();
+          String propertyValue = property.getValue();
+          
+          Set<String> newConfigTypes = configHelper.findConfigTypesByPropertyName(cluster, propertyName);
+          // if it's custom user service global.xml can be still there.
+          newConfigTypes.remove(Configuration.GLOBAL_CONFIG_TAG);
+          
+          String newConfigType = null;
+          if(newConfigTypes.size() > 0) {
+            newConfigType = newConfigTypes.iterator().next();
+          } else {
+            newConfigType = getAdditionalMappingGlobalToEnv().get(propertyName);
+          }
+          
+          if(newConfigType==null) {
+            LOG.warn("Cannot find where to map " + propertyName + " from " + Configuration.GLOBAL_CONFIG_TAG +
+                " (value="+propertyValue+")");
+            unmappedGlobalProperties.put(propertyName, propertyValue);
+            continue;
+          }
+          
+          LOG.info("Mapping config " + propertyName + " from " + Configuration.GLOBAL_CONFIG_TAG + 
+              " to " + newConfigType +
+              " (value="+propertyValue+")");
+          
+          if(!newProperties.containsKey(newConfigType)) {
+            newProperties.put(newConfigType, new HashMap<String, String>());
+          }
+          newProperties.get(newConfigType).put(propertyName, propertyValue);
+        }
+        
+        for (Entry<String, Map<String, String>> newProperty : newProperties.entrySet()) {
+          updateConfigurationProperties(newProperty.getKey(), newProperty.getValue(), true, true);
+        }
+        
+        // if have some custom properties, for own services etc., leave that as it was
+        if(unmappedGlobalProperties.size() != 0) {
+          LOG.info("Not deleting globals because have custom properties");
+          configHelper.createConfigType(cluster, ambariManagementController, Configuration.GLOBAL_CONFIG_TAG, unmappedGlobalProperties, "ambari-upgrade");
+        } else {
+          configHelper.removeConfigsByType(cluster, Configuration.GLOBAL_CONFIG_TAG);
+        }
+      }
+    }
+  }
+  
+  public static Map<String, String> getAdditionalMappingGlobalToEnv() {
+    Map<String, String> result = new HashMap<String, String>();
+    
+    result.put("smokeuser_keytab","hadoop-env");
+    result.put("hdfs_user_keytab","hadoop-env");
+    result.put("kerberos_domain","hadoop-env");
+    result.put("hbase_user_keytab","hbase-env");
+    result.put("nagios_principal_name","nagios-env");
+    result.put("nagios_keytab_path","nagios-env");
+    result.put("oozie_keytab","oozie-env");
+    result.put("zookeeper_principal_name","zookeeper-env");
+    result.put("zookeeper_keytab_path","zookeeper-env");
+    result.put("storm_principal_name","storm-env");
+    result.put("storm_keytab","storm-env");
+    
+    return result;
   }
 }
