@@ -16,24 +16,20 @@
 * limitations under the License.
 }}
 
-<p>{{content.operationName}}</p>
+<p>{{view.content.operationName}}</p>
 <table id="hover-op-table" class="table table-bordered">
   <thead>
-  <tr>
-    <th>{{t common.name}}</th>
-    <th>{{t common.value}}</th>
-  </tr>
+    <tr>
+      <th>{{t common.name}}</th>
+      <th>{{t common.value}}</th>
+    </tr>
   </thead>
   <tbody>
-    {{#each keys in content.operatorPlanObj}}
-    <tr>
-      <td>
-        {{keys.name}}
-      </td>
-      <td>
-        {{keys.value}}
-      </td>
-    </tr>
+    {{#each keys in view.content.operatorPlanObj}}
+      <tr>
+        <td>{{keys.name}}</td>
+        <td>{{keys.value}}</td>
+      </tr>
     {{/each}}
   </tbody>
 </table>

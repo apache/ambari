@@ -80,7 +80,7 @@ App.Helpers.string = {
     }
     multi = multi || '';
     var value = null,
-      str = this.valueOf();
+      str = s.valueOf();
     if (typeof multi == 'object') {
       for ( var key in multi) {
         if (value != null) {

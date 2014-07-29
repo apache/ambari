@@ -125,12 +125,10 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
   },
 
   zoomScaleObserver: function () {
-    var tezRoot = this.get("svgTezRoot");
-    var newScale = this.get('zoomScale');
-    var newScaleFrom = this.get('zoomScaleFrom');
-    var newScaleTo = this.get('zoomScaleTo');
-    var zoomTranslate = this.get('zoomTranslate');
-    var zoomBehavior = this.get('zoomBehavior');
+    var tezRoot = this.get("svgTezRoot"),
+      newScale = this.get('zoomScale'),
+      zoomTranslate = this.get('zoomTranslate'),
+      zoomBehavior = this.get('zoomBehavior');
     if (d3.event == null && this.get('svgCreated')) {
       // Values were set from actions instead of UI events
       // We need to center in on selected vertex if available.
@@ -146,14 +144,14 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
         })
       }
       if (selectedNode != null) {
-        var cX = selectedNode.x + selectedNode.width / 2;
-        var cY = selectedNode.y + selectedNode.height / 2;
-        var mX = (cX * zoomBehavior.scale()) + zoomTranslate[0];
-        var mY = (cY * zoomBehavior.scale()) + zoomTranslate[1];
-        var pX = (cX * newScale) + zoomTranslate[0];
-        var pY = (cY * newScale) + zoomTranslate[1];
-        var nX = (mX - pX);
-        var nY = (mY - pY);
+        var cX = selectedNode.x + selectedNode.width / 2,
+          cY = selectedNode.y + selectedNode.height / 2,
+          mX = (cX * zoomBehavior.scale()) + zoomTranslate[0],
+          mY = (cY * zoomBehavior.scale()) + zoomTranslate[1],
+          pX = (cX * newScale) + zoomTranslate[0],
+          pY = (cY * newScale) + zoomTranslate[1],
+          nX = (mX - pX),
+          nY = (mY - pY);
         zoomTranslate[0] += nX;
         zoomTranslate[1] += nY;
         this.set('zoomTranslate', zoomTranslate);
@@ -169,12 +167,11 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
    * Summary section.
    */
   adjustGraphHeight: function () {
-    var rhsDiv = document.getElementById('tez-vertices-rhs');
-    var lhsDiv = document.getElementById('tez-dag-section');
+    var rhsDiv = document.getElementById('tez-vertices-rhs'),
+      lhsDiv = document.getElementById('tez-dag-section');
     if (lhsDiv && rhsDiv) {
-      var rhsHeight = rhsDiv.clientHeight - 26; // box boundary
-      var currentWidth = lhsDiv.clientWidth;
-      var currentHeight = lhsDiv.clientHeight;
+      var rhsHeight = rhsDiv.clientHeight - 26, // box boundary
+      currentWidth = lhsDiv.clientWidth;
       $(lhsDiv).attr('style', "height:" + rhsHeight + "px;");
       var svgHeight = rhsHeight - 20;
       d3.select("#tez-dag-svg").attr('height', svgHeight).attr('width', '100%');
@@ -669,13 +666,15 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
             }
             return opCount[op];
           }).on('mouseover', function (op) {
-            var viewContent = {
-              operationName: op,
-              operatorPlanObj: []
-            };
-            /*viewContent.operatorPlanObj = self.createOperationPlanObj(n.name, op, this.getAttribute('opIndex'));
-            var template = App.HoverOpTable.create({content: viewContent});
-            $(this).find('.svg-tooltip').attr('title', template.renderToBuffer().string()).tooltip('fixTitle').tooltip('show');*/
+            var template = self.createChildView(App.HoverOpTable, {
+              content: {
+                operationName: op,
+                operatorPlanObj: self.createOperationPlanObj(n.name, op, this.getAttribute('opIndex'))
+              }
+            });
+            $(this).find('.svg-tooltip').
+              attr('title', template.renderToBuffer().string()).
+              tooltip('fixTitle').tooltip('show');
           });
 
         opGroups.append("rect").attr("class", "operation svg-tooltip ").attr("width", "50").attr("height", "16");
@@ -732,22 +731,11 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
       }
     });
     App.tooltip($('.svg-tooltip'), {
+      container: 'body',
+      html: true,
       placement: 'left',
       template: '<div class="tooltip jobs-tooltip"><div class="tooltip-arrow"></div><div class="tooltip-inner"></div></div>'
     });
-
-    /*if (App.supports.debugJobsDag) {
-      // Draws node bounding box - for debug purposes
-      node.append("rect").attr("width",function (n) {
-        return n.effectiveWidth;
-      }).attr("height",function (n) {
-          return n.height;
-        }).attr("x",function (n) {
-          return -1 * ((n.effectiveWidth - n.width) / 2);
-        }).attr("y",function (n) {
-          return 0;
-        }).attr("style", "opacity: 0.2;fill:yellow;");
-    }*/
 
     // Position in center
     var translateX = Math.round((width - canvasWidth) / 2);
