@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.orm.entities;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -77,12 +78,6 @@ public class AlertGroupEntity {
   @ManyToMany
   @JoinTable(name = "alert_group_target", joinColumns = { @JoinColumn(name = "group_id", nullable = false) }, inverseJoinColumns = { @JoinColumn(name = "target_id", nullable = false) })
   private Set<AlertTargetEntity> alertTargets;
-
-  /**
-   * Constructor.
-   */
-  public AlertGroupEntity() {
-  }
 
   /**
    * Gets the unique ID of this grouping of alerts.
@@ -185,13 +180,44 @@ public class AlertGroupEntity {
   }
 
   /**
-   * Gets all of the targets that will receive notifications for alert
-   * definitions in this group.
+   * Gets an immutable set of the targets that will receive notifications for
+   * alert definitions in this group.
    * 
    * @return the targets, or {@code null} if there are none.
    */
   public Set<AlertTargetEntity> getAlertTargets() {
-    return alertTargets;
+    if( null == alertTargets )
+      return Collections.emptySet();
+      
+    return Collections.unmodifiableSet(alertTargets);
+  }
+
+  /**
+   * Adds the specified target to the targets that this group will dispatch to.
+   * 
+   * @param alertTarget
+   *          the target to add (not {@code null}).
+   */
+  public void addAlertTarget(AlertTargetEntity alertTarget) {
+    if (null == alertTargets)
+      alertTargets = new HashSet<AlertTargetEntity>();
+
+    alertTargets.add(alertTarget);
+    alertTarget.addAlertGroup(this);
+  }
+
+  /**
+   * Removes the specified target from the targets that this group will dispatch
+   * to.
+   * 
+   * @param alertTarget
+   *          the target to remove (not {@code null}).
+   */
+  public void removeAlertTarget(AlertTargetEntity alertTarget) {
+    if (null != alertTargets)
+      alertTargets.remove(alertTarget);
+
+    alertTarget.removeAlertGroup(this);
   }
 
   /**
@@ -202,15 +228,17 @@ public class AlertGroupEntity {
    *          the targets, or {@code null} if there are none.
    */
   public void setAlertTargets(Set<AlertTargetEntity> alertTargets) {
+    if (null != this.alertTargets) {
+      for (AlertTargetEntity target : this.alertTargets) {
+        target.removeAlertGroup(this);
+      }
+    }
+
     this.alertTargets = alertTargets;
 
     if (null != alertTargets) {
       for (AlertTargetEntity target : alertTargets) {
-        Set<AlertGroupEntity> groups = target.getAlertGroups();
-        if (null == groups)
-          groups = new HashSet<AlertGroupEntity>();
-
-        groups.add(this);
+        target.addAlertGroup(this);
       }
     }
   }

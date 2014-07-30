@@ -39,9 +39,8 @@ import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
 import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.alert.Scope;
-import org.junit.AfterClass;
+import org.junit.After;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.google.inject.Guice;
@@ -53,26 +52,25 @@ import com.google.inject.persist.PersistService;
  */
 public class AlertsDAOTest {
 
-  static Long clusterId;
-  static Injector injector;
   static Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-  static OrmTestHelper helper;
-  static AlertsDAO dao;
-  static AlertDefinitionDAO definitionDao;
-  static AlertDispatchDAO dispatchDao;
+
+  private Long clusterId;
+  private Injector injector;
+  private OrmTestHelper helper;
+  private AlertsDAO dao;
+  private AlertDefinitionDAO definitionDao;
 
   /**
    * 
    */
-  @BeforeClass
-  public static void beforeClass() {
+  @Before
+  public void setup() throws Exception {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
     injector.getInstance(GuiceJpaInitializer.class);
     helper = injector.getInstance(OrmTestHelper.class);
     clusterId = helper.createCluster();
     dao = injector.getInstance(AlertsDAO.class);
     definitionDao = injector.getInstance(AlertDefinitionDAO.class);
-    dispatchDao = injector.getInstance(AlertDispatchDAO.class);
 
     // create 5 definitions
     for (int i = 0; i < 5; i++) {
@@ -143,18 +141,12 @@ public class AlertsDAOTest {
   /**
    * 
    */
-  @AfterClass
-  public static void afterClass() {
+  @After
+  public void teardown() {
     injector.getInstance(PersistService.class).stop();
     injector = null;
   }
 
-  /**
-   * 
-   */
-  @Before
-  public void setup() {
-  }
 
   /**
    * 

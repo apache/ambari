@@ -23,7 +23,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -37,9 +36,8 @@ import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.AlertGroupEntity;
 import org.apache.ambari.server.orm.entities.AlertTargetEntity;
 import org.apache.ambari.server.state.alert.Scope;
-import org.junit.AfterClass;
+import org.junit.After;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.google.inject.Guice;
@@ -51,60 +49,46 @@ import com.google.inject.persist.PersistService;
  */
 public class AlertDispatchDAOTest {
 
-  static Long clusterId;
-  static Injector injector;
-  static AlertDispatchDAO dao;
-  static OrmTestHelper helper;
-
+  Long clusterId;
+  Injector injector;
+  AlertDispatchDAO dao;
   AlertDefinitionDAO definitionDao;
+  OrmTestHelper helper;
 
   /**
    * 
    */
-  @BeforeClass
-  public static void beforeClass() {
+  @Before
+  public void setup() throws Exception {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
     injector.getInstance(GuiceJpaInitializer.class);
-    helper = injector.getInstance(OrmTestHelper.class);
-    clusterId = helper.createCluster();
     dao = injector.getInstance(AlertDispatchDAO.class);
+    definitionDao = injector.getInstance(AlertDefinitionDAO.class);
+    helper = injector.getInstance(OrmTestHelper.class);
 
-    Set<AlertTargetEntity> targets = new HashSet<AlertTargetEntity>();
-    for (int i = 0; i < 5; i++) {
-      AlertTargetEntity target = new AlertTargetEntity();
-      target.setDescription("Target Description " + i);
-      target.setNotificationType("EMAIL");
-      target.setProperties("Target Properties " + i);
-      target.setTargetName("Target Name " + i);
-      dao.create(target);
-      targets.add(target);
-    }
+    clusterId = helper.createCluster();
+    Set<AlertTargetEntity> targets = createTargets();
 
     for (int i = 0; i < 10; i++) {
       AlertGroupEntity group = new AlertGroupEntity();
       group.setDefault(false);
       group.setGroupName("Group Name " + i);
       group.setClusterId(clusterId);
-      group.setAlertTargets(targets);
+      for (AlertTargetEntity alertTarget : targets) {
+        group.addAlertTarget(alertTarget);
+      }
+
       dao.create(group);
     }
   }
 
   /**
-   * 
+   * @throws Exception
    */
-  @AfterClass
-  public static void afterClass() {
+  @After
+  public void teardown() throws Exception {
     injector.getInstance(PersistService.class).stop();
     injector = null;
-  }
-
-  /**
-   * 
-   */
-  @Before
-  public void setup() {
-    definitionDao = injector.getInstance(AlertDefinitionDAO.class);
   }
 
   /**
@@ -248,15 +232,12 @@ public class AlertDispatchDAOTest {
     AlertTargetEntity target = helper.createAlertTarget();
     assertEquals(targetCount + 1, dao.findAllTargets().size());
 
-    Set<AlertTargetEntity> targets = new HashSet<AlertTargetEntity>();
-    targets.add(target);
-
     group = dao.findGroupById(group.getGroupId());
     assertNotNull(group);
     assertNotNull(group.getAlertTargets());
     assertEquals(0, group.getAlertTargets().size());
 
-    group.setAlertTargets(targets);
+    group.addAlertTarget(target);
     dao.merge(group);
 
     group = dao.findGroupById(group.getGroupId());
@@ -298,9 +279,13 @@ public class AlertDispatchDAOTest {
     targets.add(target);
 
     AlertGroupEntity group = helper.createAlertGroup(clusterId, targets);
+    assertEquals(1, group.getAlertTargets().size());
 
     target = dao.findTargetById(target.getTargetId());
+    dao.refresh(target);
+
     assertNotNull(target);
+    assertEquals(1, target.getAlertGroups().size());
 
     dao.remove(target);
     target = dao.findTargetById(target.getTargetId());
@@ -339,7 +324,7 @@ public class AlertDispatchDAOTest {
     assertEquals(0, group.getAlertDefinitions().size());
     assertEquals(0, group.getAlertTargets().size());
 
-    group.getAlertTargets().add(target);
+    group.addAlertTarget(target);
     dao.merge(group);
 
     group = dao.findGroupById(group.getGroupId());
@@ -350,8 +335,6 @@ public class AlertDispatchDAOTest {
    * @return
    */
   private List<AlertDefinitionEntity> createDefinitions() throws Exception {
-    List<AlertDefinitionEntity> alertDefinitions = new ArrayList<AlertDefinitionEntity>();
-
     for (int i = 0; i < 8; i++) {
       AlertDefinitionEntity definition = new AlertDefinitionEntity();
       definition.setDefinitionName("Alert Definition " + i);
@@ -364,9 +347,29 @@ public class AlertDispatchDAOTest {
       definition.setSource("Source " + i);
       definition.setSourceType("SCRIPT");
       definitionDao.create(definition);
-      alertDefinitions.add(definition);
     }
 
+    List<AlertDefinitionEntity> alertDefinitions = definitionDao.findAll();
+    assertEquals(8, alertDefinitions.size());
     return alertDefinitions;
+  }
+
+  /**
+   * @return
+   * @throws Exception
+   */
+  private Set<AlertTargetEntity> createTargets() throws Exception {
+    Set<AlertTargetEntity> targets = new HashSet<AlertTargetEntity>();
+    for (int i = 0; i < 5; i++) {
+      AlertTargetEntity target = new AlertTargetEntity();
+      target.setDescription("Target Description " + i);
+      target.setNotificationType("EMAIL");
+      target.setProperties("Target Properties " + i);
+      target.setTargetName("Target Name " + i);
+      dao.create(target);
+      targets.add(target);
+    }
+
+    return targets;
   }
 }

@@ -33,6 +33,7 @@ import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.AlertDispatchDAO;
+import org.apache.ambari.server.orm.dao.AlertsDAO;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
@@ -82,6 +83,12 @@ public class OrmTestHelper {
 
   @Inject
   public AlertDefinitionDAO alertDefinitionDAO;
+
+  @Inject
+  public AlertDispatchDAO alertDispatchDAO;
+
+  @Inject
+  public AlertsDAO alertsDAO;
 
   public EntityManager getEntityManager() {
     return entityManagerProvider.get();
@@ -285,10 +292,8 @@ public class OrmTestHelper {
     target.setProperties("Target Properties");
     target.setTargetName("Target Name " + System.currentTimeMillis());
 
-    AlertDispatchDAO dao = injector.getInstance(AlertDispatchDAO.class);
-    dao.create(target);
-
-    return dao.findTargetById(target.getTargetId());
+    alertDispatchDAO.create(target);
+    return alertDispatchDAO.findTargetById(target.getTargetId());
   }
   
   /**
@@ -313,10 +318,8 @@ public class OrmTestHelper {
     definition.setSource("Source " + System.currentTimeMillis());
     definition.setSourceType("SCRIPT");
     
-    AlertDefinitionDAO dao = injector.getInstance(AlertDefinitionDAO.class);
-    dao.create(definition);
-
-    return dao.findById(definition.getDefinitionId());
+    alertDefinitionDAO.create(definition);
+    return alertDefinitionDAO.findById(definition.getDefinitionId());
   }
 
   /**
@@ -336,9 +339,7 @@ public class OrmTestHelper {
     group.setClusterId(clusterId);
     group.setAlertTargets(targets);
 
-    AlertDispatchDAO dao = injector.getInstance(AlertDispatchDAO.class);
-    dao.create(group);
-
-    return dao.findGroupById(group.getGroupId());
+    alertDispatchDAO.create(group);
+    return alertDispatchDAO.findGroupById(group.getGroupId());
   }
 }
