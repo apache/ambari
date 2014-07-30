@@ -172,8 +172,16 @@ public class ComponentInfo {
     return configDependencies != null && configDependencies.contains(type);
   }
 
+  public void setDependencies(List<DependencyInfo> dependencies) {
+    this.dependencies = dependencies;
+  }
+
   public AutoDeployInfo getAutoDeploy() {
     return autoDeploy;
+  }
+
+  public void setCardinality(String cardinality) {
+    this.cardinality = cardinality;
   }
 
   public String getCardinality() {

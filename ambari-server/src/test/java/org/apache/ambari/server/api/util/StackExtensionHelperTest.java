@@ -646,5 +646,39 @@ public class StackExtensionHelperTest {
     assertNotNull(merged.getConfigTypes());
     assertEquals(0, merged.getConfigTypes().size());
   }
+
+  @Test
+  public void testMergeComponentInfo() throws Exception {
+    File stackRoot = new File(stackRootStr);
+    StackExtensionHelper helper = new StackExtensionHelper(injector, stackRoot);
+    ComponentInfo child = new ComponentInfo();
+    ComponentInfo parent = new ComponentInfo();
+    DependencyInfo a = new DependencyInfo();
+    a.setName("serviceName/A");
+    DependencyInfo b = new DependencyInfo();
+    b.setName("serviceName/B");
+    List<DependencyInfo> parentDependencies = new ArrayList<DependencyInfo>();
+    parentDependencies.add(a);
+    parentDependencies.add(b);
+    parent.setDependencies(parentDependencies);
+
+    DependencyInfo c = new DependencyInfo();
+    c.setName("serviceName/C");
+    List<DependencyInfo> childDependencies = new ArrayList<DependencyInfo>();
+    childDependencies.add(c);
+    child.setDependencies(childDependencies);
+
+    child.setCardinality("1");
+    parent.setCardinality("1+");
+
+    child.setCategory("CLIENT");
+    parent.setCategory("MASTER");
+
+    ComponentInfo result = helper.mergeComponents(parent, child);
+
+    assertEquals(result.getCardinality(),"1");
+    assertEquals(result.getCategory(), "CLIENT");
+    assertEquals(result.getDependencies().size(), 3);
+  }
 }
 

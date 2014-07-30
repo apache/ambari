@@ -43,13 +43,7 @@ import javax.xml.xpath.XPathFactory;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.metadata.ActionMetadata;
-import org.apache.ambari.server.state.CommandScriptDefinition;
-import org.apache.ambari.server.state.ComponentInfo;
-import org.apache.ambari.server.state.CustomCommandDefinition;
-import org.apache.ambari.server.state.PropertyInfo;
-import org.apache.ambari.server.state.ServiceInfo;
-import org.apache.ambari.server.state.ServiceOsSpecific;
-import org.apache.ambari.server.state.StackInfo;
+import org.apache.ambari.server.state.*;
 import org.apache.ambari.server.state.stack.ConfigurationXml;
 import org.apache.ambari.server.state.stack.RepositoryXml;
 import org.apache.ambari.server.state.stack.ServiceMetainfoXml;
@@ -279,9 +273,12 @@ public class StackExtensionHelper {
   }
 
 
-  private ComponentInfo mergeComponents(ComponentInfo parent, ComponentInfo child) {
+  ComponentInfo mergeComponents(ComponentInfo parent, ComponentInfo child) {
     ComponentInfo result = new ComponentInfo(child); // cloning child
     CommandScriptDefinition commandScript = child.getCommandScript();
+    String category = child.getCategory();
+    String cardinality = child.getCardinality();
+
     if (commandScript != null) {
       result.setCommandScript(child.getCommandScript());
     } else {
@@ -292,13 +289,47 @@ public class StackExtensionHelper {
         child.getConfigDependencies() != null ?
             child.getConfigDependencies() : parent.getConfigDependencies());
 
-    // Merge custom command definitions for service
-    List<CustomCommandDefinition> mergedCustomCommands =
-            mergeCustomCommandLists(parent.getCustomCommands(),
-                    child.getCustomCommands());
-    result.setCustomCommands(mergedCustomCommands);
+    if (category != null) {
+      result.setCategory(child.getCategory());
+    } else {
+      result.setCategory(parent.getCategory());
+    }
+
+    if (cardinality != null) {
+      result.setCardinality(child.getCardinality());
+    } else {
+      result.setCardinality(parent.getCardinality());
+    }
+
+    result.setDependencies(
+        child.getDependencies() == null ?
+            parent.getDependencies() :
+            parent.getDependencies() == null ?
+                child.getDependencies() :
+                mergeComponentDependencies(parent.getDependencies(),
+                    child.getDependencies()));
 
     return result;
+  }
+
+  List<DependencyInfo> mergeComponentDependencies(
+      List<DependencyInfo> parentList,
+      List<DependencyInfo> childList) {
+
+    List<DependencyInfo> mergedList =
+        new ArrayList<DependencyInfo>(childList);
+    List<String> existingNames = new ArrayList<String>();
+
+    for (DependencyInfo childDI : childList) {
+      existingNames.add(childDI.getName());
+    }
+    for (DependencyInfo parentsDI : parentList) {
+      if (! existingNames.contains(parentsDI.getName())) {
+        mergedList.add(parentsDI);
+        existingNames.add(parentsDI.getName());
+      }
+    }
+    return mergedList;
   }
 
 
