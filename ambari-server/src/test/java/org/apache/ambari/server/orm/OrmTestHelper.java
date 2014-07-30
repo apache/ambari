@@ -38,6 +38,7 @@ import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.RequestDAO;
+import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
 import org.apache.ambari.server.orm.dao.RoleDAO;
 import org.apache.ambari.server.orm.dao.StageDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
@@ -52,6 +53,8 @@ import org.apache.ambari.server.orm.entities.HostStateEntity;
 import org.apache.ambari.server.orm.entities.PrincipalEntity;
 import org.apache.ambari.server.orm.entities.PrincipalTypeEntity;
 import org.apache.ambari.server.orm.entities.RequestEntity;
+import org.apache.ambari.server.orm.entities.ResourceEntity;
+import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.RoleEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
@@ -99,8 +102,17 @@ public class OrmTestHelper {
    */
   @Transactional
   public void createDefaultData() {
+
+    ResourceTypeEntity resourceTypeEntity =  new ResourceTypeEntity();
+    resourceTypeEntity.setId(ResourceTypeEntity.CLUSTER_RESOURCE_TYPE);
+    resourceTypeEntity.setName(ResourceTypeEntity.CLUSTER_RESOURCE_TYPE_NAME);
+
+    ResourceEntity resourceEntity = new ResourceEntity();
+    resourceEntity.setResourceType(resourceTypeEntity);
+
     ClusterEntity clusterEntity = new ClusterEntity();
     clusterEntity.setClusterName("test_cluster1");
+    clusterEntity.setResource(resourceEntity);
     clusterEntity.setClusterInfo("test_cluster_info1");
 
     HostEntity host1 = new HostEntity();
@@ -142,6 +154,8 @@ public class OrmTestHelper {
 
     getEntityManager().persist(host1);
     getEntityManager().persist(host2);
+    getEntityManager().persist(resourceTypeEntity);
+    getEntityManager().persist(resourceEntity);
     getEntityManager().persist(clusterEntity);
     getEntityManager().persist(hostStateEntity1);
     getEntityManager().persist(hostStateEntity2);
@@ -265,11 +279,22 @@ public class OrmTestHelper {
    */
   @Transactional
   public Long createCluster() {
+    ResourceTypeDAO resourceTypeDAO = injector.getInstance(ResourceTypeDAO.class);
+
+    ResourceTypeEntity resourceTypeEntity =  new ResourceTypeEntity();
+    resourceTypeEntity.setId(ResourceTypeEntity.CLUSTER_RESOURCE_TYPE);
+    resourceTypeEntity.setName(ResourceTypeEntity.CLUSTER_RESOURCE_TYPE_NAME);
+    resourceTypeEntity = resourceTypeDAO.merge(resourceTypeEntity);
+
+    ResourceEntity resourceEntity = new ResourceEntity();
+    resourceEntity.setResourceType(resourceTypeEntity);
+
     ClusterDAO clusterDAO = injector.getInstance(ClusterDAO.class);
 
     ClusterEntity clusterEntity = new ClusterEntity();
     clusterEntity.setClusterName("test_cluster1");
     clusterEntity.setClusterInfo("test_cluster_info1");
+    clusterEntity.setResource(resourceEntity);
 
     clusterDAO.create(clusterEntity);
 

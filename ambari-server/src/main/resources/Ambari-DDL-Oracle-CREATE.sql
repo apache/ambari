@@ -16,7 +16,7 @@
 -- limitations under the License.
 --
 
-CREATE TABLE clusters (cluster_id NUMBER(19) NOT NULL, cluster_info VARCHAR2(255) NULL, cluster_name VARCHAR2(100) NOT NULL UNIQUE, provisioning_state VARCHAR2(255) DEFAULT 'INIT' NOT NULL, desired_cluster_state VARCHAR2(255) NULL, desired_stack_version VARCHAR2(255) NULL, PRIMARY KEY (cluster_id));
+CREATE TABLE clusters (cluster_id NUMBER(19) NOT NULL, resource_id NUMBER(19) NOT NULL, cluster_info VARCHAR2(255) NULL, cluster_name VARCHAR2(100) NOT NULL UNIQUE, provisioning_state VARCHAR2(255) DEFAULT 'INIT' NOT NULL, desired_cluster_state VARCHAR2(255) NULL, desired_stack_version VARCHAR2(255) NULL, PRIMARY KEY (cluster_id));
 CREATE TABLE clusterconfig (config_id NUMBER(19) NOT NULL, version_tag VARCHAR2(255) NOT NULL, type_name VARCHAR2(255) NOT NULL, cluster_id NUMBER(19) NOT NULL, config_data CLOB NOT NULL, config_attributes CLOB, create_timestamp NUMBER(19) NOT NULL, PRIMARY KEY (config_id));
 CREATE TABLE serviceconfig (service_config_id NUMBER(19) NOT NULL, cluster_id NUMBER(19) NOT NULL, service_name VARCHAR(255) NOT NULL, version NUMBER(19) NOT NULL, create_timestamp NUMBER(19) NOT NULL, PRIMARY KEY (service_config_id));
 CREATE TABLE serviceconfigmapping (service_config_id BIGINT NOT NULL, config_id BIGINT NOT NULL, PRIMARY KEY(service_config_id, config_id));
@@ -136,6 +136,7 @@ ALTER TABLE serviceconfig ADD CONSTRAINT UQ_scv_service_version UNIQUE (cluster_
 ALTER TABLE serviceconfigmapping ADD CONSTRAINT FK_scvm_scv FOREIGN KEY (service_config_id) REFERENCES serviceconfig(service_config_id);
 ALTER TABLE serviceconfigmapping ADD CONSTRAINT FK_scvm_config FOREIGN KEY (config_id) REFERENCES clusterconfig(config_id);
 ALTER TABLE serviceconfigapplication ADD CONSTRAINT FK_scva_scv FOREIGN KEY (service_config_id) REFERENCES serviceconfig(service_config_id);
+ALTER TABLE clusters ADD CONSTRAINT FK_clusters_resource_id FOREIGN KEY (resource_id) REFERENCES adminresource(resource_id);
 
 INSERT INTO ambari_sequences(sequence_name, value) values ('host_role_command_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, value) values ('user_id_seq', 1);

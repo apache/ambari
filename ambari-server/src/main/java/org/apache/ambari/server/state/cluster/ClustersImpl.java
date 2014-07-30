@@ -31,8 +31,12 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ConfigGroupHostMappingDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
+import org.apache.ambari.server.orm.dao.ResourceDAO;
+import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
+import org.apache.ambari.server.orm.entities.ResourceEntity;
+import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.state.AgentVersion;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -81,6 +85,10 @@ public class ClustersImpl implements Clusters {
   ClusterDAO clusterDAO;
   @Inject
   HostDAO hostDAO;
+  @Inject
+  ResourceDAO resourceDAO;
+  @Inject
+  ResourceTypeDAO resourceTypeDAO;
   @Inject
   ClusterFactory clusterFactory;
   @Inject
@@ -156,11 +164,24 @@ public class ClustersImpl implements Clusters {
         throw new DuplicateResourceException("Attempted to create a Cluster which already exists"
             + ", clusterName=" + clusterName);
       }
+
+      // create an admin resource to represent this cluster
+      ResourceTypeEntity resourceTypeEntity = resourceTypeDAO.findById(ResourceTypeEntity.CLUSTER_RESOURCE_TYPE);
+      if (resourceTypeEntity == null) {
+        resourceTypeEntity = new ResourceTypeEntity();
+        resourceTypeEntity.setId(ResourceTypeEntity.CLUSTER_RESOURCE_TYPE);
+        resourceTypeEntity.setName(ResourceTypeEntity.CLUSTER_RESOURCE_TYPE_NAME);
+        resourceTypeEntity = resourceTypeDAO.merge(resourceTypeEntity);
+      }
+      ResourceEntity resourceEntity = new ResourceEntity();
+      resourceEntity.setResourceType(resourceTypeEntity);
+
       // retrieve new cluster id
       // add cluster id -> cluster mapping into clustersById
       ClusterEntity clusterEntity = new ClusterEntity();
       clusterEntity.setClusterName(clusterName);
       clusterEntity.setDesiredStackVersion(gson.toJson(new StackId()));
+      clusterEntity.setResource(resourceEntity);
 
       try {
         clusterDAO.create(clusterEntity);

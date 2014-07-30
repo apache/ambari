@@ -94,6 +94,7 @@ public class ResourceEntity {
 
   // ----- Object overrides --------------------------------------------------
 
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
@@ -101,14 +102,14 @@ public class ResourceEntity {
 
     ResourceEntity that = (ResourceEntity) o;
 
-    return id.equals(that.id) && !(resourceType != null ?
+    return !(id != null ? !id.equals(that.id) : that.id != null) && !(resourceType != null ?
         !resourceType.equals(that.resourceType) : that.resourceType != null);
 
   }
 
   @Override
   public int hashCode() {
-    int result = id.hashCode();
+    int result = id != null ? id.hashCode() : 0;
     result = 31 * result + (resourceType != null ? resourceType.hashCode() : 0);
     return result;
   }

@@ -96,6 +96,12 @@ public class ClusterEntity {
   @OneToMany(mappedBy = "clusterEntity", cascade = CascadeType.REMOVE)
   private Collection<ServiceConfigEntity> serviceConfigEntities;
 
+  @OneToOne(cascade = CascadeType.ALL)
+  @JoinColumns({
+      @JoinColumn(name = "resource_id", referencedColumnName = "resource_id", nullable = false)
+  })
+  private ResourceEntity resource;
+
   public Long getClusterId() {
     return clusterId;
   }
@@ -240,5 +246,23 @@ public class ClusterEntity {
 
   public void setServiceConfigEntities(Collection<ServiceConfigEntity> serviceConfigEntities) {
     this.serviceConfigEntities = serviceConfigEntities;
+  }
+
+  /**
+   * Get the admin resource entity.
+   *
+   * @return the resource entity
+   */
+  public ResourceEntity getResource() {
+    return resource;
+  }
+
+  /**
+   * Set the admin resource entity.
+   *
+   * @param resource  the resource entity
+   */
+  public void setResource(ResourceEntity resource) {
+    this.resource = resource;
   }
 }

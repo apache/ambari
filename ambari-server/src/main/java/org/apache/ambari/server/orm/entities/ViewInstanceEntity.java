@@ -146,7 +146,7 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
   @JoinColumn(name = "view_name", referencedColumnName = "view_name", nullable = false)
   private ViewEntity view;
 
-  @OneToOne
+  @OneToOne(cascade = CascadeType.ALL)
   @JoinColumns({
       @JoinColumn(name = "resource_id", referencedColumnName = "resource_id", nullable = false),
   })

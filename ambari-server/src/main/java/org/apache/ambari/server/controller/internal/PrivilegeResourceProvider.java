@@ -37,6 +37,7 @@ import org.apache.ambari.server.orm.dao.PrivilegeDAO;
 import org.apache.ambari.server.orm.dao.ResourceDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.entities.GroupEntity;
+import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.PrincipalEntity;
 import org.apache.ambari.server.orm.entities.PrincipalTypeEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
@@ -154,7 +155,7 @@ public abstract class PrivilegeResourceProvider<T> extends AbstractResourceProvi
     for (Map<String, Object> properties : request.getProperties()) {
       createResources(getCreateCommand(properties));
     }
-    notifyCreate(Resource.Type.ViewInstance, request);
+    notifyCreate(resourceType, request);
 
     return getRequestStatus(null);
   }
@@ -177,16 +178,15 @@ public abstract class PrivilegeResourceProvider<T> extends AbstractResourceProvi
 
       resourceIds.addAll(resourceEntities.keySet());
 
-      Map<Long, PrivilegeEntity> entityMap     = new HashMap<Long, PrivilegeEntity>();
-      List<PrincipalEntity>      principalList = new LinkedList<PrincipalEntity>();
-
+      Set<PrivilegeEntity>  entitySet     = new HashSet<PrivilegeEntity>();
+      List<PrincipalEntity> principalList = new LinkedList<PrincipalEntity>();
 
       List<PrivilegeEntity> entities = privilegeDAO.findAll();
 
       for(PrivilegeEntity privilegeEntity : entities){
         if (resourceIds.contains(privilegeEntity.getResource().getId())) {
           PrincipalEntity principal = privilegeEntity.getPrincipal();
-          entityMap.put(principal.getId(), privilegeEntity);
+          entitySet.add(privilegeEntity);
           principalList.add(principal);
         }
       }
@@ -205,7 +205,7 @@ public abstract class PrivilegeResourceProvider<T> extends AbstractResourceProvi
         groupEntities.put(groupEntity.getPrincipal().getId(), groupEntity);
       }
 
-      for(PrivilegeEntity privilegeEntity : entityMap.values()){
+      for(PrivilegeEntity privilegeEntity : entitySet){
         Resource resource = toResource(privilegeEntity, userEntities, groupEntities, resourceEntities, requestedIds);
         if (predicate == null || predicate.evaluate(resource)) {
           resources.add(resource);
@@ -303,13 +303,21 @@ public abstract class PrivilegeResourceProvider<T> extends AbstractResourceProvi
    *
    * @return the new privilege entity
    */
-  protected PrivilegeEntity toEntity(Map<String, Object> properties, Long resourceId) {
+  protected PrivilegeEntity toEntity(Map<String, Object> properties, Long resourceId)
+      throws AmbariException {
     PrivilegeEntity entity         = new PrivilegeEntity();
     String          permissionName = (String) properties.get(PERMISSION_NAME_PROPERTY_ID);
     ResourceEntity  resourceEntity = resourceDAO.findById(resourceId);
 
     entity.setResource(resourceEntity);
-    entity.setPermission(permissionDAO.findPermissionByNameAndType(permissionName, resourceEntity.getResourceType()));
+
+    PermissionEntity permission =
+        permissionDAO.findPermissionByNameAndType(permissionName, resourceEntity.getResourceType());
+    if (permission == null) {
+      throw new AmbariException("Can't find a permission named " + permissionName +
+          " for the resource type " + resourceEntity.getResourceType().getName() + ".");
+    }
+    entity.setPermission(permission);
 
     String principalName = (String) properties.get(PRINCIPAL_NAME_PROPERTY_ID);
     String principalType = (String) properties.get(PRINCIPAL_TYPE_PROPERTY_ID);

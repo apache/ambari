@@ -28,6 +28,8 @@ import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.RequestScheduleBatchRequestEntity;
 import org.apache.ambari.server.orm.entities.RequestScheduleEntity;
+import org.apache.ambari.server.orm.entities.ResourceEntity;
+import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.state.scheduler.BatchRequest;
 import org.junit.After;
 import org.junit.Before;
@@ -41,6 +43,7 @@ public class RequestScheduleDAOTest {
   private ClusterDAO clusterDAO;
   private RequestScheduleDAO requestScheduleDAO;
   private RequestScheduleBatchRequestDAO batchRequestDAO;
+  private ResourceTypeDAO resourceTypeDAO;
   private String testUri = "http://localhost/blah";
   private String testBody = "ValidJson";
   private String testType = BatchRequest.Type.POST.name();
@@ -55,6 +58,7 @@ public class RequestScheduleDAOTest {
     clusterDAO = injector.getInstance(ClusterDAO.class);
     requestScheduleDAO = injector.getInstance(RequestScheduleDAO.class);
     batchRequestDAO = injector.getInstance(RequestScheduleBatchRequestDAO.class);
+    resourceTypeDAO = injector.getInstance(ResourceTypeDAO.class);
   }
 
   @After
@@ -65,8 +69,20 @@ public class RequestScheduleDAOTest {
   private RequestScheduleEntity createScheduleEntity() {
     RequestScheduleEntity scheduleEntity = new RequestScheduleEntity();
 
+    // create an admin resource to represent this cluster
+    ResourceTypeEntity resourceTypeEntity = resourceTypeDAO.findById(ResourceTypeEntity.CLUSTER_RESOURCE_TYPE);
+    if (resourceTypeEntity == null) {
+      resourceTypeEntity = new ResourceTypeEntity();
+      resourceTypeEntity.setId(ResourceTypeEntity.CLUSTER_RESOURCE_TYPE);
+      resourceTypeEntity.setName(ResourceTypeEntity.CLUSTER_RESOURCE_TYPE_NAME);
+      resourceTypeEntity = resourceTypeDAO.merge(resourceTypeEntity);
+    }
+    ResourceEntity resourceEntity = new ResourceEntity();
+    resourceEntity.setResourceType(resourceTypeEntity);
+
     ClusterEntity clusterEntity = new ClusterEntity();
     clusterEntity.setClusterName("c1");
+    clusterEntity.setResource(resourceEntity);
     clusterDAO.create(clusterEntity);
 
     scheduleEntity.setClusterEntity(clusterEntity);

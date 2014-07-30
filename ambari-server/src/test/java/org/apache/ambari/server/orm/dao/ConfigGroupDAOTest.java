@@ -31,6 +31,8 @@ import org.apache.ambari.server.orm.entities.ConfigGroupConfigMappingEntity;
 import org.apache.ambari.server.orm.entities.ConfigGroupEntity;
 import org.apache.ambari.server.orm.entities.ConfigGroupHostMappingEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
+import org.apache.ambari.server.orm.entities.ResourceEntity;
+import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -46,6 +48,7 @@ public class ConfigGroupDAOTest {
   private ConfigGroupConfigMappingDAO configGroupConfigMappingDAO;
   private ConfigGroupHostMappingDAO configGroupHostMappingDAO;
   private HostDAO hostDAO;
+  private ResourceTypeDAO resourceTypeDAO;
 
   @Before
   public void setup() throws Exception {
@@ -59,6 +62,7 @@ public class ConfigGroupDAOTest {
     configGroupHostMappingDAO = injector.getInstance
       (ConfigGroupHostMappingDAO.class);
     hostDAO = injector.getInstance(HostDAO.class);
+    resourceTypeDAO = injector.getInstance(ResourceTypeDAO.class);
   }
 
   @After
@@ -71,8 +75,20 @@ public class ConfigGroupDAOTest {
          List<ClusterConfigEntity> configs) throws Exception {
     ConfigGroupEntity configGroupEntity = new ConfigGroupEntity();
 
+    // create an admin resource to represent this cluster
+    ResourceTypeEntity resourceTypeEntity = resourceTypeDAO.findById(ResourceTypeEntity.CLUSTER_RESOURCE_TYPE);
+    if (resourceTypeEntity == null) {
+      resourceTypeEntity = new ResourceTypeEntity();
+      resourceTypeEntity.setId(ResourceTypeEntity.CLUSTER_RESOURCE_TYPE);
+      resourceTypeEntity.setName(ResourceTypeEntity.CLUSTER_RESOURCE_TYPE_NAME);
+      resourceTypeEntity = resourceTypeDAO.merge(resourceTypeEntity);
+    }
+    ResourceEntity resourceEntity = new ResourceEntity();
+    resourceEntity.setResourceType(resourceTypeEntity);
+
     ClusterEntity clusterEntity = new ClusterEntity();
     clusterEntity.setClusterName(clusterName);
+    clusterEntity.setResource(resourceEntity);
     clusterDAO.create(clusterEntity);
 
     configGroupEntity.setClusterEntity(clusterEntity);

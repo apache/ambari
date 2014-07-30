@@ -218,6 +218,14 @@ public class ClusterService extends BaseService {
   }
 
   /**
+   * Gets the privilege service
+   */
+  @Path("{clusterName}/privileges")
+  public PrivilegeService getPrivilegeService(@PathParam ("clusterName") String clusterName) {
+    return new ClusterPrivilegeService(clusterName);
+  }
+
+  /**
    * Create a cluster resource instance.
    *
    * @param clusterName cluster name

@@ -47,6 +47,7 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.AbstractControllerResourceProvider;
 import org.apache.ambari.server.controller.internal.AlertDefinitionResourceProvider;
 import org.apache.ambari.server.controller.internal.BlueprintResourceProvider;
+import org.apache.ambari.server.controller.internal.ClusterPrivilegeResourceProvider;
 import org.apache.ambari.server.controller.internal.ClusterResourceProvider;
 import org.apache.ambari.server.controller.internal.PermissionResourceProvider;
 import org.apache.ambari.server.controller.internal.PrivilegeResourceProvider;
@@ -59,6 +60,7 @@ import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.PersistenceType;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.BlueprintDAO;
+import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.GroupDAO;
 import org.apache.ambari.server.orm.dao.MemberDAO;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
@@ -550,6 +552,7 @@ public class AmbariServer {
     PrivilegeResourceProvider.init(injector.getInstance(PrivilegeDAO.class), injector.getInstance(UserDAO.class),
         injector.getInstance(GroupDAO.class), injector.getInstance(PrincipalDAO.class),
         injector.getInstance(PermissionDAO.class), injector.getInstance(ResourceDAO.class));
+    ClusterPrivilegeResourceProvider.init(injector.getInstance(ClusterDAO.class));
     ViewRegistry.init(injector.getInstance(ViewDAO.class), injector.getInstance(ViewInstanceDAO.class),
         injector.getInstance(ResourceDAO.class), injector.getInstance(ResourceTypeDAO.class),
         injector.getInstance(UserDAO.class), injector.getInstance(MemberDAO.class),

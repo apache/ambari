@@ -22,6 +22,7 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
+import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
 
 import javax.persistence.EntityManager;
@@ -48,6 +49,7 @@ public class ResourceDAO {
    *
    * @return  a matching resource type  or null
    */
+  @RequiresSession
   public ResourceEntity findById(Long id) {
     return entityManagerProvider.get().find(ResourceEntity.class, id);
   }
@@ -57,6 +59,7 @@ public class ResourceDAO {
    *
    * @return all resources or an empty List
    */
+  @RequiresSession
   public List<ResourceEntity> findAll() {
     TypedQuery<ResourceEntity> query = entityManagerProvider.get().createQuery("SELECT resource FROM ResourceEntity resource", ResourceEntity.class);
     return daoUtils.selectList(query);

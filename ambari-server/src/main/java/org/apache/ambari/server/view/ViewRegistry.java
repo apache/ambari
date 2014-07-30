@@ -476,7 +476,6 @@ public class ViewRegistry {
         // create an admin resource to represent this view instance
         ResourceEntity resourceEntity = new ResourceEntity();
         resourceEntity.setResourceType(viewEntity.getResourceType());
-        resourceDAO.create(resourceEntity);
 
         instanceEntity.setResource(resourceEntity);
 

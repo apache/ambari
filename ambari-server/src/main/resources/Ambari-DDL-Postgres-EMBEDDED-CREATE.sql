@@ -28,7 +28,7 @@ ALTER SCHEMA ambari OWNER TO :username;
 ALTER ROLE :username SET search_path TO 'ambari';
 
 ------create tables ang grant privileges to db user---------
-CREATE TABLE ambari.clusters (cluster_id BIGINT NOT NULL, cluster_info VARCHAR(255) NOT NULL, cluster_name VARCHAR(100) NOT NULL UNIQUE, provisioning_state VARCHAR(255) NOT NULL DEFAULT 'INIT', desired_cluster_state VARCHAR(255) NOT NULL, desired_stack_version VARCHAR(255) NOT NULL, PRIMARY KEY (cluster_id));
+CREATE TABLE ambari.clusters (cluster_id BIGINT NOT NULL, resource_id BIGINT NOT NULL, cluster_info VARCHAR(255) NOT NULL, cluster_name VARCHAR(100) NOT NULL UNIQUE, provisioning_state VARCHAR(255) NOT NULL DEFAULT 'INIT', desired_cluster_state VARCHAR(255) NOT NULL, desired_stack_version VARCHAR(255) NOT NULL, PRIMARY KEY (cluster_id));
 GRANT ALL PRIVILEGES ON TABLE ambari.clusters TO :username;
 
 CREATE TABLE ambari.clusterconfig (config_id BIGINT NOT NULL, version_tag VARCHAR(255) NOT NULL, version BIGINT NOT NULL, type_name VARCHAR(255) NOT NULL, cluster_id BIGINT NOT NULL, config_data VARCHAR(32000) NOT NULL, config_attributes VARCHAR(32000), create_timestamp BIGINT NOT NULL, PRIMARY KEY (config_id));
@@ -238,6 +238,7 @@ ALTER TABLE ambari.viewinstance ADD CONSTRAINT FK_viewinstance_resource_id FOREI
 ALTER TABLE ambari.adminprivilege ADD CONSTRAINT FK_privilege_principal_id FOREIGN KEY (principal_id) REFERENCES ambari.adminprincipal(principal_id);
 ALTER TABLE ambari.users ADD CONSTRAINT FK_users_principal_id FOREIGN KEY (principal_id) REFERENCES ambari.adminprincipal(principal_id);
 ALTER TABLE ambari.groups ADD CONSTRAINT FK_groups_principal_id FOREIGN KEY (principal_id) REFERENCES ambari.adminprincipal(principal_id);
+ALTER TABLE ambari.clusters ADD CONSTRAINT FK_clusters_resource_id FOREIGN KEY (resource_id) REFERENCES ambari.adminresource(resource_id);
 
 -- Alerting Framework
 CREATE TABLE ambari.alert_definition (

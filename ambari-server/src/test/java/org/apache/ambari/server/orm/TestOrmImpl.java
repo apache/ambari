@@ -21,10 +21,8 @@ package org.apache.ambari.server.orm;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
-import com.google.inject.persist.jpa.AmbariJpaPersistService;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
-import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.orm.dao.*;
 import org.apache.ambari.server.orm.entities.*;
 import org.junit.*;
@@ -62,8 +60,22 @@ public class TestOrmImpl extends Assert {
   public void testEmptyPersistentCollection() {
     String testClusterName = "test_cluster2";
 
+    ResourceTypeDAO resourceTypeDAO = injector.getInstance(ResourceTypeDAO.class);
+
+    // create an admin resource to represent this cluster
+    ResourceTypeEntity resourceTypeEntity = resourceTypeDAO.findById(ResourceTypeEntity.CLUSTER_RESOURCE_TYPE);
+    if (resourceTypeEntity == null) {
+      resourceTypeEntity = new ResourceTypeEntity();
+      resourceTypeEntity.setId(ResourceTypeEntity.CLUSTER_RESOURCE_TYPE);
+      resourceTypeEntity.setName(ResourceTypeEntity.CLUSTER_RESOURCE_TYPE_NAME);
+      resourceTypeEntity = resourceTypeDAO.merge(resourceTypeEntity);
+    }
+    ResourceEntity resourceEntity = new ResourceEntity();
+    resourceEntity.setResourceType(resourceTypeEntity);
+
     ClusterEntity clusterEntity = new ClusterEntity();
     clusterEntity.setClusterName(testClusterName);
+    clusterEntity.setResource(resourceEntity);
     ClusterDAO clusterDAO = injector.getInstance(ClusterDAO.class);
     clusterDAO.create(clusterEntity);
     clusterEntity = clusterDAO.findByName(clusterEntity.getClusterName());
@@ -244,9 +256,22 @@ public class TestOrmImpl extends Assert {
   @Test
   public void testConcurrentModification() throws InterruptedException {
     final ClusterDAO clusterDAO = injector.getInstance(ClusterDAO.class);
-    final AmbariJpaPersistService ambariJpaPersistService = injector.getInstance(AmbariJpaPersistService.class);
+    final ResourceTypeDAO resourceTypeDAO = injector.getInstance(ResourceTypeDAO.class);
+
+    // create an admin resource to represent this cluster
+    ResourceTypeEntity resourceTypeEntity = resourceTypeDAO.findById(ResourceTypeEntity.CLUSTER_RESOURCE_TYPE);
+    if (resourceTypeEntity == null) {
+      resourceTypeEntity = new ResourceTypeEntity();
+      resourceTypeEntity.setId(ResourceTypeEntity.CLUSTER_RESOURCE_TYPE);
+      resourceTypeEntity.setName(ResourceTypeEntity.CLUSTER_RESOURCE_TYPE_NAME);
+      resourceTypeEntity = resourceTypeDAO.merge(resourceTypeEntity);
+    }
+    ResourceEntity resourceEntity = new ResourceEntity();
+    resourceEntity.setResourceType(resourceTypeEntity);
+
     ClusterEntity clusterEntity = new ClusterEntity();
     clusterEntity.setClusterName("cluster1");
+    clusterEntity.setResource(resourceEntity);
     clusterDAO.create(clusterEntity);
 //    assertFalse(ambariJpaPersistService.isWorking());
 
@@ -285,11 +310,16 @@ public class TestOrmImpl extends Assert {
 
     List<ClusterEntity> result = clusterDAO.findAll();
 
+    final ResourceTypeEntity finalResourceTypeEntity = resourceTypeEntity;
+
     thread = new Thread(){
       @Override
       public void run() {
+        ResourceEntity resourceEntity = new ResourceEntity();
+        resourceEntity.setResourceType(finalResourceTypeEntity);
         ClusterEntity temp = new ClusterEntity();
         temp.setClusterName("temp_cluster");
+        temp.setResource(resourceEntity);
         clusterDAO.create(temp);
       }
     };
@@ -303,8 +333,11 @@ public class TestOrmImpl extends Assert {
     thread = new Thread(){
       @Override
       public void run() {
+        ResourceEntity resourceEntity = new ResourceEntity();
+        resourceEntity.setResourceType(finalResourceTypeEntity);
         ClusterEntity temp = new ClusterEntity();
         temp.setClusterName("temp_cluster2");
+        temp.setResource(resourceEntity);
         clusterDAO.create(temp);
       }
     };

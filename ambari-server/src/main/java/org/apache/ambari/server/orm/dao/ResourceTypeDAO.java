@@ -22,6 +22,7 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
+import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 
 import javax.persistence.EntityManager;
@@ -48,6 +49,7 @@ public class ResourceTypeDAO {
    *
    * @return  a matching resource type or null
    */
+  @RequiresSession
   public ResourceTypeEntity findById(Integer id) {
     return entityManagerProvider.get().find(ResourceTypeEntity.class, id);
   }
@@ -59,6 +61,7 @@ public class ResourceTypeDAO {
    *
    * @return  a matching resource type or null
    */
+  @RequiresSession
   public ResourceTypeEntity findByName(String name) {
     TypedQuery<ResourceTypeEntity> query = entityManagerProvider.get().createQuery(
         "SELECT resourceType FROM ResourceTypeEntity resourceType WHERE resourceType.name = ?1",
@@ -71,6 +74,7 @@ public class ResourceTypeDAO {
    *
    * @return all resource types or an empty List
    */
+  @RequiresSession
   public List<ResourceTypeEntity> findAll() {
     TypedQuery<ResourceTypeEntity> query = entityManagerProvider.get().createQuery("SELECT resourceType FROM ResourceTypeEntity resourceType", ResourceTypeEntity.class);
     return daoUtils.selectList(query);

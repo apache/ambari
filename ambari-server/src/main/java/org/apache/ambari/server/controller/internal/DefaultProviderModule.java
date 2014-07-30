@@ -77,6 +77,8 @@ public class DefaultProviderModule extends AbstractProviderModule {
         return new ViewPrivilegeResourceProvider();
       case ViewPermission:
         return new ViewPermissionResourceProvider();
+      case ClusterPrivilege:
+        return new ClusterPrivilegeResourceProvider();
       default:
         return AbstractControllerResourceProvider.getResourceProvider(type, propertyIds,
             keyPropertyIds, managementController);
