@@ -104,12 +104,13 @@ App.StackServiceComponent = DS.Model.extend({
 
   /** @property {Boolean} isAddableToHost - component can be added on host details page **/
   isAddableToHost: function() {
-    return ((this.get('isMasterAddableInstallerWizard') || (this.get('isSlave') && this.get('maxToInstall') > 2)) && !this.get('isHAComponentOnly'));
+    return ((this.get('isMasterAddableInstallerWizard') || (this.get('isSlave') && this.get('maxToInstall') > 2) || this.get('isClient')) && !this.get('isHAComponentOnly'));
   }.property('componentName'),
 
   /** @property {Boolean} isDeletable - component supports delete action **/
   isDeletable: function() {
-    return this.get('isAddableToHost');
+    var ignored = ['HBASE_MASTER'];
+    return this.get('isAddableToHost') && !ignored.contains(this.get('componentName'));
   }.property('componentName'),
 
   /** @property {Boolean} isShownOnInstallerAssignMasterPage - component visible on "Assign Masters" step of Install Wizard **/
