@@ -30,6 +30,7 @@ public class ConfigurationRequest {
   private String clusterName;
   private String type;
   private String tag;
+  private Long version;
   private Map<String, String> configs;
   private boolean selected = true;
   private Map<String, Map<String, String>> configsAttributes;
@@ -136,5 +137,13 @@ public class ConfigurationRequest {
   public void setPropertiesAttributes(
       Map<String, Map<String, String>> configsAttributes) {
     this.configsAttributes = configsAttributes;
+  }
+
+  public Long getVersion() {
+    return version;
+  }
+
+  public void setVersion(Long version) {
+    this.version = version;
   }
 }

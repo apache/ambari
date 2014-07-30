@@ -68,6 +68,8 @@
     <class>org.apache.ambari.server.orm.entities.PrincipalEntity</class>
     <class>org.apache.ambari.server.orm.entities.PermissionEntity</class>
     <class>org.apache.ambari.server.orm.entities.PrivilegeEntity</class>
+    <class>org.apache.ambari.server.orm.entities.ServiceConfigEntity</class>
+    <class>org.apache.ambari.server.orm.entities.ServiceConfigApplicationEntity</class>
 
     <properties>
       <!--<property name="javax.persistence.jdbc.url" value="jdbc:postgresql://localhost/ambari" />-->

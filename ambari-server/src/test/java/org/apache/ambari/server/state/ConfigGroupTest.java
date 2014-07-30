@@ -17,8 +17,6 @@
  */
 package org.apache.ambari.server.state;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
@@ -40,14 +38,10 @@ import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
 public class ConfigGroupTest {
@@ -106,7 +100,7 @@ public class ConfigGroupTest {
     attributes.put("a", "true");
     propertiesAttributes.put("final", attributes);
     Config config = configFactory.createNew(cluster, "hdfs-site", properties, propertiesAttributes);
-    config.setVersionTag("testversion");
+    config.setTag("testversion");
 
     Host host = clusters.getHost("h1");
 
@@ -172,7 +166,7 @@ public class ConfigGroupTest {
     Config config = new ConfigImpl("test-site");
     config.setProperties(properties);
     config.setPropertiesAttributes(propertiesAttributes);
-    config.setVersionTag("version100");
+    config.setTag("version100");
 
     configGroup.addConfiguration(config);
     Assert.assertEquals(2, configGroup.getConfigurations().values().size());

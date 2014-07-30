@@ -23,11 +23,14 @@ import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
 
 import com.google.inject.Singleton;
+import org.apache.ambari.server.controller.ivory.Cluster;
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
-import org.apache.ambari.server.orm.entities.ClusterConfigEntityPK;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 
 import com.google.inject.Inject;
@@ -39,6 +42,8 @@ public class ClusterDAO {
 
   @Inject
   Provider<EntityManager> entityManagerProvider;
+  @Inject
+  DaoUtils daoUtils;
 
   /**
    * Looks for Cluster by ID
@@ -72,9 +77,23 @@ public class ClusterDAO {
   }
 
   @RequiresSession
-  public ClusterConfigEntity findConfig(ClusterConfigEntityPK configEntityPK) {
+  public ClusterConfigEntity findConfig(Long configEntityPK) {
     return entityManagerProvider.get().find(ClusterConfigEntity.class,
       configEntityPK);
+  }
+
+  @RequiresSession
+  public ClusterConfigEntity findConfig(Long clusterId, String type, String tag) {
+    CriteriaBuilder cb = entityManagerProvider.get().getCriteriaBuilder();
+    CriteriaQuery<ClusterConfigEntity> cq = cb.createQuery(ClusterConfigEntity.class);
+    Root<ClusterConfigEntity> config = cq.from(ClusterConfigEntity.class);
+    cq.where(cb.and(
+        cb.equal(config.get("clusterId"), clusterId)),
+        cb.equal(config.get("type"), type),
+        cb.equal(config.get("tag"), tag)
+    );
+    TypedQuery<ClusterConfigEntity> query = entityManagerProvider.get().createQuery(cq);
+    return daoUtils.selectOne(query);
   }
 
   /**

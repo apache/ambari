@@ -26,6 +26,10 @@
     "Cluster": "Config/cluster_name",
     "Configuration": "Config/type"
   },
+  "ServiceConfigVersion" : {
+    "Cluster" : "cluster_name",
+    "ServiceConfigVersion" : "service_name"
+  },
   "Action": {
     "Action": "Actions/action_name"
   },

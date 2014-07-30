@@ -187,7 +187,7 @@ public class ServiceComponentHostTest {
     if (c.getConfig("time", String.valueOf(timestamp)) == null) {
       Config config = configFactory.createNew (c, "time",
           new HashMap<String, String>(), new HashMap<String, Map<String,String>>());
-      config.setVersionTag(String.valueOf(timestamp));
+      config.setTag(String.valueOf(timestamp));
       c.addConfig(config);
       config.persist();
     }
@@ -802,7 +802,7 @@ public class ServiceComponentHostTest {
     final Config c = configFactory.createNew(cluster, "hdfs-site",
         new HashMap<String, String>() {{ put("dfs.journalnode.http-address", "http://goo"); }}, 
         new HashMap<String, Map<String,String>>());
-    c.setVersionTag("version3");
+    c.setTag("version3");
     c.persist();
     cluster.addConfig(c);
     //host.addDesiredConfig(cluster.getClusterId(), true, "user", c);
@@ -869,7 +869,7 @@ public class ServiceComponentHostTest {
     final Config c1 = configFactory.createNew(cluster, "core-site",
       new HashMap<String, String>() {{ put("fs.trash.interval", "400"); }}, 
       new HashMap<String, Map<String,String>>());
-    c1.setVersionTag("version2");
+    c1.setTag("version2");
     c1.persist();
     cluster.addConfig(c1);
     configGroup = configGroupFactory.createNew(cluster, "g2",
@@ -1038,7 +1038,7 @@ public class ServiceComponentHostTest {
    */
   private void makeConfig(Cluster cluster, String type, String tag, Map<String, String> values, Map<String, Map<String, String>> attributes) {
     Config config = configFactory.createNew(cluster, type, values, attributes);
-    config.setVersionTag(tag);
+    config.setTag(tag);
     config.persist();
     cluster.addConfig(config);
     cluster.addDesiredConfig("user", config);

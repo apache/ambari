@@ -45,7 +45,6 @@ import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
-import org.apache.ambari.server.orm.entities.ClusterConfigEntityPK;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 /**
@@ -110,7 +109,7 @@ public class ConfigHelper {
     
     for (Entry<String, DesiredConfig> clusterEntry : clusterDesired.entrySet()) {
       String type = clusterEntry.getKey();
-      String tag = clusterEntry.getValue().getVersion();
+      String tag = clusterEntry.getValue().getTag();
 
       // 1) start with cluster config
       Config config = cluster.getConfig(type, tag);
@@ -120,7 +119,7 @@ public class ConfigHelper {
 
       Map<String, String> tags = new LinkedHashMap<String, String>();
 
-      tags.put(CLUSTER_DEFAULT_TAG, config.getVersionTag());
+      tags.put(CLUSTER_DEFAULT_TAG, config.getTag());
 
       // AMBARI-3672. Only consider Config groups for override tags
       // tags -> (configGroupId, versionTag)
@@ -374,12 +373,8 @@ public class ConfigHelper {
     Set<String> globalVersions = cluster.getConfigsByType(type).keySet();
     
     for(String version:globalVersions) {
-      ClusterConfigEntityPK clusterConfigEntityPK = new ClusterConfigEntityPK();
-      clusterConfigEntityPK.setClusterId(cluster.getClusterId());
-      clusterConfigEntityPK.setTag(version);
-      clusterConfigEntityPK.setType(type);
       ClusterConfigEntity clusterConfigEntity = clusterDAO.findConfig
-        (clusterConfigEntityPK);
+        (cluster.getClusterId(), type, version);
       
       clusterDAO.removeConfig(clusterConfigEntity);
     }

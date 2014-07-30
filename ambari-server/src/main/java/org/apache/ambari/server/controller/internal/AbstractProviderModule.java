@@ -623,7 +623,7 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
         if (configs != null) {
           DesiredConfig config = (DesiredConfig) configs.get(configType);
           if (config != null) {
-            versionTag = config.getVersion();
+            versionTag = config.getTag();
           }
         }
       }

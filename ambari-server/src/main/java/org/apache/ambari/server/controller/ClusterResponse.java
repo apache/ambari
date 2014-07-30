@@ -36,6 +36,8 @@ public class ClusterResponse {
   private final String desiredStackVersion;
 
   private Map<String, DesiredConfig> desiredConfigs;
+
+  private Map<String, ServiceConfigVersionResponse> desiredServiceConfigVersions;
   
   private String provisioningState;
 
@@ -176,5 +178,13 @@ public class ClusterResponse {
    */
   public ClusterHealthReport getClusterHealthReport() {
     return clusterHealthReport;
+  }
+
+  public Map<String, ServiceConfigVersionResponse> getDesiredServiceConfigVersions() {
+    return desiredServiceConfigVersions;
+  }
+
+  public void setDesiredServiceConfigVersions(Map<String, ServiceConfigVersionResponse> desiredServiceConfigVersions) {
+    this.desiredServiceConfigVersions = desiredServiceConfigVersions;
   }
 }

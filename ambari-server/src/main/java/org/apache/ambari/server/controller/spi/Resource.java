@@ -80,6 +80,7 @@ public interface Resource {
     Component,
     HostComponent,
     Configuration,
+    ServiceConfigVersion,
     ConfigGroup,
     Action,
     Request,
@@ -157,6 +158,7 @@ public interface Resource {
     public static final Type Component = InternalType.Component.getType();
     public static final Type HostComponent = InternalType.HostComponent.getType();
     public static final Type Configuration = InternalType.Configuration.getType();
+    public static final Type ServiceConfigVersion = InternalType.ServiceConfigVersion.getType();
     public static final Type ConfigGroup = InternalType.ConfigGroup.getType();
     public static final Type Action = InternalType.Action.getType();
     public static final Type Request = InternalType.Request.getType();

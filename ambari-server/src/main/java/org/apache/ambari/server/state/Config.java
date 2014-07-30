@@ -34,7 +34,13 @@ public interface Config {
   /**
    * @return Version Tag this config instance is mapped to
    */
-  public String getVersionTag();
+  public String getTag();
+
+  /**
+   *
+   * @return version of config by type
+   */
+  public Long getVersion();
 
   /**
    * @return Properties that define this config instance
@@ -50,7 +56,13 @@ public interface Config {
    * Change the version tag
    * @param versionTag
    */
-  public void setVersionTag(String versionTag);
+  public void setTag(String versionTag);
+
+  /**
+   * Set config version
+   * @param version
+   */
+  public void setVersion(Long version);
 
   /**
    * Replace properties with new provided set
@@ -69,6 +81,12 @@ public interface Config {
    * @param properties Property Map with updated values
    */
   public void updateProperties(Map<String, String> properties);
+
+  /**
+   * Ger service config versions containing this config
+   * @return
+   */
+  List<Long> getServiceConfigVersions();
 
   /**
    * Delete certain properties

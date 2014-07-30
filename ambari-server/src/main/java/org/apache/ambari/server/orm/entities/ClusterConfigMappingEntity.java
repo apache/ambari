@@ -19,18 +19,21 @@ package org.apache.ambari.server.orm.entities;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.IdClass;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import javax.persistence.TableGenerator;
 
 /**
  * Entity that maps to a cluster config mapping.
  */
-@IdClass(ClusterConfigMappingEntityPK.class)
 @Table(name = "clusterconfigmapping")
 @Entity
+@IdClass(ClusterConfigMappingEntityPK.class)
 public class ClusterConfigMappingEntity {
 
   @Id
@@ -46,7 +49,7 @@ public class ClusterConfigMappingEntity {
   private Long createTimestamp;
 
   @Column(name = "version_tag", insertable = true, updatable = false, nullable = false)
-  private String versionTag;
+  private String tag;
 
   @Column(name = "selected", insertable = true, updatable = true, nullable = false)
   private int selectedInd = 0;
@@ -81,12 +84,12 @@ public class ClusterConfigMappingEntity {
     createTimestamp = timestamp;
   }
   
-  public String getVersion() {
-    return versionTag;
+  public String getTag() {
+    return tag;
   }
   
-  public void setVersion(String version) {
-    versionTag = version;
+  public void setTag(String version) {
+    tag = version;
   }
  
   public int isSelected() {
@@ -118,6 +121,6 @@ public class ClusterConfigMappingEntity {
   public void setClusterEntity(ClusterEntity entity) {
     clusterEntity = entity;
   }
-  
-  
+
+
 }

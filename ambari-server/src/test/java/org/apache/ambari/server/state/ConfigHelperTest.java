@@ -31,7 +31,6 @@ import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
-import org.apache.ambari.server.state.host.HostImpl;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -157,7 +156,7 @@ public class ConfigHelperTest {
   @Test
   public void testEffectiveTagsForHost() throws Exception {
     final Config config = new ConfigImpl("core-site");
-    config.setVersionTag("version122");
+    config.setTag("version122");
 
     Map<String, String> properties = new HashMap<String, String>();
     properties.put("a", "b");
@@ -184,7 +183,7 @@ public class ConfigHelperTest {
   @Test
   public void testEffectivePropertiesWithOverrides() throws Exception {
     final Config config1 = new ConfigImpl("core-site");
-    config1.setVersionTag("version122");
+    config1.setTag("version122");
 
     Map<String, String> properties = new HashMap<String, String>();
     properties.put("a", "b");
@@ -192,7 +191,7 @@ public class ConfigHelperTest {
     config1.setProperties(properties);
 
     final Config config2 = new ConfigImpl("global");
-    config2.setVersionTag("version122");
+    config2.setTag("version122");
     Map<String, String> properties2 = new HashMap<String, String>();
     properties2.put("namenode_heapsize", "1111");
     config2.setProperties(properties2);
@@ -222,7 +221,7 @@ public class ConfigHelperTest {
   @Test
   public void testEffectivePropertiesAttributesWithOverrides() throws Exception {
     final Config config1 = new ConfigImpl("core-site");
-    config1.setVersionTag("version122");
+    config1.setTag("version122");
 
     Map<String, String> attributes = new HashMap<String, String>();
     attributes.put("fs.trash.interval", "11");
@@ -232,7 +231,7 @@ public class ConfigHelperTest {
     config1.setPropertiesAttributes(config1Attributes);
 
     final Config config2 = new ConfigImpl("global");
-    config2.setVersionTag("version122");
+    config2.setTag("version122");
     attributes = new HashMap<String, String>();
     attributes.put("namenode_heapsize", "z");
     attributes.put("c", "q");

@@ -36,7 +36,6 @@ import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.KeyValueDAO;
 import org.apache.ambari.server.orm.dao.ServiceComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
-import org.apache.ambari.server.orm.entities.ClusterConfigEntityPK;
 import org.apache.ambari.server.orm.entities.ClusterConfigMappingEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
@@ -694,11 +693,7 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
         if (configTypes != null) {
           for (String configType : configTypes) {
             if (configType.contains(log4jConfigTypeContains)) {
-              ClusterConfigEntityPK configEntityPK = new ClusterConfigEntityPK();
-              configEntityPK.setClusterId(clusterId);
-              configEntityPK.setType(configType);
-              configEntityPK.setTag(defaultVersionTag);
-              ClusterConfigEntity configEntity = clusterDAO.findConfig(configEntityPK);
+              ClusterConfigEntity configEntity = clusterDAO.findConfig(clusterId, configType, defaultVersionTag);
               
               if (configEntity == null) {
                 String filename = configType + ".xml";
@@ -732,7 +727,7 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
                     Long.valueOf(System.currentTimeMillis()));
                   clusterConfigMappingEntity.setSelected(1);
                   clusterConfigMappingEntity.setUser(defaultUser);
-                  clusterConfigMappingEntity.setVersion(configEntity.getTag());
+                  clusterConfigMappingEntity.setTag(configEntity.getTag());
                   entities.add(clusterConfigMappingEntity);
                   clusterDAO.merge(clusterEntity);
                 }
@@ -762,11 +757,7 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
         List<ClusterEntity> clusterEntities = clusterDAO.findAll();
         for (ClusterEntity clusterEntity : clusterEntities) {
           Long clusterId = clusterEntity.getClusterId();
-          ClusterConfigEntityPK configEntityPK = new ClusterConfigEntityPK();
-          configEntityPK.setClusterId(clusterId);
-          configEntityPK.setType("hdfs-exclude-file");
-          configEntityPK.setTag(value.trim());
-          ClusterConfigEntity configEntity = clusterDAO.findConfig(configEntityPK);
+          ClusterConfigEntity configEntity = clusterDAO.findConfig(clusterId, "hdfs-exclude-file", value.trim());
           if (configEntity != null) {
             String configData = configEntity.getData();
             if (configData != null) {

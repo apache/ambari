@@ -616,8 +616,9 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
                   + "host '" + h.getHostName() + "' "
                   + "changed by: '" + authName + "'; "
                   + "type='" + baseConfig.getType() + "' "
-                  + "tag='" + baseConfig.getVersionTag() + "'"
-                  + (null == oldConfig ? "" : ", from='" + oldConfig.getVersion() + "'"));
+                  + "version='" + baseConfig.getVersion() + "'"
+                  + "tag='" + baseConfig.getTag() + "'"
+                  + (null == oldConfig ? "" : ", from='" + oldConfig.getTag() + "'"));
             }
           }
 

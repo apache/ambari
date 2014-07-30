@@ -37,6 +37,8 @@ public class ClusterRequest {
   
   private ConfigurationRequest config = null;
 
+  private ServiceConfigVersionRequest serviceConfigVersionRequest = null;
+
   public ClusterRequest(Long clusterId, String clusterName, 
       String stackVersion, Set<String> hostNames) {
     this(clusterId, clusterName, null, stackVersion, hostNames);
@@ -163,6 +165,13 @@ public class ClusterRequest {
     sb.append("] }");
     return sb.toString();
   }
-  
 
+
+  public ServiceConfigVersionRequest getServiceConfigVersionRequest() {
+    return serviceConfigVersionRequest;
+  }
+
+  public void setServiceConfigVersionRequest(ServiceConfigVersionRequest serviceConfigVersionRequest) {
+    this.serviceConfigVersionRequest = serviceConfigVersionRequest;
+  }
 }

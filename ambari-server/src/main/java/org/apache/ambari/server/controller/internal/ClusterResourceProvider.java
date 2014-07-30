@@ -29,12 +29,7 @@ import java.util.Set;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.PersistKeyValueService;
-import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.ClusterRequest;
-import org.apache.ambari.server.controller.ClusterResponse;
-import org.apache.ambari.server.controller.ConfigGroupRequest;
-import org.apache.ambari.server.controller.ConfigurationRequest;
-import org.apache.ambari.server.controller.RequestStatusResponse;
+import org.apache.ambari.server.controller.*;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -66,6 +61,7 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
   protected static final String CLUSTER_VERSION_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters", "version");  
   protected static final String CLUSTER_PROVISIONING_STATE_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters", "provisioning_state");
   protected static final String CLUSTER_DESIRED_CONFIGS_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters", "desired_configs");
+  protected static final String CLUSTER_DESIRED_SERVICE_CONFIG_VERSIONS_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters", "desired_serviceconfigversions");
   protected static final String CLUSTER_TOTAL_HOSTS_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters", "total_hosts");
   protected static final String CLUSTER_HEALTH_REPORT_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters", "health_report");
   protected static final String BLUEPRINT_PROPERTY_ID = PropertyHelper.getPropertyId(null, "blueprint");
@@ -175,6 +171,7 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
       setResourceProperty(resource, CLUSTER_NAME_PROPERTY_ID, response.getClusterName(), requestedIds);
       setResourceProperty(resource, CLUSTER_PROVISIONING_STATE_PROPERTY_ID, response.getProvisioningState(), requestedIds);
       setResourceProperty(resource, CLUSTER_DESIRED_CONFIGS_PROPERTY_ID, response.getDesiredConfigs(), requestedIds);
+      setResourceProperty(resource, CLUSTER_DESIRED_SERVICE_CONFIG_VERSIONS_PROPERTY_ID, response.getDesiredServiceConfigVersions(), requestedIds);
       setResourceProperty(resource, CLUSTER_TOTAL_HOSTS_PROPERTY_ID, response.getTotalHosts(), requestedIds);
       setResourceProperty(resource, CLUSTER_HEALTH_REPORT_PROPERTY_ID, response.getClusterHealthReport(), requestedIds);
       
@@ -211,7 +208,35 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
       }
     });
     notifyUpdate(Resource.Type.Cluster, request, predicate);
-    return getRequestStatus(response);
+
+    Set<Resource> associatedResources = null;
+    for (ClusterRequest clusterRequest : requests) {
+      ClusterResponse updateResults = getManagementController().getClusterUpdateResults(clusterRequest);
+      if (updateResults != null) {
+        Map<String, ServiceConfigVersionResponse> serviceConfigVersions = updateResults.getDesiredServiceConfigVersions();
+        if (serviceConfigVersions != null) {
+          associatedResources = new HashSet<Resource>();
+          for (Map.Entry<String, ServiceConfigVersionResponse> stringServiceConfigVersionResponseEntry : serviceConfigVersions.entrySet()) {
+            Resource resource = new ResourceImpl(Resource.Type.ServiceConfigVersion);
+            ServiceConfigVersionResponse serviceConfigVersionResponse = stringServiceConfigVersionResponseEntry.getValue();
+            resource.setProperty(ServiceConfigVersionResourceProvider.SERVICE_CONFIG_VERSION_SERVICE_NAME_PROPERTY_ID,
+                serviceConfigVersionResponse.getServiceName());
+            resource.setProperty(ServiceConfigVersionResourceProvider.SERVICE_CONFIG_VERSION_PROPERTY_ID,
+                serviceConfigVersionResponse.getVersion());
+            if (serviceConfigVersionResponse.getConfigurations() != null) {
+              resource.setProperty(
+                  ServiceConfigVersionResourceProvider.SERVICE_CONFIG_VERSION_CONFIGURATIONS_PROPERTY_ID,
+                  serviceConfigVersionResponse.getConfigurations());
+            }
+            associatedResources.add(resource);
+          }
+
+        }
+      }
+    }
+
+
+    return getRequestStatus(response, associatedResources);
   }
 
   @Override
@@ -272,10 +297,41 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
 
     ConfigurationRequest configRequest = getConfigurationRequest("Clusters", properties);
 
+    ServiceConfigVersionRequest serviceConfigVersionRequest = getServiceConfigVersionRequest("Clusters", properties);
+
     if (null != configRequest)
       cr.setDesiredConfig(configRequest);
 
+    if (serviceConfigVersionRequest != null) {
+      cr.setServiceConfigVersionRequest(serviceConfigVersionRequest);
+    }
+
     return cr;
+  }
+
+  /**
+   * Helper method for creating rollback request
+   */
+  protected ServiceConfigVersionRequest getServiceConfigVersionRequest(String parentCategory, Map<String, Object> properties) {
+    ServiceConfigVersionRequest serviceConfigVersionRequest = null;
+
+    for (Map.Entry<String, Object> entry : properties.entrySet()) {
+      String absCategory = PropertyHelper.getPropertyCategory(entry.getKey());
+      String propName = PropertyHelper.getPropertyName(entry.getKey());
+
+      if (absCategory.startsWith(parentCategory + "/desired_serviceconfigversions")) {
+        serviceConfigVersionRequest =
+            (serviceConfigVersionRequest ==null ) ? new ServiceConfigVersionRequest() : serviceConfigVersionRequest;
+
+        if (propName.equals("service_name"))
+          serviceConfigVersionRequest.setServiceName(entry.getValue().toString());
+        else if (propName.equals("serviceconfigversion"))
+          serviceConfigVersionRequest.setVersion(Long.valueOf(entry.getValue().toString()));
+
+      }
+    }
+
+    return serviceConfigVersionRequest;
   }
 
   /**
@@ -975,7 +1031,7 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
         String type = entry.getKey();
         String service = stack.getServiceForConfigType(type);
         Config config = new ConfigImpl(type);
-        config.setVersionTag(entity.getName());
+        config.setTag(entity.getName());
         config.setProperties(entry.getValue());
         Map<String, Config> serviceConfigs = groupConfigs.get(service);
         if (serviceConfigs == null) {

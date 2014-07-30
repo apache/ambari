@@ -395,7 +395,7 @@ public class HostTest {
     }
     
     
-    config.setVersionTag("v1");
+    config.setTag("v1");
     host.addDesiredConfig(c1.getClusterId(), true, "_test", config);
     
     Map<String, DesiredConfig> map = host.getDesiredConfigs(c1.getClusterId());
@@ -404,12 +404,12 @@ public class HostTest {
     
     config = configFactory.createNew(c1, "global",
         new HashMap<String,String>() {{ put("c", "d"); }}, new HashMap<String, Map<String,String>>());
-    config.setVersionTag("v2");
+    config.setTag("v2");
     host.addDesiredConfig(c1.getClusterId(), true, "_test1", config);
     
     map = host.getDesiredConfigs(c1.getClusterId());
     Assert.assertTrue("Expect desired config to contain global", map.containsKey("global"));
-    Assert.assertEquals("Expect version to be 'v2'", "v2", map.get("global").getVersion());
+    Assert.assertEquals("Expect version to be 'v2'", "v2", map.get("global").getTag());
     Assert.assertEquals("Expect user to be '_test1'", "_test1", map.get("global").getUser());
     
     host.addDesiredConfig(c1.getClusterId(), false, "_test2", config);

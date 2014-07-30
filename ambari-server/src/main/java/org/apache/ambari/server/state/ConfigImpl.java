@@ -18,12 +18,10 @@
 
 package org.apache.ambari.server.state;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.apache.ambari.server.orm.dao.ClusterDAO;
+import org.apache.ambari.server.orm.dao.ServiceConfigDAO;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 
@@ -33,12 +31,15 @@ import com.google.inject.Injector;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 import com.google.inject.persist.Transactional;
+import org.apache.ambari.server.orm.entities.ServiceConfigEntity;
 
 public class ConfigImpl implements Config {
+  public static final String GENERATED_TAG_PREFIX = "generatedTag_";
 
   private Cluster cluster;
   private String type;
-  private String versionTag;
+  private String tag;
+  private Long version;
   private Map<String, String> properties;
   private Map<String, Map<String, String>> propertiesAttributes;
   private ClusterConfigEntity entity;
@@ -47,6 +48,9 @@ public class ConfigImpl implements Config {
   private ClusterDAO clusterDAO;
   @Inject
   private Gson gson;
+  @Inject
+  private ServiceConfigDAO serviceConfigDAO;
+  
 
   @AssistedInject
   public ConfigImpl(@Assisted Cluster cluster, @Assisted String type, @Assisted Map<String, String> properties, 
@@ -63,7 +67,8 @@ public class ConfigImpl implements Config {
   public ConfigImpl(@Assisted Cluster cluster, @Assisted ClusterConfigEntity entity, Injector injector) {
     this.cluster = cluster;
     this.type = entity.getType();
-    this.versionTag = entity.getTag();
+    this.tag = entity.getTag();
+    this.version = entity.getVersion();
     this.entity = entity;
     injector.injectMembers(this);
   }
@@ -81,8 +86,13 @@ public class ConfigImpl implements Config {
   }
 
   @Override
-  public synchronized String getVersionTag() {
-    return versionTag;
+  public synchronized String getTag() {
+    return tag;
+  }
+
+  @Override
+  public synchronized Long getVersion() {
+    return version;
   }
 
   @Override
@@ -105,8 +115,13 @@ public class ConfigImpl implements Config {
   }
 
   @Override
-  public synchronized void setVersionTag(String versionTag) {
-    this.versionTag = versionTag;
+  public synchronized void setTag(String tag) {
+    this.tag = tag;
+  }
+
+  @Override
+  public synchronized void setVersion(Long version) {
+    this.version = version;
   }
 
   @Override
@@ -125,6 +140,14 @@ public class ConfigImpl implements Config {
   }
 
   @Override
+  public synchronized List<Long> getServiceConfigVersions() {
+    if (cluster == null || type == null || version == null) {
+      return Collections.emptyList();
+    }
+    return serviceConfigDAO.getServiceConfigVersionsByConfig(cluster.getClusterId(), type, version);
+  }
+
+  @Override
   public synchronized void deleteProperties(List<String> properties) {
     for (String key : properties) {
       this.properties.remove(key);
@@ -136,12 +159,20 @@ public class ConfigImpl implements Config {
   public synchronized void persist() {
     
     ClusterEntity clusterEntity = clusterDAO.findById(cluster.getClusterId());
+
+    if (this.version == null) {
+      this.version = cluster.getNextConfigVersion(type);
+    }
+    if (this.tag == null) {
+      tag = GENERATED_TAG_PREFIX + version;
+    }
     
     ClusterConfigEntity entity = new ClusterConfigEntity();
     entity.setClusterEntity(clusterEntity);
-    entity.setClusterId(Long.valueOf(cluster.getClusterId()));
+    entity.setClusterId(cluster.getClusterId());
     entity.setType(type);
-    entity.setTag(getVersionTag());
+    entity.setVersion(version);
+    entity.setTag(getTag());
     entity.setTimestamp(new Date().getTime());
     
     entity.setData(gson.toJson(getProperties()));

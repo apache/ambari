@@ -58,6 +58,8 @@ public class ConfigurationResourceProvider extends
     PropertyHelper.getPropertyId(null, "type");
   public static final String CONFIGURATION_CONFIG_TAG_PROPERTY_ID   =
     PropertyHelper.getPropertyId(null, "tag");
+  public static final String CONFIGURATION_CONFIG_VERSION_PROPERTY_ID   =
+    PropertyHelper.getPropertyId(null, "version");
 
 
   /**
@@ -159,6 +161,7 @@ public class ConfigurationResourceProvider extends
       resource.setProperty(CONFIGURATION_CLUSTER_NAME_PROPERTY_ID, response.getClusterName());
       resource.setProperty(CONFIGURATION_CONFIG_TYPE_PROPERTY_ID, response.getType());
       resource.setProperty(CONFIGURATION_CONFIG_TAG_PROPERTY_ID, response.getVersionTag());
+      resource.setProperty(CONFIGURATION_CONFIG_VERSION_PROPERTY_ID, response.getVersion());
 
       if (null != response.getConfigs() && response.getConfigs().size() > 0) {
         Map<String, String> configs = response.getConfigs();

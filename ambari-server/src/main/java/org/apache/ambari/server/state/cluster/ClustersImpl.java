@@ -615,6 +615,8 @@ public class ClustersImpl implements Clusters {
 
       hostClusterMap.get(hostname).remove(cluster);
       clusterHostMap.get(clusterName).remove(host);
+      host.refresh();
+      cluster.refresh();
 
       deleteConfigGroupHostMapping(hostname);
 

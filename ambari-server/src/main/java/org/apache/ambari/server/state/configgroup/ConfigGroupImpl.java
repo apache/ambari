@@ -26,16 +26,13 @@ import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.DuplicateResourceException;
 import org.apache.ambari.server.controller.ConfigGroupResponse;
-import org.apache.ambari.server.controller.internal.ConfigGroupResourceProvider;
 import org.apache.ambari.server.controller.internal.ConfigurationResourceProvider;
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ConfigGroupConfigMappingDAO;
 import org.apache.ambari.server.orm.dao.ConfigGroupDAO;
 import org.apache.ambari.server.orm.dao.ConfigGroupHostMappingDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
-import org.apache.ambari.server.orm.entities.ClusterConfigEntityPK;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ConfigGroupConfigMappingEntity;
 import org.apache.ambari.server.orm.entities.ConfigGroupEntity;
@@ -369,12 +366,8 @@ public class ConfigGroupImpl implements ConfigGroup {
 
     if (configurations != null && !configurations.isEmpty()) {
       for (Config config : configurations.values()) {
-        ClusterConfigEntityPK clusterConfigEntityPK = new ClusterConfigEntityPK();
-        clusterConfigEntityPK.setClusterId(cluster.getClusterId());
-        clusterConfigEntityPK.setTag(config.getVersionTag());
-        clusterConfigEntityPK.setType(config.getType());
         ClusterConfigEntity clusterConfigEntity = clusterDAO.findConfig
-          (clusterConfigEntityPK);
+          (cluster.getClusterId(), config.getType(), config.getTag());
 
         if (clusterConfigEntity == null) {
           // Create configuration
@@ -382,12 +375,15 @@ public class ConfigGroupImpl implements ConfigGroup {
           clusterConfigEntity.setClusterId(clusterEntity.getClusterId());
           clusterConfigEntity.setClusterEntity(clusterEntity);
           clusterConfigEntity.setType(config.getType());
-          clusterConfigEntity.setTag(config.getVersionTag());
+          clusterConfigEntity.setTag(config.getTag());
+          clusterConfigEntity.setVersion(cluster.getNextConfigVersion(config.getType()));
           clusterConfigEntity.setData(gson.toJson(config.getProperties()));
           if (null != config.getPropertiesAttributes()) {
             clusterConfigEntity.setAttributes(gson.toJson(config.getPropertiesAttributes()));
           }
           clusterConfigEntity.setTimestamp(System.currentTimeMillis());
+
+          //TODO why not use config.persist() here?
 
           // TODO: Is locking necessary and functional ?
           cluster.getClusterGlobalLock().writeLock().lock();
@@ -471,10 +467,10 @@ public class ConfigGroupImpl implements ConfigGroup {
     try {
       if (configurations != null && !configurations.isEmpty()) {
         for (Config c : configurations.values()) {
-          if (c.getType().equals(config.getType()) && c.getVersionTag().equals
-            (config.getVersionTag())) {
+          if (c.getType().equals(config.getType()) && c.getTag().equals
+            (config.getTag())) {
             throw new DuplicateResourceException("Config " + config.getType() +
-              " with tag " + config.getVersionTag() + " is already associated " +
+              " with tag " + config.getTag() + " is already associated " +
               "with Config Group " + configGroupEntity.getGroupName());
           }
         }
@@ -504,7 +500,7 @@ public class ConfigGroupImpl implements ConfigGroup {
         configMap.put(ConfigurationResourceProvider
           .CONFIGURATION_CONFIG_TYPE_PROPERTY_ID, config.getType());
         configMap.put(ConfigurationResourceProvider
-          .CONFIGURATION_CONFIG_TAG_PROPERTY_ID, config.getVersionTag());
+          .CONFIGURATION_CONFIG_TAG_PROPERTY_ID, config.getTag());
         configObjMap.add(configMap);
       }
 

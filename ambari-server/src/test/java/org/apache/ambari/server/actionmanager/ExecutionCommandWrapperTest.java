@@ -129,22 +129,22 @@ public class ExecutionCommandWrapperTest {
     
     //Cluster level global config
     Config globalConfig = configFactory.createNew(cluster1, GLOBAL_CONFIG, GLOBAL_CLUSTER, CONFIG_ATTRIBUTES);
-    globalConfig.setVersionTag(CLUSTER_VERSION_TAG);
+    globalConfig.setTag(CLUSTER_VERSION_TAG);
     cluster1.addConfig(globalConfig);
 
     //Cluster level service config
     Config serviceSiteConfigCluster = configFactory.createNew(cluster1, SERVICE_SITE_CONFIG, SERVICE_SITE_CLUSTER, CONFIG_ATTRIBUTES);
-    serviceSiteConfigCluster.setVersionTag(CLUSTER_VERSION_TAG);
+    serviceSiteConfigCluster.setTag(CLUSTER_VERSION_TAG);
     cluster1.addConfig(serviceSiteConfigCluster);
     
     //Service level service config
     Config serviceSiteConfigService = configFactory.createNew(cluster1, SERVICE_SITE_CONFIG, SERVICE_SITE_SERVICE, CONFIG_ATTRIBUTES);
-    serviceSiteConfigService.setVersionTag(SERVICE_VERSION_TAG);
+    serviceSiteConfigService.setTag(SERVICE_VERSION_TAG);
     cluster1.addConfig(serviceSiteConfigService);
     
     //Host level service config
     Config serviceSiteConfigHost = configFactory.createNew(cluster1, SERVICE_SITE_CONFIG, SERVICE_SITE_HOST, CONFIG_ATTRIBUTES);
-    serviceSiteConfigHost.setVersionTag(HOST_VERSION_TAG);
+    serviceSiteConfigHost.setTag(HOST_VERSION_TAG);
     cluster1.addConfig(serviceSiteConfigHost);
     
     ActionDBAccessor db = injector.getInstance(ActionDBAccessorImpl.class);

@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createMockBuilder;
@@ -2576,6 +2577,8 @@ public class ClusterResourceProviderTest {
         AbstractResourceProviderTest.Matcher.getClusterRequestSet(103L, null, null, "HDP-0.1", null), eq(mapRequestProps))).
         andReturn(response).once();
 
+    expect(managementController.getClusterUpdateResults(anyObject(ClusterRequest.class))).andReturn(null).anyTimes();
+
     // replay
     replay(managementController, response);
 
@@ -2632,6 +2635,8 @@ public class ClusterResourceProviderTest {
     expect(managementController.getClusters(EasyMock.<Set<ClusterRequest>>anyObject())).andReturn(nameResponse).times(2);
     expect(managementController.updateClusters(Collections.singleton(EasyMock.anyObject(ClusterRequest.class)),
         eq(mapRequestProps))).andReturn(response).times(1);
+    expect(managementController.getClusterUpdateResults(anyObject(ClusterRequest.class))).andReturn(null).anyTimes();
+
 
     // replay
     replay(managementController, response);

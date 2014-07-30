@@ -32,11 +32,11 @@ public class DesiredConfigTest {
   public void testDesiredConfig() throws Exception {
     DesiredConfig dc = new DesiredConfig();
     dc.setServiceName("service");
-    dc.setVersion("global");
+    dc.setTag("global");
     dc.setUser("_test");
 
     Assert.assertEquals("Expected service 'service'", "service", dc.getServiceName());
-    Assert.assertEquals("Expected version 'global'", "global", dc.getVersion());
+    Assert.assertEquals("Expected version 'global'", "global", dc.getTag());
     Assert.assertEquals("Expected no host overrides", 0, dc.getHostOverrides().size());
     Assert.assertEquals("Expected user '_test'", "_test", dc.getUser());
     

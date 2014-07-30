@@ -6,6 +6,7 @@
         "Clusters/version",
         "Clusters/state",
         "Clusters/desired_configs",
+        "Clusters/desired_serviceconfigversions",
         "Clusters/total_hosts",
         "Clusters/health_report",
         "_"
@@ -81,7 +82,16 @@
     "Configuration":[
         "Config/tag",
         "Config/type",
-        "Config/cluster_name"
+        "Config/cluster_name",
+        "Config/version"
+    ],
+    "ServiceConfigVersion":[
+        "ServiceConfigVersion/cluster_name",
+        "ServiceConfigVersion/service_name",
+        "ServiceConfigVersion/serviceconfigversion",
+        "ServiceConfigVersion/createtime",
+        "ServiceConfigVersion/appliedtime",
+        "ServiceConfigVersion/user"
     ],
     "ConfigGroup": [
         "ConfigGroup/id",

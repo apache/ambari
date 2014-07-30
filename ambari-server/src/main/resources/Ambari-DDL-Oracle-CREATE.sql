@@ -17,7 +17,10 @@
 --
 
 CREATE TABLE clusters (cluster_id NUMBER(19) NOT NULL, cluster_info VARCHAR2(255) NULL, cluster_name VARCHAR2(100) NOT NULL UNIQUE, provisioning_state VARCHAR2(255) DEFAULT 'INIT' NOT NULL, desired_cluster_state VARCHAR2(255) NULL, desired_stack_version VARCHAR2(255) NULL, PRIMARY KEY (cluster_id));
-CREATE TABLE clusterconfig (version_tag VARCHAR2(255) NOT NULL, type_name VARCHAR2(255) NOT NULL, cluster_id NUMBER(19) NOT NULL, config_data CLOB NOT NULL, config_attributes CLOB, create_timestamp NUMBER(19) NOT NULL, PRIMARY KEY (version_tag, type_name, cluster_id));
+CREATE TABLE clusterconfig (config_id NUMBER(19) NOT NULL, version_tag VARCHAR2(255) NOT NULL, type_name VARCHAR2(255) NOT NULL, cluster_id NUMBER(19) NOT NULL, config_data CLOB NOT NULL, config_attributes CLOB, create_timestamp NUMBER(19) NOT NULL, PRIMARY KEY (config_id));
+CREATE TABLE serviceconfig (service_config_id NUMBER(19) NOT NULL, cluster_id NUMBER(19) NOT NULL, service_name VARCHAR(255) NOT NULL, version NUMBER(19) NOT NULL, create_timestamp NUMBER(19) NOT NULL, PRIMARY KEY (service_config_id));
+CREATE TABLE serviceconfigmapping (service_config_id BIGINT NOT NULL, config_id BIGINT NOT NULL, PRIMARY KEY(service_config_id, config_id));
+CREATE TABLE serviceconfigapplication (apply_id NUMBER(19) NOT NULL, service_config_id NUMBER(19) NOT NULL, apply_timestamp NUMBER(19) NOT NULL, user_name VARCHAR(255) NOT NULL DEFAULT '_db',  PRIMARY KEY(apply_id));
 CREATE TABLE clusterservices (service_name VARCHAR2(255) NOT NULL, cluster_id NUMBER(19) NOT NULL, service_enabled NUMBER(10) NOT NULL, PRIMARY KEY (service_name, cluster_id));
 CREATE TABLE clusterstate (cluster_id NUMBER(19) NOT NULL, current_cluster_state VARCHAR2(255) NULL, current_stack_version VARCHAR2(255) NULL, PRIMARY KEY (cluster_id));
 CREATE TABLE hostcomponentdesiredstate (cluster_id NUMBER(19) NOT NULL, component_name VARCHAR2(255) NOT NULL, desired_stack_version VARCHAR2(255) NULL, desired_state VARCHAR2(255) NOT NULL, host_name VARCHAR2(255) NOT NULL, service_name VARCHAR2(255) NOT NULL, admin_state VARCHAR2(32) NULL, maintenance_state VARCHAR2(32) NOT NULL, restart_required NUMBER(1) DEFAULT 0 NOT NULL, PRIMARY KEY (cluster_id, component_name, host_name, service_name));
@@ -127,6 +130,12 @@ ALTER TABLE viewinstance ADD CONSTRAINT FK_viewinstance_resource_id FOREIGN KEY 
 ALTER TABLE adminprivilege ADD CONSTRAINT FK_privilege_principal_id FOREIGN KEY (principal_id) REFERENCES adminprincipal(principal_id);
 ALTER TABLE users ADD CONSTRAINT FK_users_principal_id FOREIGN KEY (principal_id) REFERENCES adminprincipal(principal_id);
 ALTER TABLE groups ADD CONSTRAINT FK_groups_principal_id FOREIGN KEY (principal_id) REFERENCES adminprincipal(principal_id);
+ALTER TABLE clusterconfig ADD CONSTRAINT UQ_config_type_tag UNIQUE (cluster_id, type_name, version_tag);
+ALTER TABLE clusterconfig ADD CONSTRAINT UQ_config_type_version UNIQUE (cluster_id, type_name, version);
+ALTER TABLE serviceconfig ADD CONSTRAINT UQ_scv_service_version UNIQUE (cluster_id, service_name, version);
+ALTER TABLE serviceconfigmapping ADD CONSTRAINT FK_scvm_scv FOREIGN KEY (service_config_id) REFERENCES serviceconfig(service_config_id);
+ALTER TABLE serviceconfigmapping ADD CONSTRAINT FK_scvm_config FOREIGN KEY (config_id) REFERENCES clusterconfig(config_id);
+ALTER TABLE serviceconfigapplication ADD CONSTRAINT FK_scva_scv FOREIGN KEY (service_config_id) REFERENCES serviceconfig(service_config_id);
 
 INSERT INTO ambari_sequences(sequence_name, value) values ('host_role_command_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, value) values ('user_id_seq', 1);
@@ -145,6 +154,9 @@ INSERT INTO ambari_sequences(sequence_name, value) values ('principal_type_id_se
 INSERT INTO ambari_sequences(sequence_name, value) values ('principal_id_seq', 2);
 INSERT INTO ambari_sequences(sequence_name, value) values ('permission_id_seq', 5);
 INSERT INTO ambari_sequences(sequence_name, value) values ('privilege_id_seq', 1);
+INSERT INTO ambari_sequences(sequence_name, value) values ('config_id_seq', 1);
+INSERT INTO ambari_sequences(sequence_name, value) values ('service_config_id_seq', 1);
+INSERT INTO ambari_sequences(sequence_name, value) values ('service_config_application_id_seq', 1);
 
 INSERT INTO metainfo("metainfo_key", "metainfo_value") values ('version', '${ambariVersion}');
 

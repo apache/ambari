@@ -231,12 +231,12 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
               if (baseConfig != null) {
                 String authName = "ambari-upgrade";
 
-                if (cluster.addDesiredConfig(authName, baseConfig)) {
-                  String oldConfigString = (oldConfig != null) ? " from='" + oldConfig.getVersionTag() + "'" : "";
+                if (cluster.addDesiredConfig(authName, baseConfig) != null) {
+                  String oldConfigString = (oldConfig != null) ? " from='" + oldConfig.getTag() + "'" : "";
                   LOG.info("cluster '" + cluster.getClusterName() + "' "
                     + "changed by: '" + authName + "'; "
                     + "type='" + baseConfig.getType() + "' "
-                    + "tag='" + baseConfig.getVersionTag() + "'"
+                    + "tag='" + baseConfig.getTag() + "'"
                     + oldConfigString);
                 }
               }

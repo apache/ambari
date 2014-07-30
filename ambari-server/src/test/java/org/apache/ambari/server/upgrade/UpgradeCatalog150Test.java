@@ -32,7 +32,6 @@ import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.KeyValueDAO;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
-import org.apache.ambari.server.orm.entities.ClusterConfigEntityPK;
 import org.apache.ambari.server.orm.entities.ClusterConfigMappingEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
@@ -263,11 +262,7 @@ public class UpgradeCatalog150Test {
 
     Long clusterId = clusterEntity.getClusterId();
 
-    ClusterConfigEntityPK configEntityPK = new ClusterConfigEntityPK();
-    configEntityPK.setClusterId(clusterId);
-    configEntityPK.setType("hdfs-log4j");
-    configEntityPK.setTag("version1");
-    ClusterConfigEntity configEntity = clusterDAO.findConfig(configEntityPK);
+    ClusterConfigEntity configEntity = clusterDAO.findConfig(clusterId, "hdfs-log4j", "version1");
     Assert.assertNull(configEntity);
 
     for (ClusterConfigMappingEntity ccme : clusterEntity.getConfigMappingEntities()) {
@@ -279,7 +274,7 @@ public class UpgradeCatalog150Test {
     UpgradeCatalog150 upgradeCatalog150 = injector.getInstance(UpgradeCatalog150.class);
     upgradeCatalog150.addMissingLog4jConfigs();
 
-    configEntity = clusterDAO.findConfig(configEntityPK);
+    configEntity = clusterDAO.findConfig(clusterId, "hdfs-log4j", "version1");
     Assert.assertNotNull(configEntity);
 
     //Get updated cluster

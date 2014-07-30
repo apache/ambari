@@ -30,26 +30,27 @@ import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
  */
 public class DesiredConfig {
 
-  private String versionTag;
+  private String tag;
   private String serviceName;
   private String user;
+  private Long version;
   private List<HostOverride> hostOverrides = new ArrayList<HostOverride>();
 
   /**
-   * Sets the version tag
-   * @param version the version tag
+   * Sets the tag
+   * @param tag the tag
    */
-  public void setVersion(String version) {
-    versionTag = version;
+  public void setTag(String tag) {
+    this.tag = tag;
   }
 
   /**
-   * Gets the version tag
-   * @return the version tag
+   * Gets the tag
+   * @return the tag
    */
   @JsonProperty("tag")
-  public String getVersion() {
-    return versionTag;
+  public String getTag() {
+    return tag;
   }
 
   /**
@@ -104,10 +105,20 @@ public class DesiredConfig {
   public List<HostOverride> getHostOverrides() {
     return hostOverrides;
   }
-  
+
+  @JsonProperty("version")
+  public Long getVersion() {
+    return version;
+  }
+
+  public void setVersion(Long version) {
+    this.version = version;
+  }
+
   /**
    * Used to represent an override on a host.
    */
+  //TODO include changes for config versions
   public static class HostOverride {
     private String hostName;
     private String versionOverrideTag;
@@ -130,7 +141,7 @@ public class DesiredConfig {
     }
 
     /**
-     * @return the override version tag
+     * @return the override tag tag
      */
     @JsonProperty("tag")
     public String getVersionTag() {
@@ -143,7 +154,7 @@ public class DesiredConfig {
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append("{");
-    sb.append("version=").append(versionTag);
+    sb.append("tag=").append(tag);
     if (null != serviceName)
       sb.append(", service=").append(serviceName);
     if (null != hostOverrides && hostOverrides.size() > 0) {

@@ -273,7 +273,7 @@ public class JMXHostProviderTest {
     controller.updateClusters(Collections.singleton(crReq), null);
     Cluster cluster = clusters.getCluster(clusterName);
     Assert.assertEquals("versionN", cluster.getDesiredConfigByType("hdfs-site")
-      .getVersionTag());
+      .getTag());
 
     ConfigurationRequest cr2 = new ConfigurationRequest(clusterName,
       "yarn-site", "versionN", yarnConfigs, null);
@@ -281,7 +281,7 @@ public class JMXHostProviderTest {
     controller.updateClusters(Collections.singleton(crReq), null);
 
     Assert.assertEquals("versionN", cluster.getDesiredConfigByType("yarn-site")
-      .getVersionTag());
+      .getTag());
     Assert.assertEquals("localhost:${ambari.dfs.datanode.http.port}", cluster.getDesiredConfigByType
       ("hdfs-site").getProperties().get(NAMENODE_PORT_V1));
   }

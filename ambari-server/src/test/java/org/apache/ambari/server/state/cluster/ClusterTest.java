@@ -314,15 +314,15 @@ public class ClusterTest {
     c2PropAttributes.get("final").put("x", "true");
     Config config1 = configFactory.createNew(c1, "global",
         new HashMap<String, String>() {{ put("a", "b"); }}, c1PropAttributes);
-    config1.setVersionTag("version1");
+    config1.setTag("version1");
     
     Config config2 = configFactory.createNew(c1, "global",
         new HashMap<String, String>() {{ put("x", "y"); }}, c2PropAttributes);
-    config2.setVersionTag("version2");
+    config2.setTag("version2");
     
     Config config3 = configFactory.createNew(c1, "core-site",
         new HashMap<String, String>() {{ put("x", "y"); }}, new HashMap<String, Map<String,String>>());
-    config3.setVersionTag("version2");
+    config3.setTag("version2");
     
     c1.addConfig(config1);
     c1.addConfig(config2);
@@ -338,7 +338,7 @@ public class ClusterTest {
     
     c1.addDesiredConfig("_test", config2);
     res = c1.getDesiredConfigByType("global");
-    Assert.assertEquals("Expected version tag to be 'version2'", "version2", res.getVersionTag());
+    Assert.assertEquals("Expected version tag to be 'version2'", "version2", res.getTag());
     Assert.assertEquals("true", res.getPropertiesAttributes().get("final").get("x"));
   }
   
@@ -346,15 +346,15 @@ public class ClusterTest {
   public void testDesiredConfigs() throws Exception {
     Config config1 = configFactory.createNew(c1, "global",
         new HashMap<String, String>() {{ put("a", "b"); }}, new HashMap<String, Map<String,String>>());
-    config1.setVersionTag("version1");
+    config1.setTag("version1");
     
     Config config2 = configFactory.createNew(c1, "global",
         new HashMap<String, String>() {{ put("x", "y"); }}, new HashMap<String, Map<String,String>>());
-    config2.setVersionTag("version2");
+    config2.setTag("version2");
     
     Config config3 = configFactory.createNew(c1, "core-site",
         new HashMap<String, String>() {{ put("x", "y"); }}, new HashMap<String, Map<String,String>>());
-    config3.setVersionTag("version2");
+    config3.setTag("version2");
     
     c1.addConfig(config1);
     c1.addConfig(config2);
@@ -375,8 +375,8 @@ public class ClusterTest {
     Assert.assertFalse("Expect desired config not contain 'mapred-site'", desiredConfigs.containsKey("mapred-site"));
     Assert.assertTrue("Expect desired config contain " + config1.getType(), desiredConfigs.containsKey("global"));
     Assert.assertTrue("Expect desired config contain " + config3.getType(), desiredConfigs.containsKey("core-site"));
-    Assert.assertEquals("Expect desired config for global should be " + config1.getVersionTag(),
-        config1.getVersionTag(), desiredConfigs.get(config1.getType()).getVersion());
+    Assert.assertEquals("Expect desired config for global should be " + config1.getTag(),
+        config1.getTag(), desiredConfigs.get(config1.getType()).getTag());
     Assert.assertEquals("_test1", desiredConfigs.get(config1.getType()).getUser());
     Assert.assertEquals("_test3", desiredConfigs.get(config3.getType()).getUser());
     DesiredConfig dc = desiredConfigs.get(config1.getType());
@@ -401,6 +401,7 @@ public class ClusterTest {
   
   public ClusterEntity createDummyData() {
     ClusterEntity clusterEntity = new ClusterEntity();
+    clusterEntity.setClusterId(1L);
     clusterEntity.setClusterName("test_cluster1");
     clusterEntity.setClusterInfo("test_cluster_info1");
 
@@ -545,7 +546,7 @@ public class ClusterTest {
     Config config = configFactory.createNew(c1, "hdfs-site", new HashMap<String, String>(){{
       put("test", "test");
     }}, propAttributes);
-    config.setVersionTag("1");
+    config.setTag("1");
 
     host1.addDesiredConfig(c1.getClusterId(), true, "test", config);
 

@@ -93,6 +93,9 @@ public class ClusterEntity {
   @OneToMany(mappedBy = "clusterEntity", cascade = CascadeType.ALL)
   private Collection<RequestScheduleEntity> requestScheduleEntities;
 
+  @OneToMany(mappedBy = "clusterEntity", cascade = CascadeType.REMOVE)
+  private Collection<ServiceConfigEntity> serviceConfigEntities;
+
   public Long getClusterId() {
     return clusterId;
   }
@@ -231,4 +234,11 @@ public class ClusterEntity {
     this.requestScheduleEntities = requestScheduleEntities;
   }
 
+  public Collection<ServiceConfigEntity> getServiceConfigEntities() {
+    return serviceConfigEntities;
+  }
+
+  public void setServiceConfigEntities(Collection<ServiceConfigEntity> serviceConfigEntities) {
+    this.serviceConfigEntities = serviceConfigEntities;
+  }
 }

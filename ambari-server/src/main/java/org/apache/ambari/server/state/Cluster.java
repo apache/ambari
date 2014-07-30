@@ -24,12 +24,11 @@ import java.util.Map;
 import java.util.concurrent.locks.ReadWriteLock;
 
 import com.google.common.collect.ListMultimap;
-import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.ClusterResponse;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
-import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.scheduler.RequestExecution;
+import org.apache.ambari.server.controller.ServiceConfigVersionResponse;
 
 public interface Cluster {
 
@@ -91,7 +90,7 @@ public interface Cluster {
    * Set desired stack version
    * @param stackVersion
    */
-  public void setDesiredStackVersion(StackId stackVersion);
+  public void setDesiredStackVersion(StackId stackVersion) throws AmbariException;
 
   /**
    * Get current stack version
@@ -157,11 +156,33 @@ public interface Cluster {
    * Adds and sets a DESIRED configuration to be applied to a cluster.  There
    * can be only one selected config per type.
    * @param user the user making the change for audit purposes
-   * @param config  the {@link Config} object to set as desired
+   * @param config  the {@link org.apache.ambari.server.state.Config} object to set as desired
    * @return <code>true</code> if the config was added, or <code>false</code>
    * if the config is already set as the current
    */
-  public boolean addDesiredConfig(String user, Config config);
+  public ServiceConfigVersionResponse addDesiredConfig(String user, Config config);
+
+  /**
+   * Apply specified service config version (rollback)
+   * @param serviceName service name
+   * @param version service config version
+   * @param user the user making the change for audit purposes
+   * @return true if service config version applied
+   * @throws AmbariException
+   */
+  boolean setServiceConfigVersion(String serviceName, Long version, String user) throws AmbariException;
+
+  /**
+   * Get currently active service config versions for stack services
+   * @return
+   */
+  Map<String, ServiceConfigVersionResponse> getActiveServiceConfigVersions();
+
+  /**
+   * Get service config version history
+   * @return
+   */
+  List<ServiceConfigVersionResponse> getServiceConfigVersions();
 
   /**
    * Gets the desired (and selected) config by type.
@@ -296,6 +317,13 @@ public interface Cluster {
    * @throws AmbariException
    */
   public void deleteRequestExecution(Long id) throws AmbariException;
+
+  /**
+   * Get next version of specified config type
+   * @param type config type
+   * @return next version of config
+   */
+  Long getNextConfigVersion(String type);
 
   /**
    * Bulk handle service component host events

@@ -75,7 +75,7 @@ public interface AmbariManagementController {
    *
    * @throws AmbariException when the configuration cannot be created.
    */
-  public void createConfiguration(ConfigurationRequest request)
+  public ConfigurationResponse createConfiguration(ConfigurationRequest request)
       throws AmbariException;
 
   /**
@@ -155,6 +155,15 @@ public interface AmbariManagementController {
    * @throws AmbariException if the configurations could not be read
    */
   public Set<TaskStatusResponse> getTaskStatus(Set<TaskStatusRequest> requests)
+      throws AmbariException;
+
+  /**
+   * Get service config version history
+   * @param requests service config version requests
+   * @return service config versions
+   * @throws AmbariException
+   */
+  Set<ServiceConfigVersionResponse> getServiceConfigVersions(Set<ServiceConfigVersionRequest> requests)
       throws AmbariException;
 
   /**
@@ -634,6 +643,13 @@ public interface AmbariManagementController {
    * Get Execution Schedule Manager
    */
   public ExecutionScheduleManager getExecutionScheduleManager();
+
+  /**
+   * Get cached clusterUpdateResults, used only for service config versions currently
+   * @param clusterRequest
+   * @return
+   */
+  ClusterResponse getClusterUpdateResults(ClusterRequest clusterRequest);
 
   /**
    * Get JobTracker hostname

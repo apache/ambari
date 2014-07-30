@@ -109,6 +109,10 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
         resourceDefinition = new ConfigurationResourceDefinition();
         break;
 
+      case ServiceConfigVersion:
+        resourceDefinition = new ServiceConfigVersionResourceDefinition();
+        break;
+
       case Task:
         resourceDefinition = new TaskResourceDefinition();
         break;

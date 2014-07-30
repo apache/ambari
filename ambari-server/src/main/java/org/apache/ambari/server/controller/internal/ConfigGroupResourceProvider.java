@@ -621,7 +621,7 @@ public class ConfigGroupResourceProvider extends
           }
 
           Config config = new ConfigImpl(type);
-          config.setVersionTag(tag);
+          config.setTag(tag);
           config.setProperties(configProperties);
           config.setPropertiesAttributes(configAttributes);
 

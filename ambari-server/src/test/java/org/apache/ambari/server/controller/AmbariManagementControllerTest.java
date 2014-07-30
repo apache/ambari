@@ -1583,7 +1583,7 @@ public class AmbariManagementControllerTest {
     Map<String, Map<String, String>> propertiesAttributes = new HashMap<String, Map<String,String>>();
 
     Config c1 = new ConfigImpl(cluster, "hdfs-site", properties, propertiesAttributes, injector);
-    c1.setVersionTag("v1");
+    c1.setTag("v1");
     cluster.addConfig(c1);
     c1.persist();
     configs.put(c1.getType(), c1);
@@ -1631,9 +1631,9 @@ public class AmbariManagementControllerTest {
     Map<String, String> mapRequestProps = new HashMap<String, String>();
     mapRequestProps.put("context", "Called from a test");
 
-    c1.setVersionTag("v1");
-    c2.setVersionTag("v1");
-    c3.setVersionTag("v1");
+    c1.setTag("v1");
+    c2.setTag("v1");
+    c3.setTag("v1");
 
     cluster.addConfig(c1);
     cluster.addConfig(c2);
@@ -3871,13 +3871,13 @@ public class AmbariManagementControllerTest {
         new HashMap<String, String>() {{
           put("key1", "value1");
         }}, new HashMap<String, Map<String,String>>());
-    config1.setVersionTag("version1");
+    config1.setTag("version1");
 
     Config config2 = cf.createNew(cluster, "core-site",
         new HashMap<String, String>() {{
           put("key1", "value1");
         }}, new HashMap<String, Map<String,String>>());
-    config2.setVersionTag("version1");
+    config2.setTag("version1");
 
     cluster.addConfig(config1);
     cluster.addConfig(config2);
@@ -4002,13 +4002,13 @@ public class AmbariManagementControllerTest {
       new HashMap<String, String>() {{
         put("key1", "value1");
       }}, new HashMap<String, Map<String,String>>());
-    config1.setVersionTag("version1");
+    config1.setTag("version1");
 
     Config config2 = cf.createNew(cluster, "core-site",
       new HashMap<String, String>() {{
         put("key1", "value1");
       }}, new HashMap<String, Map<String,String>>());
-    config2.setVersionTag("version1");
+    config2.setTag("version1");
 
     cluster.addConfig(config1);
     cluster.addConfig(config2);
@@ -4203,13 +4203,15 @@ public class AmbariManagementControllerTest {
         new HashMap<String, String>() {{
           put("key1", "value1");
         }}, new HashMap<String, Map<String,String>>());
-    config1.setVersionTag("version1");
+    config1.setTag("version1");
 
     Config config2 = cf.createNew(cluster, "core-site",
         new HashMap<String, String>() {{
           put("key1", "value1");
         }}, new HashMap<String, Map<String,String>>());
-    config2.setVersionTag("version1");
+    config2.setTag("version1");
+    config1.persist();
+    config2.persist();
 
     cluster.addConfig(config1);
     cluster.addConfig(config2);
@@ -4465,12 +4467,12 @@ public class AmbariManagementControllerTest {
     ConfigFactory cf = injector.getInstance(ConfigFactory.class);
     Config config1 = cf.createNew(cluster, "global",
         new HashMap<String, String>(){{ put("key1", "value1"); }}, new HashMap<String, Map<String,String>>());
-    config1.setVersionTag("version1");
+    config1.setTag("version1");
     config1.setPropertiesAttributes(new HashMap<String, Map<String, String>>(){{ put("attr1", new HashMap<String, String>()); }});
 
     Config config2 = cf.createNew(cluster, "core-site",
         new HashMap<String, String>(){{ put("key1", "value1"); }}, new HashMap<String, Map<String,String>>());
-    config2.setVersionTag("version1");
+    config2.setTag("version1");
     config2.setPropertiesAttributes(new HashMap<String, Map<String, String>>(){{ put("attr2", new HashMap<String, String>()); }});
 
     cluster.addConfig(config1);
@@ -6259,13 +6261,13 @@ public class AmbariManagementControllerTest {
       new HashMap<String, String>() {{
         put("key1", "value1");
       }}, new HashMap<String, Map<String,String>>());
-    config1.setVersionTag("version1");
+    config1.setTag("version1");
 
     Config config2 = cf.createNew(cluster, "core-site",
       new HashMap<String, String>() {{
         put("key1", "value1");
       }}, new HashMap<String, Map<String,String>>());
-    config2.setVersionTag("version1");
+    config2.setTag("version1");
 
     cluster.addConfig(config1);
     cluster.addConfig(config2);
@@ -6355,13 +6357,13 @@ public class AmbariManagementControllerTest {
       new HashMap<String, String>() {{
         put("key1", "value1");
       }}, new HashMap<String, Map<String,String>>());
-    config1.setVersionTag("version1");
+    config1.setTag("version1");
 
     Config config2 = cf.createNew(cluster, "core-site",
       new HashMap<String, String>() {{
         put("key1", "value1");
       }}, new HashMap<String, Map<String,String>>());
-    config2.setVersionTag("version1");
+    config2.setTag("version1");
 
     cluster.addConfig(config1);
     cluster.addConfig(config2);
@@ -6723,7 +6725,7 @@ public class AmbariManagementControllerTest {
     Cluster cluster = clusters.getCluster(clusterName);
     final Config config = new ConfigImpl("core-site");
     config.setProperties(configs);
-    config.setVersionTag("version122");
+    config.setTag("version122");
     Long groupId = createConfigGroup(cluster, "g1", "t1",
       new ArrayList<String>() {{ add("h1"); }},
       new ArrayList<Config>() {{ add(config); }});
@@ -6736,7 +6738,7 @@ public class AmbariManagementControllerTest {
 
     final Config config2 = new ConfigImpl("mapred-site");
     config2.setProperties(configs);
-    config2.setVersionTag("version122");
+    config2.setTag("version122");
     groupId = createConfigGroup(cluster, "g2", "t2",
       new ArrayList<String>() {{ add("h1"); }},
       new ArrayList<Config>() {{ add(config2); }});
@@ -6878,7 +6880,7 @@ public class AmbariManagementControllerTest {
 
     final Config config = new ConfigImpl("hdfs-site");
     config.setProperties(configs);
-    config.setVersionTag("version122");
+    config.setTag("version122");
     Long groupId = createConfigGroup(clusters.getCluster(clusterName), "g1", "t1",
         new ArrayList<String>() {{
           add("h1");
@@ -6984,7 +6986,7 @@ public class AmbariManagementControllerTest {
 
     final Config config = new ConfigImpl("hdfs-site");
     config.setProperties(configs);
-    config.setVersionTag("version122");
+    config.setTag("version122");
     Long groupId = createConfigGroup(clusters.getCluster(clusterName), "g1", "t1",
       new ArrayList<String>() {{ add("h1"); add("h2"); }},
       new ArrayList<Config>() {{ add(config); }});
@@ -7589,7 +7591,7 @@ public class AmbariManagementControllerTest {
     }
   }
 
-  private void resetCluster(Cluster cluster, StackId currentStackId) {
+  private void resetCluster(Cluster cluster, StackId currentStackId) throws AmbariException{
     cluster.setDesiredStackVersion(currentStackId);
     for (Service service : cluster.getServices().values()) {
       service.setDesiredStackVersion(currentStackId);
@@ -10053,7 +10055,7 @@ public class AmbariManagementControllerTest {
         new ConfigurationRequest(clusterName, "typeA", "v2", new HashMap<String, String>(), new HashMap<String, Map<String,String>>()));
     controller.updateClusters(Collections.singleton(cr), new HashMap<String, String>());
     config = cluster.getDesiredConfigByType("typeA");
-    Assert.assertEquals("v2", config.getVersionTag());
+    Assert.assertEquals("v2", config.getTag());
     Assert.assertNotNull(config);
     Assert.assertEquals(Integer.valueOf(0), Integer.valueOf(config.getProperties().size()));
     

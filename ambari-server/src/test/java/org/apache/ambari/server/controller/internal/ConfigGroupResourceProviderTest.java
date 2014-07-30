@@ -17,9 +17,6 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.ConfigGroupNotFoundException;
-import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ConfigGroupRequest;
 import org.apache.ambari.server.controller.ConfigGroupResponse;
@@ -60,7 +57,6 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
-import static org.hamcrest.CoreMatchers.instanceOf;
 
 public class ConfigGroupResourceProviderTest {
 
@@ -153,7 +149,7 @@ public class ConfigGroupResourceProviderTest {
       configGroup, response);
 
     assertEquals("version100", captureConfigs.getValue().get("core-site")
-      .getVersionTag());
+      .getTag());
     assertTrue(captureHosts.getValue().containsKey("h1"));
     assertTrue(captureHosts.getValue().containsKey("h2"));
   }
