@@ -599,7 +599,8 @@ public class StackExtensionHelperTest {
     assertEquals("yarn.scheduler.capacity.maximum-applications", propertyInfo.getName());
     assertEquals("Maximum number of applications that can be pending and running.", propertyInfo.getDescription());
     assertEquals("10000", propertyInfo.getValue());
-    assertEquals(true, propertyInfo.isFinal());
+    assertEquals(1, propertyInfo.getAttributesMap().size());
+    assertEquals("true", propertyInfo.getAttributesMap().get("final"));
     assertEquals(null, propertyInfo.getFilename());
     assertEquals(false, propertyInfo.isDeleted());
     assertEquals(false, propertyInfo.isRequireInput());
@@ -609,7 +610,8 @@ public class StackExtensionHelperTest {
     assertEquals("yarn.scheduler.capacity.maximum-am-resource-percent", propertyInfo.getName());
     assertEquals("Maximum percent of resources in the cluster.", propertyInfo.getDescription());
     assertEquals("0.2", propertyInfo.getValue());
-    assertEquals(false, propertyInfo.isFinal());
+    assertEquals(1, propertyInfo.getAttributesMap().size());
+    assertEquals("false", propertyInfo.getAttributesMap().get("final"));
     assertEquals(null, propertyInfo.getFilename());
     assertEquals(true, propertyInfo.isDeleted());
     assertEquals(false, propertyInfo.isRequireInput());
@@ -619,7 +621,7 @@ public class StackExtensionHelperTest {
     assertEquals("yarn.scheduler.capacity.root.queues", propertyInfo.getName());
     assertEquals("The queues at the this level (root is the root queue).", propertyInfo.getDescription());
     assertEquals("default", propertyInfo.getValue());
-    assertEquals(false, propertyInfo.isFinal());
+    assertEquals(0, propertyInfo.getAttributesMap().size());
     assertEquals(null, propertyInfo.getFilename());
     assertEquals(false, propertyInfo.isDeleted());
     assertEquals(true, propertyInfo.isRequireInput());

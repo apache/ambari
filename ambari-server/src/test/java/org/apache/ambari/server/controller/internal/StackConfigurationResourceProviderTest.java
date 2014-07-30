@@ -23,7 +23,9 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -41,18 +43,20 @@ public class StackConfigurationResourceProviderTest {
   private static final String PROPERTY_VALUE = "value";
   private static final String PROPERTY_DESC = "Desc";
   private static final String TYPE = "type.xml";
-  private static final Boolean FINAL = false;
 
   @Test
   public void testGetResources() throws Exception{
        
+    Map<String, String> attributes = new HashMap<String, String>();
+    attributes.put("final", "true");
+
     Resource.Type type = Resource.Type.StackConfiguration;
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
 
     Set<StackConfigurationResponse> allResponse = new HashSet<StackConfigurationResponse>();
     
-    allResponse.add(new StackConfigurationResponse(PROPERTY_NAME, PROPERTY_VALUE, PROPERTY_DESC, TYPE, FINAL));
+    allResponse.add(new StackConfigurationResponse(PROPERTY_NAME, PROPERTY_VALUE, PROPERTY_DESC, TYPE, attributes));
    
     // set expectations
     expect(managementController.getStackConfigurations(
@@ -93,14 +97,81 @@ public class StackConfigurationResourceProviderTest {
           resource.getPropertyValue(StackConfigurationResourceProvider.PROPERTY_DESCRIPTION_PROPERTY_ID);
       String propertyType = (String) 
           resource.getPropertyValue(StackConfigurationResourceProvider.PROPERTY_TYPE_PROPERTY_ID);
-      Boolean propertyIsFinal = (Boolean)
+      String propertyIsFinal = (String)
           resource.getPropertyValue(StackConfigurationResourceProvider.PROPERTY_FINAL_PROPERTY_ID);
       
       Assert.assertEquals(PROPERTY_NAME, propertyName);
       Assert.assertEquals(PROPERTY_VALUE, propertyValue);
       Assert.assertEquals(PROPERTY_DESC, propertyDesc);
       Assert.assertEquals(TYPE, propertyType);
-      Assert.assertEquals(FINAL, propertyIsFinal);
+      Assert.assertEquals("true", propertyIsFinal);
+
+    }
+
+    // verify
+    verify(managementController);
+  }
+
+  @Test
+  public void testGetResources_noFinal() throws Exception{
+
+    Map<String, String> attributes = new HashMap<String, String>();
+
+    Resource.Type type = Resource.Type.StackConfiguration;
+
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+
+    Set<StackConfigurationResponse> allResponse = new HashSet<StackConfigurationResponse>();
+
+    allResponse.add(new StackConfigurationResponse(PROPERTY_NAME, PROPERTY_VALUE, PROPERTY_DESC, TYPE, attributes));
+
+    // set expectations
+    expect(managementController.getStackConfigurations(
+        AbstractResourceProviderTest.Matcher.getStackConfigurationRequestSet(null, null, null, null))).
+        andReturn(allResponse).times(1);
+    // replay
+    replay(managementController);
+
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
+        type,
+        PropertyHelper.getPropertyIds(type),
+        PropertyHelper.getKeyPropertyIds(type),
+        managementController);
+
+    Set<String> propertyIds = new HashSet<String>();
+
+    propertyIds.add(StackConfigurationResourceProvider.STACK_NAME_PROPERTY_ID);
+    propertyIds.add(StackConfigurationResourceProvider.STACK_VERSION_PROPERTY_ID);
+    propertyIds.add(StackConfigurationResourceProvider.SERVICE_NAME_PROPERTY_ID);
+    propertyIds.add(StackConfigurationResourceProvider.PROPERTY_NAME_PROPERTY_ID);
+    propertyIds.add(StackConfigurationResourceProvider.PROPERTY_VALUE_PROPERTY_ID);
+    propertyIds.add(StackConfigurationResourceProvider.PROPERTY_DESCRIPTION_PROPERTY_ID);
+    propertyIds.add(StackConfigurationResourceProvider.PROPERTY_TYPE_PROPERTY_ID);
+    propertyIds.add(StackConfigurationResourceProvider.PROPERTY_FINAL_PROPERTY_ID);
+
+    // create the request
+    Request request = PropertyHelper.getReadRequest(propertyIds);
+
+    // get all ... no predicate
+    Set<Resource> resources = provider.getResources(request, null);
+
+    Assert.assertEquals(allResponse.size(), resources.size());
+
+    for (Resource resource : resources) {
+      String propertyName = (String) resource.getPropertyValue(StackConfigurationResourceProvider.PROPERTY_NAME_PROPERTY_ID);
+      String propertyValue = (String) resource.getPropertyValue(StackConfigurationResourceProvider.PROPERTY_VALUE_PROPERTY_ID);
+      String propertyDesc = (String)
+          resource.getPropertyValue(StackConfigurationResourceProvider.PROPERTY_DESCRIPTION_PROPERTY_ID);
+      String propertyType = (String)
+          resource.getPropertyValue(StackConfigurationResourceProvider.PROPERTY_TYPE_PROPERTY_ID);
+      String propertyIsFinal = (String)
+          resource.getPropertyValue(StackConfigurationResourceProvider.PROPERTY_FINAL_PROPERTY_ID);
+
+      Assert.assertEquals(PROPERTY_NAME, propertyName);
+      Assert.assertEquals(PROPERTY_VALUE, propertyValue);
+      Assert.assertEquals(PROPERTY_DESC, propertyDesc);
+      Assert.assertEquals(TYPE, propertyType);
+      Assert.assertEquals("false", propertyIsFinal);
 
     }
 

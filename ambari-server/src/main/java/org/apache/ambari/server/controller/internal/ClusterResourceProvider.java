@@ -84,6 +84,11 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
    */
   private Map<String, Map<String, String>> mapClusterConfigurations =
       new HashMap<String, Map<String, String>>();
+  /**
+   * Maps configuration type (string) to property attributes, and their values
+   */
+  private Map<String, Map<String, Map<String, String>>> mapClusterAttributes =
+      new HashMap<String, Map<String, Map<String, String>>>();
 
 
   // ----- Constructors ----------------------------------------------------
@@ -314,8 +319,9 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
 
     Map<String, HostGroup> blueprintHostGroups = parseBlueprintHostGroups(blueprint, stack);
     applyRequestInfoToHostGroups(properties, blueprintHostGroups);
-    processConfigurations(processBlueprintConfigurations(blueprint, (Collection<Map<String, String>>)
-        properties.get("configurations")), stack, blueprintHostGroups);
+    Collection<Map<String, String>> configOverrides = (Collection<Map<String, String>>)properties.get("configurations");
+    processConfigurations(processBlueprintConfigurations(blueprint, configOverrides),
+        processBlueprintAttributes(blueprint), stack, blueprintHostGroups);
     validatePasswordProperties(blueprint, blueprintHostGroups, (String) properties.get("default_password"));
 
     String clusterName = (String) properties.get(CLUSTER_NAME_PROPERTY_ID);
@@ -573,9 +579,10 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
     for (Map.Entry<String, Map<String, String>> entry : mapClusterConfigurations.entrySet()) {
       String type = entry.getKey();
 
+      Map<String, Map<String, String>> confAttributes = mapClusterAttributes.get(type);
       try {
         //todo: properly handle non system exceptions
-        setConfigurationsOnCluster(clusterName, type, entry.getValue());
+        setConfigurationsOnCluster(clusterName, type, entry.getValue(), confAttributes);
       } catch (AmbariException e) {
         throw new SystemException("Unable to set configurations on cluster.", e);
       }
@@ -592,7 +599,8 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
    * @throws AmbariException if an exception occurs setting the properties
    */
   private void setConfigurationsOnCluster(String clusterName, String type,
-                                          Map<String, String> properties) throws AmbariException {
+                                          Map<String, String> properties,
+                                          Map<String, Map<String, String>> propertiesAttributes) throws AmbariException {
 
     Map<String, Object> clusterProperties = new HashMap<String, Object>();
     clusterProperties.put(CLUSTER_NAME_PROPERTY_ID, clusterName);
@@ -601,6 +609,15 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
     for (Map.Entry<String, String> entry : properties.entrySet()) {
       clusterProperties.put(CLUSTER_DESIRED_CONFIGS_PROPERTY_ID +
           "/properties/" + entry.getKey(), entry.getValue());
+    }
+    if (propertiesAttributes != null) {
+      for (Map.Entry<String, Map<String, String>> attribute : propertiesAttributes.entrySet()) {
+        String attributeName = attribute.getKey();
+        for (Map.Entry<String, String> attributeOccurrence : attribute.getValue().entrySet()) {
+          clusterProperties.put(CLUSTER_DESIRED_CONFIGS_PROPERTY_ID + "/properties_attributes/"
+              + attributeName + "/" + attributeOccurrence.getKey(), attributeOccurrence.getValue());
+        }
+      }
     }
     getManagementController().updateClusters(
         Collections.singleton(getRequest(clusterProperties)), null);
@@ -708,7 +725,8 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
    * @param blueprintHostGroups  host groups contained in the blueprint
    */
   private void processConfigurations(Map<String, Map<String, String>> blueprintConfigurations,
-                                    Stack stack, Map<String, HostGroup> blueprintHostGroups)  {
+                                     Map<String, Map<String, Map<String, String>>> blueprintAttributes,
+                                     Stack stack, Map<String, HostGroup> blueprintHostGroups)  {
 
     for (String service : getServicesToDeploy(stack, blueprintHostGroups)) {
       for (String type : stack.getConfigurationTypes(service)) {
@@ -718,9 +736,26 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
           mapClusterConfigurations.put(type, typeProps);
         }
         typeProps.putAll(stack.getConfigurationProperties(service, type));
+        Map<String, Map<String, String>> stackTypeAttributes = stack.getConfigurationAttributes(service, type);
+        if (!stackTypeAttributes.isEmpty()) {
+          if (!mapClusterAttributes.containsKey(type)) {
+            mapClusterAttributes.put(type, new HashMap<String, Map<String, String>>());
+          }
+          Map<String, Map<String, String>> typeAttrs = mapClusterAttributes.get(type);
+          for (Map.Entry<String, Map<String, String>> attribute : stackTypeAttributes.entrySet()) {
+            String attributeName = attribute.getKey();
+            Map<String, String> attributes = typeAttrs.get(attributeName);
+            if (attributes == null) {
+                attributes = new HashMap<String, String>();
+                typeAttrs.put(attributeName, attributes);
+            }
+            attributes.putAll(attribute.getValue());
+          }
+        }
       }
     }
     processBlueprintClusterConfigurations(blueprintConfigurations);
+    processBlueprintClusterConfigAttributes(blueprintAttributes);
 
     for (Map.Entry<String, Map<String, String>> entry : mapClusterConfigurations.entrySet()) {
       for (Map.Entry<String, String> propertyEntry : entry.getValue().entrySet()) {
@@ -752,6 +787,31 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
         }
         // override default properties
         typeProps.putAll(properties);
+      }
+    }
+  }
+
+  /**
+   * Process cluster scoped configuration attributes provided in blueprint.
+   *
+   * @param blueprintAttributes  map of configuration type to configuration attributes and their values
+   */
+  private void processBlueprintClusterConfigAttributes(Map<String, Map<String, Map<String, String>>> blueprintAttributes) {
+    for (Map.Entry<String, Map<String, Map<String, String>>> entry : blueprintAttributes.entrySet()) {
+      Map<String, Map<String, String>> attributes = entry.getValue();
+      if (attributes != null && !attributes.isEmpty()) {
+        String type = entry.getKey();
+        if (!mapClusterAttributes.containsKey(type)) {
+          mapClusterAttributes.put(type, new HashMap<String, Map<String, String>>());
+        }
+        Map<String, Map<String, String>> typeAttrs = mapClusterAttributes.get(type);
+        for (Map.Entry<String, Map<String, String>> attribute : attributes.entrySet()) {
+          String attributeName = attribute.getKey();
+          if (!typeAttrs.containsKey(attributeName)) {
+            typeAttrs.put(attributeName, new HashMap<String, String>());
+          }
+          typeAttrs.get(attributeName).putAll(attribute.getValue());
+        }
       }
     }
   }

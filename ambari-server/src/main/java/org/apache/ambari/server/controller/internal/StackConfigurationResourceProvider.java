@@ -128,13 +128,26 @@ public class StackConfigurationResourceProvider extends
       setResourceProperty(resource, PROPERTY_TYPE_PROPERTY_ID,
           response.getType(), requestedIds);
 
-      setResourceProperty(resource, PROPERTY_FINAL_PROPERTY_ID,
-          response.isFinal(), requestedIds);
+      setDefaultPropertiesAttributes(resource, requestedIds);
+
+      for (Map.Entry<String, String> attribute : response.getPropertyAttributes().entrySet()) {
+        setResourceProperty(resource, PropertyHelper.getPropertyId("StackConfigurations", attribute.getKey()),
+            attribute.getValue(), requestedIds);
+      }
 
       resources.add(resource);
     }
 
     return resources;
+  }
+
+  /**
+   * Set default values for properties attributes before applying original ones
+   * to prevent absence in case of empty attributes map
+   */
+  private void setDefaultPropertiesAttributes(Resource resource, Set<String> requestedIds) {
+    setResourceProperty(resource, PROPERTY_FINAL_PROPERTY_ID,
+        "false", requestedIds);
   }
 
   private StackConfigurationRequest getRequest(Map<String, Object> properties) {

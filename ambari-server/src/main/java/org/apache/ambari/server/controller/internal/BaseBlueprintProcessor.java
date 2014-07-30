@@ -206,6 +206,33 @@ public abstract class BaseBlueprintProcessor extends AbstractControllerResourceP
   }
 
   /**
+   * Process cluster scoped configuration attributes contained in blueprint.
+   *
+   * @param blueprint  blueprint entity
+   *
+   * @return cluster scoped property attributes contained within in blueprint
+   */
+  protected Map<String, Map<String, Map<String, String>>> processBlueprintAttributes(BlueprintEntity blueprint) {
+
+    Map<String, Map<String, Map<String, String>>> mapAttributes =
+        new HashMap<String, Map<String, Map<String, String>>>();
+    Collection<BlueprintConfigEntity> configs = blueprint.getConfigurations();
+
+    if (configs != null) {
+      Gson gson = new Gson();
+      for (BlueprintConfigEntity config : configs) {
+        Map<String, Map<String, String>> typeAttrs =
+            gson.<Map<String, Map<String, String>>>fromJson(config.getConfigAttributes(), Map.class);
+        if (typeAttrs != null && !typeAttrs.isEmpty()) {
+          mapAttributes.put(config.getType(), typeAttrs);
+        }
+      }
+    }
+
+    return mapAttributes;
+  }
+
+  /**
    * Override existing properties or add new.
    *
    * @param existingProperties  current property values
@@ -480,8 +507,38 @@ public abstract class BaseBlueprintProcessor extends AbstractControllerResourceP
     /**
      * Map of service to config type properties
      */
-    private Map<String, Map<String, Map<String, String>>> serviceConfigurations =
-        new HashMap<String, Map<String, Map<String, String>>>();
+    private Map<String, Map<String, Map<String, ConfigProperty>>> serviceConfigurations =
+        new HashMap<String, Map<String, Map<String, ConfigProperty>>>();
+
+    /**
+     * Contains a configuration property's value and attributes.
+     */
+    private class ConfigProperty {
+
+      private ConfigProperty(String value, Map<String, String> attributes) {
+        this.value = value;
+        this.attributes = attributes;
+      }
+
+      private String value;
+      private Map<String, String> attributes;
+
+      public String getValue() {
+        return value;
+      }
+
+      public void setValue(String value) {
+        this.value = value;
+      }
+
+      public Map<String, String> getAttributes() {
+        return attributes;
+      }
+
+      public void setAttributes(Map<String, String> attributes) {
+        this.attributes = attributes;
+      }
+    }
 
     /**
      * Constructor.
@@ -565,7 +622,47 @@ public abstract class BaseBlueprintProcessor extends AbstractControllerResourceP
      * @return map of property names to values for the specified service and configuration type
      */
     public Map<String, String> getConfigurationProperties(String service, String type) {
-      return serviceConfigurations.get(service).get(type);
+      Map<String, String> configMap = new HashMap<String, String>();
+      Map<String, ConfigProperty> configProperties = serviceConfigurations.get(service).get(type);
+      if (configProperties != null) {
+        for (Map.Entry<String, ConfigProperty> configProperty : configProperties.entrySet()) {
+          configMap.put(configProperty.getKey(), configProperty.getValue().getValue());
+        }
+      }
+      return configMap;
+    }
+
+    /**
+     * Get config attributes for the specified service and configuration type.
+     *
+     * @param service  service name
+     * @param type     configuration type
+     *
+     * @return  map of attribute names to map of property names to attribute values
+     *          for the specified service and configuration type
+     */
+    public Map<String, Map<String, String>> getConfigurationAttributes(String service, String type) {
+      Map<String, Map<String, String>> attributesMap = new HashMap<String, Map<String, String>>();
+      Map<String, ConfigProperty> configProperties = serviceConfigurations.get(service).get(type);
+      if (configProperties != null) {
+        for (Map.Entry<String, ConfigProperty> configProperty : configProperties.entrySet()) {
+          String propertyName = configProperty.getKey();
+          Map<String, String> propertyAttributes = configProperty.getValue().getAttributes();
+          if (propertyAttributes != null) {
+            for (Map.Entry<String, String> propertyAttribute : propertyAttributes.entrySet()) {
+              String attributeName = propertyAttribute.getKey();
+              String attributeValue = propertyAttribute.getValue();
+              Map<String, String> attributes = attributesMap.get(attributeName);
+              if (attributes == null) {
+                  attributes = new HashMap<String, String>();
+                  attributesMap.put(attributeName, attributes);
+              }
+              attributes.put(propertyName, attributeValue);
+            }
+          }
+        }
+      }
+      return attributesMap;
     }
 
     /**
@@ -603,8 +700,8 @@ public abstract class BaseBlueprintProcessor extends AbstractControllerResourceP
      * @return name of service which corresponds to the specified configuration type
      */
     public String getServiceForConfigType(String config) {
-      for (Map.Entry<String, Map<String, Map<String, String>>> entry : serviceConfigurations.entrySet()) {
-        Map<String, Map<String, String>> typeMap = entry.getValue();
+      for (Map.Entry<String, Map<String, Map<String, ConfigProperty>>> entry : serviceConfigurations.entrySet()) {
+        Map<String, Map<String, ConfigProperty>> typeMap = entry.getValue();
         if (typeMap.containsKey(config)) {
           return entry.getKey();
         }
@@ -702,7 +799,7 @@ public abstract class BaseBlueprintProcessor extends AbstractControllerResourceP
      * @throws AmbariException an exception occurred getting configurations from the stack definition
      */
     private void parseConfigurations(String service) throws AmbariException {
-      Map<String, Map<String, String>> mapServiceConfig = new HashMap<String, Map<String, String>>();
+      Map<String, Map<String, ConfigProperty>> mapServiceConfig = new HashMap<String, Map<String, ConfigProperty>>();
 
       serviceConfigurations.put(service, mapServiceConfig);
 
@@ -715,12 +812,13 @@ public abstract class BaseBlueprintProcessor extends AbstractControllerResourceP
         if (type.endsWith(".xml")) {
           type = type.substring(0, type.length() - 4);
         }
-        Map<String, String> mapTypeConfig = mapServiceConfig.get(type);
+        Map<String, ConfigProperty> mapTypeConfig = mapServiceConfig.get(type);
         if (mapTypeConfig == null) {
-          mapTypeConfig = new HashMap<String, String>();
+          mapTypeConfig = new HashMap<String, ConfigProperty>();
           mapServiceConfig.put(type, mapTypeConfig);
         }
-        mapTypeConfig.put(config.getPropertyName(), config.getPropertyValue());
+        mapTypeConfig.put(config.getPropertyName(),
+            new ConfigProperty(config.getPropertyValue(), config.getPropertyAttributes()));
       }
     }
 
