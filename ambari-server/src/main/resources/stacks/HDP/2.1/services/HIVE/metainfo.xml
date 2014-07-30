@@ -23,6 +23,21 @@
       <comment>Data warehouse system for ad-hoc queries &amp; analysis of large datasets and table &amp; storage management service</comment>
       <version>0.13.0.2.1</version>
 
+      <components>
+        <component>
+          <name>HIVE_SERVER</name>
+          <dependencies>
+            <dependency>
+              <name>TEZ/TEZ_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+          </dependencies>
+        </component>
+      </components>
+
       <configuration-dependencies>
         <config-type>hive-site</config-type>
         <config-type>hive-log4j</config-type>
