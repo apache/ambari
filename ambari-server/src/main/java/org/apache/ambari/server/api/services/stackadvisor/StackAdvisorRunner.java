@@ -20,17 +20,19 @@ package org.apache.ambari.server.api.services.stackadvisor;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.inject.Singleton;
 
 @Singleton
 public class StackAdvisorRunner {
 
-  private static Log LOG = LogFactory.getLog(StackAdvisorRunner.class);
+  private final static Logger LOG = LoggerFactory.getLogger(StackAdvisorRunner.class);
 
   /**
    * Runs stack_advisor.py script in the specified {@code actionDirectory}.
@@ -42,66 +44,85 @@ public class StackAdvisorRunner {
    *         otherwise.
    */
   public boolean runScript(String script, StackAdvisorCommand saCommand, File actionDirectory) {
-    LOG.info(String.format("Script=%s, actionDirectory=%s, command=%s", script, actionDirectory,
-        saCommand));
+    LOG.info("Script={}, actionDirectory={}, command={}", script,
+        actionDirectory, saCommand);
 
     String outputFile = actionDirectory + File.separator + "stackadvisor.out";
     String errorFile = actionDirectory + File.separator + "stackadvisor.err";
 
-    String shellCommand[] = prepareShellCommand(script, saCommand, actionDirectory, outputFile,
+    ProcessBuilder builder = prepareShellCommand(script, saCommand,
+        actionDirectory, outputFile,
         errorFile);
-    String[] env = new String[] {};
 
     try {
-      Process process = Runtime.getRuntime().exec(shellCommand, env);
+      Process process = builder.start();
 
       try {
-        LOG.info(String.format("Stack-advisor output=%s, error=%s", outputFile, errorFile));
+        LOG.info("Stack-advisor output={}, error={}", outputFile, errorFile);
 
         int exitCode = process.waitFor();
         try {
           String outMessage = FileUtils.readFileToString(new File(outputFile));
           String errMessage = FileUtils.readFileToString(new File(errorFile));
-          LOG.info("Script log message: " + outMessage + "\n\n" + errMessage);
+          LOG.info("Stack advisor output files");
+          LOG.info("    advisor script stdout: {}", outMessage);
+          LOG.info("    advisor script stderr: {}", errMessage);
         } catch (IOException io) {
-          LOG.info("Error in reading script log files", io);
+          LOG.error("Error in reading script log files", io);
         }
 
         return exitCode == 0;
       } finally {
         process.destroy();
       }
-    } catch (Exception io) {
-      LOG.info("Error executing stack advisor " + io.getMessage());
+    } catch (Exception ioe) {
+      LOG.error("Error executing stack advisor", ioe);
       return false;
     }
   }
 
-  private String[] prepareShellCommand(String script, StackAdvisorCommand saCommand,
+  /**
+   * Gets an instance of a {@link ProcessBuilder} that's ready to execute the
+   * shell command to run the stack advisor script. This will take the
+   * environment variables from the current process.
+   * 
+   * @param script
+   * @param saCommand
+   * @param actionDirectory
+   * @param outputFile
+   * @param errorFile
+   * @return
+   */
+  private ProcessBuilder prepareShellCommand(String script,
+      StackAdvisorCommand saCommand,
       File actionDirectory, String outputFile, String errorFile) {
     String hostsFile = actionDirectory + File.separator + "hosts.json";
     String servicesFile = actionDirectory + File.separator + "services.json";
 
-    String shellCommand[] = new String[] { "sh", "-c", null /* to be calculated */};
-    String commands[] = new String[] { script, saCommand.toString(), hostsFile, servicesFile };
+    // includes the original command plus the arguments for it
+    List<String> builderParameters = new ArrayList<String>();
+    builderParameters.add("sh");
+    builderParameters.add("-c");
+
+    // for the 3rd argument, build a single parameter since we use -c
+    // ProcessBuilder doesn't support output redirection until JDK 1.7
+    String commandStringParameters[] = new String[] { script,
+        saCommand.toString(), hostsFile,
+        servicesFile, "1>", outputFile, "2>", errorFile };
 
     StringBuilder commandString = new StringBuilder();
-    for (String command : commands) {
-      commandString.append(" " + command);
+    for (String command : commandStringParameters) {
+      commandString.append(command).append(" ");
     }
 
-    if (LOG.isDebugEnabled()) {
-      LOG.debug(commandString);
-    }
+    builderParameters.add(commandString.toString());
 
-    commandString.append(" 1> " + outputFile + " 2>" + errorFile);
-    shellCommand[2] = commandString.toString();
+    LOG.debug("Stack advisor command is {}", builderParameters);
 
-    return shellCommand;
+    return new ProcessBuilder(builderParameters);
   }
 
   public enum StackAdvisorCommand {
-
     RECOMMEND_COMPONENT_LAYOUT("recommend-component-layout"),
 
     VALIDATE_COMPONENT_LAYOUT("validate-component-layout"),
