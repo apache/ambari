@@ -1181,32 +1181,24 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   buildGroupDesiredConfigs: function (configs, timeTag) {
     var sites = [];
     var time = timeTag || (new Date).getTime();
+    var siteFileNames = configs.mapProperty('filename');
+    sites = siteFileNames.map(function (filename) {
+      return {
+        type: filename.replace('.xml', ''),
+        tag: 'version' + time,
+        properties: []
+      };
+    });
+
     configs.forEach(function (config) {
       var type = config.get('filename').replace('.xml', '');
       var site = sites.findProperty('type', type);
-      if (site) {
-        site.properties.push({
-          name: config.get('name'),
-          value: config.get('value')
-        });
-      } else {
-        site = {
-          type: type,
-          tag: 'version' + time,
-          properties: [
-            {
-              name: config.get('name'),
-              value: config.get('value')
-            }
-          ]
-        };
-        sites.push(site);
-      }
+      site.properties.push(config);
     });
-    sites.forEach(function (site) {
-      site.properties = this.createSiteObj(site.type, site.tag, site.properties).properties;
+
+    return sites.map(function (site) {
+      return this.createSiteObj(site.type, site.tag, site.properties);
     }, this);
-    return sites;
   },
   /**
    * persist properties of config groups to server

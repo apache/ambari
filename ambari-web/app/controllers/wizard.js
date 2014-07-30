@@ -891,6 +891,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
             isRequiredByAgent: property.get('isRequiredByAgent'),
             name: property.get('name'),
             value: property.get('value'),
+            isFinal: property.get('isFinal'),
             filename: property.get('filename')
           })
         });

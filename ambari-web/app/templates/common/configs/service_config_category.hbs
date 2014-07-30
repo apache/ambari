@@ -48,6 +48,9 @@
             {{! Here serviceConfigBinding should ideally be serviceConfigPropertyBinding }}
             <div {{bindAttr class="errorMessage:error: warnMessage:warning: :control-group"}}>
               {{view viewClass serviceConfigBinding="this" categoryConfigsAllBinding="view.categoryConfigsAll" }}
+              {{#if supportsFinal}}
+                <label class="checkbox inline">{{view Ember.Checkbox checkedBinding="isFinal" disabledBinding="isNotEditable"}}{{t services.service.config.final}}</label>
+              {{/if}}
               {{#if view.canEdit}}
                 {{#if isPropertyOverridable}}
                   {{#if view.supportsHostOverrides}}

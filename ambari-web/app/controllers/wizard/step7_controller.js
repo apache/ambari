@@ -954,8 +954,14 @@ App.WizardStep7Controller = Em.Controller.extend({
         serviceRawGroups.filterProperty('isDefault', false).forEach(function (configGroup) {
           var readyGroup = App.ConfigGroup.create(configGroup);
           var wrappedProperties = [];
-          readyGroup.get('properties').forEach(function (property) {
-            wrappedProperties.pushObject(App.ServiceConfigProperty.create(property));
+          readyGroup.get('properties').forEach(function (propertyData) {
+            var parentSCP = service.configs.filterProperty('filename', propertyData.filename).findProperty('name', propertyData.name);
+            var overriddenSCP = App.ServiceConfigProperty.create(parentSCP);
+            overriddenSCP.set('isOriginalSCP', false);
+            overriddenSCP.set('parentSCP', parentSCP);
+            overriddenSCP.set('group', readyGroup);
+            overriddenSCP.setProperties(propertyData);
+            wrappedProperties.pushObject(App.ServiceConfigProperty.create(overriddenSCP));
           });
           wrappedProperties.setEach('group', readyGroup);
           readyGroup.set('properties', wrappedProperties);

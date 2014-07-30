@@ -512,18 +512,16 @@ describe('App.InstallerStep7Controller', function () {
     it('should update configGroups for service', function () {
       var configGroups = [],
         serviceName = 'HDFS',
+        properties = [
+          { name: "p1", filename: "file.xml" },
+          { name: "p2", filename: "file.xml" }
+        ],
         serviceConfigGroups = [
-          {service: {id: 'HDFS'}, properties: [
-            {},
-            {}
-          ], isDefault: true, n: 'n1'},
-          {service: {id: 'HDFS'}, properties: [
-            {},
-            {}
-          ], isDefault: false, n: 'n2'}
+          {service: {id: 'HDFS'}, properties: properties.slice(), isDefault: true, n: 'n1'},
+          {service: {id: 'HDFS'}, properties: properties.slice(), isDefault: false, n: 'n2'}
         ];
       installerStep7Controller.reopen({
-        stepConfigs: [Em.Object.create({serviceName: serviceName, configGroups: configGroups})]
+        stepConfigs: [Em.Object.create({serviceName: serviceName, configGroups: configGroups, configs: properties})]
       });
       installerStep7Controller.loadConfigGroups(serviceConfigGroups);
       expect(installerStep7Controller.get('stepConfigs.firstObject.configGroups.length')).to.equal(2);

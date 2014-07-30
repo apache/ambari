@@ -19,6 +19,9 @@
   {{! Here serviceConfigBinding should ideally be serviceConfigPropertyBinding }}
   <div {{bindAttr class="overriddenSCP.errorMessage:error: :control-group :overrideField"}}>
     {{view overriddenSCP.viewClass serviceConfigBinding="overriddenSCP" categoryConfigsBinding="view.categoryConfigs"}}
+    {{#if overriddenSCP.supportsFinal}}
+      <label class="checkbox inline">{{view Ember.Checkbox checkedBinding="overriddenSCP.isFinal" disabledBinding="overriddenSCP.isNotEditable"}}{{t services.service.config.final}}</label>
+    {{/if}}
     {{#if view.isDefaultGroupSelected}}
       {{#if overriddenSCP.group}}
         <a rel='SwitchGroupTooltip' {{bindAttr data-original-title="overriddenSCP.group.switchGroupTextFull" }} class="action" {{action selectConfigGroup overriddenSCP.group target="controller"}}>

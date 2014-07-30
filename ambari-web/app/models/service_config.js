@@ -149,6 +149,7 @@ App.ServiceConfigProperty = Ember.Object.extend({
   isRequired: true, // by default a config property is required
   isReconfigurable: true, // by default a config property is reconfigurable
   isEditable: true, // by default a config property is editable
+  isNotEditable: Ember.computed.not('isEditable'),
   isFinal: false,
   defaultIsFinal: false,
   supportsFinal: false,
@@ -703,6 +704,8 @@ App.ServiceConfigProperty = Ember.Object.extend({
 
   validate: function () {
     var value = this.get('value');
+    var supportsFinal = this.get('supportsFinal');
+    var isFinal = this.get('isFinal');
     var valueRange = this.get('valueRange');
     var values = [];//value split by "," to check UNIX users, groups list
 
@@ -816,13 +819,13 @@ App.ServiceConfigProperty = Ember.Object.extend({
       var parentSCP = this.get('parentSCP');
       if (!isOriginalSCP) {
         if (!isError && parentSCP != null) {
-          if (value === parentSCP.get('value')) {
+          if (value === parentSCP.get('value') && supportsFinal && isFinal === parentSCP.get('isFinal')) {
             this.set('errorMessage', 'Configuration overrides must have different value');
             isError = true;
           } else {
             var overrides = parentSCP.get('overrides');
             overrides.forEach(function (override) {
-              if (self != override && value === override.get('value')) {
+              if (self != override && value === override.get('value')  && supportsFinal && isFinal === parentSCP.get('isFinal')) {
                 self.set('errorMessage', 'Multiple configuration overrides cannot have same value');
                 isError = true;
               }
@@ -854,7 +857,7 @@ App.ServiceConfigProperty = Ember.Object.extend({
       } else {
         this.set('error', true);
       }
-  }.observes('value', 'retypedPassword')
+  }.observes('value', 'isFinal', 'retypedPassword')
 
 });
 
