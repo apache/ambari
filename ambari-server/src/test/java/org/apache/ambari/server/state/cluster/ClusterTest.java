@@ -26,12 +26,15 @@ import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.ConcurrentModificationException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.persistence.EntityManager;
 
@@ -46,8 +49,30 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.ClusterResponse;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
-import org.apache.ambari.server.orm.entities.*;
-import org.apache.ambari.server.state.*;
+import org.apache.ambari.server.orm.entities.ClusterEntity;
+import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
+import org.apache.ambari.server.orm.entities.HostEntity;
+import org.apache.ambari.server.orm.entities.HostStateEntity;
+import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity;
+import org.apache.ambari.server.state.AgentVersion;
+import org.apache.ambari.server.state.Alert;
+import org.apache.ambari.server.state.AlertState;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.ConfigFactory;
+import org.apache.ambari.server.state.DesiredConfig;
+import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.HostHealthStatus;
+import org.apache.ambari.server.state.HostState;
+import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponent;
+import org.apache.ambari.server.state.ServiceComponentFactory;
+import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.ServiceComponentHostFactory;
+import org.apache.ambari.server.state.ServiceFactory;
+import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.host.HostHealthyHeartbeatEvent;
 import org.apache.ambari.server.state.host.HostRegistrationRequestEvent;
@@ -573,6 +598,39 @@ public class ClusterTest {
     c1.setProvisioningState(State.INSTALLED);
     Assert.assertEquals(State.INSTALLED,
         c1.getProvisioningState());    
+  }
+  
+  @Test
+  public void testAlertUpdates() {
+    
+    Set<Alert> alerts = new HashSet<Alert>();
+    alerts.add(new Alert("alert_1", "instance1", "service", "component", "host1", AlertState.OK));
+    alerts.add(new Alert("alert_1", "instance2", "service", "component", "host1", AlertState.OK));
+    
+    c1.addAlerts(alerts);
+    
+    Collection<Alert> result = c1.getAlerts();
+    assertEquals(2, result.size());
+    for (Alert a : result) {
+      assertEquals("alert_1", a.getName());
+    }
+    
+    // add an alert that removes the previous 2 with the same name
+    alerts = new HashSet<Alert>();
+    alerts.add(new Alert("alert_1", null, "service", "component", "host1", AlertState.WARNING));
+    c1.addAlerts(alerts);
+    
+    result = c1.getAlerts();
+    assertEquals(1, result.size());
+    
+    // add alerts that remove the old type, regardless of instance name
+    alerts = new HashSet<Alert>();    
+    alerts.add(new Alert("alert_1", "instance1", "service", "component", "host1", AlertState.OK));
+    alerts.add(new Alert("alert_1", "instance2", "service", "component", "host1", AlertState.OK));
+    c1.addAlerts(alerts);
+    
+    result = c1.getAlerts();
+    assertEquals(2, result.size());
   }
 
 }

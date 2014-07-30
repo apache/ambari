@@ -164,17 +164,12 @@ public class Alert {
   }
 
   
-  
   @Override
   public int hashCode() {
-    int result = 0;
-    
-    result += (null != name) ? name.hashCode() : 0;
+    int result = alertHashCode();
+
     result += 31 * result + (null != instance ? instance.hashCode() : 0);
-    result += 31 * result + (null != service ? service.hashCode() : 0);
-    result += 31 * result + (null != component ? component.hashCode() : 0);
-    result += 31 * result + (null != host ? host.hashCode() : 0);
-    
+
     return result;
   }
 
@@ -186,9 +181,34 @@ public class Alert {
   public boolean equals(Object o) {
     if (null == o || !Alert.class.isInstance(o))
       return false;
-    
+
     return hashCode() == o.hashCode();
   }
+
+  /**
+   * @return the hashcode of the alert without instance info
+   */
+  private int alertHashCode() {
+    int result = (null != name) ? name.hashCode() : 0;
+    result += 31 * result + (null != service ? service.hashCode() : 0);
+    result += 31 * result + (null != component ? component.hashCode() : 0);
+    result += 31 * result + (null != host ? host.hashCode() : 0);
+
+    return result;
+  }
+
+  /**
+   * Checks equality with another alert, not taking into account instance info
+   * 
+   * @param that
+   *          the other alert to compare against
+   * @return <code>true</code> when the alert is equal in every way except the
+   *         instance info
+   */
+  public boolean almostEquals(Alert that) {
+    return alertHashCode() == that.alertHashCode();
+  }
+  
   
   @Override
   public String toString() {

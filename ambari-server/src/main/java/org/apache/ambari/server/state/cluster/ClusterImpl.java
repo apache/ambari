@@ -72,6 +72,8 @@ import org.apache.ambari.server.state.scheduler.RequestExecution;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 import org.apache.ambari.server.controller.ServiceConfigVersionResponse;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.Predicate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -1838,13 +1840,24 @@ public class ClusterImpl implements Cluster {
   public void addAlerts(Collection<Alert> alerts) {
     try {
       writeLock.lock();
-      if (LOG.isDebugEnabled()) {
-        for (Alert alert : alerts) {
+      
+      for (final Alert alert : alerts) {
+        if (clusterAlerts.size() > 0) {
+          CollectionUtils.filter(clusterAlerts, new Predicate() {
+            @Override
+            public boolean evaluate(Object obj) {
+              Alert collectedAlert = (Alert) obj;
+              return !collectedAlert.almostEquals(alert);
+            }
+          });
+        }
+        
+        if (LOG.isDebugEnabled()) {
           LOG.debug("Adding alert for name={} service={}, on host={}",
               alert.getName(), alert.getService(), alert.getHost());
         }
       }
-      clusterAlerts.removeAll(alerts);
+
       clusterAlerts.addAll(alerts);
 
     } finally {

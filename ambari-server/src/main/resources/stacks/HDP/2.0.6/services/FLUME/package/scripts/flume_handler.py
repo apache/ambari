@@ -20,6 +20,7 @@ limitations under the License.
 from resource_management import *
 from flume import flume
 from flume import flume_status
+from flume import find_expected_agent_names
 
 class FlumeHandler(Script):
   def install(self, env):
@@ -61,20 +62,28 @@ class FlumeHandler(Script):
     json['processes'] = processes
     json['alerts'] = []
 
-    for proc in processes:
+    if len(processes) == 0 and len(find_expected_agent_names()) == 0:
       alert = {}
       alert['name'] = 'flume_agent'
-      alert['instance'] = proc['name']
       alert['label'] = 'Flume Agent process'
-
-      if not proc.has_key('status') or proc['status'] == 'NOT_RUNNING':
-        alert['state'] = 'CRITICAL'
-        alert['text'] = 'Flume agent {0} not running'.format(proc['name'])
-      else:
-        alert['state'] = 'OK'
-        alert['text'] = 'Flume agent {0} is running'.format(proc['name'])
-
+      alert['state'] = 'WARNING'
+      alert['text'] = 'No agents defined'
       json['alerts'].append(alert)
+    else:
+      for proc in processes:
+        alert = {}
+        alert['name'] = 'flume_agent'
+        alert['instance'] = proc['name']
+        alert['label'] = 'Flume Agent process'
+
+        if not proc.has_key('status') or proc['status'] == 'NOT_RUNNING':
+          alert['state'] = 'CRITICAL'
+          alert['text'] = 'Flume agent {0} not running'.format(proc['name'])
+        else:
+          alert['state'] = 'OK'
+          alert['text'] = 'Flume agent {0} is running'.format(proc['name'])
+
+        json['alerts'].append(alert)
 
     self.put_structured_out(json)
 
