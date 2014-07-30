@@ -78,14 +78,9 @@ App.ServiceConfigView = Em.View.extend({
     }
 
     if (controller.get('selectedConfigGroup')) {
-      if (controller.get('selectedConfigGroup').isDefault) {
-        controller.get('selectedService.configCategories').filterProperty('siteFileName').forEach(function (config) {
-          config.set('customCanAddProperty', config.get('canAddProperty'));
-        });
-      }
-      else {
-        controller.get('selectedService.configCategories').filterProperty('siteFileName').setEach('customCanAddProperty', false);
-      }
+      controller.get('selectedService.configCategories').filterProperty('siteFileName').forEach(function (config) {
+        config.set('customCanAddProperty', config.get('canAddProperty'));
+      });
     }
 
   }.observes(
@@ -468,6 +463,7 @@ App.ServiceConfigsByCategoryView = Ember.View.extend(App.UserPref, {
   showAddPropertyWindow: function () {
     var persistController = this;
     var modePersistKey = this.persistKey();
+    var selectedConfigGroup = this.get('controller.selectedConfigGroup');
 
     persistController.getUserPref(modePersistKey).pipe(function (data) {
       return !!data;
@@ -521,7 +517,9 @@ App.ServiceConfigsByCategoryView = Ember.View.extend(App.UserPref, {
           supportsFinal: supportsFinal,
           filename: siteFileName || '',
           isUserProperty: true,
-          isNotSaved: true
+          isNotSaved: true,
+          group: selectedConfigGroup.get('isDefault') ? null : selectedConfigGroup,
+          isOverridable: selectedConfigGroup.get('isDefault')
         }));
       }
 

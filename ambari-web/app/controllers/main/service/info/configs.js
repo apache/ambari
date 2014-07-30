@@ -652,7 +652,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   },
 
   /**
-   * create {Em.Object}service_cfg_property based on {Object}_serviceConfigProperty and additional info
+   * create {Em.Object} service_cfg_property based on {Object}_serviceConfigProperty and additional info
    * @param {Object} _serviceConfigProperty - config object
    * @param {Boolean} defaultGroupSelected - true if selected cfg group is default
    * @param {Object} serviceConfigsData - service cfg object
@@ -664,7 +664,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     if (!_serviceConfigProperty) return null;
     var overrides = _serviceConfigProperty.overrides;
     // we will populate the override properties below
-    _serviceConfigProperty.overrides = null;
+    Em.set(_serviceConfigProperty, 'overrides', null);
     _serviceConfigProperty.isOverridable = Em.isNone(_serviceConfigProperty.isOverridable) ? true : _serviceConfigProperty.isOverridable;
 
     var serviceConfigProperty = App.ServiceConfigProperty.create(_serviceConfigProperty);
@@ -735,8 +735,10 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    */
   setEditability: function (serviceConfigProperty, defaultGroupSelected) {
     serviceConfigProperty.set('isEditable', false);
-    if (App.get('isAdmin') && defaultGroupSelected && !this.get('isHostsConfigsPage')) {
+    if (App.get('isAdmin') && defaultGroupSelected && !this.get('isHostsConfigsPage') && !serviceConfigProperty.get('group')) {
       serviceConfigProperty.set('isEditable', serviceConfigProperty.get('isReconfigurable') && !serviceConfigProperty.get('isComparison'));
+    } else if (serviceConfigProperty.get('group') && this.get('selectedConfigGroup.name') === serviceConfigProperty.get('group.name')) {
+      serviceConfigProperty.set('isEditable', true);
     }
   },
 
@@ -797,7 +799,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   },
 
   /**
-   * create new overiden property and set approperiate fields
+   * create new overridden property and set appropriate fields
    * @param override
    * @param _serviceConfigProperty
    * @param serviceConfigProperty
@@ -916,12 +918,13 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   saveConfigs: function () {
     var selectedConfigGroup = this.get('selectedConfigGroup');
     var configs = this.get('stepConfigs').findProperty('serviceName', this.get('content.serviceName')).get('configs');
+    var self = this;
 
     if (selectedConfigGroup.get('isDefault')) {
       if (this.get('content.serviceName') === 'YARN' && !App.supports.capacitySchedulerUi) {
         configs = App.config.textareaIntoFileConfigs(configs, 'capacity-scheduler.xml');
       }
-      this.saveSiteConfigs(configs);
+      this.saveSiteConfigs(configs.filterProperty('group', null));
 
       /**
        * First we put cluster configurations, which automatically creates /configurations
@@ -934,6 +937,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       configs.filterProperty('isOverridden', true).forEach(function (config) {
         overridenConfigs = overridenConfigs.concat(config.get('overrides'));
       });
+      // find custom original properties that assigned to selected config group
+      overridenConfigs = overridenConfigs.concat(configs.filterProperty('group')
+        .filter(function(config) { return config.get('group.name') == self.get('selectedConfigGroup.name'); }));
       this.formatConfigValues(overridenConfigs);
       selectedConfigGroup.get('hosts').forEach(function (hostName) {
         groupHosts.push({"host_name": hostName});
@@ -2255,7 +2261,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   },
 
   /**
-   * If user chabges cfg group if some configs was changed popup with propose to save changes must be shown
+   * If user changes cfg group if some configs was changed popup with propose to save changes must be shown
    * @param {object} event - triggered event for selecting another config-group
    * @method selectConfigGroup
    */

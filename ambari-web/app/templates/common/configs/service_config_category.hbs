@@ -29,20 +29,20 @@
         <div {{bindAttr class=":entry-row isOverridden:overridden-property isComparison:overridden-property"}}>
           {{#if showLabel}}
             <span {{bindAttr class="errorMessage:error: :control-group :control-label-span"}}>
-                              <label class="control-label">
-                                {{formatWordBreak displayName}}
-                                {{#if App.supports.secureCluster}}
-                                  {{#if isSecureConfig}}
-                                    <a href="javascript:void(null);"><i class="icon-lock" rel="tooltip" data-toggle="tooltip" title="security knob"></i></a>
-                                  {{/if}}
-                                {{/if}}
-                                {{#if view.supportsHostOverrides}}
-                                  {{#if isRestartRequired}}
-                                    <i class="icon-refresh restart-required-property" rel="tooltip" {{bindAttr title="restartRequiredMessage"}}></i>
-                                  {{/if}}
-                                {{/if}}
-                              </label>
-                            </span>
+              <label class="control-label">
+                {{formatWordBreak displayName}}
+                {{#if App.supports.secureCluster}}
+                  {{#if isSecureConfig}}
+                    <a href="javascript:void(null);"><i class="icon-lock" rel="tooltip" data-toggle="tooltip" title="security knob"></i></a>
+                  {{/if}}
+                {{/if}}
+                {{#if view.supportsHostOverrides}}
+                  {{#if isRestartRequired}}
+                    <i class="icon-refresh restart-required-property" rel="tooltip" {{bindAttr title="restartRequiredMessage"}}></i>
+                  {{/if}}
+                {{/if}}
+              </label>
+            </span>
           {{/if}}
           <div {{bindAttr class="showLabel:controls"}}>
             {{! Here serviceConfigBinding should ideally be serviceConfigPropertyBinding }}
@@ -69,6 +69,13 @@
                 {{#if supportsFinal}}
                   <label class="checkbox inline">{{view Ember.Checkbox checkedBinding="isFinal"}}{{t services.service.config.final}}</label>
                 {{/if}}
+                {{#unless isEditable}}
+                  {{#if group}}
+                    <a rel='SwitchGroupTooltip' {{bindAttr data-original-title="this.group.switchGroupTextShort"}} class="action" {{action selectConfigGroup group target="controller"}}>
+                      {{group.switchGroupTextShort}}
+                    </a>
+                  {{/if}}
+                {{/unless}}
               {{/if}}
               <span class="help-inline">{{errorMessage}}</span>
               <span class="help-inline">{{warnMessage}}</span>

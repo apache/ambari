@@ -78,6 +78,21 @@ App.config = Em.Object.create({
   },
 
   preDefinedServiceConfigs: [],
+  /**
+   *
+   * Returns file name version that stored on server.
+   *
+   * Example:
+   *   App.config.getOriginalFileName('core-site') // returns core-site.xml
+   *   App.config.getOriginalFileName('zoo.cfg') // returns zoo.cfg
+   *
+   * @param {String} fileName
+   * @method getOriginalFileName
+   **/
+  getOriginalFileName: function(fileName) {
+    if (/\.xml$/.test(fileName)) return fileName;
+    return this.get('filenameExceptions').contains(fileName) ? fileName : fileName + '.xml';
+  },
 
   setPreDefinedServiceConfigs: function () {
     var configs = this.get('preDefinedSiteProperties');
@@ -214,7 +229,7 @@ App.config = Em.Object.create({
           category = _category;
         }
       });
-      category = (category == null) ? configCategories.findProperty('siteFileName', config.filename) : category;
+      category = (category == null) ? configCategories.findProperty('siteFileName', this.getOriginalFileName(config.filename)) : category;
     }
     return category;
   },
@@ -910,24 +925,52 @@ App.config = Em.Object.create({
       var group = params.typeTagToGroupMap[config.type + "///" + config.tag];
       var properties = config.properties;
       for (var prop in properties) {
-        var serviceConfig = params.configKeyToConfigMap[config.type + ".xml"][prop];
+        var fileName = this.getOriginalFileName(config.type);
+        var serviceConfig = !!params.configKeyToConfigMap[fileName] ? params.configKeyToConfigMap[fileName][prop] : false;
         var hostOverrideValue = properties[prop];
         this.formatOverrideValue(serviceConfig, hostOverrideValue);
         if (serviceConfig) {
           // Value of this property is different for this host.
-          var overrides = 'overrides';
-          if (!(overrides in serviceConfig)) {
-            serviceConfig.overrides = [];
-          }
-          if (!serviceConfig.overrides) {
-            serviceConfig.set('overrides', []);
-          }
+          if (!Em.get(serviceConfig, 'overrides')) Em.set(serviceConfig, 'overrides', []);
           console.log("loadServiceConfigGroupOverridesSuccess(): [" + group + "] OVERRODE(" + serviceConfig.name + "): " + serviceConfig.value + " -> " + hostOverrideValue);
-          serviceConfig.overrides.push({value: hostOverrideValue, group: group});
+          serviceConfig.overrides.pushObject({value: hostOverrideValue, group: group});
+        } else {
+          params.serviceConfigs.push(this.createCustomGroupConfig(prop, config, group));
         }
       }
     }, this);
     params.callback.call(params.sender, params.serviceConfigs);
+  },
+  /**
+   * Create config with non default config group. Some custom config properties
+   * can be created and assigned to non-default config group.
+   *
+   * @param {String} propertyName - name of the property
+   * @param {Object} config - config info
+   * @param {Em.Object} group - config group to set
+   * @return {Object}
+   **/
+  createCustomGroupConfig: function(propertyName, config, group) {
+    var propertyValue = config.properties[propertyName];
+    var propertyObject = {
+      name: propertyName,
+      displayName: propertyName,
+      defaultValue: propertyValue,
+      value: propertyValue,
+      displayType: stringUtils.isSingleLine(propertyValue) ? 'advanced' : 'multiLine',
+      isSecureConfig: false,
+      group: group,
+      id: 'site property',
+      serviceName: group.get('service.serviceName'),
+      filename: config.type,
+      isUserProperty: true,
+      isVisible: true,
+      isOverridable: false
+    };
+    propertyObject.category = this.identifyCategory(propertyObject).name;
+    group.set('switchGroupTextShort', Em.I18n.t('services.service.config_groups.switchGroupTextShort').format(group.get('name')));
+    group.set('switchGroupTextFull', Em.I18n.t('services.service.config_groups.switchGroupTextFull').format(group.get('name')));
+    return App.ServiceConfigProperty.create(propertyObject);
   },
   /**
    * format value of override of config

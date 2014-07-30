@@ -335,7 +335,17 @@ App.WizardStep8Controller = Em.Controller.extend({
     });
     var mappedConfigs = App.config.excludeUnsupportedConfigs(this.get('configMapping'), this.get('selectedServices').mapProperty('serviceName'));
     var uiConfigs = this.loadUiSideConfigs(mappedConfigs);
-    this.set('configs', configs.concat(uiConfigs));
+    var customGroupConfigs = [];
+    var allConfigs = configs.concat(uiConfigs).filter(function(config) {
+      if (config.group) {
+        customGroupConfigs.push(config);
+        return false;
+      } else {
+        return true;
+      }
+    });
+    this.set('customNonDefaultGroupConfigs', customGroupConfigs);
+    this.set('configs', allConfigs);
   },
 
   /**
@@ -1467,6 +1477,8 @@ App.WizardStep8Controller = Em.Controller.extend({
       configGroup.hosts.forEach(function (hostName) {
         groupData.hosts.push({"host_name": hostName});
       });
+      // get properties that was created for non-default config group
+      configGroup.properties = configGroup.properties.concat(this.get('customNonDefaultGroupConfigs').filterProperty('group', configGroup.name));
       //wrap properties into Em.Object to make them compatible with buildGroupDesiredConfigs method
       configGroup.properties.forEach(function (property) {
         groupConfigs.push(Em.Object.create(property));
