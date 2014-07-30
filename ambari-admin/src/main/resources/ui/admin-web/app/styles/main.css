@@ -76,3 +76,11 @@ table.no-border tr td{
   border-top: none;
   vertical-align: middle;
 }
+
+.group-edit .users button.close{
+  float: none;
+  -webkit-transform: translateY(1px);
+  -ms-transform: translateY(1px);
+  -o-transform: translateY(1px);
+  transform: translateY(1px);
+}

@@ -54,8 +54,8 @@ angular.module('ambariAdminConsole')
     },
     edit: {
       url: '/groups/:id/edit',
-      templateUrl: 'views/groups/create.html',
-      controller: 'GroupsCreateCtrl'
+      templateUrl: 'views/groups/edit.html',
+      controller: 'GroupsEditCtrl'
     },
     create: {
       url: '/groups/new',

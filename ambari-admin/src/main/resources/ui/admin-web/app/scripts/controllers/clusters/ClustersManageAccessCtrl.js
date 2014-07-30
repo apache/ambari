@@ -42,7 +42,6 @@ angular.module('ambariAdminConsole')
     for(var i=0, max = obj.length; i < max; i++){
       item = obj[i];
       if(item != false && result.indexOf(item) < 0){
-
         result.push(item);
       }
     }

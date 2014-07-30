@@ -22,6 +22,9 @@ angular.module('ambariAdminConsole', [
   'ui.bootstrap',
   'restangular'
 ])
+.constant('Settings',{
+	baseUrl: '/api/v1'
+})
 .config(['RestangularProvider', '$httpProvider', function(RestangularProvider, $httpProvider) {
   // Config Ajax-module
   RestangularProvider.setBaseUrl('/api/v1');
@@ -29,4 +32,7 @@ angular.module('ambariAdminConsole', [
 
   $httpProvider.defaults.headers.post['Content-Type'] = 'plain/text';
   $httpProvider.defaults.headers.put['Content-Type'] = 'plain/text';
+  $httpProvider.defaults.headers.post['X-Requested-By'] = 'ambari';
+  $httpProvider.defaults.headers.put['X-Requested-By'] = 'ambari';
+  $httpProvider.defaults.headers.common['X-Requested-By'] = 'ambari';
 }]);

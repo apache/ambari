@@ -19,7 +19,7 @@
   <div class="clearfix">
     <h3 class="pull-left">Groups management</h3>
     <div class="pull-right top-buffer">
-      <a href="#{{ROUTES.groups.new}}" class="btn btn-primary"><span class="glyphicon glyphicon-plus"></span> Create Local Group</a>
+      <link-to route="groups.create" class="btn btn-primary"><span class="glyphicon glyphicon-plus"></span> Create Local Group</link-to>
       <button class="btn btn-default ">Sync LDAP</button>
     </div>
   </div>
@@ -34,25 +34,12 @@
       </tr>
     </thead>
     <tbody>
-      <tr>
-        <td>operators</td>
-        <td>Local</td>
+      <tr ng-repeat="group in groups">
+        <td>{{group.group_name}}</td>
+        <td>{{group.ldap_group ? 'LDAP' : 'Local'}}</td>
+        <td>{{group.members.length}} {{group.members.length === 1 ? 'member' : 'members'}}</td>
         <td>
-          <ul>
-            <li>v 2 members</li>
-            <li>admin</li>
-            <li>usaku</li>
-          </ul>
-        </td>
-        <td>
-          <a href="" class="btn btn-default">edit</a> <a href="" class="btn btn-danger">delete</a>
-        </td>
-      </tr>
-      <tr>
-        <td>sysadmins</td>
-        <td>LDAP</td>
-        <td>> 20 members</td>
-        <td><a href="" class="btn btn-default">edit</a> <a href="" class="btn btn-danger">delete</a></td>
+          <link-to route="groups.edit" id="{{group.group_name}}"class="btn btn-default">Edit</link-to> <a href class="btn btn-danger" ng-click="deleteGroup(group)">delete</a></td>
       </tr>
     </tbody>
   </table>

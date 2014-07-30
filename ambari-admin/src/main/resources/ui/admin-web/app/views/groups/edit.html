@@ -1,0 +1,50 @@
+<!--
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+-->
+<h2>Edit {{group.group_name}}</h2>
+<hr>
+<form class="form-horizontal group-edit" role="form" novalidate name="form">
+  <div class="form-group" ng-class="{'has-error' : form.user_name.$error.required && form.submitted}">
+    <label for="groupname" class="col-sm-2 control-label">Group name:</label>
+    <div class="col-sm-10">
+      <input type="text" id="groupname" class="form-control" disabled="disabled" name="group_name" placeholder="User name" ng-model="group.group_name" required>
+    </div>
+  </div>
+  <div class="form-group">
+    <label for="" class="col-sm-2 control-label">Users</label>
+    <div class="col-sm-10">
+      <div ng-switch="editMode">
+        <div class="well users" ng-switch-when="false">
+          <span ng-repeat="member in group.members" >
+            <link-to route='users.show' id="{{member}}">
+              {{member}}
+            </link-to>
+            <button type="button" class="close" ng-click="removeMember(member)"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            {{$last ? '' : ', '}}
+          </span>
+        </div>
+        <div ng-switch-when="true">
+          <textarea class="form-control bottom-margin" id=""  ng-model="group.editingUsers"></textarea>
+        </div>
+        
+      </div>
+        
+
+      <button class="btn btn-primary pull-right" ng-click="toggleEditMode()"><span class="glyphicon {{editMode ? 'glyphicon-save' : 'glyphicon-pencil'}}"></span> {{editMode ? 'Save': 'Edit'}}</button>
+    </div>
+  </div>
+</form>
