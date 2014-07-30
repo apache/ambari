@@ -288,6 +288,11 @@ public class StackExtensionHelper {
     result.setConfigDependencies(
         child.getConfigDependencies() != null ?
             child.getConfigDependencies() : parent.getConfigDependencies());
+    // Merge custom command definitions for service
+    List<CustomCommandDefinition> mergedCustomCommands =
+                mergeCustomCommandLists(parent.getCustomCommands(),
+                            child.getCustomCommands());
+    result.setCustomCommands(mergedCustomCommands);
 
     if (category != null) {
       result.setCategory(child.getCategory());
