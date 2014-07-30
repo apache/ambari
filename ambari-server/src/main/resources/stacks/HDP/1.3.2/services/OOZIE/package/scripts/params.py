@@ -73,7 +73,7 @@ oozie_env_sh_template = config['configurations']['oozie-env']['content']
 if jdbc_driver_name == "com.mysql.jdbc.Driver":
   jdbc_driver_jar = "/usr/share/java/mysql-connector-java.jar"
 elif jdbc_driver_name == "org.postgresql.Driver":
-  jdbc_driver_jar = "/usr/lib/oozie/libserver/postgresql-9.0-801.jdbc4.jar"
+  jdbc_driver_jar = "/usr/lib/oozie/libtools/postgresql-9.0-801.jdbc4.jar"
 elif jdbc_driver_name == "oracle.jdbc.driver.OracleDriver":
   jdbc_driver_jar = "/usr/share/java/ojdbc6.jar"
 else:

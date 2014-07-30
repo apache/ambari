@@ -31,7 +31,9 @@ class TestOozieServer(RMFTestCase):
     self.assertNoMoreResources()
 
 
-  def test_start_default(self):
+  @patch("os.path.isfile")
+  def test_start_default(self, isfile_mock):
+    isfile_mock.return_value = True
     self.executeScript("2.0.6/services/OOZIE/package/scripts/oozie_server.py",
                          classname = "OozieServer",
                          command = "start",
@@ -75,8 +77,9 @@ class TestOozieServer(RMFTestCase):
     self.assert_configure_secured()
     self.assertNoMoreResources()
 
-
-  def test_start_secured(self):
+  @patch("os.path.isfile")
+  def test_start_secured(self, isfile_mock):
+    isfile_mock.return_value = True
     self.executeScript("2.0.6/services/OOZIE/package/scripts/oozie_server.py",
                          classname = "OozieServer",
                          command = "start",
