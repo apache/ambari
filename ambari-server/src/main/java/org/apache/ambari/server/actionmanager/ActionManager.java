@@ -219,4 +219,9 @@ public class ActionManager {
   public String getRequestContext(long requestId) {
     return db.getRequestContext(requestId);
   }
+
+  public void cancelRequest(Request request) {
+    // TODO: implement (dlysnichenko)
+    // TODO : what if cluster name == null?
+  }
 }

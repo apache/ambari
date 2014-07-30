@@ -123,6 +123,7 @@
         "Requests/completed_task_count",
         "Requests/queued_task_count",
         "Requests/progress_percent",
+        "Requests/abort_reason",
         "_"
     ],
     "RequestSchedule" : [

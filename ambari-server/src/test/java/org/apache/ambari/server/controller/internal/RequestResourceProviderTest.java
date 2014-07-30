@@ -760,14 +760,33 @@ public class RequestResourceProviderTest {
   }
 
   @Test
-  public void testUpdateResources() throws Exception {
+  public void testUpdateResources_CancelRequest() throws Exception {
     Resource.Type type = Resource.Type.Request;
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    ActionManager actionManager = createNiceMock(ActionManager.class);
+    HostRoleCommand hostRoleCommand = createNiceMock(HostRoleCommand.class);
+    Clusters clusters = createNiceMock(Clusters.class);
+
+    List<HostRoleCommand> hostRoleCommands = new LinkedList<HostRoleCommand>();
+    hostRoleCommands.add(hostRoleCommand);
+
+    org.apache.ambari.server.actionmanager.Request requestMock =
+            createNiceMock(org.apache.ambari.server.actionmanager.Request.class);
+    expect(requestMock.getCommands()).andReturn(hostRoleCommands).anyTimes();
+
+    Capture<Collection<Long>> requestIdsCapture = new Capture<Collection<Long>>();
+
+    // set expectations
+    expect(managementController.getActionManager()).andReturn(actionManager).anyTimes();
+    expect(actionManager.getRequests(capture(requestIdsCapture))).
+            andReturn(Collections.singletonList(requestMock)).anyTimes();
+    expect(hostRoleCommand.getStatus()).andReturn(HostRoleStatus.IN_PROGRESS).anyTimes();
+
     RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
 
     // replay
-    replay(managementController, response);
+    replay(managementController, actionManager, hostRoleCommand, clusters, requestMock, response);
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         type,
@@ -775,22 +794,65 @@ public class RequestResourceProviderTest {
         PropertyHelper.getKeyPropertyIds(type),
         managementController);
 
+    // TEST CASE: Check update request validation (abort reason not specified)
     // add the property map to a set for the request.
     Map<String, Object> properties = new LinkedHashMap<String, Object>();
-
     // create the request
     Request request = PropertyHelper.getUpdateRequest(properties, null);
-
     Predicate predicate = new PredicateBuilder().property(RequestResourceProvider.REQUEST_ID_PROPERTY_ID).
-        equals("Request100").toPredicate();
+        equals("100").toPredicate();
 
     try {
       provider.updateResources(request, predicate);
-      Assert.fail("Expected an UnsupportedOperationException");
-    } catch (UnsupportedOperationException e) {
+      Assert.fail("Expected an java.lang.IllegalArgumentException: Abort reason can not be empty.");
+    } catch (IllegalArgumentException e) {
       // expected
     }
 
+    // Add abort reason to previous request
+    properties.put(RequestResourceProvider.REQUEST_ABORT_REASON_PROPERTY_ID, "Some reason");
+
+    // TEST CASE: Check update request validation (new state is not specified)
+    request = PropertyHelper.getUpdateRequest(properties, null);
+    try {
+      provider.updateResources(request, predicate);
+      Assert.fail("Expected an java.lang.IllegalArgumentException: null is wrong value.");
+    } catch (IllegalArgumentException e) {
+      // expected
+    }
+
+    // TEST CASE: Check update request validation (new state is wrong)
+    properties.put(RequestResourceProvider.REQUEST_STATUS_PROPERTY_ID, "COMPLETED");
+    request = PropertyHelper.getUpdateRequest(properties, null);
+    try {
+      provider.updateResources(request, predicate);
+      Assert.fail("Expected an java.lang.IllegalArgumentException: COMPLETED is wrong value. " +
+              "The only allowed value for updating request status is ABORTED");
+    } catch (IllegalArgumentException e) {
+      // expected
+    }
+
+    // TEST CASE: Check update request validation (request is in wrong state)
+    // Put valid request status
+    properties.put(RequestResourceProvider.REQUEST_STATUS_PROPERTY_ID, "ABORTED");
+    for (HostRoleStatus status : HostRoleStatus.values()) {
+      reset(hostRoleCommand);
+      expect(hostRoleCommand.getStatus()).andReturn(status).anyTimes();
+      replay(hostRoleCommand);
+      request = PropertyHelper.getUpdateRequest(properties, null);
+      if (status == HostRoleStatus.IN_PROGRESS ||
+              status == HostRoleStatus.PENDING ||
+              status == HostRoleStatus.QUEUED) { // the only valid cases
+        provider.updateResources(request, predicate);
+      } else {  // In other cases, should error out
+        try {
+          provider.updateResources(request, predicate);
+          Assert.fail("Expected an java.lang.IllegalArgumentException: null is wrong value.");
+        } catch (IllegalArgumentException e) {
+          // expected
+        }
+      }
+    }
     // verify
     verify(managementController, response);
   }

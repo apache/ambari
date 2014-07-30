@@ -24,6 +24,7 @@ import org.apache.ambari.server.controller.spi.Resource;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -101,6 +102,23 @@ public class RequestService extends BaseService {
   @Path("{requestId}/tasks")
   public TaskService getTaskHandler(@PathParam("requestId") String requestId) {
     return new TaskService(m_clusterName, requestId);
+  }
+
+  /**
+   * Handles: PUT /clusters/{clusterId}/requests/{requestId} or /requests/{requestId}
+   * Change state of existing requests. Usually used to cancel running requests
+   *
+   * @param body        http body
+   * @param headers     http headers
+   * @param ui          uri info
+   * @return information regarding the created services
+   */
+  @PUT
+  @Path("{requestId}")
+  @Produces("text/plain")
+  public Response updateRequests(String body, @Context HttpHeaders headers, @Context UriInfo ui,
+                                 @PathParam("requestId") String requestId) {
+    return handleRequest(headers, body, ui, Request.Type.PUT, createRequestResource(m_clusterName, requestId));
   }
 
   /**
