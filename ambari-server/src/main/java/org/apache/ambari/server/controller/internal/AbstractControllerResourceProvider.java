@@ -150,6 +150,8 @@ public abstract class AbstractControllerResourceProvider extends AbstractResourc
         return new RecommendationResourceProvider(propertyIds, keyPropertyIds, managementController);
       case AlertDefinition:
         return new AlertDefinitionResourceProvider(propertyIds, keyPropertyIds, managementController);
+      case Controller:
+        return new ControllerResourceProvider(propertyIds, keyPropertyIds, managementController);
       default:
         throw new IllegalArgumentException("Unknown type " + type);
     }

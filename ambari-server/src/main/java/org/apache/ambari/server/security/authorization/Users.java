@@ -185,6 +185,38 @@ public class Users {
   }
 
   /**
+   * Converts user to LDAP user.
+   *
+   * @param userName user name
+   * @throws AmbariException if user does not exist
+   */
+  public synchronized void setUserLdap(String userName) throws AmbariException {
+    UserEntity userEntity = userDAO.findLocalUserByName(userName);
+    if (userEntity != null) {
+      userEntity.setLdapUser(true);
+      userDAO.merge(userEntity);
+    } else {
+      throw new AmbariException("User " + userName + " doesn't exist or is already an LDAP user");
+    }
+  }
+
+  /**
+   * Converts group to LDAP group.
+   *
+   * @param groupName group name
+   * @throws AmbariException if group does not exist
+   */
+  public synchronized void setGroupLdap(String groupName) throws AmbariException {
+    GroupEntity groupEntity = groupDAO.findGroupByName(groupName);
+    if (groupEntity != null) {
+      groupEntity.setLdapGroup(true);
+      groupDAO.merge(groupEntity);
+    } else {
+      throw new AmbariException("Group " + groupName + " doesn't exist");
+    }
+  }
+
+  /**
    * Creates new local user with provided userName and password
    */
   @Transactional
