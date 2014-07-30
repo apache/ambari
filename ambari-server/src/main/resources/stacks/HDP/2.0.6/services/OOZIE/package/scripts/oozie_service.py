@@ -39,7 +39,7 @@ def oozie_service(action = 'start'): # 'start' or 'stop'
     cmd1 =  format("cd {oozie_tmp_dir} && /usr/lib/oozie/bin/ooziedb.sh create -sqlfile oozie.sql -run")
     cmd2 =  format("{kinit_if_needed} hadoop dfs -put /usr/lib/oozie/share {oozie_hdfs_user_dir} ; hadoop dfs -chmod -R 755 {oozie_hdfs_user_dir}/share")
 
-    if not os.path.isfile(params.jdbc_driver_jar):
+    if not os.path.isfile(params.jdbc_driver_jar) and params.jdbc_driver_name == "org.postgresql.Driver":
       print "ERROR: jdbc file " + params.jdbc_driver_jar + " is unavailable. Please, follow next steps:\n" \
         "1) Download postgresql-9.0-801.jdbc4.jar.\n2) Create needed directory: mkdir -p /usr/lib/oozie/libserver/\n" \
         "3) Copy postgresql-9.0-801.jdbc4.jar to newly created dir: cp /path/to/jdbc/postgresql-9.0-801.jdbc4.jar " \
