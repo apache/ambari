@@ -50,7 +50,7 @@ App.ApplicationController = Em.Controller.extend(App.UserPref, {
   dataLoading: function () {
     var dfd = $.Deferred();
     var self = this;
-    this.getUserPref(this.persistKey()).done(function () {
+    this.getUserPref(this.persistKey()).complete(function () {
       var curPref = self.get('currentPrefObject');
       self.set('currentPrefObject', null);
       dfd.resolve(curPref);
