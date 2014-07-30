@@ -45,7 +45,7 @@ def installAgent(projectVersion):
   """ Run install and make sure the agent install alright """
   # The command doesn't work with file mask ambari-agent*.rpm, so rename it on agent host
   if OSCheck.is_suse_family():
-    Command = ["zypper", "install", "-y", "ambari-agent-" + projectVersion]
+    Command = ["zypper", "--no-gpg-checks", "install", "-y", "ambari-agent-" + projectVersion]
   elif OSCheck.is_debian_family():
     # add * to end of version in case of some test releases
     Command = ["apt-get", "install", "-y", "--allow-unauthenticated", "ambari-agent=" + projectVersion + "*"]
@@ -101,7 +101,7 @@ def findNearestAgentPackageVersion(projectVersion):
   if projectVersion == "":
     projectVersion = "  "
   if OSCheck.is_suse_family():
-    Command = ["bash", "-c", "zypper -q search -s --match-exact ambari-agent | grep '" + projectVersion +
+    Command = ["bash", "-c", "zypper --no-gpg-checks -q search -s --match-exact ambari-agent | grep '" + projectVersion +
                                  "' | cut -d '|' -f 4 | head -n1 | sed -e 's/-\w[^:]*//1' "]
   elif OSCheck.is_debian_family():
     if projectVersion == "  ":
@@ -130,7 +130,7 @@ def isAgentPackageAlreadyInstalled(projectVersion):
 def getAvaliableAgentPackageVersions():
   if OSCheck.is_suse_family():
     Command = ["bash", "-c",
-        "zypper -q search -s --match-exact ambari-agent | grep ambari-agent | sed -re 's/\s+/ /g' | cut -d '|' -f 4 | tr '\\n' ', ' | sed -s 's/[-|~][A-Za-z0-9]*//g'"]
+        "zypper --no-gpg-checks -q search -s --match-exact ambari-agent | grep ambari-agent | sed -re 's/\s+/ /g' | cut -d '|' -f 4 | tr '\\n' ', ' | sed -s 's/[-|~][A-Za-z0-9]*//g'"]
   elif OSCheck.is_debian_family():
     Command = ["bash", "-c",
         "apt-cache -q show ambari-agent|grep 'Version\:'|cut -d ' ' -f 2| tr '\\n' ', '|sed -s 's/[-|~][A-Za-z0-9]*//g'"]
