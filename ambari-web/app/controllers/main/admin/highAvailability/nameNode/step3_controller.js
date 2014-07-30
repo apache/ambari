@@ -25,6 +25,7 @@ App.HighAvailabilityWizardStep3Controller = Em.Controller.extend({
   serverConfigData: {},
   haConfig: $.extend(true, {}, require('data/HDP2/ha_properties').haConfig),
   once: false,
+  isLoaded: false,
 
   clearStep: function () {
     this.get('stepConfigs').clear();
@@ -75,6 +76,7 @@ App.HighAvailabilityWizardStep3Controller = Em.Controller.extend({
     this.set('serverConfigData',data);
     this.tweakServiceConfigs(this.get('haConfig.configs'));
     this.renderServiceConfigs(this.get('haConfig'));
+    this.set('isLoaded', true);
   },
 
 
@@ -165,7 +167,11 @@ App.HighAvailabilityWizardStep3Controller = Em.Controller.extend({
       serviceConfigProperty.set('isEditable', serviceConfigProperty.get('isReconfigurable'));
       serviceConfigProperty.validate();
     }, this);
-  }
+  },
+
+  isNextDisabled: function () {
+    return !this.get('isLoaded');
+  }.property('isLoaded')
 
 });
 

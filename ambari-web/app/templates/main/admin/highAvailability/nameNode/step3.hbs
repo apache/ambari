@@ -67,13 +67,15 @@
 
 
 <div id="serviceConfig">
-
+{{#if controller.isLoaded}}
   {{{t admin.highAvailability.wizard.step3.confirm.config.body}}}
-
   {{view App.ServiceConfigView isNotEditableBinding="controller.isNotEditable"}}
+{{else}}
+  <div class="spinner"></div>
+{{/if}}
 </div>
 
 <div class="btn-area">
   <a class="btn" {{action back}}>&larr; {{t common.back}}</a>
-  <a class="btn btn-success pull-right" {{action next}}>{{t common.next}} &rarr;</a>
+  <a class="btn btn-success pull-right" {{bindAttr disabled="controller.isNextDisabled"}} {{action next}}>{{t common.next}} &rarr;</a>
 </div>
