@@ -18,16 +18,14 @@
 
 package org.apache.ambari.server.state;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlElements;
-
-import org.apache.ambari.server.controller.StackServiceComponentResponse;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @XmlAccessorType(XmlAccessType.FIELD)
 public class ComponentInfo {
@@ -105,16 +103,6 @@ public class ComponentInfo {
     return "MASTER".equals(category);
   }
 
-  public StackServiceComponentResponse convertToResponse() {
-    StackServiceComponentResponse response = new StackServiceComponentResponse(
-        getName(), getCategory(), isClient(), isMaster(), cardinality);
-
-    if (autoDeploy != null) {
-      response.setAutoDeploy(autoDeploy);
-    }
-    return response;
-  }
-
   public boolean isDeleted() {
     return deleted;
   }
@@ -185,6 +173,6 @@ public class ComponentInfo {
   }
 
   public String getCardinality() {
-    return this.cardinality;
+    return cardinality;
   }
 }

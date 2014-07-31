@@ -226,6 +226,8 @@
         "StackServices/comments",
         "StackServices/service_version",
         "StackServices/config_types",
+        "StackServices/service_check_supported",
+        "StackServices/custom_commands",
         "_"
     ],
     "StackConfiguration":[
@@ -248,6 +250,7 @@
         "StackServiceComponents/is_client",
         "StackServiceComponents/is_master",
         "StackServiceComponents/cardinality",
+        "StackServiceComponents/custom_commands",
         "auto_deploy/enabled",
         "auto_deploy/location",
         "_"

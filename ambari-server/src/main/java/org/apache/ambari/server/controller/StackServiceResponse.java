@@ -18,29 +18,51 @@
 
 package org.apache.ambari.server.controller;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+
+import org.apache.ambari.server.state.CustomCommandDefinition;
+import org.apache.ambari.server.state.ServiceInfo;
 
 public class StackServiceResponse {
 
   private String stackName;
   private String stackVersion;
   private String serviceName;
-
   private String userName;
-
   private String comments;
-  
   private String serviceVersion;
-  
+  private boolean serviceCheckSupported;
+  private List<String> customCommands;
+
   private Map<String, Map<String, Map<String, String>>> configTypes;
 
-  public StackServiceResponse(String serviceName, String userName, String comments, String serviceVersion,
-      Map<String, Map<String, Map<String, String>>> types) {
-    setServiceName(serviceName);
-    setUserName(userName);
-    setComments(comments);
-    setServiceVersion(serviceVersion);
-    configTypes = types;
+  /**
+   * Constructor.
+   *
+   * @param service
+   *          the service to generate the response from (not {@code null}).
+   */
+  public StackServiceResponse(ServiceInfo service) {
+    serviceName = service.getName();
+    userName = null;
+    comments = service.getComment();
+    serviceVersion = service.getVersion();
+    configTypes = service.getConfigTypes();
+    serviceCheckSupported = null != service.getCommandScript();
+
+    // the custom command names defined at the service (not component) level
+    List<CustomCommandDefinition> definitions = service.getCustomCommands();
+    if (null == definitions || definitions.size() == 0) {
+      customCommands = Collections.emptyList();
+    } else {
+      customCommands = new ArrayList<String>(definitions.size());
+      for (CustomCommandDefinition command : definitions) {
+        customCommands.add(command.getName());
+      }
+    }
   }
 
   public String getStackName() {
@@ -90,9 +112,31 @@ public class StackServiceResponse {
   public void setServiceVersion(String serviceVersion) {
     this.serviceVersion = serviceVersion;
   }
-  
+
   public Map<String, Map<String, Map<String, String>>> getConfigTypes() {
     return configTypes;
   }
 
+  /**
+   * Gets whether the service represented by this response supports running
+   * "Service Checks". A service check is possible where there is a custom
+   * command defined in the {@code metainfo.xml} of the service definition. This
+   * not the same as a custom command defined for a component.
+   *
+   * @return {@code true} if this service supports running "Service Checks",
+   *         {@code false} otherwise.
+   *
+   */
+  public boolean isServiceCheckSupported() {
+    return serviceCheckSupported;
+  }
+
+  /**
+   * Gets the names of all of the custom commands for this service.
+   *
+   * @return the commands or an empty list (never {@code null}).
+   */
+  public List<String> getCustomCommands() {
+    return customCommands;
+  }
 }

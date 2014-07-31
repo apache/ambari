@@ -41,26 +41,32 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 public class StackServiceResourceProvider extends ReadOnlyResourceProvider {
 
-  protected static final String SERVICE_NAME_PROPERTY_ID = PropertyHelper
-      .getPropertyId("StackServices", "service_name");
+  protected static final String SERVICE_NAME_PROPERTY_ID = PropertyHelper.getPropertyId(
+      "StackServices", "service_name");
 
-  public static final String STACK_NAME_PROPERTY_ID = PropertyHelper
-      .getPropertyId("StackServices", "stack_name");
+  public static final String STACK_NAME_PROPERTY_ID = PropertyHelper.getPropertyId(
+      "StackServices", "stack_name");
 
-  public static final String STACK_VERSION_PROPERTY_ID = PropertyHelper
-      .getPropertyId("StackServices", "stack_version");
+  public static final String STACK_VERSION_PROPERTY_ID = PropertyHelper.getPropertyId(
+      "StackServices", "stack_version");
 
-  private static final String USER_NAME_PROPERTY_ID = PropertyHelper
-      .getPropertyId("StackServices", "user_name");
+  private static final String USER_NAME_PROPERTY_ID = PropertyHelper.getPropertyId(
+      "StackServices", "user_name");
 
-  private static final String COMMENTS_PROPERTY_ID = PropertyHelper
-      .getPropertyId("StackServices", "comments");
+  private static final String COMMENTS_PROPERTY_ID = PropertyHelper.getPropertyId(
+      "StackServices", "comments");
 
-  private static final String VERSION_PROPERTY_ID = PropertyHelper
-      .getPropertyId("StackServices", "service_version");
-  
-  private static final String CONFIG_TYPES = PropertyHelper
-      .getPropertyId("StackServices", "config_types");
+  private static final String VERSION_PROPERTY_ID = PropertyHelper.getPropertyId(
+      "StackServices", "service_version");
+
+  private static final String CONFIG_TYPES = PropertyHelper.getPropertyId(
+      "StackServices", "config_types");
+
+  private static final String SERVICE_CHECK_SUPPORTED_PROPERTY_ID = PropertyHelper.getPropertyId(
+      "StackServices", "service_check_supported");
+
+  private static final String CUSTOM_COMMANDS_PROPERTY_ID = PropertyHelper.getPropertyId(
+      "StackServices", "custom_commands");
 
   private static Set<String> pkPropertyIds = new HashSet<String>(
       Arrays.asList(new String[] { STACK_NAME_PROPERTY_ID,
@@ -115,12 +121,18 @@ public class StackServiceResourceProvider extends ReadOnlyResourceProvider {
 
       setResourceProperty(resource, COMMENTS_PROPERTY_ID,
           response.getComments(), requestedIds);
-      
+
       setResourceProperty(resource, VERSION_PROPERTY_ID,
           response.getServiceVersion(), requestedIds);
-      
+
       setResourceProperty(resource, CONFIG_TYPES,
           response.getConfigTypes(), requestedIds);
+
+      setResourceProperty(resource, SERVICE_CHECK_SUPPORTED_PROPERTY_ID,
+          response.isServiceCheckSupported(), requestedIds);
+
+      setResourceProperty(resource, CUSTOM_COMMANDS_PROPERTY_ID,
+          response.getCustomCommands(), requestedIds);
 
       resources.add(resource);
     }

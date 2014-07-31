@@ -36,7 +36,6 @@ import javax.xml.bind.annotation.XmlElements;
 import javax.xml.bind.annotation.XmlTransient;
 
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.controller.StackServiceResponse;
 import org.apache.ambari.server.state.stack.MetricDefinition;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.annotate.JsonFilter;
@@ -224,15 +223,10 @@ public class ServiceInfo {
     return sb.toString();
   }
   
-  public StackServiceResponse convertToResponse()
-  {
-    return new StackServiceResponse(getName(), null, getComment(), getVersion(),
-        getConfigTypes());
-  }
-  
   public Map<String, Map<String, Map<String, String>>> getConfigTypes() {
     return configTypes;
   }
+
   public void setConfigTypes(Map<String, Map<String, Map<String, String>>> configTypes) {
     this.configTypes = configTypes;
   }
