@@ -100,7 +100,7 @@ class FileProvider(Provider):
     elif self.resource.replace:
       if content is not None:
         with open(path, "rb") as fp:
-          old_content = fp.read()
+          old_content = fp.read().decode("UTF-8")
         if content != old_content:
           write = True
           reason = "contents don't match"
@@ -111,7 +111,7 @@ class FileProvider(Provider):
       Logger.info("Writing %s because %s" % (self.resource, reason))
       with open(path, "wb") as fp:
         if content:
-          fp.write(content)
+          fp.write(content.encode("UTF-8"))
 
     _ensure_metadata(self.resource.path, self.resource.owner,
                         self.resource.group, mode=self.resource.mode)
