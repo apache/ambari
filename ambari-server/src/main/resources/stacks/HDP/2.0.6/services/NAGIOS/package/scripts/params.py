@@ -216,6 +216,8 @@ _slave_hosts = default("/clusterHostInfo/slave_hosts", None)
 _journalnode_hosts = default("/clusterHostInfo/journalnode_hosts", None)
 _zkfc_hosts = default("/clusterHostInfo/zkfc_hosts", None)
 _rm_host = default("/clusterHostInfo/rm_host", None)
+if type(_rm_host) is list:
+  rm_hosts_in_str = ','.join(_rm_host)
 _nm_hosts = default("/clusterHostInfo/nm_hosts", None)
 _hs_host = default("/clusterHostInfo/hs_host", None)
 _zookeeper_hosts = default("/clusterHostInfo/zookeeper_hosts", None)

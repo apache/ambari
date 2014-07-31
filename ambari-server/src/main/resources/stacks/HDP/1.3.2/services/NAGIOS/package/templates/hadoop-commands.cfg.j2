@@ -46,8 +46,8 @@ define command {
        }
 
 define command {
-        command_name    check_hbase_cpu
-        command_line    $USER1$/check_wrapper.sh php $USER1$/check_hbase_cpu.php -h $ARG1$ -p $ARG2$ -w $ARG3$ -c $ARG4$ -e $ARG5$ -k $ARG6$ -r $ARG7$ -t $ARG8$ -u $ARG9$
+        command_name    check_cpu_ha
+        command_line    $USER1$/check_wrapper.sh php $USER1$/check_cpu_ha.php -h $ARG1$ -p $ARG2$ -w $ARG3$ -c $ARG4$ -e $ARG5$ -k $ARG6$ -r $ARG7$ -t $ARG8$ -u $ARG9$
        }
 {% endif %}
 

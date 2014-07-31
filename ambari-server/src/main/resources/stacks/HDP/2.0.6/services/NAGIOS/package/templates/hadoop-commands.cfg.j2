@@ -45,8 +45,8 @@ define command {
         command_line    $USER1$/check_wrapper.sh php $USER1$/check_cpu.php -h $HOSTADDRESS$ -p $ARG1$ -w $ARG2$ -c $ARG3$ -e $ARG4$ -k $ARG5$ -r $ARG6$ -t $ARG7$ -u $ARG8$
        }
 define command {
-        command_name    check_hbase_cpu
-        command_line    $USER1$/check_wrapper.sh php $USER1$/check_hbase_cpu.php -h $ARG1$ -p $ARG2$ -w $ARG3$ -c $ARG4$ -e $ARG5$ -k $ARG6$ -r $ARG7$ -t $ARG8$ -u $ARG9$
+        command_name    check_cpu_ha
+        command_line    $USER1$/check_wrapper.sh php $USER1$/check_cpu_ha.php -h $ARG1$ -p $ARG2$ -w $ARG3$ -c $ARG4$ -e $ARG5$ -k $ARG6$ -r $ARG7$ -t $ARG8$ -u $ARG9$
        }
 {% endif %}
 
@@ -77,6 +77,11 @@ define command{
        }
 
 define command{
+        command_name    check_rpcq_latency_ha
+        command_line    $USER1$/check_wrapper.sh php $USER1$/check_rpcq_latency_ha.php -h $ARG1$ -p $ARG3$ -n $ARG2$ -w $ARG4$ -c $ARG5$ -e $ARG6$ -k $ARG7$ -r $ARG8$ -t $ARG9$ -s $ARG10$
+       }
+
+define command{
         command_name    check_nagios
         command_line    $USER1$/check_wrapper.sh $USER1$/check_nagios -e $ARG1$ -F $ARG2$ -C $ARG3$ 
        }
@@ -84,6 +89,11 @@ define command{
 define command{
         command_name    check_webui
         command_line    $USER1$/check_wrapper.sh $USER1$/check_webui.sh $ARG1$ $HOSTADDRESS$ $ARG2$
+       }
+
+define command{
+        command_name    check_webui_ha
+        command_line    $USER1$/check_wrapper.sh $USER1$/check_webui_ha.sh $ARG1$ $ARG2$ $ARG3$
        }
 
 define command{

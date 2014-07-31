@@ -425,11 +425,11 @@ define service {
 {% if hostgroup_defs['resourcemanager'] %}
 # YARN::RESOURCEMANAGER Checks 
 define service {
-        hostgroup_name          resourcemanager
+        hostgroup_name          nagios-server
         use                     hadoop-service
         service_description     RESOURCEMANAGER::ResourceManager Web UI
         servicegroups           YARN
-        check_command           check_webui!resourcemanager!{{ rm_port }}
+        check_command           check_webui_ha!resourcemanager!{{ rm_hosts_in_str }}!{{ rm_port }}
         normal_check_interval   1
         retry_check_interval    1
         max_check_attempts      3
@@ -437,12 +437,12 @@ define service {
 
 {% if check_cpu_on %}
 define service {
-        hostgroup_name          resourcemanager
+        hostgroup_name          nagios-server
         use                     hadoop-service
         service_description     RESOURCEMANAGER::ResourceManager CPU utilization
         servicegroups           YARN
-#        check_command           check_cpu!200%!250%
-        check_command           check_cpu!{{ rm_port }}!200%!250%!{{ str(hadoop_ssl_enabled).lower() }}!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}!{{ str(security_enabled).lower() }}
+#       check_command           check_cpu!200%!250%
+        check_command           check_cpu_ha!{{ rm_hosts_in_str }}!{{ rm_port }}!200%!250%!{{ str(hadoop_ssl_enabled).lower() }}!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}!{{ str(security_enabled).lower() }}
         normal_check_interval   5
         retry_check_interval    2 
         max_check_attempts      5
@@ -450,26 +450,28 @@ define service {
 {% endif %}
 
 define service {
-        hostgroup_name          resourcemanager
+        hostgroup_name          nagios-server
         use                     hadoop-service
         service_description     RESOURCEMANAGER::ResourceManager RPC latency
         servicegroups           YARN
-        check_command           check_rpcq_latency!ResourceManager!{{ rm_port }}!3000!5000!{{ str(hadoop_ssl_enabled).lower() }}!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}!{{ str(security_enabled).lower() }}
+        check_command           check_rpcq_latency_ha!{{ rm_hosts_in_str }}!ResourceManager!{{ rm_port }}!3000!5000!{{ str(hadoop_ssl_enabled).lower() }}!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}!{{ str(security_enabled).lower() }}
         normal_check_interval   5
         retry_check_interval    1 
         max_check_attempts      5
 }
 
+{%  for rm_host in _rm_host  %}
 define service {
-        hostgroup_name          resourcemanager
+        host_name               {{ rm_host }}
         use                     hadoop-service
-        service_description     RESOURCEMANAGER::ResourceManager process
+        service_description     RESOURCEMANAGER::ResourceManager process on {{ rm_host }}
         servicegroups           YARN
         check_command           check_tcp_wrapper!{{ rm_port }}!-w 1 -c 1
         normal_check_interval   1
         retry_check_interval    0.5
         max_check_attempts      3
 }
+{% endfor %}
 {%  endif %}
 
 {% if hostgroup_defs['nodemanagers'] %}
@@ -657,7 +659,7 @@ define service {
         service_description     HBASEMASTER::HBase Master CPU utilization
         servicegroups           HBASE
 #        check_command           check_cpu!200%!250%
-        check_command           check_hbase_cpu!{{ hbase_master_hosts_in_str }}!{{ hbase_master_port }}!200%!250%!{{ str(hadoop_ssl_enabled).lower() }}!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}!{{ str(security_enabled).lower() }}
+        check_command           check_cpu_ha!{{ hbase_master_hosts_in_str }}!{{ hbase_master_port }}!200%!250%!{{ str(hadoop_ssl_enabled).lower() }}!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}!{{ str(security_enabled).lower() }}
         normal_check_interval   5
         retry_check_interval    2
         max_check_attempts      5
