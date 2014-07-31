@@ -49,4 +49,14 @@
     <description>General check for host</description>
     <targetType>ANY</targetType>
   </actionDefinition>
+  <actionDefinition>
+    <actionName>validate_configs</actionName>
+    <actionType>SYSTEM</actionType>
+    <inputs></inputs>
+    <targetService></targetService>
+    <targetComponent></targetComponent>
+    <defaultTimeout>60</defaultTimeout>
+    <description>Validate if provided service config can be applied to specified hosts</description>
+    <targetType>ALL</targetType>
+  </actionDefinition>
 </actionDefinitions>
