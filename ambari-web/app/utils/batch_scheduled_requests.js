@@ -452,7 +452,7 @@ module.exports = {
         var waitTime = this.get('innerView.interBatchWaitTimeSeconds');
         var tolerateSize = this.get('innerView.tolerateSize');
         if (this.get('innerView.turnOnMm')) {
-          self.turnOnOffPassiveRequest('ON', Em.I18n.t('passiveState.turnOnFor').format(serviceName), serviceName);
+          self.turnOnOffPassiveRequest('ON', Em.I18n.t('passiveState.turnOnFor').format(serviceName), serviceName.toUpperCase());
         }
         self._doPostBatchRollingRestartRequest(restartComponents, batchSize, waitTime, tolerateSize, function(data, ajaxOptions, params) {
           dialog.hide();
