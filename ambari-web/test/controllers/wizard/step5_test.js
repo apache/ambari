@@ -30,49 +30,6 @@ describe('App.WizardStep5Controller', function () {
   controller.set('content', {});
   var cpu = 2, memory = 4;
 
-  describe('#getHostForComponent()', function () {
-    before(function () {
-      modelSetup.setupStackServiceComponent();
-    });
-
-    var componentHostsGenerator = function (componentName, hosts) {
-        it('test hosts input valid', function () {
-          expect(hosts.length).to.eql(5);
-        });
-        return {
-          componentName: componentName,
-          expectedLocation: hosts
-        };
-      },
-      hostsCount = [1, 3, 6, 10, 31],
-      tests = [
-        componentHostsGenerator('NAMENODE', ['host0', 'host0', 'host0', 'host0', 'host0']),
-        componentHostsGenerator('SECONDARY_NAMENODE', ['host0', 'host1', 'host1', 'host1', 'host1']),
-        componentHostsGenerator('HBASE_MASTER', ['host0', 'host0', 'host2', 'host2', 'host3']),
-        componentHostsGenerator('JOBTRACKER', ['host0', 'host1', 'host1', 'host1', 'host2']),
-        componentHostsGenerator('OOZIE_SERVER', ['host0', 'host1', 'host2', 'host2', 'host3']),
-        componentHostsGenerator('HIVE_SERVER', ['host0', 'host1', 'host2', 'host2', 'host4']),
-        componentHostsGenerator('STORM_UI_SERVER', ['host0', 'host0', 'host0', 'host0', 'host0'])
-      ],
-      testMessage = 'should locate `{0}` to `{1}` with {2} node cluster';
-
-    tests.forEach(function (test) {
-      var componentName = test.componentName;
-      hostsCount.forEach(function (count, index) {
-        it(testMessage.format(componentName, test.expectedLocation[index], count), function () {
-          var hosts = Array.apply(null, Array(count)).map(function (_, i) {
-            return 'host' + i;
-          });
-          expect(controller.getHostForComponent(test.componentName, hosts)).to.eql(test.expectedLocation[index]);
-        })
-      });
-    });
-
-    after(function () {
-      modelSetup.cleanStackServiceComponent();
-    });
-  });
-
   controller.set('content', {});
 
   describe('#isReassignWizard', function () {
@@ -214,88 +171,6 @@ describe('App.WizardStep5Controller', function () {
         var r = controller.get('hosts');
         expect(Em.A(r).mapProperty('host_name')).to.eql(test.e);
       });
-    });
-
-  });
-
-  describe('#selectHost', function () {
-    before(function () {
-      modelSetup.setupStackServiceComponent();
-      App.store.load(App.StackServiceComponent, {
-        id: 'KERBEROS_SERVER',
-        component_name: 'KERBEROS_SERVER'
-      });
-    });
-
-    var tests = Em.A([
-      {componentName: 'NAMENODE', hostsCount: 1, e: 'host1'},
-      {componentName: 'NAMENODE', hostsCount: 2, e: 'host1'},
-      {componentName: 'SECONDARY_NAMENODE', hostsCount: 1, e: 'host1'},
-      {componentName: 'SECONDARY_NAMENODE', hostsCount: 2, e: 'host2'},
-      {componentName: 'JOBTRACKER', hostsCount: 1, e: 'host1'},
-      {componentName: 'JOBTRACKER', hostsCount: 3, e: 'host2'},
-      {componentName: 'JOBTRACKER', hostsCount: 6, e: 'host2'},
-      {componentName: 'JOBTRACKER', hostsCount: 31, e: 'host3'},
-      {componentName: 'JOBTRACKER', hostsCount: 32, e: 'host3'},
-      {componentName: 'HISTORYSERVER', hostsCount: 1, e: 'host1'},
-      {componentName: 'HISTORYSERVER', hostsCount: 3, e: 'host2'},
-      {componentName: 'HISTORYSERVER', hostsCount: 6, e: 'host2'},
-      {componentName: 'HISTORYSERVER', hostsCount: 31, e: 'host3'},
-      {componentName: 'HISTORYSERVER', hostsCount: 32, e: 'host3'},
-      {componentName: 'RESOURCEMANAGER', hostsCount: 1, e: 'host1'},
-      {componentName: 'RESOURCEMANAGER', hostsCount: 3, e: 'host2'},
-      {componentName: 'RESOURCEMANAGER', hostsCount: 6, e: 'host2'},
-      {componentName: 'RESOURCEMANAGER', hostsCount: 31, e: 'host3'},
-      {componentName: 'RESOURCEMANAGER', hostsCount: 32, e: 'host3'},
-      {componentName: 'HBASE_MASTER', hostsCount: 1, e: ['host1']},
-      {componentName: 'HBASE_MASTER', hostsCount: 3, e: ['host1']},
-      {componentName: 'HBASE_MASTER', hostsCount: 6, e: ['host3']},
-      {componentName: 'HBASE_MASTER', hostsCount: 31, e: ['host4']},
-      {componentName: 'HBASE_MASTER', hostsCount: 32, e: ['host4']},
-      {componentName: 'OOZIE_SERVER', hostsCount: 1, e: 'host1'},
-      {componentName: 'OOZIE_SERVER', hostsCount: 3, e: 'host2'},
-      {componentName: 'OOZIE_SERVER', hostsCount: 6, e: 'host3'},
-      {componentName: 'OOZIE_SERVER', hostsCount: 31, e: 'host4'},
-      {componentName: 'OOZIE_SERVER', hostsCount: 32, e: 'host4'},
-      {componentName: 'HIVE_SERVER', hostsCount: 1, e: 'host1'},
-      {componentName: 'HIVE_SERVER', hostsCount: 3, e: 'host2'},
-      {componentName: 'HIVE_SERVER', hostsCount: 6, e: 'host3'},
-      {componentName: 'HIVE_SERVER', hostsCount: 31, e: 'host5'},
-      {componentName: 'HIVE_SERVER', hostsCount: 32, e: 'host5'},
-      {componentName: 'HIVE_METASTORE', hostsCount: 1, e: 'host1'},
-      {componentName: 'HIVE_METASTORE', hostsCount: 3, e: 'host2'},
-      {componentName: 'HIVE_METASTORE', hostsCount: 6, e: 'host3'},
-      {componentName: 'HIVE_METASTORE', hostsCount: 31, e: 'host5'},
-      {componentName: 'HIVE_METASTORE', hostsCount: 32, e: 'host5'},
-      {componentName: 'WEBHCAT_SERVER', hostsCount: 1, e: 'host1'},
-      {componentName: 'WEBHCAT_SERVER', hostsCount: 3, e: 'host2'},
-      {componentName: 'WEBHCAT_SERVER', hostsCount: 6, e: 'host3'},
-      {componentName: 'WEBHCAT_SERVER', hostsCount: 31, e: 'host5'},
-      {componentName: 'WEBHCAT_SERVER', hostsCount: 32, e: 'host5'},
-      {componentName: 'APP_TIMELINE_SERVER', hostsCount: 1, e: 'host1'},
-      {componentName: 'APP_TIMELINE_SERVER', hostsCount: 3, e: 'host2'},
-      {componentName: 'APP_TIMELINE_SERVER', hostsCount: 6, e: 'host2'},
-      {componentName: 'APP_TIMELINE_SERVER', hostsCount: 31, e: 'host3'},
-      {componentName: 'APP_TIMELINE_SERVER', hostsCount: 32, e: 'host3'},
-      {componentName: 'FALCON_SERVER', hostsCount: 1, e: 'host1'},
-      {componentName: 'FALCON_SERVER', hostsCount: 3, e: 'host2'},
-      {componentName: 'FALCON_SERVER', hostsCount: 6, e: 'host3'},
-      {componentName: 'FALCON_SERVER', hostsCount: 31, e: 'host4'},
-      {componentName: 'FALCON_SERVER', hostsCount: 32, e: 'host4'}
-    ]);
-
-    tests.forEach(function (test) {
-      it(test.componentName + ' ' + test.hostsCount, function () {
-        controller.reopen({multipleComponents: ['HBASE_MASTER', 'ZOOKEEPER_SERVER']});
-        controller.set('hosts', d3.range(1, test.hostsCount + 1).map(function (i) {
-          return {host_name: 'host' + i.toString()};
-        }));
-        expect(controller.selectHost(test.componentName)).to.eql(test.e);
-      });
-    });
-
-    after(function () {
-      modelSetup.cleanStackServiceComponent();
     });
 
   });

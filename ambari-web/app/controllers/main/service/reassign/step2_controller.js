@@ -29,24 +29,29 @@ App.ReassignMasterWizardStep2Controller = App.WizardStep5Controller.extend({
       this.get('multipleComponents').push('NAMENODE');
     }
     this._super();
-    if(this.get('content.reassign.component_name') == "NAMENODE" && !this.get('content.masterComponentHosts').findProperty('component', "SECONDARY_NAMENODE")){
+    if (this.get('content.reassign.component_name') === "NAMENODE" && !this.get('content.masterComponentHosts').findProperty('component', "SECONDARY_NAMENODE")) {
       this.set('showCurrentHost', false);
       this.set('componentToRebalance', 'NAMENODE');
       this.incrementProperty('rebalanceComponentHostsCounter');
-    }else{
+    } else {
       this.set('showCurrentHost', true);
       this.rebalanceSingleComponentHosts(this.get('content.reassign.component_name'));
     }
   },
 
+  /**
+   * load master components
+   * @return {Array}
+   */
   loadComponents: function () {
     var masterComponents = this.get('content.masterComponentHosts');
     this.set('currentHostId', this.get('content').get('reassign').host_id);
     var componentNameToReassign = this.get('content').get('reassign').component_name;
     var result = [];
+
     masterComponents.forEach(function (master) {
       var color = "grey";
-      if(master.component == componentNameToReassign){
+      if (master.component == componentNameToReassign) {
         color = 'green';
       }
       result.push({
@@ -62,25 +67,33 @@ App.ReassignMasterWizardStep2Controller = App.WizardStep5Controller.extend({
     return result;
   },
 
-  rebalanceSingleComponentHosts:function (componentName) {
+  /**
+   * rebalance single component among available hosts
+   * @param componentName
+   * @return {Boolean}
+   */
+  rebalanceSingleComponentHosts: function (componentName) {
     var currentComponents = this.get("selectedServicesMasters").filterProperty("component_name", componentName),
-      availableComponentHosts = [],
-      preparedAvailableHosts = null;
+      availableComponentHosts = [];
+
     this.get("hosts").forEach(function (item) {
       if (this.get('currentHostId') !== item.get('host_name')) {
         availableComponentHosts.pushObject(item);
       }
     }, this);
-    if (availableComponentHosts.length == 0) {
-      return;
+
+    if (availableComponentHosts.length > 0) {
+      currentComponents.forEach(function (item) {
+        var preparedAvailableHosts = availableComponentHosts.slice(0);
+
+        if (item.get('selectedHost') === this.get('currentHostId') && item.get('component_name') === this.get('content.reassign.component_name')) {
+          item.set('selectedHost', preparedAvailableHosts.objectAt(0).host_name);
+        }
+        item.set("availableHosts", preparedAvailableHosts.sortProperty('host_name'));
+      }, this);
+      return true;
     }
-    currentComponents.forEach(function (item) {
-      preparedAvailableHosts = availableComponentHosts.slice(0);
-      if (item.get('selectedHost') == this.get('currentHostId') && item.get('component_name') == this.get('content.reassign.component_name')) {
-        item.set('selectedHost', preparedAvailableHosts.objectAt(0).host_name);
-      }
-      item.set("availableHosts", preparedAvailableHosts.sortProperty('host_name'));
-    }, this);
+    return false;
   },
 
   getIsSubmitDisabled: function () {
