@@ -30,8 +30,9 @@ App.JobsView = App.TableView.extend({
 
   filterCondition:[],
 
-  /*
-   If no jobs to display set noDataToShow to true, else set emptyData to false.
+  /**
+   * If no jobs to display set noDataToShow to true, else set emptyData to false.
+   * @method noDataToShowObserver
    */
   noDataToShowObserver: function () {
     this.set("noDataToShow", this.get("controller.content.length") === 0);
@@ -54,6 +55,10 @@ App.JobsView = App.TableView.extend({
     }
   },
 
+  /**
+   * Handler for id-filter applying
+   * @method onApplyIdFilter
+   */
   onApplyIdFilter: function() {
     var isIdFilterApplied = this.get('controller.filterObject.isIdFilterApplied');
     this.get('childViews').forEach(function(childView) {
@@ -71,6 +76,10 @@ App.JobsView = App.TableView.extend({
     });
   }.observes('controller.filterObject.isIdFilterApplied'),
 
+  /**
+   * Save filter when filtering is complete
+   * @method saveFilter
+   */
   saveFilter: function () {
     if(this.get('tableFilteringComplete')){
       this.updateFilter(1, this.get('controller.filterObject.id'), 'string');
@@ -140,11 +149,16 @@ App.JobsView = App.TableView.extend({
   /**
    * return filtered number of all content number information displayed on the page footer bar
    * @returns {String}
+   * @method filteredJobs
    */
   filteredJobs: function () {
     return Em.I18n.t('jobs.filtered.jobs').fmt(this.get('controller.content.length'));
   }.property('controller.content.length', 'controller.totalOfJobs'),
 
+  /**
+   * Manage tooltips for jobs
+   * @method pageContentObserver
+   */
   pageContentObserver: function () {
     if (!this.get('controller.loading')) {
       var tooltip = $('.tooltip');
@@ -204,21 +218,41 @@ App.JobsView = App.TableView.extend({
     }
   }),
 
+  /**
+   * View for job's name
+   * @type {Em.View}
+   */
   jobNameView: Em.View.extend({
 
+    /**
+     * Classname for link
+     * @type {string}
+     */
     isLink: 'is-not-link',
 
+    /**
+     * Update link-status (enabled/disabled) after sorting is complete
+     */
     isLinkObserver: function () {
       this.refreshLinks();
     }.observes('controller.sortingDone'),
 
+    /**
+     * Update <code>isLink</code> according to <code>job.hasTezDag<code>
+     * @method refreshLinks
+     */
     refreshLinks: function () {
       this.set('isLink', this.get('job.hasTezDag') ? "" : "is-not-link");
     },
 
     templateName: 'jobs/jobs_name',
 
-    click: function(event) {
+    /**
+     * Click-handler.
+     * Go to Jobs details page if current job has Tez Dag
+     * @returns {null|boolean}
+     */
+    click: function() {
       if (this.get('job.hasTezDag')) {
         this.get('controller').transitionToRoute('job', this.get('job'));
       }
@@ -231,7 +265,8 @@ App.JobsView = App.TableView.extend({
   }),
 
   /**
-   * associations between content (jobs list) property and column index
+   * Associations between content (jobs list) property and column index
+   * @type {string[]}
    */
   colPropAssoc: function () {
     var associations = [];
@@ -254,6 +289,9 @@ App.JobsView = App.TableView.extend({
     return Em.I18n.t('jobs.table.job.fail');
   }.property(),
 
+  /**
+   * @type {Em.View}
+   */
   jobsPaginationLeft: Ember.View.extend({
     tagName: 'a',
     templateName: 'table/navigation/pagination_left',
@@ -272,6 +310,9 @@ App.JobsView = App.TableView.extend({
     }
   }),
 
+  /**
+   * @type {Em.View}
+   */
   jobsPaginationRight: Ember.View.extend({
     tagName: 'a',
     templateName: 'table/navigation/pagination_right',
@@ -290,10 +331,18 @@ App.JobsView = App.TableView.extend({
     }
   }),
 
+  /**
+   * Enable/disable "next"-arrow
+   * @type {bool}
+   */
   hasNextJobs: function() {
-    return (this.get("controller.navIDs.nextID.length") > 0);
+    return (this.get("controller.navIDs.nextID.length") > 1);
   }.property('controller.navIDs.nextID'),
 
+  /**
+   * Enable/disable "back"-arrow
+   * @type {bool}
+   */
   hasBackLinks: function() {
     return (this.get("controller.navIDs.backIDs").length > 1);
   }.property('controller.navIDs.backIDs.[].length')

@@ -21,7 +21,7 @@
   {{#if controller.loaded}}
     <!-- Top Bar -->
     <div class="top-bar">
-      <a {{action "actionRouteToJobs" target="controller"}} href="#">{{t menu.item.jobs}}</a> > {{view.content.name}}
+      {{#link-to "jobs"}}{{t menu.item.jobs}}{{/link-to}} > {{view.content.name}}
       <a {{action "toggleShowQuery" target="view"}} href="#" id="toggle-query">{{view.toggleShowQueryText}}</a>
 
       <div class="pull-right">{{t apps.item.dag.type}}: <span class="label label-info">{{view.content.jobType}}</span></div>

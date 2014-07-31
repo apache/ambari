@@ -16,22 +16,41 @@
  * limitations under the License.
  */
 
-App.JobController = Ember.ObjectController.extend({
+App.JobController = Ember.ObjectController.extend(App.RunPeriodically, {
 
   name: 'jobController',
 
+  /**
+   * Is Job details info loaded
+   * @type {bool}
+   */
   loaded: false,
 
+  /**
+   * Timeout for <code>loadJobDetails</code> periodic call
+   * @type {number}
+   */
   loadTimeout: null,
 
-  job: null,
-
+  /**
+   * Column which is currently sorted
+   * @type {string}
+   */
   sortingColumn: null,
 
+  /**
+   * Modal-popup buttons
+   * @type {Em.Object[]}
+   */
   showPopupButtons: [
     Ember.Object.create({title: Em.I18n.t('ok'), dismiss: 'modal'})
   ],
 
+  /**
+   * Show popup with message about job-details loading error
+   * @param {string} title
+   * @method showPopup
+   */
   showPopup: function (title) {
     Bootstrap.ModalManager.open(
       'errorPopup',
@@ -42,6 +61,11 @@ App.JobController = Ember.ObjectController.extend({
     );
   },
 
+  /**
+   * Init method called  in <code>router.setupController</code>
+   * Load job's details info (like Tez Dag etc)
+   * @method loadJobDetails
+   */
   loadJobDetails: function () {
     var self = this,
       timeout = this.get('loadTimeout'),
@@ -84,20 +108,6 @@ App.JobController = Ember.ObjectController.extend({
       timeout = setTimeout(function () {
         self.loadJobDetails();
       }, 300);
-    }
-  },
-
-  /**
-   * open jobs page
-   * @method routeToJobs
-   */
-  routeToJobs: function () {
-    this.transitionToRoute('jobs');
-  },
-
-  actions: {
-    actionRouteToJobs: function () {
-      this.routeToJobs();
     }
   }
 

@@ -16,19 +16,39 @@
  */
 
 App.MainHiveJobDetailsTezDagView = Em.View.extend({
+
   templateName: 'job/hive_job_details_tez_dag',
+
+  /**
+   * Selected Vertex
+   * @type {App.TezDagVertex}
+   */
   selectedVertex: null,
+
+  /**
+   * @type {string}
+   */
   summaryMetricType: null,
-  svgVerticesLayer: null, // The contents of the <svg> element.
+
+  /**
+   * The contents of the <svg> element
+   */
+  svgVerticesLayer: null,
+
   svgTezRoot: null,
+
   svgWidth: -1,
+
   svgHeight: -1,
 
   // zoomScaleFom: -1, // Bound from parent view
   // zoomScaleTo: -1, // Bound from parent view
   // zoomScale: -1, // Bound from parent view
+
   zoomTranslate: [0, 0],
+
   zoomBehavior: null,
+
   svgCreated: false,
 
   /**
@@ -88,6 +108,10 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
     $('.svg-tooltip').tooltip('destroy');
   },
 
+  /**
+   * Basic init for graph
+   * @method createSvg
+   */
   createSvg: function () {
     var self = this;
     var dagVisualModel = this.get('dagVisualModel');
@@ -124,6 +148,10 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
     this.set('svgCreated', true);
   },
 
+  /**
+   * Change graph's zoom
+   * @method zoomScaleObserver
+   */
   zoomScaleObserver: function () {
     var tezRoot = this.get("svgTezRoot"),
       newScale = this.get('zoomScale'),
@@ -163,8 +191,8 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
   }.observes('zoomScale', 'zoomScaleFrom', 'zoomScaleTo', 'zoomTranslate'),
 
   /**
-   * We have to make the height of the DAG section match the height of the
-   * Summary section.
+   * We have to make the height of the DAG section match the height of the Summary section.
+   * @method adjustGraphHeight
    */
   adjustGraphHeight: function () {
     var rhsDiv = document.getElementById('tez-vertices-rhs'),
@@ -180,20 +208,24 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
     }
   },
 
+  /**
+   * Update graph when <code>selectedVertex</code> changed
+   * @method vertexSelectionUpdated
+   */
   vertexSelectionUpdated: function () {
-    var vertexId = this.get('selectedVertex.id');
-    var zoomTranslate = [];
-    var zoomBehavior = this.get('zoomBehavior');
-    var selectedNode = this.get('dagVisualModel').nodes.findProperty('id', vertexId);
-    var dagVisualModel = this.get('dagVisualModel');
+    var vertexId = this.get('selectedVertex.id'),
+      zoomTranslate = [],
+      zoomBehavior = this.get('zoomBehavior'),
+      selectedNode = this.get('dagVisualModel').nodes.findProperty('id', vertexId),
+      dagVisualModel = this.get('dagVisualModel');
     if (dagVisualModel && dagVisualModel.nodes && dagVisualModel.nodes.length > 0) {
       dagVisualModel.nodes.forEach(function (node) {
         node.selected = node.id == vertexId;
       })
     }
     if (!this.get('selectedVertex.notTableClick')) {
-      var cX = selectedNode.x + (selectedNode.width) / 2;
-      var cY = selectedNode.y + (selectedNode.height) / 2;
+      var cX = selectedNode.x + (selectedNode.width) / 2,
+        cY = selectedNode.y + (selectedNode.height) / 2;
       zoomTranslate[0] = (225 / zoomBehavior.scale() - cX);
       zoomTranslate[1] = (250 / zoomBehavior.scale() - cY);
       this.set('zoomTranslate', [0, 0]);
@@ -203,21 +235,26 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
     this.refreshGraphUI();
   }.observes('selectedVertex'),
 
+  /**
+   * Update graph when new summary metric is selected
+   * @method summaryMetricTypeUpdated
+   */
   summaryMetricTypeUpdated: function () {
-    var summaryMetricType = this.get('summaryMetricType');
-    var dagVisualModel = this.get('dagVisualModel');
-    var min = dagVisualModel.minMetrics[summaryMetricType];
-    var max = dagVisualModel.maxMetrics[summaryMetricType];
+    var summaryMetricType = this.get('summaryMetricType'),
+      dagVisualModel = this.get('dagVisualModel'),
+      min = dagVisualModel.minMetrics[summaryMetricType],
+      max = dagVisualModel.maxMetrics[summaryMetricType];
     dagVisualModel.nodes.forEach(function (node) {
-      var value = node.metrics[summaryMetricType];
-      var percent = -1;
+      var value = node.metrics[summaryMetricType],
+        percent = -1;
       if (App.Helpers.number.validateInteger(value) == null && value >= 0) {
         if (App.Helpers.number.validateInteger(min) == null && App.Helpers.number.validateInteger(max) == null) {
           if (max > min && value >= 0) {
             percent = Math.round((value - min) * 100 / (max - min));
           }
         }
-      } else {
+      }
+      else {
         value = '';
       }
       switch (summaryMetricType) {
@@ -236,7 +273,8 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
   }.observes('summaryMetricType'),
 
   /**
-   * Observes metrics of all vertices.
+   * Observes metrics of all vertices
+   * @method vertexMetricsUpdated
    */
   vertexMetricsUpdated: function () {
     var dagVisualModel = this.get('dagVisualModel');
@@ -285,11 +323,25 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
       });
     }
     Ember.run.once(this, 'summaryMetricTypeUpdated');
-  }.observes('content.tezDag.vertices.@each.fileReadBytes', 'content.tezDag.vertices.@each.fileWriteBytes',
-      'content.tezDag.vertices.@each.hdfsReadBytes', 'content.tezDag.vertices.@each.hdfsWriteBytes',
-      'content.tezDag.vertices.@each.recordReadCount', 'content.tezDag.vertices.@each.recordWriteCount',
-      'content.tezDag.vertices.@each.state', 'content.tezDag.vertices.@each.spilledRecords'),
+  }.observes(
+      'content.tezDag.vertices.@each.fileReadBytes',
+      'content.tezDag.vertices.@each.fileWriteBytes',
+      'content.tezDag.vertices.@each.hdfsReadBytes',
+      'content.tezDag.vertices.@each.hdfsWriteBytes',
+      'content.tezDag.vertices.@each.recordReadCount',
+      'content.tezDag.vertices.@each.recordWriteCount',
+      'content.tezDag.vertices.@each.state',
+      'content.tezDag.vertices.@each.spilledRecords'
+    ),
 
+  /**
+   * Create object with data for graph popups
+   * @param {string} vertexName
+   * @param {string} op
+   * @param {number} opIndex
+   * @returns {{name: string, value: string}[]}
+   * @method createOperationPlanObj
+   */
   createOperationPlanObj: function (vertexName, op, opIndex) {
     var operatorPlanObj = [],
       text = this.get('content.tezDag.vertices').findBy('name', vertexName).get('operationPlan');
@@ -316,6 +368,7 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
    *
    * Terminology: 'vertices' and 'edges' are Tez terms. 'nodes' and 'links' are
    * visual (d3) terms.
+   * @method drawTezDag
    */
   drawTezDag: function () {
     var self = this,
@@ -768,35 +821,46 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
 
   /**
    * Refreshes UI of the Tez graph with latest values
+   * @method refreshGraphUI
    */
   refreshGraphUI: function () {
     var svgLayer = this.get('svgVerticesLayer');
     if (svgLayer != null) {
-      var self = this;
-      var metricNodes = svgLayer.selectAll(".metric");
-      var metricNodeTexts = svgLayer.selectAll(".metric-text");
-      var metricNodeTitles = svgLayer.selectAll(".metric-title");
-      var nodeBackgrounds = svgLayer.selectAll(".background");
-      var vertexIconTexts = svgLayer.selectAll(".vertex-icon-text");
-      var vertexIconRects = svgLayer.selectAll(".vertex-icon-rect");
+      var self = this,
+        metricNodes = svgLayer.selectAll(".metric"),
+        metricNodeTexts = svgLayer.selectAll(".metric-text"),
+        metricNodeTitles = svgLayer.selectAll(".metric-title"),
+        nodeBackgrounds = svgLayer.selectAll(".background"),
+        vertexIconTexts = svgLayer.selectAll(".vertex-icon-text"),
+        vertexIconRects = svgLayer.selectAll(".vertex-icon-rect");
       metricNodes.attr("class", function (node) {
-        var classes = "metric ";
-        var percent = node.metricPercent;
+        var classes = "metric ",
+          percent = node.metricPercent;
         if (App.Helpers.number.validateInteger(percent) == null && percent >= 0) {
           if (percent <= 20) {
             classes += "heat-0-20 ";
-          } else if (percent <= 40) {
-            classes += "heat-20-40 ";
-          } else if (percent <= 60) {
-            classes += "heat-40-60 ";
-          } else if (percent <= 80) {
-            classes += "heat-60-80 ";
-          } else if (percent <= 100) {
-            classes += "heat-80-100 ";
-          } else {
-            classes += "heat-none";
           }
-        } else {
+          else
+            if (percent <= 40) {
+              classes += "heat-20-40 ";
+            }
+            else
+              if (percent <= 60) {
+                classes += "heat-40-60 ";
+              }
+              else
+                if (percent <= 80) {
+                  classes += "heat-60-80 ";
+                }
+                else
+                  if (percent <= 100) {
+                    classes += "heat-80-100 ";
+                  }
+                  else {
+                    classes += "heat-none";
+                  }
+        }
+        else {
           classes += "heat-none";
         }
         return classes;
@@ -846,6 +910,12 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
     }
   },
 
+  /**
+   * Get icon for vertex according to node state
+   * @param {object} node
+   * @returns {string}
+   * @method getVertexIcon
+   */
   getVertexIcon: function (node) {
     var icon = "";
     switch (node.state) {
@@ -888,6 +958,7 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
    *  drawHeight: 40 // Height of actual drawing (that will be scaled)
    * }
    * </code>
+   * @method getNodeCalculatedDimensions
    */
   getNodeCalculatedDimensions: function (node, minVertexDuration, maxVertexDuration) {
     var size = {

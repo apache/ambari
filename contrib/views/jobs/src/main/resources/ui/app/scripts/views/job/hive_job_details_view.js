@@ -29,12 +29,16 @@ App.JobView = Em.View.extend({
 
   zoomScale: 1,
 
+  /**
+   * Is query visible
+   * @type {bool}
+   */
   showQuery: false,
 
-  willInsertElement: function () {
-    this.get('controller').loadJobDetails();
-  },
-
+  /**
+   * Current graph zoom
+   * @type {number}
+   */
   zoomStep: function () {
     var zoomStep = 0.01;
     var zoomFrom = this.get('zoomScaleFrom');
@@ -45,10 +49,19 @@ App.JobView = Em.View.extend({
     return zoomStep;
   }.property('zoomScaleFrom', 'zoomScaleTo'),
 
+  /**
+   * Is graph in maximum zoom
+   * @type {bool}
+   */
   isGraphMaximized: false,
 
   actions: {
 
+    /**
+     * Summary metric change handler
+     * @param {string} summaryType
+     * @method doSelectSummaryMetricType
+     */
     doSelectSummaryMetricType: function (summaryType) {
       switch (summaryType) {
         case Em.I18n.t('jobs.hive.tez.metric.input'):
@@ -75,6 +88,10 @@ App.JobView = Em.View.extend({
       this.set('summaryMetricType', summaryType);
     },
 
+    /**
+     * "Show more/less" click handler
+     * @method toggleShowQuery
+     */
     toggleShowQuery: function () {
       this.toggleProperty('showQuery');
       var queryBlock = $('.query-info');
@@ -86,10 +103,20 @@ App.JobView = Em.View.extend({
       }
     },
 
+    /**
+     * Click handler for vertex-name in the table of vertexes
+     * @param {App.TezDagVertex} event
+     * @param {bool} notTableClick
+     * @method actionDoSelectVertex
+     */
     actionDoSelectVertex: function (event, notTableClick) {
       this.doSelectVertex(event, notTableClick);
     },
 
+    /**
+     * Zoom-In click-handler
+     * @method doGraphZoomIn
+     */
     doGraphZoomIn: function () {
       var zoomTo = this.get('zoomScaleTo'),
         zoomScale = this.get('zoomScale'),
@@ -101,6 +128,10 @@ App.JobView = Em.View.extend({
       }
     },
 
+    /**
+     * Zoom-out click-handler
+     * @method doGraphZoomOut
+     */
     doGraphZoomOut: function () {
       var zoomFrom = this.get('zoomScaleFrom'),
         zoomScale = this.get('zoomScale'),
@@ -112,22 +143,42 @@ App.JobView = Em.View.extend({
       }
     },
 
+    /**
+     * Maximize graph
+     * @method doGraphMaximize
+     */
     doGraphMaximize: function () {
       this.set('isGraphMaximized', true);
     },
 
+    /**
+     * Minimize graph
+     * @method doGraphMinimize
+     */
     doGraphMinimize: function () {
       this.set('isGraphMaximized', false);
     }
 
   },
 
+  /**
+   * "Show more/less"-message
+   * @type {string}
+   */
   toggleShowQueryText: function () {
     return this.get('showQuery') ? Em.I18n.t('jobs.hive.less') : Em.I18n.t('jobs.hive.more');
   }.property('showQuery'),
 
+  /**
+   * Current metric type in the metrics-type listbox
+   * @type {string}
+   */
   summaryMetricType: 'input',
 
+  /**
+   * List of available values for <code>summaryMetricType</code>
+   * @type {string[]}
+   */
   summaryMetricTypesDisplay: [
     Em.I18n.t('jobs.hive.tez.metric.input'),
     Em.I18n.t('jobs.hive.tez.metric.output'),
@@ -137,10 +188,18 @@ App.JobView = Em.View.extend({
     Em.I18n.t('jobs.hive.tez.metric.spilledRecords')
   ],
 
+  /**
+   * Display-value for <code>summaryMetricType</code>
+   * @type {string}
+   */
   summaryMetricTypeDisplay: function () {
     return Em.I18n.t('jobs.hive.tez.metric.' + this.get('summaryMetricType'));
   }.property('summaryMetricType'),
 
+  /**
+   * List of sorted vertexes for current job
+   * @type {App.TezDagVertex[]}
+   */
   sortedVertices: function () {
     var sortColumn = this.get('controller.sortingColumn');
     if (sortColumn && sortColumn.get('status')) {
@@ -156,12 +215,20 @@ App.JobView = Em.View.extend({
     return vertices;
   }.property('content.tezDag.vertices', 'controller.sortingColumn'),
 
+  /**
+   * When all data loaded in the controller, set <code>content</code>-value
+   * @method initialDataLoaded
+   */
   initialDataLoaded: function () {
     if (this.get('controller.loaded')) {
       this.set('content', this.get('controller.content'));
     }
   }.observes('controller.loaded'),
 
+  /**
+   * Set proper value to <code>isSelected</code> for each vertex
+   * @method jobObserver
+   */
   jobObserver: function () {
     var content = this.get('content'),
       selectedVertex = this.get('selectedVertex');
@@ -174,6 +241,12 @@ App.JobView = Em.View.extend({
     }
   }.observes('selectedVertex', 'content.tezDag.vertices.@each.id'),
 
+  /**
+   * Set <code>selectedVertex</code>
+   * @param {App.TezDagVertex} newVertex
+   * @param {bool} notTableClick
+   * @method doSelectVertex
+   */
   doSelectVertex: function (newVertex, notTableClick) {
     var currentVertex = this.get('selectedVertex');
     if (currentVertex != null) {
@@ -185,8 +258,6 @@ App.JobView = Em.View.extend({
   },
 
   /**
-   * Provides display information for vertex I/O.
-   *
    * {
    *  'file': {
    *    'read': {
@@ -219,12 +290,30 @@ App.JobView = Em.View.extend({
    */
   selectedVertexIODisplay: {},
 
+  /**
+   * Handler to call <code>selectedVertexIODisplayObs</code> once
+   * @method selectedVertexIODisplayObsOnce
+   */
   selectedVertexIODisplayObsOnce: function() {
     Em.run.once(this, 'selectedVertexIODisplayObs');
-  }.observes('selectedVertex.fileReadOps', 'selectedVertex.fileWriteOps', 'selectedVertex.hdfsReadOps', 'selectedVertex.hdfdWriteOps',
-      'selectedVertex.fileReadBytes', 'selectedVertex.fileWriteBytes', 'selectedVertex.hdfsReadBytes', 'selectedVertex.hdfdWriteBytes',
-      'selectedVertex.recordReadCount', 'selectedVertex.recordWriteCount', 'selectedVertex.status'),
+  }.observes(
+      'selectedVertex.fileReadOps',
+      'selectedVertex.fileWriteOps',
+      'selectedVertex.hdfsReadOps',
+      'selectedVertex.hdfdWriteOps',
+      'selectedVertex.fileReadBytes',
+      'selectedVertex.fileWriteBytes',
+      'selectedVertex.hdfsReadBytes',
+      'selectedVertex.hdfdWriteBytes',
+      'selectedVertex.recordReadCount',
+      'selectedVertex.recordWriteCount',
+      'selectedVertex.status'
+    ),
 
+  /**
+   * Provides display information for vertex I/O.
+   * @method selectedVertexIODisplayObs
+   */
   selectedVertexIODisplayObs: function () {
     var v = this.get('selectedVertex'),
       naString = Em.I18n.t('common.na'),
@@ -265,10 +354,18 @@ App.JobView = Em.View.extend({
     this.set('selectedVertexIODisplay', r);
   },
 
+  /**
+   * Can graph be zoomed-in
+   * @type {bool}
+   */
   canGraphZoomIn: function () {
     return this.get('zoomScale') < this.get('zoomScaleTo');
   }.property('zoomScale', 'zoomScaleTo'),
 
+  /**
+   * Can graph be zoomed-out
+   * @type {bool}
+   */
   canGraphZoomOut: function () {
     return this.get('zoomScale') > this.get('zoomScaleFrom');
   }.property('zoomScale', 'zoomScaleFrom')

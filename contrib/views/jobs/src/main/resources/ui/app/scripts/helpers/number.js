@@ -30,6 +30,7 @@ App.Helpers.number = {
    * @return {String} Returns converted value with abbreviation.
    */
   bytesToSize: function (bytes, precision, parseType, multiplyBy) {
+    if (isNaN(bytes)) bytes = 0;
     if (Em.isNone(bytes)) {
       return 'n/a';
     } else {

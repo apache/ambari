@@ -53,7 +53,6 @@ App.hiveJobsMapper = App.QuickDataMapper.create({
   map: function (json) {
 
     var model = this.get('model'),
-      jobsToDelete = App.HiveJob.store.all('hiveJob').get('content').mapProperty('id'),
       map = this.get('json_map'),
       hiveJobs = [];
 
@@ -64,8 +63,9 @@ App.hiveJobsMapper = App.QuickDataMapper.create({
           json.entities = [json];
         }
       }
-
+      var currentEntityMap = {};
       json.entities.forEach(function (entity) {
+        currentEntityMap[entity.entity] = entity.entity;
         var hiveJob = Ember.JsonMapper.map(entity, map);
 
         if (entity.events != null) {
@@ -87,12 +87,20 @@ App.hiveJobsMapper = App.QuickDataMapper.create({
         if (!Em.isNone(tezDag)) {
           hiveJob.tezDag = tezDag.id;
         }
-        jobsToDelete = jobsToDelete.without(hiveJob.id);
       });
 
-      jobsToDelete.forEach(function (id) {
-        var r = App.HiveJob.store.getById('hiveJob', id);
-        if(r) r.destroyRecord();
+      var jobsController = App.__container__.lookup('controller:Jobs');
+      if(hiveJobs.length > jobsController.get('filterObject.jobsLimit')) {
+        var lastJob = hiveJobs.pop();
+        if(jobsController.get('navIDs.nextID') != lastJob.id) {
+          jobsController.set('navIDs.nextID', lastJob.id);
+        }
+        currentEntityMap[lastJob.id] = null;
+      }
+      App.HiveJob.store.all('hiveJob').forEach(function (r) {
+        if(r && !currentEntityMap[r.get('id')]) {
+          r.destroyRecord();
+        }
       });
 
     }

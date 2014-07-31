@@ -19,6 +19,7 @@
 
 <div id="jobs">
   <div class="jobs_head">
+    <div>{{t menu.item.jobs}}</div>
     {{#if controller.hasNewJobs}}
       <div class="new-jobs-link">
         <a href="javascript:void(null);" {{action updateJobsByClick target="controller"}}>{{t jobs.new_jobs.info}}</a>
