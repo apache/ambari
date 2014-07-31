@@ -110,7 +110,7 @@ public class AmbariLdapAuthenticationProvider implements AuthenticationProvider 
       }
 
       //TODO change properties
-      String userSearchBase = ldapServerProperties.get().getUserBase();
+      String userSearchBase = ldapServerProperties.get().getUserSearchBase();
       String userSearchFilter = ldapServerProperties.get().getUserSearchFilter();
 
       FilterBasedLdapUserSearch userSearch = new FilterBasedLdapUserSearch(userSearchBase, userSearchFilter, springSecurityContextSource);

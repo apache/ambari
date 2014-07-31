@@ -17,13 +17,12 @@
  */
 package org.apache.ambari.server.security.authorization;
 
+import org.apache.ambari.server.orm.entities.RoleEntity;
+import org.apache.ambari.server.orm.entities.UserEntity;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
-
-import org.apache.ambari.server.orm.entities.MemberEntity;
-import org.apache.ambari.server.orm.entities.RoleEntity;
-import org.apache.ambari.server.orm.entities.UserEntity;
 
 /**
  * Describes user of web-services
@@ -35,7 +34,6 @@ public class User {
   final Date createTime;
   final boolean active;
   final Collection<String> roles = new ArrayList<String>();
-  final Collection<String> groups = new ArrayList<String>();
 
   User(UserEntity userEntity) {
     userId = userEntity.getUserId();
@@ -45,9 +43,6 @@ public class User {
     active = userEntity.getActive();
     for (RoleEntity roleEntity : userEntity.getRoleEntities()) {
       roles.add(roleEntity.getRoleName());
-    }
-    for (MemberEntity memberEntity : userEntity.getMemberEntities()) {
-      groups.add(memberEntity.getGroup().getGroupName());
     }
   }
 
@@ -73,10 +68,6 @@ public class User {
 
   public Collection<String> getRoles() {
     return roles;
-  }
-
-  public Collection<String> getGroups() {
-    return groups;
   }
 
   @Override

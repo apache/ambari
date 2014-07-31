@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -15,27 +15,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.ambari.server.controller;
+package org.apache.ambari.server.security.authorization;
 
-import java.util.Map;
+import org.apache.ambari.server.orm.entities.GroupEntity;
 
 /**
- * Represents a controller maintenance request.
+ * Describes group of users of web-service.
  */
-public class ControllerRequest {
-  private final String name;
-  private final Map<String, Object> propertyMap;
+public class Member {
+  private final int groupId;
+  private final String groupName;
+  private final boolean ldapGroup;
 
-  public ControllerRequest(String name, Map<String, Object> propertyMap) {
-    this.name = name;
-    this.propertyMap = propertyMap;
+  Member(GroupEntity groupEntity) {
+    this.groupId = groupEntity.getGroupId();
+    this.groupName = groupEntity.getGroupName();
+    this.ldapGroup = groupEntity.getLdapGroup();
   }
 
-  public String getName() {
-    return name;
+  public int getGroupId() {
+    return groupId;
   }
 
-  public Map<String, Object> getPropertyMap() {
-    return propertyMap;
+  public String getGroupName() {
+    return groupName;
+  }
+
+  public boolean isLdapGroup() {
+    return ldapGroup;
+  }
+
+  @Override
+  public String toString() {
+    return "Group [groupId=" + groupId + ", groupName=" + groupName
+        + ", ldapGroup=" + ldapGroup + "]";
   }
 }

@@ -414,14 +414,5 @@
       "AlertDefinition/enabled",
       "AlertDefinition/scope",
       "AlertDefinition/source"
-    ],      
-    "Controller":[
-        "Controllers/name",
-        "LDAP/configured",
-        "LDAP/users",
-        "LDAP/groups",
-        "LDAP/synced_users",
-        "LDAP/synced_groups",
-        "_"
     ]
 }

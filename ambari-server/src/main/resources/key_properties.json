@@ -148,8 +148,5 @@
   "AlertDefinition": {
     "Cluster": "AlertDefinition/cluster_name",
     "AlertDefinition": "AlertDefinition/id"
-  },
-  "Controller": {
-    "Controller": "Controllers/name"
   }
 }

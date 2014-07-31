@@ -118,8 +118,7 @@ public interface Resource {
     AmbariPrivilege,
     ClusterPrivilege,
     ViewPrivilege,
-    ViewPermission,
-    Controller;
+    ViewPermission;
 
     /**
      * Get the {@link Type} that corresponds to this InternalType.
@@ -199,7 +198,6 @@ public interface Resource {
     public static final Type ClusterPrivilege = InternalType.ClusterPrivilege.getType();
     public static final Type ViewPrivilege = InternalType.ViewPrivilege.getType();
     public static final Type ViewPermission = InternalType.ViewPermission.getType();
-    public static final Type Controller = InternalType.Controller.getType();
 
     /**
      * The type name.
