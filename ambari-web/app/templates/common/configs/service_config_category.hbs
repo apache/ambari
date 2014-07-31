@@ -49,28 +49,42 @@
             <div {{bindAttr class="errorMessage:error: warnMessage:warning: :control-group"}}>
               {{view viewClass serviceConfigBinding="this" categoryConfigsAllBinding="view.categoryConfigsAll" }}
               {{#if supportsFinal}}
-                <label class="checkbox inline">{{view Ember.Checkbox checkedBinding="isFinal" disabledBinding="isNotEditable"}}{{t services.service.config.final}}</label>
+                <a href="#" data-toggle="tooltip"
+                  {{bindAttr class=":btn :btn-small :btn-final isFinal:active" disabled="isNotEditable"}}
+                  {{action "toggleFinalFlag" this target="view"}}
+                  {{translateAttr data-original-title="services.service.config.final"}}>
+                  <i class="icon-lock"></i>
+                </a>
               {{/if}}
               {{#if view.canEdit}}
                 {{#if isPropertyOverridable}}
                   {{#if view.supportsHostOverrides}}
                     {{#if App.isAdmin}}
-                      <a class="action" {{action "createOverrideProperty" this target="view" }} ><i class="icon-plus-sign"></i>{{t common.override}}</a>
+                      <a class="btn btn-small" href="#" data-toggle="tooltip"
+                        {{action "createOverrideProperty" this target="view"}}
+                        {{translateAttr data-original-title="common.override"}}>
+                        <i class="icon-plus-sign"></i>
+                      </a>
                     {{/if}}
                   {{/if}}
                 {{/if}}
                 {{#unless cantBeUndone}}
                   {{#if isNotDefaultValue}}
-                    <a class="action" {{action "doRestoreDefaultValue" this target="view" }} ><i class="icon-undo"></i>{{t common.undo}}</a>
+                    <a class="btn btn-small" href="#" data-toggle="tooltip"
+                      {{action "doRestoreDefaultValue" this target="view"}}
+                      {{translateAttr data-original-title="common.undo"}}>
+                      <i class="icon-undo"></i>
+                    </a>
                   {{/if}}
                 {{/unless}}
                 {{#if isRemovable}}
                   {{#if App.isAdmin}}
-                    <a class="action" {{action "removeProperty" this target="view" }} ><i class="icon-minus-sign"></i>{{t common.remove}}</a>
+                    <a class="btn btn-small" href="#" data-toggle="tooltip"
+                      {{action "removeProperty" this target="view"}}
+                      {{translateAttr data-original-title="common.remove"}}>
+                      <i class="icon-minus-sign"></i>
+                    </a>
                   {{/if}}
-                {{/if}}
-                {{#if supportsFinal}}
-                  <label class="checkbox inline">{{view Ember.Checkbox checkedBinding="isFinal"}}{{t services.service.config.final}}</label>
                 {{/if}}
                 {{#unless isEditable}}
                   {{#if group}}

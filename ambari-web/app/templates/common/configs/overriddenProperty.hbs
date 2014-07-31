@@ -20,21 +20,34 @@
   <div {{bindAttr class="overriddenSCP.errorMessage:error: :control-group :overrideField"}}>
     {{view overriddenSCP.viewClass serviceConfigBinding="overriddenSCP" categoryConfigsBinding="view.categoryConfigs"}}
     {{#if overriddenSCP.supportsFinal}}
-      <label class="checkbox inline">{{view Ember.Checkbox checkedBinding="overriddenSCP.isFinal" disabledBinding="overriddenSCP.isNotEditable"}}{{t services.service.config.final}}</label>
+      <a href="#" data-toggle="tooltip"
+        {{bindAttr class=":btn :btn-small :btn-final overriddenSCP.isFinal:active" disabled="overriddenSCP.isNotEditable"}}
+        {{action "toggleFinalFlag" overriddenSCP target="view"}}
+        {{translateAttr data-original-title="services.service.config.final"}}>
+        <i class="icon-lock"></i>
+      </a>
     {{/if}}
     {{#if view.isDefaultGroupSelected}}
       {{#if overriddenSCP.group}}
-        <a rel='SwitchGroupTooltip' {{bindAttr data-original-title="overriddenSCP.group.switchGroupTextFull" }} class="action" {{action selectConfigGroup overriddenSCP.group target="controller"}}>
+        <a href="#" data-toggle="tooltip" {{bindAttr data-original-title="overriddenSCP.group.switchGroupTextFull" }} class="action" {{action selectConfigGroup overriddenSCP.group target="controller"}}>
           {{overriddenSCP.group.switchGroupTextShort}}
         </a>
       {{/if}}
     {{else}}
       {{#if overriddenSCP.isEditable}}
         {{#if isNotDefaultValue}}
-          <a class="action" {{action "doRestoreDefaultValue" this target="view" }} ><i class="icon-undo"></i>{{t common.undo}}</a>
+          <a class="btn btn-small" href="#" data-toggle="tooltip"
+            {{action "doRestoreDefaultValue" overriddenSCP target="view"}}
+            {{translateAttr data-original-title="common.undo"}}>
+            <i class="icon-undo"></i>
+          </a>
         {{/if}}
         {{#if App.isAdmin}}
-          <a class="action" {{action "removeOverride" overriddenSCP target="view" }} ><i class="icon-minus-sign"></i>{{t common.remove}}</a>
+          <a class="btn btn-small" href="#" data-toggle="tooltip"
+            {{action "removeOverride" overriddenSCP target="view"}}
+            {{translateAttr data-original-title="common.remove"}}>
+            <i class="icon-minus-sign"></i>
+          </a>
         {{/if}}
           <span class="help-inline">{{overriddenSCP.errorMessage}}</span>
       {{else}}

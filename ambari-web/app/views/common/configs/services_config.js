@@ -425,6 +425,9 @@ App.ServiceConfigsByCategoryView = Ember.View.extend(App.UserPref, {
     } else {
       this.$('.accordion-body').show();
     }
+    App.tooltip(this.$('[data-toggle=tooltip]'),{
+      placement: 'top'
+    });
     this.updateReadOnlyFlags();
     Em.run.next(function() {
       self.updateReadOnlyFlags();
@@ -663,6 +666,14 @@ App.ServiceConfigsByCategoryView = Ember.View.extend(App.UserPref, {
     }).bind(this));
   },
 
+  toggleFinalFlag: function (event) {
+    var serviceConfigProperty = event.contexts[0];
+    if (serviceConfigProperty.get('isNotEditable')) {
+      return;
+    }
+    serviceConfigProperty.set('isFinal', !serviceConfigProperty.get('isFinal'));
+  },
+
   /**
    * Removes the top-level property from list of properties.
    * Should be only called on user properties.
@@ -670,6 +681,7 @@ App.ServiceConfigsByCategoryView = Ember.View.extend(App.UserPref, {
   removeProperty: function (event) {
     var serviceConfigProperty = event.contexts[0];
     this.get('serviceConfigs').removeObject(serviceConfigProperty);
+    Em.$('body>.tooltip').remove(); //some tooltips get frozen when their owner's DOM element is removed
   },
 
   /**
