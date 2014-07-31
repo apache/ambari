@@ -20,9 +20,7 @@ import StringIO
 import re
 from unittest import TestCase
 import sys
-from mock.mock import patch
-from mock.mock import MagicMock
-from mock.mock import create_autospec
+from mock.mock import patch, MagicMock, create_autospec
 import os, errno, tempfile
 import signal
 import stat
@@ -2165,7 +2163,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
   def test_prompt_db_properties_postgre_adv(self, gyni_mock, gvsi_mock, rp_mock, smk_mock):
     ambari_server.PROMPT_DATABASE_OPTIONS = True
     gyni_mock.return_value = True
-    list_of_return_values = ["ambari-server", "ambari", "1"]
+    list_of_return_values = ["ambari-server", "ambari", "ambari", "1"]
 
     def side_effect(*args, **kwargs):
       return list_of_return_values.pop()
@@ -2183,6 +2181,88 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertEqual(args.database_name, "ambari")
     self.assertEqual(args.database_username, "ambari-server")
     self.assertEqual(args.sid_or_sname, "sname")
+
+  @patch.object(ambari_server, "setup_master_key")
+  @patch.object(ambari_server, "read_password")
+  @patch.object(ambari_server, "get_validated_string_input")
+  @patch.object(ambari_server, "get_YN_input")
+  def test_prompt_db_properties_for_each_database_type(self, gyni_mock, gvsi_mock, rp_mock, smk_mock):
+    """
+    :return: Validates that installation for each database type correctly stores the database type, database name,
+    and optionally the postgres schema name.
+    """
+    ambari_server.PROMPT_DATABASE_OPTIONS = True
+    gyni_mock.return_value = True
+    rp_mock.return_value = "password"
+    smk_mock.return_value = (None, False, True)
+
+    # Values to use while installing several database types
+    hostname = "localhost"
+    db_name = "db_ambari"
+    postgres_schema = "sc_ambari"
+    port = "1234"
+    oracle_service = "1"
+    oracle_service_name = "ambari"
+    user_name = "ambari"
+
+    # Input values
+    postgres_embedded_values = ["1", db_name, postgres_schema, hostname]
+    oracle_values = ["2", hostname, port, oracle_service, oracle_service_name, user_name]
+    mysql_values = ["3", hostname, port, db_name, user_name]
+    postgres_external_values = ["4", hostname, port, db_name, postgres_schema, user_name]
+
+    list_of_return_values = postgres_embedded_values + oracle_values + mysql_values + postgres_external_values
+    list_of_return_values = list_of_return_values[::-1]       # Reverse the list since the input will be popped
+
+    def side_effect(*args, **kwargs):
+      return list_of_return_values.pop()
+    gvsi_mock.side_effect = side_effect
+
+    if ambari_server.AMBARI_CONF_VAR in os.environ:
+      del os.environ[ambari_server.AMBARI_CONF_VAR]
+
+    tempdir = tempfile.gettempdir()
+    os.environ[ambari_server.AMBARI_CONF_VAR] = tempdir
+
+    for i in range(1, 5):
+        # Use the expected path of the ambari.properties file to delete it if it exists, and then create a new one
+        # during each use case.
+        prop_file = os.path.join(tempdir, "ambari.properties")
+        if os.path.exists(prop_file):
+          os.remove(prop_file)
+        with open(prop_file, "w") as f:
+          f.write("server.jdbc.database_name=oldDBName")
+        f.close()
+        ambari_server.AMBARI_PROPERTIES_FILE = prop_file
+
+        args = MagicMock()
+        ambari_server.load_default_db_properties(args)
+        ambari_server.prompt_db_properties(args)
+
+        if i == 1:
+          ambari_server.store_local_properties(args)          # Embedded postgres is the only one that saves local properties
+        else:
+          ambari_server.store_remote_properties(args)
+
+        properties = ambari_server.get_ambari_properties()
+        if i == 1:
+          # Postgres Embedded
+          self.assertEqual(properties[ambari_server.JDBC_DATABASE_PROPERTY], "postgres")
+          self.assertEqual(properties[ambari_server.JDBC_DATABASE_NAME_PROPERTY], db_name)
+          self.assertEqual(properties[ambari_server.JDBC_POSTGRES_SCHEMA_PROPERTY], postgres_schema)
+        elif i == 2:
+          # Oracle
+          self.assertEqual(properties[ambari_server.JDBC_DATABASE_PROPERTY], "oracle")
+          self.assertFalse(ambari_server.JDBC_POSTGRES_SCHEMA_PROPERTY in properties.propertyNames())
+        elif i == 3:
+          # MySQL
+          self.assertEqual(properties[ambari_server.JDBC_DATABASE_PROPERTY], "mysql")
+          self.assertFalse(ambari_server.JDBC_POSTGRES_SCHEMA_PROPERTY in properties.propertyNames())
+        elif i == 4:
+          # Postgres External
+          self.assertEqual(properties[ambari_server.JDBC_DATABASE_PROPERTY], "postgres")
+          self.assertEqual(properties[ambari_server.JDBC_DATABASE_NAME_PROPERTY], db_name)
+          self.assertEqual(properties[ambari_server.JDBC_POSTGRES_SCHEMA_PROPERTY], postgres_schema)
 
   @patch.object(os.path, "exists")
   def test_validate_jdk(self, exists_mock):
@@ -3446,14 +3526,14 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     properties = ["server.jdbc.user.name=ambari-server\n",
                   "server.jdbc.user.passwd=/etc/ambari-server/conf/password.dat\n",
                   "java.home=/usr/jdk64/jdk1.6.0_31\n",
-                  "server.jdbc.database=ambari\n",
+                  "server.jdbc.database_name=ambari\n",
                   "ambari-server.user=ambari\n",
                   "agent.fqdn.service.url=URL\n"]
 
     NEW_PROPERTY = 'some_new_property=some_value\n'
     JDK_NAME_PROPERTY = 'jdk.name=jdk-6u31-linux-x64.bin\n'
     JCE_NAME_PROPERTY = 'jce.name=jce_policy-6.zip\n'
-    CHANGED_VALUE_PROPERTY = 'server.jdbc.database=should_not_overwrite_value\n'
+    CHANGED_VALUE_PROPERTY = 'server.jdbc.database_name=should_not_overwrite_value\n'
 
     get_conf_dir_mock.return_value = '/etc/ambari-server/conf'
 
@@ -3651,6 +3731,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     args.database_host = "localhost"
     args.database_port = "1234"
     args.database_name = "ambari"
+    args.postgres_schema = "ambari"
     args.sid_or_sname = "foo"
     args.database_username = "foo"
     args.database_password = "foo"
@@ -4041,7 +4122,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
     configs = {ambari_server.JDBC_USER_NAME_PROPERTY: "fakeuser",
                ambari_server.JDBC_PASSWORD_PROPERTY: "${alias=somealias}",
-               ambari_server.JDBC_DATABASE_PROPERTY: "fakedbname",
+               ambari_server.JDBC_DATABASE_NAME_PROPERTY: "fakedbname",
                ambari_server.SECURITY_KEY_IS_PERSISTED: "True"}
 
     get_ambari_properties_method.return_value = configs
@@ -4740,7 +4821,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
   @patch.object(ambari_server, "get_ambari_properties")
   def test_check_database_name_property(self, get_ambari_properties_mock):
     # negative case
-    get_ambari_properties_mock.return_value = {ambari_server.JDBC_DATABASE_PROPERTY: ""}
+    get_ambari_properties_mock.return_value = {ambari_server.JDBC_DATABASE_NAME_PROPERTY: ""}
     try:
       result = ambari_server.check_database_name_property()
       self.fail("Should fail with exception")
@@ -4750,7 +4831,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     # positive case
     dbname = "ambari"
     get_ambari_properties_mock.reset_mock()
-    get_ambari_properties_mock.return_value = {ambari_server.JDBC_DATABASE_PROPERTY: dbname}
+    get_ambari_properties_mock.return_value = {ambari_server.JDBC_DATABASE_NAME_PROPERTY: dbname}
     try:
       result = ambari_server.check_database_name_property()
     except FatalException:
@@ -4802,7 +4883,9 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     store_password_file_mock.return_value = "password"
 
     new_db = "newDBName"
+    args.dbms = "postgres"
     args.database_name = new_db
+    args.postgres_schema = new_db
     args.database_username = "user"
     args.database_password = "password"
     args.jdbc_driver= None
@@ -4811,7 +4894,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     tempdir = tempfile.gettempdir()
     prop_file = os.path.join(tempdir, "ambari.properties")
     with open(prop_file, "w") as f:
-      f.write("server.jdbc.database=oldDBName")
+      f.write("server.jdbc.database_name=oldDBName")
     f.close()
 
     os.environ[ambari_server.AMBARI_CONF_VAR] = tempdir
@@ -4823,8 +4906,8 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
     properties = ambari_server.get_ambari_properties()
 
-    self.assertTrue(ambari_server.JDBC_DATABASE_PROPERTY in properties.keys())
-    value = properties[ambari_server.JDBC_DATABASE_PROPERTY]
+    self.assertTrue(ambari_server.JDBC_DATABASE_NAME_PROPERTY in properties.keys())
+    value = properties[ambari_server.JDBC_DATABASE_NAME_PROPERTY]
     self.assertEqual(value, new_db)
 
     del os.environ[ambari_server.AMBARI_CONF_VAR]

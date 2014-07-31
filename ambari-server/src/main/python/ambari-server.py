@@ -268,12 +268,11 @@ POSTGRESQL_CONF_FILE = os.path.join(PG_HBA_DIR, "postgresql.conf")
 
 SERVER_VERSION_FILE_PATH = "server.version.file"
 
-#TODO property used incorrectly in local case, it was meant to be dbms name, not postgres database name,
-# has workaround for now, as we don't need dbms name if persistence_type=local
-JDBC_DATABASE_PROPERTY = "server.jdbc.database"
+JDBC_DATABASE_PROPERTY = "server.jdbc.database"             # E.g., embedded|oracle|mysql|postgres
+JDBC_DATABASE_NAME_PROPERTY = "server.jdbc.database_name"   # E.g., ambari
 JDBC_HOSTNAME_PROPERTY = "server.jdbc.hostname"
 JDBC_PORT_PROPERTY = "server.jdbc.port"
-JDBC_SCHEMA_PROPERTY = "server.jdbc.schema"
+JDBC_POSTGRES_SCHEMA_PROPERTY = "server.jdbc.postgres.schema"   # Only for postgres, defaults to same value as DB name
 
 JDBC_USER_NAME_PROPERTY = "server.jdbc.user.name"
 JDBC_PASSWORD_PROPERTY = "server.jdbc.user.passwd"
@@ -292,11 +291,6 @@ SRVR_ONE_WAY_SSL_PORT = "8440"
 PERSISTENCE_TYPE_PROPERTY = "server.persistence.type"
 JDBC_DRIVER_PROPERTY = "server.jdbc.driver"
 JDBC_URL_PROPERTY = "server.jdbc.url"
-
-JDBC_RCA_DATABASE_PROPERTY = "server.jdbc.database"
-JDBC_RCA_HOSTNAME_PROPERTY = "server.jdbc.hostname"
-JDBC_RCA_PORT_PROPERTY = "server.jdbc.port"
-JDBC_RCA_SCHEMA_PROPERTY = "server.jdbc.schema"
 
 JDBC_RCA_DRIVER_PROPERTY = "server.jdbc.rca.driver"
 JDBC_RCA_URL_PROPERTY = "server.jdbc.rca.url"
@@ -1128,6 +1122,14 @@ def get_validated_db_name(database_name):
         False
         )
 
+def get_validated_db_schema(postgres_schema):
+    return get_validated_string_input(
+        "Postgres schema (" + postgres_schema + "): ",
+        postgres_schema,
+        "^[a-zA-Z0-9_\-]*$",
+        "Invalid schema name.",
+        False, allowEmpty=True
+    )
 
 def get_validated_service_name(service_name, index):
   return get_validated_string_input(
@@ -1182,6 +1184,7 @@ def load_default_db_properties(args):
   args.database_host = "localhost"
   args.database_port = DATABASE_PORTS[DATABASE_INDEX]
   args.database_name = DEFAULT_DB_NAME
+  args.postgres_schema = DEFAULT_DB_NAME
   args.database_username = "ambari"
   args.database_password = "bigdata"
   args.sid_or_sname = "sname"
@@ -1272,6 +1275,8 @@ def prompt_db_properties(args):
         elif args.dbms in ["mysql", "postgres"]:
           args.database_name = get_validated_db_name(args.database_name)
 
+          if args.dbms in ["postgres", ]:
+              args.postgres_schema = get_validated_db_schema(args.postgres_schema)
         else:
           # other DB types
           pass
@@ -1281,7 +1286,8 @@ def prompt_db_properties(args):
         args.database_port = DATABASE_PORTS[DATABASE_INDEX]
 
         args.database_name = get_validated_db_name(args.database_name)
-        pass
+        if args.dbms in ["postgres", ]:
+            args.postgres_schema = get_validated_db_schema(args.postgres_schema)
 
       # Username is common for Oracle/MySQL/Postgres
       args.database_username = get_validated_string_input(
@@ -1294,11 +1300,12 @@ def prompt_db_properties(args):
       )
       args.database_password = configure_database_password(True)
 
-  print_info_msg('Using database options: {database},{host},{port},{schema},{user},{password}'.format(
+  print_info_msg('Using database options: {database},{host},{port},{name},{schema},{user},{password}'.format(
     database=args.dbms,
     host=args.database_host,
     port=args.database_port,
-    schema=args.database_name,
+    name=args.database_name,
+    schema=args.postgres_schema,
     user=args.database_username,
     password=args.database_password
   ))
@@ -1318,8 +1325,9 @@ def store_remote_properties(args):
   properties.process_pair(JDBC_DATABASE_PROPERTY, args.dbms)
   properties.process_pair(JDBC_HOSTNAME_PROPERTY, args.database_host)
   properties.process_pair(JDBC_PORT_PROPERTY, args.database_port)
-  properties.process_pair(JDBC_SCHEMA_PROPERTY, args.database_name)
-
+  properties.process_pair(JDBC_DATABASE_NAME_PROPERTY, args.database_name)
+  if args.dbms == "postgres":
+    properties.process_pair(JDBC_POSTGRES_SCHEMA_PROPERTY, args.postgres_schema)
   properties.process_pair(JDBC_DRIVER_PROPERTY, DATABASE_DRIVER_NAMES[DATABASE_INDEX])
   # fully qualify the hostname to make sure all the other hosts can connect
   # to the jdbc hostname since its passed onto the agents for RCA
@@ -1477,7 +1485,7 @@ def check_database_name_property():
     print_error_msg("Error getting ambari properties")
     return -1
 
-  dbname = properties[JDBC_DATABASE_PROPERTY]
+  dbname = properties[JDBC_DATABASE_NAME_PROPERTY]
   if dbname is None or dbname == "":
     err = "DB Name property not set in config file.\n" + SETUP_OR_UPGRADE_MSG
     raise FatalException(-1, err)
@@ -1491,7 +1499,7 @@ def configure_database_username_password(args):
 
   username = properties[JDBC_USER_NAME_PROPERTY]
   passwordProp = properties[JDBC_PASSWORD_PROPERTY]
-  dbname = properties[JDBC_DATABASE_PROPERTY]
+  dbname = properties[JDBC_DATABASE_NAME_PROPERTY]
 
   if username and passwordProp and dbname:
     print_info_msg("Database username + password already configured")
@@ -1537,15 +1545,22 @@ def store_local_properties(args):
 
   isSecure = get_is_secure(properties)
 
-  properties.removeOldProp(JDBC_SCHEMA_PROPERTY)
+  properties.removeOldProp(JDBC_DATABASE_PROPERTY)
+  properties.removeOldProp(JDBC_DATABASE_NAME_PROPERTY)
+  properties.removeOldProp(JDBC_POSTGRES_SCHEMA_PROPERTY)
   properties.removeOldProp(JDBC_HOSTNAME_PROPERTY)
   properties.removeOldProp(JDBC_RCA_DRIVER_PROPERTY)
   properties.removeOldProp(JDBC_RCA_URL_PROPERTY)
   properties.removeOldProp(JDBC_PORT_PROPERTY)
   properties.removeOldProp(JDBC_DRIVER_PROPERTY)
   properties.removeOldProp(JDBC_URL_PROPERTY)
+
+  # Store the properties
   properties.process_pair(PERSISTENCE_TYPE_PROPERTY, "local")
-  properties.process_pair(JDBC_DATABASE_PROPERTY, args.database_name)
+  properties.process_pair(JDBC_DATABASE_PROPERTY, args.dbms)
+  properties.process_pair(JDBC_DATABASE_NAME_PROPERTY, args.database_name)
+  if args.dbms == "postgres":
+    properties.process_pair(JDBC_POSTGRES_SCHEMA_PROPERTY, args.postgres_schema)
   properties.process_pair(JDBC_USER_NAME_PROPERTY, args.database_username)
   properties.process_pair(JDBC_PASSWORD_PROPERTY,
       store_password_file(args.database_password, JDBC_PASSWORD_FILENAME))
@@ -1592,23 +1607,22 @@ def parse_properties_file(args):
   args.persistence_type = properties[PERSISTENCE_TYPE_PROPERTY]
   args.jdbc_url = properties[JDBC_URL_PROPERTY]
 
+  args.dbms = properties[JDBC_DATABASE_PROPERTY]
   if not args.persistence_type:
     args.persistence_type = "local"
 
   if args.persistence_type == 'remote':
-    args.dbms = properties[JDBC_DATABASE_PROPERTY]
     args.database_host = properties[JDBC_HOSTNAME_PROPERTY]
     args.database_port = properties[JDBC_PORT_PROPERTY]
-    args.database_name = properties[JDBC_SCHEMA_PROPERTY]
     global DATABASE_INDEX
     try:
       DATABASE_INDEX = DATABASE_NAMES.index(args.dbms)
     except ValueError:
       pass
-  else:
-    #TODO incorrect property used!! leads to bunch of troubles. Workaround for now
-    args.database_name = properties[JDBC_DATABASE_PROPERTY]
 
+  args.database_name = properties[JDBC_DATABASE_NAME_PROPERTY]
+  args.postgres_schema = properties[JDBC_POSTGRES_SCHEMA_PROPERTY] \
+      if JDBC_POSTGRES_SCHEMA_PROPERTY in properties.propertyNames() else None
   args.database_username = properties[JDBC_USER_NAME_PROPERTY]
   args.database_password_file = properties[JDBC_PASSWORD_PROPERTY]
   if args.database_password_file:
@@ -2791,9 +2805,9 @@ def upgrade(args):
     if properties == -1:
       print_error_msg("Error getting ambari properties")
       return -1
-    print_warning_msg(JDBC_DATABASE_PROPERTY + " property isn't set in " +
+    print_warning_msg(JDBC_DATABASE_NAME_PROPERTY + " property isn't set in " +
     AMBARI_PROPERTIES_FILE + ". Setting it to default value - " + DEFAULT_DB_NAME)
-    properties.process_pair(JDBC_DATABASE_PROPERTY, DEFAULT_DB_NAME)
+    properties.process_pair(JDBC_DATABASE_NAME_PROPERTY, DEFAULT_DB_NAME)
     conf_file = find_properties_file()
     try:
       properties.store(open(conf_file, "w"))
@@ -4158,8 +4172,10 @@ def main():
   parser.add_option('--database', default=None, help="Database to use embedded|oracle|mysql|postgres", dest="dbms")
   parser.add_option('--databasehost', default=None, help="Hostname of database server", dest="database_host")
   parser.add_option('--databaseport', default=None, help="Database port", dest="database_port")
-  parser.add_option('--databasename', default=None, help="Database/Schema/Service name or ServiceID",
+  parser.add_option('--databasename', default=None, help="Database/Service name or ServiceID",
                     dest="database_name")
+  parser.add_option('--postgresschema', default=None, help="Postgres database schema name",
+                    dest="postgres_schema")
   parser.add_option('--databaseusername', default=None, help="Database user login", dest="database_username")
   parser.add_option('--databasepassword', default=None, help="Database user password", dest="database_password")
   parser.add_option('--sidorsname', default="sname", help="Oracle database identifier type, Service ID/Service "

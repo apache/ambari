@@ -30,6 +30,8 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.helpers.ScriptRunner;
@@ -63,6 +65,8 @@ public class DBAccessorImpl implements DBAccessor {
   private final DbmsHelper dbmsHelper;
   private Configuration configuration;
   private DatabaseMetaData databaseMetaData;
+  private static final String dbURLPatternString = "jdbc:(.*?):.*";
+  private Pattern dbURLPattern = Pattern.compile(dbURLPatternString, Pattern.CASE_INSENSITIVE);
 
   @Inject
   public DBAccessorImpl(Configuration configuration) {
@@ -176,21 +180,30 @@ public class DBAccessorImpl implements DBAccessor {
 
   protected String getDbType() {
     String dbUrl = configuration.getDatabaseUrl();
-    String dbType;
 
-    if (dbUrl.contains(Configuration.POSTGRES_DB_NAME)) {
-      dbType = Configuration.POSTGRES_DB_NAME;
-    } else if (dbUrl.contains(Configuration.ORACLE_DB_NAME)) {
-      dbType = Configuration.ORACLE_DB_NAME;
-    } else if (dbUrl.contains(Configuration.MYSQL_DB_NAME)) {
-      dbType = Configuration.MYSQL_DB_NAME;
-    } else if (dbUrl.contains(Configuration.DERBY_DB_NAME)) {
-      dbType = Configuration.DERBY_DB_NAME;
-    } else {
-      throw new RuntimeException("Unable to determine database type.");
+    // dbUrl will have the following format
+    // jdbc:{0}://{1}:{2}/{3},  type, host, port, name
+    // Most importantly, type is one of: postgresql, oracle:thin, mysql
+
+    if (null != dbUrl && !dbUrl.equals("")) {
+      Matcher m = dbURLPattern.matcher(dbUrl.toLowerCase());
+
+      if (m.find() && m.groupCount() == 1) {
+        String type = m.group(1);
+
+        if (type.contains(Configuration.POSTGRES_DB_NAME)) {
+          return Configuration.POSTGRES_DB_NAME;
+        } else if (type.contains(Configuration.ORACLE_DB_NAME)) {
+          return Configuration.ORACLE_DB_NAME;
+        } else if (type.contains(Configuration.MYSQL_DB_NAME)) {
+          return Configuration.MYSQL_DB_NAME;
+        } else if (type.contains(Configuration.DERBY_DB_NAME)) {
+          return Configuration.DERBY_DB_NAME;
+        }
+      }
     }
 
-    return dbType;
+    throw new RuntimeException("Unable to determine database type.");
   }
 
   @Override

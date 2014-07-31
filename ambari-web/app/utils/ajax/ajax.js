@@ -352,7 +352,7 @@ var urls = {
     'mock': '/data/clusters/tags_and_groups.json'
   },
   'config.ambari.database.info': {
-    'real': '/services/AMBARI/components/AMBARI_SERVER?fields=hostComponents/RootServiceHostComponents/properties/server.jdbc.database,hostComponents/RootServiceHostComponents/properties/server.jdbc.url',
+    'real': '/services/AMBARI/components/AMBARI_SERVER?fields=hostComponents/RootServiceHostComponents/properties/server.jdbc.database_name,hostComponents/RootServiceHostComponents/properties/server.jdbc.url',
     'mock': ''
   },
   'config_groups.all_fields': {

@@ -293,7 +293,7 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
 
     //Move tables from ambarirca db to ambari db; drop ambarirca; Mysql
     if (dbType.equals(Configuration.MYSQL_DB_NAME)) {
-      String dbName = configuration.getServerJDBCSchemaName();
+      String dbName = configuration.getServerJDBCPostgresSchemaName();
       moveRCATableInMySQL("workflow", dbName);
       moveRCATableInMySQL("job", dbName);
       moveRCATableInMySQL("task", dbName);

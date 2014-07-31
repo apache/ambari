@@ -164,16 +164,17 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
 
   protected void changePostgresSearchPath() throws SQLException {
     String dbUser = configuration.getDatabaseUser();
-    String dbName = configuration.getServerDBName();
+    String schemaName = configuration.getServerJDBCPostgresSchemaName();
 
-    //wrap username with double quotes to accept old username "ambari-server"
-    if (!dbUser.contains("\"")) {
-      dbUser = String.format("\"%s\"", dbUser);
+    if (null != dbUser && !dbUser.equals("") && null != schemaName && !schemaName.equals("")) {
+      // Wrap username with double quotes to accept old username "ambari-server"
+      if (!dbUser.contains("\"")) {
+        dbUser = String.format("\"%s\"", dbUser);
+      }
+
+      dbAccessor.executeQuery(String.format("ALTER SCHEMA %s OWNER TO %s;", schemaName, dbUser));
+      dbAccessor.executeQuery(String.format("ALTER ROLE %s SET search_path to '%s';", dbUser, schemaName));
     }
-
-    dbAccessor.executeQuery(String.format("ALTER SCHEMA %s OWNER TO %s;", dbName, dbUser));
-
-    dbAccessor.executeQuery(String.format("ALTER ROLE %s SET search_path to '%s';", dbUser, dbName));
   }
 
   /**

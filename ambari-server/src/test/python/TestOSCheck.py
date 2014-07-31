@@ -187,7 +187,7 @@ class TestOSCheck(TestCase):
   def test_update_ambari_properties_os(self, get_conf_dir_mock):
 
     properties = ["server.jdbc.user.name=ambari-server\n",
-                  "server.jdbc.database=ambari\n",
+                  "server.jdbc.database_name=ambari\n",
                   "ambari-server.user=root\n",
                   "server.jdbc.user.name=ambari-server\n",
                   "jdk.name=jdk-6u31-linux-x64.bin\n",
