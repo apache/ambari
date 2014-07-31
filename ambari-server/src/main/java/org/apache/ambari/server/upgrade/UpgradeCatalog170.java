@@ -243,7 +243,7 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
 
     if (clusterMap != null && !clusterMap.isEmpty()) {
       for (final Cluster cluster : clusterMap.values()) {
-        Set<String> configTypes = configHelper.findConfigTypesByPropertyName(cluster, CONTENT_FIELD_NAME);  
+        Set<String> configTypes = configHelper.findConfigTypesByPropertyName(cluster.getCurrentStackVersion(), CONTENT_FIELD_NAME);  
         
         for(String configType:configTypes) {
           if(!configType.endsWith(ENV_CONFIGS_POSTFIX)) {
@@ -284,7 +284,7 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
           String propertyName = property.getKey();
           String propertyValue = property.getValue();
           
-          Set<String> newConfigTypes = configHelper.findConfigTypesByPropertyName(cluster, propertyName);
+          Set<String> newConfigTypes = configHelper.findConfigTypesByPropertyName(cluster.getCurrentStackVersion(), propertyName);
           // if it's custom user service global.xml can be still there.
           newConfigTypes.remove(Configuration.GLOBAL_CONFIG_TAG);
           

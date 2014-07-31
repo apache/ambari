@@ -45,8 +45,11 @@ import org.apache.ambari.server.orm.dao.BlueprintDAO;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
 import org.apache.ambari.server.orm.entities.HostGroupEntity;
 import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.ConfigImpl;
 import org.apache.ambari.server.state.PropertyInfo;
+import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.configuration.Configuration;
 
 /**
  * Resource provider for cluster resources.
@@ -109,9 +112,10 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
    *
    * @param dao  blueprint data access object
    */
-  public static void init(BlueprintDAO dao, AmbariMetaInfo metaInfo) {
+  public static void init(BlueprintDAO dao, AmbariMetaInfo metaInfo, ConfigHelper ch) {
     blueprintDAO = dao;
     stackInfo    = metaInfo;
+    configHelper = ch;
   }
 
 
@@ -825,6 +829,18 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
     }
     setMissingConfigurations();
   }
+  
+  /**
+   * Since global configs are deprecated since 1.7.0, but still supported.
+   * We should automatically map any globals used, to *-env dictionaries.
+   *
+   * @param blueprintConfigurations  map of blueprint configurations keyed by type
+   */
+  private void handleGlobalsBackwardsCompability(Stack stack, 
+      Map<String, Map<String, String>> blueprintConfigurations) {
+    StackId stackId = new StackId(stack.getName(), stack.getVersion());
+    configHelper.moveDeprecatedGlobals(stackId, blueprintConfigurations);
+  }
 
   /**
    * Process cluster scoped configurations provided in blueprint.
@@ -876,19 +892,21 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
    * Explicitly set any properties that are required but not currently provided in the stack definition.
    */
   private void setMissingConfigurations() {
-    // AMBARI-4921
-    ensureProperty("global", "user_group", "hadoop");
-    ensureProperty("global", "nagios_contact", "default@REPLACEME.NOWHERE");
-    ensureProperty("global", "smokeuser", "ambari-qa");
-
     // AMBARI-5206
-    Map<String, String> globalConfig = mapClusterConfigurations.get("global");
-    String[] userProps = {"oozie_user", "hive_user", "hcat_user", "hbase_user", "falcon_user"};
+    final Map<String , String> userProps = new HashMap<String , String>();
+    userProps.put("oozie_user", "oozie-env");
+    userProps.put("hive_user", "hive-env");
+    userProps.put("hcat_user", "hive-env");
+    userProps.put("hbase_user", "hbase-env");
+    userProps.put("falcon_user", "falcon-env");
+    
     String proxyUserHosts  = "hadoop.proxyuser.%s.hosts";
     String proxyUserGroups = "hadoop.proxyuser.%s.groups";
 
-    for (String userProp : userProps) {
-      String user = globalConfig.get(userProp);
+    for (String property : userProps.keySet()) {
+      String configType = userProps.get(property);
+      Map<String, String> configs = mapClusterConfigurations.get(configType);
+      String user = configs.get(property);
       if (user != null && !user.isEmpty()) {
         ensureProperty("core-site", String.format(proxyUserHosts, user), "*");
         ensureProperty("core-site", String.format(proxyUserGroups, user), "users");
@@ -1023,10 +1041,12 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
   private void registerConfigGroups(String clusterName, Map<String, HostGroup> hostGroups, Stack stack) throws
       ResourceAlreadyExistsException, SystemException,
       UnsupportedPropertyException, NoSuchParentResourceException {
-
+    
     for (HostGroup group : hostGroups.values()) {
       HostGroupEntity entity = group.getEntity();
       Map<String, Map<String, Config>> groupConfigs = new HashMap<String, Map<String, Config>>();
+      
+      handleGlobalsBackwardsCompability(stack, group.getConfigurations());
       for (Map.Entry<String, Map<String, String>> entry: group.getConfigurations().entrySet()) {
         String type = entry.getKey();
         String service = stack.getServiceForConfigType(type);

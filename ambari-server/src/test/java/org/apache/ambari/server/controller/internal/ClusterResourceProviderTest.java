@@ -76,6 +76,7 @@ import org.apache.ambari.server.orm.entities.BlueprintEntity;
 import org.apache.ambari.server.orm.entities.HostGroupComponentEntity;
 import org.apache.ambari.server.orm.entities.HostGroupConfigEntity;
 import org.apache.ambari.server.orm.entities.HostGroupEntity;
+import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DependencyInfo;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.State;
@@ -164,6 +165,7 @@ public class ClusterResourceProviderTest {
     String stackVersion = "1.23";
     String clusterName = "c1";
 
+    ConfigHelper configHelper = createMock(ConfigHelper.class);
     BlueprintDAO blueprintDAO = createStrictMock(BlueprintDAO.class);
     AmbariMetaInfo metaInfo = createMock(AmbariMetaInfo.class);
     AmbariManagementController managementController = createStrictMock(AmbariManagementController.class);
@@ -196,6 +198,9 @@ public class ClusterResourceProviderTest {
 
     BlueprintConfigEntity blueprintConfig = createNiceMock(BlueprintConfigEntity.class);
     BlueprintConfigEntity blueprintConfig2 = createNiceMock(BlueprintConfigEntity.class);
+    BlueprintConfigEntity blueprintConfig3 = createNiceMock(BlueprintConfigEntity.class);
+    BlueprintConfigEntity blueprintConfig4 = createNiceMock(BlueprintConfigEntity.class);
+    BlueprintConfigEntity blueprintConfig5 = createNiceMock(BlueprintConfigEntity.class);
 
     HostGroupEntity hostGroup = createNiceMock(HostGroupEntity.class);
     HostGroupComponentEntity hostGroupComponent1 = createNiceMock(HostGroupComponentEntity.class);
@@ -223,6 +228,10 @@ public class ClusterResourceProviderTest {
     Capture<Map<String, String>> updateClusterPropertyMapCapture4 = new Capture<Map<String, String>>();
     Capture<Set<ClusterRequest>> updateClusterRequestCapture5 = new Capture<Set<ClusterRequest>>();
     Capture<Map<String, String>> updateClusterPropertyMapCapture5 = new Capture<Map<String, String>>();
+    Capture<Set<ClusterRequest>> updateClusterRequestCapture6 = new Capture<Set<ClusterRequest>>();
+    Capture<Map<String, String>> updateClusterPropertyMapCapture6 = new Capture<Map<String, String>>();
+    Capture<Set<ClusterRequest>> updateClusterRequestCapture7 = new Capture<Set<ClusterRequest>>();
+    Capture<Map<String, String>> updateClusterPropertyMapCapture7 = new Capture<Map<String, String>>();
 
     Capture<Request> serviceRequestCapture = new Capture<Request>();
     Capture<Request> componentRequestCapture = new Capture<Request>();
@@ -292,9 +301,19 @@ public class ClusterResourceProviderTest {
     Map<String, String> blueprintGlobalConfigProperties = new HashMap<String, String>();
     blueprintGlobalConfigProperties.put("hive_database", "New MySQL Database");
 
+    Map<String, String> oozieEnvConfigProperties = new HashMap<String, String>();
+    oozieEnvConfigProperties.put("property1","value2");
+    Map<String, String> hbaseEnvConfigProperties = new HashMap<String, String>();
+    hbaseEnvConfigProperties.put("property1","value2");
+    Map<String, String> falconEnvConfigProperties = new HashMap<String, String>();
+    falconEnvConfigProperties.put("property1","value2");
+
     Collection<BlueprintConfigEntity> configurations = new HashSet<BlueprintConfigEntity>();
     configurations.add(blueprintConfig);
     configurations.add(blueprintConfig2);
+    configurations.add(blueprintConfig3);
+    configurations.add(blueprintConfig4);
+    configurations.add(blueprintConfig5);
 
     // expectations
     expect(request.getProperties()).andReturn(propertySet).anyTimes();
@@ -342,7 +361,7 @@ public class ClusterResourceProviderTest {
     expect(stackConfigurationResponse2.getPropertyValue()).andReturn("value2");
     expect(stackConfigurationResponse2.getPropertyAttributes()).andReturn(hdfsSiteAttributes);
 
-    expect(stackConfigurationResponse3.getType()).andReturn("global.xml");
+    expect(stackConfigurationResponse3.getType()).andReturn("oozie-env.xml");
     expect(stackConfigurationResponse3.getPropertyName()).andReturn("oozie_user");
     expect(stackConfigurationResponse3.getPropertyValue()).andReturn("oozie");
 
@@ -360,7 +379,17 @@ public class ClusterResourceProviderTest {
     expect(blueprintConfig2.getBlueprintName()).andReturn("test-blueprint").anyTimes();
     expect(blueprintConfig2.getType()).andReturn("hive-env").anyTimes();
     expect(blueprintConfig2.getConfigData()).andReturn(new Gson().toJson(blueprintGlobalConfigProperties)).anyTimes();
+    expect(blueprintConfig3.getBlueprintName()).andReturn("test-blueprint").anyTimes();
+    expect(blueprintConfig3.getType()).andReturn("oozie-env").anyTimes();
+    expect(blueprintConfig3.getConfigData()).andReturn(new Gson().toJson(oozieEnvConfigProperties)).anyTimes();
+    expect(blueprintConfig4.getBlueprintName()).andReturn("test-blueprint").anyTimes();
+    expect(blueprintConfig4.getType()).andReturn("falcon-env").anyTimes();
+    expect(blueprintConfig4.getConfigData()).andReturn(new Gson().toJson(falconEnvConfigProperties)).anyTimes();
+    expect(blueprintConfig5.getBlueprintName()).andReturn("test-blueprint").anyTimes();
+    expect(blueprintConfig5.getType()).andReturn("hbase-env").anyTimes();
+    expect(blueprintConfig5.getConfigData()).andReturn(new Gson().toJson(hbaseEnvConfigProperties)).anyTimes();
 
+    
     expect(blueprint.getHostGroups()).andReturn(Collections.singleton(hostGroup)).anyTimes();
     expect(hostGroup.getName()).andReturn("group1").anyTimes();
     expect(hostGroup.getComponents()).andReturn(hostGroupComponents).anyTimes();
@@ -385,6 +414,10 @@ public class ClusterResourceProviderTest {
         capture(updateClusterPropertyMapCapture4))).andReturn(null);
     expect(managementController.updateClusters(capture(updateClusterRequestCapture5),
         capture(updateClusterPropertyMapCapture5))).andReturn(null);
+    expect(managementController.updateClusters(capture(updateClusterRequestCapture6),
+        capture(updateClusterPropertyMapCapture6))).andReturn(null);
+    expect(managementController.updateClusters(capture(updateClusterRequestCapture7),
+        capture(updateClusterPropertyMapCapture7))).andReturn(null);
 
     expect(serviceResourceProvider.createResources(capture(serviceRequestCapture))).andReturn(null);
     expect(componentResourceProvider.createResources(capture(componentRequestCapture))).andReturn(null);
@@ -403,12 +436,12 @@ public class ClusterResourceProviderTest {
            stackServiceComponentResponse1, stackServiceComponentResponse2, stackServiceComponentResponse3,
            stackServiceComponentResponse4, stackConfigurationResponse1, stackConfigurationResponse2,
            stackConfigurationResponse3, stackConfigurationResponse4, stackConfigurationResponse5, blueprintConfig,
-           blueprintConfig2, hostGroup, hostGroupComponent1, hostGroupComponent2, hostGroupComponent3, hostGroupComponent4,
+           blueprintConfig2, blueprintConfig3, blueprintConfig4, blueprintConfig5, hostGroup, hostGroupComponent1, hostGroupComponent2, hostGroupComponent3, hostGroupComponent4,
            hostGroupConfig, serviceResourceProvider, componentResourceProvider, hostResourceProvider,
            hostComponentResourceProvider, configGroupResourceProvider, persistKeyValue, metaInfo);
 
     // test
-    ClusterResourceProvider.init(blueprintDAO, metaInfo);
+    ClusterResourceProvider.init(blueprintDAO, metaInfo, configHelper);
     PersistKeyValueService.init(persistKeyValue);
     ResourceProvider provider = new TestClusterResourceProvider(
         managementController, serviceResourceProvider, componentResourceProvider,
@@ -466,44 +499,52 @@ public class ClusterResourceProviderTest {
     Set<ClusterRequest> updateClusterRequest3 = updateClusterRequestCapture3.getValue();
     Set<ClusterRequest> updateClusterRequest4 = updateClusterRequestCapture4.getValue();
     Set<ClusterRequest> updateClusterRequest5 = updateClusterRequestCapture5.getValue();
+    Set<ClusterRequest> updateClusterRequest6 = updateClusterRequestCapture6.getValue();
+    Set<ClusterRequest> updateClusterRequest7 = updateClusterRequestCapture7.getValue();
     assertEquals(1, updateClusterRequest1.size());
     assertEquals(1, updateClusterRequest2.size());
     assertEquals(1, updateClusterRequest3.size());
     assertEquals(1, updateClusterRequest4.size());
     assertEquals(1, updateClusterRequest5.size());
+    assertEquals(1, updateClusterRequest6.size());
+    assertEquals(1, updateClusterRequest7.size());
     ClusterRequest ucr1 = updateClusterRequest1.iterator().next();
     ClusterRequest ucr2 = updateClusterRequest2.iterator().next();
     ClusterRequest ucr3 = updateClusterRequest3.iterator().next();
     ClusterRequest ucr4 = updateClusterRequest4.iterator().next();
     ClusterRequest ucr5 = updateClusterRequest5.iterator().next();
+    ClusterRequest ucr6 = updateClusterRequest6.iterator().next();
+    ClusterRequest ucr7 = updateClusterRequest7.iterator().next();
     assertEquals(clusterName, ucr1.getClusterName());
     assertEquals(clusterName, ucr2.getClusterName());
     assertEquals(clusterName, ucr3.getClusterName());
     assertEquals(clusterName, ucr4.getClusterName());
     assertEquals(clusterName, ucr5.getClusterName());
+    assertEquals(clusterName, ucr6.getClusterName());
+    assertEquals(clusterName, ucr7.getClusterName());
     ConfigurationRequest cr1 = ucr1.getDesiredConfig();
     ConfigurationRequest cr2 = ucr2.getDesiredConfig();
     ConfigurationRequest cr3 = ucr3.getDesiredConfig();
     ConfigurationRequest cr4 = ucr4.getDesiredConfig();
     ConfigurationRequest cr5 = ucr5.getDesiredConfig();
+    ConfigurationRequest cr6 = ucr6.getDesiredConfig();
+    ConfigurationRequest cr7 = ucr7.getDesiredConfig();
     assertEquals("1", cr1.getVersionTag());
     assertEquals("1", cr2.getVersionTag());
     assertEquals("1", cr3.getVersionTag());
     assertEquals("1", cr4.getVersionTag());
     assertEquals("1", cr5.getVersionTag());
+    assertEquals("1", cr6.getVersionTag());
+    assertEquals("1", cr7.getVersionTag());
     Map<String, ConfigurationRequest> mapConfigRequests = new HashMap<String, ConfigurationRequest>();
     mapConfigRequests.put(cr1.getType(), cr1);
     mapConfigRequests.put(cr2.getType(), cr2);
     mapConfigRequests.put(cr3.getType(), cr3);
     mapConfigRequests.put(cr4.getType(), cr4);
     mapConfigRequests.put(cr5.getType(), cr5);
-    assertEquals(5, mapConfigRequests.size());
-    ConfigurationRequest globalConfigRequest = mapConfigRequests.get("global");
-    assertEquals(4, globalConfigRequest.getProperties().size());
-    assertEquals("hadoop", globalConfigRequest.getProperties().get("user_group"));
-    assertEquals("ambari-qa", globalConfigRequest.getProperties().get("smokeuser"));
-    assertEquals("default@REPLACEME.NOWHERE", globalConfigRequest.getProperties().get("nagios_contact"));
-    assertEquals("oozie", globalConfigRequest.getProperties().get("oozie_user"));
+    mapConfigRequests.put(cr6.getType(), cr6);
+    mapConfigRequests.put(cr7.getType(), cr7);
+    assertEquals(7, mapConfigRequests.size());
     ConfigurationRequest hiveEnvConfigRequest = mapConfigRequests.get("hive-env");
     assertEquals("New MySQL Database", hiveEnvConfigRequest.getProperties().get("hive_database"));
     ConfigurationRequest hdfsConfigRequest = mapConfigRequests.get("hdfs-site");
@@ -600,6 +641,7 @@ public class ClusterResourceProviderTest {
     AmbariMetaInfo metaInfo = createMock(AmbariMetaInfo.class);
     AmbariManagementController managementController = createStrictMock(AmbariManagementController.class);
     Request request = createNiceMock(Request.class);
+    ConfigHelper configHelper = createNiceMock(ConfigHelper.class);
     RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
     BlueprintEntity blueprint = createNiceMock(BlueprintEntity.class);
     StackServiceResponse stackServiceResponse1 = createNiceMock(StackServiceResponse.class);
@@ -609,6 +651,7 @@ public class ClusterResourceProviderTest {
     StackServiceComponentResponse stackServiceComponentResponse1 = createNiceMock(StackServiceComponentResponse.class);
     StackServiceComponentResponse stackServiceComponentResponse2 = createNiceMock(StackServiceComponentResponse.class);
     StackServiceComponentResponse stackServiceComponentResponse3 = createNiceMock(StackServiceComponentResponse.class);
+
     Capture<Set<StackServiceComponentRequest>> serviceComponentRequestCapture1 = new Capture<Set<StackServiceComponentRequest>>();
     Capture<Set<StackServiceComponentRequest>> serviceComponentRequestCapture2 = new Capture<Set<StackServiceComponentRequest>>();
 
@@ -616,6 +659,9 @@ public class ClusterResourceProviderTest {
     StackConfigurationResponse stackConfigurationResponse2 = createNiceMock(StackConfigurationResponse.class);
     StackConfigurationResponse stackConfigurationResponse3 = createNiceMock(StackConfigurationResponse.class);
     StackConfigurationResponse stackConfigurationResponse4 = createNiceMock(StackConfigurationResponse.class);
+    StackConfigurationResponse stackConfigurationResponse5 = createNiceMock(StackConfigurationResponse.class);
+    StackConfigurationResponse stackConfigurationResponse6 = createNiceMock(StackConfigurationResponse.class);
+    StackConfigurationResponse stackConfigurationResponse7 = createNiceMock(StackConfigurationResponse.class);
     Capture<Set<StackConfigurationRequest>> serviceConfigurationRequestCapture1 = new Capture<Set<StackConfigurationRequest>>();
     Capture<Set<StackConfigurationRequest>> serviceConfigurationRequestCapture2 = new Capture<Set<StackConfigurationRequest>>();
 
@@ -648,6 +694,7 @@ public class ClusterResourceProviderTest {
     Set<StackServiceComponentResponse> stackServiceComponentResponses2 = new LinkedHashSet<StackServiceComponentResponse>();
     stackServiceComponentResponses2.add(stackServiceComponentResponse3);
 
+
     // service1 has 1 config
     Set<StackConfigurationResponse> stackConfigurationResponses1 = new LinkedHashSet<StackConfigurationResponse>();
     stackConfigurationResponses1.add(stackConfigurationResponse1);
@@ -657,6 +704,9 @@ public class ClusterResourceProviderTest {
     stackConfigurationResponses2.add(stackConfigurationResponse2);
     stackConfigurationResponses2.add(stackConfigurationResponse3);
     stackConfigurationResponses2.add(stackConfigurationResponse4);
+    stackConfigurationResponses2.add(stackConfigurationResponse5);
+    stackConfigurationResponses2.add(stackConfigurationResponse6);
+    stackConfigurationResponses2.add(stackConfigurationResponse7);
 
     Collection<HostGroupComponentEntity> hostGroupComponents = new LinkedHashSet<HostGroupComponentEntity>();
     hostGroupComponents.add(hostGroupComponent1);
@@ -737,13 +787,26 @@ public class ClusterResourceProviderTest {
     expect(stackConfigurationResponse2.getPropertyName()).andReturn("property2");
     expect(stackConfigurationResponse2.getPropertyValue()).andReturn("value2");
 
-    expect(stackConfigurationResponse3.getType()).andReturn("global.xml");
+    expect(stackConfigurationResponse3.getType()).andReturn("oozie-env.xml");
     expect(stackConfigurationResponse3.getPropertyName()).andReturn("oozie_user");
     expect(stackConfigurationResponse3.getPropertyValue()).andReturn("oozie");
 
     expect(stackConfigurationResponse4.getType()).andReturn("core-site.xml");
     expect(stackConfigurationResponse4.getPropertyName()).andReturn("property3");
     expect(stackConfigurationResponse4.getPropertyValue()).andReturn("value3");
+    
+    expect(stackConfigurationResponse5.getType()).andReturn("hive-env.xml");
+    expect(stackConfigurationResponse5.getPropertyName()).andReturn("property3");
+    expect(stackConfigurationResponse5.getPropertyValue()).andReturn("value3");
+    
+    expect(stackConfigurationResponse6.getType()).andReturn("hbase-env.xml");
+    expect(stackConfigurationResponse6.getPropertyName()).andReturn("property3");
+    expect(stackConfigurationResponse6.getPropertyValue()).andReturn("value3");
+    
+    expect(stackConfigurationResponse7.getType()).andReturn("falcon-env.xml");
+    expect(stackConfigurationResponse7.getPropertyName()).andReturn("property3");
+    expect(stackConfigurationResponse7.getPropertyValue()).andReturn("value3");
+
 
     expect(blueprintConfig.getBlueprintName()).andReturn("test-blueprint").anyTimes();
     expect(blueprintConfig.getType()).andReturn("core-site").anyTimes();
@@ -764,12 +827,13 @@ public class ClusterResourceProviderTest {
     replay(blueprintDAO, managementController, request, response, blueprint, stackServiceResponse1, stackServiceResponse2,
         stackServiceComponentResponse1, stackServiceComponentResponse2, stackServiceComponentResponse3,
         stackConfigurationResponse1, stackConfigurationResponse2, stackConfigurationResponse3, stackConfigurationResponse4,
+        stackConfigurationResponse5, stackConfigurationResponse6, stackConfigurationResponse7,
         blueprintConfig, hostGroup, hostGroupComponent1, hostGroupComponent2, hostGroupComponent3, hostGroupConfig,
         serviceResourceProvider, componentResourceProvider, hostResourceProvider, hostComponentResourceProvider,
         configGroupResourceProvider, persistKeyValue, metaInfo);
 
     // test
-    ClusterResourceProvider.init(blueprintDAO, metaInfo);
+    ClusterResourceProvider.init(blueprintDAO, metaInfo, configHelper);
     ResourceProvider provider = new TestClusterResourceProvider(
         managementController, serviceResourceProvider, componentResourceProvider,
         hostResourceProvider, hostComponentResourceProvider, configGroupResourceProvider);
@@ -796,6 +860,7 @@ public class ClusterResourceProviderTest {
     String stackVersion = "1.23";
     String clusterName = "c1";
 
+    ConfigHelper configHelper = createNiceMock(ConfigHelper.class);
     BlueprintDAO blueprintDAO = createStrictMock(BlueprintDAO.class);
     AmbariMetaInfo metaInfo = createMock(AmbariMetaInfo.class);
     AmbariManagementController managementController = createStrictMock(AmbariManagementController.class);
@@ -948,7 +1013,7 @@ public class ClusterResourceProviderTest {
         configGroupResourceProvider, persistKeyValue, metaInfo);
 
     // test
-    ClusterResourceProvider.init(blueprintDAO, metaInfo);
+    ClusterResourceProvider.init(blueprintDAO, metaInfo, configHelper);
     ResourceProvider provider = new TestClusterResourceProvider(
         managementController, serviceResourceProvider, componentResourceProvider,
         hostResourceProvider, hostComponentResourceProvider, configGroupResourceProvider);
@@ -968,6 +1033,7 @@ public class ClusterResourceProviderTest {
     String stackVersion = "1.23";
     String clusterName = "c1";
 
+    ConfigHelper configHelper = createNiceMock(ConfigHelper.class);
     BlueprintDAO blueprintDAO = createStrictMock(BlueprintDAO.class);
     AmbariMetaInfo metaInfo = createMock(AmbariMetaInfo.class);
     AmbariManagementController managementController = createStrictMock(AmbariManagementController.class);
@@ -1130,7 +1196,7 @@ public class ClusterResourceProviderTest {
         configGroupResourceProvider, persistKeyValue, metaInfo);
 
     // test
-    ClusterResourceProvider.init(blueprintDAO, metaInfo);
+    ClusterResourceProvider.init(blueprintDAO, metaInfo, configHelper);
     ResourceProvider provider = new TestClusterResourceProvider(
         managementController, serviceResourceProvider, componentResourceProvider,
         hostResourceProvider, hostComponentResourceProvider, configGroupResourceProvider);
@@ -1150,6 +1216,7 @@ public class ClusterResourceProviderTest {
     String stackVersion = "1.23";
     String clusterName = "c1";
 
+    ConfigHelper configHelper = createNiceMock(ConfigHelper.class);
     BlueprintDAO blueprintDAO = createStrictMock(BlueprintDAO.class);
     AmbariMetaInfo metaInfo = createMock(AmbariMetaInfo.class);
     AmbariManagementController managementController = createStrictMock(AmbariManagementController.class);
@@ -1312,7 +1379,7 @@ public class ClusterResourceProviderTest {
         configGroupResourceProvider, persistKeyValue, metaInfo);
 
     // test
-    ClusterResourceProvider.init(blueprintDAO, metaInfo);
+    ClusterResourceProvider.init(blueprintDAO, metaInfo, configHelper);
     ResourceProvider provider = new TestClusterResourceProvider(
         managementController, serviceResourceProvider, componentResourceProvider,
         hostResourceProvider, hostComponentResourceProvider, configGroupResourceProvider);
@@ -1332,6 +1399,7 @@ public class ClusterResourceProviderTest {
     String stackVersion = "1.23";
     String clusterName = "c1";
 
+    ConfigHelper configHelper = createNiceMock(ConfigHelper.class);
     BlueprintDAO blueprintDAO = createStrictMock(BlueprintDAO.class);
     AmbariMetaInfo metaInfo = createMock(AmbariMetaInfo.class);
     AmbariManagementController managementController = createStrictMock(AmbariManagementController.class);
@@ -1345,6 +1413,9 @@ public class ClusterResourceProviderTest {
     StackServiceComponentResponse stackServiceComponentResponse1 = createNiceMock(StackServiceComponentResponse.class);
     StackServiceComponentResponse stackServiceComponentResponse2 = createNiceMock(StackServiceComponentResponse.class);
     StackServiceComponentResponse stackServiceComponentResponse3 = createNiceMock(StackServiceComponentResponse.class);
+    StackConfigurationResponse stackConfigurationResponse5 = createNiceMock(StackConfigurationResponse.class);
+    StackConfigurationResponse stackConfigurationResponse6 = createNiceMock(StackConfigurationResponse.class);
+    StackConfigurationResponse stackConfigurationResponse7 = createNiceMock(StackConfigurationResponse.class);
     Capture<Set<StackServiceComponentRequest>> serviceComponentRequestCapture1 = new Capture<Set<StackServiceComponentRequest>>();
     Capture<Set<StackServiceComponentRequest>> serviceComponentRequestCapture2 = new Capture<Set<StackServiceComponentRequest>>();
 
@@ -1380,6 +1451,11 @@ public class ClusterResourceProviderTest {
     Capture<Map<String, String>> updateClusterPropertyMapCapture3 = new Capture<Map<String, String>>();
     Capture<Set<ClusterRequest>> updateClusterRequestCapture4 = new Capture<Set<ClusterRequest>>();
     Capture<Map<String, String>> updateClusterPropertyMapCapture4 = new Capture<Map<String, String>>();
+    Capture<Set<ClusterRequest>> updateClusterRequestCapture5 = new Capture<Set<ClusterRequest>>();
+    Capture<Map<String, String>> updateClusterPropertyMapCapture5 = new Capture<Map<String, String>>();
+    Capture<Set<ClusterRequest>> updateClusterRequestCapture6 = new Capture<Set<ClusterRequest>>();
+    Capture<Map<String, String>> updateClusterPropertyMapCapture6 = new Capture<Map<String, String>>();
+
     
     Capture<Request> serviceRequestCapture = new Capture<Request>();
     Capture<Request> componentRequestCapture = new Capture<Request>();
@@ -1410,6 +1486,10 @@ public class ClusterResourceProviderTest {
     stackConfigurationResponses2.add(stackConfigurationResponse2);
     stackConfigurationResponses2.add(stackConfigurationResponse3);
     stackConfigurationResponses2.add(stackConfigurationResponse4);
+    stackConfigurationResponses2.add(stackConfigurationResponse5);
+    stackConfigurationResponses2.add(stackConfigurationResponse6);
+    stackConfigurationResponses2.add(stackConfigurationResponse7);
+
 
     Collection<HostGroupComponentEntity> hostGroupComponents = new LinkedHashSet<HostGroupComponentEntity>();
     hostGroupComponents.add(hostGroupComponent1);
@@ -1492,13 +1572,25 @@ public class ClusterResourceProviderTest {
     expect(stackConfigurationResponse2.getPropertyName()).andReturn("property2");
     expect(stackConfigurationResponse2.getPropertyValue()).andReturn("value2");
 
-    expect(stackConfigurationResponse3.getType()).andReturn("global.xml");
-    expect(stackConfigurationResponse3.getPropertyName()).andReturn("oozie_user");
-    expect(stackConfigurationResponse3.getPropertyValue()).andReturn("oozie");
+    expect(stackConfigurationResponse3.getType()).andReturn("hive-env.xml");
+    expect(stackConfigurationResponse3.getPropertyName()).andReturn("property3");
+    expect(stackConfigurationResponse3.getPropertyValue()).andReturn("value3");
 
     expect(stackConfigurationResponse4.getType()).andReturn("core-site.xml");
     expect(stackConfigurationResponse4.getPropertyName()).andReturn("property3");
     expect(stackConfigurationResponse4.getPropertyValue()).andReturn("value3");
+    
+    expect(stackConfigurationResponse5.getType()).andReturn("hbase-env.xml");
+    expect(stackConfigurationResponse5.getPropertyName()).andReturn("property3");
+    expect(stackConfigurationResponse5.getPropertyValue()).andReturn("value3");
+    
+    expect(stackConfigurationResponse6.getType()).andReturn("falcon-env.xml");
+    expect(stackConfigurationResponse6.getPropertyName()).andReturn("property3");
+    expect(stackConfigurationResponse6.getPropertyValue()).andReturn("value3");
+    
+    expect(stackConfigurationResponse7.getType()).andReturn("oozie-env.xml");
+    expect(stackConfigurationResponse7.getPropertyName()).andReturn("oozie_user");
+    expect(stackConfigurationResponse7.getPropertyValue()).andReturn("oozie");
 
     expect(blueprintConfig.getBlueprintName()).andReturn("test-blueprint").anyTimes();
     expect(blueprintConfig.getType()).andReturn("core-site").anyTimes();
@@ -1523,6 +1615,13 @@ public class ClusterResourceProviderTest {
         capture(updateClusterPropertyMapCapture2))).andReturn(null);
     expect(managementController.updateClusters(capture(updateClusterRequestCapture3),
         capture(updateClusterPropertyMapCapture3))).andReturn(null);
+    expect(managementController.updateClusters(capture(updateClusterRequestCapture4),
+        capture(updateClusterPropertyMapCapture4))).andReturn(null);
+    expect(managementController.updateClusters(capture(updateClusterRequestCapture5),
+        capture(updateClusterPropertyMapCapture5))).andReturn(null);
+    expect(managementController.updateClusters(capture(updateClusterRequestCapture6),
+        capture(updateClusterPropertyMapCapture6))).andReturn(null);
+
 
     expect(serviceResourceProvider.createResources(capture(serviceRequestCapture))).andReturn(null);
     expect(componentResourceProvider.createResources(capture(componentRequestCapture))).andReturn(null);
@@ -1540,12 +1639,13 @@ public class ClusterResourceProviderTest {
     replay(blueprintDAO, managementController, request, response, blueprint, stackServiceResponse1, stackServiceResponse2,
         stackServiceComponentResponse1, stackServiceComponentResponse2, stackServiceComponentResponse3,
         stackConfigurationResponse1, stackConfigurationResponse2, stackConfigurationResponse3, stackConfigurationResponse4,
+        stackConfigurationResponse5, stackConfigurationResponse6, stackConfigurationResponse7,
         blueprintConfig, hostGroup, hostGroupComponent1, hostGroupComponent2, hostGroupComponent3, hostGroupConfig,
         serviceResourceProvider, componentResourceProvider, hostResourceProvider, hostComponentResourceProvider,
         configGroupResourceProvider, persistKeyValue, metaInfo);
 
     // test
-    ClusterResourceProvider.init(blueprintDAO, metaInfo);
+    ClusterResourceProvider.init(blueprintDAO, metaInfo, configHelper);
     PersistKeyValueService.init(persistKeyValue);
     ResourceProvider provider = new TestClusterResourceProvider(
         managementController, serviceResourceProvider, componentResourceProvider,
@@ -1601,32 +1701,50 @@ public class ClusterResourceProviderTest {
     Set<ClusterRequest> updateClusterRequest1 = updateClusterRequestCapture.getValue();
     Set<ClusterRequest> updateClusterRequest2 = updateClusterRequestCapture2.getValue();
     Set<ClusterRequest> updateClusterRequest3 = updateClusterRequestCapture3.getValue();
+    Set<ClusterRequest> updateClusterRequest4 = updateClusterRequestCapture4.getValue();
+    Set<ClusterRequest> updateClusterRequest5 = updateClusterRequestCapture5.getValue();
+    Set<ClusterRequest> updateClusterRequest6 = updateClusterRequestCapture6.getValue();
+
     assertEquals(1, updateClusterRequest1.size());
     assertEquals(1, updateClusterRequest2.size());
     assertEquals(1, updateClusterRequest3.size());
+    assertEquals(1, updateClusterRequest4.size());
+    assertEquals(1, updateClusterRequest5.size());
+    assertEquals(1, updateClusterRequest6.size());
     ClusterRequest ucr1 = updateClusterRequest1.iterator().next();
     ClusterRequest ucr2 = updateClusterRequest2.iterator().next();
     ClusterRequest ucr3 = updateClusterRequest3.iterator().next();
+    ClusterRequest ucr4 = updateClusterRequest4.iterator().next();
+    ClusterRequest ucr5 = updateClusterRequest5.iterator().next();
+    ClusterRequest ucr6 = updateClusterRequest6.iterator().next();
     assertEquals(clusterName, ucr1.getClusterName());
     assertEquals(clusterName, ucr2.getClusterName());
     assertEquals(clusterName, ucr3.getClusterName());
+    assertEquals(clusterName, ucr4.getClusterName());
+    assertEquals(clusterName, ucr5.getClusterName());
+    assertEquals(clusterName, ucr6.getClusterName());
     ConfigurationRequest cr1 = ucr1.getDesiredConfig();
     ConfigurationRequest cr2 = ucr2.getDesiredConfig();
     ConfigurationRequest cr3 = ucr3.getDesiredConfig();
+    ConfigurationRequest cr4 = ucr4.getDesiredConfig();
+    ConfigurationRequest cr5 = ucr5.getDesiredConfig();
+    ConfigurationRequest cr6 = ucr6.getDesiredConfig();
+
     assertEquals("1", cr1.getVersionTag());
     assertEquals("1", cr2.getVersionTag());
     assertEquals("1", cr3.getVersionTag());
+    assertEquals("1", cr4.getVersionTag());
+    assertEquals("1", cr5.getVersionTag());
+    assertEquals("1", cr6.getVersionTag());
+
     Map<String, ConfigurationRequest> mapConfigRequests = new HashMap<String, ConfigurationRequest>();
     mapConfigRequests.put(cr1.getType(), cr1);
     mapConfigRequests.put(cr2.getType(), cr2);
     mapConfigRequests.put(cr3.getType(), cr3);
-    assertEquals(3, mapConfigRequests.size());
-    ConfigurationRequest globalConfigRequest = mapConfigRequests.get("global");
-    assertEquals(4, globalConfigRequest.getProperties().size());
-    assertEquals("hadoop", globalConfigRequest.getProperties().get("user_group"));
-    assertEquals("ambari-qa", globalConfigRequest.getProperties().get("smokeuser"));
-    assertEquals("default@REPLACEME.NOWHERE", globalConfigRequest.getProperties().get("nagios_contact"));
-    assertEquals("oozie", globalConfigRequest.getProperties().get("oozie_user"));
+    mapConfigRequests.put(cr4.getType(), cr4);
+    mapConfigRequests.put(cr5.getType(), cr5);
+    mapConfigRequests.put(cr6.getType(), cr6);
+    assertEquals(6, mapConfigRequests.size());
     ConfigurationRequest hdfsConfigRequest = mapConfigRequests.get("hdfs-site");
     assertEquals(1, hdfsConfigRequest.getProperties().size());
     assertEquals("value2", hdfsConfigRequest.getProperties().get("property2"));
@@ -1692,6 +1810,7 @@ public class ClusterResourceProviderTest {
     verify(blueprintDAO, managementController, request, response, blueprint, stackServiceResponse1, stackServiceResponse2,
         stackServiceComponentResponse1, stackServiceComponentResponse2, stackServiceComponentResponse3,
         stackConfigurationResponse1, stackConfigurationResponse2, stackConfigurationResponse3, stackConfigurationResponse4,
+        stackConfigurationResponse5, stackConfigurationResponse6, stackConfigurationResponse7,
         blueprintConfig, hostGroup, hostGroupComponent1, hostGroupComponent2, hostGroupComponent3, hostGroupConfig,
         serviceResourceProvider, componentResourceProvider, hostResourceProvider, hostComponentResourceProvider,
         configGroupResourceProvider, persistKeyValue);
@@ -1704,6 +1823,7 @@ public class ClusterResourceProviderTest {
     String stackVersion = "1.23";
     String clusterName = "c1";
 
+    ConfigHelper configHelper = createNiceMock(ConfigHelper.class);
     BlueprintDAO blueprintDAO = createStrictMock(BlueprintDAO.class);
     AmbariMetaInfo metaInfo = createMock(AmbariMetaInfo.class);
     AmbariManagementController managementController = createStrictMock(AmbariManagementController.class);
@@ -1908,7 +2028,7 @@ public class ClusterResourceProviderTest {
         configGroupResourceProvider, metaInfo);
 
     // test
-    ClusterResourceProvider.init(blueprintDAO, metaInfo);
+    ClusterResourceProvider.init(blueprintDAO, metaInfo, configHelper);
     ResourceProvider provider = new TestClusterResourceProvider(
         managementController, serviceResourceProvider, componentResourceProvider,
         hostResourceProvider, hostComponentResourceProvider, configGroupResourceProvider);
@@ -1928,6 +2048,7 @@ public class ClusterResourceProviderTest {
     String stackVersion = "1.23";
     String clusterName = "c1";
 
+    ConfigHelper configHelper = createNiceMock(ConfigHelper.class);
     BlueprintDAO blueprintDAO = createStrictMock(BlueprintDAO.class);
     AmbariMetaInfo metaInfo = createMock(AmbariMetaInfo.class);
     AmbariManagementController managementController = createStrictMock(AmbariManagementController.class);
@@ -1950,6 +2071,9 @@ public class ClusterResourceProviderTest {
     StackConfigurationResponse stackConfigurationResponse3 = createNiceMock(StackConfigurationResponse.class);
     StackConfigurationResponse stackConfigurationResponse4 = createNiceMock(StackConfigurationResponse.class);
     StackConfigurationResponse stackConfigurationResponse5 = createNiceMock(StackConfigurationResponse.class);
+    StackConfigurationResponse stackConfigurationResponse6 = createNiceMock(StackConfigurationResponse.class);
+    StackConfigurationResponse stackConfigurationResponse7 = createNiceMock(StackConfigurationResponse.class);
+    StackConfigurationResponse stackConfigurationResponse8 = createNiceMock(StackConfigurationResponse.class);
     Capture<Set<StackConfigurationRequest>> serviceConfigurationRequestCapture1 = new Capture<Set<StackConfigurationRequest>>();
     Capture<Set<StackConfigurationRequest>> serviceConfigurationRequestCapture2 = new Capture<Set<StackConfigurationRequest>>();
 
@@ -1987,6 +2111,11 @@ public class ClusterResourceProviderTest {
     Capture<Map<String, String>> updateClusterPropertyMapCapture4 = new Capture<Map<String, String>>();
     Capture<Set<ClusterRequest>> updateClusterRequestCapture5 = new Capture<Set<ClusterRequest>>();
     Capture<Map<String, String>> updateClusterPropertyMapCapture5 = new Capture<Map<String, String>>();
+    Capture<Set<ClusterRequest>> updateClusterRequestCapture6 = new Capture<Set<ClusterRequest>>();
+    Capture<Map<String, String>> updateClusterPropertyMapCapture6 = new Capture<Map<String, String>>();
+    Capture<Set<ClusterRequest>> updateClusterRequestCapture7 = new Capture<Set<ClusterRequest>>();
+    Capture<Map<String, String>> updateClusterPropertyMapCapture7 = new Capture<Map<String, String>>();
+
 
     Capture<Request> serviceRequestCapture = new Capture<Request>();
     Capture<Request> componentRequestCapture = new Capture<Request>();
@@ -2019,6 +2148,9 @@ public class ClusterResourceProviderTest {
     stackConfigurationResponses2.add(stackConfigurationResponse2);
     stackConfigurationResponses2.add(stackConfigurationResponse3);
     stackConfigurationResponses2.add(stackConfigurationResponse4);
+    stackConfigurationResponses2.add(stackConfigurationResponse6);
+    stackConfigurationResponses2.add(stackConfigurationResponse7);
+    stackConfigurationResponses2.add(stackConfigurationResponse8);
 
     Collection<HostGroupComponentEntity> hostGroupComponents = new LinkedHashSet<HostGroupComponentEntity>();
     hostGroupComponents.add(hostGroupComponent1);
@@ -2118,7 +2250,7 @@ public class ClusterResourceProviderTest {
     expect(stackConfigurationResponse2.getPropertyValue()).andReturn("value2");
     expect(stackConfigurationResponse2.getPropertyAttributes()).andReturn(hdfsSiteAttributes);
 
-    expect(stackConfigurationResponse3.getType()).andReturn("global.xml");
+    expect(stackConfigurationResponse3.getType()).andReturn("oozie-env.xml");
     expect(stackConfigurationResponse3.getPropertyName()).andReturn("oozie_user");
     expect(stackConfigurationResponse3.getPropertyValue()).andReturn("oozie");
 
@@ -2129,6 +2261,20 @@ public class ClusterResourceProviderTest {
     expect(stackConfigurationResponse5.getType()).andReturn("hive-site.xml");
     expect(stackConfigurationResponse5.getPropertyName()).andReturn("javax.jdo.option.ConnectionURL");
     expect(stackConfigurationResponse5.getPropertyValue()).andReturn("localhost:12345");
+
+    expect(stackConfigurationResponse6.getType()).andReturn("hbase-env.xml");
+    expect(stackConfigurationResponse6.getPropertyName()).andReturn("property3");
+    expect(stackConfigurationResponse6.getPropertyValue()).andReturn("value3");
+   
+    expect(stackConfigurationResponse7.getType()).andReturn("falcon-env.xml");
+    expect(stackConfigurationResponse7.getPropertyName()).andReturn("property3");
+    expect(stackConfigurationResponse7.getPropertyValue()).andReturn("value3");
+    
+    expect(stackConfigurationResponse8.getType()).andReturn("hive-env.xml");
+    expect(stackConfigurationResponse8.getPropertyName()).andReturn("property3");
+    expect(stackConfigurationResponse8.getPropertyValue()).andReturn("value3");
+
+
 
     expect(blueprintConfig.getBlueprintName()).andReturn("test-blueprint").anyTimes();
     expect(blueprintConfig.getType()).andReturn("core-site").anyTimes();
@@ -2163,6 +2309,11 @@ public class ClusterResourceProviderTest {
         capture(updateClusterPropertyMapCapture4))).andReturn(null);
     expect(managementController.updateClusters(capture(updateClusterRequestCapture5),
         capture(updateClusterPropertyMapCapture5))).andReturn(null);
+    expect(managementController.updateClusters(capture(updateClusterRequestCapture6),
+        capture(updateClusterPropertyMapCapture6))).andReturn(null);
+    expect(managementController.updateClusters(capture(updateClusterRequestCapture7),
+        capture(updateClusterPropertyMapCapture7))).andReturn(null);
+
 
     expect(serviceResourceProvider.createResources(capture(serviceRequestCapture))).andReturn(null);
     expect(componentResourceProvider.createResources(capture(componentRequestCapture))).andReturn(null);
@@ -2180,13 +2331,13 @@ public class ClusterResourceProviderTest {
     replay(blueprintDAO, managementController, request, response, blueprint, stackServiceResponse1, stackServiceResponse2,
         stackServiceComponentResponse1, stackServiceComponentResponse2, stackServiceComponentResponse3,
         stackServiceComponentResponse4, stackConfigurationResponse1, stackConfigurationResponse2,
-        stackConfigurationResponse3, stackConfigurationResponse4, stackConfigurationResponse5, blueprintConfig,
+        stackConfigurationResponse3, stackConfigurationResponse4, stackConfigurationResponse5, stackConfigurationResponse6, stackConfigurationResponse7, stackConfigurationResponse8, blueprintConfig,
         blueprintConfig2, hostGroup, hostGroupComponent1, hostGroupComponent2, hostGroupComponent3, hostGroupComponent4,
         hostGroupConfig, serviceResourceProvider, componentResourceProvider, hostResourceProvider,
         hostComponentResourceProvider, configGroupResourceProvider, persistKeyValue, metaInfo);
 
     // test
-    ClusterResourceProvider.init(blueprintDAO, metaInfo);
+    ClusterResourceProvider.init(blueprintDAO, metaInfo, configHelper);
     PersistKeyValueService.init(persistKeyValue);
     ResourceProvider provider = new TestClusterResourceProvider(
         managementController, serviceResourceProvider, componentResourceProvider,
@@ -2244,46 +2395,52 @@ public class ClusterResourceProviderTest {
     Set<ClusterRequest> updateClusterRequest3 = updateClusterRequestCapture3.getValue();
     Set<ClusterRequest> updateClusterRequest4 = updateClusterRequestCapture4.getValue();
     Set<ClusterRequest> updateClusterRequest5 = updateClusterRequestCapture5.getValue();
+    Set<ClusterRequest> updateClusterRequest6 = updateClusterRequestCapture6.getValue();
+    Set<ClusterRequest> updateClusterRequest7 = updateClusterRequestCapture7.getValue();
     assertEquals(1, updateClusterRequest1.size());
     assertEquals(1, updateClusterRequest2.size());
     assertEquals(1, updateClusterRequest3.size());
     assertEquals(1, updateClusterRequest4.size());
     assertEquals(1, updateClusterRequest5.size());
+    assertEquals(1, updateClusterRequest6.size());
+    assertEquals(1, updateClusterRequest7.size());
     ClusterRequest ucr1 = updateClusterRequest1.iterator().next();
     ClusterRequest ucr2 = updateClusterRequest2.iterator().next();
     ClusterRequest ucr3 = updateClusterRequest3.iterator().next();
     ClusterRequest ucr4 = updateClusterRequest4.iterator().next();
     ClusterRequest ucr5 = updateClusterRequest5.iterator().next();
+    ClusterRequest ucr6 = updateClusterRequest6.iterator().next();
+    ClusterRequest ucr7 = updateClusterRequest7.iterator().next();
     assertEquals(clusterName, ucr1.getClusterName());
     assertEquals(clusterName, ucr2.getClusterName());
     assertEquals(clusterName, ucr3.getClusterName());
     assertEquals(clusterName, ucr4.getClusterName());
     assertEquals(clusterName, ucr5.getClusterName());
+    assertEquals(clusterName, ucr6.getClusterName());
+    assertEquals(clusterName, ucr7.getClusterName());
     ConfigurationRequest cr1 = ucr1.getDesiredConfig();
     ConfigurationRequest cr2 = ucr2.getDesiredConfig();
     ConfigurationRequest cr3 = ucr3.getDesiredConfig();
     ConfigurationRequest cr4 = ucr4.getDesiredConfig();
     ConfigurationRequest cr5 = ucr5.getDesiredConfig();
+    ConfigurationRequest cr6 = ucr6.getDesiredConfig();
+    ConfigurationRequest cr7 = ucr7.getDesiredConfig();
     assertEquals("1", cr1.getVersionTag());
     assertEquals("1", cr2.getVersionTag());
     assertEquals("1", cr3.getVersionTag());
     assertEquals("1", cr4.getVersionTag());
     assertEquals("1", cr5.getVersionTag());
+    assertEquals("1", cr6.getVersionTag());
+    assertEquals("1", cr7.getVersionTag());
     Map<String, ConfigurationRequest> mapConfigRequests = new HashMap<String, ConfigurationRequest>();
     mapConfigRequests.put(cr1.getType(), cr1);
     mapConfigRequests.put(cr2.getType(), cr2);
     mapConfigRequests.put(cr3.getType(), cr3);
     mapConfigRequests.put(cr4.getType(), cr4);
     mapConfigRequests.put(cr5.getType(), cr5);
-    assertEquals(5, mapConfigRequests.size());
-    ConfigurationRequest globalConfigRequest = mapConfigRequests.get("global");
-    assertEquals(4, globalConfigRequest.getProperties().size());
-    assertEquals("hadoop", globalConfigRequest.getProperties().get("user_group"));
-    assertEquals("ambari-qa", globalConfigRequest.getProperties().get("smokeuser"));
-    assertEquals("default@REPLACEME.NOWHERE", globalConfigRequest.getProperties().get("nagios_contact"));
-    assertEquals("oozie", globalConfigRequest.getProperties().get("oozie_user"));
-    assertNotNull(globalConfigRequest.getPropertiesAttributes());
-    assertEquals(0, globalConfigRequest.getPropertiesAttributes().size());
+    mapConfigRequests.put(cr6.getType(), cr6);
+    mapConfigRequests.put(cr7.getType(), cr7);
+    assertEquals(7, mapConfigRequests.size());
     ConfigurationRequest hiveEnvConfigRequest = mapConfigRequests.get("hive-env");
     assertEquals("New MySQL Database", hiveEnvConfigRequest.getProperties().get("hive_database"));
     assertNotNull(hiveEnvConfigRequest.getPropertiesAttributes());
@@ -2320,7 +2477,7 @@ public class ClusterResourceProviderTest {
     assertNull(updateClusterPropertyMapCapture.getValue());
     assertNull(updateClusterPropertyMapCapture2.getValue());
     assertNull(updateClusterPropertyMapCapture3.getValue());
-    assertNull(updateClusterPropertyMapCapture4.getValue());
+    assertNull(updateClusterPropertyMapCapture5.getValue());
 
     Request serviceRequest = serviceRequestCapture.getValue();
     assertEquals(2, serviceRequest.getProperties().size());

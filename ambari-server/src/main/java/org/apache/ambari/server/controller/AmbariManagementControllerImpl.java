@@ -629,20 +629,57 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           request.getVersionTag(),
           request.getType()));
     }
+    
+    handleGlobalsBackwardsCompability(request, propertiesAttributes);
 
-    Config config = configFactory.createNew (cluster, request.getType(),
-        request.getProperties(), propertiesAttributes);
+    Config config = createConfig(cluster, request.getType(), request.getProperties(),
+        request.getVersionTag(), propertiesAttributes);
 
-    if (!StringUtils.isEmpty(request.getVersionTag())) {
-      config.setTag(request.getVersionTag());
+    return new ConfigurationResponse(cluster.getClusterName(), config.getType(), config.getTag(), config.getVersion(),
+        config.getProperties(), config.getPropertiesAttributes());
+  }
+  
+  private void handleGlobalsBackwardsCompability(ConfigurationRequest request,
+      Map<String, Map<String, String>> propertiesAttributes) throws AmbariException {
+    Cluster cluster = clusters.getCluster(request.getClusterName());
+    if(request.getType().equals(Configuration.GLOBAL_CONFIG_TAG)) {
+      Map<String, Map<String, String>> configTypes = new HashMap<String, Map<String, String>>();
+      configTypes.put(Configuration.GLOBAL_CONFIG_TAG, request.getProperties());
+      configHelper.moveDeprecatedGlobals(cluster.getCurrentStackVersion(), configTypes);
+      
+      for(Map.Entry<String, Map<String, String>> configType : configTypes.entrySet()) {
+        String configTypeName = configType.getKey();
+        Map<String, String> properties = configType.getValue();
+        
+        if(configTypeName.equals(Configuration.GLOBAL_CONFIG_TAG))
+          continue;
+        
+        String tag;
+        if(cluster.getConfigsByType(configTypeName) == null) {
+          tag = "version1";
+        } else {
+          tag = "version" + System.currentTimeMillis();
+        }
+        
+        createConfig(cluster, configTypeName, properties, tag, propertiesAttributes);
+      }
+    }
+  }
+  
+  private Config createConfig(Cluster cluster, String type, Map<String, String> properties, 
+      String versionTag, Map<String, Map<String, String>> propertiesAttributes) {
+    Config config = configFactory.createNew (cluster, type,
+        properties, propertiesAttributes);
+
+    if (!StringUtils.isEmpty(versionTag)) {
+      config.setTag(versionTag);
     }
 
     config.persist();
 
     cluster.addConfig(config);
-
-    return new ConfigurationResponse(cluster.getClusterName(), config.getType(), config.getTag(), config.getVersion(),
-        config.getProperties(), config.getPropertiesAttributes());
+    
+    return config;
   }
 
   @Override

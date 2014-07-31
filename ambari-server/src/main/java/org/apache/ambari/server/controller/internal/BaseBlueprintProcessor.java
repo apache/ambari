@@ -19,6 +19,7 @@
 package org.apache.ambari.server.controller.internal;
 
 import com.google.gson.Gson;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -38,6 +39,7 @@ import org.apache.ambari.server.orm.entities.HostGroupComponentEntity;
 import org.apache.ambari.server.orm.entities.HostGroupConfigEntity;
 import org.apache.ambari.server.orm.entities.HostGroupEntity;
 import org.apache.ambari.server.state.AutoDeployInfo;
+import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DependencyInfo;
 
 import java.util.Collection;
@@ -63,6 +65,8 @@ public abstract class BaseBlueprintProcessor extends AbstractControllerResourceP
    * Stack related information.
    */
   protected static AmbariMetaInfo stackInfo;
+  
+  protected static ConfigHelper configHelper;
 
 
   protected BaseBlueprintProcessor(Set<String> propertyIds,

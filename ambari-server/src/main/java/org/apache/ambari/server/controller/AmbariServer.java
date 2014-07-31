@@ -87,6 +87,7 @@ import org.apache.ambari.server.security.authorization.internal.InternalTokenAut
 import org.apache.ambari.server.security.unsecured.rest.CertificateDownload;
 import org.apache.ambari.server.security.unsecured.rest.CertificateSign;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.ambari.server.utils.VersionUtils;
 import org.apache.ambari.server.view.ViewRegistry;
@@ -542,7 +543,7 @@ public class AmbariServer {
     BlueprintResourceProvider.init(injector.getInstance(BlueprintDAO.class),
         injector.getInstance(Gson.class), ambariMetaInfo);
     StackDependencyResourceProvider.init(ambariMetaInfo);
-    ClusterResourceProvider.init(injector.getInstance(BlueprintDAO.class), ambariMetaInfo);
+    ClusterResourceProvider.init(injector.getInstance(BlueprintDAO.class), ambariMetaInfo, injector.getInstance(ConfigHelper.class));
     AlertDefinitionResourceProvider.init(injector.getInstance(AlertDefinitionDAO.class));
     PermissionResourceProvider.init(injector.getInstance(PermissionDAO.class));
     ViewPermissionResourceProvider.init(injector.getInstance(PermissionDAO.class));

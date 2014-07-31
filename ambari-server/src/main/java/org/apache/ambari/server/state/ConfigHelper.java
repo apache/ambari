@@ -45,8 +45,10 @@ import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
+import org.apache.ambari.server.upgrade.UpgradeCatalog170;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 /**
  * Helper class that works with config traversals.
  */
@@ -382,22 +384,16 @@ public class ConfigHelper {
   
   /**
    * Gets all the config dictionary where property with the given name is present in stack definitions
-   * @param cluster
+   * @param stackId
    * @param propertyName
    */
-  public Set<String> findConfigTypesByPropertyName(Cluster cluster, String propertyName) throws AmbariException {
-    StackId stackId = cluster.getCurrentStackVersion();
+  public Set<String> findConfigTypesByPropertyName(StackId stackId, String propertyName) throws AmbariException {
     StackInfo stack = ambariMetaInfo.getStackInfo(stackId.getStackName(),
         stackId.getStackVersion());
     
     Set<String> result = new HashSet<String>();
     
     for(ServiceInfo serviceInfo:stack.getServices()) {
-      // skip not installed services
-      if(!cluster.getServices().containsKey(serviceInfo.getName())) {
-        continue;
-      }
-      
       Set<PropertyInfo> stackProperties = ambariMetaInfo.getProperties(stack.getName(), stack.getVersion(), serviceInfo.getName());
       
       for (PropertyInfo stackProperty : stackProperties) {
@@ -456,6 +452,70 @@ public class ConfigHelper {
     
     if (baseConfig != null) {
       cluster.addDesiredConfig(authName, baseConfig);
+    }
+  }
+  
+  /**
+   * Since global configs are deprecated since 1.7.0, but still supported.
+   * We should automatically map any globals used, to *-env dictionaries.
+   *
+   * @param configurations  map of configurations keyed by type
+   */
+  public void moveDeprecatedGlobals(StackId stackId, Map<String, Map<String, String>> configurations) {
+    Map<String, String> globalConfigurations = new HashMap<String, String>();
+    
+    if(configurations.get(Configuration.GLOBAL_CONFIG_TAG) == null ||
+        configurations.get(Configuration.GLOBAL_CONFIG_TAG).size() == 0)
+      return;
+  
+    globalConfigurations.putAll(configurations.get(Configuration.GLOBAL_CONFIG_TAG));
+    
+    if(globalConfigurations!=null && globalConfigurations.size() != 0) {
+      LOG.warn("Global configurations are deprecated, "
+          + "please use *-env");
+    }
+    
+    for(Map.Entry<String, String> property:globalConfigurations.entrySet()) {
+      String propertyName = property.getKey();
+      String propertyValue = property.getValue();
+      
+      Set<String> newConfigTypes = null;
+      try{
+        newConfigTypes = this.findConfigTypesByPropertyName(stackId, propertyName);
+      } catch(AmbariException e) {
+        LOG.error("Exception while getting configurations from the stacks", e);
+        return;
+      }
+      
+      newConfigTypes.remove(Configuration.GLOBAL_CONFIG_TAG);
+      
+      String newConfigType = null;
+      if(newConfigTypes.size() > 0) {
+        newConfigType = newConfigTypes.iterator().next();
+      } else {
+        newConfigType = UpgradeCatalog170.getAdditionalMappingGlobalToEnv().get(propertyName);
+      }
+      
+      if(newConfigType==null) {
+        LOG.warn("Cannot find where to map " + propertyName + " from " + Configuration.GLOBAL_CONFIG_TAG +
+            " (value="+propertyValue+")");
+        continue;
+      }
+      
+      LOG.info("Mapping config " + propertyName + " from " + Configuration.GLOBAL_CONFIG_TAG + 
+          " to " + newConfigType +
+          " (value="+propertyValue+")");
+      
+      configurations.get(Configuration.GLOBAL_CONFIG_TAG).remove(propertyName);
+      
+      if(!configurations.containsKey(newConfigType)) {
+        configurations.put(newConfigType, new HashMap<String, String>());
+      }
+      configurations.get(newConfigType).put(propertyName, propertyValue);
+    }
+    
+    if(configurations.get(Configuration.GLOBAL_CONFIG_TAG).size() == 0) {
+      configurations.remove(Configuration.GLOBAL_CONFIG_TAG);
     }
   }
 
