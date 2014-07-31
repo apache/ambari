@@ -16,23 +16,26 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.api.services.stackadvisor.recommendations;
+package org.apache.ambari.server.api.services.stackadvisor;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
 
 /**
- * Recommendations request.
+ * Stack advisor request.
  */
-public class RecommendationRequest {
+public class StackAdvisorRequest {
 
   private String stackName;
   private String stackVersion;
   private List<String> hosts = new ArrayList<String>();
   private List<String> services = new ArrayList<String>();
-
+  private Map<String, Set<String>> componentHostsMap = new HashMap<String, Set<String>>();
 
   public String getStackName() {
     return stackName;
@@ -50,6 +53,10 @@ public class RecommendationRequest {
     return services;
   }
 
+  public Map<String, Set<String>> getComponentHostsMap() {
+    return componentHostsMap;
+  }
+
   public String getHostsCommaSeparated() {
     return StringUtils.join(hosts, ",");
   }
@@ -58,34 +65,41 @@ public class RecommendationRequest {
     return StringUtils.join(services, ",");
   }
 
-  private RecommendationRequest(String stackName, String stackVersion) {
+  private StackAdvisorRequest(String stackName, String stackVersion) {
     this.stackName = stackName;
     this.stackVersion = stackVersion;
   }
 
-  public static class RecommendationRequestBuilder {
-    RecommendationRequest instance;
+  public static class StackAdvisorRequestBuilder {
+    StackAdvisorRequest instance;
 
-    private RecommendationRequestBuilder(String stackName, String stackVersion) {
-      this.instance = new RecommendationRequest(stackName, stackVersion);
+    private StackAdvisorRequestBuilder(String stackName, String stackVersion) {
+      this.instance = new StackAdvisorRequest(stackName, stackVersion);
     }
 
-    public static RecommendationRequestBuilder forStack(String stackName, String stackVersion) {
-      return new RecommendationRequestBuilder(stackName, stackVersion);
+    public static StackAdvisorRequestBuilder forStack(String stackName, String stackVersion) {
+      return new StackAdvisorRequestBuilder(stackName, stackVersion);
     }
 
-    public RecommendationRequestBuilder forHosts(List<String> hosts) {
+    public StackAdvisorRequestBuilder forHosts(List<String> hosts) {
       this.instance.hosts = hosts;
       return this;
     }
 
-    public RecommendationRequestBuilder forServices(List<String> services) {
+    public StackAdvisorRequestBuilder forServices(List<String> services) {
       this.instance.services = services;
       return this;
     }
 
-    public RecommendationRequest build() {
+    public StackAdvisorRequestBuilder withComponentHostsMap(
+        Map<String, Set<String>> componentHostsMap) {
+      this.instance.componentHostsMap = componentHostsMap;
+      return this;
+    }
+
+    public StackAdvisorRequest build() {
       return this.instance;
     }
   }
+
 }

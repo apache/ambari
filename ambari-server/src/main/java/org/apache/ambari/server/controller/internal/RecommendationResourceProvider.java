@@ -32,9 +32,7 @@ import javax.ws.rs.core.Response.Status;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorException;
-import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorHelper;
-import org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationRequest;
-import org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationRequest.RecommendationRequestBuilder;
+import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest;
 import org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse;
 import org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse.BindingHostGroup;
 import org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse.HostGroup;
@@ -49,23 +47,10 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
-import com.google.inject.Inject;
-
-public class RecommendationResourceProvider extends ReadOnlyResourceProvider {
-
-  private static StackAdvisorHelper saHelper;
-
-  @Inject
-  public static void init(StackAdvisorHelper instance) {
-    saHelper = instance;
-  }
+public class RecommendationResourceProvider extends StackAdvisorResourceProvider {
 
   protected static final String RECOMMENDATION_ID_PROPERTY_ID = PropertyHelper.getPropertyId(
       "Recommendations", "id");
-  protected static final String STACK_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("Versions",
-      "stack_name");
-  protected static final String STACK_VERSION_PROPERTY_ID = PropertyHelper.getPropertyId(
-      "Versions", "stack_version");
 
   protected static final String HOSTS_PROPERTY_ID = "hosts";
   protected static final String SERVICES_PROPERTY_ID = "services";
@@ -94,7 +79,7 @@ public class RecommendationResourceProvider extends ReadOnlyResourceProvider {
   @Override
   public RequestStatus createResources(final Request request) throws SystemException,
       UnsupportedPropertyException, ResourceAlreadyExistsException, NoSuchParentResourceException {
-    RecommendationRequest recommendationRequest = prepareRecommendationRequest(request);
+    StackAdvisorRequest recommendationRequest = prepareStackAdvisorRequest(request);
 
     final RecommendationResponse response;
     try {
@@ -152,43 +137,6 @@ public class RecommendationResourceProvider extends ReadOnlyResourceProvider {
 
     Set<Resource> resources = new HashSet<Resource>(Arrays.asList(recommendation));
     return new RequestStatusImpl(null, resources);
-  }
-
-  @SuppressWarnings("unchecked")
-  private RecommendationRequest prepareRecommendationRequest(Request request) {
-    try {
-      String stackName = (String) getRequestProperty(request, STACK_NAME_PROPERTY_ID);
-      String stackVersion = (String) getRequestProperty(request, STACK_VERSION_PROPERTY_ID);
-
-      /*
-       * ClassCastException will occur if hosts or services are empty in the
-       * request.
-       * 
-       * @see JsonRequestBodyParser for arrays parsing
-       */
-      List<String> hosts = (List<String>) getRequestProperty(request, "hosts");
-      List<String> services = (List<String>) getRequestProperty(request, "services");
-
-      RecommendationRequest recommendationRequest = RecommendationRequestBuilder
-          .forStack(stackName, stackVersion).forHosts(hosts).forServices(services).build();
-
-      return recommendationRequest;
-    } catch (Exception e) {
-      LOG.warn("Error occured during preparation of recommendation request", e);
-
-      Response response = Response.status(Status.BAD_REQUEST)
-          .entity("Hosts and services must not be empty").build();
-      throw new WebApplicationException(response);
-    }
-  }
-
-  private Object getRequestProperty(Request request, String propertyName) {
-    for (Map<String, Object> propertyMap : request.getProperties()) {
-      if (propertyMap.containsKey(propertyName)) {
-        return propertyMap.get(propertyName);
-      }
-    }
-    return null;
   }
 
   @Override

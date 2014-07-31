@@ -16,29 +16,29 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.api.resources;
-
-import org.apache.ambari.server.controller.spi.Resource;
+package org.apache.ambari.server.api.services.stackadvisor.commands;
 
 /**
- * Recommendation resource definition.
+ * StackAdvisorCommand types enumeration. 
  */
-public class RecommendationResourceDefinition extends BaseResourceDefinition {
-  /**
-   * Constructor.
-   */
-  public RecommendationResourceDefinition() {
-    super(Resource.Type.Recommendation);
+public enum StackAdvisorCommandType {
+
+  RECOMMEND_COMPONENT_LAYOUT("recommend-component-layout"),
+
+  VALIDATE_COMPONENT_LAYOUT("validate-component-layout"),
+
+  RECOMMEND_CONFIGURATIONS("recommend-configurations"),
+
+  VALIDATE_CONFIGURATIONS("validate-configurations");
+
+  private final String name;
+
+  private StackAdvisorCommandType(String name) {
+    this.name = name;
   }
 
   @Override
-  public String getPluralName() {
-    return "recommendations";
+  public String toString() {
+    return name;
   }
-
-  @Override
-  public String getSingularName() {
-    return "recommendation";
-  }
-
 }

@@ -118,7 +118,34 @@ class HDP206StackAdvisor(StackAdvisor):
 
   def validateComponentLayout(self, services, hosts):
     """Returns array of Validation objects about issues with hostnames components assigned to"""
-    pass
+    stackName = services["Versions"]["stack_name"]
+    stackVersion = services["Versions"]["stack_version"]
+
+    validations = {
+      "Versions": {"stack_name": stackName, "stack_version": stackVersion},
+      "items": [ ]
+    }
+    items = validations["items"]
+
+    # Validating NAMENODE and SECONDARY_NAMENODE are on different hosts if possible
+    hostsList = [host["Hosts"]["host_name"] for host in hosts["items"]]
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+
+    componentsListList = [service["components"] for service in services["services"]]
+    componentsList = [item for sublist in componentsListList for item in sublist]
+    nameNodeHosts = [component["StackServiceComponents"]["hostnames"] for component in componentsList if component["StackServiceComponents"]["component_name"] == "NAMENODE"]
+    secondaryNameNodeHosts = [component["StackServiceComponents"]["hostnames"] for component in componentsList if component["StackServiceComponents"]["component_name"] == "SECONDARY_NAMENODE"]
+
+    if len(hostsList) > 1 and len(nameNodeHosts) > 0 and len(secondaryNameNodeHosts) > 0:
+      nameNodeHosts = nameNodeHosts[0]
+      secondaryNameNodeHosts = secondaryNameNodeHosts[0]
+      commonHosts = list(set(nameNodeHosts).intersection(secondaryNameNodeHosts))
+      for host in commonHosts:
+        items.append( { "type": 'host-component', "level": 'ERROR', "message": 'NameNode and Secondary NameNode cannot be hosted on same machine', "component-name": 'NAMENODE', "host": host } )
+        items.append( { "type": 'host-component', "level": 'ERROR', "message": 'NameNode and Secondary NameNode cannot be hosted on same machine', "component-name": 'SECONDARY_NAMENODE', "host": host } )
+
+    return validations
+  pass
 
   def recommendConfigurations(self, services, hosts):
     """Returns Services object with configurations object populated"""

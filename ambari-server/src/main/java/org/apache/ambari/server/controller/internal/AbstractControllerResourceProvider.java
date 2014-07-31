@@ -148,6 +148,8 @@ public abstract class AbstractControllerResourceProvider extends AbstractResourc
         return new BlueprintResourceProvider(propertyIds, keyPropertyIds, managementController);
       case Recommendation:
         return new RecommendationResourceProvider(propertyIds, keyPropertyIds, managementController);
+      case Validation:
+        return new ValidationResourceProvider(propertyIds, keyPropertyIds, managementController);
       case AlertDefinition:
         return new AlertDefinitionResourceProvider(propertyIds, keyPropertyIds, managementController);
       case Controller:

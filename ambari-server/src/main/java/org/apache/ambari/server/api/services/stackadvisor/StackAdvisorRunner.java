@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.ambari.server.api.services.stackadvisor.commands.StackAdvisorCommandType;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,19 +39,19 @@ public class StackAdvisorRunner {
    * Runs stack_advisor.py script in the specified {@code actionDirectory}.
    * 
    * @param script stack advisor script
-   * @param saCommand {@link StackAdvisorCommand} to run.
+   * @param saCommandType {@link StackAdvisorCommandType} to run.
    * @param actionDirectory directory for the action
    * @return {@code true} if script completed successfully, {@code false}
    *         otherwise.
    */
-  public boolean runScript(String script, StackAdvisorCommand saCommand, File actionDirectory) {
-    LOG.info("Script={}, actionDirectory={}, command={}", script,
-        actionDirectory, saCommand);
+  public boolean runScript(String script, StackAdvisorCommandType saCommandType, File actionDirectory) {
+    LOG.info(String.format("Script=%s, actionDirectory=%s, command=%s", script, actionDirectory,
+        saCommandType));
 
     String outputFile = actionDirectory + File.separator + "stackadvisor.out";
     String errorFile = actionDirectory + File.separator + "stackadvisor.err";
 
-    ProcessBuilder builder = prepareShellCommand(script, saCommand,
+    ProcessBuilder builder = prepareShellCommand(script, saCommandType,
         actionDirectory, outputFile,
         errorFile);
 
@@ -87,14 +88,14 @@ public class StackAdvisorRunner {
    * environment variables from the current process.
    * 
    * @param script
-   * @param saCommand
+   * @param saCommandType
    * @param actionDirectory
    * @param outputFile
    * @param errorFile
    * @return
    */
   private ProcessBuilder prepareShellCommand(String script,
-      StackAdvisorCommand saCommand,
+      StackAdvisorCommandType saCommandType,
       File actionDirectory, String outputFile, String errorFile) {
     String hostsFile = actionDirectory + File.separator + "hosts.json";
     String servicesFile = actionDirectory + File.separator + "services.json";
@@ -107,7 +108,7 @@ public class StackAdvisorRunner {
     // for the 3rd argument, build a single parameter since we use -c
     // ProcessBuilder doesn't support output redirection until JDK 1.7
     String commandStringParameters[] = new String[] { script,
-        saCommand.toString(), hostsFile,
+        saCommandType.toString(), hostsFile,
         servicesFile, "1>", outputFile, "2>", errorFile };
 
     StringBuilder commandString = new StringBuilder();
@@ -121,26 +122,4 @@ public class StackAdvisorRunner {
 
     return new ProcessBuilder(builderParameters);
   }
-
-  public enum StackAdvisorCommand {
-    RECOMMEND_COMPONENT_LAYOUT("recommend-component-layout"),
-
-    VALIDATE_COMPONENT_LAYOUT("validate-component-layout"),
-
-    RECOMMEND_CONFIGURATIONS("recommend-configurations"),
-
-    VALIDATE_CONFIGURATIONS("validate-configurations");
-
-    private final String name;
-
-    private StackAdvisorCommand(String name) {
-      this.name = name;
-    }
-
-    @Override
-    public String toString() {
-      return name;
-    }
-  }
-
 }

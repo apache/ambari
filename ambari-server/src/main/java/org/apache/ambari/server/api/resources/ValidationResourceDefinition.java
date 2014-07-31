@@ -21,24 +21,23 @@ package org.apache.ambari.server.api.resources;
 import org.apache.ambari.server.controller.spi.Resource;
 
 /**
- * Recommendation resource definition.
+ * Validation resource definition.
  */
-public class RecommendationResourceDefinition extends BaseResourceDefinition {
+public class ValidationResourceDefinition extends BaseResourceDefinition {
   /**
    * Constructor.
    */
-  public RecommendationResourceDefinition() {
-    super(Resource.Type.Recommendation);
+  public ValidationResourceDefinition() {
+    super(Resource.Type.Validation);
   }
 
   @Override
   public String getPluralName() {
-    return "recommendations";
+    return "validations";
   }
 
   @Override
   public String getSingularName() {
-    return "recommendation";
+    return "validation";
   }
-
 }

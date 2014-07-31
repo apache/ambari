@@ -235,6 +235,10 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
         resourceDefinition = new RecommendationResourceDefinition();
         break;
 
+      case Validation:
+        resourceDefinition = new ValidationResourceDefinition();
+        break;
+
       case HostComponentProcess:
         resourceDefinition = new HostComponentProcessResourceDefinition();
         break;

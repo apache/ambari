@@ -50,7 +50,7 @@ import org.apache.ambari.server.controller.internal.BlueprintResourceProvider;
 import org.apache.ambari.server.controller.internal.ClusterResourceProvider;
 import org.apache.ambari.server.controller.internal.PermissionResourceProvider;
 import org.apache.ambari.server.controller.internal.PrivilegeResourceProvider;
-import org.apache.ambari.server.controller.internal.RecommendationResourceProvider;
+import org.apache.ambari.server.controller.internal.StackAdvisorResourceProvider;
 import org.apache.ambari.server.controller.internal.StackDefinedPropertyProvider;
 import org.apache.ambari.server.controller.internal.StackDependencyResourceProvider;
 import org.apache.ambari.server.controller.internal.ViewPermissionResourceProvider;
@@ -532,7 +532,7 @@ public class AmbariServer {
     PersistKeyValueService.init(injector.getInstance(PersistKeyValueImpl.class));
     KeyService.init(injector.getInstance(PersistKeyValueImpl.class));
     BootStrapResource.init(injector.getInstance(BootStrapImpl.class));
-    RecommendationResourceProvider.init(injector.getInstance(StackAdvisorHelper.class));
+    StackAdvisorResourceProvider.init(injector.getInstance(StackAdvisorHelper.class));
     StageUtils.setGson(injector.getInstance(Gson.class));
     WorkflowJsonService.setDBProperties(
         injector.getInstance(Configuration.class));

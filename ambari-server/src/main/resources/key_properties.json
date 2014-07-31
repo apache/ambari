@@ -133,6 +133,11 @@
     "Stack": "Versions/stack_name",
     "StackVersion": "Versions/stack_version"
   },
+  "Validation": {
+    "Validation": "Validation/id",
+    "Stack": "Versions/stack_name",
+    "StackVersion": "Versions/stack_version"
+  },
   "HostComponentProcess": {
     "Cluster": "HostComponentProcess/cluster_name",
     "Host": "HostComponentProcess/host_name",

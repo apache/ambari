@@ -380,6 +380,23 @@
         "recommendations/blueprint_cluster_binding/host_groups/name",
         "recommendations/blueprint_cluster_binding/host_groups/hosts"
     ],
+    "Validation":[
+        "Validation/id",
+        "Versions/stack_name",
+        "Versions/stack_version",
+        "items",
+        "items/type",
+        "items/level",
+        "items/message",
+        "items/component-name",
+        "items/host",
+        "items/config-type",
+        "items/config-name",
+        "items/host-group",
+        "hosts",
+        "services",
+        "recommendations"
+    ],
     "HostComponentProcess": [
       "HostComponentProcess/cluster_name",
       "HostComponentProcess/host_name",
