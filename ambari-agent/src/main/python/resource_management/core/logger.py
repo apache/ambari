@@ -89,4 +89,4 @@ class Logger:
     if arguments_str:  
       arguments_str = arguments_str[:-2]
     
-    return unicode("{0} {{{1}}}").format(resource, arguments_str)
+    return "{0} {{{1}}}".format(resource, arguments_str)
