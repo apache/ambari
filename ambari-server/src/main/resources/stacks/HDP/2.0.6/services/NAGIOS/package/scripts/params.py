@@ -37,6 +37,11 @@ nagios_obj_dir = format("{conf_dir}/objects")
 nagios_var_dir = status_params.nagios_var_dir
 nagios_rw_dir = status_params.nagios_rw_dir
 
+# HACK: Stylesheets for Nagios UI on Ubuntu are in wrong place so we have to do a symlink.
+# In future we can fix this directly in the package.
+debian_stylesheets_real_location = "/etc/nagios3/stylesheets"
+debian_stylesheets_desired_location = "/usr/share/nagios3/htdocs/stylesheets"
+
 if System.get_instance().os_family == "debian":
   host_template = "generic-host"
   plugins_dir = "/usr/lib/nagios/plugins"

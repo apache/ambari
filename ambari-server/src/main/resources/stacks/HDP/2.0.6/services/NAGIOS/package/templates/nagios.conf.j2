@@ -69,7 +69,7 @@ Alias /nagios3 "{{nagios_web_dir}}"
 
 <Directory "{{nagios_web_dir}}">
 #  SSLRequireSSL
-   Options None
+   Options FollowSymLinks
    AllowOverride None
    Order allow,deny
    Allow from all
