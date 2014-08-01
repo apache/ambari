@@ -55,7 +55,7 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
   @Inject
   protected StackUpgradeUtil stackUpgradeUtil;
 
-  private Injector injector;
+  protected Injector injector;
   private static final Logger LOG = LoggerFactory.getLogger
     (AbstractUpgradeCatalog.class);
   private static final Map<String, UpgradeCatalog> upgradeCatalogMap =

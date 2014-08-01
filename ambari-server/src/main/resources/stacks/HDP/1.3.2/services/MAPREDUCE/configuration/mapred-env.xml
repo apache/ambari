@@ -47,11 +47,6 @@
     <description>Max New size.</description>
   </property>
   <property>
-    <name>hadoop_heapsize</name>
-    <value>1024</value>
-    <description>Hadoop maximum Java heap size</description>
-  </property>
-  <property>
     <name>jtnode_heapsize</name>
     <value>1024</value>
     <description>Maximum Java heap size for JobTracker in MB (Java option -Xmx)</description>

@@ -47,7 +47,6 @@ import com.google.inject.Injector;
  * Upgrade catalog for version 1.7.0.
  */
 public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
-  private Injector injector;
   private static final String CONTENT_FIELD_NAME = "content";
   private static final String ENV_CONFIGS_POSTFIX = "-env";
 
@@ -227,7 +226,13 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
     
     moveGlobalsToEnv();
     addEnvContentFields();
+    addMissingConfigs();
   }
+
+protected void addMissingConfigs() throws AmbariException {
+  updateConfigurationProperties("hbase-env", Collections.singletonMap("hbase_regionserver_xmn_max", "512"), false, false);
+  updateConfigurationProperties("hbase-env", Collections.singletonMap("hbase_regionserver_xmn_ratio", "0.2"), false, false);
+}
   
   protected void addEnvContentFields() throws AmbariException {
     ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);

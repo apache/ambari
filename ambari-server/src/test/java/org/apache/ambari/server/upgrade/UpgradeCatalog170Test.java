@@ -23,7 +23,10 @@ import static junit.framework.Assert.assertNull;
 import static junit.framework.Assert.assertTrue;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.createMockBuilder;
 import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.createStrictMock;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
@@ -31,11 +34,29 @@ import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
+import javax.persistence.EntityManager;
+import javax.persistence.EntityTransaction;
+import javax.persistence.TypedQuery;
 
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.orm.entities.ClusterEntity;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.State;
 import org.easymock.Capture;
 import org.junit.Assert;
 import org.junit.Test;
@@ -44,6 +65,7 @@ import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
+import com.google.inject.Provider;
 
 /**
  * UpgradeCatalog170 unit tests.
@@ -91,7 +113,80 @@ public class UpgradeCatalog170Test {
 
   @Test
   public void testExecuteDMLUpdates() throws Exception {
-    // !!! TODO: alerting DML updates (sequences)
+    Configuration configuration = createNiceMock(Configuration.class);
+    DBAccessor dbAccessor = createNiceMock(DBAccessor.class);
+    Injector injector = createNiceMock(Injector.class);
+    ConfigHelper configHelper = createNiceMock(ConfigHelper.class);
+    AmbariManagementController amc = createNiceMock(AmbariManagementController.class);
+    Cluster cluster = createStrictMock(Cluster.class);
+    Clusters clusters = createStrictMock(Clusters.class);
+    Config config = createStrictMock(Config.class);
+    
+    Method m = AbstractUpgradeCatalog.class.getDeclaredMethod
+        ("updateConfigurationProperties", String.class, Map.class, boolean.class, boolean.class);
+
+    UpgradeCatalog170 upgradeCatalog = createMockBuilder(UpgradeCatalog170.class)
+      .addMockedMethod(m).createMock();
+    
+    Map<String, Cluster> clustersMap = new HashMap<String, Cluster>();
+    clustersMap.put("c1", cluster);
+    
+    Map<String, String> globalConfigs = new HashMap<String, String>();
+    globalConfigs.put("prop1", "val1");
+    globalConfigs.put("smokeuser_keytab", "val2");
+    
+    Set<String> envDicts = new HashSet<String>();
+    envDicts.add("hadoop-env");
+    envDicts.add("global");
+    
+    Map<String, String> contentOfHadoopEnv = new HashMap<String, String>();
+    contentOfHadoopEnv.put("content", "env file contents");
+
+    upgradeCatalog.updateConfigurationProperties("hadoop-env",
+        globalConfigs, true, true);
+    expectLastCall();
+    
+    upgradeCatalog.updateConfigurationProperties("hadoop-env",
+        contentOfHadoopEnv, true, true);
+    expectLastCall();   
+    
+    upgradeCatalog.updateConfigurationProperties("hbase-env",
+        Collections.singletonMap("hbase_regionserver_xmn_max", "512"), false, false);
+    expectLastCall();   
+    
+    upgradeCatalog.updateConfigurationProperties("hbase-env",
+        Collections.singletonMap("hbase_regionserver_xmn_ratio", "0.2"), false, false);
+    expectLastCall();   
+
+    expect(configuration.getDatabaseUrl()).andReturn(Configuration.JDBC_IN_MEMORY_URL).anyTimes();
+    expect(injector.getInstance(ConfigHelper.class)).andReturn(configHelper).anyTimes();
+    expect(injector.getInstance(AmbariManagementController.class)).andReturn(amc).anyTimes();
+    expect(amc.getClusters()).andReturn(clusters).anyTimes();
+    expect(clusters.getClusters()).andReturn(clustersMap).anyTimes();
+    expect(cluster.getDesiredConfigByType("global")).andReturn(config).anyTimes();
+    expect(config.getProperties()).andReturn(globalConfigs).anyTimes();
+    expect(cluster.getCurrentStackVersion()).andReturn(new StackId("HDP", "2.1")).anyTimes();
+    expect(configHelper.findConfigTypesByPropertyName(new StackId("HDP", "2.1"), "prop1")).andReturn(envDicts).once();
+    expect(configHelper.findConfigTypesByPropertyName(new StackId("HDP", "2.1"), "smokeuser_keytab")).andReturn(new HashSet<String>()).once();
+    expect(configHelper.findConfigTypesByPropertyName(new StackId("HDP", "2.1"), "content")).andReturn(envDicts).once();
+    expect(configHelper.getPropertyValueFromStackDefenitions(cluster, "hadoop-env", "content")).andReturn("env file contents").once();
+
+    replay(upgradeCatalog, dbAccessor, configuration, injector, cluster, clusters, amc, config, configHelper);
+    
+    Class<?> c = AbstractUpgradeCatalog.class;
+    Field f = c.getDeclaredField("configuration");
+    f.setAccessible(true);
+    f.set(upgradeCatalog, configuration);
+    f = c.getDeclaredField("dbAccessor");
+    f.setAccessible(true);
+    f.set(upgradeCatalog, dbAccessor);
+    f = c.getDeclaredField("injector");
+    f.setAccessible(true);
+    f.set(upgradeCatalog, injector);
+
+    upgradeCatalog.executeDMLUpdates();
+
+    verify(upgradeCatalog, dbAccessor, configuration, injector, cluster, clusters, amc, config, configHelper);
   }
 
 
