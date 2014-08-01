@@ -302,12 +302,13 @@ App.MainServiceInfoSummaryView = Em.View.extend({
             App.ChartServiceMetricsHBASE_HlogSplitSize.extend()]];
           break;
         case 'flume':
-          graphs = [[App.ChartServiceMetricsFlume_ChannelFillPercent.extend(),
-             App.ChartServiceMetricsFlume_ChannelSize.extend(),
-             App.ChartServiceMetricsFlume_SourceAcceptedCount.extend(),
-             App.ChartServiceMetricsFlume_SinkDrainSuccessCount.extend()],
-             [App.ChartServiceMetricsFlume_SinkConnectionFailedCount.extend(),
-              //App.ChartServiceMetricsFlume_GarbageCollection.extend(),
+          graphs = [[App.ChartServiceMetricsFlume_ChannelSizeMMA.extend(),
+             App.ChartServiceMetricsFlume_ChannelSizeSum.extend(),
+             App.ChartServiceMetricsFlume_IncommingMMA.extend(),
+             App.ChartServiceMetricsFlume_IncommingSum],
+             [App.ChartServiceMetricsFlume_OutgoingMMA,
+               App.ChartServiceMetricsFlume_OutgoingSum,
+             //App.ChartServiceMetricsFlume_GarbageCollection.extend(),
               //App.ChartServiceMetricsFlume_JVMHeapUsed.extend(),
               //App.ChartServiceMetricsFlume_JVMThreadsRunnable.extend(),
               App.ChartServiceMetricsFlume_CPUUser.extend()]];
