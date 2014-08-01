@@ -22,6 +22,7 @@ from resource_management import *
 import socket
 import sys
 import time
+from resource_management.core.shell import checked_call
 
 def hive_service(
     name,
@@ -41,6 +42,9 @@ def hive_service(
   process_id_exists = format("ls {pid_file} >/dev/null 2>&1 && ps `cat {pid_file}` >/dev/null 2>&1")
   
   if action == 'start':
+    if name == 'hiveserver2':
+      check_fs_root()
+
     demon_cmd = format("{cmd}")
     
     Execute(demon_cmd,
@@ -95,3 +99,12 @@ def hive_service(
     Execute(demon_cmd,
             not_if = format("! ({process_id_exists})")
     )
+
+def check_fs_root():
+  import params  
+  fs_root_url = format("{fs_root}{hive_apps_whs_dir}")
+  cmd = "/usr/lib/hive/bin/metatool -listFSRoot 2>/dev/null | grep hdfs://"
+  code, out = checked_call(cmd, user=params.hive_user)
+  if fs_root_url.strip() != out.strip():
+    cmd = format("/usr/lib/hive/bin/metatool -updateLocation {fs_root}{hive_apps_whs_dir} {out}")
+    Execute(cmd, user=params.hive_user)

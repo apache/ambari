@@ -46,9 +46,10 @@ class TestHiveServer(RMFTestCase):
                               content='log4jproperties\nline2'
     )
     self.assertNoMoreResources()
-  
+
+  @patch("hive_service.check_fs_root")
   @patch("socket.socket")
-  def test_start_default(self, socket_mock):
+  def test_start_default(self, socket_mock, check_fs_root_mock):
     s = socket_mock.return_value
     
     self.executeScript("2.0.6/services/HIVE/package/scripts/hive_server.py",
@@ -129,6 +130,7 @@ class TestHiveServer(RMFTestCase):
     )
 
     self.assertNoMoreResources()
+    self.assertTrue(check_fs_root_mock.called)
     self.assertTrue(socket_mock.called)
     self.assertTrue(s.close.called)
 
@@ -171,10 +173,11 @@ class TestHiveServer(RMFTestCase):
     )
     self.assertNoMoreResources()
 
+  @patch("hive_service.check_fs_root")
   @patch("socket.socket")
-  def test_start_secured(self, socket_mock):
+  def test_start_secured(self, socket_mock, check_fs_root_mock):
     s = socket_mock.return_value
-    
+
     self.executeScript("2.0.6/services/HIVE/package/scripts/hive_server.py",
                        classname = "HiveServer",
                        command = "start",
@@ -206,6 +209,7 @@ class TestHiveServer(RMFTestCase):
     )
 
     self.assertNoMoreResources()
+    self.assertTrue(check_fs_root_mock.called)
     self.assertTrue(socket_mock.called)
     self.assertTrue(s.close.called)
 
@@ -414,10 +418,11 @@ class TestHiveServer(RMFTestCase):
       owner = 'hive',
       group = 'hadoop',
     )
-    
+
+  @patch("hive_service.check_fs_root")
   @patch("time.time")
   @patch("socket.socket")
-  def test_socket_timeout(self, socket_mock, time_mock):        
+  def test_socket_timeout(self, socket_mock, time_mock, check_fs_root_mock):
     s = socket_mock.return_value
     s.connect = MagicMock()    
     s.connect.side_effect = socket.error("")
