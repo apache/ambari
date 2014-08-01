@@ -31,6 +31,8 @@ App.ChartServiceMetricsFlume_IncommingMMA = App.ChartLinearTimeView.extend({
   title: Em.I18n.t('services.service.info.metrics.flume.incoming.mma'),
 
   ajaxIndex: 'service.metrics.flume.incoming_event_put_successCount',
+  yAxisFormatter: App.ChartLinearTimeView.CreateRateFormatter('',
+      App.ChartLinearTimeView.DefaultFormatter),
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];

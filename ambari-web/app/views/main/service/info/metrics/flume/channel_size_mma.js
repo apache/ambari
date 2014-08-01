@@ -29,7 +29,6 @@ var App = require('app');
 App.ChartServiceMetricsFlume_ChannelSizeMMA = App.ChartLinearTimeView.extend({
   id: "service-metrics-flume-channel-size-mma",
   title: Em.I18n.t('services.service.info.metrics.flume.channelSizeMMA'),
-  yAxisFormatter: App.ChartLinearTimeView.BytesFormatter,
   renderer: 'line',
   ajaxIndex: 'service.metrics.flume.channel_size_for_all',
 

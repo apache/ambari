@@ -35,7 +35,7 @@ App.ChartServiceMetricsFlume_OutgoingSum = App.ChartLinearTimeView.extend({
     var seriesArray = [];
     var self = this;
     if(Em.get(jsonData, "metrics.flume.flume.CHANNEL.EventTakeSuccessCount.rate.sum")){
-      var seriesName = Em.I18n.t('services.service.info.metrics.flume.channelSizeSum');
+      var seriesName = Em.I18n.t('services.service.info.metrics.flume.outgoing.sum');
       var seriesData = jsonData.metrics.flume.flume.CHANNEL.EventTakeSuccessCount.rate.sum;
       if (seriesData) {
         seriesArray.push(self.transformData(seriesData, seriesName));
