@@ -288,7 +288,7 @@ describe('App.MainHostSummaryView', function() {
           ])
         }),
         services: ['HDFS', 'YARN', 'MAPREDUCE2'],
-        e: ['NODEMANAGER', 'CLIENTS'],
+        e: ['MAPREDUCE2_CLIENT', 'NODEMANAGER', 'YARN_CLIENT', 'CLIENTS'],
         m: 'some components are already installed'
       },
       {

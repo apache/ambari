@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-App = require('app');
+var App = require('app');
 
 require('controllers/main/service/reassign/step2_controller');
 require('models/host_component');
@@ -37,10 +37,15 @@ describe('App.ReassignMasterWizardStep2Controller', function () {
   describe('#loadStep', function () {
 
     beforeEach(function () {
+      sinon.stub(App.router, 'send', Em.K);
+      sinon.stub(controller, 'loadStepCallback', Em.K);
       sinon.stub(controller, 'rebalanceSingleComponentHosts', Em.K);
     });
+
     afterEach(function () {
       controller.rebalanceSingleComponentHosts.restore();
+      App.router.send.restore();
+      controller.loadStepCallback.restore();
     });
 
     it('SECONDARY_NAMENODE is absent, reassign component is NAMENODE', function () {
