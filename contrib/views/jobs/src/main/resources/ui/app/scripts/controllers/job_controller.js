@@ -62,7 +62,7 @@ App.JobController = Ember.ObjectController.extend(App.RunPeriodically, {
   },
 
   /**
-   * Init method called  in <code>router.setupController</code>
+   * Init method called in <code>router.setupController</code>
    * Load job's details info (like Tez Dag etc)
    * @method loadJobDetails
    */
@@ -99,7 +99,7 @@ App.JobController = Ember.ObjectController.extend(App.RunPeriodically, {
               default:
                 break;
             }
-            self.routeToJobs();
+            this.transitionToRoute('jobs');
           }
         );
       }

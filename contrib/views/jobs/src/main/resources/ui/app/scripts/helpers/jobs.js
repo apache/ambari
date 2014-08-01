@@ -81,7 +81,7 @@ App.Helpers.jobs = {
             params.errorCallback('job.dag.noId');
           }
         },
-        dagNameToIdError: function (jqXHR, url, method, showStatus) {
+        dagNameToIdError: function () {
           params.errorCallback('job.dag.name.loaderror');
         }
       };
@@ -122,8 +122,9 @@ App.Helpers.jobs = {
         sender = {
           loadTezDagSuccess: function (data) {
             if (data) {
-              if (data.otherinfo && data.otherinfo.applicationId) {
-                tezDag.set('yarnApplicationId', data.otherinfo.applicationId);
+              var app_id = Em.get(data, 'otherinfo.applicationId');
+              if (!Em.isNone(app_id)) {
+                tezDag.set('yarnApplicationId', app_id);
               }
               if (data.relatedentities && data.relatedentities.TEZ_VERTEX_ID != null) {
                 var count = data.relatedentities.TEZ_VERTEX_ID.length;
@@ -138,7 +139,7 @@ App.Helpers.jobs = {
               }
             }
           },
-          loadTezDagError: function (jqXHR, url, method, showStatus) {
+          loadTezDagError: function () {
             errorCallback('job.dag.id.loaderror');
           }
         };

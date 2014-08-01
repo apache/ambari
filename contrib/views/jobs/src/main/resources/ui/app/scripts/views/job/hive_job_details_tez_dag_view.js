@@ -257,13 +257,8 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
       else {
         value = '';
       }
-      switch (summaryMetricType) {
-        case "input":
-        case "output":
-          value = App.Helpers.number.bytesToSize(value);
-          break;
-        default:
-          break;
+      if (['input', 'output'].contains(summaryMetricType)) {
+        value = App.Helpers.number.bytesToSize(value);
       }
       node.metricType = Em.I18n.t('jobs.hive.tez.metric.' + summaryMetricType);
       node.metricDisplay = value;
@@ -702,7 +697,7 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
           self.get('parentView').doSelectVertex(vertex, true);
         }
       });
-    node.each(function (n, nodeIndex) {
+    node.each(function (n) {
       var ops = n.operations;
       var opCount = {};
       if (ops != null && ops.length > 0) {
@@ -960,7 +955,7 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
    * </code>
    * @method getNodeCalculatedDimensions
    */
-  getNodeCalculatedDimensions: function (node, minVertexDuration, maxVertexDuration) {
+  getNodeCalculatedDimensions: function (node) {
     var size = {
       width: 180,
       height: 40,

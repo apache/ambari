@@ -129,7 +129,6 @@ App.Helpers.date = {
     var durationSummary = '';
     var startDate = new Date(startTimestamp);
     var endDate = new Date(endTimestamp);
-    var self = this;
     if (startDate.getFullYear() == 1969 || startTimestamp < 1) {
       // not started
       return Em.I18n.t('common.na');

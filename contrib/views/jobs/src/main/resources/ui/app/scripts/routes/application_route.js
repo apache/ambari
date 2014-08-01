@@ -38,6 +38,8 @@ App.JobsRoute = Ember.Route.extend({
     this._super(controller, model);
     controller.set('interval', 6000);
     controller.loop('loadJobs', true);
+    // This observer should be set with addObserver
+    // If it set like ".observes(....)" it triggers two times
     Em.addObserver(controller, 'filterObject.startTime', controller, 'startTimeObserver');
   }
 

@@ -122,8 +122,7 @@ App.JobView = Em.View.extend({
         zoomScale = this.get('zoomScale'),
         zoomStep = this.get('zoomStep');
       if (zoomScale < zoomTo) {
-        var step = Math.min(zoomStep, (zoomTo - zoomScale));
-        zoomScale += step;
+        zoomScale += Math.min(zoomStep, (zoomTo - zoomScale));
         this.set('zoomScale', zoomScale);
       }
     },
@@ -137,8 +136,7 @@ App.JobView = Em.View.extend({
         zoomScale = this.get('zoomScale'),
         zoomStep = this.get('zoomStep');
       if (zoomScale > zoomFrom) {
-        var step = Math.min(zoomStep, (zoomScale - zoomFrom));
-        zoomScale -= step;
+        zoomScale -= Math.min(zoomStep, (zoomScale - zoomFrom));
         this.set('zoomScale', zoomScale);
       }
     },

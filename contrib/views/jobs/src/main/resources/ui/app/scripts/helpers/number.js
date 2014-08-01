@@ -66,25 +66,23 @@ App.Helpers.number = {
    * @param {string|number} [max]
    */
   validateInteger : function(str, min, max) {
-    if (str==null || str==undefined || (str + "").trim().length < 1) {
+    if (Em.isNone(str) || (str + "").trim().length < 1) {
       return Em.I18n.t('number.validate.empty');
-    } else {
-      str = (str + "").trim();
-      var number = parseInt(str);
-      if (isNaN(number)) {
-        return Em.I18n.t('number.validate.notValidNumber');
-      } else {
-        if (str.length != (number + "").length) {
-          // parseInt("1abc") returns 1 as integer
-          return Em.I18n.t('number.validate.notValidNumber');
-        }
-        if (!isNaN(min) && number < min) {
-          return Em.I18n.t('number.validate.lessThanMinumum').fmt(min);
-        }
-        if (!isNaN(max) && number > max) {
-          return Em.I18n.t('number.validate.moreThanMaximum').fmt(max);
-        }
-      }
+    }
+    str = (str + "").trim();
+    var number = parseInt(str);
+    if (isNaN(number)) {
+      return Em.I18n.t('number.validate.notValidNumber');
+    }
+    if (str.length != (number + "").length) {
+      // parseInt("1abc") returns 1 as integer
+      return Em.I18n.t('number.validate.notValidNumber');
+    }
+    if (!isNaN(min) && number < min) {
+      return Em.I18n.t('number.validate.lessThanMinumum').fmt(min);
+    }
+    if (!isNaN(max) && number > max) {
+      return Em.I18n.t('number.validate.moreThanMaximum').fmt(max);
     }
     return null;
   }
