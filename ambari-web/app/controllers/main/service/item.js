@@ -360,7 +360,7 @@ App.MainServiceItemController = Em.Controller.extend({
    */
   refreshConfigs: function () {
     var self = this;
-    if (this.get('isClientsOnlyService')) {
+    if (this.get('isClientsOnlyService') || this.get('content.serviceName') == "FLUME") {
       return App.showConfirmationFeedBackPopup(function (query) {
         batchUtils.getComponentsFromServer({
           services: [self.get('content.serviceName')]
