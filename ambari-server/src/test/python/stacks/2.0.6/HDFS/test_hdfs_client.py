@@ -29,7 +29,7 @@ from stacks.utils.RMFTestCase import *
 @patch.object(tempfile,"mkdtemp", new = MagicMock(return_value='/tmp/123'))
 @patch.object(contextlib,"closing", new = MagicMock())
 @patch("os.path.exists", new = MagicMock(return_value=True))
-class TestDatanode(RMFTestCase):
+class Test(RMFTestCase):
 
   def test_generate_configs_default(self):
     self.executeScript("2.0.6/services/HDFS/package/scripts/hdfs_client.py",
