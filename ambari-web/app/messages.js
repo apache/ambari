@@ -1192,6 +1192,11 @@ Em.I18n.translations = {
   'services.service.summary.flume.start.context': 'Start Flume Agent {0}',
   'services.service.summary.flume.noAgents': 'No Flume Agents to display',
 
+  'services.service.info.metrics.flume.channelFillPercent':'Channel Fill Percentage',
+  'services.service.info.metrics.flume.channelSize':'Channel Size',
+  'services.service.info.metrics.flume.sinkDrainSuccess':'Sink Event Drain Count',
+  'services.service.info.metrics.flume.sourceAccepted':'Source Event Accepted Count',
+  'services.service.info.metrics.flume.sinkConnectionFailed':'Sink Connection Failed Count',
   'services.service.info.metrics.flume.channelSizeMMA':'Channel size Min/Max/Avg',
   'services.service.info.metrics.flume.channelSizeSum':'Channel Size Sum',
   'services.service.info.metrics.flume.incoming.mma':'Incoming Min/Max/Avg',
@@ -1207,6 +1212,8 @@ Em.I18n.translations = {
   'services.service.info.metrics.flume.outgoing_mma':'Outgoing {0}',
   'services.service.info.metrics.flume.sourceName':'Source {0}',
   'services.service.info.metrics.flume.hostName':'Host: {0}',
+  'services.service.info.metrics.flume.channelName':'Channel {0}',
+  'services.service.info.metrics.flume.sinkName':'Sink {0}',
 
   'services.service.info.metrics.hbase.clusterRequests':'Cluster Requests',
   'services.service.info.metrics.hbase.clusterRequests.displayNames.requestCount':'Request Count',
