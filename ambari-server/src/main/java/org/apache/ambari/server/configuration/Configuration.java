@@ -133,6 +133,10 @@ public class Configuration {
       "authentication.ldap.managerPassword";
   public static final String LDAP_USERNAME_ATTRIBUTE_KEY =
       "authentication.ldap.usernameAttribute";
+  public static final String LDAP_USER_BASE_KEY =
+      "authentication.ldap.userBase";
+  public static final String LDAP_USER_OBJECT_CLASS_KEY =
+      "authentication.ldap.userObjectClass";
   public static final String LDAP_GROUP_BASE_KEY =
       "authorization.ldap.groupBase";
   public static final String LDAP_GROUP_OBJECT_CLASS_KEY =
@@ -269,6 +273,9 @@ public class Configuration {
   private static final String LDAP_PRIMARY_URL_DEFAULT = "localhost:33389";
   private static final String LDAP_BASE_DN_DEFAULT = "dc=ambari,dc=apache,dc=org";
   private static final String LDAP_USERNAME_ATTRIBUTE_DEFAULT = "uid";
+  private static final String LDAP_USER_BASE_DEFAULT =
+      "ou=people,dc=ambari,dc=apache,dc=org";
+  private static final String LDAP_USER_OBJECT_CLASS_DEFAULT = "person";
   private static final String LDAP_GROUP_BASE_DEFAULT =
       "ou=groups,dc=ambari,dc=apache,dc=org";
   private static final String LDAP_GROUP_OBJECT_CLASS_DEFAULT = "group";
@@ -281,23 +288,23 @@ public class Configuration {
   private static final String SERVER_PERSISTENCE_TYPE_DEFAULT = "local";
   private static final String SERVER_CONNECTION_MAX_IDLE_TIME =
       "server.connection.max.idle.millis";
-  
+
   private static final String UBUNTU_OS = "debian12";
-  
+
   /**
    * Default for repo validation suffixes.
    */
   private static final String REPO_SUFFIX_DEFAULT = "/repodata/repomd.xml";
   private static final String REPO_SUFFIX_UBUNTU = "/dists/%s/Release.gpg,/dists/%s/Release";
-  
+
   private static final String PARALLEL_STAGE_EXECUTION_DEFAULT = "true";
-  
+
   private static final String CLIENT_THREADPOOL_SIZE_KEY = "client.threadpool.size.max";
   private static final int CLIENT_THREADPOOL_SIZE_DEFAULT = 25;
   private static final String AGENT_THREADPOOL_SIZE_KEY = "agent.threadpool.size.max";
   private static final int AGENT_THREADPOOL_SIZE_DEFAULT = 25;
-  
-  
+
+
   private static final Logger LOG = LoggerFactory.getLogger(
       Configuration.class);
   private Properties properties;
@@ -777,6 +784,9 @@ public class Configuration {
     ldapServerProperties.setUsernameAttribute(properties.
         getProperty(LDAP_USERNAME_ATTRIBUTE_KEY, LDAP_USERNAME_ATTRIBUTE_DEFAULT));
 
+    ldapServerProperties.setUserBase(properties.getProperty(LDAP_USER_BASE_KEY, LDAP_USER_BASE_DEFAULT));
+    ldapServerProperties.setUserObjectClass(properties.getProperty(LDAP_USER_OBJECT_CLASS_KEY, LDAP_USER_OBJECT_CLASS_DEFAULT));
+
     ldapServerProperties.setGroupBase(properties.
         getProperty(LDAP_GROUP_BASE_KEY, LDAP_GROUP_BASE_DEFAULT));
     ldapServerProperties.setGroupObjectClass(properties.
@@ -833,11 +843,11 @@ public class Configuration {
   public String getServerDBName() {
 	return properties.getProperty(SERVER_DB_NAME_KEY, SERVER_DB_NAME_DEFAULT);
   }
-  
+
   public String getMySQLJarName() {
 	return properties.getProperty(MYSQL_JAR_NAME_KEY, MYSQL_JAR_NAME_DEFAULT);
   }
-  
+
   public JPATableGenerationStrategy getJPATableGenerationStrategy() {
     return JPATableGenerationStrategy.fromString(System.getProperty(SERVER_JDBC_GENERATE_TABLES_KEY));
   }
@@ -882,9 +892,9 @@ public class Configuration {
     if (null != customDbProperties) {
       return customDbProperties;
     }
-    
+
     customDbProperties = new HashMap<String, String>();
-    
+
     for (Entry<Object, Object> entry : properties.entrySet()) {
       String key = entry.getKey().toString();
       String val = entry.getValue().toString();
@@ -892,15 +902,15 @@ public class Configuration {
         customDbProperties.put(key.substring(SERVER_JDBC_PROPERTIES_PREFIX.length()), val);
       }
     }
-    
+
     return customDbProperties;
   }
 
   public Map<String, String> getAmbariProperties() {
-    
+
     Properties properties = readConfigFile();
     Map<String, String> ambariPropertiesMap = new HashMap<String, String>();
-    
+
     for(String key : properties.stringPropertyNames()) {
       ambariPropertiesMap.put(key, properties.getProperty(key));
     }
@@ -922,7 +932,7 @@ public class Configuration {
   }
 
   /**
-   * @return whether staleConfig's flag is cached. 
+   * @return whether staleConfig's flag is cached.
    */
   public boolean isStaleConfigCacheEnabled() {
     String stringValue =
@@ -930,21 +940,21 @@ public class Configuration {
         SERVER_STALE_CONFIG_CACHE_ENABLED_DEFAULT);
     return "true".equalsIgnoreCase(stringValue);
   }
-  
+
   /**
    * @return a string array of suffixes used to validate repo URLs.
    */
   public String[] getRepoValidationSuffixes(String osFamily) {
     String repoSuffixes;
-    
+
     if(osFamily.equals(UBUNTU_OS)) {
-      repoSuffixes = properties.getProperty(REPO_SUFFIX_KEY_UBUNTU, 
+      repoSuffixes = properties.getProperty(REPO_SUFFIX_KEY_UBUNTU,
           REPO_SUFFIX_UBUNTU);
     } else {
-      repoSuffixes = properties.getProperty(REPO_SUFFIX_KEY_DEFAULT, 
+      repoSuffixes = properties.getProperty(REPO_SUFFIX_KEY_DEFAULT,
           REPO_SUFFIX_DEFAULT);
     }
-    
+
     return repoSuffixes.split(",");
   }
 
@@ -1015,12 +1025,12 @@ public class Configuration {
     return Integer.parseInt(properties.getProperty(
         CLIENT_THREADPOOL_SIZE_KEY, String.valueOf(CLIENT_THREADPOOL_SIZE_DEFAULT)));
   }
-  
+
   /**
    * @return max thread pool size for agents, default 25
    */
   public int getAgentThreadPoolSize() {
     return Integer.parseInt(properties.getProperty(
         AGENT_THREADPOOL_SIZE_KEY, String.valueOf(AGENT_THREADPOOL_SIZE_DEFAULT)));
-  }  
+  }
 }

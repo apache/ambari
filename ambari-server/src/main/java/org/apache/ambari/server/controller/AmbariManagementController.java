@@ -36,7 +36,6 @@ import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -669,5 +668,37 @@ public interface AmbariManagementController {
    * Get Role Command Order
    */
   public RoleCommandOrder getRoleCommandOrder(Cluster cluster);
+
+  /**
+   * Performs a test if LDAP server is reachable.
+   *
+   * @return true if connection to LDAP was established
+   */
+  public boolean checkLdapConfigured();
+
+  /**
+   * Retrieves users from external LDAP.
+   *
+   * @return key-value pairs UserName-Synced
+   * @throws AmbariException if LDAP is configured incorrectly
+   */
+  public Map<String, Boolean> getLdapUsersSyncInfo() throws AmbariException;
+
+  /**
+   * Retrieves groups from external LDAP.
+   *
+   * @return key-value pairs GroupName-Synced
+   * @throws AmbariException if LDAP is configured incorrectly
+   */
+  public Map<String, Boolean> getLdapGroupsSyncInfo() throws AmbariException;
+
+  /**
+   * Synchronizes local users and groups with given data.
+   *
+   * @param users users to be synchronized
+   * @param groups groups to be synchronized
+   * @throws AmbariException if synchronization data was invalid
+   */
+  public void synchronizeLdapUsersAndGroups(Set<String> users, Set<String> groups) throws AmbariException;
 }
 

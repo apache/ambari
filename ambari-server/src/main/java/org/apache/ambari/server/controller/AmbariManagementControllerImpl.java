@@ -18,38 +18,6 @@
 
 package org.apache.ambari.server.controller;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-
-import java.io.File;
-import java.io.IOException;
-import java.net.InetAddress;
-import java.text.MessageFormat;
-import java.util.*;
-import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.TimeUnit;
-
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.ClusterNotFoundException;
-import org.apache.ambari.server.DuplicateResourceException;
-import org.apache.ambari.server.HostNotFoundException;
-import org.apache.ambari.server.ObjectNotFoundException;
-import org.apache.ambari.server.ParentObjectNotFoundException;
-import org.apache.ambari.server.Role;
-import org.apache.ambari.server.RoleCommand;
-import org.apache.ambari.server.ServiceComponentHostNotFoundException;
-import org.apache.ambari.server.ServiceComponentNotFoundException;
-import org.apache.ambari.server.ServiceNotFoundException;
-import org.apache.ambari.server.StackAccessException;
-import org.apache.ambari.server.actionmanager.ActionManager;
-import org.apache.ambari.server.actionmanager.HostRoleCommand;
-import org.apache.ambari.server.actionmanager.RequestFactory;
-import org.apache.ambari.server.actionmanager.Stage;
-import org.apache.ambari.server.actionmanager.StageFactory;
-import org.apache.ambari.server.agent.ExecutionCommand;
-
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_DB_RCA_DRIVER;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_DB_RCA_PASSWORD;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_DB_RCA_URL;
@@ -73,6 +41,43 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_R
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_NAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_VERSION;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.concurrent.TimeUnit;
+
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.ClusterNotFoundException;
+import org.apache.ambari.server.DuplicateResourceException;
+import org.apache.ambari.server.HostNotFoundException;
+import org.apache.ambari.server.ObjectNotFoundException;
+import org.apache.ambari.server.ParentObjectNotFoundException;
+import org.apache.ambari.server.Role;
+import org.apache.ambari.server.RoleCommand;
+import org.apache.ambari.server.ServiceComponentHostNotFoundException;
+import org.apache.ambari.server.ServiceComponentNotFoundException;
+import org.apache.ambari.server.ServiceNotFoundException;
+import org.apache.ambari.server.StackAccessException;
+import org.apache.ambari.server.actionmanager.ActionManager;
+import org.apache.ambari.server.actionmanager.HostRoleCommand;
+import org.apache.ambari.server.actionmanager.RequestFactory;
+import org.apache.ambari.server.actionmanager.Stage;
+import org.apache.ambari.server.actionmanager.StageFactory;
+import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.RequestOperationLevel;
@@ -83,6 +88,7 @@ import org.apache.ambari.server.customactions.ActionDefinition;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
 import org.apache.ambari.server.scheduler.ExecutionScheduleManager;
+import org.apache.ambari.server.security.authorization.AmbariLdapDataPopulator;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.authorization.Group;
 import org.apache.ambari.server.security.authorization.User;
@@ -131,6 +137,8 @@ import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.google.gson.Gson;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
@@ -190,6 +198,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   private RequestExecutionFactory requestExecutionFactory;
   @Inject
   private ExecutionScheduleManager executionScheduleManager;
+  @Inject
+  private AmbariLdapDataPopulator ldapDataPopulator;
 
   private MaintenanceStateHelper maintenanceStateHelper;
 
@@ -629,7 +639,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           request.getVersionTag(),
           request.getType()));
     }
-    
+
     handleGlobalsBackwardsCompability(request, propertiesAttributes);
 
     Config config = createConfig(cluster, request.getType(), request.getProperties(),
@@ -638,7 +648,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     return new ConfigurationResponse(cluster.getClusterName(), config.getType(), config.getTag(), config.getVersion(),
         config.getProperties(), config.getPropertiesAttributes());
   }
-  
+
   private void handleGlobalsBackwardsCompability(ConfigurationRequest request,
       Map<String, Map<String, String>> propertiesAttributes) throws AmbariException {
     Cluster cluster = clusters.getCluster(request.getClusterName());
@@ -646,27 +656,27 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       Map<String, Map<String, String>> configTypes = new HashMap<String, Map<String, String>>();
       configTypes.put(Configuration.GLOBAL_CONFIG_TAG, request.getProperties());
       configHelper.moveDeprecatedGlobals(cluster.getCurrentStackVersion(), configTypes);
-      
+
       for(Map.Entry<String, Map<String, String>> configType : configTypes.entrySet()) {
         String configTypeName = configType.getKey();
         Map<String, String> properties = configType.getValue();
-        
+
         if(configTypeName.equals(Configuration.GLOBAL_CONFIG_TAG))
           continue;
-        
+
         String tag;
         if(cluster.getConfigsByType(configTypeName) == null) {
           tag = "version1";
         } else {
           tag = "version" + System.currentTimeMillis();
         }
-        
+
         createConfig(cluster, configTypeName, properties, tag, propertiesAttributes);
       }
     }
   }
-  
-  private Config createConfig(Cluster cluster, String type, Map<String, String> properties, 
+
+  private Config createConfig(Cluster cluster, String type, Map<String, String> properties,
       String versionTag, Map<String, Map<String, String>> propertiesAttributes) {
     Config config = configFactory.createNew (cluster, type,
         properties, propertiesAttributes);
@@ -678,7 +688,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     config.persist();
 
     cluster.addConfig(config);
-    
+
     return config;
   }
 
@@ -3535,6 +3545,27 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     rcaParameters.put(AMBARI_DB_RCA_PASSWORD, configs.getRcaDatabasePassword());
 
     return rcaParameters;
+  }
+
+  @Override
+  public boolean checkLdapConfigured() {
+    return ldapDataPopulator.isLdapEnabled();
+  }
+
+  @Override
+  public Map<String, Boolean> getLdapUsersSyncInfo() throws AmbariException {
+    return ldapDataPopulator.getLdapUsersSyncInfo();
+  }
+
+  @Override
+  public Map<String, Boolean> getLdapGroupsSyncInfo() throws AmbariException {
+    return ldapDataPopulator.getLdapGroupsSyncInfo();
+  }
+
+  @Override
+  public synchronized void synchronizeLdapUsersAndGroups(Set<String> users,
+      Set<String> groups) throws AmbariException {
+    ldapDataPopulator.synchronizeLdapUsersAndGroups(users, groups);
   }
 
 }

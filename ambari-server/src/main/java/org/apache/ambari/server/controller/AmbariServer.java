@@ -80,6 +80,7 @@ import org.apache.ambari.server.scheduler.ExecutionScheduleManager;
 import org.apache.ambari.server.security.CertificateManager;
 import org.apache.ambari.server.security.SecurityFilter;
 import org.apache.ambari.server.security.authorization.AmbariLdapAuthenticationProvider;
+import org.apache.ambari.server.security.authorization.AmbariLdapDataPopulator;
 import org.apache.ambari.server.security.authorization.AmbariLocalUserDetailsService;
 import org.apache.ambari.server.security.authorization.Users;
 import org.apache.ambari.server.security.authorization.internal.AmbariInternalAuthenticationProvider;
@@ -184,6 +185,8 @@ public class AmbariServer {
           injector.getInstance(AmbariLocalUserDetailsService.class));
       factory.registerSingleton("ambariLdapAuthenticationProvider",
           injector.getInstance(AmbariLdapAuthenticationProvider.class));
+      factory.registerSingleton("ambariLdapDataPopulator",
+          injector.getInstance(AmbariLdapDataPopulator.class));
       factory.registerSingleton("internalTokenAuthenticationFilter",
           injector.getInstance(InternalTokenAuthenticationFilter.class));
       factory.registerSingleton("ambariInternalAuthenticationProvider",

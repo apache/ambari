@@ -35,8 +35,6 @@ public class LdapServerProperties {
   private String managerDn;
   private String managerPassword;
   private String baseDN;
-  private String userSearchBase = "";
-  private String usernameAttribute;
 
   //LDAP group properties
   private String groupBase;
@@ -45,6 +43,12 @@ public class LdapServerProperties {
   private String groupNamingAttr;
   private String adminGroupMappingRules;
   private boolean groupMappingEnabled;
+
+  //LDAP user properties
+  private String userBase;
+  private String userObjectClass;
+  private String usernameAttribute;
+  private String userSearchBase = "";
 
   private String groupSearchFilter;
   private static final String userSearchFilter = "({attribute}={0})";
@@ -196,6 +200,22 @@ public class LdapServerProperties {
     this.groupMappingEnabled = groupMappingEnabled;
   }
 
+  public void setUserBase(String userBase) {
+    this.userBase = userBase;
+  }
+
+  public void setUserObjectClass(String userObjectClass) {
+    this.userObjectClass = userObjectClass;
+  }
+
+  public String getUserBase() {
+    return userBase;
+  }
+
+  public String getUserObjectClass() {
+    return userObjectClass;
+  }
+
   @Override
   public boolean equals(Object obj) {
     if (this == obj) return true;
@@ -211,7 +231,9 @@ public class LdapServerProperties {
     if (managerPassword != null ? !managerPassword.equals(that.managerPassword) : that.managerPassword != null)
       return false;
     if (baseDN != null ? !baseDN.equals(that.baseDN) : that.baseDN != null) return false;
-    if (userSearchBase != null ? !userSearchBase.equals(that.userSearchBase) : that.userSearchBase != null)
+    if (userBase != null ? !userBase.equals(that.userBase) : that.userBase != null)
+      return false;
+    if (userObjectClass != null ? !userObjectClass.equals(that.userObjectClass) : that.userObjectClass != null)
       return false;
     if (usernameAttribute != null ? !usernameAttribute.equals(that.usernameAttribute) : that.usernameAttribute != null)
       return false;
@@ -240,7 +262,8 @@ public class LdapServerProperties {
     result = 31 * result + (managerDn != null ? managerDn.hashCode() : 0);
     result = 31 * result + (managerPassword != null ? managerPassword.hashCode() : 0);
     result = 31 * result + (baseDN != null ? baseDN.hashCode() : 0);
-    result = 31 * result + (userSearchBase != null ? userSearchBase.hashCode() : 0);
+    result = 31 * result + (userBase != null ? userBase.hashCode() : 0);
+    result = 31 * result + (userObjectClass != null ? userObjectClass.hashCode() : 0);
     result = 31 * result + (usernameAttribute != null ? usernameAttribute.hashCode() : 0);
     result = 31 * result + (groupBase != null ? groupBase.hashCode() : 0);
     result = 31 * result + (groupObjectClass != null ? groupObjectClass.hashCode() : 0);
