@@ -19,9 +19,11 @@
 ##################################################################
 
 COMMON_DIR="/usr/lib/python2.6/site-packages/ambari_commons"
+RESOURCE_MANAGEMENT_DIR="/usr/lib/python2.6/site-packages/resource_management"
 OLD_COMMON_DIR="/usr/lib/python2.6/site-packages/common_functions"
 INSTALL_HELPER_SERVER="/var/lib/ambari-server/install-helper.sh"
 COMMON_DIR_AGENT="/usr/lib/ambari-agent/lib/ambari_commons"
+RESOURCE_MANAGEMENT_DIR_AGENT="/usr/lib/ambari-agent/lib/resource_management"
 
 PYTHON_WRAPER_TARGET="/usr/bin/ambari-python-wrap"
 PYTHON_WRAPER_SOURCE="/var/lib/ambari-agent/ambari-python-wrap"
@@ -32,6 +34,10 @@ do_install(){
   if [ ! -d "$COMMON_DIR" ]; then
     ln -s "$COMMON_DIR_AGENT" "$COMMON_DIR"
   fi
+  # setting resource_management shared resource
+  if [ ! -d "$RESOURCE_MANAGEMENT_DIR" ]; then
+    ln -s "$RESOURCE_MANAGEMENT_DIR_AGENT" "$RESOURCE_MANAGEMENT_DIR"
+  fi
   # setting python-wrapper script
   if [ ! -f "$PYTHON_WRAPER_TARGET" ]; then
     ln -s "$PYTHON_WRAPER_SOURCE" "$PYTHON_WRAPER_TARGET"
@@ -41,6 +47,10 @@ do_install(){
 do_remove(){
   if [ -d "$COMMON_DIR" ]; then  # common dir exists
     rm -f "$COMMON_DIR"
+  fi
+
+  if [ -d "$RESOURCE_MANAGEMENT_DIR" ]; then  # resource_management dir exists
+    rm -f "$RESOURCE_MANAGEMENT_DIR"
   fi
 
   if [ -f "$PYTHON_WRAPER_TARGET" ]; then

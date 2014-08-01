@@ -32,6 +32,7 @@
     <hdpUrlForCentos6>http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.1.1.0</hdpUrlForCentos6>
     <hdpLatestUrl>http://public-repo-1.hortonworks.com/HDP/hdp_urlinfo.json</hdpLatestUrl>
     <ambari_commons.install.dir>/usr/lib/ambari-server/lib/ambari_commons</ambari_commons.install.dir>
+    <resource_management.install.dir>/usr/lib/ambari-server/lib/resource_management</resource_management.install.dir>
     <ambari-web-dir>${basedir}/../ambari-web/public</ambari-web-dir>
     <ambari-admin-dir>${basedir}/../ambari-admin</ambari-admin-dir>
   </properties>
@@ -260,6 +261,16 @@
                 <source>
                   <location>
                     ${project.basedir}/../ambari-common/src/main/python/ambari_commons
+                  </location>
+                </source>
+              </sources>
+            </mapping>
+            <mapping>
+              <directory>${resource_management.install.dir}</directory>
+              <sources>
+                <source>
+                  <location>
+                    ${project.basedir}/../ambari-common/src/main/python/resource_management
                   </location>
                 </source>
               </sources>
@@ -864,6 +875,19 @@
                 <group>root</group>
               </mapper>
             </data>
+            <data>
+              <src>
+                ${project.basedir}/../ambari-common/src/main/python/resource_management
+              </src>
+              <type>directory</type>
+              <mapper>
+                <type>perm</type>
+                <prefix>${resource_management.install.dir}</prefix>
+                <filemode>755</filemode>
+                <user>root</user>
+                <group>root</group>
+              </mapper>
+            </data>
           </dataSet>
         </configuration>
       </plugin>
@@ -897,7 +921,7 @@
                 <argument>${custom.tests}</argument>
               </arguments>
               <environmentVariables>
-                  <PYTHONPATH>${project.basedir}/../ambari-agent/src/main/python:${project.basedir}/../ambari-common/src/main/python/jinja2:${project.basedir}/../ambari-common/src/main/python:${project.basedir}/../ambari-common/src/main/python/ambari_commons:${project.basedir}/../ambari-common/src/test/python:${project.basedir}/src/main/python:${project.basedir}/src/main/python/ambari-server-state:${project.basedir}/src/test/python:$PYTHONPATH</PYTHONPATH>
+                  <PYTHONPATH>${project.basedir}/../ambari-agent/src/main/python:${project.basedir}/../ambari-common/src/main/python/jinja2:${project.basedir}/../ambari-common/src/main/python:${project.basedir}/../ambari-common/src/main/python/ambari_commons:${project.basedir}/../ambari-common/src/main/python/resource_management:${project.basedir}/../ambari-common/src/test/python:${project.basedir}/src/main/python:${project.basedir}/src/main/python/ambari-server-state:${project.basedir}/src/test/python:$PYTHONPATH</PYTHONPATH>
               </environmentVariables>
               <skip>${skipTests}</skip>
             </configuration>

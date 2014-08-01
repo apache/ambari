@@ -17,6 +17,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
+import tarfile
+import tempfile
 
 __all__ = ["Script"]
 
@@ -24,11 +26,18 @@ import os
 import sys
 import json
 import logging
+from contextlib import closing
+
+
+from resource_management.libraries.resources import XmlConfig
+from resource_management.core.resources import File, Directory
+from resource_management.core.source import InlineTemplate
 
 from resource_management.core.environment import Environment
 from resource_management.core.exceptions import Fail, ClientComponentHasNoStatus, ComponentIsNotRunning
 from resource_management.core.resources.packaging import Package
 from resource_management.libraries.script.config_dictionary import ConfigDictionary
+
 
 USAGE = """Usage: {0} <COMMAND> <JSON_CONFIG> <BASEDIR> <STROUTPUT> <LOGGING_LEVEL> <TMP_DIR>
 
@@ -227,3 +236,32 @@ class Script(object):
     To be overridden by subclasses
     """
     self.fail_with_error('configure method isn\'t implemented')
+
+  def generate_configs(self, env):
+    """
+    Generates config files and stores them as an archive in tmp_dir
+    based on xml_configs_list and env_configs_list from commandParams
+    """
+    import params
+    config = self.get_config()
+    xml_configs_list = json.loads(config['commandParams']['xml_configs_list'])
+    env_configs_list = json.loads(config['commandParams']['env_configs_list'])
+    conf_tmp_dir = tempfile.mkdtemp()
+    output_filename = os.path.join(self.get_tmp_dir(),"client-configs.tar.gz")
+
+    Directory(self.get_tmp_dir(), recursive=True)
+    for file_dict in xml_configs_list:
+      for filename, dict in file_dict.iteritems():
+        XmlConfig(filename,
+                  conf_dir=conf_tmp_dir,
+                  configurations=params.config['configurations'][dict],
+                  configuration_attributes=params.config['configuration_attributes'][dict],
+        )
+    for file_dict in env_configs_list:
+      for filename,dict in file_dict.iteritems():
+        File(os.path.join(conf_tmp_dir, filename),
+             content=InlineTemplate(params.config['configurations'][dict]['content'])
+        )
+    with closing(tarfile.open(output_filename, "w:gz")) as tar:
+      tar.add(conf_tmp_dir, arcname=os.path.basename("."))
+    Directory(conf_tmp_dir, action="delete")
