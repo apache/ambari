@@ -35,6 +35,7 @@ class File(Resource):
   content = ResourceArgument()
   # whether to replace files with different content
   replace = ResourceArgument(default=True)
+  encoding = ResourceArgument()
 
   actions = Resource.actions + ["create", "delete"]
 

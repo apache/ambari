@@ -194,3 +194,27 @@ class TestXmlConfigResource(TestCase):
 
     open_mock.assert_called_with('/dir/conf/file.xml', 'wb')
     result_file.__enter__().write.assert_called_with(u'<!--Wed 2014-02-->\n    <configuration>\n    \n    <property>\n      <name></name>\n      <value></value>\n    </property>\n    \n    <property>\n      <name>first</name>\n      <value>should be first</value>\n    </property>\n    \n    <property>\n      <name>second</name>\n      <value>should be second</value>\n    </property>\n    \n    <property>\n      <name>third</name>\n      <value>should be third</value>\n    </property>\n    \n    <property>\n      <name>z_last</name>\n      <value>should be last</value>\n    </property>\n    \n  </configuration>\n')
+
+  @patch("resource_management.libraries.providers.xml_config.File")
+  @patch.object(os.path, "exists")
+  @patch.object(os.path, "isdir")
+  def test_action_create_arguments(self, os_path_isdir_mock ,os_path_exists_mock, file_mock):
+
+    os_path_isdir_mock.side_effect = [False, True]
+    os_path_exists_mock.return_value = False
+
+    with Environment() as env:
+      XmlConfig('xmlFile.xml',
+                conf_dir='/dir/conf',
+                configurations={'property1': 'value1'},
+                configuration_attributes={'attr': {'property1': 'attr_value'}},
+                mode = 0755,
+                owner = "hdfs",
+                group = "hadoop",
+                encoding = "Code"
+      )
+
+    self.assertEqual(file_mock.call_args[0][0],'/dir/conf/xmlFile.xml')
+    call_args = file_mock.call_args[1].copy()
+    del call_args['content']
+    self.assertEqual(call_args,{'owner': 'hdfs', 'group': 'hadoop', 'mode': 0755, 'encoding' : 'Code'})

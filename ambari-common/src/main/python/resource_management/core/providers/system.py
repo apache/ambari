@@ -101,6 +101,7 @@ class FileProvider(Provider):
       if content is not None:
         with open(path, "rb") as fp:
           old_content = fp.read()
+          old_content = old_content.decode(self.resource.encoding) if self.resource.encoding else old_content
         if content != old_content:
           write = True
           reason = "contents don't match"
@@ -111,6 +112,7 @@ class FileProvider(Provider):
       Logger.info("Writing %s because %s" % (self.resource, reason))
       with open(path, "wb") as fp:
         if content:
+          content = content.encode(self.resource.encoding) if self.resource.encoding else content
           fp.write(content)
 
     _ensure_metadata(self.resource.path, self.resource.owner,

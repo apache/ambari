@@ -35,4 +35,6 @@ class XmlConfig(Resource):
   owner = ResourceArgument()
   group = ResourceArgument()
 
+  encoding = ResourceArgument(default="UTF-8")
+
   actions = Resource.actions + ["create"]

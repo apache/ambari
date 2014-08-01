@@ -330,3 +330,34 @@ class TestFileResource(TestCase):
 
     self.assertEqual(chmod_mock.call_count, 1)
     self.assertEqual(chown_mock.call_count, 0)
+
+  @patch("resource_management.core.providers.system._ensure_metadata")
+  @patch("resource_management.core.providers.system.FileProvider._get_content")
+  @patch("__builtin__.open")
+  @patch.object(os.path, "exists")
+  @patch.object(os.path, "isdir")
+  def test_action_create_encoding(self, isdir_mock, exists_mock, open_mock, get_content_mock ,ensure_mock):
+
+    isdir_mock.side_effect = [False, True]
+    exists_mock.return_value = True
+    content_mock = MagicMock()
+    old_content_mock = MagicMock()
+    get_content_mock.return_value = content_mock
+    new_file = MagicMock()
+    open_mock.return_value = new_file
+    enter_file_mock = MagicMock()
+    enter_file_mock.read = MagicMock(return_value=old_content_mock)
+    new_file.__enter__ = MagicMock(return_value=enter_file_mock)
+    with Environment('/') as env:
+      File('/directory/file',
+           action='create',
+           mode=0777,
+           content='file-content',
+           encoding = "UTF-8"
+      )
+
+
+    open_mock.assert_called_with('/directory/file', 'wb')
+    content_mock.encode.assert_called_with('UTF-8')
+    old_content_mock.decode.assert_called_with('UTF-8')
+
