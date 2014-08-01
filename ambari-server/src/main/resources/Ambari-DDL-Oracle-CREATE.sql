@@ -138,6 +138,105 @@ ALTER TABLE serviceconfigmapping ADD CONSTRAINT FK_scvm_config FOREIGN KEY (conf
 ALTER TABLE serviceconfigapplication ADD CONSTRAINT FK_scva_scv FOREIGN KEY (service_config_id) REFERENCES serviceconfig(service_config_id);
 ALTER TABLE clusters ADD CONSTRAINT FK_clusters_resource_id FOREIGN KEY (resource_id) REFERENCES adminresource(resource_id);
 
+-- Alerting Framework
+CREATE TABLE alert_definition (
+  definition_id NUMBER(19) NOT NULL, 
+  cluster_id NUMBER(19) NOT NULL, 
+  definition_name VARCHAR2(255) NOT NULL,
+  service_name VARCHAR2(255) NOT NULL,
+  component_name VARCHAR2(255),
+  scope VARCHAR2(255),
+  enabled NUMBER(1) DEFAULT 1 NOT NULL,
+  schedule_interval NUMBER(10) NOT NULL,
+  source_type VARCHAR2(255) NOT NULL,
+  alert_source VARCHAR2(4000) NOT NULL,
+  hash VARCHAR2(64) NOT NULL,
+  PRIMARY KEY (definition_id),
+  FOREIGN KEY (cluster_id) REFERENCES clusters(cluster_id),
+  CONSTRAINT uni_alert_def_name UNIQUE(cluster_id,definition_name)
+);
+
+CREATE TABLE alert_history (
+  alert_id NUMBER(19) NOT NULL,
+  cluster_id NUMBER(19) NOT NULL,
+  alert_definition_id NUMBER(19) NOT NULL,
+  service_name VARCHAR2(255) NOT NULL,
+  component_name VARCHAR2(255),
+  host_name VARCHAR2(255),
+  alert_instance VARCHAR2(255),
+  alert_timestamp NUMBER(19) NOT NULL,
+  alert_label VARCHAR2(1024),
+  alert_state VARCHAR2(255) NOT NULL,
+  alert_text VARCHAR2(4000),
+  PRIMARY KEY (alert_id),
+  FOREIGN KEY (alert_definition_id) REFERENCES alert_definition(definition_id),
+  FOREIGN KEY (cluster_id) REFERENCES clusters(cluster_id)
+);
+
+CREATE TABLE alert_current (
+  alert_id NUMBER(19) NOT NULL,
+  definition_id NUMBER(19) NOT NULL,
+  history_id NUMBER(19) NOT NULL UNIQUE,
+  maintenance_state VARCHAR2(255),
+  original_timestamp NUMBER(19) NOT NULL,
+  latest_timestamp NUMBER(19) NOT NULL,
+  PRIMARY KEY (alert_id),
+  FOREIGN KEY (definition_id) REFERENCES alert_definition(definition_id),
+  FOREIGN KEY (history_id) REFERENCES alert_history(alert_id)
+);
+
+CREATE TABLE alert_group (
+  group_id NUMBER(19) NOT NULL,
+  cluster_id NUMBER(19) NOT NULL,
+  group_name VARCHAR2(255) NOT NULL,
+  is_default NUMBER(1) DEFAULT 0 NOT NULL,
+  PRIMARY KEY (group_id),
+  CONSTRAINT uni_alert_group_name UNIQUE(cluster_id,group_name)
+);
+
+CREATE TABLE alert_target (
+  target_id NUMBER(19) NOT NULL,
+  target_name VARCHAR2(255) NOT NULL UNIQUE,
+  notification_type VARCHAR2(64) NOT NULL,
+  properties VARCHAR2(4000),
+  description VARCHAR2(1024),
+  PRIMARY KEY (target_id)
+);
+
+CREATE TABLE alert_group_target (
+  group_id NUMBER(19) NOT NULL,
+  target_id NUMBER(19) NOT NULL,
+  PRIMARY KEY (group_id, target_id),
+  FOREIGN KEY (group_id) REFERENCES alert_group(group_id),
+  FOREIGN KEY (target_id) REFERENCES alert_target(target_id)
+);
+
+CREATE TABLE alert_grouping (
+  definition_id NUMBER(19) NOT NULL,
+  group_id NUMBER(19) NOT NULL,
+  PRIMARY KEY (group_id, definition_id),
+  FOREIGN KEY (definition_id) REFERENCES alert_definition(definition_id),
+  FOREIGN KEY (group_id) REFERENCES alert_group(group_id)
+);
+
+CREATE TABLE alert_notice (
+  notification_id NUMBER(19) NOT NULL,
+  target_id NUMBER(19) NOT NULL,
+  history_id NUMBER(19) NOT NULL,
+  notify_state VARCHAR2(255) NOT NULL,
+  PRIMARY KEY (notification_id),
+  FOREIGN KEY (target_id) REFERENCES alert_target(target_id),  
+  FOREIGN KEY (history_id) REFERENCES alert_history(alert_id)
+);
+
+CREATE INDEX idx_alert_history_def_id on alert_history(alert_definition_id);
+CREATE INDEX idx_alert_history_service on alert_history(service_name);
+CREATE INDEX idx_alert_history_host on alert_history(host_name);
+CREATE INDEX idx_alert_history_time on alert_history(alert_timestamp);
+CREATE INDEX idx_alert_history_state on alert_history(alert_state);
+CREATE INDEX idx_alert_group_name on alert_group(group_name);
+CREATE INDEX idx_alert_notice_state on alert_notice(notify_state);
+
 INSERT INTO ambari_sequences(sequence_name, value) values ('host_role_command_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, value) values ('user_id_seq', 1);
 INSERT INTO ambari_sequences(sequence_name, value) values ('group_id_seq', 0);
@@ -158,6 +257,12 @@ INSERT INTO ambari_sequences(sequence_name, value) values ('privilege_id_seq', 1
 INSERT INTO ambari_sequences(sequence_name, value) values ('config_id_seq', 1);
 INSERT INTO ambari_sequences(sequence_name, value) values ('service_config_id_seq', 1);
 INSERT INTO ambari_sequences(sequence_name, value) values ('service_config_application_id_seq', 1);
+INSERT INTO ambari_sequences(sequence_name, value) values ('alert_definition_id_seq', 0);
+INSERT INTO ambari_sequences(sequence_name, value) values ('alert_group_id_seq', 0);
+INSERT INTO ambari_sequences(sequence_name, value) values ('alert_target_id_seq', 0);
+INSERT INTO ambari_sequences(sequence_name, value) values ('alert_history_id_seq', 0);
+INSERT INTO ambari_sequences(sequence_name, value) values ('alert_notice_id_seq', 0);
+INSERT INTO ambari_sequences(sequence_name, value) values ('alert_current_id_seq', 0);
 
 INSERT INTO metainfo("metainfo_key", "metainfo_value") values ('version', '${ambariVersion}');
 

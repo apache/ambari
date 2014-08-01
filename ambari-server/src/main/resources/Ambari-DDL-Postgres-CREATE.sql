@@ -227,7 +227,7 @@ CREATE TABLE alert_group (
   group_name VARCHAR(255) NOT NULL,
   is_default SMALLINT NOT NULL DEFAULT 0,
   PRIMARY KEY (group_id),
-  CONSTRAINT uni_group_name UNIQUE(cluster_id,group_name)
+  CONSTRAINT uni_alert_group_name UNIQUE(cluster_id,group_name)
 );
 
 CREATE TABLE alert_target (
