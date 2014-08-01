@@ -34,10 +34,18 @@ from ambari_commons import OSCheck
 AMBARI_PASSPHRASE_VAR = "AMBARI_PASSPHRASE"
 
 
-def execOsCommand(osCommand):
-  osStat = subprocess.Popen(osCommand, stdout=subprocess.PIPE)
-  log = osStat.communicate(0)
-  ret = {"exitstatus": osStat.returncode, "log": log}
+def execOsCommand(osCommand, tries=1, try_sleep=0):
+  for i in range(0, tries):
+    if i>0:
+      time.sleep(try_sleep)
+    
+    osStat = subprocess.Popen(osCommand, stdout=subprocess.PIPE)
+    log = osStat.communicate(0)
+    ret = {"exitstatus": osStat.returncode, "log": log}
+    
+    if ret['exitstatus'] == 0:
+      break
+      
   return ret
 
 
@@ -51,7 +59,7 @@ def installAgent(projectVersion):
     Command = ["apt-get", "install", "-y", "--allow-unauthenticated", "ambari-agent=" + projectVersion + "*"]
   else:
     Command = ["yum", "-y", "install", "--nogpgcheck", "ambari-agent-" + projectVersion]
-  return execOsCommand(Command)
+  return execOsCommand(Command, tries=3, try_sleep=10)
 
 
 def configureAgent(server_hostname):
