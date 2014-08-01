@@ -49,7 +49,9 @@
               </button>
               <ul class="dropdown-menu">
                   <li><a href="" {{action showAboutPopup target="controller"}}>{{t app.aboutAmbari}}</a></li>
-                  <li><a href="/views/ADMIN_VIEW/1.0.0/INSTANCE/#/">{{t app.manageAmbari}}</a></li>
+                  {{#if App.isAdmin }}
+                    <li><a href="/views/ADMIN_VIEW/1.0.0/INSTANCE/#/">{{t app.manageAmbari}}</a></li>
+                  {{/if}}
                 {{#if isClusterDataLoaded}}
                   {{#if App.isAdmin}}
                       <li><a href="" {{action showSettingsPopup target="controller"}}>{{t app.settings}}</a></li>

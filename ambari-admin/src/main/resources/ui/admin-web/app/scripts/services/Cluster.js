@@ -18,31 +18,20 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('GroupsListCtrl',['$scope', 'Group', '$modal', function($scope, Group, $modal) {
-	$scope.groups = [];
+.factory('Cluster', ['$http', '$q', 'Settings', function($http, $q, Settings) {
+  return {
+    getStatus: function() {
+      var deferred = $q.defer();
 
-	Group.all().then(function(groups) {
-		$scope.groups = groups;	
-	})
-	.catch(function(data) {
-		console.error('Get groups list error');
-	});
+      $http.get(Settings.baseUrl + '/clusters')
+      .then(function(data, status, headers) {
+        deferred.resolve(data.data.items[0]);
+      })
+      .catch(function(data) {
+        deferred.reject(data);
+      });
 
-	$scope.deleteGroup = function(group) {
-		group.destroy().then(function() {
-			$scope.groups.splice( $scope.groups.indexOf(group), 1);
-		});
-	};
-
-	$scope.syncLDAP = function() {
-    var modaInstance = $modal.open({
-      templateUrl: 'views/ldapModal.html',
-      controller: 'LDAPModalCtrl',
-      resolve:{
-        resourceType: function() {
-          return 'groups';
-        }
-      }
-    });
+      return deferred.promise;
+    }
   };
 }]);

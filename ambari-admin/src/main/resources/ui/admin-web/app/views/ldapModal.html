@@ -1,0 +1,47 @@
+<!--
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+-->
+<div class="modal-header">
+  <h3 class="modal-title">LDAP {{resourceType}}</h3>
+</div>
+<div class="modal-body">
+  <div class="alert alert-danger" ng-show="isDataLoaded && !isConfigured">
+    LDAP is not configured.
+  </div>
+  <table class="table table-hover table-striped ldap-table" ng-show="isDataLoaded">
+    <tbody>
+      <tr ng-repeat="item in items">
+        <td class="col-sm-10">{{item.name}}</td>
+        <td class="col-sm-2">
+          <div class="checkbox">
+            <label>
+              <input type="checkbox" ng-model="item.selected">
+            </label>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="alert alert-info" ng-show="isConfigured && isDataLoaded && !items">
+    No {{resourceType}} to sync.
+  </div>
+  <progressbar ng-hide="isDataLoaded" class="progress-striped active" max="200" value="200" type="default"></progressbar>
+</div>
+<div class="modal-footer">
+  <button class="btn btn-primary" ng-click="sync()">Sync</button>
+  <button class="btn btn-warning" ng-click="cancel()">Cancel</button>
+</div>

@@ -25,14 +25,57 @@ angular.module('ambariAdminConsole', [
 .constant('Settings',{
 	baseUrl: '/api/v1'
 })
-.config(['RestangularProvider', '$httpProvider', function(RestangularProvider, $httpProvider) {
+.config(['RestangularProvider', '$httpProvider', '$provide', function(RestangularProvider, $httpProvider, $provide) {
   // Config Ajax-module
   RestangularProvider.setBaseUrl('/api/v1');
   RestangularProvider.setDefaultHeaders({'X-Requested-By':'ambari'});
 
   $httpProvider.defaults.headers.post['Content-Type'] = 'plain/text';
   $httpProvider.defaults.headers.put['Content-Type'] = 'plain/text';
+
   $httpProvider.defaults.headers.post['X-Requested-By'] = 'ambari';
   $httpProvider.defaults.headers.put['X-Requested-By'] = 'ambari';
   $httpProvider.defaults.headers.common['X-Requested-By'] = 'ambari';
+
+  $provide.decorator('ngFormDirective', ['$delegate', function($delegate) {
+    var ngForm = $delegate[0], controller = ngForm.controller;
+    ngForm.controller = ['$scope', '$element', '$attrs', '$injector', function(scope, element, attrs, $injector) {
+    var $interpolate = $injector.get('$interpolate');
+      attrs.$set('name', $interpolate(attrs.name || '')(scope));
+      $injector.invoke(controller, this, {
+        '$scope': scope,
+        '$element': element,
+        '$attrs': attrs
+      });
+    }];
+    return $delegate;
+  }]);
+
+  $provide.decorator('ngModelDirective', ['$delegate', function($delegate) {
+    var ngModel = $delegate[0], controller = ngModel.controller;
+    ngModel.controller = ['$scope', '$element', '$attrs', '$injector', function(scope, element, attrs, $injector) {
+      var $interpolate = $injector.get('$interpolate');
+      attrs.$set('name', $interpolate(attrs.name || '')(scope));
+      $injector.invoke(controller, this, {
+        '$scope': scope,
+        '$element': element,
+        '$attrs': attrs
+      });
+    }];
+    return $delegate;
+  }]);
+
+  $provide.decorator('formDirective', ['$delegate', function($delegate) {
+    var form = $delegate[0], controller = form.controller;
+    form.controller = ['$scope', '$element', '$attrs', '$injector', function(scope, element, attrs, $injector) {
+      var $interpolate = $injector.get('$interpolate');
+      attrs.$set('name', $interpolate(attrs.name || attrs.ngForm || '')(scope));
+        $injector.invoke(controller, this, {
+        '$scope': scope,
+        '$element': element,
+        '$attrs': attrs
+      });
+    }];
+    return $delegate;
+  }]);
 }]);

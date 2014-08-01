@@ -44,7 +44,7 @@
       <div class="navbar-inner">
         <div class="container">
           <div class="navbar-header">
-            <a href="/#/main/dashboard" class="navbar-brand">Ambari Admin Console</a>
+            <a href="#/" class="navbar-brand">Ambari Admin Console</a>
           </div>  
           <ul class="nav navbar-nav navbar-right">
             <li>
@@ -54,8 +54,6 @@
                 </button>
                 <ul class="dropdown-menu" role="menu">
                   <li><a href="#">About</a></li>
-                  <li><a href="#">Settings</a></li>
-                  <li><a href="#">Manage Ambari</a></li>
                   <li class="divider"></li>
                   <li><a href="#">Sign Out</a></li>
                 </ul>
@@ -69,7 +67,7 @@
     <div class="container">
       <div class="row">
         <div class="col-sm-3">
-          <div ng-include="'views/leftNavbar.html'"></div>
+          <div ng-include="'views/leftNavbar.html'" ng-controller="NavbarCtrl"></div>
         </div>
         <div class="col-sm-9">
           <ng-view></ng-view>
@@ -109,6 +107,8 @@
     <script src="scripts/app.js"></script>
     <script src="scripts/routes.js"></script>
     <script src="scripts/controllers/mainCtrl.js"></script>
+    <script src="scripts/controllers/NavbarCtrl.js"></script>
+    <script src="scripts/controllers/LDAPModalCtrl.js"></script>
     <script src="scripts/controllers/users/UsersCreateCtrl.js"></script>
     <script src="scripts/controllers/users/UsersListCtrl.js"></script>
     <script src="scripts/controllers/users/UsersShowCtrl.js"></script>
@@ -117,11 +117,15 @@
     <script src="scripts/controllers/groups/GroupsEditCtrl.js"></script>
     <script src="scripts/controllers/ambariViews/ViewsListCtrl.js"></script>
     <script src="scripts/controllers/ambariViews/ViewsEditCtrl.js"></script>
+    <script src="scripts/controllers/ambariViews/CreateViewInstanceCtrl.js"></script>
     <script src="scripts/controllers/clusters/ClustersManageAccessCtrl.js"></script>
     <script src="scripts/directives/linkToDir.js"></script>
     <script src="scripts/directives/PasswordVerify.js"></script>
     <script src="scripts/services/User.js"></script>
     <script src="scripts/services/Group.js"></script>
+    <script src="scripts/services/View.js"></script>
+    <script src="scripts/services/ldap.js"></script>
+    <script src="scripts/services/Cluster.js"></script>
     <!-- endbuild -->
 </body>
 </html>

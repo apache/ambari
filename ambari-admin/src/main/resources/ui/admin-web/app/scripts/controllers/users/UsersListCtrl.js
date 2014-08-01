@@ -18,7 +18,7 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('UsersListCtrl',['$scope', 'User', function($scope, User) {
+.controller('UsersListCtrl',['$scope', 'User', '$modal', function($scope, User, $modal) {
   $scope.users = [];
   User.list().then(function(data) {
     $scope.users = data.items;
@@ -48,5 +48,17 @@ angular.module('ambariAdminConsole')
     } else if(tf === 'LDAP' && user.Users.ldap_user){
       return user;
     }
+  };
+
+  $scope.syncLDAP = function() {
+    var modaInstance = $modal.open({
+      templateUrl: 'views/ldapModal.html',
+      controller: 'LDAPModalCtrl',
+      resolve:{
+        resourceType: function() {
+          return 'users';
+        }
+      }
+    });
   };
 }]);

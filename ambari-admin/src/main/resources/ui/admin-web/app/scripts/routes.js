@@ -70,7 +70,7 @@ angular.module('ambariAdminConsole')
       controller: 'ViewsListCtrl',
     },
     edit: {
-      url: '/views/:id/edit',
+      url: '/views/:viewId/versions/:version/instances/:instanceId/edit',
       templateUrl: 'views/ambariViews/edit.html',
       controller: 'ViewsEditCtrl'
     },

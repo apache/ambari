@@ -18,31 +18,39 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('GroupsListCtrl',['$scope', 'Group', '$modal', function($scope, Group, $modal) {
-	$scope.groups = [];
+.factory('LDAP', ['$http', '$q', function($http, $q) {
 
-	Group.all().then(function(groups) {
-		$scope.groups = groups;	
-	})
-	.catch(function(data) {
-		console.error('Get groups list error');
-	});
 
-	$scope.deleteGroup = function(group) {
-		group.destroy().then(function() {
-			$scope.groups.splice( $scope.groups.indexOf(group), 1);
-		});
-	};
+  return {
+    get: function(resourceType) {
+      var deferred = $q.defer();
 
-	$scope.syncLDAP = function() {
-    var modaInstance = $modal.open({
-      templateUrl: 'views/ldapModal.html',
-      controller: 'LDAPModalCtrl',
-      resolve:{
-        resourceType: function() {
-          return 'groups';
-        }
-      }
-    });
+      $http({
+        method: 'GET',
+        url: '/api/v1/controllers/ldap'
+      })
+      .success(function(data) {
+        deferred.resolve(data);
+      })
+      .catch(function(data) {
+        deferred.reject(data);
+      });
+
+      return deferred.promise;
+    },
+    sync: function(resourceType, items) {
+      var items = items.map(function(item) {
+        var name = 'LDAP/synced_' + resourceType;
+        var obj = {};
+        obj['LDAP/synced_' + resourceType] = item;
+        return obj;
+      });
+      
+      return $http({
+        method: 'POST',
+        url: '/api/v1/controllers/ldap',
+        data: items
+      });
+    }
   };
 }]);

@@ -18,5 +18,37 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('ViewsListCtrl',['$scope', function($scope) {
+.controller('ViewsListCtrl',['$scope', 'View', '$modal', function($scope, View, $modal) {
+	function loadViews(){
+		View.all().then(function(views) {
+			$scope.views = views;
+		});
+	}
+
+	loadViews();
+
+	$scope.createInstance = function(view) {
+		var modalInstance = $modal.open({
+			templateUrl: 'views/ambariViews/modals/create.html',
+			size: 'lg',
+			controller: 'CreateViewInstanceCtrl',
+			resolve: {
+				viewVersion: function(){
+					return view.versionsList[ view.versionsList.length-1];
+				}
+			}
+		});
+
+		modalInstance.result.then(loadViews);
+	};
+
+	$scope.deleteInstance = function(instance) {
+		View.deleteInstance(instance.ViewInstanceInfo.view_name, instance.ViewInstanceInfo.version, instance.ViewInstanceInfo.instance_name)
+		.then(function() {
+			loadViews();
+		})
+		.catch(function(data) {
+			console.error(data);
+		});
+	};
 }]);

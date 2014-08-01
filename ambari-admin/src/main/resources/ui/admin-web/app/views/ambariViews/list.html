@@ -20,7 +20,7 @@
     <h3 class="pull-left">Views management</h3>
     <div class="pull-right top-buffer col-sm-4">
       <div class="input-group">
-        <input type="text" class="form-control" placeholder="Search">
+        <input type="text" class="form-control" placeholder="Search" ng-model="viewsFilter">
         <span class="input-group-addon">
           <span class="glyphicon glyphicon-search"></span>
         </span>
@@ -29,50 +29,24 @@
   </div>
   <hr>
   <accordion>
-    <accordion-group>
+    <accordion-group ng-repeat="view in views">
       <accordion-heading>
         <div class="row">
-          <div class="col-sm-3">Pig</div>
-          <div class="col-sm-3">0.1.0, 0.2.0</div>
-          <div class="col-sm-3">v 3 instances</div>
+          <div class="col-sm-3">{{view.view_name}}</div>
+          <div class="col-sm-3">{{view.versions}}</div>
+          <div class="col-sm-3">{{view.instances.length ? view.instances.length : 'No'}} instances</div>
           <div class="col-sm-3">This is a description</div>
         </div>
       </accordion-heading>
       <table class="table">
         <tbody>
-          <tr>
+          <tr ng-repeat="instance in view.instances">
             <td class="col-sm-3"></td>
-            <td class="col-sm-3">0.1.0</td>
-            <td class="col-sm-3">PIG_CT: Pig for CT CLuster</td>
+            <td class="col-sm-3">{{instance.ViewInstanceInfo.version}}</td>
+            <td class="col-sm-3">{{instance.ViewInstanceInfo.label}}</td>
             <td class="col-sm-3">
-              <link-to route="views.edit" id="1" class="btn btn-default"><span class="glyphicon glyphicon-cog"></span> Edit</link-to>
-              <a href="" class="btn btn-default">
-                <span class="glyphicon glyphicon-trash"></span> Delete
-              </a>
-            </td>
-          </tr>
-          <tr>
-            <td class="col-sm-3"></td>
-            <td class="col-sm-3">0.2.0</td>
-            <td class="col-sm-3">PIG_CT: Pig for CT CLuster</td>
-            <td class="col-sm-3">
-              <a href="" class="btn btn-default">
-                <span class="glyphicon glyphicon-cog"></span> Edit
-              </a>
-              <a href="" class="btn btn-default">
-                <span class="glyphicon glyphicon-trash"></span> Delete
-              </a>
-            </td>
-          </tr>
-          <tr>
-            <td class="col-sm-3"></td>
-            <td class="col-sm-3">0.1.0</td>
-            <td class="col-sm-3">PIG_CT: Pig for CT CLuster</td>
-            <td class="col-sm-3">
-              <a href="" class="btn btn-default">
-                <span class="glyphicon glyphicon-cog"></span> Edit
-              </a>
-              <a href="" class="btn btn-default">
+              <a href="#/views/{{view.view_name}}/versions/{{instance.ViewInstanceInfo.version}}/instances/{{instance.ViewInstanceInfo.instance_name}}/edit" class="btn btn-default"><span class="glyphicon glyphicon-cog"></span> Edit</a>
+              <a href="" class="btn btn-default" ng-click="deleteInstance(instance)">
                 <span class="glyphicon glyphicon-trash"></span> Delete
               </a>
             </td>
@@ -84,34 +58,8 @@
             <td class="col-sm-3"></td>
             <td class="col-sm-3"></td>
             <td class="col-sm-3">
-              <a href="" class="btn btn-default">
-                <span class="glyphicon glyphicon-plus"></span> Create Instance
-              </a>
-            </td>
-          </tr>
-        </tfoot>
-      </table>
-    </accordion-group>
-    <accordion-group>
-      <accordion-heading>
-        <div class="row">
-          <div class="col-sm-3">File Browser</div>
-          <div class="col-sm-3">0.1.0, 0.2.0</div>
-          <div class="col-sm-3">> No instances</div>
-          <div class="col-sm-3">This is a description</div>
-        </div>
-      </accordion-heading>
-      <table class="table">
-        <tbody>
-        </tbody>
-        <tfoot>
-          <tr>
-            <td class="col-sm-3"></td>
-            <td class="col-sm-3"></td>
-            <td class="col-sm-3"></td>
-            <td class="col-sm-3">
-              <a href="" class="btn btn-default">
-                <span class="glyphicon glyphicon-plus"></span> Create Instance
+              <a href class="btn btn-default" ng-click="createInstance(view)">
+                <span class="glyphicon glyphicon-plus" ></span> Create Instance
               </a>
             </td>
           </tr>

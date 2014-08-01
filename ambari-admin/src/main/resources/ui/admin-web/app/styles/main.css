@@ -33,6 +33,9 @@ ul.nav li > a{
 .right-margin{
   margin-right: 20px;
 }
+.left-margin{
+  margin-left: 10px;
+}
 .bottom-margin{
   margin-bottom: 10px;
 }

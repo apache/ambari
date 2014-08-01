@@ -18,18 +18,23 @@
 <div class="panel panel-default">
   <div class="panel-heading"><span class="glyphicon glyphicon-cloud"></span> Clusters</div>
   <div class="panel-body">
-    <h5>My cluster</h5>
+    <div ng-show="cluster">
+      <h5>{{cluster.Clusters.cluster_name}}</h5>
       <ul class="nav nav-pills nav-stacked">
         <li>
           <link-to route="clusters.manageAccess" id="1">Manage Access</link-to>
         </li>
         <li><a href="/#/main/dashboard">Go to Dashboard</a></li>
       </ul>
-    <hr>
-    <button type="button" class="btn btn-primary btn-block">
-      <span class="glyphicon glyphicon-plus"></span>
-      Create a Cluster
-    </button>
+    </div>
+      
+    <div ng-hide="cluster">
+      <a href="/" class="btn btn-primary btn-block">
+        <span class="glyphicon glyphicon-plus"></span>
+        Create a Cluster
+      </a>
+    </div>
+      
   </div>
 </div>
 
