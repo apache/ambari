@@ -203,7 +203,11 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
 
     RequestStatusResponse response = null;
     if (requestStages != null) {
-      requestStages.persist();
+      try {
+        requestStages.persist();
+      } catch (AmbariException e) {
+        throw new SystemException(e.getMessage(), e);
+      }
       response = requestStages.getRequestStatusResponse();
     }
     notifyUpdate(Resource.Type.Service, request, predicate);
@@ -291,7 +295,11 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
       LOG.info("Starting all services");
       doUpdateResources(requestStages, startRequest, startPredicate);
       notifyUpdate(Resource.Type.Service, startRequest, startPredicate);
-      requestStages.persist();
+      try {
+        requestStages.persist();
+      } catch (AmbariException e) {
+        throw new SystemException(e.getMessage(), e);
+      }
       return requestStages.getRequestStatusResponse();
 
     } catch (NoSuchResourceException e) {

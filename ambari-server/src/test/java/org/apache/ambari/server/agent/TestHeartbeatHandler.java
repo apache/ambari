@@ -634,7 +634,7 @@ public class TestHeartbeatHandler {
             s.getExitCode(DummyHostname1, HBASE_MASTER));
   }
 
-  private void populateActionDB(ActionDBAccessor db, String DummyHostname1) {
+  private void populateActionDB(ActionDBAccessor db, String DummyHostname1) throws AmbariException {
     Stage s = new Stage(requestId, "/a/b", DummyCluster, 1L, "heartbeat handler test", "clusterHostInfo");
     s.setStageId(stageId);
     String filename = null;

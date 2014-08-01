@@ -95,7 +95,7 @@ public class TestActionDBAccessorImpl {
   }
 
   @Test
-  public void testActionResponse() {
+  public void testActionResponse() throws AmbariException {
     String hostname = "host1";
     populateActionDB(db, hostname, requestId, stageId);
     Stage stage = db.getAllStages(requestId).get(0);
@@ -122,7 +122,7 @@ public class TestActionDBAccessorImpl {
   }
   
   @Test
-  public void testGetStagesInProgress() {
+  public void testGetStagesInProgress() throws AmbariException {
     String hostname = "host1";
     List<Stage> stages = new ArrayList<Stage>();
     stages.add(createStubStage(hostname, requestId, stageId));
@@ -135,7 +135,7 @@ public class TestActionDBAccessorImpl {
   }
   
   @Test
-  public void testGetStagesInProgressWithFailures() {
+  public void testGetStagesInProgressWithFailures() throws AmbariException {
     String hostname = "host1";
     populateActionDB(db, hostname, requestId, stageId);
     populateActionDB(db, hostname, requestId+1, stageId);
@@ -146,7 +146,7 @@ public class TestActionDBAccessorImpl {
   }
 
   @Test
-  public void testPersistActions() {
+  public void testPersistActions() throws AmbariException {
     populateActionDB(db, hostName, requestId, stageId);
     for (Stage stage : db.getAllStages(requestId)) {
       log.info("taskId={}" + stage.getExecutionCommands(hostName).get(0).
@@ -159,7 +159,7 @@ public class TestActionDBAccessorImpl {
   }
 
   @Test
-  public void testHostRoleScheduled() throws InterruptedException {
+  public void testHostRoleScheduled() throws InterruptedException, AmbariException {
     populateActionDB(db, hostName, requestId, stageId);
     Stage stage = db.getStage(StageUtils.getActionId(requestId, stageId));
     assertEquals(HostRoleStatus.PENDING, stage.getHostRoleStatus(hostName, Role.HBASE_MASTER.toString()));
@@ -194,7 +194,7 @@ public class TestActionDBAccessorImpl {
   }
 
   @Test
-  public void testCustomActionScheduled() throws InterruptedException {
+  public void testCustomActionScheduled() throws InterruptedException, AmbariException {
     populateActionDBWithCustomAction(db, hostName, requestId, stageId);
     Stage stage = db.getStage(StageUtils.getActionId(requestId, stageId));
     assertEquals(HostRoleStatus.PENDING, stage.getHostRoleStatus(hostName, actionName));
@@ -281,7 +281,7 @@ public class TestActionDBAccessorImpl {
   }
 
   @Test
-  public void testGetRequestsByStatusWithParams() {
+  public void testGetRequestsByStatusWithParams() throws AmbariException {
     List<Long> ids = new ArrayList<Long>();
 
     for (long l = 0; l < 10; l++) {
@@ -374,7 +374,7 @@ public class TestActionDBAccessorImpl {
   }
 
   private void populateActionDB(ActionDBAccessor db, String hostname,
-      long requestId, long stageId) {
+      long requestId, long stageId) throws AmbariException {
     Stage s = createStubStage(hostname, requestId, stageId);
     List<Stage> stages = new ArrayList<Stage>();
     stages.add(s);
@@ -399,7 +399,7 @@ public class TestActionDBAccessorImpl {
   }
 
   private void populateActionDBWithCustomAction(ActionDBAccessor db, String hostname,
-                                long requestId, long stageId) {
+                                long requestId, long stageId) throws AmbariException {
     Stage s = new Stage(requestId, "/a/b", "cluster1", 1L, "action db accessor test", "");
     s.setStageId(stageId);
     s.addHostRoleExecutionCommand(hostname, Role.valueOf(actionName),

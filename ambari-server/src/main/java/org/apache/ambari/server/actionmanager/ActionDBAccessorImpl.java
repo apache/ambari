@@ -203,7 +203,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
 
   @Override
   @Transactional
-  public void persistActions(Request request) {
+  public void persistActions(Request request) throws AmbariException {
 
     RequestEntity requestEntity = request.constructNewPersistenceEntity();
 
@@ -239,7 +239,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
         if (hostEntity == null) {
           String msg = String.format("Host %s doesn't exist in database", hostRoleCommandEntity.getHostName());
           LOG.error(msg);
-          throw new RuntimeException(msg);
+          throw new AmbariException(msg);
         }
         hostRoleCommandEntity.setHost(hostEntity);
         hostRoleCommandDAO.create(hostRoleCommandEntity);

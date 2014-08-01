@@ -84,7 +84,7 @@ public class ActionManager {
     sendActions(request, actionRequest);
   }
 
-  public void sendActions(Request request, ExecuteActionRequest executeActionRequest) {
+  public void sendActions(Request request, ExecuteActionRequest executeActionRequest) throws AmbariException {
     if (LOG.isDebugEnabled()) {
       LOG.debug(String.format("Persisting Request into DB: %s", request));
 

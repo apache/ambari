@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
@@ -169,7 +170,7 @@ public class RequestStageContainer {
   /**
    * Persist the stages.
    */
-  public void persist() {
+  public void persist() throws AmbariException {
     if (!stages.isEmpty()) {
       Request request = requestFactory.createNewFromStages(stages);
       if (request != null && request.getStages()!= null && !request.getStages().isEmpty()) {

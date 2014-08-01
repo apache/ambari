@@ -74,7 +74,7 @@ public class TestActionManager {
   }
 
   @Test
-  public void testActionResponse() {
+  public void testActionResponse() throws AmbariException {
     ActionDBAccessor db = injector.getInstance(ActionDBAccessorImpl.class);
     ActionManager am = new ActionManager(5000, 1200000, new ActionQueue(),
         clusters, db, new HostsMap((String) null), null, unitOfWork,
@@ -117,7 +117,7 @@ public class TestActionManager {
   }
   
   @Test
-  public void testLargeLogs() {
+  public void testLargeLogs() throws AmbariException {
     ActionDBAccessor db = injector.getInstance(ActionDBAccessorImpl.class);
     ActionManager am = new ActionManager(5000, 1200000, new ActionQueue(),
         clusters, db, new HostsMap((String) null), null, unitOfWork,
@@ -159,7 +159,7 @@ public class TestActionManager {
             .getHostRoleCommand(hostname, "HBASE_MASTER").getStructuredOut().length());
   }
 
-  private void populateActionDB(ActionDBAccessor db, String hostname) {
+  private void populateActionDB(ActionDBAccessor db, String hostname) throws AmbariException {
     Stage s = new Stage(requestId, "/a/b", "cluster1", 1L, "action manager test", "clusterHostInfo");
     s.setStageId(stageId);
     s.addHostRoleExecutionCommand(hostname, Role.HBASE_MASTER,
