@@ -92,6 +92,20 @@ App.MainServiceItemView = Em.View.extend({
         label: Em.I18n.t('services.service.actions.reassign.master'),
         cssClass: 'icon-share-alt',
         disabled: false
+      },
+      ADD_HBASE_MASTER_COMPONENT: {
+        action: 'addHbaseMaster',
+        cssClass: 'icon-plus',
+        'label': '{0} {1}'.format(Em.I18n.t('add'), Em.I18n.t('dashboard.services.hbase.masterServer')),
+        disabled: this.get('controller.isAddHBaseMasterDisabled'),
+        tooltip: this.get('controller.addHBaseMasterDisabledTooltip')
+      },
+      ADD_ZOO_KEEPER_SERVER_COMPONENT: {
+        action: 'addZooKeeperServer',
+        cssClass: 'icon-plus',
+        'label': '{0} {1}'.format(Em.I18n.t('add'), Em.I18n.t('dashboard.services.zookeeper.server')),
+        disabled: this.get('controller.isAddZooKeeperServerDisabled'),
+        tooltip: this.get('controller.addZooKeeperServerDisabledTooltip')
       }
     }
   },
@@ -154,8 +168,17 @@ App.MainServiceItemView = Em.View.extend({
             break;
         }
       }
+
       options.push(actionMap.RUN_SMOKE_TEST);
       options.push(actionMap.TOGGLE_PASSIVE);
+
+      var serviceName = service.get('serviceName');
+      if (serviceName === 'HBASE') {
+        options.push(actionMap.ADD_HBASE_MASTER_COMPONENT);
+      }
+      if (serviceName === 'ZOOKEEPER') {
+        options.push(actionMap.ADD_ZOO_KEEPER_SERVER_COMPONENT);
+      }
     }
     return options;
   }.property('controller.content', 'controller.isStopDisabled','controller.isClientsOnlyService', 'controller.content.isRestartRequired', 'isPassive'),

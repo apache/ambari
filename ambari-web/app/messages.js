@@ -340,6 +340,9 @@ Em.I18n.translations = {
   'services.alerts.goToService': 'Go to Service',
   'services.alerts.goToNagios': 'Go to Nagios Web UI',
 
+  'services.summary.selectHostForComponent': 'Select the host to add {0} component',
+  'services.summary.allHostsAlreadyRunComponent': 'All hosts already running {0} component',
+
   'topnav.logo.href':'/#/main/dashboard',
   'topnav.help.href':'https://cwiki.apache.org/confluence/display/AMBARI/Ambari',
 
@@ -1949,6 +1952,8 @@ Em.I18n.translations = {
   'dashboard.services.configs.popup.stopService.body' : 'Service needs to be stopped for reconfiguration',
   'dashboard.services.configs.popup.restartService.header' : 'Restart service',
   'dashboard.services.configs.popup.restartService.body' : 'Service needs to be restarted for reconfiguration',
+
+  'dashboard.services.zookeeper.server' : 'ZooKeeper Server',
 
   'dashboard.configHistory.title': 'Configs',
   'dashboard.configHistory.table.version.title' : 'Service: version',

@@ -18,6 +18,7 @@
 
 var App = require('app');
 var batchUtils = require('utils/batch_scheduled_requests');
+var componentsUtils = require('utils/components');
 
 App.MainHostDetailsController = Em.Controller.extend({
 
@@ -161,8 +162,7 @@ App.MainHostDetailsController = Em.Controller.extend({
    * @method ajaxErrorCallback
    */
   ajaxErrorCallback: function (request, ajaxOptions, error, opt, params) {
-    console.log('error on change component host status');
-    App.ajax.defaultErrorHandler(request, opt.url, opt.method);
+    return componentsUtils.ajaxErrorCallback(request, ajaxOptions, error, opt, params);
   },
   /**
    * mimic status transition in test mode
@@ -477,61 +477,9 @@ App.MainHostDetailsController = Em.Controller.extend({
    * @method primary
    */
   primary: function (component) {
-    var self = this;
-    var componentName = component.get('componentName');
-    var displayName = component.get('displayName');
-    App.ajax.send({
-      name: 'host.host_component.add_new_component',
-      sender: self,
-      data: {
-        hostName: self.get('content.hostName'),
-        component: component,
-        data: JSON.stringify({
-          RequestInfo: {
-            "context": Em.I18n.t('requestInfo.installHostComponent') + " " + displayName
-          },
-          Body: {
-            host_components: [
-              {
-                HostRoles: {
-                  component_name: componentName
-                }
-              }
-            ]
-          }
-        })
-      },
-      success: 'addNewComponentSuccessCallback',
-      error: 'ajaxErrorCallback'
-    });
-  },
 
-  /**
-   * Success callback for add host component request
-   * @param {object} data
-   * @param {object} opt
-   * @param {object} params
-   * @method addNewComponentSuccessCallback
-   */
-  addNewComponentSuccessCallback: function (data, opt, params) {
-    console.log('Send request for ADDING NEW COMPONENT successfully');
-    App.ajax.send({
-      name: 'common.host.host_component.update',
-      sender: this,
-      data: {
-        hostName: this.get('content.hostName'),
-        componentName: params.component.get('componentName'),
-        serviceName: params.component.get('serviceName'),
-        component: params.component,
-        "context": Em.I18n.t('requestInfo.installNewHostComponent') + " " + params.component.get('displayName'),
-        HostRoles: {
-          state: 'INSTALLED'
-        },
-        urlParams: "HostRoles/state=INIT"
-      } ,
-      success: 'installNewComponentSuccessCallback',
-      error: 'ajaxErrorCallback'
-    });
+    var self = this;
+    componentsUtils.installHostComponent(self.get('content.hostName'), component);
   },
 
   /**

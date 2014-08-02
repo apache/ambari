@@ -18,6 +18,7 @@
 
 var App = require('app');
 var batchUtils = require('utils/batch_scheduled_requests');
+var componentsUtils = require('utils/components');
 
 App.MainServiceItemController = Em.Controller.extend({
   name: 'mainServiceItemController',
@@ -44,6 +45,39 @@ App.MainServiceItemController = Em.Controller.extend({
     }
   },
 
+  initHosts: function() {
+    if (App.get('components.masters').length !== 0) {
+      var self = this;
+
+      var hostNames = App.Host.find().mapProperty('hostName');
+      this.set('allHosts', hostNames);
+
+      ['HBASE_MASTER', 'ZOOKEEPER_SERVER'].forEach(function(componentName) {
+        self.loadHostsWithoutComponent(componentName);
+      });
+    }
+  }.observes('App.components.masters', 'content.hostComponents.length'),
+
+  loadHostsWithoutComponent: function (componentName) {
+    var hostsWithComponent = App.HostComponent.find().filterProperty('componentName', componentName).mapProperty('hostName');
+
+    var hostsWithoutComponent = this.get('allHosts').filter(function(hostName) {
+      return !hostsWithComponent.contains(hostName);
+    });
+
+
+    if (componentName === 'HBASE_MASTER') {
+      this.set('hostsWithoutHBaseMaster', hostsWithoutComponent);
+      var disabledMsg = Em.I18n.t('services.summary.allHostsAlreadyRunComponent').format(Em.I18n.t('dashboard.services.hbase.masterServer'));
+      this.set('addHBaseMasterDisabledMsg', disabledMsg);
+    }
+    if (componentName === 'ZOOKEEPER_SERVER') {
+      this.set('hostsWithoutZookeeperServer', hostsWithoutComponent);
+      var disabledMsg = Em.I18n.t('services.summary.allHostsAlreadyRunComponent').format(Em.I18n.t('dashboard.services.zookeeper.server'));
+      this.set('addZookeeperServerDisabledMsg', disabledMsg);
+    }
+  },
+
   /**
    * flag to control router switch between service summary and configs
    * @type {boolean}
@@ -57,6 +91,36 @@ App.MainServiceItemController = Em.Controller.extend({
   isConfigurable: function () {
     return !App.get('services.noConfigTypes').concat('HCATALOG').contains(this.get('content.serviceName'));
   }.property('App.services.noConfigTypes','content.serviceName'),
+
+  isAddHBaseMasterDisabled: function() {
+    return this.get('hostsWithoutHBaseMaster').length === 0;
+  }.property('hostsWithoutHBaseMaster'),
+
+  addHBaseMasterDisabledMsg: null,
+
+  addHBaseMasterDisabledTooltip: function() {
+    if (this.get('isAddHBaseMasterDisabled')) {
+      return this.get('addHBaseMasterDisabledMsg');
+    }
+  }.property('isAddHBaseMasterDisabled', 'addHBaseMasterDisabledMsg'),
+
+  hostsWithoutHBaseMaster: [],
+
+  isAddZooKeeperServerDisabled: function() {
+    return this.get('hostsWithoutZookeeperServer').length === 0;
+  }.property('hostsWithoutZookeeperServer'),
+
+  addZookeeperServerDisabledMsg: null,
+
+  addZooKeeperServerDisabledTooltip: function() {
+    if (this.get('isAddZooKeeperServerDisabled')) {
+      return this.get('addZookeeperServerDisabledMsg');
+    }
+  }.property('isAddZooKeeperServerDisabled', 'addZookeeperServerDisabledMsg'),
+
+  hostsWithoutZookeeperServer: [],
+
+  allHosts: [],
 
   /**
    * Common method for ajax (start/stop service) responses
@@ -379,6 +443,104 @@ App.MainServiceItemController = Em.Controller.extend({
         })
       });
     }
+  },
+
+  addHbaseMaster: function () {
+    this.addClientComponent('HBASE_MASTER');
+  },
+
+  addZooKeeperServer: function () {
+    this.addClientComponent('ZOOKEEPER_SERVER');
+  },
+
+  /**
+   * Send command to server to install client on selected host
+   * @param componentName
+   */
+  addClientComponent: function (componentName) {
+    var self = this;
+    var component = App.HostComponent.find().findProperty('componentName', componentName);
+    var componentDisplayName = component.get('displayName');
+
+    self.loadHostsWithoutComponent(componentName);
+
+    return App.ModalPopup.show({
+      primary: function() {
+        if (this.get('anyHostsWithoutComponent')) {
+          return Em.I18n.t('hosts.host.addComponent.popup.confirm')
+        } else {
+          return undefined;
+        }
+      }.property('anyHostsWithoutComponent'),
+
+      header: Em.I18n.t('popup.confirmation.commonHeader'),
+
+      addComponentMsg: function () {
+        return Em.I18n.t('hosts.host.addComponent.msg').format(componentDisplayName);
+      }.property(),
+
+      selectHostMsg: function () {
+        return Em.I18n.t('services.summary.selectHostForComponent').format(this.get('componentDisplayName'))
+      }.property('componentDisplayName'),
+
+      thereIsNoHostsMsg: function () {
+        return Em.I18n.t('services.summary.allHostsAlreadyRunComponent').format(this.get('componentDisplayName'))
+      }.property('componentDisplayName'),
+
+      hostsWithoutComponent: function() {
+        if (this.get('componentName') === 'HBASE_MASTER') {
+          return self.hostsWithoutHBaseMaster;
+        }
+        if (this.get('componentName') === 'ZOOKEEPER_SERVER') {
+          return self.hostsWithoutZookeeperServer;
+        }
+      }.property('componentName', 'self.hostsWithoutHBaseMaster', 'self.hostsWithoutZookeeperServer'),
+
+      anyHostsWithoutComponent: function() {
+        return this.get('hostsWithoutComponent').length > 0
+      }.property('hostsWithoutComponent'),
+
+      selectedHost: null,
+
+      componentName: function() {
+        return componentName;
+      }.property(),
+
+      componentDisplayName: function() {
+        return componentDisplayName;
+      }.property(),
+
+      bodyClass: Em.View.extend({
+        templateName: require('templates/main/service/add_host_popup')
+      }),
+
+      restartNagiosMsg: Em.View.extend({
+        template: Em.Handlebars.compile(Em.I18n.t('hosts.host.addComponent.note').format(componentDisplayName))
+      }),
+
+      onPrimary: function () {
+        var selectedHost = this.get('selectedHost');
+
+        // Install
+        componentsUtils.installHostComponent(selectedHost, component);
+
+        // Remove host from 'without' collection to immediate recalculate add menu item state
+        var hostsWithoutComponent = this.get('hostsWithoutComponent');
+        var index = hostsWithoutComponent.indexOf(this.get('selectedHost'));
+        if (index > -1) {
+          hostsWithoutComponent.splice(index, 1);
+        }
+
+        if (this.get('componentName') === 'HBASE_MASTER') {
+          self.set('hostsWithoutHBaseMaster', hostsWithoutComponent)
+        }
+        if (this.get('componentName') === 'ZOOKEEPER_SERVER') {
+          self.set('hostsWithoutZookeeperServer', hostsWithoutComponent)
+        }
+
+        this.hide();
+      }
+    });
   },
 
   /**

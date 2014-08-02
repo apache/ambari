@@ -214,6 +214,11 @@ var urls = {
     }
   },
 
+  'common.host.with_host_component': {
+    'real': '/clusters/{clusterName}/hosts?host_components/HostRoles/component_name={componentName}&minimal_response=true',
+    'mock': ''
+  },
+
   'common.delete.host': {
     'real': '/clusters/{clusterName}/hosts/{hostName}',
     'type': 'DELETE'

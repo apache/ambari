@@ -84,7 +84,7 @@
         <!-- Other service actions -->
         {{#each option in view.maintenance}}
         <li {{bindAttr class="option.disabled:disabled option.isHidden:hidden"}}>
-          <a {{action "doAction" option target="controller" href=true}}><i {{bindAttr class="option.cssClass"}}></i>
+          <a {{action "doAction" option target="controller" href=true}} {{bindAttr data-title="option.tooltip"}} rel="HealthTooltip"><i {{bindAttr class="option.cssClass"}}></i>
 {{option.label}}</a>
         </li>
         {{/each}}
