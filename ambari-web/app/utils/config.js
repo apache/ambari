@@ -1172,7 +1172,8 @@ App.config = Em.Object.create({
             value: value,
             defaultValue: value,
             serviceName: configsTextarea.get('serviceName'),
-            filename: filename
+            filename: filename,
+            group: null
           }));
         }
       });
