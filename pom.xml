@@ -182,7 +182,9 @@
             <exclude>**/.gitignore</exclude>
             <exclude>**/.gitattributes</exclude>
             <exclude>**/.gitkeep</exclude>
-            <!--gitignore content-->
+            <exclude>**/.jshintrc</exclude>
+            <exclude>**/.editorconfig</exclude>
+              <!--gitignore content-->
             <exclude>.DS_Store</exclude>
             <exclude>.iml/</exclude>
             <exclude>.classpath</exclude>
@@ -203,11 +205,20 @@
             <exclude>contrib/ambari-scom/management-pack/Hadoop_MP/**</exclude>
             <exclude>contrib/addons/test/dataServices/jmx/data/cluster_configuration.json.nohbase</exclude>
             <exclude>contrib/ambari-scom/msi/src/GUI_Ambari.sln</exclude>
+            <exclude>contrib/ambari-scom/ambari-scom-server/pass.txt</exclude>
+            <exclude>contrib/ambari-scom/*/rat.txt</exclude>
+            <exclude>contrib/ambari-scom/metrics-sink/target/**</exclude>
             <exclude>contrib/views/*/target/**</exclude>
             <exclude>contrib/views/files/src/main/resources/ui/bower_components/**</exclude>
             <exclude>contrib/views/files/src/main/resources/ui/node/**</exclude>
             <exclude>contrib/views/files/src/main/resources/ui/node_modules/**</exclude>
             <exclude>contrib/views/files/src/main/resources/ui/public/**</exclude>
+            <exclude>contrib/views/jobs/src/main/resources/ui/.tmp/**</exclude>
+            <exclude>contrib/views/jobs/src/main/resources/ui/**/bower_components/**</exclude>
+            <exclude>contrib/views/jobs/src/main/resources/ui/dist/**</exclude>
+            <exclude>contrib/views/jobs/src/main/resources/ui/node/**</exclude>
+            <exclude>contrib/views/jobs/src/main/resources/ui/node_modules/**</exclude>
+            <exclude>contrib/views/jobs/src/main/resources/ui/**/.bowerrc</exclude>
             <exclude>contrib/views/pig/src/main/resources/ui/pig-web/public/**</exclude>
             <exclude>contrib/views/pig/src/main/resources/ui/pig-web/node_modules/**</exclude>
             <exclude>contrib/views/pig/src/main/resources/ui/pig-web/node/**</exclude>
@@ -222,11 +233,6 @@
             <exclude>contrib/views/*/.classpath</exclude>
             <exclude>contrib/views/*/.project</exclude>
             <exclude>contrib/views/*/.settings/**</exclude>
-            <exclude>contrib/views/jobs/src/main/resources/ui/**</exclude>
-            
-            <exclude>contrib/ambari-scom/ambari-scom-server/pass.txt</exclude>
-            <exclude>contrib/ambari-scom/*/rat.txt</exclude>
-            <exclude>contrib/ambari-scom/metrics-sink/target/**</exclude>
 
             <!--Velocity log -->
             <exclude>**/velocity.log*</exclude>

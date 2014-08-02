@@ -133,14 +133,14 @@ var formatRequest = function (data) {
     type: this.type || 'GET',
     dataType: 'json',
     async: true,
-    headers: this.headers || {Accept: "application/json; charset=utf-8"}
+    headers: this.headers
   };
   if (App.get('testMode')) {
     opt.url = formatUrl(this.mock ? this.mock : '', data);
     opt.type = 'GET';
   }
   else {
-    var prefix = App.get('urlPrefix');
+    var prefix = this.apiPrefix != null ? this.apiPrefix : App.get('urlPrefix');
     opt.url = prefix + formatUrl(this.real, data);
   }
 
