@@ -345,36 +345,63 @@ App.WizardStep6Controller = Em.Controller.extend({
     var headers = this.get('headers');
     var slaveComponents = this.get('content.slaveComponentHosts');
     if (!slaveComponents) { // we are at this page for the first time
-      var recommendations = App.router.get('installerController.recommendations');
-      // Get all host-component pairs from recommendations
-      var componentHostPairs = recommendations.blueprint.host_groups.map(function(group) {
-        return group.components.map(function(component) {
-          return recommendations.blueprint_cluster_binding.host_groups.findProperty('name', group.name).hosts.map(function(host) {
-            return { component: component.name, host: host.fqdn};
-          });
-        });
-      });
-
-      // Flatten results twice because of two map() call before
-      componentHostPairs = [].concat.apply([], componentHostPairs);
-      componentHostPairs = [].concat.apply([], componentHostPairs);
-
-      var clientComponents = App.get('components.clients');
-
-
-      hostsObj.forEach(function (host) {
-        var checkboxes = host.get('checkboxes');
-        checkboxes.forEach(function(checkbox) {
-          var recommended = componentHostPairs.some(function(pair) {
-            var componentMatch = pair.component === checkbox.component;
-            if (checkbox.component === 'CLIENT' && !componentMatch) {
-              componentMatch = clientComponents.contains(pair.component);
+      if (!App.supports.serverRecommendValidate) {
+        var client_is_set = false;
+        hostsObj.forEach(function (host) {
+          var checkboxes = host.get('checkboxes');
+          checkboxes.setEach('checked', !host.hasMaster);
+          checkboxes.setEach('isInstalled', false);
+          checkboxes.findProperty('title', headers.findProperty('name', 'CLIENT').get('label')).set('checked', false);
+          // First not Master should have Client (only first!)
+          if (!client_is_set) {
+            var dfs = App.StackService.find().findProperty('isPrimaryDFS');
+            if (dfs.get('isSelected') || dfs.get('isInstalled')) {
+              var checkboxServiceComponent = checkboxes.findProperty('title', headers.findProperty('name', dfs.get('serviceComponents').
+                findProperty('isShownOnInstallerSlaveClientPage').get('componentName')).get('label'));
+              if (checkboxServiceComponent && checkboxServiceComponent.get('checked')) {
+                checkboxes.findProperty('title', headers.findProperty('name', 'CLIENT').get('label')).set('checked', true);
+                client_is_set = true;
+              }
             }
-            return pair.host === host.hostName && componentMatch;
-          });
-          checkbox.checked = recommended;
+          }
         });
-      });
+
+        if (this.get('isInstallerWizard') && hostsObj.everyProperty('hasMaster', true)) {
+          var lastHost = hostsObj[hostsObj.length - 1];
+          lastHost.get('checkboxes').setEach('checked', true);
+        }
+      } else {
+        var recommendations = App.router.get('installerController.recommendations');
+        // Get all host-component pairs from recommendations
+        var componentHostPairs = recommendations.blueprint.host_groups.map(function(group) {
+          return group.components.map(function(component) {
+            return recommendations.blueprint_cluster_binding.host_groups.findProperty('name', group.name).hosts.map(function(host) {
+              return { component: component.name, host: host.fqdn};
+            });
+          });
+        });
+
+        // Flatten results twice because of two map() call before
+        componentHostPairs = [].concat.apply([], componentHostPairs);
+        componentHostPairs = [].concat.apply([], componentHostPairs);
+
+        var clientComponents = App.get('components.clients');
+
+
+        hostsObj.forEach(function (host) {
+          var checkboxes = host.get('checkboxes');
+          checkboxes.forEach(function(checkbox) {
+            var recommended = componentHostPairs.some(function(pair) {
+              var componentMatch = pair.component === checkbox.component;
+              if (checkbox.component === 'CLIENT' && !componentMatch) {
+                componentMatch = clientComponents.contains(pair.component);
+              }
+              return pair.host === host.hostName && componentMatch;
+            });
+            checkbox.checked = recommended;
+          });
+        });
+      }
     } else {
       this.get('headers').forEach(function (header) {
         var nodes = slaveComponents.findProperty('componentName', header.get('name'));
