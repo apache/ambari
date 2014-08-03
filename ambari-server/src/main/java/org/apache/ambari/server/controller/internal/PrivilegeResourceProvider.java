@@ -309,15 +309,14 @@ public abstract class PrivilegeResourceProvider<T> extends AbstractResourceProvi
     String          permissionName = (String) properties.get(PERMISSION_NAME_PROPERTY_ID);
     ResourceEntity  resourceEntity = resourceDAO.findById(resourceId);
 
-    entity.setResource(resourceEntity);
+    PermissionEntity permission = getPermission(permissionName, resourceEntity);
 
-    PermissionEntity permission =
-        permissionDAO.findPermissionByNameAndType(permissionName, resourceEntity.getResourceType());
     if (permission == null) {
       throw new AmbariException("Can't find a permission named " + permissionName +
-          " for the resource type " + resourceEntity.getResourceType().getName() + ".");
+          " for the resource.");
     }
     entity.setPermission(permission);
+    entity.setResource(resourceEntity);
 
     String principalName = (String) properties.get(PRINCIPAL_NAME_PROPERTY_ID);
     String principalType = (String) properties.get(PRINCIPAL_TYPE_PROPERTY_ID);
@@ -334,6 +333,13 @@ public abstract class PrivilegeResourceProvider<T> extends AbstractResourceProvi
       }
     }
     return entity;
+  }
+
+  // Get a permission with the given permission name for the given resource.
+  protected PermissionEntity getPermission(String permissionName, ResourceEntity resourceEntity)
+      throws AmbariException {
+
+    return permissionDAO.findPermissionByNameAndType(permissionName, resourceEntity.getResourceType());
   }
 
   // Create a create command with the given properties map.

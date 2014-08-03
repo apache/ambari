@@ -528,7 +528,14 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
 
   private void initProviderMaps() throws SystemException {
     ResourceProvider provider = getResourceProvider(Resource.Type.Cluster);
-    Request          request  = PropertyHelper.getReadRequest(CLUSTER_NAME_PROPERTY_ID);
+
+    Set<String> propertyIds = new HashSet<String>();
+    propertyIds.add(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID);
+
+    Map<String, String> requestInfoProperties = new HashMap<String, String>();
+    requestInfoProperties.put(ClusterResourceProvider.GET_IGNORE_PERMISSIONS_PROPERTY_ID, "true");
+
+    Request request = PropertyHelper.getReadRequest(propertyIds, requestInfoProperties, null);
 
     try {
       jmxPortMap.clear();
@@ -607,9 +614,17 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
 
     Set<Resource> clusterResource = null;
     try {
-      clusterResource = clusterResourceProvider.getResources(
-        PropertyHelper.getReadRequest(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID,
-          ClusterResourceProvider.CLUSTER_DESIRED_CONFIGS_PROPERTY_ID), basePredicate);
+
+      Set<String> propertyIds = new HashSet<String>();
+      propertyIds.add(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID);
+      propertyIds.add(ClusterResourceProvider.CLUSTER_DESIRED_CONFIGS_PROPERTY_ID);
+
+      Map<String, String> requestInfoProperties = new HashMap<String, String>();
+      requestInfoProperties.put(ClusterResourceProvider.GET_IGNORE_PERMISSIONS_PROPERTY_ID, "true");
+
+      Request readRequest = PropertyHelper.getReadRequest(propertyIds, requestInfoProperties, null);
+
+      clusterResource = clusterResourceProvider.getResources(readRequest, basePredicate);
     } catch (NoSuchResourceException e) {
       LOG.error("Resource for the desired config not found. " + e);
     }

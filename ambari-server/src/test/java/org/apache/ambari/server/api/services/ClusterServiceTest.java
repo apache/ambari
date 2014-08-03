@@ -21,6 +21,8 @@ package org.apache.ambari.server.api.services;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.parsers.RequestBodyParser;
 import org.apache.ambari.server.api.services.serializers.ResultSerializer;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.cluster.ClustersImpl;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.UriInfo;
@@ -40,33 +42,34 @@ public class ClusterServiceTest extends BaseServiceTest {
 
   public List<ServiceTestInvocation> getTestInvocations() throws Exception {
     List<ServiceTestInvocation> listInvocations = new ArrayList<ServiceTestInvocation>();
+    Clusters clusters = new TestClusters();
 
     //getCluster
-    ClusterService clusterService = new TestClusterService("clusterName");
+    ClusterService clusterService = new TestClusterService(clusters, "clusterName");
     Method m = clusterService.getClass().getMethod("getCluster", String.class, HttpHeaders.class, UriInfo.class, String.class);
     Object[] args = new Object[] {null, getHttpHeaders(), getUriInfo(), "clusterName"};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, clusterService, m, args, null));
 
     //getClusters
-    clusterService = new TestClusterService(null);
+    clusterService = new TestClusterService(clusters, null);
     m = clusterService.getClass().getMethod("getClusters", String.class, HttpHeaders.class, UriInfo.class);
     args = new Object[] {null, getHttpHeaders(), getUriInfo()};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, clusterService, m, args, null));
 
     //createCluster
-    clusterService = new TestClusterService("clusterName");
+    clusterService = new TestClusterService(clusters, "clusterName");
     m = clusterService.getClass().getMethod("createCluster", String.class, HttpHeaders.class, UriInfo.class, String.class);
     args = new Object[] {"body", getHttpHeaders(), getUriInfo(), "clusterName"};
     listInvocations.add(new ServiceTestInvocation(Request.Type.POST, clusterService, m, args, "body"));
 
     //createCluster
-    clusterService = new TestClusterService("clusterName");
+    clusterService = new TestClusterService(clusters, "clusterName");
     m = clusterService.getClass().getMethod("updateCluster", String.class, HttpHeaders.class, UriInfo.class, String.class);
     args = new Object[] {"body", getHttpHeaders(), getUriInfo(), "clusterName"};
     listInvocations.add(new ServiceTestInvocation(Request.Type.PUT, clusterService, m, args, "body"));
 
     //deleteCluster
-    clusterService = new TestClusterService("clusterName");
+    clusterService = new TestClusterService(clusters, "clusterName");
     m = clusterService.getClass().getMethod("deleteCluster", HttpHeaders.class, UriInfo.class, String.class);
     args = new Object[] {getHttpHeaders(), getUriInfo(), "clusterName"};
     listInvocations.add(new ServiceTestInvocation(Request.Type.DELETE, clusterService, m, args, null));
@@ -78,7 +81,8 @@ public class ClusterServiceTest extends BaseServiceTest {
   private class TestClusterService extends ClusterService {
     private String m_clusterId;
 
-    private TestClusterService(String clusterId) {
+    private TestClusterService(Clusters clusters, String clusterId) {
+      super(clusters);
       m_clusterId = clusterId;
     }
 
@@ -101,6 +105,13 @@ public class ClusterServiceTest extends BaseServiceTest {
     @Override
     protected ResultSerializer getResultSerializer() {
       return getTestResultSerializer();
+    }
+  }
+
+  private class TestClusters extends ClustersImpl {
+    @Override
+    public boolean checkPermission(String clusterName, boolean readOnly) {
+      return true;
     }
   }
 

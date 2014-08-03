@@ -61,7 +61,10 @@ import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.ClusterStateEntity;
 import org.apache.ambari.server.orm.entities.ConfigGroupEntity;
+import org.apache.ambari.server.orm.entities.PermissionEntity;
+import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.RequestScheduleEntity;
+import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ServiceConfigApplicationEntity;
 import org.apache.ambari.server.orm.entities.ServiceConfigEntity;
 import org.apache.ambari.server.state.*;
@@ -83,6 +86,7 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.persist.Transactional;
+import org.springframework.security.core.GrantedAuthority;
 
 public class ClusterImpl implements Cluster {
 
@@ -1888,5 +1892,21 @@ public class ClusterImpl implements Cluster {
     } finally {
       readLock.unlock();
     }
+  }
+
+  @Override
+  public boolean checkPermission(PrivilegeEntity privilegeEntity, boolean readOnly) {
+    ResourceEntity resourceEntity = clusterEntity.getResource();
+    if (resourceEntity != null) {
+      Integer permissionId = privilegeEntity.getPermission().getId();
+      // CLUSTER.READ or CLUSTER.OPERATE for the given cluster resource.
+      if (privilegeEntity.getResource().equals(resourceEntity)) {
+        if ((readOnly && permissionId.equals(PermissionEntity.CLUSTER_READ_PERMISSION)) ||
+            permissionId.equals(PermissionEntity.CLUSTER_OPERATE_PERMISSION)) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 }

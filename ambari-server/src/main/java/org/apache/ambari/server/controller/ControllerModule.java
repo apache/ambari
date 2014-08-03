@@ -46,6 +46,8 @@ import org.apache.ambari.server.orm.DBAccessorImpl;
 import org.apache.ambari.server.orm.PersistenceType;
 import org.apache.ambari.server.scheduler.ExecutionScheduler;
 import org.apache.ambari.server.scheduler.ExecutionSchedulerImpl;
+import org.apache.ambari.server.security.SecurityHelper;
+import org.apache.ambari.server.security.SecurityHelperImpl;
 import org.apache.ambari.server.serveraction.ServerActionManager;
 import org.apache.ambari.server.serveraction.ServerActionManagerImpl;
 import org.apache.ambari.server.state.Cluster;
@@ -276,6 +278,6 @@ public class ControllerModule extends AbstractModule {
     install(new FactoryModuleBuilder().build(RequestFactory.class));
 
     bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
+    bind(SecurityHelper.class).toInstance(SecurityHelperImpl.getInstance());
   }
-
 }

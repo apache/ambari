@@ -37,6 +37,8 @@ import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
 import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.agent.rest.AgentResource;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.security.SecurityHelper;
+import org.apache.ambari.server.security.SecurityHelperImpl;
 import org.apache.ambari.server.state.*;
 import org.apache.ambari.server.state.cluster.ClusterFactory;
 import org.apache.ambari.server.state.cluster.ClusterImpl;
@@ -302,6 +304,7 @@ public class AgentResourceTest extends JerseyTest {
         RequestExecutionImpl.class).build(RequestExecutionFactory.class));
       install(new FactoryModuleBuilder().build(StageFactory.class));
       install(new FactoryModuleBuilder().build(HostRoleCommandFactory.class));
+      bind(SecurityHelper.class).toInstance(SecurityHelperImpl.getInstance());
     }
   }
 }

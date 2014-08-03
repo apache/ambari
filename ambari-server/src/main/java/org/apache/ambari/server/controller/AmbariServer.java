@@ -68,7 +68,6 @@ import org.apache.ambari.server.orm.dao.PermissionDAO;
 import org.apache.ambari.server.orm.dao.PrincipalDAO;
 import org.apache.ambari.server.orm.dao.PrivilegeDAO;
 import org.apache.ambari.server.orm.dao.ResourceDAO;
-import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.dao.ViewDAO;
 import org.apache.ambari.server.orm.dao.ViewInstanceDAO;
@@ -79,12 +78,13 @@ import org.apache.ambari.server.resources.api.rest.GetResource;
 import org.apache.ambari.server.scheduler.ExecutionScheduleManager;
 import org.apache.ambari.server.security.CertificateManager;
 import org.apache.ambari.server.security.SecurityFilter;
+import org.apache.ambari.server.security.SecurityHelper;
 import org.apache.ambari.server.security.authorization.AmbariLdapAuthenticationProvider;
 import org.apache.ambari.server.security.authorization.AmbariLdapDataPopulator;
 import org.apache.ambari.server.security.authorization.AmbariLocalUserDetailsService;
 import org.apache.ambari.server.security.authorization.Users;
+import org.apache.ambari.server.security.authorization.AmbariAuthorizationFilter;
 import org.apache.ambari.server.security.authorization.internal.AmbariInternalAuthenticationProvider;
-import org.apache.ambari.server.security.authorization.internal.InternalTokenAuthenticationFilter;
 import org.apache.ambari.server.security.unsecured.rest.CertificateDownload;
 import org.apache.ambari.server.security.unsecured.rest.CertificateSign;
 import org.apache.ambari.server.security.unsecured.rest.ConnectionInfo;
@@ -127,7 +127,6 @@ public class AmbariServer {
   private static Logger LOG = LoggerFactory.getLogger(AmbariServer.class);
 
   private Server server = null;
-  private Server serverForAgent = null;
 
   public volatile boolean running = true; // true while controller runs
 
@@ -168,7 +167,7 @@ public class AmbariServer {
     performStaticInjection();
     initDB();
     server = new Server();
-    serverForAgent = new Server();
+    Server serverForAgent = new Server();
 
     checkDBVersion();
 
@@ -188,8 +187,8 @@ public class AmbariServer {
           injector.getInstance(AmbariLdapAuthenticationProvider.class));
       factory.registerSingleton("ambariLdapDataPopulator",
           injector.getInstance(AmbariLdapDataPopulator.class));
-      factory.registerSingleton("internalTokenAuthenticationFilter",
-          injector.getInstance(InternalTokenAuthenticationFilter.class));
+      factory.registerSingleton("ambariAuthorizationFilter",
+          injector.getInstance(AmbariAuthorizationFilter.class));
       factory.registerSingleton("ambariInternalAuthenticationProvider",
           injector.getInstance(AmbariInternalAuthenticationProvider.class));
 
@@ -284,7 +283,7 @@ public class AmbariServer {
       sslConnectorOneWay.setPort(configs.getOneWayAuthPort());
       sslConnectorOneWay.setAcceptors(2);
       sslConnectorTwoWay.setAcceptors(2);
-      serverForAgent.setConnectors(new Connector[]{ sslConnectorOneWay, sslConnectorTwoWay});
+      serverForAgent.setConnectors(new Connector[]{sslConnectorOneWay, sslConnectorTwoWay});
 
       ServletHolder sh = new ServletHolder(ServletContainer.class);
       sh.setInitParameter("com.sun.jersey.config.property.resourceConfigClass",
@@ -543,9 +542,8 @@ public class AmbariServer {
         injector.getInstance(PermissionDAO.class), injector.getInstance(ResourceDAO.class));
     ClusterPrivilegeResourceProvider.init(injector.getInstance(ClusterDAO.class));
     ViewRegistry.init(injector.getInstance(ViewDAO.class), injector.getInstance(ViewInstanceDAO.class),
-        injector.getInstance(ResourceDAO.class), injector.getInstance(ResourceTypeDAO.class),
         injector.getInstance(UserDAO.class), injector.getInstance(MemberDAO.class),
-        injector.getInstance(PrivilegeDAO.class));
+        injector.getInstance(PrivilegeDAO.class), injector.getInstance(SecurityHelper.class));
   }
 
   /**
@@ -588,9 +586,7 @@ public class AmbariServer {
       CertificateManager certMan = injector.getInstance(CertificateManager.class);
       certMan.initRootCert();
       ComponentSSLConfiguration.instance().init(server.configs);
-      if (server != null) {
-        server.run();
-      }
+      server.run();
     } catch (Throwable t) {
       LOG.error("Failed to run the Ambari Server", t);
       if (server != null) {

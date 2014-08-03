@@ -20,7 +20,9 @@ package org.apache.ambari.server.controller.internal;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.orm.entities.GroupEntity;
+import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
+import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.orm.entities.ViewEntity;
@@ -70,6 +72,11 @@ public class ViewPrivilegeResourceProvider extends PrivilegeResourceProvider<Vie
     keyPropertyIds.put(Resource.Type.ViewPrivilege, PRIVILEGE_ID_PROPERTY_ID);
   }
 
+  /**
+   * The built-in VIEW.USE permission.
+   */
+  private final PermissionEntity viewUsePermission;
+
 
   // ----- Constructors ------------------------------------------------------
 
@@ -78,6 +85,7 @@ public class ViewPrivilegeResourceProvider extends PrivilegeResourceProvider<Vie
    */
   public ViewPrivilegeResourceProvider() {
     super(propertyIds, keyPropertyIds, Resource.Type.ViewPrivilege);
+    viewUsePermission = permissionDAO.findById(PermissionEntity.VIEW_USE_PERMISSION);
   }
 
 
@@ -156,6 +164,12 @@ public class ViewPrivilegeResourceProvider extends PrivilegeResourceProvider<Vie
       setResourceProperty(resource, PRIVILEGE_INSTANCE_NAME_PROPERTY_ID, viewInstanceEntity.getName(), requestedIds);
     }
     return resource;
+  }
+
+  @Override
+  protected PermissionEntity getPermission(String permissionName, ResourceEntity resourceEntity) throws AmbariException {
+    return (permissionName.equals(PermissionEntity.VIEW_USE_PERMISSION_NAME)) ?
+        viewUsePermission : super.getPermission(permissionName, resourceEntity);
   }
 }
 

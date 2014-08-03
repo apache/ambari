@@ -145,8 +145,10 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
           for (ViewInstanceEntity viewInstanceDefinition : viewRegistry.getInstanceDefinitions(viewDefinition)) {
             if (instanceName == null || instanceName.equals(viewInstanceDefinition.getName())) {
               if (viewVersion == null || viewVersion.equals(viewDefinition.getVersion())) {
-                Resource resource = toResource(viewInstanceDefinition, requestedIds);
-                resources.add(resource);
+                if (includeInstance(viewInstanceDefinition, true)) {
+                  Resource resource = toResource(viewInstanceDefinition, requestedIds);
+                  resources.add(resource);
+                }
               }
             }
           }
@@ -220,8 +222,11 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
         properties, requestedIds);
     Map<String, String> applicationData = new HashMap<String, String>();
 
+    String currentUserName = viewInstanceEntity.getCurrentUserName();
     for (ViewInstanceDataEntity viewInstanceDataEntity : viewInstanceEntity.getData()) {
-      applicationData.put(viewInstanceDataEntity.getName(), viewInstanceDataEntity.getValue());
+      if (currentUserName.equals(viewInstanceDataEntity.getUser())) {
+        applicationData.put(viewInstanceDataEntity.getName(), viewInstanceDataEntity.getValue());
+      }
     }
     setResourceProperty(resource, DATA_PROPERTY_ID,
         applicationData, requestedIds);
@@ -308,6 +313,7 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
         viewInstanceDataEntity.setViewName(viewName);
         viewInstanceDataEntity.setViewInstanceName(name);
         viewInstanceDataEntity.setName(entry.getKey().substring(DATA_PREFIX.length()));
+        viewInstanceDataEntity.setUser(viewInstanceEntity.getCurrentUserName());
         viewInstanceDataEntity.setValue((String) entry.getValue());
         viewInstanceDataEntity.setViewInstanceEntity(viewInstanceEntity);
 
@@ -340,7 +346,13 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
     return new Command<Void>() {
       @Override
       public Void invoke() throws AmbariException {
-        ViewRegistry.getInstance().updateViewInstance(toEntity(properties));
+
+        ViewInstanceEntity instance = toEntity(properties);
+        ViewEntity         view     = instance.getViewEntity();
+
+        if (includeInstance(view.getCommonName(), view.getVersion(), instance.getInstanceName(), false)) {
+          ViewRegistry.getInstance().updateViewInstance(instance);
+        }
         return null;
       }
     };
@@ -360,7 +372,9 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
           for (ViewInstanceEntity viewInstanceEntity : viewRegistry.getInstanceDefinitions(viewEntity)){
             Resource resource = toResource(viewInstanceEntity, requestedIds);
             if (predicate == null || predicate.evaluate(resource)) {
-              viewInstanceEntities.add(viewInstanceEntity);
+              if (includeInstance(viewInstanceEntity, false)) {
+                viewInstanceEntities.add(viewInstanceEntity);
+              }
             }
           }
         }
@@ -376,5 +390,40 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
   private static String getIconPath(String contextPath, String iconPath){
     return iconPath == null || iconPath.length() == 0 ? null :
         contextPath + (iconPath.startsWith("/") ? "" : "/") + iconPath;
+  }
+
+  /**
+   * Determine whether or not the view instance resource identified
+   * by the given instance name should be included based on the permissions
+   * granted to the current user.
+   *
+   * @param viewName      the view name
+   * @param version       the view version
+   * @param instanceName  the name of the view instance resource
+   * @param readOnly      indicate whether or not this is for a read only operation
+   *
+   * @return true if the view instance should be included based on the permissions of the current user
+   */
+  private boolean includeInstance(String viewName, String version, String instanceName, boolean readOnly) {
+
+    ViewRegistry viewRegistry = ViewRegistry.getInstance();
+
+    return viewRegistry.checkPermission(viewName, version, instanceName, readOnly);
+  }
+
+  /**
+   * Determine whether or not the given view instance resource should be included
+   * based on the permissions granted to the current user.
+   *
+   * @param instanceEntity  the view instance entity
+   * @param readOnly        indicate whether or not this is for a read only operation
+   *
+   * @return true if the view instance should be included based on the permissions of the current user
+   */
+  private boolean includeInstance(ViewInstanceEntity instanceEntity, boolean readOnly) {
+
+    ViewRegistry viewRegistry = ViewRegistry.getInstance();
+
+    return viewRegistry.checkPermission(instanceEntity, readOnly);
   }
 }

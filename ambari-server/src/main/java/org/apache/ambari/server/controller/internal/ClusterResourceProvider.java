@@ -60,7 +60,7 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
   // Clusters
   protected static final String CLUSTER_ID_PROPERTY_ID      = PropertyHelper.getPropertyId("Clusters", "cluster_id");
   protected static final String CLUSTER_NAME_PROPERTY_ID    = PropertyHelper.getPropertyId("Clusters", "cluster_name");
-  protected static final String CLUSTER_VERSION_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters", "version");  
+  protected static final String CLUSTER_VERSION_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters", "version");
   protected static final String CLUSTER_PROVISIONING_STATE_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters", "provisioning_state");
   protected static final String CLUSTER_DESIRED_CONFIGS_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters", "desired_configs");
   protected static final String CLUSTER_DESIRED_SERVICE_CONFIG_VERSIONS_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters", "desired_serviceconfigversions");
@@ -68,6 +68,14 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
   protected static final String CLUSTER_HEALTH_REPORT_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters", "health_report");
   protected static final String BLUEPRINT_PROPERTY_ID = PropertyHelper.getPropertyId(null, "blueprint");
 
+  /**
+   * Request info property ID.  Allow internal getResources call to bypass permissions check.
+   */
+  public static final String GET_IGNORE_PERMISSIONS_PROPERTY_ID = "get_resource/ignore_permissions";
+
+  /**
+   * The cluster primary key properties.
+   */
   private static Set<String> pkPropertyIds =
       new HashSet<String>(Arrays.asList(new String[]{CLUSTER_ID_PROPERTY_ID}));
 
@@ -99,19 +107,8 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
     super(propertyIds, keyPropertyIds, managementController);
   }
 
-  /**
-   * Inject the blueprint data access object which is used to obtain blueprint entities.
-   *
-   * @param dao  blueprint data access object
-   */
-  public static void init(BlueprintDAO dao, AmbariMetaInfo metaInfo, ConfigHelper ch) {
-    blueprintDAO = dao;
-    stackInfo    = metaInfo;
-    configHelper = ch;
-  }
 
-
-// ----- ResourceProvider ------------------------------------------------
+  // ----- ResourceProvider ------------------------------------------------
 
   @Override
   public RequestStatus createResources(Request request)
@@ -160,17 +157,25 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
       LOG.debug("Found clusters matching getClusters request"
           + ", clusterResponseCount=" + responses.size());
     }
-    
+
+    // Allow internal call to bypass permissions check.
+    Map<String, String> requestInfoProperties = request.getRequestInfoProperties();
+    boolean ignorePermissions = requestInfoProperties == null ? false :
+        Boolean.valueOf(requestInfoProperties.get(GET_IGNORE_PERMISSIONS_PROPERTY_ID));
+
     for (ClusterResponse response : responses) {
+
+      String clusterName = response.getClusterName();
+
       Resource resource = new ResourceImpl(Resource.Type.Cluster);
       setResourceProperty(resource, CLUSTER_ID_PROPERTY_ID, response.getClusterId(), requestedIds);
-      setResourceProperty(resource, CLUSTER_NAME_PROPERTY_ID, response.getClusterName(), requestedIds);
+      setResourceProperty(resource, CLUSTER_NAME_PROPERTY_ID, clusterName, requestedIds);
       setResourceProperty(resource, CLUSTER_PROVISIONING_STATE_PROPERTY_ID, response.getProvisioningState(), requestedIds);
       setResourceProperty(resource, CLUSTER_DESIRED_CONFIGS_PROPERTY_ID, response.getDesiredConfigs(), requestedIds);
       setResourceProperty(resource, CLUSTER_DESIRED_SERVICE_CONFIG_VERSIONS_PROPERTY_ID, response.getDesiredServiceConfigVersions(), requestedIds);
       setResourceProperty(resource, CLUSTER_TOTAL_HOSTS_PROPERTY_ID, response.getTotalHosts(), requestedIds);
       setResourceProperty(resource, CLUSTER_HEALTH_REPORT_PROPERTY_ID, response.getClusterHealthReport(), requestedIds);
-      
+
       resource.setProperty(CLUSTER_VERSION_PROPERTY_ID,
           response.getDesiredStackVersion());
 
@@ -178,8 +183,9 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
         LOG.debug("Adding ClusterResponse to resource"
             + ", clusterResponse=" + response.toString());
       }
-
-      resources.add(resource);
+      if (ignorePermissions || includeCluster(clusterName, true)) {
+        resources.add(resource);
+      }
     }
     return resources;
   }
@@ -194,7 +200,10 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
     for (Map<String, Object> requestPropertyMap : request.getProperties()) {
       Set<Map<String, Object>> propertyMaps = getPropertyMaps(requestPropertyMap, predicate);
       for (Map<String, Object> propertyMap : propertyMaps) {
-        requests.add(getRequest(propertyMap));
+        ClusterRequest clusterRequest = getRequest(propertyMap);
+        if (includeCluster(clusterRequest.getClusterName(), false)) {
+          requests.add(clusterRequest);
+        }
       }
     }
     response = modifyResources(new Command<RequestStatusResponse>() {
@@ -241,13 +250,15 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
 
     for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
       final ClusterRequest clusterRequest = getRequest(propertyMap);
-      modifyResources(new Command<Void>() {
-        @Override
-        public Void invoke() throws AmbariException {
-          getManagementController().deleteCluster(clusterRequest);
-          return null;
-        }
-      });
+      if (includeCluster(clusterRequest.getClusterName(), false)) {
+        modifyResources(new Command<Void>() {
+          @Override
+          public Void invoke() throws AmbariException {
+            getManagementController().deleteCluster(clusterRequest);
+            return null;
+          }
+        });
+      }
     }
     notifyDelete(Resource.Type.Cluster, predicate);
     return getRequestStatus(null);
@@ -274,7 +285,22 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
     return checkConfigPropertyIds(baseUnsupported, "Clusters");
   }
 
-  // ----- utility methods -------------------------------------------------
+
+  // ----- ClusterResourceProvider -------------------------------------------
+
+  /**
+   * Inject the blueprint data access object which is used to obtain blueprint entities.
+   *
+   * @param dao  blueprint data access object
+   */
+  public static void init(BlueprintDAO dao, AmbariMetaInfo metaInfo, ConfigHelper ch) {
+    blueprintDAO = dao;
+    stackInfo    = metaInfo;
+    configHelper = ch;
+  }
+
+
+  // ----- utility methods ---------------------------------------------------
 
   /**
    * Get a cluster request object from a map of property values.
@@ -814,14 +840,14 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
     configurationProcessor.doUpdateForClusterCreate(blueprintHostGroups);
     setMissingConfigurations();
   }
-  
+
   /**
    * Since global configs are deprecated since 1.7.0, but still supported.
    * We should automatically map any globals used, to *-env dictionaries.
    *
    * @param blueprintConfigurations  map of blueprint configurations keyed by type
    */
-  private void handleGlobalsBackwardsCompability(Stack stack, 
+  private void handleGlobalsBackwardsCompability(Stack stack,
       Map<String, Map<String, String>> blueprintConfigurations) {
     StackId stackId = new StackId(stack.getName(), stack.getVersion());
     configHelper.moveDeprecatedGlobals(stackId, blueprintConfigurations);
@@ -884,7 +910,7 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
     userProps.put("hcat_user", "hive-env");
     userProps.put("hbase_user", "hbase-env");
     userProps.put("falcon_user", "falcon-env");
-    
+
     String proxyUserHosts  = "hadoop.proxyuser.%s.hosts";
     String proxyUserGroups = "hadoop.proxyuser.%s.groups";
 
@@ -957,7 +983,7 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
   private void registerConfigGroups(String clusterName, Map<String, HostGroupImpl> hostGroups, Stack stack) throws
       ResourceAlreadyExistsException, SystemException,
       UnsupportedPropertyException, NoSuchParentResourceException {
-    
+
     for (HostGroupImpl group : hostGroups.values()) {
       HostGroupEntity entity = group.getEntity();
       Map<String, Map<String, Config>> groupConfigs = new HashMap<String, Map<String, Config>>();
@@ -1014,6 +1040,20 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
                                          "  The following hosts are mapped to more than one host group: " +
                                          flaggedHosts);
     }
+  }
+
+  /**
+   * Determine whether or not the cluster resource identified
+   * by the given cluster name should be included based on the
+   * permissions granted to the current user.
+   *
+   * @param clusterName  the cluster name
+   * @param readOnly     indicate whether or not this is for a read only operation
+   *
+   * @return true if the cluster should be included based on the permissions of the current user
+   */
+  private boolean includeCluster(String clusterName, boolean readOnly) {
+    return getManagementController().getClusters().checkPermission(clusterName, readOnly);
   }
 }
 

@@ -173,4 +173,15 @@ public interface Clusters {
   public void deleteHost(String hostname)
       throws AmbariException;
 
+  /**
+   * Determine whether or not access to the cluster resource identified
+   * by the given cluster name should be allowed based on the permissions
+   * granted to the current user.
+   *
+   * @param clusterName  the cluster name
+   * @param readOnly     indicate whether or not this check is for a read only operation
+   *
+   * @return true if access to the cluster is allowed
+   */
+  public boolean checkPermission(String clusterName, boolean readOnly);
 }

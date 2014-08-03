@@ -20,12 +20,16 @@ package org.apache.ambari.server.security.authorization;
 import com.google.inject.Inject;
 import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.orm.dao.MemberDAO;
 import org.apache.ambari.server.orm.dao.PrincipalDAO;
 import org.apache.ambari.server.orm.dao.PrincipalTypeDAO;
+import org.apache.ambari.server.orm.dao.PrivilegeDAO;
 import org.apache.ambari.server.orm.dao.RoleDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
+import org.apache.ambari.server.orm.entities.MemberEntity;
 import org.apache.ambari.server.orm.entities.PrincipalEntity;
 import org.apache.ambari.server.orm.entities.PrincipalTypeEntity;
+import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.RoleEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.slf4j.Logger;
@@ -35,6 +39,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.ldap.userdetails.LdapAuthoritiesPopulator;
 
 import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Provides authorities population for LDAP user from LDAP catalog
@@ -48,19 +54,24 @@ public class AmbariLdapAuthoritiesPopulator implements LdapAuthoritiesPopulator 
   RoleDAO roleDAO;
   PrincipalDAO principalDAO;
   PrincipalTypeDAO principalTypeDAO;
+  MemberDAO memberDAO;
+  PrivilegeDAO privilegeDAO;
 
   private static final String AMBARI_ADMIN_LDAP_ATTRIBUTE_KEY = "ambari_admin";
 
   @Inject
   public AmbariLdapAuthoritiesPopulator(Configuration configuration, AuthorizationHelper authorizationHelper,
                                         UserDAO userDAO, RoleDAO roleDAO,
-                                        PrincipalDAO principalDAO, PrincipalTypeDAO principalTypeDAO) {
+                                        PrincipalDAO principalDAO, PrincipalTypeDAO principalTypeDAO,
+                                        MemberDAO memberDAO, PrivilegeDAO privilegeDAO) {
     this.configuration = configuration;
     this.authorizationHelper = authorizationHelper;
     this.userDAO = userDAO;
     this.roleDAO = roleDAO;
     this.principalDAO = principalDAO;
     this.principalTypeDAO = principalTypeDAO;
+    this.memberDAO = memberDAO;
+    this.privilegeDAO = privilegeDAO;
   }
 
   @Override
@@ -94,7 +105,20 @@ public class AmbariLdapAuthoritiesPopulator implements LdapAuthoritiesPopulator 
       }
     }
 
-    return authorizationHelper.convertRolesToAuthorities(user.getRoleEntities());
+    // get all of the privileges for the user
+    List<PrincipalEntity> principalEntities = new LinkedList<PrincipalEntity>();
+
+    principalEntities.add(user.getPrincipal());
+
+    List<MemberEntity> memberEntities = memberDAO.findAllMembersByUser(user);
+
+    for (MemberEntity memberEntity : memberEntities) {
+      principalEntities.add(memberEntity.getGroup().getPrincipal());
+    }
+
+    List<PrivilegeEntity> privilegeEntities = privilegeDAO.findAllByPrincipal(principalEntities);
+
+    return authorizationHelper.convertPrivilegesToAuthorities(privilegeEntities);
   }
 
   /**

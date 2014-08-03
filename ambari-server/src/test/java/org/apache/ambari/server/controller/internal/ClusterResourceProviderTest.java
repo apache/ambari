@@ -71,6 +71,7 @@ import org.apache.ambari.server.orm.entities.BlueprintEntity;
 import org.apache.ambari.server.orm.entities.HostGroupComponentEntity;
 import org.apache.ambari.server.orm.entities.HostGroupConfigEntity;
 import org.apache.ambari.server.orm.entities.HostGroupEntity;
+import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DependencyInfo;
 import org.apache.ambari.server.state.PropertyInfo;
@@ -2535,6 +2536,7 @@ public class ClusterResourceProviderTest {
     Resource.Type type = Resource.Type.Cluster;
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    Clusters clusters = createMock(Clusters.class);
 
     Set<ClusterResponse> allResponse = new HashSet<ClusterResponse>();
     allResponse.add(new ClusterResponse(100L, "Cluster100", State.INSTALLED, null, null, null, null));
@@ -2550,12 +2552,22 @@ public class ClusterResourceProviderTest {
     idResponse.add(new ClusterResponse(103L, "Cluster103", State.INSTALLED, null, null, null, null));
 
     // set expectations
-    expect(managementController.getClusters(EasyMock.<Set<ClusterRequest>>anyObject())).andReturn(allResponse).once();
-    expect(managementController.getClusters(EasyMock.<Set<ClusterRequest>>anyObject())).andReturn(nameResponse).once();
-    expect(managementController.getClusters(EasyMock.<Set<ClusterRequest>>anyObject())).andReturn(idResponse).once();
+    Capture<Set<ClusterRequest>> captureClusterRequests = new Capture<Set<ClusterRequest>>();
+
+    expect(managementController.getClusters(capture(captureClusterRequests))).andReturn(allResponse).once();
+    expect(managementController.getClusters(capture(captureClusterRequests))).andReturn(nameResponse).once();
+    expect(managementController.getClusters(capture(captureClusterRequests))).andReturn(idResponse).once();
+
+    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
+
+    expect(clusters.checkPermission("Cluster100", true)).andReturn(true).anyTimes();
+    expect(clusters.checkPermission("Cluster101", true)).andReturn(true).anyTimes();
+    expect(clusters.checkPermission("Cluster102", true)).andReturn(true).anyTimes();
+    expect(clusters.checkPermission("Cluster103", true)).andReturn(true).anyTimes();
+    expect(clusters.checkPermission("Cluster104", true)).andReturn(false).anyTimes();
 
     // replay
-    replay(managementController);
+    replay(managementController, clusters);
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         type,
@@ -2574,7 +2586,7 @@ public class ClusterResourceProviderTest {
     // get all ... no predicate
     Set<Resource> resources = provider.getResources(request, null);
 
-    Assert.assertEquals(5, resources.size());
+    Assert.assertEquals(4, resources.size());
     for (Resource resource : resources) {
       Long id = (Long) resource.getPropertyValue(ClusterResourceProvider.CLUSTER_ID_PROPERTY_ID);
       String name = (String) resource.getPropertyValue(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID);
@@ -2605,12 +2617,14 @@ public class ClusterResourceProviderTest {
         getPropertyValue(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID));
 
     // verify
-    verify(managementController);
+    verify(managementController, clusters);
   }
 
   @Test
   public void testUpdateResources() throws Exception{
     Resource.Type type = Resource.Type.Cluster;
+
+    Clusters clusters = createMock(Clusters.class);
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
@@ -2633,8 +2647,16 @@ public class ClusterResourceProviderTest {
 
     expect(managementController.getClusterUpdateResults(anyObject(ClusterRequest.class))).andReturn(null).anyTimes();
 
+    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
+
+    expect(clusters.checkPermission("Cluster102", false)).andReturn(true).anyTimes();
+    expect(clusters.checkPermission("Cluster102", true)).andReturn(true).anyTimes();
+    expect(clusters.checkPermission("Cluster103", false)).andReturn(true).anyTimes();
+    expect(clusters.checkPermission("Cluster103", true)).andReturn(true).anyTimes();
+    expect(clusters.checkPermission(null, false)).andReturn(true).anyTimes();
+
     // replay
-    replay(managementController, response);
+    replay(managementController, response, clusters);
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         type,
@@ -2671,12 +2693,13 @@ public class ClusterResourceProviderTest {
     Assert.assertEquals(predicate, lastEvent.getPredicate());
 
     // verify
-    verify(managementController, response);
+    verify(managementController, response, clusters);
   }
 
   @Test
   public void testUpdateWithConfiguration() throws Exception {
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    Clusters clusters = createMock(Clusters.class);
     RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
 
     Set<ClusterResponse> nameResponse = new HashSet<ClusterResponse>();
@@ -2691,9 +2714,13 @@ public class ClusterResourceProviderTest {
         eq(mapRequestProps))).andReturn(response).times(1);
     expect(managementController.getClusterUpdateResults(anyObject(ClusterRequest.class))).andReturn(null).anyTimes();
 
+    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
+
+    expect(clusters.checkPermission("Cluster100", true)).andReturn(true).anyTimes();
+    expect(clusters.checkPermission("Cluster100", false)).andReturn(true).anyTimes();
 
     // replay
-    replay(managementController, response);
+    replay(managementController, response, clusters);
 
     Map<String, Object> properties = new LinkedHashMap<String, Object>();
 
@@ -2743,7 +2770,7 @@ public class ClusterResourceProviderTest {
     Assert.assertEquals(predicate, lastEvent.getPredicate());
 
     // verify
-    verify(managementController, response);
+    verify(managementController, response, clusters);
   }
 
   @Test
@@ -2751,6 +2778,7 @@ public class ClusterResourceProviderTest {
     Resource.Type type = Resource.Type.Cluster;
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    Clusters clusters = createMock(Clusters.class);
     RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
 
     // set expectations
@@ -2759,8 +2787,13 @@ public class ClusterResourceProviderTest {
     managementController.deleteCluster(
         AbstractResourceProviderTest.Matcher.getClusterRequest(103L, null, null, null));
 
+    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
+
+    expect(clusters.checkPermission("Cluster102", false)).andReturn(true).anyTimes();
+    expect(clusters.checkPermission(null, false)).andReturn(true).anyTimes();
+
     // replay
-    replay(managementController, response);
+    replay(managementController, response, clusters);
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         type,
@@ -2790,7 +2823,7 @@ public class ClusterResourceProviderTest {
     Assert.assertNull(lastEvent.getRequest());
 
     // verify
-    verify(managementController, response);
+    verify(managementController, response, clusters);
   }
 
   private class TestClusterResourceProvider extends ClusterResourceProvider {

@@ -29,6 +29,7 @@ import org.apache.ambari.server.orm.entities.ResourceEntity;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -96,6 +97,22 @@ public class PrivilegeDAO {
 
     List<PrivilegeEntity> privilegeEntities = daoUtils.selectList(query);
     return !(privilegeEntities == null || privilegeEntities.isEmpty());
+  }
+
+  /**
+   * Find the privileges entities for the given list of principals
+   *
+   * @param principalList  the list of principal entities
+   *
+   * @return the list of privileges matching the query
+   */
+  public List<PrivilegeEntity> findAllByPrincipal(List<PrincipalEntity> principalList) {
+    if (principalList == null || principalList.isEmpty()) {
+      return Collections.emptyList();
+    }
+    TypedQuery<PrivilegeEntity> query = entityManagerProvider.get().createQuery("SELECT privilege FROM PrivilegeEntity privilege WHERE privilege.principal IN :principalList", PrivilegeEntity.class);
+    query.setParameter("principalList", principalList);
+    return daoUtils.selectList(query);
   }
 
   /**

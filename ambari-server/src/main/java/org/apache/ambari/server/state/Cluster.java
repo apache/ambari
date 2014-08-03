@@ -26,6 +26,7 @@ import java.util.concurrent.locks.ReadWriteLock;
 import com.google.common.collect.ListMultimap;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.ClusterResponse;
+import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.scheduler.RequestExecution;
 import org.apache.ambari.server.controller.ServiceConfigVersionResponse;
@@ -75,7 +76,7 @@ public interface Cluster {
 
   /**
    * Remove ServiceComponentHost from cluster
-   * @param ServiceComponentHost
+   * @param svcCompHost
    */  
   public void removeServiceComponentHost(ServiceComponentHost svcCompHost) throws AmbariException;
   
@@ -344,5 +345,14 @@ public interface Cluster {
    */
   public Collection<Alert> getAlerts();
 
-
+  /**
+   * Determine whether or not access to this cluster resource should be allowed based
+   * on the given privilege.
+   *
+   * @param privilegeEntity  the privilege
+   * @param readOnly         indicate whether or not this check is for a read only operation
+   *
+   * @return true if the access to this cluster is allowed
+   */
+  public boolean checkPermission(PrivilegeEntity privilegeEntity, boolean readOnly);
 }

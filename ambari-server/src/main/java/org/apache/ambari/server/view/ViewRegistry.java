@@ -31,14 +31,13 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.orm.dao.MemberDAO;
 import org.apache.ambari.server.orm.dao.PrivilegeDAO;
-import org.apache.ambari.server.orm.dao.ResourceDAO;
-import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.dao.ViewDAO;
 import org.apache.ambari.server.orm.dao.ViewInstanceDAO;
 import org.apache.ambari.server.orm.entities.GroupEntity;
 import org.apache.ambari.server.orm.entities.MemberEntity;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
+import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
@@ -48,6 +47,8 @@ import org.apache.ambari.server.orm.entities.ViewInstanceDataEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.apache.ambari.server.orm.entities.ViewParameterEntity;
 import org.apache.ambari.server.orm.entities.ViewResourceEntity;
+import org.apache.ambari.server.security.SecurityHelper;
+import org.apache.ambari.server.security.authorization.AmbariGrantedAuthority;
 import org.apache.ambari.server.view.configuration.EntityConfig;
 import org.apache.ambari.server.view.configuration.InstanceConfig;
 import org.apache.ambari.server.view.configuration.ParameterConfig;
@@ -69,6 +70,7 @@ import org.apache.commons.lang.StringUtils;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.core.GrantedAuthority;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -120,12 +122,6 @@ public class ViewRegistry {
       new HashMap<ViewEntity, Map<String, ViewInstanceEntity>>();
 
   /**
-   * Mapping of view instances keyed by resource id.
-   */
-  private Map<Long, ViewInstanceEntity> viewInstances =
-      new HashMap<Long, ViewInstanceEntity>();
-
-  /**
    * Mapping of view names to sub-resources.
    */
   private final Map<String, Set<SubResourceDefinition>> subResourceDefinitionsMap =
@@ -163,16 +159,6 @@ public class ViewRegistry {
   private static ViewInstanceDAO instanceDAO;
 
   /**
-   * Admin resource data access object.
-   */
-  private static ResourceDAO resourceDAO;
-
-  /**
-   * Admin resource type data access object.
-   */
-  private static ResourceTypeDAO resourceTypeDAO;
-
-  /**
    * User data access object.
    */
   private static UserDAO userDAO;
@@ -186,6 +172,11 @@ public class ViewRegistry {
    * Privilege data access object.
    */
   private static PrivilegeDAO privilegeDAO;
+
+  /**
+   * Helper with security related utilities.
+   */
+  private static SecurityHelper securityHelper;
 
 
   // ----- Constructors ------------------------------------------------------
@@ -268,17 +259,6 @@ public class ViewRegistry {
   }
 
   /**
-   * Get the instance definition for the given resource id.
-   *
-   * @param resourceId  the resource id.
-   *
-   * @return the view instance for the given resource id
-   */
-  public ViewInstanceEntity getInstanceDefinition(Long resourceId) {
-    return viewInstances.get(resourceId);
-  }
-
-  /**
     * Get the instance definition for the given view name and instance name.
     *
     * @param viewName      the view name
@@ -312,7 +292,6 @@ public class ViewRegistry {
       view.onCreate(instanceDefinition);
     }
     instanceDefinitions.put(instanceDefinition.getName(), instanceDefinition);
-    viewInstances.put(instanceDefinition.getResource().getId(), instanceDefinition);
   }
 
   /**
@@ -332,7 +311,6 @@ public class ViewRegistry {
           view.onDestroy(instanceDefinition);
         }
         instanceDefinitions.remove(instanceName);
-        viewInstances.remove(instanceDefinition.getResource().getId());
       }
     }
   }
@@ -679,6 +657,42 @@ public class ViewRegistry {
       }
     }
     return false;
+  }
+
+  /**
+   * Determine whether or not access to the view instance resource identified
+   * by the given instance name should be allowed based on the permissions
+   * granted to the current user.
+   *
+   * @param viewName      the view name
+   * @param version       the view version
+   * @param instanceName  the name of the view instance resource
+   * @param readOnly      indicate whether or not this is for a read only operation
+   *
+   * @return true if the access to the view instance is allowed
+   */
+  public boolean checkPermission(String viewName, String version, String instanceName, boolean readOnly) {
+
+    ViewInstanceEntity instanceEntity =
+        instanceName == null ? null : getInstanceDefinition(viewName, version, instanceName);
+
+    return checkPermission(instanceEntity, readOnly);
+  }
+
+  /**
+   * Determine whether or not access to the given view instance should be allowed based
+   * on the permissions granted to the current user.
+   *
+   * @param instanceEntity  the view instance entity
+   * @param readOnly        indicate whether or not this is for a read only operation
+   *
+   * @return true if the access to the view instance is allowed
+   */
+  public boolean checkPermission(ViewInstanceEntity instanceEntity, boolean readOnly) {
+
+    ResourceEntity resourceEntity = instanceEntity == null ? null : instanceEntity.getResource();
+
+    return (resourceEntity == null && readOnly) || checkAuthorization(resourceEntity);
   }
 
 
@@ -1143,27 +1157,52 @@ public class ViewRegistry {
     }
   }
 
+  // check that the current user is authorized to access the given view instance resource
+  private boolean checkAuthorization(ResourceEntity resourceEntity) {
+    for (GrantedAuthority grantedAuthority : securityHelper.getCurrentAuthorities()) {
+      if (grantedAuthority instanceof AmbariGrantedAuthority) {
+
+        AmbariGrantedAuthority authority       = (AmbariGrantedAuthority) grantedAuthority;
+        PrivilegeEntity privilegeEntity = authority.getPrivilegeEntity();
+        Integer                permissionId    = privilegeEntity.getPermission().getId();
+
+        // admin has full access
+        if (permissionId.equals(PermissionEntity.AMBARI_ADMIN_PERMISSION)) {
+          return true;
+        }
+        if (resourceEntity != null) {
+          // VIEW.USE for the given view instance resource.
+          if (privilegeEntity.getResource().equals(resourceEntity)) {
+            if (permissionId.equals(PermissionEntity.VIEW_USE_PERMISSION)) {
+              return true;
+            }
+          }
+        }
+      }
+    }
+    // TODO : should we log this?
+    return false;
+  }
+
   /**
    * Static initialization of DAO.
    *
-   * @param viewDAO          view data access object
-   * @param instanceDAO      view instance data access object
-   * @param resourceDAO      resource data access object
-   * @param resourceTypeDAO  resource type data access object
-   * @param userDAO          user data access object
-   * @param memberDAO        group member data access object
-   * @param privilegeDAO     the privilege data access object
+   * @param viewDAO         view data access object
+   * @param instanceDAO     view instance data access object
+   * @param userDAO         user data access object
+   * @param memberDAO       group member data access object
+   * @param privilegeDAO    the privilege data access object
+   * @param securityHelper  the security helper
    */
-  public static void init(ViewDAO viewDAO, ViewInstanceDAO instanceDAO, ResourceDAO resourceDAO,
-                          ResourceTypeDAO resourceTypeDAO, UserDAO userDAO, MemberDAO memberDAO,
-                          PrivilegeDAO privilegeDAO) {
+  public static void init(ViewDAO viewDAO, ViewInstanceDAO instanceDAO,
+                          UserDAO userDAO, MemberDAO memberDAO, PrivilegeDAO privilegeDAO,
+                          SecurityHelper securityHelper) {
     setViewDAO(viewDAO);
     setInstanceDAO(instanceDAO);
-    setResourceDAO(resourceDAO);
-    setResourceTypeDAO(resourceTypeDAO);
     setUserDAO(userDAO);
     setMemberDAO(memberDAO);
     setPrivilegeDAO(privilegeDAO);
+    setSecurityHelper(securityHelper);
   }
 
   /**
@@ -1182,24 +1221,6 @@ public class ViewRegistry {
    */
   protected static void setInstanceDAO(ViewInstanceDAO instanceDAO) {
     ViewRegistry.instanceDAO = instanceDAO;
-  }
-
-  /**
-   * Set the resource DAO.
-   *
-   * @param resourceDAO  the resource DAO
-   */
-  protected static void setResourceDAO(ResourceDAO resourceDAO) {
-    ViewRegistry.resourceDAO = resourceDAO;
-  }
-
-  /**
-   * Set the resource type DAO.
-   *
-   * @param resourceTypeDAO  the resource type DAO
-   */
-  protected static void setResourceTypeDAO(ResourceTypeDAO resourceTypeDAO) {
-    ViewRegistry.resourceTypeDAO = resourceTypeDAO;
   }
 
   /**
@@ -1227,6 +1248,15 @@ public class ViewRegistry {
    */
   protected static void setPrivilegeDAO(PrivilegeDAO privilegeDAO) {
     ViewRegistry.privilegeDAO = privilegeDAO;
+  }
+
+  /**
+   * Set the security helper.
+   *
+   * @param securityHelper  the security helper
+   */
+  protected static void setSecurityHelper(SecurityHelper securityHelper) {
+    ViewRegistry.securityHelper = securityHelper;
   }
 
 

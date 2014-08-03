@@ -129,6 +129,8 @@ public class ViewPrivilegeResourceProviderTest {
     expect(principalEntity.getPrincipalType()).andReturn(principalTypeEntity).anyTimes();
     expect(principalTypeEntity.getName()).andReturn("USER").anyTimes();
 
+    expect(permissionDAO.findById(PermissionEntity.VIEW_USE_PERMISSION)).andReturn(permissionEntity);
+
     expect(userDAO.findUsersByPrincipal(principalEntities)).andReturn(userEntities);
     expect(groupDAO.findGroupsByPrincipal(principalEntities)).andReturn(Collections.<GroupEntity>emptyList());
 

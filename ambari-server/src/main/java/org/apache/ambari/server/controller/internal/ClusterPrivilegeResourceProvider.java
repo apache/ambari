@@ -17,12 +17,15 @@
  */
 package org.apache.ambari.server.controller.internal;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.GroupEntity;
+import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
+import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 
 import java.util.Collections;
@@ -68,6 +71,16 @@ public class ClusterPrivilegeResourceProvider extends PrivilegeResourceProvider<
     keyPropertyIds.put(Resource.Type.ClusterPrivilege, PRIVILEGE_ID_PROPERTY_ID);
   }
 
+  /**
+   * The built-in VIEW.USE permission.
+   */
+  private final PermissionEntity clusterReadPermission;
+
+  /**
+   * The built-in VIEW.USE permission.
+   */
+  private final PermissionEntity clusterOperatePermission;
+
 
   // ----- Constructors ------------------------------------------------------
 
@@ -76,6 +89,8 @@ public class ClusterPrivilegeResourceProvider extends PrivilegeResourceProvider<
    */
   public ClusterPrivilegeResourceProvider() {
     super(propertyIds, keyPropertyIds, Resource.Type.ClusterPrivilege);
+    clusterReadPermission = permissionDAO.findById(PermissionEntity.CLUSTER_READ_PERMISSION);
+    clusterOperatePermission = permissionDAO.findById(PermissionEntity.CLUSTER_OPERATE_PERMISSION);
   }
 
 
@@ -136,6 +151,13 @@ public class ClusterPrivilegeResourceProvider extends PrivilegeResourceProvider<
       setResourceProperty(resource, PRIVILEGE_CLUSTER_NAME_PROPERTY_ID, clusterEntity.getClusterName(), requestedIds);
     }
     return resource;
+  }
+
+  @Override
+  protected PermissionEntity getPermission(String permissionName, ResourceEntity resourceEntity) throws AmbariException {
+    return (permissionName.equals(PermissionEntity.CLUSTER_READ_PERMISSION_NAME)) ? clusterReadPermission :
+        permissionName.equals(PermissionEntity.CLUSTER_OPERATE_PERMISSION_NAME) ? clusterOperatePermission :
+        super.getPermission(permissionName, resourceEntity);
   }
 }
 

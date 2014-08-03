@@ -25,9 +25,8 @@
   <http use-expressions="true"
         disable-url-rewriting="true" entry-point-ref="ambariEntryPoint">
     <http-basic entry-point-ref="ambariEntryPoint"/>
-    <intercept-url pattern="/**" access="isAuthenticated()" method="GET"/>
-    <intercept-url pattern="/**" access="hasRole('ADMIN')"/>
-    <custom-filter ref="internalTokenAuthenticationFilter" after="BASIC_AUTH_FILTER"/>
+    <intercept-url pattern="/**" access="isAuthenticated()"/>
+    <custom-filter ref="ambariAuthorizationFilter" after="BASIC_AUTH_FILTER"/>
   </http>
 
   <!--<ldap-server id="ldapServer" root="dc=ambari,dc=apache,dc=org"/>-->

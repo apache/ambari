@@ -23,7 +23,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 
-import org.apache.ambari.server.orm.entities.RoleEntity;
+import org.apache.ambari.server.orm.entities.PermissionEntity;
+import org.apache.ambari.server.orm.entities.PrincipalEntity;
+import org.apache.ambari.server.orm.entities.PrincipalTypeEntity;
+import org.apache.ambari.server.orm.entities.PrivilegeEntity;
+import org.apache.ambari.server.orm.entities.ResourceEntity;
+import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -34,23 +39,60 @@ import org.springframework.security.core.context.SecurityContextHolder;
 public class AuthorizationHelperTest {
 
   @Test
-  public void testConvertRolesToAuthorities() throws Exception {
-    Collection<RoleEntity> roles = new ArrayList<RoleEntity>();
-    RoleEntity role = new RoleEntity();
-    role.setRoleName("admin");
-    roles.add(role);
-    role = new RoleEntity();
-    role.setRoleName("user");
-    roles.add(role);
+  public void testConvertPrivilegesToAuthorities() throws Exception {
+    Collection<PrivilegeEntity> privilegeEntities = new ArrayList<PrivilegeEntity>();
 
-    Collection<GrantedAuthority> authorities = new AuthorizationHelper().convertRolesToAuthorities(roles);
+    ResourceTypeEntity resourceTypeEntity = new ResourceTypeEntity();
+    resourceTypeEntity.setId(1);
+    resourceTypeEntity.setName("CLUSTER");
+
+    ResourceEntity resourceEntity = new ResourceEntity();
+    resourceEntity.setId(1L);
+    resourceEntity.setResourceType(resourceTypeEntity);
+
+    PrincipalTypeEntity principalTypeEntity = new PrincipalTypeEntity();
+    principalTypeEntity.setId(1);
+    principalTypeEntity.setName("USER");
+
+    PrincipalEntity principalEntity = new PrincipalEntity();
+    principalEntity.setPrincipalType(principalTypeEntity);
+    principalEntity.setId(1L);
+
+    PermissionEntity permissionEntity1 = new PermissionEntity();
+    permissionEntity1.setPermissionName("Permission1");
+    permissionEntity1.setResourceType(resourceTypeEntity);
+    permissionEntity1.setId(2);
+    permissionEntity1.setPermissionName("CLUSTER.READ");
+
+    PermissionEntity permissionEntity2 = new PermissionEntity();
+    permissionEntity2.setPermissionName("Permission1");
+    permissionEntity2.setResourceType(resourceTypeEntity);
+    permissionEntity2.setId(3);
+    permissionEntity2.setPermissionName("CLUSTER.OPERATE");
+
+    PrivilegeEntity privilegeEntity1 = new PrivilegeEntity();
+    privilegeEntity1.setId(1);
+    privilegeEntity1.setPermission(permissionEntity1);
+    privilegeEntity1.setPrincipal(principalEntity);
+    privilegeEntity1.setResource(resourceEntity);
+
+    PrivilegeEntity privilegeEntity2 = new PrivilegeEntity();
+    privilegeEntity2.setId(1);
+    privilegeEntity2.setPermission(permissionEntity2);
+    privilegeEntity2.setPrincipal(principalEntity);
+    privilegeEntity2.setResource(resourceEntity);
+
+    privilegeEntities.add(privilegeEntity1);
+    privilegeEntities.add(privilegeEntity2);
+
+    Collection<GrantedAuthority> authorities = new AuthorizationHelper().convertPrivilegesToAuthorities(privilegeEntities);
 
     assertEquals("Wrong number of authorities", 2, authorities.size());
     Iterator<GrantedAuthority> iterator = authorities.iterator();
-    assertEquals("Wrong authority name", "ADMIN", iterator.next().getAuthority());
-
+    assertEquals("Wrong authority name", "CLUSTER.READ@1", iterator.next().getAuthority());
+    assertEquals("Wrong authority name", "CLUSTER.OPERATE@1", iterator.next().getAuthority());
   }
-  
+
   @Test
   public void testAuthName() throws Exception {
     String user = AuthorizationHelper.getAuthenticatedName();

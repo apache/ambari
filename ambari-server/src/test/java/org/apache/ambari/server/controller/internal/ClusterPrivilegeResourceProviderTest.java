@@ -117,8 +117,12 @@ public class ClusterPrivilegeResourceProviderTest {
     expect(userDAO.findUsersByPrincipal(principalEntities)).andReturn(userEntities);
     expect(groupDAO.findGroupsByPrincipal(principalEntities)).andReturn(Collections.<GroupEntity>emptyList());
 
+    expect(permissionDAO.findById(2)).andReturn(permissionEntity);
+    expect(permissionDAO.findById(3)).andReturn(permissionEntity);
+
     replay(privilegeDAO, userDAO, groupDAO, principalDAO, permissionDAO, resourceDAO, clusterDAO, privilegeEntity,
         clusterEntity, resourceEntity, userEntity, principalEntity, permissionEntity, principalTypeEntity);
+
 
     PrivilegeResourceProvider provider = new ClusterPrivilegeResourceProvider();
     Set<Resource> resources = provider.getResources(PropertyHelper.getReadRequest(), null);
@@ -133,20 +137,31 @@ public class ClusterPrivilegeResourceProviderTest {
 
     verify(privilegeDAO, userDAO, groupDAO, principalDAO, permissionDAO, resourceDAO, clusterDAO, privilegeEntity,
         resourceEntity, clusterEntity, userEntity, principalEntity, permissionEntity, principalTypeEntity);
+    reset(privilegeDAO, userDAO, groupDAO, principalDAO, permissionDAO, resourceDAO, clusterDAO);
   }
 
   @Test
   public void testUpdateResources() throws Exception {
-    PrivilegeResourceProvider provider = new ClusterPrivilegeResourceProvider();
 
+    PermissionEntity permissionEntity = createNiceMock(PermissionEntity.class);
     Request request = createNiceMock(Request.class);
 
+    expect(permissionEntity.getPermissionName()).andReturn("CLUSTER.OPERATE").anyTimes();
+    expect(permissionDAO.findById(2)).andReturn(permissionEntity);
+    expect(permissionDAO.findById(3)).andReturn(permissionEntity);
+
+    replay(permissionDAO, permissionEntity, request);
+
+    PrivilegeResourceProvider provider = new ClusterPrivilegeResourceProvider();
     try {
       provider.updateResources(request, null);
       Assert.fail("expected UnsupportedOperationException");
     } catch (UnsupportedOperationException e) {
       // expected
     }
+
+    verify(permissionDAO, permissionEntity, request);
+    reset(permissionDAO);
   }
 }
 

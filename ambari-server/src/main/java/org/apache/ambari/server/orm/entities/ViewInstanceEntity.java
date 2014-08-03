@@ -43,14 +43,12 @@ import javax.persistence.Transient;
 import javax.persistence.UniqueConstraint;
 
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.security.SecurityHelper;
+import org.apache.ambari.server.security.SecurityHelperImpl;
 import org.apache.ambari.server.view.configuration.InstanceConfig;
 import org.apache.ambari.view.ResourceProvider;
 import org.apache.ambari.view.ViewDefinition;
 import org.apache.ambari.view.ViewInstanceDefinition;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 
 /**
  * Represents an instance of a View.
@@ -179,8 +177,9 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
   /**
    * Helper class.
    */
+  // TODO : we should @Inject this.
   @Transient
-  private UserNameProvider userNameProvider = new UserNameProvider();
+  private SecurityHelper securityHelper = SecurityHelperImpl.getInstance();
 
 
   // ----- Constructors ------------------------------------------------------
@@ -647,7 +646,7 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
    * @return the current user name; empty String if user is not known
    */
   public String getUsername() {
-    return userNameProvider.getUsername();
+    return securityHelper.getCurrentUserName();
   }
 
   /**
@@ -698,7 +697,7 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
   // ----- helper methods ----------------------------------------------------
 
   // get the current user name
-  private String getCurrentUserName() {
+  public String getCurrentUserName() {
     String currentUserName = getUsername();
 
     return currentUserName == null || currentUserName.length() == 0 ?
@@ -706,33 +705,11 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
   }
 
   /**
-   * Set the user name provider helper.
+   * Set the security helper.
    *
-   * @param userNameProvider the helper
+   * @param securityHelper the helper
    */
-  protected void setUserNameProvider(UserNameProvider userNameProvider) {
-    this.userNameProvider = userNameProvider;
-  }
-
-
-  // ----- inner class : UserNameProvider ----------------------------------
-
-  /**
-   * User name provider helper class.
-   */
-  protected static class UserNameProvider {
-    public String getUsername() {
-      SecurityContext ctx = SecurityContextHolder.getContext();
-      Authentication authentication = ctx == null ? null : ctx.getAuthentication();
-      Object principal = authentication == null ? null : authentication.getPrincipal();
-
-      String username;
-      if (principal instanceof UserDetails) {
-        username = ((UserDetails) principal).getUsername();
-      } else {
-        username = principal == null ? "" : principal.toString();
-      }
-      return username;
-    }
+  protected void setSecurityHelper(SecurityHelper securityHelper) {
+    this.securityHelper = securityHelper;
   }
 }
