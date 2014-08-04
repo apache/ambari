@@ -106,7 +106,7 @@ App.MainAppsItemDagView = Em.View.extend({
   allreduce:false,
 
   updateTimeline:function () {
-    var url = App.get('testMode') ? '/data/apps/jobs/timeline.json' : App.get('apiPrefix') + "/jobhistory/task?workflowId=" + this.get('controller.content.id') + "&width=" + this.$().width() + "&startTime=" + this.get('controller.content.startTime') + "&endTime=" + (this.get('controller.content.startTime')+this.get('controller.content.elapsedTime'));
+    var url = App.get('testMode') ? '/data/apps/jobs/timeline.json' : App.get('apiPrefix') + "/jobhistory/task?workflowId=" + this.get('controller.content.id') + "&width=" + Math.ceil(this.$().width()) + "&startTime=" + this.get('controller.content.startTime') + "&endTime=" + (this.get('controller.content.startTime')+this.get('controller.content.elapsedTime'));
     var mapper = App.jobTimeLineMapper;
     mapper.set('model', this);
     var self = this;
@@ -115,7 +115,7 @@ App.MainAppsItemDagView = Em.View.extend({
         self.set('loadJobTimeline', true);
       }
     });
-    url = App.get('testMode') ? '/data/apps/jobs/timeline.json' : App.get('apiPrefix') + "/jobhistory/task?width=" + this.$().width() + "&startTime=" + this.get('controller.content.startTime') + "&endTime=" + (this.get('controller.content.startTime')+this.get('controller.content.elapsedTime'));
+    url = App.get('testMode') ? '/data/apps/jobs/timeline.json' : App.get('apiPrefix') + "/jobhistory/task?width=" + Math.ceil(this.$().width()) + "&startTime=" + this.get('controller.content.startTime') + "&endTime=" + (this.get('controller.content.startTime')+this.get('controller.content.elapsedTime'));
     var mapper = App.taskTimeLineMapper;
     mapper.set('model', this);
     var self = this;
