@@ -26,7 +26,6 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.lang.reflect.Method;
@@ -44,13 +43,8 @@ import junit.framework.Assert;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StackAccessException;
-import org.apache.ambari.server.api.rest.BootStrapResource;
 import org.apache.ambari.server.api.util.StackExtensionHelper;
-import org.apache.ambari.server.bootstrap.BootStrapImpl;
-import org.apache.ambari.server.bootstrap.SshHostInfo;
-import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.metadata.ActionMetadata;
-import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.state.AutoDeployInfo;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.CustomCommandDefinition;
@@ -74,7 +68,6 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.Singleton;
 
 public class AmbariMetaInfoTest {
 
@@ -89,6 +82,7 @@ public class AmbariMetaInfoTest {
   private static final String OS_TYPE = "centos5";
   private static final String REPO_ID = "HDP-UTILS-1.1.0.15";
   private static final String PROPERTY_NAME = "hbase.regionserver.msginterval";
+  private static final String SHARED_PROPERTY_NAME = "content";
 
   private static final String NON_EXT_VALUE = "XXX";
 
@@ -101,6 +95,8 @@ public class AmbariMetaInfoTest {
   private final static Logger LOG =
       LoggerFactory.getLogger(AmbariMetaInfoTest.class);
   private static final String FILE_NAME = "hbase-site.xml";
+  private static final String HADOOP_ENV_FILE_NAME = "hadoop-env.xml";
+  private static final String HDFS_LOG4J_FILE_NAME = "hdfs-log4j.xml";
   
   private Injector injector;
 
@@ -443,17 +439,31 @@ public class AmbariMetaInfoTest {
   }
 
   @Test
-  public void testGetProperty() throws Exception {
-    PropertyInfo property = metaInfo.getProperty(STACK_NAME_HDP, STACK_VERSION_HDP, SERVICE_NAME_HDFS, PROPERTY_NAME);
-    Assert.assertEquals(PROPERTY_NAME, property.getName());
-    Assert.assertEquals(FILE_NAME, property.getFilename());
+  public void testGetPropertiesNoName() throws Exception {
+    Set<PropertyInfo> properties = metaInfo.getPropertiesByName(STACK_NAME_HDP, STACK_VERSION_HDP, SERVICE_NAME_HDFS, PROPERTY_NAME);
+    Assert.assertEquals(1, properties.size());
+    for (PropertyInfo propertyInfo : properties) {
+      Assert.assertEquals(PROPERTY_NAME, propertyInfo.getName());
+      Assert.assertEquals(FILE_NAME, propertyInfo.getFilename());
+    }
 
     try {
-      metaInfo.getProperty(STACK_NAME_HDP, STACK_VERSION_HDP, SERVICE_NAME_HDFS, NON_EXT_VALUE);
+      metaInfo.getPropertiesByName(STACK_NAME_HDP, STACK_VERSION_HDP, SERVICE_NAME_HDFS, NON_EXT_VALUE);
     } catch (StackAccessException e) {
       Assert.assertTrue(e instanceof StackAccessException);
     }
 
+  }
+
+  @Test
+  public void testGetPropertiesSharedName() throws Exception {
+    Set<PropertyInfo> properties = metaInfo.getPropertiesByName(STACK_NAME_HDP, STACK_VERSION_HDP_02, SERVICE_NAME_HDFS, SHARED_PROPERTY_NAME);
+    Assert.assertEquals(2, properties.size());
+    for (PropertyInfo propertyInfo : properties) {
+      Assert.assertEquals(SHARED_PROPERTY_NAME, propertyInfo.getName());
+      Assert.assertTrue(propertyInfo.getFilename().equals(HADOOP_ENV_FILE_NAME)
+        || propertyInfo.getFilename().equals(HDFS_LOG4J_FILE_NAME));
+    }
   }
 
   @Test
@@ -657,7 +667,7 @@ public class AmbariMetaInfoTest {
   public void testPropertyCount() throws Exception {
     Set<PropertyInfo> properties = metaInfo.getProperties(STACK_NAME_HDP, STACK_VERSION_HDP_02, SERVICE_NAME_HDFS);
     // 3 empty properties
-    Assert.assertEquals(83, properties.size());
+    Assert.assertEquals(99, properties.size());
   }
 
   @Test

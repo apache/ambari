@@ -668,7 +668,7 @@ public class AmbariMetaInfo {
     return propertiesResult;
   }
 
-  public PropertyInfo getProperty(String stackName, String version, String serviceName, String propertyName)
+  public Set<PropertyInfo> getPropertiesByName(String stackName, String version, String serviceName, String propertyName)
       throws AmbariException {
     Set<PropertyInfo> properties = getProperties(stackName, version, serviceName);
 
@@ -678,14 +678,14 @@ public class AmbariMetaInfo {
           + ", serviceName=" + serviceName
           + ", propertyName=" + propertyName);
 
-    PropertyInfo propertyResult = null;
+    Set<PropertyInfo> propertyResult = new HashSet<PropertyInfo>();
 
     for (PropertyInfo property : properties) {
       if (property.getName().equals(propertyName))
-        propertyResult = property;
+        propertyResult.add(property);
     }
 
-    if (propertyResult == null)
+    if (propertyResult.isEmpty())
       throw new StackAccessException("stackName=" + stackName
           + ", stackVersion=" + version
           + ", serviceName=" + serviceName

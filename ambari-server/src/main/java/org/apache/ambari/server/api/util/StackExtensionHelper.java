@@ -23,10 +23,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.Set;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -196,20 +198,34 @@ public class StackExtensionHelper {
     populateComponents(mergedServiceInfo, parentService, childService);
 
     // Add child properties not deleted
-    List<String> deleteList = new ArrayList<String>();
-    List<String> appendList = new ArrayList<String>();
+    Map<String, Set<String>> deleteMap = new HashMap<String, Set<String>>();
+    Map<String, Set<String>> appendMap = new HashMap<String, Set<String>>();
     for (PropertyInfo propertyInfo : childService.getProperties()) {
       if (!propertyInfo.isDeleted()) {
         mergedServiceInfo.getProperties().add(propertyInfo);
-        appendList.add(propertyInfo.getName());
+        if (appendMap.containsKey(propertyInfo.getName())) {
+          appendMap.get(propertyInfo.getName()).add(propertyInfo.getFilename());
+        } else {
+          Set<String> filenames = new HashSet<String>();
+          filenames.add(propertyInfo.getFilename());
+          appendMap.put(propertyInfo.getName(), filenames);
+        }
       } else {
-        deleteList.add(propertyInfo.getName());
+        if (deleteMap.containsKey(propertyInfo.getName())) {
+          deleteMap.get(propertyInfo.getName()).add(propertyInfo.getFilename());
+        } else {
+          Set<String> filenames = new HashSet<String>();
+          filenames.add(propertyInfo.getFilename());
+          deleteMap.put(propertyInfo.getName(), filenames);
+        }
       }
     }
     // Add all parent properties
     for (PropertyInfo parentPropertyInfo : parentService.getProperties()) {
-      if (!deleteList.contains(parentPropertyInfo.getName()) && !appendList
-          .contains(parentPropertyInfo.getName())) {
+      if (!deleteMap.containsKey(parentPropertyInfo.getName()) && !(appendMap
+          .containsKey(parentPropertyInfo.getName())
+        && appendMap.get(parentPropertyInfo.getName())
+          .contains(parentPropertyInfo.getFilename()))) {
         mergedServiceInfo.getProperties().add(parentPropertyInfo);
       }
     }

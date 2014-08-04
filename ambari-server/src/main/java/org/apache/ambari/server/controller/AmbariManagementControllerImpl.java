@@ -3262,24 +3262,21 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   private Set<StackConfigurationResponse> getStackConfigurations(
       StackConfigurationRequest request) throws AmbariException {
 
-    Set<StackConfigurationResponse> response;
+    Set<StackConfigurationResponse> response = new HashSet<StackConfigurationResponse>();
 
     String stackName = request.getStackName();
     String stackVersion = request.getStackVersion();
     String serviceName = request.getServiceName();
     String propertyName = request.getPropertyName();
 
+    Set<PropertyInfo> properties;
     if (propertyName != null) {
-      PropertyInfo property = ambariMetaInfo.getProperty(stackName, stackVersion, serviceName, propertyName);
-      response = Collections.singleton(property.convertToResponse());
+      properties = ambariMetaInfo.getPropertiesByName(stackName, stackVersion, serviceName, propertyName);
     } else {
-
-      Set<PropertyInfo> properties = ambariMetaInfo.getProperties(stackName, stackVersion, serviceName);
-      response = new HashSet<StackConfigurationResponse>();
-
-      for (PropertyInfo property: properties) {
-        response.add(property.convertToResponse());
-      }
+      properties = ambariMetaInfo.getProperties(stackName, stackVersion, serviceName);
+    }
+    for (PropertyInfo property: properties) {
+      response.add(property.convertToResponse());
     }
 
     return response;
