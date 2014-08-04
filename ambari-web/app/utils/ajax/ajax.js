@@ -1765,6 +1765,14 @@ var urls = {
         url: data.url
       }
     }
+  },
+  'service.serviceConfigVersions.get': {
+    real: '/clusters/{clusterName}/configurations/serviceconfigversions?service_name={serviceName}&fields=serviceconfigversion,user,appliedtime,createtime,service_name&minimal_response=true',
+    mock: ''
+  },
+  'service.serviceConfigVersion.get': {
+    real: '/clusters/{clusterName}/configurations/serviceconfigversions?service_name={serviceName}&serviceconfigversion={serviceConfigVersion}',
+    mock: ''
   }
 };
 /**

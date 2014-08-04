@@ -250,8 +250,8 @@ App.MainHiveJobDetailsView = Em.View.extend({
         read : v.get('recordReadCount') == null ? null : Em.I18n.t('jobs.hive.tez.records.count').format(v.get('recordReadCount')),
         write : v.get('recordWriteCount') == null ? null : Em.I18n.t('jobs.hive.tez.records.count').format(v.get('recordWriteCount'))
       },
-      started: v.get('startTime') ? dateUtils.dateFormat(v.get('startTime'), true, true) : '',
-      ended: v.get('endTime') ? dateUtils.dateFormat(v.get('endTime'), true, true) : '',
+      started: v.get('startTime') ? dateUtils.dateFormat(v.get('startTime'), 'ddd, MMM DD, YYYY HH:mm:ss:SSS') : '',
+      ended: v.get('endTime') ? dateUtils.dateFormat(v.get('endTime'), 'ddd, MMM DD, YYYY HH:mm:ss:SSS') : '',
       status: status
     };
   }.property('selectedVertex.fileReadOps', 'selectedVertex.fileWriteOps', 'selectedVertex.hdfsReadOps', 'selectedVertex.hdfdWriteOps',

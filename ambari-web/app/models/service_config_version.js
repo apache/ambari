@@ -30,11 +30,18 @@ App.ServiceConfigVersion = DS.Model.extend({
   notes: DS.attr('string'),
   service: DS.belongsTo('App.Service'),
   index: DS.attr('number'),
+  briefNotes: function () {
+    var length = this.get('isCurrent') ? 20 : 40;
+    return (typeof this.get('notes') === 'string') ? this.get('notes').slice(0, length) : "";
+  }.property('notes', 'isCurrent'),
   serviceVersion: function () {
     return this.get('serviceName') + ': ' + this.get('version');
   }.property('serviceName', 'version'),
   modifiedDate: function () {
     return dateUtil.dateFormat(this.get('appliedTime'));
+  }.property('createTime'),
+  shortModifiedDate: function () {
+    return dateUtil.dateFormat(this.get('appliedTime'), 'MMM DD, YYYY');
   }.property('createTime'),
   //TODO set isCurrent value from API response
   isCurrent: false,
@@ -43,8 +50,8 @@ App.ServiceConfigVersion = DS.Model.extend({
    */
   isRequested: DS.attr('boolean'),
   isRestartRequired: function () {
-    return this.get('service.isRestartRequired');
-  }.property('service.isRestartRequired')
+    return this.get('service.isRestartRequired') && this.get('isCurrent');
+  }.property('service.isRestartRequired', 'isCurrent')
 });
 
 App.ServiceConfigVersion.FIXTURES = [];

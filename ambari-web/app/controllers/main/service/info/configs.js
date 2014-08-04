@@ -46,6 +46,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   compareServiceVersion: null,
   // contain Service Config Property, when user proceed from Select Config Group dialog
   overrideToAdd: null,
+  //latest version of service config versions
+  currentVersion: null,
   serviceConfigs: function () {
     return App.config.get('preDefinedServiceConfigs');
   }.property('App.config.preDefinedServiceConfigs'),
@@ -132,7 +134,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * clear and set properties to default value
    */
   clearStep: function () {
-    this.set("isApplyingChanges", false)
+    this.set("isApplyingChanges", false);
     this.set('isInit', true);
     this.set('hash', null);
     this.set('forceTransition', false);
@@ -211,20 +213,101 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     App.config.loadAdvancedConfig(serviceName, function (properties) {
       advancedConfigs.pushObjects(properties);
       self.set('advancedConfigs', advancedConfigs);
-      self.loadServiceTags();
+      if (App.get('supports.configHistory')) {
+        self.loadServiceConfigVersions();
+      } else {
+        self.loadServiceTagsAndGroups();
+      }
     });
   },
 
   /**
-   * load config tags of service
+   * get service config versions of current service
    */
-  loadServiceTags: function () {
+  loadServiceConfigVersions: function () {
+    var self = this;
+
+    App.ajax.send({
+      name: 'service.serviceConfigVersions.get',
+      data: {
+        serviceName: this.get('content.serviceName')
+      },
+      sender: this,
+      success: 'loadServiceConfigVersionsSuccess',
+      error: 'loadServiceConfigVersionsError'
+    }).complete(function () {
+        self.loadSelectedVersion();
+      });
+  },
+
+  /**
+   * load service config versions to model
+   * set currentVersion
+   * @param data
+   * @param opt
+   * @param params
+   */
+  loadServiceConfigVersionsSuccess: function (data, opt, params) {
+    var currentVersion = Math.max.apply(this, data.items.mapProperty('serviceconfigversion'));
+
+    this.set('currentVersion', currentVersion);
+    App.serviceConfigVersionsMapper.map(data);
+  },
+
+  /**
+   * get selected service config version
+   * In case selected version is undefined then take currentVersion
+   * @param version
+   */
+  loadSelectedVersion: function (version) {
+    var self = this;
+
+    App.ajax.send({
+      name: 'service.serviceConfigVersion.get',
+      sender: this,
+      data: {
+        serviceName: this.get('content.serviceName'),
+        serviceConfigVersion: version || this.get('currentVersion')
+      },
+      success: 'loadSelectedVersionSuccess'
+    }).complete(function () {
+        self.loadServiceTagsAndGroups();
+      });
+  },
+
+  /**
+   * set cluster to site tag map
+   * @param data
+   * @param opt
+   * @param params
+   */
+  loadSelectedVersionSuccess: function (data, opt, params) {
+    var serviceConfigsDef = this.get('serviceConfigs').findProperty('serviceName', this.get('content.serviceName'));
+    var siteToTagMap = {};
+    var configTypesRendered = Object.keys(serviceConfigsDef.get('configTypesRendered'));
+
+    configTypesRendered.forEach(function (siteName) {
+      if (data.items[0].configurations.someProperty('type', siteName)) {
+        siteToTagMap[siteName] = data.items[0].configurations.findProperty('type', siteName).tag;
+      } else {
+        siteToTagMap[siteName] = 'version1';
+      }
+    }, this);
+
+    App.router.get('configurationController').saveToDB(data.items[0].configurations);
+    this.loadedClusterSiteToTagMap = siteToTagMap;
+    this.loadServiceTagsAndGroups();
+  },
+
+  /**
+   * load config groups of service
+   */
+  loadServiceTagsAndGroups: function () {
     App.ajax.send({
       name: 'config.tags_and_groups',
       sender: this,
       data: {
         serviceName: this.get('content.serviceName'),
-        serviceConfigsDef: this.get('serviceConfigs').findProperty('serviceName', this.get('content.serviceName')),
         urlParams: "&config_groups/ConfigGroup/tag=" + this.get('content.serviceName')
       },
       success: 'loadServiceConfigsSuccess'
@@ -233,26 +316,24 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
 
   loadServiceConfigsSuccess: function (data, opt, params) {
     if (data) {
-      this.setConfigGroups.apply(this, Array.prototype.slice.call(arguments, 0));
+      this.setConfigGroups(data, opt, params);
     } else {
-      App.ajax.send({
-        name: 'config.tags',
-        sender: this,
-        data: App.permit(params, ['clusterName', 'serviceConfigsDef', 'serviceName']),
-        success: 'setConfigGroups'
-      });
+      if (!App.get('supports.configHistory')) {
+        App.ajax.send({
+          name: 'config.tags',
+          sender: this,
+          data: App.permit(params, ['clusterName', 'serviceConfigsDef', 'serviceName']),
+          success: 'setConfigGroups'
+        });
+      }  else {
+        this.setConfigGroups(data, opt, params);
+      }
     }
   },
 
-  setConfigGroups: function (data, opt, params) {
-    var serviceConfigsDef = params.serviceConfigsDef;
-    var serviceName = this.get('content.serviceName');
-    var displayName = this.get('content.displayName');
-    console.debug("loadServiceConfigs(): data=", data);
-    // Create default configuration group
-    var selectedConfigGroup;
+  setConfigTags: function (data, opt, params) {
+    var serviceConfigsDef = this.get('serviceConfigs').findProperty('serviceName', this.get('content.serviceName'));
     var siteToTagMap = {};
-    var hostsLength = App.router.get('mainHostController.hostsCountMap.TOTAL');
     var configTypesRendered = Object.keys(serviceConfigsDef.get('configTypesRendered'));
     configTypesRendered.forEach(function (siteName) {
       if (data.Clusters.desired_configs[siteName]) {
@@ -262,10 +343,21 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       }
     }, this);
     this.loadedClusterSiteToTagMap = siteToTagMap;
+  },
+
+  setConfigGroups: function (data, opt, params) {
+    if (!App.get('supports.configHistory')) {
+      this.setConfigTags(data, opt, params);
+    }
+    var serviceName = this.get('content.serviceName');
+    var displayName = this.get('content.displayName');
+    var selectedConfigGroup;
+    var hostsLength = App.router.get('mainHostController.hostsCountMap.TOTAL');
+
     //parse loaded config groups
     if (App.supports.hostOverrides) {
       var configGroups = [];
-      if (data.config_groups && data.config_groups.length) {
+      if (data && data.config_groups && data.config_groups.length) {
         data.config_groups.forEach(function (item) {
           item = item.ConfigGroup;
           if (item.tag === this.get('content.serviceName')) {

@@ -25,10 +25,13 @@
               <div class="arrow-box pull-left"><div class="big-arrow-right"></div></div>
               <div {{bindAttr class=":box :pull-right serviceVersion.isDisplayed:displayed"}}>
                   <div class="top-right-label">{{serviceVersion.version}}</div>
-                  <p class="date">{{serviceVersion.modifiedDate}}</p>
-                  <p class="content">{{serviceVersion.author}}:&nbsp;{{serviceVersion.notes}}</p>
+                  <p class="date">{{serviceVersion.shortModifiedDate}}</p>
+                  <p class="content">{{serviceVersion.author}}:&nbsp;{{serviceVersion.briefNotes}}</p>
                   {{#if serviceVersion.isCurrent}}
-                    <div class="current-label label label-success">{{t common.current}}</div>
+                    <div class="current-label label label-success">
+                      {{t common.latest}}
+                      <i {{bindAttr class=":icon-refresh :restart-required-service view.displayedServiceVersion.isRestartRequired::hidden"}}></i>
+                    </div>
                   {{/if}}
               </div>
           </div>
@@ -70,20 +73,20 @@
             </ul>
         </div>
         <div class="label-wrapper span8">
-            <span {{bindAttr class=":label view.displayedServiceVersion.isCurrent:label-success"}}>{{t common.current}}: {{view.displayedServiceVersion.version}}</span>
+            <span {{bindAttr class=":label view.displayedServiceVersion.isCurrent:label-success"}}>{{t common.latest}}: {{view.displayedServiceVersion.version}}</span>
             <strong>{{view.displayedServiceVersion.author}}</strong>&nbsp;{{t dashboard.configHistory.info-bar.authoredOn}}&nbsp;<strong>{{view.displayedServiceVersion.modifiedDate}}</strong>
         </div>
         <div class="pull-right">
             {{#if view.displayedServiceVersion.isCurrent}}
-                <button class="btn" {{action cancel target="view"}}>{{t common.cancel}}</button>
-                <button class="btn btn-success" {{action save target="view"}}>{{t common.save}}</button>
+                <button class="btn" {{action doCancel target="controller"}}>{{t common.cancel}}</button>
+                <button class="btn btn-success" {{bindAttr disabled="isSubmitDisabled"}} {{action save target="view"}}>{{t common.save}}</button>
             {{else}}
                 <button class="btn btn-success" {{action revert target="view"}}>{{t dashboard.configHistory.info-bar.revert.button}}</button>
             {{/if}}
         </div>
     </div>
     <div class="label-wrapper">
-      {{view.shortNotes}} {{#if view.showMoreLink}}<a class="pointer">{{t jobs.hive.more}}</a>{{/if}}
+      {{view.shortNotes}} {{#if view.showMoreLink}}<a class="pointer" {{bindAttr title="view.displayedServiceVersion.notes"}}>{{t jobs.hive.more}}</a>{{/if}}
     </div>
   </div>
 </div>

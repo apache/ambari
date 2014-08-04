@@ -177,6 +177,7 @@ App.MainConfigHistoryView = App.TableView.extend({
     this.get('controller').loadHistoryToModel().done(function(){
       self.set('filteringComplete', true);
       self.propertyDidChange('pageContent');
+      self.set('controller.resetStartIndex', false);
     });
   },
 

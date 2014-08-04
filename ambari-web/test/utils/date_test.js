@@ -27,9 +27,7 @@ describe('date', function () {
   var correct_tests = Em.A([
     {t: 1349752195000, e: 'Tue, Oct 09, 2012 03:09', e2: 'Tue Oct 09 2012'},
     {t: 1367752195000, e: 'Sun, May 05, 2013 11:09', e2: 'Sun May 05 2013'},
-    {t: 1369952195000, e: 'Thu, May 30, 2013 22:16', e2: 'Thu May 30 2013'},
-    {t: 1369952195000, e: 'Thu, May 30, 2013 22:16:35', e2: 'Thu May 30 2013', showSeconds: true },
-    {t: 1369952195000, e: 'Thu, May 30, 2013 22:16:35:000', e2: 'Thu May 30 2013', showSeconds: true, showMilliseconds: true }
+    {t: 1369952195000, e: 'Thu, May 30, 2013 22:16', e2: 'Thu May 30 2013'}
   ]);
 
   var incorrect_tests = Em.A([

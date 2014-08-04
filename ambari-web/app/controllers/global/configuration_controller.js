@@ -76,6 +76,8 @@ App.ConfigurationController = Em.Controller.extend({
   loadFromServer: function (tags) {
     var dfd = $.Deferred();
     var loadedConfigs = [];
+    var self = this;
+
     App.config.loadConfigsByTags(tags).done(function (data) {
       if (data.items) {
         data.items.forEach(function (item) {
@@ -84,20 +86,28 @@ App.ConfigurationController = Em.Controller.extend({
         });
       }
     }).complete(function () {
-        var storedConfigs = App.db.getConfigs();
-        loadedConfigs.forEach(function (loadedSite) {
-          var storedSite = storedConfigs.findProperty('type', loadedSite.type);
-          if (storedSite) {
-            storedSite.tag = loadedSite.tag;
-            storedSite.properties = loadedSite.properties;
-            storedSite.properties_attributes = loadedSite.properties_attributes;
-          } else {
-            storedConfigs.push(loadedSite);
-          }
-        });
-        App.db.setConfigs(storedConfigs);
+        self.saveToDB(loadedConfigs);
         dfd.resolve(loadedConfigs);
       });
     return dfd.promise();
+  },
+
+  /**
+   * save properties obtained from server to local DB
+   * @param loadedConfigs
+   */
+  saveToDB: function (loadedConfigs) {
+    var storedConfigs = App.db.getConfigs();
+    loadedConfigs.forEach(function (loadedSite) {
+      var storedSite = storedConfigs.findProperty('type', loadedSite.type);
+      if (storedSite) {
+        storedSite.tag = loadedSite.tag;
+        storedSite.properties = loadedSite.properties;
+        storedSite.properties_attributes = loadedSite.properties_attributes;
+      } else {
+        storedConfigs.push(loadedSite);
+      }
+    });
+    App.db.setConfigs(storedConfigs);
   }
 });
