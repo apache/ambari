@@ -486,6 +486,15 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
       if (component.ServiceComponentInfo && component.ServiceComponentInfo.component_name == "RESOURCEMANAGER") {
         item.resourceManagerComponent = component;
 
+        // if YARN has two host components, ACTIVE one should be first in component.host_components array for proper metrics mapping
+        if (component.host_components.length === 2) {
+          var activeRM = component.host_components.findProperty('HostRoles.ha_state', 'ACTIVE');
+          var standbyRM = component.host_components.findProperty('HostRoles.ha_state', 'STANDBY');
+          if (activeRM && standbyRM) {
+            component.host_components = [activeRM, standbyRM];
+          }
+        }
+
         if (component.host_components[0].metrics && component.host_components[0].metrics.yarn) {
           var root = component.host_components[0].metrics.yarn.Queue.root;
           component.queue = JSON.stringify({
