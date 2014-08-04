@@ -555,6 +555,7 @@ App.WizardStep5Controller = Em.Controller.extend({
       componentObj.set('isHostNameValid', true);
       result.push(componentObj);
     }, this);
+    result = this.sortComponentsByServiceName(result);
     this.set("selectedServicesMasters", result);
     if (this.get('isReassignWizard')) {
       var components = result.filterProperty('component_name', this.get('content.reassign.component_name'));
@@ -565,6 +566,15 @@ App.WizardStep5Controller = Em.Controller.extend({
     }
   },
 
+  sortComponentsByServiceName: function(components) {
+    var _components = components.sortPropertyLight('selectedHost');
+    var displayOrder = App.StackService.displayOrder;
+    return _components.sort(function (a, b) {
+      var aValue = displayOrder.indexOf(a.serviceId) != -1 ? displayOrder.indexOf(a.serviceId) : _components.length;
+      var bValue = displayOrder.indexOf(b.serviceId) != -1 ? displayOrder.indexOf(b.serviceId) : _components.length;
+      return aValue - bValue;
+    });
+  },
   /**
    * Update dependent co-hosted components according to the change in the component host
    * @method updateCoHosts
