@@ -42,7 +42,7 @@ class TestStormSupervisor(RMFTestCase):
     )
 
     self.assert_configure_default()
-    
+
     self.assertResourceCalled('Execute', 'supervisorctl start storm-supervisor',
       wait_for_finish = False,
     )
@@ -57,7 +57,7 @@ class TestStormSupervisor(RMFTestCase):
       user = 'storm',
       try_sleep = 10,
     )
-    
+
     self.assertNoMoreResources()
 
   def test_stop_default(self):
@@ -78,7 +78,7 @@ class TestStormSupervisor(RMFTestCase):
     )
     self.assertResourceCalled('Execute', 'rm -f /var/run/storm/logviewer.pid',
     )
-    
+
     self.assertNoMoreResources()
 
   def test_configure_default(self):
@@ -98,7 +98,7 @@ class TestStormSupervisor(RMFTestCase):
     )
 
     self.assert_configure_secured()
-    
+
     self.assertResourceCalled('Execute', 'supervisorctl start storm-supervisor',
                         wait_for_finish = False,
     )
@@ -113,7 +113,7 @@ class TestStormSupervisor(RMFTestCase):
       user = 'storm',
       try_sleep = 10,
     )
-    
+
     self.assertNoMoreResources()
 
   def test_stop_secured(self):
@@ -122,7 +122,7 @@ class TestStormSupervisor(RMFTestCase):
                        command = "stop",
                        config_file="secured.json"
     )
-    
+
     self.assertResourceCalled('Execute', 'supervisorctl stop storm-supervisor',
                               wait_for_finish = False,
     )
@@ -135,7 +135,7 @@ class TestStormSupervisor(RMFTestCase):
     )
     self.assertResourceCalled('Execute', 'rm -f /var/run/storm/logviewer.pid',
     )
-    
+
     self.assertNoMoreResources()
 
   def assert_configure_default(self):
@@ -143,27 +143,27 @@ class TestStormSupervisor(RMFTestCase):
       owner = 'storm',
       group = 'hadoop',
       recursive = True,
-    )    
+    )
     self.assertResourceCalled('Directory', '/var/run/storm',
       owner = 'storm',
       group = 'hadoop',
       recursive = True,
-    )    
+    )
     self.assertResourceCalled('Directory', '/hadoop/storm',
       owner = 'storm',
       group = 'hadoop',
       recursive = True,
-    )    
+    )
     self.assertResourceCalled('Directory', '/etc/storm/conf',
       owner = 'storm',
       group = 'hadoop',
       recursive = True,
-    )    
+    )
     self.assertResourceCalled('File', '/etc/storm/conf/config.yaml',
       owner = 'storm',
       content = Template('config.yaml.j2'),
       group = 'hadoop',
-    )    
+    )
     self.assertResourceCalled('File', '/etc/storm/conf/storm.yaml',
       owner = 'storm',
       content = 'InlineTemplateMock',
@@ -172,7 +172,7 @@ class TestStormSupervisor(RMFTestCase):
     )
     self.assertResourceCalled('File', '/etc/storm/conf/storm-env.sh',
                               owner = 'storm',
-                              content = 'InlineTemplate'
+                              content = self.getConfig()['configurations']['storm-env']['content']
                               )
 
   def assert_configure_secured(self):
@@ -180,27 +180,27 @@ class TestStormSupervisor(RMFTestCase):
       owner = 'storm',
       group = 'hadoop',
       recursive = True,
-    )    
+    )
     self.assertResourceCalled('Directory', '/var/run/storm',
       owner = 'storm',
       group = 'hadoop',
       recursive = True,
-    )    
+    )
     self.assertResourceCalled('Directory', '/hadoop/storm',
       owner = 'storm',
       group = 'hadoop',
       recursive = True,
-    )    
+    )
     self.assertResourceCalled('Directory', '/etc/storm/conf',
       owner = 'storm',
       group = 'hadoop',
       recursive = True,
-    )    
+    )
     self.assertResourceCalled('File', '/etc/storm/conf/config.yaml',
       owner = 'storm',
       content = Template('config.yaml.j2'),
       group = 'hadoop',
-    )    
+    )
     self.assertResourceCalled('File', '/etc/storm/conf/storm.yaml',
       owner = 'storm',
       content = 'InlineTemplateMock',
@@ -209,7 +209,7 @@ class TestStormSupervisor(RMFTestCase):
     )
     self.assertResourceCalled('File', '/etc/storm/conf/storm-env.sh',
                               owner = 'storm',
-                              content = 'InlineTemplate'
+                              content = self.getConfig()['configurations']['storm-env']['content']
                               )
     self.assertResourceCalled('TemplateConfig', '/etc/storm/conf/storm_jaas.conf',
       owner = 'storm',

@@ -45,7 +45,7 @@ class TestStormNimbus(RMFTestCase):
     self.assertResourceCalled('Execute', 'supervisorctl start storm-nimbus',
                         wait_for_finish = False,
     )
-    
+
     self.assertNoMoreResources()
 
   def test_stop_default(self):
@@ -79,7 +79,7 @@ class TestStormNimbus(RMFTestCase):
     self.assertResourceCalled('Execute', 'supervisorctl start storm-nimbus',
                         wait_for_finish = False,
     )
-    
+
     self.assertNoMoreResources()
 
   def test_stop_secured(self):
@@ -98,27 +98,27 @@ class TestStormNimbus(RMFTestCase):
       owner = 'storm',
       group = 'hadoop',
       recursive = True,
-    )    
+    )
     self.assertResourceCalled('Directory', '/var/run/storm',
       owner = 'storm',
       group = 'hadoop',
       recursive = True,
-    )    
+    )
     self.assertResourceCalled('Directory', '/hadoop/storm',
       owner = 'storm',
       group = 'hadoop',
       recursive = True,
-    )    
+    )
     self.assertResourceCalled('Directory', '/etc/storm/conf',
       owner = 'storm',
       group = 'hadoop',
       recursive = True,
-    )    
+    )
     self.assertResourceCalled('File', '/etc/storm/conf/config.yaml',
       owner = 'storm',
       content = Template('config.yaml.j2'),
       group = 'hadoop',
-    )    
+    )
     self.assertResourceCalled('File', '/etc/storm/conf/storm.yaml',
       owner = 'storm',
       content = 'InlineTemplateMock',
@@ -127,7 +127,7 @@ class TestStormNimbus(RMFTestCase):
     )
     self.assertResourceCalled('File', '/etc/storm/conf/storm-env.sh',
                               owner = 'storm',
-                              content = 'InlineTemplate'
+                              content = self.getConfig()['configurations']['storm-env']['content']
                               )
 
   def assert_configure_secured(self):
@@ -135,27 +135,27 @@ class TestStormNimbus(RMFTestCase):
       owner = 'storm',
       group = 'hadoop',
       recursive = True,
-    )    
+    )
     self.assertResourceCalled('Directory', '/var/run/storm',
       owner = 'storm',
       group = 'hadoop',
       recursive = True,
-    )    
+    )
     self.assertResourceCalled('Directory', '/hadoop/storm',
       owner = 'storm',
       group = 'hadoop',
       recursive = True,
-    )    
+    )
     self.assertResourceCalled('Directory', '/etc/storm/conf',
       owner = 'storm',
       group = 'hadoop',
       recursive = True,
-    )    
+    )
     self.assertResourceCalled('File', '/etc/storm/conf/config.yaml',
       owner = 'storm',
       content = Template('config.yaml.j2'),
       group = 'hadoop',
-    )    
+    )
     self.assertResourceCalled('File', '/etc/storm/conf/storm.yaml',
       owner = 'storm',
       content = 'InlineTemplateMock',
@@ -164,7 +164,7 @@ class TestStormNimbus(RMFTestCase):
     )
     self.assertResourceCalled('File', '/etc/storm/conf/storm-env.sh',
                               owner = 'storm',
-                              content = 'InlineTemplate'
+                              content = self.getConfig()['configurations']['storm-env']['content']
                               )
     self.assertResourceCalled('TemplateConfig', '/etc/storm/conf/storm_jaas.conf',
       owner = 'storm',

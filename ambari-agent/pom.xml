@@ -114,7 +114,7 @@
                 <argument>unitTests.py</argument>
               </arguments>
               <environmentVariables>
-                <PYTHONPATH>${project.basedir}/../ambari-common/src/main/python/jinja2:${project.basedir}/../ambari-common/src/main/python/ambari_commons:${project.basedir}/../ambari-common/src/main/python/resource_management:${project.basedir}/../ambari-common/src/test/python:${project.basedir}/../ambari-common/src/main/python:${project.basedir}/src/main/python/ambari_agent:${project.basedir}/src/test/python/ambari_agent:${project.basedir}/src/test/python/resource_management:${project.basedir}/src/main/python:${project.basedir}/../ambari-server/src/main/resources/stacks/HDP/2.0.6/services/HDFS/package/files:${project.basedir}/../ambari-server/src/main/resources/stacks/HDP/1.3.2/services/HDFS/package/files:$PYTHONPATH</PYTHONPATH>
+                <PYTHONPATH>${project.basedir}/../ambari-common/src/main/python/jinja2:${project.basedir}/../ambari-common/src/main/python/ambari_commons:${project.basedir}/../ambari-common/src/main/python/resource_management:${project.basedir}/../ambari-common/src/test/python:${project.basedir}/../ambari-common/src/main/python:${project.basedir}/src/main/python/ambari_agent:${project.basedir}/src/test/python/ambari_agent:${project.basedir}/src/main/python:${project.basedir}/../ambari-server/src/main/resources/stacks/HDP/2.0.6/services/HDFS/package/files:${project.basedir}/../ambari-server/src/main/resources/stacks/HDP/1.3.2/services/HDFS/package/files:$PYTHONPATH</PYTHONPATH>
               </environmentVariables>
               <skip>${skipTests}</skip>
             </configuration>

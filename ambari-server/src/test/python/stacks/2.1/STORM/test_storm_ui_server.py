@@ -158,7 +158,7 @@ class TestStormUiServer(RMFTestCase):
     )
     self.assertResourceCalled('File', '/etc/storm/conf/storm-env.sh',
                               owner = 'storm',
-                              content = 'InlineTemplate'
+                              content = self.getConfig()['configurations']['storm-env']['content']
                               )
 
   def assert_configure_secured(self):
@@ -195,7 +195,7 @@ class TestStormUiServer(RMFTestCase):
     )
     self.assertResourceCalled('File', '/etc/storm/conf/storm-env.sh',
                               owner = 'storm',
-                              content = 'InlineTemplate'
+                              content = self.getConfig()['configurations']['storm-env']['content']
                               )
     self.assertResourceCalled('TemplateConfig', '/etc/storm/conf/storm_jaas.conf',
       owner = 'storm',
