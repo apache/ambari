@@ -27,30 +27,36 @@
         {{/view}}
 
         <tr class="filter-row">
-            <th class="first">{{view view.versionFilterView}}</th>
+            <th class="first">{{view view.serviceFilterView}}</th>
             <th>{{view view.modifiedFilterView}}</th>
             <th>{{view view.authorFilterView}}</th>
             <th>{{view view.notesFilterView}}</th>
         </tr>
         </thead>
-        <tbody>
-        {{#if view.pageContent}}
-          {{#each item in view.pageContent}}
+        <tbody class="services-menu">
+        {{#if view.filteringComplete}}
+          {{#if view.pageContent}}
+            {{#each item in view.pageContent}}
+                <tr>
+                    <td class="first"><a {{action goToServiceConfigs item.serviceName}}>
+                      {{item.serviceVersion}}
+                      {{#if item.isCurrent}}&nbsp;({{t common.latest}}){{/if}}
+                        <i {{bindAttr class=":icon-refresh :restart-required-service item.isRestartRequired::hidden"}}></i>
+                    </a></td>
+                    <td>{{item.modifiedDate}}</td>
+                    <td>{{item.author}}</td>
+                    <td>{{item.notes}}</td>
+                </tr>
+            {{/each}}
+          {{else}}
               <tr>
-                  <td class="first"><a {{action goToServiceConfigs item.serviceName}}>
-                    {{item.serviceVersion}}{{#if item.isCurrent}}&nbsp;{{t dashboard.configHistory.table.current}}{{/if}}
-                  </a></td>
-                  <td>{{item.modifiedDate}}</td>
-                  <td>{{item.author}}</td>
-                  <td>{{item.notes}}</td>
+                  <td class="first" colspan="4">
+                    {{t dashboard.configHistory.table.empty}}
+                  </td>
               </tr>
-          {{/each}}
+          {{/if}}
         {{else}}
-            <tr>
-                <td class="first" colspan="4">
-                  {{t dashboard.configHistory.table.empty}}
-                </td>
-            </tr>
+          <tr><td colspan="4"><div class="spinner"></div></td></tr>
         {{/if}}
         </tbody>
     </table>

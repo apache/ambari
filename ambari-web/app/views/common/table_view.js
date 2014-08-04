@@ -96,7 +96,11 @@ App.TableView = Em.View.extend(App.UserPref, {
       filterConditions.forEach(function (condition, index, filteredConditions) {
         var view = !Em.isNone(condition.iColumn) && childViews.findProperty('column', condition.iColumn);
         if (view) {
-          view.set('value', condition.value);
+          if (view.get('emptyValue')) {
+            view.set('value', view.get('emptyValue'));
+          } else {
+            view.set('value', condition.value);
+          }
           Em.run.next(function () {
             view.showClearFilter();
             // check if it is the last iteration
@@ -320,24 +324,33 @@ App.TableView = Em.View.extend(App.UserPref, {
    * @param {String} type
    */
   updateFilter: function (iColumn, value, type) {
+    this.saveFilterConditions(iColumn, value, type, false);
+    this.filtersUsedCalc();
+    this.filter();
+  },
+
+  /**
+   * save filter conditions to local storage
+   * @param iColumn {Number}
+   * @param value {String|Array}
+   * @param type {String}
+   * @param skipFilter {Boolean}
+   */
+  saveFilterConditions: function(iColumn, value, type, skipFilter) {
     var filterCondition = this.get('filterConditions').findProperty('iColumn', iColumn);
+
     if (filterCondition) {
       filterCondition.value = value;
-    }
-    else {
+      filterCondition.skipFilter = skipFilter;
+    } else {
       filterCondition = {
+        skipFilter: skipFilter,
         iColumn: iColumn,
         value: value,
         type: type
       };
       this.get('filterConditions').push(filterCondition);
     }
-    this.saveFilterConditions();
-    this.filtersUsedCalc();
-    this.filter();
-  },
-
-  saveFilterConditions: function() {
     App.db.setFilterConditions(this.get('controller.name'), this.get('filterConditions'));
   },
 

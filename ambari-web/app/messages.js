@@ -215,6 +215,7 @@ Em.I18n.translations = {
   'common.notes': 'Notes',
   'common.view': 'View',
   'common.compare': 'Compare',
+  'common.latest': 'Latest',
 
   'passiveState.turnOn':'Turn On Maintenance Mode',
   'passiveState.turnOff':'Turn Off Maintenance Mode',
@@ -1961,7 +1962,6 @@ Em.I18n.translations = {
   'dashboard.configHistory.table.modified.title' : 'Modified',
   'dashboard.configHistory.table.empty' : 'No history to display',
   'dashboard.configHistory.table.filteredHostsInfo': '{0} of {1} versions showing',
-  'dashboard.configHistory.table.current': '(Current)',
   'dashboard.configHistory.info-bar.authoredOn': 'authored on',
   'dashboard.configHistory.info-bar.changesToHandle': 'Changes to handle',
   'dashboard.configHistory.info-bar.showMore': 'Show more',

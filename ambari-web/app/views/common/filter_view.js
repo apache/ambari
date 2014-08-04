@@ -72,11 +72,18 @@ var wrapperView = Ember.View.extend({
   emptyValue: '',
 
   /**
+   * reset value to empty string if emptyValue selected
+   */
+  actualValue: function () {
+    return this.get('value') === this.get('emptyValue') ? "" : this.get('value');
+  }.property('value'),
+
+  /**
    * Whether our <code>value</code> is empty or not
    * @return {Boolean}
    */
   isEmpty: function(){
-    if(this.get('value') === null){
+    if (Em.isNone(this.get('value'))) {
       return true;
     }
     return this.get('value').toString() === this.get('emptyValue').toString();
@@ -483,6 +490,12 @@ module.exports = {
       case 'select':
         return function (origin, compareValue){
           //TODO add filter by select value
+          return true;
+        };
+        break;
+      case 'range':
+        return function (origin, compareValue){
+          //TODO add filter by range value
           return true;
         };
         break;

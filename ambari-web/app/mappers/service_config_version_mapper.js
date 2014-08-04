@@ -21,23 +21,38 @@ var App = require('app');
 App.serviceConfigVersionsMapper = App.QuickDataMapper.create({
   model: App.ServiceConfigVersion,
   config: {
-    service_name: 'servicename',
+    service_name: 'service_name',
+    service_id: 'service_name',
     version: "serviceconfigversion",
     create_time: 'createtime',
     applied_time: 'appliedtime',
-    author: 'author',
-    notes: 'notes'
+    author: 'user',
+    notes: 'notes',
+    index: 'index'
   },
   map: function (json) {
     var result = [];
+    var itemIds = {};
 
     if (json && json.items) {
-      json.items.forEach(function (item) {
+      json.items.forEach(function (item, index) {
         var parsedItem = this.parseIt(item, this.get('config'));
         parsedItem.id = parsedItem.service_name + '_' + parsedItem.version;
+        parsedItem.is_requested = true;
+        itemIds[parsedItem.id] = true;
+        parsedItem.index = index;
         result.push(parsedItem);
       }, this);
 
+      this.get('model').find().forEach(function (item) {
+        if (!itemIds[item.get('id')]) {
+          item.set('isRequested', false);
+        }
+      });
+      var itemTotal = parseInt(json.itemTotal);
+      if (!isNaN(itemTotal)) {
+        App.router.set('mainConfigHistoryController.filteredCount', itemTotal);
+      }
       App.store.loadMany(this.get('model'), result);
     }
   }

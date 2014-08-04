@@ -23,5 +23,6 @@ require('mixins/common/localStorage');
 require('mixins/common/userPref');
 require('mixins/models/service_mixin');
 require('mixins/common/tableServerProvider');
+require('mixins/common/table_server_mixin');
 require('mixins/main/host/details/host_components/decommissionable');
 require('mixins/wizard/selectHost');

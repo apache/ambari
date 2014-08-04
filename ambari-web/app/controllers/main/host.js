@@ -79,6 +79,8 @@ App.MainHostController = Em.ArrayController.extend({
    * filterProperties support follow types of filter:
    * MATCH - match of RegExp
    * EQUAL - equality "="
+   * LESS - "<"
+   * MORE - ">"
    * MULTIPLE - multiple values to compare
    * CUSTOM - substitute values with keys "{#}" in alias
    */

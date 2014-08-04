@@ -24,23 +24,60 @@ App.MainConfigHistoryView = App.TableView.extend({
   templateName: require('templates/main/dashboard/config_history'),
 
   controllerBinding: 'App.router.mainConfigHistoryController',
+  filteringComplete: true,
+  timeOut: null,
 
   content: function () {
     return this.get('controller.content');
   }.property('controller.content'),
 
+  pageContent: function () {
+    var content = this.get('filteredContent');
+    if (content.length > this.get('endIndex') - this.get('startIndex') + 1) {
+      content = content.slice(0, this.get('endIndex') - this.get('startIndex') + 1);
+    }
+    return content.sort(function (a, b) {
+      return a.get('index') - b.get('index');
+    });
+  }.property('filteredCount'),
+
+  filteredCount: function () {
+    return this.get('controller.filteredCount');
+  }.property('controller.filteredCount'),
+
+  totalCount: function () {
+    //TODO change to totalCount when property provided by API
+    return this.get('controller.filteredCount');
+  }.property('controller.filteredCount'),
   /**
    * return filtered number of all content number information displayed on the page footer bar
    * @returns {String}
    */
   filteredContentInfo: function () {
-    return this.t('hosts.filters.filteredHostsInfo').format(this.get('filteredCount'), this.get('content.length'));
+    return this.t('hosts.filters.filteredHostsInfo').format(this.get('filteredCount'), this.get('totalCount'));
   }.property('filteredCount', 'totalCount'),
 
+  /**
+   * synchronize properties of view with controller to generate query parameters
+   */
+  updatePagination: function () {
+    if (!Em.isNone(this.get('displayLength'))) {
+      App.db.setDisplayLength(this.get('controller.name'), this.get('displayLength'));
+      this.get('controller.paginationProps').findProperty('name', 'displayLength').value = this.get('displayLength');
+    }
+    if (!Em.isNone(this.get('startIndex'))) {
+      App.db.setStartIndex(this.get('controller.name'), this.get('startIndex'));
+      this.get('controller.paginationProps').findProperty('name', 'startIndex').value = this.get('startIndex');
+    }
+
+    this.refresh();
+  },
 
   didInsertElement: function () {
+    this.addObserver('startIndex', this, 'updatePagination');
+    this.addObserver('displayLength', this, 'updatePagination');
     this.set('controller.isPolling', true);
-    this.get('controller').load();
+    this.refresh();
   },
 
   /**
@@ -59,7 +96,7 @@ App.MainConfigHistoryView = App.TableView.extend({
   }),
   modifiedSort: sort.fieldView.extend({
     column: 2,
-    name: 'createTime',
+    name: 'appliedTime',
     displayName: Em.I18n.t('dashboard.configHistory.table.modified.title')
   }),
   authorSort: sort.fieldView.extend({
@@ -73,13 +110,14 @@ App.MainConfigHistoryView = App.TableView.extend({
     displayName: Em.I18n.t('common.notes')
   }),
 
-  versionFilterView: filters.createSelectView({
+  serviceFilterView: filters.createSelectView({
     column: 1,
     fieldType: 'filter-input-width',
-    content: ['All'],
-    valueBinding: "controller.filterObject.version",
+    content: function () {
+      return ['All'].concat(App.Service.find().mapProperty('serviceName'));
+    }.property('App.router.clusterController.isLoaded'),
     onChangeValue: function () {
-      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'select');
+      this.get('parentView').updateFilter(this.get('column'), this.get('actualValue'), 'select');
     },
     emptyValue: Em.I18n.t('common.all')
   }),
@@ -87,11 +125,13 @@ App.MainConfigHistoryView = App.TableView.extend({
   modifiedFilterView: filters.createSelectView({
     column: 2,
     fieldType: 'filter-input-width',
-    content: ['Any'],
-    valueBinding: "controller.filterObject.modified",
-    onChangeValue: function () {
-      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'select');
-    }
+    content: ['Any', 'Past 1 hour',  'Past 1 Day', 'Past 2 Days', 'Past 7 Days', 'Past 14 Days', 'Past 30 Days', 'Custom'],
+    valueBinding: "controller.modifiedFilter.optionValue",
+    startTimeBinding: "controller.modifiedFilter.actualValues.startTime",
+    endTimeBinding: "controller.modifiedFilter.actualValues.endTime",
+    onTimeChange: function () {
+      this.get('parentView').updateFilter(this.get('column'), [this.get('startTime'), this.get('endTime')], 'range');
+    }.observes('startTime')
   }),
 
   authorFilterView: filters.createTextView({
@@ -110,11 +150,34 @@ App.MainConfigHistoryView = App.TableView.extend({
     }
   }),
 
+  updateFilter: function (iColumn, value, type) {
+    var self = this;
+
+    this.set('controller.resetStartIndex', false);
+    this.saveFilterConditions(iColumn, value, type, false);
+    if (!this.get('filteringComplete')) {
+      clearTimeout(this.get('timeOut'));
+      this.set('timeOut', setTimeout(function () {
+        self.updateFilter(iColumn, value, type);
+      }, this.get('filterWaitingTime')));
+    } else {
+      clearTimeout(this.get('timeOut'));
+      this.set('controller.resetStartIndex', true);
+      this.refresh();
+    }
+  },
+
   /**
    * sort content
    */
   refresh: function () {
-    this.sortContent();
+    var self = this;
+
+    this.set('filteringComplete', false);
+    this.get('controller').loadHistoryToModel().done(function(){
+      self.set('filteringComplete', true);
+      self.propertyDidChange('pageContent');
+    });
   },
 
   /**
@@ -122,12 +185,13 @@ App.MainConfigHistoryView = App.TableView.extend({
    * @type {Array}
    */
   colPropAssoc: function () {
-    var associations = [];
-    associations[1] = 'serviceVersion';
-    associations[2] = 'createTime';
-    associations[3] = 'author';
-    associations[4] = 'notes';
-    return associations;
-  }.property()
+    return this.get('controller.colPropAssoc');
+  }.property('controller.colPropAssoc'),
+
+  resetStartIndex: function () {
+    if (this.get('controller.resetStartIndex') && this.get('filteredCount') > 0) {
+      this.set('startIndex', 1);
+    }
+  }.observes('controller.resetStartIndex')
 
 });

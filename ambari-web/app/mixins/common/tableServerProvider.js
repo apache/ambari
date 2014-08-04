@@ -96,30 +96,5 @@ App.TableServerProvider = Em.Mixin.create({
         this.refresh();
       }
     }
-  },
-
-  /**
-   * save filter conditions to local storage
-   * @param iColumn {Number}
-   * @param value {String|Array}
-   * @param type {String}
-   * @param skipFilter {Boolean}
-   */
-  saveFilterConditions: function (iColumn, value, type, skipFilter) {
-    var filterCondition = this.get('filterConditions').findProperty('iColumn', iColumn);
-
-    if (filterCondition) {
-      filterCondition.value = value;
-      filterCondition.skipFilter = skipFilter;
-    } else {
-      filterCondition = {
-        skipFilter: skipFilter,
-        iColumn: iColumn,
-        value: value,
-        type: type
-      };
-      this.get('filterConditions').push(filterCondition);
-    }
-    App.db.setFilterConditions(this.get('controller.name'), this.get('filterConditions'));
   }
 });
