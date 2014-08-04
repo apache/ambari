@@ -306,6 +306,7 @@ App.ReassignMasterController = App.WizardController.extend({
     this.setCurrentStep('1');
     this.clearAllSteps();
     this.clearStorageData();
+    this.resetDbNamespace();
     App.router.get('updateController').updateAll();
   }
 

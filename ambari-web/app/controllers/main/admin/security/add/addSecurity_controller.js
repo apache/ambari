@@ -143,6 +143,13 @@ App.AddSecurityController = App.WizardController.extend({
    */
   loadServiceConfigs: function () {
     this.set('content.serviceConfigProperties', App.db.getSecureConfigProperties());
+  },
+
+  /**
+   * Clear all local storage data for Add security wizard namespace
+   */
+  finish: function () {
+    this.resetDbNamespace();
   }
 });
 

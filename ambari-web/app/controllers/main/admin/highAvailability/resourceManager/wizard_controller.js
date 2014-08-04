@@ -139,8 +139,7 @@ App.RMHighAvailabilityWizardController = App.WizardController.extend({
    * Clear all temporary data
    */
   finish: function () {
-    this.setCurrentStep(1);
-    App.db.data.RMHighAvailabilityWizard = {};
+    this.resetDbNamespace();
     App.router.get('updateController').updateAll();
   }
 });

@@ -73,18 +73,19 @@ module.exports = App.WizardRoute.extend({
               self.proceedOnClose();
             },
             proceedOnClose: function () {
-              this.hide();
+              var self = this;
               router.get('mainAdminSecurityAddStep4Controller').clearStep();
               router.get('addSecurityController.content.services').clear();
               router.set('addSecurityController.content.serviceConfigProperties', null);
               App.router.get('updateController').set('isWorking', true);
               mainAdminSecurityController.setAddSecurityWizardStatus(null);
               App.db.setSecurityDeployCommands(undefined);
-              router.get('addSecurityController').setCurrentStep(1);
+              addSecurityController.finish();
               App.clusterStatus.setClusterStatus({
                 clusterName: router.get('content.cluster.name'),
-                clusterState: 'DEFAULT'
-              },{alwaysCallback: function() {router.transitionTo('adminSecurity.index');location.reload();}});
+                clusterState: 'DEFAULT',
+                localdb: App.db.data
+              },{alwaysCallback: function() {self.hide();router.transitionTo('adminSecurity.index');location.reload();}});
             },
             didInsertElement: function () {
               this.fitHeight();

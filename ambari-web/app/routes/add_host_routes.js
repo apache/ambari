@@ -21,11 +21,15 @@ var App = require('app');
 module.exports = App.WizardRoute.extend({
   route: '/host/add',
 
-  clearData: function (router) {
+  leaveWizard: function (router,context) {
     var addHostController = router.get('addHostController');
     App.router.get('updateController').set('isWorking', true);
     addHostController.finish();
-    router.transitionTo('hosts.index');
+    App.clusterStatus.setClusterStatus({
+      clusterName: App.router.get('content.cluster.name'),
+      clusterState: 'DEFAULT',
+      localdb: App.db.data
+    }, {alwaysCallback: function() {context.hide();App.router.transitionTo('hosts.index');location.reload();}});
   },
 
   enter: function (router) {
@@ -52,19 +56,17 @@ module.exports = App.WizardRoute.extend({
           router.transitionTo('hosts.index');
         },
         onClose: function() {
+          var popupContext = this;
           if (addHostController.get('currentStep') == '6') {
             App.ModalPopup.show({
               header: Em.I18n.t('hosts.add.exit.header'),
               body: Em.I18n.t('hosts.add.exit.body'),
               onPrimary: function () {
-                this.hide();
-                self.clearData(router);
-                location.reload();
+                self.leaveWizard(router,popupContext);
               }
             });
           } else {
-            this.hide();
-            self.clearData(router);
+            self.leaveWizard(router,this);
           }
         },
         didInsertElement: function(){
@@ -346,7 +348,6 @@ module.exports = App.WizardRoute.extend({
       });
       router.get('updateController').updateAll();
       $(context.currentTarget).parents("#modal").find(".close").trigger('click');
-      location.reload();
     }
   }),
 

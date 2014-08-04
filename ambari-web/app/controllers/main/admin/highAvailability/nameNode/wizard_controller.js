@@ -250,8 +250,8 @@ App.HighAvailabilityWizardController = App.WizardController.extend({
    * Clear all temporary data
    */
   finish: function () {
-    App.db.data.HighAvailabilityWizard = {};
     App.db.data.Installer = {};
+    this.resetDbNamespace();
     App.router.get('updateController').updateAll();
   }
 });

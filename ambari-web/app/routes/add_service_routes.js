@@ -48,11 +48,11 @@ module.exports = App.WizardRoute.extend({
             App.router.get('updateController').updateServices(function(){
               App.router.get('updateController').updateServiceMetric();
             });
+            addServiceController.finish();
+            // We need to do recovery based on whether we are in Add Host or Installer wizard
             App.clusterStatus.setClusterStatus({
               clusterName: App.router.get('content.cluster.name'),
-              clusterState: 'DEFAULT',
-              wizardControllerName: App.router.get('addServiceController.name'),
-              localdb: App.db.data
+              clusterState: 'DEFAULT'
             }, {alwaysCallback: function() {self.hide();App.router.transitionTo('main.services.index');location.reload();}});
 
           },
@@ -324,9 +324,6 @@ module.exports = App.WizardRoute.extend({
     complete: function (router, context) {
       var addServiceController = router.get('addServiceController');
       addServiceController.get('popup').onClose();
-      addServiceController.finish();
-      // We need to do recovery based on whether we are in Add Host or Installer wizard
-      addServiceController.saveClusterState('DEFAULT');
     }
   }),
 

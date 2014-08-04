@@ -52,6 +52,7 @@ module.exports = App.WizardRoute.extend({
         }.observes('App.router.highAvailabilityWizardController.currentStep'),
 
         onClose: function () {
+          var self = this;
           var currStep = App.router.get('highAvailabilityWizardController.currentStep');
           var highAvailabilityProgressPageController = App.router.get('highAvailabilityProgressPageController');
 
@@ -63,21 +64,17 @@ module.exports = App.WizardRoute.extend({
               App.router.get('highAvailabilityWizardController').setCurrentStep('1');
               App.router.transitionTo('rollbackHighAvailability');
             }
-          }else {
+          } else {
             var controller = App.router.get('highAvailabilityWizardController');
-            controller.clearStorageData();
-            controller.setCurrentStep('1');
+            controller.clearTasksData();
+            controller.finish();
             App.router.get('updateController').set('isWorking', true);
             App.clusterStatus.setClusterStatus({
-              clusterName: App.router.get('content.cluster.name'),
+              clusterName: controller.get('content.cluster.name'),
               clusterState: 'DEFAULT',
-              wizardControllerName: App.router.get('highAvailabilityWizardController.name'),
               localdb: App.db.data
-            });
-            this.hide();
-            App.router.transitionTo('main.admin.adminHighAvailability');
+            },{alwaysCallback: function() {self.hide();App.router.transitionTo('main.admin.adminHighAvailability');location.reload();}});
           }
-
         },
         didInsertElement: function () {
           this.fitHeight();
@@ -314,7 +311,6 @@ module.exports = App.WizardRoute.extend({
       App.clusterStatus.setClusterStatus({
         clusterName: controller.get('content.cluster.name'),
         clusterState: 'DEFAULT',
-        wizardControllerName: 'highAvailabilityWizardController',
         localdb: App.db.data
       },{alwaysCallback: function() {controller.get('popup').hide();router.transitionTo('main.index');location.reload();}});
     }

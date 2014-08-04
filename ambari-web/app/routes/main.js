@@ -560,6 +560,7 @@ module.exports = Em.Route.extend({
                   App.db.setSecurityDeployCommands(undefined);
                   App.router.get('updateController').set('isWorking', true);
                   router.get('mainAdminSecurityController').setDisableSecurityStatus(undefined);
+                  router.get('addServiceController').finish();
                   App.clusterStatus.setClusterStatus({
                     clusterName: router.get('content.cluster.name'),
                     clusterState: 'DEFAULT'

@@ -367,23 +367,7 @@ App.AddHostController = App.WizardController.extend({
 
   clearStorageData: function () {
     this._super();
-    App.db.cleanAddHost();
-  },
-
-  /**
-   * save the local db data stored on the server as value to the key api/v1/persist/CLUSTER_CURRENT_STATUS
-   */
-  saveClusterState: function () {
-    App.clusterStatus.setClusterStatus({
-      clusterName: App.router.getClusterName(),
-      clusterState: 'DEFAULT'
-    });
-  },
-
-  clearData: function () {
-    // Clear Add Host namespace in Browser Local storage and save it to server persist data
-    this.clearStorageData();
-    this.saveClusterState();
+    this.resetDbNamespace();
   },
 
   /**
@@ -392,7 +376,7 @@ App.AddHostController = App.WizardController.extend({
   finish: function () {
     this.setCurrentStep('1');
     this.clearAllSteps();
-    this.clearData();
+    this.clearStorageData();
     App.router.get('updateController').updateAll();
     App.updater.immediateRun('updateHost');
   },
