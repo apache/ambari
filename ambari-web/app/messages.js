@@ -1117,6 +1117,7 @@ Em.I18n.translations = {
 
   'services.service.start':'Start',
   'services.service.stop':'Stop',
+  'services.service.metrics':'Service Metrics',
   'services.nothingToAdd':'Nothing to add',
   'services.service.summary.version':'Version',
   'services.service.summary.viewHost':'View Host',
