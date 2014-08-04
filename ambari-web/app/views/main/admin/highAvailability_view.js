@@ -23,5 +23,9 @@ App.MainAdminHighAvailabilityView = Em.View.extend({
 
   didInsertElement: function () {
     this.get('controller').setSecurityStatus();
+  },
+
+  supportRMHA: function () {
+    return App.get('isHadoop21Stack') && App.get('supports.resourceManagerHighAvailability');
   }
 });

@@ -71,7 +71,7 @@ App.supports = {
   ldapGroupMapping: false,
   localRepositories: true,
   highAvailability: true,
-  resourceManagerHighAvailability: false,
+  resourceManagerHighAvailability: true,
   deleteHost: true,
   autoRollbackHA: false,
   appTimelineServer: true,

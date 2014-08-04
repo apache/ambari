@@ -84,7 +84,7 @@ App.MainServiceItemView = Em.View.extend({
         action: 'enableRMHighAvailability',
         label: Em.I18n.t('admin.rm_highAvailability.button.enable'),
         cssClass: 'icon-arrow-up',
-        isHidden: !App.get('supports.resourceManagerHighAvailability') || App.get('isRMHaEnabled')
+        isHidden: !App.get('supports.resourceManagerHighAvailability') || App.get('isRMHaEnabled') || !App.get('isHadoop21Stack')
       },
       MOVE_COMPONENT: {
         action: 'reassignMaster',
