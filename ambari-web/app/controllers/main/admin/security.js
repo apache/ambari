@@ -47,6 +47,13 @@ App.MainAdminSecurityController = Em.Controller.extend({
   serviceConfigTags: [],
   selectedService: null,
   isNotEditable: true,
+  /** need to define <code>filter, filterColumns</code> properties
+   * for preventing errors in <code>App.ServiceConfigsByCategoryView</code>
+   */
+  filter: '',
+  filterColumns: function () {
+    return [];
+  }.property(''),
   services: function () {
     var secureServices;
     var services = [];
