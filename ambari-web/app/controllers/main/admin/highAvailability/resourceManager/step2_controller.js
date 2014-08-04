@@ -21,9 +21,9 @@ var App = require('app');
 App.RMHighAvailabilityWizardStep2Controller = App.WizardStep5Controller.extend({
   name: "rMHighAvailabilityWizardStep2Controller",
 
-  loadStep: function () {
-    this._super();
-    this.hideUnusedComponents();
+  loadStepCallback: function (components, self) {
+    this._super(components, self);
+    self.hideUnusedComponents();
   },
 
   renderComponents: function (masterComponents) {

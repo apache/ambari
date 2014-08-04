@@ -306,7 +306,7 @@ App.WizardStep5Controller = Em.Controller.extend({
     if (App.router.get('installerController.recommendations') !== undefined) {
       // Don't do AJAX call if recommendations has been already received
       // But if user returns to previous step (selecting services), stored recommendations will be cleared in routers' next handler and AJAX call will be made again
-      callback(self.createComponentInstalltationObjects(), self);
+      callback(self.createComponentInstallationObjects(), self);
     } else {
       var selectedServices = App.StackService.find().filterProperty('isSelected').mapProperty('serviceName');
       var installedServices = App.StackService.find().filterProperty('isInstalled').mapProperty('serviceName');
@@ -329,7 +329,7 @@ App.WizardStep5Controller = Em.Controller.extend({
           timeout: App.timeout
         }).
         then(function () {
-          callback(self.createComponentInstalltationObjects(), self);
+          callback(self.createComponentInstallationObjects(), self);
         },
         function () {
           App.showReloadPopup();
@@ -344,7 +344,7 @@ App.WizardStep5Controller = Em.Controller.extend({
    * expects installerController.recommendations will be filled with recommendations API call result
    * @return {Object[]}
    */
-  createComponentInstalltationObjects: function() {
+  createComponentInstallationObjects: function() {
     var self = this;
 
     var masterComponents = [];
@@ -386,12 +386,12 @@ App.WizardStep5Controller = Em.Controller.extend({
                   multipleComponentHasBeenAdded[component.name] = true;
 
                   savedComponents.forEach(function(saved) {
-                    resultComponents.push(self.createComponentInstalltationObject(fullComponent, host.fqdn, saved));
+                    resultComponents.push(self.createComponentInstallationObject(fullComponent, host.fqdn, saved));
                   });
                 }
               } else {
                 var savedComponent = masterHosts.findProperty('component', component.name);
-                resultComponents.push(self.createComponentInstalltationObject(fullComponent, host.fqdn, savedComponent));
+                resultComponents.push(self.createComponentInstallationObject(fullComponent, host.fqdn, savedComponent));
               }
             }
           }
@@ -408,7 +408,7 @@ App.WizardStep5Controller = Em.Controller.extend({
    * @param savedComponent - the same object which function returns but created before
    * @return {Object}
    */
-  createComponentInstalltationObject: function(fullComponent, hostName, savedComponent) {
+  createComponentInstallationObject: function(fullComponent, hostName, savedComponent) {
     var componentName = fullComponent.get('componentName');
 
     var componentObj = {};
