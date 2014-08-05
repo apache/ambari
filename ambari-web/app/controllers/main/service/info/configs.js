@@ -1031,7 +1031,20 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       if (this.get('content.serviceName') === 'YARN' && !App.supports.capacitySchedulerUi) {
         configs = App.config.textareaIntoFileConfigs(configs, 'capacity-scheduler.xml');
       }
-      this.saveSiteConfigs(configs.filterProperty('group', null));
+      var modifiedConfigs = configs
+        // get only modified and created configs
+        .filter(function(config) { return config.get('isNotDefaultValue') || config.get('isNotSaved'); })
+        // get file names
+        .mapProperty('filename').uniq()
+        // get configs by filename
+        .map(function(fileName) {
+          return configs.filterProperty('filename', fileName);
+        })
+        // concatenate results
+        .reduce(function(current, prev) { return current.concat(prev); });
+
+      // save modified original configs that have no group
+      this.saveSiteConfigs(modifiedConfigs.filter(function(config) { return !config.get('group'); }));
 
       /**
        * First we put cluster configurations, which automatically creates /configurations

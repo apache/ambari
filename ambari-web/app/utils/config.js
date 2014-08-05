@@ -334,6 +334,7 @@ App.config = Em.Object.create({
           isOverridable: true,
           isRequired: true,
           isFinal: finalAttributes[index] === "true",
+          defaultIsFinal: finalAttributes[index] === "true",
           showLabel: true,
           serviceName: serviceName,
           belongsToService: []
@@ -840,6 +841,7 @@ App.config = Em.Object.create({
             description: item.property_description,
             isVisible: item.isVisible,
             isFinal: item.final === "true",
+            defaultIsFinal: item.final === "true",
             filename: item.filename || fileName
           });
         }
@@ -1113,6 +1115,7 @@ App.config = Em.Object.create({
       "isOverridable": true,
       "isRequired": true,
       "isVisible": true,
+      "supportsFinal": true,
       "serviceName": "YARN",
       "filename": "capacity-scheduler.xml",
       "category": "CapacityScheduler"
@@ -1137,8 +1140,11 @@ App.config = Em.Object.create({
         value += _config.name + '=' + _config.value + '\n';
         defaultValue += _config.name + '=' + _config.defaultValue + '\n';
       }, this);
+      var isFinal = fileConfigs.someProperty('isFinal', true);
       complexConfig.value = value;
       complexConfig.defaultValue = defaultValue;
+      complexConfig.isFinal = isFinal;
+      complexConfig.defaultIsFinal = isFinal;
       configs = configs.filter(function (_config) {
         return _config.filename !== filename;
       });
@@ -1173,6 +1179,8 @@ App.config = Em.Object.create({
             defaultValue: value,
             serviceName: configsTextarea.get('serviceName'),
             filename: filename,
+            isFinal: configsTextarea.get('isFinal'),
+            isNotDefaultValue: configsTextarea.get('isNotDefaultValue'),
             group: null
           }));
         }
