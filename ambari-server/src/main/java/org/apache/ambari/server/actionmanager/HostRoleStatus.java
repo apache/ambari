@@ -23,8 +23,8 @@ import java.util.List;
 
 public enum HostRoleStatus {
   PENDING(0), //Not queued for a host
-  QUEUED(1), //Queued for a host
-  IN_PROGRESS(2), //Host reported it is working
+  QUEUED(1), //Queued for a host (or has already been sent to host, but host did not answer yet)
+  IN_PROGRESS(2), //Host reported it is working (we received an IN_PROGRESS command status from host)
   COMPLETED(3), //Host reported success
   FAILED(4), //Failed
   TIMEDOUT(5), //Host did not respond in time

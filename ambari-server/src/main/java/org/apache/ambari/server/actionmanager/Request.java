@@ -53,6 +53,11 @@ public class Request {
   private long createTime;
   private long startTime;
   private long endTime;
+  /**
+   * As of now, this field is not used. Request status is
+   * calculated at RequestResourceProvider on the fly.
+   */
+  private HostRoleStatus status; // not persisted yet
   private String inputs;
   private List<RequestResourceFilter> resourceFilters;
   private RequestOperationLevel operationLevel;
@@ -159,6 +164,7 @@ public class Request {
 
     this.requestType = entity.getRequestType();
     this.commandName = entity.getCommandName();
+    this.status = entity.getStatus();
     if (entity.getRequestScheduleEntity() != null) {
       this.requestScheduleId = entity.getRequestScheduleEntity().getScheduleId();
     }
@@ -371,4 +377,11 @@ public class Request {
         '}';
   }
 
+  public HostRoleStatus getStatus() {
+    return status;
+  }
+
+  public void setStatus(HostRoleStatus status) {
+    this.status = status;
+  }
 }

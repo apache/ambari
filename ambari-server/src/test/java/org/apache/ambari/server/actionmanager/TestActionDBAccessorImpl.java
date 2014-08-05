@@ -112,7 +112,7 @@ public class TestActionDBAccessorImpl {
     cr.setStdOut("");
     cr.setExitCode(215);
     reports.add(cr);
-    am.processTaskResponse(hostname, reports);
+    am.processTaskResponse(hostname, reports, stage.getOrderedHostRoleCommands());
     assertEquals(215,
         am.getAction(requestId, stageId).getExitCode(hostname, "HBASE_MASTER"));
     assertEquals(HostRoleStatus.COMPLETED, am.getAction(requestId, stageId)

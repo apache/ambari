@@ -22,8 +22,10 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -36,6 +38,8 @@ import org.apache.ambari.server.ServiceComponentHostNotFoundException;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.actionmanager.ActionManager;
+import org.apache.ambari.server.actionmanager.HostRoleCommand;
+import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
@@ -318,8 +322,23 @@ public class HeartBeatHandler {
       HeartBeat heartbeat, String hostname, Clusters clusterFsm, long now)
       throws AmbariException {
     List<CommandReport> reports = heartbeat.getReports();
+
+    // Cache HostRoleCommand entities because we will need them few times
+    List<Long> taskIds = new ArrayList<Long>();
+    for (CommandReport report : reports) {
+      taskIds.add(report.getTaskId());
+    }
+    Collection<HostRoleCommand> commands = actionManager.getTasks(taskIds);
+
+    Iterator<HostRoleCommand> hostRoleCommandIterator = commands.iterator();
     for (CommandReport report : reports) {
       LOG.debug("Received command report: " + report);
+      // Fetch HostRoleCommand that corresponds to a given task ID
+      HostRoleCommand hostRoleCommand = hostRoleCommandIterator.next();
+      // Skip sending events for command reports for ABORTed commands
+      if (hostRoleCommand.getStatus() == HostRoleStatus.ABORTED) {
+        continue;
+      }
       //pass custom STAR, STOP and RESTART
       if (RoleCommand.ACTIONEXECUTE.toString().equals(report.getRoleCommand()) ||
          (RoleCommand.CUSTOM_COMMAND.toString().equals(report.getRoleCommand()) &&
@@ -407,7 +426,7 @@ public class HeartBeatHandler {
       }
     }
     //Update state machines from reports
-    actionManager.processTaskResponse(hostname, reports);
+    actionManager.processTaskResponse(hostname, reports, commands);
   }
 
   protected void processStatusReports(HeartBeat heartbeat,
@@ -550,6 +569,10 @@ public class HeartBeatHandler {
           }
           case STATUS_COMMAND: {
             response.addStatusCommand((StatusCommand) ac);
+            break;
+          }
+          case CANCEL_COMMAND: {
+            response.addCancelCommand((CancelCommand) ac);
             break;
           }
           default:

@@ -855,7 +855,7 @@ public class TestActionScheduler {
 
     List<CommandReport> reports = new ArrayList<CommandReport>();
     reports.add(getCommandReport(HostRoleStatus.FAILED, Role.NAMENODE, Service.Type.HDFS, "1-1", 1));
-    am.processTaskResponse(hostname, reports);
+    am.processTaskResponse(hostname, reports, stages.get(0).getOrderedHostRoleCommands());
 
     scheduler.doWork();
     Assert.assertEquals(HostRoleStatus.FAILED, stages.get(0).getHostRoleStatus(hostname, "NAMENODE"));
@@ -1192,15 +1192,15 @@ public class TestActionScheduler {
 
     List<CommandReport> reports = new ArrayList<CommandReport>();
     reports.add(getCommandReport(HostRoleStatus.FAILED, Role.DATANODE, Service.Type.HDFS, "1-1", 1));
-    am.processTaskResponse("host1", reports);
+    am.processTaskResponse("host1", reports, stage.getOrderedHostRoleCommands());
 
     reports.clear();
     reports.add(getCommandReport(HostRoleStatus.FAILED, Role.DATANODE, Service.Type.HDFS, "1-1", 2));
-    am.processTaskResponse("host2", reports);
+    am.processTaskResponse("host2", reports, stage.getOrderedHostRoleCommands());
 
     reports.clear();
     reports.add(getCommandReport(HostRoleStatus.COMPLETED, Role.DATANODE, Service.Type.HDFS, "1-1", 3));
-    am.processTaskResponse("host3", reports);
+    am.processTaskResponse("host3", reports, stage.getOrderedHostRoleCommands());
 
     scheduler.doWork();
     Assert.assertEquals(HostRoleStatus.ABORTED, stages.get(1).getHostRoleStatus("host1", "HDFS_CLIENT"));

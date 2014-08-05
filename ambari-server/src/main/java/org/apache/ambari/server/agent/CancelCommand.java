@@ -17,37 +17,39 @@
  */
 package org.apache.ambari.server.agent;
 
-public abstract class AgentCommand {
+import com.google.gson.annotations.SerializedName;
+import org.codehaus.jackson.annotate.JsonProperty;
 
-  private AgentCommandType commandType;
+import java.util.HashMap;
+import java.util.Map;
 
-  public AgentCommand() {
-    this.commandType = AgentCommandType.STATUS_COMMAND;
+/**
+ * Command to report the status of a list of services in roles.
+ */
+public class CancelCommand extends AgentCommand {
+
+  public CancelCommand() {
+    super(AgentCommandType.CANCEL_COMMAND);
   }
 
-  public AgentCommand(AgentCommandType type) {
-    this.commandType = type;
+  @SerializedName("target_task_id")
+  private long targetTaskId;
+
+  private String reason;
+
+  public long getTargetTaskId() {
+    return targetTaskId;
   }
 
-  public enum AgentCommandType {
-    EXECUTION_COMMAND,
-    STATUS_COMMAND,
-    CANCEL_COMMAND,
-    REGISTRATION_COMMAND
+  public void setTargetTaskId(long targetTaskId) {
+    this.targetTaskId = targetTaskId;
   }
 
-  public AgentCommandType getCommandType() {
-    return commandType;
-  }
-  
-  public void setCommandType(AgentCommandType commandType) {
-    this.commandType = commandType;
+  public String getReason() {
+    return reason;
   }
 
-  @Override
-  public String toString() {
-    return "AgentCommand{" +
-            "commandType=" + commandType +
-            '}';
+  public void setReason(String reason) {
+    this.reason = reason;
   }
 }

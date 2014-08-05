@@ -211,8 +211,11 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
       targets.add(internalRequest);
     }
     // Perform update
-    for (org.apache.ambari.server.actionmanager.Request target : targets) {
-      amc.getActionManager().cancelRequest(target);
+    Iterator<RequestRequest> reqIterator = requests.iterator();
+    for (int i = 0; i < targets.size(); i++) {
+      org.apache.ambari.server.actionmanager.Request target = targets.get(i);
+      String reason = reqIterator.next().getAbortReason();
+      amc.getActionManager().cancelRequest(target.getRequestId(), reason);
     }
     return getRequestStatus(null);
   }

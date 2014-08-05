@@ -36,6 +36,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -118,28 +119,39 @@ public class ActionManager {
     return db.getAllStages(requestId);
   }
 
+  public HostRoleCommand getTaskById(long taskId) {
+    return db.getTask(taskId);
+  }
+
   /**
    * Persists command reports into the db
+   * @param reports command reports
+   * @param commands a list of commands that correspond to reports list (it should be
+   * a 1 to 1 matching). We use this list to avoid fetching commands from the DB
+   * twice
    */
-  public void processTaskResponse(String hostname, List<CommandReport> reports) {
+  public void processTaskResponse(String hostname, List<CommandReport> reports,
+                                  Collection<HostRoleCommand> commands) {
     if (reports == null) {
       return;
     }
 
     List<CommandReport> reportsToProcess = new ArrayList<CommandReport>();
+    Iterator<HostRoleCommand> commandIterator = commands.iterator();
     //persist the action response into the db.
     for (CommandReport report : reports) {
+      HostRoleCommand command = commandIterator.next();
       if (LOG.isDebugEnabled()) {
         LOG.debug("Processing command report : " + report.toString());
       }
-      HostRoleCommand command = db.getTask(report.getTaskId());
       if (command == null) {
         LOG.warn("The task " + report.getTaskId()
             + " is invalid");
         continue;
       }
-      if (!command.getStatus().equals(HostRoleStatus.IN_PROGRESS)
-          && !command.getStatus().equals(HostRoleStatus.QUEUED)) {
+      if (! command.getStatus().equals(HostRoleStatus.IN_PROGRESS)
+          && ! command.getStatus().equals(HostRoleStatus.QUEUED)
+          && ! command.getStatus().equals(HostRoleStatus.ABORTED)) {
         LOG.warn("The task " + command.getTaskId()
             + " is not in progress, ignoring update");
         continue;
@@ -220,8 +232,8 @@ public class ActionManager {
     return db.getRequestContext(requestId);
   }
 
-  public void cancelRequest(Request request) {
-    // TODO: implement (dlysnichenko)
-    // TODO : what if cluster name == null?
+  public void cancelRequest(long requestId, String reason) {
+    scheduler.scheduleCancellingRequest(requestId, reason);
+    scheduler.awake();
   }
 }

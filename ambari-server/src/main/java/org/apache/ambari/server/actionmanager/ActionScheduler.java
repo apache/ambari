@@ -19,6 +19,8 @@ package org.apache.ambari.server.actionmanager;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -26,13 +28,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Multimap;
 import com.google.common.reflect.TypeToken;
 import com.google.inject.persist.UnitOfWork;
 import org.apache.ambari.server.AmbariException;
@@ -41,6 +43,7 @@ import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.ServiceComponentHostNotFoundException;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.agent.ActionQueue;
+import org.apache.ambari.server.agent.CancelCommand;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.configuration.Configuration;
@@ -58,7 +61,6 @@ import org.apache.ambari.server.state.ServiceComponentHostEvent;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpFailedEvent;
 import org.apache.ambari.server.utils.StageUtils;
-import org.apache.commons.collections.MultiMap;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,6 +75,10 @@ import org.slf4j.LoggerFactory;
 class ActionScheduler implements Runnable {
 
   private static Logger LOG = LoggerFactory.getLogger(ActionScheduler.class);
+
+  public static final String FAILED_TASK_ABORT_REASONING =
+          "Server considered task failed and automatically aborted it";
+
   private final long actionTimeout;
   private final long sleepTime;
   private final UnitOfWork unitOfWork;
@@ -88,7 +94,22 @@ class ActionScheduler implements Runnable {
   private final ServerActionManager serverActionManager;
   private final Configuration configuration;
 
-  private final Set<String> requestsInProgress = new HashSet<String>();
+  private final Set<Long> requestsInProgress = new HashSet<Long>();
+
+  /**
+   * Contains request ids that have been scheduled to be cancelled,
+   * but are not cancelled yet
+   */
+  private final Set<Long> requestsToBeCancelled =
+          Collections.newSetFromMap(new ConcurrentHashMap<Long, Boolean>());
+
+  /**
+   * Maps request IDs to reasoning for cancelling request.
+   * Map is NOT synchronized, so any access to it should synchronize on
+   * requestsToBeCancelled object
+   */
+  private final Map<Long, String> requestCancelReasons =
+          new HashMap<Long, String>();
 
   /**
    * true if scheduler should run ASAP.
@@ -167,14 +188,18 @@ class ActionScheduler implements Runnable {
   public void doWork() throws AmbariException {
     try {
       unitOfWork.begin();
-      Set<String> runningRequestIds = new HashSet<String>();
+
+      // The first thing to do is to abort requests that are cancelled
+      processCancelledRequestsList();
+
+      Set<Long> runningRequestIds = new HashSet<Long>();
       Set<String> affectedHosts = new HashSet<String>();
       List<Stage> stages = db.getStagesInProgress();
       if (LOG.isDebugEnabled()) {
         LOG.debug("Scheduler wakes up");
         LOG.debug("Processing {} in progress stages ", stages.size());
       }
-      if (stages == null || stages.isEmpty()) {
+      if (stages.isEmpty()) {
         //Nothing to do
         if (LOG.isDebugEnabled()) {
           LOG.debug("No stage in progress..nothing to do");
@@ -187,17 +212,15 @@ class ActionScheduler implements Runnable {
         i_stage ++;
 
         long requestId = s.getRequestId();
-        // Convert to string to avoid glitches with boxing/unboxing
-        String requestIdStr = String.valueOf(requestId);
-        LOG.debug("==> STAGE_i = " + i_stage + "(requestId=" + requestIdStr + ",StageId=" + s.getStageId() + ")");
-        if (runningRequestIds.contains(requestIdStr)) {
+        LOG.debug("==> STAGE_i = " + i_stage + "(requestId=" + requestId + ",StageId=" + s.getStageId() + ")");
+        if (runningRequestIds.contains(requestId)) {
           // We don't want to process different stages from the same request in parallel
           LOG.debug("==> We don't want to process different stages from the same request in parallel" );
           continue;
         } else {
-          runningRequestIds.add(requestIdStr);
-          if (!requestsInProgress.contains(requestIdStr)) {
-            requestsInProgress.add(requestIdStr);
+          runningRequestIds.add(requestId);
+          if (!requestsInProgress.contains(requestId)) {
+            requestsInProgress.add(requestId);
             db.startRequest(requestId);
           }
         }
@@ -241,6 +264,7 @@ class ActionScheduler implements Runnable {
         if (failed) {
           LOG.warn("Operation completely failed, aborting request id:"
               + s.getRequestId());
+          cancelHostRoleCommands(s.getOrderedHostRoleCommands(), FAILED_TASK_ABORT_REASONING);
           abortOperationsForStage(s);
           return;
         }
@@ -298,8 +322,18 @@ class ActionScheduler implements Runnable {
         LOG.debug("==> Scheduling {} tasks...", commandsToUpdate.size());
         db.bulkHostRoleScheduled(s, commandsToUpdate);
 
-        LOG.debug("==> Aborting {} tasks...", commandsToAbort.size());
-        db.bulkAbortHostRole(s, commandsToAbort);
+        if (commandsToAbort.size() > 0) { // Code branch may be a bit slow, but is extremely rarely used
+          LOG.debug("==> Aborting {} tasks...", commandsToAbort.size());
+          // Build a list of HostRoleCommands
+          List<Long> taskIds = new ArrayList<Long>();
+          for (ExecutionCommand command : commandsToAbort) {
+            taskIds.add(command.getTaskId());
+          }
+          Collection<HostRoleCommand> hostRoleCommands = db.getTasks(taskIds);
+
+          cancelHostRoleCommands(hostRoleCommands, FAILED_TASK_ABORT_REASONING);
+          db.bulkAbortHostRole(s, commandsToAbort);
+        }
 
         LOG.debug("==> Adding {} tasks to queue...", commandsToUpdate.size());
         for (ExecutionCommand cmd : commandsToUpdate) {
@@ -497,6 +531,7 @@ class ActionScheduler implements Runnable {
             c.getCommandId(), c.getTaskId(), c.getRoleCommand());
           LOG.warn("Host {} has been detected as non-available. {}", host, message);
           // Abort the command itself
+          // We don't need to send CANCEL_COMMANDs in this case
           db.abortHostRole(host, s.getRequestId(), s.getStageId(), c.getRole(), message);
           status = HostRoleStatus.ABORTED;
         } else if (timeOutActionNeeded(status, s, hostObj, roleStr, now, taskTimeout)) {
@@ -550,7 +585,6 @@ class ActionScheduler implements Runnable {
           c.getRole(), hostName, now, true);
       }
     }
-
     db.abortOperation(stage.getRequestId());
   }
 
@@ -570,7 +604,7 @@ class ActionScheduler implements Runnable {
     try {
       Cluster cluster = fsmObject.getCluster(clusterName);
 
-      ServiceComponentHostOpFailedEvent timeoutEvent =
+      ServiceComponentHostOpFailedEvent failedEvent =
         new ServiceComponentHostOpFailedEvent(componentName,
           hostname, timestamp);
 
@@ -578,7 +612,7 @@ class ActionScheduler implements Runnable {
       ServiceComponent svcComp = svc.getServiceComponent(componentName);
       ServiceComponentHost svcCompHost =
         svcComp.getServiceComponentHost(hostname);
-      svcCompHost.handleEvent(timeoutEvent);
+      svcCompHost.handleEvent(failedEvent);
 
     } catch (ServiceComponentNotFoundException scnex) {
       LOG.debug(componentName + " associated with service " + serviceName +
@@ -694,59 +728,64 @@ class ActionScheduler implements Runnable {
     commandsToUpdate.add(cmd);
   }
 
-  private void scheduleHostRole(Stage s, ExecutionCommand cmd)
-      throws InvalidStateTransitionException, AmbariException {
-    long now = System.currentTimeMillis();
-    String roleStr = cmd.getRole();
-    String hostname = cmd.getHostname();
+  /**
+   * @param requestId request will be cancelled on next scheduler wake up
+   * (if it is in state that allows cancelation, e.g. QUEUED, PENDING, IN_PROGRESS)
+   * @param reason why request is being cancelled
+   */
+  public void scheduleCancellingRequest(long requestId, String reason) {
+    synchronized (requestsToBeCancelled) {
+      requestsToBeCancelled.add(requestId);
+      requestCancelReasons.put(requestId, reason);
+    }
+  }
 
-    // start time is -1 if host role command is not started yet
-    if (s.getStartTime(hostname, roleStr) < 0) {
-      if (RoleCommand.ACTIONEXECUTE != cmd.getRoleCommand()) {
-        try {
-          Cluster c = fsmObject.getCluster(s.getClusterName());
-          Service svc = c.getService(cmd.getServiceName());
-          ServiceComponent svcComp = svc.getServiceComponent(roleStr);
-          ServiceComponentHost svcCompHost =
-                  svcComp.getServiceComponentHost(hostname);
-          svcCompHost.handleEvent(s.getFsmEvent(hostname, roleStr).getEvent());
-        } catch (ServiceComponentNotFoundException scnex) {
-          LOG.debug("Not a service component, assuming its an action");
-        } catch (InvalidStateTransitionException e) {
-          LOG.info(
-              "Transition failed for host: " + hostname + ", role: "
-                  + roleStr, e);
-          throw e;
-        } catch (AmbariException e) {
-          LOG.warn("Exception in fsm: " + hostname + ", role: " + roleStr,
-              e);
-          throw e;
+
+  /**
+   * Aborts all stages that belong to requests that are being cancelled
+   */
+  private void processCancelledRequestsList() {
+    synchronized (requestsToBeCancelled) {
+      // Now, cancel stages completely
+      for (Long requestId : requestsToBeCancelled) {
+        List<HostRoleCommand> tasksToDequeue = db.getRequestTasks(requestId);
+        String reason = requestCancelReasons.get(requestId);
+        cancelHostRoleCommands(tasksToDequeue, reason);
+        List<Stage> stages = db.getAllStages(requestId);
+        for (Stage stage : stages) {
+          abortOperationsForStage(stage);
         }
       }
-      s.setStartTime(hostname,roleStr, now);
-      s.setHostRoleStatus(hostname, roleStr, HostRoleStatus.QUEUED);
+      requestsToBeCancelled.clear();
+      requestCancelReasons.clear();
     }
-    s.setLastAttemptTime(hostname, roleStr, now);
-    s.incrementAttemptCount(hostname, roleStr);
-    LOG.debug("Scheduling command: "+cmd.toString()+" for host: "+hostname);
-    /** change the hostname in the command for the host itself **/
-    cmd.setHostname(hostsMap.getHostMap(hostname));
-    
+  }
 
-    //Try to get clusterHostInfo from cache
-    String stagePk = s.getStageId() + "-" + s.getRequestId();
-    Map<String, Set<String>> clusterHostInfo = clusterHostInfoCache.getIfPresent(stagePk);
-    
-    if (clusterHostInfo == null) {
-      Type type = new TypeToken<Map<String, Set<String>>>() {}.getType();
-      clusterHostInfo = StageUtils.getGson().fromJson(s.getClusterHostInfo(), type);
-      clusterHostInfoCache.put(stagePk, clusterHostInfo);
+  /**
+   * Cancels host role commands (those that are not finished yet).
+   * Dequeues host role commands that have been added to ActionQueue,
+   * and automatically generates and adds to ActionQueue CANCEL_COMMANDs
+   * for all hostRoleCommands that have already been sent to an agent for
+   * execution.
+   * @param hostRoleCommands a list of hostRoleCommands
+   * @param reason why the request is being cancelled
+   */
+  private void cancelHostRoleCommands(Collection<HostRoleCommand> hostRoleCommands, String reason) {
+    for (HostRoleCommand hostRoleCommand : hostRoleCommands) {
+      if (hostRoleCommand.getStatus() == HostRoleStatus.QUEUED) {
+        // Dequeue all tasks that have been already scheduled for sending to agent
+        actionQueue.dequeue(hostRoleCommand.getHostName(),
+                hostRoleCommand.getExecutionCommandWrapper().
+                        getExecutionCommand().getCommandId());
+      }
+      if (hostRoleCommand.getStatus() == HostRoleStatus.QUEUED ||
+            hostRoleCommand.getStatus() == HostRoleStatus.IN_PROGRESS) {
+        CancelCommand cancelCommand = new CancelCommand();
+        cancelCommand.setTargetTaskId(hostRoleCommand.getTaskId());
+        cancelCommand.setReason(reason);
+        actionQueue.enqueue(hostRoleCommand.getHostName(), cancelCommand);
+      }
     }
-    
-    cmd.setClusterHostInfo(clusterHostInfo);
-
-    actionQueue.enqueue(hostname, cmd);
-    db.hostRoleScheduled(s, hostname, roleStr);
   }
 
   private void updateRoleStats(HostRoleStatus status, RoleStats rs) {
