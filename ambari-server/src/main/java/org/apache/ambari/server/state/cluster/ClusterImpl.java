@@ -235,13 +235,18 @@ public class ClusterImpl implements Cluster {
       LOG.error("Service config versioning disabled due to exception: ", e);
       return serviceConfigTypes;
     }
-    for (String serviceName : serviceInfoMap.keySet()) {
+    for (Entry<String, ServiceInfo> entry : serviceInfoMap.entrySet()) {
+      String serviceName = entry.getKey();
+      ServiceInfo serviceInfo = entry.getValue();
       //collect config types for service
       Set<PropertyInfo> properties = ambariMetaInfo.getProperties(desiredStackVersion.getStackName(), desiredStackVersion.getStackVersion(), serviceName);
       for (PropertyInfo property : properties) {
         int extIndex = property.getFilename().indexOf(AmbariMetaInfo.SERVICE_CONFIG_FILE_NAME_POSTFIX);
         String configType = property.getFilename().substring(0, extIndex);
-        serviceConfigTypes.put(serviceName, configType);
+        if (serviceInfo.getExcludedConfigTypes() == null ||
+          !serviceInfo.getExcludedConfigTypes().contains(configType)) {
+          serviceConfigTypes.put(serviceName, configType);
+        }
       }
     }
 

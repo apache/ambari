@@ -312,16 +312,18 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
       LOG.error(msg);
       throw new AmbariException(msg);
     } else if (!dbAccessor.tableHasData(tableName)) {
-      String query;
+      String query = null;
       if (dbType.equals(Configuration.POSTGRES_DB_NAME)) {
         query = getPostgresRequestUpgradeQuery();
       } else if (dbType.equals(Configuration.ORACLE_DB_NAME)) {
         query = getOracleRequestUpgradeQuery();
-      } else {
+      } else if (Configuration.MYSQL_DB_NAME.equals(dbType)) {
         query = getMysqlRequestUpgradeQuery();
       }
 
-      dbAccessor.executeQuery(query);
+      if (query != null) {
+        dbAccessor.executeQuery(query);
+      }
     } else {
       LOG.info("Table {} already filled", tableName);
     }
@@ -329,7 +331,8 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
     // Drop old constraints
     // ========================================================================
     if (Configuration.POSTGRES_DB_NAME.equals(dbType)
-      || Configuration.MYSQL_DB_NAME.equals(dbType)) {
+      || Configuration.MYSQL_DB_NAME.equals(dbType)
+      || Configuration.DERBY_DB_NAME.equals(dbType)) {
 
       //recreate old constraints to sync with oracle
       dbAccessor.dropConstraint("clusterconfigmapping", "FK_clusterconfigmapping_cluster_id");

@@ -21,6 +21,7 @@ package org.apache.ambari.server.state;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -69,6 +70,10 @@ public class ServiceInfo {
   @XmlElementWrapper(name="configuration-dependencies")
   @XmlElement(name="config-type")
   private List<String> configDependencies;
+
+  @XmlElementWrapper(name="excluded-config-types")
+  @XmlElement(name="config-type")
+  private Set<String> excludedConfigTypes;
 
   @XmlTransient
   private Map<String, Map<String, Map<String, String>>> configTypes;
@@ -451,5 +456,16 @@ public class ServiceInfo {
    */
   public File getAlertsFile() {
     return alertsFile;
+  }
+
+  /**
+   * @return config types this service contains configuration for, but which are primarily related to another service
+   */
+  public Set<String> getExcludedConfigTypes() {
+    return excludedConfigTypes;
+  }
+
+  public void setExcludedConfigTypes(Set<String> excludedConfigTypes) {
+    this.excludedConfigTypes = excludedConfigTypes;
   }
 }

@@ -34,6 +34,8 @@ import org.apache.ambari.server.security.CertificateManager;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.utils.VersionUtils;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,6 +47,7 @@ import java.util.*;
 
 import static org.junit.Assert.assertTrue;
 
+@RunWith(Parameterized.class)
 public class UpgradeTest {
   private static final Logger LOG = LoggerFactory.getLogger(UpgradeTest.class);
 
@@ -53,11 +56,14 @@ public class UpgradeTest {
       "1.4.3", "1.4.2", "1.4.1", "1.4.0", "1.2.5", "1.2.4",
       "1.2.3"); //TODO add all
   private static String DROP_DERBY_URL = "jdbc:derby:memory:myDB/ambari;drop=true";
+
+  private final String sourceVersion;
   private  Properties properties = new Properties();
 
   private Injector injector;
 
-  public UpgradeTest() {
+  public UpgradeTest(String sourceVersion) {
+    this.sourceVersion = sourceVersion;
     properties.setProperty(Configuration.SERVER_PERSISTENCE_TYPE_KEY, "remote");
     properties.setProperty(Configuration.SERVER_JDBC_URL_KEY, Configuration.JDBC_IN_MEMORY_URL);
     properties.setProperty(Configuration.SERVER_JDBC_DRIVER_KEY, Configuration.JDBC_IN_MEMROY_DRIVER);
@@ -79,27 +85,15 @@ public class UpgradeTest {
     }
 
     String targetVersion = getLastVersion();
-    List<String> failedVersions = new ArrayList<String>();
 
-    for (String version : VERSIONS) {
-      injector = Guice.createInjector(new ControllerModule(properties));
+    injector = Guice.createInjector(new ControllerModule(properties));
+    LOG.info("Testing upgrade from version {} to {}", sourceVersion, targetVersion);
 
-      try {
-        createSourceDatabase(version);
+    createSourceDatabase(sourceVersion);
+    performUpgrade(targetVersion);
+    testUpgradedSchema();
 
-        performUpgrade(targetVersion);
-
-        testUpgradedSchema();
-      } catch (Exception e) {
-        failedVersions.add(version);
-        e.printStackTrace();
-      }
-
-      dropDatabase();
-
-    }
-
-    assertTrue("Upgrade test failed for version: " + failedVersions, failedVersions.isEmpty());
+    dropDatabase();
 
 
   }
@@ -213,6 +207,15 @@ public class UpgradeTest {
     DBAccessor dbAccessor = injector.getInstance(DBAccessor.class);
     dbAccessor.executeScript(fileName);
 
+  }
+
+  @Parameterized.Parameters
+  public static Collection<Object[]> data() {
+    Collection<Object[]> data = new ArrayList<Object[]>();
+    for (String s : VERSIONS) {
+      data.add(new Object[]{s});
+    }
+    return data;
   }
 
 

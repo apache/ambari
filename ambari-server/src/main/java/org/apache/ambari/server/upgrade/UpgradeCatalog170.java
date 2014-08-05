@@ -206,6 +206,95 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
     }
 
     addAlertingFrameworkDDL();
+
+    //service config versions changes
+
+    //remove old artifacts (for versions <=1.4.1) which depend on tables changed
+    //actually these had to be dropped in UC150, but some of tables were never used, and others were just cleared
+    if (dbAccessor.tableExists("componentconfigmapping")) {
+      dbAccessor.dropTable("componentconfigmapping");
+    }
+    if (dbAccessor.tableExists("hostcomponentconfigmapping")) {
+      dbAccessor.dropTable("hostcomponentconfigmapping");
+    }
+    if (dbAccessor.tableExists("hcdesiredconfigmapping")) {
+      dbAccessor.dropTable("hcdesiredconfigmapping");
+    }
+    if (dbAccessor.tableExists("serviceconfigmapping")) {
+      dbAccessor.dropTable("serviceconfigmapping");
+    }
+
+    dbAccessor.dropConstraint("confgroupclusterconfigmapping", "FK_confg");
+
+    if (Configuration.ORACLE_DB_NAME.equals(dbType)
+      || Configuration.MYSQL_DB_NAME.equals(dbType)
+      || Configuration.DERBY_DB_NAME.equals(dbType)) {
+      dbAccessor.executeQuery("ALTER TABLE clusterconfig DROP PRIMARY KEY", true);
+    } else if (Configuration.POSTGRES_DB_NAME.equals(dbType)) {
+      dbAccessor.executeQuery("ALTER TABLE clusterconfig DROP CONSTRAINT clusterconfig_pkey CASCADE", true);
+    }
+
+    dbAccessor.addColumn("clusterconfig", new DBColumnInfo("config_id", Long.class, null, null, true));
+
+    if (Configuration.ORACLE_DB_NAME.equals(dbType)) {
+      //sequence looks to be simpler than rownum
+      if (dbAccessor.tableHasData("clusterconfig")) {
+        dbAccessor.executeQuery("CREATE SEQUENCE TEMP_SEQ " +
+          "  START WITH 1 " +
+          "  MAXVALUE 999999999999999999999999999 " +
+          "  MINVALUE 1 " +
+          "  NOCYCLE " +
+          "  NOCACHE " +
+          "  NOORDER");
+        dbAccessor.executeQuery("UPDATE clusterconfig SET config_id = TEMP_SEQ.NEXTVAL");
+        dbAccessor.dropSequence("TEMP_SEQ");
+      }
+    } else if (Configuration.MYSQL_DB_NAME.equals(dbType)) {
+      if (dbAccessor.tableHasData("clusterconfig")) {
+        dbAccessor.executeQuery("UPDATE viewinstance " +
+          "SET config_id = (SELECT @a := @a + 1 FROM (SELECT @a := 1) s)");
+      }
+    } else if (Configuration.POSTGRES_DB_NAME.equals(dbType)) {
+      if (dbAccessor.tableHasData("clusterconfig")) {
+        //window functions like row_number were added in 8.4, workaround for earlier versions (redhat/centos 5)
+        dbAccessor.executeQuery("CREATE SEQUENCE temp_seq START WITH 1");
+        dbAccessor.executeQuery("UPDATE clusterconfig SET config_id = nextval('temp_seq')");
+        dbAccessor.dropSequence("temp_seq");
+      }
+    }
+
+    //upgrade unit test workaround
+    if (Configuration.DERBY_DB_NAME.equals(dbType)) {
+      dbAccessor.executeQuery("ALTER TABLE clusterconfig ALTER COLUMN config_id DEFAULT 0");
+      dbAccessor.executeQuery("ALTER TABLE clusterconfig ALTER COLUMN config_id NOT NULL");
+    }
+
+    dbAccessor.executeQuery("ALTER TABLE clusterconfig ADD PRIMARY KEY (config_id)");
+
+    columns.clear();
+    columns.add(new DBColumnInfo("service_config_id", Long.class, null, null, false));
+    columns.add(new DBColumnInfo("cluster_id", Long.class, null, null, false));
+    columns.add(new DBColumnInfo("service_name", String.class, null, null, false));
+    columns.add(new DBColumnInfo("version", Long.class, null, null, false));
+    columns.add(new DBColumnInfo("create_timestamp", Long.class, null, null, false));
+    dbAccessor.createTable("serviceconfig", columns, "service_config_id");
+
+    columns.clear();
+    columns.add(new DBColumnInfo("service_config_id", Long.class, null, null, false));
+    columns.add(new DBColumnInfo("config_id", Long.class, null, null, false));
+    dbAccessor.createTable("serviceconfigmapping", columns, "service_config_id", "config_id");
+
+    columns.clear();
+    columns.add(new DBColumnInfo("apply_id", Long.class, null, null, false));
+    columns.add(new DBColumnInfo("service_config_id", Long.class, null, null, false));
+    columns.add(new DBColumnInfo("apply_timestamp", Long.class, null, null, false));
+    columns.add(new DBColumnInfo("user_name", String.class, null, "_db", false));
+    dbAccessor.createTable("serviceconfigapplication", columns, "apply_id");
+
+    dbAccessor.addFKConstraint("confgroupclusterconfigmapping", "FK_confg",
+      new String[]{"cluster_id", "config_type", "version_tag"}, "clusterconfig",
+      new String[]{"cluster_id", "type_name", "version_tag"}, true);
+
   }
 
 

@@ -53,7 +53,7 @@ public class ServiceConfigApplicationEntity {
 
   @Basic
   @Column(name = "user_name")
-  private String user;
+  private String user = "_db";
 
   @ManyToOne
   @JoinColumn(name = "service_config_id", referencedColumnName = "service_config_id")
