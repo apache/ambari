@@ -72,6 +72,16 @@ public class ServiceConfigDAO {
     return daoUtils.selectList(query, clusterId, configType, configVersion);
   }
 
+  public List<ServiceConfigApplicationEntity> getLastApplications(Long clusterId) {
+    TypedQuery<ServiceConfigApplicationEntity> query = entityManagerProvider.get().
+      createQuery("SELECT sca FROM ServiceConfigEntity scv JOIN scv.serviceConfigApplicationEntities sca " +
+          "WHERE scv.clusterId = ?1 AND sca.applyTimestamp = (" +
+          "SELECT max(sca2.applyTimestamp) FROM ServiceConfigApplicationEntity sca2 JOIN sca2.serviceConfigEntity scv2 WHERE scv2.serviceName = scv.serviceName " +
+          "AND scv2.clusterId = ?1)",
+        ServiceConfigApplicationEntity.class);
+    return daoUtils.selectList(query, clusterId);
+  }
+
   public ServiceConfigApplicationEntity getLastApplication(Long clusterId, String serviceName) {
     TypedQuery<ServiceConfigApplicationEntity> query = entityManagerProvider.get().
         createQuery("SELECT sca FROM ServiceConfigEntity scv JOIN scv.serviceConfigApplicationEntities sca " +

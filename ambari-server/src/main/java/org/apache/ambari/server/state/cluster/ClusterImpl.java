@@ -1426,11 +1426,10 @@ public class ClusterImpl implements Cluster {
       readWriteLock.readLock().lock();
       try {
         Map<String, ServiceConfigVersionResponse> result = new HashMap<String, ServiceConfigVersionResponse>();
-        for (String serviceName : serviceConfigTypes.keySet()) {
-          ServiceConfigVersionResponse activeServiceConfigVersion = getActiveServiceConfigVersion(serviceName);
-          if (activeServiceConfigVersion != null) {
-            result.put(serviceName, activeServiceConfigVersion);
-          }
+
+        Set<ServiceConfigVersionResponse> responses = getActiveServiceConfigVersionSet();
+        for (ServiceConfigVersionResponse response : responses) {
+          result.put(response.getServiceName(), response);
         }
         return result;
       } finally {
@@ -1484,22 +1483,37 @@ public class ClusterImpl implements Cluster {
   }
 
   @RequiresSession
+  Set<ServiceConfigVersionResponse> getActiveServiceConfigVersionSet() {
+    Set<ServiceConfigVersionResponse> responses = new HashSet<ServiceConfigVersionResponse>();
+    List<ServiceConfigApplicationEntity> lastApplications = serviceConfigDAO.getLastApplications(getClusterId());
+    for (ServiceConfigApplicationEntity lastApplication : lastApplications) {
+      responses.add(convertToServiceConfigVersionResponse(lastApplication));
+    }
+    return responses;
+  }
+
+  @RequiresSession
   ServiceConfigVersionResponse getActiveServiceConfigVersion(String serviceName) {
     ServiceConfigApplicationEntity lastApplication = serviceConfigDAO.getLastApplication(getClusterId(), serviceName);
     if (lastApplication == null) {
-      LOG.warn("No active service config version found for service {}", serviceName);
+      LOG.debug("No active service config version found for service {}", serviceName);
       return null;
     }
+    return convertToServiceConfigVersionResponse(lastApplication);
+  }
+
+  @RequiresSession
+  ServiceConfigVersionResponse convertToServiceConfigVersionResponse(ServiceConfigApplicationEntity applicationEntity) {
     ServiceConfigVersionResponse serviceConfigVersionResponse = new ServiceConfigVersionResponse();
 
-    ServiceConfigEntity serviceConfigEntity = lastApplication.getServiceConfigEntity();
+    ServiceConfigEntity serviceConfigEntity = applicationEntity.getServiceConfigEntity();
 
     serviceConfigVersionResponse.setClusterName(getClusterName());
     serviceConfigVersionResponse.setServiceName(serviceConfigEntity.getServiceName());
     serviceConfigVersionResponse.setVersion(serviceConfigEntity.getVersion());
     serviceConfigVersionResponse.setCreateTime(serviceConfigEntity.getCreateTimestamp());
-    serviceConfigVersionResponse.setApplyTime(lastApplication.getApplyTimestamp());
-    serviceConfigVersionResponse.setUserName(lastApplication.getUser());
+    serviceConfigVersionResponse.setApplyTime(applicationEntity.getApplyTimestamp());
+    serviceConfigVersionResponse.setUserName(applicationEntity.getUser());
     return serviceConfigVersionResponse;
   }
 
