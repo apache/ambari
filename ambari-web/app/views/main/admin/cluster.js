@@ -139,15 +139,19 @@ App.MainAdminClusterView = Em.View.extend({
     if (!targetRepo) {
       return;
     } else {
+      
+      var modalCloseHandler = function() {
+        this.hide();
+        targetRepo.set('baseUrl', data.data.Repositories.base_url);
+        targetRepo.set('originalBaseUrl', data.data.Repositories.base_url);
+        targetRepo.set('onEdit', false);
+      };
+
       App.ModalPopup.show({
         header: Em.I18n.t('admin.cluster.repositories.popup.header.success'),
         secondary: null,
-        onPrimary: function () {
-          this.hide();
-          targetRepo.set('baseUrl', data.data.Repositories.base_url);
-          targetRepo.set('originalBaseUrl', data.data.Repositories.base_url);
-          targetRepo.set('onEdit', false);
-        },
+        onPrimary: modalCloseHandler,
+        onClose: modalCloseHandler,
         message: Em.I18n.t('admin.cluster.repositories.popup.body.success'),
         bodyClass: Em.View.extend({
           template: Em.Handlebars.compile('<div class="alert alert-success">{{{message}}}</div>')
