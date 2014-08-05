@@ -124,6 +124,28 @@ class TestFlumeHandler(RMFTestCase):
     self.assertTrue(struct_out.has_key('alerts'))
 
     self.assertNoMoreResources()
+    
+  @patch("resource_management.libraries.script.Script.put_structured_out")
+  @patch("glob.glob")
+  @patch("sys.exit")
+  def test_status_no_agents(self, sys_exit_mock, glob_mock, structured_out_mock):
+    glob_mock.return_value = []
+
+    try:
+      self.executeScript("2.0.6/services/FLUME/package/scripts/flume_handler.py",
+       classname = "FlumeHandler",
+       command = "status",
+       config_file="default.json")
+    except:
+      self.fail("Exception not expected when no agents are defined")
+      
+    self.assertTrue(structured_out_mock.called)
+
+    # call_args[0] is a tuple, whose first element is the actual call argument
+    struct_out = structured_out_mock.call_args[0][0]
+    self.assertTrue(struct_out.has_key('processes'))
+    self.assertTrue(struct_out.has_key('alerts'))
+    self.assertNoMoreResources()    
 
   def assert_configure_default(self):
 
