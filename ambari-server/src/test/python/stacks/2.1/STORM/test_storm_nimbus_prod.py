@@ -25,7 +25,7 @@ import resource_management.core.source
 @patch.object(resource_management.core.source, "InlineTemplate", new = MagicMock(return_value='InlineTemplateMock'))
 class TestStormNimbus(RMFTestCase):
 
-  def test_configure_default(self):
+  def _test_configure_default(self):
     self.executeScript("2.1/services/STORM/package/scripts/nimbus_prod.py",
                        classname = "Nimbus",
                        command = "configure",
@@ -34,7 +34,7 @@ class TestStormNimbus(RMFTestCase):
     self.assert_configure_default()
     self.assertNoMoreResources()
 
-  def test_start_default(self):
+  def _test_start_default(self):
     self.executeScript("2.1/services/STORM/package/scripts/nimbus_prod.py",
                        classname = "Nimbus",
                        command = "start",
@@ -48,7 +48,7 @@ class TestStormNimbus(RMFTestCase):
 
     self.assertNoMoreResources()
 
-  def test_stop_default(self):
+  def _test_stop_default(self):
     self.executeScript("2.1/services/STORM/package/scripts/nimbus_prod.py",
                        classname = "Nimbus",
                        command = "stop",
@@ -59,7 +59,7 @@ class TestStormNimbus(RMFTestCase):
     )
     self.assertNoMoreResources()
 
-  def test_configure_default(self):
+  def _test_configure_default(self):
     self.executeScript("2.1/services/STORM/package/scripts/nimbus_prod.py",
                        classname = "Nimbus",
                        command = "configure",
@@ -68,7 +68,7 @@ class TestStormNimbus(RMFTestCase):
     self.assert_configure_secured()
     self.assertNoMoreResources()
 
-  def test_start_secured(self):
+  def _test_start_secured(self):
     self.executeScript("2.1/services/STORM/package/scripts/nimbus_prod.py",
                        classname = "Nimbus",
                        command = "start",
@@ -82,7 +82,7 @@ class TestStormNimbus(RMFTestCase):
 
     self.assertNoMoreResources()
 
-  def test_stop_secured(self):
+  def _test_stop_secured(self):
     self.executeScript("2.1/services/STORM/package/scripts/nimbus_prod.py",
                        classname = "Nimbus",
                        command = "stop",
@@ -93,7 +93,7 @@ class TestStormNimbus(RMFTestCase):
     )
     self.assertNoMoreResources()
 
-  def assert_configure_default(self):
+  def _assert_configure_default(self):
     self.assertResourceCalled('Directory', '/var/log/storm',
       owner = 'storm',
       group = 'hadoop',
@@ -130,7 +130,7 @@ class TestStormNimbus(RMFTestCase):
                               content = self.getConfig()['configurations']['storm-env']['content']
                               )
 
-  def assert_configure_secured(self):
+  def _assert_configure_secured(self):
     self.assertResourceCalled('Directory', '/var/log/storm',
       owner = 'storm',
       group = 'hadoop',

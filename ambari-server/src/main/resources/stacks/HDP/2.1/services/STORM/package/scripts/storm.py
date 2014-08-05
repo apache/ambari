@@ -47,7 +47,7 @@ def storm():
 
   File(format("{conf_dir}/storm-env.sh"),
     owner=params.storm_user,
-    content=params.storm_env_sh_template
+    content=InlineTemplate(params.storm_env_sh_template)
   )
 
   if params.security_enabled:
