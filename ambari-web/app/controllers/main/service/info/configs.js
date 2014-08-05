@@ -48,6 +48,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   overrideToAdd: null,
   //latest version of service config versions
   currentVersion: null,
+  versionLoaded: false,
   serviceConfigs: function () {
     return App.config.get('preDefinedServiceConfigs');
   }.property('App.config.preDefinedServiceConfigs'),
@@ -149,6 +150,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     this.set('hash', null);
     this.set('forceTransition', false);
     this.set('dataIsLoaded', false);
+    this.set('versionLoaded', false);
     this.set('filter', '');
     this.get('filterColumns').setEach('selected', false);
     this.get('stepConfigs').clear();
@@ -271,6 +273,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    */
   loadSelectedVersion: function (version) {
     var self = this;
+    this.set('versionLoaded', false);
 
     App.ajax.send({
       name: 'service.serviceConfigVersion.get',
@@ -503,7 +506,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
             serviceConfig.isComparison = true;
           }
         });
-        self.set('compareServiceVersion', null)
+        self.set('compareServiceVersion', null);
         dfd.resolve();
       }).fail(function () {
           dfd.resolve();
@@ -564,6 +567,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       this.set('selectedService', this.get('stepConfigs').objectAt(0));
       this.checkForSecureConfig(this.get('selectedService'));
       this.set('dataIsLoaded', true);
+      this.set('versionLoaded', true);
       this.set('hash', this.getHash());
       this.set('isInit', false);
     }
@@ -577,6 +581,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     this.get('stepConfigs').pushObject(serviceConfig);
     this.set('selectedService', this.get('stepConfigs').objectAt(0));
     this.checkForSecureConfig(this.get('selectedService'));
+    this.set('versionLoaded', true);
     this.set('dataIsLoaded', true);
     this.set('hash', this.getHash());
     this.set('isInit', false);

@@ -66,6 +66,13 @@ App.ConfigHistoryFlowView = Em.View.extend({
   }.property('startIndex'),
 
   /**
+   * enable actions to manipulate version only after it's loaded
+   */
+  versionActionsDisabled: function () {
+    return !this.get('controller.versionLoaded');
+  }.property('controller.versionLoaded'),
+
+  /**
    * list of service versions
    * by default 6 is number of items in short list
    */
@@ -151,10 +158,19 @@ App.ConfigHistoryFlowView = Em.View.extend({
    */
   switchVersion: function (event) {
     var version = event.context.get('version');
-    this.get('serviceVersions').forEach(function (serviceVersion) {
-      serviceVersion.set('isDisplayed', serviceVersion.get('version') === version);
+    var versionIndex = 0;
+
+    this.get('serviceVersions').forEach(function (serviceVersion, index) {
+      if (serviceVersion.get('version') === version) {
+        serviceVersion.set('isDisplayed', true);
+        versionIndex = index;
+      } else {
+        serviceVersion.set('isDisplayed', false);
+      }
     });
-    //TODO implement load configs for chosen version
+    this.shiftFlowOnSwitch(versionIndex);
+
+    this.get('controller').loadSelectedVersion(version);
   },
 
   /**
@@ -167,8 +183,46 @@ App.ConfigHistoryFlowView = Em.View.extend({
   /**
    * revert config values to chosen version and apply reverted configs to server
    */
-  revert: function () {
-    //TODO implement put configs of chosen version to server
+  revert: function (event) {
+    var self = this;
+    App.showConfirmationPopup(function () {
+      self.sendRevertCall(event.context);
+    });
+  },
+
+  /**
+   * send PUT call to revert config to selected version
+   * @param serviceConfigVersion
+   */
+  sendRevertCall: function (serviceConfigVersion) {
+    App.ajax.send({
+      name: 'service.serviceConfigVersion.revert',
+      sender: this,
+      data: {
+        data: {
+          "Clusters": {
+            "desired_serviceconfigversions": {
+              "serviceconfigversion": serviceConfigVersion.get('version'),
+              "service_name": serviceConfigVersion.get('serviceName')
+            }
+          }
+        }
+      },
+      success: 'sendRevertCallSuccess'
+    });
+  },
+
+  sendRevertCallSuccess: function (data, opt, params) {
+    var version = params.data.Clusters.desired_serviceconfigversions.serviceconfigversion;
+
+    this.get('serviceVersions').forEach(function (serviceVersion) {
+      serviceVersion.set('isCurrent', serviceVersion.get('version') === version);
+    });
+    if (this.get('displayedServiceVersion.version') !== version) {
+      this.switchVersion({context: Em.Object.create({
+        version: version
+      })});
+    }
   },
 
   /**
@@ -219,5 +273,18 @@ App.ConfigHistoryFlowView = Em.View.extend({
   shiftForward: function () {
     this.incrementProperty('startIndex');
     this.adjustFlowView();
+  },
+  /**
+   * shift flow view to position where selected version is visible
+   * @param versionIndex
+   */
+  shiftFlowOnSwitch: function (versionIndex) {
+    var serviceVersions = this.get('serviceVersions');
+
+    if ((this.get('startIndex') + this.VERSIONS_IN_FLOW) < versionIndex || versionIndex < this.get('startIndex')) {
+      versionIndex = (serviceVersions.length < (versionIndex + this.VERSIONS_IN_FLOW)) ? serviceVersions.length - this.VERSIONS_IN_FLOW : versionIndex;
+      this.set('startIndex', versionIndex);
+      this.adjustFlowView();
+    }
   }
 });

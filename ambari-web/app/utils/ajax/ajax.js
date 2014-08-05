@@ -1773,6 +1773,16 @@ var urls = {
   'service.serviceConfigVersion.get': {
     real: '/clusters/{clusterName}/configurations/serviceconfigversions?service_name={serviceName}&serviceconfigversion={serviceConfigVersion}',
     mock: ''
+  },
+  'service.serviceConfigVersion.revert': {
+    'real': '/clusters/{clusterName}',
+    'mock': '',
+    'type': 'PUT',
+    'format': function (data) {
+      return {
+        data: JSON.stringify(data.data)
+      }
+    }
   }
 };
 /**

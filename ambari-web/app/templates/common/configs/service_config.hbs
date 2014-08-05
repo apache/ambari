@@ -83,14 +83,18 @@
   {{/if}}
 {{/if}}
 
-<div class="accordion">
-  {{#each category in selectedService.configCategories}}
-    {{#if category.isCustomView}}
-      {{#if App.supports.capacitySchedulerUi}}
-        {{view category.customView categoryBinding="category" serviceBinding="selectedService" canEditBinding="view.canEdit" serviceConfigsBinding="selectedService.configs"}}
-      {{/if}}
-    {{else}}
-      {{view App.ServiceConfigsByCategoryView categoryBinding="category" canEditBinding="view.canEdit" serviceBinding="selectedService" serviceConfigsBinding="selectedService.configs" supportsHostOverridesBinding="view.supportsHostOverrides"}}
-    {{/if}}
-  {{/each}}
-</div>
+{{#if versionLoaded}}
+    <div class="accordion">
+      {{#each category in selectedService.configCategories}}
+        {{#if category.isCustomView}}
+          {{#if App.supports.capacitySchedulerUi}}
+            {{view category.customView categoryBinding="category" serviceBinding="selectedService" canEditBinding="view.canEdit" serviceConfigsBinding="selectedService.configs"}}
+          {{/if}}
+        {{else}}
+          {{view App.ServiceConfigsByCategoryView categoryBinding="category" canEditBinding="view.canEdit" serviceBinding="selectedService" serviceConfigsBinding="selectedService.configs" supportsHostOverridesBinding="view.supportsHostOverrides"}}
+        {{/if}}
+      {{/each}}
+    </div>
+{{else}}
+    <div class="spinner"></div>
+{{/if}}
