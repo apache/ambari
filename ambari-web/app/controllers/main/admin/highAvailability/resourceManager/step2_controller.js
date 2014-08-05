@@ -29,10 +29,12 @@ App.RMHighAvailabilityWizardStep2Controller = App.WizardStep5Controller.extend({
   renderComponents: function (masterComponents) {
     var existedRM = masterComponents.findProperty('component_name', 'RESOURCEMANAGER');
     existedRM.isAdditional = false;
+    var additionalRMSelectedHost = this.get('content.rmHosts.additionalRM') ||
+        this.get('hosts').mapProperty('host_name').without(existedRM.selectedHost)[0];
     var additionalRM = $.extend({}, existedRM, {
       isInstalled: false,
       isAdditional: true,
-      selectedHost: this.get('hosts').mapProperty('host_name').without(existedRM.selectedHost)[0]
+      selectedHost: additionalRMSelectedHost
     });
     masterComponents.push(additionalRM);
     this._super(masterComponents);

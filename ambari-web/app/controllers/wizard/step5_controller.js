@@ -567,11 +567,10 @@ App.WizardStep5Controller = Em.Controller.extend({
   },
 
   sortComponentsByServiceName: function(components) {
-    var _components = components.sortPropertyLight('selectedHost');
     var displayOrder = App.StackService.displayOrder;
-    return _components.sort(function (a, b) {
-      var aValue = displayOrder.indexOf(a.serviceId) != -1 ? displayOrder.indexOf(a.serviceId) : _components.length;
-      var bValue = displayOrder.indexOf(b.serviceId) != -1 ? displayOrder.indexOf(b.serviceId) : _components.length;
+    return components.sort(function (a, b) {
+      var aValue = displayOrder.indexOf(a.serviceId) != -1 ? displayOrder.indexOf(a.serviceId) : components.length;
+      var bValue = displayOrder.indexOf(b.serviceId) != -1 ? displayOrder.indexOf(b.serviceId) : components.length;
       return aValue - bValue;
     });
   },

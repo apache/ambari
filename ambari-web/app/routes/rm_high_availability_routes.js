@@ -94,6 +94,7 @@ module.exports = App.WizardRoute.extend({
       return false;
     },
     next: function (router) {
+      router.get('rMHighAvailabilityWizardController').setDBProperty('rmHosts', undefined);
       router.transitionTo('step2');
     }
   }),

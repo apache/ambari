@@ -115,8 +115,8 @@ App.RMHighAvailabilityWizardController = App.WizardController.extend({
         this.loadRequestIds();
         this.loadConfigs();
       case '3':
-        this.loadRmHosts();
       case '2':
+        this.loadRmHosts();
         this.loadServicesFromServer();
         this.loadMasterComponentHosts();
         this.loadConfirmedHosts();
