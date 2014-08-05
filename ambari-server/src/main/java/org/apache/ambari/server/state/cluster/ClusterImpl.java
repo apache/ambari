@@ -1415,7 +1415,7 @@ public class ClusterImpl implements Cluster {
         readWriteLock.writeLock().unlock();
       }
     } finally {
-      clusterGlobalLock.readLock().unlock();
+      clusterGlobalLock.writeLock().unlock();
     }
   }
 
