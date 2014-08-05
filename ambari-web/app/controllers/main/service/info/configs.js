@@ -118,6 +118,16 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   ],
 
   /**
+   * List of heapsize properties not to be parsed
+   */
+  heapsizeException: ['hadoop_heapsize', 'yarn_heapsize', 'nodemanager_heapsize', 'resourcemanager_heapsize', 'apptimelineserver_heapsize', 'jobhistory_heapsize'],
+
+  /**
+   * Regular expression for heapsize properties detection
+   */
+  heapsizeRegExp: /_heapsize|_newsize|_maxnewsize$/,
+
+/**
    * Dropdown menu items in filter combobox
    */
   filterColumns: function () {
@@ -1752,6 +1762,13 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       success: 'doPUTClusterConfigurationSiteSuccessCallback',
       error: 'doPUTClusterConfigurationSiteErrorCallback'
     });
+    var heapsizeException = this.get('heapsizeException');
+    var heapsizeRegExp = this.get('heapsizeRegExp');
+    this.get('stepConfigs')[0].get('configs').forEach(function (item) {
+      if (heapsizeRegExp.test(item.get('name')) && !heapsizeException.contains(item.get('name')) && /\d+m$/.test(item.get('value'))) {
+        item.set('value', item.get('value').slice(0, item.get('value.length') - 1));
+      }
+    });
   },
 
   doPUTClusterConfigurationSiteSuccessCallback: function () {
@@ -1828,11 +1845,12 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * @return {Object}
    */
   createSiteObj: function (siteName, tagName, siteObj) {
-    var heapsizeException = ['hadoop_heapsize', 'yarn_heapsize', 'nodemanager_heapsize', 'resourcemanager_heapsize', 'apptimelineserver_heapsize', 'jobhistory_heapsize'];
+    var heapsizeException = this.get('heapsizeException');
+    var heapsizeRegExp = this.get('heapsizeRegExp');
     var siteProperties = {};
     siteObj.forEach(function (_siteObj) {
       if (_siteObj.isRequiredByAgent == false) return;
-      if (/_heapsize|_newsize|_maxnewsize$/.test(_siteObj.name) && !heapsizeException.contains(_siteObj.name)) {
+      if (heapsizeRegExp.test(_siteObj.name) && !heapsizeException.contains(_siteObj.name)) {
         Em.set(_siteObj, "value",  _siteObj.value + "m");
       }
       siteProperties[_siteObj.name] = App.config.escapeXMLCharacters(_siteObj.value);
