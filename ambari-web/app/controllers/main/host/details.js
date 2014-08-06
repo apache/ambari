@@ -623,6 +623,9 @@ App.MainHostDetailsController = Em.Controller.extend({
     if (services.someProperty('serviceName', 'STORM')) {
       urlParams.push('(type=storm-site&tag=' + data.Clusters.desired_configs['storm-site'].tag + ')');
     }
+    if (App.get('isRMHaEnabled')) {
+      urlParams.push('(type=yarn-site&tag=' + data.Clusters.desired_configs['yarn-site'].tag + ')');
+    }
     return urlParams;
   },
 
@@ -673,6 +676,9 @@ App.MainHostDetailsController = Em.Controller.extend({
     }
     if (configs['storm-site']) {
       configs['storm-site']['storm.zookeeper.servers'] = JSON.stringify(zks).replace(/"/g, "'");
+    }
+    if (App.get('isRMHaEnabled')) {
+      configs['yarn-site']['yarn.resourcemanager.zk-address'] = zks.join(',');
     }
     return true;
   },
