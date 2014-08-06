@@ -47,7 +47,7 @@ function real_component() {
       realCompName="HIVE_SERVER"
     ;;
     FLUME)
-      realCompName="FLUME_SERVER"
+      realCompName="FLUME_HANDLER"
     ;;
     HUE)
       realCompName="HUE_SERVER"
