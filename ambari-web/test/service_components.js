@@ -1322,10 +1322,10 @@ module.exports = {
           "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/YARN/components/APP_TIMELINE_SERVER",
           "StackServiceComponents" : {
             "cardinality" : "0-1",
-            "component_category" : "SLAVE",
+            "component_category" : "MASTER",
             "component_name" : "APP_TIMELINE_SERVER",
             "is_client" : false,
-            "is_master" : false,
+            "is_master" : true,
             "service_name" : "YARN",
             "stack_name" : "HDP",
             "stack_version" : "2.1"

@@ -27,7 +27,7 @@
 
         <component>
           <name>APP_TIMELINE_SERVER</name>
-          <category>SLAVE</category>
+          <category>MASTER</category>
           <cardinality>1</cardinality>
           <commandScript>
             <script>scripts/application_timeline_server.py</script>

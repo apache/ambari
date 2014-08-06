@@ -176,12 +176,12 @@ def isClient(component):
 def isSlave(component):
   componentName = component["StackServiceComponents"]["component_name"]
   isSlave = component["StackServiceComponents"]["component_category"] == 'SLAVE'
-  return isSlave and componentName != 'APP_TIMELINE_SERVER'
+  return isSlave
 
 def isMaster(component):
   componentName = component["StackServiceComponents"]["component_name"]
   isMaster = component["StackServiceComponents"]["is_master"]
-  return isMaster or componentName == 'APP_TIMELINE_SERVER'
+  return isMaster
 
 def isLocalHost(hostName):
   return socket.getfqdn(hostName) == socket.getfqdn()

@@ -974,7 +974,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
    */
   loadMasterComponentHosts: function () {
     var masterComponentHosts = this.getDBProperty('masterComponentHosts');
-    var stackMasterComponents = App.get('components.masters').concat(App.get('components.masterBehavior')).uniq();
+    var stackMasterComponents = App.get('components.masters').uniq();
     if (!masterComponentHosts) {
       masterComponentHosts = [];
       App.HostComponent.find().filter(function(component) {

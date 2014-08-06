@@ -686,7 +686,7 @@ App.WizardStep8Controller = Em.Controller.extend({
       componentValue = this[component.get('customHandler')].call(this, component);
     }
     else {
-      if (component.get('isMaster') || component.get('isMasterBehavior')) {
+      if (component.get('isMaster')) {
         componentValue = this.getMasterComponentValue(component.get('componentName'));
       }
       else {
