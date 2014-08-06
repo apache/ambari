@@ -30,7 +30,7 @@ module.exports = {
    * or closed, <code>null</code> is provided to the callback. Else
    * an array (maybe empty) will be provided to the callback.
    * 
-   * @param availableHosts  {App.Host[]} List of hosts to pick from
+   * @param initialHosts  {App.Host[]} List of hosts to pick from
    * @param selectedHosts {App.Host[]} List of hosts already selected from the available hosts
    * @param selectAtleastOneHost  {boolean} If true atleast one host has to be selected
    * @param validComponents {App.HostComponent[]} List of host-component types to pick from.
