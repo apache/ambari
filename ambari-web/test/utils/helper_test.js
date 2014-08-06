@@ -215,7 +215,7 @@ describe('utils/helper', function() {
           'FALCON_CLIENT': 'Falcon Client',
           'FALCON_SERVER': 'Falcon Server',
           'FALCON_SERVICE_CHECK': 'Falcon Service Check',
-          'FLUME_HANDLER': 'Flume Agent',
+          'FLUME_HANDLER': 'Flume',
           'FLUME_SERVICE_CHECK': 'Flume Service Check',
           'GANGLIA_MONITOR': 'Ganglia Monitor',
           'GANGLIA_SERVER': 'Ganglia Server',

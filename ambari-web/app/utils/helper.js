@@ -321,7 +321,7 @@ App.format = {
     'API': 'API',
     'DECOMMISSION_DATANODE': 'Update Exclude File',
     'DRPC': 'DRPC',
-    'FLUME_HANDLER': 'Flume Agent',
+    'FLUME_HANDLER': 'Flume',
     'GLUSTERFS': 'GLUSTERFS',
     'HBASE': 'HBase',
     'HBASE_REGIONSERVER': 'RegionServer',

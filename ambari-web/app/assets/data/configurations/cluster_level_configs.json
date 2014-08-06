@@ -694,7 +694,7 @@
         "cluster_name" : "c1"
       },
       "properties" : {
-        "content" : "# Flume agents configuration"
+        "content" : "# Flume configuration"
       }
     }
   ]

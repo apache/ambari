@@ -178,7 +178,7 @@ var componentPropertiesValidationTests = [
   {
     componentName: 'FLUME_HANDLER',
     expected: {
-      displayName: 'Flume Agent',
+      displayName: 'Flume',
       minToInstall: 0,
       maxToInstall: Infinity,
       isRequired: false,
