@@ -216,7 +216,7 @@ App.WizardStep5Controller = Em.Controller.extend({
     this.clearStep();
     this.renderHostInfo();
     if (App.supports.serverRecommendValidate ) {
-      this.loadComponentRecommendationsFromServer(this.loadStepCallback);
+      this.loadComponentsRecommendationsFromServer(this.loadStepCallback);
     } else {
       this.loadComponentsRecommendationsLocally(this.loadStepCallback);
     }
@@ -305,7 +305,7 @@ App.WizardStep5Controller = Em.Controller.extend({
    * Get recommendations info from API
    * @return {undefined}
    */
-  loadComponentRecommendationsFromServer: function(callback) {
+  loadComponentsRecommendationsFromServer: function(callback) {
     var self = this;
 
     if (App.router.get('installerController.recommendations') !== undefined) {

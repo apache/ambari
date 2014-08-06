@@ -413,6 +413,10 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
       this.setSpecificNamenodeConfigs(configs, targetHostName);
     }
 
+    if (componentName === 'RESOURCEMANAGER') {
+      this.setSpecificResourceMangerConfigs(configs, targetHostName);
+    }
+
     this.saveClusterStatus(secureConfigs, this.getComponentDir(configs, componentName));
     this.saveConfigsToServer(configs);
   },
@@ -459,6 +463,24 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
     if (!App.get('isHaEnabled') && App.Service.find('HBASE').get('isLoaded')) {
       configs['hbase-site']['hbase.rootdir'] = configs['hbase-site']['hbase.rootdir'].replace(/\/\/[^\/]*/, '//' + targetHostName + ':8020');
     }
+  },
+
+  /**
+   * set specific configs which applies only to ResourceManager component
+   * @param configs
+   * @param targetHostName
+   */
+  setSpecificResourceMangerConfigs: function (configs, targetHostName) {
+    var sourceHostName = this.get('content.reassignHosts.source');
+
+    if (App.get('isHadoop2Stack') && App.get('isRMHaEnabled')) {
+      if (configs['yarn-site']['yarn.resourcemanager.hostname.rm1'] === sourceHostName) {
+        configs['yarn-site']['yarn.resourcemanager.hostname.rm1'] = targetHostName;
+      } else {
+        configs['yarn-site']['yarn.resourcemanager.hostname.rm2'] = targetHostName;
+      }
+    }
+
   },
 
   /**

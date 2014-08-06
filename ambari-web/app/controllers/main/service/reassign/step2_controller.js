@@ -28,10 +28,20 @@ App.ReassignMasterWizardStep2Controller = App.WizardStep5Controller.extend({
     if (App.get('isHaEnabled')) {
       this.get('multipleComponents').push('NAMENODE');
     }
-    this._super();
-    if (this.get('content.reassign.component_name') === "NAMENODE" && !this.get('content.masterComponentHosts').findProperty('component', "SECONDARY_NAMENODE")) {
+    this.clearStep();
+    this.renderHostInfo();
+    this.loadStepCallback(this.loadComponents(), this);
+
+    // if moving NameNode with HA enabled
+    if (this.get('content.reassign.component_name') === "NAMENODE" && App.get('isHaEnabled')) {
       this.set('showCurrentHost', false);
       this.set('componentToRebalance', 'NAMENODE');
+      this.incrementProperty('rebalanceComponentHostsCounter');
+
+    // if moving ResourceManager with HA enabled
+    } else if (this.get('content.reassign.component_name') === "RESOURCEMANAGER" && App.get('isRMHaEnabled')) {
+      this.set('showCurrentHost', false);
+      this.set('componentToRebalance', 'RESOURCEMANAGER');
       this.incrementProperty('rebalanceComponentHostsCounter');
     } else {
       this.set('showCurrentHost', true);
