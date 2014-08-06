@@ -45,23 +45,23 @@ class Heartbeat:
     timestamp = int(time.time()*1000)
     queueResult = self.actionQueue.result()
 
-    
+
     nodeStatus = { "status" : "HEALTHY",
                    "cause" : "NONE" }
     nodeStatus["alerts"] = []
-    
-    
-    
+
+
+
     heartbeat = { 'responseId'        : int(id),
                   'timestamp'         : timestamp,
-                  'hostname'          : hostname.hostname(),
+                  'hostname'          : hostname.hostname(self.config),
                   'nodeStatus'        : nodeStatus
                 }
 
     commandsInProgress = False
     if not self.actionQueue.commandQueue.empty():
       commandsInProgress = True
-      
+
     if len(queueResult) != 0:
       heartbeat['reports'] = queueResult['reports']
       heartbeat['componentStatus'] = queueResult['componentStatus']
@@ -74,9 +74,9 @@ class Heartbeat:
     if int(id) == 0:
       componentsMapped = False
 
-    logger.info("Building Heartbeat: {responseId = %s, timestamp = %s, commandsInProgress = %s, componentsMapped = %s}", 
+    logger.info("Building Heartbeat: {responseId = %s, timestamp = %s, commandsInProgress = %s, componentsMapped = %s}",
         str(id), str(timestamp), repr(commandsInProgress), repr(componentsMapped))
-    
+
     if logger.isEnabledFor(logging.DEBUG):
       logger.debug("Heartbeat: %s", pformat(heartbeat))
 
@@ -85,11 +85,11 @@ class Heartbeat:
       nodeInfo = { }
       # for now, just do the same work as registration
       # this must be the last step before returning heartbeat
-      hostInfo.register(nodeInfo, componentsMapped, commandsInProgress)      
+      hostInfo.register(nodeInfo, componentsMapped, commandsInProgress)
       heartbeat['agentEnv'] = nodeInfo
       mounts = Hardware.osdisks()
       heartbeat['mounts'] = mounts
-            
+
       if logger.isEnabledFor(logging.DEBUG):
         logger.debug("agentEnv: %s", str(nodeInfo))
         logger.debug("mounts: %s", str(mounts))

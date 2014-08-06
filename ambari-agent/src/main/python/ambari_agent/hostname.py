@@ -30,15 +30,15 @@ logger = logging.getLogger()
 cached_hostname = None
 cached_public_hostname = None
 
-def hostname():
+
+def hostname(config):
   global cached_hostname
   if cached_hostname is not None:
     return cached_hostname
 
-  config = AmbariConfig.config
   try:
     scriptname = config.get('agent', 'hostname_script')
-    try: 
+    try:
       osStat = subprocess.Popen([scriptname], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
       out, err = osStat.communicate()
       if (0 == osStat.returncode and 0 != len(out.strip())):
@@ -51,12 +51,12 @@ def hostname():
     cached_hostname = socket.getfqdn()
   return cached_hostname
 
-def public_hostname():
+
+def public_hostname(config):
   global cached_public_hostname
   if cached_public_hostname is not None:
     return cached_public_hostname
 
-  config = AmbariConfig.config
   out = ''
   err = ''
   try:
@@ -68,12 +68,12 @@ def public_hostname():
         cached_public_hostname = out.strip()
         return cached_public_hostname
   except:
-    #ignore for now. 
+    #ignore for now.
     trace_info = traceback.format_exc()
-    logger.info("Error using the scriptname:" +  trace_info 
+    logger.info("Error using the scriptname:" +  trace_info
                 + " :out " + out + " :err " + err)
     logger.info("Defaulting to fqdn.")
-    
+
   # future - do an agent entry for this too
   try:
     handle = urllib2.urlopen('http://169.254.169.254/latest/meta-data/public-hostname', '', 2)

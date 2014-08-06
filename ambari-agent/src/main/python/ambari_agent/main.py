@@ -28,7 +28,7 @@ import time
 import ConfigParser
 import ProcessHelper
 from Controller import Controller
-import AmbariConfig
+from AmbariConfig import AmbariConfig
 from NetUtil import NetUtil
 from PingPortListener import PingPortListener
 import hostname
@@ -38,7 +38,9 @@ import socket
 logger = logging.getLogger()
 formatstr = "%(levelname)s %(asctime)s %(filename)s:%(lineno)d - %(message)s"
 agentPid = os.getpid()
-configFile = "/etc/ambari-agent/conf/ambari-agent.ini"
+config = AmbariConfig()
+configFile = config.CONFIG_FILE
+two_way_ssl_property = config.TWO_WAY_SSL_PROPERTY
 
 if 'AMBARI_LOG_DIR' in os.environ:
   logfile = os.environ['AMBARI_LOG_DIR'] + "/ambari-agent.log"
@@ -104,12 +106,12 @@ def bind_signal_handlers():
   signal.signal(signal.SIGUSR1, debug)
 
 
+#  ToDo: move that function inside AmbariConfig
 def resolve_ambari_config():
+  global config
   try:
-    config = AmbariConfig.config
     if os.path.exists(configFile):
-      config.read(configFile)
-      AmbariConfig.setConfig(config)
+        config.read(configFile)
     else:
       raise Exception("No config found, use default")
 
@@ -121,8 +123,10 @@ def resolve_ambari_config():
 def perform_prestart_checks(expected_hostname):
   # Check if current hostname is equal to expected one (got from the server
   # during bootstrap.
+  global config
+
   if expected_hostname is not None:
-    current_hostname = hostname.hostname()
+    current_hostname = hostname.hostname(config)
     if current_hostname != expected_hostname:
       print("Determined hostname does not match expected. Please check agent "
             "log for details")
@@ -151,7 +155,7 @@ def daemonize():
   # and agent only dumps self pid to file
   if not os.path.exists(ProcessHelper.piddir):
     os.makedirs(ProcessHelper.piddir, 0755)
-  
+
   pid = str(os.getpid())
   file(ProcessHelper.pidfile, 'w').write(pid)
 
@@ -189,11 +193,12 @@ def main():
 
   setup_logging(options.verbose)
 
-  default_cfg = { 'agent' : { 'prefix' : '/home/ambari' } }
-  config = ConfigParser.RawConfigParser(default_cfg)
+  default_cfg = {'agent': {'prefix': '/home/ambari'}}
+  config.load(default_cfg)
+
   bind_signal_handlers()
 
-  if (len(sys.argv) >1) and sys.argv[1]=='stop':
+  if (len(sys.argv) > 1) and sys.argv[1] == 'stop':
     stop_agent()
 
   # Check for ambari configuration file.
@@ -201,7 +206,7 @@ def main():
 
   # Starting data cleanup daemon
   data_cleaner = None
-  if int(config.get('agent','data_cleanup_interval')) > 0:
+  if int(config.get('agent', 'data_cleanup_interval')) > 0:
     data_cleaner = DataCleaner(config)
     data_cleaner.start()
 
@@ -213,7 +218,7 @@ def main():
     ping_port_listener = PingPortListener(config)
   except Exception as ex:
     err_message = "Failed to start ping port listener of: " + str(ex)
-    logger.error(err_message);
+    logger.error(err_message)
     sys.stderr.write(err_message)
     sys.exit(1)
   ping_port_listener.start()
@@ -221,13 +226,13 @@ def main():
   update_log_level(config)
 
   server_hostname = config.get('server', 'hostname')
-  server_url = 'https://' + server_hostname + ':' + config.get('server', 'url_port') 
-  
+  server_url = config.get_api_url()
+
   try:
     server_ip = socket.gethostbyname(server_hostname)
     logger.info('Connecting to Ambari server at %s (%s)', server_url, server_ip)
   except socket.error:
-    logger.warn("Unable to determine the IP address of the Ambari server '%s'", server_hostname)  
+    logger.warn("Unable to determine the IP address of the Ambari server '%s'", server_hostname)
 
   # Wait until server is reachable
   netutil = NetUtil()

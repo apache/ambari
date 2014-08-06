@@ -128,6 +128,7 @@ class HostInfo:
 
   def __init__(self, config=None):
     self.packages = PackagesAnalyzer()
+    self.config = config
     self.reportFileHandler = HostCheckReportFileHandler(config)
 
   def dirType(self, path):
@@ -232,7 +233,7 @@ class HostInfo:
       'instance': None,
       'service': 'AMBARI',
       'component': 'host',
-      'host': hostname.hostname(),
+      'host': hostname.hostname(self.config),
       'state': 'OK',
       'label': 'Disk space',
       'text': 'Used disk space less than 80%'}

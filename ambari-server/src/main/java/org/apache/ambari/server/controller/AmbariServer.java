@@ -87,6 +87,7 @@ import org.apache.ambari.server.security.authorization.internal.AmbariInternalAu
 import org.apache.ambari.server.security.authorization.internal.InternalTokenAuthenticationFilter;
 import org.apache.ambari.server.security.unsecured.rest.CertificateDownload;
 import org.apache.ambari.server.security.unsecured.rest.CertificateSign;
+import org.apache.ambari.server.security.unsecured.rest.ConnectionInfo;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.utils.StageUtils;
@@ -267,32 +268,18 @@ public class AmbariServer {
       sslConnectorTwoWay.setTruststoreType("PKCS12");
       sslConnectorTwoWay.setNeedClientAuth(configs.getTwoWaySsl());
 
-      //Secured connector for 1-way auth
-      //SslSelectChannelConnector sslConnectorOneWay = new SslSelectChannelConnector();
+      //SSL Context Factory
       SslContextFactory contextFactory = new SslContextFactory(true);
-      //sslConnectorOneWay.setPort(AGENT_ONE_WAY_AUTH);
       contextFactory.setKeyStorePath(keystore);
-      // sslConnectorOneWay.setKeystore(keystore);
       contextFactory.setTrustStore(keystore);
-      // sslConnectorOneWay.setTruststore(keystore);
       contextFactory.setKeyStorePassword(srvrCrtPass);
-      // sslConnectorOneWay.setPassword(srvrCrtPass);
-
       contextFactory.setKeyManagerPassword(srvrCrtPass);
-
-      // sslConnectorOneWay.setKeyPassword(srvrCrtPass);
-
       contextFactory.setTrustStorePassword(srvrCrtPass);
-      //sslConnectorOneWay.setTrustPassword(srvrCrtPass);
-
       contextFactory.setKeyStoreType("PKCS12");
-      //sslConnectorOneWay.setKeystoreType("PKCS12");
       contextFactory.setTrustStoreType("PKCS12");
-
-      //sslConnectorOneWay.setTruststoreType("PKCS12");
       contextFactory.setNeedClientAuth(false);
-      // sslConnectorOneWay.setWantClientAuth(false);
-      // sslConnectorOneWay.setNeedClientAuth(false);
+
+      //Secured connector for 1-way auth
       SslSelectChannelConnector sslConnectorOneWay = new SslSelectChannelConnector(contextFactory);
       sslConnectorOneWay.setPort(configs.getOneWayAuthPort());
       sslConnectorOneWay.setAcceptors(2);
@@ -530,6 +517,7 @@ public class AmbariServer {
   public void performStaticInjection() {
     AgentResource.init(injector.getInstance(HeartBeatHandler.class));
     CertificateDownload.init(injector.getInstance(CertificateManager.class));
+    ConnectionInfo.init(injector.getInstance(Configuration.class));
     CertificateSign.init(injector.getInstance(CertificateManager.class));
     GetResource.init(injector.getInstance(ResourceManager.class));
     PersistKeyValueService.init(injector.getInstance(PersistKeyValueImpl.class));

@@ -84,6 +84,10 @@ public class SecurityFilter implements Filter {
         return true;
       }
 
+      if (Pattern.matches("/connection_info", url.getPath())) {
+          return true;
+      }
+
       if (Pattern.matches("/certs/[^/0-9][^/]*", url.getPath())) {
         return true;
       }

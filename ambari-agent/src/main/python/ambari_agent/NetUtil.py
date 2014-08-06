@@ -20,7 +20,12 @@ import logging
 import httplib
 from ssl import SSLError
 
+ERROR_SSL_WRONG_VERSION = "SSLError: Failed to connect. Please check openssl library versions. \n" +\
+              "Refer to: https://bugzilla.redhat.com/show_bug.cgi?id=1022468 for more details."
+LOG_REQUEST_MESSAGE = "GET %s -> %s, body: %s"
+
 logger = logging.getLogger()
+
 
 class NetUtil:
 
@@ -30,54 +35,55 @@ class NetUtil:
 
   # Url within server to request during status check. This url
   # should return HTTP code 200
-  SERVER_STATUS_REQUEST = "{0}/cert/ca"
-
+  SERVER_STATUS_REQUEST = "{0}/ca"
   # For testing purposes
   DEBUG_STOP_RETRIES_FLAG = False
 
   def checkURL(self, url):
     """Try to connect to a given url. Result is True if url returns HTTP code 200, in any other case
-    (like unreachable server or wrong HTTP code) result will be False
+    (like unreachable server or wrong HTTP code) result will be False.
+
+       Additionally returns body of request, if available
     """
-    logger.info("Connecting to " + url);
-    
+    logger.info("Connecting to " + url)
+    responseBody = ""
+
     try:
       parsedurl = urlparse(url)
       ca_connection = httplib.HTTPSConnection(parsedurl[1])
-      ca_connection.request("HEAD", parsedurl[2])
-      response = ca_connection.getresponse()  
-      status = response.status    
-      
-      requestLogMessage = "HEAD %s -> %s"
-      
+      ca_connection.request("GET", parsedurl[2])
+      response = ca_connection.getresponse()
+      status = response.status
+
       if status == 200:
-        logger.debug(requestLogMessage, url, str(status) ) 
-        return True
-      else: 
-        logger.warning(requestLogMessage, url, str(status) )
-        return False
+        responseBody = response.read()
+        logger.debug(LOG_REQUEST_MESSAGE, url, str(status), responseBody)
+        return True, responseBody
+      else:
+        logger.warning(LOG_REQUEST_MESSAGE, url, str(status), responseBody)
+        return False, responseBody
     except SSLError as slerror:
       logger.error(str(slerror))
-      logger.error("SSLError: Failed to connect. Please check openssl library versions. \n" +
-                   "Refer to: https://bugzilla.redhat.com/show_bug.cgi?id=1022468 for more details.")
-      return False
-    
+      logger.error(ERROR_SSL_WRONG_VERSION)
+      return False, responseBody
+
     except Exception, e:
       logger.warning("Failed to connect to " + str(url) + " due to " + str(e) + "  ")
-      return False
+      return False, responseBody
 
-  def try_to_connect(self, server_url, max_retries, logger = None):
+  def try_to_connect(self, server_url, max_retries, logger=None):
     """Try to connect to a given url, sleeping for CONNECT_SERVER_RETRY_INTERVAL_SEC seconds
     between retries. No more than max_retries is performed. If max_retries is -1, connection
     attempts will be repeated forever until server is not reachable
+
     Returns count of retries
     """
     if logger is not None:
       logger.debug("Trying to connect to %s", server_url)
-      
+
     retries = 0
     while (max_retries == -1 or retries < max_retries) and not self.DEBUG_STOP_RETRIES_FLAG:
-      server_is_up = self.checkURL(self.SERVER_STATUS_REQUEST.format(server_url))
+      server_is_up, responseBody = self.checkURL(self.SERVER_STATUS_REQUEST.format(server_url))
       if server_is_up:
         break
       else:
@@ -87,4 +93,3 @@ class NetUtil:
         retries += 1
         time.sleep(self.CONNECT_SERVER_RETRY_INTERVAL_SEC)
     return retries
-

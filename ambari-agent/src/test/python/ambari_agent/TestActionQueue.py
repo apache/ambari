@@ -178,7 +178,9 @@ class TestActionQueue(TestCase):
   def test_process_command(self, execute_status_command_mock,
                            execute_command_mock, print_exc_mock):
     dummy_controller = MagicMock()
-    actionQueue = ActionQueue(AmbariConfig().getConfig(), dummy_controller)
+    config = AmbariConfig()
+    config.set('agent', 'tolerate_download_failures', "true")
+    actionQueue = ActionQueue(config, dummy_controller)
     execution_command = {
       'commandType' : ActionQueue.EXECUTION_COMMAND,
     }
@@ -243,7 +245,7 @@ class TestActionQueue(TestCase):
         return self.original_open(file, mode)
     open_mock.side_effect = open_side_effect
 
-    config = AmbariConfig().getConfig()
+    config = AmbariConfig()
     tempdir = tempfile.gettempdir()
     config.set('agent', 'prefix', tempdir)
     config.set('agent', 'cache_dir', "/var/lib/ambari-agent/cache")

@@ -29,20 +29,20 @@ from ambari_agent import AmbariConfig
 class TestCertGeneration(TestCase):
   def setUp(self):
     self.tmpdir = tempfile.mkdtemp()
-    config = ConfigParser.RawConfigParser()
-    config.add_section('server')
+    config = AmbariConfig.AmbariConfig()
+    #config.add_section('server')
     config.set('server', 'hostname', 'example.com')
     config.set('server', 'url_port', '777')
-    config.add_section('security')
+    #config.add_section('security')
     config.set('security', 'keysdir', self.tmpdir)
     config.set('security', 'server_crt', 'ca.crt')
     self.certMan = CertificateManager(config)
-    
+
   def test_generation(self):
     self.certMan.genAgentCrtReq()
     self.assertTrue(os.path.exists(self.certMan.getAgentKeyName()))
     self.assertTrue(os.path.exists(self.certMan.getAgentCrtReqName()))
   def tearDown(self):
     shutil.rmtree(self.tmpdir)
-    
+
 

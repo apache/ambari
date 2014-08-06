@@ -45,7 +45,7 @@ class TestSecurity(unittest.TestCase):
     out = StringIO.StringIO()
     sys.stdout = out
     # Create config
-    self.config = AmbariConfig().getConfig()
+    self.config = AmbariConfig()
     # Instantiate CachedHTTPSConnection (skip connect() call)
     with patch.object(security.VerifiedHTTPSConnection, "connect"):
       self.cachedHTTPSConnection = security.CachedHTTPSConnection(self.config)

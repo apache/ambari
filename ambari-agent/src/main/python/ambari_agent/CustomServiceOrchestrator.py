@@ -59,7 +59,7 @@ class CustomServiceOrchestrator():
                                                'status_command_stdout.txt')
     self.status_commands_stderr = os.path.join(self.tmp_dir,
                                                'status_command_stderr.txt')
-    self.public_fqdn = hostname.public_hostname()
+    self.public_fqdn = hostname.public_hostname(config)
     # cache reset will be called on every agent registration
     controller.registration_listeners.append(self.file_cache.reset)
     # Clean up old status command files if any
@@ -122,12 +122,12 @@ class CustomServiceOrchestrator():
       py_file_list = [pre_hook_tuple, script_tuple, post_hook_tuple]
       # filter None values
       filtered_py_file_list = [i for i in py_file_list if i]
-      
+
       logger_level = logging.getLevelName(logger.level)
 
       # Executing hooks and script
       ret = None
-      
+
       for py_file, current_base_dir in filtered_py_file_list:
         script_params = [command_name, json_path, current_base_dir]
         ret = self.python_executor.run_file(py_file, script_params,

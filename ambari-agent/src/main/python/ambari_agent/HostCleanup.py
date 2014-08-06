@@ -82,10 +82,9 @@ PACKAGES_BLACK_LIST = ["ambari-server", "ambari-agent"]
 class HostCleanup:
   def resolve_ambari_config(self):
     try:
-      config = AmbariConfig.config
+      config = AmbariConfig.AmbariConfig()
       if os.path.exists(configFile):
         config.read(configFile)
-        AmbariConfig.setConfig(config)
       else:
         raise Exception("No config found, use default")
 
@@ -99,13 +98,13 @@ class HostCleanup:
     for patern in DIRNAME_PATTERNS:
       dirList.add(os.path.dirname(patern))
 
-    for folder in dirList:  
+    for folder in dirList:
       for dirs in os.walk(folder):
         for dir in dirs:
           for patern in DIRNAME_PATTERNS:
             if patern in dir:
              resultList.append(dir)
-    return resultList         
+    return resultList
 
   def do_cleanup(self, argMap=None):
     if argMap:
@@ -136,7 +135,7 @@ class HostCleanup:
         self.do_erase_dir_silent(dirList)
       if additionalDirList and not ADDITIONAL_DIRS in SKIP_LIST:
         logger.info("\n" + "Deleting additional directories: " + str(dirList))
-        self.do_erase_dir_silent(additionalDirList)        
+        self.do_erase_dir_silent(additionalDirList)
       if repoList and not REPO_SECTION in SKIP_LIST:
         repoFiles = self.find_repo_files_for_repos(repoList)
         logger.info("\n" + "Deleting repo files: " + str(repoFiles))

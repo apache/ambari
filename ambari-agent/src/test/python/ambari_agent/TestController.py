@@ -53,7 +53,8 @@ class TestController(unittest.TestCase):
 
 
     config = MagicMock()
-    config.get.return_value = "something"
+    #config.get.return_value = "something"
+    config.get.return_value = "5"
 
     self.controller = Controller.Controller(config)
     self.controller.netutil.MINIMUM_INTERVAL_BETWEEN_HEARTBEATS = 0.1

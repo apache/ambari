@@ -20,8 +20,9 @@ limitations under the License.
 
 import ConfigParser
 import StringIO
+import json
+from NetUtil import NetUtil
 
-config = ConfigParser.RawConfigParser()
 content = """
 
 [server]
@@ -58,8 +59,6 @@ rpms=glusterfs,openssl,wget,net-snmp,ntpd,ganglia,nagios,glusterfs
 log_lines_count=300
 
 """
-s = StringIO.StringIO(content)
-config.readfp(s)
 
 imports = [
   "hdp/manifests/*.pp",
@@ -145,7 +144,7 @@ serviceStates = {
 }
 
 servicesToPidNames = {
-  'GLUSTERFS' : 'glusterd.pid$',    
+  'GLUSTERFS' : 'glusterd.pid$',
   'NAMENODE': 'hadoop-{USER}-namenode.pid$',
   'SECONDARY_NAMENODE': 'hadoop-{USER}-secondarynamenode.pid$',
   'DATANODE': 'hadoop-{USER}-datanode.pid$',
@@ -192,43 +191,65 @@ servicesToLinuxUser = {
 
 pidPathesVars = [
   {'var' : 'glusterfs_pid_dir_prefix',
-   'defaultValue' : '/var/run'},      
+   'defaultValue' : '/var/run'},
   {'var' : 'hadoop_pid_dir_prefix',
    'defaultValue' : '/var/run/hadoop'},
   {'var' : 'hadoop_pid_dir_prefix',
-   'defaultValue' : '/var/run/hadoop'},                 
+   'defaultValue' : '/var/run/hadoop'},
   {'var' : 'ganglia_runtime_dir',
-   'defaultValue' : '/var/run/ganglia/hdp'},                 
+   'defaultValue' : '/var/run/ganglia/hdp'},
   {'var' : 'hbase_pid_dir',
-   'defaultValue' : '/var/run/hbase'},                
+   'defaultValue' : '/var/run/hbase'},
   {'var' : '',
-   'defaultValue' : '/var/run/nagios'},                    
+   'defaultValue' : '/var/run/nagios'},
   {'var' : 'zk_pid_dir',
-   'defaultValue' : '/var/run/zookeeper'},             
+   'defaultValue' : '/var/run/zookeeper'},
   {'var' : 'oozie_pid_dir',
-   'defaultValue' : '/var/run/oozie'},             
+   'defaultValue' : '/var/run/oozie'},
   {'var' : 'hcat_pid_dir',
-   'defaultValue' : '/var/run/webhcat'},                       
+   'defaultValue' : '/var/run/webhcat'},
   {'var' : 'hive_pid_dir',
-   'defaultValue' : '/var/run/hive'},                      
+   'defaultValue' : '/var/run/hive'},
   {'var' : 'mysqld_pid_dir',
    'defaultValue' : '/var/run/mysqld'},
   {'var' : 'hcat_pid_dir',
-   'defaultValue' : '/var/run/webhcat'},                      
+   'defaultValue' : '/var/run/webhcat'},
   {'var' : 'yarn_pid_dir_prefix',
    'defaultValue' : '/var/run/hadoop-yarn'},
   {'var' : 'mapred_pid_dir_prefix',
    'defaultValue' : '/var/run/hadoop-mapreduce'},
 ]
 
-class AmbariConfig:
-  def getConfig(self):
-    global config
-    return config
 
-  def getImports(self):
-    global imports
-    return imports
+class AmbariConfig:
+  TWO_WAY_SSL_PROPERTY = "security.server.two_way_ssl"
+  CONFIG_FILE = "/etc/ambari-agent/conf/ambari-agent.ini"
+  SERVER_CONNECTION_INFO = "{0}/connection_info"
+  CONNECTION_PROTOCOL = "https"
+
+  config = None
+  net = None
+
+  def __init__(self):
+    global content
+    self.config = ConfigParser.RawConfigParser()
+    self.net = NetUtil()
+    self.config.readfp(StringIO.StringIO(content))
+
+  def get(self, section, value):
+    return self.config.get(section, value)
+
+  def set(self, section, option, value):
+    self.config.set(section, option, value)
+
+  def add_section(self, section):
+    self.config.add_section(section)
+
+  def setConfig(self, customConfig):
+    self.config = customConfig
+
+  def getConfig(self):
+    return self.config
 
   def getRolesToClass(self):
     global rolesToClass
@@ -242,18 +263,55 @@ class AmbariConfig:
     global servicesToPidNames
     return servicesToPidNames
 
+  def getImports(self):
+    global imports
+    return imports
+
   def getPidPathesVars(self):
     global pidPathesVars
     return pidPathesVars
 
+  def has_option(self, section, option):
+    return self.config.has_option(section, option)
 
-def setConfig(customConfig):
-  global config
-  config = customConfig
+  def remove_option(self, section, option):
+    return self.config.remove_option(section, option)
+
+  def load(self, data):
+    self.config = ConfigParser.RawConfigParser(data)
+
+  def read(self, filename):
+    self.config.read(filename)
+
+  def getServerOption(self, url, name, default=None):
+    status, response = self.net.checkURL(url)
+    if status is True:
+      try:
+        data = json.loads(response)
+        if name in data:
+          return data[name]
+      except:
+        pass
+    return default
+
+  def get_api_url(self):
+    return "%s://%s:%s" % (self.CONNECTION_PROTOCOL,
+                           self.get('server', 'hostname'),
+                           self.get('server', 'url_port'))
+
+  def isTwoWaySSLConnection(self):
+    req_url = self.get_api_url()
+    response = self.getServerOption(self.SERVER_CONNECTION_INFO.format(req_url), self.TWO_WAY_SSL_PROPERTY, 'false')
+    if response is None:
+      return False
+    elif response.lower() == "true":
+      return True
+    else:
+      return False
 
 
 def main():
-  print config
+  print AmbariConfig().config
 
 if __name__ == "__main__":
   main()

@@ -162,7 +162,7 @@ public class CertGenerationTest {
     Map<String,String> config = certMan.configs.getConfigsMap();
     config.put(Configuration.PASSPHRASE_KEY,"passphrase");
 
-    String agentHostname = "agent_hostname1";
+    String agentHostname = "agent_hostname";
     SignCertResponse scr = certMan.signAgentCrt(agentHostname,
       "incorrect_agentCrtReqContent", "passphrase");
     //Revoke command wasn't executed

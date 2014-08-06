@@ -54,7 +54,7 @@ class Controller(threading.Thread):
     self.safeMode = True
     self.credential = None
     self.config = config
-    self.hostname = hostname.hostname()
+    self.hostname = hostname.hostname(config)
     self.serverHostname = config.get('server', 'hostname')
     server_secured_url = 'https://' + self.serverHostname + \
                          ':' + config.get('server', 'secured_url_port')
@@ -78,7 +78,7 @@ class Controller(threading.Thread):
   def __del__(self):
     logger.info("Server connection disconnected.")
     pass
-  
+
   def registerWithServer(self):
     LiveStatus.SERVICES = []
     LiveStatus.CLIENT_COMPONENTS = []
@@ -87,36 +87,36 @@ class Controller(threading.Thread):
     ret = {}
 
     while not self.isRegistered:
-      try:                
+      try:
         data = json.dumps(self.register.build(id))
         prettyData = pprint.pformat(data)
-        
+
         try:
           server_ip = socket.gethostbyname(self.hostname)
           logger.info("Registering with %s (%s) (agent=%s)", self.hostname, server_ip, prettyData)
-        except socket.error:          
-          logger.warn("Unable to determine the IP address of '%s', agent registration may fail (agent=%s)", 
+        except socket.error:
+          logger.warn("Unable to determine the IP address of '%s', agent registration may fail (agent=%s)",
                       self.hostname, prettyData)
-                
+
         ret = self.sendRequest(self.registerUrl, data)
-        
+
         # exitstatus is a code of error which was rised on server side.
         # exitstatus = 0 (OK - Default)
         # exitstatus = 1 (Registration failed because different version of agent and server)
         exitstatus = 0
         if 'exitstatus' in ret.keys():
           exitstatus = int(ret['exitstatus'])
-                
+
         if exitstatus == 1:
-          # log - message, which will be printed to agents log  
+          # log - message, which will be printed to agents log
           if 'log' in ret.keys():
-            log = ret['log']          
-          
+            log = ret['log']
+
           logger.error(log)
           self.isRegistered = False
-          self.repeatRegistration=False
+          self.repeatRegistration = False
           return ret
-        
+
         logger.info("Registration Successful (response=%s)", pprint.pformat(ret))
 
         self.responseId = int(ret['responseId'])
@@ -139,10 +139,10 @@ class Controller(threading.Thread):
         """ Sleeping for {0} seconds and then retrying again """.format(delay)
         time.sleep(delay)
         pass
-      pass  
+      pass
     return ret
-  
-  
+
+
   def addToQueue(self, commands):
     """Add to the queue for running the commands """
     """ Put the required actions into the Queue """
@@ -174,8 +174,7 @@ class Controller(threading.Thread):
     retry = False
     certVerifFailed = False
 
-    config = AmbariConfig.config
-    hb_interval = config.get('heartbeat', 'state_interval')
+    hb_interval = self.config.get('heartbeat', 'state_interval')
 
     #TODO make sure the response id is monotonically increasing
     id = 0
@@ -190,22 +189,22 @@ class Controller(threading.Thread):
 
         if logger.isEnabledFor(logging.DEBUG):
           logger.debug("Sending Heartbeat (id = %s): %s", self.responseId, data)
-        
+
         response = self.sendRequest(self.heartbeatUrl, data)
-        
+
         exitStatus = 0
         if 'exitstatus' in response.keys():
-          exitStatus = int(response['exitstatus'])   
-        
+          exitStatus = int(response['exitstatus'])
+
         if exitStatus != 0:
           raise Exception(response)
-        
+
         serverId = int(response['responseId'])
 
         if logger.isEnabledFor(logging.DEBUG):
           logger.debug('Heartbeat response (id = %s): %s', serverId, pprint.pformat(response))
         else:
-          logger.info('Heartbeat response received (id = %s)', serverId)                
+          logger.info('Heartbeat response received (id = %s)', serverId)
 
         if 'hasMappedComponents' in response.keys():
           self.hasMappedComponents = response['hasMappedComponents'] != False
@@ -227,11 +226,11 @@ class Controller(threading.Thread):
         if 'executionCommands' in response.keys():
           self.addToQueue(response['executionCommands'])
           pass
-        
+
         if 'statusCommands' in response.keys():
           self.addToStatusQueue(response['statusCommands'])
           pass
-        
+
         if "true" == response['restartAgent']:
           logger.error("Received the restartAgent command")
           self.restartAgent()
@@ -241,7 +240,7 @@ class Controller(threading.Thread):
 
         if retry:
           logger.info("Reconnected to %s", self.heartbeatUrl)
-          
+
         retry=False
         certVerifFailed = False
         self.DEBUG_SUCCESSFULL_HEARTBEATS += 1
@@ -255,29 +254,29 @@ class Controller(threading.Thread):
         #randomize the heartbeat
         delay = randint(0, self.range)
         time.sleep(delay)
-        
+
         if "code" in err:
           logger.error(err.code)
         else:
           logException = False
           if logger.isEnabledFor(logging.DEBUG):
             logException = True
-          
+
           exceptionMessage = str(err)
           errorMessage = "Unable to reconnect to {0} (attempts={1}, details={2})".format(self.heartbeatUrl, self.DEBUG_HEARTBEAT_RETRIES, exceptionMessage)
-          
+
           if not retry:
             errorMessage = "Connection to {0} was lost (details={1})".format(self.serverHostname, exceptionMessage)
-          
+
           logger.error(errorMessage, exc_info=logException)
-            
+
           if 'certificate verify failed' in str(err) and not certVerifFailed:
             logger.warn("Server certificate verify failed. Did you regenerate server certificate?")
             certVerifFailed = True
-            
+
         self.cachedconnect = None # Previous connection is broken now
         retry=True
-        
+
       # Sleep for some time
       timeout = self.netutil.HEARTBEAT_IDDLE_INTERVAL_SEC \
                 - self.netutil.MINIMUM_INTERVAL_BETWEEN_HEARTBEATS
@@ -308,12 +307,12 @@ class Controller(threading.Thread):
     registerResponse = self.registerWithServer()
     message = registerResponse['response']
     logger.info("Registration response from %s was %s", self.serverHostname, message)
-    
+
     if self.isRegistered:
       # Process callbacks
       for callback in self.registration_listeners:
         callback()
-        
+
       time.sleep(self.netutil.HEARTBEAT_IDDLE_INTERVAL_SEC)
       self.heartbeatWithServer()
 
@@ -323,11 +322,11 @@ class Controller(threading.Thread):
 
   def sendRequest(self, url, data):
     response = None
-    
+
     try:
       if self.cachedconnect is None: # Lazy initialization
         self.cachedconnect = security.CachedHTTPSConnection(self.config)
-      req = urllib2.Request(url, data, {'Content-Type': 'application/json'})      
+      req = urllib2.Request(url, data, {'Content-Type': 'application/json'})
       response = self.cachedconnect.request(req)
       return json.loads(response)
     except Exception, exception:
@@ -342,10 +341,10 @@ class Controller(threading.Thread):
 
   def updateComponents(self, cluster_name):
     logger.info("Updating components map of cluster " + cluster_name)
-    
-    response = self.sendRequest(self.componentsUrl + cluster_name, None)    
+
+    response = self.sendRequest(self.componentsUrl + cluster_name, None)
     logger.debug("Response from %s was %s", self.serverHostname, str(response))
-    
+
     for service, components in response['components'].items():
       LiveStatus.SERVICES.append(service)
       for component, category in components.items():
