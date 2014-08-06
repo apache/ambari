@@ -225,11 +225,7 @@ public class ConfigHelper {
         for (Entry<String, String> overrideEntry : tags.entrySet()) {
           Config overrideConfig = cluster.getConfig(type,
               overrideEntry.getValue());
-
-          // TODO clarify correct behavior for attributes overriding
-          if (overrideConfig != null) {
-            cloneAttributesMap(overrideConfig.getPropertiesAttributes(), attributesMap);
-          }
+          overrideAttributes(overrideConfig, attributesMap);
         }
         if (attributesMap != null) {
           attributes.put(type, attributesMap);
@@ -268,6 +264,36 @@ public class ConfigHelper {
     }
 
     return finalConfig;
+  }
+
+  /**
+   * Merge override attributes with original ones.
+   * If overrideConfig#getPropertiesAttributes does not contain occurrence of override for any of
+   * properties from overrideConfig#getProperties then persisted attribute should be removed.
+   */
+  public Map<String, Map<String, String>> overrideAttributes(Config overrideConfig,
+                                                             Map<String, Map<String, String>> persistedAttributes) {
+    if (overrideConfig != null && persistedAttributes != null) {
+      Map<String, Map<String, String>> overrideAttributes = overrideConfig.getPropertiesAttributes();
+      if (overrideAttributes != null) {
+        cloneAttributesMap(overrideAttributes, persistedAttributes);
+        Map<String, String> overrideProperties = overrideConfig.getProperties();
+        if (overrideProperties != null) {
+          Set<String> overriddenProperties = overrideProperties.keySet();
+          for (String overriddenProperty : overriddenProperties) {
+            for (Entry<String, Map<String, String>> persistedAttribute : persistedAttributes.entrySet()) {
+              String attributeName = persistedAttribute.getKey();
+              Map<String, String> persistedAttributeValues = persistedAttribute.getValue();
+              Map<String, String> overrideAttributeValues = overrideAttributes.get(attributeName);
+              if (overrideAttributeValues == null || !overrideAttributeValues.containsKey(overriddenProperty)) {
+                persistedAttributeValues.remove(overriddenProperty);
+              }
+            }
+          }
+        }
+      }
+    }
+    return persistedAttributes;
   }
 
   public void cloneAttributesMap(Map<String, Map<String, String>> sourceAttributesMap,
