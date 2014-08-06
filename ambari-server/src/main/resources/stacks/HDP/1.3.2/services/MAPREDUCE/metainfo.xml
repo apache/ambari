@@ -65,6 +65,23 @@
             <scriptType>PYTHON</scriptType>
             <timeout>600</timeout>
           </commandScript>
+          <configFiles>
+            <configFile>
+              <type>xml</type>
+              <fileName>core-site.xml</fileName>
+              <dictionaryName>core-site</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>xml</type>
+              <fileName>mapred-site.xml</fileName>
+              <dictionaryName>mapred-site</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>env</type>
+              <fileName>mapred-env.sh</fileName>
+              <dictionaryName>mapred-env</dictionaryName>
+            </configFile>
+          </configFiles>
         </component>
               
         <component>

@@ -18,16 +18,14 @@
 
 package org.apache.ambari.server.api.services;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
@@ -74,13 +72,17 @@ public class HostComponentService extends BaseService {
   @Path("{hostComponentName}")
   @Produces("text/plain")
   public Response getHostComponent(String body, @Context HttpHeaders headers, @Context UriInfo ui,
-                                   @PathParam("hostComponentName") String hostComponentName) {
+                                   @PathParam("hostComponentName") String hostComponentName, @QueryParam("format") String format) {
 
     //todo: needs to be refactored when properly handling exceptions
     if (m_hostName == null) {
       // don't allow case where host is not in url but a host_component instance resource is requested
       String s = "Invalid request. Must provide host information when requesting a host_resource instance resource.";
       return Response.status(400).entity(s).build();
+    }
+
+    if (format != null && format.equals("client_config_tar")) {
+      return createClientConfigResource(body, headers, ui, hostComponentName);
     }
 
     return handleRequest(headers, body, ui, Request.Type.GET,
@@ -250,4 +252,38 @@ public class HostComponentService extends BaseService {
 
     return createResource(Resource.Type.HostComponent, mapIds);
   }
+
+  private Response createClientConfigResource(String body, HttpHeaders headers, UriInfo ui,
+                                              String hostComponentName) {
+    Map<Resource.Type,String> mapIds = new HashMap<Resource.Type, String>();
+    mapIds.put(Resource.Type.Cluster, m_clusterName);
+    mapIds.put(Resource.Type.Host, m_hostName);
+    mapIds.put(Resource.Type.Component, hostComponentName);
+
+
+    Response response = handleRequest(headers, body, ui, Request.Type.GET,
+            createResource(Resource.Type.ClientConfig, mapIds));
+
+    //If response has errors return response
+    if (response.getStatus() != 200) {
+      return response;
+    }
+
+    Response.ResponseBuilder rb = Response.status(Response.Status.OK);
+    File file = new File("/tmp/ambari-server/"+hostComponentName+"-configs.tar.gz");
+    InputStream resultInputStream = null;
+    try {
+      resultInputStream = new FileInputStream(file);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+
+    String contentType = "application/x-ustar";
+    String outputFileName = hostComponentName + "-configs.tar.gz";
+    rb.header("Content-Disposition",  "attachment; filename=\"" + outputFileName + "\"");
+    rb.entity(resultInputStream);
+    return rb.type(contentType).build();
+
+  }
+
 }

@@ -36,6 +36,19 @@
       <name>HCATALOG</name>
       <comment>This is comment for HCATALOG service</comment>
       <version>0.12.0.2.1</version>
+      <components>
+        <component>
+          <name>HCAT</name>
+          <category>CLIENT</category>
+          <commandScript>
+            <script>scripts/hcat_client.py</script>
+            <scriptType>PYTHON</scriptType>
+          </commandScript>
+          <downloads>
+            <source>/etc/hive-hcatalog/conf</source>
+          </downloads>
+        </component>
+      </components>
       <osSpecifics>
         <osSpecific>
           <osFamily>any</osFamily>

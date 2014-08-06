@@ -97,9 +97,21 @@
           <category>CLIENT</category>
           <cardinality>0+</cardinality>
           <commandScript>
-            <script>scripts/hive_client.py</script>
+            <script>scripts/hive_client222.py</script>
             <scriptType>PYTHON</scriptType>
           </commandScript>
+          <configFiles>
+            <configFile>
+              <type>xml</type>
+              <fileName>hive-site.xml</fileName>
+              <dictionaryName>hive-site</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>env</type>
+              <fileName>hive-env.sh</fileName>
+              <dictionaryName>hive-env</dictionaryName>
+            </configFile>
+          </configFiles>
         </component>
       </components>
 

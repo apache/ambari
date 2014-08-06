@@ -76,6 +76,9 @@
             <scriptType>PYTHON</scriptType>
             <timeout>600</timeout>
           </commandScript>
+          <downloads>
+            <source>/etc/hadoop/conf</source>
+          </downloads>
         </component>
       </components>
 

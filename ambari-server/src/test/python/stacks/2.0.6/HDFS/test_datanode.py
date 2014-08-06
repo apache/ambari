@@ -17,10 +17,11 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
+from ambari_commons import OSCheck
 from mock.mock import MagicMock, patch
 from stacks.utils.RMFTestCase import *
 
-
+@patch.object(OSCheck,"get_os_type", new = MagicMock(return_value='suse'))
 class TestDatanode(RMFTestCase):
 
   def test_configure_default(self):

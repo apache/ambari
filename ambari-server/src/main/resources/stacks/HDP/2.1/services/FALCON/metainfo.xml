@@ -32,6 +32,13 @@
             <scriptType>PYTHON</scriptType>
             <timeout>600</timeout>
           </commandScript>
+          <configFiles>
+            <configFile>
+              <type>env</type>
+              <fileName>falcon-env.sh</fileName>
+              <dictionaryName>falcon-env</dictionaryName>
+            </configFile>
+          </configFiles>
         </component>
         <component>
           <name>FALCON_SERVER</name>

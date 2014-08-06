@@ -50,6 +50,13 @@
             <script>scripts/sqoop_client.py</script>
             <scriptType>PYTHON</scriptType>
           </commandScript>
+          <configFiles>
+            <configFile>
+              <type>env</type>
+              <fileName>sqoop-env.sh</fileName>
+              <dictionaryName>sqoop-env</dictionaryName>
+            </configFile>
+          </configFiles>
         </component>
       </components>
       <osSpecifics>

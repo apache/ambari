@@ -77,6 +77,18 @@
             <scriptType>PYTHON</scriptType>
             <timeout>600</timeout>
           </commandScript>
+          <configFiles>
+            <configFile>
+              <type>xml</type>
+              <fileName>hdfs-site.xml</fileName>
+              <dictionaryName>hdfs-site</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>env</type>
+              <fileName>hadoop-env.sh</fileName>
+              <dictionaryName>hadoop-env</dictionaryName>
+            </configFile>
+          </configFiles>
         </component>
 
         <component>

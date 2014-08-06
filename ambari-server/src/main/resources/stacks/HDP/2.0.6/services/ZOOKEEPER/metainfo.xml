@@ -43,6 +43,13 @@
             <script>scripts/zookeeper_client.py</script>
             <scriptType>PYTHON</scriptType>
           </commandScript>
+          <configFiles>
+            <configFile>
+              <type>env</type>
+              <fileName>zookeeper-env.sh</fileName>
+              <dictionaryName>zookeeper-env</dictionaryName>
+            </configFile>
+          </configFiles>
         </component>
       </components>
 

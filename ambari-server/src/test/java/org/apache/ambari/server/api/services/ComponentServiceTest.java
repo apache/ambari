@@ -43,8 +43,8 @@ public class ComponentServiceTest extends BaseServiceTest {
 
     //getComponent
     ComponentService service = new TestComponentService("clusterName", "serviceName", "componentName");
-    Method m = service.getClass().getMethod("getComponent", String.class, HttpHeaders.class, UriInfo.class, String.class);
-    Object[] args = new Object[] {null, getHttpHeaders(), getUriInfo(), "componentName"};
+    Method m = service.getClass().getMethod("getComponent", String.class, HttpHeaders.class, UriInfo.class, String.class, String.class);
+    Object[] args = new Object[] {null, getHttpHeaders(), getUriInfo(), "componentName", null};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
 
     //getComponents

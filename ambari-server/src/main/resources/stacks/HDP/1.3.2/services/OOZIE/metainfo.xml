@@ -75,6 +75,18 @@
             <script>scripts/oozie_client.py</script>
             <scriptType>PYTHON</scriptType>
           </commandScript>
+          <configFiles>
+            <configFile>
+              <type>xml</type>
+              <fileName>oozie-site.xml</fileName>
+              <dictionaryName>oozie-site</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>env</type>
+              <fileName>oozie-env.sh</fileName>
+              <dictionaryName>oozie-env</dictionaryName>
+            </configFile>
+          </configFiles>
         </component>
       </components>
 

@@ -77,6 +77,23 @@
             <scriptType>PYTHON</scriptType>
             <timeout>600</timeout>
           </commandScript>
+          <configFiles>
+            <configFile>
+              <type>xml</type>
+              <fileName>yarn-site.xml</fileName>
+              <dictionaryName>yarn-site</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>xml</type>
+              <fileName>core-site.xml</fileName>
+              <dictionaryName>core-site</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>env</type>
+              <fileName>yarn-env.sh</fileName>
+              <dictionaryName>yarn-env</dictionaryName>
+            </configFile>
+          </configFiles>
         </component>
       </components>
 
@@ -148,6 +165,23 @@
             <scriptType>PYTHON</scriptType>
             <timeout>600</timeout>
           </commandScript>
+          <configFiles>
+            <configFile>
+              <type>xml</type>
+              <fileName>yarn-site.xml</fileName>
+              <dictionaryName>yarn-site</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>xml</type>
+              <fileName>core-site.xml</fileName>
+              <dictionaryName>core-site</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>env</type>
+              <fileName>yarn-env.sh</fileName>
+              <dictionaryName>yarn-env</dictionaryName>
+            </configFile>
+          </configFiles>
         </component>
       </components>
 

@@ -426,5 +426,12 @@
         "LDAP/synced_users",
         "LDAP/synced_groups",
         "_"
+    ],
+    "ClientConfig":[
+        "ServiceComponentInfo/service_name",
+        "ServiceComponentInfo/component_name",
+        "ServiceComponentInfo/cluster_name",
+        "HostRoles/host_name",
+        "_"
     ]
 }

@@ -91,6 +91,18 @@
             <script>scripts/hive_client.py</script>
             <scriptType>PYTHON</scriptType>
           </commandScript>
+          <configFiles>
+            <configFile>
+              <type>xml</type>
+              <fileName>hive-site.xml</fileName>
+              <dictionaryName>hive-site</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>env</type>
+              <fileName>hive-env.sh</fileName>
+              <dictionaryName>hive-env</dictionaryName>
+            </configFile>
+          </configFiles>
         </component>
       </components>
 
@@ -157,6 +169,9 @@
             <script>scripts/hcat_client.py</script>
             <scriptType>PYTHON</scriptType>
           </commandScript>
+          <downloads>
+            <source>/etc/hcatalog/conf</source>
+          </downloads>
         </component>
       </components>
       <osSpecifics>

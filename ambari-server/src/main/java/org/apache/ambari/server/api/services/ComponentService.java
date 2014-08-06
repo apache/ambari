@@ -18,11 +18,20 @@
 
 package org.apache.ambari.server.api.services;
 
+import com.google.inject.Inject;
 import org.apache.ambari.server.api.resources.ResourceInstance;
+import org.apache.ambari.server.controller.spi.ClusterController;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
+import org.apache.ambari.server.orm.GuiceJpaInitializer;
+import org.apache.ambari.server.state.ConfigHelper;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -64,7 +73,10 @@ public class ComponentService extends BaseService {
   @Path("{componentName}")
   @Produces("text/plain")
   public Response getComponent(String body, @Context HttpHeaders headers, @Context UriInfo ui,
-                               @PathParam("componentName") String componentName) {
+                               @PathParam("componentName") String componentName, @QueryParam("format") String format) {
+    if (format != null && format.equals("client_config_tar")) {
+      return createClientConfigResource(body, headers, ui, componentName);
+    }
 
     return handleRequest(headers, body, ui, Request.Type.GET,
         createComponentResource(m_clusterName, m_serviceName, componentName));
@@ -201,4 +213,38 @@ public class ComponentService extends BaseService {
 
     return createResource(Resource.Type.Component, mapIds);
   }
+
+  private Response createClientConfigResource(String body, HttpHeaders headers, UriInfo ui,
+                                      String componentName) {
+    Map<Resource.Type,String> mapIds = new HashMap<Resource.Type, String>();
+    mapIds.put(Resource.Type.Cluster, m_clusterName);
+    mapIds.put(Resource.Type.Service, m_serviceName);
+    mapIds.put(Resource.Type.Component, componentName);
+
+
+    Response response = handleRequest(headers, body, ui, Request.Type.GET,
+            createResource(Resource.Type.ClientConfig, mapIds));
+
+    //If response has errors return response
+    if (response.getStatus() != 200) {
+      return response;
+    }
+
+    Response.ResponseBuilder rb = Response.status(Response.Status.OK);
+    File file = new File("/tmp/ambari-server/"+componentName+"-configs.tar.gz");
+    InputStream resultInputStream = null;
+    try {
+      resultInputStream = new FileInputStream(file);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+
+    String contentType = "application/x-ustar";
+    String outputFileName = componentName + "-configs.tar.gz";
+    rb.header("Content-Disposition",  "attachment; filename=\"" + outputFileName + "\"");
+    rb.entity(resultInputStream);
+    return rb.type(contentType).build();
+
+  }
+
 }

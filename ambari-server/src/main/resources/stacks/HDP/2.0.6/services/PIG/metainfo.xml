@@ -51,6 +51,14 @@
         <timeout>300</timeout>
       </commandScript>
 
+      <configFiles>
+        <configFile>
+          <type>env</type>
+          <fileName>pig-env.sh</fileName>
+          <dictionaryName>pig-env</dictionaryName>
+        </configFile>
+      </configFiles>
+
       <configuration-dependencies>
         <config-type>pig-env</config-type>
         <config-type>pig-log4j</config-type>

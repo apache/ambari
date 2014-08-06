@@ -42,8 +42,8 @@ public class HostComponentServiceTest extends BaseServiceTest {
 
     //getHostComponent
     HostComponentService componentService = new TestHostComponentService("clusterName", "serviceName", "componentName");
-    Method m = componentService.getClass().getMethod("getHostComponent", String.class, HttpHeaders.class, UriInfo.class, String.class);
-    Object[] args = new Object[] {null, getHttpHeaders(), getUriInfo(), "componentName"};
+    Method m = componentService.getClass().getMethod("getHostComponent", String.class, HttpHeaders.class, UriInfo.class, String.class, String.class);
+    Object[] args = new Object[]{null, getHttpHeaders(), getUriInfo(), "componentName", null};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, componentService, m, args, null));
 
     //getHostComponents

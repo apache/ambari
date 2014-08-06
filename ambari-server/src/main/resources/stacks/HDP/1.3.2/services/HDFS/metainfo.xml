@@ -76,6 +76,18 @@
             <scriptType>PYTHON</scriptType>
             <timeout>600</timeout>
           </commandScript>
+          <configFiles>
+            <configFile>
+              <type>xml</type>
+              <fileName>hdfs-site.xml</fileName>
+              <dictionaryName>hdfs-site</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>env</type>
+              <fileName>hdfs-env.sh</fileName>
+              <dictionaryName>hdfs-env</dictionaryName>
+            </configFile>
+          </configFiles>
         </component>
       </components>
       <osSpecifics>

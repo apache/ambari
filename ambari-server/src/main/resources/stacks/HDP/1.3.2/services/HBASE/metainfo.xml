@@ -91,6 +91,18 @@
             <script>scripts/hbase_client.py</script>
             <scriptType>PYTHON</scriptType>
           </commandScript>
+          <configFiles>
+            <configFile>
+              <type>xml</type>
+              <fileName>hbase-site.xml</fileName>
+              <dictionaryName>hbase-site</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>env</type>
+              <fileName>hbase-env.sh</fileName>
+              <dictionaryName>hbase-env</dictionaryName>
+            </configFile>
+          </configFiles>
         </component>
       </components>
 

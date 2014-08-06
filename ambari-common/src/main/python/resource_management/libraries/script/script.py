@@ -243,11 +243,11 @@ class Script(object):
     based on xml_configs_list and env_configs_list from commandParams
     """
     import params
-    config = self.get_config()
-    xml_configs_list = json.loads(config['commandParams']['xml_configs_list'])
-    env_configs_list = json.loads(config['commandParams']['env_configs_list'])
+    env.set_params(params)
+    xml_configs_list = params.config['commandParams']['xml_configs_list']
+    env_configs_list = params.config['commandParams']['env_configs_list']
     conf_tmp_dir = tempfile.mkdtemp()
-    output_filename = os.path.join(self.get_tmp_dir(),"client-configs.tar.gz")
+    output_filename = os.path.join(self.get_tmp_dir(),params.config['commandParams']['output_file'])
 
     Directory(self.get_tmp_dir(), recursive=True)
     for file_dict in xml_configs_list:
@@ -264,4 +264,5 @@ class Script(object):
         )
     with closing(tarfile.open(output_filename, "w:gz")) as tar:
       tar.add(conf_tmp_dir, arcname=os.path.basename("."))
+      tar.close()
     Directory(conf_tmp_dir, action="delete")

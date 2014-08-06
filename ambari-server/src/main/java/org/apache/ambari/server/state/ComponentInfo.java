@@ -40,6 +40,13 @@ public class ComponentInfo {
   private CommandScriptDefinition commandScript;
 
   /**
+   *
+   */
+  @XmlElementWrapper(name = "configFiles")
+  @XmlElements(@XmlElement(name = "configFile"))
+  private List<ClientConfigFileDefinition> clientConfigFiles;
+
+  /**
    * Added at schema ver 2
    */
   @XmlElementWrapper(name="customCommands")
@@ -77,6 +84,7 @@ public class ComponentInfo {
     dependencies = prototype.dependencies;
     autoDeploy = prototype.autoDeploy;
     configDependencies = prototype.configDependencies;
+    clientConfigFiles = prototype.clientConfigFiles;
   }
 
   public String getName() {
@@ -117,6 +125,14 @@ public class ComponentInfo {
 
   public void setCommandScript(CommandScriptDefinition commandScript) {
     this.commandScript = commandScript;
+  }
+
+  public List<ClientConfigFileDefinition> getClientConfigFiles() {
+    return clientConfigFiles;
+  }
+
+  public void setClientConfigFiles(List<ClientConfigFileDefinition> clientConfigFiles) {
+    this.clientConfigFiles = clientConfigFiles;
   }
 
   public List<CustomCommandDefinition> getCustomCommands() {

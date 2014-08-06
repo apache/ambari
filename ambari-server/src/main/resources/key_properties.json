@@ -151,5 +151,11 @@
   },
   "Controller": {
     "Controller": "Controllers/name"
+  },
+  "ClientConfig": {
+    "Cluster": "ServiceComponentInfo/cluster_name",
+    "Service": "ServiceComponentInfo/service_name",
+    "Component": "ServiceComponentInfo/component_name",
+    "Host": "HostRoles/host_name"
   }
 }

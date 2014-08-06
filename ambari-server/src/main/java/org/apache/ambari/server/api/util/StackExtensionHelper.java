@@ -304,6 +304,20 @@ public class StackExtensionHelper {
     result.setConfigDependencies(
         child.getConfigDependencies() != null ?
             child.getConfigDependencies() : parent.getConfigDependencies());
+
+//    HashSet downloadSource = child.getDownloadSource();
+//    if (downloadSource != null) {
+//      result.setDownloadSource(child.getDownloadSource());
+//    } else {
+//      result.setDownloadSource(parent.getDownloadSource());
+//    }
+//
+    List<ClientConfigFileDefinition> clientConfigFiles = child.getClientConfigFiles();
+    if (clientConfigFiles != null) {
+      result.setClientConfigFiles(child.getClientConfigFiles());
+    } else {
+      result.setClientConfigFiles(parent.getClientConfigFiles());
+    }
     // Merge custom command definitions for service
     List<CustomCommandDefinition> mergedCustomCommands =
                 mergeCustomCommandLists(parent.getCustomCommands(),
