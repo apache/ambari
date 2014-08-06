@@ -18,7 +18,7 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('LDAPModalCtrl',['$scope', 'LDAP', 'resourceType', '$modalInstance', function($scope, LDAP, resourceType, $modalInstance) {
+.controller('LDAPModalCtrl',['$scope', 'LDAP', 'resourceType', '$modalInstance', 'uiAlert', function($scope, LDAP, resourceType, $modalInstance, uiAlert) {
   $scope.resourceType = resourceType;
   $scope.isConfigured = false;
   $scope.isDataLoaded = false;
@@ -31,6 +31,9 @@ angular.module('ambariAdminConsole')
     $scope.isConfigured = data['LDAP']['configured'];
     $scope.items = data['LDAP'][resourceType];
     $scope.isDataLoaded = true;
+  }).catch(function(data) {
+    uiAlert.danger(data.data.status, data.data.message);
+    $modalInstance.dismiss();
   });
 
   $scope.sync = function() {
@@ -40,6 +43,9 @@ angular.module('ambariAdminConsole')
       });
 
       LDAP.sync(resourceType, itemsToSync).then(function() {
+        $modalInstance.close();
+      }).catch(function(data) {
+        uiAlert.danger(data.data.status, data.data.message);
         $modalInstance.close();
       });
     }

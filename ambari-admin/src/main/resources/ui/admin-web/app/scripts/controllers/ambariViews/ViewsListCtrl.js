@@ -18,37 +18,74 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('ViewsListCtrl',['$scope', 'View', '$modal', function($scope, View, $modal) {
-	function loadViews(){
-		View.all().then(function(views) {
-			$scope.views = views;
-		});
-	}
+.controller('ViewsListCtrl',['$scope', 'View', '$modal', 'uiAlert', 'ConfirmationModal', function($scope, View, $modal, uiAlert, ConfirmationModal) {
+  function loadViews(){
+    View.all().then(function(views) {
+      $scope.views = views;
+      $scope.getFilteredViews();
+    }).catch(function(data) {
+      uiAlert.danger(data.data.status, data.data.message);
+    });
+  }
 
-	loadViews();
+  loadViews();
 
-	$scope.createInstance = function(view) {
-		var modalInstance = $modal.open({
-			templateUrl: 'views/ambariViews/modals/create.html',
-			size: 'lg',
-			controller: 'CreateViewInstanceCtrl',
-			resolve: {
-				viewVersion: function(){
-					return view.versionsList[ view.versionsList.length-1];
-				}
-			}
-		});
+  $scope.createInstance = function(view) {
+    var modalInstance = $modal.open({
+      templateUrl: 'views/ambariViews/modals/create.html',
+      size: 'lg',
+      controller: 'CreateViewInstanceCtrl',
+      resolve: {
+        viewVersion: function(){
+          return view.versionsList[ view.versionsList.length-1];
+        }
+      }
+    });
 
-		modalInstance.result.then(loadViews);
-	};
+    modalInstance.result.then(loadViews);
+  };
 
-	$scope.deleteInstance = function(instance) {
-		View.deleteInstance(instance.ViewInstanceInfo.view_name, instance.ViewInstanceInfo.version, instance.ViewInstanceInfo.instance_name)
-		.then(function() {
-			loadViews();
-		})
-		.catch(function(data) {
-			console.error(data);
-		});
-	};
+  $scope.deleteInstance = function(instance) {
+    ConfirmationModal.show('Delete View Instance', 'Are you sure you want to delete View Instance '+ instance.ViewInstanceInfo.label +'?').then(function() {
+      View.deleteInstance(instance.ViewInstanceInfo.view_name, instance.ViewInstanceInfo.version, instance.ViewInstanceInfo.instance_name)
+      .then(function() {
+        loadViews();
+      })
+      .catch(function(data) {
+        uiAlert.danger(data.data.status, data.data.message);
+      });
+    });
+  };
+
+  $scope.viewsFilter = '';
+  $scope.filteredViews = [];
+  $scope.getFilteredViews = function(views) {
+    var result = [];
+    var filter = $scope.viewsFilter.toLowerCase();
+    if(!filter){  // if no filter return all views
+      result = $scope.views;
+    } else {
+      result = $scope.views.map(function(view) {
+        if(view.view_name.toLowerCase().indexOf(filter) >= 0){
+          return view; // if filter matched with view name -- return whole view
+        } else {
+          var instances = [];
+          angular.forEach(view.instances, function(instance) {
+            if(instance.ViewInstanceInfo.label.toLowerCase().indexOf(filter) >= 0){
+              instances.push(instance);
+            }
+          });
+          if( instances.length ){ // If inside view exists instances with matched filter - show only this instances
+            var v = angular.copy(view);
+            v.instances = instances;
+            return v;
+          }
+        }
+      }).filter(function(view) {
+        return !!view; // Remove 'undefined'
+      });
+    }
+
+    $scope.filteredViews = result;
+  };
 }]);

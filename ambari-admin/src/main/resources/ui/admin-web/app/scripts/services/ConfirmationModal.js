@@ -18,21 +18,29 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('NavbarCtrl',['$scope', 'Cluster', '$location', 'uiAlert', 'ROUTES', function($scope, Cluster, $location, uiAlert, ROUTES) {
-  $scope.cluster = null;
-  Cluster.getStatus().then(function(cluster) {
-    $scope.cluster = cluster;
-  }).catch(function(data) {
-  	uiAlert.danger(data.status, data.message);
-  });
+.factory('ConfirmationModal', ['$modal', '$q', function($modal, $q) {
 
-  // console.log($state);
-  $scope.isActive = function(path) {
-  	var route = ROUTES;
-  	angular.forEach(path.split('.'), function(routeObj) {
-  		route = route[routeObj];
-  	});
-  	var r = new RegExp( route.url.replace(/(:\w+)/, '\\w+'));
-  	return r.test($location.path());
-  };
+	return {
+		show: function(header, body) {
+			var deferred = $q.defer();
+
+			var modalInstance = $modal.open({
+				templateUrl: 'views/modals/ConfirmationModal.html',
+				controller: ['$scope', '$modalInstance', function($scope, $modalInstance) {
+					$scope.header = header;
+					$scope.body = body;
+
+					$scope.ok = function() {
+						$modalInstance.close();
+						deferred.resolve();
+					};
+					$scope.cancel = function() {
+						$modalInstance.dismiss();
+						deferred.reject();
+					}
+				}]
+			});
+			return deferred.promise;
+		}
+	};
 }]);

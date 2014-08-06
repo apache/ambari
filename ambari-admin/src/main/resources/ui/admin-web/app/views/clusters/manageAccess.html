@@ -15,9 +15,12 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 -->
+<ol class="breadcrumb">
+  <li class="active">Cluster Permissions</li>
+</ol>
 <div class="cluster-manage-access-pane">
   <div class="clearfix">
-    <h3 class="pull-left">My Cluster Permissions</h3>
+    <h3 class="pull-left">{{clusterName}} Permissions</h3>
     <div class="pull-right top-buffer">
       <a href class="btn btn-primary"  ng-click="toggleEditMode()"><span class="glyphicon glyphicon-pencil"></span> Edit</a>
     </div>
@@ -29,35 +32,35 @@
       <label class="col-sm-5 control-label text-left">Users</label>
       <label class="col-sm-5 control-label text-left">Groups</label>
     </div>
-    <div class="form-group">
-      <label class="col-sm-2 control-label">READ</label>
+    <div class="form-group" ng-repeat="permission in permissions">
+      <label class="col-sm-2 control-label">{{permission.PermissionInfo.permission_name}}</label>
       <div class="col-sm-5" ng-switch="isEditMode">
-        <textarea ng-switch-when="true" name="" id="" cols="30" rows="4" class="form-control" ng-model="permissions.read.users"></textarea>
+        <textarea ng-switch-when="true" name="" id="" cols="30" rows="4" class="form-control" ng-model="permissionsEdit[permission.PermissionInfo.permission_name].USER"></textarea>
         <div class="well" ng-switch-default>
-          <a href="#" ng-repeat="user in permissions.read.users">{{user}}{{$last ? '' :', '}}</a>
+          <span ng-repeat="user in permission.USER">
+            <link-to route="users.show" id="{{user}}" >{{user}}</link-to>
+            <button type="button" class="close remove-button" 
+              ng-click="removePermission(permission.PermissionInfo.permission_name, 'USER', user)"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            {{$last ? '' :', '}}
+          </span>
         </div>
       </div>
       <div class="col-sm-5" ng-switch="isEditMode">
-        <textarea ng-switch-when="true" name="" id="" cols="30" rows="4" class="form-control" ng-model="permissions.read.groups"></textarea>
+        <textarea ng-switch-when="true" name="" id="" cols="30" rows="4" class="form-control" ng-model="permissionsEdit[permission.PermissionInfo.permission_name].GROUP"></textarea>
         <div class="well" ng-switch-default>
-          <a href="#" ng-repeat="group in permissions.read.groups">{{group}}{{$last ? '' :', '}}</a>
+          <span ng-repeat="group in permission.GROUP">
+            <link-to route="groups.edit" id="{{group}}">{{group}}</link-to>
+            <button type="button" class="close remove-button" 
+              ng-click="removePermission(permission.PermissionInfo.permission_name, 'GROUP', group)"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            {{$last ? '' :', '}}
+          </span>
         </div>
       </div>
     </div>
-    <div class="form-group">
-      <label class="col-sm-2 control-label">OPERATE</label>
-      <div class="col-sm-5" ng-switch="isEditMode">
-        <textarea ng-switch-when="true" name="" id="" cols="30" rows="4" class="form-control" ng-model="permissions.operate.users"></textarea>
-        <div class="well" ng-switch-default>
-          <a href="#" ng-repeat="user in permissions.operate.users">{{user}}{{$last ? '' :', '}}</a>
-        </div>
-      </div>
-      <div class="col-sm-5" ng-switch="isEditMode">
-        <textarea ng-switch-when="true" name="" id="" cols="30" rows="4" class="form-control" ng-model="permissions.operate.groups"></textarea>
-        <div class="well" ng-switch-default>
-          <a href="#" ng-repeat="group in permissions.operate.groups">{{group}}{{$last ? '' :', '}}</a>
-        </div>
+    <div class="form-group" ng-show="isEditMode">
+      <div class="col-sm-offset-2 col-sm-10">
+        <button class="btn btn-default pull-right left-margin" ng-click="cancel()">Cancel</button>
+        <button class="btn btn-primary pull-right" ng-click="save()">Save</button>
       </div>
     </div>
 </div>
-

@@ -47,7 +47,7 @@ gulp.task('html', ['styles'], function () {
         .pipe($.uglify())
         .pipe(jsFilter.restore())
         .pipe(cssFilter)
-        .pipe($.csso())
+        // .pipe($.csso())
         .pipe(cssFilter.restore())
         .pipe($.useref.restore())
         .pipe($.useref())

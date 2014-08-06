@@ -15,11 +15,15 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 -->
+<ol class="breadcrumb">
+  <li><a href="#/users">Users</a></li>
+  <li class="active">Create user</li>
+</ol>
 <h2>Create local user</h2>
 <hr>
 <form class="form-horizontal" role="form" novalidate name="form">
   <div class="form-group" ng-class="{'has-error' : form.user_name.$error.required && form.submitted}">
-    <label for="username" class="col-sm-2 control-label">User name:</label>
+    <label for="username" class="col-sm-2 control-label">User name</label>
     <div class="col-sm-10">
       <input type="text" id="username" class="form-control" name="user_name" placeholder="User name" ng-model="user.user_name" required>
       <div class="alert alert-danger top-margin" ng-show="form.user_name.$error.required && form.submitted">
@@ -28,7 +32,7 @@
     </div>
   </div>
   <div class="form-group">
-    <label for="" class="col-sm-2 control-label">Type:</label>
+    <label for="" class="col-sm-2 control-label">Type</label>
     <div class="col-sm-10">
       <label for="" class="control-label">Local</label>
     </div>
@@ -40,7 +44,7 @@
     </div>
   </div>
   <div class="form-group" ng-class="{'has-error' : (form.password.$error.required && form.submitted) || form.confirmPassword.$error.passwordVerify}">
-    <label for="password" class="col-sm-2 control-label">Password:</label>
+    <label for="password" class="col-sm-2 control-label">Password</label>
     <div class="col-sm-10">
       <input type="password" class="form-control bottom-margin" name="password" placeholder="Password" required ng-model="user.password">
       <input type="password" class="form-control bottom-margin" name="confirmPassword" placeholder="Password confirmation" required ng-model="user.passwordConfirmation"

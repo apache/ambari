@@ -18,7 +18,7 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('UsersShowCtrl', ['$scope', '$routeParams', 'User', '$modal', '$location', function($scope, $routeParams, User, $modal, $location) {
+.controller('UsersShowCtrl', ['$scope', '$routeParams', 'User', '$modal', '$location', 'ConfirmationModal', function($scope, $routeParams, User, $modal, $location, ConfirmationModal) {
   $scope.user = {};
 
   $scope.isGroupEditing = false;
@@ -35,7 +35,7 @@ angular.module('ambariAdminConsole')
   $scope.openChangePwdDialog = function() {
     var modalInstance = $modal.open({
       templateUrl: 'views/users/modals/changePassword.html',
-      controller: function($scope) {
+      controller: ['$scope', function($scope) {
         $scope.passwordData = {
           password: ''
         };
@@ -51,7 +51,7 @@ angular.module('ambariAdminConsole')
         $scope.cancel = function() {
           modalInstance.dismiss('cancel');
         };
-      }
+      }]
     });
 
     modalInstance.result.then(function(newPassword, currentUserPassword) {
@@ -69,20 +69,7 @@ angular.module('ambariAdminConsole')
   });
 
   $scope.deleteUser = function() {
-    var modalInstance = $modal.open({
-      templateUrl: 'views/users/modals/deleteUserConfirmation.html',
-      controller: function($scope) {
-        $scope.delete = function() {
-          modalInstance.close();
-        };
-
-        $scope.cancel = function() {
-          modalInstance.dismiss('cancel');
-        };
-      }
-    });
-
-    modalInstance.result.then(function() {
+    ConfirmationModal.show('Delete User', 'Are you sure you want to delete user "'+ $scope.user.user_name +'"?').then(function() {
       User.delete($scope.user.user_name).then(function() {
         $location.path('/users');
       });

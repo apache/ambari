@@ -15,11 +15,20 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 -->
-<h2>Edit {{group.group_name}}</h2>
+<ol class="breadcrumb">
+  <li><a href="#/groups">Groups</a></li>
+  <li class="active">Edit group</li>
+</ol>
+<div class="clearfix">
+  <h3 class="pull-left">Edit {{group.group_name}}</h3>
+  <div class="pull-right top-buffer">
+    <button class="btn btn-danger" ng-click="deleteGroup(group)">Delete Group</button>
+  </div>
+</div>
 <hr>
 <form class="form-horizontal group-edit" role="form" novalidate name="form">
   <div class="form-group" ng-class="{'has-error' : form.user_name.$error.required && form.submitted}">
-    <label for="groupname" class="col-sm-2 control-label">Group name:</label>
+    <label for="groupname" class="col-sm-2 control-label">Group name</label>
     <div class="col-sm-10">
       <input type="text" id="groupname" class="form-control" disabled="disabled" name="group_name" placeholder="User name" ng-model="group.group_name" required>
     </div>
@@ -29,7 +38,7 @@
     <div class="col-sm-10">
       <div ng-switch="editMode">
         <div class="well users" ng-switch-when="false">
-          <span ng-repeat="member in group.members" >
+          <span ng-repeat="member in groupMembers" >
             <link-to route='users.show' id="{{member}}">
               {{member}}
             </link-to>

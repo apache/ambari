@@ -18,30 +18,20 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('ViewsEditCtrl', ['$scope', '$routeParams' , 'View', 'uiAlert', 'PermissionLoader', 'PermissionSaver', function($scope, $routeParams, View, uiAlert, PermissionLoader, PermissionSaver) {
+.controller('EditViewInstanceCtrl', ['$scope', 'View', 'uiAlert', 'PermissionLoader', 'PermissionSaver', 'instance', '$modalInstance', '$modal', function($scope, View, uiAlert, PermissionLoader, PermissionSaver, instance, $modalInstance, $modal) {
 
-  function reloadViewInfo(){
-    // Load instance data, after View permissions meta loaded
-    View.getInstance($routeParams.viewId, $routeParams.version, $routeParams.instanceId)
-    .then(function(instance) {
-      $scope.instance = instance;
-      $scope.settings = {
-        'visible': $scope.instance.ViewInstanceInfo.visible,
-        'label': $scope.instance.ViewInstanceInfo.label
-      };
-
-      $scope.configuration = angular.copy($scope.instance.ViewInstanceInfo.properties);
-    })
-    .catch(function(data) {
-      uiAlert.danger(data.data.status, data.data.message);
-    });
-  }
-
+  $scope.instance = instance;
+  $scope.settings = {
+    'visible': $scope.instance.ViewInstanceInfo.visible,
+    'label': $scope.instance.ViewInstanceInfo.label
+  };
+  $scope.configuration = angular.copy($scope.instance.ViewInstanceInfo.properties);
+  
   function reloadViewPrivilegies(){
     PermissionLoader.getViewPermissions({
-      viewName: $routeParams.viewId,
-      version: $routeParams.version,
-      instanceId: $routeParams.instanceId
+      viewName: $scope.instance.ViewInstanceInfo.view_name,
+      version: $scope.instance.ViewInstanceInfo.version,
+      instanceId: $scope.instance.ViewInstanceInfo.instance_name
     })
     .then(function(permissions) {
       // Refresh data for rendering
@@ -55,44 +45,45 @@ angular.module('ambariAdminConsole')
 
   $scope.permissions = [];
   
-  reloadViewInfo();  
   reloadViewPrivilegies();
 
-  $scope.editSettingsDisabled = true;
+  $scope.edit = {};
+  $scope.edit.editSettingsDisabled = true;
   
 
   $scope.saveSettings = function() {
-    View.updateInstance($routeParams.viewId, $routeParams.version, $routeParams.instanceId, {
+    View.updateInstance($scope.instance.ViewInstanceInfo.view_name, $scope.instance.ViewInstanceInfo.version, $scope.instance.ViewInstanceInfo.instance_name, {
       'ViewInstanceInfo':{
         'visible': $scope.settings.visible,
         'label': $scope.settings.label
       }
     })
     .success(function() {
-      $scope.editSettingsDisabled = true;
+      $scope.edit.editSettingsDisabled = true;
     })
     .catch(function(data) {
       uiAlert.danger(data.data.status, data.data.message);
     });
   };
+
   $scope.cancelSettings = function() {
     $scope.settings = {
       'visible': $scope.instance.ViewInstanceInfo.visible,
       'label': $scope.instance.ViewInstanceInfo.label
     };
-    $scope.editSettingsDisabled = true;
+    $scope.edit.editSettingsDisabled = true;
   };
 
-  $scope.editConfigurationDisabled = true;
+  $scope.edit.editConfigurationDisabled = true;
 
   $scope.saveConfiguration = function() {
-    View.updateInstance($routeParams.viewId, $routeParams.version, $routeParams.instanceId, {
+    View.updateInstance($scope.instance.ViewInstanceInfo.view_name, $scope.instance.ViewInstanceInfo.version, $scope.instance.ViewInstanceInfo.instance_name, {
       'ViewInstanceInfo':{
         'properties': $scope.configuration
       }
     })
     .success(function() {
-      $scope.editConfigurationDisabled = true;
+      $scope.edit.editConfigurationDisabled = true;
     })
     .catch(function(data) {
       uiAlert.danger(data.data.status, data.data.message);
@@ -100,14 +91,14 @@ angular.module('ambariAdminConsole')
   };
   $scope.cancelConfiguration = function() {
     $scope.configuration = angular.copy($scope.instance.ViewInstanceInfo.properties);
-    $scope.editConfigurationDisabled = true;
+    $scope.edit.editConfigurationDisabled = true;
   };
 
   // Permissions edit
-  $scope.editPermissionDisabled = true;
+  $scope.edit.editPermissionDisabled = true;
   $scope.cancelPermissions = function() {
     $scope.permissionsEdit = angular.copy($scope.permissions); // Reset textedit areaes
-    $scope.editPermissionDisabled = true;
+    $scope.edit.editPermissionDisabled = true;
   };
 
   $scope.savePermissions = function() {
@@ -115,9 +106,9 @@ angular.module('ambariAdminConsole')
       $scope.permissions,
       $scope.permissionsEdit,
       {
-        view_name: $routeParams.viewId,
-        version: $routeParams.version,
-        instance_name: $routeParams.instanceId,
+        view_name: $scope.instance.ViewInstanceInfo.view_name,
+        version: $scope.instance.ViewInstanceInfo.version,
+        instance_name: $scope.instance.ViewInstanceInfo.instance_name
       }
     )
     .then(reloadViewPrivilegies)
@@ -125,14 +116,27 @@ angular.module('ambariAdminConsole')
       reloadViewPrivilegies();
       uiAlert.danger(data.data.status, data.data.message);
     });
-    $scope.editPermissionDisabled = true;
+    $scope.edit.editPermissionDisabled = true;
   };
 
   $scope.removePermission = function(permissionName, principalType, principalName) {
+    var modalInstance = $modal.open({
+      templateUrl: 'views/ambariViews/modals/create.html',
+      size: 'lg',
+      controller: 'CreateViewInstanceCtrl',
+      resolve: {
+        viewVersion: function(){
+          return '';
+        }
+      }
+    });
+
+
+
     View.deletePrivilege({
-      view_name: $routeParams.viewId,
-      version: $routeParams.version,
-      instance_name: $routeParams.instanceId,
+      view_name: $scope.instance.ViewInstanceInfo.view_name,
+      version: $scope.instance.ViewInstanceInfo.version,
+      instance_name: $scope.instance.ViewInstanceInfo.instance_name,
       permissionName: permissionName,
       principalType: principalType,
       principalName: principalName
@@ -142,5 +146,9 @@ angular.module('ambariAdminConsole')
       reloadViewPrivilegies();
       uiAlert.danger(data.data.status, data.data.message);
     });
+  };
+
+  $scope.close = function() {
+    $modalInstance.close();
   };
 }]);

@@ -40,30 +40,36 @@
       <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
     <![endif]-->
 
-    <header class="navbar navbar-static-top navbar-inverse">
-      <div class="navbar-inner">
-        <div class="container">
-          <div class="navbar-header">
-            <a href="#/" class="navbar-brand">Ambari Admin Console</a>
-          </div>  
-          <ul class="nav navbar-nav navbar-right">
-            <li>
-              <div class="btn-group" dropdown is-open="status.isopen">
-              <button type="button" class="btn btn-default dropdown-toggle navbar-btn" ng-disabled="disabled">
-                  Admin <span class="caret"></span>
-                </button>
-                <ul class="dropdown-menu" role="menu">
-                  <li><a href="#">About</a></li>
-                  <li class="divider"></li>
-                  <li><a href="#">Sign Out</a></li>
-                </ul>
-              </div>
-            </li>
-          </ul>
-        </div>        
-      </div>
-        
-    </header>
+    <div id="top-nav">
+      <header class="navbar navbar-static-top navbar-inverse">
+        <div class="navbar-inner">
+          <div class="container">
+            <a href="#/" class="logo"><img src="/img/logo-white.png" alt="Apache Ambari" title="Apache Ambari"></a>
+            <a href="#/" class="brand" title="Apache Ambari">Ambari</a>
+            <a href="" class="brand cluster-name">Ambari Admin Console</a>
+            <!-- <div class="navbar-header">
+              <a href="#/" class="navbar-brand">Ambari Admin Console</a>
+            </div>   -->
+            <ul class="nav navbar-nav navbar-right">
+              <li>
+                <div class="btn-group" dropdown is-open="status.isopen">
+                <button type="button" class="btn btn-default dropdown-toggle navbar-btn" ng-disabled="disabled">
+                    Admin <span class="caret"></span>
+                  </button>
+                  <ul class="dropdown-menu" role="menu">
+                    <li><a href="#">About</a></li>
+                    <li class="divider"></li>
+                    <li><a href="#">Sign Out</a></li>
+                  </ul>
+                </div>
+              </li>
+            </ul>
+          </div>        
+        </div>
+      </header>
+    </div>
+      
+
     <div class="container">
       <div class="row">
         <div class="col-sm-3">
@@ -126,6 +132,10 @@
     <script src="scripts/services/View.js"></script>
     <script src="scripts/services/ldap.js"></script>
     <script src="scripts/services/Cluster.js"></script>
+    <script src="scripts/services/uiAlert.js"></script>
+    <script src="scripts/services/PermissionLoader.js"></script>
+    <script src="scripts/services/PermissionsSaver.js"></script>
+    <script src="scripts/services/ConfirmationModal.js"></script>
     <!-- endbuild -->
 </body>
 </html>

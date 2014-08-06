@@ -18,7 +18,7 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('UsersCreateCtrl',['$scope', '$routeParams', 'User', '$location', function($scope, $routeParams, User, $location) {
+.controller('UsersCreateCtrl',['$scope', '$routeParams', 'User', '$location', 'uiAlert', function($scope, $routeParams, User, $location, uiAlert) {
   $scope.user = {};
 
   $scope.createUser = function() {
@@ -29,6 +29,9 @@ angular.module('ambariAdminConsole')
         'Users/password': $scope.user.password
       }).then(function() {
         $location.path('/users');
+      }).catch(function(data) {;
+        data = data.data;
+        uiAlert.danger(data.status, data.message);
       });
     }
   };

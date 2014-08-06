@@ -86,12 +86,47 @@ angular.module('ambariAdminConsole')
     });
   };
 
-  View.getPermissions = function(viewName, version) {
-    return $http({
+  View.getPermissions = function(params) {
+    var deferred = $q.defer();
+
+    var fields = [
+      'permissions/PermissionInfo/permission_name'
+    ];
+    $http({
       method: 'GET',
-      url: Settings.baseUrl + '/views/' + viewName + '/versions/'+ version
+      url: Settings.baseUrl + '/views/' + params.viewName + '/versions/'+ params.version,
+      params: {
+        'fields': fields.join(',')
+      }
+    }).success(function(data) {
+      deferred.resolve(data.permissions);
+    })
+    .catch(function(data) {
+      deferred.reject(data);
     });
+
+    return deferred.promise;
   };
+
+  View.getPrivileges = function(params) {
+    var deferred = $q.defer();
+
+    $http({
+      method: 'GET',
+      url: Settings.baseUrl + '/views/' + params.viewName + '/versions/' + params.version + '/instances/' + params.instanceId,
+      params: {
+        fields: 'privileges/PrivilegeInfo'
+      }
+    })
+    .success(function(data) {
+      deferred.resolve(data.privileges);
+    })
+    .catch(function(data) {
+      deferred.reject(data);
+    });
+
+    return deferred.promise;
+  }
 
   View.createInstance = function(instanceInfo) {
     var deferred = $q.defer();
@@ -123,6 +158,41 @@ angular.module('ambariAdminConsole')
     });
 
     return deferred.promise;
+  };
+
+  View.createPrivileges = function(params, data) {
+    return $http({
+      method: 'POST',
+      url: Settings.baseUrl + '/views/' + params.view_name +'/versions/'+params.version+'/instances/'+params.instance_name+'/privileges',
+      data: data
+    });
+  };
+
+  View.deletePrivileges = function(params, data) {
+    return $http({
+      method: 'DELETE',
+      url: Settings.baseUrl + '/views/' + params.view_name +'/versions/'+params.version+'/instances/'+params.instance_name+'/privileges',
+      data: data
+    });
+  };
+
+  View.deletePrivilege = function(params) {
+    return $http({
+      method: 'DELETE',
+      url: Settings.baseUrl + '/views/' + params.view_name +'/versions/'+params.version+'/instances/'+params.instance_name+'/privileges',
+      params: {
+        'PrivilegeInfo/principal_type': params.principalType,
+        'PrivilegeInfo/principal_name': params.principalName,
+        'PrivilegeInfo/permission_name': params.permissionName
+      }
+    });
+  };
+
+  View.getMeta = function(view_name, version) {
+    return $http({
+      method: 'GET',
+      url: Settings.baseUrl + '/views/'+view_name+'/versions/'+version
+    });
   };
 
   View.all = function() {

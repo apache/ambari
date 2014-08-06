@@ -20,7 +20,8 @@
 angular.module('ambariAdminConsole', [
   'ngRoute',
   'ui.bootstrap',
-  'restangular'
+  'restangular',
+  'angularAlert'
 ])
 .constant('Settings',{
 	baseUrl: '/api/v1'

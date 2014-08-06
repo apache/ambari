@@ -18,23 +18,30 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('GroupsListCtrl',['$scope', 'Group', '$modal', function($scope, Group, $modal) {
-	$scope.groups = [];
+.controller('GroupsListCtrl',['$scope', 'Group', '$modal', 'ConfirmationModal', function($scope, Group, $modal, ConfirmationModal) {
+  $scope.groups = [];
 
-	Group.all().then(function(groups) {
-		$scope.groups = groups;	
-	})
-	.catch(function(data) {
-		console.error('Get groups list error');
-	});
+  $scope.typeFilterOptions = ['All', 'Local', 'LDAP'];
+  $scope.currentTypeFilter = 'All';
+  $scope.typeFilter = function(group) {
+    var tf = $scope.currentTypeFilter;
+    if (tf === 'All') {
+      return group;
+    } else if(tf === 'Local' && !group.ldap_group){
+      return group;
+    } else if(tf === 'LDAP' && group.ldap_group){
+      return group;
+    }
+  };
 
-	$scope.deleteGroup = function(group) {
-		group.destroy().then(function() {
-			$scope.groups.splice( $scope.groups.indexOf(group), 1);
-		});
-	};
+  Group.all().then(function(groups) {
+    $scope.groups = groups; 
+  })
+  .catch(function(data) {
+    console.error('Get groups list error');
+  });
 
-	$scope.syncLDAP = function() {
+  $scope.syncLDAP = function() {
     var modaInstance = $modal.open({
       templateUrl: 'views/ldapModal.html',
       controller: 'LDAPModalCtrl',

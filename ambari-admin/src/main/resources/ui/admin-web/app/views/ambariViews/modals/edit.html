@@ -1,0 +1,138 @@
+<!--
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+-->
+
+<div class="modal-header">
+  <h3 class="modal-title">Edit {{instance.ViewInstanceInfo.view_name}}: {{instance.ViewInstanceInfo.label}}</h3>
+</div>
+<div class="modal-body">
+  <div class="panel panel-default">
+    <div class="panel-heading clearfix">
+      <h3 class="panel-title pull-left">Settings</h3>
+      <div class="pull-right">
+        <a href ng-click="edit.editSettingsDisabled = !edit.editSettingsDisabled" ng-show="edit.editSettingsDisabled"> <span class="glyphicon glyphicon-cog"></span> Edit</a>
+      </div>
+    </div>
+    <div class="panel-body">
+      <form class="form-horizontal">
+        <fieldset ng-disabled="edit.editSettingsDisabled">
+          <div class="form-group">
+            <label for="" class="col-sm-2 control-label">Instance ID</label>
+            <label for="" class="col-sm-10 control-label text-left">{{instance.ViewInstanceInfo.instance_name}}</label>
+          </div>
+          <div class="form-group">
+            <label for="" class="col-sm-2 control-label">Display Name</label>
+            <div class="col-sm-10"><input type="text" class="form-control" placeholder="Display Name" ng-model="settings.label"></div>
+          </div>
+          <div class="form-group">
+            <div class="col-sm-offset-2 col-sm-10">
+              <div class="checkbox">
+                <label>
+                  <input type="checkbox" ng-model="settings.visible"> Visible
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="form-group" ng-hide="edit.editSettingsDisabled">
+            <div class="col-sm-offset-2 col-sm-10">
+              <button class="btn btn-default pull-right left-margin" ng-click="cancelSettings()">Cancel</button>
+              <button class="btn btn-primary pull-right" ng-click="saveSettings()">Save</button>
+            </div>
+          </div>
+        </fieldset>
+      </form>
+    </div>
+  </div>
+
+  <div class="panel panel-default views-permissions-panel" style="">
+    <div class="panel-heading clearfix">
+      <h3 class="panel-title pull-left">Permissions</h3>
+      <div class="pull-right">
+        <a href ng-click="edit.editPermissionDisabled = !edit.editPermissionDisabled" ng-show="edit.editPermissionDisabled"> <span class="glyphicon glyphicon-cog"></span> Edit</a>
+      </div>
+    </div>
+    <div class="panel-body">
+      <form class="form-horizontal">
+        <div class="form-group">
+          <div class="col-sm-2"></div>
+          <label class="col-sm-5 control-label text-left">Users</label>
+          <label class="col-sm-5 control-label text-left">Groups</label>
+        </div>
+        <div class="form-group" ng-repeat="permission in permissions">
+          <label class="col-sm-2 control-label">{{permission.PermissionInfo.permission_name}}</label>
+          <div class="col-sm-5" ng-switch="edit.editPermissionDisabled">
+            <textarea name="" id="" cols="30" rows="4" class="form-control" ng-model="permissionsEdit[permission.PermissionInfo.permission_name].USER" ng-switch-when="false"></textarea>
+            <div class="well" ng-switch-when="true">
+              <span ng-repeat="user in permission.USER">
+                <link-to route="users.show" id="{{user}}">{{user}}</link-to>
+                <button type="button" class="close remove-button" 
+                  ng-click="removePermission(permission.name, 'USER', user)"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                {{$last ? '' :', '}}
+              </span>
+            </div>
+          </div>
+          <div class="col-sm-5" ng-switch="edit.editPermissionDisabled">
+            <textarea name="" id="" cols="30" rows="4" class="form-control" ng-model="permissionsEdit[permission.PermissionInfo.permission_name].GROUP" ng-switch-when="false"></textarea>
+            <div class="well" ng-switch-when="true">
+              <span ng-repeat="group in permission.GROUP">
+                <link-to route="groups.edit" id="{{group}}" >{{group}}</link-to>
+                <button type="button" class="close remove-button" 
+                  ng-click="removePermission(permission.name, 'GROUP', group)"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                {{$last ? '' :', '}}
+              </span>
+            </div>
+          </div>
+        </div>
+        <div class="form-group" ng-hide="edit.editPermissionDisabled">
+          <div class="col-sm-offset-2 col-sm-10">
+            <button class="btn btn-default pull-right left-margin" ng-click="cancelPermissions()">Cancel</button>
+            <button class="btn btn-primary pull-right" ng-click="savePermissions()">Save</button>
+          </div>
+        </div>
+      </form>
+        
+    </div>
+  </div>
+
+  <div class="panel panel-default">
+    <div class="panel-heading clearfix">
+      <h3 class="panel-title pull-left">Configuration</h3>
+      <div class="pull-right">
+        <a href ng-click="edit.editConfigurationDisabled = !edit.editConfigurationDisabled" ng-show="edit.editConfigurationDisabled"> <span class="glyphicon glyphicon-cog"></span> Edit</a>
+      </div>
+    </div>
+    <div class="panel-body">
+      <form action="" class="form-horizontal">
+        <fieldset ng-disabled="edit.editConfigurationDisabled">
+          <div class="form-group" ng-repeat="(propertyName, propertyValue) in configuration">
+            <label for="" class="control-label col-sm-3">{{propertyName}}</label>
+            <div class="col-sm-9"><input type="text" class="form-control" ng-model="configuration[propertyName]"></div>
+          </div>
+          <div class="form-group" ng-hide="edit.editConfigurationDisabled">
+            <div class="col-sm-offset-2 col-sm-10">
+              <button class="btn btn-default pull-right left-margin" ng-click="cancelConfiguration()">Cancel</button>
+              <button class="btn btn-primary pull-right" ng-click="saveConfiguration()">Save</button>
+            </div>
+          </div>
+        </fieldset>
+      </form>
+    </div>
+  </div>
+</div>
+<div class="modal-footer">
+  <button class="btn btn-default" ng-click="close()">Close</button>
+</div>

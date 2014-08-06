@@ -18,7 +18,7 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('GroupsCreateCtrl',['$scope', 'Group', '$location', function($scope, Group, $location) {
+.controller('GroupsCreateCtrl',['$scope', 'Group', '$location', 'uiAlert', function($scope, Group, $location, uiAlert) {
   $scope.group = new Group();
 
   $scope.createGroup = function() {
@@ -26,6 +26,10 @@ angular.module('ambariAdminConsole')
     if ($scope.form.$valid){
       $scope.group.save().then(function() {
         $location.path('/groups');
+      })
+      .catch(function(data) {
+      	data = data.data;
+        uiAlert.danger(data.status, data.message);
       });
     }
   };

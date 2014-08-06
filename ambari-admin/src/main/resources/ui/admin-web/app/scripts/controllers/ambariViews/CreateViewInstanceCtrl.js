@@ -18,53 +18,57 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('CreateViewInstanceCtrl',['$scope', 'View', '$modalInstance', 'viewVersion', function($scope, View, $modalInstance, viewVersion) {
-	$scope.form = {};
+.controller('CreateViewInstanceCtrl',['$scope', 'View', 'uiAlert', '$routeParams', '$location', function($scope, View, uiAlert, $routeParams, $location) {
+  $scope.form = {};
 
-	$scope.view = viewVersion;
-	$scope.isAdvancedClosed = true;
-	$scope.instanceExists = false;
+  View.getMeta($routeParams.viewId, $routeParams.version).then(function(data) {
+    var viewVersion = data.data;
+    $scope.view = viewVersion;
+
+    $scope.instance = {
+      view_name: viewVersion.ViewVersionInfo.view_name,
+      version: viewVersion.ViewVersionInfo.version,
+      instance_name: '',
+      label: '',
+      visible: true,
+      icon_path: '',
+      icon64_path: '',
+      properties: viewVersion.ViewVersionInfo.parameters
+    };    
+  });
+
+  // $scope.view = viewVersion;
+  $scope.isAdvancedClosed = true;
+  $scope.instanceExists = false;
 
 
-	$scope.instance = {
-		view_name: viewVersion.ViewVersionInfo.view_name,
-		version: viewVersion.ViewVersionInfo.version,
-		instance_name: '',
-		label: '',
-		visible: true,
-		icon_path: '',
-		icon64_path: '',
-		properties: viewVersion.ViewVersionInfo.parameters
-	};
+  $scope.nameValidationPattern = /^\s*\w*\s*$/;
 
-	$scope.nameValidationPattern = /^\s*\w*\s*$/;
+  $scope.save = function() {
+    $scope.form.isntanceCreateForm.submitted = true;
+    if($scope.form.isntanceCreateForm.$valid){
+      View.getInstance($scope.instance.view_name, $scope.instance.version, $scope.instance.instance_name)
+      .then(function(data) {
+        if (data.ViewInstanceInfo) {
+          $scope.instanceExists = true;
+        } else {
+          View.createInstance($scope.instance)
+          .then(function(data) {
+            $location.path('/views');
+          })
+          .catch(function(data) {
+            uiAlert.danger(data.data.status, data.data.message);
+          });
+        }
+      })
+      .catch(function(data) {
+        uiAlert.danger(data.data.status, data.data.message);
+      });
+    }
+  };
 
-	$scope.save = function() {
-		window.f = $scope.form.isntanceCreateForm;
-		$scope.form.isntanceCreateForm.submitted = true;
-		if($scope.form.isntanceCreateForm.$valid){
-			View.getInstance($scope.instance.view_name, $scope.instance.version, $scope.instance.instance_name)
-			.then(function(data) {
-				if (data.ViewInstanceInfo) {
-					$scope.instanceExists = true;
-				} else {
-					View.createInstance($scope.instance)
-					.then(function(data) {
-						$modalInstance.close();
-					})
-					.catch(function(data) {
-						console.log(data);
-					});
-				}
-			})
-			.catch(function() {
-				console.log('Error');
-			});
-		}
-	};
-
-	$scope.cancel = function() {
-		$modalInstance.dismiss();
-	};
+  $scope.cancel = function() {
+    $modalInstance.dismiss();
+  };
 
 }]);

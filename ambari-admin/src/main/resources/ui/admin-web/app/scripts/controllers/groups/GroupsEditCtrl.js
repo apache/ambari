@@ -18,41 +18,49 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('GroupsEditCtrl',['$scope', 'Group', '$routeParams', function($scope, Group, $routeParams) {
+.controller('GroupsEditCtrl',['$scope', 'Group', '$routeParams', 'uiAlert', 'ConfirmationModal', '$location', function($scope, Group, $routeParams, uiAlert, ConfirmationModal, $location) {
   $scope.editMode = false;
   $scope.group = new Group($routeParams.id);
-  $scope.group.editingUsers = "";
+  $scope.group.editingUsers = [];
+  $scope.groupMembers = [];
 
-    
-  $scope.group.getMembers();
+
+  function loadMembers(){
+    $scope.group.getMembers().then(function(members) {
+      $scope.groupMembers = members;
+    });
+  }    
+  
+  loadMembers();
   
   $scope.removeMember = function(member) {
     $scope.group.removeMember(member).finally(function() {
-      $scope.group.getMembers();
+      loadMembers();
     });
   };
 
   $scope.toggleEditMode = function() {
     $scope.editMode = !$scope.editMode;
-    if( $scope.editMode ){
-      $scope.group.editingUsers = $scope.group.members.join(', ');
-    } else {
-      var oldMembers = $scope.group.members;
-      $scope.group.members = [];
-      var members = $scope.group.editingUsers.split(',');
-      var member;
-      angular.forEach(members,function(member) {
-        if(member && $scope.group.members.indexOf(member) < 0){
-          $scope.group.members.push(member.trim());
-        }
-      });
 
-      if(!angular.equals(oldMembers, $scope.group.members)){
-        $scope.group.saveMembers().finally(function() {
-          $scope.group.getMembers();
-        });
-      }
+    if( $scope.editMode ){
+      // $scope.group.editingUsers = $scope.group.members.join(', ');
+      $scope.group.editingUsers = $scope.groupMembers;
+    } else {
+      var newMembers = $scope.group.editingUsers.toString().split(',').filter(function(item) {return item.trim();}).map(function(item) {return item.trim()});
+      $scope.group.members = newMembers;
+      $scope.group.saveMembers().then(loadMembers)
+      .catch(function(data) {
+        uiAlert.danger(data.status, data.message);
+      });
     }
+  };
+
+  $scope.deleteGroup = function(group) {
+    ConfirmationModal.show('Delete Group', 'Are you sure you want to delete group "'+ group.group_name +'"?').then(function() {
+      group.destroy().then(function() {
+        $location.path('/groups');
+      });
+    });
   };
 
 

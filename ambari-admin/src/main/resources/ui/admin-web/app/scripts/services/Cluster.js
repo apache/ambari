@@ -32,6 +32,70 @@ angular.module('ambariAdminConsole')
       });
 
       return deferred.promise;
+    },
+    getPermissions: function() {
+      var deferred = $q.defer();
+
+      $http({
+        method: 'GET',
+        url: Settings.baseUrl + '/permissions',
+        params: {
+          fields: 'PermissionInfo',
+          'PermissionInfo/resource_name': 'CLUSTER'
+        }
+      })
+      .success(function(data) {
+        deferred.resolve(data.items);
+      })
+      .catch(function(data) {
+        deferred.reject(data);
+      });
+
+      return deferred.promise;
+    },
+    getPrivileges: function(params) {
+      var deferred = $q.defer();
+
+      $http({
+        method: 'GET',
+        url: Settings.baseUrl + '/clusters/'+params.clusterId,
+        params : {
+          'fields': 'privileges/PrivilegeInfo'
+        }
+      })
+      .success(function(data) {
+        deferred.resolve(data.privileges);
+      })
+      .catch(function(data) {
+        deferred.reject(data);
+      });
+
+      return deferred.promise;
+    },
+    createPrivileges: function(params, data) {
+      return $http({
+        method: 'POST',
+        url: Settings.baseUrl + '/clusters/'+params.clusterId+'/privileges',
+        data: data
+      });
+    },
+    deletePrivileges: function(params, data) {
+      return $http({
+        method: 'DELETE',
+        url: Settings.baseUrl + '/clusters/'+params.clusterId+'/privileges',
+        data: data
+      });
+    },
+    deletePrivilege: function(clusterId, permissionName, principalType, principalName) {
+      return $http({
+        method: 'DELETE',
+        url: Settings.baseUrl + '/clusters/'+clusterId+'/privileges',
+        params: {
+          'PrivilegeInfo/principal_type': principalType,
+          'PrivilegeInfo/principal_name': principalName,
+          'PrivilegeInfo/permission_name': permissionName
+        }
+      });
     }
   };
 }]);

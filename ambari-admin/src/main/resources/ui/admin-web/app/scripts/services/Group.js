@@ -29,23 +29,13 @@ angular.module('ambariAdminConsole')
   }
 
   Group.prototype.save = function() {
-    var deferred = $q.defer();
-
-    $http({
+    return $http({
       method : 'POST',
       url: Settings.baseUrl + '/groups',
       data:{
         'Groups/group_name': this.group_name
       }
-    })
-    .success(function(data) {
-      deferred.resolve();
-    })
-    .error(function(data) {
-      deferred.reject(data);
     });
-
-    return deferred.promise;
   };
 
   Group.prototype.destroy = function() {
