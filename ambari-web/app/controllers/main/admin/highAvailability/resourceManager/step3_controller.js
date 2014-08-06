@@ -23,6 +23,8 @@ App.RMHighAvailabilityWizardStep3Controller = Em.Controller.extend({
 
   selectedService: null,
 
+  versionLoaded: true,
+
   loadStep: function () {
     this.renderConfigs();
   },

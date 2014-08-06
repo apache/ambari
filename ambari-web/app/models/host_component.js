@@ -58,7 +58,7 @@ App.HostComponent = DS.Model.extend({
    */
   isMaster: function () {
     return App.get('components.masters').contains(this.get('componentName'));
-  }.property('componentName'),
+  }.property('componentName', 'App.components.masters'),
 
   /**
    * Determine if component is slave

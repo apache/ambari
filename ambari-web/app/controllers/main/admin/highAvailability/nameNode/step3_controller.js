@@ -26,6 +26,7 @@ App.HighAvailabilityWizardStep3Controller = Em.Controller.extend({
   haConfig: $.extend(true, {}, require('data/HDP2/ha_properties').haConfig),
   once: false,
   isLoaded: false,
+  versionLoaded: true,
 
   clearStep: function () {
     this.get('stepConfigs').clear();
