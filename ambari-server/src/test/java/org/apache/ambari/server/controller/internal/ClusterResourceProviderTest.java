@@ -21,7 +21,6 @@ package org.apache.ambari.server.controller.internal;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.createMockBuilder;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.createStrictMock;
 import static org.easymock.EasyMock.eq;
@@ -34,9 +33,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -61,7 +58,6 @@ import org.apache.ambari.server.controller.StackServiceComponentRequest;
 import org.apache.ambari.server.controller.StackServiceComponentResponse;
 import org.apache.ambari.server.controller.StackServiceRequest;
 import org.apache.ambari.server.controller.StackServiceResponse;
-import org.apache.ambari.server.controller.internal.ClusterResourceProvider.PropertyUpdater;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.RequestStatus;
@@ -69,7 +65,6 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.apache.ambari.server.controller.internal.BaseBlueprintProcessor.HostGroup;
 import org.apache.ambari.server.orm.dao.BlueprintDAO;
 import org.apache.ambari.server.orm.entities.BlueprintConfigEntity;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
@@ -80,7 +75,6 @@ import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DependencyInfo;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.State;
-import org.apache.commons.collections.CollectionUtils;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.junit.Assert;
@@ -2535,103 +2529,6 @@ public class ClusterResourceProviderTest {
         hostComponentResourceProvider, configGroupResourceProvider, persistKeyValue, metaInfo);
   }
 
-  @SuppressWarnings("unchecked")
-  @Test
-  public void testBlueprintPropertyUpdaters() throws Exception {
-    final Map<String, String> singleHostProperty1 =
-      Collections.singletonMap("dfs.http.address", "localhost:50070");
-
-    final Map<String, String> singleHostProperty2 =
-      Collections.singletonMap("hive.metastore.uris", "prefix.localhost.suffix");
-
-    final Map<String, String> multiHostProperty1 =
-      Collections.singletonMap("hbase.zookeeper.quorum", "localhost");
-
-    final Map<String, String> multiHostProperty2 =
-      Collections.singletonMap("storm.zookeeper.servers", "['localhost']");
-
-    final Map<String, String> mProperty =
-      Collections.singletonMap("namenode_heapsize", "1025");
-
-    final Map<String, String> databaseProperty =
-        Collections.singletonMap("javax.jdo.option.ConnectionURL", "localhost:12345");
-
-    final HostGroup hostGroup1 = createNiceMock(HostGroup.class);
-    final HostGroup hostGroup2 = createNiceMock(HostGroup.class);
-
-    expect(hostGroup1.getComponents()).andReturn(new ArrayList<String>() {{
-      add("NAMENODE");
-      add("HBASE_MASTER");
-      add("HIVE_SERVER");
-      add("ZOOKEEPER_SERVER");
-    }}).anyTimes();
-    expect(hostGroup1.getHostInfo()).andReturn(Collections.singletonList("h1")).anyTimes();
-
-    expect(hostGroup2.getComponents()).andReturn(Collections.singletonList("ZOOKEEPER_SERVER")).anyTimes();
-    expect(hostGroup2.getHostInfo()).andReturn(Collections.singletonList("h2")).anyTimes();
-
-    Map<String, HostGroup> hostGroups = new
-      HashMap<String, HostGroup>() {{
-        put("host_group_1", hostGroup1);
-        put("host_group_2", hostGroup2);
-      }};
-
-    AmbariManagementController managementController = createNiceMock(AmbariManagementController.class);
-
-    ClusterResourceProvider resourceProvider =
-      createMockBuilder(ClusterResourceProvider.class)
-        .withConstructor(Set.class, Map.class, AmbariManagementController.class)
-        .withArgs(new HashSet<String>(), new HashMap<Resource.Type, String>(), managementController)
-        .createMock();
-
-    replay(managementController, resourceProvider, hostGroup1, hostGroup2);
-
-    Map<String, Map<String, String>> mapConfigurations;
-    Field configField = ClusterResourceProvider.class.getDeclaredField("mapClusterConfigurations");
-    configField.setAccessible(true);
-    mapConfigurations = (Map<String, Map<String, String>>) configField.get(resourceProvider);
-
-    Map<String, PropertyUpdater> propertyUpdaterMap;
-    Field f = ClusterResourceProvider.class.getDeclaredField("propertyUpdaters");
-    f.setAccessible(true);
-    propertyUpdaterMap = (Map<String, PropertyUpdater>) f.get(resourceProvider);
-
-    Assert.assertNotNull(propertyUpdaterMap);
-
-    String newValue;
-
-    Map.Entry<String, String> entry = singleHostProperty1.entrySet().iterator().next();
-    newValue = propertyUpdaterMap.get(entry.getKey()).update(hostGroups, entry.getValue());
-    Assert.assertEquals("h1:50070", newValue);
-
-    entry = singleHostProperty2.entrySet().iterator().next();
-    newValue = propertyUpdaterMap.get(entry.getKey()).update(hostGroups, entry.getValue());
-    Assert.assertEquals("prefix.h1.suffix", newValue);
-
-    entry = multiHostProperty1.entrySet().iterator().next();
-    newValue = propertyUpdaterMap.get(entry.getKey()).update(hostGroups, entry.getValue());
-    Assert.assertTrue(CollectionUtils.isEqualCollection(
-      Arrays.asList("h1,h2".split(",")), Arrays.asList(newValue.split(","))
-    ));
-
-    entry = multiHostProperty2.entrySet().iterator().next();
-    newValue = propertyUpdaterMap.get(entry.getKey()).update(hostGroups, entry.getValue());
-    // no ordering guarantee
-    Assert.assertTrue(newValue.equals("['h1','h2']") || newValue.equals("['h2','h1']"));
-
-    entry = mProperty.entrySet().iterator().next();
-    newValue = propertyUpdaterMap.get(entry.getKey()).update(hostGroups, entry.getValue());
-    Assert.assertEquals("1025m", newValue);
-
-    Map<String, String> configs = new HashMap<String, String>();
-    configs.put("hive_database", "External MySQL Database");
-    mapConfigurations.put("hive-env", configs);
-    entry = databaseProperty.entrySet().iterator().next();
-    newValue = propertyUpdaterMap.get(entry.getKey()).update(hostGroups, entry.getValue());
-    Assert.assertEquals("localhost:12345", newValue);
-
-    verify(managementController, resourceProvider, hostGroup1, hostGroup2);
-  }
 
   @Test
   public void testGetResources() throws Exception{

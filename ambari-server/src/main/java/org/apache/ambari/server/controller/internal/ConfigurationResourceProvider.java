@@ -145,7 +145,7 @@ public class ConfigurationResourceProvider extends
     final Set<ConfigurationRequest> requests = new HashSet<ConfigurationRequest>();
 
     for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
-      requests.add(getRequest(propertyMap));
+      requests.add(getRequest(request, propertyMap));
     }
 
     Set<ConfigurationResponse> responses = getResources(new Command<Set<ConfigurationResponse>>() {
@@ -245,12 +245,19 @@ public class ConfigurationResourceProvider extends
    *
    * @return a configuration request
    */
-  private ConfigurationRequest getRequest(Map<String, Object> properties) {
+  private ConfigurationRequest getRequest(Request request, Map<String, Object> properties) {
     String type = (String) properties.get(CONFIGURATION_CONFIG_TYPE_PROPERTY_ID);
     String tag  = (String) properties.get(CONFIGURATION_CONFIG_TAG_PROPERTY_ID);
 
-    return new ConfigurationRequest(
+    ConfigurationRequest configRequest = new ConfigurationRequest(
         (String) properties.get(CONFIGURATION_CLUSTER_NAME_PROPERTY_ID),
         type, tag, new HashMap<String, String>(), new HashMap<String, Map<String, String>>());
+
+    Set<String> requestedIds = request.getPropertyIds();
+    if (requestedIds.contains("properties") || requestedIds.contains("*")) {
+      configRequest.setIncludeProperties(true);
+    }
+
+    return configRequest;
   }
 }

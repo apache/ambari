@@ -49,7 +49,6 @@ import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.ConfigImpl;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.configuration.Configuration;
 
 /**
  * Resource provider for cluster resources.
@@ -71,12 +70,6 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
 
   private static Set<String> pkPropertyIds =
       new HashSet<String>(Arrays.asList(new String[]{CLUSTER_ID_PROPERTY_ID}));
-
-   /**
-   * Maps properties to updaters which update the property when provisioning a cluster via a blueprint
-   */
-  private Map<String, PropertyUpdater> propertyUpdaters =
-      new HashMap<String, PropertyUpdater>();
 
   /**
    * Maps configuration type (string) to associated properties
@@ -104,7 +97,6 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
                           AmbariManagementController managementController) {
 
     super(propertyIds, keyPropertyIds, managementController);
-    registerPropertyUpdaters();
   }
 
   /**
@@ -377,7 +369,7 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
     BlueprintEntity blueprint = getExistingBlueprint(blueprintName);
     Stack stack = parseStack(blueprint);
 
-    Map<String, HostGroup> blueprintHostGroups = parseBlueprintHostGroups(blueprint, stack);
+    Map<String, HostGroupImpl> blueprintHostGroups = parseBlueprintHostGroups(blueprint, stack);
     applyRequestInfoToHostGroups(properties, blueprintHostGroups);
     Collection<Map<String, String>> configOverrides = (Collection<Map<String, String>>)properties.get("configurations");
     processConfigurations(processBlueprintConfigurations(blueprint, configOverrides),
@@ -410,7 +402,7 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
    * @throws IllegalArgumentException if required password properties are missing and no
    *                                  default is specified via 'default_password'
    */
-  private void validatePasswordProperties(BlueprintEntity blueprint, Map<String, HostGroup> hostGroups,
+  private void validatePasswordProperties(BlueprintEntity blueprint, Map<String, HostGroupImpl> hostGroups,
                                           String defaultPassword) {
 
     Map<String, Map<String, Collection<String>>> missingPasswords = blueprint.validateConfigurations(
@@ -432,8 +424,8 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
           if (isPropertyInConfiguration(mapClusterConfigurations.get(configType), property)){
               propIter.remove();
           } else {
-            HostGroup hg = hostGroups.get(entry.getKey());
-            if (hg != null && isPropertyInConfiguration(hg.getConfigurations().get(configType), property)) {
+            HostGroupImpl hg = hostGroups.get(entry.getKey());
+            if (hg != null && isPropertyInConfiguration(hg.getConfigurationProperties().get(configType), property)) {
               propIter.remove();
             }  else if (setDefaultPassword(defaultPassword, configType, property)) {
               propIter.remove();
@@ -510,7 +502,7 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
    * @throws ResourceAlreadyExistsException attempted to create a service or component that already exists
    * @throws NoSuchParentResourceException  a required parent resource is missing
    */
-  private void createServiceAndComponentResources(Map<String, HostGroup> blueprintHostGroups,
+  private void createServiceAndComponentResources(Map<String, HostGroupImpl> blueprintHostGroups,
                                                   String clusterName, Set<String> services)
                                                   throws SystemException,
                                                          UnsupportedPropertyException,
@@ -555,12 +547,12 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
    * @throws ResourceAlreadyExistsException attempt to create a host or host_component which already exists
    * @throws NoSuchParentResourceException  a required parent resource is missing
    */
-  private void createHostAndComponentResources(Map<String, HostGroup> blueprintHostGroups, String clusterName)
+  private void createHostAndComponentResources(Map<String, HostGroupImpl> blueprintHostGroups, String clusterName)
       throws SystemException, UnsupportedPropertyException, ResourceAlreadyExistsException, NoSuchParentResourceException {
 
     ResourceProvider hostProvider = getResourceProvider(Resource.Type.Host);
     ResourceProvider hostComponentProvider = getResourceProvider(Resource.Type.HostComponent);
-    for (HostGroup group : blueprintHostGroups.values()) {
+    for (HostGroupImpl group : blueprintHostGroups.values()) {
       for (String host : group.getHostInfo()) {
         Map<String, Object> hostProperties = new HashMap<String, Object>();
         hostProperties.put("Hosts/cluster_name", clusterName);
@@ -599,7 +591,7 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
    * @throws ResourceAlreadyExistsException attempt to create a component which already exists
    * @throws NoSuchParentResourceException  a required parent resource is missing
    */
-  private void createComponentResources(Map<String, HostGroup> blueprintHostGroups,
+  private void createComponentResources(Map<String, HostGroupImpl> blueprintHostGroups,
                                         String clusterName, Set<String> services)
                                         throws SystemException,
                                                UnsupportedPropertyException,
@@ -607,7 +599,7 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
                                                NoSuchParentResourceException {
     for (String service : services) {
       Set<String> components = new HashSet<String>();
-      for (HostGroup hostGroup : blueprintHostGroups.values()) {
+      for (HostGroupImpl hostGroup : blueprintHostGroups.values()) {
         Collection<String> serviceComponents = hostGroup.getComponents(service);
         if (serviceComponents != null && !serviceComponents.isEmpty()) {
           components.addAll(serviceComponents);
@@ -694,7 +686,7 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
    */
   @SuppressWarnings("unchecked")
   private void applyRequestInfoToHostGroups(Map<String, Object> properties,
-                                            Map<String, HostGroup> blueprintHostGroups)
+                                            Map<String, HostGroupImpl> blueprintHostGroups)
                                             throws IllegalArgumentException {
 
     @SuppressWarnings("unchecked")
@@ -711,7 +703,7 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
       if (name == null || name.isEmpty()) {
         throw new IllegalArgumentException("Every host_group must include a non-null 'name' property");
       }
-      HostGroup hostGroup = blueprintHostGroups.get(name);
+      HostGroupImpl hostGroup = blueprintHostGroups.get(name);
 
       if (hostGroup == null) {
         throw new IllegalArgumentException("Invalid host_group specified: " + name +
@@ -731,7 +723,7 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
         }
         hostGroup.addHostInfo(fqdn);
       }
-      Map<String, Map<String, String>> existingConfigurations = hostGroup.getConfigurations();
+      Map<String, Map<String, String>> existingConfigurations = hostGroup.getConfigurationProperties();
       overrideExistingProperties(existingConfigurations, (Collection<Map<String, String>>)
           hostGroupProperties.get("configurations"));
 
@@ -786,7 +778,8 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
    */
   private void processConfigurations(Map<String, Map<String, String>> blueprintConfigurations,
                                      Map<String, Map<String, Map<String, String>>> blueprintAttributes,
-                                     Stack stack, Map<String, HostGroup> blueprintHostGroups)  {
+                                     Stack stack, Map<String, HostGroupImpl> blueprintHostGroups)  {
+
 
     for (String service : getServicesToDeploy(stack, blueprintHostGroups)) {
       for (String type : stack.getConfigurationTypes(service)) {
@@ -817,16 +810,8 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
     processBlueprintClusterConfigurations(blueprintConfigurations);
     processBlueprintClusterConfigAttributes(blueprintAttributes);
 
-    for (Map.Entry<String, Map<String, String>> entry : mapClusterConfigurations.entrySet()) {
-      for (Map.Entry<String, String> propertyEntry : entry.getValue().entrySet()) {
-        String propName = propertyEntry.getKey();
-        // see if property needs to be updated
-        PropertyUpdater propertyUpdater = propertyUpdaters.get(propName);
-        if (propertyUpdater != null) {
-          propertyEntry.setValue(propertyUpdater.update(blueprintHostGroups, propertyEntry.getValue()));
-        }
-      }
-    }
+    BlueprintConfigurationProcessor configurationProcessor = new BlueprintConfigurationProcessor(mapClusterConfigurations);
+    configurationProcessor.doUpdateForClusterCreate(blueprintHostGroups);
     setMissingConfigurations();
   }
   
@@ -942,9 +927,9 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
    *
    * @return set of service names which will be deployed
    */
-  private Set<String> getServicesToDeploy(Stack stack, Map<String, HostGroup> blueprintHostGroups) {
+  private Set<String> getServicesToDeploy(Stack stack, Map<String, HostGroupImpl> blueprintHostGroups) {
     Set<String> services = new HashSet<String>();
-    for (HostGroup group : blueprintHostGroups.values()) {
+    for (HostGroupImpl group : blueprintHostGroups.values()) {
       if (! group.getHostInfo().isEmpty()) {
         services.addAll(stack.getServicesForComponents(group.getComponents()));
       }
@@ -953,75 +938,6 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
     services.remove(null);
 
     return services;
-  }
-
-  /**
-   * Register updaters for configuration properties.
-   */
-  private void registerPropertyUpdaters() {
-    // NAMENODE
-    propertyUpdaters.put("dfs.http.address", new SingleHostPropertyUpdater("NAMENODE"));
-    propertyUpdaters.put("dfs.namenode.http-address", new SingleHostPropertyUpdater("NAMENODE"));
-    propertyUpdaters.put("dfs.https.address", new SingleHostPropertyUpdater("NAMENODE"));
-    propertyUpdaters.put("dfs.namenode.https-address", new SingleHostPropertyUpdater("NAMENODE"));
-    propertyUpdaters.put("fs.default.name", new SingleHostPropertyUpdater("NAMENODE"));
-    propertyUpdaters.put("fs.defaultFS", new SingleHostPropertyUpdater("NAMENODE"));
-    propertyUpdaters.put("hbase.rootdir", new SingleHostPropertyUpdater("NAMENODE"));
-
-    // SECONDARY_NAMENODE
-    propertyUpdaters.put("dfs.secondary.http.address", new SingleHostPropertyUpdater("SECONDARY_NAMENODE"));
-    propertyUpdaters.put("dfs.namenode.secondary.http-address", new SingleHostPropertyUpdater("SECONDARY_NAMENODE"));
-
-    // HISTORY_SERVER
-    propertyUpdaters.put("yarn.log.server.url", new SingleHostPropertyUpdater("HISTORYSERVER"));
-    propertyUpdaters.put("mapreduce.jobhistory.webapp.address", new SingleHostPropertyUpdater("HISTORYSERVER"));
-    propertyUpdaters.put("mapreduce.jobhistory.address", new SingleHostPropertyUpdater("HISTORYSERVER"));
-
-    // RESOURCEMANAGER
-    propertyUpdaters.put("yarn.resourcemanager.hostname", new SingleHostPropertyUpdater("RESOURCEMANAGER"));
-    propertyUpdaters.put("yarn.resourcemanager.resource-tracker.address", new SingleHostPropertyUpdater("RESOURCEMANAGER"));
-    propertyUpdaters.put("yarn.resourcemanager.webapp.address", new SingleHostPropertyUpdater("RESOURCEMANAGER"));
-    propertyUpdaters.put("yarn.resourcemanager.scheduler.address", new SingleHostPropertyUpdater("RESOURCEMANAGER"));
-    propertyUpdaters.put("yarn.resourcemanager.address", new SingleHostPropertyUpdater("RESOURCEMANAGER"));
-    propertyUpdaters.put("yarn.resourcemanager.admin.address", new SingleHostPropertyUpdater("RESOURCEMANAGER"));
-
-    // JOBTRACKER
-    propertyUpdaters.put("mapred.job.tracker", new SingleHostPropertyUpdater("JOBTRACKER"));
-    propertyUpdaters.put("mapred.job.tracker.http.address", new SingleHostPropertyUpdater("JOBTRACKER"));
-    propertyUpdaters.put("mapreduce.history.server.http.address", new SingleHostPropertyUpdater("JOBTRACKER"));
-
-    // HIVE_SERVER
-    propertyUpdaters.put("hive.metastore.uris", new SingleHostPropertyUpdater("HIVE_SERVER"));
-    propertyUpdaters.put("hive_ambari_host", new SingleHostPropertyUpdater("HIVE_SERVER"));
-    propertyUpdaters.put("javax.jdo.option.ConnectionURL",
-        new DBPropertyUpdater("MYSQL_SERVER", "hive-env", "hive_database"));
-
-    // OOZIE_SERVER
-    propertyUpdaters.put("oozie.base.url", new SingleHostPropertyUpdater("OOZIE_SERVER"));
-    propertyUpdaters.put("oozie_ambari_host", new SingleHostPropertyUpdater("OOZIE_SERVER"));
-
-    // ZOOKEEPER_SERVER
-    propertyUpdaters.put("hbase.zookeeper.quorum", new MultipleHostPropertyUpdater("ZOOKEEPER_SERVER"));
-    propertyUpdaters.put("templeton.zookeeper.hosts", new MultipleHostPropertyUpdater("ZOOKEEPER_SERVER"));
-
-    // STORM
-    propertyUpdaters.put("nimbus.host", new SingleHostPropertyUpdater("NIMBUS"));
-    propertyUpdaters.put("worker.childopts", new SingleHostPropertyUpdater("GANGLIA_SERVER"));
-    propertyUpdaters.put("supervisor.childopts", new SingleHostPropertyUpdater("GANGLIA_SERVER"));
-    propertyUpdaters.put("nimbus.childopts", new SingleHostPropertyUpdater("GANGLIA_SERVER"));
-    propertyUpdaters.put("storm.zookeeper.servers",
-      new YamlMultiValuePropertyDecorator(new MultipleHostPropertyUpdater("ZOOKEEPER_SERVER")));
-
-    // properties which need "m' appended.  Required due to AMBARI-4933
-    propertyUpdaters.put("namenode_heapsize", new MPropertyUpdater());
-    propertyUpdaters.put("namenode_opt_newsize", new MPropertyUpdater());
-    propertyUpdaters.put("namenode_opt_maxnewsize", new MPropertyUpdater());
-    propertyUpdaters.put("dtnode_heapsize", new MPropertyUpdater());
-    propertyUpdaters.put("jtnode_opt_newsize", new MPropertyUpdater());
-    propertyUpdaters.put("jtnode_opt_maxnewsize", new MPropertyUpdater());
-    propertyUpdaters.put("jtnode_heapsize", new MPropertyUpdater());
-    propertyUpdaters.put("hbase_master_heapsize", new MPropertyUpdater());
-    propertyUpdaters.put("hbase_regionserver_heapsize", new MPropertyUpdater());
   }
 
   /**
@@ -1038,16 +954,16 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
    * @throws UnsupportedPropertyException   an invalid property is provided when creating a config group
    * @throws NoSuchParentResourceException  attempt to create a config group for a non-existing cluster
    */
-  private void registerConfigGroups(String clusterName, Map<String, HostGroup> hostGroups, Stack stack) throws
+  private void registerConfigGroups(String clusterName, Map<String, HostGroupImpl> hostGroups, Stack stack) throws
       ResourceAlreadyExistsException, SystemException,
       UnsupportedPropertyException, NoSuchParentResourceException {
     
-    for (HostGroup group : hostGroups.values()) {
+    for (HostGroupImpl group : hostGroups.values()) {
       HostGroupEntity entity = group.getEntity();
       Map<String, Map<String, Config>> groupConfigs = new HashMap<String, Map<String, Config>>();
       
-      handleGlobalsBackwardsCompability(stack, group.getConfigurations());
-      for (Map.Entry<String, Map<String, String>> entry: group.getConfigurations().entrySet()) {
+      handleGlobalsBackwardsCompability(stack, group.getConfigurationProperties());
+      for (Map.Entry<String, Map<String, String>> entry: group.getConfigurationProperties().entrySet()) {
         String type = entry.getKey();
         String service = stack.getServiceForConfigType(type);
         Config config = new ConfigImpl(type);
@@ -1079,11 +995,11 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
    *
    * @param hostGroups map of host group name to host group
    */
-  private void validateHostMappings(Map<String, HostGroup> hostGroups) {
+  private void validateHostMappings(Map<String, HostGroupImpl> hostGroups) {
     Collection<String> mappedHosts = new HashSet<String>();
     Collection<String> flaggedHosts = new HashSet<String>();
 
-    for (HostGroup hostgroup : hostGroups.values()) {
+    for (HostGroupImpl hostgroup : hostGroups.values()) {
       for (String host : hostgroup.getHostInfo()) {
         if (mappedHosts.contains(host)) {
           flaggedHosts.add(host);
@@ -1097,280 +1013,6 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
       throw new IllegalArgumentException("A host may only be mapped to a single host group at this time." +
                                          "  The following hosts are mapped to more than one host group: " +
                                          flaggedHosts);
-    }
-  }
-
-
-  /**
-   * Provides functionality to update a property value.
-   */
-  public interface PropertyUpdater {
-    /**
-     * Update a property value.
-     *
-     * @param hostGroups  host groups
-     * @param origValue   original value of property
-     *
-     * @return new property value
-     */
-    public String update(Map<String, HostGroup> hostGroups, String origValue);
-  }
-
-  /**
-   * Topology based updater which replaces the original host name of a property with the host name
-   * which runs the associated (master) component in the new cluster.
-   */
-  private class SingleHostPropertyUpdater implements PropertyUpdater {
-    /**
-     * Component name
-     */
-    private String component;
-
-    /**
-     * Constructor.
-     *
-     * @param component  component name associated with the property
-     */
-    public SingleHostPropertyUpdater(String component) {
-      this.component = component;
-    }
-
-    /**
-     * Update the property with the new host name which runs the associated component.
-     *
-     * @param hostGroups  host groups                 host groups
-     * @param origValue   original value of property  original property value
-     *
-     * @return updated property value with old host name replaced by new host name
-     */
-    public String update(Map<String, HostGroup> hostGroups, String origValue)  {
-      Collection<HostGroup> matchingGroups = getHostGroupsForComponent(component, hostGroups.values());
-      if (matchingGroups.size() == 1) {
-        return origValue.replace("localhost", matchingGroups.iterator().next().getHostInfo().iterator().next());
-      } else {
-        throw new IllegalArgumentException("Unable to update configuration property with topology information. " +
-            "Component '" + this.component + "' is not mapped to any host group or is mapped to multiple groups.");
-      }
-    }
-  }
-
-  /**
-   * Topology based updater which replaces the original host name of a database property with the host name
-   * where the DB is deployed in the new cluster.  If an existing database is specified, the original property
-   * value is returned.
-   */
-  private class DBPropertyUpdater extends SingleHostPropertyUpdater {
-    /**
-     * Property type (global, core-site ...) for property which is used to determine if DB is external.
-     */
-    private final String configPropertyType;
-
-    /**
-     * Name of property which is used to determine if DB is new or existing (exernal).
-     */
-    private final String conditionalPropertyName;
-
-    /**
-     * Constructor.
-     *
-     * @param component                component to get hot name if new DB
-     * @param configPropertyType       config type of property used to determine if DB is external
-     * @param conditionalPropertyName  name of property which is used to determine if DB is external
-     */
-    private DBPropertyUpdater(String component, String configPropertyType, String conditionalPropertyName) {
-      super(component);
-      this.configPropertyType = configPropertyType;
-      this.conditionalPropertyName = conditionalPropertyName;
-    }
-
-    /**
-     * If database is a new managed database, update the property with the new host name which
-     * runs the associated component.  If the database is external (non-managed), return the
-     * original value.
-     *
-     * @param hostGroups  host groups                 host groups
-     * @param origValue   original value of property  original property value
-     *
-     * @return updated property value with old host name replaced by new host name or original value
-     *         if the database is exernal
-     */
-    @Override
-    public String update(Map<String, HostGroup> hostGroups, String origValue) {
-      if (isDatabaseManaged()) {
-        return super.update(hostGroups, origValue);
-      } else {
-        return origValue;
-      }
-    }
-
-    /**
-     * Determine if database is managed, meaning that it is a component in the cluster topology.
-     *
-     * @return true if the DB is managed; false otherwise
-     */
-    //todo: use super.isDependencyManaged() and remove this method
-    private boolean isDatabaseManaged() {
-      // conditional property should always exist since it is required to be specified in the stack
-      return mapClusterConfigurations.get(configPropertyType).
-          get(conditionalPropertyName).startsWith("New");
-    }
-  }
-
-  /**
-   * Topology based updater which replaces original host names (possibly more than one) contained in a property
-   * value with the host names which runs the associated component in the new cluster.
-   */
-  private class MultipleHostPropertyUpdater implements PropertyUpdater {
-    /**
-     * Component name
-     */
-    private String component;
-
-    /**
-     * Separator for multiple property values
-     */
-    private Character separator = ',';
-
-    /**
-     * Constructor.
-     *
-     * @param component  component name associated with the property
-     */
-    public MultipleHostPropertyUpdater(String component) {
-      this.component = component;
-    }
-
-    /**
-     * Constructor with customized separator.
-     * @param component Component name
-     * @param separator separator character
-     */
-    public MultipleHostPropertyUpdater(String component, Character separator) {
-      this.component = component;
-      this.separator = separator;
-    }
-
-    //todo: specific to default values of EXACTLY 'localhost' or 'localhost:port'.
-    //todo: when blueprint contains source configurations, these props will contain actual host names, not localhost.
-    //todo: currently assuming that all hosts will share the same port
-    /**
-     * Update all host names included in the original property value with new host names which run the associated
-     * component.
-     *
-     * @param hostGroups  host groups                 host groups
-     * @param origValue   original value of property  original value
-     *
-     * @return updated property value with old host names replaced by new host names
-     */
-    public String update(Map<String, HostGroup> hostGroups, String origValue) {
-      Collection<HostGroup> matchingGroups = getHostGroupsForComponent(component, hostGroups.values());
-      boolean containsPort = origValue.contains(":");
-      String port = null;
-      if (containsPort) {
-        port = origValue.substring(origValue.indexOf(":") + 1);
-      }
-      StringBuilder sb = new StringBuilder();
-      boolean firstHost = true;
-      for (HostGroup group : matchingGroups) {
-        for (String host : group.getHostInfo()) {
-          if (!firstHost) {
-            sb.append(separator);
-          } else {
-            firstHost = false;
-          }
-          sb.append(host);
-          if (containsPort) {
-            sb.append(":");
-            sb.append(port);
-          }
-        }
-      }
-
-      return sb.toString();
-    }
-  }
-
-  /**
-   * Updater which appends "m" to the original property value.
-   * For example, "1024" would be updated to "1024m".
-   */
-  private class MPropertyUpdater implements PropertyUpdater {
-    /**
-     * Append 'm' to the original property value if it doesn't already exist.
-     *
-     * @param hostGroups  host groups                 host groups
-     * @param origValue   original value of property  original property value
-     *
-     * @return property with 'm' appended
-     */
-    public String update(Map<String, HostGroup> hostGroups, String origValue) {
-      return origValue.endsWith("m") ? origValue : origValue + 'm';
-    }
-  }
-
-  /**
-   * Class to facilitate special formatting needs of property values.
-   */
-  private abstract class AbstractPropertyValueDecorator implements PropertyUpdater {
-    PropertyUpdater propertyUpdater;
-
-    public AbstractPropertyValueDecorator(PropertyUpdater propertyUpdater) {
-      this.propertyUpdater = propertyUpdater;
-    }
-
-    /**
-     * Return decorated form of the updated input property value.
-     * @param hostGroupMap Map of host group name to HostGroup
-     * @param origValue   original value of property
-     *
-     * @return Formatted output string
-     */
-    @Override
-    public String update(Map<String, HostGroup> hostGroupMap, String origValue) {
-      return doFormat(propertyUpdater.update(hostGroupMap, origValue));
-    }
-
-    /**
-     * Transform input string to required output format.
-     * @param originalValue Original value of property
-     * @return Formatted output string
-     */
-    public abstract String doFormat(String originalValue);
-  }
-
-  /**
-   * Return properties of the form ['value']
-   */
-  private class YamlMultiValuePropertyDecorator extends AbstractPropertyValueDecorator {
-
-    public YamlMultiValuePropertyDecorator(PropertyUpdater propertyUpdater) {
-      super(propertyUpdater);
-    }
-
-    /**
-     * Format input String of the form, str1,str2 to ['str1','str2']
-     * @param origValue Input string
-     * @return Formatted string
-     */
-    @Override
-    public String doFormat(String origValue) {
-      StringBuilder sb = new StringBuilder();
-      if (origValue != null) {
-        sb.append("[");
-        boolean isFirst = true;
-        for (String value : origValue.split(",")) {
-          if (!isFirst) {
-            sb.append(",");
-          } else {
-            isFirst = false;
-          }
-          sb.append("'");
-          sb.append(value);
-          sb.append("'");
-        }
-        sb.append("]");
-      }
-      return sb.toString();
     }
   }
 }

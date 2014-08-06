@@ -1080,16 +1080,19 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       }
     }
     else {
+      boolean includeProps = request.includeProperties();
       if (null != request.getType()) {
         Map<String, Config> configs = cluster.getConfigsByType(
             request.getType());
 
         if (null != configs) {
           for (Entry<String, Config> entry : configs.entrySet()) {
+            Config config = entry.getValue();
             ConfigurationResponse response = new ConfigurationResponse(
                 cluster.getClusterName(), request.getType(),
-                entry.getValue().getTag(), entry.getValue().getVersion(), new HashMap<String, String>(),
-                new HashMap<String, Map<String,String>>());
+                config.getTag(), entry.getValue().getVersion(),
+                includeProps ? config.getProperties() : new HashMap<String, String>(),
+                includeProps ? config.getPropertiesAttributes() : new HashMap<String, Map<String,String>>());
             responses.add(response);
           }
         }
@@ -1099,8 +1102,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
         for (Config config : all) {
           ConfigurationResponse response = new ConfigurationResponse(
-             cluster.getClusterName(), config.getType(), config.getTag(), config.getVersion(),
-             new HashMap<String, String>(), new HashMap<String, Map<String,String>>());
+              cluster.getClusterName(), config.getType(), config.getTag(), config.getVersion(),
+              includeProps ? config.getProperties() : new HashMap<String, String>(),
+              includeProps ? config.getPropertiesAttributes() : new HashMap<String, Map<String,String>>());
 
           responses.add(response);
         }
