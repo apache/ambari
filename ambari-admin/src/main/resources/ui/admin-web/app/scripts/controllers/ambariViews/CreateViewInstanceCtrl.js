@@ -21,25 +21,44 @@ angular.module('ambariAdminConsole')
 .controller('CreateViewInstanceCtrl',['$scope', 'View', 'uiAlert', '$routeParams', '$location', function($scope, View, uiAlert, $routeParams, $location) {
   $scope.form = {};
 
-  View.getMeta($routeParams.viewId, $routeParams.version).then(function(data) {
-    var viewVersion = data.data;
-    $scope.view = viewVersion;
+  function loadMeta(){
+    View.getMeta($routeParams.viewId, $scope.version).then(function(data) {
+      var viewVersion = data.data;
+      $scope.view = viewVersion;
 
-    $scope.instance = {
-      view_name: viewVersion.ViewVersionInfo.view_name,
-      version: viewVersion.ViewVersionInfo.version,
-      instance_name: '',
-      label: '',
-      visible: true,
-      icon_path: '',
-      icon64_path: '',
-      properties: viewVersion.ViewVersionInfo.parameters
-    };    
+      $scope.instance = {
+        view_name: viewVersion.ViewVersionInfo.view_name,
+        version: viewVersion.ViewVersionInfo.version,
+        instance_name: '',
+        label: '',
+        visible: true,
+        icon_path: '',
+        icon64_path: '',
+        properties: viewVersion.ViewVersionInfo.parameters
+      };    
+    });
+  }
+    
+
+  $scope.$watch(function(scope) {
+    return scope.version;
+  }, function(version) {
+    if( version ){
+      loadMeta();
+    }
   });
 
   // $scope.view = viewVersion;
   $scope.isAdvancedClosed = true;
   $scope.instanceExists = false;
+
+  $scope.versions = [];
+  $scope.version = null;
+
+  View.getVersions($routeParams.viewId).then(function(versions) {
+    $scope.versions = versions;
+    $scope.version = $scope.versions[$scope.versions.length-1];
+  });
 
 
   $scope.nameValidationPattern = /^\s*\w*\s*$/;
@@ -66,9 +85,4 @@ angular.module('ambariAdminConsole')
       });
     }
   };
-
-  $scope.cancel = function() {
-    $modalInstance.dismiss();
-  };
-
 }]);

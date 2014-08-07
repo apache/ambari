@@ -49,16 +49,4 @@ angular.module('ambariAdminConsole')
       return user;
     }
   };
-
-  $scope.syncLDAP = function() {
-    var modaInstance = $modal.open({
-      templateUrl: 'views/ldapModal.html',
-      controller: 'LDAPModalCtrl',
-      resolve:{
-        resourceType: function() {
-          return 'users';
-        }
-      }
-    });
-  };
 }]);

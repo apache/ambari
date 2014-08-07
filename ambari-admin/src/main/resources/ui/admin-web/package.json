@@ -24,7 +24,8 @@
     "gulp-useref": "^0.4.2",
     "jshint-stylish": "^0.2.0",
     "opn": "^0.1.1",
-    "wiredep": "^1.4.3"
+    "wiredep": "^1.4.3",
+    "gulp-plumber": "*"
   },
   "engines": {
     "node": ">=0.10.0"

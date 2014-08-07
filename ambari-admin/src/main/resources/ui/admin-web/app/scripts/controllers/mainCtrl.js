@@ -18,5 +18,23 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('MainCtrl',[function() {
+.controller('MainCtrl',['$scope', 'Auth', 'uiAlert', '$modal', function($scope, Auth, uiAlert, $modal) {
+  $scope.signOut = function() {
+    Auth.signout().then(function() {
+     window.location.pathname = ''; // Change location hard, because Angular works only with relative urls
+    }).catch(function(data) {
+      uiAlert.danger(data.data.status, data.data.message);
+    });
+  };
+
+  $scope.about = function() {
+  	var modalInstance = $modal.open({
+  		templateUrl:'views/modals/AboutModal.html',
+  		controller: ['$scope', function($scope) {
+  			$scope.ok = function() {
+  				modalInstance.close();
+  			};
+  		}]
+  	});
+  };
 }]);

@@ -18,7 +18,7 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('NavbarCtrl',['$scope', 'Cluster', '$location', 'uiAlert', 'ROUTES', function($scope, Cluster, $location, uiAlert, ROUTES) {
+.controller('NavbarCtrl',['$scope', 'Cluster', '$location', 'uiAlert', 'ROUTES', 'LDAP', 'ConfirmationModal', function($scope, Cluster, $location, uiAlert, ROUTES, LDAP, ConfirmationModal) {
   $scope.cluster = null;
   Cluster.getStatus().then(function(cluster) {
     $scope.cluster = cluster;
@@ -26,7 +26,6 @@ angular.module('ambariAdminConsole')
   	uiAlert.danger(data.status, data.message);
   });
 
-  // console.log($state);
   $scope.isActive = function(path) {
   	var route = ROUTES;
   	angular.forEach(path.split('.'), function(routeObj) {
@@ -34,5 +33,22 @@ angular.module('ambariAdminConsole')
   	});
   	var r = new RegExp( route.url.replace(/(:\w+)/, '\\w+'));
   	return r.test($location.path());
+  };
+
+  $scope.isLDAPConfigured = false;
+  $scope.ldapData = {};
+  LDAP.get().then(function(data) {
+    $scope.ldapData = data;
+    $scope.isLDAPConfigured = data['LDAP']['configured'];
+  });
+
+  $scope.syncLDAP = function() {
+    ConfirmationModal.show('Sync LDAP', 'Are you sure you want to sync LDAP?').then(function() {
+      LDAP.sync($scope.ldapData.groups, $scope.ldapData.users).then(function() {
+        uiAlert.success('LDAP synced successful');
+      }).catch(function(data) {
+        uiAlert.danger(data.data.status, data.data.message);
+      });
+    });
   };
 }]);

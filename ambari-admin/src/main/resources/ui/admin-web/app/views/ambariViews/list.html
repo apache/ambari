@@ -38,10 +38,13 @@
     <div class="col-sm-3"><h4>Descirption</h4></div>
   </div>
   <accordion>
-    <accordion-group ng-repeat="view in filteredViews">
+    <accordion-group ng-repeat="view in filteredViews" is-open="open">
       <accordion-heading>
         <div class="row">
-          <div class="col-sm-3">{{view.view_name}}</div>
+          <div class="col-sm-3">
+            <i class="glyphicon glyphicon-chevron-right" ng-class="{'opened': open}"></i>
+            {{view.view_name}}
+          </div>
           <div class="col-sm-3">{{view.versions}}</div>
           <div class="col-sm-3">{{view.instances.length ? view.instances.length : 'No'}} instances</div>
           <div class="col-sm-3">This is a description</div>

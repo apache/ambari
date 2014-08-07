@@ -40,16 +40,4 @@ angular.module('ambariAdminConsole')
   .catch(function(data) {
     console.error('Get groups list error');
   });
-
-  $scope.syncLDAP = function() {
-    var modaInstance = $modal.open({
-      templateUrl: 'views/ldapModal.html',
-      controller: 'LDAPModalCtrl',
-      resolve:{
-        resourceType: function() {
-          return 'groups';
-        }
-      }
-    });
-  };
 }]);

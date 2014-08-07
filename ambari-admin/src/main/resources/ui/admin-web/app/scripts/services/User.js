@@ -18,7 +18,7 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.factory('User', ['Restangular', function(Restangular) {
+.factory('User', ['Restangular', '$http', 'Settings', function(Restangular, $http, Settings) {
   Restangular.addResponseInterceptor(function(data, operation, what, url, response, deferred) {
     var extractedData;
     if(operation === 'getList'){
@@ -48,12 +48,20 @@ angular.module('ambariAdminConsole')
       return Restangular.one('users', userId).customPUT({'Users/active':isActive});
     },
     setPassword: function(user, password, currentUserPassword) {
-
-      return Restangular.one('users', user.user_name).customPUT({
-        'Users/password': password,
-        'Users/old_password': currentUserPassword,
-        'Users/roles': user.roles[0] || 'user'
+      return $http({
+        method: 'PUT',
+        url: Settings.baseUrl + '/users/' + user.user_name,
+        data: {
+          'Users/password': password,
+          'Users/old_password': currentUserPassword,
+          'Users/roles': user.roles[0] || 'user' 
+        }
       });
+      // return Restangular.one('users', user.user_name).customPUT({
+      //   'Users/password': password,
+      //   'Users/old_password': currentUserPassword,
+      //   'Users/roles': user.roles[0] || 'user'
+      // });
     },
     delete: function(userId) {
       return Restangular.one('users', userId).remove();

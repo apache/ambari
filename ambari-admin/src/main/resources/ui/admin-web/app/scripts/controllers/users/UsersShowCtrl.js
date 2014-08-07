@@ -18,7 +18,7 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('UsersShowCtrl', ['$scope', '$routeParams', 'User', '$modal', '$location', 'ConfirmationModal', function($scope, $routeParams, User, $modal, $location, ConfirmationModal) {
+.controller('UsersShowCtrl', ['$scope', '$routeParams', 'User', '$modal', '$location', 'ConfirmationModal', 'uiAlert', function($scope, $routeParams, User, $modal, $location, ConfirmationModal, uiAlert) {
   $scope.user = {};
 
   $scope.isGroupEditing = false;
@@ -37,7 +37,8 @@ angular.module('ambariAdminConsole')
       templateUrl: 'views/users/modals/changePassword.html',
       controller: ['$scope', function($scope) {
         $scope.passwordData = {
-          password: ''
+          password: '',
+          currentUserPassword: ''
         };
 
         $scope.form = {};
@@ -45,7 +46,11 @@ angular.module('ambariAdminConsole')
         $scope.ok = function() {
           $scope.form.passwordChangeForm.submitted = true;
           if($scope.form.passwordChangeForm.$valid){
-            modalInstance.close($scope.passwordData.password, $scope.passwordData.currentUserPassword);
+
+            modalInstance.close({
+              password: $scope.passwordData.password, 
+              currentUserPassword: $scope.passwordData.currentUserPassword
+            });
           }
         };
         $scope.cancel = function() {
@@ -54,8 +59,12 @@ angular.module('ambariAdminConsole')
       }]
     });
 
-    modalInstance.result.then(function(newPassword, currentUserPassword) {
-      User.setPassword($scope.user, newPassword, currentUserPassword);
+    modalInstance.result.then(function(data) {
+      User.setPassword($scope.user, data.password, data.currentUserPassword).then(function() {
+        uiAlert.success('Password changed.');
+      }).catch(function(data) {
+        uiAlert.danger(data.data.status, data.data.message);
+      });
     }); 
   };
 

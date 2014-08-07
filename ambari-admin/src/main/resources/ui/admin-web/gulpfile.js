@@ -42,6 +42,7 @@ gulp.task('html', ['styles'], function () {
     var cssFilter = $.filter('**/*.css');
 
     return gulp.src('app/*.html')
+        .pipe($.plumber())
         .pipe($.useref.assets({searchPath: '{.tmp,app}'}))
         .pipe(jsFilter)
         .pipe($.uglify())

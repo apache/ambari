@@ -17,6 +17,40 @@
  */
 
 
+.views-list-pane .glyphicon.glyphicon-chevron-right{
+  -webkit-transition: all 0.3s;
+  -o-transition: all 0.3s;
+  transition: all 0.3s;
+}
+.views-list-pane .glyphicon.glyphicon-chevron-right.opened{
+  -webkit-transform: rotateZ(90deg);
+  -ms-transform: rotateZ(90deg);
+  -o-transform: rotateZ(90deg);
+  transform: rotateZ(90deg);
+}
+
+.pulldown2{
+  -webkit-transform: translateY(2px);
+  -ms-transform: translateY(2px);
+  -o-transform: translateY(2px);
+  transform: translateY(2px);
+}
+.btn.disabled.syncldapbtn{
+  pointer-events: auto;
+  background-color: #0044cc;
+}
+
+.about .logo{
+  float: left;
+  width: 20%;
+}
+.about .content{
+  float: left;
+}
+.about .content .project{
+  font-weight: bold;
+  font-size: 2em;
+}
 /*
   Style topnav menu
 */

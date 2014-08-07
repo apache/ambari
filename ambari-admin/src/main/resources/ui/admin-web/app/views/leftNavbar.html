@@ -22,7 +22,7 @@
       <h5>{{cluster.Clusters.cluster_name}}</h5>
       <ul class="nav nav-pills nav-stacked">
         <li ng-class="{active: isActive('clusters.manageAccess')}">
-          <link-to route="clusters.manageAccess" id="{{cluster.Clusters.cluster_name}}">Permissions</link-to>
+          <a href="#/clusters/{{cluster.Clusters.cluster_name}}/manageAccess">Permissions</a>
         </li>
         <li><a href="/#/main/dashboard">Go to Dashboard</a></li>
       </ul>
@@ -54,5 +54,15 @@
       <li ng-class="{active: isActive('users.list')}"><link-to route="users.list">Users</link-to></li>
       <li ng-class="{active: isActive('groups.list')}"><link-to route="groups.list">Groups</link-to></li>
     </ul>
+    <hr>
+    <div ng-switch="isLDAPConfigured">
+      <a ng-switch-when="true" href class="btn btn-primary btn-block syncldapbtn" ng-click="syncLDAP()">
+        <span class="glyphicon glyphicon-transfer pulldown2"></span> Sync LDAP
+      </a>
+      <a ng-switch-default href class="btn btn-primary btn-block syncldapbtn disabled" popover="LDAP is not configured. To configure LDAP, run ambari-server setup-ldap from the command line." popover-trigger="mouseenter">
+        <span class="glyphicon glyphicon-transfer pulldown2"></span> Sync LDAP
+      </a>
+    </div>
+      
   </div>
 </div>

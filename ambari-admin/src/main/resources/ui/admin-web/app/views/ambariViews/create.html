@@ -27,7 +27,7 @@
     <img src="http://placehold.it/32x32" alt="" class="icon-small">
     <div class="description">
       <h3>{{view.ViewVersionInfo.view_name}}</h3>
-      <span>{{view.ViewVersionInfo.label}} | Version: {{view.ViewVersionInfo.version}}</span>
+      <span>{{view.ViewVersionInfo.label}} | Version: <select ng-model="version" ng-change="versionChanged()" ng-options="o as o for o in versions"></select></span>
     </div>
   </div>
   

@@ -126,7 +126,26 @@ angular.module('ambariAdminConsole')
     });
 
     return deferred.promise;
-  }
+  };
+
+  View.getVersions = function(viewName) {
+    var deferred = $q.defer();
+
+    $http({
+      method: 'GET',
+      url: Settings.baseUrl + '/views/'+viewName
+    }).success(function(data) {
+      var versions = [];
+      angular.forEach(data.versions, function(version) {
+        versions.push(version.ViewVersionInfo.version);
+      });
+
+      deferred.resolve(versions);
+    }).catch(function(data) {
+      deferred.reject(data);
+    });
+    return deferred.promise;
+  };
 
   View.createInstance = function(instanceInfo) {
     var deferred = $q.defer();

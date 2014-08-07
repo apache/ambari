@@ -40,16 +40,13 @@
       <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
     <![endif]-->
 
-    <div id="top-nav">
+    <div id="top-nav" ng-controller="MainCtrl">
       <header class="navbar navbar-static-top navbar-inverse">
         <div class="navbar-inner">
           <div class="container">
             <a href="#/" class="logo"><img src="/img/logo-white.png" alt="Apache Ambari" title="Apache Ambari"></a>
             <a href="#/" class="brand" title="Apache Ambari">Ambari</a>
-            <a href="" class="brand cluster-name">Ambari Admin Console</a>
-            <!-- <div class="navbar-header">
-              <a href="#/" class="navbar-brand">Ambari Admin Console</a>
-            </div>   -->
+            <a href="" class="brand cluster-name">Admin Console</a>
             <ul class="nav navbar-nav navbar-right">
               <li>
                 <div class="btn-group" dropdown is-open="status.isopen">
@@ -57,9 +54,9 @@
                     Admin <span class="caret"></span>
                   </button>
                   <ul class="dropdown-menu" role="menu">
-                    <li><a href="#">About</a></li>
+                    <li><a href ng-click="about()">About</a></li>
                     <li class="divider"></li>
-                    <li><a href="#">Sign Out</a></li>
+                    <li><a href ng-click="signOut()">Sign Out</a></li>
                   </ul>
                 </div>
               </li>
@@ -114,7 +111,6 @@
     <script src="scripts/routes.js"></script>
     <script src="scripts/controllers/mainCtrl.js"></script>
     <script src="scripts/controllers/NavbarCtrl.js"></script>
-    <script src="scripts/controllers/LDAPModalCtrl.js"></script>
     <script src="scripts/controllers/users/UsersCreateCtrl.js"></script>
     <script src="scripts/controllers/users/UsersListCtrl.js"></script>
     <script src="scripts/controllers/users/UsersShowCtrl.js"></script>
@@ -136,6 +132,7 @@
     <script src="scripts/services/PermissionLoader.js"></script>
     <script src="scripts/services/PermissionsSaver.js"></script>
     <script src="scripts/services/ConfirmationModal.js"></script>
+    <script src="scripts/services/Auth.js"></script>
     <!-- endbuild -->
 </body>
 </html>

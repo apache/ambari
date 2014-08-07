@@ -18,40 +18,12 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.factory('LDAP', ['$http', '$q', 'Settings', function($http, $q, Settings) {
-
-
+.factory('Auth',['$http', 'Settings', function($http, Settings) {
   return {
-    get: function() {
+    signout: function() {
       return $http({
         method: 'GET',
-        url: '/api/v1/controllers/ldap'
-      });
-    },
-    sync: function(groupsList, usersList) {
-      return $http({
-        method: 'POST',
-        url: Settings.baseUrl + '/controllers/ldap',
-        data:{
-          LDAP:{
-            "synced_groups": groupsList.join(','),
-            "synced_users": usersList.join(',')
-          }
-        }
-      });
-    },
-    syncResource: function(resourceType, items) {
-      var items = items.map(function(item) {
-        var name = 'LDAP/synced_' + resourceType;
-        var obj = {};
-        obj['LDAP/synced_' + resourceType] = item;
-        return obj;
-      });
-      
-      return $http({
-        method: 'POST',
-        url: '/api/v1/controllers/ldap',
-        data: items
+        url: Settings.baseUrl + '/logout'
       });
     }
   };
