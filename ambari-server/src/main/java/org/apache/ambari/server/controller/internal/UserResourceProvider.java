@@ -44,6 +44,7 @@ class UserResourceProvider extends AbstractControllerResourceProvider {
   protected static final String USER_OLD_PASSWORD_PROPERTY_ID = PropertyHelper.getPropertyId("Users", "old_password");
   protected static final String USER_LDAP_USER_PROPERTY_ID    = PropertyHelper.getPropertyId("Users", "ldap_user");
   protected static final String USER_ACTIVE_PROPERTY_ID       = PropertyHelper.getPropertyId("Users", "active");
+  protected static final String USER_GROUPS_PROPERTY_ID       = PropertyHelper.getPropertyId("Users", "groups");
 
   private static Set<String> pkPropertyIds =
       new HashSet<String>(Arrays.asList(new String[]{
@@ -124,6 +125,9 @@ class UserResourceProvider extends AbstractControllerResourceProvider {
 
       setResourceProperty(resource, USER_ACTIVE_PROPERTY_ID,
           userResponse.isActive(), requestedIds);
+
+      setResourceProperty(resource, USER_GROUPS_PROPERTY_ID,
+          userResponse.getGroups(), requestedIds);
 
       resources.add(resource);
     }

@@ -29,6 +29,7 @@ public class UserResponse {
   private final String userName;
   private final boolean isLdapUser;
   private final boolean isActive;
+  private Set<String> groups = Collections.emptySet();
 
   public UserResponse(String name, boolean isLdapUser, boolean isActive) {
     this.userName = name;
@@ -46,6 +47,14 @@ public class UserResponse {
 
   public void setRoles(Set<String> userRoles) {
     roles = userRoles;
+  }
+
+  public Set<String> getGroups() {
+    return groups;
+  }
+
+  public void setGroups(Set<String> groups) {
+    this.groups = groups;
   }
 
   @Override
