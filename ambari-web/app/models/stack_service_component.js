@@ -25,6 +25,7 @@ var numberUtils = require('utils/number_utils');
 App.StackServiceComponent = DS.Model.extend({
   componentName: DS.attr('string'),
   cardinality: DS.attr('string'),
+  customCommands: DS.attr('array'),
   dependencies: DS.attr('array'),
   serviceName: DS.attr('string'),
   componentCategory: DS.attr('string'),

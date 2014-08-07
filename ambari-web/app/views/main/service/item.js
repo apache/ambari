@@ -127,13 +127,13 @@ App.MainServiceItemView = Em.View.extend({
     var allMasters = service.get('hostComponents').filterProperty('isMaster').mapProperty('componentName').uniq();
     var allSlaves = service.get('hostComponents').filterProperty('isSlave').mapProperty('componentName').uniq();
     var actionMap = this.actionMap();
+    var serviceCheckSupported = App.get('services.supportsServiceCheck').contains(service.get('serviceName'));
 
     if (this.get('controller.isClientsOnlyService')) {
-      options.push(actionMap.RUN_SMOKE_TEST);
-      options.push(actionMap.REFRESH_CONFIGS);
-      if (this.get('serviceName') === 'TEZ') {
-        options = options.without(actionMap.RUN_SMOKE_TEST);
+      if (serviceCheckSupported) {
+        options.push(actionMap.RUN_SMOKE_TEST);
       }
+      options.push(actionMap.REFRESH_CONFIGS);
     } else {
       if (this.get('serviceName') === 'FLUME') {
         options.push(actionMap.REFRESH_CONFIGS);
@@ -168,8 +168,9 @@ App.MainServiceItemView = Em.View.extend({
             break;
         }
       }
-
-      options.push(actionMap.RUN_SMOKE_TEST);
+      if (serviceCheckSupported) {
+        options.push(actionMap.RUN_SMOKE_TEST);
+      }
       options.push(actionMap.TOGGLE_PASSIVE);
 
       var serviceName = service.get('serviceName');

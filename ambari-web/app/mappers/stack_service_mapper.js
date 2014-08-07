@@ -31,6 +31,7 @@ App.stackServiceMapper = App.QuickDataMapper.create({
     stack_version: 'stack_version',
     is_selected: 'is_selected',
     is_installed: 'is_installed',
+    service_check_supported: 'service_check_supported',
     service_components_key: 'service_components',
     service_components_type: 'array',
     service_components: {
@@ -42,6 +43,7 @@ App.stackServiceMapper = App.QuickDataMapper.create({
     id: 'component_name',
     component_name: 'component_name',
     cardinality: 'cardinality',
+    custom_commands: 'custom_commands',
     service_name: 'service_name',
     component_category: 'component_category',
     is_master: 'is_master',
@@ -76,6 +78,7 @@ App.stackServiceMapper = App.QuickDataMapper.create({
         item.serviceComponents.forEach(function (serviceComponent) {
           serviceComponent.StackServiceComponents.id = serviceComponent.StackServiceComponents.component_name;
           serviceComponent.StackServiceComponents.dependencies = serviceComponent.dependencies;
+          serviceComponent.StackServiceComponents.custom_commands = serviceComponent.StackServiceComponents.custom_commands;
           serviceComponents.push(serviceComponent.StackServiceComponents);
           stackServiceComponents.push(this.parseIt(serviceComponent.StackServiceComponents, this.get('component_config')));
         }, this);

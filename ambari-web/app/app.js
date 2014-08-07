@@ -130,6 +130,10 @@ module.exports = Em.Application.create({
 
     monitoring: function () {
       return App.StackService.find().filterProperty('isMonitoringService').mapProperty('serviceName');
+    }.property('App.router.clusterController.isLoaded'),
+
+    supportsServiceCheck: function() {
+      return App.StackService.find().filterProperty('serviceCheckSupported').mapProperty('serviceName');
     }.property('App.router.clusterController.isLoaded')
   }),
 

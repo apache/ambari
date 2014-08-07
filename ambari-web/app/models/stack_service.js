@@ -40,6 +40,7 @@ App.StackService = DS.Model.extend(App.ServiceModelMixin, {
   comments: DS.attr('string'),
   configTypes: DS.attr('object'),
   serviceVersion: DS.attr('string'),
+  serviceCheckSupported: DS.attr('boolean'),
   stackName: DS.attr('string'),
   stackVersion: DS.attr('string'),
   isSelected: DS.attr('boolean', {defaultValue: true}),
