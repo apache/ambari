@@ -37,6 +37,7 @@ App.InstallerController = App.WizardController.extend({
     configGroups: [],
     slaveGroupProperties: null,
     stacks: null,
+    clients:[],
     controllerName: 'installerController'
   }),
 

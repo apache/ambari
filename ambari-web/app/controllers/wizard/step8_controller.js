@@ -338,7 +338,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
     var mappedConfigs = App.config.excludeUnsupportedConfigs(this.get('configMapping'), this.get('selectedServices').mapProperty('serviceName'));
     var uiConfigs = this.loadUiSideConfigs(mappedConfigs);
     var customGroupConfigs = [];
-    var allConfigs = configs.concat(uiConfigs).filter(function(config) {
+    var allConfigs = configs.concat(uiConfigs).filter(function (config) {
       if (config.group) {
         customGroupConfigs.push(config);
         return false;
@@ -1001,6 +1001,9 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
       }
       this.createMasterHostComponents();
       this.createSlaveAndClientsHostComponents();
+      if (this.get('content.controllerName') === 'addServiceController') {
+        this.createAdditionalClientComponents();
+      }
       this.createAdditionalHostComponents();
 
       this.set('ajaxQueueLength', this.get('ajaxRequestsQueue.queue.length'));
@@ -1211,9 +1214,9 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
    * @method createSlaveAndClientsHostComponents
    */
   createSlaveAndClientsHostComponents: function () {
-    var masterHosts = this.get('content.masterComponentHosts'),
-      slaveHosts = this.get('content.slaveComponentHosts'),
-      clients = this.get('content.clients');
+    var masterHosts = this.get('content.masterComponentHosts');
+    var slaveHosts = this.get('content.slaveComponentHosts');
+    var clients = this.get('content.clients').filterProperty('isInstalled',false);
 
     /**
      * Determines on which hosts client should be installed (based on availability of master components on hosts)
@@ -1236,62 +1239,80 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
       }
       else {
         clients.forEach(function (_client) {
-
           var hostNames = _slave.hosts.mapProperty('hostName');
           if (clientsToMasterMap[_client.component_name]) {
             clientsToMasterMap[_client.component_name].forEach(function (componentName) {
-              masterHosts.filterProperty('component', componentName).filterProperty('isInstalled', false).forEach(function (_masterHost) {
+              masterHosts.filterProperty('component', componentName).forEach(function (_masterHost) {
                 hostNames.pushObject(_masterHost.hostName);
               });
             });
           }
           hostNames = hostNames.uniq();
-
-          if (_client.isInstalled) {
-            /**
-             * check whether clients are already installed on selected master hosts!!!
-             */
-            var clientHosts = [];
-            var installedHosts = this.get('content.hosts');
-            for (var hostName in installedHosts) {
-              if (installedHosts[hostName].isInstalled &&
-                installedHosts[hostName].hostComponents.filterProperty('HostRoles.state', 'INSTALLED').mapProperty('HostRoles.component_name').contains(_client.component_name)) {
-                clientHosts.push(hostName);
-              }
-            }
-
-            if (clientHosts.length > 0) {
-              clientHosts.forEach(function (hostName) {
-                if (hostNames.contains(hostName)) {
-                  hostNames.splice(hostNames.indexOf(hostName), 1);
-                }
-              }, this);
-            }
-            /**
-             * For Add Service Only
-             * if client is not added to host or is not installed add Object
-             * {
-             *    componentName: {String},
-             *    hostName: {String}
-             * }
-             * to content.additionalClients
-             * later it will be used to install client on host before installing new services
-             */
-            if (this.get('content.controllerName') === 'addServiceController' && hostNames.length > 0) {
-              hostNames.forEach(function (hostName) {
-                this.get('content.additionalClients').push(Em.Object.create({
-                  componentName: _client.component_name, hostName: hostName
-                }))
-              }, this)
-
-            }
-          }
-
           this.registerHostsToComponent(hostNames, _client.component_name);
-
         }, this);
       }
     }, this);
+  },
+
+  /**
+   * This function is specific to addServiceController
+   * Newly introduced master components requires some existing client components to be hosted along with them
+   */
+  createAdditionalClientComponents: function () {
+    var masterHosts = this.get('content.masterComponentHosts');
+    var clientsToMasterMap = this.getClientsToMasterMap();
+    var installedClients = [];
+
+    // Get all the installed Client components
+    this.get('content.services').filterProperty('isInstalled').forEach(function (_service) {
+      var serviceClients = App.StackServiceComponent.find().filterProperty('serviceName', _service.get('serviceName')).filterProperty('isClient');
+      serviceClients.forEach(function (client) {
+        installedClients.push(client.get('componentName'));
+      }, this);
+    }, this);
+
+    // Check if there is a dependency for being co-hosted between existing client and selected new master
+    installedClients.forEach(function (_clientName) {
+      if (clientsToMasterMap[_clientName]) {
+        var hostNames = [];
+        clientsToMasterMap[_clientName].forEach(function (componentName) {
+          masterHosts.filterProperty('component', componentName).filterProperty('isInstalled', false).forEach(function (_masterHost) {
+            hostNames.pushObject(_masterHost.hostName);
+          }, this);
+        }, this);
+        hostNames = hostNames.uniq();
+        this.get('content.additionalClients').pushObject({hostNames: hostNames, componentName: _clientName});
+        // If a dependency for being co-hosted is derived between existing client and selected new master but that
+        // dependency is already satisfied in the cluster then disregard the derived dependency
+        this.removeClientsFromList(_clientName, hostNames);
+        this.registerHostsToComponent(hostNames, _clientName);
+      }
+    }, this);
+  },
+
+  /**
+   *
+   * @param clientName
+   * @param hostList
+   */
+  removeClientsFromList: function (clientName, hostList) {
+    var clientHosts = [];
+    var installedHosts = this.get('content.hosts');
+    for (var hostName in installedHosts) {
+      if (installedHosts[hostName].isInstalled) {
+        if (installedHosts[hostName].hostComponents.mapProperty('HostRoles.component_name').contains(clientName)) {
+          clientHosts.push(hostName);
+        }
+      }
+    }
+
+    if (clientHosts.length > 0) {
+      clientHosts.forEach(function (hostName) {
+        if (hostList.contains(hostName)) {
+          hostList.splice(hostList.indexOf(hostName), 1);
+        }
+      }, this);
+    }
   },
 
   /**

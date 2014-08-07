@@ -81,7 +81,7 @@ App.WizardStep6Controller = Em.Controller.extend({
     return this.get('content.controllerName') === 'addServiceController';
   }.property('content.controllerName'),
 
-  installedServiceNames: function() {
+  installedServiceNames: function () {
     return this.get('content.services').filterProperty('isInstalled').mapProperty('serviceName');
   }.property('content.services').cacheable(),
 
@@ -182,20 +182,6 @@ App.WizardStep6Controller = Em.Controller.extend({
   },
 
   /**
-   * Return whether service was selected or not
-   * @param {string} name serviceName
-   * @return {bool}
-   * @method isServiceSelected
-   */
-  isServiceSelected: function (name) {
-    var serviceName = this.get('content.services').findProperty('serviceName', name);
-    if (!serviceName) {
-      return !!serviceName;
-    }
-    return serviceName.get('isSelected') || serviceName.get('isInstalled');
-  },
-
-  /**
    * Checkbox check callback
    * Verify if all/none checkboxes for current component are checked
    * @param {String} component
@@ -226,8 +212,6 @@ App.WizardStep6Controller = Em.Controller.extend({
    * @method loadStep
    */
   loadStep: function () {
-
-    var self = this;
 
     console.log("WizardStep6Controller: Loading step6: Assign Slaves");
     this.clearStep();
@@ -282,7 +266,7 @@ App.WizardStep6Controller = Em.Controller.extend({
     for (var index in hostInfo) {
       if (hostInfo.hasOwnProperty(index)) {
         if (hostInfo[index].bootStatus === 'REGISTERED') {
-          if(!getUninstalledHosts || !hostInfo[index].isInstalled) {
+          if (!getUninstalledHosts || !hostInfo[index].isInstalled) {
             hostNames.push(hostInfo[index].name);
           }
         }
@@ -346,25 +330,13 @@ App.WizardStep6Controller = Em.Controller.extend({
     var slaveComponents = this.get('content.slaveComponentHosts');
     if (!slaveComponents) { // we are at this page for the first time
       if (!App.supports.serverRecommendValidate) {
-        var client_is_set = false;
         hostsObj.forEach(function (host) {
           var checkboxes = host.get('checkboxes');
           checkboxes.setEach('checked', !host.hasMaster);
           checkboxes.setEach('isInstalled', false);
           checkboxes.findProperty('title', headers.findProperty('name', 'CLIENT').get('label')).set('checked', false);
-          // First not Master should have Client (only first!)
-          if (!client_is_set) {
-            var dfs = App.StackService.find().findProperty('isPrimaryDFS');
-            if (dfs.get('isSelected') || dfs.get('isInstalled')) {
-              var checkboxServiceComponent = checkboxes.findProperty('title', headers.findProperty('name', dfs.get('serviceComponents').
-                findProperty('isShownOnInstallerSlaveClientPage').get('componentName')).get('label'));
-              if (checkboxServiceComponent && checkboxServiceComponent.get('checked')) {
-                checkboxes.findProperty('title', headers.findProperty('name', 'CLIENT').get('label')).set('checked', true);
-                client_is_set = true;
-              }
-            }
-          }
         });
+        this.selectClientHost(hostsObj);
 
         if (this.get('isInstallerWizard') && hostsObj.everyProperty('hasMaster', true)) {
           var lastHost = hostsObj[hostsObj.length - 1];
@@ -373,9 +345,9 @@ App.WizardStep6Controller = Em.Controller.extend({
       } else {
         var recommendations = App.router.get('installerController.recommendations');
         // Get all host-component pairs from recommendations
-        var componentHostPairs = recommendations.blueprint.host_groups.map(function(group) {
-          return group.components.map(function(component) {
-            return recommendations.blueprint_cluster_binding.host_groups.findProperty('name', group.name).hosts.map(function(host) {
+        var componentHostPairs = recommendations.blueprint.host_groups.map(function (group) {
+          return group.components.map(function (component) {
+            return recommendations.blueprint_cluster_binding.host_groups.findProperty('name', group.name).hosts.map(function (host) {
               return { component: component.name, host: host.fqdn};
             });
           });
@@ -390,8 +362,8 @@ App.WizardStep6Controller = Em.Controller.extend({
 
         hostsObj.forEach(function (host) {
           var checkboxes = host.get('checkboxes');
-          checkboxes.forEach(function(checkbox) {
-            var recommended = componentHostPairs.some(function(pair) {
+          checkboxes.forEach(function (checkbox) {
+            var recommended = componentHostPairs.some(function (pair) {
               var componentMatch = pair.component === checkbox.component;
               if (checkbox.component === 'CLIENT' && !componentMatch) {
                 componentMatch = clientComponents.contains(pair.component);
@@ -416,7 +388,30 @@ App.WizardStep6Controller = Em.Controller.extend({
         }
       });
     }
+    this.selectClientHost(hostsObj);
     return hostsObj;
+  },
+
+
+  /**
+   *
+   * @param hostsObj
+   */
+  selectClientHost: function (hostsObj) {
+    var headers = this.get('headers');
+    var client_is_set = false;
+    hostsObj.forEach(function (host) {
+      if (!client_is_set) {
+        var checkboxes = host.get('checkboxes');
+        var dfsService = App.StackService.find().findProperty('isPrimaryDFS');
+        var checkboxServiceComponent = checkboxes.findProperty('title', headers.findProperty('name', dfsService.get('serviceComponents').
+          findProperty('isShownOnInstallerSlaveClientPage').get('componentName')).get('label'));
+        if (checkboxServiceComponent && checkboxServiceComponent.get('checked')) {
+          checkboxes.findProperty('title', headers.findProperty('name', 'CLIENT').get('label')).set('checked', true);
+          client_is_set = true;
+        }
+      }
+    }, this);
   },
 
   /**
@@ -518,15 +513,19 @@ App.WizardStep6Controller = Em.Controller.extend({
     var headers = this.get('headers');
     var componentsToInstall = [];
     headers.forEach(function (header) {
-      var checkboxes = hosts.mapProperty('checkboxes').reduce(function(cItem, pItem) { return cItem.concat(pItem); });
+      var checkboxes = hosts.mapProperty('checkboxes').reduce(function (cItem, pItem) {
+        return cItem.concat(pItem);
+      });
       var selectedCount = checkboxes.filterProperty('component', header.get('name')).filterProperty('checked').length;
       if (header.get('name') == 'CLIENT') {
         var clientsMinCount = 0;
         var serviceNames = this.get('installedServiceNames').concat(this.get('content.selectedServiceNames'));
         // find max value for `minToInstall` property
-        serviceNames.forEach(function(serviceName) {
+        serviceNames.forEach(function (serviceName) {
           App.StackServiceComponent.find().filterProperty('stackService.serviceName', serviceName).filterProperty('isClient')
-            .mapProperty('minToInstall').forEach(function(ctMinCount) { clientsMinCount = ctMinCount > clientsMinCount ? ctMinCount : clientsMinCount; });
+            .mapProperty('minToInstall').forEach(function (ctMinCount) {
+              clientsMinCount = ctMinCount > clientsMinCount ? ctMinCount : clientsMinCount;
+            });
         });
         if (selectedCount < clientsMinCount) {
           isError = true;

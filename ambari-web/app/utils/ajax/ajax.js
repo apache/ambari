@@ -76,6 +76,25 @@ var urls = {
     }
   },
 
+  'common.host_component.update': {
+    'real': '/clusters/{clusterName}/host_components',
+    'mock': '',
+    'type': 'PUT',
+    'format': function (data) {
+      return {
+        data: JSON.stringify({
+          RequestInfo: {
+            context: data.context,
+            query: data.query
+          },
+          Body: {
+            "HostRoles": data.HostRoles
+          }
+        })
+      }
+    }
+  },
+
   'common.host.host_components.update': {
     'real': '/clusters/{clusterName}/hosts/{hostName}/host_components?{urlParams}',
     'mock': '',
