@@ -777,6 +777,7 @@ App.WizardStep5Controller = Em.Controller.extend({
       newMaster.set("display_name", lastMaster.get("display_name"));
       newMaster.set("component_name", lastMaster.get("component_name"));
       newMaster.set("selectedHost", lastMaster.get("selectedHost"));
+      newMaster.set("serviceId", lastMaster.get("serviceId"));
       newMaster.set("isInstalled", false);
 
       if (currentMasters.get("length") === (maxNumMasters - 1)) {
