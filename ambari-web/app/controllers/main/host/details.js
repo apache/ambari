@@ -378,9 +378,10 @@ App.MainHostDetailsController = Em.Controller.extend({
    * if true security is enabled otherwise disabled
    * @return {Boolean}
    */
-  getSecurityStatus: function () {
-    return App.router.get('mainAdminSecurityController').getUpdatedSecurityStatus();
-  },
+  securityEnabled: function () {
+    return App.router.get('mainAdminSecurityController.securityEnabled');
+  }.property('App.router.mainAdminSecurityController.securityEnabled'),
+
 
   /**
    * Send command to server to install selected host component
@@ -392,15 +393,13 @@ App.MainHostDetailsController = Em.Controller.extend({
     var component = event.context;
     var componentName = component.get('componentName');
 
-    var securityEnabled = this.getSecurityStatus();
-
     if (componentName === 'ZOOKEEPER_SERVER') {
       return App.showConfirmationPopup(function () {
         self.primary(component);
       }, Em.I18n.t('hosts.host.addComponent.addZooKeeper'));
     }
     else {
-      if (securityEnabled && componentName !== 'CLIENTS') {
+      if (this.get('securityEnabled') && componentName !== 'CLIENTS') {
         return App.showConfirmationPopup(function () {
           self.primary(component);
         }, Em.I18n.t('hosts.host.addComponent.securityNote').format(componentName, self.get('content.hostName')));

@@ -49,6 +49,22 @@ App.WizardStep7Controller = Em.Controller.extend({
   secureConfigs: require('data/secure_mapping'),
 
   /**
+   * config categories with secure properties
+   * use only for add service wizard when security is enabled;
+   */
+  secureServices: function () {
+    return (App.get('isHadoop2Stack')) ?
+        $.extend(true, [], require('data/HDP2/secure_configs')) :
+        $.extend(true, [], require('data/secure_configs'));
+  }.property('App.isHadoop2Stack'),
+
+  /**
+   * uses for add service - find out is security is enabled
+   */
+  securityEnabled: function () {
+    return App.router.get('mainAdminSecurityController.securityEnabled');
+  }.property('App.router.mainAdminSecurityController.securityEnabled'),
+  /**
    * If miscConfigChange Modal is shown
    * @type {bool}
    */
@@ -741,8 +757,12 @@ App.WizardStep7Controller = Em.Controller.extend({
       serviceConfigs.setEach('selected', false);
       this.get('selectedServiceNames').forEach(function (serviceName) {
         if (!serviceConfigs.findProperty('serviceName', serviceName)) return;
-        serviceConfigs.findProperty('serviceName', serviceName).set('selected', true);
-      });
+        var selectedService = serviceConfigs.findProperty('serviceName', serviceName).set('selected', true);
+        // add secure configs when security is enabled
+        if(this.get('securityEnabled')) {
+          this.addSecureConfigs(selectedService, serviceName) ;
+        }
+      }, this);
 
       // Remove SNameNode if HA is enabled
       if (App.get('isHaEnabled')) {
@@ -757,6 +777,26 @@ App.WizardStep7Controller = Em.Controller.extend({
 
     this.set('stepConfigs', serviceConfigs);
   },
+
+  /**
+   *
+   * @param selectedService
+   * @param serviceName
+   */
+   addSecureConfigs: function(selectedService, serviceName) {
+     var secureService = this.get('secureServices').findProperty('serviceName', serviceName);
+     if (!secureService) {
+       return;
+     }
+     secureService.configCategories.forEach(function (category) {
+       selectedService.get('configCategories').push(category);
+     });
+     secureService.configs.forEach(function (conf) {
+       conf.isVisible = !conf.displayType.contains('masterHost') && !conf.displayType.contains('slaveHost');
+       var config = App.ServiceConfigProperty.create(conf);
+       selectedService.get('configs').push(config);
+     }, this);
+   },
 
   /**
    * Select first addable service for <code>addServiceWizard</code>

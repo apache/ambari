@@ -345,6 +345,7 @@ App.ClusterController = Em.Controller.extend({
         });
       });
     });
+    App.router.get('mainAdminSecurityController').getUpdatedSecurityStatus();
   },
 
   requestHosts: function (realUrl, callback) {

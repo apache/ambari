@@ -21,10 +21,6 @@ var App = require('app');
 App.MainAdminHighAvailabilityView = Em.View.extend({
   templateName: require('templates/main/admin/highAvailability'),
 
-  didInsertElement: function () {
-    this.get('controller').setSecurityStatus();
-  },
-
   supportRMHA: function () {
     return App.get('isHadoop21Stack') && App.get('supports.resourceManagerHighAvailability');
   }

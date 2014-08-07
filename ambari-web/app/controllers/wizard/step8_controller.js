@@ -19,7 +19,7 @@
 var App = require('app');
 var stringUtils = require('utils/string_utils');
 
-App.WizardStep8Controller = Em.Controller.extend({
+App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
 
   name: 'wizardStep8Controller',
 
@@ -194,13 +194,20 @@ App.WizardStep8Controller = Em.Controller.extend({
    */
   loadStep: function () {
     console.log("TRACE: Loading step8: Review Page");
-    if (this.get('content.controllerName') != 'installerController') {
-      App.router.get('mainAdminSecurityController').setSecurityStatus();
-    }
     this.clearStep();
     if (this.get('content.serviceConfigProperties')) {
       this.formatProperties();
       this.loadConfigs();
+      if (this.get('content.controllerName') != 'installerController' && this.get('securityEnabled')) {
+        this.prepareSecureConfigs();
+        this.get('content.services').filterProperty('isSelected', true)
+            .mapProperty('serviceName').forEach(function(serviceName){
+             var config = this.get('secureConfigs').findProperty('serviceName', serviceName);
+             if (config) {
+               this.setPrincipalValue(serviceName, config.name);
+             }
+        }, this);
+      }
     }
     this.loadClusterInfo();
     this.loadServices();

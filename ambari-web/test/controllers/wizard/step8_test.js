@@ -282,21 +282,6 @@ describe('App.WizardStep8Controller', function () {
       installerStep8Controller.loadStep();
       expect(installerStep8Controller.get('isBackBtnDisabled')).to.equal(false);
     });
-    it('should call setSecurityStatus for non-installerController', function () {
-      var obj = Em.Object.create({
-        setSecurityStatus: Em.K
-      });
-      sinon.stub(App.router, 'get', function () {
-        return obj;
-      });
-      sinon.spy(obj, 'setSecurityStatus');
-      installerStep8Controller.set('content.controllerName', 'addServiceController');
-      installerStep8Controller.loadStep();
-      expect(obj.setSecurityStatus.calledOnce).to.equal(true);
-      obj.setSecurityStatus.restore();
-      App.router.get.restore();
-
-    });
   });
 
   describe('#removeHiveConfigs', function () {
