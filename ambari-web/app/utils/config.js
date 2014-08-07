@@ -929,8 +929,7 @@ App.config = Em.Object.create({
       for (var prop in properties) {
         var fileName = this.getOriginalFileName(config.type);
         var serviceConfig = !!params.configKeyToConfigMap[fileName] ? params.configKeyToConfigMap[fileName][prop] : false;
-        var hostOverrideValue = properties[prop];
-        this.formatOverrideValue(serviceConfig, hostOverrideValue);
+        var hostOverrideValue = this.formatOverrideValue(serviceConfig, properties[prop]);
         if (serviceConfig) {
           // Value of this property is different for this host.
           if (!Em.get(serviceConfig, 'overrides')) Em.set(serviceConfig, 'overrides', []);
@@ -982,18 +981,17 @@ App.config = Em.Object.create({
   formatOverrideValue: function (serviceConfig, hostOverrideValue) {
     if (serviceConfig && serviceConfig.displayType === 'int') {
       if (/\d+m$/.test(hostOverrideValue)) {
-        hostOverrideValue = hostOverrideValue.slice(0, hostOverrideValue.length - 1);
+        return hostOverrideValue.slice(0, hostOverrideValue.length - 1);
       }
     } else if (serviceConfig && serviceConfig.displayType === 'checkbox') {
       switch (hostOverrideValue) {
         case 'true':
-          hostOverrideValue = true;
-          break;
+          return true;
         case 'false':
-          hostOverrideValue = false;
-          break;
+          return false;
       }
     }
+    return hostOverrideValue;
   },
 
   /**

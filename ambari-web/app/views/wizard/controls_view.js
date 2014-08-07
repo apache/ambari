@@ -76,7 +76,7 @@ App.ServiceConfigTextField = Ember.TextField.extend(App.ServiceConfigPopoverSupp
   },
   //Set editDone false for all current category config text field parameter
   focusIn: function (event) {
-    if (!this.get('serviceConfig.isOverridden')) {
+    if (!this.get('serviceConfig.isOverridden') && !this.get('serviceConfig.isComparison')) {
       this.get("parentView.categoryConfigsAll").setEach("editDone", false);
     }
   },
@@ -475,6 +475,18 @@ App.ServiceConfigMasterHostView = Ember.View.extend(App.ServiceConfigHostPopover
 
   template: Ember.Handlebars.compile('{{value}}')
 
+});
+
+/**
+ * Show value as plain label in italics
+ * @type {*}
+ */
+App.ServiceConfigLabelView = Ember.View.extend(App.ServiceConfigHostPopoverSupport, {
+
+  classNames: ['master-host', 'span6'],
+  valueBinding: 'serviceConfig.value',
+
+  template: Ember.Handlebars.compile('<i>{{view.value}}</i>')
 });
 
 /**

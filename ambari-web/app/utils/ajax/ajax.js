@@ -1756,23 +1756,13 @@ var urls = {
       }
     }
   },
-  'service.config.version.get': {
-    //TODO set actual url when API is ready
-    'real': '',
-    'mock': '',
-    format: function(data) {
-      return {
-        url: data.url
-      }
-    }
-  },
   'service.serviceConfigVersions.get': {
     real: '/clusters/{clusterName}/configurations/serviceconfigversions?service_name={serviceName}&fields=serviceconfigversion,user,appliedtime,createtime,service_name&minimal_response=true',
-    mock: ''
+    mock: '/data/configurations/service_versions.json'
   },
   'service.serviceConfigVersion.get': {
     real: '/clusters/{clusterName}/configurations/serviceconfigversions?service_name={serviceName}&serviceconfigversion={serviceConfigVersion}',
-    mock: ''
+    mock: '/data/configurations/service_version.json'
   },
   'service.serviceConfigVersion.revert': {
     'real': '/clusters/{clusterName}',

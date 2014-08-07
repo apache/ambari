@@ -77,10 +77,8 @@
 	</div>
 {{/if}}
 
-{{#if App.supports.configHistory}}
-  {{#if view.showConfigHistoryFlow}}
-    {{view App.ConfigHistoryFlowView serviceBinding="selectedService"}}
-  {{/if}}
+{{#if view.showConfigHistoryFeature}}
+  {{view App.ConfigHistoryFlowView serviceBinding="selectedService"}}
 {{/if}}
 
 {{#if versionLoaded}}

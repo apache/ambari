@@ -34,6 +34,10 @@ App.ConfigHistoryFlowView = Em.View.extend({
    */
   showFullList: false,
 
+  isSaveDisabled: function () {
+    return (this.get('controller.isSubmitDisabled') || !this.get('controller.versionLoaded'));
+  }.property('controller.isSubmitDisabled', 'controller.versionLoaded'),
+
   serviceName: function () {
     return this.get('controller.selectedService.serviceName');
   }.property('controller.selectedService.serviceName'),
@@ -96,9 +100,7 @@ App.ConfigHistoryFlowView = Em.View.extend({
     var serviceVersions = this.get('serviceVersions');
     var startIndex = 0;
 
-    serviceVersions.setEach('isCurrent', false);
     serviceVersions.setEach('isDisplayed', false);
-    serviceVersions.findProperty('appliedTime', Math.max.apply(this, serviceVersions.mapProperty('appliedTime'))).set('isCurrent', true);
     serviceVersions.findProperty('isCurrent').set('isDisplayed', true);
 
     if (serviceVersions.length > 0) {
@@ -218,11 +220,11 @@ App.ConfigHistoryFlowView = Em.View.extend({
     this.get('serviceVersions').forEach(function (serviceVersion) {
       serviceVersion.set('isCurrent', serviceVersion.get('version') === version);
     });
-    if (this.get('displayedServiceVersion.version') !== version) {
-      this.switchVersion({context: Em.Object.create({
-        version: version
-      })});
-    }
+    this.set('controller.currentVersion', version);
+
+    this.switchVersion({context: Em.Object.create({
+      version: version
+    })});
   },
 
   /**

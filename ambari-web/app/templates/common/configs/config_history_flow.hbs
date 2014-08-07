@@ -77,12 +77,11 @@
             <strong>{{view.displayedServiceVersion.author}}</strong>&nbsp;{{t dashboard.configHistory.info-bar.authoredOn}}&nbsp;<strong>{{view.displayedServiceVersion.modifiedDate}}</strong>
         </div>
         <div class="pull-right">
-            {{#if view.displayedServiceVersion.isCurrent}}
-                <button class="btn" {{action doCancel target="controller"}}>{{t common.cancel}}</button>
-                <button class="btn btn-success" {{bindAttr disabled="isSubmitDisabled"}} {{action save target="view"}}>{{t common.save}}</button>
-            {{else}}
-                <button class="btn btn-success" {{action revert view.displayedServiceVersion target="view"}} {{bindAttr disabled="view.versionActionsDisabled"}}>{{t dashboard.configHistory.info-bar.revert.button}}</button>
-            {{/if}}
+            <div {{bindAttr class="view.displayedServiceVersion.isCurrent::hidden"}}>
+                <button class="btn" {{action doCancel target="controller"}} {{bindAttr disabled="view.versionActionsDisabled"}}>{{t common.cancel}}</button>
+                <button class="btn btn-success" {{action save target="view"}} {{bindAttr disabled="view.isSaveDisabled"}}>{{t common.save}}</button>
+            </div>
+            <button class="btn btn-success"  {{action revert view.displayedServiceVersion target="view"}} {{bindAttr disabled="view.versionActionsDisabled" class="view.displayedServiceVersion.isCurrent:hidden"}}>{{t dashboard.configHistory.info-bar.revert.button}}</button>
         </div>
     </div>
     <div class="label-wrapper">

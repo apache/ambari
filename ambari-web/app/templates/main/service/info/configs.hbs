@@ -43,9 +43,9 @@
       {{/if}}
     {{/if}}
     <div class="clearfix"></div>
-    {{view App.ServiceConfigView filterBinding="controller.filter" columnsBinding="controller.filterColumns"}}
+    {{view App.ServiceConfigView filterBinding="controller.filter" columnsBinding="controller.filterColumns" canEditBinding="controller.isCurrentSelected" showConfigHistoryFeatureBinding="controller.showConfigHistoryFeature"}}
     {{#if App.isAdmin}}
-      {{#unless App.supports.configHistory}}
+      {{#unless showConfigHistoryFeature}}
           <p class="pull-right">
               <!--<input class="btn btn-primary" type="button" value="Save" {{!bindAttr disabled="isSubmitDisabled"}} />-->
               <a class="btn" {{action doCancel target="controller"}}>{{t common.cancel}}</a>

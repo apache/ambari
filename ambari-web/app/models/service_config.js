@@ -154,6 +154,7 @@ App.ServiceConfigProperty = Ember.Object.extend({
   defaultIsFinal: false,
   supportsFinal: false,
   isVisible: true,
+  isMock: false, // mock config created created only to displaying
   isRequiredByAgent: true, // Setting it to true implies property will be stored in configuration
   isSecureConfig: false,
   errorMessage: '',
@@ -689,6 +690,8 @@ App.ServiceConfigProperty = Ember.Object.extend({
         return App.ServiceConfigBigTextArea;
       case 'masterHost':
         return App.ServiceConfigMasterHostView;
+      case 'label':
+        return App.ServiceConfigLabelView;
       case 'masterHosts':
         return App.ServiceConfigMasterHostsView;
       case 'slaveHosts':

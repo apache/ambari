@@ -28,6 +28,7 @@ App.serviceConfigVersionsMapper = App.QuickDataMapper.create({
     applied_time: 'appliedtime',
     author: 'user',
     notes: 'notes',
+    is_current: 'is_current',
     index: 'index'
   },
   map: function (json) {
