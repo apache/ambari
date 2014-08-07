@@ -772,27 +772,28 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public synchronized void updateMembers(Set<MemberRequest> requests) throws AmbariException {
-    final Map<String, List<String>> membersPerGroup = new HashMap<String, List<String>>();
-    for (MemberRequest request : requests) {
-      if (StringUtils.isBlank(request.getGroupName()) || StringUtils.isBlank(request.getUserName())) {
-        throw new AmbariException("Both group name and user name must be supplied.");
+    // validate
+    String groupName = null;
+    for (MemberRequest request: requests) {
+      if (groupName != null && !request.getGroupName().equals(groupName)) {
+        throw new AmbariException("Can't manage members of different groups in one request");
       }
-      if (membersPerGroup.get(request.getGroupName()) == null) {
-        membersPerGroup.put(request.getGroupName(), new ArrayList<String>());
-      }
-      membersPerGroup.get(request.getGroupName()).add(request.getUserName());
+      groupName = request.getGroupName();
     }
-    for (Entry<String, List<String>> entry: membersPerGroup.entrySet()) {
-      final String groupName = entry.getKey();
-      final List<String> requiredMembers = entry.getValue();
-      final List<String> currentMembers = users.getAllMembers(groupName);
-      for (String user: (Collection<String>) CollectionUtils.subtract(currentMembers, requiredMembers)) {
-        users.removeMemberFromGroup(groupName, user);
+    final List<String> requiredMembers = new ArrayList<String>();
+    for (MemberRequest request: requests) {
+      if (request.getUserName() != null) {
+        requiredMembers.add(request.getUserName());
       }
-      for (String user: (Collection<String>) CollectionUtils.subtract(requiredMembers, currentMembers)) {
-        users.addMemberToGroup(groupName, user);
-      }
+    }
+    final List<String> currentMembers = users.getAllMembers(groupName);
+    for (String user: (Collection<String>) CollectionUtils.subtract(currentMembers, requiredMembers)) {
+      users.removeMemberFromGroup(groupName, user);
+    }
+    for (String user: (Collection<String>) CollectionUtils.subtract(requiredMembers, currentMembers)) {
+      users.addMemberToGroup(groupName, user);
     }
   }
 

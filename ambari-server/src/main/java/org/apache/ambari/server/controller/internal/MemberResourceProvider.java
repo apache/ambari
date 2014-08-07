@@ -18,6 +18,7 @@
 package org.apache.ambari.server.controller.internal;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -36,6 +37,7 @@ import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 import com.google.inject.persist.Transactional;
@@ -137,6 +139,12 @@ public class MemberResourceProvider extends AbstractControllerResourceProvider {
 
     final Set<MemberRequest> requests = new HashSet<MemberRequest>();
     for (Map<String, Object> propertyMap : request.getProperties()) {
+      requests.add(getRequest(propertyMap));
+    }
+    if (requests.isEmpty()) {
+      // request for removing all users from group
+      Map<String, Object> propertyMap = new HashMap<String, Object>();
+      propertyMap.put(MEMBER_GROUP_NAME_PROPERTY_ID, getQueryParameterValue(MEMBER_GROUP_NAME_PROPERTY_ID, predicate));
       requests.add(getRequest(propertyMap));
     }
 

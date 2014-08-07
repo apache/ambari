@@ -183,20 +183,17 @@ public abstract class AbstractControllerResourceProvider extends AbstractResourc
 
     Object result = null;
 
-    if (predicate instanceof ArrayPredicate) {
+    if (predicate instanceof EqualsPredicate) {
+      EqualsPredicate equalsPredicate = (EqualsPredicate) predicate;
+      if (queryParameterId.equals(equalsPredicate.getPropertyId())) {
+        return equalsPredicate.getValue();
+      }
+    } else if (predicate instanceof ArrayPredicate) {
       ArrayPredicate arrayPredicate  = (ArrayPredicate) predicate;
       for (Predicate predicateItem : arrayPredicate.getPredicates()) {
-          if (predicateItem instanceof EqualsPredicate) {
-            EqualsPredicate equalsPredicate =
-                (EqualsPredicate) predicateItem;
-            if (queryParameterId.equals(equalsPredicate.getPropertyId())) {
-              return equalsPredicate.getValue();
-            }
-          } else {
-            result = getQueryParameterValue(queryParameterId, predicateItem);
-            if (result != null) {
-              return result;
-          }
+        result = getQueryParameterValue(queryParameterId, predicateItem);
+        if (result != null) {
+          return result;
         }
       }
 
