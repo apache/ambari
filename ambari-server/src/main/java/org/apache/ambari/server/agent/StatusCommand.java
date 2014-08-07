@@ -18,11 +18,11 @@
 package org.apache.ambari.server.agent;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-import com.google.gson.annotations.SerializedName;
 import org.codehaus.jackson.annotate.JsonProperty;
+
+import com.google.gson.annotations.SerializedName;
 
 /**
  * Command to report the status of a list of services in roles.
@@ -41,6 +41,8 @@ public class StatusCommand extends AgentCommand {
   private Map<String, Map<String, Map<String, String>>> configurationAttributes;
   private Map<String, String> commandParams = new HashMap<String, String>();
   private Map<String, String> hostLevelParams = new HashMap<String, String>();
+  private String hostname = null;
+  
 
   @JsonProperty("clusterName")
   public String getClusterName() {
@@ -111,5 +113,16 @@ public class StatusCommand extends AgentCommand {
   public void setCommandParams(Map<String, String> commandParams) {
     this.commandParams = commandParams;
   }
+  
+  @JsonProperty("hostname")
+  public void setHostname(String hostname) {
+    this.hostname = hostname;
+  }
 
+  @JsonProperty("hostname")
+  public String getHostname() {
+    return hostname;
+  }
+  
+  
 }

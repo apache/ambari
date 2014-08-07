@@ -295,6 +295,8 @@ public class TestHeartbeatMonitor {
     assertTrue("HeartbeatMonitor should generate StatusCommands for host2, " +
       "even if it has only client components", cmds.size() == 1);
     assertTrue(cmds.get(0).getComponentName().equals(Role.HDFS_CLIENT.name()));
+    assertEquals(hostname2, cmds.get(0).getHostname());
+
   }
 
   @Test

@@ -311,6 +311,7 @@ public class HeartbeatMonitor implements Runnable {
     statusCmd.setComponentName(componentName);
     statusCmd.setConfigurations(configurations);
     statusCmd.setConfigurationAttributes(configurationAttributes);
+    statusCmd.setHostname(hostname);
 
     // Fill command params
     Map<String, String> commandParams = statusCmd.getCommandParams();
