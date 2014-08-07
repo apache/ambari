@@ -17,14 +17,6 @@
  */
 package org.apache.ambari.server.controller.utilities;
 
-import org.apache.ambari.server.controller.internal.PropertyInfo;
-import org.apache.ambari.server.controller.internal.RequestImpl;
-import org.apache.ambari.server.controller.spi.Request;
-import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.spi.TemporalInfo;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.type.TypeReference;
-
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
@@ -34,6 +26,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.apache.ambari.server.controller.internal.PropertyInfo;
+import org.apache.ambari.server.controller.internal.RequestImpl;
+import org.apache.ambari.server.controller.spi.Request;
+import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.TemporalInfo;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.type.TypeReference;
 
 /**
  * Utility class that provides Property helper methods.
@@ -55,6 +55,26 @@ public class PropertyHelper {
    * Regular expression to check for replacement arguments (e.g. $1) in a property id.
    */
   private static final Pattern CHECK_FOR_METRIC_ARGUMENTS_REGEX = Pattern.compile(".*\\$\\d+.*");
+
+  /**
+   * This regular expression will match on every {@code /} in a given string
+   * that is not inside of quotes. The following string would be tokenized like
+   * so:
+   * <p/>
+   * {@code foo/$1.substring(5)/bar/$2.replaceAll(\"/a/b//c///\")/baz}
+   * <ul>
+   * <li>foo</li>
+   * <li>$1.substring(5)</li>
+   * <li>bar</li>
+   * <li>$2.replaceAll(\"/a/b//c///\")</li>
+   * <li>baz</li>
+   * </ul>
+   *
+   * This is necessary to be able to properly tokenize a property with {@code /}
+   * while also ensuring we don't match on {@code /} that appears inside of
+   * quotes.
+   */
+  private static final Pattern METRIC_CATEGORY_TOKENIZE_REGEX = Pattern.compile("/+(?=([^\"\\\\\\\\]*(\\\\\\\\.|\"([^\"\\\\\\\\]*\\\\\\\\.)*[^\"\\\\\\\\]*\"))*[^\"]*$)");
 
   public static String getPropertyId(String category, String name) {
     String propertyId =  (category == null || category.isEmpty())? name :
@@ -114,29 +134,82 @@ public class PropertyHelper {
   }
 
   /**
-   * Helper to get a property category from a string.
+   * Gets the parent category from a given property string. This method is used
+   * in many places by many different consumers. In general, it will check to
+   * see if the property contains arguments. If not, then a simple
+   * {@link String#substring(int, int)} is used along with
+   * {@link #EXTERNAL_PATH_SEP}.
+   * <p/>
+   * In the event that a property contains a $d parameter, it will attempt to
+   * strip out any embedded methods in the various tokens. For example, if a
+   * property of {@code foo/$1.substring(5)/bar/$2.substring(1)/baz} is given,
+   * the expected recursive categories would be:
+   * <ul>
+   * <li>foo</li>
+   * <li>foo/$1</li>
+   * <li>foo/$1/bar</li>
+   * <li>foo/$1/bar</li>
+   * <li>foo/$1/bar/$2</li>
+   * </ul>
    *
-   * @param absProperty  the fully qualified property
+   * {@code foo/$1.substring(5)/bar} is incorrect as a category.
+   *
+   * @param property
+   *          the fully qualified property
    *
    * @return the property category; null if there is no category
    */
-  public static String getPropertyCategory(String absProperty) {
+  public static String getPropertyCategory(String property) {
+    int lastPathSep = -1;
 
-    int lastPathSep;
-    if (containsArguments(absProperty)) {
-      boolean inString = false;
-      for (lastPathSep = absProperty.length() - 1; lastPathSep > 0; --lastPathSep) {
-        char c = absProperty.charAt(lastPathSep);
-        if (c == '"') {
-          inString = !inString;
-        } else if (c == EXTERNAL_PATH_SEP && !inString) {
-          break;
+    if( !containsArguments(property) ){
+      lastPathSep = property.lastIndexOf(EXTERNAL_PATH_SEP);
+      return lastPathSep == -1 ? null : property.substring(0, lastPathSep);
+    }
+
+    // attempt to split the property into its parts
+    String[] tokens = METRIC_CATEGORY_TOKENIZE_REGEX.split(property);
+    if (null == tokens || tokens.length == 0) {
+      return null;
+    }
+
+    StringBuilder categoryBuilder = new StringBuilder();
+    for (int i = 0; i < tokens.length - 1; i++) {
+      String token = tokens[i];
+
+      // if the token contains arguments, turn $1.method() into $1,
+      if (containsArguments(token)) {
+        int methodIndex = token.indexOf('.');
+
+        if (methodIndex != -1) {
+          // normally knowing where $1.method() is would be enough, but some
+          // properties may omit the / (like FLUME) so the property would look
+          // like /$1.method()FailureCount instead of /$1.method()/FailureCount
+          int parensIndex = token.lastIndexOf(')');
+          if (parensIndex < token.length() - 1) {
+            // cut out $1
+            String temp = token.substring(0, methodIndex);
+
+            // append FailureCount
+            temp += token.substring(parensIndex + 1);
+
+            // $1.method()FailureCount -> $1FailureCount
+            token = temp;
+          } else {
+            token = token.substring(0, methodIndex);
+          }
         }
       }
-    } else {
-      lastPathSep = absProperty.lastIndexOf(EXTERNAL_PATH_SEP);
+
+      // only append a / if this is not the last part of the parent category
+      categoryBuilder.append(token);
+      if (i < tokens.length - 2) {
+        categoryBuilder.append('/');
+      }
     }
-    return lastPathSep == -1 ? null : absProperty.substring(0, lastPathSep);
+
+    String category = categoryBuilder.toString();
+    return category;
   }
 
   /**

@@ -17,17 +17,17 @@
  */
 package org.apache.ambari.server.controller.utilities;
 
-import org.apache.ambari.server.controller.internal.PropertyInfo;
-import org.apache.ambari.server.controller.spi.Resource;
-import org.junit.Assert;
-import org.junit.Test;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+
+import org.apache.ambari.server.controller.internal.PropertyInfo;
+import org.apache.ambari.server.controller.spi.Resource;
+import org.junit.Assert;
+import org.junit.Test;
 
 
 /**
@@ -68,25 +68,19 @@ public class PropertyHelperTest {
   @Test
   public void testGetPropertyCategory() {
     String propertyId = "metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/AppsRunning";
-
     String category = PropertyHelper.getPropertyCategory(propertyId);
-
-    Assert.assertEquals("metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)", category);
+    Assert.assertEquals("metrics/yarn/Queue/$1", category);
 
     category = PropertyHelper.getPropertyCategory(category);
-
     Assert.assertEquals("metrics/yarn/Queue", category);
 
     category = PropertyHelper.getPropertyCategory(category);
-
     Assert.assertEquals("metrics/yarn", category);
 
     category = PropertyHelper.getPropertyCategory(category);
-
     Assert.assertEquals("metrics", category);
 
     category = PropertyHelper.getPropertyCategory(category);
-
     Assert.assertNull(category);
   }
 
@@ -96,7 +90,7 @@ public class PropertyHelperTest {
 
     Set<String> categories = PropertyHelper.getCategories(Collections.singleton(propertyId));
 
-    Assert.assertTrue(categories.contains("metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)"));
+    Assert.assertTrue(categories.contains("metrics/yarn/Queue/$1"));
     Assert.assertTrue(categories.contains("metrics/yarn/Queue"));
     Assert.assertTrue(categories.contains("metrics/yarn"));
     Assert.assertTrue(categories.contains("metrics"));
@@ -108,7 +102,7 @@ public class PropertyHelperTest {
 
     categories = PropertyHelper.getCategories(propertyIds);
 
-    Assert.assertTrue(categories.contains("metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)"));
+    Assert.assertTrue(categories.contains("metrics/yarn/Queue/$1"));
     Assert.assertTrue(categories.contains("metrics/yarn/Queue"));
     Assert.assertTrue(categories.contains("metrics/yarn"));
     Assert.assertTrue(categories.contains("metrics"));

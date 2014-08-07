@@ -18,12 +18,11 @@
 
 package org.apache.ambari.server.api.resources;
 
+import java.util.List;
+
 import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.api.util.TreeNode;
 import org.apache.ambari.server.controller.spi.Resource;
-
-import java.util.Collections;
-import java.util.List;
 
 public class ServiceConfigVersionResourceDefinition extends BaseResourceDefinition {
   /**
@@ -68,7 +67,9 @@ public class ServiceConfigVersionResourceDefinition extends BaseResourceDefiniti
 
         String serviceName = (String) resultNode.getObject().getPropertyValue("service_name");
         Long version = (Long) resultNode.getObject().getPropertyValue("serviceconfigversion");
-        href = href.substring(0, idx) + "cenfigurations/serviceconfigversions?service_name=" + serviceName + "&serviceconfigversion=" + version;
+        href = href.substring(0, idx)
+            + "configurations/serviceconfigversions?service_name="
+            + serviceName + "&serviceconfigversion=" + version;
 
         resultNode.setProperty("href", href);
       } else {

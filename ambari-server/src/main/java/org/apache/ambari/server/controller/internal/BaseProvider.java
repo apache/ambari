@@ -18,6 +18,16 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
@@ -25,10 +35,6 @@ import org.apache.ambari.server.controller.utilities.PredicateHelper;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Base provider implementation for both property and resource providers.
@@ -61,6 +67,19 @@ public abstract class BaseProvider {
   protected final static Logger LOG =
       LoggerFactory.getLogger(BaseProvider.class);
 
+  /**
+   * The regex pattern that will match on all $1, $2.method(0), and
+   * $3.method(\"/\",\"///\") and properly substitute. For example, it can turn
+   * <p/>
+   * {@code
+   * metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/AppsCompleted/$2.substring(0)/foo/$3/bar/$4
+   * }
+   * <p/>
+   * into
+   * <p/>
+   * {@code metrics/yarn/Queue/-/AppsCompleted/-/foo/-/bar/-}
+   */
+  private static final Pattern METRIC_ARGUMENT_METHOD_REPLACEMENT = Pattern.compile("\\$\\d+(\\.\\w+(\\(\\\\\"\\S+\\\\\"\\)|\\(\\d+\\)))*");
 
   // ----- Constructors ------------------------------------------------------
 
@@ -71,13 +90,17 @@ public abstract class BaseProvider {
    */
   public BaseProvider(Set<String> propertyIds) {
     this.propertyIds = new HashSet<String>(propertyIds);
-    this.categoryIds = PropertyHelper.getCategories(propertyIds);
-    this.combinedIds = new HashSet<String>(propertyIds);
-    this.combinedIds.addAll(this.categoryIds);
-    this.patterns = new HashMap<String, Pattern>();
-    for (String id : this.combinedIds) {
+    categoryIds = PropertyHelper.getCategories(propertyIds);
+    combinedIds = new HashSet<String>(propertyIds);
+    combinedIds.addAll(categoryIds);
+    patterns = new HashMap<String, Pattern>();
+
+    // convert the argumented metric as it's defined in the JSON file to regex
+    for (String id : combinedIds) {
       if (containsArguments(id)) {
-        String pattern = id.replaceAll("\\$\\d+(\\.\\S+\\(\\S+\\))*", "(\\\\S+)");
+        String pattern = METRIC_ARGUMENT_METHOD_REPLACEMENT.matcher(id).replaceAll(
+            "(\\\\S*)");
+
         patterns.put(id, Pattern.compile(pattern));
       }
     }
@@ -93,15 +116,17 @@ public abstract class BaseProvider {
    */
   protected Set<String> checkConfigPropertyIds(Set<String> base, String configCategory) {
 
-    if (0 == base.size())
+    if (0 == base.size()) {
       return base;
+    }
 
     Set<String> unsupported = new HashSet<String>();
 
     for (String propertyId : base)
     {
-      if (!propertyId.startsWith(configCategory + "/desired_config"))
+      if (!propertyId.startsWith(configCategory + "/desired_config")) {
         unsupported.add(propertyId);
+      }
     }
 
     return unsupported;
@@ -110,7 +135,7 @@ public abstract class BaseProvider {
   public Set<String> checkPropertyIds(Set<String> propertyIds) {
     if (!this.propertyIds.containsAll(propertyIds)) {
       Set<String> unsupportedPropertyIds = new HashSet<String>(propertyIds);
-      unsupportedPropertyIds.removeAll(this.combinedIds);
+      unsupportedPropertyIds.removeAll(combinedIds);
 
       // If the property id is not in the set of known property ids we may still allow it if
       // its parent category is a known property. This allows for Map type properties where
@@ -150,17 +175,17 @@ public abstract class BaseProvider {
       propertyIds.addAll(PredicateHelper.getPropertyIds(predicate));
     }
 
-    if (!this.combinedIds.containsAll(propertyIds)) {
+    if (!combinedIds.containsAll(propertyIds)) {
       Set<String> keepers = new HashSet<String>();
       Set<String> unsupportedPropertyIds = new HashSet<String>(propertyIds);
-      unsupportedPropertyIds.removeAll(this.combinedIds);
+      unsupportedPropertyIds.removeAll(combinedIds);
 
       for (String unsupportedPropertyId : unsupportedPropertyIds) {
         if (checkCategory(unsupportedPropertyId) || checkRegExp(unsupportedPropertyId)) {
           keepers.add(unsupportedPropertyId);
         }
       }
-      propertyIds.retainAll(this.combinedIds);
+      propertyIds.retainAll(combinedIds);
       propertyIds.addAll(keepers);
     }
     return propertyIds;
@@ -173,7 +198,7 @@ public abstract class BaseProvider {
   protected boolean checkCategory(String unsupportedPropertyId) {
     String category = PropertyHelper.getPropertyCategory(unsupportedPropertyId);
     while (category != null) {
-      if(this.propertyIds.contains(category)) {
+      if(propertyIds.contains(category)) {
         return true;
       }
       category = PropertyHelper.getPropertyCategory(category);
@@ -191,20 +216,28 @@ public abstract class BaseProvider {
     return false;
   }
 
-  protected String getRegExpKey(String id) {
-    String regExpKey = null;
+  /**
+   * Gets the key/value mapping between a metric string in the JSON files and
+   * the Java regular expression pattern that matches it.
+   *
+   * @param id
+   * @return the entry, or {@code null} if none match the ID.
+   */
+  protected Map.Entry<String, Pattern> getRegexEntry(String id) {
+    Map.Entry<String, Pattern> regexEntry = null;
+
     for (Map.Entry<String, Pattern> entry : patterns.entrySet()) {
       Pattern pattern = entry.getValue();
       Matcher matcher = pattern.matcher(id);
 
       if (matcher.matches()) {
         String key = entry.getKey();
-        if (regExpKey == null || key.startsWith(regExpKey)) {
-          regExpKey = entry.getKey();
+        if (regexEntry == null || key.startsWith(regexEntry.getKey())) {
+          regexEntry = entry;
         }
       }
     }
-    return regExpKey;
+    return regexEntry;
   }
 
   /**
