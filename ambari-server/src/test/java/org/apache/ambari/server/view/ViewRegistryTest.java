@@ -18,32 +18,6 @@
 
 package org.apache.ambari.server.view;
 
-import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
-
-import javax.xml.bind.JAXBException;
-
 import org.apache.ambari.server.api.resources.SubResourceDefinition;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.spi.Resource;
@@ -74,11 +48,35 @@ import org.apache.ambari.server.view.events.EventImplTest;
 import org.apache.ambari.view.events.Event;
 import org.apache.ambari.view.events.Listener;
 import org.easymock.Capture;
-import org.easymock.EasyMock;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
+import javax.xml.bind.JAXBException;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
+
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
 
 /**
  * ViewRegistry tests.
@@ -216,7 +214,6 @@ public class ViewRegistryTest {
 
     expect(viewDir.listFiles()).andReturn(new File[]{viewArchive});
 
-    expect(viewArchive.getAbsolutePath()).andReturn("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}");
     expect(viewArchive.isDirectory()).andReturn(false);
 
     expect(archiveDir.exists()).andReturn(false);
@@ -255,15 +252,12 @@ public class ViewRegistryTest {
     expect(libDir.listFiles()).andReturn(new File[]{fileEntry});
     expect(fileEntry.toURI()).andReturn(new URI("file:./"));
 
-    expect(vDAO.findByName("MY_VIEW{1.0.0}")).andReturn(viewDefinition);
+    Capture<ViewEntity> captureViewEntity = new Capture<ViewEntity>();
+
+    expect(vDAO.findByName("MY_VIEW{1.0.0}")).andReturn(null);
+    expect(vDAO.merge(capture(captureViewEntity))).andReturn(viewDefinition);
+
     expect(vDAO.findAll()).andReturn(Collections.<ViewEntity>emptyList());
-
-    expect(rtDAO.findByName("MY_VIEW{1.0.0}")).andReturn(null);
-    rtDAO.create(EasyMock.anyObject(ResourceTypeEntity.class));
-    EasyMock.expectLastCall().anyTimes();
-
-    rDAO.create(EasyMock.anyObject(ResourceEntity.class));
-    EasyMock.expectLastCall().anyTimes();
 
     // replay mocks
     replay(configuration, viewDir, extractedArchiveDir, viewArchive, archiveDir, entryFile, classesDir,
@@ -275,6 +269,7 @@ public class ViewRegistryTest {
     Set<ViewInstanceEntity> instanceEntities = registry.readViewArchives(configuration);
 
     Assert.assertEquals(2, instanceEntities.size());
+    Assert.assertEquals("MY_VIEW", captureViewEntity.getValue().getCommonName());
 
     // verify mocks
     verify(configuration, viewDir, extractedArchiveDir, viewArchive, archiveDir, entryFile, classesDir,
@@ -353,7 +348,6 @@ public class ViewRegistryTest {
     expect(viewDir.listFiles()).andReturn(new File[]{viewArchive});
 
     expect(viewArchive.isDirectory()).andReturn(false);
-    expect(viewArchive.getAbsolutePath()).andReturn("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}").anyTimes();
 
     expect(archiveDir.exists()).andReturn(false);
     expect(archiveDir.getAbsolutePath()).andReturn(
@@ -397,13 +391,6 @@ public class ViewRegistryTest {
     expect(vDAO.merge(capture(captureViewEntity))).andThrow(new IllegalArgumentException("Expected exception."));
 
     expect(vDAO.findAll()).andReturn(Collections.<ViewEntity>emptyList());
-
-    expect(rtDAO.findByName("MY_VIEW{1.0.0}")).andReturn(null);
-    rtDAO.create(EasyMock.anyObject(ResourceTypeEntity.class));
-    EasyMock.expectLastCall().anyTimes();
-
-    rDAO.create(EasyMock.anyObject(ResourceEntity.class));
-    EasyMock.expectLastCall().anyTimes();
 
     Capture<ResourceEntity> resourceEntityCapture = new Capture<ResourceEntity>();
 
@@ -796,17 +783,6 @@ public class ViewRegistryTest {
     @Override
     public ViewConfig getViewConfigFromArchive(File archiveFile) throws MalformedURLException, JAXBException {
       return viewConfigs.get(archiveFile);
-    }
-
-    @Override
-    public ViewConfig getViewConfigFromExtractedArchive(String archivePath)
-        throws JAXBException, FileNotFoundException {
-      for (File viewConfigKey: viewConfigs.keySet()) {
-        if (viewConfigKey.getAbsolutePath().equals(archivePath)) {
-          return viewConfigs.get(viewConfigKey);
-        }
-      }
-      return null;
     }
 
     @Override

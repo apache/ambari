@@ -76,7 +76,6 @@ import javax.xml.bind.Unmarshaller;
 
 import java.beans.IntrospectionException;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -411,17 +410,13 @@ public class ViewRegistry {
                 // extract the archive and get the class loader
                 ClassLoader cl = extractViewArchive(archiveFile, helper.getFile(archivePath));
 
-                viewConfig = helper.getViewConfigFromExtractedArchive(archivePath);
-
                 ViewEntity viewDefinition = createViewDefinition(viewConfig, configuration, cl, archivePath);
 
                 Set<ViewInstanceEntity> instanceDefinitions = new HashSet<ViewInstanceEntity>();
 
                 for (InstanceConfig instanceConfig : viewConfig.getInstances()) {
                   try {
-                    ViewInstanceEntity instanceEntity = createViewInstanceDefinition(viewConfig, viewDefinition, instanceConfig);
-                    instanceEntity.setXmlDriven(true);
-                    instanceDefinitions.add(instanceEntity);
+                    instanceDefinitions.add(createViewInstanceDefinition(viewConfig, viewDefinition, instanceConfig));
                   } catch (Exception e) {
                     LOG.error("Caught exception adding view instance for view " +
                         viewDefinition.getViewName(), e);
@@ -534,9 +529,6 @@ public class ViewRegistry {
       ViewInstanceEntity entity = getInstanceDefinition(viewName, version, instanceName);
 
       if (entity != null) {
-        if (entity.isXmlDriven()) {
-          throw new IllegalStateException("View instances defined via xml can't be updated through api requests");
-        }
         if (LOG.isDebugEnabled()) {
           LOG.debug("Updating view instance " + viewName + "/" +
               version + "/" + instanceName);
@@ -572,9 +564,8 @@ public class ViewRegistry {
    * Uninstall a view instance for the view with the given view name.
    *
    * @param instanceEntity  the view instance entity
-   * @throws IllegalStateException if the given instance is not in a valid state
    */
-  public void uninstallViewInstance(ViewInstanceEntity instanceEntity) throws IllegalStateException {
+  public void uninstallViewInstance(ViewInstanceEntity instanceEntity) {
     ViewEntity viewEntity = getDefinition(instanceEntity.getViewName());
 
     if (viewEntity != null) {
@@ -583,9 +574,7 @@ public class ViewRegistry {
       String version      = viewEntity.getVersion();
 
       if (getInstanceDefinition(viewName, version, instanceName) != null) {
-        if (instanceEntity.isXmlDriven()) {
-          throw new IllegalStateException("View instances defined via xml can't be deleted through api requests");
-        }
+
         if (LOG.isDebugEnabled()) {
           LOG.debug("Deleting view instance " + viewName + "/" +
               version + "/" +instanceName);
@@ -980,28 +969,12 @@ public class ViewRegistry {
     }
   }
 
-  /**
-   * Sync given view with data in DB. Ensures that view data in DB is updated,
-   * all instances changes from xml config are reflected to DB
-   *
-   * @param view view config from xml
-   * @param instanceDefinitions view instances from xml
-   * @throws Exception
-   */
+  // sync the given view with the db
   private void syncView(ViewEntity view,
                         Set<ViewInstanceEntity> instanceDefinitions)
       throws Exception {
 
     String viewName = view.getName();
-
-    // get or create an admin resource type to represent this view
-    ResourceTypeEntity resourceTypeEntity = resourceTypeDAO.findByName(viewName);
-    if (resourceTypeEntity == null) {
-      resourceTypeEntity = new ResourceTypeEntity();
-      resourceTypeEntity.setName(view.getName());
-      resourceTypeDAO.create(resourceTypeEntity);
-    }
-    view.setResourceType(resourceTypeEntity);
 
     ViewEntity persistedView = viewDAO.findByName(viewName);
 
@@ -1010,31 +983,13 @@ public class ViewRegistry {
       if (LOG.isDebugEnabled()) {
         LOG.debug("Creating View " + viewName + ".");
       }
-
-      for( ViewInstanceEntity instance : view.getInstances()) {
-
-        // create an admin resource to represent this view instance
-        ResourceEntity resourceEntity = new ResourceEntity();
-        resourceEntity.setResourceType(resourceTypeEntity);
-        resourceDAO.create(resourceEntity);
-
-        instance.setResource(resourceEntity);
-      }
       // ... merge it
-      viewDAO.merge(view);
-
-      persistedView = viewDAO.findByName(viewName);
-      if (persistedView == null) {
-        String message = "View  " + viewName + " can not be found.";
-
-        LOG.error(message);
-        throw new IllegalStateException(message);
-      }
+      persistedView = viewDAO.merge(view);
     }
 
-    Map<String, ViewInstanceEntity> xmlInstanceEntityMap = new HashMap<String, ViewInstanceEntity>();
+    Map<String, ViewInstanceEntity> instanceEntityMap = new HashMap<String, ViewInstanceEntity>();
     for( ViewInstanceEntity instance : view.getInstances()) {
-      xmlInstanceEntityMap.put(instance.getName(), instance);
+      instanceEntityMap.put(instance.getName(), instance);
     }
 
     view.setResourceType(persistedView.getResourceType());
@@ -1047,12 +1002,7 @@ public class ViewRegistry {
       ViewInstanceEntity instance =
           view.getInstanceDefinition(instanceName);
 
-      if (persistedInstance.isXmlDriven() && !xmlInstanceEntityMap.containsKey(instanceName)) {
-        instanceDAO.remove(persistedInstance);
-        xmlInstanceEntityMap.remove(instanceName);
-        continue;
-      }
-      xmlInstanceEntityMap.remove(instanceName);
+      instanceEntityMap.remove(instanceName);
 
       // if the persisted instance is not in the registry ...
       if (instance == null) {
@@ -1063,39 +1013,23 @@ public class ViewRegistry {
       }
       instance.setViewInstanceId(persistedInstance.getViewInstanceId());
 
-      if (instance.isXmlDriven()) {
-        // override db data with data from {@InstanceConfig}
-        persistedInstance.setLabel(instance.getLabel());
-        persistedInstance.setDescription(instance.getDescription());
-        persistedInstance.setVisible(instance.isVisible());
-        persistedInstance.setIcon(instance.getIcon());
-        persistedInstance.setIcon64(instance.getIcon64());
-        persistedInstance.setProperties(instance.getProperties());
-
-        instanceDAO.merge(persistedInstance);
-      } else {
-        // apply the persisted overrides to the in-memory instance
-        view.removeInstanceDefinition(instanceName);
-        view.addInstanceDefinition(persistedInstance);
-      }
+      // apply the persisted overrides to the in-memory instance
+      instance.setLabel(persistedInstance.getLabel());
+      instance.setDescription(persistedInstance.getDescription());
+      instance.setVisible(persistedInstance.isVisible());
+      instance.setData(persistedInstance.getData());
+      instance.setProperties(persistedInstance.getProperties());
+      instance.setEntities(persistedInstance.getEntities());
 
       instance.setResource(persistedInstance.getResource());
     }
 
-    // these instances appear in the archive but not present in the db... add
-    // them to db and registry
-    for (ViewInstanceEntity instance : xmlInstanceEntityMap.values()) {
-      // create an admin resource to represent this view instance
-      ResourceEntity resourceEntity = new ResourceEntity();
-      resourceEntity.setResourceType(resourceTypeEntity);
-      resourceDAO.create(resourceEntity);
-      instance.setResource(resourceEntity);
-
-      instanceDAO.merge(instance);
-      bindViewInstance(view, instance);
-      instanceDefinitions.add(instance);
+    // these instances appear in the archive but have been deleted
+    // from the db... remove them from the registry
+    for (ViewInstanceEntity instance : instanceEntityMap.values()) {
+      view.removeInstanceDefinition(instance.getName());
+      instanceDefinitions.remove(instance);
     }
-
   }
 
   // ensure that the extracted view archive directory exists
@@ -1315,26 +1249,6 @@ public class ViewRegistry {
       ClassLoader cl = URLClassLoader.newInstance(new URL[]{archiveFile.toURI().toURL()});
 
       InputStream  configStream     = cl.getResourceAsStream(VIEW_XML);
-      JAXBContext  jaxbContext      = JAXBContext.newInstance(ViewConfig.class);
-      Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
-
-      return (ViewConfig) jaxbUnmarshaller.unmarshal(configStream);
-    }
-
-    /**
-     * Get the view configuration from the extracted archive file.
-     *
-     * @param archivePath path to extracted archive
-     *
-     * @return the associated view configuration
-     *
-     * @throws JAXBException if xml is malformed
-     * @throws FileNotFoundException if xml was not found
-     */
-    public ViewConfig getViewConfigFromExtractedArchive(String archivePath)
-        throws JAXBException, FileNotFoundException {
-
-      InputStream configStream      = new FileInputStream(new File(archivePath + File.separator + VIEW_XML));
       JAXBContext  jaxbContext      = JAXBContext.newInstance(ViewConfig.class);
       Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
 

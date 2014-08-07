@@ -186,8 +186,6 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
         Integer.class, 1, 1, false));
     dbAccessor.addColumn("viewinstance", new DBColumnInfo("resource_id",
         Long.class, 1, 1, false));
-    dbAccessor.addColumn("viewinstance", new DBColumnInfo("xml_driven",
-        Character.class, 1, null, true));
     dbAccessor.addColumn("clusters", new DBColumnInfo("resource_id",
         Long.class, 1, 1, false));
 

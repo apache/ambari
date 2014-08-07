@@ -125,13 +125,6 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
   private String icon64;
 
   /**
-   * The XML driven instance flag.
-   */
-  @Column(name="xml_driven")
-  @Basic
-  private char xmlDriven = 'N';
-
-  /**
    * The instance properties.
    */
   @OneToMany(cascade = CascadeType.ALL, mappedBy = "viewInstance")
@@ -402,24 +395,6 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
    */
   public void setIcon64(String icon64) {
     this.icon64 = icon64;
-  }
-
-  /**
-   * Get the xml driven flag.
-   *
-   * @return the xml driven flag
-   */
-  public boolean isXmlDriven() {
-    return xmlDriven == 'y' || xmlDriven == 'Y';
-  }
-
-  /**
-   * Set the xml driven flag.
-   *
-   * @param xmlDriven the xml driven flag
-   */
-  public void setXmlDriven(boolean xmlDriven) {
-    this.xmlDriven = (xmlDriven) ? 'Y' : 'N';
   }
 
   /**
