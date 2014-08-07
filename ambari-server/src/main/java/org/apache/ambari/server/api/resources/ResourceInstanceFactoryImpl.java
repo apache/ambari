@@ -270,6 +270,7 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
       case Controller:
         resourceDefinition = new ControllerResourceDefinition(
             ControllerType.getByName(mapIds.get(Resource.Type.Controller)));
+        break;
 
       case ClientConfig:
         resourceDefinition = new ClientConfigResourceDefinition();
