@@ -27,7 +27,7 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
    * @method startFlumeAgent
    */
   startFlumeAgent: function () {
-    var selectedFlumeAgent = this.get('selectedFlumeAgent');
+    var selectedFlumeAgent = arguments[0].context;
     if (selectedFlumeAgent && selectedFlumeAgent.get('status') === 'NOT_RUNNING') {
       var self = this;
       App.showConfirmationPopup(function () {
@@ -43,7 +43,7 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
    * @method stopFlumeAgent
    */
   stopFlumeAgent: function () {
-    var selectedFlumeAgent = this.get('selectedFlumeAgent');
+    var selectedFlumeAgent = arguments[0].context;
     if (selectedFlumeAgent && selectedFlumeAgent.get('status') === 'RUNNING') {
       var self = this;
       App.showConfirmationPopup(function () {
@@ -86,6 +86,12 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
         App.router.get('backgroundOperationsController').showPopup();
       }
     });
+  },
+
+  gotoConfigs: function (){
+    App.router.get('mainServiceItemController').set('routeToConfigs', true);
+    App.router.transitionTo('main.services.service.configs', this.get('content'));
+    App.router.get('mainServiceItemController').set('routeToConfigs', false);
   },
 
   nagiosUrl: function(){

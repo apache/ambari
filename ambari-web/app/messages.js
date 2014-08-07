@@ -1912,16 +1912,13 @@ Em.I18n.translations = {
   'dashboard.services.mapreduce.jobTrackerUptime':'Job Trackers Uptime',
   'dashboard.services.mapreduce.chart.label':'Jobs Running',
 
-  'dashboard.services.flume.summary.single':'1 Flume on ',
-  'dashboard.services.flume.summary.multiple':'{0} Flume on ',
-  'dashboard.services.flume.summary.hosts.single':'1 host',
-  'dashboard.services.flume.summary.hosts.multiple':'{0} hosts',
+  'dashboard.services.flume.summary.title':'Flume installed on {0} host{1} ({2} agent{3})',
+  'dashboard.services.flume.summary.configure':'Configure Agents',
   'dashboard.services.flume.agentsLabel': 'Flume',
   'dashboard.services.flume.channels': 'Channels',
   'dashboard.services.flume.sources': 'Sources',
   'dashboard.services.flume.sinks': 'Sinks',
-  'dashboard.services.flume.agent': '',
-
+  'dashboard.services.flume.agent': 'Agent',
 
   'dashboard.services.hbase.summary':'{0} region servers with {1} average load',
   'dashboard.services.hbase.masterServer':'HBase Master',

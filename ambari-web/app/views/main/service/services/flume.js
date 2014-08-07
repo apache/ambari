@@ -24,25 +24,32 @@ App.MainDashboardServiceFlumeView = App.TableView.extend({
 
   pagination: false,
 
-  isActionsDisabled: true,
-
-  isStartAgentDisabled: true,
-
-  isStopAgentDisabled: true,
+  selectedHost: null,
 
   content: function () {
-    return this.get('service.agents');
-  }.property('service.agents.length'),
+    var hostNames = this.get('service.agents').mapProperty('hostName').uniq(),
+    content = [],
+    self = this;
+    hostNames.forEach(function(hostName) {
+      var agents = self.get('service.agents').filterProperty('hostName', hostName);
+      content.push(
+        Em.Object.create({
+          hostName: hostName,
+          agents: agents,
+          rowspan: agents.length,
+          firtstAgent: agents[0],
+          otherAgents: agents.without(agents[0])
+        })
+      );
+    });
+    return content;
+  }.property('service.agents.length', 'service.@each.agents'),
 
   summaryHeader: function () {
-    var agents = App.FlumeService.find().objectAt(0).get('agents');//this.get('service.agents');
-    var agentCount = agents.get('length');
-    var hostCount = this.get('service.flumeHandlersTotal');
-    var prefix = agentCount == 1 ? this.t("dashboard.services.flume.summary.single") :
-        this.t("dashboard.services.flume.summary.multiple").format(agentCount);
-    var suffix = hostCount == 1 ? this.t("dashboard.services.flume.summary.hosts.single") :
-        this.t("dashboard.services.flume.summary.hosts.multiple").format(hostCount);
-    return prefix + suffix;
+    var agents = App.FlumeService.find().objectAt(0).get('agents'),
+    agentCount = agents.get('length'),
+    hostCount = this.get('service.flumeHandlersTotal');
+    return this.t("dashboard.services.flume.summary.title").format(hostCount, (hostCount > 1 ? "s" : ""), agentCount,  (agentCount > 1 ? "s" : ""));
   }.property('service.agents', 'service.hostComponents.length'),
 
   flumeHandlerComponent: function () {
@@ -55,57 +62,26 @@ App.MainDashboardServiceFlumeView = App.TableView.extend({
   agentView: Em.View.extend({
     content: null,
     tagName: 'tr',
-    classNameBindings: ['selectedClass', ':agent-row'],
 
-    selectedClass: function () {
-      return this.get('controller.selectedFlumeAgent.id') === this.get('content.id') ? 'highlight' : '';
-    }.property('controller.selectedFlumeAgent'),
-
-    click: function () {
-      this.get('parentView').showAgentInfo(this.get('content'));
+    click: function (e) {
+      var numberOfAgents = this.get('content.agents').length;
+      if($(e.target).attr('id') == "flume-host-agent-row"){
+        $(e.currentTarget).parents("table:first").find('tr').removeClass('highlight');
+        $(e.currentTarget).addClass('highlight').nextAll("tr").slice(0,numberOfAgents - 1).addClass('highlight');
+        this.get('parentView').showAgentInfo(this.get('content'));
+      }
     }
   }),
 
   sortView: sort.wrapperView,
 
-  statusSort: sort.fieldView.extend({
-    column: '1',
-    name: 'status',
-    displayName: ''
-  }),
-
-  agentSort: sort.fieldView.extend({
-    column: '2',
-    name: 'name',
-    displayName: Em.I18n.t('dashboard.services.flume.agent')
-  }),
-
   hostSort: sort.fieldView.extend({
-    column: '3',
+    column: '1',
     name: 'hostName',
     displayName: Em.I18n.t('common.host')
   }),
 
-  sourceSort: sort.fieldView.extend({
-    column: '4',
-    name: 'sourcesCount',
-    displayName: Em.I18n.t('dashboard.services.flume.sources')
-  }),
-
-  channelSort: sort.fieldView.extend({
-    column: '5',
-    name: 'channelsCount',
-    displayName: Em.I18n.t('dashboard.services.flume.channels')
-  }),
-
-  sinkSort: sort.fieldView.extend({
-    column: '6',
-    name: 'sinksCount',
-    displayName: Em.I18n.t('dashboard.services.flume.sinks')
-  }),
-
   didInsertElement: function () {
-    this.set('controller.selectedFlumeAgent', null);
     this.filter();
   },
 
@@ -113,13 +89,13 @@ App.MainDashboardServiceFlumeView = App.TableView.extend({
    * Change classes for dropdown DOM elements after status change of selected agent
    */
   setActionsDropdownClasses: function () {
-    var selectedFlumeAgent = this.get('controller.selectedFlumeAgent');
-    this.set('isActionsDisabled', !selectedFlumeAgent);
-    if (selectedFlumeAgent) {
-      this.set('isStartAgentDisabled', selectedFlumeAgent.get('status') !== 'NOT_RUNNING');
-      this.set('isStopAgentDisabled', selectedFlumeAgent.get('status') !== 'RUNNING');
-    }
-  }.observes('controller.selectedFlumeAgent', 'controller.selectedFlumeAgent.status'),
+    this.get('content').forEach(function(hosts){
+      hosts.agents.forEach(function (agent) {
+        agent.set('isStartAgentDisabled', agent.get('status') !== 'NOT_RUNNING');
+        agent.set('isStopAgentDisabled', agent.get('status') !== 'RUNNING');
+      });
+    });
+  }.observes('content.@each.agents.@each.status'),
 
   /**
    * Action handler from flume tepmlate.
@@ -128,9 +104,9 @@ App.MainDashboardServiceFlumeView = App.TableView.extend({
    * @method showAgentInfo
    * @param {object} agent
    */
-  showAgentInfo: function (agent) {
-    this.set('controller.selectedFlumeAgent', agent);
-    this.setAgentMetrics(agent);
+  showAgentInfo: function (host) {
+    this.set('selectedHost', host);
+    this.setAgentMetrics(host);
   },
   /**
    * Show Flume agent metric.
@@ -138,19 +114,19 @@ App.MainDashboardServiceFlumeView = App.TableView.extend({
    * @method setFlumeAgentMetric
    * @param {object} agent - DS.model of agent
    */
-  setAgentMetrics: function(agent) {
+  setAgentMetrics: function(host) {
     var getMetricTitle = function(metricTypeKey, hostName) {
       var metricType = Em.I18n.t('services.service.info.metrics.flume.' + metricTypeKey).format(Em.I18n.t('common.metrics'));
       return  metricType + ' - ' + hostName;
     };
     var gangliaUrlTpl = App.router.get('clusterController.gangliaUrl') + '/?r=hour&cs=&ce=&m=load_one&s=by+name&c=HDPFlumeServer&h={0}&host_regex=&max_graphs=0&tab=m&vn=&sh=1&z=small&hc=4';
-    var agentHostMock = agent.get('hostName');
+    var agentHostMock = host.get('hostName');
     var mockMetricData = [
       {
         header: 'channelName',
         metricView: App.MainServiceInfoFlumeGraphsView.extend(),
         metricViewData: {
-          agent: agent,
+          agent: host,
           metricType: 'CHANNEL'
         }
       },
@@ -158,7 +134,7 @@ App.MainDashboardServiceFlumeView = App.TableView.extend({
         header: 'sinkName',
         metricView: App.MainServiceInfoFlumeGraphsView.extend(),
         metricViewData: {
-          agent: agent,
+          agent: host,
           metricType: 'SINK'
         }
       },
@@ -166,7 +142,7 @@ App.MainDashboardServiceFlumeView = App.TableView.extend({
         header: 'sourceName',
         metricView: App.MainServiceInfoFlumeGraphsView.extend(),
         metricViewData: {
-          agent: agent,
+          agent: host,
           metricType: 'SOURCE'
         }
       }
