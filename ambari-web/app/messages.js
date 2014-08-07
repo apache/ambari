@@ -1916,6 +1916,7 @@ Em.I18n.translations = {
   'dashboard.services.flume.summary.title':'Flume installed on {0} host{1} ({2} agent{3})',
   'dashboard.services.flume.summary.configure':'Configure Agents',
   'dashboard.services.flume.agentsLabel': 'Flume',
+  'dashboard.services.flume.agentLabel': 'Flume Component',
   'dashboard.services.flume.channels': 'Channels',
   'dashboard.services.flume.sources': 'Sources',
   'dashboard.services.flume.sinks': 'Sinks',

@@ -52,30 +52,37 @@ App.MainServiceItemController = Em.Controller.extend({
       var hostNames = App.Host.find().mapProperty('hostName');
       this.set('allHosts', hostNames);
 
-      ['HBASE_MASTER', 'ZOOKEEPER_SERVER'].forEach(function(componentName) {
+      ['HBASE_MASTER', 'ZOOKEEPER_SERVER', 'FLUME_HANDLER'].forEach(function(componentName) {
         self.loadHostsWithoutComponent(componentName);
       });
     }
   }.observes('App.components.masters', 'content.hostComponents.length'),
 
   loadHostsWithoutComponent: function (componentName) {
+    var self = this;
     var hostsWithComponent = App.HostComponent.find().filterProperty('componentName', componentName).mapProperty('hostName');
 
     var hostsWithoutComponent = this.get('allHosts').filter(function(hostName) {
       return !hostsWithComponent.contains(hostName);
     });
 
+    self.set('add' + componentName, function() {
+      self.addComponent(componentName);
+    });
 
-    if (componentName === 'HBASE_MASTER') {
-      this.set('hostsWithoutHBaseMaster', hostsWithoutComponent);
-      var disabledMsg = Em.I18n.t('services.summary.allHostsAlreadyRunComponent').format(Em.I18n.t('dashboard.services.hbase.masterServer'));
-      this.set('addHBaseMasterDisabledMsg', disabledMsg);
-    }
-    if (componentName === 'ZOOKEEPER_SERVER') {
-      this.set('hostsWithoutZookeeperServer', hostsWithoutComponent);
-      var disabledMsg = Em.I18n.t('services.summary.allHostsAlreadyRunComponent').format(Em.I18n.t('dashboard.services.zookeeper.server'));
-      this.set('addZookeeperServerDisabledMsg', disabledMsg);
-    }
+    Em.defineProperty(self, 'addDisabledTooltip-' + componentName, Em.computed('isAddDisabled-' + componentName, 'addDisabledMsg-' + componentName, function() {
+      if (self.get('isAddDisabled-' + componentName)) {
+        return self.get('addDisabledMsg-' + componentName);
+      }
+    }));
+
+    Em.defineProperty(self, 'isAddDisabled-' + componentName, Em.computed('hostsWithoutComponent-' + componentName, function() {
+      return self.get('hostsWithoutComponent-' + componentName).length === 0 ? 'disabled' : '';
+    }));
+
+    var disabledMsg = Em.I18n.t('services.summary.allHostsAlreadyRunComponent').format(componentName);
+    self.set('hostsWithoutComponent-' + componentName, hostsWithoutComponent);
+    self.set('addDisabledMsg-' + componentName, disabledMsg);
   },
 
   /**
@@ -91,34 +98,6 @@ App.MainServiceItemController = Em.Controller.extend({
   isConfigurable: function () {
     return !App.get('services.noConfigTypes').concat('HCATALOG').contains(this.get('content.serviceName'));
   }.property('App.services.noConfigTypes','content.serviceName'),
-
-  isAddHBaseMasterDisabled: function() {
-    return this.get('hostsWithoutHBaseMaster').length === 0;
-  }.property('hostsWithoutHBaseMaster'),
-
-  addHBaseMasterDisabledMsg: null,
-
-  addHBaseMasterDisabledTooltip: function() {
-    if (this.get('isAddHBaseMasterDisabled')) {
-      return this.get('addHBaseMasterDisabledMsg');
-    }
-  }.property('isAddHBaseMasterDisabled', 'addHBaseMasterDisabledMsg'),
-
-  hostsWithoutHBaseMaster: [],
-
-  isAddZooKeeperServerDisabled: function() {
-    return this.get('hostsWithoutZookeeperServer').length === 0;
-  }.property('hostsWithoutZookeeperServer'),
-
-  addZookeeperServerDisabledMsg: null,
-
-  addZooKeeperServerDisabledTooltip: function() {
-    if (this.get('isAddZooKeeperServerDisabled')) {
-      return this.get('addZookeeperServerDisabledMsg');
-    }
-  }.property('isAddZooKeeperServerDisabled', 'addZookeeperServerDisabledMsg'),
-
-  hostsWithoutZookeeperServer: [],
 
   allHosts: [],
 
@@ -445,19 +424,11 @@ App.MainServiceItemController = Em.Controller.extend({
     }
   },
 
-  addHbaseMaster: function () {
-    this.addClientComponent('HBASE_MASTER');
-  },
-
-  addZooKeeperServer: function () {
-    this.addClientComponent('ZOOKEEPER_SERVER');
-  },
-
   /**
    * Send command to server to install client on selected host
    * @param componentName
    */
-  addClientComponent: function (componentName) {
+  addComponent: function (componentName) {
     var self = this;
     var component = App.HostComponent.find().findProperty('componentName', componentName);
     var componentDisplayName = component.get('displayName');
@@ -488,13 +459,8 @@ App.MainServiceItemController = Em.Controller.extend({
       }.property('componentDisplayName'),
 
       hostsWithoutComponent: function() {
-        if (this.get('componentName') === 'HBASE_MASTER') {
-          return self.hostsWithoutHBaseMaster;
-        }
-        if (this.get('componentName') === 'ZOOKEEPER_SERVER') {
-          return self.hostsWithoutZookeeperServer;
-        }
-      }.property('componentName', 'self.hostsWithoutHBaseMaster', 'self.hostsWithoutZookeeperServer'),
+        return self.get("hostsWithoutComponent-" + this.get('componentName'));
+      }.property('componentName', 'self.hostsWithoutComponent-' + this.get('componentName')),
 
       anyHostsWithoutComponent: function() {
         return this.get('hostsWithoutComponent').length > 0
@@ -531,13 +497,7 @@ App.MainServiceItemController = Em.Controller.extend({
           hostsWithoutComponent.splice(index, 1);
         }
 
-        if (this.get('componentName') === 'HBASE_MASTER') {
-          self.set('hostsWithoutHBaseMaster', hostsWithoutComponent)
-        }
-        if (this.get('componentName') === 'ZOOKEEPER_SERVER') {
-          self.set('hostsWithoutZookeeperServer', hostsWithoutComponent)
-        }
-
+        self.set('hostsWithoutComponent-' + this.get('componentName'), hostsWithoutComponent);
         this.hide();
       }
     });
