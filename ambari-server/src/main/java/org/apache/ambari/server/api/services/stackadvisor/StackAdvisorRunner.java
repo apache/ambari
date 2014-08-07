@@ -94,7 +94,7 @@ public class StackAdvisorRunner {
    * @param errorFile
    * @return
    */
-  private ProcessBuilder prepareShellCommand(String script,
+  ProcessBuilder prepareShellCommand(String script,
       StackAdvisorCommandType saCommandType,
       File actionDirectory, String outputFile, String errorFile) {
     String hostsFile = actionDirectory + File.separator + "hosts.json";

@@ -371,6 +371,7 @@
         "Recommendation/id",
         "Versions/stack_name",
         "Versions/stack_version",
+        "recommend",
         "hosts",
         "services",
         "recommendations",
@@ -397,6 +398,7 @@
         "items/config-type",
         "items/config-name",
         "items/host-group",
+        "validate",
         "hosts",
         "services",
         "recommendations"

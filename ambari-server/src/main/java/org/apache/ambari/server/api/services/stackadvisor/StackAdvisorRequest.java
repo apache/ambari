@@ -19,6 +19,7 @@
 package org.apache.ambari.server.api.services.stackadvisor;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +34,7 @@ public class StackAdvisorRequest {
 
   private String stackName;
   private String stackVersion;
+  private StackAdvisorRequestType requestType;
   private List<String> hosts = new ArrayList<String>();
   private List<String> services = new ArrayList<String>();
   private Map<String, Set<String>> componentHostsMap = new HashMap<String, Set<String>>();
@@ -43,6 +45,10 @@ public class StackAdvisorRequest {
 
   public String getStackVersion() {
     return stackVersion;
+  }
+
+  public StackAdvisorRequestType getRequestType() {
+    return requestType;
   }
 
   public List<String> getHosts() {
@@ -81,6 +87,11 @@ public class StackAdvisorRequest {
       return new StackAdvisorRequestBuilder(stackName, stackVersion);
     }
 
+    public StackAdvisorRequestBuilder ofType(StackAdvisorRequestType requestType) {
+      this.instance.requestType = requestType;
+      return this;
+    }
+
     public StackAdvisorRequestBuilder forHosts(List<String> hosts) {
       this.instance.hosts = hosts;
       return this;
@@ -102,4 +113,31 @@ public class StackAdvisorRequest {
     }
   }
 
+  public enum StackAdvisorRequestType {
+    HOST_GROUPS("host_groups"), CONFIGURATIONS("configurations");
+
+    private String type;
+
+    private StackAdvisorRequestType(String type) {
+      this.type = type;
+    }
+
+    @Override
+    public String toString() {
+      return type;
+    }
+
+    public static StackAdvisorRequestType fromString(String text) throws StackAdvisorException {
+      if (text != null) {
+        for (StackAdvisorRequestType next : StackAdvisorRequestType.values()) {
+          if (text.equalsIgnoreCase(next.type)) {
+            return next;
+          }
+        }
+      }
+      throw new StackAdvisorException(String.format(
+          "Unknown request type: %s, possible values: %s", text,
+          Arrays.toString(StackAdvisorRequestType.values())));
+    }
+  }
 }

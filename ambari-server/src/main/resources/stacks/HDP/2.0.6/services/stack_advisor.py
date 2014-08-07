@@ -18,13 +18,17 @@ limitations under the License.
 """
 
 import socket
+import sys
 
 from stack_advisor import StackAdvisor
 
 class HDP206StackAdvisor(StackAdvisor):
 
   def recommendComponentLayout(self, services, hosts):
-    """Returns Services object with hostnames array populated for components"""
+    """
+    Returns Services object with hostnames array populated for components
+    If hostnames are populated for some components (partial blueprint) - these components will not be processed
+    """
     stackName = services["Versions"]["stack_name"]
     stackVersion = services["Versions"]["stack_version"]
     hostsList = [host["Hosts"]["host_name"] for host in hosts["items"]]
@@ -54,26 +58,31 @@ class HDP206StackAdvisor(StackAdvisor):
     }
 
     hostsComponentsMap = {}
+
+    #extend 'hostsComponentsMap' with MASTER components
     for service in services["services"]:
       masterComponents = [component for component in service["components"] if isMaster(component)]
       for component in masterComponents:
         componentName = component["StackServiceComponents"]["component_name"]
         hostsForComponent = []
 
-        availableHosts = hostsList
-        if len(hostsList) > 1 and isNotPreferableOnAmbariServerHost(component):
-          availableHosts = [hostName for hostName in hostsList if not isLocalHost(hostName)]
+        if isAlreadyPopulated(component):
+          hostsForComponent = component["StackServiceComponents"]["hostnames"]
+        else:
+          availableHosts = hostsList
+          if len(hostsList) > 1 and isNotPreferableOnAmbariServerHost(component):
+            availableHosts = [hostName for hostName in hostsList if not isLocalHost(hostName)]
 
-        if isMasterWithMultipleInstances(component):
-          hostsCount = defaultNoOfMasterHosts(component)
-          if hostsCount > 1: # get first 'hostsCount' available hosts
-            if len(availableHosts) < hostsCount:
-              hostsCount = len(availableHosts)
-            hostsForComponent = availableHosts[:hostsCount]
+          if isMasterWithMultipleInstances(component):
+            hostsCount = defaultNoOfMasterHosts(component)
+            if hostsCount > 1: # get first 'hostsCount' available hosts
+              if len(availableHosts) < hostsCount:
+                hostsCount = len(availableHosts)
+              hostsForComponent = availableHosts[:hostsCount]
+            else:
+              hostsForComponent = [getHostForComponent(component, availableHosts)]
           else:
             hostsForComponent = [getHostForComponent(component, availableHosts)]
-        else:
-          hostsForComponent = [getHostForComponent(component, availableHosts)]
 
         #extend 'hostsComponentsMap' with 'hostsForComponent'
         for hostName in hostsForComponent:
@@ -82,7 +91,10 @@ class HDP206StackAdvisor(StackAdvisor):
           hostsComponentsMap[hostName].append( { "name":componentName } )
 
     #extend 'hostsComponentsMap' with Slave and Client Components
-    utilizedHosts = hostsComponentsMap.keys()
+    componentsListList = [service["components"] for service in services["services"]]
+    componentsList = [item for sublist in componentsListList for item in sublist]
+    usedHostsListList = [component["StackServiceComponents"]["hostnames"] for component in componentsList if not isNotValuable(component)]
+    utilizedHosts = [item for sublist in usedHostsListList for item in sublist]
     freeHosts = [hostName for hostName in hostsList if hostName not in utilizedHosts]
 
     for service in services["services"]:
@@ -90,12 +102,18 @@ class HDP206StackAdvisor(StackAdvisor):
       for component in slaveClientComponents:
         componentName = component["StackServiceComponents"]["component_name"]
         hostsForComponent = []
-        if len(freeHosts) == 0:
-          hostsForComponent = hostsList[-1:]
-        else: # len(freeHosts) >= 1
-          hostsForComponent = freeHosts
-          if isClient(component):
-            hostsForComponent = freeHosts[0:1]
+
+        if isAlreadyPopulated(component):
+          hostsForComponent = component["StackServiceComponents"]["hostnames"]
+        elif component["StackServiceComponents"]["cardinality"] == "ALL":
+          hostsForComponent = hostsList
+        else:
+          if len(freeHosts) == 0:
+            hostsForComponent = hostsList[-1:]
+          else: # len(freeHosts) >= 1
+            hostsForComponent = freeHosts
+            if isClient(component):
+              hostsForComponent = freeHosts[0:1]
 
         #extend 'hostsComponentsMap' with 'hostsForComponent'
         for hostName in hostsForComponent:
@@ -129,6 +147,7 @@ class HDP206StackAdvisor(StackAdvisor):
 
     # Validating NAMENODE and SECONDARY_NAMENODE are on different hosts if possible
     hostsList = [host["Hosts"]["host_name"] for host in hosts["items"]]
+    hostsCount = len(hostsList)
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
 
     componentsListList = [service["components"] for service in services["services"]]
@@ -136,13 +155,50 @@ class HDP206StackAdvisor(StackAdvisor):
     nameNodeHosts = [component["StackServiceComponents"]["hostnames"] for component in componentsList if component["StackServiceComponents"]["component_name"] == "NAMENODE"]
     secondaryNameNodeHosts = [component["StackServiceComponents"]["hostnames"] for component in componentsList if component["StackServiceComponents"]["component_name"] == "SECONDARY_NAMENODE"]
 
-    if len(hostsList) > 1 and len(nameNodeHosts) > 0 and len(secondaryNameNodeHosts) > 0:
+    if hostsCount > 1 and len(nameNodeHosts) > 0 and len(secondaryNameNodeHosts) > 0:
       nameNodeHosts = nameNodeHosts[0]
       secondaryNameNodeHosts = secondaryNameNodeHosts[0]
       commonHosts = list(set(nameNodeHosts).intersection(secondaryNameNodeHosts))
       for host in commonHosts:
-        items.append( { "type": 'host-component', "level": 'ERROR', "message": 'NameNode and Secondary NameNode cannot be hosted on same machine', "component-name": 'NAMENODE', "host": host } )
-        items.append( { "type": 'host-component', "level": 'ERROR', "message": 'NameNode and Secondary NameNode cannot be hosted on same machine', "component-name": 'SECONDARY_NAMENODE', "host": host } )
+        items.append( { "type": 'host-component', "level": 'ERROR', "message": 'NameNode and Secondary NameNode cannot be hosted on same machine', "component-name": 'NAMENODE', "host": str(host) } )
+        items.append( { "type": 'host-component', "level": 'ERROR', "message": 'NameNode and Secondary NameNode cannot be hosted on same machine', "component-name": 'SECONDARY_NAMENODE', "host": str(host) } )
+
+    # Validating cardinality
+    for component in componentsList:
+      if component["StackServiceComponents"]["cardinality"] is not None:
+         componentName = component["StackServiceComponents"]["component_name"]
+         componentHostsCount = 0
+         if component["StackServiceComponents"]["hostnames"] is not None:
+           componentHostsCount = len(component["StackServiceComponents"]["hostnames"])
+         cardinality = str(component["StackServiceComponents"]["cardinality"])
+         # cardinality types: null, 1+, 1-2, 1, ALL
+         hostsMax = -sys.maxint - 1
+         hostsMin = sys.maxint
+         hostsMin = 0
+         hostsMax = 0
+         if "+" in cardinality:
+           hostsMin = int(cardinality[:-1])
+           hostsMax = sys.maxint
+         elif "-" in cardinality:
+           nums = cardinality.split("-")
+           hostsMin = int(nums[0])
+           hostsMax = int(nums[1])
+         elif "ALL" == cardinality:
+           hostsMin = hostsCount
+           hostsMax = hostsCount
+         else:
+           hostsMin = int(cardinality)
+           hostsMax = int(cardinality)
+
+         if componentHostsCount > hostsMax or componentHostsCount < hostsMin:
+           items.append( { "type": 'host-component', "level": 'ERROR', "message": 'Cardinality violation, cardinality={0}, hosts count={1}'.format(cardinality, str(componentHostsCount)), "component-name": str(componentName) } )
+
+    # Validating host-usage
+    usedHostsListList = [component["StackServiceComponents"]["hostnames"] for component in componentsList if not isNotValuable(component)]
+    usedHostsList = [item for sublist in usedHostsListList for item in sublist]
+    nonUsedHostsList = [item for item in hostsList if item not in usedHostsList]
+    for host in nonUsedHostsList:
+      items.append( { "type": 'host-component', "level": 'ERROR', "message": 'Host is not used', "host": str(host) } )
 
     return validations
   pass
@@ -169,6 +225,16 @@ def getHostForComponent(component, hostsList):
         if len(hostsList) < key:
           return hostsList[scheme[key]]
     return hostsList[scheme['else']]
+
+def isNotValuable(component):
+  componentName = component["StackServiceComponents"]["component_name"]
+  service = ['JOURNALNODE', 'ZKFC', 'APP_TIMELINE_SERVER', 'GANGLIA_MONITOR']
+  return componentName in service
+
+def isAlreadyPopulated(component):
+  if component["StackServiceComponents"]["hostnames"] is not None:
+    return len(component["StackServiceComponents"]["hostnames"]) > 0
+  return False
 
 def isClient(component):
   return component["StackServiceComponents"]["component_category"] == 'CLIENT'

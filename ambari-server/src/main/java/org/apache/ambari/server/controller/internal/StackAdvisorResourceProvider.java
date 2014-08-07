@@ -31,6 +31,7 @@ import javax.ws.rs.core.Response.Status;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorHelper;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest.StackAdvisorRequestBuilder;
+import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest.StackAdvisorRequestType;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource.Type;
@@ -74,11 +75,15 @@ public abstract class StackAdvisorResourceProvider extends ReadOnlyResourceProvi
     super(propertyIds, keyPropertyIds, managementController);
   }
 
+  protected abstract String getRequestTypePropertyId();
+
   @SuppressWarnings("unchecked")
   protected StackAdvisorRequest prepareStackAdvisorRequest(Request request) {
     try {
       String stackName = (String) getRequestProperty(request, STACK_NAME_PROPERTY_ID);
       String stackVersion = (String) getRequestProperty(request, STACK_VERSION_PROPERTY_ID);
+      StackAdvisorRequestType requestType = StackAdvisorRequestType
+          .fromString((String) getRequestProperty(request, getRequestTypePropertyId()));
 
       /*
        * ClassCastException will occur if hosts or services are empty in the
@@ -91,13 +96,14 @@ public abstract class StackAdvisorResourceProvider extends ReadOnlyResourceProvi
       Map<String, Set<String>> componentHostsMap = calculateComponentHostsMap(request);
 
       StackAdvisorRequest saRequest = StackAdvisorRequestBuilder.forStack(stackName, stackVersion)
-          .forHosts(hosts).forServices(services).withComponentHostsMap(componentHostsMap).build();
+          .ofType(requestType).forHosts(hosts).forServices(services)
+          .withComponentHostsMap(componentHostsMap).build();
 
       return saRequest;
     } catch (Exception e) {
       LOG.warn("Error occured during preparation of stack advisor request", e);
-      Response response = Response.status(Status.BAD_REQUEST).entity("Request body is not correct")
-          .build();
+      Response response = Response.status(Status.BAD_REQUEST)
+          .entity(String.format("Request body is not correct, error: %s", e.getMessage())).build();
       // TODO: Hosts and services must not be empty
       throw new WebApplicationException(response);
     }

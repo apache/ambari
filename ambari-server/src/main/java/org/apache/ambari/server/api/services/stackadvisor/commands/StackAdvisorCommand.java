@@ -28,7 +28,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
@@ -48,6 +50,8 @@ import org.apache.commons.logging.LogFactory;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.SerializationConfig;
+import org.codehaus.jackson.node.ArrayNode;
+import org.codehaus.jackson.node.ObjectNode;
 
 /**
  * Parent for all commands.
@@ -69,6 +73,11 @@ public abstract class StackAdvisorCommand<T> extends BaseService {
       + ",services/StackServices/service_name,services/StackServices/service_version"
       + ",services/components/StackServiceComponents,services/components/dependencies,services/components/auto_deploy"
       + "&services/StackServices/service_name.in(%s)";
+  private static final String SERVICES_PROPETRY = "services";
+  private static final String SERVICES_COMPONENTS_PROPETRY = "components";
+  private static final String COMPONENT_INFO_PROPETRY = "StackServiceComponents";
+  private static final String COMPONENT_NAME_PROPERTY = "component_name";
+  private static final String COMPONENT_HOSTNAMES_PROPETRY = "hostnames";
 
   private File recommendationsDir;
   private String stackAdvisorScript;
@@ -99,7 +108,7 @@ public abstract class StackAdvisorCommand<T> extends BaseService {
   /**
    * Simple holder for 'hosts.json' and 'services.json' data.
    */
-  protected class StackAdvisorData {
+  public static class StackAdvisorData {
     protected String hostsJSON;
     protected String servicesJSON;
 
@@ -119,7 +128,47 @@ public abstract class StackAdvisorCommand<T> extends BaseService {
 
   protected abstract void validate(StackAdvisorRequest request) throws StackAdvisorException;
 
-  protected abstract StackAdvisorData adjust(StackAdvisorData data, StackAdvisorRequest request);
+  protected StackAdvisorData adjust(StackAdvisorData data, StackAdvisorRequest request) {
+    try {
+      ObjectNode root = (ObjectNode) this.mapper.readTree(data.servicesJSON);
+
+      populateComponentHostsMap(root, request.getComponentHostsMap());
+
+      data.servicesJSON = mapper.writeValueAsString(root);
+    } catch (Exception e) {
+      // should not happen
+      String message = "Error parsing services.json file content: " + e.getMessage();
+      LOG.warn(message, e);
+      throw new WebApplicationException(Response.status(Status.BAD_REQUEST).entity(message).build());
+    }
+
+    return data;
+  }
+
+  private void populateComponentHostsMap(ObjectNode root, Map<String, Set<String>> componentHostsMap) {
+    ArrayNode services = (ArrayNode) root.get(SERVICES_PROPETRY);
+    Iterator<JsonNode> servicesIter = services.getElements();
+
+    while (servicesIter.hasNext()) {
+      JsonNode service = servicesIter.next();
+      ArrayNode components = (ArrayNode) service.get(SERVICES_COMPONENTS_PROPETRY);
+      Iterator<JsonNode> componentsIter = components.getElements();
+
+      while (componentsIter.hasNext()) {
+        JsonNode component = componentsIter.next();
+        ObjectNode componentInfo = (ObjectNode) component.get(COMPONENT_INFO_PROPETRY);
+        String componentName = componentInfo.get(COMPONENT_NAME_PROPERTY).getTextValue();
+
+        Set<String> componentHosts = componentHostsMap.get(componentName);
+        ArrayNode hostnames = componentInfo.putArray(COMPONENT_HOSTNAMES_PROPETRY);
+        if (null != componentHosts) {
+          for (String hostName : componentHosts) {
+            hostnames.add(hostName);
+          }
+        }
+      }
+    }
+  }
 
   public synchronized T invoke(StackAdvisorRequest request) throws StackAdvisorException {
     validate(request);
@@ -172,7 +221,7 @@ public abstract class StackAdvisorCommand<T> extends BaseService {
     }
   }
 
-  private String getHostsInformation(StackAdvisorRequest request) throws StackAdvisorException {
+  String getHostsInformation(StackAdvisorRequest request) throws StackAdvisorException {
     String hostsURI = String.format(GET_HOSTS_INFO_URI, request.getHostsCommaSeparated());
 
     Response response = handleRequest(null, null, new LocalUriInfo(hostsURI), Request.Type.GET,
@@ -223,7 +272,7 @@ public abstract class StackAdvisorCommand<T> extends BaseService {
     }
   }
 
-  private String getServicesInformation(StackAdvisorRequest request) throws StackAdvisorException {
+  String getServicesInformation(StackAdvisorRequest request) throws StackAdvisorException {
     String stackName = request.getStackName();
     String stackVersion = request.getStackVersion();
     String servicesURI = String.format(GET_SERVICES_INFO_URI, stackName, stackVersion,

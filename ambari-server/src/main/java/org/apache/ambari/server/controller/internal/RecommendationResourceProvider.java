@@ -54,6 +54,7 @@ public class RecommendationResourceProvider extends StackAdvisorResourceProvider
 
   protected static final String HOSTS_PROPERTY_ID = "hosts";
   protected static final String SERVICES_PROPERTY_ID = "services";
+  protected static final String RECOMMEND_PROPERTY_ID = "recommend";
 
   protected static final String BLUEPRINT_CONFIGURATIONS_PROPERTY_ID = PropertyHelper
       .getPropertyId("recommendations/blueprint", "configurations");
@@ -77,13 +78,18 @@ public class RecommendationResourceProvider extends StackAdvisorResourceProvider
   }
 
   @Override
+  protected String getRequestTypePropertyId() {
+    return RECOMMEND_PROPERTY_ID;
+  }
+
+  @Override
   public RequestStatus createResources(final Request request) throws SystemException,
       UnsupportedPropertyException, ResourceAlreadyExistsException, NoSuchParentResourceException {
     StackAdvisorRequest recommendationRequest = prepareStackAdvisorRequest(request);
 
     final RecommendationResponse response;
     try {
-      response = saHelper.getComponentLayoutRecommnedation(recommendationRequest);
+      response = saHelper.recommend(recommendationRequest);
     } catch (StackAdvisorException e) {
       LOG.warn("Error occured during component-layout recommnedation", e);
       throw new WebApplicationException(Response.status(Status.BAD_REQUEST).entity(e.getMessage())

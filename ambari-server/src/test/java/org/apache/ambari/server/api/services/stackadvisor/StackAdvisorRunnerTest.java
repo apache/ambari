@@ -1,0 +1,116 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.apache.ambari.server.api.services.stackadvisor;
+
+import static org.easymock.EasyMock.expect;
+import static org.junit.Assert.assertEquals;
+import static org.powermock.api.easymock.PowerMock.createNiceMock;
+import static org.powermock.api.easymock.PowerMock.replay;
+import static org.powermock.api.support.membermodification.MemberModifier.stub;
+
+import java.io.File;
+import java.io.IOException;
+
+import org.apache.ambari.server.api.services.stackadvisor.commands.StackAdvisorCommandType;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.junit.runner.RunWith;
+import org.powermock.api.easymock.PowerMock;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+
+/**
+ * StackAdvisorRunner unit tests.
+ */
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(StackAdvisorRunner.class)
+public class StackAdvisorRunnerTest {
+
+  private TemporaryFolder temp = new TemporaryFolder();
+
+  @Before
+  public void setUp() throws IOException {
+    temp.create();
+  }
+
+  @After
+  public void tearDown() throws IOException {
+    temp.delete();
+  }
+
+  @Test
+  public void testRunScript_processStartThrowsException_returnFalse() throws IOException {
+    String script = "echo";
+    StackAdvisorCommandType saCommandType = StackAdvisorCommandType.RECOMMEND_COMPONENT_LAYOUT;
+    File actionDirectory = temp.newFolder("actionDir");
+    ProcessBuilder processBuilder = createNiceMock(ProcessBuilder.class);
+    StackAdvisorRunner saRunner = new StackAdvisorRunner();
+
+    stub(PowerMock.method(StackAdvisorRunner.class, "prepareShellCommand"))
+        .toReturn(processBuilder);
+    expect(processBuilder.start()).andThrow(new IOException());
+    replay(processBuilder);
+    boolean result = saRunner.runScript(script, saCommandType, actionDirectory);
+
+    assertEquals(false, result);
+  }
+
+  @Test
+  public void testRunScript_processExitCodeNonZero_returnFalse() throws IOException,
+      InterruptedException {
+    String script = "echo";
+    StackAdvisorCommandType saCommandType = StackAdvisorCommandType.RECOMMEND_COMPONENT_LAYOUT;
+    File actionDirectory = temp.newFolder("actionDir");
+    ProcessBuilder processBuilder = createNiceMock(ProcessBuilder.class);
+    Process process = createNiceMock(Process.class);
+    StackAdvisorRunner saRunner = new StackAdvisorRunner();
+
+    stub(PowerMock.method(StackAdvisorRunner.class, "prepareShellCommand"))
+        .toReturn(processBuilder);
+    expect(processBuilder.start()).andReturn(process);
+    expect(process.waitFor()).andReturn(1);
+    replay(processBuilder, process);
+    boolean result = saRunner.runScript(script, saCommandType, actionDirectory);
+
+    assertEquals(false, result);
+  }
+
+  @Test
+  public void testRunScript_processExitCodeZero_returnTrue() throws IOException,
+      InterruptedException {
+    String script = "echo";
+    StackAdvisorCommandType saCommandType = StackAdvisorCommandType.RECOMMEND_COMPONENT_LAYOUT;
+    File actionDirectory = temp.newFolder("actionDir");
+    ProcessBuilder processBuilder = createNiceMock(ProcessBuilder.class);
+    Process process = createNiceMock(Process.class);
+    StackAdvisorRunner saRunner = new StackAdvisorRunner();
+
+    stub(PowerMock.method(StackAdvisorRunner.class, "prepareShellCommand"))
+        .toReturn(processBuilder);
+    expect(processBuilder.start()).andReturn(process);
+    expect(process.waitFor()).andReturn(0);
+    replay(processBuilder, process);
+    boolean result = saRunner.runScript(script, saCommandType, actionDirectory);
+
+    assertEquals(true, result);
+  }
+
+}
