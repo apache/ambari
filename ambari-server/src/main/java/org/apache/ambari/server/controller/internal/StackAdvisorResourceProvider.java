@@ -93,11 +93,13 @@ public abstract class StackAdvisorResourceProvider extends ReadOnlyResourceProvi
        */
       List<String> hosts = (List<String>) getRequestProperty(request, HOST_PROPERTY);
       List<String> services = (List<String>) getRequestProperty(request, SERVICES_PROPERTY);
-      Map<String, Set<String>> componentHostsMap = calculateComponentHostsMap(request);
+      Map<String, Set<String>> hgComponentsMap = calculateHostGroupComponentsMap(request);
+      Map<String, Set<String>> hgHostsMap = calculateHostGroupHostsMap(request);
+      Map<String, Set<String>> componentHostsMap = calculateComponentHostsMap(hgComponentsMap, hgHostsMap);
 
       StackAdvisorRequest saRequest = StackAdvisorRequestBuilder.forStack(stackName, stackVersion)
-          .ofType(requestType).forHosts(hosts).forServices(services)
-          .withComponentHostsMap(componentHostsMap).build();
+          .ofType(requestType).forHosts(hosts).forServices(services).forHostComponents(hgComponentsMap)
+          .forHostsGroupBindings(hgHostsMap).withComponentHostsMap(componentHostsMap).build();
 
       return saRequest;
     } catch (Exception e) {
@@ -113,25 +115,28 @@ public abstract class StackAdvisorResourceProvider extends ReadOnlyResourceProvi
    * Will prepare host-group names to components names map from the
    * recommendation blueprint host groups.
    * 
-   * @param hostGroups the blueprint host groups
+   * @param request stack advisor request
    * @return host-group to components map
    */
   @SuppressWarnings("unchecked")
-  private Map<String, Set<String>> calculateHostGroupComponentsMap(
-      Set<Map<String, Object>> hostGroups) {
+  private Map<String, Set<String>> calculateHostGroupComponentsMap(Request request) {
+    Set<Map<String, Object>> hostGroups =
+        (Set<Map<String, Object>>) getRequestProperty(request, BLUEPRINT_HOST_GROUPS_PROPERTY);
     Map<String, Set<String>> map = new HashMap<String, Set<String>>();
-    for (Map<String, Object> hostGroup : hostGroups) {
-      String hostGroupName = (String) hostGroup.get(BLUEPRINT_HOST_GROUPS_NAME_PROPERTY);
+    if (hostGroups != null) {
+      for (Map<String, Object> hostGroup : hostGroups) {
+        String hostGroupName = (String) hostGroup.get(BLUEPRINT_HOST_GROUPS_NAME_PROPERTY);
 
-      Set<Map<String, Object>> componentsSet = (Set<Map<String, Object>>) hostGroup
-          .get(BLUEPRINT_HOST_GROUPS_COMPONENTS_PROPERTY);
+        Set<Map<String, Object>> componentsSet = (Set<Map<String, Object>>) hostGroup
+            .get(BLUEPRINT_HOST_GROUPS_COMPONENTS_PROPERTY);
 
-      Set<String> components = new HashSet<String>();
-      for (Map<String, Object> component : componentsSet) {
-        components.add((String) component.get(BLUEPRINT_HOST_GROUPS_COMPONENTS_NAME_PROPERTY));
+        Set<String> components = new HashSet<String>();
+        for (Map<String, Object> component : componentsSet) {
+          components.add((String) component.get(BLUEPRINT_HOST_GROUPS_COMPONENTS_NAME_PROPERTY));
+        }
+
+        map.put(hostGroupName, components);
       }
-
-      map.put(hostGroupName, components);
     }
 
     return map;
@@ -141,52 +146,48 @@ public abstract class StackAdvisorResourceProvider extends ReadOnlyResourceProvi
    * Will prepare host-group names to hosts names map from the recommendation
    * binding host groups.
    * 
-   * @param bindingHostGroups the binding host groups
+   * @param request stack advisor request
    * @return host-group to hosts map
    */
   @SuppressWarnings("unchecked")
-  private Map<String, Set<String>> calculateHostGroupHostsMap(
-      Set<Map<String, Object>> bindingHostGroups) {
+  private Map<String, Set<String>> calculateHostGroupHostsMap(Request request) {
+    Set<Map<String, Object>> bindingHostGroups =
+        (Set<Map<String, Object>>) getRequestProperty(request, BINDING_HOST_GROUPS_PROPERTY);
     Map<String, Set<String>> map = new HashMap<String, Set<String>>();
+    if (bindingHostGroups != null) {
+      for (Map<String, Object> hostGroup : bindingHostGroups) {
+        String hostGroupName = (String) hostGroup.get(BINDING_HOST_GROUPS_NAME_PROPERTY);
 
-    for (Map<String, Object> hostGroup : bindingHostGroups) {
-      String hostGroupName = (String) hostGroup.get(BINDING_HOST_GROUPS_NAME_PROPERTY);
+        Set<Map<String, Object>> hostsSet = (Set<Map<String, Object>>) hostGroup
+            .get(BINDING_HOST_GROUPS_HOSTS_PROPERTY);
 
-      Set<Map<String, Object>> hostsSet = (Set<Map<String, Object>>) hostGroup
-          .get(BINDING_HOST_GROUPS_HOSTS_PROPERTY);
+        Set<String> hosts = new HashSet<String>();
+        for (Map<String, Object> host : hostsSet) {
+          hosts.add((String) host.get(BINDING_HOST_GROUPS_HOSTS_NAME_PROPERTY));
+        }
 
-      Set<String> hosts = new HashSet<String>();
-      for (Map<String, Object> host : hostsSet) {
-        hosts.add((String) host.get(BINDING_HOST_GROUPS_HOSTS_NAME_PROPERTY));
+        map.put(hostGroupName, hosts);
       }
-
-      map.put(hostGroupName, hosts);
     }
 
     return map;
   }
 
   @SuppressWarnings("unchecked")
-  private Map<String, Set<String>> calculateComponentHostsMap(Request request) {
+  private Map<String, Set<String>> calculateComponentHostsMap(Map<String, Set<String>> hostGroups,
+                                                              Map<String, Set<String>> bindingHostGroups) {
     /*
      * ClassCastException may occur in case of body inconsistency: property
      * missed, etc.
      */
-    Set<Map<String, Object>> hostGroups = (Set<Map<String, Object>>) getRequestProperty(request,
-        BLUEPRINT_HOST_GROUPS_PROPERTY);
-    Set<Map<String, Object>> bindingHostGroups = (Set<Map<String, Object>>) getRequestProperty(
-        request, BINDING_HOST_GROUPS_PROPERTY);
 
     Map<String, Set<String>> componentHostsMap = new HashMap<String, Set<String>>();
     if (null != bindingHostGroups && null != hostGroups) {
-      Map<String, Set<String>> hgComponentsMap = calculateHostGroupComponentsMap(hostGroups);
-      Map<String, Set<String>> hgHostsMap = calculateHostGroupHostsMap(bindingHostGroups);
-
-      for (Map.Entry<String, Set<String>> hgComponents : hgComponentsMap.entrySet()) {
+      for (Map.Entry<String, Set<String>> hgComponents : hostGroups.entrySet()) {
         String hgName = hgComponents.getKey();
         Set<String> components = hgComponents.getValue();
 
-        Set<String> hosts = hgHostsMap.get(hgName);
+        Set<String> hosts = bindingHostGroups.get(hgName);
         for (String component : components) {
           Set<String> componentHosts = componentHostsMap.get(component);
           if (componentHosts == null) { // if was not initialized

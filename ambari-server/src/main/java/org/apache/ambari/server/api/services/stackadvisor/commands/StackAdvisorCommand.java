@@ -193,13 +193,16 @@ public abstract class StackAdvisorCommand<T> extends BaseService {
 
       String result = FileUtils.readFileToString(new File(requestDirectory, getResultFileName()));
 
-      return this.mapper.readValue(result, this.type);
+      T response = this.mapper.readValue(result, this.type);
+      return updateResponse(request, response);
     } catch (Exception e) {
       String message = "Error occured during stack advisor command invocation";
       LOG.warn(message, e);
       throw new StackAdvisorException(message, e);
     }
   }
+
+  protected abstract T updateResponse(StackAdvisorRequest request, T response);
 
   /**
    * Create request id directory for each call

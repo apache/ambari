@@ -82,7 +82,8 @@ def main(argv=None):
   stackName = services["Versions"]["stack_name"]
   stackVersion = services["Versions"]["stack_version"]
   parentVersions = []
-  if "parent_stack_version" in services["Versions"]:
+  if "parent_stack_version" in services["Versions"] and \
+      services["Versions"]["parent_stack_version"] is not None:
     parentVersions = [ services["Versions"]["parent_stack_version"] ]
 
   stackAdvisor = instantiateStackAdvisor(stackName, stackVersion, parentVersions)
@@ -120,22 +121,23 @@ def instantiateStackAdvisor(stackName, stackVersion, parentVersions):
   versions = [stackVersion]
   versions.extend(parentVersions)
 
-  for version in versions:
+  for version in reversed(versions):
     try:
       path = STACK_ADVISOR_IMPL_PATH_TEMPLATE.format(stackName, version)
       className = STACK_ADVISOR_IMPL_CLASS_TEMPLATE.format(stackName, version.replace('.', ''))
 
       with open(path, 'rb') as fp:
-        stack_advisor_impl = imp.load_module( 'stack_advisor_impl', fp, path, ('.py', 'rb', imp.PY_SOURCE) )
-      clazz = getattr(stack_advisor_impl, className)
-
-      print "StackAdvisor for stack {0}, version {1} will be used".format(stackName, version)
-      return clazz();
+        stack_advisor_impl = imp.load_module('stack_advisor_impl', fp, path, ('.py', 'rb', imp.PY_SOURCE))
+      print "StackAdvisor implementation for stack {0}, version {1} was loaded".format(stackName, version)
     except Exception, e:
       print "StackAdvisor implementation for stack {0}, version {1} was not found".format(stackName, version)
 
-  print "StackAdvisor default implementation will be used!"
-  return stack_advisor.StackAdvisor()
+  try:
+    clazz = getattr(stack_advisor_impl, className)
+    return clazz()
+  except Exception, e:
+    print "Returning default implementation"
+    return stack_advisor.StackAdvisor()
 
 
 if __name__ == '__main__':

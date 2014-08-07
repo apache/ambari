@@ -185,6 +185,11 @@ public class StackAdvisorCommandTest {
     protected StackAdvisorCommandType getCommandType() {
       return StackAdvisorCommandType.RECOMMEND_COMPONENT_LAYOUT;
     }
+
+    @Override
+    protected TestResource updateResponse(StackAdvisorRequest request, TestResource response) {
+      return response;
+    }
   }
 
   public static class TestResource {

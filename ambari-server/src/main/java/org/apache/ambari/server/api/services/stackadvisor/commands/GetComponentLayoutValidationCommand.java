@@ -50,6 +50,11 @@ public class GetComponentLayoutValidationCommand extends StackAdvisorCommand<Val
   }
 
   @Override
+  protected ValidationResponse updateResponse(StackAdvisorRequest request, ValidationResponse response) {
+    return response;
+  }
+
+  @Override
   protected String getResultFileName() {
     return "component-layout-validation.json";
   }

@@ -51,6 +51,11 @@ public class GetComponentLayoutRecommnedationCommand extends
   }
 
   @Override
+  protected RecommendationResponse updateResponse(StackAdvisorRequest request, RecommendationResponse response) {
+    return response;
+  }
+
+  @Override
   protected String getResultFileName() {
     return "component-layout.json";
   }

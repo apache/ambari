@@ -27,6 +27,8 @@ import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
 
+import static org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse.*;
+
 /**
  * Stack advisor request.
  */
@@ -38,6 +40,8 @@ public class StackAdvisorRequest {
   private List<String> hosts = new ArrayList<String>();
   private List<String> services = new ArrayList<String>();
   private Map<String, Set<String>> componentHostsMap = new HashMap<String, Set<String>>();
+  private Map<String, Set<String>> hostComponents = new HashMap<String, Set<String>>();
+  private Map<String, Set<String>> hostGroupBindings = new HashMap<String, Set<String>>();
 
   public String getStackName() {
     return stackName;
@@ -69,6 +73,14 @@ public class StackAdvisorRequest {
 
   public String getServicesCommaSeparated() {
     return StringUtils.join(services, ",");
+  }
+
+  public Map<String, Set<String>> getHostComponents() {
+    return hostComponents;
+  }
+
+  public Map<String, Set<String>> getHostGroupBindings() {
+    return hostGroupBindings;
   }
 
   private StackAdvisorRequest(String stackName, String stackVersion) {
@@ -105,6 +117,16 @@ public class StackAdvisorRequest {
     public StackAdvisorRequestBuilder withComponentHostsMap(
         Map<String, Set<String>> componentHostsMap) {
       this.instance.componentHostsMap = componentHostsMap;
+      return this;
+    }
+
+    public StackAdvisorRequestBuilder forHostComponents(Map<String, Set<String>> hostComponents) {
+      this.instance.hostComponents = hostComponents;
+      return this;
+    }
+
+    public StackAdvisorRequestBuilder forHostsGroupBindings(Map<String, Set<String>> hostGroupBindings) {
+      this.instance.hostGroupBindings = hostGroupBindings;
       return this;
     }
 
