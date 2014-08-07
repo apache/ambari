@@ -18,6 +18,11 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -32,11 +37,6 @@ import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.ViewEntity;
 import org.apache.ambari.server.view.ViewRegistry;
-
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * Resource provider for custom view permissions.
@@ -118,6 +118,16 @@ public class ViewPermissionResourceProvider extends AbstractResourceProvider {
     ViewRegistry  viewRegistry = ViewRegistry.getInstance();
     Set<Resource> resources    = new HashSet<Resource>();
     Set<String>   requestedIds = getRequestPropertyIds(request, predicate);
+
+    PermissionEntity viewUsePermission = permissionDAO.findViewUsePermission();
+    for (Map<String, Object> propertyMap: getPropertyMaps(predicate)) {
+      Object viewName = propertyMap.get(VIEW_NAME_PROPERTY_ID);
+      Object viewVersion = propertyMap.get(VIEW_VERSION_PROPERTY_ID);
+      if (viewName != null && viewVersion != null) {
+        ViewEntity viewEntity = viewRegistry.getDefinition(viewName.toString(), viewVersion.toString());
+        resources.add(toResource(viewUsePermission, viewEntity.getResourceType(), viewEntity, requestedIds));
+      }
+    }
 
     for(PermissionEntity permissionEntity : permissionDAO.findAll()){
       ResourceTypeEntity resourceType = permissionEntity.getResourceType();

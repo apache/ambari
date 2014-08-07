@@ -33,11 +33,23 @@ import java.util.List;
  */
 @Singleton
 public class PermissionDAO {
+
+  /**
+   * Id of built-in VIEW.USE permission.
+   */
+  private static int VIEW_USE_PERMISSION_ID = 4;
+
+  /**
+   * Name of built-in VIEW.USE permission.
+   */
+  private static String VIEW_USE_PERMISSION_NAME = "VIEW.USE";
+
   /**
    * JPA entity manager
    */
   @Inject
   Provider<EntityManager> entityManagerProvider;
+
   @Inject
   DaoUtils daoUtils;
 
@@ -68,12 +80,25 @@ public class PermissionDAO {
    * @param name         the permission name
    * @param resourceType the resource type
    *
-   * @return  a matching permission entity or null
+   * @return a matching permission entity or null
    */
   public PermissionEntity findPermissionByNameAndType(String name, ResourceTypeEntity resourceType) {
+    if (name.equals(VIEW_USE_PERMISSION_NAME)) {
+      // VIEW.USE permission should be available for any type of views
+      return findViewUsePermission();
+    }
     TypedQuery<PermissionEntity> query = entityManagerProvider.get().createQuery("SELECT p FROM PermissionEntity p WHERE p.permissionName=:permissionname AND p.resourceType=:resourcetype", PermissionEntity.class);
     query.setParameter("permissionname", name);
     query.setParameter("resourcetype", resourceType);
     return daoUtils.selectSingle(query);
+  }
+
+  /**
+   * Find VIEW.USE permission.
+   *
+   * @return a matching permission entity or null
+   */
+  public PermissionEntity findViewUsePermission() {
+    return findById(VIEW_USE_PERMISSION_ID);
   }
 }
