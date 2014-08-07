@@ -78,7 +78,7 @@ class Controller(threading.Thread):
   def __del__(self):
     logger.info("Server connection disconnected.")
     pass
-
+  
   def registerWithServer(self):
     LiveStatus.SERVICES = []
     LiveStatus.CLIENT_COMPONENTS = []
@@ -142,7 +142,12 @@ class Controller(threading.Thread):
       pass
     return ret
 
-
+  def cancelCommandInQueue(self, commands):
+    """ Remove from the queue commands, kill the process if it's in progress """
+    if commands:
+      self.actionQueue.cancel(commands)
+    pass
+  
   def addToQueue(self, commands):
     """Add to the queue for running the commands """
     """ Put the required actions into the Queue """
@@ -222,6 +227,10 @@ class Controller(threading.Thread):
           self.restartAgent()
         else:
           self.responseId=serverId
+
+        if 'cancelCommands' in response.keys():
+          self.cancelCommandInQueue(response['cancelCommands'])
+          pass
 
         if 'executionCommands' in response.keys():
           self.addToQueue(response['executionCommands'])
@@ -309,6 +318,11 @@ class Controller(threading.Thread):
     logger.info("Registration response from %s was %s", self.serverHostname, message)
 
     if self.isRegistered:
+      # Clearing command queue to stop executing "stale" commands
+      # after registration
+      logger.info('Resetting ActionQueue...')
+      self.actionQueue.reset()
+
       # Process callbacks
       for callback in self.registration_listeners:
         callback()

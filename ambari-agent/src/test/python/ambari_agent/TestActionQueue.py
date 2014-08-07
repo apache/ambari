@@ -487,3 +487,42 @@ class TestActionQueue(TestCase):
     self.assertTrue(requestComponentStatus_mock.called)
     self.assertEqual(len(report['componentStatus']), 1)
     self.assertTrue(report['componentStatus'][0].has_key('alerts'))
+
+  @patch.object(ActionQueue, "process_command")
+  @patch.object(Queue, "get")
+  @patch.object(CustomServiceOrchestrator, "__init__")
+  def test_reset_queue(self, CustomServiceOrchestrator_mock,
+                                get_mock, process_command_mock):
+    CustomServiceOrchestrator_mock.return_value = None
+    dummy_controller = MagicMock()
+    config = MagicMock()
+    actionQueue = ActionQueue(config, dummy_controller)
+    actionQueue.start()
+    actionQueue.put([self.datanode_install_command, self.hbase_install_command])
+    self.assertEqual(2, actionQueue.commandQueue.qsize())
+    actionQueue.reset()
+    self.assertTrue(actionQueue.commandQueue.empty())
+    time.sleep(0.1)
+    actionQueue.stop()
+    actionQueue.join()
+    self.assertEqual(actionQueue.stopped(), True, 'Action queue is not stopped.')
+
+  @patch.object(ActionQueue, "process_command")
+  @patch.object(Queue, "get")
+  @patch.object(CustomServiceOrchestrator, "__init__")
+  def test_cancel(self, CustomServiceOrchestrator_mock,
+                       get_mock, process_command_mock):
+    CustomServiceOrchestrator_mock.return_value = None
+    dummy_controller = MagicMock()
+    config = MagicMock()
+    actionQueue = ActionQueue(config, dummy_controller)
+    actionQueue.start()
+    actionQueue.put([self.datanode_install_command, self.hbase_install_command])
+    self.assertEqual(2, actionQueue.commandQueue.qsize())
+    actionQueue.reset()
+    self.assertTrue(actionQueue.commandQueue.empty())
+    time.sleep(0.1)
+    actionQueue.stop()
+    actionQueue.join()
+    self.assertEqual(actionQueue.stopped(), True, 'Action queue is not stopped.')
+

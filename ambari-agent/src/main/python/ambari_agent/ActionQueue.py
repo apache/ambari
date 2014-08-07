@@ -108,6 +108,32 @@ class ActionQueue(threading.Thread):
       logger.debug(pprint.pformat(command))
       self.commandQueue.put(command)
 
+  def cancel(self, commands):
+    for command in commands:
+
+      logger.info("Canceling command {tid}".format(tid = str(command['target_task_id'])))
+      logger.debug(pprint.pformat(command))
+
+      task_id = command['target_task_id']
+      reason = command['reason']
+
+      # Remove from the command queue by task_id
+      queue = self.commandQueue
+      self.commandQueue = Queue.Queue()
+
+      while not queue.empty():
+        queued_command = queue.get(False)
+        if queued_command['task_id'] != task_id:
+          self.commandQueue.put(queued_command)
+        else:
+          logger.info("Canceling " + queued_command['commandType'] + \
+                      " for service " + queued_command['serviceName'] + \
+                      " of cluster " +  queued_command['clusterName'] + \
+                      " to the queue.")
+
+    # Kill if in progress
+    self.customServiceOrchestrator.cancel_command(task_id, reason)
+
   def run(self):
     while not self.stopped():
       while  not self.statusCommandQueue.empty():
@@ -287,3 +313,10 @@ class ActionQueue(threading.Thread):
     Actions that are executed every time when command status changes
     """
     self.controller.heartbeat_wait_event.set()
+
+  # Removes all commands from the queue
+  def reset(self):
+    queue = self.commandQueue
+    with queue.mutex:
+      queue.queue.clear()
+

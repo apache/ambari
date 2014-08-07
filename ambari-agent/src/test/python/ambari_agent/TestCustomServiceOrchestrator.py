@@ -18,9 +18,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 import ConfigParser
+from multiprocessing.pool import ThreadPool
 import os
 
 import pprint
+import shell
 
 from unittest import TestCase
 import threading
@@ -185,6 +187,8 @@ class TestCustomServiceOrchestrator(TestCase):
        '/hooks_dir/prefix-command')
     dummy_controller = MagicMock()
     orchestrator = CustomServiceOrchestrator(self.config, dummy_controller)
+    unix_process_id = 111
+    orchestrator.commands_in_progress = {command['taskId']: unix_process_id}
     get_hook_base_dir_mock.return_value = "/hooks/"
     # normal run case
     run_file_mock.return_value = {
@@ -208,9 +212,9 @@ class TestCustomServiceOrchestrator(TestCase):
     ret = orchestrator.runCommand(command, "out.txt", "err.txt",
               forced_command_name=CustomServiceOrchestrator.COMMAND_NAME_STATUS)
     ## Check that override_output_files was true only during first call
-    self.assertEquals(run_file_mock.call_args_list[0][0][8], True)
-    self.assertEquals(run_file_mock.call_args_list[1][0][8], False)
-    self.assertEquals(run_file_mock.call_args_list[2][0][8], False)
+    self.assertEquals(run_file_mock.call_args_list[0][0][10], True)
+    self.assertEquals(run_file_mock.call_args_list[1][0][10], False)
+    self.assertEquals(run_file_mock.call_args_list[2][0][10], False)
     ## Check that forced_command_name was taken into account
     self.assertEqual(run_file_mock.call_args_list[0][0][1][0],
                                   CustomServiceOrchestrator.COMMAND_NAME_STATUS)
@@ -228,6 +232,78 @@ class TestCustomServiceOrchestrator(TestCase):
     self.assertEqual(ret['structuredOut'], '{}')
 
     pass
+
+  @patch("shell.kill_process_with_children")
+  @patch.object(CustomServiceOrchestrator, "resolve_script_path")
+  @patch.object(CustomServiceOrchestrator, "resolve_hook_script_path")
+  @patch.object(FileCache, "get_service_base_dir")
+  @patch.object(FileCache, "get_hook_base_dir")
+  @patch.object(CustomServiceOrchestrator, "dump_command_to_json")
+  @patch.object(PythonExecutor, "run_file")
+  @patch.object(FileCache, "__init__")
+  def test_cancel_command(self, FileCache_mock,
+                      run_file_mock, dump_command_to_json_mock,
+                      get_hook_base_dir_mock, get_service_base_dir_mock,
+                      resolve_hook_script_path_mock, resolve_script_path_mock,
+                      kill_process_with_children_mock):
+    FileCache_mock.return_value = None
+    command = {
+      'role' : 'REGION_SERVER',
+      'hostLevelParams' : {
+        'stack_name' : 'HDP',
+        'stack_version' : '2.0.7',
+        'jdk_location' : 'some_location'
+      },
+      'commandParams': {
+        'script_type': 'PYTHON',
+        'script': 'scripts/hbase_regionserver.py',
+        'command_timeout': '600',
+        'service_package_folder' : 'HBASE'
+      },
+      'taskId' : '3',
+      'roleCommand': 'INSTALL'
+    }
+    get_service_base_dir_mock.return_value = "/basedir/"
+    resolve_script_path_mock.return_value = "/basedir/scriptpath"
+    resolve_hook_script_path_mock.return_value = \
+      ('/hooks_dir/prefix-command/scripts/hook.py',
+       '/hooks_dir/prefix-command')
+    dummy_controller = MagicMock()
+    orchestrator = CustomServiceOrchestrator(self.config, dummy_controller)
+    unix_process_id = 111
+    orchestrator.commands_in_progress = {command['taskId']: unix_process_id}
+    get_hook_base_dir_mock.return_value = "/hooks/"
+    run_file_mock_return_value = {
+      'stdout' : 'killed',
+      'stderr' : 'killed',
+      'exitcode': 1,
+      }
+    def side_effect(*args, **kwargs):
+      time.sleep(0.2)
+      return run_file_mock_return_value
+    run_file_mock.side_effect = side_effect
+
+    _, out = tempfile.mkstemp()
+    _, err = tempfile.mkstemp()
+    pool = ThreadPool(processes=1)
+    async_result = pool.apply_async(orchestrator.runCommand, (command, out, err))
+
+    time.sleep(0.1)
+    orchestrator.cancel_command(command['taskId'], 'reason')
+
+    ret = async_result.get()
+
+    self.assertEqual(ret['exitcode'], 1)
+    self.assertEquals(ret['stdout'], 'killed\nCommand aborted. reason')
+    self.assertEquals(ret['stderr'], 'killed\nCommand aborted. reason')
+
+    self.assertTrue(kill_process_with_children_mock.called)
+    self.assertFalse(command['taskId'] in orchestrator.commands_in_progress.keys())
+    self.assertTrue(os.path.exists(out))
+    self.assertTrue(os.path.exists(err))
+    os.remove(out)
+    os.remove(err)
+
 
   @patch.object(CustomServiceOrchestrator, "dump_command_to_json")
   @patch.object(PythonExecutor, "run_file")
@@ -252,6 +328,8 @@ class TestCustomServiceOrchestrator(TestCase):
     }
     dummy_controller = MagicMock()
     orchestrator = CustomServiceOrchestrator(self.config, dummy_controller)
+    unix_process_id = 111
+    orchestrator.commands_in_progress = {command['taskId']: unix_process_id}
     # normal run case
     run_file_mock.return_value = {
       'stdout' : 'sss',

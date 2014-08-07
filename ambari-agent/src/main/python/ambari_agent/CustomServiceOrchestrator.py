@@ -22,6 +22,7 @@ import logging
 import os
 import json
 import sys
+import shell
 
 from FileCache import FileCache
 from AgentException import AgentException
@@ -68,7 +69,19 @@ class CustomServiceOrchestrator():
       os.unlink(self.status_commands_stderr)
     except OSError:
       pass # Ignore fail
+    self.commands_in_progress = {}
 
+  def map_task_to_process(self, task_id, processId):
+    self.commands_in_progress[task_id] = processId
+
+  def cancel_command(self, task_id, reason):
+    if task_id in self.commands_in_progress.keys():
+      pid = self.commands_in_progress.get(task_id)
+      self.commands_in_progress[task_id] = reason
+      logger.info("Canceling command with task_id - {tid}, " \
+                  "reason - {reason} . Killing process {pid}"
+      .format(tid = str(task_id), reason = reason, pid = pid))
+      shell.kill_process_with_children(pid)
 
   def runCommand(self, command, tmpoutfile, tmperrfile, forced_command_name = None,
                  override_output_files = True):
@@ -132,7 +145,8 @@ class CustomServiceOrchestrator():
         script_params = [command_name, json_path, current_base_dir]
         ret = self.python_executor.run_file(py_file, script_params,
                                self.exec_tmp_dir, tmpoutfile, tmperrfile, timeout,
-                               tmpstrucoutfile, logger_level, override_output_files)
+                               tmpstrucoutfile, logger_level, self.map_task_to_process,
+                               task_id, override_output_files)
         # Next run_file() invocations should always append to current output
         override_output_files = False
         if ret['exitcode'] != 0:
@@ -140,6 +154,18 @@ class CustomServiceOrchestrator():
 
       if not ret: # Something went wrong
         raise AgentException("No script has been executed")
+
+      # if canceled
+      pid = self.commands_in_progress.pop(task_id)
+      if not isinstance(pid, int):
+        reason = '\nCommand aborted. ' + pid
+        ret['stdout'] += reason
+        ret['stderr'] += reason
+
+        with open(tmpoutfile, "a") as f:
+          f.write(reason)
+        with open(tmperrfile, "a") as f:
+          f.write(reason)
 
     except Exception: # We do not want to let agent fail completely
       exc_type, exc_obj, exc_tb = sys.exc_info()

@@ -47,8 +47,9 @@ class PythonExecutor:
     self.config = config
     pass
 
-  def run_file(self, script, script_params, tmp_dir, tmpoutfile, tmperrfile, timeout,
-               tmpstructedoutfile, logger_level, override_output_files = True):
+  def run_file(self, script, script_params, tmp_dir, tmpoutfile, tmperrfile,
+               timeout, tmpstructedoutfile, logger_level, callback, task_id,
+               override_output_files = True):
     """
     Executes the specified python file in a separate subprocess.
     Method returns only when the subprocess is finished.
@@ -77,6 +78,8 @@ class PythonExecutor:
     pythonCommand = self.python_command(script, script_params)
     logger.info("Running command " + pprint.pformat(pythonCommand))
     process = self.launch_python_subprocess(pythonCommand, tmpout, tmperr)
+    # map task_id to pid
+    callback(task_id, process.pid)
     logger.debug("Launching watchdog thread")
     self.event.clear()
     self.python_process_has_been_killed = False

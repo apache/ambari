@@ -236,6 +236,8 @@ class TestController(unittest.TestCase):
     self.controller.registerWithServer = registerWithServer
     heartbeatWithServer = MagicMock(name="heartbeatWithServer")
     self.controller.heartbeatWithServer = heartbeatWithServer
+    actionQueue = MagicMock(name="actionQueue")
+    self.controller.actionQueue = actionQueue
 
     Controller.Controller.__sendRequest__ = MagicMock(side_effect=Exception())
 
@@ -257,6 +259,8 @@ class TestController(unittest.TestCase):
     self.controller.registerWithServer = registerWithServer
     heartbeatWithServer = MagicMock(name="heartbeatWithServer")
     self.controller.heartbeatWithServer = heartbeatWithServer
+    actionQueue = MagicMock(name="actionQueue")
+    self.controller.actionQueue = actionQueue
 
     listener1 = MagicMock()
     listener2 = MagicMock()
@@ -282,6 +286,8 @@ class TestController(unittest.TestCase):
     self.controller.registerWithServer = registerWithServer
     heartbeatWithServer = MagicMock(name="heartbeatWithServer")
     self.controller.heartbeatWithServer = heartbeatWithServer
+    actionQueue = MagicMock(name="actionQueue")
+    self.controller.actionQueue = actionQueue
 
     self.controller.isRegistered = True
     self.controller.registerAndHeartbeat()
