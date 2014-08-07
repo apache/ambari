@@ -66,6 +66,7 @@ smoke_test_path = format("{tmp_dir}/hiveserver2Smoke.sh")
 smoke_user_keytab = config['configurations']['hadoop-env']['smokeuser_keytab']
 
 _authentication = config['configurations']['core-site']['hadoop.security.authentication']
+fs_root = config['configurations']['core-site']['fs.defaultFS']
 security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')
 
 kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
