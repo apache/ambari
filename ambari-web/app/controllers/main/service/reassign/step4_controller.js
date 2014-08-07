@@ -29,7 +29,15 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
   multiTaskCounter: 0,
 
   hostComponents: [],
-  restartYarnMRComponents: false,
+
+  /**
+   * Map with lists of unrelated services.
+   * Used to define list of services to stop/start.
+   */
+  unrelatedServicesMap: {
+    'JOBTRACKER': ['HDFS', 'ZOOKEEPER', 'HBASE', 'FLUME', 'SQOOP', 'STORM'],
+    'RESOURCEMANAGER': ['HDFS', 'ZOOKEEPER', 'HBASE', 'FLUME', 'SQOOP', 'STORM']
+  },
 
   /**
    * additional configs with template values
@@ -184,7 +192,6 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
     } else {
       this.set('hostComponents', [this.get('content.reassign.component_name')]);
     }
-    this.set('restartYarnMRComponents', ['RESOURCEMANAGER', 'JOBTRACKER'].contains(this.get('content.reassign.component_name')));
     this.set('serviceName', [this.get('content.reassign.service_id')]);
     this._super();
   },
@@ -269,9 +276,10 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
         "state": "INSTALLED"
       }
     };
-    if (this.get('restartYarnMRComponents')) {
-      var list = App.Service.find().mapProperty("serviceName").without("HDFS").join(',');
-      data.context = "Stop without HDFS";
+    var unrelatedServices = this.get('unrelatedServicesMap')[this.get('content.reassign.component_name')];
+    if (unrelatedServices) {
+      var list = App.Service.find().mapProperty("serviceName").filter(function(s){return !unrelatedServices.contains(s)}).join(',');
+      data.context = "Stop required services";
       data.urlParams = "ServiceInfo/service_name.in(" + list + ")";
     } else {
       data.context = "Stop all services";
@@ -560,13 +568,14 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
   },
 
   startServices: function () {
-    if (this.get('restartYarnMRComponents')) {
-      var list = App.Service.find().mapProperty("serviceName").without("HDFS").join(',');
+    var unrelatedServices = this.get('unrelatedServicesMap')[this.get('content.reassign.component_name')];
+    if (unrelatedServices) {
+      var list = App.Service.find().mapProperty("serviceName").filter(function(s){return !unrelatedServices.contains(s)}).join(',');
       var conf = {
         name: 'common.services.update',
         sender: this,
         data: {
-          "context": "Start without HDFS",
+          "context": "Start required services",
           "ServiceInfo": {
             "state": "STARTED"
           },
