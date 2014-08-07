@@ -252,9 +252,10 @@ App.WizardStep5Controller = Em.Controller.extend({
     var showControl = !services.contains(currentService);
 
     if (showControl) {
-      if (this.get("selectedServicesMasters").filterProperty("component_name", componentName).length < this.get("hosts.length") && !this.get('isReassignWizard') && !this.get('isHighAvailabilityWizard')) {
+      var mastersLength = this.get("selectedServicesMasters").filterProperty("component_name", componentName).length;
+      if (mastersLength < this.get("hosts.length") && !this.get('isReassignWizard') && !this.get('isHighAvailabilityWizard')) {
         component.set('showAddControl', true);
-      } else {
+      } else if (mastersLength == 1 || this.get('isReassignWizard') || this.get('isHighAvailabilityWizard')) {
         component.set('showRemoveControl', false);
       }
     }
