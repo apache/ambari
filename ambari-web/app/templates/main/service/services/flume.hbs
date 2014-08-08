@@ -20,7 +20,7 @@
     <div id="flume-summary">
       <a href="#" {{action filterHosts view.flumeHandlerComponent}}>{{view.summaryHeader}}</a>
       <a href="#" class="pull-right" {{action gotoConfigs target="controller"}}>{{t dashboard.services.flume.summary.configure}}</a>
-      <div id="flume-agent-table" class="scrollable-container">
+      <div id="flume-agent-table-wrap" class="scrollable-container">
         <table class="table table-hover table-bordered table-striped" id="flume-agents-table">
           <thead>
           {{#view view.sortView contentBinding="view.filteredContent" class="label-row"}}
@@ -33,7 +33,7 @@
           </thead>
           {{#if view.pageContent}}
             {{#each host in view.pageContent}}
-              <tbody>
+              <tbody class="flume-agent-table-tbody">
                 {{#view view.agentView contentBinding="host"}}
                   <td {{bindAttr rowspan="host.rowspan"}} id="flume-host-agent-row" class="agent-host-name">
                       <a href="javascript:void(null)" {{action showDetails host.agents}}>
@@ -75,7 +75,7 @@
                   </td>
                 {{/view}}
                 {{#each agent in host.otherAgents}}
-                  <tr>
+                  {{#view view.agentView contentBinding="host"}}
                     <td class="agent-status">
                         <div class="wrapp-flume-status">
                             <span {{bindAttr class="agent.healthClass"}}></span> {{agent.name}}
@@ -100,22 +100,22 @@
                             </div>
                         </div>
                     </td>
-                    <td>
+                    <td class="flume-agent-sources-count">
                       {{agent.sourcesCount}}
                     </td>
-                    <td>
+                    <td class="flume-agent-channels-count">
                       {{agent.channelsCount}}
                     </td>
-                    <td>
+                    <td class="flume-agent-sink-count">
                       {{agent.sinksCount}}
                     </td>
-                  </tr>
+                  {{/view}}
                 {{/each}}
               </tbody>
             {{/each}}
           {{else}}
             <tr>
-              <td colspan="6" class="empty-label">
+              <td colspan="6" id="flume-agents-empty-label" class="empty-label">
                 {{t services.service.summary.flume.noAgents}}
               </td>
             </tr>

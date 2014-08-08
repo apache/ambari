@@ -26,12 +26,15 @@ App.MainDashboardServiceFlumeView = App.TableView.extend({
 
   selectedHost: null,
 
+  flumeAgentsCount:0,
+
   content: function () {
-    var hostNames = this.get('service.agents').mapProperty('hostName').uniq(),
+    var flumeAgents = this.get('service.agents'),
+    hostNames = flumeAgents.mapProperty('hostName').uniq(),
     content = [],
     self = this;
     hostNames.forEach(function(hostName) {
-      var agents = self.get('service.agents').filterProperty('hostName', hostName);
+      var agents = flumeAgents.filterProperty('hostName', hostName);
       content.push(
         Em.Object.create({
           hostName: hostName,
@@ -43,7 +46,9 @@ App.MainDashboardServiceFlumeView = App.TableView.extend({
       );
     });
     return content;
-  }.property('service.agents.length', 'service.@each.agents'),
+  }.property('App.FlumeAgent.@each.id', 'flumeAgentsCount'),
+
+
 
   summaryHeader: function () {
     var agents = App.FlumeService.find().objectAt(0).get('agents'),
@@ -95,7 +100,11 @@ App.MainDashboardServiceFlumeView = App.TableView.extend({
         agent.set('isStopAgentDisabled', agent.get('status') !== 'RUNNING');
       });
     });
-  }.observes('content.@each.agents.@each.status'),
+  }.observes('service.agents.@each.status'),
+
+  updateFlumeAgentsCount: function () {
+    this.set('flumeAgentsCount', this.get('service.agents.length'));
+  }.observes('service.agents.length'),
 
   /**
    * Action handler from flume tepmlate.
