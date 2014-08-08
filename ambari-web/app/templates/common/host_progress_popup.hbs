@@ -193,7 +193,24 @@
         <div class="task-detail-log-info">
             <div class="content-area">
                 <div class="task-detail-log-clipboard-wrap"></div>
-                <div class="task-detail-log-maintext">
+                <div class="task-detail-log-maintext">  
+                    {{#if view.openedTask.isRebalanceHDFSTask }}
+                      <h5>{{t services.hdfs.rebalance.title}}</h5>
+                      <div class="progresspopup-rebalancehdfs">
+                        <div class="progress progress-striped active">
+                          <div class="bar" {{bindAttr style="view.openedTask.completionProgressStyle"}}></div>
+                        </div>
+                      </div>
+                      <div class="clearfix">
+                        <div class="pull-left">
+                          {{view.openedTask.dataMoved}} moved /
+                          {{view.openedTask.dataLeft}} left /
+                          {{view.openedTask.dataBeingMoved}} being processed
+                        </div>
+                        <button class="btn btn-danger pull-right" {{action stopRebalanceHDFS}}>{{t common.cancel}}</button>
+                      </div>
+                      <hr>
+                    {{/if}}
                     <h5>stderr: &nbsp; <span class="muted">{{view.openedTask.errorLog}} </span></h5>
                     <pre class="stderr">{{view.openedTask.stderr}}</pre>
                     <h5>stdout: &nbsp; <span class="muted"> {{view.openedTask.outputLog}} </span></h5>

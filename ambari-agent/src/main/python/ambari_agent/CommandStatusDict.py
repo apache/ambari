@@ -21,6 +21,7 @@ limitations under the License.
 import json
 import logging
 import threading
+import copy
 from Grep import Grep
 
 logger = logging.getLogger()
@@ -58,7 +59,25 @@ class CommandStatusDict():
     if not status_command:
       self.callback_action()
 
-
+  def update_command_status(self, command, delta):
+    """
+    Updates status of command without replacing (overwrites with delta value)
+    """
+    if 'taskId' in command:
+      key = command['taskId']
+      status_command = False
+    else: # Status command reports has no task id
+      key = id(command)
+      status_command = True
+    with self.lock: # Synchronized
+      self.current_state[key][1].update(delta)
+    if not status_command:
+      self.callback_action()
+  
+  def get_command_status(self, taskId):
+    with self.lock:
+      c = copy.copy(self.current_state[taskId][1])
+    return c
   def generate_report(self):
     """
     Generates status reports about commands that are IN_PROGRESS, COMPLETE or
@@ -72,7 +91,7 @@ class CommandStatusDict():
       for key, item in self.current_state.items():
         command = item[0]
         report = item[1]
-        if command ['commandType'] == ActionQueue.EXECUTION_COMMAND:
+        if command ['commandType'] in [ActionQueue.EXECUTION_COMMAND, ActionQueue.BACKGROUND_EXECUTION_COMMAND]:
           if (report['status']) != ActionQueue.IN_PROGRESS_STATUS:
             resultReports.append(report)
             # Removing complete/failed command status from dict

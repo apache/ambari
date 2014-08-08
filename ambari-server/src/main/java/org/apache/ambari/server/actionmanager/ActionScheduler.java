@@ -31,18 +31,13 @@ import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ListMultimap;
-import com.google.common.reflect.TypeToken;
-import com.google.inject.persist.UnitOfWork;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.ServiceComponentHostNotFoundException;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.agent.ActionQueue;
+import org.apache.ambari.server.agent.AgentCommand.AgentCommandType;
 import org.apache.ambari.server.agent.CancelCommand;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
@@ -64,6 +59,13 @@ import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
+import com.google.common.reflect.TypeToken;
+import com.google.inject.persist.UnitOfWork;
 
 
 
@@ -193,7 +195,6 @@ class ActionScheduler implements Runnable {
       processCancelledRequestsList();
 
       Set<Long> runningRequestIds = new HashSet<Long>();
-      Set<String> affectedHosts = new HashSet<String>();
       List<Stage> stages = db.getStagesInProgress();
       if (LOG.isDebugEnabled()) {
         LOG.debug("Scheduler wakes up");
@@ -207,6 +208,10 @@ class ActionScheduler implements Runnable {
         return;
       }
       int i_stage = 0;
+      
+      
+      stages = filterParallelPerHostStages(stages);
+      
       for (Stage s : stages) {
         // Check if we can process this stage in parallel with another stages
         i_stage ++;
@@ -225,20 +230,7 @@ class ActionScheduler implements Runnable {
           }
         }
 
-        List<String> stageHosts = s.getHosts();
-        boolean conflict = false;
-        for (String host : stageHosts) {
-          if (affectedHosts.contains(host)) {
-            conflict = true;
-            break;
-          }
-        }
-        if (conflict) {
-          // Also we don't want to perform stages in parallel at the same hosts
-          continue;
-        } else {
-          affectedHosts.addAll(stageHosts);
-        }
+        
 
         // Commands that will be scheduled in current scheduler wakeup
         List<ExecutionCommand> commandsToSchedule = new ArrayList<ExecutionCommand>();
@@ -354,6 +346,38 @@ class ActionScheduler implements Runnable {
     }
   }
 
+  /**
+   * Returns filtered list of stages following the rule:
+   * 1) remove stages that has the same host. Leave only first stage, the rest that have same host of any operation will be filtered
+   * 2) do not remove stages intersected by host if they have intersection by background command
+   * @param stages
+   * @return
+   */
+  private List<Stage> filterParallelPerHostStages(List<Stage> stages) {
+    List<Stage> retVal = new ArrayList<Stage>();
+    Set<String> affectedHosts = new HashSet<String>();
+    for(Stage s : stages){
+      for (String host : s.getHosts()) {
+        if (!affectedHosts.contains(host)) {
+          if(!isStageHasBackgroundCommandsOnly(s, host)){
+            affectedHosts.add(host);
+          }
+          retVal.add(s);
+        }
+      }
+    }
+    return retVal;
+  }
+
+  private boolean isStageHasBackgroundCommandsOnly(Stage s, String host) {
+    for (ExecutionCommandWrapper c : s.getExecutionCommands(host)) {
+      if(c.getExecutionCommand().getCommandType() != AgentCommandType.BACKGROUND_EXECUTION_COMMAND)
+      {
+        return false;
+      }
+    }
+    return true;
+  }
 
   /**
    * Executes internal ambari-server action

@@ -380,6 +380,23 @@ App.HostPopup = Em.Object.create({
                   existTask.set('errorLog', _task.Tasks.error_log);
                   existTask.set('startTime', date.startTime(_task.Tasks.start_time));
                   existTask.set('duration', date.durationSummary(_task.Tasks.start_time, _task.Tasks.end_time));
+                  // Puts some command information to render it 
+                  var isRebalanceHDFSTask = (_task.Tasks.command === 'CUSTOM_COMMAND' && _task.Tasks.custom_command_name === 'REBALANCEHDFS');
+                  existTask.set('isRebalanceHDFSTask', isRebalanceHDFSTask);
+                  if(isRebalanceHDFSTask){
+                    var structuredOut = _task.Tasks.structured_out;
+                    if (!structuredOut || structuredOut === 'null') {
+                      structuredOut = {};
+                    }
+                    
+                    existTask.set('dataMoved', structuredOut['dataMoved'] || '0');
+                    existTask.set('dataLeft', structuredOut['dataLeft'] || '0');
+                    existTask.set('dataBeingMoved', structuredOut['dataBeingMoved'] || '0');
+                    existTask.set('completionProgressStyle', 'width:' + (structuredOut['completePercent'] || 0) * 100 + '%;');
+
+                    existTask.set('command', _task.Tasks.command);
+                    existTask.set('custom_command_name', _task.Tasks.custom_command_name);
+                  }
                 } else {
                   existTasks.pushObject(this.createTask(_task));
                 }
@@ -917,7 +934,25 @@ App.HostPopup = Em.Object.create({
           $(".modal").scrollTop(0);
           $(".modal-body").scrollTop(0);
         },
-
+        
+        stopRebalanceHDFS: function () {
+          var hostPopup = this;
+          return App.showConfirmationPopup(function () {
+          App.ajax.send({
+            name : 'cancel.background.operation',
+              sender : hostPopup,
+            data : {
+                cancelTaskId : hostPopup.get('openedTaskId'),
+              command : "REFRESHQUEUES",
+              context : Em.I18n.t('services.service.actions.run.yarnRefreshQueues.context') ,
+              hosts : App.Service.find('HDFS').get('hostComponents').findProperty('componentName', 'NAMENODE').get('hostName'),
+              serviceName : "HDFS",
+              componentName : "NAMENODE"
+            }
+          });
+            hostPopup.backToServiceList();
+          });
+        },
         /**
          * Onclick handler for selected Task
          */

@@ -46,7 +46,9 @@ import org.apache.ambari.server.agent.ActionQueue;
 import org.apache.ambari.server.agent.AgentCommand;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.agent.AgentCommand.AgentCommandType;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.AmbariCustomCommandExecutionHelper;
 import org.apache.ambari.server.controller.HostsMap;
 import org.apache.ambari.server.serveraction.ServerAction;
 import org.apache.ambari.server.serveraction.ServerActionManagerImpl;
@@ -742,6 +744,74 @@ public class TestActionScheduler {
     Assert.assertEquals(HostRoleStatus.PENDING, stages.get(3).getHostRoleStatus(hostname3, "DATANODE"));
     Assert.assertEquals(HostRoleStatus.PENDING, stages.get(4).getHostRoleStatus(hostname4, "GANGLIA_MONITOR"));
   }
+  /**
+   * Verifies that ActionScheduler allows to execute background tasks in parallel
+   */
+  @Test
+  public void testBackgroundStagesExecutionEnable() throws Exception {
+    ActionQueue aq = new ActionQueue();
+    Clusters fsm = mock(Clusters.class);
+    Cluster oneClusterMock = mock(Cluster.class);
+    Service serviceObj = mock(Service.class);
+    ServiceComponent scomp = mock(ServiceComponent.class);
+    ServiceComponentHost sch = mock(ServiceComponentHost.class);
+    UnitOfWork unitOfWork = mock(UnitOfWork.class);
+    RequestFactory requestFactory = mock(RequestFactory.class);
+    when(fsm.getCluster(anyString())).thenReturn(oneClusterMock);
+    when(oneClusterMock.getService(anyString())).thenReturn(serviceObj);
+    when(serviceObj.getServiceComponent(anyString())).thenReturn(scomp);
+    when(scomp.getServiceComponentHost(anyString())).thenReturn(sch);
+    when(serviceObj.getCluster()).thenReturn(oneClusterMock);
+    
+    String hostname1 = "ahost.ambari.apache.org";
+    String hostname2 = "bhost.ambari.apache.org";
+    HashMap<String, ServiceComponentHost> hosts =
+        new HashMap<String, ServiceComponentHost>();
+    hosts.put(hostname1, sch);
+    hosts.put(hostname2, sch);
+    when(scomp.getServiceComponentHosts()).thenReturn(hosts);
+    
+    List<Stage> stages = new ArrayList<Stage>();
+    Stage backgroundStage = null;
+    stages.add(//stage with background command
+        backgroundStage = getStageWithSingleTask(
+            hostname1, "cluster1", Role.NAMENODE, RoleCommand.CUSTOM_COMMAND, "REBALANCEHDFS", Service.Type.HDFS, 1, 1, 1));
+    
+    Assert.assertEquals(AgentCommandType.BACKGROUND_EXECUTION_COMMAND ,backgroundStage.getExecutionCommands(hostname1).get(0).getExecutionCommand().getCommandType());
+    
+    stages.add( // Stage with the same hostname, should be scheduled
+        getStageWithSingleTask(
+            hostname1, "cluster1", Role.GANGLIA_MONITOR,
+            RoleCommand.START, Service.Type.GANGLIA, 2, 2, 2));
+    
+    stages.add(
+        getStageWithSingleTask(
+            hostname2, "cluster1", Role.DATANODE,
+            RoleCommand.START, Service.Type.HDFS, 3, 3, 3));
+    
+    
+    ActionDBAccessor db = mock(ActionDBAccessor.class);
+    when(db.getStagesInProgress()).thenReturn(stages);
+    
+    Properties properties = new Properties();
+    properties.put(Configuration.PARALLEL_STAGE_EXECUTION_KEY, "true");
+    Configuration conf = new Configuration(properties);
+    ActionScheduler scheduler = new ActionScheduler(100, 50, db, aq, fsm, 3,
+        new HostsMap((String) null), new ServerActionManagerImpl(fsm),
+        unitOfWork, conf);
+    
+    ActionManager am = new ActionManager(
+        2, 2, aq, fsm, db, new HostsMap((String) null),
+        new ServerActionManagerImpl(fsm), unitOfWork,
+        requestFactory, conf);
+    
+    scheduler.doWork();
+    
+    Assert.assertEquals(HostRoleStatus.QUEUED, stages.get(0).getHostRoleStatus(hostname1, "NAMENODE"));
+    Assert.assertEquals(HostRoleStatus.QUEUED, stages.get(2).getHostRoleStatus(hostname2, "DATANODE"));
+
+    Assert.assertEquals(HostRoleStatus.QUEUED, stages.get(1).getHostRoleStatus(hostname1, "GANGLIA_MONITOR"));
+  }
 
 
   @Test
@@ -1231,6 +1301,19 @@ public class TestActionScheduler {
     stage.getExecutionCommandWrapper(hostname,
         role.toString()).getExecutionCommand();
     stage.getOrderedHostRoleCommands().get(0).setTaskId(taskId);
+    return stage;
+  }
+
+  private Stage getStageWithSingleTask(String hostname, String clusterName, Role role, RoleCommand roleCommand,
+      String customCommandName, Service.Type service, int taskId, int stageId, int requestId) {
+    Stage stage = getStageWithSingleTask(hostname, clusterName, role, roleCommand, service, taskId, stageId, requestId);
+
+    HostRoleCommand cmd = stage.getHostRoleCommand(hostname, role.name());
+    if (cmd != null) {
+      cmd.setCustomCommandName(customCommandName);
+    }
+
+    stage.getExecutionCommandWrapper(hostname, role.toString()).getExecutionCommand().setCommandType(AgentCommandType.BACKGROUND_EXECUTION_COMMAND);
     return stage;
   }
 

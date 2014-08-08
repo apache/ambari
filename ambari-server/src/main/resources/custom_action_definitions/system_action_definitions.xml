@@ -20,16 +20,6 @@
 
 <actionDefinitions>
   <actionDefinition>
-    <actionName>ambari_hdfs_rebalancer</actionName>
-    <actionType>SYSTEM</actionType>
-    <inputs>threshold,[principal],[keytab]</inputs>
-    <targetService>HDFS</targetService>
-    <targetComponent>NAMENODE</targetComponent>
-    <defaultTimeout>600</defaultTimeout>
-    <description>HDFS Rebalance</description>
-    <targetType>ANY</targetType>
-  </actionDefinition>
-  <actionDefinition>
     <actionName>nagios_update_ignore</actionName>
     <actionType>SYSTEM</actionType>
     <inputs>[nagios_ignore]</inputs>
@@ -58,5 +48,15 @@
     <defaultTimeout>60</defaultTimeout>
     <description>Validate if provided service config can be applied to specified hosts</description>
     <targetType>ALL</targetType>
+  </actionDefinition>
+  <actionDefinition>
+    <actionName>cancel_background_task</actionName>
+    <actionType>SYSTEM</actionType>
+    <inputs></inputs>
+    <targetService></targetService>
+    <targetComponent></targetComponent>
+    <defaultTimeout>60</defaultTimeout>
+    <description>Cancel background task</description>
+    <targetType>ANY</targetType>
   </actionDefinition>
 </actionDefinitions>

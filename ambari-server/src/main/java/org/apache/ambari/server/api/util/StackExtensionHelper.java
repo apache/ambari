@@ -254,8 +254,7 @@ public class StackExtensionHelper {
 
     for (ComponentInfo childComponent : childService.getComponents()) {
       if (!childComponent.isDeleted()) {
-        ComponentInfo parentComponent = getComponent(parentService,
-                childComponent.getName());
+        ComponentInfo parentComponent = parentService.getComponentByName(childComponent.getName());
         if (parentComponent != null) { // If parent has similar component
           ComponentInfo mergedComponent = mergeComponents(parentComponent,
                   childComponent);
@@ -277,17 +276,6 @@ public class StackExtensionHelper {
       }
     }
   }
-
-
-  private ComponentInfo getComponent(ServiceInfo service, String componentName) {
-    for (ComponentInfo component : service.getComponents()) {
-      if (component.getName().equals(componentName)) {
-        return component;
-      }
-    }
-    return null;
-  }
-
 
   ComponentInfo mergeComponents(ComponentInfo parent, ComponentInfo child) {
     ComponentInfo result = new ComponentInfo(child); // cloning child

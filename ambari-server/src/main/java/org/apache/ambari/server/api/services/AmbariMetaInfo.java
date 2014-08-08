@@ -402,15 +402,7 @@ public class AmbariMetaInfo {
   public boolean isValidServiceComponent(String stackName, String version,
                                          String serviceName, String componentName) throws AmbariException {
     ServiceInfo service = getServiceInfo(stackName, version, serviceName);
-    if (service == null) {
-      return false;
-    }
-    for (ComponentInfo compInfo : service.getComponents()) {
-      if (compInfo.getName().equals(componentName)) {
-        return true;
-      }
-    }
-    return false;
+    return service != null && service.getComponentByName(componentName) != null;
   }
 
   /**
@@ -436,17 +428,12 @@ public class AmbariMetaInfo {
         || services.isEmpty()) {
       return retService;
     }
-    boolean found = false;
     for (Map.Entry<String, ServiceInfo> entry : services.entrySet()) {
-      for (ComponentInfo compInfo : entry.getValue().getComponents()) {
-        if (compInfo.getName().equals(componentName)) {
-          retService = entry.getKey();
-          found = true;
-          break;
-        }
-      }
-      if (found)
+      ComponentInfo vu = entry.getValue().getComponentByName(componentName);
+      if(vu != null){
+        retService = entry.getKey();
         break;
+      }
     }
     return retService;
   }

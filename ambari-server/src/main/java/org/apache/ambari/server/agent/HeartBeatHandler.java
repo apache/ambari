@@ -563,6 +563,7 @@ public class HeartBeatHandler {
           throw new AmbariException("Could not get jaxb string for command", e);
         }
         switch (ac.getCommandType()) {
+          case BACKGROUND_EXECUTION_COMMAND: 
           case EXECUTION_COMMAND: {
             response.addExecutionCommand((ExecutionCommand) ac);
             break;

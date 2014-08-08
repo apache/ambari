@@ -302,6 +302,55 @@ var urls = {
       };
     }
   },
+  'service.item.rebalanceHdfsNodes' : {
+    'real' : '/clusters/{clusterName}/requests',
+    'mock' : '',
+    'format' : function(data) {
+      return {
+        type : 'POST',
+        data : JSON.stringify({
+          RequestInfo : {
+            'context' : Em.I18n.t('services.service.actions.run.rebalanceHdfsNodes.context'),
+            'command' : 'REBALANCEHDFS',
+            'namenode' : JSON.stringify({threshold: data.threshold})
+          },
+          "Requests/resource_filters" : [ {
+            'service_name' : 'HDFS',
+            'component_name' : 'NAMENODE',
+            'hosts' : data.hosts
+          } ]
+        })
+      }
+    }
+  },
+  
+  'cancel.background.operation' : {
+    'real' : '/clusters/{clusterName}/requests',
+    'mock' : '',
+    'format' : function(data) {
+      return {
+        type : 'POST',
+        data : JSON.stringify({
+          RequestInfo : {
+            'context' : 'Cancel background operation',
+            'action'  : 'cancel_background_task',
+            "parameters" : {
+              "cancel_policy"   : "SIGKILL",
+              'before_system_hook_function' : 'fetch_bg_pid_by_taskid',
+              "cancel_task_id"  : data.cancelTaskId
+            }
+          },
+          "Requests/resource_filters" : [ {
+            "service_name" : data.serviceName,
+            "component_name" : data.componentName,
+            'hosts' : data.hosts
+          } ]
+        })
+      }
+    }
+  },
+
+
   'service.item.refreshQueueYarnRequest':{
     'real': '/clusters/{clusterName}/requests',
     'mock': '',
@@ -319,6 +368,7 @@ var urls = {
         }
       }
   },
+
   'service.load_config_groups': {
     'real': '/clusters/{clusterName}/config_groups?ConfigGroup/tag={serviceName}&fields=*',
     'mock': '/data/configurations/config_group.json'

@@ -92,6 +92,13 @@ App.MainServiceItemView = Em.View.extend({
         label: Em.I18n.t('services.service.actions.reassign.master'),
         cssClass: 'icon-share-alt',
         disabled: false
+      },
+      REBALANCE_HDFS: {
+        action: 'rebalanceHdfsNodes',
+        context: Em.I18n.t('services.service.actions.run.rebalanceHdfsNodes.context'),
+        label: Em.I18n.t('services.service.actions.run.rebalanceHdfsNodes'),
+        cssClass: 'icon-refresh',
+        disabled: false
       }
     }
   },
@@ -181,8 +188,10 @@ App.MainServiceItemView = Em.View.extend({
         options.push(actionMap.RUN_SMOKE_TEST);
       }
       options.push(actionMap.TOGGLE_PASSIVE);
-
       var serviceName = service.get('serviceName');
+      if (serviceName === 'HDFS') {
+        options.push(actionMap.REBALANCE_HDFS);
+      }
       self.addActionMap().filterProperty('service', serviceName).forEach(function(item) {
         item.action = 'add' + item.component;
         item.disabled = self.get('controller.isAddDisabled-' + item.component);

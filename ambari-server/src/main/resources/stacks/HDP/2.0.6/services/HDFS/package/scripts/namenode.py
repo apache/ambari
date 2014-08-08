@@ -20,6 +20,13 @@ limitations under the License.
 from resource_management import *
 from hdfs_namenode import namenode
 from hdfs import hdfs
+import time
+import json
+import subprocess
+import hdfs_rebalance
+import sys
+import os
+from datetime import datetime
 
 
 class NameNode(Script):
@@ -66,6 +73,51 @@ class NameNode(Script):
     env.set_params(params)
     namenode(action="decommission")
     pass
+  
+  def rebalancehdfs(self, env):
+    import params
+    env.set_params(params)
 
+    name_node_parameters = json.loads( params.name_node_params )
+    threshold = name_node_parameters['threshold']
+    print "Starting balancer with threshold = %s" % threshold
+      
+    def calculateCompletePercent(first, current):
+      return 1.0 - current.bytesLeftToMove/first.bytesLeftToMove
+    
+    
+    def startRebalancingProcess(threshold):
+      rebalanceCommand = format('hadoop --config {hadoop_conf_dir} balancer -threshold {threshold}')
+      return ['su','-',params.hdfs_user,'-c', rebalanceCommand]
+    
+    command = startRebalancingProcess(threshold)
+    
+    basedir = os.path.join(env.config.basedir, 'scripts')
+    if(threshold == 'DEBUG'): #FIXME TODO remove this on PROD
+      basedir = os.path.join(env.config.basedir, 'scripts', 'balancer-emulator')
+      command = ['python','hdfs-command.py']
+    
+    print "Executing command %s" % command
+    
+    parser = hdfs_rebalance.HdfsParser()
+    proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                          shell=False,
+                          close_fds=True,
+                          cwd=basedir
+                          )
+    for line in iter(proc.stdout.readline, ''):
+      sys.stdout.write('[balancer] %s %s' % (str(datetime.now()), line ))
+      pl = parser.parseLine(line)
+      if pl:
+        res = pl.toJson()
+        res['completePercent'] = calculateCompletePercent(parser.initialLine, pl) 
+        
+        self.put_structured_out(res)
+      elif parser.state == 'PROCESS_FINISED' : 
+        sys.stdout.write('[balancer] %s %s' % (str(datetime.now()), 'Process is finished' ))
+        self.put_structured_out({'completePercent' : 1})
+        break
+      
+      
 if __name__ == "__main__":
   NameNode().execute()

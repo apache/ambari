@@ -1232,13 +1232,18 @@ public class AmbariMetaInfoTest {
     ccd = findCustomCommand("YET_ANOTHER_PARENT_COMMAND", component);
     Assert.assertEquals("scripts/yet_another_parent_command.py",
             ccd.getCommandScript().getScript());
-
-    Assert.assertEquals(2, component.getCustomCommands().size());
+    
+    ccd = findCustomCommand("REBALANCEHDFS", component);
+    Assert.assertEquals("scripts/namenode.py",
+        ccd.getCommandScript().getScript());
+    Assert.assertTrue(ccd.isBackground());
+    
+    Assert.assertEquals(3, component.getCustomCommands().size());
 
     // Test custom command script inheritance
     component = metaInfo.getComponent(STACK_NAME_HDP, "2.0.8",
             "HDFS", "NAMENODE");
-    Assert.assertEquals(3, component.getCustomCommands().size());
+    Assert.assertEquals(4, component.getCustomCommands().size());
 
     ccd = findCustomCommand("YET_ANOTHER_PARENT_COMMAND", component);
     Assert.assertEquals("scripts/yet_another_parent_command.py",

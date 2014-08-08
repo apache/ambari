@@ -39,6 +39,7 @@ import sys
 from AgentException import AgentException
 from FileCache import FileCache
 from LiveStatus import LiveStatus
+from BackgroundCommandExecutionHandle import BackgroundCommandExecutionHandle
 
 
 class TestCustomServiceOrchestrator(TestCase):
@@ -395,6 +396,39 @@ class TestCustomServiceOrchestrator(TestCase):
     status = orchestrator.requestComponentStatus(status_command)
     self.assertEqual(runCommand_mock.return_value, status)
 
+
+  @patch.object(CustomServiceOrchestrator, "dump_command_to_json")
+  @patch.object(FileCache, "__init__")
+  @patch.object(FileCache, "get_custom_actions_base_dir")
+  def test_runCommand_background_action(self, get_custom_actions_base_dir_mock,
+                                    FileCache_mock,
+                                    dump_command_to_json_mock):
+    FileCache_mock.return_value = None
+    get_custom_actions_base_dir_mock.return_value = "some path"
+    _, script = tempfile.mkstemp()
+    command = {
+      'role' : 'any',
+      'commandParams': {
+        'script_type': 'PYTHON',
+        'script': 'some_custom_action.py',
+        'command_timeout': '600',
+        'jdk_location' : 'some_location'
+      },
+      'taskId' : '13',
+      'roleCommand': 'ACTIONEXECUTE',
+      'commandType': 'BACKGROUND_EXECUTION_COMMAND',
+      '__handle' : BackgroundCommandExecutionHandle(None,13,MagicMock(), MagicMock())
+    }
+    dummy_controller = MagicMock()
+    orchestrator = CustomServiceOrchestrator(self.config, dummy_controller)
+    
+    import TestActionQueue
+    TestActionQueue.patch_output_file(orchestrator.python_executor)
+    orchestrator.python_executor.condenseOutput = MagicMock()
+    orchestrator.dump_command_to_json = MagicMock()
+    
+    ret = orchestrator.runCommand(command, "out.txt", "err.txt")
+    self.assertEqual(ret['exitcode'], 777)
 
   def tearDown(self):
     # enable stdout

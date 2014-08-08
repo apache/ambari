@@ -42,6 +42,7 @@ import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.Stage;
+import org.apache.ambari.server.agent.AgentCommand.AgentCommandType;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -53,6 +54,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.CommandScriptDefinition;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.ambari.server.state.CustomCommandDefinition;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostComponentAdminState;
 import org.apache.ambari.server.state.MaintenanceState;
@@ -236,7 +238,6 @@ public class AmbariCustomCommandExecutionHelper {
       throw new AmbariException(message);
     }
 
-
     StackId stackId = cluster.getDesiredStackVersion();
     AmbariMetaInfo ambariMetaInfo = managementController.getAmbariMetaInfo();
     ServiceInfo serviceInfo = ambariMetaInfo.getServiceInfo
@@ -244,6 +245,12 @@ public class AmbariCustomCommandExecutionHelper {
     StackInfo stackInfo = ambariMetaInfo.getStackInfo
       (stackId.getStackName(), stackId.getStackVersion());
 
+    CustomCommandDefinition customCommandDefinition = null;
+    ComponentInfo ci = serviceInfo.getComponentByName(componentName);
+    if(ci != null){
+      customCommandDefinition = ci.getCustomCommandByName(commandName);
+    }
+    
     long nowTimestamp = System.currentTimeMillis();
 
     for (String hostName : candidateHosts) {
@@ -271,6 +278,11 @@ public class AmbariCustomCommandExecutionHelper {
       ExecutionCommand execCmd = stage.getExecutionCommandWrapper(hostName,
           componentName).getExecutionCommand();
 
+      //set type background
+      if(customCommandDefinition != null && customCommandDefinition.isBackground()){
+        execCmd.setCommandType(AgentCommandType.BACKGROUND_EXECUTION_COMMAND);
+      }
+      
       execCmd.setConfigurations(configurations);
       execCmd.setConfigurationAttributes(configurationAttributes);
       execCmd.setConfigurationTags(configTags);

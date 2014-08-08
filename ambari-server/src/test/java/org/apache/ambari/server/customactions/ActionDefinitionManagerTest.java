@@ -27,27 +27,15 @@ import org.junit.Test;
 
 public class ActionDefinitionManagerTest {
 
-  private final String customActionDefinitionRoot = "./src/test/resources/custom_action_definitions/".
-          replaceAll("/", File.separator);
+  private final String customActionDefinitionRoot = "./src/test/resources/custom_action_definitions/";
 
   @Test
   public void testReadCustomActionDefinitions() throws Exception {
     ActionDefinitionManager manager = new ActionDefinitionManager();
     manager.readCustomActionDefinitions(new File(customActionDefinitionRoot));
 
-    Assert.assertEquals(3, manager.getAllActionDefinition().size());
-    ActionDefinition ad = manager.getActionDefinition("ambari_hdfs_rebalancer");
-    Assert.assertNotNull(ad);
-    Assert.assertEquals("ambari_hdfs_rebalancer", ad.getActionName());
-    Assert.assertEquals("HDFS Rebalance", ad.getDescription());
-    Assert.assertEquals("threshold,[principal],[keytab]", ad.getInputs());
-    Assert.assertEquals("NAMENODE", ad.getTargetComponent());
-    Assert.assertEquals("HDFS", ad.getTargetService());
-    Assert.assertEquals(600, (int)ad.getDefaultTimeout());
-    Assert.assertEquals(TargetHostType.ANY, ad.getTargetType());
-    Assert.assertEquals(ActionType.SYSTEM, ad.getActionType());
-
-    ad = manager.getActionDefinition("customAction1");
+    Assert.assertEquals(2, manager.getAllActionDefinition().size());
+    ActionDefinition ad = manager.getActionDefinition("customAction1");
     Assert.assertNotNull(ad);
     Assert.assertEquals("customAction1", ad.getActionName());
     Assert.assertEquals("A random test", ad.getDescription());

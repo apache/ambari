@@ -230,15 +230,11 @@ App.MainServiceItemController = Em.Controller.extend({
    * @param event
    */
   refreshYarnQueues : function (event) {
-    var self = this;
+    var controller = this;
     return App.showConfirmationPopup(function() {
-      self.refreshYarnQueuesPrimary();
-    });
-  },
-  refreshYarnQueuesPrimary : function(){
     App.ajax.send({
       name : 'service.item.refreshQueueYarnRequest',
-      sender : this,
+        sender: controller,
       data : {
         command : "REFRESHQUEUES",
         context : Em.I18n.t('services.service.actions.run.yarnRefreshQueues.context') ,
@@ -249,6 +245,7 @@ App.MainServiceItemController = Em.Controller.extend({
       },
       success : 'refreshYarnQueuesSuccessCallback',
       error : 'refreshYarnQueuesErrorCallback'
+    });
     });
   },
   refreshYarnQueuesSuccessCallback  : function(data, ajaxOptions, params) {
@@ -268,6 +265,72 @@ App.MainServiceItemController = Em.Controller.extend({
     }
     App.showAlertPopup(Em.I18n.t('services.service.actions.run.yarnRefreshQueues.error'), error);
     console.warn('Error during refreshYarnQueues:'+error);
+  },
+ /**
+   * On click handler for rebalance Hdfs command from items menu
+   */
+  rebalanceHdfsNodes: function () {
+    var controller = this;
+    App.ModalPopup.show({
+      classNames: ['fourty-percent-width-modal'],
+      header: Em.I18n.t('services.service.actions.run.rebalanceHdfsNodes.context'),
+      primary: Em.I18n.t('common.start'),
+      secondary: Em.I18n.t('common.cancel'),
+      inputValue: 0,
+      errorMessage: Em.I18n.t('services.service.actions.run.rebalanceHdfsNodes.promptError'),
+      isInvalid: function () {
+        var intValue = Number(this.get('inputValue'));
+        if (this.get('inputValue')!=='DEBUG' && (isNaN(intValue) || intValue < 0 || intValue > 100)) {
+          return true;
+        }
+        return false;
+      }.property('inputValue'),
+      onPrimary: function () {
+        if (this.get('isInvalid')) {
+          return;
+        }
+    App.ajax.send({
+      name : 'service.item.rebalanceHdfsNodes',
+          sender: controller,
+      data : {
+        hosts : App.Service.find('HDFS').get('hostComponents').findProperty('componentName', 'NAMENODE').get('hostName'),
+            threshold: this.get('inputValue')
+      },
+      success : 'rebalanceHdfsNodesSuccessCallback',
+      error : 'rebalanceHdfsNodesErrorCallback'
+    });
+        this.hide();
+  },
+      bodyClass: Ember.View.extend({
+        templateName: require('templates/common/prompt_popup'),
+        text: Em.I18n.t('services.service.actions.run.rebalanceHdfsNodes.prompt'),
+        didInsertElement: function () {
+          App.tooltip(this.$(".prompt-input"), {
+            placement: "bottom",
+            title: Em.I18n.t('services.service.actions.run.rebalanceHdfsNodes.promptTooltip')
+          });
+        }
+      })
+    });
+  },
+  rebalanceHdfsNodesSuccessCallback: function (data) {
+    if (data.Requests.id) {
+      App.router.get('backgroundOperationsController').showPopup();
+    } else {
+      console.warn('Error during runRebalanceHdfsNodes');
+    }
+  },
+  rebalanceHdfsNodesErrorCallback : function(data) {
+    var error = Em.I18n.t('services.service.actions.run.rebalanceHdfsNodes.error');
+    if(data && data.responseText){
+      try {
+        var json = $.parseJSON(data.responseText);
+        error += json.message;
+      } catch (err) {
+      }
+    }
+    App.showAlertPopup(Em.I18n.t('services.service.actions.run.rebalanceHdfsNodes.error'), error);
+    console.warn('Error during runRebalanceHdfsNodes:'+error);
   },
 
   /**

@@ -50,7 +50,7 @@ class CustomServiceOrchestrator():
   PING_PORTS_KEY = "all_ping_ports"
   AMBARI_SERVER_HOST = "ambari_server_host"
 
-  def __init__(self, config, controller):
+  def __init__(self, config, controller, commandStatuses = None):
     self.config = config
     self.tmp_dir = config.get('agent', 'prefix')
     self.exec_tmp_dir = config.get('agent', 'tmp_dir')
@@ -63,6 +63,8 @@ class CustomServiceOrchestrator():
     self.public_fqdn = hostname.public_hostname(config)
     # cache reset will be called on every agent registration
     controller.registration_listeners.append(self.file_cache.reset)
+    
+    self.commandStatuses = commandStatuses
     # Clean up old status command files if any
     try:
       os.unlink(self.status_commands_stdout)
@@ -93,6 +95,8 @@ class CustomServiceOrchestrator():
       script_type = command['commandParams']['script_type']
       script = command['commandParams']['script']
       timeout = int(command['commandParams']['command_timeout'])
+      before_interceptor_method = command['commandParams']['before_system_hook_function']  if command['commandParams'].has_key('before_system_hook_function') else None
+      
       if 'hostLevelParams' in command and 'jdk_location' in command['hostLevelParams']:
         server_url_prefix = command['hostLevelParams']['jdk_location']
       else:
@@ -110,6 +114,12 @@ class CustomServiceOrchestrator():
       if command_name == self.CUSTOM_ACTION_COMMAND:
         base_dir = self.file_cache.get_custom_actions_base_dir(server_url_prefix)
         script_tuple = (os.path.join(base_dir, script) , base_dir)
+        
+        # Call systemHook functions in current virtual machine. This function can enrich custom action 
+        # command with some information from current machine. And can be considered as plugin
+        if before_interceptor_method != None: 
+          self.processSystemHookFunctions(script_tuple, before_interceptor_method, command)
+        
         hook_dir = None
       else:
         if command_name == self.CUSTOM_COMMAND_COMMAND:
@@ -127,6 +137,11 @@ class CustomServiceOrchestrator():
         message = "Unknown script type {0}".format(script_type)
         raise AgentException(message)
       # Execute command using proper interpreter
+      handle = None
+      if(command.has_key('__handle')):
+        handle = command['__handle']
+        del command['__handle']
+      
       json_path = self.dump_command_to_json(command)
       pre_hook_tuple = self.resolve_hook_script_path(hook_dir,
           self.PRE_HOOK_PREFIX, command_name, script_type)
@@ -141,12 +156,16 @@ class CustomServiceOrchestrator():
       # Executing hooks and script
       ret = None
 
+      from ActionQueue import ActionQueue
+      if(command.has_key('commandType') and command['commandType'] == ActionQueue.BACKGROUND_EXECUTION_COMMAND and len(filtered_py_file_list) > 1):
+        raise AgentException("Background commands are supported without hooks only")
+
       for py_file, current_base_dir in filtered_py_file_list:
         script_params = [command_name, json_path, current_base_dir]
         ret = self.python_executor.run_file(py_file, script_params,
                                self.exec_tmp_dir, tmpoutfile, tmperrfile, timeout,
                                tmpstrucoutfile, logger_level, self.map_task_to_process,
-                               task_id, override_output_files)
+                               task_id, override_output_files, handle = handle)
         # Next run_file() invocations should always append to current output
         override_output_files = False
         if ret['exitcode'] != 0:
@@ -156,16 +175,17 @@ class CustomServiceOrchestrator():
         raise AgentException("No script has been executed")
 
       # if canceled
-      pid = self.commands_in_progress.pop(task_id)
-      if not isinstance(pid, int):
-        reason = '\nCommand aborted. ' + pid
-        ret['stdout'] += reason
-        ret['stderr'] += reason
-
-        with open(tmpoutfile, "a") as f:
-          f.write(reason)
-        with open(tmperrfile, "a") as f:
-          f.write(reason)
+      if self.commands_in_progress.has_key(task_id):#Background command do not push in this collection (TODO)
+        pid = self.commands_in_progress.pop(task_id)
+        if not isinstance(pid, int):
+          reason = '\nCommand aborted. ' + pid
+          ret['stdout'] += reason
+          ret['stderr'] += reason
+  
+          with open(tmpoutfile, "a") as f:
+            f.write(reason)
+          with open(tmperrfile, "a") as f:
+            f.write(reason)
 
     except Exception: # We do not want to let agent fail completely
       exc_type, exc_obj, exc_tb = sys.exc_info()
@@ -180,7 +200,20 @@ class CustomServiceOrchestrator():
       }
     return ret
 
+  def fetch_bg_pid_by_taskid(self,command):
+    cancel_command_pid = None
+    try:
+      cancelTaskId = int(command['commandParams']['cancel_task_id'])
+      status = self.commandStatuses.get_command_status(cancelTaskId)
+      cancel_command_pid = status['pid']
+    except Exception:
+      pass
+    logger.info("Found PID=%s for cancel taskId=%s" % (cancel_command_pid,cancelTaskId))
+    command['commandParams']['cancel_command_pid'] = cancel_command_pid
 
+  def processSystemHookFunctions(self, script_tuple, before_interceptor_method, command):
+    getattr(self, before_interceptor_method)(command)
+    
   def requestComponentStatus(self, command):
     """
      Component status is determined by exit code, returned by runCommand().

@@ -17,11 +17,14 @@
 }}
 <div class="prompt-popup">
   <form>
-    <div class="control-group">
+    <div {{bindAttr class=":control-group view.parentView.isInvalid:error"}}>
       <label class="control-label">{{view.text}}</label>
       <div class="controls">
         {{view Em.TextField class="prompt-input" valueBinding="view.parentView.inputValue"}}
       </div>
+      {{#if view.parentView.isInvalid}}
+        <span class="help-inline">{{view.parentView.errorMessage}}</span>
+      {{/if}}
     </div>
   </form>
 </div>

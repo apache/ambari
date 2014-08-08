@@ -180,7 +180,19 @@ public class ServiceInfo {
     if (components == null) components = new ArrayList<ComponentInfo>();
     return components;
   }
-
+  /**
+   * Finds ComponentInfo by component name
+   * @param componentName
+   * @return ComponentInfo componentName or null
+   */
+  public ComponentInfo getComponentByName(String componentName){
+    for(ComponentInfo componentInfo : getComponents()) {
+      if(componentInfo.getName().equals(componentName)){
+        return componentInfo;
+      }
+    }
+    return null;
+  }
   public boolean isClientOnlyService() {
     if (components == null || components.isEmpty()) {
       return false;

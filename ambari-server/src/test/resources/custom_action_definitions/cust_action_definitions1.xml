@@ -42,14 +42,4 @@
     <targetComponent>TASKTRACKER</targetComponent>
     <description>A random test</description>
   </actionDefinition>
-  <actionDefinition>
-    <actionName>ambari_hdfs_rebalancer</actionName>
-    <actionType>SYSTEM</actionType>
-    <inputs>threshold,[principal],[keytab]</inputs>
-    <targetService>HDFS</targetService>
-    <targetComponent>NAMENODE</targetComponent>
-    <description>HDFS Rebalance</description>
-    <targetType>ANY</targetType>
-    <defaultTimeout>600</defaultTimeout>
-  </actionDefinition>
 </actionDefinitions>

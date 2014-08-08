@@ -451,3 +451,10 @@ class TestNamenode(RMFTestCase):
                               recursive = True,
                               mode = 0755,
                               )
+#   def test_rebalance_hdfs(self): ##Does not work because of exectuteScript Framework does not works with strcuturedoutput
+#     self.executeScript("2.0.6/services/HDFS/package/scripts/namenode.py",
+#                        classname = "NameNode",
+#                        command = "rebalancehdfs",
+#                        config_file="rebalancehdfs_default.json"
+#     )
+

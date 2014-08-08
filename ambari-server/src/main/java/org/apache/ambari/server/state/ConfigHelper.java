@@ -563,7 +563,7 @@ public class ConfigHelper {
     
     ServiceInfo serviceInfo = ambariMetaInfo.getService(stackId.getStackName(),
         stackId.getStackVersion(), sch.getServiceName());
-    ComponentInfo componentInfo = getComponentInfo(serviceInfo,sch.getServiceComponentName());
+    ComponentInfo componentInfo = serviceInfo.getComponentByName(sch.getServiceComponentName());
     // Configs are considered stale when:
     // - desired type DOES NOT exist in actual
     // --- desired type DOES NOT exist in stack: not_stale
@@ -619,15 +619,6 @@ public class ConfigHelper {
       }
     }
     return stale;
-  }
-
-  private ComponentInfo getComponentInfo(ServiceInfo serviceInfo, String componentName) {
-    for(ComponentInfo componentInfo : serviceInfo.getComponents()) {
-      if(componentInfo.getName().equals(componentName)){
-        return componentInfo;
-      }
-    }
-    return null;
   }
 
   /**

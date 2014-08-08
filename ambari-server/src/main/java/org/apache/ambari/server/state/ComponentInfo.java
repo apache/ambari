@@ -156,6 +156,14 @@ public class ComponentInfo {
     }
     return false;
   }
+  public CustomCommandDefinition getCustomCommandByName(String commandName){
+    for(CustomCommandDefinition ccd : getCustomCommands()){
+      if (ccd.getName().equals(commandName)){
+        return ccd;
+      }
+    }
+    return null;
+  }
 
   public List<DependencyInfo> getDependencies() {
     return dependencies;

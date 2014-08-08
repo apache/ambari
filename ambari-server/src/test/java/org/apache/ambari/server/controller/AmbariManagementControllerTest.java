@@ -7244,8 +7244,9 @@ public class AmbariManagementControllerTest {
 
     StackServiceComponentResponse response = responses.iterator().next();
     assertNotNull(response.getCustomCommands());
-    assertEquals(1, response.getCustomCommands().size());
+    assertEquals(2, response.getCustomCommands().size());
     assertEquals("DECOMMISSION", response.getCustomCommands().get(0));
+    assertEquals("REBALANCEHDFS", response.getCustomCommands().get(1));
 
     StackServiceComponentRequest journalNodeRequest = new StackServiceComponentRequest(
         STACK_NAME, NEW_STACK_VERSION, SERVICE_NAME, "JOURNALNODE");

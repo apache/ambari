@@ -31,6 +31,7 @@ public abstract class AgentCommand {
 
   public enum AgentCommandType {
     EXECUTION_COMMAND,
+    BACKGROUND_EXECUTION_COMMAND,
     STATUS_COMMAND,
     CANCEL_COMMAND,
     REGISTRATION_COMMAND

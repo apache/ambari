@@ -30,15 +30,20 @@ public class CustomCommandDefinition {
 
   private String name;
   private CommandScriptDefinition commandScript;
+  private boolean background = false;
 
   public String getName() {
     return name;
+  }
+  
+  public boolean isBackground() {
+    return background;
   }
 
   public CommandScriptDefinition getCommandScript() {
     return commandScript;
   }
-
+  
   @Override
   public boolean equals(Object obj) {
     if (obj == null) {
