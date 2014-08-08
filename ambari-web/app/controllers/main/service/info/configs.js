@@ -50,6 +50,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   currentVersion: null,
   //version selected to view
   selectedVersion: null,
+  // file names of changed configs
+  modifiedFileNames: [],
   versionLoaded: false,
   isCurrentSelected: function () {
     return this.get('selectedVersion') === this.get('currentVersion');
@@ -154,6 +156,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    */
   clearStep: function () {
     this.set("isApplyingChanges", false);
+    this.set('modifiedFileNames', []);
     this.set('isInit', true);
     this.set('hash', null);
     this.set('forceTransition', false);
@@ -1115,14 +1118,16 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       var modifiedConfigs = configs
         // get only modified and created configs
         .filter(function(config) { return config.get('isNotDefaultValue') || config.get('isNotSaved'); })
-        // get file names
-        .mapProperty('filename').uniq()
+        // get file names and add file names that was modified, for example after property removing
+        .mapProperty('filename').concat(this.get('modifiedFileNames')).uniq()
         // get configs by filename
         .map(function(fileName) {
           return configs.filterProperty('filename', fileName);
-        })
+        });
+      if (!!modifiedConfigs.length) {
         // concatenate results
-        .reduce(function(current, prev) { return current.concat(prev); });
+        modifiedConfigs = modifiedConfigs.reduce(function(current, prev) { return current.concat(prev); });
+      }
 
       // save modified original configs that have no group
       this.saveSiteConfigs(modifiedConfigs.filter(function(config) { return !config.get('group'); }));

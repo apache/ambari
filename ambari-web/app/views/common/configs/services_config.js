@@ -678,6 +678,10 @@ App.ServiceConfigsByCategoryView = Ember.View.extend(App.UserPref, {
   removeProperty: function (event) {
     var serviceConfigProperty = event.contexts[0];
     this.get('serviceConfigs').removeObject(serviceConfigProperty);
+    // push config's file name if this config was stored on server
+    if (!serviceConfigProperty.get('isNotSaved')) {
+      this.get('controller').get('modifiedFileNames').push(serviceConfigProperty.get('filename'));
+    }
     Em.$('body>.tooltip').remove(); //some tooltips get frozen when their owner's DOM element is removed
   },
 

@@ -963,7 +963,7 @@ App.config = Em.Object.create({
       group: group,
       id: 'site property',
       serviceName: group.get('service.serviceName'),
-      filename: config.type,
+      filename: this.getOriginalFileName(config.type),
       isUserProperty: true,
       isVisible: true,
       isOverridable: false
