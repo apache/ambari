@@ -87,10 +87,12 @@ public class PersistenceManagerImpl implements PersistenceManager {
 
     for (NamedPropertySet propertySet : setProperties) {
       for (Map.Entry<Resource.Type, String> entry : mapResourceIds.entrySet()) {
-        Map<String, Object> mapProperties = propertySet.getProperties();
-        String property = schema.getKeyPropertyId(entry.getKey());
-        if (!mapProperties.containsKey(property)) {
-          mapProperties.put(property, entry.getValue());
+        if (entry.getValue() != null) {
+          Map<String, Object> mapProperties = propertySet.getProperties();
+          String property = schema.getKeyPropertyId(entry.getKey());
+          if (!mapProperties.containsKey(property)) {
+            mapProperties.put(property, entry.getValue());
+          }
         }
       }
     }

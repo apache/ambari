@@ -197,8 +197,11 @@ public class PersistenceManagerImplTest {
     Predicate predicate = createMock(Predicate.class);
     RequestBody body = new RequestBody();
 
+    // expect getKeyPropertyId calling for resource type cluster
     String clusterId = "clusterId";
-    String serviceId = "serviceId";
+    // do not expect getKeyPropertyId  calling for resource type service
+    // because the value is not set in the request
+    String serviceId = null;
 
     Map<Resource.Type, String> mapResourceIds = new HashMap<Resource.Type, String>();
     mapResourceIds.put(Resource.Type.Cluster, clusterId);
@@ -220,7 +223,6 @@ public class PersistenceManagerImplTest {
     expect(resource.getQuery()).andReturn(query);
     expect(query.getPredicate()).andReturn(predicate);
     expect(schema.getKeyPropertyId(Resource.Type.Cluster)).andReturn(clusterId);
-    expect(schema.getKeyPropertyId(Resource.Type.Service)).andReturn(serviceId);
 
     expect(controller.updateResources(Resource.Type.Component, serverRequest, predicate)).andReturn(new RequestStatusImpl(null));
 
