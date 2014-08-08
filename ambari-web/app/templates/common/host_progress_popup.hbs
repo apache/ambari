@@ -44,7 +44,10 @@
             <div {{bindAttr class="servicesInfo.isVisible::hidden :log-list-wrap"}}>
               <div {{action gotoHosts servicesInfo}} class="task-list-line-cursor">
                 <div class="operation-name-icon-wrap">
-                  <i {{bindAttr class="servicesInfo.status servicesInfo.icon"}}></i>
+                  <i {{bindAttr class=":service-status servicesInfo.status servicesInfo.icon"}}></i>
+                  {{#if App.supports.abortRequests}}
+                    <i {{action abortRequest servicesInfo}} {{translateAttr title="hostPopup.bgop.abortRequest.title"}} class="abort-icon icon-remove-circle hidden"></i>
+                  {{/if}}
                   <a href="#">
                     {{servicesInfo.name}}
                   </a>

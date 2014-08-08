@@ -165,7 +165,7 @@ describe('App.HostPopup', function () {
         }
       ],
       m: 'One ABORTED',
-      r: 'CANCELLED',
+      r: 'ABORTED',
       p: 100,
       ids: [1,2]
     },
@@ -331,6 +331,64 @@ describe('App.HostPopup', function () {
       it(test_task.m, function() {
         expect(App.HostPopup.getProgress(test_task.t)).to.equal(test_task.p);
       });
+    });
+  });
+
+  describe('#abortRequest', function () {
+    beforeEach(function () {
+      sinon.stub(App.ajax, 'send', Em.K);
+      sinon.spy(App, 'showConfirmationPopup');
+      App.HostPopup.createPopup();
+    });
+    afterEach(function () {
+      App.HostPopup.get('isPopup').hide();
+      App.ajax.send.restore();
+      App.showConfirmationPopup.restore();
+    });
+    it('should show confirmation popup', function () {
+      App.HostPopup.get('isPopup.bodyClass').create().abortRequest({
+        context: Em.Object.create({
+          name: 'name'
+        })
+      });
+      expect(App.showConfirmationPopup.calledOnce).to.be.true;
+    });
+  });
+
+  describe('#abortRequestSuccessCallback', function () {
+    beforeEach(function () {
+      App.HostPopup.createPopup();
+      sinon.spy(App.ModalPopup, 'show');
+    });
+    afterEach(function () {
+      App.HostPopup.get('isPopup').hide();
+      App.ModalPopup.show.restore();
+    });
+    it('should open popup', function () {
+      App.HostPopup.get('isPopup.bodyClass').create().abortRequestSuccessCallback(null, null, {
+        requestName: 'name'
+      });
+      expect(App.ModalPopup.show.calledOnce).to.be.true;
+    });
+  });
+
+  describe('#abortRequestErrorCallback', function () {
+    beforeEach(function () {
+      App.HostPopup.createPopup();
+      sinon.spy(App.ModalPopup, 'show');
+    });
+    afterEach(function () {
+      App.HostPopup.get('isPopup').hide();
+      App.ModalPopup.show.restore();
+    });
+    it('should open popup', function () {
+      App.HostPopup.get('isPopup.bodyClass').create().abortRequestErrorCallback({
+        responseText: {
+          message: 'message'
+        },
+        status: 404
+      }, 'url', 'PUT', 404);
+      expect(App.ModalPopup.show.calledOnce).to.be.true;
     });
   });
 

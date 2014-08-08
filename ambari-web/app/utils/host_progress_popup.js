@@ -479,6 +479,21 @@ App.HostPopup = Em.Object.create({
       isOpen: false,
 
       didInsertElement: function(){
+        if (App.get('supports.abortRequests')) {
+          $(document).on({
+            mouseenter: function () {
+              if ($(this).find('.service-status').hasClass(App.format.taskStatus('IN_PROGRESS')) || $(this).find('.service-status').hasClass(App.format.taskStatus('PENDING'))) {
+                App.tooltip($('.abort-icon'));
+                $(this).find('.service-status').addClass('hidden');
+                $(this).find('.abort-icon').removeClass('hidden');
+              }
+            },
+            mouseleave: function () {
+              $(this).find('.abort-icon').addClass('hidden');
+              $(this).find('.service-status').removeClass('hidden');
+            }
+          }, '#service-info .log-list-wrap');
+        }
         this._super();
         this.set('isOpen', true);
       },
@@ -994,6 +1009,41 @@ App.HostPopup = Em.Object.create({
           this.switchLevel("TASK_DETAILS");
           $(".modal").scrollTop(0);
           $(".modal-body").scrollTop(0);
+        },
+
+        /**
+         * Send request to abort operation
+         */
+        abortRequest: function (event) {
+          var requestName = event.context.get('name');
+          var self = this;
+          App.showConfirmationPopup(function () {
+            App.ajax.send({
+              name: 'background_operations.abort_request',
+              sender: self,
+              data: {
+                requestId: event.context.get('id'),
+                requestName: requestName
+              },
+              success: 'abortRequestSuccessCallback',
+              error: 'abortRequestErrorCallback'
+            });
+          }, Em.I18n.t('hostPopup.bgop.abortRequest.confirmation.body').format(requestName));
+          return false;
+        },
+
+        /**
+         * Method called on successful sending request to abort operation
+         */
+        abortRequestSuccessCallback: function (response, request, data) {
+          App.showAlertPopup(Em.I18n.t('hostPopup.bgop.abortRequest.modal.header'), Em.I18n.t('hostPopup.bgop.abortRequest.modal.body').format(data.requestName));
+        },
+
+        /**
+         * Method called on unsuccessful sending request to abort operation
+         */
+        abortRequestErrorCallback: function (xhr, textStatus, error, opt) {
+          App.ajax.defaultErrorHandler(xhr, opt.url, 'PUT', xhr.status);
         },
 
         /**

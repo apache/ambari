@@ -82,7 +82,8 @@ App.supports = {
   databaseConnection: true,
   configHistory: false,
   serverRecommendValidate: false,
-  downloadClientConfigs: false
+  downloadClientConfigs: false,
+  abortRequests: false
 };
 
 if (App.enableExperimental) {

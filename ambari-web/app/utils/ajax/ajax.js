@@ -286,6 +286,21 @@ var urls = {
     'mock': '/data/background_operations/list_on_start.json',
     'testInProduction': true
   },
+  'background_operations.abort_request': {
+    'real': '/clusters/{clusterName}/requests/{requestId}',
+    'mock': '',
+    'format': function () {
+      return {
+        type: 'PUT',
+        data: JSON.stringify({
+          "Requests": {
+            "request_status": "ABORTED",
+            "abort_reason": Em.I18n.t('hostPopup.bgop.abortRequest.reason')
+          }
+        })
+      };
+    }
+  },
   'service.item.smoke': {
     'real': '/clusters/{clusterName}/requests',
     'mock': '/data/wizard/deploy/poll_1.json',
