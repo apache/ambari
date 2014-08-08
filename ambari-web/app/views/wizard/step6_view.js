@@ -65,13 +65,13 @@ App.WizardStep6View = App.TableView.extend({
    * @method setLabel
    */
   setLabel: function () {
-    var label = Em.I18n.t('installer.step6.body');
     var clients = this.get('controller.content.clients');
+    var label = !!clients.length ? Em.I18n.t('installer.step6.body') +  Em.I18n.t('installer.step6.body.clientText') : Em.I18n.t('installer.step6.body');
+
     clients.forEach(function (_client) {
       if (clients.length === 1) {
         label = label + ' ' + _client.display_name;
-      }
-      else {
+      } else {
         if (_client !== clients[clients.length - 1]) {           // [clients.length - 1]
           label = label + ' ' + _client.display_name;
           if (_client !== clients[clients.length - 2]) {

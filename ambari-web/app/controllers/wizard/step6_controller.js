@@ -231,19 +231,21 @@ App.WizardStep6Controller = Em.Controller.extend({
             label: serviceComponent.get('displayName'),
             allChecked: false,
             isRequired: serviceComponent.get('isRequired'),
-            noChecked: true
+            noChecked: true,
+            isDisabled: installedServices.someProperty('serviceName',stackService.get('serviceName'))
           }));
         }
       }, this);
     }, this);
-
-    headers.pushObject(Em.Object.create({
-      name: 'CLIENT',
-      label: App.format.role('CLIENT'),
-      allChecked: false,
-      noChecked: true
-    }));
-
+    if (this.get('content.clients') && !!this.get('content.clients').length) {
+      headers.pushObject(Em.Object.create({
+        name: 'CLIENT',
+        label: App.format.role('CLIENT'),
+        allChecked: false,
+        noChecked: true,
+        isDisabled: false
+      }));
+    }
     this.get('headers').pushObjects(headers);
 
     this.render();
@@ -299,7 +301,8 @@ App.WizardStep6Controller = Em.Controller.extend({
           component: header.name,
           title: header.label,
           checked: false,
-          isInstalled: false
+          isInstalled: false,
+          isDisabled: header.get('isDisabled')
         }));
       });
 
@@ -327,6 +330,7 @@ App.WizardStep6Controller = Em.Controller.extend({
    */
   renderSlaves: function (hostsObj) {
     var headers = this.get('headers');
+    var clientHeaders = headers.findProperty('name', 'CLIENT');
     var slaveComponents = this.get('content.slaveComponentHosts');
     if (!slaveComponents) { // we are at this page for the first time
       if (!App.supports.serverRecommendValidate) {
@@ -334,7 +338,9 @@ App.WizardStep6Controller = Em.Controller.extend({
           var checkboxes = host.get('checkboxes');
           checkboxes.setEach('checked', !host.hasMaster);
           checkboxes.setEach('isInstalled', false);
-          checkboxes.findProperty('title', headers.findProperty('name', 'CLIENT').get('label')).set('checked', false);
+          if (clientHeaders) {
+            checkboxes.findProperty('title', clientHeaders.get('label')).set('checked', false);
+          }
         });
         this.selectClientHost(hostsObj);
 
@@ -399,6 +405,10 @@ App.WizardStep6Controller = Em.Controller.extend({
    */
   selectClientHost: function (hostsObj) {
     var headers = this.get('headers');
+    var clientHeaders = headers.findProperty('name', 'CLIENT');
+    if (!clientHeaders) {
+      return;
+    }
     var client_is_set = false;
     hostsObj.forEach(function (host) {
       if (!client_is_set) {
@@ -407,7 +417,7 @@ App.WizardStep6Controller = Em.Controller.extend({
         var checkboxServiceComponent = checkboxes.findProperty('title', headers.findProperty('name', dfsService.get('serviceComponents').
           findProperty('isShownOnInstallerSlaveClientPage').get('componentName')).get('label'));
         if (checkboxServiceComponent && checkboxServiceComponent.get('checked')) {
-          checkboxes.findProperty('title', headers.findProperty('name', 'CLIENT').get('label')).set('checked', true);
+          checkboxes.findProperty('title', clientHeaders.get('label')).set('checked', true);
           client_is_set = true;
         }
       }
