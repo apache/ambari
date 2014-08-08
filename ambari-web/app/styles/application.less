@@ -6706,6 +6706,21 @@ i.icon-asterisks {
         color: #666;
       }
     }
+    th:first-child {
+      width: 40%;
+    }
+    th:first-child + th {
+      width: 40%;
+    }
+    th:first-child + th + th {
+      width: 16px;
+    }
+    th:first-child + th + th + th {
+      width: 16px;
+    }
+    th:first-child + th + th + th + th {
+      width: 16px;
+    }
     td.agent-status {
       width: 125px;
     }
@@ -6752,6 +6767,7 @@ i.icon-asterisks {
   }
   .flume-agents-actions {
     margin: 0 5px 5px 0;
+    float: right;
     a {
       text-decoration: none;
     }

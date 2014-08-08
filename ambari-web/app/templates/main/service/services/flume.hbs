@@ -26,9 +26,9 @@
           {{#view view.sortView contentBinding="view.filteredContent" class="label-row"}}
             {{view view.parentView.hostSort}}
             <th>{{t dashboard.services.flume.agent}}</th>
-            <th>{{t dashboard.services.flume.sources}}</th>
-            <th>{{t dashboard.services.flume.channels}}</th>
-            <th>{{t dashboard.services.flume.sinks}}</th>
+            <th><i class="icon-signin" {{translateAttr title="dashboard.services.flume.sources"}}></i></th>
+            <th><i class="icon-random" {{translateAttr title="dashboard.services.flume.channels"}}></i></th>
+            <th><i class="icon-signout" {{translateAttr title="dashboard.services.flume.sinks"}}></i></th>
           {{/view}}
           </thead>
           {{#if view.pageContent}}
