@@ -111,7 +111,7 @@ App.QuickViewLinks = Em.View.extend({
 
   findComponentHost: function (components, componentName) {
     return App.singleNodeInstall ? App.singleNodeAlias : components.find(function (item) {
-      return item.host_components.mapProperty('HostRoles.component_name').contains(componentName);
+      return item.host_components.someProperty('HostRoles.component_name', componentName);
     }).Hosts.public_host_name
   },
 
@@ -127,17 +127,13 @@ App.QuickViewLinks = Em.View.extend({
     var quickLinks = [];
     switch (serviceName) {
       case "HDFS":
-        var otherHost;
         if (this.get('content.snameNode')) {
           // not HA
           hosts[0] = this.findComponentHost(response.items, 'NAMENODE');
         } else {
           // HA enabled, need both two namenodes hosts
-          var nameNodes = response.items.filter(function (item) {
-            return item.host_components.mapProperty('HostRoles.component_name').contains('NAMENODE');
-          });
-          nameNodes.forEach(function(item) {
-            hosts.push({'publicHostName': item.Hosts.public_host_name});
+          this.get('content.hostComponents').filterProperty('componentName', 'NAMENODE').forEach(function (component) {
+            hosts.push({'publicHostName': response.items.findProperty('Hosts.host_name', component.get('hostName')).Hosts.public_host_name});
           });
           // assign each namenode status label
           if (this.get('content.activeNameNode')) {
@@ -160,18 +156,18 @@ App.QuickViewLinks = Em.View.extend({
         break;
       case "HBASE":
         var masterComponents = response.items.filter(function (item) {
-            return item.host_components.mapProperty('HostRoles.component_name').contains('HBASE_MASTER');
+            return item.host_components.someProperty('HostRoles.component_name', 'HBASE_MASTER');
         });
         var activeMaster, standbyMasters, otherMasters;
         if (App.supports.multipleHBaseMasters) {
           activeMaster = masterComponents.filter(function (item) {
-            return item.host_components.mapProperty('metrics.hbase.master.IsActiveMaster').contains('true');
+            return item.host_components.someProperty('metrics.hbase.master.IsActiveMaster', 'true');
           });
           standbyMasters = masterComponents.filter(function (item) {
-            return item.host_components.mapProperty('metrics.hbase.master.IsActiveMaster').contains('false');
+            return item.host_components.someProperty('metrics.hbase.master.IsActiveMaster', 'false');
           });
           otherMasters = masterComponents.filter(function (item) {
-            return !(item.host_components.mapProperty('metrics.hbase.master.IsActiveMaster').contains('true') || item.host_components.mapProperty('metrics.hbase.master.IsActiveMaster').contains('false')) ;
+            return !(item.host_components.someProperty('metrics.hbase.master.IsActiveMaster', 'true') || item.host_components.someProperty('metrics.hbase.master.IsActiveMaster', 'false')) ;
           });
         }
         if (masterComponents) {
@@ -200,7 +196,26 @@ App.QuickViewLinks = Em.View.extend({
         }
         break;
       case "YARN":
-        hosts[0] = this.findComponentHost(response.items, 'RESOURCEMANAGER');
+        if (App.get('isRMHaEnabled')) {
+          this.get('content.hostComponents').filterProperty('componentName', 'RESOURCEMANAGER').forEach(function (component) {
+            var newHost = {'publicHostName': response.items.findProperty('Hosts.host_name', component.get('hostName')).Hosts.public_host_name};
+            var status = '';
+            switch (component.get('haStatus')) {
+              case 'ACTIVE':
+                status = Em.I18n.t('quick.links.label.active');
+                break;
+              case 'STANDBY':
+                status = Em.I18n.t('quick.links.label.standby');
+                break;
+            }
+            if (status) {
+              newHost.status = status;
+            }
+            hosts.push(newHost);
+          }, this);
+        } else {
+          hosts[0] = this.findComponentHost(response.items, 'RESOURCEMANAGER');
+        }
         break;
       case "MAPREDUCE2":
         hosts[0] = this.findComponentHost(response.items, 'HISTORYSERVER');

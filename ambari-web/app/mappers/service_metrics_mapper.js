@@ -170,7 +170,7 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     host_id: 'HostRoles.host_name',
     host_name: 'HostRoles.host_name',
     stale_configs: 'HostRoles.stale_configs',
-    ha_state: 'HostRoles.ha_state',
+    ha_status: 'HostRoles.ha_state',
     display_name_advanced: 'display_name_advanced',
     $service_id: 'none' /* will be set outside of parse function */
   },
@@ -352,7 +352,7 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
             hostComponent.display_name_advanced = null;
           }
         } else if (hostComponent.component_name === 'RESOURCEMANAGER' && isRMHAEnabled && hostComponent.work_status === 'STARTED') {
-          switch (hostComponent.ha_state) {
+          switch (hostComponent.ha_status) {
             case 'ACTIVE':
               hostComponent.display_name_advanced = Em.I18n.t('dashboard.services.yarn.resourceManager.active');
               break;
