@@ -934,7 +934,7 @@ App.config = Em.Object.create({
           // Value of this property is different for this host.
           if (!Em.get(serviceConfig, 'overrides')) Em.set(serviceConfig, 'overrides', []);
           console.log("loadServiceConfigGroupOverridesSuccess(): [" + group + "] OVERRODE(" + serviceConfig.name + "): " + serviceConfig.value + " -> " + hostOverrideValue);
-          serviceConfig.overrides.pushObject({value: hostOverrideValue, group: group});
+          serviceConfig.overrides.pushObject({value: hostOverrideValue, group: group, isFinal: config.properties_attributes.final[prop] || false });
         } else {
           params.serviceConfigs.push(this.createCustomGroupConfig(prop, config, group));
         }

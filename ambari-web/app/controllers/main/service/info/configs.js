@@ -861,9 +861,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
 
     this.setValueForCheckBox(serviceConfigProperty);
     this.setValidator(serviceConfigProperty, serviceConfigsData);
+    this.setSupportsFinal(serviceConfigProperty);
     this.setValuesForOverrides(overrides, _serviceConfigProperty, serviceConfigProperty, defaultGroupSelected);
     this.setEditability(serviceConfigProperty, defaultGroupSelected);
-    this.setSupportsFinal(serviceConfigProperty);
 
     return serviceConfigProperty;
   },
@@ -1000,6 +1000,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   createNewSCP: function (override, _serviceConfigProperty, serviceConfigProperty, defaultGroupSelected) {
     var newSCP = App.ServiceConfigProperty.create(_serviceConfigProperty);
     newSCP.set('value', override.value);
+    newSCP.set('isFinal', override.isFinal);
+    newSCP.set('supportsFinal', serviceConfigProperty.get('supportsFinal'));
     newSCP.set('isOriginalSCP', false); // indicated this is overridden value,
     newSCP.set('parentSCP', serviceConfigProperty);
     if (App.supports.hostOverrides && defaultGroupSelected) {
