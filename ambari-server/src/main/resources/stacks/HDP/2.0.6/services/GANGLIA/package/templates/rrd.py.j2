@@ -122,10 +122,10 @@ def collectStatMetrics(clusterName, hostName, metricName, files, cf, start, end,
       if vals[i] is None:
         vals[i] = {}
         vals[i]['count'] = 0
-        vals[i]['_sum'] = 0
-        vals[i]['_avg'] = 0
-        vals[i]['_min'] = 0
-        vals[i]['_max'] = 0
+        vals[i]['_sum'] = 0.0
+        vals[i]['_avg'] = 0.0
+        vals[i]['_min'] = 999999999999.99
+        vals[i]['_max'] = 0.0
 
       rawValue = tuple[0]
       vals[i]['step_value'] = rawValue

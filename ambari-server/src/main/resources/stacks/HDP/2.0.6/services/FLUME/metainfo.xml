@@ -26,7 +26,7 @@
         <component>
           <name>FLUME_HANDLER</name>
           <category>SLAVE</category>
-          <cardinality>0+</cardinality>
+          <cardinality>1+</cardinality>
           <commandScript>
             <script>scripts/flume_handler.py</script>
             <scriptType>PYTHON</scriptType>
