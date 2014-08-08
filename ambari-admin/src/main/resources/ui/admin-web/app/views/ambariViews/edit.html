@@ -15,13 +15,17 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 -->
-<ol class="breadcrumb">
-  <li><a href="#/views">Views</a></li>
-  <li class="active">Edit {{instance.ViewInstanceInfo.label}}</li>
-</ol>
-<h2>Edit {{instance.ViewInstanceInfo.view_name}}: {{instance.ViewInstanceInfo.label}}</h2>
+<div class="clearfix">
+  <ol class="breadcrumb pull-left">
+    <li><a href="#/views">Views</a></li>
+    <li class="active">{{instance.ViewInstanceInfo.view_name}}: {{instance.ViewInstanceInfo.label}}</li>
+  </ol>
+  <div class="pull-right top-margin-4">
+    <button class="btn btn-danger" ng-click="deleteInstance(instance)">Delete Instance</button>
+  </div>
+</div>
 <hr>
-<div class="panel panel-default">
+<div class="panel panel-default" ng-cloak>
   <div class="panel-heading clearfix">
     <h3 class="panel-title pull-left">Settings</h3>
     <div class="pull-right">
@@ -62,12 +66,12 @@
 <div class="panel panel-default views-permissions-panel" style="">
   <div class="panel-heading clearfix">
     <h3 class="panel-title pull-left">Permissions</h3>
-    <div class="pull-right">
-      <a href ng-click="editPermissionDisabled = !editPermissionDisabled" ng-show="editPermissionDisabled"> <span class="glyphicon glyphicon-cog"></span> Edit</a>
+    <div class="pull-right" >
+      <a ng-hide="isPermissionsEmpty" href ng-click="editPermissionDisabled = !editPermissionDisabled" ng-show="editPermissionDisabled"> <span class="glyphicon glyphicon-cog"></span> Edit</a>
     </div>
   </div>
   <div class="panel-body">
-    <form class="form-horizontal">
+    <form class="form-horizontal" ng-show="!isPermissionsEmpty">
       <div class="form-group">
         <div class="col-sm-2"></div>
         <label class="col-sm-5 control-label text-left">Users</label>
@@ -98,6 +102,7 @@
           </div>
         </div>
       </div>
+      
       <div class="form-group" ng-hide="editPermissionDisabled">
         <div class="col-sm-offset-2 col-sm-10">
           <button class="btn btn-primary pull-right left-margin" ng-click="savePermissions()">Save</button>
@@ -105,19 +110,21 @@
         </div>
       </div>
     </form>
-      
+    <div ng-show="isPermissionsEmpty">
+      <div class="alert alert-info">There are no permissions defined for this view.</div>
+    </div>
   </div>
 </div>
 
 <div class="panel panel-default">
   <div class="panel-heading clearfix">
-    <h3 class="panel-title pull-left">Configuration</h3>
+    <h3 class="panel-title pull-left">Properties</h3>
     <div class="pull-right">
-      <a href ng-click="editConfigurationDisabled = !editConfigurationDisabled" ng-show="editConfigurationDisabled"> <span class="glyphicon glyphicon-cog"></span> Edit</a>
+      <a href ng-hide="isConfigurationEmpty" ng-click="editConfigurationDisabled = !editConfigurationDisabled" ng-show="editConfigurationDisabled"> <span class="glyphicon glyphicon-cog"></span> Edit</a>
     </div>
   </div>
   <div class="panel-body">
-    <form action="" class="form-horizontal">
+    <form action="" class="form-horizontal" ng-hide="isConfigurationEmpty">
       <fieldset ng-disabled="editConfigurationDisabled">
         <div class="form-group" ng-repeat="(propertyName, propertyValue) in configuration">
           <label for="" class="control-label col-sm-3">{{propertyName}}</label>
@@ -131,5 +138,8 @@
         </div>
       </fieldset>
     </form>
+    <div ng-show="isConfigurationEmpty">
+      <div class="alert alert-info">There are no configuration defined for this view.</div>
+    </div>
   </div>
 </div>

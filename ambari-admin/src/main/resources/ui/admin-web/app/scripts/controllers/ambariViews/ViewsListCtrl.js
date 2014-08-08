@@ -45,18 +45,6 @@ angular.module('ambariAdminConsole')
     modalInstance.result.then(loadViews);
   };
 
-  $scope.deleteInstance = function(instance) {
-    ConfirmationModal.show('Delete View Instance', 'Are you sure you want to delete View Instance '+ instance.ViewInstanceInfo.label +'?').then(function() {
-      View.deleteInstance(instance.ViewInstanceInfo.view_name, instance.ViewInstanceInfo.version, instance.ViewInstanceInfo.instance_name)
-      .then(function() {
-        loadViews();
-      })
-      .catch(function(data) {
-        uiAlert.danger(data.data.status, data.data.message);
-      });
-    });
-  };
-
   $scope.viewsFilter = '';
   $scope.filteredViews = [];
   $scope.getFilteredViews = function(views) {

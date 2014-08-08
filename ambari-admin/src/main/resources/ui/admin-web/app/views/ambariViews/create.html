@@ -17,9 +17,8 @@
 -->
 <ol class="breadcrumb">
   <li><a href="#/views">Views</a></li>
-  <li class="active">Create instance</li>
+  <li class="active">Create {{view.ViewVersionInfo.view_name}} instance</li>
 </ol>
-<h2>Create View Instance</h2>
 <hr>
 <form class="form-horizontal create-view-form" role="form" name="form.isntanceCreateForm" novalidate>
   <div class="view-header">
@@ -105,19 +104,22 @@
 
   <div class="panel panel-default">
     <div class="panel-heading">
-      <h3 class="panel-title">Configuration</h3>
+      <h3 class="panel-title">Properties</h3>
     </div>
     <div class="panel-body">
-    <div class="form-group" ng-repeat="parameter in instance.properties"
-      ng-class="{'has-error' : (form.isntanceCreateForm[parameter.name].$error.required && form.isntanceCreateForm.submitted)}" >
-      <label for="" class="col-sm-3 control-label">{{parameter.description}}</label>
-      <div class="col-sm-9">
-        <input type="text" class="form-control"  name="{{parameter.name}}" ng-required="parameter.required" ng-model="parameter.value">
-        <div class="alert alert-danger no-margin-bottom top-margin" ng-show='form.isntanceCreateForm[parameter.name].$error.required && form.isntanceCreateForm.submitted'>
-          Field requried!
+      <div class="form-group" ng-repeat="parameter in instance.properties"
+        ng-class="{'has-error' : (form.isntanceCreateForm[parameter.name].$error.required && form.isntanceCreateForm.submitted)}" >
+        <label for="" class="col-sm-3 control-label">{{parameter.description}}</label>
+        <div class="col-sm-9">
+          <input type="text" class="form-control"  name="{{parameter.name}}" ng-required="parameter.required" ng-model="parameter.value">
+          <div class="alert alert-danger no-margin-bottom top-margin" ng-show='form.isntanceCreateForm[parameter.name].$error.required && form.isntanceCreateForm.submitted'>
+            Field requried!
+          </div>
         </div>
       </div>
-    </div>
+      <div ng-show="!instance.properties.length">
+        <div class="alert alert-info">There are no properties defined for this view.</div>
+      </div>
     </div>
   </div>
   

@@ -15,13 +15,13 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 -->
-<ol class="breadcrumb">
-  <li class="active">Views</li>
-</ol>
+    
 <div class="views-list-pane">
   <div class="clearfix">
-    <h3 class="pull-left">Views</h3>
-    <div class="pull-right top-buffer col-sm-4">
+    <ol class="breadcrumb pull-left">
+      <li class="active">Views</li>
+    </ol>
+    <div class="pull-right col-sm-4">
       <div class="input-group">
         <input type="text" class="form-control" placeholder="Search" ng-model="viewsFilter" ng-change="getFilteredViews()">
         <span class="input-group-addon">
@@ -55,12 +55,10 @@
           <tr ng-repeat="instance in view.instances">
             <td class="col-sm-3"></td>
             <td class="col-sm-3">{{instance.ViewInstanceInfo.version}}</td>
-            <td class="col-sm-3">{{instance.ViewInstanceInfo.label}}</td>
             <td class="col-sm-3">
-              <a href="#/views/{{view.view_name}}/versions/{{instance.ViewInstanceInfo.version}}/instances/{{instance.ViewInstanceInfo.instance_name}}/edit" class="btn btn-default"><span class="glyphicon glyphicon-cog"></span> Edit</a>
-              <a href="" class="btn btn-default" ng-click="deleteInstance(instance)">
-                <span class="glyphicon glyphicon-trash"></span> Delete
-              </a>
+              <a href="#/views/{{view.view_name}}/versions/{{instance.ViewInstanceInfo.version}}/instances/{{instance.ViewInstanceInfo.instance_name}}/edit" class="">{{instance.ViewInstanceInfo.label}}</a>
+            </td>
+            <td class="col-sm-3">
             </td>
           </tr>
         </tbody>
@@ -68,9 +66,10 @@
           <tr>
             <td class="col-sm-3"></td>
             <td class="col-sm-3"></td>
-            <td class="col-sm-3"></td>
             <td class="col-sm-3">
               <a class="btn btn-default" href="#/views/{{view.view_name}}/versions/{{view.versionsList[view.versionsList.length-1].ViewVersionInfo.version}}/new"><span class="glyphicon glyphicon-plus" ></span> Create Instance</a>
+            </td>
+            <td class="col-sm-3">
             </td>
           </tr>
         </tfoot>

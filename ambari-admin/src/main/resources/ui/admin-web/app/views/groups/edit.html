@@ -15,13 +15,13 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 -->
-<ol class="breadcrumb">
-  <li><a href="#/groups">Groups</a></li>
-  <li class="active">Edit {{group.group_name}}</li>
-</ol>
+  
 <div class="clearfix">
-  <h3 class="pull-left">Edit {{group.group_name}}</h3>
-  <div class="pull-right top-buffer">
+  <ol class="breadcrumb pull-left">
+    <li><a href="#/groups">Groups</a></li>
+    <li class="active">{{group.group_name}}</li>
+  </ol>
+  <div class="pull-right top-margin-4">
     <button class="btn btn-danger" ng-click="deleteGroup(group)">Delete Group</button>
   </div>
 </div>
@@ -34,7 +34,13 @@
     </div>
   </div>
   <div class="form-group">
-    <label for="" class="col-sm-2 control-label">Users</label>
+    <label for="" class="col-sm-2 control-label">Type</label>
+    <div class="col-sm-10">
+      <label for="" class="control-label">{{group.ldap_group ? 'LDAP' : 'Local'}}</label>
+    </div>
+  </div>
+  <div class="form-group">
+    <label for="" class="col-sm-2 control-label">{{group.ldap_group ? 'LDAP Members' : 'Local Members'}}</label>
     <div class="col-sm-10">
       <div ng-switch="editMode">
         <div class="well users" ng-switch-when="false">
@@ -42,7 +48,7 @@
             <link-to route='users.show' id="{{member}}">
               {{member}}
             </link-to>
-            <button type="button" class="close" ng-click="removeMember(member)"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            <button ng-show="!group.ldap_group" type="button" class="close" ng-click="removeMember(member)"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
             {{$last ? '' : ', '}}
           </span>
         </div>
@@ -53,7 +59,7 @@
       </div>
         
 
-      <button class="btn btn-primary pull-right" ng-click="toggleEditMode()"><span class="glyphicon {{editMode ? 'glyphicon-save' : 'glyphicon-pencil'}}"></span> {{editMode ? 'Save': 'Edit'}}</button>
+      <button ng-show="!group.ldap_group" class="btn btn-primary pull-right" ng-click="toggleEditMode()"><span class="glyphicon {{editMode ? 'glyphicon-save' : 'glyphicon-pencil'}}"></span> {{editMode ? 'Save': 'Edit'}}</button>
     </div>
   </div>
 </form>

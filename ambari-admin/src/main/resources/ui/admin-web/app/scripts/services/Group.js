@@ -28,6 +28,25 @@ angular.module('ambariAdminConsole')
     }
   }
 
+  Group.prototype.isLDAP = function() {
+    var deferred = $q.defer();
+    var self = this;
+    if( typeof this.ldap_group === 'boolean' ){
+      deferred.resolve(this.ldap_group)
+    } else {
+      $http({
+        method: 'GET',
+        url: Settings.baseUrl + '/groups/'+this.group_name
+      }).
+      success(function(data) {
+        self.ldap_group = data.Groups.ldap_group;
+        deferred.resolve(self.ldap_group);
+      });
+    }
+
+    return deferred.promise;
+  }
+
   Group.prototype.save = function() {
     return $http({
       method : 'POST',

@@ -51,6 +51,18 @@
   font-weight: bold;
   font-size: 2em;
 }
+
+.breadcrumb{
+  background: none;
+  font-size: 24px;
+  margin: 0;
+  padding: 0;
+}
+
+.user-edit-panel .ats-switch span.switch-right{
+  background-color: #da4f49;
+  color: white;
+}
 /*
   Style topnav menu
 */
@@ -166,6 +178,9 @@ table.no-border tr td{
 }
 .no-border{
   border: none !important;
+}
+.top-margin-4{
+  margin-top: 4px;
 }
 
 .groups-pane table ul{

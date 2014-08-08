@@ -69,8 +69,7 @@ angular.module('ambariAdminConsole')
   };
 
   $scope.toggleUserActive = function() {
-    $scope.user.active = !$scope.user.active;
-    User.setActive($scope.user.user_name, $scope.user.active);
+    User.setActive($scope.user.user_name, !$scope.user.active);
   };
 
   User.get($routeParams.id).then(function(data) {

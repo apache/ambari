@@ -31,7 +31,11 @@ angular.module('ambariAdminConsole')
     });
   }    
   
-  loadMembers();
+  $scope.group.isLDAP().then(function(isLDAP) {
+    $scope.group.ldap_group = isLDAP;
+    loadMembers();
+  });
+    
   
   $scope.removeMember = function(member) {
     $scope.group.removeMember(member).finally(function() {
@@ -59,6 +63,8 @@ angular.module('ambariAdminConsole')
     ConfirmationModal.show('Delete Group', 'Are you sure you want to delete group "'+ group.group_name +'"?').then(function() {
       group.destroy().then(function() {
         $location.path('/groups');
+      }).catch(function() {
+        
       });
     });
   };

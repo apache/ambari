@@ -18,8 +18,8 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('ViewsEditCtrl', ['$scope', '$routeParams' , 'View', 'uiAlert', 'PermissionLoader', 'PermissionSaver', function($scope, $routeParams, View, uiAlert, PermissionLoader, PermissionSaver) {
-
+.controller('ViewsEditCtrl', ['$scope', '$routeParams' , 'View', 'uiAlert', 'PermissionLoader', 'PermissionSaver', 'ConfirmationModal', '$location', function($scope, $routeParams, View, uiAlert, PermissionLoader, PermissionSaver, ConfirmationModal, $location) {
+  $scope.isConfigurationEmpty = true;
   function reloadViewInfo(){
     // Load instance data, after View permissions meta loaded
     View.getInstance($routeParams.viewId, $routeParams.version, $routeParams.instanceId)
@@ -31,6 +31,7 @@ angular.module('ambariAdminConsole')
       };
 
       $scope.configuration = angular.copy($scope.instance.ViewInstanceInfo.properties);
+      $scope.isConfigurationEmpty = angular.equals({}, $scope.configuration);
     })
     .catch(function(data) {
       uiAlert.danger(data.data.status, data.data.message);
@@ -47,6 +48,7 @@ angular.module('ambariAdminConsole')
       // Refresh data for rendering
       $scope.permissionsEdit = permissions;
       $scope.permissions = angular.copy(permissions);
+      $scope.isPermissionsEmpty = angular.equals({}, $scope.permissions);
     })
     .catch(function(data) {
       uiAlert.danger(data.data.status, data.data.message);
@@ -141,6 +143,18 @@ angular.module('ambariAdminConsole')
     .catch(function(data) {
       reloadViewPrivilegies();
       uiAlert.danger(data.data.status, data.data.message);
+    });
+  };
+
+  $scope.deleteInstance = function(instance) {
+    ConfirmationModal.show('Delete View Instance', 'Are you sure you want to delete View Instance '+ instance.ViewInstanceInfo.label +'?').then(function() {
+      View.deleteInstance(instance.ViewInstanceInfo.view_name, instance.ViewInstanceInfo.version, instance.ViewInstanceInfo.instance_name)
+      .then(function() {
+        $location.path('/views');
+      })
+      .catch(function(data) {
+        uiAlert.danger(data.data.status, data.data.message);
+      });
     });
   };
 }]);
