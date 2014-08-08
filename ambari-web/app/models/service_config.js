@@ -476,6 +476,13 @@ App.ServiceConfigProperty = Ember.Object.extend({
         }
         this.setDefaultValue("(.*)", zkHostPort);
         break;
+      case 'templeton.hive.properties':
+        var hiveMetaStoreHost = masterComponentHostsInDB.findProperty('component', 'HIVE_METASTORE').hostName;
+        if (/\/\/localhost:/g.test(this.get('value'))) {
+          this.set('defaultValue', this.get('value') + ', hive.metastore.execute.setugi=true');
+          this.setDefaultValue("(localhost)", hiveMetaStoreHost);
+        }
+        break;
       case 'dfs.name.dir':
       case 'dfs.namenode.name.dir':
       case 'dfs.data.dir':
