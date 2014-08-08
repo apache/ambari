@@ -266,7 +266,7 @@ App.MainServiceItemController = Em.Controller.extend({
     App.showAlertPopup(Em.I18n.t('services.service.actions.run.yarnRefreshQueues.error'), error);
     console.warn('Error during refreshYarnQueues:'+error);
   },
- /**
+  /**
    * On click handler for rebalance Hdfs command from items menu
    */
   rebalanceHdfsNodes: function () {
@@ -276,7 +276,7 @@ App.MainServiceItemController = Em.Controller.extend({
       header: Em.I18n.t('services.service.actions.run.rebalanceHdfsNodes.context'),
       primary: Em.I18n.t('common.start'),
       secondary: Em.I18n.t('common.cancel'),
-      inputValue: 0,
+      inputValue: 10,
       errorMessage: Em.I18n.t('services.service.actions.run.rebalanceHdfsNodes.promptError'),
       isInvalid: function () {
         var intValue = Number(this.get('inputValue'));
@@ -285,22 +285,25 @@ App.MainServiceItemController = Em.Controller.extend({
         }
         return false;
       }.property('inputValue'),
+      disablePrimary : function() {
+        return this.get('isInvalid');
+      }.property('isInvalid'),
       onPrimary: function () {
         if (this.get('isInvalid')) {
           return;
         }
-    App.ajax.send({
-      name : 'service.item.rebalanceHdfsNodes',
+        App.ajax.send({
+          name : 'service.item.rebalanceHdfsNodes',
           sender: controller,
-      data : {
-        hosts : App.Service.find('HDFS').get('hostComponents').findProperty('componentName', 'NAMENODE').get('hostName'),
+          data : {
+            hosts : App.Service.find('HDFS').get('hostComponents').findProperty('componentName', 'NAMENODE').get('hostName'),
             threshold: this.get('inputValue')
-      },
-      success : 'rebalanceHdfsNodesSuccessCallback',
-      error : 'rebalanceHdfsNodesErrorCallback'
-    });
+          },
+          success : 'rebalanceHdfsNodesSuccessCallback',
+          error : 'rebalanceHdfsNodesErrorCallback'
+        });
         this.hide();
-  },
+      },
       bodyClass: Ember.View.extend({
         templateName: require('templates/common/prompt_popup'),
         text: Em.I18n.t('services.service.actions.run.rebalanceHdfsNodes.prompt'),
