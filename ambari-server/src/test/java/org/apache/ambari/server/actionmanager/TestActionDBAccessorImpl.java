@@ -120,6 +120,37 @@ public class TestActionDBAccessorImpl {
     Stage s = db.getAllStages(requestId).get(0);
     assertEquals(HostRoleStatus.COMPLETED,s.getHostRoleStatus(hostname, "HBASE_MASTER"));
   }
+
+  @Test
+  public void testCancelCommandReport() throws AmbariException {
+    String hostname = "host1";
+    populateActionDB(db, hostname, requestId, stageId);
+    Stage stage = db.getAllStages(requestId).get(0);
+    Assert.assertEquals(stageId, stage.getStageId());
+    stage.setHostRoleStatus(hostname, "HBASE_MASTER", HostRoleStatus.ABORTED);
+    db.hostRoleScheduled(stage, hostname, "HBASE_MASTER");
+    List<CommandReport> reports = new ArrayList<CommandReport>();
+    CommandReport cr = new CommandReport();
+    cr.setTaskId(1);
+    cr.setActionId(StageUtils.getActionId(requestId, stageId));
+    cr.setRole("HBASE_MASTER");
+    cr.setStatus("COMPLETED");
+    cr.setStdErr("");
+    cr.setStdOut("");
+    cr.setExitCode(0);
+    reports.add(cr);
+    am.processTaskResponse(hostname, reports, stage.getOrderedHostRoleCommands());
+    assertEquals(0,
+            am.getAction(requestId, stageId).getExitCode(hostname, "HBASE_MASTER"));
+    assertEquals("HostRoleStatus should remain ABORTED " +
+            "(command report status should be ignored)",
+            HostRoleStatus.ABORTED, am.getAction(requestId, stageId)
+            .getHostRoleStatus(hostname, "HBASE_MASTER"));
+    Stage s = db.getAllStages(requestId).get(0);
+    assertEquals("HostRoleStatus should remain ABORTED " +
+            "(command report status should be ignored)",
+            HostRoleStatus.ABORTED,s.getHostRoleStatus(hostname, "HBASE_MASTER"));
+  }
   
   @Test
   public void testGetStagesInProgress() throws AmbariException {
@@ -129,8 +160,6 @@ public class TestActionDBAccessorImpl {
     stages.add(createStubStage(hostname, requestId, stageId + 1));
     Request request = new Request(stages, clusters);
     db.persistActions(request);
-
-    List<Stage> stages2 = db.getStagesInProgress();
     assertEquals(2, stages.size());
   }
   

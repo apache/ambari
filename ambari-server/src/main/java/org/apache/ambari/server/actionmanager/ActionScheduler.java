@@ -794,7 +794,7 @@ class ActionScheduler implements Runnable {
    * @param hostRoleCommands a list of hostRoleCommands
    * @param reason why the request is being cancelled
    */
-  private void cancelHostRoleCommands(Collection<HostRoleCommand> hostRoleCommands, String reason) {
+  void cancelHostRoleCommands(Collection<HostRoleCommand> hostRoleCommands, String reason) {
     for (HostRoleCommand hostRoleCommand : hostRoleCommands) {
       if (hostRoleCommand.getStatus() == HostRoleStatus.QUEUED) {
         // Dequeue all tasks that have been already scheduled for sending to agent
