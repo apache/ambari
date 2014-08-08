@@ -1406,6 +1406,7 @@ a:focus {
 /**********start styles for dropdown-menu, accordion-group ****************/
 .dropdown-menu,
 .dropdown-submenu > .dropdown-menu,
+.dropdown-menu-wrap > .dropdown-menu,
 .nav-pills .dropdown-menu,
 .nav-pills > li > a,
 .nav-tabs > li > a,
@@ -1414,7 +1415,24 @@ a:focus {
   -webkit-border-radius: 0px;
   -moz-border-radius: 0px;
 }
-/**********end styles for dropdown-menu ****************/
+.dropdown-submenu.submenu-left {
+  &> .dropdown-menu-wrap {
+    position: relative;
+    width: 100%;
+    left: -100%;
+    &> .dropdown-menu {
+      position: absolute;
+      top: 0px;
+      right: -10px;
+      margin-top: -32px;
+    }
+  }
+  &:hover {
+    .dropdown-menu {
+      display: inline-block;
+    }
+  }
+}
 
 
 

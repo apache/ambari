@@ -88,5 +88,22 @@ module.exports = {
   ajaxErrorCallback: function (request, ajaxOptions, error, opt, params) {
     console.log('error on change component host status');
     App.ajax.defaultErrorHandler(request, opt.url, opt.method);
+  },
+
+  downloadClientConfigs: function (data) {
+    var isForHost = typeof data.hostName !== 'undefined';
+    var url = App.get('apiPrefix') + '/clusters/' + App.router.getClusterName() + '/' +
+      (isForHost ? 'hosts/' + data.hostName + '/host_components/' : 'services/' + data.serviceName + '/components/') +
+      data.componentName + '?format=client_config_tar';
+    var self = this;
+    $.fileDownload(url).fail(function () {
+      var popup = App.showConfirmationPopup(function () {
+        popup.hide();
+        self.downloadClientConfigs({
+          context: Em.Object.create(data)
+        });
+      }, Em.I18n.t('services.service.actions.downloadClientConfigs.fail.popup.body').format(data.displayName))
+    });
   }
+
 };

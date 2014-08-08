@@ -1369,4 +1369,24 @@ describe('App.MainHostDetailsController', function () {
       })])).to.be.true;
     });
   });
+
+  describe('#downloadClientConfigs()', function () {
+
+    beforeEach(function () {
+      sinon.spy($, 'fileDownload');
+    });
+    afterEach(function () {
+      $.fileDownload.restore();
+    });
+
+    it('should launch $.fileDownload method', function () {
+      controller.downloadClientConfigs({
+        context: Em.Object.create({
+          componentName: 'name'
+        })
+      });
+      expect($.fileDownload.calledOnce).to.be.true;
+    });
+  });
+
 });

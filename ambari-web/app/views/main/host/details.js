@@ -31,6 +31,10 @@ App.MainHostDetailsView = Em.View.extend({
     return App.router.get('mainHostDetailsController.content');
   }.property('App.router.mainHostDetailsController.content'),
 
+  clients: function () {
+    return this.get('content.hostComponents').filterProperty('isClient');
+  }.property('content.hostComponents.@each'),
+
   isActive: function() {
     return this.get('controller.content.passiveState') === "OFF";
   }.property('controller.content.passiveState'),

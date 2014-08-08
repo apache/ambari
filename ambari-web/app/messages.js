@@ -1173,6 +1173,8 @@ Em.I18n.translations = {
   'services.service.summary.moreStats':'more stats here',
   'services.service.summary.clientCount': '{0} Client Hosts',
   'services.service.summary.historyServer': 'History Server Web UI',
+  'services.service.actions.downloadClientConfigs':'Download Client Configs',
+  'services.service.actions.downloadClientConfigs.fail.popup.body':'Generation of {0} configurations file has failed. Do you want to try again?',
   'services.service.actions.run.rebalancer':'Run Rebalancer',
   'services.service.actions.run.rebalanceHdfsNodes':'Run Rebalance HDFS nodes',
   'services.service.actions.run.rebalanceHdfsNodes.title':'HDFS Rebalance NameNode',

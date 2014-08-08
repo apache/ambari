@@ -616,6 +616,15 @@ App.MainServiceItemController = Em.Controller.extend({
     ability_controller.enableRMHighAvailability();
   },
 
+  downloadClientConfigs: function () {
+    var component = this.get('content.hostComponents').findProperty('isClient');
+    componentsUtils.downloadClientConfigs.call(this, {
+      serviceName: this.get('content.serviceName'),
+      componentName: component.get('componentName'),
+      displayName: component.get('displayName')
+    });
+  },
+
   isPending:true
 
 });

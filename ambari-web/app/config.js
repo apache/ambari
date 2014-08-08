@@ -81,7 +81,8 @@ App.supports = {
   flume: true,
   databaseConnection: true,
   configHistory: false,
-  serverRecommendValidate: false
+  serverRecommendValidate: false,
+  downloadClientConfigs: false
 };
 
 if (App.enableExperimental) {

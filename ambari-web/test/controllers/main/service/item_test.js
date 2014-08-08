@@ -595,4 +595,30 @@ describe('App.MainServiceItemController', function () {
     });
   });
 
+
+  describe('#downloadClientConfigs()', function () {
+
+    var mainServiceItemController = App.MainServiceItemController.create({
+      content: {
+        hostComponents: [
+          Em.Object.create({
+            isClient: true
+          })
+        ]
+      }
+    });
+
+    beforeEach(function () {
+      sinon.spy($, 'fileDownload');
+    });
+    afterEach(function () {
+      $.fileDownload.restore();
+    });
+
+    it('should launch $.fileDownload method', function () {
+      mainServiceItemController.downloadClientConfigs();
+      expect($.fileDownload.calledOnce).to.be.true;
+    });
+  });
+
 });

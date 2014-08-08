@@ -1560,5 +1560,14 @@ App.MainHostDetailsController = Em.Controller.extend({
     return App.showConfirmationPopup(function () {
       self.updateComponentPassiveState(event.context, state, message);
     });
+  },
+
+  downloadClientConfigs: function (event) {
+    componentsUtils.downloadClientConfigs.call(this, {
+      hostName: event.context.get('hostName'),
+      componentName: event.context.get('componentName'),
+      displayName: event.context.get('displayName')
+    });
   }
+
 });

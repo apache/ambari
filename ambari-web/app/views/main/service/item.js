@@ -99,6 +99,13 @@ App.MainServiceItemView = Em.View.extend({
         label: Em.I18n.t('services.service.actions.run.rebalanceHdfsNodes'),
         cssClass: 'icon-refresh',
         disabled: false
+      },
+      DOWNLOAD_CLIENT_CONFIGS: {
+        action: 'downloadClientConfigs',
+        label: Em.I18n.t('services.service.actions.downloadClientConfigs'),
+        cssClass: 'icon-download-alt',
+        isHidden: !(App.get('supports.downloadClientConfigs') && this.get('controller.content.hostComponents').findProperty('isClient')),
+        disabled: false
       }
     }
   },
@@ -199,6 +206,7 @@ App.MainServiceItemView = Em.View.extend({
         options.push(item);
       });
     }
+    options.push(actionMap.DOWNLOAD_CLIENT_CONFIGS);
     return options;
   }.property('controller.content', 'controller.isStopDisabled','controller.isClientsOnlyService', 'controller.content.isRestartRequired', 'isPassive'),
 
