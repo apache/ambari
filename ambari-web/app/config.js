@@ -82,7 +82,7 @@ App.supports = {
   databaseConnection: true,
   configHistory: false,
   serverRecommendValidate: false,
-  downloadClientConfigs: false,
+  downloadClientConfigs: true,
   abortRequests: false
 };
 
