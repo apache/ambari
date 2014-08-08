@@ -28,16 +28,11 @@
         {{t admin.highAvailability.enabled}}
        </p>
     {{/if}}
-
   {{else}}
-    {{#if controller.dataIsLoaded}}
-      <p class="muted">
-        {{t admin.highAvailability.disabled}}
-      </p>
-      <a class="btn btn-padding btn-success ha-btn" {{action enableHighAvailability target="controller"}}>{{t admin.highAvailability.button.enable}}</a>
-    {{else}}
-      <div class="spinner"></div>
-    {{/if}}
+    <p class="muted">
+      {{t admin.highAvailability.disabled}}
+    </p>
+    <a class="btn btn-padding btn-success ha-btn" {{action enableHighAvailability target="controller"}}>{{t admin.highAvailability.button.enable}}</a>
   {{/if}}
   {{#if view.supportRMHA}}
     <div class="rm-ha">
