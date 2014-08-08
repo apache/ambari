@@ -21,7 +21,7 @@ var App = require('app');
 module.exports = App.WizardRoute.extend({
   route: '/highAvailability/ResourceManager/enable',
 
-  enter: function (router) {
+  enter: function (router,transition) {
     Em.run.next(function () {
       var rMHighAvailabilityWizardController = router.get('rMHighAvailabilityWizardController');
       App.router.get('updateController').set('isWorking', false);
@@ -49,7 +49,7 @@ module.exports = App.WizardRoute.extend({
                 localdb: App.db.data
               }, {alwaysCallback: function () {
                 self.hide();
-                router.transitionTo('main.admin.adminHighAvailability.index');
+                router.transitionTo('main.index');
                 location.reload();
               }});
             }, Em.I18n.t('admin.rm_highAvailability.closePopup'));
@@ -57,7 +57,7 @@ module.exports = App.WizardRoute.extend({
             this.hide();
             rMHighAvailabilityWizardController.setCurrentStep('1');
             router.get('updateController').set('isWorking', true);
-            router.transitionTo('main.admin.adminHighAvailability.index')
+            router.transitionTo('main.index')
           }
         },
         didInsertElement: function () {
@@ -175,7 +175,7 @@ module.exports = App.WizardRoute.extend({
         localdb: App.db.data
       }, {alwaysCallback: function () {
         controller.get('popup').hide();
-        router.transitionTo('main.admin.adminHighAvailability.index');
+        router.transitionTo('main.index');
         location.reload();
       }});
     }

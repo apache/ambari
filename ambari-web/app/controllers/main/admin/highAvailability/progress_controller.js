@@ -120,20 +120,17 @@ App.HighAvailabilityProgressPageController = App.HighAvailabilityWizardControlle
       primary: Em.I18n.t('yes'),
       showCloseButton: false,
       onPrimary: function () {
+        var self = this;
         var controller = App.router.get('highAvailabilityWizardController');
         controller.clearTasksData();
         controller.clearStorageData();
-        controller.setCurrentStep('1');
+        controller.finish();
         App.router.get('updateController').set('isWorking', true);
         App.clusterStatus.setClusterStatus({
           clusterName: App.router.get('content.cluster.name'),
           clusterState: 'DEFAULT',
-          wizardControllerName: App.router.get('highAvailabilityRollbackController.name'),
           localdb: App.db.data
-        });
-        this.hide();
-        App.router.transitionTo('main.admin.index');
-        location.reload();
+        },{alwaysCallback: function() {self.hide();App.router.transitionTo('main.index');location.reload();}});
       },
       secondary: Em.I18n.t('no'),
       onSecondary: function () {

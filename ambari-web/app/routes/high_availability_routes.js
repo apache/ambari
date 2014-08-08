@@ -55,11 +55,10 @@ module.exports = App.WizardRoute.extend({
           var self = this;
           var currStep = App.router.get('highAvailabilityWizardController.currentStep');
           var highAvailabilityProgressPageController = App.router.get('highAvailabilityProgressPageController');
-
           if(parseInt(currStep) > 4){
             if(!App.supports.autoRollbackHA){
               highAvailabilityProgressPageController.manualRollback();
-            }else{
+            } else{
               this.hide();
               App.router.get('highAvailabilityWizardController').setCurrentStep('1');
               App.router.transitionTo('rollbackHighAvailability');
@@ -73,7 +72,7 @@ module.exports = App.WizardRoute.extend({
               clusterName: controller.get('content.cluster.name'),
               clusterState: 'DEFAULT',
               localdb: App.db.data
-            },{alwaysCallback: function() {self.hide();App.router.transitionTo('main.admin.adminHighAvailability');location.reload();}});
+            },{alwaysCallback: function() {self.hide();App.router.transitionTo('main.index');location.reload();}});
           }
         },
         didInsertElement: function () {
@@ -144,12 +143,7 @@ module.exports = App.WizardRoute.extend({
       if(sNN){
         App.db.setRollBackHighAvailabilityWizardSNNHost(sNN);
       }
-      App.clusterStatus.setClusterStatus({
-        clusterName: this.get('content.cluster.name'),
-        clusterState: 'HIGH_AVAILABILITY_DEPLOY',
-        wizardControllerName: this.get('content.controllerName'),
-        localdb: App.db.data
-      });
+
       controller.saveMasterComponentHosts(highAvailabilityWizardStep2Controller);
       controller.get('content').set('serviceConfigProperties', null);
       controller.setDBProperty('serviceConfigProperties', null);
