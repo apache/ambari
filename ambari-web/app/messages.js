@@ -1182,7 +1182,7 @@ Em.I18n.translations = {
   'services.service.actions.downloadClientConfigs.fail.popup.body':'Generation of {0} configurations file has failed. Do you want to try again?',
   'services.service.actions.run.rebalancer':'Run Rebalancer',
   'services.service.actions.run.rebalanceHdfsNodes':'Rebalance HDFS',
-  'services.service.actions.run.rebalanceHdfsNodes.title':'HDFS Rebalance NameNode',
+  'services.service.actions.run.rebalanceHdfsNodes.title':'HDFS Rebalance',
   'services.service.actions.run.rebalanceHdfsNodes.prompt':'Balancer threshold (percentage of disk capacity):',
   'services.service.actions.run.rebalanceHdfsNodes.promptTooltip':'Percentage of disk capacity. This overwrites the default threshold',
   'services.service.actions.run.rebalanceHdfsNodes.promptError':'Value should be number between 0 and 100',
