@@ -232,7 +232,7 @@ App.WizardStep6Controller = Em.Controller.extend({
             allChecked: false,
             isRequired: serviceComponent.get('isRequired'),
             noChecked: true,
-            isDisabled: installedServices.someProperty('serviceName',stackService.get('serviceName'))
+            isDisabled: installedServices.someProperty('serviceName',stackService.get('serviceName')) && this.get('isAddServiceWizard')
           }));
         }
       }, this);
