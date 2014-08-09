@@ -68,7 +68,7 @@ class FlumeHandler(Script):
     alert['label'] = 'Flume Agent process'
 
     if len(processes) == 0 and len(expected_agents) == 0:
-      alert['state'] = 'WARNING'
+      alert['state'] = 'OK'
 
       if not params.hostname is None:
         alert['text'] = 'No agents defined on ' + params.hostname

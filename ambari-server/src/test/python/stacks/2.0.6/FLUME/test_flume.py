@@ -98,7 +98,7 @@ class TestFlumeHandler(RMFTestCase):
     # test that the method was called with empty processes
     self.assertTrue(structured_out_mock.called)
     structured_out_mock.assert_called_with({'processes': [],
-      'alerts': [{'text': 'No agents defined on c6401.ambari.apache.org', 'state': 'WARNING', 'name': 'flume_agent', 'label': 'Flume Agent process'}]})
+      'alerts': [{'text': 'No agents defined on c6401.ambari.apache.org', 'state': 'OK', 'name': 'flume_agent', 'label': 'Flume Agent process'}]})
     self.assertNoMoreResources()
 
   @patch("resource_management.libraries.script.Script.put_structured_out")
