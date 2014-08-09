@@ -281,7 +281,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
    */
   removeOozieConfigs: function (configs) {
     var oozieDb = configs.findProperty('name', 'oozie_database');
-    var oozieDbType = configs.findProperty('name', 'hive_database_type');
+    var oozieDbType = configs.findProperty('name', 'oozie_database_type');
     if (oozieDbType) {
       var oozie_properties = Em.A(['oozie_ambari_host', 'oozie_ambari_database']);
 
