@@ -161,16 +161,7 @@ App.AddHostController = App.WizardController.extend({
   saveClients: function () {
     var clients = [];
     var serviceComponents = App.StackServiceComponent.find();
-    var clientComponents = [];
     var hosts = this.get('content.hosts');
-
-    for (var hostName in hosts) {
-      if(hosts[hostName].isInstalled) {
-        hosts[hostName].hostComponents.forEach(function (component) {
-          clientComponents[component.HostRoles.component_name] = true;
-        }, this);
-      }
-    }
 
     this.get('content.services').filterProperty('isSelected').forEach(function (_service) {
       var client = serviceComponents.filterProperty('serviceName', _service.get('serviceName')).findProperty('isClient');
@@ -178,7 +169,7 @@ App.AddHostController = App.WizardController.extend({
         clients.push({
           component_name: client.get('componentName'),
           display_name: client.get('displayName'),
-          isInstalled: !!clientComponents[client.get('componentName')]
+          isInstalled: false
         });
       }
     }, this);

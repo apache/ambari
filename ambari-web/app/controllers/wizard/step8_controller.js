@@ -201,12 +201,12 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
       if (this.get('content.controllerName') != 'installerController' && this.get('securityEnabled')) {
         this.prepareSecureConfigs();
         this.get('content.services').filterProperty('isSelected', true)
-            .mapProperty('serviceName').forEach(function(serviceName){
-             var config = this.get('secureConfigs').findProperty('serviceName', serviceName);
-             if (config) {
-               this.setPrincipalValue(serviceName, config.name);
-             }
-        }, this);
+          .mapProperty('serviceName').forEach(function (serviceName) {
+            var config = this.get('secureConfigs').findProperty('serviceName', serviceName);
+            if (config) {
+              this.setPrincipalValue(serviceName, config.name);
+            }
+          }, this);
       }
     }
     this.loadClusterInfo();
@@ -1216,7 +1216,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
   createSlaveAndClientsHostComponents: function () {
     var masterHosts = this.get('content.masterComponentHosts');
     var slaveHosts = this.get('content.slaveComponentHosts');
-    var clients = this.get('content.clients').filterProperty('isInstalled',false);
+    var clients = this.get('content.clients').filterProperty('isInstalled', false);
 
     /**
      * Determines on which hosts client should be installed (based on availability of master components on hosts)
@@ -1240,12 +1240,16 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
       else {
         clients.forEach(function (_client) {
           var hostNames = _slave.hosts.mapProperty('hostName');
-          if (clientsToMasterMap[_client.component_name]) {
-            clientsToMasterMap[_client.component_name].forEach(function (componentName) {
-              masterHosts.filterProperty('component', componentName).forEach(function (_masterHost) {
-                hostNames.pushObject(_masterHost.hostName);
+          // The below logic to install clients to existing/New master hosts should not be applied to Add Host wizard.
+          // This is with the presumption that Add Host controller does not add any new Master component to the cluster
+          if (this.get('content.controllerName') !== 'addHostController') {
+            if (clientsToMasterMap[_client.component_name]) {
+              clientsToMasterMap[_client.component_name].forEach(function (componentName) {
+                masterHosts.filterProperty('component', componentName).forEach(function (_masterHost) {
+                  hostNames.pushObject(_masterHost.hostName);
+                });
               });
-            });
+            }
           }
           hostNames = hostNames.uniq();
           this.registerHostsToComponent(hostNames, _client.component_name);
