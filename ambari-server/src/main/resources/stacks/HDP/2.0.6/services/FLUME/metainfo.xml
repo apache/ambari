@@ -21,7 +21,7 @@
     <service>
       <name>FLUME</name>
       <comment>Data management and processing platform</comment>
-      <version>1.4.0.2.1.1.0</version>
+      <version>1.4.0.2.0</version>
       <components>
         <component>
           <name>FLUME_HANDLER</name>
