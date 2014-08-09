@@ -930,11 +930,12 @@ App.config = Em.Object.create({
         var fileName = this.getOriginalFileName(config.type);
         var serviceConfig = !!params.configKeyToConfigMap[fileName] ? params.configKeyToConfigMap[fileName][prop] : false;
         var hostOverrideValue = this.formatOverrideValue(serviceConfig, properties[prop]);
+        var hostOverrideIsFinal = !!(config.properties_attributes && config.properties_attributes.final && config.properties_attributes.final[prop]);
         if (serviceConfig) {
           // Value of this property is different for this host.
           if (!Em.get(serviceConfig, 'overrides')) Em.set(serviceConfig, 'overrides', []);
           console.log("loadServiceConfigGroupOverridesSuccess(): [" + group + "] OVERRODE(" + serviceConfig.name + "): " + serviceConfig.value + " -> " + hostOverrideValue);
-          serviceConfig.overrides.pushObject({value: hostOverrideValue, group: group, isFinal: config.properties_attributes.final[prop] || false });
+          serviceConfig.overrides.pushObject({value: hostOverrideValue, group: group, isFinal: hostOverrideIsFinal});
         } else {
           params.serviceConfigs.push(this.createCustomGroupConfig(prop, config, group));
         }
