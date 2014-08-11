@@ -145,6 +145,22 @@ class AmbariClient(RestResource):
         """
         return cluster._create_cluster(self, cluster_name, version)
 
+    def create_cluster_from_blueprint(self, cluster_name, blueprint_name, 
+                                      host_groups, configurations=None, 
+                                      default_password=None):
+        """
+        Create a new cluster.
+        @param cluster_name: Cluster cluster_name
+        @param blueprint_name: the name of the blueprint
+        @param host_groups: an array of host_group information
+        @param configurations: an array of configuration overrides
+        @param default_password: the default password to use for all password-requiring services
+        @return  ClusterModel object.
+        """
+        return cluster._create_cluster_from_blueprint(self, cluster_name, 
+            blueprint_name, host_groups, configurations=configurations, 
+            default_password=default_password)
+
     def delete_cluster(self, cluster_name):
         """
         Delete a cluster
@@ -240,7 +256,7 @@ class AmbariClient(RestResource):
         """
         return status._get_N_requests(self, cluster_name, noOfrequest)
 
-    def get_blueprint(self, blueprint_name=None):
+    def get_blueprint(self, blueprint_name):
         """
         get blueprint
         @param blueprint_name:blueprint_name name.
@@ -256,7 +272,7 @@ class AmbariClient(RestResource):
         """
         return blueprint.get_cluster_blueprint(self, cluster_name)
 
-    def delete_blueprint(self, blueprint_name=None):
+    def delete_blueprint(self, blueprint_name):
         """
         get blueprint
         @param blueprint_name:blueprint_name name.
@@ -264,13 +280,13 @@ class AmbariClient(RestResource):
         """
         return blueprint.delete_blueprint(self, blueprint_name)
 
-    def create_blueprint(self, blueprint_name=None):
+    def create_blueprint(self, blueprint_name, blueprint_schema):
         """
         get blueprint
         @param blueprint_name:blueprint_name name.
         @return: A BlueprintModel object
         """
-        return blueprint.create_blueprint(self, blueprint_name)
+        return blueprint.create_blueprint(self, blueprint_name, blueprint_schema)
 
 
 def get_root_resource(

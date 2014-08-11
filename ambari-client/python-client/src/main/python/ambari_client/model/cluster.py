@@ -72,6 +72,37 @@ def _create_cluster(root_resource, cluster_name, version):
         "NO_KEY")
 
 
+def _create_cluster_from_blueprint(root_resource, cluster_name, blueprint_name, 
+                                   host_groups, configurations=None, 
+                                   default_password=None):
+    """
+    Create a cluster
+    @param root_resource: The root Resource.
+    @param cluster_name: Cluster cluster_name
+    @param blueprint_name: the name of the blueprint
+    @param host_groups: an array of host_group information
+    @param configurations: an array of configuration overrides
+    @param default_password: the default password to use for all password-requiring services
+    @return: An StatusModel object
+    """
+    data = {
+      "blueprint" : blueprint_name,
+      "host_groups" : host_groups,
+    }
+    if configurations is not None:
+        data['configurations'] = configurations
+    if default_password is not None:
+        data['default_password'] = default_password
+
+    path = paths.CLUSTERS_PATH + "/%s" % (cluster_name)
+    resp = root_resource.post(path=path, payload=data)
+    return utils.ModelUtils.create_model(
+        status.StatusModel,
+        resp,
+        root_resource,
+        "NO_KEY")
+
+
 def _delete_cluster(root_resource, cluster_name):
     """
     Delete a cluster by name

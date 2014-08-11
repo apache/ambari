@@ -88,16 +88,16 @@ def delete_blueprint(resource_root, blueprint_name):
         "NO_KEY")
 
 
-def create_blueprint(resource_root, blueprint_name, json_data):
+def create_blueprint(resource_root, blueprint_name, blueprint_schema):
     """
     Create a blueprint
     @param root_resource: The root Resource.
     @param blueprint_name: blueprint_name
-    @param json_data: blueprint  json
+    @param blueprint_schema: blueprint  json
     @return: An ClusterModel object
     """
     path = paths.BLUEPRINT_PATH % blueprint_name
-    resp = resource_root.post(path=path, payload=json_data)
+    resp = resource_root.post(path=path, payload=blueprint_schema)
     return utils.ModelUtils.create_model(
         status.StatusModel,
         resp,
