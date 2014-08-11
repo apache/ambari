@@ -38,6 +38,7 @@ describe('App.ReassignMasterWizardStep2Controller', function () {
 
     beforeEach(function () {
       sinon.stub(App.router, 'send', Em.K);
+      sinon.stub(controller, 'loadComponents', Em.K);
       sinon.stub(controller, 'loadStepCallback', Em.K);
       sinon.stub(controller, 'rebalanceSingleComponentHosts', Em.K);
     });
@@ -46,9 +47,14 @@ describe('App.ReassignMasterWizardStep2Controller', function () {
       controller.rebalanceSingleComponentHosts.restore();
       App.router.send.restore();
       controller.loadStepCallback.restore();
+      controller.loadComponents.restore();
     });
 
     it('SECONDARY_NAMENODE is absent, reassign component is NAMENODE', function () {
+      sinon.stub(App, 'get', function (k) {
+        if (k === 'isHaEnabled') return true;
+        return Em.get(App, k);
+      });
       controller.set('content.reassign.component_name', 'NAMENODE');
       controller.set('content.masterComponentHosts', []);
 
@@ -56,8 +62,13 @@ describe('App.ReassignMasterWizardStep2Controller', function () {
       expect(controller.get('showCurrentHost')).to.be.false;
       expect(controller.get('componentToRebalance')).to.equal('NAMENODE');
       expect(controller.get('rebalanceComponentHostsCounter')).to.equal(1);
+      App.get.restore();
     });
     it('SECONDARY_NAMENODE is present, reassign component is NAMENODE', function () {
+      sinon.stub(App, 'get', function (k) {
+        if (k === 'isHaEnabled') return false;
+        return Em.get(App, k);
+      });
       controller.set('content.reassign.component_name', 'NAMENODE');
       controller.set('content.masterComponentHosts', [
         {
@@ -68,6 +79,7 @@ describe('App.ReassignMasterWizardStep2Controller', function () {
       controller.loadStep();
       expect(controller.get('showCurrentHost')).to.be.true;
       expect(controller.rebalanceSingleComponentHosts.calledWith('NAMENODE'));
+      App.get.restore();
     });
     it('SECONDARY_NAMENODE is absent, reassign component is not NAMENODE', function () {
       controller.set('content.reassign.component_name', 'COMP');
@@ -78,12 +90,15 @@ describe('App.ReassignMasterWizardStep2Controller', function () {
       expect(controller.rebalanceSingleComponentHosts.calledWith('COMP'));
     });
     it('if HA is enabled then multipleComponents should contain NAMENODE', function () {
-      sinon.stub(App,'get', function() {
-        return true;
+      controller.get('multipleComponents').clear();
+      sinon.stub(App, 'get', function (k) {
+        if (k === 'isHaEnabled') return true;
+        return Em.get(App, k);
       });
 
       controller.loadStep();
-      expect(controller.get('multipleComponents')).to.eql(['NAMENODE']);
+      expect(controller.get('multipleComponents')).to.contain('NAMENODE');
+      expect(controller.get('multipleComponents')).to.have.length(1);
       App.get.restore();
     });
   });

@@ -107,20 +107,6 @@ describe('App.WizardStep6Controller', function () {
     });
   });
 
-  describe('#isServiceSelected', function () {
-    describe('selected', function () {
-      services.forEach(function (service) {
-        it(service.serviceName + ' is selected', function () {
-          expect(controller.isServiceSelected(service.serviceName)).to.equal(true);
-        });
-      });
-    });
-    var unselectedService = 'FAKESERVICE';
-    it(unselectedService + ' is not selected', function () {
-      expect(controller.isServiceSelected(unselectedService)).to.equal(false);
-    });
-  });
-
   describe('#clearStep', function () {
     beforeEach(function () {
       sinon.stub(controller, 'clearError', Em.K);

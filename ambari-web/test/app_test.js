@@ -368,147 +368,143 @@ describe('App', function () {
 
 
   describe('#components', function () {
-    var testCases = [
-      {
-        key: 'allComponents',
-        data: [
-          Em.Object.create({
-            componentName: 'C1'
-          })
-        ],
-        result: ['C1']
-      },
-      {
-        key: 'reassignable',
-        data: [
-          Em.Object.create({
-            componentName: 'C2',
-            isReassignable: true
-          })
-        ],
-        result: ['C2']
-      },
-      {
-        key: 'restartable',
-        data: [
-          Em.Object.create({
-            componentName: 'C3',
-            isRestartable: true
-          })
-        ],
-        result: ['C3']
-      },
-      {
-        key: 'deletable',
-        data: [
-          Em.Object.create({
-            componentName: 'C4',
-            isDeletable: true
-          })
-        ],
-        result: ['C4']
-      },
-      {
-        key: 'rollinRestartAllowed',
-        data: [
-          Em.Object.create({
-            componentName: 'C5',
-            isRollinRestartAllowed: true
-          })
-        ],
-        result: ['C5']
-      },
-      {
-        key: 'decommissionAllowed',
-        data: [
-          Em.Object.create({
-            componentName: 'C6',
-            isDecommissionAllowed: true
-          })
-        ],
-        result: ['C6']
-      },
-      {
-        key: 'refreshConfigsAllowed',
-        data: [
-          Em.Object.create({
-            componentName: 'C7',
-            isRefreshConfigsAllowed: true
-          })
-        ],
-        result: ['C7']
-      },
-      {
-        key: 'addableToHost',
-        data: [
-          Em.Object.create({
-            componentName: 'C8',
-            isAddableToHost: true
-          })
-        ],
-        result: ['C8']
-      },
-      {
-        key: 'addableMasterInstallerWizard',
-        data: [
-          Em.Object.create({
-            componentName: 'C9',
-            isMasterAddableInstallerWizard: true
-          })
-        ],
-        result: ['C9']
-      },
-      {
-        key: 'multipleMasters',
-        data: [
-          Em.Object.create({
-            componentName: 'C10',
-            isMasterWithMultipleInstances: true
-          })
-        ],
-        result: ['C10']
-      },
-      {
-        key: 'slaves',
-        data: [
-          Em.Object.create({
-            componentName: 'C11',
-            isSlave: true
-          })
-        ],
-        result: ['C11']
-      },
-      {
-        key: 'masters',
-        data: [
-          Em.Object.create({
-            componentName: 'C12',
-            isMaster: true
-          })
-        ],
-        result: ['C12']
-      },
-      {
-        key: 'clients',
-        data: [
-          Em.Object.create({
-            componentName: 'C13',
-            isClient: true
-          })
-        ],
-        result: ['C13']
-      }
-    ];
+    var i = 0,
+      testCases = [
+        {
+          key: 'allComponents',
+          data: [
+            Em.Object.create({
+              componentName: 'C1'
+            })
+          ],
+          result: ['C1']
+        },
+        {
+          key: 'reassignable',
+          data: [
+            Em.Object.create({
+              componentName: 'C2',
+              isReassignable: true
+            })
+          ],
+          result: ['C2']
+        },
+        {
+          key: 'restartable',
+          data: [
+            Em.Object.create({
+              componentName: 'C3',
+              isRestartable: true
+            })
+          ],
+          result: ['C3']
+        },
+        {
+          key: 'deletable',
+          data: [
+            Em.Object.create({
+              componentName: 'C4',
+              isDeletable: true
+            })
+          ],
+          result: ['C4']
+        },
+        {
+          key: 'rollinRestartAllowed',
+          data: [
+            Em.Object.create({
+              componentName: 'C5',
+              isRollinRestartAllowed: true
+            })
+          ],
+          result: ['C5']
+        },
+        {
+          key: 'decommissionAllowed',
+          data: [
+            Em.Object.create({
+              componentName: 'C6',
+              isDecommissionAllowed: true
+            })
+          ],
+          result: ['C6']
+        },
+        {
+          key: 'refreshConfigsAllowed',
+          data: [
+            Em.Object.create({
+              componentName: 'C7',
+              isRefreshConfigsAllowed: true
+            })
+          ],
+          result: ['C7']
+        },
+        {
+          key: 'addableToHost',
+          data: [
+            Em.Object.create({
+              componentName: 'C8',
+              isAddableToHost: true
+            })
+          ],
+          result: ['C8']
+        },
+        {
+          key: 'addableMasterInstallerWizard',
+          data: [
+            Em.Object.create({
+              componentName: 'C9',
+              isMasterAddableInstallerWizard: true
+            })
+          ],
+          result: ['C9']
+        },
+        {
+          key: 'multipleMasters',
+          data: [
+            Em.Object.create({
+              componentName: 'C10',
+              isMasterWithMultipleInstances: true
+            })
+          ],
+          result: ['C10']
+        },
+        {
+          key: 'slaves',
+          data: [
+            Em.Object.create({
+              componentName: 'C11',
+              isSlave: true
+            })
+          ],
+          result: ['C11']
+        },
+        {
+          key: 'clients',
+          data: [
+            Em.Object.create({
+              componentName: 'C12',
+              isClient: true
+            })
+          ],
+          result: ['C12']
+        }
+      ];
+
+    beforeEach(function () {
+      sinon.stub(App.StackServiceComponent, 'find', function () {
+        return testCases[i].data;
+      });
+    });
+
+    afterEach(function () {
+      i++;
+      App.StackServiceComponent.find.restore();
+    })
 
     testCases.forEach(function (test) {
       it(test.key + ' should contain ' + test.result, function () {
-        sinon.stub(App.StackServiceComponent, 'find', function () {
-          return test.data;
-        });
-
         expect(App.get('components.' + test.key)).to.eql(test.result);
-
-        App.StackServiceComponent.find.restore();
       })
     })
   });

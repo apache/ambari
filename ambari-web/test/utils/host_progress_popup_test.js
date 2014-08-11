@@ -374,12 +374,17 @@ describe('App.HostPopup', function () {
 
   describe('#abortRequestErrorCallback', function () {
     beforeEach(function () {
+      sinon.stub(App.ajax, 'get', function(k) {
+        if (k === 'modalPopup') return null;
+        return Em.get(App, k);
+      });
       App.HostPopup.createPopup();
       sinon.spy(App.ModalPopup, 'show');
     });
     afterEach(function () {
       App.HostPopup.get('isPopup').hide();
       App.ModalPopup.show.restore();
+      App.ajax.get.restore();
     });
     it('should open popup', function () {
       App.HostPopup.get('isPopup.bodyClass').create().abortRequestErrorCallback({

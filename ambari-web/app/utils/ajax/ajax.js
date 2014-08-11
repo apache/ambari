@@ -2011,13 +2011,13 @@ var ajax = Em.Object.extend({
       showStatus = 500;
     }
     var statusCode = jqXHR.status + " status code";
-    if (jqXHR.status === showStatus && !this.modalPopup) {
-      this.modalPopup = App.ModalPopup.show({
+    if (jqXHR.status === showStatus && !this.get('modalPopup')) {
+      this.set('modalPopup', App.ModalPopup.show({
         header: Em.I18n.t('common.error'),
         secondary: false,
         onPrimary: function () {
           this.hide();
-          self.modalPopup = null;
+          self.set('modalPopup', null);
         },
         bodyClass: Ember.View.extend({
           classNames: ['api-error'],
@@ -2027,7 +2027,7 @@ var ajax = Em.Object.extend({
           message: message,
           showMessage: !!message
         })
-      });
+      }));
     }
   }
 

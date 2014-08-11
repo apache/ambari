@@ -24,23 +24,7 @@ var view,
   modals = [],
   removed = false,
   events = [
-    {
-      event: 'keydown',
-      which: 13,
-      key: 'Enter',
-      html: '<div id="modal"><div class="modal-footer"><span class="btn-success"></span></div></div>',
-      particle: '',
-      length: 0
-    },
-    {
-      event: 'keydown',
-      keyCode: 13,
-      key: 'Enter',
-      html: '<div id="modal"><div class="modal-footer"><span class="btn-success"></span></div></div>',
-      particle: '',
-      length: 0
-    },
-    {
+      {
       event: 'keyup',
       which: 27,
       key: 'Esc',

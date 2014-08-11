@@ -347,8 +347,8 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
   });
 
   describe('#getStopServicesData()', function () {
-    it('restartYarnMRComponents is true', function () {
-      controller.set('restartYarnMRComponents', true);
+    it('restarting YARN component', function () {
+      controller.set('content.reassign.component_name', 'RESOURCEMANAGER');
       sinon.stub(App.Service, 'find', function () {
         return [
           {
@@ -364,13 +364,13 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
         "ServiceInfo": {
           "state": "INSTALLED"
         },
-        "context": "Stop without HDFS",
+        "context": "Stop required services",
         "urlParams": "ServiceInfo/service_name.in(SERVICE1)"
       });
       App.Service.find.restore();
     });
-    it('restartYarnMRComponents is false', function () {
-      controller.set('restartYarnMRComponents', false);
+    it('restarting non-YARN component', function () {
+      controller.set('content.reassign.component_name', 'NAMENODE');
       expect(controller.getStopServicesData()).to.eql({
         "ServiceInfo": {
           "state": "INSTALLED"

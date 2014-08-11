@@ -25,11 +25,29 @@ var hostComponentView;
 describe('App.HostComponentView', function() {
 
   beforeEach(function() {
+    sinon.stub(App.router, 'get', function (k) {
+      if (k === 'mainHostDetailsController.content') return Em.Object.create({
+        hostComponents: [
+          {
+            componentName: 'component'
+          }
+        ]
+      });
+      return Em.get(App.router, k);
+    });
     hostComponentView = App.HostComponentView.create({
       startBlinking: function(){},
       doBlinking: function(){},
-      getDesiredAdminState: function(){return $.ajax({});}
+      getDesiredAdminState: function(){return $.ajax({});},
+      content: Em.Object.create({
+        componentName: 'component'
+      }),
+      hostComponent: Em.Object.create()
     });
+  });
+
+  afterEach(function () {
+    App.router.get.restore();
   });
 
   describe('#disabled', function() {
@@ -66,7 +84,7 @@ describe('App.HostComponentView', function() {
 
     App.HostComponentStatus.getStatusesList().forEach(function(status) {
       it(status, function() {
-        hostComponentView.set('content', {workStatus: status});
+        hostComponentView.get('hostComponent').set('workStatus', status);
         var e = tests.contains(status) ? testE : defaultE;
         expect(hostComponentView.get('isUpgradeFailed')).to.equal(e);
       });
@@ -82,7 +100,7 @@ describe('App.HostComponentView', function() {
 
     App.HostComponentStatus.getStatusesList().forEach(function(status) {
       it(status, function() {
-        hostComponentView.set('content', {workStatus: status});
+        hostComponentView.get('hostComponent').set('workStatus', status);
         var e = tests.contains(status) ? testE : defaultE;
         expect(hostComponentView.get('isInstallFailed')).to.equal(e);
       });
@@ -98,7 +116,7 @@ describe('App.HostComponentView', function() {
 
     App.HostComponentStatus.getStatusesList().forEach(function(status) {
       it(status, function() {
-        hostComponentView.set('content', {workStatus: status});
+        hostComponentView.get('hostComponent').set('workStatus', status);
         var e = tests.contains(status) ? testE : defaultE;
         expect(hostComponentView.get('isStart')).to.equal(e);
       });
@@ -114,7 +132,7 @@ describe('App.HostComponentView', function() {
 
     App.HostComponentStatus.getStatusesList().forEach(function(status) {
       it(status, function() {
-        hostComponentView.set('content', {workStatus: status});
+        hostComponentView.get('hostComponent').set('workStatus', status);
         var e = tests.contains(status) ? testE : defaultE;
         expect(hostComponentView.get('isStop')).to.equal(e);
       });
@@ -130,7 +148,7 @@ describe('App.HostComponentView', function() {
 
     App.HostComponentStatus.getStatusesList().forEach(function(status) {
       it(status, function() {
-        hostComponentView.set('content', {workStatus: status});
+        hostComponentView.get('hostComponent').set('workStatus', status);
         var e = tests.contains(status) ? testE : defaultE;
         expect(hostComponentView.get('isInstalling')).to.equal(e);
       });
@@ -146,7 +164,7 @@ describe('App.HostComponentView', function() {
 
     App.HostComponentStatus.getStatusesList().forEach(function(status) {
       it(status, function() {
-        hostComponentView.set('content', {workStatus: status});
+        hostComponentView.get('hostComponent').set('workStatus', status);
         var e = tests.contains(status) ? testE : defaultE;
         expect(hostComponentView.get('isInit')).to.equal(e);
       });
@@ -162,7 +180,7 @@ describe('App.HostComponentView', function() {
 
     App.HostComponentStatus.getStatusesList().forEach(function(status) {
       it(status, function() {
-        hostComponentView.set('content', {workStatus: status});
+        hostComponentView.get('hostComponent').set('workStatus', status);
         var e = tests.contains(status) ? testE : defaultE;
         expect(hostComponentView.get('noActionAvailable')).to.equal(e);
       });
@@ -180,7 +198,7 @@ describe('App.HostComponentView', function() {
 
     tests.forEach(function(test) {
       it(test.workStatus, function() {
-        hostComponentView.set('content', {passiveState: test.passiveState});
+        hostComponentView.get('content').set('passiveState', test.passiveState);
         expect(hostComponentView.get('isActive')).to.equal(test.e);
       });
     });
@@ -195,7 +213,7 @@ describe('App.HostComponentView', function() {
 
     App.HostComponentStatus.getStatusesList().forEach(function(status) {
       it(status, function() {
-        hostComponentView.set('content', {workStatus: status});
+        hostComponentView.get('hostComponent').set('workStatus', status);
         var e = tests.contains(status) ? testE : defaultE;
         expect(hostComponentView.get('isRestartComponentDisabled')).to.equal(e);
       });
@@ -211,7 +229,7 @@ describe('App.HostComponentView', function() {
 
     App.HostComponentStatus.getStatusesList().forEach(function(status) {
       it(status, function() {
-        hostComponentView.set('content', {workStatus: status});
+        hostComponentView.get('hostComponent').set('workStatus', status);
         var e = tests.contains(status) ? testE : defaultE;
         expect(hostComponentView.get('isDeleteComponentDisabled')).to.equal(e);
       });
@@ -223,13 +241,13 @@ describe('App.HostComponentView', function() {
 
     var tests = Em.A([
       {
-        content: Em.Object.create({componentTextStatus: 'status'}),
+        componentTextStatus: 'status',
         hostComponent: null,
         e: 'status',
         m: 'get content status'
       },
       {
-        content: Em.Object.create({componentTextStatus: 'status'}),
+        componentTextStatus: 'status',
         hostComponent: Em.Object.create({componentTextStatus: 'new_status'}),
         e: 'new_status',
         m: 'get hostComponent status'
@@ -242,9 +260,10 @@ describe('App.HostComponentView', function() {
           startBlinking: function(){},
           doBlinking: function(){},
           getDesiredAdminState: function(){return $.ajax({});},
-          content: test.content,
-          hostComponent: test.hostComponent
+          hostComponent: test.hostComponent,
+          content: Em.Object.create()
         });
+        hostComponentView.get('content').set('componentTextStatus', test.componentTextStatus);
         expect(hostComponentView.get('componentTextStatus')).to.equal(test.e);
       });
     });
@@ -255,13 +274,13 @@ describe('App.HostComponentView', function() {
 
     var tests = Em.A([
       {
-        content: Em.Object.create({workStatus: 'status'}),
+        workStatus: 'status',
         hostComponent: null,
         e: 'status',
         m: 'get content workStatus'
       },
       {
-        content: Em.Object.create({workStatus: 'status'}),
+        workStatus: 'status',
         hostComponent: Em.Object.create({workStatus: 'new_status'}),
         e: 'new_status',
         m: 'get hostComponent workStatus'
@@ -274,9 +293,10 @@ describe('App.HostComponentView', function() {
           startBlinking: function(){},
           doBlinking: function(){},
           getDesiredAdminState: function(){return $.ajax({});},
-          content: test.content,
-          hostComponent: test.hostComponent
+          hostComponent: test.hostComponent,
+          content: Em.Object.create()
         });
+        hostComponentView.get('content').set('workStatus', test.workStatus);
         expect(hostComponentView.get('workStatus')).to.equal(test.e);
       });
     });
@@ -287,35 +307,43 @@ describe('App.HostComponentView', function() {
 
     var tests = Em.A([
       {
-        content: Em.Object.create({workStatus: App.HostComponentStatus.install_failed,passiveState: 'OFF'}),
+        workStatus: App.HostComponentStatus.install_failed,
+        passiveState: 'OFF',
         e: 'health-status-color-red icon-cog'
       },
       {
-        content: Em.Object.create({workStatus: App.HostComponentStatus.installing, passiveState: 'OFF'}),
+        workStatus: App.HostComponentStatus.installing,
+        passiveState: 'OFF',
         e: 'health-status-color-blue icon-cog'
       },
       {
-        content: Em.Object.create({workStatus: 'STARTED', passiveState: 'ON'}),
+        workStatus: 'STARTED',
+        passiveState: 'ON',
         e: 'health-status-started'
       },
       {
-        content: Em.Object.create({workStatus: 'STARTED', passiveState: 'IMPLIED'}),
+        workStatus: 'STARTED',
+        passiveState: 'IMPLIED',
         e: 'health-status-started'
       },
       {
-        content: Em.Object.create({workStatus: 'STARTED', passiveState: 'OFF'}),
+        workStatus: 'STARTED',
+        passiveState: 'OFF',
         e: 'health-status-started'
       }
     ]);
 
     tests.forEach(function(test) {
-      it(test.content.get('workStatus') + ' ' + test.content.get('passiveState'), function() {
+      it(test.workStatus + ' ' + test.passiveState, function() {
         hostComponentView = App.HostComponentView.create({
           startBlinking: function(){},
           doBlinking: function(){},
           getDesiredAdminState: function(){return $.ajax({});},
-          content: test.content
+          content: Em.Object.create(),
+          hostComponent: Em.Object.create()
         });
+        hostComponentView.get('hostComponent').set('workStatus',test.workStatus);
+        hostComponentView.get('content').set('passiveState', test.passiveState);
         expect(hostComponentView.get('statusClass')).to.equal(test.e);
       });
     });
@@ -330,7 +358,7 @@ describe('App.HostComponentView', function() {
 
     App.HostComponentStatus.getStatusesList().forEach(function(status) {
       it(status, function() {
-        hostComponentView.set('content', {workStatus: status});
+        hostComponentView.get('hostComponent').set('workStatus', status);
         var e = tests.contains(status) ? testE : defaultE;
         expect(hostComponentView.get('isInProgress')).to.equal(e);
       });

@@ -32,16 +32,11 @@ describe('App.AddServiceController', function() {
     var t = {
       additionalClients: {
         componentName: "TEZ_CLIENT",
-        hostName: "hostName"
+        hostNames: ["hostName1", "hostName2"]
       },
       RequestInfo: {
-        "context": Em.I18n.t('requestInfo.installHostComponent') + " hostName",
-        "operation_level": {
-          "level": "HOST_COMPONENT",
-          "cluster_name": "tdk",
-          "host_name": "hostName",
-          "service_name": "TEZ"
-        }
+        "context": Em.I18n.t('requestInfo.installHostComponent') + ' ' + App.format.role("TEZ_CLIENT"),
+        "query": "HostRoles/component_name=TEZ_CLIENT&HostRoles/host_name.in(hostName1,hostName2)"
       },
       Body: {
         HostRoles: {

@@ -289,6 +289,7 @@ describe('App.WizardStep8Controller', function () {
         {
           globals: [
             {name: 'hive_database', value: 'New MySQL Database'},
+            {name: 'hive_database_type', value: 'mysql'},
             {name: 'hive_ambari_host', value: 'h1'},
             {name: 'hive_hostname', value: 'h2'}
           ],
@@ -301,6 +302,7 @@ describe('App.WizardStep8Controller', function () {
         {
           globals: [
             {name: 'hive_database', value: 'Existing MySQL Database'},
+            {name: 'hive_database_type', value: 'mysql'},
             {name: 'hive_existing_mysql_host', value: 'h1'},
             {name: 'hive_hostname', value: 'h2'}
           ],
@@ -313,6 +315,7 @@ describe('App.WizardStep8Controller', function () {
         {
           globals: [
             {name: 'hive_database', value: 'Existing PostgreSQL Database'},
+            {name: 'hive_database_type', value: 'postgresql'},
             {name: 'hive_existing_postgresql_host', value: 'h1'},
             {name: 'hive_hostname', value: 'h2'}
           ],
@@ -325,6 +328,7 @@ describe('App.WizardStep8Controller', function () {
         {
           globals: [
             {name: 'hive_database', value: 'Existing Oracle Database'},
+            {name: 'hive_database_type', value: 'oracle'},
             {name: 'hive_existing_oracle_host', value: 'h1'},
             {name: 'hive_hostname', value: 'h2'}
           ],
@@ -354,6 +358,7 @@ describe('App.WizardStep8Controller', function () {
         {
           globals: [
             {name: 'oozie_database', value: 'New Derby Database'},
+            {name: 'oozie_database_type', value: 'derby'},
             {name: 'oozie_ambari_host', value: 'h1'},
             {name: 'oozie_hostname', value: 'h2'}
           ],
@@ -367,6 +372,7 @@ describe('App.WizardStep8Controller', function () {
         {
           globals: [
             {name: 'oozie_database', value: 'Existing MySQL Database'},
+            {name: 'oozie_database_type', value: 'mysql'},
             {name: 'oozie_existing_mysql_host', value: 'h1'},
             {name: 'oozie_hostname', value: 'h2'}
           ],
@@ -379,6 +385,7 @@ describe('App.WizardStep8Controller', function () {
         {
           globals: [
             {name: 'oozie_database', value: 'Existing PostgreSQL Database'},
+            {name: 'oozie_database_type', value: 'postgresql'},
             {name: 'oozie_existing_postgresql_host', value: 'h1'},
             {name: 'oozie_hostname', value: 'h2'}
           ],
@@ -391,6 +398,7 @@ describe('App.WizardStep8Controller', function () {
         {
           globals: [
             {name: 'oozie_database', value: 'Existing Oracle Database'},
+            {name: 'oozie_database_type', value: 'oracle'},
             {name: 'oozie_existing_oracle_host', value: 'h1'},
             {name: 'oozie_hostname', value: 'h2'}
           ],

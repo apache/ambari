@@ -1230,17 +1230,19 @@ describe("App.MainServiceInfoConfigsController", function () {
           }
         },
         _serviceConfigProperty: {},
-        serviceConfigProperty: {
-          value: "parentSCP"
-        },
+        serviceConfigProperty: Em.Object.create({
+          value: "parentSCP",
+          supportsFinal: true
+        }),
         defaultGroupSelected: true,
 
         newSCP: {
           value: "value",
           isOriginalSCP: false,
-          parentSCP:{
-            value: "parentSCP"
-          },
+          parentSCP:Em.Object.create({
+            value: "parentSCP",
+            supportsFinal: true
+          }),
           group: {
             value: "group1"
           },

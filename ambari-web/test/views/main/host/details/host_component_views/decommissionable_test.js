@@ -27,11 +27,20 @@ var hostComponentView;
 describe('App.Decommissionable', function() {
 
   beforeEach(function() {
-    hostComponentView = App.HostComponentView.create(App.Decommissionable, {
-      startBlinking: function(){},
-      doBlinking: function(){},
-      getDesiredAdminState: function(){return $.ajax({});}
+    sinon.stub(App.router, 'get', function (k) {
+      if (k === 'mainHostDetailsController.content') return Em.Object.create({
+        hostComponents: [
+          {
+            componentName: 'component'
+          }
+        ]
+      });
+      return Em.get(App.router, k);
     });
+  });
+
+  afterEach(function () {
+    App.router.get.restore();
   });
 
   describe('#componentTextStatus', function() {
@@ -100,42 +109,50 @@ describe('App.Decommissionable', function() {
 
     var tests = Em.A([
       {
-        content: Em.Object.create({workStatus: App.HostComponentStatus.install_failed,passiveState: 'OFF'}),
+        workStatus: App.HostComponentStatus.install_failed,
+        passiveState: 'OFF',
         isComponentRecommissionAvailable: false,
         e: 'health-status-color-red icon-cog'
       },
       {
-        content: Em.Object.create({workStatus: App.HostComponentStatus.installing, passiveState: 'OFF'}),
+        workStatus: App.HostComponentStatus.installing,
+        passiveState: 'OFF',
         isComponentRecommissionAvailable: false,
         e: 'health-status-color-blue icon-cog'
       },
       {
-        content: Em.Object.create({workStatus: 'STARTED', passiveState: 'ON'}),
+        workStatus: 'STARTED',
+        passiveState: 'ON',
         isComponentRecommissionAvailable: false,
         e: 'health-status-started'
       },
       {
-        content: Em.Object.create({workStatus: 'STARTED', passiveState: 'IMPLIED'}),
+        workStatus: 'STARTED',
+        passiveState: 'IMPLIED',
         isComponentRecommissionAvailable: false,
         e: 'health-status-started'
       },
       {
-        content: Em.Object.create({workStatus: 'STARTED', passiveState: 'OFF'}),
+        workStatus: 'STARTED',
+        passiveState: 'OFF',
         isComponentRecommissionAvailable: false,
         e: 'health-status-started'
       },
       {
-        content: Em.Object.create({workStatus: 'STARTED', passiveState: 'OFF'}),
+        workStatus: 'STARTED',
+        passiveState: 'OFF',
         isComponentRecommissionAvailable: true,
         e: 'health-status-DEAD-ORANGE'
       },
       {
-        content: Em.Object.create({workStatus: 'STARTING', passiveState: 'OFF'}),
+        workStatus: 'STARTING',
+        passiveState: 'OFF',
         isComponentRecommissionAvailable: true,
         e: 'health-status-DEAD-ORANGE'
       },
       {
-        content: Em.Object.create({workStatus: 'INSTALLED', passiveState: 'OFF'}),
+        workStatus: 'INSTALLED',
+        passiveState: 'OFF',
         isComponentRecommissionAvailable: true,
         e: 'health-status-DEAD-ORANGE'
       }
@@ -143,13 +160,17 @@ describe('App.Decommissionable', function() {
     ]);
 
     tests.forEach(function(test) {
-      it(test.content.get('workStatus') + ' ' + test.content.get('passiveState') + ' ' + test.isComponentRecommissionAvailable?'true':'false', function() {
+      it(test.workStatus + ' ' + test.passiveState + ' ' + test.isComponentRecommissionAvailable?'true':'false', function() {
         hostComponentView = App.HostComponentView.create(App.Decommissionable,{
           startBlinking: function(){},
           doBlinking: function(){},
           getDesiredAdminState: function(){return $.ajax({});},
           isComponentRecommissionAvailable: test.isComponentRecommissionAvailable,
-          content: test.content
+          content: Em.Object.create()
+        });
+        hostComponentView.get('content').setProperties({
+          workStatus: test.workStatus,
+          passiveState: test.passiveState
         });
         expect(hostComponentView.get('statusClass')).to.equal(test.e);
       });
