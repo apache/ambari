@@ -90,6 +90,17 @@ public interface ResourceDefinition {
   public Collection<String> getCreateDirectives();
 
   /**
+   * Defines if resource is actually created on the server side during POST
+   * operation.
+   * 
+   * @see <a
+   *      href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.5">
+   *      http://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.5</a>
+   * @return {@code true} if resource is creatable, {@code false} otherwise
+   */
+  public boolean isCreatable();
+
+  /**
    * Resource specific result processor.
    * Used to provide resource specific processing of a result.
    */

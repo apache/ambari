@@ -38,7 +38,11 @@ public class CreateHandler extends BaseManagementHandler {
       result = createResult(status);
 
       if (result.isSynchronous()) {
-        result.setResultStatus(new ResultStatus(ResultStatus.STATUS.CREATED));
+        if (resource.getResourceDefinition().isCreatable()) {
+          result.setResultStatus(new ResultStatus(ResultStatus.STATUS.CREATED));
+        } else {
+          result.setResultStatus(new ResultStatus(ResultStatus.STATUS.OK));
+        }
       } else {
         result.setResultStatus(new ResultStatus(ResultStatus.STATUS.ACCEPTED));
       }

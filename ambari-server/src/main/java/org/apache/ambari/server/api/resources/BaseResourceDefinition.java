@@ -112,6 +112,12 @@ public abstract class BaseResourceDefinition implements ResourceDefinition {
     return m_type.hashCode();
   }
 
+  @Override
+  public boolean isCreatable() {
+    // by default all resources are creatable
+    return true;
+  }
+
   class BaseHrefPostProcessor implements PostProcessor {
     @Override
     public void process(Request request, TreeNode<Resource> resultNode, String href) {

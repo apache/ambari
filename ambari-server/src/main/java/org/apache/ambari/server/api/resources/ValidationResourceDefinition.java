@@ -40,4 +40,9 @@ public class ValidationResourceDefinition extends BaseResourceDefinition {
   public String getSingularName() {
     return "validation";
   }
+
+  @Override
+  public boolean isCreatable() {
+    return false;
+  }
 }

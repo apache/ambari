@@ -153,6 +153,7 @@ public class QueryCreateHandlerTest {
     expect(resourceInstance.getSubResources()).andReturn(mapSubResources).anyTimes();
 
     expect(resourceDefinition.getType()).andReturn(Resource.Type.Service).anyTimes();
+    expect(resourceDefinition.isCreatable()).andReturn(true).anyTimes();
 
     expect(subResource.getResourceDefinition()).andReturn(subResourceDefinition).anyTimes();
     expect(subResourceDefinition.getType()).andReturn(Resource.Type.Component).anyTimes();
@@ -169,6 +170,7 @@ public class QueryCreateHandlerTest {
 
     expect(resourceInstanceFactory.createResource(Resource.Type.Component, mapIds)).
         andReturn(createResource).anyTimes();
+    expect(createResource.getResourceDefinition()).andReturn(resourceDefinition).anyTimes();
 
     expect(pm.create(same(createResource), capture(bodyCapture))).andReturn(status);
     expect(status.getStatus()).andReturn(RequestStatus.Status.Complete).anyTimes();

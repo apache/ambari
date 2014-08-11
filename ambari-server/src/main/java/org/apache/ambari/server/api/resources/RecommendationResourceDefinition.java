@@ -41,4 +41,8 @@ public class RecommendationResourceDefinition extends BaseResourceDefinition {
     return "recommendation";
   }
 
+  @Override
+  public boolean isCreatable() {
+    return false;
+  }
 }
