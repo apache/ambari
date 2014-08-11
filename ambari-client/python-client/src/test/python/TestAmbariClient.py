@@ -116,7 +116,7 @@ class TestAmbariClient(unittest.TestCase):
     self.assertEqual(len(all_hosts), 12, "There should be 12 hosts from the response")
     self.assertEqual(all_hosts.to_json_dict(), expected_hosts_dict)
 
-  def test_bootstrap_hosts(self):
+  def ADisabledtest_bootstrap_hosts(self):
     """
     Test Bootstrap
     """
