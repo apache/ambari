@@ -21,7 +21,8 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.PrincipalEntity;
@@ -88,9 +89,14 @@ public class AuthorizationHelperTest {
     Collection<GrantedAuthority> authorities = new AuthorizationHelper().convertPrivilegesToAuthorities(privilegeEntities);
 
     assertEquals("Wrong number of authorities", 2, authorities.size());
-    Iterator<GrantedAuthority> iterator = authorities.iterator();
-    assertEquals("Wrong authority name", "CLUSTER.READ@1", iterator.next().getAuthority());
-    assertEquals("Wrong authority name", "CLUSTER.OPERATE@1", iterator.next().getAuthority());
+
+    Set<String> authorityNames = new HashSet<String>();
+
+    for (GrantedAuthority authority : authorities) {
+      authorityNames.add(authority.getAuthority());
+    }
+    Assert.assertTrue(authorityNames.contains("CLUSTER.READ@1"));
+    Assert.assertTrue(authorityNames.contains("CLUSTER.OPERATE@1"));
   }
 
   @Test
