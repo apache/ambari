@@ -138,13 +138,13 @@ public class Configuration {
   public static final String LDAP_USER_OBJECT_CLASS_KEY =
       "authentication.ldap.userObjectClass";
   public static final String LDAP_GROUP_BASE_KEY =
-      "authorization.ldap.groupBase";
+      "authentication.ldap.groupBase";
   public static final String LDAP_GROUP_OBJECT_CLASS_KEY =
-      "authorization.ldap.groupObjectClass";
+      "authentication.ldap.groupObjectClass";
   public static final String LDAP_GROUP_NAMING_ATTR_KEY =
-      "authorization.ldap.groupNamingAttr";
+      "authentication.ldap.groupNamingAttr";
   public static final String LDAP_GROUP_MEMEBERSHIP_ATTR_KEY =
-      "authorization.ldap.groupMembershipAttr";
+      "authentication.ldap.groupMembershipAttr";
   public static final String LDAP_ADMIN_GROUP_MAPPING_RULES_KEY =
       "authorization.ldap.adminGroupMappingRules";
   public static final String LDAP_GROUP_SEARCH_FILTER_KEY =
