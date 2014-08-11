@@ -222,7 +222,7 @@ def _bootstrap_hosts(root_resource, hosts_list, ssh_key, ssh_user):
     payload_dic = {
         "verbose": True,
         "sshKey": ssh_key,
-        "hosts": str(hosts_list),
+        "hosts": hosts_list,
         "user": ssh_user}
     resp = root_resource.post(
         paths.BOOTSTRAP_PATH,
