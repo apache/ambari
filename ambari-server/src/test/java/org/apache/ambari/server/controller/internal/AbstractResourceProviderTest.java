@@ -235,6 +235,43 @@ public class AbstractResourceProviderTest {
     }
   }
 
+  @Test
+  public void testGetQueryParameterValue() {
+
+    String queryParameterId1 = "qp/variable1";
+    String queryParameterValue1 = "value1";
+    String queryParameterId2 = "qp/variable2";
+    String queryParameterValue2 = "value2";
+
+    //Array of predicates
+    Predicate  predicate = new PredicateBuilder().property(queryParameterId1).equals(queryParameterValue1).
+        and().property(queryParameterId2).equals(queryParameterValue2).toPredicate();
+
+    Assert.assertEquals(queryParameterValue1, AbstractResourceProvider.getQueryParameterValue(queryParameterId1, predicate));
+    Assert.assertFalse(queryParameterValue2.equals(AbstractResourceProvider.getQueryParameterValue(queryParameterId1, predicate)));
+    Assert.assertNull(AbstractResourceProvider.getQueryParameterValue("queryParameterIdNotFound", predicate));
+
+    String queryParameterId3 = "qp/variable3";
+    String queryParameterValue3 = "value3";
+
+    // tests ServiceInfo/state=INSTALLED&params/run_smoke_test=true
+    //Array of arrays of predicates
+    predicate = new PredicateBuilder().property(queryParameterId3).equals(queryParameterValue3).
+        and().begin().property(queryParameterId1).equals(queryParameterValue1).
+        and().property(queryParameterId2).equals(queryParameterValue2).end().toPredicate();
+
+    Assert.assertEquals(queryParameterValue1, AbstractResourceProvider.
+        getQueryParameterValue(queryParameterId1, predicate));
+    Assert.assertFalse(queryParameterValue2.equals(AbstractResourceProvider.
+        getQueryParameterValue(queryParameterId1, predicate)));
+    Assert.assertNull(AbstractResourceProvider.
+        getQueryParameterValue("queryParameterIdNotFound", predicate));
+
+    Assert.assertEquals(queryParameterValue3, AbstractResourceProvider.
+        getQueryParameterValue(queryParameterId3, predicate));
+
+  }
+
 
   // ----- helper methods ----------------------------------------------------
 

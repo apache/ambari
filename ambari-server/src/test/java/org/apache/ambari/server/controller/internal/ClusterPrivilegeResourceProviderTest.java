@@ -142,7 +142,6 @@ public class ClusterPrivilegeResourceProviderTest {
 
   @Test
   public void testUpdateResources() throws Exception {
-
     PermissionEntity permissionEntity = createNiceMock(PermissionEntity.class);
     Request request = createNiceMock(Request.class);
 
@@ -155,9 +154,10 @@ public class ClusterPrivilegeResourceProviderTest {
     PrivilegeResourceProvider provider = new ClusterPrivilegeResourceProvider();
     try {
       provider.updateResources(request, null);
-      Assert.fail("expected UnsupportedOperationException");
-    } catch (UnsupportedOperationException e) {
-      // expected
+    } catch (Exception ex) {
+      // omit the exception, this method is from abstract class and tested in
+      // AmbariPrivilegeResourceProvider#testUpdateResources
+      // just check that permissions are okay
     }
 
     verify(permissionDAO, permissionEntity, request);

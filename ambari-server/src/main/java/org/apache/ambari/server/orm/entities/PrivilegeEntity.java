@@ -173,7 +173,7 @@ public class PrivilegeEntity {
 
   @Override
   public int hashCode() {
-    int result = id.hashCode();
+    int result = id != null ? id.hashCode() : 0;
     result = 31 * result + (permission != null ? permission.hashCode() : 0);
     result = 31 * result + (resource != null ? resource.hashCode() : 0);
     result = 31 * result + (principal != null ? principal.hashCode() : 0);

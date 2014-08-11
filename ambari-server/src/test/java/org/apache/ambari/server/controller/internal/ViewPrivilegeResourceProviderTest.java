@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.GroupDAO;
@@ -154,16 +153,7 @@ public class ViewPrivilegeResourceProviderTest {
 
   @Test
   public void testUpdateResources() throws Exception {
-    PrivilegeResourceProvider provider = new ViewPrivilegeResourceProvider();
-
-    Request request = createNiceMock(Request.class);
-
-    try {
-      provider.updateResources(request, null);
-      Assert.fail("expected UnsupportedOperationException");
-    } catch (UnsupportedOperationException e) {
-      // expected
-    }
+    // see AmbariPrivilegeResourceProvider#testUpdateResources
   }
 }
 

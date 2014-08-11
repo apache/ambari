@@ -32,7 +32,8 @@ import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.ParentObjectNotFoundException;
 import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.controller.RequestStatusResponse;
-import org.apache.ambari.server.controller.ServiceConfigVersionRequest;
+import org.apache.ambari.server.controller.predicate.ArrayPredicate;
+import org.apache.ambari.server.controller.predicate.EqualsPredicate;
 import org.apache.ambari.server.controller.spi.*;
 import org.apache.ambari.server.controller.utilities.PredicateHelper;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
@@ -218,6 +219,34 @@ public abstract class AbstractResourceProvider extends BaseProvider implements R
    */
   protected RequestStatus getRequestStatus(RequestStatusResponse response) {
     return getRequestStatus(response, null) ;
+  }
+
+  /**
+   * Extracting given query_parameter value from the predicate
+   * @param queryParameterId  query parameter id
+   * @param predicate         predicate
+   * @return the query parameter
+   */
+  protected static Object getQueryParameterValue(String queryParameterId, Predicate predicate) {
+
+    Object result = null;
+
+    if (predicate instanceof EqualsPredicate) {
+      EqualsPredicate equalsPredicate = (EqualsPredicate) predicate;
+      if (queryParameterId.equals(equalsPredicate.getPropertyId())) {
+        return equalsPredicate.getValue();
+      }
+    } else if (predicate instanceof ArrayPredicate) {
+      ArrayPredicate arrayPredicate  = (ArrayPredicate) predicate;
+      for (Predicate predicateItem : arrayPredicate.getPredicates()) {
+        result = getQueryParameterValue(queryParameterId, predicateItem);
+        if (result != null) {
+          return result;
+        }
+      }
+
+    }
+    return result;
   }
 
   /**

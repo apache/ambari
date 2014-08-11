@@ -65,11 +65,23 @@ public class PrivilegeServiceTest extends BaseServiceTest {
     args = new Object[] {"body", getHttpHeaders(), getUriInfo(), "id"};
     listInvocations.add(new ServiceTestInvocation(Request.Type.PUT, service, m, args, "body"));
 
+    //updatePrivileges
+    service = new TestPrivilegeService(null);
+    m = service.getClass().getMethod("updatePrivileges", String.class, HttpHeaders.class, UriInfo.class);
+    args = new Object[] {"body", getHttpHeaders(), getUriInfo()};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.PUT, service, m, args, "body"));
+
     //deletePrivilege
     service = new TestPrivilegeService("id");
     m = service.getClass().getMethod("deletePrivilege", HttpHeaders.class, UriInfo.class, String.class);
     args = new Object[] {getHttpHeaders(), getUriInfo(), "id"};
     listInvocations.add(new ServiceTestInvocation(Request.Type.DELETE, service, m, args, null));
+
+    //deletePrivileges
+    service = new TestPrivilegeService(null);
+    m = service.getClass().getMethod("deletePrivileges", String.class, HttpHeaders.class, UriInfo.class);
+    args = new Object[] {"body", getHttpHeaders(), getUriInfo()};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.DELETE, service, m, args, "body"));
 
     return listInvocations;
   }

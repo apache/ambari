@@ -17,7 +17,14 @@
  */
 package org.apache.ambari.server.controller.internal;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.orm.entities.GroupEntity;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
@@ -28,12 +35,6 @@ import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.orm.entities.ViewEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.apache.ambari.server.view.ViewRegistry;
-
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * Resource provider for view privilege resources.
@@ -139,6 +140,16 @@ public class ViewPrivilegeResourceProvider extends PrivilegeResourceProvider<Vie
     return resourceEntities;
   }
 
+  @Override
+  public Long getResourceEntityId(Predicate predicate) {
+    final ViewRegistry viewRegistry = ViewRegistry.getInstance();
+
+    final String viewName     = getQueryParameterValue(PRIVILEGE_VIEW_NAME_PROPERTY_ID, predicate).toString();
+    final String viewVersion  = getQueryParameterValue(PRIVILEGE_VIEW_VERSION_PROPERTY_ID, predicate).toString();
+    final String instanceName = getQueryParameterValue(PRIVILEGE_INSTANCE_NAME_PROPERTY_ID, predicate).toString();
+    final ViewInstanceEntity viewInstanceEntity = viewRegistry.getInstanceDefinition(viewName, viewVersion, instanceName);
+    return viewInstanceEntity.getResource().getId();
+  }
 
   // ----- helper methods ----------------------------------------------------
 

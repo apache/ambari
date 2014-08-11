@@ -18,6 +18,21 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.createStrictMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
+import static org.easymock.EasyMock.verify;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
@@ -33,23 +48,13 @@ import org.apache.ambari.server.orm.entities.PrincipalEntity;
 import org.apache.ambari.server.orm.entities.PrincipalTypeEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
+import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
+import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.createStrictMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reset;
-import static org.easymock.EasyMock.verify;
 
 /**
  * AmbariPrivilegeResourceProvider tests.
@@ -129,13 +134,47 @@ public class AmbariPrivilegeResourceProviderTest {
   public void testUpdateResources() throws Exception {
     PrivilegeResourceProvider provider = new AmbariPrivilegeResourceProvider();
 
+    PrivilegeEntity privilegeEntity = createNiceMock(PrivilegeEntity.class);
+    ResourceEntity resourceEntity = createNiceMock(ResourceEntity.class);
+    ResourceTypeEntity resourceTypeEntity = createNiceMock(ResourceTypeEntity.class);
     Request request = createNiceMock(Request.class);
+    PermissionEntity permissionEntity = createNiceMock(PermissionEntity.class);
+    PrincipalEntity principalEntity = createNiceMock(PrincipalEntity.class);
+    UserEntity userEntity = createNiceMock(UserEntity.class);
 
-    try {
-      provider.updateResources(request, null);
-      Assert.fail("expected UnsupportedOperationException");
-    } catch (UnsupportedOperationException e) {
-      // expected
-    }
+    expect(privilegeDAO.findByResourceId(1L)).andReturn(Collections.singletonList(privilegeEntity)).anyTimes();
+    privilegeDAO.remove(privilegeEntity);
+    EasyMock.expectLastCall().anyTimes();
+    expect(request.getProperties()).andReturn(new HashSet<Map<String,Object>>() {
+      {
+        add(new HashMap<String, Object>() {
+          {
+           put(PrivilegeResourceProvider.PERMISSION_NAME_PROPERTY_ID, "READ");
+           put(PrivilegeResourceProvider.PRINCIPAL_NAME_PROPERTY_ID, "admin");
+           put(PrivilegeResourceProvider.PRINCIPAL_TYPE_PROPERTY_ID, "user");
+          }
+        });
+      }
+    }).anyTimes();
+    expect(permissionDAO.findPermissionByNameAndType(EasyMock.eq("READ"), EasyMock.<ResourceTypeEntity> anyObject())).andReturn(permissionEntity);
+    expect(resourceDAO.findById(EasyMock.anyLong())).andReturn(resourceEntity);
+    expect(userDAO.findLocalUserByName("admin")).andReturn(userEntity);
+    expect(principalDAO.findById(EasyMock.anyLong())).andReturn(principalEntity);
+    expect(userEntity.getPrincipal()).andReturn(principalEntity).anyTimes();
+    expect(principalEntity.getId()).andReturn(2L).anyTimes();
+    expect(permissionEntity.getPermissionName()).andReturn("READ").anyTimes();
+    expect(privilegeEntity.getPermission()).andReturn(permissionEntity).anyTimes();
+    expect(resourceTypeEntity.getId()).andReturn(3).anyTimes();
+    expect(resourceEntity.getResourceType()).andReturn(resourceTypeEntity).anyTimes();
+    expect(permissionEntity.getResourceType()).andReturn(resourceTypeEntity).anyTimes();
+    expect(privilegeEntity.getPrincipal()).andReturn(principalEntity).anyTimes();
+    privilegeDAO.create(EasyMock.<PrivilegeEntity> anyObject());
+    EasyMock.expectLastCall().anyTimes();
+
+    replay(privilegeEntity, privilegeDAO, request, permissionDAO, permissionEntity, resourceEntity, resourceDAO, principalEntity, principalDAO, userDAO, userEntity, resourceTypeEntity);
+
+    provider.updateResources(request, null);
+
+    verify(privilegeEntity, privilegeDAO, request, permissionDAO, permissionEntity, resourceEntity, resourceDAO, principalEntity, principalDAO, userDAO, userEntity, resourceTypeEntity);
   }
 }

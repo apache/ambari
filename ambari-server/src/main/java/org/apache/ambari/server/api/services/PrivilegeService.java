@@ -76,6 +76,7 @@ public abstract class PrivilegeService extends BaseService {
    * Handles: POST /privileges
    * Create a privilege.
    *
+   * @param body       request body
    * @param headers    http headers
    * @param ui         uri info
    *
@@ -108,9 +109,26 @@ public abstract class PrivilegeService extends BaseService {
   }
 
   /**
+   * Handles: PUT /privileges
+   * Update a set of privileges for the resource.
+   *
+   * @param body      request body
+   * @param headers   http headers
+   * @param ui        uri info
+   *
+   * @return information regarding the updated privileges
+   */
+  @PUT
+  @Produces("text/plain")
+  public Response updatePrivileges(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
+    return handleRequest(headers, body, ui, Request.Type.PUT, createPrivilegeResource(null));
+  }
+
+  /**
    * Handles: DELETE /privileges
    * Delete privileges.
    *
+   * @param body      request body
    * @param headers   http headers
    * @param ui        uri info
    *
@@ -118,9 +136,9 @@ public abstract class PrivilegeService extends BaseService {
    */
   @DELETE
   @Produces("text/plain")
-  public Response deletePrivileges(@Context HttpHeaders headers, @Context UriInfo ui) {
+  public Response deletePrivileges(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
 
-    return handleRequest(headers, null, ui, Request.Type.DELETE, createPrivilegeResource(null));
+    return handleRequest(headers, body, ui, Request.Type.DELETE, createPrivilegeResource(null));
   }
 
   /**

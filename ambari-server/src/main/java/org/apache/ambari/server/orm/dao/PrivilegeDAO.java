@@ -18,19 +18,21 @@
 
 package org.apache.ambari.server.orm.dao;
 
-import com.google.inject.Inject;
-import com.google.inject.Provider;
-import com.google.inject.Singleton;
-import com.google.inject.persist.Transactional;
+import java.util.List;
+
+import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
+
 import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.PrincipalEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
 
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
+import com.google.inject.Inject;
+import com.google.inject.Provider;
+import com.google.inject.Singleton;
+import com.google.inject.persist.Transactional;
 import java.util.Collections;
-import java.util.List;
 
 /**
  * Privilege Data Access Object.
@@ -46,23 +48,35 @@ public class PrivilegeDAO {
   DaoUtils daoUtils;
 
   /**
-   * Find a resource with the given id.
+   * Find a privilege with the given id.
    *
-   * @param id  type id
+   * @param id type id
    *
-   * @return  a matching resource type  or null
+   * @return a matching privilege or null
    */
   public PrivilegeEntity findById(Integer id) {
     return entityManagerProvider.get().find(PrivilegeEntity.class, id);
   }
 
   /**
-   * Find all resources.
+   * Find all privileges.
    *
-   * @return all resources or an empty List
+   * @return all privileges or an empty List
    */
   public List<PrivilegeEntity> findAll() {
     TypedQuery<PrivilegeEntity> query = entityManagerProvider.get().createQuery("SELECT privilege FROM PrivilegeEntity privilege", PrivilegeEntity.class);
+    return daoUtils.selectList(query);
+  }
+
+  /**
+   * Find all privileges for given resource.
+   *
+   * @param id ID of the resource
+   * @return all resource privileges or an empty list
+   */
+  public List<PrivilegeEntity> findByResourceId(Long id) {
+    TypedQuery<PrivilegeEntity> query = entityManagerProvider.get().createQuery("SELECT privilege FROM PrivilegeEntity privilege WHERE privilege.resource.id = :resource_id", PrivilegeEntity.class);
+    query.setParameter("resource_id", id);
     return daoUtils.selectList(query);
   }
 

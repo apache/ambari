@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.controller.internal;
 
+import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
@@ -133,6 +134,13 @@ public class ClusterPrivilegeResourceProvider extends PrivilegeResourceProvider<
     }
     ClusterEntity clusterEntity = clusterDAO.findByName(clusterName);
     return Collections.singletonMap(clusterEntity.getResource().getId(), clusterEntity);
+  }
+
+  @Override
+  public Long getResourceEntityId(Predicate predicate) {
+    final String clusterName = getQueryParameterValue(PRIVILEGE_CLUSTER_NAME_PROPERTY_ID, predicate).toString();
+    final ClusterEntity clusterEntity = clusterDAO.findByName(clusterName);
+    return clusterEntity.getResource().getId();
   }
 
 

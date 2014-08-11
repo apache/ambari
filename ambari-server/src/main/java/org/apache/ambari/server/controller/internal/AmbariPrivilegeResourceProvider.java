@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.controller.internal;
 
+import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
 
@@ -75,5 +76,10 @@ public class AmbariPrivilegeResourceProvider extends PrivilegeResourceProvider<O
   public Map<Long, Object> getResourceEntities(Map<String, Object> properties) {
     // the singleton Ambari entity is implied
     return Collections.singletonMap(ResourceEntity.AMBARI_RESOURCE_ID, null);
+  }
+
+  @Override
+  public Long getResourceEntityId(Predicate predicate) {
+    return ResourceEntity.AMBARI_RESOURCE_ID;
   }
 }
