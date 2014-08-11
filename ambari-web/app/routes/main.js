@@ -303,6 +303,7 @@ module.exports = Em.Route.extend({
     hostDetails: Em.Route.extend({
       route: '/:host_id',
       connectOutlets: function (router, host) {
+        router.get('mainHostController').set('showFilterConditionsFirstLoad', true);
         router.get('mainController').connectOutlet('mainHostDetails', host);
       },
 
