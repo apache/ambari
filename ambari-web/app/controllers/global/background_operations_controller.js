@@ -33,6 +33,11 @@ App.BackgroundOperationsController = Em.Controller.extend({
    */
   services:[],
   serviceTimestamp: null,
+
+  /**
+   * Number of operation to load
+   */
+  operationsCount: 10,
   /**
    * Possible levels:
    * REQUESTS_LIST
@@ -90,7 +95,7 @@ App.BackgroundOperationsController = Em.Controller.extend({
    */
   getQueryParams: function () {
     var levelInfo = this.get('levelInfo');
-    var count = App.db.getBGOOperationsCount();
+    var count = this.get('operationsCount');
     var result = {
       name: 'background_operations.get_most_recent',
       successCallback: 'callBackForMostRecent',
@@ -190,7 +195,7 @@ App.BackgroundOperationsController = Em.Controller.extend({
   callBackForMostRecent: function (data) {
     var runningServices = 0;
     var currentRequestIds = [];
-    var countIssued = App.db.getBGOOperationsCount();
+    var countIssued = this.get('operationsCount');
     var countGot = data.itemTotal;
    
     data.items.forEach(function (request) {
@@ -343,6 +348,14 @@ App.BackgroundOperationsController = Em.Controller.extend({
         self.set ('popupView.isNotShowBgChecked', !initValue);
       }
     });
+  },
+
+  /**
+   * Called on logout
+   */
+  clear: function () {
+    // set operations count to default value
+    this.set('operationsCount', 10);
   }
 
 });

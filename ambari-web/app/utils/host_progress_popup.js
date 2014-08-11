@@ -825,9 +825,10 @@ App.HostPopup = Em.Object.create({
          * Onclick handler for Show more ..
          */
         requestMoreOperations: function () {
-          var count = App.db.getBGOOperationsCount();
-          App.db.setBGOOperationsCount(count + 10);
-          App.router.get('backgroundOperationsController').requestMostRecent();
+          var BGOController = App.router.get('backgroundOperationsController');
+          var count = BGOController.get('operationsCount');
+          BGOController.set('operationsCount', (count + 10));
+          BGOController.requestMostRecent();
         },
 
         setShowMoreAvailable: function () {
