@@ -2322,7 +2322,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
   }
 
-  private String findServiceName(Cluster cluster, String componentName) throws AmbariException {
+  public String findServiceName(Cluster cluster, String componentName) throws AmbariException {
     StackId stackId = cluster.getDesiredStackVersion();
     String serviceName =
         ambariMetaInfo.getComponentToService(stackId.getStackName(),

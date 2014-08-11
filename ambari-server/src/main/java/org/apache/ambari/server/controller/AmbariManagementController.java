@@ -454,6 +454,18 @@ public interface AmbariManagementController {
   // ----- Common utility methods --------------------------------------------
 
   /**
+   * Get service name by cluster instance and component name
+   *
+   * @param cluster the cluster instance
+   * @param componentName the component name in String type
+   *
+   * @return a service name
+   *
+   * @throws  AmbariException if service name is null or empty
+   */
+  public String findServiceName(Cluster cluster, String componentName) throws AmbariException;
+
+  /**
    * Get the clusters for this management controller.
    *
    * @return the clusters

@@ -431,6 +431,11 @@ public class JMXPropertyProviderTest {
     }
 
     @Override
+    public Set<String> getHostNames(String clusterName, String componentName) {
+      return null;
+    }
+
+    @Override
     public String getPort(String clusterName, String componentName) throws
       SystemException {
 

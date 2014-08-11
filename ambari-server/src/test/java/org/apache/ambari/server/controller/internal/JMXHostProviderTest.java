@@ -46,6 +46,9 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
+import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponent;
+import org.apache.ambari.server.state.ServiceComponentHost;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -345,6 +348,35 @@ public class JMXHostProviderTest {
     Assert.assertEquals(null, providerModule.getPort("c1", "JOBTRACKER"));
     Assert.assertEquals(null, providerModule.getPort("c1", "TASKTRACKER"));
     Assert.assertEquals(null, providerModule.getPort("c1", "HBASE_MASTER"));
+  }
+
+  @Test
+  public void testGetHostNames() throws AmbariException {
+    JMXHostProviderModule providerModule = new JMXHostProviderModule();
+
+
+    AmbariManagementController managementControllerMock = createNiceMock(AmbariManagementController.class);
+    Clusters clustersMock = createNiceMock(Clusters.class);
+    Cluster clusterMock = createNiceMock(Cluster.class);
+    Service serviceMock = createNiceMock(Service.class);
+    ServiceComponent serviceComponentMock = createNiceMock(ServiceComponent.class);
+
+    Map<String, ServiceComponentHost> hostComponents = new HashMap<String, ServiceComponentHost>();
+    hostComponents.put("host1", null);
+
+    expect(managementControllerMock.getClusters()).andReturn(clustersMock).anyTimes();
+    expect(managementControllerMock.findServiceName(clusterMock, "DATANODE")).andReturn("HDFS");
+    expect(clustersMock.getCluster("c1")).andReturn(clusterMock).anyTimes();
+    expect(clusterMock.getService("HDFS")).andReturn(serviceMock).anyTimes();
+    expect(serviceMock.getServiceComponent("DATANODE")).andReturn(serviceComponentMock).anyTimes();
+    expect(serviceComponentMock.getServiceComponentHosts()).andReturn(hostComponents).anyTimes();
+
+    replay(managementControllerMock, clustersMock, clusterMock, serviceMock, serviceComponentMock);
+    providerModule.managementController = managementControllerMock;
+
+    Set<String> result = providerModule.getHostNames("c1", "DATANODE");
+    Assert.assertTrue(result.iterator().next().toString().equals("host1"));
+
   }
 
   @Test

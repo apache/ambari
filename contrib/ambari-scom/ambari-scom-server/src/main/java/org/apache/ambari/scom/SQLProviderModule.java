@@ -42,6 +42,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Provider module used to install PropertyProviders required for ambari-scom.
@@ -156,6 +157,11 @@ public class SQLProviderModule extends DefaultProviderModule implements HostInfo
   @Override
   public String getHostName(String clusterName, String componentName) throws SystemException {
     return getClusterNodeName(super.getHostName(clusterName, componentName));
+  }
+
+  @Override
+  public Set<String> getHostNames(String clusterName, String componentName) {
+    return super.getHostNames(clusterName, componentName);
   }
 
   @Override

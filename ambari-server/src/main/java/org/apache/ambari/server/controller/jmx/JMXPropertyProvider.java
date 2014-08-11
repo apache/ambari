@@ -20,6 +20,7 @@ package org.apache.ambari.server.controller.jmx;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -334,26 +335,33 @@ public class JMXPropertyProvider extends AbstractPropertyProvider {
       return resource;
     }
 
-    String hostName = getHost(resource, clusterName, componentName);
-    if (hostName == null) {
+    Set<String> hostNames = getHosts(resource, clusterName, componentName);
+    if (hostNames == null || hostNames.isEmpty()) {
       LOG.warn("Unable to get JMX metrics.  No host name for " + componentName);
       return resource;
     }
     
     String protocol = getJMXProtocol(clusterName, componentName);
+    InputStream in = null;
+
     try {
-      InputStream in = streamProvider.readFrom(getSpec(protocol, hostName, port, componentName));
-
       try {
-
-        if (null == componentName || !componentName.equals(STORM_REST_API)) {
-          getHadoopMetricValue(in, ids, resource, request);
-        } else {
-          getStormMetricValue(in, ids, resource);
+        for (String hostName : hostNames) {
+          try {
+            in = streamProvider.readFrom(getSpec(protocol, hostName, port, componentName));
+            if (null == componentName || !componentName.equals(STORM_REST_API)) {
+              getHadoopMetricValue(in, ids, resource, request);
+            } else {
+              getStormMetricValue(in, ids, resource);
+            }
+          } catch (IOException e) {
+            logException(e);
+          }
         }
-
       } finally {
-        in.close();
+        if (in != null) {
+          in.close();
+        }
       }
     } catch (IOException e) {
       logException(e);
@@ -505,6 +513,12 @@ public class JMXPropertyProvider extends AbstractPropertyProvider {
     return hostNamePropertyId == null ?
         jmxHostProvider.getHostName(clusterName, componentName) :
         (String) resource.getPropertyValue(hostNamePropertyId);
+  }
+
+  private Set<String> getHosts(Resource resource, String clusterName, String componentName) {
+    return hostNamePropertyId == null ?
+            jmxHostProvider.getHostNames(clusterName, componentName) :
+            Collections.singleton((String) resource.getPropertyValue(hostNamePropertyId));
   }
 
   private String getCategory(Map<String, Object> bean) {
