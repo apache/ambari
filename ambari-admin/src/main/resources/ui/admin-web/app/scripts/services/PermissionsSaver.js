@@ -37,8 +37,42 @@ angular.module('ambariAdminConsole')
 
     return result;
   };
+  function savePermissionsFor(resource, permissions, params){
+    var deferred = $q.defer();
+    var arr = [];
+
+    angular.forEach(permissions, function(permission) {
+      // Sanitaize input
+      var users = permission.USER.toString().split(',').filter(function(item) {return item.trim();}).map(function(item) {return item.trim()});
+      var groups = permission.GROUP.toString().split(',').filter(function(item) {return item.trim();}).map(function(item) {return item.trim()});
+      // Build array
+      arr = arr.concat(users.map(function(user) {
+        return {
+          'PrivilegeInfo':{
+            'permission_name': permission.PermissionInfo.permission_name,
+            'principal_name': user,
+            'principal_type': 'USER'
+          }
+        }
+      }));
+
+      arr = arr.concat(groups.map(function(group) {
+        return {
+          'PrivilegeInfo':{
+            'permission_name': permission.PermissionInfo.permission_name,
+            'principal_name': group,
+            'principal_type': 'GROUP'
+          }
+        }
+      }));
+    });
+
+    resource.updatePrivileges(params, arr);
+
+    return deferred.promise;
+  }
   
-  function savePermissionsFor(resource, oldPermissions, newPermissions, params){
+  function savePermissionsForOld(resource, oldPermissions, newPermissions, params){
     var deferred = $q.defer();
 
     var addArr = [];
@@ -119,8 +153,8 @@ angular.module('ambariAdminConsole')
     saveClusterPermissions: function(oldPermissions, newPermissions, params) {
       return savePermissionsFor(Cluster, oldPermissions, newPermissions, params);
     },
-    saveViewPermissions: function(oldPermissions, newPermissions, params) {
-      return savePermissionsFor(View, oldPermissions, newPermissions, params);
+    saveViewPermissions: function(permissions, params) {
+      return savePermissionsFor(View, permissions, params);
     }
   };
 }]);

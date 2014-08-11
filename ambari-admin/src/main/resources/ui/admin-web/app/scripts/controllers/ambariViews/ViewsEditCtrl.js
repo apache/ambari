@@ -114,7 +114,6 @@ angular.module('ambariAdminConsole')
 
   $scope.savePermissions = function() {
     PermissionSaver.saveViewPermissions(
-      $scope.permissions,
       $scope.permissionsEdit,
       {
         view_name: $routeParams.viewId,

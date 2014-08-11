@@ -26,7 +26,8 @@ angular.module('ambariAdminConsole')
     if ($scope.form.$valid){
       User.create({
         'Users/user_name': $scope.user.user_name,
-        'Users/password': $scope.user.password
+        'Users/password': $scope.user.password,
+        'Users/active': !!$scope.user.active
       }).then(function() {
         $location.path('/users');
       }).catch(function(data) {;

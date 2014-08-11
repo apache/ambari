@@ -22,17 +22,11 @@
     <li class="active">{{group.group_name}}</li>
   </ol>
   <div class="pull-right top-margin-4">
-    <button class="btn btn-danger" ng-click="deleteGroup(group)">Delete Group</button>
+    <button class="btn btn-danger deletegroup-btn" ng-click="deleteGroup(group)">Delete Group</button>
   </div>
 </div>
 <hr>
 <form class="form-horizontal group-edit" role="form" novalidate name="form">
-  <div class="form-group" ng-class="{'has-error' : form.user_name.$error.required && form.submitted}">
-    <label for="groupname" class="col-sm-2 control-label">Group name</label>
-    <div class="col-sm-10">
-      <input type="text" id="groupname" class="form-control" disabled="disabled" name="group_name" placeholder="User name" ng-model="group.group_name" required>
-    </div>
-  </div>
   <div class="form-group">
     <label for="" class="col-sm-2 control-label">Type</label>
     <div class="col-sm-10">
@@ -55,10 +49,7 @@
         <div ng-switch-when="true">
           <textarea class="form-control bottom-margin" id=""  ng-model="group.editingUsers"></textarea>
         </div>
-        
       </div>
-        
-
       <button ng-show="!group.ldap_group" class="btn btn-primary pull-right" ng-click="toggleEditMode()"><span class="glyphicon {{editMode ? 'glyphicon-save' : 'glyphicon-pencil'}}"></span> {{editMode ? 'Save': 'Edit'}}</button>
     </div>
   </div>

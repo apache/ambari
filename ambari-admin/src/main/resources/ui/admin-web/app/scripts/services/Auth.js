@@ -19,12 +19,16 @@
 
 angular.module('ambariAdminConsole')
 .factory('Auth',['$http', 'Settings', function($http, Settings) {
+	var currentUserName = JSON.parse(localStorage.ambari).app.loginName;
   return {
     signout: function() {
       return $http({
         method: 'GET',
         url: Settings.baseUrl + '/logout'
       });
+    },
+    getCurrentUser: function() {
+    	return currentUserName;
     }
   };
 }]);

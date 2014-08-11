@@ -35,7 +35,7 @@
     <div class="form-group" ng-repeat="permission in permissions">
       <label class="col-sm-2 control-label">{{permission.PermissionInfo.permission_name}}</label>
       <div class="col-sm-5" ng-switch="isEditMode">
-        <textarea ng-switch-when="true" name="" id="" cols="30" rows="4" class="form-control" ng-model="permissionsEdit[permission.PermissionInfo.permission_name].USER"></textarea>
+        <textarea ng-switch-when="true" name="" id="" cols="30" rows="4" class="form-control permission-user-input" ng-model="permissionsEdit[permission.PermissionInfo.permission_name].USER"></textarea>
         <div class="well" ng-switch-default>
           <span ng-repeat="user in permission.USER">
             <link-to route="users.show" id="{{user}}" >{{user}}</link-to>
@@ -46,7 +46,7 @@
         </div>
       </div>
       <div class="col-sm-5" ng-switch="isEditMode">
-        <textarea ng-switch-when="true" name="" id="" cols="30" rows="4" class="form-control" ng-model="permissionsEdit[permission.PermissionInfo.permission_name].GROUP"></textarea>
+        <textarea ng-switch-when="true" name="" id="" cols="30" rows="4" class="form-control permission-group-input" ng-model="permissionsEdit[permission.PermissionInfo.permission_name].GROUP"></textarea>
         <div class="well" ng-switch-default>
           <span ng-repeat="group in permission.GROUP">
             <link-to route="groups.edit" id="{{group}}">{{group}}</link-to>
@@ -59,8 +59,8 @@
     </div>
     <div class="form-group" ng-show="isEditMode">
       <div class="col-sm-offset-2 col-sm-10">
-        <button class="btn btn-default pull-right left-margin" ng-click="cancel()">Cancel</button>
-        <button class="btn btn-primary pull-right" ng-click="save()">Save</button>
+        <button class="btn btn-default pull-right left-margin permissions-cancel" ng-click="cancel()">Cancel</button>
+        <button class="btn btn-primary pull-right permission-save" ng-click="save()">Save</button>
       </div>
     </div>
 </div>

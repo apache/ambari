@@ -29,7 +29,7 @@
   <div class="panel-heading clearfix">
     <h3 class="panel-title pull-left">Settings</h3>
     <div class="pull-right">
-      <a href ng-click="editSettingsDisabled = !editSettingsDisabled" ng-show="editSettingsDisabled"> <span class="glyphicon glyphicon-cog"></span> Edit</a>
+      <a href ng-click="editSettingsDisabled = !editSettingsDisabled" ng-show="editSettingsDisabled" class="settings-edit-toggle"> <span class="glyphicon glyphicon-cog"></span> Edit</a>
     </div>
   </div>
   <div class="panel-body">
@@ -41,21 +41,21 @@
         </div>
         <div class="form-group">
           <label for="" class="col-sm-2 control-label">Display Name</label>
-          <div class="col-sm-10"><input type="text" class="form-control" placeholder="Display Name" ng-model="settings.label"></div>
+          <div class="col-sm-10"><input type="text" class="form-control instancename-input" placeholder="Display Name" ng-model="settings.label"></div>
         </div>
         <div class="form-group">
           <div class="col-sm-offset-2 col-sm-10">
             <div class="checkbox">
               <label>
-                <input type="checkbox" ng-model="settings.visible"> Visible
+                <input type="checkbox" ng-model="settings.visible" ng-class="instancevisibility-input"> Visible
               </label>
             </div>
           </div>
         </div>
         <div class="form-group" ng-hide="editSettingsDisabled">
           <div class="col-sm-offset-2 col-sm-10">
-            <button class="btn btn-primary pull-right left-margin" ng-click="saveSettings()">Save</button>
-            <button class="btn btn-default pull-right" ng-click="cancelSettings()">Cancel</button>
+            <button class="btn btn-primary pull-right left-margin settingssave-btn" ng-click="saveSettings()">Save</button>
+            <button class="btn btn-default pull-right settingscancel-btn" ng-click="cancelSettings()">Cancel</button>
           </div>
         </div>
       </fieldset>
@@ -67,7 +67,7 @@
   <div class="panel-heading clearfix">
     <h3 class="panel-title pull-left">Permissions</h3>
     <div class="pull-right" >
-      <a ng-hide="isPermissionsEmpty" href ng-click="editPermissionDisabled = !editPermissionDisabled" ng-show="editPermissionDisabled"> <span class="glyphicon glyphicon-cog"></span> Edit</a>
+      <a ng-hide="isPermissionsEmpty" href class="permissions-edit-toggle" ng-click="editPermissionDisabled = !editPermissionDisabled" ng-show="editPermissionDisabled"> <span class="glyphicon glyphicon-cog"></span> Edit</a>
     </div>
   </div>
   <div class="panel-body">
@@ -80,7 +80,7 @@
       <div class="form-group" ng-repeat="permission in permissions">
         <label class="col-sm-2 control-label">{{permission.PermissionInfo.permission_name}}</label>
         <div class="col-sm-5" ng-switch="editPermissionDisabled">
-          <textarea name="" id="" cols="30" rows="4" class="form-control" ng-model="permissionsEdit[permission.PermissionInfo.permission_name].USER" ng-switch-when="false"></textarea>
+          <textarea name="" id="" cols="30" rows="4" class="form-control permission-textarea-user" ng-model="permissionsEdit[permission.PermissionInfo.permission_name].USER" ng-switch-when="false"></textarea>
           <div class="well" ng-switch-when="true">
             <span ng-repeat="user in permission.USER">
               <link-to route="users.show" id="{{user}}">{{user}}</link-to>
@@ -91,7 +91,7 @@
           </div>
         </div>
         <div class="col-sm-5" ng-switch="editPermissionDisabled">
-          <textarea name="" id="" cols="30" rows="4" class="form-control" ng-model="permissionsEdit[permission.PermissionInfo.permission_name].GROUP" ng-switch-when="false"></textarea>
+          <textarea name="" id="" cols="30" rows="4" class="form-control permission-textarea-group" ng-model="permissionsEdit[permission.PermissionInfo.permission_name].GROUP" ng-switch-when="false"></textarea>
           <div class="well" ng-switch-when="true">
             <span ng-repeat="group in permission.GROUP">
               <link-to route="groups.edit" id="{{group}}" >{{group}}</link-to>
@@ -105,8 +105,8 @@
       
       <div class="form-group" ng-hide="editPermissionDisabled">
         <div class="col-sm-offset-2 col-sm-10">
-          <button class="btn btn-primary pull-right left-margin" ng-click="savePermissions()">Save</button>
-          <button class="btn btn-default pull-right" ng-click="cancelPermissions()">Cancel</button>
+          <button class="btn btn-primary pull-right left-margin permissions-save" ng-click="savePermissions()">Save</button>
+          <button class="btn btn-default pull-right permissions-cancel" ng-click="cancelPermissions()">Cancel</button>
         </div>
       </div>
     </form>
@@ -120,7 +120,7 @@
   <div class="panel-heading clearfix">
     <h3 class="panel-title pull-left">Properties</h3>
     <div class="pull-right">
-      <a href ng-hide="isConfigurationEmpty" ng-click="editConfigurationDisabled = !editConfigurationDisabled" ng-show="editConfigurationDisabled"> <span class="glyphicon glyphicon-cog"></span> Edit</a>
+      <a href ng-hide="isConfigurationEmpty" ng-click="editConfigurationDisabled = !editConfigurationDisabled" ng-show="editConfigurationDisabled" class="properties-toggle"> <span class="glyphicon glyphicon-cog"></span> Edit</a>
     </div>
   </div>
   <div class="panel-body">
@@ -128,12 +128,12 @@
       <fieldset ng-disabled="editConfigurationDisabled">
         <div class="form-group" ng-repeat="(propertyName, propertyValue) in configuration">
           <label for="" class="control-label col-sm-3">{{propertyName}}</label>
-          <div class="col-sm-9"><input type="text" class="form-control" ng-model="configuration[propertyName]"></div>
+          <div class="col-sm-9"><input type="text" class="form-control propertie-input" ng-model="configuration[propertyName]"></div>
         </div>
         <div class="form-group" ng-hide="editConfigurationDisabled">
           <div class="col-sm-offset-2 col-sm-10">
-            <button class="btn btn-primary pull-right left-margin" ng-click="saveConfiguration()">Save</button>
-            <button class="btn btn-default pull-right" ng-click="cancelConfiguration()">Cancel</button>
+            <button class="btn btn-primary pull-right left-margin propertie-save" ng-click="saveConfiguration()">Save</button>
+            <button class="btn btn-default pull-right propertie-cancel" ng-click="cancelConfiguration()">Cancel</button>
           </div>
         </div>
       </fieldset>

@@ -35,7 +35,7 @@ angular.module('ambariAdminConsole')
   };
 
   Group.all().then(function(groups) {
-    $scope.groups = groups; 
+    $scope.groups = groups;
   })
   .catch(function(data) {
     console.error('Get groups list error');

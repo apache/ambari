@@ -21,7 +21,7 @@
       <li class="active">Groups</li>
     </ol>
     <div class="pull-right top-margin-4">
-      <link-to route="groups.create" class="btn btn-primary"><span class="glyphicon glyphicon-plus"></span> Create Local Group</link-to>
+      <link-to route="groups.create" class="btn btn-primary creategroup-btn"><span class="glyphicon glyphicon-plus"></span> Create Local Group</link-to>
     </div>
   </div>
   <hr>
@@ -30,19 +30,22 @@
       <tr>
         <th>
           <label for="">Group name</label>
-          
         </th>
         <th>
           <label for="">Type</label>
           
         </th>
         <th>Members</th>
-        <th></th>
       </tr>
       <tr>
-        <th><input type="text" class="form-control" ng-model="currentNameFilter"></th>
         <th>
-          <select class="form-control"
+          <div class="search-container">
+            <input type="text" class="form-control namefilter" ng-model="currentNameFilter">
+            <button type="button" class="close" ng-show="currentNameFilter" ng-click="currentNameFilter=''"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+          </div>
+        </th>
+        <th>
+          <select class="form-control typefilter"
             ng-model="currentTypeFilter"
             ng-options="item for item in typeFilterOptions">
           </select>
@@ -53,11 +56,14 @@
     <tbody>
       <tr ng-repeat="group in groups | filter:typeFilter | filter:currentNameFilter">
         <td>
-          <link-to route="groups.edit" id="{{group.group_name}}">{{group.group_name}}</link-to>
+          <link-to route="groups.edit" class="link-to-group" id="{{group.group_name}}">{{group.group_name}}</link-to>
         </td>
         <td>{{group.ldap_group ? 'LDAP' : 'Local'}}</td>
         <td>{{group.members.length}} {{group.members.length === 1 ? 'member' : 'members'}}</td>
       </tr>
     </tbody>
   </table>
+  <div class="alert alert-info" ng-show="!groups.length">
+    No groups to display.
+  </div>
 </div>

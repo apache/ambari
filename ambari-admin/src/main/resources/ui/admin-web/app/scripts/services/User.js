@@ -57,11 +57,6 @@ angular.module('ambariAdminConsole')
           'Users/roles': user.roles[0] || 'user' 
         }
       });
-      // return Restangular.one('users', user.user_name).customPUT({
-      //   'Users/password': password,
-      //   'Users/old_password': currentUserPassword,
-      //   'Users/roles': user.roles[0] || 'user'
-      // });
     },
     delete: function(userId) {
       return Restangular.one('users', userId).remove();

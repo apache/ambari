@@ -37,7 +37,7 @@
 }
 .btn.disabled.syncldapbtn{
   pointer-events: auto;
-  background-color: #0044cc;
+  background-color: #e6e6e6;
 }
 
 .about .logo{
@@ -59,7 +59,7 @@
   padding: 0;
 }
 
-.user-edit-panel .ats-switch span.switch-right{
+.user-edit-panel .ats-switch span.switch-right , .create-user-form .ats-switch span.switch-right{
   background-color: #da4f49;
   color: white;
 }
@@ -109,6 +109,9 @@
   text-decoration: none;
   
 }
+#top-nav .navbar.navbar-static-top .brand.cluster-name{
+  margin-left: 10px;
+}
 
 .create-view-form{
   padding-bottom: 50px;
@@ -123,13 +126,51 @@
   margin-bottom: 20px;
 }
 
+.left-navbar .panel{
+  border-radius: 0;
+}
+.left-navbar .panel-body li{
+  margin: 0 -15px;
+}
+.left-navbar .panel-body li a{
+  border-radius: 0;
+  padding-left: 30px;
+}
+.left-navbar .panel-body li.active a{
+  background: #666;
+  
+}
+
+.search-container{
+  position: relative;
+}
+.search-container .close{
+  position: absolute;
+  right: 10px;
+  top: 30px;
+}
+.groups-pane .search-container .close{
+  top: 5px;
+}
+.views-list-pane .search-container .close{
+  right: 50px;
+  top: 5px;
+  z-index: 100;
+}
+
+
 .container{
   padding-left: 0;
   width: 940px;
 }
+
+
 @media (min-width: 1200px) {
-  .container{
+  .container, .navbar-static-top .container, .navbar-fixed-top .container, .navbar-fixed-bottom .container{
     width: 1130px;
+  }
+  .container{
+    width: 1170px;
   }
 }
 

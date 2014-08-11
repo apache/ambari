@@ -86,6 +86,13 @@ angular.module('ambariAdminConsole')
         data: data
       });
     },
+    updatePrivileges: function(params, privileges) {
+      return $http({
+        method: 'PUT',
+        url: Settings.baseUrl + '/views/' + params.view_name +'/versions/'+params.version+'/instances/'+params.instance_name+'/privileges',
+        data: privileges
+      });
+    },
     deletePrivilege: function(clusterId, permissionName, principalType, principalName) {
       return $http({
         method: 'DELETE',

@@ -38,8 +38,8 @@ angular.module('ambariAdminConsole')
   $scope.isLDAPConfigured = false;
   $scope.ldapData = {};
   LDAP.get().then(function(data) {
-    $scope.ldapData = data;
-    $scope.isLDAPConfigured = data['LDAP']['configured'];
+    $scope.ldapData = data.data;
+    $scope.isLDAPConfigured = data.data['LDAP']['configured'];
   });
 
   $scope.syncLDAP = function() {

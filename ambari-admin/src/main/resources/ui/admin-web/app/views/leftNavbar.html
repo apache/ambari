@@ -15,54 +15,58 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 -->
-<div class="panel panel-default">
-  <div class="panel-heading"><span class="glyphicon glyphicon-cloud"></span> Clusters</div>
-  <div class="panel-body">
-    <div ng-show="cluster">
-      <h5>{{cluster.Clusters.cluster_name}}</h5>
+<div class="left-navbar">
+  <div class="panel panel-default">
+    <div class="panel-heading"><span class="glyphicon glyphicon-cloud"></span> Clusters</div>
+    <div class="panel-body">
+      <div ng-show="cluster">
+        <h5>{{cluster.Clusters.cluster_name}}</h5>
+        <ul class="nav nav-pills nav-stacked">
+          <li ng-class="{active: isActive('clusters.manageAccess')}">
+            <a href="#/clusters/{{cluster.Clusters.cluster_name}}/manageAccess" class="permissions">Permissions</a>
+          </li>
+          <li><a href="/#/main/dashboard" class="gotodashboard">Go to Dashboard</a></li>
+        </ul>
+      </div>
+        
+      <div ng-hide="cluster">
+        <a href="/" class="btn btn-primary btn-block createcluster-btn">
+          <span class="glyphicon glyphicon-plus"></span>
+          Create a Cluster
+        </a>
+      </div>
+        
+    </div>
+  </div>
+
+  <div class="panel panel-default">
+    <div class="panel-heading"><span class="glyphicon glyphicon-th"></span> Views</div>
+    <div class="panel-body">
       <ul class="nav nav-pills nav-stacked">
-        <li ng-class="{active: isActive('clusters.manageAccess')}">
-          <a href="#/clusters/{{cluster.Clusters.cluster_name}}/manageAccess">Permissions</a>
-        </li>
-        <li><a href="/#/main/dashboard">Go to Dashboard</a></li>
+        <li ng-class="{active: isActive('views.list')}"><link-to route="views.list" class="viewslist-link">Views</link-to></li>
       </ul>
     </div>
-      
-    <div ng-hide="cluster">
-      <a href="/" class="btn btn-primary btn-block">
-        <span class="glyphicon glyphicon-plus"></span>
-        Create a Cluster
-      </a>
-    </div>
-      
   </div>
-</div>
 
-<div class="panel panel-default">
-  <div class="panel-heading"><span class="glyphicon glyphicon-th"></span> Views</div>
-  <div class="panel-body">
-    <ul class="nav nav-pills nav-stacked">
-      <li ng-class="{active: isActive('views.list')}"><link-to route="views.list">Views</link-to></li>
-    </ul>
-  </div>
-</div>
-
-<div class="panel panel-default">
-  <div class="panel-heading"><span class="glyphicon glyphicon-user"></span> Users + Groups</div>
-  <div class="panel-body">
-    <ul class="nav nav-pills nav-stacked">
-      <li ng-class="{active: isActive('users.list')}"><link-to route="users.list">Users</link-to></li>
-      <li ng-class="{active: isActive('groups.list')}"><link-to route="groups.list">Groups</link-to></li>
-    </ul>
-    <hr>
-    <div ng-switch="isLDAPConfigured">
-      <a ng-switch-when="true" href class="btn btn-primary btn-block syncldapbtn" ng-click="syncLDAP()">
-        <span class="glyphicon glyphicon-transfer pulldown2"></span> Sync LDAP
-      </a>
-      <a ng-switch-default href class="btn btn-primary btn-block syncldapbtn disabled" popover="LDAP is not configured. To configure LDAP, run ambari-server setup-ldap from the command line." popover-trigger="mouseenter">
-        <span class="glyphicon glyphicon-transfer pulldown2"></span> Sync LDAP
-      </a>
+  <div class="panel panel-default">
+    <div class="panel-heading"><span class="glyphicon glyphicon-user"></span> User + Group Management</div>
+    <div class="panel-body">
+      <ul class="nav nav-pills nav-stacked">
+        <li ng-class="{active: isActive('users.list')}"><link-to route="users.list" class="userslist-link">Users</link-to></li>
+        <li ng-class="{active: isActive('groups.list')}"><link-to route="groups.list" class="groupslist-link">Groups</link-to></li>
+      </ul>
+      <hr>
+      <div ng-switch="isLDAPConfigured">
+        <a ng-switch-when="true" href class="btn btn-primary btn-block syncldapbtn" ng-click="syncLDAP()">
+          <span class="glyphicon glyphicon-transfer pulldown2"></span> Sync LDAP
+        </a>
+        <a ng-switch-default href class="btn btn-default btn-block syncldapbtn disabled" popover="LDAP is not configured. To configure LDAP, run ambari-server setup-ldap from the command line." popover-trigger="mouseenter">
+          <span class="glyphicon glyphicon-transfer pulldown2"></span> Sync LDAP
+        </a>
+      </div>
+        
     </div>
-      
   </div>
+
 </div>
+  

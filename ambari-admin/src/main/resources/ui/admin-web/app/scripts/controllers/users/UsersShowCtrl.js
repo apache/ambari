@@ -18,8 +18,9 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('UsersShowCtrl', ['$scope', '$routeParams', 'User', '$modal', '$location', 'ConfirmationModal', 'uiAlert', function($scope, $routeParams, User, $modal, $location, ConfirmationModal, uiAlert) {
+.controller('UsersShowCtrl', ['$scope', '$routeParams', 'User', '$modal', '$location', 'ConfirmationModal', 'uiAlert', 'Auth', function($scope, $routeParams, User, $modal, $location, ConfirmationModal, uiAlert, Auth) {
   $scope.user = {};
+  $scope.isCurrentUser = true;
 
   $scope.isGroupEditing = false;
   $scope.enableGroupEditing = function() {
@@ -30,6 +31,11 @@ angular.module('ambariAdminConsole')
   $scope.updateGroups = function() {
     $scope.user.user_groups = $scope.editingGroupsList.split(',');
     $scope.isGroupEditing = false;
+  };
+
+  $scope.cancelUpdate = function() {
+    $scope.isGroupEditing = false;
+    $scope.editingGroupsList = '';
   };
 
   $scope.openChangePwdDialog = function() {
@@ -74,6 +80,7 @@ angular.module('ambariAdminConsole')
 
   User.get($routeParams.id).then(function(data) {
     $scope.user = data.Users;
+    $scope.isCurrentUser = $scope.user.user_name === Auth.getCurrentUser();
   });
 
   $scope.deleteUser = function() {

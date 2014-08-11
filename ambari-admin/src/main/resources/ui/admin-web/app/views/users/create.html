@@ -17,14 +17,14 @@
 -->
 <ol class="breadcrumb">
   <li><a href="#/users">Users</a></li>
-  <li class="active">Create local user</li>
+  <li class="active">Create Local User</li>
 </ol>
 <hr>
-<form class="form-horizontal" role="form" novalidate name="form">
+<form class="form-horizontal create-user-form" role="form" novalidate name="form">
   <div class="form-group" ng-class="{'has-error' : form.user_name.$error.required && form.submitted}">
-    <label for="username" class="col-sm-2 control-label">User name</label>
+    <label for="username" class="col-sm-2 control-label">Username</label>
     <div class="col-sm-10">
-      <input type="text" id="username" class="form-control" name="user_name" placeholder="User name" ng-model="user.user_name" required>
+      <input type="text" id="username" class="form-control username-input" name="user_name" placeholder="User name" ng-model="user.user_name" required>
       <div class="alert alert-danger top-margin" ng-show="form.user_name.$error.required && form.submitted">
         Required
       </div>
@@ -39,14 +39,14 @@
   <div class="form-group">
     <label for="" class="col-sm-2 control-label">Status</label>
     <div class="col-sm-10">
-      <div class="btn btn-success">Active</div>
+      <toggle-switch model="user.active" on-label="Active" off-label="Inactive" class="switch-primary userstatus" data-off-color="danger"></toggle-switch>
     </div>
   </div>
   <div class="form-group" ng-class="{'has-error' : (form.password.$error.required && form.submitted) || form.confirmPassword.$error.passwordVerify}">
     <label for="password" class="col-sm-2 control-label">Password</label>
     <div class="col-sm-10">
-      <input type="password" class="form-control bottom-margin" name="password" placeholder="Password" required ng-model="user.password">
-      <input type="password" class="form-control bottom-margin" name="confirmPassword" placeholder="Password confirmation" required ng-model="user.passwordConfirmation"
+      <input type="password" class="form-control bottom-margin userpassword" name="password" placeholder="Password" required ng-model="user.password">
+      <input type="password" class="form-control bottom-margin userpasswordconfirm" name="confirmPassword" placeholder="Password confirmation" required ng-model="user.passwordConfirmation"
         password-verify="user.password">
 
       <div class="alert alert-danger" ng-show='form.confirmPassword.$error.passwordVerify'>
@@ -60,7 +60,8 @@
   </div>
   <div class="form-group">
     <div class="col-sm-offset-2 col-sm-10">
-      <button class="btn btn-primary" ng-click="createUser()">Create</button>
+      <button class="btn btn-primary pull-right left-margin saveuser" ng-click="createUser()">Save</button>
+      <a class="btn btn-default pull-right cancel" href="#/users">Cancel</a>
     </div>
   </div>
       

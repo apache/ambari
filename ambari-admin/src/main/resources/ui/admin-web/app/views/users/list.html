@@ -22,7 +22,7 @@
       <li class="active">Users</li>
     </ol>
     <div class="pull-right top-margin-4">
-      <link-to route="users.create" class="btn btn-primary"><span class="glyphicon glyphicon-plus"></span> Create Local User</link-to>
+      <link-to route="users.create" class="btn btn-primary createuser-btn"><span class="glyphicon glyphicon-plus"></span> Create Local User</link-to>
     </div>
   </div>
   <hr>
@@ -30,12 +30,15 @@
     <thead>
       <tr>
         <th>
-          <label for="">Username</label>
-          <input type="text" class="form-control" ng-model="currentNameFilter">
+          <div class="search-container">
+            <label for="">Username</label>
+            <input type="text" class="form-control namefilter" ng-model="currentNameFilter">
+            <button type="button" class="close clearfilter" ng-show="currentNameFilter" ng-click="currentNameFilter=''"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+          </div>
         </th>
         <th>
           <label for="">Type</label>
-          <select class="form-control"
+          <select class="form-control typefilter"
             ng-model="currentTypeFilter"
             ng-options="item for item in typeFilterOptions">
           </select>
@@ -43,7 +46,7 @@
         </th>
         <th>
           <label for="">Status</label>
-          <select class="form-control" 
+          <select class="form-control statusfilter" 
             ng-model="currentActiveFilter"
             ng-options="item for item in actvieFilterOptions">
             

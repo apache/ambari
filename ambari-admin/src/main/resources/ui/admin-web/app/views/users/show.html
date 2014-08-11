@@ -23,7 +23,7 @@
       <li class="active">{{user.user_name}}</li>
     </ol>
     <div class="pull-right top-margin-4">
-      <button class="btn btn-danger" ng-click="deleteUser()">Delete User</button>
+      <button class="btn deleteuser-btn" ng-class="{'btn-danger': !isCurrentUser, 'btn-default' : isCurrentUser}" ng-click="deleteUser()" ng-disabled="isCurrentUser">Delete User</button>
     </div>
   </div>
   <hr>
@@ -37,13 +37,13 @@
     <div class="form-group">
       <label for="" class="col-sm-2 control-label">Status</label>
       <div class="col-sm-10">
-        <toggle-switch on-change="toggleUserActive()" model="user.active" on-label="Active" off-label="Inactive" class="switch-primary" data-off-color="danger"></toggle-switch>
+        <toggle-switch on-change="toggleUserActive()" ng-disabled="isCurrentUser" model="user.active" on-label="Active" off-label="Inactive" class="switch-primary userstatus" data-off-color="danger"></toggle-switch>
       </div>
     </div>
     <div class="form-group">
       <label for="password" class="col-sm-2 control-label">Password</label>
       <div class="col-sm-10">
-        <a href ng-click="openChangePwdDialog()" class="btn btn-default">Change Password</a>
+        <a href ng-click="openChangePwdDialog()" class="btn btn-default changepassword">Change Password</a>
       </div>
     </div>
     <div class="form-group">
@@ -56,13 +56,14 @@
             </div>
           </div>
           <div class="col-sm-2">
-            <a href ng-click="enableGroupEditing()" ng-hide="user.ldap_user"><span class="glyphicon glyphicon-cog"></span> Edit</a>
+            <a href ng-click="enableGroupEditing()" ng-hide="user.ldap_user"><span class="glyphicon glyphicon-pencil"></span> Edit</a>
           </div>
         </div>
         <div class="row" ng-show="isGroupEditing">
           <div class="col-sm-12">
-            <textarea name="groups" id="" cols="30" rows="5" class="form-control bottom-margin" ng-model="editingGroupsList"></textarea>
-            <a href class="btn btn-primary pull-right" ng-click="updateGroups()">Update</a>
+            <textarea name="groups" id="" cols="30" rows="5" class="form-control bottom-margin usergroups" ng-model="editingGroupsList"></textarea>
+            <a href class="btn btn-primary pull-right left-margin updategroups" ng-click="updateGroups()">Save</a>
+            <button class="btn btn-default pull-right cancel-groups-update" ng-click="cancelUpdate()">Cancel</button>
           </div>
             
         </div>

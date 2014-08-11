@@ -22,8 +22,9 @@
       <li class="active">Views</li>
     </ol>
     <div class="pull-right col-sm-4">
-      <div class="input-group">
-        <input type="text" class="form-control" placeholder="Search" ng-model="viewsFilter" ng-change="getFilteredViews()">
+      <div class="input-group search-container">
+        <input type="text" class="form-control search-input" placeholder="Search" ng-model="viewsFilter" ng-change="getFilteredViews()">
+        <button type="button" class="close clear-search" ng-show="viewsFilter" ng-click="viewsFilter=''; getFilteredViews()"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
         <span class="input-group-addon">
           <span class="glyphicon glyphicon-search"></span>
         </span>
@@ -56,7 +57,7 @@
             <td class="col-sm-3"></td>
             <td class="col-sm-3">{{instance.ViewInstanceInfo.version}}</td>
             <td class="col-sm-3">
-              <a href="#/views/{{view.view_name}}/versions/{{instance.ViewInstanceInfo.version}}/instances/{{instance.ViewInstanceInfo.instance_name}}/edit" class="">{{instance.ViewInstanceInfo.label}}</a>
+              <a href="#/views/{{view.view_name}}/versions/{{instance.ViewInstanceInfo.version}}/instances/{{instance.ViewInstanceInfo.instance_name}}/edit" class="instance-link">{{instance.ViewInstanceInfo.label}}</a>
             </td>
             <td class="col-sm-3">
             </td>
@@ -67,7 +68,7 @@
             <td class="col-sm-3"></td>
             <td class="col-sm-3"></td>
             <td class="col-sm-3">
-              <a class="btn btn-default" href="#/views/{{view.view_name}}/versions/{{view.versionsList[view.versionsList.length-1].ViewVersionInfo.version}}/new"><span class="glyphicon glyphicon-plus" ></span> Create Instance</a>
+              <a class="btn btn-default createisntance-btn" href="#/views/{{view.view_name}}/versions/{{view.versionsList[view.versionsList.length-1].ViewVersionInfo.version}}/new"><span class="glyphicon glyphicon-plus" ></span> Create Instance</a>
             </td>
             <td class="col-sm-3">
             </td>

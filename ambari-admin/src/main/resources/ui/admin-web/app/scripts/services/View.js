@@ -128,6 +128,8 @@ angular.module('ambariAdminConsole')
     return deferred.promise;
   };
 
+  
+
   View.getVersions = function(viewName) {
     var deferred = $q.defer();
 
@@ -192,6 +194,14 @@ angular.module('ambariAdminConsole')
       method: 'DELETE',
       url: Settings.baseUrl + '/views/' + params.view_name +'/versions/'+params.version+'/instances/'+params.instance_name+'/privileges',
       data: data
+    });
+  };
+
+  View.updatePrivileges = function(params, privileges) {
+    return $http({
+      method: 'PUT',
+      url: Settings.baseUrl + '/views/' + params.view_name +'/versions/'+params.version+'/instances/'+params.instance_name+'/privileges',
+      data: privileges
     });
   };
 
