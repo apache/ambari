@@ -21,31 +21,19 @@ package org.apache.ambari.server.upgrade;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNull;
 import static junit.framework.Assert.assertTrue;
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.createMockBuilder;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.createStrictMock;
-import static org.easymock.EasyMock.eq;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
+import static org.easymock.EasyMock.*;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.orm.dao.DaoUtils;
+import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -53,17 +41,30 @@ import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.StackId;
 import org.easymock.Capture;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
-import com.google.inject.Binder;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.Module;
+import com.google.inject.*;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityTransaction;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.*;
+import javax.persistence.metamodel.SingularAttribute;
 
 /**
  * UpgradeCatalog170 unit tests.
  */
 public class UpgradeCatalog170Test {
+
+  Provider<EntityManager> entityManagerProvider = createStrictMock(Provider.class);
+  EntityManager entityManager = createStrictMock(EntityManager.class);
+
+  @Before
+  public void init() {
+    reset(entityManagerProvider);
+    expect(entityManagerProvider.get()).andReturn(entityManager).anyTimes();
+    replay(entityManagerProvider);
+  }
 
   @Test
   public void testExecuteDDLUpdates() throws Exception {
@@ -155,11 +156,23 @@ public class UpgradeCatalog170Test {
     Clusters clusters = createStrictMock(Clusters.class);
     Config config = createStrictMock(Config.class);
 
+    EntityTransaction trans = createNiceMock(EntityTransaction.class);
+    CriteriaBuilder cb = createNiceMock(CriteriaBuilder.class);
+    CriteriaQuery<HostRoleCommandEntity> cq = createNiceMock(CriteriaQuery.class);
+    Root<HostRoleCommandEntity> hrc = (Root<HostRoleCommandEntity>) createNiceMock(Root.class);
+    Path<Long> taskId = null;
+    Path<String> outputLog = null;
+    Path<String> errorLog = null;
+    Order o = createNiceMock(Order.class);
+    TypedQuery<HostRoleCommandEntity> q = createNiceMock(TypedQuery.class);
+    List<HostRoleCommandEntity> r = new ArrayList<HostRoleCommandEntity>();
+
     Method m = AbstractUpgradeCatalog.class.getDeclaredMethod
         ("updateConfigurationProperties", String.class, Map.class, boolean.class, boolean.class);
+    Method n = AbstractUpgradeCatalog.class.getDeclaredMethod("getEntityManagerProvider");
 
     UpgradeCatalog170 upgradeCatalog = createMockBuilder(UpgradeCatalog170.class)
-      .addMockedMethod(m).createMock();
+      .addMockedMethod(m).addMockedMethod(n).createMock();
 
     Map<String, Cluster> clustersMap = new HashMap<String, Cluster>();
     clustersMap.put("c1", cluster);
@@ -191,6 +204,22 @@ public class UpgradeCatalog170Test {
         Collections.singletonMap("hbase_regionserver_xmn_ratio", "0.2"), false, false);
     expectLastCall();
 
+    expect(entityManager.getTransaction()).andReturn(trans).anyTimes();
+    expect(entityManager.getCriteriaBuilder()).andReturn(cb).anyTimes();
+    expect(entityManager.createQuery(cq)).andReturn(q).anyTimes();
+    expect(trans.isActive()).andReturn(true).anyTimes();
+    expect(upgradeCatalog.getEntityManagerProvider()).andReturn(entityManagerProvider).anyTimes();
+    expect(cb.createQuery(HostRoleCommandEntity.class)).andReturn(cq).anyTimes();
+    expect(cb.desc(taskId)).andReturn(o).anyTimes();
+    expect(cq.from(HostRoleCommandEntity.class)).andReturn(hrc).anyTimes();
+    expect(cq.select(hrc)).andReturn(cq).anyTimes();
+    expect(cq.where(anyObject(Predicate.class))).andReturn(cq).anyTimes();
+    expect(hrc.get(isA(SingularAttribute.class))).andReturn(taskId).times(2);
+    expect(hrc.get(isA(SingularAttribute.class))).andReturn(outputLog).once();
+    expect(hrc.get(isA(SingularAttribute.class))).andReturn(errorLog).once();
+    expect(q.setMaxResults(1000)).andReturn(q).anyTimes();
+    expect(q.getResultList()).andReturn(r).anyTimes();
+
     expect(configuration.getDatabaseUrl()).andReturn(Configuration.JDBC_IN_MEMORY_URL).anyTimes();
     expect(injector.getInstance(ConfigHelper.class)).andReturn(configHelper).anyTimes();
     expect(injector.getInstance(AmbariManagementController.class)).andReturn(amc).anyTimes();
@@ -204,7 +233,8 @@ public class UpgradeCatalog170Test {
     expect(configHelper.findConfigTypesByPropertyName(new StackId("HDP", "2.1"), "content")).andReturn(envDicts).once();
     expect(configHelper.getPropertyValueFromStackDefenitions(cluster, "hadoop-env", "content")).andReturn("env file contents").once();
 
-    replay(upgradeCatalog, dbAccessor, configuration, injector, cluster, clusters, amc, config, configHelper);
+    replay(entityManager, trans, upgradeCatalog, cb, cq, hrc, q);
+    replay(dbAccessor, configuration, injector, cluster, clusters, amc, config, configHelper);
 
     Class<?> c = AbstractUpgradeCatalog.class;
     Field f = c.getDeclaredField("configuration");

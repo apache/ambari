@@ -266,5 +266,4 @@ public class HostRoleCommandDAO {
   public void removeByPK(int taskId) {
     remove(findByPK(taskId));
   }
-
 }

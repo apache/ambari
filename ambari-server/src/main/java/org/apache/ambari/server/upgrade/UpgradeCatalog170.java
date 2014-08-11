@@ -28,9 +28,14 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
+import org.apache.ambari.server.orm.dao.DaoUtils;
+import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
+import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
+import org.apache.ambari.server.orm.entities.HostRoleCommandEntity_;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -40,6 +45,10 @@ import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+
+import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.*;
 
 /**
  * Upgrade catalog for version 1.7.0.
@@ -82,6 +91,8 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
     this.injector = injector;
   }
 
+  @Inject
+  DaoUtils daoUtils;
 
   // ----- AbstractUpgradeCatalog --------------------------------------------
 
@@ -193,17 +204,6 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
         String.class, 255, null, true));
     dbAccessor.addColumn("host_role_command", new DBColumnInfo("error_log",
         String.class, 255, null, true));
-
-    // Update historic records with the log paths, but only enough so as to not prolong the upgrade process
-    if (dbType.equals(Configuration.POSTGRES_DB_NAME) || dbType.equals(Configuration.ORACLE_DB_NAME)) {
-      // Postgres and Oracle use a different concatenation operator.
-      dbAccessor.executeQuery("UPDATE host_role_command SET output_log = ('/var/lib/ambari-agent/data/output-' || CAST(task_id AS VARCHAR(20)) || '.txt') WHERE task_id IN (SELECT task_id FROM host_role_command WHERE output_log IS NULL OR output_log = '' ORDER BY task_id DESC LIMIT 1000);");
-      dbAccessor.executeQuery("UPDATE host_role_command SET error_log = ('/var/lib/ambari-agent/data/errors-' || CAST(task_id AS VARCHAR(20)) || '.txt') WHERE task_id IN (SELECT task_id FROM host_role_command WHERE error_log IS NULL OR error_log = '' ORDER BY task_id DESC LIMIT 1000);");
-    } else if (dbType.equals(Configuration.MYSQL_DB_NAME)) {
-      // MySQL uses a different concatenation operator.
-      dbAccessor.executeQuery("UPDATE host_role_command SET output_log = CONCAT('/var/lib/ambari-agent/data/output-', task_id, '.txt') WHERE task_id IN (SELECT task_id FROM host_role_command WHERE output_log IS NULL OR output_log = '' ORDER BY task_id DESC LIMIT 1000);");
-      dbAccessor.executeQuery("UPDATE host_role_command SET error_log = CONCAT('/var/lib/ambari-agent/data/errors-', task_id, '.txt') WHERE task_id IN (SELECT task_id FROM host_role_command WHERE error_log IS NULL OR error_log = '' ORDER BY task_id DESC LIMIT 1000);");
-    }
 
     addAlertingFrameworkDDL();
 
@@ -332,6 +332,64 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
 
     dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, "
         + valueColumnName + ") " + "VALUES('alert_current_id_seq', 0)", false);
+
+
+    // Update historic records with the log paths, but only enough so as to not prolong the upgrade process
+    executeInTransaction(new Runnable() {
+      @Override
+      public void run() {
+        try {
+          HostRoleCommandDAO hostRoleCommandDAO = injector.getInstance(HostRoleCommandDAO.class);
+          EntityManager em = getEntityManagerProvider().get();
+          CriteriaBuilder cb = em.getCriteriaBuilder();
+          CriteriaQuery<HostRoleCommandEntity> cq1 = cb.createQuery(HostRoleCommandEntity.class);
+          CriteriaQuery<HostRoleCommandEntity> cq2 = cb.createQuery(HostRoleCommandEntity.class);
+          Root<HostRoleCommandEntity> hrc1 = cq1.from(HostRoleCommandEntity.class);
+          Root<HostRoleCommandEntity> hrc2 = cq1.from(HostRoleCommandEntity.class);
+
+          // Rather than using Java reflection, which is more susceptible to breaking, use the classname_.field canonical model
+          // that is safer because it exposes the persistent attributes statically.
+          Expression<Long> taskID1 = hrc1.get(HostRoleCommandEntity_.taskId);
+          Expression<Long> taskID2 = hrc2.get(HostRoleCommandEntity_.taskId);
+          Expression<String> outputLog = hrc1.get(HostRoleCommandEntity_.outputLog);
+          Expression<String> errorLog = hrc2.get(HostRoleCommandEntity_.errorLog);
+
+          Predicate p1 = cb.isNull(outputLog);
+          Predicate p2 = cb.equal(outputLog, "");
+          Predicate p1_or_2 = cb.or(p1, p2);
+
+          Predicate p3 = cb.isNull(errorLog);
+          Predicate p4 = cb.equal(errorLog, "");
+          Predicate p3_or_4 = cb.or(p3, p4);
+
+          if (daoUtils == null) {
+            daoUtils = new DaoUtils();
+          }
+
+          // Update output_log
+          cq1.select(hrc1).where(p1_or_2).orderBy(cb.desc(taskID1));
+          TypedQuery<HostRoleCommandEntity> q1 = em.createQuery(cq1);
+          q1.setMaxResults(1000);
+          List<HostRoleCommandEntity> r1 = daoUtils.selectList(q1);
+          for (HostRoleCommandEntity entity : r1) {
+            entity.setOutputLog("/var/lib/ambari-agent/data/output-" + entity.getTaskId() + ".txt");
+            hostRoleCommandDAO.merge(entity);
+          }
+
+          // Update error_log
+          cq2.select(hrc2).where(p3_or_4).orderBy(cb.desc(taskID2));
+          TypedQuery<HostRoleCommandEntity> q2 = em.createQuery(cq2);
+          q2.setMaxResults(1000);
+          List<HostRoleCommandEntity> r2 = daoUtils.selectList(q2);
+          for (HostRoleCommandEntity entity : r2) {
+            entity.setErrorLog("/var/lib/ambari-agent/data/errors-" + entity.getTaskId() + ".txt");
+            hostRoleCommandDAO.merge(entity);
+          }
+        } catch (Exception e) {
+          LOG.warn("Could not populate historic records with output_log and error_log in host_role_command table. ", e);
+        }
+      }
+    });
 
     moveGlobalsToEnv();
     addEnvContentFields();
