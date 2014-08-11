@@ -21,7 +21,7 @@ CLUSTER_HOSTS_PATH = "/clusters/%s/hosts"
 CLUSTER_HOST_PATH = "/clusters/%s/hosts/%s"
 CLUSTER_START_ALL_SERVICES = "/clusters/%s/services?ServiceInfo/state=INSTALLED"
 CLUSTER_STOP_ALL_SERVICES = "/clusters/%s/services?ServiceInfo"
-
+CLUSTER_REQUESTS_PATH = "/clusters/%s/requests"
 
 SERVICES_PATH = "/clusters/%s/services"
 SERVICE_PATH = "/clusters/%s/services/%s"

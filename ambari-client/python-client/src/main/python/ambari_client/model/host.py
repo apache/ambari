@@ -321,3 +321,83 @@ class HostModel(BaseModel):
             self._get_cluster_name(),
             self.host_name,
             component_name)
+
+    def install_all_components(self):
+        root_resource = self._get_resource_root()
+        path = paths.HOSTS_COMPONENTS_PATH % (self._get_cluster_name(), 
+                                              self.host_name)
+        data = {
+            "RequestInfo": {
+                "context" :"Install All Components",
+            }, 
+            "Body": {
+                "HostRoles": {"state": "INSTALLED"},
+            },
+        }
+        resp = root_resource.put(path=path, payload=data)
+        return utils.ModelUtils.create_model(status.StatusModel, resp, 
+                                             root_resource, "NO_KEY")
+
+    def start_all_components(self):
+        root_resource = self._get_resource_root()
+        path = paths.HOSTS_COMPONENTS_PATH % (self._get_cluster_name(), 
+                                              self.host_name)
+        data = {
+            "RequestInfo": {
+                "context" :"Start All Components",
+            }, 
+            "Body": {
+                "HostRoles": {"state": "STARTED"},
+            },
+        }
+        resp = root_resource.put(path=path, payload=data)
+        return utils.ModelUtils.create_model(status.StatusModel, resp, 
+                                             root_resource, "NO_KEY")
+
+    def stop_all_components(self):
+        root_resource = self._get_resource_root()
+        path = paths.HOSTS_COMPONENTS_PATH % (self._get_cluster_name(), 
+                                              self.host_name)
+        data = {
+            "RequestInfo": {
+                "context" :"Stop All Components",
+            }, 
+            "Body": {
+                "HostRoles": {"state": "INSTALLED"},
+            },
+        }
+        resp = root_resource.put(path=path, payload=data)
+        return utils.ModelUtils.create_model(status.StatusModel, resp, 
+                                             root_resource, "NO_KEY")
+
+    def enable_maintenance_mode(self):
+        root_resource = self._get_resource_root()
+        path = paths.HOSTS_COMPONENTS_PATH % (self._get_cluster_name(), 
+                                              self.host_name)
+        data = {
+            "RequestInfo": {
+                "context" :"Start Maintanence Mode",
+            }, 
+            "Body": {
+                "HostRoles": {"maintenance_state": "ON"},
+            },
+        }
+        resp = root_resource.put(path=path, payload=data)
+        return utils.ModelUtils.create_model(status.StatusModel, resp, 
+                                             root_resource, "NO_KEY")
+
+    def disable_maintenance_mode(self):
+        root_resource = self._get_resource_root()
+        path = paths.HOSTS_COMPONENTS_PATH % (self._get_cluster_name(), 
+                                              self.host_name)
+        data = {
+            "RequestInfo": {
+                "context" :"Stop Maintanence Mode",
+            }, 
+            "Body": {
+                "HostRoles": {"maintenance_state": "OFF"},
+            },
+        }
+        resp = root_resource.put(path=path, payload=data)
+        return utils.ModelUtils.create_model(status.StatusModel, resp, 
+                                             root_resource, "NO_KEY")

@@ -16,6 +16,7 @@
 #  limitations under the License.
 
 import logging
+from ambari_client.core.coreutils import normalize_all_caps
 from ambari_client.model.base_model import BaseModel, ModelList
 from ambari_client.model import paths, utils, status
 
@@ -73,9 +74,22 @@ def _get_service_component(
         resource_root,
         "ServiceComponentInfo")
 
+def _delete_host_component(
+        resource_root, 
+        cluster_name , 
+        host_name , 
+        component_name):
+    path = paths.HOSTS_COMPONENT_PATH % (
+        cluster_name, host_name , component_name)
+    resp = resource_root.delete(path)
+    return utils.ModelUtils.create_model(
+        status.StatusModel, 
+        resp, 
+        resource_root, 
+        "NO_KEY")
+
 
 class ComponentModel(BaseModel):
-
     """
     The ComponentModel class
     """
@@ -124,3 +138,70 @@ class ComponentModel(BaseModel):
                 self._get_cluster_name(), self.host_name, self.component_name) + "?fields=metrics"
         metricjson = self._get_resource_root().get(metricpath)
         return metricjson
+
+
+    def delete(self):
+        return _delete_host_component(self._get_resource_root(), self._get_cluster_name(), self.host_name, self.component_name)
+
+    def install(self):
+        data = {
+            "RequestInfo": {
+                "context": "Install %s" % normalize_all_caps(self.component_name),
+            },
+            "HostRoles": {
+                "state": "INSTALLED",
+            },
+        }
+        root_resource = self._get_resource_root()
+        resp = root_resource.put(path=self._path() + '/' + self.component_name, payload=data)
+        return utils.ModelUtils.create_model(status.StatusModel, resp, root_resource, "NO_KEY")
+
+    def start(self):
+        data = {
+            "RequestInfo": {
+                "context": "Start %s" % normalize_all_caps(self.component_name),
+            },
+            "HostRoles": {
+                "state": "STARTED",
+            },
+        }
+        root_resource = self._get_resource_root()
+        resp = root_resource.put(path=self._path() + '/' + self.component_name, payload=data)
+        return utils.ModelUtils.create_model(status.StatusModel, resp, root_resource, "NO_KEY")
+
+    def stop(self):
+        data = {
+            "RequestInfo": {
+                "context": "Stop %s" % normalize_all_caps(self.component_name),
+            },
+            "HostRoles": {
+                "state": "INSTALLED",
+            },
+        }
+        root_resource = self._get_resource_root()
+        resp = root_resource.put(path=self._path() + '/' + self.component_name, payload=data)
+        return utils.ModelUtils.create_model(status.StatusModel, resp, root_resource, "NO_KEY")
+
+    def restart(self):
+        # need to move this to utils, handle _ gracefully
+        data = {
+            "RequestInfo": {
+                "command": "RESTART", 
+                "context": "Restart %s" % normalize_all_caps(self.component_name),
+                "operation_level": {
+                    "level": "SERVICE",
+                    "cluster_name": self._get_cluster_name(),
+                    "service_name": self.service_name,
+
+                },
+            },
+            "Requests/resource_filters": [{
+                "service_name": self.service_name,
+                "component_name": self.component_name,
+                "hosts": self.host_name,
+            }],
+        }
+        root_resource = self._get_resource_root()
+        path = paths.CLUSTER_REQUESTS_PATH % self._get_cluster_name()
+        resp = root_resource.post(path=path, payload=data)
+        return utils.ModelUtils.create_model(status.StatusModel, resp, root_resource, "NO_KEY")
