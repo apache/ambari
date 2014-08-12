@@ -33,6 +33,7 @@ import org.apache.ambari.server.orm.entities.ViewEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceDataEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.apache.ambari.server.orm.entities.ViewInstancePropertyEntity;
+import org.apache.ambari.server.orm.entities.ViewParameterEntity;
 import org.apache.ambari.server.view.ViewRegistry;
 
 import java.util.Collection;
@@ -199,7 +200,7 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
   // ----- helper methods ----------------------------------------------------
 
   // Convert an instance entity to a resource
-  private Resource toResource(ViewInstanceEntity viewInstanceEntity, Set<String> requestedIds) {
+  protected Resource toResource(ViewInstanceEntity viewInstanceEntity, Set<String> requestedIds) {
     Resource   resource   = new ResourceImpl(Resource.Type.ViewInstance);
     ViewEntity viewEntity = viewInstanceEntity.getViewEntity();
 
@@ -217,6 +218,11 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
 
     for (ViewInstancePropertyEntity viewInstancePropertyEntity : viewInstanceEntity.getProperties()) {
       properties.put(viewInstancePropertyEntity.getName(), viewInstancePropertyEntity.getValue());
+    }
+    for (ViewParameterEntity viewParameterEntity : viewEntity.getParameters()) {
+      if (!properties.containsKey(viewParameterEntity.getName())) {
+        properties.put(viewParameterEntity.getName(), null);
+      }
     }
     setResourceProperty(resource, PROPERTIES_PROPERTY_ID,
         properties, requestedIds);
