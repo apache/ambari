@@ -55,11 +55,9 @@ class ActionQueue(threading.Thread):
   STATUS_COMMAND = 'STATUS_COMMAND'
   EXECUTION_COMMAND = 'EXECUTION_COMMAND'
   BACKGROUND_EXECUTION_COMMAND = 'BACKGROUND_EXECUTION_COMMAND'
-  CANCEL_BACKGROUND_EXECUTION_COMMAND = 'CANCEL_BACKGROUND_EXECUTION_COMMAND'
   ROLE_COMMAND_INSTALL = 'INSTALL'
   ROLE_COMMAND_START = 'START'
   ROLE_COMMAND_STOP = 'STOP'
-  ROLE_COMMAND_CANCEL = 'CANCEL'
   ROLE_COMMAND_CUSTOM_COMMAND = 'CUSTOM_COMMAND'
   CUSTOM_COMMAND_RESTART = 'RESTART'
 
@@ -80,7 +78,7 @@ class ActionQueue(threading.Thread):
     self.configTags = {}
     self._stop = threading.Event()
     self.tmpdir = config.get('agent', 'prefix')
-    self.customServiceOrchestrator = CustomServiceOrchestrator(config, controller, self.commandStatuses)
+    self.customServiceOrchestrator = CustomServiceOrchestrator(config, controller)
 
 
   def stop(self):
@@ -172,7 +170,7 @@ class ActionQueue(threading.Thread):
   def createCommandHandle(self, command):
     if(command.has_key('__handle')):
       raise AgentException("Command already has __handle")
-    command['__handle'] = BackgroundCommandExecutionHandle(command, command['commandId'], self.on_background_command_started, self.on_background_command_complete_callback)
+    command['__handle'] = BackgroundCommandExecutionHandle(command, command['commandId'], None, self.on_background_command_complete_callback)
     return command
 
   def process_command(self, command):
@@ -281,20 +279,26 @@ class ActionQueue(threading.Thread):
 
     self.commandStatuses.put_command_status(command, roleResult)
 
-  def on_background_command_started(self, handle):
-    #update command with given handle
-    self.commandStatuses.update_command_status(handle.command, {'pid' : handle.pid})
-     
-     
+  def command_was_canceled(self):
+    self.customServiceOrchestrator
   def on_background_command_complete_callback(self, process_condenced_result, handle):
     logger.debug('Start callback: %s' % process_condenced_result)
     logger.debug('The handle is: %s' % handle)
     status = self.COMPLETED_STATUS if handle.exitCode == 0 else self.FAILED_STATUS
+    
+    aborted_postfix = self.customServiceOrchestrator.command_canceled_reason(handle.command['taskId'])
+    if aborted_postfix:
+      status = self.FAILED_STATUS
+      logger.debug('Set status to: %s , reason = %s' % (status, aborted_postfix))
+    else:
+      aborted_postfix = ''
+      
+    
     roleResult = self.commandStatuses.generate_report_template(handle.command)
     
     roleResult.update({
-      'stdout': process_condenced_result['stdout'],
-      'stderr': process_condenced_result['stderr'],
+      'stdout': process_condenced_result['stdout'] + aborted_postfix,
+      'stderr': process_condenced_result['stderr'] + aborted_postfix,
       'exitCode': process_condenced_result['exitcode'],
       'structuredOut': str(json.dumps(process_condenced_result['structuredOut'])) if 'structuredOut' in process_condenced_result else '',
       'status': status,

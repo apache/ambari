@@ -618,12 +618,6 @@ class TestActionQueue(TestCase):
     result = {}
     lock = threading.RLock()
     complete_done = threading.Condition(lock)
-    start_done = threading.Condition(lock)
-    
-    def command_started_w(handle):
-      with lock:
-        result['command_started'] = {'handle': copy.copy(handle), 'command_status' : actionQueue.commandStatuses.get_command_status(handle.command['taskId'])}
-        start_done.notifyAll()
     
     def command_complete_w(process_condenced_result, handle):
       with lock:
@@ -634,26 +628,13 @@ class TestActionQueue(TestCase):
         complete_done.notifyAll()
     
     actionQueue.on_background_command_complete_callback = wraped(actionQueue.on_background_command_complete_callback,None, command_complete_w)
-    actionQueue.on_background_command_started = wraped(actionQueue.on_background_command_started,None,command_started_w)
     actionQueue.put([self.background_command])
     actionQueue.processBackgroundQueueSafeEmpty();
     actionQueue.processStatusCommandQueueSafeEmpty();
     
     with lock:
-      start_done.wait(5)
+      complete_done.wait(.1)
       
-      self.assertTrue(result.has_key('command_started'), 'command started callback was not fired')
-      started_handle = result['command_started']['handle']
-      started_status = result['command_started']['command_status']
-      
-      self.assertEqual(started_handle.pid, started_status['pid'])
-      self.assertTrue(started_handle.pid > 0, "PID was not assigned to handle")
-      self.assertEqual(started_status['status'], ActionQueue.IN_PROGRESS_STATUS)
-      
-      complete_done.wait(2)
-      
-      finished_handle = result['command_complete']['handle']
-      self.assertEqual(started_handle.pid, finished_handle.pid)
       finished_status = result['command_complete']['command_status']
       self.assertEqual(finished_status['status'], ActionQueue.COMPLETED_STATUS)
       self.assertEqual(finished_status['stdout'], 'process_out')
@@ -667,46 +648,24 @@ class TestActionQueue(TestCase):
     report = actionQueue.result()
     self.assertEqual(len(report['reports']),1)
     self.assertEqual(report['reports'][0]['stdout'],'process_out')
-#     self.assertEqual(report['reports'][0]['structuredOut'],'{"a": "b."}')
+#    self.assertEqual(report['reports'][0]['structuredOut'],'{"a": "b."}')
     
-        
-  @patch.object(StackVersionsFileHandler, "read_stack_version")
-  @patch.object(FileCache, "__init__")
-  def test_cancel_backgound_command(self, read_stack_version_mock, FileCache_mock):
-    FileCache_mock.return_value = None
     
-    dummy_controller = MagicMock()
-    cfg = AmbariConfig().getConfig()
-    cfg.set('agent', 'tolerate_download_failures', 'true')
-    cfg.set('agent', 'prefix', '.')
-    cfg.set('agent', 'cache_dir', 'background_tasks')
-    
-    actionQueue = ActionQueue(cfg, dummy_controller)
-    patch_output_file(actionQueue.customServiceOrchestrator.python_executor)
-    actionQueue.customServiceOrchestrator.python_executor.prepare_process_result = MagicMock()
-    actionQueue.customServiceOrchestrator.dump_command_to_json = MagicMock()
+  
+  cancel_background_command = {
+    "commandType":"CANCEL_COMMAND",
+    "role":"AMBARI_SERVER_ACTION",
+    "roleCommand":"ABORT",
+    "commandId":"2--1",
+    "taskId":20,
+    "clusterName":"c1",
+    "serviceName":"",
+    "hostname":"c6401",
+    "roleParams":{
+      "cancelTaskIdTargets":"13,14"
+    },
+  }
 
-    lock = threading.RLock()
-    complete_done = threading.Condition(lock)
-    
-    def command_complete_w(process_condenced_result, handle):
-      with lock:
-        complete_done.wait(4)
-    
-    actionQueue.on_background_command_complete_callback = wraped(actionQueue.on_background_command_complete_callback,None, command_complete_w)
-    execute_command = copy.deepcopy(self.background_command)
-    actionQueue.put([execute_command])
-    actionQueue.processBackgroundQueueSafeEmpty();
-    
-    time.sleep(1)
-    
-    actionQueue.process_command(self.cancel_background_command)
-    #TODO add assert
-    
-    with lock:
-      complete_done.notifyAll()
-      
-      
 def patch_output_file(pythonExecutor):
   def windows_py(command, tmpout, tmperr):
     proc = MagicMock()

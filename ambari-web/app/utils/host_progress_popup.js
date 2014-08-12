@@ -958,12 +958,7 @@ App.HostPopup = Em.Object.create({
             name : 'cancel.background.operation',
               sender : hostPopup,
             data : {
-                cancelTaskId : hostPopup.get('openedTaskId'),
-              command : "REFRESHQUEUES",
-              context : Em.I18n.t('services.service.actions.run.yarnRefreshQueues.context') ,
-              hosts : App.Service.find('HDFS').get('hostComponents').findProperty('componentName', 'NAMENODE').get('hostName'),
-              serviceName : "HDFS",
-              componentName : "NAMENODE"
+              requestId : hostPopup.get('controller.currentServiceId')
             }
           });
             hostPopup.backToServiceList();

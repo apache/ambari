@@ -196,7 +196,7 @@ class BackgroundThread(threading.Thread):
     
     self.holder.handle.pid = process.pid
     self.holder.handle.status = BackgroundCommandExecutionHandle.RUNNING_STATUS
-    self.holder.handle.on_background_command_started(self.holder.handle)
+    self.holder.handle.on_background_command_started(self.holder.handle.command['taskId'], process.pid)
     
     process.communicate()
     

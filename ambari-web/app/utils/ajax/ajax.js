@@ -340,26 +340,20 @@ var urls = {
   },
   
   'cancel.background.operation' : {
-    'real' : '/clusters/{clusterName}/requests',
+    'real' : '/clusters/{clusterName}/requests/{requestId}',
     'mock' : '',
     'format' : function(data) {
       return {
-        type : 'POST',
+        type : 'PUT',
         data : JSON.stringify({
           RequestInfo : {
-            'context' : 'Cancel background operation',
-            'action'  : 'cancel_background_task',
+            'context' : 'Cancel operation',
             "parameters" : {
-              "cancel_policy"   : "SIGKILL",
-              'before_system_hook_function' : 'fetch_bg_pid_by_taskid',
-              "cancel_task_id"  : data.cancelTaskId
+              "cancel_policy"   : "SIGKILL"
             }
           },
-          "Requests/resource_filters" : [ {
-            "service_name" : data.serviceName,
-            "component_name" : data.componentName,
-            'hosts' : data.hosts
-          } ]
+          "Requests/request_status":'ABORTED',
+          "Requests/abort_reason": "Cancel background operation"
         })
       }
     }

@@ -23,6 +23,7 @@ import os
 import json
 import sys
 import shell
+import threading
 
 from FileCache import FileCache
 from AgentException import AgentException
@@ -50,7 +51,7 @@ class CustomServiceOrchestrator():
   PING_PORTS_KEY = "all_ping_ports"
   AMBARI_SERVER_HOST = "ambari_server_host"
 
-  def __init__(self, config, controller, commandStatuses = None):
+  def __init__(self, config, controller):
     self.config = config
     self.tmp_dir = config.get('agent', 'prefix')
     self.exec_tmp_dir = config.get('agent', 'tmp_dir')
@@ -64,26 +65,31 @@ class CustomServiceOrchestrator():
     # cache reset will be called on every agent registration
     controller.registration_listeners.append(self.file_cache.reset)
     
-    self.commandStatuses = commandStatuses
     # Clean up old status command files if any
     try:
       os.unlink(self.status_commands_stdout)
       os.unlink(self.status_commands_stderr)
     except OSError:
       pass # Ignore fail
+    self.commands_in_progress_lock = threading.RLock()
     self.commands_in_progress = {}
 
   def map_task_to_process(self, task_id, processId):
-    self.commands_in_progress[task_id] = processId
+    with self.commands_in_progress_lock:
+      logger.debug('Maps taskId=%s to pid=%s'%(task_id, processId))
+      self.commands_in_progress[task_id] = processId
 
   def cancel_command(self, task_id, reason):
-    if task_id in self.commands_in_progress.keys():
-      pid = self.commands_in_progress.get(task_id)
-      self.commands_in_progress[task_id] = reason
-      logger.info("Canceling command with task_id - {tid}, " \
-                  "reason - {reason} . Killing process {pid}"
-      .format(tid = str(task_id), reason = reason, pid = pid))
-      shell.kill_process_with_children(pid)
+    with self.commands_in_progress_lock:
+      if task_id in self.commands_in_progress.keys():
+        pid = self.commands_in_progress.get(task_id)
+        self.commands_in_progress[task_id] = reason
+        logger.info("Canceling command with task_id - {tid}, " \
+                    "reason - {reason} . Killing process {pid}"
+        .format(tid = str(task_id), reason = reason, pid = pid))
+        shell.kill_process_with_children(pid)
+      else: 
+        logger.warn("Unable to find pid by taskId = %s"%task_id)
 
   def runCommand(self, command, tmpoutfile, tmperrfile, forced_command_name = None,
                  override_output_files = True):
@@ -95,7 +101,6 @@ class CustomServiceOrchestrator():
       script_type = command['commandParams']['script_type']
       script = command['commandParams']['script']
       timeout = int(command['commandParams']['command_timeout'])
-      before_interceptor_method = command['commandParams']['before_system_hook_function']  if command['commandParams'].has_key('before_system_hook_function') else None
       
       if 'hostLevelParams' in command and 'jdk_location' in command['hostLevelParams']:
         server_url_prefix = command['hostLevelParams']['jdk_location']
@@ -114,12 +119,6 @@ class CustomServiceOrchestrator():
       if command_name == self.CUSTOM_ACTION_COMMAND:
         base_dir = self.file_cache.get_custom_actions_base_dir(server_url_prefix)
         script_tuple = (os.path.join(base_dir, script) , base_dir)
-        
-        # Call systemHook functions in current virtual machine. This function can enrich custom action 
-        # command with some information from current machine. And can be considered as plugin
-        if before_interceptor_method != None: 
-          self.processSystemHookFunctions(script_tuple, before_interceptor_method, command)
-        
         hook_dir = None
       else:
         if command_name == self.CUSTOM_COMMAND_COMMAND:
@@ -140,6 +139,7 @@ class CustomServiceOrchestrator():
       handle = None
       if(command.has_key('__handle')):
         handle = command['__handle']
+        handle.on_background_command_started = self.map_task_to_process
         del command['__handle']
       
       json_path = self.dump_command_to_json(command)
@@ -155,7 +155,6 @@ class CustomServiceOrchestrator():
 
       # Executing hooks and script
       ret = None
-
       from ActionQueue import ActionQueue
       if(command.has_key('commandType') and command['commandType'] == ActionQueue.BACKGROUND_EXECUTION_COMMAND and len(filtered_py_file_list) > 1):
         raise AgentException("Background commands are supported without hooks only")
@@ -174,18 +173,17 @@ class CustomServiceOrchestrator():
       if not ret: # Something went wrong
         raise AgentException("No script has been executed")
 
-      # if canceled
-      if self.commands_in_progress.has_key(task_id):#Background command do not push in this collection (TODO)
-        pid = self.commands_in_progress.pop(task_id)
-        if not isinstance(pid, int):
-          reason = '\nCommand aborted. ' + pid
-          ret['stdout'] += reason
-          ret['stderr'] += reason
+      # if canceled and not background command
+      if handle is None:
+        cancel_reason = self.command_canceled_reason(task_id)
+        if cancel_reason:
+          ret['stdout'] += cancel_reason
+          ret['stderr'] += cancel_reason
   
           with open(tmpoutfile, "a") as f:
-            f.write(reason)
+            f.write(cancel_reason)
           with open(tmperrfile, "a") as f:
-            f.write(reason)
+            f.write(cancel_reason)
 
     except Exception: # We do not want to let agent fail completely
       exc_type, exc_obj, exc_tb = sys.exc_info()
@@ -199,21 +197,15 @@ class CustomServiceOrchestrator():
         'exitcode': 1,
       }
     return ret
-
-  def fetch_bg_pid_by_taskid(self,command):
-    cancel_command_pid = None
-    try:
-      cancelTaskId = int(command['commandParams']['cancel_task_id'])
-      status = self.commandStatuses.get_command_status(cancelTaskId)
-      cancel_command_pid = status['pid']
-    except Exception:
-      pass
-    logger.info("Found PID=%s for cancel taskId=%s" % (cancel_command_pid,cancelTaskId))
-    command['commandParams']['cancel_command_pid'] = cancel_command_pid
-
-  def processSystemHookFunctions(self, script_tuple, before_interceptor_method, command):
-    getattr(self, before_interceptor_method)(command)
-    
+  def command_canceled_reason(self, task_id):
+    with self.commands_in_progress_lock:
+      if self.commands_in_progress.has_key(task_id):#Background command do not push in this collection (TODO)
+        logger.debug('Pop with taskId %s' % task_id)
+        pid = self.commands_in_progress.pop(task_id)
+        if not isinstance(pid, int):
+          return '\nCommand aborted. ' + pid
+    return None
+        
   def requestComponentStatus(self, command):
     """
      Component status is determined by exit code, returned by runCommand().

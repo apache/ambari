@@ -146,57 +146,6 @@ public class BackgroundCustomCommandExecutionTest {
       Assert.fail(e.getMessage());
     }
   }
-  @SuppressWarnings("serial")
-  @Test
-  public void testCancelCommand() {
-    try {
-      createClusterFixture();
-      
-      Map<String, String> requestProperties = new HashMap<String, String>() {
-        {
-          put(REQUEST_CONTEXT_PROPERTY, "Stop background command");
-//          put("cancel_policy","SIGKILL");
-//          put("cancel_task_id","19");
-        }
-      };
-
-      ExecuteActionRequest actionRequest = new ExecuteActionRequest(
-          "c1", 
-          "actionexecute","cancel_background_task",
-          null,
-          null,
-          new HashMap<String, String>(){{
-            put("cancel_policy","SIGKILL"); // parameters/cancel_policy -- in request params
-            put("cancel_task_id","19");
-          }});
-      actionRequest.getResourceFilters().add(new RequestResourceFilter("HDFS", "NAMENODE", Collections.singletonList("c6401")));
-      
-      controller.createAction(actionRequest, requestProperties);
-      
-      Mockito.verify(am, Mockito.times(1)).sendActions(stagesCaptor.capture(), any(ExecuteActionRequest.class));
-      
-      List<Stage> stages = stagesCaptor.getValue();
-      Assert.assertEquals(1, stages.size());
-      Stage stage = stages.get(0);
-      
-      Assert.assertEquals(1, stage.getHosts().size());
-      
-      List<ExecutionCommandWrapper> commands = stage.getExecutionCommands("c6401");
-      Assert.assertEquals(1, commands.size());
-      
-      ExecutionCommand command = commands.get(0).getExecutionCommand();
-      
-      Assert.assertEquals(AgentCommandType.EXECUTION_COMMAND, command.getCommandType());
-      Assert.assertEquals("ACTIONEXECUTE", command.getRoleCommand().name());
-      Assert.assertEquals("cancel_background_task.py", command.getCommandParams().get("script"));
-      Assert.assertEquals("SIGKILL", command.getCommandParams().get("cancel_policy"));
-      Assert.assertEquals("19", command.getCommandParams().get("cancel_task_id"));
-      
-      
-    } catch (AmbariException e) {
-      Assert.fail(e.getMessage());
-    }
-  }
   
   private void createClusterFixture() throws AmbariException {
     createCluster("c1");

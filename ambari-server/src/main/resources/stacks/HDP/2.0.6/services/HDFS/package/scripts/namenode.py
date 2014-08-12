@@ -74,14 +74,15 @@ class NameNode(Script):
     namenode(action="decommission")
     pass
   
+    
   def rebalancehdfs(self, env):
     import params
     env.set_params(params)
 
     name_node_parameters = json.loads( params.name_node_params )
     threshold = name_node_parameters['threshold']
-    print "Starting balancer with threshold = %s" % threshold
-      
+    _print("Starting balancer with threshold = %s\n" % threshold)
+    
     def calculateCompletePercent(first, current):
       return 1.0 - current.bytesLeftToMove/first.bytesLeftToMove
     
@@ -97,7 +98,7 @@ class NameNode(Script):
       basedir = os.path.join(env.config.basedir, 'scripts', 'balancer-emulator')
       command = ['python','hdfs-command.py']
     
-    print "Executing command %s" % command
+    _print("Executing command %s\n" % command)
     
     parser = hdfs_rebalance.HdfsParser()
     proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
@@ -106,7 +107,7 @@ class NameNode(Script):
                           cwd=basedir
                           )
     for line in iter(proc.stdout.readline, ''):
-      sys.stdout.write('[balancer] %s %s' % (str(datetime.now()), line ))
+      _print('[balancer] %s %s' % (str(datetime.now()), line ))
       pl = parser.parseLine(line)
       if pl:
         res = pl.toJson()
@@ -114,10 +115,14 @@ class NameNode(Script):
         
         self.put_structured_out(res)
       elif parser.state == 'PROCESS_FINISED' : 
-        sys.stdout.write('[balancer] %s %s' % (str(datetime.now()), 'Process is finished' ))
+        _print('[balancer] %s %s' % (str(datetime.now()), 'Process is finished' ))
         self.put_structured_out({'completePercent' : 1})
         break
       
       
+def _print(line):
+  sys.stdout.write(line)
+  sys.stdout.flush()
+
 if __name__ == "__main__":
   NameNode().execute()

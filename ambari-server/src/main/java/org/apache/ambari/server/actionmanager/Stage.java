@@ -30,6 +30,7 @@ import javax.annotation.Nullable;
 
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
+import org.apache.ambari.server.agent.AgentCommand.AgentCommandType;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
@@ -38,10 +39,13 @@ import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.serveraction.ServerAction;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ServiceComponentHostEvent;
+import org.apache.ambari.server.state.fsm.event.Event;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostUpgradeEvent;
 import org.apache.ambari.server.utils.StageUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.Assert;
 
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
@@ -216,7 +220,47 @@ public class Stage {
   public String getActionId() {
     return StageUtils.getActionId(requestId, getStageId());
   }
-
+  
+  private synchronized ExecutionCommandWrapper addGenericExecutionCommand(String clusterName, String hostName, Role role, RoleCommand command, ServiceComponentHostEvent event){
+    //used on stage creation only, no need to check if wrappers loaded
+    HostRoleCommand hrc = new HostRoleCommand(hostName, role, event, command);
+    ExecutionCommand cmd = new ExecutionCommand();
+    ExecutionCommandWrapper wrapper = new ExecutionCommandWrapper(cmd);
+    hrc.setExecutionCommandWrapper(wrapper);
+    cmd.setHostname(hostName);
+    cmd.setClusterName(clusterName);
+    cmd.setCommandId(this.getActionId());
+    cmd.setRole(role.name());
+    cmd.setRoleCommand(command);
+    
+    cmd.setServiceName("");
+    
+    Map<String, HostRoleCommand> hrcMap = this.hostRoleCommands.get(hostName);
+    if (hrcMap == null) {
+      hrcMap = new LinkedHashMap<String, HostRoleCommand>();
+      this.hostRoleCommands.put(hostName, hrcMap);
+    }
+    if (hrcMap.get(role.toString()) != null) {
+      throw new RuntimeException(
+          "Setting the host role command second time for same stage: stage="
+              + this.getActionId() + ", host=" + hostName + ", role=" + role);
+    }
+    hrcMap.put(role.toString(), hrc);
+    List<ExecutionCommandWrapper> execCmdList = this.commandsToSend.get(hostName);
+    if (execCmdList == null) {
+      execCmdList = new ArrayList<ExecutionCommandWrapper>();
+      this.commandsToSend.put(hostName, execCmdList);
+    }
+    
+    if (execCmdList.contains(wrapper)) {
+      //todo: proper exception
+      throw new RuntimeException(
+          "Setting the execution command second time for same stage: stage="
+              + this.getActionId() + ", host=" + hostName + ", role=" + role+ ", event="+event);
+    }
+    execCmdList.add(wrapper);
+    return wrapper;
+  }
   /**
    * A new host role command is created for execution.
    * Creates both ExecutionCommand and HostRoleCommand objects and
@@ -225,42 +269,9 @@ public class Stage {
    */
   public synchronized void addHostRoleExecutionCommand(String host, Role role,  RoleCommand command,
       ServiceComponentHostEvent event, String clusterName, String serviceName) {
-    //used on stage creation only, no need to check if wrappers loaded
-    HostRoleCommand hrc = new HostRoleCommand(host, role, event, command);
-    ExecutionCommand cmd = new ExecutionCommand();
-    ExecutionCommandWrapper wrapper = new ExecutionCommandWrapper(cmd);
-    hrc.setExecutionCommandWrapper(wrapper);
-    cmd.setHostname(host);
-    cmd.setClusterName(clusterName);
-    cmd.setServiceName(serviceName);
-    cmd.setCommandId(this.getActionId());
-    cmd.setRole(role.name());
-    cmd.setRoleCommand(command);
+    ExecutionCommandWrapper commandWrapper = addGenericExecutionCommand(clusterName, host, role, command, event);
     
-    Map<String, HostRoleCommand> hrcMap = this.hostRoleCommands.get(host);
-    if (hrcMap == null) {
-      hrcMap = new LinkedHashMap<String, HostRoleCommand>();
-      this.hostRoleCommands.put(host, hrcMap);
-    }
-    if (hrcMap.get(role.toString()) != null) {
-      throw new RuntimeException(
-          "Setting the host role command second time for same stage: stage="
-              + this.getActionId() + ", host=" + host + ", role=" + role);
-    }
-    hrcMap.put(role.toString(), hrc);
-    List<ExecutionCommandWrapper> execCmdList = this.commandsToSend.get(host);
-    if (execCmdList == null) {
-      execCmdList = new ArrayList<ExecutionCommandWrapper>();
-      this.commandsToSend.put(host, execCmdList);
-    }
-
-    if (execCmdList.contains(wrapper)) {
-      //todo: proper exception
-      throw new RuntimeException(
-          "Setting the execution command second time for same stage: stage="
-              + this.getActionId() + ", host=" + host + ", role=" + role);
-    }
-    execCmdList.add(wrapper);
+    commandWrapper.getExecutionCommand().setServiceName(serviceName);
   }
 
 
@@ -268,50 +279,32 @@ public class Stage {
    *  Creates server-side execution command. As of now, it seems to
    *  be used only for server upgrade
    */
-  public synchronized void addServerActionCommand(
-      String actionName, Role role,  RoleCommand command, String clusterName,
+  public synchronized void addServerActionCommand(String actionName, Role role,  RoleCommand command, String clusterName,
       ServiceComponentHostUpgradeEvent event, String hostName) {
-    //used on stage creation only, no need to check if wrappers loaded
-    HostRoleCommand hrc = new HostRoleCommand(hostName, role, event, command);
-    ExecutionCommand cmd = new ExecutionCommand();
-    ExecutionCommandWrapper wrapper = new ExecutionCommandWrapper(cmd);
-    hrc.setExecutionCommandWrapper(wrapper);
-    cmd.setHostname(hostName);
-    cmd.setClusterName(clusterName);
-    cmd.setServiceName("");
-    cmd.setCommandId(this.getActionId());
-    cmd.setRole(role.name());
-    cmd.setRoleCommand(command);
-
+    ExecutionCommandWrapper commandWrapper = addGenericExecutionCommand(clusterName, hostName, role, command, event);
+    ExecutionCommand cmd = commandWrapper.getExecutionCommand();
+    
     Map<String, String> roleParams = new HashMap<String, String>();
     roleParams.put(ServerAction.ACTION_NAME, actionName);
     cmd.setRoleParams(roleParams);
-    Map<String, HostRoleCommand> hrcMap = this.hostRoleCommands.get(hostName);
-    if (hrcMap == null) {
-      hrcMap = new LinkedHashMap<String, HostRoleCommand>();
-      this.hostRoleCommands.put(hostName, hrcMap);
-    }
-    if (hrcMap.get(role.toString()) != null) {
-      throw new RuntimeException(
-          "Setting the server action the second time for same stage: stage="
-              + this.getActionId() + ", action=" + actionName);
-    }
-    hrcMap.put(role.toString(), hrc);
-    List<ExecutionCommandWrapper> execCmdList = this.commandsToSend.get(hostName);
-    if (execCmdList == null) {
-      execCmdList = new ArrayList<ExecutionCommandWrapper>();
-      this.commandsToSend.put(hostName, execCmdList);
-    }
-
-    if (execCmdList.contains(wrapper)) {
-      //todo: proper exception
-      throw new RuntimeException(
-          "Setting the execution command second time for same stage: stage="
-              + this.getActionId() + ", action=" + actionName);
-    }
-    execCmdList.add(wrapper);
   }
 
+  /**
+   *  Adds cancel command to stage for given cancelTargets collection of task id's that has to be canceled in Agent layer.
+   */
+  public synchronized void addCancelRequestCommand(List<Long> cancelTargets, String clusterName, String hostName) {
+    ExecutionCommandWrapper commandWrapper = addGenericExecutionCommand(clusterName, hostName, Role.AMBARI_SERVER_ACTION, RoleCommand.ABORT, null);
+    ExecutionCommand cmd = commandWrapper.getExecutionCommand();
+    cmd.setCommandType(AgentCommandType.CANCEL_COMMAND);
+    
+    Assert.notEmpty(cancelTargets, "Provided targets task Id are empty.");
+    
+    Map<String, String> roleParams = new HashMap<String, String>();
+    
+    roleParams.put("cancelTaskIdTargets", StringUtils.join(cancelTargets, ','));
+    cmd.setRoleParams(roleParams);
+  }
+  
   /**
    *
    * @return list of hosts
