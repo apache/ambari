@@ -77,13 +77,13 @@ App.supports = {
   appTimelineServer: true,
   jobs: true,
   ubuntu: true,
-  views: false,
+  views: true,
   flume: true,
   databaseConnection: true,
   configHistory: false,
   serverRecommendValidate: false,
   downloadClientConfigs: true,
-  abortRequests: false
+  abortRequests: true
 };
 
 if (App.enableExperimental) {
