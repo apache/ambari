@@ -80,4 +80,13 @@ public class ResourceDAO {
   public ResourceEntity merge(ResourceEntity entity) {
     return entityManagerProvider.get().merge(entity);
   }
+
+  /**
+   * Finds root level resource.
+   *
+   * @return the matching resource or null
+   */
+  public ResourceEntity findAmbariResource() {
+    return findById(ResourceEntity.AMBARI_RESOURCE_ID);
+  }
 }

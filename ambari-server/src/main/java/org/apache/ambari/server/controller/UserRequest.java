@@ -29,6 +29,7 @@ public class UserRequest {
   private String oldPassword;
   private Boolean active;
   private Set<String> roles = new HashSet<String>();
+  private Boolean admin;
 
   public UserRequest(String name) {
     this.userName = name;
@@ -68,6 +69,14 @@ public class UserRequest {
 
   public void setActive(Boolean active) {
     this.active = active;
+  }
+
+  public Boolean isAdmin() {
+    return admin;
+  }
+
+  public void setAdmin(Boolean admin) {
+    this.admin = admin;
   }
 
   @Override

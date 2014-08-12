@@ -464,12 +464,8 @@ public class AmbariServer {
       Users users = injector.getInstance(Users.class);
 
       users.createDefaultRoles();
-      users.createUser("admin", "admin");
-      users.createUser("user", "user");
-      try {
-        users.promoteToAdmin(users.getLocalUser("admin"));
-      } catch (AmbariException ignored) {
-      }
+      users.createUser("admin", "admin", true, true);
+      users.createUser("user", "user", true, false);
 
       MetainfoEntity schemaVersion = new MetainfoEntity();
       schemaVersion.setMetainfoName(Configuration.SERVER_VERSION_KEY);

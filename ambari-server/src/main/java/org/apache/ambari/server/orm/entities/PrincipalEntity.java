@@ -18,7 +18,20 @@
 
 package org.apache.ambari.server.orm.entities;
 
-import javax.persistence.*;
+import java.util.HashSet;
+import java.util.Set;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinColumns;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+import javax.persistence.TableGenerator;
 
 /**
  * Represents an admin principal.
@@ -47,6 +60,9 @@ public class PrincipalEntity {
   })
   private PrincipalTypeEntity principalType;
 
+  @OneToMany(mappedBy = "principal")
+  private Set<PrivilegeEntity> privileges = new HashSet<PrivilegeEntity>();
+
 
   // ----- PrincipalEntity ---------------------------------------------------
 
@@ -62,7 +78,7 @@ public class PrincipalEntity {
   /**
    * Set the principal id.
    *
-   * @param id  the type id.
+   * @param id the type id.
    */
   public void setId(Long id) {
     this.id = id;
@@ -71,7 +87,7 @@ public class PrincipalEntity {
   /**
    * Get the principal type entity.
    *
-   * @return  the principal type entity
+   * @return the principal type entity
    */
   public PrincipalTypeEntity getPrincipalType() {
     return principalType;
@@ -80,10 +96,28 @@ public class PrincipalEntity {
   /**
    * Set the principal type entity.
    *
-   * @param principalType  the principal type entity
+   * @param principalType the principal type entity
    */
   public void setPrincipalType(PrincipalTypeEntity principalType) {
     this.principalType = principalType;
+  }
+
+  /**
+   * Get the principal privileges.
+   *
+   * @return the principal privileges
+   */
+  public Set<PrivilegeEntity> getPrivileges() {
+    return privileges;
+  }
+
+  /**
+   * Set the principal privileges.
+   *
+   * @param privileges the principal privileges
+   */
+  public void setPrivileges(Set<PrivilegeEntity> privileges) {
+    this.privileges = privileges;
   }
 
 

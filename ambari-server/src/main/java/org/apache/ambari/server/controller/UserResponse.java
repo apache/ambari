@@ -29,12 +29,14 @@ public class UserResponse {
   private final String userName;
   private final boolean isLdapUser;
   private final boolean isActive;
+  private final boolean isAdmin;
   private Set<String> groups = Collections.emptySet();
 
-  public UserResponse(String name, boolean isLdapUser, boolean isActive) {
+  public UserResponse(String name, boolean isLdapUser, boolean isActive, boolean isAdmin) {
     this.userName = name;
     this.isLdapUser = isLdapUser;
     this.isActive = isActive;
+    this.isAdmin = isAdmin;
   }
 
   public String getUsername() {
@@ -87,5 +89,9 @@ public class UserResponse {
 
   public boolean isActive() {
     return isActive;
+  }
+
+  public boolean isAdmin() {
+    return isAdmin;
   }
 }

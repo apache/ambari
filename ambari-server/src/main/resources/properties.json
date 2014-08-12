@@ -176,6 +176,7 @@
         "Users/ldap_user",
         "Users/active",
         "Users/groups",
+        "Users/admin",
         "_"
     ],
     "Group":[

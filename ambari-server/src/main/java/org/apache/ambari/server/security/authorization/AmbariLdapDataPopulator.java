@@ -204,7 +204,7 @@ public class AmbariLdapDataPopulator {
           this.users.setUserLdap(userName);
         }
       } else {
-        this.users.createUser(userName, "");
+        this.users.createUser(userName, "", true, false);
         this.users.setUserLdap(userName);
       }
     }
@@ -230,7 +230,7 @@ public class AmbariLdapDataPopulator {
         internalUsers.remove(externalMember);
         internalMembers.remove(externalMember);
       } else {
-        users.createUser(externalMember, "");
+        users.createUser(externalMember, "", true, false);
         users.setUserLdap(externalMember);
       }
       users.addMemberToGroup(groupName, externalMember);

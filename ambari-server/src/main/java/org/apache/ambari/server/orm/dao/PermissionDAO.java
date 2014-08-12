@@ -35,16 +35,6 @@ import java.util.List;
 public class PermissionDAO {
 
   /**
-   * Id of built-in VIEW.USE permission.
-   */
-  private static int VIEW_USE_PERMISSION_ID = 4;
-
-  /**
-   * Name of built-in VIEW.USE permission.
-   */
-  private static String VIEW_USE_PERMISSION_NAME = "VIEW.USE";
-
-  /**
    * JPA entity manager
    */
   @Inject
@@ -83,7 +73,7 @@ public class PermissionDAO {
    * @return a matching permission entity or null
    */
   public PermissionEntity findPermissionByNameAndType(String name, ResourceTypeEntity resourceType) {
-    if (name.equals(VIEW_USE_PERMISSION_NAME)) {
+    if (name.equals(PermissionEntity.VIEW_USE_PERMISSION_NAME)) {
       // VIEW.USE permission should be available for any type of views
       return findViewUsePermission();
     }
@@ -94,11 +84,20 @@ public class PermissionDAO {
   }
 
   /**
+   * Find AMBARI.ADMIN permission.
+   *
+   * @return a matching permission entity or null
+   */
+  public PermissionEntity findAmbariAdminPermission() {
+    return findById(PermissionEntity.AMBARI_ADMIN_PERMISSION);
+  }
+
+  /**
    * Find VIEW.USE permission.
    *
    * @return a matching permission entity or null
    */
   public PermissionEntity findViewUsePermission() {
-    return findById(VIEW_USE_PERMISSION_ID);
+    return findById(PermissionEntity.VIEW_USE_PERMISSION);
   }
 }

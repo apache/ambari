@@ -27,14 +27,19 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.dao.GroupDAO;
 import org.apache.ambari.server.orm.dao.MemberDAO;
+import org.apache.ambari.server.orm.dao.PermissionDAO;
 import org.apache.ambari.server.orm.dao.PrincipalDAO;
 import org.apache.ambari.server.orm.dao.PrincipalTypeDAO;
+import org.apache.ambari.server.orm.dao.PrivilegeDAO;
+import org.apache.ambari.server.orm.dao.ResourceDAO;
 import org.apache.ambari.server.orm.dao.RoleDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.entities.GroupEntity;
 import org.apache.ambari.server.orm.entities.MemberEntity;
+import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.PrincipalEntity;
 import org.apache.ambari.server.orm.entities.PrincipalTypeEntity;
+import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.RoleEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.slf4j.Logger;
@@ -67,6 +72,12 @@ public class Users {
   protected MemberDAO memberDAO;
   @Inject
   protected PrincipalDAO principalDAO;
+  @Inject
+  protected PermissionDAO permissionDAO;
+  @Inject
+  protected PrivilegeDAO privilegeDAO;
+  @Inject
+  protected ResourceDAO resourceDAO;
   @Inject
   protected PrincipalTypeDAO principalTypeDAO;
   @Inject
@@ -217,10 +228,22 @@ public class Users {
   }
 
   /**
-   * Creates new local user with provided userName and password
+   * Creates new local user with provided userName and password.
+   */
+  public void createUser(String userName, String password) {
+    createUser(userName, password, true, false);
+  }
+
+  /**
+   * Creates new local user with provided userName and password.
+   *
+   * @param userName user name
+   * @param password password
+   * @param active is user active
+   * @param admin is user admin
    */
   @Transactional
-  public synchronized void createUser(String userName, String password) {
+  public synchronized void createUser(String userName, String password, Boolean active, Boolean admin) {
 
     // create an admin principal to represent this user
     PrincipalTypeEntity principalTypeEntity = principalTypeDAO.findById(PrincipalTypeEntity.USER_PRINCIPAL_TYPE);
@@ -239,6 +262,9 @@ public class Users {
     userEntity.setUserPassword(passwordEncoder.encode(password));
     userEntity.setRoleEntities(new HashSet<RoleEntity>());
     userEntity.setPrincipal(principalEntity);
+    if (active != null) {
+      userEntity.setActive(active);
+    }
 
     RoleEntity roleEntity = roleDAO.findByName(getUserRole());
     if (roleEntity == null) {
@@ -248,6 +274,10 @@ public class Users {
 
     userEntity.getRoleEntities().add(roleEntity);
     userDAO.create(userEntity);
+
+    if (admin != null && admin) {
+      grantAdminPrivilege(userEntity.getUserId());
+    }
 
     roleEntity.getUserEntities().add(userEntity);
     roleDAO.merge(roleEntity);
@@ -362,6 +392,41 @@ public class Users {
       groupDAO.remove(groupEntity);
     } else {
       throw new AmbariException("Group " + group + " doesn't exist");
+    }
+  }
+
+  /**
+   * Grants AMBARI.ADMIN privilege to provided user.
+   *
+   * @param user user
+   */
+  public synchronized void grantAdminPrivilege(Integer userId) {
+    final UserEntity user = userDAO.findByPK(userId);
+    final PrivilegeEntity adminPrivilege = new PrivilegeEntity();
+    adminPrivilege.setPermission(permissionDAO.findAmbariAdminPermission());
+    adminPrivilege.setPrincipal(user.getPrincipal());
+    adminPrivilege.setResource(resourceDAO.findAmbariResource());
+    if (!user.getPrincipal().getPrivileges().contains(adminPrivilege)) {
+      privilegeDAO.create(adminPrivilege);
+      user.getPrincipal().getPrivileges().add(adminPrivilege);
+      userDAO.merge(user);
+    }
+  }
+
+  /**
+   * Revokes AMBARI.ADMIN privilege from provided user.
+   *
+   * @param user user
+   */
+  public synchronized void revokeAdminPrivilege(Integer userId) {
+    final UserEntity user = userDAO.findByPK(userId);
+    for (PrivilegeEntity privilege: user.getPrincipal().getPrivileges()) {
+      if (privilege.getPermission().getPermissionName().equals(PermissionEntity.AMBARI_ADMIN_PERMISSION_NAME)) {
+        user.getPrincipal().getPrivileges().remove(privilege);
+        userDAO.merge(user);
+        privilegeDAO.remove(privilege);
+        break;
+      }
     }
   }
 

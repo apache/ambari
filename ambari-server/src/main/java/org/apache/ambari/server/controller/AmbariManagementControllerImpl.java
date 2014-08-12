@@ -704,7 +704,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         throw new AmbariException("User already exists.");
       }
 
-      users.createUser(request.getUsername(), request.getPassword());
+      users.createUser(request.getUsername(), request.getPassword(), request.isActive(), request.isAdmin());
 
       if (0 != request.getRoles().size()) {
         user = users.getAnyUser(request.getUsername());
@@ -2396,6 +2396,14 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       if (null != request.isActive()) {
         users.setUserActive(u, request.isActive());
       }
+
+      if (null != request.isAdmin()) {
+        if (request.isAdmin()) {
+          users.grantAdminPrivilege(u.getUserId());
+        } else {
+          users.revokeAdminPrivilege(u.getUserId());
+        }
+      }
     }
   }
 
@@ -2738,7 +2746,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       // get them all
       if (null == r.getUsername()) {
         for (User u : users.getAllUsers()) {
-          UserResponse resp = new UserResponse(u.getUserName(), u.isLdapUser(), u.isActive());
+          UserResponse resp = new UserResponse(u.getUserName(), u.isLdapUser(), u.isActive(), u.isAdmin());
           resp.setRoles(new HashSet<String>(u.getRoles()));
           resp.setGroups(new HashSet<String>(u.getGroups()));
           responses.add(resp);
@@ -2754,7 +2762,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
                 + r.getUsername() + "'");
           }
         } else {
-          UserResponse resp = new UserResponse(u.getUserName(), u.isLdapUser(), u.isActive());
+          UserResponse resp = new UserResponse(u.getUserName(), u.isLdapUser(), u.isActive(), u.isAdmin());
           resp.setRoles(new HashSet<String>(u.getRoles()));
           resp.setGroups(new HashSet<String>(u.getGroups()));
           responses.add(resp);

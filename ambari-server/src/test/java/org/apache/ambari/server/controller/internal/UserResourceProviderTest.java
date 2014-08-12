@@ -92,7 +92,7 @@ public class UserResourceProviderTest {
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
 
     Set<UserResponse> allResponse = new HashSet<UserResponse>();
-    allResponse.add(new UserResponse("User100", false, true));
+    allResponse.add(new UserResponse("User100", false, true, false));
 
     // set expectations
     expect(managementController.getUsers(AbstractResourceProviderTest.Matcher.getUserRequestSet("User100"))).
