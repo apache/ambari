@@ -31,7 +31,7 @@ logger = logging.getLogger()
 class PackagesAnalyzer:
 
   # default timeout for async invoked processes
-  TIMEOUT_SECONDS = 10
+  TIMEOUT_SECONDS = 20
   event = threading.Event()
 
   def launch_subprocess(self, command):
