@@ -280,10 +280,7 @@ App.MainServiceItemController = Em.Controller.extend({
       errorMessage: Em.I18n.t('services.service.actions.run.rebalanceHdfsNodes.promptError'),
       isInvalid: function () {
         var intValue = Number(this.get('inputValue'));
-        if (this.get('inputValue')!=='DEBUG' && (isNaN(intValue) || intValue < 0 || intValue > 100)) {
-          return true;
-        }
-        return false;
+        return isNaN(intValue) || intValue < 1 || intValue > 100;
       }.property('inputValue'),
       disablePrimary : function() {
         return this.get('isInvalid');
