@@ -23,13 +23,11 @@ var App = require('app');
  * App.cache contains shared data, used for syncronizing incoming server data among mappers
  */
 App.cache = {
-  'HostsList': [],
   'previousHostStatuses': {},
   'previousComponentStatuses': {},
   'previousComponentPassiveStates': {},
-  'hostComponentsOnService': {},
-  'restartRequiredServices': [],
-  'services': []
+  'services': [],
+  'currentConfigVersions': {}
 };
 
 App.ServerDataMapper = Em.Object.extend({

@@ -187,8 +187,12 @@ App.ConfigHistoryFlowView = Em.View.extend({
    */
   revert: function (event) {
     var self = this;
+    var serviceConfigVersion = event.context || Em.Object.create({
+      version: this.get('displayedServiceVersion.version'),
+      serviceName: this.get('displayedServiceVersion.serviceName')
+    });
     App.showConfirmationPopup(function () {
-      self.sendRevertCall(event.context);
+      self.sendRevertCall(serviceConfigVersion);
     });
   },
 
@@ -235,11 +239,15 @@ App.ConfigHistoryFlowView = Em.View.extend({
     var self = this;
     return App.ModalPopup.show({
       header: Em.I18n.t('dashboard.configHistory.info-bar.save.popup.title'),
+      serviceConfigNote: '',
       bodyClass: Em.View.extend({
         templateName: require('templates/common/configs/save_configuration'),
         notesArea: Em.TextArea.extend({
           classNames: ['full-width'],
-          placeholder: Em.I18n.t('dashboard.configHistory.info-bar.save.popup.placeholder')
+          placeholder: Em.I18n.t('dashboard.configHistory.info-bar.save.popup.placeholder'),
+          onChangeValue: function() {
+            this.get('parentView.parentView').set('serviceConfigNote', this.get('value'));
+          }.observes('value')
         })
       }),
       footerClass: Ember.View.extend({
@@ -248,6 +256,7 @@ App.ConfigHistoryFlowView = Em.View.extend({
       primary: Em.I18n.t('common.save'),
       secondary: Em.I18n.t('common.cancel'),
       onSave: function () {
+        self.get('controller').set('serviceConfigVersionNote', this.get('serviceConfigNote'));
         self.get('controller').restartServicePopup();
         this.hide();
       },

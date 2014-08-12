@@ -27,18 +27,19 @@ App.serviceConfigVersionsMapper = App.QuickDataMapper.create({
     create_time: 'createtime',
     applied_time: 'appliedtime',
     author: 'user',
-    notes: 'notes',
+    notes: 'service_config_version_note',
     is_current: 'is_current',
     index: 'index'
   },
   map: function (json) {
     var result = [];
     var itemIds = {};
-
+    var currentConfigVersions = App.cache['currentConfigVersions'];
     if (json && json.items) {
       json.items.forEach(function (item, index) {
         var parsedItem = this.parseIt(item, this.get('config'));
         parsedItem.id = parsedItem.service_name + '_' + parsedItem.version;
+        parsedItem.is_current = !!currentConfigVersions[parsedItem.id];
         parsedItem.is_requested = true;
         itemIds[parsedItem.id] = true;
         parsedItem.index = index;

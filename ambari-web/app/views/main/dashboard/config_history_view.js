@@ -46,9 +46,8 @@ App.MainConfigHistoryView = App.TableView.extend({
   }.property('controller.filteredCount'),
 
   totalCount: function () {
-    //TODO change to totalCount when property provided by API
-    return this.get('controller.filteredCount');
-  }.property('controller.filteredCount'),
+    return this.get('controller.totalCount');
+  }.property('controller.totalCount'),
   /**
    * return filtered number of all content number information displayed on the page footer bar
    * @returns {String}
@@ -77,7 +76,7 @@ App.MainConfigHistoryView = App.TableView.extend({
     this.addObserver('startIndex', this, 'updatePagination');
     this.addObserver('displayLength', this, 'updatePagination');
     this.set('controller.isPolling', true);
-    this.refresh();
+    this.get('controller').doPolling();
   },
 
   /**
@@ -174,7 +173,7 @@ App.MainConfigHistoryView = App.TableView.extend({
     var self = this;
 
     this.set('filteringComplete', false);
-    this.get('controller').loadHistoryToModel().done(function(){
+    this.get('controller').load().done(function () {
       self.set('filteringComplete', true);
       self.propertyDidChange('pageContent');
       self.set('controller.resetStartIndex', false);

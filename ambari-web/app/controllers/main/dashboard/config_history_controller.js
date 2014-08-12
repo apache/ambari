@@ -26,10 +26,11 @@ App.MainConfigHistoryController = Em.ArrayController.extend(App.TableServerMixin
     return this.get('dataSource').filterProperty('isRequested');
   }.property('dataSource.@each.isRequested'),
   isPolling: false,
+  totalCount: 0,
   filteredCount: 0,
   mockUrl: '/data/configurations/service_versions.json',
   realUrl: function () {
-    return App.apiPrefix + '/clusters/' + App.get('clusterName') + '/configurations/serviceconfigversions?<parameters>fields=serviceconfigversion,user,appliedtime,createtime,service_name&minimal_response=true';
+    return App.apiPrefix + '/clusters/' + App.get('clusterName') + '/configurations/serviceconfigversions?<parameters>fields=serviceconfigversion,user,appliedtime,createtime,service_name,service_config_version_note&minimal_response=true';
   }.property('App.clusterName'),
 
   /**
@@ -60,14 +61,12 @@ App.MainConfigHistoryController = Em.ArrayController.extend(App.TableServerMixin
       name: 'author',
       key: 'user',
       type: 'MATCH'
-    }
-    //TODO uncomment when API contains "notes" property
-    /*,
+    },
     {
       name: 'notes',
       key: '',
       type: 'MATCH'
-    }*/
+    }
   ],
 
   sortProps: [
@@ -82,11 +81,11 @@ App.MainConfigHistoryController = Em.ArrayController.extend(App.TableServerMixin
     {
       name: 'author',
       key: 'user'
-    }/*,
+    },
     {
       name: 'notes',
       key: ''
-    }*/
+    }
   ],
 
   modifiedFilter: Em.Object.create({
@@ -136,10 +135,30 @@ App.MainConfigHistoryController = Em.ArrayController.extend(App.TableServerMixin
   }),
 
   /**
-   * get data from server and push it to model
+   * load all data components required by config history table
+   *  - total counter of service config versions(called in parallel)
+   *  - current versions
+   *  - filtered versions
    * @return {*}
    */
-  loadHistoryToModel: function () {
+  load: function () {
+    var dfd = $.Deferred();
+    var self = this;
+
+    this.updateTotalCounter();
+    this.loadCurrentVersions().complete(function () {
+      self.loadConfigVersionsToModel().done(function () {
+        dfd.resolve();
+      });
+    });
+    return dfd.promise();
+  },
+
+  /**
+   * get filtered service config versions from server and push it to model
+   * @return {*}
+   */
+  loadConfigVersionsToModel: function () {
     var dfd = $.Deferred();
     var queryParams = this.getQueryParameters();
 
@@ -149,6 +168,37 @@ App.MainConfigHistoryController = Em.ArrayController.extend(App.TableServerMixin
       }
     });
     return dfd.promise();
+  },
+
+  loadCurrentVersions: function () {
+    return App.ajax.send({
+      name: 'service.serviceConfigVersions.get.current',
+      sender: this,
+      data: {},
+      success: 'loadCurrentVersionsSuccess'
+    })
+  },
+
+  loadCurrentVersionsSuccess: function (data, opt, params) {
+    var currentConfigVersions = {};
+
+    for (var service in data.Clusters.desired_serviceconfigversions) {
+      currentConfigVersions[service + '_' + data.Clusters.desired_serviceconfigversions[service].serviceconfigversion] = true;
+    }
+    App.cache['currentConfigVersions'] = currentConfigVersions;
+  },
+
+  updateTotalCounter: function () {
+    return App.ajax.send({
+      name: 'service.serviceConfigVersions.get.total',
+      sender: this,
+      data: {},
+      success: 'updateTotalCounterSuccess'
+    })
+  },
+
+  updateTotalCounterSuccess: function (data, opt, params) {
+    this.set('totalCount', data.itemTotal);
   },
 
   getUrl: function (queryParams) {
@@ -171,7 +221,7 @@ App.MainConfigHistoryController = Em.ArrayController.extend(App.TableServerMixin
 
     setTimeout(function () {
       if (self.get('isPolling')) {
-        self.loadHistoryToModel().done(function () {
+        self.load().done(function () {
           self.doPolling();
         })
       }

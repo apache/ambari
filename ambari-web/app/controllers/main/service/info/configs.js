@@ -52,6 +52,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   selectedVersion: null,
   // file names of changed configs
   modifiedFileNames: [],
+  // note passed on configs save
+  serviceConfigVersionNote: '',
   versionLoaded: false,
   isCurrentSelected: function () {
     return this.get('selectedVersion') === this.get('currentVersion');
@@ -169,6 +171,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     this.get('uiConfigs').clear();
     this.get('customConfig').clear();
     this.set('loadedGroupToOverrideSiteToTagMap', {});
+    this.set('serviceConfigVersionNote', '');
     this.set('savedSiteNameToServerServiceConfigDataMap', {});
     if (this.get('serviceConfigTags')) {
       this.set('serviceConfigTags', null);
@@ -273,9 +276,11 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    */
   loadServiceConfigVersionsSuccess: function (data, opt, params) {
     var currentVersion = Math.max.apply(this, data.items.mapProperty('serviceconfigversion'));
+    var currentVersionObject = data.items.findProperty('serviceconfigversion', currentVersion);
 
     this.set('currentVersion', currentVersion);
-    data.items.findProperty('serviceconfigversion', currentVersion).is_current = true;
+    App.cache['currentConfigVersions'] = {};
+    App.cache['currentConfigVersions'][currentVersionObject.service_name + '_' + currentVersionObject.serviceconfigversion] = true;
     App.serviceConfigVersionsMapper.map(data);
   },
 
@@ -1748,8 +1753,10 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         if (filename === 'mapred-queue-acls.xml' && !App.supports.capacitySchedulerUi) {
           return null;
         }
-        return this.createSiteObj(siteName, tagName, this.get('uiConfigs').filterProperty('filename', filename));
+        configObject = this.createSiteObj(siteName, tagName, this.get('uiConfigs').filterProperty('filename', filename));
+       break;
     }
+    configObject.service_config_version_note = this.get('serviceConfigVersionNote');
     return configObject;
   },
 
