@@ -39,6 +39,24 @@ angular.module('ambariAdminConsole', [
   $httpProvider.defaults.headers.put['X-Requested-By'] = 'ambari';
   $httpProvider.defaults.headers.common['X-Requested-By'] = 'ambari';
 
+  $httpProvider.responseInterceptors.push(['$rootScope', '$q', function (scope, $q) {
+    function success(response) {
+      return response;
+    }
+
+    function error(response) {
+      if (response.status == 403) {
+        window.location = "/";
+        return;
+      }
+      return $q.reject(response);
+    }
+
+    return function (promise) {
+      return promise.then(success, error);
+    }
+  }]);
+
   $provide.decorator('ngFormDirective', ['$delegate', function($delegate) {
     var ngForm = $delegate[0], controller = ngForm.controller;
     ngForm.controller = ['$scope', '$element', '$attrs', '$injector', function(scope, element, attrs, $injector) {
