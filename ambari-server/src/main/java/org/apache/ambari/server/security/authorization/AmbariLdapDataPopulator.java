@@ -227,13 +227,15 @@ public class AmbariLdapDataPopulator {
         if (!user.isLdapUser()) {
           users.setUserLdap(externalMember);
         }
-        internalUsers.remove(externalMember);
+        if (!internalMembers.containsKey(externalMember)) {
+          users.addMemberToGroup(groupName, externalMember);
+        }
         internalMembers.remove(externalMember);
+        internalUsers.remove(externalMember);
       } else {
         users.createUser(externalMember, "", true, false);
         users.setUserLdap(externalMember);
       }
-      users.addMemberToGroup(groupName, externalMember);
     }
     for (Entry<String, User> userToBeUnsynced: internalMembers.entrySet()) {
       final User user = userToBeUnsynced.getValue();
@@ -331,7 +333,7 @@ public class AmbariLdapDataPopulator {
         final DirContextAdapter adapter  = (DirContextAdapter) ctx;
         for (String uniqueMember: adapter.getStringAttributes(ldapServerProperties.getGroupMembershipAttr())) {
           final DirContextAdapter userAdapter = (DirContextAdapter) ldapTemplate.lookup(uniqueMember);
-          members.add(userAdapter.getStringAttribute(ldapServerProperties.getUsernameAttribute().toLowerCase()));
+          members.add(userAdapter.getStringAttribute(ldapServerProperties.getUsernameAttribute()).toLowerCase());
         }
         return null;
       }
