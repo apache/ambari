@@ -1185,7 +1185,7 @@ Em.I18n.translations = {
   'services.service.actions.run.rebalanceHdfsNodes.title':'HDFS Rebalance',
   'services.service.actions.run.rebalanceHdfsNodes.prompt':'Balancer threshold (percentage of disk capacity):',
   'services.service.actions.run.rebalanceHdfsNodes.promptTooltip':'Percentage of disk capacity. This overwrites the default threshold',
-  'services.service.actions.run.rebalanceHdfsNodes.promptError':'Value should be number between 0 and 100',
+  'services.service.actions.run.rebalanceHdfsNodes.promptError':'Value should be number between 1 and 100',
   'services.service.actions.run.rebalanceHdfsNodes.context':'Rebalance HDFS',
   'services.service.actions.run.rebalanceHdfsNodes.error':'Error during remote command: ',
   'services.service.actions.run.yarnRefreshQueues.menu':'Refresh YARN Capacity Scheduler',
