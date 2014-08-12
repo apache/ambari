@@ -16,6 +16,7 @@
 -- limitations under the License.
 --
 
+------create tables---------
 CREATE TABLE clusters (cluster_id NUMBER(19) NOT NULL, resource_id NUMBER(19) NOT NULL, cluster_info VARCHAR2(255) NULL, cluster_name VARCHAR2(100) NOT NULL UNIQUE, provisioning_state VARCHAR2(255) DEFAULT 'INIT' NOT NULL, desired_cluster_state VARCHAR2(255) NULL, desired_stack_version VARCHAR2(255) NULL, PRIMARY KEY (cluster_id));
 CREATE TABLE clusterconfig (config_id NUMBER(19) NOT NULL, version_tag VARCHAR2(255) NOT NULL, version NUMBER(19) NOT NULL, type_name VARCHAR2(255) NOT NULL, cluster_id NUMBER(19) NOT NULL, config_data CLOB NOT NULL, config_attributes CLOB, create_timestamp NUMBER(19) NOT NULL, PRIMARY KEY (config_id));
 CREATE TABLE serviceconfig (service_config_id NUMBER(19) NOT NULL, cluster_id NUMBER(19) NOT NULL, service_name VARCHAR(255) NOT NULL, version NUMBER(19) NOT NULL, create_timestamp NUMBER(19) NOT NULL, PRIMARY KEY (service_config_id));
@@ -71,9 +72,18 @@ CREATE TABLE adminprincipal (principal_id NUMBER(19) NOT NULL, principal_type_id
 CREATE TABLE adminpermission (permission_id NUMBER(19) NOT NULL, permission_name VARCHAR(255) NOT NULL, resource_type_id NUMBER(10) NOT NULL, PRIMARY KEY(permission_id));
 CREATE TABLE adminprivilege (privilege_id NUMBER(19), permission_id NUMBER(19) NOT NULL, resource_id NUMBER(19) NOT NULL, principal_id NUMBER(19) NOT NULL, PRIMARY KEY(privilege_id));
 
+--------altering tables by creating unique constraints----------
 ALTER TABLE users ADD CONSTRAINT UNQ_users_0 UNIQUE (user_name, ldap_user);
 ALTER TABLE groups ADD CONSTRAINT UNQ_groups_0 UNIQUE (group_name, ldap_group);
 ALTER TABLE members ADD CONSTRAINT UNQ_members_0 UNIQUE (group_id, user_id);
+ALTER TABLE clusterconfig ADD CONSTRAINT UQ_config_type_tag UNIQUE (cluster_id, type_name, version_tag);
+ALTER TABLE clusterconfig ADD CONSTRAINT UQ_config_type_version UNIQUE (cluster_id, type_name, version);
+ALTER TABLE viewinstance ADD CONSTRAINT UQ_viewinstance_name UNIQUE (view_name, name);
+ALTER TABLE viewinstance ADD CONSTRAINT UQ_viewinstance_name_id UNIQUE (view_instance_id, view_name, name);
+ALTER TABLE serviceconfig ADD CONSTRAINT UQ_scv_service_version UNIQUE (cluster_id, service_name, version);
+ALTER TABLE adminpermission ADD CONSTRAINT UQ_perm_name_resource_type_id UNIQUE (permission_name, resource_type_id);
+
+--------altering tables by creating foreign keys----------
 ALTER TABLE members ADD CONSTRAINT FK_members_group_id FOREIGN KEY (group_id) REFERENCES groups (group_id);
 ALTER TABLE members ADD CONSTRAINT FK_members_user_id FOREIGN KEY (user_id) REFERENCES users (user_id);
 ALTER TABLE clusterconfig ADD CONSTRAINT FK_clusterconfig_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id);
@@ -117,8 +127,6 @@ ALTER TABLE blueprint_configuration ADD CONSTRAINT FK_cfg_blueprint_name FOREIGN
 ALTER TABLE hostgroup_configuration ADD CONSTRAINT FK_hg_cfg_bp_hg_name FOREIGN KEY (blueprint_name, hostgroup_name) REFERENCES hostgroup(blueprint_name, name);
 ALTER TABLE requestresourcefilter ADD CONSTRAINT FK_reqresfilter_req_id FOREIGN KEY (request_id) REFERENCES request (request_id);
 ALTER TABLE requestoperationlevel ADD CONSTRAINT FK_req_op_level_req_id FOREIGN KEY (request_id) REFERENCES request (request_id);
-ALTER TABLE viewinstance ADD CONSTRAINT UQ_viewinstance_name UNIQUE (view_name, name);
-ALTER TABLE viewinstance ADD CONSTRAINT UQ_viewinstance_name_id UNIQUE (view_instance_id, view_name, name);
 ALTER TABLE viewparameter ADD CONSTRAINT FK_viewparam_view_name FOREIGN KEY (view_name) REFERENCES viewmain(view_name);
 ALTER TABLE viewresource ADD CONSTRAINT FK_viewres_view_name FOREIGN KEY (view_name) REFERENCES viewmain(view_name);
 ALTER TABLE viewinstance ADD CONSTRAINT FK_viewinst_view_name FOREIGN KEY (view_name) REFERENCES viewmain(view_name);
@@ -128,7 +136,6 @@ ALTER TABLE viewentity ADD CONSTRAINT FK_viewentity_view_name FOREIGN KEY (view_
 ALTER TABLE adminresource ADD CONSTRAINT FK_resource_resource_type_id FOREIGN KEY (resource_type_id) REFERENCES adminresourcetype(resource_type_id);
 ALTER TABLE adminprincipal ADD CONSTRAINT FK_principal_principal_type_id FOREIGN KEY (principal_type_id) REFERENCES adminprincipaltype(principal_type_id);
 ALTER TABLE adminpermission ADD CONSTRAINT FK_permission_resource_type_id FOREIGN KEY (resource_type_id) REFERENCES adminresourcetype(resource_type_id);
-ALTER TABLE adminpermission ADD CONSTRAINT UQ_permission_name_resource_type_id UNIQUE (permission_name, resource_type_id);
 ALTER TABLE adminprivilege ADD CONSTRAINT FK_privilege_permission_id FOREIGN KEY (permission_id) REFERENCES adminpermission(permission_id);
 ALTER TABLE adminprivilege ADD CONSTRAINT FK_privilege_resource_id FOREIGN KEY (resource_id) REFERENCES adminresource(resource_id);
 ALTER TABLE viewmain ADD CONSTRAINT FK_view_resource_type_id FOREIGN KEY (resource_type_id) REFERENCES adminresourcetype(resource_type_id);
@@ -237,6 +244,7 @@ CREATE INDEX idx_alert_history_state on alert_history(alert_state);
 CREATE INDEX idx_alert_group_name on alert_group(group_name);
 CREATE INDEX idx_alert_notice_state on alert_notice(notify_state);
 
+---------inserting some data-----------
 INSERT INTO ambari_sequences(sequence_name, value) values ('host_role_command_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, value) values ('user_id_seq', 1);
 INSERT INTO ambari_sequences(sequence_name, value) values ('group_id_seq', 0);
@@ -267,14 +275,14 @@ INSERT INTO ambari_sequences(sequence_name, value) values ('alert_current_id_seq
 INSERT INTO metainfo("metainfo_key", "metainfo_value") values ('version', '${ambariVersion}');
 
 insert into adminresourcetype (resource_type_id, resource_type_name)
-  select 1, 'AMBARI'
+  select 1, 'AMBARI' from dual
   union all
-  select 2, 'CLUSTER'
+  select 2, 'CLUSTER' from dual
   union all
-  select 3, 'VIEW';
+  select 3, 'VIEW' from dual;
 
 insert into adminresource (resource_id, resource_type_id)
-  select 1, 1;
+  select 1, 1 from dual;
 
 insert into Roles(role_name)
 select 'admin' from dual
@@ -282,30 +290,30 @@ union all
 select 'user' from dual;
 
 insert into adminprincipaltype (principal_type_id, principal_type_name)
-  select 1, 'USER'
+  select 1, 'USER' from dual
   union all
-  select 2, 'GROUP';
+  select 2, 'GROUP' from dual;
 
 insert into adminprincipal (principal_id, principal_type_id)
-  select 1, 1;
+  select 1, 1 from dual;
 
-insert into Users(user_id, principal_id, user_name, user_password)
+insert into users(user_id, principal_id, user_name, user_password)
 select 1,1,'admin','538916f8943ec225d97a9a86a2c6ec0818c1cd400e09e03b660fdaaec4af29ddbb6f2b1033b81b00' from dual;
 
 insert into user_roles(role_name, user_id)
 select 'admin',1 from dual;
 
 insert into adminpermission(permission_id, permission_name, resource_type_id)
-  select 1, 'AMBARI.ADMIN', 1
+  select 1, 'AMBARI.ADMIN', 1 from dual
   union all
-  select 2, 'CLUSTER.READ', 2
+  select 2, 'CLUSTER.READ', 2 from dual
   union all
-  select 3, 'CLUSTER.OPERATE', 2
+  select 3, 'CLUSTER.OPERATE', 2 from dual
   union all
-  select 4, 'VIEW.USE', 3;
+  select 4, 'VIEW.USE', 3 from dual;
 
 insert into adminprivilege (privilege_id, permission_id, resource_id, principal_id)
-  select 1, 1, 1, 1;
+  select 1, 1, 1, 1 from dual;
 
 commit;
 

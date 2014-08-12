@@ -28,7 +28,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
@@ -110,10 +109,8 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
 
     dbAccessor.createTable("adminprincipaltype", columns, "principal_type_id");
 
-    dbAccessor.executeQuery("insert into adminprincipaltype (principal_type_id, principal_type_name)\n" +
-        "  select 1, 'USER'\n" +
-        "  union all\n" +
-        "  select 2, 'GROUP'", true);
+    dbAccessor.insertRow("adminprincipaltype", new String[]{"principal_type_id", "principal_type_name"}, new String[]{"1", "'USER'"}, true);
+    dbAccessor.insertRow("adminprincipaltype", new String[]{"principal_type_id", "principal_type_name"}, new String[]{"2", "'GROUP'"}, true);
 
     columns = new ArrayList<DBColumnInfo>();
     columns.add(new DBColumnInfo("principal_id", Long.class, null, null, false));
@@ -122,8 +119,7 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
 
     dbAccessor.createTable("adminprincipal", columns, "principal_id");
 
-    dbAccessor.executeQuery("insert into adminprincipal (principal_id, principal_type_id)\n" +
-        "  select 1, 1", true);
+    dbAccessor.insertRow("adminprincipal", new String[]{"principal_id", "principal_type_id"}, new String[]{"1", "1"}, true);
 
     columns = new ArrayList<DBColumnInfo>();
     columns.add(new DBColumnInfo("resource_type_id", Integer.class, 1, null,
@@ -133,12 +129,9 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
 
     dbAccessor.createTable("adminresourcetype", columns, "resource_type_id");
 
-    dbAccessor.executeQuery("insert into adminresourcetype (resource_type_id, resource_type_name)\n" +
-        "  select 1, 'AMBARI'\n" +
-        "  union all\n" +
-        "  select 2, 'CLUSTER'\n" +
-        "  union all\n" +
-        "  select 3, 'VIEW'", true);
+    dbAccessor.insertRow("adminresourcetype", new String[]{"resource_type_id", "resource_type_name"}, new String[]{"1", "'AMBARI'"}, true);
+    dbAccessor.insertRow("adminresourcetype", new String[]{"resource_type_id", "resource_type_name"}, new String[]{"2", "'CLUSTER'"}, true);
+    dbAccessor.insertRow("adminresourcetype", new String[]{"resource_type_id", "resource_type_name"}, new String[]{"3", "'VIEW'"}, true);
 
     columns = new ArrayList<DBColumnInfo>();
     columns.add(new DBColumnInfo("resource_id", Long.class, null, null, false));
@@ -147,8 +140,7 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
 
     dbAccessor.createTable("adminresource", columns, "resource_id");
 
-    dbAccessor.executeQuery("insert into adminresource (resource_id, resource_type_id)\n" +
-        "  select 1, 1", true);
+    dbAccessor.insertRow("adminresource", new String[]{"resource_id", "resource_type_id"}, new String[]{"1", "1"}, true);
 
     columns = new ArrayList<DBColumnInfo>();
     columns.add(new DBColumnInfo("permission_id", Long.class, null, null, false));
@@ -159,14 +151,10 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
 
     dbAccessor.createTable("adminpermission", columns, "permission_id");
 
-    dbAccessor.executeQuery("insert into adminpermission(permission_id, permission_name, resource_type_id)\n" +
-        "  select 1, 'AMBARI.ADMIN', 1\n" +
-        "  union all\n" +
-        "  select 2, 'CLUSTER.READ', 2\n" +
-        "  union all\n" +
-        "  select 3, 'CLUSTER.OPERATE', 2\n" +
-        "  union all\n" +
-        "  select 4, 'VIEW.USE', 3", true);
+    dbAccessor.insertRow("adminpermission", new String[]{"permission_id", "permission_name", "resource_type_id"}, new String[]{"1", "'AMBARI.ADMIN'", "1"}, true);
+    dbAccessor.insertRow("adminpermission", new String[]{"permission_id", "permission_name", "resource_type_id"}, new String[]{"2", "'CLUSTER.READ'", "2"}, true);
+    dbAccessor.insertRow("adminpermission", new String[]{"permission_id", "permission_name", "resource_type_id"}, new String[]{"3", "'CLUSTER.OPERATE'", "3"}, true);
+    dbAccessor.insertRow("adminpermission", new String[]{"permission_id", "permission_name", "resource_type_id"}, new String[]{"4", "'VIEW.USE'", "4"}, true);
 
     columns = new ArrayList<DBColumnInfo>();
     columns.add(new DBColumnInfo("privilege_id", Long.class, null, null, false));
@@ -176,13 +164,15 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
 
     dbAccessor.createTable("adminprivilege", columns, "privilege_id");
 
-    dbAccessor.executeQuery("insert into adminprivilege (privilege_id, permission_id, resource_id, principal_id)\n" +
-        "  select 1, 1, 1, injector1", true);
+    dbAccessor.insertRow("adminprivilege", new String[]{"privilege_id", "permission_id", "resource_id", "principal_id"}, new String[]{"1", "1", "1", "1"}, true);
 
-
-    DBColumnInfo clusterConfigAttributesColumn = new DBColumnInfo(
-        "config_attributes", String.class, 32000, null, true);
-    dbAccessor.addColumn("clusterconfig", clusterConfigAttributesColumn);
+    if (dbType.equals(Configuration.ORACLE_DB_NAME)) {
+      dbAccessor.executeQuery("ALTER TABLE clusterconfig ADD config_attributes CLOB NULL");
+    } else {
+      DBColumnInfo clusterConfigAttributesColumn = new DBColumnInfo(
+          "config_attributes", String.class, 32000, null, true);
+      dbAccessor.addColumn("clusterconfig", clusterConfigAttributesColumn);
+    }
 
     // Add columns
     dbAccessor.addColumn("viewmain", new DBColumnInfo("mask",
