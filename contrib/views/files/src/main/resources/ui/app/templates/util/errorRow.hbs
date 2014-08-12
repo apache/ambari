@@ -16,9 +16,24 @@
    limitations under the License.
 }}
 
-<div class="text-center">
+<div>
   <button {{action 'removeAlert'}} type="button" class="close" aria-hidden="true">&times;</button>
-  <strong>{{output.status}} </strong> {{output.message}}
+  <div class="text-center"><strong>{{content.status}} </strong> {{publicMessage}}
+    {{#if stackTrace}}<a href="#" {{action "toggleStackTrace" post}}>
+        {{#if isExpanded}}
+            <span class="glyphicon glyphicon-collapse-down"></span> Collapse Stack Trace
+        {{else}}
+            <span class="glyphicon glyphicon-expand"></span> Expand Stack Trace
+        {{/if}}
+      </a>
+    </div>
+    {{#if isExpanded}}
+        <pre class="prettyprint">
+{{publicMessage}}
+{{stackTrace}}
+        </pre>
+    {{/if}}
+  {{/if}}
 </div>
   
 

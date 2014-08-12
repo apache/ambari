@@ -19,16 +19,8 @@
 package org.apache.ambari.view.filebrowser;
 
 import java.io.FileNotFoundException;
-import java.io.IOException;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -39,6 +31,8 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import org.apache.ambari.view.ViewContext;
+import org.apache.ambari.view.filebrowser.utils.NotFoundFormattedException;
+import org.apache.ambari.view.filebrowser.utils.ServiceFormattedException;
 
 /**
  * File operations service
@@ -57,20 +51,20 @@ public class FileOperationService extends HdfsService {
    * List dir
    * @param path path
    * @return response with dir content
-   * @throws Exception
    */
   @GET
   @Path("/listdir")
   @Produces(MediaType.APPLICATION_JSON)
-  public Response listdir(@QueryParam("path") String path) throws Exception {
+  public Response listdir(@QueryParam("path") String path) {
     try {
       return Response.ok(
           HdfsApi.fileStatusToJSON(getApi(context).listdir(path))).build();
+    } catch (WebApplicationException ex) {
+      throw ex;
     } catch (FileNotFoundException ex) {
-      return Response.ok(Response.Status.NOT_FOUND.getStatusCode())
-          .entity(ex.getMessage()).build();
-    } catch (Throwable ex) {
-      throw new Exception(ex.getMessage());
+      throw new NotFoundFormattedException(ex.getMessage(), ex);
+    } catch (Exception ex) {
+      throw new ServiceFormattedException(ex.getMessage(), ex);
     }
   }
 
@@ -78,131 +72,152 @@ public class FileOperationService extends HdfsService {
    * Rename
    * @param request rename request
    * @return response with success
-   * @throws IOException
-   * @throws Exception
    */
   @POST
   @Path("/rename")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public Response rename(final SrcDstFileRequest request) throws IOException,
-      Exception {
-    HdfsApi api = getApi(context);
-    ResponseBuilder result;
-    if (api.rename(request.src, request.dst)) {
-      result = Response.ok(HdfsApi.fileStatusToJSON(api
-          .getFileStatus(request.dst)));
-    } else {
-      result = Response.ok(new BoolResult(false)).status(422);
+  public Response rename(final SrcDstFileRequest request) {
+    try {
+      HdfsApi api = getApi(context);
+      ResponseBuilder result;
+      if (api.rename(request.src, request.dst)) {
+        result = Response.ok(HdfsApi.fileStatusToJSON(api
+            .getFileStatus(request.dst)));
+      } else {
+        result = Response.ok(new BoolResult(false)).status(422);
+      }
+      return result.build();
+    } catch (WebApplicationException ex) {
+      throw ex;
+    } catch (Exception ex) {
+      throw new ServiceFormattedException(ex.getMessage(), ex);
     }
-    return result.build();
   }
 
   /**
    * Copy file
    * @param request source and destination request
    * @return response with success
-   * @throws IOException
-   * @throws Exception
    */
   @POST
   @Path("/copy")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public Response copy(final SrcDstFileRequest request,
-                       @Context HttpHeaders headers, @Context UriInfo ui) throws IOException,
-      Exception {
-    HdfsApi api = getApi(context);
-    ResponseBuilder result;
-    if (api.copy(request.src, request.dst)) {
-      result = Response.ok(HdfsApi.fileStatusToJSON(api
-          .getFileStatus(request.dst)));
-    } else {
-      result = Response.ok(new BoolResult(false)).status(422);
+                       @Context HttpHeaders headers, @Context UriInfo ui) {
+    try {
+      HdfsApi api = getApi(context);
+      ResponseBuilder result;
+      if (api.copy(request.src, request.dst)) {
+        result = Response.ok(HdfsApi.fileStatusToJSON(api
+            .getFileStatus(request.dst)));
+      } else {
+        result = Response.ok(new BoolResult(false)).status(422);
+      }
+      return result.build();
+    } catch (WebApplicationException ex) {
+      throw ex;
+    } catch (Exception ex) {
+      throw new ServiceFormattedException(ex.getMessage(), ex);
     }
-    return result.build();
   }
 
   /**
    * Make directory
    * @param request make directory request
    * @return response with success
-   * @throws IOException
-   * @throws Exception
    */
   @PUT
   @Path("/mkdir")
   @Produces(MediaType.APPLICATION_JSON)
-  public Response mkdir(final MkdirRequest request) throws IOException,
-      Exception {
-    HdfsApi api = getApi(context);
-    ResponseBuilder result;
-    if (api.mkdir(request.path)) {
-      result = Response.ok(HdfsApi.fileStatusToJSON(api.getFileStatus(request.path)));
-    } else {
-      result = Response.ok(new BoolResult(false)).status(422);
+  public Response mkdir(final MkdirRequest request) {
+    try{
+      HdfsApi api = getApi(context);
+      ResponseBuilder result;
+      if (api.mkdir(request.path)) {
+        result = Response.ok(HdfsApi.fileStatusToJSON(api.getFileStatus(request.path)));
+      } else {
+        result = Response.ok(new BoolResult(false)).status(422);
+      }
+      return result.build();
+    } catch (WebApplicationException ex) {
+      throw ex;
+    } catch (Exception ex) {
+      throw new ServiceFormattedException(ex.getMessage(), ex);
     }
-    return result.build();
   }
 
   /**
    * Empty trash
    * @return response with success
-   * @throws IOException
-   * @throws Exception
    */
   @DELETE
   @Path("/trash/emptyTrash")
   @Produces(MediaType.APPLICATION_JSON)
-  public Response emptyTrash() throws IOException, Exception {
-    HdfsApi api = getApi(context);
-    api.emptyTrash();
-    return Response.ok(new BoolResult(true)).build();
+  public Response emptyTrash() {
+    try {
+      HdfsApi api = getApi(context);
+      api.emptyTrash();
+      return Response.ok(new BoolResult(true)).build();
+    } catch (WebApplicationException ex) {
+      throw ex;
+    } catch (Exception ex) {
+      throw new ServiceFormattedException(ex.getMessage(), ex);
+    }
   }
 
   /**
    * Move to trash
    * @param request remove request
    * @return response with success
-   * @throws IOException
-   * @throws Exception
    */
   @DELETE
   @Path("/moveToTrash")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public Response moveToTrash(RemoveRequest request) throws IOException, Exception {
-    HdfsApi api = getApi(context);
-    ResponseBuilder result;
-    if (api.moveToTrash(request.path)){
-      result = Response.ok(new BoolResult(true)).status(204);
-    } else {
-      result = Response.ok(new BoolResult(false)).status(422);
+  public Response moveToTrash(RemoveRequest request) {
+    try {
+      HdfsApi api = getApi(context);
+      ResponseBuilder result;
+      if (api.moveToTrash(request.path)){
+        result = Response.ok(new BoolResult(true)).status(204);
+      } else {
+        result = Response.ok(new BoolResult(false)).status(422);
+      }
+      return result.build();
+    } catch (WebApplicationException ex) {
+      throw ex;
+    } catch (Exception ex) {
+      throw new ServiceFormattedException(ex.getMessage(), ex);
     }
-    return result.build();
   }
 
   /**
    * Remove
    * @param request remove request
    * @return response with success
-   * @throws IOException
-   * @throws Exception
    */
   @DELETE
   @Path("/remove")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public Response remove(RemoveRequest request, @Context HttpHeaders headers,
-                         @Context UriInfo ui) throws IOException, Exception {
-    HdfsApi api = getApi(context);
-    ResponseBuilder result;
-    if (api.delete(request.path, request.recursive)){
-      result = Response.ok(new BoolResult(true)).status(204);
-    } else {
-      result = Response.ok(new BoolResult(false)).status(422);
+                         @Context UriInfo ui) {
+    try {
+      HdfsApi api = getApi(context);
+      ResponseBuilder result;
+      if (api.delete(request.path, request.recursive)) {
+        result = Response.ok(new BoolResult(true)).status(204);
+      } else {
+        result = Response.ok(new BoolResult(false)).status(422);
+      }
+      return result.build();
+    } catch (WebApplicationException ex) {
+      throw ex;
+    } catch (Exception ex) {
+      throw new ServiceFormattedException(ex.getMessage(), ex);
     }
-    return result.build();
   }
 
   /**

@@ -6,9 +6,9 @@
    to you under the Apache License, Version 2.0 (the
    "License"); you may not use this file except in compliance
    with the License.  You may obtain a copy of the License at
-  
+
        http://www.apache.org/licenses/LICENSE-2.0
-  
+
    Unless required by applicable law or agreed to in writing, software
    distributed under the License is distributed on an "AS IS" BASIS,
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,8 +17,21 @@
 }}
 
 <div class="container">
-  <div class="alert alert-danger">
-    <strong>{{content.status}}</strong>
-    {{content.statusText}}
-  </div>
+    <div class="alert alert-danger collapse-group">
+        <strong>{{content.status}}</strong> {{publicMessage}}
+    </div>
+  {{#if stackTrace}}
+      <a href="#" {{action "toggleStackTrace" post}}>
+        {{#if isExpanded}}
+            <span class="glyphicon glyphicon-collapse-down"></span> Collapse Stack Trace
+        {{else}}
+            <span class="glyphicon glyphicon-expand"></span> Expand Stack Trace
+        {{/if}}
+      </a>
+    {{#if isExpanded}}
+        <pre class="prettyprint">
+{{stackTrace}}
+        </pre>
+    {{/if}}
+  {{/if}}
 </div>

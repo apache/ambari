@@ -18,11 +18,11 @@
 
 package org.apache.ambari.view.filebrowser;
 
-import java.io.IOException;
-
 import javax.xml.bind.annotation.XmlRootElement;
 
 import org.apache.ambari.view.ViewContext;
+import org.apache.ambari.view.filebrowser.utils.MisconfigurationFormattedException;
+import org.apache.ambari.view.filebrowser.utils.ServiceFormattedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,13 +60,18 @@ public abstract class HdfsService {
    * Ger HdfsApi instance
    * @param context View Context instance
    * @return HdfsApi business delegate
-   * @throws IOException
-   * @throws Exception
    */
-  public HdfsApi getApi(ViewContext context) throws IOException, Exception {
+  public HdfsApi getApi(ViewContext context) {
     if (_api == null) {
       Thread.currentThread().setContextClassLoader(null);
-      _api = new HdfsApi(context.getProperties().get("dataworker.defaultFs"), getUsername(context));
+      String defaultFs = context.getProperties().get("dataworker.defaultFs");
+      if (defaultFs == null)
+        throw new MisconfigurationFormattedException("dataworker.defaultFs");
+      try {
+        _api = new HdfsApi(defaultFs, getUsername(context));
+      } catch (Exception ex) {
+        throw new ServiceFormattedException("HdfsApi connection failed. Check \"dataworker.defaultFs\" property", ex);
+      }
     }
     return _api;
   }
@@ -82,5 +87,4 @@ public abstract class HdfsService {
       username = context.getUsername();
     return username;
   }
-
 }

@@ -43,7 +43,7 @@ exports.config =
     addSourceURLs: true
 
   paths:
-    public: '/usr/lib/ambari-server/web/views-debug/FILES/FILES_1/'
+    public: '/usr/lib/ambari-server/web/views-debug/FILES/0.1.0/MyFiles/'
 
   overrides:
     production:

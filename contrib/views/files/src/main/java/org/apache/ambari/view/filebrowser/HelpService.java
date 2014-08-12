@@ -19,19 +19,17 @@
 package org.apache.ambari.view.filebrowser;
 
 import java.io.FileNotFoundException;
-import java.io.IOException;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.view.ViewContext;
+import org.apache.ambari.view.filebrowser.utils.NotFoundFormattedException;
+import org.apache.ambari.view.filebrowser.utils.ServiceFormattedException;
 
 /**
  * Help service
@@ -83,52 +81,60 @@ public class HelpService extends HdfsService {
   /**
    * Returns home directory
    * @return home directory
-   * @throws Exception
    */
   @GET
   @Path("/home")
   @Produces(MediaType.APPLICATION_JSON)
-  public Response homeDir()
-      throws
-      Exception {
-    HdfsApi api = getApi(context);
-    return Response
-        .ok(HdfsApi.fileStatusToJSON(api.getFileStatus(api.getHomeDir()
-            .toString()))).build();
+  public Response homeDir() {
+    try {
+      HdfsApi api = getApi(context);
+      return Response
+          .ok(HdfsApi.fileStatusToJSON(api.getFileStatus(api.getHomeDir()
+              .toString()))).build();
+    } catch (WebApplicationException ex) {
+      throw ex;
+    } catch (Exception ex) {
+      throw new ServiceFormattedException(ex.getMessage(), ex);
+    }
   }
 
   /**
    * Is trash enabled
    * @return is trash enabled
-   * @throws Exception
    */
   @GET
   @Path("/trash/enabled")
   @Produces(MediaType.APPLICATION_JSON)
-  public Response trashEnabled()
-      throws Exception {
-    HdfsApi api = getApi(context);
-    return Response.ok(new BoolResult(api.trashEnabled())).build();
+  public Response trashEnabled() {
+    try {
+      HdfsApi api = getApi(context);
+      return Response.ok(new BoolResult(api.trashEnabled())).build();
+    } catch (WebApplicationException ex) {
+      throw ex;
+    } catch (Exception ex) {
+      throw new ServiceFormattedException(ex.getMessage(), ex);
+    }
   }
 
   /**
    * Trash dir
    * @return trash dir
-   * @throws Exception
    */
   @GET
   @Path("/trashDir")
   @Produces(MediaType.APPLICATION_JSON)
-  public Response trashdir()
-      throws Exception {
-    HdfsApi api = getApi(context);
+  public Response trashdir() {
     try {
+      HdfsApi api = getApi(context);
       return Response.ok(
           HdfsApi.fileStatusToJSON(api.getFileStatus(api.getTrashDir()
               .toString()))).build();
+    } catch (WebApplicationException ex) {
+      throw ex;
     } catch (FileNotFoundException ex) {
-      return Response.ok(new BoolResult(false)).status(Status.NOT_FOUND)
-          .build();
+      throw new NotFoundFormattedException(ex.getMessage(), ex);
+    } catch (Exception ex) {
+      throw new ServiceFormattedException(ex.getMessage(), ex);
     }
   }
 
