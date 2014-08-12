@@ -143,7 +143,7 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
       List<ClientConfigFileDefinition> clientConfigFiles = componentInfo.getClientConfigFiles();
 
       if (clientConfigFiles == null) {
-        throw new SystemException("No cofiguration files defined for the component");
+        throw new SystemException("No configuration files defined for the component " + componentInfo.getName());
       }
 
       String stackRoot = managementController.getAmbariMetaInfo().getStackRoot().getAbsolutePath();

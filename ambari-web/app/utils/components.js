@@ -96,13 +96,26 @@ module.exports = {
       (isForHost ? 'hosts/' + data.hostName + '/host_components/' : 'services/' + data.serviceName + '/components/') +
       data.componentName + '?format=client_config_tar';
     var self = this;
-    $.fileDownload(url).fail(function () {
-      var popup = App.showConfirmationPopup(function () {
-        popup.hide();
-        self.downloadClientConfigs({
-          context: Em.Object.create(data)
-        });
-      }, Em.I18n.t('services.service.actions.downloadClientConfigs.fail.popup.body').format(data.displayName))
+    $.fileDownload(url).fail(function (error) {
+      var errorObj = JSON.parse($(error).text());
+      var isNoConfigs = errorObj.message.contains(Em.I18n.t('services.service.actions.downloadClientConfigs.fail.noConfigFile'));
+      var errorMessage = isNoConfigs ? Em.I18n.t('services.service.actions.downloadClientConfigs.fail.noConfigFile') :
+        Em.I18n.t('services.service.actions.downloadClientConfigs.fail.popup.body').format(data.displayName, errorObj.status, errorObj.message);
+      App.ModalPopup.show({
+        header: Em.I18n.t('services.service.actions.downloadClientConfigs.fail.popup.header').format(data.displayName),
+        bodyClass: Ember.View.extend({
+          template: Em.Handlebars.compile(errorMessage)
+        }),
+        secondary: isNoConfigs ? false : Em.I18n.t('common.cancel'),
+        onPrimary: function () {
+          this.hide();
+          if (!isNoConfigs) {
+            self.downloadClientConfigs({
+              context: Em.Object.create(data)
+            })
+          }
+        }
+      });
     });
   }
 
