@@ -1,0 +1,175 @@
+{
+  "hosts": ["ab2test-5.c.pramod-thangali.internal", "ab2test-6.c.pramod-thangali.internal", "ab2test-7.c.pramod-thangali.internal"],
+  "services": ["HDFS", "MAPREDUCE2", "YARN", "TEZ", "NAGIOS", "GANGLIA", "HIVE", "HCATALOG", "WEBHCAT", "SQOOP", "OOZIE", "ZOOKEEPER", "FALCON", "STORM", "FLUME", "PIG"],
+  "recommendations": {
+  "blueprint": {
+    "host_groups": [
+      {
+        "name": "host-group-3",
+        "components": [
+          {
+            "name": "NAMENODE"
+          },
+          {
+            "name": "STORM_UI_SERVER"
+          },
+          {
+            "name": "GANGLIA_SERVER"
+          },
+          {
+            "name": "ZOOKEEPER_SERVER"
+          },
+          {
+            "name": "STORM_REST_API"
+          },
+          {
+            "name": "NIMBUS"
+          },
+          {
+            "name": "DRPC_SERVER"
+          },
+          {
+            "name": "MYSQL_SERVER"
+          },
+          {
+            "name": "NAGIOS_SERVER"
+          }
+        ]
+      },
+      {
+        "name": "host-group-1",
+        "components": [
+          {
+            "name": "YARN_CLIENT"
+          },
+          {
+            "name": "NODEMANAGER"
+          },
+          {
+            "name": "HDFS_CLIENT"
+          },
+          {
+            "name": "HIVE_CLIENT"
+          },
+          {
+            "name": "SQOOP"
+          },
+          {
+            "name": "GANGLIA_MONITOR"
+          },
+          {
+            "name": "DATANODE"
+          },
+          {
+            "name": "FLUME_HANDLER"
+          },
+          {
+            "name": "MAPREDUCE2_CLIENT"
+          },
+          {
+            "name": "SUPERVISOR"
+          },
+          {
+            "name": "OOZIE_CLIENT"
+          },
+          {
+            "name": "ZOOKEEPER_CLIENT"
+          },
+          {
+            "name": "PIG"
+          },
+          {
+            "name": "ZOOKEEPER_SERVER"
+          },
+          {
+            "name": "JOURNALNODE"
+          },
+          {
+            "name": "ZKFC"
+          },
+          {
+            "name": "TEZ_CLIENT"
+          },
+          {
+            "name": "FALCON_CLIENT"
+          },
+          {
+            "name": "HCAT"
+          }
+        ]
+      },
+      {
+        "name": "host-group-2",
+        "components": [
+          {
+            "name": "FALCON_SERVER"
+          },
+          {
+            "name": "OOZIE_SERVER"
+          },
+          {
+            "name": "HIVE_SERVER"
+          },
+          {
+            "name": "APP_TIMELINE_SERVER"
+          },
+          {
+            "name": "HISTORYSERVER"
+          },
+          {
+            "name": "HIVE_METASTORE"
+          },
+          {
+            "name": "ZOOKEEPER_SERVER"
+          },
+          {
+            "name": "RESOURCEMANAGER"
+          },
+          {
+            "name": "WEBHCAT_SERVER"
+          },
+          {
+            "name": "SECONDARY_NAMENODE"
+          }
+        ]
+      }
+    ],
+    "configurations": {
+      "core-site": {},
+      "global": {
+        "properties": {}
+      },
+      "hbase-site": {},
+      "hdfs-site": {},
+      "yarn-site": {}
+    }
+  },
+  "blueprint_cluster_binding": {
+    "host_groups": [
+      {
+        "name": "host-group-3",
+        "hosts": [
+          {
+            "fqdn": "ab2test-5.c.pramod-thangali.internal"
+          }
+        ]
+      },
+      {
+        "name": "host-group-1",
+        "hosts": [
+          {
+            "fqdn": "ab2test-7.c.pramod-thangali.internal"
+          }
+        ]
+      },
+      {
+        "name": "host-group-2",
+        "hosts": [
+          {
+            "fqdn": "ab2test-6.c.pramod-thangali.internal"
+          }
+        ]
+      }
+    ]
+  }
+}}

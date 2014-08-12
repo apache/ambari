@@ -193,6 +193,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
 
   restartHosts: Em.A(),
 
+  //TODO after moving validation/recommendation to BE defaultsInfo must be deleted
   defaultsInfo: null,
   /**
    * On load function
@@ -637,7 +638,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       App.config.OnNnHAHideSnn(serviceConfig);
     }
 
-    if (serviceName || serviceConfig.serviceName === 'MISC') {
+    if ((serviceName || serviceConfig.serviceName === 'MISC') && !App.supports.serverRecommendValidate) {
       // set recommended Defaults first then load the configs (including set validator)
       var s = App.StackService.find().findProperty('serviceName', this.get('content.serviceName'));
       var defaultsProvider = s.get('defaultsProviders');
@@ -647,6 +648,13 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         Em.run(this, 'setDefaults');
       }
     } else {
+      if (App.supports.serverRecommendValidate) {
+        var serviceConfig = App.config.createServiceConfig(this.get('content.serviceName'));
+        this.loadConfigs(this.get('allConfigs'), serviceConfig);
+        this.checkOverrideProperty(serviceConfig);
+        this.checkDatabaseProperties(serviceConfig);
+        this.get('stepConfigs').pushObject(serviceConfig);
+      }
       this.set('selectedService', this.get('stepConfigs').objectAt(0));
       this.checkForSecureConfig(this.get('selectedService'));
       this.set('dataIsLoaded', true);
@@ -656,6 +664,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     }
   },
 
+  //TODO after moving validation/recommendation to BE getInfoForDefaults must be deleted
   setDefaults: function(){
     var serviceConfig = App.config.createServiceConfig(this.get('content.serviceName'));
     this.loadConfigs(this.get('allConfigs'), serviceConfig);
@@ -720,6 +729,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     }, this)
   },
 
+  //TODO after moving validation/recommendation to BE getInfoForDefaults must be deleted
   /**
    * Get info about hosts and host components to configDefaultsProviders
    * @returns {{masterComponentHosts: Array, slaveComponentHosts: Array, hosts: {}}}
@@ -750,6 +760,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     }
   },
 
+  //TODO after moving validation/recommendation to BE getInfoForDefaultsSuccessCallback must be deleted
   getInfoForDefaultsSuccessCallback: function (response) {
     var defaultsInfo = {
       masterComponentHosts: this.getMasterComponents(),
@@ -760,6 +771,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     this.setRecommendedDefaults(this.get('advancedConfigs'));
   },
 
+  //TODO after moving validation/recommendation to BE getSlaveComponents must be deleted
   /**
    * parse json response and build slave components array
    * @param response
@@ -790,6 +802,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     return slaveComponentHosts;
   },
 
+  //TODO after moving validation/recommendation to BE getMasterComponents must be deleted
   /**
    * build master components array of data from HostComponent model
    * @return {Array}
@@ -806,6 +819,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     });
     return masterComponentHosts;
   },
+
+  //TODO after moving validation/recommendation to BE getHostsInfo must be deleted
   /**
    * parse json response and build hosts map
    * @param response
@@ -886,6 +901,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     }
   },
 
+  //TODO after moving validation/recommendation to BE setRecommendedDefaults must be deleted
   /**
    * set recommended defaults for advanced configs for current service
    * @param {Array} advancedConfigs

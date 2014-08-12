@@ -1246,7 +1246,24 @@ var urls = {
       return {
         data: JSON.stringify({
           hosts: data.hosts,
-          services: data.services
+          services: data.services,
+          recommend: "host_groups"
+        })
+      }
+    }
+  },
+
+  'wizard.step7.loadrecommendations.configs': {
+    'real': '{stackVersionUrl}/recommendations',
+    'mock': '/data/stacks/HDP-2.1/recommendations_configs.json',
+    'type': 'POST',
+    'format': function (data) {
+      return {
+        data: JSON.stringify({
+          hosts: data.hosts,
+          services: data.services,
+          recommendations: data.recommendations,
+          recommend: "configurations"
         })
       }
     }

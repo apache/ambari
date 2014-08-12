@@ -18,6 +18,7 @@
 
 var App = require('app');
 require('models/service_config');
+//TODO after moving validation/recommendation to BE belov requirement must be deleted
 require('utils/configs/defaults_providers/user_defaults_provider');
 require('utils/configs/validators/user_configs_validator');
 
@@ -29,6 +30,7 @@ module.exports = [
   Em.Object.create({
     serviceName: 'MISC',
     displayName: 'Misc',
+    //TODO after moving validation/recommendation to BE configsValidator and defaultsProviders must be deleted
     configsValidator: App.userConfigsValidator,
     defaultsProviders: [App.userDefaultsProvider.create()],
     configCategories: [

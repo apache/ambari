@@ -630,7 +630,7 @@ App.config = Em.Object.create({
    * @param localDB
    * @return {Array}
    */
-  renderConfigs: function (configs, storedConfigs, allSelectedServiceNames, installedServiceNames, localDB) {
+  renderConfigs: function (configs, storedConfigs, allSelectedServiceNames, installedServiceNames, localDB, recommended) {
     var renderedServiceConfigs = [];
     var services = [];
 
@@ -670,23 +670,43 @@ App.config = Em.Object.create({
 
       // Use calculated default values for some configs
       var recommendedDefaults = {};
-      if (!storedConfigs && service.get('defaultsProviders')) {
-        service.get('defaultsProviders').forEach(function (defaultsProvider) {
-          var defaults = defaultsProvider.getDefaults(localDB);
-          for (var name in defaults) {
-            var config = configsByService.findProperty('name', name);
-            if (!config) {
-              continue;
+      if (App.supports.serverRecommendValidate) {
+        if (!storedConfigs && service.get('configTypes')) {
+          Object.keys(service.get('configTypes')).forEach(function (type) {
+            if (!recommended || !recommended[type]) {
+              return;
             }
-            if (!!defaults[name]) {
+            var defaults = recommended[type].properties;
+            for (var name in defaults) {
+              var config = configsByService.findProperty('name', name);
+              if (!config) {
+                continue;
+              }
               recommendedDefaults[name] = defaults[name];
               config.set('value', defaults[name]);
               config.set('defaultValue', defaults[name]);
-            } else {
-              recommendedDefaults[name] = config.get('defaultValue');
             }
-          }
-        });
+          });
+        }
+      } else {
+        if (!storedConfigs && service.get('defaultsProviders')) {
+          service.get('defaultsProviders').forEach(function (defaultsProvider) {
+            var defaults = defaultsProvider.getDefaults(localDB);
+            for (var name in defaults) {
+              var config = configsByService.findProperty('name', name);
+              if (!config) {
+                continue;
+              }
+              if (!!defaults[name]) {
+                recommendedDefaults[name] = defaults[name];
+                config.set('value', defaults[name]);
+                config.set('defaultValue', defaults[name]);
+              } else {
+                recommendedDefaults[name] = config.get('defaultValue');
+              }
+            }
+          });
+        }
       }
       if (service.get('configsValidator')) {
         service.get('configsValidator').set('recommendedDefaults', recommendedDefaults);

@@ -20,6 +20,7 @@ var App = require('app');
 require('utils/helper');
 require('mixins/models/service_mixin');
 require('models/service_config');
+//TODO after moving validation/recommendation to BE belove requirements must be deleted
 require('utils/configs/defaults_providers/yarn_defaults_provider');
 require('utils/configs/defaults_providers/tez_defaults_provider');
 require('utils/configs/defaults_providers/hive_defaults_provider');
@@ -159,12 +160,12 @@ App.StackService = DS.Model.extend(App.ServiceModelMixin, {
   customReviewHandler: function () {
     return App.StackService.reviewPageHandlers[this.get('serviceName')];
   }.property('serviceName'),
-
+  //TODO after moving validation/recommendation to BE defaultsProviders must be deleted
   defaultsProviders: function () {
     var defaultConfigsHandler = App.StackService.defaultConfigsHandler[this.get('serviceName')];
     return defaultConfigsHandler && defaultConfigsHandler.defaultsProviders;
   }.property('serviceName'),
-
+  //TODO after moving validation/recommendation to BE configsValidator must be deleted
   configsValidator: function () {
     var defaultConfigsHandler = App.StackService.defaultConfigsHandler[this.get('serviceName')];
     return defaultConfigsHandler && defaultConfigsHandler.configsValidator;
@@ -253,6 +254,7 @@ App.StackService.reviewPageHandlers = {
   }
 };
 
+//TODO after moving validation/recommendation to BE defaultConfigsHandler must be deleted
 App.StackService.defaultConfigsHandler = {
   YARN: {defaultsProviders: [App.YARNDefaultsProvider.create()], configsValidator: App.YARNConfigsValidator},
   MAPREDUCE2: {defaultsProviders: [App.YARNDefaultsProvider.create()], configsValidator: App.MapReduce2ConfigsValidator},
