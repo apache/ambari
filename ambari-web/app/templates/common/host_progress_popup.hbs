@@ -46,7 +46,7 @@
                 <div class="operation-name-icon-wrap">
                   <i {{bindAttr class=":service-status servicesInfo.status servicesInfo.icon"}}></i>
                   {{#if App.supports.abortRequests}}
-                    <i {{action abortRequest servicesInfo}} {{translateAttr title="hostPopup.bgop.abortRequest.title"}} class="abort-icon icon-remove-circle hidden"></i>
+                    <i {{action abortRequest servicesInfo}} {{translateAttr title="hostPopup.bgop.abortRequest.title"}} {{bindAttr class="servicesInfo.abortClassName servicesInfo.abortable:abortable :abort-icon :icon-remove-circle :hidden"}}></i>
                   {{/if}}
                   <a href="#">
                     {{servicesInfo.name}}

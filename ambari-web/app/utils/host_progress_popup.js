@@ -68,6 +68,12 @@ App.HostPopup = Em.Object.create({
   isPopup: null,
 
   /**
+   * List of aborted requests
+   * @type {Array}
+   */
+  abortedRequests: [],
+
+  /**
    * Entering point of this component
    * @param {String} serviceName
    * @param {Object} controller
@@ -264,8 +270,9 @@ App.HostPopup = Em.Object.create({
       this.set("servicesInfo", null);
       this.get("inputData").forEach(function (service) {
         var status = statuses[service.status] || pendingStatus;
+        var id = service.id;
         var newService = Ember.Object.create({
-          id: service.id,
+          id: id,
           displayName: service.displayName,
           progress: service.progress,
           status: App.format.taskStatus(status[0]),
@@ -281,8 +288,19 @@ App.HostPopup = Em.Object.create({
           sourceRequestScheduleId: service.get('sourceRequestScheduleId'),
           contextCommand: service.get('contextCommand')
         });
+        if (App.get('supports.abortRequests')) {
+          var abortable = !Em.keys(statuses).contains(service.status) || service.status == 'IN_PROGRESS';
+          if (!abortable) {
+            var abortedRequests = this.get('abortedRequests');
+            this.set('abortedRequests', abortedRequests.without(id));
+          }
+          newService.setProperties({
+            abortable: abortable,
+            abortClassName: 'abort' + id
+          });
+        }
         allNewServices.push(newService);
-      });
+      }, this);
       self.set('servicesInfo', allNewServices);
       this.setBackgroundOperationHeader(isServiceListHidden);
     }
@@ -482,10 +500,16 @@ App.HostPopup = Em.Object.create({
         if (App.get('supports.abortRequests')) {
           $(document).on({
             mouseenter: function () {
-              if ($(this).find('.service-status').hasClass(App.format.taskStatus('IN_PROGRESS')) || $(this).find('.service-status').hasClass(App.format.taskStatus('PENDING'))) {
-                App.tooltip($('.abort-icon'));
-                $(this).find('.service-status').addClass('hidden');
-                $(this).find('.abort-icon').removeClass('hidden');
+              var statusIcon = $(this).find('.service-status');
+              var abortIcon = $(this).find('.abort-icon.abortable');
+              if (abortIcon.length > 0) {
+                var id = parseInt(abortIcon.attr('class').split(' ')[0].match(/\d+/)[0]);
+                var abortedRequests = self.get('abortedRequests');
+                if (!(abortedRequests && abortedRequests.contains(id))) {
+                  App.tooltip($('.abort-icon'));
+                  statusIcon.addClass('hidden');
+                  abortIcon.removeClass('hidden');
+                }
               }
             },
             mouseleave: function () {
@@ -1014,6 +1038,8 @@ App.HostPopup = Em.Object.create({
           var requestName = event.context.get('name');
           var self = this;
           App.showConfirmationPopup(function () {
+            var requestId = event.context.get('id');
+            self.get('controller.abortedRequests').push(requestId);
             App.ajax.send({
               name: 'background_operations.abort_request',
               sender: self,
@@ -1038,7 +1064,9 @@ App.HostPopup = Em.Object.create({
         /**
          * Method called on unsuccessful sending request to abort operation
          */
-        abortRequestErrorCallback: function (xhr, textStatus, error, opt) {
+        abortRequestErrorCallback: function (xhr, textStatus, error, opt, data) {
+          var abortedRequests = this.get('controller.abortedRequests');
+          this.set('controller.abortedRequests', abortedRequests.without(data.requestId));
           App.ajax.defaultErrorHandler(xhr, opt.url, 'PUT', xhr.status);
         },
 

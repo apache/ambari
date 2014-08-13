@@ -373,27 +373,39 @@ describe('App.HostPopup', function () {
   });
 
   describe('#abortRequestErrorCallback', function () {
+    var popup = App.HostPopup.createPopup();
     beforeEach(function () {
       sinon.stub(App.ajax, 'get', function(k) {
         if (k === 'modalPopup') return null;
         return Em.get(App, k);
       });
-      App.HostPopup.createPopup();
       sinon.spy(App.ModalPopup, 'show');
-    });
-    afterEach(function () {
-      App.HostPopup.get('isPopup').hide();
-      App.ModalPopup.show.restore();
-      App.ajax.get.restore();
-    });
-    it('should open popup', function () {
-      App.HostPopup.get('isPopup.bodyClass').create().abortRequestErrorCallback({
+      sinon.stub(popup, 'get', function(k) {
+        if (k === 'abortedRequests') return [0];
+        return Em.get(popup, k);
+      });
+      popup.get('bodyClass').create().abortRequestErrorCallback({
         responseText: {
           message: 'message'
         },
         status: 404
-      }, 'url', 'PUT', 404);
+      }, 'status', 'error', {
+        url: 'url'
+      }, {
+        requestId: 0
+      });
+    });
+    afterEach(function () {
+      App.HostPopup.get('isPopup').hide();
+      App.ModalPopup.show.restore();
+      popup.get.restore();
+      App.ajax.get.restore();
+    });
+    it('should open popup', function () {
       expect(App.ModalPopup.show.calledOnce).to.be.true;
+    });
+    it('should remove current request id from abortedRequests', function () {
+      expect(App.HostPopup.get('abortedRequests')).to.be.empty;
     });
   });
 
