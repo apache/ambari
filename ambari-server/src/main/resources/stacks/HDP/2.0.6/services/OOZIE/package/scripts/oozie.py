@@ -31,12 +31,9 @@ def oozie(is_server=False # TODO: see if see can remove this
                          owner=params.oozie_user,
                          mode=params.oozie_hdfs_user_mode
     )
-  #TODO hack for falcon el
-  oozie_site = dict(params.config['configurations']['oozie-site'])
-  oozie_site["oozie.services.ext"] = 'org.apache.oozie.service.JMSAccessorService,' + oozie_site["oozie.services.ext"]
   XmlConfig( "oozie-site.xml",
-    conf_dir = params.conf_dir, 
-    configurations = oozie_site,
+    conf_dir = params.conf_dir,
+    configurations = params.config['configurations']['oozie-site'],
     configuration_attributes=params.config['configuration_attributes']['oozie-site'],
     owner = params.oozie_user,
     group = params.user_group,

@@ -288,7 +288,7 @@
   </property>
   <property>
     <name>oozie.services.ext</name>
-    <value>org.apache.oozie.service.PartitionDependencyManagerService,org.apache.oozie.service.HCatAccessorService
+    <value>org.apache.oozie.service.JMSAccessorService,org.apache.oozie.service.PartitionDependencyManagerService,org.apache.oozie.service.HCatAccessorService
     </value>
     <description>
       To add/replace services defined in 'oozie.services' with custom implementations.

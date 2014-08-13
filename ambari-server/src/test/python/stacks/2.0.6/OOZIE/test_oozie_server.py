@@ -114,10 +114,6 @@ class TestOozieServer(RMFTestCase):
 
 
   def assert_configure_default(self):
-    # Hack for oozie.py changing conf on fly
-    oozie_site = self.getConfig()['configurations']['oozie-site'].copy()
-    oozie_site_attrs = self.getConfig()['configuration_attributes']['oozie-site'].copy()
-    oozie_site["oozie.services.ext"] = 'org.apache.oozie.service.JMSAccessorService,' + oozie_site["oozie.services.ext"]
     self.assertResourceCalled('HdfsDirectory', '/user/oozie',
                               security_enabled = False,
                               keytab = UnknownConfigurationMock(),
@@ -133,8 +129,8 @@ class TestOozieServer(RMFTestCase):
                               group = 'hadoop',
                               mode = 0664,
                               conf_dir = '/etc/oozie/conf',
-                              configurations = oozie_site,
-                              configuration_attributes = oozie_site_attrs
+                              configurations = self.getConfig()['configurations']['oozie-site'],
+                              configuration_attributes = self.getConfig()['configuration_attributes']['oozie-site']
                               )
     self.assertResourceCalled('Directory', '/etc/oozie/conf',
                               owner = 'oozie',
@@ -220,10 +216,6 @@ class TestOozieServer(RMFTestCase):
 
 
   def assert_configure_secured(self):
-    # Hack for oozie.py changing conf on fly
-    oozie_site = self.getConfig()['configurations']['oozie-site'].copy()
-    oozie_site_attrs = self.getConfig()['configuration_attributes']['oozie-site'].copy()
-    oozie_site["oozie.services.ext"] = 'org.apache.oozie.service.JMSAccessorService,' + oozie_site["oozie.services.ext"]
     self.assertResourceCalled('HdfsDirectory', '/user/oozie',
                               security_enabled = True,
                               keytab = '/etc/security/keytabs/hdfs.headless.keytab',
@@ -239,8 +231,8 @@ class TestOozieServer(RMFTestCase):
                               group = 'hadoop',
                               mode = 0664,
                               conf_dir = '/etc/oozie/conf',
-                              configurations = oozie_site,
-                              configuration_attributes = oozie_site_attrs
+                              configurations = self.getConfig()['configurations']['oozie-site'],
+                              configuration_attributes = self.getConfig()['configuration_attributes']['oozie-site']
                               )
     self.assertResourceCalled('Directory', '/etc/oozie/conf',
                               owner = 'oozie',

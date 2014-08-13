@@ -1212,7 +1212,7 @@ module.exports =
   /*********************************************oozie-site for Falcon*****************************/
     {
       "id": "site property",
-      "isReconfigurable": false,
+      "isReconfigurable": true,
       "serviceName": "FALCON",
       "category": "Falcon - Oozie integration",
       "displayName": "oozie.service.ELService.ext.functions.coord-job-submit-instances",
@@ -1222,7 +1222,7 @@ module.exports =
     },
     {
       "id": "site property",
-      "isReconfigurable": false,
+      "isReconfigurable": true,
       "serviceName": "FALCON",
       "category": "Falcon - Oozie integration",
       "displayName": "oozie.service.ELService.ext.functions.coord-action-create-inst",
@@ -1232,7 +1232,7 @@ module.exports =
     },
     {
       "id": "site property",
-      "isReconfigurable": false,
+      "isReconfigurable": true,
       "serviceName": "FALCON",
       "category": "Falcon - Oozie integration",
       "displayName": "oozie.service.ELService.ext.functions.coord-action-create",
@@ -1242,7 +1242,7 @@ module.exports =
     },
     {
       "id": "site property",
-      "isReconfigurable": false,
+      "isReconfigurable": true,
       "serviceName": "FALCON",
       "category": "Falcon - Oozie integration",
       "displayName": "oozie.service.ELService.ext.functions.coord-job-submit-data",
@@ -1252,7 +1252,7 @@ module.exports =
     },
     {
       "id": "site property",
-      "isReconfigurable": false,
+      "isReconfigurable": true,
       "serviceName": "FALCON",
       "category": "Falcon - Oozie integration",
       "displayName": "oozie.service.ELService.ext.functions.coord-action-start",
@@ -1262,7 +1262,7 @@ module.exports =
     },
     {
       "id": "site property",
-      "isReconfigurable": false,
+      "isReconfigurable": true,
       "serviceName": "FALCON",
       "category": "Falcon - Oozie integration",
       "displayName": "oozie.service.ELService.ext.functions.coord-sla-submit",
@@ -1272,7 +1272,7 @@ module.exports =
     },
     {
       "id": "site property",
-      "isReconfigurable": false,
+      "isReconfigurable": true,
       "serviceName": "FALCON",
       "category": "Falcon - Oozie integration",
       "displayName": "oozie.service.ELService.ext.functions.coord-sla-create",
