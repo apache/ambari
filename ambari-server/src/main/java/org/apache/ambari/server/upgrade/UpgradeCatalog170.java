@@ -27,6 +27,14 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -44,10 +52,6 @@ import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.Injector;
-
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.*;
 
 /**
  * Upgrade catalog for version 1.7.0.
@@ -401,7 +405,8 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
     columns.add(new DBColumnInfo("enabled", Short.class, 1, 1, false));
     columns.add(new DBColumnInfo("schedule_interval", Integer.class, null, null, false));
     columns.add(new DBColumnInfo("source_type", String.class, 255, null, false));
-    columns.add(new DBColumnInfo("alert_source", String.class, 4000, null, false));
+    columns.add(new DBColumnInfo("alert_source", char[].class, 32672, null,
+        false));
     columns.add(new DBColumnInfo("hash", String.class, 64, null, false));
     dbAccessor.createTable(ALERT_TABLE_DEFINITION, columns, "definition_id");
 
@@ -482,7 +487,7 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
     columns.add(new DBColumnInfo("target_id", Long.class, null, null, false));
     columns.add(new DBColumnInfo("target_name", String.class, 255, null, false));
     columns.add(new DBColumnInfo("notification_type", String.class, 64, null, false));
-    columns.add(new DBColumnInfo("properties", String.class, 4000, null, true));
+    columns.add(new DBColumnInfo("properties", char[].class, 32672, null, true));
     columns.add(new DBColumnInfo("description", String.class, 1024, null, true));
     dbAccessor.createTable(ALERT_TABLE_TARGET, columns, "target_id");
 

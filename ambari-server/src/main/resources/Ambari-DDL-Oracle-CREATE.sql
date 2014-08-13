@@ -156,7 +156,7 @@ CREATE TABLE alert_definition (
   enabled NUMBER(1) DEFAULT 1 NOT NULL,
   schedule_interval NUMBER(10) NOT NULL,
   source_type VARCHAR2(255) NOT NULL,
-  alert_source VARCHAR2(4000) NOT NULL,
+  alert_source CLOB NOT NULL,
   hash VARCHAR2(64) NOT NULL,
   PRIMARY KEY (definition_id),
   FOREIGN KEY (cluster_id) REFERENCES clusters(cluster_id),
@@ -205,7 +205,7 @@ CREATE TABLE alert_target (
   target_id NUMBER(19) NOT NULL,
   target_name VARCHAR2(255) NOT NULL UNIQUE,
   notification_type VARCHAR2(64) NOT NULL,
-  properties VARCHAR2(4000),
+  properties CLOB,
   description VARCHAR2(1024),
   PRIMARY KEY (target_id)
 );

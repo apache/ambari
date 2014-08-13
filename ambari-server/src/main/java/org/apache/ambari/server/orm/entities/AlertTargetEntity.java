@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -28,6 +29,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Lob;
 import javax.persistence.ManyToMany;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
@@ -58,6 +60,8 @@ public class AlertTargetEntity {
   @Column(name = "notification_type", nullable = false, length = 64)
   private String notificationType;
 
+  @Lob
+  @Basic
   @Column(length = 32672)
   private String properties;
 
@@ -73,7 +77,7 @@ public class AlertTargetEntity {
 
   /**
    * Gets the unique ID of this alert target.
-   * 
+   *
    * @return the ID of the target (never {@code null}).
    */
   public Long getTargetId() {
@@ -82,7 +86,7 @@ public class AlertTargetEntity {
 
   /**
    * Sets the unique ID of this alert target.
-   * 
+   *
    * @param targetId
    *          the ID of the alert target (not {@code null}).
    */
@@ -92,7 +96,7 @@ public class AlertTargetEntity {
 
   /**
    * Gets the description of this alert target.
-   * 
+   *
    * @return the description or {@code null} if none.
    */
   public String getDescription() {
@@ -101,7 +105,7 @@ public class AlertTargetEntity {
 
   /**
    * Sets the description for this alert target.
-   * 
+   *
    * @param description
    *          the description or {@code null} for none.
    */
@@ -139,7 +143,7 @@ public class AlertTargetEntity {
 
   /**
    * Gets the name of this alert target.
-   * 
+   *
    * @return the alert target name (never {@code null}).
    */
   public String getTargetName() {
@@ -148,7 +152,7 @@ public class AlertTargetEntity {
 
   /**
    * Sets the name of this alert target.
-   * 
+   *
    * @param targetName
    *          the name (not {@code null}).
    */
@@ -159,13 +163,14 @@ public class AlertTargetEntity {
   /**
    * Gets an immutable set of the alert groups that this target is associated
    * with.
-   * 
+   *
    * @return the groups that will send to this target when an alert in that
    *         group is received, or an empty set for none.
    */
   public Set<AlertGroupEntity> getAlertGroups() {
-    if (null == alertGroups)
+    if (null == alertGroups) {
       return Collections.emptySet();
+    }
 
     return Collections.unmodifiableSet(alertGroups);
   }
@@ -173,12 +178,13 @@ public class AlertTargetEntity {
   /**
    * Adds the specified alert group to the groups that this target is associated
    * with. This is used to complement the JPA bidirectional association.
-   * 
+   *
    * @param alertGroup
    */
   protected void addAlertGroup(AlertGroupEntity alertGroup) {
-    if (null == alertGroups)
+    if (null == alertGroups) {
       alertGroups = new HashSet<AlertGroupEntity>();
+    }
 
     alertGroups.add(alertGroup);
   }
@@ -187,12 +193,13 @@ public class AlertTargetEntity {
    * Removes the specified alert group to the groups that this target is
    * associated with. This is used to complement the JPA bidirectional
    * association.
-   * 
+   *
    * @param alertGroup
    */
   protected void removeAlertGroup(AlertGroupEntity alertGroup) {
-    if (null != alertGroups)
+    if (null != alertGroups) {
       alertGroups.remove(alertGroup);
+    }
   }
 
   /**
@@ -202,8 +209,9 @@ public class AlertTargetEntity {
   @PreRemove
   public void preRemove() {
     Set<AlertGroupEntity> groups = getAlertGroups();
-    if (null == groups || groups.size() == 0)
+    if (null == groups || groups.size() == 0) {
       return;
+    }
 
     for (AlertGroupEntity group : groups) {
       group.removeAlertTarget(this);
