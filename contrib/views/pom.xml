@@ -88,6 +88,25 @@
           <mappings/>
         </configuration>
       </plugin>
+      <plugin>
+        <groupId>org.vafer</groupId>
+        <artifactId>jdeb</artifactId>
+        <version>1.0.1</version>
+        <executions>
+          <execution>
+            <phase>none</phase>
+            <goals>
+              <goal>jdeb</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <skip>true</skip>
+          <attach>false</attach>
+          <submodules>true</submodules>
+          <controlDir>${basedir}/../../ambari-project/src/main/package/deb/control</controlDir>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
   <dependencyManagement>

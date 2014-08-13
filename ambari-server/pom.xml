@@ -35,6 +35,7 @@
     <resource_management.install.dir>/usr/lib/ambari-server/lib/resource_management</resource_management.install.dir>
     <ambari-web-dir>${basedir}/../ambari-web/public</ambari-web-dir>
     <ambari-admin-dir>${basedir}/../ambari-admin</ambari-admin-dir>
+    <contrib-views-dir>${basedir}/../contrib/views</contrib-views-dir>
   </properties>
   <build>
     <plugins>
@@ -423,7 +424,10 @@
               <filemode>755</filemode>
               <sources>
                 <source>
-                  <location>${ambari-admin-dir}/target/ambari-admin-${project.version}.jar</location>
+                  <location>${ambari-admin-dir}/target</location>
+                  <includes>
+                    <include>*.jar</include>
+                  </includes>
                 </source>
               </sources>
             </mapping>
@@ -754,8 +758,9 @@
             </mapper>
           </data>
           <data>
-            <src>${ambari-admin-dir}/target/ambari-admin-${project.version}.jar</src>
-            <type>file</type>
+            <src>${ambari-admin-dir}/target</src>
+            <type>directory</type>
+            <includes>*.jar</includes>
             <mapper>
               <type>perm</type>
               <prefix>/var/lib/ambari-server/resources/views</prefix>
@@ -981,6 +986,23 @@
             <goals>
               <goal>run</goal>
             </goals>
+          </execution>
+          <!-- Copies compiled views into known location for RPM builds -->
+          <execution>
+            <id>copy-view-jars</id>
+            <phase>package</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <copy todir="${ambari-admin-dir}/target" flatten="true">
+                  <fileset dir="${contrib-views-dir}">
+                    <include name="*/target/*jar" />
+                  </fileset>
+                </copy>
+              </target>
+            </configuration>
           </execution>
         </executions>
       </plugin>

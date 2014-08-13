@@ -69,7 +69,7 @@ public class AmbariInternalClient implements AmbariClient {
 				for (Map.Entry<String, Object> siteEntry : desiredConfigsMapResource
 				    .entrySet()) {
 					desiredConfigsMap.put(siteEntry.getKey(),
-					    ((DesiredConfig) siteEntry.getValue()).getVersion());
+					    ((DesiredConfig) siteEntry.getValue()).getTag());
 				}
 				cluster.setDesiredConfigs(desiredConfigsMap);
 

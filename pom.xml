@@ -286,6 +286,25 @@
       </modules>
     </profile>
     <profile>
+      <id>default-views</id>
+      <activation>
+        <property>
+          <name>views</name>
+        </property>
+      </activation>
+      <modules>
+        <module>ambari-web</module>
+        <module>ambari-project</module>
+        <module>ambari-views</module>
+        <module>ambari-admin</module>
+        <module>contrib/views</module>
+        <module>ambari-server</module>
+        <module>ambari-agent</module>
+        <module>ambari-client</module>
+        <module>ambari-shell</module>
+      </modules>
+    </profile>
+    <profile>
       <id>static-web</id>
       <modules>
         <module>ambari-project</module>
