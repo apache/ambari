@@ -211,6 +211,7 @@
           <copyright>2012, Apache Software Foundation</copyright>
           <group>Development</group>
           <description>Maven Recipe: RPM Package.</description>
+          <autoRequires>no</autoRequires>
           <requires>
             <require>postgresql-server &gt;= 8.1</require>
             <require>openssl</require>
