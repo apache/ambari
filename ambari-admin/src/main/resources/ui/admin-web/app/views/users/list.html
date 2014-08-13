@@ -49,7 +49,6 @@
           <select class="form-control statusfilter" 
             ng-model="currentActiveFilter"
             ng-options="item for item in actvieFilterOptions">
-            
           </select>
         </th>
       </tr>
@@ -57,11 +56,21 @@
     <tbody>
       <tr ng-repeat="user in users | filter:activeFilter | filter:typeFilter | filter:currentNameFilter">
         <td>
+          <span class="glyphicon glyphicon-flash" ng-show="user.Users.admin"></span>
           <link-to route="users.show" id="{{user.Users.user_name}}">{{user.Users.user_name}}</link-to>
         </td>
         <td>{{user.Users.ldap_user ? 'LDAP' : 'Local'}}</td>
         <td><span ng-class="user.Users.active ? 'text-success' : 'text-danger'">{{user.Users.active ? 'Active' : 'Inactive'}}</span></td>
       </tr>
     </tbody>
-  </table>    
+  </table>
+  <div class="col-sm-12">
+    <div class="pull-right left-margin">
+      <pagination class="paginator" total-items="totalUsers" max-size="maxVisiblePages" items-per-page="usersPerPage" ng-model="currentPage" ng-change="pageChanged()"></pagination>
+    </div>
+    <div class="pull-right">
+      <select class="form-control" ng-model="usersPerPage" ng-change="usersPerPageChanges()" ng-options="currOption for currOption in [10, 25, 50, 100]"></select>
+    </div>
+    
+  </div>
 </div>

@@ -16,7 +16,7 @@
 * limitations under the License.
 -->
     
-<div class="views-list-pane">
+<div class="views-list-table">
   <div class="clearfix">
     <ol class="breadcrumb pull-left">
       <li class="active">Views</li>
@@ -34,31 +34,29 @@
   <hr>
   <div class="row">
     <div class="col-sm-3 padding-left-30"><h4>View Name</h4></div>
-    <div class="col-sm-3"><h4>Versions</h4></div>
     <div class="col-sm-3"><h4>Instances</h4></div>
-    <div class="col-sm-3"><h4>Description</h4></div>
+    <div class="col-sm-6"><h4>Description</h4></div>
   </div>
-  <accordion>
-    <accordion-group ng-repeat="view in filteredViews" is-open="open">
+  <accordion close-others="false">
+    <accordion-group ng-repeat="view in filteredViews" is-open="view.isOpened">
       <accordion-heading>
         <div class="row">
           <div class="col-sm-3">
-            <i class="glyphicon glyphicon-chevron-right" ng-class="{'opened': open}"></i>
+            <i class="glyphicon glyphicon-chevron-right" ng-class="{'opened': view.isOpened}"></i>
             {{view.view_name}}
           </div>
           <div class="col-sm-3">{{view.versions}}</div>
-          <div class="col-sm-3">{{view.instances.length ? view.instances.length : 'No'}} instances</div>
-          <div class="col-sm-3">This is a description</div>
+          <div class="col-sm-6">This is a description</div>
         </div>
       </accordion-heading>
       <table class="table">
         <tbody>
           <tr ng-repeat="instance in view.instances">
             <td class="col-sm-3"></td>
-            <td class="col-sm-3">{{instance.ViewInstanceInfo.version}}</td>
             <td class="col-sm-3">
               <a href="#/views/{{view.view_name}}/versions/{{instance.ViewInstanceInfo.version}}/instances/{{instance.ViewInstanceInfo.instance_name}}/edit" class="instance-link">{{instance.ViewInstanceInfo.label}}</a>
             </td>
+            <td class="col-sm-3">{{instance.ViewInstanceInfo.version}}</td>
             <td class="col-sm-3">
             </td>
           </tr>
@@ -66,10 +64,10 @@
         <tfoot>
           <tr>
             <td class="col-sm-3"></td>
-            <td class="col-sm-3"></td>
             <td class="col-sm-3">
               <a class="btn btn-default createisntance-btn" href="#/views/{{view.view_name}}/versions/{{view.versionsList[view.versionsList.length-1].ViewVersionInfo.version}}/new"><span class="glyphicon glyphicon-plus" ></span> Create Instance</a>
             </td>
+            <td class="col-sm-3"></td>
             <td class="col-sm-3">
             </td>
           </tr>

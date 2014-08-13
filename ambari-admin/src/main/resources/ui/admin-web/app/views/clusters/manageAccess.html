@@ -39,8 +39,6 @@
         <div class="well" ng-switch-default>
           <span ng-repeat="user in permission.USER">
             <link-to route="users.show" id="{{user}}" >{{user}}</link-to>
-            <button type="button" class="close remove-button" 
-              ng-click="removePermission(permission.PermissionInfo.permission_name, 'USER', user)"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
             {{$last ? '' :', '}}
           </span>
         </div>
@@ -50,8 +48,6 @@
         <div class="well" ng-switch-default>
           <span ng-repeat="group in permission.GROUP">
             <link-to route="groups.edit" id="{{group}}">{{group}}</link-to>
-            <button type="button" class="close remove-button" 
-              ng-click="removePermission(permission.PermissionInfo.permission_name, 'GROUP', group)"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
             {{$last ? '' :', '}}
           </span>
         </div>

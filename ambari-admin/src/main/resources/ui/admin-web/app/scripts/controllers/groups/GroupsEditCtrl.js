@@ -23,6 +23,7 @@ angular.module('ambariAdminConsole')
   $scope.group = new Group($routeParams.id);
   $scope.group.editingUsers = [];
   $scope.groupMembers = [];
+  $scope.dataLoaded = false;
 
 
   function loadMembers(){
@@ -35,13 +36,6 @@ angular.module('ambariAdminConsole')
     $scope.group.ldap_group = isLDAP;
     loadMembers();
   });
-    
-  
-  $scope.removeMember = function(member) {
-    $scope.group.removeMember(member).finally(function() {
-      loadMembers();
-    });
-  };
 
   $scope.toggleEditMode = function() {
     $scope.editMode = !$scope.editMode;
@@ -68,6 +62,33 @@ angular.module('ambariAdminConsole')
       });
     });
   };
+
+  // Load privilegies
+  Group.getPrivilegies($routeParams.id).then(function(data) {
+    var privilegies = {
+      clusters: {},
+      views: {}
+    };
+    angular.forEach(data.data.items, function(privilegie) {
+      privilegie = privilegie.PrivilegeInfo;
+      if(privilegie.type === 'CLUSTER'){
+        // This is cluster
+        privilegies.clusters[privilegie.cluster_name] = privilegies.clusters[privilegie.cluster_name] || '';
+        privilegies.clusters[privilegie.cluster_name] += privilegies.clusters[privilegie.cluster_name] ? ', ' + privilegie.permission_name : privilegie.permission_name;
+      } else if ( privilegie.type === 'VIEW'){
+        privilegies.views[privilegie.instance_name] = privilegies.views[privilegie.instance_name] || { privileges:''};
+        privilegies.views[privilegie.instance_name].version = privilegie.version;
+        privilegies.views[privilegie.instance_name].view_name = privilegie.view_name;
+        privilegies.views[privilegie.instance_name].privileges += privilegies.views[privilegie.instance_name].privileges ? ', ' + privilegie.permission_name : privilegie.permission_name;
+
+      }
+    });
+
+    $scope.privileges = data.data.items.length ? privilegies : null;
+    $scope.dataLoaded = true;
+  }).catch(function(data) {
+    uiAlert.danger(data.data.status, data.data.message);
+  });
 
 
 }]);

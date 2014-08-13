@@ -60,12 +60,4 @@ angular.module('ambariAdminConsole')
     });
     $scope.isEditMode = false;
   };
-
-  $scope.removePermission = function(permissionName, principalType, principalName) {
-    Cluster.deletePrivilege($routeParams.id, permissionName, principalType, principalName)
-    .then(reloadClusterData)
-    .catch(function(data) {
-      uiAlert.danger(data.data.status, data.data.message);
-    });
-  };
 }]);

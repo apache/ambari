@@ -41,6 +41,12 @@
       </div>
     </div>
     <div class="form-group">
+      <label for="" class="col-sm-2 control-label">Ambari Admin</label>
+      <div class="col-sm-10">
+        <toggle-switch on-change="toggleUserAdmin()" ng-disabled="isCurrentUser" model="user.admin" on-label="Yes" off-label="No" class="switch-primary userstatus" data-off-color="danger"></toggle-switch>
+      </div>
+    </div>
+    <div class="form-group">
       <label for="password" class="col-sm-2 control-label">Password</label>
       <div class="col-sm-10">
         <a href ng-click="openChangePwdDialog()" class="btn btn-default changepassword">Change Password</a>
@@ -52,7 +58,10 @@
         <div class="row" ng-hide="isGroupEditing">
           <div class="col-sm-10">
             <div class="well">
-              <a href ng-repeat="group in user.user_groups">{{group}}{{$last ? '' : ', '}}</a>
+              <span ng-repeat="group in user.groups">
+                <a href="#/groups/{{group}}/edit" >{{group}}</a>
+                {{$last ? '' : ', '}}
+              </span>
             </div>
           </div>
           <div class="col-sm-2">
@@ -70,18 +79,38 @@
       </div>
         
     </div>
-    <div class="form-group">
+    <div class="form-group" ng-show="dataLoaded">
       <label for="" class="col-sm-2 control-label">Privileges</label>
       <div class="col-sm-10">
-        <table class="table">
+        <table class="table" ng-show="privileges">
           <thead>
             <tr>
               <th>Resource</th>
               <th>Permissions</th>
             </tr>
           </thead>
-          <tbody></tbody>
+          <tbody>
+            <tr ng-repeat="(name, privilege) in privileges.clusters">
+              <td>
+                <span class="glyphicon glyphicon-cloud"></span> 
+                <a href="#/clusters/{{name}}/manageAccess">{{name}}</a>
+              </td>
+              <td>
+                {{privilege}}
+              </td>
+            </tr>
+            <tr ng-repeat="(name, privilege) in privileges.views">
+              <td>
+                <span class="glyphicon glyphicon-th"></span> 
+                <a href="#/views/{{privilege.view_name}}/versions/{{privilege.version}}/instances/{{name}}/edit">{{name}}</a>
+              </td>
+              <td>
+                {{privilege.privileges}}
+              </td>
+            </tr>
+          </tbody>
         </table>
+        <div class="alert alert-info" ng-show="!privileges">This user does not have any privileges.</div>
       </div>
     </div>
   </form>

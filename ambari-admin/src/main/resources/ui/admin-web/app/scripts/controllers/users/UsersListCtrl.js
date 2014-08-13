@@ -20,9 +20,28 @@
 angular.module('ambariAdminConsole')
 .controller('UsersListCtrl',['$scope', 'User', '$modal', function($scope, User, $modal) {
   $scope.users = [];
-  User.list().then(function(data) {
-    $scope.users = data.items;
-  });
+  $scope.usersPerPage = 10;
+  $scope.currentPage = 1;
+  $scope.totalUsers = 1;
+  $scope.search = '';
+  $scope.maxVisiblePages=20;
+
+  $scope.pageChanged = function() {
+    loadUsers();
+  };
+  $scope.usersPerPageChanges = function() {
+    loadUsers();
+  };
+
+  function loadUsers(){
+    User.list($scope.currentPage, $scope.usersPerPage, $scope.search).then(function(data) {
+      $scope.totalUsers = data.itemTotal;
+      $scope.users = data.items;
+    });
+  }
+
+  loadUsers();
+
 
   $scope.actvieFilterOptions = ['All', 'Active', 'Inactive'];
   $scope.currentActiveFilter = 'All';

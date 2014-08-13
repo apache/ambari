@@ -66,4 +66,12 @@
   <div class="alert alert-info" ng-show="!groups.length">
     No groups to display.
   </div>
+  <div class="col-sm-12">
+    <div class="pull-right left-margin">
+      <pagination class="paginator" total-items="totalGroups" max-size="maxVisiblePages" items-per-page="groupsPerPage" ng-model="currentPage" ng-change="pageChanged()"></pagination>
+    </div>
+    <div class="pull-right">
+      <select class="form-control" ng-model="groupsPerPage" ng-change="groupsPerPageChanges()" ng-options="currOption for currOption in [10, 25, 50, 100]"></select>
+    </div>
+  </div>
 </div>

@@ -21,7 +21,7 @@
 </ol>
 <hr>
 <form class="form-horizontal" role="form" novalidate name="form">
-  <div class="form-group" ng-class="{'has-error' : (form.user_name.$error.required || form.group_name.$error.pattern) && form.submitted}">
+  <div class="form-group" ng-class="{'has-error' : (form.group_name.$error.required || form.group_name.$error.pattern) && form.submitted}">
     <label for="groupname" class="col-sm-2 control-label">Group name</label>
     <div class="col-sm-10">
       <input type="text" id="groupname" class="form-control groupname-input" name="group_name" placeholder="Group name" ng-model="group.group_name" required ng-pattern="/^([a-zA-Z0-9._\s]+)$/">

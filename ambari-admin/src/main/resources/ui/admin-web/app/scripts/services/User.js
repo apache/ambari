@@ -23,6 +23,7 @@ angular.module('ambariAdminConsole')
     var extractedData;
     if(operation === 'getList'){
       extractedData = data.items;
+      extractedData.itemTotal = data.itemTotal;
     } else {
       extractedData = data;
     }
@@ -33,9 +34,11 @@ angular.module('ambariAdminConsole')
   var Users = Restangular.all('users');
 
   return {
-    list: function(cb) {
+    list: function(currentPage, usersPerPage) {
       return Users.customGET('', {
-        fields: 'Users/ldap_user,Users/active'
+        fields: '*',
+        page_size: usersPerPage,
+        from: (currentPage-1)*usersPerPage
       });
     },
     get: function(userId) {
@@ -46,6 +49,9 @@ angular.module('ambariAdminConsole')
     },
     setActive: function(userId, isActive) {
       return Restangular.one('users', userId).customPUT({'Users/active':isActive});
+    },
+    setAdmin: function(userId, isAdmin) {
+      return Restangular.one('users', userId).customPUT({'Users/admin':isAdmin});
     },
     setPassword: function(user, password, currentUserPassword) {
       return $http({
@@ -60,6 +66,15 @@ angular.module('ambariAdminConsole')
     },
     delete: function(userId) {
       return Restangular.one('users', userId).remove();
+    },
+    getPrivilegies : function(userId) {
+      return $http.get(Settings.baseUrl + '/privileges', {
+        params:{
+          'PrivilegeInfo/principal_type': 'USER',
+          'PrivilegeInfo/principal_name': userId,
+          'fields': '*'
+        }
+      });
     }
   };
 }]);

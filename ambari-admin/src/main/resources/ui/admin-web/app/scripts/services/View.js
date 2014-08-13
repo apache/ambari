@@ -55,14 +55,24 @@ angular.module('ambariAdminConsole')
     self.view_name = item.ViewInfo.view_name;
     self.versions = '';
     self.instances = [];
+    var versions = {};
     angular.forEach(item.versions, function(version) {
-      self.versions += (self.versions ? ', ' : '') + version.ViewVersionInfo.version;
+      versions[version.ViewVersionInfo.version] = version.instances.length;
+      
       angular.forEach(version.instances, function(isntance) {
         isntance.label = version.ViewVersionInfo.label;
       })
+
       self.instances = self.instances.concat(version.instances);
     });
 
+    for(var ver in versions){
+      if(versions.hasOwnProperty(ver)){
+        self.versions += (self.versions ? ', ' : '') + ver +' ('+versions[ver]+')';
+      }
+    }
+
+    self.isOpened = !self.instances.length;
     self.versionsList = item.versions;
   }
 

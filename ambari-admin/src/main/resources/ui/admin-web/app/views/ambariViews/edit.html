@@ -18,14 +18,14 @@
 <div class="clearfix">
   <ol class="breadcrumb pull-left">
     <li><a href="#/views">Views</a></li>
-    <li class="active">{{instance.ViewInstanceInfo.view_name}}: {{instance.ViewInstanceInfo.label}}</li>
+    <li class="active">{{instance.ViewInstanceInfo.label}}</li>
   </ol>
   <div class="pull-right top-margin-4">
     <button class="btn btn-danger" ng-click="deleteInstance(instance)">Delete Instance</button>
   </div>
 </div>
 <hr>
-<div class="panel panel-default" ng-cloak>
+<div class="panel panel-default" ng-cloak ng-show="instance">
   <div class="panel-heading clearfix">
     <h3 class="panel-title pull-left">Settings</h3>
     <div class="pull-right">
@@ -34,10 +34,18 @@
   </div>
   <div class="panel-body">
     <form class="form-horizontal">
+      <div class="form-group">
+        <label for="" class="col-sm-2 control-label">View Name</label>
+        <div class="col-sm-10"><input disabled="disabled" type="text" class="form-control instancename-input" placeholder="Display Name" value="{{instance.ViewInstanceInfo.view_name}}"></div>
+      </div>
+      <div class="form-group">
+        <label for="" class="col-sm-2 control-label">View Version</label>
+        <div class="col-sm-10"><input disabled="disabled" type="text" class="form-control instancename-input" placeholder="Display Name" value="{{instance.ViewInstanceInfo.version}}"></div>
+      </div>
       <fieldset ng-disabled="editSettingsDisabled">
         <div class="form-group">
-          <label for="" class="col-sm-2 control-label">Instance ID</label>
-          <label for="" class="col-sm-10 control-label text-left">{{instance.ViewInstanceInfo.instance_name}}</label>
+          <label for="" class="col-sm-2 control-label">Instance Name</label>
+          <div class="col-sm-10"><input disabled="disabled" type="text" class="form-control instancename-input" placeholder="Display Name" value="{{instance.ViewInstanceInfo.instance_name}}"></div>
         </div>
         <div class="form-group">
           <label for="" class="col-sm-2 control-label">Display Name</label>
@@ -84,8 +92,6 @@
           <div class="well" ng-switch-when="true">
             <span ng-repeat="user in permission.USER">
               <link-to route="users.show" id="{{user}}">{{user}}</link-to>
-              <button type="button" class="close remove-button" 
-                ng-click="removePermission(permission.name, 'USER', user)"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
               {{$last ? '' :', '}}
             </span>
           </div>
@@ -95,8 +101,6 @@
           <div class="well" ng-switch-when="true">
             <span ng-repeat="group in permission.GROUP">
               <link-to route="groups.edit" id="{{group}}" >{{group}}</link-to>
-              <button type="button" class="close remove-button" 
-                ng-click="removePermission(permission.name, 'GROUP', group)"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
               {{$last ? '' :', '}}
             </span>
           </div>

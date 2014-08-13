@@ -16,18 +16,76 @@
  * limitations under the License.
  */
 
+.paginator{
+  margin: 0;
+}
+.mainpage .panel-body{
+  padding: 20px;
+  height: 560px;
+}
+.mainpage h1{
+  font-size: 24px;
+  margin-top: 10px;
+}
 
-.views-list-pane .glyphicon.glyphicon-chevron-right{
+.views-list-table .panel{
+  border-radius: 0;
+  border: none;
+  margin-top: 0;
+}
+.views-list-table .panel-group .panel + .panel{
+  margin-top: 0;
+}
+.views-list-table .panel-group .panel .panel-heading{
+  border-radius: 0;
+  border-top: 1px solid #ddd;
+}
+.views-list-table .panel-group .panel .panel-heading{
+  background: #f9f9f9;
+}
+.views-list-table .panel-group .panel:nth-child(even) .panel-heading{
+  background: none;
+}
+.views-list-table .panel-group .panel .panel-heading .panel-title{
+  font-size: 14px;
+  font-weight: normal;
+  cursor: pointer;
+}
+.views-list-table .panel-group .panel .panel-body{
+  padding-top: 0;
+  padding-bottom: 0;
+}
+.views-list-table .panel-group .panel .panel-body table tr:first-child td{
+  border-top: none;
+}
+.views-list-table .glyphicon.glyphicon-chevron-right{
   -webkit-transition: all 0.3s;
   -o-transition: all 0.3s;
   transition: all 0.3s;
 }
-.views-list-pane .glyphicon.glyphicon-chevron-right.opened{
+.views-list-table .glyphicon.glyphicon-chevron-right.opened{
   -webkit-transform: rotateZ(90deg);
   -ms-transform: rotateZ(90deg);
   -o-transform: rotateZ(90deg);
   transform: rotateZ(90deg);
 }
+
+.ats-switch{
+  border-color: #333;
+}
+.hide-soft{
+  display: none;
+}
+.visible{
+  display: block;
+}
+.not-required{
+  font-weight: normal;
+}
+.panel{
+  box-shadow: none;
+}
+
 
 .pulldown2{
   -webkit-transform: translateY(2px);

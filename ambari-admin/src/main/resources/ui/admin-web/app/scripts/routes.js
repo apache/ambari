@@ -66,7 +66,7 @@ angular.module('ambariAdminConsole')
   views: {
     list: {
       url: '/views',
-      templateUrl: 'views/ambariViews/list.html',
+      templateUrl: 'views/ambariViews/listTable.html',
       controller: 'ViewsListCtrl',
     },
     edit: {

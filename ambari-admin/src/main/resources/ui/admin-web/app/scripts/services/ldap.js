@@ -29,15 +29,17 @@ angular.module('ambariAdminConsole')
       });
     },
     sync: function(groupsList, usersList) {
+      groupsList = Array.isArray(groupsList) ? groupsList : [];
+      usersList = Array.isArray(usersList) ? usersList : [];
       return $http({
-        method: 'POST',
+        method: 'PUT',
         url: Settings.baseUrl + '/controllers/ldap',
-        data:{
+        data:[{
           LDAP:{
             "synced_groups": groupsList.join(','),
             "synced_users": usersList.join(',')
           }
-        }
+        }]
       });
     },
     syncResource: function(resourceType, items) {

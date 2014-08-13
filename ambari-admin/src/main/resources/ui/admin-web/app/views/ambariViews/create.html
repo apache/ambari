@@ -17,7 +17,7 @@
 -->
 <ol class="breadcrumb">
   <li><a href="#/views">Views</a></li>
-  <li class="active">Create {{view.ViewVersionInfo.view_name}} instance</li>
+  <li class="active">Create Instance</li>
 </ol>
 <hr>
 <form class="form-horizontal create-view-form" role="form" name="form.isntanceCreateForm" novalidate>
@@ -38,15 +38,15 @@
       <div class="form-group" 
       ng-class="{'has-error' : ( (form.isntanceCreateForm.instanceNameInput.$error.required || form.isntanceCreateForm.instanceNameInput.$error.pattern) && form.isntanceCreateForm.submitted) || instanceExists }"
       >
-        <label for="" class="control-labe col-sm-2">Instance name</label>
+        <label for="" class="control-labe col-sm-2">Instance Name</label>
         <div class="col-sm-10">
           <input type="text" class="form-control instancename-input" name="instanceNameInput" ng-pattern="nameValidationPattern" required ng-model="instance.instance_name">
 
           <div class="alert alert-danger no-margin-bottom top-margin" ng-show='form.isntanceCreateForm.instanceNameInput.$error.required && form.isntanceCreateForm.submitted'>
-            Field requried!
+            This field is required.
           </div>
           <div class="alert alert-danger no-margin-bottom top-margin" ng-show='form.isntanceCreateForm.instanceNameInput.$error.pattern && form.isntanceCreateForm.submitted'>
-            Must no contain special characters!
+            Must not contain any special characters or spaces.
           </div>
           <div class="alert alert-danger no-margin-bottom top-margin" ng-show='instanceExists'>
             Instance with this name already exists.
@@ -55,25 +55,18 @@
       </div>
       <div class="form-group"
       ng-class="{'has-error' : ( (form.isntanceCreateForm.displayLabel.$error.required || form.isntanceCreateForm.displayLabel.$error.pattern) && form.isntanceCreateForm.submitted)}">
-        <label for="" class="control-labe col-sm-2">Display label</label>
+        <label for="" class="control-labe col-sm-2">Display Label</label>
         <div class="col-sm-10">
           <input type="text" class="form-control instancelabel-input" name="displayLabel" ng-model="instance.label" required ng-pattern="nameValidationPattern">
 
           <div class="alert alert-danger no-margin-bottom top-margin" ng-show='form.isntanceCreateForm.displayLabel.$error.required && form.isntanceCreateForm.submitted'>
-            Field requried!
+            This field is required.
           </div>
           <div class="alert alert-danger no-margin-bottom top-margin" ng-show='form.isntanceCreateForm.displayLabel.$error.pattern && form.isntanceCreateForm.submitted'>
-            Must no contain special characters!
+            Must not contain any special characters or spaces.
           </div>
         </div>
       </div>
-    </div>
-    <div class="form-group">
-        <div class="col-sm-10 col-sm-offset-2">
-          <button class="btn btn-default showAdvanced-btn" ng-click="isAdvancedClosed = !isAdvancedClosed">Advanced</button>
-        </div>
-    </div>
-    <div collapse="isAdvancedClosed">
       <div class="form-group">
         <div class="col-sm-10 col-sm-offset-2">
           <div class="checkbox">
@@ -83,25 +76,8 @@
           </div>
         </div>
       </div>
-      <div class="form-group">
-        <div class="col-sm-10 col-sm-offset-2">
-          <label for="" class="control-label col-sm-2">Icon</label>
-          <div class="col-sm-10">
-            <input type="text" class="form-control" name="iconUrl" ng-model="instance.icon_path">
-          </div>
-        </div>
-      </div>
-      <div class="form-group">
-        <div class="col-sm-10 col-sm-offset-2">
-          <label for="" class="control-label col-sm-2">Icon64</label>
-          <div class="col-sm-10">
-            <input type="text" class="form-control" name="icon64Url" ng-model="instance.icon64_path">
-          </div>
-        </div>
-      </div>
     </div>
   </div>
-
   <div class="panel panel-default">
     <div class="panel-heading">
       <h3 class="panel-title">Properties</h3>
@@ -109,7 +85,7 @@
     <div class="panel-body">
       <div class="form-group" ng-repeat="parameter in instance.properties"
         ng-class="{'has-error' : (form.isntanceCreateForm[parameter.name].$error.required && form.isntanceCreateForm.submitted)}" >
-        <label for="" class="col-sm-3 control-label">{{parameter.description}}</label>
+        <label for="" class="col-sm-3 control-label" ng-class="{'not-required': !parameter.required}">{{parameter.description}}{{parameter.required ? '*' : ''}}</label>
         <div class="col-sm-9">
           <input type="text" class="form-control viewproperty-input"  name="{{parameter.name}}" ng-required="parameter.required" ng-model="parameter.value">
           <div class="alert alert-danger no-margin-bottom top-margin" ng-show='form.isntanceCreateForm[parameter.name].$error.required && form.isntanceCreateForm.submitted'>

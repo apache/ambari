@@ -139,14 +139,24 @@ angular.module('ambariAdminConsole')
     return $http.delete(Settings.baseUrl + '/groups/'+this.group_name+'/members/'+memberId);
   };
 
-  Group.all = function() {
+  Group.removeMemberFromGroup = function(groupName, memberName) {
+    return $http.delete(Settings.baseUrl + '/groups/'+groupName + '/members/'+memberName);
+  };
+
+  Group.addMemberToGroup = function(groupName, memberName) {
+    return $http.post(Settings.baseUrl + '/groups/' + groupName + '/members/'+memberName);
+  };
+
+  Group.all = function(currentPage, groupsPerPage) {
     var deferred = $q.defer();
 
     $http({
       method: 'GET',
       url: Settings.baseUrl + '/groups',
       params: {
-        'fields': 'Groups/ldap_group'
+        'fields': 'Groups/ldap_group',
+        page_size: groupsPerPage,
+        from: (currentPage-1)*groupsPerPage
       }
     })
     .success(function(data) {
@@ -156,6 +166,7 @@ angular.module('ambariAdminConsole')
           groups.push(new Group(item));
         });
       }
+      groups.itemTotal = data.itemTotal;
       deferred.resolve(groups);
     })
     .error(function(data) {
@@ -163,6 +174,16 @@ angular.module('ambariAdminConsole')
     });
 
     return deferred.promise;
+  };
+
+  Group.getPrivilegies = function(groupId) {
+    return $http.get(Settings.baseUrl + '/privileges', {
+        params:{
+          'PrivilegeInfo/principal_type': 'GROUP',
+          'PrivilegeInfo/principal_name': groupId,
+          'fields': '*'
+        }
+      });
   };
 
   return Group;

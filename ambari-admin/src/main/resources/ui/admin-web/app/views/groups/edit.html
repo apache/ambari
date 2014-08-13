@@ -26,7 +26,7 @@
   </div>
 </div>
 <hr>
-<form class="form-horizontal group-edit" role="form" novalidate name="form">
+<form class="form-horizontal group-edit" role="form" novalidate name="form" >
   <div class="form-group">
     <label for="" class="col-sm-2 control-label">Type</label>
     <div class="col-sm-10">
@@ -42,7 +42,6 @@
             <link-to route='users.show' id="{{member}}">
               {{member}}
             </link-to>
-            <button ng-show="!group.ldap_group" type="button" class="close" ng-click="removeMember(member)"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
             {{$last ? '' : ', '}}
           </span>
         </div>
@@ -53,4 +52,38 @@
       <button ng-show="!group.ldap_group" class="btn btn-primary pull-right" ng-click="toggleEditMode()"><span class="glyphicon {{editMode ? 'glyphicon-save' : 'glyphicon-pencil'}}"></span> {{editMode ? 'Save': 'Edit'}}</button>
     </div>
   </div>
+  <div class="form-group" ng-show="dataLoaded">
+      <label for="" class="col-sm-2 control-label">Privileges</label>
+      <div class="col-sm-10">
+        <table class="table" ng-show="privileges">
+          <thead>
+            <tr>
+              <th>Resource</th>
+              <th>Permissions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr ng-repeat="(name, privilege) in privileges.clusters">
+              <td>
+                <span class="glyphicon glyphicon-cloud"></span> 
+                <a href="#/clusters/{{name}}/manageAccess">{{name}}</a>
+              </td>
+              <td>
+                {{privilege}}
+              </td>
+            </tr>
+            <tr ng-repeat="(name, privilege) in privileges.views">
+              <td>
+                <span class="glyphicon glyphicon-th"></span> 
+                <a href="#/views/{{privilege.view_name}}/versions/{{privilege.version}}/instances/{{name}}/edit">{{name}}</a>
+              </td>
+              <td>
+                {{privilege.privileges}}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="alert alert-info hide-soft" ng-class="{'visible' : !privileges}">This group does not have any privileges.</div>
+      </div>
+    </div>
 </form>

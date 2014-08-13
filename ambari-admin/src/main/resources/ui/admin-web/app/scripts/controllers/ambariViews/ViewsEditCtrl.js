@@ -57,7 +57,7 @@ angular.module('ambariAdminConsole')
 
   $scope.permissions = [];
   
-  reloadViewInfo();  
+  reloadViewInfo();
   reloadViewPrivilegies();
 
   $scope.editSettingsDisabled = true;
@@ -127,22 +127,6 @@ angular.module('ambariAdminConsole')
       uiAlert.danger(data.data.status, data.data.message);
     });
     $scope.editPermissionDisabled = true;
-  };
-
-  $scope.removePermission = function(permissionName, principalType, principalName) {
-    View.deletePrivilege({
-      view_name: $routeParams.viewId,
-      version: $routeParams.version,
-      instance_name: $routeParams.instanceId,
-      permissionName: permissionName,
-      principalType: principalType,
-      principalName: principalName
-    })
-    .then(reloadViewPrivilegies)
-    .catch(function(data) {
-      reloadViewPrivilegies();
-      uiAlert.danger(data.data.status, data.data.message);
-    });
   };
 
   $scope.deleteInstance = function(instance) {

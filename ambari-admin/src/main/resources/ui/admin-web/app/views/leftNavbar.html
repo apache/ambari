@@ -25,7 +25,7 @@
           <li ng-class="{active: isActive('clusters.manageAccess')}">
             <a href="#/clusters/{{cluster.Clusters.cluster_name}}/manageAccess" class="permissions">Permissions</a>
           </li>
-          <li><a href="/#/main/dashboard" class="gotodashboard">Go to Dashboard</a></li>
+          <li><a href="/#/main/dashboard" class="gotodashboard" target="{{cluster.Clusters.cluster_name}}">Go to Dashboard</a></li>
         </ul>
       </div>
         

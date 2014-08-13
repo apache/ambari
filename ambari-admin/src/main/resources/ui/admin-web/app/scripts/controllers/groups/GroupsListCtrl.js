@@ -21,6 +21,31 @@ angular.module('ambariAdminConsole')
 .controller('GroupsListCtrl',['$scope', 'Group', '$modal', 'ConfirmationModal', function($scope, Group, $modal, ConfirmationModal) {
   $scope.groups = [];
 
+  $scope.groupsPerPage = 10;
+  $scope.currentPage = 1;
+  $scope.totalGroups = 1;
+  $scope.search = '';
+  $scope.maxVisiblePages=20;
+
+  $scope.pageChanged = function() {
+    loadGroups();
+  };
+  $scope.usersPerPageChanges = function() {
+    loadGroups();
+  };
+
+  function loadGroups(){
+    Group.all($scope.currentPage, $scope.groupsPerPage, $scope.search).then(function(groups) {
+      $scope.totalGroups = groups.itemTotal;
+      $scope.groups = groups;
+    })
+    .catch(function(data) {
+      console.error('Get groups list error');
+    });
+  }
+
+  loadGroups();
+
   $scope.typeFilterOptions = ['All', 'Local', 'LDAP'];
   $scope.currentTypeFilter = 'All';
   $scope.typeFilter = function(group) {
@@ -34,10 +59,5 @@ angular.module('ambariAdminConsole')
     }
   };
 
-  Group.all().then(function(groups) {
-    $scope.groups = groups;
-  })
-  .catch(function(data) {
-    console.error('Get groups list error');
-  });
+  
 }]);

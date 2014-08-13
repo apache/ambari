@@ -89,7 +89,7 @@ angular.module('ambariAdminConsole')
     updatePrivileges: function(params, privileges) {
       return $http({
         method: 'PUT',
-        url: Settings.baseUrl + '/views/' + params.view_name +'/versions/'+params.version+'/instances/'+params.instance_name+'/privileges',
+        url: Settings.baseUrl + '/clusters/' + params.clusterId + '/privileges',
         data: privileges
       });
     },

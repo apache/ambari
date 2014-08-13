@@ -44,7 +44,7 @@ angular.module('ambariAdminConsole')
 
   $scope.syncLDAP = function() {
     ConfirmationModal.show('Sync LDAP', 'Are you sure you want to sync LDAP?').then(function() {
-      LDAP.sync($scope.ldapData.groups, $scope.ldapData.users).then(function() {
+      LDAP.sync($scope.ldapData['LDAP'].groups, $scope.ldapData['LDAP'].users).then(function() {
         uiAlert.success('LDAP synced successful');
       }).catch(function(data) {
         uiAlert.danger(data.data.status, data.data.message);

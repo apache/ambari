@@ -18,27 +18,9 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.factory('PermissionSaver', ['Cluster', 'View', '$q', function(Cluster, View, $q) {
-  var getDifference = function(oldArr, newArr) {
-    var result = {
-      add: [],
-      del: []
-    };
-    angular.forEach(newArr, function(item) {
-      var itemIndex = oldArr.indexOf(item);
-      if(itemIndex >= 0){
-        oldArr.splice(itemIndex, 1);
-      } else {
-        result.add.push(item);
-      }
-    });
+.factory('PermissionSaver', ['Cluster', 'View', '$q', 'getDifference', function(Cluster, View, $q, getDifference) {
 
-    result.del = oldArr;
-
-    return result;
-  };
   function savePermissionsFor(resource, permissions, params){
-    var deferred = $q.defer();
     var arr = [];
 
     angular.forEach(permissions, function(permission) {
@@ -67,9 +49,7 @@ angular.module('ambariAdminConsole')
       }));
     });
 
-    resource.updatePrivileges(params, arr);
-
-    return deferred.promise;
+    return resource.updatePrivileges(params, arr);
   }
   
   function savePermissionsForOld(resource, oldPermissions, newPermissions, params){

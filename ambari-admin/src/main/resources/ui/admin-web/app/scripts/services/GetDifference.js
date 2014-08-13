@@ -18,25 +18,23 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('UsersCreateCtrl',['$scope', '$routeParams', 'User', '$location', 'uiAlert', function($scope, $routeParams, User, $location, uiAlert) {
-  $scope.user = {
-    active: true
-  };
+.factory('getDifference', [function() {
+	return function(oldArr, newArr) {
+    var result = {
+      add: [],
+      del: []
+    };
+    angular.forEach(newArr, function(item) {
+      var itemIndex = oldArr.indexOf(item);
+      if(itemIndex >= 0){
+        oldArr.splice(itemIndex, 1);
+      } else {
+        result.add.push(item);
+      }
+    });
 
-  $scope.createUser = function() {
-    $scope.form.submitted = true;
-    if ($scope.form.$valid){
-      User.create({
-        'Users/user_name': $scope.user.user_name,
-        'Users/password': $scope.user.password,
-        'Users/active': !!$scope.user.active,
-        'Users/admin': !!$scope.user.admin
-      }).then(function() {
-        $location.path('/users');
-      }).catch(function(data) {;
-        data = data.data;
-        uiAlert.danger(data.status, data.message);
-      });
-    }
+    result.del = oldArr;
+
+    return result;
   };
 }]);
