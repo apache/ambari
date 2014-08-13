@@ -1974,16 +1974,18 @@ Em.I18n.translations = {
   'dashboard.services.zookeeper.server' : 'ZooKeeper Server',
 
   'dashboard.configHistory.title': 'Configs',
-  'dashboard.configHistory.table.version.title' : 'Service: version',
+  'dashboard.configHistory.table.version.title' : 'Service',
   'dashboard.configHistory.table.modified.title' : 'Modified',
   'dashboard.configHistory.table.empty' : 'No history to display',
+  'dashboard.configHistory.table.version.versionText' : 'V{0}',
   'dashboard.configHistory.table.filteredHostsInfo': '{0} of {1} versions showing',
   'dashboard.configHistory.info-bar.authoredOn': 'authored on',
   'dashboard.configHistory.info-bar.changesToHandle': 'Changes to handle',
   'dashboard.configHistory.info-bar.showMore': 'Show more',
   'dashboard.configHistory.info-bar.save.popup.title': 'Save Configuration',
   'dashboard.configHistory.info-bar.save.popup.placeholder': 'What did you change?',
-  'dashboard.configHistory.info-bar.revert.button': 'Revert to this version',
+  'dashboard.configHistory.info-bar.revert.button': 'Make current',
+
 
   'timeRange.presets.1hour':'1h',
   'timeRange.presets.12hour':'12h',

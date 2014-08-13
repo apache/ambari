@@ -101,7 +101,9 @@ App.ConfigHistoryFlowView = Em.View.extend({
     var startIndex = 0;
 
     serviceVersions.setEach('isDisplayed', false);
-    serviceVersions.findProperty('isCurrent').set('isDisplayed', true);
+    if (serviceVersions.findProperty('isCurrent')) {
+      serviceVersions.findProperty('isCurrent').set('isDisplayed', true);
+    }
 
     if (serviceVersions.length > 0) {
       if (serviceVersions.length > this.VERSIONS_IN_FLOW) {

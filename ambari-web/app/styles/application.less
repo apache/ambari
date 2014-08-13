@@ -4913,67 +4913,41 @@ ul.inline li {
 }
 
 #config_history_flow {
-  margin-bottom: 100px;
+  margin-bottom: 80px;
   .version-slider {
     width: 100%;
     height: 100px;
     margin: 10px 0;
     .flow-element {
-      width: 20%;
+      width: 18%;
       height: 100%;
       .box {
         position: relative;
-        width: 73%;
-        height: 100%;
-        background-color: #f1f1f1;
-        border: 1px solid #000000;
-        font-size: 0.9em;
-        .top-right-label {
-          font-size: @default-font-size;
-          background-color: white;
-          position: absolute;
-          top: 0;
-          left: 0;
+        width: 72%;
+        height: 90%;
+        background-color: #ffffff;
+        border: 1px solid #dddddd;
+        font-size: @default-font-size;
+        .top-label {
           min-width: 20px;
-          border: solid #000000;
-          border-width: 0 1px 1px 0;
           padding: 5px;
-          text-align: center;
-        }
-        .date {
-          margin-left: 35px;
-          line-height: 30px;
-          white-space: nowrap;
         }
         .content {
           padding: 0 5px;
-          line-height: 16px;
-        }
-        .current-label {
-          position: absolute;
-          border-top: 1px solid black;
-          bottom: 0;
-          left: 0;
-          width: 100%;
           text-align: center;
-          font-weight: bold;
-          border-radius: 0;
-          padding: 0;
-          font-size: 14px;
-          line-height: 20px;
+          color: #555555;
         }
       }
       .displayed {
-        background-color: #dcdcdc;
+        background-color: #eeeeee;
+        border: 1px solid #dddddd;
       }
       .arrow-box {
-        width: 25%;
-        height: 100%;
+        width: 20%;
         margin-left: 1px;
-        .big-arrow-right {
-          height: 100%;
-          background-size: 100% 25%;
-          background-position: 50% center;
+        margin-top: 20px;
+        .icon-arrow-right {
+          color: #c3c3c3;
         }
       }
     }
@@ -4984,45 +4958,50 @@ ul.inline li {
       .box {
         width: 100%;
       }
-      width: 15%;
+      width: 13%;
     }
 
-    .arrow-right {
-      margin: 20px -15px 20px 10px;
-      border-top: 30px solid transparent;
-      border-bottom: 30px solid transparent;
-    }
-    .arrow-left {
-      margin: 20px 10px 20px -15px;
-      border-top: 30px solid transparent;
-      border-bottom: 30px solid transparent;
-    }
-    .visibleArrow {
-      border-right-color: black;
-      border-left-color: black;
+    .icon-chevron-box {
+      margin-top: 25px;
+      width: 5%;
+      .icon-chevron-right,
+      .icon-chevron-left{
+       color: #c3c3c3;
+      }
+      .icon-chevron-left:hover,
+      .icon-chevron-right:hover{
+        color: #808080;
+      }
     }
   }
   .version-info-bar {
-    height: 60px;
-    border: 2px solid #a9a9a9;
-    background-color: #dcdcdc;
+    background-image: -moz-linear-gradient(top, @top-nav-bg-color-from, @top-nav-bg-color-to);
+    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(@top-nav-bg-color-from), to(@top-nav-bg-color-to));
+    background-image: -webkit-linear-gradient(top, @top-nav-bg-color-from, @top-nav-bg-color-to);
+    background-image: -o-linear-gradient(top, @top-nav-bg-color-from, @top-nav-bg-color-to);
+    background-image: linear-gradient(to bottom, @top-nav-bg-color-from, @top-nav-bg-color-to);
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr= @top-nav-bg-color-from, endColorstr=@top-nav-bg-color-to); //for IE9-
+    -webkit-box-shadow: inset 0 0 0 rgba(0, 0, 0, 0.1), 0 1px 10px rgba(0, 0, 0, 0.1);
+    -moz-box-shadow: inset 0 0 0 rgba(0, 0, 0, 0.1), 0 1px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: inset 0 0 0 rgba(0, 0, 0, 0.1), 0 1px 10px rgba(0, 0, 0, 0.1);
     margin: 5px 0;
     padding: 5px;
     position: fixed;
-    width: 52%;
     z-index: 2;
-    min-width: 743px;
+    width: 747px;
 
     .label-wrapper {
       line-height: 30px;
       margin-left: 10px;
+      color: #d3d3d3;
       .label {
         font-size: 14px;
         padding: 5px;
       }
     }
     .dropdown-menu {
-      min-width: 660px;
+      min-width: 400px;
+      margin-top: 4px;
       li {
         line-height: 30px;
       }
@@ -6038,11 +6017,26 @@ i.icon-asterisks {
     }
   }
 }
-
-
-
-
-
+  #config_history_flow {
+    .version-slider {
+      .flow-element {
+        .box {
+          width: 75%;
+        }
+        .arrow-box {
+          margin-left: 5px;
+        }
+      }
+      .first {
+        .box {
+          width: 100%;
+        }
+      }
+    }
+    .version-info-bar {
+      width: 960px;
+    }
+  }
   .summary-metric-graphs {
     [class*="span"] {
       float: left;

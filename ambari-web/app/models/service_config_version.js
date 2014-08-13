@@ -35,9 +35,9 @@ App.ServiceConfigVersion = DS.Model.extend({
     var length = this.get('isCurrent') ? 20 : 40;
     return (typeof this.get('notes') === 'string') ? this.get('notes').slice(0, length) : "";
   }.property('notes', 'isCurrent'),
-  serviceVersion: function () {
-    return this.get('serviceName') + ': ' + this.get('version');
-  }.property('serviceName', 'version'),
+  versionText: function () {
+    return Em.I18n.t('dashboard.configHistory.table.version.versionText').format(this.get('version'));
+  }.property('version'),
   modifiedDate: function () {
     return dateUtil.dateFormat(this.get('appliedTime'));
   }.property('createTime'),

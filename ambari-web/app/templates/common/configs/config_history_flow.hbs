@@ -19,24 +19,26 @@
 
 <div id="config_history_flow">
   <div class="version-slider">
-      <div {{bindAttr class=":pull-left :arrow-left :visibleArrow view.showLeftArrow::hide"}} {{action shiftBack target="view"}}></div>
-      {{#each serviceVersion in view.visibleServiceVersion}}
-          <div {{bindAttr class=":flow-element :pull-left serviceVersion.first:first"}}>
-              <div class="arrow-box pull-left"><div class="big-arrow-right"></div></div>
-              <div {{bindAttr class=":box :pull-right serviceVersion.isDisplayed:displayed"}}>
-                  <div class="top-right-label">{{serviceVersion.version}}</div>
-                  <p class="date">{{serviceVersion.shortModifiedDate}}</p>
-                  <p class="content">{{serviceVersion.author}}:&nbsp;{{serviceVersion.briefNotes}}</p>
-                  {{#if serviceVersion.isCurrent}}
-                    <div class="current-label label label-success">
-                      {{t common.latest}}
-                      <i {{bindAttr class=":icon-refresh :restart-required-service view.displayedServiceVersion.isRestartRequired::hidden"}}></i>
-                    </div>
-                  {{/if}}
-              </div>
+    <div {{bindAttr class=":icon-chevron-box :pull-left view.showLeftArrow::hide"}} {{action shiftBack target="view"}}><i class="icon-chevron-left icon-3x"></i></div>
+    {{#each serviceVersion in view.visibleServiceVersion}}
+      <div {{bindAttr class=":flow-element :pull-left serviceVersion.first:first"}}>
+        <div class="arrow-box pull-left"><i class="icon-arrow-right icon-3x"></i></div>
+        <div {{bindAttr class=":box :pull-right serviceVersion.isDisplayed:displayed"}}>
+          <div class="top-label">
+            <span class="label label-info">{{serviceVersion.versionText}}</span>
+            {{#if serviceVersion.isCurrent}}
+              <span class="label label-success">
+                {{t common.current}}
+                <i {{bindAttr class=":icon-refresh :restart-required-service view.displayedServiceVersion.isRestartRequired::hidden"}}></i>
+              </span>
+            {{/if}}
           </div>
-      {{/each}}
-      <div {{bindAttr class=":arrow-right :visibleArrow view.showRightArrow::hide"}} {{action shiftForward target="view"}}></div>
+          <div class="content">{{serviceVersion.author}}</div>
+          <div class="content">{{serviceVersion.shortModifiedDate}}</div>
+        </div>
+      </div>
+    {{/each}}
+    <div {{bindAttr class=":icon-chevron-box :pull-right view.showRightArrow::hide"}} {{action shiftForward target="view"}}><i class="icon-chevron-right icon-3x"></i></div>
   </div>
   <div class="version-info-bar">
     <div class="row-fluid">
@@ -49,10 +51,9 @@
               {{#each serviceVersion in view.dropDownList}}
                   <li class="pointer dropdown-submenu">
                       <div class="row-fluid">
-                          <div class="span2">{{t common.version}}:&nbsp;{{serviceVersion.version}}</div>
-                          <div class="span3">{{serviceVersion.modifiedDate}}</div>
-                          <div class="span2">{{serviceVersion.author}}</div>
-                          <div class="span4"><span class="ellipsis">{{t dashboard.configHistory.info-bar.changesToHandle}}</span></div>
+                          <div class="span2">{{serviceVersion.versionText}}</div>
+                          <div class="span6">{{serviceVersion.modifiedDate}}</div>
+                          <div class="span3">{{serviceVersion.author}}</div>
                           <div class="pull-right"><i class="icon-caret-right"></i></div>
                       </div>
                       <ul class="dropdown-menu">
@@ -73,7 +74,10 @@
             </ul>
         </div>
         <div class="label-wrapper span8">
-            <span {{bindAttr class=":label view.displayedServiceVersion.isCurrent:label-success"}}>{{t common.latest}}: {{view.displayedServiceVersion.version}}</span>
+            <span class="label label-info">{{view.displayedServiceVersion.versionText}}</span>
+            {{#if view.displayedServiceVersion.isCurrent}}
+              <span class="label label-success">{{t common.current}}</span>
+            {{/if}}
             <strong>{{view.displayedServiceVersion.author}}</strong>&nbsp;{{t dashboard.configHistory.info-bar.authoredOn}}&nbsp;<strong>{{view.displayedServiceVersion.modifiedDate}}</strong>
         </div>
         <div class="pull-right">

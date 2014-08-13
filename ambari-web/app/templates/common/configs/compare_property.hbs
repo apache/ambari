@@ -19,10 +19,6 @@
 <div {{bindAttr class=":control-group :overrideField"}}>
   {{view view.serviceConfigProperty.compareConfig.viewClass serviceConfigBinding="view.serviceConfigProperty.compareConfig"}}
   {{#unless view.serviceConfigProperty.compareConfig.isMock}}
-    <span>
-      <strong><i class="icon-asterisks">&#10037;</i>{{view.serviceConfigProperty.compareConfig.serviceVersion.author}}</strong>&nbsp;
-        {{t dashboard.configHistory.info-bar.authoredOn}}&nbsp;
-      <strong>{{view.serviceConfigProperty.compareConfig.serviceVersion.modifiedDate}}</strong>
-    </span>
+    <span class="label label-info">{{view.serviceConfigProperty.compareConfig.serviceVersion.versionText}}</span>
   {{/unless}}
 </div>

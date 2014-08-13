@@ -38,11 +38,16 @@
           {{#if view.pageContent}}
             {{#each item in view.pageContent}}
                 <tr>
-                    <td class="first"><a {{action goToServiceConfigs item.serviceName}}>
-                      {{item.serviceVersion}}
-                      {{#if item.isCurrent}}&nbsp;({{t common.latest}}){{/if}}
-                        <i {{bindAttr class=":icon-refresh :restart-required-service item.isRestartRequired::hidden"}}></i>
-                    </a></td>
+                    <td class="first">
+                      <a {{action goToServiceConfigs item.serviceName}}>
+                      {{item.serviceName}}
+                      </a>
+                      <span class="label label-info">{{item.versionText}}</span>
+                      {{#if item.isCurrent}}
+                        <span class="label label-success">{{t common.current}}</span>
+                      {{/if}}
+                      <i {{bindAttr class=":icon-refresh :restart-required-service item.isRestartRequired::hidden"}}></i>
+                    </td>
                     <td>{{item.modifiedDate}}</td>
                     <td>{{item.author}}</td>
                     <td>{{item.notes}}</td>

@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 
+var App = require('app');
 var customDatePopup = require('/views/common/custom_date_popup');
 
 App.MainConfigHistoryController = Em.ArrayController.extend(App.TableServerMixin, {

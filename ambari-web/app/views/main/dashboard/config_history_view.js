@@ -151,7 +151,6 @@ App.MainConfigHistoryView = App.TableView.extend({
 
   updateFilter: function (iColumn, value, type) {
     var self = this;
-
     this.set('controller.resetStartIndex', false);
     this.saveFilterConditions(iColumn, value, type, false);
     if (!this.get('filteringComplete')) {
