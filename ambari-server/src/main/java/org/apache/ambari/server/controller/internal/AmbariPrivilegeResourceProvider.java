@@ -19,18 +19,39 @@ package org.apache.ambari.server.controller.internal;
 
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.orm.dao.ClusterDAO;
+import org.apache.ambari.server.orm.entities.ClusterEntity;
+import org.apache.ambari.server.orm.entities.GroupEntity;
+import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
+import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
+import org.apache.ambari.server.orm.entities.UserEntity;
+import org.apache.ambari.server.orm.entities.ViewEntity;
+import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
+import org.apache.ambari.server.view.ViewRegistry;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import static org.apache.ambari.server.controller.internal.ClusterPrivilegeResourceProvider.PRIVILEGE_CLUSTER_NAME_PROPERTY_ID;
+import static org.apache.ambari.server.controller.internal.ViewPrivilegeResourceProvider.PRIVILEGE_INSTANCE_NAME_PROPERTY_ID;
+import static org.apache.ambari.server.controller.internal.ViewPrivilegeResourceProvider.PRIVILEGE_VIEW_NAME_PROPERTY_ID;
+import static org.apache.ambari.server.controller.internal.ViewPrivilegeResourceProvider.PRIVILEGE_VIEW_VERSION_PROPERTY_ID;
 
 /**
  * Resource provider for Ambari privileges.
  */
 public class AmbariPrivilegeResourceProvider extends PrivilegeResourceProvider<Object> {
+
+  public static final String PRIVILEGE_TYPE_PROPERTY_ID  = "PrivilegeInfo/type";
+
+  /**
+   * Data access object used to obtain privilege entities.
+   */
+  protected static ClusterDAO clusterDAO;
 
   /**
    * The property ids for an Ambari privilege resource.
@@ -41,6 +62,12 @@ public class AmbariPrivilegeResourceProvider extends PrivilegeResourceProvider<O
     propertyIds.add(PERMISSION_NAME_PROPERTY_ID);
     propertyIds.add(PRINCIPAL_NAME_PROPERTY_ID);
     propertyIds.add(PRINCIPAL_TYPE_PROPERTY_ID);
+    propertyIds.add(PRIVILEGE_VIEW_NAME_PROPERTY_ID);
+    propertyIds.add(PRIVILEGE_VIEW_VERSION_PROPERTY_ID);
+    propertyIds.add(PRIVILEGE_INSTANCE_NAME_PROPERTY_ID);
+    propertyIds.add(PRIVILEGE_CLUSTER_NAME_PROPERTY_ID);
+    propertyIds.add(PRIVILEGE_TYPE_PROPERTY_ID);
+
   }
 
   /**
@@ -61,6 +88,16 @@ public class AmbariPrivilegeResourceProvider extends PrivilegeResourceProvider<O
     super(propertyIds, keyPropertyIds, Resource.Type.AmbariPrivilege);
   }
 
+  // ----- AmbariPrivilegeResourceProvider ---------------------------------
+
+  /**
+   * Static initialization.
+   *
+   * @param clusterDao  the cluster data access object
+   */
+  public static void init(ClusterDAO clusterDao) {
+    clusterDAO  = clusterDao;
+  }
 
   // ----- AbstractResourceProvider ------------------------------------------
 
@@ -74,10 +111,60 @@ public class AmbariPrivilegeResourceProvider extends PrivilegeResourceProvider<O
 
   @Override
   public Map<Long, Object> getResourceEntities(Map<String, Object> properties) {
-    // the singleton Ambari entity is implied
-    return Collections.singletonMap(ResourceEntity.AMBARI_RESOURCE_ID, null);
+    Map<Long, Object> resourceEntities = new HashMap<Long, Object>();
+
+    resourceEntities.put(ResourceEntity.AMBARI_RESOURCE_ID, null);
+    // add cluster entities
+    List<ClusterEntity> clusterEntities = clusterDAO.findAll();
+
+    if (clusterEntities != null) {
+      for (ClusterEntity clusterEntity : clusterEntities) {
+        resourceEntities.put(clusterEntity.getResource().getId(), clusterEntity);
+      }
+    }
+    //add view entites
+    ViewRegistry viewRegistry = ViewRegistry.getInstance();
+    for (ViewEntity viewEntity : viewRegistry.getDefinitions()) {
+      for (ViewInstanceEntity viewInstanceEntity : viewEntity.getInstances()) {
+        resourceEntities.put(viewInstanceEntity.getResource().getId(), viewInstanceEntity);
+      }
+    }
+    return resourceEntities;
   }
 
+  @Override
+  protected Resource toResource(PrivilegeEntity privilegeEntity,
+                                Map<Long, UserEntity> userEntities,
+                                Map<Long, GroupEntity> groupEntities,
+                                Map<Long, Object> resourceEntities, Set<String> requestedIds) {
+    Resource resource = super.toResource(privilegeEntity, userEntities, groupEntities, resourceEntities, requestedIds);
+    if (resource != null) {
+      ResourceEntity resourceEntity = privilegeEntity.getResource();
+      ResourceTypeEntity type = resourceEntity.getResourceType();
+      String privilegeType;
+      switch (type.getId()) {
+        case ResourceTypeEntity.CLUSTER_RESOURCE_TYPE:
+          ClusterEntity clusterEntity = (ClusterEntity) resourceEntities.get(resourceEntity.getId());
+          privilegeType = ResourceTypeEntity.CLUSTER_RESOURCE_TYPE_NAME;
+          setResourceProperty(resource, PRIVILEGE_CLUSTER_NAME_PROPERTY_ID, clusterEntity.getClusterName(), requestedIds);
+          break;
+        case ResourceTypeEntity.AMBARI_RESOURCE_TYPE:
+          privilegeType = ResourceTypeEntity.AMBARI_RESOURCE_TYPE_NAME;
+          break;
+        default:
+          privilegeType = ResourceTypeEntity.VIEW_RESOURCE_TYPE_NAME;
+          ViewInstanceEntity viewInstanceEntity = (ViewInstanceEntity) resourceEntities.get(resourceEntity.getId());
+          ViewEntity viewEntity = viewInstanceEntity.getViewEntity();
+
+          setResourceProperty(resource, PRIVILEGE_VIEW_NAME_PROPERTY_ID, viewEntity.getCommonName(), requestedIds);
+          setResourceProperty(resource, PRIVILEGE_VIEW_VERSION_PROPERTY_ID, viewEntity.getVersion(), requestedIds);
+          setResourceProperty(resource, PRIVILEGE_INSTANCE_NAME_PROPERTY_ID, viewInstanceEntity.getName(), requestedIds);
+          break;
+      }
+      setResourceProperty(resource, PRIVILEGE_TYPE_PROPERTY_ID, privilegeType, requestedIds);
+    }
+    return resource;
+  }
   @Override
   public Long getResourceEntityId(Predicate predicate) {
     return ResourceEntity.AMBARI_RESOURCE_ID;
