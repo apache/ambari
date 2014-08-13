@@ -17,7 +17,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-__all__ = ["RMFTestCase", "Template", "StaticFile", "InlineTemplate","UnknownConfigurationMock"]
+__all__ = ["RMFTestCase", "Template", "StaticFile", "InlineTemplate", "UnknownConfigurationMock"]
 
 from unittest import TestCase
 import json
@@ -27,6 +27,7 @@ import sys
 import pprint
 from mock.mock import MagicMock, patch
 import platform
+
 with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
   from resource_management.core.environment import Environment
   from resource_management.libraries.script.config_dictionary import ConfigDictionary
@@ -177,7 +178,8 @@ class RMFTestCase(TestCase):
     self.assertEquals(resource_type, resource.__class__.__name__)
     self.assertEquals(name, resource.name)
     self.assertEquals(kwargs, resource.arguments)
-    
+
+
 # HACK: This is used to check Templates, StaticFile, InlineTemplate in testcases    
 def Template(name, **kwargs):
   with RMFTestCase.env:
@@ -193,7 +195,8 @@ def InlineTemplate(name, **kwargs):
   with RMFTestCase.env:
     from resource_management.core.source import InlineTemplate
     return InlineTemplate(name, **kwargs)
-  
+
+
 class UnknownConfigurationMock():
   def __eq__(self, other):
     return isinstance(other, UnknownConfiguration)

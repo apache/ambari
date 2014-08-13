@@ -22,10 +22,9 @@ from mock.mock import MagicMock, call, patch
 from stacks.utils.RMFTestCase import *
 import  resource_management.core.source
 
-@patch.object(resource_management.core.source, "InlineTemplate", new = MagicMock(return_value='InlineTemplateMock'))
 class TestStormNimbus(RMFTestCase):
 
-  def _test_configure_default(self):
+  def test_configure_default(self):
     self.executeScript("2.1/services/STORM/package/scripts/nimbus.py",
                        classname = "Nimbus",
                        command = "configure",
@@ -34,7 +33,7 @@ class TestStormNimbus(RMFTestCase):
     self.assert_configure_default()
     self.assertNoMoreResources()
 
-  def _test_start_default(self):
+  def test_start_default(self):
     self.executeScript("2.1/services/STORM/package/scripts/nimbus.py",
                        classname = "Nimbus",
                        command = "start",
@@ -58,7 +57,7 @@ class TestStormNimbus(RMFTestCase):
 
     self.assertNoMoreResources()
 
-  def _test_stop_default(self):
+  def test_stop_default(self):
     self.executeScript("2.1/services/STORM/package/scripts/nimbus.py",
                        classname = "Nimbus",
                        command = "stop",
@@ -74,7 +73,7 @@ class TestStormNimbus(RMFTestCase):
     self.assertResourceCalled('Execute', 'rm -f /var/run/storm/nimbus.pid')
     self.assertNoMoreResources()
 
-  def _test_configure_default(self):
+  def test_configure_default(self):
     self.executeScript("2.1/services/STORM/package/scripts/nimbus.py",
                        classname = "Nimbus",
                        command = "configure",
@@ -83,7 +82,7 @@ class TestStormNimbus(RMFTestCase):
     self.assert_configure_secured()
     self.assertNoMoreResources()
 
-  def _test_start_secured(self):
+  def test_start_secured(self):
     self.executeScript("2.1/services/STORM/package/scripts/nimbus.py",
                        classname = "Nimbus",
                        command = "start",
@@ -107,7 +106,7 @@ class TestStormNimbus(RMFTestCase):
 
     self.assertNoMoreResources()
 
-  def _test_stop_secured(self):
+  def test_stop_secured(self):
     self.executeScript("2.1/services/STORM/package/scripts/nimbus.py",
                        classname = "Nimbus",
                        command = "stop",
@@ -123,7 +122,7 @@ class TestStormNimbus(RMFTestCase):
     self.assertResourceCalled('Execute', 'rm -f /var/run/storm/nimbus.pid')
     self.assertNoMoreResources()
 
-  def _assert_configure_default(self):
+  def assert_configure_default(self):
 
     self.assertResourceCalled('Directory', '/var/log/storm',
       owner = 'storm',
@@ -152,16 +151,16 @@ class TestStormNimbus(RMFTestCase):
     )
     self.assertResourceCalled('File', '/etc/storm/conf/storm.yaml',
       owner = 'storm',
-      content = 'InlineTemplateMock',
+      content = self.get_yaml_inline_template(self.getConfig()['configurations']['storm-site']),
       group = 'hadoop',
       mode = None,
     )
     self.assertResourceCalled('File', '/etc/storm/conf/storm-env.sh',
                               owner = 'storm',
-                              content = self.getConfig()['configurations']['storm-env']['content']
+                              content = InlineTemplate(self.getConfig()['configurations']['storm-env']['content'])
                               )
 
-  def _assert_configure_secured(self):
+  def assert_configure_secured(self):
     self.assertResourceCalled('Directory', '/var/log/storm',
       owner = 'storm',
       group = 'hadoop',
@@ -189,14 +188,19 @@ class TestStormNimbus(RMFTestCase):
     )
     self.assertResourceCalled('File', '/etc/storm/conf/storm.yaml',
       owner = 'storm',
-      content = 'InlineTemplateMock',
+      content = self.get_yaml_inline_template(self.getConfig()['configurations']['storm-site']),
       group = 'hadoop',
       mode = None,
     )
     self.assertResourceCalled('File', '/etc/storm/conf/storm-env.sh',
                               owner = 'storm',
-                              content = self.getConfig()['configurations']['storm-env']['content']
+                              content = InlineTemplate(self.getConfig()['configurations']['storm-env']['content'])
                               )
     self.assertResourceCalled('TemplateConfig', '/etc/storm/conf/storm_jaas.conf',
       owner = 'storm',
     )
+
+  def get_yaml_inline_template(self, configurations):
+    with self.env:
+      from yaml_config import yaml_inline_template
+      return yaml_inline_template(configurations)

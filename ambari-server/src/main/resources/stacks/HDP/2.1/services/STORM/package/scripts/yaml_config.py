@@ -50,6 +50,10 @@ def escape_yaml_propetry(value):
     
   return value
 
+def yaml_inline_template(configurations):
+  return source.InlineTemplate('''{% for key, value in configurations_dict.items() %}{{ key }}: {{ escape_yaml_propetry(value) }}
+{% endfor %}''', configurations_dict=configurations, extra_imports=[escape_yaml_propetry])
+
 def yaml_config(
   filename,
   configurations = None,
@@ -58,8 +62,7 @@ def yaml_config(
   owner = None,
   group = None
 ):
-    config_content = source.InlineTemplate('''{% for key, value in configurations_dict.items() %}{{ key }}: {{ escape_yaml_propetry(value) }}
-{% endfor %}''', configurations_dict=configurations, extra_imports=[escape_yaml_propetry])
+    config_content = yaml_inline_template(configurations)
 
     File (format("{conf_dir}/{filename}"),
       content = config_content,
