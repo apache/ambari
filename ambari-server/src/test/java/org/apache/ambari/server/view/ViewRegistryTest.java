@@ -24,6 +24,8 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.orm.dao.MemberDAO;
 import org.apache.ambari.server.orm.dao.PrivilegeDAO;
+import org.apache.ambari.server.orm.dao.ResourceDAO;
+import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.dao.ViewDAO;
 import org.apache.ambari.server.orm.dao.ViewInstanceDAO;
@@ -46,13 +48,14 @@ import org.apache.ambari.server.view.events.EventImpl;
 import org.apache.ambari.server.view.events.EventImplTest;
 import org.apache.ambari.view.events.Event;
 import org.apache.ambari.view.events.Listener;
-import org.easymock.Capture;
+import org.easymock.EasyMock;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import javax.xml.bind.JAXBException;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -70,7 +73,6 @@ import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
-import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
@@ -165,8 +167,14 @@ public class ViewRegistryTest {
     resourceTypeEntity.setName("MY_VIEW{1.0.0}");
 
     ViewDAO vDAO = createMock(ViewDAO.class);
+    ResourceDAO rDAO = createNiceMock(ResourceDAO.class);
+    ResourceTypeDAO rtDAO = createNiceMock(ResourceTypeDAO.class);
+    ViewInstanceDAO viDAO = createNiceMock(ViewInstanceDAO.class);
 
     ViewRegistry.setViewDAO(vDAO);
+    ViewRegistry.setResourceDAO(rDAO);
+    ViewRegistry.setResourceTypeDAO(rtDAO);
+    ViewRegistry.setInstanceDAO(viDAO);
 
     ViewEntity viewDefinition = ViewEntityTest.getViewEntity();
     viewDefinition.setResourceType(resourceTypeEntity);
@@ -206,6 +214,7 @@ public class ViewRegistryTest {
     expect(viewDir.listFiles()).andReturn(new File[]{viewArchive});
 
     expect(viewArchive.isDirectory()).andReturn(false);
+    expect(viewArchive.getAbsolutePath()).andReturn("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}").anyTimes();
 
     expect(archiveDir.exists()).andReturn(false);
     expect(archiveDir.getAbsolutePath()).andReturn(
@@ -243,16 +252,19 @@ public class ViewRegistryTest {
     expect(libDir.listFiles()).andReturn(new File[]{fileEntry});
     expect(fileEntry.toURI()).andReturn(new URI("file:./"));
 
-    Capture<ViewEntity> captureViewEntity = new Capture<ViewEntity>();
-
-    expect(vDAO.findByName("MY_VIEW{1.0.0}")).andReturn(null);
-    expect(vDAO.merge(capture(captureViewEntity))).andReturn(viewDefinition);
+    expect(vDAO.findByName("MY_VIEW{1.0.0}")).andReturn(viewDefinition);
 
     expect(vDAO.findAll()).andReturn(Collections.<ViewEntity>emptyList());
 
+    expect(rtDAO.findByName("MY_VIEW{1.0.0}")).andReturn(null);
+    rtDAO.create(EasyMock.anyObject(ResourceTypeEntity.class));
+    EasyMock.expectLastCall().anyTimes();
+
+    expect(viDAO.merge(EasyMock.anyObject(ViewInstanceEntity.class))).andReturn(null).times(2);
+
     // replay mocks
     replay(configuration, viewDir, extractedArchiveDir, viewArchive, archiveDir, entryFile, classesDir,
-        libDir, fileEntry, viewJarFile, enumeration, jarEntry, is, fos, vDAO);
+        libDir, fileEntry, viewJarFile, enumeration, jarEntry, is, fos, rDAO, rtDAO, vDAO, viDAO);
 
     ViewRegistry registry = ViewRegistry.getInstance();
     registry.setHelper(new TestViewRegistryHelper(viewConfigs, files, outputStreams, jarFiles));
@@ -260,11 +272,10 @@ public class ViewRegistryTest {
     Set<ViewInstanceEntity> instanceEntities = registry.readViewArchives(configuration);
 
     Assert.assertEquals(2, instanceEntities.size());
-    Assert.assertEquals("MY_VIEW", captureViewEntity.getValue().getCommonName());
 
     // verify mocks
     verify(configuration, viewDir, extractedArchiveDir, viewArchive, archiveDir, entryFile, classesDir,
-        libDir, fileEntry, viewJarFile, enumeration, jarEntry, is, fos, vDAO);
+        libDir, fileEntry, viewJarFile, enumeration, jarEntry, is, fos, rDAO, rtDAO, vDAO, viDAO);
   }
 
   @Test
@@ -331,6 +342,7 @@ public class ViewRegistryTest {
     expect(viewDir.listFiles()).andReturn(new File[]{viewArchive});
 
     expect(viewArchive.isDirectory()).andReturn(false);
+    expect(viewArchive.getAbsolutePath()).andReturn("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}");
 
     expect(archiveDir.exists()).andReturn(false);
     expect(archiveDir.getAbsolutePath()).andReturn(
@@ -367,11 +379,6 @@ public class ViewRegistryTest {
 
     expect(libDir.listFiles()).andReturn(new File[]{fileEntry});
     expect(fileEntry.toURI()).andReturn(new URI("file:./"));
-
-    Capture<ViewEntity> captureViewEntity = new Capture<ViewEntity>();
-
-    expect(vDAO.findByName("MY_VIEW{1.0.0}")).andReturn(null);
-    expect(vDAO.merge(capture(captureViewEntity))).andThrow(new IllegalArgumentException("Expected exception."));
 
     expect(vDAO.findAll()).andReturn(Collections.<ViewEntity>emptyList());
 
@@ -508,8 +515,10 @@ public class ViewRegistryTest {
     MemberDAO memberDAO = createNiceMock(MemberDAO.class);
     PrivilegeDAO privilegeDAO = createNiceMock(PrivilegeDAO.class);
     SecurityHelper securityHelper = createNiceMock(SecurityHelper.class);
+    ResourceDAO rDAO = createNiceMock(ResourceDAO.class);
+    ResourceTypeDAO rtDAO = createNiceMock(ResourceTypeDAO.class);
 
-    ViewRegistry.init(viewDAO, viewInstanceDAO, userDAO, memberDAO, privilegeDAO, securityHelper);
+    ViewRegistry.init(viewDAO, viewInstanceDAO, userDAO, memberDAO, privilegeDAO, securityHelper, rDAO, rtDAO);
 
     ViewRegistry registry = ViewRegistry.getInstance();
 
@@ -548,8 +557,10 @@ public class ViewRegistryTest {
     MemberDAO memberDAO = createNiceMock(MemberDAO.class);
     PrivilegeDAO privilegeDAO = createNiceMock(PrivilegeDAO.class);
     SecurityHelper securityHelper = createNiceMock(SecurityHelper.class);
+    ResourceDAO rDAO = createNiceMock(ResourceDAO.class);
+    ResourceTypeDAO rtDAO = createNiceMock(ResourceTypeDAO.class);
 
-    ViewRegistry.init(viewDAO, viewInstanceDAO, userDAO, memberDAO, privilegeDAO, securityHelper);
+    ViewRegistry.init(viewDAO, viewInstanceDAO, userDAO, memberDAO, privilegeDAO, securityHelper, rDAO, rtDAO);
 
     ViewRegistry registry = ViewRegistry.getInstance();
 
@@ -583,8 +594,10 @@ public class ViewRegistryTest {
     MemberDAO memberDAO = createNiceMock(MemberDAO.class);
     PrivilegeDAO privilegeDAO = createNiceMock(PrivilegeDAO.class);
     SecurityHelper securityHelper = createNiceMock(SecurityHelper.class);
+    ResourceDAO rDAO = createNiceMock(ResourceDAO.class);
+    ResourceTypeDAO rtDAO = createNiceMock(ResourceTypeDAO.class);
 
-    ViewRegistry.init(viewDAO, viewInstanceDAO, userDAO, memberDAO, privilegeDAO, securityHelper);
+    ViewRegistry.init(viewDAO, viewInstanceDAO, userDAO, memberDAO, privilegeDAO, securityHelper, rDAO, rtDAO);
 
     ViewRegistry registry = ViewRegistry.getInstance();
 
@@ -619,8 +632,10 @@ public class ViewRegistryTest {
     MemberDAO memberDAO = createNiceMock(MemberDAO.class);
     PrivilegeDAO privilegeDAO = createNiceMock(PrivilegeDAO.class);
     SecurityHelper securityHelper = createNiceMock(SecurityHelper.class);
+    ResourceDAO rDAO = createNiceMock(ResourceDAO.class);
+    ResourceTypeDAO rtDAO = createNiceMock(ResourceTypeDAO.class);
 
-    ViewRegistry.init(viewDAO, viewInstanceDAO, userDAO, memberDAO, privilegeDAO, securityHelper);
+    ViewRegistry.init(viewDAO, viewInstanceDAO, userDAO, memberDAO, privilegeDAO, securityHelper, rDAO, rtDAO);
 
     ViewRegistry registry = ViewRegistry.getInstance();
 
@@ -663,8 +678,10 @@ public class ViewRegistryTest {
     MemberDAO memberDAO = createNiceMock(MemberDAO.class);
     PrivilegeDAO privilegeDAO = createNiceMock(PrivilegeDAO.class);
     SecurityHelper securityHelper = createNiceMock(SecurityHelper.class);
+    ResourceDAO rDAO = createNiceMock(ResourceDAO.class);
+    ResourceTypeDAO rtDAO = createNiceMock(ResourceTypeDAO.class);
 
-    ViewRegistry.init(viewDAO, viewInstanceDAO, userDAO, memberDAO, privilegeDAO, securityHelper);
+    ViewRegistry.init(viewDAO, viewInstanceDAO, userDAO, memberDAO, privilegeDAO, securityHelper, rDAO, rtDAO);
 
     ViewRegistry registry = ViewRegistry.getInstance();
 
@@ -705,8 +722,10 @@ public class ViewRegistryTest {
     MemberDAO memberDAO = createNiceMock(MemberDAO.class);
     PrivilegeDAO privilegeDAO = createNiceMock(PrivilegeDAO.class);
     SecurityHelper securityHelper = createNiceMock(SecurityHelper.class);
+    ResourceDAO rDAO = createNiceMock(ResourceDAO.class);
+    ResourceTypeDAO rtDAO = createNiceMock(ResourceTypeDAO.class);
 
-    ViewRegistry.init(viewDAO, viewInstanceDAO, userDAO, memberDAO, privilegeDAO, securityHelper);
+    ViewRegistry.init(viewDAO, viewInstanceDAO, userDAO, memberDAO, privilegeDAO, securityHelper, rDAO, rtDAO);
 
     ViewRegistry registry = ViewRegistry.getInstance();
 
@@ -758,6 +777,16 @@ public class ViewRegistryTest {
     @Override
     public ViewConfig getViewConfigFromArchive(File archiveFile) throws MalformedURLException, JAXBException {
       return viewConfigs.get(archiveFile);
+    }
+
+    public ViewConfig getViewConfigFromExtractedArchive(String archivePath)
+        throws JAXBException, FileNotFoundException {
+      for (File viewConfigKey: viewConfigs.keySet()) {
+        if (viewConfigKey.getAbsolutePath().equals(archivePath)) {
+          return viewConfigs.get(viewConfigKey);
+        }
+      }
+      return null;
     }
 
     @Override

@@ -101,7 +101,7 @@ public class ViewPrivilegeResourceProvider extends PrivilegeResourceProvider<Vie
   // ----- PrivilegeResourceProvider -----------------------------------------
 
   @Override
-  public Map<Long, ViewInstanceEntity> getResourceEntities(Map<String, Object> properties) {
+  public Map<Long, ViewInstanceEntity> getResourceEntities(Map<String, Object> properties) throws AmbariException {
     ViewRegistry viewRegistry = ViewRegistry.getInstance();
 
     String viewName     = (String) properties.get(PRIVILEGE_VIEW_NAME_PROPERTY_ID);
@@ -112,6 +112,9 @@ public class ViewPrivilegeResourceProvider extends PrivilegeResourceProvider<Vie
       ViewInstanceEntity viewInstanceEntity =
           viewRegistry.getInstanceDefinition(viewName, viewVersion, instanceName);
 
+      if (viewInstanceEntity == null) {
+        throw new AmbariException("View instance " + instanceName + " of " + viewName + viewVersion + " was not found");
+      }
       return Collections.singletonMap(viewInstanceEntity.getResource().getId(), viewInstanceEntity);
     }
 

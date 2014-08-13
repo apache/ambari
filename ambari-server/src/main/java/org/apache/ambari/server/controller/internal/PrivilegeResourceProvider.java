@@ -142,8 +142,9 @@ public abstract class PrivilegeResourceProvider<T> extends AbstractResourceProvi
    * @param properties the set of properties
    *
    * @return the entities
+   * @throws AmbariException if resource entities were not found
    */
-  public abstract Map<Long, T> getResourceEntities(Map<String, Object> properties);
+  public abstract Map<Long, T> getResourceEntities(Map<String, Object> properties) throws AmbariException;
 
   /**
    * Get the id for the resource specified by predicate.
@@ -183,7 +184,12 @@ public abstract class PrivilegeResourceProvider<T> extends AbstractResourceProvi
     }
 
     for (Map<String, Object> properties : propertyMaps) {
-      Map<Long, T> resourceEntities = getResourceEntities(properties);
+      Map<Long, T> resourceEntities;
+      try {
+        resourceEntities = getResourceEntities(properties);
+      } catch (AmbariException e) {
+        throw new SystemException("Could not get resource list from request", e);
+      }
 
       resourceIds.addAll(resourceEntities.keySet());
 
@@ -319,9 +325,7 @@ public abstract class PrivilegeResourceProvider<T> extends AbstractResourceProvi
     PrivilegeEntity entity         = new PrivilegeEntity();
     String          permissionName = (String) properties.get(PERMISSION_NAME_PROPERTY_ID);
     ResourceEntity  resourceEntity = resourceDAO.findById(resourceId);
-
     PermissionEntity permission = getPermission(permissionName, resourceEntity);
-
     if (permission == null) {
       throw new AmbariException("Can't find a permission named " + permissionName +
           " for the resource.");
@@ -331,7 +335,6 @@ public abstract class PrivilegeResourceProvider<T> extends AbstractResourceProvi
 
     String principalName = (String) properties.get(PRINCIPAL_NAME_PROPERTY_ID);
     String principalType = (String) properties.get(PRINCIPAL_TYPE_PROPERTY_ID);
-
     if (PrincipalTypeEntity.GROUP_PRINCIPAL_TYPE_NAME.equalsIgnoreCase(principalType)) {
       GroupEntity groupEntity = groupDAO.findGroupByName(principalName);
       if (groupEntity != null) {
@@ -381,7 +384,6 @@ public abstract class PrivilegeResourceProvider<T> extends AbstractResourceProvi
           throw new AmbariException("Can't grant " + entity.getPermission().getResourceType().getName() +
               " permission on a " + entity.getResource().getResourceType().getName() + " resource.");
         }
-
         privilegeDAO.create(entity);
         return null;
       }

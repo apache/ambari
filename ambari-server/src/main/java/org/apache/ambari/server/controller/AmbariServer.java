@@ -68,6 +68,7 @@ import org.apache.ambari.server.orm.dao.PermissionDAO;
 import org.apache.ambari.server.orm.dao.PrincipalDAO;
 import org.apache.ambari.server.orm.dao.PrivilegeDAO;
 import org.apache.ambari.server.orm.dao.ResourceDAO;
+import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.dao.ViewDAO;
 import org.apache.ambari.server.orm.dao.ViewInstanceDAO;
@@ -539,7 +540,8 @@ public class AmbariServer {
     ClusterPrivilegeResourceProvider.init(injector.getInstance(ClusterDAO.class));
     ViewRegistry.init(injector.getInstance(ViewDAO.class), injector.getInstance(ViewInstanceDAO.class),
         injector.getInstance(UserDAO.class), injector.getInstance(MemberDAO.class),
-        injector.getInstance(PrivilegeDAO.class), injector.getInstance(SecurityHelper.class));
+        injector.getInstance(PrivilegeDAO.class), injector.getInstance(SecurityHelper.class),
+        injector.getInstance(ResourceDAO.class), injector.getInstance(ResourceTypeDAO.class));
   }
 
   /**
