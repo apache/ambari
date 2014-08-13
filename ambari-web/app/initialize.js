@@ -40,7 +40,6 @@ require('utils/action_sequence');
 
 require('mappers');
 
-require('mappers/jobs/hive_job_mapper');
 require('utils/http_client');
 require('utils/host_progress_popup');
 

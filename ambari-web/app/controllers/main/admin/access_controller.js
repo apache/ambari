@@ -25,7 +25,7 @@ App.MainAdminAccessController = Em.Controller.extend(App.UserPref, {
    * Show jobs by default
    * @type {bool}
    */
-  showJobs: true,
+  showJobs: false,
 
   /**
    * User pref key
@@ -57,9 +57,9 @@ App.MainAdminAccessController = Em.Controller.extend(App.UserPref, {
 
   getUserPrefErrorCallback: function () {
     if (App.get('isAdmin')) {
-      this.postUserPref(this.get('persistKey'), true);
+      this.postUserPref(this.get('persistKey'), false);
     }
-    this.set('showJobs', true);
+    this.set('showJobs', false);
     return true;
   }
 

@@ -75,7 +75,6 @@ App.supports = {
   deleteHost: true,
   autoRollbackHA: false,
   appTimelineServer: true,
-  jobs: true,
   ubuntu: true,
   views: true,
   flume: true,

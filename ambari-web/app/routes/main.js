@@ -186,47 +186,6 @@ module.exports = Em.Route.extend({
     }
   }),
 
-  jobs: Em.Route.extend({
-    route: '/jobs',
-    enter: function (router) {
-      if (!App.router.get('mainAdminAccessController.showJobs') && !App.get('isAdmin')) {
-        Em.run.next(function () {
-          router.transitionTo('main.dashboard.index');
-        });
-      }
-    },
-    exit: function (router) {
-      clearInterval(router.get('mainJobsController').jobsUpdate);
-    },
-    index: Ember.Route.extend({
-      route: '/',
-      connectOutlets: function (router) {
-        if (!App.get('isHadoop2Stack')) {
-          Em.run.next(function () {
-            router.transitionTo('main.dashboard.index');
-          });
-        } else {
-          router.get('mainJobsController').updateJobs('mainJobsController', 'refreshLoadedJobs');
-          router.get('mainController').connectOutlet('mainJobs');
-        }
-      }
-    }),
-    jobDetails: Em.Route.extend({
-      route: '/:job_id',
-      connectOutlets: function (router, job) {
-        if (job) {
-          router.get('mainHiveJobDetailsController').set('loaded', false);
-          router.get('mainController').connectOutlet('mainHiveJobDetails', job);
-          router.get('mainHiveJobDetailsController').loadJobDetails();
-          router.get('mainJobsController').updateJobs('mainHiveJobDetailsController', 'loadJobDetails');
-        }
-      },
-      exit: function (router) {
-        router.get('mainHiveJobDetailsController').set('loaded', false);
-      }
-    })
-  }),
-
   mirroring: Em.Route.extend({
     route: '/mirroring',
     index: Ember.Route.extend({

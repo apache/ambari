@@ -48,9 +48,6 @@ App.MainMenuView = Em.CollectionView.extend({
 
         if (!App.get('isHadoop2Stack')) {
           result.push({ label:Em.I18n.t('menu.item.jobs'), routing:'apps'});
-        } else if( App.router.get('mainAdminController.isAccessAvailable') && App.supports.jobs
-          && (App.router.get('mainAdminAccessController.showJobs') || App.get('isAdmin'))) {
-          result.push({ label:Em.I18n.t('menu.item.jobs'), routing:'jobs'});
         }
 
         if (App.get('isAdmin')) {
@@ -65,7 +62,7 @@ App.MainMenuView = Em.CollectionView.extend({
 
     }
     return result;
-  }.property('App.router.loggedIn', 'App.router.clusterController.isLoaded', 'App.supports.views', 'App.supports.mirroring', 'App.supports.secureCluster', 'App.supports.highAvailability', 'App.supports.jobs'),
+  }.property('App.router.loggedIn', 'App.router.clusterController.isLoaded', 'App.supports.views', 'App.supports.mirroring', 'App.supports.secureCluster', 'App.supports.highAvailability'),
 
     /**
      *    Adds observer on lastSetURL and calls navigation sync procedure

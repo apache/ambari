@@ -117,8 +117,6 @@ require('controllers/main/charts/heatmap_metrics/heatmap_metric_hbase_regions');
 require('controllers/main/charts/heatmap_metrics/heatmap_metric_hbase_memstoresize');
 require('controllers/main/charts/heatmap');
 require('controllers/main/apps_controller');
-require('controllers/main/jobs_controller');
-require('controllers/main/jobs/hive_job_details_controller');
 require('controllers/main/apps/item_controller');
 require('controllers/main/mirroring_controller');
 require('controllers/main/mirroring/edit_dataset_controller');
