@@ -20,26 +20,34 @@ package org.apache.ambari.server.agent;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.codehaus.jackson.annotate.JsonProperty;
 
 /**
- *
  * Controller to Agent response data model.
- *
  */
 public class HeartBeatResponse {
 
   private long responseId;
- 
-  List<ExecutionCommand> executionCommands = new ArrayList<ExecutionCommand>();
-  List<StatusCommand> statusCommands = new ArrayList<StatusCommand>();
-  List<CancelCommand> cancelCommands = new ArrayList<CancelCommand>();
 
-  RegistrationCommand registrationCommand;
+  private List<ExecutionCommand> executionCommands = new ArrayList<ExecutionCommand>();
+  private List<StatusCommand> statusCommands = new ArrayList<StatusCommand>();
+  private List<CancelCommand> cancelCommands = new ArrayList<CancelCommand>();
 
-  boolean restartAgent = false;
-  boolean hasMappedComponents = false;
+  private RegistrationCommand registrationCommand;
+
+  private boolean restartAgent = false;
+  private boolean hasMappedComponents = false;
+
+  /**
+   * A mapping between cluster name and the alert defintion hash for that
+   * cluster. The alert definition hash for a cluster is a hashed value of all
+   * of the UUIDs for each alert definition that the agent host should be
+   * scheduling. If any of the alert definitions change, their UUID will change
+   * which will cause this hash value to change.
+   */
+  private Map<String, String> alertDefinitionHashes = null;
 
   @JsonProperty("responseId")
   public long getResponseId() {
@@ -111,6 +119,16 @@ public class HeartBeatResponse {
     this.hasMappedComponents = hasMappedComponents;
   }
 
+  @JsonProperty("alertDefinitionHashes")
+  public Map<String, String> getAlertDefinitionHash() {
+    return alertDefinitionHashes;
+  }
+
+  @JsonProperty("alertDefinitionHashes")
+  public void setAlertDefinitionHash(Map<String, String> alertDefinitionHashes) {
+    this.alertDefinitionHashes = alertDefinitionHashes;
+  }
+
   public void addExecutionCommand(ExecutionCommand execCmd) {
     executionCommands.add(execCmd);
   }
@@ -125,13 +143,15 @@ public class HeartBeatResponse {
 
   @Override
   public String toString() {
-    return "HeartBeatResponse{" +
-            "responseId=" + responseId +
-            ", executionCommands=" + executionCommands +
-            ", statusCommands=" + statusCommands +
-            ", cancelCommands=" + cancelCommands +
-            ", registrationCommand=" + registrationCommand +
-            ", restartAgent=" + restartAgent +
-            '}';
+    StringBuilder buffer = new StringBuilder("HeartBeatResponse{");
+    buffer.append("responseId=").append(responseId);
+    buffer.append(", executionCommands=").append(executionCommands);
+    buffer.append(", statusCommands=").append(statusCommands);
+    buffer.append(", cancelCommands=").append(cancelCommands);
+    buffer.append(", registrationCommand=").append(registrationCommand);
+    buffer.append(", restartAgent=").append(restartAgent);
+    buffer.append(", alertDefinitionHashes=").append(alertDefinitionHashes);
+    buffer.append('}');
+    return buffer.toString();
   }
 }

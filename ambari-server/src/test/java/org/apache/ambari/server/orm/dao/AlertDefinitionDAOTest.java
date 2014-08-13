@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.TimeZone;
 import java.util.UUID;
 
+import org.apache.ambari.server.controller.RootServiceResponseFactory;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
@@ -41,7 +42,6 @@ import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.NotificationState;
 import org.apache.ambari.server.state.alert.Scope;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -65,7 +65,7 @@ public class AlertDefinitionDAOTest {
   OrmTestHelper helper;
 
   /**
-   * 
+   *
    */
   @Before
   public void setup() {
@@ -78,7 +78,9 @@ public class AlertDefinitionDAOTest {
     helper = injector.getInstance(OrmTestHelper.class);
     clusterId = helper.createCluster();
 
-    for (int i = 0; i < 8; i++) {
+    // create 8 HDFS alerts
+    int i = 0;
+    for (; i < 8; i++) {
       AlertDefinitionEntity definition = new AlertDefinitionEntity();
       definition.setDefinitionName("Alert Definition " + i);
       definition.setServiceName("HDFS");
@@ -91,6 +93,58 @@ public class AlertDefinitionDAOTest {
       definition.setSourceType("SCRIPT");
       dao.create(definition);
     }
+
+    // create 2 HDFS with components
+    for (; i < 10; i++) {
+      AlertDefinitionEntity definition = new AlertDefinitionEntity();
+      definition.setDefinitionName("Alert Definition " + i);
+      definition.setServiceName("HDFS");
+
+      if (i == 9) {
+        definition.setComponentName("NAMENODE");
+      } else {
+        definition.setComponentName("DATANODE");
+      }
+
+      definition.setClusterId(clusterId);
+      definition.setHash(UUID.randomUUID().toString());
+      definition.setScheduleInterval(60);
+      definition.setScope(Scope.SERVICE);
+      definition.setSource("Source " + i);
+      definition.setSourceType("SCRIPT");
+      dao.create(definition);
+    }
+
+    // create 2 host scoped
+    for (; i < 12; i++) {
+      AlertDefinitionEntity definition = new AlertDefinitionEntity();
+      definition.setDefinitionName("Alert Definition " + i);
+      definition.setServiceName("OOZIE");
+      definition.setComponentName("OOZIE_SERVER");
+      definition.setClusterId(clusterId);
+      definition.setHash(UUID.randomUUID().toString());
+      definition.setScheduleInterval(60);
+      definition.setScope(Scope.HOST);
+      definition.setSource("Source " + i);
+      definition.setSourceType("SCRIPT");
+      dao.create(definition);
+    }
+
+    // create 3 agent alerts
+    for (; i < 15; i++) {
+      AlertDefinitionEntity definition = new AlertDefinitionEntity();
+      definition.setDefinitionName("Alert Definition " + i);
+      definition.setServiceName(RootServiceResponseFactory.Services.AMBARI.name());
+      definition.setComponentName(RootServiceResponseFactory.Components.AMBARI_AGENT.name());
+      definition.setClusterId(clusterId);
+      definition.setHash(UUID.randomUUID().toString());
+      definition.setScheduleInterval(60);
+      definition.setScope(Scope.HOST);
+      definition.setSource("Source " + i);
+      definition.setSourceType("SCRIPT");
+      dao.create(definition);
+    }
+
   }
 
   @After
@@ -100,40 +154,77 @@ public class AlertDefinitionDAOTest {
   }
 
   /**
-   * 
+   *
    */
   @Test
   public void testFindByName() {
     List<AlertDefinitionEntity> definitions = dao.findAll();
-    Assert.assertNotNull(definitions);
+    assertNotNull(definitions);
     AlertDefinitionEntity definition = definitions.get(2);
     AlertDefinitionEntity retrieved = dao.findByName(
         definition.getClusterId(), definition.getDefinitionName());
 
-    Assert.assertEquals(definition, retrieved);
+    assertEquals(definition, retrieved);
   }
 
   /**
-   * 
+   *
    */
   @Test
   public void testFindAll() {
     List<AlertDefinitionEntity> definitions = dao.findAll();
-    Assert.assertNotNull(definitions);
-    Assert.assertEquals(8, definitions.size());
+    assertNotNull(definitions);
+    assertEquals(15, definitions.size());
   }
 
   /**
-   * 
+   *
    */
   @Test
-  public void findById() {
+  public void testFindById() {
     List<AlertDefinitionEntity> definitions = dao.findAll();
-    Assert.assertNotNull(definitions);
+    assertNotNull(definitions);
     AlertDefinitionEntity definition = definitions.get(2);
     AlertDefinitionEntity retrieved = dao.findById(definition.getDefinitionId());
+    assertEquals(definition, retrieved);
+  }
 
-    Assert.assertEquals(definition, retrieved);
+  /**
+   *
+   */
+  @Test
+  public void testFindByService() {
+    List<AlertDefinitionEntity> definitions = dao.findByService(clusterId,
+        "HDFS");
+
+    assertNotNull(definitions);
+    assertEquals(10, definitions.size());
+
+    definitions = dao.findByService(clusterId, "YARN");
+    assertNotNull(definitions);
+    assertEquals(0, definitions.size());
+  }
+
+  /**
+   *
+   */
+  @Test
+  public void testFindByServiceComponent() {
+    List<AlertDefinitionEntity> definitions = dao.findByServiceComponent(
+        clusterId, "OOZIE", "OOZIE_SERVER");
+
+    assertNotNull(definitions);
+    assertEquals(2, definitions.size());
+  }
+
+  /**
+   *
+   */
+  @Test
+  public void testFindAgentScoped() {
+    List<AlertDefinitionEntity> definitions = dao.findAgentScoped(clusterId);
+    assertNotNull(definitions);
+    assertEquals(3, definitions.size());
   }
 
   @Test

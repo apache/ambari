@@ -34,6 +34,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -56,6 +57,8 @@ import org.junit.Test;
 public class AlertDefinitionResourceProviderTest {
 
   AlertDefinitionDAO dao = null;
+
+  private static String DEFINITION_UUID = UUID.randomUUID().toString();
 
   @Before
   public void before() {
@@ -82,6 +85,7 @@ public class AlertDefinitionResourceProviderTest {
         AlertDefinitionResourceProvider.ALERT_DEF_CLUSTER_NAME,
         AlertDefinitionResourceProvider.ALERT_DEF_ID,
         AlertDefinitionResourceProvider.ALERT_DEF_NAME,
+        AlertDefinitionResourceProvider.ALERT_DEF_UUID,
         AlertDefinitionResourceProvider.ALERT_DEF_LABEL);
 
     AmbariManagementController amc = createMock(AmbariManagementController.class);
@@ -109,6 +113,9 @@ public class AlertDefinitionResourceProviderTest {
 
     Assert.assertEquals("Mock Label",
         r.getPropertyValue(AlertDefinitionResourceProvider.ALERT_DEF_LABEL));
+
+    Assert.assertEquals(DEFINITION_UUID,
+        r.getPropertyValue(AlertDefinitionResourceProvider.ALERT_DEF_UUID));
 
     verify(amc, clusters, cluster, dao);
   }
@@ -331,7 +338,7 @@ public class AlertDefinitionResourceProviderTest {
     entity.setDefinitionName("my_def");
     entity.setLabel("Mock Label");
     entity.setEnabled(true);
-    entity.setHash("tmphash");
+    entity.setHash(DEFINITION_UUID);
     entity.setScheduleInterval(Integer.valueOf(2));
     entity.setServiceName(null);
     entity.setSourceType("metric");

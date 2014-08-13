@@ -65,6 +65,7 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
   protected static final String ALERT_DEF_COMPONENT_NAME = "AlertDefinition/component_name";
   protected static final String ALERT_DEF_ENABLED = "AlertDefinition/enabled";
   protected static final String ALERT_DEF_SCOPE = "AlertDefinition/scope";
+  protected static final String ALERT_DEF_UUID = "AlertDefinition/uuid";
 
   private static Set<String> pkPropertyIds = new HashSet<String>(
       Arrays.asList(ALERT_DEF_ID, ALERT_DEF_NAME));
@@ -352,6 +353,9 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
     setResourceProperty(resource, ALERT_DEF_SCOPE, entity.getScope(), requestedIds);
     setResourceProperty(resource, ALERT_DEF_SOURCE_TYPE, entity.getSourceType(), requestedIds);
     setResourceProperty(resource, ALERT_DEF_LABEL, entity.getLabel(),
+        requestedIds);
+
+    setResourceProperty(resource, ALERT_DEF_UUID, entity.getHash(),
         requestedIds);
 
     if (!isCollection && null != resource.getPropertyValue(ALERT_DEF_SOURCE_TYPE)) {
