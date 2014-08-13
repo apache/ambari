@@ -46,8 +46,6 @@ App.MainAdminUserCreateView = Em.View.extend({
     var form = this.get("userForm");
     if (!form.isValid())  return false;
 
-    this.identifyRoles(form);
-
     return !!App.ajax.send({
       name: 'admin.user.create',
       sender: this,
@@ -56,24 +54,13 @@ App.MainAdminUserCreateView = Em.View.extend({
         form: form,
         data: {
           Users: {
-            password: form.getField("password").get('value'),
-            roles: form.getField("roles").get('value')
+            password: form.getField("password").get('value')
           }
         }
       },
       success: 'createUserSuccessCallback',
       error: 'createUserErrorCallback'
     });
-  },
-
-  /**
-   * identify roles of user by admin checkbox
-   * @param form
-   */
-  identifyRoles: function (form) {
-    var roles = (form.getField("admin").get('value') === true) ? 'admin,user' : 'user';
-    form.getField("roles").set("value", roles);
-    return roles;
   },
 
   /**

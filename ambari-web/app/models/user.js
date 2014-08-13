@@ -24,7 +24,6 @@ App.User = DS.Model.extend({
   id:function(){
     return this.get('userName');
   }.property('userName'),
-  roles:DS.attr('string'),
   isLdap:DS.attr('boolean'),
   type: function(){
     if(this.get('isLdap')){
@@ -33,7 +32,17 @@ App.User = DS.Model.extend({
     return 'Local';
   }.property('isLdap'),
   auditItems:DS.hasMany('App.ServiceAudit'),
-  admin: DS.attr('boolean')
+  admin: DS.attr('boolean'),
+  /**
+   * List of permissions assigned to user
+   *  Available permissions:
+   *    AMBARI.ADMIN
+   *    CLUSTER.READ
+   *    CLUSTER.OPERATE
+   *    VIEW.USE
+   * @property {Array} permissions
+   **/
+  permissions: DS.attr('array')
 });
 
 App.EditUserForm = App.Form.extend({
@@ -48,7 +57,6 @@ App.EditUserForm = App.Form.extend({
     { name:"new_password", displayName:"New Password", displayType:"password",  isRequired: false },
     { name:"new_passwordRetype", displayName:"Retype New Password", displayType:"password", isRequired: false },
     { name:"admin", displayName:"Admin", displayType:"checkbox", isRequired:false },
-    { name:"roles", displayName:"Role", isRequired:false, isHidden:true },
     { name:"isLdap", displayName:"Type", isRequired:false, isHidden:true }
   ],
   fields:[],
@@ -116,8 +124,7 @@ App.CreateUserForm = App.Form.extend({
     { name:"userName", displayName:"Username", toLowerCase: function(){var v = this.get('value'); this.set('value', v.toLowerCase())}.observes('value') },
     { name:"password", displayName:"Password", displayType:"password", isRequired: true },
     { name:"passwordRetype", displayName:"Retype Password", displayType:"password", validator:"passwordRetype", isRequired: true },
-    { name:"admin", displayName:"Admin", displayType:"checkbox", isRequired:false, defaultValue: true},
-    { name:"roles", displayName:"Role", isRequired:false, isHidden:true }
+    { name:"admin", displayName:"Admin", displayType:"checkbox", isRequired:false, defaultValue: true}
   ],
   fields:[],
 

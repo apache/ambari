@@ -1332,6 +1332,18 @@ var urls = {
       };
     }
   },
+  'users.all': {
+    real: '/users/?fields=*',
+    mock: '/data/users/users.json'
+  },
+  'users.privileges': {
+    real: '/privileges?fields=*',
+    mock: '/data/users/privileges.json'
+  },
+  'router.user.privileges': {
+    real: '/privileges?PrivilegeInfo/principal_name={userName}&fields=*',
+    mock: '/data/users/privileges_{userName}.json'
+  },
   'router.login2': {
     'real': '/clusters',
     'mock': '/data/clusters/info.json'

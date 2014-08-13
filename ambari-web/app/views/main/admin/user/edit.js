@@ -42,9 +42,7 @@ App.MainAdminUserEditView = Em.View.extend({
     var form = this.get("userForm");
     if (!form.isValid()) return false;
 
-    var Users = {
-      roles: this.identifyRoles(form)
-    };
+    var Users = {};
 
     this.setPassword(Users, form);
 
@@ -76,17 +74,6 @@ App.MainAdminUserEditView = Em.View.extend({
       return true;
     }
     return false;
-  },
-
-  /**
-   * identify roles of user by admin checkbox
-   * @param form
-   * @return {String}
-   */
-  identifyRoles: function (form) {
-    var roles = (form.getField("admin").get('value') === true) ? 'admin,user' : 'user';
-    form.getField("roles").set("value", roles);
-    return roles;
   },
 
   /**

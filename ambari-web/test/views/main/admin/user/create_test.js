@@ -44,37 +44,12 @@ describe('App.MainAdminUserCreateView', function () {
     });
     it('form is valid', function () {
       view.set('userForm.mockIsValid', true);
-      sinon.stub(view, 'identifyRoles', Em.K);
       sinon.stub(App.ajax, 'send', Em.K);
 
       expect(view.create()).to.be.true;
-      expect(view.identifyRoles.calledOnce).to.be.true;
       expect(App.ajax.send.calledOnce).to.be.true;
 
-      view.identifyRoles.restore();
       App.ajax.send.restore();
-    });
-  });
-
-  describe('#identifyRoles()', function () {
-    var mock = Em.Object.create();
-    var form = Em.Object.create({
-      getField: function () {
-        return mock;
-      }
-    });
-
-    it('admin is false', function () {
-      mock.set('value', false);
-
-      expect(view.identifyRoles(form)).to.equal('user');
-      expect(mock.get('value')).to.equal('user');
-    });
-    it('admin is true', function () {
-      mock.set('value', true);
-
-      expect(view.identifyRoles(form)).to.equal('admin,user');
-      expect(mock.get('value')).to.equal('admin,user');
     });
   });
 

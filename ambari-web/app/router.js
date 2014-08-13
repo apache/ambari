@@ -155,6 +155,37 @@ App.Router = Em.Router.extend({
     return App.db.getUser();
   },
 
+  /**
+   * Get user privileges.
+   *
+   * @param {String} userName
+   * @returns {$.Deferred}
+   **/
+  getUserPrivileges: function(userName) {
+    return App.ajax.send({
+      name: 'router.user.privileges',
+      sender: this,
+      data: {
+        userName: userName
+      },
+      success: 'getUserPrivilegesSuccess'
+    });
+  },
+
+  getUserPrivilegesSuccess: function() {},
+
+  setUserLoggedIn: function(userName) {
+    var controller = this.get('loginController'),
+        self = this;
+    this.setAuthenticated(true);
+    this.setLoginName(userName);
+    this.setUser(App.User.find().findProperty('id', userName));
+    this.getSection(function(route){
+      self.transitionTo(route);
+      controller.postLogin(true,true);
+    });
+  },
+
   login: function () {
     var controller = this.get('loginController');
     var loginName = controller.get('loginName').toLowerCase();
@@ -191,33 +222,30 @@ App.Router = Em.Router.extend({
 
   loginSuccessCallback: function(data, opt, params) {
     console.log('login success');
-    var d = data;
-    var isAdmin = data.Users.roles.indexOf('admin') >= 0;
+    var isAdmin = false;
     var self = this;
-    if (isAdmin) {
-      App.set('isAdmin', true);
-      var controller = this.get('loginController');
-      this.setAuthenticated(true);
-      this.setLoginName(params.loginName);
+    this.getUserPrivileges(data.Users.user_name).done(function(privileges) {
+      data.privileges = privileges;
       App.usersMapper.map({"items": [data]});
-      this.setUser(App.User.find().findProperty('id', params.loginName));
-      this.getSection(function(route){
-        self.transitionTo(route);
-        controller.postLogin(true,true);
-      });
-    }
-    else {
-      App.ajax.send({
-        name: 'router.login2',
-        sender: this,
-        data: {
-          loginName: params.loginName,
-          loginData: data
-        },
-        success: 'login2SuccessCallback',
-        error: 'login2ErrorCallback'
-      });
-    }
+      isAdmin = App.usersMapper.isAdmin(privileges.items.mapProperty('PrivilegeInfo.permission_name'));
+      if (isAdmin) {
+        App.set('isAdmin', true);
+        self.setUserLoggedIn(params.loginName);
+        return true;
+      }
+      else {
+        return App.ajax.send({
+          name: 'router.login2',
+          sender: self,
+          data: {
+            loginName: params.loginName,
+            loginData: data
+          },
+          success: 'login2SuccessCallback',
+          error: 'login2ErrorCallback'
+        });
+      }
+    });
   },
 
   loginErrorCallback: function(request, ajaxOptions, error, opt) {
@@ -234,16 +262,9 @@ App.Router = Em.Router.extend({
 
   login2SuccessCallback: function (clusterResp, opt, params) {
     var controller = this.get('loginController');
-    var self = this;
     if (clusterResp.items.length) {
-      this.setAuthenticated(true);
-      this.setLoginName(params.loginName);
       App.usersMapper.map({"items": [params.loginData]});
-      this.setUser(App.User.find().findProperty('id', params.loginName));
-      this.getSection(function(route){
-        self.transitionTo(route);
-        controller.postLogin(true,true);
-      });
+      this.setUserLoggedIn(params.loginName);
     }
     else {
       controller.set('errorMessage', Em.I18n.t('router.hadoopClusterNotSetUp'));

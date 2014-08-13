@@ -55,16 +55,13 @@ describe('App.MainAdminUserEditView', function () {
       sinon.stub(view.get('userForm'), 'isValid', function () {
         return true;
       });
-      sinon.stub(view, 'identifyRoles', Em.K);
       sinon.stub(view, 'setPassword', Em.K);
 
 
       expect(view.edit()).to.be.true;
       expect(App.ajax.send.calledOnce).to.be.true;
-      expect(view.identifyRoles.calledOnce).to.be.true;
       expect(view.setPassword.calledOnce).to.be.true;
 
-      view.identifyRoles.restore();
       view.setPassword.restore();
     });
   });
@@ -106,28 +103,6 @@ describe('App.MainAdminUserEditView', function () {
       expect(view.setPassword(Users, form)).to.be.true;
       expect(Users.password).to.equal('pass');
       expect(Users.old_password).to.equal('old_pass');
-    });
-  });
-
-  describe('#identifyRoles()', function () {
-    var mock = Em.Object.create();
-    var form = Em.Object.create({
-      getField: function () {
-        return mock;
-      }
-    });
-
-    it('admin is false', function () {
-      mock.set('value', false);
-
-      expect(view.identifyRoles(form)).to.equal('user');
-      expect(mock.get('value')).to.equal('user');
-    });
-    it('admin is true', function () {
-      mock.set('value', true);
-
-      expect(view.identifyRoles(form)).to.equal('admin,user');
-      expect(mock.get('value')).to.equal('admin,user');
     });
   });
 
