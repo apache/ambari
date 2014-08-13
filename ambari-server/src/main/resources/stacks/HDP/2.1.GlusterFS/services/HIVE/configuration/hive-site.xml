@@ -134,7 +134,7 @@ limitations under the License.
 
   <property>
     <name>hive.server2.enable.doAs</name>
-    <value>false</value>
+    <value>true</value>
     <description>Impersonate the connected user. By default HiveServer2 performs the query processing as the user who
       submitted the query. But if the parameter is set to false, the query will run as the user that the hiveserver2
       process runs as.
