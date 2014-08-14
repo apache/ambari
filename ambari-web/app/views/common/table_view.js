@@ -89,10 +89,11 @@ App.TableView = Em.View.extend(App.UserPref, {
     var name = this.get('controller.name');
     var self = this;
     var filterConditions = App.db.getFilterConditions(name);
-    if ((filterConditions && name != 'mainHostController') || (filterConditions && this.get('controller.showFilterConditionsFirstLoad'))) {
+    if (filterConditions) {
       this.set('filterConditions', filterConditions);
-      this.get('controller').set('showFilterConditionsFirstLoad', false);
+
       var childViews = this.get('childViews');
+
       filterConditions.forEach(function (condition, index, filteredConditions) {
         var view = !Em.isNone(condition.iColumn) && childViews.findProperty('column', condition.iColumn);
         if (view) {
@@ -111,7 +112,6 @@ App.TableView = Em.View.extend(App.UserPref, {
         }
       });
     } else {
-      this.clearFilters();
       this.set('tableFilteringComplete', true);
     }
   },

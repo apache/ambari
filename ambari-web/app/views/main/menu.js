@@ -117,6 +117,12 @@ App.MainMenuView = Em.CollectionView.extend({
     isViewsItem: function () {
       return this.get('content').routing == 'views';
     }.property(''),
+    goToSection: function (event) {
+      if (event.context === 'hosts') {
+        App.router.set('mainHostController.showFilterConditionsFirstLoad', false);
+      }
+      App.router.route('main/' + event.context);
+    },
     goToCategory: function (event) {
       var itemName = this.get('content').routing;
       // route to correct category of current menu item

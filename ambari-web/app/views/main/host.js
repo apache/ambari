@@ -193,6 +193,9 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
    * Restore filter properties in view
    */
   willInsertElement: function () {
+    if (!this.get('controller.showFilterConditionsFirstLoad')) {
+      this.clearFilterCondition();
+    }
     this._super();
     this.set('startIndex', this.get('controller.startIndex'));
     this.addObserver('pageContent.@each.selected', this, this.selectedHostsObserver);
