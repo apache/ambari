@@ -64,8 +64,13 @@ public class ServiceConfigEntity {
   @Column(name = "create_timestamp", nullable = false)
   private Long createTimestamp = System.currentTimeMillis();
 
-  @OneToMany(mappedBy = "serviceConfigEntity", cascade = CascadeType.ALL)
-  private List<ServiceConfigApplicationEntity> serviceConfigApplicationEntities;
+  @Basic
+  @Column(name = "user_name")
+  private String user = "_db";
+
+  @Basic
+  @Column(name = "note")
+  private String note;
 
   @ManyToMany
   @JoinTable(
@@ -111,15 +116,6 @@ public class ServiceConfigEntity {
     this.createTimestamp = create_timestamp;
   }
 
-
-  public List<ServiceConfigApplicationEntity> getServiceConfigApplicationEntities() {
-    return serviceConfigApplicationEntities;
-  }
-
-  public void setServiceConfigApplicationEntities(List<ServiceConfigApplicationEntity> serviceConfigApplicationEntities) {
-    this.serviceConfigApplicationEntities = serviceConfigApplicationEntities;
-  }
-
   public List<ClusterConfigEntity> getClusterConfigEntities() {
     return clusterConfigEntities;
   }
@@ -142,5 +138,21 @@ public class ServiceConfigEntity {
 
   public void setClusterEntity(ClusterEntity clusterEntity) {
     this.clusterEntity = clusterEntity;
+  }
+
+  public String getUser() {
+    return user;
+  }
+
+  public void setUser(String user) {
+    this.user = user;
+  }
+
+  public String getNote() {
+    return note;
+  }
+
+  public void setNote(String note) {
+    this.note = note;
   }
 }

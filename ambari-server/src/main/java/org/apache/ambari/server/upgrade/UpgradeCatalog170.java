@@ -273,19 +273,14 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
     columns.add(new DBColumnInfo("service_name", String.class, null, null, false));
     columns.add(new DBColumnInfo("version", Long.class, null, null, false));
     columns.add(new DBColumnInfo("create_timestamp", Long.class, null, null, false));
+    columns.add(new DBColumnInfo("user_name", String.class, null, "_db", false));
+    columns.add(new DBColumnInfo("note", char[].class, null, null, true));
     dbAccessor.createTable("serviceconfig", columns, "service_config_id");
 
     columns.clear();
     columns.add(new DBColumnInfo("service_config_id", Long.class, null, null, false));
     columns.add(new DBColumnInfo("config_id", Long.class, null, null, false));
     dbAccessor.createTable("serviceconfigmapping", columns, "service_config_id", "config_id");
-
-    columns.clear();
-    columns.add(new DBColumnInfo("apply_id", Long.class, null, null, false));
-    columns.add(new DBColumnInfo("service_config_id", Long.class, null, null, false));
-    columns.add(new DBColumnInfo("apply_timestamp", Long.class, null, null, false));
-    columns.add(new DBColumnInfo("user_name", String.class, null, "_db", false));
-    dbAccessor.createTable("serviceconfigapplication", columns, "apply_id");
 
     dbAccessor.addFKConstraint("confgroupclusterconfigmapping", "FK_confg",
       new String[]{"cluster_id", "config_type", "version_tag"}, "clusterconfig",

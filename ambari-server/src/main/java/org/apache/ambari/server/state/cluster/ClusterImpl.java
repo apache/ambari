@@ -65,7 +65,6 @@ import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.RequestScheduleEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
-import org.apache.ambari.server.orm.entities.ServiceConfigApplicationEntity;
 import org.apache.ambari.server.orm.entities.ServiceConfigEntity;
 import org.apache.ambari.server.state.*;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
@@ -1423,7 +1422,7 @@ public class ClusterImpl implements Cluster {
       readWriteLock.writeLock().lock();
       try {
         applyServiceConfigVersion(serviceName, version, user, note);
-
+        configHelper.invalidateStaleConfigsCache();
         return true;
       } finally {
         readWriteLock.writeLock().unlock();
@@ -1462,13 +1461,16 @@ public class ClusterImpl implements Cluster {
       readWriteLock.readLock().lock();
       try {
         List<ServiceConfigVersionResponse> serviceConfigVersionResponses = new ArrayList<ServiceConfigVersionResponse>();
-        for (ServiceConfigApplicationEntity applicationEntity : serviceConfigDAO.getServiceConfigApplications(getClusterId())) {
-          ServiceConfigVersionResponse serviceConfigVersionResponse =
-            convertToServiceConfigVersionResponse(applicationEntity);
+        for (ServiceConfigEntity serviceConfigEntity : serviceConfigDAO.getServiceConfigs(getClusterId())) {
+          ServiceConfigVersionResponse serviceConfigVersionResponse = new ServiceConfigVersionResponse();
 
+          serviceConfigVersionResponse.setClusterName(getClusterName());
+          serviceConfigVersionResponse.setServiceName(serviceConfigEntity.getServiceName());
+          serviceConfigVersionResponse.setVersion(serviceConfigEntity.getVersion());
+          serviceConfigVersionResponse.setCreateTime(serviceConfigEntity.getCreateTimestamp());
+          serviceConfigVersionResponse.setUserName(serviceConfigEntity.getUser());
+          serviceConfigVersionResponse.setNote(serviceConfigEntity.getNote());
           serviceConfigVersionResponse.setConfigurations(new ArrayList<ConfigurationResponse>());
-
-          ServiceConfigEntity serviceConfigEntity = applicationEntity.getServiceConfigEntity();
 
           List<ClusterConfigEntity> clusterConfigEntities = serviceConfigEntity.getClusterConfigEntities();
           for (ClusterConfigEntity clusterConfigEntity : clusterConfigEntities) {
@@ -1493,36 +1495,33 @@ public class ClusterImpl implements Cluster {
   @RequiresSession
   Set<ServiceConfigVersionResponse> getActiveServiceConfigVersionSet() {
     Set<ServiceConfigVersionResponse> responses = new HashSet<ServiceConfigVersionResponse>();
-    List<ServiceConfigApplicationEntity> lastApplications = serviceConfigDAO.getLastApplications(getClusterId());
-    for (ServiceConfigApplicationEntity lastApplication : lastApplications) {
-      responses.add(convertToServiceConfigVersionResponse(lastApplication));
+    List<ServiceConfigEntity> lastServiceConfigs = serviceConfigDAO.getLastServiceConfigs(getClusterId());
+    for (ServiceConfigEntity lastServiceConfig : lastServiceConfigs) {
+      responses.add(convertToServiceConfigVersionResponse(lastServiceConfig));
     }
     return responses;
   }
 
   @RequiresSession
   ServiceConfigVersionResponse getActiveServiceConfigVersion(String serviceName) {
-    ServiceConfigApplicationEntity lastApplication = serviceConfigDAO.getLastApplication(getClusterId(), serviceName);
-    if (lastApplication == null) {
-      LOG.debug("No active service config version found for service {}", serviceName);
+    ServiceConfigEntity lastServiceConfig = serviceConfigDAO.getLastServiceConfig(getClusterId(), serviceName);
+    if (lastServiceConfig == null) {
+      LOG.debug("No service config version found for service {}", serviceName);
       return null;
     }
-    return convertToServiceConfigVersionResponse(lastApplication);
+    return convertToServiceConfigVersionResponse(lastServiceConfig);
   }
 
   @RequiresSession
-  ServiceConfigVersionResponse convertToServiceConfigVersionResponse(ServiceConfigApplicationEntity applicationEntity) {
+  ServiceConfigVersionResponse convertToServiceConfigVersionResponse(ServiceConfigEntity serviceConfigEntity) {
     ServiceConfigVersionResponse serviceConfigVersionResponse = new ServiceConfigVersionResponse();
-
-    ServiceConfigEntity serviceConfigEntity = applicationEntity.getServiceConfigEntity();
 
     serviceConfigVersionResponse.setClusterName(getClusterName());
     serviceConfigVersionResponse.setServiceName(serviceConfigEntity.getServiceName());
     serviceConfigVersionResponse.setVersion(serviceConfigEntity.getVersion());
-    serviceConfigVersionResponse.setCreateTime(serviceConfigEntity.getCreateTimestamp());
-    serviceConfigVersionResponse.setApplyTime(applicationEntity.getApplyTimestamp());
-    serviceConfigVersionResponse.setUserName(applicationEntity.getUser());
-    serviceConfigVersionResponse.setNote(applicationEntity.getNote());
+    serviceConfigVersionResponse.setCreateTime(serviceConfigEntity.getCreateTimestamp());    
+    serviceConfigVersionResponse.setUserName(serviceConfigEntity.getUser());
+    serviceConfigVersionResponse.setNote(serviceConfigEntity.getNote());
     return serviceConfigVersionResponse;
   }
 
@@ -1547,15 +1546,17 @@ public class ClusterImpl implements Cluster {
       selectConfig(configEntity.getType(), configEntity.getTag(), user);
     }
 
-    ServiceConfigApplicationEntity applicationEntity = new ServiceConfigApplicationEntity();
-    applicationEntity.setApplyTimestamp(System.currentTimeMillis());
-    applicationEntity.setServiceConfigEntity(serviceConfigEntity);
-    applicationEntity.setUser(user);
-    applicationEntity.setNote(serviceConfigVersionNote);
+    ServiceConfigEntity serviceConfigEntityClone = new ServiceConfigEntity();
+    serviceConfigEntityClone.setCreateTimestamp(System.currentTimeMillis());
+    serviceConfigEntityClone.setUser(user);
+    serviceConfigEntityClone.setServiceName(serviceName);
+    serviceConfigEntityClone.setClusterEntity(clusterEntity);
+    serviceConfigEntityClone.setClusterConfigEntities(serviceConfigEntity.getClusterConfigEntities());
+    serviceConfigEntityClone.setClusterId(serviceConfigEntity.getClusterId());
+    serviceConfigEntityClone.setNote(serviceConfigVersionNote);
+    serviceConfigEntityClone.setVersion(configVersionHelper.getNextVersion(serviceName));
 
-    serviceConfigEntity.getServiceConfigApplicationEntities().add(applicationEntity);
-
-    serviceConfigDAO.merge(serviceConfigEntity);
+    serviceConfigDAO.create(serviceConfigEntityClone);
   }
 
   @Transactional
@@ -1613,15 +1614,8 @@ public class ClusterImpl implements Cluster {
     serviceConfigEntity.setServiceName(serviceName);
     serviceConfigEntity.setClusterEntity(clusterEntity);
     serviceConfigEntity.setVersion(configVersionHelper.getNextVersion(serviceName));
-
-    //set first default application
-    serviceConfigEntity.setServiceConfigApplicationEntities(new ArrayList<ServiceConfigApplicationEntity>());
-    ServiceConfigApplicationEntity serviceConfigApplicationEntity = new ServiceConfigApplicationEntity();
-    serviceConfigApplicationEntity.setApplyTimestamp(serviceConfigEntity.getCreateTimestamp());
-    serviceConfigApplicationEntity.setServiceConfigEntity(serviceConfigEntity);
-    serviceConfigApplicationEntity.setUser(user);
-    serviceConfigApplicationEntity.setNote(serviceConfigVersionNote);
-    serviceConfigEntity.getServiceConfigApplicationEntities().add(serviceConfigApplicationEntity);
+    serviceConfigEntity.setUser(user);
+    serviceConfigEntity.setNote(serviceConfigVersionNote);
 
     List<ClusterConfigEntity> configEntities = new ArrayList<ClusterConfigEntity>();
     serviceConfigEntity.setClusterConfigEntities(configEntities);
@@ -1649,8 +1643,8 @@ public class ClusterImpl implements Cluster {
     response.setVersion(serviceConfigEntity.getVersion());
     response.setServiceName(serviceConfigEntity.getServiceName());
     response.setCreateTime(serviceConfigEntity.getCreateTimestamp());
-    response.setApplyTime(serviceConfigApplicationEntity.getApplyTimestamp());
-    response.setNote(serviceConfigApplicationEntity.getNote());
+    response.setUserName(serviceConfigEntity.getUser());
+    response.setNote(serviceConfigEntity.getNote());
     return response;
   }
 

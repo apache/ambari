@@ -30,7 +30,6 @@ public class ServiceConfigVersionResponse {
   private String serviceName;
   private Long version;
   private Long createTime;
-  private Long applyTime;
   private String userName;
   private String note;
   private List<ConfigurationResponse> configurations;
@@ -61,16 +60,6 @@ public class ServiceConfigVersionResponse {
 
   public void setCreateTime(Long createTime) {
     this.createTime = createTime;
-  }
-
-  @JsonProperty("appliedtime")
-  @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
-  public Long getApplyTime() {
-    return applyTime;
-  }
-
-  public void setApplyTime(Long applyTime) {
-    this.applyTime = applyTime;
   }
 
   @JsonProperty("user")

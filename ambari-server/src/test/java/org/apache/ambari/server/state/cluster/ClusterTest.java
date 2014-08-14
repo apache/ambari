@@ -47,6 +47,7 @@ import org.apache.ambari.server.agent.DiskInfo;
 import org.apache.ambari.server.agent.HostInfo;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.ClusterResponse;
+import org.apache.ambari.server.controller.ServiceConfigVersionResponse;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
@@ -633,4 +634,58 @@ public class ClusterTest {
     assertEquals(2, result.size());
   }
 
+  @Test
+  public void testAddServiceConfigVersions() {
+    Config config1 = configFactory.createNew(c1, "hdfs-site",
+      new HashMap<String, String>() {{ put("a", "b"); }}, new HashMap<String, Map<String,String>>());
+    config1.setTag("version1");
+
+    Config config2 = configFactory.createNew(c1, "hdfs-site",
+      new HashMap<String, String>() {{ put("x", "y"); }}, new HashMap<String, Map<String,String>>());
+    config2.setTag("version2");
+
+    c1.addConfig(config1);
+    c1.addConfig(config2);
+
+    c1.addDesiredConfig("admin", config1);
+    List<ServiceConfigVersionResponse> serviceConfigVersions =
+      c1.getServiceConfigVersions();
+    Assert.assertNotNull(serviceConfigVersions);
+    Assert.assertEquals(1, serviceConfigVersions.size());
+    Map<String, ServiceConfigVersionResponse> activeServiceConfigVersions =
+      c1.getActiveServiceConfigVersions();
+    Assert.assertEquals(1, activeServiceConfigVersions.size());
+    ServiceConfigVersionResponse mapredResponse =
+      activeServiceConfigVersions.get("MAPREDUCE");
+
+    Assert.assertEquals("MAPREDUCE", mapredResponse.getServiceName());
+    Assert.assertEquals("c1", mapredResponse.getClusterName());
+    Assert.assertEquals("admin", mapredResponse.getUserName());
+    Assert.assertEquals(Long.valueOf(1), mapredResponse.getVersion());
+
+    c1.addDesiredConfig("admin", config2);
+    serviceConfigVersions = c1.getServiceConfigVersions();
+    Assert.assertNotNull(serviceConfigVersions);
+    // created new ServiceConfigVersion
+    Assert.assertEquals(2, serviceConfigVersions.size());
+    // active version still 1
+    Assert.assertEquals(1, activeServiceConfigVersions.size());
+    mapredResponse = activeServiceConfigVersions.get("MAPREDUCE");
+    Assert.assertEquals("MAPREDUCE", mapredResponse.getServiceName());
+    Assert.assertEquals("c1", mapredResponse.getClusterName());
+    Assert.assertEquals("admin", mapredResponse.getUserName());
+
+    // Rollback , clonning version1 config, created new ServiceConfigVersion
+    c1.addDesiredConfig("admin", config1);
+    serviceConfigVersions = c1.getServiceConfigVersions();
+    Assert.assertNotNull(serviceConfigVersions);
+    // created new ServiceConfigVersion
+    Assert.assertEquals(3, serviceConfigVersions.size());
+    // active version still 1
+    Assert.assertEquals(1, activeServiceConfigVersions.size());
+    mapredResponse = activeServiceConfigVersions.get("MAPREDUCE");
+    Assert.assertEquals("MAPREDUCE", mapredResponse.getServiceName());
+    Assert.assertEquals("c1", mapredResponse.getClusterName());
+    Assert.assertEquals("admin", mapredResponse.getUserName());
+  }
 }

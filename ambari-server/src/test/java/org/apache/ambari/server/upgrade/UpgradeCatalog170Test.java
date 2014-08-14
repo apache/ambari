@@ -85,6 +85,8 @@ public class UpgradeCatalog170Test {
     Capture<List<DBAccessor.DBColumnInfo>> alertGroupTargetCapture = new Capture<List<DBAccessor.DBColumnInfo>>();
     Capture<List<DBAccessor.DBColumnInfo>> alertGroupingCapture = new Capture<List<DBAccessor.DBColumnInfo>>();
     Capture<List<DBAccessor.DBColumnInfo>> alertNoticeCapture = new Capture<List<DBAccessor.DBColumnInfo>>();
+    Capture<List<DBAccessor.DBColumnInfo>> serviceConfigCapture = new Capture<List<DBAccessor.DBColumnInfo>>();
+    Capture<List<DBAccessor.DBColumnInfo>> serviceConfigMappingCapture = new Capture<List<DBAccessor.DBColumnInfo>>();
 
     setViewExpectations(dbAccessor, maskColumnCapture);
     setViewParameterExpectations(dbAccessor, maskedColumnCapture);
@@ -113,6 +115,13 @@ public class UpgradeCatalog170Test {
 
     dbAccessor.createTable(eq("alert_notice"), capture(alertNoticeCapture),
         eq("notification_id"));
+
+    dbAccessor.createTable(eq("serviceconfig"), capture(serviceConfigCapture),
+        eq("service_config_id"));
+
+    dbAccessor.createTable(eq("serviceconfigmapping"),
+        capture(serviceConfigMappingCapture), eq("service_config_id"),
+        eq("config_id"));
 
     dbAccessor.executeSelect(anyObject(String.class));
     expectLastCall().andReturn(resultSet).anyTimes();
@@ -143,6 +152,8 @@ public class UpgradeCatalog170Test {
     assertEquals(2, alertGroupTargetCapture.getValue().size());
     assertEquals(2, alertGroupingCapture.getValue().size());
     assertEquals(4, alertNoticeCapture.getValue().size());
+    assertEquals(2, serviceConfigCapture.getValue().size());
+    assertEquals(2, serviceConfigMappingCapture.getValue().size());
   }
 
   @Test

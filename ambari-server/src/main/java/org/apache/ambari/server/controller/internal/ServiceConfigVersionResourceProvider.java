@@ -36,7 +36,6 @@ public class ServiceConfigVersionResourceProvider extends
   public static final String SERVICE_CONFIG_VERSION_PROPERTY_ID = PropertyHelper.getPropertyId(null, "serviceconfigversion");
   public static final String SERVICE_CONFIG_VERSION_SERVICE_NAME_PROPERTY_ID = PropertyHelper.getPropertyId(null, "service_name");
   public static final String SERVICE_CONFIG_VERSION_CREATE_TIME_PROPERTY_ID = PropertyHelper.getPropertyId(null, "createtime");
-  public static final String SERVICE_CONFIG_VERSION_APPLY_TIME_PROPERTY_ID = PropertyHelper.getPropertyId(null, "appliedtime");
   public static final String SERVICE_CONFIG_VERSION_USER_PROPERTY_ID = PropertyHelper.getPropertyId(null, "user");
   public static final String SERVICE_CONFIG_VERSION_NOTE_PROPERTY_ID = PropertyHelper.getPropertyId(null, "service_config_version_note");
   public static final String SERVICE_CONFIG_VERSION_CONFIGURATIONS_PROPERTY_ID = PropertyHelper.getPropertyId(null, "configurations");
@@ -98,7 +97,6 @@ public class ServiceConfigVersionResourceProvider extends
       resource.setProperty(SERVICE_CONFIG_VERSION_SERVICE_NAME_PROPERTY_ID, response.getServiceName());
       resource.setProperty(SERVICE_CONFIG_VERSION_USER_PROPERTY_ID, response.getUserName());
       resource.setProperty(SERVICE_CONFIG_VERSION_PROPERTY_ID, response.getVersion());
-      resource.setProperty(SERVICE_CONFIG_VERSION_APPLY_TIME_PROPERTY_ID, response.getApplyTime());
       resource.setProperty(SERVICE_CONFIG_VERSION_CREATE_TIME_PROPERTY_ID, response.getCreateTime());
       resource.setProperty(SERVICE_CONFIG_VERSION_CONFIGURATIONS_PROPERTY_ID,
           convertToSubResources(response.getClusterName(), response.getConfigurations()));
