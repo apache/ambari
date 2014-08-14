@@ -164,14 +164,26 @@ public interface Cluster {
   public ServiceConfigVersionResponse addDesiredConfig(String user, Config config);
 
   /**
+   * Adds and sets a DESIRED configuration to be applied to a cluster.  There
+   * can be only one selected config per type.
+   * @param user the user making the change for audit purposes
+   * @param config  the {@link org.apache.ambari.server.state.Config} object to set as desired
+   * @param serviceConfigVersionNote note to attach to service config version if created
+   * @return <code>true</code> if the config was added, or <code>false</code>
+   * if the config is already set as the current
+   */
+  ServiceConfigVersionResponse addDesiredConfig(String user, Config config, String serviceConfigVersionNote);
+
+  /**
    * Apply specified service config version (rollback)
    * @param serviceName service name
    * @param version service config version
    * @param user the user making the change for audit purposes
+   * @param note
    * @return true if service config version applied
    * @throws AmbariException
    */
-  boolean setServiceConfigVersion(String serviceName, Long version, String user) throws AmbariException;
+  boolean setServiceConfigVersion(String serviceName, Long version, String user, String note) throws AmbariException;
 
   /**
    * Get currently active service config versions for stack services

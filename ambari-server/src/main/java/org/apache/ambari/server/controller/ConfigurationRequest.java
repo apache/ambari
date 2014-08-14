@@ -31,6 +31,7 @@ public class ConfigurationRequest {
   private String type;
   private String tag;
   private Long version;
+  private String serviceConfigVersionNote;
   private Map<String, String> configs;
   private boolean selected = true;
   private Map<String, Map<String, String>> configsAttributes;
@@ -165,5 +166,13 @@ public class ConfigurationRequest {
 
   public void setVersion(Long version) {
     this.version = version;
+  }
+
+  public String getServiceConfigVersionNote() {
+    return serviceConfigVersionNote;
+  }
+
+  public void setServiceConfigVersionNote(String serviceConfigVersionNote) {
+    this.serviceConfigVersionNote = serviceConfigVersionNote;
   }
 }

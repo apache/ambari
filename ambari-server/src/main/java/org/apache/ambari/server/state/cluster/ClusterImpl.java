@@ -1336,6 +1336,11 @@ public class ClusterImpl implements Cluster {
 
   @Override
   public ServiceConfigVersionResponse addDesiredConfig(String user, Config config) {
+    return addDesiredConfig(user, config, null);
+  }
+
+  @Override
+  public ServiceConfigVersionResponse addDesiredConfig(String user, Config config, String serviceConfigVersionNote) {
     if (null == user)
       throw new NullPointerException("User must be specified.");
 
@@ -1351,7 +1356,7 @@ public class ClusterImpl implements Cluster {
         }
 
         ServiceConfigVersionResponse serviceConfigVersionResponse =
-            applyConfig(config.getType(), config.getTag(), user);
+            applyConfig(config.getType(), config.getTag(), user, serviceConfigVersionNote);
 
         configHelper.invalidateStaleConfigsCache();
         return serviceConfigVersionResponse;
@@ -1409,7 +1414,7 @@ public class ClusterImpl implements Cluster {
   }
 
   @Override
-  public boolean setServiceConfigVersion(String serviceName, Long version, String user) throws AmbariException {
+  public boolean setServiceConfigVersion(String serviceName, Long version, String user, String note) throws AmbariException {
     if (null == user)
       throw new NullPointerException("User must be specified.");
 
@@ -1417,7 +1422,7 @@ public class ClusterImpl implements Cluster {
     try {
       readWriteLock.writeLock().lock();
       try {
-        applyServiceConfigVersion(serviceName, version, user);
+        applyServiceConfigVersion(serviceName, version, user, note);
 
         return true;
       } finally {
@@ -1458,25 +1463,19 @@ public class ClusterImpl implements Cluster {
       try {
         List<ServiceConfigVersionResponse> serviceConfigVersionResponses = new ArrayList<ServiceConfigVersionResponse>();
         for (ServiceConfigApplicationEntity applicationEntity : serviceConfigDAO.getServiceConfigApplications(getClusterId())) {
-          ServiceConfigVersionResponse serviceConfigVersionResponse = new ServiceConfigVersionResponse();
+          ServiceConfigVersionResponse serviceConfigVersionResponse =
+            convertToServiceConfigVersionResponse(applicationEntity);
+
+          serviceConfigVersionResponse.setConfigurations(new ArrayList<ConfigurationResponse>());
 
           ServiceConfigEntity serviceConfigEntity = applicationEntity.getServiceConfigEntity();
-
-
-          serviceConfigVersionResponse.setClusterName(getClusterName());
-          serviceConfigVersionResponse.setServiceName(serviceConfigEntity.getServiceName());
-          serviceConfigVersionResponse.setVersion(serviceConfigEntity.getVersion());
-          serviceConfigVersionResponse.setCreateTime(serviceConfigEntity.getCreateTimestamp());
-          serviceConfigVersionResponse.setApplyTime(applicationEntity.getApplyTimestamp());
-          serviceConfigVersionResponse.setUserName(applicationEntity.getUser());
-          serviceConfigVersionResponse.setConfigurations(new ArrayList<ConfigurationResponse>());
 
           List<ClusterConfigEntity> clusterConfigEntities = serviceConfigEntity.getClusterConfigEntities();
           for (ClusterConfigEntity clusterConfigEntity : clusterConfigEntities) {
             Config config = allConfigs.get(clusterConfigEntity.getType()).get(clusterConfigEntity.getTag());
             serviceConfigVersionResponse.getConfigurations().add(new ConfigurationResponse(getClusterName(),
-                config.getType(), config.getTag(), config.getVersion(), config.getProperties(),
-                config.getPropertiesAttributes()));
+              config.getType(), config.getTag(), config.getVersion(), config.getProperties(),
+              config.getPropertiesAttributes()));
           }
 
           serviceConfigVersionResponses.add(serviceConfigVersionResponse);
@@ -1523,11 +1522,13 @@ public class ClusterImpl implements Cluster {
     serviceConfigVersionResponse.setCreateTime(serviceConfigEntity.getCreateTimestamp());
     serviceConfigVersionResponse.setApplyTime(applicationEntity.getApplyTimestamp());
     serviceConfigVersionResponse.setUserName(applicationEntity.getUser());
+    serviceConfigVersionResponse.setNote(applicationEntity.getNote());
     return serviceConfigVersionResponse;
   }
 
   @Transactional
-  void applyServiceConfigVersion(String serviceName, Long serviceConfigVersion, String user) throws AmbariException {
+  void applyServiceConfigVersion(String serviceName, Long serviceConfigVersion, String user,
+                                 String serviceConfigVersionNote) throws AmbariException {
     ServiceConfigEntity serviceConfigEntity = serviceConfigDAO.findByServiceAndVersion(serviceName, serviceConfigVersion);
     if (serviceConfigEntity == null) {
       throw new ObjectNotFoundException("Service config version with serviceName={} and version={} not found");
@@ -1550,6 +1551,7 @@ public class ClusterImpl implements Cluster {
     applicationEntity.setApplyTimestamp(System.currentTimeMillis());
     applicationEntity.setServiceConfigEntity(serviceConfigEntity);
     applicationEntity.setUser(user);
+    applicationEntity.setNote(serviceConfigVersionNote);
 
     serviceConfigEntity.getServiceConfigApplicationEntities().add(applicationEntity);
 
@@ -1582,7 +1584,7 @@ public class ClusterImpl implements Cluster {
   }
 
   @Transactional
-  ServiceConfigVersionResponse applyConfig(String type, String tag, String user) {
+  ServiceConfigVersionResponse applyConfig(String type, String tag, String user, String serviceConfigVersionNote) {
 
     selectConfig(type, tag, user);
 
@@ -1599,12 +1601,13 @@ public class ClusterImpl implements Cluster {
       LOG.error("No service found for config type '{}', service config version not created");
       return null;
     } else {
-      return createServiceConfigVersion(serviceName, user);
+      return createServiceConfigVersion(serviceName, user, serviceConfigVersionNote);
     }
 
   }
 
-  private ServiceConfigVersionResponse createServiceConfigVersion(String serviceName, String user) {
+  private ServiceConfigVersionResponse createServiceConfigVersion(String serviceName, String user,
+                                                                  String serviceConfigVersionNote) {
     //create next service config version
     ServiceConfigEntity serviceConfigEntity = new ServiceConfigEntity();
     serviceConfigEntity.setServiceName(serviceName);
@@ -1617,6 +1620,7 @@ public class ClusterImpl implements Cluster {
     serviceConfigApplicationEntity.setApplyTimestamp(serviceConfigEntity.getCreateTimestamp());
     serviceConfigApplicationEntity.setServiceConfigEntity(serviceConfigEntity);
     serviceConfigApplicationEntity.setUser(user);
+    serviceConfigApplicationEntity.setNote(serviceConfigVersionNote);
     serviceConfigEntity.getServiceConfigApplicationEntities().add(serviceConfigApplicationEntity);
 
     List<ClusterConfigEntity> configEntities = new ArrayList<ClusterConfigEntity>();
@@ -1646,6 +1650,7 @@ public class ClusterImpl implements Cluster {
     response.setServiceName(serviceConfigEntity.getServiceName());
     response.setCreateTime(serviceConfigEntity.getCreateTimestamp());
     response.setApplyTime(serviceConfigApplicationEntity.getApplyTimestamp());
+    response.setNote(serviceConfigApplicationEntity.getNote());
     return response;
   }
 

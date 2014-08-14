@@ -25,6 +25,7 @@ public class ServiceConfigVersionRequest {
   private Long createTime;
   private Long applyTime;
   private String userName;
+  private String note;
 
   public ServiceConfigVersionRequest() {
   }
@@ -86,4 +87,11 @@ public class ServiceConfigVersionRequest {
     this.clusterName = clusterName;
   }
 
+  public String getNote() {
+    return note;
+  }
+
+  public void setNote(String note) {
+    this.note = note;
+  }
 }

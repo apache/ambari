@@ -55,6 +55,10 @@ public class ServiceConfigApplicationEntity {
   @Column(name = "user_name")
   private String user = "_db";
 
+  @Basic
+  @Column(name = "note")
+  private String note;
+
   @ManyToOne
   @JoinColumn(name = "service_config_id", referencedColumnName = "service_config_id")
   private ServiceConfigEntity serviceConfigEntity;
@@ -98,5 +102,13 @@ public class ServiceConfigApplicationEntity {
 
   public void setUser(String user) {
     this.user = user;
+  }
+
+  public String getNote() {
+    return note;
+  }
+
+  public void setNote(String note) {
+    this.note = note;
   }
 }

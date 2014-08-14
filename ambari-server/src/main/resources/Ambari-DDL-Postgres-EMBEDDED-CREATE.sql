@@ -43,7 +43,7 @@ GRANT ALL PRIVILEGES ON TABLE ambari.serviceconfig TO :username;
 CREATE TABLE ambari.serviceconfigmapping (service_config_id BIGINT NOT NULL, config_id BIGINT NOT NULL, PRIMARY KEY(service_config_id, config_id));
 GRANT ALL PRIVILEGES ON TABLE ambari.serviceconfigmapping TO :username;
 
-CREATE TABLE ambari.serviceconfigapplication (apply_id BIGINT NOT NULL, service_config_id BIGINT NOT NULL, apply_timestamp BIGINT NOT NULL, user_name VARCHAR(255) NOT NULL DEFAULT '_db',  PRIMARY KEY(apply_id));
+CREATE TABLE ambari.serviceconfigapplication (apply_id BIGINT NOT NULL, service_config_id BIGINT NOT NULL, apply_timestamp BIGINT NOT NULL, user_name VARCHAR(255) NOT NULL DEFAULT '_db', note TEXT, PRIMARY KEY(apply_id));
 GRANT ALL PRIVILEGES ON TABLE ambari.serviceconfigapplication TO :username;
 
 CREATE TABLE ambari.clusterservices (service_name VARCHAR(255) NOT NULL, cluster_id BIGINT NOT NULL, service_enabled INTEGER NOT NULL, PRIMARY KEY (service_name, cluster_id));

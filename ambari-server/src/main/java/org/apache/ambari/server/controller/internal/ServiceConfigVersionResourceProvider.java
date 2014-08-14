@@ -38,6 +38,7 @@ public class ServiceConfigVersionResourceProvider extends
   public static final String SERVICE_CONFIG_VERSION_CREATE_TIME_PROPERTY_ID = PropertyHelper.getPropertyId(null, "createtime");
   public static final String SERVICE_CONFIG_VERSION_APPLY_TIME_PROPERTY_ID = PropertyHelper.getPropertyId(null, "appliedtime");
   public static final String SERVICE_CONFIG_VERSION_USER_PROPERTY_ID = PropertyHelper.getPropertyId(null, "user");
+  public static final String SERVICE_CONFIG_VERSION_NOTE_PROPERTY_ID = PropertyHelper.getPropertyId(null, "service_config_version_note");
   public static final String SERVICE_CONFIG_VERSION_CONFIGURATIONS_PROPERTY_ID = PropertyHelper.getPropertyId(null, "configurations");
 
   /**
@@ -101,6 +102,7 @@ public class ServiceConfigVersionResourceProvider extends
       resource.setProperty(SERVICE_CONFIG_VERSION_CREATE_TIME_PROPERTY_ID, response.getCreateTime());
       resource.setProperty(SERVICE_CONFIG_VERSION_CONFIGURATIONS_PROPERTY_ID,
           convertToSubResources(response.getClusterName(), response.getConfigurations()));
+      resource.setProperty(SERVICE_CONFIG_VERSION_NOTE_PROPERTY_ID, response.getNote());
 
       resources.add(resource);
     }
@@ -130,7 +132,8 @@ public class ServiceConfigVersionResourceProvider extends
 
       if (!propertyId.equals("cluster_name") && !propertyId.equals("serviceconfigversion") &&
           !propertyId.equals("service_name") && !propertyId.equals("createtime") &&
-          !propertyId.equals("appliedtime") && !propertyId.equals("user")) {
+          !propertyId.equals("appliedtime") && !propertyId.equals("user") &&
+          !propertyId.equals("service_config_version_note")) {
 
         unsupportedProperties.add(propertyId);
 

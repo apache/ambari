@@ -1173,7 +1173,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       Config baseConfig = cluster.getConfig(cr.getType(), cr.getVersionTag());
       if (null != baseConfig) {
         String authName = getAuthName();
-        serviceConfigVersionResponse = cluster.addDesiredConfig(authName, baseConfig);
+        serviceConfigVersionResponse = cluster.addDesiredConfig(authName, baseConfig, cr.getServiceConfigVersionNote());
         if (serviceConfigVersionResponse != null) {
           Logger logger = LoggerFactory.getLogger("configchange");
           logger.info("cluster '" + request.getClusterName() + "' "
@@ -1249,7 +1249,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       }
 
       cluster.setServiceConfigVersion(serviceConfigVersionRequest.getServiceName(),
-          serviceConfigVersionRequest.getVersion(), getAuthName());
+          serviceConfigVersionRequest.getVersion(), getAuthName(),
+          serviceConfigVersionRequest.getNote());
     }
 
     if (serviceConfigVersionResponse != null) {

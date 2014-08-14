@@ -91,7 +91,8 @@
         "ServiceConfigVersion/serviceconfigversion",
         "ServiceConfigVersion/createtime",
         "ServiceConfigVersion/appliedtime",
-        "ServiceConfigVersion/user"
+        "ServiceConfigVersion/user",
+        "ServiceConfigVersion/service_config_version_note"
     ],
     "ConfigGroup": [
         "ConfigGroup/id",

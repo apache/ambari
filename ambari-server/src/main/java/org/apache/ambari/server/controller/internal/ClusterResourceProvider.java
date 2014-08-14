@@ -225,9 +225,11 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
             Resource resource = new ResourceImpl(Resource.Type.ServiceConfigVersion);
             ServiceConfigVersionResponse serviceConfigVersionResponse = stringServiceConfigVersionResponseEntry.getValue();
             resource.setProperty(ServiceConfigVersionResourceProvider.SERVICE_CONFIG_VERSION_SERVICE_NAME_PROPERTY_ID,
-                serviceConfigVersionResponse.getServiceName());
+              serviceConfigVersionResponse.getServiceName());
             resource.setProperty(ServiceConfigVersionResourceProvider.SERVICE_CONFIG_VERSION_PROPERTY_ID,
-                serviceConfigVersionResponse.getVersion());
+              serviceConfigVersionResponse.getVersion());
+            resource.setProperty(ServiceConfigVersionResourceProvider.SERVICE_CONFIG_VERSION_NOTE_PROPERTY_ID,
+              serviceConfigVersionResponse.getNote());
             if (serviceConfigVersionResponse.getConfigurations() != null) {
               resource.setProperty(
                   ServiceConfigVersionResourceProvider.SERVICE_CONFIG_VERSION_CONFIGURATIONS_PROPERTY_ID,
@@ -349,6 +351,9 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
           serviceConfigVersionRequest.setServiceName(entry.getValue().toString());
         else if (propName.equals("serviceconfigversion"))
           serviceConfigVersionRequest.setVersion(Long.valueOf(entry.getValue().toString()));
+        else if (propName.equals("service_config_version_note")) {
+          serviceConfigVersionRequest.setNote(entry.getValue().toString());
+        }
 
       }
     }
@@ -698,7 +703,7 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
       }
     }
     getManagementController().updateClusters(
-        Collections.singleton(getRequest(clusterProperties)), null);
+      Collections.singleton(getRequest(clusterProperties)), null);
   }
 
   /**

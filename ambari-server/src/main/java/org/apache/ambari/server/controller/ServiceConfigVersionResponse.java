@@ -32,6 +32,7 @@ public class ServiceConfigVersionResponse {
   private Long createTime;
   private Long applyTime;
   private String userName;
+  private String note;
   private List<ConfigurationResponse> configurations;
 
   @JsonProperty("service_name")
@@ -99,6 +100,16 @@ public class ServiceConfigVersionResponse {
 
   public void setConfigurations(List<ConfigurationResponse> configurations) {
     this.configurations = configurations;
+  }
+
+  @JsonProperty("service_config_version_note")
+  @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+  public String getNote() {
+    return note;
+  }
+
+  public void setNote(String note) {
+    this.note = note;
   }
 }
 
