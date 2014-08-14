@@ -148,6 +148,8 @@ Em.I18n.translations = {
   'common.reUpgrade': 'Retry Upgrade',
   'common.security':'Security',
   'common.cluster':'Cluster',
+  'common.repositories':'Repositories',
+  'common.serviceAccounts': 'Service Accounts',
   'common.add': 'Add',
   'common.edit': 'Edit',
   'common.delete': 'Delete',

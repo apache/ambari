@@ -18,6 +18,9 @@
 
 var App = require('app');
 
-App.MainAdminAccessView = Em.View.extend({
-  templateName: require('templates/main/admin/access')
+App.MainAdminServiceAccountsView = Em.View.extend({
+  templateName: require('templates/main/admin/serviceAccounts'),
+  didInsertElement: function() {
+    this.get('controller').loadUsers();
+  }
 });

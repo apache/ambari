@@ -21,8 +21,8 @@ var stringUtils = require('utils/string_utils');
 
 require('controllers/main/service/info/configs');
 
-App.MainAdminMiscController = App.MainServiceInfoConfigsController.extend({
-  name: 'mainAdminMiscController',
+App.MainAdminServiceAccountsController = App.MainServiceInfoConfigsController.extend({
+  name: 'mainAdminServiceAccountsController',
   users: null,
   content: Em.Object.create({
     serviceName: 'MISC'

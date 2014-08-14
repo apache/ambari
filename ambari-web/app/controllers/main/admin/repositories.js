@@ -19,8 +19,8 @@
 var App = require('app');
 var stringUtils = require('utils/string_utils');
 
-App.MainAdminClusterController = Em.Controller.extend({
-  name: 'mainAdminClusterController',
+App.MainAdminRepositoriesController = Em.Controller.extend({
+  name: 'mainAdminRepositoriesController',
   services: [],
   allRepos: [],
   upgradeVersion: '',

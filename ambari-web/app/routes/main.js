@@ -355,62 +355,8 @@ module.exports = Em.Route.extend({
        router.transitionTo('admin' + controller.get('category').capitalize());
        }, */
       route: '/',
-      redirectsTo: 'adminUser'
+      redirectsTo: 'adminRepositories'
     }),
-
-
-    adminUser: Em.Route.extend({
-      route: '/user',
-      index: Em.Route.extend({
-        route: '/',
-        redirectsTo: 'allUsers'
-      }),
-      enter: function (router) {
-        router.set('mainAdminController.category', "user");
-        Em.run.next(function () {
-          router.transitionTo('allUsers');
-        });
-      },
-      routePath: function (router, event) {
-        router.set('mainAdminController.category', "user");
-        router.transitionTo('allUsers');
-        Em.run.next(function () {
-          router.transitionTo('allUsers');
-        });
-      },
-      // events
-      gotoUsers: Em.Router.transitionTo("allUsers"),
-      gotoCreateUser: Em.Router.transitionTo("createUser"),
-      gotoEditUser: function (router, event) {
-        router.transitionTo("editUser", event.context)
-      },
-
-      // states
-      allUsers: Em.Route.extend({
-        route: '/allUsers',
-        // index: Ember.Route.extend({
-        //route: '/',
-        connectOutlets: function (router) {
-          router.get('mainAdminController').connectOutlet('mainAdminUser');
-        }
-        //})
-      }),
-
-      createUser: Em.Route.extend({
-        route: '/create',
-        connectOutlets: function (router) {
-          router.get('mainAdminController').connectOutlet('mainAdminUserCreate', {});
-        }
-      }),
-
-      editUser: Em.Route.extend({
-        route: '/edit/:user_id',
-        connectOutlets: function (router, user) {
-          router.get('mainAdminController').connectOutlet('mainAdminUserEdit', user);
-        }
-      })
-    }),
-
 
     adminAuthentication: Em.Route.extend({
       route: '/authentication',
@@ -553,11 +499,11 @@ module.exports = Em.Route.extend({
       adminAddSecurity: require('routes/add_security')
     }),
 
-    adminCluster: Em.Route.extend({
-      route: '/cluster',
+    adminRepositories: Em.Route.extend({
+      route: '/repositories',
       connectOutlets: function (router) {
-        router.set('mainAdminController.category', "cluster");
-        router.get('mainAdminController').connectOutlet('mainAdminCluster');
+        router.set('mainAdminController.category', "repositories");
+        router.get('mainAdminController').connectOutlet('mainAdminRepositories');
       }
     }),
     adminAdvanced: Em.Route.extend({
@@ -567,23 +513,11 @@ module.exports = Em.Route.extend({
         router.get('mainAdminController').connectOutlet('mainAdminAdvanced');
       }
     }),
-    adminMisc: Em.Route.extend({
-      route: '/misc',
+    adminServiceAccounts: Em.Route.extend({
+      route: '/serviceAccounts',
       connectOutlets: function (router) {
-        router.set('mainAdminController.category', "misc");
-        router.get('mainAdminController').connectOutlet('mainAdminMisc');
-      }
-    }),
-    adminAccess: Em.Route.extend({
-      enter: function (router) {
-        router.get('mainController').dataLoading().done(function () {
-          if (!router.get('mainAdminController.isAccessAvailable')) router.transitionTo('adminUser.allUsers');
-        });
-      },
-      route: '/access',
-      connectOutlets: function (router) {
-        router.set('mainAdminController.category', "access");
-        router.get('mainAdminController').connectOutlet('mainAdminAccess');
+        router.set('mainAdminController.category', "serviceAccounts");
+        router.get('mainAdminController').connectOutlet('mainAdminServiceAccounts');
       }
     }),
 

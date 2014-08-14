@@ -19,8 +19,8 @@
 var App = require('app');
 var stringUtils = require('utils/string_utils');
 
-App.MainAdminClusterView = Em.View.extend({
-  templateName: require('templates/main/admin/cluster'),
+App.MainAdminRepositoriesView = Em.View.extend({
+  templateName: require('templates/main/admin/repositories'),
 
   isUpgradeAvailable: function(){
     return stringUtils.compareVersions(this.get('controller.upgradeVersion').replace(/HDP(Local)?-/, ''), App.get('currentStackVersionNumber')) === 1;

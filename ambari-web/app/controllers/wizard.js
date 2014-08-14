@@ -742,7 +742,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
   usersLoading: function () {
     var self = this;
     var dfd = $.Deferred();
-    var miscController = App.MainAdminMiscController.create({content: self.get('content')});
+    var miscController = App.MainAdminServiceAccountsController.create({content: self.get('content')});
     miscController.loadUsers();
     var interval = setInterval(function () {
       if (miscController.get('dataIsLoaded')) {

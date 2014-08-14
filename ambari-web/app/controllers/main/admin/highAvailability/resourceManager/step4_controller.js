@@ -18,7 +18,7 @@
 
 var App = require('app');
 
-require('controllers/main/admin/misc_controller');
+require('controllers/main/admin/serviceAccounts_controller');
 
 App.RMHighAvailabilityWizardStep4Controller = App.HighAvailabilityProgressPageController.extend({
 

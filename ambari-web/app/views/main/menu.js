@@ -135,18 +135,17 @@ App.MainMenuView = Em.CollectionView.extend({
       var categories = [];
       // create dropdown categories for each menu item
       if (itemName == 'admin') {
-        categories = [{
-          name: 'user',
-          url: 'adminUser',
-          label: Em.I18n.t('common.users')
-        }];
-        if (App.get('isHadoop2Stack') && App.supports.highAvailability) {
-          categories.push({
-            name: 'highAvailability',
-            url: 'adminHighAvailability',
-            label: Em.I18n.t('admin.highAvailability')
-          });
-        }
+        categories = [];
+        categories.push({
+          name: 'repositories',
+          url: 'adminRepositories',
+          label: Em.I18n.t('common.repositories')
+        });
+        categories.push({
+          name: 'serviceAccounts',
+          url: 'adminServiceAccounts',
+          label: Em.I18n.t('common.serviceAccounts')
+        });
         if (App.supports.secureCluster) {
           categories.push({
             name: 'security',
@@ -154,26 +153,15 @@ App.MainMenuView = Em.CollectionView.extend({
             label: Em.I18n.t('common.security')
           });
         }
-        categories.push({
-          name: 'cluster',
-          url: 'adminCluster',
-          label: Em.I18n.t('common.cluster')
-        });
-        categories.push({
-          name: 'misc',
-          url: 'adminMisc',
-          label: Em.I18n.t('common.misc')
-        });
-        if (App.router.get('mainAdminController.isAccessAvailable')) {
+        if (App.get('isHadoop2Stack') && App.supports.highAvailability) {
           categories.push({
-            name: 'access',
-            url: 'adminAccess',
-            label: Em.I18n.t('common.access')
+            name: 'highAvailability',
+            url: 'adminHighAvailability',
+            label: Em.I18n.t('admin.highAvailability')
           });
         }
       }
       return categories;
-
     }.property('')
   })
 });
