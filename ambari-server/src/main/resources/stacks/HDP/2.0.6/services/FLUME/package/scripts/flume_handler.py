@@ -21,6 +21,7 @@ from resource_management import *
 from flume import flume
 from flume import flume_status
 from flume import find_expected_agent_names
+from flume import get_desired_state
 
 class FlumeHandler(Script):
   def install(self, env):
@@ -108,11 +109,13 @@ class FlumeHandler(Script):
 
     # only throw an exception if there are agents defined and there is a 
     # problem with the processes; if there are no agents defined, then 
-    # the service should report STARTED (green) instead of INSTALLED (red)
+    # the service should report STARTED (green) ONLY if the desired state is started.  otherwise, INSTALLED (red)
     if len(expected_agents) > 0:
       for proc in processes:
         if not proc.has_key('status') or proc['status'] == 'NOT_RUNNING':
           raise ComponentIsNotRunning()
+    elif len(expected_agents) == 0 and 'INSTALLED' == get_desired_state():
+      raise ComponentIsNotRunning()
 
 if __name__ == "__main__":
   FlumeHandler().execute()

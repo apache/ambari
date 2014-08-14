@@ -36,18 +36,21 @@ class TestFlumeHandler(RMFTestCase):
 
   @patch("os.path.isfile")
   @patch("flume.cmd_target_names")
-  def test_start_default(self, cmd_target_names_mock, os_path_isfile_mock):
+  @patch("flume._set_desired_state")
+  def test_start_default(self, set_desired_mock, cmd_target_names_mock, os_path_isfile_mock):
     # 1st call is to check if the conf file is there - that should be True
     # 2nd call is to check if the process is live - that should be False
     os_path_isfile_mock.side_effect = [True, False]
     cmd_target_names_mock.return_value = ["a1"]
 
     self.executeScript("2.0.6/services/FLUME/package/scripts/flume_handler.py",
-                       classname = "FlumeHandler",
-                       command = "start",
+                       classname = "FlumeHandler", command = "start",
                        config_file="default.json")
 
     self.assert_configure_default()
+
+    self.assertTrue(set_desired_mock.called)
+    self.assertTrue(set_desired_mock.call_args[0][0] == 'STARTED')
 
     self.assertResourceCalled('Execute', format('su -s /bin/bash flume -c "export JAVA_HOME=/usr/jdk64/jdk1.7.0_45; /usr/bin/flume-ng agent '
       '--name a1 '
@@ -60,12 +63,13 @@ class TestFlumeHandler(RMFTestCase):
     self.assertResourceCalled('Execute', 'pgrep -o -u flume -f ^/usr/jdk64/jdk1.7.0_45.*a1.* > /var/run/flume/a1.pid',
       logoutput = True,
       tries = 10,
-      try_sleep = 1)
+      try_sleep = 6)
 
     self.assertNoMoreResources()
 
   @patch("glob.glob")
-  def test_stop_default(self, glob_mock):
+  @patch("flume._set_desired_state")
+  def test_stop_default(self, set_desired_mock, glob_mock):
     glob_mock.side_effect = [['/var/run/flume/a1/pid'], ['/etc/flume/conf/a1/ambari-meta.json']]
 
     self.executeScript("2.0.6/services/FLUME/package/scripts/flume_handler.py",
@@ -74,6 +78,9 @@ class TestFlumeHandler(RMFTestCase):
                        config_file="default.json")
 
     self.assertTrue(glob_mock.called)
+
+    self.assertTrue(set_desired_mock.called)
+    self.assertTrue(set_desired_mock.call_args[0][0] == 'INSTALLED')
 
     self.assertResourceCalled('Execute', 'kill `cat /var/run/flume/a1.pid` > /dev/null 2>&1',
       ignore_failures = True)
@@ -137,7 +144,8 @@ class TestFlumeHandler(RMFTestCase):
        command = "status",
        config_file="default.json")
     except:
-      self.fail("Exception not expected when no agents are defined")
+      # expected since ComponentIsNotRunning gets raised
+      pass
       
     self.assertTrue(structured_out_mock.called)
 
@@ -230,7 +238,7 @@ class TestFlumeHandler(RMFTestCase):
     self.assertResourceCalled('Execute', 'pgrep -o -u flume -f ^/usr/jdk64/jdk1.7.0_45.*b1.* > /var/run/flume/b1.pid',
       logoutput = True,
       tries = 10,
-      try_sleep = 1)
+      try_sleep = 6)
 
     self.assertNoMoreResources()
 
@@ -258,7 +266,7 @@ class TestFlumeHandler(RMFTestCase):
     self.assertResourceCalled('Execute', 'pgrep -o -u flume -f ^/usr/jdk64/jdk1.7.0_45.*b1.* > /var/run/flume/b1.pid',
       logoutput = True,
       tries = 10,
-      try_sleep = 1)
+      try_sleep = 6)
 
     self.assertNoMoreResources()
 
