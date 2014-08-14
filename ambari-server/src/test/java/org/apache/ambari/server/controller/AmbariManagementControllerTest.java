@@ -8947,10 +8947,11 @@ public class AmbariManagementControllerTest {
       amc.createConfiguration(configurationRequest);
 
       configurationRequest = new ConfigurationRequest("c1", "global", "version1",
-          gson.<Map<String, String>>fromJson("{ \"hbase_hdfs_root_dir\" : \"/apps/hbase/\"}", confType), null
+          gson.<Map<String, String>>fromJson("{ \"hive.server2.enable.doAs\" : \"true\"}", confType), null
       );
       amc.createConfiguration(configurationRequest);
 
+      Assert.assertTrue(clusters.getCluster("c1").getDesiredConfigs().containsKey("hive-site"));
 
       serviceRequests.clear();
       serviceRequests.add(new ServiceRequest("c1", "HDFS", null));

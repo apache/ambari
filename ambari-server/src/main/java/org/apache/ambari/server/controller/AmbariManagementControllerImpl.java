@@ -668,7 +668,19 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           tag = "version" + System.currentTimeMillis();
         }
 
-        createConfig(cluster, configTypeName, properties, tag, propertiesAttributes);
+        Config config = createConfig(cluster, configTypeName, properties, tag, propertiesAttributes);
+
+        if (config != null) {
+          String authName = getAuthName();
+
+          if (cluster.addDesiredConfig(authName, config) != null) {
+            LOG.info("cluster '" + cluster.getClusterName() + "' "
+                    + "changed by: '" + authName + "'; "
+                    + "type='" + config.getType() + "' "
+                    + "tag='" + config.getTag());
+          }
+        }
+
       }
     }
   }
