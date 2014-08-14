@@ -840,6 +840,7 @@ App.HostPopup = Em.Object.create({
           this.set("isHostListHidden", true);
           this.set("isServiceListHidden", false);
           this.set("isTaskListHidden", true);
+          this.set("isLogWrapHidden", true);
           this.set("hosts", null);
           this.get("controller").setBackgroundOperationHeader(false);
           this.switchLevel("REQUESTS_LIST");
