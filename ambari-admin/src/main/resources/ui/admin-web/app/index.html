@@ -52,7 +52,7 @@
               <li>
                 <div class="btn-group" dropdown is-open="status.isopen">
                 <button type="button" class="btn btn-default dropdown-toggle navbar-btn" ng-disabled="disabled">
-                    Admin <span class="caret"></span>
+                    {{currentUser}} <span class="caret"></span>
                   </button>
                   <ul class="dropdown-menu" role="menu">
                     <li><a href ng-click="about()">About</a></li>
@@ -125,6 +125,7 @@
     <script src="scripts/controllers/clusters/ClustersManageAccessCtrl.js"></script>
     <script src="scripts/directives/linkToDir.js"></script>
     <script src="scripts/directives/PasswordVerify.js"></script>
+    <script src="scripts/directives/disabledTooltip.js"></script>
     <script src="scripts/services/User.js"></script>
     <script src="scripts/services/Group.js"></script>
     <script src="scripts/services/View.js"></script>

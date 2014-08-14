@@ -23,49 +23,48 @@ angular.module('ambariAdminConsole')
   $scope.usersPerPage = 10;
   $scope.currentPage = 1;
   $scope.totalUsers = 1;
-  $scope.search = '';
+  $scope.currentNameFilter = '';
   $scope.maxVisiblePages=20;
 
   $scope.pageChanged = function() {
-    loadUsers();
+    $scope.loadUsers();
   };
   $scope.usersPerPageChanges = function() {
-    loadUsers();
+    $scope.loadUsers();
   };
 
-  function loadUsers(){
-    User.list($scope.currentPage, $scope.usersPerPage, $scope.search).then(function(data) {
-      $scope.totalUsers = data.itemTotal;
-      $scope.users = data.items;
+  $scope.loadUsers = function(){
+    User.list({
+      currentPage: $scope.currentPage, 
+      usersPerPage: $scope.usersPerPage, 
+      searchString: $scope.currentNameFilter,
+      ldap_user: $scope.currentTypeFilter.value,
+      active: $scope.currentActiveFilter.value
+    }).then(function(data) {
+      $scope.totalUsers = data.data.itemTotal;
+      $scope.users = data.data.items;
     });
-  }
-
-  loadUsers();
-
-
-  $scope.actvieFilterOptions = ['All', 'Active', 'Inactive'];
-  $scope.currentActiveFilter = 'All';
-  $scope.activeFilter = function(user) {
-    var af = $scope.currentActiveFilter;
-    if (af === 'All') {
-      return user;
-    } else if(af === 'Active' && user.Users.active){
-      return user;
-    } else if(af === 'Inactive' && !user.Users.active){
-      return user;
-    }
   };
 
-  $scope.typeFilterOptions = ['All', 'Local', 'LDAP'];
-  $scope.currentTypeFilter = 'All';
-  $scope.typeFilter = function(user) {
-    var tf = $scope.currentTypeFilter;
-    if (tf === 'All') {
-      return user;
-    } else if(tf === 'Local' && !user.Users.ldap_user){
-      return user;
-    } else if(tf === 'LDAP' && user.Users.ldap_user){
-      return user;
-    }
+  $scope.resetPagination = function() {
+    $scope.currentPage = 1;
+    $scope.loadUsers();
   };
+
+  $scope.actvieFilterOptions = [
+    {label: 'All', value: '*'}, 
+    {label: 'Active', value: true}, 
+    {label:'Inactive', value:false}
+  ];
+  $scope.currentActiveFilter = $scope.actvieFilterOptions[0];
+  
+
+  $scope.typeFilterOptions = [
+    {label:'All', value:'*'},
+    {label:'Local', value:false},
+    {label:'LDAP', value:true}
+  ];
+  $scope.currentTypeFilter = $scope.typeFilterOptions[0];
+
+  $scope.loadUsers();
 }]);

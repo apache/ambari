@@ -34,12 +34,16 @@ angular.module('ambariAdminConsole')
   var Users = Restangular.all('users');
 
   return {
-    list: function(currentPage, usersPerPage) {
-      return Users.customGET('', {
-        fields: '*',
-        page_size: usersPerPage,
-        from: (currentPage-1)*usersPerPage
-      });
+    list: function(params) {
+      return $http.get(
+        Settings.baseUrl + '/users/?' 
+        + 'Users/user_name.matches(.*'+params.searchString+'.*)'
+        + '&fields=*'
+        + '&from=' + (params.currentPage-1)*params.usersPerPage
+        + '&page_size=' + params.usersPerPage
+        + (params.ldap_user === '*' ? '' : '&Users/ldap_user=' + params.ldap_user)
+        + (params.active === '*' ? '' : '&Users/active=' + params.active)
+      );
     },
     get: function(userId) {
       return Restangular.one('users', userId).get();
@@ -60,7 +64,7 @@ angular.module('ambariAdminConsole')
         data: {
           'Users/password': password,
           'Users/old_password': currentUserPassword,
-          'Users/roles': user.roles[0] || 'user' 
+          'Users/roles': user.roles[0] || 'user'
         }
       });
     },

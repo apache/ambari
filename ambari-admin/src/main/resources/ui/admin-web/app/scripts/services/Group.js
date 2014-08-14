@@ -147,18 +147,16 @@ angular.module('ambariAdminConsole')
     return $http.post(Settings.baseUrl + '/groups/' + groupName + '/members/'+memberName);
   };
 
-  Group.all = function(currentPage, groupsPerPage) {
+  Group.all = function(params) {
     var deferred = $q.defer();
 
-    $http({
-      method: 'GET',
-      url: Settings.baseUrl + '/groups',
-      params: {
-        'fields': 'Groups/ldap_group',
-        page_size: groupsPerPage,
-        from: (currentPage-1)*groupsPerPage
-      }
-    })
+    $http.get(Settings.baseUrl + '/groups?'
+      + 'Groups/group_name.matches(.*'+params.searchString+'.*)'
+      + '&fields=*'
+      + '&from='+ (params.currentPage-1)*params.groupsPerPage
+      + '&page_size=' + params.groupsPerPage
+      + (params.ldap_group === '*' ? '' : '&Groups/ldap_group='+params.ldap_group)
+    )
     .success(function(data) {
       var groups = [];
       if(Array.isArray(data.items)){

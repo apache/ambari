@@ -20,10 +20,13 @@
   <div class="clearfix">
     <ol class="breadcrumb pull-left">
       <li><a href="#/users">Users</a></li>
-      <li class="active">{{user.user_name}}</li>
+      <li class="active"><span class="glyphicon glyphicon-flash" ng-show="user.admin"></span>{{user.user_name}}</li>
     </ol>
     <div class="pull-right top-margin-4">
-      <button class="btn deleteuser-btn" ng-class="{'btn-danger': !isCurrentUser, 'btn-default' : isCurrentUser}" ng-click="deleteUser()" ng-disabled="isCurrentUser">Delete User</button>
+      <div ng-switch="isCurrentUser">
+        <button class="btn deleteuser-btn disabled btn-default" ng-switch-when="true" tooltip="Cannot Delete User">Delete User</button>
+        <button class="btn deleteuser-btn btn-danger" ng-switch-when="false" ng-click="deleteUser()">Delete User</button>
+      </div>
     </div>
   </div>
   <hr>
@@ -37,13 +40,13 @@
     <div class="form-group">
       <label for="" class="col-sm-2 control-label">Status</label>
       <div class="col-sm-10">
-        <toggle-switch on-change="toggleUserActive()" ng-disabled="isCurrentUser" model="user.active" on-label="Active" off-label="Inactive" class="switch-primary userstatus" data-off-color="danger"></toggle-switch>
+        <toggle-switch on-change="toggleUserActive()" disabled-tooltip="Cannot Change Status" ng-disabled="isCurrentUser" model="user.active" on-label="Active" off-label="Inactive" class="switch-primary userstatus" data-off-color="danger"></toggle-switch>
       </div>
     </div>
     <div class="form-group">
-      <label for="" class="col-sm-2 control-label">Ambari Admin</label>
+      <label for="" class="col-sm-2 control-label"><span class="glyphicon glyphicon-flash"></span> Ambari Admin</label>
       <div class="col-sm-10">
-        <toggle-switch on-change="toggleUserAdmin()" ng-disabled="isCurrentUser" model="user.admin" on-label="Yes" off-label="No" class="switch-primary userstatus" data-off-color="danger"></toggle-switch>
+        <toggle-switch on-change="toggleUserAdmin()" disabled-tooltip="Cannot Change Admin" ng-disabled="isCurrentUser" model="user.admin" on-label="Yes" off-label="No" class="switch-primary userstatus" data-off-color="danger"></toggle-switch>
       </div>
     </div>
     <div class="form-group">
@@ -79,10 +82,10 @@
       </div>
         
     </div>
-    <div class="form-group" ng-show="dataLoaded">
+    <div class="form-group">
       <label for="" class="col-sm-2 control-label">Privileges</label>
       <div class="col-sm-10">
-        <table class="table" ng-show="privileges">
+        <table class="table">
           <thead>
             <tr>
               <th>Resource</th>

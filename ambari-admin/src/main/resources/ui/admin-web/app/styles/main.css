@@ -33,6 +33,9 @@
   border: none;
   margin-top: 0;
 }
+.views-list-table h4{
+  font-size: 14px;
+}
 .views-list-table .panel-group .panel + .panel{
   margin-top: 0;
 }
@@ -73,6 +76,14 @@
 .ats-switch{
   border-color: #333;
 }
+.ats-switch.disabled, .ats-switch.disabled:hover{
+  cursor: not-allowed !important;
+  box-shadow: none!important;
+  border-color: #ccc!important;
+}
+.ats-switch.disabled .switch-left, .ats-switch.disabled .switch-right, .ats-switch.disabled .knob{
+  cursor: not-allowed!important;
+}
 .hide-soft{
   display: none;
 }
@@ -84,8 +95,12 @@
 }
 .panel{
   box-shadow: none;
+  border-radius: 0;
 }
 
+.users-pane table .glyphicon{
+  width: 14px;
+}
 
 .pulldown2{
   -webkit-transform: translateY(2px);
@@ -95,6 +110,12 @@
 }
 .btn.disabled.syncldapbtn{
   pointer-events: auto;
+  background-color: #e6e6e6;
+  cursor: not-allowed;
+}
+.btn.deleteuser-btn.disabled, .btn.deleteuser-btn[disabled]{
+  pointer-events: auto;
+  cursor: not-allowed;
   background-color: #e6e6e6;
 }
 
@@ -178,10 +199,12 @@
 .create-view-form .description{
   display: inline-block;
   vertical-align: middle;
-  padding-left: 20px;
+}
+.create-view-form .description h4 span{
+  font-weight: normal;
+  
 }
 .create-view-form .view-header{
-  margin-bottom: 20px;
 }
 
 .left-navbar .panel{

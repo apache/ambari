@@ -32,15 +32,16 @@
         <th>
           <div class="search-container">
             <label for="">Username</label>
-            <input type="text" class="form-control namefilter" ng-model="currentNameFilter">
-            <button type="button" class="close clearfilter" ng-show="currentNameFilter" ng-click="currentNameFilter=''"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            <input type="text" class="form-control namefilter" ng-model="currentNameFilter" ng-change="resetPagination()">
+            <button type="button" class="close clearfilter" ng-show="currentNameFilter" ng-click="currentNameFilter=''; resetPagination()"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
           </div>
         </th>
         <th>
           <label for="">Type</label>
           <select class="form-control typefilter"
             ng-model="currentTypeFilter"
-            ng-options="item for item in typeFilterOptions">
+            ng-options="item.label for item in typeFilterOptions"
+            ng-change="resetPagination()">
           </select>
 
         </th>
@@ -48,15 +49,16 @@
           <label for="">Status</label>
           <select class="form-control statusfilter" 
             ng-model="currentActiveFilter"
-            ng-options="item for item in actvieFilterOptions">
+            ng-options="item.label for item in actvieFilterOptions"
+            ng-change="resetPagination()">
           </select>
         </th>
       </tr>
     </thead>
     <tbody>
-      <tr ng-repeat="user in users | filter:activeFilter | filter:typeFilter | filter:currentNameFilter">
+      <tr ng-repeat="user in users">
         <td>
-          <span class="glyphicon glyphicon-flash" ng-show="user.Users.admin"></span>
+          <span class="glyphicon" tooltip="{{user.Users.admin ? 'Ambari Admin' : ''}}" ng-class="{'glyphicon-flash' : user.Users.admin}"></span>
           <link-to route="users.show" id="{{user.Users.user_name}}">{{user.Users.user_name}}</link-to>
         </td>
         <td>{{user.Users.ldap_user ? 'LDAP' : 'Local'}}</td>

@@ -22,11 +22,9 @@
 <hr>
 <form class="form-horizontal create-view-form" role="form" name="form.isntanceCreateForm" novalidate>
   <div class="view-header">
-    <img src="http://placehold.it/64x64" alt="" class="icon-big">
-    <img src="http://placehold.it/32x32" alt="" class="icon-small">
     <div class="description">
-      <h3>{{view.ViewVersionInfo.view_name}}</h3>
-      <span>{{view.ViewVersionInfo.label}} | Version: <select ng-model="version" class="instanceversion-input" ng-change="versionChanged()" ng-options="o as o for o in versions"></select></span>
+      <h4>View: <span>{{view.ViewVersionInfo.view_name}}</span></h4>
+      <h4>Version: <select ng-model="version" class="instanceversion-input" ng-change="versionChanged()" ng-options="o as o for o in versions"></select></h4>
     </div>
   </div>
   
@@ -38,9 +36,9 @@
       <div class="form-group" 
       ng-class="{'has-error' : ( (form.isntanceCreateForm.instanceNameInput.$error.required || form.isntanceCreateForm.instanceNameInput.$error.pattern) && form.isntanceCreateForm.submitted) || instanceExists }"
       >
-        <label for="" class="control-labe col-sm-2">Instance Name</label>
+        <label for="" class="control-label col-sm-2">Instance Name</label>
         <div class="col-sm-10">
-          <input type="text" class="form-control instancename-input" name="instanceNameInput" ng-pattern="nameValidationPattern" required ng-model="instance.instance_name">
+          <input type="text" class="form-control instancename-input" name="instanceNameInput" ng-pattern="nameValidationPattern" required ng-model="instance.instance_name" autocomplete="off">
 
           <div class="alert alert-danger no-margin-bottom top-margin" ng-show='form.isntanceCreateForm.instanceNameInput.$error.required && form.isntanceCreateForm.submitted'>
             This field is required.
@@ -57,7 +55,7 @@
       ng-class="{'has-error' : ( (form.isntanceCreateForm.displayLabel.$error.required || form.isntanceCreateForm.displayLabel.$error.pattern) && form.isntanceCreateForm.submitted)}">
         <label for="" class="control-labe col-sm-2">Display Label</label>
         <div class="col-sm-10">
-          <input type="text" class="form-control instancelabel-input" name="displayLabel" ng-model="instance.label" required ng-pattern="nameValidationPattern">
+          <input type="text" class="form-control instancelabel-input" name="displayLabel" ng-model="instance.label" required ng-pattern="nameValidationPattern" autocomplete="off">
 
           <div class="alert alert-danger no-margin-bottom top-margin" ng-show='form.isntanceCreateForm.displayLabel.$error.required && form.isntanceCreateForm.submitted'>
             This field is required.
@@ -87,7 +85,7 @@
         ng-class="{'has-error' : (form.isntanceCreateForm[parameter.name].$error.required && form.isntanceCreateForm.submitted)}" >
         <label for="" class="col-sm-3 control-label" ng-class="{'not-required': !parameter.required}">{{parameter.description}}{{parameter.required ? '*' : ''}}</label>
         <div class="col-sm-9">
-          <input type="text" class="form-control viewproperty-input"  name="{{parameter.name}}" ng-required="parameter.required" ng-model="parameter.value">
+          <input type="text" class="form-control viewproperty-input"  name="{{parameter.name}}" ng-required="parameter.required" ng-model="parameter.value" autocomplete="off">
           <div class="alert alert-danger no-margin-bottom top-margin" ng-show='form.isntanceCreateForm[parameter.name].$error.required && form.isntanceCreateForm.submitted'>
             Field requried!
           </div>

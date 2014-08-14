@@ -24,7 +24,7 @@ angular.module('ambariAdminConsole')
   $scope.groupsPerPage = 10;
   $scope.currentPage = 1;
   $scope.totalGroups = 1;
-  $scope.search = '';
+  $scope.currentNameFilter = '';
   $scope.maxVisiblePages=20;
 
   $scope.pageChanged = function() {
@@ -34,8 +34,18 @@ angular.module('ambariAdminConsole')
     loadGroups();
   };
 
+  $scope.resetPagination = function() {
+    $scope.currentPage = 1;
+    loadGroups();
+  };
+
   function loadGroups(){
-    Group.all($scope.currentPage, $scope.groupsPerPage, $scope.search).then(function(groups) {
+    Group.all({
+      currentPage: $scope.currentPage, 
+      groupsPerPage: $scope.groupsPerPage, 
+      searchString: $scope.currentNameFilter,
+      ldap_group: $scope.currentTypeFilter.value
+    }).then(function(groups) {
       $scope.totalGroups = groups.itemTotal;
       $scope.groups = groups;
     })
@@ -44,20 +54,12 @@ angular.module('ambariAdminConsole')
     });
   }
 
-  loadGroups();
-
-  $scope.typeFilterOptions = ['All', 'Local', 'LDAP'];
-  $scope.currentTypeFilter = 'All';
-  $scope.typeFilter = function(group) {
-    var tf = $scope.currentTypeFilter;
-    if (tf === 'All') {
-      return group;
-    } else if(tf === 'Local' && !group.ldap_group){
-      return group;
-    } else if(tf === 'LDAP' && group.ldap_group){
-      return group;
-    }
-  };
-
+  $scope.typeFilterOptions = [
+    {label:'All', value:'*'},
+    {label:'Local', value: false},
+    {label:'LDAP', value:true}
+  ];
+  $scope.currentTypeFilter = $scope.typeFilterOptions[0];
   
+  loadGroups();
 }]);

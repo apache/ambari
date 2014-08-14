@@ -41,7 +41,9 @@
   <ul class="top-nav-dropdown-menu">
     {{#if view.content.views}}
       {{#each category in view.content.views}}
-        <li><a href="#" {{action "setView" category target="App.router.mainViewsController"}}>{{category.label}}</a></li>
+        {{#if category.visible }}
+          <li><a href="#" {{action "setView" category target="App.router.mainViewsController"}}>{{category.label}}</a></li>
+        {{/if}}
       {{/each}}
     {{else}}
       <li class="disabled"><a href="javascript:void(null);">{{t menu.item.views.noViews}}</a></li>

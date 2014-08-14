@@ -24,6 +24,26 @@ angular.module('ambariAdminConsole')
   $scope.group.editingUsers = [];
   $scope.groupMembers = [];
   $scope.dataLoaded = false;
+  
+  $scope.isMembersEditing = false;
+  
+  $scope.enableMembersEditing = function() {
+    $scope.isMembersEditing = true;
+    $scope.group.editingUsers = angular.copy($scope.groupMembers);
+  };
+  $scope.cancelUpdate = function() {
+    $scope.isMembersEditing = false;
+    $scope.group.editingUsers = '';
+  };
+  $scope.updateMembers = function() {
+    var newMembers = $scope.group.editingUsers.toString().split(',').filter(function(item) {return item.trim();}).map(function(item) {return item.trim()});
+    $scope.group.members = newMembers;
+    $scope.group.saveMembers().then(loadMembers)
+    .catch(function(data) {
+      uiAlert.danger(data.status, data.message);
+    });
+    $scope.isMembersEditing = false;
+  };
 
 
   function loadMembers(){
@@ -36,22 +56,6 @@ angular.module('ambariAdminConsole')
     $scope.group.ldap_group = isLDAP;
     loadMembers();
   });
-
-  $scope.toggleEditMode = function() {
-    $scope.editMode = !$scope.editMode;
-
-    if( $scope.editMode ){
-      // $scope.group.editingUsers = $scope.group.members.join(', ');
-      $scope.group.editingUsers = $scope.groupMembers;
-    } else {
-      var newMembers = $scope.group.editingUsers.toString().split(',').filter(function(item) {return item.trim();}).map(function(item) {return item.trim()});
-      $scope.group.members = newMembers;
-      $scope.group.saveMembers().then(loadMembers)
-      .catch(function(data) {
-        uiAlert.danger(data.status, data.message);
-      });
-    }
-  };
 
   $scope.deleteGroup = function(group) {
     ConfirmationModal.show('Delete Group', 'Are you sure you want to delete group "'+ group.group_name +'"?').then(function() {
