@@ -404,24 +404,13 @@ App.WizardStep6Controller = Em.Controller.extend({
    * @param hostsObj
    */
   selectClientHost: function (hostsObj) {
-    var headers = this.get('headers');
-    var clientHeaders = headers.findProperty('name', 'CLIENT');
-    if (!clientHeaders) {
-      return;
-    }
-    var client_is_set = false;
-    hostsObj.forEach(function (host) {
-      if (!client_is_set) {
-        var checkboxes = host.get('checkboxes');
-        var dfsService = App.StackService.find().findProperty('isPrimaryDFS');
-        var checkboxServiceComponent = checkboxes.findProperty('title', headers.findProperty('name', dfsService.get('serviceComponents').
-          findProperty('isShownOnInstallerSlaveClientPage').get('componentName')).get('label'));
-        if (checkboxServiceComponent && checkboxServiceComponent.get('checked')) {
-          checkboxes.findProperty('title', clientHeaders.get('label')).set('checked', true);
-          client_is_set = true;
-        }
-      }
-    }, this);
+     var nonMasterHost = hostsObj.findProperty('hasMaster',false);
+     if (nonMasterHost) {
+       var clientCheckBox = nonMasterHost.get('checkboxes').findProperty('name','CLIENT');
+       if (clientCheckBox) {
+         clientCheckBox.set('checked',true);
+       }
+     }
   },
 
   /**
