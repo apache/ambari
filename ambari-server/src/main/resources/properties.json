@@ -421,8 +421,7 @@
       "AlertDefinition/interval",
       "AlertDefinition/enabled",
       "AlertDefinition/scope",
-      "AlertDefinition/source",
-      "AlertDefinition/uuid"
+      "AlertDefinition/source"
     ],      
     "Controller":[
         "Controllers/name",

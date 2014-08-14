@@ -66,6 +66,10 @@ public class AlertDefinitionHashTest extends TestCase {
   private static final String CLUSTERNAME = "cluster1";
   private static final String HOSTNAME = "c6401.ambari.apache.org";
 
+  private List<AlertDefinitionEntity> m_agentDefinitions;
+  private AlertDefinitionEntity m_hdfsService;
+  AlertDefinitionEntity m_hdfsHost;
+
   /**
    *
    */
@@ -124,6 +128,9 @@ public class AlertDefinitionHashTest extends TestCase {
     expect(m_mockClusters.getCluster((String) anyObject())).andReturn(
         m_mockCluster).atLeastOnce();
 
+    expect(m_mockClusters.getClusterById(EasyMock.anyInt())).andReturn(
+        m_mockCluster).atLeastOnce();
+
     // cluster mock
     expect(m_mockCluster.getClusterId()).andReturn(Long.valueOf(1)).anyTimes();
     expect(m_mockCluster.getClusterName()).andReturn(CLUSTERNAME).anyTimes();
@@ -132,21 +139,21 @@ public class AlertDefinitionHashTest extends TestCase {
         m_mockCluster.getServiceComponentHosts(EasyMock.anyObject(String.class))).andReturn(
         serviceComponentHosts).anyTimes();
 
-    AlertDefinitionEntity hdfsService = new AlertDefinitionEntity();
-    hdfsService.setDefinitionId(1L);
-    hdfsService.setClusterId(1L);
-    hdfsService.setHash(UUID.randomUUID().toString());
-    hdfsService.setServiceName("HDFS");
-    hdfsService.setComponentName("NAMENODE");
-    hdfsService.setScope(Scope.SERVICE);
+    m_hdfsService = new AlertDefinitionEntity();
+    m_hdfsService.setDefinitionId(1L);
+    m_hdfsService.setClusterId(1L);
+    m_hdfsService.setHash(UUID.randomUUID().toString());
+    m_hdfsService.setServiceName("HDFS");
+    m_hdfsService.setComponentName("NAMENODE");
+    m_hdfsService.setScope(Scope.SERVICE);
 
-    AlertDefinitionEntity hdfsHost = new AlertDefinitionEntity();
-    hdfsHost.setDefinitionId(2L);
-    hdfsHost.setClusterId(1L);
-    hdfsHost.setHash(UUID.randomUUID().toString());
-    hdfsHost.setServiceName("HDFS");
-    hdfsHost.setComponentName("DATANODE");
-    hdfsHost.setScope(Scope.HOST);
+    m_hdfsHost = new AlertDefinitionEntity();
+    m_hdfsHost.setDefinitionId(2L);
+    m_hdfsHost.setClusterId(1L);
+    m_hdfsHost.setHash(UUID.randomUUID().toString());
+    m_hdfsHost.setServiceName("HDFS");
+    m_hdfsHost.setComponentName("DATANODE");
+    m_hdfsHost.setScope(Scope.HOST);
 
     AlertDefinitionEntity agentScoped = new AlertDefinitionEntity();
     agentScoped.setDefinitionId(3L);
@@ -159,15 +166,17 @@ public class AlertDefinitionHashTest extends TestCase {
     EasyMock.expect(
         m_mockDao.findByServiceMaster(EasyMock.anyInt(),
             (Set<String>) EasyMock.anyObject())).andReturn(
-        Collections.singletonList(hdfsService)).anyTimes();
+        Collections.singletonList(m_hdfsService)).anyTimes();
 
     EasyMock.expect(
         m_mockDao.findByServiceComponent(EasyMock.anyInt(),
             EasyMock.anyObject(String.class), EasyMock.anyObject(String.class))).andReturn(
-        Collections.singletonList(hdfsHost)).anyTimes();
+        Collections.singletonList(m_hdfsHost)).anyTimes();
 
+    m_agentDefinitions = new ArrayList<AlertDefinitionEntity>();
+    m_agentDefinitions.add(agentScoped);
     EasyMock.expect(m_mockDao.findAgentScoped(EasyMock.anyInt())).andReturn(
-        Collections.singletonList(agentScoped)).anyTimes();
+        m_agentDefinitions).anyTimes();
 
     EasyMock.replay(m_mockClusters, m_mockCluster, m_mockDao);
     m_hash = m_injector.getInstance(AlertDefinitionHash.class);
@@ -202,6 +211,73 @@ public class AlertDefinitionHashTest extends TestCase {
         CLUSTERNAME, HOSTNAME);
 
     assertEquals(3, definitions.size());
+  }
+
+  /**
+   * Test {@link AlertDefinitionHash#invalidateAll()}.
+   */
+  @Test
+  public void testInvalidateAll() {
+    String hash = m_hash.getHash(CLUSTERNAME, HOSTNAME);
+    assertNotNull(hash);
+
+    m_hash.invalidateAll();
+
+    String newHash = m_hash.getHash(CLUSTERNAME, HOSTNAME);
+    assertEquals(hash, newHash);
+
+    m_hash.invalidateAll();
+
+    // add a new alert definition, forcing new hash
+    AlertDefinitionEntity agentScoped = new AlertDefinitionEntity();
+    agentScoped.setDefinitionId(System.currentTimeMillis());
+    agentScoped.setClusterId(1L);
+    agentScoped.setHash(UUID.randomUUID().toString());
+    agentScoped.setServiceName("AMBARI");
+    agentScoped.setComponentName("AMBARI_AGENT");
+    agentScoped.setScope(Scope.HOST);
+
+    m_agentDefinitions.add(agentScoped);
+
+    newHash = m_hash.getHash(CLUSTERNAME, HOSTNAME);
+    assertNotSame(hash, newHash);
+  }
+
+  /**
+   * Test {@link AlertDefinitionHash#isHashCached(String)}.
+   */
+  @Test
+  public void testIsHashCached() {
+    assertFalse(m_hash.isHashCached(HOSTNAME));
+    String hash = m_hash.getHash(CLUSTERNAME, HOSTNAME);
+    assertNotNull(hash);
+    assertTrue(m_hash.isHashCached(HOSTNAME));
+
+    m_hash.invalidate(HOSTNAME);
+    assertFalse(m_hash.isHashCached(HOSTNAME));
+    hash = m_hash.getHash(CLUSTERNAME, HOSTNAME);
+    assertNotNull(hash);
+    assertTrue(m_hash.isHashCached(HOSTNAME));
+
+    m_hash.invalidateAll();
+    assertFalse(m_hash.isHashCached(HOSTNAME));
+    hash = m_hash.getHash(CLUSTERNAME, HOSTNAME);
+    assertNotNull(hash);
+    assertTrue(m_hash.isHashCached(HOSTNAME));
+  }
+
+  /**
+   * Test {@link AlertDefinitionHash#invalidateHosts(AlertDefinitionEntity)}.
+   */
+  @Test
+  public void testInvalidateHosts() {
+    assertFalse(m_hash.isHashCached(HOSTNAME));
+    String hash = m_hash.getHash(CLUSTERNAME, HOSTNAME);
+    assertNotNull(hash);
+    assertTrue(m_hash.isHashCached(HOSTNAME));
+
+    m_hash.invalidateHosts(m_hdfsHost);
+    assertFalse(m_hash.isHashCached(HOSTNAME));
   }
 
   /**

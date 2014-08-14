@@ -20,6 +20,7 @@ package org.apache.ambari.server.controller.internal;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.createStrictMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
@@ -46,7 +47,9 @@ import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.alert.AlertDefinitionHash;
 import org.easymock.Capture;
+import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -57,16 +60,21 @@ import org.junit.Test;
 public class AlertDefinitionResourceProviderTest {
 
   AlertDefinitionDAO dao = null;
+  AlertDefinitionHash definitionHash = null;
 
   private static String DEFINITION_UUID = UUID.randomUUID().toString();
 
   @Before
   public void before() {
     dao = createStrictMock(AlertDefinitionDAO.class);
+    definitionHash = createNiceMock(AlertDefinitionHash.class);
 
-    AlertDefinitionResourceProvider.init(dao);
+    AlertDefinitionResourceProvider.init(dao, definitionHash);
   }
 
+  /**
+   * @throws Exception
+   */
   @Test
   public void testGetResourcesNoPredicate() throws Exception {
     AlertDefinitionResourceProvider provider = createProvider(null);
@@ -79,13 +87,15 @@ public class AlertDefinitionResourceProviderTest {
     assertEquals(0, results.size());
   }
 
+  /**
+   * @throws Exception
+   */
   @Test
   public void testGetResourcesClusterPredicate() throws Exception {
     Request request = PropertyHelper.getReadRequest(
         AlertDefinitionResourceProvider.ALERT_DEF_CLUSTER_NAME,
         AlertDefinitionResourceProvider.ALERT_DEF_ID,
         AlertDefinitionResourceProvider.ALERT_DEF_NAME,
-        AlertDefinitionResourceProvider.ALERT_DEF_UUID,
         AlertDefinitionResourceProvider.ALERT_DEF_LABEL);
 
     AmbariManagementController amc = createMock(AmbariManagementController.class);
@@ -114,12 +124,12 @@ public class AlertDefinitionResourceProviderTest {
     Assert.assertEquals("Mock Label",
         r.getPropertyValue(AlertDefinitionResourceProvider.ALERT_DEF_LABEL));
 
-    Assert.assertEquals(DEFINITION_UUID,
-        r.getPropertyValue(AlertDefinitionResourceProvider.ALERT_DEF_UUID));
-
     verify(amc, clusters, cluster, dao);
   }
 
+  /**
+   * @throws Exception
+   */
   @Test
   public void testGetSingleResource() throws Exception {
     Request request = PropertyHelper.getReadRequest(
@@ -158,6 +168,9 @@ public class AlertDefinitionResourceProviderTest {
     Assert.assertNotNull(r.getPropertyValue("AlertDefinition/source/type"));
   }
 
+  /**
+   * @throws Exception
+   */
   @Test
   public void testCreateResources() throws Exception {
     AmbariManagementController amc = createMock(AmbariManagementController.class);
@@ -171,7 +184,11 @@ public class AlertDefinitionResourceProviderTest {
     dao.create(capture(entityCapture));
     expectLastCall();
 
-    replay(amc, clusters, cluster, dao);
+    // creating a single definition should invalidate hosts of the definition
+    definitionHash.invalidateHosts(EasyMock.anyObject(AlertDefinitionEntity.class));
+    expectLastCall().once();
+
+    replay(amc, clusters, cluster, dao, definitionHash);
 
     AlertDefinitionResourceProvider provider = createProvider(amc);
 
@@ -208,6 +225,9 @@ public class AlertDefinitionResourceProviderTest {
 
   }
 
+  /**
+   * @throws Exception
+   */
   @Test
   public void testUpdateResources() throws Exception {
     AmbariManagementController amc = createMock(AmbariManagementController.class);
@@ -221,7 +241,11 @@ public class AlertDefinitionResourceProviderTest {
     dao.create(capture(entityCapture));
     expectLastCall();
 
-    replay(amc, clusters, cluster, dao);
+    // updateing a single definition should invalidate hosts of the definition
+    definitionHash.invalidateHosts(EasyMock.anyObject(AlertDefinitionEntity.class));
+    expectLastCall().once();
+
+    replay(amc, clusters, cluster, dao, definitionHash);
 
     Map<String, Object> requestProps = new HashMap<String, Object>();
     requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_CLUSTER_NAME, "c1");
@@ -270,6 +294,9 @@ public class AlertDefinitionResourceProviderTest {
     verify(amc, clusters, cluster, dao);
   }
 
+  /**
+   * @throws Exception
+   */
   @Test
   public void testDeleteResources() throws Exception {
     AmbariManagementController amc = createMock(AmbariManagementController.class);
@@ -283,7 +310,11 @@ public class AlertDefinitionResourceProviderTest {
     dao.create(capture(entityCapture));
     expectLastCall();
 
-    replay(amc, clusters, cluster, dao);
+    // deleting a single definition should invalidate hosts of the definition
+    definitionHash.invalidateHosts(EasyMock.anyObject(AlertDefinitionEntity.class));
+    expectLastCall().once();
+
+    replay(amc, clusters, cluster, dao, definitionHash);
 
     AlertDefinitionResourceProvider provider = createProvider(amc);
 
@@ -323,6 +354,10 @@ public class AlertDefinitionResourceProviderTest {
 
   }
 
+  /**
+   * @param amc
+   * @return
+   */
   private AlertDefinitionResourceProvider createProvider(AmbariManagementController amc) {
     return new AlertDefinitionResourceProvider(
         PropertyHelper.getPropertyIds(Resource.Type.AlertDefinition),
@@ -330,6 +365,9 @@ public class AlertDefinitionResourceProviderTest {
         amc);
   }
 
+  /**
+   * @return
+   */
   private List<AlertDefinitionEntity> getMockEntities() {
     AlertDefinitionEntity entity = new AlertDefinitionEntity();
     entity.setClusterId(Long.valueOf(1L));

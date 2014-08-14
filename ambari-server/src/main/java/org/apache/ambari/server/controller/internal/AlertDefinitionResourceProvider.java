@@ -42,6 +42,7 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.alert.AlertDefinitionHash;
 import org.apache.ambari.server.state.alert.Scope;
 import org.apache.ambari.server.state.alert.SourceType;
 
@@ -65,20 +66,23 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
   protected static final String ALERT_DEF_COMPONENT_NAME = "AlertDefinition/component_name";
   protected static final String ALERT_DEF_ENABLED = "AlertDefinition/enabled";
   protected static final String ALERT_DEF_SCOPE = "AlertDefinition/scope";
-  protected static final String ALERT_DEF_UUID = "AlertDefinition/uuid";
 
   private static Set<String> pkPropertyIds = new HashSet<String>(
       Arrays.asList(ALERT_DEF_ID, ALERT_DEF_NAME));
+
   private static AlertDefinitionDAO alertDefinitionDAO = null;
 
   private static Gson gson = new Gson();
+
+  private static AlertDefinitionHash alertDefinitionHash;
 
   /**
    * @param instance
    */
   @Inject
-  public static void init(AlertDefinitionDAO instance) {
+  public static void init(AlertDefinitionDAO instance, AlertDefinitionHash adh) {
     alertDefinitionDAO = instance;
+    alertDefinitionHash = adh;
   }
 
   AlertDefinitionResourceProvider(Set<String> propertyIds,
@@ -120,6 +124,7 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
     // !!! TODO multi-create in a transaction
     for (AlertDefinitionEntity entity : entities) {
       alertDefinitionDAO.create(entity);
+      alertDefinitionHash.invalidateHosts(entity);
     }
   }
 
@@ -219,7 +224,6 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
           results.add(toResource(false, clusterName, entity, requestPropertyIds));
         }
       } else {
-
         Cluster cluster = null;
         try {
           cluster = getManagementController().getClusters().getCluster(clusterName);
@@ -297,6 +301,8 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
         entity.setHash(UUID.randomUUID().toString());
 
         alertDefinitionDAO.merge(entity);
+
+        alertDefinitionHash.invalidateHosts(entity);
       }
     }
 
@@ -323,12 +329,13 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
 
       LOG.info("Deleting alert definition {}", definitionId);
 
-      final AlertDefinitionEntity ad = alertDefinitionDAO.findById(definitionId.longValue());
+      final AlertDefinitionEntity entity = alertDefinitionDAO.findById(definitionId.longValue());
 
       modifyResources(new Command<Void>() {
         @Override
         public Void invoke() throws AmbariException {
-          alertDefinitionDAO.remove(ad);
+          alertDefinitionDAO.remove(entity);
+          alertDefinitionHash.invalidateHosts(entity);
           return null;
         }
       });
@@ -353,9 +360,6 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
     setResourceProperty(resource, ALERT_DEF_SCOPE, entity.getScope(), requestedIds);
     setResourceProperty(resource, ALERT_DEF_SOURCE_TYPE, entity.getSourceType(), requestedIds);
     setResourceProperty(resource, ALERT_DEF_LABEL, entity.getLabel(),
-        requestedIds);
-
-    setResourceProperty(resource, ALERT_DEF_UUID, entity.getHash(),
         requestedIds);
 
     if (!isCollection && null != resource.getPropertyValue(ALERT_DEF_SOURCE_TYPE)) {
