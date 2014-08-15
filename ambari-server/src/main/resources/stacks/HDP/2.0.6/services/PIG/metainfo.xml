@@ -32,6 +32,23 @@
             <scriptType>PYTHON</scriptType>
             <timeout>600</timeout>
           </commandScript>
+          <configFiles>
+            <configFile>
+              <type>env</type>
+              <fileName>pig-env.sh</fileName>
+              <dictionaryName>pig-env</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>env</type>
+              <fileName>pig-log4j.properties</fileName>
+              <dictionaryName>pig-log4j</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>env</type>
+              <fileName>pig-properties.properties</fileName>
+              <dictionaryName>pig-properties</dictionaryName>
+            </configFile>                         
+          </configFiles>          
         </component>
       </components>
       <osSpecifics>

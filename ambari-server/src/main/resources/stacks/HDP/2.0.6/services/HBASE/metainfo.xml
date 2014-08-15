@@ -92,6 +92,11 @@
               <fileName>hbase-env.sh</fileName>
               <dictionaryName>hbase-env</dictionaryName>
             </configFile>
+            <configFile>
+              <type>env</type>
+              <fileName>hbase-log4j.properties</fileName>
+              <dictionaryName>hbase-log4j</dictionaryName>
+            </configFile>            
           </configFiles>
         </component>
       </components>

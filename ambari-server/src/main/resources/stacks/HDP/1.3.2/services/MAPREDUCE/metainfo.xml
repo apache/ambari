@@ -75,12 +75,17 @@
               <type>xml</type>
               <fileName>mapred-site.xml</fileName>
               <dictionaryName>mapred-site</dictionaryName>
-            </configFile>
+            </configFile>                       
             <configFile>
               <type>env</type>
               <fileName>mapred-env.sh</fileName>
               <dictionaryName>mapred-env</dictionaryName>
             </configFile>
+            <configFile>
+              <type>env</type>
+              <fileName>mapreduce-log4j.properties</fileName>
+              <dictionaryName>mapreduce-log4j</dictionaryName>
+            </configFile>            
           </configFiles>
         </component>
               

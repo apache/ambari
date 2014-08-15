@@ -93,6 +93,16 @@
               <fileName>yarn-env.sh</fileName>
               <dictionaryName>yarn-env</dictionaryName>
             </configFile>
+            <configFile>
+              <type>env</type>
+              <fileName>yarn-log4j.properties</fileName>
+              <dictionaryName>yarn-log4j</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>xml</type>
+              <fileName>capacity-scheduler.xml</fileName>
+              <dictionaryName>capacity-scheduler</dictionaryName>
+            </configFile>                        
           </configFiles>
         </component>
       </components>
@@ -181,6 +191,11 @@
               <fileName>yarn-env.sh</fileName>
               <dictionaryName>yarn-env</dictionaryName>
             </configFile>
+            <configFile>
+              <type>env</type>
+              <fileName>yarn-log4j.properties</fileName>
+              <dictionaryName>yarn-log4j</dictionaryName>
+            </configFile>            
           </configFiles>
         </component>
       </components>

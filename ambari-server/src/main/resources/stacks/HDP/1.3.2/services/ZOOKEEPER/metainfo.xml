@@ -49,6 +49,11 @@
               <fileName>zookeeper-env.sh</fileName>
               <dictionaryName>zookeeper-env</dictionaryName>
             </configFile>
+            <configFile>
+              <type>env</type>
+              <fileName>zookeeper-log4j.properties</fileName>
+              <dictionaryName>zookeeper-log4j</dictionaryName>
+            </configFile>            
           </configFiles>
         </component>
       </components>

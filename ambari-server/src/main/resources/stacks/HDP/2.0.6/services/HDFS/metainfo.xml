@@ -92,6 +92,16 @@
               <dictionaryName>hdfs-site</dictionaryName>
             </configFile>
             <configFile>
+              <type>xml</type>
+              <fileName>core-site.xml</fileName>
+              <dictionaryName>core-site</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>env</type>
+              <fileName>hdfs-log4j.properties</fileName>
+              <dictionaryName>hdfs-log4j</dictionaryName>
+            </configFile>                          
+            <configFile>
               <type>env</type>
               <fileName>hadoop-env.sh</fileName>
               <dictionaryName>hadoop-env</dictionaryName>

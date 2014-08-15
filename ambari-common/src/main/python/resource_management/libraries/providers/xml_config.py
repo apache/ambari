@@ -26,7 +26,7 @@ from resource_management import *
 class XmlConfigProvider(Provider):
   def action_create(self):
     filename = self.resource.filename
-    conf_dir = self.resource.conf_dir
+    xml_config_provider_config_dir = self.resource.conf_dir
     
     # |e - for html-like escaping of <,>,',"
     config_content = InlineTemplate('''<!--{{time.asctime(time.localtime())}}-->
@@ -50,10 +50,10 @@ class XmlConfigProvider(Provider):
                                     configuration_attrs=self.resource.configuration_attributes)
    
   
-    Logger.info(format("Generating config: {conf_dir}/{filename}"))
+    Logger.info(format("Generating config: {xml_config_provider_config_dir}/{filename}"))
     
     with Environment.get_instance_copy() as env:
-      File (format("{conf_dir}/{filename}"),
+      File (format("{xml_config_provider_config_dir}/{filename}"),
         content = config_content,
         owner = self.resource.owner,
         group = self.resource.group,

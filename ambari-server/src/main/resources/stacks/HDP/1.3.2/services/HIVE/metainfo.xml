@@ -95,6 +95,16 @@
               <fileName>hive-env.sh</fileName>
               <dictionaryName>hive-env</dictionaryName>
             </configFile>
+            <configFile>
+              <type>env</type>
+              <fileName>hive-log4j.properties</fileName>
+              <dictionaryName>hive-log4j</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>env</type>
+              <fileName>hive-exec-log4j.properties</fileName>
+              <dictionaryName>hive-exec-log4j</dictionaryName>
+            </configFile>            
           </configFiles>
         </component>
       </components>

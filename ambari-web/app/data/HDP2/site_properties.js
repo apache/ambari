@@ -1586,7 +1586,7 @@ module.exports =
   /**********************************************pig.properties*****************************************/
     {
       "id": "site property",
-      "name": "pig-content",
+      "name": "content",
       "displayName": "content",
       "value": "",
       "defaultValue": "",

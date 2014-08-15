@@ -93,6 +93,11 @@
               <fileName>oozie-env.sh</fileName>
               <dictionaryName>oozie-env</dictionaryName>
             </configFile>
+            <configFile>
+              <type>env</type>
+              <fileName>oozie-log4j.properties</fileName>
+              <dictionaryName>oozie-log4j</dictionaryName>
+            </configFile>            
           </configFiles>
         </component>
       </components>

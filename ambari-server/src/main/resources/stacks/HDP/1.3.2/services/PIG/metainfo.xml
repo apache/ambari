@@ -38,6 +38,11 @@
               <fileName>pig-env.sh</fileName>
               <dictionaryName>pig-env</dictionaryName>
             </configFile>
+            <configFile>
+              <type>env</type>
+              <fileName>pig-log4j.properties</fileName>
+              <dictionaryName>pig-log4j</dictionaryName>
+            </configFile>            
           </configFiles>
         </component>
       </components>

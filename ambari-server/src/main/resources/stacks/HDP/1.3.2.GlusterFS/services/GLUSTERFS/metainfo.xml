@@ -31,6 +31,18 @@
             <scriptType>PYTHON</scriptType>
             <timeout>600</timeout>
           </commandScript>
+          <configFiles>
+            <configFile>
+              <type>xml</type>
+              <fileName>core-site.xml</fileName>
+              <dictionaryName>core-site</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>xml</type>
+              <fileName>hdfs-site.xml</fileName>
+              <dictionaryName>hdfs-site</dictionaryName>
+            </configFile>            
+          </configFiles>          
         </component>
       </components>
 
