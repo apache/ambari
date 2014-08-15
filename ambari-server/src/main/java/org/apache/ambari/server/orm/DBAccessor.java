@@ -18,6 +18,7 @@
 package org.apache.ambari.server.orm;
 
 import java.io.IOException;
+import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
@@ -29,6 +30,11 @@ import org.eclipse.persistence.sessions.DatabaseSession;
  * Note: IF NOT EXISTS is default for all supported DDL statements
  */
 public interface DBAccessor {
+
+  /**
+   * @return new database connection
+   */
+  Connection getNewConnection();
 
   /**
    * Wraps object name with dbms-specific quotes

@@ -118,6 +118,17 @@ public class DBAccessorImpl implements DBAccessor {
   }
 
   @Override
+  public Connection getNewConnection() {
+    try {
+      return DriverManager.getConnection(configuration.getDatabaseUrl(),
+        configuration.getDatabaseUser(),
+        configuration.getDatabasePassword());
+    } catch (SQLException e) {
+      throw new RuntimeException("Unable to connect to database", e);
+    }
+  }
+
+  @Override
   public String quoteObjectName(String name) {
     return dbmsHelper.quoteObjectName(name);
   }
