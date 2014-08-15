@@ -720,6 +720,42 @@ public class ViewRegistry {
     return (resourceEntity == null && readOnly) || checkAuthorization(resourceEntity);
   }
 
+  /**
+   * Determine whether or not the given view definition resource should be included
+   * based on the permissions granted to the current user.
+   *
+   * @param definitionEntity  the view definition entity
+   * @param readOnly        indicate whether or not this is for a read only operation
+   *
+   * @return true if the view instance should be included based on the permissions of the current user
+   */
+  public boolean includeDefinition(ViewEntity definitionEntity) {
+
+    ViewRegistry viewRegistry = ViewRegistry.getInstance();
+
+    for (GrantedAuthority grantedAuthority : securityHelper.getCurrentAuthorities()) {
+      if (grantedAuthority instanceof AmbariGrantedAuthority) {
+
+        AmbariGrantedAuthority authority = (AmbariGrantedAuthority) grantedAuthority;
+        PrivilegeEntity privilegeEntity = authority.getPrivilegeEntity();
+        Integer permissionId = privilegeEntity.getPermission().getId();
+
+        // admin has full access
+        if (permissionId.equals(PermissionEntity.AMBARI_ADMIN_PERMISSION)) {
+          return true;
+        }
+      }
+    }
+
+    boolean allowed = false;
+
+    for (ViewInstanceEntity instanceEntity: definitionEntity.getInstances()) {
+      allowed |= viewRegistry.checkPermission(instanceEntity, true);
+    }
+
+    return allowed;
+  }
+
 
   // ----- helper methods ----------------------------------------------------
 

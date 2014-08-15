@@ -28,7 +28,6 @@ import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.orm.entities.ViewEntity;
-import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.apache.ambari.server.view.ViewRegistry;
 
 import java.util.Collections;
@@ -103,7 +102,7 @@ public class ViewResourceProvider extends AbstractResourceProvider {
 
       for (ViewEntity viewDefinition : viewRegistry.getDefinitions()){
         if (viewName == null || viewName.equals(viewDefinition.getCommonName())) {
-          if (includeDefinition(viewDefinition, true)) {
+          if (viewRegistry.includeDefinition(viewDefinition)) {
             Resource resource = new ResourceImpl(Resource.Type.View);
 
             setResourceProperty(resource, VIEW_NAME_PROPERTY_ID, viewDefinition.getCommonName(), requestedIds);
@@ -131,28 +130,6 @@ public class ViewResourceProvider extends AbstractResourceProvider {
   @Override
   public Map<Resource.Type, String> getKeyPropertyIds() {
     return keyPropertyIds;
-  }
-
-  /**
-   * Determine whether or not the given view definition resource should be included
-   * based on the permissions granted to the current user.
-   *
-   * @param definitionEntity  the view definition entity
-   * @param readOnly        indicate whether or not this is for a read only operation
-   *
-   * @return true if the view instance should be included based on the permissions of the current user
-   */
-  private boolean includeDefinition(ViewEntity definitionEntity, boolean readOnly) {
-
-    ViewRegistry viewRegistry = ViewRegistry.getInstance();
-
-    boolean allowed = false;
-
-    for (ViewInstanceEntity instanceEntity: definitionEntity.getInstances()) {
-      allowed |= viewRegistry.checkPermission(instanceEntity, readOnly);
-    }
-
-    return allowed;
   }
 
 

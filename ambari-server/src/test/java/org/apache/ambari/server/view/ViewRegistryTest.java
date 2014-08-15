@@ -18,6 +18,32 @@
 
 package org.apache.ambari.server.view;
 
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
+
+import javax.xml.bind.JAXBException;
+
 import org.apache.ambari.server.api.resources.SubResourceDefinition;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.spi.Resource;
@@ -29,6 +55,8 @@ import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.dao.ViewDAO;
 import org.apache.ambari.server.orm.dao.ViewInstanceDAO;
+import org.apache.ambari.server.orm.entities.PermissionEntity;
+import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.ViewEntity;
@@ -37,6 +65,7 @@ import org.apache.ambari.server.orm.entities.ViewInstanceDataEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntityTest;
 import org.apache.ambari.server.security.SecurityHelper;
+import org.apache.ambari.server.security.authorization.AmbariGrantedAuthority;
 import org.apache.ambari.server.view.configuration.InstanceConfig;
 import org.apache.ambari.server.view.configuration.InstanceConfigTest;
 import org.apache.ambari.server.view.configuration.PropertyConfig;
@@ -53,31 +82,7 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-
-import javax.xml.bind.JAXBException;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
-
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
+import org.springframework.security.core.GrantedAuthority;
 
 /**
  * ViewRegistry tests.
@@ -743,6 +748,88 @@ public class ViewRegistryTest {
 
     Assert.assertNull(viewInstanceEntity.getInstanceData("foo"));
     verify(viewDAO, viewInstanceDAO, securityHelper);
+  }
+
+  @Test
+  public void testIncludeDefinitionForAdmin() {
+    ViewRegistry viewRegistry = ViewRegistry.getInstance();
+    ViewEntity viewEntity = createNiceMock(ViewEntity.class);
+    SecurityHelper securityHelper = createNiceMock(SecurityHelper.class);
+    AmbariGrantedAuthority adminAuthority = createNiceMock(AmbariGrantedAuthority.class);
+    PrivilegeEntity privilegeEntity = createNiceMock(PrivilegeEntity.class);
+    PermissionEntity permissionEntity = createNiceMock(PermissionEntity.class);
+
+    viewRegistry.setSecurityHelper(securityHelper);
+
+    Collection<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
+    authorities.add(adminAuthority);
+
+    securityHelper.getCurrentAuthorities();
+    EasyMock.expectLastCall().andReturn(authorities);
+    expect(adminAuthority.getPrivilegeEntity()).andReturn(privilegeEntity);
+    expect(privilegeEntity.getPermission()).andReturn(permissionEntity);
+    expect(permissionEntity.getId()).andReturn(PermissionEntity.AMBARI_ADMIN_PERMISSION);
+    replay(securityHelper, adminAuthority, privilegeEntity, permissionEntity);
+
+    Assert.assertTrue(viewRegistry.includeDefinition(viewEntity));
+
+    verify(securityHelper, adminAuthority, privilegeEntity, permissionEntity);
+  }
+
+  @Test
+  public void testIncludeDefinitionForUserNoInstances() {
+    ViewRegistry viewRegistry = ViewRegistry.getInstance();
+    ViewEntity viewEntity = createNiceMock(ViewEntity.class);
+    SecurityHelper securityHelper = createNiceMock(SecurityHelper.class);
+
+    viewRegistry.setSecurityHelper(securityHelper);
+
+    Collection<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
+
+    Collection<ViewInstanceEntity> instances = new ArrayList<ViewInstanceEntity>();
+
+    securityHelper.getCurrentAuthorities();
+    EasyMock.expectLastCall().andReturn(authorities);
+    expect(viewEntity.getInstances()).andReturn(instances);
+    replay(securityHelper, viewEntity);
+
+    Assert.assertFalse(viewRegistry.includeDefinition(viewEntity));
+
+    verify(securityHelper, viewEntity);
+  }
+
+  @Test
+  public void testIncludeDefinitionForUserHasAccess() {
+    ViewRegistry viewRegistry = ViewRegistry.getInstance();
+    ViewEntity viewEntity = createNiceMock(ViewEntity.class);
+    SecurityHelper securityHelper = createNiceMock(SecurityHelper.class);
+    ViewInstanceEntity instanceEntity = createNiceMock(ViewInstanceEntity.class);
+    ResourceEntity resourceEntity = createNiceMock(ResourceEntity.class);
+    AmbariGrantedAuthority viewUseAuthority = createNiceMock(AmbariGrantedAuthority.class);
+    PrivilegeEntity privilegeEntity = createNiceMock(PrivilegeEntity.class);
+    PermissionEntity permissionEntity = createNiceMock(PermissionEntity.class);
+
+    viewRegistry.setSecurityHelper(securityHelper);
+
+    Collection<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
+    authorities.add(viewUseAuthority);
+
+    Collection<ViewInstanceEntity> instances = new ArrayList<ViewInstanceEntity>();
+    instances.add(instanceEntity);
+
+    expect(viewEntity.getInstances()).andReturn(instances);
+    expect(instanceEntity.getResource()).andReturn(resourceEntity);
+    expect(viewUseAuthority.getPrivilegeEntity()).andReturn(privilegeEntity).anyTimes();
+    expect(privilegeEntity.getPermission()).andReturn(permissionEntity).anyTimes();
+    expect(privilegeEntity.getResource()).andReturn(resourceEntity).anyTimes();
+    expect(permissionEntity.getId()).andReturn(PermissionEntity.VIEW_USE_PERMISSION).anyTimes();
+    securityHelper.getCurrentAuthorities();
+    EasyMock.expectLastCall().andReturn(authorities).anyTimes();
+    replay(securityHelper, viewEntity, instanceEntity, viewUseAuthority, privilegeEntity, permissionEntity);
+
+    Assert.assertTrue(viewRegistry.includeDefinition(viewEntity));
+
+    verify(securityHelper, viewEntity, instanceEntity, viewUseAuthority, privilegeEntity, permissionEntity);
   }
 
   @Before
