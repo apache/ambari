@@ -18,17 +18,15 @@
 package org.apache.ambari.server.agent;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
 
+import org.apache.ambari.server.agent.AgentCommand.AgentCommandType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -85,7 +83,44 @@ public class ActionQueue {
   }
 
   /**
+   * Dequeue's all commands of a specified type for the given host.
+   *
+   * @param hostname
+   *          the host to remove commands for (not {@code null}).
+   * @param commandType
+   *          the type of command to remove (not {@code null}).
+   * @return the commands removed, or an empty list if none (never {@code null}
+   *         ).
+   */
+  public List<AgentCommand> dequeue(String hostname,
+      AgentCommandType commandType) {
+    if (null == hostname || null == commandType) {
+      return Collections.emptyList();
+    }
+
+    Queue<AgentCommand> queue = getQueue(hostname);
+    if (null == queue) {
+      return null;
+    }
+
+    List<AgentCommand> removedCommands = new ArrayList<AgentCommand>(
+        queue.size());
+
+    Iterator<AgentCommand> iterator = queue.iterator();
+    while (iterator.hasNext()) {
+      AgentCommand command = iterator.next();
+      if (command.getCommandType() == commandType) {
+        removedCommands.add(command);
+        iterator.remove();
+      }
+    }
+
+    return removedCommands;
+  }
+
+  /**
    * Try to dequeue command with provided id.
+   *
    * @param hostname
    * @param commandId
    * @return
@@ -99,8 +134,8 @@ public class ActionQueue {
       return null;
     } else {
       AgentCommand c = null;
-      for (Iterator it = q.iterator(); it.hasNext(); ) {
-        AgentCommand ac = (AgentCommand) it.next();
+      for (Iterator<AgentCommand> it = q.iterator(); it.hasNext();) {
+        AgentCommand ac = it.next();
         if (ac instanceof ExecutionCommand && ((ExecutionCommand) ac)
           .getCommandId().equals(commandId)) {
           c = ac;
@@ -111,7 +146,7 @@ public class ActionQueue {
       return c;
     }
   }
-  
+
   public int size(String hostname) {
     Queue<AgentCommand> q = getQueue(hostname);
     if (q == null) {
@@ -125,6 +160,7 @@ public class ActionQueue {
     if (q == null) {
       return null;
     }
+
     List<AgentCommand> l = new ArrayList<AgentCommand>();
 
     AgentCommand command;
@@ -137,6 +173,5 @@ public class ActionQueue {
     } while (command != null);
 
     return l;
-
   }
 }

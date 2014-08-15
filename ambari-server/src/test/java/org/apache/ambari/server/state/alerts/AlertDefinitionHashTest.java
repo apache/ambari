@@ -21,6 +21,7 @@ package org.apache.ambari.server.state.alerts;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.expect;
 
+import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -36,11 +37,14 @@ import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.alert.AlertDefinition;
 import org.apache.ambari.server.state.alert.AlertDefinitionHash;
 import org.apache.ambari.server.state.alert.Scope;
+import org.apache.commons.codec.binary.Hex;
 import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
@@ -131,6 +135,12 @@ public class AlertDefinitionHashTest extends TestCase {
     expect(m_mockClusters.getClusterById(EasyMock.anyInt())).andReturn(
         m_mockCluster).atLeastOnce();
 
+    Map<String, Host> clusterHosts = new HashMap<String, Host>();
+    clusterHosts.put(HOSTNAME, null);
+
+    expect(m_mockClusters.getHostsForCluster(EasyMock.eq(CLUSTERNAME))).andReturn(
+        clusterHosts).anyTimes();
+
     // cluster mock
     expect(m_mockCluster.getClusterId()).andReturn(Long.valueOf(1)).anyTimes();
     expect(m_mockCluster.getClusterName()).andReturn(CLUSTERNAME).anyTimes();
@@ -146,6 +156,7 @@ public class AlertDefinitionHashTest extends TestCase {
     m_hdfsService.setServiceName("HDFS");
     m_hdfsService.setComponentName("NAMENODE");
     m_hdfsService.setScope(Scope.SERVICE);
+    m_hdfsService.setScheduleInterval(1);
 
     m_hdfsHost = new AlertDefinitionEntity();
     m_hdfsHost.setDefinitionId(2L);
@@ -154,6 +165,7 @@ public class AlertDefinitionHashTest extends TestCase {
     m_hdfsHost.setServiceName("HDFS");
     m_hdfsHost.setComponentName("DATANODE");
     m_hdfsHost.setScope(Scope.HOST);
+    m_hdfsHost.setScheduleInterval(1);
 
     AlertDefinitionEntity agentScoped = new AlertDefinitionEntity();
     agentScoped.setDefinitionId(3L);
@@ -162,6 +174,7 @@ public class AlertDefinitionHashTest extends TestCase {
     agentScoped.setServiceName("AMBARI");
     agentScoped.setComponentName("AMBARI_AGENT");
     agentScoped.setScope(Scope.HOST);
+    agentScoped.setScheduleInterval(1);
 
     EasyMock.expect(
         m_mockDao.findByServiceMaster(EasyMock.anyInt(),
@@ -207,7 +220,7 @@ public class AlertDefinitionHashTest extends TestCase {
    */
   @Test
   public void testGetAlertDefinitions() {
-    Set<AlertDefinitionEntity> definitions = m_hash.getAlertDefinitions(
+    List<AlertDefinition> definitions = m_hash.getAlertDefinitions(
         CLUSTERNAME, HOSTNAME);
 
     assertEquals(3, definitions.size());
@@ -236,6 +249,7 @@ public class AlertDefinitionHashTest extends TestCase {
     agentScoped.setServiceName("AMBARI");
     agentScoped.setComponentName("AMBARI_AGENT");
     agentScoped.setScope(Scope.HOST);
+    agentScoped.setScheduleInterval(1);
 
     m_agentDefinitions.add(agentScoped);
 
@@ -248,22 +262,22 @@ public class AlertDefinitionHashTest extends TestCase {
    */
   @Test
   public void testIsHashCached() {
-    assertFalse(m_hash.isHashCached(HOSTNAME));
+    assertFalse(m_hash.isHashCached(CLUSTERNAME, HOSTNAME));
     String hash = m_hash.getHash(CLUSTERNAME, HOSTNAME);
     assertNotNull(hash);
-    assertTrue(m_hash.isHashCached(HOSTNAME));
+    assertTrue(m_hash.isHashCached(CLUSTERNAME, HOSTNAME));
 
     m_hash.invalidate(HOSTNAME);
-    assertFalse(m_hash.isHashCached(HOSTNAME));
+    assertFalse(m_hash.isHashCached(CLUSTERNAME, HOSTNAME));
     hash = m_hash.getHash(CLUSTERNAME, HOSTNAME);
     assertNotNull(hash);
-    assertTrue(m_hash.isHashCached(HOSTNAME));
+    assertTrue(m_hash.isHashCached(CLUSTERNAME, HOSTNAME));
 
     m_hash.invalidateAll();
-    assertFalse(m_hash.isHashCached(HOSTNAME));
+    assertFalse(m_hash.isHashCached(CLUSTERNAME, HOSTNAME));
     hash = m_hash.getHash(CLUSTERNAME, HOSTNAME);
     assertNotNull(hash);
-    assertTrue(m_hash.isHashCached(HOSTNAME));
+    assertTrue(m_hash.isHashCached(CLUSTERNAME, HOSTNAME));
   }
 
   /**
@@ -271,13 +285,63 @@ public class AlertDefinitionHashTest extends TestCase {
    */
   @Test
   public void testInvalidateHosts() {
-    assertFalse(m_hash.isHashCached(HOSTNAME));
+    assertFalse(m_hash.isHashCached(CLUSTERNAME, HOSTNAME));
     String hash = m_hash.getHash(CLUSTERNAME, HOSTNAME);
     assertNotNull(hash);
-    assertTrue(m_hash.isHashCached(HOSTNAME));
+    assertTrue(m_hash.isHashCached(CLUSTERNAME, HOSTNAME));
 
-    m_hash.invalidateHosts(m_hdfsHost);
-    assertFalse(m_hash.isHashCached(HOSTNAME));
+    Set<String> invalidatedHosts = m_hash.invalidateHosts(m_hdfsHost);
+    assertFalse(m_hash.isHashCached(CLUSTERNAME, HOSTNAME));
+    assertNotNull(invalidatedHosts);
+    assertEquals(1, invalidatedHosts.size());
+    assertTrue(invalidatedHosts.contains(HOSTNAME));
+  }
+
+  /**
+   *
+   */
+  @Test
+  public void testInvalidateHost() {
+    assertFalse(m_hash.isHashCached(CLUSTERNAME, HOSTNAME));
+    assertFalse(m_hash.isHashCached("foo", HOSTNAME));
+
+    String hash = m_hash.getHash(CLUSTERNAME, HOSTNAME);
+    assertNotNull(hash);
+    assertTrue(m_hash.isHashCached(CLUSTERNAME, HOSTNAME));
+    assertFalse(m_hash.isHashCached("foo", HOSTNAME));
+
+    // invalidate the fake cluster and ensure the original cluster still
+    // contains a cached valie
+    m_hash.invalidate("foo", HOSTNAME);
+    assertTrue(m_hash.isHashCached(CLUSTERNAME, HOSTNAME));
+    assertFalse(m_hash.isHashCached("foo", HOSTNAME));
+
+    m_hash.invalidateAll();
+    assertFalse(m_hash.isHashCached(CLUSTERNAME, HOSTNAME));
+    assertFalse(m_hash.isHashCached("foo", HOSTNAME));
+  }
+
+  @Test
+  public void testHashingAlgorithm() throws Exception {
+    List<String> uuids = new ArrayList<String>();
+    uuids.add(m_hdfsService.getHash());
+    uuids.add(m_hdfsHost.getHash());
+
+    for (AlertDefinitionEntity entity : m_agentDefinitions) {
+      uuids.add(entity.getHash());
+    }
+
+    Collections.sort(uuids);
+
+    MessageDigest digest = MessageDigest.getInstance("MD5");
+    for (String uuid : uuids) {
+      digest.update(uuid.getBytes());
+    }
+
+    byte[] hashBytes = digest.digest();
+    String expected = Hex.encodeHexString(hashBytes);
+
+    assertEquals(expected, m_hash.getHash(CLUSTERNAME, HOSTNAME));
   }
 
   /**

@@ -32,6 +32,7 @@ import static org.junit.Assert.assertEquals;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -43,6 +44,7 @@ import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.state.Cluster;
@@ -54,13 +56,20 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.google.inject.Binder;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.Module;
+import com.google.inject.util.Modules;
+
 /**
  * AlertDefinition tests
  */
 public class AlertDefinitionResourceProviderTest {
 
-  AlertDefinitionDAO dao = null;
-  AlertDefinitionHash definitionHash = null;
+  private AlertDefinitionDAO dao = null;
+  private AlertDefinitionHash definitionHash = null;
+  private Injector m_injector;
 
   private static String DEFINITION_UUID = UUID.randomUUID().toString();
 
@@ -69,7 +78,10 @@ public class AlertDefinitionResourceProviderTest {
     dao = createStrictMock(AlertDefinitionDAO.class);
     definitionHash = createNiceMock(AlertDefinitionHash.class);
 
-    AlertDefinitionResourceProvider.init(dao, definitionHash);
+    m_injector = Guice.createInjector(Modules.override(
+        new InMemoryDefaultTestModule()).with(new MockModule()));
+
+    AlertDefinitionResourceProvider.init(m_injector);
   }
 
   /**
@@ -185,8 +197,9 @@ public class AlertDefinitionResourceProviderTest {
     expectLastCall();
 
     // creating a single definition should invalidate hosts of the definition
-    definitionHash.invalidateHosts(EasyMock.anyObject(AlertDefinitionEntity.class));
-    expectLastCall().once();
+    expect(
+        definitionHash.invalidateHosts(EasyMock.anyObject(AlertDefinitionEntity.class))).andReturn(
+        new HashSet<String>()).once();
 
     replay(amc, clusters, cluster, dao, definitionHash);
 
@@ -235,15 +248,18 @@ public class AlertDefinitionResourceProviderTest {
     Cluster cluster = createMock(Cluster.class);
     expect(amc.getClusters()).andReturn(clusters).atLeastOnce();
     expect(clusters.getCluster((String) anyObject())).andReturn(cluster).atLeastOnce();
-    expect(cluster.getClusterId()).andReturn(Long.valueOf(1)).anyTimes();
+    expect(clusters.getClusterById(EasyMock.anyInt())).andReturn(cluster).atLeastOnce();
+    expect(cluster.getClusterId()).andReturn(Long.valueOf(1)).atLeastOnce();
+    expect(cluster.getClusterName()).andReturn("c1").atLeastOnce();
 
     Capture<AlertDefinitionEntity> entityCapture = new Capture<AlertDefinitionEntity>();
     dao.create(capture(entityCapture));
     expectLastCall();
 
     // updateing a single definition should invalidate hosts of the definition
-    definitionHash.invalidateHosts(EasyMock.anyObject(AlertDefinitionEntity.class));
-    expectLastCall().once();
+    expect(
+        definitionHash.invalidateHosts(EasyMock.anyObject(AlertDefinitionEntity.class))).andReturn(
+        new HashSet<String>()).atLeastOnce();
 
     replay(amc, clusters, cluster, dao, definitionHash);
 
@@ -311,8 +327,9 @@ public class AlertDefinitionResourceProviderTest {
     expectLastCall();
 
     // deleting a single definition should invalidate hosts of the definition
-    definitionHash.invalidateHosts(EasyMock.anyObject(AlertDefinitionEntity.class));
-    expectLastCall().once();
+    expect(
+        definitionHash.invalidateHosts(EasyMock.anyObject(AlertDefinitionEntity.class))).andReturn(
+        new HashSet<String>()).atLeastOnce();
 
     replay(amc, clusters, cluster, dao, definitionHash);
 
@@ -351,7 +368,6 @@ public class AlertDefinitionResourceProviderTest {
     Assert.assertEquals(Long.valueOf(1), entity1.getDefinitionId());
 
     verify(amc, clusters, cluster, dao);
-
   }
 
   /**
@@ -385,4 +401,21 @@ public class AlertDefinitionResourceProviderTest {
     return Arrays.asList(entity);
   }
 
+  /**
+  *
+  */
+  private class MockModule implements Module {
+    /**
+    *
+    */
+    @Override
+    public void configure(Binder binder) {
+      binder.bind(AlertDefinitionDAO.class).toInstance(dao);
+      binder.bind(AlertDefinitionHash.class).toInstance(definitionHash);
+      binder.bind(Clusters.class).toInstance(
+          EasyMock.createNiceMock(Clusters.class));
+      binder.bind(Cluster.class).toInstance(
+          EasyMock.createNiceMock(Cluster.class));
+    }
+  }
 }

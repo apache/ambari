@@ -58,6 +58,7 @@ import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.State;
+import org.apache.ambari.server.state.alert.AlertDefinition;
 import org.apache.ambari.server.state.alert.AlertDefinitionHash;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.host.HostHealthyHeartbeatEvent;
@@ -222,10 +223,6 @@ public class HeartBeatHandler {
       sendCommands(hostname, response);
       annotateResponse(hostname, response);
     }
-
-    // send the alert definition hash for this host
-    Map<String, String> alertDefinitionHashes = alertDefinitionHash.getHashes(hostname);
-    response.setAlertDefinitionHash(alertDefinitionHashes);
 
     return response;
   }
@@ -597,9 +594,13 @@ public class HeartBeatHandler {
             response.addCancelCommand((CancelCommand) ac);
             break;
           }
+          case ALERT_DEFINITION_COMMAND: {
+            response.addAlertDefinitionCommand((AlertDefinitionCommand) ac);
+            break;
+          }
           default:
-            LOG.error("There is no action for agent command =" +
-                ac.getCommandType().name());
+            LOG.error("There is no action for agent command ="
+                + ac.getCommandType().name());
         }
       }
     }
@@ -677,6 +678,7 @@ public class HeartBeatHandler {
       clusterFsm.addHost(hostname);
       hostObject = clusterFsm.getHost(hostname);
     }
+
     // Resetting host state
     hostObject.setState(HostState.INIT);
 
@@ -693,6 +695,7 @@ public class HeartBeatHandler {
         null != register.getPublicHostname() ? register.getPublicHostname() : hostname,
         new AgentVersion(register.getAgentVersion()), now, register.getHardwareProfile(),
         register.getAgentEnv()));
+
     RegistrationResponse response = new RegistrationResponse();
     if (cmds.isEmpty()) {
       //No status commands needed let the fsm know that status step is done
@@ -705,6 +708,10 @@ public class HeartBeatHandler {
     response.setStatusCommands(cmds);
 
     response.setResponseStatus(RegistrationStatus.OK);
+
+    // force the registering agent host to receive its list of alert definitions
+    List<AlertDefinitionCommand> alertDefinitionCommands = getAlertDefinitionCommands(hostname);
+    response.setAlertDefinitionCommands(alertDefinitionCommands);
 
     Long requestId = 0L;
     hostResponseIds.put(hostname, requestId);
@@ -770,5 +777,41 @@ public class HeartBeatHandler {
     }
 
     return result;
+  }
+
+  /**
+   * Gets the {@link AlertDefinitionCommand} instances that need to be sent for
+   * each cluster that the registering host is a member of.
+   *
+   * @param hostname
+   * @return
+   * @throws AmbariException
+   */
+  private List<AlertDefinitionCommand> getAlertDefinitionCommands(
+      String hostname) throws AmbariException {
+
+    Set<Cluster> hostClusters = clusterFsm.getClustersForHost(hostname);
+    if (null == hostClusters || hostClusters.size() == 0) {
+      return null;
+    }
+
+    List<AlertDefinitionCommand> commands = new ArrayList<AlertDefinitionCommand>();
+
+    // for every cluster this host is a member of, build the command
+    for (Cluster cluster : hostClusters) {
+      String clusterName = cluster.getClusterName();
+      alertDefinitionHash.invalidate(clusterName, hostname);
+
+      List<AlertDefinition> definitions = alertDefinitionHash.getAlertDefinitions(
+          clusterName, hostname);
+
+      String hash = alertDefinitionHash.getHash(clusterName, hostname);
+      AlertDefinitionCommand command = new AlertDefinitionCommand(clusterName,
+          hostname, hash, definitions);
+
+      commands.add(command);
+    }
+
+    return commands;
   }
 }

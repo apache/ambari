@@ -34,7 +34,8 @@ public abstract class AgentCommand {
     BACKGROUND_EXECUTION_COMMAND,
     STATUS_COMMAND,
     CANCEL_COMMAND,
-    REGISTRATION_COMMAND
+    REGISTRATION_COMMAND,
+    ALERT_DEFINITION_COMMAND
   }
 
   public AgentCommandType getCommandType() {

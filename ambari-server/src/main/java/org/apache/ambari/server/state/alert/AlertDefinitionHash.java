@@ -29,6 +29,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.RootServiceResponseFactory.Components;
@@ -73,6 +75,9 @@ public class AlertDefinitionHash {
   @Inject
   private AlertDefinitionDAO m_definitionDao;
 
+  @Inject
+  private AlertDefinitionFactory m_factory;
+
   /**
    * All clusters.
    */
@@ -80,9 +85,15 @@ public class AlertDefinitionHash {
   private Clusters m_clusters;
 
   /**
-   * The hashes for all hosts.
+   * !!! TODO: this class needs some thoughts on locking
    */
-  private Map<String, String> m_hashes = new ConcurrentHashMap<String, String>();
+  private ReadWriteLock m_lock = new ReentrantReadWriteLock();
+
+  /**
+   * The hashes for all hosts for any cluster. The key is the hostname and the
+   * value is a map between cluster name and hash.
+   */
+  private Map<String, Map<String, String>> m_hashes = new HashMap<String, Map<String, String>>();
 
   /**
    * Gets a unique hash value reprssenting all of the alert definitions that
@@ -101,13 +112,19 @@ public class AlertDefinitionHash {
    * @return the unique hash or {@value #NULL_MD5_HASH} if none.
    */
   public String getHash(String clusterName, String hostName) {
-    String hash = m_hashes.get(hostName);
+    Map<String, String> clusterMapping = m_hashes.get(hostName);
+    if (null == clusterMapping) {
+      clusterMapping = new ConcurrentHashMap<String, String>();
+      m_hashes.put(hostName, clusterMapping);
+    }
+
+    String hash = clusterMapping.get(hostName);
     if (null != hash) {
       return hash;
     }
 
     hash = hash(clusterName, hostName);
-    m_hashes.put(hostName, hash);
+    clusterMapping.put(clusterName, hash);
 
     return hash;
   }
@@ -123,8 +140,7 @@ public class AlertDefinitionHash {
    * @see #getHash(String, String)
    * @throws AmbariException
    */
-  public Map<String, String> getHashes(String hostName)
-      throws AmbariException {
+  public Map<String, String> getHashes(String hostName) throws AmbariException {
     Set<Cluster> clusters = m_clusters.getClustersForHost(hostName);
     if (null == clusters || clusters.size() == 0) {
       return Collections.emptyMap();
@@ -148,13 +164,30 @@ public class AlertDefinitionHash {
   }
 
   /**
-   * Invalidates the cached hash for the specified agent host.
+   * Invalidates the cached hash for the specified agent host across all
+   * clusters.
    *
    * @param hostName
    *          the host to invalidate the cache for (not {@code null}).
    */
   public void invalidate(String hostName) {
     m_hashes.remove(hostName);
+  }
+
+  /**
+   * Invalidates the cached hash for the specified agent host in the specified
+   * cluster.
+   *
+   * @param clusterName
+   *          the name of the cluster (not {@code null}).
+   * @param hostName
+   *          the host to invalidate the cache for (not {@code null}).
+   */
+  public void invalidate(String clusterName, String hostName) {
+    Map<String, String> clusterMapping = m_hashes.get(hostName);
+    if (null != clusterMapping) {
+      clusterMapping.remove(clusterName);
+    }
   }
 
   /**
@@ -165,12 +198,17 @@ public class AlertDefinitionHash {
    *          the host.
    * @return {@code true} if the hash was calculated; {@code false} otherwise.
    */
-  public boolean isHashCached(String hostName) {
-    if (null == hostName) {
+  public boolean isHashCached(String clusterName, String hostName) {
+    if (null == clusterName || null == hostName) {
       return false;
     }
 
-    return m_hashes.containsKey(hostName);
+    Map<String, String> clusterMapping = m_hashes.get(hostName);
+    if (null == clusterMapping) {
+      return false;
+    }
+
+    return clusterMapping.containsKey(clusterName);
   }
 
   /**
@@ -189,7 +227,42 @@ public class AlertDefinitionHash {
    * @return the alert definitions for the host, or an empty set (never
    *         {@code null}).
    */
-  public Set<AlertDefinitionEntity> getAlertDefinitions(String clusterName,
+  public List<AlertDefinition> getAlertDefinitions(
+      String clusterName,
+      String hostName) {
+
+    Set<AlertDefinitionEntity> entities = getAlertDefinitionEntities(
+        clusterName, hostName);
+
+    List<AlertDefinition> definitions = new ArrayList<AlertDefinition>(
+        entities.size());
+
+    for (AlertDefinitionEntity entity : entities) {
+      definitions.add(m_factory.coerce(entity));
+    }
+
+    return definitions;
+  }
+
+
+  /**
+   * Gets the alert definition entities for the specified host. This will include the
+   * following types of alert definitions:
+   * <ul>
+   * <li>Service/Component alerts</li>
+   * <li>Service alerts where the host is a MASTER</li>
+   * <li>Host alerts that are not bound to a service</li>
+   * </ul>
+   *
+   * @param clusterName
+   *          the cluster name (not {@code null}).
+   * @param hostName
+   *          the host name (not {@code null}).
+   * @return the alert definitions for the host, or an empty set (never
+   *         {@code null}).
+   */
+  private Set<AlertDefinitionEntity> getAlertDefinitionEntities(
+      String clusterName,
       String hostName) {
     Set<AlertDefinitionEntity> definitions = new HashSet<AlertDefinitionEntity>();
 
@@ -261,26 +334,21 @@ public class AlertDefinitionHash {
    * @param definition
    *          the definition to use to find the hosts to invlidate (not
    *          {@code null}).
+   * @return the hosts that were invalidated, or an empty set (never
+   *         {@code null}).
    */
-  public void invalidateHosts(AlertDefinitionEntity definition) {
+  public Set<String> invalidateHosts(AlertDefinitionEntity definition) {
     long clusterId = definition.getClusterId();
-
-    // intercept host agent alerts; they affect all hosts
-    String definitionServiceName = definition.getServiceName();
-    String definitionComponentName = definition.getComponentName();
-    if (Services.AMBARI.equals(definitionServiceName)
-        && Components.AMBARI_AGENT.equals(definitionComponentName)) {
-
-      invalidateAll();
-      return;
-    }
+    Set<String> invalidatedHosts = new HashSet<String>();
 
     Cluster cluster = null;
     Map<String, Host> hosts = null;
+    String clusterName = null;
     try {
       cluster = m_clusters.getClusterById(clusterId);
       if (null != cluster) {
-        hosts = m_clusters.getHostsForCluster(cluster.getClusterName());
+        clusterName = cluster.getClusterName();
+        hosts = m_clusters.getHostsForCluster(clusterName);
       }
 
       if (null == cluster) {
@@ -291,25 +359,35 @@ public class AlertDefinitionHash {
     }
 
     if (null == cluster) {
-      return;
+      return invalidatedHosts;
+    }
+
+    // intercept host agent alerts; they affect all hosts
+    String definitionServiceName = definition.getServiceName();
+    String definitionComponentName = definition.getComponentName();
+    if (Services.AMBARI.equals(definitionServiceName)
+        && Components.AMBARI_AGENT.equals(definitionComponentName)) {
+
+      invalidateAll();
+      invalidatedHosts.addAll(hosts.keySet());
+      return invalidatedHosts;
     }
 
     // find all hosts that have the matching service and component
-    if (null != hosts) {
-      for (String hostName : hosts.keySet()) {
-        List<ServiceComponentHost> hostComponents = cluster.getServiceComponentHosts(hostName);
-        if (null == hostComponents || hostComponents.size() == 0) {
-          continue;
-        }
+    for (String hostName : hosts.keySet()) {
+      List<ServiceComponentHost> hostComponents = cluster.getServiceComponentHosts(hostName);
+      if (null == hostComponents || hostComponents.size() == 0) {
+        continue;
+      }
 
-        // if a host has a matching service/component, invalidate it
-        for (ServiceComponentHost component : hostComponents) {
-          String serviceName = component.getServiceName();
-          String componentName = component.getServiceComponentName();
-          if (serviceName.equals(definitionServiceName)
-              && componentName.equals(definitionComponentName)) {
-            invalidate(hostName);
-          }
+      // if a host has a matching service/component, invalidate it
+      for (ServiceComponentHost component : hostComponents) {
+        String serviceName = component.getServiceName();
+        String componentName = component.getServiceComponentName();
+        if (serviceName.equals(definitionServiceName)
+            && componentName.equals(definitionComponentName)) {
+          invalidate(clusterName, hostName);
+          invalidatedHosts.add(hostName);
         }
       }
     }
@@ -320,7 +398,8 @@ public class AlertDefinitionHash {
     if (null == service) {
       LOG.warn("The alert definition {} has an unknown service of {}",
           definition.getDefinitionName(), definitionServiceName);
-      return;
+
+      return invalidatedHosts;
     }
 
     // get all master components of the definition's service; any hosts that
@@ -332,12 +411,15 @@ public class AlertDefinitionHash {
           Map<String, ServiceComponentHost> componentHosts = component.getValue().getServiceComponentHosts();
           if (null != componentHosts) {
             for (String componentHost : componentHosts.keySet()) {
-              invalidate(componentHost);
+              invalidate(clusterName, componentHost);
+              invalidatedHosts.add(componentHost);
             }
           }
         }
       }
     }
+
+    return invalidatedHosts;
   }
 
   /**
@@ -353,7 +435,8 @@ public class AlertDefinitionHash {
    * @return the unique hash or {@value #NULL_MD5_HASH} if none.
    */
   private String hash(String clusterName, String hostName) {
-    Set<AlertDefinitionEntity> definitions = getAlertDefinitions(clusterName,
+    Set<AlertDefinitionEntity> definitions = getAlertDefinitionEntities(
+        clusterName,
         hostName);
 
     // no definitions found for this host, don't bother hashing

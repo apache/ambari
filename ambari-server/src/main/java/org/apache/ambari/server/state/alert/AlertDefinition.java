@@ -25,10 +25,9 @@ public class AlertDefinition {
 
   private String serviceName = null;
   private String componentName = null;
-  
+
   private String name = null;
-  private String label = null;
-  private String scope = null;
+  private Scope scope = null;
   private int interval = 1;
   private boolean enabled = true;
   private Source source = null;
@@ -39,7 +38,7 @@ public class AlertDefinition {
   public String getServiceName() {
     return serviceName;
   }
-  
+
   /**
    * @param name the service name
    */
@@ -53,70 +52,88 @@ public class AlertDefinition {
   public String getComponentName() {
     return componentName;
   }
-  
+
   /**
-   * 
+   *
    * @param name the component name
    */
   public void setComponentName(String name) {
     componentName = name;
   }
-  
+
   /**
    * @return the name
    */
   public String getName() {
     return name;
   }
-  
+
   /**
-   * @return the label
+   * @param definitionName
+   *          the definition name.
    */
-  public String getLabel() {
-    return label;
+  public void setName(String definitionName) {
+    name = definitionName;
   }
-  
+
   /**
    * @return the scope
    */
-  public String getScope() {
+  public Scope getScope() {
     return scope;
   }
-  
+
+  public void setScope(Scope definitionScope) {
+    scope = definitionScope;
+  }
+
   /**
    * @return the interval
    */
   public int getInterval() {
     return interval;
   }
-  
+
+  public void setInterval(int definitionInterval) {
+    interval = definitionInterval;
+  }
+
   /**
    * @return {@code true} if enabled
    */
   public boolean isEnabled() {
     return enabled;
   }
-  
+
+  public void setEnabled(boolean definitionEnabled) {
+    enabled = definitionEnabled;
+  }
+
   public Source getSource() {
     return source;
   }
-  
+
+  public void setSource(Source definitionSource) {
+    source = definitionSource;
+  }
+
   @Override
   public boolean equals(Object obj) {
-    if (null == obj || !obj.getClass().equals(AlertDefinition.class))
+    if (null == obj || !obj.getClass().equals(AlertDefinition.class)) {
       return false;
-    
+    }
+
     return name.equals(((AlertDefinition) obj).name);
   }
-  
+
   @Override
   public int hashCode() {
     return name.hashCode();
   }
-  
+
   @Override
   public String toString() {
     return name;
   }
-  
+
 }

@@ -59,7 +59,6 @@ import org.apache.ambari.server.controller.internal.ViewPermissionResourceProvid
 import org.apache.ambari.server.controller.nagios.NagiosPropertyProvider;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.PersistenceType;
-import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.BlueprintDAO;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.GroupDAO;
@@ -92,7 +91,6 @@ import org.apache.ambari.server.security.unsecured.rest.CertificateSign;
 import org.apache.ambari.server.security.unsecured.rest.ConnectionInfo;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigHelper;
-import org.apache.ambari.server.state.alert.AlertDefinitionHash;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.ambari.server.utils.VersionUtils;
 import org.apache.ambari.server.view.ViewRegistry;
@@ -534,9 +532,7 @@ public class AmbariServer {
         injector.getInstance(Gson.class), ambariMetaInfo);
     StackDependencyResourceProvider.init(ambariMetaInfo);
     ClusterResourceProvider.init(injector.getInstance(BlueprintDAO.class), ambariMetaInfo, injector.getInstance(ConfigHelper.class));
-    AlertDefinitionResourceProvider.init(
-        injector.getInstance(AlertDefinitionDAO.class),
-        injector.getInstance(AlertDefinitionHash.class));
+    AlertDefinitionResourceProvider.init(injector);
     PermissionResourceProvider.init(injector.getInstance(PermissionDAO.class));
     ViewPermissionResourceProvider.init(injector.getInstance(PermissionDAO.class));
     PrivilegeResourceProvider.init(injector.getInstance(PrivilegeDAO.class), injector.getInstance(UserDAO.class),

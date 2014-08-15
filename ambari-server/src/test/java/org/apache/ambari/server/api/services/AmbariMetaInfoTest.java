@@ -24,8 +24,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
 
 import java.io.File;
 import java.lang.reflect.Method;
@@ -108,10 +106,12 @@ public class AmbariMetaInfoTest {
   @Before
   public void before() throws Exception {
     injector = Guice.createInjector(new MockModule());
+
     File stackRoot = new File("src/test/resources/stacks");
     LOG.info("Stacks file " + stackRoot.getAbsolutePath());
     metaInfo = new AmbariMetaInfo(stackRoot, new File("target/version"));
     metaInfo.injector = injector;
+
     try {
       metaInfo.init();
     } catch(Exception e) {

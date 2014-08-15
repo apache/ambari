@@ -18,7 +18,6 @@
 package org.apache.ambari.server.agent;
 
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMMAND_TIMEOUT;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.GLOBAL;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOOKS_FOLDER;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JDK_LOCATION;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT;
@@ -30,6 +29,7 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_VER
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -39,7 +39,6 @@ import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.state.Alert;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -62,7 +61,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.google.inject.Injector;
-import java.util.HashSet;
 
 /**
  * Monitors the node state and heartbeats.
@@ -83,14 +81,14 @@ public class HeartbeatMonitor implements Runnable {
   public HeartbeatMonitor(Clusters clusters, ActionQueue aq, ActionManager am,
                           int threadWakeupInterval, Injector injector) {
     this.clusters = clusters;
-    this.actionQueue = aq;
-    this.actionManager = am;
+    actionQueue = aq;
+    actionManager = am;
     this.threadWakeupInterval = threadWakeupInterval;
-    this.configHelper = injector.getInstance(ConfigHelper.class);
-    this.ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
-    this.ambariManagementController = injector.getInstance(
+    configHelper = injector.getInstance(ConfigHelper.class);
+    ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
+    ambariManagementController = injector.getInstance(
             AmbariManagementController.class);
-    this.configuration = injector.getInstance(Configuration.class);
+    configuration = injector.getInstance(Configuration.class);
   }
 
   public void shutdown() {
@@ -246,37 +244,38 @@ public class HeartbeatMonitor implements Runnable {
     // apply config group overrides
     //Config clusterConfig = cluster.getDesiredConfigByType(GLOBAL);
     Collection<Config> clusterConfigs = cluster.getAllConfigs();
-    
+
     for(Config clusterConfig: clusterConfigs) {
-      if(!clusterConfig.getType().endsWith("-env"))
+      if(!clusterConfig.getType().endsWith("-env")) {
         continue;
-    
+      }
+
       if (clusterConfig != null) {
         // cluster config for 'global'
         Map<String, String> props = new HashMap<String, String>(clusterConfig.getProperties());
-  
+
         // Apply global properties for this host from all config groups
         Map<String, Map<String, String>> allConfigTags = configHelper
                 .getEffectiveDesiredTags(cluster, hostname);
-  
+
         Map<String, Map<String, String>> configTags = new HashMap<String,
                 Map<String, String>>();
-  
+
         for (Map.Entry<String, Map<String, String>> entry : allConfigTags.entrySet()) {
           if (entry.getKey().equals(clusterConfig.getType())) {
             configTags.put(clusterConfig.getType(), entry.getValue());
           }
         }
-  
+
         Map<String, Map<String, String>> properties = configHelper
                 .getEffectiveConfigProperties(cluster, configTags);
-  
+
         if (!properties.isEmpty()) {
           for (Map<String, String> propertyMap : properties.values()) {
             props.putAll(propertyMap);
           }
         }
-  
+
         configurations.put(clusterConfig.getType(), props);
 
         Map<String, Map<String, String>> attrs = new TreeMap<String, Map<String, String>>();
@@ -298,7 +297,9 @@ public class HeartbeatMonitor implements Runnable {
       Collection<Alert> clusterAlerts = cluster.getAlerts();
       Collection<Alert> alerts = new HashSet<Alert>();
       for (Alert alert : clusterAlerts) {
-        if (!alert.getName().equals("host_alert")) alerts.add(alert);
+        if (!alert.getName().equals("host_alert")) {
+          alerts.add(alert);
+        }
       }
       if (alerts.size() > 0) {
         statusCmd = new NagiosAlertCommand();

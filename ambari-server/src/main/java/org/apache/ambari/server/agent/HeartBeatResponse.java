@@ -20,7 +20,6 @@ package org.apache.ambari.server.agent;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import org.codehaus.jackson.annotate.JsonProperty;
 
@@ -35,19 +34,18 @@ public class HeartBeatResponse {
   private List<StatusCommand> statusCommands = new ArrayList<StatusCommand>();
   private List<CancelCommand> cancelCommands = new ArrayList<CancelCommand>();
 
+  /**
+   * {@link AlertDefinitionCommand}s are used to isntruct the agent as to which
+   * alert definitions it needs to schedule.
+   */
+  @JsonProperty("alertDefinitionCommands")
+  private List<AlertDefinitionCommand> alertDefinitionCommands = new ArrayList<AlertDefinitionCommand>();
+
+
   private RegistrationCommand registrationCommand;
 
   private boolean restartAgent = false;
   private boolean hasMappedComponents = false;
-
-  /**
-   * A mapping between cluster name and the alert defintion hash for that
-   * cluster. The alert definition hash for a cluster is a hashed value of all
-   * of the UUIDs for each alert definition that the agent host should be
-   * scheduling. If any of the alert definitions change, their UUID will change
-   * which will cause this hash value to change.
-   */
-  private Map<String, String> alertDefinitionHashes = null;
 
   @JsonProperty("responseId")
   public long getResponseId() {
@@ -99,6 +97,28 @@ public class HeartBeatResponse {
     this.registrationCommand = registrationCommand;
   }
 
+  /**
+   * Gets the alert definition commands that contain the alert definitions for
+   * each cluster that the host is a member of.
+   *
+   * @param commands
+   *          the commands, or {@code null} for none.
+   */
+  public List<AlertDefinitionCommand> getAlertDefinitionCommands() {
+    return alertDefinitionCommands;
+  }
+
+  /**
+   * Sets the alert definition commands that contain the alert definitions for
+   * each cluster that the host is a member of.
+   *
+   * @param commands
+   *          the commands, or {@code null} for none.
+   */
+  public void setAlertDefinitionCommands(List<AlertDefinitionCommand> commands) {
+    alertDefinitionCommands = commands;
+  }
+
   @JsonProperty("restartAgent")
   public boolean isRestartAgent() {
     return restartAgent;
@@ -119,16 +139,6 @@ public class HeartBeatResponse {
     this.hasMappedComponents = hasMappedComponents;
   }
 
-  @JsonProperty("alertDefinitionHashes")
-  public Map<String, String> getAlertDefinitionHash() {
-    return alertDefinitionHashes;
-  }
-
-  @JsonProperty("alertDefinitionHashes")
-  public void setAlertDefinitionHash(Map<String, String> alertDefinitionHashes) {
-    this.alertDefinitionHashes = alertDefinitionHashes;
-  }
-
   public void addExecutionCommand(ExecutionCommand execCmd) {
     executionCommands.add(execCmd);
   }
@@ -141,6 +151,10 @@ public class HeartBeatResponse {
     cancelCommands.add(cancelCmd);
   }
 
+  public void addAlertDefinitionCommand(AlertDefinitionCommand command) {
+    alertDefinitionCommands.add(command);
+  }
+
   @Override
   public String toString() {
     StringBuilder buffer = new StringBuilder("HeartBeatResponse{");
@@ -148,9 +162,9 @@ public class HeartBeatResponse {
     buffer.append(", executionCommands=").append(executionCommands);
     buffer.append(", statusCommands=").append(statusCommands);
     buffer.append(", cancelCommands=").append(cancelCommands);
+    buffer.append(", alertDefinitionCommands=").append(alertDefinitionCommands);
     buffer.append(", registrationCommand=").append(registrationCommand);
     buffer.append(", restartAgent=").append(restartAgent);
-    buffer.append(", alertDefinitionHashes=").append(alertDefinitionHashes);
     buffer.append('}');
     return buffer.toString();
   }
