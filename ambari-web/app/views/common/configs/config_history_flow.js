@@ -96,6 +96,12 @@ App.ConfigHistoryFlowView = Em.View.extend({
     this.set('showFullList', !(this.get('serviceVersions.length') > this.VERSIONS_IN_DROPDOWN));
   },
 
+  didInsertElement: function () {
+    App.tooltip(this.$('[data-toggle=tooltip]'),{
+      placement: 'bottom'
+    });
+  },
+
   willInsertElement: function () {
     var serviceVersions = this.get('serviceVersions');
     var startIndex = 0;
@@ -179,6 +185,7 @@ App.ConfigHistoryFlowView = Em.View.extend({
 
   /**
    * add config values of chosen version to view for comparison
+   * add a second version-info-bar for the chosen version
    */
   compare: function (event) {
     this.set('controller.compareServiceVersion', event.context);
@@ -193,9 +200,12 @@ App.ConfigHistoryFlowView = Em.View.extend({
       version: this.get('displayedServiceVersion.version'),
       serviceName: this.get('displayedServiceVersion.serviceName')
     });
+    var versionText = event.context? event.context.get('versionText') : this.get('displayedServiceVersion.versionText');
     App.showConfirmationPopup(function () {
       self.sendRevertCall(serviceConfigVersion);
-    });
+    },
+      Em.I18n.t('services.service.config.configHistory.makeCurrent.message').format(versionText, this.get('displayedServiceVersion.serviceName'), this.get('displayedServiceVersion.configGroup'))
+    );
   },
 
   /**

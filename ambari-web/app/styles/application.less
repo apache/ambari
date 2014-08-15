@@ -4914,6 +4914,7 @@ ul.inline li {
       height: 100%;
       .box {
         position: relative;
+        cursor: pointer;
         width: 72%;
         height: 90%;
         background-color: #ffffff;
@@ -4929,9 +4930,23 @@ ul.inline li {
           color: #555555;
         }
       }
-      .displayed {
+      .box.displayed {
+        border: 1px solid #444444;
+        .content {
+          color: #444444;
+          font-weight: bold;
+        }
+      }
+      .box.grayedOut {
         background-color: #eeeeee;
-        border: 1px solid #dddddd;
+        border: 1px solid #eeeeee;
+        .content {
+          color: #b8b8b8;
+        }
+        .top-label .label {
+          color: #eeeeee;
+          background-color: #b8b8b8;
+        }
       }
       .arrow-box {
         width: 20%;
@@ -4993,6 +5008,7 @@ ul.inline li {
     .dropdown-menu {
       min-width: 400px;
       margin-top: 4px;
+      font-size: 13px;
       li {
         line-height: 30px;
       }
@@ -5002,7 +5018,7 @@ ul.inline li {
         color: white;
       }
       .icon-caret-right {
-        font-size: 20px;
+        font-size: 18px;
         margin-right: 20px;
       }
       div.row-fluid, a {
@@ -5010,7 +5026,18 @@ ul.inline li {
       }
     }
     .dropdown-submenu .dropdown-menu {
-      min-width: 80px;
+      min-width: 200px;
+      line-height: 20px;
+      margin: 0px;
+      padding: 5px;
+      color: #333333;
+      cursor: default;
+      .content {
+        padding: 1px 5px 15px 5px;
+      }
+      .btn {
+        font-size: 13px;
+      }
     }
   }
 }

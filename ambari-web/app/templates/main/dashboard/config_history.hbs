@@ -21,6 +21,7 @@
         <thead>
         {{#view view.sortView classNames="label-row"}}
             {{view view.parentView.versionSort}}
+            {{view view.parentView.configGroupSort}}
             {{view view.parentView.modifiedSort}}
             {{view view.parentView.authorSort}}
             {{view view.parentView.notesSort}}
@@ -28,6 +29,7 @@
 
         <tr class="filter-row">
             <th class="first">{{view view.serviceFilterView}}</th>
+            <th>{{view view.configGroupFilterView}}</th>
             <th>{{view view.modifiedFilterView}}</th>
             <th>{{view view.authorFilterView}}</th>
             <th>{{view view.notesFilterView}}</th>
@@ -48,6 +50,7 @@
                       {{/if}}
                       <i {{bindAttr class=":icon-refresh :restart-required-service item.isRestartRequired::hidden"}}></i>
                     </td>
+                    <td>{{item.configGroup}}</td>
                     <td>{{item.modifiedDate}}</td>
                     <td>{{item.author}}</td>
                     <td>{{item.notes}}</td>

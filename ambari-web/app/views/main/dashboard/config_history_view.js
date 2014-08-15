@@ -93,18 +93,24 @@ App.MainConfigHistoryView = App.TableView.extend({
     displayName: Em.I18n.t('dashboard.configHistory.table.version.title'),
     classNames: ['first']
   }),
-  modifiedSort: sort.fieldView.extend({
+  configGroupSort: sort.fieldView.extend({
     column: 2,
+    name: 'configGroup',
+    displayName: Em.I18n.t('dashboard.configHistory.table.configGroup.title')
+  }),
+  modifiedSort: sort.fieldView.extend({
+    column: 3,
     name: 'appliedTime',
+    status: 'sorting_desc',
     displayName: Em.I18n.t('dashboard.configHistory.table.modified.title')
   }),
   authorSort: sort.fieldView.extend({
-    column: 3,
+    column: 4,
     name: 'author',
     displayName: Em.I18n.t('common.author')
   }),
   notesSort: sort.fieldView.extend({
-    column: 4,
+    column: 5,
     name: 'notes',
     displayName: Em.I18n.t('common.notes')
   }),
@@ -121,8 +127,21 @@ App.MainConfigHistoryView = App.TableView.extend({
     emptyValue: Em.I18n.t('common.all')
   }),
 
-  modifiedFilterView: filters.createSelectView({
+  configGroupFilterView: filters.createSelectView({
     column: 2,
+    fieldType: 'filter-input-width',
+    content: function () {
+      return ['All'].concat(['g1','g2','gn']);
+    }.property('App.router.clusterController.isLoaded'),
+    onChangeValue: function () {
+      this.get('parentView').updateFilter(this.get('column'), this.get('actualValue'), 'select');
+    },
+    emptyValue: Em.I18n.t('common.all')
+  }),
+
+
+  modifiedFilterView: filters.createSelectView({
+    column: 3,
     fieldType: 'filter-input-width',
     content: ['Any', 'Past 1 hour',  'Past 1 Day', 'Past 2 Days', 'Past 7 Days', 'Past 14 Days', 'Past 30 Days', 'Custom'],
     valueBinding: "controller.modifiedFilter.optionValue",
@@ -134,7 +153,7 @@ App.MainConfigHistoryView = App.TableView.extend({
   }),
 
   authorFilterView: filters.createTextView({
-    column: 3,
+    column: 4,
     fieldType: 'filter-input-width',
     onChangeValue: function () {
       this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'string');
@@ -142,7 +161,7 @@ App.MainConfigHistoryView = App.TableView.extend({
   }),
 
   notesFilterView: filters.createTextView({
-    column: 4,
+    column: 5,
     fieldType: 'filter-input-width',
     onChangeValue: function () {
       this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'string');
