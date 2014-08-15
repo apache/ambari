@@ -100,4 +100,22 @@ public class PermissionDAO {
   public PermissionEntity findViewUsePermission() {
     return findById(PermissionEntity.VIEW_USE_PERMISSION);
   }
+
+  /**
+   * Find CLUSTER.OPERATE permission.
+   *
+   * @return a matching permission entity or null
+   */
+  public PermissionEntity findClusterOperatePermission() {
+    return findById(PermissionEntity.CLUSTER_OPERATE_PERMISSION);
+  }
+
+  /**
+   * Find CLUSTER.READ permission.
+   *
+   * @return a matching permission entity or null
+   */
+  public PermissionEntity findClusterReadPermission() {
+    return findById(PermissionEntity.CLUSTER_READ_PERMISSION);
+  }
 }

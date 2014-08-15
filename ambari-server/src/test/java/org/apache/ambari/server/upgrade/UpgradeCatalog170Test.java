@@ -21,19 +21,60 @@ package org.apache.ambari.server.upgrade;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNull;
 import static junit.framework.Assert.assertTrue;
-import static org.easymock.EasyMock.*;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.createMockBuilder;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.createStrictMock;
+import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.isA;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
+import static org.easymock.EasyMock.verify;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.persistence.EntityManager;
+import javax.persistence.EntityTransaction;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Order;
+import javax.persistence.criteria.Path;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+import javax.persistence.metamodel.SingularAttribute;
 
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.DBAccessor;
-import org.apache.ambari.server.orm.dao.DaoUtils;
+import org.apache.ambari.server.orm.dao.ClusterDAO;
+import org.apache.ambari.server.orm.dao.PermissionDAO;
+import org.apache.ambari.server.orm.dao.PrincipalDAO;
+import org.apache.ambari.server.orm.dao.PrincipalTypeDAO;
+import org.apache.ambari.server.orm.dao.PrivilegeDAO;
+import org.apache.ambari.server.orm.dao.ResourceDAO;
+import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
+import org.apache.ambari.server.orm.dao.UserDAO;
+import org.apache.ambari.server.orm.dao.ViewDAO;
+import org.apache.ambari.server.orm.dao.ViewInstanceDAO;
+import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
+import org.apache.ambari.server.orm.entities.UserEntity;
+import org.apache.ambari.server.orm.entities.ViewEntity;
+import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -44,12 +85,11 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.google.inject.*;
-import javax.persistence.EntityManager;
-import javax.persistence.EntityTransaction;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.*;
-import javax.persistence.metamodel.SingularAttribute;
+import com.google.inject.Binder;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.Module;
+import com.google.inject.Provider;
 
 /**
  * UpgradeCatalog170 unit tests.
@@ -167,10 +207,21 @@ public class UpgradeCatalog170Test {
     Clusters clusters = createStrictMock(Clusters.class);
     Config config = createStrictMock(Config.class);
 
+    UserDAO userDAO = createNiceMock(UserDAO.class);
+    PrincipalDAO principalDAO = createNiceMock(PrincipalDAO.class);
+    PrincipalTypeDAO principalTypeDAO = createNiceMock(PrincipalTypeDAO.class);
+    ClusterDAO clusterDAO = createNiceMock(ClusterDAO.class);
+    ResourceTypeDAO resourceTypeDAO = createNiceMock(ResourceTypeDAO.class);
+    ResourceDAO resourceDAO = createNiceMock(ResourceDAO.class);
+    ViewDAO viewDAO = createNiceMock(ViewDAO.class);
+    ViewInstanceDAO viewInstanceDAO = createNiceMock(ViewInstanceDAO.class);
+    PermissionDAO permissionDAO = createNiceMock(PermissionDAO.class);
+    PrivilegeDAO privilegeDAO = createNiceMock(PrivilegeDAO.class);
+
     EntityTransaction trans = createNiceMock(EntityTransaction.class);
     CriteriaBuilder cb = createNiceMock(CriteriaBuilder.class);
     CriteriaQuery<HostRoleCommandEntity> cq = createNiceMock(CriteriaQuery.class);
-    Root<HostRoleCommandEntity> hrc = (Root<HostRoleCommandEntity>) createNiceMock(Root.class);
+    Root<HostRoleCommandEntity> hrc = createNiceMock(Root.class);
     Path<Long> taskId = null;
     Path<String> outputLog = null;
     Path<String> errorLog = null;
@@ -244,8 +295,28 @@ public class UpgradeCatalog170Test {
     expect(configHelper.findConfigTypesByPropertyName(new StackId("HDP", "2.1"), "content")).andReturn(envDicts).once();
     expect(configHelper.getPropertyValueFromStackDefenitions(cluster, "hadoop-env", "content")).andReturn("env file contents").once();
 
+    expect(injector.getInstance(UserDAO.class)).andReturn(userDAO).once();
+    expect(injector.getInstance(PrincipalDAO.class)).andReturn(principalDAO).once();
+    expect(injector.getInstance(PrincipalTypeDAO.class)).andReturn(principalTypeDAO).once();
+    expect(injector.getInstance(ClusterDAO.class)).andReturn(clusterDAO).once();
+    expect(injector.getInstance(ResourceTypeDAO.class)).andReturn(resourceTypeDAO).once();
+    expect(injector.getInstance(ResourceDAO.class)).andReturn(resourceDAO).once();
+    expect(injector.getInstance(ViewDAO.class)).andReturn(viewDAO).once();
+    expect(injector.getInstance(ViewInstanceDAO.class)).andReturn(viewInstanceDAO).once();
+    expect(injector.getInstance(PermissionDAO.class)).andReturn(permissionDAO).once();
+    expect(injector.getInstance(PrivilegeDAO.class)).andReturn(privilegeDAO).once();
+
+    expect(userDAO.findAll()).andReturn(Collections.<UserEntity> emptyList()).anyTimes();
+    expect(clusterDAO.findAll()).andReturn(Collections.<ClusterEntity> emptyList()).anyTimes();
+    expect(viewDAO.findAll()).andReturn(Collections.<ViewEntity> emptyList()).anyTimes();
+    expect(viewInstanceDAO.findAll()).andReturn(Collections.<ViewInstanceEntity> emptyList()).anyTimes();
+    expect(permissionDAO.findAmbariAdminPermission()).andReturn(null);
+    expect(permissionDAO.findClusterOperatePermission()).andReturn(null);
+    expect(permissionDAO.findClusterReadPermission()).andReturn(null);
+
     replay(entityManager, trans, upgradeCatalog, cb, cq, hrc, q);
     replay(dbAccessor, configuration, injector, cluster, clusters, amc, config, configHelper);
+    replay(userDAO, clusterDAO, viewDAO, viewInstanceDAO, permissionDAO);
 
     Class<?> c = AbstractUpgradeCatalog.class;
     Field f = c.getDeclaredField("configuration");

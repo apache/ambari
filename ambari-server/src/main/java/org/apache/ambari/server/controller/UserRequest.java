@@ -17,9 +17,6 @@
  */
 package org.apache.ambari.server.controller;
 
-import java.util.HashSet;
-import java.util.Set;
-
 /**
  * Represents a user maintenance request.
  */
@@ -28,7 +25,6 @@ public class UserRequest {
   private String password;
   private String oldPassword;
   private Boolean active;
-  private Set<String> roles = new HashSet<String>();
   private Boolean admin;
 
   public UserRequest(String name) {
@@ -37,14 +33,6 @@ public class UserRequest {
 
   public String getUsername() {
     return userName;
-  }
-
-  public Set<String> getRoles() {
-    return roles;
-  }
-
-  public void setRoles(Set<String> userRoles) {
-    roles = userRoles;
   }
 
   public String getPassword() {
@@ -82,20 +70,7 @@ public class UserRequest {
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
-    sb.append("User"
-        + ", username=" + userName
-        + ", roles=[ ");
-    if (roles != null && !roles.isEmpty()) {
-      boolean first = true;
-      for (String role : roles) {
-        if (!first) {
-          sb.append(",");
-        }
-        first = false;
-        sb.append(role);
-      }
-    }
-    sb.append(" ]");
+    sb.append("User, username=" + userName);
     return sb.toString();
   }
 

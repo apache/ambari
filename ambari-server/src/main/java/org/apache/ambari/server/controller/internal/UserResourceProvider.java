@@ -25,7 +25,6 @@ import org.apache.ambari.server.controller.spi.*;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -39,7 +38,6 @@ class UserResourceProvider extends AbstractControllerResourceProvider {
 
   // Users
   protected static final String USER_USERNAME_PROPERTY_ID     = PropertyHelper.getPropertyId("Users", "user_name");
-  protected static final String USER_ROLES_PROPERTY_ID        = PropertyHelper.getPropertyId("Users", "roles");
   protected static final String USER_PASSWORD_PROPERTY_ID     = PropertyHelper.getPropertyId("Users", "password");
   protected static final String USER_OLD_PASSWORD_PROPERTY_ID = PropertyHelper.getPropertyId("Users", "old_password");
   protected static final String USER_LDAP_USER_PROPERTY_ID    = PropertyHelper.getPropertyId("Users", "ldap_user");
@@ -118,9 +116,6 @@ class UserResourceProvider extends AbstractControllerResourceProvider {
       setResourceProperty(resource, USER_USERNAME_PROPERTY_ID,
           userResponse.getUsername(), requestedIds);
 
-      setResourceProperty(resource, USER_ROLES_PROPERTY_ID,
-          userResponse.getRoles(), requestedIds);
-
       setResourceProperty(resource, USER_LDAP_USER_PROPERTY_ID,
           userResponse.isLdapUser(), requestedIds);
 
@@ -197,15 +192,6 @@ class UserResourceProvider extends AbstractControllerResourceProvider {
 
     request.setPassword((String) properties.get(USER_PASSWORD_PROPERTY_ID));
     request.setOldPassword((String) properties.get(USER_OLD_PASSWORD_PROPERTY_ID));
-
-    // TODO - support array/sets directly out of the request
-    if (null != properties.get(USER_ROLES_PROPERTY_ID)) {
-      HashSet<String> roles = new HashSet<String>();
-
-      Collections.addAll(roles, ((String) properties.get(USER_ROLES_PROPERTY_ID)).split(","));
-
-      request.setRoles(roles);
-    }
 
     if (null != properties.get(USER_ACTIVE_PROPERTY_ID)) {
       request.setActive(Boolean.valueOf(properties.get(USER_ACTIVE_PROPERTY_ID).toString()));

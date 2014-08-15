@@ -43,10 +43,31 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
+import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.DaoUtils;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
+import org.apache.ambari.server.orm.dao.PermissionDAO;
+import org.apache.ambari.server.orm.dao.PrincipalDAO;
+import org.apache.ambari.server.orm.dao.PrincipalTypeDAO;
+import org.apache.ambari.server.orm.dao.PrivilegeDAO;
+import org.apache.ambari.server.orm.dao.ResourceDAO;
+import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
+import org.apache.ambari.server.orm.dao.UserDAO;
+import org.apache.ambari.server.orm.dao.ViewDAO;
+import org.apache.ambari.server.orm.dao.ViewInstanceDAO;
+import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity_;
+import org.apache.ambari.server.orm.entities.PermissionEntity;
+import org.apache.ambari.server.orm.entities.PrincipalEntity;
+import org.apache.ambari.server.orm.entities.PrincipalTypeEntity;
+import org.apache.ambari.server.orm.entities.PrivilegeEntity;
+import org.apache.ambari.server.orm.entities.ResourceEntity;
+import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
+import org.apache.ambari.server.orm.entities.RoleEntity;
+import org.apache.ambari.server.orm.entities.UserEntity;
+import org.apache.ambari.server.orm.entities.ViewEntity;
+import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -108,6 +129,20 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
     List<DBColumnInfo> columns;
     String dbType = getDbType();
 
+    // add group and members tables
+    columns = new ArrayList<DBColumnInfo>();
+    columns.add(new DBColumnInfo("group_id", Integer.class, 1, null, false));
+    columns.add(new DBColumnInfo("principal_id", Integer.class, 1, null, false));
+    columns.add(new DBColumnInfo("group_name", String.class, 1, null, false));
+    columns.add(new DBColumnInfo("ldap_group", Integer.class, 1, 0, false));
+    dbAccessor.createTable("groups", columns, "group_id");
+
+    columns = new ArrayList<DBColumnInfo>();
+    columns.add(new DBColumnInfo("member_id", Integer.class, 1, null, false));
+    columns.add(new DBColumnInfo("group_id", Integer.class, 1, null, false));
+    columns.add(new DBColumnInfo("user_id", Integer.class, 1, null, false));
+    dbAccessor.createTable("members", columns, "member_id");
+
     // add admin tables and initial values prior to adding referencing columns on existing tables
     columns = new ArrayList<DBColumnInfo>();
     columns.add(new DBColumnInfo("principal_type_id", Integer.class, 1, null,
@@ -161,8 +196,8 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
 
     dbAccessor.insertRow("adminpermission", new String[]{"permission_id", "permission_name", "resource_type_id"}, new String[]{"1", "'AMBARI.ADMIN'", "1"}, true);
     dbAccessor.insertRow("adminpermission", new String[]{"permission_id", "permission_name", "resource_type_id"}, new String[]{"2", "'CLUSTER.READ'", "2"}, true);
-    dbAccessor.insertRow("adminpermission", new String[]{"permission_id", "permission_name", "resource_type_id"}, new String[]{"3", "'CLUSTER.OPERATE'", "3"}, true);
-    dbAccessor.insertRow("adminpermission", new String[]{"permission_id", "permission_name", "resource_type_id"}, new String[]{"4", "'VIEW.USE'", "4"}, true);
+    dbAccessor.insertRow("adminpermission", new String[]{"permission_id", "permission_name", "resource_type_id"}, new String[]{"3", "'CLUSTER.OPERATE'", "2"}, true);
+    dbAccessor.insertRow("adminpermission", new String[]{"permission_id", "permission_name", "resource_type_id"}, new String[]{"4", "'VIEW.USE'", "3"}, true);
 
     columns = new ArrayList<DBColumnInfo>();
     columns.add(new DBColumnInfo("privilege_id", Long.class, null, null, false));
@@ -334,6 +369,22 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
     dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, "
       + valueColumnName + ") " + "VALUES('config_id_seq', " + count + ")", false);
 
+    dbAccessor.addFKConstraint("users", "FK_users_principal_id", "principal_id", "adminprincipal", "principal_id", true);
+    dbAccessor.addFKConstraint("clusters", "FK_clusters_resource_id", "resource_id", "adminresource", "resource_id", true);
+    dbAccessor.addFKConstraint("viewinstance", "FK_viewinstance_resource_id", "resource_id", "adminresource", "resource_id", true);
+    dbAccessor.addFKConstraint("adminresource", "FK_resource_resource_type_id", "resource_type_id", "adminresourcetype", "resource_type_id", true);
+    dbAccessor.addFKConstraint("adminprincipal", "FK_principal_principal_type_id", "principal_type_id", "adminprincipaltype", "principal_type_id", true);
+    dbAccessor.addFKConstraint("adminpermission", "FK_permission_resource_type_id", "resource_type_id", "adminresourcetype", "resource_type_id", true);
+    dbAccessor.addFKConstraint("adminprivilege", "FK_privilege_permission_id", "permission_id", "adminpermission", "permission_id", true);
+    dbAccessor.addFKConstraint("adminprivilege", "FK_privilege_resource_id", "resource_id", "adminresource", "resource_id", true);
+
+    dbAccessor.addFKConstraint("groups", "FK_groups_principal_id", "principal_id", "adminprincipal", "principal_id", true);
+    dbAccessor.addFKConstraint("members", "FK_members_user_id", "user_id", "users", "user_id", true);
+    dbAccessor.addFKConstraint("members", "FK_members_group_id", "group_id", "groups", "group_id", true);
+
+    dbAccessor.executeQuery("ALTER TABLE groups ADD CONSTRAINT UNQ_groups_0 UNIQUE (group_name, ldap_group)");
+    dbAccessor.executeQuery("ALTER TABLE members ADD CONSTRAINT UNQ_members_0 UNIQUE (group_id, user_id)");
+    dbAccessor.executeQuery("ALTER TABLE adminpermission ADD CONSTRAINT UQ_perm_name_resource_type_id UNIQUE (permission_name, resource_type_id)");
   }
 
   private void populateConfigVersions() throws SQLException {
@@ -404,9 +455,6 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
 
   @Override
   protected void executeDMLUpdates() throws AmbariException, SQLException {
-    // !!! TODO: create admin principals for existing users and groups.
-    // !!! TODO: create admin resources for existing clusters and view instances
-
     String dbType = getDbType();
 
     // add new sequences for view entity
@@ -435,6 +483,35 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
     dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, "
         + valueColumnName + ") " + "VALUES('alert_current_id_seq', 0)", false);
 
+    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, "
+        + valueColumnName + ") " + "VALUES('group_id_seq', 1)", false);
+
+    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, "
+        + valueColumnName + ") " + "VALUES('member_id_seq', 1)", false);
+
+    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, "
+        + valueColumnName + ") " + "VALUES('resource_type_id_seq', 4)", false);
+
+    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, "
+        + valueColumnName + ") " + "VALUES('resource_id_seq', 2)", false);
+
+    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, "
+        + valueColumnName + ") " + "VALUES('principal_type_id_seq', 3)", false);
+
+    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, "
+        + valueColumnName + ") " + "VALUES('principal_id_seq', 2)", false);
+
+    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, "
+        + valueColumnName + ") " + "VALUES('permission_id_seq', 5)", false);
+
+    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, "
+        + valueColumnName + ") " + "VALUES('privilege_id_seq', 1)", false);
+
+    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, "
+        + valueColumnName + ") " + "VALUES('service_config_id_seq', 1)", false);
+
+    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, "
+        + valueColumnName + ") " + "VALUES('config_id_seq', 1)", false);
 
     // Update historic records with the log paths, but only enough so as to not prolong the upgrade process
     executeInTransaction(new Runnable() {
@@ -496,6 +573,7 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
     moveGlobalsToEnv();
     addEnvContentFields();
     addMissingConfigs();
+    upgradePermissionModel();
   }
 
   /**
@@ -789,5 +867,98 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
     result.put("storm_keytab","storm-env");
 
     return result;
+  }
+
+  private void upgradePermissionModel() {
+    final UserDAO userDAO = injector.getInstance(UserDAO.class);
+    final PrincipalDAO principalDAO = injector.getInstance(PrincipalDAO.class);
+    final PrincipalTypeDAO principalTypeDAO = injector.getInstance(PrincipalTypeDAO.class);
+    final ClusterDAO clusterDAO = injector.getInstance(ClusterDAO.class);
+    final ResourceTypeDAO resourceTypeDAO = injector.getInstance(ResourceTypeDAO.class);
+    final ResourceDAO resourceDAO = injector.getInstance(ResourceDAO.class);
+    final ViewDAO viewDAO = injector.getInstance(ViewDAO.class);
+    final ViewInstanceDAO viewInstanceDAO = injector.getInstance(ViewInstanceDAO.class);
+    final PermissionDAO permissionDAO = injector.getInstance(PermissionDAO.class);
+    final PrivilegeDAO privilegeDAO = injector.getInstance(PrivilegeDAO.class);
+
+    final PrincipalTypeEntity userPrincipalType = principalTypeDAO.findById(PrincipalTypeEntity.USER_PRINCIPAL_TYPE);
+    for (UserEntity user: userDAO.findAll()) {
+      final PrincipalEntity principalEntity = new PrincipalEntity();
+      principalEntity.setPrincipalType(userPrincipalType);
+      principalDAO.create(principalEntity);
+      user.setPrincipal(principalEntity);
+      userDAO.merge(user);
+    }
+
+    final ResourceTypeEntity clusterResourceType = resourceTypeDAO.findById(ResourceTypeEntity.CLUSTER_RESOURCE_TYPE);
+    for (ClusterEntity cluster: clusterDAO.findAll()) {
+      final ResourceEntity resourceEntity = new ResourceEntity();
+      resourceEntity.setResourceType(clusterResourceType);
+      resourceDAO.create(resourceEntity);
+      cluster.setResource(resourceEntity);
+      clusterDAO.merge(cluster);
+    }
+
+    for (ViewEntity view: viewDAO.findAll()) {
+      final ResourceTypeEntity resourceType = new ResourceTypeEntity();
+      resourceType.setName(ViewEntity.getViewName(view.getCommonName(), view.getVersion()));
+      resourceTypeDAO.create(resourceType);
+    }
+
+    for (ViewInstanceEntity viewInstance: viewInstanceDAO.findAll()) {
+      final ResourceEntity resourceEntity = new ResourceEntity();
+      viewInstance.getViewEntity();
+      resourceEntity.setResourceType(resourceTypeDAO.findByName(
+          ViewEntity.getViewName(
+              viewInstance.getViewEntity().getCommonName(),
+              viewInstance.getViewEntity().getVersion())));
+      viewInstance.setResource(resourceEntity);
+      resourceDAO.create(resourceEntity);
+      viewInstanceDAO.merge(viewInstance);
+    }
+
+    final PermissionEntity adminPermission = permissionDAO.findAmbariAdminPermission();
+    final PermissionEntity clusterOperatePermission = permissionDAO.findClusterOperatePermission();
+    final PermissionEntity clusterReadPermission = permissionDAO.findClusterReadPermission();
+    final ResourceEntity ambariResource = resourceDAO.findAmbariResource();
+    for (UserEntity user: userDAO.findAll()) {
+      boolean hasAdminRole = false;
+      boolean hasUserRole = false;
+      for (RoleEntity role: user.getRoleEntities()) {
+        if (role.getRoleName().equals("admin")) {
+          hasAdminRole = true;
+        }
+        if (role.getRoleName().equals("user")) {
+          hasUserRole = true;
+        }
+        if (hasAdminRole) {
+          final PrivilegeEntity privilege = new PrivilegeEntity();
+          privilege.setPermission(adminPermission);
+          privilege.setPrincipal(user.getPrincipal());
+          privilege.setResource(ambariResource);
+          user.getPrincipal().getPrivileges().add(privilege);
+          privilegeDAO.create(privilege);
+          for (ClusterEntity cluster: clusterDAO.findAll()) {
+            final PrivilegeEntity clusterPrivilege = new PrivilegeEntity();
+            clusterPrivilege.setPermission(clusterOperatePermission);
+            clusterPrivilege.setPrincipal(user.getPrincipal());
+            clusterPrivilege.setResource(cluster.getResource());
+            privilegeDAO.create(clusterPrivilege);
+            user.getPrincipal().getPrivileges().add(clusterPrivilege);
+          }
+          userDAO.merge(user);
+        } else if (hasUserRole) {
+          for (ClusterEntity cluster: clusterDAO.findAll()) {
+            final PrivilegeEntity privilege = new PrivilegeEntity();
+            privilege.setPermission(clusterReadPermission);
+            privilege.setPrincipal(user.getPrincipal());
+            privilege.setResource(cluster.getResource());
+            privilegeDAO.create(privilege);
+            user.getPrincipal().getPrivileges().add(privilege);
+          }
+          userDAO.merge(user);
+        }
+      }
+    }
   }
 }

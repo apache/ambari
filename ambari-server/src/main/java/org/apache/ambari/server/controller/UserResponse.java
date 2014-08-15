@@ -25,7 +25,6 @@ import java.util.Set;
  */
 public class UserResponse {
 
-  private Set<String> roles = Collections.emptySet();
   private final String userName;
   private final boolean isLdapUser;
   private final boolean isActive;
@@ -41,14 +40,6 @@ public class UserResponse {
 
   public String getUsername() {
     return userName;
-  }
-
-  public Set<String> getRoles() {
-    return roles;
-  }
-
-  public void setRoles(Set<String> userRoles) {
-    roles = userRoles;
   }
 
   public Set<String> getGroups() {

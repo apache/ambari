@@ -189,7 +189,6 @@ public class RequestImplTest {
     //User resource properties
     Assert.assertFalse(validPropertyIds.contains("Users/unsupported_property_id"));
     Assert.assertTrue(validPropertyIds.contains("Users/user_name"));
-    Assert.assertTrue(validPropertyIds.contains("Users/roles"));
     Assert.assertTrue(validPropertyIds.contains("Users/password"));
     Assert.assertTrue(validPropertyIds.contains("Users/old_password"));
     Assert.assertTrue(validPropertyIds.contains("Users/ldap_user"));

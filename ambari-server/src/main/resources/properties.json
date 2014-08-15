@@ -170,7 +170,6 @@
     ],
     "User":[
         "Users/user_name",
-        "Users/roles",
         "Users/password",
         "Users/old_password",
         "Users/ldap_user",

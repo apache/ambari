@@ -718,17 +718,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
       users.createUser(request.getUsername(), request.getPassword(), request.isActive(), request.isAdmin());
 
-      if (0 != request.getRoles().size()) {
-        user = users.getAnyUser(request.getUsername());
-        if (null != user) {
-          for (String role : request.getRoles()) {
-            if (!user.getRoles().contains(role)) {
-              users.addRoleToUser(user, role);
-            }
-          }
-        }
-      }
-
       if (null != request.isActive() && null != user) {
         users.setUserActive(user, request.isActive());
       }
@@ -2420,18 +2409,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
             request.getPassword());
       }
 
-      Set<String> roolesToDelete = new HashSet<String>(u.getRoles());
-      Set<String> roolesToAdd = request.getRoles();
-      roolesToDelete.removeAll(request.getRoles());
-      for (String role : roolesToDelete) {
-        users.removeRoleFromUser(u, role);
-        u.getRoles().remove(role);
-      }
-      roolesToAdd.removeAll(u.getRoles());
-      for (String role : roolesToAdd) {
-        users.addRoleToUser(u, role);
-      }
-
       if (null != request.isActive()) {
         users.setUserActive(u, request.isActive());
       }
@@ -2786,7 +2763,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       if (null == r.getUsername()) {
         for (User u : users.getAllUsers()) {
           UserResponse resp = new UserResponse(u.getUserName(), u.isLdapUser(), u.isActive(), u.isAdmin());
-          resp.setRoles(new HashSet<String>(u.getRoles()));
           resp.setGroups(new HashSet<String>(u.getGroups()));
           responses.add(resp);
         }
@@ -2802,7 +2778,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           }
         } else {
           UserResponse resp = new UserResponse(u.getUserName(), u.isLdapUser(), u.isActive(), u.isAdmin());
-          resp.setRoles(new HashSet<String>(u.getRoles()));
           resp.setGroups(new HashSet<String>(u.getGroups()));
           responses.add(resp);
         }
