@@ -1797,6 +1797,10 @@ var urls = {
     'real': '/clusters/{clusterName}/hosts?fields=Hosts/host_name,Hosts/public_host_name,Hosts/os_type,Hosts/ip,host_components,metrics/disk,metrics/cpu/cpu_system,metrics/cpu/cpu_user,metrics/memory/mem_total,metrics/memory/mem_free&minimal_response=true',
     'mock': ''
   },
+  'namenode.cpu_wio': {
+    'real': '/clusters/{clusterName}/hosts/{nnHost}?fields=metrics/cpu',
+    'mock': ''
+  },
 
   'custom_action.create': {
     'real': '/requests',

@@ -48,7 +48,6 @@ App.HDFSService = App.Service.extend({
   dfsTotalFiles: DS.attr('number'),
   upgradeStatus: DS.attr('boolean'),
   safeModeStatus: DS.attr('string'),
-  nameNodeCpu: DS.attr('number'),
   nameNodeRpc: DS.attr('number')
 });
 
