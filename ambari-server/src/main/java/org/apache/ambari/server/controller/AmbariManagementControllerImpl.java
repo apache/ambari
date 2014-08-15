@@ -1769,6 +1769,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
             RoleCommand roleCommand;
             State oldSchState = scHost.getState();
             ServiceComponentHostEvent event;
+            
             switch (newState) {
               case INSTALLED:
                 if (oldSchState == State.INIT
@@ -1902,6 +1903,28 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
             // any targeted information
             String keyName = scHost.getServiceComponentName().toLowerCase();
             if (requestProperties.containsKey(keyName)) {
+              // in the case where the command is targeted, but the states
+              // of the old and new are the same, the targeted component
+              // may still need to get the command.  This is true for Flume.
+              if (oldSchState == newState) {
+                switch (oldSchState) {
+                  case INSTALLED:
+                    roleCommand = RoleCommand.STOP;
+                    event = new ServiceComponentHostStopEvent(
+                        scHost.getServiceComponentName(), scHost.getHostName(),
+                        nowTimestamp);
+                    break;
+                  case STARTED:
+                    roleCommand = RoleCommand.START;
+                    event = new ServiceComponentHostStartEvent(
+                        scHost.getServiceComponentName(), scHost.getHostName(),
+                        nowTimestamp);
+                    break;
+                  default:
+                    break;
+                }
+              }
+              
               if (null == requestParameters) {
                 requestParameters = new HashMap<String, String>();
               }
@@ -1913,7 +1936,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           }
         }
       }
-
+      
       for (String serviceName : smokeTestServices) { // Creates smoke test commands
         Service s = cluster.getService(serviceName);
         // find service component host
@@ -2194,7 +2217,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
       State oldSchState = sch.getState();
       // Client component reinstall allowed
-      if (newState == oldSchState && !sc.isClientComponent()) {
+      if (newState == oldSchState &&
+          !sc.isClientComponent() &&
+          !requestProperties.containsKey(sch.getServiceComponentName().toLowerCase())) {
+
         ignoredScHosts.add(sch);
         if (LOG.isDebugEnabled()) {
           LOG.debug("Ignoring ServiceComponentHost"

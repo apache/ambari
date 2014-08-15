@@ -10303,6 +10303,68 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals(1, resps.size());
   }
 
+  @Test
+  public void testTargetedProcessCommand() throws Exception {
+    final String host1 = "h1";
+    String clusterName = "c1";
+    setupClusterWithHosts(clusterName, "HDP-2.0.5", Arrays.asList(host1), "centos5");
+    String serviceName = "HDFS";
+    createService(clusterName, serviceName, null);
+    String componentName1 = "NAMENODE";
+
+    createServiceComponent(clusterName, serviceName, componentName1, State.INIT);
+
+    createServiceComponentHost(clusterName, serviceName, componentName1, host1, null);
+
+    // Install
+    installService(clusterName, serviceName, false, false);
+
+    // Create and attach config
+    // hdfs-site will not have config-attributes
+    Map<String, String> hdfsConfigs = new HashMap<String, String>();
+    hdfsConfigs.put("a", "b");
+    Map<String, Map<String, String>> hdfsConfigAttributes = new HashMap<String, Map<String, String>>() {
+      {
+        put("final", new HashMap<String, String>() {{put("a", "true");}});
+      }
+    };
+
+    ConfigurationRequest cr1 = new ConfigurationRequest(clusterName, "hdfs-site", "version1", hdfsConfigs, hdfsConfigAttributes);
+    ClusterRequest crReq1 = new ClusterRequest(null, clusterName, null, null);
+    crReq1.setDesiredConfig(cr1);
+
+    controller.updateClusters(Collections.singleton(crReq1), null);
+
+    // Start
+    startService(clusterName, serviceName, false, false);
+    
+    ServiceComponentHostRequest req = new ServiceComponentHostRequest(clusterName, serviceName,
+        componentName1, host1, "INSTALLED");
+
+    Map<String, String> requestProperties = new HashMap<String, String>();
+    requestProperties.put("namenode", "p1");
+    RequestStatusResponse resp = controller.updateHostComponents(Collections.singleton(req), requestProperties, false);
+
+    // succeed in creating a task
+    assertNotNull(resp);
+    
+    // manually change live state to stopped as no running action manager
+    for (ServiceComponentHost sch :
+      clusters.getCluster(clusterName).getServiceComponentHosts(host1)) {
+        sch.setState(State.INSTALLED);
+    }
+    
+    // no new commands since no targeted info
+    resp = controller.updateHostComponents(Collections.singleton(req), new HashMap<String, String>(), false);
+    assertNull(resp);
+    
+    // role commands added for targeted command
+    resp = controller.updateHostComponents(Collections.singleton(req), requestProperties, false);
+    assertNotNull(resp);
+    
+  }
+  
+  
 }
 
 
