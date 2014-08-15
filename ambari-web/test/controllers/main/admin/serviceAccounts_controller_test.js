@@ -18,12 +18,12 @@
 
 
 var App = require('app');
-require('controllers/main/admin/misc_controller');
+require('controllers/main/admin/serviceAccounts_controller');
 
 
-describe('App.MainAdminMiscController', function () {
+describe('App.MainAdminServiceAccountsController', function () {
 
-  var controller = App.MainAdminMiscController.create();
+  var controller = App.MainAdminServiceAccountsController.create();
 
   describe('#setContentProperty()', function () {
     var testCases = [

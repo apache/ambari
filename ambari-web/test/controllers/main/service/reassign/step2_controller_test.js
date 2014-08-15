@@ -38,16 +38,18 @@ describe('App.ReassignMasterWizardStep2Controller', function () {
 
     beforeEach(function () {
       sinon.stub(App.router, 'send', Em.K);
+      sinon.stub(controller, 'clearStep', Em.K);
       sinon.stub(controller, 'loadComponents', Em.K);
       sinon.stub(controller, 'loadStepCallback', Em.K);
       sinon.stub(controller, 'rebalanceSingleComponentHosts', Em.K);
     });
 
     afterEach(function () {
-      controller.rebalanceSingleComponentHosts.restore();
       App.router.send.restore();
+      controller.clearStep.restore();
       controller.loadStepCallback.restore();
       controller.loadComponents.restore();
+      controller.rebalanceSingleComponentHosts.restore();
     });
 
     it('SECONDARY_NAMENODE is absent, reassign component is NAMENODE', function () {

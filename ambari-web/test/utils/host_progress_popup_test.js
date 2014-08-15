@@ -335,37 +335,32 @@ describe('App.HostPopup', function () {
   });
 
   describe('#abortRequest', function () {
+    var popup;
     beforeEach(function () {
       sinon.stub(App.ajax, 'send', Em.K);
       sinon.spy(App, 'showConfirmationPopup');
-      App.HostPopup.createPopup();
     });
     afterEach(function () {
-      App.HostPopup.get('isPopup').hide();
       App.ajax.send.restore();
       App.showConfirmationPopup.restore();
     });
     it('should show confirmation popup', function () {
-      App.HostPopup.get('isPopup.bodyClass').create().abortRequest({
-        context: Em.Object.create({
-          name: 'name'
-        })
-      });
+      App.HostPopup.abortRequest(Em.Object.create({
+        name: 'name'
+      }));
       expect(App.showConfirmationPopup.calledOnce).to.be.true;
     });
   });
 
   describe('#abortRequestSuccessCallback', function () {
     beforeEach(function () {
-      App.HostPopup.createPopup();
       sinon.spy(App.ModalPopup, 'show');
     });
     afterEach(function () {
-      App.HostPopup.get('isPopup').hide();
       App.ModalPopup.show.restore();
     });
     it('should open popup', function () {
-      App.HostPopup.get('isPopup.bodyClass').create().abortRequestSuccessCallback(null, null, {
+      App.HostPopup.abortRequestSuccessCallback(null, null, {
         requestName: 'name'
       });
       expect(App.ModalPopup.show.calledOnce).to.be.true;
@@ -373,18 +368,17 @@ describe('App.HostPopup', function () {
   });
 
   describe('#abortRequestErrorCallback', function () {
-    var popup = App.HostPopup.createPopup();
+    var popup = App.HostPopup;
     beforeEach(function () {
       sinon.stub(App.ajax, 'get', function(k) {
         if (k === 'modalPopup') return null;
         return Em.get(App, k);
       });
       sinon.spy(App.ModalPopup, 'show');
-      sinon.stub(popup, 'get', function(k) {
-        if (k === 'abortedRequests') return [0];
-        return Em.get(popup, k);
-      });
-      popup.get('bodyClass').create().abortRequestErrorCallback({
+      popup.set('controller', Em.Object.create({
+        abortedRequests: [0]
+      }));
+      popup.abortRequestErrorCallback({
         responseText: {
           message: 'message'
         },
@@ -396,9 +390,7 @@ describe('App.HostPopup', function () {
       });
     });
     afterEach(function () {
-      App.HostPopup.get('isPopup').hide();
       App.ModalPopup.show.restore();
-      popup.get.restore();
       App.ajax.get.restore();
     });
     it('should open popup', function () {

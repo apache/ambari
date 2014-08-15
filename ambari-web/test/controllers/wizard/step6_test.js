@@ -436,7 +436,7 @@ describe('App.WizardStep6Controller', function () {
           return test.r
         });
         controller.set('content.controllerName', test.controllerName);
-        expect(controller.validate()).to.equal(test.e);
+        expect(controller.callClientSideValidation()).to.equal(test.e);
         controller[test.method].restore();
       });
     });

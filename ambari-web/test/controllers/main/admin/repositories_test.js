@@ -18,10 +18,10 @@
 
 
 var App = require('app');
-require('controllers/main/admin/cluster');
+require('controllers/main/admin/repositories');
 
 
-describe('App.MainAdminClusterController', function () {
+describe('App.MainAdminRepositoriesController', function() {
 
   var data = {
     "items": [
@@ -68,7 +68,7 @@ describe('App.MainAdminClusterController', function () {
   describe('#updateUpgradeVersionSuccessCallback()', function () {
     it('upgrade version of stack should be "HDP-1.2.2"', function () {
       App.set('currentStackVersion', 'HDP-1.2.2');
-      var controller = App.MainAdminClusterController.create({
+      var controller = App.MainAdminRepositoriesController.create({
         parseServicesInfo: Em.K
       });
       controller.updateUpgradeVersionSuccessCallback.call(controller, data);
@@ -77,7 +77,7 @@ describe('App.MainAdminClusterController', function () {
     it('if min upgrade version less then current then upgrade version equal current', function () {
       App.set('currentStackVersion', 'HDP-1.2.2');
       data.items[0].Versions.min_upgrade_version = "1.2.3";
-      var controller = App.MainAdminClusterController.create({
+      var controller = App.MainAdminRepositoriesController.create({
         parseServicesInfo: Em.K
       });
       controller.updateUpgradeVersionSuccessCallback.call(controller, data);

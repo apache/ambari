@@ -1358,7 +1358,11 @@ describe('App.MainHostDetailsController', function () {
   describe('#downloadClientConfigs()', function () {
 
     beforeEach(function () {
-      sinon.spy($, 'fileDownload');
+      sinon.stub($, 'fileDownload', function() {
+        return {
+          fail: function() { return false; }
+        }
+      });
     });
     afterEach(function () {
       $.fileDownload.restore();
