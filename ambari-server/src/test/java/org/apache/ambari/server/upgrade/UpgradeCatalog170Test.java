@@ -36,6 +36,8 @@ import static org.easymock.EasyMock.verify;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -110,9 +112,20 @@ public class UpgradeCatalog170Test {
   public void testExecuteDDLUpdates() throws Exception {
 
     final DBAccessor dbAccessor = createNiceMock(DBAccessor.class);
+    Connection connection = createNiceMock(Connection.class);
+    PreparedStatement stmt = createNiceMock(PreparedStatement.class);
     Configuration configuration = createNiceMock(Configuration.class);
     ResultSet resultSet = createNiceMock(ResultSet.class);
     expect(configuration.getDatabaseUrl()).andReturn(Configuration.JDBC_IN_MEMORY_URL).anyTimes();
+    expect(dbAccessor.getNewConnection()).andReturn(connection);
+    expect(connection.prepareStatement("SELECT config_id FROM clusterconfig " +
+      "WHERE type_name = ? ORDER BY create_timestamp")).andReturn(stmt);
+    expect(connection.prepareStatement("UPDATE clusterconfig SET version = ? " +
+      "WHERE config_id = ?")).andReturn(stmt);
+    stmt.close();
+    expectLastCall().times(2);
+    connection.close();
+    expectLastCall();
 
     Capture<DBAccessor.DBColumnInfo> clusterConfigAttributesColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
     Capture<DBAccessor.DBColumnInfo> maskColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
@@ -170,7 +183,7 @@ public class UpgradeCatalog170Test {
     resultSet.close();
     expectLastCall().anyTimes();
 
-    replay(dbAccessor, configuration, resultSet);
+    replay(dbAccessor, configuration, resultSet, connection, stmt);
     AbstractUpgradeCatalog upgradeCatalog = getUpgradeCatalog(dbAccessor);
     Class<?> c = AbstractUpgradeCatalog.class;
     Field f = c.getDeclaredField("configuration");
@@ -178,7 +191,7 @@ public class UpgradeCatalog170Test {
     f.set(upgradeCatalog, configuration);
 
     upgradeCatalog.executeDDLUpdates();
-    verify(dbAccessor, configuration, resultSet);
+    verify(dbAccessor, configuration, resultSet, connection, stmt);
 
     assertClusterConfigColumns(clusterConfigAttributesColumnCapture);
     assertViewColumns(maskColumnCapture);
