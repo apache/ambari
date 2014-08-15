@@ -21,7 +21,7 @@
     {{#if view.parentView.isLoaded}}
     {{!-- SERVICES --}}
 
-    <div {{bindAttr class="view.isServiceListHidden:hidden :task-list-main-warp"}}>
+    <div {{bindAttr class="view.parentView.isServiceListHidden:hidden :task-list-main-warp"}}>
       <div class="task-top-wrap">
         <div class="operation-name-top">{{t common.operations}}</div>
         <div class="start-time-top">{{t common.startTime}}</div>
@@ -44,13 +44,15 @@
             <div {{bindAttr class="servicesInfo.isVisible::hidden :log-list-wrap"}}>
               <div {{action gotoHosts servicesInfo}} class="task-list-line-cursor">
                 <div class="operation-name-icon-wrap">
-                  <i {{bindAttr class=":service-status servicesInfo.status servicesInfo.icon"}}></i>
-                  {{#if App.supports.abortRequests}}
-                    <i {{action abortRequest servicesInfo}} {{translateAttr title="hostPopup.bgop.abortRequest.title"}} {{bindAttr class="servicesInfo.abortClassName servicesInfo.abortable:abortable :abort-icon :icon-remove-circle :hidden"}}></i>
-                  {{/if}}
+                  {{view statusIcon servicesInfoBinding="servicesInfo"}}
                   <a href="#">
                     {{servicesInfo.name}}
                   </a>
+                  {{#if App.supports.abortRequests}}
+                    {{#if servicesInfo.abortable}}
+                        {{view abortIcon servicesInfoBinding="servicesInfo"}}
+                    {{/if}}
+                  {{/if}}
                 </div>
                 <div class="time-summary start-time-text">{{servicesInfo.startTime}}</div>
                 <div class="time-summary duration-text">{{servicesInfo.duration}}</div>
@@ -74,7 +76,7 @@
 
   {{!-- HOSTS ---}}
 
-  <div {{bindAttr class="view.isHostListHidden:hidden :task-list-main-warp"}}>
+  <div {{bindAttr class="view.parentView.isHostListHidden:hidden :task-list-main-warp"}}>
     <div class="task-top-wrap">
       {{#if controller.isBackgroundOperations}}
         <a class="task-detail-back-to-hosts" href="javascript:void(null)" {{action backToServiceList}} >
@@ -117,7 +119,7 @@
                 <div {{bindAttr class="hostInfo.isVisible::hidden :log-list-wrap"}}>
                     <div {{action gotoTasks hostInfo}} class="task-list-line-cursor">
                         <div class="host-name-icon-wrap">
-                            <i {{bindAttr class="hostInfo.status hostInfo.icon"}}></i>
+                          {{view statusIcon servicesInfoBinding="hostInfo"}}
                             <a href="#">
                               {{hostInfo.displayName}}
                             </a>
@@ -142,7 +144,7 @@
 
   {{!-- TASKS ---}}
 
-  <div {{bindAttr class="view.isTaskListHidden:hidden :task-list-main-warp"}}>
+  <div {{bindAttr class="view.parentView.isTaskListHidden:hidden :task-list-main-warp"}}>
     <div class="task-top-wrap">
       <a class="task-detail-back-to-hosts" href="javascript:void(null)" {{action backToHostList}} ><i class="icon-arrow-left"></i>&nbsp;{{t common.hosts}}</a>
       <div class="task-name-top task-detail-log-rolename">{{t common.tasks}}</div>
@@ -164,7 +166,7 @@
           <div {{bindAttr class="taskInfo.isVisible::hidden :log-list-wrap"}}>
             <div {{action toggleTaskLog taskInfo}} class="task-list-line-cursor">
               <div class="operation-name-icon-wrap">
-                <i {{bindAttr class="taskInfo.status taskInfo.icon"}}></i>
+                {{view statusIcon servicesInfoBinding="taskInfo"}}
                 <a href="#">
                   {{taskInfo.commandDetail}}
                 </a>
@@ -180,7 +182,7 @@
 
   <!-- TASK DETAILS --->
 
-  <div {{bindAttr class="view.isLogWrapHidden:hidden :task-detail-info"}}>
+  <div {{bindAttr class="view.parentView.isLogWrapHidden:hidden :task-detail-info"}}>
     <div class="task-top-wrap">
       <a class="task-detail-back" href="javascript:void(null)" {{action backToTaskList}} ><i class="icon-arrow-left"></i>&nbsp;{{t common.tasks}}</a>
       <div>

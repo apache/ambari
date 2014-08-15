@@ -47,6 +47,7 @@ App.HostPopup = Em.Object.create({
    */
   popupHeaderName: "",
 
+  operationInfo: null,
   /**
    * @type {App.Controller}
    */
@@ -73,6 +74,76 @@ App.HostPopup = Em.Object.create({
    */
   abortedRequests: [],
 
+  abortIcon: Em.View.extend({
+    tagName: 'i',
+    classNames: ['abortable', 'abort-icon', 'icon-remove-circle'],
+    classNameBindings: ['abortClassName'],
+    abortClassName: function () {
+      return this.get('servicesInfo.abortable') ? this.get('servicesInfo.abortClassName') : 'hidden';
+    }.property('servicesInfo'),
+    click: function () {
+      this.get('controller').abortRequest(this.get('servicesInfo'));
+      return false;
+    },
+    didInsertElement: function () {
+      App.tooltip($(this.get('element')), {
+        placement: "top",
+        title: Em.I18n.t('hostPopup.bgop.abortRequest.title')
+      });
+    }
+  }),
+
+  statusIcon: Em.View.extend({
+    tagName: 'i',
+    classNames: ["service-status"],
+    classNameBindings: ['servicesInfo.status', 'servicesInfo.icon', 'additionalClass'],
+    attributeBindings: ['data-original-title'],
+    'data-original-title': function() {
+      return this.get('servicesInfo.status') == 'aborted' ? Em.I18n.t('hostPopup.abortedOperation.icon.tooltip') : ""
+    }.property('servicesInfo.status'),
+    didInsertElement: function () {
+      App.tooltip($(this.get('element')));
+    }
+  }),
+
+  /**
+   * Send request to abort operation
+   */
+  abortRequest: function (serviceInfo) {
+    var requestName = serviceInfo.get('name');
+    var self = this;
+    App.showConfirmationPopup(function () {
+      var requestId = serviceInfo.get('id');
+      self.get('abortedRequests').push(requestId);
+      App.ajax.send({
+        name: 'background_operations.abort_request',
+        sender: self,
+        data: {
+          requestId: requestId,
+          requestName: requestName
+        },
+        success: 'abortRequestSuccessCallback',
+        error: 'abortRequestErrorCallback'
+      });
+    }, Em.I18n.t('hostPopup.bgop.abortRequest.confirmation.body').format(requestName));
+    return false;
+  },
+
+  /**
+   * Method called on successful sending request to abort operation
+   */
+  abortRequestSuccessCallback: function (response, request, data) {
+    App.showAlertPopup(Em.I18n.t('hostPopup.bgop.abortRequest.modal.header'), Em.I18n.t('hostPopup.bgop.abortRequest.modal.body').format(data.requestName));
+  },
+
+  /**
+   * Method called on unsuccessful sending request to abort operation
+   */
+  abortRequestErrorCallback: function (xhr, textStatus, error, opt, data) {
+    var abortedRequests = this.get('controller.abortedRequests');
+    this.set('controller.abortedRequests', abortedRequests.without(data.requestId));
+    App.ajax.defaultErrorHandler(xhr, opt.url, 'PUT', xhr.status);
+  },
   /**
    * Entering point of this component
    * @param {String} serviceName
@@ -462,6 +533,14 @@ App.HostPopup = Em.Object.create({
         self.set('previousServiceId', this.get('currentServiceId'));
       }
     }
+    if (App.get('supports.abortRequests')) {
+      var operation = this.get('servicesInfo') && this.get('servicesInfo').findProperty('name', this.get('serviceName'));
+      if (!operation || (operation && operation.get('progress') == 100)) {
+        this.set('operationInfo', null);
+      } else {
+        this.set('operationInfo', operation);
+      }
+    }
   },
 
   /**
@@ -483,6 +562,11 @@ App.HostPopup = Em.Object.create({
     });
     self.set('isPopup', App.ModalPopup.show({
 
+      isLogWrapHidden: true,
+      isTaskListHidden: true,
+      isHostListHidden: true,
+      isServiceListHidden: false,
+
       isHideBodyScroll: true,
       /**
        * no need to track is it loaded when popup contain only list of hosts
@@ -497,27 +581,6 @@ App.HostPopup = Em.Object.create({
       isOpen: false,
 
       didInsertElement: function(){
-        if (App.get('supports.abortRequests')) {
-          $(document).on({
-            mouseenter: function () {
-              var statusIcon = $(this).find('.service-status');
-              var abortIcon = $(this).find('.abort-icon.abortable');
-              if (abortIcon.length > 0) {
-                var id = parseInt(abortIcon.attr('class').split(' ')[0].match(/\d+/)[0]);
-                var abortedRequests = self.get('abortedRequests');
-                if (!(abortedRequests && abortedRequests.contains(id))) {
-                  App.tooltip($('.abort-icon'));
-                  statusIcon.addClass('hidden');
-                  abortIcon.removeClass('hidden');
-                }
-              }
-            },
-            mouseleave: function () {
-              $(this).find('.abort-icon').addClass('hidden');
-              $(this).find('.service-status').removeClass('hidden');
-            }
-          }, '#service-info .log-list-wrap');
-        }
         this._super();
         this.set('isOpen', true);
       },
@@ -527,7 +590,10 @@ App.HostPopup = Em.Object.create({
        */
       headerClass: Em.View.extend({
         controller: this,
-        template: Ember.Handlebars.compile('{{popupHeaderName}}')
+        template: Ember.Handlebars.compile('{{popupHeaderName}} ' +
+            '{{#if App.supports.abortRequests}}{{#unless view.parentView.isHostListHidden}}' +
+            '{{view controller.abortIcon servicesInfoBinding="controller.operationInfo"}}' +
+            '{{/unless}}{{/if}}')
       }),
 
       /**
@@ -579,10 +645,6 @@ App.HostPopup = Em.Object.create({
 
       bodyClass: App.TableView.extend({
         templateName: require('templates/common/host_progress_popup'),
-        isLogWrapHidden: true,
-        isTaskListHidden: true,
-        isHostListHidden: true,
-        isServiceListHidden: false,
         showTextArea: false,
         isServiceEmptyList: true,
         isTasksEmptyList: true,
@@ -653,8 +715,8 @@ App.HostPopup = Em.Object.create({
             this.get('controller').setSelectCount(this.get("services"), this.get('categories'));
             this.updateHostInfo();
           } else {
-            this.set("isHostListHidden", false);
-            this.set("isServiceListHidden", true);
+            this.set("parentView.isHostListHidden", false);
+            this.set("parentView.isServiceListHidden", true);
           }
         },
 
@@ -663,10 +725,10 @@ App.HostPopup = Em.Object.create({
          */
         resetState: function(){
           if(this.get('parentView.isOpen')){
-            this.set('isLogWrapHidden', true);
-            this.set('isTaskListHidden', true);
-            this.set('isHostListHidden', true);
-            this.set('isServiceListHidden', false);
+            this.set('parentView.isLogWrapHidden', true);
+            this.set('parentView.isTaskListHidden', true);
+            this.set('parentView.isHostListHidden', true);
+            this.set('parentView.isServiceListHidden', false);
             this.get("controller").setBackgroundOperationHeader(false);
             this.setOnStart();
           }
@@ -679,7 +741,7 @@ App.HostPopup = Em.Object.create({
           if(!this.get('parentView.isOpen')) return;
           this.set('parentView.isLoaded', false);
           this.get("controller").set("inputData", this.get("controller.dataSourceController.services"));
-          this.get("controller").onServiceUpdate(this.get('isServiceListHidden'));
+          this.get("controller").onServiceUpdate(this.get('parentView.isServiceListHidden'));
           this.get("controller").onHostUpdate();
           this.set('parentView.isLoaded', true);
           this.set("hosts", this.get("controller.hosts"));
@@ -762,17 +824,17 @@ App.HostPopup = Em.Object.create({
          */
         updateSelectView: function () {
           var isPaginate;
-          if (!this.get('isHostListHidden')) {
+          if (!this.get('parentView.isHostListHidden')) {
             //since lazy loading used for hosts, we need to get hosts info directly from controller, that always contains entire array of data
             this.get('controller').setSelectCount(this.get("controller.hosts"), this.get('categories'));
             isPaginate = true;
-          } else if (!this.get('isTaskListHidden')) {
+          } else if (!this.get('parentView.isTaskListHidden')) {
             this.get('controller').setSelectCount(this.get("tasks"), this.get('categories'));
-          } else if (!this.get('isServiceListHidden')) {
+          } else if (!this.get('parentView.isServiceListHidden')) {
             this.get('controller').setSelectCount(this.get("services"), this.get('categories'));
           }
           this.set('isPaginate', !!isPaginate);
-        }.observes('tasks.@each.status', 'hosts.@each.status', 'isTaskListHidden', 'isHostListHidden', 'services.length', 'services.@each.status'),
+        }.observes('tasks.@each.status', 'hosts.@each.status', 'parentView.isTaskListHidden', 'parentView.isHostListHidden', 'services.length', 'services.@each.status'),
 
         /**
          * control data uploading, depending on which display level is showed
@@ -817,8 +879,8 @@ App.HostPopup = Em.Object.create({
         backToTaskList: function () {
           this.destroyClipBoard();
           this.set("openedTaskId", 0);
-          this.set("isLogWrapHidden", true);
-          this.set("isTaskListHidden", false);
+          this.set("parentView.isLogWrapHidden", true);
+          this.set("parentView.isTaskListHidden", false);
           this.switchLevel("TASKS_LIST");
         },
 
@@ -826,9 +888,12 @@ App.HostPopup = Em.Object.create({
          * Onclick handler for button <-Hosts
          */
         backToHostList: function () {
-          this.set("isHostListHidden", false);
-          this.set("isTaskListHidden", true);
+          this.set("parentView.isHostListHidden", false);
+          this.set("parentView.isTaskListHidden", true);
           this.get("controller").set("popupHeaderName", this.get("controller.serviceName"));
+          if (App.get('supports.abortRequests')) {
+            this.get("controller").set("operationInfo", this.get('controller.servicesInfo').findProperty('name', this.get('controller.serviceName')));
+          }
           this.switchLevel("HOSTS_LIST");
         },
 
@@ -837,10 +902,10 @@ App.HostPopup = Em.Object.create({
          */
         backToServiceList: function () {
           this.get("controller").set("serviceName", "");
-          this.set("isHostListHidden", true);
-          this.set("isServiceListHidden", false);
-          this.set("isTaskListHidden", true);
-          this.set("isLogWrapHidden", true);
+          this.set("parentView.isHostListHidden", true);
+          this.set("parentView.isServiceListHidden", false);
+          this.set("parentView.isTaskListHidden", true);
+          this.set("parentView.isLogWrapHidden", true);
           this.set("hosts", null);
           this.get("controller").setBackgroundOperationHeader(false);
           this.switchLevel("REQUESTS_LIST");
@@ -874,8 +939,9 @@ App.HostPopup = Em.Object.create({
           this.get("controller").onHostUpdate();
           this.switchLevel("HOSTS_LIST");
           var servicesInfo = this.get("controller.hosts");
-          if (servicesInfo.length) {
-            this.get("controller").set("popupHeaderName", event.context.get("name"));
+          this.set("controller.popupHeaderName", event.context.get("name"));
+          if (App.get('supports.abortRequests')) {
+            this.set("controller.operationInfo", event.context);
           }
           //apply lazy loading on cluster with more than 100 nodes
           if (servicesInfo.length > 100) {
@@ -883,8 +949,9 @@ App.HostPopup = Em.Object.create({
           } else {
             this.set('hosts', servicesInfo);
           }
-          this.set("isServiceListHidden", true);
-          this.set("isHostListHidden", false);
+          this.set("parentView.isServiceListHidden", true);
+          this.set("parentView.isHostListHidden", false);
+          this.set("parentView.isTaskListHidden", true);
           $(".modal").scrollTop(0);
           $(".modal-body").scrollTop(0);
           if (servicesInfo.length > 100) {
@@ -970,8 +1037,8 @@ App.HostPopup = Em.Object.create({
           }
           this.switchLevel("TASKS_LIST");
           this.set('currentHost.tasks', tasksInfo);
-          this.set("isHostListHidden", true);
-          this.set("isTaskListHidden", false);
+          this.set("parentView.isHostListHidden", true);
+          this.set("parentView.isTaskListHidden", false);
           $(".modal").scrollTop(0);
           $(".modal-body").scrollTop(0);
         },
@@ -1020,55 +1087,16 @@ App.HostPopup = Em.Object.create({
          */
         toggleTaskLog: function (event) {
           var taskInfo = event.context;
-          this.set("isLogWrapHidden", false);
+          this.set("parentView.isLogWrapHidden", false);
           if ($(".task-detail-log-clipboard").length > 0) {
             this.destroyClipBoard();
           }
-          this.set("isHostListHidden", true);
-          this.set("isTaskListHidden", true);
+          this.set("parentView.isHostListHidden", true);
+          this.set("parentView.isTaskListHidden", true);
           this.set('openedTaskId', taskInfo.id);
           this.switchLevel("TASK_DETAILS");
           $(".modal").scrollTop(0);
           $(".modal-body").scrollTop(0);
-        },
-
-        /**
-         * Send request to abort operation
-         */
-        abortRequest: function (event) {
-          var requestName = event.context.get('name');
-          var self = this;
-          App.showConfirmationPopup(function () {
-            var requestId = event.context.get('id');
-            self.get('controller.abortedRequests').push(requestId);
-            App.ajax.send({
-              name: 'background_operations.abort_request',
-              sender: self,
-              data: {
-                requestId: event.context.get('id'),
-                requestName: requestName
-              },
-              success: 'abortRequestSuccessCallback',
-              error: 'abortRequestErrorCallback'
-            });
-          }, Em.I18n.t('hostPopup.bgop.abortRequest.confirmation.body').format(requestName));
-          return false;
-        },
-
-        /**
-         * Method called on successful sending request to abort operation
-         */
-        abortRequestSuccessCallback: function (response, request, data) {
-          App.showAlertPopup(Em.I18n.t('hostPopup.bgop.abortRequest.modal.header'), Em.I18n.t('hostPopup.bgop.abortRequest.modal.body').format(data.requestName));
-        },
-
-        /**
-         * Method called on unsuccessful sending request to abort operation
-         */
-        abortRequestErrorCallback: function (xhr, textStatus, error, opt, data) {
-          var abortedRequests = this.get('controller.abortedRequests');
-          this.set('controller.abortedRequests', abortedRequests.without(data.requestId));
-          App.ajax.defaultErrorHandler(xhr, opt.url, 'PUT', xhr.status);
         },
 
         /**
