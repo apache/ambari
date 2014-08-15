@@ -19,6 +19,8 @@
 var App = require('app');
 var db = require('utils/db');
 var stringUtils = require('utils/string_utils');
+var blueprintUtils = require('utils/blueprint');
+var validationUtils = require('utils/validator');
 
 /**
  * By Step 6, we have the following information stored in App.db and set on this
@@ -58,6 +60,12 @@ App.WizardStep6Controller = Em.Controller.extend({
   isLoaded: false,
 
   /**
+   * Define state for submit button
+   * @type {bool}
+   */
+  submitDisabled: true,
+
+  /**
    * Check if <code>addHostWizard</code> used
    * @type {bool}
    */
@@ -84,6 +92,16 @@ App.WizardStep6Controller = Em.Controller.extend({
   installedServiceNames: function () {
     return this.get('content.services').filterProperty('isInstalled').mapProperty('serviceName');
   }.property('content.services').cacheable(),
+
+  /**
+   * Validation error messages which don't related with any master
+   */
+  generalErrorMessages: [],
+
+  /**
+   * Validation warning messages which don't related with any master
+   */
+  generalWarningMessages: [],
 
   /**
    * Verify condition that at least one checkbox of each component was checked
@@ -149,6 +167,7 @@ App.WizardStep6Controller = Em.Controller.extend({
     var name = Em.get(event, 'context.name');
     if (name) {
       this.setAllNodes(name, true);
+      this.callValidation();
     }
   },
 
@@ -161,6 +180,7 @@ App.WizardStep6Controller = Em.Controller.extend({
     var name = Em.get(event, 'context.name');
     if (name) {
       this.setAllNodes(name, false);
+      this.callValidation();
     }
   },
 
@@ -251,6 +271,8 @@ App.WizardStep6Controller = Em.Controller.extend({
     this.render();
     if (this.get('content.skipSlavesStep')) {
       App.router.send('next');
+    } else {
+      this.callValidation();
     }
   },
 
@@ -365,7 +387,6 @@ App.WizardStep6Controller = Em.Controller.extend({
 
         var clientComponents = App.get('components.clients');
 
-
         hostsObj.forEach(function (host) {
           var checkboxes = host.get('checkboxes');
           checkboxes.forEach(function (checkbox) {
@@ -448,14 +469,249 @@ App.WizardStep6Controller = Em.Controller.extend({
     return this.get('content.masterComponentHosts').filterProperty('hostName', hostName).mapProperty('component');
   },
 
+  callValidation: function(successCallback) {
+    var self = this;
+    if (App.supports.serverRecommendValidate) {
+      self.callServerSideValidation(successCallback);
+    } else {
+      var res = self.callClientSideValidation();
+      self.set('submitDisabled', !res);
+      if (res && successCallback) {
+        successCallback();
+      }
+    }
+  },
 
   /**
-   * Validate form. Return do we have errors or not
-   * @return {bool}
-   * @method validate
+   * Update submit button status
+   * @metohd callServerSideValidation
    */
-  validate: function () {
+  callServerSideValidation: function (successCallback) {
+    var self = this;
+    self.set('submitDisabled', true);
 
+    var selectedServices = App.StackService.find().filterProperty('isSelected').mapProperty('serviceName');
+    var installedServices = App.StackService.find().filterProperty('isInstalled').mapProperty('serviceName');
+    var services = installedServices.concat(selectedServices).uniq();
+
+    var hostNames = self.get('hosts').mapProperty('hostName');
+    var slaveBlueprint = self.getCurrentBlueprint();
+    var masterBlueprint = null;
+    var invisibleSlaves = App.StackServiceComponent.find().filterProperty("isSlave").filterProperty("isShownOnInstallerSlaveClientPage", false).mapProperty("componentName");
+
+    if (this.get('isInstallerWizard') || this.get('isAddServiceWizard')) {
+      masterBlueprint = App.router.get('wizardStep5Controller').getCurrentBlueprint();
+
+      var invisibleMasters = [];
+      if (this.get('isInstallerWizard')) {
+        invisibleMasters = App.StackServiceComponent.find().filterProperty("isMaster").filterProperty("isShownOnInstallerAssignMasterPage", false).mapProperty("componentName");
+      } else if (this.get('isAddServiceWizard')) {
+        invisibleMasters = App.StackServiceComponent.find().filterProperty("isMaster").filterProperty("isShownOnAddServiceAssignMasterPage", false).mapProperty("componentName");
+      }
+
+      var selectedClientComponents = self.get('content.clients').mapProperty('component_name');
+      var alreadyInstalledClients = App.get('components.clients').reject(function(c) {
+        return selectedClientComponents.contains(c);
+      });
+
+      var invisibleComponents = invisibleMasters.concat(invisibleSlaves).concat(alreadyInstalledClients);
+
+      var invisibleBlueprint = blueprintUtils.filterByComponents(App.router.get('installerController.recommendations'), invisibleComponents);
+      masterBlueprint = blueprintUtils.mergeBlueprints(masterBlueprint, invisibleBlueprint);
+    } else if (this.get('isAddHostWizard')) {
+      masterBlueprint = self.getMasterSlaveBlueprintForAddHostWizard();
+      hostNames = hostNames.concat(App.Host.find().mapProperty("hostName")).uniq();
+      slaveBlueprint = blueprintUtils.addComponentsToBlueprint(slaveBlueprint, invisibleSlaves);
+    }
+
+    App.ajax.send({
+      name: 'config.validations',
+      sender: self,
+      data: {
+        stackVersionUrl: App.get('stackVersionURL'),
+        hosts: hostNames,
+        services: services,
+        validate: 'host_groups',
+        recommendations: blueprintUtils.mergeBlueprints(masterBlueprint, slaveBlueprint)
+      },
+      success: 'updateValidationsSuccessCallback'
+    }).
+      retry({
+        times: App.maxRetries,
+        timeout: App.timeout
+      }).
+      then(function() {
+        if (!self.get('submitDisabled') && successCallback) {
+          successCallback();
+        }
+      }, function () {
+        App.showReloadPopup();
+        console.log('Load validations failed');
+      }
+    );
+  },
+
+  /**
+   * Success-callback for validations request
+   * @param {object} data
+   * @method updateValidationsSuccessCallback
+   */
+  updateValidationsSuccessCallback: function (data) {
+    var self = this;
+    //data = JSON.parse(data); // temporary fix
+
+    var clientComponents = App.get('components.clients');
+
+    this.set('generalErrorMessages', []);
+    this.set('generalWarningMessages', []);
+    this.get('hosts').setEach('warnMessages', []);
+    this.get('hosts').setEach('errorMessages', []);
+    this.get('hosts').setEach('anyMessage', false);
+    this.get('hosts').forEach(function(host) {
+      host.checkboxes.setEach('hasWarnMessage', false);
+      host.checkboxes.setEach('hasErrorMessage', false);
+    });
+    var anyErrors = false;
+    var anyGeneralClientErrors = false; // any error/warning for any client component (under "CLIENT" alias)
+
+    var validationData = validationUtils.filterNotInstalledComponents(data);
+    validationData.filterProperty('type', 'host-component').forEach(function(item) {
+      var checkboxWithIssue = null;
+      var isGeneralClientValidationItem = clientComponents.contains(item['component-name']); // it is an error/warning for any client component (under "CLIENT" alias)
+      var host = self.get('hosts').find(function(h) {
+        return h.hostName === item.host && h.checkboxes.some(function(checkbox) {
+          var isClientComponent = checkbox.component === "CLIENT" && isGeneralClientValidationItem;
+          if (checkbox.component === item['component-name'] || isClientComponent) {
+            checkboxWithIssue = checkbox;
+            return true;
+          } else {
+            return false;
+          }
+        });
+      });
+      if (host) {
+        host.set('anyMessage', true);
+
+        if (item.level === 'ERROR') {
+          anyErrors = true;
+          host.get('errorMessages').push(item.message);
+          checkboxWithIssue.set('hasErrorMessage', true);
+        } else if (item.level === 'WARN') {
+          host.get('warnMessages').push(item.message);
+          checkboxWithIssue.set('hasWarnMessage', true);
+        }
+      } else {
+        var component;
+        if (isGeneralClientValidationItem) {
+          if (!anyGeneralClientErrors) {
+            anyGeneralClientErrors = true;
+            component = "Client";
+          }
+        } else {
+          component = item['component-name'];
+        }
+
+        if (component || !item['component-name']) {
+          var details = "";
+          if (component) {
+            details += " for " + component + " component";
+          }
+          if (item.host) {
+            details += " " + item.host;
+          }
+
+          if (item.level === 'ERROR') {
+            anyErrors = true;
+            self.get('generalErrorMessages').push(item.message + details);
+          } else if (item.level === 'WARN') {
+            self.get('generalWarningMessages').push(item.message + details);
+          }
+        }
+      }
+    });
+
+    this.set('submitDisabled', anyErrors);
+  },
+
+  /**
+   * Composes selected values of comboboxes into blueprint format
+   */
+  getCurrentBlueprint: function() {
+    var self = this;
+
+    var res = {
+      blueprint: { host_groups: [] },
+      blueprint_cluster_binding: { host_groups: [] }
+    };
+
+    var clientComponents = self.get('content.clients').mapProperty('component_name');
+    var mapping = self.get('hosts');
+
+    var i = 0;
+    mapping.forEach(function(item) {
+      i += 1;
+      var group_name = 'host-group-' + i;
+
+      var host_group = {
+        name: group_name,
+        components: item.checkboxes.filterProperty('checked', true).map(function(checkbox) {
+          if (checkbox.component === "CLIENT") {
+            return clientComponents.map(function(client) {
+              return { name: client };
+            });
+          } else {
+            return { name: checkbox.component };
+          }
+        })
+      };
+
+      host_group.components = [].concat.apply([], host_group.components);
+
+      var binding = {
+        name: group_name,
+        hosts: [ { fqdn: item.hostName } ]
+      }
+
+      res.blueprint.host_groups.push(host_group);
+      res.blueprint_cluster_binding.host_groups.push(binding);
+    });
+
+    return res;
+  },
+
+  getMasterSlaveBlueprintForAddHostWizard: function() {
+    var components = App.HostComponent.find();
+    var hosts = components.mapProperty("hostName").uniq();
+
+    var res = {
+      blueprint: { host_groups: [] },
+      blueprint_cluster_binding: { host_groups: [] }
+    };
+
+    var i = 0;
+    hosts.forEach(function(host) {
+      i += 1;
+      var group_name = 'host-group-' + i;
+
+      res.blueprint.host_groups.push({
+        name: group_name,
+        components: components.filterProperty("hostName", host).mapProperty("componentName").map(function(c) { return { name: c }; })
+      });
+
+      res.blueprint_cluster_binding.host_groups.push({
+        name: group_name,
+        hosts: [ { fqdn: host } ]
+      });
+    });
+    return res;
+  },
+
+  /**
+   * callClientSideValidation form. Return do we have errors or not
+   * @return {bool}
+   * @method callClientSideValidation
+   */
+  callClientSideValidation: function () {
     if (this.get('isAddHostWizard')) {
       return this.validateEachHost(Em.I18n.t('installer.step6.error.mustSelectOneForHost'));
     }
@@ -546,5 +802,4 @@ App.WizardStep6Controller = Em.Controller.extend({
 
     return !isError;
   }
-
 });

@@ -18,6 +18,7 @@
 
 var App = require('app');
 var numberUtils = require('utils/number_utils');
+var validationUtils = require('utils/validator');
 
 App.WizardStep5Controller = Em.Controller.extend({
 
@@ -130,6 +131,16 @@ App.WizardStep5Controller = Em.Controller.extend({
   isLoaded: false,
 
   /**
+   * Validation error messages which don't related with any master
+   */
+  generalErrorMessages: [],
+
+  /**
+   * Validation warning messages which don't related with any master
+   */
+  generalWarningMessages: [],
+
+  /**
    * List of host with assigned masters
    * Format:
    * <code>
@@ -185,15 +196,154 @@ App.WizardStep5Controller = Em.Controller.extend({
 
   /**
    * Update submit button status
-   * @metohd getIsSubmitDisabled
+   * @metohd updateIsSubmitDisabled
    */
-  getIsSubmitDisabled: function () {
-    var isSubmitDisabled = this.get('servicesMasters').someProperty('isHostNameValid', false);
-    this.set('submitDisabled', isSubmitDisabled);
-    return isSubmitDisabled;
+  updateIsSubmitDisabled: function () {
+    var self = this;
+
+    if (self.thereIsNoMasters()) {
+      return false;
+    }
+
+    if (App.supports.serverRecommendValidate) {
+      self.set('submitDisabled', true);
+
+      // reset previous recommendations
+      App.router.set('installerController.recommendations', null);
+
+      if (self.get('servicesMasters').length === 0) {
+        return;
+      }
+
+      var isSubmitDisabled = this.get('servicesMasters').someProperty('isHostNameValid', false);
+      if (!isSubmitDisabled) {
+        self.recommendAndValidate();
+      }
+    } else {
+      var isSubmitDisabled = this.get('servicesMasters').someProperty('isHostNameValid', false);
+      self.set('submitDisabled', isSubmitDisabled);
+      return isSubmitDisabled;
+    }
   }.observes('servicesMasters.@each.selectedHost', 'servicesMasters.@each.isHostNameValid'),
 
   /**
+   * Send AJAX request to validate current host layout
+   * @param blueprint - blueprint for validation (can be with/withour slave/client components)
+   */
+  validate: function(blueprint, callback) {
+    var self = this;
+
+    var selectedServices = App.StackService.find().filterProperty('isSelected').mapProperty('serviceName');
+    var installedServices = App.StackService.find().filterProperty('isInstalled').mapProperty('serviceName');
+    var services = installedServices.concat(selectedServices).uniq();
+
+    var hostNames = self.get('hosts').mapProperty('host_name');
+
+    App.ajax.send({
+      name: 'config.validations',
+      sender: self,
+      data: {
+        stackVersionUrl: App.get('stackVersionURL'),
+        hosts: hostNames,
+        services: services,
+        validate: 'host_groups',
+        recommendations: blueprint
+      },
+      success: 'updateValidationsSuccessCallback'
+    }).
+      retry({
+        times: App.maxRetries,
+        timeout: App.timeout
+      }).
+      then(function() {
+        if (callback) {
+          callback();
+        }
+      }, function () {
+        App.showReloadPopup();
+        console.log('Load validations failed');
+      }
+    );
+  },
+
+/**
+  * Success-callback for validations request
+  * @param {object} data
+  * @method updateValidationsSuccessCallback
+  */
+  updateValidationsSuccessCallback: function (data) {
+    var self = this;
+
+    this.set('generalErrorMessages', []);
+    this.set('generalWarningMessages', []);
+    this.get('servicesMasters').setEach('warnMessage', null);
+    this.get('servicesMasters').setEach('errorMessage', null);
+    var anyErrors = false;
+
+    var validationData = validationUtils.filterNotInstalledComponents(data);
+    validationData.filterProperty('type', 'host-component').forEach(function(item) {
+      var master = self.get('servicesMasters').find(function(m) {
+        return m.component_name === item['component-name'] && m.selectedHost === item.host;
+      });
+      if (master) {
+        if (item.level === 'ERROR') {
+          anyErrors = true;
+          master.set('errorMessage', item.message);
+        } else if (item.level === 'WARN') {
+          master.set('warnMessage', item.message);
+        }
+      } else {
+        var details = " (" + item['component-name'] + " on " + item.host + ")";
+        if (item.level === 'ERROR') {
+          anyErrors = true;
+          self.get('generalErrorMessages').push(item.message + details);
+        } else if (item.level === 'WARN') {
+          self.get('generalWarningMessages').push(item.message + details);
+        }
+      }
+    });
+
+    this.set('submitDisabled', anyErrors);
+  },
+
+  /**
+   * Composes selected values of comboboxes into blueprint format
+   */
+  getCurrentBlueprint: function() {
+    var self = this;
+
+    var res = {
+      blueprint: { host_groups: [] },
+      blueprint_cluster_binding: { host_groups: [] }
+    };
+
+    var mapping = self.get('masterHostMapping');
+
+    var i = 0;
+    mapping.forEach(function(item) {
+      i += 1;
+      var group_name = 'host-group-' + i;
+
+      var host_group = {
+        name: group_name,
+        components: item.masterServices.map(function(master) {
+          return { name: master.component_name };
+        })
+      };
+
+      var binding = {
+        name: group_name,
+        hosts: [ { fqdn: item.host_name } ]
+      }
+
+      res.blueprint.host_groups.push(host_group);
+      res.blueprint_cluster_binding.host_groups.push(binding);
+    });
+
+    return res;
+  },
+
+/**
    * Clear controller data (hosts, masters etc)
    * @method clearStep
    */
@@ -232,10 +382,17 @@ App.WizardStep5Controller = Em.Controller.extend({
     self.get('addableComponents').forEach(function (componentName) {
       self.updateComponent(componentName);
     }, self);
-    if (!self.get("selectedServicesMasters").filterProperty('isInstalled', false).length) {
+    if (self.thereIsNoMasters()) {
       console.log('no master components to add');
       App.router.send('next');
     }
+  },
+
+  /**
+  * Returns true if there is no new master components which need assigment to host
+  */
+  thereIsNoMasters: function() {
+    return !this.get("selectedServicesMasters").filterProperty('isInstalled', false).length;
   },
 
   /**
@@ -305,11 +462,13 @@ App.WizardStep5Controller = Em.Controller.extend({
   /**
    * Get recommendations info from API
    * @return {undefined}
+   * @param function(componentInstallationobjects, this) callback
+   * @param bool includeMasters
    */
-  loadComponentsRecommendationsFromServer: function(callback) {
+  loadComponentsRecommendationsFromServer: function(callback, includeMasters) {
     var self = this;
 
-    if (App.router.get('installerController.recommendations') !== undefined) {
+    if (App.router.get('installerController.recommendations')) {
       // Don't do AJAX call if recommendations has been already received
       // But if user returns to previous step (selecting services), stored recommendations will be cleared in routers' next handler and AJAX call will be made again
       callback(self.createComponentInstallationObjects(), self);
@@ -320,14 +479,21 @@ App.WizardStep5Controller = Em.Controller.extend({
 
       var hostNames = self.get('hosts').mapProperty('host_name');
 
+      var data = {
+        stackVersionUrl: App.get('stackVersionURL'),
+        hosts: hostNames,
+        services: services,
+        recommend: 'host_groups'
+      };
+
+      if (includeMasters) {
+        data.recommendations = self.getCurrentBlueprint();
+      }
+
       return App.ajax.send({
-        name: 'wizard.step5.recommendations',
+        name: 'wizard.loadrecommendations',
         sender: self,
-        data: {
-          stackVersionUrl: App.get('stackVersionURL'),
-          hosts: hostNames,
-          services: services
-        },
+        data: data,
         success: 'loadRecommendationsSuccessCallback'
       }).
         retry({
@@ -554,6 +720,7 @@ App.WizardStep5Controller = Em.Controller.extend({
         componentObj.set("showRemoveControl", showRemoveControl);
       }
       componentObj.set('isHostNameValid', true);
+
       result.push(componentObj);
     }, this);
     result = this.sortComponentsByServiceName(result);
@@ -842,15 +1009,40 @@ App.WizardStep5Controller = Em.Controller.extend({
     return true;
   },
 
+  recommendAndValidate: function(callback) {
+    var self = this;
+
+    // load recommendations with partial request
+    self.loadComponentsRecommendationsFromServer(function() {
+      // For validation use latest received recommendations because ir contains current master layout and recommended slave/client layout
+      self.validate(App.router.get('installerController.recommendations'), function() {
+        if (callback) {
+          callback();
+        }
+      });
+    }, true);
+  },
+
   /**
    * Submit button click handler
    * @metohd submit
    */
   submit: function () {
-    this.getIsSubmitDisabled();
-    if (!this.get('submitDisabled')) {
-      App.router.send('next');
+    var self = this;
+
+    var goNextStepIfValid = function() {
+      if (!self.get('submitDisabled')) {
+        App.router.send('next');
+      }
+    };
+
+    if (App.supports.serverRecommendValidate ) {
+      self.recommendAndValidate(function() {
+        goNextStepIfValid();
+      });
+    } else {
+      self.updateIsSubmitDisabled();
+      goNextStepIfValid();
     }
   }
-
 });

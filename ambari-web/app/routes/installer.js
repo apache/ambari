@@ -296,7 +296,7 @@ module.exports = Em.Route.extend({
       var wizardStep6Controller = router.get('wizardStep6Controller');
       var wizardStep7Controller = router.get('wizardStep7Controller');
 
-      if (wizardStep6Controller.validate()) {
+      if (!wizardStep6Controller.get('submitDisabled')) {
         controller.saveSlaveComponentHosts(wizardStep6Controller);
         controller.get('content').set('serviceConfigProperties', null);
         controller.setDBProperty('serviceConfigProperties', null);

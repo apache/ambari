@@ -338,7 +338,7 @@ var urls = {
       }
     }
   },
-  
+
   'cancel.background.operation' : {
     'real' : '/clusters/{clusterName}/requests/{requestId}',
     'mock' : '',
@@ -1232,21 +1232,30 @@ var urls = {
     }
   },
 
-  'wizard.step5.recommendations': {
+
+  'wizard.loadrecommendations': {
     'real': '{stackVersionUrl}/recommendations',
     'mock': '/data/stacks/HDP-2.1/recommendations.json',
     'type': 'POST',
     'format': function (data) {
+      var q = {
+        hosts: data.hosts,
+        services: data.services,
+        recommend: data.recommend
+      };
+
+      if (data.recommendations) {
+        q.recommendations = data.recommendations;
+      }
+
       return {
-        data: JSON.stringify({
-          hosts: data.hosts,
-          services: data.services,
-          recommend: "host_groups"
-        })
+        data: JSON.stringify(q)
       }
     }
   },
 
+
+  // TODO: merge with wizard.loadrecommendations query
   'wizard.step7.loadrecommendations.configs': {
     'real': '{stackVersionUrl}/recommendations',
     'mock': '/data/stacks/HDP-2.1/recommendations_configs.json',
@@ -1262,6 +1271,23 @@ var urls = {
       }
     }
   },
+
+  'config.validations': {
+    'real': '{stackVersionUrl}/validations',
+    'mock': '/data/stacks/HDP-2.1/validations.json',
+    'type': 'POST',
+    'format': function (data) {
+      return {
+          data: JSON.stringify({
+            hosts: data.hosts,
+            services: data.services,
+            validate: data.validate,
+            recommendations: data.recommendations
+        })
+      }
+    }
+  },
+
 
   'preinstalled.checks': {
     'real':'/requests',

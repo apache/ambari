@@ -168,13 +168,13 @@ module.exports = App.WizardRoute.extend({
       var addServiceController = router.get('addServiceController');
       var wizardStep6Controller = router.get('wizardStep6Controller');
 
-      if (wizardStep6Controller.validate()) {
+      wizardStep6Controller.callValidation(function() {
         addServiceController.saveSlaveComponentHosts(wizardStep6Controller);
         addServiceController.get('content').set('serviceConfigProperties', null);
         addServiceController.setDBProperty('serviceConfigProperties', null);
         addServiceController.setDBProperty('groupsToDelete', []);
         router.transitionTo('step4');
-      }
+      });
     }
   }),
 

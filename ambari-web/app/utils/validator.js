@@ -167,5 +167,16 @@ module.exports = {
     }
     if (/^[\?\|\*\!,]/.test(value)) return false;
     return /^((\.\*?)?([\w\[\]\?\-_,\|\*\!\{\}]*)?)+(\.\*?)?$/g.test(value) && (checkPair(['[',']'])) && (checkPair(['{','}']));
+  },
+
+  /**
+  * Remove validation messages for components which are already installed
+  */
+  filterNotInstalledComponents: function(validationData) {
+    var hostComponents = App.HostComponent.find();
+    return validationData.resources[0].items.filter(function(item) {
+      // true is there is no host with this component
+      return hostComponents.filterProperty("componentName", item["component-name"]).filterProperty("hostName", item.host).length === 0;
+    });
   }
 };

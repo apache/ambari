@@ -90,7 +90,17 @@ App.WizardStep6View = App.TableView.extend({
     var checkbox = e.context;
     checkbox.toggleProperty('checked');
     this.get('controller').checkCallback(checkbox.component);
-  }
+    this.get('controller').callValidation();
+  },
+
+  columnCount: function() {
+    var hosts = this.get('controller.hosts');
+    if  (hosts && hosts.length > 0) {
+      var checkboxes = hosts[0].get('checkboxes');
+      return checkboxes.length + 1;
+    }
+    return 1;
+  }.property('controller.hosts.@each.checkboxes')
 });
 
 App.WizardStep6HostView = Em.View.extend({

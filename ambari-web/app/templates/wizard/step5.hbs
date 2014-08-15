@@ -23,6 +23,12 @@
     {{{view.coHostedComponentText}}}
   {{/if}}
 </div>
+{{#each msg in controller.generalErrorMessages}}
+  <div class="alert alert-error">{{msg}}</div>
+{{/each}}
+{{#each msg in controller.generalWarningMessages}}
+    <div class="alert alert-warning">{{msg}}</div>
+{{/each}}
 {{#if controller.isLoaded}}
   <div class="assign-masters row-fluid">
     <div class="select-hosts span7">
@@ -56,7 +62,7 @@
                         {{selectedHost}}<i class="icon-asterisks">&#10037;</i>
                       </div>
                     {{else}}
-                      <div class="control-group">
+                      <div {{bindAttr class="errorMessage:error: warnMessage:warning: :control-group"}}>
                         {{#if view.shouldUseInputs}}
                           {{view App.InputHostView
                           componentBinding="this"
@@ -74,6 +80,9 @@
                         {{#if showRemoveControl}}
                           {{view App.RemoveControlView componentNameBinding="component_name" serviceComponentIdBinding="serviceComponentId"}}
                         {{/if}}
+
+                        <span class="help-block">{{warnMessage}}</span>
+                        <span class="help-block">{{errorMessage}}</span>
                       </div>
                     {{/if}}
                   </div>

@@ -1184,30 +1184,18 @@ h1 {
   .common-config-category {
     .action {
       cursor: pointer;
-    }
-    .btn-final .icon-lock {
-      color: grey;
-    }
-    .btn-final.active .icon-lock {
-      color: blue;
-    }
-    .btn-final.active[disabled] { //copied from Bootstrap .btn.active
-      background-color: #e6e6e6;
-      background-color: #d9d9d9 \9;
-      background-image: none;
-      outline: 0;
-      -webkit-box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.05);
-      -moz-box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.05);
-      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.05);
-    }
-    .icon-plus-sign {
-      color: #5AB400;
-    }
-    .icon-minus-sign {
-      color: #FF4B4B;
-    }
-    .icon-undo {
-      color: rgb(243, 178, 11);
+      .icon-plus-sign {
+        color: #5AB400;
+        margin-right: 2px;
+      }
+      .icon-minus-sign {
+        color: #FF4B4B;
+        margin-right: 2px;
+      }
+      .icon-undo {
+        color: rgb(243, 178, 11);
+        margin-right: 2px;
+      }
     }
   }
   .capacity-scheduler {
@@ -4047,6 +4035,9 @@ table.graphs {
 .assign-masters {
   .select-hosts {
     white-space: nowrap;
+    .help-block {
+      white-space: normal;
+    }
   }
 
   label.host-name {
@@ -6792,3 +6783,7 @@ i.icon-asterisks {
     width: 95%;
   }
 }
+
+.table td.no-borders { border-top: none; }
+.table td.error { background-color: #f2dede; }
+.table td.warning { background-color: #fcf8e3; }

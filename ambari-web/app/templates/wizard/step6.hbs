@@ -23,9 +23,15 @@
   {{#if errorMessage}}
     <div class="alert alert-error">{{errorMessage}}</div>
   {{/if}}
+  {{#each msg in controller.generalErrorMessages}}
+      <div class="alert alert-error">{{msg}}</div>
+  {{/each}}
+  {{#each msg in controller.generalWarningMessages}}
+      <div class="alert alert-warning">{{msg}}</div>
+  {{/each}}
 
   <div class="pre-scrollable">
-    <table class="table table-striped" id="component_assign_table">
+    <table class="table" id="component_assign_table">
       <thead>
       <tr>
         <th>{{t common.host}}</th>
@@ -52,13 +58,23 @@
               {{/if}}
             {{/view}}
             {{#each checkbox in host.checkboxes}}
-              <td>
+              <td {{bindAttr class="checkbox.hasErrorMessage:error checkbox.hasWarnMessage:warning"}}>
                 <label class="checkbox">
                   <input {{bindAttr checked = "checkbox.checked" disabled="checkbox.isDisabled"}} {{action "checkboxClick" checkbox target="view" }}
                           type="checkbox"/>{{checkbox.title}}
                 </label>
               </td>
             {{/each}}
+          </tr>
+          <tr {{bindAttr class="host.anyMessage::hidden"}}>
+            <td {{bindAttr colspan="view.columnCount"}} class="no-borders">
+              {{#each errorMsg in host.errorMessages}}
+                  <div class="alert alert-error">{{errorMsg}}</div>
+              {{/each}}
+              {{#each warnMsg in host.warnMessages}}
+                <div class="alert alert-warning">{{warnMsg}}</div>
+              {{/each}}
+            </td>
           </tr>
         {{/each}}
       {{/if}}
@@ -81,6 +97,6 @@
   </div>
   <div class="btn-area">
     <a class="btn" {{action back}}>&larr; {{t common.back}}</a>
-    <a class="btn btn-success pull-right" {{action next}}>{{t common.next}} &rarr;</a>
+    <a class="btn btn-success pull-right" {{bindAttr disabled="submitDisabled"}} {{action next}}>{{t common.next}} &rarr;</a>
   </div>
 </div>
