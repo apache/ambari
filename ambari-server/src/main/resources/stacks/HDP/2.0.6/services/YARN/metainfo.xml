@@ -132,7 +132,6 @@
         <config-type>yarn-env</config-type>
         <config-type>core-site</config-type>
         <config-type>mapred-site</config-type>
-        <config-type>mapred-queue-acls</config-type>
         <config-type>yarn-log4j</config-type>
       </configuration-dependencies>
     </service>
@@ -223,7 +222,6 @@
         <config-type>core-site</config-type>
         <config-type>mapred-site</config-type>
         <config-type>mapred-env</config-type>
-        <config-type>mapred-queue-acls</config-type>
       </configuration-dependencies>
     </service>
 

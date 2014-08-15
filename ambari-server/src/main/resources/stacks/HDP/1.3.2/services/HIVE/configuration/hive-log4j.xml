@@ -24,6 +24,7 @@
 
   <property>
     <name>content</name>
+    <description>Custom log4j.properties</description>
     <value>
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file

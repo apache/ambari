@@ -129,7 +129,7 @@ module.exports =
       "displayType": "int",
       "defaultValue": "",
       "isVisible": true,
-      "category": "Advanced",
+      "category": "General",
       "serviceName": "HDFS"
     },
     {
@@ -168,6 +168,7 @@ module.exports =
       "displayType": "advanced",
       "isOverridable": false,
       "serviceName": "MAPREDUCE",
+      "category": "General",
       "index": 0
     },
     {
@@ -201,6 +202,7 @@ module.exports =
       "displayType": "int",
       "unit": "MB",
       "serviceName": "MAPREDUCE",
+      "category": "General",
       "index": 2
     },
     {
@@ -212,6 +214,7 @@ module.exports =
       "displayType": "int",
       "unit": "MB",
       "serviceName": "MAPREDUCE",
+      "category": "General",
       "index": 5
     },
     {
@@ -223,6 +226,7 @@ module.exports =
       "displayType": "int",
       "unit": "MB",
       "serviceName": "MAPREDUCE",
+      "category": "General",
       "index": 3
     },
     {
@@ -234,6 +238,7 @@ module.exports =
       "displayType": "int",
       "unit": "MB",
       "serviceName": "MAPREDUCE",
+      "category": "General",
       "index": 4
     },
     {
@@ -245,6 +250,7 @@ module.exports =
       "displayType": "int",
       "unit": "MB",
       "serviceName": "MAPREDUCE",
+      "category": "General",
       "index": 6
     },
     {
@@ -256,6 +262,7 @@ module.exports =
       "displayType": "int",
       "unit": "MB",
       "serviceName": "MAPREDUCE",
+      "category": "General",
       "index": 1
     },
     {
@@ -267,6 +274,7 @@ module.exports =
       "displayType": "int",
       "unit": "MB",
       "serviceName": "MAPREDUCE",
+      "category": "General",
       "index": 7
     },
     {
@@ -277,6 +285,7 @@ module.exports =
       "defaultValue": "",
       "displayType": "float",
       "serviceName": "MAPREDUCE",
+      "category": "General",
       "index": 8
     },
     {
@@ -287,7 +296,7 @@ module.exports =
       "defaultValue": "/mapred/system",
       "displayType": "directories",
       "serviceName": "MAPREDUCE",
-      "category": "Advanced"
+      "category": "Advanced mapred-site"
     },
     {
       "id": "site property",
@@ -298,6 +307,7 @@ module.exports =
       "displayType": "int",
       "unit": "hours",
       "serviceName": "MAPREDUCE",
+      "category": "General",
       "index": 9
     },
     {
@@ -308,6 +318,7 @@ module.exports =
       "defaultValue": "",
       "displayType": "int",
       "serviceName": "MAPREDUCE",
+      "category": "General",
       "index": 10
     },
     {
@@ -319,7 +330,7 @@ module.exports =
       permitted.",
       "defaultValue": "",
       "displayType": "directory",
-      "category": "Advanced",
+      "category": "Advanced mapred-site",
       "serviceName": "MAPREDUCE"
     },
     {
@@ -331,7 +342,7 @@ module.exports =
       hosts are excluded.",
       "defaultValue": "",
       "displayType": "directory",
-      "category": "Advanced",
+      "category": "Advanced mapred-site",
       "serviceName": "MAPREDUCE"
     },
     {
@@ -503,7 +514,7 @@ module.exports =
       "isReconfigurable": true,
       "isOverridable": false,
       "isVisible": true,
-      "category": "Advanced",
+      "category": "Advanced hive-site",
       "serviceName": "HIVE"
     },
   /**********************************************hbase-site***************************************/
@@ -516,7 +527,7 @@ module.exports =
       "defaultValue": "",
       "displayType": "directory",
       "isVisible": true,
-      "category": "Advanced",
+      "category": "Advanced hbase-site",
       "serviceName": "HBASE"
 
     },
@@ -529,7 +540,7 @@ module.exports =
       "isOverridable": false,
       "isVisible": true,
       "serviceName": "HBASE",
-      "category": "Advanced"
+      "category": "Advanced hbase-site"
     },
     {
       "id": "site property",
@@ -538,7 +549,7 @@ module.exports =
       "description": "",
       "defaultValue": "",
       "displayType": "float",
-      "category": "Advanced",
+      "category": "Advanced hbase-site",
       "serviceName": "HBASE"
     },
     {
@@ -552,7 +563,7 @@ module.exports =
       the minimum possible flushing to occur when updates are blocked due to\
       memstore limiting.",
       "displayType": "float",
-      "category": "Advanced",
+      "category": "Advanced hbase-site",
       "serviceName": "HBASE"
     },
     {
@@ -565,7 +576,7 @@ module.exports =
       "defaultValue": "",
       "isRequired": true,
       "displayType": "int",
-      "category": "Advanced",
+      "category": "Advanced hbase-site",
       "serviceName": "HBASE"
     },
     {
@@ -648,7 +659,7 @@ module.exports =
       GC pauses on large heaps.",
       "defaultValue": "",
       "displayType": "checkbox",
-      "category": "Advanced",
+      "category": "Advanced hbase-site",
       "serviceName": "HBASE"
     },
     {
@@ -705,7 +716,7 @@ module.exports =
       "id": "site property",
       "name": "hbase.coprocessor.region.classes",
       "displayName": "hbase.coprocessor.region.classes",
-      "category": "Advanced",
+      "category": "Advanced hbase-site",
       "isRequired": false,
       "serviceName": "HBASE"
     },
@@ -713,7 +724,7 @@ module.exports =
       "id": "site property",
       "name": "hbase.coprocessor.master.classes",
       "displayName": "hbase.coprocessor.master.classes",
-      "category": "Advanced",
+      "category": "Advanced hbase-site",
       "isRequired": false,
       "serviceName": "HBASE"
     },
@@ -724,7 +735,7 @@ module.exports =
       "description": "This configuration parameter turns on short-circuit local reads.",
       "defaultValue": "",
       "displayType": "checkbox",
-      "category": "Advanced",
+      "category": "Advanced hbase-site",
       "serviceName": "HBASE"
     },
     {
@@ -735,7 +746,7 @@ module.exports =
       "defaultValue": "",
       "displayType": "checkbox",
       "serviceName": "HBASE",
-      "category": "Advanced"
+      "category": "Advanced hbase-site"
     },
     {
       "id": "site property",
@@ -744,7 +755,7 @@ module.exports =
       "defaultValue": "",
       "displayType": "multiLine",
       "serviceName": "HBASE",
-      "category": "Advanced"
+      "category": "Advanced hbase-site"
     },
 
   /**********************************************webhcat-site***************************************/
@@ -754,7 +765,7 @@ module.exports =
       "displayName": "templeton.hive.archive",
       "isRequired": false,
       "serviceName": "WEBHCAT",
-      "category": "Advanced"
+      "category": "Advanced webhcat-site"
     },
     {
       "id": "site property",
@@ -762,7 +773,7 @@ module.exports =
       "displayName": "templeton.pig.archive",
       "isRequired": false,
       "serviceName": "WEBHCAT",
-      "category": "Advanced"
+      "category": "Advanced webhcat-site"
     },
     {
       "id": "site property",
@@ -771,7 +782,7 @@ module.exports =
       "defaultValue": "",
       "displayType": "multiLine",
       "serviceName": "WEBHCAT",
-      "category": "Advanced"
+      "category": "Advanced webhcat-site"
     },
     //***************************************** GLUSTERFS stack********************************************
     {
@@ -931,7 +942,7 @@ module.exports =
       "isVisible": true,
       "serviceName": "HDFS",
       "filename": "hadoop-env.xml",
-      "category": "Advanced"
+      "category": "Advanced hadoop-env"
     },
     {
       "id": "puppet var",
@@ -945,7 +956,7 @@ module.exports =
       "isVisible": true,
       "serviceName": "HDFS",
       "filename": "hadoop-env.xml",
-      "category": "Advanced"
+      "category": "Advanced hadoop-env"
     },
     {
       "id": "puppet var",
@@ -973,7 +984,7 @@ module.exports =
       "isVisible": false,
       "serviceName": "HDFS",
       "filename": "hadoop-env.xml",
-      "category": "Advanced"
+      "category": "Advanced hadoop-env"
     },
     {
       "id": "puppet var",
@@ -1041,6 +1052,7 @@ module.exports =
       "isVisible": true,
       "serviceName": "GLUSTERFS",
       "filename": "hadoop-env.xml",
+      "category": "General",
       "index": 1
     },
     {
@@ -1055,7 +1067,7 @@ module.exports =
       "isVisible": true,
       "serviceName": "GLUSTERFS",
       "filename": "hadoop-env.xml",
-      "category": "Advanced"
+      "category": "Advanced hadoop-env"
     },
     {
       "id": "puppet var",
@@ -1069,7 +1081,7 @@ module.exports =
       "isVisible": true,
       "serviceName": "GLUSTERFS",
       "filename": "hadoop-env.xml",
-      "category": "Advanced"
+      "category": "Advanced hadoop-env"
     },
     {
       "id": "puppet var",
@@ -1083,7 +1095,7 @@ module.exports =
       "isVisible": false,
       "serviceName": "GLUSTERFS",
       "filename": "hadoop-env.xml",
-      "category": "Advanced"
+      "category": "Advanced hadoop-env"
     },
     {
       "id": "puppet var",
@@ -1097,7 +1109,7 @@ module.exports =
       "isVisible": false,
       "serviceName": "GLUSTERFS",
       "filename": "hadoop-env.xml",
-      "category": "category"
+      "category": "Advanced hadoop-env"
     },
     {
       "id": "puppet var",
@@ -1111,7 +1123,7 @@ module.exports =
       "isVisible": false,
       "serviceName": "GLUSTERFS",
       "filename": "hadoop-env.xml",
-      "category": "Advanced"
+      "category": "Advanced hadoop-env"
     },
     {
       "id": "puppet var",
@@ -1125,7 +1137,7 @@ module.exports =
       "domain": "datanode-global",
       "serviceName": "GLUSTERFS",
       "filename": "hadoop-env.xml",
-      "category": "Advanced"
+      "category": "Advanced hadoop-env"
     },
   /**********************************************MAPREDUCE***************************************/
     {
@@ -1245,6 +1257,7 @@ module.exports =
       "isVisible": false,
       "serviceName": "MAPREDUCE",
       "filename": "mapred-env.xml",
+      "category": "General",
       "index": 11
     },
     {
@@ -1259,6 +1272,7 @@ module.exports =
       "isVisible": false,
       "serviceName": "MAPREDUCE",
       "filename": "mapred-env.xml",
+      "category": "General",
       "index": 12
     },
     {
@@ -1272,6 +1286,7 @@ module.exports =
       "displayType": "checkbox",
       "isVisible": true,
       "serviceName": "MAPREDUCE",
+      "category": "General",
       "filename": "mapred-env.xml",
       "index": 13
     },
@@ -1375,7 +1390,7 @@ module.exports =
       "isVisible": true,
       "serviceName": "HBASE",
       "filename": "hbase-env.xml",
-      "category": "Advanced"
+      "category": "Advanced hbase-env"
     },
     {
       "id": "puppet var",
@@ -1389,7 +1404,7 @@ module.exports =
       "isVisible": true,
       "serviceName": "HBASE",
       "filename": "hbase-env.xml",
-      "category": "Advanced"
+      "category": "Advanced hbase-env"
     },
   /**********************************************HIVE***************************************/
     {
@@ -1604,7 +1619,7 @@ module.exports =
       "isVisible": false,
       "serviceName": "HIVE",
       "filename": "hive-env.xml",
-      "category": "Advanced"
+      "category": "Advanced hive-env"
     },
     {
       "id": "puppet var",
@@ -1618,7 +1633,7 @@ module.exports =
       "isVisible": true,
       "serviceName": "HIVE",
       "filename": "hive-env.xml",
-      "category": "Advanced"
+      "category": "Advanced hive-env"
     },
     {
       "id": "puppet var",
@@ -1632,7 +1647,7 @@ module.exports =
       "isVisible": true,
       "serviceName": "HIVE",
       "filename": "hive-env.xml",
-      "category": "Advanced"
+      "category": "Advanced hive-env"
     },
     {
       "id": "puppet var",
@@ -1645,7 +1660,7 @@ module.exports =
       "isVisible": false,
       "serviceName": "HIVE",
       "filename": "hive-env.xml",
-      "category": "Advanced"
+      "category": "Advanced hive-env"
     },
   /**********************************************WEBHCAT***************************************/
     {
@@ -1675,7 +1690,7 @@ module.exports =
       "isVisible": true,
       "serviceName": "WEBHCAT",
       "filename": "webhcat-env.xml",
-      "category": "Advanced"
+      "category": "Advanced webhcat-env"
     },
     {
       "id": "puppet var",
@@ -1689,7 +1704,7 @@ module.exports =
       "isVisible": true,
       "serviceName": "WEBHCAT",
       "filename": "webhcat-env.xml",
-      "category": "Advanced"
+      "category": "Advanced webhcat-env"
     },
   /**********************************************OOZIE***************************************/
     {
@@ -1924,7 +1939,7 @@ module.exports =
       "isVisible": true,
       "serviceName": "OOZIE",
       "filename": "oozie-env.xml",
-      "category": "Advanced"
+      "category": "Advanced oozie-env"
     },
     {
       "id": "puppet var",
@@ -1938,7 +1953,7 @@ module.exports =
       "isVisible": true,
       "serviceName": "OOZIE",
       "filename": "oozie-env.xml",
-      "category": "Advanced"
+      "category": "Advanced oozie-env"
     },
     {
       "id": "puppet var",
@@ -1950,7 +1965,7 @@ module.exports =
       "isVisible": true,
       "serviceName": "OOZIE",
       "filename": "oozie-env.xml",
-      "category": "Advanced"
+      "category": "Advanced oozie-env"
     },
   /**********************************************NAGIOS***************************************/
     {
@@ -1965,6 +1980,7 @@ module.exports =
       "isVisible": true,
       "serviceName": "NAGIOS",
       "filename": "nagios-env.xml",
+      "category": "General",
       "index": 0
     },
     {
@@ -1979,6 +1995,7 @@ module.exports =
       "isVisible": true,
       "serviceName": "NAGIOS",
       "filename": "nagios-env.xml",
+      "category": "General",
       "index": 1
     },
     {
@@ -1992,6 +2009,7 @@ module.exports =
       "isVisible": true,
       "serviceName": "NAGIOS",
       "filename": "nagios-env.xml",
+      "category": "General",
       "index": 2
     },
   /**********************************************ZOOKEEPER***************************************/
@@ -2096,7 +2114,7 @@ module.exports =
       "isVisible": true,
       "serviceName": "ZOOKEEPER",
       "filename": "zookeeper-env.xml",
-      "category": "Advanced",
+      "category": "Advanced zookeeper-env",
       "index": 0
     },
     {
@@ -2111,7 +2129,7 @@ module.exports =
       "isVisible": true,
       "serviceName": "ZOOKEEPER",
       "filename": "zookeeper-env.xml",
-      "category": "Advanced",
+      "category": "Advanced zookeeper-env",
       "index": 1
     },
   /**********************************************HUE***************************************/
@@ -2143,7 +2161,7 @@ module.exports =
       "isVisible": true,
       "serviceName": "HUE",
       "filename": "hue-env.xml",
-      "category": "Advanced"
+      "category": "Advanced hue-env"
     },
     {
       "id": "puppet var",
@@ -2158,7 +2176,7 @@ module.exports =
       "isVisible": true,
       "serviceName": "HUE",
       "filename": "hue-env.xml",
-      "category": "Advanced"
+      "category": "Advanced hue-env"
     },
   /**********************************************GANGLIA***************************************/
     {
@@ -2172,7 +2190,7 @@ module.exports =
       "isVisible": false,
       "serviceName": "GANGLIA",
       "filename": "ganglia-env.xml",
-      "category": "Advanced"
+      "category": "Advanced ganglia-env"
     },
   /**********************************************MISC******************************************/
     {

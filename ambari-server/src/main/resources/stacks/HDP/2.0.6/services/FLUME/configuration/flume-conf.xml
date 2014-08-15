@@ -22,7 +22,7 @@
 
 <configuration supports_final="false">
   <property>
-    <name>content</name>
+    <name>flume-content</name>
     <description>Describe all the Flume agent configurations</description>
     <value>
 # Flume agent config

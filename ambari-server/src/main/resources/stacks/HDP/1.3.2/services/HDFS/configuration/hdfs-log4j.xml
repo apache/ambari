@@ -24,6 +24,7 @@
 
   <property>
     <name>content</name>
+    <description>Custom log4j.properties</description>
     <value>
 # Copyright 2011 The Apache Software Foundation
 #

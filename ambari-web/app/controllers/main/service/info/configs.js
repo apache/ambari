@@ -643,7 +643,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       App.config.OnNnHAHideSnn(serviceConfig);
     }
 
-    if ((serviceName || serviceConfig.serviceName === 'MISC') && !App.supports.serverRecommendValidate) {
+    if (serviceName && !App.supports.serverRecommendValidate) {
       // set recommended Defaults first then load the configs (including set validator)
       var s = App.StackService.find().findProperty('serviceName', this.get('content.serviceName'));
       var defaultsProvider = s.get('defaultsProviders');
@@ -654,7 +654,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       }
     } else {
       if (App.supports.serverRecommendValidate) {
-        var serviceConfig = App.config.createServiceConfig(this.get('content.serviceName'));
+        serviceConfig = App.config.createServiceConfig(this.get('content.serviceName'));
         this.loadConfigs(this.get('allConfigs'), serviceConfig);
         this.checkOverrideProperty(serviceConfig);
         this.checkDatabaseProperties(serviceConfig);

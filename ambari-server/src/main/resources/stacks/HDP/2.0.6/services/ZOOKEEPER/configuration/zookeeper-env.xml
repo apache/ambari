@@ -65,7 +65,7 @@
   <!-- zookeeper-env.sh -->
   <property>
     <name>content</name>
-    <description>zookeeper-env.sh content</description>
+    <description>This is the jinja template for zookeeper-env.sh file</description>
     <value>
 export JAVA_HOME={{java64_home}}
 export ZOO_LOG_DIR={{zk_log_dir}}

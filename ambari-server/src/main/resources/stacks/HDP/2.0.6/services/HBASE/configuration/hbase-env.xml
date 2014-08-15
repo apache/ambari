@@ -60,7 +60,7 @@
   <!-- hbase-env.sh -->
   <property>
     <name>content</name>
-    <description>hbase-env.sh content</description>
+    <description>This is the jinja template for hbase-env.sh file</description>
     <value>
 # Set environment variables here.
 

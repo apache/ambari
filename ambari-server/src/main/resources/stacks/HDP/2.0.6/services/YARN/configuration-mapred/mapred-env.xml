@@ -45,7 +45,7 @@
   <!-- mapred-env.sh -->
   <property>
     <name>content</name>
-    <description>mapred-env.sh content</description>
+    <description>This is the jinja template for mapred-env.sh file</description>
     <value>
 # export JAVA_HOME=/home/y/libexec/jdk1.6.0/
 

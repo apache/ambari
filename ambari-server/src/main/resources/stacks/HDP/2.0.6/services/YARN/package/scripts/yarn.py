@@ -200,22 +200,6 @@ def yarn(name = None):
               group=params.user_group
     )
 
-  if "mapred-queue-acls" in params.config['configurations']:
-    XmlConfig("mapred-queue-acls.xml",
-              conf_dir=params.hadoop_conf_dir,
-              configurations=params.config['configurations'][
-                'mapred-queue-acls'],
-              configuration_attributes=params.config['configuration_attributes']['mapred-queue-acls'],
-              owner=params.mapred_user,
-              group=params.user_group
-    )
-  elif os.path.exists(
-    os.path.join(params.hadoop_conf_dir, "mapred-queue-acls.xml")):
-    File(os.path.join(params.hadoop_conf_dir, "mapred-queue-acls.xml"),
-         owner=params.mapred_user,
-         group=params.user_group
-    )
-
   if "capacity-scheduler" in params.config['configurations']:
     XmlConfig("capacity-scheduler.xml",
               conf_dir=params.hadoop_conf_dir,

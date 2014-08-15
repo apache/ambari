@@ -23,6 +23,7 @@
 <configuration supports_final="false">
   <property>
     <name>content</name>
+    <description>Custom log4j.properties</description>
     <value>
 # Flume log4j config
     </value>

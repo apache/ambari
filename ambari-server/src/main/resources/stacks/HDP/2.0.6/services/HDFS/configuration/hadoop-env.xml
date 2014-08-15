@@ -74,7 +74,7 @@
   <property>
     <name>hdfs_user</name>
     <value>hdfs</value>
-    <description>User and Groups.</description>
+    <description>User to run HDFS as</description>
   </property>
   <property>
     <name>ignore_groupsusers_create</name>
@@ -95,7 +95,7 @@
   <!-- hadoop-env.sh -->
   <property>
     <name>content</name>
-    <description>hadoop-env.sh content</description>
+    <description>This is the jinja template for hadoop-env.sh file</description>
     <value>
 # Set Hadoop-specific environment variables here.
 

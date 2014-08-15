@@ -78,7 +78,6 @@ App.stackServiceMapper = App.QuickDataMapper.create({
         item.serviceComponents.forEach(function (serviceComponent) {
           serviceComponent.StackServiceComponents.id = serviceComponent.StackServiceComponents.component_name;
           serviceComponent.StackServiceComponents.dependencies = serviceComponent.dependencies;
-          serviceComponent.StackServiceComponents.custom_commands = serviceComponent.StackServiceComponents.custom_commands;
           serviceComponents.push(serviceComponent.StackServiceComponents);
           stackServiceComponents.push(this.parseIt(serviceComponent.StackServiceComponents, this.get('component_config')));
         }, this);

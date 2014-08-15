@@ -24,7 +24,7 @@
   <!-- sqoop-env.sh -->
   <property>
     <name>content</name>
-    <description>sqoop-env.sh content</description>
+    <description>This is the jinja template for sqoop-env.sh file</description>
     <value>
 # Set Hadoop-specific environment variables here.
 

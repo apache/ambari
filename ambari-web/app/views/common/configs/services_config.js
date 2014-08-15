@@ -104,7 +104,8 @@ App.ServiceConfigsByCategoryView = Ember.View.extend(App.UserPref, {
   // default,
   // cacheable )
   categoryConfigs: function () {
-    return this.get('serviceConfigs').filterProperty('category', this.get('category.name')).filterProperty('isVisible', true);
+    var categoryConfigs = this.get('serviceConfigs').filterProperty('category', this.get('category.name'));
+    return this.orderContentAtLast(categoryConfigs).filterProperty('isVisible', true);
   }.property('serviceConfigs.@each', 'categoryConfigsAll.@each.isVisible').cacheable(),
 
   /**
@@ -117,6 +118,31 @@ App.ServiceConfigsByCategoryView = Ember.View.extend(App.UserPref, {
   categoryConfigsAll: function () {
     return this.get('serviceConfigs').filterProperty('category', this.get('category.name'));
   }.property('serviceConfigs.@each').cacheable(),
+
+  /**
+   * Re-order the configs to list content displayType properties at last in the category
+   * @param categoryConfigs
+   */
+  orderContentAtLast: function(categoryConfigs) {
+    var contentProperties =  categoryConfigs.filterProperty('displayType','content');
+    var self = this;
+    if (!contentProperties.length) {
+      return categoryConfigs
+    } else {
+      var comparator;
+      return categoryConfigs.sort(function(a,b){
+        var aContent = contentProperties.someProperty('name', a.get('name'));
+        var bContent = contentProperties.someProperty('name', b.get('name'));
+        if (aContent && bContent) {
+          return 0;
+        } else if (aContent){
+          return 1;
+        } else {
+          return -1;
+        }
+      });
+    }
+  },
 
   /**
    * Warn/prompt user to adjust Service props when changing user/groups in Misc

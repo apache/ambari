@@ -683,7 +683,7 @@ App.WizardStep7Controller = Em.Controller.extend({
       return;
     }
     this.clearStep();
-    App.config.setPreDefinedServiceConfigs();
+
     var self = this;
     //STEP 1: Load advanced configs
     var advancedConfigs = this.get('content.advancedServiceConfig');
@@ -695,6 +695,7 @@ App.WizardStep7Controller = Em.Controller.extend({
       advancedConfigs,
       this.get('selectedServiceNames').concat(this.get('installedServiceNames'))
     );
+    App.config.setPreDefinedServiceConfigs();
     //STEP 4: Add advanced configs
     App.config.addAdvancedConfigs(configs, advancedConfigs);
     //STEP 5: Add custom configs
@@ -878,6 +879,8 @@ App.WizardStep7Controller = Em.Controller.extend({
    * set configs actual values from server
    * @param serviceConfigTags
    * @param configs
+   * @param configsByTags
+   * @param installedServiceNames
    * @method setInstalledServiceConfigs
    */
   setInstalledServiceConfigs: function (serviceConfigTags, configs, configsByTags, installedServiceNames) {
@@ -893,7 +896,8 @@ App.WizardStep7Controller = Em.Controller.extend({
       }
     });
     configs.forEach(function (_config) {
-      if (!Em.isNone(configsMap[_config.name]) && installedServiceNames && installedServiceNames.contains(_config.serviceName)) {
+      var nonServiceTab = require('data/service_configs');
+      if (!Em.isNone(configsMap[_config.name]) && ((installedServiceNames && installedServiceNames.contains(_config.serviceName)  || nonServiceTab.someProperty('serviceName',_config.serviceName))) ) {
         // prevent overriding already edited properties
         if (_config.defaultValue != configsMap[_config.name])
           _config.value = configsMap[_config.name];
@@ -905,6 +909,7 @@ App.WizardStep7Controller = Em.Controller.extend({
     });
     self.setServiceDatabaseConfigs(configs);
     //add user properties
+
     for (var name in configsMap) {
       configs.push(configMixin.addUserProperty({
         id: 'site property',

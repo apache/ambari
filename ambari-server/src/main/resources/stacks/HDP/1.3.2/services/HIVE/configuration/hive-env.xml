@@ -100,7 +100,7 @@
   <!-- hive-env.sh -->
   <property>
     <name>content</name>
-    <description>hive-env.sh content</description>
+    <description>This is the jinja template for hive-env.sh file</description>
     <value>
  if [ "$SERVICE" = "cli" ]; then
    if [ -z "$DEBUG" ]; then

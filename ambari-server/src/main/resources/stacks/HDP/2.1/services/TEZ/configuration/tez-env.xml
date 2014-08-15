@@ -30,7 +30,7 @@
   <!-- tez-env.sh -->
   <property>
     <name>content</name>
-    <description>tez-env.sh content</description>
+    <description>This is the jinja template for tez-env.sh file</description>
     <value>
 # Tez specific configuration
 export TEZ_CONF_DIR={{config_dir}}

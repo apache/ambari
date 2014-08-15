@@ -60,7 +60,7 @@
   <!-- oozie-env.sh -->
   <property>
     <name>content</name>
-    <description>oozie-env.sh content</description>
+    <description>This is the jinja template for oozie-env.sh file</description>
     <value>
 #!/bin/bash
 

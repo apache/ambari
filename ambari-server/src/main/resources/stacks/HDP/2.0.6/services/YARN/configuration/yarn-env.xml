@@ -55,7 +55,7 @@
   <!-- yarn-env.sh -->
   <property>
     <name>content</name>
-    <description>yarn-env.sh content</description>
+    <description>This is the jinja template for yarn-env.sh file</description>
     <value>
 export HADOOP_YARN_HOME={{hadoop_yarn_home}}
 export YARN_LOG_DIR={{yarn_log_dir_prefix}}/$USER

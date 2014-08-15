@@ -40,7 +40,7 @@
   <!-- storm-env.sh -->
   <property>
     <name>content</name>
-    <description>storm-env.sh content</description>
+    <description>This is the jinja template for storm-env.sh file</description>
     <value>
 #!/bin/bash
 
