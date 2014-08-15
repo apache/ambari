@@ -338,7 +338,6 @@ App.HostPopup = Em.Object.create({
         'COMPLETED': ['SUCCESS', 'icon-ok', 'progress-success', false]
       };
       var pendingStatus = ['PENDING', 'icon-cog', 'progress-info', true];
-      debugger;
       this.set("servicesInfo", null);
       this.get("inputData").forEach(function (service) {
         var status = statuses[service.status] || pendingStatus;
