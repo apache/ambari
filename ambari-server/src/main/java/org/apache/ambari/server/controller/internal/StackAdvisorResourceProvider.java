@@ -95,11 +95,14 @@ public abstract class StackAdvisorResourceProvider extends ReadOnlyResourceProvi
       List<String> services = (List<String>) getRequestProperty(request, SERVICES_PROPERTY);
       Map<String, Set<String>> hgComponentsMap = calculateHostGroupComponentsMap(request);
       Map<String, Set<String>> hgHostsMap = calculateHostGroupHostsMap(request);
-      Map<String, Set<String>> componentHostsMap = calculateComponentHostsMap(hgComponentsMap, hgHostsMap);
+      Map<String, Set<String>> componentHostsMap = calculateComponentHostsMap(hgComponentsMap,
+          hgHostsMap);
+      Map<String, Map<String, Map<String, String>>> configurations = calculateConfigurations(request);
 
       StackAdvisorRequest saRequest = StackAdvisorRequestBuilder.forStack(stackName, stackVersion)
-          .ofType(requestType).forHosts(hosts).forServices(services).forHostComponents(hgComponentsMap)
-          .forHostsGroupBindings(hgHostsMap).withComponentHostsMap(componentHostsMap).build();
+          .ofType(requestType).forHosts(hosts).forServices(services)
+          .forHostComponents(hgComponentsMap).forHostsGroupBindings(hgHostsMap)
+          .withComponentHostsMap(componentHostsMap).withConfigurations(configurations).build();
 
       return saRequest;
     } catch (Exception e) {
@@ -120,8 +123,8 @@ public abstract class StackAdvisorResourceProvider extends ReadOnlyResourceProvi
    */
   @SuppressWarnings("unchecked")
   private Map<String, Set<String>> calculateHostGroupComponentsMap(Request request) {
-    Set<Map<String, Object>> hostGroups =
-        (Set<Map<String, Object>>) getRequestProperty(request, BLUEPRINT_HOST_GROUPS_PROPERTY);
+    Set<Map<String, Object>> hostGroups = (Set<Map<String, Object>>) getRequestProperty(request,
+        BLUEPRINT_HOST_GROUPS_PROPERTY);
     Map<String, Set<String>> map = new HashMap<String, Set<String>>();
     if (hostGroups != null) {
       for (Map<String, Object> hostGroup : hostGroups) {
@@ -151,8 +154,8 @@ public abstract class StackAdvisorResourceProvider extends ReadOnlyResourceProvi
    */
   @SuppressWarnings("unchecked")
   private Map<String, Set<String>> calculateHostGroupHostsMap(Request request) {
-    Set<Map<String, Object>> bindingHostGroups =
-        (Set<Map<String, Object>>) getRequestProperty(request, BINDING_HOST_GROUPS_PROPERTY);
+    Set<Map<String, Object>> bindingHostGroups = (Set<Map<String, Object>>) getRequestProperty(
+        request, BINDING_HOST_GROUPS_PROPERTY);
     Map<String, Set<String>> map = new HashMap<String, Set<String>>();
     if (bindingHostGroups != null) {
       for (Map<String, Object> hostGroup : bindingHostGroups) {
@@ -173,9 +176,46 @@ public abstract class StackAdvisorResourceProvider extends ReadOnlyResourceProvi
     return map;
   }
 
+  private static final String CONFIGURATIONS_PROPERTY_ID = "recommendations/blueprint/configurations/";
+
+  private Map<String, Map<String, Map<String, String>>> calculateConfigurations(Request request) {
+    Map<String, Map<String, Map<String, String>>> configurations = new HashMap<String, Map<String, Map<String, String>>>();
+    Map<String, Object> properties = request.getProperties().iterator().next();
+    for (String property : properties.keySet()) {
+      if (property.startsWith(CONFIGURATIONS_PROPERTY_ID)) {
+        try {
+          String propertyEnd = property.substring(CONFIGURATIONS_PROPERTY_ID.length()); // mapred-site/properties/yarn.app.mapreduce.am.resource.mb
+          String[] propertyPath = propertyEnd.split("/"); // length == 3
+          String siteName = propertyPath[0];
+          String propertiesProperty = propertyPath[1];
+          String propertyName = propertyPath[2];
+
+          Map<String, Map<String, String>> siteMap = configurations.get(siteName);
+          if (siteMap == null) {
+            siteMap = new HashMap<String, Map<String, String>>();
+            configurations.put(siteName, siteMap);
+          }
+
+          Map<String, String> propertiesMap = siteMap.get(propertiesProperty);
+          if (propertiesMap == null) {
+            propertiesMap = new HashMap<String, String>();
+            siteMap.put(propertiesProperty, propertiesMap);
+          }
+
+          String value = (String) properties.get(property);
+          propertiesMap.put(propertyName, value);
+        } catch (Exception e) {
+          LOG.debug(String.format("Error handling configuration property, name = %s", property), e);
+          // do nothing
+        }
+      }
+    }
+    return configurations;
+  }
+
   @SuppressWarnings("unchecked")
   private Map<String, Set<String>> calculateComponentHostsMap(Map<String, Set<String>> hostGroups,
-                                                              Map<String, Set<String>> bindingHostGroups) {
+      Map<String, Set<String>> bindingHostGroups) {
     /*
      * ClassCastException may occur in case of body inconsistency: property
      * missed, etc.

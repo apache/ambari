@@ -78,6 +78,7 @@ public abstract class StackAdvisorCommand<T> extends BaseService {
   private static final String COMPONENT_INFO_PROPETRY = "StackServiceComponents";
   private static final String COMPONENT_NAME_PROPERTY = "component_name";
   private static final String COMPONENT_HOSTNAMES_PROPETRY = "hostnames";
+  private static final String CONFIGURATIONS_PROPETRY = "configurations";
 
   private File recommendationsDir;
   private String stackAdvisorScript;
@@ -133,6 +134,7 @@ public abstract class StackAdvisorCommand<T> extends BaseService {
       ObjectNode root = (ObjectNode) this.mapper.readTree(data.servicesJSON);
 
       populateComponentHostsMap(root, request.getComponentHostsMap());
+      populateConfigurations(root, request.getConfigurations());
 
       data.servicesJSON = mapper.writeValueAsString(root);
     } catch (Exception e) {
@@ -143,6 +145,25 @@ public abstract class StackAdvisorCommand<T> extends BaseService {
     }
 
     return data;
+  }
+
+  private void populateConfigurations(ObjectNode root,
+      Map<String, Map<String, Map<String, String>>> configurations) {
+    ObjectNode configurationsNode = root.putObject(CONFIGURATIONS_PROPETRY);
+    for (String siteName : configurations.keySet()) {
+      ObjectNode siteNode = configurationsNode.putObject(siteName);
+
+      Map<String, Map<String, String>> siteMap = configurations.get(siteName);
+      for (String properties : siteMap.keySet()) {
+        ObjectNode propertiesNode = siteNode.putObject(properties);
+
+        Map<String, String> propertiesMap = siteMap.get(properties);
+        for (String propertyName : propertiesMap.keySet()) {
+          String propertyValue = propertiesMap.get(propertyName);
+          propertiesNode.put(propertyName, propertyValue);
+        }
+      }
+    }
   }
 
   private void populateComponentHostsMap(ObjectNode root, Map<String, Set<String>> componentHostsMap) {

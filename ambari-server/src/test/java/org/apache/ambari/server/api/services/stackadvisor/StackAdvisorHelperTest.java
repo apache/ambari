@@ -31,6 +31,7 @@ import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest.St
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest.StackAdvisorRequestType;
 import org.apache.ambari.server.api.services.stackadvisor.commands.GetComponentLayoutRecommnedationCommand;
 import org.apache.ambari.server.api.services.stackadvisor.commands.GetComponentLayoutValidationCommand;
+import org.apache.ambari.server.api.services.stackadvisor.commands.GetConfigurationValidationCommand;
 import org.apache.ambari.server.api.services.stackadvisor.commands.StackAdvisorCommand;
 import org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse;
 import org.apache.ambari.server.api.services.stackadvisor.validations.ValidationResponse;
@@ -147,6 +148,19 @@ public class StackAdvisorHelperTest {
     StackAdvisorCommand<ValidationResponse> command = helper.createValidationCommand(requestType);
 
     assertEquals(GetComponentLayoutValidationCommand.class, command.getClass());
+  }
+
+  @Test
+  public void testCreateValidationCommand_returnsGetConfigurationValidationCommand()
+      throws IOException, StackAdvisorException {
+    Configuration configuration = mock(Configuration.class);
+    StackAdvisorRunner saRunner = mock(StackAdvisorRunner.class);
+    StackAdvisorHelper helper = new StackAdvisorHelper(configuration, saRunner);
+    StackAdvisorRequestType requestType = StackAdvisorRequestType.CONFIGURATIONS;
+
+    StackAdvisorCommand<ValidationResponse> command = helper.createValidationCommand(requestType);
+
+    assertEquals(GetConfigurationValidationCommand.class, command.getClass());
   }
 
 }

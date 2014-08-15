@@ -49,7 +49,8 @@ public class GetConfigurationRecommnedationCommand extends
 
   @Override
   protected void validate(StackAdvisorRequest request) throws StackAdvisorException {
-    if (request.getHosts().isEmpty() || request.getServices().isEmpty()) {
+    if (request.getHosts() == null || request.getHosts().isEmpty() || request.getServices() == null
+        || request.getServices().isEmpty()) {
       throw new StackAdvisorException("Hosts and services must not be empty");
     }
   }

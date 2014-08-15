@@ -25,6 +25,7 @@ import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest.St
 import org.apache.ambari.server.api.services.stackadvisor.commands.GetComponentLayoutRecommnedationCommand;
 import org.apache.ambari.server.api.services.stackadvisor.commands.GetComponentLayoutValidationCommand;
 import org.apache.ambari.server.api.services.stackadvisor.commands.GetConfigurationRecommnedationCommand;
+import org.apache.ambari.server.api.services.stackadvisor.commands.GetConfigurationValidationCommand;
 import org.apache.ambari.server.api.services.stackadvisor.commands.StackAdvisorCommand;
 import org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse;
 import org.apache.ambari.server.api.services.stackadvisor.validations.ValidationResponse;
@@ -74,6 +75,9 @@ public class StackAdvisorHelper {
     if (requestType == StackAdvisorRequestType.HOST_GROUPS) {
       command = new GetComponentLayoutValidationCommand(recommendationsDir, stackAdvisorScript,
           requestId, saRunner);
+    } else if (requestType == StackAdvisorRequestType.CONFIGURATIONS) {
+      command = new GetConfigurationValidationCommand(recommendationsDir, stackAdvisorScript,
+          requestId, saRunner);
     } else {
       throw new StackAdvisorException(String.format("Unsupported request type, type=%s",
           requestType));
@@ -115,23 +119,6 @@ public class StackAdvisorHelper {
     }
 
     return command;
-  }
-
-  /**
-   * Return configurations recommendation based on hosts and services
-   * information.
-   *
-   * @param request the recommendation request
-   * @return {@link RecommendationResponse} instance
-   * @throws StackAdvisorException in case of stack advisor script errors
-   */
-  public synchronized RecommendationResponse getConfigurationRecommnedation(
-      StackAdvisorRequest request) throws StackAdvisorException {
-    requestId += 1;
-
-    GetConfigurationRecommnedationCommand command = new GetConfigurationRecommnedationCommand(
-        recommendationsDir, stackAdvisorScript, requestId, saRunner);
-    return command.invoke(request);
   }
 
 }
