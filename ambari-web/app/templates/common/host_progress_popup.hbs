@@ -202,7 +202,7 @@
                     {{#if view.openedTask.isRebalanceHDFSTask }}
                       <h5>{{t services.hdfs.rebalance.title}}</h5>
                       <div class="progresspopup-rebalancehdfs">
-                        <div class="progress progress-striped active">
+                        <div {{bindAttr class=":progress view.openedTask.isInProgress:progress-striped view.openedTask.barColor :active"}}>
                           <div class="bar" {{bindAttr style="view.openedTask.completionProgressStyle"}}></div>
                         </div>
                       </div>
@@ -212,7 +212,9 @@
                           {{view.openedTask.dataLeft}} left /
                           {{view.openedTask.dataBeingMoved}} being processed
                         </div>
-                        <button class="btn btn-danger pull-right" {{action stopRebalanceHDFS}}>{{t common.cancel}}</button>
+                        {{#if view.openedTask.isNotComplete}}
+                          <button class="btn btn-danger pull-right" {{action stopRebalanceHDFS}}>{{t common.cancel}}</button>
+                        {{/if}}
                       </div>
                       <hr>
                     {{/if}}

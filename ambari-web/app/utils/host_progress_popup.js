@@ -461,7 +461,8 @@ App.HostPopup = Em.Object.create({
               newHostInfo.logTasks.forEach(function (_task) {
                 var existTask = existTasks.findProperty('id', _task.Tasks.id);
                 if (existTask) {
-                  existTask.set('status', App.format.taskStatus(_task.Tasks.status));
+                  var status = _task.Tasks.status;
+                  existTask.set('status', App.format.taskStatus(status));
                   existTask.set('stdout', _task.Tasks.stdout);
                   existTask.set('stderr', _task.Tasks.stderr);
                   // Verified that this is needed.
@@ -477,10 +478,21 @@ App.HostPopup = Em.Object.create({
                     if (!structuredOut || structuredOut === 'null') {
                       structuredOut = {};
                     }
-                    
+
+                    var barColorMap = {
+                      'FAILED': 'progress-danger',
+                      'ABORTED': 'progress-warning',
+                      'TIMEDOUT': 'progress-warning',
+                      'IN_PROGRESS': 'progress-info',
+                      'COMPLETED': 'progress-success'
+                    };
+
                     existTask.set('dataMoved', structuredOut['dataMoved'] || '0');
                     existTask.set('dataLeft', structuredOut['dataLeft'] || '0');
                     existTask.set('dataBeingMoved', structuredOut['dataBeingMoved'] || '0');
+                    existTask.set('barColor', barColorMap[status]);
+                    existTask.set('isInProgress', status == 'IN_PROGRESS');
+                    existTask.set('isNotComplete', ['QUEUED', 'IN_PROGRESS'].contains(status));
                     existTask.set('completionProgressStyle', 'width:' + (structuredOut['completePercent'] || 0) * 100 + '%;');
 
                     existTask.set('command', _task.Tasks.command);
