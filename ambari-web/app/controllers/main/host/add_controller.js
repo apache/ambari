@@ -254,12 +254,13 @@ App.AddHostController = App.WizardController.extend({
         if (slave.hosts.length > 0) {
           if (slave.componentName !== "CLIENT") {
             var service = App.StackServiceComponent.find(slave.componentName).get('stackService');
-            var configGroups = this.get('content.configGroups').filterProperty('ConfigGroup.tag', service);
+            var serviceName = service.get('serviceName');
+            var configGroups = this.get('content.configGroups').filterProperty('ConfigGroup.tag', serviceName);
             var configGroupsNames = configGroups.mapProperty('ConfigGroup.group_name');
             var defaultGroupName = service.get('displayName') + ' Default';
             configGroupsNames.unshift(defaultGroupName);
             selectedServices.push({
-              serviceId: service.get('serviceName'),
+              serviceId: serviceName,
               displayName: service.get('displayName'),
               hosts: slave.hosts.mapProperty('hostName'),
               configGroupsNames: configGroupsNames,

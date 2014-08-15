@@ -211,6 +211,7 @@ module.exports = App.WizardRoute.extend({
       var addHostStep4Controller = router.get('addHostStep4Controller');
       controller.setCurrentStep('4');
       addHostStep4Controller.loadConfigGroups();
+      addHostStep4Controller.set('isConfigGroupLoaded', false);
       addHostStep4Controller.configGroupsLoading().done(function () {
         controller.dataLoading().done(function () {
           controller.loadAllPriorSteps();
