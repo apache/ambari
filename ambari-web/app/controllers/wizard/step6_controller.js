@@ -252,7 +252,7 @@ App.WizardStep6Controller = Em.Controller.extend({
             allChecked: false,
             isRequired: serviceComponent.get('isRequired'),
             noChecked: true,
-            isDisabled: installedServices.someProperty('serviceName',stackService.get('serviceName')) && this.get('isAddServiceWizard')
+            isDisabled: installedServices.someProperty('serviceName', stackService.get('serviceName')) && this.get('isAddServiceWizard')
           }));
         }
       }, this);
@@ -425,13 +425,12 @@ App.WizardStep6Controller = Em.Controller.extend({
    * @param hostsObj
    */
   selectClientHost: function (hostsObj) {
-     var nonMasterHost = hostsObj.findProperty('hasMaster',false);
-     if (nonMasterHost) {
-       var clientCheckBox = nonMasterHost.get('checkboxes').findProperty('name','CLIENT');
-       if (clientCheckBox) {
-         clientCheckBox.set('checked',true);
-       }
-     }
+    var nonMasterHost = hostsObj.findProperty('hasMaster', false);
+    var clientHost = !!nonMasterHost ? nonMasterHost : hostsObj[hostsObj.length - 1]; // last host
+    var clientCheckBox = clientHost.get('checkboxes').findProperty('component', 'CLIENT');
+    if (clientCheckBox) {
+      clientCheckBox.set('checked', true);
+    }
   },
 
   /**
@@ -469,7 +468,7 @@ App.WizardStep6Controller = Em.Controller.extend({
     return this.get('content.masterComponentHosts').filterProperty('hostName', hostName).mapProperty('component');
   },
 
-  callValidation: function(successCallback) {
+  callValidation: function (successCallback) {
     var self = this;
     if (App.supports.serverRecommendValidate) {
       self.callServerSideValidation(successCallback);
@@ -510,7 +509,7 @@ App.WizardStep6Controller = Em.Controller.extend({
       }
 
       var selectedClientComponents = self.get('content.clients').mapProperty('component_name');
-      var alreadyInstalledClients = App.get('components.clients').reject(function(c) {
+      var alreadyInstalledClients = App.get('components.clients').reject(function (c) {
         return selectedClientComponents.contains(c);
       });
 
@@ -540,7 +539,7 @@ App.WizardStep6Controller = Em.Controller.extend({
         times: App.maxRetries,
         timeout: App.timeout
       }).
-      then(function() {
+      then(function () {
         if (!self.get('submitDisabled') && successCallback) {
           successCallback();
         }
@@ -567,7 +566,7 @@ App.WizardStep6Controller = Em.Controller.extend({
     this.get('hosts').setEach('warnMessages', []);
     this.get('hosts').setEach('errorMessages', []);
     this.get('hosts').setEach('anyMessage', false);
-    this.get('hosts').forEach(function(host) {
+    this.get('hosts').forEach(function (host) {
       host.checkboxes.setEach('hasWarnMessage', false);
       host.checkboxes.setEach('hasErrorMessage', false);
     });
@@ -575,11 +574,11 @@ App.WizardStep6Controller = Em.Controller.extend({
     var anyGeneralClientErrors = false; // any error/warning for any client component (under "CLIENT" alias)
 
     var validationData = validationUtils.filterNotInstalledComponents(data);
-    validationData.filterProperty('type', 'host-component').forEach(function(item) {
+    validationData.filterProperty('type', 'host-component').forEach(function (item) {
       var checkboxWithIssue = null;
       var isGeneralClientValidationItem = clientComponents.contains(item['component-name']); // it is an error/warning for any client component (under "CLIENT" alias)
-      var host = self.get('hosts').find(function(h) {
-        return h.hostName === item.host && h.checkboxes.some(function(checkbox) {
+      var host = self.get('hosts').find(function (h) {
+        return h.hostName === item.host && h.checkboxes.some(function (checkbox) {
           var isClientComponent = checkbox.component === "CLIENT" && isGeneralClientValidationItem;
           if (checkbox.component === item['component-name'] || isClientComponent) {
             checkboxWithIssue = checkbox;
@@ -636,7 +635,7 @@ App.WizardStep6Controller = Em.Controller.extend({
   /**
    * Composes selected values of comboboxes into blueprint format
    */
-  getCurrentBlueprint: function() {
+  getCurrentBlueprint: function () {
     var self = this;
 
     var res = {
@@ -648,15 +647,15 @@ App.WizardStep6Controller = Em.Controller.extend({
     var mapping = self.get('hosts');
 
     var i = 0;
-    mapping.forEach(function(item) {
+    mapping.forEach(function (item) {
       i += 1;
       var group_name = 'host-group-' + i;
 
       var host_group = {
         name: group_name,
-        components: item.checkboxes.filterProperty('checked', true).map(function(checkbox) {
+        components: item.checkboxes.filterProperty('checked', true).map(function (checkbox) {
           if (checkbox.component === "CLIENT") {
-            return clientComponents.map(function(client) {
+            return clientComponents.map(function (client) {
               return { name: client };
             });
           } else {
@@ -669,7 +668,9 @@ App.WizardStep6Controller = Em.Controller.extend({
 
       var binding = {
         name: group_name,
-        hosts: [ { fqdn: item.hostName } ]
+        hosts: [
+          { fqdn: item.hostName }
+        ]
       }
 
       res.blueprint.host_groups.push(host_group);
@@ -679,7 +680,7 @@ App.WizardStep6Controller = Em.Controller.extend({
     return res;
   },
 
-  getMasterSlaveBlueprintForAddHostWizard: function() {
+  getMasterSlaveBlueprintForAddHostWizard: function () {
     var components = App.HostComponent.find();
     var hosts = components.mapProperty("hostName").uniq();
 
@@ -689,18 +690,22 @@ App.WizardStep6Controller = Em.Controller.extend({
     };
 
     var i = 0;
-    hosts.forEach(function(host) {
+    hosts.forEach(function (host) {
       i += 1;
       var group_name = 'host-group-' + i;
 
       res.blueprint.host_groups.push({
         name: group_name,
-        components: components.filterProperty("hostName", host).mapProperty("componentName").map(function(c) { return { name: c }; })
+        components: components.filterProperty("hostName", host).mapProperty("componentName").map(function (c) {
+          return { name: c };
+        })
       });
 
       res.blueprint_cluster_binding.host_groups.push({
         name: group_name,
-        hosts: [ { fqdn: host } ]
+        hosts: [
+          { fqdn: host }
+        ]
       });
     });
     return res;
