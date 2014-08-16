@@ -41,15 +41,6 @@ class HDP206StackAdvisor(StackAdvisor):
       "services": servicesList,
       "recommendations": {
         "blueprint": {
-          "configurations": {
-            "global": {
-              "properties": { }
-            },
-            "core-site": { },
-            "hdfs-site": { },
-            "yarn-site": { },
-            "hbase-site": { }
-          },
           "host_groups": [ ]
         },
         "blueprint_cluster_binding": {
@@ -71,7 +62,7 @@ class HDP206StackAdvisor(StackAdvisor):
           hostsForComponent = component["StackServiceComponents"]["hostnames"]
         else:
           availableHosts = hostsList
-          if len(hostsList) > 1 and isNotPreferableOnAmbariServerHost(component):
+          if len(hostsList) > 1 and self.isNotPreferableOnAmbariServerHost(component):
             availableHosts = [hostName for hostName in hostsList if not isLocalHost(hostName)]
 
           if isMasterWithMultipleInstances(component):
@@ -81,9 +72,9 @@ class HDP206StackAdvisor(StackAdvisor):
                 hostsCount = len(availableHosts)
               hostsForComponent = availableHosts[:hostsCount]
             else:
-              hostsForComponent = [getHostForComponent(component, availableHosts)]
+              hostsForComponent = [self.getHostForComponent(component, availableHosts)]
           else:
-            hostsForComponent = [getHostForComponent(component, availableHosts)]
+            hostsForComponent = [self.getHostForComponent(component, availableHosts)]
 
         #extend 'hostsComponentsMap' with 'hostsForComponent'
         for hostName in hostsForComponent:
@@ -94,7 +85,7 @@ class HDP206StackAdvisor(StackAdvisor):
     #extend 'hostsComponentsMap' with Slave and Client Components
     componentsListList = [service["components"] for service in services["services"]]
     componentsList = [item for sublist in componentsListList for item in sublist]
-    usedHostsListList = [component["StackServiceComponents"]["hostnames"] for component in componentsList if not isNotValuable(component)]
+    usedHostsListList = [component["StackServiceComponents"]["hostnames"] for component in componentsList if not self.isNotValuable(component)]
     utilizedHosts = [item for sublist in usedHostsListList for item in sublist]
     freeHosts = [hostName for hostName in hostsList if hostName not in utilizedHosts]
 
@@ -134,6 +125,46 @@ class HDP206StackAdvisor(StackAdvisor):
 
     return recommendations
   pass
+
+  def getHostForComponent(self, component, hostsList):
+    componentName = component["StackServiceComponents"]["component_name"]
+    scheme = self.defineSelectionScheme(componentName)
+
+    if len(hostsList) == 1:
+      return hostsList[0]
+    else:
+      for key in scheme.keys():
+        if isinstance(key, ( int, long )):
+          if len(hostsList) < key:
+            return hostsList[scheme[key]]
+      return hostsList[scheme['else']]
+
+  def defineSelectionScheme(self, componentName):
+    scheme = self.selectionScheme(componentName)
+    if scheme is None:
+      scheme = {"else": 0}
+    return scheme
+
+  def selectionScheme(self, componentName):
+    return {
+      'NAMENODE': {"else": 0},
+      'SECONDARY_NAMENODE': {"else": 1},
+      'HBASE_MASTER': {6: 0, 31: 2, "else": 3},
+
+      'HISTORYSERVER': {31: 1, "else": 2},
+      'RESOURCEMANAGER': {31: 1, "else": 2},
+
+      'OOZIE_SERVER': {6: 1, 31: 2, "else": 3},
+
+      'HIVE_SERVER': {6: 1, 31: 2, "else": 4},
+      'HIVE_METASTORE': {6: 1, 31: 2, "else": 4},
+      'WEBHCAT_SERVER': {6: 1, 31: 2, "else": 4},
+      }.get(componentName, None)
+
+  def isNotPreferableOnAmbariServerHost(self, component):
+    componentName = component["StackServiceComponents"]["component_name"]
+    service = ['GANGLIA_SERVER', 'NAGIOS_SERVER']
+    return componentName in service
 
   def validateComponentLayout(self, services, hosts):
     """Returns array of Validation objects about issues with hostnames components assigned to"""
@@ -195,7 +226,7 @@ class HDP206StackAdvisor(StackAdvisor):
            items.append( { "type": 'host-component', "level": 'ERROR', "message": 'Cardinality violation, cardinality={0}, hosts count={1}'.format(cardinality, str(componentHostsCount)), "component-name": str(componentName) } )
 
     # Validating host-usage
-    usedHostsListList = [component["StackServiceComponents"]["hostnames"] for component in componentsList if not isNotValuable(component)]
+    usedHostsListList = [component["StackServiceComponents"]["hostnames"] for component in componentsList if not self.isNotValuable(component)]
     usedHostsList = [item for sublist in usedHostsListList for item in sublist]
     nonUsedHostsList = [item for item in hostsList if item not in usedHostsList]
     for host in nonUsedHostsList:
@@ -203,6 +234,11 @@ class HDP206StackAdvisor(StackAdvisor):
 
     return validations
   pass
+
+  def isNotValuable(self, component):
+    componentName = component["StackServiceComponents"]["component_name"]
+    service = ['JOURNALNODE', 'ZKFC', 'GANGLIA_MONITOR']
+    return componentName in service
 
   def recommendConfigurations(self, services, hosts):
     stackName = services["Versions"]["stack_name"]
@@ -242,9 +278,7 @@ class HDP206StackAdvisor(StackAdvisor):
   def recommendServiceConfigurations(self, service):
     return {
       "YARN": self.recommendYARNConfigurations,
-      "MAPREDUCE2": self.recommendMapReduce2Configurations,
-      "HIVE": self.recommendHiveConfigurations,
-      "OOZIE": self.recommendOozieConfigurations
+      "MAPREDUCE2": self.recommendMapReduce2Configurations
     }.get(service, None)
 
   def putProperty(self, config, configType):
@@ -259,15 +293,6 @@ class HDP206StackAdvisor(StackAdvisor):
     putYarnProperty('yarn.scheduler.minimum-allocation-mb', clusterData['ramPerContainer'])
     putYarnProperty('yarn.scheduler.maximum-allocation-mb', clusterData['containers'] * clusterData['ramPerContainer'])
 
-  def recommendHiveConfigurations(self, configurations, clusterData):
-    containerSize = clusterData['mapMemory'] if clusterData['mapMemory'] > 2048 else clusterData['reduceMemory']
-    containerSize = min(clusterData['containers'] * clusterData['ramPerContainer'], containerSize)
-    putHiveProperty = self.putProperty(configurations, "hive-site")
-    putHiveProperty('hive.auto.convert.join.noconditionaltask.size', int(containerSize / 3) * 1048576)
-    putHiveProperty('hive.tez.java.opts', "-server -Xmx" + str(int(0.8 * containerSize))
-                    + "m -Djava.net.preferIPv4Stack=true -XX:NewRatio=8 -XX:+UseNUMA -XX:+UseParallelGC")
-    putHiveProperty('hive.tez.container.size', containerSize)
-
   def recommendMapReduce2Configurations(self, configurations, clusterData):
     putMapredProperty = self.putProperty(configurations, "mapred-site")
     putMapredProperty('yarn.app.mapreduce.am.resource.mb', clusterData['amMemory'])
@@ -277,14 +302,6 @@ class HDP206StackAdvisor(StackAdvisor):
     putMapredProperty('mapreduce.map.java.opts', "-Xmx" + str(int(0.8 * clusterData['mapMemory'])) + "m")
     putMapredProperty('mapreduce.reduce.java.opts', "-Xmx" + str(int(0.8 * clusterData['reduceMemory'])) + "m")
     putMapredProperty('mapreduce.task.io.sort.mb', int(min(0.4 * clusterData['mapMemory'], 1024)))
-
-  def recommendOozieConfigurations(self, configurations, clusterData):
-    if "FALCON_SERVER" in clusterData["components"]:
-      putMapredProperty = self.putProperty(configurations, "oozie-site")
-      putMapredProperty("oozie.services.ext",
-                        "org.apache.oozie.service.JMSAccessorService," +
-                        "org.apache.oozie.service.PartitionDependencyManagerService," +
-                        "org.apache.oozie.service.HCatAccessorService")
 
   def getClusterData(self, servicesList, hosts, components):
 
@@ -380,26 +397,72 @@ class HDP206StackAdvisor(StackAdvisor):
     configurations = services["configurations"]
     for service in services["services"]:
       serviceName = service["StackServices"]["service_name"]
-      if serviceName == "MAPREDUCE2":
-        mapReduceErrors = validateMapReduce2Configurations(getSiteProperties(configurations, "mapred-site"), recommendedDefaults["mapred-site"]["properties"])
-        items.extend(mapReduceErrors)
-      elif serviceName == "HIVE":
-        hiveErrors = validateHiveConfigurations(getSiteProperties(configurations, "hive-site"), recommendedDefaults["hive-site"]["properties"])
-        items.extend(hiveErrors)
-      elif serviceName == "STORM":
-        oozieErrors = [] #validateStormConfigurations(getSiteProperties(configurations, "storm-site"), recommendedDefaults["storm-site"]["properties"])
-        items.extend(oozieErrors)
-      elif serviceName == "TEZ":
-        tezErrors = validateTezConfigurations(getSiteProperties(configurations, "tez-site"), recommendedDefaults["tez-site"]["properties"])
-        items.extend(tezErrors)
-      elif serviceName == "YARN":
-        yarnErrors = validateYARNConfigurations(getSiteProperties(configurations, "yarn-site"), recommendedDefaults["yarn-site"]["properties"])
-        items.extend(yarnErrors)
-      else:
-        pass
+      validator = self.validateServiceConfigurations(serviceName)
+      if validator is not None:
+        siteName = validator[0]
+        method = validator[1]
+        resultItems = method(getSiteProperties(configurations, siteName), recommendedDefaults[siteName]["properties"])
+        items.extend(resultItems)
     return validations
     pass
 
+  def validateServiceConfigurations(self, serviceName):
+    return {
+      "MAPREDUCE2": ["mapred-site", self.validateMapReduce2Configurations],
+      "YARN": ["yarn-site", self.validateYARNConfigurations]
+    }.get(serviceName, None)
+
+  def toConfigurationValidationErrors(self, items, siteName):
+    result = []
+    for item in items:
+      if item["message"] is not None:
+        error = { "type": 'configuration', "level": 'ERROR', "message": item["message"], "config-type": siteName, "config-name": item["config-name"] }
+        result.append(error)
+    return result
+
+  def validatorLessThenDefaultValue(self, properties, recommendedDefaults, propertyName):
+    value = to_number(properties[propertyName])
+    if value is None:
+      return "Value should be integer"
+    defaultValue = to_number(recommendedDefaults[propertyName])
+    if defaultValue is None:
+      return None
+    if value < defaultValue:
+      return "Value is less than the recommended default of {0}".format(defaultValue)
+    return None
+
+  def validateXmxValue(self, properties, recommendedDefaults, propertyName):
+    value = properties[propertyName]
+    defaultValue = recommendedDefaults[propertyName]
+    if defaultValue is None:
+      return "Config's default value can't be null or undefined"
+    if not checkXmxValueFormat(value):
+      return 'Invalid value format'
+    valueInt = formatXmxSizeToBytes(getXmxSize(value))
+    defaultValueXmx = getXmxSize(defaultValue)
+    defaultValueInt = formatXmxSizeToBytes(defaultValueXmx)
+    if valueInt < defaultValueInt:
+      return "Value is less than the recommended default of -Xmx" + defaultValueXmx
+    return None
+
+  def validateMapReduce2Configurations(self, properties, recommendedDefaults):
+    validationItems = [ {"config-name": 'mapreduce.map.java.opts', "message": self.validateXmxValue(properties, recommendedDefaults, 'mapreduce.map.java.opts')},
+                        {"config-name": 'mapreduce.reduce.java.opts', "message": self.validateXmxValue(properties, recommendedDefaults, 'mapreduce.reduce.java.opts')},
+                        {"config-name": 'mapreduce.task.io.sort.mb', "message": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'mapreduce.task.io.sort.mb')},
+                        {"config-name": 'mapreduce.map.memory.mb', "message": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'mapreduce.map.memory.mb')},
+                        {"config-name": 'mapreduce.reduce.memory.mb', "message": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'mapreduce.reduce.memory.mb')},
+                        {"config-name": 'yarn.app.mapreduce.am.resource.mb', "message": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'yarn.app.mapreduce.am.resource.mb')},
+                        {"config-name": 'yarn.app.mapreduce.am.command-opts', "message": self.validateXmxValue(properties, recommendedDefaults, 'yarn.app.mapreduce.am.command-opts')} ]
+    return self.toConfigurationValidationErrors(validationItems, "mapred-site")
+
+  def validateYARNConfigurations(self, properties, recommendedDefaults):
+    validationItems = [ {"config-name": 'yarn.nodemanager.resource.memory-mb', "message": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'yarn.nodemanager.resource.memory-mb')},
+                        {"config-name": 'yarn.scheduler.minimum-allocation-mb', "message": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'yarn.scheduler.minimum-allocation-mb')},
+                        {"config-name": 'yarn.scheduler.maximum-allocation-mb', "message": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'yarn.scheduler.maximum-allocation-mb')} ]
+    return self.toConfigurationValidationErrors(validationItems, "yarn-site")
+
+
+# Validation helper methods
 def getSiteProperties(configurations, siteName):
   if configurations[siteName] is None:
     return {}
@@ -412,39 +475,6 @@ def to_number(s):
     return int(re.sub("\D", "", s))
   except ValueError:
     return None
-
-def toConfigurationValidationErrors(items, siteName):
-  result = []
-  for item in items:
-    if item["message"] is not None:
-      error = { "type": 'configuration', "level": 'ERROR', "message": item["message"], "config-type": siteName, "config-name": item["config-name"] }
-      result.append(error)
-  return result
-
-def validatorLessThenDefaultValue(properties, recommendedDefaults, propertyName):
-  value = to_number(properties[propertyName])
-  if value is None:
-    return "Value should be integer"
-  defaultValue = to_number(recommendedDefaults[propertyName])
-  if defaultValue is None:
-    return None
-  if value < defaultValue:
-    return "Value is less than the recommended default of {0}".format(defaultValue)
-  return None
-
-def validateXmxValue(properties, recommendedDefaults, propertyName):
-  value = properties[propertyName]
-  defaultValue = recommendedDefaults[propertyName]
-  if defaultValue is None:
-    return "Config's default value can't be null or undefined"
-  if not checkXmxValueFormat(value):
-    return 'Invalid value format'
-  valueInt = formatXmxSizeToBytes(getXmxSize(value))
-  defaultValueXmx = getXmxSize(defaultValue)
-  defaultValueInt = formatXmxSizeToBytes(defaultValueXmx)
-  if valueInt < defaultValueInt:
-    return "Value is less than the recommended default of -Xmx" + defaultValueXmx
-  return None
 
 def checkXmxValueFormat(value):
   p = re.compile('-Xmx(\d+)(b|k|m|g|p|t|B|K|M|G|P|T)?')
@@ -477,58 +507,8 @@ def formatXmxSizeToBytes(value):
     }[1]
   return to_number(value) * m
 
-def validateMapReduce2Configurations(properties, recommendedDefaults):
-  validationItems = [ {"config-name": 'mapreduce.map.java.opts', "message": validateXmxValue(properties, recommendedDefaults, 'mapreduce.map.java.opts')},
-                      {"config-name": 'mapreduce.reduce.java.opts', "message": validateXmxValue(properties, recommendedDefaults, 'mapreduce.reduce.java.opts')},
-                      {"config-name": 'mapreduce.task.io.sort.mb', "message": validatorLessThenDefaultValue(properties, recommendedDefaults, 'mapreduce.task.io.sort.mb')},
-                      {"config-name": 'mapreduce.map.memory.mb', "message": validatorLessThenDefaultValue(properties, recommendedDefaults, 'mapreduce.map.memory.mb')},
-                      {"config-name": 'mapreduce.reduce.memory.mb', "message": validatorLessThenDefaultValue(properties, recommendedDefaults, 'mapreduce.reduce.memory.mb')},
-                      {"config-name": 'yarn.app.mapreduce.am.resource.mb', "message": validatorLessThenDefaultValue(properties, recommendedDefaults, 'yarn.app.mapreduce.am.resource.mb')},
-                      {"config-name": 'yarn.app.mapreduce.am.command-opts', "message": validateXmxValue(properties, recommendedDefaults, 'yarn.app.mapreduce.am.command-opts')} ]
-  return toConfigurationValidationErrors(validationItems, "mapred-site")
 
-def validateHiveConfigurations(properties, recommendedDefaults):
-  validationItems = [ {"config-name": 'hive.tez.container.size', "message": validatorLessThenDefaultValue(properties, recommendedDefaults, 'hive.tez.container.size')},
-                      {"config-name": 'hive.tez.java.opts', "message": validateXmxValue(properties, recommendedDefaults, 'hive.tez.java.opts')},
-                      {"config-name": 'hive.auto.convert.join.noconditionaltask.size', "message": validatorLessThenDefaultValue(properties, recommendedDefaults, 'hive.auto.convert.join.noconditionaltask.size')} ]
-  return toConfigurationValidationErrors(validationItems, "hive-site")
-
-def validateStormConfigurations(properties, recommendedDefaults):
-  validationItems = [ {"config-name": 'drpc.childopts', "message": validateXmxValue(properties, recommendedDefaults, 'drpc.childopts')},
-                      {"config-name": 'ui.childopts', "message": validateXmxValue(properties, recommendedDefaults, 'ui.childopts')},
-                      {"config-name": 'logviewer.childopts', "message": validateXmxValue(properties, recommendedDefaults, 'logviewer.childopts')} ]
-  return toConfigurationValidationErrors(validationItems, "storm-site")
-
-def validateTezConfigurations(properties, recommendedDefaults):
-  validationItems = [ {"config-name": 'tez.am.resource.memory.mb', "message": validatorLessThenDefaultValue(properties, recommendedDefaults, 'tez.am.resource.memory.mb')},
-                      {"config-name": 'tez.am.java.opts', "message": validateXmxValue(properties, recommendedDefaults, 'tez.am.java.opts')} ]
-  return toConfigurationValidationErrors(validationItems, "tez-site")
-
-def validateYARNConfigurations(properties, recommendedDefaults):
-  validationItems = [ {"config-name": 'yarn.nodemanager.resource.memory-mb', "message": validatorLessThenDefaultValue(properties, recommendedDefaults, 'yarn.nodemanager.resource.memory-mb')},
-                      {"config-name": 'yarn.scheduler.minimum-allocation-mb', "message": validatorLessThenDefaultValue(properties, recommendedDefaults, 'yarn.scheduler.minimum-allocation-mb')},
-                      {"config-name": 'yarn.scheduler.maximum-allocation-mb', "message": validatorLessThenDefaultValue(properties, recommendedDefaults, 'yarn.scheduler.maximum-allocation-mb')} ]
-  return toConfigurationValidationErrors(validationItems, "yarn-site")
-
-# Helper methods
-def getHostForComponent(component, hostsList):
-  componentName = component["StackServiceComponents"]["component_name"]
-  scheme = selectionScheme(componentName)
-
-  if len(hostsList) == 1:
-    return hostsList[0]
-  else:
-    for key in scheme.keys():
-      if isinstance(key, ( int, long )):
-        if len(hostsList) < key:
-          return hostsList[scheme[key]]
-    return hostsList[scheme['else']]
-
-def isNotValuable(component):
-  componentName = component["StackServiceComponents"]["component_name"]
-  service = ['JOURNALNODE', 'ZKFC', 'APP_TIMELINE_SERVER', 'GANGLIA_MONITOR']
-  return componentName in service
-
+# Recommendation helper methods
 def isAlreadyPopulated(component):
   if component["StackServiceComponents"]["hostnames"] is not None:
     return len(component["StackServiceComponents"]["hostnames"]) > 0
@@ -550,11 +530,6 @@ def isMaster(component):
 def isLocalHost(hostName):
   return socket.getfqdn(hostName) == socket.getfqdn()
 
-def isNotPreferableOnAmbariServerHost(component):
-  componentName = component["StackServiceComponents"]["component_name"]
-  service = ['STORM_UI_SERVER', 'DRPC_SERVER', 'STORM_REST_API', 'NIMBUS', 'GANGLIA_SERVER', 'NAGIOS_SERVER', 'HUE_SERVER']
-  return componentName in service
-
 def isMasterWithMultipleInstances(component):
   componentName = component["StackServiceComponents"]["component_name"]
   masters = ['ZOOKEEPER_SERVER', 'HBASE_MASTER']
@@ -571,23 +546,4 @@ def cardinality(componentName):
     'ZOOKEEPER_SERVER': {min: 3},
     'HBASE_MASTER': {min: 1},
     }.get(componentName, {min:1, max:1})
-
-def selectionScheme(componentName):
-  return {
-    'NAMENODE': {"else": 0},
-    'SECONDARY_NAMENODE': {"else": 1},
-    'HBASE_MASTER': {6: 0, 31: 2, "else": 3},
-
-    'JOBTRACKER': {31: 1, "else": 2},
-    'HISTORYSERVER': {31: 1, "else": 2},
-    'RESOURCEMANAGER': {31: 1, "else": 2},
-    'APP_TIMELINE_SERVER': {31: 1, "else": 2},
-
-    'OOZIE_SERVER': {6: 1, 31: 2, "else": 3},
-    'FALCON_SERVER': {6: 1, 31: 2, "else": 3},
-
-    'HIVE_SERVER': {6: 1, 31: 2, "else": 4},
-    'HIVE_METASTORE': {6: 1, 31: 2, "else": 4},
-    'WEBHCAT_SERVER': {6: 1, 31: 2, "else": 4},
-    }.get(componentName, {"else": 0})
 

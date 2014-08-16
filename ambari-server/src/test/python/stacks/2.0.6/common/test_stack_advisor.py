@@ -35,7 +35,7 @@ class TestHDP206StackAdvisor(TestCase):
       stack_advisor_impl = imp.load_module('stack_advisor_impl', fp, hdp206StackAdvisorPath, ('.py', 'rb', imp.PY_SOURCE))
     clazz = getattr(stack_advisor_impl, hdp206StackAdvisorClassName)
     self.stackAdvisor = clazz()
-
+    
   def test_recommendationCardinalityALL(self):
     servicesInfo = [
       {
@@ -98,12 +98,12 @@ class TestHDP206StackAdvisor(TestCase):
     hosts = self.prepareHosts(["host1", "host2"])
     result = self.stackAdvisor.validateComponentLayout(services, hosts)
 
-    expectedMessages = [
-      "NameNode and Secondary NameNode cannot be hosted on same machine",
-      "NameNode and Secondary NameNode cannot be hosted on same machine",
-      "Host is not used"
+    expectedItems = [
+      {"message": "NameNode and Secondary NameNode cannot be hosted on same machine", "host": "host1"},
+      {"message": "NameNode and Secondary NameNode cannot be hosted on same machine", "host": "host1"},
+      {"message": "Host is not used", "host": "host2"}
     ]
-    self.assertValidationMessages(expectedMessages, result)
+    self.assertValidationResult(expectedItems, result)
 
   def test_validationCardinalityALL(self):
     servicesInfo = [
@@ -119,10 +119,10 @@ class TestHDP206StackAdvisor(TestCase):
     hosts = self.prepareHosts(["host1", "host2"])
     result = self.stackAdvisor.validateComponentLayout(services, hosts)
 
-    expectedMessages = [
-      "Cardinality violation, cardinality=ALL, hosts count=1"
+    expectedItems = [
+      {"message": "Cardinality violation, cardinality=ALL, hosts count=1"}
     ]
-    self.assertValidationMessages(expectedMessages, result)
+    self.assertValidationResult(expectedItems, result)
 
   def test_validationHostIsNotUsedForNonValuableComponent(self):
     servicesInfo = [
@@ -138,10 +138,10 @@ class TestHDP206StackAdvisor(TestCase):
     hosts = self.prepareHosts(["host1", "host2"])
     result = self.stackAdvisor.validateComponentLayout(services, hosts)
 
-    expectedMessages = [
-      "Host is not used"
+    expectedItems = [
+      {"message": "Host is not used", "host": "host1"}
     ]
-    self.assertValidationMessages(expectedMessages, result)
+    self.assertValidationResult(expectedItems, result)
 
   def test_validationCardinality01TwoHostsAssigned(self):
     servicesInfo = [
@@ -156,10 +156,10 @@ class TestHDP206StackAdvisor(TestCase):
     hosts = self.prepareHosts(["host1", "host2"])
     result = self.stackAdvisor.validateComponentLayout(services, hosts)
 
-    expectedMessages = [
-      "Cardinality violation, cardinality=0-1, hosts count=2"
+    expectedItems = [
+      {"message": "Cardinality violation, cardinality=0-1, hosts count=2"}
     ]
-    self.assertValidationMessages(expectedMessages, result)
+    self.assertValidationResult(expectedItems, result)
 
   def test_validationHostIsNotUsed(self):
     servicesInfo = [
@@ -174,10 +174,10 @@ class TestHDP206StackAdvisor(TestCase):
     hosts = self.prepareHosts(["host1", "host2"])
     result = self.stackAdvisor.validateComponentLayout(services, hosts)
 
-    expectedMessages = [
-      "Host is not used"
+    expectedItems = [
+      {"message": "Host is not used", "host": "host2"}
     ]
-    self.assertValidationMessages(expectedMessages, result)
+    self.assertValidationResult(expectedItems, result)
 
 
   def prepareHosts(self, hostsNames):
@@ -241,8 +241,15 @@ class TestHDP206StackAdvisor(TestCase):
     if not len(l1) == len(l2) or not sorted(l1) == sorted(l2):
       raise AssertionError("list1={0}, list2={1}".format(l1, l2))
 
-  def assertValidationMessages(self, expectedMessages, result):
-    realMessages = [item["message"] for item in result["items"]]
-    self.checkEqual(expectedMessages, realMessages)
+  def assertValidationResult(self, expectedItems, result):
+    actualItems = []
+    for item in result["items"]:
+      next = { "message": item["message"] }
+      try:
+        next["host"] = item["host"]
+      except KeyError, err:
+        pass
+      actualItems.append(next)
+    self.checkEqual(expectedItems, actualItems)
 
 
