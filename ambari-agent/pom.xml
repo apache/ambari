@@ -628,6 +628,7 @@
             <exclude>src/test/python/ambari_agent/dummy_files/*</exclude>
             <exclude>src/test/python/ambari_agent/dummy*.txt</exclude>
             <exclude>src/main/python/ambari_agent/imports.txt</exclude>
+            <exclude>src/main/python/ambari_agent/apscheduler/**</exclude>
             <exclude>**/*.erb</exclude>
             <exclude>**/*.json</exclude>
             <exclude>**/*.pydevproject</exclude>

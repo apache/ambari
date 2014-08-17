@@ -1,0 +1,46 @@
+{
+  "c1": [
+    {
+      "name": "namenode_cpu",
+      "label": "NameNode host CPU Utilization",
+      "scope": "host",
+      "source": {
+        "type": "METRIC",
+        "jmx": "java.lang:type=OperatingSystem/SystemCpuLoad",
+        "host": "{{hdfs-site/dfs.namenode.secondary.http-address}}"
+      }
+    },
+    {
+      "name": "namenode_process",
+      "service": "HDFS",
+      "component": "NAMENODE",
+      "label": "NameNode process",
+      "interval": 6,
+      "scope": "host",
+      "source": {
+        "type": "PORT",
+        "uri": "http://c6401.ambari.apache.org:50070",
+        "default_port": 50070,
+        "reporting": {
+          "ok": {
+            "text": "TCP OK - {0:.4f} response time on port {1}"
+          },
+          "critical": {
+            "text": "Could not load process info: {0}"
+          }
+        }
+      }
+    },
+    {
+      "name": "hdfs_last_checkpoint",
+      "label": "Last Checkpoint Time",
+      "interval": 1,
+      "scope": "service",
+      "enabled": false,
+      "source": {
+        "type": "SCRIPT",
+        "path": "scripts/alerts/last_checkpoint.py"
+      }
+    }
+  ]
+}

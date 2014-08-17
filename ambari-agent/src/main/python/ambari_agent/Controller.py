@@ -39,7 +39,7 @@ import security
 from NetUtil import NetUtil
 import ssl
 from LiveStatus import LiveStatus
-
+from AlertSchedulerHandler import AlertSchedulerHandler
 
 logger = logging.getLogger()
 
@@ -73,6 +73,14 @@ class Controller(threading.Thread):
     self.heartbeat_wait_event = threading.Event()
     # List of callbacks that are called at agent registration
     self.registration_listeners = []
+    
+    # pull config directory out of config
+    cache_dir = config.get('agent', 'cache_dir')
+    if cache_dir is None:
+      cache_dir = '/var/lib/ambari-agent/cache'
+      
+    self.alert_scheduler_handler = AlertSchedulerHandler(
+     os.path.join(cache_dir, 'alerts', 'alert_definitions.json'))
 
 
   def __del__(self):
@@ -316,6 +324,8 @@ class Controller(threading.Thread):
     registerResponse = self.registerWithServer()
     message = registerResponse['response']
     logger.info("Registration response from %s was %s", self.serverHostname, message)
+
+    self.alert_scheduler_handler.start()
 
     if self.isRegistered:
       # Clearing command queue to stop executing "stale" commands
