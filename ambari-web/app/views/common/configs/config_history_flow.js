@@ -281,7 +281,10 @@ App.ConfigHistoryFlowView = Em.View.extend({
     });
   },
   serviceVersions: function () {
-    return App.ServiceConfigVersion.find().filterProperty('serviceName', this.get('serviceName'));
+    var allServiceVersions = App.ServiceConfigVersion.find().filterProperty('serviceName', this.get('serviceName'));
+    return allServiceVersions.sort(function (a, b) {
+      return Em.get(a, 'createTime') - Em.get(b, 'createTime');
+    });
   }.property('serviceName'),
   /**
    * move back to the previous service version

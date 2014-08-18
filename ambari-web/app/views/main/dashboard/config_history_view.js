@@ -139,7 +139,6 @@ App.MainConfigHistoryView = App.TableView.extend({
     emptyValue: Em.I18n.t('common.all')
   }),
 
-
   modifiedFilterView: filters.createSelectView({
     column: 3,
     fieldType: 'filter-input-width',
