@@ -91,7 +91,7 @@ public class AmbariLdapDataPopulator {
 
             public Object mapFromAttributes(Attributes attributes)
                 throws NamingException {
-              return attributes.get("uid").get();
+              return "";
             }
           });
       return true;
@@ -269,10 +269,7 @@ public class AmbariLdapDataPopulator {
     final LdapTemplate ldapTemplate = loadLdapTemplate();
     final EqualsFilter equalsFilter = new EqualsFilter("objectClass",
         ldapServerProperties.getGroupObjectClass());
-    String baseDn = ldapServerProperties.getGroupBase();
-    if (baseDn == null) {
-      baseDn = ldapServerProperties.getBaseDN();
-    }
+    String baseDn = ldapServerProperties.getBaseDN();
     ldapTemplate.search(baseDn, equalsFilter.encode(), new AttributesMapper() {
 
       public Object mapFromAttributes(Attributes attributes)
@@ -295,10 +292,7 @@ public class AmbariLdapDataPopulator {
     final LdapTemplate ldapTemplate = loadLdapTemplate();
     final EqualsFilter equalsFilter = new EqualsFilter("objectClass",
         ldapServerProperties.getUserObjectClass());
-    String baseDn = ldapServerProperties.getUserBase();
-    if (baseDn == null) {
-      baseDn = ldapServerProperties.getBaseDN();
-    }
+    String baseDn = ldapServerProperties.getBaseDN();
     ldapTemplate.search(baseDn, equalsFilter.encode(), new AttributesMapper() {
 
       public Object mapFromAttributes(Attributes attributes)
@@ -323,10 +317,7 @@ public class AmbariLdapDataPopulator {
     final AndFilter andFilter = new AndFilter();
     andFilter.and(new EqualsFilter("objectClass", ldapServerProperties.getGroupObjectClass()));
     andFilter.and(new EqualsFilter(ldapServerProperties.getGroupNamingAttr(), groupName));
-    String baseDn = ldapServerProperties.getGroupBase();
-    if (baseDn == null) {
-      baseDn = ldapServerProperties.getBaseDN();
-    }
+    String baseDn = ldapServerProperties.getBaseDN();
     ldapTemplate.search(baseDn, andFilter.encode(), new ContextMapper() {
 
       public Object mapFromContext(Object ctx) {
