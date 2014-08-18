@@ -226,6 +226,7 @@ public class AmbariServer {
           "/", ServletContextHandler.SESSIONS );
 
       ServletHolder rootServlet = root.addServlet(DefaultServlet.class, "/");
+      rootServlet.setInitParameter("dirAllowed", "false");
       rootServlet.setInitOrder(1);
 
       /* Configure default servlet for agent server */
