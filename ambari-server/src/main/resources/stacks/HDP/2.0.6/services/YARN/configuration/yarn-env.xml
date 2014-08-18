@@ -51,7 +51,12 @@
     <value>1024</value>
     <description>Max heapsize for NodeManager using a numerical value in the scale of MB</description>
   </property>
-  
+  <property>
+    <name>min_user_id</name>
+    <value>1000</value>
+    <description>Set to 0 to disallow root from submitting jobs. Set to 1000 to disallow all superusers from submitting jobs</description>
+  </property>  
+
   <!-- yarn-env.sh -->
   <property>
     <name>content</name>

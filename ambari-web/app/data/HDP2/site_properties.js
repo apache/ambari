@@ -1966,6 +1966,17 @@ module.exports =
     },
     {
       "id": "puppet var",
+      "name": "min_user_id",
+      "displayName": "Minimum user ID for submitting job",
+      "isOverridable": true,
+      "displayType": "int",
+      "isVisible": true,
+      "serviceName": "YARN",
+      "filename": "yarn-env.xml",
+      "category": "Advanced"
+    },
+    {
+      "id": "puppet var",
       "name": "yarn_pid_dir_prefix",
       "displayName": "YARN PID Dir Prefix",
       "description": "",

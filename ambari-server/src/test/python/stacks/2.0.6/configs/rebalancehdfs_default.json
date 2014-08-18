@@ -219,7 +219,8 @@
             "yarn_heapsize": "1024", 
             "yarn_user": "yarn", 
             "resourcemanager_heapsize": "1024", 
-            "yarn_log_dir_prefix": "/var/log/hadoop-yarn"
+            "yarn_log_dir_prefix": "/var/log/hadoop-yarn",
+            "min_user_id": "1000"
         }, 
         "yarn-log4j": {
             "content": ""

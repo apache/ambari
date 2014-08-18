@@ -751,6 +751,10 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
     updateConfigurationProperties("hbase-env",
         Collections.singletonMap("hbase_regionserver_xmn_ratio", "0.2"), false,
         false);
+    
+    updateConfigurationProperties("yarn-env",
+        Collections.singletonMap("min_user_id", "1000"), false,
+        false);
   }
 
   protected void addEnvContentFields() throws AmbariException {
