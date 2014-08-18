@@ -1053,15 +1053,6 @@ public class ViewRegistry {
       throws Exception {
     String viewName = view.getName();
 
-    // get or create an admin resource type to represent this view
-    ResourceTypeEntity resourceTypeEntity = resourceTypeDAO.findByName(viewName);
-    if (resourceTypeEntity == null) {
-      resourceTypeEntity = new ResourceTypeEntity();
-      resourceTypeEntity.setName(view.getName());
-      resourceTypeDAO.create(resourceTypeEntity);
-    }
-    view.setResourceType(resourceTypeEntity);
-
     ViewEntity persistedView = viewDAO.findByName(viewName);
 
     // if the view is not yet persisted ...
@@ -1070,11 +1061,18 @@ public class ViewRegistry {
         LOG.debug("Creating View " + viewName + ".");
       }
 
+      // get or create an admin resource type to represent this view
+      ResourceTypeEntity resourceTypeEntity = resourceTypeDAO.findByName(viewName);
+      if (resourceTypeEntity == null) {
+        resourceTypeEntity = view.getResourceType();
+        resourceTypeDAO.create(resourceTypeEntity);
+      }
+
       for( ViewInstanceEntity instance : view.getInstances()) {
 
         // create an admin resource to represent this view instance
         ResourceEntity resourceEntity = new ResourceEntity();
-        resourceEntity.setResourceType(resourceTypeEntity);
+        resourceEntity.setResourceType(view.getResourceType());
         resourceDAO.create(resourceEntity);
 
         instance.setResource(resourceEntity);
@@ -1146,7 +1144,7 @@ public class ViewRegistry {
     for (ViewInstanceEntity instance : xmlInstanceEntityMap.values()) {
       // create an admin resource to represent this view instance
       ResourceEntity resourceEntity = new ResourceEntity();
-      resourceEntity.setResourceType(resourceTypeEntity);
+      resourceEntity.setResourceType(view.getResourceType());
       resourceDAO.create(resourceEntity);
       instance.setResource(resourceEntity);
 

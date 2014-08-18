@@ -173,12 +173,10 @@ public class ViewRegistryTest {
 
     ViewDAO vDAO = createMock(ViewDAO.class);
     ResourceDAO rDAO = createNiceMock(ResourceDAO.class);
-    ResourceTypeDAO rtDAO = createNiceMock(ResourceTypeDAO.class);
     ViewInstanceDAO viDAO = createNiceMock(ViewInstanceDAO.class);
 
     ViewRegistry.setViewDAO(vDAO);
     ViewRegistry.setResourceDAO(rDAO);
-    ViewRegistry.setResourceTypeDAO(rtDAO);
     ViewRegistry.setInstanceDAO(viDAO);
 
     ViewEntity viewDefinition = ViewEntityTest.getViewEntity();
@@ -261,15 +259,11 @@ public class ViewRegistryTest {
 
     expect(vDAO.findAll()).andReturn(Collections.<ViewEntity>emptyList());
 
-    expect(rtDAO.findByName("MY_VIEW{1.0.0}")).andReturn(null);
-    rtDAO.create(EasyMock.anyObject(ResourceTypeEntity.class));
-    EasyMock.expectLastCall().anyTimes();
-
     expect(viDAO.merge(EasyMock.anyObject(ViewInstanceEntity.class))).andReturn(null).times(2);
 
     // replay mocks
     replay(configuration, viewDir, extractedArchiveDir, viewArchive, archiveDir, entryFile, classesDir,
-        libDir, fileEntry, viewJarFile, enumeration, jarEntry, is, fos, rDAO, rtDAO, vDAO, viDAO);
+        libDir, fileEntry, viewJarFile, enumeration, jarEntry, is, fos, rDAO, vDAO, viDAO);
 
     ViewRegistry registry = ViewRegistry.getInstance();
     registry.setHelper(new TestViewRegistryHelper(viewConfigs, files, outputStreams, jarFiles));
@@ -280,7 +274,7 @@ public class ViewRegistryTest {
 
     // verify mocks
     verify(configuration, viewDir, extractedArchiveDir, viewArchive, archiveDir, entryFile, classesDir,
-        libDir, fileEntry, viewJarFile, enumeration, jarEntry, is, fos, rDAO, rtDAO, vDAO, viDAO);
+        libDir, fileEntry, viewJarFile, enumeration, jarEntry, is, fos, rDAO, vDAO, viDAO);
   }
 
   @Test
@@ -386,6 +380,7 @@ public class ViewRegistryTest {
     expect(fileEntry.toURI()).andReturn(new URI("file:./"));
 
     expect(vDAO.findAll()).andReturn(Collections.<ViewEntity>emptyList());
+    expect(vDAO.findByName("MY_VIEW{1.0.0}")).andReturn(viewDefinition);
 
     // replay mocks
     replay(configuration, viewDir, extractedArchiveDir, viewArchive, archiveDir, entryFile, classesDir,
@@ -578,7 +573,7 @@ public class ViewRegistryTest {
     ViewEntity viewEntity = getViewEntity(config, ambariConfig, getClass().getClassLoader(), "");
     ViewInstanceEntity viewInstanceEntity = getViewInstanceEntity(viewEntity, config.getInstances().get(0));
 
-    replay(viewDAO, viewInstanceDAO, securityHelper);
+    replay(viewDAO, viewInstanceDAO, securityHelper, rtDAO);
 
     registry.addDefinition(viewEntity);
     try {
@@ -616,7 +611,7 @@ public class ViewRegistryTest {
     ViewInstanceEntity viewInstanceEntity = getViewInstanceEntity(viewEntity, config.getInstances().get(0));
     viewInstanceEntity.setViewName("BOGUS_VIEW");
 
-    replay(viewDAO, viewInstanceDAO, securityHelper);
+    replay(viewDAO, viewInstanceDAO, securityHelper, rtDAO);
 
     registry.addDefinition(viewEntity);
     try {
@@ -844,6 +839,14 @@ public class ViewRegistryTest {
 
   public static void clear() {
     ViewRegistry.getInstance().clear();
+
+    ViewRegistry.setInstanceDAO(null);
+    ViewRegistry.setMemberDAO(null);
+    ViewRegistry.setPrivilegeDAO(null);
+    ViewRegistry.setResourceDAO(null);
+    ViewRegistry.setResourceTypeDAO(null);
+    ViewRegistry.setSecurityHelper(null);
+    ViewRegistry.setUserDAO(null);
     ViewRegistry.setViewDAO(null);
   }
 
