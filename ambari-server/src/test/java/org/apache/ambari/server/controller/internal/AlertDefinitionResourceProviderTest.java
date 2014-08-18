@@ -283,6 +283,7 @@ public class AlertDefinitionResourceProviderTest {
     Predicate p = new PredicateBuilder().property(
         AlertDefinitionResourceProvider.ALERT_DEF_ID).equals("1").and().property(
             AlertDefinitionResourceProvider.ALERT_DEF_CLUSTER_NAME).equals("c1").toPredicate();
+
     // everything is mocked, there is no DB
     entity.setDefinitionId(Long.valueOf(1));
 
@@ -295,6 +296,7 @@ public class AlertDefinitionResourceProviderTest {
     replay(dao);
 
     requestProps = new HashMap<String, Object>();
+    requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_ID, "1");
     requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_CLUSTER_NAME, "c1");
     requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_INTERVAL, "1");
     requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_NAME, "my_def1");

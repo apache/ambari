@@ -22,12 +22,12 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.gson.annotations.SerializedName;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.codehaus.jackson.annotate.JsonProperty;
+
+import com.google.gson.annotations.SerializedName;
 
 
 /**
@@ -35,66 +35,95 @@ import org.codehaus.jackson.annotate.JsonProperty;
  * persisted in the database for recovery.
  */
 public class ExecutionCommand extends AgentCommand {
-  
+
   private static Log LOG = LogFactory.getLog(ExecutionCommand.class);
-  
+
   public ExecutionCommand() {
     super(AgentCommandType.EXECUTION_COMMAND);
   }
 
+  @SerializedName("clusterName")
   private String clusterName;
+
+  @SerializedName("taskId")
   private long taskId;
+
+  @SerializedName("commandId")
   private String commandId;
+
+  @SerializedName("hostname")
   private String hostname;
+
+  @SerializedName("role")
   private String role;
+
+  @SerializedName("hostLevelParams")
   private Map<String, String> hostLevelParams = new HashMap<String, String>();
+
+  @SerializedName("roleParams")
   private Map<String, String> roleParams = null;
+
+  @SerializedName("roleCommand")
   private RoleCommand roleCommand;
-  private Map<String, Set<String>> clusterHostInfo = 
+
+  @SerializedName("clusterHostInfo")
+  private Map<String, Set<String>> clusterHostInfo =
       new HashMap<String, Set<String>>();
+
+  @SerializedName("configurations")
   private Map<String, Map<String, String>> configurations;
+
   @SerializedName("configuration_attributes")
   private Map<String, Map<String, Map<String, String>>> configurationAttributes;
+
+  @SerializedName("configurationTags")
   private Map<String, Map<String, String>> configurationTags;
+
+  @SerializedName("forceRefreshConfigTags")
   private Set<String> forceRefreshConfigTags = new HashSet<String>();
+
+  @SerializedName("commandParams")
   private Map<String, String> commandParams;
+
+  @SerializedName("serviceName")
   private String serviceName;
+
+  @SerializedName("componentName")
   private String componentName;
 
   /**
    * Used for ignoring nagios alerts at agent
    */
+  @SerializedName("passiveInfo")
   private Set<Map<String,String>> passiveInfo;
 
-  @JsonProperty("commandId")
   public String getCommandId() {
-    return this.commandId;
+    return commandId;
   }
-  
-  @JsonProperty("commandId")
+
   public void setCommandId(String commandId) {
     this.commandId = commandId;
   }
-  
+
   @Override
   public boolean equals(Object other) {
     if (!(other instanceof ExecutionCommand)) {
       return false;
     }
     ExecutionCommand o = (ExecutionCommand) other;
-    return (this.commandId.equals(o.commandId) &&
-            this.hostname.equals(o.hostname) &&
-            this.role.equals(o.role) &&
-            this.roleCommand.equals(o.roleCommand));
+    return (commandId.equals(o.commandId) &&
+            hostname.equals(o.hostname) &&
+            role.equals(o.role) &&
+            roleCommand.equals(o.roleCommand));
   }
-  
+
   @Override
   public String toString() {
     try {
       return StageUtils.jaxbToString(this);
     } catch (Exception ex) {
       LOG.warn("Exception in json conversion", ex);
-      return "Exception in json conversion"; 
+      return "Exception in json conversion";
     }
   }
 
@@ -103,97 +132,79 @@ public class ExecutionCommand extends AgentCommand {
     return (hostname + commandId + role).hashCode();
   }
 
-  @JsonProperty("taskId")
   public long getTaskId() {
     return taskId;
   }
 
-  @JsonProperty("taskId")
   public void setTaskId(long taskId) {
     this.taskId = taskId;
   }
 
-  @JsonProperty("role")
   public String getRole() {
     return role;
   }
 
-  @JsonProperty("role")
   public void setRole(String role) {
     this.role = role;
   }
 
-  @JsonProperty("roleParams")
   public Map<String, String> getRoleParams() {
     return roleParams;
   }
 
-  @JsonProperty("roleParams")
   public void setRoleParams(Map<String, String> roleParams) {
     this.roleParams = roleParams;
   }
 
-  @JsonProperty("roleCommand")
   public RoleCommand getRoleCommand() {
     return roleCommand;
   }
 
-  @JsonProperty("roleCommand")
   public void setRoleCommand(RoleCommand cmd) {
-    this.roleCommand = cmd;
+    roleCommand = cmd;
   }
-  
-  @JsonProperty("clusterName")
+
   public String getClusterName() {
     return clusterName;
   }
-  
-  @JsonProperty("clusterName")
+
   public void setClusterName(String clusterName) {
     this.clusterName = clusterName;
   }
 
-  @JsonProperty("hostname")
   public String getHostname() {
     return hostname;
   }
 
-  @JsonProperty("hostname")
   public void setHostname(String hostname) {
     this.hostname = hostname;
   }
 
-  @JsonProperty("hostLevelParams")
   public Map<String, String> getHostLevelParams() {
     return hostLevelParams;
   }
 
-  @JsonProperty("hostLevelParams")
   public void setHostLevelParams(Map<String, String> params) {
-    this.hostLevelParams = params;
+    hostLevelParams = params;
   }
 
-  @JsonProperty("clusterHostInfo")
   public Map<String, Set<String>> getClusterHostInfo() {
     return clusterHostInfo;
   }
 
-  @JsonProperty("clusterHostInfo")
   public void setClusterHostInfo(Map<String, Set<String>> clusterHostInfo) {
     this.clusterHostInfo = clusterHostInfo;
   }
-  
-  @JsonProperty("configurations")
+
   public Map<String, Map<String, String>> getConfigurations() {
     return configurations;
   }
 
-  @JsonProperty("configurations")
   public void setConfigurations(Map<String, Map<String, String>> configurations) {
     this.configurations = configurations;
   }
   /**
-   * @return Returns the set of config-types that have to be propagated to actual-config of component of given custom command, if command is successfully finished. 
+   * @return Returns the set of config-types that have to be propagated to actual-config of component of given custom command, if command is successfully finished.
    */
   public Set<String> getForceRefreshConfigTags() {
     return forceRefreshConfigTags;
@@ -203,42 +214,34 @@ public class ExecutionCommand extends AgentCommand {
     this.forceRefreshConfigTags = forceRefreshConfigTags;
   }
 
-  @JsonProperty("configuration_attributes")
   public Map<String, Map<String, Map<String, String>>> getConfigurationAttributes() {
     return configurationAttributes;
   }
 
-  @JsonProperty("configuration_attributes")
   public void setConfigurationAttributes(Map<String, Map<String, Map<String, String>>> configurationAttributes) {
     this.configurationAttributes = configurationAttributes;
   }
 
-  @JsonProperty("commandParams")
   public Map<String, String> getCommandParams() {
     return commandParams;
   }
 
-  @JsonProperty("commandParams")
   public void setCommandParams(Map<String, String> commandParams) {
     this.commandParams = commandParams;
   }
 
-  @JsonProperty("serviceName")
   public String getServiceName() {
     return serviceName;
   }
 
-  @JsonProperty("serviceName")
   public void setServiceName(String serviceName) {
     this.serviceName = serviceName;
   }
 
-  @JsonProperty("componentName")
   public String getComponentName() {
     return componentName;
   }
 
-  @JsonProperty("componentName")
   public void setComponentName(String componentName) {
     this.componentName = componentName;
   }
@@ -248,22 +251,22 @@ public class ExecutionCommand extends AgentCommand {
    */
   public void setConfigurationTags(Map<String, Map<String, String>> configTags) {
     configurationTags = configTags;
-  }  
+  }
 
   /**
-   * @return the configuration tags 
+   * @return the configuration tags
    */
   public Map<String, Map<String, String>> getConfigurationTags() {
     return configurationTags;
   }
-  
+
   /**
    * @return the passive info for the cluster
    */
   public Set<Map<String, String>> getPassiveInfo() {
     return passiveInfo;
   }
-  
+
   /**
    * @param info the passive info for the cluster
    */
@@ -277,7 +280,6 @@ public class ExecutionCommand extends AgentCommand {
    * incapsulated inside command.
    */
   public static interface KeyNames {
-
     String COMMAND_TIMEOUT = "command_timeout";
     String SCRIPT = "script";
     String SCRIPT_TYPE = "script_type";
@@ -306,7 +308,6 @@ public class ExecutionCommand extends AgentCommand {
 
     String SERVICE_CHECK = "SERVICE_CHECK"; // TODO: is it standart command? maybe add it to RoleCommand enum?
     String CUSTOM_COMMAND = "custom_command";
-
   }
 
 }

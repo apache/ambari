@@ -35,6 +35,7 @@ import static org.junit.Assert.fail;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.StringReader;
 import java.lang.reflect.Type;
 import java.net.ConnectException;
 import java.net.MalformedURLException;
@@ -4514,8 +4515,10 @@ public class AmbariManagementControllerTest {
     //Check configs not stored with execution command
     ExecutionCommandDAO executionCommandDAO = injector.getInstance(ExecutionCommandDAO.class);
     ExecutionCommandEntity commandEntity = executionCommandDAO.findByPK(task.getTaskId());
-    ExecutionCommand executionCommand =
-        StageUtils.fromJson(new String(commandEntity.getCommand()), ExecutionCommand.class);
+
+    Gson gson = new Gson();
+    ExecutionCommand executionCommand = gson.fromJson(new StringReader(
+        new String(commandEntity.getCommand())), ExecutionCommand.class);
 
     assertFalse(executionCommand.getConfigurationTags().isEmpty());
     assertTrue(executionCommand.getConfigurations() == null || executionCommand.getConfigurations().isEmpty());
@@ -10329,7 +10332,7 @@ public class AmbariManagementControllerTest {
 
     // Start
     startService(clusterName, serviceName, false, false);
-    
+
     ServiceComponentHostRequest req = new ServiceComponentHostRequest(clusterName, serviceName,
         componentName1, host1, "INSTALLED");
 
@@ -10339,24 +10342,24 @@ public class AmbariManagementControllerTest {
 
     // succeed in creating a task
     assertNotNull(resp);
-    
+
     // manually change live state to stopped as no running action manager
     for (ServiceComponentHost sch :
       clusters.getCluster(clusterName).getServiceComponentHosts(host1)) {
         sch.setState(State.INSTALLED);
     }
-    
+
     // no new commands since no targeted info
     resp = controller.updateHostComponents(Collections.singleton(req), new HashMap<String, String>(), false);
     assertNull(resp);
-    
+
     // role commands added for targeted command
     resp = controller.updateHostComponents(Collections.singleton(req), requestProperties, false);
     assertNotNull(resp);
-    
+
   }
-  
-  
+
+
 }
 
 

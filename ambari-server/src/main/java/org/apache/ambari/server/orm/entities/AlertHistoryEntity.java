@@ -90,7 +90,7 @@ public class AlertHistoryEntity {
    * Unidirectional many-to-one association to {@link AlertDefinitionEntity}
    */
   @ManyToOne
-  @JoinColumn(name = "definition_id", nullable = false)
+  @JoinColumn(name = "alert_definition_id", nullable = false)
   private AlertDefinitionEntity alertDefinition;
 
   /**
@@ -101,7 +101,7 @@ public class AlertHistoryEntity {
 
   /**
    * Gets the unique ID for this alert instance.
-   * 
+   *
    * @return the unique ID (never {@code null}).
    */
   public Long getAlertId() {
@@ -110,7 +110,7 @@ public class AlertHistoryEntity {
 
   /**
    * Sets the unique ID for this alert instance.
-   * 
+   *
    * @param alertId
    *          the unique ID (not {@code null}).
    */
@@ -120,7 +120,7 @@ public class AlertHistoryEntity {
 
   /**
    * Gets the instance identifier, if any, for this alert instance.
-   * 
+   *
    * @return the instance ID or {@code null} if none.
    */
   public String getAlertInstance() {
@@ -129,7 +129,7 @@ public class AlertHistoryEntity {
 
   /**
    * Sets the instance identifier, if any, for this alert instance.
-   * 
+   *
    * @param alertInstance
    *          the instance ID or {@code null} if none.
    */
@@ -140,7 +140,7 @@ public class AlertHistoryEntity {
   /**
    * Gets the label for this alert instance. The label is typically an
    * abbreviated form of the alert text.
-   * 
+   *
    * @return the alert instance label or {@code null} if none.
    * @see #getAlertText()
    */
@@ -150,7 +150,7 @@ public class AlertHistoryEntity {
 
   /**
    * Sets the label for this alert instance.
-   * 
+   *
    * @param alertLabel
    *          the label or {@code null} if none.
    */
@@ -160,7 +160,7 @@ public class AlertHistoryEntity {
 
   /**
    * Gets the state of this alert instance.
-   * 
+   *
    * @return the alert state (never {@code null}).
    */
   public AlertState getAlertState() {
@@ -169,7 +169,7 @@ public class AlertHistoryEntity {
 
   /**
    * Sets the state of this alert instance.
-   * 
+   *
    * @param alertState
    *          the alert state (not {@code null}).
    */
@@ -179,7 +179,7 @@ public class AlertHistoryEntity {
 
   /**
    * Gets the text of the alert instance.
-   * 
+   *
    * @return the text of the alert instance or {@code null} if none.
    */
   public String getAlertText() {
@@ -188,7 +188,7 @@ public class AlertHistoryEntity {
 
   /**
    * Sets the text of the alert instance.
-   * 
+   *
    * @param alertText
    *          the text, or {@code null} if none.
    */
@@ -199,7 +199,7 @@ public class AlertHistoryEntity {
   /**
    * Gets the time that the alert instace was received. This will be the value,
    * in milliseconds, since the UNIX/Java epoch, represented in UTC time.
-   * 
+   *
    * @return the time of the alert instance (never {@code null}).
    */
   public Long getAlertTimestamp() {
@@ -209,7 +209,7 @@ public class AlertHistoryEntity {
   /**
    * Sets the time that the alert instace was received. This should be the
    * value, in milliseconds, since the UNIX/Java epoch, represented in UTC time.
-   * 
+   *
    * @param alertTimestamp
    *          the time of the alert instance (not {@code null}).
    */
@@ -219,7 +219,7 @@ public class AlertHistoryEntity {
 
   /**
    * Gets the ID of the cluster that this alert is associated with.
-   * 
+   *
    * @return the ID of the cluster for the server that this alert is for (never
    *         {@code null}).
    */
@@ -229,7 +229,7 @@ public class AlertHistoryEntity {
 
   /**
    * Sets the ID of the cluster that this alert is associated with.
-   * 
+   *
    * @param clusterId
    *          the ID of the cluster for the server that this alert is for (never
    *          {@code null}).
@@ -242,7 +242,7 @@ public class AlertHistoryEntity {
    * Gets the name of the component, if any, that this alert instance is for.
    * Some alerts, such as those that are scoped for the entire service, do not
    * have component names.
-   * 
+   *
    * @return the name of the component, or {@code null} for none.
    */
   public String getComponentName() {
@@ -254,7 +254,7 @@ public class AlertHistoryEntity {
    * Component names are not required if the alert definition is scoped for a
    * service. If specified, there is always a 1:1 mapping between alert
    * definitions and components.
-   * 
+   *
    * @param componentName
    *          the name of the component, or {@code null} if none.
    */
@@ -266,7 +266,7 @@ public class AlertHistoryEntity {
    * Gets the name of the host that the alert is for. Some alerts do not run
    * against hosts, such as aggregate alert definitions, so this may be
    * {@code null}.
-   * 
+   *
    * @return the name of the host or {@code null} if none.
    */
   public String getHostName() {
@@ -275,7 +275,7 @@ public class AlertHistoryEntity {
 
   /**
    * Sets the name of the host that the alert is for.
-   * 
+   *
    * @param hostName
    *          the name of the host or {@code null} if none.
    */
@@ -285,7 +285,7 @@ public class AlertHistoryEntity {
 
   /**
    * Gets the name of the service that the alert is defined for.
-   * 
+   *
    * @return the name of the service (never {@code null}).
    */
   public String getServiceName() {
@@ -295,7 +295,7 @@ public class AlertHistoryEntity {
   /**
    * Sets the name of the service that the alert is defined for. Every alert
    * definition is related to exactly 1 service.
-   * 
+   *
    * @param serviceName
    *          the name of the service (not {@code null}).
    */
@@ -307,7 +307,7 @@ public class AlertHistoryEntity {
    * Gets the associated alert definition for this alert instance. The alert
    * definition can be used to retrieve global information about an alert such
    * as the interval and the name.
-   * 
+   *
    * @return the alert definition (never {@code null}).
    */
   public AlertDefinitionEntity getAlertDefinition() {
@@ -316,7 +316,7 @@ public class AlertHistoryEntity {
 
   /**
    * Sets the associated alert definition for this alert instance.
-   * 
+   *
    * @param alertDefinition
    *          the alert definition (not {@code null}).
    */
@@ -329,16 +329,19 @@ public class AlertHistoryEntity {
    */
   @Override
   public boolean equals(Object object) {
-    if (this == object)
+    if (this == object) {
       return true;
+    }
 
-    if (object == null || getClass() != object.getClass())
+    if (object == null || getClass() != object.getClass()) {
       return false;
+    }
 
     AlertHistoryEntity that = (AlertHistoryEntity) object;
 
-    if (alertId != null ? !alertId.equals(that.alertId) : that.alertId != null)
+    if (alertId != null ? !alertId.equals(that.alertId) : that.alertId != null) {
       return false;
+    }
 
     return true;
   }

@@ -57,7 +57,6 @@ import org.apache.ambari.server.state.alert.AlertDefinition;
 import org.apache.ambari.server.state.stack.MetricDefinition;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -1403,7 +1402,6 @@ public class AmbariMetaInfoTest {
   }
 
   @Test
-  @Ignore
   public void testAlertsJson() throws Exception {
     ServiceInfo svc = metaInfo.getService(STACK_NAME_HDP, "2.0.5", "HDFS");
     Assert.assertNotNull(svc);

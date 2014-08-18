@@ -17,16 +17,34 @@
  */
 package org.apache.ambari.server.agent;
 
+import com.google.gson.Gson;
+
+/**
+ * The base class for all agent commands. Concrete implementations are
+ * serialized by Gson ({@link Gson}) and should be annotated with Gson
+ * annotations (not Jackson).
+ */
 public abstract class AgentCommand {
 
   private AgentCommandType commandType;
 
+  /**
+   * Constructor. Although not required for Gson, it's a good idea to have it so
+   * that we don't need to worry about unsafe object construction that bypasses
+   * the constructors.
+   * <p/>
+   * Subclasses should always use {@link #AgentCommand(AgentCommandType)}
+   */
   public AgentCommand() {
-    this.commandType = AgentCommandType.STATUS_COMMAND;
+    commandType = AgentCommandType.STATUS_COMMAND;
   }
 
+  /**
+   * Constructor. Must be invoked by all concrete subsclasses to properly set
+   * the type.
+   */
   public AgentCommand(AgentCommandType type) {
-    this.commandType = type;
+    commandType = type;
   }
 
   public enum AgentCommandType {
@@ -41,7 +59,7 @@ public abstract class AgentCommand {
   public AgentCommandType getCommandType() {
     return commandType;
   }
-  
+
   public void setCommandType(AgentCommandType commandType) {
     this.commandType = commandType;
   }
