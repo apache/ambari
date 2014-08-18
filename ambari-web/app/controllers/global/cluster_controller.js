@@ -364,6 +364,8 @@ App.ClusterController = Em.Controller.extend({
         sender: this,
         success: 'loadViewInstancesSuccess'
       });
+    } else {
+      this.set('ambariViews', []);
     }
   },
 

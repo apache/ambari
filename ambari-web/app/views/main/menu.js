@@ -30,7 +30,7 @@ App.MainMenuView = Em.CollectionView.extend({
     return App.router.get('clusterController.ambariViews');
   }.property('App.router.clusterController.ambariViews'),
 
-  content:function(){
+  content: function(){
     var result = [];
     if (App.router.get('loggedIn')) {
 
@@ -62,7 +62,8 @@ App.MainMenuView = Em.CollectionView.extend({
 
     }
     return result;
-  }.property('App.router.loggedIn', 'App.router.clusterController.isLoaded', 'App.supports.views', 'App.supports.mirroring', 'App.supports.secureCluster', 'App.supports.highAvailability'),
+  }.property('App.router.loggedIn', 'App.router.clusterController.isLoaded', 'App.supports.views', 'App.supports.mirroring',
+      'App.supports.secureCluster', 'App.supports.highAvailability', 'views.length'),
 
     /**
      *    Adds observer on lastSetURL and calls navigation sync procedure
