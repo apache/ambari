@@ -219,6 +219,7 @@ public class UpgradeCatalog170Test {
     Cluster cluster = createStrictMock(Cluster.class);
     Clusters clusters = createStrictMock(Clusters.class);
     Config config = createStrictMock(Config.class);
+    Config pigConfig = createStrictMock(Config.class);
 
     UserDAO userDAO = createNiceMock(UserDAO.class);
     PrincipalDAO principalDAO = createNiceMock(PrincipalDAO.class);
@@ -255,6 +256,9 @@ public class UpgradeCatalog170Test {
     Map<String, String> globalConfigs = new HashMap<String, String>();
     globalConfigs.put("prop1", "val1");
     globalConfigs.put("smokeuser_keytab", "val2");
+
+    Map<String, String> pigSettings = new HashMap<String, String>();
+    pigSettings.put("pig-content", "foo");
 
     Set<String> envDicts = new HashSet<String>();
     envDicts.add("hadoop-env");
@@ -331,8 +335,11 @@ public class UpgradeCatalog170Test {
     expect(permissionDAO.findClusterOperatePermission()).andReturn(null);
     expect(permissionDAO.findClusterReadPermission()).andReturn(null);
 
+    expect(cluster.getDesiredConfigByType("pig-properties")).andReturn(pigConfig).anyTimes();
+    expect(pigConfig.getProperties()).andReturn(pigSettings).anyTimes();
+
     replay(entityManager, trans, upgradeCatalog, cb, cq, hrc, q);
-    replay(dbAccessor, configuration, injector, cluster, clusters, amc, config, configHelper);
+    replay(dbAccessor, configuration, injector, cluster, clusters, amc, config, configHelper, pigConfig);
     replay(userDAO, clusterDAO, viewDAO, viewInstanceDAO, permissionDAO);
 
     Class<?> c = AbstractUpgradeCatalog.class;

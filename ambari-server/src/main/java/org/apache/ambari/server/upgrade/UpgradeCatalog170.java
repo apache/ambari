@@ -83,7 +83,10 @@ import com.google.inject.Injector;
  */
 public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
   private static final String CONTENT_FIELD_NAME = "content";
+  private static final String PIG_CONTENT_FIELD_NAME = "pig-content";
   private static final String ENV_CONFIGS_POSTFIX = "-env";
+
+  private static final String PIG_PROPERTIES_CONFIG_TYPE = "pig-properties";
 
   private static final String ALERT_TABLE_DEFINITION = "alert_definition";
   private static final String ALERT_TABLE_HISTORY = "alert_history";
@@ -560,6 +563,7 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
     moveGlobalsToEnv();
     addEnvContentFields();
     addMissingConfigs();
+    renamePigProperties();
     upgradePermissionModel();
   }
 
@@ -742,6 +746,35 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
     updateConfigurationProperties("yarn-env",
         Collections.singletonMap("min_user_id", "1000"), false,
         false);
+  }
+
+  /**
+   * Rename pig-content to content in pig-properties config
+   * @throws AmbariException
+   */
+  protected void renamePigProperties() throws AmbariException {
+    ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
+    AmbariManagementController ambariManagementController = injector.getInstance(
+      AmbariManagementController.class);
+
+    Clusters clusters = ambariManagementController.getClusters();
+    if (clusters == null) {
+      return;
+    }
+
+    Map<String, Cluster> clusterMap = clusters.getClusters();
+
+    if (clusterMap != null && !clusterMap.isEmpty()) {
+      for (final Cluster cluster : clusterMap.values()) {
+        Config oldConfig = cluster.getDesiredConfigByType(PIG_PROPERTIES_CONFIG_TYPE);
+        if (oldConfig != null) {
+          Map<String, String> properties = oldConfig.getProperties();
+          String value = properties.remove(PIG_CONTENT_FIELD_NAME);
+          properties.put(CONTENT_FIELD_NAME, value);
+          configHelper.createConfigType(cluster, ambariManagementController, PIG_PROPERTIES_CONFIG_TYPE, properties, "ambari-upgrade");
+        }
+      }
+    }
   }
 
   protected void addEnvContentFields() throws AmbariException {
