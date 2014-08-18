@@ -1640,7 +1640,7 @@ module.exports =
   /********************************************* flume-agent *****************************/
     {
       "id": "site property",
-      "name": "flume-content",
+      "name": "content",
       "displayName": "content",
       "showLabel": false,
       "isRequired": false,
@@ -1966,17 +1966,6 @@ module.exports =
     },
     {
       "id": "puppet var",
-      "name": "min_user_id",
-      "displayName": "Minimum user ID for submitting job",
-      "isOverridable": true,
-      "displayType": "int",
-      "isVisible": true,
-      "serviceName": "YARN",
-      "filename": "yarn-env.xml",
-      "category": "Advanced"
-    },
-    {
-      "id": "puppet var",
       "name": "yarn_pid_dir_prefix",
       "displayName": "YARN PID Dir Prefix",
       "description": "",
@@ -1985,6 +1974,17 @@ module.exports =
       "isOverridable": false,
       "isVisible": true,
       "isReconfigurable": false,
+      "serviceName": "YARN",
+      "filename": "yarn-env.xml",
+      "category": "Advanced yarn-env"
+    },
+    {
+      "id": "puppet var",
+      "name": "min_user_id",
+      "displayName": "Minimum user ID for submitting job",
+      "isOverridable": true,
+      "displayType": "int",
+      "isVisible": true,
       "serviceName": "YARN",
       "filename": "yarn-env.xml",
       "category": "Advanced yarn-env"
