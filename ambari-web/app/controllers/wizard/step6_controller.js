@@ -60,6 +60,12 @@ App.WizardStep6Controller = Em.Controller.extend({
   isLoaded: false,
 
   /**
+   * Indication if user has chosen hosts to install clients
+   * @type {bool}
+   */
+  isClientsSet: false,
+
+  /**
    * Define state for submit button
    * @type {bool}
    */
@@ -425,11 +431,14 @@ App.WizardStep6Controller = Em.Controller.extend({
    * @param hostsObj
    */
   selectClientHost: function (hostsObj) {
-    var nonMasterHost = hostsObj.findProperty('hasMaster', false);
-    var clientHost = !!nonMasterHost ? nonMasterHost : hostsObj[hostsObj.length - 1]; // last host
-    var clientCheckBox = clientHost.get('checkboxes').findProperty('component', 'CLIENT');
-    if (clientCheckBox) {
-      clientCheckBox.set('checked', true);
+    if (!this.get('isClientsSet')) {
+      var nonMasterHost = hostsObj.findProperty('hasMaster', false);
+      var clientHost = !!nonMasterHost ? nonMasterHost : hostsObj[hostsObj.length - 1]; // last host
+      var clientCheckBox = clientHost.get('checkboxes').findProperty('component', 'CLIENT');
+      if (clientCheckBox) {
+        clientCheckBox.set('checked', true);
+      }
+      this.set('isClientsSet', true);
     }
   },
 
