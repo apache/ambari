@@ -348,7 +348,50 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
     }
 
     dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, "
-      + valueColumnName + ") " + "VALUES('service_config_id_seq', 1)", false);
+            + valueColumnName + ") " + "VALUES('alert_definition_id_seq', 0)",
+            false);
+
+    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, "
+            + valueColumnName + ") " + "VALUES('alert_group_id_seq', 0)", false);
+
+    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, "
+            + valueColumnName + ") " + "VALUES('alert_target_id_seq', 0)", false);
+
+    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, "
+            + valueColumnName + ") " + "VALUES('alert_history_id_seq', 0)", false);
+
+    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, "
+            + valueColumnName + ") " + "VALUES('alert_notice_id_seq', 0)", false);
+
+    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, "
+            + valueColumnName + ") " + "VALUES('alert_current_id_seq', 0)", false);
+
+    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, "
+            + valueColumnName + ") " + "VALUES('group_id_seq', 1)", false);
+
+    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, "
+            + valueColumnName + ") " + "VALUES('member_id_seq', 1)", false);
+
+    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, "
+            + valueColumnName + ") " + "VALUES('resource_type_id_seq', 4)", false);
+
+    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, "
+            + valueColumnName + ") " + "VALUES('resource_id_seq', 2)", false);
+
+    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, "
+            + valueColumnName + ") " + "VALUES('principal_type_id_seq', 3)", false);
+
+    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, "
+            + valueColumnName + ") " + "VALUES('principal_id_seq', 2)", false);
+
+    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, "
+            + valueColumnName + ") " + "VALUES('permission_id_seq', 5)", false);
+
+    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, "
+            + valueColumnName + ") " + "VALUES('privilege_id_seq', 1)", false);
+
+    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, "
+            + valueColumnName + ") " + "VALUES('service_config_id_seq', 1)", false);
 
     dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, "
       + valueColumnName + ") " + "VALUES('service_config_application_id_seq', 1)", false);
@@ -456,62 +499,6 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
   @Override
   protected void executeDMLUpdates() throws AmbariException, SQLException {
     String dbType = getDbType();
-
-    // add new sequences for view entity
-    String valueColumnName = "\"value\"";
-    if (Configuration.ORACLE_DB_NAME.equals(dbType)
-        || Configuration.MYSQL_DB_NAME.equals(dbType)) {
-      valueColumnName = "value";
-    }
-
-    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, "
-        + valueColumnName + ") " + "VALUES('alert_definition_id_seq', 0)",
-        false);
-
-    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, "
-        + valueColumnName + ") " + "VALUES('alert_group_id_seq', 0)", false);
-
-    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, "
-        + valueColumnName + ") " + "VALUES('alert_target_id_seq', 0)", false);
-
-    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, "
-        + valueColumnName + ") " + "VALUES('alert_history_id_seq', 0)", false);
-
-    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, "
-        + valueColumnName + ") " + "VALUES('alert_notice_id_seq', 0)", false);
-
-    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, "
-        + valueColumnName + ") " + "VALUES('alert_current_id_seq', 0)", false);
-
-    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, "
-        + valueColumnName + ") " + "VALUES('group_id_seq', 1)", false);
-
-    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, "
-        + valueColumnName + ") " + "VALUES('member_id_seq', 1)", false);
-
-    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, "
-        + valueColumnName + ") " + "VALUES('resource_type_id_seq', 4)", false);
-
-    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, "
-        + valueColumnName + ") " + "VALUES('resource_id_seq', 2)", false);
-
-    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, "
-        + valueColumnName + ") " + "VALUES('principal_type_id_seq', 3)", false);
-
-    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, "
-        + valueColumnName + ") " + "VALUES('principal_id_seq', 2)", false);
-
-    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, "
-        + valueColumnName + ") " + "VALUES('permission_id_seq', 5)", false);
-
-    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, "
-        + valueColumnName + ") " + "VALUES('privilege_id_seq', 1)", false);
-
-    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, "
-        + valueColumnName + ") " + "VALUES('service_config_id_seq', 1)", false);
-
-    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, "
-        + valueColumnName + ") " + "VALUES('config_id_seq', 1)", false);
 
     // Update historic records with the log paths, but only enough so as to not prolong the upgrade process
     executeInTransaction(new Runnable() {
