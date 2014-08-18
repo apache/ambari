@@ -26,7 +26,7 @@ import java.util.Collection;
   uniqueConstraints = {@UniqueConstraint(name = "UQ_config_type_tag", columnNames = {"cluster_id", "type_name", "version_tag"}),
     @UniqueConstraint(name = "UQ_config_type_version", columnNames = {"cluster_id", "type_name", "version"})})
 @TableGenerator(name = "config_id_generator",
-  table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "value"
+  table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value"
   , pkColumnValue = "config_id_seq"
   , initialValue = 1
   , allocationSize = 1

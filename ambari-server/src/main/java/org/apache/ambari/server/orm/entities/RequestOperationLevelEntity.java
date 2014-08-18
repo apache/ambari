@@ -36,7 +36,7 @@ import javax.persistence.TableGenerator;
 @Entity
 @Table(name = "requestoperationlevel")
 @TableGenerator(name = "operation_level_id_generator",
-  table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "value"
+  table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value"
   , pkColumnValue = "operation_level_id_seq"
   , initialValue = 1
   , allocationSize = 1

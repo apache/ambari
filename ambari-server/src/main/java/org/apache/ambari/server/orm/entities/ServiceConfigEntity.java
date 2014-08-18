@@ -37,7 +37,7 @@ import java.util.List;
 @Entity
 @Table(name = "serviceconfig")
 @TableGenerator(name = "service_config_id_generator",
-  table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "value"
+  table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value"
   , pkColumnValue = "service_config_id_seq"
   , initialValue = 1
   , allocationSize = 1

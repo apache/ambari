@@ -33,7 +33,7 @@ import javax.persistence.UniqueConstraint;
 @TableGenerator(name = "member_id_generator",
     table = "ambari_sequences",
     pkColumnName = "sequence_name",
-    valueColumnName = "value",
+    valueColumnName = "sequence_value",
     pkColumnValue = "member_id_seq",
     initialValue = 1,
     allocationSize = 1

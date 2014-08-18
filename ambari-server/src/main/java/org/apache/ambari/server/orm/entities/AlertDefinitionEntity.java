@@ -48,7 +48,7 @@ import org.apache.ambari.server.state.alert.Scope;
 @Entity
 @Table(name = "alert_definition", uniqueConstraints = @UniqueConstraint(columnNames = {
     "cluster_id", "definition_name" }))
-@TableGenerator(name = "alert_definition_id_generator", table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "value", pkColumnValue = "alert_definition_id_seq", initialValue = 0, allocationSize = 1)
+@TableGenerator(name = "alert_definition_id_generator", table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value", pkColumnValue = "alert_definition_id_seq", initialValue = 0, allocationSize = 1)
 @NamedQueries({
     @NamedQuery(name = "AlertDefinitionEntity.findAll", query = "SELECT alertDefinition FROM AlertDefinitionEntity alertDefinition"),
     @NamedQuery(name = "AlertDefinitionEntity.findAllInCluster", query = "SELECT alertDefinition FROM AlertDefinitionEntity alertDefinition WHERE alertDefinition.clusterId = :clusterId"),

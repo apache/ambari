@@ -43,7 +43,7 @@ import javax.persistence.UniqueConstraint;
 @Entity
 @Table(name = "alert_group", uniqueConstraints = @UniqueConstraint(columnNames = {
     "cluster_id", "group_name" }))
-@TableGenerator(name = "alert_group_id_generator", table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "value", pkColumnValue = "alert_group_id_seq", initialValue = 0, allocationSize = 1)
+@TableGenerator(name = "alert_group_id_generator", table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value", pkColumnValue = "alert_group_id_seq", initialValue = 0, allocationSize = 1)
 @NamedQueries({
     @NamedQuery(name = "AlertGroupEntity.findAll", query = "SELECT alertGroup FROM AlertGroupEntity alertGroup"),
     @NamedQuery(name = "AlertGroupEntity.findAllInCluster", query = "SELECT alertGroup FROM AlertGroupEntity alertGroup WHERE alertGroup.clusterId = :clusterId"),

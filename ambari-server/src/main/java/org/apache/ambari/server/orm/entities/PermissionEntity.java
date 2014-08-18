@@ -36,7 +36,7 @@ import javax.persistence.TableGenerator;
 @Table(name = "adminpermission")
 @Entity
 @TableGenerator(name = "permission_id_generator",
-    table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "value"
+    table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value"
     , pkColumnValue = "permission_id_seq"
     , initialValue = 5
     , allocationSize = 1

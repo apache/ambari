@@ -26,7 +26,7 @@ import javax.persistence.*;
 @Table(name = "adminprincipaltype")
 @Entity
 @TableGenerator(name = "principal_type_id_generator",
-    table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "value"
+    table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value"
     , pkColumnValue = "principal_type_id_seq"
     , initialValue = 3
     , allocationSize = 1

@@ -32,7 +32,7 @@ import javax.persistence.TableGenerator;
 @Entity
 @Table(name = "requestresourcefilter")
 @TableGenerator(name = "resourcefilter_id_generator",
-  table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "value"
+  table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value"
   , pkColumnValue = "resourcefilter_id_seq"
   , initialValue = 1
   , allocationSize = 1

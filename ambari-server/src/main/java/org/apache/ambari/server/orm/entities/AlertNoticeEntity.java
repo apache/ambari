@@ -42,7 +42,7 @@ import org.apache.ambari.server.state.NotificationState;
  */
 @Entity
 @Table(name = "alert_notice")
-@TableGenerator(name = "alert_notice_id_generator", table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "value", pkColumnValue = "alert_notice_id_seq", initialValue = 0, allocationSize = 1)
+@TableGenerator(name = "alert_notice_id_generator", table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value", pkColumnValue = "alert_notice_id_seq", initialValue = 0, allocationSize = 1)
 @NamedQueries({
     @NamedQuery(name = "AlertNoticeEntity.findAll", query = "SELECT notice FROM AlertNoticeEntity notice"),
     @NamedQuery(name = "AlertNoticeEntity.removeByDefinitionId", query = "DELETE FROM AlertNoticeEntity notice WHERE notice.alertHistory.alertDefinition.definitionId = :definitionId") })

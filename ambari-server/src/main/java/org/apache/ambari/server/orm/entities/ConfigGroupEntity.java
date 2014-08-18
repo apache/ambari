@@ -47,7 +47,7 @@ import java.util.Collection;
     "WHERE configgroup.tag=:tagName")
 })
 @TableGenerator(name = "configgroup_id_generator",
-  table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "value"
+  table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value"
   , pkColumnValue = "configgroup_id_seq"
   , initialValue = 1
   , allocationSize = 1

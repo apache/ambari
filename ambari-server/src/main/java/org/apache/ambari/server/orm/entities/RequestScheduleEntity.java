@@ -43,7 +43,7 @@ import java.util.List;
       "WHERE reqSchedule.status=:status")
 })
 @TableGenerator(name = "schedule_id_generator",
-  table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "value"
+  table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value"
   , pkColumnValue = "requestschedule_id_seq"
   , initialValue = 1
   , allocationSize = 1

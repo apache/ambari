@@ -38,7 +38,7 @@ import static org.apache.commons.lang.StringUtils.defaultString;
 })
 @Entity
 @TableGenerator(name = "cluster_id_generator",
-    table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "value"
+    table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value"
     , pkColumnValue = "cluster_id_seq"
     , initialValue = 1
     , allocationSize = 1

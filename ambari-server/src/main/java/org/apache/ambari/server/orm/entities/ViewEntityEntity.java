@@ -36,7 +36,7 @@ import javax.persistence.TableGenerator;
 @Table(name = "viewentity")
 @Entity
 @TableGenerator(name = "viewentity_id_generator",
-    table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "value"
+    table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value"
     , pkColumnValue = "viewentity_id_seq"
     , initialValue = 1
     , allocationSize = 50

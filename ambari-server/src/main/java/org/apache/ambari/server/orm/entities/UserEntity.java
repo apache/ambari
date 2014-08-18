@@ -29,7 +29,7 @@ import java.util.Set;
     @NamedQuery(name = "ldapUserByName", query = "SELECT user FROM UserEntity user where lower(user.userName)=:username AND user.ldapUser=true")
 })
 @TableGenerator(name = "user_id_generator",
-    table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "value"
+    table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value"
     , pkColumnValue = "user_id_seq"
     , initialValue = 2
     , allocationSize = 1

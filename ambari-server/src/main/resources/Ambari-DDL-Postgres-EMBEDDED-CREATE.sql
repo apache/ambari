@@ -115,7 +115,7 @@ GRANT ALL PRIVILEGES ON TABLE ambari.hostconfigmapping TO :username;
 CREATE TABLE ambari.metainfo ("metainfo_key" VARCHAR(255), "metainfo_value" VARCHAR, PRIMARY KEY ("metainfo_key"));
 GRANT ALL PRIVILEGES ON TABLE ambari.metainfo TO :username;
 
-CREATE TABLE ambari.ambari_sequences (sequence_name VARCHAR(255) PRIMARY KEY, "value" BIGINT NOT NULL);
+CREATE TABLE ambari.ambari_sequences (sequence_name VARCHAR(255) PRIMARY KEY, sequence_value BIGINT NOT NULL);
 GRANT ALL PRIVILEGES ON TABLE ambari.ambari_sequences TO :username;
 
 CREATE TABLE ambari.configgroup (group_id BIGINT, cluster_id BIGINT NOT NULL, group_name VARCHAR(255) NOT NULL, tag VARCHAR(1024) NOT NULL, description VARCHAR(1024), create_timestamp BIGINT NOT NULL, PRIMARY KEY(group_id));
@@ -348,7 +348,7 @@ CREATE INDEX idx_alert_notice_state on ambari.alert_notice(notify_state);
 
 ---------inserting some data-----------
 BEGIN;
-INSERT INTO ambari.ambari_sequences (sequence_name, "value")
+INSERT INTO ambari.ambari_sequences (sequence_name, sequence_value)
   SELECT 'cluster_id_seq', 1
   UNION ALL
   SELECT 'user_id_seq', 2

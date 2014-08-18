@@ -48,7 +48,7 @@ import org.apache.commons.lang.ArrayUtils;
 @Table(name = "host_role_command")
 @Entity
 @TableGenerator(name = "host_role_command_id_generator",
-    table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "value"
+    table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value"
     , pkColumnValue = "host_role_command_id_seq"
     , initialValue = 1
     , allocationSize = 50

@@ -26,7 +26,7 @@ import javax.persistence.*;
 @Table(name = "adminresource")
 @Entity
 @TableGenerator(name = "resource_id_generator",
-    table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "value"
+    table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value"
     , pkColumnValue = "resource_id_seq"
     , initialValue = 2
     , allocationSize = 1

@@ -40,7 +40,7 @@ import javax.persistence.UniqueConstraint;
 @TableGenerator(name = "group_id_generator",
     table = "ambari_sequences",
     pkColumnName = "sequence_name",
-    valueColumnName = "value",
+    valueColumnName = "sequence_value",
     pkColumnValue = "group_id_seq",
     initialValue = 1,
     allocationSize = 1

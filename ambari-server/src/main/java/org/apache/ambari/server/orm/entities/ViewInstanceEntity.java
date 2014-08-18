@@ -61,7 +61,7 @@ import org.apache.ambari.view.ViewInstanceDefinition;
 @NamedQuery(name = "allViewInstances",
   query = "SELECT viewInstance FROM ViewInstanceEntity viewInstance")
 @TableGenerator(name = "view_instance_id_generator",
-  table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "value"
+  table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value"
   , pkColumnValue = "view_instance_id_seq"
   , initialValue = 1
   , allocationSize = 1
