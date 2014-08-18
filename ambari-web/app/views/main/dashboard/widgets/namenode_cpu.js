@@ -78,12 +78,12 @@ App.NameNodeCpuPieChartView = App.PieChartDashboardWidgetView.extend({
   },
 
   calcIsPieExists: function() {
-    return (this.get('cpuWio') != null);
+    return (!Em.isNone(this.get('cpuWio')));
   },
 
-  calcDataForPieChart: function() {
+  calcDataForPieChart: function () {
     var value = this.get('cpuWio');
-    value = value >= 100 ? 100: value;
+    value = value >= 100 ? 100 : value;
     var percent = (value + 0).toFixed(1);
     var percent_precise = (value + 0).toFixed(2);
     return [ percent, percent_precise];

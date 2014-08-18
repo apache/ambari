@@ -106,7 +106,7 @@ App.config = Em.Object.create({
    * @method getConfigTagFromFileName
    **/
   getConfigTagFromFileName: function(fileName) {
-    return fileName.endsWith('.xml') ? fileName.slice(0,-4) : filename;
+    return fileName.endsWith('.xml') ? fileName.slice(0,-4) : fileName;
   },
 
   setPreDefinedServiceConfigs: function () {

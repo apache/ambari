@@ -337,7 +337,7 @@ describe('App.config', function () {
       App.config.addAdvancedConfigs(this.storedConfigs, modelSetup.setupAdvancedConfigsObject(), 'ZOOKEEPER');
       var property = this.storedConfigs.findProperty('name', 'custom.zoo.cfg');
       expect(property).to.be.ok;
-      expect(property.category).to.eql('Advanced');
+      expect(property.category).to.eql('Advanced zoo.cfg');
     });
 
     it('`capacity-scheduler.xml` property with name `content` should have `displayType` `multiLine`', function() {
