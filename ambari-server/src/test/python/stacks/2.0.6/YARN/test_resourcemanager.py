@@ -229,10 +229,6 @@ class TestResourceManager(RMFTestCase):
                               configurations = self.getConfig()['configurations']['mapred-site'],
                               configuration_attributes = self.getConfig()['configuration_attributes']['mapred-site']
                               )
-    self.assertResourceCalled('File', '/etc/hadoop/conf/mapred-queue-acls.xml',
-                              owner = 'mapred',
-                              group = 'hadoop',
-                              )
     self.assertResourceCalled('XmlConfig', 'capacity-scheduler.xml',
                               owner = 'hdfs',
                               group = 'hadoop',
@@ -374,10 +370,6 @@ class TestResourceManager(RMFTestCase):
                               conf_dir = '/etc/hadoop/conf',
                               configurations = self.getConfig()['configurations']['mapred-site'],
                               configuration_attributes = self.getConfig()['configuration_attributes']['mapred-site']
-                              )
-    self.assertResourceCalled('File', '/etc/hadoop/conf/mapred-queue-acls.xml',
-                              owner = 'mapred',
-                              group = 'hadoop',
                               )
     self.assertResourceCalled('XmlConfig', 'capacity-scheduler.xml',
                               owner = 'hdfs',
