@@ -171,6 +171,9 @@ App.StackService = DS.Model.extend(App.ServiceModelMixin, {
     return defaultConfigsHandler && defaultConfigsHandler.configsValidator;
   }.property('serviceName'),
 
+  allowServerValidator: function() {
+    return ["YARN", "STORM", "MAPREDUCE2", "HIVE", "TEZ"].contains(this.get('serviceName'));
+  }.property('serviceName'),
   /**
    * configCategories are fetched from  App.StackService.configCategories.
    * Also configCategories that does not match any serviceComponent of a service and not included in the permissible default pattern are omitted

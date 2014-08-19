@@ -29,7 +29,7 @@ var stringUtils = require('utils/string_utils');
  *
  */
 
-App.WizardStep7Controller = Em.Controller.extend({
+App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
 
   name: 'wizardStep7Controller',
 
@@ -112,8 +112,6 @@ App.WizardStep7Controller = Em.Controller.extend({
   serviceConfigTags: [],
 
   serviceConfigsData: require('data/service_configs'),
-
-  recommendedConfigs: null,
 
   /**
    * Are advanced configs loaded
@@ -600,7 +598,7 @@ App.WizardStep7Controller = Em.Controller.extend({
     var s = App.StackService.find(component.get('serviceName')),
       defaultGroupSelected = component.get('selectedConfigGroup.isDefault');
 
-    if(!App.supports.serverRecommendValidate) {
+    if(!App.get('supports.serverRecommendValidate')) {
       if (s && s.get('configsValidator')) {
         var recommendedDefaults = this._getRecommendedDefaultsForComponent(component.get('serviceName'));
         s.get('configsValidator').set('recommendedDefaults', recommendedDefaults);
@@ -723,8 +721,8 @@ App.WizardStep7Controller = Em.Controller.extend({
     }
     //STEP 6: Distribute configs by service and wrap each one in App.ServiceConfigProperty (configs -> serviceConfigs)
     var self = this;
-    if (App.supports.serverRecommendValidate) {
-      this.loadDefaultConfigs(function() {
+    if (App.get('supports.serverRecommendValidate')) {
+      this.loadServerSideConfigsRecommendations().complete(function() {
         self.setStepConfigs(configs, storedConfigs);
         self.checkHostOverrideInstaller();
         self.activateSpecialConfigs();
@@ -771,7 +769,7 @@ App.WizardStep7Controller = Em.Controller.extend({
       masterComponentHosts: this.get('wizardController.content.masterComponentHosts'),
       slaveComponentHosts: this.get('wizardController.content.slaveComponentHosts')
     };
-    var serviceConfigs = App.config.renderConfigs(configs, storedConfigs, this.get('allSelectedServiceNames'), this.get('installedServiceNames'), localDB, this.get('recommendedConfigs'));
+    var serviceConfigs = App.config.renderConfigs(configs, storedConfigs, this.get('allSelectedServiceNames'), this.get('installedServiceNames'), localDB, this.get('recommendationsConfigs'));
     if (this.get('wizardController.name') === 'addServiceController') {
       serviceConfigs.setEach('showConfig', true);
       serviceConfigs.setEach('selected', false);
@@ -930,41 +928,6 @@ App.WizardStep7Controller = Em.Controller.extend({
     }
   },
 
-  loadDefaultConfigs: function(callback) {
-    var selectedServices = App.StackService.find().filterProperty('isSelected').mapProperty('serviceName');
-    var installedServices = App.StackService.find().filterProperty('isInstalled').mapProperty('serviceName');
-    var services = installedServices.concat(selectedServices).uniq();
-    this.set('isDefaultsLoaded', false);
-    var hostNames = Object.keys(this.get('content.hosts'));
-    App.ajax.send({
-      'name': 'wizard.step7.loadrecommendations.configs',
-      'sender': this,
-      'data': {
-        stackVersionUrl: App.get('stackVersionURL'),
-        hosts: hostNames,
-        services: services,
-        recommendations: App.router.get('installerController.recommendations')
-      },
-      'success': 'loadDefaultConfigsSuccess'
-    })
-    .retry({
-      times: App.maxRetries,
-      timeout: App.timeout
-    })
-    .then(function () {
-      callback();
-    }, function () {
-        App.showReloadPopup();
-        console.log('Load recommendations failed');
-       });
-  },
-
-  loadDefaultConfigsSuccess: function(data) {
-    if (!data) {
-      console.warn('error while loading default config values');
-    }
-    this.set("recommendedConfigs", Em.get(data.resources[0] , "recommendations.blueprint.configurations"));
-  },
   /**
    * Check if Oozie or Hive use existing database then need
    * to restore missed properties
@@ -1360,12 +1323,15 @@ App.WizardStep7Controller = Em.Controller.extend({
    * @method submit
    */
   submit: function () {
+    if (this.get('isSubmitDisabled')) {
+      return;
+    }
     var _this = this;
-    if (!this.get('isSubmitDisabled')) {
-      this.checkDatabaseConnectionTest().done(function () {
+    this.serverSideValidation().done(function () {
+      _this.checkDatabaseConnectionTest().done(function () {
         _this.resolveHiveMysqlDatabase();
       });
-    }
+    });
   }
 
 });

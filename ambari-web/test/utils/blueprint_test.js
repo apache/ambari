@@ -276,4 +276,141 @@ describe('utils/blueprint', function() {
       );
     });
   });
+
+  describe('#buildConfisJSON', function () {
+    var tests = [
+      {
+        "services": [
+          Em.Object.create({
+            serviceName: "YARN",
+            configTypes: {
+              "yarn-site": {},
+              "yarn-env": {}
+            },
+            allowServerValidator: true,
+            isInstalled: true
+          })
+        ],
+        "stepConfigs": [
+          Em.Object.create({
+            serviceName: "YARN",
+            configs: [
+              Em.Object.create({
+                name: "p1",
+                value: "v1",
+                filename: "yarn-site.xml"
+              }),
+              Em.Object.create({
+                name: "p2",
+                value: "v2",
+                filename: "yarn-site.xml"
+              }),
+              Em.Object.create({
+                name: "p3",
+                value: "v3",
+                filename: "yarn-env.xml"
+              })
+            ]
+          })
+        ],
+        "configurations": {
+          "yarn-site": {
+            "properties": {
+              "p1": "v1",
+              "p2": "v2"
+            }
+          },
+          "yarn-env": {
+            "properties": {
+              "p3": "v3"
+            }
+          }
+        }
+      }
+    ];
+    tests.forEach(function (test) {
+      it("generate configs for request (use in validation)", function () {
+        expect(blueprintUtils.buildConfisJSON(test.services, test.stepConfigs)).to.eql(test.configurations);
+      });
+    });
+  });
+
+  describe('#generateHostGroups', function () {
+    var tests = [
+      {
+        "hostNames": ["host1", "host2"],
+        "hostComponents": [
+          Em.Object.create({
+            componentName: "C1",
+            hostName: "host1"
+          }),
+          Em.Object.create({
+            componentName: "C2",
+            hostName: "host1"
+          }),
+          Em.Object.create({
+            componentName: "C1",
+            hostName: "host2"
+          }),
+          Em.Object.create({
+            componentName: "C3",
+            hostName: "host2"
+          })
+        ],
+        result: {
+          blueprint: {
+            host_groups: [
+              {
+                name: "host-group-1",
+                "components": [
+                  {
+                    "name": "C1"
+                  },
+                  {
+                    "name": "C2"
+                  }
+                ]
+              },
+              {
+                name: "host-group-2",
+                "components": [
+                  {
+                    "name": "C1"
+                  },
+                  {
+                    "name": "C3"
+                  }
+                ]
+              }
+            ]
+          },
+          blueprint_cluster_binding: {
+            host_groups: [
+              {
+                "name": "host-group-1",
+                "hosts": [
+                  {
+                    "fqdn": "host1"
+                  }
+                ]
+              },
+              {
+                "name": "host-group-2",
+                "hosts": [
+                  {
+                    "fqdn": "host2"
+                  }
+                ]
+              },
+            ]
+          }
+        }
+      }
+    ];
+    tests.forEach(function (test) {
+      it("generate host groups", function () {
+        expect(blueprintUtils.generateHostGroups(test.hostNames, test.hostComponents)).to.eql(test.result);
+      });
+    });
+  });
 });

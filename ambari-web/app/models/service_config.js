@@ -844,13 +844,14 @@ App.ServiceConfigProperty = Ember.Object.extend({
         }
       }
     }
-    
-    var serviceValidator = this.get('serviceValidator');
-    if (serviceValidator!=null) {
-      var validationIssue = serviceValidator.validateConfig(this);
-      if (validationIssue) {
-    	this.set('warnMessage', validationIssue);
-    	isWarn = true;
+    if (!App.get('supports.serverRecommendValidate')) {
+      var serviceValidator = this.get('serviceValidator');
+      if (serviceValidator!=null) {
+        var validationIssue = serviceValidator.validateConfig(this);
+        if (validationIssue) {
+          this.set('warnMessage', validationIssue);
+          isWarn = true;
+        }
       }
     }
 

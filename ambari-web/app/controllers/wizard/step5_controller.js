@@ -212,11 +212,11 @@ App.WizardStep5Controller = Em.Controller.extend({
       return false;
     }
 
-    if (App.supports.serverRecommendValidate) {
+    if (App.get('supports.serverRecommendValidate')) {
       self.set('submitDisabled', true);
 
       // reset previous recommendations
-      App.router.set('installerController.recommendations', null);
+      this.set('content.recommendations', null);
 
       if (self.get('servicesMasters').length === 0) {
         return;
@@ -375,7 +375,7 @@ App.WizardStep5Controller = Em.Controller.extend({
     console.log("WizardStep5Controller: Loading step5: Assign Masters");
     this.clearStep();
     this.renderHostInfo();
-    if (App.supports.serverRecommendValidate ) {
+    if (App.get('supports.serverRecommendValidate')) {
       this.loadComponentsRecommendationsFromServer(this.loadStepCallback);
     } else {
       this.loadComponentsRecommendationsLocally(this.loadStepCallback);
@@ -478,7 +478,7 @@ App.WizardStep5Controller = Em.Controller.extend({
   loadComponentsRecommendationsFromServer: function(callback, includeMasters) {
     var self = this;
 
-    if (App.router.get('installerController.recommendations')) {
+    if (this.get('content.recommendations')) {
       // Don't do AJAX call if recommendations has been already received
       // But if user returns to previous step (selecting services), stored recommendations will be cleared in routers' next handler and AJAX call will be made again
       callback(self.createComponentInstallationObjects(), self);
@@ -523,7 +523,7 @@ App.WizardStep5Controller = Em.Controller.extend({
 
   /**
    * Create components for displaying component-host comboboxes in UI assign dialog
-   * expects installerController.recommendations will be filled with recommendations API call result
+   * expects content.recommendations will be filled with recommendations API call result
    * @return {Object[]}
    */
   createComponentInstallationObjects: function() {
@@ -538,7 +538,7 @@ App.WizardStep5Controller = Em.Controller.extend({
 
     var masterHosts = self.get('content.masterComponentHosts'); //saved to local storage info
     var selectedNotInstalledServices = self.get('content.services').filterProperty('isSelected').filterProperty('isInstalled', false).mapProperty('serviceName');
-    var recommendations = App.router.get('installerController.recommendations');
+    var recommendations = this.get('content.recommendations');
 
     var resultComponents = [];
     var multipleComponentHasBeenAdded = {};
@@ -616,7 +616,7 @@ App.WizardStep5Controller = Em.Controller.extend({
    * @method loadRecommendationsSuccessCallback
    */
   loadRecommendationsSuccessCallback: function (data) {
-    App.router.set('installerController.recommendations', data.resources[0].recommendations);
+    this.set('content.recommendations', data.resources[0].recommendations);
   },
 
   /**
@@ -1025,7 +1025,7 @@ App.WizardStep5Controller = Em.Controller.extend({
     // load recommendations with partial request
     self.loadComponentsRecommendationsFromServer(function() {
       // For validation use latest received recommendations because ir contains current master layout and recommended slave/client layout
-      self.validate(App.router.get('installerController.recommendations'), function() {
+      self.validate(self.get('content.recommendations'), function() {
         if (callback) {
           callback();
         }
@@ -1047,7 +1047,7 @@ App.WizardStep5Controller = Em.Controller.extend({
         }
       };
 
-      if (App.supports.serverRecommendValidate ) {
+    if (App.get('supports.serverRecommendValidate')) {
         self.recommendAndValidate(function() {
           goNextStepIfValid();
         });

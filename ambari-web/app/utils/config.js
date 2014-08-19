@@ -690,8 +690,8 @@ App.config = Em.Object.create({
 
       // Use calculated default values for some configs
       var recommendedDefaults = {};
-      if (App.supports.serverRecommendValidate) {
-        if (!storedConfigs && service.get('configTypes')) {
+      if (App.get('supports.serverRecommendValidate')) {
+        if (!storedConfigs && service.get('configTypes') && service.get('allowServerValidator')) {
           Object.keys(service.get('configTypes')).forEach(function (type) {
             if (!recommended || !recommended[type]) {
               return;
@@ -727,14 +727,14 @@ App.config = Em.Object.create({
             }
           });
         }
-      }
-      if (service.get('configsValidator')) {
-        service.get('configsValidator').set('recommendedDefaults', recommendedDefaults);
-        var validators = service.get('configsValidator').get('configValidators');
-        for (var validatorName in validators) {
-          var c = configsByService.findProperty('name', validatorName);
-          if (c) {
-            c.set('serviceValidator', service.get('configsValidator'));
+        if (service.get('configsValidator')) {
+          service.get('configsValidator').set('recommendedDefaults', recommendedDefaults);
+          var validators = service.get('configsValidator').get('configValidators');
+          for (var validatorName in validators) {
+            var c = configsByService.findProperty('name', validatorName);
+            if (c) {
+              c.set('serviceValidator', service.get('configsValidator'));
+            }
           }
         }
       }

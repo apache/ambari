@@ -185,5 +185,86 @@ module.exports = {
     });
 
     return res;
+  },
+
+  /**
+   * @method buildConfisJSON - generet JSON according to blueprint format
+   * @param {Em.Array} stepConfigs - array of Ember Objects
+   * @param {Array} services
+   * @returns {Object}
+   * Example:
+   * {
+   *   "yarn-env": {
+   *     "properties": {
+   *       "content": "some value",
+   *       "yarn_heapsize": "1024",
+   *       "resourcemanager_heapsize": "1024",
+   *     }
+   *   },
+   *   "yarn-log4j": {
+   *     "properties": {
+   *       "content": "some other value"
+   *     }
+   *   }
+   * }
+   */
+  buildConfisJSON: function(services, stepConfigs) {
+    var configurations = {};
+    services.forEach(function(service) {
+      var config = stepConfigs.findProperty('serviceName', service.get('serviceName'));
+      if (config && service.get('configTypes')) {
+        Object.keys(service.get('configTypes')).forEach(function(type) {
+          configurations[type] = {
+            properties: {}
+          }
+        });
+        config.get('configs').forEach(function(property){
+          if (configurations[property.get('filename').replace('.xml','')]){
+            configurations[property.get('filename').replace('.xml','')]['properties'][property.get('name')] = property.get('value');
+          } else {
+            console.warn(property.get('name') + " from " + property.get('filename') + " can't be validate");
+          }
+        });
+      }
+    });
+    return configurations;
+  },
+
+  /**
+   * @method generateHostGroups
+   * @param {Array} hostNames - list of all hostNames
+   * @param {Array} hostComponents - list of all hostComponents
+   * @returns {{blueprint: {host_groups: Array}, blueprint_cluster_binding: {host_groups: Array}}}
+   */
+  generateHostGroups: function(hostNames, hostComponents) {
+    var recommendations = {
+      blueprint: {
+        host_groups: []
+      },
+      blueprint_cluster_binding: {
+        host_groups: []
+      }
+    };
+
+    for (var i = 1; i <= hostNames.length; i++) {
+      var host_group = {
+        name: "host-group-" + i,
+        components: []
+      };
+      var hcFiltered = hostComponents.filterProperty('hostName', hostNames[i-1]).mapProperty('componentName');
+      for (var j = 0; j < hcFiltered.length; j++) {
+        host_group.components.push({
+          name: hcFiltered[j]
+        });
+      }
+      recommendations.blueprint.host_groups.push(host_group);
+      recommendations.blueprint_cluster_binding.host_groups.push({
+        name: "host-group-" + i,
+        hosts: [{
+          fqdn: hostNames[i-1]
+        }]
+      });
+    }
+    return recommendations;
   }
 };

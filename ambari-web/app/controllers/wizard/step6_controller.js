@@ -377,7 +377,7 @@ App.WizardStep6Controller = Em.Controller.extend({
     var clientHeaders = headers.findProperty('name', 'CLIENT');
     var slaveComponents = this.get('content.slaveComponentHosts');
     if (!slaveComponents) { // we are at this page for the first time
-      if (!App.supports.serverRecommendValidate) {
+      if (!App.get('supports.serverRecommendValidate')) {
         hostsObj.forEach(function (host) {
           var checkboxes = host.get('checkboxes');
           checkboxes.setEach('checked', !host.hasMaster);
@@ -393,7 +393,7 @@ App.WizardStep6Controller = Em.Controller.extend({
           lastHost.get('checkboxes').setEach('checked', true);
         }
       } else {
-        var recommendations = App.router.get('installerController.recommendations');
+        var recommendations = this.get('content.recommendations');
         // Get all host-component pairs from recommendations
         var componentHostPairs = recommendations.blueprint.host_groups.map(function (group) {
           return group.components.map(function (component) {
@@ -495,7 +495,7 @@ App.WizardStep6Controller = Em.Controller.extend({
 
   callValidation: function (successCallback) {
     var self = this;
-    if (App.supports.serverRecommendValidate) {
+    if (App.get('supports.serverRecommendValidate')) {
       self.callServerSideValidation(successCallback);
     } else {
       var res = self.callClientSideValidation();
@@ -540,13 +540,16 @@ App.WizardStep6Controller = Em.Controller.extend({
 
       var invisibleComponents = invisibleMasters.concat(invisibleSlaves).concat(alreadyInstalledClients);
 
-      var invisibleBlueprint = blueprintUtils.filterByComponents(App.router.get('installerController.recommendations'), invisibleComponents);
+      var invisibleBlueprint = blueprintUtils.filterByComponents(this.get('content.recommendations'), invisibleComponents);
       masterBlueprint = blueprintUtils.mergeBlueprints(masterBlueprint, invisibleBlueprint);
     } else if (this.get('isAddHostWizard')) {
       masterBlueprint = self.getMasterSlaveBlueprintForAddHostWizard();
       hostNames = hostNames.concat(App.Host.find().mapProperty("hostName")).uniq();
       slaveBlueprint = blueprintUtils.addComponentsToBlueprint(slaveBlueprint, invisibleSlaves);
     }
+
+    var bluePrintsForValidation = blueprintUtils.mergeBlueprints(masterBlueprint, slaveBlueprint);
+    this.set('content.recommendationsHostGroups', bluePrintsForValidation);
 
     App.ajax.send({
       name: 'config.validations',
@@ -556,7 +559,7 @@ App.WizardStep6Controller = Em.Controller.extend({
         hosts: hostNames,
         services: services,
         validate: 'host_groups',
-        recommendations: blueprintUtils.mergeBlueprints(masterBlueprint, slaveBlueprint)
+        recommendations: bluePrintsForValidation
       },
       success: 'updateValidationsSuccessCallback'
     }).

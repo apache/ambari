@@ -250,6 +250,7 @@ module.exports = Em.Route.extend({
       controller.saveClients(wizardStep4Controller);
 
       controller.clearRecommendations(); // Force reload recommendation between steps 4 and 5
+      controller.setDBProperty('recommendations', undefined);
       controller.setDBProperty('masterComponentHosts', undefined);
       router.transitionTo('step5');
     }
@@ -273,6 +274,7 @@ module.exports = Em.Route.extend({
       var wizardStep5Controller = router.get('wizardStep5Controller');
       controller.saveMasterComponentHosts(wizardStep5Controller);
       controller.setDBProperty('slaveComponentHosts', undefined);
+      controller.setDBProperty('recommendations', wizardStep5Controller.get('content.recommendations'));
       router.transitionTo('step6');
     }
   }),
@@ -302,6 +304,8 @@ module.exports = Em.Route.extend({
         controller.setDBProperty('serviceConfigProperties', null);
         controller.setDBProperty('advancedServiceConfig', null);
         controller.setDBProperty('serviceConfigGroups', null);
+        controller.setDBProperty('recommendationsHostGroups', wizardStep6Controller.get('content.recommendationsHostGroups'));
+        controller.setDBProperty('recommendationsConfigs', null);
         controller.loadAdvancedConfigs(wizardStep7Controller);
         router.transitionTo('step7');
       }
@@ -326,12 +330,13 @@ module.exports = Em.Route.extend({
     },
     back: Em.Router.transitionTo('step6'),
     next: function (router) {
-      var installerController = router.get('installerController');
+      var controller = router.get('installerController');
       var wizardStep7Controller = router.get('wizardStep7Controller');
-      installerController.saveServiceConfigProperties(wizardStep7Controller);
+      controller.saveServiceConfigProperties(wizardStep7Controller);
       if (App.supports.hostOverridesInstaller) {
-        installerController.saveServiceConfigGroups(wizardStep7Controller);
+        controller.saveServiceConfigGroups(wizardStep7Controller);
       }
+      controller.setDBProperty('recommendationsConfigs', wizardStep7Controller.get('recommendationsConfigs'));
       router.transitionTo('step8');
     }
   }),

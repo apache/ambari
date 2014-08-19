@@ -21,7 +21,7 @@ require('controllers/wizard/slave_component_groups_controller');
 var batchUtils = require('utils/batch_scheduled_requests');
 var lazyLoading = require('utils/lazy_loading');
 
-App.MainServiceInfoConfigsController = Em.Controller.extend({
+App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorMixin, {
   name: 'mainServiceInfoConfigsController',
   isHostsConfigsPage: false,
   forceTransition: false,
@@ -1091,15 +1091,17 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       (serviceName !== 'HDFS' && this.get('content.isStopped') === true) ||
       ((serviceName === 'HDFS') && this.get('content.isStopped') === true && (!App.Service.find().someProperty('id', 'MAPREDUCE') || App.Service.find('MAPREDUCE').get('isStopped')))) {
 
-      if (this.isDirChanged()) {
-        App.showConfirmationPopup(function () {
+      this.serverSideValidation().done(function() {
+        if (self.isDirChanged()) {
+          App.showConfirmationPopup(function () {
+            self.saveConfigs();
+          }, Em.I18n.t('services.service.config.confirmDirectoryChange').format(displayName), function () {
+            self.set('isApplyingChanges', false)
+          });
+        } else {
           self.saveConfigs();
-        }, Em.I18n.t('services.service.config.confirmDirectoryChange').format(displayName), function () {
-          self.set('isApplyingChanges', false)
-        });
-      } else {
-        this.saveConfigs();
-      }
+        }
+      });
     } else {
       status = 'started';
       if (this.get('content.serviceName') !== 'HDFS' || (this.get('content.serviceName') === 'HDFS' && !App.Service.find().someProperty('id', 'MAPREDUCE'))) {

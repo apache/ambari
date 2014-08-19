@@ -38,6 +38,15 @@ App.InstallerController = App.WizardController.extend({
     slaveGroupProperties: null,
     stacks: null,
     clients:[],
+    /**
+     * recommendations for host groups loaded from server
+     */
+    recommendations: null,
+    /**
+     * recommendationsHostGroups - current component assignment after 5 and 6 steps
+     * (uses for host groups validation and to load recommended configs)
+     */
+    recommendationsHostGroups: null,
     controllerName: 'installerController'
   }),
 
@@ -64,7 +73,10 @@ App.InstallerController = App.WizardController.extend({
     'stacksVersions',
     'currentStep',
     'serviceInfo',
-    'hostInfo'
+    'hostInfo',
+    'recommendations',
+    'recommendationsHostGroups',
+    'recommendationsConfigs'
   ],
 
   init: function () {
@@ -467,6 +479,18 @@ App.InstallerController = App.WizardController.extend({
     this.set("content.masterComponentHosts", masterComponentHosts);
   },
 
+  loadRecommendations: function() {
+    this.set("content.recommendations", this.getDBProperty('recommendations'));
+  },
+
+  loadCurrentHostGroups: function() {
+    this.set("content.recommendationsHostGroups", this.getDBProperty('recommendationsHostGroups'));
+  },
+
+  loadRecommendationsConfigs: function() {
+    App.router.set("wizardStep7Controller.recommendationsConfigs", this.getDBProperty('recommendationsConfigs'));
+  },
+
   /**
    * Load master component hosts data for using in required step controllers
    */
@@ -685,6 +709,7 @@ App.InstallerController = App.WizardController.extend({
         callback: function () {
           this.loadMasterComponentHosts();
           this.loadConfirmedHosts();
+          this.loadRecommendations();
         }
       }
     ],
@@ -694,6 +719,7 @@ App.InstallerController = App.WizardController.extend({
         callback: function () {
           this.loadSlaveComponentHosts();
           this.loadClients();
+          this.loadRecommendations();
         }
       }
     ],
@@ -703,6 +729,8 @@ App.InstallerController = App.WizardController.extend({
         callback: function () {
           this.loadServiceConfigGroups();
           this.loadServiceConfigProperties();
+          this.loadCurrentHostGroups();
+          this.loadRecommendationsConfigs();
         }
       }
     ]
@@ -739,7 +767,7 @@ App.InstallerController = App.WizardController.extend({
    * Clear loaded recommendations
    */
   clearRecommendations: function() {
-    this.set('recommendations', undefined)
+    this.set('content.recommendations', undefined)
   }
 });
 

@@ -648,6 +648,10 @@ Em.I18n.translations = {
   'installer.step7.popup.mySQLWarning.confirmation.body': 'You will be brought back to the \"Assign Masters\" step and will lose all your current customizations. Are you sure?',
   'installer.step7.popup.database.connection.header': 'Database Connectivity Warning',
   'installer.step7.popup.database.connection.body': 'You have not run or passed the database connection test for: {0}. It is highly recommended that you pass the connection test before proceeding to prevent failures during deployment.',
+  'installer.step7.popup.validation.failed.header': 'Validation failed.',
+  'installer.step7.popup.validation.failed.body': 'Some services are not properly configured. You have to change the highlighted configs according to the recommended values.',
+  'installer.step7.popup.validation.request.failed.body': 'Config validaition failed.',
+  'installer.step7.popup.validation.warning.body': 'Some services are not properly configured. Recommended to change the highlighted configs. Are you sure you want to proceed witout changing configs?',
 
   'installer.step7.oozie.database.new': 'New Derby Database',
   'installer.step7.hive.database.new': 'New MySQL Database',
