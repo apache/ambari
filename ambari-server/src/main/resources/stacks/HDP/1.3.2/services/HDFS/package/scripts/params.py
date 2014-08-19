@@ -150,3 +150,30 @@ if not "com.hadoop.compression.lzo" in io_compression_codecs:
   exclude_packages = ["lzo", "hadoop-lzo", "hadoop-lzo-native"]
 else:
   exclude_packages = []
+
+
+java_home = config['hostLevelParams']['java_home']
+#hadoop params
+
+hadoop_conf_empty_dir = "/etc/hadoop/conf.empty"
+hadoop_env_sh_template = config['configurations']['hadoop-env']['content']
+
+#hadoop-env.sh
+if System.get_instance().os_family == "suse":
+  jsvc_path = "/usr/lib/bigtop-utils"
+else:
+  jsvc_path = "/usr/libexec/bigtop-utils"
+hadoop_heapsize = config['configurations']['hadoop-env']['hadoop_heapsize']
+namenode_heapsize = config['configurations']['hadoop-env']['namenode_heapsize']
+namenode_opt_newsize =  config['configurations']['hadoop-env']['namenode_opt_newsize']
+namenode_opt_maxnewsize =  config['configurations']['hadoop-env']['namenode_opt_maxnewsize']
+
+jtnode_opt_newsize = default("/configurations/mapred-env/jtnode_opt_newsize","200m")
+jtnode_opt_maxnewsize = default("/configurations/mapred-env/jtnode_opt_maxnewsize","200m")
+jtnode_heapsize =  default("/configurations/mapred-env/jtnode_heapsize","1024m")
+ttnode_heapsize = default("/configurations/mapred-env/ttnode_heapsize","1024m")
+
+dtnode_heapsize = config['configurations']['hadoop-env']['dtnode_heapsize']
+
+mapred_pid_dir_prefix = default("/configurations/hadoop-env/mapred_pid_dir_prefix","/var/run/hadoop-mapreduce")
+mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
