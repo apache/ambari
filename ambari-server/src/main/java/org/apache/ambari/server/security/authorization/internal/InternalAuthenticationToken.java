@@ -17,7 +17,6 @@
  */
 
 package org.apache.ambari.server.security.authorization.internal;
-
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -29,13 +28,14 @@ import java.util.Collections;
 public class InternalAuthenticationToken implements Authentication {
 
   private static final String INTERNAL_NAME = "internal";
+
+  // used in ClustersImpl, checkPermissions
   private static final Collection<? extends GrantedAuthority> AUTHORITIES =
-      Collections.singleton(new SimpleGrantedAuthority("ADMIN"));
+      Collections.singleton(new SimpleGrantedAuthority("AMBARI.ADMIN"));
   private static final User INTERNAL_USER = new User(INTERNAL_NAME, "empty", AUTHORITIES);
 
   private String token;
   private boolean authenticated = false;
-
 
   public InternalAuthenticationToken(String tokenString) {
     this.token = tokenString;

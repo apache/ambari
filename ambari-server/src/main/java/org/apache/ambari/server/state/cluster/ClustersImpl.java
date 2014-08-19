@@ -55,6 +55,7 @@ import org.apache.ambari.server.state.host.HostFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import javax.persistence.RollbackException;
 import java.util.ArrayList;
@@ -735,6 +736,15 @@ public class ClustersImpl implements Clusters {
             return true;
           }
         }
+      }
+
+      // SimpleGrantedAuthority is required by InternalAuthenticationToken for internal authorization by token
+      if (grantedAuthority instanceof SimpleGrantedAuthority){
+        SimpleGrantedAuthority authority = (SimpleGrantedAuthority) grantedAuthority;
+        if ("AMBARI.ADMIN".equals(authority.getAuthority())) {
+          return true;
+        }
+
       }
     }
     // TODO : should we log this?
