@@ -38,10 +38,10 @@ App.ServiceConfigVersion = DS.Model.extend({
     return Em.I18n.t('dashboard.configHistory.table.version.versionText').format(this.get('version'));
   }.property('version'),
   modifiedDate: function () {
-    return dateUtil.dateFormat(this.get('appliedTime'));
+    return dateUtil.dateFormat(this.get('createTime'));
   }.property('createTime'),
   shortModifiedDate: function () {
-    return dateUtil.dateFormat(this.get('appliedTime'), 'MMM DD, YYYY');
+    return dateUtil.dateFormat(this.get('createTime'), 'MMM DD, YYYY');
   }.property('createTime'),
   /**
    * determine whether ServiceConfigVersion is requested from server

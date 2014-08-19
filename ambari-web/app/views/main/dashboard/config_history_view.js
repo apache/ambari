@@ -100,9 +100,9 @@ App.MainConfigHistoryView = App.TableView.extend({
   }),
   modifiedSort: sort.fieldView.extend({
     column: 3,
-    name: 'appliedTime',
+    name: 'createTime',
     status: 'sorting_desc',
-    displayName: Em.I18n.t('dashboard.configHistory.table.modified.title')
+    displayName: Em.I18n.t('dashboard.configHistory.table.created.title')
   }),
   authorSort: sort.fieldView.extend({
     column: 4,

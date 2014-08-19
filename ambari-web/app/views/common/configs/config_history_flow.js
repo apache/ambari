@@ -231,16 +231,9 @@ App.ConfigHistoryFlowView = Em.View.extend({
   },
 
   sendRevertCallSuccess: function (data, opt, params) {
-    var version = params.data.Clusters.desired_serviceconfigversions.serviceconfigversion;
-
-    this.get('serviceVersions').forEach(function (serviceVersion) {
-      serviceVersion.set('isCurrent', serviceVersion.get('version') === version);
-    });
-    this.set('controller.currentVersion', version);
-
-    this.switchVersion({context: Em.Object.create({
-      version: version
-    })});
+    // revert to an old version would generate a new version with latest version number,
+    // so, need to loadStep to update
+     this.get('controller').loadStep();
   },
 
   /**

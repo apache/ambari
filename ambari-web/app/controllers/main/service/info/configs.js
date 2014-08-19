@@ -252,9 +252,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * get service config versions of current service
    */
   loadServiceConfigVersions: function () {
-    var self = this;
-
-    App.ajax.send({
+    return App.ajax.send({
       name: 'service.serviceConfigVersions.get',
       data: {
         serviceName: this.get('content.serviceName')
@@ -262,9 +260,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       sender: this,
       success: 'loadServiceConfigVersionsSuccess',
       error: 'loadServiceConfigVersionsError'
-    }).complete(function () {
-        self.loadSelectedVersion();
-      });
+    })
   },
 
   /**
@@ -275,13 +271,39 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * @param params
    */
   loadServiceConfigVersionsSuccess: function (data, opt, params) {
-    var currentVersion = Math.max.apply(this, data.items.mapProperty('serviceconfigversion'));
-    var currentVersionObject = data.items.findProperty('serviceconfigversion', currentVersion);
+    var self = this;
+    this.loadCurrentVersions().complete(function () {
+      App.serviceConfigVersionsMapper.map(data);
+      self.loadSelectedVersion();
+    });
+  },
 
-    this.set('currentVersion', currentVersion);
-    App.cache['currentConfigVersions'] = {};
-    App.cache['currentConfigVersions'][currentVersionObject.service_name + '_' + currentVersionObject.serviceconfigversion] = true;
-    App.serviceConfigVersionsMapper.map(data);
+  loadCurrentVersions: function () {
+    return App.ajax.send({
+      name: 'service.serviceConfigVersions.get.current',
+      sender: this,
+      data: {},
+      success: 'loadCurrentVersionsSuccess'
+    })
+  },
+
+  /**
+   * load current service config version number
+   * set currentVersion
+   * @param data
+   * @param opt
+   * @param params
+   */
+  loadCurrentVersionsSuccess: function (data, opt, params) {
+    var currentConfigVersions = {};
+    var self = this;
+    for (var service in data.Clusters.desired_serviceconfigversions) {
+      currentConfigVersions[service + '_' + data.Clusters.desired_serviceconfigversions[service].serviceconfigversion] = true;
+      if (self.get('content.serviceName') == service) {
+        self.set('currentVersion', data.Clusters.desired_serviceconfigversions[service].serviceconfigversion);
+      }
+    }
+    App.cache['currentConfigVersions'] = currentConfigVersions;
   },
 
   /**

@@ -1987,7 +1987,7 @@ Em.I18n.translations = {
   'dashboard.configHistory.title': 'Config History',
   'dashboard.configHistory.table.version.title' : 'Service',
   'dashboard.configHistory.table.configGroup.title' : 'Config Group',
-  'dashboard.configHistory.table.modified.title' : 'Modified',
+  'dashboard.configHistory.table.created.title' : 'Created',
   'dashboard.configHistory.table.empty' : 'No history to display',
   'dashboard.configHistory.table.version.versionText' : 'V{0}',
   'dashboard.configHistory.table.filteredHostsInfo': '{0} of {1} versions showing',

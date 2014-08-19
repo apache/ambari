@@ -91,11 +91,8 @@
             <button class="btn" {{action doCancel target="controller"}} {{bindAttr disabled="view.versionActionsDisabled"}}>{{t common.cancel}}</button>
             <button class="btn btn-success" {{action save target="view"}} {{bindAttr disabled="view.isSaveDisabled"}}>{{t common.save}}</button>
           </div>
-          <button class="btn btn-success"  {{action revert view.displayedServiceVersion target="view"}} {{bindAttr disabled="view.versionActionsDisabled" class="view.displayedServiceVersion.isCurrent:hidden"}}>{{t dashboard.configHistory.info-bar.revert.button}}</button>
+          <button class="btn btn-success"  {{action revert target="view"}} {{bindAttr disabled="view.versionActionsDisabled" class="view.displayedServiceVersion.isCurrent:hidden"}}>{{t dashboard.configHistory.info-bar.revert.button}}</button>
         </div>
-    </div>
-    <div class="label-wrapper">
-      {{view.shortNotes}} {{#if view.showMoreLink}}<a class="pointer" {{bindAttr title="view.displayedServiceVersion.notes"}}>{{t jobs.hive.more}}</a>{{/if}}
     </div>
   </div>
 </div>
