@@ -431,6 +431,11 @@ App.format = {
         result = result + ' ' + self.role(item);
       }
     });
+
+    if (result.indexOf('Decommission:') > -1 || result.indexOf('Recommission:') > -1) {
+      // for Decommission command, make sure the hostname is in lower case
+       result = result.split(':')[0] + ': ' + result.split(':')[1].toLowerCase();
+    }
     if (result === ' Nagios Update Ignore Actionexecute') {
        result = Em.I18n.t('common.maintenance.task');
     }
