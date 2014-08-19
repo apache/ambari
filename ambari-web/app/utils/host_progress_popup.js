@@ -133,7 +133,13 @@ App.HostPopup = Em.Object.create({
    * Method called on successful sending request to abort operation
    */
   abortRequestSuccessCallback: function (response, request, data) {
-    App.showAlertPopup(Em.I18n.t('hostPopup.bgop.abortRequest.modal.header'), Em.I18n.t('hostPopup.bgop.abortRequest.modal.body').format(data.requestName));
+    App.ModalPopup.show({
+      header: Em.I18n.t('hostPopup.bgop.abortRequest.modal.header'),
+      bodyClass: Em.View.extend({
+        template: Em.Handlebars.compile(Em.I18n.t('hostPopup.bgop.abortRequest.modal.body').format(data.requestName))
+      }),
+      secondary: null
+    });
   },
 
   /**

@@ -262,7 +262,7 @@ Em.I18n.translations = {
   'hostPopup.bgop.abortRequest.confirmation.body': 'Are you sure you want to abort \'{0}\' operation?',
   'hostPopup.bgop.abortRequest.reason': 'Aborted by user',
   'hostPopup.bgop.abortRequest.modal.header': 'Abort request sent',
-  'hostPopup.bgop.abortRequest.modal.body': 'The request to abort \'{0}\' operation is sent to server. Note that some tasks that are already running may have enough time to finish as completed or failed ones before abort request is applied.',
+  'hostPopup.bgop.abortRequest.modal.body': 'The abort request for <strong>{0}</strong> has been sent to the server. Note: some tasks that are already running may have time to complete or fail before the abort request is applied.',
   'hostPopup.bgop.sourceRequestSchedule.running': 'Future operations of this batch request can be aborted',
   'hostPopup.bgop.sourceRequestSchedule.aborted': 'Future operations of this batch request have been aborted',
   'hostPopup.bgop.abort.rollingRestart': 'Abort Rolling Restart',
