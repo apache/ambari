@@ -74,6 +74,9 @@ public class AlertDefinitionEntity {
   @Column(name = "definition_name", nullable = false, length = 255)
   private String definitionName;
 
+  @Column(name = "label", nullable = true, length = 255)
+  private String label;
+
   @Column(name = "scope", length = 255)
   @Enumerated(value = EnumType.STRING)
   private Scope scope;
@@ -350,6 +353,25 @@ public class AlertDefinitionEntity {
    */
   public void setAlertGroups(Set<AlertGroupEntity> alertGroups) {
     this.alertGroups = alertGroups;
+  }
+
+  /**
+   * Sets a human readable label for this alert definition.
+   * 
+   * @param label
+   *          the label or {@code null} if none.
+   */
+  public void setLabel(String label) {
+    this.label = label;
+  }
+
+  /**
+   * Gets the label for this alert definition.
+   * 
+   * @return the label or {@code null} if none.
+   */
+  public String getLabel() {
+    return label;
   }
 
   /**

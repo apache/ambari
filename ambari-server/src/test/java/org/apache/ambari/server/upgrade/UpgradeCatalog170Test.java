@@ -197,7 +197,7 @@ public class UpgradeCatalog170Test {
     assertViewColumns(maskColumnCapture);
     assertViewParameterColumns(maskedColumnCapture);
 
-    assertEquals(11, alertDefinitionColumnCapture.getValue().size());
+    assertEquals(12, alertDefinitionColumnCapture.getValue().size());
     assertEquals(11, alertHistoryColumnCapture.getValue().size());
     assertEquals(6, alertCurrentColumnCapture.getValue().size());
     assertEquals(4, alertGroupColumnCapture.getValue().size());
@@ -282,7 +282,7 @@ public class UpgradeCatalog170Test {
     upgradeCatalog.updateConfigurationProperties("hbase-env",
         Collections.singletonMap("hbase_regionserver_xmn_ratio", "0.2"), false, false);
     expectLastCall();
-    
+
     upgradeCatalog.updateConfigurationProperties("yarn-env",
         Collections.singletonMap("min_user_id", "1000"), false, false);
     expectLastCall();

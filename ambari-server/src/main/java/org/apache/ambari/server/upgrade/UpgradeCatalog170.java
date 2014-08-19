@@ -574,6 +574,7 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
     columns.add(new DBColumnInfo("service_name", String.class, 255, null, false));
     columns.add(new DBColumnInfo("component_name", String.class, 255, null, true));
     columns.add(new DBColumnInfo("scope", String.class, 255, null, true));
+    columns.add(new DBColumnInfo("label", String.class, 255, null, true));
     columns.add(new DBColumnInfo("enabled", Short.class, 1, 1, false));
     columns.add(new DBColumnInfo("schedule_interval", Integer.class, null, null, false));
     columns.add(new DBColumnInfo("source_type", String.class, 255, null, false));

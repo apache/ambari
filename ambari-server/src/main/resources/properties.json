@@ -416,6 +416,7 @@
       "AlertDefinition/component_name",
       "AlertDefinition/id",
       "AlertDefinition/name",
+      "AlertDefinition/label",
       "AlertDefinition/interval",
       "AlertDefinition/enabled",
       "AlertDefinition/scope",

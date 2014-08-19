@@ -148,6 +148,7 @@ CREATE TABLE alert_definition (
   service_name VARCHAR2(255) NOT NULL,
   component_name VARCHAR2(255),
   scope VARCHAR2(255),
+  label VARCHAR2(255),
   enabled NUMBER(1) DEFAULT 1 NOT NULL,
   schedule_interval NUMBER(10) NOT NULL,
   source_type VARCHAR2(255) NOT NULL,
