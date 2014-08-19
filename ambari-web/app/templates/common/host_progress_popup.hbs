@@ -57,7 +57,7 @@
                 <div class="time-summary start-time-text">{{servicesInfo.startTime}}</div>
                 <div class="time-summary duration-text">{{servicesInfo.duration}}</div>
                 <div class="progress-bar span2">
-                  <div {{bindAttr class="servicesInfo.isInProgress:progress-striped :active servicesInfo.barColor :progress"}}>
+                  <div {{bindAttr class="servicesInfo.isInProgress:progress-striped servicesInfo.isInProgress:active servicesInfo.barColor :progress"}}>
                     <div class="bar" {{bindAttr style="servicesInfo.barWidth"}}></div>
                   </div>
                 </div>

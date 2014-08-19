@@ -27,7 +27,7 @@ App.HostPopup = Em.Object.create({
 
   name: 'hostPopup',
 
-  servicesInfo: null,
+  servicesInfo: [],
   hosts: null,
   inputData: null,
 
@@ -174,7 +174,7 @@ App.HostPopup = Em.Object.create({
    * clear info popup data
    */
   clearHostPopup: function () {
-    this.set('servicesInfo', null);
+    this.set('servicesInfo', []);
     this.set('hosts', null);
     this.set('inputData', null);
     this.set('serviceName', "");
@@ -321,6 +321,15 @@ App.HostPopup = Em.Object.create({
     }
   },
 
+  // map to get css class with styles by service status
+  statusesStyleMap: {
+    'FAILED': ['FAILED', 'icon-exclamation-sign', 'progress-danger', false],
+    'ABORTED': ['ABORTED', 'icon-minus', 'progress-warning', false],
+    'TIMEDOUT': ['TIMEDOUT', 'icon-time', 'progress-warning', false],
+    'IN_PROGRESS': ['IN_PROGRESS', 'icon-cogs', 'progress-info', true],
+    'COMPLETED': ['SUCCESS', 'icon-ok', 'progress-success', false]
+  },
+
   /**
    * Create services obj data structure for popup
    * Set data for services
@@ -328,53 +337,102 @@ App.HostPopup = Em.Object.create({
    */
   onServiceUpdate: function (isServiceListHidden) {
     if (this.get('isBackgroundOperations') && this.get("inputData")) {
-      var self = this;
-      var allNewServices = [];
-      var statuses = {
-        'FAILED': ['FAILED', 'icon-exclamation-sign', 'progress-danger', false],
-        'ABORTED': ['ABORTED', 'icon-minus', 'progress-warning', false],
-        'TIMEDOUT': ['TIMEDOUT', 'icon-time', 'progress-warning', false],
-        'IN_PROGRESS': ['IN_PROGRESS', 'icon-cogs', 'progress-info', true],
-        'COMPLETED': ['SUCCESS', 'icon-ok', 'progress-success', false]
-      };
-      var pendingStatus = ['PENDING', 'icon-cog', 'progress-info', true];
-      this.set("servicesInfo", null);
-      this.get("inputData").forEach(function (service) {
-        var status = statuses[service.status] || pendingStatus;
+      var statuses = this.get('statusesStyleMap');
+      var servicesInfo = this.get("servicesInfo");
+      var currentServices = [];
+      this.get("inputData").forEach(function (service, index) {
+        var updatedService;
         var id = service.id;
-        var newService = Ember.Object.create({
-          id: id,
-          displayName: service.displayName,
-          progress: service.progress,
-          status: App.format.taskStatus(status[0]),
-          isRunning: service.isRunning,
-          name: service.name,
-          isVisible: true,
-          startTime: date.startTime(service.startTime),
-          duration: date.durationSummary(service.startTime, service.endTime),
-          icon: status[1],
-          barColor: status[2],
-          isInProgress: status[3],
-          barWidth: "width:" + service.progress + "%;",
-          sourceRequestScheduleId: service.get('sourceRequestScheduleId'),
-          contextCommand: service.get('contextCommand')
-        });
+        currentServices.push(id);
+        var existedService = servicesInfo.findProperty('id', id);
+        updatedService = existedService;
+        if (existedService) {
+          updatedService = this.updateService(existedService, service);
+        } else {
+          updatedService = this.createService(service);
+          servicesInfo.insertAt(index, updatedService);
+        }
         if (App.get('supports.abortRequests')) {
           var abortable = !Em.keys(statuses).contains(service.status) || service.status == 'IN_PROGRESS';
           if (!abortable) {
             var abortedRequests = this.get('abortedRequests');
             this.set('abortedRequests', abortedRequests.without(id));
           }
-          newService.setProperties({
+          updatedService.setProperties({
             abortable: abortable,
             abortClassName: 'abort' + id
           });
         }
-        allNewServices.push(newService);
       }, this);
-      self.set('servicesInfo', allNewServices);
+      this.removeOldServices(servicesInfo, currentServices);
       this.setBackgroundOperationHeader(isServiceListHidden);
     }
+  },
+
+  /**
+   * Create service object from transmitted data
+   * @param service
+   */
+  createService: function (service) {
+    var statuses = this.get('statusesStyleMap');
+    var pendingStatus = ['PENDING', 'icon-cog', 'progress-info', true];
+    var status = statuses[service.status] || pendingStatus;
+    return Ember.Object.create({
+      id: service.id,
+      displayName: service.displayName,
+      progress: service.progress,
+      status: App.format.taskStatus(status[0]),
+      isRunning: service.isRunning,
+      name: service.name,
+      isVisible: true,
+      startTime: date.startTime(service.startTime),
+      duration: date.durationSummary(service.startTime, service.endTime),
+      icon: status[1],
+      barColor: status[2],
+      isInProgress: status[3],
+      barWidth: "width:" + service.progress + "%;",
+      sourceRequestScheduleId: service.get('sourceRequestScheduleId'),
+      contextCommand: service.get('contextCommand')
+    });
+  },
+
+  /**
+   * Update properties of existed service with new data
+   * @param service
+   * @param newData
+   * @returns {Ember.Object}
+   */
+  updateService: function (service, newData) {
+    var statuses = this.get('statusesStyleMap');
+    var pendingStatus = ['PENDING', 'icon-cog', 'progress-info', true];
+    var status = statuses[newData.status] || pendingStatus;
+    return service.setProperties({
+      progress: newData.progress,
+      status: App.format.taskStatus(status[0]),
+      isRunning: newData.isRunning,
+      startTime: date.startTime(newData.startTime),
+      duration: date.durationSummary(newData.startTime, newData.endTime),
+      icon: status[1],
+      barColor: status[2],
+      isInProgress: status[3],
+      barWidth: "width:" + newData.progress + "%;",
+      sourceRequestScheduleId: newData.get('sourceRequestScheduleId'),
+      contextCommand: newData.get('contextCommand')
+    });
+  },
+
+  /**
+   * remove old requests
+   * as API returns 10, or  20 , or 30 ...etc latest request, the requests that absent in response should be removed
+   * @param services
+   * @param currentServicesIds
+   */
+  removeOldServices: function (services, currentServicesIds) {
+    services.forEach(function (service, index, services) {
+      if (!currentServicesIds.contains(service.id)) {
+        services.removeAt(index, 1);
+      }
+    });
   },
 
   /**
@@ -546,7 +604,7 @@ App.HostPopup = Em.Object.create({
       }
     }
     if (App.get('supports.abortRequests')) {
-      var operation = this.get('servicesInfo') && this.get('servicesInfo').findProperty('name', this.get('serviceName'));
+      var operation = this.get('servicesInfo').findProperty('name', this.get('serviceName'));
       if (!operation || (operation && operation.get('progress') == 100)) {
         this.set('operationInfo', null);
       } else {
@@ -561,7 +619,6 @@ App.HostPopup = Em.Object.create({
    */
   createPopup: function () {
     var self = this;
-    var hostsInfo = this.get("hosts");
     var servicesInfo = this.get("servicesInfo");
     var isBackgroundOperations = this.get('isBackgroundOperations');
     var categoryObject = Em.Object.extend({

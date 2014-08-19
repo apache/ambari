@@ -230,7 +230,7 @@ App.BackgroundOperationsController = Em.Controller.extend({
         });
         this.get("services").unshift(rq);
         //To sort DESC by request id
-        this.set("services", this.get("services").sort( function(a,b) { return b.get('id') - a.get('id'); })) ;
+        this.set("services", this.get("services").sort( function(a,b) { return b.get('id') - a.get('id'); }));
       }
       runningServices += ~~isRunning;
     }, this);
