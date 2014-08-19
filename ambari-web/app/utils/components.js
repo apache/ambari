@@ -109,7 +109,7 @@ module.exports = {
           } else {
             errorMessage += Em.I18n.t('services.service.actions.downloadClientConfigs.fail.popup.body.noErrorMessage').format(data.displayName);
           }
-          errorMessage += Em.I18n.t('services.service.actions.downloadClientConfigs.fail.popup.body.question');
+          errorMessage += isNoConfigs ? '' : Em.I18n.t('services.service.actions.downloadClientConfigs.fail.popup.body.question');
         } else {
           errorMessage += Em.I18n.t('services.service.actions.downloadClientConfigs.fail.popup.body.noErrorMessage').format(data.displayName) +
             Em.I18n.t('services.service.actions.downloadClientConfigs.fail.popup.body.question');
