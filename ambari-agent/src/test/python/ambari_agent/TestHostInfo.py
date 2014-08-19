@@ -32,11 +32,10 @@ with patch("platform.linux_distribution", return_value = ('redhat','11','Final')
   from ambari_agent.HostCheckReportFileHandler import HostCheckReportFileHandler
   from ambari_agent.PackagesAnalyzer import PackagesAnalyzer
   from ambari_agent.HostInfo import HostInfo
-  from ambari_agent.HostInfo import FirewallChecks
   from ambari_agent.Hardware import Hardware
   from ambari_agent.AmbariConfig import AmbariConfig
   from resource_management.core.system import System
-  from ambari_commons import OSCheck
+  from ambari_commons import OSCheck, Firewall, FirewallChecks ,OSConst
 
 @patch.object(System, "os_family", new = 'redhat')
 class TestHostInfo(TestCase):
@@ -269,6 +268,7 @@ class TestHostInfo(TestCase):
     hostInfo = HostInfo()
     dict = {}
     hostInfo.register(dict, False, False)
+    self.assertTrue(cit_mock.called)
     self.assertTrue(gir_mock.called)
     self.assertTrue(gpd_mock.called)
     self.assertTrue(aip_mock.called)
@@ -321,6 +321,7 @@ class TestHostInfo(TestCase):
     self.verifyReturnedValues(dict)
     self.assertTrue(os_umask_mock.call_count == 2)
 
+    cit_mock.reset_mock()
     hostInfo = HostInfo()
     dict = {}
     hostInfo.register(dict, False, False)
@@ -328,6 +329,7 @@ class TestHostInfo(TestCase):
     self.assertTrue(gpd_mock.called)
     self.assertTrue(aip_mock.called)
     self.assertTrue(cit_mock.called)
+    self.assertEqual(1, cit_mock.call_count)
 
     for existingPkg in ["pkg1", "pkg2"]:
       self.assertTrue(existingPkg in dict['installedPackages'])
@@ -515,13 +517,16 @@ class TestHostInfo(TestCase):
     self.assertEquals(result[0]['name'], 'config1')
     self.assertEquals(result[0]['target'], 'real_path_to_conf')
 
+  @patch.object(OSCheck, "get_os_family")
+  @patch.object(OSCheck, "get_os_type")
+  @patch.object(OSCheck, "get_os_major_version")
   @patch.object(FirewallChecks, "run_os_command")
-  def test_IpTablesRunning(self, run_os_command_mock):
-    hostInfo = HostInfo()
-    for firewallType in hostInfo.getFirewallObjectTypes():
-      firewall = firewallType()
-      run_os_command_mock.return_value = firewall.get_running_result()
-      self.assertTrue(firewall.check_iptables())
+  def test_IpTablesRunning(self, run_os_command_mock, get_os_major_version_mock, get_os_type_mock, get_os_family_mock):
+    get_os_type_mock.return_value = ""
+    get_os_family_mock.return_value = OSConst.REDHAT_FAMILY
+    run_os_command_mock.return_value = 0, "Table: filter", ""
+    self.assertTrue(Firewall().getFirewallObject().check_iptables())
+
 
   @patch.object(HostInfo, "osdiskAvailableSpace")
   def test_createAlerts(self, osdiskAvailableSpace_mock):
@@ -537,30 +542,6 @@ class TestHostInfo(TestCase):
     result = hostInfo.createAlerts([])
     self.assertEquals(1, len(result))
 
-
-
-  @patch("subprocess.Popen")
-  def test_run_os_command_exception(self, popen_mock):
-    def base_test():
-       return "base test"
-
-    def sub_test():
-      return "output 1", "error 1"
-
-    base_test.communicate = sub_test
-    base_test.returncode = 0
-
-    hostInfo = HostInfo()
-    for firewallType in hostInfo.getFirewallObjectTypes():
-      firewall = firewallType()
-
-      popen_mock.side_effect = None
-      popen_mock.return_value = base_test
-      self.assertTrue(firewall.check_iptables())
-
-      popen_mock.side_effect = OSError('File not found')
-      popen_mock.return_value = None
-      self.assertFalse(firewall.check_iptables())
 
   @patch.object(socket, "getfqdn")
   @patch.object(socket, "gethostbyname")
@@ -586,13 +567,16 @@ class TestHostInfo(TestCase):
 
     self.assertFalse(hostInfo.checkReverseLookup())
 
+
+  @patch.object(OSCheck, "get_os_family")
+  @patch.object(OSCheck, "get_os_type")
+  @patch.object(OSCheck, "get_os_major_version")
   @patch.object(FirewallChecks, "run_os_command")
-  def test_IpTablesStopped(self, run_os_command_mock):
-    hostInfo = HostInfo()
-    for firewallType in hostInfo.getFirewallObjectTypes():
-      firewall = firewallType()
-      run_os_command_mock.return_value = firewall.get_stopped_result()
-      self.assertFalse(firewall.check_iptables())
+  def test_IpTablesStopped(self, run_os_command_mock, get_os_major_version_mock, get_os_type_mock, get_os_family_mock):
+    get_os_type_mock.return_value = ""
+    get_os_family_mock.return_value = OSConst.REDHAT_FAMILY
+    run_os_command_mock.return_value = 3, "", ""
+    self.assertFalse(Firewall().getFirewallObject().check_iptables())
 
   @patch("os.path.isfile")
   @patch('__builtin__.open')

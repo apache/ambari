@@ -19,8 +19,11 @@ limitations under the License.
 '''
 
 from ambari_commons.os_check import OSCheck, OSConst
+from ambari_commons.firewall import Firewall, FirewallChecks
 
 __all__ = [
   'OSCheck',
   'OSConst',
+  'Firewall',
+  'FirewallChecks'
 ]

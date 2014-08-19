@@ -28,8 +28,7 @@ with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
   from ambari_agent.Register import Register
   from ambari_agent.AmbariConfig import AmbariConfig
   from ambari_agent.HostInfo import HostInfo
-  from ambari_agent.HostInfo import FirewallChecks
-  from ambari_commons import OSCheck
+  from ambari_commons import OSCheck, Firewall, FirewallChecks
 
 class TestRegistration(TestCase):
   @patch.object(FirewallChecks, "run_os_command")

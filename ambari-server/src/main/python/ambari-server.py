@@ -41,7 +41,7 @@ import random
 import pwd
 from ambari_server.resourceFilesKeeper import ResourceFilesKeeper, KeeperException
 import json
-from ambari_commons import OSCheck, OSConst
+from ambari_commons import OSCheck, OSConst, Firewall
 from ambari_server import utils
 
 # debug settings
@@ -426,100 +426,6 @@ ASF_LICENSE_HEADER = '''
 # See the License for the specific language governing permissions and
 # limitations under the License.
 '''
-
-
-class FirewallChecks(object):
-  def __init__(self):
-
-    self.FIREWALL_SERVICE_NAME = "iptables"
-    self.SERVICE_CMD = SERVICE_CMD
-    self.SERVICE_SUBCMD = "status"
-
-  def get_command(self):
-    return "%s %s %s" % (self.SERVICE_CMD, self.FIREWALL_SERVICE_NAME, self.SERVICE_SUBCMD)
-
-  def check_result(self, retcode, out, err):
-      return retcode == 0
-
-  def check_iptables(self):
-    retcode, out, err = run_os_command(self.get_command())
-    if err and len(err) > 0:
-      print err
-    if self.check_result(retcode, out, err):
-      print_warning_msg("%s is running. Confirm the necessary Ambari ports are accessible. " %
-                        self.FIREWALL_SERVICE_NAME +
-                        "Refer to the Ambari documentation for more details on ports.")
-      ok = get_YN_input("OK to continue [y/n] (y)? ", True)
-      if not ok:
-        raise FatalException(1, None)
-
-  def get_running_result(self):
-    # To support test code.  Expected ouput from run_os_command.
-    return (0, "", "")
-
-  def get_stopped_result(self):
-    # To support test code.  Expected output from run_os_command.
-    return (3, "", "")
-
-
-class UbuntuFirewallChecks(FirewallChecks):
-  def __init__(self):
-    super(UbuntuFirewallChecks, self).__init__()
-
-    self.FIREWALL_SERVICE_NAME = "ufw"
-    self.SERVICE_CMD = utils.locate_file('service', '/usr/sbin')
-
-  def check_result(self, retcode, out, err):
-    # On ubuntu, the status command returns 0 whether running or not
-    return out and len(out) > 0 and out.strip() != "ufw stop/waiting"
-
-  def get_running_result(self):
-    # To support test code.  Expected ouput from run_os_command.
-    return (0, "ufw start/running", "")
-
-  def get_stopped_result(self):
-    # To support test code.  Expected output from run_os_command.
-    return (0, "ufw stop/waiting", "")
-
-
-class Fedora18FirewallChecks(FirewallChecks):
-  def __init__(self):
-    self.FIREWALL_SERVICE_NAME = "firewalld.service"
-
-  def get_command(self):
-    return "systemctl is-active firewalld.service"
-
-
-class OpenSuseFirewallChecks(FirewallChecks):
-  def __init__(self):
-    self.FIREWALL_SERVICE_NAME = "SuSEfirewall2"
-
-  def get_command(self):
-    return "/sbin/SuSEfirewall2 status"
-
-
-def get_firewall_object():
-  if OS_TYPE == OSConst.OS_UBUNTU:
-    return UbuntuFirewallChecks()
-  elif OS_TYPE == OSConst.OS_FEDORA and int(OS_VERSION) >= 18:
-    return Fedora18FirewallChecks()
-  elif OS_TYPE == OSConst.OS_OPENSUSE:
-    return OpenSuseFirewallChecks()
-  else:
-    return FirewallChecks()
-
-
-def get_firewall_object_types():
-  # To support test code, so tests can loop through the types
-  return (FirewallChecks,
-          UbuntuFirewallChecks,
-          Fedora18FirewallChecks,
-          OpenSuseFirewallChecks)
-
-
-def check_iptables():
-  return get_firewall_object().check_iptables()
-
 
 def get_conf_dir():
   try:
@@ -2230,8 +2136,21 @@ def setup(args):
     err = 'Failed to create user. Exiting.'
     raise FatalException(retcode, err)
 
-  print 'Checking iptables...'
-  check_iptables()
+  print 'Checking firewall...'
+  firewall_obj = Firewall().getFirewallObject()
+  firewall_on = firewall_obj.check_iptables()
+  if firewall_obj.stderrdata and len(firewall_obj.stderrdata) > 0:
+    print firewall_obj.stderrdata
+  if firewall_on:
+    print_warning_msg("%s is running. Confirm the necessary Ambari ports are accessible. " %
+                      firewall_obj.FIREWALL_SERVICE_NAME +
+                      "Refer to the Ambari documentation for more details on ports.")
+    ok = get_YN_input("OK to continue [y/n] (y)? ", True)
+    if not ok:
+      raise FatalException(1, None)
+
+
+
 
   # proceed jdbc properties if they were set
   if args.jdbc_driver is not None and args.jdbc_db is not None:
