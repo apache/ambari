@@ -38,6 +38,17 @@ angular.module('ambariAdminConsole')
     });
   }
 
+
+  // Get META for properties
+  View.getMeta($routeParams.viewId, $routeParams.version).then(function(data) {
+    var meta = {};
+    angular.forEach(data.data.ViewVersionInfo.parameters, function(parameter) {
+      meta[parameter.name] = parameter;
+    });
+    $scope.configurationMeta = meta;
+    reloadViewInfo();
+  });
+
   function reloadViewPrivilegies(){
     PermissionLoader.getViewPermissions({
       viewName: $routeParams.viewId,
@@ -57,7 +68,7 @@ angular.module('ambariAdminConsole')
 
   $scope.permissions = [];
   
-  reloadViewInfo();
+  // reloadViewInfo();
   reloadViewPrivilegies();
 
   $scope.editSettingsDisabled = true;
@@ -71,6 +82,7 @@ angular.module('ambariAdminConsole')
       }
     })
     .success(function() {
+      reloadViewInfo();
       $scope.editSettingsDisabled = true;
     })
     .catch(function(data) {

@@ -98,6 +98,10 @@
   border-radius: 0;
 }
 
+.views-list-table .panel-group .panel:nth-child(even) .panel-heading{
+  background: #f9f9f9;
+}
+
 .users-pane table .glyphicon{
   width: 14px;
 }
@@ -238,7 +242,12 @@
   top: 5px;
   z-index: 100;
 }
-
+.groups-pane table thead th{
+  border-top: 0;
+}
+.groups-pane table thead tr:first-child th{
+  border: 0;
+}
 
 .container{
   padding-left: 0;
@@ -678,4 +687,20 @@ button.btn.btn-mini,
 input[type="submit"].btn.btn-mini {
   *padding-top: 1px;
   *padding-bottom: 1px;
+}
+
+.alert-info {
+  background-color: #E6F1F6;
+  border-color: #D2D9DD;
+  color: #4E575B;
+  text-shadow: none;
+}
+.alert-info .link {
+  padding: 0 15px;
+}
+.alert-info .link-left-pad {
+  padding-left: 15px;
+}
+.breadcrumb > .active {
+  color: #666;
 }

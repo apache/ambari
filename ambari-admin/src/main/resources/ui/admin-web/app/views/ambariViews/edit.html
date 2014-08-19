@@ -130,9 +130,9 @@
   <div class="panel-body">
     <form action="" class="form-horizontal" ng-hide="isConfigurationEmpty">
       <fieldset ng-disabled="editConfigurationDisabled">
-        <div class="form-group" ng-repeat="(propertyName, propertyValue) in configuration">
-          <label for="" class="control-label col-sm-3">{{propertyName}}</label>
-          <div class="col-sm-9"><input type="text" class="form-control propertie-input" ng-model="configuration[propertyName]"></div>
+        <div class="form-group" ng-repeat="(propertyName, propertyValue) in configurationMeta">
+          <label for="" class="control-label col-sm-3" ng-class="{'not-required': !propertyValue.required}" tooltip="{{propertyValue.description}}">{{propertyName}}{{propertyValue.required ? '*' : ''}}</label>
+          <div class="col-sm-9"><input type="{{propertyValue.masked ? 'password' : 'text'}}" class="form-control propertie-input" ng-model="configuration[propertyName]"></div>
         </div>
         <div class="form-group" ng-hide="editConfigurationDisabled">
           <div class="col-sm-offset-2 col-sm-10">
@@ -143,7 +143,7 @@
       </fieldset>
     </form>
     <div ng-show="isConfigurationEmpty">
-      <div class="alert alert-info">There are no configuration defined for this view.</div>
+      <div class="alert alert-info">There are no properties defined for this view.</div>
     </div>
   </div>
 </div>

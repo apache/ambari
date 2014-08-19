@@ -22,7 +22,11 @@
     <li class="active">{{group.group_name}}</li>
   </ol>
   <div class="pull-right top-margin-4">
-    <button class="btn btn-danger deletegroup-btn" ng-click="deleteGroup(group)">Delete Group</button>
+    <div ng-switch="group.ldap_group">
+      <button ng-switch-when="true" class="btn disabled deletegroup-btn deleteuser-btn" tooltip="Cannot Delete Group">Delete Group</button>
+      <button ng-switch-when="false" class="btn btn-danger deletegroup-btn" ng-click="deleteGroup(group)">Delete Group</button>
+    </div>
+      
   </div>
 </div>
 <hr>

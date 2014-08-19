@@ -18,7 +18,7 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('UsersListCtrl',['$scope', 'User', '$modal', function($scope, User, $modal) {
+.controller('UsersListCtrl',['$scope', 'User', '$modal', '$rootScope', function($scope, User, $modal, $rootScope) {
   $scope.users = [];
   $scope.usersPerPage = 10;
   $scope.currentPage = 1;
@@ -67,4 +67,13 @@ angular.module('ambariAdminConsole')
   $scope.currentTypeFilter = $scope.typeFilterOptions[0];
 
   $scope.loadUsers();
+
+  $rootScope.$watch(function(scope) {
+    return scope.LDAPSynced;
+  }, function(LDAPSynced) {
+    if(LDAPSynced === true){
+      $rootScope.LDAPSynced = false;
+      $scope.loadUsers();
+    }
+  });
 }]);

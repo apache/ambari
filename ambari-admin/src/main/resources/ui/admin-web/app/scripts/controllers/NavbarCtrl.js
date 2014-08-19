@@ -18,7 +18,7 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('NavbarCtrl',['$scope', 'Cluster', '$location', 'uiAlert', 'ROUTES', 'LDAP', 'ConfirmationModal', function($scope, Cluster, $location, uiAlert, ROUTES, LDAP, ConfirmationModal) {
+.controller('NavbarCtrl',['$scope', 'Cluster', '$location', 'uiAlert', 'ROUTES', 'LDAP', 'ConfirmationModal', '$rootScope', function($scope, Cluster, $location, uiAlert, ROUTES, LDAP, ConfirmationModal, $rootScope) {
   $scope.cluster = null;
   Cluster.getStatus().then(function(cluster) {
     $scope.cluster = cluster;
@@ -46,6 +46,9 @@ angular.module('ambariAdminConsole')
     ConfirmationModal.show('Sync LDAP', 'Are you sure you want to sync LDAP?').then(function() {
       LDAP.sync($scope.ldapData['LDAP'].groups, $scope.ldapData['LDAP'].users).then(function() {
         uiAlert.success('LDAP synced successful');
+        $rootScope.$evalAsync(function() {
+          $rootScope.LDAPSynced = true;
+        });
       }).catch(function(data) {
         uiAlert.danger(data.data.status, data.data.message);
       });

@@ -20,13 +20,13 @@
   <li class="active">Create Local User</li>
 </ol>
 <hr>
-<form class="form-horizontal create-user-form" role="form" novalidate name="form">
+<form class="form-horizontal create-user-form" role="form" novalidate name="form" autocomplete="off">
   <div class="form-group" ng-class="{'has-error' : form.user_name.$error.required && form.submitted}">
     <label for="username" class="col-sm-2 control-label">Username</label>
     <div class="col-sm-10">
       <input type="text" id="username" class="form-control username-input" name="user_name" placeholder="User name" ng-model="user.user_name" required autocomplete="off">
       <div class="alert alert-danger top-margin" ng-show="form.user_name.$error.required && form.submitted">
-        Required
+        This field is required.
       </div>
     </div>
   </div>

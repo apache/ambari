@@ -22,9 +22,17 @@
 <hr>
 <form class="form-horizontal create-view-form" role="form" name="form.isntanceCreateForm" novalidate>
   <div class="view-header">
-    <div class="description">
-      <h4>View: <span>{{view.ViewVersionInfo.view_name}}</span></h4>
-      <h4>Version: <select ng-model="version" class="instanceversion-input" ng-change="versionChanged()" ng-options="o as o for o in versions"></select></h4>
+    <div class="form-group">
+      <div class="col-sm-2">
+        <label for="" class="control-label">View</label>
+      </div>
+      <div class="col-sm-10"><label for="" class="control-label">{{view.ViewVersionInfo.view_name}}</label></div>
+    </div>
+    <div class="form-group">
+      <div class="col-sm-2"><label for="" class="control-label">Version</label></div>
+      <div class="col-sm-2">
+        <select ng-model="version" class="instanceversion-input form-control" ng-change="versionChanged()" ng-options="o as o for o in versions"></select>
+      </div>
     </div>
   </div>
   
@@ -53,7 +61,7 @@
       </div>
       <div class="form-group"
       ng-class="{'has-error' : ( (form.isntanceCreateForm.displayLabel.$error.required || form.isntanceCreateForm.displayLabel.$error.pattern) && form.isntanceCreateForm.submitted)}">
-        <label for="" class="control-labe col-sm-2">Display Label</label>
+        <label for="" class="control-label col-sm-2">Display Label</label>
         <div class="col-sm-10">
           <input type="text" class="form-control instancelabel-input" name="displayLabel" ng-model="instance.label" required ng-pattern="nameValidationPattern" autocomplete="off">
 
@@ -83,11 +91,11 @@
     <div class="panel-body">
       <div class="form-group" ng-repeat="parameter in instance.properties"
         ng-class="{'has-error' : (form.isntanceCreateForm[parameter.name].$error.required && form.isntanceCreateForm.submitted)}" >
-        <label for="" class="col-sm-3 control-label" ng-class="{'not-required': !parameter.required}">{{parameter.description}}{{parameter.required ? '*' : ''}}</label>
+        <label for="" class="col-sm-3 control-label" ng-class="{'not-required': !parameter.required}" tooltip="{{parameter.description}}">{{parameter.name}}{{parameter.required ? '*' : ''}}</label>
         <div class="col-sm-9">
-          <input type="text" class="form-control viewproperty-input"  name="{{parameter.name}}" ng-required="parameter.required" ng-model="parameter.value" autocomplete="off">
+          <input type="{{parameter.masked ? 'password' : 'text'}}" class="form-control viewproperty-input"  name="{{parameter.name}}" ng-required="parameter.required" ng-model="parameter.value" autocomplete="off">
           <div class="alert alert-danger no-margin-bottom top-margin" ng-show='form.isntanceCreateForm[parameter.name].$error.required && form.isntanceCreateForm.submitted'>
-            Field requried!
+            This field is required.
           </div>
         </div>
       </div>

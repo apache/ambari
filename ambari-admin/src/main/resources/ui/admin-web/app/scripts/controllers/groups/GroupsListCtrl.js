@@ -18,7 +18,7 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('GroupsListCtrl',['$scope', 'Group', '$modal', 'ConfirmationModal', function($scope, Group, $modal, ConfirmationModal) {
+.controller('GroupsListCtrl',['$scope', 'Group', '$modal', 'ConfirmationModal', '$rootScope', function($scope, Group, $modal, ConfirmationModal, $rootScope) {
   $scope.groups = [];
 
   $scope.groupsPerPage = 10;
@@ -62,4 +62,14 @@ angular.module('ambariAdminConsole')
   $scope.currentTypeFilter = $scope.typeFilterOptions[0];
   
   loadGroups();
+
+  $rootScope.$watch(function(scope) {
+    return scope.LDAPSynced;
+  }, function(LDAPSynced) {
+    if(LDAPSynced === true){
+      $rootScope.LDAPSynced = false;
+      loadGroups();
+    }
+  });
+
 }]);
