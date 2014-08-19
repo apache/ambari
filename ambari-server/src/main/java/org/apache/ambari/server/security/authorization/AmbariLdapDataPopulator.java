@@ -65,7 +65,7 @@ public class AmbariLdapDataPopulator {
   /**
    * LDAP specific properties.
    */
-  private LdapServerProperties ldapServerProperties;
+  protected LdapServerProperties ldapServerProperties;
 
   /**
    * LDAP template for making search queries.
@@ -86,14 +86,7 @@ public class AmbariLdapDataPopulator {
   public boolean isLdapEnabled() {
     try {
       final LdapTemplate ldapTemplate = loadLdapTemplate();
-      ldapTemplate.search(ldapServerProperties.getBaseDN(),
-          "(objectclass=person)", new AttributesMapper() {
-
-            public Object mapFromAttributes(Attributes attributes)
-                throws NamingException {
-              return "";
-            }
-          });
+      ldapTemplate.list(ldapServerProperties.getBaseDN());
       return true;
     } catch (Exception ex) {
       LOG.error("Could not connect to LDAP server", ex);
@@ -217,7 +210,7 @@ public class AmbariLdapDataPopulator {
    * @param groupName group name
    * @throws AmbariException if group refresh failed
    */
-  private void refreshGroupMembers(String groupName) throws AmbariException {
+  protected void refreshGroupMembers(String groupName) throws AmbariException {
     final Set<String> externalMembers = getExternalLdapGroupMembers(groupName);
     final Map<String, User> internalUsers = getInternalUsers();
     final Map<String, User> internalMembers = getInternalMembers(groupName);
@@ -233,8 +226,9 @@ public class AmbariLdapDataPopulator {
         internalMembers.remove(externalMember);
         internalUsers.remove(externalMember);
       } else {
-        users.createUser(externalMember, "", true, false);
+        users.createUser(externalMember, "");
         users.setUserLdap(externalMember);
+        users.addMemberToGroup(groupName, externalMember);
       }
     }
     for (Entry<String, User> userToBeUnsynced: internalMembers.entrySet()) {
@@ -248,7 +242,7 @@ public class AmbariLdapDataPopulator {
    *
    * @throws AmbariException
    */
-  private void cleanUpLdapUsersWithoutGroup() throws AmbariException {
+  protected void cleanUpLdapUsersWithoutGroup() throws AmbariException {
     final List<User> allUsers = users.getAllUsers();
     for (User user: allUsers) {
       if (user.isLdapUser() && user.getGroups().isEmpty()) {
@@ -264,7 +258,7 @@ public class AmbariLdapDataPopulator {
    *
    * @return set of user names
    */
-  private Set<String> getExternalLdapGroupNames() {
+  protected Set<String> getExternalLdapGroupNames() {
     final Set<String> groups = new HashSet<String>();
     final LdapTemplate ldapTemplate = loadLdapTemplate();
     final EqualsFilter equalsFilter = new EqualsFilter("objectClass",
@@ -287,7 +281,7 @@ public class AmbariLdapDataPopulator {
    *
    * @return set of user names
    */
-  private Set<String> getExternalLdapUserNames() {
+  protected Set<String> getExternalLdapUserNames() {
     final Set<String> users = new HashSet<String>();
     final LdapTemplate ldapTemplate = loadLdapTemplate();
     final EqualsFilter equalsFilter = new EqualsFilter("objectClass",
@@ -311,7 +305,7 @@ public class AmbariLdapDataPopulator {
    * @param groupName group name
    * @return set of group names
    */
-  private Set<String> getExternalLdapGroupMembers(String groupName) {
+  protected Set<String> getExternalLdapGroupMembers(String groupName) {
     final Set<String> members = new HashSet<String>();
     final LdapTemplate ldapTemplate = loadLdapTemplate();
     final AndFilter andFilter = new AndFilter();
@@ -337,7 +331,7 @@ public class AmbariLdapDataPopulator {
    *
    * @return map of GroupName-Group pairs
    */
-  private Map<String, Group> getInternalGroups() {
+  protected Map<String, Group> getInternalGroups() {
     final List<Group> internalGroups = users.getAllGroups();
     final Map<String, Group> internalGroupsMap = new HashMap<String, Group>();
     for (Group group : internalGroups) {
@@ -351,7 +345,7 @@ public class AmbariLdapDataPopulator {
    *
    * @return map of UserName-User pairs
    */
-  private Map<String, User> getInternalUsers() {
+  protected Map<String, User> getInternalUsers() {
     final List<User> internalUsers = users.getAllUsers();
     final Map<String, User> internalUsersMap = new HashMap<String, User>();
     for (User user : internalUsers) {
@@ -366,7 +360,7 @@ public class AmbariLdapDataPopulator {
    * @param groupName group name
    * @return map of UserName-User pairs
    */
-  private Map<String, User> getInternalMembers(String groupName) {
+  protected Map<String, User> getInternalMembers(String groupName) {
     final Collection<User> internalMembers = users.getGroupMembers(groupName);
     final Map<String, User> internalMembersMap = new HashMap<String, User>();
     for (User user : internalMembers) {
@@ -380,7 +374,7 @@ public class AmbariLdapDataPopulator {
    *
    * @return LdapTemplate instance
    */
-  private LdapTemplate loadLdapTemplate() {
+  protected LdapTemplate loadLdapTemplate() {
     final LdapServerProperties properties = configuration
         .getLdapServerProperties();
     if (ldapTemplate == null || !properties.equals(ldapServerProperties)) {

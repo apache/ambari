@@ -342,6 +342,9 @@ public abstract class PrivilegeResourceProvider<T> extends AbstractResourceProvi
       }
     } else if (PrincipalTypeEntity.USER_PRINCIPAL_TYPE_NAME.equalsIgnoreCase(principalType)) {
       UserEntity userEntity = userDAO.findLocalUserByName(principalName);
+      if (userEntity == null) {
+        userEntity = userDAO.findLdapUserByName(principalName);
+      }
       if (userEntity != null) {
         entity.setPrincipal(principalDAO.findById(userEntity.getPrincipal().getId()));
       }
