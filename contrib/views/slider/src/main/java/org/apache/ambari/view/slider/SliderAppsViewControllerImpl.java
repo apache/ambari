@@ -154,9 +154,9 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
       }
       // Check security
       if (cluster.getDesiredConfigs() != null
-          && cluster.getDesiredConfigs().containsKey("global")) {
+          && cluster.getDesiredConfigs().containsKey("hadoop-env")) {
         Map<String, String> globalConfig = ambariClient.getConfiguration(
-            clusterInfo, "global", cluster.getDesiredConfigs().get("global"));
+            clusterInfo, "hadoop-env", cluster.getDesiredConfigs().get("hadoop-env"));
         if (globalConfig != null
             && globalConfig.containsKey("security_enabled")) {
           String securityValue = globalConfig.get("security_enabled");
@@ -458,19 +458,19 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
       AmbariService zkService = ambariClient.getService(ambariCluster,
                                                         "ZOOKEEPER");
       if (zkService != null && ambariCluster.getDesiredConfigs() != null
-          && ambariCluster.getDesiredConfigs().containsKey("global")
+          && ambariCluster.getDesiredConfigs().containsKey("zookeeper-env")
           && ambariCluster.getDesiredConfigs().containsKey("yarn-site")
           && ambariCluster.getDesiredConfigs().containsKey("core-site")) {
-        Map<String, String> globalConfigs = ambariClient.getConfiguration(
-            ambariCluster, "global",
-            ambariCluster.getDesiredConfigs().get("global"));
+        Map<String, String> zkConfigs = ambariClient.getConfiguration(
+            ambariCluster, "zookeeper-env",
+            ambariCluster.getDesiredConfigs().get("zookeeper-env"));
         Map<String, String> yarnSiteConfigs = ambariClient.getConfiguration(
             ambariCluster, "yarn-site",
             ambariCluster.getDesiredConfigs().get("yarn-site"));
         Map<String, String> coreSiteConfigs = ambariClient.getConfiguration(
             ambariCluster, "core-site",
             ambariCluster.getDesiredConfigs().get("core-site"));
-        String zkPort = globalConfigs.get("clientPort");
+        String zkPort = zkConfigs.get("clientPort");
         String hdfsPath = coreSiteConfigs.get("fs.defaultFS");
         String rmAddress = yarnSiteConfigs.get("yarn.resourcemanager.address");
         String rmSchedulerAddress = yarnSiteConfigs
