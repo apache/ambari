@@ -18,6 +18,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
+# NOTE: This script is executed by Python 2.4 on Centos 5. 
+# Make sure your changes are compatible.
+
 import cgi
 import glob
 import os
@@ -109,7 +112,12 @@ def collectStatMetrics(clusterName, hostName, metricName, files, cf, start, end,
     if timestamp is None and stepsize is None and concreteMetricName is None:
       timestamp = rrdMetric[0][0]
       stepsize = rrdMetric[0][2]
-      suffix = metricStat if not isRate else '_rate.' + metricStat
+      
+      if not isRate:
+        suffix = metricStat
+      else:
+        suffix = '_rate.' + metricStat
+      
       concreteMetricName = file.split(os.sep).pop().replace('rrd', suffix)
 
     metricValues = rrdMetric[2]
