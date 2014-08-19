@@ -63,6 +63,7 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
   public static final String PROPERTIES_PROPERTY_ID    = "ViewInstanceInfo/properties";
   public static final String DATA_PROPERTY_ID          = "ViewInstanceInfo/instance_data";
   public static final String CONTEXT_PATH_PROPERTY_ID  = "ViewInstanceInfo/context_path";
+  public static final String STATIC_PROPERTY_ID        = "ViewInstanceInfo/static";
 
   /**
    * Property prefix values.
@@ -96,6 +97,7 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
     propertyIds.add(PROPERTIES_PROPERTY_ID);
     propertyIds.add(DATA_PROPERTY_ID);
     propertyIds.add(CONTEXT_PATH_PROPERTY_ID);
+    propertyIds.add(STATIC_PROPERTY_ID);
   }
 
   // ----- Constructors ------------------------------------------------------
@@ -214,6 +216,7 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
     setResourceProperty(resource, LABEL_PROPERTY_ID, viewInstanceEntity.getLabel(), requestedIds);
     setResourceProperty(resource, DESCRIPTION_PROPERTY_ID, viewInstanceEntity.getDescription(), requestedIds);
     setResourceProperty(resource, VISIBLE_PROPERTY_ID, viewInstanceEntity.isVisible(), requestedIds);
+    setResourceProperty(resource, STATIC_PROPERTY_ID, viewInstanceEntity.isXmlDriven(), requestedIds);
     Map<String, String> properties = new HashMap<String, String>();
 
     for (ViewInstancePropertyEntity viewInstancePropertyEntity : viewInstanceEntity.getProperties()) {
