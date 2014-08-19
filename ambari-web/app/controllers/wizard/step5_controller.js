@@ -141,6 +141,13 @@ App.WizardStep5Controller = Em.Controller.extend({
   generalWarningMessages: [],
 
   /**
+   * true if any warning exists
+   */
+  anyWarning: function() {
+    return this.get('servicesMasters').some(function(m) { return m.get('warnMessage'); }) || this.get('generalWarningMessages').some(function(m) { return m; });
+  }.property('servicesMasters.@each.warnMessage', 'generalWarningMessages'),
+
+  /**
    * List of host with assigned masters
    * Format:
    * <code>
@@ -274,8 +281,8 @@ App.WizardStep5Controller = Em.Controller.extend({
   updateValidationsSuccessCallback: function (data) {
     var self = this;
 
-    this.set('generalErrorMessages', []);
-    this.set('generalWarningMessages', []);
+    generalErrorMessages = [];
+    generalWarningMessages = [];
     this.get('servicesMasters').setEach('warnMessage', null);
     this.get('servicesMasters').setEach('errorMessage', null);
     var anyErrors = false;
@@ -296,12 +303,15 @@ App.WizardStep5Controller = Em.Controller.extend({
         var details = " (" + item['component-name'] + " on " + item.host + ")";
         if (item.level === 'ERROR') {
           anyErrors = true;
-          self.get('generalErrorMessages').push(item.message + details);
+          generalErrorMessages.push(item.message + details);
         } else if (item.level === 'WARN') {
-          self.get('generalWarningMessages').push(item.message + details);
+          generalWarningMessages.push(item.message + details);
         }
       }
     });
+
+    this.set('generalErrorMessages', generalErrorMessages);
+    this.set('generalWarningMessages', generalWarningMessages);
 
     this.set('submitDisabled', anyErrors);
   },
@@ -1030,19 +1040,35 @@ App.WizardStep5Controller = Em.Controller.extend({
   submit: function () {
     var self = this;
 
-    var goNextStepIfValid = function() {
-      if (!self.get('submitDisabled')) {
-        App.router.send('next');
-      }
-    };
+    var primary = function() {
+      var goNextStepIfValid = function() {
+        if (!self.get('submitDisabled')) {
+          App.router.send('next');
+        }
+      };
 
-    if (App.supports.serverRecommendValidate ) {
-      self.recommendAndValidate(function() {
+      if (App.supports.serverRecommendValidate ) {
+        self.recommendAndValidate(function() {
+          goNextStepIfValid();
+        });
+      } else {
+        self.updateIsSubmitDisabled();
         goNextStepIfValid();
+      }
+    }
+
+    if (self.get('anyWarning')) {
+      App.ModalPopup.show({
+        primary: Em.I18n.t('common.continueAnyway'),
+        header: Em.I18n.t('installer.step5.warningsAttention.header'),
+        body: Em.I18n.t('installer.step5.warningsAttention'),
+        onPrimary: function () {
+          this.hide();
+          primary();
+        }
       });
     } else {
-      self.updateIsSubmitDisabled();
-      goNextStepIfValid();
+      primary();
     }
   }
 });

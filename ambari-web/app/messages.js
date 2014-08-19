@@ -218,6 +218,7 @@ Em.I18n.translations = {
   'common.view': 'View',
   'common.compare': 'Compare',
   'common.latest': 'Latest',
+  'common.continueAnyway': 'Continue Anyway',
 
   'passiveState.turnOn':'Turn On Maintenance Mode',
   'passiveState.turnOff':'Turn Off Maintenance Mode',
@@ -616,6 +617,8 @@ Em.I18n.translations = {
   'installer.step5.body.coHostedComponents':'<i class="icon-asterisks">&#10037;</i> {0} will be hosted on the same host.',
   'installer.step5.hostInfo':'%@ (%@, %@ cores)',
   'installer.step5.hiveGroup':'HiveServer2, WebHCat Server, MySQL Server',
+  'installer.step5.warningsAttention.header': 'Warnings',
+  'installer.step5.warningsAttention': 'Your master component assignment has warnings and needs attention.',
 
   'installer.step6.header':'Assign Slaves and Clients',
   'installer.step6.body':'Assign slave and client components to hosts you want to run them on.<br/>Hosts that are assigned master components are shown with <i class=icon-asterisks>&#10037;</i>.',

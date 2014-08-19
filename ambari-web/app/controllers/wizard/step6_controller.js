@@ -110,6 +110,22 @@ App.WizardStep6Controller = Em.Controller.extend({
   generalWarningMessages: [],
 
   /**
+   * true if validation has any general error message
+   */
+  anyErrors: function() {
+    var messages = this.get('generalErrorMessages');
+    return this.get('errorMessage') || (messages && messages.length > 0);
+  }.property('generalErrorMessages', 'generalErrorMessages.@each', 'errorMessage'),
+
+  /**
+   * true if validation has any general warning message
+   */
+  anyWarnings: function() {
+    var messages = this.get('generalWarningMessages');
+    return messages && messages.length > 0;
+  }.property('generalWarningMessages', 'generalWarningMessages.@each'),
+
+  /**
    * Verify condition that at least one checkbox of each component was checked
    * @method clearError
    */

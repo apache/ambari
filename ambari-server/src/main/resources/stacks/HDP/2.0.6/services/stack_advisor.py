@@ -192,8 +192,8 @@ class HDP206StackAdvisor(StackAdvisor):
       secondaryNameNodeHosts = secondaryNameNodeHosts[0]
       commonHosts = list(set(nameNodeHosts).intersection(secondaryNameNodeHosts))
       for host in commonHosts:
-        items.append( { "type": 'host-component', "level": 'ERROR', "message": 'NameNode and Secondary NameNode cannot be hosted on same machine', "component-name": 'NAMENODE', "host": str(host) } )
-        items.append( { "type": 'host-component', "level": 'ERROR', "message": 'NameNode and Secondary NameNode cannot be hosted on same machine', "component-name": 'SECONDARY_NAMENODE', "host": str(host) } )
+        items.append( { "type": 'host-component', "level": 'WARN', "message": 'NameNode and Secondary NameNode cannot be hosted on same machine', "component-name": 'NAMENODE', "host": str(host) } )
+        items.append( { "type": 'host-component', "level": 'WARN', "message": 'NameNode and Secondary NameNode cannot be hosted on same machine', "component-name": 'SECONDARY_NAMENODE', "host": str(host) } )
 
     # Validating cardinality
     for component in componentsList:
@@ -489,7 +489,7 @@ def getXmxSize(value):
     return result[0] + result[1].lower()
   return result[0]
 
-def formatXmxSizeToBytes(value):	
+def formatXmxSizeToBytes(value):
   value = value.lower()
   if len(value) == 0:
     return 0

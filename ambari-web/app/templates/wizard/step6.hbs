@@ -20,15 +20,28 @@
   <h2>{{view.title}}</h2>
 
   <div class="alert alert-info">{{{view.label}}}</div>
-  {{#if errorMessage}}
-    <div class="alert alert-error">{{errorMessage}}</div>
+  {{#if anyErrors}}
+    <div class="alert alert-error">
+      <ul>
+        {{#if errorMessage}}
+          <li>{{errorMessage}}</li>
+        {{/if}}
+        {{#each msg in controller.generalErrorMessages}}
+            <li>{{msg}}</li>
+        {{/each}}
+      </ul>
+    </div>
   {{/if}}
-  {{#each msg in controller.generalErrorMessages}}
-      <div class="alert alert-error">{{msg}}</div>
-  {{/each}}
-  {{#each msg in controller.generalWarningMessages}}
-      <div class="alert alert-warning">{{msg}}</div>
-  {{/each}}
+
+  {{#if anyWarnings}}
+    <div class="alert alert-warning">
+      <ul>
+        {{#each msg in controller.generalWarningMessages}}
+            <li>{{msg}}</li>
+        {{/each}}
+      </ul>
+    </div>
+  {{/if}}
 
   <div class="pre-scrollable">
     <table class="table" id="component_assign_table">

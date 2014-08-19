@@ -81,8 +81,16 @@
                           {{view App.RemoveControlView componentNameBinding="component_name" serviceComponentIdBinding="serviceComponentId"}}
                         {{/if}}
 
-                        <span class="help-block">{{warnMessage}}</span>
-                        <span class="help-block">{{errorMessage}}</span>
+                        <span rel="popover" title="Warning" {{bindAttr data-content="warnMessage"}}>
+                          {{#if warnMessage}}
+                            <i class="icon-warning-sign icon-large"></i>
+                          {{/if}}
+                        </span>
+                        <span rel="popover" title="Error" {{bindAttr data-content="errorMessage"}}>
+                          {{#if errorMessage}}
+                            <i class="icon-remove-sign icon-large"></i>
+                          {{/if}}
+                        </span>
                       </div>
                     {{/if}}
                   </div>
