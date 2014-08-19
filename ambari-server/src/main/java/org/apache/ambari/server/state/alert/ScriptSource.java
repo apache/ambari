@@ -17,29 +17,20 @@
  */
 package org.apache.ambari.server.state.alert;
 
+import com.google.gson.annotations.SerializedName;
+
 /**
- * Source type refers to how the alert is to be collected.
+ * Alert when the source type is defined as {@link SourceType#SCRIPT}
  */
-public enum SourceType {
-  /**
-   * Source is from metric data.
-   */
-  METRIC,
-  /**
-   * Source is generated using of a script
-   */
-  SCRIPT,
-  /**
-   * Source is a simple port check
-   */
-  PORT,
-  /**
-   * Source is an aggregate of a collection of other alert states
-   */
-  AGGREGATE,
+public class ScriptSource extends Source {
+
+  @SerializedName("path")
+  private String m_path = null;
 
   /**
-   * Source is a ratio of two {@link #METRIC} values.
+   * @return the path to the script file.
    */
-  PERCENT;
+  public String getPath() {
+    return m_path;
+  }
 }

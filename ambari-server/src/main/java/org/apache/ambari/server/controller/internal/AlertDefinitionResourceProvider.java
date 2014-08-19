@@ -61,17 +61,25 @@ import com.google.inject.Injector;
  */
 public class AlertDefinitionResourceProvider extends AbstractControllerResourceProvider {
 
+  protected static final String ALERT_DEF = "AlertDefinition";
+
   protected static final String ALERT_DEF_CLUSTER_NAME = "AlertDefinition/cluster_name";
   protected static final String ALERT_DEF_ID = "AlertDefinition/id";
   protected static final String ALERT_DEF_NAME = "AlertDefinition/name";
   protected static final String ALERT_DEF_LABEL = "AlertDefinition/label";
   protected static final String ALERT_DEF_INTERVAL = "AlertDefinition/interval";
-  protected static final String ALERT_DEF_SOURCE_TYPE = "AlertDefinition/source/type";
-  protected static final String ALERT_DEF_SOURCE = "AlertDefinition/source";
   protected static final String ALERT_DEF_SERVICE_NAME = "AlertDefinition/service_name";
   protected static final String ALERT_DEF_COMPONENT_NAME = "AlertDefinition/component_name";
   protected static final String ALERT_DEF_ENABLED = "AlertDefinition/enabled";
   protected static final String ALERT_DEF_SCOPE = "AlertDefinition/scope";
+
+  protected static final String ALERT_DEF_SOURCE = "AlertDefinition/source";
+  protected static final String ALERT_DEF_SOURCE_TYPE = "AlertDefinition/source/type";
+  protected static final String ALERT_DEF_SOURCE_REPORTING = "AlertDefinition/source/reporting";
+  protected static final String ALERT_DEF_SOURCE_REPORTING_OK = "AlertDefinition/source/reporting/ok";
+  protected static final String ALERT_DEF_SOURCE_REPORTING_WARNING = "AlertDefinition/source/reporting/warning";
+  protected static final String ALERT_DEF_SOURCE_REPORTING_CRITICAL = "AlertDefinition/source/reporting/critical";
+
 
   private static Set<String> pkPropertyIds = new HashSet<String>(
       Arrays.asList(ALERT_DEF_ID, ALERT_DEF_NAME));
@@ -176,19 +184,62 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
               SourceType.class)));
     }
 
-    JsonObject jsonObj = new JsonObject();
+    // !!! Alert structures contain nested objects; reconstruct a valid
+    // JSON from the flat, exploded properties so that a Source instance can
+    // be properly persisted
+    JsonObject source = new JsonObject();
+    JsonObject reporting = new JsonObject();
+    JsonObject reportingOk = new JsonObject();
+    JsonObject reportingWarning = new JsonObject();
+    JsonObject reportingCritical = new JsonObject();
 
     for (Entry<String, Object> entry : requestMap.entrySet()) {
       String propCat = PropertyHelper.getPropertyCategory(entry.getKey());
       String propName = PropertyHelper.getPropertyName(entry.getKey());
 
+      if (propCat.equals(ALERT_DEF) && "source".equals(propName)) {
+        source.addProperty(propName, entry.getValue().toString());
+      }
+
       if (propCat.equals(ALERT_DEF_SOURCE)) {
-        jsonObj.addProperty(propName, entry.getValue().toString());
+        source.addProperty(propName, entry.getValue().toString());
+      }
+
+      if (propCat.equals(ALERT_DEF_SOURCE_REPORTING)) {
+        reporting.addProperty(propName, entry.getValue().toString());
+      }
+
+      if (propCat.equals(ALERT_DEF_SOURCE_REPORTING_OK)) {
+        reportingOk.addProperty(propName, entry.getValue().toString());
+      }
+
+      if (propCat.equals(ALERT_DEF_SOURCE_REPORTING_WARNING)) {
+        reportingWarning.addProperty(propName, entry.getValue().toString());
+      }
+
+      if (propCat.equals(ALERT_DEF_SOURCE_REPORTING_CRITICAL)) {
+        reportingCritical.addProperty(propName, entry.getValue().toString());
       }
     }
 
-    if (0 == jsonObj.entrySet().size()) {
+    if (0 == source.entrySet().size()) {
       throw new IllegalArgumentException("Source must be specified");
+    }
+
+    if (reportingOk.entrySet().size() > 0) {
+      reporting.add("ok", reportingOk);
+    }
+
+    if (reportingWarning.entrySet().size() > 0) {
+      reporting.add("warning", reportingWarning);
+    }
+
+    if (reportingCritical.entrySet().size() > 0) {
+      reporting.add("critical", reportingCritical);
+    }
+
+    if (reporting.entrySet().size() > 0) {
+      source.add("reporting", reporting);
     }
 
     Cluster cluster = getManagementController().getClusters().getCluster(clusterName);
@@ -207,7 +258,7 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
     entity.setScheduleInterval(interval);
     entity.setServiceName((String) requestMap.get(ALERT_DEF_SERVICE_NAME));
     entity.setSourceType((String) requestMap.get(ALERT_DEF_SOURCE_TYPE));
-    entity.setSource(jsonObj.toString());
+    entity.setSource(source.toString());
 
     Scope scope = null;
     String desiredScope = (String) requestMap.get(ALERT_DEF_SCOPE);

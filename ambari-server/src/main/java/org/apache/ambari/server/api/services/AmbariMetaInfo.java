@@ -31,7 +31,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -1093,19 +1092,6 @@ public class AmbariMetaInfo {
       return null;
     }
 
-    Set<AlertDefinition> defs = new HashSet<AlertDefinition>();
-    Map<String, List<AlertDefinition>> map = alertDefinitionFactory.getAlertDefinitions(alertsFile);
-
-    for (Entry<String, List<AlertDefinition>> entry : map.entrySet()) {
-      for (AlertDefinition ad : entry.getValue()) {
-        ad.setServiceName(serviceName);
-        if (!entry.getKey().equals("service")) {
-          ad.setComponentName(entry.getKey());
-        }
-      }
-      defs.addAll(entry.getValue());
-    }
-
-    return defs;
+    return alertDefinitionFactory.getAlertDefinitions(alertsFile, serviceName);
   }
 }

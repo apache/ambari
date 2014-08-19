@@ -31,6 +31,7 @@ public class AlertDefinition {
   private int interval = 1;
   private boolean enabled = true;
   private Source source = null;
+  private String label = null;
 
   /**
    * @return the service name
@@ -115,6 +116,22 @@ public class AlertDefinition {
 
   public void setSource(Source definitionSource) {
     source = definitionSource;
+  }
+
+  /**
+   * @return the label for the definition or {@code null} if none.
+   */
+  public String getLabel() {
+    return label;
+  }
+
+  /**
+   * Sets the label for this definition.
+   *
+   * @param definitionLabel
+   */
+  public void setLabel(String definitionLabel) {
+    label = definitionLabel;
   }
 
   @Override

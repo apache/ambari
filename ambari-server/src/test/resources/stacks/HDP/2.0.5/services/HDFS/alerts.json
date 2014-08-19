@@ -1,18 +1,5 @@
 {
-  "service": [
-  ],
-  "SECONDARY_NAMENODE": [
-    {
-      "name": "secondary_namenode_process",
-      "label": "Secondary NameNode process",
-      "interval": 1,
-      "scope": "service",
-      "source": {
-        "type": "PORT",
-        "config": "{{hdfs-site/dfs.namenode.secondary.http-address}}:50071"
-      }
-    }
-  ],
+  "service": [],
   "NAMENODE": [
     {
       "name": "namenode_cpu",
@@ -21,7 +8,20 @@
       "source": {
         "type": "METRIC",
         "jmx": "java.lang:type=OperatingSystem/SystemCpuLoad",
-        "host": "{{hdfs-site/dfs.namenode.secondary.http-address}}"
+        "host": "{{hdfs-site/dfs.namenode.secondary.http-address}}",
+        "reporting": {
+          "ok": {
+            "text": "System CPU Load is OK"
+          },
+          "warning": {
+            "text": "System CPU Load is Nearing Critical",
+            "value": 70
+          },          
+          "critical": {
+            "text": "System CPU Load is Critical",
+            "value": 80
+          }
+        }
       }
     },
     {
@@ -31,8 +31,17 @@
       "scope": "host",
       "source": {
         "type": "PORT",
-        "uri": "{{hdfs-site/dfs.namenode.http-address}}:50070"
-       }
+        "uri": "{{hdfs-site/dfs.namenode.http-address}}",
+        "port": 50070,
+        "reporting": {
+          "ok": {
+            "text": "TCP OK - {0:.4f} response on port {1}"
+          },
+          "critical": {
+            "text": "TCP FAIL - {0:.4f} response on port {1}"
+          }
+        }        
+      }
     },
     {
       "name": "hdfs_last_checkpoint",
@@ -46,6 +55,18 @@
       }
     }
   ],
-  "DATANODE": [
-  ]
+  "SECONDARY_NAMENODE": [
+    {
+      "name": "secondary_namenode_process",
+      "label": "Secondary NameNode process",
+      "interval": 1,
+      "scope": "service",
+      "source": {
+        "type": "PORT",        
+        "uri": "{{hdfs-site/dfs.namenode.secondary.http-address}}",
+        "port": 50070
+      }
+    }
+  ],  
+  "DATANODE": []
 }

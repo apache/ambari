@@ -29,6 +29,7 @@ import java.io.File;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
@@ -54,6 +55,8 @@ import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.Stack;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.alert.AlertDefinition;
+import org.apache.ambari.server.state.alert.Reporting;
+import org.apache.ambari.server.state.alert.Source;
 import org.apache.ambari.server.state.stack.MetricDefinition;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
@@ -1420,5 +1423,53 @@ public class AmbariMetaInfoTest {
     Assert.assertNotNull(set);
     Assert.assertTrue(set.size() > 0);
 
+    // find two different definitions and test each one
+    AlertDefinition nameNodeProcess = null;
+    AlertDefinition nameNodeCpu = null;
+
+    Iterator<AlertDefinition> iterator = set.iterator();
+    while (iterator.hasNext()) {
+      AlertDefinition definition = iterator.next();
+      if (definition.getName().equals("namenode_process")) {
+        nameNodeProcess = definition;
+      }
+
+      if (definition.getName().equals("namenode_cpu")) {
+        nameNodeCpu = definition;
+      }
+    }
+
+    assertNotNull(nameNodeProcess);
+    assertNotNull(nameNodeCpu);
+
+    assertEquals("NameNode host CPU Utilization", nameNodeCpu.getLabel());
+
+    Source source = nameNodeProcess.getSource();
+    assertNotNull(source);
+
+    // test namenode_process
+    Reporting reporting = source.getReporting();
+    assertNotNull(reporting);
+    assertNotNull(reporting.getOk());
+    assertNotNull(reporting.getOk().getText());
+    assertNull(reporting.getOk().getValue());
+    assertNotNull(reporting.getCritical());
+    assertNotNull(reporting.getCritical().getText());
+    assertNull(reporting.getCritical().getValue());
+    assertNull(reporting.getWarning());
+
+    // test namenode_cpu
+    source = nameNodeCpu.getSource();
+    reporting = source.getReporting();
+    assertNotNull(reporting);
+    assertNotNull(reporting.getOk());
+    assertNotNull(reporting.getOk().getText());
+    assertNull(reporting.getOk().getValue());
+    assertNotNull(reporting.getCritical());
+    assertNotNull(reporting.getCritical().getText());
+    assertNotNull(reporting.getCritical().getValue());
+    assertNotNull(reporting.getWarning());
+    assertNotNull(reporting.getWarning().getText());
+    assertNotNull(reporting.getWarning().getValue());
   }
 }

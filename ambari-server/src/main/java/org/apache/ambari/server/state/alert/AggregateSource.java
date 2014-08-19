@@ -17,29 +17,22 @@
  */
 package org.apache.ambari.server.state.alert;
 
+import com.google.gson.annotations.SerializedName;
+
 /**
- * Source type refers to how the alert is to be collected.
+ * Alert when the source type is defined as {@link SourceType#AGGREGATE}.
+ * Aggregate alerts are alerts that are triggered by collecting the states of
+ * all instances of the defined alert and calculating the overall state.
  */
-public enum SourceType {
-  /**
-   * Source is from metric data.
-   */
-  METRIC,
-  /**
-   * Source is generated using of a script
-   */
-  SCRIPT,
-  /**
-   * Source is a simple port check
-   */
-  PORT,
-  /**
-   * Source is an aggregate of a collection of other alert states
-   */
-  AGGREGATE,
+public class AggregateSource extends Source {
+
+  @SerializedName("alert_name")
+  private String m_alertName = null;
 
   /**
-   * Source is a ratio of two {@link #METRIC} values.
+   * @return the unique name of the alert that will have its values aggregated.
    */
-  PERCENT;
+  public String getAlertName() {
+    return m_alertName;
+  }
 }

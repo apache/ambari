@@ -17,29 +17,30 @@
  */
 package org.apache.ambari.server.state.alert;
 
+import com.google.gson.annotations.SerializedName;
+
 /**
- * Source type refers to how the alert is to be collected.
+ * Alert when the source type is defined as {@link SourceType#PORT}
  */
-public enum SourceType {
-  /**
-   * Source is from metric data.
-   */
-  METRIC,
-  /**
-   * Source is generated using of a script
-   */
-  SCRIPT,
-  /**
-   * Source is a simple port check
-   */
-  PORT,
-  /**
-   * Source is an aggregate of a collection of other alert states
-   */
-  AGGREGATE,
+public class PortSource extends Source {
+
+  @SerializedName("uri")
+  private String m_uri = null;
+
+  @SerializedName("port")
+  private int m_port = 0;
 
   /**
-   * Source is a ratio of two {@link #METRIC} values.
+   * @return the URI to check for a valid port
    */
-  PERCENT;
+  public String getUri() {
+    return m_uri;
+  }
+
+  /**
+   * @return the port to check on the given URI.
+   */
+  public int getPort() {
+    return m_port;
+  }
 }

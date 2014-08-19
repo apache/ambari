@@ -20,8 +20,11 @@ package org.apache.ambari.server.state.alert;
 import java.io.File;
 import java.io.FileReader;
 import java.lang.reflect.Type;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
@@ -52,34 +55,58 @@ public class AlertDefinitionFactory {
   /**
    * Builder used for type adapter registration.
    */
-  private final GsonBuilder m_builder = new GsonBuilder().registerTypeAdapter(
-      Source.class, new AlertDefinitionSourceAdapter());
+  private final GsonBuilder m_builder = new GsonBuilder();
 
   /**
    * Thread safe deserializer.
    */
-  private final Gson m_gson = m_builder.create();
+  private final Gson m_gson;
 
+  /**
+   * Constructor.
+   */
+  public AlertDefinitionFactory() {
+    m_builder.registerTypeAdapter(Source.class,
+        new AlertDefinitionSourceAdapter());
+
+    m_gson = m_builder.create();
+  }
 
   /**
    * Gets a list of all of the alert definitions defined in the specified JSON
-   * {@link File}.
+   * {@link File} for the given service.
    *
    * @param alertDefinitionFile
+   * @param serviceName
    * @return
    * @throws AmbariException
    *           if there was a problem reading the file or parsing the JSON.
    */
-  public Map<String, List<AlertDefinition>> getAlertDefinitions(
-      File alertDefinitionFile) throws AmbariException {
+  public Set<AlertDefinition> getAlertDefinitions(File alertDefinitionFile,
+      String serviceName) throws AmbariException {
+    Map<String,List<AlertDefinition>> definitionMap = null;
+
     try {
       Type type = new TypeToken<Map<String, List<AlertDefinition>>>(){}.getType();
 
-      return m_gson.fromJson(new FileReader(alertDefinitionFile), type);
+      definitionMap = m_gson.fromJson(new FileReader(alertDefinitionFile), type);
     } catch (Exception e) {
       LOG.error("Could not read the alert definition file", e);
       throw new AmbariException("Could not read alert definition file", e);
     }
+
+    Set<AlertDefinition> definitions = new HashSet<AlertDefinition>();
+    for (Entry<String, List<AlertDefinition>> entry : definitionMap.entrySet()) {
+      for (AlertDefinition ad : entry.getValue()) {
+        ad.setServiceName(serviceName);
+        if (!entry.getKey().equals("service")) {
+          ad.setComponentName(entry.getKey());
+        }
+      }
+      definitions.addAll(entry.getValue());
+    }
+
+    return definitions;
   }
 
   /**
@@ -103,6 +130,7 @@ public class AlertDefinitionFactory {
     definition.setName(entity.getDefinitionName());
     definition.setScope(entity.getScope());
     definition.setServiceName(entity.getServiceName());
+    definition.setLabel(entity.getLabel());
 
     try{
       String sourceJson = entity.getSource();
@@ -118,6 +146,16 @@ public class AlertDefinitionFactory {
   }
 
   /**
+   * Gets an instance of {@link Gson} that can correctly serialize and
+   * deserialize an {@link AlertDefinition}.
+   *
+   * @return a {@link Gson} instance (not {@code null}).
+   */
+  public Gson getGson() {
+    return m_gson;
+  }
+
+  /**
    * Deserializes {@link Source} implementations.
    */
   private static final class AlertDefinitionSourceAdapter implements JsonDeserializer<Source>{
@@ -130,21 +168,41 @@ public class AlertDefinitionFactory {
       JsonObject jsonObj = (JsonObject) json;
 
       SourceType type = SourceType.valueOf(jsonObj.get("type").getAsString());
-      Class<? extends Source> cls = null;
+      Class<? extends Source> clazz = null;
 
       switch (type) {
-        case METRIC:
-          cls = MetricSource.class;
+        case METRIC:{
+          clazz = MetricSource.class;
           break;
+        }
+        case PORT:{
+          clazz = PortSource.class;
+          break;
+        }
+        case SCRIPT: {
+          clazz = ScriptSource.class;
+          break;
+        }
+        case AGGREGATE: {
+          clazz = AggregateSource.class;
+          break;
+        }
+        case PERCENT: {
+          clazz = PercentSource.class;
+          break;
+        }
         default:
           break;
       }
 
-      if (null != cls) {
-        return context.deserialize(json, cls);
-      } else {
+      if (null == clazz) {
+        LOG.warn(
+            "Unable to deserialize an alert definition with source type {}",
+            type);
         return null;
       }
+
+      return context.deserialize(json, clazz);
     }
   }
 }

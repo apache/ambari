@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.state.alert;
 
+import com.google.gson.annotations.SerializedName;
+
 /**
  * Abstract class that all known alert sources should extend.
  */
@@ -24,11 +26,20 @@ public abstract class Source {
 
   private SourceType type;
 
+  @SerializedName("reporting")
+  private Reporting reporting;
+
   /**
    * @return the type
    */
   public SourceType getType() {
     return type;
   }
-  
+
+  /**
+   * @return
+   */
+  public Reporting getReporting() {
+    return reporting;
+  }
 }
