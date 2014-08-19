@@ -54,9 +54,10 @@ public class AmbariAuthorizationFilter implements Filter {
     HttpServletRequest httpRequest = (HttpServletRequest) request;
     HttpServletResponse httpResponse = (HttpServletResponse) response;
 
-    SecurityContext context = SecurityContextHolder.getContext();
+    SecurityContext context = getSecurityContext();
 
-    if (context.getAuthentication() == null || !context.getAuthentication().isAuthenticated()) {
+    Authentication authentication = context.getAuthentication();
+    if (authentication == null || !authentication.isAuthenticated()) {
       String token = httpRequest.getHeader(INTERNAL_TOKEN_HEADER);
       if (token != null) {
         context.setAuthentication(new InternalAuthenticationToken(token));
@@ -64,7 +65,6 @@ public class AmbariAuthorizationFilter implements Filter {
     } else {
       boolean authorized = false;
 
-      Authentication authentication = context.getAuthentication();
       for (GrantedAuthority grantedAuthority : authentication.getAuthorities()) {
         if (grantedAuthority instanceof AmbariGrantedAuthority) {
 
@@ -90,6 +90,11 @@ public class AmbariAuthorizationFilter implements Filter {
           } else if (requestURI.matches("/api/v[0-9]+/views.*")) {
             // views require permission
             if (permissionId.equals(PermissionEntity.VIEW_USE_PERMISSION)) {
+              authorized = true;
+              break;
+            }
+          } else if (requestURI.matches("/api/v[0-9]+/persist.*")) {
+            if (permissionId.equals(PermissionEntity.CLUSTER_OPERATE_PERMISSION)) {
               authorized = true;
               break;
             }
@@ -133,5 +138,9 @@ public class AmbariAuthorizationFilter implements Filter {
       value = filterConfig.getServletContext().getInitParameter(parameterName);
     }
     return value == null || value.length() == 0 ? defaultValue : value;
+  }
+
+  SecurityContext getSecurityContext() {
+    return SecurityContextHolder.getContext();
   }
 }
