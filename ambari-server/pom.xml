@@ -528,7 +528,7 @@
         </executions>
         <configuration>
           <controlDir>${basedir}/src/main/package/deb/control</controlDir>
-          <deb>${basedir}/target/${artifactId}_${package-version}-${package-release}.deb</deb>
+          <deb>${basedir}/target/${project.artifactId}_${package-version}-${package-release}.deb</deb>
           <dataSet>
             <data>
               <type>template</type>
@@ -1078,7 +1078,7 @@
   </profiles>
   <dependencies>
     <dependency>
-      <groupId>${pom.groupId}</groupId>
+      <groupId>${project.groupId}</groupId>
       <artifactId>ambari-views</artifactId>
       <version>${project.version}</version>
     </dependency>
