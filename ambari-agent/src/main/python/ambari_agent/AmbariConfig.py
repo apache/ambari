@@ -35,6 +35,7 @@ prefix=/tmp/ambari-agent
 tmp_dir=/tmp/ambari-agent/tmp
 data_cleanup_interval=86400
 data_cleanup_max_age=2592000
+data_cleanup_max_size_MB = 100
 ping_port=8670
 cache_dir=/var/lib/ambari-agent/cache
 

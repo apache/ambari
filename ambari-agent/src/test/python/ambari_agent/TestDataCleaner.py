@@ -28,14 +28,15 @@ class TestDataCleaner(unittest.TestCase):
 
   def setUp(self):
     self.test_dir = [('/test_path', [],
-                      ['errors-12.txt','output-12.txt','site-12.pp','site-13.pp','site-15.pp','version'])]
+                      ['errors-12.txt', 'output-12.txt', 'site-12.pp', 'site-13.pp', 'site-15.pp',
+                       'structured-out-13.json', 'command-13.json', 'version'])]
     self.config = MagicMock()
-    self.config.get.side_effect = [2592000,3600 + 1,"/test_path"]
+    self.config.get.side_effect = [2592000, (3600 + 1), 10000, "/test_path"]
     DataCleaner.logger = MagicMock()
 
   def test_init_success(self):
     config = MagicMock()
-    config.get.return_value = 2592000
+    config.get.side_effect = [2592000, (3600 + 1), 10000, "/test_path"]
     DataCleaner.logger.reset_mock()
     cleaner = DataCleaner.DataCleaner(config)
     self.assertFalse(DataCleaner.logger.warn.called)
@@ -43,45 +44,53 @@ class TestDataCleaner(unittest.TestCase):
 
   def test_init_warn(self):
     config = MagicMock()
-    config.get.return_value = 10
+    config.get.side_effect = [1, (3600 - 1), (10000 + 1), "/test_path"]
     DataCleaner.logger.reset_mock()
     cleaner = DataCleaner.DataCleaner(config)
     self.assertTrue(DataCleaner.logger.warn.called)
-    self.assertTrue(cleaner.file_max_age == 3600)
+    self.assertTrue(cleaner.file_max_age == 86400)
+    self.assertTrue(cleaner.cleanup_interval == 3600)
+    self.assertTrue(cleaner.cleanup_max_size_MB == 10000)
 
   @patch('os.walk')
   @patch('time.time')
   @patch('os.path.getmtime')
   @patch('os.remove')
-  def test_cleanup_success(self,remMock,mtimeMock,timeMock,walkMock):
+  @patch('os.path.getsize')
+  def test_cleanup_success(self, sizeMock, remMock, mtimeMock, timeMock, walkMock):
     self.config.reset_mock()
     DataCleaner.logger.reset_mock()
 
     walkMock.return_value = iter(self.test_dir)
     timeMock.return_value = 2592000 + 2
-    mtimeMock.side_effect = [1,1,1,2,1,1]
+    mtimeMock.side_effect = [1, 1, 1, 2, 1, 1, 1, 1]
+    sizeMock.return_value = 100
 
     cleaner = DataCleaner.DataCleaner(self.config)
     cleaner.cleanup()
 
-    self.assertTrue(len(remMock.call_args_list) == 4)
-    remMock.assert_any_call('/test_path/errors-12.txt');
-    remMock.assert_any_call('/test_path/output-12.txt');
-    remMock.assert_any_call('/test_path/site-12.pp');
-    remMock.assert_any_call('/test_path/site-15.pp');
+    self.assertTrue(len(remMock.call_args_list) == 6)
+    remMock.assert_any_call('/test_path/errors-12.txt')
+    remMock.assert_any_call('/test_path/output-12.txt')
+    remMock.assert_any_call('/test_path/site-12.pp')
+    remMock.assert_any_call('/test_path/site-15.pp')
+    remMock.assert_any_call('/test_path/structured-out-13.json')
+    remMock.assert_any_call('/test_path/command-13.json')
     pass
 
   @patch('os.walk')
   @patch('time.time')
   @patch('os.path.getmtime')
   @patch('os.remove')
-  def test_cleanup_remove_error(self,remMock,mtimeMock,timeMock,walkMock):
+  @patch('os.path.getsize')
+  def test_cleanup_remove_error(self, sizeMock, remMock, mtimeMock, timeMock, walkMock):
     self.config.reset_mock()
     DataCleaner.logger.reset_mock()
 
     walkMock.return_value = iter(self.test_dir)
     timeMock.return_value = 2592000 + 2
-    mtimeMock.side_effect = [1,1,1,2,1,1]
+    mtimeMock.side_effect = [1, 1, 1, 2, 1, 1, 1, 1]
+    sizeMock.return_value = 100
 
     def side_effect(arg):
       if arg == '/test_path/site-15.pp':
@@ -92,7 +101,7 @@ class TestDataCleaner(unittest.TestCase):
     cleaner = DataCleaner.DataCleaner(self.config)
     cleaner.cleanup()
 
-    self.assertTrue(len(remMock.call_args_list) == 4)
+    self.assertTrue(len(remMock.call_args_list) == 6)
     self.assertTrue(DataCleaner.logger.error.call_count == 1)
     pass
 
