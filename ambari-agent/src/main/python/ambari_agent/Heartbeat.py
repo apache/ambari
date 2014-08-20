@@ -35,10 +35,11 @@ logger = logging.getLogger()
 firstContact = True
 class Heartbeat:
 
-  def __init__(self, actionQueue, config=None):
+  def __init__(self, actionQueue, config=None, alert_collector=None):
     self.actionQueue = actionQueue
     self.config = config
     self.reports = []
+    self.collector = alert_collector
 
   def build(self, id='-1', state_interval=-1, componentsMapped=False):
     global clusterId, clusterDefinitionRevision, firstContact
@@ -49,7 +50,6 @@ class Heartbeat:
     nodeStatus = { "status" : "HEALTHY",
                    "cause" : "NONE" }
     nodeStatus["alerts"] = []
-
 
 
     heartbeat = { 'responseId'        : int(id),
@@ -95,6 +95,10 @@ class Heartbeat:
         logger.debug("mounts: %s", str(mounts))
 
     nodeStatus["alerts"] = hostInfo.createAlerts(nodeStatus["alerts"])
+    
+    if self.collector is not None:
+      nodeStatus['alerts'].extend(self.collector.alerts())
+    
     return heartbeat
 
 def main(argv=None):

@@ -30,8 +30,8 @@ logger = logging.getLogger()
 
 class PortAlert(BaseAlert):
 
-  def __init__(self, alert_meta, alert_source_meta):
-    super(PortAlert, self).__init__(alert_meta, alert_source_meta)
+  def __init__(self, collector, alert_meta, alert_source_meta):
+    super(PortAlert, self).__init__(collector, alert_meta, alert_source_meta)
     
     default_port = alert_source_meta['default_port']
     uri = alert_source_meta['uri']
@@ -42,7 +42,7 @@ class PortAlert(BaseAlert):
     try:
       self.port = int(get_port_from_url(uri))
     except:
-      traceback.print_exc()
+      # only when port parsing fails
       pass
 
     

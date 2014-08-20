@@ -1,5 +1,8 @@
 {
-  "c1": [
+  "clusterName": "c1",
+  "hostName": "c6401.ambari.apache.org",
+  "hash": "12341234134412341243124",
+  "alertDefinitions": [
     {
       "name": "namenode_cpu",
       "label": "NameNode host CPU Utilization",

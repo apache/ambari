@@ -28,15 +28,22 @@ class BaseAlert(object):
   RESULT_CRITICAL = 'CRITICAL'
   RESULT_UNKNOWN = 'UNKNOWN'
   
-  def __init__(self, alert_meta, alert_source_meta):
+  def __init__(self, collector, alert_meta, alert_source_meta):
+    self.collector = collector
     self.alert_meta = alert_meta
     self.alert_source_meta = alert_source_meta
+    self.cluster = ''
+    self.hostname = ''
     
   def interval(self):
     if not self.alert_meta.has_key('interval'):
       return 1
     else:
       return self.alert_meta['interval']
+      
+  def set_cluster(self, cluster, host):
+    self.cluster = cluster
+    self.hostname = host
   
   def collect(self):
     res = (BaseAlert.RESULT_UNKNOWN, [])
@@ -49,13 +56,14 @@ class BaseAlert(object):
       
     data = {}
     data['name'] = self._find_value('name')
+    data['label'] = self._find_value('label')
     data['state'] = res[0]
     data['text'] = res_base_text.format(*res[1])
-    # data['cluster'] = self._find_value('cluster') # not sure how to get this yet
+    data['cluster'] = self.cluster
     data['service'] = self._find_value('service')
     data['component'] = self._find_value('component')
     
-    print str(data)
+    self.collector.put(self.cluster, data)
   
   def _find_value(self, meta_key):
     if self.alert_meta.has_key(meta_key):

@@ -79,8 +79,8 @@ class Controller(threading.Thread):
     if cache_dir is None:
       cache_dir = '/var/lib/ambari-agent/cache'
       
-    self.alert_scheduler_handler = AlertSchedulerHandler(
-     os.path.join(cache_dir, 'alerts', 'alert_definitions.json'))
+    alerts_cache_dir = os.path.join(cache_dir, 'alerts')
+    self.alert_scheduler_handler = AlertSchedulerHandler(alerts_cache_dir)
 
 
   def __del__(self):
@@ -135,6 +135,12 @@ class Controller(threading.Thread):
           pass
         else:
           self.hasMappedComponents = False
+
+        if 'alertDefinitionCommands' in ret.keys():
+          logger.info("Got alert definition update on registration " + pprint.pformat(ret['alertDefinitionCommands']))
+          self.alert_scheduler_handler.update_definitions(ret['alertDefinitionCommands'])
+          pass
+
         pass
       except ssl.SSLError:
         self.repeatRegistration=False
@@ -247,6 +253,10 @@ class Controller(threading.Thread):
         if 'statusCommands' in response.keys():
           self.addToStatusQueue(response['statusCommands'])
           pass
+          
+        if 'alertDefinitionCommands' in response.keys():
+          self.alert_scheduler_handler.update_definitions(response['alertDefinitionCommands'], True)
+          pass
 
         if "true" == response['restartAgent']:
           logger.error("Received the restartAgent command")
@@ -307,7 +317,7 @@ class Controller(threading.Thread):
     self.actionQueue = ActionQueue(self.config, controller=self)
     self.actionQueue.start()
     self.register = Register(self.config)
-    self.heartbeat = Heartbeat(self.actionQueue, self.config)
+    self.heartbeat = Heartbeat(self.actionQueue, self.config, self.alert_scheduler_handler.collector())
 
     opener = urllib2.build_opener()
     urllib2.install_opener(opener)

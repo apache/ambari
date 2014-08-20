@@ -23,6 +23,7 @@ import sys
 from ambari_agent.AlertSchedulerHandler import AlertSchedulerHandler
 from ambari_agent.apscheduler.scheduler import Scheduler
 from ambari_agent.alerts.port_alert import PortAlert
+from ambari_agent.alerts.collector import AlertCollector
 from mock.mock import patch
 from unittest import TestCase
 
@@ -35,12 +36,15 @@ class TestAlerts(TestCase):
     sys.stdout == sys.__stdout__
 
   @patch.object(Scheduler, "add_interval_job")
-  def test_build(self, aps_add_interval_job_mock):
-    test_file_path = os.path.join('ambari_agent', 'dummy_files', 'alert_definitions.json')
+  @patch.object(Scheduler, "start")
+  def test_start(self, aps_add_interval_job_mock, aps_start_mock):
+    test_file_path = os.path.join('ambari_agent', 'dummy_files')
 
     ash = AlertSchedulerHandler(test_file_path)
+    ash.start()
 
     self.assertTrue(aps_add_interval_job_mock.called)
+    self.assertTrue(aps_start_mock.called)
 
   def test_port_alert(self):
     json = { "name": "namenode_process",
@@ -51,7 +55,7 @@ class TestAlerts(TestCase):
       "scope": "host",
       "source": {
         "type": "PORT",
-        "uri": "http://c6401.ambari.apache.org:50070",
+        "uri": "http://c6409.ambari.apache.org:50070",
         "default_port": 50070,
         "reporting": {
           "ok": {
@@ -64,7 +68,9 @@ class TestAlerts(TestCase):
       }
     }
 
-    pa = PortAlert(json, json['source'])
+    collector = AlertCollector()
+
+    pa = PortAlert(collector, json, json['source'])
     self.assertEquals(6, pa.interval())
 
     res = pa.collect()

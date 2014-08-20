@@ -21,19 +21,30 @@ limitations under the License.
 '''
 http://apscheduler.readthedocs.org/en/v2.1.2
 '''
-from apscheduler.scheduler import Scheduler
-from alerts.port_alert import PortAlert
+import glob
 import json
 import logging
+import os
 import sys
 import time
+from apscheduler.scheduler import Scheduler
+from alerts.collector import AlertCollector
+from alerts.port_alert import PortAlert
+
 
 logger = logging.getLogger()
 
 class AlertSchedulerHandler():
+  make_cachedir = True
 
-  def __init__(self, filename, in_minutes=True):
-    self.filename = filename
+  def __init__(self, cachedir, in_minutes=True):
+    self.cachedir = cachedir
+    
+    if not os.path.exists(cachedir) and AlertSchedulerHandler.make_cachedir:
+      try:
+        os.makedirs(cachedir)
+      except:
+        pass
     
     config = {
       'threadpool.core_threads': 3,
@@ -41,41 +52,65 @@ class AlertSchedulerHandler():
       'standalone': False
     }
 
-    self.scheduler = Scheduler(config)
-
-    alert_callables = self.__load_alerts()
-
-    for _callable in alert_callables:
-      if in_minutes:
-        self.scheduler.add_interval_job(self.__make_function(_callable),
-          minutes=_callable.interval())
-      else:
-        self.scheduler.add_interval_job(self.__make_function(_callable),
-          seconds=_callable.interval())
+    self.__scheduler = Scheduler(config)
+    self.__in_minutes = in_minutes
+    self.__loaded = False
+    self.__collector = AlertCollector()
+          
+  def update_definitions(self, alert_commands, refresh_jobs=False):
+    for command in alert_commands:
+      with open(os.path.join(self.cachedir, command['clusterName'] + '.def'), 'w') as f:
+        json.dump(command, f, indent=2)
+    
+    if refresh_jobs:
+      self.__scheduler.shutdown(wait=False)
+      self.__loaded = False
+      self.start()
       
   def __make_function(self, alert_def):
     return lambda: alert_def.collect()
-
+    
   def start(self):
-    if not self.scheduler is None:
-      self.scheduler.start()
+    if not self.__loaded:
+      alert_callables = self.__load_definitions()
+      
+      for _callable in alert_callables:
+        if self.__in_minutes:
+          self.__scheduler.add_interval_job(self.__make_function(_callable),
+            minutes=_callable.interval())
+        else:
+          self.__scheduler.add_interval_job(self.__make_function(_callable),
+            seconds=_callable.interval())
+      self.__loaded = True
+      
+    if not self.__scheduler is None:
+      self.__scheduler.start()
     
   def stop(self):
-    if not self.scheduler is None:
-      self.scheduler.shutdown(wait=False)
-      self.scheduler = None
+    if not self.__scheduler is None:
+      self.__scheduler.shutdown(wait=False)
+      self.__scheduler = None
       
-  def __load_alerts(self):
+  def collector(self):
+    return self.__collector
+      
+  def __load_definitions(self):
     definitions = []
     try:
-      # FIXME make location configurable
-      with open(self.filename) as fp: 
-        cluster_defs = json.load(fp)
-        for deflist in cluster_defs.values():
-          for definition in deflist:
+      for deffile in glob.glob(os.path.join(self.cachedir, '*.def')):
+        with open(deffile, 'r') as f:
+          command_json = json.load(f)
+
+          for definition in command_json['alertDefinitions']:
             obj = self.__json_to_callable(definition)
+              
             if obj is not None:
+              obj.set_cluster(
+                '' if not 'clusterName' in command_json else command_json['clusterName'],
+                '' if not 'hostName' in command_json else command_json['hostName'])
+
               definitions.append(obj)
+      
     except:
       import traceback
       traceback.print_exc()
@@ -91,7 +126,7 @@ class AlertSchedulerHandler():
     if source_type == 'METRIC':
       pass
     elif source_type == 'PORT':
-      alert = PortAlert(json_definition, source)
+      alert = PortAlert(self.__collector, json_definition, source)
     elif type == 'SCRIPT':
       pass
 
@@ -119,6 +154,9 @@ def main():
       i += 1
   except KeyboardInterrupt:
     pass
+    
+  print str(ash.collector().alerts())
+      
   ash.stop()
     
 if __name__ == "__main__":
