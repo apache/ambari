@@ -73,6 +73,11 @@
           <groupId>org.vafer</groupId>
           <artifactId>jdeb</artifactId>
         </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-clean-plugin</artifactId>
+          <version>2.5</version>
+        </plugin>
       </plugins>
     </pluginManagement>
     <plugins>
@@ -264,6 +269,21 @@
           <attach>false</attach>
           <submodules>true</submodules>
           <controlDir>${basedir}/ambari-project/src/main/package/deb/control</controlDir>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-clean-plugin</artifactId>
+        <configuration>
+          <filesets>
+            <fileset>
+              <directory>${basedir}</directory>
+              <followSymlinks>false</followSymlinks>
+               <includes>
+                <include>**/*.pyc</include>
+              </includes>
+             </fileset>
+          </filesets>
         </configuration>
       </plugin>
     </plugins>
