@@ -17,25 +17,36 @@
  */
 
 package org.apache.ambari.server.security.authorization.internal;
+
+import org.apache.ambari.server.orm.entities.PermissionEntity;
+import org.apache.ambari.server.orm.entities.PrivilegeEntity;
+import org.apache.ambari.server.security.authorization.AmbariGrantedAuthority;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
-
 import java.util.Collection;
 import java.util.Collections;
 
 public class InternalAuthenticationToken implements Authentication {
 
   private static final String INTERNAL_NAME = "internal";
+  private static final PrivilegeEntity ADMIN_PRIV_ENTITY = new PrivilegeEntity();
 
   // used in ClustersImpl, checkPermissions
   private static final Collection<? extends GrantedAuthority> AUTHORITIES =
-      Collections.singleton(new SimpleGrantedAuthority("AMBARI.ADMIN"));
+    Collections.singleton(new AmbariGrantedAuthority(ADMIN_PRIV_ENTITY));
   private static final User INTERNAL_USER = new User(INTERNAL_NAME, "empty", AUTHORITIES);
 
   private String token;
   private boolean authenticated = false;
+
+  static{
+    PermissionEntity pe = new PermissionEntity();
+    pe.setId(PermissionEntity.AMBARI_ADMIN_PERMISSION);
+    pe.setPermissionName(PermissionEntity.AMBARI_ADMIN_PERMISSION_NAME);
+
+    ADMIN_PRIV_ENTITY.setPermission(pe);
+  }
 
   public InternalAuthenticationToken(String tokenString) {
     this.token = tokenString;
