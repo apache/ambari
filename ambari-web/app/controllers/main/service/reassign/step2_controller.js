@@ -106,7 +106,7 @@ App.ReassignMasterWizardStep2Controller = App.WizardStep5Controller.extend({
     return false;
   },
 
-  getIsSubmitDisabled: function () {
+  updateIsSubmitDisabled: function () {
     var isSubmitDisabled = this._super();
     if (!isSubmitDisabled) {
       var reassigned = 0;
