@@ -49,7 +49,7 @@
                     {{servicesInfo.name}}
                   </a>
                   {{#if App.supports.abortRequests}}
-                    {{#if servicesInfo.abortable}}
+                    {{#if servicesInfo.isAbortable}}
                         {{view abortIcon servicesInfoBinding="servicesInfo"}}
                     {{/if}}
                   {{/if}}

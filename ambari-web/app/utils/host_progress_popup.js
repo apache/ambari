@@ -68,19 +68,9 @@ App.HostPopup = Em.Object.create({
    */
   isPopup: null,
 
-  /**
-   * List of aborted requests
-   * @type {Array}
-   */
-  abortedRequests: [],
-
   abortIcon: Em.View.extend({
     tagName: 'i',
-    classNames: ['abortable', 'abort-icon', 'icon-remove-circle'],
-    classNameBindings: ['abortClassName'],
-    abortClassName: function () {
-      return this.get('servicesInfo.abortable') ? this.get('servicesInfo.abortClassName') : 'hidden';
-    }.property('servicesInfo'),
+    classNames: ['abort-icon', 'icon-remove-circle'],
     click: function () {
       this.get('controller').abortRequest(this.get('servicesInfo'));
       return false;
@@ -107,20 +97,30 @@ App.HostPopup = Em.Object.create({
   }),
 
   /**
+   * Determines if background operation can be aborted depending on its status
+   * @param status
+   * @returns {boolean}
+   */
+  isAbortableByStatus: function (status) {
+    var statuses = this.get('statusesStyleMap');
+    return !Em.keys(statuses).contains(status) || status == 'IN_PROGRESS';
+  },
+
+  /**
    * Send request to abort operation
    */
   abortRequest: function (serviceInfo) {
     var requestName = serviceInfo.get('name');
     var self = this;
     App.showConfirmationPopup(function () {
-      var requestId = serviceInfo.get('id');
-      self.get('abortedRequests').push(requestId);
+      serviceInfo.set('isAbortable', false);
       App.ajax.send({
         name: 'background_operations.abort_request',
         sender: self,
         data: {
-          requestId: requestId,
-          requestName: requestName
+          requestId: serviceInfo.get('id'),
+          requestName: requestName,
+          serviceInfo: serviceInfo
         },
         success: 'abortRequestSuccessCallback',
         error: 'abortRequestErrorCallback'
@@ -146,8 +146,7 @@ App.HostPopup = Em.Object.create({
    * Method called on unsuccessful sending request to abort operation
    */
   abortRequestErrorCallback: function (xhr, textStatus, error, opt, data) {
-    var abortedRequests = this.get('controller.abortedRequests');
-    this.set('controller.abortedRequests', abortedRequests.without(data.requestId));
+    data.serviceInfo.set('isAbortable', this.isAbortableByStatus(data.serviceInfo.status));
     App.ajax.defaultErrorHandler(xhr, opt.url, 'PUT', xhr.status);
   },
   /**
@@ -359,15 +358,7 @@ App.HostPopup = Em.Object.create({
           servicesInfo.insertAt(index, updatedService);
         }
         if (App.get('supports.abortRequests')) {
-          var abortable = !Em.keys(statuses).contains(service.status) || service.status == 'IN_PROGRESS';
-          if (!abortable) {
-            var abortedRequests = this.get('abortedRequests');
-            this.set('abortedRequests', abortedRequests.without(id));
-          }
-          updatedService.setProperties({
-            abortable: abortable,
-            abortClassName: 'abort' + id
-          });
+          updatedService.set('isAbortable', this.isAbortableByStatus(service.status));
         }
       }, this);
       this.removeOldServices(servicesInfo, currentServices);

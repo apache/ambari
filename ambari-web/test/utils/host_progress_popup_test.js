@@ -231,6 +231,33 @@ describe('App.HostPopup', function () {
     }
   ];
 
+  var statusCases = [
+    {
+      status: 'FAILED',
+      result: false
+    },
+    {
+      status: 'ABORTED',
+      result: false
+    },
+    {
+      status: 'TIMEDOUT',
+      result: false
+    },
+    {
+      status: 'IN_PROGRESS',
+      result: true
+    },
+    {
+      status: 'COMPLETED',
+      result: false
+    },
+    {
+      status: 'PENDING',
+      result: true
+    }
+  ];
+
   describe('#setSelectCount', function () {
     var itemsForStatusTest = [
       {
@@ -334,8 +361,15 @@ describe('App.HostPopup', function () {
     });
   });
 
+  describe('#isAbortableByStatus', function () {
+    statusCases.forEach(function (item) {
+      it('should return ' + item.result + ' for ' + item.status, function () {
+        expect(App.HostPopup.isAbortableByStatus(item.status)).to.equal(item.result);
+      });
+    });
+  });
+
   describe('#abortRequest', function () {
-    var popup;
     beforeEach(function () {
       sinon.stub(App.ajax, 'send', Em.K);
       sinon.spy(App, 'showConfirmationPopup');
@@ -361,7 +395,8 @@ describe('App.HostPopup', function () {
     });
     it('should open popup', function () {
       App.HostPopup.abortRequestSuccessCallback(null, null, {
-        requestName: 'name'
+        requestName: 'name',
+        serviceInfo: Em.Object.create()
       });
       expect(App.ModalPopup.show.calledOnce).to.be.true;
     });
@@ -375,9 +410,12 @@ describe('App.HostPopup', function () {
         return Em.get(App, k);
       });
       sinon.spy(App.ModalPopup, 'show');
-      popup.set('controller', Em.Object.create({
-        abortedRequests: [0]
-      }));
+    });
+    afterEach(function () {
+      App.ModalPopup.show.restore();
+      App.ajax.get.restore();
+    });
+    it('should open popup', function () {
       popup.abortRequestErrorCallback({
         responseText: {
           message: 'message'
@@ -386,18 +424,28 @@ describe('App.HostPopup', function () {
       }, 'status', 'error', {
         url: 'url'
       }, {
-        requestId: 0
+        requestId: 0,
+        serviceInfo: Em.Object.create()
       });
-    });
-    afterEach(function () {
-      App.ModalPopup.show.restore();
-      App.ajax.get.restore();
-    });
-    it('should open popup', function () {
       expect(App.ModalPopup.show.calledOnce).to.be.true;
     });
-    it('should remove current request id from abortedRequests', function () {
-      expect(App.HostPopup.get('abortedRequests')).to.be.empty;
+    statusCases.forEach(function (item) {
+      it('should set serviceInfo.isAbortable to' + item.result + ' if status is ' + item.status, function () {
+        popup.abortRequestErrorCallback({
+          responseText: {
+            message: 'message'
+          },
+          status: 404
+        }, 'status', 'error', {
+          url: 'url'
+        }, {
+          requestId: 0,
+          serviceInfo: Em.Object.create({
+            status: item.status
+          })
+        });
+        expect(App.HostPopup.isAbortableByStatus(item.status)).to.equal(item.result);
+      });
     });
   });
 
