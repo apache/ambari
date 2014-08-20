@@ -343,18 +343,19 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
    */
   addUserPrincipals: function (serviceConfigs, securityUsers) {
     var generalService = serviceConfigs.findProperty('serviceName', 'GENERAL').configs;
-    var isHbaseService = serviceConfigs.someProperty('serviceName', 'HBASE');
-    var hbaseUserPrincipal = generalService.findProperty('name', 'hbase_principal_name');
-    var hbaseUserKeytab = generalService.findProperty('name', 'hbase_user_keytab');
-    var hbaseUser = securityUsers.findProperty('name', 'hbase_user');
-
     this.setUserPrincipalValue(securityUsers.findProperty('name', 'smokeuser'), generalService.findProperty('name', 'smokeuser_principal_name'));
-    this.setUserPrincipalValue(securityUsers.findProperty('name', 'hdfs_user'), generalService.findProperty('name', 'hdfs_principal_name'));
+    var servicesWithUserPrincipals = ['HDFS','HBASE'];
 
-    if (isHbaseService && this.setUserPrincipalValue(hbaseUser, hbaseUserPrincipal)) {
-      hbaseUserPrincipal.isVisible = true;
-      hbaseUserKeytab.isVisible = true;
-    }
+    servicesWithUserPrincipals.forEach(function(serviceName){
+      var isServiceInstalled = serviceConfigs.someProperty('serviceName', serviceName);
+      var userPricipal = generalService.findProperty('name', serviceName.toLowerCase()  + '_principal_name');
+      var userKeytab = generalService.findProperty('name', serviceName.toLowerCase()  + '_user_keytab');
+      var userName = securityUsers.findProperty('name', serviceName.toLowerCase()  + '_user');
+      if (isServiceInstalled && this.setUserPrincipalValue(userName, userPricipal)) {
+        userPricipal.isVisible = true;
+        userKeytab.isVisible = true;
+      }
+    },this);
   },
   /**
    * set default value of user principal
