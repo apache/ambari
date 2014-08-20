@@ -198,6 +198,10 @@
             <scriptFile>src/main/package/rpm/preremove.sh</scriptFile>
             <fileEncoding>utf-8</fileEncoding>
           </preremoveScriptlet>
+          <posttransScriptlet>
+            <scriptFile>src/main/package/rpm/posttrans_agent.sh</scriptFile>
+            <fileEncoding>utf-8</fileEncoding>
+          </posttransScriptlet>
 
           <needarch>x86_64</needarch>
           <autoRequires>false</autoRequires>

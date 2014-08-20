@@ -34,6 +34,12 @@ do_install(){
   if [ ! -d "$COMMON_DIR" ]; then
     ln -s "$COMMON_DIR_AGENT" "$COMMON_DIR"
   fi
+  # remove RESOURCE_MANAGEMENT_DIR if it's a directory
+  if [ -d "$RESOURCE_MANAGEMENT_DIR" ]; then  # resource_management dir exists
+    if [ ! -L "$RESOURCE_MANAGEMENT_DIR" ]; then # resource_management dir is not link
+      rm -rf "$RESOURCE_MANAGEMENT_DIR"
+    fi
+  fi
   # setting resource_management shared resource
   if [ ! -d "$RESOURCE_MANAGEMENT_DIR" ]; then
     ln -s "$RESOURCE_MANAGEMENT_DIR_AGENT" "$RESOURCE_MANAGEMENT_DIR"
