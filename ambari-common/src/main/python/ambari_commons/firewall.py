@@ -101,19 +101,12 @@ class UbuntuFirewallChecks(FirewallChecks):
         result = True
     return result
 
-  def get_running_result(self):
-    # To support test code.  Expected ouput from run_os_command.
-    return (0, "ufw start/running", "")
-
-  def get_stopped_result(self):
-    # To support test code.  Expected output from run_os_command.
-    return (0, "ufw stop/waiting", "")
-
-
 class Fedora18FirewallChecks(FirewallChecks):
+  def __init__(self):
+    super(Fedora18FirewallChecks, self).__init__()
 
   def get_command(self):
-    return "systemctl is-active iptables"
+    return "systemctl is-active %s" % (self.FIREWALL_SERVICE_NAME)
 
   def check_result(self, retcode, out, err):
     result = False
@@ -124,8 +117,8 @@ class Fedora18FirewallChecks(FirewallChecks):
 
 class SuseFirewallChecks(FirewallChecks):
   def __init__(self):
+    super(SuseFirewallChecks, self).__init__()
     self.FIREWALL_SERVICE_NAME = "SuSEfirewall2"
-    self.SERVICE_SUBCMD = "status"
 
   def get_command(self):
     return "%s %s" % (self.FIREWALL_SERVICE_NAME, self.SERVICE_SUBCMD)
