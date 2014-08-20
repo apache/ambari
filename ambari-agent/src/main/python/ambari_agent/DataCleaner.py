@@ -36,21 +36,21 @@ class DataCleaner(threading.Thread):
     logger.info('Data cleanup thread started')
     self.config = config
 
-    self.file_max_age = config.get('agent','data_cleanup_max_age')
+    self.file_max_age = config.get('agent', 'data_cleanup_max_age', 86400)
     self.file_max_age = int(self.file_max_age) if self.file_max_age else None
     if self.file_max_age is None or self.file_max_age < 86400:       # keep for at least 24h
       logger.warn('The minimum value allowed for data_cleanup_max_age is 1 '
                   'day. Setting data_cleanup_max_age to 86400.')
       self.file_max_age = 86400
 
-    self.cleanup_interval = config.get('agent','data_cleanup_interval')
+    self.cleanup_interval = config.get('agent', 'data_cleanup_interval', 3600)
     self.cleanup_interval = int(self.cleanup_interval) if self.cleanup_interval else None
     if self.cleanup_interval is None or self.cleanup_interval < 3600:    # wait at least 1 hour between runs
       logger.warn('The minimum value allowed for data_cleanup_interval is 1 '
                   'hour. Setting data_cleanup_interval to 3600.')
       self.cleanup_interval = 3600
 
-    self.cleanup_max_size_MB = config.get('agent', 'data_cleanup_max_size_MB')
+    self.cleanup_max_size_MB = config.get('agent', 'data_cleanup_max_size_MB', 10000)
     self.cleanup_max_size_MB = int(self.cleanup_max_size_MB) if self.cleanup_max_size_MB else None
     if self.cleanup_max_size_MB is None or self.cleanup_max_size_MB > 10000:  # no more than 10 GBs
       logger.warn('The maximum value allowed for cleanup_max_size_MB is 10000 MB (10 GB). '
