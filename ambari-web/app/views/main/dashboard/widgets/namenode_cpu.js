@@ -27,17 +27,24 @@ App.NameNodeCpuPieChartView = App.PieChartDashboardWidgetView.extend({
   widgetHtmlId: 'widget-nn-cpu',
   cpuWio: null,
   nnHostName:"",
+  intervalId: null,
+
+  willDestroyElement: function() {
+    clearInterval(this.get("intervalId"));
+  },
 
   didInsertElement: function() {
     this._super();
-    var self = this;
+    var self = this,
+    intervalId;
     if (App.get('isHaEnabled')) {
       this.set('nnHostName', this.get('model').get('activeNameNode.hostName'));
     }else{
      this.set('nnHostName', this.get('model').get('nameNode.hostName'));
     }
     this.getValue();
-    setInterval(function() {self.getValue()}, App.componentsUpdateInterval);
+    intervalId = setInterval(function() {self.getValue()}, App.componentsUpdateInterval);
+    this.set('intervalId', intervalId);
   },
 
   getValue: function () {
@@ -57,7 +64,7 @@ App.NameNodeCpuPieChartView = App.PieChartDashboardWidgetView.extend({
   },
 
   updateValueSuccess: function (response) {
-    this.set('cpuWio', response.metrics.cpu.cpu_wio);
+    this.set('cpuWio', Em.get(response, 'metrics.cpu.cpu_wio'));
     this.calc();
   },
 
