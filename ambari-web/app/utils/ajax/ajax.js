@@ -2003,7 +2003,7 @@ var ajax = Em.Object.extend({
 
     // default parameters
     var params = {
-      clusterName: App.get('clusterName')
+      clusterName: (App.get('clusterName') || App.clusterStatus.get('clusterName'))
     };
 
     // extend default parameters with provided
