@@ -226,13 +226,24 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
    * @param name the instance name
    */
   public ViewInstanceEntity(ViewEntity view, String name) {
+    this(view, name, view.getLabel());
+  }
+
+  /**
+   * Construct a view instance definition.
+   *
+   * @param view the parent view definition
+   * @param name the instance name
+   * @param label the instance label
+   */
+  public ViewInstanceEntity(ViewEntity view, String name, String label) {
     this.name = name;
     this.instanceConfig = null;
     this.view = view;
     this.viewName = view.getName();
     this.description = null;
     this.visible = 'Y';
-    this.label = view.getLabel();
+    this.label = label;
   }
 
 

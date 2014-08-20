@@ -18,7 +18,4 @@ limitations under the License. Kerberos, LDAP, Custom. Binary/Htt
   <name>JOBS</name>
   <label>Jobs View</label>
   <version>1.0.0</version>
-  <instance>
-    <name>JOBS_1</name>
-  </instance>
 </view>

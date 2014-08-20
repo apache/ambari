@@ -51,6 +51,24 @@ public class ViewDAO {
   }
 
   /**
+   * Find a view with a given common name.
+   *
+   * @param viewCommonName common name of view to find
+   *
+   * @return  a matching view or null
+   */
+  public ViewEntity findByCommonName(String viewCommonName) {
+    if (viewCommonName != null) {
+      for (ViewEntity viewEntity : findAll()) {
+        if (viewCommonName.equals(viewEntity.getCommonName())) {
+          return viewEntity;
+        }
+      }
+    }
+    return null;
+  }
+
+  /**
    * Find all views.
    *
    * @return all views or an empty List

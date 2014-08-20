@@ -26,18 +26,16 @@ module.exports = Em.Route.extend({
     console.log('in /main:enter');
     router.getAuthenticated().done(function (loggedIn) {
       if (loggedIn) {
-        App.router.get('mainAdminAccessController').loadShowJobsForUsers().done(function () {
-          App.router.get('clusterController').loadClusterName(false).done(function () {
-            if (App.get('testMode')) {
-              router.get('mainController').initialize();
-            } else {
-              App.router.get('mainController').checkServerClientVersion().done(function () {
-                App.router.get('clusterController').loadClientServerClockDistance().done(function () {
-                  router.get('mainController').initialize();
-                });
+        App.router.get('clusterController').loadClusterName(false).done(function () {
+          if (App.get('testMode')) {
+            router.get('mainController').initialize();
+          } else {
+            App.router.get('mainController').checkServerClientVersion().done(function () {
+              App.router.get('clusterController').loadClientServerClockDistance().done(function () {
+                router.get('mainController').initialize();
               });
-            }
-          });
+            });
+          }
         });
         // TODO: redirect to last known state
       } else {

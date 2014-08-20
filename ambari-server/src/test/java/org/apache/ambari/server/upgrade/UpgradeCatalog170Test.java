@@ -63,6 +63,7 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
+import org.apache.ambari.server.orm.dao.KeyValueDAO;
 import org.apache.ambari.server.orm.dao.PermissionDAO;
 import org.apache.ambari.server.orm.dao.PrincipalDAO;
 import org.apache.ambari.server.orm.dao.PrincipalTypeDAO;
@@ -74,6 +75,9 @@ import org.apache.ambari.server.orm.dao.ViewDAO;
 import org.apache.ambari.server.orm.dao.ViewInstanceDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
+import org.apache.ambari.server.orm.entities.KeyValueEntity;
+import org.apache.ambari.server.orm.entities.PrivilegeEntity;
+import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.orm.entities.ViewEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
@@ -231,6 +235,7 @@ public class UpgradeCatalog170Test {
     ViewInstanceDAO viewInstanceDAO = createNiceMock(ViewInstanceDAO.class);
     PermissionDAO permissionDAO = createNiceMock(PermissionDAO.class);
     PrivilegeDAO privilegeDAO = createNiceMock(PrivilegeDAO.class);
+    KeyValueDAO keyValueDAO = createNiceMock(KeyValueDAO.class);
 
     EntityTransaction trans = createNiceMock(EntityTransaction.class);
     CriteriaBuilder cb = createNiceMock(CriteriaBuilder.class);
@@ -316,18 +321,19 @@ public class UpgradeCatalog170Test {
     expect(configHelper.findConfigTypesByPropertyName(new StackId("HDP", "2.1"), "content")).andReturn(envDicts).once();
     expect(configHelper.getPropertyValueFromStackDefenitions(cluster, "hadoop-env", "content")).andReturn("env file contents").once();
 
-    expect(injector.getInstance(UserDAO.class)).andReturn(userDAO).once();
-    expect(injector.getInstance(PrincipalDAO.class)).andReturn(principalDAO).once();
-    expect(injector.getInstance(PrincipalTypeDAO.class)).andReturn(principalTypeDAO).once();
-    expect(injector.getInstance(ClusterDAO.class)).andReturn(clusterDAO).once();
-    expect(injector.getInstance(ResourceTypeDAO.class)).andReturn(resourceTypeDAO).once();
-    expect(injector.getInstance(ResourceDAO.class)).andReturn(resourceDAO).once();
-    expect(injector.getInstance(ViewDAO.class)).andReturn(viewDAO).once();
-    expect(injector.getInstance(ViewInstanceDAO.class)).andReturn(viewInstanceDAO).once();
-    expect(injector.getInstance(PermissionDAO.class)).andReturn(permissionDAO).once();
-    expect(injector.getInstance(PrivilegeDAO.class)).andReturn(privilegeDAO).once();
+    expect(injector.getInstance(UserDAO.class)).andReturn(userDAO).anyTimes();
+    expect(injector.getInstance(PrincipalDAO.class)).andReturn(principalDAO).anyTimes();
+    expect(injector.getInstance(PrincipalTypeDAO.class)).andReturn(principalTypeDAO).anyTimes();
+    expect(injector.getInstance(ClusterDAO.class)).andReturn(clusterDAO).anyTimes();
+    expect(injector.getInstance(ResourceTypeDAO.class)).andReturn(resourceTypeDAO).anyTimes();
+    expect(injector.getInstance(ResourceDAO.class)).andReturn(resourceDAO).anyTimes();
+    expect(injector.getInstance(ViewDAO.class)).andReturn(viewDAO).anyTimes();
+    expect(injector.getInstance(ViewInstanceDAO.class)).andReturn(viewInstanceDAO).anyTimes();
+    expect(injector.getInstance(PermissionDAO.class)).andReturn(permissionDAO).anyTimes();
+    expect(injector.getInstance(PrivilegeDAO.class)).andReturn(privilegeDAO).anyTimes();
+    expect(injector.getInstance(KeyValueDAO.class)).andReturn(keyValueDAO).anyTimes();
 
-    expect(userDAO.findAll()).andReturn(Collections.<UserEntity> emptyList()).anyTimes();
+    expect(userDAO.findAll()).andReturn(Collections.<UserEntity> emptyList()).times(2);
     expect(clusterDAO.findAll()).andReturn(Collections.<ClusterEntity> emptyList()).anyTimes();
     expect(viewDAO.findAll()).andReturn(Collections.<ViewEntity> emptyList()).anyTimes();
     expect(viewInstanceDAO.findAll()).andReturn(Collections.<ViewInstanceEntity> emptyList()).anyTimes();
@@ -338,9 +344,29 @@ public class UpgradeCatalog170Test {
     expect(cluster.getDesiredConfigByType("pig-properties")).andReturn(pigConfig).anyTimes();
     expect(pigConfig.getProperties()).andReturn(pigSettings).anyTimes();
 
+    ViewEntity jobsView = createNiceMock(ViewEntity.class);
+    KeyValueEntity showJobsKeyValue = createNiceMock(KeyValueEntity.class);
+    UserEntity user = createNiceMock(UserEntity.class);
+
+    expect(userDAO.findAll()).andReturn(Collections.singletonList(user));
+    expect(jobsView.getCommonName()).andReturn(UpgradeCatalog170.JOBS_VIEW_NAME);
+    expect(jobsView.getVersion()).andReturn("1.0.0");
+    expect(viewDAO.findByCommonName(UpgradeCatalog170.JOBS_VIEW_NAME)).andReturn(jobsView).once();
+    expect(showJobsKeyValue.getValue()).andReturn("true");
+    expect(keyValueDAO.findByKey(UpgradeCatalog170.SHOW_JOBS_FOR_NON_ADMIN_KEY)).andReturn(showJobsKeyValue);
+    expect(privilegeDAO.findAllByPrincipal(anyObject(List.class))).andReturn(Collections.<PrivilegeEntity>emptyList());
+    expect(viewDAO.merge(jobsView)).andReturn(jobsView);
+
+    resourceDAO.create(anyObject(ResourceEntity.class));
+    viewInstanceDAO.create(anyObject(ViewInstanceEntity.class));
+    keyValueDAO.remove(showJobsKeyValue);
+    privilegeDAO.create(anyObject(PrivilegeEntity.class));
+
     replay(entityManager, trans, upgradeCatalog, cb, cq, hrc, q);
     replay(dbAccessor, configuration, injector, cluster, clusters, amc, config, configHelper, pigConfig);
     replay(userDAO, clusterDAO, viewDAO, viewInstanceDAO, permissionDAO);
+    replay(resourceTypeDAO, resourceDAO, keyValueDAO, privilegeDAO);
+    replay(jobsView, showJobsKeyValue, user);
 
     Class<?> c = AbstractUpgradeCatalog.class;
     Field f = c.getDeclaredField("configuration");
@@ -355,7 +381,8 @@ public class UpgradeCatalog170Test {
 
     upgradeCatalog.executeDMLUpdates();
 
-    verify(upgradeCatalog, dbAccessor, configuration, injector, cluster, clusters, amc, config, configHelper);
+    verify(upgradeCatalog, dbAccessor, configuration, injector, cluster, clusters, amc, config, configHelper,
+        jobsView, showJobsKeyValue, privilegeDAO, viewDAO, viewInstanceDAO, resourceDAO, keyValueDAO);
   }
 
 

@@ -46,6 +46,7 @@ import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.DaoUtils;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
+import org.apache.ambari.server.orm.dao.KeyValueDAO;
 import org.apache.ambari.server.orm.dao.PermissionDAO;
 import org.apache.ambari.server.orm.dao.PrincipalDAO;
 import org.apache.ambari.server.orm.dao.PrincipalTypeDAO;
@@ -58,6 +59,7 @@ import org.apache.ambari.server.orm.dao.ViewInstanceDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity_;
+import org.apache.ambari.server.orm.entities.KeyValueEntity;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.PrincipalEntity;
 import org.apache.ambari.server.orm.entities.PrincipalTypeEntity;
@@ -72,6 +74,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.ambari.server.view.configuration.InstanceConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -96,6 +99,10 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
   private static final String ALERT_TABLE_GROUP_TARGET = "alert_group_target";
   private static final String ALERT_TABLE_GROUPING = "alert_grouping";
   private static final String ALERT_TABLE_NOTICE = "alert_notice";
+  public static final String JOBS_VIEW_NAME = "JOBS";
+  public static final String JOBS_VIEW_INSTANCE_NAME = "JOBS_1";
+  public static final String SHOW_JOBS_FOR_NON_ADMIN_KEY = "showJobsForNonAdmin";
+  public static final String JOBS_VIEW_INSTANCE_LABEL = "Jobs";
 
   //SourceVersion is only for book-keeping purpos
   @Override
@@ -560,6 +567,7 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
     addMissingConfigs();
     renamePigProperties();
     upgradePermissionModel();
+    addJobsViewPermissions();
   }
 
   /**
@@ -977,6 +985,69 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
             user.getPrincipal().getPrivileges().add(privilege);
           }
           userDAO.merge(user);
+        }
+      }
+    }
+  }
+
+  protected void addJobsViewPermissions() {
+
+    final UserDAO userDAO = injector.getInstance(UserDAO.class);
+    final ResourceTypeDAO resourceTypeDAO = injector.getInstance(ResourceTypeDAO.class);
+    final ResourceDAO resourceDAO = injector.getInstance(ResourceDAO.class);
+    final ViewDAO viewDAO = injector.getInstance(ViewDAO.class);
+    final ViewInstanceDAO viewInstanceDAO = injector.getInstance(ViewInstanceDAO.class);
+    final KeyValueDAO keyValueDAO = injector.getInstance(KeyValueDAO.class);
+    final PermissionDAO permissionDAO = injector.getInstance(PermissionDAO.class);
+    final PrivilegeDAO privilegeDAO = injector.getInstance(PrivilegeDAO.class);
+
+    ViewEntity jobsView = viewDAO.findByCommonName(JOBS_VIEW_NAME);
+    if (jobsView != null) {
+      ViewInstanceEntity jobsInstance = jobsView.getInstanceDefinition(JOBS_VIEW_INSTANCE_NAME);
+      if (jobsInstance == null) {
+        jobsInstance = new ViewInstanceEntity(jobsView, JOBS_VIEW_INSTANCE_NAME, JOBS_VIEW_INSTANCE_LABEL);
+        ResourceEntity resourceEntity = new ResourceEntity();
+        resourceEntity.setResourceType(resourceTypeDAO.findByName(
+            ViewEntity.getViewName(
+                jobsView.getCommonName(),
+                jobsView.getVersion())));
+        jobsInstance.setResource(resourceEntity);
+        jobsView.addInstanceDefinition(jobsInstance);
+        resourceDAO.create(resourceEntity);
+        viewInstanceDAO.create(jobsInstance);
+        viewDAO.merge(jobsView);
+      }
+      // get showJobsForNonAdmin value and remove it
+      boolean showJobsForNonAdmin = false;
+      KeyValueEntity showJobsKeyValueEntity = keyValueDAO.findByKey(SHOW_JOBS_FOR_NON_ADMIN_KEY);
+      if (showJobsKeyValueEntity != null) {
+        String value = showJobsKeyValueEntity.getValue();
+        showJobsForNonAdmin = Boolean.parseBoolean(value);
+        keyValueDAO.remove(showJobsKeyValueEntity);
+      }
+      if (showJobsForNonAdmin) {
+        ResourceEntity jobsResource = jobsInstance.getResource();
+        PermissionEntity viewUsePermission = permissionDAO.findViewUsePermission();
+        for (UserEntity userEntity : userDAO.findAll()) {
+          // check if user has VIEW.USE privilege for JOBS view
+          List<PrivilegeEntity> privilegeEntities = privilegeDAO.findAllByPrincipal(
+              Collections.singletonList(userEntity.getPrincipal()));
+          boolean hasJobsUsePrivilege = false;
+          for (PrivilegeEntity privilegeEntity : privilegeEntities) {
+            if (privilegeEntity.getResource().getId() == jobsInstance.getResource().getId() &&
+                privilegeEntity.getPermission().getId() == viewUsePermission.getId()) {
+              hasJobsUsePrivilege = true;
+              break;
+            }
+          }
+          // if not - add VIEW.use privilege
+          if (!hasJobsUsePrivilege) {
+            PrivilegeEntity privilegeEntity = new PrivilegeEntity();
+            privilegeEntity.setResource(jobsResource);
+            privilegeEntity.setPermission(viewUsePermission);
+            privilegeEntity.setPrincipal(userEntity.getPrincipal());
+            privilegeDAO.create(privilegeEntity);
+          }
         }
       }
     }
