@@ -2632,7 +2632,14 @@ def change_objects_owner(args):
 
   command = CHANGE_OWNER_COMMAND[:]
   command[-1] = command[-1].format(database_name, 'ambari', new_owner)
-  return run_os_command(command)
+  retcode, stdout, stderr = run_os_command(command)
+  if not retcode == 0:
+    if VERBOSE:
+      if stdout:
+        print_error_msg(stdout.strip())
+      if stderr:
+        print_error_msg(stderr.strip())
+    raise FatalException(20, 'Unable to change owner of database objects')
 
 
 def compare_versions(version1, version2):
@@ -2737,9 +2744,7 @@ def upgrade(args):
   parse_properties_file(args)
   #TODO check database version
   if args.persistence_type == 'local':
-    retcode, stdout, stderr = change_objects_owner(args)
-    if not retcode == 0:
-      raise FatalException(20, 'Unable to change owner of database objects')
+    change_objects_owner(args)
 
   retcode = run_schema_upgrade()
   if not retcode == 0:

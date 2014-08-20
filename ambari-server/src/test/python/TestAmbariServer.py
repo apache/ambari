@@ -5107,3 +5107,46 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
     self.assertTrue(perform_housekeeping_mock.called)
 
+  @patch.object(ambari_server, "run_os_command")
+  @patch.object(ambari_server, "print_error_msg")
+  def test_change_objects_owner_both(self,
+                                     print_error_msg_mock,
+                                     run_os_command_mock):
+    args = MagicMock()
+    stdout = " stdout "
+    stderr = " stderr "
+    run_os_command_mock.return_value = 1, stdout, stderr
+
+    ambari_server.VERBOSE = True
+    self.assertRaises(FatalException, ambari_server.change_objects_owner, args)
+    print_error_msg_mock.assert_any_call("stderr")
+    print_error_msg_mock.assert_any_call("stdout")
+
+  @patch.object(ambari_server, "run_os_command")
+  @patch.object(ambari_server, "print_error_msg")
+  def test_change_objects_owner_only_stdout(self,
+                                            print_error_msg_mock,
+                                            run_os_command_mock):
+    args = MagicMock()
+    stdout = " stdout "
+    stderr = ""
+    run_os_command_mock.return_value = 1, stdout, stderr
+
+    ambari_server.VERBOSE = True
+    self.assertRaises(FatalException, ambari_server.change_objects_owner, args)
+    print_error_msg_mock.assert_called_once_with("stdout")
+
+  @patch.object(ambari_server, "run_os_command")
+  @patch.object(ambari_server, "print_error_msg")
+  def test_change_objects_owner_only_stderr(self,
+                                            print_error_msg_mock,
+                                            run_os_command_mock):
+    args = MagicMock()
+    stdout = ""
+    stderr = " stderr "
+    run_os_command_mock.return_value = 1, stdout, stderr
+
+    ambari_server.VERBOSE = True
+    self.assertRaises(FatalException, ambari_server.change_objects_owner, args)
+    print_error_msg_mock.assert_called_once_with("stderr")
+
