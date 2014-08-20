@@ -116,41 +116,17 @@ describe('App.WizardStep4Controller', function () {
     });
   });
 
-  describe('#noDFSs()', function () {
-    it('should return true if HDFS is not selected and GLUSTERFS is absent', function () {
-      controller.findProperty('serviceName', 'HDFS').set('isSelected', false);
-      expect(controller.noDFSs()).to.equal(true);
-    });
-    it('should return false if HDFS is selected and GLUSTERFS is absent', function () {
-      controller.findProperty('serviceName', 'HDFS').set('isSelected', true);
-      expect(controller.noDFSs()).to.equal(false);
-    });
-    it('should return true if HDFS is not selected and GLUSTERFS is not selected, but present', function () {
-      controller.pushObject(Ember.Object.create({
-        'serviceName':'GLUSTERFS', 'isSelected': false, 'canBeSelected': true, 'isInstalled': false, 'isDisabled': false, 'isDFS': true
-      }));
-      controller.findProperty('serviceName', 'HDFS').set('isSelected', false);
-      expect(controller.noDFSs()).to.equal(true);
-    });
-    it('should return false if HDFS is not selected and GLUSTERFS is selected', function () {
-      controller.findProperty('serviceName', 'GLUSTERFS').set('isSelected', true);
-      expect(controller.noDFSs()).to.equal(false);
-    });
-  });
-
   describe('#multipleDFSs()', function () {
     it('should return true if HDFS is selected and GLUSTERFS is selected', function () {
-      controller.findProperty('serviceName', 'HDFS').set('isSelected', true);
-      controller.findProperty('serviceName', 'GLUSTERFS').set('isSelected', true);
+      controller.set('content', generateSelectedServicesContent(['HDFS', 'GLUSTERFS']));
       expect(controller.multipleDFSs()).to.equal(true);
     });
     it('should return false if HDFS is not selected and GLUSTERFS is selected', function () {
-      controller.findProperty('serviceName', 'HDFS').set('isSelected', false);
+      controller.set('content', generateSelectedServicesContent(['GLUSTERFS']));
       expect(controller.multipleDFSs()).to.equal(false);
     });
     it('should return false if HDFS is selected and GLUSTERFS is not selected', function () {
-      controller.findProperty('serviceName', 'HDFS').set('isSelected', true);
-      controller.findProperty('serviceName', 'GLUSTERFS').set('isSelected', false);
+      controller.set('content', generateSelectedServicesContent(['HDFS']));
       expect(controller.multipleDFSs()).to.equal(false);
     });
   });

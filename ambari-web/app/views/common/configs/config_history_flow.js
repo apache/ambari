@@ -62,6 +62,13 @@ App.ConfigHistoryFlowView = Em.View.extend({
     }
     return this.get('displayedServiceVersion.notes');
   }.property('displayedServiceVersion'),
+
+  serviceVersions: function () {
+    var allServiceVersions = App.ServiceConfigVersion.find().filterProperty('serviceName', this.get('serviceName'));
+    return allServiceVersions.sort(function (a, b) {
+      return Em.get(a, 'createTime') - Em.get(b, 'createTime');
+    });
+  }.property('serviceName'),
   /**
    * service versions which in viewport and visible to user
    */
@@ -126,6 +133,7 @@ App.ConfigHistoryFlowView = Em.View.extend({
    */
   keepInfoBarAtTop: function () {
     var defaultTop;
+    var self = this;
     //reset defaultTop value in closure
     $(window).unbind('scroll');
 
@@ -139,15 +147,23 @@ App.ConfigHistoryFlowView = Em.View.extend({
       }
       //290 - default "top" property in px
       defaultTop = defaultTop || (infoBar.get(0).getBoundingClientRect() && infoBar.get(0).getBoundingClientRect().top) || 290;
-
-      if (scrollTop > defaultTop) {
-        infoBar.css('top', '10px');
-      } else if (scrollTop > 0) {
-        infoBar.css('top', (defaultTop - scrollTop) + 'px');
-      } else {
-        infoBar.css('top', 'auto');
-      }
+      self.setInfoBarPosition(infoBar, defaultTop, scrollTop);
     })
+  },
+  /**
+   * calculate and reset top position of info bar
+   * @param infoBar
+   * @param defaultTop
+   * @param scrollTop
+   */
+  setInfoBarPosition: function (infoBar, defaultTop, scrollTop) {
+    if (scrollTop > defaultTop) {
+      infoBar.css('top', '10px');
+    } else if (scrollTop > 0) {
+      infoBar.css('top', (defaultTop - scrollTop) + 'px');
+    } else {
+      infoBar.css('top', 'auto');
+    }
   },
   /**
    *  define the first element in viewport
@@ -200,10 +216,10 @@ App.ConfigHistoryFlowView = Em.View.extend({
       version: this.get('displayedServiceVersion.version'),
       serviceName: this.get('displayedServiceVersion.serviceName')
     });
-    var versionText = event.context? event.context.get('versionText') : this.get('displayedServiceVersion.versionText');
+    var versionText = event.context ? event.context.get('versionText') : this.get('displayedServiceVersion.versionText');
     App.showConfirmationPopup(function () {
-      self.sendRevertCall(serviceConfigVersion);
-    },
+        self.sendRevertCall(serviceConfigVersion);
+      },
       Em.I18n.t('services.service.config.configHistory.makeCurrent.message').format(versionText, this.get('displayedServiceVersion.serviceName'), this.get('displayedServiceVersion.configGroup'))
     );
   },
@@ -273,12 +289,6 @@ App.ConfigHistoryFlowView = Em.View.extend({
       }
     });
   },
-  serviceVersions: function () {
-    var allServiceVersions = App.ServiceConfigVersion.find().filterProperty('serviceName', this.get('serviceName'));
-    return allServiceVersions.sort(function (a, b) {
-      return Em.get(a, 'createTime') - Em.get(b, 'createTime');
-    });
-  }.property('serviceName'),
   /**
    * move back to the previous service version
    */

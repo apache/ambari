@@ -33,13 +33,13 @@ App.MainConfigHistoryView = App.TableView.extend({
 
   pageContent: function () {
     var content = this.get('filteredContent');
-    if (content.length > this.get('endIndex') - this.get('startIndex') + 1) {
-      content = content.slice(0, this.get('endIndex') - this.get('startIndex') + 1);
+    if (content.length > ((this.get('endIndex') - this.get('startIndex')) + 1)) {
+      content = content.slice(0, (this.get('endIndex') - this.get('startIndex')) + 1);
     }
     return content.sort(function (a, b) {
       return a.get('index') - b.get('index');
     });
-  }.property('filteredCount'),
+  }.property('filteredContent'),
 
   filteredCount: function () {
     return this.get('controller.filteredCount');
