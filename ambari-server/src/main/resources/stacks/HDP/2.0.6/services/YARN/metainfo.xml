@@ -177,8 +177,8 @@
           <configFiles>
             <configFile>
               <type>xml</type>
-              <fileName>yarn-site.xml</fileName>
-              <dictionaryName>yarn-site</dictionaryName>
+              <fileName>mapred-site.xml</fileName>
+              <dictionaryName>mapred-site</dictionaryName>
             </configFile>
             <configFile>
               <type>xml</type>
@@ -187,14 +187,9 @@
             </configFile>
             <configFile>
               <type>env</type>
-              <fileName>yarn-env.sh</fileName>
-              <dictionaryName>yarn-env</dictionaryName>
+              <fileName>mapred-env.sh</fileName>
+              <dictionaryName>mapred-env</dictionaryName>
             </configFile>
-            <configFile>
-              <type>env</type>
-              <fileName>yarn-log4j.properties</fileName>
-              <dictionaryName>yarn-log4j</dictionaryName>
-            </configFile>            
           </configFiles>
         </component>
       </components>
