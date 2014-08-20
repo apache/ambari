@@ -88,6 +88,9 @@
     "ServiceConfigVersion":[
         "ServiceConfigVersion/cluster_name",
         "ServiceConfigVersion/service_name",
+        "ServiceConfigVersion/group_id",
+        "ServiceConfigVersion/group_name",
+        "ServiceConfigVersion/hosts",
         "ServiceConfigVersion/serviceconfigversion",
         "ServiceConfigVersion/createtime",
         "ServiceConfigVersion/user",

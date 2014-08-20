@@ -20,7 +20,9 @@ package org.apache.ambari.server.orm.entities;
 
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;
+import javax.persistence.CollectionTable;
 import javax.persistence.Column;
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -32,6 +34,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
+import java.util.Collection;
 import java.util.List;
 
 @Entity
@@ -57,6 +60,10 @@ public class ServiceConfigEntity {
   private String serviceName;
 
   @Basic
+  @Column(name = "group_id", nullable = true)
+  private Long groupId;
+
+  @Basic
   @Column(name = "version", nullable = false)
   private Long version;
 
@@ -71,6 +78,11 @@ public class ServiceConfigEntity {
   @Basic
   @Column(name = "note")
   private String note;
+
+  @ElementCollection()
+  @CollectionTable(name = "serviceconfighosts", joinColumns = {@JoinColumn(name = "service_config_id")})
+  @Column(name = "hostname")
+  private List<String> hostNames;
 
   @ManyToMany
   @JoinTable(
@@ -154,5 +166,21 @@ public class ServiceConfigEntity {
 
   public void setNote(String note) {
     this.note = note;
+  }
+
+  public Long getGroupId() {
+    return groupId;
+  }
+
+  public void setGroupId(Long groupId) {
+    this.groupId = groupId;
+  }
+
+  public List<String> getHostNames() {
+    return hostNames;
+  }
+
+  public void setHostNames(List<String> hostNames) {
+    this.hostNames = hostNames;
   }
 }
