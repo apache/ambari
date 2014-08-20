@@ -289,6 +289,8 @@ public class AlertDefinitionResourceProviderTest {
    */
   @Test
   public void testUpdateResources() throws Exception {
+    Gson gson = m_factory.getGson();
+
     AmbariManagementController amc = createMock(AmbariManagementController.class);
     Clusters clusters = createMock(Clusters.class);
     Cluster cluster = createMock(Cluster.class);
@@ -309,12 +311,22 @@ public class AlertDefinitionResourceProviderTest {
 
     replay(amc, clusters, cluster, dao, definitionHash);
 
+    Source source = getMockSource();
+    String sourceString = gson.toJson(source);
+
     Map<String, Object> requestProps = new HashMap<String, Object>();
     requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_CLUSTER_NAME, "c1");
     requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_INTERVAL, "1");
     requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_NAME, "my_def");
+    requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_LABEL, "Label");
     requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_SERVICE_NAME, "HDFS");
     requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_SOURCE_TYPE, "METRIC");
+
+    requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_SOURCE,
+        sourceString);
+
+    requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_ENABLED,
+        Boolean.TRUE.toString());
 
     Request request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
 
@@ -335,6 +347,9 @@ public class AlertDefinitionResourceProviderTest {
 
     String oldName = entity.getDefinitionName();
     String oldHash = entity.getHash();
+    Integer oldInterval = entity.getScheduleInterval();
+    boolean oldEnabled = entity.getEnabled();
+    String oldSource = entity.getSource();
 
     resetToStrict(dao);
     expect(dao.findById(1L)).andReturn(entity).anyTimes();
@@ -344,16 +359,28 @@ public class AlertDefinitionResourceProviderTest {
     requestProps = new HashMap<String, Object>();
     requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_ID, "1");
     requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_CLUSTER_NAME, "c1");
-    requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_INTERVAL, "1");
-    requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_NAME, "my_def1");
+    requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_INTERVAL, "2");
+    requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_NAME, "my_def2");
+    requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_LABEL, "Label 2");
     requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_SERVICE_NAME, "HDFS");
     requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_SOURCE_TYPE, "METRIC");
+
+    requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_SOURCE,
+        sourceString.replaceAll("CPU", "CPU2"));
+
+    requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_ENABLED,
+        Boolean.FALSE.toString());
+
     request = PropertyHelper.getUpdateRequest(requestProps, null);
 
     provider.updateResources(request, p);
 
     Assert.assertFalse(oldHash.equals(entity.getHash()));
     Assert.assertFalse(oldName.equals(entity.getDefinitionName()));
+    Assert.assertFalse(oldInterval.equals(entity.getScheduleInterval()));
+    Assert.assertFalse(oldEnabled == entity.getEnabled());
+    Assert.assertFalse(oldSource.equals(entity.getSource()));
+    Assert.assertTrue(entity.getSource().contains("CPU2"));
 
     verify(amc, clusters, cluster, dao);
   }

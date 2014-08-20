@@ -50,6 +50,7 @@ import org.apache.ambari.server.state.alert.AlertDefinition;
 import org.apache.ambari.server.state.alert.AlertDefinitionHash;
 import org.apache.ambari.server.state.alert.Scope;
 import org.apache.ambari.server.state.alert.SourceType;
+import org.apache.commons.lang.StringUtils;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -136,7 +137,9 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
 
     String clusterName = null;
     for (Map<String, Object> requestMap : requestMaps) {
-      entities.add(toCreateEntity(requestMap));
+      AlertDefinitionEntity entity = new AlertDefinitionEntity();
+      populateEntity(entity, requestMap);
+      entities.add(entity);
 
       if (null == clusterName) {
         clusterName = (String) requestMap.get(ALERT_DEF_CLUSTER_NAME);
@@ -153,122 +156,6 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
 
     // build alert definition commands for all agent hosts affected
     enqueueAgentCommands(clusterName, invalidatedHosts);
-  }
-
-  private AlertDefinitionEntity toCreateEntity(Map<String, Object> requestMap)
-    throws AmbariException {
-
-    String clusterName = (String) requestMap.get(ALERT_DEF_CLUSTER_NAME);
-
-    if (null == clusterName || clusterName.isEmpty()) {
-      throw new IllegalArgumentException("Invalid argument, cluster name is required");
-    }
-
-    if (!requestMap.containsKey(ALERT_DEF_INTERVAL)) {
-      throw new IllegalArgumentException("Check interval must be specified");
-    }
-
-    Integer interval = Integer.valueOf((String) requestMap.get(ALERT_DEF_INTERVAL));
-
-    if (!requestMap.containsKey(ALERT_DEF_NAME)) {
-      throw new IllegalArgumentException("Definition name must be specified");
-    }
-
-    if (!requestMap.containsKey(ALERT_DEF_SERVICE_NAME)) {
-      throw new IllegalArgumentException("Service name must be specified");
-    }
-
-    if (!requestMap.containsKey(ALERT_DEF_SOURCE_TYPE)) {
-      throw new IllegalArgumentException(String.format(
-          "Source type must be specified and one of %s", EnumSet.allOf(
-              SourceType.class)));
-    }
-
-    // !!! Alert structures contain nested objects; reconstruct a valid
-    // JSON from the flat, exploded properties so that a Source instance can
-    // be properly persisted
-    JsonObject source = new JsonObject();
-    JsonObject reporting = new JsonObject();
-    JsonObject reportingOk = new JsonObject();
-    JsonObject reportingWarning = new JsonObject();
-    JsonObject reportingCritical = new JsonObject();
-
-    for (Entry<String, Object> entry : requestMap.entrySet()) {
-      String propCat = PropertyHelper.getPropertyCategory(entry.getKey());
-      String propName = PropertyHelper.getPropertyName(entry.getKey());
-
-      if (propCat.equals(ALERT_DEF) && "source".equals(propName)) {
-        source.addProperty(propName, entry.getValue().toString());
-      }
-
-      if (propCat.equals(ALERT_DEF_SOURCE)) {
-        source.addProperty(propName, entry.getValue().toString());
-      }
-
-      if (propCat.equals(ALERT_DEF_SOURCE_REPORTING)) {
-        reporting.addProperty(propName, entry.getValue().toString());
-      }
-
-      if (propCat.equals(ALERT_DEF_SOURCE_REPORTING_OK)) {
-        reportingOk.addProperty(propName, entry.getValue().toString());
-      }
-
-      if (propCat.equals(ALERT_DEF_SOURCE_REPORTING_WARNING)) {
-        reportingWarning.addProperty(propName, entry.getValue().toString());
-      }
-
-      if (propCat.equals(ALERT_DEF_SOURCE_REPORTING_CRITICAL)) {
-        reportingCritical.addProperty(propName, entry.getValue().toString());
-      }
-    }
-
-    if (0 == source.entrySet().size()) {
-      throw new IllegalArgumentException("Source must be specified");
-    }
-
-    if (reportingOk.entrySet().size() > 0) {
-      reporting.add("ok", reportingOk);
-    }
-
-    if (reportingWarning.entrySet().size() > 0) {
-      reporting.add("warning", reportingWarning);
-    }
-
-    if (reportingCritical.entrySet().size() > 0) {
-      reporting.add("critical", reportingCritical);
-    }
-
-    if (reporting.entrySet().size() > 0) {
-      source.add("reporting", reporting);
-    }
-
-    Cluster cluster = getManagementController().getClusters().getCluster(clusterName);
-
-    AlertDefinitionEntity entity = new AlertDefinitionEntity();
-    entity.setClusterId(Long.valueOf(cluster.getClusterId()));
-    entity.setComponentName((String) requestMap.get(ALERT_DEF_COMPONENT_NAME));
-    entity.setDefinitionName((String) requestMap.get(ALERT_DEF_NAME));
-    entity.setLabel((String) requestMap.get(ALERT_DEF_LABEL));
-
-    boolean enabled = requestMap.containsKey(ALERT_DEF_ENABLED) ?
-        Boolean.parseBoolean((String)requestMap.get(ALERT_DEF_ENABLED)) : true;
-
-    entity.setEnabled(enabled);
-    entity.setHash(UUID.randomUUID().toString());
-    entity.setScheduleInterval(interval);
-    entity.setServiceName((String) requestMap.get(ALERT_DEF_SERVICE_NAME));
-    entity.setSourceType((String) requestMap.get(ALERT_DEF_SOURCE_TYPE));
-    entity.setSource(source.toString());
-
-    Scope scope = null;
-    String desiredScope = (String) requestMap.get(ALERT_DEF_SCOPE);
-    if (null != desiredScope && desiredScope.length() > 0) {
-      scope = Scope.valueOf(desiredScope);
-    }
-
-    entity.setScope(scope);
-
-    return entity;
   }
 
   @Override
@@ -343,51 +230,14 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
           }
         }
 
-        if (propertyMap.containsKey(ALERT_DEF_NAME)) {
-          entity.setDefinitionName((String) propertyMap.get(ALERT_DEF_NAME));
+        try{
+          populateEntity(entity, propertyMap);
+          alertDefinitionDAO.merge(entity);
+          invalidatedHosts.addAll(alertDefinitionHash.invalidateHosts(entity));
         }
-
-        if (propertyMap.containsKey(ALERT_DEF_ENABLED)) {
-          entity.setEnabled(Boolean.parseBoolean(
-              (String) propertyMap.get(ALERT_DEF_ENABLED)));
+        catch( AmbariException ae ){
+          LOG.error("Unable to find cluster when updating alert definition", ae);
         }
-
-        if (propertyMap.containsKey(ALERT_DEF_INTERVAL)) {
-          entity.setScheduleInterval(Integer.valueOf(
-              (String) propertyMap.get(ALERT_DEF_INTERVAL)));
-        }
-
-        if (propertyMap.containsKey(ALERT_DEF_SCOPE)){
-          Scope scope = null;
-          String desiredScope = (String) propertyMap.get(ALERT_DEF_SCOPE);
-
-          if (null != desiredScope && desiredScope.length() > 0) {
-            scope = Scope.valueOf((desiredScope));
-          }
-
-          entity.setScope(scope);
-        }
-
-
-        if (propertyMap.containsKey(ALERT_DEF_SOURCE_TYPE)) {
-          entity.setSourceType((String) propertyMap.get(ALERT_DEF_SOURCE_TYPE));
-        }
-
-        JsonObject jsonObj = new JsonObject();
-
-        for (Entry<String, Object> entry : propertyMap.entrySet()) {
-          String propCat = PropertyHelper.getPropertyCategory(entry.getKey());
-          String propName = PropertyHelper.getPropertyName(entry.getKey());
-
-          if (propCat.equals(ALERT_DEF_SOURCE)) {
-            jsonObj.addProperty(propName, entry.getValue().toString());
-          }
-        }
-
-        entity.setHash(UUID.randomUUID().toString());
-
-        alertDefinitionDAO.merge(entity);
-        invalidatedHosts.addAll(alertDefinitionHash.invalidateHosts(entity));
       }
     }
 
@@ -440,7 +290,180 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
 
     notifyDelete(Resource.Type.AlertDefinition, predicate);
     return getRequestStatus(null);
+  }
 
+  /**
+   * Merges the map of properties into the specified entity. If the entity is
+   * being created, an {@link IllegalArgumentException} is thrown when a
+   * required property is absent. When updating, missing properties are assume
+   * to not have changed.
+   * 
+   * @param entity
+   *          the entity to merge the properties into (not {@code null}).
+   * @param requestMap
+   *          the map of properties (not {@code null}).
+   * @throws AmbariException
+   */
+  private void populateEntity(AlertDefinitionEntity entity,
+      Map<String, Object> requestMap) throws AmbariException {
+
+    // some fields are required on creation; on update we keep what's there
+    boolean bCreate = true;
+    if (null != entity.getDefinitionId()) {
+      bCreate = false;
+    }
+
+    String clusterName = (String) requestMap.get(ALERT_DEF_CLUSTER_NAME);
+    String definitionName = (String) requestMap.get(ALERT_DEF_NAME);
+    String serviceName = (String) requestMap.get(ALERT_DEF_SERVICE_NAME);
+    String componentName = (String) requestMap.get(ALERT_DEF_COMPONENT_NAME);
+    String sourceType = (String) requestMap.get(ALERT_DEF_SOURCE_TYPE);
+    String label = (String) requestMap.get(ALERT_DEF_LABEL);
+    String desiredScope = (String) requestMap.get(ALERT_DEF_SCOPE);
+
+    Integer interval = null;
+    if (requestMap.containsKey(ALERT_DEF_INTERVAL)) {
+      interval = Integer.valueOf((String) requestMap.get(ALERT_DEF_INTERVAL));
+    }
+
+    Boolean enabled = null;
+    if (requestMap.containsKey(ALERT_DEF_ENABLED)) {
+      enabled = Boolean.parseBoolean((String) requestMap.get(ALERT_DEF_ENABLED));
+    } else if (bCreate) {
+      enabled = Boolean.TRUE;
+    }
+
+    Scope scope = null;
+    if (null != desiredScope && desiredScope.length() > 0) {
+      scope = Scope.valueOf(desiredScope);
+    }
+
+    if (StringUtils.isEmpty(clusterName)) {
+      throw new IllegalArgumentException(
+          "Invalid argument, cluster name is required");
+    }
+
+    if (bCreate && !requestMap.containsKey(ALERT_DEF_INTERVAL)) {
+      throw new IllegalArgumentException("Check interval must be specified");
+    }
+
+    if (bCreate && StringUtils.isEmpty(definitionName)) {
+      throw new IllegalArgumentException("Definition name must be specified");
+    }
+
+    if (bCreate && StringUtils.isEmpty(serviceName)) {
+      throw new IllegalArgumentException("Service name must be specified");
+    }
+
+    if (bCreate && StringUtils.isEmpty(sourceType)) {
+      throw new IllegalArgumentException(String.format(
+          "Source type must be specified and one of %s",
+          EnumSet.allOf(SourceType.class)));
+    }
+
+    // !!! Alert structures contain nested objects; reconstruct a valid
+    // JSON from the flat, exploded properties so that a Source instance can
+    // be properly persisted
+    JsonObject source = new JsonObject();
+    JsonObject reporting = new JsonObject();
+    JsonObject reportingOk = new JsonObject();
+    JsonObject reportingWarning = new JsonObject();
+    JsonObject reportingCritical = new JsonObject();
+
+    for (Entry<String, Object> entry : requestMap.entrySet()) {
+      String propCat = PropertyHelper.getPropertyCategory(entry.getKey());
+      String propName = PropertyHelper.getPropertyName(entry.getKey());
+
+      if (propCat.equals(ALERT_DEF) && "source".equals(propName)) {
+        source.addProperty(propName, entry.getValue().toString());
+      }
+
+      if (propCat.equals(ALERT_DEF_SOURCE)) {
+        source.addProperty(propName, entry.getValue().toString());
+      }
+
+      if (propCat.equals(ALERT_DEF_SOURCE_REPORTING)) {
+        reporting.addProperty(propName, entry.getValue().toString());
+      }
+
+      if (propCat.equals(ALERT_DEF_SOURCE_REPORTING_OK)) {
+        reportingOk.addProperty(propName, entry.getValue().toString());
+      }
+
+      if (propCat.equals(ALERT_DEF_SOURCE_REPORTING_WARNING)) {
+        reportingWarning.addProperty(propName, entry.getValue().toString());
+      }
+
+      if (propCat.equals(ALERT_DEF_SOURCE_REPORTING_CRITICAL)) {
+        reportingCritical.addProperty(propName, entry.getValue().toString());
+      }
+    }
+
+    if (reportingOk.entrySet().size() > 0) {
+      reporting.add("ok", reportingOk);
+    }
+
+    if (reportingWarning.entrySet().size() > 0) {
+      reporting.add("warning", reportingWarning);
+    }
+
+    if (reportingCritical.entrySet().size() > 0) {
+      reporting.add("critical", reportingCritical);
+    }
+
+    if (reporting.entrySet().size() > 0) {
+      source.add("reporting", reporting);
+    }
+
+    if (bCreate && 0 == source.entrySet().size()) {
+      throw new IllegalArgumentException("Source must be specified");
+    }
+
+    Cluster cluster = getManagementController().getClusters().getCluster(
+        clusterName);
+
+    // at this point, we have either validated all required properties or
+    // we are using the exiting entity properties where not defined, so we
+    // can do simply null checks
+    entity.setClusterId(Long.valueOf(cluster.getClusterId()));
+
+    if (null != componentName) {
+      entity.setComponentName(componentName);
+    }
+
+    if (null != definitionName) {
+      entity.setDefinitionName(definitionName);
+    }
+
+    if (null != label) {
+      entity.setLabel(label);
+    }
+
+    if (null != enabled) {
+      entity.setEnabled(enabled);
+    }
+
+    if (null != interval) {
+      entity.setScheduleInterval(interval);
+    }
+
+    if (null != serviceName) {
+      entity.setServiceName(serviceName);
+    }
+
+    if (null != sourceType) {
+      entity.setSourceType(sourceType);
+    }
+
+    if (null != source) {
+      entity.setSource(source.toString());
+    }
+
+    if (null != scope) {
+      entity.setScope(scope);
+    }
+
+    entity.setHash(UUID.randomUUID().toString());
   }
 
   private Resource toResource(boolean isCollection, String clusterName,
