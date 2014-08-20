@@ -46,18 +46,18 @@
             {{view.view_name}}
           </div>
           <div class="col-sm-3">{{view.versions}}</div>
-          <div class="col-sm-6">This is a description</div>
+          <div class="col-sm-6">{{view.description}}</div>
         </div>
       </accordion-heading>
-      <table class="table">
+      <table class="table instances-table">
         <tbody>
           <tr ng-repeat="instance in view.instances">
             <td class="col-sm-3"></td>
             <td class="col-sm-3">
               <a href="#/views/{{view.view_name}}/versions/{{instance.ViewInstanceInfo.version}}/instances/{{instance.ViewInstanceInfo.instance_name}}/edit" class="instance-link">{{instance.ViewInstanceInfo.label}}</a>
             </td>
-            <td class="col-sm-3">{{instance.ViewInstanceInfo.version}}</td>
-            <td class="col-sm-3">
+            <td class="col-sm-1">{{instance.ViewInstanceInfo.version}}</td>
+            <td class="col-sm-5 " ><div class="description-column" tooltip="{{instance.ViewInstanceInfo.description}}">{{instance.ViewInstanceInfo.description || 'No description'}}</div>
             </td>
           </tr>
         </tbody>

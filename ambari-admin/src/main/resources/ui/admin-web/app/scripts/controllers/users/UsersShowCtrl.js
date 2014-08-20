@@ -57,7 +57,6 @@ angular.module('ambariAdminConsole')
     $q.all(promises).then(function() {
       loadUserInfo();
     });
-    // $scope.user.user_groups = $scope.editingGroupsList.split(',');
     $scope.isGroupEditing = false;
   };
 
@@ -69,13 +68,19 @@ angular.module('ambariAdminConsole')
   $scope.openChangePwdDialog = function() {
     var modalInstance = $modal.open({
       templateUrl: 'views/users/modals/changePassword.html',
-      controller: ['$scope', function($scope) {
+      resolve: {
+        userName: function() {
+          return $scope.user.user_name;
+        }
+      },
+      controller: ['$scope', 'userName', function($scope, userName) {
         $scope.passwordData = {
           password: '',
           currentUserPassword: ''
         };
 
         $scope.form = {};
+        $scope.userName = userName;
 
         $scope.ok = function() {
           $scope.form.passwordChangeForm.submitted = true;

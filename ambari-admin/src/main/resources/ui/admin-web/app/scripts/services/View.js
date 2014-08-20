@@ -72,7 +72,7 @@ angular.module('ambariAdminConsole')
       }
     }
 
-    self.isOpened = !self.instances.length;
+    // self.isOpened = !self.instances.length;
     self.versionsList = item.versions;
   }
 
@@ -177,7 +177,8 @@ angular.module('ambariAdminConsole')
           visible: instanceInfo.visible,
           icon_path: instanceInfo.icon_path,
           icon64_path: instanceInfo.icon64_path,
-          properties: properties
+          properties: properties,
+          description: instanceInfo.description
         }
       }
     })
@@ -239,7 +240,7 @@ angular.module('ambariAdminConsole')
     var fields = [
       'versions/ViewVersionInfo/version',
       'versions/instances/ViewInstanceInfo',
-      'versions/ViewVersionInfo'
+      'versions/*'
     ];
 
     $http({
