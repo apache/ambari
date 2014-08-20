@@ -70,7 +70,7 @@ App.HostPopup = Em.Object.create({
 
   abortIcon: Em.View.extend({
     tagName: 'i',
-    classNames: ['abort-icon', 'icon-remove-circle'],
+    classNames: ['abort-icon', 'icon-remove-circle', 'pointer'],
     click: function () {
       this.get('controller').abortRequest(this.get('servicesInfo'));
       return false;
@@ -657,9 +657,9 @@ App.HostPopup = Em.Object.create({
       headerClass: Em.View.extend({
         controller: this,
         template: Ember.Handlebars.compile('{{popupHeaderName}} ' +
-            '{{#if App.supports.abortRequests}}{{#unless view.parentView.isHostListHidden}}' +
+            '{{#if App.supports.abortRequests}}{{#unless view.parentView.isHostListHidden}}{{#if controller.operationInfo.isAbortable}}' +
             '{{view controller.abortIcon servicesInfoBinding="controller.operationInfo"}}' +
-            '{{/unless}}{{/if}}')
+            '{{/if}}{{/unless}}{{/if}}')
       }),
 
       /**
