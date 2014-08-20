@@ -43,18 +43,23 @@ App.MainChartsHeatmapController = Em.Controller.extend({
           App.MainChartHeatmapCpuWaitIOMetric.create()
           /*, App.MainChartHeatmapProcessRunMetric.create()*/
         ]
-      }),
-      Em.Object.create({
-        label: Em.I18n.t('charts.heatmap.category.hdfs'),
-        category: 'hdfs',
-        items: [
-          App.MainChartHeatmapDFSBytesReadMetric.create(),
-          App.MainChartHeatmapDFSBytesWrittenMetric.create(),
-          App.MainChartHeatmapDFSGCTimeMillisMetric.create(),
-          App.MainChartHeatmapDFSMemHeapUsedMetric.create()
-        ]
       })
     ];
+
+    if (App.HDFSService.find().get('length')) {
+      metrics.push(
+        Em.Object.create({
+          label: Em.I18n.t('charts.heatmap.category.hdfs'),
+          category: 'hdfs',
+          items: [
+            App.MainChartHeatmapDFSBytesReadMetric.create(),
+            App.MainChartHeatmapDFSBytesWrittenMetric.create(),
+            App.MainChartHeatmapDFSGCTimeMillisMetric.create(),
+            App.MainChartHeatmapDFSMemHeapUsedMetric.create()
+          ]
+        })
+      );
+    }
 
     if (App.MapReduceService.find().get('length')) {
       metrics.push(
