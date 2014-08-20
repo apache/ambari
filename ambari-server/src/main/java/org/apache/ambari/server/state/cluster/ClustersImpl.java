@@ -28,6 +28,7 @@ import org.apache.ambari.server.DuplicateResourceException;
 import org.apache.ambari.server.HostNotFoundException;
 import org.apache.ambari.server.agent.DiskInfo;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ConfigGroupHostMappingDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
@@ -100,6 +101,8 @@ public class ClustersImpl implements Clusters {
   ClusterFactory clusterFactory;
   @Inject
   HostFactory hostFactory;
+  @Inject
+  Configuration configuration;
   @Inject
   AmbariMetaInfo ambariMetaInfo;
   @Inject
@@ -707,7 +710,8 @@ public class ClustersImpl implements Clusters {
       // do nothing
     }
 
-    return (cluster == null && readOnly) || checkPermission(cluster, readOnly);
+    return (cluster == null && readOnly) || !configuration.getApiAuthentication()
+      || checkPermission(cluster, readOnly);
   }
 
   /**
