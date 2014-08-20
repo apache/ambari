@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.view;
 
+import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
@@ -77,6 +78,7 @@ import org.apache.ambari.server.view.events.EventImpl;
 import org.apache.ambari.server.view.events.EventImplTest;
 import org.apache.ambari.view.events.Event;
 import org.apache.ambari.view.events.Listener;
+import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -259,8 +261,6 @@ public class ViewRegistryTest {
 
     expect(vDAO.findAll()).andReturn(Collections.<ViewEntity>emptyList());
 
-    expect(viDAO.merge(EasyMock.anyObject(ViewInstanceEntity.class))).andReturn(null).times(2);
-
     // replay mocks
     replay(configuration, viewDir, extractedArchiveDir, viewArchive, archiveDir, entryFile, classesDir,
         libDir, fileEntry, viewJarFile, enumeration, jarEntry, is, fos, rDAO, vDAO, viDAO);
@@ -380,7 +380,7 @@ public class ViewRegistryTest {
     expect(fileEntry.toURI()).andReturn(new URI("file:./"));
 
     expect(vDAO.findAll()).andReturn(Collections.<ViewEntity>emptyList());
-    expect(vDAO.findByName("MY_VIEW{1.0.0}")).andReturn(viewDefinition);
+    expect(vDAO.findByName("MY_VIEW{1.0.0}")).andThrow(new IllegalArgumentException("Expected exception."));
 
     // replay mocks
     replay(configuration, viewDir, extractedArchiveDir, viewArchive, archiveDir, entryFile, classesDir,
@@ -649,7 +649,6 @@ public class ViewRegistryTest {
     ViewInstanceEntity viewInstanceEntity = getViewInstanceEntity(viewEntity, config.getInstances().get(0));
     ViewInstanceEntity updateInstance = getViewInstanceEntity(viewEntity, config.getInstances().get(0));
 
-    expect(viewInstanceDAO.merge(viewInstanceEntity)).andReturn(null);
     expect(viewInstanceDAO.merge(viewInstanceEntity)).andReturn(viewInstanceEntity);
     expect(viewInstanceDAO.findByName("MY_VIEW{1.0.0}", viewInstanceEntity.getInstanceName())).andReturn(viewInstanceEntity);
 

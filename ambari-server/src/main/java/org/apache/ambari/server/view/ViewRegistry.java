@@ -469,11 +469,7 @@ public class ViewRegistry {
 
         ResourceTypeEntity resourceTypeEntity = resourceTypeDAO.findByName(ViewEntity.getViewName(viewName, version));
         // create an admin resource to represent this view instance
-        ResourceEntity resourceEntity = new ResourceEntity();
-        resourceEntity.setResourceType(resourceTypeEntity);
-        resourceDAO.create(resourceEntity);
-
-        instanceEntity.setResource(resourceEntity);
+        instanceEntity.setResource(createViewInstanceResource(resourceTypeEntity));
 
         instanceDAO.merge(instanceEntity);
 
@@ -519,29 +515,8 @@ public class ViewRegistry {
     ViewEntity viewEntity = getDefinition(instanceEntity.getViewName());
 
     if (viewEntity != null) {
-      String instanceName = instanceEntity.getName();
-      String viewName     = viewEntity.getCommonName();
-      String version      = viewEntity.getVersion();
-
-      ViewInstanceEntity entity = getInstanceDefinition(viewName, version, instanceName);
-
-      if (entity != null) {
-        if (entity.isXmlDriven()) {
-          throw new IllegalStateException("View instances defined via xml can't be updated through api requests");
-        }
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("Updating view instance " + viewName + "/" +
-              version + "/" + instanceName);
-        }
-        entity.setLabel(instanceEntity.getLabel());
-        entity.setDescription(instanceEntity.getDescription());
-        entity.setVisible(instanceEntity.isVisible());
-        entity.setProperties(instanceEntity.getProperties());
-        entity.setData(instanceEntity.getData());
-
-        instanceEntity.validate(viewEntity);
-        instanceDAO.merge(entity);
-      }
+      instanceEntity.validate(viewEntity);
+      instanceDAO.merge(instanceEntity);
     }
   }
 
@@ -725,7 +700,6 @@ public class ViewRegistry {
    * based on the permissions granted to the current user.
    *
    * @param definitionEntity  the view definition entity
-   * @param readOnly        indicate whether or not this is for a read only operation
    *
    * @return true if the view instance should be included based on the permissions of the current user
    */
@@ -1044,16 +1018,18 @@ public class ViewRegistry {
    * Sync given view with data in DB. Ensures that view data in DB is updated,
    * all instances changes from xml config are reflected to DB
    *
-   * @param view view config from xml
-   * @param instanceDefinitions view instances from xml
-   * @throws Exception
+   * @param view                 view config from xml
+   * @param instanceDefinitions  view instances from xml
+   *
+   * @throws Exception if the view can not be synced
    */
   private void syncView(ViewEntity view,
                         Set<ViewInstanceEntity> instanceDefinitions)
       throws Exception {
-    String viewName = view.getName();
 
-    ViewEntity persistedView = viewDAO.findByName(viewName);
+    String             viewName      = view.getName();
+    ViewEntity         persistedView = viewDAO.findByName(viewName);
+    ResourceTypeEntity resourceType  = view.getResourceType();
 
     // if the view is not yet persisted ...
     if (persistedView == null) {
@@ -1064,29 +1040,15 @@ public class ViewRegistry {
       // get or create an admin resource type to represent this view
       ResourceTypeEntity resourceTypeEntity = resourceTypeDAO.findByName(viewName);
       if (resourceTypeEntity == null) {
-        resourceTypeEntity = view.getResourceType();
+        resourceTypeEntity = resourceType;
         resourceTypeDAO.create(resourceTypeEntity);
       }
 
       for( ViewInstanceEntity instance : view.getInstances()) {
-
-        // create an admin resource to represent this view instance
-        ResourceEntity resourceEntity = new ResourceEntity();
-        resourceEntity.setResourceType(view.getResourceType());
-        resourceDAO.create(resourceEntity);
-
-        instance.setResource(resourceEntity);
+        instance.setResource(createViewInstanceResource(resourceType));
       }
-      // ... merge it
-      viewDAO.merge(view);
-
-      persistedView = viewDAO.findByName(viewName);
-      if (persistedView == null) {
-        String message = "View  " + viewName + " can not be found.";
-
-        LOG.error(message);
-        throw new IllegalStateException(message);
-      }
+      // ... merge the view
+      persistedView = viewDAO.merge(view);
     }
 
     Map<String, ViewInstanceEntity> xmlInstanceEntityMap = new HashMap<String, ViewInstanceEntity>();
@@ -1099,60 +1061,44 @@ public class ViewRegistry {
 
     // make sure that each instance of the view in the db is reflected in the given view
     for (ViewInstanceEntity persistedInstance : persistedView.getInstances()){
-      String instanceName = persistedInstance.getName();
 
-      ViewInstanceEntity instance =
-          view.getInstanceDefinition(instanceName);
+      String             instanceName = persistedInstance.getName();
+      ViewInstanceEntity instance     = view.getInstanceDefinition(instanceName);
 
-      if (persistedInstance.isXmlDriven() && !xmlInstanceEntityMap.containsKey(instanceName)) {
-        instanceDAO.remove(persistedInstance);
-        xmlInstanceEntityMap.remove(instanceName);
-        continue;
-      }
       xmlInstanceEntityMap.remove(instanceName);
 
-      // if the persisted instance is not in the registry ...
+      // if the persisted instance is not in the view ...
       if (instance == null) {
-        // ... create and add it
-        instance = new ViewInstanceEntity(view, instanceName);
-        bindViewInstance(view, instance);
-        instanceDefinitions.add(instance);
-      }
-      instance.setViewInstanceId(persistedInstance.getViewInstanceId());
-
-      if (instance.isXmlDriven()) {
-        // override db data with data from {@InstanceConfig}
-        persistedInstance.setLabel(instance.getLabel());
-        persistedInstance.setDescription(instance.getDescription());
-        persistedInstance.setVisible(instance.isVisible());
-        persistedInstance.setIcon(instance.getIcon());
-        persistedInstance.setIcon64(instance.getIcon64());
-        persistedInstance.setProperties(instance.getProperties());
-
-        instanceDAO.merge(persistedInstance);
+        if (persistedInstance.isXmlDriven()) {
+          // this instance was persisted from an earlier view.xml but has been removed...
+          // remove it from the db
+          instanceDAO.remove(persistedInstance);
+        } else {
+          // this instance was not specified in the view.xml but was added through the API...
+          // bind it to the view and add it to the registry
+          instanceDAO.merge(persistedInstance);
+          bindViewInstance(view, persistedInstance);
+          instanceDefinitions.add(persistedInstance);
+        }
       } else {
-        // apply the persisted overrides to the in-memory instance
-        view.removeInstanceDefinition(instanceName);
-        view.addInstanceDefinition(persistedInstance);
+        instance.setResource(persistedInstance.getResource());
       }
-
-      instance.setResource(persistedInstance.getResource());
     }
 
-    // these instances appear in the archive but not present in the db... add
-    // them to db and registry
+    // these instances appear in the view.xml but are not present in the db...
+    // add them to db
     for (ViewInstanceEntity instance : xmlInstanceEntityMap.values()) {
-      // create an admin resource to represent this view instance
-      ResourceEntity resourceEntity = new ResourceEntity();
-      resourceEntity.setResourceType(view.getResourceType());
-      resourceDAO.create(resourceEntity);
-      instance.setResource(resourceEntity);
-
+      instance.setResource(createViewInstanceResource(resourceType));
       instanceDAO.merge(instance);
-      bindViewInstance(view, instance);
-      instanceDefinitions.add(instance);
     }
+  }
 
+  // create an admin resource to represent a view instance
+  private ResourceEntity createViewInstanceResource(ResourceTypeEntity resourceTypeEntity) {
+    ResourceEntity resourceEntity = new ResourceEntity();
+    resourceEntity.setResourceType(resourceTypeEntity);
+    resourceDAO.create(resourceEntity);
+    return resourceEntity;
   }
 
   // ensure that the extracted view archive directory exists
