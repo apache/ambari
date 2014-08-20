@@ -38,6 +38,7 @@ public class StackServiceResponse {
   private List<String> customCommands;
 
   private Map<String, Map<String, Map<String, String>>> configTypes;
+  private List<String> requiredServices;
 
   /**
    * Constructor.
@@ -51,6 +52,7 @@ public class StackServiceResponse {
     comments = service.getComment();
     serviceVersion = service.getVersion();
     configTypes = service.getConfigTypes();
+    requiredServices = service.getRequiredServices();
     serviceCheckSupported = null != service.getCommandScript();
 
     // the custom command names defined at the service (not component) level
@@ -115,6 +117,14 @@ public class StackServiceResponse {
 
   public Map<String, Map<String, Map<String, String>>> getConfigTypes() {
     return configTypes;
+  }
+  
+  public List<String> getRequiredServices() {
+    return requiredServices;
+  }
+
+  public void setRequiredServices(List<String> requiredServices) {
+    this.requiredServices = requiredServices;
   }
 
   /**

@@ -126,6 +126,11 @@
         <scriptType>PYTHON</scriptType>
         <timeout>300</timeout>
       </commandScript>
+      
+      <requiredServices>
+        <service>HDFS</service>
+        <service>TEZ</service>
+      </requiredServices>
 
       <configuration-dependencies>
         <config-type>yarn-site</config-type>
@@ -210,6 +215,10 @@
         <scriptType>PYTHON</scriptType>
         <timeout>300</timeout>
       </commandScript>
+      
+      <requiredServices>
+        <service>YARN</service>
+      </requiredServices>
 
       <configuration-dir>configuration-mapred</configuration-dir>
 

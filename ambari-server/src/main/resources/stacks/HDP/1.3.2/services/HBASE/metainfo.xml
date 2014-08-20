@@ -127,6 +127,11 @@
         <scriptType>PYTHON</scriptType>
         <timeout>300</timeout>
       </commandScript>
+      
+      <requiredServices>
+        <service>HDFS</service>
+        <service>ZOOKEEPER</service>
+      </requiredServices>
 
       <configuration-dependencies>
         <config-type>hbase-policy</config-type>

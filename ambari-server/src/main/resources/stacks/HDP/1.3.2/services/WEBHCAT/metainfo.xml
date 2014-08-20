@@ -86,6 +86,12 @@
         <scriptType>PYTHON</scriptType>
         <timeout>300</timeout>
       </commandScript>
+      
+      <requiredServices>
+        <service>ZOOKEEPER</service>
+        <service>HIVE</service>
+      </requiredServices>
+      
       <configuration-dependencies>
         <config-type>webhcat-site</config-type>
         <config-type>webhcat-env</config-type>

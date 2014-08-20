@@ -61,6 +61,9 @@ public class StackServiceResourceProvider extends ReadOnlyResourceProvider {
 
   private static final String CONFIG_TYPES = PropertyHelper.getPropertyId(
       "StackServices", "config_types");
+  
+  private static final String REQUIRED_SERVICES_ID = PropertyHelper.getPropertyId(
+      "StackServices", "required_services");
 
   private static final String SERVICE_CHECK_SUPPORTED_PROPERTY_ID = PropertyHelper.getPropertyId(
       "StackServices", "service_check_supported");
@@ -127,6 +130,9 @@ public class StackServiceResourceProvider extends ReadOnlyResourceProvider {
 
       setResourceProperty(resource, CONFIG_TYPES,
           response.getConfigTypes(), requestedIds);
+      
+      setResourceProperty(resource, REQUIRED_SERVICES_ID,
+          response.getRequiredServices(), requestedIds);
 
       setResourceProperty(resource, SERVICE_CHECK_SUPPORTED_PROPERTY_ID,
           response.isServiceCheckSupported(), requestedIds);

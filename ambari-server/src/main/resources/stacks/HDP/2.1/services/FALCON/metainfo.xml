@@ -84,6 +84,10 @@
         <scriptType>PYTHON</scriptType>
         <timeout>300</timeout>
       </commandScript>
+      
+      <requiredServices>
+        <service>OOZIE</service>
+      </requiredServices>
 
       <configuration-dependencies>
         <config-type>falcon-env</config-type>

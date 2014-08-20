@@ -56,6 +56,10 @@
           </packages>
         </osSpecific>
       </osSpecifics>
+      
+      <requiredServices>
+        <service>YARN</service>
+      </requiredServices>
 
       <configuration-dependencies>
         <config-type>tez-site</config-type>

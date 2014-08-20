@@ -133,7 +133,10 @@ public class ServiceInfo {
   @XmlElementWrapper(name="customCommands")
   @XmlElements(@XmlElement(name="customCommand"))
   private List<CustomCommandDefinition> customCommands;
-
+  
+  @XmlElementWrapper(name="requiredServices")
+  @XmlElement(name="service")
+  private List<String> requiredServices;
 
   /**
    * Meaning: stores subpath from stack root to exact directory, that contains
@@ -175,7 +178,13 @@ public class ServiceInfo {
   public void setComment(String comment) {
     this.comment = comment;
   }
+  public List<String> getRequiredServices() {
+    return requiredServices;
+  }
 
+  public void setRequiredServices(List<String> requiredServices) {
+    this.requiredServices = requiredServices;
+  }
   public List<PropertyInfo> getProperties() {
     if (properties == null) properties = new ArrayList<PropertyInfo>();
     return properties;

@@ -77,6 +77,11 @@
         <scriptType>PYTHON</scriptType>
         <timeout>300</timeout>
       </commandScript>
+      
+      <requiredServices>
+        <service>HDFS</service>
+      </requiredServices>
+      
       <configuration-dependencies>
         <config-type>sqoop-env</config-type>
       </configuration-dependencies>

@@ -201,6 +201,10 @@
         <scriptType>PYTHON</scriptType>
         <timeout>300</timeout>
       </commandScript>
+      
+      <requiredServices>
+        <service>ZOOKEEPER</service>
+      </requiredServices>
 
       <configuration-dependencies>
         <config-type>core-site</config-type>

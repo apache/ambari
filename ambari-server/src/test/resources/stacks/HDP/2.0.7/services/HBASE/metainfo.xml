@@ -112,6 +112,10 @@
         <scriptType>PYTHON</scriptType>
         <timeout>50</timeout>
       </commandScript>
+      <requiredServices>
+        <service>HDFS</service>
+        <service>TEZ</service>
+      </requiredServices>
       <configuration-dependencies>
         <config-type>global</config-type>
         <config-type>hbase-policy</config-type>

@@ -147,6 +147,11 @@
         <scriptType>PYTHON</scriptType>
         <timeout>300</timeout>
       </commandScript>
+      
+      <requiredServices>
+        <service>MAPREDUCE</service>
+        <service>ZOOKEEPER</service>
+      </requiredServices>
 
       <configuration-dependencies>
         <config-type>hive-site</config-type>
@@ -185,6 +190,10 @@
         <scriptType>PYTHON</scriptType>
         <timeout>300</timeout>
       </commandScript>
+      
+      <requiredServices>
+        <service>HIVE</service>
+      </requiredServices>
 
       <configuration-dependencies>
         <config-type>hive-site</config-type>

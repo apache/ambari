@@ -62,6 +62,10 @@
         <scriptType>PYTHON</scriptType>
         <timeout>300</timeout>
       </commandScript>
+      
+      <requiredServices>
+        <service>MAPREDUCE</service>
+      </requiredServices>
 
       <configuration-dependencies>
         <config-type>pig-env</config-type>

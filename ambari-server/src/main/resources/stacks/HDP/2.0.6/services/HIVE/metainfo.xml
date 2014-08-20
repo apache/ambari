@@ -159,6 +159,12 @@
         <scriptType>PYTHON</scriptType>
         <timeout>300</timeout>
       </commandScript>
+      
+      <requiredServices>
+        <service>ZOOKEEPER</service>
+        <service>YARN</service>
+        <service>TEZ</service>
+      </requiredServices>
 
       <configuration-dependencies>
         <config-type>hive-site</config-type>
@@ -200,6 +206,11 @@
         <scriptType>PYTHON</scriptType>
         <timeout>300</timeout>
       </commandScript>
+      
+      <requiredServices>
+        <service>HIVE</service>
+      </requiredServices>
+      
       <configuration-dependencies>
         <config-type>hive-site</config-type>
         <config-type>hive-env</config-type>

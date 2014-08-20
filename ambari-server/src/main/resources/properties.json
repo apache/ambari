@@ -229,6 +229,7 @@
         "StackServices/config_types",
         "StackServices/service_check_supported",
         "StackServices/custom_commands",
+        "StackServices/required_services",
         "_"
     ],
     "StackConfiguration":[

@@ -146,6 +146,10 @@
         <scriptType>PYTHON</scriptType>
         <timeout>300</timeout>
       </commandScript>
+      
+      <requiredServices>
+        <service>YARN</service>
+      </requiredServices>
 
       <configuration-dependencies>
         <config-type>oozie-site</config-type>

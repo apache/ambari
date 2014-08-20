@@ -75,6 +75,10 @@
           <dictionaryName>pig-env</dictionaryName>
         </configFile>
       </configFiles>
+      
+      <requiredServices>
+        <service>YARN</service>
+      </requiredServices>
 
       <configuration-dependencies>
         <config-type>pig-env</config-type>

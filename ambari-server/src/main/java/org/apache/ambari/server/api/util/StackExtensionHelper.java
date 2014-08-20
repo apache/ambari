@@ -156,6 +156,13 @@ public class StackExtensionHelper {
           parentService.getExcludedConfigTypes() :
           Collections.<String>emptySet()
     );
+    mergedServiceInfo.setRequiredServices(
+        childService.getRequiredServices() != null ?
+          childService.getRequiredServices() :
+          parentService.getRequiredServices() != null ?
+            parentService.getRequiredServices() :
+            Collections.<String>emptyList()
+      );
     
     mergedServiceInfo.setRestartRequiredAfterChange(
             (childService.isRestartRequiredAfterChange() != null) 

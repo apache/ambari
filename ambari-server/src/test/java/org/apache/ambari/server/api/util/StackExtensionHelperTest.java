@@ -280,6 +280,31 @@ public class StackExtensionHelperTest {
       }
     }
   }
+  
+  @Test
+  public void testrequiredServicesPropertyInheritance() throws Exception{
+    File stackRoot = new File(stackRootStr);
+    StackInfo stackInfo = new StackInfo();
+    stackInfo.setName("HDP");
+    stackInfo.setVersion("2.0.7");
+    StackExtensionHelper helper = new StackExtensionHelper(injector, stackRoot);
+    helper.populateServicesForStack(stackInfo);
+    helper.fillInfo();
+    List<ServiceInfo> allServices = helper.getAllApplicableServices(stackInfo);
+    assertEquals(13, allServices.size());
+    
+    List<String> expectedRequiredServices = new ArrayList<String>();
+    expectedRequiredServices.add("HDFS");
+    expectedRequiredServices.add("TEZ");
+    
+    for (ServiceInfo serviceInfo : allServices) {
+      if (serviceInfo.getName().equals("HBASE")) {
+        assertTrue(serviceInfo.getRequiredServices().equals(expectedRequiredServices));
+      } else {
+        assertTrue((serviceInfo.getRequiredServices() == null || serviceInfo.getRequiredServices().isEmpty()));
+      }
+    }
+  }
 
   @Test
   public void getSchemaVersion() throws Exception {
