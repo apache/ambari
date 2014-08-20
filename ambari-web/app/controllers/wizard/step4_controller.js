@@ -88,15 +88,6 @@ App.WizardStep4Controller = Em.ArrayController.extend({
   },
 
   /**
-   * Check whether we should turn on <code>HDFS or GLUSTERFS</code> service
-   * @return {bool}
-   * @method noDFSs
-   */
-  noDFSs: function () {
-    return  !this.filterProperty('isDFS',true).someProperty('isSelected',true);
-  },
-
-  /**
    * Check if multiple distributed file systems were selected
    * @return {bool}
    * @method multipleDFSs
@@ -241,14 +232,7 @@ App.WizardStep4Controller = Em.ArrayController.extend({
     var primaryDFS = this.findProperty('isPrimaryDFS',true);
     var primaryDfsDisplayName = primaryDFS.get('displayNameOnSelectServicePage');
     var primaryDfsServiceName = primaryDFS.get('serviceName');
-     if (this.noDFSs()) {
-       this.addValidationError({
-         id: 'fsCheck',
-         callback: this.needToAddServicePopup,
-         callbackParams: [{serviceName: primaryDfsServiceName, selected: true},'fsCheck', primaryDfsDisplayName]
-       });
-     }
-     else if (this.multipleDFSs()) {
+     if (this.multipleDFSs()) {
        var dfsServices = this.filterProperty('isDFS',true).filterProperty('isSelected',true).mapProperty('serviceName');
        var services = dfsServices.map(function (item){
          return  {
