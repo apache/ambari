@@ -366,28 +366,6 @@ module.exports = Em.Route.extend({
       }
     }),
 
-    adminHighAvailability: Em.Route.extend({
-      route: '/highAvailability',
-      enter: function (router) {
-        Em.run.next(function () {
-          router.transitionTo('adminHighAvailability.index');
-        });
-      },
-      index: Ember.Route.extend({
-        route: '/',
-        connectOutlets: function (router, context) {
-          router.set('mainAdminController.category', "highAvailability");
-          router.get('mainAdminController').connectOutlet('mainAdminHighAvailability');
-        }
-      })
-    }),
-
-    enableHighAvailability: require('routes/high_availability_routes'),
-
-    rollbackHighAvailability: require('routes/rollbackHA_routes'),
-
-    enableRMHighAvailability: require('routes/rm_high_availability_routes'),
-
     adminSecurity: Em.Route.extend({
       route: '/security',
       enter: function (router) {
@@ -660,7 +638,13 @@ module.exports = Em.Route.extend({
     }),
     showService: Em.Router.transitionTo('service'),
     addService: Em.Router.transitionTo('serviceAdd'),
-    reassign: Em.Router.transitionTo('reassign')
+    reassign: Em.Router.transitionTo('reassign'),
+
+    enableHighAvailability: require('routes/high_availability_routes'),
+
+    enableRMHighAvailability: require('routes/rm_high_availability_routes'),
+
+    rollbackHighAvailability: require('routes/rollbackHA_routes')
   }),
 
   reassign: require('routes/reassign_master_routes'),

@@ -158,7 +158,7 @@ describe('App.MainAdminHighAvailabilityController', function () {
         return 3;
       });
       expect(controller.enableHighAvailability()).to.be.true;
-      expect(App.router.transitionTo.calledWith('main.admin.enableHighAvailability')).to.be.true;
+      expect(App.router.transitionTo.calledWith('main.services.enableHighAvailability')).to.be.true;
       expect(controller.showErrorPopup.calledOnce).to.be.false;
       App.router.get.restore();
       controller.get.restore();

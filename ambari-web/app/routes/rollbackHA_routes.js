@@ -47,7 +47,7 @@ module.exports = App.WizardRoute.extend({
           this.hide();
           App.router.get('rollbackHighAvailabilityWizardController').setCurrentStep('1');
           App.router.get('updateController').set('isWorking', true);
-          App.router.transitionTo('main.admin.adminHighAvailability');
+          App.router.transitionTo('main.services');
         },
         didInsertElement: function () {
           this.fitHeight();

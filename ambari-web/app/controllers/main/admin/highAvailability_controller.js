@@ -56,7 +56,7 @@ App.MainAdminHighAvailabilityController = Em.Controller.extend({
         return false;
       }
     }
-    App.router.transitionTo('main.admin.enableHighAvailability');
+    App.router.transitionTo('main.services.enableHighAvailability');
     return true;
   },
 
@@ -82,7 +82,7 @@ App.MainAdminHighAvailabilityController = Em.Controller.extend({
       this.showErrorPopup(message);
       return false;
     }
-    App.router.transitionTo('main.admin.enableRMHighAvailability');
+    App.router.transitionTo('main.services.enableRMHighAvailability');
     return true;
   },
 

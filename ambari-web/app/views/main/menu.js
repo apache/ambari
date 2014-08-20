@@ -154,13 +154,6 @@ App.MainMenuView = Em.CollectionView.extend({
             label: Em.I18n.t('common.security')
           });
         }
-        if (App.get('isHadoop2Stack') && App.supports.highAvailability) {
-          categories.push({
-            name: 'highAvailability',
-            url: 'adminHighAvailability',
-            label: Em.I18n.t('admin.highAvailability')
-          });
-        }
       }
       return categories;
     }.property('')
