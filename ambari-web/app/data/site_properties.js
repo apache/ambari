@@ -784,6 +784,21 @@ module.exports =
       "serviceName": "WEBHCAT",
       "category": "Advanced webhcat-site"
     },
+  /**********************************************pig.properties*****************************************/
+    {
+      "id": "site property",
+      "name": "content",
+      "displayName": "content",
+      "value": "",
+      "defaultValue": "",
+      "description": "pig properties",
+      "displayType": "content",
+      "isRequired": false,
+      "showLabel": false,
+      "serviceName": "PIG",
+      "filename": "pig-properties.xml",
+      "category": "Advanced pig-properties"
+    },
     //***************************************** GLUSTERFS stack********************************************
     {
       "id": "site property",

@@ -596,7 +596,7 @@
             "content": "log4jproperties\nline2"
         },
         "pig-properties": {
-            "pig-content": "pigproperties\nline2"
+            "content": "pigproperties\nline2"
         },        
         "oozie-log4j": {
             "content": "log4jproperties\nline2"
