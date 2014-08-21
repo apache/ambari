@@ -2254,6 +2254,19 @@ module.exports =
     },
     {
       "id": "puppet var",
+      "name": "sqoop_user",
+      "displayName": "Sqoop User",
+      "isReconfigurable": false,
+      "displayType": "user",
+      "isOverridable": false,
+      "isVisible": true,
+      "serviceName": "MISC",
+      "filename": "sqoop-env.xml",
+      "category": "Users and Groups",
+      "belongsToService": ["SQOOP"]
+    },
+    {
+      "id": "puppet var",
       "name": "mapred_user",
       "displayName": "MapReduce User",
       "description": "User to run MapReduce as",

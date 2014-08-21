@@ -133,5 +133,10 @@ class TestHookBeforeInstall(RMFTestCase):
         gid = 'hadoop',
         ignore_failures = False,
     )
+    self.assertResourceCalled('User', 'sqoop',
+        gid = 'hadoop',
+        ignore_failures = False,
+        groups = ['hadoop'],
+    )
     self.assertResourceCalled('Package', 'unzip',)
     self.assertNoMoreResources()

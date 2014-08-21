@@ -529,7 +529,8 @@
             "content": "\nJAVA_HOME={{java64_home}}\nHADOOP_HOME=${HADOOP_HOME:-{{hadoop_home}}}\n\nif [ -d \"/usr/lib/tez\" ]; then\n  PIG_OPTS=\"$PIG_OPTS -Dmapreduce.framework.name=yarn\"\nfi"
         }, 
         "sqoop-env": {
-            "content": "\n# Set Hadoop-specific environment variables here.\n\n#Set path to where bin/hadoop is available\n#Set path to where bin/hadoop is available\nexport HADOOP_HOME=${HADOOP_HOME:-/usr/lib/hadoop}\n\n#set the path to where bin/hbase is available\nexport HBASE_HOME=${HBASE_HOME:-/usr/lib/hbase}\n\n#Set the path to where bin/hive is available\nexport HIVE_HOME=${HIVE_HOME:-/usr/lib/hive}\n\n#Set the path for where zookeper config dir is\nexport ZOOCFGDIR=${ZOOCFGDIR:-/etc/zookeeper/conf}\n\n# add libthrift in hive to sqoop class path first so hive imports work\nexport SQOOP_USER_CLASSPATH=\"`ls ${HIVE_HOME}/lib/libthrift-*.jar 2> /dev/null`:${SQOOP_USER_CLASSPATH}\""
+            "content": "\n# Set Hadoop-specific environment variables here.\n\n#Set path to where bin/hadoop is available\n#Set path to where bin/hadoop is available\nexport HADOOP_HOME=${HADOOP_HOME:-/usr/lib/hadoop}\n\n#set the path to where bin/hbase is available\nexport HBASE_HOME=${HBASE_HOME:-/usr/lib/hbase}\n\n#Set the path to where bin/hive is available\nexport HIVE_HOME=${HIVE_HOME:-/usr/lib/hive}\n\n#Set the path for where zookeper config dir is\nexport ZOOCFGDIR=${ZOOCFGDIR:-/etc/zookeeper/conf}\n\n# add libthrift in hive to sqoop class path first so hive imports work\nexport SQOOP_USER_CLASSPATH=\"`ls ${HIVE_HOME}/lib/libthrift-*.jar 2> /dev/null`:${SQOOP_USER_CLASSPATH}\"",
+            "sqoop_user": "sqoop"
         }, 
         "hdfs-log4j": {
             "content": "log4jproperties\nline2"

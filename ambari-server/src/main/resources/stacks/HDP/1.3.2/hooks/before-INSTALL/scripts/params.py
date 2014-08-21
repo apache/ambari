@@ -80,6 +80,7 @@ hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 zk_user = config['configurations']['zookeeper-env']['zk_user']
 gmetad_user = config['configurations']['ganglia-env']["gmetad_user"]
 gmond_user = config['configurations']['ganglia-env']["gmond_user"]
+sqoop_user = config['configurations']['sqoop-env']['sqoop_user']
 
 user_group = config['configurations']['hadoop-env']['user_group']
 proxyuser_group =  config['configurations']['hadoop-env']['proxyuser_group']
@@ -103,6 +104,7 @@ namenode_host = default("/clusterHostInfo/namenode_host", [])
 zk_hosts = default("/clusterHostInfo/zookeeper_hosts", [])
 ganglia_server_hosts = default("/clusterHostInfo/ganglia_server_host", [])
 
+has_sqoop_client = 'sqoop-env' in config['configurations']
 has_resourcemanager = not len(rm_host) == 0
 has_namenode = not len(namenode_host) == 0
 has_jt = not len(jtnode_host) == 0

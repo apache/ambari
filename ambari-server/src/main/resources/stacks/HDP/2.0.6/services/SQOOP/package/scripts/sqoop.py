@@ -24,7 +24,7 @@ def sqoop(type=None):
   import params
   Link(params.sqoop_lib + "/mysql-connector-java.jar",
        to = '/usr/share/java/mysql-connector-java.jar'
-  )
+  ) 
   Directory(params.sqoop_conf_dir,
             owner = params.sqoop_user,
             group = params.user_group
