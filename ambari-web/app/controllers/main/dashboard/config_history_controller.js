@@ -41,9 +41,10 @@ App.MainConfigHistoryController = Em.ArrayController.extend(App.TableServerMixin
   colPropAssoc: function () {
     var associations = [];
     associations[1] = 'serviceVersion';
-    associations[2] = 'appliedTime';
-    associations[3] = 'author';
-    associations[4] = 'notes';
+    associations[2] = 'configGroup';
+    associations[3] = 'createTime';
+    associations[4] = 'author';
+    associations[5] = 'briefNotes';
     return associations;
   }.property(),
 
@@ -54,8 +55,13 @@ App.MainConfigHistoryController = Em.ArrayController.extend(App.TableServerMixin
       type: 'EQUAL'
     },
     {
-      name: 'appliedTime',
-      key: 'appliedtime',
+      name: 'configGroup',
+      key: 'group_name',////
+      type: 'EQUAL'
+    },
+    {
+      name: 'createTime',
+      key: 'createtime',
       type: 'MORE'
     },
     {
@@ -65,7 +71,7 @@ App.MainConfigHistoryController = Em.ArrayController.extend(App.TableServerMixin
     },
     {
       name: 'notes',
-      key: '',
+      key: 'service_config_version_note',
       type: 'MATCH'
     }
   ],
@@ -76,8 +82,12 @@ App.MainConfigHistoryController = Em.ArrayController.extend(App.TableServerMixin
       key: 'service_name'
     },
     {
-      name: 'appliedTime',
-      key: 'appliedtime'
+      name: 'configGroup',
+      key: 'group_name'
+    },
+    {
+      name: 'createTime',
+      key: 'createtime'
     },
     {
       name: 'author',
@@ -85,7 +95,7 @@ App.MainConfigHistoryController = Em.ArrayController.extend(App.TableServerMixin
     },
     {
       name: 'notes',
-      key: ''
+      key: 'service_config_version_note'
     }
   ],
 

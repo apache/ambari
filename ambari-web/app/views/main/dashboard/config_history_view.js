@@ -77,6 +77,7 @@ App.MainConfigHistoryView = App.TableView.extend({
     this.addObserver('displayLength', this, 'updatePagination');
     this.set('controller.isPolling', true);
     this.get('controller').doPolling();
+    //App.tooltip(this.$("[rel='currentTooltip']"));
   },
 
   /**
@@ -111,7 +112,7 @@ App.MainConfigHistoryView = App.TableView.extend({
   }),
   notesSort: sort.fieldView.extend({
     column: 5,
-    name: 'notes',
+    name: 'briefNotes',
     displayName: Em.I18n.t('common.notes')
   }),
 
@@ -182,6 +183,13 @@ App.MainConfigHistoryView = App.TableView.extend({
       this.refresh();
     }
   },
+
+  ConfigVersionView: Em.View.extend({
+    tagName: 'tr',
+    didInsertElement: function(){
+      App.tooltip(this.$("[rel='currentTooltip']"));
+    }
+  }),
 
   /**
    * sort content

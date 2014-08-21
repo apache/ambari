@@ -4904,9 +4904,39 @@ ul.inline li {
     thead {
       background: none repeat scroll 0 0 #F8F8F8;
     }
-    th {
-      select.filter-input-width, input.filter-input-width {
-          width: 80%;
+    // service name column
+    th:first-child,
+    td:first-child {
+      width: 15%;
+      select.filter-input-width{
+        width: 75%;
+      }
+    }
+    // config group, create time columns
+    th:first-child + th,
+    td:first-child + td,
+    th:first-child + th + th,
+    td:first-child + td + td {
+      width: 20%;
+      word-wrap: break-word;
+      select.filter-input-width{
+        width: 75%;
+      }
+    }
+   // author column
+    th:first-child + th + th + th,
+    td:first-child + td + td + td {
+      width: 10%;
+      input.filter-input-width {
+        width: 55%;
+      }
+    }
+    // notes column
+    th:first-child + th + th + th + th,
+    td:first-child + td + td + td + td {
+      word-wrap: break-word;
+      input.filter-input-width {
+        width: 75%;
       }
     }
   }
@@ -5118,6 +5148,7 @@ ul.inline li {
     font-size: 0.9em;
     th {
       padding: 4px;
+      padding-left: 10px;
     }
     .active-sort {
       color: #555555;
