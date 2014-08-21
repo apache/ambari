@@ -371,9 +371,8 @@ Em.I18n.translations = {
   'installer.controls.slaveComponentChangeGroupName.error':'group with this name already exist',
 
   'installer.step0.header':'Welcome',
-  'installer.step0.body.header':'Welcome to Apache Ambari!',
-  'installer.step0.body':'Ambari makes it easy to install, manage, and monitor Hadoop clusters.<br>' +
-    'We will walk you through the cluster installation process with this step-by-step wizard.',
+  'installer.step0.body.header':'Welcome to the Cluster Install Wizard',
+  'installer.step0.body':'This wizard will walk you through the cluster installation process.  Let\'s start by naming your new cluster.',
   'installer.step0.clusterName':'Name your cluster',
   'installer.step0.clusterName.tooltip.title':'Cluster Name',
   'installer.step0.clusterName.tooltip.content':'Enter a unique cluster name. Cluster name cannot be changed later.',
