@@ -614,8 +614,8 @@ Em.I18n.translations = {
   'installer.step5.body.coHostedComponents':'<i class="icon-asterisks">&#10037;</i> {0} will be hosted on the same host.',
   'installer.step5.hostInfo':'%@ (%@, %@ cores)',
   'installer.step5.hiveGroup':'HiveServer2, WebHCat Server, MySQL Server',
-  'installer.step5.warningsAttention.header': 'Warnings',
-  'installer.step5.warningsAttention': 'Your master component assignment has warnings and needs attention.',
+  'installer.step5.validationIssuesAttention.header': 'Validation Issues',
+  'installer.step5.validationIssuesAttention': 'Master component assignments have issues that need attention.',
 
   'installer.step6.header':'Assign Slaves and Clients',
   'installer.step6.body':'Assign slave and client components to hosts you want to run them on.<br/>Hosts that are assigned master components are shown with <i class=icon-asterisks>&#10037;</i>.',
@@ -626,6 +626,8 @@ Em.I18n.translations = {
   'installer.step6.wizardStep6Host.title':'master components hosted on {0}',
   'installer.step6.addHostWizard.body':'Assign HBase master and ZooKeeper server.',
   'installer.step6.error.mustSelectOneForSlaveHost': 'You must assign at least one slave/client component to each host with no master component',
+  'installer.step6.validationIssuesAttention.header': 'Validation Issues',
+  'installer.step6.validationIssuesAttention': 'Slave and Client component assignments have issues that need attention.',
 
   'installer.step7.header':'Customize Services',
   'installer.step7.body':'We have come up with recommended configurations for the services you selected. Customize them as you see fit.',

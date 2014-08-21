@@ -146,7 +146,7 @@ App.ServerValidatorMixin = Em.Mixin.create({
       this.set('configValidationFailed', false);
       if (this.get('loadAdditionalinfo')) {
         var self = this;
-        this.getHostNames().complete(function() {
+        this.getHostNames().always(function() {
           if (self.get('configValidationFailed')) {
             self.warnUser(deferred);
           } else {
@@ -161,12 +161,26 @@ App.ServerValidatorMixin = Em.Mixin.create({
   },
 
   getHostNames: function() {
-    return App.ajax.send({
-      name: 'hosts.all',
-      sender: this,
-      success: 'getHostNamesSuccess',
-      error: 'getHostNamesError'
-    })
+    var self = this;
+
+    if (self.get('isInstaller')) {
+      // In installer wizard 'hosts.all' AJAX will not work cause cluster haven't been created yet
+      var hosts = [];
+      for (var host in self.get('content.hosts')) {
+        hosts.push(host);
+      }
+      self.set("allHostNames", hosts);
+      var deferred = $.Deferred();
+      deferred.resolve();
+      return deferred;
+    } else {
+      return App.ajax.send({
+        name: 'hosts.all',
+        sender: self,
+        success: 'getHostNamesSuccess',
+        error: 'getHostNamesError'
+      });
+    }
   },
 
   getHostNamesSuccess: function(data) {
@@ -256,12 +270,8 @@ App.ServerValidatorMixin = Em.Mixin.create({
       this.set("isApplyingChanges", false);
       deferred.reject();
       return App.showAlertPopup(Em.I18n.t('installer.step7.popup.validation.failed.header'), Em.I18n.t('installer.step7.popup.validation.request.failed.body'));
-    } else if (this.get('configValidationError')) {
-      this.set("isApplyingChanges", false);
-      this.set('isSubmitDisabled', true);
-      deferred.reject();
-      return App.showAlertPopup(Em.I18n.t('installer.step7.popup.validation.failed.header'), Em.I18n.t('installer.step7.popup.validation.failed.body'));
-    } else if (this.get('configValidationWarning')) {
+    } else if (this.get('configValidationWarning') || this.get('configValidationError')) {
+      // Motivation: for server-side validation warnings and EVEN errors allow user to continue wizard
       this.set('isSubmitDisabled', true);
       this.set("isApplyingChanges", false);
       return App.showConfirmationPopup(function () {

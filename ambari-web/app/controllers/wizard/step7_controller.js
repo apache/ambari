@@ -722,7 +722,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
     //STEP 6: Distribute configs by service and wrap each one in App.ServiceConfigProperty (configs -> serviceConfigs)
     var self = this;
     if (App.get('supports.serverRecommendValidate')) {
-      this.loadServerSideConfigsRecommendations().complete(function() {
+      this.loadServerSideConfigsRecommendations().always(function() {
         self.setStepConfigs(configs, storedConfigs);
         self.checkHostOverrideInstaller();
         self.activateSpecialConfigs();

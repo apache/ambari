@@ -110,20 +110,34 @@ App.WizardStep6Controller = Em.Controller.extend({
   generalWarningMessages: [],
 
   /**
-   * true if validation has any general error message
+   * true if validation has any general (which is not related with concrete host) error message
    */
-  anyErrors: function() {
+  anyGeneralErrors: function() {
     var messages = this.get('generalErrorMessages');
     return this.get('errorMessage') || (messages && messages.length > 0);
   }.property('generalErrorMessages', 'generalErrorMessages.@each', 'errorMessage'),
 
   /**
-   * true if validation has any general warning message
+   * true if validation has any general (which is not related with concrete host) warning message
    */
-  anyWarnings: function() {
+  anyGeneralWarnings: function() {
     var messages = this.get('generalWarningMessages');
     return messages && messages.length > 0;
   }.property('generalWarningMessages', 'generalWarningMessages.@each'),
+
+  /**
+   * true if validation has any error message (general or host specific)
+   */
+  anyErrors: function() {
+    return this.get('anyGeneralErrors') || this.get('hosts').some(function(h) { return h.get('errorMessages').length > 0; });
+  }.property('anyGeneralErrors', 'hosts.@each.errorMessages'),
+
+  /**
+   * true if validation has any warning message (general or host specific)
+   */
+  anyWarnings: function() {
+    return this.get('anyGeneralWarnings') || this.get('hosts').some(function(h) { return h.get('warnMessages').length > 0; });
+  }.property('anyGeneralWarnings', 'hosts.@each.warnMessages'),
 
   /**
    * Verify condition that at least one checkbox of each component was checked
@@ -657,7 +671,9 @@ App.WizardStep6Controller = Em.Controller.extend({
       }
     });
 
-    this.set('submitDisabled', anyErrors);
+    // use this.set('submitDisabled', anyErrors); is validation results should block next button
+    // It's because showValidationIssuesAcceptBox allow use accept validation issues and continue
+    this.set('submitDisabled', false);
   },
 
   /**
@@ -834,5 +850,27 @@ App.WizardStep6Controller = Em.Controller.extend({
     }
 
     return !isError;
+  },
+
+  /**
+   * In case of any validation issues shows accept dialog box for user which allow cancel and fix issues or continue anyway
+   * @metohd submit
+   */
+  showValidationIssuesAcceptBox: function(callback) {
+    var self = this;
+
+    if (App.get('supports.serverRecommendValidate') && (self.get('anyWarnings') || self.get('anyErrors'))) {
+      App.ModalPopup.show({
+        primary: Em.I18n.t('common.continueAnyway'),
+        header: Em.I18n.t('installer.step6.validationIssuesAttention.header'),
+        body: Em.I18n.t('installer.step6.validationIssuesAttention'),
+        onPrimary: function () {
+          this.hide();
+          callback();
+        }
+      });
+    } else {
+      callback();
+    }
   }
 });

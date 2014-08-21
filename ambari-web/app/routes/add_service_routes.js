@@ -169,11 +169,13 @@ module.exports = App.WizardRoute.extend({
       var wizardStep6Controller = router.get('wizardStep6Controller');
 
       wizardStep6Controller.callValidation(function() {
-        addServiceController.saveSlaveComponentHosts(wizardStep6Controller);
-        addServiceController.get('content').set('serviceConfigProperties', null);
-        addServiceController.setDBProperty('serviceConfigProperties', null);
-        addServiceController.setDBProperty('groupsToDelete', []);
-        router.transitionTo('step4');
+        wizardStep6Controller.showValidationIssuesAcceptBox(function() {
+          addServiceController.saveSlaveComponentHosts(wizardStep6Controller);
+          addServiceController.get('content').set('serviceConfigProperties', null);
+          addServiceController.setDBProperty('serviceConfigProperties', null);
+          addServiceController.setDBProperty('groupsToDelete', []);
+          router.transitionTo('step4');
+        });
       });
     }
   }),

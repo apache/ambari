@@ -193,12 +193,14 @@ module.exports = App.WizardRoute.extend({
       var wizardStep6Controller = router.get('wizardStep6Controller');
 
       wizardStep6Controller.callValidation(function() {
-        addHostController.saveSlaveComponentHosts(wizardStep6Controller);
-        if(App.supports.hostOverrides){
-          router.transitionTo('step4');
-        }else{
-          router.transitionTo('step5');
-        }
+        wizardStep6Controller.showValidationIssuesAcceptBox(function() {
+          addHostController.saveSlaveComponentHosts(wizardStep6Controller);
+          if(App.supports.hostOverrides){
+            router.transitionTo('step4');
+          }else{
+            router.transitionTo('step5');
+          }
+        });
       });
     }
   }),
