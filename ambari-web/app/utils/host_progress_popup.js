@@ -89,7 +89,7 @@ App.HostPopup = Em.Object.create({
     classNameBindings: ['servicesInfo.status', 'servicesInfo.icon', 'additionalClass'],
     attributeBindings: ['data-original-title'],
     'data-original-title': function() {
-      return this.get('servicesInfo.status') == 'aborted' ? Em.I18n.t('hostPopup.abortedOperation.icon.tooltip') : ""
+      return this.get('servicesInfo.status');
     }.property('servicesInfo.status'),
     didInsertElement: function () {
       App.tooltip($(this.get('element')));
