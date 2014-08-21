@@ -21,12 +21,16 @@ import os
 import signal
 import sys
 import time
+import glob
+import subprocess
 from ambari_commons import OSConst
 
-#PostgreSQL settings
-UBUNTU_PG_HBA_ROOT = "/etc/postgresql"
-PG_HBA_ROOT_DEFAULT = "/var/lib/pgsql/data"
+# PostgreSQL settings
 PG_STATUS_RUNNING_DEFAULT = "running"
+PG_HBA_ROOT_DEFAULT = "/var/lib/pgsql/data"
+PG_HBA_INIT_FILES = {'debian': '/etc/postgresql',
+                     'redhat': '/etc/rc.d/init.d/postgresql',
+                     'suse': '/etc/init.d/postgresql'}
 
 #Environment
 ENV_PATH_DEFAULT = ['/bin', '/usr/bin', '/sbin', '/usr/sbin']  # default search path
@@ -167,25 +171,52 @@ def get_ubuntu_pg_version():
   """
   postgre_ver = ""
 
-  if os.path.isdir(UBUNTU_PG_HBA_ROOT):  # detect actual installed versions of PG and select a more new one
+  if os.path.isdir(PG_HBA_INIT_FILES[
+    'debian']):  # detect actual installed versions of PG and select a more new one
     postgre_ver = sorted(
-    [fld for fld in os.listdir(UBUNTU_PG_HBA_ROOT) if os.path.isdir(os.path.join(UBUNTU_PG_HBA_ROOT, fld))], reverse=True)
+      [fld for fld in os.listdir(PG_HBA_INIT_FILES[OSConst.DEBIAN_FAMILY]) if
+       os.path.isdir(os.path.join(PG_HBA_INIT_FILES[OSConst.DEBIAN_FAMILY], fld))],
+      reverse=True)
     if len(postgre_ver) > 0:
       return postgre_ver[0]
   return postgre_ver
 
 
-def get_postgre_hba_dir(OS):
-  """Return postgre hba dir location depends on OS"""
-  if OS == OSConst.OS_UBUNTU:
-    return os.path.join(UBUNTU_PG_HBA_ROOT, get_ubuntu_pg_version(), "main")
+def get_postgre_hba_dir(OS_FAMILY):
+  """Return postgre hba dir location depends on OS.
+  Also depends on version of postgres creates symlink like postgresql-->postgresql-9.3
+  1) /etc/rc.d/init.d/postgresql --> /etc/rc.d/init.d/postgresql-9.3
+  2) /etc/init.d/postgresql --> /etc/init.d/postgresql-9.1
+  """
+  if OS_FAMILY == OSConst.DEBIAN_FAMILY:
+    # Like: /etc/postgresql/9.1/main/
+    return os.path.join(PG_HBA_INIT_FILES[OS_FAMILY], get_ubuntu_pg_version(),
+                        "main")
   else:
-    return PG_HBA_ROOT_DEFAULT
+    if not os.path.isfile(PG_HBA_INIT_FILES[OS_FAMILY]):
+      # Link: /etc/init.d/postgresql --> /etc/init.d/postgresql-9.1
+      os.symlink(glob.glob(PG_HBA_INIT_FILES[OS_FAMILY] + '*')[0],
+                 PG_HBA_INIT_FILES[OS_FAMILY])
+
+    # Get postgres_data location (default: /var/lib/pgsql/data)
+    cmd = "alias exit=return; source " + PG_HBA_INIT_FILES[
+      OS_FAMILY] + " status &>/dev/null; echo $PGDATA"
+    p = subprocess.Popen(cmd,
+                         stdout=subprocess.PIPE,
+                         stdin=subprocess.PIPE,
+                         stderr=subprocess.PIPE,
+                         shell=True)
+    (PG_HBA_ROOT, err) = p.communicate()
+
+    if PG_HBA_ROOT and len(PG_HBA_ROOT.strip()) > 0:
+      return PG_HBA_ROOT.strip()
+    else:
+      return PG_HBA_ROOT_DEFAULT
 
 
-def get_postgre_running_status(OS):
+def get_postgre_running_status(OS_FAMILY):
   """Return postgre running status indicator"""
-  if OS == OSConst.OS_UBUNTU:
+  if OS_FAMILY == OSConst.DEBIAN_FAMILY:
     return os.path.join(get_ubuntu_pg_version(), "main")
   else:
     return PG_STATUS_RUNNING_DEFAULT

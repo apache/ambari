@@ -31,11 +31,15 @@ import platform
 import shutil
 from pwd import getpwnam
 from ambari_server.resourceFilesKeeper import ResourceFilesKeeper, KeeperException
+ 
+# We have to use this import HACK because the filename contains a dash
 from ambari_commons import Firewall, OSCheck, OSConst, FirewallChecks
 
 with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
-  # We have to use this import HACK because the filename contains a dash
-  ambari_server = __import__('ambari-server')
+  with patch("os.symlink"):
+    with patch("__builtin__.open"):
+      with patch("glob.glob", return_value = ['/etc/init.d/postgresql-9.3']):
+        ambari_server = __import__('ambari-server')
 
 FatalException = ambari_server.FatalException
 NonFatalException = ambari_server.NonFatalException
