@@ -265,6 +265,22 @@ public class AlertDefinitionDAO {
   }
 
   /**
+   * Creates or updates the specified entity. This method will check
+   * {@link AlertDefinitionEntity#getDefinitionId()} in order to determine
+   * whether the entity should be created or merged.
+   * 
+   * @param alertDefinition
+   *          the definition to create or update (not {@code null}).
+   */
+  public void createOrUpdate(AlertDefinitionEntity alertDefinition) {
+    if (null == alertDefinition.getDefinitionId()) {
+      create(alertDefinition);
+    } else {
+      merge(alertDefinition);
+    }
+  }
+
+  /**
    * Removes the specified alert definition and all related history and
    * associations from the database.
    *

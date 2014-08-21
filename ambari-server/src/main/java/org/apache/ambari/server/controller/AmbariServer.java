@@ -413,6 +413,9 @@ public class AmbariServer {
       LOG.info("********* Current Clusters State *********");
       LOG.info(clusterDump.toString());
 
+      LOG.info("********* Reconciling Alert Definitions **********");
+      ambariMetaInfo.reconcileAlertDefinitions(clusters);
+
       LOG.info("********* Initializing ActionManager **********");
       ActionManager manager = injector.getInstance(ActionManager.class);
       LOG.info("********* Initializing Controller **********");

@@ -21,6 +21,9 @@ import com.google.gson.annotations.SerializedName;
 
 /**
  * Abstract class that all known alert sources should extend.
+ * <p/>
+ * Equality checking for instances of this class should be executed on every
+ * member to ensure that reconciling stack differences is correct.
  */
 public abstract class Source {
 
@@ -41,5 +44,60 @@ public abstract class Source {
    */
   public Reporting getReporting() {
     return reporting;
+  }
+
+  /**
+   * Sets the OK/WARNING/CRTICAL structures.
+   * 
+   * @param reporting
+   *          the reporting structure or {@code null} for none.
+   */
+  public void setReporting(Reporting reporting) {
+    this.reporting = reporting;
+  }
+
+  /**
+   *
+   */
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + ((reporting == null) ? 0 : reporting.hashCode());
+    result = prime * result + ((type == null) ? 0 : type.hashCode());
+
+    return result;
+  }
+
+  /**
+   *
+   */
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+
+    if (obj == null) {
+      return false;
+    }
+
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
+
+    Source other = (Source) obj;
+    if (reporting == null) {
+      if (other.reporting != null) {
+        return false;
+      }
+    } else if (!reporting.equals(other.reporting)) {
+      return false;
+    }
+
+    if (type != other.type) {
+      return false;
+    }
+    return true;
   }
 }

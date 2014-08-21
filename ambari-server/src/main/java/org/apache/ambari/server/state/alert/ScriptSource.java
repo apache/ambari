@@ -21,6 +21,9 @@ import com.google.gson.annotations.SerializedName;
 
 /**
  * Alert when the source type is defined as {@link SourceType#SCRIPT}
+ * <p/>
+ * Equality checking for instances of this class should be executed on every
+ * member to ensure that reconciling stack differences is correct.
  */
 public class ScriptSource extends Source {
 
@@ -32,5 +35,47 @@ public class ScriptSource extends Source {
    */
   public String getPath() {
     return m_path;
+  }
+
+  /**
+   *
+   */
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = super.hashCode();
+    result = prime * result + ((m_path == null) ? 0 : m_path.hashCode());
+
+    return result;
+  }
+
+  /**
+   *
+   */
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+
+    if (!super.equals(obj)) {
+      return false;
+    }
+
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
+
+    ScriptSource other = (ScriptSource) obj;
+
+    if (m_path == null) {
+      if (other.m_path != null) {
+        return false;
+      }
+    } else if (!m_path.equals(other.m_path)) {
+      return false;
+    }
+
+    return true;
   }
 }

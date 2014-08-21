@@ -55,6 +55,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.alert.AlertDefinition;
 import org.apache.ambari.server.state.alert.AlertDefinitionFactory;
 import org.apache.ambari.server.state.alert.AlertDefinitionHash;
+import org.apache.ambari.server.state.alert.Scope;
 import org.apache.ambari.server.state.alert.Source;
 import org.apache.ambari.server.state.alert.SourceType;
 import org.easymock.Capture;
@@ -261,7 +262,7 @@ public class AlertDefinitionResourceProviderTest {
     Assert.assertTrue(entity.getEnabled());
     Assert.assertNotNull(entity.getHash());
     Assert.assertEquals(Integer.valueOf(1), entity.getScheduleInterval());
-    Assert.assertNull(entity.getScope());
+    Assert.assertEquals(Scope.ANY, entity.getScope());
     Assert.assertEquals("HDFS", entity.getServiceName());
     Assert.assertEquals("METRIC", entity.getSourceType());
     Assert.assertEquals("Mock Label (Create)", entity.getLabel());

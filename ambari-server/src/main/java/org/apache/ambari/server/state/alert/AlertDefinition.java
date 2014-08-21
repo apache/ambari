@@ -17,9 +17,20 @@
  */
 package org.apache.ambari.server.state.alert;
 
+import java.util.HashSet;
 
 /**
- * Represents information required to run and collection of alerts.
+ * The {@link AlertDefinition} class represents all of the necessary information
+ * to schedule, run, and collect alerts.
+ * <p/>
+ * Although all members of this class must define a complex {@code equals} and
+ * {@code hashCode} method, this class itself does not. Instead,
+ * {@link #equals(Object)} is defined as a name comparison only since name is
+ * unique to a definition. This allows us to easily insert instances of this
+ * class into a {@link HashSet} if necessary.
+ * <p/>
+ * When making comparisons for equality for things like stack/database merging,
+ * use {@link #deeplyEquals(Object)}.
  */
 public class AlertDefinition {
 
@@ -134,6 +145,87 @@ public class AlertDefinition {
     label = definitionLabel;
   }
 
+  /**
+   * Compares {@link #equals(Object)} of every field. This is used mainly for
+   * reconciling the stack versus the database.
+   *
+   * @param object
+   * @return
+   */
+  public boolean deeplyEquals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+
+    if (obj == null) {
+      return false;
+    }
+
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
+
+    AlertDefinition other = (AlertDefinition) obj;
+    if (componentName == null) {
+      if (other.componentName != null) {
+        return false;
+      }
+    } else if (!componentName.equals(other.componentName)) {
+      return false;
+    }
+
+    if (enabled != other.enabled) {
+      return false;
+    }
+
+    if (interval != other.interval) {
+      return false;
+    }
+
+    if (label == null) {
+      if (other.label != null) {
+        return false;
+      }
+    } else if (!label.equals(other.label)) {
+      return false;
+    }
+
+    if (name == null) {
+      if (other.name != null) {
+        return false;
+      }
+    } else if (!name.equals(other.name)) {
+      return false;
+    }
+
+    if (scope != other.scope) {
+      return false;
+    }
+
+    if (serviceName == null) {
+      if (other.serviceName != null) {
+        return false;
+      }
+    } else if (!serviceName.equals(other.serviceName)) {
+      return false;
+    }
+
+    if (source == null) {
+      if (other.source != null) {
+        return false;
+      }
+    } else if (!source.equals(other.source)) {
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * Gets equality based on name only.
+   *
+   * @see #deeplyEquals(Object)
+   */
   @Override
   public boolean equals(Object obj) {
     if (null == obj || !obj.getClass().equals(AlertDefinition.class)) {
@@ -143,6 +235,9 @@ public class AlertDefinition {
     return name.equals(((AlertDefinition) obj).name);
   }
 
+  /**
+   * Gets a hash based on name only.
+   */
   @Override
   public int hashCode() {
     return name.hashCode();
@@ -152,5 +247,4 @@ public class AlertDefinition {
   public String toString() {
     return name;
   }
-
 }

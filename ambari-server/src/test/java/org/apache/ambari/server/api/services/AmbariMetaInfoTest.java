@@ -18,6 +18,9 @@
 
 package org.apache.ambari.server.api.services;
 
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -27,7 +30,9 @@ import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -44,21 +49,31 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.api.util.StackExtensionHelper;
 import org.apache.ambari.server.metadata.ActionMetadata;
+import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
+import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.state.AutoDeployInfo;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.CustomCommandDefinition;
 import org.apache.ambari.server.state.DependencyInfo;
 import org.apache.ambari.server.state.OperatingSystemInfo;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.RepositoryInfo;
+import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.Stack;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.alert.AlertDefinition;
+import org.apache.ambari.server.state.alert.AlertDefinitionFactory;
+import org.apache.ambari.server.state.alert.PortSource;
 import org.apache.ambari.server.state.alert.Reporting;
 import org.apache.ambari.server.state.alert.Source;
 import org.apache.ambari.server.state.stack.MetricDefinition;
 import org.apache.commons.io.FileUtils;
+import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -69,6 +84,7 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.util.Modules;
 
 public class AmbariMetaInfoTest {
 
@@ -107,7 +123,8 @@ public class AmbariMetaInfoTest {
 
   @Before
   public void before() throws Exception {
-    injector = Guice.createInjector(new MockModule());
+    injector = Guice.createInjector(Modules.override(
+        new InMemoryDefaultTestModule()).with(new MockModule()));
 
     File stackRoot = new File("src/test/resources/stacks");
     LOG.info("Stacks file " + stackRoot.getAbsolutePath());
@@ -1444,10 +1461,10 @@ public class AmbariMetaInfoTest {
 
     assertEquals("NameNode host CPU Utilization", nameNodeCpu.getLabel());
 
+    // test namenode_process
     Source source = nameNodeProcess.getSource();
     assertNotNull(source);
-
-    // test namenode_process
+    assertNotNull(((PortSource) source).getPort());
     Reporting reporting = source.getReporting();
     assertNotNull(reporting);
     assertNotNull(reporting.getOk());
@@ -1460,6 +1477,7 @@ public class AmbariMetaInfoTest {
 
     // test namenode_cpu
     source = nameNodeCpu.getSource();
+    assertNotNull(source);
     reporting = source.getReporting();
     assertNotNull(reporting);
     assertNotNull(reporting.getOk());
@@ -1471,5 +1489,60 @@ public class AmbariMetaInfoTest {
     assertNotNull(reporting.getWarning());
     assertNotNull(reporting.getWarning().getText());
     assertNotNull(reporting.getWarning().getValue());
+  }
+
+  /**
+   * @throws Exception
+   */
+  @Test
+  public void testAlertReconcile() throws Exception {
+    Clusters clusters = createMock(Clusters.class);
+    Cluster cluster = createMock(Cluster.class);
+    AlertDefinitionDAO dao = createMock(AlertDefinitionDAO.class);
+
+    metaInfo.alertDefinitionDao = dao;
+    Set<AlertDefinition> alertDefinitions = metaInfo.getAlertDefinitions(
+        STACK_NAME_HDP, "2.0.6", "HDFS");
+
+    assertEquals(4, alertDefinitions.size());
+
+    Map<String, Cluster> clustersMap = new HashMap<String, Cluster>();
+    clustersMap.put("c1", cluster);
+
+    StackId stackId = new StackId(STACK_NAME_HDP, "2.0.6");
+    Map<String, Service> clusterServiceMap = new HashMap<String, Service>();
+    clusterServiceMap.put("HDFS", null);
+
+    List<AlertDefinitionEntity> entities = new ArrayList<AlertDefinitionEntity>();
+
+    expect(clusters.getClusters()).andReturn(clustersMap).anyTimes();
+    expect(clusters.getCluster((String) anyObject())).andReturn(cluster).atLeastOnce();
+    expect(cluster.getClusterId()).andReturn(Long.valueOf(1)).anyTimes();
+    expect(cluster.getDesiredStackVersion()).andReturn(stackId).anyTimes();
+    expect(cluster.getServices()).andReturn(clusterServiceMap).anyTimes();
+    expect(dao.findAll(EasyMock.anyInt())).andReturn(entities);
+    dao.createOrUpdate(EasyMock.anyObject(AlertDefinitionEntity.class));
+    EasyMock.expectLastCall().times(4);
+
+    EasyMock.replay(clusters, cluster, dao);
+    metaInfo.reconcileAlertDefinitions(clusters);
+    EasyMock.verify(cluster, cluster, dao);
+
+    AlertDefinitionFactory alertDefinitionFactory = injector.getInstance(AlertDefinitionFactory.class);
+    for (AlertDefinition definition : alertDefinitions) {
+      entities.add(alertDefinitionFactory.coerce(1, definition));
+    }
+
+    EasyMock.reset(clusters, cluster, dao);
+    expect(clusters.getClusters()).andReturn(clustersMap).anyTimes();
+    expect(clusters.getCluster((String) anyObject())).andReturn(cluster).atLeastOnce();
+    expect(cluster.getClusterId()).andReturn(Long.valueOf(1)).anyTimes();
+    expect(cluster.getDesiredStackVersion()).andReturn(stackId).anyTimes();
+    expect(cluster.getServices()).andReturn(clusterServiceMap).anyTimes();
+    expect(dao.findAll(EasyMock.anyInt())).andReturn(entities);
+
+    EasyMock.replay(clusters, cluster, dao);
+    metaInfo.reconcileAlertDefinitions(clusters);
+    EasyMock.verify(cluster, cluster, dao);
   }
 }

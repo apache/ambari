@@ -72,6 +72,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.ambari.server.state.alert.Scope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -573,7 +574,7 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
     columns.add(new DBColumnInfo("definition_name", String.class, 255, null, false));
     columns.add(new DBColumnInfo("service_name", String.class, 255, null, false));
     columns.add(new DBColumnInfo("component_name", String.class, 255, null, true));
-    columns.add(new DBColumnInfo("scope", String.class, 255, null, true));
+    columns.add(new DBColumnInfo("scope", String.class, 255, Scope.ANY.name(), false));
     columns.add(new DBColumnInfo("label", String.class, 255, null, true));
     columns.add(new DBColumnInfo("enabled", Short.class, 1, 1, false));
     columns.add(new DBColumnInfo("schedule_interval", Integer.class, null, null, false));

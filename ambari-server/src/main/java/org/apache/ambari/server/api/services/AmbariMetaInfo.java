@@ -31,6 +31,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -47,13 +48,18 @@ import org.apache.ambari.server.api.util.StackExtensionHelper;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.customactions.ActionDefinition;
 import org.apache.ambari.server.customactions.ActionDefinitionManager;
+import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
+import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.MetainfoEntity;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.DependencyInfo;
 import org.apache.ambari.server.state.OperatingSystemInfo;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.RepositoryInfo;
+import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.Stack;
 import org.apache.ambari.server.state.StackId;
@@ -131,7 +137,15 @@ public class AmbariMetaInfo {
   @Inject
   Injector injector;
 
-  @Inject
+  /**
+   * Alert Definition DAO used to merge stack definitions into the database.
+   */
+  AlertDefinitionDAO alertDefinitionDao;
+
+  /**
+   * A factory that assists in the creation of {@link AlertDefinition} and
+   * {@link AlertDefinitionEntity}.
+   */
   private AlertDefinitionFactory alertDefinitionFactory;
 
   // Required properties by stack version
@@ -171,6 +185,7 @@ public class AmbariMetaInfo {
     getCustomActionDefinitions(customActionRoot);
 
     alertDefinitionFactory = injector.getInstance(AlertDefinitionFactory.class);
+    alertDefinitionDao = injector.getInstance(AlertDefinitionDAO.class);
   }
 
   /**
@@ -1085,13 +1100,131 @@ public class AmbariMetaInfo {
       String serviceName) throws AmbariException {
 
     ServiceInfo svc = getService(stackName, stackVersion, serviceName);
-    File alertsFile = svc.getAlertsFile();
+    return getAlertDefinitions(svc);
+  }
+
+  /**
+   * @param stackName
+   *          the stack name
+   * @param stackVersion
+   *          the stack version
+   * @param serviceName
+   *          the service name
+   * @return the alert definitions for a stack
+   * @throws AmbariException
+   */
+  public Set<AlertDefinition> getAlertDefinitions(ServiceInfo service)
+      throws AmbariException {
+    File alertsFile = service.getAlertsFile();
 
     if (null == alertsFile || !alertsFile.exists()) {
-      LOG.debug("Alerts file for " + stackName + "/" + stackVersion + "/" + serviceName + " not found.");
+      LOG.debug("Alerts file for {}/{} not found.", service.getSchemaVersion(),
+          service.getName());
+
       return null;
     }
 
-    return alertDefinitionFactory.getAlertDefinitions(alertsFile, serviceName);
+    return alertDefinitionFactory.getAlertDefinitions(alertsFile,
+        service.getName());
+  }
+
+  /**
+   * Compares the alert definitions defined on the stack with those in the
+   * database and merges any new or updated definitions. This method will first
+   * determine the services that are installed on each cluster to prevent alert
+   * definitions from undeployed services from being shown.
+   *
+   * @param clusters
+   * @throws AmbariException
+   */
+  public void reconcileAlertDefinitions(Clusters clusters)
+      throws AmbariException {
+
+    Map<String, Cluster> clusterMap = clusters.getClusters();
+    if (null == clusterMap || clusterMap.size() == 0) {
+      return;
+    }
+
+    // for every cluster
+    Set<Entry<String, Cluster>> clusterEntries = clusterMap.entrySet();
+    for (Entry<String, Cluster> clusterEntry : clusterEntries) {
+      Cluster cluster = clusterEntry.getValue();
+      long clusterId = cluster.getClusterId();
+      StackId stackId = cluster.getDesiredStackVersion();
+      StackInfo stackInfo = getStackInfo(stackId.getStackName(),
+          stackId.getStackVersion());
+
+      // creating a mapping between service name and service for fast lookups
+      List<ServiceInfo> stackServices = stackInfo.getServices();
+      Map<String, ServiceInfo> stackServiceMap = new HashMap<String, ServiceInfo>();
+      for (ServiceInfo stackService : stackServices) {
+        stackServiceMap.put(stackService.getName(), stackService);
+      }
+
+      Map<String, Service> clusterServiceMap = cluster.getServices();
+      Set<String> clusterServiceNames = clusterServiceMap.keySet();
+
+      // for every service installed in that cluster, get the service metainfo
+      // and off of that the alert definitions
+      List<AlertDefinition> stackDefinitions = new ArrayList<AlertDefinition>(50);
+      for (String clusterServiceName : clusterServiceNames) {
+        ServiceInfo stackService = stackServiceMap.get(clusterServiceName);
+        if (null == stackService) {
+          continue;
+        }
+
+        // get all alerts defined on the stack for each cluster service
+        Set<AlertDefinition> serviceDefinitions = getAlertDefinitions(stackService);
+        if (null != serviceDefinitions) {
+          stackDefinitions.addAll(serviceDefinitions);
+        }
+      }
+
+      // if there are no alert definitions defined for the cluster services
+      // then don't do anything and go to the next cluster
+      if (null == stackDefinitions || stackDefinitions.size() == 0) {
+        continue;
+      }
+
+      List<AlertDefinitionEntity> persist = new ArrayList<AlertDefinitionEntity>();
+      List<AlertDefinitionEntity> entities = alertDefinitionDao.findAll(clusterId);
+
+      // create a map of the enntities for fast extraction
+      Map<String, AlertDefinitionEntity> mappedEntities = new HashMap<String, AlertDefinitionEntity>(100);
+      for (AlertDefinitionEntity entity : entities) {
+        mappedEntities.put(entity.getDefinitionName(), entity);
+      }
+
+      // for each stack definition, see if it exists and compare if it does
+      for( AlertDefinition stackDefinition : stackDefinitions ){
+        AlertDefinitionEntity entity = mappedEntities.get(stackDefinition.getName());
+
+        // no entity means this is new; create a new entity
+        if (null == entity) {
+          entity = alertDefinitionFactory.coerce(clusterId, stackDefinition);
+          persist.add(entity);
+          continue;
+        }
+
+        // if the definition exists in the stack and the database and they are
+        // not deeply equal, then merge the stack definition into the database
+        AlertDefinition databaseDefinition = alertDefinitionFactory.coerce(entity);
+        if (!stackDefinition.deeplyEquals(databaseDefinition)) {
+          entity = alertDefinitionFactory.merge(stackDefinition, entity);
+          persist.add(entity);
+          continue;
+        }
+      }
+
+      // persist any new or updated definition
+      for (AlertDefinitionEntity entity : persist) {
+        if (LOG.isDebugEnabled()) {
+          LOG.info("Merging Alert Definition {} into the database",
+              entity.getDefinitionName());
+        }
+
+        alertDefinitionDao.createOrUpdate(entity);
+      }
+    }
   }
 }

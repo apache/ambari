@@ -180,7 +180,7 @@ CREATE TABLE alert_definition (
   definition_name VARCHAR(255) NOT NULL,
   service_name VARCHAR(255) NOT NULL,
   component_name VARCHAR(255),
-  scope VARCHAR(255),
+  scope VARCHAR(255) DEFAULT 'ANY' NOT NULL,
   label VARCHAR(255),
   enabled SMALLINT DEFAULT 1 NOT NULL,
   schedule_interval INTEGER NOT NULL,

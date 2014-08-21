@@ -297,7 +297,7 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
    * being created, an {@link IllegalArgumentException} is thrown when a
    * required property is absent. When updating, missing properties are assume
    * to not have changed.
-   * 
+   *
    * @param entity
    *          the entity to merge the properties into (not {@code null}).
    * @param requestMap
@@ -336,6 +336,12 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
     Scope scope = null;
     if (null != desiredScope && desiredScope.length() > 0) {
       scope = Scope.valueOf(desiredScope);
+    }
+
+    // if not specified when creating an alert definition, the scope is
+    // assumed to be ANY
+    if (null == scope && bCreate) {
+      scope = Scope.ANY;
     }
 
     if (StringUtils.isEmpty(clusterName)) {

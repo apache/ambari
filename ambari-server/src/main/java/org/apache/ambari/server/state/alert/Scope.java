@@ -18,16 +18,24 @@
 package org.apache.ambari.server.state.alert;
 
 /**
- * Assigns a scope to an alert.
- * 
+ * The {@link Scope} enumeration is used to define the area that an alert has
+ * the most meaning. This is primary used as a way for a UI to determine the
+ * correct views that the alert should be visible in.
  */
 public enum Scope {
   /**
-   * Definition is scoped to a host only
+   * The alert only makes sense when viewing a host that the alert runs on.
    */
   HOST,
+
   /**
-   * Definition is scoped to a service only
+   * The alert only makes sense when viewing a service that the alert is defined
+   * for.
    */
-  SERVICE
+  SERVICE,
+
+  /**
+   * The alert can be shown in any context (HOST or SERVICE).
+   */
+  ANY
 }

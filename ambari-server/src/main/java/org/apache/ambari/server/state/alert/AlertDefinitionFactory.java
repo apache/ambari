@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.UUID;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
@@ -140,9 +141,76 @@ public class AlertDefinitionFactory {
       LOG.error(
           "Unable to deserialized the alert definition source during coercion",
           exception);
+
+      return null;
     }
 
     return definition;
+  }
+
+  /**
+   * Gets an {@link AlertDefinitionEntity} constructed from the specified
+   * {@link AlertDefinition}.
+   * <p/>
+   * The new entity will have a UUID already set.
+   * 
+   * @param clusterId
+   *          the ID of the cluster.
+   * @param definition
+   *          the definition to use to construct the
+   *          {@link AlertDefinitionEntity} (not {@code null}).
+   * @return the definiion or {@code null} if it could not be coerced.
+   */
+  public AlertDefinitionEntity coerce(long clusterId, AlertDefinition definition) {
+    if (null == definition) {
+      return null;
+    }
+
+    AlertDefinitionEntity entity = new AlertDefinitionEntity();
+    entity.setClusterId(clusterId);
+    return merge(definition, entity);
+  }
+
+  /**
+   * Merges the specified {@link AlertDefinition} into the
+   * {@link AlertDefinitionEntity}, leaving any fields not merged intact.
+   * <p/>
+   * The merged entity will have a new UUID.
+   *
+   * @param definition
+   *          the definition to merge into the entity (not {@code null}).
+   * @param entity
+   *          the entity to merge into (not {@code null}).
+   * @return a merged, but not yes persisted entity, or {@code null} if the
+   *         merge could not be done.
+   */
+  public AlertDefinitionEntity merge(AlertDefinition definition,
+      AlertDefinitionEntity entity) {
+
+    entity.setComponentName(definition.getComponentName());
+    entity.setDefinitionName(definition.getName());
+    entity.setEnabled(definition.isEnabled());
+    entity.setHash(UUID.randomUUID().toString());
+    entity.setLabel(definition.getLabel());
+    entity.setScheduleInterval(definition.getInterval());
+    entity.setScope(definition.getScope());
+    entity.setServiceName(definition.getServiceName());
+
+    Source source = definition.getSource();
+    entity.setSourceType(source.getType().name());
+
+    try {
+      String sourceJson = m_gson.toJson(source);
+      entity.setSource(sourceJson);
+    } catch (Exception exception) {
+      LOG.error(
+          "Unable to serialize the alert definition source during coercion",
+          exception);
+
+      return null;
+    }
+
+    return entity;
   }
 
   /**
