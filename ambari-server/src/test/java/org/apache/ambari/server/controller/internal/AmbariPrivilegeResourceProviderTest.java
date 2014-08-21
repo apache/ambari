@@ -19,6 +19,7 @@
 package org.apache.ambari.server.controller.internal;
 
 import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.createStrictMock;
 import static org.easymock.EasyMock.expect;
@@ -35,17 +36,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.ambari.server.controller.ivory.Cluster;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.GroupDAO;
+import org.apache.ambari.server.orm.dao.MemberDAO;
 import org.apache.ambari.server.orm.dao.PermissionDAO;
 import org.apache.ambari.server.orm.dao.PrincipalDAO;
 import org.apache.ambari.server.orm.dao.PrivilegeDAO;
 import org.apache.ambari.server.orm.dao.ResourceDAO;
+import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
+import org.apache.ambari.server.orm.dao.ViewDAO;
+import org.apache.ambari.server.orm.dao.ViewInstanceDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.GroupEntity;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
@@ -57,7 +61,9 @@ import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.orm.entities.ViewEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
+import org.apache.ambari.server.security.SecurityHelper;
 import org.apache.ambari.server.view.ViewRegistry;
+import org.apache.ambari.server.view.ViewRegistryTest;
 import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.junit.Before;
@@ -75,6 +81,11 @@ public class AmbariPrivilegeResourceProviderTest {
   private final static PrincipalDAO principalDAO = createStrictMock(PrincipalDAO.class);
   private final static PermissionDAO permissionDAO = createStrictMock(PermissionDAO.class);
   private final static ResourceDAO resourceDAO = createStrictMock(ResourceDAO.class);
+  private static final ViewDAO viewDAO = createMock(ViewDAO.class);
+  private static final ViewInstanceDAO viewInstanceDAO = createNiceMock(ViewInstanceDAO.class);
+  private static final MemberDAO memberDAO = createNiceMock(MemberDAO.class);
+  private static final ResourceTypeDAO resourceTypeDAO = createNiceMock(ResourceTypeDAO.class);
+  private static final SecurityHelper securityHelper = createNiceMock(SecurityHelper.class);
 
   @BeforeClass
   public static void initClass() {
@@ -84,6 +95,8 @@ public class AmbariPrivilegeResourceProviderTest {
 
   @Before
   public void resetGlobalMocks() {
+    ViewRegistry.initInstance(ViewRegistryTest.getRegistry(viewDAO, viewInstanceDAO, userDAO,
+        memberDAO, privilegeDAO, resourceDAO, resourceTypeDAO, securityHelper));
     reset(privilegeDAO, userDAO, groupDAO, principalDAO, permissionDAO, resourceDAO, clusterDAO);
   }
 
@@ -219,11 +232,6 @@ public class AmbariPrivilegeResourceProviderTest {
     expect(clusterPrincipalTypeEntity.getName()).andReturn("USER").anyTimes();
     expect(clusterEntity.getResource()).andReturn(clusterResourceEntity).anyTimes();
     expect(clusterEntity.getClusterName()).andReturn("cluster1").anyTimes();
-
-    List<PrincipalEntity> principalEntities = new LinkedList<PrincipalEntity>();
-    principalEntities.add(ambariPrincipalEntity);
-    principalEntities.add(viewPrincipalEntity);
-    principalEntities.add(clusterPrincipalEntity);
 
     List<UserEntity> userEntities = new LinkedList<UserEntity>();
     userEntities.add(ambariUserEntity);

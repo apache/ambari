@@ -28,6 +28,8 @@ import org.apache.ambari.server.api.util.TreeNode;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.view.ViewRegistry;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.util.*;
@@ -39,6 +41,11 @@ import static org.junit.Assert.*;
  * Unit tests for UpdateHandler.
  */
 public class UpdateHandlerTest {
+
+  @Before
+  public void before() {
+    ViewRegistry.initInstance(new ViewRegistry());
+  }
 
   @Test
   public void testHandleRequest__Synchronous_NoPropsInBody() throws Exception {

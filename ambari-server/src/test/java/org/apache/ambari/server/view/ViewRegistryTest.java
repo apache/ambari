@@ -18,11 +18,11 @@
 
 package org.apache.ambari.server.view;
 
-import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.verify;
 
 import java.io.File;
@@ -78,11 +78,8 @@ import org.apache.ambari.server.view.events.EventImpl;
 import org.apache.ambari.server.view.events.EventImplTest;
 import org.apache.ambari.view.events.Event;
 import org.apache.ambari.view.events.Listener;
-import org.easymock.Capture;
 import org.easymock.EasyMock;
-import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 import org.springframework.security.core.GrantedAuthority;
 
@@ -151,8 +148,21 @@ public class ViewRegistryTest {
       "    </instance>\n" +
       "</view>";
 
+  // registry mocks
+  private static final ViewDAO viewDAO = createMock(ViewDAO.class);
+  private static final ViewInstanceDAO viewInstanceDAO = createNiceMock(ViewInstanceDAO.class);
+  private static final UserDAO userDAO = createNiceMock(UserDAO.class);
+  private static final MemberDAO memberDAO = createNiceMock(MemberDAO.class);
+  private static final PrivilegeDAO privilegeDAO = createNiceMock(PrivilegeDAO.class);
+  private static final ResourceDAO resourceDAO = createNiceMock(ResourceDAO.class);
+  private static final ResourceTypeDAO resourceTypeDAO = createNiceMock(ResourceTypeDAO.class);
+  private static final SecurityHelper securityHelper = createNiceMock(SecurityHelper.class);
+  private static final Configuration configuration = createNiceMock(Configuration.class);
+
   @Test
   public void testReadViewArchives() throws Exception {
+    ViewRegistry registry = getRegistry();
+
     Configuration configuration = createNiceMock(Configuration.class);
     File viewDir = createNiceMock(File.class);
     File extractedArchiveDir = createNiceMock(File.class);
@@ -172,14 +182,6 @@ public class ViewRegistryTest {
     ResourceTypeEntity resourceTypeEntity = new ResourceTypeEntity();
     resourceTypeEntity.setId(10);
     resourceTypeEntity.setName("MY_VIEW{1.0.0}");
-
-    ViewDAO vDAO = createMock(ViewDAO.class);
-    ResourceDAO rDAO = createNiceMock(ResourceDAO.class);
-    ViewInstanceDAO viDAO = createNiceMock(ViewInstanceDAO.class);
-
-    ViewRegistry.setViewDAO(vDAO);
-    ViewRegistry.setResourceDAO(rDAO);
-    ViewRegistry.setInstanceDAO(viDAO);
 
     ViewEntity viewDefinition = ViewEntityTest.getViewEntity();
     viewDefinition.setResourceType(resourceTypeEntity);
@@ -257,15 +259,14 @@ public class ViewRegistryTest {
     expect(libDir.listFiles()).andReturn(new File[]{fileEntry});
     expect(fileEntry.toURI()).andReturn(new URI("file:./"));
 
-    expect(vDAO.findByName("MY_VIEW{1.0.0}")).andReturn(viewDefinition);
+    expect(viewDAO.findByName("MY_VIEW{1.0.0}")).andReturn(viewDefinition);
 
-    expect(vDAO.findAll()).andReturn(Collections.<ViewEntity>emptyList());
+    expect(viewDAO.findAll()).andReturn(Collections.<ViewEntity>emptyList());
 
     // replay mocks
     replay(configuration, viewDir, extractedArchiveDir, viewArchive, archiveDir, entryFile, classesDir,
-        libDir, fileEntry, viewJarFile, enumeration, jarEntry, is, fos, rDAO, vDAO, viDAO);
+        libDir, fileEntry, viewJarFile, enumeration, jarEntry, is, fos, resourceDAO, viewDAO, viewInstanceDAO);
 
-    ViewRegistry registry = ViewRegistry.getInstance();
     registry.setHelper(new TestViewRegistryHelper(viewConfigs, files, outputStreams, jarFiles));
 
     Set<ViewInstanceEntity> instanceEntities = registry.readViewArchives(configuration);
@@ -274,11 +275,13 @@ public class ViewRegistryTest {
 
     // verify mocks
     verify(configuration, viewDir, extractedArchiveDir, viewArchive, archiveDir, entryFile, classesDir,
-        libDir, fileEntry, viewJarFile, enumeration, jarEntry, is, fos, rDAO, vDAO, viDAO);
+        libDir, fileEntry, viewJarFile, enumeration, jarEntry, is, fos, resourceDAO, viewDAO, viewInstanceDAO);
   }
 
   @Test
   public void testReadViewArchives_exception() throws Exception {
+    ViewRegistry registry = getRegistry();
+
     Configuration configuration = createNiceMock(Configuration.class);
     File viewDir = createNiceMock(File.class);
     File extractedArchiveDir = createNiceMock(File.class);
@@ -298,10 +301,6 @@ public class ViewRegistryTest {
     ResourceTypeEntity resourceTypeEntity = new ResourceTypeEntity();
     resourceTypeEntity.setId(10);
     resourceTypeEntity.setName("MY_VIEW{1.0.0}");
-
-    ViewDAO vDAO = createMock(ViewDAO.class);
-
-    ViewRegistry.setViewDAO(vDAO);
 
     ViewEntity viewDefinition = ViewEntityTest.getViewEntity();
     viewDefinition.setResourceType(resourceTypeEntity);
@@ -379,14 +378,13 @@ public class ViewRegistryTest {
     expect(libDir.listFiles()).andReturn(new File[]{fileEntry});
     expect(fileEntry.toURI()).andReturn(new URI("file:./"));
 
-    expect(vDAO.findAll()).andReturn(Collections.<ViewEntity>emptyList());
-    expect(vDAO.findByName("MY_VIEW{1.0.0}")).andThrow(new IllegalArgumentException("Expected exception."));
+    expect(viewDAO.findAll()).andReturn(Collections.<ViewEntity>emptyList());
+    expect(viewDAO.findByName("MY_VIEW{1.0.0}")).andThrow(new IllegalArgumentException("Expected exception."));
 
     // replay mocks
     replay(configuration, viewDir, extractedArchiveDir, viewArchive, archiveDir, entryFile, classesDir,
-        libDir, fileEntry, viewJarFile, enumeration, jarEntry, is, fos, vDAO);
+        libDir, fileEntry, viewJarFile, enumeration, jarEntry, is, fos, viewDAO);
 
-    ViewRegistry registry = ViewRegistry.getInstance();
     registry.setHelper(new TestViewRegistryHelper(viewConfigs, files, outputStreams, jarFiles));
 
     Set<ViewInstanceEntity> instanceEntities = registry.readViewArchives(configuration);
@@ -395,12 +393,12 @@ public class ViewRegistryTest {
 
     // verify mocks
     verify(configuration, viewDir, extractedArchiveDir, viewArchive, archiveDir, entryFile, classesDir,
-        libDir, fileEntry, viewJarFile, enumeration, jarEntry, is, fos, vDAO);
+        libDir, fileEntry, viewJarFile, enumeration, jarEntry, is, fos, viewDAO);
   }
 
   @Test
   public void testListener() throws Exception {
-    ViewRegistry registry = ViewRegistry.getInstance();
+    ViewRegistry registry = getRegistry();
 
     TestListener listener = new TestListener();
     registry.registerListener(listener, "MY_VIEW", "1.0.0");
@@ -424,7 +422,7 @@ public class ViewRegistryTest {
   public void testAddGetDefinitions() throws Exception {
     ViewEntity viewDefinition = ViewEntityTest.getViewEntity();
 
-    ViewRegistry registry = ViewRegistry.getInstance();
+    ViewRegistry registry = getRegistry();
 
     registry.addDefinition(viewDefinition);
 
@@ -442,7 +440,7 @@ public class ViewRegistryTest {
     ViewEntity viewDefinition = ViewEntityTest.getViewEntity();
     ViewInstanceEntity viewInstanceDefinition = ViewInstanceEntityTest.getViewInstanceEntity();
 
-    ViewRegistry registry = ViewRegistry.getInstance();
+    ViewRegistry registry = getRegistry();
 
     registry.addDefinition(viewDefinition);
 
@@ -460,7 +458,7 @@ public class ViewRegistryTest {
   @Test
   public void testGetSubResourceDefinitions() throws Exception {
     ViewEntity viewDefinition = ViewEntityTest.getViewEntity();
-    ViewRegistry registry = ViewRegistry.getInstance();
+    ViewRegistry registry = getRegistry();
 
     ResourceConfig config = ResourceConfigTest.getResourceConfigs().get(0);
     Resource.Type type1 = new Resource.Type("myType");
@@ -478,7 +476,7 @@ public class ViewRegistryTest {
 
   @Test
   public void testAddInstanceDefinition() throws Exception {
-    ViewRegistry registry = ViewRegistry.getInstance();
+    ViewRegistry registry = getRegistry();
 
     ViewEntity viewEntity = ViewEntityTest.getViewEntity();
     InstanceConfig instanceConfig = InstanceConfigTest.getInstanceConfigs().get(0);
@@ -509,18 +507,7 @@ public class ViewRegistryTest {
   @Test
   public void testInstallViewInstance() throws Exception {
 
-    ViewDAO viewDAO = createNiceMock(ViewDAO.class);
-    ViewInstanceDAO viewInstanceDAO = createNiceMock(ViewInstanceDAO.class);
-    UserDAO userDAO = createNiceMock(UserDAO.class);
-    MemberDAO memberDAO = createNiceMock(MemberDAO.class);
-    PrivilegeDAO privilegeDAO = createNiceMock(PrivilegeDAO.class);
-    SecurityHelper securityHelper = createNiceMock(SecurityHelper.class);
-    ResourceDAO rDAO = createNiceMock(ResourceDAO.class);
-    ResourceTypeDAO rtDAO = createNiceMock(ResourceTypeDAO.class);
-
-    ViewRegistry.init(viewDAO, viewInstanceDAO, userDAO, memberDAO, privilegeDAO, securityHelper, rDAO, rtDAO);
-
-    ViewRegistry registry = ViewRegistry.getInstance();
+    ViewRegistry registry = getRegistry();
 
     Properties properties = new Properties();
     properties.put("p1", "v1");
@@ -551,18 +538,7 @@ public class ViewRegistryTest {
   @Test
   public void testInstallViewInstance_invalid() throws Exception {
 
-    ViewDAO viewDAO = createNiceMock(ViewDAO.class);
-    ViewInstanceDAO viewInstanceDAO = createNiceMock(ViewInstanceDAO.class);
-    UserDAO userDAO = createNiceMock(UserDAO.class);
-    MemberDAO memberDAO = createNiceMock(MemberDAO.class);
-    PrivilegeDAO privilegeDAO = createNiceMock(PrivilegeDAO.class);
-    SecurityHelper securityHelper = createNiceMock(SecurityHelper.class);
-    ResourceDAO rDAO = createNiceMock(ResourceDAO.class);
-    ResourceTypeDAO rtDAO = createNiceMock(ResourceTypeDAO.class);
-
-    ViewRegistry.init(viewDAO, viewInstanceDAO, userDAO, memberDAO, privilegeDAO, securityHelper, rDAO, rtDAO);
-
-    ViewRegistry registry = ViewRegistry.getInstance();
+    ViewRegistry registry = getRegistry();
 
     Properties properties = new Properties();
     properties.put("p1", "v1");
@@ -573,7 +549,7 @@ public class ViewRegistryTest {
     ViewEntity viewEntity = getViewEntity(config, ambariConfig, getClass().getClassLoader(), "");
     ViewInstanceEntity viewInstanceEntity = getViewInstanceEntity(viewEntity, config.getInstances().get(0));
 
-    replay(viewDAO, viewInstanceDAO, securityHelper, rtDAO);
+    replay(viewDAO, viewInstanceDAO, securityHelper, resourceTypeDAO);
 
     registry.addDefinition(viewEntity);
     try {
@@ -582,24 +558,13 @@ public class ViewRegistryTest {
     } catch (IllegalStateException e) {
       // expected
     }
-    verify(viewDAO, viewInstanceDAO, securityHelper);
+    verify(viewDAO, viewInstanceDAO, securityHelper, resourceTypeDAO);
   }
 
   @Test
   public void testInstallViewInstance_unknownView() throws Exception {
 
-    ViewDAO viewDAO = createNiceMock(ViewDAO.class);
-    ViewInstanceDAO viewInstanceDAO = createNiceMock(ViewInstanceDAO.class);
-    UserDAO userDAO = createNiceMock(UserDAO.class);
-    MemberDAO memberDAO = createNiceMock(MemberDAO.class);
-    PrivilegeDAO privilegeDAO = createNiceMock(PrivilegeDAO.class);
-    SecurityHelper securityHelper = createNiceMock(SecurityHelper.class);
-    ResourceDAO rDAO = createNiceMock(ResourceDAO.class);
-    ResourceTypeDAO rtDAO = createNiceMock(ResourceTypeDAO.class);
-
-    ViewRegistry.init(viewDAO, viewInstanceDAO, userDAO, memberDAO, privilegeDAO, securityHelper, rDAO, rtDAO);
-
-    ViewRegistry registry = ViewRegistry.getInstance();
+    ViewRegistry registry = getRegistry();
 
     Properties properties = new Properties();
     properties.put("p1", "v1");
@@ -611,7 +576,7 @@ public class ViewRegistryTest {
     ViewInstanceEntity viewInstanceEntity = getViewInstanceEntity(viewEntity, config.getInstances().get(0));
     viewInstanceEntity.setViewName("BOGUS_VIEW");
 
-    replay(viewDAO, viewInstanceDAO, securityHelper, rtDAO);
+    replay(viewDAO, viewInstanceDAO, securityHelper, resourceTypeDAO);
 
     registry.addDefinition(viewEntity);
     try {
@@ -620,24 +585,13 @@ public class ViewRegistryTest {
     } catch (IllegalArgumentException e) {
       // expected
     }
-    verify(viewDAO, viewInstanceDAO, securityHelper);
+    verify(viewDAO, viewInstanceDAO, securityHelper, resourceTypeDAO);
   }
 
   @Test
   public void testUpdateViewInstance() throws Exception {
 
-    ViewDAO viewDAO = createNiceMock(ViewDAO.class);
-    ViewInstanceDAO viewInstanceDAO = createNiceMock(ViewInstanceDAO.class);
-    UserDAO userDAO = createNiceMock(UserDAO.class);
-    MemberDAO memberDAO = createNiceMock(MemberDAO.class);
-    PrivilegeDAO privilegeDAO = createNiceMock(PrivilegeDAO.class);
-    SecurityHelper securityHelper = createNiceMock(SecurityHelper.class);
-    ResourceDAO rDAO = createNiceMock(ResourceDAO.class);
-    ResourceTypeDAO rtDAO = createNiceMock(ResourceTypeDAO.class);
-
-    ViewRegistry.init(viewDAO, viewInstanceDAO, userDAO, memberDAO, privilegeDAO, securityHelper, rDAO, rtDAO);
-
-    ViewRegistry registry = ViewRegistry.getInstance();
+    ViewRegistry registry = getRegistry();
 
     Properties properties = new Properties();
     properties.put("p1", "v1");
@@ -671,18 +625,7 @@ public class ViewRegistryTest {
   @Test
   public void testUpdateViewInstance_invalid() throws Exception {
 
-    ViewDAO viewDAO = createNiceMock(ViewDAO.class);
-    ViewInstanceDAO viewInstanceDAO = createNiceMock(ViewInstanceDAO.class);
-    UserDAO userDAO = createNiceMock(UserDAO.class);
-    MemberDAO memberDAO = createNiceMock(MemberDAO.class);
-    PrivilegeDAO privilegeDAO = createNiceMock(PrivilegeDAO.class);
-    SecurityHelper securityHelper = createNiceMock(SecurityHelper.class);
-    ResourceDAO rDAO = createNiceMock(ResourceDAO.class);
-    ResourceTypeDAO rtDAO = createNiceMock(ResourceTypeDAO.class);
-
-    ViewRegistry.init(viewDAO, viewInstanceDAO, userDAO, memberDAO, privilegeDAO, securityHelper, rDAO, rtDAO);
-
-    ViewRegistry registry = ViewRegistry.getInstance();
+    ViewRegistry registry = getRegistry();
 
     Properties properties = new Properties();
     properties.put("p1", "v1");
@@ -715,18 +658,7 @@ public class ViewRegistryTest {
   @Test
   public void testRemoveInstanceData() throws Exception {
 
-    ViewDAO viewDAO = createNiceMock(ViewDAO.class);
-    ViewInstanceDAO viewInstanceDAO = createNiceMock(ViewInstanceDAO.class);
-    UserDAO userDAO = createNiceMock(UserDAO.class);
-    MemberDAO memberDAO = createNiceMock(MemberDAO.class);
-    PrivilegeDAO privilegeDAO = createNiceMock(PrivilegeDAO.class);
-    SecurityHelper securityHelper = createNiceMock(SecurityHelper.class);
-    ResourceDAO rDAO = createNiceMock(ResourceDAO.class);
-    ResourceTypeDAO rtDAO = createNiceMock(ResourceTypeDAO.class);
-
-    ViewRegistry.init(viewDAO, viewInstanceDAO, userDAO, memberDAO, privilegeDAO, securityHelper, rDAO, rtDAO);
-
-    ViewRegistry registry = ViewRegistry.getInstance();
+    ViewRegistry registry = getRegistry();
 
     ViewInstanceEntity viewInstanceEntity = ViewInstanceEntityTest.getViewInstanceEntity();
 
@@ -746,14 +678,11 @@ public class ViewRegistryTest {
 
   @Test
   public void testIncludeDefinitionForAdmin() {
-    ViewRegistry viewRegistry = ViewRegistry.getInstance();
+    ViewRegistry viewRegistry = getRegistry();
     ViewEntity viewEntity = createNiceMock(ViewEntity.class);
-    SecurityHelper securityHelper = createNiceMock(SecurityHelper.class);
     AmbariGrantedAuthority adminAuthority = createNiceMock(AmbariGrantedAuthority.class);
     PrivilegeEntity privilegeEntity = createNiceMock(PrivilegeEntity.class);
     PermissionEntity permissionEntity = createNiceMock(PermissionEntity.class);
-
-    viewRegistry.setSecurityHelper(securityHelper);
 
     Collection<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
     authorities.add(adminAuthority);
@@ -763,20 +692,19 @@ public class ViewRegistryTest {
     expect(adminAuthority.getPrivilegeEntity()).andReturn(privilegeEntity);
     expect(privilegeEntity.getPermission()).andReturn(permissionEntity);
     expect(permissionEntity.getId()).andReturn(PermissionEntity.AMBARI_ADMIN_PERMISSION);
-    replay(securityHelper, adminAuthority, privilegeEntity, permissionEntity);
+
+    expect(configuration.getApiAuthentication()).andReturn(true);
+    replay(securityHelper, adminAuthority, privilegeEntity, permissionEntity, configuration);
 
     Assert.assertTrue(viewRegistry.includeDefinition(viewEntity));
 
-    verify(securityHelper, adminAuthority, privilegeEntity, permissionEntity);
+    verify(securityHelper, adminAuthority, privilegeEntity, permissionEntity, configuration);
   }
 
   @Test
   public void testIncludeDefinitionForUserNoInstances() {
-    ViewRegistry viewRegistry = ViewRegistry.getInstance();
+    ViewRegistry viewRegistry = getRegistry();
     ViewEntity viewEntity = createNiceMock(ViewEntity.class);
-    SecurityHelper securityHelper = createNiceMock(SecurityHelper.class);
-
-    viewRegistry.setSecurityHelper(securityHelper);
 
     Collection<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
 
@@ -785,25 +713,24 @@ public class ViewRegistryTest {
     securityHelper.getCurrentAuthorities();
     EasyMock.expectLastCall().andReturn(authorities);
     expect(viewEntity.getInstances()).andReturn(instances);
-    replay(securityHelper, viewEntity);
+
+    expect(configuration.getApiAuthentication()).andReturn(true);
+    replay(securityHelper, viewEntity, configuration);
 
     Assert.assertFalse(viewRegistry.includeDefinition(viewEntity));
 
-    verify(securityHelper, viewEntity);
+    verify(securityHelper, viewEntity, configuration);
   }
 
   @Test
   public void testIncludeDefinitionForUserHasAccess() {
-    ViewRegistry viewRegistry = ViewRegistry.getInstance();
+    ViewRegistry viewRegistry = getRegistry();
     ViewEntity viewEntity = createNiceMock(ViewEntity.class);
-    SecurityHelper securityHelper = createNiceMock(SecurityHelper.class);
     ViewInstanceEntity instanceEntity = createNiceMock(ViewInstanceEntity.class);
     ResourceEntity resourceEntity = createNiceMock(ResourceEntity.class);
     AmbariGrantedAuthority viewUseAuthority = createNiceMock(AmbariGrantedAuthority.class);
     PrivilegeEntity privilegeEntity = createNiceMock(PrivilegeEntity.class);
     PermissionEntity permissionEntity = createNiceMock(PermissionEntity.class);
-
-    viewRegistry.setSecurityHelper(securityHelper);
 
     Collection<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
     authorities.add(viewUseAuthority);
@@ -819,34 +746,25 @@ public class ViewRegistryTest {
     expect(permissionEntity.getId()).andReturn(PermissionEntity.VIEW_USE_PERMISSION).anyTimes();
     securityHelper.getCurrentAuthorities();
     EasyMock.expectLastCall().andReturn(authorities).anyTimes();
-    replay(securityHelper, viewEntity, instanceEntity, viewUseAuthority, privilegeEntity, permissionEntity);
+    expect(configuration.getApiAuthentication()).andReturn(true);
+    replay(securityHelper, viewEntity, instanceEntity, viewUseAuthority, privilegeEntity, permissionEntity, configuration);
 
     Assert.assertTrue(viewRegistry.includeDefinition(viewEntity));
 
-    verify(securityHelper, viewEntity, instanceEntity, viewUseAuthority, privilegeEntity, permissionEntity);
+    verify(securityHelper, viewEntity, instanceEntity, viewUseAuthority, privilegeEntity, permissionEntity, configuration);
   }
 
-  @Before
-  public void before() throws Exception {
-    clear();
-  }
+  @Test
+  public void testIncludeDefinitionForNoApiAuthentication() {
+    ViewRegistry viewRegistry = getRegistry();
+    ViewEntity viewEntity = createNiceMock(ViewEntity.class);
 
-  @AfterClass
-  public static void afterClass() {
-    clear();
-  }
+    expect(configuration.getApiAuthentication()).andReturn(false);
+    replay(securityHelper, viewEntity, configuration);
 
-  public static void clear() {
-    ViewRegistry.getInstance().clear();
+    Assert.assertTrue(viewRegistry.includeDefinition(viewEntity));
 
-    ViewRegistry.setInstanceDAO(null);
-    ViewRegistry.setMemberDAO(null);
-    ViewRegistry.setPrivilegeDAO(null);
-    ViewRegistry.setResourceDAO(null);
-    ViewRegistry.setResourceTypeDAO(null);
-    ViewRegistry.setSecurityHelper(null);
-    ViewRegistry.setUserDAO(null);
-    ViewRegistry.setViewDAO(null);
+    verify(securityHelper, viewEntity, configuration);
   }
 
   public class TestViewRegistryHelper extends ViewRegistry.ViewRegistryHelper {
@@ -911,15 +829,46 @@ public class ViewRegistryTest {
     }
   }
 
+  private static ViewRegistry getRegistry() {
+    ViewRegistry instance = getRegistry(viewDAO, viewInstanceDAO,
+        userDAO, memberDAO, privilegeDAO,
+        resourceDAO, resourceTypeDAO, securityHelper);
+
+    reset(viewDAO, resourceDAO, viewInstanceDAO, userDAO, memberDAO,
+        privilegeDAO, resourceTypeDAO, securityHelper, configuration);
+
+    return instance;
+  }
+
+  public static ViewRegistry getRegistry(ViewDAO viewDAO, ViewInstanceDAO viewInstanceDAO,
+                                  UserDAO userDAO, MemberDAO memberDAO,
+                                  PrivilegeDAO privilegeDAO, ResourceDAO resourceDAO,
+                                  ResourceTypeDAO resourceTypeDAO, SecurityHelper securityHelper ) {
+
+    ViewRegistry instance = new ViewRegistry();
+
+    instance.viewDAO = viewDAO;
+    instance.resourceDAO = resourceDAO;
+    instance.instanceDAO = viewInstanceDAO;
+    instance.userDAO = userDAO;
+    instance.memberDAO = memberDAO;
+    instance.privilegeDAO = privilegeDAO;
+    instance.resourceTypeDAO = resourceTypeDAO;
+    instance.securityHelper = securityHelper;
+    instance.configuration = configuration;
+
+    return instance;
+  }
+
   public static ViewEntity getViewEntity(ViewConfig viewConfig, Configuration ambariConfig,
                                      ClassLoader cl, String archivePath) throws Exception{
-    ViewRegistry registry = ViewRegistry.getInstance();
+    ViewRegistry registry = getRegistry();
 
     return registry.createViewDefinition(viewConfig, ambariConfig, cl, archivePath);
   }
 
   public static ViewInstanceEntity getViewInstanceEntity(ViewEntity viewDefinition, InstanceConfig instanceConfig) throws Exception {
-    ViewRegistry registry = ViewRegistry.getInstance();
+    ViewRegistry registry = getRegistry();
 
     ViewInstanceEntity viewInstanceDefinition =
         new ViewInstanceEntity(viewDefinition, instanceConfig);
