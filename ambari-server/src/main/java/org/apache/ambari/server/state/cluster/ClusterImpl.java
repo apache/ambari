@@ -1854,7 +1854,7 @@ public class ClusterImpl implements Cluster {
           ServiceComponentHost serviceComponentHost = serviceComponent.getServiceComponentHost(event.getHostName());
           serviceComponentHost.handleEvent(event);
         } catch (AmbariException e) {
-          LOG.error("ServiceComponentHost lookup exception ", e);
+          LOG.error("ServiceComponentHost lookup exception ", e.getMessage());
           failedEvents.add(event);
         } catch (InvalidStateTransitionException e) {
           LOG.error("Invalid transition ", e);
