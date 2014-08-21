@@ -26,7 +26,6 @@ import resource_management
 import subprocess
 
 
-@patch.object(OSCheck,"get_os_type", new = MagicMock(return_value='suse'))
 class TestNamenode(RMFTestCase):
 
   def test_configure_default(self):

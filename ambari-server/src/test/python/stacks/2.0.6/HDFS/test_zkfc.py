@@ -21,7 +21,6 @@ from ambari_commons import OSCheck
 from mock.mock import MagicMock, patch
 from stacks.utils.RMFTestCase import *
 
-@patch.object(OSCheck,"get_os_type", new = MagicMock(return_value='suse'))
 class TestZkfc(RMFTestCase):
 
   def test_start_default(self):
