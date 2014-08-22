@@ -385,7 +385,9 @@ App.ClusterController = Em.Controller.extend({
             instanceName: instance.ViewInstanceInfo.instance_name,
             href: instance.ViewInstanceInfo.context_path
           });
-          self.get('ambariViews').pushObject(current_instance);
+          if( current_instance.visible){
+            self.get('ambariViews').pushObject(current_instance);
+          }
         }, this);
       }, this);
     }, this);

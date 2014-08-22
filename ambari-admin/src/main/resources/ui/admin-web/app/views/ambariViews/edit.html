@@ -20,8 +20,9 @@
     <li><a href="#/views">Views</a></li>
     <li class="active">{{instance.ViewInstanceInfo.label}}</li>
   </ol>
-  <div class="pull-right top-margin-4">
-    <button class="btn btn-danger" ng-click="deleteInstance(instance)">Delete Instance</button>
+  <div class="pull-right top-margin-4" ng-switch="instance.ViewInstanceInfo.static">
+    <button ng-switch-when="true" class="btn disabled btn-default btn-delete-instance" tooltip="Cannot Delete Static Instances">Delete Instance</button>
+    <button ng-switch-when="false" class="btn btn-danger" ng-click="deleteInstance(instance)">Delete Instance</button>
   </div>
 </div>
 <hr>
@@ -30,7 +31,7 @@
     <h3 class="panel-title pull-left">Settings</h3>
     <div class="pull-right" ng-switch="instance.ViewInstanceInfo.static">
       <a href ng-switch-when="false" ng-click="toggleSettingsEdit()" ng-show="editSettingsDisabled" class="settings-edit-toggle"> <span class="glyphicon glyphicon-pencil" ></span> Edit</a>
-      <a href ng-switch-when="true" class="settings-edit-toggle disabled" tooltip="You can`t edit XML driven instances"> <span class="glyphicon glyphicon-pencil" ></span> Edit</a>
+      <a href ng-switch-when="true" class="settings-edit-toggle disabled" tooltip="Cannot Edit Static Instances"> <span class="glyphicon glyphicon-pencil" ></span> Edit</a>
     </div>
   </div>
   <div class="panel-body">
@@ -48,17 +49,20 @@
           <label for="" class="col-sm-2 control-label">Instance Name</label>
           <div class="col-sm-10"><input disabled="disabled" type="text" class="form-control instancename-input" placeholder="Display Name" value="{{instance.ViewInstanceInfo.instance_name}}"></div>
         </div>
-        <div class="form-group" ng-class="{'has-error' : settingsForm.displayName.$error.required && !editSettingsDisabled}">
+        <div class="form-group" ng-class="{'has-error' : (settingsForm.displayName.$error.required || settingsForm.displayName.$error.pattern) && !editSettingsDisabled}">
           <label for="" class="col-sm-2 control-label">Display Name</label>
           <div class="col-sm-10">
-            <input type="text" class="form-control instancename-input" placeholder="Display Name" name="displayName" required ng-model="settings.label">
+            <input type="text" class="form-control instancename-input" placeholder="Display Name" name="displayName" required ng-model="settings.label" ng-pattern="/^([a-zA-Z0-9._\s]+)$/">
             <div class="alert alert-danger no-margin-bottom top-margin" ng-show='settingsForm.displayName.$error.required  && !editSettingsDisabled'>
               This field is required.
+            </div>
+            <div class="alert alert-danger no-margin-bottom top-margin" ng-show='settingsForm.displayName.$error.pattern && !editSettingsDisabled'>
+              Must not contain any special characters.
             </div>
           </div>
         </div>
         <div class="form-group" ng-class="{'has-error' : settingsForm.description.$error.required  && !editSettingsDisabled}">
-          <label for="" class="control-label col-sm-2">Instance Description</label>
+          <label for="" class="control-label col-sm-2">Description</label>
           <div class="col-sm-10">
             <input type="text" class="form-control" ng-model="settings.description" name="description" placeholder="Instance Description" required>
             <div class="alert alert-danger no-margin-bottom top-margin" ng-show='settingsForm.description.$error.required  && !editSettingsDisabled'>
@@ -94,41 +98,52 @@
     </div>
   </div>
   <div class="panel-body">
-    <form class="form-horizontal" ng-show="!isPermissionsEmpty">
-      <div class="form-group">
-        <div class="col-sm-2"></div>
-        <label class="col-sm-5 control-label text-left">Users</label>
-        <label class="col-sm-5 control-label text-left">Groups</label>
+    
+
+    <table class="table" ng-show="!isPermissionsEmpty">
+      <thead>
+        <tr>
+          <th class="col-sm-2"><label>Permission</label></th>
+          <th><label>Grant permission to these users</label></th>
+          <th><label>Grant permission to these groups</label></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr ng-repeat="permission in permissions">
+          <td>
+            <label class="">{{permission.PermissionInfo.permission_name}}</label>
+          </td>
+          <td>
+            <div class="" ng-switch="editPermissionDisabled">
+              <textarea name="" id="" cols="30" rows="4" class="form-control permission-textarea-user" ng-model="permissionsEdit[permission.PermissionInfo.permission_name].USER" ng-switch-when="false"></textarea>
+              <div class="well" ng-switch-when="true">
+                <span ng-repeat="user in permission.USER">
+                  <link-to route="users.show" id="{{user}}">{{user}}</link-to>
+                  {{$last ? '' :', '}}
+                </span>
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="" ng-switch="editPermissionDisabled">
+              <textarea name="" id="" cols="30" rows="4" class="form-control permission-textarea-group" ng-model="permissionsEdit[permission.PermissionInfo.permission_name].GROUP" ng-switch-when="false"></textarea>
+              <div class="well" ng-switch-when="true">
+                <span ng-repeat="group in permission.GROUP">
+                  <link-to route="groups.edit" id="{{group}}" >{{group}}</link-to>
+                  {{$last ? '' :', '}}
+                </span>
+              </div>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="form-group" ng-hide="editPermissionDisabled">
+      <div class="col-sm-offset-2 col-sm-10">
+        <button class="btn btn-primary pull-right left-margin permissions-save" ng-click="savePermissions()">Save</button>
+        <button class="btn btn-default pull-right permissions-cancel" ng-click="cancelPermissions()">Cancel</button>
       </div>
-      <div class="form-group" ng-repeat="permission in permissions">
-        <label class="col-sm-2 control-label">{{permission.PermissionInfo.permission_name}}</label>
-        <div class="col-sm-5" ng-switch="editPermissionDisabled">
-          <textarea name="" id="" cols="30" rows="4" class="form-control permission-textarea-user" ng-model="permissionsEdit[permission.PermissionInfo.permission_name].USER" ng-switch-when="false"></textarea>
-          <div class="well" ng-switch-when="true">
-            <span ng-repeat="user in permission.USER">
-              <link-to route="users.show" id="{{user}}">{{user}}</link-to>
-              {{$last ? '' :', '}}
-            </span>
-          </div>
-        </div>
-        <div class="col-sm-5" ng-switch="editPermissionDisabled">
-          <textarea name="" id="" cols="30" rows="4" class="form-control permission-textarea-group" ng-model="permissionsEdit[permission.PermissionInfo.permission_name].GROUP" ng-switch-when="false"></textarea>
-          <div class="well" ng-switch-when="true">
-            <span ng-repeat="group in permission.GROUP">
-              <link-to route="groups.edit" id="{{group}}" >{{group}}</link-to>
-              {{$last ? '' :', '}}
-            </span>
-          </div>
-        </div>
-      </div>
-      
-      <div class="form-group" ng-hide="editPermissionDisabled">
-        <div class="col-sm-offset-2 col-sm-10">
-          <button class="btn btn-primary pull-right left-margin permissions-save" ng-click="savePermissions()">Save</button>
-          <button class="btn btn-default pull-right permissions-cancel" ng-click="cancelPermissions()">Cancel</button>
-        </div>
-      </div>
-    </form>
+    </div>
     <div ng-show="isPermissionsEmpty">
       <div class="alert alert-info">There are no permissions defined for this view.</div>
     </div>

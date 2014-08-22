@@ -64,8 +64,7 @@ angular.module('ambariAdminConsole')
         url: Settings.baseUrl + '/users/' + user.user_name,
         data: {
           'Users/password': password,
-          'Users/old_password': currentUserPassword,
-          'Users/roles': user.roles[0] || 'user'
+          'Users/old_password': currentUserPassword
         }
       });
     },

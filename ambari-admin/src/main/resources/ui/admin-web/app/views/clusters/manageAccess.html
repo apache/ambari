@@ -22,41 +22,50 @@
       <li class="active">{{clusterName}} Permissions</li>
     </ol>
     <div class="pull-right top-margin-4">
-      <a href class="btn btn-primary"  ng-click="toggleEditMode()"><span class="glyphicon glyphicon-pencil"></span> Edit</a>
+      <a href class="btn btn-primary"  ng-hide="isEditMode" ng-click="toggleEditMode()"><span class="glyphicon glyphicon-pencil"></span> Edit</a>
     </div>
   </div>
   <hr>
-  <form class="form-horizontal">
-    <div class="form-group">
-      <div class="col-sm-2"></div>
-      <label class="col-sm-5 control-label text-left">Users</label>
-      <label class="col-sm-5 control-label text-left">Groups</label>
+  <table class="table">
+    <thead>
+      <tr>
+        <th class="col-sm-2"><label>Permission</label></th>
+        <th><label>Grant permission to these users</label></th>
+        <th><label>Grant permission to these groups</label></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr ng-repeat="permission in permissions">
+        <td><label class="">{{permission.PermissionInfo.permission_name}}</label></td>
+        <td>
+          <div class="" ng-switch="isEditMode">
+            <textarea ng-switch-when="true" name="" id="" cols="30" rows="4" class="form-control permission-user-input" ng-model="permissionsEdit[permission.PermissionInfo.permission_name].USER"></textarea>
+            <div class="well" ng-switch-default>
+              <span ng-repeat="user in permission.USER">
+                <link-to route="users.show" id="{{user}}" >{{user}}</link-to>
+                {{$last ? '' :', '}}
+              </span>
+            </div>
+          </div>
+        </td>
+        <td>
+          <div class="" ng-switch="isEditMode">
+            <textarea ng-switch-when="true" name="" id="" cols="30" rows="4" class="form-control permission-group-input" ng-model="permissionsEdit[permission.PermissionInfo.permission_name].GROUP"></textarea>
+            <div class="well" ng-switch-default>
+              <span ng-repeat="group in permission.GROUP">
+                <link-to route="groups.edit" id="{{group}}">{{group}}</link-to>
+                {{$last ? '' :', '}}
+              </span>
+            </div>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="form-group" ng-show="isEditMode">
+    <div class="col-sm-offset-2 col-sm-10">
+      <button class="btn btn-primary pull-right permission-save left-margin" ng-click="save()">Save</button>
+      <button class="btn btn-default pull-right permissions-cancel" ng-click="cancel()">Cancel</button>
     </div>
-    <div class="form-group" ng-repeat="permission in permissions">
-      <label class="col-sm-2 control-label">{{permission.PermissionInfo.permission_name}}</label>
-      <div class="col-sm-5" ng-switch="isEditMode">
-        <textarea ng-switch-when="true" name="" id="" cols="30" rows="4" class="form-control permission-user-input" ng-model="permissionsEdit[permission.PermissionInfo.permission_name].USER"></textarea>
-        <div class="well" ng-switch-default>
-          <span ng-repeat="user in permission.USER">
-            <link-to route="users.show" id="{{user}}" >{{user}}</link-to>
-            {{$last ? '' :', '}}
-          </span>
-        </div>
-      </div>
-      <div class="col-sm-5" ng-switch="isEditMode">
-        <textarea ng-switch-when="true" name="" id="" cols="30" rows="4" class="form-control permission-group-input" ng-model="permissionsEdit[permission.PermissionInfo.permission_name].GROUP"></textarea>
-        <div class="well" ng-switch-default>
-          <span ng-repeat="group in permission.GROUP">
-            <link-to route="groups.edit" id="{{group}}">{{group}}</link-to>
-            {{$last ? '' :', '}}
-          </span>
-        </div>
-      </div>
-    </div>
-    <div class="form-group" ng-show="isEditMode">
-      <div class="col-sm-offset-2 col-sm-10">
-        <button class="btn btn-default pull-right left-margin permissions-cancel" ng-click="cancel()">Cancel</button>
-        <button class="btn btn-primary pull-right permission-save" ng-click="save()">Save</button>
-      </div>
-    </div>
+  </div>
 </div>
