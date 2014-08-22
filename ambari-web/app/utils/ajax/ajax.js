@@ -879,7 +879,7 @@ var urls = {
     'mock': '/data/clusters/info.json'
   },
   'cluster.update_upgrade_version': {
-    'real': '/stacks/HDP/versions?fields=stackServices/StackServices,Versions',
+    'real': '/stacks/{stackName}/versions?fields=stackServices/StackServices,Versions',
     'mock': '/data/wizard/stack/stacks.json'
   },
   'cluster.load_repositories': {

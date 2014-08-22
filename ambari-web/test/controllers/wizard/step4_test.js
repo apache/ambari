@@ -271,7 +271,7 @@ describe('App.WizardStep4Controller', function () {
       },
       {
         services: ['ZOOKEEPER'],
-        errorsExpected: ['fsCheck', 'monitoringCheck']
+        errorsExpected: ['monitoringCheck']
       },
       {
         services: ['HDFS'],
@@ -321,8 +321,8 @@ describe('App.WizardStep4Controller', function () {
       },
       {
         services: ['ZOOKEEPER'],
-        confirmPopupCount: 2,
-        errorsExpected: ['fsCheck', 'monitoringCheck']
+        confirmPopupCount: 1,
+        errorsExpected: ['monitoringCheck']
       },
       {
         services: ['HDFS', 'GLUSTERFS', 'ZOOKEEPER', 'HIVE'],

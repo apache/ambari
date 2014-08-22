@@ -31,6 +31,9 @@ App.MainAdminRepositoriesController = Em.Controller.extend({
     if (App.router.get('clusterController.isLoaded')) {
       App.ajax.send({
         name: 'cluster.update_upgrade_version',
+        data: {
+          stackName: App.get('currentStackName')
+        },
         sender: this,
         success: 'updateUpgradeVersionSuccessCallback',
         error: 'updateUpgradeVersionErrorCallback'
@@ -41,7 +44,8 @@ App.MainAdminRepositoriesController = Em.Controller.extend({
   updateUpgradeVersionSuccessCallback: function (data) {
     var upgradeVersion = this.get('upgradeVersion') || App.get('defaultStackVersion');
     var currentVersion = App.get('currentStackVersionNumber');
-    upgradeVersion = upgradeVersion.replace(/HDP-/, '');
+    var stackNamePrefix = App.get('currentStackName') + '-';
+    upgradeVersion = upgradeVersion.replace(stackNamePrefix, '');
     data.items.mapProperty('Versions.stack_version').forEach(function (version) {
       upgradeVersion = (stringUtils.compareVersions(upgradeVersion, version) === -1) ? version : upgradeVersion;
     });
@@ -52,7 +56,7 @@ App.MainAdminRepositoriesController = Em.Controller.extend({
       upgradeVersion = currentVersion;
       upgradeStack = currentStack;
     }
-    upgradeVersion = 'HDP-' + upgradeVersion;
+    upgradeVersion = stackNamePrefix + upgradeVersion;
     this.set('upgradeVersion', upgradeVersion);
     if (currentStack && upgradeStack) {
       this.parseServicesInfo(currentStack, upgradeStack);

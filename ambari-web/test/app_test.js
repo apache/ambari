@@ -197,7 +197,12 @@ describe('App', function () {
         result: '1.3.1'
       }
     ];
-
+    before(function() {
+      App.set('defaultStackVersion', '');
+    });
+    after(function() {
+      App.set('defaultStackVersion', 'HDP-2.0.5');
+    });
     testCases.forEach(function (test) {
       it(test.title, function () {
         App.set('currentStackVersion', test.currentStackVersion);
@@ -208,7 +213,12 @@ describe('App', function () {
   });
 
   describe('#isHadoop2Stack', function () {
-
+    before(function() {
+      App.set('defaultStackVersion', '');
+    });
+    after(function() {
+      App.set('defaultStackVersion', 'HDP-2.0.5');
+    });
     var testCases = [
       {
         title: 'if currentStackVersion is empty then isHadoop2Stack should be false',

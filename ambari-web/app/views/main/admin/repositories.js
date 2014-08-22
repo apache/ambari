@@ -23,8 +23,8 @@ App.MainAdminRepositoriesView = Em.View.extend({
   templateName: require('templates/main/admin/repositories'),
 
   isUpgradeAvailable: function(){
-    return stringUtils.compareVersions(this.get('controller.upgradeVersion').replace(/HDP(Local)?-/, ''), App.get('currentStackVersionNumber')) === 1;
-  }.property('controller.upgradeVersion', 'App.currentStackVersion'),
+    return stringUtils.compareVersions(this.get('controller.upgradeVersion').replace(App.get('currentStackName') + '-', ''), App.get('currentStackVersionNumber')) === 1;
+  }.property('controller.upgradeVersion', 'App.currentStackName','App.currentStackVersionNumber'),
 
   didInsertElement: function () {
     this.get('controller').loadRepositories();
