@@ -26,11 +26,14 @@ import javax.persistence.Entity;
 import javax.persistence.EntityManager;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.Lob;
 import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.PreRemove;
@@ -70,6 +73,10 @@ public class AlertDefinitionEntity {
 
   @Column(name = "cluster_id", nullable = false)
   private Long clusterId;
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", insertable = false, updatable = false)
+  private ClusterEntity clusterEntity;
 
   @Column(name = "component_name", length = 255)
   private String componentName;
@@ -174,6 +181,15 @@ public class AlertDefinitionEntity {
    */
   public void setClusterId(Long clusterId) {
     this.clusterId = clusterId;
+  }
+
+  /**
+   * Gets the cluster that this alert definition is a member of.
+   *
+   * @return
+   */
+  public ClusterEntity getCluster() {
+    return clusterEntity;
   }
 
   /**
@@ -360,7 +376,7 @@ public class AlertDefinitionEntity {
 
   /**
    * Sets a human readable label for this alert definition.
-   * 
+   *
    * @param label
    *          the label or {@code null} if none.
    */
@@ -370,7 +386,7 @@ public class AlertDefinitionEntity {
 
   /**
    * Gets the label for this alert definition.
-   * 
+   *
    * @return the label or {@code null} if none.
    */
   public String getLabel() {

@@ -18,9 +18,9 @@
 
 package org.apache.ambari.server.state;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -28,14 +28,18 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.ServiceResponse;
+import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ClusterServiceDAO;
 import org.apache.ambari.server.orm.dao.ServiceDesiredStateDAO;
+import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntityPK;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity;
+import org.apache.ambari.server.state.alert.AlertDefinition;
+import org.apache.ambari.server.state.alert.AlertDefinitionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,6 +79,20 @@ public class ServiceImpl implements Service {
   @Inject
   private AmbariMetaInfo ambariMetaInfo;
 
+  /**
+   * Used when a service is installed to insert {@link AlertDefinitionEntity}
+   * into the database.
+   */
+  @Inject
+  private AlertDefinitionDAO alertDefinitionDAO;
+
+  /**
+   * Used when a service is installed to read alert definitions from the stack
+   * and coerce them into {@link AlertDefinitionEntity}.
+   */
+  @Inject
+  private AlertDefinitionFactory alertDefinitionFactory;
+
   private void init() {
     // TODO load from DB during restart?
   }
@@ -93,14 +111,14 @@ public class ServiceImpl implements Service {
 
     this.cluster = cluster;
 
-    this.components = new HashMap<String, ServiceComponent>();
+    components = new HashMap<String, ServiceComponent>();
 
     StackId stackId = cluster.getDesiredStackVersion();
     setDesiredStackVersion(stackId);
 
     ServiceInfo sInfo = ambariMetaInfo.getServiceInfo(stackId.getStackName(),
         stackId.getStackVersion(), serviceName);
-    this.isClientOnlyService = sInfo.isClientOnlyService();
+    isClientOnlyService = sInfo.isClientOnlyService();
 
     init();
   }
@@ -114,9 +132,9 @@ public class ServiceImpl implements Service {
     this.cluster = cluster;
 
     //TODO check for null states?
-    this.serviceDesiredStateEntity = serviceEntity.getServiceDesiredStateEntity();
+    serviceDesiredStateEntity = serviceEntity.getServiceDesiredStateEntity();
 
-    this.components = new HashMap<String, ServiceComponent>();
+    components = new HashMap<String, ServiceComponent>();
 
     if (!serviceEntity.getServiceComponentDesiredStateEntities().isEmpty()) {
       for (ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity
@@ -130,7 +148,7 @@ public class ServiceImpl implements Service {
     StackId stackId = getDesiredStackVersion();
     ServiceInfo sInfo = ambariMetaInfo.getServiceInfo(stackId.getStackName(),
         stackId.getStackVersion(), getName());
-    this.isClientOnlyService = sInfo.isClientOnlyService();
+    isClientOnlyService = sInfo.isClientOnlyService();
 
     persisted = true;
   }
@@ -225,7 +243,7 @@ public class ServiceImpl implements Service {
               + ", serviceName=" + getName()
               + ", serviceComponentName=" + component.getName());
         }
-        this.components.put(component.getName(), component);
+        components.put(component.getName(), component);
       } finally {
         readWriteLock.writeLock().unlock();
       }
@@ -256,7 +274,7 @@ public class ServiceImpl implements Service {
               + ", serviceComponentName=" + serviceComponentName);
         }
         ServiceComponent component = serviceComponentFactory.createNew(this, serviceComponentName);
-        this.components.put(component.getName(), component);
+        components.put(component.getName(), component);
         return component;
       } finally {
         readWriteLock.writeLock().unlock();
@@ -280,7 +298,7 @@ public class ServiceImpl implements Service {
               getName(),
               componentName);
         }
-        return this.components.get(componentName);
+        return components.get(componentName);
       } finally {
         readWriteLock.readLock().unlock();
       }
@@ -297,7 +315,7 @@ public class ServiceImpl implements Service {
     try {
       readWriteLock.readLock().lock();
       try {
-        return this.serviceDesiredStateEntity.getDesiredState();
+        return serviceDesiredStateEntity.getDesiredState();
       } finally {
         readWriteLock.readLock().unlock();
       }
@@ -319,10 +337,10 @@ public class ServiceImpl implements Service {
               + ", clusterName=" + cluster.getClusterName()
               + ", clusterId=" + cluster.getClusterId()
               + ", serviceName=" + getName()
-              + ", oldDesiredState=" + this.getDesiredState()
+              + ", oldDesiredState=" + getDesiredState()
               + ", newDesiredState=" + state);
         }
-        this.serviceDesiredStateEntity.setDesiredState(state);
+        serviceDesiredStateEntity.setDesiredState(state);
         saveIfPersisted();
       } finally {
         readWriteLock.writeLock().unlock();
@@ -384,7 +402,7 @@ public class ServiceImpl implements Service {
             getName(),
             getDesiredStackVersion().getStackId(),
             getDesiredState().toString());
-        
+
         r.setMaintenanceState(getMaintenanceState().name());
         return r;
       } finally {
@@ -472,16 +490,37 @@ public class ServiceImpl implements Service {
 
   @Transactional
   protected void persistEntities() {
-    ClusterEntity clusterEntity = clusterDAO.findById(cluster.getClusterId());
+    long clusterId = cluster.getClusterId();
+    StackId stackId = cluster.getDesiredStackVersion();
+
+    ClusterEntity clusterEntity = clusterDAO.findById(clusterId);
     serviceEntity.setClusterEntity(clusterEntity);
     clusterServiceDAO.create(serviceEntity);
     serviceDesiredStateDAO.create(serviceDesiredStateEntity);
     clusterEntity.getClusterServiceEntities().add(serviceEntity);
     clusterDAO.merge(clusterEntity);
-//    serviceEntity =
-        clusterServiceDAO.merge(serviceEntity);
-//    serviceDesiredStateEntity =
-        serviceDesiredStateDAO.merge(serviceDesiredStateEntity);
+    clusterServiceDAO.merge(serviceEntity);
+    serviceDesiredStateDAO.merge(serviceDesiredStateEntity);
+
+    // populate alert definitions for the new service from the database, but
+    // don't worry about sending down commands to the agents; the host
+    // components are not yet bound to the hosts so we'd have no way of knowing
+    // which hosts are invalidated; do that in another impl
+    try{
+      Set<AlertDefinition> alertDefinitions = ambariMetaInfo.getAlertDefinitions(
+          stackId.getStackName(), stackId.getStackVersion(), getName());
+
+      for (AlertDefinition definition : alertDefinitions) {
+        AlertDefinitionEntity entity = alertDefinitionFactory.coerce(clusterId,
+            definition);
+
+        alertDefinitionDAO.create(entity);
+      }
+    } catch( AmbariException ae ){
+      LOG.error(
+          "Unable to populate alert definitions from the database during installation of {}",
+          getName(), ae);
+    }
   }
 
   @Transactional
@@ -650,7 +689,7 @@ public class ServiceImpl implements Service {
 
     clusterServiceDAO.removeByPK(pk);
   }
-  
+
   @Override
   public void setMaintenanceState(MaintenanceState state) {
     clusterGlobalLock.readLock().lock();
@@ -666,7 +705,7 @@ public class ServiceImpl implements Service {
       clusterGlobalLock.readLock().unlock();
     }
   }
-  
+
   @Override
   public MaintenanceState getMaintenanceState() {
     return serviceDesiredStateEntity.getMaintenanceState();

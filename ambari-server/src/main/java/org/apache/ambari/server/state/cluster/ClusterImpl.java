@@ -36,8 +36,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.persistence.RollbackException;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.ParentObjectNotFoundException;
@@ -47,9 +45,11 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.ClusterResponse;
 import org.apache.ambari.server.controller.ConfigurationResponse;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
+import org.apache.ambari.server.controller.ServiceConfigVersionResponse;
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.cache.ConfigGroupHostMapping;
 import org.apache.ambari.server.orm.cache.HostConfigMapping;
+import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ClusterStateDAO;
 import org.apache.ambari.server.orm.dao.ConfigGroupHostMappingDAO;
@@ -66,20 +66,41 @@ import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.RequestScheduleEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ServiceConfigEntity;
-import org.apache.ambari.server.state.*;
+import org.apache.ambari.server.state.Alert;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.ClusterHealthReport;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.ConfigFactory;
+import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.ambari.server.state.ConfigVersionHelper;
+import org.apache.ambari.server.state.DesiredConfig;
+import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.HostHealthStatus;
+import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.PropertyInfo;
+import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponent;
+import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.ServiceComponentHostEvent;
+import org.apache.ambari.server.state.ServiceFactory;
+import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.scheduler.RequestExecution;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
-import org.apache.ambari.server.controller.ServiceConfigVersionResponse;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.Predicate;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Multimap;
 import com.google.gson.Gson;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
@@ -132,7 +153,7 @@ public class ClusterImpl implements Cluster {
   private final ReadWriteLock clusterGlobalLock = new ReentrantReadWriteLock();
 
   private ClusterEntity clusterEntity;
-  
+
   private Set<Alert> clusterAlerts = new HashSet<Alert>();
 
   private final ConfigVersionHelper configVersionHelper;
@@ -164,6 +185,9 @@ public class ClusterImpl implements Cluster {
   @Inject
   private ServiceConfigDAO serviceConfigDAO;
 
+  @Inject
+  private AlertDefinitionDAO alertDefinitionDAO;
+
   private volatile boolean svcHostsLoaded = false;
 
   private volatile Multimap<String, String> serviceConfigTypes;
@@ -174,11 +198,11 @@ public class ClusterImpl implements Cluster {
     injector.injectMembers(this);
     this.clusterEntity = clusterEntity;
 
-    this.serviceComponentHosts = new HashMap<String,
+    serviceComponentHosts = new HashMap<String,
       Map<String, Map<String, ServiceComponentHost>>>();
-    this.serviceComponentHostsByHost = new HashMap<String,
+    serviceComponentHostsByHost = new HashMap<String,
       List<ServiceComponentHost>>();
-    this.desiredStackVersion = gson.fromJson(
+    desiredStackVersion = gson.fromJson(
       clusterEntity.getDesiredStackVersion(), StackId.class);
     allConfigs = new HashMap<String, Map<String, Config>>();
     if (!clusterEntity.getClusterConfigEntities().isEmpty()) {
@@ -257,13 +281,17 @@ public class ClusterImpl implements Cluster {
    */
   public void loadServiceHostComponents() {
     loadServices();
-    if (svcHostsLoaded) return;
+    if (svcHostsLoaded) {
+      return;
+    }
     clusterGlobalLock.writeLock().lock();
     try {
       writeLock.lock();
       try {
         LOG.info("Loading Service Host Components");
-        if (svcHostsLoaded) return;
+        if (svcHostsLoaded) {
+          return;
+        }
         if (services != null) {
           for (Entry<String, Service> serviceKV : services.entrySet()) {
           /* get all the service component hosts **/
@@ -647,7 +675,7 @@ public class ClusterImpl implements Cluster {
         Iterator<Cluster> iter = cs.iterator();
         while (iter.hasNext()) {
           Cluster c = iter.next();
-          if (c.getClusterId() == this.getClusterId()) {
+          if (c.getClusterId() == getClusterId()) {
             clusterFound = true;
             break;
           }
@@ -725,7 +753,7 @@ public class ClusterImpl implements Cluster {
         Iterator<Cluster> iter = cs.iterator();
         while (iter.hasNext()) {
           Cluster c = iter.next();
-          if (c.getClusterId() == this.getClusterId()) {
+          if (c.getClusterId() == getClusterId()) {
             clusterFound = true;
             break;
           }
@@ -849,7 +877,7 @@ public class ClusterImpl implements Cluster {
             + ", clusterId=" + getClusterId()
             + ", serviceName=" + service.getName());
         }
-        this.services.put(service.getName(), service);
+        services.put(service.getName(), service);
       } finally {
         writeLock.unlock();
       }
@@ -879,7 +907,7 @@ public class ClusterImpl implements Cluster {
             + ", serviceName=" + serviceName);
         }
         Service s = serviceFactory.createNew(this, serviceName);
-        this.services.put(s.getName(), s);
+        services.put(s.getName(), s);
         return s;
       } finally {
         writeLock.unlock();
@@ -954,10 +982,10 @@ public class ClusterImpl implements Cluster {
           LOG.debug("Changing DesiredStackVersion of Cluster"
             + ", clusterName=" + getClusterName()
             + ", clusterId=" + getClusterId()
-            + ", currentDesiredStackVersion=" + this.desiredStackVersion
+            + ", currentDesiredStackVersion=" + desiredStackVersion
             + ", newDesiredStackVersion=" + stackVersion);
         }
-        this.desiredStackVersion = stackVersion;
+        desiredStackVersion = stackVersion;
         clusterEntity.setDesiredStackVersion(gson.toJson(stackVersion));
         clusterDAO.merge(clusterEntity);
         loadServiceConfigTypes();
@@ -991,19 +1019,20 @@ public class ClusterImpl implements Cluster {
       clusterGlobalLock.readLock().unlock();
     }
   }
-  
+
   @Override
-  public State getProvisioningState() {    
+  public State getProvisioningState() {
     clusterGlobalLock.readLock().lock();
     try {
       readLock.lock();
       State provisioningState = null;
       try {
         provisioningState = clusterEntity.getProvisioningState();
-        
-        if( null == provisioningState )
+
+        if( null == provisioningState ) {
           provisioningState = State.INIT;
-        
+        }
+
         return provisioningState;
       } finally {
         readLock.unlock();
@@ -1011,7 +1040,7 @@ public class ClusterImpl implements Cluster {
     } finally {
       clusterGlobalLock.readLock().unlock();
     }
-  }  
+  }
 
   @Override
   public void setProvisioningState(State provisioningState) {
@@ -1020,7 +1049,7 @@ public class ClusterImpl implements Cluster {
       writeLock.lock();
       try {
         clusterEntity.setProvisioningState(provisioningState);
-        clusterDAO.merge(clusterEntity);        
+        clusterDAO.merge(clusterEntity);
       } finally {
         writeLock.unlock();
       }
@@ -1071,8 +1100,9 @@ public class ClusterImpl implements Cluster {
     try {
       readWriteLock.writeLock().lock();
       try {
-        if (!allConfigs.containsKey(configType))
+        if (!allConfigs.containsKey(configType)) {
           return null;
+        }
 
         return Collections.unmodifiableMap(allConfigs.get(configType));
       } finally {
@@ -1329,7 +1359,9 @@ public class ClusterImpl implements Cluster {
 
   @Transactional
   protected void removeEntities() throws AmbariException {
-    clusterDAO.removeByPK(getClusterId());
+    long clusterId = getClusterId();
+    alertDefinitionDAO.removeAll(clusterId);
+    clusterDAO.removeByPK(clusterId);
   }
 
   @Override
@@ -1339,8 +1371,9 @@ public class ClusterImpl implements Cluster {
 
   @Override
   public ServiceConfigVersionResponse addDesiredConfig(String user, Config config, String serviceConfigVersionNote) {
-    if (null == user)
+    if (null == user) {
       throw new NullPointerException("User must be specified.");
+    }
 
     clusterGlobalLock.readLock().lock();
     try {
@@ -1489,8 +1522,9 @@ public class ClusterImpl implements Cluster {
 
   @Override
   public boolean setServiceConfigVersion(String serviceName, Long version, String user, String note) throws AmbariException {
-    if (null == user)
+    if (null == user) {
       throw new NullPointerException("User must be specified.");
+    }
 
     clusterGlobalLock.writeLock().lock();
     try {
@@ -1606,7 +1640,7 @@ public class ClusterImpl implements Cluster {
     serviceConfigVersionResponse.setClusterName(getClusterName());
     serviceConfigVersionResponse.setServiceName(serviceConfigEntity.getServiceName());
     serviceConfigVersionResponse.setVersion(serviceConfigEntity.getVersion());
-    serviceConfigVersionResponse.setCreateTime(serviceConfigEntity.getCreateTimestamp());    
+    serviceConfigVersionResponse.setCreateTime(serviceConfigEntity.getCreateTimestamp());
     serviceConfigVersionResponse.setUserName(serviceConfigEntity.getUser());
     serviceConfigVersionResponse.setNote(serviceConfigEntity.getNote());
     return serviceConfigVersionResponse;
@@ -1958,12 +1992,12 @@ public class ClusterImpl implements Cluster {
 
     return chr;
   }
-  
+
   @Override
   public void addAlerts(Collection<Alert> alerts) {
     try {
       writeLock.lock();
-      
+
       for (final Alert alert : alerts) {
         if (clusterAlerts.size() > 0) {
           CollectionUtils.filter(clusterAlerts, new Predicate() {
@@ -1974,7 +2008,7 @@ public class ClusterImpl implements Cluster {
             }
           });
         }
-        
+
         if (LOG.isDebugEnabled()) {
           LOG.debug("Adding alert for name={} service={}, on host={}",
               alert.getName(), alert.getService(), alert.getHost());
@@ -1987,12 +2021,12 @@ public class ClusterImpl implements Cluster {
       writeLock.unlock();
     }
   }
-  
+
   @Override
   public Collection<Alert> getAlerts() {
     try {
       readLock.lock();
-      
+
       return Collections.unmodifiableSet(clusterAlerts);
     } finally {
       readLock.unlock();

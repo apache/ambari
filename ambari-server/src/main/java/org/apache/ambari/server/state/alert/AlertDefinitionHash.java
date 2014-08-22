@@ -33,6 +33,9 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.agent.ActionQueue;
+import org.apache.ambari.server.agent.AgentCommand.AgentCommandType;
+import org.apache.ambari.server.agent.AlertDefinitionCommand;
 import org.apache.ambari.server.controller.RootServiceResponseFactory.Components;
 import org.apache.ambari.server.controller.RootServiceResponseFactory.Services;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
@@ -83,6 +86,9 @@ public class AlertDefinitionHash {
    */
   @Inject
   private Clusters m_clusters;
+
+  @Inject
+  private ActionQueue m_actionQueue;
 
   /**
    * !!! TODO: this class needs some thoughts on locking
@@ -472,6 +478,48 @@ public class AlertDefinitionHash {
     } catch (NoSuchAlgorithmException nsae) {
       LOG.warn("Unable to calculate MD5 alert definition hash", nsae);
       return NULL_MD5_HASH;
+    }
+  }
+
+  /**
+   * Enqueue {@link AlertDefinitionCommand}s for every host specified so that
+   * they will receive a payload of alert definitions that they should be
+   * running.
+   * <p/>
+   * This method is typically called after
+   * {@link #invalidateHosts(AlertDefinitionEntity)} has caused a cache
+   * invalidation of the alert definition hash.
+   * 
+   * @param clusterName
+   *          the name of the cluster (not {@code null}).
+   * @param hosts
+   *          the hosts to push {@link AlertDefinitionCommand}s for.
+   */
+  public void enqueueAgentCommands(String clusterName, Set<String> hosts) {
+    if (null == clusterName) {
+      LOG.warn("Unable to create alert definition agent commands because of a null cluster name");
+      return;
+    }
+
+    if (null == hosts || hosts.size() == 0) {
+      return;
+    }
+
+    for (String hostName : hosts) {
+      List<AlertDefinition> definitions = getAlertDefinitions(clusterName,
+          hostName);
+
+      String hash = getHash(clusterName, hostName);
+
+      AlertDefinitionCommand command = new AlertDefinitionCommand(clusterName,
+          hostName, hash, definitions);
+
+      // unlike other commands, the alert definitions commands are really
+      // designed to be 1:1 per change; if multiple invalidations happened
+      // before the next heartbeat, there would be several commands that would
+      // force the agents to reschedule their alerts more than once
+      m_actionQueue.dequeue(hostName, AgentCommandType.ALERT_DEFINITION_COMMAND);
+      m_actionQueue.enqueue(hostName, command);
     }
   }
 }

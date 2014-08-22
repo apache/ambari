@@ -268,7 +268,7 @@ public class AlertDefinitionDAO {
    * Creates or updates the specified entity. This method will check
    * {@link AlertDefinitionEntity#getDefinitionId()} in order to determine
    * whether the entity should be created or merged.
-   * 
+   *
    * @param alertDefinition
    *          the definition to create or update (not {@code null}).
    */
@@ -298,6 +298,21 @@ public class AlertDefinitionDAO {
     alertDefinition = findById(alertDefinition.getDefinitionId());
     if (null != alertDefinition) {
       entityManager.remove(alertDefinition);
+    }
+  }
+
+  /**
+   * Removes all {@link AlertDefinitionEntity} that are associated with the
+   * specified cluster ID.
+   *
+   * @param clusterId
+   *          the cluster ID.
+   */
+  @Transactional
+  public void removeAll(long clusterId) {
+    List<AlertDefinitionEntity> definitions = findAll(clusterId);
+    for (AlertDefinitionEntity definition : definitions) {
+      remove(definition);
     }
   }
 }

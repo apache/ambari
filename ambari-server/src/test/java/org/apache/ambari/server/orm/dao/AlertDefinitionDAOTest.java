@@ -37,7 +37,10 @@ import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.AlertGroupEntity;
 import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
 import org.apache.ambari.server.orm.entities.AlertNoticeEntity;
+import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.state.AlertState;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.NotificationState;
 import org.apache.ambari.server.state.alert.Scope;
@@ -318,5 +321,26 @@ public class AlertDefinitionDAOTest {
     assertNotNull(group);
     assertNotNull(group.getAlertDefinitions());
     assertEquals(0, group.getAlertDefinitions().size());
+  }
+
+  /**
+   * @throws Exception
+   */
+  @Test
+  public void testCascadeDeleteForCluster() throws Exception {
+    AlertDefinitionEntity definition = helper.createAlertDefinition(clusterId);
+    definition = dao.findById(definition.getDefinitionId());
+    dao.refresh(definition);
+
+    ClusterDAO clusterDAO = injector.getInstance(ClusterDAO.class);
+    ClusterEntity clusterEntity = clusterDAO.findById(clusterId);
+    clusterDAO.refresh(clusterEntity);
+
+    Clusters clusters = injector.getInstance(Clusters.class);
+    Cluster cluster = clusters.getClusterById(clusterId);
+    cluster.delete();
+
+    assertNull(clusterDAO.findById(clusterId));
+    assertNull(dao.findById(definition.getDefinitionId()));
   }
 }

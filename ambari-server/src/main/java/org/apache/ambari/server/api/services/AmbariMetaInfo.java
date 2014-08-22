@@ -1090,10 +1090,16 @@ public class AmbariMetaInfo {
   }
 
   /**
-   * @param stackName the stack name
-   * @param stackVersion the stack version
-   * @param serviceName the service name
-   * @return the alert definitions for a stack
+   * Gets the alert definitions for the specified stack and service.
+   *
+   * @param stackName
+   *          the stack name
+   * @param stackVersion
+   *          the stack version
+   * @param serviceName
+   *          the service name
+   * @return the alert definitions for a stack or an empty list if none (never
+   *         {@code null}).
    * @throws AmbariException
    */
   public Set<AlertDefinition> getAlertDefinitions(String stackName, String stackVersion,
@@ -1104,13 +1110,16 @@ public class AmbariMetaInfo {
   }
 
   /**
+   * Gets the alert definitions for the specified stack and service.
+   *
    * @param stackName
    *          the stack name
    * @param stackVersion
    *          the stack version
    * @param serviceName
    *          the service name
-   * @return the alert definitions for a stack
+   * @return the alert definitions for a stack or an empty list if none (never
+   *         {@code null}).
    * @throws AmbariException
    */
   public Set<AlertDefinition> getAlertDefinitions(ServiceInfo service)
@@ -1121,7 +1130,7 @@ public class AmbariMetaInfo {
       LOG.debug("Alerts file for {}/{} not found.", service.getSchemaVersion(),
           service.getName());
 
-      return null;
+      return Collections.emptySet();
     }
 
     return alertDefinitionFactory.getAlertDefinitions(alertsFile,
@@ -1175,9 +1184,7 @@ public class AmbariMetaInfo {
 
         // get all alerts defined on the stack for each cluster service
         Set<AlertDefinition> serviceDefinitions = getAlertDefinitions(stackService);
-        if (null != serviceDefinitions) {
-          stackDefinitions.addAll(serviceDefinitions);
-        }
+        stackDefinitions.addAll(serviceDefinitions);
       }
 
       // if there are no alert definitions defined for the cluster services

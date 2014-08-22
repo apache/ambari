@@ -38,7 +38,7 @@ public class AlertDefinition {
   private String componentName = null;
 
   private String name = null;
-  private Scope scope = null;
+  private Scope scope = Scope.ANY;
   private int interval = 1;
   private boolean enabled = true;
   private Source source = null;
@@ -96,6 +96,10 @@ public class AlertDefinition {
   }
 
   public void setScope(Scope definitionScope) {
+    if (null == definitionScope) {
+      definitionScope = Scope.ANY;
+    }
+
     scope = definitionScope;
   }
 
@@ -196,6 +200,10 @@ public class AlertDefinition {
       }
     } else if (!name.equals(other.name)) {
       return false;
+    }
+
+    if (null == scope) {
+      scope = Scope.ANY;
     }
 
     if (scope != other.scope) {

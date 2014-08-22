@@ -153,7 +153,7 @@ public class AlertDefinitionFactory {
    * {@link AlertDefinition}.
    * <p/>
    * The new entity will have a UUID already set.
-   * 
+   *
    * @param clusterId
    *          the ID of the cluster.
    * @param definition
@@ -193,8 +193,14 @@ public class AlertDefinitionFactory {
     entity.setHash(UUID.randomUUID().toString());
     entity.setLabel(definition.getLabel());
     entity.setScheduleInterval(definition.getInterval());
-    entity.setScope(definition.getScope());
     entity.setServiceName(definition.getServiceName());
+
+    Scope scope = definition.getScope();
+    if (null == scope) {
+      scope = Scope.ANY;
+    }
+
+    entity.setScope(scope);
 
     Source source = definition.getSource();
     entity.setSourceType(source.getType().name());
