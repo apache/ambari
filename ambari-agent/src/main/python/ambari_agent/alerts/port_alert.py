@@ -30,31 +30,37 @@ logger = logging.getLogger()
 
 class PortAlert(BaseAlert):
 
-  def __init__(self, collector, alert_meta, alert_source_meta):
-    super(PortAlert, self).__init__(collector, alert_meta, alert_source_meta)
+  def __init__(self, alert_meta, alert_source_meta):
+    super(PortAlert, self).__init__(alert_meta, alert_source_meta)
     
-    default_port = alert_source_meta['default_port']
-    uri = alert_source_meta['uri']
-    
-    self.port = default_port
-    self.host = get_host_from_url(uri)
-
-    try:
-      self.port = int(get_port_from_url(uri))
-    except:
-      # only when port parsing fails
-      pass
-
+    # can be parameterized
+    self.uri = self._find_lookup_property(alert_source_meta['uri'])
+    self.port = alert_source_meta['default_port']
     
   def _collect(self):
-    s = None
+    urivalue = self._lookup_property_value(self.uri)
+
+    host = get_host_from_url(urivalue)
+    port = self.port
+    
+    try:
+      port = int(get_port_from_url(urivalue))
+    except:
+      # if port not found,  default port already set to port
+      pass
+    
+    if logger.isEnabledFor(logging.DEBUG):
+      logger.debug("checking {0} listening on port {1}".format(host, str(port)))
+    
     try:
       s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
       s.settimeout(1.5)
       t = time.time()
-      s.connect((self.host, self.port))
+      s.connect((host, port))
       millis = time.time() - t
-      return (self.RESULT_OK, [millis/1000, self.port])
+      return (self.RESULT_OK, [millis/1000, port])
+    except Exception as e:
+      return (self.RESULT_CRITICAL, [str(e), host, port])
     finally:
       if s is not None:
         try:

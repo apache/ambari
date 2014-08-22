@@ -97,7 +97,7 @@ class Heartbeat:
     nodeStatus["alerts"] = hostInfo.createAlerts(nodeStatus["alerts"])
     
     if self.collector is not None:
-      nodeStatus['alerts'].extend(self.collector.alerts())
+      heartbeat['alerts'] = self.collector.alerts()
     
     return heartbeat
 

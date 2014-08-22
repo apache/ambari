@@ -21,6 +21,7 @@ package org.apache.ambari.server.agent;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.ambari.server.state.Alert;
 import org.codehaus.jackson.annotate.JsonProperty;
 
 /**
@@ -39,6 +40,7 @@ public class HeartBeat {
   private List<DiskInfo> mounts = new ArrayList<DiskInfo>();
   HostStatus nodeStatus;
   private AgentEnv agentEnv = null;
+  private List<Alert> alerts = null;
 
   public long getResponseId() {
     return responseId;
@@ -108,6 +110,10 @@ public class HeartBeat {
   @JsonProperty("mounts")
   public void setMounts(List<DiskInfo> mounts) {
     this.mounts = mounts;
+  }
+  
+  public List<Alert> getAlerts() {
+    return alerts;
   }
 
   @Override

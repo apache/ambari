@@ -406,6 +406,7 @@ class TestController(unittest.TestCase):
 
     # one successful request, after stop
     self.controller.actionQueue = actionQueue
+    self.controller.alert_scheduler_handler = MagicMock()
     self.controller.heartbeatWithServer()
     self.assertTrue(sendRequest.called)
 

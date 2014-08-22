@@ -55,7 +55,7 @@ class TestAlerts(TestCase):
       "scope": "host",
       "source": {
         "type": "PORT",
-        "uri": "http://c6409.ambari.apache.org:50070",
+        "uri": "{{hdfs-site/my-key}}",
         "default_port": 50070,
         "reporting": {
           "ok": {
@@ -70,10 +70,40 @@ class TestAlerts(TestCase):
 
     collector = AlertCollector()
 
-    pa = PortAlert(collector, json, json['source'])
+    pa = PortAlert(json, json['source'])
+    pa.set_helpers(collector, {'hdfs-site/my-key': 'value1'})
     self.assertEquals(6, pa.interval())
 
     res = pa.collect()
     
     pass
 
+  def test_port_alert_no_sub(self):
+    json = { "name": "namenode_process",
+      "service": "HDFS",
+      "component": "NAMENODE",
+      "label": "NameNode process",
+      "interval": 6,
+      "scope": "host",
+      "source": {
+        "type": "PORT",
+        "uri": "http://c6401.ambari.apache.org",
+        "default_port": 50070,
+        "reporting": {
+          "ok": {
+            "text": "TCP OK - {0:.4f} response time on port {1}"
+          },
+          "critical": {
+            "text": "Could not load process info: {0}"
+          }
+        }
+      }
+    }
+
+    pa = PortAlert(json, json['source'])
+    pa.set_helpers(AlertCollector(), '')
+    self.assertEquals('http://c6401.ambari.apache.org', pa.uri)
+
+    res = pa.collect()
+    
+    pass

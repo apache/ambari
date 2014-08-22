@@ -218,7 +218,6 @@ public class HeartbeatMonitor implements Runnable {
     return cmds;
   }
 
-
   /**
    * Generates status command and fills all apropriate fields.
    * @throws AmbariException

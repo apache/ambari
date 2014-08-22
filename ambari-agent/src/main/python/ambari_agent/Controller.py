@@ -246,6 +246,7 @@ class Controller(threading.Thread):
 
         if 'executionCommands' in response.keys():
           self.addToQueue(response['executionCommands'])
+          self.alert_scheduler_handler.update_configurations(response['executionCommands'])
           pass
 
         if 'statusCommands' in response.keys():
