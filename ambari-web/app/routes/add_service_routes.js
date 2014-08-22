@@ -114,8 +114,8 @@ module.exports = App.WizardRoute.extend({
       addServiceController.saveClients(wizardStep4Controller);
       addServiceController.setDBProperty('masterComponentHosts', undefined);
 
-      var installerController = router.get('installerController');
-      installerController.clearRecommendations(); // Force reload recommendation between steps 1 and 2
+      var wizardStep5Controller = router.get('wizardStep5Controller');
+      wizardStep5Controller.clearRecommendations(); // Force reload recommendation between steps 1 and 2
       router.transitionTo('step2');
     }
   }),

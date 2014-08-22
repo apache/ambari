@@ -19,6 +19,7 @@
 
 // load all mixins here
 
+require('mixins/common/blueprint');
 require('mixins/common/localStorage');
 require('mixins/common/userPref');
 require('mixins/common/serverValidator');

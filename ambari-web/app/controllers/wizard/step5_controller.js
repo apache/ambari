@@ -17,10 +17,11 @@
  */
 
 var App = require('app');
+var blueprintUtils = require('utils/blueprint');
 var numberUtils = require('utils/number_utils');
 var validationUtils = require('utils/validator');
 
-App.WizardStep5Controller = Em.Controller.extend({
+App.WizardStep5Controller = Em.Controller.extend(App.BlueprintMixin, {
 
   name: "wizardStep5Controller",
 
@@ -50,6 +51,14 @@ App.WizardStep5Controller = Em.Controller.extend({
    */
   isHighAvailabilityWizard: function () {
     return this.get('content.controllerName') == 'highAvailabilityWizardController';
+  }.property('content.controllerName'),
+
+  /**
+   * Check if <code>installerWizard</code> used
+   * @type {bool}
+   */
+  isInstallerWizard: function () {
+    return this.get('content.controllerName') === 'installerController';
   }.property('content.controllerName'),
 
   /**
@@ -154,6 +163,15 @@ App.WizardStep5Controller = Em.Controller.extend({
     return this.get('servicesMasters').some(function(m) { return m.get('warnMessage'); }) || this.get('generalWarningMessages').some(function(m) { return m; });
   }.property('servicesMasters.@each.warnMessage', 'generalWarningMessages'),
 
+    /**
+   * Clear loaded recommendations
+   */
+  clearRecommendations: function() {
+    if (this.get('content.recommendations')) {
+      this.set('content.recommendations', null);
+    }
+  },
+
   /**
    * List of host with assigned masters
    * Format:
@@ -223,7 +241,7 @@ App.WizardStep5Controller = Em.Controller.extend({
       self.set('submitDisabled', true);
 
       // reset previous recommendations
-      this.set('content.recommendations', null);
+      this.clearRecommendations();
 
       if (self.get('servicesMasters').length === 0) {
         return;
@@ -326,7 +344,7 @@ App.WizardStep5Controller = Em.Controller.extend({
   },
 
   /**
-   * Composes selected values of comboboxes into blueprint format
+   * Composes selected values of comboboxes into master blueprint + merge it with currenlty installed slave blueprint
    */
   getCurrentBlueprint: function() {
     var self = this;
@@ -359,7 +377,7 @@ App.WizardStep5Controller = Em.Controller.extend({
       res.blueprint_cluster_binding.host_groups.push(binding);
     });
 
-    return res;
+    return blueprintUtils.mergeBlueprints(res, self.getCurrentSlaveBlueprint());
   },
 
 /**
@@ -506,7 +524,10 @@ App.WizardStep5Controller = Em.Controller.extend({
       };
 
       if (includeMasters) {
+        // Made partial recommendation request for reflect in blueprint host-layout changes which were made by user in UI
         data.recommendations = self.getCurrentBlueprint();
+      } else if (!self.get('isInstallerWizard')) {
+        data.recommendations = self.getCurrentMasterSlaveBlueprint();
       }
 
       return App.ajax.send({
