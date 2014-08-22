@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
@@ -143,12 +144,6 @@ public class StackExtensionHelper {
             parentService.getConfigDependencies() != null ?
                 parentService.getConfigDependencies() :
                 Collections.<String>emptyList());
-    mergedServiceInfo.setConfigTypes(
-        childService.getConfigTypes() != null ?
-            childService.getConfigTypes() :
-            parentService.getConfigTypes() != null ?
-                parentService.getConfigTypes() :
-                Collections.<String, Map<String, Map<String, String>>>emptyMap());
     mergedServiceInfo.setExcludedConfigTypes(
       childService.getExcludedConfigTypes() != null ?
         childService.getExcludedConfigTypes() :
@@ -179,7 +174,15 @@ public class StackExtensionHelper {
     } else {
       mergedServiceInfo.setOsSpecifics(parentService.getOsSpecifics());
     }
-
+    
+    mergedServiceInfo.setConfigTypes(new HashMap<String, Map<String, Map<String, String>>>());
+    if(childService.getConfigTypes() != null) {
+      mergedServiceInfo.getConfigTypes().putAll(childService.getConfigTypes());
+    }
+    if(parentService.getConfigTypes() != null) {
+      mergedServiceInfo.getConfigTypes().putAll(parentService.getConfigTypes());
+    }
+    
     CommandScriptDefinition commandScript = childService.getCommandScript();
     if (commandScript != null) {
        mergedServiceInfo.setCommandScript(childService.getCommandScript());
@@ -421,8 +424,21 @@ public class StackExtensionHelper {
           serviceInfoMap.put(service.getName(), newServiceInfo);
         }
         
-        // add action for service check
+        // remove 'excluded-config-types' from configTypes
         ServiceInfo serviceInfo = serviceInfoMap.get(service.getName());
+        if(serviceInfo.getExcludedConfigTypes() != null) { 
+          Iterator<Map.Entry<String,Map<String,Map<String,String>>>> configTypesItetator = serviceInfo.getConfigTypes().entrySet().iterator();
+          
+          while(configTypesItetator.hasNext()) {
+            Map.Entry<String,Map<String,Map<String,String>>> configTypeMap = configTypesItetator.next();
+            
+            if(serviceInfo.getExcludedConfigTypes().contains(configTypeMap.getKey())) {
+              configTypesItetator.remove();
+            }
+          }
+        }
+        
+        // add action for service check
         if(serviceInfo.getCommandScript() != null) {
           actionMetadata.addServiceCheckAction(serviceInfo.getName());
         }
@@ -503,7 +519,6 @@ public class StackExtensionHelper {
           List<ServiceInfo> serviceInfos = smiv2x.getServices();
           for (ServiceInfo serviceInfo : serviceInfos) {
             serviceInfo.setSchemaVersion(AmbariMetaInfo.SCHEMA_VERSION_2);
-            populateConfigTypesFromDependencies(serviceInfo);
 
             // Find service package folder
             String servicePackageDir = resolveServicePackageFolder(
@@ -706,6 +721,12 @@ public class StackExtensionHelper {
     serviceInfo.getProperties().addAll(getProperties(configuration, fileName));
     int extIndex = fileName.indexOf(AmbariMetaInfo.SERVICE_CONFIG_FILE_NAME_POSTFIX);
     String configType = fileName.substring(0, extIndex);
+   
+    addConfigType(serviceInfo, configType);
+    setConfigTypeAttributes(serviceInfo, configuration, configType);
+  }
+  
+  void setConfigTypeAttributes(ServiceInfo serviceInfo, ConfigurationXml configuration, String configType) {
     for (Map.Entry<QName, String> attribute : configuration.getAttributes().entrySet()) {
       for (Supports supportsProperty : Supports.values()) {
         String attributeName = attribute.getKey().getLocalPart();
@@ -717,23 +738,43 @@ public class StackExtensionHelper {
       }
     }
   }
+  
+  void addConfigType(ServiceInfo serviceInfo, String configType) {
+    if(serviceInfo.getConfigTypes() == null) {
+      serviceInfo.setConfigTypes(new HashMap<String, Map<String, Map<String, String>>>());
+    }
+    
+    Map<String, Map<String, Map<String, String>>> configTypes = serviceInfo.getConfigTypes();
+    configTypes.put(configType, new HashMap<String, Map<String, String>>());
+    
+    
+    Map<String, Map<String, String>> properties = configTypes.get(configType);
+    Map<String, String> supportsProperties = new HashMap<String, String>();
+    for (Supports supportsProperty : Supports.values()) {
+      supportsProperties.put(supportsProperty.getPropertyName(), supportsProperty.getDefaultValue());
+    }
+    properties.put(Supports.KEYWORD, supportsProperties); 
+  }
 
   /**
    * Populate ServiceInfo#configTypes with default entries based on ServiceInfo#configDependencies property
    */
   void populateConfigTypesFromDependencies(ServiceInfo serviceInfo) {
-    List<String> configDependencies = serviceInfo.getConfigDependenciesWithComponents();
-    if (configDependencies != null) {
+    List<PropertyInfo> configurations = serviceInfo.getProperties();
+    if (configurations != null) {
       Map<String, Map<String, Map<String, String>>> configTypes = new HashMap<String, Map<String, Map<String, String>>>();
-      for (String configDependency : configDependencies) {
-        if (!configTypes.containsKey(configDependency)) {
+      for (PropertyInfo configuration : configurations) {
+        int extIndex = configuration.getFilename().indexOf(AmbariMetaInfo.SERVICE_CONFIG_FILE_NAME_POSTFIX);
+        String configType = configuration.getFilename().substring(0, extIndex);
+        
+        if (!configTypes.containsKey(configType)) {
           Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
           Map<String, String> supportsProperties = new HashMap<String, String>();
           for (Supports supportsProperty : Supports.values()) {
             supportsProperties.put(supportsProperty.getPropertyName(), supportsProperty.getDefaultValue());
           }
           properties.put(Supports.KEYWORD, supportsProperties);
-          configTypes.put(configDependency, properties);
+          configTypes.put(configType, properties);
         }
       }
       serviceInfo.setConfigTypes(configTypes);
