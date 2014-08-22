@@ -28,6 +28,7 @@ tmp_dir = Script.get_tmp_dir()
 pig_conf_dir = "/etc/pig/conf"
 hadoop_conf_dir = "/etc/hadoop/conf"
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
+hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']
 smokeuser = config['configurations']['hadoop-env']['smokeuser']
 user_group = config['configurations']['hadoop-env']['user_group']
 _authentication = config['configurations']['core-site']['hadoop.security.authentication']
