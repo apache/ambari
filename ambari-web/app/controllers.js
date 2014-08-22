@@ -54,7 +54,6 @@ require('controllers/main/admin/highAvailability/resourceManager/step4_controlle
 require('controllers/main/admin/repositories');
 require('controllers/main/admin/stack_upgrade_controller');
 require('controllers/main/admin/serviceAccounts_controller');
-require('controllers/main/admin/access_controller');
 require('controllers/main/admin/advanced');
 require('utils/polling');
 require('controllers/main/admin/security');
