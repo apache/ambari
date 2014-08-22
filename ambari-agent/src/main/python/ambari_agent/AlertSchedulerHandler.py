@@ -39,6 +39,14 @@ class AlertSchedulerHandler():
 
   FILENAME = 'definitions.json'
   TYPE_PORT = 'PORT'
+  TYPE_METRIC = 'METRIC'
+  TYPE_SCRIPT = 'SCRIPT'
+
+  APS_CONFIG = { 
+    'threadpool.core_threads': 3,
+    'coalesce': True,
+    'standalone': False
+  }
 
   def __init__(self, cachedir, in_minutes=True):
     self.cachedir = cachedir
@@ -50,15 +58,10 @@ class AlertSchedulerHandler():
         logger.critical("Could not create the cache directory {0}".format(cachedir))
         pass
     
-    config = {
-      'threadpool.core_threads': 3,
-      'coalesce': True,
-      'standalone': False
-    }
 
-    self.__scheduler = Scheduler(config)
+
+    self.__scheduler = Scheduler(AlertSchedulerHandler.APS_CONFIG)
     self.__in_minutes = in_minutes
-    self.__loaded = False
     self.__collector = AlertCollector()
     self.__config_maps = {}
           
@@ -69,8 +72,6 @@ class AlertSchedulerHandler():
       json.dump(alert_commands, f, indent=2)
     
     if refresh_jobs:
-      self.__scheduler.shutdown(wait=False)
-      self.__loaded = False
       self.start()
       
   def __make_function(self, alert_def):
@@ -78,25 +79,32 @@ class AlertSchedulerHandler():
     
   def start(self):
     ''' loads definitions from file and starts the scheduler '''
-    if not self.__loaded:
-      alert_callables = self.__load_definitions()
+
+    if self.__scheduler is None:
+      return
+
+    if self.__scheduler.running:
+      self.__scheduler.shutdown(wait=False)
+      self.__scheduler = Scheduler(AlertSchedulerHandler.APS_CONFIG)
+
+    alert_callables = self.__load_definitions()
       
-      for _callable in alert_callables:
-        if self.__in_minutes:
-          self.__scheduler.add_interval_job(self.__make_function(_callable),
-            minutes=_callable.interval())
-        else:
-          self.__scheduler.add_interval_job(self.__make_function(_callable),
-            seconds=_callable.interval())
-      self.__loaded = True
+    for _callable in alert_callables:
+      if self.__in_minutes:
+        self.__scheduler.add_interval_job(self.__make_function(_callable),
+          minutes=_callable.interval())
+      else:
+        self.__scheduler.add_interval_job(self.__make_function(_callable),
+          seconds=_callable.interval())
       
-    if not self.__scheduler is None:
-      self.__scheduler.start()
+    logger.debug("Starting scheduler {0}; currently running: {1}".format(
+      str(self.__scheduler), str(self.__scheduler.running)))
+    self.__scheduler.start()
     
   def stop(self):
     if not self.__scheduler is None:
       self.__scheduler.shutdown(wait=False)
-      self.__scheduler = None
+      self.__scheduler = Scheduler(AlertSchedulerHandler.APS_CONFIG)
       
   def collector(self):
     ''' gets the collector for reporting to the server '''
@@ -156,11 +164,11 @@ class AlertSchedulerHandler():
     
     alert = None
 
-    if source_type == 'METRIC':
+    if source_type == AlertSchedulerHandler.TYPE_METRIC:
       pass
-    elif source_type == 'PORT':
+    elif source_type == AlertSchedulerHandler.TYPE_PORT:
       alert = PortAlert(json_definition, source)
-    elif type == 'SCRIPT':
+    elif type == AlertSchedulerHandler.TYPE_SCRIPT:
       pass
 
     return alert
