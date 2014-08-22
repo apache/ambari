@@ -45,5 +45,10 @@ export ZOOCFGDIR=${ZOOCFGDIR:-/etc/zookeeper/conf}
 export SQOOP_USER_CLASSPATH="`ls ${HIVE_HOME}/lib/libthrift-*.jar 2> /dev/null`:${SQOOP_USER_CLASSPATH}"
     </value>
   </property>
+  <property>
+    <name>sqoop_user</name>
+    <description>User to run Sqoop as</description>
+    <value>sqoop</value>
+  </property>
   
 </configuration>

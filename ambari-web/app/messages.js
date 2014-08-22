@@ -258,7 +258,6 @@ Em.I18n.translations = {
   'hostPopup.header.postFix':' Background Operations Running',
   'hostPopup.serviceInfo.showMore':'Show more...',
   'hostPopup.bgop.abortRequest.title': 'Abort operation',
-  'hostPopup.abortedOperation.icon.tooltip': 'Operation aborted',
   'hostPopup.bgop.abortRequest.confirmation.body': 'Are you sure you want to abort \'{0}\' operation?',
   'hostPopup.bgop.abortRequest.reason': 'Aborted by user',
   'hostPopup.bgop.abortRequest.modal.header': 'Abort request sent',
@@ -374,9 +373,8 @@ Em.I18n.translations = {
   'installer.controls.slaveComponentChangeGroupName.error':'group with this name already exist',
 
   'installer.step0.header':'Welcome',
-  'installer.step0.body.header':'Welcome to Apache Ambari!',
-  'installer.step0.body':'Ambari makes it easy to install, manage, and monitor Hadoop clusters.<br>' +
-    'We will walk you through the cluster installation process with this step-by-step wizard.',
+  'installer.step0.body.header':'Welcome to the Cluster Install Wizard',
+  'installer.step0.body':'This wizard will walk you through the cluster installation process.  Let\'s start by naming your new cluster.',
   'installer.step0.clusterName':'Name your cluster',
   'installer.step0.clusterName.tooltip.title':'Cluster Name',
   'installer.step0.clusterName.tooltip.content':'Enter a unique cluster name. Cluster name cannot be changed later.',
@@ -617,8 +615,8 @@ Em.I18n.translations = {
   'installer.step5.body.coHostedComponents':'<i class="icon-asterisks">&#10037;</i> {0} will be hosted on the same host.',
   'installer.step5.hostInfo':'%@ (%@, %@ cores)',
   'installer.step5.hiveGroup':'HiveServer2, WebHCat Server, MySQL Server',
-  'installer.step5.warningsAttention.header': 'Warnings',
-  'installer.step5.warningsAttention': 'Your master component assignment has warnings and needs attention.',
+  'installer.step5.validationIssuesAttention.header': 'Validation Issues',
+  'installer.step5.validationIssuesAttention': 'Master component assignments have issues that need attention.',
 
   'installer.step6.header':'Assign Slaves and Clients',
   'installer.step6.body':'Assign slave and client components to hosts you want to run them on.<br/>Hosts that are assigned master components are shown with <i class=icon-asterisks>&#10037;</i>.',
@@ -629,6 +627,8 @@ Em.I18n.translations = {
   'installer.step6.wizardStep6Host.title':'master components hosted on {0}',
   'installer.step6.addHostWizard.body':'Assign HBase master and ZooKeeper server.',
   'installer.step6.error.mustSelectOneForSlaveHost': 'You must assign at least one slave/client component to each host with no master component',
+  'installer.step6.validationIssuesAttention.header': 'Validation Issues',
+  'installer.step6.validationIssuesAttention': 'Slave and Client component assignments have issues that need attention.',
 
   'installer.step7.header':'Customize Services',
   'installer.step7.body':'We have come up with recommended configurations for the services you selected. Customize them as you see fit.',
@@ -1994,6 +1994,7 @@ Em.I18n.translations = {
   'dashboard.configHistory.table.created.title' : 'Created',
   'dashboard.configHistory.table.empty' : 'No history to display',
   'dashboard.configHistory.table.version.versionText' : 'V{0}',
+  'dashboard.configHistory.table.current.tooltip' : 'Current config for {0}:{1}',
   'dashboard.configHistory.table.filteredHostsInfo': '{0} of {1} versions showing',
   'dashboard.configHistory.info-bar.authoredOn': 'authored on',
   'dashboard.configHistory.info-bar.changesToHandle': 'Changes to handle',

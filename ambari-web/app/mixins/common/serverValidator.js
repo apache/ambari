@@ -43,6 +43,9 @@ App.ServerValidatorMixin = Em.Mixin.create({
    */
   recommendationsConfigs: null,
 
+  loadAdditionalinfo: function() {
+    return !(this.get('content.hosts') && this.get('content.hosts').length);
+  }.property('content.hosts'),
   /**
    * by default loads data from model otherwise must be overridden as computed property
    * refer to \assets\data\stacks\HDP-2.1\recommendations_configs.json to learn structure
@@ -52,10 +55,10 @@ App.ServerValidatorMixin = Em.Mixin.create({
   hostNames: function() {
     return this.get('content.hosts')
         ? Object.keys(this.get('content.hosts'))
-        : App.HostComponent.find().mapProperty('hostName').uniq();
-  }.property('content.hosts'),
+        : this.get('allHostNames');
+  }.property('content.hosts', 'allHostNames'),
 
-
+  allHostNames: [],
   /**
    * by default loads data from model otherwise must be overridden as computed property
    * @type {Array} - of strings (serviceNames)
@@ -135,21 +138,69 @@ App.ServerValidatorMixin = Em.Mixin.create({
     console.error('Load recommendations failed');
   },
 
+  serverSideValidation: function() {
+    var deferred = $.Deferred();
+    if (!App.get('supports.serverRecommendValidate')) {
+      deferred.resolve();
+    } else {
+      this.set('configValidationFailed', false);
+      if (this.get('loadAdditionalinfo')) {
+        var self = this;
+        this.getHostNames().always(function() {
+          if (self.get('configValidationFailed')) {
+            self.warnUser(deferred);
+          } else {
+            self.runServerSideValidation(deferred);
+          }
+        });
+      } else {
+        this.runServerSideValidation(deferred);
+      }
+    }
+    return deferred;
+  },
+
+  getHostNames: function() {
+    var self = this;
+
+    if (self.get('isInstaller')) {
+      // In installer wizard 'hosts.all' AJAX will not work cause cluster haven't been created yet
+      var hosts = [];
+      for (var host in self.get('content.hosts')) {
+        hosts.push(host);
+      }
+      self.set("allHostNames", hosts);
+      var deferred = $.Deferred();
+      deferred.resolve();
+      return deferred;
+    } else {
+      return App.ajax.send({
+        name: 'hosts.all',
+        sender: self,
+        success: 'getHostNamesSuccess',
+        error: 'getHostNamesError'
+      });
+    }
+  },
+
+  getHostNamesSuccess: function(data) {
+    this.set("allHostNames", data.items.mapProperty("Hosts.host_name"));
+  },
+
+  getHostNamesError: function() {
+    this.set('configValidationFailed', true);
+    console.error('failed to load hostNames');
+  },
   /**
    * @method serverSideValidation
    * send request to validate configs
    * @returns {*}
    */
-  serverSideValidation: function() {
+  runServerSideValidation: function(deferred) {
     var self = this;
-    var deferred = $.Deferred();
-    if (!App.get('supports.serverRecommendValidate')) {
-      deferred.resolve();
-      return deferred;
-    }
     var recommendations = this.get('hostGroups');
     recommendations.blueprint.configurations = blueprintUtils.buildConfisJSON(this.get('services'), this.get('stepConfigs'));
-    App.ajax.send({
+    return App.ajax.send({
       name: 'config.validations',
       sender: this,
       data: {
@@ -164,7 +215,6 @@ App.ServerValidatorMixin = Em.Mixin.create({
     }).complete(function() {
       self.warnUser(deferred);
     });
-    return deferred;
   },
 
 
@@ -178,7 +228,6 @@ App.ServerValidatorMixin = Em.Mixin.create({
     var self = this;
     self.set('configValidationError', false);
     self.set('configValidationWarning', false);
-    self.set('configValidationFailed', false);
     data.resources.forEach(function(r) {
       r.items.forEach(function(item){
         if (item.type == "configuration") {
@@ -189,7 +238,7 @@ App.ServerValidatorMixin = Em.Mixin.create({
                   self.set('configValidationError', true);
                   property.set('errorMessage', item.message);
                   property.set('error', true);
-                } else if (item.level == "ERROR") {
+                } else if (item.level == "WARN") {
                   self.set('configValidationWarning', true);
                   property.set('warnMessage', item.message);
                   property.set('warn', true);
@@ -219,12 +268,10 @@ App.ServerValidatorMixin = Em.Mixin.create({
     if (this.get('configValidationFailed')) {
       this.set('isSubmitDisabled', false);
       this.set("isApplyingChanges", false);
+      deferred.reject();
       return App.showAlertPopup(Em.I18n.t('installer.step7.popup.validation.failed.header'), Em.I18n.t('installer.step7.popup.validation.request.failed.body'));
-    } else if (this.get('configValidationError')) {
-      this.set("isApplyingChanges", false);
-      this.set('isSubmitDisabled', true);
-      return App.showAlertPopup(Em.I18n.t('installer.step7.popup.validation.failed.header'), Em.I18n.t('installer.step7.popup.validation.failed.body'));
-    } else if (this.get('configValidationWarning')) {
+    } else if (this.get('configValidationWarning') || this.get('configValidationError')) {
+      // Motivation: for server-side validation warnings and EVEN errors allow user to continue wizard
       this.set('isSubmitDisabled', true);
       this.set("isApplyingChanges", false);
       return App.showConfirmationPopup(function () {

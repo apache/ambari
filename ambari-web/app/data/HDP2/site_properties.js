@@ -3599,6 +3599,20 @@ module.exports =
     },
     {
       "id": "puppet var",
+      "name": "sqoop_user",
+      "displayName": "Sqoop User",
+      "isReconfigurable": false,
+      "displayType": "user",
+      "isOverridable": false,
+      "isVisible": true,
+      "serviceName": "MISC",
+      "filename": "sqoop-env.xml",
+      "category": "Users and Groups",
+      "belongsToService": ["SQOOP"],
+      "index": 17
+    },
+    {
+      "id": "puppet var",
       "name": "rrdcached_base_dir",
       "displayName": "Ganglia rrdcached base directory",
       "description": "Default directory for saving the rrd files on ganglia server",

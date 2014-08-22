@@ -32,7 +32,7 @@ hbase_home = "/usr"
 hive_home = "/usr"
 zoo_conf_dir = "/etc/zookeeper"
 sqoop_lib = "/usr/lib/sqoop/lib"
-sqoop_user = "sqoop"
+sqoop_user = config['configurations']['sqoop-env']['sqoop_user']
 
 keytab_path = config['configurations']['hadoop-env']['keytab_path']
 smoke_user_keytab = config['configurations']['hadoop-env']['smokeuser_keytab']

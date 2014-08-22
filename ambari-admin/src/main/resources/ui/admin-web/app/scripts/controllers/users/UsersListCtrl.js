@@ -39,7 +39,8 @@ angular.module('ambariAdminConsole')
       usersPerPage: $scope.usersPerPage, 
       searchString: $scope.currentNameFilter,
       ldap_user: $scope.currentTypeFilter.value,
-      active: $scope.currentActiveFilter.value
+      active: $scope.currentActiveFilter.value,
+      admin: $scope.adminFilter
     }).then(function(data) {
       $scope.totalUsers = data.data.itemTotal;
       $scope.users = data.data.items;
@@ -65,6 +66,14 @@ angular.module('ambariAdminConsole')
     {label:'LDAP', value:true}
   ];
   $scope.currentTypeFilter = $scope.typeFilterOptions[0];
+
+  $scope.adminFilter = false;
+  $scope.toggleAdminFilter = function() {
+    $scope.adminFilter = !$scope.adminFilter;
+    $scope.resetPagination();
+    $scope.loadUsers();
+  };
+
 
   $scope.loadUsers();
 

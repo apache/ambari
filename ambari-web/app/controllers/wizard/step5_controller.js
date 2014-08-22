@@ -141,6 +141,13 @@ App.WizardStep5Controller = Em.Controller.extend({
   generalWarningMessages: [],
 
   /**
+   * true if any error exists
+   */
+  anyError: function() {
+    return this.get('servicesMasters').some(function(m) { return m.get('errorMessage'); }) || this.get('generalErrorMessages').some(function(m) { return m; });
+  }.property('servicesMasters.@each.errorMessage', 'generalErrorMessages'),
+
+  /**
    * true if any warning exists
    */
   anyWarning: function() {
@@ -313,7 +320,9 @@ App.WizardStep5Controller = Em.Controller.extend({
     this.set('generalErrorMessages', generalErrorMessages);
     this.set('generalWarningMessages', generalWarningMessages);
 
-    this.set('submitDisabled', anyErrors);
+    // use this.set('submitDisabled', anyErrors); is validation results should block next button
+    // It's because showValidationIssuesAcceptBox allow use accept validation issues and continue
+    this.set('submitDisabled', false); //this.set('submitDisabled', anyErrors);
   },
 
   /**
@@ -1040,35 +1049,40 @@ App.WizardStep5Controller = Em.Controller.extend({
   submit: function () {
     var self = this;
 
-    var primary = function() {
-      var goNextStepIfValid = function() {
-        if (!self.get('submitDisabled')) {
-          App.router.send('next');
-        }
-      };
+    var goNextStepIfValid = function() {
+      if (!self.get('submitDisabled')) {
+        App.router.send('next');
+      }
+    };
 
     if (App.get('supports.serverRecommendValidate')) {
-        self.recommendAndValidate(function() {
-          goNextStepIfValid();
-        });
-      } else {
-        self.updateIsSubmitDisabled();
-        goNextStepIfValid();
-      }
+      self.recommendAndValidate(function() {
+        self.showValidationIssuesAcceptBox(goNextStepIfValid);
+      });
+    } else {
+      self.updateIsSubmitDisabled();
+      goNextStepIfValid();
     }
+  },
 
-    if (self.get('anyWarning')) {
+  /**
+   * In case of any validation issues shows accept dialog box for user which allow cancel and fix issues or continue anyway
+   * @metohd submit
+   */
+  showValidationIssuesAcceptBox: function(callback) {
+    var self = this;
+    if (self.get('anyWarning') || self.get('anyError')) {
       App.ModalPopup.show({
         primary: Em.I18n.t('common.continueAnyway'),
-        header: Em.I18n.t('installer.step5.warningsAttention.header'),
-        body: Em.I18n.t('installer.step5.warningsAttention'),
+        header: Em.I18n.t('installer.step5.validationIssuesAttention.header'),
+        body: Em.I18n.t('installer.step5.validationIssuesAttention'),
         onPrimary: function () {
           this.hide();
-          primary();
+          callback();
         }
       });
     } else {
-      primary();
+      callback();
     }
   }
 });

@@ -28,12 +28,13 @@
 <div class="panel panel-default" ng-cloak ng-show="instance">
   <div class="panel-heading clearfix">
     <h3 class="panel-title pull-left">Settings</h3>
-    <div class="pull-right">
-      <a href ng-click="editSettingsDisabled = !editSettingsDisabled" ng-show="editSettingsDisabled" class="settings-edit-toggle"> <span class="glyphicon glyphicon-pencil"></span> Edit</a>
+    <div class="pull-right" ng-switch="instance.ViewInstanceInfo.static">
+      <a href ng-switch-when="false" ng-click="toggleSettingsEdit()" ng-show="editSettingsDisabled" class="settings-edit-toggle"> <span class="glyphicon glyphicon-pencil" ></span> Edit</a>
+      <a href ng-switch-when="true" class="settings-edit-toggle disabled" tooltip="You can`t edit XML driven instances"> <span class="glyphicon glyphicon-pencil" ></span> Edit</a>
     </div>
   </div>
   <div class="panel-body">
-    <form class="form-horizontal">
+    <form class="form-horizontal" name="settingsForm" novalidate>
       <div class="form-group">
         <label for="" class="col-sm-2 control-label">View Name</label>
         <div class="col-sm-10"><input disabled="disabled" type="text" class="form-control instancename-input" placeholder="Display Name" value="{{instance.ViewInstanceInfo.view_name}}"></div>
@@ -47,9 +48,23 @@
           <label for="" class="col-sm-2 control-label">Instance Name</label>
           <div class="col-sm-10"><input disabled="disabled" type="text" class="form-control instancename-input" placeholder="Display Name" value="{{instance.ViewInstanceInfo.instance_name}}"></div>
         </div>
-        <div class="form-group">
+        <div class="form-group" ng-class="{'has-error' : settingsForm.displayName.$error.required && !editSettingsDisabled}">
           <label for="" class="col-sm-2 control-label">Display Name</label>
-          <div class="col-sm-10"><input type="text" class="form-control instancename-input" placeholder="Display Name" ng-model="settings.label"></div>
+          <div class="col-sm-10">
+            <input type="text" class="form-control instancename-input" placeholder="Display Name" name="displayName" required ng-model="settings.label">
+            <div class="alert alert-danger no-margin-bottom top-margin" ng-show='settingsForm.displayName.$error.required  && !editSettingsDisabled'>
+              This field is required.
+            </div>
+          </div>
+        </div>
+        <div class="form-group" ng-class="{'has-error' : settingsForm.description.$error.required  && !editSettingsDisabled}">
+          <label for="" class="control-label col-sm-2">Instance Description</label>
+          <div class="col-sm-10">
+            <input type="text" class="form-control" ng-model="settings.description" name="description" placeholder="Instance Description" required>
+            <div class="alert alert-danger no-margin-bottom top-margin" ng-show='settingsForm.description.$error.required  && !editSettingsDisabled'>
+              This field is required.
+            </div>
+          </div>
         </div>
         <div class="form-group">
           <div class="col-sm-offset-2 col-sm-10">
@@ -123,16 +138,22 @@
 <div class="panel panel-default">
   <div class="panel-heading clearfix">
     <h3 class="panel-title pull-left">Properties</h3>
-    <div class="pull-right">
-      <a href ng-hide="isConfigurationEmpty" ng-click="editConfigurationDisabled = !editConfigurationDisabled" ng-show="editConfigurationDisabled" class="properties-toggle"> <span class="glyphicon glyphicon-pencil"></span> Edit</a>
+    <div class="pull-right" ng-switch="instance.ViewInstanceInfo.static">
+      <a href ng-switch-when="false" ng-hide="isConfigurationEmpty" ng-click="togglePropertiesEditing()" ng-show="editConfigurationDisabled" class="properties-toggle"> <span class="glyphicon glyphicon-pencil"></span> Edit</a>
+      <a href ng-switch-when="true" ng-hide="isConfigurationEmpty"  class="properties-toggle disabled"> <span class="glyphicon glyphicon-pencil"></span> Edit</a>
     </div>
   </div>
   <div class="panel-body">
-    <form action="" class="form-horizontal" ng-hide="isConfigurationEmpty">
+    <form name="propertiesForm" class="form-horizontal" ng-hide="isConfigurationEmpty" novalidate>
       <fieldset ng-disabled="editConfigurationDisabled">
-        <div class="form-group" ng-repeat="(propertyName, propertyValue) in configurationMeta">
+        <div class="form-group" ng-repeat="(propertyName, propertyValue) in configurationMeta" ng-class="{'has-error' : propertyValue.required && propertiesForm[propertyName].$error.required && !editConfigurationDisabled}">
           <label for="" class="control-label col-sm-3" ng-class="{'not-required': !propertyValue.required}" tooltip="{{propertyValue.description}}">{{propertyName}}{{propertyValue.required ? '*' : ''}}</label>
-          <div class="col-sm-9"><input type="{{propertyValue.masked ? 'password' : 'text'}}" class="form-control propertie-input" ng-model="configuration[propertyName]"></div>
+          <div class="col-sm-9">
+            <input type="{{propertyValue.masked ? 'password' : 'text'}}" class="form-control propertie-input" ng-required="propertyValue.required" name="{{propertyName}}" ng-model="configuration[propertyName]">
+            <div class="alert alert-danger no-margin-bottom top-margin" ng-show='propertyValue.required && propertiesForm[propertyName].$error.required && !editConfigurationDisabled'>
+              This field is required.
+            </div>
+          </div>
         </div>
         <div class="form-group" ng-hide="editConfigurationDisabled">
           <div class="col-sm-offset-2 col-sm-10">

@@ -19,7 +19,7 @@ limitations under the License.
 import StringIO
 import sys
 from unittest import TestCase
-from mock.mock import patch
+from mock.mock import patch, MagicMock
 
 
 utils = __import__('ambari_server.utils').utils
@@ -35,20 +35,50 @@ class TestUtils(TestCase):
     self.assertEqual('9.1', utils.get_ubuntu_pg_version())
 
   @patch('ambari_server.utils.get_ubuntu_pg_version')
-  def test_get_postgre_hba_dir(self, get_ubuntu_pg_version_mock):
-    utils.UBUNTU_PG_HBA_ROOT = '/tmp'
-    utils.PG_HBA_ROOT_DEFAULT = '/redhat/postgre/data'
+  @patch('os.path.isfile')
+  @patch("subprocess.Popen")
+  def test_get_postgre_hba_dir(self, popenMock, os_path_is_fine_mock,
+                               get_ubuntu_pg_version_mock):
+    p = MagicMock()
+    utils.PG_HBA_INIT_FILES['debian'] = '/tmp'
     get_ubuntu_pg_version_mock.return_value = '9.1'
+    self.assertEqual('/tmp/9.1/main', utils.get_postgre_hba_dir('debian'))
 
-    self.assertEqual('/tmp/9.1/main', utils.get_postgre_hba_dir('ubuntu'))
-    self.assertEqual('/redhat/postgre/data', utils.get_postgre_hba_dir('redhat'))
+    # ## Tests depends on postgres version ###
+    # 1) PGDATA=/var/lib/pgsql/data
+    os_path_is_fine_mock.return_value = True
+    utils.PG_HBA_ROOT_DEFAULT = '/def/dir'
+    p.communicate.return_value = ('/my/new/location\n', None)
+    p.returncode = 0
+    popenMock.return_value = p
+    self.assertEqual('/my/new/location', utils.get_postgre_hba_dir('redhat'))
+
+    # 2) No value set
+    os_path_is_fine_mock.return_value = True
+    utils.PG_HBA_ROOT_DEFAULT = '/def/dir'
+    p.communicate.return_value = ('\n', None)
+    p.returncode = 0
+    popenMock.return_value = p
+    self.assertEqual('/def/dir', utils.get_postgre_hba_dir('redhat'))
+
+    # 3) Value set - check diff systems
+    os_path_is_fine_mock.return_value = True
+    popenMock.reset()
+    p.communicate.return_value = (None, None)
+    utils.get_postgre_hba_dir('redhat')
+    popenMock.assert_called_with('alias exit=return; source /etc/rc.d/init.d/postgresql status &>/dev/null; echo $PGDATA', shell=True, stdin=-1, stderr=-1, stdout=-1)
+
+    popenMock.reset()
+    p.communicate.return_value = (None, None)
+    utils.get_postgre_hba_dir('suse')
+    popenMock.assert_called_with('alias exit=return; source /etc/init.d/postgresql status &>/dev/null; echo $PGDATA', shell=True, stdin=-1, stderr=-1, stdout=-1)
 
   @patch('ambari_server.utils.get_ubuntu_pg_version')
   def test_get_postgre_running_status(self, get_ubuntu_pg_version_mock):
     utils.PG_STATUS_RUNNING_DEFAULT = "red_running"
     get_ubuntu_pg_version_mock.return_value = '9.1'
 
-    self.assertEqual('9.1/main', utils.get_postgre_running_status('ubuntu'))
+    self.assertEqual('9.1/main', utils.get_postgre_running_status('debian'))
     self.assertEqual('red_running', utils.get_postgre_running_status('redhat'))
 
   @patch('os.path.isfile')

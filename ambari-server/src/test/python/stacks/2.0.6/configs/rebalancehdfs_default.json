@@ -30,7 +30,7 @@
         "script": "scripts/namenode.py", 
         "hooks_folder": "HDP/2.0.6/hooks", 
         "command_timeout": "600", 
-        "namenode": "{\"threshold\":\"DEBUG\"}", 
+        "namenode": "{\"threshold\":\"-1\"}", 
         "script_type": "PYTHON"
     }, 
     "taskId": 104, 

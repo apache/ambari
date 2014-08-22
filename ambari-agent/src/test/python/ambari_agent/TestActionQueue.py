@@ -595,15 +595,10 @@ class TestActionQueue(TestCase):
     
     report = actionQueue.result()
     self.assertEqual(len(report['reports']),1)
-    
-
       
-  @patch.object(StackVersionsFileHandler, "read_stack_version")
   @patch.object(CustomServiceOrchestrator, "resolve_script_path")
-  @patch.object(FileCache, "__init__")
-  def test_execute_python_executor(self, read_stack_version_mock, FileCache_mock, resolve_script_path_mock):
-    FileCache_mock.return_value = None
-    
+  @patch.object(StackVersionsFileHandler, "read_stack_version")
+  def test_execute_python_executor(self, read_stack_version_mock, resolve_script_path_mock):
     
     dummy_controller = MagicMock()
     cfg = AmbariConfig().getConfig()

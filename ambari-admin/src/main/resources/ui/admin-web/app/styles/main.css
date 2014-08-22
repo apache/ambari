@@ -16,6 +16,17 @@
  * limitations under the License.
  */
 
+ .instances-table{
+  table-layout: fixed;
+ }
+ .description-column{
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  max-width: 100%;
+  display: inline-block;
+ }
+
 .paginator{
   margin: 0;
 }
@@ -104,6 +115,11 @@
 
 .users-pane table .glyphicon{
   width: 14px;
+}
+
+.settings-edit-toggle.disabled, .properties-toggle.disabled{
+  color: #999;
+  cursor: not-allowed;
 }
 
 .pulldown2{
@@ -266,6 +282,14 @@
 
 ul.nav li > a{
   cursor: pointer;
+}
+
+.admin-filter{
+  cursor: pointer;
+}
+
+.glyphicon-flash.no-filter{
+  color: #999;
 }
 
 .top-buffer{

@@ -60,7 +60,7 @@ App.ApplicationStatusMapper = Em.Object.createWithMixins(App.RunPeriodically, {
   },
 
   /**
-   * Is ATS host loaded
+   * Is ATS and RESOURCEMANAGER hosts loaded
    * @type {bool}
    */
   hostForComponentIsLoaded: false,
@@ -70,6 +70,15 @@ App.ApplicationStatusMapper = Em.Object.createWithMixins(App.RunPeriodically, {
    * @type {bool}
    */
   portIsLoaded: false,
+
+  /**
+   * Array of component names that need to be loaded
+   * @type {Array}
+   */
+  componentsToLoad: [
+    "APP_TIMELINE_SERVER",
+    "RESOURCEMANAGER"
+  ],
 
   /**
    * Start mapping when <code>App.clusterName</code> is loaded
@@ -91,7 +100,9 @@ App.ApplicationStatusMapper = Em.Object.createWithMixins(App.RunPeriodically, {
     this.getServices().then(function() {
       self.getComponents().then(function() {
         if (!self.get('hostForComponentIsLoaded'))
-          self.getHostsForComponents();
+          self.get('componentsToLoad').forEach(function (componentName) {
+            self.getHostsForComponents(componentName);
+          })
         if (!self.get('portIsLoaded'))
           self.getDesiredConfigs();
       });
@@ -181,6 +192,7 @@ App.ApplicationStatusMapper = Em.Object.createWithMixins(App.RunPeriodically, {
       ats = data.items.findBy('ServiceComponentInfo.component_name', 'APP_TIMELINE_SERVER'),
       atsModel = Em.isNone(ats) ? {id: 'APP_TIMELINE_SERVER'} : Em.JsonMapper.map(ats, map);
     App.HiveJob.store.push('component', atsModel);
+    App.HiveJob.store.push('component', {id: 'RESOURCEMANAGER'});
   },
 
   /**
@@ -190,6 +202,7 @@ App.ApplicationStatusMapper = Em.Object.createWithMixins(App.RunPeriodically, {
    */
   getComponentsErrorCallback: function() {
     App.HiveJob.store.push('component', {id: 'APP_TIMELINE_SERVER'});
+    App.HiveJob.store.push('component', {id: 'RESOURCEMANAGER'});
   },
 
   /**
@@ -197,12 +210,12 @@ App.ApplicationStatusMapper = Em.Object.createWithMixins(App.RunPeriodically, {
    * @returns {$.ajax}
    * @method getHostsForComponents
    */
-  getHostsForComponents: function() {
+  getHostsForComponents: function(componentName) {
     return App.ajax.send({
       name: 'components_hosts',
       sender: this,
       data: {
-        componentName: 'APP_TIMELINE_SERVER'
+        componentName: componentName
       },
       success: 'getHostsForComponentsSuccessCallback'
     });
@@ -215,8 +228,12 @@ App.ApplicationStatusMapper = Em.Object.createWithMixins(App.RunPeriodically, {
    * @method getHostsForComponentsSuccessCallback
    */
   getHostsForComponentsSuccessCallback: function(data) {
-    App.HiveJob.store.getById('component', 'APP_TIMELINE_SERVER').set('hostName', Em.get(data.items[0], 'Hosts.host_name'));
-    this.set('hostForComponentIsLoaded', true);
+    App.HiveJob.store.getById('component', arguments[2].componentName).set('hostName', Em.get(data.items[0], 'Hosts.host_name'));
+    this.set('componentsToLoad', this.get('componentsToLoad').without(arguments[2].componentName))
+
+    if(this.get('componentsToLoad').length === 0){
+      this.set('hostForComponentIsLoaded', true);
+    }
   },
 
   /**

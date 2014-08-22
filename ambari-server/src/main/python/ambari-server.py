@@ -250,7 +250,7 @@ PG_STATUS_RUNNING = utils.get_postgre_running_status(OS_TYPE)
 PG_DEFAULT_PASSWORD = "bigdata"
 SERVICE_CMD = "/usr/bin/env service"
 PG_SERVICE_NAME = "postgresql"
-PG_HBA_DIR = utils.get_postgre_hba_dir(OS_TYPE)
+PG_HBA_DIR = utils.get_postgre_hba_dir(OS_FAMILY)
 
 PG_ST_CMD = "%s %s status" % (SERVICE_CMD, PG_SERVICE_NAME)
 if os.path.isfile("/usr/bin/postgresql-setup"):
@@ -2632,7 +2632,14 @@ def change_objects_owner(args):
 
   command = CHANGE_OWNER_COMMAND[:]
   command[-1] = command[-1].format(database_name, 'ambari', new_owner)
-  return run_os_command(command)
+  retcode, stdout, stderr = run_os_command(command)
+  if not retcode == 0:
+    if VERBOSE:
+      if stdout:
+        print_error_msg(stdout.strip())
+      if stderr:
+        print_error_msg(stderr.strip())
+    raise FatalException(20, 'Unable to change owner of database objects')
 
 
 def compare_versions(version1, version2):
@@ -2737,9 +2744,7 @@ def upgrade(args):
   parse_properties_file(args)
   #TODO check database version
   if args.persistence_type == 'local':
-    retcode, stdout, stderr = change_objects_owner(args)
-    if not retcode == 0:
-      raise FatalException(20, 'Unable to change owner of database objects')
+    change_objects_owner(args)
 
   retcode = run_schema_upgrade()
   if not retcode == 0:

@@ -237,8 +237,13 @@ class AmbariConfig:
     self.net = NetUtil()
     self.config.readfp(StringIO.StringIO(content))
 
-  def get(self, section, value):
-    return self.config.get(section, value)
+  def get(self, section, value, default=None):
+    try:
+      return self.config.get(section, value)
+    except ConfigParser.Error, err:
+      if default:
+        return default
+      raise err
 
   def set(self, section, option, value):
     self.config.set(section, option, value)

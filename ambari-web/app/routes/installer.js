@@ -299,15 +299,17 @@ module.exports = Em.Route.extend({
       var wizardStep7Controller = router.get('wizardStep7Controller');
 
       if (!wizardStep6Controller.get('submitDisabled')) {
-        controller.saveSlaveComponentHosts(wizardStep6Controller);
-        controller.get('content').set('serviceConfigProperties', null);
-        controller.setDBProperty('serviceConfigProperties', null);
-        controller.setDBProperty('advancedServiceConfig', null);
-        controller.setDBProperty('serviceConfigGroups', null);
-        controller.setDBProperty('recommendationsHostGroups', wizardStep6Controller.get('content.recommendationsHostGroups'));
-        controller.setDBProperty('recommendationsConfigs', null);
-        controller.loadAdvancedConfigs(wizardStep7Controller);
-        router.transitionTo('step7');
+        wizardStep6Controller.showValidationIssuesAcceptBox(function() {
+          controller.saveSlaveComponentHosts(wizardStep6Controller);
+          controller.get('content').set('serviceConfigProperties', null);
+          controller.setDBProperty('serviceConfigProperties', null);
+          controller.setDBProperty('advancedServiceConfig', null);
+          controller.setDBProperty('serviceConfigGroups', null);
+          controller.setDBProperty('recommendationsHostGroups', wizardStep6Controller.get('content.recommendationsHostGroups'));
+          controller.setDBProperty('recommendationsConfigs', null);
+          controller.loadAdvancedConfigs(wizardStep7Controller);
+          router.transitionTo('step7');
+        });
       }
     }
   }),

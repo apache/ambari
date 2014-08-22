@@ -115,6 +115,7 @@ App.Helpers.jobs = {
     var self = this,
       yarnService = App.HiveJob.store.getById('service', 'YARN'),
       historyServerHostName = App.HiveJob.store.getById('component', 'APP_TIMELINE_SERVER').get('hostName'),
+      resourceManagerHostName = App.HiveJob.store.getById('component', 'RESOURCEMANAGER').get('hostName'),
       ahsWebPort = yarnService.get('ahsWebPort'),
       tezDag = App.HiveJob.store.getById('tezDag', tezDagId);
     if (tezDag) {
@@ -125,6 +126,7 @@ App.Helpers.jobs = {
               var app_id = Em.get(data, 'otherinfo.applicationId');
               if (!Em.isNone(app_id)) {
                 tezDag.set('yarnApplicationId', app_id);
+                tezDag.set('yarnApplicationLink', 'http://'+resourceManagerHostName+':8088/cluster/app/'+app_id);
               }
               if (data.relatedentities && data.relatedentities.TEZ_VERTEX_ID != null) {
                 var count = data.relatedentities.TEZ_VERTEX_ID.length;

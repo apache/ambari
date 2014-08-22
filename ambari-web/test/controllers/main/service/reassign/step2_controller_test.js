@@ -239,7 +239,7 @@ describe('App.ReassignMasterWizardStep2Controller', function () {
     });
   });
 
-  describe('#getIsSubmitDisabled', function () {
+  describe('#updateIsSubmitDisabled', function () {
     var hostComponents = [];
     var isSubmitDisabled = false;
 
@@ -256,7 +256,7 @@ describe('App.ReassignMasterWizardStep2Controller', function () {
       controller._super.restore();
     });
     it('No host-components, reassigned equal 0', function () {
-      expect(controller.getIsSubmitDisabled()).to.be.true;
+      expect(controller.updateIsSubmitDisabled()).to.be.true;
       expect(controller.get('submitDisabled')).to.be.true;
     });
     it('Reassign component match existed components, reassigned equal 0', function () {
@@ -269,7 +269,7 @@ describe('App.ReassignMasterWizardStep2Controller', function () {
         selectedHost: 'host1'
       }]);
 
-      expect(controller.getIsSubmitDisabled()).to.be.true;
+      expect(controller.updateIsSubmitDisabled()).to.be.true;
       expect(controller.get('submitDisabled')).to.be.true;
     });
     it('Reassign component do not match existed components, reassigned equal 1', function () {
@@ -280,7 +280,7 @@ describe('App.ReassignMasterWizardStep2Controller', function () {
       })];
       controller.set('servicesMasters', []);
 
-      expect(controller.getIsSubmitDisabled()).to.be.false;
+      expect(controller.updateIsSubmitDisabled()).to.be.false;
       expect(controller.get('submitDisabled')).to.be.false;
     });
     it('Reassign component do not match existed components, reassigned equal 2', function () {
@@ -297,14 +297,14 @@ describe('App.ReassignMasterWizardStep2Controller', function () {
       ];
       controller.set('servicesMasters', []);
 
-      expect(controller.getIsSubmitDisabled()).to.be.true;
+      expect(controller.updateIsSubmitDisabled()).to.be.true;
       expect(controller.get('submitDisabled')).to.be.true;
     });
 
     it('submitDisabled is already true', function () {
       isSubmitDisabled = true;
 
-      expect(controller.getIsSubmitDisabled()).to.be.true;
+      expect(controller.updateIsSubmitDisabled()).to.be.true;
       expect(controller.get('submitDisabled')).to.be.true;
     });
   });

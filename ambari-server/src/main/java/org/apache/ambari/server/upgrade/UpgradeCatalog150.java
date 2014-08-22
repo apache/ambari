@@ -453,10 +453,7 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
 
     //add new sequences for config groups
     //TODO evalate possibility to automatically wrap object names in DBAcessor
-    String valueColumnName = "\"value\"";
-    if (Configuration.ORACLE_DB_NAME.equals(dbType) || Configuration.MYSQL_DB_NAME.equals(dbType)) {
-      valueColumnName = "value";
-    }
+    String valueColumnName = "sequence_value";
 
     dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, " + valueColumnName + ") " +
       "VALUES('configgroup_id_seq', 1)", true);
@@ -713,6 +710,7 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
                   configEntity.setType(configType);
                   configEntity.setTag(defaultVersionTag);
                   configEntity.setData(configData);
+                  configEntity.setVersion(1L);
                   configEntity.setTimestamp(System.currentTimeMillis());
                   configEntity.setClusterEntity(clusterEntity);
                   LOG.debug("Creating new " + configType + " config...");
@@ -809,7 +807,7 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
   }
 
   private String getPostgresSequenceUpgradeQuery() {
-    return "INSERT INTO ambari_sequences(sequence_name, \"value\") " +
+    return "INSERT INTO ambari_sequences(sequence_name, sequence_value) " +
       "SELECT 'cluster_id_seq', nextval('clusters_cluster_id_seq') " +
       "UNION ALL " +
       "SELECT 'user_id_seq', nextval('users_user_id_seq') " +

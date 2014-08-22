@@ -784,6 +784,21 @@ module.exports =
       "serviceName": "WEBHCAT",
       "category": "Advanced webhcat-site"
     },
+  /**********************************************pig.properties*****************************************/
+    {
+      "id": "site property",
+      "name": "content",
+      "displayName": "content",
+      "value": "",
+      "defaultValue": "",
+      "description": "pig properties",
+      "displayType": "content",
+      "isRequired": false,
+      "showLabel": false,
+      "serviceName": "PIG",
+      "filename": "pig-properties.xml",
+      "category": "Advanced pig-properties"
+    },
     //***************************************** GLUSTERFS stack********************************************
     {
       "id": "site property",
@@ -2236,6 +2251,19 @@ module.exports =
       "filename": "hadoop-env.xml",
       "category": "Users and Groups",
       "belongsToService": ["HDFS"]
+    },
+    {
+      "id": "puppet var",
+      "name": "sqoop_user",
+      "displayName": "Sqoop User",
+      "isReconfigurable": false,
+      "displayType": "user",
+      "isOverridable": false,
+      "isVisible": true,
+      "serviceName": "MISC",
+      "filename": "sqoop-env.xml",
+      "category": "Users and Groups",
+      "belongsToService": ["SQOOP"]
     },
     {
       "id": "puppet var",

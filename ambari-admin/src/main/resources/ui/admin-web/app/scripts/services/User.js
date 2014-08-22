@@ -43,6 +43,7 @@ angular.module('ambariAdminConsole')
         + '&page_size=' + params.usersPerPage
         + (params.ldap_user === '*' ? '' : '&Users/ldap_user=' + params.ldap_user)
         + (params.active === '*' ? '' : '&Users/active=' + params.active)
+        + (params.admin ? '&Users/admin=true' : '')
       );
     },
     get: function(userId) {

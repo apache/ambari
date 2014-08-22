@@ -62,16 +62,12 @@ import org.apache.ambari.server.orm.PersistenceType;
 import org.apache.ambari.server.orm.dao.BlueprintDAO;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.GroupDAO;
-import org.apache.ambari.server.orm.dao.MemberDAO;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
 import org.apache.ambari.server.orm.dao.PermissionDAO;
 import org.apache.ambari.server.orm.dao.PrincipalDAO;
 import org.apache.ambari.server.orm.dao.PrivilegeDAO;
 import org.apache.ambari.server.orm.dao.ResourceDAO;
-import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
-import org.apache.ambari.server.orm.dao.ViewDAO;
-import org.apache.ambari.server.orm.dao.ViewInstanceDAO;
 import org.apache.ambari.server.orm.entities.MetainfoEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.apache.ambari.server.resources.ResourceManager;
@@ -79,7 +75,6 @@ import org.apache.ambari.server.resources.api.rest.GetResource;
 import org.apache.ambari.server.scheduler.ExecutionScheduleManager;
 import org.apache.ambari.server.security.CertificateManager;
 import org.apache.ambari.server.security.SecurityFilter;
-import org.apache.ambari.server.security.SecurityHelper;
 import org.apache.ambari.server.security.authorization.AmbariAuthorizationFilter;
 import org.apache.ambari.server.security.authorization.AmbariLdapAuthenticationProvider;
 import org.apache.ambari.server.security.authorization.AmbariLdapDataPopulator;
@@ -148,6 +143,11 @@ public class AmbariServer {
   @Inject
   @Named("dbInitNeeded")
   boolean dbInitNeeded;
+  /**
+   * The singleton view registry.
+   */
+  @Inject
+  ViewRegistry viewRegistry;
 
   public String getServerOsType() {
     return configs.getServerOsType();
@@ -303,7 +303,6 @@ public class AmbariServer {
       FailsafeHandlerList handlerList = new FailsafeHandlerList();
 
       try {
-        ViewRegistry viewRegistry = ViewRegistry.getInstance();
         for (ViewInstanceEntity entity : viewRegistry.readViewArchives(configs)){
           handlerList.addFailsafeHandler(viewRegistry.getWebAppContext(entity));
         }
@@ -543,10 +542,6 @@ public class AmbariServer {
         injector.getInstance(PermissionDAO.class), injector.getInstance(ResourceDAO.class));
     ClusterPrivilegeResourceProvider.init(injector.getInstance(ClusterDAO.class));
     AmbariPrivilegeResourceProvider.init(injector.getInstance(ClusterDAO.class));
-    ViewRegistry.init(injector.getInstance(ViewDAO.class), injector.getInstance(ViewInstanceDAO.class),
-        injector.getInstance(UserDAO.class), injector.getInstance(MemberDAO.class),
-        injector.getInstance(PrivilegeDAO.class), injector.getInstance(SecurityHelper.class),
-        injector.getInstance(ResourceDAO.class), injector.getInstance(ResourceTypeDAO.class));
   }
 
   /**
@@ -588,6 +583,7 @@ public class AmbariServer {
       server = injector.getInstance(AmbariServer.class);
       CertificateManager certMan = injector.getInstance(CertificateManager.class);
       certMan.initRootCert();
+      ViewRegistry.initInstance(server.viewRegistry);
       ComponentSSLConfiguration.instance().init(server.configs);
       server.run();
     } catch (Throwable t) {

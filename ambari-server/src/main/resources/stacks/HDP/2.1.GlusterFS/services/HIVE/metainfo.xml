@@ -44,9 +44,28 @@
             <script>scripts/hcat_client.py</script>
             <scriptType>PYTHON</scriptType>
           </commandScript>
-          <downloads>
-            <source>/etc/hive-hcatalog/conf</source>
-          </downloads>
+          <configFiles>
+            <configFile>
+              <type>xml</type>
+              <fileName>hive-site.xml</fileName>
+              <dictionaryName>hive-site</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>env</type>
+              <fileName>hive-env.sh</fileName>
+              <dictionaryName>hive-env</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>env</type>
+              <fileName>hive-log4j.properties</fileName>
+              <dictionaryName>hive-log4j</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>env</type>
+              <fileName>hive-exec-log4j.properties</fileName>
+              <dictionaryName>hive-exec-log4j</dictionaryName>
+            </configFile>
+          </configFiles>
         </component>
       </components>
       <osSpecifics>

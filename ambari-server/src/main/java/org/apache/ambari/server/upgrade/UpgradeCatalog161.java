@@ -23,10 +23,7 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 
@@ -58,7 +55,7 @@ public class UpgradeCatalog161 extends AbstractUpgradeCatalog {
    */
   private static final Logger LOG = LoggerFactory.getLogger
       (UpgradeCatalog161.class);
-  
+
   // ----- Constructors ------------------------------------------------------
 
   @Inject
@@ -249,10 +246,10 @@ public class UpgradeCatalog161 extends AbstractUpgradeCatalog {
     // Add constraints
     dbAccessor.addFKConstraint("requestoperationlevel", "FK_req_op_level_req_id",
             "request_id", "request", "request_id", true);
-    
+
     // Clusters
-    dbAccessor.addColumn("clusters", new DBColumnInfo("provisioning_state", String.class, 255, State.INIT.name(), false));    
-    
+    dbAccessor.addColumn("clusters", new DBColumnInfo("provisioning_state", String.class, 255, State.INIT.name(), false));
+
     dbAccessor.dropConstraint("stage", "FK_stage_cluster_id", true);
     dbAccessor.dropConstraint("request", "FK_request_cluster_id", true);
   }
@@ -262,40 +259,33 @@ public class UpgradeCatalog161 extends AbstractUpgradeCatalog {
 
   @Override
   protected void executeDMLUpdates() throws AmbariException, SQLException {
-    String dbType = getDbType();
-
-    String valueColumnName = "\"value\"";
-    if (Configuration.ORACLE_DB_NAME.equals(dbType) || Configuration.MYSQL_DB_NAME.equals(dbType)) {
-      valueColumnName = "value";
-    }
-    
     //add new sequences for operation level
-    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, " + valueColumnName + ") " +
+    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) " +
             "VALUES('operation_level_id_seq', 1)", true);
-    
+
     // upgrade cluster provision state
-    executeInTransaction(new Runnable() { 
+    executeInTransaction(new Runnable() {
       @Override
       public void run() {
-        // it should be safe to bulk update the current cluster state since 
+        // it should be safe to bulk update the current cluster state since
         // this field is not currently used and since all clusters stored in
         // the database must (at this point) be installed
-        final EntityManager em = getEntityManagerProvider().get();        
+        final EntityManager em = getEntityManagerProvider().get();
         final TypedQuery<ClusterEntity> query = em.createQuery(
-            "UPDATE ClusterEntity SET provisioningState = :provisioningState", 
+            "UPDATE ClusterEntity SET provisioningState = :provisioningState",
             ClusterEntity.class);
 
         query.setParameter("provisioningState", State.INSTALLED);
         final int updatedClusterProvisionedStateCount = query.executeUpdate();
-        
+
         LOG.info("Updated {} cluster provisioning states to {}",
             updatedClusterProvisionedStateCount, State.INSTALLED);
       }
     });
-    
+
     addMissingConfigs();
   }
-  
+
   protected void addMissingConfigs() throws AmbariException {
     updateConfigurationProperties("hbase-site", Collections.singletonMap("hbase.regionserver.info.port", "60030"), false, false);
     updateConfigurationProperties("hbase-site", Collections.singletonMap("hbase.master.info.port", "60010"), false, false);

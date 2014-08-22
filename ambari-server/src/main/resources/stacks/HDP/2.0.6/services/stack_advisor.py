@@ -401,8 +401,11 @@ class HDP206StackAdvisor(StackAdvisor):
       if validator is not None:
         siteName = validator[0]
         method = validator[1]
-        resultItems = method(getSiteProperties(configurations, siteName), recommendedDefaults[siteName]["properties"])
-        items.extend(resultItems)
+        if siteName in recommendedDefaults:
+          siteProperties = getSiteProperties(configurations, siteName)
+          if siteProperties is not None:
+            resultItems = method(siteProperties, recommendedDefaults[siteName]["properties"])
+            items.extend(resultItems)
     return validations
     pass
 
@@ -421,6 +424,8 @@ class HDP206StackAdvisor(StackAdvisor):
     return result
 
   def validatorLessThenDefaultValue(self, properties, recommendedDefaults, propertyName):
+    if not propertyName in properties:
+      return "Value should be set"
     value = to_number(properties[propertyName])
     if value is None:
       return "Value should be integer"
@@ -432,6 +437,8 @@ class HDP206StackAdvisor(StackAdvisor):
     return None
 
   def validateXmxValue(self, properties, recommendedDefaults, propertyName):
+    if not propertyName in properties:
+      return "Value should be set"
     value = properties[propertyName]
     defaultValue = recommendedDefaults[propertyName]
     if defaultValue is None:
@@ -464,11 +471,10 @@ class HDP206StackAdvisor(StackAdvisor):
 
 # Validation helper methods
 def getSiteProperties(configurations, siteName):
-  if configurations[siteName] is None:
-    return {}
-  if configurations[siteName]["properties"] is None:
-    return {}
-  return configurations[siteName]["properties"]
+  siteConfig = configurations.get(siteName)
+  if siteConfig is None:
+    return None
+  return siteConfig.get("properties")
 
 def to_number(s):
   try:

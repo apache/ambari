@@ -85,7 +85,6 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.persist.Transactional;
-import org.springframework.security.core.GrantedAuthority;
 
 public class ClusterImpl implements Cluster {
 
@@ -1412,6 +1411,82 @@ public class ClusterImpl implements Cluster {
     }
   }
 
+
+  @Override
+  public ServiceConfigVersionResponse createServiceConfigVersion(String serviceName, String user, String note,
+                                                                 ConfigGroup configGroup) {
+
+    //create next service config version
+    ServiceConfigEntity serviceConfigEntity = new ServiceConfigEntity();
+    serviceConfigEntity.setServiceName(serviceName);
+    serviceConfigEntity.setClusterEntity(clusterEntity);
+    serviceConfigEntity.setVersion(configVersionHelper.getNextVersion(serviceName));
+    serviceConfigEntity.setUser(user);
+    serviceConfigEntity.setNote(note);
+
+    if (configGroup != null) {
+      Collection<Config> configs = configGroup.getConfigurations().values();
+      List<ClusterConfigEntity> configEntities = new ArrayList<ClusterConfigEntity>(configs.size());
+      for (Config config : configs) {
+        configEntities.add(clusterDAO.findConfig(getClusterId(), config.getType(), config.getVersion()));
+      }
+      serviceConfigEntity.setClusterConfigEntities(configEntities);
+
+      serviceConfigEntity.setHostNames(new ArrayList<String>(configGroup.getHosts().keySet()));
+
+    } else {
+      List<ClusterConfigEntity> configEntities = getClusterConfigEntitiesByService(serviceName);
+      serviceConfigEntity.setClusterConfigEntities(configEntities);
+    }
+
+    serviceConfigDAO.create(serviceConfigEntity);
+
+    ServiceConfigVersionResponse response = new ServiceConfigVersionResponse();
+    response.setUserName(user);
+    response.setClusterName(getClusterName());
+    response.setVersion(serviceConfigEntity.getVersion());
+    response.setServiceName(serviceConfigEntity.getServiceName());
+    response.setCreateTime(serviceConfigEntity.getCreateTimestamp());
+    response.setUserName(serviceConfigEntity.getUser());
+    response.setNote(serviceConfigEntity.getNote());
+    response.setGroupId(serviceConfigEntity.getGroupId());
+    response.setHosts(serviceConfigEntity.getHostNames());
+    response.setGroupName(configGroup != null ? configGroup.getName() : null);
+
+    return response;
+  }
+
+  @Override
+  public String getServiceForConfigTypes(Collection<String> configTypes) {
+    String serviceName = null;
+    for (String configType : configTypes) {
+      for (Entry<String, String> entry : serviceConfigTypes.entries()) {
+        if (StringUtils.equals(entry.getValue(), configType)) {
+          if (serviceName != null) {
+            if (entry.getKey()!=null && !StringUtils.equals(serviceName, entry.getKey())) {
+              throw new IllegalArgumentException("Config type {} belongs to {} service, " +
+                "but config group qualified for {}");
+            }
+          } else {
+            serviceName = entry.getKey();
+          }
+        }
+      }
+    }
+    return serviceName;
+  }
+
+  public String getServiceByConfigType(String configType) {
+    for (Entry<String, String> entry : serviceConfigTypes.entries()) {
+      String serviceName = entry.getKey();
+      String type = entry.getValue();
+      if (StringUtils.equals(type, configType)) {
+        return serviceName;
+      }
+    }
+    return null;
+  }
+
   @Override
   public boolean setServiceConfigVersion(String serviceName, Long version, String user, String note) throws AmbariException {
     if (null == user)
@@ -1470,6 +1545,7 @@ public class ClusterImpl implements Cluster {
           serviceConfigVersionResponse.setCreateTime(serviceConfigEntity.getCreateTimestamp());
           serviceConfigVersionResponse.setUserName(serviceConfigEntity.getUser());
           serviceConfigVersionResponse.setNote(serviceConfigEntity.getNote());
+          serviceConfigVersionResponse.setHosts(serviceConfigEntity.getHostNames());
           serviceConfigVersionResponse.setConfigurations(new ArrayList<ConfigurationResponse>());
 
           List<ClusterConfigEntity> clusterConfigEntities = serviceConfigEntity.getClusterConfigEntities();
@@ -1478,6 +1554,17 @@ public class ClusterImpl implements Cluster {
             serviceConfigVersionResponse.getConfigurations().add(new ConfigurationResponse(getClusterName(),
               config.getType(), config.getTag(), config.getVersion(), config.getProperties(),
               config.getPropertiesAttributes()));
+          }
+
+          Long groupId = serviceConfigEntity.getGroupId();
+          if (groupId != null) {
+            serviceConfigVersionResponse.setGroupId(groupId);
+            ConfigGroup configGroup = clusterConfigGroups.get(groupId);
+            if (configGroup != null) {
+              serviceConfigVersionResponse.setGroupName(configGroup.getName());
+            } else {
+              //TODO null or special name?
+            }
           }
 
           serviceConfigVersionResponses.add(serviceConfigVersionResponse);
@@ -1534,16 +1621,43 @@ public class ClusterImpl implements Cluster {
     }
 
     //disable all configs related to service
-    Collection<String> configTypes = serviceConfigTypes.get(serviceName);
-    for (ClusterConfigMappingEntity entity : clusterEntity.getConfigMappingEntities()) {
-      if (configTypes.contains(entity.getType()) && entity.isSelected() > 0) {
-        entity.setSelected(0);
+    if (serviceConfigEntity.getGroupId() == null) {
+      Collection<String> configTypes = serviceConfigTypes.get(serviceName);
+      for (ClusterConfigMappingEntity entity : clusterEntity.getConfigMappingEntities()) {
+        if (configTypes.contains(entity.getType()) && entity.isSelected() > 0) {
+          entity.setSelected(0);
+        }
       }
-    }
-    clusterDAO.merge(clusterEntity);
+      clusterDAO.merge(clusterEntity);
 
-    for (ClusterConfigEntity configEntity : serviceConfigEntity.getClusterConfigEntities()) {
-      selectConfig(configEntity.getType(), configEntity.getTag(), user);
+      for (ClusterConfigEntity configEntity : serviceConfigEntity.getClusterConfigEntities()) {
+        selectConfig(configEntity.getType(), configEntity.getTag(), user);
+      }
+    } else {
+      Long configGroupId = serviceConfigEntity.getGroupId();
+      ConfigGroup configGroup = clusterConfigGroups.get(configGroupId);
+      if (configGroup != null) {
+        Map<String, Config> groupDesiredConfigs = new HashMap<String, Config>();
+        for (ClusterConfigEntity entity : serviceConfigEntity.getClusterConfigEntities()) {
+          Config config = allConfigs.get(entity.getType()).get(entity.getTag());
+          groupDesiredConfigs.put(config.getType(), config);
+        }
+        configGroup.setConfigurations(groupDesiredConfigs);
+
+        Map<String, Host> groupDesiredHosts = new HashMap<String, Host>();
+        for (String hostname : serviceConfigEntity.getHostNames()) {
+          Host host = clusters.getHost(hostname);
+          if (host != null) {
+            groupDesiredHosts.put(hostname, host);
+          } else {
+            LOG.warn("Host {} doesn't exist anymore, skipping", hostname);
+          }
+        }
+        configGroup.setHosts(groupDesiredHosts);
+        configGroup.persist();
+      } else {
+        throw new IllegalArgumentException("Config group {} doesn't exist");
+      }
     }
 
     ServiceConfigEntity serviceConfigEntityClone = new ServiceConfigEntity();
@@ -1553,6 +1667,8 @@ public class ClusterImpl implements Cluster {
     serviceConfigEntityClone.setClusterEntity(clusterEntity);
     serviceConfigEntityClone.setClusterConfigEntities(serviceConfigEntity.getClusterConfigEntities());
     serviceConfigEntityClone.setClusterId(serviceConfigEntity.getClusterId());
+    serviceConfigEntityClone.setHostNames(serviceConfigEntity.getHostNames());
+    serviceConfigEntityClone.setGroupId(serviceConfigEntity.getGroupId());
     serviceConfigEntityClone.setNote(serviceConfigVersionNote);
     serviceConfigEntityClone.setVersion(configVersionHelper.getNextVersion(serviceName));
 
@@ -1610,15 +1726,11 @@ public class ClusterImpl implements Cluster {
   private ServiceConfigVersionResponse createServiceConfigVersion(String serviceName, String user,
                                                                   String serviceConfigVersionNote) {
     //create next service config version
-    ServiceConfigEntity serviceConfigEntity = new ServiceConfigEntity();
-    serviceConfigEntity.setServiceName(serviceName);
-    serviceConfigEntity.setClusterEntity(clusterEntity);
-    serviceConfigEntity.setVersion(configVersionHelper.getNextVersion(serviceName));
-    serviceConfigEntity.setUser(user);
-    serviceConfigEntity.setNote(serviceConfigVersionNote);
+    return createServiceConfigVersion(serviceName, user, serviceConfigVersionNote, null);
+  }
 
+  private List<ClusterConfigEntity> getClusterConfigEntitiesByService(String serviceName) {
     List<ClusterConfigEntity> configEntities = new ArrayList<ClusterConfigEntity>();
-    serviceConfigEntity.setClusterConfigEntities(configEntities);
 
     //add configs from this service
     Collection<String> configTypes = serviceConfigTypes.get(serviceName);
@@ -1634,18 +1746,7 @@ public class ClusterImpl implements Cluster {
         }
       }
     }
-
-    serviceConfigDAO.create(serviceConfigEntity);
-
-    ServiceConfigVersionResponse response = new ServiceConfigVersionResponse();
-    response.setUserName(user);
-    response.setClusterName(getClusterName());
-    response.setVersion(serviceConfigEntity.getVersion());
-    response.setServiceName(serviceConfigEntity.getServiceName());
-    response.setCreateTime(serviceConfigEntity.getCreateTimestamp());
-    response.setUserName(serviceConfigEntity.getUser());
-    response.setNote(serviceConfigEntity.getNote());
-    return response;
+    return configEntities;
   }
 
   @Override
@@ -1753,7 +1854,7 @@ public class ClusterImpl implements Cluster {
           ServiceComponentHost serviceComponentHost = serviceComponent.getServiceComponentHost(event.getHostName());
           serviceComponentHost.handleEvent(event);
         } catch (AmbariException e) {
-          LOG.error("ServiceComponentHost lookup exception ", e);
+          LOG.error("ServiceComponentHost lookup exception ", e.getMessage());
           failedEvents.add(event);
         } catch (InvalidStateTransitionException e) {
           LOG.error("Invalid transition ", e);

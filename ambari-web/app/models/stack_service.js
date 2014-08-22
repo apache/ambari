@@ -228,14 +228,16 @@ App.StackService.displayOrder = [
 
 App.StackService.dependency = {
   'HDP-1': {
+    'HDFS': ['MAPREDUCE', 'HBASE', 'SQOOP'],
     'MAPREDUCE': ['PIG', 'OOZIE', 'HIVE'],
     'ZOOKEEPER': ['HBASE', 'HIVE', 'WEBHCAT']
   },
   'HDP-2': {
+    'ZOOKEEPER': ['HDFS', 'HBASE', 'HIVE', 'WEBHCAT', 'STORM'],
+    'HDFS': ['YARN', 'HBASE', 'FLUME', 'SQOOP'],
     'YARN': ['PIG', 'OOZIE', 'HIVE', 'TEZ'],
     'TEZ': ['YARN'],
-    'OOZIE': ['FALCON'],
-    'ZOOKEEPER': ['HDFS', 'HBASE', 'HIVE', 'WEBHCAT', 'STORM']
+    'OOZIE': ['FALCON']
   }
 };
 

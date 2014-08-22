@@ -306,10 +306,13 @@ App.Router = Em.Router.extend({
         route = 'main.reassign';
       } else if (clusterStatusOnServer && clusterStatusOnServer.wizardControllerName === App.router.get('highAvailabilityWizardController.name')) {
         // if wizardControllerName == "highAvailabilityWizardController", then it means someone closed the browser or the browser was crashed when we were last in NameNode High Availability wizard
-        route = 'main.admin.enableHighAvailability';
+        route = 'main.services.enableHighAvailability';
+      } else if (clusterStatusOnServer && clusterStatusOnServer.wizardControllerName === App.router.get('rMHighAvailabilityWizardController.name')) {
+        // if wizardControllerName == "highAvailabilityWizardController", then it means someone closed the browser or the browser was crashed when we were last in NameNode High Availability wizard
+        route = 'main.services.enableRMHighAvailability';
       } else if (clusterStatusOnServer && clusterStatusOnServer.wizardControllerName === App.router.get('rollbackHighAvailabilityWizardController.name')) {
         // if wizardControllerName == "highAvailabilityRollbackController", then it means someone closed the browser or the browser was crashed when we were last in NameNode High Availability Rollback wizard
-        route = 'main.admin.rollbackHighAvailability';
+        route = 'main.services.rollbackHighAvailability';
       }
       callback(route);
     });

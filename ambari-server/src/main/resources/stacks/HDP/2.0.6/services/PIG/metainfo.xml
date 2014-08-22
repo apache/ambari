@@ -45,7 +45,7 @@
             </configFile>
             <configFile>
               <type>env</type>
-              <fileName>pig-properties.properties</fileName>
+              <fileName>pig.properties</fileName>
               <dictionaryName>pig-properties</dictionaryName>
             </configFile>                         
           </configFiles>          

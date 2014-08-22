@@ -25,12 +25,19 @@ angular.module('ambariAdminConsole')
     View.getInstance($routeParams.viewId, $routeParams.version, $routeParams.instanceId)
     .then(function(instance) {
       $scope.instance = instance;
+
       $scope.settings = {
         'visible': $scope.instance.ViewInstanceInfo.visible,
-        'label': $scope.instance.ViewInstanceInfo.label
+        'label': $scope.instance.ViewInstanceInfo.label,
+        'description': $scope.instance.ViewInstanceInfo.description
       };
 
       $scope.configuration = angular.copy($scope.instance.ViewInstanceInfo.properties);
+      for(var confName in $scope.configuration){
+        if( $scope.configuration.hasOwnProperty(confName) ){
+          $scope.configuration[confName] = $scope.configuration[confName] === 'null' ? '' : $scope.configuration[confName];
+        }
+      }
       $scope.isConfigurationEmpty = angular.equals({}, $scope.configuration);
     })
     .catch(function(data) {
@@ -72,45 +79,56 @@ angular.module('ambariAdminConsole')
   reloadViewPrivilegies();
 
   $scope.editSettingsDisabled = true;
-  
+  $scope.toggleSettingsEdit = function() {
+    $scope.editSettingsDisabled = !$scope.editSettingsDisabled;
+  };
 
   $scope.saveSettings = function() {
-    View.updateInstance($routeParams.viewId, $routeParams.version, $routeParams.instanceId, {
-      'ViewInstanceInfo':{
-        'visible': $scope.settings.visible,
-        'label': $scope.settings.label
-      }
-    })
-    .success(function() {
-      reloadViewInfo();
-      $scope.editSettingsDisabled = true;
-    })
-    .catch(function(data) {
-      uiAlert.danger(data.data.status, data.data.message);
-    });
+    if( $scope.settingsForm.$valid ){
+      View.updateInstance($routeParams.viewId, $routeParams.version, $routeParams.instanceId, {
+        'ViewInstanceInfo':{
+          'visible': $scope.settings.visible,
+          'label': $scope.settings.label,
+          'description': $scope.settings.description
+        }
+      })
+      .success(function() {
+        reloadViewInfo();
+        $scope.editSettingsDisabled = true;
+      })
+      .catch(function(data) {
+        uiAlert.danger(data.data.status, data.data.message);
+      });
+    }
   };
   $scope.cancelSettings = function() {
     $scope.settings = {
       'visible': $scope.instance.ViewInstanceInfo.visible,
-      'label': $scope.instance.ViewInstanceInfo.label
+      'label': $scope.instance.ViewInstanceInfo.label,
+      'description': $scope.instance.ViewInstanceInfo.description
     };
     $scope.editSettingsDisabled = true;
   };
 
+  
   $scope.editConfigurationDisabled = true;
-
+  $scope.togglePropertiesEditing = function() {
+     $scope.editConfigurationDisabled = !$scope.editConfigurationDisabled;
+  }
   $scope.saveConfiguration = function() {
-    View.updateInstance($routeParams.viewId, $routeParams.version, $routeParams.instanceId, {
-      'ViewInstanceInfo':{
-        'properties': $scope.configuration
-      }
-    })
-    .success(function() {
-      $scope.editConfigurationDisabled = true;
-    })
-    .catch(function(data) {
-      uiAlert.danger(data.data.status, data.data.message);
-    });
+    if( $scope.propertiesForm.$valid ){
+      View.updateInstance($routeParams.viewId, $routeParams.version, $routeParams.instanceId, {
+        'ViewInstanceInfo':{
+          'properties': $scope.configuration
+        }
+      })
+      .success(function() {
+        $scope.editConfigurationDisabled = true;
+      })
+      .catch(function(data) {
+        uiAlert.danger(data.data.status, data.data.message);
+      });
+    }
   };
   $scope.cancelConfiguration = function() {
     $scope.configuration = angular.copy($scope.instance.ViewInstanceInfo.properties);

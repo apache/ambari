@@ -49,15 +49,17 @@ module.exports = App.WizardRoute.extend({
                 localdb: App.db.data
               }, {alwaysCallback: function () {
                 self.hide();
-                router.transitionTo('main.index');
-                location.reload();
+                router.route('/main/services/YARN/summary');
+                Em.run.next(function() {
+                  location.reload();
+                });
               }});
             }, Em.I18n.t('admin.rm_highAvailability.closePopup'));
           } else {
             this.hide();
             rMHighAvailabilityWizardController.setCurrentStep('1');
             router.get('updateController').set('isWorking', true);
-            router.transitionTo('main.index')
+            router.transitionTo('main.services.index');
           }
         },
         didInsertElement: function () {
@@ -175,8 +177,10 @@ module.exports = App.WizardRoute.extend({
         localdb: App.db.data
       }, {alwaysCallback: function () {
         controller.get('popup').hide();
-        router.transitionTo('main.index');
-        location.reload();
+        router.route('/main/services/YARN/summary');
+        Em.run.next(function() {
+          location.reload();
+        });
       }});
     }
   }),

@@ -26,6 +26,8 @@ App.TezDag = DS.Model.extend({
 
   yarnApplicationId: DS.attr('string'),
 
+  yarnApplicationLink: DS.attr('string'),
+
   stage: DS.attr('string'),
 
   vertices: DS.hasMany('tezDagVertex'),

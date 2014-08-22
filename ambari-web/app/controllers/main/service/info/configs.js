@@ -42,7 +42,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   customConfig: [],
   isApplyingChanges: false,
   saveConfigsFlag: true,
-  putClusterConfigsCallsNumber: null,
   compareServiceVersion: null,
   // contain Service Config Property, when user proceed from Select Config Group dialog
   overrideToAdd: null,
@@ -1738,19 +1737,20 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     var serviceConfigTags = this.get('serviceConfigTags');
     this.setNewTagNames(serviceConfigTags);
     var siteNameToServerDataMap = {};
-    this.set('putClusterConfigsCallsNumber', serviceConfigTags.length);
+    var configsToSave = [];
     serviceConfigTags.forEach(function (_serviceTags) {
       var configs = this.createConfigObject(_serviceTags.siteName, _serviceTags.newTagName);
       if (configs) {
-        this.doPUTClusterConfiguration(_serviceTags.siteName, configs);
+        configsToSave.push(configs);
         siteNameToServerDataMap[_serviceTags.siteName] = configs;
-      } else {
-        if (this.decrementProperty('putClusterConfigsCallsNumber') === 0) {
-          this.onDoPUTClusterConfigurations();
-        }
       }
     }, this);
-
+    configsToSave = this.filterChangedConfiguration(configsToSave);
+    if (configsToSave.length > 0) {
+      this.doPUTClusterConfigurationSites(configsToSave);
+    } else {
+      this.onDoPUTClusterConfigurations();
+    }
     this.set("savedSiteNameToServerServiceConfigDataMap", siteNameToServerDataMap);
   },
 
@@ -1763,7 +1763,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    */
   createConfigObject: function (siteName, tagName) {
     console.log("TRACE: Inside " + siteName);
-    var configObject;
+    var configObject = {};
     switch (siteName) {
       case 'core-site':
         if (this.get('content.serviceName') === 'HDFS' || this.get('content.serviceName') === 'GLUSTERFS') {
@@ -1785,28 +1785,27 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   },
 
   /**
-   * load existen properties and compare them with current if there are
-   * differences - trigger doPUTClusterConfigurationSite to save new properties
-   * @param {String} siteName
-   * @param {Object} newConfig
-   * @method doPUTClusterConfiguration
+   * filter out unchanged configurations
+   * @param {Array} configsToSave
+   * @method filterChangedConfiguration
    */
-  doPUTClusterConfiguration: function (siteName, newConfig) {
-    var oldConfig = App.router.get('configurationController').getConfigsByTags([
-      {siteName: siteName, tagName: this.loadedClusterSiteToTagMap[siteName]}
-    ]);
-    oldConfig = oldConfig[0] || {};
-    var oldProperties = oldConfig.properties || {};
-    var oldAttributes = oldConfig["properties_attributes"] || {};
-    var newProperties = newConfig.properties || {};
-    var newAttributes = newConfig["properties_attributes"] || {};
-    if (this.isAttributesChanged(oldAttributes, newAttributes) || this.isConfigChanged(oldProperties, newProperties)) {
-      this.doPUTClusterConfigurationSite(newConfig);
-    } else {
-      if (this.decrementProperty('putClusterConfigsCallsNumber') === 0) {
-        this.onDoPUTClusterConfigurations();
+  filterChangedConfiguration: function (configsToSave) {
+    var changedConfigs = [];
+
+    configsToSave.forEach(function (configSite) {
+      var oldConfig = App.router.get('configurationController').getConfigsByTags([
+        {siteName: configSite.type, tagName: this.loadedClusterSiteToTagMap[configSite.type]}
+      ]);
+      oldConfig = oldConfig[0] || {};
+      var oldProperties = oldConfig.properties || {};
+      var oldAttributes = oldConfig["properties_attributes"] || {};
+      var newProperties = configSite.properties || {};
+      var newAttributes = configSite["properties_attributes"] || {};
+      if (this.isAttributesChanged(oldAttributes, newAttributes) || this.isConfigChanged(oldProperties, newProperties)) {
+        changedConfigs.push(configSite);
       }
-    }
+    }, this);
+    return changedConfigs;
   },
 
   /**
@@ -1895,21 +1894,35 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   },
 
   /**
-   * Saves configuration of a particular site. The provided data
-   * contains the site name and tag to be used.
-   * @param {Object} data
-   * @method doPUTClusterConfigurationSite
+   * prepare configuration data to save
+   * @param sites
+   * @return {Array}
    */
-  doPUTClusterConfigurationSite: function (data) {
+  prepareConfigurationDataToSave: function (sites) {
+    var data = [];
+
+    sites.forEach(function (configs) {
+      data.push({
+        Clusters: {
+          desired_config: configs
+        }
+      })
+    });
+    return data;
+  },
+
+  /**
+   * Saves configuration of set of sites. The provided data
+   * contains the site name and tag to be used.
+   * @param {Object} sites
+   * @method doPUTClusterConfigurationSites
+   */
+  doPUTClusterConfigurationSites: function (sites) {
     App.ajax.send({
       name: 'config.cluster_configuration.put',
       sender: this,
       data: {
-        data: JSON.stringify({
-          Clusters: {
-            desired_config: data
-          }
-        }),
+        data: JSON.stringify(this.prepareConfigurationDataToSave(sites)),
         cluster: App.router.getClusterName()
       },
       success: 'doPUTClusterConfigurationSiteSuccessCallback',
@@ -1925,9 +1938,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   },
 
   doPUTClusterConfigurationSiteSuccessCallback: function () {
-    if (this.decrementProperty('putClusterConfigsCallsNumber') === 0) {
-      this.onDoPUTClusterConfigurations();
-    }
+    this.onDoPUTClusterConfigurations();
   },
 
   doPUTClusterConfigurationSiteErrorCallback: function () {

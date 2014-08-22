@@ -300,7 +300,6 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
     }
 
     Collection<ViewInstancePropertyEntity> instanceProperties = new HashSet<ViewInstancePropertyEntity>();
-    Collection<ViewInstanceDataEntity>     instanceData       = new HashSet<ViewInstanceDataEntity>();
 
     for (Map.Entry<String, Object> entry : properties.entrySet()) {
 
@@ -317,23 +316,11 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
 
         instanceProperties.add(viewInstancePropertyEntity);
       } else if (propertyName.startsWith(DATA_PREFIX)) {
-        ViewInstanceDataEntity viewInstanceDataEntity = new ViewInstanceDataEntity();
-
-        viewInstanceDataEntity.setViewName(viewName);
-        viewInstanceDataEntity.setViewInstanceName(name);
-        viewInstanceDataEntity.setName(entry.getKey().substring(DATA_PREFIX.length()));
-        viewInstanceDataEntity.setUser(viewInstanceEntity.getCurrentUserName());
-        viewInstanceDataEntity.setValue((String) entry.getValue());
-        viewInstanceDataEntity.setViewInstanceEntity(viewInstanceEntity);
-
-        instanceData.add(viewInstanceDataEntity);
+        viewInstanceEntity.putInstanceData(entry.getKey().substring(DATA_PREFIX.length()), (String) entry.getValue());
       }
     }
     if (!instanceProperties.isEmpty()) {
       viewInstanceEntity.setProperties(instanceProperties);
-    }
-    if (!instanceData.isEmpty()) {
-      viewInstanceEntity.setData(instanceData);
     }
 
     return viewInstanceEntity;

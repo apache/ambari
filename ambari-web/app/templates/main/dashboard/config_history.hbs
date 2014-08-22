@@ -17,81 +17,84 @@
 }}
 
 <div id="config_history">
-    <table class="table advanced-header-table table-bordered table-striped" >
-        <thead>
-        {{#view view.sortView classNames="label-row"}}
-            {{view view.parentView.versionSort}}
-            {{view view.parentView.configGroupSort}}
-            {{view view.parentView.modifiedSort}}
-            {{view view.parentView.authorSort}}
-            {{view view.parentView.notesSort}}
-        {{/view}}
+  <table class="table advanced-header-table table-bordered table-striped" >
+    <thead>
+    {{#view view.sortView classNames="label-row"}}
+      {{view view.parentView.versionSort}}
+      {{view view.parentView.configGroupSort}}
+      {{view view.parentView.modifiedSort}}
+      {{view view.parentView.authorSort}}
+      {{view view.parentView.notesSort}}
+    {{/view}}
 
-        <tr class="filter-row">
-            <th class="first">{{view view.serviceFilterView}}</th>
-            <th>{{view view.configGroupFilterView}}</th>
-            <th>{{view view.modifiedFilterView}}</th>
-            <th>{{view view.authorFilterView}}</th>
-            <th>{{view view.notesFilterView}}</th>
+    <tr class="filter-row">
+      <th class="first">{{view view.serviceFilterView}}</th>
+      <th>{{view view.configGroupFilterView}}</th>
+      <th>{{view view.modifiedFilterView}}</th>
+      <th>{{view view.authorFilterView}}</th>
+      <th>{{view view.notesFilterView}}</th>
+    </tr>
+    </thead>
+    <tbody class="services-menu">
+    {{#if view.filteringComplete}}
+      {{#if view.pageContent}}
+        {{#each item in view.pageContent}}
+          {{#view view.ConfigVersionView contentBinding="item"}}
+            <td class="first">
+              <span class="label label-info">{{item.versionText}}</span>
+              <a {{action goToServiceConfigs item.serviceName}}>
+                {{item.serviceName}}
+              </a>
+              <i {{bindAttr class=":icon-refresh :restart-required-service item.isRestartRequired::hidden"}}></i>
+            </td>
+            <td>{{item.configGroup}}
+              {{#if item.isCurrent}}
+                <span class="label label-success" rel="currentTooltip"
+                {{bindAttr data-original-title="item.currentTooltip"}}>{{t common.current}}
+                </span>
+              {{/if}}
+            </td>
+            <td>{{item.modifiedDate}}</td>
+            <td>{{item.author}}</td>
+            <td>{{item.briefNotes}}</td>
+          {{/view}}
+        {{/each}}
+      {{else}}
+        <tr>
+          <td class="first" colspan="6">
+            {{t dashboard.configHistory.table.empty}}
+          </td>
         </tr>
-        </thead>
-        <tbody class="services-menu">
-        {{#if view.filteringComplete}}
-          {{#if view.pageContent}}
-            {{#each item in view.pageContent}}
-                <tr>
-                    <td class="first">
-                      <a {{action goToServiceConfigs item.serviceName}}>
-                      {{item.serviceName}}
-                      </a>
-                      <span class="label label-info">{{item.versionText}}</span>
-                      {{#if item.isCurrent}}
-                        <span class="label label-success">{{t common.current}}</span>
-                      {{/if}}
-                      <i {{bindAttr class=":icon-refresh :restart-required-service item.isRestartRequired::hidden"}}></i>
-                    </td>
-                    <td>{{item.configGroup}}</td>
-                    <td>{{item.modifiedDate}}</td>
-                    <td>{{item.author}}</td>
-                    <td>{{item.notes}}</td>
-                </tr>
-            {{/each}}
-          {{else}}
-              <tr>
-                  <td class="first" colspan="4">
-                    {{t dashboard.configHistory.table.empty}}
-                  </td>
-              </tr>
-          {{/if}}
-        {{else}}
-          <tr><td colspan="4"><div class="spinner"></div></td></tr>
-        {{/if}}
-        </tbody>
-    </table>
+      {{/if}}
+    {{else}}
+      <tr><td colspan="6"><div class="spinner"></div></td></tr>
+    {{/if}}
+    </tbody>
+</table>
 
-    <div class="page-bar">
-        <div class="filtered-info span4">
-            <label>{{view.filteredContentInfo}} - <a {{action clearFilters target="view"}}
-                    href="#">{{t tableView.filters.clearAllFilters}}</a></label>
-        </div>
-        <div class="selected-hosts-info span4">
-          {{#if view.showSelectedFilter}}
-              <div>
-                  <a {{action filterSelected target="view"}} href="#">
-                    {{view.selectedHosts.length}}
-                    {{pluralize view.selectedHostsCount singular="t:hosts.filters.selectedHostInfo" plural="t:hosts.filters.selectedHostsInfo"}}
-                  </a>
-              </div>
-              - <a {{action clearSelection target="view"}} href="#">{{t hosts.filters.clearSelection}}</a>
-          {{/if}}
-        </div>
-        <div class="items-on-page">
-            <label>{{t common.show}}: {{view view.rowsPerPageSelectView selectionBinding="view.displayLength"}}</label>
-        </div>
-        <div class="info">{{view.paginationInfo}}</div>
-        <div class="paging_two_button">
-          {{view view.paginationLeft}}
-          {{view view.paginationRight}}
-        </div>
+  <div class="page-bar">
+    <div class="filtered-info span4">
+      <label>{{view.filteredContentInfo}} - <a {{action clearFilters target="view"}}
+              href="#">{{t tableView.filters.clearAllFilters}}</a></label>
     </div>
+    <div class="selected-hosts-info span4">
+      {{#if view.showSelectedFilter}}
+        <div>
+          <a {{action filterSelected target="view"}} href="#">
+            {{view.selectedHosts.length}}
+            {{pluralize view.selectedHostsCount singular="t:hosts.filters.selectedHostInfo" plural="t:hosts.filters.selectedHostsInfo"}}
+          </a>
+        </div>
+          - <a {{action clearSelection target="view"}} href="#">{{t hosts.filters.clearSelection}}</a>
+      {{/if}}
+    </div>
+    <div class="items-on-page">
+      <label>{{t common.show}}: {{view view.rowsPerPageSelectView selectionBinding="view.displayLength"}}</label>
+    </div>
+    <div class="info">{{view.paginationInfo}}</div>
+    <div class="paging_two_button">
+      {{view view.paginationLeft}}
+      {{view view.paginationRight}}
+    </div>
+  </div>
 </div>

@@ -37,8 +37,11 @@ class TestPigClient(RMFTestCase):
       owner = 'hdfs',
       content = InlineTemplate(self.getConfig()['configurations']['pig-env']['content'])
     )
-    self.assertResourceCalled('TemplateConfig', '/etc/pig/conf/pig.properties',
-      owner = 'hdfs',
+    self.assertResourceCalled('File', '/etc/pig/conf/pig.properties',
+                              owner = 'hdfs',
+                              group = 'hadoop',
+                              mode = 0644,
+                              content = 'pigproperties\nline2'
     )
     self.assertResourceCalled('File', '/etc/pig/conf/log4j.properties',
       owner = 'hdfs',
@@ -63,8 +66,11 @@ class TestPigClient(RMFTestCase):
       owner = 'hdfs',
       content = InlineTemplate(self.getConfig()['configurations']['pig-env']['content']),
     )
-    self.assertResourceCalled('TemplateConfig', '/etc/pig/conf/pig.properties',
-      owner = 'hdfs',
+    self.assertResourceCalled('File', '/etc/pig/conf/pig.properties',
+                              owner = 'hdfs',
+                              group = 'hadoop',
+                              mode = 0644,
+                              content = 'pigproperties\nline2'
     )
     self.assertResourceCalled('File', '/etc/pig/conf/log4j.properties',
       owner = 'hdfs',

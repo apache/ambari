@@ -551,7 +551,6 @@ public class JMXPropertyProvider extends AbstractPropertyProvider {
   private static String logException(Throwable throwable) {
     String msg = "Caught exception getting JMX metrics : " + throwable.getLocalizedMessage();
 
-    LOG.error(msg);
     LOG.debug(msg, throwable);
 
     return msg;

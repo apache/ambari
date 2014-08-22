@@ -42,7 +42,12 @@
               <type>env</type>
               <fileName>pig-log4j.properties</fileName>
               <dictionaryName>pig-log4j</dictionaryName>
-            </configFile>            
+            </configFile>
+            <configFile>
+              <type>env</type>
+              <fileName>pig.properties</fileName>
+              <dictionaryName>pig-properties</dictionaryName>
+            </configFile>
           </configFiles>
         </component>
       </components>
@@ -70,6 +75,7 @@
       <configuration-dependencies>
         <config-type>pig-env</config-type>
         <config-type>pig-log4j</config-type>
+        <config-type>pig-properties</config-type>
       </configuration-dependencies>
 
     </service>

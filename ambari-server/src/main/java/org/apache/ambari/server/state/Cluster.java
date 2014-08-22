@@ -174,6 +174,11 @@ public interface Cluster {
    */
   ServiceConfigVersionResponse addDesiredConfig(String user, Config config, String serviceConfigVersionNote);
 
+  ServiceConfigVersionResponse createServiceConfigVersion(String serviceName, String user, String note,
+                                                          ConfigGroup configGroup);
+
+  String getServiceForConfigTypes(Collection<String> configTypes);
+
   /**
    * Apply specified service config version (rollback)
    * @param serviceName service name

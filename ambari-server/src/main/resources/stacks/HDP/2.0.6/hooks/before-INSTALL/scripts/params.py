@@ -41,6 +41,7 @@ gmond_user = config['configurations']['ganglia-env']["gmond_user"]
 storm_user = config['configurations']['storm-env']['storm_user']
 tez_user = config['configurations']['tez-env']['tez_user']
 falcon_user = config['configurations']['falcon-env']['falcon_user']
+sqoop_user = config['configurations']['sqoop-env']['sqoop_user']
 
 user_group = config['configurations']['hadoop-env']['user_group']
 proxyuser_group =  config['configurations']['hadoop-env']['proxyuser_group']
@@ -66,6 +67,7 @@ ganglia_server_hosts = default("/clusterHostInfo/ganglia_server_host", [])
 storm_server_hosts = default("/clusterHostInfo/nimbus_hosts", [])
 falcon_host =  default('/clusterHostInfo/falcon_server_hosts', [])
 
+has_sqoop_client = 'sqoop-env' in config['configurations']
 has_namenode = not len(namenode_host) == 0
 has_hs = not len(hs_host) == 0
 has_resourcemanager = not len(rm_host) == 0

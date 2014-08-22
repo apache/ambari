@@ -24,10 +24,7 @@ import os
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
-if System.get_instance().os_type == "oraclelinux":
-  ulimit_cmd = ''
-else:
-  ulimit_cmd = "ulimit -c unlimited; "
+ulimit_cmd = "ulimit -c unlimited; "
 
 #security params
 _authentication = config['configurations']['core-site']['hadoop.security.authentication']

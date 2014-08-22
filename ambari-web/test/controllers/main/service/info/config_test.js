@@ -583,16 +583,8 @@ describe("App.MainServiceInfoConfigsController", function () {
     });
   });
 
-  describe("#doPUTClusterConfigurationSite", function () {
-    var t = {
-      data: "data",
-      request: {
-        Clusters: {
-          desired_config: "data"
-        }
-      }
-    },
-    sc = [
+  describe("#doPUTClusterConfigurationSites", function () {
+      var sc = [
       Em.Object.create({
         configs: [
           Em.Object.create({
@@ -644,25 +636,25 @@ describe("App.MainServiceInfoConfigsController", function () {
       sinon.stub(App.router, 'getClusterName', function() {
         return 'clName';
       });
-      sinon.spy($, "ajax");
+      sinon.stub(App.ajax, "send", Em.K);
     });
     afterEach(function () {
-      $.ajax.restore();
+      App.ajax.send.restore();
       App.router.getClusterName.restore();
     });
     it("ajax request to put clsuter cfg", function () {
       mainServiceInfoConfigsController.set('stepConfigs', sc);
-      expect(mainServiceInfoConfigsController.doPUTClusterConfigurationSite(t.data)).to.equal(mainServiceInfoConfigsController.get("doPUTClusterConfigurationSiteResult"));
-      expect(JSON.parse($.ajax.args[0][0].data)).to.deep.equal(t.request);
+      expect(mainServiceInfoConfigsController.doPUTClusterConfigurationSites([])).to.equal(mainServiceInfoConfigsController.get("doPUTClusterConfigurationSiteResult"));
+      expect(App.ajax.send.calledOnce).to.be.true;
     });
     it('values should be parsed', function () {
       mainServiceInfoConfigsController.set('stepConfigs', sc);
-      mainServiceInfoConfigsController.doPUTClusterConfigurationSite();
+      mainServiceInfoConfigsController.doPUTClusterConfigurationSites([]);
       expect(mainServiceInfoConfigsController.get('stepConfigs')[0].get('configs').mapProperty('value').uniq()).to.eql(['1024']);
     });
     it('values should not be parsed', function () {
       mainServiceInfoConfigsController.set('stepConfigs', scExc);
-      mainServiceInfoConfigsController.doPUTClusterConfigurationSite();
+      mainServiceInfoConfigsController.doPUTClusterConfigurationSites([]);
       expect(mainServiceInfoConfigsController.get('stepConfigs')[0].get('configs').mapProperty('value').uniq()).to.eql(['1024m']);
     });
   });

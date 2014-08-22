@@ -456,6 +456,11 @@ public class ConfigGroupResourceProvider extends
         request.getTag(), request.getDescription(),
         request.getConfigs(), hosts);
 
+      String serviceName = null;
+      if (configGroup.getConfigurations() != null) {
+        serviceName = cluster.getServiceForConfigTypes(configGroup.getConfigurations().keySet());
+      }
+
       // Persist before add, since id is auto-generated
       configLogger.info("Persisting new Config group"
         + ", clusterName = " + cluster.getClusterName()
@@ -465,6 +470,9 @@ public class ConfigGroupResourceProvider extends
 
       configGroup.persist();
       cluster.addConfigGroup(configGroup);
+      if (serviceName != null) {
+        cluster.createServiceConfigVersion(serviceName, getManagementController().getAuthName(), null, configGroup);
+      }
 
       ConfigGroupResponse response = new ConfigGroupResponse(configGroup
         .getId(), configGroup.getClusterName(), configGroup.getName(),
@@ -509,6 +517,10 @@ public class ConfigGroupResourceProvider extends
                                  + ", clusterName = " + request.getClusterName()
                                  + ", groupId = " + request.getId());
       }
+      String serviceName = null;
+      if (configGroup.getConfigurations() != null) {
+        serviceName = cluster.getServiceForConfigTypes(configGroup.getConfigurations().keySet());
+      }
 
       // Update hosts
       Map<String, Host> hosts = new HashMap<String, Host>();
@@ -541,6 +553,9 @@ public class ConfigGroupResourceProvider extends
         + ", user = " + getManagementController().getAuthName());
 
       configGroup.persist();
+      if (serviceName != null) {
+        cluster.createServiceConfigVersion(serviceName, getManagementController().getAuthName(), null, configGroup);
+      }
     }
 
     getManagementController().getConfigHelper().invalidateStaleConfigsCache();

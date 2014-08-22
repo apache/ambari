@@ -29,10 +29,10 @@ def write_function(path, handle, interval):
           handle.flush()
           time.sleep(interval)
           
-thread = Thread(target =  write_function, args = ('balancer.log', sys.stdout, 1))
+thread = Thread(target =  write_function, args = ('balancer.log', sys.stdout, 1.5))
 thread.start()
 
-threaderr = Thread(target =  write_function, args = ('balancer-err.log', sys.stderr, 0.3))
+threaderr = Thread(target =  write_function, args = ('balancer-err.log', sys.stderr, 1.5 * 0.023))
 threaderr.start()
 
 thread.join()  

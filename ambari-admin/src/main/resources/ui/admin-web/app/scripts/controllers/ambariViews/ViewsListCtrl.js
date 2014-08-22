@@ -73,7 +73,6 @@ angular.module('ambariAdminConsole')
         return !!view; // Remove 'undefined'
       });
     }
-
     $scope.filteredViews = result;
   };
 }]);

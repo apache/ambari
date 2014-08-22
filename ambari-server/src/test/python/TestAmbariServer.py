@@ -31,11 +31,15 @@ import platform
 import shutil
 from pwd import getpwnam
 from ambari_server.resourceFilesKeeper import ResourceFilesKeeper, KeeperException
+ 
+# We have to use this import HACK because the filename contains a dash
 from ambari_commons import Firewall, OSCheck, OSConst, FirewallChecks
 
 with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
-  # We have to use this import HACK because the filename contains a dash
-  ambari_server = __import__('ambari-server')
+  with patch("os.symlink"):
+    with patch("__builtin__.open"):
+      with patch("glob.glob", return_value = ['/etc/init.d/postgresql-9.3']):
+        ambari_server = __import__('ambari-server')
 
 FatalException = ambari_server.FatalException
 NonFatalException = ambari_server.NonFatalException
@@ -1005,54 +1009,67 @@ class TestAmbariServer(TestCase):
     ambari_server.store_password_file("password", "passfile")
     self.assertTrue(set_file_permissions_mock.called)
 
-
-  @patch.object(FirewallChecks, "run_os_command")
+  @patch("subprocess.Popen")
   @patch.object(OSCheck, "get_os_family")
   @patch.object(OSCheck, "get_os_type")
   @patch.object(OSCheck, "get_os_major_version")
-  def test_check_iptables_is_running(self, get_os_major_version_mock, get_os_type_mock, get_os_family_mock, run_os_command_mock):
+  def test_check_iptables_is_running(self, get_os_major_version_mock, get_os_type_mock, get_os_family_mock, popen_mock):
 
     get_os_major_version_mock.return_value = 18
     get_os_type_mock.return_value = OSConst.OS_FEDORA
     get_os_family_mock.return_value = OSConst.REDHAT_FAMILY
 
     firewall_obj = Firewall().getFirewallObject()
-    run_os_command_mock.return_value = 0, "active", ""
+    p = MagicMock()
+    p.communicate.return_value = ("active", "err")
+    p.returncode = 0
+    popen_mock.return_value = p
     self.assertEqual("Fedora18FirewallChecks", firewall_obj.__class__.__name__)
     self.assertTrue(firewall_obj.check_iptables())
-    run_os_command_mock.return_value = 3, "", ""
+    p.communicate.return_value = ("", "err")
+    p.returncode = 3
     self.assertFalse(firewall_obj.check_iptables())
+    self.assertEqual("err", firewall_obj.stderrdata)
 
 
     get_os_type_mock.return_value = OSConst.OS_UBUNTU
     get_os_family_mock.return_value = OSConst.DEBIAN_FAMILY
 
     firewall_obj = Firewall().getFirewallObject()
-    run_os_command_mock.return_value = 0, "Status: active", ""
+    p.communicate.return_value = ("Status: active", "err")
+    p.returncode = 0
     self.assertEqual("UbuntuFirewallChecks", firewall_obj.__class__.__name__)
     self.assertTrue(firewall_obj.check_iptables())
-    run_os_command_mock.return_value = 0, "Status: inactive", ""
+    p.communicate.return_value = ("Status: inactive", "err")
+    p.returncode = 0
     self.assertFalse(firewall_obj.check_iptables())
+    self.assertEqual("err", firewall_obj.stderrdata)
 
     get_os_type_mock.return_value = ""
     get_os_family_mock.return_value = OSConst.SUSE_FAMILY
 
     firewall_obj = Firewall().getFirewallObject()
-    run_os_command_mock.return_value = 0, "### iptables", ""
+    p.communicate.return_value = ("### iptables", "err")
+    p.returncode = 0
     self.assertEqual("SuseFirewallChecks", firewall_obj.__class__.__name__)
     self.assertTrue(firewall_obj.check_iptables())
-    run_os_command_mock.return_value = 0, "SuSEfirewall2 not active", ""
+    p.communicate.return_value = ("SuSEfirewall2 not active", "err")
+    p.returncode = 0
     self.assertFalse(firewall_obj.check_iptables())
+    self.assertEqual("err", firewall_obj.stderrdata)
 
     get_os_type_mock.return_value = ""
     get_os_family_mock.return_value = OSConst.REDHAT_FAMILY
 
     firewall_obj = Firewall().getFirewallObject()
-    run_os_command_mock.return_value = 0, "Table: filter", ""
+    p.communicate.return_value = ("Table: filter", "err")
+    p.returncode = 0
     self.assertEqual("FirewallChecks", firewall_obj.__class__.__name__)
     self.assertTrue(firewall_obj.check_iptables())
-    run_os_command_mock.return_value = 3, "", ""
+    p.communicate.return_value = ("", "err")
+    p.returncode = 3
     self.assertFalse(firewall_obj.check_iptables())
+    self.assertEqual("err", firewall_obj.stderrdata)
 
 
   def test_dlprogress(self):
@@ -5093,4 +5110,47 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     ambari_server.refresh_stack_hash()
 
     self.assertTrue(perform_housekeeping_mock.called)
+
+  @patch.object(ambari_server, "run_os_command")
+  @patch.object(ambari_server, "print_error_msg")
+  def test_change_objects_owner_both(self,
+                                     print_error_msg_mock,
+                                     run_os_command_mock):
+    args = MagicMock()
+    stdout = " stdout "
+    stderr = " stderr "
+    run_os_command_mock.return_value = 1, stdout, stderr
+
+    ambari_server.VERBOSE = True
+    self.assertRaises(FatalException, ambari_server.change_objects_owner, args)
+    print_error_msg_mock.assert_any_call("stderr")
+    print_error_msg_mock.assert_any_call("stdout")
+
+  @patch.object(ambari_server, "run_os_command")
+  @patch.object(ambari_server, "print_error_msg")
+  def test_change_objects_owner_only_stdout(self,
+                                            print_error_msg_mock,
+                                            run_os_command_mock):
+    args = MagicMock()
+    stdout = " stdout "
+    stderr = ""
+    run_os_command_mock.return_value = 1, stdout, stderr
+
+    ambari_server.VERBOSE = True
+    self.assertRaises(FatalException, ambari_server.change_objects_owner, args)
+    print_error_msg_mock.assert_called_once_with("stdout")
+
+  @patch.object(ambari_server, "run_os_command")
+  @patch.object(ambari_server, "print_error_msg")
+  def test_change_objects_owner_only_stderr(self,
+                                            print_error_msg_mock,
+                                            run_os_command_mock):
+    args = MagicMock()
+    stdout = ""
+    stderr = " stderr "
+    run_os_command_mock.return_value = 1, stdout, stderr
+
+    ambari_server.VERBOSE = True
+    self.assertRaises(FatalException, ambari_server.change_objects_owner, args)
+    print_error_msg_mock.assert_called_once_with("stderr")
 

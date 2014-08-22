@@ -45,3 +45,5 @@ if (('pig-log4j' in config['configurations']) and ('content' in config['configur
   log4j_props = config['configurations']['pig-log4j']['content']
 else:
   log4j_props = None
+
+pig_properties = config['configurations']['pig-properties']['content']

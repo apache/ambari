@@ -124,6 +124,13 @@ def setup_users():
          ignore_failures = params.ignore_groupsusers_create
     )
 
+  if params.has_sqoop_client:
+    User(params.sqoop_user,
+         gid=params.user_group,
+         groups=[params.user_group],
+         ignore_failures=params.ignore_groupsusers_create
+    )
+
 def set_uid(user, user_dirs):
   """
   user_dirs - comma separated directories

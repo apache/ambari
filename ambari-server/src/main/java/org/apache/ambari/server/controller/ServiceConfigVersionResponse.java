@@ -30,9 +30,12 @@ public class ServiceConfigVersionResponse {
   private String serviceName;
   private Long version;
   private Long createTime;
+  private Long groupId;
+  private String groupName;
   private String userName;
   private String note;
   private List<ConfigurationResponse> configurations;
+  private List<String> hosts;
 
   @JsonProperty("service_name")
   public String getServiceName() {
@@ -99,6 +102,33 @@ public class ServiceConfigVersionResponse {
 
   public void setNote(String note) {
     this.note = note;
+  }
+
+  public List<String> getHosts() {
+    return hosts;
+  }
+
+  @JsonProperty("hosts")
+  public void setHosts(List<String> hosts) {
+    this.hosts = hosts;
+  }
+
+  @JsonProperty("group_name")
+  public String getGroupName() {
+    return groupName;
+  }
+
+  public void setGroupName(String groupName) {
+    this.groupName = groupName;
+  }
+
+  @JsonProperty("group_id")
+  public Long getGroupId() {
+    return groupId;
+  }
+
+  public void setGroupId(Long groupId) {
+    this.groupId = groupId;
   }
 }
 

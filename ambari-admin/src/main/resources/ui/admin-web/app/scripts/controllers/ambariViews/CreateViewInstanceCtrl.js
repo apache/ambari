@@ -34,7 +34,8 @@ angular.module('ambariAdminConsole')
         visible: true,
         icon_path: '',
         icon64_path: '',
-        properties: viewVersion.ViewVersionInfo.parameters
+        properties: viewVersion.ViewVersionInfo.parameters,
+        description: ''
       };    
     });
   }

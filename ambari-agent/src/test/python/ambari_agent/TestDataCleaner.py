@@ -22,6 +22,7 @@ limitations under the License.
 import unittest
 from mock.mock import patch, MagicMock, call, Mock
 from ambari_agent import DataCleaner
+import AmbariConfig
 
 
 class TestDataCleaner(unittest.TestCase):
@@ -41,6 +42,20 @@ class TestDataCleaner(unittest.TestCase):
     cleaner = DataCleaner.DataCleaner(config)
     self.assertFalse(DataCleaner.logger.warn.called)
 
+  def test_config(self):
+    """
+    Verify that if the config does not have a property, default values are used.
+    """
+    DataCleaner.logger.reset_mock()
+    config = AmbariConfig.AmbariConfig()
+    config.remove_option('agent', 'data_cleanup_max_age')
+    config.remove_option('agent', 'data_cleanup_interval')
+    config.remove_option('agent', 'data_cleanup_max_size_MB')
+    cleaner = DataCleaner.DataCleaner(config)
+
+    self.assertEqual(cleaner.file_max_age, 86400)
+    self.assertEqual(cleaner.cleanup_interval, 3600)
+    self.assertEqual(cleaner.cleanup_max_size_MB, 10000)
 
   def test_init_warn(self):
     config = MagicMock()

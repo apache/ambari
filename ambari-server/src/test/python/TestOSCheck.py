@@ -30,9 +30,11 @@ from mock.mock import patch
 from ambari_commons import OSCheck, OSConst
 import os_check_type
 
-with patch("platform.linux_distribution", return_value=('Suse', '11', 'Final')):
-  # We have to use this import HACK because the filename contains a dash
-  ambari_server = __import__('ambari-server')
+utils = __import__('ambari_server.utils').utils
+# We have to use this import HACK because the filename contains a dash
+with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
+  with patch.object(utils, "get_postgre_hba_dir"):
+    ambari_server = __import__('ambari-server')
 
 
 class TestOSCheck(TestCase):

@@ -20,7 +20,7 @@
   <h2>{{view.title}}</h2>
 
   <div class="alert alert-info">{{{view.label}}}</div>
-  {{#if anyErrors}}
+  {{#if anyGeneralErrors}}
     <div class="alert alert-error">
       <ul>
         {{#if errorMessage}}
@@ -33,7 +33,7 @@
     </div>
   {{/if}}
 
-  {{#if anyWarnings}}
+  {{#if anyGeneralWarnings}}
     <div class="alert alert-warning">
       <ul>
         {{#each msg in controller.generalWarningMessages}}

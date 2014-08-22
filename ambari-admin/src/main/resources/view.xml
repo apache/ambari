@@ -20,5 +20,6 @@ limitations under the License. Kerberos, LDAP, Custom. Binary/Htt
   <version>1.0.0</version>
   <instance>
     <name>INSTANCE</name>
+    <visible>false</visible>
   </instance>
 </view>

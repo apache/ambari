@@ -23,7 +23,7 @@
 <configuration supports_final="false">
 
   <property>
-    <name>pig-content</name>
+    <name>content</name>
     <value>
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file

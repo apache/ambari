@@ -96,6 +96,20 @@ public class ClusterDAO {
     return daoUtils.selectOne(query);
   }
 
+  @RequiresSession
+  public ClusterConfigEntity findConfig(Long clusterId, String type, Long version) {
+    CriteriaBuilder cb = entityManagerProvider.get().getCriteriaBuilder();
+    CriteriaQuery<ClusterConfigEntity> cq = cb.createQuery(ClusterConfigEntity.class);
+    Root<ClusterConfigEntity> config = cq.from(ClusterConfigEntity.class);
+    cq.where(cb.and(
+        cb.equal(config.get("clusterId"), clusterId)),
+      cb.equal(config.get("type"), type),
+      cb.equal(config.get("version"), version)
+    );
+    TypedQuery<ClusterConfigEntity> query = entityManagerProvider.get().createQuery(cq);
+    return daoUtils.selectOne(query);
+  }
+
   /**
    * Create Cluster entity in Database
    * @param clusterEntity entity to create

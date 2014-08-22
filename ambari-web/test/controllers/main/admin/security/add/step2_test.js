@@ -483,41 +483,67 @@ describe('App.MainAdminSecurityAddStep2Controller', function () {
   });
 
   describe('#addUserPrincipals()', function () {
-
+    beforeEach(function () {
+      sinon.stub(controller, 'setUserPrincipalValue', function () {
+        return true;
+      });
+    });
     afterEach(function () {
       controller.setUserPrincipalValue.restore();
     });
 
-    var serviceConfigs = [
+    var generalConfigs = [
       {
         serviceName: 'GENERAL',
         configs: [
-          {name: 'hbase_principal_name'},
-          {name: 'hbase_user_keytab'}
+          {
+            name: 'hbase_principal_name',
+            isVisible: false
+          },
+          {
+            name: 'hbase_user_keytab',
+            isVisible: false
+          },
+          {
+            name: 'hdfs_principal_name',
+            isVisible: false
+          },
+          {
+            name: 'hdfs_user_keytab',
+            isVisible: false
+          }
         ]
       }
     ];
     var securityUsers = [];
 
-    it('HBASE service is not installed', function () {
-      sinon.stub(controller, 'setUserPrincipalValue', Em.K);
+    it('HBASE or HDFS services are not installed neither', function () {
+      var serviceConfigs = generalConfigs.slice(0);
       controller.addUserPrincipals(serviceConfigs, securityUsers);
-      expect(controller.setUserPrincipalValue.calledTwice).to.be.true;
+      expect(serviceConfigs[0].configs.findProperty('name', 'hbase_principal_name').isVisible).to.be.false;
+      expect(serviceConfigs[0].configs.findProperty('name', 'hbase_user_keytab').isVisible).to.be.false;
     });
-    it('HBASE service is installed, setUserPrincipalValue return false', function () {
-      sinon.stub(controller, 'setUserPrincipalValue', function () {
-        return false;
-      });
+    it('HBASE service is installed', function () {
+      var serviceConfigs = generalConfigs.slice(0);
       serviceConfigs.push({serviceName: 'HBASE'});
       controller.addUserPrincipals(serviceConfigs, securityUsers);
-      expect(controller.setUserPrincipalValue.calledThrice).to.be.true;
+      expect(serviceConfigs[0].configs.findProperty('name', 'hbase_principal_name').isVisible).to.be.true;
+      expect(serviceConfigs[0].configs.findProperty('name', 'hbase_user_keytab').isVisible).to.be.true;
     });
-    it('HBASE service is installed, setUserPrincipalValue return true', function () {
-      sinon.stub(controller, 'setUserPrincipalValue', function () {
-        return true;
-      });
+    it('HDFS service is installed', function () {
+      var serviceConfigs = generalConfigs.slice(0);
+      serviceConfigs.push({serviceName: 'HDFS'});
       controller.addUserPrincipals(serviceConfigs, securityUsers);
-      expect(controller.setUserPrincipalValue.calledThrice).to.be.true;
+      expect(serviceConfigs[0].configs.findProperty('name', 'hdfs_principal_name').isVisible).to.be.true;
+      expect(serviceConfigs[0].configs.findProperty('name', 'hdfs_user_keytab').isVisible).to.be.true;
+    });
+    it('HDFS and HBASE services are installed', function () {
+      var serviceConfigs = generalConfigs.slice(0);
+      serviceConfigs.push({serviceName: 'HDFS'});
+      serviceConfigs.push({serviceName: 'HBASE'});
+      controller.addUserPrincipals(serviceConfigs, securityUsers);
+      expect(serviceConfigs[0].configs.findProperty('name', 'hdfs_principal_name').isVisible).to.be.true;
+      expect(serviceConfigs[0].configs.findProperty('name', 'hdfs_user_keytab').isVisible).to.be.true;
       expect(serviceConfigs[0].configs.findProperty('name', 'hbase_principal_name').isVisible).to.be.true;
       expect(serviceConfigs[0].configs.findProperty('name', 'hbase_user_keytab').isVisible).to.be.true;
     });
