@@ -44,7 +44,6 @@ App.MainController = Em.Controller.extend({
    */
   initialize: function(){
     App.router.get('clusterController').loadClusterData();
-    App.router.get('mainViewsController').loadAmbariViews();
   },
 
   dataLoading: function () {

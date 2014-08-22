@@ -21,87 +21,9 @@ var App = require('app');
 App.MainViewsController = Em.Controller.extend({
   name:'mainViewsController',
 
-  isDataLoaded: false,
-
-  ambariViews: [],
-
-  dataLoading: function () {
-    var viewsController = this;
-    var dfd = $.Deferred();
-    if (this.get('isDataLoaded')) {
-      dfd.resolve(this.get('ambariViews'));
-    } else {
-      var interval = setInterval(function () {
-        if (viewsController.get('isDataLoaded')) {
-          dfd.resolve(viewsController.get('ambariViews'));
-          clearInterval(interval);
-        }
-      }, 50);
-    }
-    return dfd.promise();
-  },
-
-
-  loadAmbariViews: function () {
-    App.ajax.send({
-      name: 'views.info',
-      sender: this,
-      success: 'loadAmbariViewsSuccess',
-      error: 'loadAmbariViewsError'
-    });
-  },
-
-  loadAmbariViewsSuccess: function (data, opt, params) {
-    if (data.items.length) {
-      App.ajax.send({
-        name: 'views.instances',
-        sender: this,
-        success: 'loadViewInstancesSuccess',
-        error: 'loadViewInstancesError'
-      });
-    } else {
-      this.set('ambariViews', []);
-      this.set('isDataLoaded', true);
-    }
-  },
-
-  loadAmbariViewsError: function () {
-    this.set('ambariViews', []);
-    this.set('isDataLoaded', true);
-  },
-
-  loadViewInstancesSuccess: function (data, opt, params) {
-    this.set('ambariViews', []);
-    var instances = [];
-    data.items.forEach(function (view) {
-      view.versions.forEach(function (version) {
-        version.instances.forEach(function (instance) {
-          var current_instance = Em.Object.create({
-            iconPath: instance.ViewInstanceInfo.icon_path || "/img/ambari-view-default.png",
-            label: instance.ViewInstanceInfo.label || version.ViewVersionInfo.label || instance.ViewInstanceInfo.view_name,
-            visible: instance.ViewInstanceInfo.visible || false,
-            version: instance.ViewInstanceInfo.version,
-            description: instance.ViewInstanceInfo.description || Em.I18n.t('views.main.instance.noDescription'),
-            viewName: instance.ViewInstanceInfo.view_name,
-            instanceName: instance.ViewInstanceInfo.instance_name,
-            href: instance.ViewInstanceInfo.context_path
-          });
-          instances.push(current_instance);
-        }, this);
-      }, this);
-    }, this);
-    this.get('ambariViews').pushObjects(instances);
-    this.set('isDataLoaded', true);
-  },
-
-  loadViewInstancesError: function () {
-    this.set('ambariViews', []);
-    this.set('isDataLoaded', true);
-  },
-
   setView: function(event) {
     if(event.context){
-      App.router.transitionTo('views.viewDetails', event.context);
+      App.router.transitionTo('main.views.viewDetails', event.context);
     }
   }
 });

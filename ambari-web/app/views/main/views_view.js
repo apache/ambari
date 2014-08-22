@@ -25,8 +25,8 @@ App.MainViewsView = Em.View.extend({
   classNames: [""],
 
   views: function() {
-    return App.router.get('mainViewsController.ambariViews');
-  }.property('App.router.mainViewsController.ambariViews'),
+    return App.router.get('clusterController.ambariViews');
+  }.property('App.ClusterController.ambariViews'),
 
   selectedViewBinding: 'controller.selectedView'
 

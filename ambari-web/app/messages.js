@@ -276,6 +276,8 @@ Em.I18n.translations = {
   'popup.confirmationFeedBack.sending':'Sending...',
   'popup.confirmationFeedBack.query.fail':'Request failed',
 
+  'router.hadoopClusterNotSetUp':'Your administrator has not set up a Hadoop cluster yet.',
+
   'login.header':'Sign in',
   'login.username':'Username',
   'login.loginButton':'Sign in',

@@ -168,21 +168,22 @@ App.Router = Em.Router.extend({
       data: {
         userName: userName
       },
-      success: 'getUserPrivilegesSuccess',
-      error: 'getUserPrivilegesError'
+      success: 'getUserPrivilegesSuccess'
     });
   },
 
   getUserPrivilegesSuccess: function() {},
 
-  getUserPrivilegesError: function(req) {
-    console.log("Get user privileges error: " + req.statusCode);
-  },
-
   setUserLoggedIn: function(userName) {
+    var controller = this.get('loginController'),
+        self = this;
     this.setAuthenticated(true);
     this.setLoginName(userName);
     this.setUser(App.User.find().findProperty('id', userName));
+    this.getSection(function(route){
+      self.transitionTo(route);
+      controller.postLogin(true,true);
+    });
   },
 
   login: function () {
@@ -221,15 +222,29 @@ App.Router = Em.Router.extend({
 
   loginSuccessCallback: function(data, opt, params) {
     console.log('login success');
-    App.ajax.send({
-      name: 'router.login.clusters',
-      sender: this,
-      data: {
-        loginName: params.loginName,
-        loginData: data
-      },
-      success: 'loginGetClustersSuccessCallback',
-      error: 'loginGetClustersErrorCallback'
+    var isAdmin = false;
+    var self = this;
+    this.getUserPrivileges(data.Users.user_name).done(function(privileges) {
+      data.privileges = privileges;
+      App.usersMapper.map({"items": [data]});
+      isAdmin = App.usersMapper.isAdmin(privileges.items.mapProperty('PrivilegeInfo.permission_name'));
+      if (isAdmin) {
+        App.set('isAdmin', true);
+        self.setUserLoggedIn(params.loginName);
+        return true;
+      }
+      else {
+        return App.ajax.send({
+          name: 'router.login2',
+          sender: self,
+          data: {
+            loginName: params.loginName,
+            loginData: data
+          },
+          success: 'login2SuccessCallback',
+          error: 'login2ErrorCallback'
+        });
+      }
     });
   },
 
@@ -245,55 +260,19 @@ App.Router = Em.Router.extend({
 
   },
 
-  loginGetClustersSuccessCallback: function (clustersData, opt, params) {
-    var adminViewUrl = '/views/ADMIN_VIEW/1.0.0/INSTANCE/#/';
-    //TODO: Replace hard coded value with query. Same in templates/application.hbs
-    var loginController = this.get('loginController');
-    var loginData = params.loginData;
-    var router = this;
-
-    this.getUserPrivileges(params.loginName).done(function(privileges) {
-      loginData.privileges = privileges;
-      App.usersMapper.map({"items": [loginData]});
-      router.setUserLoggedIn(params.loginName);
-      var permissionList = privileges.items.mapProperty('PrivilegeInfo.permission_name');
-      var isAdmin = permissionList.indexOf('AMBARI.ADMIN') > -1;
-      var transitionToApp = false;
-      if (isAdmin) {
-        App.set('isAdmin', true);
-        if (clustersData.items.length) {
-          transitionToApp = true;
-        } else {
-          window.location = adminViewUrl;
-          return;
-        }
-      } else {
-        if (clustersData.items.length) {
-          //TODO: Iterate over clusters
-          var clusterName = clustersData.items[0].Clusters.cluster_name;
-          var clusterPermissions = privileges.items.filterProperty('PrivilegeInfo.cluster_name', clusterName).mapProperty('PrivilegeInfo.permission_name');
-          if (clusterPermissions.indexOf('CLUSTER.OPERATE') > -1) {
-            App.set('isAdmin', true);
-            transitionToApp = true;
-          } else if (clusterPermissions.indexOf('CLUSTER.READ') > -1) {
-            transitionToApp = true;
-          }
-        }
-      }
-      if (transitionToApp) {
-        router.getSection(function (route) {
-          router.transitionTo(route);
-          loginController.postLogin(true, true);
-        });
-      } else {
-        router.transitionTo('views.index');
-        loginController.postLogin(true,true);
-      }
-    });
+  login2SuccessCallback: function (clusterResp, opt, params) {
+    var controller = this.get('loginController');
+    if (clusterResp.items.length) {
+      App.usersMapper.map({"items": [params.loginData]});
+      this.setUserLoggedIn(params.loginName);
+    }
+    else {
+      controller.set('errorMessage', Em.I18n.t('router.hadoopClusterNotSetUp'));
+    }
   },
 
-  loginGetClustersErrorCallback: function (req) {
-    console.log("Get clusters error: " + req.statusCode);
+  login2ErrorCallback: function (req) {
+    console.log("Server not responding: " + req.statusCode);
   },
 
   getSection: function (callback) {
@@ -368,7 +347,6 @@ App.Router = Em.Router.extend({
       });
     }
     this.transitionTo('login', context);
-    window.location.reload();
   },
 
   logOffSuccessCallback: function (data) {
@@ -430,9 +408,7 @@ App.Router = Em.Router.extend({
     installer: require('routes/installer'),
 
     main: require('routes/main'),
-
-    views: require('routes/views'),
-
+    
     experimental: Em.Route.extend({
       route: '/experimental',
       enter: function (router, context) {
