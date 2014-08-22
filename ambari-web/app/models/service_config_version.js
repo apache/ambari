@@ -23,7 +23,8 @@ var dateUtil = require('utils/date');
 
 App.ServiceConfigVersion = DS.Model.extend({
   serviceName: DS.attr('string'),
-  configGroup: DS.attr('string'),
+  groupName: DS.attr('string'),
+  groupId: DS.attr('string'),
   version: DS.attr('number'),
   createTime: DS.attr('number'),
   author: DS.attr('string'),
@@ -32,10 +33,13 @@ App.ServiceConfigVersion = DS.Model.extend({
   index: DS.attr('number'),
   isCurrent: DS.attr('boolean'),
   currentTooltip: function () {
-    return Em.I18n.t('dashboard.configHistory.table.current.tooltip').format(this.get('serviceName'), this.get('configGroup') || '');
-  }.property('serviceName', 'configGroup'),
+    return Em.I18n.t('dashboard.configHistory.table.current.tooltip').format(this.get('serviceName'), this.get('configGroupName'));
+  }.property('serviceName', 'configGroupName'),
+  configGroupName: function () {
+    return this.get('groupName') || (this.get('serviceName') + ' ' + Em.I18n.t('common.default'));
+  }.property('groupName'),
   briefNotes: function () {
-    return (typeof this.get('notes') === 'string') ? this.get('notes').slice(0, 100) : " ";
+    return (typeof this.get('notes') === 'string') ? this.get('notes').slice(0, 100) : "";
   }.property('notes'),
   versionText: function () {
     return Em.I18n.t('dashboard.configHistory.table.version.versionText').format(this.get('version'));

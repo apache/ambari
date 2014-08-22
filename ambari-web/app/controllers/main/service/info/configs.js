@@ -79,8 +79,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   }.property('App.isHadoop2Stack'),
 
   showConfigHistoryFeature: function() {
-    return (App.supports.configHistory && this.get('selectedConfigGroup.isDefault'));
-  }.property('selectedConfigGroup.isDefault'),
+    return App.supports.configHistory;
+  }.property('App.supports.configHistory'),
   /**
    * Map, which contains relation between group and site
    * to upload overridden properties

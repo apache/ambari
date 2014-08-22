@@ -88,6 +88,7 @@ Em.I18n.translations = {
   'common.service': 'Service',
   'common.version':'Version',
   'common.description':'Description',
+  'common.default':'Default',
   'common.client':'Client',
   'common.zookeeper':'ZooKeeper',
   'common.hbase':'HBase',

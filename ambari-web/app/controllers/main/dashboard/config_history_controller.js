@@ -31,7 +31,7 @@ App.MainConfigHistoryController = Em.ArrayController.extend(App.TableServerMixin
   filteredCount: 0,
   mockUrl: '/data/configurations/service_versions.json',
   realUrl: function () {
-    return App.apiPrefix + '/clusters/' + App.get('clusterName') + '/configurations/serviceconfigversions?<parameters>fields=serviceconfigversion,user,appliedtime,createtime,service_name,service_config_version_note&minimal_response=true';
+    return App.apiPrefix + '/clusters/' + App.get('clusterName') + '/configurations/serviceconfigversions?<parameters>fields=serviceconfigversion,user,group_id,group_name,createtime,service_name,service_config_version_note&minimal_response=true';
   }.property('App.clusterName'),
 
   /**
@@ -41,7 +41,7 @@ App.MainConfigHistoryController = Em.ArrayController.extend(App.TableServerMixin
   colPropAssoc: function () {
     var associations = [];
     associations[1] = 'serviceVersion';
-    associations[2] = 'configGroup';
+    associations[2] = 'configGroupName';
     associations[3] = 'createTime';
     associations[4] = 'author';
     associations[5] = 'briefNotes';
@@ -56,7 +56,7 @@ App.MainConfigHistoryController = Em.ArrayController.extend(App.TableServerMixin
     },
     {
       name: 'configGroup',
-      key: 'group_name',////
+      key: 'group_name',
       type: 'EQUAL'
     },
     {

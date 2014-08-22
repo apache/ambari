@@ -2,11 +2,12 @@
   "items": [
     {
       "serviceconfigversion": "1",
-      "servicename": "HDFS",
       "createtime": "43800000000",
-      "appliedtime": "58600000000",
       "author": "admin",
-      "notes": "Notes should be here",
+      "group_id" : null,
+      "group_name" : null,
+      "service_config_version_note" : "Notes should be here",
+      "service_name" : "HDFS",
       "configurations": [
         {
           "type": "core-site",
@@ -21,11 +22,12 @@
     },
     {
       "serviceconfigversion": "1",
-      "servicename": "YARN",
       "createtime": "43300000000",
-      "appliedtime": "58600000000",
       "author": "admin",
-      "notes": "Notes should be here",
+      "group_id" : null,
+      "group_name" : null,
+      "service_config_version_note" : "Notes should be here",
+      "service_name" : "YARN",
       "configurations": [
         {
           "type": "core-site",
@@ -40,11 +42,12 @@
     },
     {
       "serviceconfigversion": "2",
-      "servicename": "HDFS",
       "createtime": "43500000000",
-      "appliedtime": "58600000000",
       "author": "admin",
-      "notes": "Notes should be here",
+      "group_id" : null,
+      "group_name" : null,
+      "service_config_version_note" : "Notes should be here",
+      "service_name" : "HDFS",
       "configurations": [
         {
           "type": "core-site",
@@ -59,11 +62,12 @@
     },
     {
       "serviceconfigversion": "2",
-      "servicename": "YARN",
       "createtime": "13800000000",
-      "appliedtime": "58600000000",
       "author": "admin",
-      "notes": "Notes should be here",
+      "group_id" : null,
+      "group_name" : null,
+      "service_config_version_note" : "Notes should be here",
+      "service_name" : "YARN",
       "configurations": [
         {
           "type": "core-site",
@@ -78,11 +82,12 @@
     },
     {
       "serviceconfigversion": "3",
-      "servicename": "HDFS",
       "createtime": "23800000000",
-      "appliedtime": "58600000000",
       "author": "admin",
-      "notes": "Notes should be here",
+      "group_id" : null,
+      "group_name" : null,
+      "service_config_version_note" : "Notes should be here",
+      "service_name" : "HDFS",
       "configurations": [
         {
           "type": "core-site",
@@ -97,11 +102,12 @@
     },
     {
       "serviceconfigversion": "3",
-      "servicename": "YARN",
       "createtime": "47800000000",
-      "appliedtime": "58600000000",
       "author": "admin",
-      "notes": "Notes should be here",
+      "group_id" : null,
+      "group_name" : null,
+      "service_config_version_note" : "Notes should be here",
+      "service_name" : "YARN",
       "configurations": [
         {
           "type": "core-site",
@@ -116,11 +122,12 @@
     },
     {
       "serviceconfigversion": "4",
-      "servicename": "HDFS",
       "createtime": "43900000000",
-      "appliedtime": "58600000000",
       "author": "admin",
-      "notes": "Notes should be here",
+      "group_id" : null,
+      "group_name" : null,
+      "service_config_version_note" : "Notes should be here",
+      "service_name" : "HDFS",
       "configurations": [
         {
           "type": "core-site",
@@ -135,11 +142,12 @@
     },
     {
       "serviceconfigversion": "4",
-      "servicename": "YARN",
       "createtime": "33800000000",
-      "appliedtime": "58600000000",
       "author": "admin",
-      "notes": "Notes should be here",
+      "group_id" : null,
+      "group_name" : null,
+      "service_config_version_note" : "Notes should be here",
+      "service_name" : "YARN",
       "configurations": [
         {
           "type": "core-site",
@@ -154,11 +162,12 @@
     },
     {
       "serviceconfigversion": "5",
-      "servicename": "HDFS",
       "createtime": "41800000000",
-      "appliedtime": "58600000000",
       "author": "admin",
-      "notes": "Notes should be here",
+      "group_id" : null,
+      "group_name" : null,
+      "service_config_version_note" : "Notes should be here",
+      "service_name" : "HDFS",
       "configurations": [
         {
           "type": "core-site",
@@ -173,11 +182,12 @@
     },
     {
       "serviceconfigversion": "5",
-      "servicename": "YARN",
       "createtime": "46800000000",
-      "appliedtime": "58600000000",
       "author": "admin",
-      "notes": "Notes should be here",
+      "group_id" : null,
+      "group_name" : null,
+      "service_config_version_note" : "Notes should be here",
+      "service_name" : "YARN",
       "configurations": [
         {
           "type": "core-site",
@@ -192,11 +202,12 @@
     },
     {
       "serviceconfigversion": "6",
-      "servicename": "YARN",
       "createtime": "44800000000",
-      "appliedtime": "58600000000",
       "author": "admin",
-      "notes": "Notes should be here",
+      "group_id" : null,
+      "group_name" : null,
+      "service_config_version_note" : "Notes should be here",
+      "service_name" : "YARN",
       "configurations": [
         {
           "type": "core-site",

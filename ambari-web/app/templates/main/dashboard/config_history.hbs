@@ -47,7 +47,7 @@
               </a>
               <i {{bindAttr class=":icon-refresh :restart-required-service item.isRestartRequired::hidden"}}></i>
             </td>
-            <td>{{item.configGroup}}
+            <td>{{item.configGroupName}}
               {{#if item.isCurrent}}
                 <span class="label label-success" rel="currentTooltip"
                 {{bindAttr data-original-title="item.currentTooltip"}}>{{t common.current}}
@@ -61,13 +61,13 @@
         {{/each}}
       {{else}}
         <tr>
-          <td class="first" colspan="6">
+          <td class="first" colspan="5">
             {{t dashboard.configHistory.table.empty}}
           </td>
         </tr>
       {{/if}}
     {{else}}
-      <tr><td colspan="6"><div class="spinner"></div></td></tr>
+      <tr><td colspan="5"><div class="spinner"></div></td></tr>
     {{/if}}
     </tbody>
 </table>

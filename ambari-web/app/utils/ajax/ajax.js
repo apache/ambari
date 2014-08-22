@@ -1894,7 +1894,7 @@ var urls = {
     }
   },
   'service.serviceConfigVersions.get': {
-    real: '/clusters/{clusterName}/configurations/serviceconfigversions?service_name={serviceName}&fields=serviceconfigversion,user,appliedtime,createtime,service_name,service_config_version_note&minimal_response=true',
+    real: '/clusters/{clusterName}/configurations/serviceconfigversions?service_name={serviceName}&fields=serviceconfigversion,user,group_id,group_name,createtime,service_name,service_config_version_note&minimal_response=true',
     mock: '/data/configurations/service_versions.json'
   },
   'service.serviceConfigVersions.get.current': {

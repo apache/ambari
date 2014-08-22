@@ -2,11 +2,12 @@
   "items": [
     {
       "serviceconfigversion": "1",
-      "servicename": "HDFS",
       "createtime": "43800000000",
-      "appliedtime": "58600000000",
       "author": "admin",
-      "notes": "Notes should be here",
+      "group_id" : null,
+      "group_name" : null,
+      "service_config_version_note" : null,
+      "service_name" : "HDFS",
       "configurations": [
         {
           "type": "hdfs-site",
