@@ -29,7 +29,7 @@
             {{#if serviceVersion.isCurrent}}
               <span class="label label-success">
                 {{t common.current}}
-                <i {{bindAttr class=":icon-refresh :restart-required-service view.displayedServiceVersion.isRestartRequired::hidden"}}></i>
+                <i {{bindAttr class=":icon-refresh :restart-required-service view.serviceVersion.isRestartRequired::hidden"}}></i>
               </span>
             {{/if}}
           </div>
