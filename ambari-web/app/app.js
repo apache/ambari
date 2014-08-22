@@ -33,6 +33,7 @@ module.exports = Em.Application.create({
     recordCache: []
   }),
   isAdmin: false,
+  isOperator: false,
   /**
    * return url prefix with number value of version of HDP stack
    */

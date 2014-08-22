@@ -274,6 +274,7 @@ App.Router = Em.Router.extend({
           var clusterPermissions = privileges.items.filterProperty('PrivilegeInfo.cluster_name', clusterName).mapProperty('PrivilegeInfo.permission_name');
           if (clusterPermissions.indexOf('CLUSTER.OPERATE') > -1) {
             App.set('isAdmin', true);
+            App.set('isOperator', true);
             transitionToApp = true;
           } else if (clusterPermissions.indexOf('CLUSTER.READ') > -1) {
             transitionToApp = true;
@@ -349,6 +350,7 @@ App.Router = Em.Router.extend({
     // since it's a computed property but we are not setting it as a dependent of App.db.
     App.db.cleanUp();
     App.set('isAdmin', false);
+    App.set('isOperator', false);
     this.set('loggedIn', false);
     this.clearAllSteps();
     console.log("Log off: " + App.router.getClusterName());
@@ -367,8 +369,11 @@ App.Router = Em.Router.extend({
         error:'logOffErrorCallback'
       });
     }
-    this.transitionTo('login', context);
-    window.location.reload();
+    if (App.router.get('clusterController.isLoaded')) {
+      window.location.reload();
+    } else {
+      this.transitionTo('login', context);
+    }
   },
 
   logOffSuccessCallback: function (data) {
