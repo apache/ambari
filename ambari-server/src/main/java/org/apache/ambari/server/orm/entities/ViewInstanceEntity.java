@@ -748,4 +748,24 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
   protected void setSecurityHelper(SecurityHelper securityHelper) {
     this.securityHelper = securityHelper;
   }
+
+
+  // ----- Object overrides --------------------------------------------------
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    ViewInstanceEntity that = (ViewInstanceEntity) o;
+
+    return name.equals(that.name) && viewName.equals(that.viewName);
+  }
+
+  @Override
+  public int hashCode() {
+    int result = viewName.hashCode();
+    result = 31 * result + name.hashCode();
+    return result;
+  }
 }

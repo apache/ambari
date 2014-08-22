@@ -158,6 +158,7 @@ public class ViewRegistryTest {
   private static final ResourceTypeDAO resourceTypeDAO = createNiceMock(ResourceTypeDAO.class);
   private static final SecurityHelper securityHelper = createNiceMock(SecurityHelper.class);
   private static final Configuration configuration = createNiceMock(Configuration.class);
+  private static final ViewInstanceHandlerList handlerList = createNiceMock(ViewInstanceHandlerList.class);
 
   @Test
   public void testReadViewArchives() throws Exception {
@@ -521,7 +522,9 @@ public class ViewRegistryTest {
     expect(viewInstanceDAO.merge(viewInstanceEntity)).andReturn(null);
     expect(viewInstanceDAO.findByName("MY_VIEW{1.0.0}", viewInstanceEntity.getInstanceName())).andReturn(viewInstanceEntity);
 
-    replay(viewDAO, viewInstanceDAO, securityHelper);
+    handlerList.addViewInstance(viewInstanceEntity);
+
+    replay(viewDAO, viewInstanceDAO, securityHelper, handlerList);
 
     registry.addDefinition(viewEntity);
     registry.installViewInstance(viewInstanceEntity);
@@ -532,7 +535,7 @@ public class ViewRegistryTest {
 
     Assert.assertEquals(viewInstanceEntity, viewInstanceDefinitions.iterator().next());
 
-    verify(viewDAO, viewInstanceDAO, securityHelper);
+    verify(viewDAO, viewInstanceDAO, securityHelper, handlerList);
   }
 
   @Test
@@ -856,6 +859,7 @@ public class ViewRegistryTest {
     instance.resourceTypeDAO = resourceTypeDAO;
     instance.securityHelper = securityHelper;
     instance.configuration = configuration;
+    instance.handlerList = handlerList;
 
     return instance;
   }
