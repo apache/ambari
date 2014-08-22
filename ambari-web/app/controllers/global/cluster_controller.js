@@ -22,7 +22,6 @@ App.ClusterController = Em.Controller.extend({
   name: 'clusterController',
   isLoaded: false,
   ambariProperties: null,
-  ambariViews: [],
   clusterDataLoadedPercent: 'width:0', // 0 to 1
 
   isGangliaUrlLoaded: false,
@@ -249,7 +248,6 @@ App.ClusterController = Em.Controller.extend({
   loadClusterData: function () {
     var self = this;
     this.loadAmbariProperties();
-    this.loadAmbariViews();
     if (!App.get('clusterName')) {
       return;
     }

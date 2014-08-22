@@ -67,28 +67,6 @@ module.exports = Em.Route.extend({
     router.get('applicationController').connectOutlet('main');
   },
 
-
-  views: Em.Route.extend({
-    route: '/views',
-    index: Em.Route.extend({
-      route: '/',
-      connectOutlets: function (router, context) {
-        router.get('mainController').connectOutlet('mainViews');
-      }
-    }),
-    viewDetails: Em.Route.extend({
-      route: '/:viewName/:version/:instanceName',
-      connectOutlets: function (router, params) {
-        router.get('mainController').dataLoading().done(function() {
-          // find and set content for `mainViewsDetails` and associated controller
-          router.get('mainController').connectOutlet('mainViewsDetails', App.router.get('clusterController.ambariViews')
-            .findProperty('href', ['/views', params.viewName, params.version, params.instanceName].join('/')));
-        });
-      }
-    })
-  }),
-
-
   test: Em.Route.extend({
     route: '/test',
     connectOutlets: function (router, context) {
