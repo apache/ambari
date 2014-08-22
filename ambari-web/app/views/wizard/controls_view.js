@@ -883,6 +883,7 @@ App.CheckDBConnectionView = Ember.View.extend({
    * @method connectToDatabase
    **/
   connectToDatabase: function() {
+    if (this.get('isBtnDisabled')) return false;
     var self = this;
     self.set('isRequestResolved', false);
     App.db.set('tmp', this.get('parentView.service.serviceName') + '_connection', {});
