@@ -76,7 +76,7 @@ class BaseAlert(object):
     data['state'] = res[0]
     data['text'] = res_base_text.format(*res[1])
     data['cluster'] = self.cluster
-    data['service'] = self._find_value('service')
+    data['service'] = self._find_value('serviceName')
     data['component'] = self._find_value('componentName')
     
     self.collector.put(self.cluster, data)
