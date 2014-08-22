@@ -247,6 +247,7 @@ public class UpgradeCatalog170Test {
     Order o = createNiceMock(Order.class);
     TypedQuery<HostRoleCommandEntity> q = createNiceMock(TypedQuery.class);
     List<HostRoleCommandEntity> r = new ArrayList<HostRoleCommandEntity>();
+    ResultSet userRolesResultSet = createNiceMock(ResultSet.class);
 
     Method m = AbstractUpgradeCatalog.class.getDeclaredMethod
         ("updateConfigurationProperties", String.class, Map.class, boolean.class, boolean.class);
@@ -292,9 +293,11 @@ public class UpgradeCatalog170Test {
         Collections.singletonMap("min_user_id", "1000"), false, false);
     expectLastCall();
 
+    expect(dbAccessor.executeSelect("SELECT role_name, user_id FROM user_roles")).andReturn(userRolesResultSet).once();
     expect(entityManager.getTransaction()).andReturn(trans).anyTimes();
     expect(entityManager.getCriteriaBuilder()).andReturn(cb).anyTimes();
     expect(entityManager.createQuery(cq)).andReturn(q).anyTimes();
+    expect(userRolesResultSet.next()).andReturn(false).once();
     expect(trans.isActive()).andReturn(true).anyTimes();
     expect(upgradeCatalog.getEntityManagerProvider()).andReturn(entityManagerProvider).anyTimes();
     expect(cb.createQuery(HostRoleCommandEntity.class)).andReturn(cq).anyTimes();
@@ -362,7 +365,8 @@ public class UpgradeCatalog170Test {
     keyValueDAO.remove(showJobsKeyValue);
     privilegeDAO.create(anyObject(PrivilegeEntity.class));
 
-    replay(entityManager, trans, upgradeCatalog, cb, cq, hrc, q);
+    replay(entityManager, trans, upgradeCatalog, cb, cq, hrc, q, userRolesResultSet);
+
     replay(dbAccessor, configuration, injector, cluster, clusters, amc, config, configHelper, pigConfig);
     replay(userDAO, clusterDAO, viewDAO, viewInstanceDAO, permissionDAO);
     replay(resourceTypeDAO, resourceDAO, keyValueDAO, privilegeDAO);
@@ -382,7 +386,7 @@ public class UpgradeCatalog170Test {
     upgradeCatalog.executeDMLUpdates();
 
     verify(upgradeCatalog, dbAccessor, configuration, injector, cluster, clusters, amc, config, configHelper,
-        jobsView, showJobsKeyValue, privilegeDAO, viewDAO, viewInstanceDAO, resourceDAO, keyValueDAO);
+        jobsView, showJobsKeyValue, privilegeDAO, viewDAO, viewInstanceDAO, resourceDAO, keyValueDAO, userRolesResultSet);
   }
 
 

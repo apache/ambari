@@ -17,49 +17,31 @@
  */
 package org.apache.ambari.server.security.authorization;
 
-import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.dao.MemberDAO;
-import org.apache.ambari.server.orm.dao.PrincipalDAO;
-import org.apache.ambari.server.orm.dao.PrincipalTypeDAO;
 import org.apache.ambari.server.orm.dao.PrivilegeDAO;
-import org.apache.ambari.server.orm.dao.RoleDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.entities.GroupEntity;
 import org.apache.ambari.server.orm.entities.MemberEntity;
 import org.apache.ambari.server.orm.entities.PrincipalEntity;
-import org.apache.ambari.server.orm.entities.PrincipalTypeEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
-import org.apache.ambari.server.orm.entities.RoleEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
-import org.easymock.Capture;
+import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.ldap.core.DirContextOperations;
 
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import static org.easymock.EasyMock.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 public class TestAmbariLdapAuthoritiesPopulator extends EasyMockSupport {
 
   AuthorizationHelper helper = new AuthorizationHelper();
-  Configuration configuration = createMock(Configuration.class);
   UserDAO userDAO = createMock(UserDAO.class);
-  RoleDAO roleDAO = createMock(RoleDAO.class);
-  PrincipalDAO principalDAO = createMock(PrincipalDAO.class);
-  PrincipalTypeDAO principalTypeDAO = createMock(PrincipalTypeDAO.class);
   MemberDAO memberDAO = createMock(MemberDAO.class);
   PrivilegeDAO privilegeDAO = createMock(PrivilegeDAO.class);
-  LdapServerProperties ldapServerProperties = createMock(LdapServerProperties.class);
   DirContextOperations userData = createMock(DirContextOperations.class);
   UserEntity userEntity = createMock(UserEntity.class);
   PrincipalEntity principalEntity = createMock(PrincipalEntity.class);
@@ -68,23 +50,9 @@ public class TestAmbariLdapAuthoritiesPopulator extends EasyMockSupport {
   GroupEntity groupEntity = createMock(GroupEntity.class);
   PrivilegeEntity privilegeEntity = createMock(PrivilegeEntity.class);
 
-  Set<RoleEntity> roleSetStub = new HashSet<RoleEntity>();
-  String username = "user";
-  String adminRole = "role";
-  String userRole = "userRole";
-  Map<String, String> configs = new HashMap<String, String>();
-
-  public TestAmbariLdapAuthoritiesPopulator() {
-    configs.put(Configuration.ADMIN_ROLE_NAME_KEY, adminRole);
-    configs.put(Configuration.USER_ROLE_NAME_KEY, userRole);
-
-  }
-
   @Before
   public void setUp() throws Exception {
     resetAll();
-
-    expect(configuration.getConfigsMap()).andReturn(configs).anyTimes();
   }
 
   @Test
@@ -92,15 +60,7 @@ public class TestAmbariLdapAuthoritiesPopulator extends EasyMockSupport {
     String username = "user";
 
     AmbariLdapAuthoritiesPopulator populator = createMockBuilder(AmbariLdapAuthoritiesPopulator.class)
-        .addMockedMethod("createLdapUser")
-        .withConstructor(
-            configuration, helper, userDAO, roleDAO, principalDAO, principalTypeDAO, memberDAO, privilegeDAO
-        ).createMock();
-
-
-    expect(ldapServerProperties.isGroupMappingEnabled()).andReturn(false).atLeastOnce();
-
-    expect(configuration.getLdapServerProperties()).andReturn(ldapServerProperties).atLeastOnce();
+        .withConstructor(helper, userDAO, memberDAO, privilegeDAO).createMock();
 
     expect(userEntity.getPrincipal()).andReturn(principalEntity);
     expect(memberDAO.findAllMembersByUser(userEntity)).andReturn(Collections.singletonList(memberEntity));
@@ -111,12 +71,8 @@ public class TestAmbariLdapAuthoritiesPopulator extends EasyMockSupport {
     principalEntityList.add(groupPrincipalEntity);
     expect(privilegeDAO.findAllByPrincipal(principalEntityList)).andReturn(Collections.singletonList(privilegeEntity));
 
-    populator.createLdapUser(username);
-    expectLastCall();
-
-    expect(userDAO.findLdapUserByName(username)).andReturn(null).andReturn(userEntity);
+    expect(userDAO.findLdapUserByName(username)).andReturn(userEntity);
     replayAll();
-
 
     populator.getGrantedAuthorities(userData, username);
 
@@ -127,20 +83,8 @@ public class TestAmbariLdapAuthoritiesPopulator extends EasyMockSupport {
   @Test
   public void testGetGrantedAuthorities_mappingEnabled() throws Exception {
 
-
     AmbariLdapAuthoritiesPopulator populator = createMockBuilder(AmbariLdapAuthoritiesPopulator.class)
-        .addMockedMethod("createLdapUser")
-        .addMockedMethod("addRole")
-        .addMockedMethod("removeRole")
-        .withConstructor(
-            configuration, helper, userDAO, roleDAO, principalDAO, principalTypeDAO, memberDAO, privilegeDAO
-        ).createMock();
-
-    expect(userData.getObjectAttribute("ambari_admin")).andReturn(Boolean.TRUE).andReturn(Boolean.FALSE);
-
-    expect(ldapServerProperties.isGroupMappingEnabled()).andReturn(true).atLeastOnce();
-
-    expect(configuration.getLdapServerProperties()).andReturn(ldapServerProperties).atLeastOnce();
+        .withConstructor(helper, userDAO, memberDAO, privilegeDAO).createMock();
 
     expect(userEntity.getPrincipal()).andReturn(principalEntity).anyTimes();
     expect(memberDAO.findAllMembersByUser(userEntity)).andReturn(Collections.singletonList(memberEntity)).anyTimes();
@@ -151,158 +95,16 @@ public class TestAmbariLdapAuthoritiesPopulator extends EasyMockSupport {
     principalEntityList.add(groupPrincipalEntity);
     expect(privilegeDAO.findAllByPrincipal(principalEntityList)).andReturn(Collections.singletonList(privilegeEntity)).anyTimes();
 
-    expect(userDAO.findLdapUserByName(username)).andReturn(null).andReturn(userEntity).times(2);
-
-    populator.createLdapUser(username);
-    expectLastCall();
-    populator.addRole(userEntity, adminRole);
-    expectLastCall();
-    populator.removeRole(userEntity, adminRole);
-    expectLastCall();
+    expect(userDAO.findLdapUserByName(EasyMock.<String> anyObject())).andReturn(null).andReturn(userEntity).once();
 
     replayAll();
 
     //test with admin user
-    populator.getGrantedAuthorities(userData, username);
+    populator.getGrantedAuthorities(userData, "admin");
     //test with non-admin
-    populator.getGrantedAuthorities(userData, username);
+    populator.getGrantedAuthorities(userData, "user");
 
     verifyAll();
   }
 
-  @Test
-  public void testCreateLdapUser() throws Exception {
-    AmbariLdapAuthoritiesPopulator populator = createMockBuilder(AmbariLdapAuthoritiesPopulator.class)
-        .addMockedMethod("addRole")
-        .addMockedMethod("removeRole")
-        .withConstructor(
-            configuration, helper, userDAO, roleDAO, principalDAO, principalTypeDAO, memberDAO, privilegeDAO
-        ).createMock();
-
-    Capture<UserEntity> createEntity = new Capture<UserEntity>();
-    Capture<UserEntity> addRoleEntity = new Capture<UserEntity>();
-    Capture<PrincipalEntity> principalEntity = new Capture<PrincipalEntity>();
-
-    userDAO.create(capture(createEntity));
-    expectLastCall();
-
-    populator.addRole(capture(addRoleEntity), eq(userRole));
-    expectLastCall();
-
-    PrincipalTypeEntity principalTypeEntity = new PrincipalTypeEntity();
-    principalTypeEntity.setId(PrincipalTypeEntity.USER_PRINCIPAL_TYPE);
-    principalTypeEntity.setName(PrincipalTypeEntity.USER_PRINCIPAL_TYPE_NAME);
-
-    expect(principalTypeDAO.findById(1)).andReturn(principalTypeEntity);
-
-    principalDAO.create(capture(principalEntity));
-
-    replayAll();
-
-    populator.createLdapUser(username);
-
-    verifyAll();
-
-    UserEntity capturedCreateEntity = createEntity.getValue();
-    UserEntity capturedAddRoleEntity = addRoleEntity.getValue();
-
-    assertTrue(capturedCreateEntity.getLdapUser());
-    assertEquals(username, capturedCreateEntity.getUserName());
-
-    assertEquals(capturedCreateEntity,capturedAddRoleEntity);
-
-  }
-
-
-  @Test
-  public void testAddRole() throws Exception {
-    AmbariLdapAuthoritiesPopulator populator =
-        new AmbariLdapAuthoritiesPopulator(configuration, helper, userDAO, roleDAO, principalDAO, principalTypeDAO,
-            memberDAO, privilegeDAO);
-
-    RoleEntity roleEntity = createMock(RoleEntity.class);
-    Set<UserEntity> userEntities = createMock(Set.class);
-    Set<RoleEntity> roleEntities = createMock(Set.class);
-
-    Capture<RoleEntity> createdRole = new Capture<RoleEntity>();
-
-    expect(roleDAO.findByName(adminRole)).andReturn(null).andReturn(roleEntity);
-    expect(roleDAO.findByName(adminRole)).andReturn(roleEntity);
-
-    roleDAO.create(capture(createdRole));
-    expectLastCall();
-
-    expect(userEntity.getUserName()).andReturn(username).anyTimes();
-    expect(userEntity.getRoleEntities()).andReturn(roleEntities).anyTimes();
-
-    expect(roleEntity.getUserEntities()).andReturn(userEntities).anyTimes();
-
-    expect(roleEntities.contains(roleEntity)).andReturn(false);
-    expect(roleEntities.contains(roleEntity)).andReturn(true);
-
-    expect(userEntities.add(userEntity)).andReturn(true);
-    expect(roleEntities.add(roleEntity)).andReturn(true);
-
-    userDAO.merge(userEntity);
-    expectLastCall().andReturn(userEntity);
-    roleDAO.merge(roleEntity);
-    expectLastCall().andReturn(roleEntity);
-
-    expect(userDAO.findLdapUserByName(username)).andReturn(null).andReturn(userEntity);
-    expect(userDAO.findLdapUserByName(username)).andReturn(userEntity);
-
-    userDAO.create(userEntity);
-    expectLastCall();
-
-    replayAll();
-
-    populator.addRole(userEntity, adminRole);
-    populator.addRole(userEntity, adminRole);
-
-    verifyAll();
-
-    assertEquals(adminRole, createdRole.getValue().getRoleName());
-
-  }
-
-
-  @Test
-  public void testRemoveRole() throws Exception {
-    int userId = 123;
-
-    AmbariLdapAuthoritiesPopulator populator =
-        new AmbariLdapAuthoritiesPopulator(configuration, helper, userDAO, roleDAO, principalDAO, principalTypeDAO,
-            memberDAO, privilegeDAO);
-
-    RoleEntity roleEntity = createMock(RoleEntity.class);
-    Set<UserEntity> userEntities = createMock(Set.class);
-    Set<RoleEntity> roleEntities = createMock(Set.class);
-
-    expect(userEntity.getUserId()).andReturn(userId);
-
-    expect(userDAO.findByPK(userId)).andReturn(userEntity);
-
-    expect(roleDAO.findByName(adminRole)).andReturn(roleEntity);
-
-    expect(userEntity.getRoleEntities()).andReturn(roleEntities);
-
-    expect(roleEntities.contains(roleEntity)).andReturn(true);
-
-    expect(userEntity.getUserName()).andReturn(username);
-
-    expect(userEntity.getRoleEntities()).andReturn(roleEntities);
-    expect(roleEntity.getUserEntities()).andReturn(userEntities);
-
-    expect(userEntities.remove(userEntity)).andReturn(true);
-    expect(roleEntities.remove(roleEntity)).andReturn(true);
-
-    expect(userDAO.merge(userEntity)).andReturn(userEntity);
-    expect(roleDAO.merge(roleEntity)).andReturn(roleEntity);
-
-    replayAll();
-
-    populator.removeRole(userEntity, adminRole);
-
-    verifyAll();
-  }
 }

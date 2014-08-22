@@ -30,7 +30,6 @@ CREATE TABLE hosts (host_name VARCHAR2(255) NOT NULL, cpu_count INTEGER NOT NULL
 CREATE TABLE hoststate (agent_version VARCHAR2(255) NULL, available_mem NUMBER(19) NOT NULL, current_state VARCHAR2(255) NOT NULL, health_status VARCHAR2(255) NULL, host_name VARCHAR2(255) NOT NULL, time_in_state NUMBER(19) NOT NULL, maintenance_state VARCHAR2(512), PRIMARY KEY (host_name));
 CREATE TABLE servicecomponentdesiredstate (component_name VARCHAR2(255) NOT NULL, cluster_id NUMBER(19) NOT NULL, desired_stack_version VARCHAR2(255) NULL, desired_state VARCHAR2(255) NOT NULL, service_name VARCHAR2(255) NOT NULL, PRIMARY KEY (component_name, cluster_id, service_name));
 CREATE TABLE servicedesiredstate (cluster_id NUMBER(19) NOT NULL, desired_host_role_mapping NUMBER(10) NOT NULL, desired_stack_version VARCHAR2(255) NULL, desired_state VARCHAR2(255) NOT NULL, service_name VARCHAR2(255) NOT NULL, maintenance_state VARCHAR2(32) NOT NULL, PRIMARY KEY (cluster_id, service_name));
-CREATE TABLE roles (role_name VARCHAR2(255) NOT NULL, PRIMARY KEY (role_name));
 CREATE TABLE users (user_id NUMBER(10) NOT NULL, principal_id NUMBER(19) NOT NULL, create_time TIMESTAMP NULL, ldap_user NUMBER(10) DEFAULT 0, user_name VARCHAR2(255) NULL, user_password VARCHAR2(255) NULL, active INTEGER DEFAULT 1 NOT NULL, PRIMARY KEY (user_id));
 CREATE TABLE groups (group_id NUMBER(10) NOT NULL, principal_id NUMBER(19) NOT NULL, group_name VARCHAR2(255) NOT NULL, ldap_group NUMBER(10) DEFAULT 0, PRIMARY KEY (group_id));
 CREATE TABLE members (member_id NUMBER(10), group_id NUMBER(10) NOT NULL, user_id NUMBER(10) NOT NULL, PRIMARY KEY (member_id));
@@ -46,7 +45,6 @@ CREATE TABLE clusterconfigmapping (type_name VARCHAR2(255) NOT NULL, create_time
 CREATE TABLE hostconfigmapping (create_timestamp NUMBER(19) NOT NULL, host_name VARCHAR2(255) NOT NULL, cluster_id NUMBER(19) NOT NULL, type_name VARCHAR2(255) NOT NULL, selected NUMBER(10) NOT NULL, service_name VARCHAR2(255) NULL, version_tag VARCHAR2(255) NOT NULL, user_name VARCHAR(255) DEFAULT '_db', PRIMARY KEY (create_timestamp, host_name, cluster_id, type_name));
 CREATE TABLE metainfo ("metainfo_key" VARCHAR2(255) NOT NULL, "metainfo_value" CLOB NULL, PRIMARY KEY ("metainfo_key"));
 CREATE TABLE ClusterHostMapping (cluster_id NUMBER(19) NOT NULL, host_name VARCHAR2(255) NOT NULL, PRIMARY KEY (cluster_id, host_name));
-CREATE TABLE user_roles (role_name VARCHAR2(255) NOT NULL, user_id NUMBER(10) NOT NULL, PRIMARY KEY (role_name, user_id));
 CREATE TABLE ambari_sequences (sequence_name VARCHAR2(50) NOT NULL, sequence_value NUMBER(38) NULL, PRIMARY KEY (sequence_name));
 CREATE TABLE configgroup (group_id NUMBER(19), cluster_id NUMBER(19) NOT NULL, group_name VARCHAR2(255) NOT NULL, tag VARCHAR2(1024) NOT NULL, description VARCHAR2(1024), create_timestamp NUMBER(19) NOT NULL, PRIMARY KEY(group_id));
 CREATE TABLE confgroupclusterconfigmapping (config_group_id NUMBER(19) NOT NULL, cluster_id NUMBER(19) NOT NULL, config_type VARCHAR2(255) NOT NULL, version_tag VARCHAR2(255) NOT NULL, user_name VARCHAR2(255) DEFAULT '_db', create_timestamp NUMBER(19) NOT NULL, PRIMARY KEY(config_group_id, cluster_id, config_type));
@@ -106,8 +104,6 @@ ALTER TABLE stage ADD CONSTRAINT FK_stage_request_id FOREIGN KEY (request_id) RE
 ALTER TABLE request ADD CONSTRAINT FK_request_schedule_id FOREIGN KEY (request_schedule_id) REFERENCES requestschedule (schedule_id);
 ALTER TABLE ClusterHostMapping ADD CONSTRAINT ClusterHostMapping_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id);
 ALTER TABLE ClusterHostMapping ADD CONSTRAINT ClusterHostMapping_host_name FOREIGN KEY (host_name) REFERENCES hosts (host_name);
-ALTER TABLE user_roles ADD CONSTRAINT FK_user_roles_user_id FOREIGN KEY (user_id) REFERENCES users (user_id);
-ALTER TABLE user_roles ADD CONSTRAINT FK_user_roles_role_name FOREIGN KEY (role_name) REFERENCES roles (role_name);
 ALTER TABLE hostconfigmapping ADD CONSTRAINT FK_hostconfmapping_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id);
 ALTER TABLE hostconfigmapping ADD CONSTRAINT FK_hostconfmapping_host_name FOREIGN KEY (host_name) REFERENCES hosts (host_name);
 ALTER TABLE serviceconfigmapping ADD CONSTRAINT FK_scvm_scv FOREIGN KEY (service_config_id) REFERENCES serviceconfig(service_config_id);
@@ -281,11 +277,6 @@ insert into adminresourcetype (resource_type_id, resource_type_name)
 insert into adminresource (resource_id, resource_type_id)
   select 1, 1 from dual;
 
-insert into Roles(role_name)
-select 'admin' from dual
-union all
-select 'user' from dual;
-
 insert into adminprincipaltype (principal_type_id, principal_type_name)
   select 1, 'USER' from dual
   union all
@@ -296,9 +287,6 @@ insert into adminprincipal (principal_id, principal_type_id)
 
 insert into users(user_id, principal_id, user_name, user_password)
 select 1,1,'admin','538916f8943ec225d97a9a86a2c6ec0818c1cd400e09e03b660fdaaec4af29ddbb6f2b1033b81b00' from dual;
-
-insert into user_roles(role_name, user_id)
-select 'admin',1 from dual;
 
 insert into adminpermission(permission_id, permission_name, resource_type_id)
   select 1, 'AMBARI.ADMIN', 1 from dual

@@ -66,7 +66,6 @@ import org.apache.ambari.server.orm.entities.PrincipalTypeEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
-import org.apache.ambari.server.orm.entities.RoleEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.orm.entities.ViewEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
@@ -503,8 +502,6 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
 
   @Override
   protected void executeDMLUpdates() throws AmbariException, SQLException {
-    String dbType = getDbType();
-
     // Update historic records with the log paths, but only enough so as to not prolong the upgrade process
     executeInTransaction(new Runnable() {
       @Override
@@ -897,7 +894,7 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
     return result;
   }
 
-  private void upgradePermissionModel() {
+  private void upgradePermissionModel() throws SQLException {
     final UserDAO userDAO = injector.getInstance(UserDAO.class);
     final PrincipalDAO principalDAO = injector.getInstance(PrincipalDAO.class);
     final PrincipalTypeDAO principalTypeDAO = injector.getInstance(PrincipalTypeDAO.class);
@@ -949,17 +946,32 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
     final PermissionEntity clusterOperatePermission = permissionDAO.findClusterOperatePermission();
     final PermissionEntity clusterReadPermission = permissionDAO.findClusterReadPermission();
     final ResourceEntity ambariResource = resourceDAO.findAmbariResource();
+
+    final Map<UserEntity, List<String>> roles = new HashMap<UserEntity, List<String>>();
+    ResultSet resultSet = null;
+    try {
+      resultSet = dbAccessor.executeSelect("SELECT role_name, user_id FROM user_roles");
+      while (resultSet.next()) {
+        final String roleName = resultSet.getString(1);
+        final int userId = resultSet.getInt(2);
+
+        final UserEntity user = userDAO.findByPK(userId);
+        List<String> userRoles = roles.get(user);
+        if (userRoles == null) {
+          userRoles = new ArrayList<String>();
+          roles.put(user, userRoles);
+        }
+        userRoles.add(roleName);
+      }
+    } finally {
+      if (resultSet != null) {
+        resultSet.close();
+      }
+    }
+
     for (UserEntity user: userDAO.findAll()) {
-      boolean hasAdminRole = false;
-      boolean hasUserRole = false;
-      for (RoleEntity role: user.getRoleEntities()) {
-        if (role.getRoleName().equals("admin")) {
-          hasAdminRole = true;
-        }
-        if (role.getRoleName().equals("user")) {
-          hasUserRole = true;
-        }
-        if (hasAdminRole) {
+      for (String role: roles.get(user)) {
+        if (role.equals("admin")) {
           final PrivilegeEntity privilege = new PrivilegeEntity();
           privilege.setPermission(adminPermission);
           privilege.setPrincipal(user.getPrincipal());
@@ -975,7 +987,7 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
             user.getPrincipal().getPrivileges().add(clusterPrivilege);
           }
           userDAO.merge(user);
-        } else if (hasUserRole) {
+        } else if (role.equals("user")) {
           for (ClusterEntity cluster: clusterDAO.findAll()) {
             final PrivilegeEntity privilege = new PrivilegeEntity();
             privilege.setPermission(clusterReadPermission);
@@ -988,6 +1000,9 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
         }
       }
     }
+
+    dbAccessor.dropTable("user_roles");
+    dbAccessor.dropTable("roles");
   }
 
   protected void addJobsViewPermissions() {

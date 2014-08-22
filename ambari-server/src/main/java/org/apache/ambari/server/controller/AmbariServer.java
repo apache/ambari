@@ -457,7 +457,7 @@ public class AmbariServer {
   }
 
   /**
-   * Creates default users and roles if in-memory database is used
+   * Creates default users if in-memory database is used
    */
   @Transactional
   protected void initDB() {
@@ -465,7 +465,6 @@ public class AmbariServer {
       LOG.info("Database init needed - creating default data");
       Users users = injector.getInstance(Users.class);
 
-      users.createDefaultRoles();
       users.createUser("admin", "admin", true, true);
       users.createUser("user", "user", true, false);
 

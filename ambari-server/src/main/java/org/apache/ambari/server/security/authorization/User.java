@@ -24,7 +24,6 @@ import java.util.Date;
 import org.apache.ambari.server.orm.entities.MemberEntity;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
-import org.apache.ambari.server.orm.entities.RoleEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 
 /**
@@ -36,7 +35,6 @@ public class User {
   final boolean ldapUser;
   final Date createTime;
   final boolean active;
-  final Collection<String> roles = new ArrayList<String>();
   final Collection<String> groups = new ArrayList<String>();
   boolean admin = false;
 
@@ -46,9 +44,6 @@ public class User {
     createTime = userEntity.getCreateTime();
     ldapUser = userEntity.getLdapUser();
     active = userEntity.getActive();
-    for (RoleEntity roleEntity : userEntity.getRoleEntities()) {
-      roles.add(roleEntity.getRoleName());
-    }
     for (MemberEntity memberEntity : userEntity.getMemberEntities()) {
       groups.add(memberEntity.getGroup().getGroupName());
     }
@@ -82,10 +77,6 @@ public class User {
 
   public boolean isAdmin() {
     return admin;
-  }
-
-  public Collection<String> getRoles() {
-    return roles;
   }
 
   public Collection<String> getGroups() {

@@ -22,7 +22,6 @@ import com.google.inject.Injector;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.dao.MemberDAO;
 import org.apache.ambari.server.orm.dao.PrivilegeDAO;
-import org.apache.ambari.server.orm.dao.RoleDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.entities.MemberEntity;
 import org.apache.ambari.server.orm.entities.PrincipalEntity;
@@ -46,19 +45,17 @@ public class AmbariLocalUserDetailsService implements UserDetailsService {
   Configuration configuration;
   private AuthorizationHelper authorizationHelper;
   UserDAO userDAO;
-  RoleDAO roleDAO;
   MemberDAO memberDAO;
   PrivilegeDAO privilegeDAO;
 
   @Inject
   public AmbariLocalUserDetailsService(Injector injector, Configuration configuration,
                                        AuthorizationHelper authorizationHelper, UserDAO userDAO,
-                                       RoleDAO roleDAO, MemberDAO memberDAO, PrivilegeDAO privilegeDAO) {
+                                       MemberDAO memberDAO, PrivilegeDAO privilegeDAO) {
     this.injector = injector;
     this.configuration = configuration;
     this.authorizationHelper = authorizationHelper;
     this.userDAO = userDAO;
-    this.roleDAO = roleDAO;
     this.memberDAO = memberDAO;
     this.privilegeDAO = privilegeDAO;
   }
@@ -79,9 +76,6 @@ public class AmbariLocalUserDetailsService implements UserDetailsService {
     if (user == null) {
       log.info("user not found ");
       throw new UsernameNotFoundException("Username " + username + " not found");
-    }else if (user.getRoleEntities().isEmpty()) {
-      log.info("No authorities for user");
-      throw new UsernameNotFoundException("Username " + username + " has no roles");
     }
 
     // get all of the privileges for the user

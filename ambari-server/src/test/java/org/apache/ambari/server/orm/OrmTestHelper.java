@@ -39,7 +39,6 @@ import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.RequestDAO;
 import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
-import org.apache.ambari.server.orm.dao.RoleDAO;
 import org.apache.ambari.server.orm.dao.StageDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
@@ -55,7 +54,6 @@ import org.apache.ambari.server.orm.entities.PrincipalTypeEntity;
 import org.apache.ambari.server.orm.entities.RequestEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
-import org.apache.ambari.server.orm.entities.RoleEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.state.HostState;
@@ -80,9 +78,6 @@ public class OrmTestHelper {
 
   @Inject
   public UserDAO userDAO;
-
-  @Inject
-  public RoleDAO roleDAO;
 
   @Inject
   public AlertDefinitionDAO alertDefinitionDAO;
@@ -175,25 +170,16 @@ public class OrmTestHelper {
 
     PasswordEncoder encoder = injector.getInstance(PasswordEncoder.class);
 
-    RoleEntity adminRole = new RoleEntity();
-    adminRole.setRoleName("admin");
-
     UserEntity admin = new UserEntity();
     admin.setUserName("administrator");
     admin.setUserPassword(encoder.encode("admin"));
     admin.setPrincipal(principalEntity);
 
-    Set<RoleEntity> roles = new HashSet<RoleEntity>();
     Set<UserEntity> users = new HashSet<UserEntity>();
 
-    roles.add(adminRole);
     users.add(admin);
 
-    admin.setRoleEntities(roles);
-    adminRole.setUserEntities(users);
-
     userDAO.create(admin);
-    roleDAO.create(adminRole);
 
     principalEntity = new PrincipalEntity();
     principalEntity.setPrincipalType(principalTypeEntity);
@@ -274,7 +260,7 @@ public class OrmTestHelper {
 
   /**
    * Creates an empty cluster with an ID.
-   * 
+   *
    * @return the cluster ID.
    */
   @Transactional
@@ -306,7 +292,7 @@ public class OrmTestHelper {
 
   /**
    * Creates an alert target.
-   * 
+   *
    * @return
    */
   @Transactional
@@ -320,10 +306,10 @@ public class OrmTestHelper {
     alertDispatchDAO.create(target);
     return alertDispatchDAO.findTargetById(target.getTargetId());
   }
-  
+
   /**
    * Creates an alert definition.
-   * 
+   *
    * @param clusterId
    * @return
    * @throws Exception
@@ -342,14 +328,14 @@ public class OrmTestHelper {
     definition.setScope(Scope.SERVICE);
     definition.setSource("Source " + System.currentTimeMillis());
     definition.setSourceType("SCRIPT");
-    
+
     alertDefinitionDAO.create(definition);
     return alertDefinitionDAO.findById(definition.getDefinitionId());
   }
 
   /**
    * Creates an alert group.
-   * 
+   *
    * @param clusterId
    * @param targets
    * @return

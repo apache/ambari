@@ -88,9 +88,7 @@ import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.ExecutionCommandDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
-import org.apache.ambari.server.orm.dao.RoleDAO;
 import org.apache.ambari.server.orm.entities.ExecutionCommandEntity;
-import org.apache.ambari.server.orm.entities.RoleEntity;
 import org.apache.ambari.server.security.authorization.Users;
 import org.apache.ambari.server.serveraction.ServerAction;
 import org.apache.ambari.server.serveraction.ServerActionManager;
@@ -4593,7 +4591,6 @@ public class AmbariManagementControllerTest {
   @Test
   public void testUpdateUsers() throws Exception {
     createUser("user1");
-    users.createDefaultRoles();
 
     UserRequest request = new UserRequest("user1");
 
@@ -4606,8 +4603,6 @@ public class AmbariManagementControllerTest {
   public void testDeleteUsers() throws Exception {
     createUser("user1");
 
-    users.createDefaultRoles();
-
     UserRequest request = new UserRequest("user1");
     controller.updateUsers(Collections.singleton(request));
 
@@ -4618,12 +4613,6 @@ public class AmbariManagementControllerTest {
         Collections.singleton(new UserRequest(null)));
 
     Assert.assertEquals(0, responses.size());
-
-    RoleDAO roleDao = injector.getInstance(RoleDAO.class);
-    RoleEntity re1 = roleDao.findByName("user");
-    RoleEntity re2 = roleDao.findByName("admin");
-    Assert.assertNotNull(re1);
-    Assert.assertNotNull(re2);
   }
 
   @Test
@@ -10329,7 +10318,7 @@ public class AmbariManagementControllerTest {
 
     // Start
     startService(clusterName, serviceName, false, false);
-    
+
     ServiceComponentHostRequest req = new ServiceComponentHostRequest(clusterName, serviceName,
         componentName1, host1, "INSTALLED");
 
@@ -10339,24 +10328,24 @@ public class AmbariManagementControllerTest {
 
     // succeed in creating a task
     assertNotNull(resp);
-    
+
     // manually change live state to stopped as no running action manager
     for (ServiceComponentHost sch :
       clusters.getCluster(clusterName).getServiceComponentHosts(host1)) {
         sch.setState(State.INSTALLED);
     }
-    
+
     // no new commands since no targeted info
     resp = controller.updateHostComponents(Collections.singleton(req), new HashMap<String, String>(), false);
     assertNull(resp);
-    
+
     // role commands added for targeted command
     resp = controller.updateHostComponents(Collections.singleton(req), requestProperties, false);
     assertNotNull(resp);
-    
+
   }
-  
-  
+
+
 }
 
 

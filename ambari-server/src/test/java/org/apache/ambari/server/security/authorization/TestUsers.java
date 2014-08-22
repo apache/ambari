@@ -35,11 +35,9 @@ import org.apache.ambari.server.orm.dao.GroupDAO;
 import org.apache.ambari.server.orm.dao.MemberDAO;
 import org.apache.ambari.server.orm.dao.PrincipalDAO;
 import org.apache.ambari.server.orm.dao.PrincipalTypeDAO;
-import org.apache.ambari.server.orm.dao.RoleDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.entities.PrincipalEntity;
 import org.apache.ambari.server.orm.entities.PrincipalTypeEntity;
-import org.apache.ambari.server.orm.entities.RoleEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.junit.After;
 import org.junit.Before;
@@ -66,8 +64,6 @@ public class TestUsers {
   @Inject
   protected MemberDAO memberDAO;
   @Inject
-  protected RoleDAO roleDAO;
-  @Inject
   protected PrincipalTypeDAO principalTypeDAO;
   @Inject
   protected PrincipalDAO principalDAO;
@@ -82,7 +78,6 @@ public class TestUsers {
     injector = Guice.createInjector(module);
     injector.getInstance(GuiceJpaInitializer.class);
     injector.injectMembers(this);
-    users.createDefaultRoles();
     Authentication auth = new UsernamePasswordAuthenticationToken("admin", null);
     SecurityContextHolder.getContext().setAuthentication(auth);
   }
@@ -214,83 +209,6 @@ public class TestUsers {
     fail("Exception was not thrown");
   }
 
-  @Test(expected = AmbariException.class)
-  public void testPromoteUser() throws Exception {
-    users.createUser("admin", "admin");
-    users.createUser("admin2", "admin2");
-    User user = users.getLocalUser("admin");
-    assertTrue(user.getRoles().contains(users.getUserRole()));
-    assertFalse(user.getRoles().contains(users.getAdminRole()));
-    users.promoteToAdmin(user);
-    user = users.getLocalUser("admin2");
-    users.promoteToAdmin(user);
-
-    user = users.getLocalUser("admin");
-    assertTrue(user.getRoles().contains(users.getAdminRole()));
-
-    users.demoteAdmin(user);
-
-    user = users.getLocalUser("admin");
-    assertFalse(user.getRoles().contains(users.getAdminRole()));
-
-    user = users.getLocalUser("admin2");
-    users.demoteAdmin(user);
-
-  }
-
-  @Test(expected = AmbariException.class)
-  public void testRemoveUser() throws Exception {
-    users.createUser("admin", "admin");
-    User user = users.getLocalUser("admin");
-    users.promoteToAdmin(user);
-
-    user = users.getLocalUser("admin");
-    assertTrue(user.getRoles().contains(users.getAdminRole()));
-
-    users.removeUser(user);
-  }
-
-
-  @Test
-  public void testPromoteLdapUser() throws Exception {
-    createLdapUser();
-
-    User ldapUser = users.getLdapUser("ldapUser");
-    users.createUser("localadmin", "admin");
-    User localUser = users.getLocalUser("localadmin");
-    users.promoteToAdmin(localUser);
-
-    users.promoteToAdmin(ldapUser);
-
-    ldapUser = users.getLdapUser("ldapUser");
-    assertTrue(ldapUser.getRoles().contains(users.getAdminRole()));
-
-    users.demoteAdmin(ldapUser);
-
-    ldapUser = users.getLdapUser("ldapUser");
-    assertFalse(ldapUser.getRoles().contains(users.getAdminRole()));
-
-    users.removeUser(ldapUser);
-
-    //toggle group mapping
-    properties.setProperty(Configuration.LDAP_GROUP_BASE_KEY, "ou=groups,dc=ambari,dc=apache,dc=org");
-    createLdapUser();
-
-    try {
-      users.promoteToAdmin(ldapUser);
-      fail("Not allowed with mapping on");
-    } catch (AmbariException e) {
-    }
-
-    try {
-      users.demoteAdmin(ldapUser);
-      fail("Not allowed with mapping on");
-    } catch (AmbariException e) {
-    }
-
-
-  }
-
   private void createLdapUser() {
 
     PrincipalTypeEntity principalTypeEntity = new PrincipalTypeEntity();
@@ -301,7 +219,6 @@ public class TestUsers {
     principalEntity.setPrincipalType(principalTypeEntity);
     principalDAO.create(principalEntity);
 
-    RoleEntity role = roleDAO.findByName(users.getUserRole());
     UserEntity ldapUser = new UserEntity();
 
     ldapUser.setUserName("ldapUser");
@@ -312,10 +229,6 @@ public class TestUsers {
 
     UserEntity userEntity = userDAO.findLdapUserByName("ldapUser");
 
-    userEntity.getRoleEntities().add(role);
-    role.getUserEntities().add(ldapUser);
-
     userDAO.merge(ldapUser);
-    roleDAO.merge(role);
   }
 }

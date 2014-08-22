@@ -21,25 +21,14 @@ package org.apache.ambari.server.orm.dao;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import org.junit.Before;
-import org.junit.Test;
 import static org.easymock.EasyMock.createStrictMock;
-import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
-import static org.easymock.EasyMock.verify;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
-
 import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
-import java.util.Collections;
-import java.util.List;
-import org.apache.ambari.server.orm.entities.RoleEntity;
-import org.apache.ambari.server.orm.entities.UserEntity;
 
 /**
- * BlueprintDAO unit tests.
+ * UserDAO unit tests.
  */
 public class UserDAOTest {
 
@@ -54,33 +43,6 @@ public class UserDAOTest {
     reset(entityManagerProvider);
     expect(entityManagerProvider.get()).andReturn(entityManager).atLeastOnce();
     replay(entityManagerProvider);
-  }
-
-
-  @Test
-  public void testfindAllLocalUsersByRole() {
-    UserEntity entity = new UserEntity();
-    RoleEntity roleEntity = new RoleEntity();
-    TypedQuery<UserEntity> query = createStrictMock(TypedQuery.class);
-
-    // set expectations
-    expect(entityManager.createQuery(eq("SELECT role.userEntities FROM RoleEntity role WHERE role = :roleEntity"), eq(UserEntity.class))).andReturn(query);
-    roleEntity.setRoleName("admin");
-    expect(query.setParameter("roleEntity", roleEntity)).andReturn(query);
-    expect(query.getResultList()).andReturn(Collections.singletonList(entity));
-    
-    replay(entityManager, query);
-
-    UserDAO dao = new UserDAO();
-    dao.entityManagerProvider = entityManagerProvider;
-    roleEntity.setRoleName("admin");
-    
-    List<UserEntity> results = dao.findAllLocalUsersByRole(roleEntity);
-
-    assertEquals(1, results.size());
-    assertSame(entity, results.get(0));
-
-    verify(entityManagerProvider, entityManager, query);
   }
 
 }
