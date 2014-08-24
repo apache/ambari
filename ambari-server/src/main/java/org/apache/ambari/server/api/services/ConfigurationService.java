@@ -51,7 +51,7 @@ public class ConfigurationService extends BaseService {
     m_clusterName = clusterName;
   }
 
-  @Path("serviceconfigversions")
+  @Path("service_config_versions")
   public ServiceConfigVersionService getServiceConfigVersionService() {
     return new ServiceConfigVersionService(m_clusterName);
   }

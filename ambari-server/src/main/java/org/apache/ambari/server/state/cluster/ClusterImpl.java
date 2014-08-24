@@ -209,7 +209,7 @@ public class ClusterImpl implements Cluster {
   }
 
 
-  public void loadServiceConfigTypes() throws AmbariException {
+  private void loadServiceConfigTypes() throws AmbariException {
     try {
       serviceConfigTypes = collectServiceConfigTypesMapping();
     } catch (AmbariException e) {
@@ -1425,10 +1425,11 @@ public class ClusterImpl implements Cluster {
     serviceConfigEntity.setNote(note);
 
     if (configGroup != null) {
+      serviceConfigEntity.setGroupId(configGroup.getId());
       Collection<Config> configs = configGroup.getConfigurations().values();
       List<ClusterConfigEntity> configEntities = new ArrayList<ClusterConfigEntity>(configs.size());
       for (Config config : configs) {
-        configEntities.add(clusterDAO.findConfig(getClusterId(), config.getType(), config.getVersion()));
+        configEntities.add(clusterDAO.findConfig(getClusterId(), config.getType(), config.getTag()));
       }
       serviceConfigEntity.setClusterConfigEntities(configEntities);
 
@@ -1458,6 +1459,8 @@ public class ClusterImpl implements Cluster {
 
   @Override
   public String getServiceForConfigTypes(Collection<String> configTypes) {
+    //debug
+    LOG.info("Looking for service for config types {}", configTypes);
     String serviceName = null;
     for (String configType : configTypes) {
       for (Entry<String, String> entry : serviceConfigTypes.entries()) {
@@ -1473,6 +1476,7 @@ public class ClusterImpl implements Cluster {
         }
       }
     }
+    LOG.info("Service {} returning", serviceName);
     return serviceName;
   }
 

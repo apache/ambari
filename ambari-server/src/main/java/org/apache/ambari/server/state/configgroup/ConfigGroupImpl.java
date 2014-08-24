@@ -531,4 +531,25 @@ public class ConfigGroupImpl implements ConfigGroup {
   }
 
 
+  @Override
+  public String getServiceName() {
+    readWriteLock.readLock().lock();
+    try {
+      return this.configGroupEntity.getServiceName();
+    } finally {
+      readWriteLock.readLock().unlock();
+    }
+
+  }
+
+  @Override
+  public void setServiceName(String serviceName) {
+    readWriteLock.writeLock().lock();
+    try {
+      this.configGroupEntity.setServiceName(serviceName);
+    } finally {
+      readWriteLock.writeLock().unlock();
+    }
+
+  }
 }

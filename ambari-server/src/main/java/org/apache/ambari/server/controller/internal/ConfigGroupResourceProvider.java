@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.controller.internal;
 
+import com.google.common.collect.MapDifference;
+import com.google.common.collect.Maps;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.ConfigGroupNotFoundException;
@@ -44,6 +46,7 @@ import org.apache.ambari.server.state.ConfigImpl;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -457,9 +460,10 @@ public class ConfigGroupResourceProvider extends
         request.getConfigs(), hosts);
 
       String serviceName = null;
-      if (configGroup.getConfigurations() != null) {
-        serviceName = cluster.getServiceForConfigTypes(configGroup.getConfigurations().keySet());
+      if (request.getConfigs() != null && !request.getConfigs().isEmpty()) {
+        serviceName = cluster.getServiceForConfigTypes(request.getConfigs().keySet());
       }
+      configGroup.setServiceName(serviceName);
 
       // Persist before add, since id is auto-generated
       configLogger.info("Persisting new Config group"
@@ -472,6 +476,9 @@ public class ConfigGroupResourceProvider extends
       cluster.addConfigGroup(configGroup);
       if (serviceName != null) {
         cluster.createServiceConfigVersion(serviceName, getManagementController().getAuthName(), null, configGroup);
+      } else {
+        LOG.warn("Could not determine service name for config group {}, service config version not created",
+            configGroup.getId());
       }
 
       ConfigGroupResponse response = new ConfigGroupResponse(configGroup
@@ -517,9 +524,15 @@ public class ConfigGroupResourceProvider extends
                                  + ", clusterName = " + request.getClusterName()
                                  + ", groupId = " + request.getId());
       }
-      String serviceName = null;
-      if (configGroup.getConfigurations() != null) {
-        serviceName = cluster.getServiceForConfigTypes(configGroup.getConfigurations().keySet());
+      String serviceName = configGroup.getServiceName();
+      String requestServiceName = cluster.getServiceForConfigTypes(request.getConfigs().keySet());
+      if (serviceName != null && requestServiceName !=null && !StringUtils.equals(serviceName, requestServiceName)) {
+        throw new IllegalArgumentException("Config group " + configGroup.getId() +
+            " is mapped to service " + serviceName + ", " +
+            "but request contain configs from service " + requestServiceName);
+      } else if (serviceName == null && requestServiceName != null) {
+        configGroup.setServiceName(requestServiceName);
+        serviceName = requestServiceName;
       }
 
       // Update hosts
@@ -555,6 +568,9 @@ public class ConfigGroupResourceProvider extends
       configGroup.persist();
       if (serviceName != null) {
         cluster.createServiceConfigVersion(serviceName, getManagementController().getAuthName(), null, configGroup);
+      } else {
+        LOG.warn("Could not determine service name for config group {}, service config version not created",
+            configGroup.getId());
       }
     }
 
