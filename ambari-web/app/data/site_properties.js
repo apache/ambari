@@ -799,43 +799,6 @@ module.exports =
       "filename": "pig-properties.xml",
       "category": "Advanced pig-properties"
     },
-    //***************************************** GLUSTERFS stack********************************************
-    {
-      "id": "site property",
-      "name": "fs.glusterfs.impl",
-      "displayName": "GlusterFS fs impl",
-      "displayType": "string",
-      "filename": "core-site.xml",
-      "serviceName": "GLUSTERFS",
-      "category": "General"
-    },
-    {
-      "id": "site property",
-      "name": "fs.AbstractFileSystem.glusterfs.impl",
-      "displayName": "Abstract File System Implementation",
-      "displayType": "string",
-      "filename": "core-site.xml",
-      "serviceName": "GLUSTERFS",
-      "category": "General"
-    },
-    {
-      "id": "site property",
-      "name": "fs.glusterfs.volumes",
-      "displayName": "Gluster volume name(s)",
-      "displayType": "string",
-      "filename": "core-site.xml",
-      "serviceName": "GLUSTERFS",
-      "category": "General"
-    },
-    {
-      "id": "site property",
-      "name": "fs.glusterfs.volume.fuse.gv0",
-      "displayName": "Gluster mount point for volume",
-      "displayType": "string",
-      "filename": "core-site.xml",
-      "serviceName": "GLUSTERFS",
-      "category": "General"
-    },
   /**********************************************HDFS***************************************/
     {
       "id": "puppet var",
@@ -1015,7 +978,43 @@ module.exports =
       "filename": "hadoop-env.xml",
       "category": "NAMENODE"
     },
-
+    /***************************************** GLUSTERFS stack********************************************/
+    {
+      "id": "site property",
+      "name": "fs.glusterfs.impl",
+      "displayName": "GlusterFS fs impl",
+      "displayType": "string",
+      "filename": "core-site.xml",
+      "serviceName": "GLUSTERFS",
+      "category": "General"
+    },
+    {
+      "id": "site property",
+      "name": "fs.AbstractFileSystem.glusterfs.impl",
+      "displayName": "GlusterFS Abstract File System Implementation",
+      "displayType": "string",
+      "filename": "core-site.xml",
+      "serviceName": "GLUSTERFS",
+      "category": "General"
+    },
+    {
+      "id": "site property",
+      "name": "fs.glusterfs.volumes",
+      "displayName": "Gluster volume name(s)",
+      "displayType": "string",
+      "filename": "core-site.xml",
+      "serviceName": "GLUSTERFS",
+      "category": "General"
+    },
+    {
+      "id": "site property",
+      "name": "fs.glusterfs.volume.fuse.gv0",
+      "displayName": "Gluster mount point for volume",
+      "displayType": "string",
+      "filename": "core-site.xml",
+      "serviceName": "GLUSTERFS",
+      "category": "General"
+    },
   /**********************************************GLUSTERFS***************************************/
     {
       "id": "puppet var",
@@ -1025,10 +1024,9 @@ module.exports =
       "defaultValue": "glusterfs:///localhost:8020",
       "displayType": "string",
       "isVisible": true,
-      "domain": "global",
       "serviceName": "GLUSTERFS",
       "filename": "hadoop-env.xml",
-      "category": "General"
+      "category": "General Hadoop"
     },
     {
       "id": "puppet var",
@@ -1038,23 +1036,9 @@ module.exports =
       "defaultValue": "glusterfs:///localhost:8020",
       "displayType": "string",
       "isVisible": true,
-      "domain": "global",
       "serviceName": "GLUSTERFS",
       "filename": "hadoop-env.xml",
-      "category": "General"
-    },
-    {
-      "id": "puppet var",
-      "name": "fs_AbstractFileSystem_glusterfs_impl",
-      "displayName": "GlusterFS Abstract Filesystem declaration",
-      "description": "GlusterFS Abstract Filesystem declaration",
-      "defaultValue": "org.apache.hadoop.fs.local.GlusterFs",
-      "displayType": "string",
-      "isVisible": true,
-      "domain": "global",
-      "serviceName": "GLUSTERFS",
-      "filename": "hadoop-env.xml",
-      "category": "General"
+      "category": "General Hadoop"
     },
     {
       "id": "puppet var",
@@ -1067,7 +1051,7 @@ module.exports =
       "isVisible": true,
       "serviceName": "GLUSTERFS",
       "filename": "hadoop-env.xml",
-      "category": "General",
+      "category": "General Hadoop",
       "index": 1
     },
     {
@@ -1079,10 +1063,10 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "directory",
       "isOverridable": false,
-      "isVisible": true,
+      "isVisible": false,
       "serviceName": "GLUSTERFS",
       "filename": "hadoop-env.xml",
-      "category": "Advanced hadoop-env"
+      "category": "General Hadoop"
     },
     {
       "id": "puppet var",
@@ -1093,10 +1077,10 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "directory",
       "isOverridable": false,
-      "isVisible": true,
+      "isVisible": false,
       "serviceName": "GLUSTERFS",
       "filename": "hadoop-env.xml",
-      "category": "Advanced hadoop-env"
+      "category": "General Hadoop"
     },
     {
       "id": "puppet var",
@@ -1110,7 +1094,7 @@ module.exports =
       "isVisible": false,
       "serviceName": "GLUSTERFS",
       "filename": "hadoop-env.xml",
-      "category": "Advanced hadoop-env"
+      "category": "General Hadoop"
     },
     {
       "id": "puppet var",
@@ -1124,7 +1108,7 @@ module.exports =
       "isVisible": false,
       "serviceName": "GLUSTERFS",
       "filename": "hadoop-env.xml",
-      "category": "Advanced hadoop-env"
+      "category": "General Hadoop"
     },
     {
       "id": "puppet var",
@@ -1138,7 +1122,7 @@ module.exports =
       "isVisible": false,
       "serviceName": "GLUSTERFS",
       "filename": "hadoop-env.xml",
-      "category": "Advanced hadoop-env"
+      "category": "General Hadoop"
     },
     {
       "id": "puppet var",
@@ -1152,7 +1136,55 @@ module.exports =
       "domain": "datanode-global",
       "serviceName": "GLUSTERFS",
       "filename": "hadoop-env.xml",
-      "category": "Advanced hadoop-env"
+      "category": "General Hadoop"
+    },
+    {
+      "id": "puppet var",
+      "name": "glusterfs_user",
+      "displayName": "glusterfs user",
+      "description": "glusterfs user",
+      "defaultValue": "root",
+      "displayType": "string",
+      "isVisible": false,
+      "serviceName": "GLUSTERFS",
+      "filename": "hadoop-env.xml",
+      "category": "General Hadoop"
+    },
+    {
+      "id": "puppet var",
+      "name": "namenode_host",
+      "displayName": "NameNode Host",
+      "description": "NameNode Host.",
+      "defaultValue": "",
+      "displayType": "string",
+      "isVisible": false,
+      "serviceName": "GLUSTERFS",
+      "filename": "hadoop-env.xml",
+      "category": "General Hadoop"
+    },
+    {
+      "id": "puppet var",
+      "name": "snamenode_host",
+      "displayName": "Secondary NameNode Host",
+      "description": "Secondary NameNode Host.",
+      "defaultValue": "",
+      "displayType": "string",
+      "isVisible": false,
+      "serviceName": "GLUSTERFS",
+      "filename": "hadoop-env.xml",
+      "category": "General Hadoop"
+    },
+    {
+      "id": "puppet var",
+      "name": "content",
+      "displayName": "Hadoop Environment Template",
+      "description": "Hadoop Environment Template.",
+      "defaultValue": "",
+      "displayType": "string",
+      "isVisible": false,
+      "serviceName": "GLUSTERFS",
+      "filename": "hadoop-env.xml",
+      "category": "General Hadoop"
     },
   /**********************************************MAPREDUCE***************************************/
     {

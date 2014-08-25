@@ -63,7 +63,7 @@ App.StackService = DS.Model.extend(App.ServiceModelMixin, {
 
   configTypesRendered: function () {
     var configTypes = this.get('configTypes');
-    if (this.get('serviceName') == 'HDFS') return configTypes;
+    if (this.get('serviceName') == 'HDFS' || this.get('serviceName') == 'GLUSTERFS') return configTypes;
     else {
       var renderedConfigTypes = $.extend(true, {}, configTypes);
       delete renderedConfigTypes['core-site'];

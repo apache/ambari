@@ -53,12 +53,9 @@
       </commandScript>
 
       <configuration-dependencies>
-      <!--
-        <config-type>yarn-site</config-type>
-        <config-type>mapred-site</config-type>
-      -->
         <config-type>core-site</config-type>
-        <config-type>global</config-type>
+        <config-type>hadoop-env</config-type>
+        <!--<config-type>hdfs-site</config-type>-->
       </configuration-dependencies>
 
     </service>

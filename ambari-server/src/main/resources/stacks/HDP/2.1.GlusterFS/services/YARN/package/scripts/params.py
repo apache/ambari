@@ -30,12 +30,12 @@ config_dir = "/etc/hadoop/conf"
 
 mapred_user = status_params.mapred_user
 yarn_user = status_params.yarn_user
-hdfs_user = config['configurations']['global']['hdfs_user']
+hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 
-smokeuser = config['configurations']['global']['smokeuser']
+smokeuser = config['configurations']['hadoop-env']['smokeuser']
 _authentication = config['configurations']['core-site']['hadoop.security.authentication']
 security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')
-smoke_user_keytab = config['configurations']['global']['smokeuser_keytab']
+smoke_user_keytab = config['configurations']['hadoop-env']['smokeuser_keytab']
 yarn_executor_container_group = config['configurations']['yarn-site']['yarn.nodemanager.linux-container-executor.group']
 kinit_path_local = functions.get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
 rm_hosts = config['clusterHostInfo']['rm_host']
@@ -49,14 +49,17 @@ hadoop_ssl_enabled = default("/configurations/core-site/hadoop.ssl.enabled", Fal
 
 hadoop_libexec_dir = '/usr/lib/hadoop/libexec'
 hadoop_yarn_home = '/usr/lib/hadoop-yarn'
-yarn_heapsize = config['configurations']['global']['yarn_heapsize']
-resourcemanager_heapsize = config['configurations']['global']['resourcemanager_heapsize']
-nodemanager_heapsize = config['configurations']['global']['nodemanager_heapsize']
-apptimelineserver_heapsize = default("/configurations/global/apptimelineserver_heapsize", 1024)
-yarn_log_dir_prefix = config['configurations']['global']['yarn_log_dir_prefix']
+yarn_heapsize = config['configurations']['yarn-env']['yarn_heapsize']
+resourcemanager_heapsize = config['configurations']['yarn-env']['resourcemanager_heapsize']
+nodemanager_heapsize = config['configurations']['yarn-env']['nodemanager_heapsize']
+apptimelineserver_heapsize = default("/configurations/yarn-env/apptimelineserver_heapsize", 1024)
+ats_leveldb_dir = config['configurations']['yarn-site']['yarn.timeline-service.leveldb-timeline-store.path']
+yarn_log_dir_prefix = config['configurations']['yarn-env']['yarn_log_dir_prefix']
 yarn_pid_dir_prefix = status_params.yarn_pid_dir_prefix
 mapred_pid_dir_prefix = status_params.mapred_pid_dir_prefix
-mapred_log_dir_prefix = config['configurations']['global']['mapred_log_dir_prefix']
+mapred_log_dir_prefix = config['configurations']['mapred-env']['mapred_log_dir_prefix']
+mapred_env_sh_template = config['configurations']['mapred-env']['content']
+yarn_env_sh_template = config['configurations']['yarn-env']['content']
 
 if len(rm_hosts) > 1:
   additional_rm_host = rm_hosts[1]
@@ -88,7 +91,7 @@ yarn_job_summary_log = format("{yarn_log_dir_prefix}/{yarn_user}/hadoop-mapreduc
 mapred_bin = "/usr/lib/hadoop-mapreduce/sbin"
 yarn_bin = "/usr/lib/hadoop-yarn/sbin"
 
-user_group = config['configurations']['global']['user_group']
+user_group = config['configurations']['hadoop-env']['user_group']
 limits_conf_dir = "/etc/security/limits.d"
 hadoop_conf_dir = "/etc/hadoop/conf"
 yarn_container_bin = "/usr/lib/hadoop-yarn/bin"
@@ -100,8 +103,8 @@ exclude_file_path = config['configurations']['yarn-site']['yarn.resourcemanager.
 hostname = config['hostname']
 
 if security_enabled:
-  nm_principal_name = config['configurations']['global']['nodemanager_principal_name']
-  nodemanager_keytab = config['configurations']['global']['nodemanager_keytab']
+  nm_principal_name = config['configurations']['yarn-site']['nodemanager_principal_name']
+  nodemanager_keytab = config['configurations']['yarn-site']['nodemanager_keytab']
   nodemanager_principal_name = nm_principal_name.replace('_HOST',hostname.lower())
   nm_kinit_cmd = format("{kinit_path_local} -kt {nodemanager_keytab} {nodemanager_principal_name};")
 else:
@@ -115,9 +118,8 @@ mapreduce_jobhistory_done_dir = config['configurations']['mapred-site']['mapredu
 #for create_hdfs_directory
 hostname = config["hostname"]
 hadoop_conf_dir = "/etc/hadoop/conf"
-hdfs_user_keytab = config['configurations']['global']['hdfs_user_keytab']
-hdfs_user = config['configurations']['global']['hdfs_user']
-hdfs_principal_name = config['configurations']['global']['hdfs_principal_name']
+hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
+hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 kinit_path_local = functions.get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
 import functools
 #create partial functions with common arguments for every HdfsDirectory call
@@ -131,3 +133,12 @@ HdfsDirectory = functools.partial(
   kinit_path_local = kinit_path_local
 )
 update_exclude_file_only = config['commandParams']['update_exclude_file_only']
+
+hadoop_bin = "/usr/lib/hadoop/sbin"
+mapred_tt_group = default("/configurations/mapred-site/mapreduce.tasktracker.group", user_group)
+
+#taskcontroller.cfg
+
+mapred_local_dir = "/tmp/hadoop-mapred/mapred/local"
+hdfs_log_dir_prefix = config['configurations']['hadoop-env']['hdfs_log_dir_prefix']
+min_user_id = config['configurations']['yarn-env']['min_user_id']
