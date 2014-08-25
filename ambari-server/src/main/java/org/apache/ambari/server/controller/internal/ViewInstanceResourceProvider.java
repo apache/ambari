@@ -19,6 +19,7 @@
 package org.apache.ambari.server.controller.internal;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.DuplicateResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -332,7 +333,13 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
       @Override
       public Void invoke() throws AmbariException {
         try {
-          ViewRegistry.getInstance().installViewInstance(toEntity(properties));
+          ViewRegistry       viewRegistry   = ViewRegistry.getInstance();
+          ViewInstanceEntity instanceEntity = toEntity(properties);
+
+          if (viewRegistry.instanceExists(instanceEntity)) {
+            throw new DuplicateResourceException("The instance " + instanceEntity.getName() + " already exists.");
+          }
+          viewRegistry.installViewInstance(instanceEntity);
         } catch (org.apache.ambari.view.SystemException e) {
           throw new AmbariException("Caught exception trying to create view instance.", e);
         }
