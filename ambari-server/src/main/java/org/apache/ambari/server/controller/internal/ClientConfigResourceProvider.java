@@ -291,7 +291,7 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
         throw new SystemException("Failed to write configurations to json file ", e);
       }
 
-      String cmd = "python " + commandScriptAbsolute + " generate_configs " + jsonFileName.getAbsolutePath() + " " +
+      String cmd = "ambari-python-wrap " + commandScriptAbsolute + " generate_configs " + jsonFileName.getAbsolutePath() + " " +
               packageFolderAbsolute + " " + TMP_PATH + File.separator + "structured-out.json" + " INFO " + TMP_PATH;
 
       try {

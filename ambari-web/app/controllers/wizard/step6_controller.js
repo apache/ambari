@@ -34,7 +34,7 @@ var validationUtils = require('utils/validator');
  *   slaveComponentHosts: App.db.slaveComponentHosts (slave-components-to-hosts mapping the user selected in Step 6)
  *
  */
-App.WizardStep6Controller = Em.Controller.extend({
+App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
 
   /**
    * List of hosts
@@ -557,7 +557,7 @@ App.WizardStep6Controller = Em.Controller.extend({
       var invisibleBlueprint = blueprintUtils.filterByComponents(this.get('content.recommendations'), invisibleComponents);
       masterBlueprint = blueprintUtils.mergeBlueprints(masterBlueprint, invisibleBlueprint);
     } else if (this.get('isAddHostWizard')) {
-      masterBlueprint = self.getMasterSlaveBlueprintForAddHostWizard();
+      masterBlueprint = self.getCurrentMasterSlaveBlueprint();
       hostNames = hostNames.concat(App.Host.find().mapProperty("hostName")).uniq();
       slaveBlueprint = blueprintUtils.addComponentsToBlueprint(slaveBlueprint, invisibleSlaves);
     }
@@ -721,37 +721,6 @@ App.WizardStep6Controller = Em.Controller.extend({
       res.blueprint_cluster_binding.host_groups.push(binding);
     });
 
-    return res;
-  },
-
-  getMasterSlaveBlueprintForAddHostWizard: function () {
-    var components = App.HostComponent.find();
-    var hosts = components.mapProperty("hostName").uniq();
-
-    var res = {
-      blueprint: { host_groups: [] },
-      blueprint_cluster_binding: { host_groups: [] }
-    };
-
-    var i = 0;
-    hosts.forEach(function (host) {
-      i += 1;
-      var group_name = 'host-group-' + i;
-
-      res.blueprint.host_groups.push({
-        name: group_name,
-        components: components.filterProperty("hostName", host).mapProperty("componentName").map(function (c) {
-          return { name: c };
-        })
-      });
-
-      res.blueprint_cluster_binding.host_groups.push({
-        name: group_name,
-        hosts: [
-          { fqdn: host }
-        ]
-      });
-    });
     return res;
   },
 

@@ -249,7 +249,7 @@ module.exports = Em.Route.extend({
       controller.saveServices(wizardStep4Controller);
       controller.saveClients(wizardStep4Controller);
 
-      controller.clearRecommendations(); // Force reload recommendation between steps 4 and 5
+      router.get('wizardStep5Controller').clearRecommendations(); // Force reload recommendation between steps 4 and 5
       controller.setDBProperty('recommendations', undefined);
       controller.setDBProperty('masterComponentHosts', undefined);
       router.transitionTo('step5');

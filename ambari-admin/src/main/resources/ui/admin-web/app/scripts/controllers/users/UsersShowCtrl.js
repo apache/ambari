@@ -108,10 +108,17 @@ angular.module('ambariAdminConsole')
   };
 
   $scope.toggleUserActive = function() {
-    User.setActive($scope.user.user_name, !$scope.user.active);
+    if(!$scope.isCurrentUser){
+      User.setActive($scope.user.user_name, !$scope.user.active);
+    }
   };    
   $scope.toggleUserAdmin = function() {
-    User.setAdmin($scope.user.user_name, !$scope.user.admin);
+    if(!$scope.isCurrentUser){
+      User.setAdmin($scope.user.user_name, !$scope.user.admin)
+      .then(function() {
+        loadPrivilegies();
+      });
+    }
   };    
 
   $scope.deleteUser = function() {
@@ -123,30 +130,36 @@ angular.module('ambariAdminConsole')
   };
 
   // Load privilegies
-  User.getPrivilegies($routeParams.id).then(function(data) {
-    var privilegies = {
-      clusters: {},
-      views: {}
-    };
-    angular.forEach(data.data.items, function(privilegie) {
-      privilegie = privilegie.PrivilegeInfo;
-      if(privilegie.type === 'CLUSTER'){
-        // This is cluster
-        privilegies.clusters[privilegie.cluster_name] = privilegies.clusters[privilegie.cluster_name] || '';
-        privilegies.clusters[privilegie.cluster_name] += privilegies.clusters[privilegie.cluster_name] ? ', ' + privilegie.permission_name : privilegie.permission_name;
-      } else if ( privilegie.type === 'VIEW'){
-        privilegies.views[privilegie.instance_name] = privilegies.views[privilegie.instance_name] || { privileges:''};
-        privilegies.views[privilegie.instance_name].version = privilegie.version;
-        privilegies.views[privilegie.instance_name].view_name = privilegie.view_name;
-        privilegies.views[privilegie.instance_name].privileges += privilegies.views[privilegie.instance_name].privileges ? ', ' + privilegie.permission_name : privilegie.permission_name;
+  function loadPrivilegies(){
+    User.getPrivilegies($routeParams.id).then(function(data) {
+      var privilegies = {
+        clusters: {},
+        views: {}
+      };
+      angular.forEach(data.data.items, function(privilegie) {
+        privilegie = privilegie.PrivilegeInfo;
+        if(privilegie.type === 'CLUSTER'){
+          // This is cluster
+          privilegies.clusters[privilegie.cluster_name] = privilegies.clusters[privilegie.cluster_name] || '';
+          privilegies.clusters[privilegie.cluster_name] += privilegies.clusters[privilegie.cluster_name] ? ', ' + privilegie.permission_name : privilegie.permission_name;
+        } else if ( privilegie.type === 'VIEW'){
+          privilegies.views[privilegie.instance_name] = privilegies.views[privilegie.instance_name] || { privileges:''};
+          privilegies.views[privilegie.instance_name].version = privilegie.version;
+          privilegies.views[privilegie.instance_name].view_name = privilegie.view_name;
+          privilegies.views[privilegie.instance_name].privileges += privilegies.views[privilegie.instance_name].privileges ? ', ' + privilegie.permission_name : privilegie.permission_name;
 
-      }
+        }
+      });
+
+      $scope.privileges = data.data.items.length ? privilegies : null;
+      $scope.dataLoaded = true;
+
+    }).catch(function(data) {
+      uiAlert.danger(data.data.status, data.data.message);
     });
+  }
 
-    $scope.privileges = data.data.items.length ? privilegies : null;
-    $scope.dataLoaded = true;
-
-  }).catch(function(data) {
-    uiAlert.danger(data.data.status, data.data.message);
-  });
+  loadPrivilegies();
+  
+    
 }]);

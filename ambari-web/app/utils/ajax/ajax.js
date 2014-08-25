@@ -879,7 +879,7 @@ var urls = {
     'mock': '/data/clusters/info.json'
   },
   'cluster.update_upgrade_version': {
-    'real': '/stacks/HDP/versions?fields=stackServices/StackServices,Versions',
+    'real': '/stacks/{stackName}/versions?fields=stackServices/StackServices,Versions',
     'mock': '/data/wizard/stack/stacks.json'
   },
   'cluster.load_repositories': {
@@ -1370,7 +1370,7 @@ var urls = {
     real: '/privileges?PrivilegeInfo/principal_name={userName}&fields=*',
     mock: '/data/users/privileges_{userName}.json'
   },
-  'router.login2': {
+  'router.login.clusters': {
     'real': '/clusters',
     'mock': '/data/clusters/info.json'
   },

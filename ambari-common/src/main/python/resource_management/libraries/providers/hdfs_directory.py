@@ -90,7 +90,7 @@ class HdfsDirectoryProvider(Provider):
         chown_commands.append(format("hadoop fs -chown {recursive} {chown} {chown_dirs_str}"))
 
     if secured:
-        Execute(format("{kinit_path} -kt {keytab_file} {hdp_hdfs_user}"),
+        Execute(format("{kinit_path} -kt {keytab_file} {hdfs_principal_name}"),
                 user=hdp_hdfs_user)
     #create all directories in one 'mkdir' call
     dir_list_str = ' '.join(directories_list)

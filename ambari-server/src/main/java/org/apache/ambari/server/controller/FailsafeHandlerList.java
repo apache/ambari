@@ -50,15 +50,39 @@ public class FailsafeHandlerList extends HandlerCollection {
    */
   private final List<Handler> failsafeHandlers = new ArrayList<Handler>();
 
+
+  // ----- Constructors ------------------------------------------------------
+
+  /**
+   * Construct a FailsafeHandlerList.
+   */
+  public FailsafeHandlerList() {
+  }
+
+  /**
+   * Construct a FailsafeHandlerList.
+   *
+   * @param mutableWhenRunning allow for changes while running
+   */
+  public FailsafeHandlerList(boolean mutableWhenRunning) {
+    super(mutableWhenRunning);
+  }
+
+
+  // ----- FailsafeHandlerList -----------------------------------------------
+
   /**
    * Adds handler to collection and marks it as fail-safe.
    *
-   * @param handler failsafe handler
+   * @param handler fail-safe handler
    */
   public void addFailsafeHandler(Handler handler) {
     addHandler(handler);
     failsafeHandlers.add(handler);
   }
+
+
+  // ----- HandlerCollection -------------------------------------------------
 
   @Override
   public void removeHandler(Handler handler) {
@@ -74,11 +98,16 @@ public class FailsafeHandlerList extends HandlerCollection {
   public void handle(String target, Request baseRequest,
       HttpServletRequest request, HttpServletResponse response)
       throws IOException, ServletException {
+
     final Handler[] handlers = getHandlers();
 
     if (handlers != null && isStarted()) {
+
+      List<Handler> nonFailsafeHandlers = new ArrayList<Handler>();
+
       for (int i = 0; i < handlers.length; i++) {
         final Handler handler = handlers[i];
+        // Do all of the fail-safe handlers first...
         if (failsafeHandlers.contains(handler)) {
           try {
             final FailsafeServletResponse responseWrapper = new FailsafeServletResponse(response);
@@ -92,8 +121,15 @@ public class FailsafeHandlerList extends HandlerCollection {
             continue;
           }
         } else {
-          handler.handle(target, baseRequest, request, response);
+          nonFailsafeHandlers.add(handler);
         }
+        if (baseRequest.isHandled()) {
+          return;
+        }
+      }
+
+      for (Handler handler : nonFailsafeHandlers) {
+        handler.handle(target, baseRequest, request, response);
         if (baseRequest.isHandled()) {
           return;
         }

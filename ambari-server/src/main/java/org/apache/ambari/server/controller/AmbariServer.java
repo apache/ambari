@@ -149,6 +149,12 @@ public class AmbariServer {
   @Inject
   ViewRegistry viewRegistry;
 
+  /**
+   * The handler list for deployed web apps.
+   */
+  @Inject
+  AmbariHandlerList handlerList;
+
   public String getServerOsType() {
     return configs.getServerOsType();
   }
@@ -300,11 +306,9 @@ public class AmbariServer {
       root.addServlet(sh, "/api/v1/*");
       sh.setInitOrder(2);
 
-      FailsafeHandlerList handlerList = new FailsafeHandlerList();
-
       try {
         for (ViewInstanceEntity entity : viewRegistry.readViewArchives(configs)){
-          handlerList.addFailsafeHandler(viewRegistry.getWebAppContext(entity));
+          handlerList.addViewInstance(entity);
         }
       } catch (SystemException e) {
         LOG.error("Caught exception deploying views.", e);
@@ -459,7 +463,7 @@ public class AmbariServer {
   }
 
   /**
-   * Creates default users and roles if in-memory database is used
+   * Creates default users if in-memory database is used
    */
   @Transactional
   protected void initDB() {
@@ -467,7 +471,6 @@ public class AmbariServer {
       LOG.info("Database init needed - creating default data");
       Users users = injector.getInstance(Users.class);
 
-      users.createDefaultRoles();
       users.createUser("admin", "admin", true, true);
       users.createUser("user", "user", true, false);
 

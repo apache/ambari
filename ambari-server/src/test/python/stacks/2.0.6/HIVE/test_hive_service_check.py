@@ -86,7 +86,8 @@ class TestServiceCheck(RMFTestCase):
                         conf_dir = '/etc/hadoop/conf',
                         keytab='/etc/security/keytabs/hdfs.headless.keytab',
                         kinit_path_local='/usr/bin/kinit',
-                        security_enabled=True
+                        security_enabled=True,
+                        principal='hdfs'
     )
     self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa;  /tmp/hcatSmoke.sh hcatsmoke cleanup',
                         logoutput = True,

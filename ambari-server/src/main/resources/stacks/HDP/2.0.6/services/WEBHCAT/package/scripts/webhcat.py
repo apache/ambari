@@ -74,7 +74,7 @@ def webhcat():
   )
 
   if params.security_enabled:
-    kinit_if_needed = format("{kinit_path_local} -kt {hdfs_user_keytab} {hdfs_user};")
+    kinit_if_needed = format("{kinit_path_local} -kt {hdfs_user_keytab} {hdfs_principal_name};")
   else:
     kinit_if_needed = ""
 

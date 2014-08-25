@@ -331,7 +331,11 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
     return new Command<Void>() {
       @Override
       public Void invoke() throws AmbariException {
-        ViewRegistry.getInstance().installViewInstance(toEntity(properties));
+        try {
+          ViewRegistry.getInstance().installViewInstance(toEntity(properties));
+        } catch (org.apache.ambari.view.SystemException e) {
+          throw new AmbariException("Caught exception trying to create view instance.", e);
+        }
         return null;
       }
     };

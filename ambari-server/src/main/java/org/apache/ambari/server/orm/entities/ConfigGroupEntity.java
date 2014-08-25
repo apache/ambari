@@ -73,6 +73,9 @@ public class ConfigGroupEntity {
   @Column(name = "create_timestamp", nullable=false, insertable=true, updatable=false)
   private long timestamp;
 
+  @Column(name = "service_name")
+  private String serviceName;
+
   @ManyToOne
   @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false)
   private ClusterEntity clusterEntity;
@@ -177,5 +180,13 @@ public class ConfigGroupEntity {
     result = 31 * result + groupName.hashCode();
     result = 31 * result + tag.hashCode();
     return result;
+  }
+
+  public String getServiceName() {
+    return serviceName;
+  }
+
+  public void setServiceName(String serviceName) {
+    this.serviceName = serviceName;
   }
 }

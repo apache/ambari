@@ -34,7 +34,6 @@ import org.apache.ambari.server.orm.entities.GroupEntity;
 import org.apache.ambari.server.orm.entities.MemberEntity;
 import org.apache.ambari.server.orm.entities.PrincipalEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
-import org.apache.ambari.server.orm.entities.RoleEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
@@ -229,7 +228,6 @@ public class AmbariLdapDataPopulatorTest {
     userEntity.setLdapUser(ldapUser);
     userEntity.setActive(true);
     userEntity.setMemberEntities(new HashSet<MemberEntity>());
-    userEntity.setRoleEntities(new HashSet<RoleEntity>());
     final PrincipalEntity principalEntity = new PrincipalEntity();
     principalEntity.setPrivileges(new HashSet<PrivilegeEntity>());
     userEntity.setPrincipal(principalEntity);

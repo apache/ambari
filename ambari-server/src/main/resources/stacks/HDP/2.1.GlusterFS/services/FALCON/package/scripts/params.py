@@ -56,6 +56,7 @@ hostname = config["hostname"]
 hadoop_conf_dir = "/etc/hadoop/conf"
 hdfs_user_keytab = config['configurations']['global']['hdfs_user_keytab']
 hdfs_user = config['configurations']['global']['hdfs_user']
+hdfs_principal_name = config['configurations']['global']['hdfs_principal_name']
 kinit_path_local = functions.get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
 import functools
 #create partial functions with common arguments for every HdfsDirectory call

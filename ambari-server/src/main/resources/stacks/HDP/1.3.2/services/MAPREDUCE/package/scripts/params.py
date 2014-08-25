@@ -63,6 +63,7 @@ hadoop_conf_dir = "/etc/hadoop/conf"
 hadoop_pid_dir_prefix = config['configurations']['hadoop-env']['hadoop_pid_dir_prefix']
 hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
+hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']
 import functools
 #create partial functions with common arguments for every HdfsDirectory call
 #to create hdfs directory we need to call params.HdfsDirectory in code

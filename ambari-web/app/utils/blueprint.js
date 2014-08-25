@@ -151,6 +151,10 @@ module.exports = {
    * @param [string] components
    */
   filterByComponents: function(blueprint, components) {
+    if (!blueprint) {
+      return null;
+    }
+
     var res = JSON.parse(JSON.stringify(blueprint))
     var emptyGroups = [];
 

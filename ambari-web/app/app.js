@@ -33,27 +33,13 @@ module.exports = Em.Application.create({
     recordCache: []
   }),
   isAdmin: false,
+  isOperator: false,
   /**
    * return url prefix with number value of version of HDP stack
    */
   stackVersionURL: function () {
-    var stackVersion = this.get('currentStackVersion') || this.get('defaultStackVersion');
-    if (stackVersion.indexOf('HDPLocal') !== -1) {
-      return '/stacks/HDPLocal/versions/' + stackVersion.replace(/HDPLocal-/g, '');
-    }
-    return '/stacks/HDP/versions/' + stackVersion.replace(/HDP-/g, '');
-  }.property('currentStackVersion'),
-
-  /**
-   * return url prefix with number value of version of HDP stack
-   */
-  stack2VersionURL: function () {
-    var stackVersion = this.get('currentStackVersion') || this.get('defaultStackVersion');
-    if (stackVersion.indexOf('HDPLocal') !== -1) {
-      return '/stacks2/HDPLocal/versions/' + stackVersion.replace(/HDPLocal-/g, '');
-    }
-    return '/stacks2/HDP/versions/' + stackVersion.replace(/HDP-/g, '');
-  }.property('currentStackVersion'),
+    return '/stacks/{0}/versions/{1}'.format(this.get('currentStackName') || 'HDP', this.get('currentStackVersionNumber'));
+  }.property('currentStackName','currentStackVersionNumber'),
 
   falconServerURL: function () {
     var falconService = this.Service.find().findProperty('serviceName', 'FALCON');
@@ -66,13 +52,20 @@ module.exports = Em.Application.create({
   clusterName: null,
   clockDistance: null, // server clock - client clock
   currentStackVersion: '',
-  currentStackVersionNumber: function () {
-    return this.get('currentStackVersion').replace(/HDP(Local)?-/, '');
+  currentStackName: function() {
+    return Em.get((this.get('currentStackVersion') || this.get('defaultStackVersion')).match(/(.+)-\d.+/), '1');
   }.property('currentStackVersion'),
+
+  currentStackVersionNumber: function () {
+    var regExp = new RegExp(this.get('currentStackName') + '-');
+    return (this.get('currentStackVersion') || this.get('defaultStackVersion')).replace(regExp, '');
+  }.property('currentStackVersion', 'currentStackName'),
+
   isHadoop2Stack: function () {
     return (stringUtils.compareVersions(this.get('currentStackVersionNumber'), "2.0") === 1 ||
       stringUtils.compareVersions(this.get('currentStackVersionNumber'), "2.0") === 0)
   }.property('currentStackVersionNumber'),
+
   isHadoop21Stack: function () {
     return (stringUtils.compareVersions(this.get('currentStackVersionNumber'), "2.1") === 1 ||
       stringUtils.compareVersions(this.get('currentStackVersionNumber'), "2.1") === 0)

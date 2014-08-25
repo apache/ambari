@@ -93,7 +93,6 @@ import org.apache.ambari.view.ViewResourceHandler;
 import org.apache.ambari.view.events.Event;
 import org.apache.ambari.view.events.Listener;
 import org.apache.commons.lang.StringUtils;
-import org.eclipse.jetty.webapp.WebAppContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.GrantedAuthority;
@@ -207,6 +206,12 @@ public class ViewRegistry {
    */
   @Inject
   Configuration configuration;
+
+  /**
+   * The handler list.
+   */
+  @Inject
+  ViewInstanceHandlerList handlerList;
 
 
   // ----- ViewRegistry ------------------------------------------------------
@@ -468,9 +473,10 @@ public class ViewRegistry {
    * @throws IllegalStateException     if the given instance is not in a valid state
    * @throws IllegalArgumentException  if the view associated with the given instance
    *                                   does not exist
+   * @throws SystemException           if the instance can not be installed
    */
   public void installViewInstance(ViewInstanceEntity instanceEntity)
-      throws IllegalStateException, IllegalArgumentException {
+      throws IllegalStateException, IllegalArgumentException, SystemException {
     ViewEntity viewEntity = getDefinition(instanceEntity.getViewName());
 
     if (viewEntity != null) {
@@ -511,6 +517,9 @@ public class ViewRegistry {
         }
         // update the registry
         addInstanceDefinition(viewEntity, instanceEntity);
+
+        // add the web app context
+        handlerList.addViewInstance(instanceEntity);
       }
     } else {
       String message = "Attempt to install an instance for an unknown view " +
@@ -539,21 +548,6 @@ public class ViewRegistry {
   }
 
   /**
-   * Remove the data entry keyed by the given key from the given instance entity.
-   *
-   * @param instanceEntity  the instance entity
-   * @param key             the data key
-   */
-  public void removeInstanceData(ViewInstanceEntity instanceEntity, String key) {
-    ViewInstanceDataEntity dataEntity = instanceEntity.getInstanceData(key);
-    if (dataEntity != null) {
-      instanceDAO.removeData(dataEntity);
-    }
-    instanceEntity.removeInstanceData(key);
-    instanceDAO.merge(instanceEntity);
-  }
-
-  /**
    * Uninstall a view instance for the view with the given view name.
    *
    * @param instanceEntity  the view instance entity
@@ -578,32 +572,26 @@ public class ViewRegistry {
         instanceDAO.remove(instanceEntity);
         viewEntity.removeInstanceDefinition(instanceName);
         removeInstanceDefinition(viewEntity, instanceName);
+
+        // remove the web app context
+        handlerList.removeViewInstance(instanceEntity);
       }
     }
   }
 
   /**
-   * Get a WebAppContext for the given view instance.
+   * Remove the data entry keyed by the given key from the given instance entity.
    *
-   * @param viewInstanceDefinition  the view instance definition
-   *
-   * @return a web app context
-   *
-   * @throws SystemException if an application context can not be obtained for the given view instance
+   * @param instanceEntity  the instance entity
+   * @param key             the data key
    */
-  public WebAppContext getWebAppContext(ViewInstanceEntity viewInstanceDefinition)
-      throws SystemException{
-    try {
-      ViewEntity viewDefinition = viewInstanceDefinition.getViewEntity();
-
-      WebAppContext context = new WebAppContext(viewDefinition.getArchive(), viewInstanceDefinition.getContextPath());
-      context.setClassLoader(viewDefinition.getClassLoader());
-      context.setAttribute(ViewContext.CONTEXT_ATTRIBUTE, new ViewContextImpl(viewInstanceDefinition, this));
-      return context;
-    } catch (Exception e) {
-      throw new SystemException("Can't get application context for view " +
-          viewInstanceDefinition.getViewEntity().getCommonName() + ".", e);
+  public void removeInstanceData(ViewInstanceEntity instanceEntity, String key) {
+    ViewInstanceDataEntity dataEntity = instanceEntity.getInstanceData(key);
+    if (dataEntity != null) {
+      instanceDAO.removeData(dataEntity);
     }
+    instanceEntity.removeInstanceData(key);
+    instanceDAO.merge(instanceEntity);
   }
 
   /**

@@ -63,18 +63,18 @@
       ng-class="{'has-error' : ( (form.isntanceCreateForm.displayLabel.$error.required || form.isntanceCreateForm.displayLabel.$error.pattern) && form.isntanceCreateForm.submitted)}">
         <label for="" class="control-label col-sm-2">Display Label</label>
         <div class="col-sm-10">
-          <input type="text" class="form-control instancelabel-input" name="displayLabel" ng-model="instance.label" required ng-pattern="nameValidationPattern" autocomplete="off">
+          <input type="text" class="form-control instancelabel-input" name="displayLabel" ng-model="instance.label" required ng-pattern="/^([a-zA-Z0-9._\s]+)$/" autocomplete="off">
 
           <div class="alert alert-danger no-margin-bottom top-margin" ng-show='form.isntanceCreateForm.displayLabel.$error.required && form.isntanceCreateForm.submitted'>
             This field is required.
           </div>
           <div class="alert alert-danger no-margin-bottom top-margin" ng-show='form.isntanceCreateForm.displayLabel.$error.pattern && form.isntanceCreateForm.submitted'>
-            Must not contain any special characters or spaces.
+            Must not contain any special characters.
           </div>
         </div>
       </div>
       <div class="form-group" ng-class="{'has-error' : form.isntanceCreateForm.description.$error.required && form.isntanceCreateForm.submitted }">
-        <label for="" class="control-label col-sm-2">Instance Description</label>
+        <label for="" class="control-label col-sm-2">Description</label>
         <div class="col-sm-10">
           <input type="text" class="form-control" name="description" ng-model="instance.description" maxlength="140" required>
           <div class="alert alert-danger no-margin-bottom top-margin" ng-show='form.isntanceCreateForm.description.$error.required && form.isntanceCreateForm.submitted'>

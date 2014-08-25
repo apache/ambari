@@ -149,4 +149,8 @@ public interface ConfigGroup {
    * Remove host mapping
    */
   public void removeHost(String hostname) throws AmbariException;
+
+  String getServiceName();
+
+  void setServiceName(String serviceName);
 }

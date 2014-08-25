@@ -22,7 +22,6 @@ App.ClusterController = Em.Controller.extend({
   name: 'clusterController',
   isLoaded: false,
   ambariProperties: null,
-  ambariViews: [],
   clusterDataLoadedPercent: 'width:0', // 0 to 1
 
   isGangliaUrlLoaded: false,
@@ -249,7 +248,6 @@ App.ClusterController = Em.Controller.extend({
   loadClusterData: function () {
     var self = this;
     this.loadAmbariProperties();
-    this.loadAmbariViews();
     if (!App.get('clusterName')) {
       return;
     }
@@ -311,7 +309,7 @@ App.ClusterController = Em.Controller.extend({
         service.StackServices.is_selected = true;
         service.StackServices.is_installed = false;
       },this);
-      App.stackServiceMapper.map(data);
+      App.stackServiceMapper.mapStackServices(data);
       App.config.setPreDefinedServiceConfigs();
       var updater = App.router.get('updateController');
       self.updateLoadStatus('stackComponents');
@@ -385,7 +383,9 @@ App.ClusterController = Em.Controller.extend({
             instanceName: instance.ViewInstanceInfo.instance_name,
             href: instance.ViewInstanceInfo.context_path
           });
-          self.get('ambariViews').pushObject(current_instance);
+          if( current_instance.visible){
+            self.get('ambariViews').pushObject(current_instance);
+          }
         }, this);
       }, this);
     }, this);

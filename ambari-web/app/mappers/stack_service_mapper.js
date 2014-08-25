@@ -99,6 +99,8 @@ App.stackServiceMapper = App.QuickDataMapper.create({
       records.forEach(function (rec) {
         Ember.run(this, function () {
           rec.deleteRecord();
+          App.store.commit();
+          rec.get('stateManager').transitionTo('loading');
         });
       }, this);
     }, this);

@@ -117,7 +117,7 @@
             </tr>
           </tbody>
         </table>
-        <div class="alert alert-info" ng-show="!privileges">This user does not have any privileges.</div>
+        <div class="alert alert-info" ng-show="!privileges && !user.admin">This user does not have any privileges.</div>
         <div class="alert alert-info" ng-show="user.admin">This user is an Ambari Admin and has all privileges.</div>
       </div>
     </div>

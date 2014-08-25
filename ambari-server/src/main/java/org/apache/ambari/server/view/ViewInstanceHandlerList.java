@@ -15,17 +15,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.apache.ambari.server.view;
 
+import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
+import org.apache.ambari.view.SystemException;
 
-// load all mixins here
+/**
+ * List of handlers for deployed view instances.
+ */
+public interface ViewInstanceHandlerList {
 
-require('mixins/common/blueprint');
-require('mixins/common/localStorage');
-require('mixins/common/userPref');
-require('mixins/common/serverValidator');
-require('mixins/models/service_mixin');
-require('mixins/common/tableServerProvider');
-require('mixins/common/table_server_mixin');
-require('mixins/main/host/details/host_components/decommissionable');
-require('mixins/wizard/selectHost');
-require('mixins/wizard/addSecurityConfigs');
+  /**
+   * Add a handler for the given view instance.
+   *
+   * @param viewInstanceDefinition  the view instance
+   *
+   * @throws SystemException if a handler the view instance can not be added
+   */
+  public void addViewInstance(ViewInstanceEntity viewInstanceDefinition) throws SystemException;
+
+  /**
+   * Remove the handler for the given view instance.
+   *
+   * @param viewInstanceDefinition  the view instance
+   */
+  public void removeViewInstance(ViewInstanceEntity viewInstanceDefinition);
+}

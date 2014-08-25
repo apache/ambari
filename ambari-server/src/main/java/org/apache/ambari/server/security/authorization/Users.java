@@ -32,7 +32,6 @@ import org.apache.ambari.server.orm.dao.PrincipalDAO;
 import org.apache.ambari.server.orm.dao.PrincipalTypeDAO;
 import org.apache.ambari.server.orm.dao.PrivilegeDAO;
 import org.apache.ambari.server.orm.dao.ResourceDAO;
-import org.apache.ambari.server.orm.dao.RoleDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.entities.GroupEntity;
 import org.apache.ambari.server.orm.entities.MemberEntity;
@@ -40,7 +39,6 @@ import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.PrincipalEntity;
 import org.apache.ambari.server.orm.entities.PrincipalTypeEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
-import org.apache.ambari.server.orm.entities.RoleEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,8 +62,6 @@ public class Users {
 
   @Inject
   protected UserDAO userDAO;
-  @Inject
-  protected RoleDAO roleDAO;
   @Inject
   protected GroupDAO groupDAO;
   @Inject
@@ -260,27 +256,16 @@ public class Users {
     UserEntity userEntity = new UserEntity();
     userEntity.setUserName(userName);
     userEntity.setUserPassword(passwordEncoder.encode(password));
-    userEntity.setRoleEntities(new HashSet<RoleEntity>());
     userEntity.setPrincipal(principalEntity);
     if (active != null) {
       userEntity.setActive(active);
     }
 
-    RoleEntity roleEntity = roleDAO.findByName(getUserRole());
-    if (roleEntity == null) {
-      createRole(getUserRole());
-    }
-    roleEntity = roleDAO.findByName(getUserRole());
-
-    userEntity.getRoleEntities().add(roleEntity);
     userDAO.create(userEntity);
 
     if (admin != null && admin) {
       grantAdminPrivilege(userEntity.getUserId());
     }
-
-    roleEntity.getUserEntities().add(userEntity);
-    roleDAO.merge(roleEntity);
   }
 
   @Transactional
@@ -289,7 +274,7 @@ public class Users {
     if (userEntity != null) {
       if (!isUserCanBeRemoved(userEntity)){
         throw new AmbariException("Could not remove user " + userEntity.getUserName() +
-              ". System should have at least one user with administrator role.");
+              ". System should have at least one administrator.");
       }
       userDAO.remove(userEntity);
     } else {
@@ -430,58 +415,6 @@ public class Users {
     }
   }
 
-  /**
-   * Grants ADMIN role to provided user
-   * @throws AmbariException
-   */
-  public synchronized void promoteToAdmin(User user) throws AmbariException{
-    addRoleToUser(user, getAdminRole());
-  }
-
-  /**
-   * Removes ADMIN role form provided user
-   * @throws AmbariException
-   */
-  public synchronized void demoteAdmin(User user) throws AmbariException {
-    removeRoleFromUser(user, getAdminRole());
-  }
-
-  @Transactional
-  public synchronized void addRoleToUser(User user, String role)
-      throws AmbariException {
-
-    if (configuration.getLdapServerProperties().isGroupMappingEnabled() &&
-        userDAO.findLdapUserByName(user.getUserName()) != null) {
-      LOG.warn("Trying to add a role to the LDAP user"
-          + ", user=" + user.getUserName());
-      throw new AmbariException("Ldap group mapping is enabled, " +
-          "roles for LDAP users should be managed on LDAP server");
-    }
-
-    UserEntity userEntity = userDAO.findByPK(user.getUserId());
-    if (userEntity == null) {
-      throw new AmbariException("User " + user + " doesn't exist");
-    }
-
-    RoleEntity roleEntity = roleDAO.findByName(role);
-    if (roleEntity == null) {
-      LOG.warn("Trying to add user to non-existent role"
-          + ", user=" + user.getUserName()
-          + ", role=" + role);
-      throw new AmbariException("Role " + role + " doesn't exist");
-    }
-
-    if (!userEntity.getRoleEntities().contains(roleEntity)) {
-      userEntity.getRoleEntities().add(roleEntity);
-      roleEntity.getUserEntities().add(userEntity);
-      userDAO.merge(userEntity);
-      roleDAO.merge(roleEntity);
-    } else {
-      throw new AmbariException("User " + user + " already owns role " + role);
-    }
-
-  }
-
   @Transactional
   public synchronized void addMemberToGroup(String groupName, String userName)
       throws AmbariException {
@@ -511,45 +444,6 @@ public class Users {
       userDAO.merge(userEntity);
       groupDAO.merge(groupEntity);
     }
-  }
-
-  @Transactional
-  public synchronized void removeRoleFromUser(User user, String role)
-      throws AmbariException {
-
-    if (configuration.getLdapServerProperties().isGroupMappingEnabled() &&
-        userDAO.findLdapUserByName(user.getUserName()) != null) {
-      LOG.warn("Trying to add a role to the LDAP user"
-          + ", user=" + user.getUserName());
-      throw new AmbariException("Ldap group mapping is enabled, " +
-          "roles for LDAP users should be managed on LDAP server");
-    }
-
-    UserEntity userEntity = userDAO.findByPK(user.getUserId());
-    if (userEntity == null) {
-      throw new AmbariException("User " + user + " doesn't exist");
-    }
-
-    RoleEntity roleEntity = roleDAO.findByName(role);
-    if (roleEntity == null) {
-      throw new AmbariException("Role " + role + " doesn't exist");
-    }
-    if (role.equals(getAdminRole())){
-      if (!isUserCanBeRemoved(userEntity)){
-        throw new AmbariException("Could not remove admin role from user " + userEntity.getUserName() +
-        ". System should have at least one user with administrator role.");
-      }
-    }
-
-    if (userEntity.getRoleEntities().contains(roleEntity)) {
-      userEntity.getRoleEntities().remove(roleEntity);
-      roleEntity.getUserEntities().remove(userEntity);
-      userDAO.merge(userEntity);
-      roleDAO.merge(roleEntity);
-    } else {
-      throw new AmbariException("User " + user + " doesn't own role " + role);
-    }
-
   }
 
   @Transactional
@@ -588,10 +482,15 @@ public class Users {
 
   }
 
+  /**
+   * Performs a check if the user can be removed. Do not allow removing all admins from database.
+   *
+   * @param userEntity user to be checked
+   * @return true if user can be removed
+   */
   public synchronized boolean isUserCanBeRemoved(UserEntity userEntity){
-    RoleEntity roleEntity = new RoleEntity();
-    roleEntity.setRoleName(getAdminRole());
-    Set<UserEntity> userEntitysSet = new HashSet<UserEntity>(userDAO.findAllLocalUsersByRole(roleEntity));
+    List<PrincipalEntity> adminPrincipals = principalDAO.findByPermissionId(PermissionEntity.AMBARI_ADMIN_PERMISSION);
+    Set<UserEntity> userEntitysSet = new HashSet<UserEntity>(userDAO.findUsersByPrincipal(adminPrincipals));
     return (userEntitysSet.contains(userEntity) && userEntitysSet.size() < 2) ? false : true;
   }
 
@@ -611,32 +510,4 @@ public class Users {
     return false;
   }
 
-  public String getUserRole() {
-    return configuration.getConfigsMap().get(Configuration.USER_ROLE_NAME_KEY);
-  }
-
-  public String getAdminRole() {
-    return configuration.getConfigsMap().get(Configuration.ADMIN_ROLE_NAME_KEY);
-  }
-
-  /**
-   * Creates new role
-   */
-  public void createRole(String role) {
-    RoleEntity roleEntity = new RoleEntity();
-    roleEntity.setRoleName(role);
-    roleDAO.create(roleEntity);
-  }
-
-  /**
-   * Creates ADMIN adn USER roles if not present
-   */
-  public synchronized void createDefaultRoles() {
-    if (roleDAO.findByName(getUserRole()) == null) {
-      createRole(getUserRole());
-    }
-    if (roleDAO.findByName(getAdminRole()) == null) {
-      createRole(getAdminRole());
-    }
-  }
 }

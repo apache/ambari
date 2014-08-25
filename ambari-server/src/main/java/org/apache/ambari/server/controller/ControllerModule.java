@@ -76,6 +76,7 @@ import org.apache.ambari.server.state.scheduler.RequestExecution;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 import org.apache.ambari.server.state.scheduler.RequestExecutionImpl;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostImpl;
+import org.apache.ambari.server.view.ViewInstanceHandlerList;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.crypto.password.StandardPasswordEncoder;
 
@@ -201,6 +202,7 @@ public class ControllerModule extends AbstractModule {
     bind(ServerActionManager.class).to(ServerActionManagerImpl.class);
     bind(ExecutionScheduler.class).to(ExecutionSchedulerImpl.class);
     bind(DBAccessor.class).to(DBAccessorImpl.class);
+    bind(ViewInstanceHandlerList.class).to(AmbariHandlerList.class);
 
     requestStaticInjection(ExecutionCommandWrapper.class);
   }

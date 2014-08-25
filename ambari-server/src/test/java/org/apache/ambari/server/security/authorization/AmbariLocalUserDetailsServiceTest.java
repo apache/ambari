@@ -23,7 +23,6 @@ import com.google.inject.Injector;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.dao.UserDAO;
-import org.apache.ambari.server.orm.entities.UserEntity;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -69,11 +68,5 @@ public class AmbariLocalUserDetailsServiceTest {
   @Test(expected = UsernameNotFoundException.class)
   public void testUsernameNotFound() throws Exception {
     userDetailsService.loadUserByUsername("notExists_123123123");
-  }
-
-  @Test(expected = UsernameNotFoundException.class)
-  public void testEmptyRoles() throws Exception {
-    UserEntity user = userDAO.findLocalUserByName("userWithoutRoles");
-    userDetailsService.loadUserByUsername(user.getUserName());
   }
 }

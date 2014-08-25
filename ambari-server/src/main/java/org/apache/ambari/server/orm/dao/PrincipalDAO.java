@@ -22,10 +22,11 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
-import org.apache.ambari.server.orm.entities.PrincipalEntity;
 
+import org.apache.ambari.server.orm.entities.PrincipalEntity;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
+
 import java.util.List;
 
 /**
@@ -44,7 +45,6 @@ public class PrincipalDAO {
   /**
    * Find a principal with the given id.
    *
-   *
    * @param id  type id
    *
    * @return  a matching principal type  or null
@@ -60,6 +60,18 @@ public class PrincipalDAO {
    */
   public List<PrincipalEntity> findAll() {
     TypedQuery<PrincipalEntity> query = entityManagerProvider.get().createQuery("SELECT principal FROM PrincipalEntity principal", PrincipalEntity.class);
+    return daoUtils.selectList(query);
+  }
+
+  /**
+   * Find principals having specified permission.
+   *
+   * @param id permission id
+   * @return all principals having specified permission
+   */
+  public List<PrincipalEntity> findByPermissionId(Integer id) {
+    TypedQuery<PrincipalEntity> query = entityManagerProvider.get().createNamedQuery("principalByPrivilegeId", PrincipalEntity.class);
+    query.setParameter("permission_id", id);
     return daoUtils.selectList(query);
   }
 

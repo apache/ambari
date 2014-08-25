@@ -27,8 +27,8 @@ App.MainMenuView = Em.CollectionView.extend({
   classNames:['nav', 'top-nav-menu'],
 
   views: function() {
-    return App.router.get('clusterController.ambariViews');
-  }.property('App.router.clusterController.ambariViews'),
+    return App.router.get('mainViewsController.ambariViews');
+  }.property('App.router.mainViewsController.ambariViews'),
 
   content: function(){
     var result = [];
@@ -121,6 +121,9 @@ App.MainMenuView = Em.CollectionView.extend({
     goToSection: function (event) {
       if (event.context === 'hosts') {
         App.router.set('mainHostController.showFilterConditionsFirstLoad', false);
+      } else if (event.context === 'views') {
+        App.router.route('views');
+        return;
       }
       App.router.route('main/' + event.context);
     },

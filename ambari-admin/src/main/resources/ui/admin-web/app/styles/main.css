@@ -133,7 +133,7 @@
   background-color: #e6e6e6;
   cursor: not-allowed;
 }
-.btn.deleteuser-btn.disabled, .btn.deleteuser-btn[disabled]{
+.btn.deleteuser-btn.disabled, .btn.deleteuser-btn[disabled], .btn.btn-delete-instance.disabled{
   pointer-events: auto;
   cursor: not-allowed;
   background-color: #e6e6e6;
@@ -251,8 +251,13 @@
   top: 30px;
 }
 .groups-pane .search-container .close{
-  top: 5px;
+  top: 30px;
 }
+.views-list-table .search-container .close{
+  top: 5px;
+  right: 50px;
+  z-index: 10;
+} 
 .views-list-pane .search-container .close{
   right: 50px;
   top: 5px;
@@ -336,6 +341,9 @@ table.no-border tr td{
 }
 .top-margin-4{
   margin-top: 4px;
+}
+.table > thead > tr > th.vertical-top{
+  vertical-align: top;
 }
 
 .groups-pane table ul{

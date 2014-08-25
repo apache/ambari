@@ -32,7 +32,6 @@ import java.util.List;
 import java.util.Map;
 
 @Singleton
-@RequiresSession
 public class ServiceConfigDAO {
   @Inject
   Provider<EntityManager> entityManagerProvider;
@@ -40,10 +39,12 @@ public class ServiceConfigDAO {
   DaoUtils daoUtils;
 
 
+  @RequiresSession
   public ServiceConfigEntity find(Long serviceConfigId) {
     return entityManagerProvider.get().find(ServiceConfigEntity.class, serviceConfigId);
   }
 
+  @RequiresSession
   public ServiceConfigEntity findByServiceAndVersion(String serviceName, Long version) {
     TypedQuery<ServiceConfigEntity> query = entityManagerProvider.get().
         createQuery("SELECT scv FROM ServiceConfigEntity scv " +
@@ -51,6 +52,7 @@ public class ServiceConfigDAO {
     return daoUtils.selectOne(query, serviceName, version);
   }
 
+  @RequiresSession
   public Map<String, Long> findMaxVersions(Long clusterId) {
     Map<String, Long> maxVersions = new HashMap<String, Long>();
 
@@ -64,6 +66,7 @@ public class ServiceConfigDAO {
     return maxVersions;
   }
 
+  @RequiresSession
   public List<Long> getServiceConfigVersionsByConfig(Long clusterId, String configType, Long configVersion) {
     TypedQuery<Long> query = entityManagerProvider.get().createQuery("SELECT scv.version " +
         "FROM ServiceConfigEntity scv JOIN scv.clusterConfigEntities cc " +
@@ -71,6 +74,7 @@ public class ServiceConfigDAO {
     return daoUtils.selectList(query, clusterId, configType, configVersion);
   }
 
+  @RequiresSession
   public List<ServiceConfigEntity> getLastServiceConfigs(Long clusterId) {
     TypedQuery<ServiceConfigEntity> query = entityManagerProvider.get().
       createQuery("SELECT scv FROM ServiceConfigEntity scv " +
@@ -82,6 +86,7 @@ public class ServiceConfigDAO {
     return daoUtils.selectList(query, clusterId);
   }
 
+  @RequiresSession
   public ServiceConfigEntity getLastServiceConfig(Long clusterId, String serviceName) {
     TypedQuery<ServiceConfigEntity> query = entityManagerProvider.get().
         createQuery("SELECT scv FROM ServiceConfigEntity scv " +
@@ -92,6 +97,7 @@ public class ServiceConfigDAO {
     return daoUtils.selectOne(query, clusterId, serviceName);
   }
 
+  @RequiresSession
   public ServiceConfigEntity findMaxVersion(Long clusterId, String serviceName) {
     TypedQuery<ServiceConfigEntity> query = entityManagerProvider.get().createQuery("SELECT scv FROM ServiceConfigEntity scv " +
       "WHERE scv.clusterId=?1 AND scv.serviceName=?2 AND scv.version = (" +
@@ -101,6 +107,7 @@ public class ServiceConfigDAO {
     return daoUtils.selectSingle(query, clusterId, serviceName);
   }
 
+  @RequiresSession
   public List<ServiceConfigEntity> getServiceConfigs(Long clusterId) {
     TypedQuery<ServiceConfigEntity> query = entityManagerProvider.get()
       .createQuery("SELECT scv FROM ServiceConfigEntity scv " +

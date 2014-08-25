@@ -23,15 +23,10 @@ import com.google.inject.Injector;
 import com.google.inject.Key;
 import com.google.inject.TypeLiteral;
 import com.google.inject.persist.PersistService;
-import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.ControllerModule;
 import org.apache.ambari.server.orm.DBAccessor;
-import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.*;
-import org.apache.ambari.server.security.CertificateManager;
-import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.utils.VersionUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -44,8 +39,6 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.SQLNonTransientConnectionException;
 import java.util.*;
-
-import static org.junit.Assert.assertTrue;
 
 @RunWith(Parameterized.class)
 public class UpgradeTest {
@@ -139,7 +132,6 @@ public class UpgradeTest {
     requestDAO.findAllResourceFilters();
     injector.getInstance(RequestScheduleBatchRequestDAO.class).findAll();
     injector.getInstance(RequestScheduleDAO.class).findAll();
-    injector.getInstance(RoleDAO.class).findAll();
     injector.getInstance(RoleSuccessCriteriaDAO.class).findAll();
     injector.getInstance(ServiceComponentDesiredStateDAO.class).findAll();
     injector.getInstance(ServiceDesiredStateDAO.class).findAll();

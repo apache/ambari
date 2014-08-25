@@ -52,7 +52,7 @@ def namenode(action=None, do_format=True):
     namenode_safe_mode_off = format("su - {hdfs_user} -c 'hadoop dfsadmin -safemode get' | grep 'Safe mode is OFF'")
 
     if params.security_enabled:
-      Execute(format("{kinit_path_local} -kt {hdfs_user_keytab} {hdfs_user}"),
+      Execute(format("{kinit_path_local} -kt {hdfs_user_keytab} {hdfs_principal_name}"),
               user = params.hdfs_user)
     Execute(namenode_safe_mode_off,
             tries=40,

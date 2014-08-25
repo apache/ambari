@@ -94,6 +94,7 @@ hive_user = config['configurations']['hive-env']['hive_user']
 smoke_user =  config['configurations']['hadoop-env']['smokeuser']
 mapred_user = config['configurations']['mapred-env']['mapred_user']
 hdfs_user = status_params.hdfs_user
+hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']
 
 user_group = config['configurations']['hadoop-env']['user_group']
 proxyuser_group =  config['configurations']['hadoop-env']['proxyuser_group']
