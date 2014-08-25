@@ -37,6 +37,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
@@ -46,6 +47,7 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
+import com.google.common.collect.Sets;
 import org.apache.ambari.server.api.resources.ResourceInstanceFactoryImpl;
 import org.apache.ambari.server.api.resources.SubResourceDefinition;
 import org.apache.ambari.server.api.resources.ViewExternalSubResourceDefinition;
@@ -135,8 +137,8 @@ public class ViewRegistry {
   /**
    * Mapping of view names to registered listeners.
    */
-  private final Map<String, List<Listener>> listeners =
-      new HashMap<String, List<Listener>>();
+  private final Map<String, Set<Listener>> listeners =
+      new ConcurrentHashMap<String, Set<Listener>>();
 
   /**
    * Helper class.
@@ -633,14 +635,32 @@ public class ViewRegistry {
 
     String name = viewVersion == null ? viewName : ViewEntity.getViewName(viewName, viewVersion);
 
-    List<Listener> listeners = this.listeners.get(name);
+    Set<Listener> listeners = this.listeners.get(name);
 
     if (listeners == null) {
-      listeners = new LinkedList<Listener>();
+      listeners = Sets.newSetFromMap(new ConcurrentHashMap<Listener, Boolean>());
       this.listeners.put(name, listeners);
     }
 
     listeners.add(listener);
+  }
+
+  /**
+   * Un-register the given listener from the view identified by the given name and version.
+   *
+   * @param listener     the listener
+   * @param viewName     the view name
+   * @param viewVersion  the view version; null indicates all versions
+   */
+  public synchronized void unregisterListener(Listener listener, String viewName, String viewVersion) {
+
+    String name = viewVersion == null ? viewName : ViewEntity.getViewName(viewName, viewVersion);
+
+    Set<Listener> listeners = this.listeners.get(name);
+
+    if (listeners != null) {
+      listeners.remove(listener);
+    }
   }
 
   /**
@@ -1212,7 +1232,7 @@ public class ViewRegistry {
 
   // notify the view identified by the given view name of the given event
   private void fireEvent(Event event, String viewName) {
-    List<Listener> listeners = this.listeners.get(viewName);
+    Set<Listener> listeners = this.listeners.get(viewName);
 
     if (listeners != null) {
       for (Listener listener : listeners) {

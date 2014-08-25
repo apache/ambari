@@ -53,4 +53,23 @@ public interface ViewController {
    * @param viewVersion  the view version
    */
   public void registerListener(Listener listener, String viewName, String viewVersion);
+
+  /**
+   * Un-register the listener that is registered for the view identified by the
+   * given name.
+   *
+   * @param listener  the listener
+   * @param viewName  the view to listen to
+   */
+  public void unregisterListener(Listener listener, String viewName);
+
+  /**
+   * Un-register the listener that is registered for the view identified by the
+   * given name and version.
+   *
+   * @param listener     the listener
+   * @param viewName     the view to listen to
+   * @param viewVersion  the view version
+   */
+  public void unregisterListener(Listener listener, String viewName, String viewVersion);
 }

@@ -412,6 +412,56 @@ public class ViewRegistryTest {
 
     listener.clear();
 
+    // fire an event for a different view
+    event = EventImplTest.getEvent("MyEvent", Collections.<String, String>emptyMap(), view_xml2);
+
+    registry.fireEvent(event);
+
+    Assert.assertNull(listener.getLastEvent());
+
+    // un-register the listener
+    registry.unregisterListener(listener, "MY_VIEW", "1.0.0");
+
+    event = EventImplTest.getEvent("MyEvent", Collections.<String, String>emptyMap(), view_xml1);
+
+    registry.fireEvent(event);
+
+    Assert.assertNull(listener.getLastEvent());
+  }
+
+  @Test
+  public void testListener_allVersions() throws Exception {
+    ViewRegistry registry = getRegistry();
+
+    TestListener listener = new TestListener();
+    registry.registerListener(listener, "MY_VIEW", null); // all versions of MY_VIEW
+
+    EventImpl event = EventImplTest.getEvent("MyEvent", Collections.<String, String>emptyMap(), view_xml1);
+
+    registry.fireEvent(event);
+
+    Assert.assertEquals(event, listener.getLastEvent());
+
+    listener.clear();
+
+    // fire an event for a different view
+    event = EventImplTest.getEvent("MyEvent", Collections.<String, String>emptyMap(), view_xml2);
+
+    registry.fireEvent(event);
+
+    Assert.assertEquals(event, listener.getLastEvent());
+
+    listener.clear();
+
+    // un-register the listener
+    registry.unregisterListener(listener, "MY_VIEW", null); // all versions of MY_VIEW
+
+    event = EventImplTest.getEvent("MyEvent", Collections.<String, String>emptyMap(), view_xml1);
+
+    registry.fireEvent(event);
+
+    Assert.assertNull(listener.getLastEvent());
+
     event = EventImplTest.getEvent("MyEvent", Collections.<String, String>emptyMap(), view_xml2);
 
     registry.fireEvent(event);
