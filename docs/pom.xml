@@ -74,7 +74,7 @@
             <unsubscribe>mailto:user-unsubscribe@ambari.apache.org
             </unsubscribe>
             <post>mailto:user@ambari.apache.org</post>
-            <archive></archive>
+            <archive>http://mail-archives.apache.org/mod_mbox/ambari-user/</archive>
         </mailingList>
         <mailingList>
             <name>Development list</name>
@@ -83,7 +83,7 @@
             <unsubscribe>mailto:dev-unsubscribe@ambari.apache.org
             </unsubscribe>
             <post>mailto:dev@ambari.apache.org</post>
-            <archive></archive>
+            <archive>http://mail-archives.apache.org/mod_mbox/ambari-dev/</archive>
         </mailingList>
         <mailingList>
             <name>Commit list</name>
@@ -92,7 +92,7 @@
             <unsubscribe>mailto:commits-unsubscribe@ambari.apache.org
             </unsubscribe>
             <post>mailto:commits@ambari.apache.org</post>
-            <archive></archive>
+            <archive>http://mail-archives.apache.org/mod_mbox/ambari-commits/</archive>
         </mailingList>
     </mailingLists>
 
@@ -309,6 +309,18 @@
             <organization>
                 Hortonworks                
             </organization>            
+        </developer>
+        <developer>
+            <id>jonathanhurley</id>
+            <name>Jonathan Hurley</name>
+            <email>jonathanhurley@apache.org</email>
+            <timezone>-8</timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
         </developer>
         <developer>
             <id>jspeidel</id>
