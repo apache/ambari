@@ -48,6 +48,11 @@ public class ViewConfig {
   private String label;
 
   /**
+   * The view description.
+   */
+  private String description;
+
+  /**
    * The view version.
    */
   private String version;
@@ -130,6 +135,15 @@ public class ViewConfig {
    */
   public String getLabel() {
     return label;
+  }
+
+  /**
+   * Get the view description.
+   *
+   * @return the view description
+   */
+  public String getDescription() {
+    return description;
   }
 
   /**

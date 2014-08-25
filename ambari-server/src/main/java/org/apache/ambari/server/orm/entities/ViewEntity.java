@@ -39,6 +39,7 @@ import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Transient;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -67,6 +68,13 @@ public class ViewEntity implements ViewDefinition {
   @Column
   @Basic
   private String label;
+
+  /**
+   * The view description.
+   */
+  @Column
+  @Basic
+  private String description;
 
   /**
    * The icon path.
@@ -226,13 +234,14 @@ public class ViewEntity implements ViewDefinition {
 
     String version = configuration.getVersion();
 
-    this.name    = getViewName(configuration.getName(), version);
-    this.label   = configuration.getLabel();
-    this.version = version;
+    this.name        = getViewName(configuration.getName(), version);
+    this.label       = configuration.getLabel();
+    this.description = configuration.getDescription();
+    this.version     = version;
 
-    this.mask    = configuration.getMasker();
-    this.icon    = configuration.getIcon();
-    this.icon64  = configuration.getIcon64();
+    this.mask        = configuration.getMasker();
+    this.icon        = configuration.getIcon();
+    this.icon64      = configuration.getIcon64();
 
     this.externalResourceType =
         new Resource.Type(getQualifiedResourceTypeName(ResourceConfig.EXTERNAL_RESOURCE_PLURAL_NAME));
@@ -249,6 +258,11 @@ public class ViewEntity implements ViewDefinition {
   @Override
   public String getLabel() {
     return label;
+  }
+
+  @Override
+  public String getDescription() {
+    return description;
   }
 
   @Override
@@ -294,16 +308,25 @@ public class ViewEntity implements ViewDefinition {
   /**
    * Set the view label (display name).
    *
-   * @param label  the view label
+   * @param label the view label
    */
   public void setLabel(String label) {
     this.label = label;
   }
 
   /**
+   * Set the view description.
+   *
+   * @param description the view description
+   */
+  public void setDescription(String description) {
+    this.description = description;
+  }
+
+  /**
    * Set the view version.
    *
-   * @param version  the version
+   * @param version the version
    */
   public void setVersion(String version) {
     this.version = version;

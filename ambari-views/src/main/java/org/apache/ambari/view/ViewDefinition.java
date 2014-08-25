@@ -38,6 +38,13 @@ public interface ViewDefinition {
   public String getLabel();
 
   /**
+   * Get the view description.
+   *
+   * @return the description
+   */
+  public String getDescription();
+
+  /**
    * Get the view version.
    *
    * @return the version

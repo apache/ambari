@@ -252,6 +252,9 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
     dbAccessor.addColumn("host_role_command", new DBColumnInfo("error_log",
         String.class, 255, null, true));
 
+    dbAccessor.addColumn("viewmain", new DBColumnInfo("description",
+        String.class, 255, null, true));
+
     addAlertingFrameworkDDL();
 
     //service config versions changes
