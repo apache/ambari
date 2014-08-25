@@ -645,6 +645,24 @@ public class AmbariMetaInfo {
     return stackInfoResult;
   }
 
+  public List<String> getStackParentVersions(String stackName, String version) {
+    List<String> parents = new ArrayList<String>();
+    try {
+      StackInfo stackInfo = getStackInfo(stackName, version);
+      if (stackInfo != null) {
+        String parentVersion = stackInfo.getParentStackVersion();
+        if (parentVersion != null) {
+          parents.add(parentVersion);
+          parents.addAll(getStackParentVersions(stackName, parentVersion));
+        }
+      }
+    } catch (AmbariException e) {
+      // parent was not found. just returning empty list
+    } finally {
+      return parents;
+    }
+  }
+
   public Set<PropertyInfo> getProperties(String stackName, String version, String serviceName)
       throws AmbariException {
 

@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.api.services.stackadvisor.commands;
 
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorException;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRunner;
@@ -37,9 +38,9 @@ import java.util.Set;
 public class GetConfigurationRecommnedationCommand extends
     StackAdvisorCommand<RecommendationResponse> {
 
-  public GetConfigurationRecommnedationCommand(File recommendationsDir,
-                                               String stackAdvisorScript, int requestId, StackAdvisorRunner saRunner) {
-    super(recommendationsDir, stackAdvisorScript, requestId, saRunner);
+  public GetConfigurationRecommnedationCommand(File recommendationsDir, String stackAdvisorScript, int requestId,
+                                               StackAdvisorRunner saRunner, AmbariMetaInfo metaInfo) {
+    super(recommendationsDir, stackAdvisorScript, requestId, saRunner, metaInfo);
   }
 
   @Override
@@ -53,12 +54,6 @@ public class GetConfigurationRecommnedationCommand extends
         || request.getServices().isEmpty()) {
       throw new StackAdvisorException("Hosts and services must not be empty");
     }
-  }
-
-  @Override
-  protected StackAdvisorData adjust(StackAdvisorData data, StackAdvisorRequest request) {
-    // do nothing
-    return data;
   }
 
   @Override

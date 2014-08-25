@@ -82,9 +82,8 @@ def main(argv=None):
   stackName = services["Versions"]["stack_name"]
   stackVersion = services["Versions"]["stack_version"]
   parentVersions = []
-  if "parent_stack_version" in services["Versions"] and \
-      services["Versions"]["parent_stack_version"] is not None:
-    parentVersions = [ services["Versions"]["parent_stack_version"] ]
+  if "stack_hierarchy" in services["Versions"]:
+    parentVersions = services["Versions"]["stack_hierarchy"]["stack_versions"]
 
   stackAdvisor = instantiateStackAdvisor(stackName, stackVersion, parentVersions)
 

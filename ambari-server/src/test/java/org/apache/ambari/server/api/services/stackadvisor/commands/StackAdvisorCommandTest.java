@@ -19,8 +19,10 @@
 package org.apache.ambari.server.api.services.stackadvisor.commands;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -29,16 +31,23 @@ import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Iterator;
 
 import javax.ws.rs.WebApplicationException;
 
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorException;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest.StackAdvisorRequestBuilder;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRunner;
 import org.apache.ambari.server.api.services.stackadvisor.commands.StackAdvisorCommand.StackAdvisorData;
 import org.apache.commons.io.FileUtils;
+import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.annotate.JsonProperty;
+import org.codehaus.jackson.node.ArrayNode;
+import org.codehaus.jackson.node.ObjectNode;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -68,8 +77,10 @@ public class StackAdvisorCommandTest {
     String stackAdvisorScript = "echo";
     int requestId = 0;
     StackAdvisorRunner saRunner = mock(StackAdvisorRunner.class);
+    AmbariMetaInfo metaInfo = mock(AmbariMetaInfo.class);
+    doReturn(Collections.emptyList()).when(metaInfo).getStackParentVersions(anyString(), anyString());
     StackAdvisorCommand<TestResource> command = spy(new TestStackAdvisorCommand(recommendationsDir,
-        stackAdvisorScript, requestId, saRunner));
+        stackAdvisorScript, requestId, saRunner, metaInfo));
 
     StackAdvisorRequest request = StackAdvisorRequestBuilder.forStack("stackName", "stackVersion")
         .build();
@@ -86,8 +97,10 @@ public class StackAdvisorCommandTest {
     String stackAdvisorScript = "echo";
     int requestId = 0;
     StackAdvisorRunner saRunner = mock(StackAdvisorRunner.class);
+    AmbariMetaInfo metaInfo = mock(AmbariMetaInfo.class);
+    doReturn(Collections.emptyList()).when(metaInfo).getStackParentVersions(anyString(), anyString());
     StackAdvisorCommand<TestResource> command = spy(new TestStackAdvisorCommand(recommendationsDir,
-        stackAdvisorScript, requestId, saRunner));
+        stackAdvisorScript, requestId, saRunner, metaInfo));
 
     StackAdvisorRequest request = StackAdvisorRequestBuilder.forStack("stackName", "stackVersion")
         .build();
@@ -112,8 +125,10 @@ public class StackAdvisorCommandTest {
     String stackAdvisorScript = "echo";
     int requestId = 0;
     StackAdvisorRunner saRunner = mock(StackAdvisorRunner.class);
+    AmbariMetaInfo metaInfo = mock(AmbariMetaInfo.class);
+    doReturn(Collections.emptyList()).when(metaInfo).getStackParentVersions(anyString(), anyString());
     StackAdvisorCommand<TestResource> command = spy(new TestStackAdvisorCommand(recommendationsDir,
-        stackAdvisorScript, requestId, saRunner));
+        stackAdvisorScript, requestId, saRunner, metaInfo));
 
     StackAdvisorRequest request = StackAdvisorRequestBuilder.forStack("stackName", "stackVersion")
         .build();
@@ -137,8 +152,10 @@ public class StackAdvisorCommandTest {
     String stackAdvisorScript = "echo";
     final int requestId = 0;
     StackAdvisorRunner saRunner = mock(StackAdvisorRunner.class);
+    AmbariMetaInfo metaInfo = mock(AmbariMetaInfo.class);
+    doReturn(Collections.emptyList()).when(metaInfo).getStackParentVersions(anyString(), anyString());
     final StackAdvisorCommand<TestResource> command = spy(new TestStackAdvisorCommand(
-        recommendationsDir, stackAdvisorScript, requestId, saRunner));
+        recommendationsDir, stackAdvisorScript, requestId, saRunner, metaInfo));
 
     StackAdvisorRequest request = StackAdvisorRequestBuilder.forStack("stackName", "stackVersion")
         .build();
@@ -165,10 +182,61 @@ public class StackAdvisorCommandTest {
     assertEquals(expected, result.getType());
   }
 
+  @Test
+  public void testPopulateStackHierarchy() throws Exception {
+    File file = mock(File.class);
+    StackAdvisorRunner stackAdvisorRunner = mock(StackAdvisorRunner.class);
+    AmbariMetaInfo ambariMetaInfo = mock(AmbariMetaInfo.class);
+    StackAdvisorCommand<TestResource> cmd = new TestStackAdvisorCommand(file, "test", 1,
+        stackAdvisorRunner, ambariMetaInfo);
+    ObjectNode objectNode = (ObjectNode) cmd.mapper.readTree("{\"Versions\": " +
+        "{\"stack_name\": \"stack\", \"stack_version\":\"1.0.0\"}}");
+
+    doReturn(Arrays.asList("0.9", "0.8")).when(ambariMetaInfo).getStackParentVersions("stack", "1.0.0");
+
+    cmd.populateStackHierarchy(objectNode);
+
+    JsonNode stackHierarchy = objectNode.get("Versions").get("stack_hierarchy");
+    assertNotNull(stackHierarchy);
+    JsonNode stackName = stackHierarchy.get("stack_name");
+    assertNotNull(stackName);
+    assertEquals("stack", stackName.asText());
+    ArrayNode stackVersions = (ArrayNode) stackHierarchy.get("stack_versions");
+    assertNotNull(stackVersions);
+    assertEquals(2, stackVersions.size());
+    Iterator<JsonNode> stackVersionsElements = stackVersions.getElements();
+    assertEquals("0.9", stackVersionsElements.next().asText());
+    assertEquals("0.8", stackVersionsElements.next().asText());
+  }
+
+  @Test
+  public void testPopulateStackHierarchy_noParents() throws Exception {
+    File file = mock(File.class);
+    StackAdvisorRunner stackAdvisorRunner = mock(StackAdvisorRunner.class);
+    AmbariMetaInfo ambariMetaInfo = mock(AmbariMetaInfo.class);
+    StackAdvisorCommand<TestResource> cmd = new TestStackAdvisorCommand(file, "test", 1,
+        stackAdvisorRunner, ambariMetaInfo);
+    ObjectNode objectNode = (ObjectNode) cmd.mapper.readTree("{\"Versions\": " +
+        "{\"stack_name\": \"stack\", \"stack_version\":\"1.0.0\"}}");
+
+    doReturn(Collections.emptyList()).when(ambariMetaInfo).getStackParentVersions("stack", "1.0.0");
+
+    cmd.populateStackHierarchy(objectNode);
+
+    JsonNode stackHierarchy = objectNode.get("Versions").get("stack_hierarchy");
+    assertNotNull(stackHierarchy);
+    JsonNode stackName = stackHierarchy.get("stack_name");
+    assertNotNull(stackName);
+    assertEquals("stack", stackName.asText());
+    ArrayNode stackVersions = (ArrayNode) stackHierarchy.get("stack_versions");
+    assertNotNull(stackVersions);
+    assertEquals(0, stackVersions.size());
+  }
+
   class TestStackAdvisorCommand extends StackAdvisorCommand<TestResource> {
     public TestStackAdvisorCommand(File recommendationsDir, String stackAdvisorScript,
-        int requestId, StackAdvisorRunner saRunner) {
-      super(recommendationsDir, stackAdvisorScript, requestId, saRunner);
+        int requestId, StackAdvisorRunner saRunner, AmbariMetaInfo metaInfo) {
+      super(recommendationsDir, stackAdvisorScript, requestId, saRunner, metaInfo);
     }
 
     @Override

@@ -27,6 +27,7 @@ import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest.StackAdvisorRequestBuilder;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest.StackAdvisorRequestType;
 import org.apache.ambari.server.api.services.stackadvisor.commands.GetComponentLayoutRecommnedationCommand;
@@ -48,7 +49,8 @@ public class StackAdvisorHelperTest {
   public void testValidate_returnsCommandResult() throws StackAdvisorException, IOException {
     Configuration configuration = mock(Configuration.class);
     StackAdvisorRunner saRunner = mock(StackAdvisorRunner.class);
-    StackAdvisorHelper helper = spy(new StackAdvisorHelper(configuration, saRunner));
+    AmbariMetaInfo metaInfo = mock(AmbariMetaInfo.class);
+    StackAdvisorHelper helper = spy(new StackAdvisorHelper(configuration, saRunner, metaInfo));
 
     StackAdvisorCommand<ValidationResponse> command = mock(StackAdvisorCommand.class);
     ValidationResponse expected = mock(ValidationResponse.class);
@@ -69,7 +71,8 @@ public class StackAdvisorHelperTest {
       IOException {
     Configuration configuration = mock(Configuration.class);
     StackAdvisorRunner saRunner = mock(StackAdvisorRunner.class);
-    StackAdvisorHelper helper = spy(new StackAdvisorHelper(configuration, saRunner));
+    AmbariMetaInfo metaInfo = mock(AmbariMetaInfo.class);
+    StackAdvisorHelper helper = spy(new StackAdvisorHelper(configuration, saRunner, metaInfo));
 
     StackAdvisorCommand<ValidationResponse> command = mock(StackAdvisorCommand.class);
     StackAdvisorRequestType requestType = StackAdvisorRequestType.HOST_GROUPS;
@@ -88,7 +91,8 @@ public class StackAdvisorHelperTest {
   public void testRecommend_returnsCommandResult() throws StackAdvisorException, IOException {
     Configuration configuration = mock(Configuration.class);
     StackAdvisorRunner saRunner = mock(StackAdvisorRunner.class);
-    StackAdvisorHelper helper = spy(new StackAdvisorHelper(configuration, saRunner));
+    AmbariMetaInfo metaInfo = mock(AmbariMetaInfo.class);
+    StackAdvisorHelper helper = spy(new StackAdvisorHelper(configuration, saRunner, metaInfo));
 
     StackAdvisorCommand<RecommendationResponse> command = mock(StackAdvisorCommand.class);
     RecommendationResponse expected = mock(RecommendationResponse.class);
@@ -109,7 +113,8 @@ public class StackAdvisorHelperTest {
       IOException {
     Configuration configuration = mock(Configuration.class);
     StackAdvisorRunner saRunner = mock(StackAdvisorRunner.class);
-    StackAdvisorHelper helper = spy(new StackAdvisorHelper(configuration, saRunner));
+    AmbariMetaInfo metaInfo = mock(AmbariMetaInfo.class);
+    StackAdvisorHelper helper = spy(new StackAdvisorHelper(configuration, saRunner, metaInfo));
 
     StackAdvisorCommand<RecommendationResponse> command = mock(StackAdvisorCommand.class);
     StackAdvisorRequestType requestType = StackAdvisorRequestType.HOST_GROUPS;
@@ -128,7 +133,8 @@ public class StackAdvisorHelperTest {
       throws IOException, StackAdvisorException {
     Configuration configuration = mock(Configuration.class);
     StackAdvisorRunner saRunner = mock(StackAdvisorRunner.class);
-    StackAdvisorHelper helper = new StackAdvisorHelper(configuration, saRunner);
+    AmbariMetaInfo metaInfo = mock(AmbariMetaInfo.class);
+    StackAdvisorHelper helper = new StackAdvisorHelper(configuration, saRunner, metaInfo);
     StackAdvisorRequestType requestType = StackAdvisorRequestType.HOST_GROUPS;
 
     StackAdvisorCommand<RecommendationResponse> command = helper
@@ -142,7 +148,8 @@ public class StackAdvisorHelperTest {
       throws IOException, StackAdvisorException {
     Configuration configuration = mock(Configuration.class);
     StackAdvisorRunner saRunner = mock(StackAdvisorRunner.class);
-    StackAdvisorHelper helper = new StackAdvisorHelper(configuration, saRunner);
+    AmbariMetaInfo metaInfo = mock(AmbariMetaInfo.class);
+    StackAdvisorHelper helper = new StackAdvisorHelper(configuration, saRunner, metaInfo);
     StackAdvisorRequestType requestType = StackAdvisorRequestType.HOST_GROUPS;
 
     StackAdvisorCommand<ValidationResponse> command = helper.createValidationCommand(requestType);
@@ -155,7 +162,8 @@ public class StackAdvisorHelperTest {
       throws IOException, StackAdvisorException {
     Configuration configuration = mock(Configuration.class);
     StackAdvisorRunner saRunner = mock(StackAdvisorRunner.class);
-    StackAdvisorHelper helper = new StackAdvisorHelper(configuration, saRunner);
+    AmbariMetaInfo metaInfo = mock(AmbariMetaInfo.class);
+    StackAdvisorHelper helper = new StackAdvisorHelper(configuration, saRunner, metaInfo);
     StackAdvisorRequestType requestType = StackAdvisorRequestType.CONFIGURATIONS;
 
     StackAdvisorCommand<ValidationResponse> command = helper.createValidationCommand(requestType);
