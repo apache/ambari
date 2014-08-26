@@ -20,11 +20,12 @@ limitations under the License.
 from resource_management import *
 
 config = Script.get_config()
+tmp_dir = Script.get_tmp_dir()
 
 _authentication = config['configurations']['core-site']['hadoop.security.authentication']
 security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')
 
-artifact_dir = "/tmp/HDP-artifacts/"
+artifact_dir = format("{tmp_dir}/AMBARI-artifacts/")
 jce_policy_zip = default("/hostLevelParams/jce_name", None) # None when jdk is already installed by user
 jce_location = config['hostLevelParams']['jdk_location']
 jdk_name = default("/hostLevelParams/jdk_name", None)

@@ -100,7 +100,7 @@ security_enabled = ( not is_empty(_authentication) and _authentication == 'kerbe
 
 #java params
 java_home = config['hostLevelParams']['java_home']
-artifact_dir = "/tmp/HDP-artifacts/"
+artifact_dir = format("{tmp_dir}/AMBARI-artifacts/")
 jdk_name = default("/hostLevelParams/jdk_name", None) # None when jdk is already installed by user
 jce_policy_zip = default("/hostLevelParams/jce_name", None) # None when jdk is already installed by user
 jce_location = config['hostLevelParams']['jdk_location']
