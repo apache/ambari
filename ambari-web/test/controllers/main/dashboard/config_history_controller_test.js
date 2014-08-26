@@ -28,11 +28,11 @@ describe('MainConfigHistoryController', function () {
   describe('#realUrl', function () {
     it('cluster name is empty', function () {
       App.set('clusterName', '');
-      expect(controller.get('realUrl')).to.equal('/api/v1/clusters//configurations/serviceconfigversions?<parameters>fields=serviceconfigversion,user,appliedtime,createtime,service_name,service_config_version_note&minimal_response=true');
+      expect(controller.get('realUrl')).to.equal('/api/v1/clusters//configurations/serviceconfigversions?<parameters>fields=serviceconfigversion,user,group_id,group_name,createtime,service_name,service_config_version_note&minimal_response=true');
     });
     it('cluster name is "mycluster"', function () {
       App.set('clusterName', 'mycluster');
-      expect(controller.get('realUrl')).to.equal('/api/v1/clusters/mycluster/configurations/serviceconfigversions?<parameters>fields=serviceconfigversion,user,appliedtime,createtime,service_name,service_config_version_note&minimal_response=true');
+      expect(controller.get('realUrl')).to.equal('/api/v1/clusters/mycluster/configurations/serviceconfigversions?<parameters>fields=serviceconfigversion,user,group_id,group_name,createtime,service_name,service_config_version_note&minimal_response=true');
     });
   });
   describe('#load()', function () {
@@ -122,20 +122,31 @@ describe('MainConfigHistoryController', function () {
     });
     afterEach(function () {
       App.router.get.restore();
+      App.get.restore();
     });
     it('testMode is true', function () {
-      App.set('testMode', true);
+      sinon.stub(App, 'get', function(k) {
+        if ('testMode' === k) return true;
+        return Em.get(App, k);
+      });
       expect(controller.getUrl()).to.equal('/data/configurations/service_versions.json');
     });
     it('query params is empty', function () {
-      App.set('testMode', false);
-      expect(controller.getUrl()).to.equal('/api/v1/clusters/mycluster/configurations/serviceconfigversions?fields=serviceconfigversion,user,appliedtime,createtime,service_name,service_config_version_note&minimal_response=true');
+      sinon.stub(App, 'get', function(k) {
+        if ('testMode' === k) return false;
+        return Em.get(App, k);
+      });
+      expect(controller.getUrl()).to.equal('/api/v1/clusters/mycluster/configurations/serviceconfigversions?fields=serviceconfigversion,user,group_id,group_name,createtime,service_name,service_config_version_note&minimal_response=true');
     });
     it('query params is correct', function () {
-      App.set('testMode', false);
-      expect(controller.getUrl({})).to.equal('/api/v1/clusters/mycluster/configurations/serviceconfigversions?paramsfields=serviceconfigversion,user,appliedtime,createtime,service_name,service_config_version_note&minimal_response=true');
+      sinon.stub(App, 'get', function(k) {
+        if ('testMode' === k) return false;
+        return Em.get(App, k);
+      });
+      expect(controller.getUrl({})).to.equal('/api/v1/clusters/mycluster/configurations/serviceconfigversions?paramsfields=serviceconfigversion,user,group_id,group_name,createtime,service_name,service_config_version_note&minimal_response=true');
     });
   });
+
   describe('#doPolling()', function () {
     beforeEach(function () {
       sinon.stub(controller, 'load', function(){

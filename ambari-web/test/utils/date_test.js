@@ -89,7 +89,7 @@ describe('date', function () {
     it('Today timestamp', function() {
       var now = new Date();
       var then = new Date(now.getFullYear(),now.getUTCMonth(),now.getUTCDate(),0,0,0);
-      expect(date.dateFormatShort(then.getTime() + 10*3600*1000)).to.equal('Today 10:00:00');
+      expect(date.dateFormatShort(then.getTime() + 10*3600*1000)).to.contain('Today 10:00:00');
     });
     describe('Incorrect timestamps', function() {
       incorrect_tests.forEach(function(test) {
@@ -109,7 +109,7 @@ describe('date', function () {
       { t: today, e: ''}
     ];
     tests.forEach(function(test) {
-      var testMessage = 'should conver {0} to {1}'.format(test.t, test.e);
+      var testMessage = 'should convert {0} to {1}'.format(test.t, test.e);
       it(testMessage, function() {
         expect(date.startTime(test.t)).to.be.eql(test.e);
       });

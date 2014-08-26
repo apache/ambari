@@ -508,11 +508,11 @@ describe('App.ConfigHistoryFlowView', function () {
   });
 
   describe('#compare()', function () {
-    it('', function () {
+    it('should set compareServiceVersion', function () {
       sinon.spy(view.get('controller'), 'onConfigGroupChange');
-      view.compare({context: {version: 1}});
+      view.compare({context: Em.Object.create({version: 1})});
 
-      expect(view.get('controller.compareServiceVersion')).to.eql({version: 1});
+      expect(view.get('controller.compareServiceVersion.version')).to.equal(1);
       expect(view.get('controller').onConfigGroupChange.calledOnce).to.be.true;
       view.get('controller').onConfigGroupChange.restore();
     });
