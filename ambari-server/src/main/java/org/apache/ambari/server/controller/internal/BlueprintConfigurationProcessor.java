@@ -150,7 +150,8 @@ public class BlueprintConfigurationProcessor {
           for (HostGroup group : hostGroups) {
             Collection<String> hosts = group.getHostInfo();
             for (String host : hosts) {
-              if (propValue.contains(host)) {    //todo: need to use regular expression to avoid matching a host which is a superset.  Can this be fixed???
+              //todo: need to use regular expression to avoid matching a host which is a superset.
+              if (propValue.contains(host)) {
                 matchedHost = true;
                 typeProperties.put(propertyName, propValue.replace(
                     host, "%HOSTGROUP::" + group.getName() + "%"));

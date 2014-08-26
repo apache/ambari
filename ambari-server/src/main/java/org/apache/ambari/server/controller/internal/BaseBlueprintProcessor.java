@@ -106,7 +106,7 @@ public abstract class BaseBlueprintProcessor extends AbstractControllerResourceP
     Map<String, HostGroupImpl> mapHostGroups = new HashMap<String, HostGroupImpl>();
 
     for (HostGroupEntity hostGroup : blueprint.getHostGroups()) {
-      mapHostGroups.put(hostGroup.getName(), new HostGroupImpl(hostGroup, stack));
+      mapHostGroups.put(hostGroup.getName(), new HostGroupImpl(hostGroup, stack, this));
     }
     return mapHostGroups;
   }
@@ -123,7 +123,7 @@ public abstract class BaseBlueprintProcessor extends AbstractControllerResourceP
   protected Stack parseStack(BlueprintEntity blueprint) throws SystemException {
     Stack stack;
     try {
-      stack = new Stack(blueprint.getStackName(), blueprint.getStackVersion());
+      stack = new Stack(blueprint.getStackName(), blueprint.getStackVersion(), getManagementController());
     } catch (StackAccessException e) {
       throw new IllegalArgumentException("Invalid stack information provided for cluster.  " +
           "stack name: " + blueprint.getStackName() +
@@ -148,7 +148,7 @@ public abstract class BaseBlueprintProcessor extends AbstractControllerResourceP
    * @throws IllegalArgumentException when validation fails
    */
   protected BlueprintEntity validateTopology(BlueprintEntity blueprint) throws AmbariException {
-    Stack stack = new Stack(blueprint.getStackName(), blueprint.getStackVersion());
+    Stack stack = new Stack(blueprint.getStackName(), blueprint.getStackVersion(), getManagementController());
     Map<String, HostGroupImpl> hostGroupMap = parseBlueprintHostGroups(blueprint, stack);
     Collection<HostGroupImpl> hostGroups = hostGroupMap.values();
     Map<String, Map<String, String>> clusterConfig = processBlueprintConfigurations(blueprint, null);
@@ -455,7 +455,7 @@ public abstract class BaseBlueprintProcessor extends AbstractControllerResourceP
   /**
    * Encapsulates stack information.
    */
-  protected class Stack {
+  protected static class Stack {
     /**
      * Stack name
      */
@@ -514,6 +514,12 @@ public abstract class BaseBlueprintProcessor extends AbstractControllerResourceP
     private Map<String, Map<String, Map<String, ConfigProperty>>> serviceConfigurations =
         new HashMap<String, Map<String, Map<String, ConfigProperty>>>();
 
+
+    /**
+     * Ambari Management Controller, used to obtain Stack definitions
+     */
+    private final AmbariManagementController ambariManagementController;
+
     /**
      * Contains a configuration property's value and attributes.
      */
@@ -553,11 +559,12 @@ public abstract class BaseBlueprintProcessor extends AbstractControllerResourceP
      * @throws AmbariException an exception occurred getting stack information
      *                         for the specified name and version
      */
-    public Stack(String name, String version) throws AmbariException {
+    public Stack(String name, String version, AmbariManagementController ambariManagementController) throws AmbariException {
       this.name = name;
       this.version = version;
+      this.ambariManagementController = ambariManagementController;
 
-      Set<StackServiceResponse> stackServices = getManagementController().getStackServices(
+      Set<StackServiceResponse> stackServices = ambariManagementController.getStackServices(
           Collections.singleton(new StackServiceRequest(name, version, null)));
 
       for (StackServiceResponse stackService : stackServices) {
@@ -767,7 +774,7 @@ public abstract class BaseBlueprintProcessor extends AbstractControllerResourceP
     private void parseComponents(String service) throws AmbariException{
       Collection<String> componentSet = new HashSet<String>();
 
-      Set<StackServiceComponentResponse> components = getManagementController().getStackComponents(
+      Set<StackServiceComponentResponse> components = ambariManagementController.getStackComponents(
           Collections.singleton(new StackServiceComponentRequest(name, version, service, null)));
 
       // stack service components
@@ -807,7 +814,7 @@ public abstract class BaseBlueprintProcessor extends AbstractControllerResourceP
 
       serviceConfigurations.put(service, mapServiceConfig);
 
-      Set<StackConfigurationResponse> serviceConfigs = getManagementController().getStackConfigurations(
+      Set<StackConfigurationResponse> serviceConfigs = ambariManagementController.getStackConfigurations(
           Collections.singleton(new StackConfigurationRequest(name, version, service, null)));
 
       for (StackConfigurationResponse config : serviceConfigs) {
@@ -846,7 +853,7 @@ public abstract class BaseBlueprintProcessor extends AbstractControllerResourceP
   /**
    * Host group representation.
    */
-  protected class HostGroupImpl implements HostGroup {
+  protected static class HostGroupImpl implements HostGroup {
     /**
      * Host group entity
      */
@@ -880,14 +887,20 @@ public abstract class BaseBlueprintProcessor extends AbstractControllerResourceP
     private Stack stack;
 
     /**
+     * The Blueprint processor associated with this HostGroupImpl instance
+     */
+    private final BaseBlueprintProcessor blueprintProcessor;
+
+    /**
      * Constructor.
      *
      * @param hostGroup  host group
      * @param stack      stack
      */
-    public HostGroupImpl(HostGroupEntity hostGroup, Stack stack) {
+    public HostGroupImpl(HostGroupEntity hostGroup, Stack stack, BaseBlueprintProcessor blueprintProcessor) {
       this.hostGroup = hostGroup;
       this.stack = stack;
+      this.blueprintProcessor = blueprintProcessor;
       parseComponents();
       parseConfigurations();
     }
@@ -1009,14 +1022,14 @@ public abstract class BaseBlueprintProcessor extends AbstractControllerResourceP
           boolean           resolved        = false;
 
           if (dependencyScope.equals("cluster")) {
-            Collection<String> missingDependencyInfo = verifyComponentCardinalityCount(entity, hostGroups,
+            Collection<String> missingDependencyInfo = blueprintProcessor.verifyComponentCardinalityCount(entity, hostGroups,
                 componentName, new Cardinality("1+"), autoDeployInfo, stack, clusterConfig);
             resolved = missingDependencyInfo.isEmpty();
           } else if (dependencyScope.equals("host")) {
             if (components.contains(component) || (autoDeployInfo != null && autoDeployInfo.isEnabled())) {
               resolved = true;
               if (addComponent(componentName)) {
-                addComponentToBlueprint(hostGroup.getBlueprintEntity(), getEntity().getName(), componentName);
+                blueprintProcessor.addComponentToBlueprint(hostGroup.getBlueprintEntity(), getEntity().getName(), componentName);
               }
             }
           }

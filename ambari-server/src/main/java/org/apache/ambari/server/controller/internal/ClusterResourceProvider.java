@@ -303,6 +303,16 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
   }
 
 
+  /**
+   * Package-level access for cluster config
+   * @return cluster config map
+   */
+  Map<String, Map<String, String>> getClusterConfigurations() {
+    return mapClusterConfigurations;
+  }
+
+
+
   // ----- utility methods ---------------------------------------------------
 
   /**
@@ -844,7 +854,7 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
 
     BlueprintConfigurationProcessor configurationProcessor = new BlueprintConfigurationProcessor(mapClusterConfigurations);
     configurationProcessor.doUpdateForClusterCreate(blueprintHostGroups);
-    setMissingConfigurations();
+    setMissingConfigurations(blueprintHostGroups);
   }
 
   /**
@@ -908,14 +918,29 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
   /**
    * Explicitly set any properties that are required but not currently provided in the stack definition.
    */
-  private void setMissingConfigurations() {
+  void setMissingConfigurations(Map<String, HostGroupImpl> blueprintHostGroups) {
     // AMBARI-5206
     final Map<String , String> userProps = new HashMap<String , String>();
-    userProps.put("oozie_user", "oozie-env");
-    userProps.put("hive_user", "hive-env");
-    userProps.put("hcat_user", "hive-env");
-    userProps.put("hbase_user", "hbase-env");
-    userProps.put("falcon_user", "falcon-env");
+
+    // only add user properties to the map for
+    // services actually included in the blueprint definition
+    if (isServiceIncluded("OOZIE", blueprintHostGroups)) {
+      userProps.put("oozie_user", "oozie-env");
+    }
+
+    if (isServiceIncluded("HIVE", blueprintHostGroups)) {
+      userProps.put("hive_user", "hive-env");
+      userProps.put("hcat_user", "hive-env");
+    }
+
+    if (isServiceIncluded("HBASE", blueprintHostGroups)) {
+      userProps.put("hbase_user", "hbase-env");
+    }
+
+    if (isServiceIncluded("FALCON", blueprintHostGroups)) {
+      userProps.put("falcon_user", "falcon-env");
+    }
+
 
     String proxyUserHosts  = "hadoop.proxyuser.%s.hosts";
     String proxyUserGroups = "hadoop.proxyuser.%s.groups";
@@ -923,12 +948,38 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
     for (String property : userProps.keySet()) {
       String configType = userProps.get(property);
       Map<String, String> configs = mapClusterConfigurations.get(configType);
-      String user = configs.get(property);
-      if (user != null && !user.isEmpty()) {
-        ensureProperty("core-site", String.format(proxyUserHosts, user), "*");
-        ensureProperty("core-site", String.format(proxyUserGroups, user), "users");
+      if (configs != null) {
+        String user = configs.get(property);
+        if (user != null && !user.isEmpty()) {
+          ensureProperty("core-site", String.format(proxyUserHosts, user), "*");
+          ensureProperty("core-site", String.format(proxyUserGroups, user), "users");
+        }
+      } else {
+        LOG.debug("setMissingConfigurations: no user configuration found for type = " + configType + ".  This may be caused by an error in the blueprint configuration.");
+      }
+
+    }
+  }
+
+
+  /**
+   * Determines if any components in the specified service are
+   *   included in the current blueprint's host group definitions.
+   *
+   * @param serviceName the Hadoop service name to query on
+   * @param blueprintHostGroups the map of Host Groups in the current blueprint
+   * @return true if the named service is included in the blueprint
+   *         false if the named service it not included in the blueprint
+   */
+  protected boolean isServiceIncluded(String serviceName, Map<String, HostGroupImpl> blueprintHostGroups) {
+    for (String hostGroupName : blueprintHostGroups.keySet()) {
+      HostGroupImpl hostGroup = blueprintHostGroups.get(hostGroupName);
+      if (hostGroup.getServices().contains(serviceName)) {
+        return true;
       }
     }
+
+    return false;
   }
 
   /**
