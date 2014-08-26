@@ -63,10 +63,9 @@ public class GetConfigurationRecommnedationCommand extends
     return response;
   }
 
-  private Set<HostGroup> processHostGroups(StackAdvisorRequest request) {
-
+  protected Set<HostGroup> processHostGroups(StackAdvisorRequest request) {
     Set<HostGroup> resultSet = new HashSet<HostGroup>();
-    for (Map.Entry<String, Set<String>> componentHost : request.getComponentHostsMap().entrySet()) {
+    for (Map.Entry<String, Set<String>> componentHost : request.getHostComponents().entrySet()) {
       String hostGroupName = componentHost.getKey();
       Set<String> components = componentHost.getValue();
       if (hostGroupName != null && components != null) {
