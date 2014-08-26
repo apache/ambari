@@ -49,6 +49,7 @@
     <ambari.server.module>../ambari-server</ambari.server.module>
     <target.cache.dir>${project.build.directory}/cache/</target.cache.dir>
     <resource.keeper.script>${ambari.server.module}/src/main/python/ambari_server/resourceFilesKeeper.py</resource.keeper.script>
+    <init.d.dir>/etc/rc.d/init.d</init.d.dir>
   </properties>
   <build>
     <plugins>
@@ -349,7 +350,7 @@
               <groupname>root</groupname>
             </mapping>
             <mapping>
-              <directory>/etc/rc.d/init.d</directory>
+              <directory>${init.d.dir}</directory>
               <filemode>755</filemode>
               <username>root</username>
               <groupname>root</groupname>
@@ -666,4 +667,12 @@
       </extension>
     </extensions>
   </build>
+  <profiles>
+    <profile>
+      <id>suse11</id>
+      <properties>
+        <init.d.dir>/etc/init.d</init.d.dir>
+      </properties>
+    </profile>
+  </profiles>
 </project>
