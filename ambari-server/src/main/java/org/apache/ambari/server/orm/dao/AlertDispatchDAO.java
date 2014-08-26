@@ -51,7 +51,7 @@ public class AlertDispatchDAO {
 
   /**
    * Gets an alert group with the specified ID.
-   * 
+   *
    * @param groupId
    *          the ID of the group to retrieve.
    * @return the group or {@code null} if none exists.
@@ -62,7 +62,7 @@ public class AlertDispatchDAO {
 
   /**
    * Gets an alert target with the specified ID.
-   * 
+   *
    * @param targetId
    *          the ID of the target to retrieve.
    * @return the target or {@code null} if none exists.
@@ -73,7 +73,7 @@ public class AlertDispatchDAO {
 
   /**
    * Gets a notification with the specified ID.
-   * 
+   *
    * @param noticeId
    *          the ID of the notification to retrieve.
    * @return the notification or {@code null} if none exists.
@@ -85,7 +85,7 @@ public class AlertDispatchDAO {
   /**
    * Gets an alert group with the specified name across all clusters. Alert
    * group names are unique within a cluster.
-   * 
+   *
    * @param groupName
    *          the name of the group (not {@code null}).
    * @return the alert group or {@code null} if none exists.
@@ -102,7 +102,7 @@ public class AlertDispatchDAO {
   /**
    * Gets an alert group with the specified name for the given cluster. Alert
    * group names are unique within a cluster.
-   * 
+   *
    * @param clusterId
    *          the ID of the cluster.
    * @param groupName
@@ -122,7 +122,7 @@ public class AlertDispatchDAO {
   /**
    * Gets an alert target with the specified name. Alert target names are unique
    * across all clusters.
-   * 
+   *
    * @param targetName
    *          the name of the target (not {@code null}).
    * @return the alert target or {@code null} if none exists.
@@ -138,7 +138,7 @@ public class AlertDispatchDAO {
 
   /**
    * Gets all alert groups stored in the database across all clusters.
-   * 
+   *
    * @return all alert groups or empty list if none exist (never {@code null}).
    */
   public List<AlertGroupEntity> findAllGroups() {
@@ -150,7 +150,7 @@ public class AlertDispatchDAO {
 
   /**
    * Gets all alert groups stored in the database for the specified cluster.
-   * 
+   *
    * @return all alert groups in the specified cluster or empty list if none
    *         exist (never {@code null}).
    */
@@ -165,7 +165,7 @@ public class AlertDispatchDAO {
 
   /**
    * Gets all alert targets stored in the database.
-   * 
+   *
    * @return all alert targets or empty list if none exist (never {@code null}).
    */
   public List<AlertTargetEntity> findAllTargets() {
@@ -177,7 +177,7 @@ public class AlertDispatchDAO {
 
   /**
    * Gets all alert notifications stored in the database.
-   * 
+   *
    * @return all alert notifications or empty list if none exist (never
    *         {@code null}).
    */
@@ -186,6 +186,23 @@ public class AlertDispatchDAO {
         "AlertNoticeEntity.findAll", AlertNoticeEntity.class);
 
     return daoUtils.selectList(query);
+  }
+
+  /**
+   * Persists new alert groups.
+   *
+   * @param entities
+   *          the groups to persist (not {@code null}).
+   */
+  @Transactional
+  public void createGroups(List<AlertGroupEntity> entities) {
+    if (null == entities) {
+      return;
+    }
+
+    for (AlertGroupEntity entity : entities) {
+      create(entity);
+    }
   }
 
   /**
@@ -201,7 +218,7 @@ public class AlertDispatchDAO {
 
   /**
    * Refresh the state of the alert group from the database.
-   * 
+   *
    * @param alertGroup
    *          the group to refresh (not {@code null}).
    */
@@ -212,7 +229,7 @@ public class AlertDispatchDAO {
 
   /**
    * Merge the speicified alert group with the existing group in the database.
-   * 
+   *
    * @param alertGroup
    *          the group to merge (not {@code null}).
    * @return the updated group with merged content (never {@code null}).
@@ -224,7 +241,7 @@ public class AlertDispatchDAO {
 
   /**
    * Removes the specified alert group from the database.
-   * 
+   *
    * @param alertGroup
    *          the group to remove.
    */
@@ -234,8 +251,25 @@ public class AlertDispatchDAO {
   }
 
   /**
+   * Persists new alert targets.
+   *
+   * @param entities
+   *          the targets to persist (not {@code null}).
+   */
+  @Transactional
+  public void createTargets(List<AlertTargetEntity> entities) {
+    if (null == entities) {
+      return;
+    }
+
+    for (AlertTargetEntity entity : entities) {
+      create(entity);
+    }
+  }
+
+  /**
    * Persists a new alert target.
-   * 
+   *
    * @param alertTarget
    *          the target to persist (not {@code null}).
    */
@@ -246,7 +280,7 @@ public class AlertDispatchDAO {
 
   /**
    * Refresh the state of the alert target from the database.
-   * 
+   *
    * @param alertTarget
    *          the target to refresh (not {@code null}).
    */
@@ -257,7 +291,7 @@ public class AlertDispatchDAO {
 
   /**
    * Merge the speicified alert target with the existing target in the database.
-   * 
+   *
    * @param alertTarget
    *          the target to merge (not {@code null}).
    * @return the updated target with merged content (never {@code null}).
@@ -269,7 +303,7 @@ public class AlertDispatchDAO {
 
   /**
    * Removes the specified alert target from the database.
-   * 
+   *
    * @param alertTarget
    *          the target to remove.
    */
@@ -280,7 +314,7 @@ public class AlertDispatchDAO {
 
   /**
    * Persists a new notification.
-   * 
+   *
    * @param alertNotice
    *          the notification to persist (not {@code null}).
    */
@@ -291,7 +325,7 @@ public class AlertDispatchDAO {
 
   /**
    * Refresh the state of the notification from the database.
-   * 
+   *
    * @param alertNotice
    *          the notification to refresh (not {@code null}).
    */
@@ -302,7 +336,7 @@ public class AlertDispatchDAO {
 
   /**
    * Merge the specified notification with the existing target in the database.
-   * 
+   *
    * @param alertNotice
    *          the notification to merge (not {@code null}).
    * @return the updated notification with merged content (never {@code null}).
@@ -314,7 +348,7 @@ public class AlertDispatchDAO {
 
   /**
    * Removes the specified notification from the database.
-   * 
+   *
    * @param alertNotice
    *          the notification to remove.
    */
@@ -327,7 +361,7 @@ public class AlertDispatchDAO {
    * Removes notifications for the specified alert definition ID. This will
    * invoke {@link EntityManager#clear()} when completed since the JPQL
    * statement will remove entries without going through the EM.
-   * 
+   *
    * @param definitionId
    *          the ID of the definition to remove.
    */

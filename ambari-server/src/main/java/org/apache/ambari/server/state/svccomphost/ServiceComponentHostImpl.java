@@ -555,6 +555,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       impl.alertDefinitionHash.invalidate(impl.getClusterName(), hostName);
       impl.alertDefinitionHash.enqueueAgentCommands(impl.getClusterName(),
           Collections.singleton(hostName));
+
+      impl.updateLastOpInfo(event.getType(), event.getOpTimestamp());
     }
   }
 

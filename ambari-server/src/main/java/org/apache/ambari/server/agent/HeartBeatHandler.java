@@ -229,11 +229,13 @@ public class HeartBeatHandler {
 
   protected void calculateHostAlerts(HeartBeat heartbeat, String hostname)
           throws AmbariException {
-      if (heartbeat != null && hostname != null) {
-        for (Cluster cluster : clusterFsm.getClustersForHost(hostname)) {
-          cluster.addAlerts(heartbeat.getNodeStatus().getAlerts());
-        }
-      }
+    if (null == hostname || null == heartbeat) {
+      return;
+    }
+
+    for (Cluster cluster : clusterFsm.getClustersForHost(hostname)) {
+      cluster.addAlerts(heartbeat.getNodeStatus().getAlerts());
+    }
   }
 
   protected void processHostStatus(HeartBeat heartbeat, String hostname) throws AmbariException {
@@ -710,7 +712,7 @@ public class HeartBeatHandler {
     response.setResponseStatus(RegistrationStatus.OK);
 
     // force the registering agent host to receive its list of alert definitions
-    List<AlertDefinitionCommand> alertDefinitionCommands = getAlertDefinitionCommands(hostname);
+    List<AlertDefinitionCommand> alertDefinitionCommands = getRegistrationAlertDefinitionCommands(hostname);
     response.setAlertDefinitionCommands(alertDefinitionCommands);
 
     Long requestId = 0L;
@@ -787,7 +789,7 @@ public class HeartBeatHandler {
    * @return
    * @throws AmbariException
    */
-  private List<AlertDefinitionCommand> getAlertDefinitionCommands(
+  private List<AlertDefinitionCommand> getRegistrationAlertDefinitionCommands(
       String hostname) throws AmbariException {
 
     Set<Cluster> hostClusters = clusterFsm.getClustersForHost(hostname);

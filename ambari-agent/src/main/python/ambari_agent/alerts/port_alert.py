@@ -22,7 +22,6 @@ import logging
 import re
 import socket
 import time
-import traceback
 from alerts.base_alert import BaseAlert
 from resource_management.libraries.functions.get_port_from_url import get_port_from_url
 
@@ -40,7 +39,7 @@ class PortAlert(BaseAlert):
   def _collect(self):
     urivalue = self._lookup_property_value(self.uri)
 
-    host = get_host_from_url(urivalue)
+    host = get_host_from_url(self, urivalue)
     port = self.port
     
     try:
@@ -76,9 +75,9 @@ Tested on the following cases:
   "hdfs://192.168.54.3/foo/bar"
   "ftp://192.168.54.4:7842/foo/bar"
 '''    
-def get_host_from_url(uri):
+def get_host_from_url(self, uri):
   # RFC3986, Appendix B
-  parts = re.findall('^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?' , uri)
+  parts = re.findall('^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?', uri)
 
   # index of parts
   # scheme    = 1
@@ -96,6 +95,10 @@ def get_host_from_url(uri):
     host_and_port = parts[0][3]
 
   if -1 == host_and_port.find(':'):
+    # if no : then it might only be a port; if it's a port, return this host
+    if host_and_port.isdigit():
+      return self.hostName
+
     return host_and_port
   else:
     return host_and_port.split(':')[0]

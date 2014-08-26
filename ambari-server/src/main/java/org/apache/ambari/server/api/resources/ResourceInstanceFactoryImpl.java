@@ -251,6 +251,14 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
         resourceDefinition = new AlertDefResourceDefinition();
         break;
 
+      case AlertGroup:
+        resourceDefinition = new AlertGroupResourceDefinition();
+        break;
+
+      case AlertTarget:
+        resourceDefinition = new AlertTargetResourceDefinition();
+        break;
+
       case AmbariPrivilege:
         resourceDefinition = new PrivilegeResourceDefinition(Resource.Type.AmbariPrivilege);
         break;

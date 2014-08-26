@@ -149,6 +149,13 @@
     "Cluster": "AlertDefinition/cluster_name",
     "AlertDefinition": "AlertDefinition/id"
   },
+  "AlertTarget": {
+    "AlertTarget": "AlertTarget/id"
+  },
+  "AlertGroup": {
+    "Cluster": "AlertGroup/cluster_name",
+    "AlertGroup": "AlertGroup/id"
+  },  
   "Controller": {
     "Controller": "Controllers/name"
   },

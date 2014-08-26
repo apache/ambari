@@ -34,7 +34,7 @@ class BaseAlert(object):
     self.alert_meta = alert_meta
     self.alert_source_meta = alert_source_meta
     self.cluster = ''
-    self.hostname = ''
+    self.hostName = ''
     self._lookup_keys = []
     
     
@@ -54,7 +54,7 @@ class BaseAlert(object):
   def set_cluster(self, cluster, host):
     ''' sets cluster information for the alert '''
     self.cluster = cluster
-    self.hostname = host
+    self.hostName = host
   
   def collect(self):
     ''' method used for collection.  defers to _collect() '''

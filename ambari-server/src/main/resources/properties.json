@@ -425,7 +425,23 @@
       "AlertDefinition/enabled",
       "AlertDefinition/scope",
       "AlertDefinition/source"
-    ],      
+    ],
+    "AlertGroup": [
+      "AlertGroup/id",
+      "AlertGroup/name",
+      "AlertGroup/cluster_name",
+      "AlertGroup/default",
+      "AlertGroup/definitions",
+      "AlertGroup/targets"
+    ],
+    "AlertTarget": [
+      "AlertTarget/id",
+      "AlertTarget/name",
+      "AlertTarget/description",      
+      "AlertTarget/notification_type",
+      "AlertTarget/properties",
+      "AlertTarget/groups"
+    ],
     "Controller":[
         "Controllers/name",
         "LDAP/configured",
