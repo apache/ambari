@@ -437,7 +437,7 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
   private void renameSequenceValueColumnName() throws AmbariException, SQLException {
     final String dbType = getDbType();
     if (Configuration.MYSQL_DB_NAME.equals(dbType)) {
-      dbAccessor.executeQuery("ALTER TABLE ambari_sequences RENAME COLUMN \"value\" to sequence_value DECIMAL(38) NOT NULL");
+      dbAccessor.executeQuery("ALTER TABLE ambari_sequences RENAME COLUMN value to sequence_value DECIMAL(38) NOT NULL");
     } else if (Configuration.DERBY_DB_NAME.equals(dbType)) {
       dbAccessor.executeQuery("RENAME COLUMN ambari_sequences.\"value\" to sequence_value");
     } else if (Configuration.ORACLE_DB_NAME.equals(dbType)) {
