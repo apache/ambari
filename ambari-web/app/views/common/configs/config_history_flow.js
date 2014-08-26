@@ -285,8 +285,8 @@ App.ConfigHistoryFlowView = Em.View.extend({
       data: {
         data: {
           "Clusters": {
-            "desired_serviceconfigversions": {
-              "serviceconfigversion": serviceConfigVersion.get('version'),
+            "desired_service_config_versions": {
+              "service_config_version": serviceConfigVersion.get('version'),
               "service_name": serviceConfigVersion.get('serviceName'),
               "service_config_version_note": serviceConfigVersion.get('serviceConfigNote')
             }

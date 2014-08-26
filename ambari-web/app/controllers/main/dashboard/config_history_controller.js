@@ -31,7 +31,7 @@ App.MainConfigHistoryController = Em.ArrayController.extend(App.TableServerMixin
   filteredCount: 0,
   mockUrl: '/data/configurations/service_versions.json',
   realUrl: function () {
-    return App.apiPrefix + '/clusters/' + App.get('clusterName') + '/configurations/serviceconfigversions?<parameters>fields=serviceconfigversion,user,group_id,group_name,createtime,service_name,service_config_version_note&minimal_response=true';
+    return App.apiPrefix + '/clusters/' + App.get('clusterName') + '/configurations/service_config_versions?<parameters>fields=service_config_version,user,group_id,group_name,createtime,service_name,service_config_version_note&minimal_response=true';
   }.property('App.clusterName'),
 
   /**
@@ -193,8 +193,8 @@ App.MainConfigHistoryController = Em.ArrayController.extend(App.TableServerMixin
   loadCurrentVersionsSuccess: function (data, opt, params) {
     var currentConfigVersions = {};
 
-    for (var service in data.Clusters.desired_serviceconfigversions) {
-      currentConfigVersions[service + '_' + data.Clusters.desired_serviceconfigversions[service].serviceconfigversion] = true;
+    for (var service in data.Clusters.desired_service_config_versions) {
+      currentConfigVersions[service + '_' + data.Clusters.desired_service_config_versions[service][0].service_config_version] = true;
     }
     App.cache['currentConfigVersions'] = currentConfigVersions;
   },

@@ -1894,19 +1894,19 @@ var urls = {
     }
   },
   'service.serviceConfigVersions.get': {
-    real: '/clusters/{clusterName}/configurations/serviceconfigversions?service_name={serviceName}&fields=serviceconfigversion,user,group_id,group_name,createtime,service_name,service_config_version_note&minimal_response=true',
+    real: '/clusters/{clusterName}/configurations/service_config_versions?service_name={serviceName}&fields=service_config_version,user,group_id,group_name,createtime,service_name,service_config_version_note&minimal_response=true',
     mock: '/data/configurations/service_versions.json'
   },
   'service.serviceConfigVersions.get.current': {
-    real: '/clusters/{clusterName}?fields=Clusters/desired_serviceconfigversions&minimal_response=true',
+    real: '/clusters/{clusterName}?fields=Clusters/desired_service_config_versions&minimal_response=true',
     mock: ''
   },
   'service.serviceConfigVersions.get.total': {
-    real: '/clusters/{clusterName}/configurations/serviceconfigversions?page_size=1&minimal_response=true',
+    real: '/clusters/{clusterName}/configurations/service_config_versions?page_size=1&minimal_response=true',
     mock: ''
   },
   'service.serviceConfigVersion.get': {
-    real: '/clusters/{clusterName}/configurations/serviceconfigversions?service_name={serviceName}&serviceconfigversion={serviceConfigVersion}',
+    real: '/clusters/{clusterName}/configurations/service_config_versions?service_name={serviceName}&service_config_version={serviceConfigVersion}',
     mock: '/data/configurations/service_version.json'
   },
   'service.serviceConfigVersion.revert': {

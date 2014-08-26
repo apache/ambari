@@ -296,10 +296,10 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   loadCurrentVersionsSuccess: function (data, opt, params) {
     var currentConfigVersions = {};
     var self = this;
-    for (var service in data.Clusters.desired_serviceconfigversions) {
-      currentConfigVersions[service + '_' + data.Clusters.desired_serviceconfigversions[service].serviceconfigversion] = true;
+    for (var service in data.Clusters.desired_service_config_versions) {
+      currentConfigVersions[service + '_' + data.Clusters.desired_service_config_versions[service][0].service_config_version] = true;
       if (self.get('content.serviceName') == service) {
-        self.set('currentVersion', data.Clusters.desired_serviceconfigversions[service].serviceconfigversion);
+        self.set('currentVersion', data.Clusters.desired_service_config_versions[service][0].service_config_version);
       }
     }
     App.cache['currentConfigVersions'] = currentConfigVersions;
