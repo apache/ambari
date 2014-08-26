@@ -16,14 +16,14 @@
  * limitations under the License.
  */
 package org.apache.ambari.server.actionmanager;
+ 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import com.google.inject.persist.UnitOfWork;
-
-import junit.framework.Assert;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
@@ -52,8 +52,9 @@ import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
+import com.google.inject.persist.UnitOfWork;
 
-import static org.junit.Assert.*;
+import junit.framework.Assert;
 
 public class TestActionDBAccessorImpl {
   private static final Logger log = LoggerFactory.getLogger(TestActionDBAccessorImpl.class);
@@ -348,7 +349,8 @@ public class TestActionDBAccessorImpl {
 
   @Test
   public void testAbortRequest() throws AmbariException {
-    Stage s = new Stage(requestId, "/a/b", "cluster1", 1L, "action db accessor test", "clusterHostInfo");
+    Stage s = new Stage(requestId, "/a/b", "cluster1", 1L, "action db accessor test",
+      "clusterHostInfo", "commandParamsStage", "hostParamsStage");
     s.setStageId(stageId);
 
     clusters.addHost("host2");
@@ -412,7 +414,8 @@ public class TestActionDBAccessorImpl {
   }
 
   private Stage createStubStage(String hostname, long requestId, long stageId) {
-    Stage s = new Stage(requestId, "/a/b", "cluster1", 1L, "action db accessor test", "clusterHostInfo");
+    Stage s = new Stage(requestId, "/a/b", "cluster1", 1L, "action db accessor test",
+      "clusterHostInfo", "commandParamsStage", "hostParamsStage");
     s.setStageId(stageId);
     s.addHostRoleExecutionCommand(hostname, Role.HBASE_MASTER,
         RoleCommand.START,
@@ -429,7 +432,8 @@ public class TestActionDBAccessorImpl {
 
   private void populateActionDBWithCustomAction(ActionDBAccessor db, String hostname,
                                 long requestId, long stageId) throws AmbariException {
-    Stage s = new Stage(requestId, "/a/b", "cluster1", 1L, "action db accessor test", "");
+    Stage s = new Stage(requestId, "/a/b", "cluster1", 1L, "action db accessor test",
+      "", "commandParamsStage", "hostParamsStage");
     s.setStageId(stageId);
     s.addHostRoleExecutionCommand(hostname, Role.valueOf(actionName),
         RoleCommand.ACTIONEXECUTE,

@@ -3130,12 +3130,15 @@ public class AmbariManagementControllerTest {
     Assert.assertNull(stage1.getExecutionCommandWrapper(host2, "DATANODE"));
     Assert.assertNotNull(stage3.getExecutionCommandWrapper(host1, "HBASE_SERVICE_CHECK"));
     Assert.assertNotNull(stage2.getExecutionCommandWrapper(host2, "HDFS_SERVICE_CHECK"));
+ 
+    Type type = new TypeToken<Map<String, String>>() {}.getType();
+
 
     for (Stage s : stages) {
       for (List<ExecutionCommandWrapper> list : s.getExecutionCommands().values()) {
         for (ExecutionCommandWrapper ecw : list) {
           if (ecw.getExecutionCommand().getRole().contains("SERVICE_CHECK")) {
-            Map<String, String> hostParams = ecw.getExecutionCommand().getHostLevelParams();
+            Map<String, String> hostParams = StageUtils.getGson().fromJson(s.getHostParamsStage(), type);
             Assert.assertNotNull(hostParams);
             Assert.assertTrue(hostParams.size() > 0);
             Assert.assertTrue(hostParams.containsKey("stack_version"));
@@ -3936,12 +3939,14 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals("a1", task.getRole().name());
     Assert.assertEquals("h1", task.getHostName());
     ExecutionCommand cmd = task.getExecutionCommandWrapper().getExecutionCommand();
-    Map<String, String> commandParameters = cmd.getCommandParams();
+    Type type = new TypeToken<Map<String, String>>(){}.getType();
+    Map<String, String> hostParametersStage = StageUtils.getGson().fromJson(stage.getHostParamsStage(), type);
+    Map<String, String> commandParametersStage = StageUtils.getGson().fromJson(stage.getCommandParamsStage(), type);
 
-    Assert.assertTrue(commandParameters.containsKey("test"));
+    Assert.assertTrue(commandParametersStage.containsKey("test"));
     Assert.assertEquals("HDFS", cmd.getServiceName());
     Assert.assertEquals("DATANODE", cmd.getComponentName());
-    Assert.assertNotNull(commandParameters.get("jdk_location"));
+    Assert.assertNotNull(hostParametersStage.get("jdk_location"));
 
     resourceFilters.clear();
     resourceFilter = new RequestResourceFilter("", "", null);
@@ -3965,9 +3970,9 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals(expectedHosts, actualHosts);
 
     cmd = task.getExecutionCommandWrapper().getExecutionCommand();
-    commandParameters = cmd.getCommandParams();
+    commandParametersStage = StageUtils.getGson().fromJson(stage.getCommandParamsStage(), type);
 
-    Assert.assertTrue(commandParameters.containsKey("test"));
+    Assert.assertTrue(commandParametersStage.containsKey("test"));
     Assert.assertEquals("HDFS", cmd.getServiceName());
     Assert.assertEquals("DATANODE", cmd.getComponentName());
 
@@ -4063,24 +4068,24 @@ public class AmbariManagementControllerTest {
     Assert.assertNotNull(stages);
 
     HostRoleCommand hrc = null;
+    Type type = new TypeToken<Map<String, String>>(){}.getType();
     for (Stage stage : stages) {
       for (HostRoleCommand cmd : stage.getOrderedHostRoleCommands()) {
         if (cmd.getRole().equals(Role.HDFS_CLIENT)) {
           hrc = cmd;
         }
+        Map<String, String> hostParamStage = StageUtils.getGson().fromJson(stage.getHostParamsStage(), type);
+        Assert.assertTrue(hostParamStage.containsKey(ExecutionCommand.KeyNames.DB_DRIVER_FILENAME));
+        Assert.assertTrue(hostParamStage.containsKey(ExecutionCommand.KeyNames.MYSQL_JDBC_URL));
+        Assert.assertTrue(hostParamStage.containsKey(ExecutionCommand.KeyNames.ORACLE_JDBC_URL));
       }
     }
     Assert.assertNotNull(hrc);
     Assert.assertEquals("RESTART HDFS/HDFS_CLIENT", hrc.getCommandDetail());
     Map<String, String> roleParams = hrc.getExecutionCommandWrapper()
       .getExecutionCommand().getRoleParams();
-    Map<String, String> hostParams = hrc.getExecutionCommandWrapper()
-        .getExecutionCommand().getHostLevelParams();
 
     Assert.assertNotNull(roleParams);
-    Assert.assertTrue(hostParams.containsKey(ExecutionCommand.KeyNames.DB_DRIVER_FILENAME));
-    Assert.assertTrue(hostParams.containsKey(ExecutionCommand.KeyNames.MYSQL_JDBC_URL));
-    Assert.assertTrue(hostParams.containsKey(ExecutionCommand.KeyNames.ORACLE_JDBC_URL));
     Assert.assertEquals("CLIENT", roleParams.get(ExecutionCommand.KeyNames.COMPONENT_CATEGORY));
     Assert.assertTrue(hrc.getExecutionCommandWrapper().getExecutionCommand().getCommandParams().containsKey("hdfs_client"));
     Assert.assertEquals("abc", hrc.getExecutionCommandWrapper().getExecutionCommand().getCommandParams().get("hdfs_client"));
@@ -6321,7 +6326,11 @@ public class AmbariManagementControllerTest {
     Assert.assertNotNull(nnCommand);
     ExecutionCommand cmd = nnCommand.getExecutionCommandWrapper().getExecutionCommand();
     Assert.assertEquals("a1", cmd.getRole());
-    Assert.assertTrue(cmd.getCommandParams().containsKey("test"));
+    Type type = new TypeToken<Map<String, String>>(){}.getType();
+    for (Stage stage : actionDB.getAllStages(response.getRequestId())){
+      Map<String, String> commandParamsStage = StageUtils.getGson().fromJson(stage.getCommandParamsStage(), type);
+      Assert.assertTrue(commandParamsStage.containsKey("test"));
+    }
   }
 
   @Test
@@ -6400,8 +6409,6 @@ public class AmbariManagementControllerTest {
     int expectedRestartCount = 0;
     for (HostRoleCommand hrc : storedTasks) {
       Assert.assertEquals("RESTART", hrc.getCustomCommandName());
-      Assert.assertNotNull(hrc.getExecutionCommandWrapper()
-          .getExecutionCommand().getCommandParams().get("jdk_location"));
 
       if (hrc.getHostName().equals("h1") && hrc.getRole().equals(Role.DATANODE)) {
         expectedRestartCount++;
@@ -6506,6 +6513,13 @@ public class AmbariManagementControllerTest {
         }
       }
     }
+ 
+    Type type = new TypeToken<Map<String, String>>(){}.getType();
+    for (Stage stage : actionDB.getAllStages(requestId)){
+      Map<String, String> hostParamsStage = StageUtils.getGson().fromJson(stage.getHostParamsStage(), type);
+      Assert.assertNotNull(hostParamsStage.get("jdk_location"));
+    }
+
     Assert.assertEquals(true, serviceCheckFound);
   }
 
@@ -6630,15 +6644,21 @@ public class AmbariManagementControllerTest {
         .getDesiredState());
 
     List<Stage> stages = actionDB.getAllStages(trackAction.getRequestId());
-    Map<String, String> params = stages.get(0).getOrderedHostRoleCommands().get
+    Type type = new TypeToken<Map<String, String>>(){}.getType();
+
+    for (Stage stage : stages){
+      Map<String, String> params = StageUtils.getGson().fromJson(stage.getHostParamsStage(), type);
+      Assert.assertEquals("0.1", params.get("stack_version"));
+      Assert.assertNotNull(params.get("jdk_location"));
+      Assert.assertNotNull(params.get("db_name"));
+      Assert.assertNotNull(params.get("mysql_jdbc_url"));
+      Assert.assertNotNull(params.get("oracle_jdbc_url"));
+    }
+
+    Map<String, String> paramsCmd = stages.get(0).getOrderedHostRoleCommands().get
       (0).getExecutionCommandWrapper().getExecutionCommand()
       .getHostLevelParams();
-    Assert.assertEquals("0.1", params.get("stack_version"));
-    Assert.assertNotNull(params.get("jdk_location"));
-    Assert.assertNotNull(params.get("repo_info"));
-    Assert.assertNotNull(params.get("db_name"));
-    Assert.assertNotNull(params.get("mysql_jdbc_url"));
-    Assert.assertNotNull(params.get("oracle_jdbc_url"));
+    Assert.assertNotNull(paramsCmd.get("repo_info"));
   }
 
   @Test
@@ -7874,7 +7894,8 @@ public class AmbariManagementControllerTest {
 
 
     List<Stage> stages = new ArrayList<Stage>();
-    stages.add(new Stage(requestId1, "/a1", clusterName, 1L, context, CLUSTER_HOST_INFO));
+    stages.add(new Stage(requestId1, "/a1", clusterName, 1L, context,
+      CLUSTER_HOST_INFO, "", ""));
     stages.get(0).setStageId(1);
     stages.get(0).addHostRoleExecutionCommand(hostName1, Role.HBASE_MASTER,
             RoleCommand.START,
@@ -7882,14 +7903,16 @@ public class AmbariManagementControllerTest {
                     hostName1, System.currentTimeMillis()),
             clusterName, "HBASE");
 
-    stages.add(new Stage(requestId1, "/a2", clusterName, 1L, context, CLUSTER_HOST_INFO));
+    stages.add(new Stage(requestId1, "/a2", clusterName, 1L, context,
+      CLUSTER_HOST_INFO, "", ""));
     stages.get(1).setStageId(2);
     stages.get(1).addHostRoleExecutionCommand(hostName1, Role.HBASE_CLIENT,
             RoleCommand.START,
             new ServiceComponentHostStartEvent(Role.HBASE_CLIENT.toString(),
                     hostName1, System.currentTimeMillis()), clusterName, "HBASE");
 
-    stages.add(new Stage(requestId1, "/a3", clusterName, 1L, context, CLUSTER_HOST_INFO));
+    stages.add(new Stage(requestId1, "/a3", clusterName, 1L, context,
+      CLUSTER_HOST_INFO, "", ""));
     stages.get(2).setStageId(3);
     stages.get(2).addHostRoleExecutionCommand(hostName1, Role.HBASE_CLIENT,
             RoleCommand.START,
@@ -7900,14 +7923,16 @@ public class AmbariManagementControllerTest {
     actionDB.persistActions(request);
 
     stages.clear();
-    stages.add(new Stage(requestId2, "/a4", clusterName, 1L, context, CLUSTER_HOST_INFO));
+    stages.add(new Stage(requestId2, "/a4", clusterName, 1L, context,
+      CLUSTER_HOST_INFO, "", ""));
     stages.get(0).setStageId(4);
     stages.get(0).addHostRoleExecutionCommand(hostName1, Role.HBASE_CLIENT,
             RoleCommand.START,
             new ServiceComponentHostStartEvent(Role.HBASE_CLIENT.toString(),
                     hostName1, System.currentTimeMillis()), clusterName, "HBASE");
 
-    stages.add(new Stage(requestId2, "/a5", clusterName, 1L, context, CLUSTER_HOST_INFO));
+    stages.add(new Stage(requestId2, "/a5", clusterName, 1L, context,
+      CLUSTER_HOST_INFO, "", ""));
     stages.get(1).setStageId(5);
     stages.get(1).addHostRoleExecutionCommand(hostName1, Role.HBASE_CLIENT,
             RoleCommand.START,
@@ -10142,7 +10167,9 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals(hostname1, task.getHostName());
 
     ExecutionCommand cmd = task.getExecutionCommandWrapper().getExecutionCommand();
-    Assert.assertTrue(cmd.getCommandParams().containsKey("some_custom_param"));
+    Type type = new TypeToken<Map<String, String>>(){}.getType();
+    Map<String, String> commandParamsStage = StageUtils.getGson().fromJson(stage.getCommandParamsStage(), type);
+    Assert.assertTrue(commandParamsStage.containsKey("some_custom_param"));
     Assert.assertEquals(null, cmd.getServiceName());
     Assert.assertEquals(null, cmd.getComponentName());
 
@@ -10181,7 +10208,8 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals(hostname1, task.getHostName());
 
     cmd = task.getExecutionCommandWrapper().getExecutionCommand();
-    Assert.assertTrue(cmd.getCommandParams().containsKey("some_custom_param"));
+    commandParamsStage = StageUtils.getGson().fromJson(stage.getCommandParamsStage(), type);
+    Assert.assertTrue(commandParamsStage.containsKey("some_custom_param"));
     Assert.assertEquals(null, cmd.getServiceName());
     Assert.assertEquals(null, cmd.getComponentName());
   }

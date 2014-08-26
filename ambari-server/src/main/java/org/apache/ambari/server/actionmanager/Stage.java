@@ -39,7 +39,6 @@ import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.serveraction.ServerAction;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ServiceComponentHostEvent;
-import org.apache.ambari.server.state.fsm.event.Event;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostUpgradeEvent;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.lang.StringUtils;
@@ -63,6 +62,8 @@ public class Stage {
   private final String logDir;
   private final String requestContext;
   private String clusterHostInfo;
+  private String commandParamsStage;
+  private String hostParamsStage;
 
   private int stageTimeout = -1;
 
@@ -83,7 +84,9 @@ public class Stage {
       @Assisted("clusterName") @Nullable String clusterName,
       @Assisted("clusterId") long clusterId,
       @Assisted("requestContext") @Nullable String requestContext,
-      @Assisted("clusterHostInfo") String clusterHostInfo) {
+      @Assisted("clusterHostInfo") String clusterHostInfo,
+      @Assisted("commandParamsStage") String commandParamsStage,
+      @Assisted("hostParamsStage") String hostParamsStage) {
     this.wrappersLoaded = true;
     this.requestId = requestId;
     this.logDir = logDir;
@@ -91,6 +94,8 @@ public class Stage {
     this.clusterId = clusterId;
     this.requestContext = requestContext == null ? "" : requestContext;
     this.clusterHostInfo = clusterHostInfo;
+    this.commandParamsStage = commandParamsStage;
+    this.hostParamsStage = hostParamsStage;
   }
 
   @AssistedInject
@@ -113,6 +118,8 @@ public class Stage {
     
     requestContext = stageEntity.getRequestContext();
     clusterHostInfo = stageEntity.getClusterHostInfo();
+    commandParamsStage = stageEntity.getCommandParamsStage();
+    hostParamsStage = stageEntity.getHostParamsStage();
 
 
     List<Long> taskIds = hostRoleCommandDAO.findTaskIdsByStage(requestId, stageId);
@@ -147,6 +154,8 @@ public class Stage {
     stageEntity.setHostRoleCommands(new ArrayList<HostRoleCommandEntity>());
     stageEntity.setRoleSuccessCriterias(new ArrayList<RoleSuccessCriteriaEntity>());
     stageEntity.setClusterHostInfo(clusterHostInfo);
+    stageEntity.setCommandParamsStage(commandParamsStage);
+    stageEntity.setHostParamsStage(hostParamsStage);
 
     for (Role role : successFactors.keySet()) {
       RoleSuccessCriteriaEntity roleSuccessCriteriaEntity = new RoleSuccessCriteriaEntity();
@@ -198,6 +207,23 @@ public class Stage {
   public void setClusterHostInfo(String clusterHostInfo) {
     this.clusterHostInfo = clusterHostInfo;
   }
+ 
+  public String getCommandParamsStage() {
+    return commandParamsStage;
+  }
+
+  public void setCommandParamsStage(String commandParamsStage) {
+    this.commandParamsStage = commandParamsStage;
+  }
+
+  public String getHostParamsStage() {
+    return hostParamsStage;
+  }
+
+  public void setHostParamsStage(String hostParamsStage) {
+    this.hostParamsStage = hostParamsStage;
+  }
+
 
   public synchronized void setStageId(long stageId) {
     if (this.stageId != -1) {
@@ -539,6 +565,8 @@ public class Stage {
     builder.append("logDir=" + logDir+"\n");
     builder.append("requestContext="+requestContext+"\n");
     builder.append("clusterHostInfo="+clusterHostInfo+"\n");
+    builder.append("commandParamsStage="+commandParamsStage+"\n");
+    builder.append("hostParamsStage="+hostParamsStage+"\n");
     builder.append("Success Factors:\n");
     for (Role r : successFactors.keySet()) {
       builder.append("  role: "+r+", factor: "+successFactors.get(r)+"\n");

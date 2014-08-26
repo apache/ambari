@@ -51,6 +51,14 @@ public class StageEntity {
   @Column(name = "cluster_host_info")
   @Basic
   private byte[] clusterHostInfo;
+ 
+  @Column(name = "command_params")
+  @Basic
+  private byte[] commandParamsStage;
+
+  @Column(name = "host_params")
+  @Basic
+  private byte[] hostParamsStage;
 
   @ManyToOne
   @JoinColumn(name = "request_id", referencedColumnName = "request_id", nullable = false)
@@ -106,6 +114,22 @@ public class StageEntity {
   public void setClusterHostInfo(String clusterHostInfo) {
     this.clusterHostInfo = clusterHostInfo.getBytes();
   }
+ 
+  public String getCommandParamsStage() {
+    return commandParamsStage == null ? new String() : new String(commandParamsStage);
+  }
+
+  public void setCommandParamsStage(String commandParamsStage) {
+    this.commandParamsStage = commandParamsStage.getBytes();
+  }
+
+  public String getHostParamsStage() {
+    return hostParamsStage == null ? new String() : new String(hostParamsStage);
+  }
+
+  public void setHostParamsStage(String hostParamsStage) {
+    this.hostParamsStage = hostParamsStage.getBytes();
+  }
 
   public void setRequestContext(String requestContext) {
     if (requestContext != null) {
@@ -125,6 +149,8 @@ public class StageEntity {
     if (requestId != null ? !requestId.equals(that.requestId) : that.requestId != null) return false;
     if (stageId != null ? !stageId.equals(that.stageId) : that.stageId != null) return false;
     if (clusterHostInfo != null ? !clusterHostInfo.equals(that.clusterHostInfo) : that.clusterHostInfo != null) return false;
+    if (commandParamsStage != null ? !commandParamsStage.equals(that.commandParamsStage) : that.commandParamsStage != null) return false;
+    if (hostParamsStage != null ? !hostParamsStage.equals(that.hostParamsStage) : that.hostParamsStage != null) return false;
     return !(requestContext != null ? !requestContext.equals(that.requestContext) : that.requestContext != null);
 
   }
@@ -136,6 +162,8 @@ public class StageEntity {
     result = 31 * result + (stageId != null ? stageId.hashCode() : 0);
     result = 31 * result + (logInfo != null ? logInfo.hashCode() : 0);
     result = 31 * result + (clusterHostInfo != null ? clusterHostInfo.hashCode() : 0);
+    result = 31 * result + (commandParamsStage != null ? commandParamsStage.hashCode() : 0);
+    result = 31 * result + (hostParamsStage != null ? hostParamsStage.hashCode() : 0);
     result = 31 * result + (requestContext != null ? requestContext.hashCode() : 0);
     return result;
   }

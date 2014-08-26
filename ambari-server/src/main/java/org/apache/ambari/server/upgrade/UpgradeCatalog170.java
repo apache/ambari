@@ -73,7 +73,6 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
-import org.apache.ambari.server.view.configuration.InstanceConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -249,6 +248,12 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
 
     dbAccessor.addColumn("host_role_command", new DBColumnInfo("output_log",
         String.class, 255, null, true));
+
+    dbAccessor.addColumn("stage", new DBColumnInfo("command_params",
+      byte[].class, null, null, true));
+    dbAccessor.addColumn("stage", new DBColumnInfo("host_params",
+      byte[].class, null, null, true));
+
     dbAccessor.addColumn("host_role_command", new DBColumnInfo("error_log",
         String.class, 255, null, true));
 

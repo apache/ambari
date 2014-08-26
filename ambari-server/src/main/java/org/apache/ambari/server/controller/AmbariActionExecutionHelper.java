@@ -20,7 +20,6 @@ package org.apache.ambari.server.controller;
 
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMMAND_TIMEOUT;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMPONENT_CATEGORY;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JDK_LOCATION;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT_TYPE;
 
@@ -206,12 +205,10 @@ public class AmbariActionExecutionHelper {
    * Add tasks to the stage based on the requested action execution
    * @param actionContext the context associated with the action
    * @param stage stage into which tasks must be inserted
-   * @param hostLevelParams host level params to send with the command
    * @throws AmbariException
    */
   public void addExecutionCommandsToStage(
-          final ActionExecutionContext actionContext,
-          Stage stage, Map<String, String> hostLevelParams)
+          final ActionExecutionContext actionContext, Stage stage)
       throws AmbariException {
 
     String actionName = actionContext.getActionName();
@@ -337,9 +334,8 @@ public class AmbariActionExecutionHelper {
         configTags = managementController.findConfigurationTagsWithOverrides(cluster, hostName);
       }
 
-      Map<String, String> commandParams = actionContext.getParameters();
+      Map<String, String> commandParams = new TreeMap<String, String>();
       commandParams.put(COMMAND_TIMEOUT, actionContext.getTimeout().toString());
-      commandParams.put(JDK_LOCATION, managementController.getJdkResourceUrl());
       commandParams.put(SCRIPT, actionName + ".py");
       commandParams.put(SCRIPT_TYPE, TYPE_PYTHON);
 
@@ -353,7 +349,6 @@ public class AmbariActionExecutionHelper {
       execCmd.setConfigurations(configurations);
       execCmd.setConfigurationAttributes(configurationAttributes);
       execCmd.setConfigurationTags(configTags);
-      execCmd.setHostLevelParams(hostLevelParams);
       execCmd.setCommandParams(commandParams);
       execCmd.setServiceName(serviceName == null || serviceName.isEmpty() ?
         resourceFilter.getServiceName() : serviceName);

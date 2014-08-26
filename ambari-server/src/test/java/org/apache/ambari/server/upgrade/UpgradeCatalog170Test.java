@@ -134,6 +134,8 @@ public class UpgradeCatalog170Test {
     Capture<DBAccessor.DBColumnInfo> clusterConfigAttributesColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
     Capture<DBAccessor.DBColumnInfo> maskColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
     Capture<DBAccessor.DBColumnInfo> maskedColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
+    Capture<DBAccessor.DBColumnInfo> stageCommandParamsColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
+    Capture<DBAccessor.DBColumnInfo> stageHostParamsColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
     Capture<List<DBAccessor.DBColumnInfo>> alertDefinitionColumnCapture = new Capture<List<DBAccessor.DBColumnInfo>>();
     Capture<List<DBAccessor.DBColumnInfo>> alertHistoryColumnCapture = new Capture<List<DBAccessor.DBColumnInfo>>();
     Capture<List<DBAccessor.DBColumnInfo>> alertCurrentColumnCapture = new Capture<List<DBAccessor.DBColumnInfo>>();
@@ -148,6 +150,7 @@ public class UpgradeCatalog170Test {
     setViewExpectations(dbAccessor, maskColumnCapture);
     setViewParameterExpectations(dbAccessor, maskedColumnCapture);
     setClusterConfigExpectations(dbAccessor, clusterConfigAttributesColumnCapture);
+    setStageExpectations(dbAccessor, stageCommandParamsColumnCapture, stageHostParamsColumnCapture);
 
     dbAccessor.createTable(eq("alert_definition"),
         capture(alertDefinitionColumnCapture), eq("definition_id"));
@@ -200,6 +203,7 @@ public class UpgradeCatalog170Test {
     assertClusterConfigColumns(clusterConfigAttributesColumnCapture);
     assertViewColumns(maskColumnCapture);
     assertViewParameterColumns(maskedColumnCapture);
+    assertStageColumns(stageCommandParamsColumnCapture, stageHostParamsColumnCapture);
 
     assertEquals(12, alertDefinitionColumnCapture.getValue().size());
     assertEquals(11, alertHistoryColumnCapture.getValue().size());
@@ -424,6 +428,17 @@ public class UpgradeCatalog170Test {
     dbAccessor.addColumn(eq("clusterconfig"),
         capture(clusterConfigAttributesColumnCapture));
   }
+ 
+  private void setStageExpectations(DBAccessor dbAccessor,
+                                    Capture<DBAccessor.DBColumnInfo> stageCommandParamsColumnCapture,
+                                    Capture<DBAccessor.DBColumnInfo> stageHostParamsColumnCapture)
+    throws SQLException {
+    dbAccessor.addColumn(eq("stage"),
+      capture(stageCommandParamsColumnCapture));
+
+    dbAccessor.addColumn(eq("stage"),
+      capture(stageHostParamsColumnCapture));
+  }
 
   @Test
   public void testGetSourceVersion() {
@@ -463,6 +478,21 @@ public class UpgradeCatalog170Test {
     assertEquals(1, (int) column.getLength());
     assertEquals(Character.class, column.getType());
     assertNull(column.getDefaultValue());
+    assertTrue(column.isNullable());
+  }
+
+  private void assertStageColumns(Capture<DBAccessor.DBColumnInfo> stageCommandParamsColumnCapture,
+                                  Capture<DBAccessor.DBColumnInfo> stageHostParamsColumnCapture) {
+    DBAccessor.DBColumnInfo column = stageCommandParamsColumnCapture.getValue();
+    assertEquals("command_params", column.getName());
+    assertEquals(byte[].class, column.getType());
+    assertEquals(null, column.getDefaultValue());
+    assertTrue(column.isNullable());
+
+    column = stageHostParamsColumnCapture.getValue();
+    assertEquals("host_params", column.getName());
+    assertEquals(byte[].class, column.getType());
+    assertEquals(null, column.getDefaultValue());
     assertTrue(column.isNullable());
   }
 }

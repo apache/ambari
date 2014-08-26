@@ -57,7 +57,7 @@ public class ExecutionCommand extends AgentCommand {
   private Map<String, Map<String, Map<String, String>>> configurationAttributes;
   private Map<String, Map<String, String>> configurationTags;
   private Set<String> forceRefreshConfigTags = new HashSet<String>();
-  private Map<String, String> commandParams;
+  private Map<String, String> commandParams = new HashMap<String, String>();
   private String serviceName;
   private String componentName;
 
