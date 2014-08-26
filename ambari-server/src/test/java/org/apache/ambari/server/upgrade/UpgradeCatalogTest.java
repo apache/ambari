@@ -147,7 +147,7 @@ public class UpgradeCatalogTest {
     cr.setVersionTag("version1");
     cr.setProperties(properties);
 
-    cl.setDesiredConfig(cr);
+    cl.setDesiredConfig(Collections.singletonList(cr));
 
     controller.updateClusters(new HashSet<ClusterRequest>() {{ add(cl); }}, null);
 

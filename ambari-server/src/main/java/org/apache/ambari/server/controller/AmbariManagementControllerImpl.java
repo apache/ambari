@@ -53,6 +53,7 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -676,7 +677,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         if (config != null) {
           String authName = getAuthName();
 
-          if (cluster.addDesiredConfig(authName, config) != null) {
+          if (cluster.addDesiredConfig(authName, Collections.singleton(config)) != null) {
             LOG.info("cluster '" + cluster.getClusterName() + "' "
                     + "changed by: '" + authName + "'; "
                     + "type='" + config.getType() + "' "
@@ -1151,14 +1152,15 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     final Cluster cluster = clusters.getCluster(request.getClusterName());
     //save data to return configurations created
-    ConfigurationResponse configurationResponse = null;
+    List<ConfigurationResponse> configurationResponses =
+      new LinkedList<ConfigurationResponse>();
     ServiceConfigVersionResponse serviceConfigVersionResponse = null;
 
     // set or create configuration mapping (and optionally create the map of properties)
     if (null != request.getDesiredConfig()) {
-      ConfigurationRequest cr = request.getDesiredConfig();
-
-      Config oldConfig = cluster.getDesiredConfigByType(cr.getType());
+      Set<Config> configs = new HashSet<Config>();
+      String note = null;
+      for (ConfigurationRequest cr: request.getDesiredConfig()) {
 
       if (null != cr.getProperties()) {
         // !!! empty property sets are supported, and need to be able to use
@@ -1173,21 +1175,23 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
               request.getClusterName()));
 
           cr.setClusterName(cluster.getClusterName());
-          configurationResponse = createConfiguration(cr);
+          configurationResponses.add(createConfiguration(cr));
         }
       }
-
-      Config baseConfig = cluster.getConfig(cr.getType(), cr.getVersionTag());
-      if (null != baseConfig) {
+        note = cr.getServiceConfigVersionNote();
+        configs.add(cluster.getConfig(cr.getType(), cr.getVersionTag()));
+      }
+      if (!configs.isEmpty()) {
         String authName = getAuthName();
-        serviceConfigVersionResponse = cluster.addDesiredConfig(authName, baseConfig, cr.getServiceConfigVersionNote());
+        serviceConfigVersionResponse = cluster.addDesiredConfig(authName, configs, note);
         if (serviceConfigVersionResponse != null) {
           Logger logger = LoggerFactory.getLogger("configchange");
-          logger.info("cluster '" + request.getClusterName() + "' "
-              + "changed by: '" + authName + "'; "
-              + "type='" + baseConfig.getType() + "' "
-              + "tag='" + baseConfig.getTag() + "'"
-              + (null == oldConfig ? "" : " from='"+ oldConfig.getTag() + "'"));
+          for (Config config: configs) {
+            logger.info("cluster '" + request.getClusterName() + "' "
+                + "changed by: '" + authName + "'; "
+                + "type='" + config.getType() + "' "
+                + "tag='" + config.getTag() + "'");
+          }
         }
       }
     }
@@ -1261,8 +1265,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
 
     if (serviceConfigVersionResponse != null) {
-      if (configurationResponse != null) {
-        serviceConfigVersionResponse.setConfigurations(Collections.singletonList(configurationResponse));
+      if (!configurationResponses.isEmpty()) {
+        serviceConfigVersionResponse.setConfigurations(configurationResponses);
       }
 
       ClusterResponse clusterResponse =

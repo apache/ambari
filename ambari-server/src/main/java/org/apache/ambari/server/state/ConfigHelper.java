@@ -19,6 +19,7 @@ package org.apache.ambari.server.state;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -477,7 +478,7 @@ public class ConfigHelper {
     Config baseConfig = cluster.getConfig(cr.getType(), cr.getVersionTag());
     
     if (baseConfig != null) {
-      cluster.addDesiredConfig(authName, baseConfig);
+      cluster.addDesiredConfig(authName, Collections.singleton(baseConfig));
     }
   }
   

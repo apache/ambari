@@ -38,6 +38,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
 import java.sql.SQLException;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
@@ -227,7 +228,7 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
               if (baseConfig != null) {
                 String authName = "ambari-upgrade";
 
-                if (cluster.addDesiredConfig(authName, baseConfig) != null) {
+                if (cluster.addDesiredConfig(authName, Collections.singleton(baseConfig)) != null) {
                   String oldConfigString = (oldConfig != null) ? " from='" + oldConfig.getTag() + "'" : "";
                   LOG.info("cluster '" + cluster.getClusterName() + "' "
                     + "changed by: '" + authName + "'; "

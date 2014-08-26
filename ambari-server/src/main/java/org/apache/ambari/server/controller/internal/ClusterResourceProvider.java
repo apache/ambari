@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -319,12 +320,12 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
         (String) properties.get(CLUSTER_VERSION_PROPERTY_ID),
         null);
 
-    ConfigurationRequest configRequest = getConfigurationRequest("Clusters", properties);
+    List<ConfigurationRequest> configRequests = getConfigurationRequests("Clusters", properties);
 
     ServiceConfigVersionRequest serviceConfigVersionRequest = getServiceConfigVersionRequest("Clusters", properties);
 
-    if (null != configRequest)
-      cr.setDesiredConfig(configRequest);
+    if (!configRequests.isEmpty())
+      cr.setDesiredConfig(configRequests);
 
     if (serviceConfigVersionRequest != null) {
       cr.setServiceConfigVersionRequest(serviceConfigVersionRequest);

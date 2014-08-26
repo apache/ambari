@@ -1333,12 +1333,12 @@ public class ClusterImpl implements Cluster {
   }
 
   @Override
-  public ServiceConfigVersionResponse addDesiredConfig(String user, Config config) {
-    return addDesiredConfig(user, config, null);
+  public ServiceConfigVersionResponse addDesiredConfig(String user, Set<Config> configs) {
+    return addDesiredConfig(user, configs, null);
   }
 
   @Override
-  public ServiceConfigVersionResponse addDesiredConfig(String user, Config config, String serviceConfigVersionNote) {
+  public ServiceConfigVersionResponse addDesiredConfig(String user, Set<Config> configs, String serviceConfigVersionNote) {
     if (null == user)
       throw new NullPointerException("User must be specified.");
 
@@ -1346,15 +1346,28 @@ public class ClusterImpl implements Cluster {
     try {
       readWriteLock.writeLock().lock();
       try {
-        Config currentDesired = getDesiredConfigByType(config.getType());
-
-        // do not set if it is already the current
-        if (null != currentDesired && currentDesired.getTag().equals(config.getTag())) {
+        if (configs == null) {
           return null;
         }
 
+        Iterator<Config> configIterator = configs.iterator();
+
+        while (configIterator.hasNext()) {
+          Config config = configIterator.next();
+          if (config == null) {
+            configIterator.remove();
+            continue;
+          }
+          Config currentDesired = getDesiredConfigByType(config.getType());
+
+          // do not set if it is already the current
+          if (null != currentDesired && currentDesired.getTag().equals(config.getTag())) {
+            configIterator.remove();
+          }
+        }
+
         ServiceConfigVersionResponse serviceConfigVersionResponse =
-            applyConfig(config.getType(), config.getTag(), user, serviceConfigVersionNote);
+            applyConfigs(configs, user, serviceConfigVersionNote);
 
         configHelper.invalidateStaleConfigsCache();
         return serviceConfigVersionResponse;
@@ -1705,16 +1718,23 @@ public class ClusterImpl implements Cluster {
   }
 
   @Transactional
-  ServiceConfigVersionResponse applyConfig(String type, String tag, String user, String serviceConfigVersionNote) {
-
-    selectConfig(type, tag, user);
+  ServiceConfigVersionResponse applyConfigs(Set<Config> configs, String user, String serviceConfigVersionNote) {
 
     String serviceName = null;
-    //find service name for config type
-    for (Entry<String, String> entry : serviceConfigTypes.entries()) {
-      if (StringUtils.equals(entry.getValue(), type)) {
-        serviceName = entry.getKey();
-        break;
+    for (Config config: configs) {
+
+      selectConfig(config.getType(), config.getTag(), user);
+      //find service name for config type
+      for (Entry<String, String> entry : serviceConfigTypes.entries()) {
+        if (StringUtils.equals(entry.getValue(), config.getType())) {
+          if (serviceName != null && !serviceName.equals(entry.getKey())) {
+            LOG.error("Updating configs for multiple services by a " +
+              "single API request isn't supported, config version not created");
+            return null;
+          }
+          serviceName = entry.getKey();
+          break;
+        }
       }
     }
 

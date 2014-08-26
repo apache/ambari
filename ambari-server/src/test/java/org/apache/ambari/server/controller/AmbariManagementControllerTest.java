@@ -2274,7 +2274,7 @@ public class AmbariManagementControllerTest {
     cr1 = new ConfigurationRequest(clusterName, "hdfs-site", "version1",
         configs, null);
     ClusterRequest crReq = new ClusterRequest(null, clusterName, null, null);
-    crReq.setDesiredConfig(cr1);
+    crReq.setDesiredConfig(Collections.singletonList(cr1));
     controller.updateClusters(Collections.singleton(crReq), null);
 
     // Start
@@ -4220,8 +4220,8 @@ public class AmbariManagementControllerTest {
 
     cluster.addConfig(config1);
     cluster.addConfig(config2);
-    cluster.addDesiredConfig("_test", config1);
-    cluster.addDesiredConfig("_test", config2);
+    cluster.addDesiredConfig("_test", Collections.singleton(config1));
+    cluster.addDesiredConfig("_test", Collections.singleton(config2));
 
     Service hdfs = cluster.addService("HDFS");
     hdfs.persist();
@@ -4482,8 +4482,8 @@ public class AmbariManagementControllerTest {
 
     cluster.addConfig(config1);
     cluster.addConfig(config2);
-    cluster.addDesiredConfig("_test", config1);
-    cluster.addDesiredConfig("_test", config2);
+    cluster.addDesiredConfig("_test", Collections.singleton(config1));
+    cluster.addDesiredConfig("_test", Collections.singleton(config2));
 
     Service hdfs = cluster.addService("HDFS");
     Service mapReduce = cluster.addService("MAPREDUCE");
@@ -4666,8 +4666,8 @@ public class AmbariManagementControllerTest {
 
 
     ClusterRequest cr = new ClusterRequest(null, clusterName, null, null);
-    cr.setDesiredConfig(new ConfigurationRequest(clusterName, "global",
-        "v1", configs, null));
+    cr.setDesiredConfig(Collections.singletonList(new ConfigurationRequest(clusterName, "global",
+        "v1", configs, null)));
     controller.updateClusters(Collections.singleton(cr), Collections.<String, String>emptyMap());
 
     Set<ServiceRequest> sReqs = new HashSet<ServiceRequest>();
@@ -5268,10 +5268,10 @@ public class AmbariManagementControllerTest {
       configs, null);
 
     ClusterRequest crReq = new ClusterRequest(null, clusterName, null, null);
-    crReq.setDesiredConfig(cr1);
+    crReq.setDesiredConfig(Collections.singletonList(cr1));
     controller.updateClusters(Collections.singleton(crReq), null);
     crReq = new ClusterRequest(null, clusterName, null, null);
-    crReq.setDesiredConfig(cr2);
+    crReq.setDesiredConfig(Collections.singletonList(cr2));
     controller.updateClusters(Collections.singleton(crReq), null);
 
     // Install
@@ -5294,7 +5294,7 @@ public class AmbariManagementControllerTest {
     cr3 = new ConfigurationRequest(clusterName, "core-site","version122",
       configs, null);
     crReq = new ClusterRequest(null, clusterName, null, null);
-    crReq.setDesiredConfig(cr3);
+    crReq.setDesiredConfig(Collections.singletonList(cr3));
     controller.updateClusters(Collections.singleton(crReq), null);
 
     // Stop HDFS & MAPREDUCE
@@ -5425,10 +5425,10 @@ public class AmbariManagementControllerTest {
       configs, null);
 
     ClusterRequest crReq = new ClusterRequest(null, clusterName, null, null);
-    crReq.setDesiredConfig(cr1);
+    crReq.setDesiredConfig(Collections.singletonList(cr1));
     controller.updateClusters(Collections.singleton(crReq), null);
     crReq = new ClusterRequest(null, clusterName, null, null);
-    crReq.setDesiredConfig(cr2);
+    crReq.setDesiredConfig(Collections.singletonList(cr2));
     controller.updateClusters(Collections.singleton(crReq), null);
 
     installService(clusterName, serviceName, false, false);
@@ -5451,7 +5451,7 @@ public class AmbariManagementControllerTest {
     cr3 = new ConfigurationRequest(clusterName, "core-site","version122",
       configs, null);
     crReq = new ClusterRequest(null, clusterName, null, null);
-    crReq.setDesiredConfig(cr3);
+    crReq.setDesiredConfig(Collections.singletonList(cr3));
     controller.updateClusters(Collections.singleton(crReq), null);
 
     long id = startService(clusterName, serviceName, false, true);
@@ -6027,7 +6027,7 @@ public class AmbariManagementControllerTest {
     cr1 = new ConfigurationRequest(clusterName, "hive-site","version1",
       configs, null);
     ClusterRequest crReq = new ClusterRequest(null, clusterName, null, null);
-    crReq.setDesiredConfig(cr1);
+    crReq.setDesiredConfig(Collections.singletonList(cr1));
     controller.updateClusters(Collections.singleton(crReq), null);
 
     // Install
@@ -6105,7 +6105,7 @@ public class AmbariManagementControllerTest {
     cr1 = new ConfigurationRequest(clusterName, "hdfs-site","version1",
       configs, null);
     ClusterRequest crReq = new ClusterRequest(null, clusterName, null, null);
-    crReq.setDesiredConfig(cr1);
+    crReq.setDesiredConfig(Collections.singletonList(cr1));
     controller.updateClusters(Collections.singleton(crReq), null);
 
     // Start
@@ -6491,10 +6491,10 @@ public class AmbariManagementControllerTest {
       configs, null);
 
     ClusterRequest crReq = new ClusterRequest(null, clusterName, null, null);
-    crReq.setDesiredConfig(cr1);
+    crReq.setDesiredConfig(Collections.singletonList(cr1));
     controller.updateClusters(Collections.singleton(crReq), null);
     crReq = new ClusterRequest(null, clusterName, null, null);
-    crReq.setDesiredConfig(cr2);
+    crReq.setDesiredConfig(Collections.singletonList(cr2));
     controller.updateClusters(Collections.singleton(crReq), null);
 
     // Install
@@ -6716,13 +6716,13 @@ public class AmbariManagementControllerTest {
       configs, null);
 
     ClusterRequest crReq = new ClusterRequest(null, clusterName, null, null);
-    crReq.setDesiredConfig(cr1);
+    crReq.setDesiredConfig(Collections.singletonList(cr1));
     controller.updateClusters(Collections.singleton(crReq), null);
     crReq = new ClusterRequest(null, clusterName, null, null);
-    crReq.setDesiredConfig(cr2);
+    crReq.setDesiredConfig(Collections.singletonList(cr2));
     controller.updateClusters(Collections.singleton(crReq), null);
     crReq = new ClusterRequest(null, clusterName, null, null);
-    crReq.setDesiredConfig(cr3);
+    crReq.setDesiredConfig(Collections.singletonList(cr3));
     controller.updateClusters(Collections.singleton(crReq), null);
 
     // Create Config group for core-site
@@ -6874,7 +6874,7 @@ public class AmbariManagementControllerTest {
     cr1 = new ConfigurationRequest(clusterName, "hdfs-site", "version1",
         configs, null);
     ClusterRequest crReq = new ClusterRequest(null, clusterName, null, null);
-    crReq.setDesiredConfig(cr1);
+    crReq.setDesiredConfig(Collections.singletonList(cr1));
     controller.updateClusters(Collections.singleton(crReq), null);
 
     // Start
@@ -6977,10 +6977,10 @@ public class AmbariManagementControllerTest {
       configs, null);
 
     ClusterRequest crReq = new ClusterRequest(null, clusterName, null, null);
-    crReq.setDesiredConfig(cr1);
+    crReq.setDesiredConfig(Collections.singletonList(cr1));
     controller.updateClusters(Collections.singleton(crReq), null);
     crReq = new ClusterRequest(null, clusterName, null, null);
-    crReq.setDesiredConfig(cr2);
+    crReq.setDesiredConfig(Collections.singletonList(cr2));
     controller.updateClusters(Collections.singleton(crReq), null);
 
     // Install
@@ -8831,7 +8831,7 @@ public class AmbariManagementControllerTest {
 
       ConfigurationRequest configRequest = new ConfigurationRequest(CLUSTER_NAME, "global", "version1",
           new HashMap<String, String>() {{ put("a", "b"); }}, null);
-      cr.setDesiredConfig(configRequest);
+      cr.setDesiredConfig(Collections.singletonList(configRequest));
       amc.updateClusters(Collections.singleton(cr), new HashMap<String, String>());
 
       // add some hosts
@@ -10067,22 +10067,22 @@ public class AmbariManagementControllerTest {
     ClusterRequest cr = new ClusterRequest(null, cluster.getClusterName(), null, null);
 
     // test null map with no prior
-    cr.setDesiredConfig(
-        new ConfigurationRequest(clusterName, "typeA", "v1", null, null));
+    cr.setDesiredConfig(Collections.singletonList(
+        new ConfigurationRequest(clusterName, "typeA", "v1", null, null)));
     controller.updateClusters(Collections.singleton(cr), new HashMap<String, String>());
     Config config = cluster.getDesiredConfigByType("typeA");
     Assert.assertNull(config);
 
     // test empty map with no prior
-    cr.setDesiredConfig(
-        new ConfigurationRequest(clusterName, "typeA", "v1", new HashMap<String, String>(), new HashMap<String, Map<String,String>>()));
+    cr.setDesiredConfig(Collections.singletonList(
+        new ConfigurationRequest(clusterName, "typeA", "v1", new HashMap<String, String>(), new HashMap<String, Map<String,String>>())));
     controller.updateClusters(Collections.singleton(cr), new HashMap<String, String>());
     config = cluster.getDesiredConfigByType("typeA");
     Assert.assertNotNull(config);
 
     // test empty properties on a new version
-    cr.setDesiredConfig(
-        new ConfigurationRequest(clusterName, "typeA", "v2", new HashMap<String, String>(), new HashMap<String, Map<String,String>>()));
+    cr.setDesiredConfig(Collections.singletonList(
+        new ConfigurationRequest(clusterName, "typeA", "v2", new HashMap<String, String>(), new HashMap<String, Map<String,String>>())));
     controller.updateClusters(Collections.singleton(cr), new HashMap<String, String>());
     config = cluster.getDesiredConfigByType("typeA");
     Assert.assertNotNull(config);
@@ -10095,16 +10095,16 @@ public class AmbariManagementControllerTest {
     Map<String, Map<String, String>> attributesMap = new HashMap<String, Map<String,String>>();
     attributesMap.put("final", new HashMap<String, String>());
     attributesMap.get("final").put("c", "true");
-    cr.setDesiredConfig(
-        new ConfigurationRequest(clusterName, "typeA", "v3", map, attributesMap));
+    cr.setDesiredConfig(Collections.singletonList(
+        new ConfigurationRequest(clusterName, "typeA", "v3", map, attributesMap)));
     controller.updateClusters(Collections.singleton(cr), new HashMap<String, String>());
     config = cluster.getDesiredConfigByType("typeA");
     Assert.assertNotNull(config);
     Assert.assertTrue(config.getProperties().containsKey("c"));
 
     // test reset to v2
-    cr.setDesiredConfig(
-        new ConfigurationRequest(clusterName, "typeA", "v2", new HashMap<String, String>(), new HashMap<String, Map<String,String>>()));
+    cr.setDesiredConfig(Collections.singletonList(
+        new ConfigurationRequest(clusterName, "typeA", "v2", new HashMap<String, String>(), new HashMap<String, Map<String,String>>())));
     controller.updateClusters(Collections.singleton(cr), new HashMap<String, String>());
     config = cluster.getDesiredConfigByType("typeA");
     Assert.assertEquals("v2", config.getTag());
@@ -10112,11 +10112,11 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals(Integer.valueOf(0), Integer.valueOf(config.getProperties().size()));
 
     // test v2, but with properties
-    cr.setDesiredConfig(
+    cr.setDesiredConfig(Collections.singletonList(
         new ConfigurationRequest(clusterName, "typeA", "v2", new HashMap<String, String>() {{ put("a", "b"); }},
             new HashMap<String, Map<String,String>>(){{put("final", new HashMap<String, String>(){{put("a", "true");}});
           }
-        }));
+        })));
     try {
       controller.updateClusters(Collections.singleton(cr), new HashMap<String, String>());
       Assert.fail("Expect failure when creating a config that exists");
@@ -10257,7 +10257,7 @@ public class AmbariManagementControllerTest {
 
     ConfigurationRequest cr1 = new ConfigurationRequest(clusterName, "hdfs-site", "version1", hdfsConfigs, hdfsConfigAttributes);
     ClusterRequest crReq1 = new ClusterRequest(null, clusterName, null, null);
-    crReq1.setDesiredConfig(cr1);
+    crReq1.setDesiredConfig(Collections.singletonList(cr1));
 
     controller.updateClusters(Collections.singleton(crReq1), null);
 
@@ -10340,7 +10340,7 @@ public class AmbariManagementControllerTest {
 
     ConfigurationRequest cr1 = new ConfigurationRequest(clusterName, "hdfs-site", "version1", hdfsConfigs, hdfsConfigAttributes);
     ClusterRequest crReq1 = new ClusterRequest(null, clusterName, null, null);
-    crReq1.setDesiredConfig(cr1);
+    crReq1.setDesiredConfig(Collections.singletonList(cr1));
 
     controller.updateClusters(Collections.singleton(crReq1), null);
 

@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.controller;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -28,7 +29,7 @@ public class HostRequest {
   private String clusterName; // CREATE/UPDATE
   private Map<String, String> hostAttributes; // CREATE/UPDATE
   private String rackInfo;
-  private ConfigurationRequest desiredConfig; // UPDATE
+  private List<ConfigurationRequest> desiredConfigs; // UPDATE
   private String maintenanceState; // UPDATE
 
   public HostRequest(String hostname, String clusterName, Map<String, String> hostAttributes) {
@@ -77,12 +78,12 @@ public class HostRequest {
     publicHostname = name;
   }
   
-  public void setDesiredConfig(ConfigurationRequest request) {
-    desiredConfig = request;
+  public void setDesiredConfigs(List<ConfigurationRequest> request) {
+    desiredConfigs = request;
   }
   
-  public ConfigurationRequest getDesiredConfig() {
-    return desiredConfig;
+  public List<ConfigurationRequest> getDesiredConfigs() {
+    return desiredConfigs;
   }
   
   public void setMaintenanceState(String state) {

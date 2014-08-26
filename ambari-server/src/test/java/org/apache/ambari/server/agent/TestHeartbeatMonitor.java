@@ -127,7 +127,7 @@ public class TestHeartbeatMonitor {
         new HashMap<String,String>() {{ put("a", "b"); }}, new HashMap<String, Map<String,String>>());
     config.setTag("version1");
     cluster.addConfig(config);
-    cluster.addDesiredConfig("_test", config);
+    cluster.addDesiredConfig("_test", Collections.singleton(config));
     
     
     clusters.mapHostsToCluster(hostNames, clusterName);
@@ -218,7 +218,7 @@ public class TestHeartbeatMonitor {
       }}, new HashMap<String, Map<String,String>>());
     config.setTag("version1");
     cluster.addConfig(config);
-    cluster.addDesiredConfig("_test", config);
+    cluster.addDesiredConfig("_test", Collections.singleton(config));
 
 
     clusters.mapHostsToCluster(hostNames, clusterName);

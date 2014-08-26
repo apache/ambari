@@ -20,6 +20,7 @@ package org.apache.ambari.server.controller.internal;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -343,50 +344,79 @@ public abstract class AbstractResourceProvider extends BaseProvider implements R
    *    whose category is the parent and marked as a desired config.
    * @param properties  the properties on the request.
    */
-  protected ConfigurationRequest getConfigurationRequest(String parentCategory, Map<String, Object> properties) {
+  protected List<ConfigurationRequest> getConfigurationRequests(String parentCategory, Map<String, Object> properties) {
+
+    List<ConfigurationRequest> configs = new LinkedList<ConfigurationRequest>();
+
+    String desiredConfigKey = parentCategory + "/desired_config";
+    // Multiple configs to be updated
+    if (properties.containsKey(desiredConfigKey)
+      && properties.get(desiredConfigKey) instanceof Set) {
+
+      Set<Map<String, Object>> configProperties =
+        (Set<Map<String, Object>>) properties.get(desiredConfigKey);
+      for (Map<String, Object> value: configProperties) {
+        ConfigurationRequest newConfig = new ConfigurationRequest();
+
+        for (Entry<String, Object> e : value.entrySet()) {
+          String propName =
+            PropertyHelper.getPropertyName(desiredConfigKey + '/' + e.getKey());
+          String absCatategory =
+            PropertyHelper.getPropertyCategory(desiredConfigKey + '/' + e.getKey());
+          parseProperties(newConfig, absCatategory, propName, e.getValue().toString());
+        }
+        configs.add(newConfig);
+      }
+      return configs;
+    }
 
     ConfigurationRequest config = null;
-
     // as a convenience, allow consumers to specify name/value overrides in this
     // call instead of forcing a cluster call to do that work
     for (Entry<String, Object> entry : properties.entrySet()) {
       String absCategory = PropertyHelper.getPropertyCategory(entry.getKey());
       String propName = PropertyHelper.getPropertyName(entry.getKey());
 
-      if (absCategory.startsWith(parentCategory + "/desired_config")) {
+      if (absCategory.startsWith(desiredConfigKey)) {
         config = (null == config) ? new ConfigurationRequest() : config;
 
-        if (propName.equals("type"))
-          config.setType(entry.getValue().toString());
-        else if (propName.equals("tag"))
-          config.setVersionTag(entry.getValue().toString());
-        else if (propName.equals("selected")) {
-          config.setSelected(Boolean.parseBoolean(entry.getValue().toString()));
-        }
-        else if (propName.equals("service_config_version_note")) {
-          config.setServiceConfigVersionNote(entry.getValue().toString());
-        }
-        else if (absCategory.endsWith("/properties")) {
-          config.getProperties().put(propName, entry.getValue().toString());
-        }
-        else if (propertiesAttributesPattern.matcher(absCategory).matches()) {
-          String attributeName = absCategory.substring(absCategory.lastIndexOf('/') + 1);
-          Map<String, Map<String, String>> configAttributesMap = config.getPropertiesAttributes();
-          if (null == configAttributesMap) {
-            configAttributesMap = new HashMap<String, Map<String,String>>();
-            config.setPropertiesAttributes(configAttributesMap);
-          }
-          Map<String, String> attributesMap = configAttributesMap.get(attributeName);
-          if (null == attributesMap) {
-            attributesMap = new HashMap<String, String>();
-            configAttributesMap.put(attributeName, attributesMap);
-          }
-          attributesMap.put(PropertyHelper.getPropertyName(entry.getKey()), entry.getValue().toString());
-        }
+        parseProperties(config, absCategory, propName, entry.getValue().toString());
       }
     }
+    if (config != null) {
+      configs.add(config);
+    }
+    return configs;
+  }
 
-    return config;
+  private void parseProperties(ConfigurationRequest config, String absCategory, String propName, String propValue) {
+    if (propName.equals("type"))
+      config.setType(propValue);
+    else if (propName.equals("tag"))
+      config.setVersionTag(propValue);
+    else if (propName.equals("selected")) {
+      config.setSelected(Boolean.parseBoolean(propValue));
+    }
+    else if (propName.equals("service_config_version_note")) {
+      config.setServiceConfigVersionNote(propValue);
+    }
+    else if (absCategory.endsWith("/properties")) {
+      config.getProperties().put(propName, propValue);
+    }
+    else if (propertiesAttributesPattern.matcher(absCategory).matches()) {
+      String attributeName = absCategory.substring(absCategory.lastIndexOf('/') + 1);
+      Map<String, Map<String, String>> configAttributesMap = config.getPropertiesAttributes();
+      if (null == configAttributesMap) {
+        configAttributesMap = new HashMap<String, Map<String,String>>();
+        config.setPropertiesAttributes(configAttributesMap);
+      }
+      Map<String, String> attributesMap = configAttributesMap.get(attributeName);
+      if (null == attributesMap) {
+        attributesMap = new HashMap<String, String>();
+        configAttributesMap.put(attributeName, attributesMap);
+      }
+      attributesMap.put(propName, propValue);
+    }
   }
 
   // get the resources (id fields only) for the given predicate.

@@ -330,9 +330,9 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
     if (null != o)
       hostRequest.setMaintenanceState(o.toString());
     
-    ConfigurationRequest cr = getConfigurationRequest("Hosts", properties);
+    List<ConfigurationRequest> cr = getConfigurationRequests("Hosts", properties);
     
-    hostRequest.setDesiredConfig(cr);
+    hostRequest.setDesiredConfigs(cr);
 
     return hostRequest;
   }
@@ -588,40 +588,40 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
         }
       }
 
-      if (null != request.getClusterName() && null != request.getDesiredConfig()) {
+      if (null != request.getClusterName() && null != request.getDesiredConfigs()) {
         Cluster c = clusters.getCluster(request.getClusterName());
 
         if (clusters.getHostsForCluster(request.getClusterName()).containsKey(h.getHostName())) {
 
-          ConfigurationRequest cr = request.getDesiredConfig();
+          for (ConfigurationRequest cr : request.getDesiredConfigs()) {
 
-          if (null != cr.getProperties() && cr.getProperties().size() > 0) {
-            LOG.info(MessageFormat.format("Applying configuration with tag ''{0}'' to host ''{1}'' in cluster ''{2}''",
-                cr.getVersionTag(),
-                request.getHostname(),
-                request.getClusterName()));
+            if (null != cr.getProperties() && cr.getProperties().size() > 0) {
+              LOG.info(MessageFormat.format("Applying configuration with tag ''{0}'' to host ''{1}'' in cluster ''{2}''",
+                  cr.getVersionTag(),
+                  request.getHostname(),
+                  request.getClusterName()));
 
-            cr.setClusterName(c.getClusterName());
-            controller.createConfiguration(cr);
-          }
+              cr.setClusterName(c.getClusterName());
+              controller.createConfiguration(cr);
+            }
 
-          Config baseConfig = c.getConfig(cr.getType(), cr.getVersionTag());
-          if (null != baseConfig) {
-            String authName = controller.getAuthName();
-            DesiredConfig oldConfig = h.getDesiredConfigs(c.getClusterId()).get(cr.getType());
+            Config baseConfig = c.getConfig(cr.getType(), cr.getVersionTag());
+            if (null != baseConfig) {
+              String authName = controller.getAuthName();
+              DesiredConfig oldConfig = h.getDesiredConfigs(c.getClusterId()).get(cr.getType());
 
-            if (h.addDesiredConfig(c.getClusterId(), cr.isSelected(), authName,  baseConfig)) {
-              Logger logger = LoggerFactory.getLogger("configchange");
-              logger.info("cluster '" + c.getClusterName() + "', "
-                  + "host '" + h.getHostName() + "' "
-                  + "changed by: '" + authName + "'; "
-                  + "type='" + baseConfig.getType() + "' "
-                  + "version='" + baseConfig.getVersion() + "'"
-                  + "tag='" + baseConfig.getTag() + "'"
-                  + (null == oldConfig ? "" : ", from='" + oldConfig.getTag() + "'"));
+              if (h.addDesiredConfig(c.getClusterId(), cr.isSelected(), authName,  baseConfig)) {
+                Logger logger = LoggerFactory.getLogger("configchange");
+                logger.info("cluster '" + c.getClusterName() + "', "
+                    + "host '" + h.getHostName() + "' "
+                    + "changed by: '" + authName + "'; "
+                    + "type='" + baseConfig.getType() + "' "
+                    + "version='" + baseConfig.getVersion() + "'"
+                    + "tag='" + baseConfig.getTag() + "'"
+                    + (null == oldConfig ? "" : ", from='" + oldConfig.getTag() + "'"));
+              }
             }
           }
-
         }
       }
       //todo: if attempt was made to update a property other than those
