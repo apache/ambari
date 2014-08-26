@@ -21,15 +21,13 @@ package org.apache.ambari.server.api.services.stackadvisor.recommendations;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorResponse;
 import org.codehaus.jackson.annotate.JsonProperty;
 
 /**
  * Recommendation response POJO.
  */
-public class RecommendationResponse {
-
-  @JsonProperty("Versions")
-  private Version version;
+public class RecommendationResponse extends StackAdvisorResponse {
 
   @JsonProperty
   private Set<String> hosts;
@@ -39,14 +37,6 @@ public class RecommendationResponse {
 
   @JsonProperty
   private Recommendation recommendations;
-
-  public Version getVersion() {
-    return version;
-  }
-
-  public void setVersion(Version version) {
-    this.version = version;
-  }
 
   public Set<String> getHosts() {
     return hosts;
@@ -70,30 +60,6 @@ public class RecommendationResponse {
 
   public void setRecommendations(Recommendation recommendations) {
     this.recommendations = recommendations;
-  }
-
-  public static class Version {
-    @JsonProperty("stack_name")
-    private String stackName;
-
-    @JsonProperty("stack_version")
-    private String stackVersion;
-
-    public String getStackName() {
-      return stackName;
-    }
-
-    public void setStackName(String stackName) {
-      this.stackName = stackName;
-    }
-
-    public String getStackVersion() {
-      return stackVersion;
-    }
-
-    public void setStackVersion(String stackVersion) {
-      this.stackVersion = stackVersion;
-    }
   }
 
   public static class Recommendation {

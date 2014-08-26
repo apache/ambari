@@ -42,6 +42,7 @@ import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.api.services.StacksService.StackUriInfo;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorException;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest;
+import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorResponse;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRunner;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.commons.collections.CollectionUtils;
@@ -58,7 +59,7 @@ import org.codehaus.jackson.node.TextNode;
 /**
  * Parent for all commands.
  */
-public abstract class StackAdvisorCommand<T> extends BaseService {
+public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extends BaseService {
 
   /**
    * Type of response object provided by extending classes when
@@ -233,7 +234,7 @@ public abstract class StackAdvisorCommand<T> extends BaseService {
       String result = FileUtils.readFileToString(new File(requestDirectory, getResultFileName()));
 
       T response = this.mapper.readValue(result, this.type);
-      return updateResponse(request, response);
+      return updateResponse(request, setRequestId(response));
     } catch (Exception e) {
       String message = "Error occured during stack advisor command invocation";
       LOG.warn(message, e);
@@ -242,6 +243,11 @@ public abstract class StackAdvisorCommand<T> extends BaseService {
   }
 
   protected abstract T updateResponse(StackAdvisorRequest request, T response);
+
+  private T setRequestId(T response) {
+    response.setId(requestId);
+    return response;
+  }
 
   /**
    * Create request id directory for each call

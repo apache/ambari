@@ -49,7 +49,7 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 public class ValidationResourceProvider extends StackAdvisorResourceProvider {
 
   protected static final String VALIDATION_ID_PROPERTY_ID = PropertyHelper.getPropertyId(
-      "Validations", "id");
+      "Validation", "id");
   protected static final String VALIDATE_PROPERTY_ID = "validate";
 
   protected static final String ITEMS_PROPERTY_ID = "items";
@@ -93,7 +93,7 @@ public class ValidationResourceProvider extends StackAdvisorResourceProvider {
       public Resource invoke() throws AmbariException {
 
         Resource resource = new ResourceImpl(Resource.Type.Validation);
-        setResourceProperty(resource, VALIDATION_ID_PROPERTY_ID, "1", getPropertyIds());
+        setResourceProperty(resource, VALIDATION_ID_PROPERTY_ID, response.getId(), getPropertyIds());
         setResourceProperty(resource, STACK_NAME_PROPERTY_ID, response.getVersion().getStackName(), getPropertyIds());
         setResourceProperty(resource, STACK_VERSION_PROPERTY_ID, response.getVersion().getStackVersion(), getPropertyIds());
 

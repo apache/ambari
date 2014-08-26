@@ -41,6 +41,7 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorException;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest.StackAdvisorRequestBuilder;
+import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorResponse;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRunner;
 import org.apache.ambari.server.api.services.stackadvisor.commands.StackAdvisorCommand.StackAdvisorData;
 import org.apache.commons.io.FileUtils;
@@ -150,7 +151,7 @@ public class StackAdvisorCommandTest {
     final String testResourceString = String.format("{\"type\": \"%s\"}", expected);
     final File recommendationsDir = temp.newFolder("recommendationDir");
     String stackAdvisorScript = "echo";
-    final int requestId = 0;
+    final int requestId = 2;
     StackAdvisorRunner saRunner = mock(StackAdvisorRunner.class);
     AmbariMetaInfo metaInfo = mock(AmbariMetaInfo.class);
     doReturn(Collections.emptyList()).when(metaInfo).getStackParentVersions(anyString(), anyString());
@@ -180,6 +181,7 @@ public class StackAdvisorCommandTest {
     TestResource result = command.invoke(request);
 
     assertEquals(expected, result.getType());
+    assertEquals(requestId, result.getId());
   }
 
   @Test
@@ -260,7 +262,7 @@ public class StackAdvisorCommandTest {
     }
   }
 
-  public static class TestResource {
+  public static class TestResource extends StackAdvisorResponse {
     @JsonProperty
     private String type;
 
