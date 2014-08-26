@@ -123,6 +123,7 @@ module.exports =
       "isOverridable": false,
       "isReconfigurable": false,
       "serviceName": "GENERAL",
+      "filename": "hadoop-env.xml",
       "category": "AMBARI"
     },
     {
