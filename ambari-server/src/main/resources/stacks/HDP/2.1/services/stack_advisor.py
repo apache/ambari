@@ -82,7 +82,6 @@ class HDP21StackAdvisor(HDP206StackAdvisor):
     validator = super(HDP21StackAdvisor, self).validateServiceConfigurations(serviceName)
     if validator is None:
       return {
-        "STORM": ["storm-site", self.validateStormConfigurations],
         "HIVE": ["hive-site", self.validateHiveConfigurations],
         "TEZ": ["tez-site", self.validateTezConfigurations]
       }.get(serviceName, None)
@@ -94,12 +93,6 @@ class HDP21StackAdvisor(HDP206StackAdvisor):
                         {"config-name": 'hive.tez.java.opts', "message": self.validateXmxValue(properties, recommendedDefaults, 'hive.tez.java.opts')},
                         {"config-name": 'hive.auto.convert.join.noconditionaltask.size', "message": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'hive.auto.convert.join.noconditionaltask.size')} ]
     return self.toConfigurationValidationErrors(validationItems, "hive-site")
-
-  def validateStormConfigurations(self, properties, recommendedDefaults):
-    validationItems = [ {"config-name": 'drpc.childopts', "message": self.validateXmxValue(properties, recommendedDefaults, 'drpc.childopts')},
-                        {"config-name": 'ui.childopts', "message": self.validateXmxValue(properties, recommendedDefaults, 'ui.childopts')},
-                        {"config-name": 'logviewer.childopts', "message": self.validateXmxValue(properties, recommendedDefaults, 'logviewer.childopts')} ]
-    return self.toConfigurationValidationErrors(validationItems, "storm-site")
 
   def validateTezConfigurations(self, properties, recommendedDefaults):
     validationItems = [ {"config-name": 'tez.am.resource.memory.mb', "message": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'tez.am.resource.memory.mb')},
