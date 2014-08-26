@@ -671,6 +671,7 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
     columns.add(new DBColumnInfo("cluster_id", Long.class, null, null, false));
     columns.add(new DBColumnInfo("group_name", String.class, 255, null, false));
     columns.add(new DBColumnInfo("is_default", Short.class, 1, 1, false));
+    columns.add(new DBColumnInfo("service_name", String.class, 255, null, true));
     dbAccessor.createTable(ALERT_TABLE_GROUP, columns, "group_id");
 
     dbAccessor.executeQuery(

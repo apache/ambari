@@ -191,6 +191,7 @@ CREATE TABLE alert_group (
   cluster_id NUMBER(19) NOT NULL,
   group_name VARCHAR2(255) NOT NULL,
   is_default NUMBER(1) DEFAULT 0 NOT NULL,
+  service_name VARCHAR2(255),
   PRIMARY KEY (group_id),
   CONSTRAINT uni_alert_group_name UNIQUE(cluster_id,group_name)
 );
