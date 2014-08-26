@@ -458,7 +458,7 @@ describe('App', function () {
     afterEach(function () {
       i++;
       App.StackServiceComponent.find.restore();
-    })
+    });
 
     testCases.forEach(function (test) {
       it(test.key + ' should contain ' + test.result, function () {

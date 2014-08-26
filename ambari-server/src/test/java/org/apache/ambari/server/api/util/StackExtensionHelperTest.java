@@ -81,12 +81,14 @@ public class StackExtensionHelperTest {
       if (serviceInfo.getName().equals("HIVE")) {
         // Check old-style service
         assertEquals("HIVE", serviceInfo.getName());
+        assertEquals("Hive", serviceInfo.getDisplayName());
         assertEquals("2.0", serviceInfo.getSchemaVersion());
         assertTrue(serviceInfo.getComment().startsWith("Data warehouse system"));
         assertEquals("0.11.0.2.0.5.0", serviceInfo.getVersion());
         // Check some component definitions
         List<ComponentInfo> components = serviceInfo.getComponents();
         assertEquals("HIVE_METASTORE", components.get(0).getName());
+        assertEquals("Hive Metastore", components.get(0).getDisplayName());
         assertEquals("MASTER", components.get(0).getCategory());
         List<PropertyInfo> properties = serviceInfo.getProperties();
         // Check some property

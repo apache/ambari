@@ -20,11 +20,13 @@
   <services>
     <service>
       <name>FALCON</name>
+      <displayName>Falcon</displayName>
       <comment>Data management and processing platform</comment>
       <version>0.5.0.2.1</version>
       <components>
         <component>
           <name>FALCON_CLIENT</name>
+          <displayName>Falcon Client</displayName>
           <category>CLIENT</category>
           <cardinality>1+</cardinality>
           <commandScript>
@@ -42,6 +44,7 @@
         </component>
         <component>
           <name>FALCON_SERVER</name>
+          <displayName>Falcon Server</displayName>
           <category>MASTER</category>
           <cardinality>1</cardinality>
           <dependencies>

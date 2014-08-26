@@ -20,11 +20,13 @@
   <services>
     <service>
       <name>FLUME</name>
+      <displayName>Flume</displayName>
       <comment>Data management and processing platform</comment>
       <version>1.4.0.2.0</version>
       <components>
         <component>
           <name>FLUME_HANDLER</name>
+          <displayName>Flume</displayName>
           <category>SLAVE</category>
           <cardinality>1+</cardinality>
           <commandScript>

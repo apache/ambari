@@ -20,6 +20,7 @@
   <services>
     <service>
       <name>WEBHCAT</name>
+      <displayName>WebHCat</displayName>
       <comment>This is comment for WEBHCAT service</comment>
       <version>0.11.0.2.0.5.0</version>
     </service>

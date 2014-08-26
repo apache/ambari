@@ -23,6 +23,7 @@
   <services>
     <service>
       <name>HBASE</name>
+      <displayName>HBase</displayName>
       <comment>Non-relational distributed database and centralized service for configuration management &amp;
         synchronization
       </comment>
@@ -30,6 +31,7 @@
       <components>
         <component>
           <name>HBASE_MASTER</name>
+          <displayName>HBase Master</displayName>
           <category>MASTER</category>
           <commandScript> <!--This is the script to handle all default commands -->
             <script>scripts/hbase_master.py</script>
@@ -58,6 +60,7 @@
 
         <component>
           <name>HBASE_REGIONSERVER</name>
+          <displayName>RegionServer</displayName>
           <category>SLAVE</category>
           <commandScript> <!--This is the script to handle all default commands -->
             <script>scripts/hbase_master.py</script>
@@ -67,6 +70,7 @@
 
         <component>
           <name>HBASE_CLIENT</name>
+          <displayName>HBase Client</displayName>
           <category>CLIENT</category>
         </component>
       </components>

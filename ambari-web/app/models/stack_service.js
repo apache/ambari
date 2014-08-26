@@ -18,7 +18,6 @@
 
 var App = require('app');
 require('utils/helper');
-require('mixins/models/service_mixin');
 require('models/service_config');
 //TODO after moving validation/recommendation to BE belove requirements must be deleted
 require('utils/configs/defaults_providers/yarn_defaults_provider');
@@ -37,7 +36,9 @@ require('utils/configs/validators/storm_configs_validator');
  * The model maps to the  http://hostname:8080/api/v1/stacks2/HDP/versions/${versionNumber}/stackServices?fields=StackServices/*,serviceComponents/*
  * @type {*}
  */
-App.StackService = DS.Model.extend(App.ServiceModelMixin, {
+App.StackService = DS.Model.extend({
+  serviceName: DS.attr('string'),
+  displayName: DS.attr('string'),
   comments: DS.attr('string'),
   configTypes: DS.attr('object'),
   serviceVersion: DS.attr('string'),

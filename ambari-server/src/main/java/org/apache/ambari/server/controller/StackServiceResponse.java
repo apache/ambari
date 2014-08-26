@@ -18,19 +18,20 @@
 
 package org.apache.ambari.server.controller;
 
+import org.apache.ambari.server.state.CustomCommandDefinition;
+import org.apache.ambari.server.state.ServiceInfo;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-
-import org.apache.ambari.server.state.CustomCommandDefinition;
-import org.apache.ambari.server.state.ServiceInfo;
 
 public class StackServiceResponse {
 
   private String stackName;
   private String stackVersion;
   private String serviceName;
+  private String serviceDisplayName;
   private String userName;
   private String comments;
   private String serviceVersion;
@@ -48,6 +49,7 @@ public class StackServiceResponse {
    */
   public StackServiceResponse(ServiceInfo service) {
     serviceName = service.getName();
+    serviceDisplayName = service.getDisplayName();
     userName = null;
     comments = service.getComment();
     serviceVersion = service.getVersion();
@@ -89,6 +91,14 @@ public class StackServiceResponse {
 
   public void setServiceName(String serviceName) {
     this.serviceName = serviceName;
+  }
+
+  public String getServiceDisplayName() {
+    return serviceDisplayName;
+  }
+
+  public void setServiceDisplayName(String serviceDisplayName) {
+    this.serviceDisplayName = serviceDisplayName;
   }
 
   public String getUserName() {

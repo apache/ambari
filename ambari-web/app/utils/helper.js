@@ -373,7 +373,18 @@ App.format = {
    * return {string}
    */
   role:function (role) {
-    return this.normalizeName(role);
+    var result;
+    var models = [App.StackService, App.StackServiceComponent];
+    models.forEach(function(model){
+      var instance =  model.find().findProperty('id',role);
+      if (instance) {
+        result = instance.get('displayName');
+      }
+    },this);
+    if (!result)  {
+      result =  this.normalizeName(role);
+    }
+    return result;
   },
 
   /**
@@ -397,7 +408,7 @@ App.format = {
       suffixRegExp.lastIndex = 0;
       var matches = suffixRegExp.exec(name);
       name = matches[1].capitalize() + matches[2].capitalize();
-    };
+    }
     return name.capitalize();
   },
 

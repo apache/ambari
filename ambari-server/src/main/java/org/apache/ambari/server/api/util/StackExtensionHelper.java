@@ -138,6 +138,10 @@ public class StackExtensionHelper {
     mergedServiceInfo.setName(childService.getName());
     mergedServiceInfo.setComment(childService.getComment());
     mergedServiceInfo.setVersion(childService.getVersion());
+    mergedServiceInfo.setDisplayName(
+        childService.getDisplayName() != null ?
+            childService.getDisplayName() :
+            parentService.getDisplayName());
     mergedServiceInfo.setConfigDependencies(
         childService.getConfigDependencies() != null ?
             childService.getConfigDependencies() :
@@ -306,9 +310,14 @@ public class StackExtensionHelper {
       result.setCommandScript(parent.getCommandScript());
     }
     //keep the same semantic as for ServiceInfo
+    result.setDisplayName(
+        child.getDisplayName() != null ?
+            child.getDisplayName() : parent.getDisplayName());
+
     result.setConfigDependencies(
         child.getConfigDependencies() != null ?
             child.getConfigDependencies() : parent.getConfigDependencies());
+
 
 //    HashSet downloadSource = child.getDownloadSource();
 //    if (downloadSource != null) {

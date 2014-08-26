@@ -20,11 +20,13 @@
   <services>
     <service>
       <name>NAGIOS</name>
+      <displayName>Nagios</displayName>
       <comment>Nagios Monitoring and Alerting system</comment>
       <version>3.5.0</version>
       <components>
         <component>
            <name>NAGIOS_SERVER</name>
+          <displayName>Nagios Server</displayName>
            <category>MASTER</category>
            <cardinality>1</cardinality>
           <dependencies>

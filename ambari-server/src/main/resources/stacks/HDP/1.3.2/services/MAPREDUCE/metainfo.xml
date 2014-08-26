@@ -21,11 +21,13 @@
   <services>
     <service>
       <name>MAPREDUCE</name>
+      <displayName>MapReduce</displayName>
       <comment>Apache Hadoop Distributed Processing Framework</comment>
       <version>1.2.0.1.3.3.0</version>
       <components>
         <component>
           <name>JOBTRACKER</name>
+          <displayName>JobTracker</displayName>
           <category>MASTER</category>
           <cardinality>1</cardinality>
           <commandScript>
@@ -47,6 +49,7 @@
 
         <component>
           <name>TASKTRACKER</name>
+          <displayName>TaskTracker</displayName>
           <category>SLAVE</category>
           <cardinality>1+</cardinality>
           <commandScript>
@@ -58,6 +61,7 @@
 
         <component>
           <name>MAPREDUCE_CLIENT</name>
+          <displayName>MapReduce Client</displayName>
           <category>CLIENT</category>
           <cardinality>1+</cardinality>
           <commandScript>
@@ -91,6 +95,7 @@
               
         <component>
           <name>HISTORYSERVER</name>
+          <displayName>History Server</displayName>
           <category>MASTER</category>
           <cardinality>1</cardinality>
           <auto-deploy>

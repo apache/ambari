@@ -20,11 +20,13 @@
   <services>
     <service>
       <name>PIG</name>
+      <displayName>Pig</displayName>
       <comment>Scripting platform for analyzing large datasets</comment>
       <version>0.11.1.1.3.3.0</version>
       <components>
         <component>
           <name>PIG</name>
+          <displayName>Pig</displayName>
           <category>CLIENT</category>
           <cardinality>1+</cardinality>
           <commandScript>

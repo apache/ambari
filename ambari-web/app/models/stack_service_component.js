@@ -24,6 +24,7 @@ var numberUtils = require('utils/number_utils');
  */
 App.StackServiceComponent = DS.Model.extend({
   componentName: DS.attr('string'),
+  displayName: DS.attr('string'),
   cardinality: DS.attr('string'),
   customCommands: DS.attr('array'),
   dependencies: DS.attr('array'),
@@ -53,15 +54,6 @@ App.StackServiceComponent = DS.Model.extend({
   maxToInstall: function() {
     return numberUtils.getCardinalityValue(this.get('cardinality'), true);
   }.property('cardinality'),
-
-  /** @property {String} displayName**/
-  displayName: function() {
-    if (App.format.role(this.get('componentName'))) {
-      return App.format.role(this.get('componentName'));
-    } else {
-      return this.get('componentName');
-    }
-  }.property('componentName'),
 
   /** @property {Boolean} isRequired - component required to install **/
   isRequired: function() {

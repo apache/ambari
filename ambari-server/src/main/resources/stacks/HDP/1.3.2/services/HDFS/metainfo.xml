@@ -20,12 +20,14 @@
   <services>
     <service>
       <name>HDFS</name>
+      <displayName>HDFS</displayName>
       <comment>Apache Hadoop Distributed File System</comment>
       <version>1.2.0.1.3.3.0</version>
 
       <components>
         <component>
           <name>NAMENODE</name>
+          <displayName>NameNode</displayName>
           <category>MASTER</category>
           <cardinality>1-2</cardinality>
           <commandScript>
@@ -47,6 +49,7 @@
 
         <component>
           <name>DATANODE</name>
+          <displayName>DataNode</displayName>
           <category>SLAVE</category>
           <cardinality>1+</cardinality>
           <commandScript>
@@ -58,6 +61,7 @@
 
         <component>
           <name>SECONDARY_NAMENODE</name>
+          <displayName>SNameNode</displayName>
           <category>MASTER</category>
           <cardinality>1</cardinality>
           <commandScript>
@@ -69,6 +73,7 @@
 
         <component>
           <name>HDFS_CLIENT</name>
+          <displayName>HDFS Client</displayName>
           <category>CLIENT</category>
           <cardinality>1+</cardinality>
           <commandScript>
