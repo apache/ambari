@@ -287,7 +287,6 @@ describe('utils/blueprint', function() {
               "yarn-site": {},
               "yarn-env": {}
             },
-            allowServerValidator: true,
             isInstalled: true
           })
         ],

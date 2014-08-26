@@ -78,7 +78,7 @@ App.ServerValidatorMixin = Em.Mixin.create({
     return this.get('content.serviceName')
         ? [App.StackService.find(this.get('content.serviceName'))]
         : App.StackService.find().filter(function(s){
-          return s.get('allowServerValidator') && (s.get('isSelected') || s.get('isInsalled'))
+          return (s.get('isSelected') || s.get('isInstalled'))
         }).concat(require("data/service_configs"));
   }.property('content.serviceName'),
 

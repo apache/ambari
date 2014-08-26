@@ -691,7 +691,7 @@ App.config = Em.Object.create({
       // Use calculated default values for some configs
       var recommendedDefaults = {};
       if (App.get('supports.serverRecommendValidate')) {
-        if (!storedConfigs && service.get('configTypes') && service.get('allowServerValidator')) {
+        if (!storedConfigs && service.get('configTypes')) {
           Object.keys(service.get('configTypes')).forEach(function (type) {
             if (!recommended || !recommended[type]) {
               return;
