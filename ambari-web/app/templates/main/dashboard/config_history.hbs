@@ -45,11 +45,12 @@
               <a {{action goToServiceConfigs item.serviceName}}>
                 {{item.serviceName}}
               </a>
-              <i {{bindAttr class=":icon-refresh :restart-required-service item.isRestartRequired::hidden"}}></i>
+              <i {{bindAttr class=":icon-refresh :restart-required-service item.isRestartRequired::hidden"}}
+                rel="Tooltip" {{translateAttr data-original-title="dashboard.configHistory.table.restart.tooltip"}}></i>
             </td>
             <td>{{item.configGroupName}}
               {{#if item.isCurrent}}
-                <span class="label label-success" rel="currentTooltip"
+                <span class="label label-success" rel="Tooltip"
                 {{bindAttr data-original-title="item.currentTooltip"}}>{{t common.current}}
                 </span>
               {{/if}}

@@ -41,7 +41,7 @@ App.MainConfigHistoryController = Em.ArrayController.extend(App.TableServerMixin
   colPropAssoc: function () {
     var associations = [];
     associations[1] = 'serviceVersion';
-    associations[2] = 'configGroupName';
+    associations[2] = 'configGroup';
     associations[3] = 'createTime';
     associations[4] = 'author';
     associations[5] = 'briefNotes';

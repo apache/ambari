@@ -1994,6 +1994,7 @@ Em.I18n.translations = {
   'dashboard.configHistory.table.empty' : 'No history to display',
   'dashboard.configHistory.table.version.versionText' : 'V{0}',
   'dashboard.configHistory.table.current.tooltip' : 'Current config for {0}:{1}',
+  'dashboard.configHistory.table.restart.tooltip' : 'Restart required',
   'dashboard.configHistory.table.filteredHostsInfo': '{0} of {1} versions showing',
   'dashboard.configHistory.info-bar.authoredOn': 'authored on',
   'dashboard.configHistory.info-bar.changesToHandle': 'Changes to handle',

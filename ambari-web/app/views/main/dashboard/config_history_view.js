@@ -77,7 +77,6 @@ App.MainConfigHistoryView = App.TableView.extend({
     this.addObserver('displayLength', this, 'updatePagination');
     this.set('controller.isPolling', true);
     this.get('controller').doPolling();
-    //App.tooltip(this.$("[rel='currentTooltip']"));
   },
 
   /**
@@ -132,8 +131,12 @@ App.MainConfigHistoryView = App.TableView.extend({
     column: 2,
     fieldType: 'filter-input-width',
     content: function () {
-      return ['All'].concat(['g1','g2','gn']);
-    }.property('App.router.clusterController.isLoaded'),
+      var groupName = App.ServiceConfigVersion.find().mapProperty('groupName').uniq();
+      if (groupName.indexOf(null) > -1 ){
+        groupName.splice(groupName.indexOf(null), 1);
+      }
+      return ['All'].concat(groupName);
+    }.property('App.router.mainConfigHistoryController.content'),
     onChangeValue: function () {
       this.get('parentView').updateFilter(this.get('column'), this.get('actualValue'), 'select');
     },
@@ -187,7 +190,7 @@ App.MainConfigHistoryView = App.TableView.extend({
   ConfigVersionView: Em.View.extend({
     tagName: 'tr',
     didInsertElement: function(){
-      App.tooltip(this.$("[rel='currentTooltip']"));
+      App.tooltip(this.$("[rel='Tooltip']"));
     }
   }),
 
@@ -196,7 +199,6 @@ App.MainConfigHistoryView = App.TableView.extend({
    */
   refresh: function () {
     var self = this;
-
     this.set('filteringComplete', false);
     this.get('controller').load().done(function () {
       self.set('filteringComplete', true);
