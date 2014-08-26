@@ -25,6 +25,7 @@ App.ServiceConfigView.SCPOverriddenRowsView = Ember.View.extend({
   categoryConfigs: null, // just declared as viewClass need it
 
   didInsertElement: function (){
+    Em.$('body>.tooltip').remove();
     if (this.get('isDefaultGroupSelected')) {
       var overrides = this.get('serviceConfigProperty.overrides');
       overrides.forEach(function(overriddenSCP) {
