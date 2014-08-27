@@ -68,6 +68,31 @@ App.ApplicationStatusMapper = App.Mapper.createWithMixins(App.RunPeriodically, {
     Ember.keys(map).forEach(function(key) {
       App.set(key, Ember.getWithDefault(data, map[key], ''));
     });
+  },
+
+  /**
+   * Get cluster name from server
+   * @returns {$.ajax}
+   * @method getClusterName
+   */
+  getClusterName: function() {
+    return App.ajax.send({
+      name: 'cluster_name',
+      sender: this,
+      data: {
+        urlPrefix: '/api/v1/'
+      },
+      success: 'getClusterNameSuccessCallback'
+    });
+  },
+
+  /**
+   * Success callback for clusterName-request
+   * @param {object} data
+   * @method getClusterNameSuccessCallback
+   */
+  getClusterNameSuccessCallback: function(data) {
+    App.set('clusterName', Em.get(data.items[0], 'Clusters.cluster_name'));
   }
 
 });

@@ -82,6 +82,8 @@ App.initializer({
       viewErrors: []
 
     });
+
+    application.ApplicationStatusMapper.getClusterName();
     application.ApplicationStatusMapper.loop('load');
     application.ApplicationTypeMapper.loop('load');
     application.SliderAppsMapper.loop('load');

@@ -65,19 +65,24 @@ App.CreateAppWizardStep3Controller = Ember.ObjectController.extend({
    */
   loadStep: function () {
     this.clearStep();
-    this.initConfigs();
+    this.initConfigs(true);
   },
 
   /**
    * Format init value for <code>configs</code> property
+   * @param {bool} setDefaults
    * @method initConfigs
    */
-  initConfigs: function() {
+  initConfigs: function(setDefaults) {
+    setDefaults = setDefaults === true ? setDefaults : false;
     var configs = this.get('newAppConfigs') || {},
         c = Em.A();
 
     Object.keys(configs).forEach(function (key) {
       var label = (!!key.match('^site.'))?key.substr(5):key;
+      if(key === "site.global.ganglia_server_host" && setDefaults) {
+        configs[key] = App.get('gangliaHost') ? App.get('gangliaHost') : configs[key];
+      }
       c.push({name:key,value:configs[key],label:label})
     });
 

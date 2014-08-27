@@ -81,8 +81,38 @@ App.CreateAppWizardStep1Controller = Ember.Controller.extend({
    * @method loadStep
    */
   loadStep: function () {
+    this.loadGangliaHost();
     this.initializeNewApp();
     this.loadAvailableTypes();
+  },
+
+  /**
+   * Load ganglia server host
+   * @method loadGangliaHost
+   */
+  loadGangliaHost: function () {
+    return App.ajax.send({
+      name: 'components_hosts',
+      sender: this,
+      data: {
+        componentName: "GANGLIA_SERVER",
+        urlPrefix: '/api/v1/'
+      },
+      success: 'loadGangliaHostSuccessCallback'
+    });
+
+  },
+
+  /**
+   * Success callback for hosts-request
+   * Save host name to gangliaHost
+   * @param {Object} data
+   * @method loadGangliaHostSuccessCallback
+   */
+  loadGangliaHostSuccessCallback: function (data) {
+    if(data.items[0]){
+      App.set('gangliaHost', Em.get(data.items[0], 'Hosts.host_name'));
+    }
   },
 
   /**
