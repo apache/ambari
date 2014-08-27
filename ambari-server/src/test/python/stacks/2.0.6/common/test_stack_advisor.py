@@ -99,8 +99,8 @@ class TestHDP206StackAdvisor(TestCase):
     result = self.stackAdvisor.validateComponentLayout(services, hosts)
 
     expectedItems = [
-      {"message": "NameNode and Secondary NameNode cannot be hosted on same machine", "level": "WARN", "host": "host1"},
-      {"message": "NameNode and Secondary NameNode cannot be hosted on same machine", "level": "WARN", "host": "host1"},
+      {"message": "NameNode and Secondary NameNode should not be hosted on same machine", "level": "WARN", "host": "host1"},
+      {"message": "NameNode and Secondary NameNode should not be hosted on same machine", "level": "WARN", "host": "host1"},
       {"message": "Host is not used", "level": "ERROR", "host": "host2"}
     ]
     self.assertValidationResult(expectedItems, result)
