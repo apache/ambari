@@ -141,8 +141,15 @@ App.ConfigHistoryFlowView = Em.View.extend({
     var startIndex = 0;
 
     serviceVersions.setEach('isDisplayed', false);
-    if (serviceVersions.findProperty('isCurrent')) {
-      serviceVersions.findProperty('isCurrent').set('isDisplayed', true);
+    //set the correct version to display
+    var allCurrent = serviceVersions.filterProperty('isCurrent');
+    if (this.get('isDefaultConfigGroupSelected')) {
+      // display current in default group
+      allCurrent.findProperty('groupName', null).set('isDisplayed', true);
+    }else {
+      // display current in selected group
+      var current = allCurrent.findProperty('groupName', this.get('selectedConfigGroupName'));
+      current ? current.set('isDisplayed', true) : allCurrent.findProperty('groupName', null).set('isDisplayed', true);
     }
 
     if (serviceVersions.length > 0) {
@@ -152,7 +159,7 @@ App.ConfigHistoryFlowView = Em.View.extend({
       this.set('startIndex', startIndex);
       this.adjustFlowView();
     }
-    this.keepInfoBarAtTop()
+    this.keepInfoBarAtTop();
   },
 
   /**

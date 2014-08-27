@@ -288,21 +288,24 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
 
   /**
    * load current service config version number
-   * set currentVersion
+   * set currentVersion (current version for default group)
    * @param data
    * @param opt
    * @param params
    */
   loadCurrentVersionsSuccess: function (data, opt, params) {
-    var currentConfigVersions = {};
     var self = this;
     for (var service in data.Clusters.desired_service_config_versions) {
-      currentConfigVersions[service + '_' + data.Clusters.desired_service_config_versions[service][0].service_config_version] = true;
       if (self.get('content.serviceName') == service) {
-        self.set('currentVersion', data.Clusters.desired_service_config_versions[service][0].service_config_version);
+        //current version of default config group
+        data.Clusters.desired_service_config_versions[service].forEach (function(version) {
+          if (version.group_id == null) {
+            self.set('currentVersion', version.service_config_version);
+          }
+        });
       }
     }
-    App.cache['currentConfigVersions'] = currentConfigVersions;
+
   },
 
   /**
@@ -324,7 +327,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
       success: 'loadSelectedVersionSuccess'
     }).complete(function () {
         self.loadServiceTagsAndGroups();
-      });
+    });
   },
 
   /**

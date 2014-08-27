@@ -31,7 +31,7 @@ App.MainConfigHistoryController = Em.ArrayController.extend(App.TableServerMixin
   filteredCount: 0,
   mockUrl: '/data/configurations/service_versions.json',
   realUrl: function () {
-    return App.apiPrefix + '/clusters/' + App.get('clusterName') + '/configurations/service_config_versions?<parameters>fields=service_config_version,user,group_id,group_name,createtime,service_name,service_config_version_note&minimal_response=true';
+    return App.apiPrefix + '/clusters/' + App.get('clusterName') + '/configurations/service_config_versions?<parameters>fields=service_config_version,user,group_id,group_name,is_current,createtime,service_name,service_config_version_note&minimal_response=true';
   }.property('App.clusterName'),
 
   /**
@@ -154,13 +154,9 @@ App.MainConfigHistoryController = Em.ArrayController.extend(App.TableServerMixin
    */
   load: function () {
     var dfd = $.Deferred();
-    var self = this;
-
     this.updateTotalCounter();
-    this.loadCurrentVersions().complete(function () {
-      self.loadConfigVersionsToModel().done(function () {
-        dfd.resolve();
-      });
+    this.loadConfigVersionsToModel().done(function () {
+      dfd.resolve();
     });
     return dfd.promise();
   },
@@ -179,24 +175,6 @@ App.MainConfigHistoryController = Em.ArrayController.extend(App.TableServerMixin
       }
     });
     return dfd.promise();
-  },
-
-  loadCurrentVersions: function () {
-    return App.ajax.send({
-      name: 'service.serviceConfigVersions.get.current',
-      sender: this,
-      data: {},
-      success: 'loadCurrentVersionsSuccess'
-    })
-  },
-
-  loadCurrentVersionsSuccess: function (data, opt, params) {
-    var currentConfigVersions = {};
-
-    for (var service in data.Clusters.desired_service_config_versions) {
-      currentConfigVersions[service + '_' + data.Clusters.desired_service_config_versions[service][0].service_config_version] = true;
-    }
-    App.cache['currentConfigVersions'] = currentConfigVersions;
   },
 
   updateTotalCounter: function () {
