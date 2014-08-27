@@ -58,11 +58,14 @@ App.registerBoundHelper = function(name, view) {
 App.registerBoundHelper('formatWordBreak', Em.View.extend({
   tagName: 'span',
   template: Ember.Handlebars.compile('{{{view.result}}}'),
+  devider:'/',
 
   /**
    * @type {string}
    */
   result: function() {
-    return this.get('content') && this.get('content').replace(/\//g, '/<wbr />');
+    var d = this.get('devider');
+    var r = new RegExp('\\'+d,"g");
+    return this.get('content') && this.get('content').replace(r, d+'<wbr />');
   }.property('content')
 }));
