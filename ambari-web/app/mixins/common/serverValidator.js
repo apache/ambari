@@ -236,8 +236,8 @@ App.ServerValidatorMixin = Em.Mixin.create({
               if ((property.get('filename') == item['config-type'] + '.xml') && (property.get('name') == item['config-name'])) {
                 if (item.level == "ERROR") {
                   self.set('configValidationError', true);
-                  property.set('errorMessage', item.message);
-                  property.set('error', true);
+                  property.set('warnMessage', item.message);
+                  property.set('warn', true);
                 } else if (item.level == "WARN") {
                   self.set('configValidationWarning', true);
                   property.set('warnMessage', item.message);
@@ -264,21 +264,14 @@ App.ServerValidatorMixin = Em.Mixin.create({
    * @returns {*}
    */
   warnUser: function(deferred) {
-    var self = this;
     if (this.get('configValidationFailed')) {
-      this.set('isSubmitDisabled', false);
-      this.set("isApplyingChanges", false);
       deferred.reject();
       return App.showAlertPopup(Em.I18n.t('installer.step7.popup.validation.failed.header'), Em.I18n.t('installer.step7.popup.validation.request.failed.body'));
     } else if (this.get('configValidationWarning') || this.get('configValidationError')) {
       // Motivation: for server-side validation warnings and EVEN errors allow user to continue wizard
-      this.set('isSubmitDisabled', true);
-      this.set("isApplyingChanges", false);
-      return App.showConfirmationPopup(function () {
-        self.set('isSubmitDisabled', false);
-        self.set("isApplyingChanges", true);
-        deferred.resolve();
-      }, Em.I18n.t('installer.step7.popup.validation.warning.body'));
+      return App.showConfirmationPopup(function () { deferred.resolve(); },
+          Em.I18n.t('installer.step7.popup.validation.warning.body'),
+          function () { deferred.reject(); });
     } else {
       deferred.resolve();
     }

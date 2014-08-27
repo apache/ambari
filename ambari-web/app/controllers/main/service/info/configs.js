@@ -1095,11 +1095,13 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
           App.showConfirmationPopup(function () {
             self.saveConfigs();
           }, Em.I18n.t('services.service.config.confirmDirectoryChange').format(displayName), function () {
-            self.set('isApplyingChanges', false)
+            self.set('isApplyingChanges', false);
           });
         } else {
           self.saveConfigs();
         }
+      }).fail(function() {
+        self.set('isApplyingChanges', false);
       });
     } else {
       status = 'started';
