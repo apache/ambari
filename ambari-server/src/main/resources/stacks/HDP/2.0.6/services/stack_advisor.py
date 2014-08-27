@@ -415,58 +415,66 @@ class HDP206StackAdvisor(StackAdvisor):
       "YARN": ["yarn-site", self.validateYARNConfigurations]
     }.get(serviceName, None)
 
-  def toConfigurationValidationErrors(self, items, siteName):
+  def toConfigurationValidationProblems(self, validationProblems, siteName):
     result = []
-    for item in items:
-      if item["message"] is not None:
-        error = { "type": 'configuration', "level": 'ERROR', "message": item["message"], "config-type": siteName, "config-name": item["config-name"] }
-        result.append(error)
+    for validationProblem in validationProblems:
+      validationItem = validationProblem.get("item", None)
+      if validationItem is not None:
+        problem = { "type": 'configuration', "level": validationItem["level"], "message": validationItem["message"],
+                  "config-type": siteName, "config-name": validationProblem["config-name"] }
+        result.append(problem)
     return result
+
+  def getWarnItem(self, message):
+    return {"level": "WARN", "message": message}
+
+  def getErrorItem(self, message):
+    return {"level": "ERROR", "message": message}
 
   def validatorLessThenDefaultValue(self, properties, recommendedDefaults, propertyName):
     if not propertyName in properties:
-      return "Value should be set"
+      return self.getErrorItem("Value should be set")
     value = to_number(properties[propertyName])
     if value is None:
-      return "Value should be integer"
+      return self.getErrorItem("Value should be integer")
     defaultValue = to_number(recommendedDefaults[propertyName])
     if defaultValue is None:
       return None
     if value < defaultValue:
-      return "Value is less than the recommended default of {0}".format(defaultValue)
+      return self.getWarnItem("Value is less than the recommended default of {0}".format(defaultValue))
     return None
 
   def validateXmxValue(self, properties, recommendedDefaults, propertyName):
     if not propertyName in properties:
-      return "Value should be set"
+      return self.getErrorItem("Value should be set")
     value = properties[propertyName]
     defaultValue = recommendedDefaults[propertyName]
     if defaultValue is None:
-      return "Config's default value can't be null or undefined"
+      return self.getErrorItem("Config's default value can't be null or undefined")
     if not checkXmxValueFormat(value):
-      return 'Invalid value format'
+      return self.getErrorItem('Invalid value format')
     valueInt = formatXmxSizeToBytes(getXmxSize(value))
     defaultValueXmx = getXmxSize(defaultValue)
     defaultValueInt = formatXmxSizeToBytes(defaultValueXmx)
     if valueInt < defaultValueInt:
-      return "Value is less than the recommended default of -Xmx" + defaultValueXmx
+      return self.getWarnItem("Value is less than the recommended default of -Xmx" + defaultValueXmx)
     return None
 
   def validateMapReduce2Configurations(self, properties, recommendedDefaults):
-    validationItems = [ {"config-name": 'mapreduce.map.java.opts', "message": self.validateXmxValue(properties, recommendedDefaults, 'mapreduce.map.java.opts')},
-                        {"config-name": 'mapreduce.reduce.java.opts', "message": self.validateXmxValue(properties, recommendedDefaults, 'mapreduce.reduce.java.opts')},
-                        {"config-name": 'mapreduce.task.io.sort.mb', "message": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'mapreduce.task.io.sort.mb')},
-                        {"config-name": 'mapreduce.map.memory.mb', "message": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'mapreduce.map.memory.mb')},
-                        {"config-name": 'mapreduce.reduce.memory.mb', "message": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'mapreduce.reduce.memory.mb')},
-                        {"config-name": 'yarn.app.mapreduce.am.resource.mb', "message": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'yarn.app.mapreduce.am.resource.mb')},
-                        {"config-name": 'yarn.app.mapreduce.am.command-opts', "message": self.validateXmxValue(properties, recommendedDefaults, 'yarn.app.mapreduce.am.command-opts')} ]
-    return self.toConfigurationValidationErrors(validationItems, "mapred-site")
+    validationItems = [ {"config-name": 'mapreduce.map.java.opts', "item": self.validateXmxValue(properties, recommendedDefaults, 'mapreduce.map.java.opts')},
+                        {"config-name": 'mapreduce.reduce.java.opts', "item": self.validateXmxValue(properties, recommendedDefaults, 'mapreduce.reduce.java.opts')},
+                        {"config-name": 'mapreduce.task.io.sort.mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'mapreduce.task.io.sort.mb')},
+                        {"config-name": 'mapreduce.map.memory.mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'mapreduce.map.memory.mb')},
+                        {"config-name": 'mapreduce.reduce.memory.mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'mapreduce.reduce.memory.mb')},
+                        {"config-name": 'yarn.app.mapreduce.am.resource.mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'yarn.app.mapreduce.am.resource.mb')},
+                        {"config-name": 'yarn.app.mapreduce.am.command-opts', "item": self.validateXmxValue(properties, recommendedDefaults, 'yarn.app.mapreduce.am.command-opts')} ]
+    return self.toConfigurationValidationProblems(validationItems, "mapred-site")
 
   def validateYARNConfigurations(self, properties, recommendedDefaults):
-    validationItems = [ {"config-name": 'yarn.nodemanager.resource.memory-mb', "message": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'yarn.nodemanager.resource.memory-mb')},
-                        {"config-name": 'yarn.scheduler.minimum-allocation-mb', "message": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'yarn.scheduler.minimum-allocation-mb')},
-                        {"config-name": 'yarn.scheduler.maximum-allocation-mb', "message": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'yarn.scheduler.maximum-allocation-mb')} ]
-    return self.toConfigurationValidationErrors(validationItems, "yarn-site")
+    validationItems = [ {"config-name": 'yarn.nodemanager.resource.memory-mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'yarn.nodemanager.resource.memory-mb')},
+                        {"config-name": 'yarn.scheduler.minimum-allocation-mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'yarn.scheduler.minimum-allocation-mb')},
+                        {"config-name": 'yarn.scheduler.maximum-allocation-mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'yarn.scheduler.maximum-allocation-mb')} ]
+    return self.toConfigurationValidationProblems(validationItems, "yarn-site")
 
 
 # Validation helper methods
