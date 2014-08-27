@@ -22,11 +22,30 @@ App.CreateAppWizardStep3Controller = Ember.ObjectController.extend({
 
   appWizardController: Ember.computed.alias("controllers.createAppWizard"),
 
+  newAppConfigs: Ember.computed.alias("appWizardController.newApp.configs"),
+
   /**
-   * Configs entered in TextArea
-   * @type {String}
+   * Configs entered in TextFields
+   * @type Array
    */
-  configs: '',
+  configs: Em.A(),
+
+  /**
+   * Convert configs to array of uniq section names
+   * @return {Array}
+   */
+  sectionKeys:function () {
+    var configs = this.get('newAppConfigs') || {},
+        k = ["general"];
+
+    Object.keys(configs).forEach(function (key) {
+      if (key.split('.')[0] == "site") {
+        k.push(key.split('.')[1])
+      }
+    });
+
+    return k.uniq();
+  }.property('newAppConfigs'),
 
   /**
    * Defines if <code>configs</code> are properly key-value formatted
@@ -54,10 +73,16 @@ App.CreateAppWizardStep3Controller = Ember.ObjectController.extend({
    * @method initConfigs
    */
   initConfigs: function() {
-    var c = JSON.stringify(this.get('appWizardController.newApp.configs')).replace(/",/g, '",\n');
-    c = c.substr(1, c.length - 2);
+    var configs = this.get('newAppConfigs') || {},
+        c = Em.A();
+
+    Object.keys(configs).forEach(function (key) {
+      var label = (!!key.match('^site.'))?key.substr(5):key;
+      c.push({name:key,value:configs[key],label:label})
+    });
+
     this.set('configs', c);
-  },
+  }.observes('newAppConfigs'),
 
   /**
    * Clear all initial data
@@ -76,8 +101,12 @@ App.CreateAppWizardStep3Controller = Ember.ObjectController.extend({
     var self = this;
     var result = true;
     var configs = this.get('configs');
+    var configsObject = {};
+
     try {
-      var configsObject = JSON.parse('{' + configs + '}');
+      configs.forEach(function (item) {
+        configsObject[item.name] = item.value;
+      })
       self.set('configsObject', configsObject);
     } catch (e) {
       self.set('isError', true);
@@ -91,7 +120,7 @@ App.CreateAppWizardStep3Controller = Ember.ObjectController.extend({
    * @method saveConfigs
    */
   saveConfigs: function () {
-    this.set('appWizardController.newApp.configs', this.get('configsObject'));
+    this.set('newAppConfigs', this.get('configsObject'));
   },
 
   actions: {

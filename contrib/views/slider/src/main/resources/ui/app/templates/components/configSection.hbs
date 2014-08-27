@@ -16,16 +16,15 @@
 * limitations under the License.
 }}
 
-<p>
-  {{t wizard.step3.header}}
-</p>
-<div {{bind-attr class="controller.isError:has-error :form-group"}}>
-  {{#each controller.sectionKeys}}
-    {{config-section section=this config=controller.configs}}
-  {{/each}}
-  {{#if controller.isError}}
-    <div class="alert alert-danger">{{t wizard.step3.error}}</div>
-  {{/if}}
-</div>
-<button class="btn btn-success pull-right next-btn" {{action submit}}>{{t common.next}}</button>
-<button class="btn pull-right" {{action prevStep}}>{{t common.back}}</button>
+{{#bs-panel heading=sectionLabel collapsible=true dismiss=false open=isGeneral }}
+  <form class="form-horizontal" role="form">
+    {{#each sectionConfigs}}
+    <div class="form-group">
+      <label class="col-sm-4 control-label">{{formatWordBreak label devider='.'}}</label>
+      <div class="col-sm-6">
+        {{input value=value class="form-control"}}
+      </div>
+    </div>
+    {{/each}}
+  </form>
+{{/bs-panel}}
