@@ -99,9 +99,9 @@ class TestHDP206StackAdvisor(TestCase):
     result = self.stackAdvisor.validateComponentLayout(services, hosts)
 
     expectedItems = [
-      {"message": "NameNode and Secondary NameNode cannot be hosted on same machine", "host": "host1"},
-      {"message": "NameNode and Secondary NameNode cannot be hosted on same machine", "host": "host1"},
-      {"message": "Host is not used", "host": "host2"}
+      {"message": "NameNode and Secondary NameNode cannot be hosted on same machine", "level": "WARN", "host": "host1"},
+      {"message": "NameNode and Secondary NameNode cannot be hosted on same machine", "level": "WARN", "host": "host1"},
+      {"message": "Host is not used", "level": "ERROR", "host": "host2"}
     ]
     self.assertValidationResult(expectedItems, result)
 
@@ -120,7 +120,27 @@ class TestHDP206StackAdvisor(TestCase):
     result = self.stackAdvisor.validateComponentLayout(services, hosts)
 
     expectedItems = [
-      {"message": "Cardinality violation, cardinality=ALL, hosts count=1"}
+      {"message": "Cardinality violation, cardinality=ALL, hosts count=1", "level": "ERROR"}
+    ]
+    self.assertValidationResult(expectedItems, result)
+
+  def test_validationWarnMessagesIfLessThanDefault(self):
+    servicesInfo = [
+      {
+        "name": "YARN",
+        "components": []
+      }
+    ]
+    services = self.prepareServices(servicesInfo)
+    services["configurations"] = {"yarn-site":{"properties":{"yarn.nodemanager.resource.memory-mb": "0",
+                                                             "yarn.scheduler.minimum-allocation-mb": "str"}}}
+    hosts = self.prepareHosts([])
+    result = self.stackAdvisor.validateConfigurations(services, hosts)
+
+    expectedItems = [
+      {"message": "Value is less than the recommended default of 2046", "level": "WARN"},
+      {"message": "Value should be integer", "level": "ERROR"},
+      {"message": "Value should be set", "level": "ERROR"}
     ]
     self.assertValidationResult(expectedItems, result)
 
@@ -139,7 +159,7 @@ class TestHDP206StackAdvisor(TestCase):
     result = self.stackAdvisor.validateComponentLayout(services, hosts)
 
     expectedItems = [
-      {"message": "Host is not used", "host": "host1"}
+      {"message": "Host is not used", "host": "host1", "level": "ERROR"}
     ]
     self.assertValidationResult(expectedItems, result)
 
@@ -157,7 +177,7 @@ class TestHDP206StackAdvisor(TestCase):
     result = self.stackAdvisor.validateComponentLayout(services, hosts)
 
     expectedItems = [
-      {"message": "Cardinality violation, cardinality=0-1, hosts count=2"}
+      {"message": "Cardinality violation, cardinality=0-1, hosts count=2", "level": "ERROR"}
     ]
     self.assertValidationResult(expectedItems, result)
 
@@ -175,7 +195,7 @@ class TestHDP206StackAdvisor(TestCase):
     result = self.stackAdvisor.validateComponentLayout(services, hosts)
 
     expectedItems = [
-      {"message": "Host is not used", "host": "host2"}
+      {"message": "Host is not used", "host": "host2", "level": "ERROR"}
     ]
     self.assertValidationResult(expectedItems, result)
 
@@ -244,7 +264,7 @@ class TestHDP206StackAdvisor(TestCase):
   def assertValidationResult(self, expectedItems, result):
     actualItems = []
     for item in result["items"]:
-      next = { "message": item["message"] }
+      next = {"message": item["message"], "level": item["level"]}
       try:
         next["host"] = item["host"]
       except KeyError, err:
