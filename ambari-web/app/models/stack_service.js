@@ -49,6 +49,7 @@ App.StackService = DS.Model.extend({
   isInstalled: DS.attr('boolean', {defaultValue: false}),
   serviceComponents: DS.hasMany('App.StackServiceComponent'),
   configs: DS.attr('array'),
+  requiredServices: DS.attr('array'),
 
   // Is the service a distributed filesystem
   isDFS: function () {
@@ -88,34 +89,6 @@ App.StackService = DS.Model.extend({
   isHiddenOnSelectServicePage: function () {
     var hiddenServices = ['MAPREDUCE2', 'HCATALOG', 'WEBHCAT'];
     return hiddenServices.contains(this.get('serviceName'));
-  }.property('serviceName'),
-
-  dependentServices: function () {
-    var serviceName = this.get('serviceName');
-    var dependentServices = [];
-    if (App.get('isHadoop2Stack')) {
-      dependentServices = App.StackService.dependency['HDP-2'][serviceName];
-    } else {
-      dependentServices = App.StackService.dependency['HDP-1'][serviceName];
-    }
-    return dependentServices;
-  }.property('serviceName'),
-
-  /**
-   * other services on which the service is dependent
-   */
-  serviceDependency: function () {
-    var serviceName = this.get('serviceName');
-    var serviceDependencyMap, key, serviceDependencies = [];
-    if (App.get('isHadoop2Stack')) {
-      serviceDependencyMap = App.StackService.dependency['HDP-2'];
-    } else {
-      serviceDependencyMap = App.StackService.dependency['HDP-1'];
-    }
-    for (key in serviceDependencyMap) {
-      if (serviceDependencyMap[key].contains(serviceName)) serviceDependencies.push(key);
-    }
-    return  serviceDependencies;
   }.property('serviceName'),
 
   // Is the service required for monitoring of other hadoop ecosystem services
@@ -222,21 +195,6 @@ App.StackService.displayOrder = [
   'STORM',
   'FLUME'
 ];
-
-App.StackService.dependency = {
-  'HDP-1': {
-    'HDFS': ['MAPREDUCE', 'HBASE', 'SQOOP'],
-    'MAPREDUCE': ['PIG', 'OOZIE', 'HIVE'],
-    'ZOOKEEPER': ['HBASE', 'HIVE', 'WEBHCAT']
-  },
-  'HDP-2': {
-    'ZOOKEEPER': ['HDFS', 'HBASE', 'HIVE', 'WEBHCAT', 'STORM'],
-    'HDFS': ['YARN', 'HBASE', 'FLUME', 'SQOOP'],
-    'YARN': ['PIG', 'OOZIE', 'HIVE', 'TEZ'],
-    'TEZ': ['YARN'],
-    'OOZIE': ['FALCON']
-  }
-};
 
 //@TODO: Write unit test for no two keys in the object should have any intersecting elements in their values
 App.StackService.coSelected = {

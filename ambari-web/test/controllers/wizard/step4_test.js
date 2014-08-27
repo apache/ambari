@@ -32,6 +32,7 @@ describe('App.WizardStep4Controller', function () {
 
   var generateSelectedServicesContent = function(selectedServiceNames) {
     var allServices = services.slice(0);
+    modelSetup.setupStackServiceComponent();
     if (selectedServiceNames.contains('GLUSTERFS')) allServices.push('GLUSTERFS');
     allServices = allServices.map(function(serviceName) {
       return [Ember.Object.create({
@@ -42,7 +43,7 @@ describe('App.WizardStep4Controller', function () {
         isPrimaryDFS: serviceName == 'HDFS',
         isDFS: ['HDFS','GLUSTERFS'].contains(serviceName),
         isMonitoringService: ['NAGIOS','GANGLIA'].contains(serviceName),
-        dependentServices: App.StackService.dependency['HDP-2'][serviceName],
+        requiredServices: App.StackService.find(serviceName).get('requiredServices'),
         displayNameOnSelectServicePage: App.format.role(serviceName),
         coSelectedServices: function() {
           return App.StackService.coSelected[this.get('serviceName')] || [];
@@ -468,6 +469,41 @@ describe('App.WizardStep4Controller', function () {
         expect(App.router.send.calledOnce).to.equal(test.userCanProceed);
       });
 
+    })
+  });
+
+  describe('#dependencies', function() {
+    var tests = [
+      {
+        services: ['HDFS'],
+        dependencies: ['ZOOKEEPER'] 
+      },
+      {
+        services: ['STORM'],
+        dependencies: ['ZOOKEEPER'] 
+      }
+    ];
+    tests.forEach(function(test) {
+      var message = '{0} dependency should be {1}'.format(test.services.join(','), test.dependencies.join(','));
+      it(message, function() {
+        
+        controller.clear();
+        controller.set('content', generateSelectedServicesContent(test.services));
+        
+        var dependentServicesTest = [];
+        
+        test.services.forEach(function(serviceName) {
+          var service = controller.filterProperty('serviceName', serviceName);
+          service.forEach(function(item) {
+            var dependencies = item.get('requiredServices');
+            if(!!dependencies) {
+              dependentServicesTest = dependentServicesTest.concat(dependencies);
+            }
+          });
+        });
+
+        expect(dependentServicesTest).to.be.eql(test.dependencies);
+      });
     })
   });
 

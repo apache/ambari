@@ -254,27 +254,34 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    * @method serviceDependencyValidation
    */
   serviceDependencyValidation: function() {
-    var notSelectedServices = this.filterProperty('isSelected',false);
-    notSelectedServices.forEach(function(service){
-      var showWarningPopup;
-      var dependentServices =  service.get('dependentServices');
+    var selectedServices = this.filterProperty('isSelected',true);
+    var missingDependencies = [];
+    var missingDependenciesDisplayName = [];
+    selectedServices.forEach(function(service){
+    
+      var dependentServices =  service.get('requiredServices');
       if (!!dependentServices) {
-        showWarningPopup = false;
         dependentServices.forEach(function(_dependentService){
           var dependentService = this.findProperty('serviceName', _dependentService);
-          if (dependentService && dependentService.get('isSelected') === true) {
-            showWarningPopup = true;
+          if (dependentService && dependentService.get('isSelected') === false) {
+            if(missingDependencies.indexOf(_dependentService) == -1 ) {
+              missingDependencies.push(_dependentService);
+              missingDependenciesDisplayName.push(dependentService.get('displayNameOnSelectServicePage'));
+            }
           }
         },this);
-        if (showWarningPopup) {
-          this.addValidationError({
-            id: 'serviceCheck_' + service.get('serviceName'),
-            callback: this.needToAddServicePopup,
-            callbackParams: [{serviceName: service.get('serviceName'), selected: true}, 'serviceCheck', service.get('displayNameOnSelectServicePage')]
-          });
-        }
       }
     },this);
+    
+    if (missingDependencies.length > 0) {
+      for(var i = 0; i < missingDependencies.length; i++) {
+        this.addValidationError({
+          id: 'serviceCheck_' + missingDependencies[i],
+          callback: this.needToAddServicePopup,
+          callbackParams: [{serviceName: missingDependencies[i], selected: true}, 'serviceCheck', missingDependenciesDisplayName[i]]
+        });
+      }
+    }
   },
 
   /**
