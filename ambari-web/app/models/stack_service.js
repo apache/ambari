@@ -332,24 +332,11 @@ App.StackService.configCategories = function () {
   serviceConfigCategories.pushObject(App.ServiceConfigCategory.create({ name: 'Advanced', displayName: 'Advanced'}));
 
   var configTypes = Object.keys(this.get('configTypes'));
-  if (this.get('serviceName') !== 'HDFS') {
-    configTypes = configTypes.without('core-site');
-  }
+
   //Falcon has dependency on oozie-site but oozie-site advanced/custom section should not be shown on Falcon page
   if (this.get('serviceName') !== 'OOZIE') {
     configTypes = configTypes.without('oozie-site');
   }
-
-  //Hive has dependency on tez-site but tez-site advanced/custom section should not be shown on Hive page
-  if (this.get('serviceName') !== 'TEZ') {
-    configTypes = configTypes.without('tez-site');
-  }
-
-  //oozie has dependency on yarn-site but yarn-site advanced/custom section should not be shown on Oozie page
-  if (this.get('serviceName') !== 'YARN') {
-    configTypes = configTypes.without('yarn-site');
-  }
-
 
   // Add Advanced section for every configType to all the services
   configTypes.forEach(function (type) {
