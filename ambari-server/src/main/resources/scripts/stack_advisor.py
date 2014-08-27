@@ -33,7 +33,7 @@ ALL_ACTIONS = [ RECOMMEND_COMPONENT_LAYOUT_ACTION, VALIDATE_COMPONENT_LAYOUT_ACT
 USAGE = "Usage: <action> <hosts_file> <services_file>\nPossible actions are: {0}\n".format( str(ALL_ACTIONS) )
 
 SCRIPT_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
-STACK_ADVISOR_PATH_TEMPLATE = os.path.join(SCRIPT_DIRECTORY, '../stacks/{0}/stack_advisor.py')
+STACK_ADVISOR_PATH_TEMPLATE = os.path.join(SCRIPT_DIRECTORY, '../stacks/stack_advisor.py')
 STACK_ADVISOR_IMPL_PATH_TEMPLATE = os.path.join(SCRIPT_DIRECTORY, './../stacks/{0}/{1}/services/stack_advisor.py')
 STACK_ADVISOR_IMPL_CLASS_TEMPLATE = '{0}{1}StackAdvisor'
 
