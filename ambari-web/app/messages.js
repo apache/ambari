@@ -1410,7 +1410,7 @@ Em.I18n.translations = {
     'on the Ambari Server host to make the JDBC driver available and to enable testing the database connection.',
 
   'services.service.config.configHistory.configGroup': 'Group',
-  'services.service.config.configHistory.makeCurrent.message': 'Are you sure you want to make {0} the current version for {1}:{2} ?',
+  'services.service.config.configHistory.makeCurrent.message': 'Created from service config version {0}',
 
   'services.add.header':'Add Service Wizard',
   'services.reassign.header':'Move Master Wizard',
@@ -2000,6 +2000,7 @@ Em.I18n.translations = {
   'dashboard.configHistory.info-bar.changesToHandle': 'Changes to handle',
   'dashboard.configHistory.info-bar.showMore': 'Show more',
   'dashboard.configHistory.info-bar.save.popup.title': 'Save Configuration',
+  'dashboard.configHistory.info-bar.makeCurrent.popup.title': 'Make Current Confirmation',
   'dashboard.configHistory.info-bar.save.popup.placeholder': 'What did you change?',
   'dashboard.configHistory.info-bar.revert.button': 'Make current',
 
