@@ -113,7 +113,7 @@ App.StackService = DS.Model.extend({
       serviceDependencyMap = App.StackService.dependency['HDP-1'];
     }
     for (key in serviceDependencyMap) {
-      if (serviceDependencyMap[key].contains(serviceName)) serviceDependencies.pushObject(key);
+      if (serviceDependencyMap[key].contains(serviceName)) serviceDependencies.push(key);
     }
     return  serviceDependencies;
   }.property('serviceName'),
@@ -178,7 +178,6 @@ App.StackService = DS.Model.extend({
    */
   configCategories: function () {
     var configCategories = [];
-    var serviceName = this.get('serviceName');
     var configTypes = this.get('configTypes');
     var serviceComponents = this.get('serviceComponents');
     if (configTypes && Object.keys(configTypes).length) {

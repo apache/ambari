@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var misc = require('utils/misc');
 
 require('models/host');
 
@@ -54,13 +55,17 @@ describe('App.Host', function () {
   before(function() {
     App.set('testMode', false);
   });
+  App.Host.reopen({
+    hostComponents: []
+  });
   App.store.loadMany(App.Host, data);
+
+  var host1 = App.Host.find('host1');
 
   describe('#diskUsedFormatted', function () {
 
     it('host1 - 10GB ', function () {
-      var host = App.Host.find().findProperty('hostName', 'host1');
-      expect(host.get('diskUsedFormatted')).to.equal('10GB');
+      expect(host1.get('diskUsedFormatted')).to.equal('10GB');
     });
     it('host2 - 0GB', function () {
       var host = App.Host.find().findProperty('hostName', 'host2');
@@ -75,8 +80,7 @@ describe('App.Host', function () {
   describe('#diskTotalFormatted', function () {
 
     it('host1 - 100.56GB ', function () {
-      var host = App.Host.find().findProperty('hostName', 'host1');
-      expect(host.get('diskTotalFormatted')).to.equal('100.56GB');
+      expect(host1.get('diskTotalFormatted')).to.equal('100.56GB');
     });
     it('host2 - 90GB', function () {
       var host = App.Host.find().findProperty('hostName', 'host2');
@@ -91,8 +95,7 @@ describe('App.Host', function () {
   describe('#diskUsageFormatted', function () {
 
     it('host1 - 9.94% ', function () {
-      var host = App.Host.find().findProperty('hostName', 'host1');
-      expect(host.get('diskUsageFormatted')).to.equal('9.94%');
+      expect(host1.get('diskUsageFormatted')).to.equal('9.94%');
     });
     it('host2 - 0%', function () {
       var host = App.Host.find().findProperty('hostName', 'host2');
@@ -115,4 +118,346 @@ describe('App.Host', function () {
     });
   });
 
+  describe('#cpuUsage', function () {
+    var testCases = [
+      {
+        params: {
+          cpuSystem: undefined,
+          cpuUser: undefined
+        },
+        result: 0
+      },
+      {
+        params: {
+          cpuSystem: 0,
+          cpuUser: 0
+        },
+        result: 0
+      },
+      {
+        params: {
+          cpuSystem: 1,
+          cpuUser: 0
+        },
+        result: 0
+      },
+      {
+        params: {
+          cpuSystem: 0,
+          cpuUser: 1
+        },
+        result: 0
+      },
+      {
+        params: {
+          cpuSystem: 1,
+          cpuUser: 1
+        },
+        result: 2
+      }
+    ];
+    testCases.forEach(function (test) {
+      it('cpuSystem - ' + test.params.cpuSystem + ', cpuUser - ' + test.params.cpuUser, function () {
+        host1.set('cpuSystem', test.params.cpuSystem);
+        host1.set('cpuUser', test.params.cpuUser);
+        host1.propertyDidChange('cpuUsage');
+
+        expect(host1.get('cpuUsage')).to.equal(test.result);
+      });
+    });
+  });
+
+  describe('#memoryUsage', function () {
+    var testCases = [
+      {
+        params: {
+          memFree: undefined,
+          memTotal: undefined
+        },
+        result: 0
+      },
+      {
+        params: {
+          memFree: 0,
+          memTotal: 0
+        },
+        result: 0
+      },
+      {
+        params: {
+          memFree: 1,
+          memTotal: 0
+        },
+        result: 0
+      },
+      {
+        params: {
+          memFree: 0,
+          memTotal: 1
+        },
+        result: 0
+      },
+      {
+        params: {
+          memFree: 1,
+          memTotal: 2
+        },
+        result: 50
+      }
+    ];
+    testCases.forEach(function (test) {
+      it('memFree - ' + test.params.memFree + ', memTotal - ' + test.params.memTotal, function () {
+        host1.set('memFree', test.params.memFree);
+        host1.set('memTotal', test.params.memTotal);
+        host1.propertyDidChange('memoryUsage');
+
+        expect(host1.get('memoryUsage')).to.equal(test.result);
+      });
+    });
+  });
+
+  describe('#componentsWithStaleConfigs', function () {
+    it('One component with stale configs', function () {
+      host1.set('hostComponents', [Em.Object.create({
+        staleConfigs: true
+      })]);
+      host1.propertyDidChange('componentsWithStaleConfigs');
+      expect(host1.get('componentsWithStaleConfigs')).to.eql([Em.Object.create({
+        staleConfigs: true
+      })]);
+    });
+    it('No components with stale configs', function () {
+      host1.set('hostComponents', [Em.Object.create({
+        staleConfigs: false
+      })]);
+      host1.propertyDidChange('componentsWithStaleConfigs');
+      expect(host1.get('componentsWithStaleConfigs')).to.be.empty;
+    });
+  });
+
+  describe('#componentsInPassiveStateCount', function () {
+    it('No component in passive state', function () {
+      host1.set('hostComponents', [Em.Object.create({
+        passiveState: 'OFF'
+      })]);
+      host1.propertyDidChange('componentsInPassiveStateCount');
+
+      expect(host1.get('componentsInPassiveStateCount')).to.equal(0);
+    });
+    it('One component in passive state', function () {
+      host1.set('hostComponents', [Em.Object.create({
+        passiveState: 'ON'
+      })]);
+      host1.propertyDidChange('componentsInPassiveStateCount');
+
+      expect(host1.get('componentsInPassiveStateCount')).to.equal(1);
+    });
+  });
+
+  describe('#disksMounted', function () {
+    it('', function () {
+      host1.set('diskInfo', [
+        {}
+      ]);
+      host1.propertyDidChange('disksMounted');
+      expect(host1.get('disksMounted')).to.equal(1);
+    });
+  });
+
+  describe('#coresFormatted', function () {
+    it('', function () {
+      host1.set('cpu', 1);
+      host1.set('cpuPhysical', 2);
+      host1.propertyDidChange('coresFormatted');
+      expect(host1.get('coresFormatted')).to.equal('1 (2)');
+    });
+  });
+
+  describe('#diskUsed', function () {
+    it('diskFree and diskTotal are 0', function () {
+      host1.set('diskFree', 0);
+      host1.set('diskTotal', 0);
+      host1.propertyDidChange('diskUsed');
+      expect(host1.get('diskUsed')).to.equal(0);
+    });
+    it('diskFree is 0 and diskTotal is 10', function () {
+      host1.set('diskFree', 0);
+      host1.set('diskTotal', 10);
+      host1.propertyDidChange('diskUsed');
+      expect(host1.get('diskUsed')).to.equal(10);
+    });
+  });
+
+  describe('#diskUsage', function () {
+    it('', function () {
+      host1.reopen({
+        diskUsed: 10
+      });
+      host1.set('diskTotal', 100);
+      host1.propertyDidChange('diskUsage');
+      expect(host1.get('diskUsage')).to.equal(10);
+    });
+  });
+
+  describe('#memoryFormatted', function () {
+    it('', function () {
+      host1.set('memory', 1024);
+      sinon.stub(misc, 'formatBandwidth', Em.K);
+      host1.propertyDidChange('memoryFormatted');
+      host1.get('memoryFormatted');
+      expect(misc.formatBandwidth.calledWith(1048576)).to.be.true;
+      misc.formatBandwidth.restore()
+    });
+  });
+
+  describe('#loadAvg', function () {
+    var testCases = [
+      {
+        params: {
+          loadOne: null,
+          loadFive: null,
+          loadFifteen: null
+        },
+        result: null
+      },
+      {
+        params: {
+          loadOne: 1.111,
+          loadFive: 5.555,
+          loadFifteen: 15.555
+        },
+        result: '1.11'
+      },
+      {
+        params: {
+          loadOne: null,
+          loadFive: 5.555,
+          loadFifteen: 15.555
+        },
+        result: '5.55'
+      },
+      {
+        params: {
+          loadOne: null,
+          loadFive: null,
+          loadFifteen: 15.555
+        },
+        result: '15.55'
+      }
+    ];
+
+    testCases.forEach(function (test) {
+      it('loadOne - ' + test.params.loadOne + ', loadFive - ' + test.params.loadFive + ', loadFifteen - ' + test.params.loadFifteen, function () {
+        host1.set('loadOne', test.params.loadOne);
+        host1.set('loadFive', test.params.loadFive);
+        host1.set('loadFifteen', test.params.loadFifteen);
+        host1.propertyDidChange('loadAvg');
+        expect(host1.get('loadAvg')).to.equal(test.result);
+      });
+    });
+  });
+
+  describe('#healthClass', function () {
+    var testCases = [
+      {
+        params: {
+          passiveState: 'ON',
+          healthStatus: null
+        },
+        result: 'icon-medkit'
+      },
+      {
+        params: {
+          passiveState: 'OFF',
+          healthStatus: 'UNKNOWN'
+        },
+        result: 'health-status-DEAD-YELLOW'
+      },
+      {
+        params: {
+          passiveState: 'OFF',
+          healthStatus: 'HEALTHY'
+        },
+        result: 'health-status-LIVE'
+      },
+      {
+        params: {
+          passiveState: 'OFF',
+          healthStatus: 'UNHEALTHY'
+        },
+        result: 'health-status-DEAD-RED'
+      },
+      {
+        params: {
+          passiveState: 'OFF',
+          healthStatus: 'ALERT'
+        },
+        result: 'health-status-DEAD-ORANGE'
+      },
+      {
+        params: {
+          passiveState: 'OFF',
+          healthStatus: null
+        },
+        result: 'health-status-DEAD-YELLOW'
+      }
+    ];
+
+    testCases.forEach(function (test) {
+      it('passiveState - ' + test.params.passiveState + ', healthStatus - ' + test.params.healthStatus, function () {
+        host1.set('passiveState', test.params.passiveState);
+        host1.set('healthStatus', test.params.healthStatus);
+        host1.propertyDidChange('healthClass');
+        expect(host1.get('healthClass')).to.equal(test.result);
+      });
+    });
+  });
+
+  describe('#healthIconClass', function () {
+    var testCases = [
+      {
+        params: {
+          healthClass: 'health-status-LIVE'
+        },
+        result: 'icon-ok-sign'
+      },
+      {
+        params: {
+          healthClass: 'health-status-DEAD-RED'
+        },
+        result: 'icon-warning-sign'
+      },
+      {
+        params: {
+          healthClass: 'health-status-DEAD-YELLOW'
+        },
+        result: 'icon-question-sign'
+      },
+      {
+        params: {
+          healthClass: 'health-status-DEAD-ORANGE'
+        },
+        result: 'icon-minus-sign'
+      },
+      {
+        params: {
+          healthClass: ''
+        },
+        result: ''
+      }
+    ];
+
+    it('reset healthClass to plain property', function(){
+      host1.reopen({
+        healthClass: ''
+      });
+    });
+    testCases.forEach(function (test) {
+      it('healthClass - ' + test.params.healthClass, function () {
+        host1.set('healthClass', test.params.healthClass);
+        host1.propertyDidChange('healthIconClass');
+        expect(host1.get('healthIconClass')).to.equal(test.result);
+      });
+    });
+  });
 });

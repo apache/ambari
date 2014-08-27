@@ -193,6 +193,8 @@ var files = ['test/init_model_test',
   'test/models/run_test',
   'test/models/service_config_test',
   'test/models/stack_service_component_test',
+  'test/models/service_test',
+  'test/models/stack_service_test',
   'test/models/user_test'
 ];
 App.initialize();
