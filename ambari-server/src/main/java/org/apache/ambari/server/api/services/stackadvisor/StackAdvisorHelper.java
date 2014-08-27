@@ -21,6 +21,7 @@ package org.apache.ambari.server.api.services.stackadvisor;
 import java.io.File;
 import java.io.IOException;
 
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest.StackAdvisorRequestType;
 import org.apache.ambari.server.api.services.stackadvisor.commands.GetComponentLayoutRecommnedationCommand;
 import org.apache.ambari.server.api.services.stackadvisor.commands.GetComponentLayoutValidationCommand;
@@ -39,16 +40,19 @@ public class StackAdvisorHelper {
 
   private File recommendationsDir;
   private String stackAdvisorScript;
+  private final AmbariMetaInfo metaInfo;
 
   /* Monotonically increasing requestid */
   private int requestId = 0;
   private StackAdvisorRunner saRunner;
 
   @Inject
-  public StackAdvisorHelper(Configuration conf, StackAdvisorRunner saRunner) throws IOException {
+  public StackAdvisorHelper(Configuration conf, StackAdvisorRunner saRunner,
+                            AmbariMetaInfo metaInfo) throws IOException {
     this.recommendationsDir = conf.getRecommendationsDir();
     this.stackAdvisorScript = conf.getStackAdvisorScript();
     this.saRunner = saRunner;
+    this.metaInfo = metaInfo;
   }
 
   /**
@@ -74,10 +78,10 @@ public class StackAdvisorHelper {
     StackAdvisorCommand<ValidationResponse> command;
     if (requestType == StackAdvisorRequestType.HOST_GROUPS) {
       command = new GetComponentLayoutValidationCommand(recommendationsDir, stackAdvisorScript,
-          requestId, saRunner);
+          requestId, saRunner, metaInfo);
     } else if (requestType == StackAdvisorRequestType.CONFIGURATIONS) {
       command = new GetConfigurationValidationCommand(recommendationsDir, stackAdvisorScript,
-          requestId, saRunner);
+          requestId, saRunner, metaInfo);
     } else {
       throw new StackAdvisorException(String.format("Unsupported request type, type=%s",
           requestType));
@@ -109,10 +113,10 @@ public class StackAdvisorHelper {
     StackAdvisorCommand<RecommendationResponse> command;
     if (requestType == StackAdvisorRequestType.HOST_GROUPS) {
       command = new GetComponentLayoutRecommnedationCommand(recommendationsDir, stackAdvisorScript,
-          requestId, saRunner);
+          requestId, saRunner, metaInfo);
     } else if (requestType == StackAdvisorRequestType.CONFIGURATIONS) {
       command = new GetConfigurationRecommnedationCommand(recommendationsDir, stackAdvisorScript,
-          requestId, saRunner);
+          requestId, saRunner, metaInfo);
     } else {
       throw new StackAdvisorException(String.format("Unsupported request type, type=%s",
           requestType));

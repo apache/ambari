@@ -18,7 +18,6 @@
 
 var App = require('app');
 require('utils/helper');
-require('mixins/models/service_mixin');
 require('models/service_config');
 //TODO after moving validation/recommendation to BE belove requirements must be deleted
 require('utils/configs/defaults_providers/yarn_defaults_provider');
@@ -37,7 +36,9 @@ require('utils/configs/validators/storm_configs_validator');
  * The model maps to the  http://hostname:8080/api/v1/stacks2/HDP/versions/${versionNumber}/stackServices?fields=StackServices/*,serviceComponents/*
  * @type {*}
  */
-App.StackService = DS.Model.extend(App.ServiceModelMixin, {
+App.StackService = DS.Model.extend({
+  serviceName: DS.attr('string'),
+  displayName: DS.attr('string'),
   comments: DS.attr('string'),
   configTypes: DS.attr('object'),
   serviceVersion: DS.attr('string'),
@@ -63,7 +64,7 @@ App.StackService = DS.Model.extend(App.ServiceModelMixin, {
 
   configTypesRendered: function () {
     var configTypes = this.get('configTypes');
-    if (this.get('serviceName') == 'HDFS') return configTypes;
+    if (this.get('serviceName') == 'HDFS' || this.get('serviceName') == 'GLUSTERFS') return configTypes;
     else {
       var renderedConfigTypes = $.extend(true, {}, configTypes);
       delete renderedConfigTypes['core-site'];
@@ -112,7 +113,7 @@ App.StackService = DS.Model.extend(App.ServiceModelMixin, {
       serviceDependencyMap = App.StackService.dependency['HDP-1'];
     }
     for (key in serviceDependencyMap) {
-      if (serviceDependencyMap[key].contains(serviceName)) serviceDependencies.pushObject(key);
+      if (serviceDependencyMap[key].contains(serviceName)) serviceDependencies.push(key);
     }
     return  serviceDependencies;
   }.property('serviceName'),
@@ -171,16 +172,12 @@ App.StackService = DS.Model.extend(App.ServiceModelMixin, {
     return defaultConfigsHandler && defaultConfigsHandler.configsValidator;
   }.property('serviceName'),
 
-  allowServerValidator: function() {
-    return ["YARN", "STORM", "MAPREDUCE2", "HIVE", "TEZ"].contains(this.get('serviceName'));
-  }.property('serviceName'),
   /**
    * configCategories are fetched from  App.StackService.configCategories.
    * Also configCategories that does not match any serviceComponent of a service and not included in the permissible default pattern are omitted
    */
   configCategories: function () {
     var configCategories = [];
-    var serviceName = this.get('serviceName');
     var configTypes = this.get('configTypes');
     var serviceComponents = this.get('serviceComponents');
     if (configTypes && Object.keys(configTypes).length) {

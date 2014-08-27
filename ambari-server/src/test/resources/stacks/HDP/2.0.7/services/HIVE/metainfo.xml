@@ -21,6 +21,7 @@
     <service>
 
       <name>HIVE</name>
+      <displayName>Hive</displayName>
       <comment>Data warehouse system for ad-hoc queries &amp; analysis of large datasets and table &amp; storage management service</comment>
       <version>0.11.0.2.0.5.0</version>
 
@@ -28,6 +29,7 @@
 
         <component>
           <name>HIVE_METASTORE</name>
+          <displayName>Hive Metastore</displayName>
           <category>MASTER</category>
           <cardinality>1</cardinality>
           <auto-deploy>
@@ -43,6 +45,7 @@
 
         <component>
           <name>HIVE_SERVER</name>
+          <displayName>HiveServer2</displayName>
           <category>MASTER</category>
           <cardinality>1</cardinality>
           <dependencies>
@@ -84,6 +87,7 @@
 
         <component>
           <name>MYSQL_SERVER</name>
+          <displayName>MySQL Server</displayName>
           <category>MASTER</category>
           <cardinality>1</cardinality>
           <commandScript>
@@ -94,6 +98,7 @@
 
         <component>
           <name>HIVE_CLIENT</name>
+          <displayName>Hive Client</displayName>
           <category>CLIENT</category>
           <cardinality>0+</cardinality>
           <commandScript>

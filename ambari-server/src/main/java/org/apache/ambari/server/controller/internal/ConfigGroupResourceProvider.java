@@ -74,6 +74,8 @@ public class ConfigGroupResourceProvider extends
     .getPropertyId("ConfigGroup", "tag");
   protected static final String CONFIGGROUP_DESC_PROPERTY_ID = PropertyHelper
     .getPropertyId("ConfigGroup", "description");
+  protected static final String CONFIGGROUP_SCV_NOTE_ID = PropertyHelper
+      .getPropertyId("ConfigGroup", "service_config_version_note");
   protected static final String CONFIGGROUP_HOSTNAME_PROPERTY_ID =
     PropertyHelper.getPropertyId(null, "host_name");
   public static final String CONFIGGROUP_HOSTS_PROPERTY_ID = PropertyHelper
@@ -594,6 +596,8 @@ public class ConfigGroupResourceProvider extends
       (String) properties.get(CONFIGGROUP_DESC_PROPERTY_ID),
       null,
       null);
+
+    request.setServiceConfigVersionNote((String) properties.get(CONFIGGROUP_SCV_NOTE_ID));
 
     Map<String, Config> configurations = new HashMap<String, Config>();
     Set<String> hosts = new HashSet<String>();

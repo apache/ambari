@@ -18,13 +18,13 @@
 
 package org.apache.ambari.server.controller;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 import org.apache.ambari.server.state.AutoDeployInfo;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.CustomCommandDefinition;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Stack service component response.
@@ -49,6 +49,11 @@ public class StackServiceComponentResponse {
    * component name
    */
   private String componentName;
+
+  /**
+   * component display name
+   */
+  private String componentDisplayName;
 
   /**
    * component category
@@ -89,6 +94,7 @@ public class StackServiceComponentResponse {
    */
   public StackServiceComponentResponse(ComponentInfo component) {
     componentName = component.getName();
+    componentDisplayName = component.getDisplayName();
     componentCategory = component.getCategory();
     isClient = component.isClient();
     isMaster = component.isMaster();
@@ -177,6 +183,25 @@ public class StackServiceComponentResponse {
    */
   public void setComponentName(String componentName) {
     this.componentName = componentName;
+  }
+
+  /**
+   * Get component display name.
+   *
+   * @return component display name
+   */
+
+  public String getComponentDisplayName() {
+    return componentDisplayName;
+  }
+
+  /**
+   * Set component display name.
+   *
+   * @param componentDisplayName  component display name
+   */
+  public void setComponentDisplayName(String componentDisplayName) {
+    this.componentDisplayName = componentDisplayName;
   }
 
   /**

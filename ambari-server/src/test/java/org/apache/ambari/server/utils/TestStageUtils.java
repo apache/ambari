@@ -126,7 +126,7 @@ public class TestStageUtils {
   @Test
   @Ignore
   public void testGetATestStage() {
-    Stage s = StageUtils.getATestStage(1, 2, "host2");
+    Stage s = StageUtils.getATestStage(1, 2, "host2", "", "hostParamsStage");
     String hostname = s.getHosts().get(0);
     List<ExecutionCommandWrapper> wrappers = s.getExecutionCommands(hostname);
     for (ExecutionCommandWrapper wrapper : wrappers) {
@@ -139,7 +139,7 @@ public class TestStageUtils {
   @Test
   @Ignore
   public void testJaxbToString() throws Exception {
-    Stage s = StageUtils.getATestStage(1, 2, "host1");
+    Stage s = StageUtils.getATestStage(1, 2, "host1", "", "hostParamsStage");
     String hostname = s.getHosts().get(0);
     List<ExecutionCommandWrapper> wrappers = s.getExecutionCommands(hostname);
     for (ExecutionCommandWrapper wrapper : wrappers) {
@@ -152,7 +152,7 @@ public class TestStageUtils {
   @Ignore
   public void testJasonToExecutionCommand() throws JsonGenerationException,
       JsonMappingException, JAXBException, IOException {
-    Stage s = StageUtils.getATestStage(1, 2, "host1", "clusterHostInfo");
+    Stage s = StageUtils.getATestStage(1, 2, "host1", "clusterHostInfo", "hostParamsStage");
     ExecutionCommand cmd = s.getExecutionCommands("host1").get(0).getExecutionCommand();
     HashMap<String, Map<String,String>> configTags = new HashMap<String, Map<String,String>>();
     Map<String, String> globalTag = new HashMap<String, String>();

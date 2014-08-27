@@ -20,11 +20,13 @@
   <services>
     <service>
       <name>GANGLIA</name>
+      <displayName>Ganglia</displayName>
       <comment>Ganglia Metrics Collection system (&lt;a href=&quot;http://oss.oetiker.ch/rrdtool/&quot; target=&quot;_blank&quot;&gt;RRDTool&lt;/a&gt; will be installed too)</comment>
       <version>3.5.0</version>
       <components>
         <component>
           <name>GANGLIA_SERVER</name>
+          <displayName>Ganglia Server</displayName>
           <category>MASTER</category>
           <cardinality>1</cardinality>
           <commandScript>
@@ -36,6 +38,7 @@
 
         <component>
           <name>GANGLIA_MONITOR</name>
+          <displayName>Ganglia Monitor</displayName>
           <category>SLAVE</category>
           <cardinality>ALL</cardinality>
           <auto-deploy>

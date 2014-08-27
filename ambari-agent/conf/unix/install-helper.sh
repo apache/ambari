@@ -51,13 +51,6 @@ do_install(){
 }
 
 do_remove(){
-  if [ -d "$COMMON_DIR" ]; then  # common dir exists
-    rm -f "$COMMON_DIR"
-  fi
-
-  if [ -d "$RESOURCE_MANAGEMENT_DIR" ]; then  # resource_management dir exists
-    rm -f "$RESOURCE_MANAGEMENT_DIR"
-  fi
 
   if [ -f "$PYTHON_WRAPER_TARGET" ]; then
     rm -f "$PYTHON_WRAPER_TARGET"

@@ -121,6 +121,8 @@ class ActionScheduler implements Runnable {
   private boolean activeAwakeRequest = false;
   //Cache for clusterHostinfo, key - stageId-requestId
   private Cache<String, Map<String, Set<String>>> clusterHostInfoCache;
+  private Cache<String, Map<String, String>> commandParamsStageCache;
+  private Cache<String, Map<String, String>> hostParamsStageCache;
 
   public ActionScheduler(long sleepTimeMilliSec, long actionTimeoutMilliSec,
       ActionDBAccessor db, ActionQueue actionQueue, Clusters fsmObject,
@@ -138,6 +140,12 @@ class ActionScheduler implements Runnable {
     this.clusterHostInfoCache = CacheBuilder.newBuilder().
         expireAfterAccess(5, TimeUnit.MINUTES).
         build();
+    this.commandParamsStageCache = CacheBuilder.newBuilder().
+      expireAfterAccess(5, TimeUnit.MINUTES).
+      build();
+    this.hostParamsStageCache = CacheBuilder.newBuilder().
+      expireAfterAccess(5, TimeUnit.MINUTES).
+      build();
     this.configuration = configuration;
   }
 
@@ -748,6 +756,31 @@ class ActionScheduler implements Runnable {
     }
 
     cmd.setClusterHostInfo(clusterHostInfo);
+ 
+    //Try to get commandParams from cache and merge them with command-level parameters
+    Map<String, String> commandParams = commandParamsStageCache.getIfPresent(stagePk);
+
+    if (commandParams == null){
+      Type type = new TypeToken<Map<String, String>>() {}.getType();
+      commandParams = StageUtils.getGson().fromJson(s.getCommandParamsStage(), type);
+      commandParamsStageCache.put(stagePk, commandParams);
+    }
+    Map<String, String> commandParamsCmd = cmd.getCommandParams();
+    commandParamsCmd.putAll(commandParams);
+    cmd.setCommandParams(commandParamsCmd);
+
+
+    //Try to get hostParams from cache and merge them with command-level parameters
+    Map<String, String> hostParams = hostParamsStageCache.getIfPresent(stagePk);
+    if (hostParams == null) {
+      Type type = new TypeToken<Map<String, String>>() {}.getType();
+      hostParams = StageUtils.getGson().fromJson(s.getHostParamsStage(), type);
+      hostParamsStageCache.put(stagePk, hostParams);
+    }
+    Map<String, String> hostParamsCmd = cmd.getHostLevelParams();
+    hostParamsCmd.putAll(hostParams);
+    cmd.setHostLevelParams(hostParamsCmd);
+
 
     commandsToUpdate.add(cmd);
   }

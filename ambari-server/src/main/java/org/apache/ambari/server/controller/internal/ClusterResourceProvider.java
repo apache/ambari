@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -63,7 +64,7 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
   protected static final String CLUSTER_VERSION_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters", "version");
   protected static final String CLUSTER_PROVISIONING_STATE_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters", "provisioning_state");
   protected static final String CLUSTER_DESIRED_CONFIGS_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters", "desired_configs");
-  protected static final String CLUSTER_DESIRED_SERVICE_CONFIG_VERSIONS_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters", "desired_serviceconfigversions");
+  protected static final String CLUSTER_DESIRED_SERVICE_CONFIG_VERSIONS_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters", "desired_service_config_versions");
   protected static final String CLUSTER_TOTAL_HOSTS_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters", "total_hosts");
   protected static final String CLUSTER_HEALTH_REPORT_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters", "health_report");
   protected static final String BLUEPRINT_PROPERTY_ID = PropertyHelper.getPropertyId(null, "blueprint");
@@ -172,7 +173,8 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
       setResourceProperty(resource, CLUSTER_NAME_PROPERTY_ID, clusterName, requestedIds);
       setResourceProperty(resource, CLUSTER_PROVISIONING_STATE_PROPERTY_ID, response.getProvisioningState(), requestedIds);
       setResourceProperty(resource, CLUSTER_DESIRED_CONFIGS_PROPERTY_ID, response.getDesiredConfigs(), requestedIds);
-      setResourceProperty(resource, CLUSTER_DESIRED_SERVICE_CONFIG_VERSIONS_PROPERTY_ID, response.getDesiredServiceConfigVersions(), requestedIds);
+      setResourceProperty(resource, CLUSTER_DESIRED_SERVICE_CONFIG_VERSIONS_PROPERTY_ID,
+        response.getDesiredServiceConfigVersions(), requestedIds);
       setResourceProperty(resource, CLUSTER_TOTAL_HOSTS_PROPERTY_ID, response.getTotalHosts(), requestedIds);
       setResourceProperty(resource, CLUSTER_HEALTH_REPORT_PROPERTY_ID, response.getClusterHealthReport(), requestedIds);
 
@@ -218,24 +220,29 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
     for (ClusterRequest clusterRequest : requests) {
       ClusterResponse updateResults = getManagementController().getClusterUpdateResults(clusterRequest);
       if (updateResults != null) {
-        Map<String, ServiceConfigVersionResponse> serviceConfigVersions = updateResults.getDesiredServiceConfigVersions();
+        Map<String, Collection<ServiceConfigVersionResponse>> serviceConfigVersions = updateResults.getDesiredServiceConfigVersions();
         if (serviceConfigVersions != null) {
           associatedResources = new HashSet<Resource>();
-          for (Map.Entry<String, ServiceConfigVersionResponse> stringServiceConfigVersionResponseEntry : serviceConfigVersions.entrySet()) {
-            Resource resource = new ResourceImpl(Resource.Type.ServiceConfigVersion);
-            ServiceConfigVersionResponse serviceConfigVersionResponse = stringServiceConfigVersionResponseEntry.getValue();
-            resource.setProperty(ServiceConfigVersionResourceProvider.SERVICE_CONFIG_VERSION_SERVICE_NAME_PROPERTY_ID,
-              serviceConfigVersionResponse.getServiceName());
-            resource.setProperty(ServiceConfigVersionResourceProvider.SERVICE_CONFIG_VERSION_PROPERTY_ID,
-              serviceConfigVersionResponse.getVersion());
-            resource.setProperty(ServiceConfigVersionResourceProvider.SERVICE_CONFIG_VERSION_NOTE_PROPERTY_ID,
-              serviceConfigVersionResponse.getNote());
-            if (serviceConfigVersionResponse.getConfigurations() != null) {
-              resource.setProperty(
+          for (Collection<ServiceConfigVersionResponse> scvCollection : serviceConfigVersions.values()) {
+            for (ServiceConfigVersionResponse serviceConfigVersionResponse : scvCollection) {
+              Resource resource = new ResourceImpl(Resource.Type.ServiceConfigVersion);
+              resource.setProperty(ServiceConfigVersionResourceProvider.SERVICE_CONFIG_VERSION_SERVICE_NAME_PROPERTY_ID,
+                serviceConfigVersionResponse.getServiceName());
+              resource.setProperty(ServiceConfigVersionResourceProvider.SERVICE_CONFIG_VERSION_PROPERTY_ID,
+                serviceConfigVersionResponse.getVersion());
+              resource.setProperty(ServiceConfigVersionResourceProvider.SERVICE_CONFIG_VERSION_NOTE_PROPERTY_ID,
+                serviceConfigVersionResponse.getNote());
+              resource.setProperty(ServiceConfigVersionResourceProvider.SERVICE_CONFIG_VERSION_GROUP_ID_PROPERTY_ID,
+                  serviceConfigVersionResponse.getGroupId());
+              resource.setProperty(ServiceConfigVersionResourceProvider.SERVICE_CONFIG_VERSION_GROUP_NAME_PROPERTY_ID,
+                  serviceConfigVersionResponse.getGroupName());
+              if (serviceConfigVersionResponse.getConfigurations() != null) {
+                resource.setProperty(
                   ServiceConfigVersionResourceProvider.SERVICE_CONFIG_VERSION_CONFIGURATIONS_PROPERTY_ID,
                   serviceConfigVersionResponse.getConfigurations());
+              }
+              associatedResources.add(resource);
             }
-            associatedResources.add(resource);
           }
 
         }
@@ -302,6 +309,16 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
   }
 
 
+  /**
+   * Package-level access for cluster config
+   * @return cluster config map
+   */
+  Map<String, Map<String, String>> getClusterConfigurations() {
+    return mapClusterConfigurations;
+  }
+
+
+
   // ----- utility methods ---------------------------------------------------
 
   /**
@@ -319,12 +336,12 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
         (String) properties.get(CLUSTER_VERSION_PROPERTY_ID),
         null);
 
-    ConfigurationRequest configRequest = getConfigurationRequest("Clusters", properties);
+    List<ConfigurationRequest> configRequests = getConfigurationRequests("Clusters", properties);
 
     ServiceConfigVersionRequest serviceConfigVersionRequest = getServiceConfigVersionRequest("Clusters", properties);
 
-    if (null != configRequest)
-      cr.setDesiredConfig(configRequest);
+    if (!configRequests.isEmpty())
+      cr.setDesiredConfig(configRequests);
 
     if (serviceConfigVersionRequest != null) {
       cr.setServiceConfigVersionRequest(serviceConfigVersionRequest);
@@ -343,13 +360,13 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
       String absCategory = PropertyHelper.getPropertyCategory(entry.getKey());
       String propName = PropertyHelper.getPropertyName(entry.getKey());
 
-      if (absCategory.startsWith(parentCategory + "/desired_serviceconfigversions")) {
+      if (absCategory.startsWith(parentCategory + "/desired_service_config_version")) {
         serviceConfigVersionRequest =
             (serviceConfigVersionRequest ==null ) ? new ServiceConfigVersionRequest() : serviceConfigVersionRequest;
 
         if (propName.equals("service_name"))
           serviceConfigVersionRequest.setServiceName(entry.getValue().toString());
-        else if (propName.equals("serviceconfigversion"))
+        else if (propName.equals("service_config_version"))
           serviceConfigVersionRequest.setVersion(Long.valueOf(entry.getValue().toString()));
         else if (propName.equals("service_config_version_note")) {
           serviceConfigVersionRequest.setNote(entry.getValue().toString());
@@ -843,7 +860,7 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
 
     BlueprintConfigurationProcessor configurationProcessor = new BlueprintConfigurationProcessor(mapClusterConfigurations);
     configurationProcessor.doUpdateForClusterCreate(blueprintHostGroups);
-    setMissingConfigurations();
+    setMissingConfigurations(blueprintHostGroups);
   }
 
   /**
@@ -853,9 +870,9 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
    * @param blueprintConfigurations  map of blueprint configurations keyed by type
    */
   private void handleGlobalsBackwardsCompability(Stack stack,
-      Map<String, Map<String, String>> blueprintConfigurations) {
+      Map<String, Map<String, String>> blueprintConfigurations, String clusterName) {
     StackId stackId = new StackId(stack.getName(), stack.getVersion());
-    configHelper.moveDeprecatedGlobals(stackId, blueprintConfigurations);
+    configHelper.moveDeprecatedGlobals(stackId, blueprintConfigurations, clusterName);
   }
 
   /**
@@ -907,14 +924,29 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
   /**
    * Explicitly set any properties that are required but not currently provided in the stack definition.
    */
-  private void setMissingConfigurations() {
+  void setMissingConfigurations(Map<String, HostGroupImpl> blueprintHostGroups) {
     // AMBARI-5206
     final Map<String , String> userProps = new HashMap<String , String>();
-    userProps.put("oozie_user", "oozie-env");
-    userProps.put("hive_user", "hive-env");
-    userProps.put("hcat_user", "hive-env");
-    userProps.put("hbase_user", "hbase-env");
-    userProps.put("falcon_user", "falcon-env");
+
+    // only add user properties to the map for
+    // services actually included in the blueprint definition
+    if (isServiceIncluded("OOZIE", blueprintHostGroups)) {
+      userProps.put("oozie_user", "oozie-env");
+    }
+
+    if (isServiceIncluded("HIVE", blueprintHostGroups)) {
+      userProps.put("hive_user", "hive-env");
+      userProps.put("hcat_user", "hive-env");
+    }
+
+    if (isServiceIncluded("HBASE", blueprintHostGroups)) {
+      userProps.put("hbase_user", "hbase-env");
+    }
+
+    if (isServiceIncluded("FALCON", blueprintHostGroups)) {
+      userProps.put("falcon_user", "falcon-env");
+    }
+
 
     String proxyUserHosts  = "hadoop.proxyuser.%s.hosts";
     String proxyUserGroups = "hadoop.proxyuser.%s.groups";
@@ -922,12 +954,38 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
     for (String property : userProps.keySet()) {
       String configType = userProps.get(property);
       Map<String, String> configs = mapClusterConfigurations.get(configType);
-      String user = configs.get(property);
-      if (user != null && !user.isEmpty()) {
-        ensureProperty("core-site", String.format(proxyUserHosts, user), "*");
-        ensureProperty("core-site", String.format(proxyUserGroups, user), "users");
+      if (configs != null) {
+        String user = configs.get(property);
+        if (user != null && !user.isEmpty()) {
+          ensureProperty("core-site", String.format(proxyUserHosts, user), "*");
+          ensureProperty("core-site", String.format(proxyUserGroups, user), "users");
+        }
+      } else {
+        LOG.debug("setMissingConfigurations: no user configuration found for type = " + configType + ".  This may be caused by an error in the blueprint configuration.");
+      }
+
+    }
+  }
+
+
+  /**
+   * Determines if any components in the specified service are
+   *   included in the current blueprint's host group definitions.
+   *
+   * @param serviceName the Hadoop service name to query on
+   * @param blueprintHostGroups the map of Host Groups in the current blueprint
+   * @return true if the named service is included in the blueprint
+   *         false if the named service it not included in the blueprint
+   */
+  protected boolean isServiceIncluded(String serviceName, Map<String, HostGroupImpl> blueprintHostGroups) {
+    for (String hostGroupName : blueprintHostGroups.keySet()) {
+      HostGroupImpl hostGroup = blueprintHostGroups.get(hostGroupName);
+      if (hostGroup.getServices().contains(serviceName)) {
+        return true;
       }
     }
+
+    return false;
   }
 
   /**
@@ -993,7 +1051,7 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
       HostGroupEntity entity = group.getEntity();
       Map<String, Map<String, Config>> groupConfigs = new HashMap<String, Map<String, Config>>();
       
-      handleGlobalsBackwardsCompability(stack, group.getConfigurationProperties());
+      handleGlobalsBackwardsCompability(stack, group.getConfigurationProperties(), clusterName);
       for (Map.Entry<String, Map<String, String>> entry: group.getConfigurationProperties().entrySet()) {
         String type = entry.getKey();
         String service = stack.getServiceForConfigType(type);

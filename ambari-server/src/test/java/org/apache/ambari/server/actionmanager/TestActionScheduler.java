@@ -127,7 +127,8 @@ public class TestActionScheduler {
 
     ActionDBAccessor db = mock(ActionDBAccessorImpl.class);
     List<Stage> stages = new ArrayList<Stage>();
-    Stage s = StageUtils.getATestStage(1, 977, hostname, CLUSTER_HOST_INFO);
+    Stage s = StageUtils.getATestStage(1, 977, hostname, CLUSTER_HOST_INFO,
+      "{\"host_param\":\"param_value\"}", "{\"stage_param\":\"param_value\"}");
     stages.add(s);
     when(db.getStagesInProgress()).thenReturn(stages);
 
@@ -207,7 +208,8 @@ public class TestActionScheduler {
     when(host.getHostName()).thenReturn(hostname);
 
     List<Stage> stages = new ArrayList<Stage>();
-    final Stage s = StageUtils.getATestStage(1, 977, hostname, CLUSTER_HOST_INFO);
+    final Stage s = StageUtils.getATestStage(1, 977, hostname, CLUSTER_HOST_INFO,
+      "{\"host_param\":\"param_value\"}", "{\"stage_param\":\"param_value\"}");
     stages.add(s);
 
     ActionDBAccessor db = mock(ActionDBAccessor.class);
@@ -271,7 +273,8 @@ public class TestActionScheduler {
     when(host.getHostName()).thenReturn(hostname);
 
     List<Stage> stages = new ArrayList<Stage>();
-    final Stage s = StageUtils.getATestStage(1, 977, hostname, CLUSTER_HOST_INFO);
+    final Stage s = StageUtils.getATestStage(1, 977, hostname, CLUSTER_HOST_INFO,
+      "{\"host_param\":\"param_value\"}", "{\"stage_param\":\"param_value\"}");
     stages.add(s);
 
     ActionDBAccessor db = mock(ActionDBAccessor.class);
@@ -349,7 +352,7 @@ public class TestActionScheduler {
 
     final List<Stage> stages = new ArrayList<Stage>();
     Stage stage = new Stage(1, "/tmp", "cluster1", 1L, "stageWith2Tasks",
-      CLUSTER_HOST_INFO);
+      CLUSTER_HOST_INFO, "", "");
     addInstallTaskToStage(stage, hostname1, "cluster1", Role.DATANODE,
       RoleCommand.INSTALL, Service.Type.HDFS, 1);
     addInstallTaskToStage(stage, hostname2, "cluster1", Role.NAMENODE,
@@ -575,7 +578,8 @@ public class TestActionScheduler {
 
   private static Stage getStageWithServerAction(long requestId, long stageId, String hostName,
                                                 Map<String, String> payload, String requestContext) {
-    Stage stage = new Stage(requestId, "/tmp", "cluster1", 1L, requestContext, CLUSTER_HOST_INFO);
+    Stage stage = new Stage(requestId, "/tmp", "cluster1", 1L, requestContext, CLUSTER_HOST_INFO,
+      "", "");
     stage.setStageId(stageId);
     long now = System.currentTimeMillis();
     stage.addServerActionCommand(ServerAction.Command.FINALIZE_UPGRADE, Role.AMBARI_SERVER_ACTION,
@@ -989,7 +993,7 @@ public class TestActionScheduler {
 
     long now = System.currentTimeMillis();
     Stage stage = new Stage(1, "/tmp", "cluster1", 1L,
-        "testRequestFailureBasedOnSuccessFactor", CLUSTER_HOST_INFO);
+        "testRequestFailureBasedOnSuccessFactor", CLUSTER_HOST_INFO, "", "");
     stage.setStageId(1);
 
     addHostRoleExecutionCommand(now, stage, Role.SQOOP, Service.Type.SQOOP,
@@ -1174,7 +1178,8 @@ public class TestActionScheduler {
     final List<Stage> stages = new ArrayList<Stage>();
 
     long now = System.currentTimeMillis();
-    Stage stage = new Stage(1, "/tmp", "cluster1", 1L, "testRequestFailureBasedOnSuccessFactor", CLUSTER_HOST_INFO);
+    Stage stage = new Stage(1, "/tmp", "cluster1", 1L, "testRequestFailureBasedOnSuccessFactor",
+      CLUSTER_HOST_INFO, "", "");
     stage.setStageId(1);
     stage.addHostRoleExecutionCommand("host1", Role.DATANODE, RoleCommand.UPGRADE,
         new ServiceComponentHostUpgradeEvent(Role.DATANODE.toString(), "host1", now, "HDP-0.2"),
@@ -1310,7 +1315,8 @@ public class TestActionScheduler {
   private Stage getStageWithSingleTask(String hostname, String clusterName, Role role,
                                        RoleCommand roleCommand, Service.Type service, int taskId,
                                        int stageId, int requestId) {
-    Stage stage = new Stage(requestId, "/tmp", clusterName, 1L, "getStageWithSingleTask", CLUSTER_HOST_INFO);
+    Stage stage = new Stage(requestId, "/tmp", clusterName, 1L, "getStageWithSingleTask",
+      CLUSTER_HOST_INFO, "{\"host_param\":\"param_value\"}", "{\"stage_param\":\"param_value\"}");
     stage.setStageId(stageId);
     stage.addHostRoleExecutionCommand(hostname, role, roleCommand,
         new ServiceComponentHostUpgradeEvent(role.toString(), hostname, System.currentTimeMillis(), "HDP-0.2"),
@@ -1354,7 +1360,8 @@ public class TestActionScheduler {
 
   @Test
   public void testSuccessFactors() {
-    Stage s = StageUtils.getATestStage(1, 1, CLUSTER_HOST_INFO);
+    Stage s = StageUtils.getATestStage(1, 1, CLUSTER_HOST_INFO,
+      "{\"host_param\":\"param_value\"}", "{\"stage_param\":\"param_value\"}");
     assertEquals(new Float(0.5), new Float(s.getSuccessFactor(Role.DATANODE)));
     assertEquals(new Float(0.5), new Float(s.getSuccessFactor(Role.TASKTRACKER)));
     assertEquals(new Float(0.5), new Float(s.getSuccessFactor(Role.GANGLIA_MONITOR)));
@@ -1427,8 +1434,10 @@ public class TestActionScheduler {
 
 
     ActionDBAccessor db = mock(ActionDBAccessorImpl.class);
-    Stage s1 = StageUtils.getATestStage(requestId1, stageId, hostname, CLUSTER_HOST_INFO);
-    Stage s2 = StageUtils.getATestStage(requestId2, stageId, hostname, CLUSTER_HOST_INFO_UPDATED);
+    Stage s1 = StageUtils.getATestStage(requestId1, stageId, hostname, CLUSTER_HOST_INFO,
+      "{\"host_param\":\"param_value\"}", "{\"stage_param\":\"param_value\"}");
+    Stage s2 = StageUtils.getATestStage(requestId2, stageId, hostname, CLUSTER_HOST_INFO_UPDATED,
+      "{\"host_param\":\"param_value\"}", "{\"stage_param\":\"param_value\"}");
     when(db.getStagesInProgress()).thenReturn(Collections.singletonList(s1));
 
     //Keep large number of attempts so that the task is not expired finally
@@ -1499,7 +1508,7 @@ public class TestActionScheduler {
 
     final List<Stage> stages = new ArrayList<Stage>();
     Stage stage1 = new Stage(1, "/tmp", "cluster1", 1L, "stageWith2Tasks",
-            CLUSTER_HOST_INFO);
+            CLUSTER_HOST_INFO, "", "");
     addInstallTaskToStage(stage1, hostname1, "cluster1", Role.HBASE_MASTER,
             RoleCommand.INSTALL, Service.Type.HBASE, 1);
     addInstallTaskToStage(stage1, hostname1, "cluster1", Role.HBASE_REGIONSERVER,

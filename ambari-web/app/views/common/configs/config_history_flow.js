@@ -42,6 +42,14 @@ App.ConfigHistoryFlowView = Em.View.extend({
     return this.get('controller.selectedService.serviceName');
   }.property('controller.selectedService.serviceName'),
 
+  selectedConfigGroupName: function () {
+    return this.get('controller.selectedConfigGroup.displayName');
+  }.property('controller.selectedConfigGroup.displayName'),
+
+  isDefaultConfigGroupSelected: function () {
+    return this.get('controller.selectedConfigGroup.isDefault');
+  }.property('controller.selectedConfigGroup.isDefault'),
+
   displayedServiceVersion: function () {
     return this.get('serviceVersions').findProperty('isDisplayed');
   }.property('serviceVersions.@each.isDisplayed'),
@@ -64,11 +72,30 @@ App.ConfigHistoryFlowView = Em.View.extend({
   }.property('displayedServiceVersion'),
 
   serviceVersions: function () {
+    var serviceVersions;
     var allServiceVersions = App.ServiceConfigVersion.find().filterProperty('serviceName', this.get('serviceName'));
-    return allServiceVersions.sort(function (a, b) {
+    if (this.get('isDefaultConfigGroupSelected')) {
+      // filtered all versions which belong to default group
+      serviceVersions = allServiceVersions.filterProperty('groupName', null);
+      serviceVersions.forEach( function (version) {
+        version.set('isDisabled', false);
+      });
+    }else {
+      // filter out default group(should be grayedOut) and current selectedGroup versions
+      var defaultServiceVersions = allServiceVersions.filterProperty('groupName', null);
+      defaultServiceVersions.forEach( function (version) {
+        version.set('isDisabled', true);
+      });
+      var selectedServiceVersions = allServiceVersions.filterProperty('groupName', this.get('selectedConfigGroupName'));
+      selectedServiceVersions.forEach( function (version) {
+        version.set('isDisabled', false);
+      });
+      serviceVersions = selectedServiceVersions.concat(defaultServiceVersions) ;
+    }
+    return serviceVersions.sort(function (a, b) {
       return Em.get(a, 'createTime') - Em.get(b, 'createTime');
     });
-  }.property('serviceName'),
+  }.property('serviceName', 'selectedConfigGroupName', 'isDefaultConfigGroupSelected'),
   /**
    * service versions which in viewport and visible to user
    */
@@ -204,6 +231,8 @@ App.ConfigHistoryFlowView = Em.View.extend({
    * add a second version-info-bar for the chosen version
    */
   compare: function (event) {
+    var isDisabled = event.context ? event.context.get('isDisabled') : false;
+    if (isDisabled) return;
     this.set('controller.compareServiceVersion', event.context);
     this.get('controller').onConfigGroupChange();
   },
@@ -212,16 +241,37 @@ App.ConfigHistoryFlowView = Em.View.extend({
    */
   revert: function (event) {
     var self = this;
+    var isDisabled = event.context ? event.context.get('isDisabled') : false;
+    if (isDisabled) return;
     var serviceConfigVersion = event.context || Em.Object.create({
       version: this.get('displayedServiceVersion.version'),
-      serviceName: this.get('displayedServiceVersion.serviceName')
+      serviceName: this.get('displayedServiceVersion.serviceName'),
+      notes:''
     });
     var versionText = event.context ? event.context.get('versionText') : this.get('displayedServiceVersion.versionText');
-    App.showConfirmationPopup(function () {
+    var configGroupName = this.get('displayedServiceVersion.configGroupName');
+    return App.ModalPopup.show({
+      header: Em.I18n.t('dashboard.configHistory.info-bar.makeCurrent.popup.title'),
+      serviceConfigNote: Em.I18n.t('services.service.config.configHistory.makeCurrent.message').format(versionText),
+      bodyClass: Em.View.extend({
+        templateName: require('templates/common/configs/save_configuration'),
+        notesArea: Em.TextArea.extend({
+          classNames: ['full-width'],
+          value: Em.I18n.t('services.service.config.configHistory.makeCurrent.message').format(versionText),
+          onChangeValue: function() {
+            this.get('parentView.parentView').set('serviceConfigNote', this.get('value'));
+          }.observes('value')
+        })
+      }),
+      primary: Em.I18n.t('dashboard.configHistory.info-bar.revert.button'),
+      secondary: Em.I18n.t('common.discard'),
+      third: Em.I18n.t('common.cancel'),
+      onPrimary: function () {
+        serviceConfigVersion.set('serviceConfigNote', this.get('serviceConfigNote'));
         self.sendRevertCall(serviceConfigVersion);
-      },
-      Em.I18n.t('services.service.config.configHistory.makeCurrent.message').format(versionText, this.get('displayedServiceVersion.serviceName'), this.get('displayedServiceVersion.configGroup'))
-    );
+        this.hide();
+      }
+    });
   },
 
   /**
@@ -237,7 +287,8 @@ App.ConfigHistoryFlowView = Em.View.extend({
           "Clusters": {
             "desired_serviceconfigversions": {
               "serviceconfigversion": serviceConfigVersion.get('version'),
-              "service_name": serviceConfigVersion.get('serviceName')
+              "service_name": serviceConfigVersion.get('serviceName'),
+              "service_config_version_note": serviceConfigVersion.get('serviceConfigNote')
             }
           }
         }

@@ -45,6 +45,7 @@ public class ViewConfigTest {
   private static String xml = "<view>\n" +
       "    <name>MY_VIEW</name>\n" +
       "    <label>My View!</label>\n" +
+      "    <description>Description</description>" +
       "    <version>1.0.0</version>\n" +
       "    <icon64>/this/is/the/icon/url/icon64.png</icon64>\n" +
       "    <icon>/this/is/the/icon/url/icon.png</icon>\n" +
@@ -126,6 +127,12 @@ public class ViewConfigTest {
   public void testGetLabel() throws Exception {
     ViewConfig config = getConfig();
     Assert.assertEquals("My View!", config.getLabel());
+  }
+
+  @Test
+  public void testGetDescription() throws Exception {
+    ViewConfig config = getConfig();
+    Assert.assertEquals("Description", config.getDescription());
   }
 
   @Test

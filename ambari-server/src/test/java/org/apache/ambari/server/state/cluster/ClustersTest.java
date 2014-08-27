@@ -21,6 +21,7 @@ package org.apache.ambari.server.state.cluster;
 import static org.junit.Assert.fail;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -330,7 +331,7 @@ public class ClustersTest {
     config2.persist();
     
     // cluster desired config
-    cluster.addDesiredConfig("_test", config1);
+    cluster.addDesiredConfig("_test", Collections.singleton(config1));
 
     clusters.addHost(h1);
     clusters.addHost(h2);

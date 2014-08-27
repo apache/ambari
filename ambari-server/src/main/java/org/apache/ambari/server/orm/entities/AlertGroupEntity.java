@@ -65,6 +65,9 @@ public class AlertGroupEntity {
   @Column(name = "is_default", nullable = false)
   private Integer isDefault = Integer.valueOf(0);
 
+  @Column(name = "service_name", nullable = true, length = 255)
+  private String serviceName;
+
   /**
    * Bi-directional many-to-many association to {@link AlertDefinitionEntity}
    */
@@ -81,7 +84,7 @@ public class AlertGroupEntity {
 
   /**
    * Gets the unique ID of this grouping of alerts.
-   * 
+   *
    * @return the ID (never {@code null}).
    */
   public Long getGroupId() {
@@ -90,7 +93,7 @@ public class AlertGroupEntity {
 
   /**
    * Sets the unique ID of this grouping of alerts.
-   * 
+   *
    * @param groupId
    *          the ID (not {@code null}).
    */
@@ -100,7 +103,7 @@ public class AlertGroupEntity {
 
   /**
    * Gets the ID of the cluster that this alert group is a part of.
-   * 
+   *
    * @return the ID (never {@code null}).
    */
   public Long getClusterId() {
@@ -109,7 +112,7 @@ public class AlertGroupEntity {
 
   /**
    * Sets the ID of the cluster that this alert group is a part of.
-   * 
+   *
    * @param clusterId
    *          the ID of the cluster (not {@code null}).
    */
@@ -120,7 +123,7 @@ public class AlertGroupEntity {
   /**
    * Gets the name of the grouping of alerts. Group names are unique in a given
    * cluster.
-   * 
+   *
    * @return the group name (never {@code null}).
    */
   public String getGroupName() {
@@ -130,7 +133,7 @@ public class AlertGroupEntity {
   /**
    * Sets the name of this grouping of alerts. Group names are unique in a given
    * cluster.
-   * 
+   *
    * @param groupName
    *          the name of the group (not {@code null}).
    */
@@ -143,7 +146,7 @@ public class AlertGroupEntity {
    * groups cannot have their alert definition groupings changed. New alert
    * definitions are automtaically added to the default group that belongs to
    * the service of that definition.
-   * 
+   *
    * @return {@code true} if this is a default group, {@code false} otherwise.
    */
   public boolean isDefault() {
@@ -152,7 +155,7 @@ public class AlertGroupEntity {
 
   /**
    * Sets whether this is a default group and is immutable.
-   * 
+   *
    * @param isDefault
    *          {@code true} to make this group immutable.
    */
@@ -161,8 +164,31 @@ public class AlertGroupEntity {
   }
 
   /**
-   * Gets all of the alert definitions that are a part of this grouping.
+   * Gets the name of the service. This is only applicable when
+   * {@link #isDefault()} is {@code true}.
+   *
+   * @return the service that this is the default group for, or {@code null} if
+   *         this is not a default group.
+   */
+  public String getServiceName() {
+    return serviceName;
+  }
+
+  /**
+   * Set the service name. This is only applicable when {@link #isDefault()} is
+   * {@code true}.
    * 
+   * @param serviceName
+   *          the service that this is the default group for, or {@code null} if
+   *          this is not a default group.
+   */
+  public void setServiceName(String serviceName) {
+    this.serviceName = serviceName;
+  }
+
+  /**
+   * Gets all of the alert definitions that are a part of this grouping.
+   *
    * @return the alert definitions or {@code null} if none.
    */
   public Set<AlertDefinitionEntity> getAlertDefinitions() {
@@ -171,7 +197,7 @@ public class AlertGroupEntity {
 
   /**
    * Set all of the alert definitions that are part of this alert group.
-   * 
+   *
    * @param alertDefinitions
    *          the definitions, or {@code null} for none.
    */
@@ -182,25 +208,27 @@ public class AlertGroupEntity {
   /**
    * Gets an immutable set of the targets that will receive notifications for
    * alert definitions in this group.
-   * 
+   *
    * @return the targets, or {@code null} if there are none.
    */
   public Set<AlertTargetEntity> getAlertTargets() {
-    if( null == alertTargets )
+    if( null == alertTargets ) {
       return Collections.emptySet();
-      
+    }
+
     return Collections.unmodifiableSet(alertTargets);
   }
 
   /**
    * Adds the specified target to the targets that this group will dispatch to.
-   * 
+   *
    * @param alertTarget
    *          the target to add (not {@code null}).
    */
   public void addAlertTarget(AlertTargetEntity alertTarget) {
-    if (null == alertTargets)
+    if (null == alertTargets) {
       alertTargets = new HashSet<AlertTargetEntity>();
+    }
 
     alertTargets.add(alertTarget);
     alertTarget.addAlertGroup(this);
@@ -209,13 +237,14 @@ public class AlertGroupEntity {
   /**
    * Removes the specified target from the targets that this group will dispatch
    * to.
-   * 
+   *
    * @param alertTarget
    *          the target to remove (not {@code null}).
    */
   public void removeAlertTarget(AlertTargetEntity alertTarget) {
-    if (null != alertTargets)
+    if (null != alertTargets) {
       alertTargets.remove(alertTarget);
+    }
 
     alertTarget.removeAlertGroup(this);
   }
@@ -223,7 +252,7 @@ public class AlertGroupEntity {
   /**
    * Sets all of the targets that will receive notifications for alert
    * definitions in this group.
-   * 
+   *
    * @param alertTargets
    *          the targets, or {@code null} if there are none.
    */
@@ -248,16 +277,19 @@ public class AlertGroupEntity {
    */
   @Override
   public boolean equals(Object object) {
-    if (this == object)
+    if (this == object) {
       return true;
+    }
 
-    if (object == null || getClass() != object.getClass())
+    if (object == null || getClass() != object.getClass()) {
       return false;
+    }
 
     AlertGroupEntity that = (AlertGroupEntity) object;
 
-    if (groupId != null ? !groupId.equals(that.groupId) : that.groupId != null)
+    if (groupId != null ? !groupId.equals(that.groupId) : that.groupId != null) {
       return false;
+    }
 
     return true;
   }

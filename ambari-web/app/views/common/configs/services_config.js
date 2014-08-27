@@ -448,7 +448,8 @@ App.ServiceConfigsByCategoryView = Ember.View.extend(App.UserPref, {
     } else {
       this.$('.accordion-body').show();
     }
-    App.tooltip(this.$('[data-toggle=tooltip]'),{
+    $('body').tooltip({
+      selector: '[data-toggle=tooltip]',
       placement: 'top'
     });
     this.updateReadOnlyFlags();

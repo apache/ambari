@@ -51,9 +51,6 @@ do_install(){
 
 do_remove(){
 
-  rm -rf "$COMMON_DIR"
-  rm -rf "$RESOURCE_MANAGEMENT_DIR"
-
   if [ -f "$PYTHON_WRAPER_TARGET" ]; then
     rm -f "$PYTHON_WRAPER_TARGET"
   fi

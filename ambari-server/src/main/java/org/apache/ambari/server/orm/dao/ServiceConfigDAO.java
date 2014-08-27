@@ -26,7 +26,15 @@ import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.ServiceConfigEntity;
 
 import javax.persistence.EntityManager;
+import javax.persistence.Tuple;
 import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
+import javax.persistence.criteria.Subquery;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -67,6 +75,37 @@ public class ServiceConfigDAO {
   }
 
   @RequiresSession
+  public List<ServiceConfigEntity> getLastServiceConfigVersionsForGroups(Collection<Long> configGroupIds) {
+    if (configGroupIds == null || configGroupIds.isEmpty()) {
+      return Collections.emptyList();
+    }
+    CriteriaBuilder cb = entityManagerProvider.get().getCriteriaBuilder();
+    CriteriaQuery<Tuple> cq = cb.createTupleQuery();
+    Root<ServiceConfigEntity> groupVersion = cq.from(ServiceConfigEntity.class);
+
+
+    cq.multiselect(groupVersion.get("groupId").alias("groupId"), cb.max(groupVersion.<Long>get("version")).alias("lastVersion"));
+    cq.where(groupVersion.get("groupId").in(configGroupIds));
+    cq.groupBy(groupVersion.get("groupId"));
+    List<Tuple> tuples = daoUtils.selectList(entityManagerProvider.get().createQuery(cq));
+    List<ServiceConfigEntity> result = new ArrayList<ServiceConfigEntity>();
+    //subquery look to be very poor, no bulk select then, cache should help here as result size is naturally limited
+    for (Tuple tuple : tuples) {
+      CriteriaQuery<ServiceConfigEntity> sce = cb.createQuery(ServiceConfigEntity.class);
+      Root<ServiceConfigEntity> sceRoot = sce.from(ServiceConfigEntity.class);
+
+      sce.where(cb.and(cb.equal(sceRoot.get("groupId"), tuple.get("groupId")),
+        cb.equal(sceRoot.get("version"), tuple.get("lastVersion"))));
+      sce.select(sceRoot);
+      result.add(daoUtils.selectSingle(entityManagerProvider.get().createQuery(sce)));
+    }
+
+    return result;
+  }
+
+
+
+  @RequiresSession
   public List<Long> getServiceConfigVersionsByConfig(Long clusterId, String configType, Long configVersion) {
     TypedQuery<Long> query = entityManagerProvider.get().createQuery("SELECT scv.version " +
         "FROM ServiceConfigEntity scv JOIN scv.clusterConfigEntities cc " +
@@ -80,7 +119,7 @@ public class ServiceConfigDAO {
       createQuery("SELECT scv FROM ServiceConfigEntity scv " +
         "WHERE scv.clusterId = ?1 AND scv.createTimestamp = (" +
         "SELECT MAX(scv2.createTimestamp) FROM ServiceConfigEntity scv2 " +
-        "WHERE scv2.serviceName = scv.serviceName AND scv2.clusterId = ?1)",
+        "WHERE scv2.serviceName = scv.serviceName AND scv2.clusterId = ?1 AND scv2.groupId IS NULL)",
         ServiceConfigEntity.class);
 
     return daoUtils.selectList(query, clusterId);

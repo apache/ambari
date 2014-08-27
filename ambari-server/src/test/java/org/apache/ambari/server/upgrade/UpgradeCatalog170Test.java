@@ -134,6 +134,8 @@ public class UpgradeCatalog170Test {
     Capture<DBAccessor.DBColumnInfo> clusterConfigAttributesColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
     Capture<DBAccessor.DBColumnInfo> maskColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
     Capture<DBAccessor.DBColumnInfo> maskedColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
+    Capture<DBAccessor.DBColumnInfo> stageCommandParamsColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
+    Capture<DBAccessor.DBColumnInfo> stageHostParamsColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
     Capture<List<DBAccessor.DBColumnInfo>> alertDefinitionColumnCapture = new Capture<List<DBAccessor.DBColumnInfo>>();
     Capture<List<DBAccessor.DBColumnInfo>> alertHistoryColumnCapture = new Capture<List<DBAccessor.DBColumnInfo>>();
     Capture<List<DBAccessor.DBColumnInfo>> alertCurrentColumnCapture = new Capture<List<DBAccessor.DBColumnInfo>>();
@@ -148,6 +150,7 @@ public class UpgradeCatalog170Test {
     setViewExpectations(dbAccessor, maskColumnCapture);
     setViewParameterExpectations(dbAccessor, maskedColumnCapture);
     setClusterConfigExpectations(dbAccessor, clusterConfigAttributesColumnCapture);
+    setStageExpectations(dbAccessor, stageCommandParamsColumnCapture, stageHostParamsColumnCapture);
 
     dbAccessor.createTable(eq("alert_definition"),
         capture(alertDefinitionColumnCapture), eq("definition_id"));
@@ -200,11 +203,12 @@ public class UpgradeCatalog170Test {
     assertClusterConfigColumns(clusterConfigAttributesColumnCapture);
     assertViewColumns(maskColumnCapture);
     assertViewParameterColumns(maskedColumnCapture);
+    assertStageColumns(stageCommandParamsColumnCapture, stageHostParamsColumnCapture);
 
     assertEquals(12, alertDefinitionColumnCapture.getValue().size());
     assertEquals(11, alertHistoryColumnCapture.getValue().size());
     assertEquals(6, alertCurrentColumnCapture.getValue().size());
-    assertEquals(4, alertGroupColumnCapture.getValue().size());
+    assertEquals(5, alertGroupColumnCapture.getValue().size());
     assertEquals(5, alertTargetCapture.getValue().size());
     assertEquals(2, alertGroupTargetCapture.getValue().size());
     assertEquals(2, alertGroupingCapture.getValue().size());
@@ -220,7 +224,7 @@ public class UpgradeCatalog170Test {
     Injector injector = createNiceMock(Injector.class);
     ConfigHelper configHelper = createNiceMock(ConfigHelper.class);
     AmbariManagementController amc = createNiceMock(AmbariManagementController.class);
-    Cluster cluster = createStrictMock(Cluster.class);
+    Cluster cluster = createNiceMock(Cluster.class);
     Clusters clusters = createStrictMock(Clusters.class);
     Config config = createStrictMock(Config.class);
     Config pigConfig = createStrictMock(Config.class);
@@ -319,9 +323,10 @@ public class UpgradeCatalog170Test {
     expect(cluster.getDesiredConfigByType("global")).andReturn(config).anyTimes();
     expect(config.getProperties()).andReturn(globalConfigs).anyTimes();
     expect(cluster.getCurrentStackVersion()).andReturn(new StackId("HDP", "2.1")).anyTimes();
-    expect(configHelper.findConfigTypesByPropertyName(new StackId("HDP", "2.1"), "prop1")).andReturn(envDicts).once();
-    expect(configHelper.findConfigTypesByPropertyName(new StackId("HDP", "2.1"), "smokeuser_keytab")).andReturn(new HashSet<String>()).once();
-    expect(configHelper.findConfigTypesByPropertyName(new StackId("HDP", "2.1"), "content")).andReturn(envDicts).once();
+    expect(cluster.getClusterName()).andReturn("c1").anyTimes();
+    expect(configHelper.findConfigTypesByPropertyName(new StackId("HDP", "2.1"), "prop1", "c1")).andReturn(envDicts).once();
+    expect(configHelper.findConfigTypesByPropertyName(new StackId("HDP", "2.1"), "smokeuser_keytab", "c1")).andReturn(new HashSet<String>()).once();
+    expect(configHelper.findConfigTypesByPropertyName(new StackId("HDP", "2.1"), "content", "c1")).andReturn(envDicts).once();
     expect(configHelper.getPropertyValueFromStackDefenitions(cluster, "hadoop-env", "content")).andReturn("env file contents").once();
 
     expect(injector.getInstance(UserDAO.class)).andReturn(userDAO).anyTimes();
@@ -425,6 +430,17 @@ public class UpgradeCatalog170Test {
         capture(clusterConfigAttributesColumnCapture));
   }
 
+  private void setStageExpectations(DBAccessor dbAccessor,
+                                    Capture<DBAccessor.DBColumnInfo> stageCommandParamsColumnCapture,
+                                    Capture<DBAccessor.DBColumnInfo> stageHostParamsColumnCapture)
+    throws SQLException {
+    dbAccessor.addColumn(eq("stage"),
+      capture(stageCommandParamsColumnCapture));
+
+    dbAccessor.addColumn(eq("stage"),
+      capture(stageHostParamsColumnCapture));
+  }
+
   @Test
   public void testGetSourceVersion() {
     final DBAccessor dbAccessor     = createNiceMock(DBAccessor.class);
@@ -463,6 +479,21 @@ public class UpgradeCatalog170Test {
     assertEquals(1, (int) column.getLength());
     assertEquals(Character.class, column.getType());
     assertNull(column.getDefaultValue());
+    assertTrue(column.isNullable());
+  }
+
+  private void assertStageColumns(Capture<DBAccessor.DBColumnInfo> stageCommandParamsColumnCapture,
+                                  Capture<DBAccessor.DBColumnInfo> stageHostParamsColumnCapture) {
+    DBAccessor.DBColumnInfo column = stageCommandParamsColumnCapture.getValue();
+    assertEquals("command_params", column.getName());
+    assertEquals(byte[].class, column.getType());
+    assertEquals(null, column.getDefaultValue());
+    assertTrue(column.isNullable());
+
+    column = stageHostParamsColumnCapture.getValue();
+    assertEquals("host_params", column.getName());
+    assertEquals(byte[].class, column.getType());
+    assertEquals(null, column.getDefaultValue());
     assertTrue(column.isNullable());
   }
 }

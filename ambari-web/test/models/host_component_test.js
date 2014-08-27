@@ -19,10 +19,16 @@
 var App = require('app');
 require('models/host_component');
 
-describe('App.HostComponentStatus', function() {
+describe('App.HostComponent', function() {
+
+  App.store.load(App.HostComponent, {
+    id: 'COMP_host',
+    component_name: 'COMP1'
+  });
+  var hc = App.HostComponent.find('COMP_host');
+
 
   describe('#getStatusesList', function() {
-
     it('allowed statuses', function() {
       var statuses = ["STARTED","STARTING","INSTALLED","STOPPING","INSTALL_FAILED","INSTALLING","UPGRADE_FAILED","UNKNOWN","DISABLED","INIT"];
       expect(App.HostComponentStatus.getStatusesList()).to.include.members(statuses);
@@ -30,4 +36,208 @@ describe('App.HostComponentStatus', function() {
     });
   });
 
+  describe('#getStatusesList', function() {
+    it('allowed statuses', function() {
+      var statuses = ["STARTED","STARTING","INSTALLED","STOPPING","INSTALL_FAILED","INSTALLING","UPGRADE_FAILED","UNKNOWN","DISABLED","INIT"];
+      expect(App.HostComponentStatus.getStatusesList()).to.include.members(statuses);
+      expect(statuses).to.include.members(App.HostComponentStatus.getStatusesList());
+    });
+  });
+
+  describe('#isClient', function() {
+    it('', function() {
+      sinon.stub(App.get('components.clients'), 'contains', Em.K);
+      hc.propertyDidChange('isClient');
+      hc.get('isClient');
+      expect(App.get('components.clients').contains.calledWith('COMP1')).to.be.true;
+      App.get('components.clients').contains.restore();
+    });
+  });
+
+  describe('#displayName', function() {
+    it('', function() {
+      sinon.stub(App.format, 'role', Em.K);
+      hc.propertyDidChange('displayName');
+      hc.get('displayName');
+      expect(App.format.role.calledWith('COMP1')).to.be.true;
+      App.format.role.restore();
+    });
+  });
+
+  describe('#isMaster', function() {
+    it('', function() {
+      sinon.stub(App.get('components.masters'), 'contains', Em.K);
+      hc.propertyDidChange('isMaster');
+      hc.get('isMaster');
+      expect(App.get('components.masters').contains.calledWith('COMP1')).to.be.true;
+      App.get('components.masters').contains.restore();
+    });
+  });
+
+  describe('#isSlave', function() {
+    it('', function() {
+      sinon.stub(App.get('components.slaves'), 'contains', Em.K);
+      hc.propertyDidChange('isSlave');
+      hc.get('isSlave');
+      expect(App.get('components.slaves').contains.calledWith('COMP1')).to.be.true;
+      App.get('components.slaves').contains.restore();
+    });
+  });
+
+  describe('#isDeletable', function() {
+    it('', function() {
+      sinon.stub(App.get('components.deletable'), 'contains', Em.K);
+      hc.propertyDidChange('isDeletable');
+      hc.get('isDeletable');
+      expect(App.get('components.deletable').contains.calledWith('COMP1')).to.be.true;
+      App.get('components.deletable').contains.restore();
+    });
+  });
+
+  describe('#isRunning', function() {
+    var testCases = [
+      {
+        workStatus: 'INSTALLED',
+        result: false
+      },
+      {
+        workStatus: 'STARTING',
+        result: true
+      },
+      {
+        workStatus: 'STARTED',
+        result: true
+      }
+    ];
+    testCases.forEach(function(test){
+      it('workStatus - ' + test.workStatus, function() {
+        hc.set('workStatus', test.workStatus);
+        hc.propertyDidChange('isRunning');
+        expect(hc.get('isRunning')).to.equal(test.result);
+      });
+    });
+  });
+
+  describe('#isDecommissioning', function() {
+    var mock = [];
+    beforeEach(function () {
+      sinon.stub(App.HDFSService, 'find', function () {
+        return mock;
+      })
+    });
+    afterEach(function () {
+      App.HDFSService.find.restore();
+    });
+    it('component name is not DATANODE', function() {
+      hc.propertyDidChange('isDecommissioning');
+      expect(hc.get('isDecommissioning')).to.be.false;
+    });
+    it('component name is DATANODE but no HDFS service', function() {
+      hc.set('componentName', 'DATANODE');
+      hc.propertyDidChange('isDecommissioning');
+      expect(hc.get('isDecommissioning')).to.be.false;
+    });
+    it('HDFS has no decommission DataNodes', function() {
+      hc.set('componentName', 'DATANODE');
+      mock.push(Em.Object.create({
+        decommissionDataNodes: []
+      }));
+      hc.propertyDidChange('isDecommissioning');
+      expect(hc.get('isDecommissioning')).to.be.false;
+    });
+    it('HDFS has decommission DataNodes', function() {
+      hc.set('componentName', 'DATANODE');
+      hc.set('hostName', 'host1');
+      mock.clear();
+      mock.push(Em.Object.create({
+        decommissionDataNodes: [{hostName: 'host1'}]
+      }));
+      hc.propertyDidChange('isDecommissioning');
+      expect(hc.get('isDecommissioning')).to.be.true;
+    });
+  });
+
+  describe('#isActive', function() {
+    it('passiveState is ON', function() {
+      hc.set('passiveState', "ON");
+      hc.propertyDidChange('isActive');
+      expect(hc.get('isActive')).to.be.false;
+    });
+    it('passiveState is OFF', function() {
+      hc.set('passiveState', "OFF");
+      hc.propertyDidChange('isActive');
+      expect(hc.get('isActive')).to.be.true;
+    });
+  });
+
+  describe('#statusClass', function() {
+    it('isActive is false', function() {
+      hc.reopen({
+        isActive: false
+      });
+      hc.propertyDidChange('statusClass');
+      expect(hc.get('statusClass')).to.equal('icon-medkit');
+    });
+    it('isActive is true', function() {
+      var status = 'INSTALLED';
+      hc.set('isActive', true);
+      hc.set('workStatus', status);
+      hc.propertyDidChange('statusClass');
+      expect(hc.get('statusClass')).to.equal(status);
+    });
+  });
+
+  describe('#statusIconClass', function () {
+    var testCases = [
+      {
+        statusClass: 'STARTED',
+        result: 'icon-ok-sign'
+      },
+      {
+        statusClass: 'STARTING',
+        result: 'icon-ok-sign'
+      },
+      {
+        statusClass: 'INSTALLED',
+        result: 'icon-warning-sign'
+      },
+      {
+        statusClass: 'STOPPING',
+        result: 'icon-warning-sign'
+      },
+      {
+        statusClass: 'UNKNOWN',
+        result: 'icon-question-sign'
+      },
+      {
+        statusClass: '',
+        result: ''
+      }
+    ];
+
+    it('reset statusClass to plain property', function () {
+      hc.reopen({
+        statusClass: ''
+      })
+    });
+    testCases.forEach(function (test) {
+      it('statusClass - ' + test.statusClass, function () {
+        hc.set('statusClass', test.statusClass);
+        hc.propertyDidChange('statusIconClass');
+        expect(hc.get('statusIconClass')).to.equal(test.result);
+      });
+    });
+  });
+
+  describe('#componentTextStatus', function() {
+    it('', function() {
+      var status = 'INSTALLED';
+      sinon.stub(App.HostComponentStatus, 'getTextStatus', Em.K);
+      hc.set('workStatus', status);
+      hc.propertyDidChange('componentTextStatus');
+      hc.get('componentTextStatus');
+      expect(App.HostComponentStatus.getTextStatus.calledWith(status)).to.be.true;
+      App.HostComponentStatus.getTextStatus.restore();
+    });
+  });
 });

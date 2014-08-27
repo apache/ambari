@@ -35,12 +35,14 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.BaseService;
 import org.apache.ambari.server.api.services.LocalUriInfo;
 import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.api.services.StacksService.StackUriInfo;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorException;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest;
+import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorResponse;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRunner;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.commons.collections.CollectionUtils;
@@ -52,11 +54,12 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.SerializationConfig;
 import org.codehaus.jackson.node.ArrayNode;
 import org.codehaus.jackson.node.ObjectNode;
+import org.codehaus.jackson.node.TextNode;
 
 /**
  * Parent for all commands.
  */
-public abstract class StackAdvisorCommand<T> extends BaseService {
+public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extends BaseService {
 
   /**
    * Type of response object provided by extending classes when
@@ -89,9 +92,11 @@ public abstract class StackAdvisorCommand<T> extends BaseService {
 
   protected ObjectMapper mapper;
 
+  private final AmbariMetaInfo metaInfo;
+
   @SuppressWarnings("unchecked")
   public StackAdvisorCommand(File recommendationsDir, String stackAdvisorScript, int requestId,
-      StackAdvisorRunner saRunner) {
+      StackAdvisorRunner saRunner, AmbariMetaInfo metaInfo) {
     this.type = (Class<T>) ((ParameterizedType) getClass().getGenericSuperclass())
         .getActualTypeArguments()[0];
 
@@ -102,6 +107,7 @@ public abstract class StackAdvisorCommand<T> extends BaseService {
     this.stackAdvisorScript = stackAdvisorScript;
     this.requestId = requestId;
     this.saRunner = saRunner;
+    this.metaInfo = metaInfo;
   }
 
   protected abstract StackAdvisorCommandType getCommandType();
@@ -133,6 +139,7 @@ public abstract class StackAdvisorCommand<T> extends BaseService {
     try {
       ObjectNode root = (ObjectNode) this.mapper.readTree(data.servicesJSON);
 
+      populateStackHierarchy(root);
       populateComponentHostsMap(root, request.getComponentHostsMap());
       populateConfigurations(root, request.getConfigurations());
 
@@ -163,6 +170,18 @@ public abstract class StackAdvisorCommand<T> extends BaseService {
           propertiesNode.put(propertyName, propertyValue);
         }
       }
+    }
+  }
+
+  protected void populateStackHierarchy(ObjectNode root) {
+    ObjectNode version = (ObjectNode) root.get("Versions");
+    TextNode stackName = (TextNode) version.get("stack_name");
+    TextNode stackVersion = (TextNode) version.get("stack_version");
+    ObjectNode stackHierarchy = version.putObject("stack_hierarchy");
+    stackHierarchy.put("stack_name", stackName);
+    ArrayNode parents = stackHierarchy.putArray("stack_versions");
+    for (String parentVersion : metaInfo.getStackParentVersions(stackName.asText(), stackVersion.asText())) {
+      parents.add(parentVersion);
     }
   }
 
@@ -215,7 +234,7 @@ public abstract class StackAdvisorCommand<T> extends BaseService {
       String result = FileUtils.readFileToString(new File(requestDirectory, getResultFileName()));
 
       T response = this.mapper.readValue(result, this.type);
-      return updateResponse(request, response);
+      return updateResponse(request, setRequestId(response));
     } catch (Exception e) {
       String message = "Error occured during stack advisor command invocation";
       LOG.warn(message, e);
@@ -224,6 +243,11 @@ public abstract class StackAdvisorCommand<T> extends BaseService {
   }
 
   protected abstract T updateResponse(StackAdvisorRequest request, T response);
+
+  private T setRequestId(T response) {
+    response.setId(requestId);
+    return response;
+  }
 
   /**
    * Create request id directory for each call

@@ -32,11 +32,16 @@ import static org.apache.ambari.server.agent.DummyHeartbeatConstants.HDFS;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.HDFS_CLIENT;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.NAMENODE;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.SECONDARY_NAMENODE;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.createMockBuilder;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.anyList;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -91,7 +96,6 @@ import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostUpgradeEvent;
 import org.apache.ambari.server.utils.StageUtils;
 import org.codehaus.jackson.JsonGenerationException;
-import static org.easymock.EasyMock.*;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -699,7 +703,8 @@ public class TestHeartbeatHandler {
   }
 
   private void populateActionDB(ActionDBAccessor db, String DummyHostname1) throws AmbariException {
-    Stage s = new Stage(requestId, "/a/b", DummyCluster, 1L, "heartbeat handler test", "clusterHostInfo");
+    Stage s = new Stage(requestId, "/a/b", DummyCluster, 1L, "heartbeat handler test",
+      "clusterHostInfo", "commandParamsStage", "hostParamsStage");
     s.setStageId(stageId);
     String filename = null;
     s.addHostRoleExecutionCommand(DummyHostname1, Role.HBASE_MASTER,
@@ -1084,7 +1089,7 @@ public class TestHeartbeatHandler {
     serviceComponentHost1.setState(State.INSTALLING);
 
     Stage s = new Stage(1, "/a/b", "cluster1", 1L, "action manager test",
-      "clusterHostInfo");
+      "clusterHostInfo", "commandParamsStage", "hostParamsStage");
     s.setStageId(1);
     s.addHostRoleExecutionCommand(DummyHostname1, Role.DATANODE, RoleCommand.INSTALL,
       new ServiceComponentHostInstallEvent(Role.DATANODE.toString(),
@@ -1657,7 +1662,7 @@ public class TestHeartbeatHandler {
     serviceComponentHost2.setStackVersion(stack122);
 
     Stage s = new Stage(requestId, "/a/b", "cluster1", 1L, "action manager test",
-      "clusterHostInfo");
+      "clusterHostInfo", "commandParamsStage", "hostParamsStage");
     s.setStageId(stageId);
     s.addHostRoleExecutionCommand(DummyHostname1, Role.DATANODE, RoleCommand.UPGRADE,
       new ServiceComponentHostUpgradeEvent(Role.DATANODE.toString(),

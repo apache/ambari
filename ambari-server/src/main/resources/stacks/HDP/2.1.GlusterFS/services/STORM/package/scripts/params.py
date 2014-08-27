@@ -24,12 +24,12 @@ import status_params
 # server configurations
 config = Script.get_config()
 
-storm_user = config['configurations']['global']['storm_user']
-log_dir = config['configurations']['global']['storm_log_dir']
+storm_user = config['configurations']['storm-env']['storm_user']
+log_dir = config['configurations']['storm-env']['storm_log_dir']
 pid_dir = status_params.pid_dir
 conf_dir = "/etc/storm/conf"
 local_dir = config['configurations']['storm-site']['storm.local.dir']
-user_group = config['configurations']['global']['user_group']
+user_group = config['configurations']['hadoop-env']['user_group']
 java64_home = config['hostLevelParams']['java_home']
 nimbus_host = config['configurations']['storm-site']['nimbus.host']
 nimbus_port = config['configurations']['storm-site']['nimbus.thrift.port']
@@ -53,7 +53,7 @@ security_enabled = ( not is_empty(_authentication) and _authentication == 'kerbe
 
 if security_enabled:
   _hostname_lowercase = config['hostname'].lower()
-  _kerberos_domain = config['configurations']['global']['kerberos_domain']
-  _storm_principal_name = config['configurations']['global']['storm_principal_name']
+  _kerberos_domain = config['configurations']['hadoop-env']['kerberos_domain']
+  _storm_principal_name = config['configurations']['storm-env']['storm_principal_name']
   storm_jaas_principal = _storm_principal_name.replace('_HOST',_hostname_lowercase)
-  storm_keytab_path = config['configurations']['global']['storm_keytab']
+  storm_keytab_path = config['configurations']['storm-env']['storm_keytab']

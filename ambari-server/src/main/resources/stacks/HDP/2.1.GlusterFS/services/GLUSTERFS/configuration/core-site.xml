@@ -22,33 +22,7 @@
 
 <configuration supports_final="true" xmlns:xi="http://www.w3.org/2001/XInclude">
 
-<!-- i/o properties -->
-
-  <property>
-    <name>hadoop_heapsize</name>
-    <value>1024</value>
-    <description>Hadoop maximum Java heap size</description>
-  </property>
-
-
 <!-- file system properties -->
-
-  <property>
-    <name>fs.defaultFS</name>
-    <!-- cluster variant -->
-    <value>glusterfs:///localhost:8020</value>
-    <description>The name of the default file system.  Either the
-  literal string "local" or a host:port for NDFS.</description>
-    <final>true</final>
-  </property>
-  
-  <property>
-    <name>fs.default.name</name>
-    <!-- cluster variant -->
-    <value>glusterfs:///localhost:8020</value>
-    <description>The name of the default file system.  Either the
-         literal string "local" or a host:port for NDFS.</description>
-  </property>
 
   <property>
   <name>fs.AbstractFileSystem.glusterfs.impl</name>

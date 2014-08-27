@@ -188,7 +188,7 @@ public class JMXHostProviderTest {
       ConfigurationRequest cr = new ConfigurationRequest(clusterName,
         "hdfs-site", "version1", configs, null);
       ClusterRequest crequest = new ClusterRequest(null, clusterName, null, null);
-      crequest.setDesiredConfig(cr);
+      crequest.setDesiredConfig(Collections.singletonList(cr));
       controller.updateClusters(Collections.singleton(crequest), new HashMap<String,String>());
       
     } else {
@@ -200,7 +200,7 @@ public class JMXHostProviderTest {
         "hdfs-site", "version2", configs, null);
       
       ClusterRequest crequest = new ClusterRequest(null, clusterName, null, null);
-      crequest.setDesiredConfig(cr);
+      crequest.setDesiredConfig(Collections.singletonList(cr));
       controller.updateClusters(Collections.singleton(crequest), new HashMap<String,String>());
     }
   }
@@ -272,7 +272,7 @@ public class JMXHostProviderTest {
       "hdfs-site", "versionN", configs, null);
 
     ClusterRequest crReq = new ClusterRequest(null, clusterName, null, null);
-    crReq.setDesiredConfig(cr1);
+    crReq.setDesiredConfig(Collections.singletonList(cr1));
     controller.updateClusters(Collections.singleton(crReq), null);
     Cluster cluster = clusters.getCluster(clusterName);
     Assert.assertEquals("versionN", cluster.getDesiredConfigByType("hdfs-site")
@@ -280,7 +280,7 @@ public class JMXHostProviderTest {
 
     ConfigurationRequest cr2 = new ConfigurationRequest(clusterName,
       "yarn-site", "versionN", yarnConfigs, null);
-    crReq.setDesiredConfig(cr2);
+    crReq.setDesiredConfig(Collections.singletonList(cr2));
     controller.updateClusters(Collections.singleton(crReq), null);
 
     Assert.assertEquals("versionN", cluster.getDesiredConfigByType("yarn-site")
@@ -400,7 +400,7 @@ public class JMXHostProviderTest {
       "yarn-site", "versionN+1", yarnConfigs, null);
 
     ClusterRequest crReq = new ClusterRequest(null, "c1", null, null);
-    crReq.setDesiredConfig(cr2);
+    crReq.setDesiredConfig(Collections.singletonList(cr2));
     controller.updateClusters(Collections.singleton(crReq), null);
     Assert.assertEquals("50030", providerModule.getPort("c1", "RESOURCEMANAGER"));
     Assert.assertEquals("11111", providerModule.getPort("c1", "NODEMANAGER"));

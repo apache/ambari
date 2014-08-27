@@ -36,11 +36,11 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class ConfigHelperTest {
   private Clusters clusters;
@@ -97,7 +97,7 @@ public class ConfigHelperTest {
       new ClusterRequest(cluster.getClusterId(), clusterName,
         cluster.getDesiredStackVersion().getStackVersion(), null);
 
-    clusterRequest1.setDesiredConfig(cr);
+    clusterRequest1.setDesiredConfig(Collections.singletonList(cr));
     managementController.updateClusters(new HashSet<ClusterRequest>()
     {{ add(clusterRequest1); }}, null);
 
@@ -119,7 +119,7 @@ public class ConfigHelperTest {
       new ClusterRequest(cluster.getClusterId(), clusterName,
         cluster.getDesiredStackVersion().getStackVersion(), null);
 
-    clusterRequest2.setDesiredConfig(cr);
+    clusterRequest2.setDesiredConfig(Collections.singletonList(cr));
     managementController.updateClusters(new HashSet<ClusterRequest>()
     {{ add(clusterRequest2); }}, null);
   }

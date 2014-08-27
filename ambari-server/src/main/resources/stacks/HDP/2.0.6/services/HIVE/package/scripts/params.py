@@ -95,7 +95,7 @@ driver_curl_target = format("{java_share_dir}/{jdbc_jar_name}")
 
 hdfs_user =  config['configurations']['hadoop-env']['hdfs_user']
 user_group = config['configurations']['hadoop-env']['user_group']
-artifact_dir = "/tmp/HDP-artifacts/"
+artifact_dir = format("{tmp_dir}/AMBARI-artifacts/")
 
 target = format("{hive_lib}/{jdbc_jar_name}")
 

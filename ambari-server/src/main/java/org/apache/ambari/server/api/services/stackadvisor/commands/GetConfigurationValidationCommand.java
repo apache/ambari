@@ -20,6 +20,7 @@ package org.apache.ambari.server.api.services.stackadvisor.commands;
 
 import java.io.File;
 
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorException;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRunner;
@@ -31,8 +32,8 @@ import org.apache.ambari.server.api.services.stackadvisor.validations.Validation
 public class GetConfigurationValidationCommand extends StackAdvisorCommand<ValidationResponse> {
 
   public GetConfigurationValidationCommand(File recommendationsDir, String stackAdvisorScript,
-      int requestId, StackAdvisorRunner saRunner) {
-    super(recommendationsDir, stackAdvisorScript, requestId, saRunner);
+      int requestId, StackAdvisorRunner saRunner, AmbariMetaInfo metaInfo) {
+    super(recommendationsDir, stackAdvisorScript, requestId, saRunner, metaInfo);
   }
 
   @Override

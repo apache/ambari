@@ -32,7 +32,7 @@ App.HostComponent = DS.Model.extend({
    * Determine if component is client
    * @returns {bool}
    */
-  isClient:function () {
+  isClient: function () {
     return App.get('components.clients').contains(this.get('componentName'));
   }.property('componentName'),
   /**
@@ -40,7 +40,7 @@ App.HostComponent = DS.Model.extend({
    * Based on <code>workStatus</code>
    * @returns {bool}
    */
-  isRunning: function(){
+  isRunning: function () {
     return (this.get('workStatus') == 'STARTED' || this.get('workStatus') == 'STARTING');
   }.property('workStatus'),
 
@@ -64,17 +64,17 @@ App.HostComponent = DS.Model.extend({
    * Determine if component is slave
    * @returns {bool}
    */
-  isSlave: function(){
+  isSlave: function () {
     return App.get('components.slaves').contains(this.get('componentName'));
   }.property('componentName'),
   /**
    * Only certain components can be deleted.
-   * They include some from master components, 
-   * some from slave components, and rest from 
+   * They include some from master components,
+   * some from slave components, and rest from
    * client components.
    * @returns {bool}
    */
-  isDeletable: function() {
+  isDeletable: function () {
     return App.get('components.deletable').contains(this.get('componentName'));
   }.property('componentName'),
   /**
@@ -98,19 +98,19 @@ App.HostComponent = DS.Model.extend({
    * User friendly host component status
    * @returns {String}
    */
-  isActive: function() {
+  isActive: function () {
     return (this.get('passiveState') == 'OFF');
   }.property('passiveState'),
 
-  passiveTooltip: function() {
+  passiveTooltip: function () {
     if (!this.get('isActive')) {
       return Em.I18n.t('hosts.component.passive.mode');
     }
   }.property('isActive'),
 
-  statusClass: function() {
+  statusClass: function () {
     return this.get('isActive') ? this.get('workStatus') : 'icon-medkit';
-  }.property('workStatus','isActive'),
+  }.property('workStatus', 'isActive'),
 
   statusIconClass: function () {
     switch (this.get('statusClass')) {
@@ -133,7 +133,7 @@ App.HostComponent = DS.Model.extend({
 
   componentTextStatus: function () {
     return App.HostComponentStatus.getTextStatus(this.get("workStatus"));
-  }.property('workStatus','isDecommissioning')
+  }.property('workStatus', 'isDecommissioning')
 });
 
 App.HostComponent.FIXTURES = [];
@@ -155,8 +155,8 @@ App.HostComponentStatus = {
    * @param {String} value
    * @returns {String}
    */
-  getKeyName:function(value){
-    switch(value){
+  getKeyName: function (value) {
+    switch (value) {
       case this.started:
         return 'started';
       case this.starting:
@@ -213,7 +213,7 @@ App.HostComponentStatus = {
    * Get list of possible <code>App.HostComponent</code> statuses
    * @returns {String[]}
    */
-  getStatusesList: function() {
+  getStatusesList: function () {
     var ret = [];
     for (var st in this) {
       if (this.hasOwnProperty(st) && Em.typeOf(this[st]) == 'string') {

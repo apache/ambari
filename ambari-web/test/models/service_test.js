@@ -225,32 +225,6 @@ describe('App.Service', function () {
     });
   });
 
-  describe('#isClientsOnly', function () {
-    clientsOnly.forEach(function (item) {
-      it('should be true', function () {
-        service.set('serviceName', item);
-        expect(service.get('isClientsOnly')).to.be.true;
-      });
-    });
-    it('should be false', function () {
-      service.set('serviceName', 'HDFS');
-      expect(service.get('isClientsOnly')).to.be.false;
-    });
-  });
-
-  describe('#isConfigurable', function () {
-    configurable.forEach(function (item) {
-      it('should be true', function () {
-        service.set('serviceName', item);
-        expect(service.get('isConfigurable')).to.be.true;
-      });
-    });
-    it('should be false', function () {
-      service.set('serviceName', 'SQOOP');
-      expect(service.get('isConfigurable')).to.be.false;
-    });
-  });
-
   describe('#isRestartRequired', function () {
     hostComponentsDataFalse.forEach(function (item) {
       it('should be false', function () {
@@ -278,5 +252,38 @@ describe('App.Service', function () {
       expect(service.get('restartRequiredMessage')).to.contain('service1');
     });
   });
+
+  describe('#serviceTypes', function () {
+    var testCases = [
+      {
+        serviceName: 'PIG',
+        result: []
+      },
+      {
+        serviceName: 'GANGLIA',
+        result: ['MONITORING']
+      },
+      {
+        serviceName: 'NAGIOS',
+        result: ['MONITORING']
+      },
+      {
+        serviceName: 'HDFS',
+        result: ['HA_MODE']
+      },
+      {
+        serviceName: 'YARN',
+        result: ['HA_MODE']
+      }
+    ];
+    testCases.forEach(function (test) {
+      it('service name - ' + test.serviceName, function () {
+        service.set('serviceName', test.serviceName);
+        service.propertyDidChange('serviceTypes');
+        expect(service.get('serviceTypes')).to.eql(test.result);
+      });
+    });
+  });
+
 
 });

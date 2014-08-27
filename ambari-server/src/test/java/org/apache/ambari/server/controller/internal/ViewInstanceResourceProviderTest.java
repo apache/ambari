@@ -18,21 +18,23 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import org.apache.ambari.server.controller.spi.Predicate;
-import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
+import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.entities.ViewEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceDataEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.apache.ambari.server.orm.entities.ViewInstancePropertyEntity;
 import org.apache.ambari.server.orm.entities.ViewParameterEntity;
-import org.easymock.EasyMock;
+import org.apache.ambari.server.view.ViewRegistry;
+import org.easymock.Capture;
+import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -41,6 +43,17 @@ import static org.junit.Assert.*;
 import static org.easymock.EasyMock.*;
 
 public class ViewInstanceResourceProviderTest {
+
+  private static final ViewRegistry singleton = createMock(ViewRegistry.class);
+
+  static {
+    ViewRegistry.initInstance(singleton);
+  }
+
+  @Before
+  public void before() {
+    reset(singleton);
+  }
 
   @Test
   public void testToResource() throws Exception {
@@ -78,5 +91,71 @@ public class ViewInstanceResourceProviderTest {
     assertEquals("val1", props.get("par1"));
     assertEquals("val3", props.get("par3"));
     assertNull(props.get("par2"));
+  }
+
+  @Test
+  public void testCreateResources() throws Exception {
+    ViewInstanceResourceProvider provider = new ViewInstanceResourceProvider();
+
+    Set<Map<String, Object>> properties = new HashSet<Map<String, Object>>();
+
+    Map<String, Object> propertyMap = new HashMap<String, Object>();
+
+    propertyMap.put(ViewInstanceResourceProvider.VIEW_NAME_PROPERTY_ID, "V1");
+    propertyMap.put(ViewInstanceResourceProvider.VIEW_VERSION_PROPERTY_ID, "1.0.0");
+    propertyMap.put(ViewInstanceResourceProvider.INSTANCE_NAME_PROPERTY_ID, "I1");
+
+    properties.add(propertyMap);
+
+    ViewInstanceEntity viewInstanceEntity = new ViewInstanceEntity();
+    viewInstanceEntity.setViewName("V1{1.0.0}");
+    viewInstanceEntity.setName("I1");
+
+    expect(singleton.instanceExists(viewInstanceEntity)).andReturn(false);
+    expect(singleton.getInstanceDefinition("V1", "1.0.0", "I1")).andReturn(viewInstanceEntity);
+
+    Capture<ViewInstanceEntity> instanceEntityCapture = new Capture<ViewInstanceEntity>();
+    singleton.installViewInstance(capture(instanceEntityCapture));
+
+    replay(singleton);
+
+    provider.createResources(PropertyHelper.getCreateRequest(properties, null));
+
+    Assert.assertEquals(viewInstanceEntity, instanceEntityCapture.getValue());
+
+    verify(singleton);
+  }
+
+  @Test
+  public void testCreateResources_existingInstance() throws Exception {
+    ViewInstanceResourceProvider provider = new ViewInstanceResourceProvider();
+
+    Set<Map<String, Object>> properties = new HashSet<Map<String, Object>>();
+
+    Map<String, Object> propertyMap = new HashMap<String, Object>();
+
+    propertyMap.put(ViewInstanceResourceProvider.VIEW_NAME_PROPERTY_ID, "V1");
+    propertyMap.put(ViewInstanceResourceProvider.VIEW_VERSION_PROPERTY_ID, "1.0.0");
+    propertyMap.put(ViewInstanceResourceProvider.INSTANCE_NAME_PROPERTY_ID, "I1");
+
+    properties.add(propertyMap);
+
+    ViewInstanceEntity viewInstanceEntity = new ViewInstanceEntity();
+    viewInstanceEntity.setViewName("V1{1.0.0}");
+    viewInstanceEntity.setName("I1");
+
+    expect(singleton.instanceExists(viewInstanceEntity)).andReturn(true);
+    expect(singleton.getInstanceDefinition("V1", "1.0.0", "I1")).andReturn(viewInstanceEntity);
+
+    replay(singleton);
+
+    try {
+      provider.createResources(PropertyHelper.getCreateRequest(properties, null));
+      fail("Expected ResourceAlreadyExistsException.");
+    } catch (ResourceAlreadyExistsException e) {
+      // expected
+    }
+
+    verify(singleton);
   }
 }

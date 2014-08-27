@@ -38,6 +38,7 @@ import java.util.Set;
 
 import javax.persistence.EntityManager;
 
+import com.google.common.collect.Multimap;
 import junit.framework.Assert;
 
 import org.apache.ambari.server.AmbariException;
@@ -354,7 +355,7 @@ public class ClusterTest {
     c1.addConfig(config2);
     c1.addConfig(config3);
     
-    c1.addDesiredConfig("_test", config1);
+    c1.addDesiredConfig("_test", Collections.singleton(config1));
     Config res = c1.getDesiredConfigByType("global");
     Assert.assertNotNull("Expected non-null config", res);
     Assert.assertEquals("true", res.getPropertiesAttributes().get("final").get("a"));
@@ -362,7 +363,7 @@ public class ClusterTest {
     res = c1.getDesiredConfigByType("core-site");
     Assert.assertNull("Expected null config", res);
     
-    c1.addDesiredConfig("_test", config2);
+    c1.addDesiredConfig("_test", Collections.singleton(config2));
     res = c1.getDesiredConfigByType("global");
     Assert.assertEquals("Expected version tag to be 'version2'", "version2", res.getTag());
     Assert.assertEquals("true", res.getPropertiesAttributes().get("final").get("x"));
@@ -387,15 +388,15 @@ public class ClusterTest {
     c1.addConfig(config3);
     
     try {
-      c1.addDesiredConfig(null, config1);
+      c1.addDesiredConfig(null, Collections.singleton(config1));
       fail("Cannot set a null user with config");
     }
     catch (Exception e) {
       // test failure
     }
     
-    c1.addDesiredConfig("_test1", config1);
-    c1.addDesiredConfig("_test3", config3);
+    c1.addDesiredConfig("_test1", Collections.singleton(config1));
+    c1.addDesiredConfig("_test3", Collections.singleton(config3));
     
     Map<String, DesiredConfig> desiredConfigs = c1.getDesiredConfigs();
     Assert.assertFalse("Expect desired config not contain 'mapred-site'", desiredConfigs.containsKey("mapred-site"));
@@ -409,10 +410,10 @@ public class ClusterTest {
     Assert.assertTrue("Expect no host-level overrides",
         (null == dc.getHostOverrides() || dc.getHostOverrides().size() == 0));
     
-    c1.addDesiredConfig("_test2", config2);
+    c1.addDesiredConfig("_test2", Collections.singleton(config2));
     Assert.assertEquals("_test2", c1.getDesiredConfigs().get(config2.getType()).getUser());
     
-    c1.addDesiredConfig("_test1", config1);
+    c1.addDesiredConfig("_test1", Collections.singleton(config1));
 
     // setup a host that also has a config override
     Host host = clusters.getHost("h1");
@@ -647,45 +648,80 @@ public class ClusterTest {
     c1.addConfig(config1);
     c1.addConfig(config2);
 
-    c1.addDesiredConfig("admin", config1);
+    c1.addDesiredConfig("admin", Collections.singleton(config1));
     List<ServiceConfigVersionResponse> serviceConfigVersions =
       c1.getServiceConfigVersions();
     Assert.assertNotNull(serviceConfigVersions);
     Assert.assertEquals(1, serviceConfigVersions.size());
-    Map<String, ServiceConfigVersionResponse> activeServiceConfigVersions =
+    Map<String, Collection<ServiceConfigVersionResponse>> activeServiceConfigVersions =
       c1.getActiveServiceConfigVersions();
     Assert.assertEquals(1, activeServiceConfigVersions.size());
     ServiceConfigVersionResponse mapredResponse =
-      activeServiceConfigVersions.get("MAPREDUCE");
+      activeServiceConfigVersions.get("MAPREDUCE").iterator().next();
 
     Assert.assertEquals("MAPREDUCE", mapredResponse.getServiceName());
     Assert.assertEquals("c1", mapredResponse.getClusterName());
     Assert.assertEquals("admin", mapredResponse.getUserName());
     Assert.assertEquals(Long.valueOf(1), mapredResponse.getVersion());
 
-    c1.addDesiredConfig("admin", config2);
+    c1.addDesiredConfig("admin", Collections.singleton(config2));
     serviceConfigVersions = c1.getServiceConfigVersions();
     Assert.assertNotNull(serviceConfigVersions);
     // created new ServiceConfigVersion
     Assert.assertEquals(2, serviceConfigVersions.size());
     // active version still 1
     Assert.assertEquals(1, activeServiceConfigVersions.size());
-    mapredResponse = activeServiceConfigVersions.get("MAPREDUCE");
+    mapredResponse = activeServiceConfigVersions.get("MAPREDUCE").iterator().next();
     Assert.assertEquals("MAPREDUCE", mapredResponse.getServiceName());
     Assert.assertEquals("c1", mapredResponse.getClusterName());
     Assert.assertEquals("admin", mapredResponse.getUserName());
 
     // Rollback , clonning version1 config, created new ServiceConfigVersion
-    c1.addDesiredConfig("admin", config1);
+    c1.addDesiredConfig("admin", Collections.singleton(config1));
     serviceConfigVersions = c1.getServiceConfigVersions();
     Assert.assertNotNull(serviceConfigVersions);
     // created new ServiceConfigVersion
     Assert.assertEquals(3, serviceConfigVersions.size());
     // active version still 1
     Assert.assertEquals(1, activeServiceConfigVersions.size());
-    mapredResponse = activeServiceConfigVersions.get("MAPREDUCE");
+    mapredResponse = activeServiceConfigVersions.get("MAPREDUCE").iterator().next();
     Assert.assertEquals("MAPREDUCE", mapredResponse.getServiceName());
     Assert.assertEquals("c1", mapredResponse.getClusterName());
     Assert.assertEquals("admin", mapredResponse.getUserName());
+  }
+
+  @Test
+  public void testSingleServiceVersionForMultipleConfigs() {
+    Config config1 = configFactory.createNew(c1, "hdfs-site",
+      new HashMap<String, String>() {{ put("a", "b"); }}, new HashMap<String, Map<String,String>>());
+    config1.setTag("version1");
+
+    Config config2 = configFactory.createNew(c1, "core-site",
+      new HashMap<String, String>() {{ put("x", "y"); }}, new HashMap<String, Map<String,String>>());
+    config2.setTag("version2");
+
+    c1.addConfig(config1);
+    c1.addConfig(config2);
+
+    Set<Config> configs = new HashSet<Config>();
+    configs.add(config1);
+    configs.add(config2);
+
+    c1.addDesiredConfig("admin", configs);
+    List<ServiceConfigVersionResponse> serviceConfigVersions =
+      c1.getServiceConfigVersions();
+    Assert.assertNotNull(serviceConfigVersions);
+    // Single serviceConfigVersion for multiple configs
+    Assert.assertEquals(1, serviceConfigVersions.size());
+    Assert.assertEquals(Long.valueOf(1), serviceConfigVersions.get(0).getVersion());
+    Assert.assertEquals(2, c1.getDesiredConfigs().size());
+    Assert.assertEquals("version1", c1.getDesiredConfigByType("hdfs-site").getTag());
+    Assert.assertEquals("version2", c1.getDesiredConfigByType("core-site").getTag());
+
+    Map<String, Collection<ServiceConfigVersionResponse>> activeServiceConfigVersions =
+      c1.getActiveServiceConfigVersions();
+    Assert.assertEquals(1, activeServiceConfigVersions.size());
+
+
   }
 }

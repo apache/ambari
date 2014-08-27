@@ -74,7 +74,6 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.alert.Scope;
-import org.apache.ambari.server.view.configuration.InstanceConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -250,7 +249,16 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
 
     dbAccessor.addColumn("host_role_command", new DBColumnInfo("output_log",
         String.class, 255, null, true));
+
+    dbAccessor.addColumn("stage", new DBColumnInfo("command_params",
+      byte[].class, null, null, true));
+    dbAccessor.addColumn("stage", new DBColumnInfo("host_params",
+      byte[].class, null, null, true));
+
     dbAccessor.addColumn("host_role_command", new DBColumnInfo("error_log",
+        String.class, 255, null, true));
+
+    dbAccessor.addColumn("viewmain", new DBColumnInfo("description",
         String.class, 255, null, true));
 
     addAlertingFrameworkDDL();
@@ -435,7 +443,7 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
   private void renameSequenceValueColumnName() throws AmbariException, SQLException {
     final String dbType = getDbType();
     if (Configuration.MYSQL_DB_NAME.equals(dbType)) {
-      dbAccessor.executeQuery("ALTER TABLE ambari_sequences RENAME COLUMN \"value\" to sequence_value DECIMAL(38) NOT NULL");
+      dbAccessor.executeQuery("ALTER TABLE ambari_sequences RENAME COLUMN value to sequence_value DECIMAL(38) NOT NULL");
     } else if (Configuration.DERBY_DB_NAME.equals(dbType)) {
       dbAccessor.executeQuery("RENAME COLUMN ambari_sequences.\"value\" to sequence_value");
     } else if (Configuration.ORACLE_DB_NAME.equals(dbType)) {
@@ -664,6 +672,7 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
     columns.add(new DBColumnInfo("cluster_id", Long.class, null, null, false));
     columns.add(new DBColumnInfo("group_name", String.class, 255, null, false));
     columns.add(new DBColumnInfo("is_default", Short.class, 1, 1, false));
+    columns.add(new DBColumnInfo("service_name", String.class, 255, null, true));
     dbAccessor.createTable(ALERT_TABLE_GROUP, columns, "group_id");
 
     dbAccessor.executeQuery(
@@ -804,7 +813,8 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
 
     if (clusterMap != null && !clusterMap.isEmpty()) {
       for (final Cluster cluster : clusterMap.values()) {
-        Set<String> configTypes = configHelper.findConfigTypesByPropertyName(cluster.getCurrentStackVersion(), CONTENT_FIELD_NAME);
+        Set<String> configTypes = configHelper.findConfigTypesByPropertyName(cluster.getCurrentStackVersion(),
+                CONTENT_FIELD_NAME, cluster.getClusterName());
 
         for(String configType:configTypes) {
           if(!configType.endsWith(ENV_CONFIGS_POSTFIX)) {
@@ -845,7 +855,8 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
           String propertyName = property.getKey();
           String propertyValue = property.getValue();
 
-          Set<String> newConfigTypes = configHelper.findConfigTypesByPropertyName(cluster.getCurrentStackVersion(), propertyName);
+          Set<String> newConfigTypes = configHelper.findConfigTypesByPropertyName(cluster.getCurrentStackVersion(),
+                  propertyName, cluster.getClusterName());
           // if it's custom user service global.xml can be still there.
           newConfigTypes.remove(Configuration.GLOBAL_CONFIG_TAG);
 

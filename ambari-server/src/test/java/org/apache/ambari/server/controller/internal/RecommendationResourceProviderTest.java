@@ -16,15 +16,16 @@
  * limitations under the License.
  */
 
-var App = require('app');
+package org.apache.ambari.server.controller.internal;
 
-/**
- * Service Mixin that used for App.StackService and App.Service models.
- *
- **/
-App.ServiceModelMixin = Em.Mixin.create({
-  serviceName: DS.attr('string'),
-  displayName: function() {
-    return App.format.role(this.get('serviceName'));
-  }.property('serviceName')
-});
+import org.junit.Test;
+
+import static org.junit.Assert.*;
+
+public class RecommendationResourceProviderTest {
+
+  @Test
+  public void testCreateResources() throws Exception {
+
+  }
+}

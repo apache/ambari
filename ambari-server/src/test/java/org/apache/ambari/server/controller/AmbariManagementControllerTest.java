@@ -2275,7 +2275,7 @@ public class AmbariManagementControllerTest {
     cr1 = new ConfigurationRequest(clusterName, "hdfs-site", "version1",
         configs, null);
     ClusterRequest crReq = new ClusterRequest(null, clusterName, null, null);
-    crReq.setDesiredConfig(cr1);
+    crReq.setDesiredConfig(Collections.singletonList(cr1));
     controller.updateClusters(Collections.singleton(crReq), null);
 
     // Start
@@ -3131,12 +3131,15 @@ public class AmbariManagementControllerTest {
     Assert.assertNull(stage1.getExecutionCommandWrapper(host2, "DATANODE"));
     Assert.assertNotNull(stage3.getExecutionCommandWrapper(host1, "HBASE_SERVICE_CHECK"));
     Assert.assertNotNull(stage2.getExecutionCommandWrapper(host2, "HDFS_SERVICE_CHECK"));
+ 
+    Type type = new TypeToken<Map<String, String>>() {}.getType();
+
 
     for (Stage s : stages) {
       for (List<ExecutionCommandWrapper> list : s.getExecutionCommands().values()) {
         for (ExecutionCommandWrapper ecw : list) {
           if (ecw.getExecutionCommand().getRole().contains("SERVICE_CHECK")) {
-            Map<String, String> hostParams = ecw.getExecutionCommand().getHostLevelParams();
+            Map<String, String> hostParams = StageUtils.getGson().fromJson(s.getHostParamsStage(), type);
             Assert.assertNotNull(hostParams);
             Assert.assertTrue(hostParams.size() > 0);
             Assert.assertTrue(hostParams.containsKey("stack_version"));
@@ -3937,12 +3940,14 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals("a1", task.getRole().name());
     Assert.assertEquals("h1", task.getHostName());
     ExecutionCommand cmd = task.getExecutionCommandWrapper().getExecutionCommand();
-    Map<String, String> commandParameters = cmd.getCommandParams();
+    Type type = new TypeToken<Map<String, String>>(){}.getType();
+    Map<String, String> hostParametersStage = StageUtils.getGson().fromJson(stage.getHostParamsStage(), type);
+    Map<String, String> commandParametersStage = StageUtils.getGson().fromJson(stage.getCommandParamsStage(), type);
 
-    Assert.assertTrue(commandParameters.containsKey("test"));
+    Assert.assertTrue(commandParametersStage.containsKey("test"));
     Assert.assertEquals("HDFS", cmd.getServiceName());
     Assert.assertEquals("DATANODE", cmd.getComponentName());
-    Assert.assertNotNull(commandParameters.get("jdk_location"));
+    Assert.assertNotNull(hostParametersStage.get("jdk_location"));
 
     resourceFilters.clear();
     resourceFilter = new RequestResourceFilter("", "", null);
@@ -3966,9 +3971,9 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals(expectedHosts, actualHosts);
 
     cmd = task.getExecutionCommandWrapper().getExecutionCommand();
-    commandParameters = cmd.getCommandParams();
+    commandParametersStage = StageUtils.getGson().fromJson(stage.getCommandParamsStage(), type);
 
-    Assert.assertTrue(commandParameters.containsKey("test"));
+    Assert.assertTrue(commandParametersStage.containsKey("test"));
     Assert.assertEquals("HDFS", cmd.getServiceName());
     Assert.assertEquals("DATANODE", cmd.getComponentName());
 
@@ -4064,24 +4069,24 @@ public class AmbariManagementControllerTest {
     Assert.assertNotNull(stages);
 
     HostRoleCommand hrc = null;
+    Type type = new TypeToken<Map<String, String>>(){}.getType();
     for (Stage stage : stages) {
       for (HostRoleCommand cmd : stage.getOrderedHostRoleCommands()) {
         if (cmd.getRole().equals(Role.HDFS_CLIENT)) {
           hrc = cmd;
         }
+        Map<String, String> hostParamStage = StageUtils.getGson().fromJson(stage.getHostParamsStage(), type);
+        Assert.assertTrue(hostParamStage.containsKey(ExecutionCommand.KeyNames.DB_DRIVER_FILENAME));
+        Assert.assertTrue(hostParamStage.containsKey(ExecutionCommand.KeyNames.MYSQL_JDBC_URL));
+        Assert.assertTrue(hostParamStage.containsKey(ExecutionCommand.KeyNames.ORACLE_JDBC_URL));
       }
     }
     Assert.assertNotNull(hrc);
     Assert.assertEquals("RESTART HDFS/HDFS_CLIENT", hrc.getCommandDetail());
     Map<String, String> roleParams = hrc.getExecutionCommandWrapper()
       .getExecutionCommand().getRoleParams();
-    Map<String, String> hostParams = hrc.getExecutionCommandWrapper()
-        .getExecutionCommand().getHostLevelParams();
 
     Assert.assertNotNull(roleParams);
-    Assert.assertTrue(hostParams.containsKey(ExecutionCommand.KeyNames.DB_DRIVER_FILENAME));
-    Assert.assertTrue(hostParams.containsKey(ExecutionCommand.KeyNames.MYSQL_JDBC_URL));
-    Assert.assertTrue(hostParams.containsKey(ExecutionCommand.KeyNames.ORACLE_JDBC_URL));
     Assert.assertEquals("CLIENT", roleParams.get(ExecutionCommand.KeyNames.COMPONENT_CATEGORY));
     Assert.assertTrue(hrc.getExecutionCommandWrapper().getExecutionCommand().getCommandParams().containsKey("hdfs_client"));
     Assert.assertEquals("abc", hrc.getExecutionCommandWrapper().getExecutionCommand().getCommandParams().get("hdfs_client"));
@@ -4216,8 +4221,8 @@ public class AmbariManagementControllerTest {
 
     cluster.addConfig(config1);
     cluster.addConfig(config2);
-    cluster.addDesiredConfig("_test", config1);
-    cluster.addDesiredConfig("_test", config2);
+    cluster.addDesiredConfig("_test", Collections.singleton(config1));
+    cluster.addDesiredConfig("_test", Collections.singleton(config2));
 
     Service hdfs = cluster.addService("HDFS");
     hdfs.persist();
@@ -4478,8 +4483,8 @@ public class AmbariManagementControllerTest {
 
     cluster.addConfig(config1);
     cluster.addConfig(config2);
-    cluster.addDesiredConfig("_test", config1);
-    cluster.addDesiredConfig("_test", config2);
+    cluster.addDesiredConfig("_test", Collections.singleton(config1));
+    cluster.addDesiredConfig("_test", Collections.singleton(config2));
 
     Service hdfs = cluster.addService("HDFS");
     Service mapReduce = cluster.addService("MAPREDUCE");
@@ -4664,8 +4669,8 @@ public class AmbariManagementControllerTest {
 
 
     ClusterRequest cr = new ClusterRequest(null, clusterName, null, null);
-    cr.setDesiredConfig(new ConfigurationRequest(clusterName, "global",
-        "v1", configs, null));
+    cr.setDesiredConfig(Collections.singletonList(new ConfigurationRequest(clusterName, "global",
+        "v1", configs, null)));
     controller.updateClusters(Collections.singleton(cr), Collections.<String, String>emptyMap());
 
     Set<ServiceRequest> sReqs = new HashSet<ServiceRequest>();
@@ -5266,10 +5271,10 @@ public class AmbariManagementControllerTest {
       configs, null);
 
     ClusterRequest crReq = new ClusterRequest(null, clusterName, null, null);
-    crReq.setDesiredConfig(cr1);
+    crReq.setDesiredConfig(Collections.singletonList(cr1));
     controller.updateClusters(Collections.singleton(crReq), null);
     crReq = new ClusterRequest(null, clusterName, null, null);
-    crReq.setDesiredConfig(cr2);
+    crReq.setDesiredConfig(Collections.singletonList(cr2));
     controller.updateClusters(Collections.singleton(crReq), null);
 
     // Install
@@ -5292,7 +5297,7 @@ public class AmbariManagementControllerTest {
     cr3 = new ConfigurationRequest(clusterName, "core-site","version122",
       configs, null);
     crReq = new ClusterRequest(null, clusterName, null, null);
-    crReq.setDesiredConfig(cr3);
+    crReq.setDesiredConfig(Collections.singletonList(cr3));
     controller.updateClusters(Collections.singleton(crReq), null);
 
     // Stop HDFS & MAPREDUCE
@@ -5423,10 +5428,10 @@ public class AmbariManagementControllerTest {
       configs, null);
 
     ClusterRequest crReq = new ClusterRequest(null, clusterName, null, null);
-    crReq.setDesiredConfig(cr1);
+    crReq.setDesiredConfig(Collections.singletonList(cr1));
     controller.updateClusters(Collections.singleton(crReq), null);
     crReq = new ClusterRequest(null, clusterName, null, null);
-    crReq.setDesiredConfig(cr2);
+    crReq.setDesiredConfig(Collections.singletonList(cr2));
     controller.updateClusters(Collections.singleton(crReq), null);
 
     installService(clusterName, serviceName, false, false);
@@ -5449,7 +5454,7 @@ public class AmbariManagementControllerTest {
     cr3 = new ConfigurationRequest(clusterName, "core-site","version122",
       configs, null);
     crReq = new ClusterRequest(null, clusterName, null, null);
-    crReq.setDesiredConfig(cr3);
+    crReq.setDesiredConfig(Collections.singletonList(cr3));
     controller.updateClusters(Collections.singleton(crReq), null);
 
     long id = startService(clusterName, serviceName, false, true);
@@ -6025,7 +6030,7 @@ public class AmbariManagementControllerTest {
     cr1 = new ConfigurationRequest(clusterName, "hive-site","version1",
       configs, null);
     ClusterRequest crReq = new ClusterRequest(null, clusterName, null, null);
-    crReq.setDesiredConfig(cr1);
+    crReq.setDesiredConfig(Collections.singletonList(cr1));
     controller.updateClusters(Collections.singleton(crReq), null);
 
     // Install
@@ -6103,7 +6108,7 @@ public class AmbariManagementControllerTest {
     cr1 = new ConfigurationRequest(clusterName, "hdfs-site","version1",
       configs, null);
     ClusterRequest crReq = new ClusterRequest(null, clusterName, null, null);
-    crReq.setDesiredConfig(cr1);
+    crReq.setDesiredConfig(Collections.singletonList(cr1));
     controller.updateClusters(Collections.singleton(crReq), null);
 
     // Start
@@ -6324,7 +6329,11 @@ public class AmbariManagementControllerTest {
     Assert.assertNotNull(nnCommand);
     ExecutionCommand cmd = nnCommand.getExecutionCommandWrapper().getExecutionCommand();
     Assert.assertEquals("a1", cmd.getRole());
-    Assert.assertTrue(cmd.getCommandParams().containsKey("test"));
+    Type type = new TypeToken<Map<String, String>>(){}.getType();
+    for (Stage stage : actionDB.getAllStages(response.getRequestId())){
+      Map<String, String> commandParamsStage = StageUtils.getGson().fromJson(stage.getCommandParamsStage(), type);
+      Assert.assertTrue(commandParamsStage.containsKey("test"));
+    }
   }
 
   @Test
@@ -6403,8 +6412,6 @@ public class AmbariManagementControllerTest {
     int expectedRestartCount = 0;
     for (HostRoleCommand hrc : storedTasks) {
       Assert.assertEquals("RESTART", hrc.getCustomCommandName());
-      Assert.assertNotNull(hrc.getExecutionCommandWrapper()
-          .getExecutionCommand().getCommandParams().get("jdk_location"));
 
       if (hrc.getHostName().equals("h1") && hrc.getRole().equals(Role.DATANODE)) {
         expectedRestartCount++;
@@ -6487,10 +6494,10 @@ public class AmbariManagementControllerTest {
       configs, null);
 
     ClusterRequest crReq = new ClusterRequest(null, clusterName, null, null);
-    crReq.setDesiredConfig(cr1);
+    crReq.setDesiredConfig(Collections.singletonList(cr1));
     controller.updateClusters(Collections.singleton(crReq), null);
     crReq = new ClusterRequest(null, clusterName, null, null);
-    crReq.setDesiredConfig(cr2);
+    crReq.setDesiredConfig(Collections.singletonList(cr2));
     controller.updateClusters(Collections.singleton(crReq), null);
 
     // Install
@@ -6509,6 +6516,13 @@ public class AmbariManagementControllerTest {
         }
       }
     }
+ 
+    Type type = new TypeToken<Map<String, String>>(){}.getType();
+    for (Stage stage : actionDB.getAllStages(requestId)){
+      Map<String, String> hostParamsStage = StageUtils.getGson().fromJson(stage.getHostParamsStage(), type);
+      Assert.assertNotNull(hostParamsStage.get("jdk_location"));
+    }
+
     Assert.assertEquals(true, serviceCheckFound);
   }
 
@@ -6633,15 +6647,21 @@ public class AmbariManagementControllerTest {
         .getDesiredState());
 
     List<Stage> stages = actionDB.getAllStages(trackAction.getRequestId());
-    Map<String, String> params = stages.get(0).getOrderedHostRoleCommands().get
+    Type type = new TypeToken<Map<String, String>>(){}.getType();
+
+    for (Stage stage : stages){
+      Map<String, String> params = StageUtils.getGson().fromJson(stage.getHostParamsStage(), type);
+      Assert.assertEquals("0.1", params.get("stack_version"));
+      Assert.assertNotNull(params.get("jdk_location"));
+      Assert.assertNotNull(params.get("db_name"));
+      Assert.assertNotNull(params.get("mysql_jdbc_url"));
+      Assert.assertNotNull(params.get("oracle_jdbc_url"));
+    }
+
+    Map<String, String> paramsCmd = stages.get(0).getOrderedHostRoleCommands().get
       (0).getExecutionCommandWrapper().getExecutionCommand()
       .getHostLevelParams();
-    Assert.assertEquals("0.1", params.get("stack_version"));
-    Assert.assertNotNull(params.get("jdk_location"));
-    Assert.assertNotNull(params.get("repo_info"));
-    Assert.assertNotNull(params.get("db_name"));
-    Assert.assertNotNull(params.get("mysql_jdbc_url"));
-    Assert.assertNotNull(params.get("oracle_jdbc_url"));
+    Assert.assertNotNull(paramsCmd.get("repo_info"));
   }
 
   @Test
@@ -6699,13 +6719,13 @@ public class AmbariManagementControllerTest {
       configs, null);
 
     ClusterRequest crReq = new ClusterRequest(null, clusterName, null, null);
-    crReq.setDesiredConfig(cr1);
+    crReq.setDesiredConfig(Collections.singletonList(cr1));
     controller.updateClusters(Collections.singleton(crReq), null);
     crReq = new ClusterRequest(null, clusterName, null, null);
-    crReq.setDesiredConfig(cr2);
+    crReq.setDesiredConfig(Collections.singletonList(cr2));
     controller.updateClusters(Collections.singleton(crReq), null);
     crReq = new ClusterRequest(null, clusterName, null, null);
-    crReq.setDesiredConfig(cr3);
+    crReq.setDesiredConfig(Collections.singletonList(cr3));
     controller.updateClusters(Collections.singleton(crReq), null);
 
     // Create Config group for core-site
@@ -6857,7 +6877,7 @@ public class AmbariManagementControllerTest {
     cr1 = new ConfigurationRequest(clusterName, "hdfs-site", "version1",
         configs, null);
     ClusterRequest crReq = new ClusterRequest(null, clusterName, null, null);
-    crReq.setDesiredConfig(cr1);
+    crReq.setDesiredConfig(Collections.singletonList(cr1));
     controller.updateClusters(Collections.singleton(crReq), null);
 
     // Start
@@ -6960,10 +6980,10 @@ public class AmbariManagementControllerTest {
       configs, null);
 
     ClusterRequest crReq = new ClusterRequest(null, clusterName, null, null);
-    crReq.setDesiredConfig(cr1);
+    crReq.setDesiredConfig(Collections.singletonList(cr1));
     controller.updateClusters(Collections.singleton(crReq), null);
     crReq = new ClusterRequest(null, clusterName, null, null);
-    crReq.setDesiredConfig(cr2);
+    crReq.setDesiredConfig(Collections.singletonList(cr2));
     controller.updateClusters(Collections.singleton(crReq), null);
 
     // Install
@@ -7877,7 +7897,8 @@ public class AmbariManagementControllerTest {
 
 
     List<Stage> stages = new ArrayList<Stage>();
-    stages.add(new Stage(requestId1, "/a1", clusterName, 1L, context, CLUSTER_HOST_INFO));
+    stages.add(new Stage(requestId1, "/a1", clusterName, 1L, context,
+      CLUSTER_HOST_INFO, "", ""));
     stages.get(0).setStageId(1);
     stages.get(0).addHostRoleExecutionCommand(hostName1, Role.HBASE_MASTER,
             RoleCommand.START,
@@ -7885,14 +7906,16 @@ public class AmbariManagementControllerTest {
                     hostName1, System.currentTimeMillis()),
             clusterName, "HBASE");
 
-    stages.add(new Stage(requestId1, "/a2", clusterName, 1L, context, CLUSTER_HOST_INFO));
+    stages.add(new Stage(requestId1, "/a2", clusterName, 1L, context,
+      CLUSTER_HOST_INFO, "", ""));
     stages.get(1).setStageId(2);
     stages.get(1).addHostRoleExecutionCommand(hostName1, Role.HBASE_CLIENT,
             RoleCommand.START,
             new ServiceComponentHostStartEvent(Role.HBASE_CLIENT.toString(),
                     hostName1, System.currentTimeMillis()), clusterName, "HBASE");
 
-    stages.add(new Stage(requestId1, "/a3", clusterName, 1L, context, CLUSTER_HOST_INFO));
+    stages.add(new Stage(requestId1, "/a3", clusterName, 1L, context,
+      CLUSTER_HOST_INFO, "", ""));
     stages.get(2).setStageId(3);
     stages.get(2).addHostRoleExecutionCommand(hostName1, Role.HBASE_CLIENT,
             RoleCommand.START,
@@ -7903,14 +7926,16 @@ public class AmbariManagementControllerTest {
     actionDB.persistActions(request);
 
     stages.clear();
-    stages.add(new Stage(requestId2, "/a4", clusterName, 1L, context, CLUSTER_HOST_INFO));
+    stages.add(new Stage(requestId2, "/a4", clusterName, 1L, context,
+      CLUSTER_HOST_INFO, "", ""));
     stages.get(0).setStageId(4);
     stages.get(0).addHostRoleExecutionCommand(hostName1, Role.HBASE_CLIENT,
             RoleCommand.START,
             new ServiceComponentHostStartEvent(Role.HBASE_CLIENT.toString(),
                     hostName1, System.currentTimeMillis()), clusterName, "HBASE");
 
-    stages.add(new Stage(requestId2, "/a5", clusterName, 1L, context, CLUSTER_HOST_INFO));
+    stages.add(new Stage(requestId2, "/a5", clusterName, 1L, context,
+      CLUSTER_HOST_INFO, "", ""));
     stages.get(1).setStageId(5);
     stages.get(1).addHostRoleExecutionCommand(hostName1, Role.HBASE_CLIENT,
             RoleCommand.START,
@@ -8809,7 +8834,7 @@ public class AmbariManagementControllerTest {
 
       ConfigurationRequest configRequest = new ConfigurationRequest(CLUSTER_NAME, "global", "version1",
           new HashMap<String, String>() {{ put("a", "b"); }}, null);
-      cr.setDesiredConfig(configRequest);
+      cr.setDesiredConfig(Collections.singletonList(configRequest));
       amc.updateClusters(Collections.singleton(cr), new HashMap<String, String>());
 
       // add some hosts
@@ -8914,6 +8939,7 @@ public class AmbariManagementControllerTest {
 
       Set<ServiceRequest> serviceRequests = new HashSet<ServiceRequest>();
       serviceRequests.add(new ServiceRequest("c1", "HDFS", null));
+      serviceRequests.add(new ServiceRequest("c1", "HIVE", null));
 
       ServiceResourceProviderTest.createServices(amc, serviceRequests);
 
@@ -9122,9 +9148,10 @@ public class AmbariManagementControllerTest {
       ServiceResourceProviderTest.updateServices(amc, serviceRequests, mapRequestProps, true, false);
       serviceRequests.clear();
       serviceRequests.add(new ServiceRequest("c1", null, null));
-      org.junit.Assert.assertEquals(1, ServiceResourceProviderTest.getServices(amc, serviceRequests).size());
+      org.junit.Assert.assertEquals(2, ServiceResourceProviderTest.getServices(amc, serviceRequests).size());
       serviceRequests.clear();
       serviceRequests.add(new ServiceRequest("c1", "HDFS", null));
+      serviceRequests.add(new ServiceRequest("c1", "HIVE", null));
       ServiceResourceProviderTest.deleteServices(amc, serviceRequests);
       serviceRequests.clear();
       serviceRequests.add(new ServiceRequest("c1", null, null));
@@ -10045,22 +10072,22 @@ public class AmbariManagementControllerTest {
     ClusterRequest cr = new ClusterRequest(null, cluster.getClusterName(), null, null);
 
     // test null map with no prior
-    cr.setDesiredConfig(
-        new ConfigurationRequest(clusterName, "typeA", "v1", null, null));
+    cr.setDesiredConfig(Collections.singletonList(
+        new ConfigurationRequest(clusterName, "typeA", "v1", null, null)));
     controller.updateClusters(Collections.singleton(cr), new HashMap<String, String>());
     Config config = cluster.getDesiredConfigByType("typeA");
     Assert.assertNull(config);
 
     // test empty map with no prior
-    cr.setDesiredConfig(
-        new ConfigurationRequest(clusterName, "typeA", "v1", new HashMap<String, String>(), new HashMap<String, Map<String,String>>()));
+    cr.setDesiredConfig(Collections.singletonList(
+        new ConfigurationRequest(clusterName, "typeA", "v1", new HashMap<String, String>(), new HashMap<String, Map<String,String>>())));
     controller.updateClusters(Collections.singleton(cr), new HashMap<String, String>());
     config = cluster.getDesiredConfigByType("typeA");
     Assert.assertNotNull(config);
 
     // test empty properties on a new version
-    cr.setDesiredConfig(
-        new ConfigurationRequest(clusterName, "typeA", "v2", new HashMap<String, String>(), new HashMap<String, Map<String,String>>()));
+    cr.setDesiredConfig(Collections.singletonList(
+        new ConfigurationRequest(clusterName, "typeA", "v2", new HashMap<String, String>(), new HashMap<String, Map<String,String>>())));
     controller.updateClusters(Collections.singleton(cr), new HashMap<String, String>());
     config = cluster.getDesiredConfigByType("typeA");
     Assert.assertNotNull(config);
@@ -10073,16 +10100,16 @@ public class AmbariManagementControllerTest {
     Map<String, Map<String, String>> attributesMap = new HashMap<String, Map<String,String>>();
     attributesMap.put("final", new HashMap<String, String>());
     attributesMap.get("final").put("c", "true");
-    cr.setDesiredConfig(
-        new ConfigurationRequest(clusterName, "typeA", "v3", map, attributesMap));
+    cr.setDesiredConfig(Collections.singletonList(
+        new ConfigurationRequest(clusterName, "typeA", "v3", map, attributesMap)));
     controller.updateClusters(Collections.singleton(cr), new HashMap<String, String>());
     config = cluster.getDesiredConfigByType("typeA");
     Assert.assertNotNull(config);
     Assert.assertTrue(config.getProperties().containsKey("c"));
 
     // test reset to v2
-    cr.setDesiredConfig(
-        new ConfigurationRequest(clusterName, "typeA", "v2", new HashMap<String, String>(), new HashMap<String, Map<String,String>>()));
+    cr.setDesiredConfig(Collections.singletonList(
+        new ConfigurationRequest(clusterName, "typeA", "v2", new HashMap<String, String>(), new HashMap<String, Map<String,String>>())));
     controller.updateClusters(Collections.singleton(cr), new HashMap<String, String>());
     config = cluster.getDesiredConfigByType("typeA");
     Assert.assertEquals("v2", config.getTag());
@@ -10090,11 +10117,11 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals(Integer.valueOf(0), Integer.valueOf(config.getProperties().size()));
 
     // test v2, but with properties
-    cr.setDesiredConfig(
+    cr.setDesiredConfig(Collections.singletonList(
         new ConfigurationRequest(clusterName, "typeA", "v2", new HashMap<String, String>() {{ put("a", "b"); }},
             new HashMap<String, Map<String,String>>(){{put("final", new HashMap<String, String>(){{put("a", "true");}});
           }
-        }));
+        })));
     try {
       controller.updateClusters(Collections.singleton(cr), new HashMap<String, String>());
       Assert.fail("Expect failure when creating a config that exists");
@@ -10145,7 +10172,9 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals(hostname1, task.getHostName());
 
     ExecutionCommand cmd = task.getExecutionCommandWrapper().getExecutionCommand();
-    Assert.assertTrue(cmd.getCommandParams().containsKey("some_custom_param"));
+    Type type = new TypeToken<Map<String, String>>(){}.getType();
+    Map<String, String> commandParamsStage = StageUtils.getGson().fromJson(stage.getCommandParamsStage(), type);
+    Assert.assertTrue(commandParamsStage.containsKey("some_custom_param"));
     Assert.assertEquals(null, cmd.getServiceName());
     Assert.assertEquals(null, cmd.getComponentName());
 
@@ -10184,7 +10213,8 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals(hostname1, task.getHostName());
 
     cmd = task.getExecutionCommandWrapper().getExecutionCommand();
-    Assert.assertTrue(cmd.getCommandParams().containsKey("some_custom_param"));
+    commandParamsStage = StageUtils.getGson().fromJson(stage.getCommandParamsStage(), type);
+    Assert.assertTrue(commandParamsStage.containsKey("some_custom_param"));
     Assert.assertEquals(null, cmd.getServiceName());
     Assert.assertEquals(null, cmd.getComponentName());
   }
@@ -10232,7 +10262,7 @@ public class AmbariManagementControllerTest {
 
     ConfigurationRequest cr1 = new ConfigurationRequest(clusterName, "hdfs-site", "version1", hdfsConfigs, hdfsConfigAttributes);
     ClusterRequest crReq1 = new ClusterRequest(null, clusterName, null, null);
-    crReq1.setDesiredConfig(cr1);
+    crReq1.setDesiredConfig(Collections.singletonList(cr1));
 
     controller.updateClusters(Collections.singleton(crReq1), null);
 
@@ -10315,7 +10345,7 @@ public class AmbariManagementControllerTest {
 
     ConfigurationRequest cr1 = new ConfigurationRequest(clusterName, "hdfs-site", "version1", hdfsConfigs, hdfsConfigAttributes);
     ClusterRequest crReq1 = new ClusterRequest(null, clusterName, null, null);
-    crReq1.setDesiredConfig(cr1);
+    crReq1.setDesiredConfig(Collections.singletonList(cr1));
 
     controller.updateClusters(Collections.singleton(crReq1), null);
 

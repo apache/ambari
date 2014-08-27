@@ -67,7 +67,7 @@ public class TestStagePlanner {
 
     RoleGraph rg = new RoleGraph(rco);
     String hostname = "dummy";
-    Stage stage = StageUtils.getATestStage(1, 1, hostname);
+    Stage stage = StageUtils.getATestStage(1, 1, hostname, "", "");
     rg.build(stage);
     List<Stage> outStages = rg.getStages();
     for (Stage s: outStages) {
@@ -86,7 +86,7 @@ public class TestStagePlanner {
     rco.initialize(cluster);
     RoleGraph rg = new RoleGraph(rco);
     long now = System.currentTimeMillis();
-    Stage stage = StageUtils.getATestStage(1, 1, "host1");
+    Stage stage = StageUtils.getATestStage(1, 1, "host1", "", "");
     stage.addHostRoleExecutionCommand("host2", Role.HBASE_MASTER,
         RoleCommand.START, new ServiceComponentHostStartEvent("HBASE_MASTER",
             "host2", now), "cluster1", "HBASE");
@@ -112,7 +112,7 @@ public class TestStagePlanner {
     rco.initialize(cluster);
     RoleGraph rg = new RoleGraph(rco);
     long now = System.currentTimeMillis();
-    Stage stage = StageUtils.getATestStage(1, 1, "host1");
+    Stage stage = StageUtils.getATestStage(1, 1, "host1", "", "");
     stage.addHostRoleExecutionCommand("host11", Role.SECONDARY_NAMENODE,
         RoleCommand.START, new ServiceComponentHostStartEvent("SECONDARY_NAMENODE",
             "host11", now), "cluster1", "HDFS");

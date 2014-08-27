@@ -19,25 +19,15 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.StackServiceRequest;
 import org.apache.ambari.server.controller.StackServiceResponse;
-import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
-import org.apache.ambari.server.controller.spi.NoSuchResourceException;
-import org.apache.ambari.server.controller.spi.Predicate;
-import org.apache.ambari.server.controller.spi.Request;
-import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.*;
 import org.apache.ambari.server.controller.spi.Resource.Type;
-import org.apache.ambari.server.controller.spi.SystemException;
-import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+
+import java.util.*;
 
 public class StackServiceResourceProvider extends ReadOnlyResourceProvider {
 
@@ -49,6 +39,9 @@ public class StackServiceResourceProvider extends ReadOnlyResourceProvider {
 
   public static final String STACK_VERSION_PROPERTY_ID = PropertyHelper.getPropertyId(
       "StackServices", "stack_version");
+
+  private static final String SERVICE_DISPLAY_NAME_PROPERTY_ID = PropertyHelper.getPropertyId(
+      "StackServices", "display_name");
 
   private static final String USER_NAME_PROPERTY_ID = PropertyHelper.getPropertyId(
       "StackServices", "user_name");
@@ -118,6 +111,9 @@ public class StackServiceResourceProvider extends ReadOnlyResourceProvider {
 
       setResourceProperty(resource, SERVICE_NAME_PROPERTY_ID,
           response.getServiceName(), requestedIds);
+
+      setResourceProperty(resource, SERVICE_DISPLAY_NAME_PROPERTY_ID,
+              response.getServiceDisplayName(), requestedIds);
 
       setResourceProperty(resource, USER_NAME_PROPERTY_ID,
           response.getUserName(), requestedIds);

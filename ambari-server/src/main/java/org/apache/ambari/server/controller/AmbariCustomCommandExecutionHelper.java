@@ -22,7 +22,6 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMMAND_T
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMPONENT_CATEGORY;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.CUSTOM_COMMAND;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOOKS_FOLDER;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JDK_LOCATION;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.REPO_INFO;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT_TYPE;
@@ -204,7 +203,7 @@ public class AmbariCustomCommandExecutionHelper {
 
   private void addCustomCommandAction(final ActionExecutionContext actionExecutionContext,
                                       final RequestResourceFilter resourceFilter,
-                                      Stage stage, Map<String, String> hostLevelParams,
+                                      Stage stage,
                                       Map<String, String> additionalCommandParams,
                                       String commandDetail)
                                       throws AmbariException {
@@ -290,6 +289,8 @@ public class AmbariCustomCommandExecutionHelper {
       if(actionExecutionContext.getParameters() != null && actionExecutionContext.getParameters().containsKey(KeyNames.REFRESH_ADITIONAL_COMPONENT_TAGS)){
         execCmd.setForceRefreshConfigTags(parseAndValidateComponentsMapping(actionExecutionContext.getParameters().get(KeyNames.REFRESH_ADITIONAL_COMPONENT_TAGS)));
       }
+ 
+      Map<String, String> hostLevelParams = new TreeMap<String, String>();
 
       hostLevelParams.put(CUSTOM_COMMAND, commandName);
       // Set parameters required for re-installing clients on restart
@@ -330,7 +331,6 @@ public class AmbariCustomCommandExecutionHelper {
       }
 
       commandParams.put(COMMAND_TIMEOUT, commandTimeout);
-      commandParams.put(JDK_LOCATION, managementController.getJdkResourceUrl());
 
       commandParams.put(SERVICE_PACKAGE_FOLDER,
           serviceInfo.getServicePackageFolder());
@@ -357,7 +357,7 @@ public class AmbariCustomCommandExecutionHelper {
 
   /**
    * splits the passed commaseparated value and returns it as set
-   * @param comma separated list
+   * @param commaSeparatedTags separated list
    * @return set of items or null
    * @throws AmbariException
    */
@@ -372,7 +372,7 @@ public class AmbariCustomCommandExecutionHelper {
   private void findHostAndAddServiceCheckAction(
           final ActionExecutionContext actionExecutionContext,
           final RequestResourceFilter resourceFilter,
-          Stage stage, Map<String, String> hostLevelParams)
+          Stage stage)
           throws AmbariException {
 
     String clusterName = actionExecutionContext.getClusterName();
@@ -438,8 +438,7 @@ public class AmbariCustomCommandExecutionHelper {
     }
 
     addServiceCheckAction(stage, hostName, smokeTestRole, nowTimestamp,
-        serviceName, componentName, actionParameters,
-        hostLevelParams);
+        serviceName, componentName, actionParameters);
   }
 
   /**
@@ -452,8 +451,7 @@ public class AmbariCustomCommandExecutionHelper {
                                     long nowTimestamp,
                                     String serviceName,
                                     String componentName,
-                                    Map<String, String> actionParameters,
-                                    Map<String, String> hostLevelParams)
+                                    Map<String, String> actionParameters)
                                     throws AmbariException {
 
     String clusterName = stage.getClusterName();
@@ -496,11 +494,6 @@ public class AmbariCustomCommandExecutionHelper {
     execCmd.setClusterHostInfo(
         StageUtils.getClusterHostInfo(clusters.getHostsForCluster(clusterName), cluster));
 
-    if (hostLevelParams == null) {
-      hostLevelParams = new TreeMap<String, String>();
-    }
-    execCmd.setHostLevelParams(hostLevelParams);
-
     Map<String, String> commandParams = new TreeMap<String, String>();
 
     String commandTimeout = configs.getDefaultAgentTaskTimeout();
@@ -525,7 +518,6 @@ public class AmbariCustomCommandExecutionHelper {
     }
 
     commandParams.put(COMMAND_TIMEOUT, commandTimeout);
-    commandParams.put(JDK_LOCATION, managementController.getJdkResourceUrl());
 
     commandParams.put(SERVICE_PACKAGE_FOLDER,
         serviceInfo.getServicePackageFolder());
@@ -557,7 +549,7 @@ public class AmbariCustomCommandExecutionHelper {
    */
   private void addDecommissionAction(final ActionExecutionContext actionExecutionContext,
                                      final RequestResourceFilter resourceFilter,
-                                     Stage stage, Map<String, String> hostLevelParams)
+                                     Stage stage)
                                      throws AmbariException {
 
     String clusterName = actionExecutionContext.getClusterName();
@@ -741,7 +733,7 @@ public class AmbariCustomCommandExecutionHelper {
       if (!serviceName.equals(Service.Type.HBASE.name()) || hostName.equals(primaryCandidate)) {
         commandParams.put(UPDATE_EXCLUDE_FILE_ONLY, "false");
         addCustomCommandAction(commandContext, commandFilter, stage,
-          hostLevelParams, commandParams, commandDetail.toString());
+          commandParams, commandDetail.toString());
       }
     }
   }
@@ -800,12 +792,10 @@ public class AmbariCustomCommandExecutionHelper {
    * Other than Service_Check and Decommission all other commands are pass-through
    * @param actionExecutionContext received request to execute a command
    * @param stage the initial stage for task creation
-   * @param hostLevelParams specific parameters for the hosts
    * @throws AmbariException
    */
   public void addExecutionCommandsToStage(ActionExecutionContext actionExecutionContext,
                                           Stage stage,
-                                          Map<String, String> hostLevelParams,
                                           Map<String, String> requestParams)
                                           throws AmbariException {
 
@@ -819,9 +809,9 @@ public class AmbariCustomCommandExecutionHelper {
 
       if (actionExecutionContext.getActionName().contains(SERVICE_CHECK_COMMAND_NAME)) {
         findHostAndAddServiceCheckAction(actionExecutionContext,
-          resourceFilter, stage, hostLevelParams);
+          resourceFilter, stage);
       } else if (actionExecutionContext.getActionName().equals(DECOMMISSION_COMMAND_NAME)) {
-        addDecommissionAction(actionExecutionContext, resourceFilter, stage, hostLevelParams);
+        addDecommissionAction(actionExecutionContext, resourceFilter, stage);
       } else if (isValidCustomCommand(actionExecutionContext, resourceFilter)) {
         String commandDetail = getReadableCustomCommandDetail(actionExecutionContext, resourceFilter);
 
@@ -838,7 +828,7 @@ public class AmbariCustomCommandExecutionHelper {
           actionExecutionContext.getParameters().put(KeyNames.REFRESH_ADITIONAL_COMPONENT_TAGS, requestParams.get(KeyNames.REFRESH_ADITIONAL_COMPONENT_TAGS));
         }
         addCustomCommandAction(actionExecutionContext, resourceFilter, stage,
-          hostLevelParams, extraParams, commandDetail);
+          extraParams, commandDetail);
       } else {
         throw new AmbariException("Unsupported action " +
           actionExecutionContext.getActionName());

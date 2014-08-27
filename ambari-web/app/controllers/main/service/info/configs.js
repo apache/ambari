@@ -79,8 +79,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   }.property('App.isHadoop2Stack'),
 
   showConfigHistoryFeature: function() {
-    return (App.supports.configHistory && this.get('selectedConfigGroup.isDefault'));
-  }.property('selectedConfigGroup.isDefault'),
+    return App.supports.configHistory;
+  }.property('App.supports.configHistory'),
   /**
    * Map, which contains relation between group and site
    * to upload overridden properties
@@ -1095,11 +1095,13 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
           App.showConfirmationPopup(function () {
             self.saveConfigs();
           }, Em.I18n.t('services.service.config.confirmDirectoryChange').format(displayName), function () {
-            self.set('isApplyingChanges', false)
+            self.set('isApplyingChanges', false);
           });
         } else {
           self.saveConfigs();
         }
+      }).fail(function() {
+        self.set('isApplyingChanges', false);
       });
     } else {
       status = 'started';

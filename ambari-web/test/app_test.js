@@ -81,58 +81,6 @@ describe('App', function () {
     });
   });
 
-  describe('#stack2VersionURL', function () {
-
-    var testCases = [
-      {
-        title: 'if currentStackVersion and defaultStackVersion are empty then stack2VersionURL should contain prefix',
-        currentStackVersion: '',
-        defaultStackVersion: '',
-        result: '/stacks2/HDP/versions/'
-      },
-      {
-        title: 'if currentStackVersion is "HDP-1.3.1" then stack2VersionURL should be "/stacks2/HDP/versions/1.3.1"',
-        currentStackVersion: 'HDP-1.3.1',
-        defaultStackVersion: '',
-        result: '/stacks2/HDP/versions/1.3.1'
-      },
-      {
-        title: 'if defaultStackVersion is "HDP-1.3.1" then stack2VersionURL should be "/stacks/HDP/versions/1.3.1"',
-        currentStackVersion: '',
-        defaultStackVersion: 'HDP-1.3.1',
-        result: '/stacks2/HDP/versions/1.3.1'
-      },
-      {
-        title: 'if defaultStackVersion and currentStackVersion are different then stack2VersionURL should have currentStackVersion value',
-        currentStackVersion: 'HDP-1.3.2',
-        defaultStackVersion: 'HDP-1.3.1',
-        result: '/stacks2/HDP/versions/1.3.2'
-      },
-      {
-        title: 'if defaultStackVersion is "HDPLocal-1.3.1" then stack2VersionURL should be "/stacks2/HDPLocal/versions/1.3.1"',
-        currentStackVersion: '',
-        defaultStackVersion: 'HDPLocal-1.3.1',
-        result: '/stacks2/HDPLocal/versions/1.3.1'
-      },
-      {
-        title: 'if currentStackVersion is "HDPLocal-1.3.1" then stack2VersionURL should be "/stacks2/HDPLocal/versions/1.3.1"',
-        currentStackVersion: 'HDPLocal-1.3.1',
-        defaultStackVersion: '',
-        result: '/stacks2/HDPLocal/versions/1.3.1'
-      }
-    ];
-
-    testCases.forEach(function (test) {
-      it(test.title, function () {
-        App.set('currentStackVersion', test.currentStackVersion);
-        App.set('defaultStackVersion', test.defaultStackVersion);
-        expect(App.get('stack2VersionURL')).to.equal(test.result);
-        App.set('currentStackVersion', "HDP-1.2.2");
-        App.set('defaultStackVersion', "HDP-1.2.2");
-      });
-    });
-  });
-
   describe('#falconServerURL', function () {
 
     var testCases = [
@@ -510,7 +458,7 @@ describe('App', function () {
     afterEach(function () {
       i++;
       App.StackServiceComponent.find.restore();
-    })
+    });
 
     testCases.forEach(function (test) {
       it(test.key + ' should contain ' + test.result, function () {

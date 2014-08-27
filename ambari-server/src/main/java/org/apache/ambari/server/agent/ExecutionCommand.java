@@ -83,7 +83,7 @@ public class ExecutionCommand extends AgentCommand {
   private Set<String> forceRefreshConfigTags = new HashSet<String>();
 
   @SerializedName("commandParams")
-  private Map<String, String> commandParams;
+  private Map<String, String> commandParams = new HashMap<String, String>();
 
   @SerializedName("serviceName")
   private String serviceName;

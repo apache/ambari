@@ -21,12 +21,14 @@
   <services>
     <service>
       <name>YARN</name>
+      <displayName>YARN</displayName>
       <comment>Apache Hadoop NextGen MapReduce (YARN)</comment>
       <version>2.1.0.2.0.6.0</version>
       <components>
 
         <component>
           <name>RESOURCEMANAGER</name>
+          <displayName>ResourceManager</displayName>
           <category>MASTER</category>
           <cardinality>1</cardinality>
           <commandScript>
@@ -59,6 +61,7 @@
 
         <component>
           <name>NODEMANAGER</name>
+          <displayName>NodeManager</displayName>
           <category>SLAVE</category>
           <cardinality>1+</cardinality>
           <commandScript>
@@ -69,6 +72,7 @@
         </component>
         <component>
           <name>YARN_CLIENT</name>
+          <displayName>Yarn Client</displayName>
           <category>CLIENT</category>
           <deleted>true</deleted>
           <cardinality>0+</cardinality>

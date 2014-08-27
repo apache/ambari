@@ -20,11 +20,13 @@
   <services>
     <service>
       <name>WEBHCAT</name>
-      <comment>This is comment for WEBHCAT service</comment>
+      <displayName>WebHCat</displayName>
+      <comment>Provides a REST-like web API for HCatalog and related Hadoop components.</comment>
       <version>0.12.0.2.0</version>
       <components>
         <component>
           <name>WEBHCAT_SERVER</name>
+          <displayName>WebHCat Server</displayName>
           <category>MASTER</category>
           <cardinality>1</cardinality>
           <dependencies>

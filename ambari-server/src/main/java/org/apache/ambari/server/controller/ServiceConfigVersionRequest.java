@@ -26,6 +26,7 @@ public class ServiceConfigVersionRequest {
   private Long applyTime;
   private String userName;
   private String note;
+  private Boolean isCurrent;
 
   public ServiceConfigVersionRequest() {
   }
@@ -93,5 +94,27 @@ public class ServiceConfigVersionRequest {
 
   public void setNote(String note) {
     this.note = note;
+  }
+
+  public Boolean getIsCurrent() {
+    return isCurrent;
+  }
+
+  public void setIsCurrent(Boolean isCurrent) {
+    this.isCurrent = isCurrent;
+  }
+
+  @Override
+  public String toString() {
+    return "ServiceConfigVersionRequest{" +
+        "clusterName='" + clusterName + '\'' +
+        ", serviceName='" + serviceName + '\'' +
+        ", version=" + version +
+        ", createTime=" + createTime +
+        ", applyTime=" + applyTime +
+        ", userName='" + userName + '\'' +
+        ", note='" + note + '\'' +
+        ", isCurrent=" + isCurrent +
+        '}';
   }
 }

@@ -508,11 +508,11 @@ describe('App.ConfigHistoryFlowView', function () {
   });
 
   describe('#compare()', function () {
-    it('', function () {
+    it('should set compareServiceVersion', function () {
       sinon.spy(view.get('controller'), 'onConfigGroupChange');
-      view.compare({context: {version: 1}});
+      view.compare({context: Em.Object.create({version: 1})});
 
-      expect(view.get('controller.compareServiceVersion')).to.eql({version: 1});
+      expect(view.get('controller.compareServiceVersion')).to.eql(Em.Object.create({version: 1}));
       expect(view.get('controller').onConfigGroupChange.calledOnce).to.be.true;
       view.get('controller').onConfigGroupChange.restore();
     });
@@ -520,13 +520,16 @@ describe('App.ConfigHistoryFlowView', function () {
 
   describe('#revert()', function () {
     beforeEach(function () {
-      sinon.stub(App, 'showConfirmationPopup', function (callback) {
-        callback();
+      sinon.stub(App.ModalPopup, 'show', function (options) {
+        options.onPrimary.call(Em.Object.create({
+          serviceConfigNote: 'note',
+          hide: Em.K
+        }));
       });
       sinon.stub(view, 'sendRevertCall', Em.K);
     });
     afterEach(function () {
-      App.showConfirmationPopup.restore();
+      App.ModalPopup.show.restore();
       view.sendRevertCall.restore();
     });
     it('context passed', function () {
@@ -535,10 +538,11 @@ describe('App.ConfigHistoryFlowView', function () {
         serviceName: 'S1'
       })});
 
-      expect(App.showConfirmationPopup.calledOnce).to.be.true;
+      expect(App.ModalPopup.show.calledOnce).to.be.true;
       expect(view.sendRevertCall.calledWith(Em.Object.create({
         version: 1,
-        serviceName: 'S1'
+        serviceName: 'S1',
+        serviceConfigNote: 'note'
       }))).to.be.true;
     });
     it('context is not passed', function () {
@@ -548,10 +552,12 @@ describe('App.ConfigHistoryFlowView', function () {
       }));
       view.revert({});
 
-      expect(App.showConfirmationPopup.calledOnce).to.be.true;
+      expect(App.ModalPopup.show.calledOnce).to.be.true;
       expect(view.sendRevertCall.calledWith(Em.Object.create({
         version: 1,
-        serviceName: 'S1'
+        serviceName: 'S1',
+        serviceConfigNote: 'note',
+        notes: ''
       }))).to.be.true;
     });
   });

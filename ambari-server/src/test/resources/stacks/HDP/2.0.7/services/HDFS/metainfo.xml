@@ -20,12 +20,14 @@
   <services>
     <service>
       <name>HDFS</name>
+      <displayName>HDFS</displayName>
       <comment>Apache Hadoop Distributed File System</comment>
       <version>2.1.0.2.0.6.0</version>
 
       <components>
         <component>
           <name>NAMENODE</name>
+          <displayName>NameNode</displayName>
           <category>MASTER</category>
           <commandScript>
             <script>scripts/namenode.py</script>
@@ -54,6 +56,7 @@
 
         <component>
           <name>DATANODE</name>
+          <displayName>DataNode</displayName>
           <category>SLAVE</category>
           <commandScript>
             <script>scripts/datanode.py</script>
@@ -64,6 +67,7 @@
 
         <component>
           <name>SECONDARY_NAMENODE</name>
+          <displayName>SNameNode</displayName>
           <category>MASTER</category>
           <commandScript>
             <script>scripts/snamenode.py</script>
@@ -74,6 +78,7 @@
 
         <component>
           <name>HDFS_CLIENT</name>
+          <displayName>HDFS Client</displayName>
           <category>CLIENT</category>
           <commandScript>
             <script>scripts/hdfs_client.py</script>
@@ -84,6 +89,7 @@
 
         <component>
           <name>JOURNALNODE</name>
+          <displayName>JournalNode</displayName>
           <category>MASTER</category>
           <commandScript>
             <script>scripts/journalnode.py</script>
@@ -94,6 +100,7 @@
 
         <component>
           <name>ZKFC</name>
+          <displayName>ZKFailoverController</displayName>
           <category>SLAVE</category>
           <commandScript>
             <script>scripts/zkfc_slave.py</script>

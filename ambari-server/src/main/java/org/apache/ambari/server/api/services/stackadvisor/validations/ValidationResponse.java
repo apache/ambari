@@ -20,27 +20,16 @@ package org.apache.ambari.server.api.services.stackadvisor.validations;
 
 import java.util.Set;
 
-import org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse.Version;
+import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorResponse;
 import org.codehaus.jackson.annotate.JsonProperty;
 
 /**
  * Validation response POJO.
  */
-public class ValidationResponse {
-
-  @JsonProperty("Versions")
-  private Version version;
+public class ValidationResponse extends StackAdvisorResponse {
 
   @JsonProperty
   private Set<ValidationItem> items;
-
-  public Version getVersion() {
-    return version;
-  }
-
-  public void setVersion(Version version) {
-    this.version = version;
-  }
 
   public Set<ValidationItem> getItems() {
     return items;

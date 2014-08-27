@@ -24,6 +24,7 @@ App.stackServiceMapper = App.QuickDataMapper.create({
   config: {
     id: 'service_name',
     service_name: 'service_name',
+    display_name: 'display_name',
     config_types: 'config_types',
     comments: 'comments',
     service_version: 'service_version',
@@ -42,6 +43,7 @@ App.stackServiceMapper = App.QuickDataMapper.create({
   component_config: {
     id: 'component_name',
     component_name: 'component_name',
+    display_name: 'display_name',
     cardinality: 'cardinality',
     custom_commands: 'custom_commands',
     service_name: 'service_name',

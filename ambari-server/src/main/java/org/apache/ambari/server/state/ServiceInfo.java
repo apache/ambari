@@ -52,6 +52,7 @@ public class ServiceInfo {
   private String schemaVersion;
 
   private String name;
+  private String displayName;
   private String version;
   private String comment;
   private List<PropertyInfo> properties;
@@ -161,6 +162,14 @@ public class ServiceInfo {
 
   public void setName(String name) {
     this.name = name;
+  }
+
+  public String getDisplayName() {
+    return displayName;
+  }
+
+  public void setDisplayName(String displayName) {
+    this.displayName = displayName;
   }
 
   public String getVersion() {

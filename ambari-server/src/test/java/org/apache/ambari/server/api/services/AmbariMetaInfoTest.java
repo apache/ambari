@@ -454,6 +454,15 @@ public class AmbariMetaInfoTest {
   }
 
   @Test
+  public void testGetStackParentVersions() throws Exception {
+    List<String> parents = metaInfo.getStackParentVersions(STACK_NAME_HDP, "2.0.8");
+    Assert.assertEquals(3, parents.size());
+    Assert.assertEquals("2.0.7", parents.get(0));
+    Assert.assertEquals("2.0.6", parents.get(1));
+    Assert.assertEquals("2.0.5", parents.get(2));
+  }
+
+  @Test
   public void testGetProperties() throws Exception {
     Set<PropertyInfo> properties = metaInfo.getProperties(STACK_NAME_HDP, STACK_VERSION_HDP, SERVICE_NAME_HDFS);
     Assert.assertEquals(properties.size(), PROPERTIES_CNT);

@@ -466,6 +466,21 @@ public class ViewRegistry {
   }
 
   /**
+   * Determine whether or not the given view instance exists.
+   *
+   * @param instanceEntity  the view instance entity
+   *
+   * @return true if the the given view instance exists; false otherwise
+   */
+  public boolean instanceExists(ViewInstanceEntity instanceEntity) {
+
+    ViewEntity viewEntity = getDefinition(instanceEntity.getViewName());
+
+    return viewEntity != null &&
+        (getInstanceDefinition(viewEntity.getCommonName(), viewEntity.getVersion(), instanceEntity.getName()) != null);
+  }
+
+  /**
    * Install the given view instance with its associated view.
    *
    * @param instanceEntity  the view instance entity

@@ -50,7 +50,7 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 public class RecommendationResourceProvider extends StackAdvisorResourceProvider {
 
   protected static final String RECOMMENDATION_ID_PROPERTY_ID = PropertyHelper.getPropertyId(
-      "Recommendations", "id");
+      "Recommendation", "id");
 
   protected static final String HOSTS_PROPERTY_ID = "hosts";
   protected static final String SERVICES_PROPERTY_ID = "services";
@@ -101,7 +101,7 @@ public class RecommendationResourceProvider extends StackAdvisorResourceProvider
       public Resource invoke() throws AmbariException {
 
         Resource resource = new ResourceImpl(Resource.Type.Recommendation);
-        setResourceProperty(resource, RECOMMENDATION_ID_PROPERTY_ID, "1", getPropertyIds());
+        setResourceProperty(resource, RECOMMENDATION_ID_PROPERTY_ID, response.getId(), getPropertyIds());
         setResourceProperty(resource, STACK_NAME_PROPERTY_ID, response.getVersion().getStackName(),
             getPropertyIds());
         setResourceProperty(resource, STACK_VERSION_PROPERTY_ID, response.getVersion()

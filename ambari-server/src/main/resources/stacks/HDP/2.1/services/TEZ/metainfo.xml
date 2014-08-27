@@ -20,11 +20,13 @@
   <services>
     <service>
       <name>TEZ</name>
+      <displayName>Tez</displayName>
       <comment>Tez is the next generation Hadoop Query Processing framework written on top of YARN.</comment>
       <version>0.4.0.2.1</version>
       <components>
         <component>
           <name>TEZ_CLIENT</name>
+          <displayName>Tez Client</displayName>
           <cardinality>1+</cardinality>
           <category>CLIENT</category>
           <commandScript>

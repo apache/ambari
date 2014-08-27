@@ -26,21 +26,21 @@ import org.apache.ambari.server.controller.ServiceConfigVersionRequest;
 import org.apache.ambari.server.controller.ServiceConfigVersionResponse;
 import org.apache.ambari.server.controller.spi.*;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.apache.ambari.server.state.Config;
 
 import java.util.*;
 
 public class ServiceConfigVersionResourceProvider extends
     AbstractControllerResourceProvider {
   public static final String SERVICE_CONFIG_VERSION_CLUSTER_NAME_PROPERTY_ID = PropertyHelper.getPropertyId(null, "cluster_name");
-  public static final String SERVICE_CONFIG_VERSION_PROPERTY_ID = PropertyHelper.getPropertyId(null, "serviceconfigversion");
+  public static final String SERVICE_CONFIG_VERSION_PROPERTY_ID = PropertyHelper.getPropertyId(null, "service_config_version");
   public static final String SERVICE_CONFIG_VERSION_SERVICE_NAME_PROPERTY_ID = PropertyHelper.getPropertyId(null, "service_name");
   public static final String SERVICE_CONFIG_VERSION_CREATE_TIME_PROPERTY_ID = PropertyHelper.getPropertyId(null, "createtime");
   public static final String SERVICE_CONFIG_VERSION_USER_PROPERTY_ID = PropertyHelper.getPropertyId(null, "user");
   public static final String SERVICE_CONFIG_VERSION_NOTE_PROPERTY_ID = PropertyHelper.getPropertyId(null, "service_config_version_note");
   public static final String SERVICE_CONFIG_VERSION_GROUP_ID_PROPERTY_ID = PropertyHelper.getPropertyId(null, "group_id");
   public static final String SERVICE_CONFIG_VERSION_GROUP_NAME_PROPERTY_ID = PropertyHelper.getPropertyId(null, "group_name");
-  public static final String SERVICE_CONFIG_VERSION_HOSTNAMES_PROPERTY_ID = PropertyHelper.getPropertyId(null, "hosts");
+  public static final String SERVICE_CONFIG_VERSION_IS_CURRENT_PROPERTY_ID = PropertyHelper.getPropertyId(null, "is_current");
+  public static final String SERVICE_CONFIG_VERSION_HOSTS_PROPERTY_ID = PropertyHelper.getPropertyId(null, "hosts");
   public static final String SERVICE_CONFIG_VERSION_CONFIGURATIONS_PROPERTY_ID = PropertyHelper.getPropertyId(null, "configurations");
 
   /**
@@ -106,7 +106,8 @@ public class ServiceConfigVersionResourceProvider extends
       resource.setProperty(SERVICE_CONFIG_VERSION_NOTE_PROPERTY_ID, response.getNote());
       resource.setProperty(SERVICE_CONFIG_VERSION_GROUP_ID_PROPERTY_ID, response.getGroupId());
       resource.setProperty(SERVICE_CONFIG_VERSION_GROUP_NAME_PROPERTY_ID, response.getGroupName());
-      resource.setProperty(SERVICE_CONFIG_VERSION_HOSTNAMES_PROPERTY_ID, response.getHosts());
+      resource.setProperty(SERVICE_CONFIG_VERSION_HOSTS_PROPERTY_ID, response.getHosts());
+      resource.setProperty(SERVICE_CONFIG_VERSION_IS_CURRENT_PROPERTY_ID, response.getIsCurrent());
 
       resources.add(resource);
     }
@@ -134,12 +135,13 @@ public class ServiceConfigVersionResourceProvider extends
 
     for (String propertyId : propertyIds) {
 
-      if (!propertyId.equals("cluster_name") && !propertyId.equals("serviceconfigversion") &&
+      if (!propertyId.equals("cluster_name") && !propertyId.equals("service_config_version") &&
           !propertyId.equals("service_name") && !propertyId.equals("createtime") &&
           !propertyId.equals("appliedtime") && !propertyId.equals("user") &&
           !propertyId.equals("service_config_version_note") &&
           !propertyId.equals("group_id") &&
           !propertyId.equals("group_name") &&
+          !propertyId.equals("is_current") &&
           !propertyId.equals("hosts")) {
 
         unsupportedProperties.add(propertyId);

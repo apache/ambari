@@ -19,9 +19,12 @@
 
 var App = require('app');
 require('utils/config');
-require('mixins/models/service_mixin');
 
-App.Service = DS.Model.extend(App.ServiceModelMixin, {
+App.Service = DS.Model.extend({
+  serviceName: DS.attr('string'),
+  displayName: function() {
+    return App.format.role(this.get('serviceName'));
+  }.property('serviceName'),
   passiveState: DS.attr('string'),
   workStatus: DS.attr('string'),
   rand: DS.attr('string'),

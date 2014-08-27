@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.controller;
 
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -35,7 +36,7 @@ public class ClusterRequest {
   
   Set<String> hostNames; // CREATE/UPDATE
   
-  private ConfigurationRequest config = null;
+  private List<ConfigurationRequest> configs = null;
 
   private ServiceConfigVersionRequest serviceConfigVersionRequest = null;
 
@@ -128,30 +129,31 @@ public class ClusterRequest {
   }
   
   /**
-   * Sets the config request (if any)
+   * Sets the configs requests (if any)
    * @param configRequest
    */
-  public void setDesiredConfig(ConfigurationRequest configRequest) {
-    config = configRequest;
+  public void setDesiredConfig(List<ConfigurationRequest> configRequest) {
+    configs = configRequest;
   }
   
   /**
    * Gets any configuration-based request (if any).
-   * @return the configuration request, or <code>null</code> if none is set.
+   * @return the list of configuration requests,
+   * or <code>null</code> if none is set.
    */
-  public ConfigurationRequest getDesiredConfig() {
-    return config;
+  public List<ConfigurationRequest> getDesiredConfig() {
+    return configs;
   }
 
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
-    sb.append("{"
-        + " clusterName=" + clusterName
-        + ", clusterId=" + clusterId
-        + ", provisioningState=" + provisioningState
-        + ", stackVersion=" + stackVersion
-        + ", hosts=[");
+    sb.append("{" + " clusterName=").append(clusterName)
+        .append(", clusterId=").append(clusterId)
+        .append(", provisioningState=").append(provisioningState)
+        .append(", stackVersion=").append(stackVersion)
+        .append(", desired_scv=").append(serviceConfigVersionRequest)
+        .append(", hosts=[");
     if (hostNames != null) {
       int i = 0;
       for (String hostName : hostNames) {

@@ -20,12 +20,14 @@
   <services>
     <service>
       <name>OOZIE</name>
+      <displayName>Oozie</displayName>
       <comment>System for workflow coordination and execution of Apache Hadoop jobs.  This also includes the installation of the optional Oozie Web Console which relies on and will install the &lt;a target="_blank" href="http://www.sencha.com/legal/open-source-faq/"&gt;ExtJS&lt;/a&gt; Library.
       </comment>
       <version>4.0.0.2.0</version>
       <components>
         <component>
           <name>OOZIE_SERVER</name>
+          <displayName>Oozie Server</displayName>
           <category>MASTER</category>
           <cardinality>1</cardinality>
           <dependencies>
@@ -60,6 +62,7 @@
 
         <component>
           <name>OOZIE_CLIENT</name>
+          <displayName>Oozie Client</displayName>
           <category>CLIENT</category>
           <cardinality>1+</cardinality>
           <dependencies>

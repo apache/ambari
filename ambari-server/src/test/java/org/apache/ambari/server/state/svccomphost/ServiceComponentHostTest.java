@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.state.svccomphost;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -1045,7 +1046,7 @@ public class ServiceComponentHostTest {
     config.setTag(tag);
     config.persist();
     cluster.addConfig(config);
-    cluster.addDesiredConfig("user", config);
+    cluster.addDesiredConfig("user", Collections.singleton(config));
   }
 
   @Test

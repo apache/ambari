@@ -1106,6 +1106,10 @@ h1 {
       .icon-lock {
         color: #008000;
       }
+      a.btn[disabled],
+      a.btn[disabled] [class^="icon-"], a [class*=" icon-"] {
+        cursor: not-allowed;
+      }
       .action{
         margin-left: 3px;
         margin-right: 1px;
@@ -1211,6 +1215,7 @@ h1 {
       -webkit-box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.05);
       -moz-box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.05);
       box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.05);
+      cursor: not-allowed;
     }
   }
   .capacity-scheduler {
@@ -4957,11 +4962,15 @@ ul.inline li {
     .flow-element {
       width: 18%;
       height: 100%;
-      .box {
+      .version-box {
         position: relative;
+        height: 90%;
+      }
+      .version-box .box {
+        //position: relative;
         cursor: pointer;
         width: 72%;
-        height: 90%;
+        height: 100%;
         background-color: #ffffff;
         border: 1px solid #dddddd;
         font-size: @default-font-size;
@@ -4975,14 +4984,49 @@ ul.inline li {
           color: #555555;
         }
       }
-      .box.displayed {
+      .version-box .version-popover {
+        display: none;
+        position: absolute;
+        bottom: 89px;
+        left: -45px;
+        z-index: 1000;
+        float: left;
+        min-width: 290px;
+        padding: 8px;
+        list-style: none;
+        background-color: #ffffff;
+        border: 1px solid #c3c3c3;
+        -webkit-box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        -moz-box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        -webkit-background-clip: padding-box;
+        -moz-background-clip: padding;
+        background-clip: padding-box;
+        font-size: 13px;
+        .content {
+          padding: 1px 5px 15px 5px;
+          text-align: left;
+          .notes{
+            word-wrap: break-word;
+          }
+        }
+        .btn {
+          font-size: 13px;
+        }
+      }
+      .version-box:hover{
+        .version-popover {
+          display: block;
+        }
+      }
+      .version-box .box.displayed {
         border: 1px solid #444444;
         .content {
           color: #444444;
           font-weight: bold;
         }
       }
-      .box.grayedOut {
+      .version-box .box.grayedOut {
         background-color: #eeeeee;
         border: 1px solid #eeeeee;
         .content {
@@ -5006,7 +5050,7 @@ ul.inline li {
       .arrow-box {
         display: none;
       }
-      .box {
+      .version-box .box {
         width: 100%;
       }
       width: 13%;
@@ -5072,6 +5116,7 @@ ul.inline li {
     }
     .dropdown-submenu .dropdown-menu {
       min-width: 200px;
+      max-width: 300px;
       line-height: 20px;
       margin: 0px;
       padding: 5px;
@@ -5079,6 +5124,9 @@ ul.inline li {
       cursor: default;
       .content {
         padding: 1px 5px 15px 5px;
+        .notes{
+          word-wrap: break-word;
+        }
       }
       .btn {
         font-size: 13px;

@@ -42,6 +42,7 @@ import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.controller.ActionExecutionContext;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostComponentAdminState;
@@ -147,20 +148,20 @@ public class StageUtils {
     return requestStageIds;
   }
 
-  public static Stage getATestStage(long requestId, long stageId, String clusterHostInfo) {
+  public static Stage getATestStage(long requestId, long stageId, String clusterHostInfo, String commandParamsStage, String hostParamsStage) {
     String hostname;
     try {
       hostname = InetAddress.getLocalHost().getHostName();
     } catch (UnknownHostException e) {
       hostname = "host-dummy";
     }
-    return getATestStage(requestId, stageId, hostname, clusterHostInfo);
+    return getATestStage(requestId, stageId, hostname, clusterHostInfo, commandParamsStage, hostParamsStage);
   }
 
   //For testing only
-  public static Stage getATestStage(long requestId, long stageId, String hostname, String clusterHostInfo) {
+  public static Stage getATestStage(long requestId, long stageId, String hostname, String clusterHostInfo, String commandParamsStage, String hostParamsStage) {
 
-    Stage s = new Stage(requestId, "/tmp", "cluster1", 1L, "context", clusterHostInfo);
+    Stage s = new Stage(requestId, "/tmp", "cluster1", 1L, "context", clusterHostInfo, commandParamsStage, hostParamsStage);
     s.setStageId(stageId);
     long now = System.currentTimeMillis();
     s.addHostRoleExecutionCommand(hostname, Role.NAMENODE, RoleCommand.INSTALL,
@@ -210,6 +211,10 @@ public class StageUtils {
     mapper.configure(SerializationConfig.Feature.USE_ANNOTATIONS, true);
     InputStream is = new ByteArrayInputStream(json.getBytes(Charset.forName("UTF8")));
     return mapper.readValue(is, clazz);
+  }
+ 
+  public static Map<String, String> getCommandParamsStage(ActionExecutionContext actionExecContext) throws AmbariException {
+    return actionExecContext.getParameters() != null ? actionExecContext.getParameters() : new TreeMap<String, String>();
   }
 
   public static Map<String, Set<String>> getClusterHostInfo(

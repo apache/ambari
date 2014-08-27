@@ -37,6 +37,7 @@
 
         <component>
           <name>STORM_REST_API</name>
+          <displayName>Storm REST API Server</displayName>
           <category>MASTER</category>
           <commandScript>
             <script>scripts/rest_api.py</script>
@@ -47,6 +48,7 @@
 
         <component>
           <name>SUPERVISOR</name>
+          <displayName>Supervisor</displayName>
           <category>SLAVE</category>
           <commandScript>
             <script>scripts/supervisor.py</script>
@@ -57,6 +59,7 @@
 
         <component>
           <name>STORM_UI_SERVER</name>
+          <displayName>Storm UI Server</displayName>
           <category>MASTER</category>
           <commandScript>
             <script>scripts/ui_server.py</script>
@@ -67,6 +70,7 @@
 
         <component>
           <name>DRPC_SERVER</name>
+          <displayName>DRPC Server</displayName>
           <category>MASTER</category>
           <commandScript>
             <script>scripts/drpc_server.py</script>

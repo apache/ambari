@@ -20,12 +20,14 @@
   <services>
     <service>
       <name>HDFS</name>
+      <displayName>HDFS</displayName>
       <comment>Apache Hadoop Distributed File System</comment>
       <version>2.1.0.2.0</version>
 
       <components>
         <component>
           <name>NAMENODE</name>
+          <displayName>NameNode</displayName>
           <category>MASTER</category>
           <cardinality>1-2</cardinality>
           <commandScript>
@@ -55,6 +57,7 @@
 
         <component>
           <name>DATANODE</name>
+          <displayName>DataNode</displayName>
           <category>SLAVE</category>
           <cardinality>1+</cardinality>
           <commandScript>
@@ -66,6 +69,7 @@
 
         <component>
           <name>SECONDARY_NAMENODE</name>
+          <displayName>SNameNode</displayName>
           <!-- TODO:  cardinality is conditional on HA usage -->
           <cardinality>1</cardinality>
           <category>MASTER</category>
@@ -78,6 +82,7 @@
 
         <component>
           <name>HDFS_CLIENT</name>
+          <displayName>HDFS Client</displayName>
           <category>CLIENT</category>
           <cardinality>1+</cardinality>
           <commandScript>
@@ -111,6 +116,7 @@
 
         <component>
           <name>JOURNALNODE</name>
+          <displayName>JournalNode</displayName>
           <category>SLAVE</category>
           <cardinality>0+</cardinality>
           <commandScript>
@@ -122,6 +128,7 @@
 
         <component>
           <name>ZKFC</name>
+          <displayName>ZKFailoverController</displayName>
           <category>SLAVE</category>
           <!-- TODO: cardinality is conditional on HA topology -->
           <cardinality>0+</cardinality>

@@ -20,12 +20,14 @@
   <services>
     <service>
       <name>ZOOKEEPER</name>
+      <displayName>ZooKeeper</displayName>
       <comment>Centralized service which provides highly reliable distributed coordination</comment>
       <version>3.4.5.2.0</version>
       <components>
 
         <component>
           <name>ZOOKEEPER_SERVER</name>
+          <displayName>ZooKeeper Server</displayName>
           <category>MASTER</category>
           <cardinality>1</cardinality>
           <commandScript>
@@ -37,6 +39,7 @@
 
         <component>
           <name>ZOOKEEPER_CLIENT</name>
+          <displayName>ZooKeeper Client</displayName>
           <category>CLIENT</category>
           <cardinality>0+</cardinality>
           <commandScript>

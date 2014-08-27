@@ -20,12 +20,14 @@
   <services>
     <service>
       <name>HIVE</name>
+      <displayName>Hive</displayName>
       <comment>Data warehouse system for ad-hoc queries &amp; analysis of large datasets and table &amp; storage management service</comment>
       <version>0.12.0.2.0</version>
       <components>
 
         <component>
           <name>HIVE_METASTORE</name>
+          <displayName>Hive Metastore</displayName>
           <category>MASTER</category>
           <cardinality>1</cardinality>
           <auto-deploy>
@@ -41,6 +43,7 @@
 
         <component>
           <name>HIVE_SERVER</name>
+          <displayName>HiveServer2</displayName>
           <category>MASTER</category>
           <cardinality>1</cardinality>
           <dependencies>
@@ -75,6 +78,7 @@
 
         <component>
           <name>MYSQL_SERVER</name>
+          <displayName>MySQL Server</displayName>
           <category>MASTER</category>
           <cardinality>0-1</cardinality>
           <commandScript>
@@ -85,6 +89,7 @@
 
         <component>
           <name>HIVE_CLIENT</name>
+          <displayName>Hive Client</displayName>
           <category>CLIENT</category>
           <cardinality>1+</cardinality>
           <commandScript>
@@ -176,11 +181,15 @@
 
     <service>
       <name>HCATALOG</name>
-      <comment>This is comment for HCATALOG service</comment>
+      <displayName>HCatalog</displayName>
+      <comment>A table and storage management layer for Hadoop that enables users with different data processing tools
+        to more easily read and write data on the grid.
+      </comment>
       <version>0.12.0.2.0.6.0</version>
       <components>
         <component>
           <name>HCAT</name>
+          <displayName>HCat</displayName>
           <category>CLIENT</category>
           <commandScript>
             <script>scripts/hcat_client.py</script>

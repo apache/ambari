@@ -79,7 +79,7 @@ App.supports = {
   flume: true,
   databaseConnection: true,
   configHistory: false,
-  serverRecommendValidate: false,
+  serverRecommendValidate: true,
   downloadClientConfigs: true,
   abortRequests: true
 };
