@@ -201,7 +201,7 @@ class CheckHost(Script):
     # try to connect to db
   
     db_connection_check_command = format("{java64_home}/bin/java -cp /usr/lib/ambari-agent/{check_db_connection_jar_name}:" \
-           "/usr/lib/ambari-agent/{jdbc_name} org.apache.ambari.server.DBConnectionVerification {db_connection_url} " \
+           "/usr/lib/ambari-agent/{jdbc_name} org.apache.ambari.server.DBConnectionVerification '{db_connection_url}' " \
            "{user_name} {user_passwd!p} {jdbc_driver}")
   
     process = subprocess.Popen(db_connection_check_command,
