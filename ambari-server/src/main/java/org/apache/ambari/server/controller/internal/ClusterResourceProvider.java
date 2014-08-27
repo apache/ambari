@@ -870,9 +870,9 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
    * @param blueprintConfigurations  map of blueprint configurations keyed by type
    */
   private void handleGlobalsBackwardsCompability(Stack stack,
-      Map<String, Map<String, String>> blueprintConfigurations) {
+      Map<String, Map<String, String>> blueprintConfigurations, String clusterName) {
     StackId stackId = new StackId(stack.getName(), stack.getVersion());
-    configHelper.moveDeprecatedGlobals(stackId, blueprintConfigurations);
+    configHelper.moveDeprecatedGlobals(stackId, blueprintConfigurations, clusterName);
   }
 
   /**
@@ -1051,7 +1051,7 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
       HostGroupEntity entity = group.getEntity();
       Map<String, Map<String, Config>> groupConfigs = new HashMap<String, Map<String, Config>>();
       
-      handleGlobalsBackwardsCompability(stack, group.getConfigurationProperties());
+      handleGlobalsBackwardsCompability(stack, group.getConfigurationProperties(), clusterName);
       for (Map.Entry<String, Map<String, String>> entry: group.getConfigurationProperties().entrySet()) {
         String type = entry.getKey();
         String service = stack.getServiceForConfigType(type);

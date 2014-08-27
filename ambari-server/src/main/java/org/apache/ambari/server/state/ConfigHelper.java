@@ -414,14 +414,14 @@ public class ConfigHelper {
    * @param stackId
    * @param propertyName
    */
-  public Set<String> findConfigTypesByPropertyName(StackId stackId, String propertyName) throws AmbariException {
+  public Set<String> findConfigTypesByPropertyName(StackId stackId, String propertyName, String clusterName) throws AmbariException {
     StackInfo stack = ambariMetaInfo.getStackInfo(stackId.getStackName(),
         stackId.getStackVersion());
     
     Set<String> result = new HashSet<String>();
-    
-    for(ServiceInfo serviceInfo:stack.getServices()) {
-      Set<PropertyInfo> stackProperties = ambariMetaInfo.getProperties(stack.getName(), stack.getVersion(), serviceInfo.getName());
+
+    for(Service service : clusters.getCluster(clusterName).getServices().values()) {
+      Set<PropertyInfo> stackProperties = ambariMetaInfo.getProperties(stack.getName(), stack.getVersion(), service.getName());
       
       for (PropertyInfo stackProperty : stackProperties) {
         if(stackProperty.getName().equals(propertyName)) {
@@ -488,7 +488,7 @@ public class ConfigHelper {
    *
    * @param configurations  map of configurations keyed by type
    */
-  public void moveDeprecatedGlobals(StackId stackId, Map<String, Map<String, String>> configurations) {
+  public void moveDeprecatedGlobals(StackId stackId, Map<String, Map<String, String>> configurations, String clusterName) {
     Map<String, String> globalConfigurations = new HashMap<String, String>();
     
     if(configurations.get(Configuration.GLOBAL_CONFIG_TAG) == null ||
@@ -508,7 +508,7 @@ public class ConfigHelper {
       
       Set<String> newConfigTypes = null;
       try{
-        newConfigTypes = this.findConfigTypesByPropertyName(stackId, propertyName);
+        newConfigTypes = this.findConfigTypesByPropertyName(stackId, propertyName, clusterName);
       } catch(AmbariException e) {
         LOG.error("Exception while getting configurations from the stacks", e);
         return;

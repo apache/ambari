@@ -224,7 +224,7 @@ public class UpgradeCatalog170Test {
     Injector injector = createNiceMock(Injector.class);
     ConfigHelper configHelper = createNiceMock(ConfigHelper.class);
     AmbariManagementController amc = createNiceMock(AmbariManagementController.class);
-    Cluster cluster = createStrictMock(Cluster.class);
+    Cluster cluster = createNiceMock(Cluster.class);
     Clusters clusters = createStrictMock(Clusters.class);
     Config config = createStrictMock(Config.class);
     Config pigConfig = createStrictMock(Config.class);
@@ -323,9 +323,10 @@ public class UpgradeCatalog170Test {
     expect(cluster.getDesiredConfigByType("global")).andReturn(config).anyTimes();
     expect(config.getProperties()).andReturn(globalConfigs).anyTimes();
     expect(cluster.getCurrentStackVersion()).andReturn(new StackId("HDP", "2.1")).anyTimes();
-    expect(configHelper.findConfigTypesByPropertyName(new StackId("HDP", "2.1"), "prop1")).andReturn(envDicts).once();
-    expect(configHelper.findConfigTypesByPropertyName(new StackId("HDP", "2.1"), "smokeuser_keytab")).andReturn(new HashSet<String>()).once();
-    expect(configHelper.findConfigTypesByPropertyName(new StackId("HDP", "2.1"), "content")).andReturn(envDicts).once();
+    expect(cluster.getClusterName()).andReturn("c1").anyTimes();
+    expect(configHelper.findConfigTypesByPropertyName(new StackId("HDP", "2.1"), "prop1", "c1")).andReturn(envDicts).once();
+    expect(configHelper.findConfigTypesByPropertyName(new StackId("HDP", "2.1"), "smokeuser_keytab", "c1")).andReturn(new HashSet<String>()).once();
+    expect(configHelper.findConfigTypesByPropertyName(new StackId("HDP", "2.1"), "content", "c1")).andReturn(envDicts).once();
     expect(configHelper.getPropertyValueFromStackDefenitions(cluster, "hadoop-env", "content")).andReturn("env file contents").once();
 
     expect(injector.getInstance(UserDAO.class)).andReturn(userDAO).anyTimes();

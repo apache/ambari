@@ -8936,6 +8936,7 @@ public class AmbariManagementControllerTest {
 
       Set<ServiceRequest> serviceRequests = new HashSet<ServiceRequest>();
       serviceRequests.add(new ServiceRequest("c1", "HDFS", null));
+      serviceRequests.add(new ServiceRequest("c1", "HIVE", null));
 
       ServiceResourceProviderTest.createServices(amc, serviceRequests);
 
@@ -9144,9 +9145,10 @@ public class AmbariManagementControllerTest {
       ServiceResourceProviderTest.updateServices(amc, serviceRequests, mapRequestProps, true, false);
       serviceRequests.clear();
       serviceRequests.add(new ServiceRequest("c1", null, null));
-      org.junit.Assert.assertEquals(1, ServiceResourceProviderTest.getServices(amc, serviceRequests).size());
+      org.junit.Assert.assertEquals(2, ServiceResourceProviderTest.getServices(amc, serviceRequests).size());
       serviceRequests.clear();
       serviceRequests.add(new ServiceRequest("c1", "HDFS", null));
+      serviceRequests.add(new ServiceRequest("c1", "HIVE", null));
       ServiceResourceProviderTest.deleteServices(amc, serviceRequests);
       serviceRequests.clear();
       serviceRequests.add(new ServiceRequest("c1", null, null));

@@ -657,7 +657,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     if(request.getType().equals(Configuration.GLOBAL_CONFIG_TAG)) {
       Map<String, Map<String, String>> configTypes = new HashMap<String, Map<String, String>>();
       configTypes.put(Configuration.GLOBAL_CONFIG_TAG, request.getProperties());
-      configHelper.moveDeprecatedGlobals(cluster.getCurrentStackVersion(), configTypes);
+      configHelper.moveDeprecatedGlobals(cluster.getCurrentStackVersion(), configTypes, cluster.getClusterName());
 
       for(Map.Entry<String, Map<String, String>> configType : configTypes.entrySet()) {
         String configTypeName = configType.getKey();
