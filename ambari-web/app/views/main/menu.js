@@ -57,7 +57,7 @@ App.MainMenuView = Em.CollectionView.extend({
       }
 
       if (App.supports.views) {
-        result.push({ label:Em.I18n.t('menu.item.views'), routing:'views', isView:true, views: this.get('views')});
+        result.push({ label:Em.I18n.t('menu.item.views'), routing:'views.index', isView:true, views: this.get('views')});
       }
 
     }
@@ -116,7 +116,7 @@ App.MainMenuView = Em.CollectionView.extend({
       return this.get('content').routing == 'services';
     }.property(''),
     isViewsItem: function () {
-      return this.get('content').routing == 'views';
+      return this.get('content').routing.contains('views');
     }.property(''),
     goToSection: function (event) {
       if (event.context === 'hosts') {

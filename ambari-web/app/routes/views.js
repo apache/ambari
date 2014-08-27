@@ -17,26 +17,17 @@
  */
 
 var App = require('app');
-var stringUtils = require('utils/string_utils');
 
 module.exports = Em.Route.extend({
   route: '/views',
   enter: function (router) {
-    router.getAuthenticated().done(function (loggedIn) {
-      if (loggedIn) {
-        router.get('mainViewsController').loadAmbariViews();
-      } else {
-        Em.run.next(function () {
-          router.transitionTo('login');
-        });
-      }
-    });
+    router.get('mainViewsController').loadAmbariViews();
   },
   index: Em.Route.extend({
     route: '/',
     connectOutlets: function (router) {
       router.get('mainViewsController').dataLoading().done(function() {
-        router.get('applicationController').connectOutlet('mainViews');
+        router.get('mainController').connectOutlet('mainViews');
       });
     }
   }),
@@ -45,7 +36,7 @@ module.exports = Em.Route.extend({
     connectOutlets: function (router, params) {
       // find and set content for `mainViewsDetails` and associated controller
       router.get('mainViewsController').dataLoading().done(function() {
-        router.get('applicationController').connectOutlet('mainViewsDetails', App.router.get('mainViewsController.ambariViews')
+        router.get('mainController').connectOutlet('mainViewsDetails', App.router.get('mainViewsController.ambariViews')
           .findProperty('href', ['/views', params.viewName, params.version, params.instanceName].join('/')));
       });
     }

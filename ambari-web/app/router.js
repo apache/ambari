@@ -436,8 +436,6 @@ App.Router = Em.Router.extend({
 
     main: require('routes/main'),
 
-    views: require('routes/views'),
-
     experimental: Em.Route.extend({
       route: '/experimental',
       enter: function (router, context) {
