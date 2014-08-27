@@ -71,7 +71,7 @@ App.JobController = Ember.ObjectController.extend(App.RunPeriodically, {
       timeout = this.get('loadTimeout'),
       yarnService = App.HiveJob.store.getById('service', 'YARN'),
       content = this.get('content');
-    if (!Em.isNone(yarnService)) {
+    if (!Em.isNone(yarnService) || App.get('atsURL')) {
       if (!Em.isNone(content)) {
         App.Helpers.jobs.refreshJobDetails(
           content,

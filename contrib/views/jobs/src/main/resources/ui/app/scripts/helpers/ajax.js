@@ -31,37 +31,37 @@
 var urls = {
 
   'load_jobs': {
-    real: '/proxy?url=http://{historyServerHostName}:{ahsWebPort}/ws/v1/timeline/HIVE_QUERY_ID{filtersLink}',
+    real: '/proxy?url={atsURL}/ws/v1/timeline/HIVE_QUERY_ID{filtersLink}',
     mock: '/scripts/assets/hive-queries.json',
     apiPrefix: ''
   },
 
   'jobs_lastID': {
-    real: '/proxy?url=http://{historyServerHostName}:{ahsWebPort}/ws/v1/timeline/HIVE_QUERY_ID?limit=1&secondaryFilter=tez:true',
+    real: '/proxy?url={atsURL}/ws/v1/timeline/HIVE_QUERY_ID?limit=1&secondaryFilter=tez:true',
     mock: '/scripts/assets/hive-queries.json',
     apiPrefix: ''
   },
 
   'job_details': {
-    real: '/proxy?url=http://{historyServerHostName}:{ahsWebPort}/ws/v1/timeline/HIVE_QUERY_ID/{job_id}?fields=events,otherinfo',
+    real: '/proxy?url={atsURL}/ws/v1/timeline/HIVE_QUERY_ID/{job_id}?fields=events,otherinfo',
     mock: '/scripts/assets/hive-query-2.json',
     apiPrefix: ''
   },
 
   'jobs.tezDag.NametoID': {
-    'real': '/proxy?url=http://{historyServerHostName}:{ahsWebPort}/ws/v1/timeline/TEZ_DAG_ID?primaryFilter=dagName:{tezDagName}',
+    'real': '/proxy?url={atsURL}/ws/v1/timeline/TEZ_DAG_ID?primaryFilter=dagName:{tezDagName}',
     'mock': '/scripts/assets/tezDag-name-to-id.json',
     'apiPrefix': ''
   },
 
   'jobs.tezDag.tezDagId': {
-    'real': '/proxy?url=http://{historyServerHostName}:{ahsWebPort}/ws/v1/timeline/TEZ_DAG_ID/{tezDagId}?fields=relatedentities,otherinfo',
+    'real': '/proxy?url={atsURL}/ws/v1/timeline/TEZ_DAG_ID/{tezDagId}?fields=relatedentities,otherinfo',
     'mock': '/scripts/assets/tezDag.json',
     'apiPrefix': ''
   },
 
   'jobs.tezDag.tezDagVertexId': {
-    'real': '/proxy?url=http://{historyServerHostName}:{ahsWebPort}/ws/v1/timeline/TEZ_VERTEX_ID/{tezDagVertexId}?fields=otherinfo',
+    'real': '/proxy?url={atsURL}/ws/v1/timeline/TEZ_VERTEX_ID/{tezDagVertexId}?fields=otherinfo',
     'mock': '/scripts/assets/tezDagVertex.json',
     'apiPrefix': ''
   },
@@ -94,6 +94,11 @@ var urls = {
   'configurations': {
     real: 'clusters/{clusterName}/configurations?{params}',
     mock: '/scripts/assets/configurations.json'
+  },
+
+  'instance_parameters': {
+    real: 'views/{view}/versions/{version}/instances/{instanceName}',
+    mock: ''
   }
 
 };

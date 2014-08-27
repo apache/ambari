@@ -110,6 +110,53 @@ App.ApplicationStatusMapper = Em.Object.createWithMixins(App.RunPeriodically, {
   },
 
   /**
+   * Get View instance properties provided by user
+   * @returns {$.ajax}
+   * @method getInstanceParameters
+   */
+  getInstanceParameters: function () {
+    var hashArray = location.pathname.split('/');
+    var view = hashArray[2];
+    var version = hashArray[3];
+    var instanceName = hashArray[4];
+    return App.ajax.send({
+      name: 'instance_parameters',
+      sender: this,
+      data: {
+        view: view,
+        version: version,
+        instanceName: instanceName
+      },
+      success: 'getInstanceParametersSuccessCallback',
+      error: 'getInstanceParametersErrorCallback'
+    });
+  },
+
+  /**
+   * Success callback for getInstanceParameters-request
+   * @param {object} data
+   * @method getInstanceParametersSuccessCallback
+   */
+  getInstanceParametersSuccessCallback: function (data) {
+    var atsURLParameter = data.ViewInstanceInfo.properties['yarn.ats.url'];
+    var resourceManagerURLParameter = data.ViewInstanceInfo.properties['yarn.resourcemanager.url'];
+    if (atsURLParameter) {
+      App.set('atsURL', atsURLParameter);
+      App.set('resourceManagerURL', resourceManagerURLParameter);
+    } else {
+      this.getClusterName();
+    }
+  },
+
+  /**
+   * Success callback for getInstanceParameters-request
+   * @method getInstanceParametersErrorCallback
+   */
+  getInstanceParametersErrorCallback: function () {
+    this.getClusterName();
+  },
+
+  /**
    * Get cluster name from server
    * @returns {$.ajax}
    * @method getClusterName

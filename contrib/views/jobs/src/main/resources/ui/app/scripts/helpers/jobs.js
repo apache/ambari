@@ -45,16 +45,14 @@ App.Helpers.jobs = {
    * @method refreshHiveJobDetails
    */
   refreshHiveJobDetails: function (hiveJob, successCallback, errorCallback) {
-    var yarnService = App.HiveJob.store.getById('service', 'YARN'),
-      historyServerHostName = App.HiveJob.store.getById('component', 'APP_TIMELINE_SERVER').get('hostName'),
-      ahsWebPort = yarnService.get('ahsWebPort');
+    var  atsURL = App.get('atsURL') || 'http://' + App.HiveJob.store.getById('component', 'APP_TIMELINE_SERVER').get('hostName') +
+        ':' + App.HiveJob.store.getById('service', 'YARN').get('ahsWebPort');
 
     return App.ajax.send({
       name: 'job_details',
       sender: this,
       data: {
-        historyServerHostName: historyServerHostName,
-        ahsWebPort: ahsWebPort,
+        atsURL: atsURL,
         job_id: hiveJob.get('id'),
         successCallback: successCallback,
         errorCallback: errorCallback
@@ -89,9 +87,8 @@ App.Helpers.jobs = {
         name: 'jobs.tezDag.NametoID',
         sender: sender,
         data: {
-          historyServerHostName: params.historyServerHostName,
-          tezDagName: tezDagName,
-          ahsWebPort: params.ahsWebPort
+          atsURL: params.atsURL,
+          tezDagName: tezDagName
         },
         success: 'dagNameToIdSuccess',
         error: 'dagNameToIdError'
@@ -113,45 +110,43 @@ App.Helpers.jobs = {
    */
   refreshTezDagDetails: function (tezDagId, successCallback, errorCallback) {
     var self = this,
-      yarnService = App.HiveJob.store.getById('service', 'YARN'),
-      historyServerHostName = App.HiveJob.store.getById('component', 'APP_TIMELINE_SERVER').get('hostName'),
-      resourceManagerHostName = App.HiveJob.store.getById('component', 'RESOURCEMANAGER').get('hostName'),
-      ahsWebPort = yarnService.get('ahsWebPort'),
-      tezDag = App.HiveJob.store.getById('tezDag', tezDagId);
+        atsURL = App.get('atsURL') || 'http://' + App.HiveJob.store.getById('component', 'RESOURCEMANAGER').get('hostName') + ':' + App.HiveJob.store.getById('service', 'YARN').get('ahsWebPort'),
+        resourceManager = App.HiveJob.store.getById('component', 'RESOURCEMANAGER'),
+        resourceManagerHostName = App.get('resourceManagerURL') || (resourceManager && 'http://' + resourceManager.get('hostName') + ':8088') || '',
+        tezDag = App.HiveJob.store.getById('tezDag', tezDagId);
     if (tezDag) {
       var tezDagInstanceId = tezDag.get('instanceId'),
-        sender = {
-          loadTezDagSuccess: function (data) {
-            if (data) {
-              var app_id = Em.get(data, 'otherinfo.applicationId');
-              if (!Em.isNone(app_id)) {
-                tezDag.set('yarnApplicationId', app_id);
-                tezDag.set('yarnApplicationLink', 'http://'+resourceManagerHostName+':8088/cluster/app/'+app_id);
-              }
-              if (data.relatedentities && data.relatedentities.TEZ_VERTEX_ID != null) {
-                var count = data.relatedentities.TEZ_VERTEX_ID.length;
-                data.relatedentities.TEZ_VERTEX_ID.forEach(function (v) {
-                  self.refreshTezDagVertex(tezDagId, v, function () {
-                    if (--count <= 0) {
-                      // all vertices succeeded
-                      successCallback();
-                    }
+          sender = {
+            loadTezDagSuccess: function (data) {
+              if (data) {
+                var app_id = Em.get(data, 'otherinfo.applicationId');
+                if (app_id && resourceManagerHostName) {
+                  tezDag.set('yarnApplicationId', app_id);
+                  tezDag.set('yarnApplicationLink', resourceManagerHostName + '/cluster/app/' + app_id);
+                }
+                if (data.relatedentities && data.relatedentities.TEZ_VERTEX_ID != null) {
+                  var count = data.relatedentities.TEZ_VERTEX_ID.length;
+                  data.relatedentities.TEZ_VERTEX_ID.forEach(function (v) {
+                    self.refreshTezDagVertex(tezDagId, v, function () {
+                      if (--count <= 0) {
+                        // all vertices succeeded
+                        successCallback();
+                      }
+                    });
                   });
-                });
+                }
               }
+            },
+            loadTezDagError: function () {
+              errorCallback('job.dag.id.loaderror');
             }
-          },
-          loadTezDagError: function () {
-            errorCallback('job.dag.id.loaderror');
-          }
-        };
+          };
       App.ajax.send({
         name: 'jobs.tezDag.tezDagId',
         sender: sender,
         data: {
-          historyServerHostName: historyServerHostName,
           tezDagId: tezDagInstanceId,
-          ahsWebPort: ahsWebPort
+          atsURL: atsURL
         },
         success: 'loadTezDagSuccess',
         error: 'loadTezDagError'
@@ -171,9 +166,7 @@ App.Helpers.jobs = {
    * @method refreshTezDagVertex
    */
   refreshTezDagVertex: function (tezDagId, tezVertexInstanceId, successCallback) {
-    var yarnService = App.HiveJob.store.getById('service', 'YARN'),
-      historyServerHostName = App.HiveJob.store.getById('component', 'APP_TIMELINE_SERVER').get('hostName'),
-      ahsWebPort = yarnService.get('ahsWebPort'),
+    var atsURL = App.get('atsURL') || 'http://' + App.HiveJob.store.getById('component', 'APP_TIMELINE_SERVER').get('hostName') + ':' + App.HiveJob.store.getById('service', 'YARN').get('ahsWebPort'),
       tezDag = App.HiveJob.store.getById('tezDag', tezDagId),
       hiveJob = App.HiveJob.store.all('hiveJob').findBy('tezDag', tezDag),
       hiveJobFailed = hiveJob.get('failed'),
@@ -247,9 +240,8 @@ App.Helpers.jobs = {
       name: 'jobs.tezDag.tezDagVertexId',
       sender: sender,
       data: {
-        historyServerHostName: historyServerHostName,
-        tezDagVertexId: tezVertexInstanceId,
-        ahsWebPort: ahsWebPort
+        atsURL: atsURL,
+        tezDagVertexId: tezVertexInstanceId
       },
       success: 'loadTezDagVertexSuccess',
       error: 'loadTezDagVertexError'

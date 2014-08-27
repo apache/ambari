@@ -557,11 +557,11 @@ App.JobsController = Ember.ArrayController.extend(App.RunPeriodically, {
    */
   checkDataLoadingError: function (jqXHR) {
     var atsComponent = App.HiveJob.store.getById('component', 'APP_TIMELINE_SERVER');
-    if (atsComponent && atsComponent.get('workStatus') != "STARTED") {
+    if (!App.get('atsURL') && atsComponent && atsComponent.get('workStatus') != "STARTED") {
       this.set('jobsMessage', Em.I18n.t('jobs.error.ats.down'));
     }
     else {
-      if (jqXHR && jqXHR.status == 400) {
+      if (jqXHR && (jqXHR.status == 400 || jqXHR.status == 404)) {
         this.set('jobsMessage', Em.I18n.t('jobs.error.400'));
       }
       else {
@@ -584,15 +584,14 @@ App.JobsController = Ember.ArrayController.extend(App.RunPeriodically, {
       atsComponent = App.HiveJob.store.getById('component', 'APP_TIMELINE_SERVER'),
       atsInValidState = !!atsComponent && atsComponent.get('workStatus') === "STARTED";
     this.checkDataLoadingError();
-    if (!Em.isNone(yarnService) && atsInValidState) {
+    if (App.get('atsURL') || (!Em.isNone(yarnService) && atsInValidState)) {
       this.set('loading', true);
-      var historyServerHostName = atsComponent.get('hostName');
+      var atsURL = App.get('atsURL') || 'http://' + atsComponent.get('hostName') + ':' + yarnService.get('ahsWebPort');
       App.ajax.send({
         name: 'jobs_lastID',
         sender: this,
         data: {
-          historyServerHostName: historyServerHostName,
-          ahsWebPort: yarnService.get('ahsWebPort')
+          atsURL: atsURL
         },
         success: 'lastIDSuccessCallback',
         error : 'lastIDErrorCallback'
@@ -601,8 +600,7 @@ App.JobsController = Ember.ArrayController.extend(App.RunPeriodically, {
         name: 'load_jobs',
         sender: this,
         data: {
-          historyServerHostName: historyServerHostName,
-          ahsWebPort: yarnService.get('ahsWebPort'),
+          atsURL: atsURL,
           filtersLink: this.get('filterObject').createJobsFiltersLink()
         },
         success: 'loadJobsSuccessCallback',
