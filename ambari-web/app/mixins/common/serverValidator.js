@@ -236,8 +236,8 @@ App.ServerValidatorMixin = Em.Mixin.create({
               if ((property.get('filename') == item['config-type'] + '.xml') && (property.get('name') == item['config-name'])) {
                 if (item.level == "ERROR") {
                   self.set('configValidationError', true);
-                  property.set('warnMessage', item.message);
-                  property.set('warn', true);
+                  property.set('errorMessage', item.message);
+                  property.set('error', true);
                 } else if (item.level == "WARN") {
                   self.set('configValidationWarning', true);
                   property.set('warnMessage', item.message);
