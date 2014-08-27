@@ -6,7 +6,7 @@
         "Clusters/version",
         "Clusters/state",
         "Clusters/desired_configs",
-        "Clusters/desired_serviceconfigversions",
+        "Clusters/desired_service_config_versions",
         "Clusters/total_hosts",
         "Clusters/health_report",
         "_"
@@ -91,7 +91,8 @@
         "ServiceConfigVersion/group_id",
         "ServiceConfigVersion/group_name",
         "ServiceConfigVersion/hosts",
-        "ServiceConfigVersion/serviceconfigversion",
+        "ServiceConfigVersion/service_config_version",
+        "ServiceConfigVersion/is_current",
         "ServiceConfigVersion/createtime",
         "ServiceConfigVersion/user",
         "ServiceConfigVersion/service_config_version_note"

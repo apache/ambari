@@ -140,6 +140,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.collect.Multimaps;
 import com.google.gson.Gson;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
@@ -1156,6 +1157,12 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       new LinkedList<ConfigurationResponse>();
     ServiceConfigVersionResponse serviceConfigVersionResponse = null;
 
+    if (request.getDesiredConfig() != null && request.getServiceConfigVersionRequest() != null) {
+      String msg = "Unable to set desired configs and rollback at same time, request = " + request.toString();
+      LOG.error(msg);
+      throw new IllegalArgumentException(msg);
+    }
+
     // set or create configuration mapping (and optionally create the map of properties)
     if (null != request.getDesiredConfig()) {
       Set<Config> configs = new HashSet<Config>();
@@ -1259,7 +1266,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         throw new IllegalArgumentException(msg);
       }
 
-      cluster.setServiceConfigVersion(serviceConfigVersionRequest.getServiceName(),
+      serviceConfigVersionResponse = cluster.setServiceConfigVersion(serviceConfigVersionRequest.getServiceName(),
           serviceConfigVersionRequest.getVersion(), getAuthName(),
           serviceConfigVersionRequest.getNote());
     }
@@ -1272,8 +1279,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       ClusterResponse clusterResponse =
           new ClusterResponse(cluster.getClusterId(), cluster.getClusterName(), null, null, null, null, null);
 
-      clusterResponse.setDesiredServiceConfigVersions(
-          Collections.singletonMap(serviceConfigVersionResponse.getServiceName(), serviceConfigVersionResponse));
+      Map<String, Collection<ServiceConfigVersionResponse>> map =
+        new HashMap<String, Collection<ServiceConfigVersionResponse>>();
+      map.put(serviceConfigVersionResponse.getServiceName(), Collections.singletonList(serviceConfigVersionResponse));
+
+      clusterResponse.setDesiredServiceConfigVersions(map);
 
       //workaround to be able to retrieve update results in resource provider
       //as this method only expected to return request response

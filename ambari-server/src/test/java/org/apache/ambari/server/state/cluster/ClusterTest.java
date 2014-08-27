@@ -38,6 +38,7 @@ import java.util.Set;
 
 import javax.persistence.EntityManager;
 
+import com.google.common.collect.Multimap;
 import junit.framework.Assert;
 
 import org.apache.ambari.server.AmbariException;
@@ -652,11 +653,11 @@ public class ClusterTest {
       c1.getServiceConfigVersions();
     Assert.assertNotNull(serviceConfigVersions);
     Assert.assertEquals(1, serviceConfigVersions.size());
-    Map<String, ServiceConfigVersionResponse> activeServiceConfigVersions =
+    Map<String, Collection<ServiceConfigVersionResponse>> activeServiceConfigVersions =
       c1.getActiveServiceConfigVersions();
     Assert.assertEquals(1, activeServiceConfigVersions.size());
     ServiceConfigVersionResponse mapredResponse =
-      activeServiceConfigVersions.get("MAPREDUCE");
+      activeServiceConfigVersions.get("MAPREDUCE").iterator().next();
 
     Assert.assertEquals("MAPREDUCE", mapredResponse.getServiceName());
     Assert.assertEquals("c1", mapredResponse.getClusterName());
@@ -670,7 +671,7 @@ public class ClusterTest {
     Assert.assertEquals(2, serviceConfigVersions.size());
     // active version still 1
     Assert.assertEquals(1, activeServiceConfigVersions.size());
-    mapredResponse = activeServiceConfigVersions.get("MAPREDUCE");
+    mapredResponse = activeServiceConfigVersions.get("MAPREDUCE").iterator().next();
     Assert.assertEquals("MAPREDUCE", mapredResponse.getServiceName());
     Assert.assertEquals("c1", mapredResponse.getClusterName());
     Assert.assertEquals("admin", mapredResponse.getUserName());
@@ -683,7 +684,7 @@ public class ClusterTest {
     Assert.assertEquals(3, serviceConfigVersions.size());
     // active version still 1
     Assert.assertEquals(1, activeServiceConfigVersions.size());
-    mapredResponse = activeServiceConfigVersions.get("MAPREDUCE");
+    mapredResponse = activeServiceConfigVersions.get("MAPREDUCE").iterator().next();
     Assert.assertEquals("MAPREDUCE", mapredResponse.getServiceName());
     Assert.assertEquals("c1", mapredResponse.getClusterName());
     Assert.assertEquals("admin", mapredResponse.getUserName());
@@ -717,7 +718,7 @@ public class ClusterTest {
     Assert.assertEquals("version1", c1.getDesiredConfigByType("hdfs-site").getTag());
     Assert.assertEquals("version2", c1.getDesiredConfigByType("core-site").getTag());
 
-    Map<String, ServiceConfigVersionResponse> activeServiceConfigVersions =
+    Map<String, Collection<ServiceConfigVersionResponse>> activeServiceConfigVersions =
       c1.getActiveServiceConfigVersions();
     Assert.assertEquals(1, activeServiceConfigVersions.size());
 

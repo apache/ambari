@@ -186,16 +186,16 @@ public interface Cluster {
    * @param version service config version
    * @param user the user making the change for audit purposes
    * @param note
-   * @return true if service config version applied
+   * @return service config version created
    * @throws AmbariException
    */
-  boolean setServiceConfigVersion(String serviceName, Long version, String user, String note) throws AmbariException;
+  ServiceConfigVersionResponse setServiceConfigVersion(String serviceName, Long version, String user, String note) throws AmbariException;
 
   /**
    * Get currently active service config versions for stack services
    * @return
    */
-  Map<String, ServiceConfigVersionResponse> getActiveServiceConfigVersions();
+  Map<String, Collection<ServiceConfigVersionResponse>> getActiveServiceConfigVersions();
 
   /**
    * Get service config version history

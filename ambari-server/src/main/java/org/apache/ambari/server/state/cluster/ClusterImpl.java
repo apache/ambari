@@ -1505,7 +1505,7 @@ public class ClusterImpl implements Cluster {
   }
 
   @Override
-  public boolean setServiceConfigVersion(String serviceName, Long version, String user, String note) throws AmbariException {
+  public ServiceConfigVersionResponse setServiceConfigVersion(String serviceName, Long version, String user, String note) throws AmbariException {
     if (null == user)
       throw new NullPointerException("User must be specified.");
 
@@ -1513,9 +1513,9 @@ public class ClusterImpl implements Cluster {
     try {
       readWriteLock.writeLock().lock();
       try {
-        applyServiceConfigVersion(serviceName, version, user, note);
+        ServiceConfigVersionResponse serviceConfigVersionResponse = applyServiceConfigVersion(serviceName, version, user, note);
         configHelper.invalidateStaleConfigsCache();
-        return true;
+        return serviceConfigVersionResponse;
       } finally {
         readWriteLock.writeLock().unlock();
       }
@@ -1525,18 +1525,21 @@ public class ClusterImpl implements Cluster {
   }
 
   @Override
-  public Map<String, ServiceConfigVersionResponse> getActiveServiceConfigVersions() {
+  public Map<String, Collection<ServiceConfigVersionResponse>> getActiveServiceConfigVersions() {
     clusterGlobalLock.readLock().lock();
     try {
       readWriteLock.readLock().lock();
       try {
-        Map<String, ServiceConfigVersionResponse> result = new HashMap<String, ServiceConfigVersionResponse>();
+        Map<String, Collection<ServiceConfigVersionResponse>> map = new HashMap<String, Collection<ServiceConfigVersionResponse>>();
 
         Set<ServiceConfigVersionResponse> responses = getActiveServiceConfigVersionSet();
         for (ServiceConfigVersionResponse response : responses) {
-          result.put(response.getServiceName(), response);
+          if (map.get(response.getServiceName()) == null) {
+            map.put(response.getServiceName(), new ArrayList<ServiceConfigVersionResponse>());
+          }
+          map.get(response.getServiceName()).add(response);
         }
-        return result;
+        return map;
       } finally {
         readWriteLock.readLock().unlock();
       }
@@ -1553,6 +1556,8 @@ public class ClusterImpl implements Cluster {
       readWriteLock.readLock().lock();
       try {
         List<ServiceConfigVersionResponse> serviceConfigVersionResponses = new ArrayList<ServiceConfigVersionResponse>();
+        Set<Long> activeIds = getActiveServiceConfigVersionIds();
+
         for (ServiceConfigEntity serviceConfigEntity : serviceConfigDAO.getServiceConfigs(getClusterId())) {
           ServiceConfigVersionResponse serviceConfigVersionResponse = new ServiceConfigVersionResponse();
 
@@ -1564,6 +1569,7 @@ public class ClusterImpl implements Cluster {
           serviceConfigVersionResponse.setNote(serviceConfigEntity.getNote());
           serviceConfigVersionResponse.setHosts(serviceConfigEntity.getHostNames());
           serviceConfigVersionResponse.setConfigurations(new ArrayList<ConfigurationResponse>());
+          serviceConfigVersionResponse.setIsCurrent(activeIds.contains(serviceConfigEntity.getServiceConfigId()));
 
           List<ClusterConfigEntity> clusterConfigEntities = serviceConfigEntity.getClusterConfigEntities();
           for (ClusterConfigEntity clusterConfigEntity : clusterConfigEntities) {
@@ -1596,14 +1602,38 @@ public class ClusterImpl implements Cluster {
     }
   }
 
-  @RequiresSession
-  Set<ServiceConfigVersionResponse> getActiveServiceConfigVersionSet() {
+  private Set<ServiceConfigVersionResponse> getActiveServiceConfigVersionSet() {
     Set<ServiceConfigVersionResponse> responses = new HashSet<ServiceConfigVersionResponse>();
-    List<ServiceConfigEntity> lastServiceConfigs = serviceConfigDAO.getLastServiceConfigs(getClusterId());
-    for (ServiceConfigEntity lastServiceConfig : lastServiceConfigs) {
-      responses.add(convertToServiceConfigVersionResponse(lastServiceConfig));
+    List<ServiceConfigEntity> activeServiceConfigVersions = getActiveServiceConfigVersionEntities();
+
+    for (ServiceConfigEntity lastServiceConfig : activeServiceConfigVersions) {
+      ServiceConfigVersionResponse response = convertToServiceConfigVersionResponse(lastServiceConfig);
+      response.setIsCurrent(true); //mark these as current, as they are
+      responses.add(response);
     }
     return responses;
+  }
+
+  private Set<Long> getActiveServiceConfigVersionIds() {
+    Set<Long> idSet = new HashSet<Long>();
+    for (ServiceConfigEntity entity : getActiveServiceConfigVersionEntities()) {
+      idSet.add(entity.getServiceConfigId());
+    }
+    return idSet;
+  }
+
+  private List<ServiceConfigEntity> getActiveServiceConfigVersionEntities() {
+
+    List<ServiceConfigEntity> activeServiceConfigVersions = new ArrayList<ServiceConfigEntity>();
+    //for services
+    activeServiceConfigVersions.addAll(serviceConfigDAO.getLastServiceConfigs(getClusterId()));
+    //for config groups
+    if (clusterConfigGroups != null) {
+      activeServiceConfigVersions.addAll(
+        serviceConfigDAO.getLastServiceConfigVersionsForGroups(clusterConfigGroups.keySet()));
+    }
+
+    return activeServiceConfigVersions;
   }
 
   @RequiresSession
@@ -1626,11 +1656,20 @@ public class ClusterImpl implements Cluster {
     serviceConfigVersionResponse.setCreateTime(serviceConfigEntity.getCreateTimestamp());    
     serviceConfigVersionResponse.setUserName(serviceConfigEntity.getUser());
     serviceConfigVersionResponse.setNote(serviceConfigEntity.getNote());
+    if (clusterConfigGroups != null) {
+      ConfigGroup configGroup = clusterConfigGroups.get(serviceConfigEntity.getGroupId());
+      if (configGroup != null) {
+        serviceConfigVersionResponse.setGroupId(configGroup.getId());
+        serviceConfigVersionResponse.setGroupName(configGroup.getName());
+      }
+    }
+
+
     return serviceConfigVersionResponse;
   }
 
   @Transactional
-  void applyServiceConfigVersion(String serviceName, Long serviceConfigVersion, String user,
+  ServiceConfigVersionResponse applyServiceConfigVersion(String serviceName, Long serviceConfigVersion, String user,
                                  String serviceConfigVersionNote) throws AmbariException {
     ServiceConfigEntity serviceConfigEntity = serviceConfigDAO.findByServiceAndVersion(serviceName, serviceConfigVersion);
     if (serviceConfigEntity == null) {
@@ -1690,6 +1729,8 @@ public class ClusterImpl implements Cluster {
     serviceConfigEntityClone.setVersion(configVersionHelper.getNextVersion(serviceName));
 
     serviceConfigDAO.create(serviceConfigEntityClone);
+
+    return convertToServiceConfigVersionResponse(serviceConfigEntityClone);
   }
 
   @Transactional

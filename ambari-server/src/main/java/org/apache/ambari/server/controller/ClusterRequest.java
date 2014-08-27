@@ -148,12 +148,12 @@ public class ClusterRequest {
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
-    sb.append("{"
-        + " clusterName=" + clusterName
-        + ", clusterId=" + clusterId
-        + ", provisioningState=" + provisioningState
-        + ", stackVersion=" + stackVersion
-        + ", hosts=[");
+    sb.append("{" + " clusterName=").append(clusterName)
+        .append(", clusterId=").append(clusterId)
+        .append(", provisioningState=").append(provisioningState)
+        .append(", stackVersion=").append(stackVersion)
+        .append(", desired_scv=").append(serviceConfigVersionRequest)
+        .append(", hosts=[");
     if (hostNames != null) {
       int i = 0;
       for (String hostName : hostNames) {

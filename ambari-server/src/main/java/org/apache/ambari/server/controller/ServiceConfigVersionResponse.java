@@ -19,7 +19,6 @@
 package org.apache.ambari.server.controller;
 
 
-import org.apache.ambari.server.state.Config;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
@@ -34,6 +33,7 @@ public class ServiceConfigVersionResponse {
   private String groupName;
   private String userName;
   private String note;
+  private Boolean isCurrent = false;
   private List<ConfigurationResponse> configurations;
   private List<String> hosts;
 
@@ -46,7 +46,7 @@ public class ServiceConfigVersionResponse {
     this.serviceName = serviceName;
   }
 
-  @JsonProperty("serviceconfigversion")
+  @JsonProperty("service_config_version")
   public Long getVersion() {
     return version;
   }
@@ -129,6 +129,15 @@ public class ServiceConfigVersionResponse {
 
   public void setGroupId(Long groupId) {
     this.groupId = groupId;
+  }
+
+  @JsonProperty("is_current")
+  public Boolean getIsCurrent() {
+    return isCurrent;
+  }
+
+  public void setIsCurrent(Boolean isCurrent) {
+    this.isCurrent = isCurrent;
   }
 }
 

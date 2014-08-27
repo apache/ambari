@@ -64,7 +64,7 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
   protected static final String CLUSTER_VERSION_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters", "version");
   protected static final String CLUSTER_PROVISIONING_STATE_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters", "provisioning_state");
   protected static final String CLUSTER_DESIRED_CONFIGS_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters", "desired_configs");
-  protected static final String CLUSTER_DESIRED_SERVICE_CONFIG_VERSIONS_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters", "desired_serviceconfigversions");
+  protected static final String CLUSTER_DESIRED_SERVICE_CONFIG_VERSIONS_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters", "desired_service_config_versions");
   protected static final String CLUSTER_TOTAL_HOSTS_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters", "total_hosts");
   protected static final String CLUSTER_HEALTH_REPORT_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters", "health_report");
   protected static final String BLUEPRINT_PROPERTY_ID = PropertyHelper.getPropertyId(null, "blueprint");
@@ -173,7 +173,8 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
       setResourceProperty(resource, CLUSTER_NAME_PROPERTY_ID, clusterName, requestedIds);
       setResourceProperty(resource, CLUSTER_PROVISIONING_STATE_PROPERTY_ID, response.getProvisioningState(), requestedIds);
       setResourceProperty(resource, CLUSTER_DESIRED_CONFIGS_PROPERTY_ID, response.getDesiredConfigs(), requestedIds);
-      setResourceProperty(resource, CLUSTER_DESIRED_SERVICE_CONFIG_VERSIONS_PROPERTY_ID, response.getDesiredServiceConfigVersions(), requestedIds);
+      setResourceProperty(resource, CLUSTER_DESIRED_SERVICE_CONFIG_VERSIONS_PROPERTY_ID,
+        response.getDesiredServiceConfigVersions(), requestedIds);
       setResourceProperty(resource, CLUSTER_TOTAL_HOSTS_PROPERTY_ID, response.getTotalHosts(), requestedIds);
       setResourceProperty(resource, CLUSTER_HEALTH_REPORT_PROPERTY_ID, response.getClusterHealthReport(), requestedIds);
 
@@ -219,24 +220,29 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
     for (ClusterRequest clusterRequest : requests) {
       ClusterResponse updateResults = getManagementController().getClusterUpdateResults(clusterRequest);
       if (updateResults != null) {
-        Map<String, ServiceConfigVersionResponse> serviceConfigVersions = updateResults.getDesiredServiceConfigVersions();
+        Map<String, Collection<ServiceConfigVersionResponse>> serviceConfigVersions = updateResults.getDesiredServiceConfigVersions();
         if (serviceConfigVersions != null) {
           associatedResources = new HashSet<Resource>();
-          for (Map.Entry<String, ServiceConfigVersionResponse> stringServiceConfigVersionResponseEntry : serviceConfigVersions.entrySet()) {
-            Resource resource = new ResourceImpl(Resource.Type.ServiceConfigVersion);
-            ServiceConfigVersionResponse serviceConfigVersionResponse = stringServiceConfigVersionResponseEntry.getValue();
-            resource.setProperty(ServiceConfigVersionResourceProvider.SERVICE_CONFIG_VERSION_SERVICE_NAME_PROPERTY_ID,
-              serviceConfigVersionResponse.getServiceName());
-            resource.setProperty(ServiceConfigVersionResourceProvider.SERVICE_CONFIG_VERSION_PROPERTY_ID,
-              serviceConfigVersionResponse.getVersion());
-            resource.setProperty(ServiceConfigVersionResourceProvider.SERVICE_CONFIG_VERSION_NOTE_PROPERTY_ID,
-              serviceConfigVersionResponse.getNote());
-            if (serviceConfigVersionResponse.getConfigurations() != null) {
-              resource.setProperty(
+          for (Collection<ServiceConfigVersionResponse> scvCollection : serviceConfigVersions.values()) {
+            for (ServiceConfigVersionResponse serviceConfigVersionResponse : scvCollection) {
+              Resource resource = new ResourceImpl(Resource.Type.ServiceConfigVersion);
+              resource.setProperty(ServiceConfigVersionResourceProvider.SERVICE_CONFIG_VERSION_SERVICE_NAME_PROPERTY_ID,
+                serviceConfigVersionResponse.getServiceName());
+              resource.setProperty(ServiceConfigVersionResourceProvider.SERVICE_CONFIG_VERSION_PROPERTY_ID,
+                serviceConfigVersionResponse.getVersion());
+              resource.setProperty(ServiceConfigVersionResourceProvider.SERVICE_CONFIG_VERSION_NOTE_PROPERTY_ID,
+                serviceConfigVersionResponse.getNote());
+              resource.setProperty(ServiceConfigVersionResourceProvider.SERVICE_CONFIG_VERSION_GROUP_ID_PROPERTY_ID,
+                  serviceConfigVersionResponse.getGroupId());
+              resource.setProperty(ServiceConfigVersionResourceProvider.SERVICE_CONFIG_VERSION_GROUP_NAME_PROPERTY_ID,
+                  serviceConfigVersionResponse.getGroupName());
+              if (serviceConfigVersionResponse.getConfigurations() != null) {
+                resource.setProperty(
                   ServiceConfigVersionResourceProvider.SERVICE_CONFIG_VERSION_CONFIGURATIONS_PROPERTY_ID,
                   serviceConfigVersionResponse.getConfigurations());
+              }
+              associatedResources.add(resource);
             }
-            associatedResources.add(resource);
           }
 
         }
@@ -354,13 +360,13 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
       String absCategory = PropertyHelper.getPropertyCategory(entry.getKey());
       String propName = PropertyHelper.getPropertyName(entry.getKey());
 
-      if (absCategory.startsWith(parentCategory + "/desired_serviceconfigversions")) {
+      if (absCategory.startsWith(parentCategory + "/desired_service_config_version")) {
         serviceConfigVersionRequest =
             (serviceConfigVersionRequest ==null ) ? new ServiceConfigVersionRequest() : serviceConfigVersionRequest;
 
         if (propName.equals("service_name"))
           serviceConfigVersionRequest.setServiceName(entry.getValue().toString());
-        else if (propName.equals("serviceconfigversion"))
+        else if (propName.equals("service_config_version"))
           serviceConfigVersionRequest.setVersion(Long.valueOf(entry.getValue().toString()));
         else if (propName.equals("service_config_version_note")) {
           serviceConfigVersionRequest.setNote(entry.getValue().toString());
