@@ -192,8 +192,8 @@ class HDP206StackAdvisor(StackAdvisor):
       secondaryNameNodeHosts = secondaryNameNodeHosts[0]
       commonHosts = list(set(nameNodeHosts).intersection(secondaryNameNodeHosts))
       for host in commonHosts:
-        items.append( { "type": 'host-component', "level": 'WARN', "message": 'NameNode and Secondary NameNode should not be hosted on same machine', "component-name": 'NAMENODE', "host": str(host) } )
-        items.append( { "type": 'host-component', "level": 'WARN', "message": 'NameNode and Secondary NameNode should not be hosted on same machine', "component-name": 'SECONDARY_NAMENODE', "host": str(host) } )
+        items.append( { "type": 'host-component', "level": 'WARN', "message": 'NameNode and Secondary NameNode cannot be hosted on same machine', "component-name": 'NAMENODE', "host": str(host) } )
+        items.append( { "type": 'host-component', "level": 'WARN', "message": 'NameNode and Secondary NameNode cannot be hosted on same machine', "component-name": 'SECONDARY_NAMENODE', "host": str(host) } )
 
     # Validating cardinality
     for component in componentsList:
