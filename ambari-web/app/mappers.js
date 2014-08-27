@@ -20,6 +20,7 @@
 require('mappers/server_data_mapper');
 require('mappers/stack_service_mapper');
 require('mappers/hosts_mapper');
+require('mappers/jobs_mapper');
 require('mappers/cluster_mapper');
 require('mappers/runs_mapper');
 require('mappers/racks_mapper');
