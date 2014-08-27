@@ -73,7 +73,6 @@ import com.google.inject.Injector;
 public class AmbariMetaInfoTest {
 
   private static final String STACK_NAME_HDP = "HDP";
-  private static final String STACK_NAME_XYZ = "XYZ";
   private static final String STACK_VERSION_HDP = "0.1";
   private static final String EXT_STACK_NAME = "2.0.6";
   private static final String STACK_VERSION_HDP_02 = "0.2";
@@ -89,7 +88,7 @@ public class AmbariMetaInfoTest {
   private static final String NON_EXT_VALUE = "XXX";
 
   private static final int REPOS_CNT = 3;
-  private static final int STACKS_NAMES_CNT = 2;
+  private static final int STACKS_NAMES_CNT = 1;
   private static final int PROPERTIES_CNT = 62;
   private static final int OS_CNT = 4;
 
@@ -409,7 +408,6 @@ public class AmbariMetaInfoTest {
     Set<Stack> stackNames = metaInfo.getStackNames();
     assertEquals(stackNames.size(), STACKS_NAMES_CNT);
     assertTrue(stackNames.contains(new Stack(STACK_NAME_HDP)));
-    assertTrue(stackNames.contains(new Stack(STACK_NAME_XYZ)));
   }
 
   @Test

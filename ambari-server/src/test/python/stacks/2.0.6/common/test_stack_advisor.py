@@ -26,7 +26,7 @@ class TestHDP206StackAdvisor(TestCase):
     import os
 
     testDirectory = os.path.dirname(os.path.abspath(__file__))
-    stackAdvisorPath = os.path.join(testDirectory, '../../../../../main/resources/stacks/stack_advisor.py')
+    stackAdvisorPath = os.path.join(testDirectory, '../../../../../main/resources/stacks/HDP/stack_advisor.py')
     hdp206StackAdvisorPath = os.path.join(testDirectory, '../../../../../main/resources/stacks/HDP/2.0.6/services/stack_advisor.py')
     hdp206StackAdvisorClassName = 'HDP206StackAdvisor'
     with open(stackAdvisorPath, 'rb') as fp:
