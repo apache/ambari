@@ -269,11 +269,13 @@ public class AmbariActionExecutionHelper {
                 }
               }
       );
-      LOG.debug("Ignoring action for hosts due to maintenance state." +
+      if (! ignoredHosts.isEmpty()) {
+        LOG.debug("Ignoring action for hosts due to maintenance state." +
             "Ignored hosts =" + ignoredHosts + ", component="
             + componentName + ", service=" + serviceName
             + ", cluster=" + cluster.getClusterName() + ", " +
             "actionName=" + actionContext.getActionName());
+      }
     }
 
     // If request did not specify hosts and there exists no host

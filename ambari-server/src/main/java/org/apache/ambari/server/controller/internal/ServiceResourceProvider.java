@@ -597,7 +597,10 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
     }
 
     Clusters       clusters        = controller.getClusters();
-    Set<String> maintenanceClusters = new HashSet<String>();
+
+    // We don't expect batch requests for different clusters, that's why
+    // nothing bad should happen if value is overwritten few times
+    String maintenanceCluster = null;
 
     for (ServiceRequest request : requests) {
       if (request.getClusterName() == null
@@ -653,8 +656,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
               "maintenance state to one of " + EnumSet.of(MaintenanceState.OFF, MaintenanceState.ON));
           } else {
             s.setMaintenanceState(newMaint);
-            
-            maintenanceClusters.add(cluster.getClusterName());
+            maintenanceCluster = cluster.getClusterName();
           }
         }
       }
@@ -726,9 +728,9 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
           + " changes for a set of services at the same time");
     }
     
-    if (maintenanceClusters.size() > 0) {
+    if (maintenanceCluster != null) {
       try {
-        maintenanceStateHelper.createRequests(controller, requestProperties, maintenanceClusters);
+        maintenanceStateHelper.createRequests(controller, requestProperties, maintenanceCluster);
       } catch (Exception e) {
         LOG.warn("Could not send maintenance state to Nagios (" + e.getMessage() + ")");
       }

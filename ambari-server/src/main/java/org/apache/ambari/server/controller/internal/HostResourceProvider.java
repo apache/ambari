@@ -533,7 +533,10 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
 
     AmbariManagementController controller = getManagementController();
     Clusters                   clusters   = controller.getClusters();
-    Set<String>                maintenanceClusters = new HashSet<String>();
+
+    // We don't expect batch requests for different clusters, that's why
+    // nothing bad should happen if value is overwritten few times
+    String maintenanceCluster = null;
     
     for (HostRequest request : requests) {
       if (request.getHostname() == null
@@ -582,8 +585,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
               "maintenance state to one of " + EnumSet.of(MaintenanceState.OFF, MaintenanceState.ON));
           } else {
             h.setMaintenanceState(c.getClusterId(), newState);
-            
-            maintenanceClusters.add(c.getClusterName());
+            maintenanceCluster = c.getClusterName();
           }
         }
       }
@@ -628,9 +630,9 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
       //todo: that are allowed above, should throw exception
     }
     
-    if (maintenanceClusters.size() > 0) {
+    if (maintenanceCluster != null) {
       try {
-        maintenanceStateHelper.createRequests(controller, requestProperties, maintenanceClusters);
+        maintenanceStateHelper.createRequests(controller, requestProperties, maintenanceCluster);
       } catch (Exception e) {
         LOG.warn("Could not send maintenance status to Nagios (" + e.getMessage() + ")");
       }
