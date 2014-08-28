@@ -54,7 +54,7 @@
             </configFile>
             <configFile>
               <type>env</type>
-              <fileName>zookeeper-log4j.properties</fileName>
+              <fileName>log4j.properties</fileName>
               <dictionaryName>zookeeper-log4j</dictionaryName>
             </configFile>            
           </configFiles>

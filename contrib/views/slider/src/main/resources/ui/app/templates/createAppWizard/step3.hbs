@@ -20,7 +20,13 @@
   {{t wizard.step3.header}}
 </p>
 <div {{bind-attr class="controller.isError:has-error :form-group"}}>
-  {{view Ember.TextArea id="configs-text-area" valueBinding="controller.configs" classNames="form-control"}}
+  {{#each controller.sectionKeys}}
+    {{config-section
+      section=this
+      config=controller.configs
+      predefinedConfigNames=controller.appWizardController.newApp.predefinedConfigNames
+    }}
+  {{/each}}
   {{#if controller.isError}}
     <div class="alert alert-danger">{{t wizard.step3.error}}</div>
   {{/if}}

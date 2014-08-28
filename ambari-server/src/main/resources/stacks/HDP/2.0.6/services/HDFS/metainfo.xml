@@ -103,8 +103,8 @@
             </configFile>
             <configFile>
               <type>env</type>
-              <fileName>hdfs-log4j.properties</fileName>
-              <dictionaryName>hdfs-log4j</dictionaryName>
+              <fileName>log4j.properties</fileName>
+              <dictionaryName>hdfs-log4j,yarn-log4j</dictionaryName>
             </configFile>                          
             <configFile>
               <type>env</type>

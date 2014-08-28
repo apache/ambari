@@ -20,20 +20,30 @@
  */
 -->
 
-<configuration supports_final="false">
-  <property>
-    <name>storm_user</name>
-    <value>storm</value>
-    <description></description>
-  </property>
-  <property>
-    <name>storm_log_dir</name>
-    <value>/var/log/storm</value>
-    <description></description>
-  </property>
-  <property>
-    <name>storm_pid_dir</name>
-    <value>/var/run/storm</value>
-    <description></description>
-  </property>
+<configuration>
+    <property>
+        <name>security_enabled</name>
+        <value>false</value>
+        <description>Hadoop Security</description>
+    </property>
+    <property>
+        <name>kerberos_domain</name>
+        <value>EXAMPLE.COM</value>
+        <description>Kerberos realm.</description>
+    </property>
+    <property>
+        <name>ignore_groupsusers_create</name>
+        <value>false</value>
+        <description>Whether to ignore failures on users and group creation</description>
+    </property>
+    <property>
+        <name>smokeuser</name>
+        <value>ambari-qa</value>
+        <description>User executing service checks</description>
+    </property>
+    <property>
+        <name>user_group</name>
+        <value>hadoop</value>
+        <description>Hadoop user group.</description>
+    </property>
 </configuration>

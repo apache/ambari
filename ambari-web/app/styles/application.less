@@ -4953,8 +4953,14 @@ ul.inline li {
   }
 }
 
-#config_history_flow {
+.one-story-bar {
   margin-bottom: 80px;
+}
+.two-stories-bar {
+  margin-bottom: 120px;
+}
+
+#config_history_flow {
   .version-slider {
     width: 100%;
     height: 100px;
@@ -4967,19 +4973,20 @@ ul.inline li {
         height: 90%;
       }
       .version-box .box {
-        //position: relative;
         cursor: pointer;
         width: 72%;
         height: 100%;
         background-color: #ffffff;
         border: 1px solid #dddddd;
-        font-size: @default-font-size;
+        font-size: 13px;
         .top-label {
           min-width: 20px;
           padding: 5px;
+          padding-bottom: 1px;
         }
         .content {
           padding: 0 5px;
+          line-height: 19px;
           text-align: center;
           color: #555555;
         }
@@ -4991,7 +4998,7 @@ ul.inline li {
         left: -45px;
         z-index: 1000;
         float: left;
-        min-width: 290px;
+        min-width: 300px;
         padding: 8px;
         list-style: none;
         background-color: #ffffff;
@@ -5047,18 +5054,20 @@ ul.inline li {
       }
     }
     .first {
+      width: 13%;
+      margin-left: 15px;
       .arrow-box {
         display: none;
       }
       .version-box .box {
         width: 100%;
       }
-      width: 13%;
     }
 
     .icon-chevron-box {
       margin-top: 25px;
       width: 5%;
+      cursor: pointer;
       .icon-chevron-right,
       .icon-chevron-left{
        color: #c3c3c3;
@@ -5068,6 +5077,10 @@ ul.inline li {
         color: #808080;
       }
     }
+  }
+  .version-info-bar-wrapper {
+    position: fixed;
+    z-index: 2;
   }
   .version-info-bar {
     background-image: -moz-linear-gradient(top, @top-nav-bg-color-from, @top-nav-bg-color-to);
@@ -5081,8 +5094,6 @@ ul.inline li {
     box-shadow: inset 0 0 0 rgba(0, 0, 0, 0.1), 0 1px 10px rgba(0, 0, 0, 0.1);
     margin: 5px 0;
     padding: 5px;
-    position: fixed;
-    z-index: 2;
     width: 747px;
 
     .label-wrapper {
@@ -6798,6 +6809,10 @@ i.icon-asterisks {
   width:100%;
   min-height:600px;
   border: 0;
+}
+
+.not-allowed-cursor {
+  cursor: not-allowed !important;
 }
 
 #flume-summary {

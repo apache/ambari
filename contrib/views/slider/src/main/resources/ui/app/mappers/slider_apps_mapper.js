@@ -141,7 +141,7 @@ App.SliderAppsMapper = App.Mapper.createWithMixins(App.RunPeriodically, {
         masterActiveTime.value = new Date(Date.now() - masterActiveTime.value).getHours() + "h:" + new Date(Date.now() - masterActiveTime.value).getMinutes() + "m";
       }
       if(masterStartTime){
-        masterStartTime.value = (new Date(masterStartTime.value).toUTCString());
+        masterStartTime.value = (new Date(parseInt(masterStartTime.value)).toUTCString());
       }
       apps.push(
         Ember.Object.create({

@@ -322,6 +322,15 @@ public class ViewContextImpl implements ViewContext, ViewController {
     viewRegistry.registerListener(listener, viewName, viewVersion);
   }
 
+  @Override
+  public void unregisterListener(Listener listener, String viewName) {
+    viewRegistry.unregisterListener(listener, viewName, null);
+  }
+
+  @Override
+  public void unregisterListener(Listener listener, String viewName, String viewVersion) {
+    viewRegistry.unregisterListener(listener, viewName, viewVersion);
+  }
 
   // ----- helper methods ----------------------------------------------------
 

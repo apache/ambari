@@ -1364,6 +1364,107 @@ describe('App.WizardStep3Controller', function () {
         });
       });
 
+    it('should parse umask warnings', function() {
+
+      var items = [
+        {Hosts:{host_name: 'c1', last_agent_env: {umask: 18}}},
+        {Hosts:{host_name: 'c2', last_agent_env: {umask: 1}}}
+      ];
+
+      c.parseWarnings({items: items});
+      var warnings = c.get('warnings');
+      expect(warnings.length).to.equal(1);
+      expect(warnings[0].hosts).to.eql(['c2']);
+      expect(warnings[0].onSingleHost).to.equal(true);
+
+    });
+
+    it('should parse umask warnings (2)', function() {
+
+      var items = [
+        {Hosts:{host_name: 'c1', last_agent_env: {umask: 8}}},
+        {Hosts:{host_name: 'c2', last_agent_env: {umask: 1}}}
+      ];
+
+      c.parseWarnings({items: items});
+      var warnings = c.get('warnings');
+      expect(warnings.length).to.equal(2);
+      expect(warnings.mapProperty('hosts')).to.eql([['c1'], ['c2']]);
+
+    });
+
+
+    it('should parse firewall warnings', function() {
+
+      var items = [
+        {Hosts:{host_name: 'c1', last_agent_env: {iptablesIsRunning: true}}},
+        {Hosts:{host_name: 'c2', last_agent_env: {iptablesIsRunning: false}}}
+      ];
+
+      c.parseWarnings({items: items});
+      var warnings = c.get('warnings');
+      expect(warnings.length).to.equal(1);
+      expect(warnings[0].hosts).to.eql(['c1']);
+      expect(warnings[0].onSingleHost).to.equal(true);
+
+    });
+
+    it('should parse firewall warnings (2)', function() {
+
+      var items = [
+        {Hosts:{host_name: 'c1', last_agent_env: {iptablesIsRunning: true}}},
+        {Hosts:{host_name: 'c2', last_agent_env: {iptablesIsRunning: true}}}
+      ];
+
+      c.parseWarnings({items: items});
+      var warnings = c.get('warnings');
+      expect(warnings.length).to.equal(1);
+      expect(warnings[0].hosts).to.eql(['c1','c2']);
+      expect(warnings[0].onSingleHost).to.equal(false);
+
+    });
+
+    it('should parse reverseLookup warnings', function() {
+
+      var items = [
+        {Hosts:{host_name: 'c1', last_agent_env: {reverseLookup: true}}}
+      ];
+
+      c.parseWarnings({items: items});
+      var warnings = c.get('warnings');
+      expect(warnings.length).to.equal(0);
+
+    });
+
+    it('should parse reverseLookup warnings (2)', function() {
+
+      var items = [
+        {Hosts:{host_name: 'c1', last_agent_env: {reverseLookup: false}}}
+      ];
+
+      c.parseWarnings({items: items});
+      var warnings = c.get('warnings');
+      expect(warnings.length).to.equal(1);
+      expect(warnings[0].hosts).to.eql(['c1']);
+      expect(warnings[0].onSingleHost).to.equal(true);
+
+    });
+
+    it('should parse reverseLookup warnings (3)', function() {
+
+      var items = [
+        {Hosts:{host_name: 'c1', last_agent_env: {reverseLookup: false}}},
+        {Hosts:{host_name: 'c2', last_agent_env: {reverseLookup: false}}}
+      ];
+
+      c.parseWarnings({items: items});
+      var warnings = c.get('warnings');
+      expect(warnings.length).to.equal(1);
+      expect(warnings[0].hosts).to.eql(['c1','c2']);
+      expect(warnings[0].onSingleHost).to.equal(false);
+
+    });
+
   });
 
   describe('#navigateStep', function() {
@@ -1708,6 +1809,230 @@ describe('App.WizardStep3Controller', function () {
       expect(host.get('memory')).to.equal('12345.00');
       expect(host.get('disk_info.length')).to.equal(2);
     });
+  });
+
+  describe('#getJDKName', function() {
+
+    beforeEach(function() {
+      sinon.stub($, 'ajax', Em.K);
+      sinon.stub(App, 'get', function(k) {
+        if ('testMode' === k) return false;
+        return Em.get(App, k);
+      });
+    });
+
+    afterEach(function() {
+      $.ajax.restore();
+      App.get.restore();
+    });
+
+    it('should do proper request to ambari-server', function() {
+      c.getJDKName();
+      expect($.ajax.args[0][0].type).to.contain('GET');
+      expect($.ajax.args[0][0].url).to.contain('/services/AMBARI/components/AMBARI_SERVER?fields=RootServiceComponents/properties/jdk.name,RootServiceComponents/properties/java.home,RootServiceComponents/properties/jdk_location');
+    });
+
+  });
+
+  describe('#getJDKNameSuccessCallback', function() {
+
+    it('should set proper data to controller properties', function() {
+
+      var expected = {
+          name: 'name',
+          home: 'home',
+          location: 'location'
+        },
+        data = {
+        RootServiceComponents: {
+          properties: {
+            'jdk.name': expected.name,
+            'java.home': expected.home,
+            'jdk_location': expected.location
+          }
+        }
+      };
+
+      c.getJDKNameSuccessCallback(data);
+      expect(c.get('needJDKCheckOnHosts')).to.equal(false);
+      expect(c.get('jdkLocation')).to.equal(expected.location);
+      expect(c.get('javaHome')).to.equal(expected.home);
+    });
+
+  });
+
+  describe('#doCheckJDK', function() {
+
+    beforeEach(function() {
+      sinon.stub($, 'ajax', Em.K);
+      sinon.stub(c, 'setRegistrationInProgressOnce', Em.K);
+      sinon.stub(App, 'get', function(k) {
+        if ('testMode' === k) return false;
+        return Em.get(App, k);
+      });
+    });
+
+    afterEach(function() {
+      $.ajax.restore();
+      c.setRegistrationInProgressOnce.restore();
+      App.get.restore();
+    });
+
+    it('should do proper request to the ambari-server', function() {
+
+      var bootHosts = [{name: 'n1'}, {name: 'n2'}],
+        javaHome = '/java',
+        jdkLocation = '/jdk';
+      c.reopen({
+        bootHosts: bootHosts,
+        javaHome: javaHome,
+        jdkLocation: jdkLocation
+      });
+      c.doCheckJDK();
+      var request = $.ajax.args[0][0], data = JSON.parse(request.data);
+      expect(request.type).to.equal('POST');
+      expect(request.url).to.contain('/requests');
+      expect(data.RequestInfo.parameters.java_home).to.equal(javaHome);
+      expect(data.RequestInfo.parameters.jdk_location).to.equal(jdkLocation);
+      expect(data['Requests/resource_filters'][0].hosts).to.equal('n1,n2');
+    });
+
+  });
+
+  describe('#doCheckJDKsuccessCallback', function() {
+
+    beforeEach(function() {
+      sinon.stub($, 'ajax', Em.K);
+      sinon.stub(App, 'get', function(k) {
+        if ('testMode' === k) return false;
+        return Em.get(App, k);
+      });
+    });
+
+    afterEach(function() {
+      $.ajax.restore();
+      App.get.restore();
+    });
+
+    it('should set jdkRequestIndex if data provided', function() {
+
+      var data = {
+          href: '/a/b/c'
+        },
+        expected = 'c';
+      c.set('jdkRequestIndex', null);
+      c.doCheckJDKsuccessCallback(data);
+      expect(c.get('jdkRequestIndex')).to.equal(expected);
+    });
+
+    it('should set isJDKWarningsLoaded to true if jdkCategoryWarnings is not null', function() {
+
+      var data = null,
+        expected = true;
+      c.set('isJDKWarningsLoaded', false);
+      c.set('jdkCategoryWarnings', {});
+      c.doCheckJDKsuccessCallback(data);
+      expect(c.get('isJDKWarningsLoaded')).to.equal(expected);
+    });
+
+    it('should do propert request to ambari-server', function() {
+
+      var data = null,
+        jdkRequestIndex = 'jdkRequestIndex',
+        url = '/requests/' + jdkRequestIndex + '?fields=*,tasks/Tasks/host_name,tasks/Tasks/status,tasks/Tasks/structured_out';
+      c.set('jdkRequestIndex', jdkRequestIndex);
+      c.set('jdkCategoryWarnings', null);
+      c.doCheckJDKsuccessCallback(data);
+      expect($.ajax.args[0][0].type).to.equal('GET');
+      expect($.ajax.args[0][0].url).to.contain(url);
+    });
+
+  });
+
+  describe('#doCheckJDKerrorCallback', function() {
+
+    it('should set isJDKWarningsLoaded to true', function() {
+
+      c.set('isJDKWarningsLoaded', false);
+      c.doCheckJDKerrorCallback();
+      c.set('isJDKWarningsLoaded', true);
+
+    });
+
+  });
+
+  describe('#parseJDKCheckResults', function() {
+
+    beforeEach(function() {
+      sinon.stub(c, 'doCheckJDKsuccessCallback', Em.K);
+    });
+
+    afterEach(function() {
+      c.doCheckJDKsuccessCallback.restore();
+    });
+
+    it('should set jdkCategoryWarnings to null if no data', function() {
+
+      var data = {Requests: {}};
+      c.set('jdkCategoryWarnings', {});
+      c.parseJDKCheckResults(data);
+      expect(c.get('jdkCategoryWarnings')).to.be.null;
+
+    });
+
+    it('should parse warnings (1)', function() {
+
+      var data = {
+        Requests: {
+          end_time: 1
+        },
+        tasks: []
+      };
+
+      c.set('jdkCategoryWarnings', {});
+      c.parseJDKCheckResults(data);
+      expect(c.get('jdkCategoryWarnings')).to.eql([]);
+
+    });
+
+    it('should parse warnings (2)', function() {
+
+      var data = {
+        Requests: {
+          end_time: 1
+        },
+        tasks: [
+          {
+            Tasks: {
+              host_name: 'h1',
+              structured_out: {
+                java_home_check: {
+                  exit_code: 1
+                }
+              }
+            }
+          },
+          {
+            Tasks: {
+              host_name: 'h2',
+              structured_out: {
+                java_home_check: {
+                  exit_code: 0
+                }
+              }
+            }
+          }
+        ]
+      };
+
+      c.set('jdkCategoryWarnings', {});
+      c.parseJDKCheckResults(data);
+      var result = c.get('jdkCategoryWarnings');
+      expect(result.length).to.equal(1);
+      expect(result[0].hostsNames).to.eql(['h1']);
+
+    });
+
   });
 
 });

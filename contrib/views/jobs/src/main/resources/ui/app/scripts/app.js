@@ -55,7 +55,7 @@ App.initializer({
 
     });
 
-    application.ApplicationStatusMapper.getClusterName();
+    application.ApplicationStatusMapper.getInstanceParameters();
 
   }
 });

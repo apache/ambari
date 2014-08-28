@@ -225,6 +225,7 @@ module.exports = Em.Route.extend({
     }
   }),
 
+  views: require('routes/views'),
 
   hosts: Em.Route.extend({
     route: '/hosts',

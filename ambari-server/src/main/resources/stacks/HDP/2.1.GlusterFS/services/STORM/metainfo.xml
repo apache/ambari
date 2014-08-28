@@ -21,6 +21,7 @@
   <services>
     <service>
       <name>STORM</name>
+      <displayName>Storm</displayName>
       <comment>Apache Hadoop Stream processing framework</comment>
       <version>0.9.1.2.1</version>
       <components>

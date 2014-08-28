@@ -48,6 +48,10 @@ class Test(RMFTestCase):
     self.assertResourceCalled('File', '/tmp/123/hadoop-env.sh',
                               content = InlineTemplate(self.getConfig()['configurations']['hadoop-env']['content']),
                               )
+    self.assertResourceCalled('File', '/tmp/123/log4j.properties',
+                              content = InlineTemplate(self.getConfig()['configurations']['hdfs-log4j']['content']+
+                                                       self.getConfig()['configurations']['yarn-log4j']['content']),
+                              )
     self.assertResourceCalled('Directory', '/tmp/123',
                               action = ['delete'],
                               )

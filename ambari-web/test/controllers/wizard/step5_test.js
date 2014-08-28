@@ -481,25 +481,6 @@ describe('App.WizardStep5Controller', function () {
     });
   });
 
-  describe('#submit', function () {
-    beforeEach(function () {
-      sinon.stub(App.router, 'send', Em.K);
-    });
-    afterEach(function () {
-      App.router.send.restore();
-    });
-    it('should go next if not isSubmitDisabled', function () {
-      c.reopen({submitDisabled: false});
-      c.submit();
-      expect(App.router.send.calledWith('next')).to.equal(true);
-    });
-    it('shouldn\'t go next if submitDisabled true', function () {
-      c.reopen({submitDisabled: true});
-      c.submit();
-      expect(App.router.send.called).to.equal(false);
-    });
-  });
-
   describe('#removeComponent', function () {
     var tests = Em.A([
       {

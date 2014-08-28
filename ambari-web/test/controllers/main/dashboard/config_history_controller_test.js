@@ -28,26 +28,21 @@ describe('MainConfigHistoryController', function () {
   describe('#realUrl', function () {
     it('cluster name is empty', function () {
       App.set('clusterName', '');
-      expect(controller.get('realUrl')).to.equal('/api/v1/clusters//configurations/serviceconfigversions?<parameters>fields=serviceconfigversion,user,group_id,group_name,createtime,service_name,service_config_version_note&minimal_response=true');
+      expect(controller.get('realUrl')).to.equal('/api/v1/clusters//configurations/service_config_versions?<parameters>fields=service_config_version,user,group_id,group_name,is_current,createtime,service_name,service_config_version_note&minimal_response=true');
     });
     it('cluster name is "mycluster"', function () {
       App.set('clusterName', 'mycluster');
-      expect(controller.get('realUrl')).to.equal('/api/v1/clusters/mycluster/configurations/serviceconfigversions?<parameters>fields=serviceconfigversion,user,group_id,group_name,createtime,service_name,service_config_version_note&minimal_response=true');
+      expect(controller.get('realUrl')).to.equal('/api/v1/clusters/mycluster/configurations/service_config_versions?<parameters>fields=service_config_version,user,group_id,group_name,is_current,createtime,service_name,service_config_version_note&minimal_response=true');
     });
   });
   describe('#load()', function () {
     it('', function () {
       sinon.stub(controller, 'updateTotalCounter', Em.K);
-      sinon.stub(controller, 'loadCurrentVersions', function(){
-        return {complete: Em.K};
-      });
 
       controller.load();
       expect(controller.updateTotalCounter.calledOnce).to.be.true;
-      expect(controller.loadCurrentVersions.calledOnce).to.be.true;
 
       controller.updateTotalCounter.restore();
-      controller.loadCurrentVersions.restore();
     });
   });
   describe('#loadConfigVersionsToModel()', function () {
@@ -69,16 +64,7 @@ describe('MainConfigHistoryController', function () {
       App.HttpClient.get.restore();
     });
   });
-  describe('#loadCurrentVersions()', function () {
-    it('', function () {
-      sinon.stub(App.ajax, 'send', Em.K);
 
-      controller.loadCurrentVersions();
-      expect(App.ajax.send.calledOnce).to.be.true;
-
-      App.ajax.send.restore();
-    });
-  });
   describe('#updateTotalCounter()', function () {
     it('', function () {
       sinon.stub(App.ajax, 'send', Em.K);
@@ -89,21 +75,7 @@ describe('MainConfigHistoryController', function () {
       App.ajax.send.restore();
     });
   });
-  describe('#loadCurrentVersionsSuccess()', function () {
-    it('', function () {
-      var data = {
-        Clusters: {
-          desired_serviceconfigversions: {
-            'SERVICE': {
-              serviceconfigversion: 1
-            }
-          }
-        }
-      };
-      controller.loadCurrentVersionsSuccess(data);
-      expect(App.cache['currentConfigVersions']).to.eql({SERVICE_1: true});
-    });
-  });
+
   describe('#updateTotalCounterSuccess()', function () {
     it('', function () {
       controller.updateTotalCounterSuccess({itemTotal: 1});
@@ -136,14 +108,14 @@ describe('MainConfigHistoryController', function () {
         if ('testMode' === k) return false;
         return Em.get(App, k);
       });
-      expect(controller.getUrl()).to.equal('/api/v1/clusters/mycluster/configurations/serviceconfigversions?fields=serviceconfigversion,user,group_id,group_name,createtime,service_name,service_config_version_note&minimal_response=true');
+      expect(controller.getUrl()).to.equal('/api/v1/clusters/mycluster/configurations/service_config_versions?fields=service_config_version,user,group_id,group_name,is_current,createtime,service_name,service_config_version_note&minimal_response=true');
     });
     it('query params is correct', function () {
       sinon.stub(App, 'get', function(k) {
         if ('testMode' === k) return false;
         return Em.get(App, k);
       });
-      expect(controller.getUrl({})).to.equal('/api/v1/clusters/mycluster/configurations/serviceconfigversions?paramsfields=serviceconfigversion,user,group_id,group_name,createtime,service_name,service_config_version_note&minimal_response=true');
+      expect(controller.getUrl({})).to.equal('/api/v1/clusters/mycluster/configurations/service_config_versions?paramsfields=service_config_version,user,group_id,group_name,is_current,createtime,service_name,service_config_version_note&minimal_response=true');
     });
   });
 

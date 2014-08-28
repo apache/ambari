@@ -122,9 +122,9 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    */
   submit: function () {
     if (!this.get('isSubmitDisabled')) {
+      this.setGroupedServices();
       if (this.validate()) {
         this.set('errorStack', []);
-        this.setGroupedServices();
         App.router.send('next');
       }
     }
@@ -254,27 +254,33 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    * @method serviceDependencyValidation
    */
   serviceDependencyValidation: function() {
-    var notSelectedServices = this.filterProperty('isSelected',false);
-    notSelectedServices.forEach(function(service){
-      var showWarningPopup;
-      var dependentServices =  service.get('dependentServices');
-      if (!!dependentServices) {
-        showWarningPopup = false;
-        dependentServices.forEach(function(_dependentService){
-          var dependentService = this.findProperty('serviceName', _dependentService);
-          if (dependentService && dependentService.get('isSelected') === true) {
-            showWarningPopup = true;
+    var selectedServices = this.filterProperty('isSelected',true);
+    var missingDependencies = [];
+    var missingDependenciesDisplayName = [];
+    selectedServices.forEach(function(service){
+      var requiredServices =  service.get('requiredServices');
+      if (!!requiredServices && requiredServices.length) {
+        requiredServices.forEach(function(_requiredService){
+          var requiredService = this.findProperty('serviceName', _requiredService);
+          if (requiredService && requiredService.get('isSelected') === false) {
+            if(missingDependencies.indexOf(_requiredService) == -1 ) {
+              missingDependencies.push(_requiredService);
+              missingDependenciesDisplayName.push(requiredService.get('displayNameOnSelectServicePage'));
+            }
           }
         },this);
-        if (showWarningPopup) {
-          this.addValidationError({
-            id: 'serviceCheck_' + service.get('serviceName'),
-            callback: this.needToAddServicePopup,
-            callbackParams: [{serviceName: service.get('serviceName'), selected: true}, 'serviceCheck', service.get('displayNameOnSelectServicePage')]
-          });
-        }
       }
     },this);
+    
+    if (missingDependencies.length > 0) {
+      for(var i = 0; i < missingDependencies.length; i++) {
+        this.addValidationError({
+          id: 'serviceCheck_' + missingDependencies[i],
+          callback: this.needToAddServicePopup,
+          callbackParams: [{serviceName: missingDependencies[i], selected: true}, 'serviceCheck', missingDependenciesDisplayName[i]]
+        });
+      }
+    }
   },
 
   /**

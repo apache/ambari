@@ -32,6 +32,7 @@ App.stackServiceMapper = App.QuickDataMapper.create({
     stack_version: 'stack_version',
     is_selected: 'is_selected',
     is_installed: 'is_installed',
+    required_services: 'required_services',
     service_check_supported: 'service_check_supported',
     service_components_key: 'service_components',
     service_components_type: 'array',
@@ -102,7 +103,6 @@ App.stackServiceMapper = App.QuickDataMapper.create({
         Ember.run(this, function () {
           rec.deleteRecord();
           App.store.commit();
-          rec.get('stateManager').transitionTo('loading');
         });
       }, this);
     }, this);

@@ -33,6 +33,11 @@ App.ConfigHistoryFlowView = Em.View.extend({
    * flag identify whether to show all versions or short list of them
    */
   showFullList: false,
+  compareServiceVersion: null,
+
+  showCompareVersionBar: function() {
+    return !Em.isNone(this.get('compareServiceVersion'));
+  }.property('compareServiceVersion'),
 
   isSaveDisabled: function () {
     return (this.get('controller.isSubmitDisabled') || !this.get('controller.versionLoaded'));
@@ -134,6 +139,9 @@ App.ConfigHistoryFlowView = Em.View.extend({
     App.tooltip(this.$('[data-toggle=tooltip]'),{
       placement: 'bottom'
     });
+    App.tooltip(this.$('[data-toggle=arrow-tooltip]'),{
+      placement: 'top'
+    });
   },
 
   willInsertElement: function () {
@@ -141,8 +149,15 @@ App.ConfigHistoryFlowView = Em.View.extend({
     var startIndex = 0;
 
     serviceVersions.setEach('isDisplayed', false);
-    if (serviceVersions.findProperty('isCurrent')) {
-      serviceVersions.findProperty('isCurrent').set('isDisplayed', true);
+    //set the correct version to display
+    var allCurrent = serviceVersions.filterProperty('isCurrent');
+    if (this.get('isDefaultConfigGroupSelected')) {
+      // display current in default group
+      allCurrent.findProperty('groupName', null).set('isDisplayed', true);
+    }else {
+      // display current in selected group
+      var current = allCurrent.findProperty('groupName', this.get('selectedConfigGroupName'));
+      current ? current.set('isDisplayed', true) : allCurrent.findProperty('groupName', null).set('isDisplayed', true);
     }
 
     if (serviceVersions.length > 0) {
@@ -152,7 +167,7 @@ App.ConfigHistoryFlowView = Em.View.extend({
       this.set('startIndex', startIndex);
       this.adjustFlowView();
     }
-    this.keepInfoBarAtTop()
+    this.keepInfoBarAtTop();
   },
 
   /**
@@ -165,7 +180,7 @@ App.ConfigHistoryFlowView = Em.View.extend({
     $(window).unbind('scroll');
 
     $(window).on('scroll', function (event) {
-      var infoBar = $('#config_history_flow>.version-info-bar');
+      var infoBar = $('#config_history_flow>.version-info-bar-wrapper');
       var scrollTop = $(window).scrollTop();
 
       if (infoBar.length === 0) {
@@ -213,6 +228,7 @@ App.ConfigHistoryFlowView = Em.View.extend({
     var version = event.context.get('version');
     var versionIndex = 0;
 
+    this.set('compareServiceVersion', null);
     this.get('serviceVersions').forEach(function (serviceVersion, index) {
       if (serviceVersion.get('version') === version) {
         serviceVersion.set('isDisplayed', true);
@@ -234,6 +250,7 @@ App.ConfigHistoryFlowView = Em.View.extend({
     var isDisabled = event.context ? event.context.get('isDisabled') : false;
     if (isDisabled) return;
     this.set('controller.compareServiceVersion', event.context);
+    this.set('compareServiceVersion', event.context);
     this.get('controller').onConfigGroupChange();
   },
   /**
@@ -285,8 +302,8 @@ App.ConfigHistoryFlowView = Em.View.extend({
       data: {
         data: {
           "Clusters": {
-            "desired_serviceconfigversions": {
-              "serviceconfigversion": serviceConfigVersion.get('version'),
+            "desired_service_config_versions": {
+              "service_config_version": serviceConfigVersion.get('version'),
               "service_name": serviceConfigVersion.get('serviceName'),
               "service_config_version_note": serviceConfigVersion.get('serviceConfigNote')
             }

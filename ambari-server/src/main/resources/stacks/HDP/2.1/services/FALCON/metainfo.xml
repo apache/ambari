@@ -40,6 +40,16 @@
               <fileName>falcon-env.sh</fileName>
               <dictionaryName>falcon-env</dictionaryName>
             </configFile>
+            <configFile>
+              <type>xml</type>
+              <fileName>runtime.properties</fileName>
+              <dictionaryName>falcon-runtime.properties</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>xml</type>
+              <fileName>startup.properties</fileName>
+              <dictionaryName>falcon-startup.properties</dictionaryName>
+            </configFile>
           </configFiles>
         </component>
         <component>

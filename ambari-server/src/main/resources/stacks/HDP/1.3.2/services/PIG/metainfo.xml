@@ -42,7 +42,7 @@
             </configFile>
             <configFile>
               <type>env</type>
-              <fileName>pig-log4j.properties</fileName>
+              <fileName>log4j.properties</fileName>
               <dictionaryName>pig-log4j</dictionaryName>
             </configFile>
             <configFile>

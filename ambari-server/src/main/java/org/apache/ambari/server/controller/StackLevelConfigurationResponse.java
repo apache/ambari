@@ -1,6 +1,3 @@
-<?xml version="1.0"?>
-<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
-<!--
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -18,12 +15,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
--->
 
-<configuration supports_final="false">
-  <property>
-    <name>tez_user</name>
-    <value>tez</value>
-    <description></description>
-  </property>
-</configuration>
+package org.apache.ambari.server.controller;
+
+
+import java.util.Map;
+
+public class StackLevelConfigurationResponse extends StackConfigurationResponse {
+  public StackLevelConfigurationResponse(String propertyName,
+      String propertyValue, String propertyDescription, String type,
+      Boolean isRequired, String propertyType,
+      Map<String, String> propertyAttributes) {
+    super(propertyName, propertyValue, propertyDescription, type, isRequired,
+        propertyType, propertyAttributes);
+  }
+  
+  public StackLevelConfigurationResponse(String propertyName, String propertyValue, String propertyDescription,
+      String type, Map<String, String> propertyAttributes) {
+    super(propertyName, propertyValue, propertyDescription, type, propertyAttributes);
+  }
+}

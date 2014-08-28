@@ -1138,6 +1138,7 @@ App.WizardStep3Controller = Em.Controller.extend({
    * @method repoToAgentOsType
    */
   repoToAgentOsType : function (repoType) {
+    /* istanbul ignore next */
     switch (repoType) {
       case "redhat6":
         return ["redhat6", "centos6", "oraclelinux6", "rhel6"];

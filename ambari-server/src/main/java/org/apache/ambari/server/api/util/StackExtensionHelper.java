@@ -130,6 +130,15 @@ public class StackExtensionHelper {
     stackParentsMap = getParentStacksInOrder(stackVersionMap.values());
   }
 
+  void mergeStacks(StackInfo parentStack,
+      StackInfo resultStack) {
+    if(parentStack.getConfigTypes() != null) {
+      resultStack.getConfigTypes().putAll(parentStack.getConfigTypes());
+    }
+    List<PropertyInfo> mergedProperties = new ArrayList<PropertyInfo>();
+    mergeProperties(resultStack.getProperties(), parentStack.getProperties(), mergedProperties);
+    resultStack.setProperties(mergedProperties);
+  }
 
   ServiceInfo mergeServices(ServiceInfo parentService,
                                     ServiceInfo childService) {
@@ -218,12 +227,28 @@ public class StackExtensionHelper {
 
     populateComponents(mergedServiceInfo, parentService, childService);
 
+    mergeProperties(childService.getProperties(), parentService.getProperties(), mergedServiceInfo.getProperties());
+
+    // Add all parent config dependencies
+    if (parentService.getConfigDependencies() != null && !parentService
+        .getConfigDependencies().isEmpty()) {
+      for (String configDep : parentService.getConfigDependencies()) {
+        if (!mergedServiceInfo.getConfigDependencies().contains(configDep)) {
+          mergedServiceInfo.getConfigDependencies().add(configDep);
+        }
+      }
+    }
+    return mergedServiceInfo;
+  }
+  
+  public void mergeProperties(List<PropertyInfo> childProperties, 
+      List<PropertyInfo> parentProperties, List<PropertyInfo> mergedProperties) {
     // Add child properties not deleted
     Map<String, Set<String>> deleteMap = new HashMap<String, Set<String>>();
     Map<String, Set<String>> appendMap = new HashMap<String, Set<String>>();
-    for (PropertyInfo propertyInfo : childService.getProperties()) {
+    for (PropertyInfo propertyInfo : childProperties) {
       if (!propertyInfo.isDeleted()) {
-        mergedServiceInfo.getProperties().add(propertyInfo);
+        mergedProperties.add(propertyInfo);
         if (appendMap.containsKey(propertyInfo.getName())) {
           appendMap.get(propertyInfo.getName()).add(propertyInfo.getFilename());
         } else {
@@ -242,24 +267,14 @@ public class StackExtensionHelper {
       }
     }
     // Add all parent properties
-    for (PropertyInfo parentPropertyInfo : parentService.getProperties()) {
+    for (PropertyInfo parentPropertyInfo : parentProperties) {
       if (!deleteMap.containsKey(parentPropertyInfo.getName()) && !(appendMap
           .containsKey(parentPropertyInfo.getName())
         && appendMap.get(parentPropertyInfo.getName())
           .contains(parentPropertyInfo.getFilename()))) {
-        mergedServiceInfo.getProperties().add(parentPropertyInfo);
+        mergedProperties.add(parentPropertyInfo);
       }
     }
-    // Add all parent config dependencies
-    if (parentService.getConfigDependencies() != null && !parentService
-        .getConfigDependencies().isEmpty()) {
-      for (String configDep : parentService.getConfigDependencies()) {
-        if (!mergedServiceInfo.getConfigDependencies().contains(configDep)) {
-          mergedServiceInfo.getConfigDependencies().add(configDep);
-        }
-      }
-    }
-    return mergedServiceInfo;
   }
 
 
@@ -418,6 +433,9 @@ public class StackExtensionHelper {
     while(lt.hasPrevious()) {
       StackInfo parentStack = lt.previous();
       List<ServiceInfo> serviceInfoList = parentStack.getServices();
+      
+      mergeStacks(parentStack, stackInfo);
+      
       for (ServiceInfo service : serviceInfoList) {
         ServiceInfo existingService = serviceInfoMap.get(service.getName());
         if (service.isDeleted()) {
@@ -699,6 +717,8 @@ public class StackExtensionHelper {
               File.separator + AmbariMetaInfo.RCO_FILE_NAME;
       if (new File(rcoFileLocation).exists())
         stackInfo.setRcoFileLocation(rcoFileLocation);
+      
+      setStackPropertiesFromConfigs(stackInfo);
     }
 
     try {
@@ -710,6 +730,42 @@ public class StackExtensionHelper {
       e.printStackTrace();
     }
     return stackInfo;
+  }
+  
+  private void populateStackProperties(StackInfo stackInfo, File configFile) throws JAXBException {
+    ConfigurationXml configuration = unmarshal(ConfigurationXml.class, configFile);
+    String fileName = configFile.getName();
+    stackInfo.getProperties().addAll(getProperties(configuration, fileName));
+    int extIndex = fileName.indexOf(AmbariMetaInfo.SERVICE_CONFIG_FILE_NAME_POSTFIX);
+    String configType = fileName.substring(0, extIndex);
+
+    addConfigType(stackInfo.getConfigTypes(), configType);
+    setConfigTypeAttributes(stackInfo.getConfigTypes(), configuration, configType);
+  }
+  
+  /**
+   * Get all properties from all "configs/*.xml" files. See {@see AmbariMetaInfo#SERVICE_CONFIG_FILE_NAME_POSTFIX}
+   */
+  void setStackPropertiesFromConfigs(StackInfo stackInfo) {
+    File configsFolder = new File(stackRoot.getAbsolutePath() + File
+        .separator + stackInfo.getName() + File.separator + stackInfo.getVersion()
+        + File.separator + AmbariMetaInfo.SERVICE_CONFIG_FOLDER_NAME);
+    
+    if (!configsFolder.exists() || !configsFolder.isDirectory())
+      return;
+    
+    File[] configFiles = configsFolder.listFiles(AmbariMetaInfo.FILENAME_FILTER);
+    if (configFiles != null) {
+      for (File configFile : configFiles) {
+        if (configFile.getName().endsWith(AmbariMetaInfo.SERVICE_CONFIG_FILE_NAME_POSTFIX)) {
+          try {
+            populateStackProperties(stackInfo, configFile);
+          } catch (Exception e) {
+            LOG.error("Could not load configuration for " + configFile, e);
+          }
+        }
+      }
+    }
   }
 
   private List<PropertyInfo> getProperties(ConfigurationXml configuration, String fileName) {
@@ -730,32 +786,26 @@ public class StackExtensionHelper {
     serviceInfo.getProperties().addAll(getProperties(configuration, fileName));
     int extIndex = fileName.indexOf(AmbariMetaInfo.SERVICE_CONFIG_FILE_NAME_POSTFIX);
     String configType = fileName.substring(0, extIndex);
-   
-    addConfigType(serviceInfo, configType);
-    setConfigTypeAttributes(serviceInfo, configuration, configType);
+
+    addConfigType(serviceInfo.getConfigTypes(), configType);
+    setConfigTypeAttributes(serviceInfo.getConfigTypes(), configuration, configType);
   }
   
-  void setConfigTypeAttributes(ServiceInfo serviceInfo, ConfigurationXml configuration, String configType) {
+  void setConfigTypeAttributes(Map<String, Map<String, Map<String, String>>> configTypes, ConfigurationXml configuration, String configType) {
     for (Map.Entry<QName, String> attribute : configuration.getAttributes().entrySet()) {
       for (Supports supportsProperty : Supports.values()) {
         String attributeName = attribute.getKey().getLocalPart();
         String attributeValue = attribute.getValue();
         if (attributeName.equals(supportsProperty.getXmlAttributeName())) {
-          addConfigTypeProperty(serviceInfo, configType, Supports.KEYWORD,
+          addConfigTypeProperty(configTypes, configType, Supports.KEYWORD,
               supportsProperty.getPropertyName(), Boolean.valueOf(attributeValue).toString());
         }
       }
     }
   }
   
-  void addConfigType(ServiceInfo serviceInfo, String configType) {
-    if(serviceInfo.getConfigTypes() == null) {
-      serviceInfo.setConfigTypes(new HashMap<String, Map<String, Map<String, String>>>());
-    }
-    
-    Map<String, Map<String, Map<String, String>>> configTypes = serviceInfo.getConfigTypes();
+  void addConfigType(Map<String, Map<String, Map<String, String>>> configTypes, String configType) {
     configTypes.put(configType, new HashMap<String, Map<String, String>>());
-    
     
     Map<String, Map<String, String>> properties = configTypes.get(configType);
     Map<String, String> supportsProperties = new HashMap<String, String>();
@@ -793,9 +843,8 @@ public class StackExtensionHelper {
   /**
    * Put new property entry to ServiceInfo#configTypes collection for specified configType
    */
-  void addConfigTypeProperty(ServiceInfo serviceInfo, String configType,
+  void addConfigTypeProperty(Map<String, Map<String, Map<String, String>>> configTypes, String configType,
       String propertiesGroupName, String key, String value) {
-   Map<String, Map<String, Map<String, String>>> configTypes = serviceInfo.getConfigTypes();
    if (configTypes != null && configTypes.containsKey(configType)) {
       Map<String, Map<String, String>> configDependencyProperties = configTypes.get(configType);
       if (!configDependencyProperties.containsKey(propertiesGroupName)) {

@@ -58,11 +58,46 @@ App.registerBoundHelper = function(name, view) {
 App.registerBoundHelper('formatWordBreak', Em.View.extend({
   tagName: 'span',
   template: Ember.Handlebars.compile('{{{view.result}}}'),
+  devider:'/',
 
   /**
    * @type {string}
    */
   result: function() {
-    return this.get('content') && this.get('content').replace(/\//g, '/<wbr />');
+    var d = this.get('devider');
+    var r = new RegExp('\\'+d,"g");
+    return this.get('content') && this.get('content').replace(r, d+'<wbr />');
+  }.property('content')
+}));
+
+/**
+ * Return formatted string with inserted spaces before upper case and replaced '_' to spaces
+ * Also capitalize first letter
+ *
+ * @param {String} content
+ *
+ * Examples:
+ *
+ * returns 'apple'
+ * {{humanize 'Apple'}}
+ *
+ * returns 'apple_banana'
+ * {{humanize 'Apple banana'}}
+ *
+ * returns 'apple_bananaUranium'
+ * {{humanize 'Apple banana Uranium'}}
+ */
+App.registerBoundHelper('humanize', Em.View.extend({
+
+  tagName: 'span',
+
+  template: Ember.Handlebars.compile('{{{view.result}}}'),
+
+  /**
+   * @type {string}
+   */
+  result: function() {
+    var content = this.get('content');
+    return content && (content[0].toUpperCase() + content.slice(1)).replace(/([A-Z])/g, ' $1').replace(/_/g, ' ');
   }.property('content')
 }));

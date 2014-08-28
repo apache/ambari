@@ -49,6 +49,7 @@ App.StackService = DS.Model.extend({
   isInstalled: DS.attr('boolean', {defaultValue: false}),
   serviceComponents: DS.hasMany('App.StackServiceComponent'),
   configs: DS.attr('array'),
+  requiredServices: DS.attr('array'),
 
   // Is the service a distributed filesystem
   isDFS: function () {
@@ -64,7 +65,8 @@ App.StackService = DS.Model.extend({
 
   configTypesRendered: function () {
     var configTypes = this.get('configTypes');
-    if (this.get('serviceName') == 'HDFS' || this.get('serviceName') == 'GLUSTERFS') return configTypes;
+    // if (this.get('serviceName') == 'HDFS' || this.get('serviceName') == 'GLUSTERFS') return configTypes;
+    if (this.get('serviceName') == 'HDFS') return configTypes;
     else {
       var renderedConfigTypes = $.extend(true, {}, configTypes);
       delete renderedConfigTypes['core-site'];
@@ -74,6 +76,7 @@ App.StackService = DS.Model.extend({
 
   displayNameOnSelectServicePage: function () {
     var displayName = this.get('displayName');
+    console.info("displayName = " + displayName);
     var services = this.get('coSelectedServices').slice();
     var serviceDisplayNames = services.map(function (item) {
       return App.format.role(item);
@@ -88,34 +91,6 @@ App.StackService = DS.Model.extend({
   isHiddenOnSelectServicePage: function () {
     var hiddenServices = ['MAPREDUCE2', 'HCATALOG', 'WEBHCAT'];
     return hiddenServices.contains(this.get('serviceName'));
-  }.property('serviceName'),
-
-  dependentServices: function () {
-    var serviceName = this.get('serviceName');
-    var dependentServices = [];
-    if (App.get('isHadoop2Stack')) {
-      dependentServices = App.StackService.dependency['HDP-2'][serviceName];
-    } else {
-      dependentServices = App.StackService.dependency['HDP-1'][serviceName];
-    }
-    return dependentServices;
-  }.property('serviceName'),
-
-  /**
-   * other services on which the service is dependent
-   */
-  serviceDependency: function () {
-    var serviceName = this.get('serviceName');
-    var serviceDependencyMap, key, serviceDependencies = [];
-    if (App.get('isHadoop2Stack')) {
-      serviceDependencyMap = App.StackService.dependency['HDP-2'];
-    } else {
-      serviceDependencyMap = App.StackService.dependency['HDP-1'];
-    }
-    for (key in serviceDependencyMap) {
-      if (serviceDependencyMap[key].contains(serviceName)) serviceDependencies.push(key);
-    }
-    return  serviceDependencies;
   }.property('serviceName'),
 
   // Is the service required for monitoring of other hadoop ecosystem services
@@ -222,21 +197,6 @@ App.StackService.displayOrder = [
   'STORM',
   'FLUME'
 ];
-
-App.StackService.dependency = {
-  'HDP-1': {
-    'HDFS': ['MAPREDUCE', 'HBASE', 'SQOOP'],
-    'MAPREDUCE': ['PIG', 'OOZIE', 'HIVE'],
-    'ZOOKEEPER': ['HBASE', 'HIVE', 'WEBHCAT']
-  },
-  'HDP-2': {
-    'ZOOKEEPER': ['HDFS', 'HBASE', 'HIVE', 'WEBHCAT', 'STORM'],
-    'HDFS': ['YARN', 'HBASE', 'FLUME', 'SQOOP'],
-    'YARN': ['PIG', 'OOZIE', 'HIVE', 'TEZ'],
-    'TEZ': ['YARN'],
-    'OOZIE': ['FALCON']
-  }
-};
 
 //@TODO: Write unit test for no two keys in the object should have any intersecting elements in their values
 App.StackService.coSelected = {
@@ -374,24 +334,11 @@ App.StackService.configCategories = function () {
   serviceConfigCategories.pushObject(App.ServiceConfigCategory.create({ name: 'Advanced', displayName: 'Advanced'}));
 
   var configTypes = Object.keys(this.get('configTypes'));
-  if (this.get('serviceName') !== 'HDFS') {
-    configTypes = configTypes.without('core-site');
-  }
+
   //Falcon has dependency on oozie-site but oozie-site advanced/custom section should not be shown on Falcon page
   if (this.get('serviceName') !== 'OOZIE') {
     configTypes = configTypes.without('oozie-site');
   }
-
-  //Hive has dependency on tez-site but tez-site advanced/custom section should not be shown on Hive page
-  if (this.get('serviceName') !== 'TEZ') {
-    configTypes = configTypes.without('tez-site');
-  }
-
-  //oozie has dependency on yarn-site but yarn-site advanced/custom section should not be shown on Oozie page
-  if (this.get('serviceName') !== 'YARN') {
-    configTypes = configTypes.without('yarn-site');
-  }
-
 
   // Add Advanced section for every configType to all the services
   configTypes.forEach(function (type) {

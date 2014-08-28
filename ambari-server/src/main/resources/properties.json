@@ -202,6 +202,7 @@
         "Versions/min_upgrade_version",
         "Versions/active",
         "Versions/parent_stack_version",
+        "Versions/config_types",
         "_"
     ],
     "OperatingSystem":[
@@ -459,6 +460,16 @@
         "ServiceComponentInfo/component_name",
         "ServiceComponentInfo/cluster_name",
         "HostRoles/host_name",
+        "_"
+    ],
+    "StackLevelConfiguration":[
+        "StackLevelConfigurations/stack_name",
+        "StackLevelConfigurations/stack_version",
+        "StackLevelConfigurations/property_name",
+        "StackLevelConfigurations/property_value",
+        "StackLevelConfigurations/property_description",
+        "StackLevelConfigurations/type",
+        "StackLevelConfigurations/final",
         "_"
     ]
 }

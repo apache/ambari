@@ -25,7 +25,10 @@ module.exports = {
         "display_name" : "MapReduce",
         "service_version" : "1.2.0.1.3.3.0",
         "stack_name" : "HDP",
-        "stack_version" : "1.3.2"
+        "stack_version" : "1.3.2",
+        "required_services" : [
+          "YARN"
+        ]
       },
       "serviceComponents" : [
         {
@@ -115,7 +118,10 @@ module.exports = {
               "final" : "true"
             }
           }
-        }
+        },
+        "required_services" : [
+          "OOZIE"
+        ]
       },
       "serviceComponents" : [
         {
@@ -201,7 +207,10 @@ module.exports = {
               "final" : "false"
             }
           }
-        }
+        },
+        "required_services" : [
+          "HDFS"
+        ]
       },
       "serviceComponents" : [
         {
@@ -234,6 +243,7 @@ module.exports = {
         "stack_name" : "HDP",
         "stack_version" : "2.1",
         "user_name" : null,
+        "required_services" : null,
         "config_types" : {
           "ganglia-env" : {
             "supports" : {
@@ -292,6 +302,10 @@ module.exports = {
         "stack_name" : "HDP",
         "stack_version" : "2.1",
         "user_name" : null,
+        "required_services" : [
+          "ZOOKEEPER",
+          "HDFS"
+        ],
         "config_types" : {
           "hbase-env" : {
             "supports" : {
@@ -401,6 +415,9 @@ module.exports = {
         "stack_name" : "HDP",
         "stack_version" : "2.1",
         "user_name" : null,
+        "required_services" : [
+          "HIVE"
+        ],
         "config_types" : {
           "hive-env" : {
             "supports" : {
@@ -445,6 +462,9 @@ module.exports = {
         "stack_name" : "HDP",
         "stack_version" : "2.1",
         "user_name" : null,
+        "required_services" : [
+          "ZOOKEEPER"
+        ],
         "config_types" : {
           "core-site" : {
             "supports" : {
@@ -586,6 +606,10 @@ module.exports = {
         "stack_name" : "HDP",
         "stack_version" : "2.1",
         "user_name" : null,
+        "required_services" : [
+          "ZOOKEEPER",
+          "YARN"
+        ],
         "config_types" : {
           "hive-env" : {
             "supports" : {
@@ -738,6 +762,9 @@ module.exports = {
         "stack_name" : "HDP",
         "stack_version" : "2.1",
         "user_name" : null,
+        "required_services" : [
+          "YARN"
+        ],
         "config_types" : {
           "core-site" : {
             "supports" : {
@@ -823,6 +850,7 @@ module.exports = {
         "stack_name" : "HDP",
         "stack_version" : "2.1",
         "user_name" : null,
+        "required_services" : [ ],
         "config_types" : {
           "nagios-env" : {
             "supports" : {
@@ -923,6 +951,9 @@ module.exports = {
         "stack_name" : "HDP",
         "stack_version" : "2.1",
         "user_name" : null,
+        "required_services" : [
+          "YARN"
+        ],
         "config_types" : {
           "oozie-env" : {
             "supports" : {
@@ -1045,6 +1076,9 @@ module.exports = {
         "stack_name" : "HDP",
         "stack_version" : "2.1",
         "user_name" : null,
+        "required_services" : [
+          "YARN"
+        ],
         "config_types" : {
           "pig-env" : {
             "supports" : {
@@ -1094,6 +1128,9 @@ module.exports = {
         "stack_name" : "HDP",
         "stack_version" : "2.1",
         "user_name" : null,
+        "required_services" : [
+          "HDFS"
+        ],
         "config_types" : {
           "sqoop-env" : {
             "supports" : {
@@ -1154,6 +1191,9 @@ module.exports = {
         "stack_name" : "HDP",
         "stack_version" : "2.1",
         "user_name" : null,
+        "required_services" : [
+          "ZOOKEEPER"
+        ],
         "config_types" : {
           "storm-env" : {
             "supports" : {
@@ -1273,6 +1313,9 @@ module.exports = {
         "stack_name" : "HDP",
         "stack_version" : "2.1",
         "user_name" : null,
+        "required_services" : [
+          "YARN"
+        ],
         "config_types" : {
           "tez-env" : {
             "supports" : {
@@ -1317,6 +1360,10 @@ module.exports = {
         "stack_name" : "HDP",
         "stack_version" : "2.1",
         "user_name" : null,
+        "required_services" : [
+          "HIVE",
+          "ZOOKEEPER"
+        ],
         "config_types" : {
           "webhcat-env" : {
             "supports" : {
@@ -1412,6 +1459,10 @@ module.exports = {
         "stack_name" : "HDP",
         "stack_version" : "2.1",
         "user_name" : null,
+        "required_services" : [
+          "HDFS",
+          "TEZ"
+        ],
         "config_types" : {
           "capacity-scheduler" : {
             "supports" : {
@@ -1522,6 +1573,7 @@ module.exports = {
         "stack_name" : "HDP",
         "stack_version" : "2.1",
         "user_name" : null,
+        "required_services" : [ ],
         "config_types" : {
           "zoo.cfg" : {
             "supports" : {

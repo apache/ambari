@@ -463,6 +463,17 @@
               </sources>
             </mapping>
             <mapping>
+              <directory>/var/lib/ambari-server/resources/stacks</directory>
+              <filemode>755</filemode>
+              <username>root</username>
+              <groupname>root</groupname>
+              <sources>
+                <source>
+                  <location>target/classes/stacks/stack_advisor.py</location>
+                </source>
+              </sources>
+            </mapping>
+            <mapping>
               <directory>/usr/lib/python2.6/site-packages/ambari_server</directory>
               <filemode>755</filemode>
               <username>root</username>
@@ -801,6 +812,17 @@
             <mapper>
               <type>perm</type>
               <prefix>/var/lib/ambari-server/resources/stacks/HDP</prefix>
+            </mapper>
+          </data>
+          <data>
+            <src>target/classes/stacks/stack_advisor.py</src>
+            <type>file</type>
+            <mapper>
+              <type>perm</type>
+              <prefix>/var/lib/ambari-server/resources/stacks</prefix>
+              <user>root</user>
+              <group>root</group>
+              <filemode>755</filemode>
             </mapper>
           </data>
           <data>

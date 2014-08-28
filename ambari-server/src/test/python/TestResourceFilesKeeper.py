@@ -49,7 +49,7 @@ class TestResourceFilesKeeper(TestCase):
   DUMMY_UNCHANGEABLE_PACKAGE=os.path.join(DUMMY_UNCHANGEABLE_STACK,
                                     ResourceFilesKeeper.PACKAGE_DIR)
 
-  DUMMY_UNCHANGEABLE_PACKAGE_HASH="5de50cd1b26c5ff9b6f1031b9d15fa14df1a3898"
+  DUMMY_UNCHANGEABLE_PACKAGE_HASH="3a3109ba7b01639f08e5f6e7efd0e2fe4612812c"
   DUMMY_HASH="dummy_hash"
   YA_HASH="yet_another_hash"
   SOME_PATH="some-path"

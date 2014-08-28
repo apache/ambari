@@ -364,7 +364,7 @@ public class StackExtensionHelperTest {
     replay(serviceInfo);
 
     // eval
-    helper.addConfigTypeProperty(serviceInfo, "dep", "group", "key", "value");
+    helper.addConfigTypeProperty(serviceInfo.getConfigTypes(), "dep", "group", "key", "value");
 
     // verification
     verify(serviceInfo);
@@ -382,7 +382,7 @@ public class StackExtensionHelperTest {
     serviceInfo.setConfigTypes(configTypes);
 
     // eval
-    helper.addConfigTypeProperty(serviceInfo, "dep", "group", "key", "value");
+    helper.addConfigTypeProperty(serviceInfo.getConfigTypes(), "dep", "group", "key", "value");
 
     // assert
     configTypes = serviceInfo.getConfigTypes();
@@ -408,7 +408,7 @@ public class StackExtensionHelperTest {
     serviceInfo.setConfigTypes(configTypes);
 
     // eval
-    helper.addConfigTypeProperty(serviceInfo, "no_such_dep", "group", "key", "value");
+    helper.addConfigTypeProperty(serviceInfo.getConfigTypes(), "no_such_dep", "group", "key", "value");
 
     // assert
     configTypes = serviceInfo.getConfigTypes();
@@ -433,7 +433,7 @@ public class StackExtensionHelperTest {
     serviceInfo.setConfigTypes(configTypes);
 
     // eval
-    helper.addConfigTypeProperty(serviceInfo, "dep", "group", "key", "value");
+    helper.addConfigTypeProperty(serviceInfo.getConfigTypes(), "dep", "group", "key", "value");
 
     // assert
     configTypes = serviceInfo.getConfigTypes();
@@ -522,18 +522,14 @@ public class StackExtensionHelperTest {
     // expectations
     expect(serviceInfo.getConfigTypes()).andReturn(new HashMap<String, Map<String, Map<String, String>>>()).times(2);
     expect(serviceInfo.getProperties()).andReturn(properties).times(1);
-    expect(properties.addAll((Collection) anyObject())).andReturn(true).times(1);
-    helper.addConfigTypeProperty(serviceInfo, "yarn-site", StackExtensionHelper.Supports.KEYWORD,
-        StackExtensionHelper.Supports.FINAL.getPropertyName(), "false");
-    replay(properties);
-    replay(serviceInfo);
-    replay(helper);
+    expect(properties.addAll((Collection) anyObject())).andReturn(true).times(1);    
+    replay(properties, serviceInfo);
 
     // eval
     helper.populateServiceProperties(config, serviceInfo);
 
     // verification
-    verify(properties, serviceInfo, helper);
+    verify(properties, serviceInfo);
   }
 
   @Test
@@ -543,14 +539,13 @@ public class StackExtensionHelperTest {
     StackExtensionHelper helper = new StackExtensionHelper(injector, stackRoot);
     File config = new File(stackRootStr
         + "HDP/2.1.1/services/PIG/configuration/pig-properties.xml".replaceAll("/", File.separator));
-    ServiceInfo serviceInfo = createMock(ServiceInfo.class);
-    List<PropertyInfo> properties = createNiceMock(List.class);
+    ServiceInfo serviceInfo = createNiceMock(ServiceInfo.class);
+    List<PropertyInfo> properties = createMock(List.class);
 
     // expectations
     expect(serviceInfo.getConfigTypes()).andReturn(new HashMap<String, Map<String, Map<String, String>>>()).times(2);
     expect(serviceInfo.getProperties()).andReturn(properties).times(1);
     expect(properties.addAll((Collection) anyObject())).andReturn(true).times(1);
-    expect(serviceInfo.getConfigTypes()).andReturn(null).times(1);
     replay(properties);
     replay(serviceInfo);
 

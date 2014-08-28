@@ -436,17 +436,19 @@ App.Router = Em.Router.extend({
 
     main: require('routes/main'),
 
-    views: require('routes/views'),
-
     experimental: Em.Route.extend({
       route: '/experimental',
       enter: function (router, context) {
-        
+        if (!App.get('isAdmin')) {
+          router.transitionTo("main");
+        }
       },
       connectOutlets: function (router, context) {
-        $('title').text("Ambari Experimental");
-        console.log('/experimental:connectOutlet');
-        router.get('applicationController').connectOutlet('experimental');
+        if (App.get('isAdmin')) {
+          $('title').text("Ambari Experimental");
+          console.log('/experimental:connectOutlet');
+          router.get('applicationController').connectOutlet('experimental');
+        }
       }
     }),
 

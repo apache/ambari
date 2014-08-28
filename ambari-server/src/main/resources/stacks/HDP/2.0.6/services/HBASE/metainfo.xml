@@ -98,7 +98,7 @@
             </configFile>
             <configFile>
               <type>env</type>
-              <fileName>hbase-log4j.properties</fileName>
+              <fileName>log4j.properties</fileName>
               <dictionaryName>hbase-log4j</dictionaryName>
             </configFile>            
           </configFiles>

@@ -501,6 +501,10 @@ App.ServiceConfigProperty = Ember.Object.extend({
       case 'storm.local.dir':
         this.unionAllMountPoints(isOnlyFirstOneNeeded, localDB);
         break;
+      case '*.broker.url':
+        var falconServerHost = masterComponentHostsInDB.findProperty('component', 'FALCON_SERVER').hostName;
+        this.setDefaultValue('localhost', falconServerHost);
+        break;
     }
   },
 

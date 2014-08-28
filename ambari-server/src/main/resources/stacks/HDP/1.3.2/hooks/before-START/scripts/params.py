@@ -93,8 +93,8 @@ ambari_db_rca_driver = config['hostLevelParams']['ambari_db_rca_driver']
 ambari_db_rca_username = config['hostLevelParams']['ambari_db_rca_username']
 ambari_db_rca_password = config['hostLevelParams']['ambari_db_rca_password']
 
-if 'rca_enabled' in config['configurations']['hadoop-env']:
-  rca_enabled =  config['configurations']['hadoop-env']['rca_enabled']
+if 'rca_enabled' in config['configurations']['mapred-env']:
+  rca_enabled =  config['configurations']['mapred-env']['rca_enabled']
 else:
   rca_enabled = False
 rca_disabled_prefix = "###"

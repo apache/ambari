@@ -104,6 +104,22 @@ var urls = {
     }
   },
 
+  'components_hosts': {
+    real: 'clusters/{clusterName}/hosts?host_components/HostRoles/component_name={componentName}&minimal_response=true',
+    headers: {
+      Accept : "text/plain; charset=utf-8",
+      "Content-Type": "text/plain; charset=utf-8"
+    }
+  },
+
+  'cluster_name': {
+    real: 'clusters',
+    headers: {
+      Accept : "text/plain; charset=utf-8",
+      "Content-Type": "text/plain; charset=utf-8"
+    }
+  },
+
   'metrics': {
     real: 'apps/{id}/metrics/{metric}',
     mock: '/data/metrics/metric.json'
@@ -169,6 +185,9 @@ var formatRequest = function (data) {
   }
   else {
     var prefix = App.get('urlPrefix');
+    if(Em.get(data, 'urlPrefix')){
+      var prefix = Em.get(data, 'urlPrefix');
+    }
     opt.url = prefix + formatUrl(this.real, data);
   }
 
@@ -204,8 +223,12 @@ var ajax = Em.Object.extend({
     Ember.assert('Ajax sender should be defined!', config.sender);
     Ember.assert('Invalid config.name provided - ' + config.name, urls[config.name]);
 
-    var opt = {},
-      params = {};
+    var opt = {};
+
+    // default parameters
+    var params = {
+      clusterName: App.get('clusterName')
+    };
 
     if (config.data) {
       jQuery.extend(params, config.data);
