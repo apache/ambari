@@ -65,7 +65,8 @@ App.StackService = DS.Model.extend({
 
   configTypesRendered: function () {
     var configTypes = this.get('configTypes');
-    if (this.get('serviceName') == 'HDFS' || this.get('serviceName') == 'GLUSTERFS') return configTypes;
+    // if (this.get('serviceName') == 'HDFS' || this.get('serviceName') == 'GLUSTERFS') return configTypes;
+    if (this.get('serviceName') == 'HDFS') return configTypes;
     else {
       var renderedConfigTypes = $.extend(true, {}, configTypes);
       delete renderedConfigTypes['core-site'];
@@ -75,6 +76,7 @@ App.StackService = DS.Model.extend({
 
   displayNameOnSelectServicePage: function () {
     var displayName = this.get('displayName');
+    console.info("displayName = " + displayName);
     var services = this.get('coSelectedServices').slice();
     var serviceDisplayNames = services.map(function (item) {
       return App.format.role(item);

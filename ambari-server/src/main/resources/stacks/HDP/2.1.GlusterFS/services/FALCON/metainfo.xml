@@ -20,21 +20,31 @@
   <services>
     <service>
       <name>FALCON</name>
+      <displayName>Falcon</displayName>
       <comment>Data management and processing platform</comment>
       <version>0.5.0.2.1</version>
       <components>
         <component>
           <name>FALCON_CLIENT</name>
+          <displayName>Falcon Client</displayName>
           <category>CLIENT</category>
-          <cardinality>0+</cardinality>
+          <cardinality>1+</cardinality>
           <commandScript>
             <script>scripts/falcon_client.py</script>
             <scriptType>PYTHON</scriptType>
             <timeout>600</timeout>
           </commandScript>
+          <configFiles>
+            <configFile>
+              <type>env</type>
+              <fileName>falcon-env.sh</fileName>
+              <dictionaryName>falcon-env</dictionaryName>
+            </configFile>
+          </configFiles>
         </component>
         <component>
           <name>FALCON_SERVER</name>
+          <displayName>Falcon Server</displayName>
           <category>MASTER</category>
           <cardinality>1</cardinality>
           <dependencies>
@@ -78,8 +88,11 @@
         <timeout>300</timeout>
       </commandScript>
 
+      <requiredServices>
+        <service>OOZIE</service>
+      </requiredServices>
+
       <configuration-dependencies>
-        <config-type>oozie-site</config-type>
         <config-type>falcon-env</config-type>
         <config-type>falcon-startup.properties</config-type>
         <config-type>falcon-runtime.properties</config-type>
