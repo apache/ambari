@@ -24,36 +24,30 @@ import java.util.Set;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.Resource.Type;
 
-public class StackVersionResourceDefinition extends BaseStacksResourceDefinition {
+public class StackLevelConfigurationResourceDefinition extends BaseStacksResourceDefinition {
 
-  public StackVersionResourceDefinition(Type resourceType) {
-    super(Resource.Type.StackVersion);
+  public StackLevelConfigurationResourceDefinition(Type resourceType) {
+    super(Resource.Type.StackLevelConfiguration);
   }
 
-  public StackVersionResourceDefinition() {
-    super(Resource.Type.StackVersion);
+  public StackLevelConfigurationResourceDefinition() {
+    super(Resource.Type.StackLevelConfiguration);
   }
 
   @Override
   public String getPluralName() {
-    return "versions";
+    return "configurations";
   }
 
   @Override
   public String getSingularName() {
-    return "version";
+    return "configuration";
   }
-
+  /*
   @Override
   public Set<SubResourceDefinition> getSubResourceDefinitions() {
-
     Set<SubResourceDefinition> setChildren = new HashSet<SubResourceDefinition>();
-    
-    setChildren.add(new SubResourceDefinition(Resource.Type.OperatingSystem));
-    setChildren.add(new SubResourceDefinition(Resource.Type.StackService));
-    setChildren.add(new SubResourceDefinition(Resource.Type.StackLevelConfiguration));
-
     return setChildren;
-
   }
+  */
 }

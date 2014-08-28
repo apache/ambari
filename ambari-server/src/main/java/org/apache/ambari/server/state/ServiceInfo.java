@@ -259,6 +259,7 @@ public class ServiceInfo {
   }
   
   public Map<String, Map<String, Map<String, String>>> getConfigTypes() {
+    if (configTypes == null) configTypes = new HashMap<String, Map<String, Map<String, String>>>();
     return configTypes;
   }
 

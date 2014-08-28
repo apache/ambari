@@ -141,6 +141,10 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
       case StackVersion:
         resourceDefinition = new StackVersionResourceDefinition();
         break;
+        
+      case StackLevelConfiguration:
+        resourceDefinition = new StackLevelConfigurationResourceDefinition();
+        break;
 
       case StackService:
         resourceDefinition = new StackServiceResourceDefinition();

@@ -712,5 +712,13 @@ public interface AmbariManagementController {
    * @throws AmbariException if synchronization data was invalid
    */
   public void synchronizeLdapUsersAndGroups(Set<String> users, Set<String> groups) throws AmbariException;
+
+  /**
+   * Get configurations which are specific for a cluster (!not a service).
+   * @param requests
+   * @return
+   * @throws AmbariException
+   */
+  public Set<StackConfigurationResponse> getStackLevelConfigurations(Set<StackLevelConfigurationRequest> requests) throws AmbariException;
 }
 

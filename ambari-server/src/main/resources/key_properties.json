@@ -157,5 +157,10 @@
     "Service": "ServiceComponentInfo/service_name",
     "Component": "ServiceComponentInfo/component_name",
     "Host": "HostRoles/host_name"
+  },
+  "StackLevelConfiguration": {
+    "Stack": "StackLevelConfigurations/stack_name",
+    "StackVersion": "StackLevelConfigurations/stack_version",
+    "StackLevelConfiguration": "StackLevelConfigurations/property_name"  
   }
 }
