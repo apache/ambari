@@ -17,24 +17,27 @@
  */
 package org.apache.ambari.server.state.alert;
 
-import java.util.List;
+import org.apache.ambari.server.orm.entities.AlertTargetEntity;
+import org.codehaus.jackson.annotate.JsonProperty;
+
 
 /**
  * The {@link AlertTarget} class represents a dispatch mechanism and audience
  * that will receive information about alerts int he system.
  */
 public class AlertTarget {
-  private String m_id;
+
+  private Long m_id;
   private String m_name;
   private String m_description;
   private String m_notificationType;
   private String m_properties;
-  private List<AlertGroup> m_groups;
 
   /**
    * @return the id
    */
-  public String getId() {
+  @JsonProperty("id")
+  public Long getId() {
     return m_id;
   }
 
@@ -42,13 +45,14 @@ public class AlertTarget {
    * @param id
    *          the id to set
    */
-  public void setId(String id) {
+  public void setId(Long id) {
     m_id = id;
   }
 
   /**
    * @return the name
    */
+  @JsonProperty("name")
   public String getName() {
     return m_name;
   }
@@ -64,6 +68,7 @@ public class AlertTarget {
   /**
    * @return the description
    */
+  @JsonProperty("description")
   public String getDescription() {
     return m_description;
   }
@@ -79,6 +84,7 @@ public class AlertTarget {
   /**
    * @return the notificationType
    */
+  @JsonProperty("notification_type")
   public String getNotificationType() {
     return m_notificationType;
   }
@@ -94,6 +100,7 @@ public class AlertTarget {
   /**
    * @return the properties
    */
+  @JsonProperty("properties")
   public String getProperties() {
     return m_properties;
   }
@@ -107,17 +114,17 @@ public class AlertTarget {
   }
 
   /**
-   * @return the groups
+   * @param entity
+   * @return
    */
-  public List<AlertGroup> getGroups() {
-    return m_groups;
-  }
+  public static AlertTarget coerce(AlertTargetEntity entity) {
+    AlertTarget target = new AlertTarget();
+    target.setId(entity.getTargetId());
+    target.setDescription(entity.getDescription());
+    target.setName(entity.getTargetName());
+    target.setNotificationType(entity.getNotificationType());
+    target.setProperties(entity.getProperties());
 
-  /**
-   * @param groups
-   *          the groups to set
-   */
-  public void setGroups(List<AlertGroup> groups) {
-    m_groups = groups;
+    return target;
   }
 }

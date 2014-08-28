@@ -34,7 +34,7 @@ class BaseAlert(object):
     self.alert_meta = alert_meta
     self.alert_source_meta = alert_source_meta
     self.cluster = ''
-    self.hostName = ''
+    self.host_name = ''
     self._lookup_keys = []
     
     
@@ -54,7 +54,7 @@ class BaseAlert(object):
   def set_cluster(self, cluster, host):
     ''' sets cluster information for the alert '''
     self.cluster = cluster
-    self.hostName = host
+    self.host_name = host
   
   def collect(self):
     ''' method used for collection.  defers to _collect() '''
@@ -124,3 +124,42 @@ class BaseAlert(object):
     res[1] = the list of arguments supplied to the reporting text for the result code
     '''  
     raise NotImplementedError
+
+  '''
+  See RFC3986, Appendix B
+  Tested on the following cases:
+    "192.168.54.1"
+    "192.168.54.2:7661
+    "hdfs://192.168.54.3/foo/bar"
+    "ftp://192.168.54.4:7842/foo/bar"
+
+    Returns None if only a port is passsed in
+  '''
+  @staticmethod
+  def get_host_from_url(uri):
+    # RFC3986, Appendix B
+    parts = re.findall('^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?', uri)
+
+    # index of parts
+    # scheme    = 1
+    # authority = 3
+    # path      = 4
+    # query     = 6
+    # fragment  = 8
+
+    host_and_port = uri
+    if 0 == len(parts[0][1]):
+      host_and_port = parts[0][4]
+    elif 0 == len(parts[0][2]):
+      host_and_port = parts[0][1]
+    elif parts[0][2].startswith("//"):
+      host_and_port = parts[0][3]
+
+    if -1 == host_and_port.find(':'):
+      # if no : then it might only be a port; if it's a port, return this host
+      if host_and_port.isdigit():
+        return None
+
+      return host_and_port
+    else:
+      return host_and_port.split(':')[0]

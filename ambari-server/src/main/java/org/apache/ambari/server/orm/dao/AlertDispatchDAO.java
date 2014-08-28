@@ -72,6 +72,22 @@ public class AlertDispatchDAO {
   }
 
   /**
+   * Gets all of the alert targets for the list of IDs given.
+   *
+   * @param targetIds
+   *          the IDs of the targets to retrieve.
+   * @return the targets or an empty list (never {@code null}).
+   */
+  public List<AlertTargetEntity> findTargetsById(List<Long> targetIds) {
+    TypedQuery<AlertTargetEntity> query = entityManagerProvider.get().createNamedQuery(
+        "AlertTargetEntity.findByIds", AlertTargetEntity.class);
+
+    query.setParameter("targetIds", targetIds);
+
+    return daoUtils.selectList(query);
+  }
+
+  /**
    * Gets a notification with the specified ID.
    *
    * @param noticeId
@@ -207,7 +223,7 @@ public class AlertDispatchDAO {
 
   /**
    * Persists a new alert group.
-   * 
+   *
    * @param alertGroup
    *          the group to persist (not {@code null}).
    */

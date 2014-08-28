@@ -124,6 +124,22 @@ public class AlertDefinitionDAO {
   }
 
   /**
+   * Gets all of the alert definitions for the list of IDs given.
+   * 
+   * @param definitionIds
+   *          the IDs of the definitions to retrieve.
+   * @return the definition or an empty list (never {@code null}).
+   */
+  public List<AlertDefinitionEntity> findByIds(List<Long> definitionIds) {
+    TypedQuery<AlertDefinitionEntity> query = entityManagerProvider.get().createNamedQuery(
+        "AlertDefinitionEntity.findByIds", AlertDefinitionEntity.class);
+
+    query.setParameter("definitionIds", definitionIds);
+
+    return daoUtils.selectList(query);
+  }
+
+  /**
    * Gets all alert definitions for the given service in the specified cluster.
    *
    * @param clusterId

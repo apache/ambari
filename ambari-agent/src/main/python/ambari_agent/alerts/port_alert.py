@@ -39,9 +39,11 @@ class PortAlert(BaseAlert):
   def _collect(self):
     urivalue = self._lookup_property_value(self.uri)
 
-    host = get_host_from_url(self, urivalue)
     port = self.port
-    
+    host = BaseAlert.get_host_from_url(urivalue)
+    if host is None:
+      host = self.host_name
+
     try:
       port = int(get_port_from_url(urivalue))
     except:
@@ -66,40 +68,4 @@ class PortAlert(BaseAlert):
           s.close()
         except:
           pass
-
-'''
-See RFC3986, Appendix B
-Tested on the following cases:
-  "192.168.54.1"
-  "192.168.54.2:7661
-  "hdfs://192.168.54.3/foo/bar"
-  "ftp://192.168.54.4:7842/foo/bar"
-'''    
-def get_host_from_url(self, uri):
-  # RFC3986, Appendix B
-  parts = re.findall('^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?', uri)
-
-  # index of parts
-  # scheme    = 1
-  # authority = 3
-  # path      = 4
-  # query     = 6
-  # fragment  = 8
- 
-  host_and_port = uri
-  if 0 == len(parts[0][1]):
-    host_and_port = parts[0][4]
-  elif 0 == len(parts[0][2]):
-    host_and_port = parts[0][1]
-  elif parts[0][2].startswith("//"):
-    host_and_port = parts[0][3]
-
-  if -1 == host_and_port.find(':'):
-    # if no : then it might only be a port; if it's a port, return this host
-    if host_and_port.isdigit():
-      return self.hostName
-
-    return host_and_port
-  else:
-    return host_and_port.split(':')[0]
 

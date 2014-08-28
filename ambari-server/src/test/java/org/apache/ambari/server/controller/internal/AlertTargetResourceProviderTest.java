@@ -266,7 +266,7 @@ public class AlertTargetResourceProviderTest {
     entity.setTargetId(ALERT_TARGET_ID);
     entity.setDescription(ALERT_TARGET_DESC);
     entity.setTargetName(ALERT_TARGET_NAME);
-    entity.setNotificationType(TargetType.EMAIL.name());
+    entity.setNotificationType(ALERT_TARGET_TYPE);
     return Arrays.asList(entity);
   }
 

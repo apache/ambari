@@ -17,24 +17,30 @@
  */
 package org.apache.ambari.server.controller.internal;
 
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.assertNull;
+import static junit.framework.Assert.assertTrue;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.createStrictMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.resetToStrict;
 import static org.easymock.EasyMock.verify;
-import static org.junit.Assert.assertEquals;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
+import org.apache.ambari.server.controller.AlertDefinitionResponse;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
@@ -43,13 +49,18 @@ import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.AlertDispatchDAO;
+import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.AlertGroupEntity;
+import org.apache.ambari.server.orm.entities.AlertTargetEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.alert.AlertTarget;
+import org.apache.ambari.server.state.alert.SourceType;
+import org.apache.ambari.server.state.alert.TargetType;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -69,17 +80,42 @@ public class AlertGroupResourceProviderTest {
   private static final long ALERT_GROUP_CLUSTER_ID = 1L;
   private static final String ALERT_GROUP_CLUSTER_NAME = "c1";
 
+  private static final Long ALERT_TARGET_ID = Long.valueOf(28);
+  private static final String ALERT_TARGET_NAME = "The Administrators";
+  private static final String ALERT_TARGET_DESC = "Admins and Others";
+  private static final String ALERT_TARGET_TYPE = TargetType.EMAIL.name();
+
+  private static final Long ALERT_DEF_ID = Long.valueOf(10);
+  private static final String ALERT_DEF_NAME = "Mock Definition";
+  private static final String ALERT_DEF_LABEL = "Mock Label";
+
+  private static String DEFINITION_UUID = UUID.randomUUID().toString();
+
   private AlertDispatchDAO m_dao;
+  private AlertDefinitionDAO m_definitionDao;
   private Injector m_injector;
 
+  private AmbariManagementController m_amc;
+  private Clusters m_clusters;
+  private Cluster m_cluster;
+
   @Before
-  public void before() {
-    m_dao = createStrictMock(AlertDispatchDAO.class);
+  public void before() throws Exception {
+    m_dao = createMock(AlertDispatchDAO.class);
+    m_definitionDao = createMock(AlertDefinitionDAO.class);
+
+    m_amc = createMock(AmbariManagementController.class);
+    m_clusters = createMock(Clusters.class);
+    m_cluster = createMock(Cluster.class);
 
     m_injector = Guice.createInjector(Modules.override(
         new InMemoryDefaultTestModule()).with(new MockModule()));
 
     AlertGroupResourceProvider.init(m_injector);
+
+    expect(m_amc.getClusters()).andReturn(m_clusters).atLeastOnce();
+    expect(m_clusters.getCluster((String) anyObject())).andReturn(m_cluster).atLeastOnce();
+    expect(m_cluster.getClusterId()).andReturn(Long.valueOf(1)).anyTimes();
   }
 
   /**
@@ -108,44 +144,41 @@ public class AlertGroupResourceProviderTest {
         AlertGroupResourceProvider.ALERT_GROUP_CLUSTER_NAME,
         AlertGroupResourceProvider.ALERT_GROUP_DEFAULT);
 
-    AmbariManagementController amc = createMock(AmbariManagementController.class);
-    Clusters clusters = createMock(Clusters.class);
-    Cluster cluster = createMock(Cluster.class);
-    expect(amc.getClusters()).andReturn(clusters).atLeastOnce();
-    expect(clusters.getCluster((String) anyObject())).andReturn(cluster).atLeastOnce();
-    expect(cluster.getClusterId()).andReturn(Long.valueOf(1)).anyTimes();
-
     Predicate predicate = new PredicateBuilder().property(
         AlertGroupResourceProvider.ALERT_GROUP_CLUSTER_NAME).equals("c1").toPredicate();
 
     expect(m_dao.findAllGroups(ALERT_GROUP_CLUSTER_ID)).andReturn(
         getMockEntities());
 
-    replay(amc, clusters, cluster, m_dao);
+    replay(m_amc, m_clusters, m_cluster, m_dao);
 
-    AlertGroupResourceProvider provider = createProvider(amc);
+    AlertGroupResourceProvider provider = createProvider(m_amc);
     Set<Resource> results = provider.getResources(request, predicate);
 
     assertEquals(1, results.size());
 
     Resource r = results.iterator().next();
 
-    Assert.assertEquals(ALERT_GROUP_NAME,
+    assertEquals(ALERT_GROUP_NAME,
         r.getPropertyValue(AlertGroupResourceProvider.ALERT_GROUP_NAME));
 
-    Assert.assertEquals(ALERT_GROUP_ID,
+    assertEquals(ALERT_GROUP_ID,
         r.getPropertyValue(AlertGroupResourceProvider.ALERT_GROUP_ID));
 
-    Assert.assertEquals(ALERT_GROUP_CLUSTER_NAME,
+    assertEquals(ALERT_GROUP_CLUSTER_NAME,
         r.getPropertyValue(AlertGroupResourceProvider.ALERT_GROUP_CLUSTER_NAME));
 
-    verify(amc, clusters, cluster, m_dao);
+    // verify definitions do not come back in collections
+    assertNull(r.getPropertyValue(AlertGroupResourceProvider.ALERT_GROUP_DEFINITIONS));
+
+    verify(m_amc, m_clusters, m_cluster, m_dao);
   }
 
   /**
    * @throws Exception
    */
   @Test
+  @SuppressWarnings("unchecked")
   public void testGetSingleResource() throws Exception {
     Request request = PropertyHelper.getReadRequest(
         AlertGroupResourceProvider.ALERT_GROUP_ID,
@@ -173,14 +206,27 @@ public class AlertGroupResourceProviderTest {
 
     Resource r = results.iterator().next();
 
-    Assert.assertEquals(ALERT_GROUP_NAME,
+    assertEquals(ALERT_GROUP_NAME,
         r.getPropertyValue(AlertGroupResourceProvider.ALERT_GROUP_NAME));
 
-    Assert.assertEquals(ALERT_GROUP_ID,
+    assertEquals(ALERT_GROUP_ID,
         r.getPropertyValue(AlertGroupResourceProvider.ALERT_GROUP_ID));
 
-    Assert.assertEquals(ALERT_GROUP_CLUSTER_NAME,
+    assertEquals(ALERT_GROUP_CLUSTER_NAME,
         r.getPropertyValue(AlertGroupResourceProvider.ALERT_GROUP_CLUSTER_NAME));
+
+    // verify definitions and targets are returned on single instances
+    List<AlertDefinitionResponse> definitions = (List<AlertDefinitionResponse>) r.getPropertyValue(AlertGroupResourceProvider.ALERT_GROUP_DEFINITIONS);
+    List<AlertTarget> targets = (List<AlertTarget>) r.getPropertyValue(AlertGroupResourceProvider.ALERT_GROUP_TARGETS);
+
+    assertNotNull(definitions);
+    assertNotNull(targets);
+
+    assertEquals(1, definitions.size());
+    assertEquals(ALERT_DEF_NAME, definitions.get(0).getName());
+
+    assertEquals(1, targets.size());
+    assertEquals(ALERT_TARGET_NAME, targets.get(0).getName());
 
     verify(amc, m_dao);
   }
@@ -190,21 +236,40 @@ public class AlertGroupResourceProviderTest {
    */
   @Test
   public void testCreateResources() throws Exception {
-    AmbariManagementController amc = createMock(AmbariManagementController.class);
-    Clusters clusters = createMock(Clusters.class);
-    Cluster cluster = createMock(Cluster.class);
-    expect(amc.getClusters()).andReturn(clusters).atLeastOnce();
-    expect(clusters.getCluster((String) anyObject())).andReturn(cluster).atLeastOnce();
-    expect(cluster.getClusterId()).andReturn(Long.valueOf(1)).anyTimes();
-
     Capture<List<AlertGroupEntity>> listCapture = new Capture<List<AlertGroupEntity>>();
 
+    // the definition IDs to associate with the group
+    List<Long> definitionIds = new ArrayList<Long>();
+    definitionIds.add(ALERT_DEF_ID);
+
+    // the target IDs to associate with the group
+    List<Long> targetIds = new ArrayList<Long>();
+    targetIds.add(ALERT_TARGET_ID);
+
+    // definition entities to return from DAO
+    List<AlertDefinitionEntity> definitionEntities = new ArrayList<AlertDefinitionEntity>();
+    definitionEntities.addAll(getMockDefinitions());
+
+    // target entities to return from DAO
+    List<AlertTargetEntity> targetEntities = new ArrayList<AlertTargetEntity>();
+    targetEntities.addAll(getMockTargets());
+
+    // expect create group
     m_dao.createGroups(capture(listCapture));
-    expectLastCall();
+    expectLastCall().once();
 
-    replay(amc, clusters, cluster, m_dao);
+    // expect target entity lookup for association
+    expect(m_dao.findTargetsById(EasyMock.eq(targetIds))).andReturn(
+        targetEntities).times(1);
 
-    AlertGroupResourceProvider provider = createProvider(amc);
+    // expect definition entity lookup for association
+    expect(m_definitionDao.findByIds(definitionIds)).andReturn(
+        definitionEntities).times(1);
+
+    replay(m_amc, m_clusters, m_cluster, m_dao, m_definitionDao);
+
+    AlertGroupResourceProvider provider = createProvider(m_amc);
+
     Map<String, Object> requestProps = new HashMap<String, Object>();
     requestProps.put(AlertGroupResourceProvider.ALERT_GROUP_NAME,
         ALERT_GROUP_NAME);
@@ -212,25 +277,109 @@ public class AlertGroupResourceProviderTest {
     requestProps.put(AlertGroupResourceProvider.ALERT_GROUP_CLUSTER_NAME,
         ALERT_GROUP_CLUSTER_NAME);
 
+    requestProps.put(AlertGroupResourceProvider.ALERT_GROUP_DEFINITIONS,
+        definitionIds);
+
+    requestProps.put(AlertGroupResourceProvider.ALERT_GROUP_TARGETS, targetIds);
+
     Request request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
     provider.createResources(request);
 
-    Assert.assertTrue(listCapture.hasCaptured());
+    assertTrue(listCapture.hasCaptured());
     AlertGroupEntity entity = listCapture.getValue().get(0);
-    Assert.assertNotNull(entity);
+    assertNotNull(entity);
 
-    Assert.assertEquals(ALERT_GROUP_NAME, entity.getGroupName());
-    Assert.assertEquals(ALERT_GROUP_CLUSTER_ID,
+    assertEquals(ALERT_GROUP_NAME, entity.getGroupName());
+    assertEquals(ALERT_GROUP_CLUSTER_ID,
         entity.getClusterId().longValue());
 
-    verify(amc, clusters, cluster, m_dao);
+    verify(m_amc, m_clusters, m_cluster, m_dao, m_definitionDao);
   }
 
   /**
    * @throws Exception
    */
   @Test
+  @SuppressWarnings("unchecked")
   public void testUpdateResources() throws Exception {
+    Capture<AlertGroupEntity> entityCapture = new Capture<AlertGroupEntity>();
+
+    // the definition IDs to associate with the group
+    List<Long> definitionIds = new ArrayList<Long>();
+    definitionIds.add(ALERT_DEF_ID);
+
+    // the target IDs to associate with the group
+    List<Long> targetIds = new ArrayList<Long>();
+    targetIds.add(ALERT_TARGET_ID);
+
+    // definition entities to return from DAO
+    List<AlertDefinitionEntity> definitionEntities = new ArrayList<AlertDefinitionEntity>();
+    definitionEntities.addAll(getMockDefinitions());
+
+    // target entities to return from DAO
+    List<AlertTargetEntity> targetEntities = new ArrayList<AlertTargetEntity>();
+    targetEntities.addAll(getMockTargets());
+
+    m_dao.createGroups(EasyMock.anyObject(List.class));
+    expectLastCall().times(1);
+
+    AlertGroupEntity group = new AlertGroupEntity();
+    expect(m_dao.findGroupById(ALERT_GROUP_ID)).andReturn(
+        group).times(1);
+
+    expect(m_dao.merge(capture(entityCapture))).andReturn(group).once();
+
+    // expect target entity lookup for association
+    expect(m_dao.findTargetsById(EasyMock.eq(targetIds))).andReturn(
+        targetEntities).once();
+
+    // expect definition entity lookup for association
+    expect(m_definitionDao.findByIds(definitionIds)).andReturn(
+        definitionEntities).once();
+
+    replay(m_amc, m_clusters, m_cluster, m_dao, m_definitionDao);
+
+    AlertGroupResourceProvider provider = createProvider(m_amc);
+    Map<String, Object> requestProps = new HashMap<String, Object>();
+    requestProps.put(AlertGroupResourceProvider.ALERT_GROUP_NAME,
+        ALERT_GROUP_NAME);
+
+    requestProps.put(AlertGroupResourceProvider.ALERT_GROUP_CLUSTER_NAME,
+        ALERT_GROUP_CLUSTER_NAME);
+
+    Request request = PropertyHelper.getCreateRequest(
+        Collections.singleton(requestProps), null);
+
+    provider.createResources(request);
+
+    // create new properties, and include the ID since we're not going through
+    // a service layer which would add it for us automatically
+    requestProps = new HashMap<String, Object>();
+    requestProps.put(AlertGroupResourceProvider.ALERT_GROUP_ID,
+        ALERT_GROUP_ID.toString());
+
+    String newName = ALERT_GROUP_NAME + " Foo";
+    requestProps.put(AlertGroupResourceProvider.ALERT_GROUP_NAME, newName);
+
+    requestProps.put(AlertGroupResourceProvider.ALERT_GROUP_DEFINITIONS,
+        definitionIds);
+
+    requestProps.put(AlertGroupResourceProvider.ALERT_GROUP_TARGETS, targetIds);
+
+    Predicate predicate = new PredicateBuilder().property(
+        AlertGroupResourceProvider.ALERT_GROUP_CLUSTER_NAME).equals(
+        ALERT_GROUP_CLUSTER_NAME).and().property(
+        AlertGroupResourceProvider.ALERT_GROUP_ID).equals(
+        ALERT_GROUP_ID.toString()).toPredicate();
+
+    request = PropertyHelper.getUpdateRequest(requestProps, null);
+    provider.updateResources(request, predicate);
+
+    assertTrue(entityCapture.hasCaptured());
+
+    AlertGroupEntity entity = entityCapture.getValue();
+    assertEquals(newName, entity.getGroupName());
+    verify(m_amc, m_clusters, m_cluster, m_dao, m_definitionDao);
   }
 
   /**
@@ -238,22 +387,15 @@ public class AlertGroupResourceProviderTest {
    */
   @Test
   public void testDeleteResources() throws Exception {
-    AmbariManagementController amc = createMock(AmbariManagementController.class);
-    Clusters clusters = createMock(Clusters.class);
-    Cluster cluster = createMock(Cluster.class);
-    expect(amc.getClusters()).andReturn(clusters).atLeastOnce();
-    expect(clusters.getCluster((String) anyObject())).andReturn(cluster).atLeastOnce();
-    expect(cluster.getClusterId()).andReturn(Long.valueOf(1)).anyTimes();
-
     Capture<AlertGroupEntity> entityCapture = new Capture<AlertGroupEntity>();
     Capture<List<AlertGroupEntity>> listCapture = new Capture<List<AlertGroupEntity>>();
 
     m_dao.createGroups(capture(listCapture));
     expectLastCall();
 
-    replay(amc, clusters, cluster, m_dao);
+    replay(m_amc, m_clusters, m_cluster, m_dao);
 
-    AlertGroupResourceProvider provider = createProvider(amc);
+    AlertGroupResourceProvider provider = createProvider(m_amc);
 
     Map<String, Object> requestProps = new HashMap<String, Object>();
     requestProps.put(AlertGroupResourceProvider.ALERT_GROUP_NAME,
@@ -265,9 +407,9 @@ public class AlertGroupResourceProviderTest {
     Request request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
     provider.createResources(request);
 
-    Assert.assertTrue(listCapture.hasCaptured());
+    assertTrue(listCapture.hasCaptured());
     AlertGroupEntity entity = listCapture.getValue().get(0);
-    Assert.assertNotNull(entity);
+    assertNotNull(entity);
 
     Predicate predicate = new PredicateBuilder().property(
         AlertGroupResourceProvider.ALERT_GROUP_CLUSTER_NAME).equals(
@@ -287,9 +429,9 @@ public class AlertGroupResourceProviderTest {
     provider.deleteResources(predicate);
 
     AlertGroupEntity entity1 = entityCapture.getValue();
-    Assert.assertEquals(ALERT_GROUP_ID, entity1.getGroupId());
+    assertEquals(ALERT_GROUP_ID, entity1.getGroupId());
 
-    verify(amc, clusters, cluster, m_dao);
+    verify(m_amc, m_clusters, m_cluster, m_dao);
   }
 
   /**
@@ -298,6 +440,7 @@ public class AlertGroupResourceProviderTest {
    */
   private AlertGroupResourceProvider createProvider(
       AmbariManagementController amc) {
+
     return new AlertGroupResourceProvider(
         PropertyHelper.getPropertyIds(Resource.Type.AlertGroup),
         PropertyHelper.getKeyPropertyIds(Resource.Type.AlertGroup), amc);
@@ -312,7 +455,54 @@ public class AlertGroupResourceProviderTest {
     entity.setGroupName(ALERT_GROUP_NAME);
     entity.setClusterId(ALERT_GROUP_CLUSTER_ID);
     entity.setDefault(false);
+
+    entity.setAlertTargets(getMockTargets());
+    entity.setAlertDefinitions(getMockDefinitions());
     return Arrays.asList(entity);
+  }
+
+  /**
+   * Gets some mock {@link AlertDefinitionEntity} instances.
+   *
+   * @return
+   * @throws Exception
+   */
+  private Set<AlertDefinitionEntity> getMockDefinitions() throws Exception {
+    AlertDefinitionEntity entity = new AlertDefinitionEntity();
+    entity.setClusterId(Long.valueOf(1L));
+    entity.setComponentName(null);
+    entity.setDefinitionId(ALERT_DEF_ID);
+    entity.setDefinitionName(ALERT_DEF_NAME);
+    entity.setLabel(ALERT_DEF_LABEL);
+    entity.setEnabled(true);
+    entity.setHash(DEFINITION_UUID);
+    entity.setScheduleInterval(Integer.valueOf(2));
+    entity.setServiceName(null);
+    entity.setSourceType(SourceType.METRIC.name());
+    entity.setSource(null);
+
+    Set<AlertDefinitionEntity> definitions = new HashSet<AlertDefinitionEntity>();
+    definitions.add(entity);
+
+    return definitions;
+  }
+
+  /**
+   * Gets some mock {@link AlertTargetEntity} instances.
+   *
+   * @return
+   */
+  private Set<AlertTargetEntity> getMockTargets() throws Exception {
+    AlertTargetEntity entity = new AlertTargetEntity();
+    entity.setTargetId(ALERT_TARGET_ID);
+    entity.setDescription(ALERT_TARGET_DESC);
+    entity.setTargetName(ALERT_TARGET_NAME);
+    entity.setNotificationType(ALERT_TARGET_TYPE);
+
+    Set<AlertTargetEntity> targets = new HashSet<AlertTargetEntity>();
+    targets.add(entity);
+
+    return targets;
   }
 
   /**
@@ -325,10 +515,9 @@ public class AlertGroupResourceProviderTest {
     @Override
     public void configure(Binder binder) {
       binder.bind(AlertDispatchDAO.class).toInstance(m_dao);
-      binder.bind(Clusters.class).toInstance(
-          EasyMock.createNiceMock(Clusters.class));
-      binder.bind(Cluster.class).toInstance(
-          EasyMock.createNiceMock(Cluster.class));
+      binder.bind(AlertDefinitionDAO.class).toInstance(m_definitionDao);
+      binder.bind(Clusters.class).toInstance(m_clusters);
+      binder.bind(Cluster.class).toInstance(m_cluster);
       binder.bind(ActionMetadata.class);
     }
   }

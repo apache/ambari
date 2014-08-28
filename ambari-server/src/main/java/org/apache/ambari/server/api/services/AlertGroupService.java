@@ -23,6 +23,7 @@ import java.util.Map;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -78,6 +79,15 @@ public class AlertGroupService extends BaseService {
       @Context UriInfo ui) {
     return handleRequest(headers, body, ui, Request.Type.POST,
         createAlertGroupResource(m_clusterName, null));
+  }
+
+  @PUT
+  @Produces("text/plain")
+  @Path("{groupId}")
+  public Response updateGroup(String body, @Context HttpHeaders headers,
+      @Context UriInfo ui, @PathParam("groupId") Long groupId) {
+    return handleRequest(headers, body, ui, Request.Type.PUT,
+        createAlertGroupResource(m_clusterName, groupId));
   }
 
   @DELETE

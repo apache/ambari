@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.orm.entities;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import javax.persistence.Basic;
@@ -58,7 +59,8 @@ import org.apache.ambari.server.state.alert.Scope;
     @NamedQuery(name = "AlertDefinitionEntity.findByName", query = "SELECT ad FROM AlertDefinitionEntity ad WHERE ad.definitionName = :definitionName AND ad.clusterId = :clusterId"),
     @NamedQuery(name = "AlertDefinitionEntity.findByService", query = "SELECT ad FROM AlertDefinitionEntity ad WHERE ad.serviceName = :serviceName AND ad.clusterId = :clusterId"),
     @NamedQuery(name = "AlertDefinitionEntity.findByServiceAndComponent", query = "SELECT ad FROM AlertDefinitionEntity ad WHERE ad.serviceName = :serviceName AND ad.componentName = :componentName AND ad.clusterId = :clusterId"),
-    @NamedQuery(name = "AlertDefinitionEntity.findByServiceMaster", query = "SELECT ad FROM AlertDefinitionEntity ad WHERE ad.serviceName IN :services AND ad.scope = :scope AND ad.clusterId = :clusterId") })
+    @NamedQuery(name = "AlertDefinitionEntity.findByServiceMaster", query = "SELECT ad FROM AlertDefinitionEntity ad WHERE ad.serviceName IN :services AND ad.scope = :scope AND ad.clusterId = :clusterId"),
+    @NamedQuery(name = "AlertDefinitionEntity.findByIds", query = "SELECT ad FROM AlertDefinitionEntity ad WHERE ad.definitionId IN :definitionIds") })
 public class AlertDefinitionEntity {
 
   @Id
@@ -394,6 +396,34 @@ public class AlertDefinitionEntity {
   }
 
   /**
+   * Adds the specified alert group to the groups that this definition is
+   * associated with. This is used to complement the JPA bidirectional
+   * association.
+   *
+   * @param alertGroup
+   */
+  protected void addAlertGroup(AlertGroupEntity alertGroup) {
+    if (null == alertGroups) {
+      alertGroups = new HashSet<AlertGroupEntity>();
+    }
+
+    alertGroups.add(alertGroup);
+  }
+
+  /**
+   * Removes the specified alert group to the groups that this definition is
+   * associated with. This is used to complement the JPA bidirectional
+   * association.
+   *
+   * @param alertGroup
+   */
+  protected void removeAlertGroup(AlertGroupEntity alertGroup) {
+    if (null != alertGroups) {
+      alertGroups.remove(alertGroup);
+    }
+  }
+
+  /**
    * Called before {@link EntityManager#remove(Object)} for this entity, removes
    * the non-owning relationship between definitions and groups.
    */
@@ -405,10 +435,7 @@ public class AlertDefinitionEntity {
     }
 
     for (AlertGroupEntity group : groups) {
-      Set<AlertDefinitionEntity> definitions = group.getAlertDefinitions();
-      if (null != definitions) {
-        definitions.remove(this);
-      }
+      group.removeAlertDefinition(this);
     }
   }
 

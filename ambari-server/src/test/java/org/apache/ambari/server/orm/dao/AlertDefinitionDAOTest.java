@@ -22,6 +22,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -193,6 +194,21 @@ public class AlertDefinitionDAOTest {
   }
 
   /**
+  *
+  */
+  @Test
+  public void testFindByIds() {
+    List<AlertDefinitionEntity> definitions = dao.findAll();
+    List<Long> ids = new ArrayList<Long>();
+    ids.add(definitions.get(0).getDefinitionId());
+    ids.add(definitions.get(1).getDefinitionId());
+    ids.add(99999L);
+
+    definitions = dao.findByIds(ids);
+    assertEquals(2, definitions.size());
+  }
+
+  /**
    *
    */
   @Test
@@ -260,7 +276,7 @@ public class AlertDefinitionDAOTest {
     AlertDefinitionEntity definition = helper.createAlertDefinition(clusterId);
 
     AlertGroupEntity group = helper.createAlertGroup(clusterId, null);
-    group.getAlertDefinitions().add(definition);
+    group.addAlertDefinition(definition);
     dispatchDao.merge(group);
 
     AlertHistoryEntity history = new AlertHistoryEntity();

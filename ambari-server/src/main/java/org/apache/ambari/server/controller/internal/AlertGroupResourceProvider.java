@@ -17,14 +17,17 @@
  */
 package org.apache.ambari.server.controller.internal;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.controller.AlertDefinitionResponse;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
@@ -36,11 +39,14 @@ import org.apache.ambari.server.controller.spi.Resource.Type;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.AlertDispatchDAO;
+import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.AlertGroupEntity;
 import org.apache.ambari.server.orm.entities.AlertTargetEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.alert.AlertGroup;
+import org.apache.ambari.server.state.alert.AlertTarget;
 import org.apache.commons.lang.StringUtils;
 
 import com.google.inject.Inject;
@@ -66,10 +72,14 @@ public class AlertGroupResourceProvider extends
       Arrays.asList(ALERT_GROUP_ID, ALERT_GROUP_CLUSTER_NAME));
 
   /**
-   * Group DAO
+   * Group/Target DAO
    */
-  @Inject
   private static AlertDispatchDAO s_dao;
+
+  /**
+   * Definitions DAO
+   */
+  private static AlertDefinitionDAO s_definitionDao;
 
   /**
    * Initializes the injectable members of this class with the specified
@@ -81,6 +91,7 @@ public class AlertGroupResourceProvider extends
   @Inject
   public static void init(Injector injector) {
     s_dao = injector.getInstance(AlertDispatchDAO.class);
+    s_definitionDao = injector.getInstance(AlertDefinitionDAO.class);
   }
 
   /**
@@ -156,11 +167,21 @@ public class AlertGroupResourceProvider extends
   }
 
   @Override
-  public RequestStatus updateResources(Request request, Predicate predicate)
+  public RequestStatus updateResources(final Request request,
+      Predicate predicate)
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
 
-    throw new UnsupportedOperationException();
+    modifyResources(new Command<Void>() {
+      @Override
+      public Void invoke() throws AmbariException {
+        updateAlertGroups(request.getProperties());
+        return null;
+      }
+    });
+
+    notifyUpdate(Resource.Type.AlertGroup, request, predicate);
+    return getRequestStatus(null);
   }
 
   @Override
@@ -207,6 +228,7 @@ public class AlertGroupResourceProvider extends
    * @param requestMaps
    * @throws AmbariException
    */
+  @SuppressWarnings("unchecked")
   private void createAlertGroups(Set<Map<String, Object>> requestMaps)
       throws AmbariException {
 
@@ -231,13 +253,99 @@ public class AlertGroupResourceProvider extends
           clusterName);
 
       entity.setClusterId(cluster.getClusterId());
-      entity.setDefault(false);
       entity.setGroupName(name);
+
+      // groups created through the provider are not default service groups
+      entity.setDefault(false);
+
+      // targets are not required on creation
+      if (requestMap.containsKey(ALERT_GROUP_TARGETS)) {
+        List<Long> targetIds = (List<Long>) requestMap.get(ALERT_GROUP_TARGETS);
+        Set<AlertTargetEntity> targets = new HashSet<AlertTargetEntity>();
+        targets.addAll(s_dao.findTargetsById(targetIds));
+        entity.setAlertTargets(targets);
+      }
+
+      // definitions are not required on creation
+      if (requestMap.containsKey(ALERT_GROUP_DEFINITIONS)) {
+        List<Long> definitionIds = (List<Long>) requestMap.get(ALERT_GROUP_DEFINITIONS);
+        Set<AlertDefinitionEntity> definitions = new HashSet<AlertDefinitionEntity>();
+        definitions.addAll(s_definitionDao.findByIds(definitionIds));
+        entity.setAlertDefinitions(definitions);
+      }
 
       entities.add(entity);
     }
 
     s_dao.createGroups(entities);
+  }
+
+  /**
+   * Updates existing {@link AlertGroupEntity}s with the specified properties.
+   *
+   * @param requestMaps
+   *          a set of property maps, one map for each entity.
+   * @throws AmbariException
+   *           if the entity could not be found.
+   */
+  @SuppressWarnings("unchecked")
+  private void updateAlertGroups(Set<Map<String, Object>> requestMaps)
+      throws AmbariException {
+
+    for (Map<String, Object> requestMap : requestMaps) {
+      String stringId = (String) requestMap.get(ALERT_GROUP_ID);
+
+      if( StringUtils.isEmpty(stringId)){
+        throw new IllegalArgumentException("The ID of the alert group is required when updating an existing group");
+      }
+
+      long id = Long.parseLong(stringId);
+      AlertGroupEntity entity = s_dao.findGroupById(id);
+
+      if( null == entity ){
+        String message = MessageFormat.format("The alert group with ID {0} could not be found", id);
+        throw new AmbariException(message);
+      }
+
+      String name = (String) requestMap.get(ALERT_GROUP_NAME);
+
+      // empty arrays are deserialized as HashSet while populated arrays
+      // are deserialized as ArrayList; use Collection for safety
+      Collection<Long> targetIds = (Collection<Long>) requestMap.get(ALERT_GROUP_TARGETS);
+      Collection<Long> definitionIds = (Collection<Long>) requestMap.get(ALERT_GROUP_DEFINITIONS);
+
+      if (!StringUtils.isBlank(name)) {
+        entity.setGroupName(name);
+      }
+
+      // if targets were supplied, replace existing
+      Set<AlertTargetEntity> targets = new HashSet<AlertTargetEntity>();
+      if (null != targetIds && targetIds.size() > 0) {
+        List<Long> ids = new ArrayList<Long>(targetIds.size());
+        ids.addAll(targetIds);
+        targets.addAll(s_dao.findTargetsById(ids));
+
+        entity.setAlertTargets(targets);
+      } else if (targetIds.size() == 0) {
+        // empty array supplied, clear out existing targets
+        entity.setAlertTargets(targets);
+      }
+
+      // if definitions were supplied, replace existing
+      Set<AlertDefinitionEntity> definitions = new HashSet<AlertDefinitionEntity>();
+      if (null != definitionIds && definitionIds.size() > 0) {
+        List<Long> ids = new ArrayList<Long>(definitionIds.size());
+        ids.addAll(definitionIds);
+        definitions.addAll(s_definitionDao.findByIds(ids));
+
+        entity.setAlertDefinitions(definitions);
+      } else if (definitionIds.size() == 0) {
+        // empty array supplied, clear out existing definitions
+        entity.setAlertDefinitions(definitions);
+      }
+
+      s_dao.merge(entity);
+    }
   }
 
   /**
@@ -259,9 +367,31 @@ public class AlertGroupResourceProvider extends
     resource.setProperty(ALERT_GROUP_ID, entity.getGroupId());
     resource.setProperty(ALERT_GROUP_NAME, entity.getGroupName());
     resource.setProperty(ALERT_GROUP_CLUSTER_NAME, clusterName);
+    resource.setProperty(ALERT_GROUP_DEFAULT, entity.isDefault());
 
-    setResourceProperty(resource, ALERT_GROUP_DEFAULT,
-        entity.isDefault(), requestedIds);
+    if( !isCollection ){
+      Set<AlertTargetEntity> targetEntities = entity.getAlertTargets();
+      Set<AlertDefinitionEntity> definitions = entity.getAlertDefinitions();
+
+      List<AlertTarget> targets = new ArrayList<AlertTarget>(
+          targetEntities.size());
+
+      List<AlertDefinitionResponse> definitionList = new ArrayList<AlertDefinitionResponse>(
+          definitions.size());
+
+      for (AlertTargetEntity targetEntity : targetEntities) {
+        AlertTarget target = AlertTarget.coerce(targetEntity);
+        targets.add(target);
+      }
+
+      for (AlertDefinitionEntity definition : definitions) {
+        AlertDefinitionResponse response = AlertDefinitionResponse.coerce(definition);
+        definitionList.add(response);
+      }
+
+      resource.setProperty(ALERT_GROUP_DEFINITIONS, definitionList);
+      resource.setProperty(ALERT_GROUP_TARGETS, targets);
+    }
 
     return resource;
   }

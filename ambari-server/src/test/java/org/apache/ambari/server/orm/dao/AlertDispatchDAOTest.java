@@ -23,6 +23,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -56,7 +57,7 @@ public class AlertDispatchDAOTest {
   OrmTestHelper helper;
 
   /**
-   * 
+   *
    */
   @Before
   public void setup() throws Exception {
@@ -92,7 +93,7 @@ public class AlertDispatchDAOTest {
   }
 
   /**
-   * 
+   *
    */
   @Test
   public void testFindAllTargets() throws Exception {
@@ -102,7 +103,24 @@ public class AlertDispatchDAOTest {
   }
 
   /**
-   * 
+   * @throws Exception
+   */
+  public void testFindTargetsByIds() throws Exception {
+    List<AlertTargetEntity> targets = dao.findAllTargets();
+    assertNotNull(targets);
+    assertEquals(5, targets.size());
+
+    List<Long> ids = new ArrayList<Long>();
+    ids.add(targets.get(0).getTargetId());
+    ids.add(targets.get(1).getTargetId());
+    ids.add(99999L);
+
+    targets = dao.findTargetsById(ids);
+    assertEquals(2, targets.size());
+  }
+
+  /**
+   *
    */
   @Test
   public void testFindTargetByName() throws Exception {
@@ -115,7 +133,7 @@ public class AlertDispatchDAOTest {
   }
 
   /**
-   * 
+   *
    */
   @Test
   public void testFindAllGroups() throws Exception {
@@ -125,7 +143,7 @@ public class AlertDispatchDAOTest {
   }
 
   /**
-   * 
+   *
    */
   @Test
   public void testFindGroupByName() throws Exception {
@@ -140,7 +158,7 @@ public class AlertDispatchDAOTest {
   }
 
   /**
-   * 
+   *
    */
   @Test
   public void testCreateGroup() throws Exception {
@@ -159,7 +177,7 @@ public class AlertDispatchDAOTest {
   }
 
   /**
-   * 
+   *
    */
   @Test
   public void testGroupDefinitions() throws Exception {
@@ -170,7 +188,10 @@ public class AlertDispatchDAOTest {
     group = dao.findGroupById(group.getGroupId());
     assertNotNull(group);
 
-    group.getAlertDefinitions().addAll(definitions);
+    for (AlertDefinitionEntity definition : definitions) {
+      group.addAlertDefinition(definition);
+    }
+
     dao.merge(group);
 
     group = dao.findGroupByName(group.getGroupName());
@@ -193,7 +214,7 @@ public class AlertDispatchDAOTest {
   }
 
   /**
-   * 
+   *
    */
   @Test
   public void testCreateTarget() throws Exception {
@@ -222,12 +243,12 @@ public class AlertDispatchDAOTest {
   }
 
   /**
-   * 
+   *
    */
   @Test
   public void testDeleteGroup() throws Exception {
-    int targetCount = dao.findAllTargets().size();    
-    
+    int targetCount = dao.findAllTargets().size();
+
     AlertGroupEntity group = helper.createAlertGroup(clusterId, null);
     AlertTargetEntity target = helper.createAlertTarget();
     assertEquals(targetCount + 1, dao.findAllTargets().size());
@@ -255,7 +276,7 @@ public class AlertDispatchDAOTest {
   }
 
   /**
-   * 
+   *
    */
   @Test
   public void testDeleteTarget() throws Exception {
@@ -270,7 +291,7 @@ public class AlertDispatchDAOTest {
   }
 
   /**
-   * 
+   *
    */
   @Test
   public void testDeleteAssociatedTarget() throws Exception {
@@ -298,7 +319,7 @@ public class AlertDispatchDAOTest {
   }
 
   /**
-   * 
+   *
    */
   @Test
   public void testUpdateGroup() throws Exception {
@@ -319,8 +340,6 @@ public class AlertDispatchDAOTest {
 
     assertEquals(groupName + "FOO", group.getGroupName());
     assertEquals(true, group.isDefault());
-    assertNotNull(group.getAlertDefinitions());
-    assertNotNull(group.getAlertTargets());
     assertEquals(0, group.getAlertDefinitions().size());
     assertEquals(0, group.getAlertTargets().size());
 
