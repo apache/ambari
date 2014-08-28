@@ -258,10 +258,13 @@ class Script(object):
                   configuration_attributes=params.config['configuration_attributes'][dict],
         )
     for file_dict in env_configs_list:
-      for filename,dict in file_dict.iteritems():
+      for filename,dicts in file_dict.iteritems():
+        content = ''
+        for dict in dicts.split(','):
+          if dict.strip() in params.config['configurations']:
+            content += params.config['configurations'][dict.strip()]['content']
         File(os.path.join(conf_tmp_dir, filename),
-             content=InlineTemplate(params.config['configurations'][dict]['content'])
-        )
+             content=InlineTemplate(content))
     with closing(tarfile.open(output_filename, "w:gz")) as tar:
       tar.add(conf_tmp_dir, arcname=os.path.basename("."))
       tar.close()
