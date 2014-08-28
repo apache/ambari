@@ -347,6 +347,50 @@ App.ClusterController = Em.Controller.extend({
     }, callback)
   },
 
+  loadAmbariViews: function () {
+    App.ajax.send({
+      name: 'views.info',
+      sender: this,
+      success: 'loadAmbariViewsSuccess'
+    });
+  },
+
+  loadAmbariViewsSuccess: function (data) {
+    if (data.items.length) {
+      App.ajax.send({
+        name: 'views.instances',
+        sender: this,
+        success: 'loadViewInstancesSuccess'
+      });
+    } else {
+      this.set('ambariViews', []);
+    }
+  },
+
+  loadViewInstancesSuccess: function (data) {
+    this.set('ambariViews', []);
+    var self = this;
+    data.items.forEach(function (view) {
+      view.versions.forEach(function (version) {
+        version.instances.forEach(function (instance) {
+          var current_instance = Em.Object.create({
+            iconPath: instance.ViewInstanceInfo.icon_path || "/img/ambari-view-default.png",
+            label: instance.ViewInstanceInfo.label || version.ViewVersionInfo.label || instance.ViewInstanceInfo.view_name,
+            visible: instance.ViewInstanceInfo.visible || false,
+            version: instance.ViewInstanceInfo.version,
+            description: instance.ViewInstanceInfo.description || Em.I18n.t('views.main.instance.noDescription'),
+            viewName: instance.ViewInstanceInfo.view_name,
+            instanceName: instance.ViewInstanceInfo.instance_name,
+            href: instance.ViewInstanceInfo.context_path
+          });
+          if( current_instance.visible){
+            self.get('ambariViews').pushObject(current_instance);
+          }
+        }, this);
+      }, this);
+    }, this);
+  },
+
   /**
    *
    * @param callback
