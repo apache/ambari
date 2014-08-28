@@ -36,11 +36,11 @@ class TestPackageResource(TestCase):
       )
     call_mock.assert_has_calls([call("dpkg --get-selections some_package | grep -v deinstall"),
                                 call("DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get -q -o Dpkg::Options::='--force-confdef'"
-                                      " --allow-unauthenticated --assume-yes install some_package")
+                                      " --allow-unauthenticated --assume-yes install some_package"),
+                                call("apt-get update -qq")
                               ])
     
-    shell_mock.assert_has_calls([call("apt-get update -qq"),
-                                call("DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get -q -o Dpkg::Options::='--force-confdef' --allow-unauthenticated --assume-yes install some_package")
+    shell_mock.assert_has_calls([call("DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get -q -o Dpkg::Options::='--force-confdef' --allow-unauthenticated --assume-yes install some_package")
                               ])
   
   @patch.object(shell, "call")

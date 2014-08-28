@@ -19,7 +19,9 @@
 package org.apache.ambari.server.state;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.ambari.server.controller.StackVersionResponse;
 
@@ -32,6 +34,9 @@ public class StackInfo implements Comparable<StackInfo>{
   private List<RepositoryInfo> repositories;
   private List<ServiceInfo> services;
   private String parentStackVersion;
+  // stack-level properties
+  private List<PropertyInfo> properties;
+  private Map<String, Map<String, Map<String, String>>> configTypes;
 
   /**
    * Meaning: stores subpath from stack root to exact hooks folder for stack. These hooks are
@@ -71,6 +76,25 @@ public class StackInfo implements Comparable<StackInfo>{
 
   public synchronized void setServices(List<ServiceInfo> services) {
     this.services = services;
+  }
+  
+  public List<PropertyInfo> getProperties() {
+    if (properties == null) properties = new ArrayList<PropertyInfo>();
+    return properties;
+  }
+
+  public void setProperties(List<PropertyInfo> properties) {
+    this.properties = properties;
+  }
+  
+  public Map<String, Map<String, Map<String, String>>> getConfigTypes() {
+    if (configTypes == null) configTypes = new HashMap<String, Map<String, Map<String, String>>>();
+    return configTypes;
+  }
+
+  public void setConfigTypes(
+      Map<String, Map<String, Map<String, String>>> configTypes) {
+    this.configTypes = configTypes;
   }
 
   @Override
@@ -117,7 +141,7 @@ public class StackInfo implements Comparable<StackInfo>{
   public StackVersionResponse convertToResponse() {
 
     return new StackVersionResponse(getVersion(), getMinUpgradeVersion(),
-      isActive(), getParentStackVersion());
+      isActive(), getParentStackVersion(), getConfigTypes());
   }
 
   public String getMinUpgradeVersion() {

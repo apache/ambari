@@ -895,7 +895,6 @@ public class QueryImpl implements Query, ResourceInstance {
         mapTemporalInfo.put(propertyId, globalTemporalInfo);
       }
     }
-
     return PropertyHelper.getReadRequest(setProperties, requestInfoProperties, mapTemporalInfo);
   }
 

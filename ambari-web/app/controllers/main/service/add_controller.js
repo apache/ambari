@@ -391,18 +391,20 @@ App.AddServiceController = App.WizardController.extend({
    */
   installAdditionalClients: function () {
     this.get('content.additionalClients').forEach(function (c) {
-      var queryStr = 'HostRoles/component_name='+ c.componentName + '&HostRoles/host_name.in(' + c.hostNames.join() + ')';
-      App.ajax.send({
-        name: 'common.host_component.update',
-        sender: this,
-        data: {
-          query: queryStr,
-          context: 'Install ' + App.format.role(c.componentName),
-          HostRoles: {
-            state: 'INSTALLED'
+      if (c.hostNames.length > 0) {
+        var queryStr = 'HostRoles/component_name='+ c.componentName + '&HostRoles/host_name.in(' + c.hostNames.join() + ')';
+        App.ajax.send({
+          name: 'common.host_component.update',
+          sender: this,
+          data: {
+            query: queryStr,
+            context: 'Install ' + App.format.role(c.componentName),
+            HostRoles: {
+              state: 'INSTALLED'
+            }
           }
-        }
-      });
+        });
+      }
     }, this);
   }
 });

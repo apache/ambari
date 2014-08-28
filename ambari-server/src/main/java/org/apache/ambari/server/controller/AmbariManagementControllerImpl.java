@@ -3286,6 +3286,50 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
     return response;
   }
+  
+  @Override
+  public Set<StackConfigurationResponse> getStackLevelConfigurations(
+      Set<StackLevelConfigurationRequest> requests) throws AmbariException {
+    Set<StackConfigurationResponse> response = new HashSet<StackConfigurationResponse>();
+    for (StackLevelConfigurationRequest request : requests) {
+
+      String stackName    = request.getStackName();
+      String stackVersion = request.getStackVersion();
+      
+      Set<StackConfigurationResponse> stackConfigurations = getStackLevelConfigurations(request);
+
+      for (StackConfigurationResponse stackConfigurationResponse : stackConfigurations) {
+        stackConfigurationResponse.setStackName(stackName);
+        stackConfigurationResponse.setStackVersion(stackVersion);
+      }
+
+      response.addAll(stackConfigurations);
+    }
+
+    return response;
+  }
+
+  private Set<StackConfigurationResponse> getStackLevelConfigurations(
+      StackLevelConfigurationRequest request) throws AmbariException {
+
+    Set<StackConfigurationResponse> response = new HashSet<StackConfigurationResponse>();
+
+    String stackName = request.getStackName();
+    String stackVersion = request.getStackVersion();
+    String propertyName = request.getPropertyName();
+
+    Set<PropertyInfo> properties;
+    if (propertyName != null) {
+      properties = ambariMetaInfo.getStackPropertiesByName(stackName, stackVersion, propertyName);
+    } else {
+      properties = ambariMetaInfo.getStackProperties(stackName, stackVersion);
+    }
+    for (PropertyInfo property: properties) {
+      response.add(property.convertToResponse());
+    }
+
+    return response;
+  }
 
   @Override
   public Set<StackConfigurationResponse> getStackConfigurations(

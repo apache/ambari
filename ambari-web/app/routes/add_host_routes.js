@@ -154,11 +154,13 @@ module.exports = App.WizardRoute.extend({
     next: function (router, context) {
       var addHostController = router.get('addHostController');
       var wizardStep3Controller = router.get('wizardStep3Controller');
+      var wizardStep6Controller = router.get('wizardStep6Controller');
       addHostController.saveConfirmedHosts(wizardStep3Controller);
       addHostController.saveClients();
 
       addHostController.setDBProperty('bootStatus', true);
       addHostController.setDBProperty('slaveComponentHosts', undefined);
+      wizardStep6Controller.set('isClientsSet', false);
       router.transitionTo('step3');
     },
     /**

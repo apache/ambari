@@ -1285,11 +1285,13 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
           }, this);
         }, this);
         hostNames = hostNames.uniq();
-        this.get('content.additionalClients').pushObject({hostNames: hostNames, componentName: _clientName});
-        // If a dependency for being co-hosted is derived between existing client and selected new master but that
-        // dependency is already satisfied in the cluster then disregard the derived dependency
-        this.removeClientsFromList(_clientName, hostNames);
-        this.registerHostsToComponent(hostNames, _clientName);
+        if (hostNames.length > 0) {
+          this.get('content.additionalClients').pushObject({hostNames: hostNames, componentName: _clientName});
+          // If a dependency for being co-hosted is derived between existing client and selected new master but that
+          // dependency is already satisfied in the cluster then disregard the derived dependency
+          this.removeClientsFromList(_clientName, hostNames);
+          this.registerHostsToComponent(hostNames, _clientName);
+        }
       }
     }, this);
   },
