@@ -24,11 +24,13 @@ Em.I18n.translations = {
   'no': 'No',
 
   'common' : {
+    'add': 'Add',
     'show': 'Show',
     'actions': 'Actions',
     'cancel': 'Cancel',
     'name': "Name",
     'back': "Back",
+    'delete': 'Delete',
     'value': "Value",
     'next': "Next",
     'quickLinks': "Quick Links",
@@ -57,6 +59,10 @@ Em.I18n.translations = {
   'tableView.filters.showAll': 'Show All',
   'tableView.filters.clearSelection': 'clear selection All',
   'tableView.filters.noItems' : 'There are no items to show',
+
+  'configs.add_property': 'Add Property',
+  'configs.add_property.invalid_name': 'Config name should consists only of letters, numbers, \'-\', \'_\', \'.\' and first character should be a letter.',
+  'configs.add_property.name_exists': 'Config name already exists',
 
   'slider.apps.title': 'Slider Apps',
   'slider.apps.create': 'Create App',

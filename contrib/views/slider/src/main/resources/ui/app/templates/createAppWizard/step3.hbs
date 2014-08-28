@@ -21,7 +21,11 @@
 </p>
 <div {{bind-attr class="controller.isError:has-error :form-group"}}>
   {{#each controller.sectionKeys}}
-    {{config-section section=this config=controller.configs}}
+    {{config-section
+      section=this
+      config=controller.configs
+      predefinedConfigNames=controller.appWizardController.newApp.predefinedConfigNames
+    }}
   {{/each}}
   {{#if controller.isError}}
     <div class="alert alert-danger">{{t wizard.step3.error}}</div>

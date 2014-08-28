@@ -171,6 +171,7 @@ App.CreateAppWizardStep1Controller = Ember.Controller.extend({
     newApp.set('appType', this.get('selectedType'));
     newApp.set('name', this.get('newAppName'));
     newApp.set('configs', this.get('selectedType.configs'));
+    newApp.set('predefinedConfigNames', Em.keys(this.get('selectedType.configs')));
     this.set('appWizardController.newApp', newApp);
   },
 

@@ -49,15 +49,36 @@ App.CreateAppWizardController = Ember.ObjectController.extend({
   /**
    * Proceed user to selected step
    * @param {number} step step's number
-   * @param {bool} fromNextButon is user came from "Next"-button click
+   * @param {bool} fromNextButton is user came from "Next"-button click
    * @method gotoStep
    */
-  gotoStep: function (step, fromNextButon) {
-    if (step > this.get('TOTAL_STEPS_NUMBER') || step < 1 || (!fromNextButon && step > this.get('currentStep'))) {
+  gotoStep: function (step, fromNextButton) {
+    if (step > this.get('TOTAL_STEPS_NUMBER') || step < 1 || (!fromNextButton && step > this.get('currentStep'))) {
       return;
     }
     this.set('currentStep', step);
+
+    if (step == 1) {
+      this.dropCustomConfigs();
+    }
     this.transitionToRoute('createAppWizard.step' + step);
+  },
+
+  /**
+   * Custom configs added by used should be dropped if user come back to the 1st step
+   * @method dropCustomConfigs
+   */
+  dropCustomConfigs: function() {
+    var configs = this.get('newApp.configs'),
+      predefined = this.get('newApp.predefinedConfigNames'),
+      filtered = {};
+    if (!configs) return;
+    Em.keys(configs).forEach(function(name) {
+      if (predefined.contains(name)) {
+        filtered[name] = configs[name];
+      }
+    });
+    this.set('newApp.configs', filtered);
   },
 
   /**

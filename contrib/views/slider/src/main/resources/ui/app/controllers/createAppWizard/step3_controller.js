@@ -31,19 +31,19 @@ App.CreateAppWizardStep3Controller = Ember.ObjectController.extend({
   configs: Em.A(),
 
   /**
-   * Convert configs to array of uniq section names
-   * @return {Array}
+   * Convert configs to array of unique section names
+   * @type {Array}
    */
-  sectionKeys:function () {
+  sectionKeys: function () {
     var configs = this.get('newAppConfigs') || {},
-        k = ["general"];
+      k = ["general"];
 
     Object.keys(configs).forEach(function (key) {
       if (key.split('.')[0] == "site") {
         k.push(key.split('.')[1])
       }
     });
-
+    k.push('custom');
     return k.uniq();
   }.property('newAppConfigs'),
 
@@ -111,7 +111,7 @@ App.CreateAppWizardStep3Controller = Ember.ObjectController.extend({
     try {
       configs.forEach(function (item) {
         configsObject[item.name] = item.value;
-      })
+      });
       self.set('configsObject', configsObject);
     } catch (e) {
       self.set('isError', true);
@@ -129,6 +129,7 @@ App.CreateAppWizardStep3Controller = Ember.ObjectController.extend({
   },
 
   actions: {
+
     /**
      * If <code>configs</code> is valid, than save it and proceed to the next step
      */
