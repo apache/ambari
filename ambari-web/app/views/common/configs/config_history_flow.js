@@ -139,6 +139,9 @@ App.ConfigHistoryFlowView = Em.View.extend({
     App.tooltip(this.$('[data-toggle=tooltip]'),{
       placement: 'bottom'
     });
+    App.tooltip(this.$('[data-toggle=arrow-tooltip]'),{
+      placement: 'top'
+    });
   },
 
   willInsertElement: function () {

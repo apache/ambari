@@ -19,7 +19,8 @@
 
 <div id="config_history_flow" {{bindAttr class="view.showCompareVersionBar:two-stories-bar:one-story-bar"}}>
   <div class="version-slider">
-    <div {{bindAttr class=":icon-chevron-box :pull-left view.showLeftArrow::hide"}} {{action shiftBack target="view"}}><i class="icon-chevron-left icon-3x"></i></div>
+    <div {{bindAttr class=":icon-chevron-box :pull-left view.showLeftArrow::hide"}} {{action shiftBack target="view"}} data-toggle="arrow-tooltip"
+      {{translateAttr data-original-title="services.service.config.configHistory.leftArrow.tooltip"}}><i class="icon-chevron-left icon-3x"></i></div>
     {{#each serviceVersion in view.visibleServiceVersion}}
       <div {{bindAttr class=":flow-element :pull-left serviceVersion.first:first"}}>
         <div class="arrow-box pull-left"><i class="icon-arrow-right icon-3x"></i></div>
@@ -35,7 +36,7 @@
               {{/if}}
             </div>
               <div class="content">{{serviceVersion.author}}</div>
-              <div class="content">{{serviceVersion.shortModifiedDate}}</div>
+              <div class="content">{{serviceVersion.modifiedDate}}</div>
           </div>
 
           <div class="version-popover">
@@ -52,7 +53,8 @@
         </div>
       </div>
     {{/each}}
-    <div {{bindAttr class=":icon-chevron-box :pull-right view.showRightArrow::hide"}} {{action shiftForward target="view"}}><i class="icon-chevron-right icon-3x"></i></div>
+    <div {{bindAttr class=":icon-chevron-box :pull-right view.showRightArrow::hide"}} {{action shiftForward target="view"}} data-toggle="arrow-tooltip"
+      {{translateAttr data-original-title="services.service.config.configHistory.rightArrow.tooltip"}}><i class="icon-chevron-right icon-3x"></i></div>
   </div>
   <div class="version-info-bar-wrapper">
       <div {{bindAttr class="view.showCompareVersionBar::hidden :version-info-bar"}}>

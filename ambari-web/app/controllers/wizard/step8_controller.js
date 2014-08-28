@@ -839,7 +839,6 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
     var configurationController = App.router.get('mainServiceInfoConfigsController');
     var configs = this.get('configs').slice(0);
     var configsMap = [];
-
     fileNamesToUpdate.forEach(function (fileName) {
       if (!fileName || /^(core)/.test(fileName)) return;
       var tagName = 'version' + (new Date).getTime();
@@ -1434,17 +1433,25 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
     selectedServices.forEach(function (service) {
       Object.keys(service.get('configTypes')).forEach(function (type) {
         if (!this.get('serviceConfigTags').someProperty('type', type)) {
+          var serviceVersionNotes = Em.I18n.t('dashboard.configHistory.table.notes.default').format(service.get('serviceName'));
           if (!App.supports.capacitySchedulerUi && service.get('serviceName') === 'MAPREDUCE' && (type === 'capacity-scheduler' || type === 'mapred-queue-acls')) {
             return;
           } else if (type === 'core-site') {
+            coreSiteObject.service_config_version_note = serviceVersionNotes
             this.get('serviceConfigTags').pushObject(coreSiteObject);
           } else if (type === 'storm-site') {
-            this.get('serviceConfigTags').pushObject(this.createStormSiteObj(tag));
+            var obj = this.createStormSiteObj(tag);
+            obj.service_config_version_note = serviceVersionNotes;
+            this.get('serviceConfigTags').pushObject(obj);
           } else if (type === 'zoo.cfg') {
-            this.get('serviceConfigTags').pushObject(this.createZooCfgObj(tag));
+            var obj = this.createZooCfgObj(tag);
+            obj.service_config_version_note = serviceVersionNotes;
+            this.get('serviceConfigTags').pushObject(obj);
           } else {
             var isNonXmlFile = type.endsWith('log4j') || type.endsWith('env') || type.endsWith('properties') || type.endsWith('conf');
-            this.get('serviceConfigTags').pushObject(this.createSiteObj(type, isNonXmlFile, tag));
+            var obj = this.createSiteObj(type, isNonXmlFile, tag);
+            obj.service_config_version_note = serviceVersionNotes;
+            this.get('serviceConfigTags').pushObject(obj);
           }
         }
       }, this);
@@ -1465,7 +1472,8 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
             type: _serviceConfig.type,
             tag: _serviceConfig.tag,
             properties: _serviceConfig.properties,
-            properties_attributes: _serviceConfig.properties_attributes
+            properties_attributes: _serviceConfig.properties_attributes,
+            service_config_version_note: _serviceConfig.service_config_version_note
           }
         }
       });

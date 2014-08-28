@@ -1409,7 +1409,9 @@ Em.I18n.translations = {
     '<b>ambari-server setup --jdbc-db={0} --jdbc-driver=/path/to/{1}/driver.jar</b> ' +
     'on the Ambari Server host to make the JDBC driver available and to enable testing the database connection.',
 
-  'services.service.config.configHistory.configGroup': 'Group',
+  'services.service.config.configHistory.configGroup': 'Config Group',
+  'services.service.config.configHistory.leftArrow.tooltip': 'Show earlier versions',
+  'services.service.config.configHistory.rightArrow.tooltip': 'Show later versions',
   'services.service.config.configHistory.makeCurrent.message': 'Created from service config version {0}',
 
   'services.add.header':'Add Service Wizard',
@@ -1992,6 +1994,7 @@ Em.I18n.translations = {
   'dashboard.configHistory.table.configGroup.title' : 'Config Group',
   'dashboard.configHistory.table.created.title' : 'Created',
   'dashboard.configHistory.table.empty' : 'No history to display',
+  'dashboard.configHistory.table.notes.default': 'Initial configurations for {0}',
   'dashboard.configHistory.table.version.versionText' : 'V{0}',
   'dashboard.configHistory.table.version.prefix' : 'V',
   'dashboard.configHistory.table.current.tooltip' : 'Current config for {0}:{1}',
@@ -2003,10 +2006,11 @@ Em.I18n.translations = {
   'dashboard.configHistory.info-bar.save.popup.title': 'Save Configuration',
   'dashboard.configHistory.info-bar.makeCurrent.popup.title': 'Make Current Confirmation',
   'dashboard.configHistory.info-bar.save.popup.placeholder': 'What did you change?',
-  'dashboard.configHistory.info-bar.revert.button': 'Make current',
+  'dashboard.configHistory.info-bar.revert.button': 'Make Current',
   'dashboard.configHistory.info-bar.view.button.disabled': 'You are currently viewing this version.',
   'dashboard.configHistory.info-bar.compare.button.disabled': 'You cannot compare against the same version.',
   'dashboard.configHistory.info-bar.revert.button.disabled': 'This is the current version.',
+
 
 
   'timeRange.presets.1hour':'1h',
