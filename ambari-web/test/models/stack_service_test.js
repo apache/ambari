@@ -75,7 +75,7 @@ describe('App.StackService', function () {
     it('service name is "GLUSTERFS"', function () {
       ss.set('serviceName', 'GLUSTERFS');
       ss.propertyDidChange('configTypesRendered');
-      expect(ss.get('configTypesRendered')).to.eql({'core-site': {}, 'hdfs-site': {}});
+      expect(ss.get('configTypesRendered')).to.eql({'hdfs-site': {}});
     });
     it('service name is "HDFS"', function () {
       ss.set('serviceName', 'HDFS');
@@ -125,56 +125,6 @@ describe('App.StackService', function () {
         ss.propertyDidChange('isHiddenOnSelectServicePage');
         expect(ss.get('isHiddenOnSelectServicePage')).to.equal(test.result);
       });
-    });
-  });
-
-  describe('#dependentServices', function () {
-    var mock = {
-      isHadoop2Stack: false
-    };
-    beforeEach(function () {
-      sinon.stub(App, 'get', function () {
-        return mock.isHadoop2Stack;
-      })
-    });
-    afterEach(function () {
-      App.get.restore();
-    });
-    it('isHadoop2Stack is false', function () {
-      ss.set('serviceName', 'HDFS');
-      ss.propertyDidChange('dependentServices');
-      expect(ss.get('dependentServices')).to.eql(['MAPREDUCE', 'HBASE', 'SQOOP']);
-    });
-    it('isHadoop2Stack is true', function () {
-      mock.isHadoop2Stack = true;
-      ss.set('serviceName', 'HDFS');
-      ss.propertyDidChange('dependentServices');
-      expect(ss.get('dependentServices')).to.eql(['YARN', 'HBASE', 'FLUME', 'SQOOP']);
-    });
-  });
-
-  describe('#serviceDependency', function () {
-    var mock = {
-      isHadoop2Stack: false
-    };
-    beforeEach(function () {
-      sinon.stub(App, 'get', function () {
-        return mock.isHadoop2Stack;
-      })
-    });
-    afterEach(function () {
-      App.get.restore();
-    });
-    it('isHadoop2Stack is false', function () {
-      ss.set('serviceName', 'HDFS');
-      ss.propertyDidChange('serviceDependency');
-      expect(ss.get('serviceDependency')).to.eql([]);
-    });
-    it('isHadoop2Stack is true', function () {
-      mock.isHadoop2Stack = true;
-      ss.set('serviceName', 'HDFS');
-      ss.propertyDidChange('serviceDependency');
-      expect(ss.get('serviceDependency')).to.eql(["ZOOKEEPER"]);
     });
   });
 

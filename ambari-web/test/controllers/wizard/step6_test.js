@@ -141,40 +141,6 @@ describe('App.WizardStep6Controller', function () {
     });
   });
 
-  describe('#selectAllNodes', function () {
-    beforeEach(function () {
-      sinon.stub(controller, 'setAllNodes', Em.K);
-    });
-    afterEach(function () {
-      controller.setAllNodes.restore();
-    });
-    it('should call setAllNodes', function () {
-      controller.selectAllNodes({context: {name: 'name'}});
-      expect(controller.setAllNodes.calledWith('name', true)).to.equal(true);
-    });
-    it('shouldn\'t call setAllNodes', function () {
-      controller.selectAllNodes();
-      expect(controller.setAllNodes.called).to.equal(false);
-    });
-  });
-
-  describe('#deselectAllNodes', function () {
-    beforeEach(function () {
-      sinon.stub(controller, 'setAllNodes', Em.K);
-    });
-    afterEach(function () {
-      controller.setAllNodes.restore();
-    });
-    it('should call setAllNodes', function () {
-      controller.deselectAllNodes({context: {name: 'name'}});
-      expect(controller.setAllNodes.calledWith('name', false)).to.equal(true);
-    });
-    it('shouldn\'t call setAllNodes', function () {
-      controller.deselectAllNodes();
-      expect(controller.setAllNodes.called).to.equal(false);
-    });
-  });
-
   describe('#checkCallback', function () {
     beforeEach(function () {
       sinon.stub(controller, 'clearError', Em.K);

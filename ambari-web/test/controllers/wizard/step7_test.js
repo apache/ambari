@@ -27,7 +27,18 @@ var installerStep7Controller;
 describe('App.InstallerStep7Controller', function () {
 
   beforeEach(function () {
-    installerStep7Controller = App.WizardStep7Controller.create();
+    sinon.stub(App.config, 'setPreDefinedServiceConfigs', Em.K);
+    installerStep7Controller = App.WizardStep7Controller.create({
+      content: {
+        advancedServiceConfig: [],
+        serviceConfigProperties: []
+      },
+      applyServicesConfigs: Em.K
+    });
+  });
+
+  afterEach(function() {
+    App.config.setPreDefinedServiceConfigs.restore();
   });
 
   describe('#installedServiceNames', function () {
@@ -1002,85 +1013,6 @@ describe('App.InstallerStep7Controller', function () {
       installerStep7Controller.loadStep();
       expect(installerStep7Controller.setInstalledServiceConfigs.calledOnce).to.equal(true);
     });
-    Em.A([
-        {
-          allSelectedServiceNames: ['STORM'],
-          installedServiceNames: ['STORM'],
-          m: 'allSelectedServiceNames contains STORM, installedServiceNames contains STORM',
-          e: true
-        },
-        {
-          allSelectedServiceNames: [],
-          installedServiceNames: ['STORM'],
-          m: 'allSelectedServiceNames doesn\'t contain STORM, installedServiceNames contains STORM',
-          e: true
-        },
-        {
-          allSelectedServiceNames: ['STORM'],
-          installedServiceNames: [],
-          m: 'allSelectedServiceNames contains STORM, installedServiceNames doesn\'t contain STORM',
-          e: true
-        },
-        {
-          allSelectedServiceNames: [],
-          installedServiceNames: [],
-          m: 'allSelectedServiceNames doesn\'t contain STORM, installedServiceNames doesn\'t contain STORM',
-          e: false
-        }
-      ]).forEach(function (test) {
-        it(test.m, function () {
-          installerStep7Controller.reopen({
-            allSelectedServiceNames: test.allSelectedServiceNames,
-            installedServiceNames: test.installedServiceNames
-          });
-          installerStep7Controller.loadStep();
-          if (test.e) {
-            expect(installerStep7Controller.resolveServiceDependencyConfigs.calledOnce).to.equal(true);
-          }
-          else {
-            expect(installerStep7Controller.resolveServiceDependencyConfigs.called).to.equal(false);
-          }
-        });
-      });
-    it('should call setStepConfigs', function () {
-      installerStep7Controller.loadStep();
-      expect(installerStep7Controller.setStepConfigs.calledOnce).to.equal(true);
-    });
-    it('should call checkHostOverrideInstaller', function () {
-      installerStep7Controller.loadStep();
-      expect(installerStep7Controller.checkHostOverrideInstaller.calledOnce).to.equal(true);
-    });
-    it('should call activateSpecialConfigs', function () {
-      installerStep7Controller.loadStep();
-      expect(installerStep7Controller.activateSpecialConfigs.calledOnce).to.equal(true);
-    });
-    it('should call selectProperService', function () {
-      installerStep7Controller.loadStep();
-      expect(installerStep7Controller.selectProperService.calledOnce).to.equal(true);
-    });
-    Em.A([
-        {
-          m: 'should skip config step',
-          skipConfigStep: true,
-          e: true
-        },
-        {
-          m: 'shouldn\'t skip config step',
-          skipConfigStep: false,
-          e: false
-        }
-      ]).forEach(function (test) {
-        it(test.m, function () {
-          installerStep7Controller.set('content.skipConfigStep', test.skipConfigStep);
-          installerStep7Controller.loadStep();
-          if (test.e) {
-            expect(App.router.send.calledWith('next')).to.equal(true);
-          }
-          else {
-            expect(App.router.send.called).to.equal(false);
-          }
-        });
-      });
   });
 
   describe('#_updateValueForCheckBoxConfig', function () {
