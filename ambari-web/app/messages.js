@@ -2004,6 +2004,9 @@ Em.I18n.translations = {
   'dashboard.configHistory.info-bar.makeCurrent.popup.title': 'Make Current Confirmation',
   'dashboard.configHistory.info-bar.save.popup.placeholder': 'What did you change?',
   'dashboard.configHistory.info-bar.revert.button': 'Make current',
+  'dashboard.configHistory.info-bar.view.button.disabled': 'You are currently viewing this version.',
+  'dashboard.configHistory.info-bar.compare.button.disabled': 'You cannot compare against the same version.',
+  'dashboard.configHistory.info-bar.revert.button.disabled': 'This is the current version.',
 
 
   'timeRange.presets.1hour':'1h',

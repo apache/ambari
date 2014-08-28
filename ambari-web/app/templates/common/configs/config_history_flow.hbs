@@ -44,9 +44,9 @@
               <div class="notes">{{serviceVersion.briefNotes}}</div>
             </div>
             <div>
-              <button class="btn" {{action switchVersion serviceVersion target="view"}}><i class="icon-search"></i>&nbsp;{{t common.view}}</button>
-              <button class="btn" {{bindAttr disabled="serviceVersion.isDisabled"}} {{action compare serviceVersion target="view"}}><i class="icon-copy"></i>&nbsp;{{t common.compare}}</button>
-              <button class="btn" {{bindAttr disabled="serviceVersion.isDisabled"}} {{action revert serviceVersion target="view"}}>{{t dashboard.configHistory.info-bar.revert.button}}</button>
+                <button {{bindAttr disabled="serviceVersion.disabledActionAttr.view" class=":btn serviceVersion.isDisplayed:not-allowed-cursor" title="serviceVersion.disabledActionMessages.view"}} {{action switchVersion serviceVersion target="view"}}><i class="icon-search"></i>&nbsp;{{t common.view}}</button>
+                <button {{bindAttr disabled="serviceVersion.disabledActionAttr.compare" class=":btn serviceVersion.isDisplayed:not-allowed-cursor" title="serviceVersion.disabledActionMessages.compare"}} {{action compare serviceVersion target="view"}}><i class="icon-copy"></i>&nbsp;{{t common.compare}}</button>
+                <button {{bindAttr disabled="serviceVersion.disabledActionAttr.revert" class=":btn serviceVersion.isCurrent:not-allowed-cursor" title="serviceVersion.disabledActionMessages.revert"}} {{action revert serviceVersion target="view"}}>{{t dashboard.configHistory.info-bar.revert.button}}</button>
             </div>
           </div>
         </div>
@@ -99,9 +99,9 @@
                                     <div class="notes">{{serviceVersion.briefNotes}}</div>
                                 </div>
                                 <div>
-                                    <button class="btn" {{action switchVersion serviceVersion target="view"}}><i class="icon-search"></i>&nbsp;{{t common.view}}</button>
-                                    <button class="btn" {{bindAttr disabled="serviceVersion.isDisabled"}} {{action compare serviceVersion target="view"}}><i class="icon-copy"></i>&nbsp;{{t common.compare}}</button>
-                                    <button class="btn" {{bindAttr disabled="serviceVersion.isDisabled"}} {{action revert serviceVersion target="view"}}>{{t dashboard.configHistory.info-bar.revert.button}}</button>
+                                    <button {{bindAttr disabled="serviceVersion.disabledActionAttr.view" class=":btn serviceVersion.isDisplayed:not-allowed-cursor" title="serviceVersion.disabledActionMessages.view"}} {{action switchVersion serviceVersion target="view"}}><i class="icon-search"></i>&nbsp;{{t common.view}}</button>
+                                    <button {{bindAttr disabled="serviceVersion.disabledActionAttr.compare" class=":btn serviceVersion.isDisplayed:not-allowed-cursor" title="serviceVersion.disabledActionMessages.compare"}} {{action compare serviceVersion target="view"}}><i class="icon-copy"></i>&nbsp;{{t common.compare}}</button>
+                                    <button {{bindAttr disabled="serviceVersion.disabledActionAttr.revert" class=":btn serviceVersion.isCurrent:not-allowed-cursor" title="serviceVersion.disabledActionMessages.revert"}} {{action revert serviceVersion target="view"}}>{{t dashboard.configHistory.info-bar.revert.button}}</button>
                                 </div>
                             </ul>
                         </li>

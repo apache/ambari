@@ -56,7 +56,21 @@ App.ServiceConfigVersion = DS.Model.extend({
   isRequested: DS.attr('boolean'),
   isRestartRequired: function () {
     return this.get('service.isRestartRequired') && this.get('isCurrent');
-  }.property('service.isRestartRequired', 'isCurrent')
+  }.property('service.isRestartRequired', 'isCurrent'),
+  disabledActionMessages: function () {
+    return {
+      view: (this.get('isDisplayed')) ? Em.I18n.t('dashboard.configHistory.info-bar.view.button.disabled') : '',
+      compare: (this.get('isDisplayed')) ? Em.I18n.t('dashboard.configHistory.info-bar.compare.button.disabled') : '',
+      revert: (this.get('isCurrent')) ? Em.I18n.t('dashboard.configHistory.info-bar.revert.button.disabled') : ''
+    }
+  }.property('isDisplayed', 'isCurrent'),
+  disabledActionAttr: function () {
+    return {
+      view: (this.get('isDisplayed')) ? 'disabled' : false,
+      compare: (this.get('isDisabled') || this.get('isDisplayed')) ? 'disabled' : false,
+      revert: (this.get('isDisabled') || this.get('isCurrent')) ? 'disabled' : false
+    }
+  }.property('isDisplayed', 'isCurrent', 'isDisabled')
 });
 
 App.ServiceConfigVersion.FIXTURES = [];
