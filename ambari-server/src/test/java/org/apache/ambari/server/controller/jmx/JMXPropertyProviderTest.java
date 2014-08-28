@@ -339,9 +339,6 @@ public class JMXPropertyProviderTest {
     Assert.assertEquals(23634400, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "NonHeapMemoryUsed")));
   }
 
-
-
-
   @Test
   public void testPopulateResourcesUnhealthyResource() throws Exception {
     TestStreamProvider  streamProvider = new TestStreamProvider();
@@ -416,6 +413,52 @@ public class JMXPropertyProviderTest {
       Assert.assertEquals(136314880, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "NonHeapMemoryMax")));
       Assert.assertEquals(21933376, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "NonHeapMemoryUsed")));
     }
+  }
+
+  @Test
+  public void testPopulateResourcesTimeout() throws Exception {
+    // Set the provider to take 100 millis to return the JMX values
+    TestStreamProvider  streamProvider = new TestStreamProvider(100L);
+    TestJMXHostProvider hostProvider = new TestJMXHostProvider(true);
+    Set<Resource> resources = new HashSet<Resource>();
+
+    JMXPropertyProvider propertyProvider = new JMXPropertyProvider(
+        PropertyHelper.getJMXPropertyIds(Resource.Type.HostComponent),
+        streamProvider,
+        hostProvider,
+        "HostRoles/cluster_name",
+        "HostRoles/host_name",
+        "HostRoles/component_name",
+        "HostRoles/state",
+        Collections.singleton("STARTED"));
+
+    // set the provider timeout to 50 millis
+    propertyProvider.setPopulateTimeout(50L);
+
+    // datanode
+    Resource resource = new ResourceImpl(Resource.Type.HostComponent);
+
+    resource.setProperty(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "domu-12-31-39-14-ee-b3.compute-1.internal");
+    resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "DATANODE");
+
+    resources.add(resource);
+
+    // request with an empty set should get all supported properties
+    Request request = PropertyHelper.getReadRequest(Collections.<String>emptySet());
+
+    Set<Resource> resourceSet = propertyProvider.populateResources(resources, request, null);
+
+    // make sure that the thread running the stream provider has completed
+    Thread.sleep(150L);
+
+    Assert.assertEquals(0, resourceSet.size());
+
+    // assert that properties never get set on the resource
+    Assert.assertNull(resource.getPropertyValue("metrics/rpc/ReceivedBytes"));
+    Assert.assertNull(resource.getPropertyValue("metrics/jvm/HeapMemoryMax"));
+    Assert.assertNull(resource.getPropertyValue("metrics/jvm/HeapMemoryUsed"));
+    Assert.assertNull(resource.getPropertyValue("metrics/jvm/NonHeapMemoryMax"));
+    Assert.assertNull(resource.getPropertyValue("metrics/jvm/NonHeapMemoryUsed"));
   }
 
   public static class TestJMXHostProvider implements JMXHostProvider {
