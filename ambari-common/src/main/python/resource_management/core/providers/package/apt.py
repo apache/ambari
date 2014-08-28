@@ -33,12 +33,17 @@ class AptProvider(PackageProvider):
     if not self._check_existence(name):
       cmd = INSTALL_CMD % (name)
       Logger.info("Installing package %s ('%s')" % (name, cmd))
-      code = shell.call(cmd)[0]
+      code, out = shell.call(cmd)
       
       # apt-get update wasn't done too long
       if code:
-        Logger.info("Failed to install package %s. Executing `apt-get update`" % (name))
-        shell.checked_call(REPO_UPDATE_CMD)
+        Logger.info("Execution of '%s' returned %d. %s" % (cmd, code, out))
+        Logger.info("Failed to install package %s. Executing `%s`" % (name, REPO_UPDATE_CMD))
+        code, out = shell.call(REPO_UPDATE_CMD)
+        
+        if code:
+          Logger.info("Execution of '%s' returned %d. %s" % (REPO_UPDATE_CMD, code, out))
+          
         Logger.info("Retrying to install package %s" % (name))
         shell.checked_call(cmd)
     else:
