@@ -272,9 +272,11 @@ module.exports = Em.Route.extend({
     next: function (router) {
       var controller = router.get('installerController');
       var wizardStep5Controller = router.get('wizardStep5Controller');
+      var wizardStep6Controller = router.get('wizardStep6Controller');
       controller.saveMasterComponentHosts(wizardStep5Controller);
       controller.setDBProperty('slaveComponentHosts', undefined);
       controller.setDBProperty('recommendations', wizardStep5Controller.get('content.recommendations'));
+      wizardStep6Controller.set('isClientsSet', false);
       router.transitionTo('step6');
     }
   }),
