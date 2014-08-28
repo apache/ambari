@@ -33,6 +33,11 @@ App.ConfigHistoryFlowView = Em.View.extend({
    * flag identify whether to show all versions or short list of them
    */
   showFullList: false,
+  compareServiceVersion: null,
+
+  showCompareVersionBar: function() {
+    return !Em.isNone(this.get('compareServiceVersion'));
+  }.property('compareServiceVersion'),
 
   isSaveDisabled: function () {
     return (this.get('controller.isSubmitDisabled') || !this.get('controller.versionLoaded'));
@@ -172,7 +177,7 @@ App.ConfigHistoryFlowView = Em.View.extend({
     $(window).unbind('scroll');
 
     $(window).on('scroll', function (event) {
-      var infoBar = $('#config_history_flow>.version-info-bar');
+      var infoBar = $('#config_history_flow>.version-info-bar-wrapper');
       var scrollTop = $(window).scrollTop();
 
       if (infoBar.length === 0) {
@@ -220,6 +225,7 @@ App.ConfigHistoryFlowView = Em.View.extend({
     var version = event.context.get('version');
     var versionIndex = 0;
 
+    this.set('compareServiceVersion', null);
     this.get('serviceVersions').forEach(function (serviceVersion, index) {
       if (serviceVersion.get('version') === version) {
         serviceVersion.set('isDisplayed', true);
@@ -241,6 +247,7 @@ App.ConfigHistoryFlowView = Em.View.extend({
     var isDisabled = event.context ? event.context.get('isDisabled') : false;
     if (isDisabled) return;
     this.set('controller.compareServiceVersion', event.context);
+    this.set('compareServiceVersion', event.context);
     this.get('controller').onConfigGroupChange();
   },
   /**

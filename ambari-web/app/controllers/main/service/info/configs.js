@@ -572,6 +572,11 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
           allConfigs.push(this.getMockConfig(prop, serviceName, App.config.getOriginalFileName(configuration.type)));
         }
       }
+      if (configuration.properties_attributes && configuration.properties_attributes.final) {
+        for (var final in configuration.properties_attributes.final) {
+          serviceVersionMap[final].isFinal = (configuration.properties_attributes.final[final] === 'true');
+        }
+      }
     }, this);
 
     allConfigs.forEach(function (serviceConfig) {
@@ -587,6 +592,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
           compareObject.isMock = false;
         }
         serviceConfig.compareConfig = App.ServiceConfigProperty.create(compareObject);
+        this.setSupportsFinal(serviceConfig.compareConfig);
+        serviceConfig.compareConfig.set('isFinal', compareConfig.isFinal);
         serviceConfig.compareConfig.set('value', App.config.formatOverrideValue(serviceConfig, compareConfig.value));
         serviceConfig.isComparison = true;
       } else if (serviceConfig.isUserProperty) {
