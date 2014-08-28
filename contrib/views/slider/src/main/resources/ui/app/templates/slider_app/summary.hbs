@@ -44,7 +44,7 @@
             </tr>
             {{#each controller.model.jmx}}
               <tr>
-                <td>{{key}}</td>
+                <td>{{humanize key}}</td>
                 <td>{{formatWordBreak value}}</td>
               </tr>
             {{/each}}

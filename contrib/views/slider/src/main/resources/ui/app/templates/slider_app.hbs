@@ -33,7 +33,7 @@
       <ul class="dropdown-menu">
         {{#each option in controller.availableActions}}
           <li>
-            <a {{action 'openModal' option target='controller'}}>{{option.title}}</a>
+            <a {{action 'openModal' option target='controller'}}>{{humanize option.title}}</a>
           </li>
         {{/each}}
       </ul>
