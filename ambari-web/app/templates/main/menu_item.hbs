@@ -39,11 +39,9 @@
 {{/if}}
 {{#if view.isViewsItem}}
   <ul class="top-nav-dropdown-menu">
-    {{#if view.content.views}}
+    {{#if view.content.views.length}}
       {{#each category in view.content.views}}
-        {{#if category.visible }}
-          <li><a href="#" {{action "setView" category target="App.router.mainViewsController"}}>{{category.label}}</a></li>
-        {{/if}}
+        <li><a href="#" {{action "setView" category target="App.router.mainViewsController"}}>{{category.label}}</a></li>
       {{/each}}
     {{else}}
       <li class="disabled"><a href="javascript:void(null);">{{t menu.item.views.noViews}}</a></li>

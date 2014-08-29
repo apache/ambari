@@ -57,7 +57,7 @@ App.MainMenuView = Em.CollectionView.extend({
       }
 
       if (App.supports.views) {
-        result.push({ label:Em.I18n.t('menu.item.views'), routing:'views.index', isView:true, views: this.get('views')});
+        result.push({ label:Em.I18n.t('menu.item.views'), routing:'views.index', isView:true, views: this.get('views').filterProperty('visible')});
       }
 
     }
