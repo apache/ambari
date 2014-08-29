@@ -27,6 +27,34 @@ App.MainViewsDetailsView = Em.View.extend({
   attributeBindings: ['src','seamless'],
   seamless: "seamless",
 
+  interval: null,
+
+  /**
+   * Drop autoHeight timer
+   */
+  willDestroyElement: function() {
+    var interval = this.get('interval');
+    if (interval) {
+      clearInterval(interval);
+    }
+  },
+
+  /**
+   * For view's iframe do autoHeight with timer
+   * Timer is dropped when user navigates away
+   */
+  didInsertElement: function() {
+    var interval,
+      self = this,
+      timer = function (resizeFunction, iframe) {
+        interval = setInterval(function() {
+          resizeFunction(iframe);
+        }, 100);
+        self.set('interval', interval);
+    };
+    $('iframe').iframeAutoHeight({triggerFunctions: [timer]});
+  },
+
   src: function() {
     return window.location.origin + this.get('controller.content.href');
   }.property('controller.content')

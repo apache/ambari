@@ -43,3 +43,5 @@ This product includes Spin.js (http://fgnass.github.com/spin.js/ - MIT license)
 Copyright (c) 2011 Felix Gnass [fgnass at neteye dot de]
 
 This product includes Moment.js (https://github.com/moment/moment/ - MIT license)
+
+This product includes iframeAutoHeight.js (http://github.com/house9/jquery-iframe-auto-height - MIT license)
