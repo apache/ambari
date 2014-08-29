@@ -85,6 +85,7 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.persist.Transactional;
+import org.apache.ambari.server.ConfigGroupNotFoundException;
 
 public class ClusterImpl implements Cluster {
 
@@ -545,7 +546,7 @@ public class ClusterImpl implements Cluster {
       try {
         ConfigGroup configGroup = clusterConfigGroups.get(id);
         if (configGroup == null) {
-          throw new AmbariException("Config group does not exist, id = " + id);
+          throw new ConfigGroupNotFoundException(getClusterName(), id.toString());
         }
         LOG.debug("Deleting Config group"
           + ", clusterName = " + getClusterName()

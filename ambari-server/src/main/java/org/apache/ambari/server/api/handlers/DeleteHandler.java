@@ -18,8 +18,13 @@
 
 package org.apache.ambari.server.api.handlers;
 
+import org.apache.ambari.server.ConfigGroupNotFoundException;
 import org.apache.ambari.server.api.resources.ResourceInstance;
-import org.apache.ambari.server.api.services.*;
+
+import org.apache.ambari.server.api.services.RequestBody;
+import org.apache.ambari.server.api.services.Result;
+import org.apache.ambari.server.api.services.ResultImpl;
+import org.apache.ambari.server.api.services.ResultStatus;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.RequestStatus;
@@ -54,6 +59,8 @@ public class DeleteHandler extends BaseManagementHandler implements RequestHandl
           //todo: 200 may be ok but we need to return a collection
           //todo: of resources that were updated.
           result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.OK, e));
+        } else if (e.getCause() instanceof ConfigGroupNotFoundException){
+          result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.ACCEPTED, e));
         } else {
           result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.NOT_FOUND, e));
         }
