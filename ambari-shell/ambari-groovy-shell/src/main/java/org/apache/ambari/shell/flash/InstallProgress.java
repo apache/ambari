@@ -45,7 +45,7 @@ public class InstallProgress extends AbstractFlash {
   public String getText() {
     StringBuilder sb = new StringBuilder();
     if (!done) {
-      BigDecimal progress = client.getInstallProgress();
+      BigDecimal progress = client.getRequestProgress();
       if (progress != null) {
         BigDecimal decimal = progress.setScale(2, BigDecimal.ROUND_HALF_UP);
         int intValue = decimal.intValue();

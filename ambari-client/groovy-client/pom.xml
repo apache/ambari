@@ -53,6 +53,10 @@
       <artifactId>spock-core</artifactId>
       <version>0.7-groovy-2.0</version>
     </dependency>
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+    </dependency>
   </dependencies>
   <build>
     <plugins>

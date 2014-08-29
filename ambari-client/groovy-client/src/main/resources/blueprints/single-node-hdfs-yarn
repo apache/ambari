@@ -1,7 +1,7 @@
 {
   "host_groups" : [
     {
-      "name" : "host_group_1",
+      "name" : "master",
       "components" : [
       {
         "name" : "NAMENODE"

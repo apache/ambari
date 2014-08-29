@@ -2,7 +2,17 @@
   "configurations": [
     {
       "global": {
-        "nagios_contact": "me@my-awesome-domain.example"
+        "nagios_contact": "admin@localhost"
+      }
+    },
+    {
+      "hdfs-site": {
+        "dfs.datanode.data.dir": "/mnt/fs1/,/mnt/fs2/"
+      }
+    },
+    {
+      "yarn-site": {
+        "yarn.nodemanager.local-dirs": "/mnt/fs1/,/mnt/fs2/"
       }
     }
   ],
@@ -12,6 +22,12 @@
       "components": [
         {
           "name": "NAMENODE"
+        },
+        {
+          "name": "GANGLIA_SERVER"
+        },
+        {
+          "name": "HISTORYSERVER"
         },
         {
           "name": "SECONDARY_NAMENODE"
@@ -38,6 +54,9 @@
           "name": "DATANODE"
         },
         {
+          "name": "GANGLIA_MONITOR"
+        },
+        {
           "name": "HDFS_CLIENT"
         },
         {
@@ -45,9 +64,6 @@
         },
         {
           "name": "YARN_CLIENT"
-        },
-        {
-          "name" : "APP_TIMELINE_SERVER"
         },
         {
           "name": "MAPREDUCE2_CLIENT"
