@@ -51,9 +51,13 @@ angular.module('ambariAdminConsole')
     var result = [];
     var filter = $scope.viewsFilter.toLowerCase();
     if(!filter){  // if no filter return all views
-      result = $scope.views;
+      result = $scope.views.map(function(view) {
+        view.isOpened = false;
+        return view;
+      });
     } else {
       result = $scope.views.map(function(view) {
+        view.isOpened = true;
         if(view.view_name.toLowerCase().indexOf(filter) >= 0){
           return view; // if filter matched with view name -- return whole view
         } else {

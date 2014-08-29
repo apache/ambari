@@ -109,15 +109,26 @@ angular.module('ambariAdminConsole')
 
   $scope.toggleUserActive = function() {
     if(!$scope.isCurrentUser){
-      User.setActive($scope.user.user_name, !$scope.user.active);
+      ConfirmationModal.show('Change Status', 'Are you sure you want to change "'+ $scope.user.user_name +'" status?').then(function() {
+        User.setActive($scope.user.user_name, $scope.user.active);
+      })
+      .catch(function() {
+        $scope.user.active = !$scope.user.active;
+      });;
     }
   };    
   $scope.toggleUserAdmin = function() {
     if(!$scope.isCurrentUser){
-      User.setAdmin($scope.user.user_name, !$scope.user.admin)
-      .then(function() {
-        loadPrivilegies();
-      });
+      ConfirmationModal.show('Change Admin Privilege', 'Are you sure you want to change "'+$scope.user.user_name+'" Admin privilege?').then(function() {
+        User.setAdmin($scope.user.user_name, $scope.user.admin)
+        .then(function() {
+          loadPrivilegies();
+        });
+      })
+      .catch(function() {
+        $scope.user.admin = !$scope.user.admin;
+      });;
+        
     }
   };    
 
