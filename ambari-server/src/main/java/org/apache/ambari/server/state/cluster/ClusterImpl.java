@@ -91,6 +91,8 @@ public class ClusterImpl implements Cluster {
 
   private static final Logger LOG =
     LoggerFactory.getLogger(ClusterImpl.class);
+  private static final Logger configChangeLog =
+    LoggerFactory.getLogger("configchange");
 
   @Inject
   private Clusters clusters;
@@ -1455,6 +1457,12 @@ public class ClusterImpl implements Cluster {
     }
 
     serviceConfigDAO.create(serviceConfigEntity);
+
+    configChangeLog.info("Cluster '{}' changed by: '{}'; service_name='{}' config_group='{}' config_group_id='{}' " +
+      "version='{}'", getClusterName(), user, serviceName,
+      configGroup==null?"default":configGroup.getName(),
+      configGroup==null?"-1":configGroup.getId(),
+      serviceConfigEntity.getVersion());
 
     ServiceConfigVersionResponse response = new ServiceConfigVersionResponse();
     response.setUserName(user);
