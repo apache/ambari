@@ -171,6 +171,8 @@ App.ServiceConfigProperty = Ember.Object.extend({
   group: null, // Contain group related to this property. Set only when isOriginalSCP is false.
   isUserProperty: null, // This property was added by user. Hence they get removal actions etc.
   isOverridable: true,
+  isComparison: false,
+  hasCompareDiffs: false,
   showLabel: true,
   error: false,
   warn: false,

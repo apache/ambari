@@ -26,7 +26,7 @@
     <form class="form-horizontal" autocomplete="off">
 
       {{#each view.filteredCategoryConfigs}}
-        <div {{bindAttr class=":entry-row isOverridden:overridden-property isComparison:overridden-property"}}>
+        <div {{bindAttr class=":entry-row isOverridden:overridden-property hasCompareDiffs:overridden-property"}}>
           {{#if showLabel}}
             <span {{bindAttr class="errorMessage:error: :control-group :control-label-span"}}>
               <label class="control-label">

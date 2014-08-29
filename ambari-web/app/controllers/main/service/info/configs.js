@@ -572,12 +572,14 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
         serviceConfig.compareConfig.set('isFinal', compareConfig.isFinal);
         serviceConfig.compareConfig.set('value', App.config.formatOverrideValue(serviceConfig, compareConfig.value));
         serviceConfig.isComparison = true;
+        serviceConfig.hasCompareDiffs = (serviceConfig.value !== serviceConfig.compareConfig.get('value'));
       } else if (serviceConfig.isUserProperty) {
         compareObject.isMock = true;
         compareObject.displayType = 'label';
         serviceConfig.compareConfig = App.ServiceConfigProperty.create(compareObject);
         serviceConfig.compareConfig.set('value', 'Undefined');
         serviceConfig.isComparison = true;
+        serviceConfig.hasCompareDiffs = true;
       }
     }, this);
   },
