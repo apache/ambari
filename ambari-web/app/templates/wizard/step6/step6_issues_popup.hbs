@@ -16,23 +16,26 @@
 * limitations under the License.
 }}
 
-<div id="serviceConfig">
-  <h2>{{t installer.step7.header}}{{controller.finnalyLoaded}}</h2>
-
-  <div class="alert alert-info">
-    {{t installer.step7.body}}
+<p>{{t installer.step6.validationSlavesAndClients.popup.body}}</p>
+{{#if anyGeneralErrors}}
+  <div class="alert alert-error">
+    <ul>
+      {{#if errorMessage}}
+        <li>{{errorMessage}}</li>
+      {{/if}}
+      {{#each msg in controller.generalErrorMessages}}
+        <li>{{msg}}</li>
+      {{/each}}
+    </ul>
   </div>
+{{/if}}
 
-  {{#if isConfigsLoaded}}
-    {{view App.ServicesConfigView}}
-  {{else}}
-    <div class="spinner"></div>
-  {{/if}}
-
-
-  <div class="btn-area">
-    <a class="btn" {{action back}}>&larr; {{t common.back}}</a>
-    <a class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}}
-      {{action submit target="controller"}}>{{t common.next}} &rarr;</a>
+{{#if anyGeneralWarnings}}
+  <div class="alert alert-warning">
+    <ul>
+      {{#each msg in controller.generalWarningMessages}}
+        <li>{{msg}}</li>
+      {{/each}}
+    </ul>
   </div>
-</div>
+{{/if}}

@@ -126,6 +126,13 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
   }.property('generalWarningMessages', 'generalWarningMessages.@each'),
 
   /**
+   * true if validation has any general (which is not related with concrete host) error or warning message
+   */
+  anyGeneralIssues: function () {
+    return this.get('anyGeneralErrors') || this.get('anyGeneralWarnings');
+  }.property('anyGeneralErrors', 'anyGeneralWarnings'),
+
+  /**
    * true if validation has any error message (general or host specific)
    */
   anyErrors: function() {
@@ -138,6 +145,17 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
   anyWarnings: function() {
     return this.get('anyGeneralWarnings') || this.get('hosts').some(function(h) { return h.get('warnMessages').length > 0; });
   }.property('anyGeneralWarnings', 'hosts.@each.warnMessages'),
+
+  openSlavesAndClientsIssues: function () {
+    App.ModalPopup.show({
+      header: Em.I18n.t('installer.step6.validationSlavesAndClients.popup.header'),
+      bodyClass: Em.View.extend({
+        controller: this,
+        templateName: require('templates/wizard/step6/step6_issues_popup')
+      }),
+      secondary: null
+    });
+  },
 
   /**
    * Verify condition that at least one checkbox of each component was checked
@@ -616,7 +634,9 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
     var anyGeneralClientErrors = false; // any error/warning for any client component (under "CLIENT" alias)
 
     var validationData = validationUtils.filterNotInstalledComponents(data);
-    validationData.filterProperty('type', 'host-component').forEach(function (item) {
+    validationData.filterProperty('type', 'host-component').filter(function (i) {
+      return !(i['component-name'] && App.StackServiceComponent.find().findProperty('componentName', i['component-name']).get('isMaster'));
+    }).forEach(function (item) {
       var checkboxWithIssue = null;
       var isGeneralClientValidationItem = clientComponents.contains(item['component-name']); // it is an error/warning for any client component (under "CLIENT" alias)
       var host = self.get('hosts').find(function (h) {
