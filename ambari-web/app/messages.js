@@ -650,7 +650,8 @@ Em.I18n.translations = {
   'installer.step7.popup.validation.failed.header': 'Validation failed.',
   'installer.step7.popup.validation.failed.body': 'Some services are not properly configured. You have to change the highlighted configs according to the recommended values.',
   'installer.step7.popup.validation.request.failed.body': 'Config validaition failed.',
-  'installer.step7.popup.validation.warning.body': 'Some services are not properly configured. Recommended to change the highlighted configs. Are you sure you want to proceed witout changing configs?',
+  'installer.step7.popup.validation.warning.header': 'Configurations',
+  'installer.step7.popup.validation.warning.body': 'Some service configurations are not configured properly. We recommend you review and change the highlighted configuration values. Are you sure you want to proceed without correcting configurations?',
 
   'installer.step7.oozie.database.new': 'New Derby Database',
   'installer.step7.hive.database.new': 'New MySQL Database',

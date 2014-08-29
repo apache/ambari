@@ -264,14 +264,28 @@ App.ServerValidatorMixin = Em.Mixin.create({
    * @returns {*}
    */
   warnUser: function(deferred) {
+    var self = this;
     if (this.get('configValidationFailed')) {
       deferred.reject();
       return App.showAlertPopup(Em.I18n.t('installer.step7.popup.validation.failed.header'), Em.I18n.t('installer.step7.popup.validation.request.failed.body'));
     } else if (this.get('configValidationWarning') || this.get('configValidationError')) {
       // Motivation: for server-side validation warnings and EVEN errors allow user to continue wizard
-      return App.showConfirmationPopup(function () { deferred.resolve(); },
-          Em.I18n.t('installer.step7.popup.validation.warning.body'),
-          function () { deferred.reject(); });
+      return App.ModalPopup.show({
+        header: Em. I18n.t('installer.step7.popup.validation.warning.header'),
+        primary: Em.I18n.t('common.proceedAnyway'),
+        onPrimary: function () {
+          this.hide();
+          deferred.resolve();
+        },
+        onSecondary: function () {
+          this.hide();
+          deferred.reject();
+        },
+        bodyClass: Em.View.extend({
+          controller: self,
+          templateName: require('templates/common/configs/config_recommendation_popup')
+        })
+      });
     } else {
       deferred.resolve();
     }
