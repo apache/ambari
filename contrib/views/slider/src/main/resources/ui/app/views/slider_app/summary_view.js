@@ -22,6 +22,25 @@ App.SliderAppSummaryView = Ember.View.extend({
 
   graphs: [
     [App.MetricView, App.Metric2View, App.Metric3View, App.Metric4View]
-  ]
+  ],
+
+  /**
+   * @type {string}
+   */
+  gangliaUrl: function () {
+    return 'http://' + App.get('gangliaHost') + '/ganglia';
+  }.property(),
+
+  /**
+   * @type {string}
+   */
+  nagiosUrl: function () {
+    return 'http://' + App.get('nagiosHost') + '/nagios';
+  }.property(),
+
+  fitPanels:function () {
+    var heightLeft = parseInt(this.$('.panel-summury').css('height'));
+    this.$('.panel-components, .panel-alerts').css('height',((heightLeft<200)?200:heightLeft-20)/2);
+  }.on('didInsertElement')
 
 });

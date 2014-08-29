@@ -17,4 +17,54 @@
  */
 
 App.SliderAppsController = Ember.ArrayController.extend({
+
+  /**
+   *  Load resources on controller initialization
+   * @method initResources
+   */
+  initResources:function () {
+    this.loadComponentHost({componentName:"GANGLIA_SERVER",callback:"loadGangliaHostSuccessCallback"});
+    this.loadComponentHost({componentName:"NAGIOS_SERVER",callback:"loadNagiosHostSuccessCallback"});
+  }.on('init'),
+
+  /**
+   * Load ganglia server host
+   * @method loadGangliaHost
+   */
+  loadComponentHost: function (params) {
+    return App.ajax.send({
+      name: 'components_hosts',
+      sender: this,
+      data: {
+        componentName: params.componentName,
+        urlPrefix: '/api/v1/'
+      },
+      success: params.callback
+    });
+
+  },
+
+  /**
+   * Success callback for hosts-request
+   * Save host name to gangliaHost
+   * @param {Object} data
+   * @method loadGangliaHostSuccessCallback
+   */
+  loadGangliaHostSuccessCallback: function (data) {
+    if(data.items[0]){
+      App.set('gangliaHost', Em.get(data.items[0], 'Hosts.host_name'));
+    }
+  },
+
+  /**
+   * Success callback for hosts-request
+   * Save host name to nagiosHost
+   * @param {Object} data
+   * @method loadGangliaHostSuccessCallback
+   */
+  loadNagiosHostSuccessCallback: function (data) {
+    if(data.items[0]){
+      App.set('nagiosHost', Em.get(data.items[0], 'Hosts.host_name'));
+    }
+  },
 });

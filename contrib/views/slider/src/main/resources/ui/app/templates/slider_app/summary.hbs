@@ -19,7 +19,7 @@
 <div class="container">
   <div class="row">
     <div class="col-md-6">
-      {{#bs-panel heading="Summary"}}
+      {{#bs-panel heading="Summary" class="panel-summury"}}
         <table class="table table-striped table-bordered table-condensed">
           <tbody>
             <tr>
@@ -53,7 +53,7 @@
       {{/bs-panel}}
     </div>
     <div class="col-md-6">
-      {{#bs-panel heading="Components"}}
+      {{#bs-panel heading="Components" class="panel-components"}}
           <table class="table table-striped table-bordered table-condensed">
               <tbody>
               {{#each controller.model.components}}
@@ -65,17 +65,43 @@
               </tbody>
           </table>
       {{/bs-panel}}
+      <div class="panel panel-default panel-alerts">
+        <div class="panel-heading">
+          Alerts
+          <div class="btn-group pull-right panel-link">
+            <a class="btn btn-default btn-sm" target="_blank" rel="tooltip"
+              {{translateAttr title="sliderApp.summary.go_to_nagios"}}
+              {{bindAttr href="view.nagiosUrl"}}>
+                <i class="icon-link"></i>
+            </a>
+          </div>
+        </div>
+        <div class="panel-body">
+        </div>
+      </div>
     </div>
   </div>
   {{#if controller.model.showMetrics}}
-    {{#bs-panel heading="Metrics"}}
-      {{#each graphs in view.parentView.graphs}}
-        <div class="row">
-          {{#each graph in graphs}}
-            <div class="col-md-3">{{view graph}}</div>
-          {{/each}}
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        Metrics
+        <div class="btn-group pull-right panel-link">
+          <a class="btn btn-default btn-sm" target="_blank" rel="tooltip"
+            {{translateAttr title="sliderApp.summary.go_to_ganglia"}}
+            {{bindAttr href="view.gangliaUrl"}}>
+              <i class="icon-link"></i>
+          </a>
         </div>
-      {{/each}}
-    {{/bs-panel}}
+      </div>
+      <div class="panel-body">
+        {{#each graphs in view.graphs}}
+       <div class="row">
+         {{#each graph in graphs}}
+           <div class="col-md-3">{{view graph}}</div>
+         {{/each}}
+       </div>
+     {{/each}}
+      </div>
+    </div>
   {{/if}}
 </div>

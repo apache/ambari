@@ -69,6 +69,9 @@ Em.I18n.translations = {
   'slider.apps.create': 'Create App',
   'sliderApps.filters.info': '{0} of {1} sliders showing',
 
+  'sliderApp.summary.go_to_nagios': 'Go to Nagios',
+  'sliderApp.summary.go_to_ganglia': 'Go to Ganglia',
+
   'wizard.name': 'Create Slider App',
   'wizard.step1.name': 'Select Type',
   'wizard.step1.header': 'Available Types',

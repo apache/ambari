@@ -1,0 +1,16 @@
+{
+  "items" : [
+    {
+      "Hosts" : {
+        "host_name" : "myHost"
+      },
+      "host_components" : [
+        {
+          "HostRoles" : {
+            "component_name" : ""
+          }
+        }
+      ]
+    }
+  ]
+}
