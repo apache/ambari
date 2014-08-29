@@ -43,7 +43,7 @@
             <td class="first">
               <span class="label label-info">{{item.versionText}}</span>
               <a {{action goToServiceConfigs item.serviceName}}>
-                {{item.serviceName}}
+                {{item.displayName}}
               </a>
               <i {{bindAttr class=":icon-refresh :restart-required-service item.isRestartRequired::hidden"}}
                 rel="Tooltip" {{translateAttr data-original-title="dashboard.configHistory.table.restart.tooltip"}}></i>

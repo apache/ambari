@@ -1416,7 +1416,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
     selectedServices.forEach(function (service) {
       Object.keys(service.get('configTypes')).forEach(function (type) {
         if (!this.get('serviceConfigTags').someProperty('type', type)) {
-          var serviceVersionNotes = Em.I18n.t('dashboard.configHistory.table.notes.default').format(service.get('serviceName'));
+          var serviceVersionNotes = Em.I18n.t('dashboard.configHistory.table.notes.default').format(service.get('displayName'));
           if (!App.supports.capacitySchedulerUi && service.get('serviceName') === 'MAPREDUCE' && (type === 'capacity-scheduler' || type === 'mapred-queue-acls')) {
             return;
           } else if (type === 'core-site') {

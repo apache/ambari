@@ -40,7 +40,7 @@
           </div>
 
           <div class="version-popover">
-            <div class="content"> <strong>{{serviceVersion.serviceName}}</strong> <span class="label label-info">{{serviceVersion.versionText}}</span> &nbsp;
+            <div class="content"> <strong>{{serviceVersion.displayName}}</strong> <span class="label label-info">{{serviceVersion.versionText}}</span> &nbsp;
               <strong>{{t services.service.config.configHistory.configGroup}}:{{serviceVersion.configGroupName}}</strong>
               <div class="notes">{{serviceVersion.briefNotes}}</div>
             </div>
@@ -100,7 +100,7 @@
                                 <div class="pull-right"><i class="icon-caret-right"></i></div>
                             </div>
                             <ul class="dropdown-menu">
-                                <div class="content"> <strong>{{serviceVersion.serviceName}}</strong> <span class="label label-info">{{serviceVersion.versionText}}</span> &nbsp;
+                                <div class="content"> <strong>{{serviceVersion.displayName}}</strong> <span class="label label-info">{{serviceVersion.versionText}}</span> &nbsp;
                                     <strong>{{t services.service.config.configHistory.configGroup}}:{{serviceVersion.configGroupName}}</strong>
                                     <div class="notes">{{serviceVersion.briefNotes}}</div>
                                 </div>
@@ -115,7 +115,7 @@
                     {{#unless view.showFullList}}
                         <li class="align-center pointer" id="show_more">
                             <a {{action openFullList target="view"}}>
-                              {{t dashboard.configHistory.info-bar.showMore}}&nbsp;{{view.serviceName}}
+                              {{t dashboard.configHistory.info-bar.showMore}}&nbsp;{{view.displayName}}
                                 &nbsp;<span class="lowercase ellipsis">{{t dashboard.configHistory.title}}</span>
                             </a>
                         </li>
