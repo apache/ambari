@@ -19,7 +19,7 @@
 <div id="config_history">
   <table class="table advanced-header-table table-bordered table-striped" >
     <thead>
-    {{#view view.sortView classNames="label-row"}}
+    {{#view view.sortView classNames="label-row config-history-sort-row"}}
       {{view view.parentView.versionSort}}
       {{view view.parentView.configGroupSort}}
       {{view view.parentView.modifiedSort}}
@@ -27,7 +27,7 @@
       {{view view.parentView.notesSort}}
     {{/view}}
 
-    <tr class="filter-row">
+    <tr class="filter-row config-history-filter-row">
       <th class="first">{{view view.serviceFilterView}}</th>
       <th>{{view view.configGroupFilterView}}</th>
       <th>{{view view.modifiedFilterView}}</th>
@@ -42,7 +42,7 @@
           {{#view view.ConfigVersionView contentBinding="item"}}
             <td class="first">
               <span class="label label-info">{{item.versionText}}</span>
-              <a {{action goToServiceConfigs item.serviceName}}>
+              <a {{action goToServiceConfigs item.serviceName}} class="service-name">
                 {{item.displayName}}
               </a>
               <i {{bindAttr class=":icon-refresh :restart-required-service item.isRestartRequired::hidden"}}
