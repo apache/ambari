@@ -379,14 +379,6 @@ public class HostTest {
         new HashMap<String,String>() {{ put("a", "b"); put("x", "y"); }}, new HashMap<String, Map<String,String>>());
     
     try {
-      host.addDesiredConfig(c1.getClusterId(), true, "_test", config);
-      Assert.fail("Expect failure when version is not specified.");
-    }
-    catch (Exception e) {
-      // testing exception
-    }
-
-    try {
       host.addDesiredConfig(c1.getClusterId(), true, null, config);
       Assert.fail("Expect failure when user is not specified.");
     }
