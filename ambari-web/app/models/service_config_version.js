@@ -44,6 +44,9 @@ App.ServiceConfigVersion = DS.Model.extend({
   versionText: function () {
     return Em.I18n.t('dashboard.configHistory.table.version.versionText').format(this.get('version'));
   }.property('version'),
+  makeCurrentButtonText: function() {
+    return Em.I18n.t('dashboard.configHistory.info-bar.revert.versionButton').format(this.get('versionText'));
+  }.property('versionText'),
   modifiedDate: function () {
     return dateUtil.dateFormat(this.get('createTime'));
   }.property('createTime'),

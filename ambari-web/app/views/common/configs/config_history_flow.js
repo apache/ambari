@@ -253,6 +253,22 @@ App.ConfigHistoryFlowView = Em.View.extend({
     this.set('compareServiceVersion', event.context);
     this.get('controller').onConfigGroupChange();
   },
+  removeCompareVersionBar: function () {
+    var displayedVersion = this.get('displayedServiceVersion.version');
+    var versionIndex = 0;
+
+    this.set('compareServiceVersion', null);
+    this.get('serviceVersions').forEach(function (serviceVersion, index) {
+      if (serviceVersion.get('version') === displayedVersion) {
+        serviceVersion.set('isDisplayed', true);
+        versionIndex = index;
+      } else {
+        serviceVersion.set('isDisplayed', false);
+      }
+    });
+    this.shiftFlowOnSwitch(versionIndex);
+    this.get('controller').loadSelectedVersion(displayedVersion);
+  },
   /**
    * revert config values to chosen version and apply reverted configs to server
    */

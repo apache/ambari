@@ -1412,7 +1412,9 @@ Em.I18n.translations = {
   'services.service.config.configHistory.configGroup': 'Config Group',
   'services.service.config.configHistory.leftArrow.tooltip': 'Show earlier versions',
   'services.service.config.configHistory.rightArrow.tooltip': 'Show later versions',
+  'services.service.config.configHistory.dismissIcon.tooltip': 'Dismiss',
   'services.service.config.configHistory.makeCurrent.message': 'Created from service config version {0}',
+  'services.service.config.configHistory.comparing': 'Comparing',
 
   'services.add.header':'Add Service Wizard',
   'services.reassign.header':'Move Master Wizard',
@@ -2007,6 +2009,7 @@ Em.I18n.translations = {
   'dashboard.configHistory.info-bar.makeCurrent.popup.title': 'Make Current Confirmation',
   'dashboard.configHistory.info-bar.save.popup.placeholder': 'What did you change?',
   'dashboard.configHistory.info-bar.revert.button': 'Make Current',
+  'dashboard.configHistory.info-bar.revert.versionButton': 'Make {0} Current',
   'dashboard.configHistory.info-bar.view.button.disabled': 'You are currently viewing this version.',
   'dashboard.configHistory.info-bar.compare.button.disabled': 'You cannot compare against the same version.',
   'dashboard.configHistory.info-bar.revert.button.disabled': 'This is the current version.',

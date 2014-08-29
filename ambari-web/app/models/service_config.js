@@ -151,6 +151,9 @@ App.ServiceConfigProperty = Ember.Object.extend({
   isEditable: true, // by default a config property is editable
   isNotEditable: Ember.computed.not('isEditable'),
   isFinal: false,
+  hideFinalIcon: function () {
+    return (!this.get('isFinal'))&& this.get('isNotEditable');
+  }.property('isFinal', 'isNotEditable'),
   defaultIsFinal: false,
   supportsFinal: false,
   isVisible: true,
