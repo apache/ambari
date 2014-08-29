@@ -1884,24 +1884,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   },
 
   /**
-   * prepare configuration data to save
-   * @param sites
-   * @return {Array}
-   */
-  prepareConfigurationDataToSave: function (sites) {
-    var data = [];
-
-    sites.forEach(function (configs) {
-      data.push({
-        Clusters: {
-          desired_config: configs
-        }
-      })
-    });
-    return data;
-  },
-
-  /**
    * Saves configuration of set of sites. The provided data
    * contains the site name and tag to be used.
    * @param {Object} sites
@@ -1909,11 +1891,10 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    */
   doPUTClusterConfigurationSites: function (sites) {
     App.ajax.send({
-      name: 'config.cluster_configuration.put',
+      name: 'common.service.configurations',
       sender: this,
       data: {
-        data: JSON.stringify(this.prepareConfigurationDataToSave(sites)),
-        cluster: App.router.getClusterName()
+        desired_config: sites
       },
       success: 'doPUTClusterConfigurationSiteSuccessCallback',
       error: 'doPUTClusterConfigurationSiteErrorCallback'

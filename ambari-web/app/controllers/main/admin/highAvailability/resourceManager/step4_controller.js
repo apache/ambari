@@ -80,18 +80,17 @@ App.RMHighAvailabilityWizardStep4Controller = App.HighAvailabilityProgressPageCo
 
   onLoadConfigs: function (data) {
     var propertiesToAdd = this.get('content.configs');
-    var configs = data.items[0].properties;
-
     propertiesToAdd.forEach(function (property) {
-      configs[property.name] = property.value;
+      data.items[0].properties[property.name] = property.value;
     });
 
+    var configData = this.reconfigureSites(['yarn-site'],data);
+
     App.ajax.send({
-      name: 'reassign.save_configs',
+      name: 'common.service.configurations',
       sender: this,
       data: {
-        siteName: 'yarn-site',
-        properties: configs
+        desired_config: configData
       },
       success: 'onSaveConfigs',
       error: 'onTaskError'

@@ -143,6 +143,33 @@ var urls = {
     }
   },
 
+  'common.service.configurations': {
+    'real':'/clusters/{clusterName}',
+    'mock':'',
+    'format': function (data) {
+      return {
+        type: 'PUT',
+        data: JSON.stringify({
+          Clusters: {
+            desired_config: data.desired_config
+          }
+        })
+      }
+    }
+  },
+
+  'common.across.services.configurations': {
+    'real':'/clusters/{clusterName}',
+    'mock':'',
+    'format': function(data) {
+      return {
+        type: 'PUT',
+        dataType: 'text',
+        data: data.data
+      }
+    }
+  },
+
   'service.flume.agent.command': {
     'real': '/clusters/{clusterName}/hosts/{host}/host_components/FLUME_HANDLER',
     'mock': '',
@@ -398,26 +425,15 @@ var urls = {
             desired_config: {
               "type": data.siteName,
               "tag": 'version' + (new Date).getTime(),
-              "properties": data.properties
+              "properties": data.properties,
+              "service_config_version_note": data.service_config_version_note
+
             }
           }
         })
       }
     }
   },
-
-  'config.cluster_configuration.put': {
-    'real': '/clusters/{cluster}',
-    'mock': '',
-    'format': function(data) {
-      return {
-        type: 'PUT',
-        dataType: 'text',
-        data: data.data
-      }
-    }
-  },
-
   'config.advanced': {
     'real': '{stackVersionUrl}/services/{serviceName}/configurations?fields=*',
     'mock': '/data/wizard/stack/hdp/version{stackVersion}/{serviceName}.json'
@@ -1005,17 +1021,6 @@ var urls = {
       };
     }
   },
-  'admin.security.apply_configurations': {
-    'real': '/clusters/{clusterName}',
-    'mock': '',
-    'format': function (data) {
-      return {
-        type: 'PUT',
-        timeout: 10000,
-        data: data.configData
-      };
-    }
-  },
   'admin.security.add.cluster_configs': {
     'real': '/clusters/{clusterName}' + '?fields=Clusters/desired_configs',
     'mock': '',
@@ -1153,18 +1158,6 @@ var urls = {
     'format': function(data) {
       return {
         type: 'POST',
-        dataType: 'text',
-        data: data.data
-      }
-    }
-  },
-
-  'wizard.step8.apply_configuration_to_cluster': {
-    'real':'/clusters/{cluster}',
-    'mock':'',
-    'format': function(data) {
-      return {
-        type: 'PUT',
         dataType: 'text',
         data: data.data
       }

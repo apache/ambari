@@ -407,6 +407,29 @@ App.HighAvailabilityProgressPageController = App.HighAvailabilityWizardControlle
       this.removeObserver('tasks.@each.status', this, 'onTaskStatusChange');
       App.router.send('next');
     }
+  },
+  /**
+   *
+   * @param siteNames Array
+   */
+  reconfigureSites: function(siteNames,data) {
+    var tagName =  'version' + (new Date).getTime();
+    var componentName;
+    switch (this.get('content.controllerName')) {
+      case 'rMHighAvailabilityWizardController':
+        componentName =  'RESOURCEMANAGER';
+        break;
+      default:
+        componentName =  'NAMENODE';
+    }
+    return siteNames.map(function(_siteName){
+      return {
+        type: _siteName,
+        tag: tagName,
+        properties: data.items.findProperty('type', _siteName).properties,
+        service_config_version_note: Em.I18n.t('admin.highAvailability.step4.save.configuration.note').format(App.format.role(componentName))
+      }
+    });
   }
 });
 

@@ -65,13 +65,11 @@ App.StackService = DS.Model.extend({
 
   configTypesRendered: function () {
     var configTypes = this.get('configTypes');
-    // if (this.get('serviceName') == 'HDFS' || this.get('serviceName') == 'GLUSTERFS') return configTypes;
-    if (this.get('serviceName') == 'HDFS') return configTypes;
-    else {
-      var renderedConfigTypes = $.extend(true, {}, configTypes);
-      delete renderedConfigTypes['core-site'];
-      return renderedConfigTypes
+    var renderedConfigTypes = $.extend(true, {}, configTypes);
+    if (this.get('serviceName') == 'FALCON') {
+      delete renderedConfigTypes['oozie-site'];
     }
+    return renderedConfigTypes
   }.property('serviceName', 'configTypes'),
 
   displayNameOnSelectServicePage: function () {
