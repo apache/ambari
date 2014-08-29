@@ -16,14 +16,13 @@
 * limitations under the License.
 }}
 
-<div>
-  <h1>{{t slider.apps.title}}</h1>
+<div id="hover-on-app" class="row-fluid">
+    <div class="row">
+        <div class="col-md-4"><b>{{t common.description}}</b></div>
+        <div class="col-md-8"><b>{{t common.diagnostics}}</b></div>
+    </div>
+    <div class="row">
+        <div class="col-md-4">{{formatWordBreak view.content.description devider='.'}}</div>
+        <div class="col-md-8">{{formatWordBreak view.content.diagnostics devider='.'}}</div>
+    </div>
 </div>
-{{#if App.viewEnabled}}
-  {{outlet}}
-  {{outlet bs-tooltip-box}}
-{{else}}
-  {{#each error in App.viewErrors}}
-    <h3>{{error}}</h3>
-  {{/each}}
-{{/if}}

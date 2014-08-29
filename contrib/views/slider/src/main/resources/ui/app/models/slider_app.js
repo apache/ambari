@@ -56,6 +56,11 @@ App.SliderApp = DS.Model.extend({
   /**
    * @type {string}
    */
+
+  description: DS.attr('string'),
+  /**
+   * @type {string}
+   */
   diagnostics: DS.attr('string'),
 
   /**

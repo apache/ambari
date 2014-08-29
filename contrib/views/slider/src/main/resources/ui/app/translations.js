@@ -45,7 +45,8 @@ Em.I18n.translations = {
     'status': 'Status',
     'started': 'Started',
     'finished': 'Finished',
-    'diagnostics': 'Diagnostics'
+    'diagnostics': 'Diagnostics',
+    'description': 'Description'
   },
 
   'popup.confirmation.commonHeader': 'Confirmation',
