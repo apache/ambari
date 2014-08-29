@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -75,6 +76,8 @@ import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
+import org.apache.ambari.server.state.configgroup.ConfigGroup;
+import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.host.HostHealthyHeartbeatEvent;
 import org.apache.ambari.server.state.host.HostRegistrationRequestEvent;
@@ -100,6 +103,7 @@ public class ClusterTest {
   private ServiceComponentHostFactory serviceComponentHostFactory;
   private AmbariMetaInfo metaInfo;
   private ConfigFactory configFactory;
+  private ConfigGroupFactory configGroupFactory;
 
   @Before
   public void setup() throws Exception {
@@ -107,6 +111,7 @@ public class ClusterTest {
     injector.getInstance(GuiceJpaInitializer.class);
     clusters = injector.getInstance(Clusters.class);
     serviceFactory = injector.getInstance(ServiceFactory.class);
+    configGroupFactory = injector.getInstance(ConfigGroupFactory.class);
     serviceComponentFactory = injector.getInstance(
         ServiceComponentFactory.class);
     serviceComponentHostFactory = injector.getInstance(
@@ -636,7 +641,7 @@ public class ClusterTest {
   }
 
   @Test
-  public void testAddServiceConfigVersions() {
+  public void testServiceConfigVersions() throws AmbariException {
     Config config1 = configFactory.createNew(c1, "hdfs-site",
       new HashMap<String, String>() {{ put("a", "b"); }}, new HashMap<String, Map<String,String>>());
     config1.setTag("version1");
@@ -656,38 +661,44 @@ public class ClusterTest {
     Map<String, Collection<ServiceConfigVersionResponse>> activeServiceConfigVersions =
       c1.getActiveServiceConfigVersions();
     Assert.assertEquals(1, activeServiceConfigVersions.size());
-    ServiceConfigVersionResponse mapredResponse =
-      activeServiceConfigVersions.get("MAPREDUCE").iterator().next();
+    ServiceConfigVersionResponse hdfsResponse =
+      activeServiceConfigVersions.get("HDFS").iterator().next();
 
-    Assert.assertEquals("MAPREDUCE", mapredResponse.getServiceName());
-    Assert.assertEquals("c1", mapredResponse.getClusterName());
-    Assert.assertEquals("admin", mapredResponse.getUserName());
-    Assert.assertEquals(Long.valueOf(1), mapredResponse.getVersion());
+    Assert.assertEquals("HDFS", hdfsResponse.getServiceName());
+    Assert.assertEquals("c1", hdfsResponse.getClusterName());
+    Assert.assertEquals("admin", hdfsResponse.getUserName());
+    Assert.assertEquals(Long.valueOf(1), hdfsResponse.getVersion());
 
     c1.addDesiredConfig("admin", Collections.singleton(config2));
     serviceConfigVersions = c1.getServiceConfigVersions();
     Assert.assertNotNull(serviceConfigVersions);
     // created new ServiceConfigVersion
     Assert.assertEquals(2, serviceConfigVersions.size());
-    // active version still 1
+
+    activeServiceConfigVersions = c1.getActiveServiceConfigVersions();
     Assert.assertEquals(1, activeServiceConfigVersions.size());
-    mapredResponse = activeServiceConfigVersions.get("MAPREDUCE").iterator().next();
-    Assert.assertEquals("MAPREDUCE", mapredResponse.getServiceName());
-    Assert.assertEquals("c1", mapredResponse.getClusterName());
-    Assert.assertEquals("admin", mapredResponse.getUserName());
+    hdfsResponse = activeServiceConfigVersions.get("HDFS").iterator().next();
+    Assert.assertEquals("HDFS", hdfsResponse.getServiceName());
+    Assert.assertEquals("c1", hdfsResponse.getClusterName());
+    Assert.assertEquals("admin", hdfsResponse.getUserName());
+    assertEquals(Long.valueOf(2), hdfsResponse.getVersion());
 
     // Rollback , clonning version1 config, created new ServiceConfigVersion
-    c1.addDesiredConfig("admin", Collections.singleton(config1));
+    c1.setServiceConfigVersion("HDFS", 1L, "admin", "test_note");
     serviceConfigVersions = c1.getServiceConfigVersions();
     Assert.assertNotNull(serviceConfigVersions);
     // created new ServiceConfigVersion
     Assert.assertEquals(3, serviceConfigVersions.size());
     // active version still 1
+    activeServiceConfigVersions = c1.getActiveServiceConfigVersions();
     Assert.assertEquals(1, activeServiceConfigVersions.size());
-    mapredResponse = activeServiceConfigVersions.get("MAPREDUCE").iterator().next();
-    Assert.assertEquals("MAPREDUCE", mapredResponse.getServiceName());
-    Assert.assertEquals("c1", mapredResponse.getClusterName());
-    Assert.assertEquals("admin", mapredResponse.getUserName());
+    hdfsResponse = activeServiceConfigVersions.get("HDFS").iterator().next();
+    Assert.assertEquals("HDFS", hdfsResponse.getServiceName());
+    Assert.assertEquals("c1", hdfsResponse.getClusterName());
+    Assert.assertEquals("admin", hdfsResponse.getUserName());
+    assertEquals(Long.valueOf(3), hdfsResponse.getVersion());
+
+
   }
 
   @Test
@@ -724,4 +735,81 @@ public class ClusterTest {
 
 
   }
+
+  @Test
+  public void testServiceConfigVersionsForGroups() throws AmbariException {
+    Config config1 = configFactory.createNew(c1, "hdfs-site",
+      new HashMap<String, String>() {{ put("a", "b"); }}, new HashMap<String, Map<String,String>>());
+    config1.setTag("version1");
+
+    c1.addConfig(config1);
+
+    ServiceConfigVersionResponse scvResponse =
+      c1.addDesiredConfig("admin", Collections.singleton(config1));
+
+    assertEquals("SCV 1 should be created", Long.valueOf(1), scvResponse.getVersion());
+
+    Map<String, Collection<ServiceConfigVersionResponse>> activeServiceConfigVersions =
+      c1.getActiveServiceConfigVersions();
+    Assert.assertEquals("Only one scv should be active", 1, activeServiceConfigVersions.get("HDFS").size());
+
+    //create config group
+    Config config2 = configFactory.createNew(c1, "hdfs-site",
+      new HashMap<String, String>() {{ put("a", "c"); }}, new HashMap<String, Map<String,String>>());
+    config2.setTag("version2");
+
+    ConfigGroup configGroup =
+      configGroupFactory.createNew(c1, "test group", "HDFS", "descr", Collections.singletonMap("hdfs-site", config2),
+        Collections.<String, Host>emptyMap());
+
+    configGroup.persist();
+
+    c1.addConfigGroup(configGroup);
+
+    scvResponse = c1.createServiceConfigVersion("HDFS", "admin", "test note", configGroup);
+    assertEquals("SCV 2 should be created", Long.valueOf(2), scvResponse.getVersion());
+
+    //two scv active
+    activeServiceConfigVersions = c1.getActiveServiceConfigVersions();
+    Assert.assertEquals("Two service config versions should be active, for default and test groups",
+      2, activeServiceConfigVersions.get("HDFS").size());
+
+    Config config3 = configFactory.createNew(c1, "hdfs-site",
+      new HashMap<String, String>() {{ put("a", "d"); }}, new HashMap<String, Map<String,String>>());
+
+    configGroup.setConfigurations(Collections.singletonMap("hdfs-site", config3));
+
+    configGroup.persist();
+    scvResponse = c1.createServiceConfigVersion("HDFS", "admin", "test note", configGroup);
+    assertEquals("SCV 3 should be created", Long.valueOf(3), scvResponse.getVersion());
+
+    //still two scv active, 3 total
+    activeServiceConfigVersions = c1.getActiveServiceConfigVersions();
+    Assert.assertEquals("Two service config versions should be active, for default and test groups",
+      2, activeServiceConfigVersions.get("HDFS").size());
+
+    assertEquals(3, c1.getServiceConfigVersions().size());
+
+    //rollback group
+
+    scvResponse = c1.setServiceConfigVersion("HDFS", 2L, "admin", "group rollback");
+    assertEquals("SCV 4 should be created", Long.valueOf(4), scvResponse.getVersion());
+
+    configGroup = c1.getConfigGroups().get(configGroup.getId()); //refresh?
+
+    //still two scv active, 4 total
+    activeServiceConfigVersions = c1.getActiveServiceConfigVersions();
+    Assert.assertEquals("Two service config versions should be active, for default and test groups",
+      2, activeServiceConfigVersions.get("HDFS").size());
+    assertEquals(4, c1.getServiceConfigVersions().size());
+
+    //check properties rolled back
+    Map<String, String> configProperties = configGroup.getConfigurations().get("hdfs-site").getProperties();
+
+    assertEquals("Configurations should be rolled back to a:c ", "c", configProperties.get("a"));
+
+
+  }
+
+
 }

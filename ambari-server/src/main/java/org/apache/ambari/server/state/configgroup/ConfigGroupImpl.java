@@ -176,7 +176,13 @@ public class ConfigGroupImpl implements ConfigGroup {
 
   @Override
   public void setName(String name) {
-    this.configGroupEntity.setGroupName(name);
+    readWriteLock.writeLock().lock();
+    try {
+      this.configGroupEntity.setGroupName(name);
+    } finally {
+      readWriteLock.writeLock().unlock();
+    }
+
   }
 
   @Override
@@ -196,7 +202,13 @@ public class ConfigGroupImpl implements ConfigGroup {
 
   @Override
   public void setTag(String tag) {
-    this.configGroupEntity.setTag(tag);
+    readWriteLock.writeLock().lock();
+    try {
+      this.configGroupEntity.setTag(tag);
+    } finally {
+      readWriteLock.writeLock().unlock();
+    }
+
   }
 
   @Override
@@ -211,7 +223,13 @@ public class ConfigGroupImpl implements ConfigGroup {
 
   @Override
   public void setDescription(String description) {
-    this.configGroupEntity.setDescription(description);
+    readWriteLock.writeLock().lock();
+    try {
+      this.configGroupEntity.setDescription(description);
+    } finally {
+      readWriteLock.writeLock().unlock();
+    }
+
   }
 
   @Override
@@ -241,7 +259,13 @@ public class ConfigGroupImpl implements ConfigGroup {
    */
   @Override
   public void setHosts(Map<String, Host> hosts) {
-    this.hosts = hosts;
+    readWriteLock.writeLock().lock();
+    try {
+      this.hosts = hosts;
+    } finally {
+      readWriteLock.writeLock().unlock();
+    }
+
   }
 
   /**
@@ -250,7 +274,13 @@ public class ConfigGroupImpl implements ConfigGroup {
    */
   @Override
   public void setConfigurations(Map<String, Config> configs) {
-    this.configurations = configs;
+    readWriteLock.writeLock().lock();
+    try {
+      this.configurations = configs;
+    } finally {
+      readWriteLock.writeLock().unlock();
+    }
+
   }
 
   @Override
@@ -383,7 +413,6 @@ public class ConfigGroupImpl implements ConfigGroup {
           }
           clusterConfigEntity.setTimestamp(System.currentTimeMillis());
 
-          //TODO why not use config.persist() here?
 
           // TODO: Is locking necessary and functional ?
           cluster.getClusterGlobalLock().writeLock().lock();

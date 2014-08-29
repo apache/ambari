@@ -87,11 +87,17 @@ public class ConfigImpl implements Config {
 
   @Override
   public synchronized String getTag() {
+    if (this.tag == null) {
+      tag = GENERATED_TAG_PREFIX + getVersion();
+    }
     return tag;
   }
 
   @Override
   public synchronized Long getVersion() {
+    if (this.version == null) {
+      this.version = cluster.getNextConfigVersion(type);
+    }
     return version;
   }
 
@@ -160,18 +166,11 @@ public class ConfigImpl implements Config {
     
     ClusterEntity clusterEntity = clusterDAO.findById(cluster.getClusterId());
 
-    if (this.version == null) {
-      this.version = cluster.getNextConfigVersion(type);
-    }
-    if (this.tag == null) {
-      tag = GENERATED_TAG_PREFIX + version;
-    }
-    
     ClusterConfigEntity entity = new ClusterConfigEntity();
     entity.setClusterEntity(clusterEntity);
     entity.setClusterId(cluster.getClusterId());
-    entity.setType(type);
-    entity.setVersion(version);
+    entity.setType(getType());
+    entity.setVersion(getVersion());
     entity.setTag(getTag());
     entity.setTimestamp(new Date().getTime());
     

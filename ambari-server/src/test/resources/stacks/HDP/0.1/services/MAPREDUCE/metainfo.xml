@@ -78,6 +78,12 @@
         <config-type>mapred-site</config-type>
         <config-type>mapred-queue-acls</config-type>
       </configuration-dependencies>
+
+      <excluded-config-types>
+        <config-type>hdfs-site</config-type>
+        <config-type>hbase-site</config-type>
+      </excluded-config-types>
+
     </service>
   </services>
 </metainfo>

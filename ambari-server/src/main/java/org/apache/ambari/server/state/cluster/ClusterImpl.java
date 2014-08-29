@@ -1560,14 +1560,9 @@ public class ClusterImpl implements Cluster {
         Set<Long> activeIds = getActiveServiceConfigVersionIds();
 
         for (ServiceConfigEntity serviceConfigEntity : serviceConfigDAO.getServiceConfigs(getClusterId())) {
-          ServiceConfigVersionResponse serviceConfigVersionResponse = new ServiceConfigVersionResponse();
+          ServiceConfigVersionResponse serviceConfigVersionResponse =
+            convertToServiceConfigVersionResponse(serviceConfigEntity);
 
-          serviceConfigVersionResponse.setClusterName(getClusterName());
-          serviceConfigVersionResponse.setServiceName(serviceConfigEntity.getServiceName());
-          serviceConfigVersionResponse.setVersion(serviceConfigEntity.getVersion());
-          serviceConfigVersionResponse.setCreateTime(serviceConfigEntity.getCreateTimestamp());
-          serviceConfigVersionResponse.setUserName(serviceConfigEntity.getUser());
-          serviceConfigVersionResponse.setNote(serviceConfigEntity.getNote());
           serviceConfigVersionResponse.setHosts(serviceConfigEntity.getHostNames());
           serviceConfigVersionResponse.setConfigurations(new ArrayList<ConfigurationResponse>());
           serviceConfigVersionResponse.setIsCurrent(activeIds.contains(serviceConfigEntity.getServiceConfigId()));
@@ -1578,17 +1573,6 @@ public class ClusterImpl implements Cluster {
             serviceConfigVersionResponse.getConfigurations().add(new ConfigurationResponse(getClusterName(),
               config.getType(), config.getTag(), config.getVersion(), config.getProperties(),
               config.getPropertiesAttributes()));
-          }
-
-          Long groupId = serviceConfigEntity.getGroupId();
-          if (groupId != null) {
-            serviceConfigVersionResponse.setGroupId(groupId);
-            ConfigGroup configGroup = clusterConfigGroups.get(groupId);
-            if (configGroup != null) {
-              serviceConfigVersionResponse.setGroupName(configGroup.getName());
-            } else {
-              //TODO null or special name?
-            }
           }
 
           serviceConfigVersionResponses.add(serviceConfigVersionResponse);
@@ -1657,14 +1641,25 @@ public class ClusterImpl implements Cluster {
     serviceConfigVersionResponse.setCreateTime(serviceConfigEntity.getCreateTimestamp());    
     serviceConfigVersionResponse.setUserName(serviceConfigEntity.getUser());
     serviceConfigVersionResponse.setNote(serviceConfigEntity.getNote());
-    if (clusterConfigGroups != null) {
-      ConfigGroup configGroup = clusterConfigGroups.get(serviceConfigEntity.getGroupId());
-      if (configGroup != null) {
-        serviceConfigVersionResponse.setGroupId(configGroup.getId());
-        serviceConfigVersionResponse.setGroupName(configGroup.getName());
-      }
-    }
 
+    Long groupId = serviceConfigEntity.getGroupId();
+
+    if (groupId != null) {
+      serviceConfigVersionResponse.setGroupId(groupId);
+      ConfigGroup configGroup = null;
+      if (clusterConfigGroups != null) {
+        configGroup = clusterConfigGroups.get(groupId);
+      }
+
+      if (configGroup != null) {
+        serviceConfigVersionResponse.setGroupName(configGroup.getName());
+      } else {
+        serviceConfigVersionResponse.setGroupName("deleted");
+      }
+    } else {
+      serviceConfigVersionResponse.setGroupId(-1L); // -1 if no group
+      serviceConfigVersionResponse.setGroupName("default");
+    }
 
     return serviceConfigVersionResponse;
   }
