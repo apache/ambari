@@ -47,14 +47,6 @@ App.ConfigHistoryFlowView = Em.View.extend({
     return this.get('controller.selectedService.serviceName');
   }.property('controller.selectedService.serviceName'),
 
-  selectedConfigGroupName: function () {
-    return this.get('controller.selectedConfigGroup.displayName');
-  }.property('controller.selectedConfigGroup.displayName'),
-
-  isDefaultConfigGroupSelected: function () {
-    return this.get('controller.selectedConfigGroup.isDefault');
-  }.property('controller.selectedConfigGroup.isDefault'),
-
   displayedServiceVersion: function () {
     return this.get('serviceVersions').findProperty('isDisplayed');
   }.property('serviceVersions.@each.isDisplayed'),
@@ -79,28 +71,22 @@ App.ConfigHistoryFlowView = Em.View.extend({
   serviceVersions: function () {
     var serviceVersions;
     var allServiceVersions = App.ServiceConfigVersion.find().filterProperty('serviceName', this.get('serviceName'));
-    if (this.get('isDefaultConfigGroupSelected')) {
-      // filtered all versions which belong to default group
+    if (this.get('controller.selectedConfigGroup.isDefault')) {
+      allServiceVersions.forEach(function (version) {
+        version.set('isDisabled', !Em.isNone(version.get('groupName')));
+      });
       serviceVersions = allServiceVersions.filterProperty('groupName', null);
-      serviceVersions.forEach( function (version) {
-        version.set('isDisabled', false);
-      });
-    }else {
+    } else {
       // filter out default group(should be grayedOut) and current selectedGroup versions
-      var defaultServiceVersions = allServiceVersions.filterProperty('groupName', null);
-      defaultServiceVersions.forEach( function (version) {
-        version.set('isDisabled', true);
-      });
-      var selectedServiceVersions = allServiceVersions.filterProperty('groupName', this.get('selectedConfigGroupName'));
-      selectedServiceVersions.forEach( function (version) {
-        version.set('isDisabled', false);
-      });
-      serviceVersions = selectedServiceVersions.concat(defaultServiceVersions) ;
+      allServiceVersions.forEach(function (version) {
+        version.set('isDisabled', !(version.get('groupName') === this.get('controller.selectedConfigGroup.name')));
+      }, this);
+      serviceVersions = allServiceVersions.filterProperty('groupName', null).concat(allServiceVersions.filterProperty('groupName', this.get('controller.selectedConfigGroup.name')));
     }
     return serviceVersions.sort(function (a, b) {
       return Em.get(a, 'createTime') - Em.get(b, 'createTime');
     });
-  }.property('serviceName', 'selectedConfigGroupName', 'isDefaultConfigGroupSelected'),
+  }.property('serviceName', 'controller.selectedConfigGroup'),
   /**
    * service versions which in viewport and visible to user
    */
@@ -151,12 +137,12 @@ App.ConfigHistoryFlowView = Em.View.extend({
     serviceVersions.setEach('isDisplayed', false);
     //set the correct version to display
     var allCurrent = serviceVersions.filterProperty('isCurrent');
-    if (this.get('isDefaultConfigGroupSelected')) {
+    if (this.get('controller.selectedConfigGroup.isDefault')) {
       // display current in default group
       allCurrent.findProperty('groupName', null).set('isDisplayed', true);
-    }else {
+    } else {
       // display current in selected group
-      var current = allCurrent.findProperty('groupName', this.get('selectedConfigGroupName'));
+      var current = allCurrent.findProperty('groupName', this.get('controller.selectedConfigGroup.name'));
       current ? current.set('isDisplayed', true) : allCurrent.findProperty('groupName', null).set('isDisplayed', true);
     }
 
@@ -218,8 +204,8 @@ App.ConfigHistoryFlowView = Em.View.extend({
       serviceVersion.set('first', (index === startIndex));
     });
     this.set('showLeftArrow', (startIndex !== 0));
-    this.set('showRightArrow', (this.get('serviceVersions.length') > this.VERSIONS_IN_FLOW) && ((startIndex + this.VERSIONS_IN_FLOW) !== this.get('serviceVersions.length')));
-  },
+    this.set('showRightArrow', (this.get('serviceVersions.length') > this.VERSIONS_IN_FLOW) && ((startIndex + this.VERSIONS_IN_FLOW) < this.get('serviceVersions.length')));
+  }.observes('serviceVersions.length'),
 
   /**
    * switch configs view version to chosen

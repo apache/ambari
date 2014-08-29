@@ -271,41 +271,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    */
   loadServiceConfigVersionsSuccess: function (data, opt, params) {
     var self = this;
-    this.loadCurrentVersions().complete(function () {
-      App.serviceConfigVersionsMapper.map(data);
-      self.loadSelectedVersion();
-    });
-  },
-
-  loadCurrentVersions: function () {
-    return App.ajax.send({
-      name: 'service.serviceConfigVersions.get.current',
-      sender: this,
-      data: {},
-      success: 'loadCurrentVersionsSuccess'
-    })
-  },
-
-  /**
-   * load current service config version number
-   * set currentVersion (current version for default group)
-   * @param data
-   * @param opt
-   * @param params
-   */
-  loadCurrentVersionsSuccess: function (data, opt, params) {
-    var self = this;
-    for (var service in data.Clusters.desired_service_config_versions) {
-      if (self.get('content.serviceName') == service) {
-        //current version of default config group
-        data.Clusters.desired_service_config_versions[service].forEach (function(version) {
-          if (version.group_id == null) {
-            self.set('currentVersion', version.service_config_version);
-          }
-        });
-      }
-    }
-
+    App.serviceConfigVersionsMapper.map(data);
+    self.set('currentVersion', data.items.filterProperty('group_id', null).findProperty('is_current').service_config_version);
+    self.loadSelectedVersion();
   },
 
   /**
@@ -316,6 +284,11 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   loadSelectedVersion: function (version) {
     var self = this;
     this.set('versionLoaded', false);
+    var groupName = App.ServiceConfigVersion.find(this.get('content.serviceName') + "_" + version).get('groupName');
+
+    if (self.get('dataIsLoaded') && !(groupName && this.get('selectedConfigGroup.name') === groupName)) {
+      this.set('selectedConfigGroup', this.get('configGroups').findProperty('isDefault'));
+    }
 
     App.ajax.send({
       name: 'service.serviceConfigVersion.get',
@@ -326,8 +299,12 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
       },
       success: 'loadSelectedVersionSuccess'
     }).complete(function () {
-        self.loadServiceTagsAndGroups();
-    });
+        if (self.get('dataIsLoaded')) {
+          self.onConfigGroupChange();
+        } else {
+          self.loadServiceTagsAndGroups();
+        }
+      });
   },
 
   /**
@@ -352,7 +329,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     App.router.get('configurationController').saveToDB(data.items[0].configurations);
     this.loadedClusterSiteToTagMap = siteToTagMap;
     this.set('selectedVersion', params.serviceConfigVersion);
-    this.loadServiceTagsAndGroups();
   },
 
   /**
