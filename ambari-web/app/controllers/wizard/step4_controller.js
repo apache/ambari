@@ -293,7 +293,9 @@ App.WizardStep4Controller = Em.ArrayController.extend({
       var coSelectedServices = service.get('coSelectedServices');
       coSelectedServices.forEach(function(groupedServiceName) {
         var groupedService = this.findProperty('serviceName', groupedServiceName);
-        groupedService.set('isSelected',service.get('isSelected'));
+        if (groupedService.get('isSelected') !== service.get('isSelected')) {
+          groupedService.set('isSelected',service.get('isSelected'));
+        }
       },this);
     },this);
   },
