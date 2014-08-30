@@ -272,7 +272,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   loadServiceConfigVersionsSuccess: function (data, opt, params) {
     var self = this;
     App.serviceConfigVersionsMapper.map(data);
-    self.set('currentVersion', data.items.filterProperty('group_id', null).findProperty('is_current').service_config_version);
+    self.set('currentVersion', data.items.filterProperty('group_id', -1).findProperty('is_current').service_config_version);
     self.loadSelectedVersion();
   },
 

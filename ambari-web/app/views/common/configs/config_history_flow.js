@@ -71,17 +71,18 @@ App.ConfigHistoryFlowView = Em.View.extend({
   serviceVersions: function () {
     var serviceVersions;
     var allServiceVersions = App.ServiceConfigVersion.find().filterProperty('serviceName', this.get('serviceName'));
+    var defaultGroup = Em.I18n.t('dashboard.configHistory.table.configGroup.default');
     if (this.get('controller.selectedConfigGroup.isDefault')) {
       allServiceVersions.forEach(function (version) {
-        version.set('isDisabled', !Em.isNone(version.get('groupName')));
+        version.set('isDisabled', ! (version.get('groupName') == defaultGroup));
       });
-      serviceVersions = allServiceVersions.filterProperty('groupName', null);
+      serviceVersions = allServiceVersions.filterProperty('groupName', defaultGroup);
     } else {
       // filter out default group(should be grayedOut) and current selectedGroup versions
       allServiceVersions.forEach(function (version) {
         version.set('isDisabled', !(version.get('groupName') === this.get('controller.selectedConfigGroup.name')));
       }, this);
-      serviceVersions = allServiceVersions.filterProperty('groupName', null).concat(allServiceVersions.filterProperty('groupName', this.get('controller.selectedConfigGroup.name')));
+      serviceVersions = allServiceVersions.filterProperty('groupName', defaultGroup).concat(allServiceVersions.filterProperty('groupName', this.get('controller.selectedConfigGroup.name')));
     }
     return serviceVersions.sort(function (a, b) {
       return Em.get(a, 'createTime') - Em.get(b, 'createTime');
@@ -140,7 +141,7 @@ App.ConfigHistoryFlowView = Em.View.extend({
     // display current in default group
     serviceVersions.forEach(function (serviceVersion, index) {
       // find current in default group
-      if (serviceVersion.get('isCurrent') && serviceVersion.get('groupName') == null){
+      if (serviceVersion.get('isCurrent') && serviceVersion.get('groupName') == Em.I18n.t('dashboard.configHistory.table.configGroup.default')){
         serviceVersion.set('isDisplayed', true);
         currentIndex = index;
       }
@@ -170,7 +171,7 @@ App.ConfigHistoryFlowView = Em.View.extend({
         // display current in default group
         serviceVersions.forEach(function (serviceVersion, index) {
           // find current in default group
-          if (serviceVersion.get('isCurrent') && serviceVersion.get('groupName') == null){
+          if (serviceVersion.get('isCurrent') && serviceVersion.get('groupName') == Em.I18n.t('dashboard.configHistory.table.configGroup.default')){
 
             serviceVersion.set('isDisplayed', true);
             currentIndex = index;
@@ -190,7 +191,7 @@ App.ConfigHistoryFlowView = Em.View.extend({
         if (currentIndex == 0) {
           serviceVersions.forEach(function (serviceVersion, index) {
             // find current in default group
-            if (serviceVersion.get('isCurrent') && serviceVersion.get('groupName') == null){
+            if (serviceVersion.get('isCurrent') && serviceVersion.get('groupName') == Em.I18n.t('dashboard.configHistory.table.configGroup.default')){
               serviceVersion.set('isDisplayed', true);
 
               currentIndex = index;
