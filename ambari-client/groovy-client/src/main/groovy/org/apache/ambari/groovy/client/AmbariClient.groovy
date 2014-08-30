@@ -781,7 +781,7 @@ class AmbariClient {
    */
   def int startAllServices() {
     log.debug("Starting all services ...")
-    manageAllServices("Start All Services", "STARTED")
+    manageService("Start All Services", "STARTED")
   }
 
   /**
@@ -791,7 +791,27 @@ class AmbariClient {
    */
   def int stopAllServices() {
     log.debug("Stopping all services ...")
-    manageAllServices("Stop All Services", "INSTALLED")
+    manageService("Stop All Services", "INSTALLED")
+  }
+
+  /**
+   * Starts the given service.
+   *
+   * @param service name of the service
+   * @return id of the request
+   */
+  def int startService(String service) {
+    manageService("Starting $service", "STARTED", service)
+  }
+
+  /**
+   * Stops the given service.
+   *
+   * @param service name of the service
+   * @return id of the request
+   */
+  def int stopService(String service) {
+    manageService("Stopping $service", "INSTALLED", service)
   }
 
   def boolean servicesStarted() {
@@ -868,15 +888,19 @@ class AmbariClient {
     return allInState;
   }
 
-  def private manageAllServices(String context, String state) {
+  def private manageService(String context, String state, String service = "") {
     Map bodyMap = [
       RequestInfo: [context: context],
       ServiceInfo: [state: state]
     ]
     JsonBuilder builder = new JsonBuilder(bodyMap)
+    def path = "${ambari.getUri()}clusters/${getClusterName()}/services"
+    if (service) {
+      path += "/$service"
+    }
     def Map<String, ?> putRequestMap = [:]
     putRequestMap.put('requestContentType', ContentType.URLENC)
-    putRequestMap.put('path', "${ambari.getUri()}" + "clusters/${getClusterName()}/services")
+    putRequestMap.put('path', path)
     putRequestMap.put('query', ['params/run_smoke_test': 'false'])
     putRequestMap.put('body', builder.toPrettyString());
 

@@ -17,7 +17,6 @@
  */
 package org.apache.ambari.shell.commands;
 
-import static org.apache.ambari.shell.support.TableRenderer.renderMapValueMap;
 import static org.apache.ambari.shell.support.TableRenderer.renderSingleMap;
 
 import org.apache.ambari.groovy.client.AmbariClient;
@@ -67,46 +66,6 @@ public class BasicCommands implements CommandMarker {
   public String tasks(
     @CliOption(key = "id", mandatory = false, help = "Id of the request; default is: 1", unspecifiedDefaultValue = "1") String id) {
     return renderSingleMap(client.getTaskMap(id), "TASK", "STATUS");
-  }
-
-  /**
-   * Checks whether the service list command is available or not.
-   *
-   * @return true if available false otherwise
-   */
-  @CliAvailabilityIndicator("services list")
-  public boolean isServiceListCommandAvailable() {
-    return context.isConnectedToCluster();
-  }
-
-  /**
-   * Prints the available service list of the Ambari Server.
-   *
-   * @return service list
-   */
-  @CliCommand(value = "services list", help = "Lists the available services")
-  public String servicesList() {
-    return renderSingleMap(client.getServicesMap(), "SERVICE", "STATE");
-  }
-
-  /**
-   * Checks whether the service components command is available or not.
-   *
-   * @return true if available false otherwise
-   */
-  @CliAvailabilityIndicator("services components")
-  public boolean isServiceComponentsCommandAvailable() {
-    return context.isConnectedToCluster();
-  }
-
-  /**
-   * Prints the service components of the Ambari Server.
-   *
-   * @return service component list
-   */
-  @CliCommand(value = "services components", help = "Lists all services with their components")
-  public String serviceComponents() {
-    return renderMapValueMap(client.getServiceComponentsMap(), "SERVICE", "COMPONENT", "STATE");
   }
 
   /**
@@ -171,37 +130,4 @@ public class BasicCommands implements CommandMarker {
     return context.getHint();
   }
 
-  @CliAvailabilityIndicator("services stop")
-  public boolean isServiceStopCommandAvailable() {
-    return context.isConnectedToCluster();
-  }
-
-  @CliCommand(value = "services stop", help = "Stops all the running services")
-  public String stopServices() {
-    String message;
-    try {
-      client.stopAllServices();
-      message = "Stopping all services..";
-    } catch (Exception e) {
-      message = "Cannot stop services";
-    }
-    return String.format("%s\n\n%s", message, servicesList());
-  }
-
-  @CliAvailabilityIndicator("services start")
-  public boolean isServiceStartCommandAvailable() {
-    return context.isConnectedToCluster();
-  }
-
-  @CliCommand(value = "services start", help = "Starts all the services")
-  public String startServices() {
-    String message;
-    try {
-      client.startAllServices();
-      message = "Starting all services..";
-    } catch (Exception e) {
-      message = "Cannot start services";
-    }
-    return String.format("%s\n\n%s", message, servicesList());
-  }
 }
