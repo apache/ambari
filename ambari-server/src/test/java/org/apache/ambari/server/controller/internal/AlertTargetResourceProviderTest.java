@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.controller.internal;
 
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertTrue;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createStrictMock;
@@ -25,7 +27,6 @@ import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.resetToStrict;
 import static org.easymock.EasyMock.verify;
-import static org.junit.Assert.assertEquals;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -68,13 +69,17 @@ public class AlertTargetResourceProviderTest {
   private static final String ALERT_TARGET_NAME = "The Administrators";
   private static final String ALERT_TARGET_DESC = "Admins and Others";
   private static final String ALERT_TARGET_TYPE = TargetType.EMAIL.name();
+  private static final String ALERT_TARGET_PROPS = "{\"foo\":\"bar\",\"foobar\":\"baz\"}";
+  private static final String ALERT_TARGET_PROPS2 = "{\"foobar\":\"baz\"}";
 
   private AlertDispatchDAO m_dao;
   private Injector m_injector;
+  private AmbariManagementController m_amc;
 
   @Before
   public void before() {
     m_dao = createStrictMock(AlertDispatchDAO.class);
+    m_amc = createMock(AmbariManagementController.class);
 
     m_injector = Guice.createInjector(Modules.override(
         new InMemoryDefaultTestModule()).with(new MockModule()));
@@ -96,8 +101,7 @@ public class AlertTargetResourceProviderTest {
     expect(m_dao.findAllTargets()).andReturn(getMockEntities());
     replay(m_dao);
 
-    AmbariManagementController amc = createMock(AmbariManagementController.class);
-    AlertTargetResourceProvider provider = createProvider(amc);
+    AlertTargetResourceProvider provider = createProvider(m_amc);
     Set<Resource> results = provider.getResources(request, null);
 
     assertEquals(1, results.size());
@@ -113,14 +117,13 @@ public class AlertTargetResourceProviderTest {
    * @throws Exception
    */
   @Test
+  @SuppressWarnings("unchecked")
   public void testGetSingleResource() throws Exception {
     Request request = PropertyHelper.getReadRequest(
         AlertTargetResourceProvider.ALERT_TARGET_DESCRIPTION,
         AlertTargetResourceProvider.ALERT_TARGET_ID,
         AlertTargetResourceProvider.ALERT_TARGET_NAME,
         AlertTargetResourceProvider.ALERT_TARGET_NOTIFICATION_TYPE);
-
-    AmbariManagementController amc = createMock(AmbariManagementController.class);
 
     Predicate predicate = new PredicateBuilder().property(
         AlertTargetResourceProvider.ALERT_TARGET_ID).equals(
@@ -129,9 +132,9 @@ public class AlertTargetResourceProviderTest {
     expect(m_dao.findTargetById(ALERT_TARGET_ID.longValue())).andReturn(
         getMockEntities().get(0));
 
-    replay(amc, m_dao);
+    replay(m_amc, m_dao);
 
-    AlertTargetResourceProvider provider = createProvider(amc);
+    AlertTargetResourceProvider provider = createProvider(m_amc);
     Set<Resource> results = provider.getResources(request, predicate);
 
     assertEquals(1, results.size());
@@ -143,7 +146,11 @@ public class AlertTargetResourceProviderTest {
     Assert.assertEquals(ALERT_TARGET_NAME,
         r.getPropertyValue(AlertTargetResourceProvider.ALERT_TARGET_NAME));
 
-    verify(amc, m_dao);
+    Map<String, String> properties = (Map<String, String>) r.getPropertyValue(AlertTargetResourceProvider.ALERT_TARGET_PROPERTIES);
+    assertEquals( "bar", properties.get("foo") );
+    assertEquals( "baz", properties.get("foobar") );
+
+    verify(m_amc, m_dao);
   }
 
   /**
@@ -151,25 +158,15 @@ public class AlertTargetResourceProviderTest {
    */
   @Test
   public void testCreateResources() throws Exception {
-    AmbariManagementController amc = createMock(AmbariManagementController.class);
     Capture<List<AlertTargetEntity>> listCapture = new Capture<List<AlertTargetEntity>>();
 
     m_dao.createTargets(capture(listCapture));
     expectLastCall();
 
-    replay(amc, m_dao);
+    replay(m_amc, m_dao);
 
-    AlertTargetResourceProvider provider = createProvider(amc);
-    Map<String, Object> requestProps = new HashMap<String, Object>();
-    requestProps.put(AlertTargetResourceProvider.ALERT_TARGET_NAME,
-        ALERT_TARGET_NAME);
-
-    requestProps.put(AlertTargetResourceProvider.ALERT_TARGET_DESCRIPTION,
-        ALERT_TARGET_DESC);
-
-    requestProps.put(
-        AlertTargetResourceProvider.ALERT_TARGET_NOTIFICATION_TYPE,
-        ALERT_TARGET_TYPE);
+    AlertTargetResourceProvider provider = createProvider(m_amc);
+    Map<String, Object> requestProps = getCreationProperties();
 
     Request request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
     provider.createResources(request);
@@ -178,18 +175,63 @@ public class AlertTargetResourceProviderTest {
     AlertTargetEntity entity = listCapture.getValue().get(0);
     Assert.assertNotNull(entity);
 
-    Assert.assertEquals(ALERT_TARGET_NAME, entity.getTargetName());
-    Assert.assertEquals(ALERT_TARGET_DESC, entity.getDescription());
-    Assert.assertEquals(ALERT_TARGET_TYPE, entity.getNotificationType());
+    assertEquals(ALERT_TARGET_NAME, entity.getTargetName());
+    assertEquals(ALERT_TARGET_DESC, entity.getDescription());
+    assertEquals(ALERT_TARGET_TYPE, entity.getNotificationType());
+    assertEquals(ALERT_TARGET_PROPS, entity.getProperties());
 
-    verify(amc, m_dao);
+    verify(m_amc, m_dao);
   }
 
   /**
    * @throws Exception
    */
   @Test
+  @SuppressWarnings("unchecked")
   public void testUpdateResources() throws Exception {
+    Capture<AlertTargetEntity> entityCapture = new Capture<AlertTargetEntity>();
+
+    m_dao.createTargets(EasyMock.anyObject(List.class));
+    expectLastCall().times(1);
+
+    AlertTargetEntity target = new AlertTargetEntity();
+    expect(m_dao.findTargetById(ALERT_TARGET_ID)).andReturn(target).times(1);
+
+    expect(m_dao.merge(capture(entityCapture))).andReturn(target).once();
+
+    replay(m_amc, m_dao);
+
+    AlertTargetResourceProvider provider = createProvider(m_amc);
+    Map<String, Object> requestProps = getCreationProperties();
+    Request request = PropertyHelper.getCreateRequest(
+        Collections.singleton(requestProps), null);
+    provider.createResources(request);
+
+    // create new properties, and include the ID since we're not going through
+    // a service layer which would add it for us automatically
+    requestProps = new HashMap<String, Object>();
+    requestProps.put(AlertTargetResourceProvider.ALERT_TARGET_ID,
+        ALERT_TARGET_ID.toString());
+
+    String newName = ALERT_TARGET_NAME + " Foo";
+    requestProps.put(AlertTargetResourceProvider.ALERT_TARGET_NAME, newName);
+
+    requestProps.put(AlertTargetResourceProvider.ALERT_TARGET_PROPERTIES
+        + "/foobar", "baz");
+
+    Predicate predicate = new PredicateBuilder().property(
+        AlertTargetResourceProvider.ALERT_TARGET_ID).equals(
+        ALERT_TARGET_ID.toString()).toPredicate();
+
+    request = PropertyHelper.getUpdateRequest(requestProps, null);
+    provider.updateResources(request, predicate);
+
+    assertTrue(entityCapture.hasCaptured());
+
+    AlertTargetEntity entity = entityCapture.getValue();
+    assertEquals(newName, entity.getTargetName());
+    assertEquals(ALERT_TARGET_PROPS2, entity.getProperties());
+    verify(m_amc, m_dao);
   }
 
   /**
@@ -197,28 +239,17 @@ public class AlertTargetResourceProviderTest {
    */
   @Test
   public void testDeleteResources() throws Exception {
-    AmbariManagementController amc = createMock(AmbariManagementController.class);
     Capture<AlertTargetEntity> entityCapture = new Capture<AlertTargetEntity>();
     Capture<List<AlertTargetEntity>> listCapture = new Capture<List<AlertTargetEntity>>();
 
     m_dao.createTargets(capture(listCapture));
     expectLastCall();
 
-    replay(amc, m_dao);
+    replay(m_amc, m_dao);
 
-    AlertTargetResourceProvider provider = createProvider(amc);
+    AlertTargetResourceProvider provider = createProvider(m_amc);
 
-    Map<String, Object> requestProps = new HashMap<String, Object>();
-    requestProps.put(AlertTargetResourceProvider.ALERT_TARGET_NAME,
-        ALERT_TARGET_NAME);
-
-    requestProps.put(AlertTargetResourceProvider.ALERT_TARGET_DESCRIPTION,
-        ALERT_TARGET_DESC);
-
-    requestProps.put(
-        AlertTargetResourceProvider.ALERT_TARGET_NOTIFICATION_TYPE,
-        ALERT_TARGET_TYPE);
-
+    Map<String, Object> requestProps = getCreationProperties();
     Request request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
     provider.createResources(request);
 
@@ -244,7 +275,7 @@ public class AlertTargetResourceProviderTest {
     AlertTargetEntity entity1 = entityCapture.getValue();
     Assert.assertEquals(ALERT_TARGET_ID, entity1.getTargetId());
 
-    verify(amc, m_dao);
+    verify(m_amc, m_dao);
   }
 
   /**
@@ -267,7 +298,36 @@ public class AlertTargetResourceProviderTest {
     entity.setDescription(ALERT_TARGET_DESC);
     entity.setTargetName(ALERT_TARGET_NAME);
     entity.setNotificationType(ALERT_TARGET_TYPE);
+    entity.setProperties(ALERT_TARGET_PROPS);
     return Arrays.asList(entity);
+  }
+
+  /**
+   * Gets the maps of properties that simulate a deserialzied JSON request to
+   * create an alert target.
+   *
+   * @return
+   * @throws Exception
+   */
+  private Map<String, Object> getCreationProperties() throws Exception {
+    Map<String, Object> requestProps = new HashMap<String, Object>();
+    requestProps.put(AlertTargetResourceProvider.ALERT_TARGET_NAME,
+        ALERT_TARGET_NAME);
+
+    requestProps.put(AlertTargetResourceProvider.ALERT_TARGET_DESCRIPTION,
+        ALERT_TARGET_DESC);
+
+    requestProps.put(
+        AlertTargetResourceProvider.ALERT_TARGET_NOTIFICATION_TYPE,
+        ALERT_TARGET_TYPE);
+
+    requestProps.put(AlertTargetResourceProvider.ALERT_TARGET_PROPERTIES
+        + "/foo", "bar");
+
+    requestProps.put(AlertTargetResourceProvider.ALERT_TARGET_PROPERTIES
+        + "/foobar", "baz");
+
+    return requestProps;
   }
 
   /**

@@ -23,6 +23,7 @@ import java.util.Map;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -65,6 +66,15 @@ public class AlertTargetService extends BaseService {
       @Context UriInfo ui) {
     return handleRequest(headers, body, ui, Request.Type.POST,
         createAlertTargetResource(null));
+  }
+
+  @PUT
+  @Produces("text/plain")
+  @Path("{targetId}")
+  public Response updateGroup(String body, @Context HttpHeaders headers,
+      @Context UriInfo ui, @PathParam("targetId") Long targetId) {
+    return handleRequest(headers, body, ui, Request.Type.PUT,
+        createAlertTargetResource(targetId));
   }
 
   @DELETE

@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.state.alert;
 
+import java.util.Map;
+
 import org.apache.ambari.server.orm.entities.AlertTargetEntity;
 import org.codehaus.jackson.annotate.JsonProperty;
 
@@ -31,7 +33,7 @@ public class AlertTarget {
   private String m_name;
   private String m_description;
   private String m_notificationType;
-  private String m_properties;
+  private Map<String, String> m_properties;
 
   /**
    * @return the id
@@ -101,7 +103,7 @@ public class AlertTarget {
    * @return the properties
    */
   @JsonProperty("properties")
-  public String getProperties() {
+  public Map<String, String> getProperties() {
     return m_properties;
   }
 
@@ -109,7 +111,7 @@ public class AlertTarget {
    * @param properties
    *          the properties to set
    */
-  public void setProperties(String properties) {
+  public void setProperties(Map<String, String> properties) {
     m_properties = properties;
   }
 
@@ -123,8 +125,6 @@ public class AlertTarget {
     target.setDescription(entity.getDescription());
     target.setName(entity.getTargetName());
     target.setNotificationType(entity.getNotificationType());
-    target.setProperties(entity.getProperties());
-
     return target;
   }
 }

@@ -17,11 +17,13 @@
  */
 package org.apache.ambari.server.controller.internal;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
@@ -36,11 +38,14 @@ import org.apache.ambari.server.controller.spi.Resource.Type;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.AlertDispatchDAO;
 import org.apache.ambari.server.orm.entities.AlertTargetEntity;
 import org.apache.ambari.server.state.alert.AlertTarget;
 import org.apache.commons.lang.StringUtils;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 
@@ -68,6 +73,11 @@ public class AlertTargetResourceProvider extends
    */
   @Inject
   private static AlertDispatchDAO s_dao;
+
+  /**
+   * Used for serializationa and deserialization of some fields.
+   */
+  private static final Gson s_gson = new Gson();
 
   /**
    * Initializes the injectable members of this class with the specified
@@ -143,11 +153,21 @@ public class AlertTargetResourceProvider extends
   }
 
   @Override
-  public RequestStatus updateResources(Request request, Predicate predicate)
+  public RequestStatus updateResources(final Request request,
+      Predicate predicate)
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
 
-    throw new UnsupportedOperationException();
+    modifyResources(new Command<Void>() {
+      @Override
+      public Void invoke() throws AmbariException {
+        updateAlertTargets(request.getProperties());
+        return null;
+      }
+    });
+
+    notifyUpdate(Resource.Type.AlertTarget, request, predicate);
+    return getRequestStatus(null);
   }
 
   @Override
@@ -203,7 +223,6 @@ public class AlertTargetResourceProvider extends
       String name = (String) requestMap.get(ALERT_TARGET_NAME);
       String description = (String) requestMap.get(ALERT_TARGET_DESCRIPTION);
       String notificationType = (String) requestMap.get(ALERT_TARGET_NOTIFICATION_TYPE);
-      String properties = (String) requestMap.get(ALERT_TARGET_PROPERTIES);
 
       if (StringUtils.isEmpty(name)) {
         throw new IllegalArgumentException(
@@ -213,6 +232,12 @@ public class AlertTargetResourceProvider extends
       if (StringUtils.isEmpty(notificationType)) {
         throw new IllegalArgumentException(
             "The type of the alert target is required.");
+      }
+
+      String properties = extractProperties(requestMap);
+      if (StringUtils.isEmpty(properties)) {
+        throw new IllegalArgumentException(
+            "Alert targets must be created with their connection properties");
       }
 
       entity.setDescription(description);
@@ -227,10 +252,65 @@ public class AlertTargetResourceProvider extends
   }
 
   /**
+   * Updates existing {@link AlertTargetEntity}s with the specified properties.
+   *
+   * @param requestMaps
+   *          a set of property maps, one map for each entity.
+   * @throws AmbariException
+   *           if the entity could not be found.
+   */
+  private void updateAlertTargets(Set<Map<String, Object>> requestMaps)
+      throws AmbariException {
+
+    for (Map<String, Object> requestMap : requestMaps) {
+      String stringId = (String) requestMap.get(ALERT_TARGET_ID);
+
+      if (StringUtils.isEmpty(stringId)) {
+        throw new IllegalArgumentException(
+            "The ID of the alert target is required when updating an existing target");
+      }
+
+      long id = Long.parseLong(stringId);
+      AlertTargetEntity entity = s_dao.findTargetById(id);
+
+      if (null == entity) {
+        String message = MessageFormat.format(
+            "The alert target with ID {0} could not be found", id);
+        throw new AmbariException(message);
+      }
+
+      String name = (String) requestMap.get(ALERT_TARGET_NAME);
+      String description = (String) requestMap.get(ALERT_TARGET_DESCRIPTION);
+      String notificationType = (String) requestMap.get(ALERT_TARGET_NOTIFICATION_TYPE);
+
+      if (!StringUtils.isBlank(name)) {
+        entity.setTargetName(name);
+      }
+
+      if (null != description) {
+        entity.setDescription(description);
+      }
+
+      if (!StringUtils.isBlank(notificationType)) {
+        entity.setNotificationType(notificationType);
+      }
+
+      String properties = extractProperties(requestMap);
+      if (!StringUtils.isEmpty(properties)) {
+        entity.setProperties(properties);
+      }
+
+      s_dao.merge(entity);
+    }
+  }
+
+  /**
    * Convert the given {@link AlertTargetEntity} to a {@link Resource}.
    *
    * @param isCollection
-   *          {@code true} if the resource is part of a collection.
+   *          {@code true} if the resource is part of a collection. Some
+   *          properties are not returned when a collection of targets is
+   *          requested.
    * @param entity
    *          the entity to convert.
    * @param requestedIds
@@ -244,15 +324,49 @@ public class AlertTargetResourceProvider extends
     resource.setProperty(ALERT_TARGET_ID, entity.getTargetId());
     resource.setProperty(ALERT_TARGET_NAME, entity.getTargetName());
 
-    setResourceProperty(resource, ALERT_TARGET_DESCRIPTION,
-        entity.getDescription(), requestedIds);
+    resource.setProperty(ALERT_TARGET_DESCRIPTION, entity.getDescription());
+    resource.setProperty(ALERT_TARGET_NOTIFICATION_TYPE,
+        entity.getNotificationType());
 
-    setResourceProperty(resource, ALERT_TARGET_NOTIFICATION_TYPE,
-        entity.getNotificationType(), requestedIds);
+    if (!isCollection) {
+      String properties = entity.getProperties();
+      Map<String, String> map = s_gson.<Map<String, String>> fromJson(
+          properties,
+          Map.class);
 
-    setResourceProperty(resource, ALERT_TARGET_PROPERTIES,
-        entity.getProperties(), requestedIds);
+      resource.setProperty(ALERT_TARGET_PROPERTIES, map);
+    }
 
     return resource;
+  }
+
+  /**
+   * Looks through the flat list of propery keys in the supplied map and builds
+   * a JSON string of key:value pairs for the {@link #ALERT_TARGET_PROPERTIES}
+   * key.
+   *
+   * @param requestMap
+   *          the map of flattened properties (not {@code null}).
+   * @return the JSON representing the key/value pairs of all properties, or
+   *         {@code null} if none.
+   */
+  private String extractProperties( Map<String, Object> requestMap ){
+    JsonObject jsonObject = new JsonObject();
+    for (Entry<String, Object> entry : requestMap.entrySet()) {
+      String key = entry.getKey();
+      String propCat = PropertyHelper.getPropertyCategory(key);
+
+      if (propCat.equals(ALERT_TARGET_PROPERTIES)) {
+        String propKey = PropertyHelper.getPropertyName(key);
+        jsonObject.addProperty(propKey, entry.getValue().toString());
+      }
+    }
+
+    String properties = null;
+    if (jsonObject.entrySet().size() > 0) {
+      properties = jsonObject.toString();
+    }
+
+    return properties;
   }
 }

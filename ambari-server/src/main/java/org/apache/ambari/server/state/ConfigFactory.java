@@ -25,8 +25,6 @@ import com.google.inject.assistedinject.Assisted;
 
 /**
  * Factory for creating configuration objects using {@link Assisted} constructor parameters
- *
- * @author ncole
  */
 public interface ConfigFactory {
   
