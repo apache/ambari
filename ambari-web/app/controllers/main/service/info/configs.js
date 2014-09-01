@@ -108,6 +108,10 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     return (!(this.stepConfigs.everyProperty('errorCount', 0)) || this.get('isApplyingChanges'));
   }.property('stepConfigs.@each.errorCount', 'isApplyingChanges'),
 
+  isPropertiesChanged: function(){
+    return this.stepConfigs.someProperty('isPropertiesChanged', true)
+  }.property('stepConfigs.@each.isPropertiesChanged'),
+
   slaveComponentGroups: null,
 
   /**
@@ -2244,7 +2248,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    * @method loadStep
    */
   doCancel: function () {
-    this.loadStep();
+    Em.run.once(this, 'onConfigGroupChange');
   },
 
   /**
@@ -2530,16 +2534,24 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     var self = this;
     return App.ModalPopup.show({
       header: Em.I18n.t('common.warning'),
-      body: Em.I18n.t('services.service.config.exitPopup.body'),
+      bodyClass: Em.View.extend({
+        templateName: require('templates/common/configs/save_configuration'),
+        showSaveWarning: true,
+        notesArea: Em.TextArea.extend({
+          classNames: ['full-width'],
+          placeholder: Em.I18n.t('dashboard.configHistory.info-bar.save.popup.placeholder'),
+          onChangeValue: function() {
+            this.get('parentView.parentView').set('serviceConfigNote', this.get('value'));
+          }.observes('value')
+        })
+      }),
       footerClass: Ember.View.extend({
-        templateName: require('templates/main/service/info/save_popup_footer'),
-        isSaveDisabled: function () {
-          return self.get('isSubmitDisabled');
-        }.property()
+        templateName: require('templates/main/service/info/save_popup_footer')
       }),
       primary: Em.I18n.t('common.save'),
       secondary: Em.I18n.t('common.cancel'),
       onSave: function () {
+        self.set('serviceConfigVersionNote', this.get('serviceConfigNote'));
         self.restartServicePopup();
         this.hide();
       },

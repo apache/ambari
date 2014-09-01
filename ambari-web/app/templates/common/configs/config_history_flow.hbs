@@ -76,7 +76,7 @@
               </div>
               <div class="pull-right operations-button">
                   <div {{bindAttr class="view.compareServiceVersion.isCurrent::hidden"}}>
-                      <button class="btn" {{action doCancel target="controller"}} {{bindAttr disabled="view.versionActionsDisabled"}}>{{t common.cancel}}</button>
+                      <button class="btn" {{action doCancel target="controller"}} {{bindAttr disabled="view.isDiscardDisabled"}}>{{t common.discard}}</button>
                       <button class="btn btn-success" {{action save target="view"}} {{bindAttr disabled="view.isSaveDisabled"}}>{{t common.save}}</button>
                   </div>
                   <button class="btn btn-success"  {{action revert target="view"}} {{bindAttr disabled="view.versionActionsDisabled" class="view.compareServiceVersion.isCurrent:hidden"}}>{{view.compareServiceVersion.makeCurrentButtonText}}</button>
@@ -131,7 +131,7 @@
               </div>
               <div class="pull-right operations-button">
                   <div {{bindAttr class="view.displayedServiceVersion.isCurrent::hidden"}}>
-                      <button class="btn" {{action doCancel target="controller"}} {{bindAttr disabled="view.versionActionsDisabled"}}>{{t common.cancel}}</button>
+                      <button class="btn" {{action doCancel target="controller"}} {{bindAttr disabled="view.isDiscardDisabled"}}>{{t common.discard}}</button>
                       <button class="btn btn-success" {{action save target="view"}} {{bindAttr disabled="view.isSaveDisabled"}}>{{t common.save}}</button>
                   </div>
                   <button class="btn btn-success"  {{action revert target="view"}} {{bindAttr disabled="view.versionActionsDisabled" class="view.displayedServiceVersion.isCurrent:hidden"}}>{{view.displayedServiceVersion.makeCurrentButtonText}}</button>

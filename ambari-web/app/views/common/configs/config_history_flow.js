@@ -40,8 +40,8 @@ App.ConfigHistoryFlowView = Em.View.extend({
   }.property('compareServiceVersion'),
 
   isSaveDisabled: function () {
-    return (this.get('controller.isSubmitDisabled') || !this.get('controller.versionLoaded'));
-  }.property('controller.isSubmitDisabled', 'controller.versionLoaded'),
+    return (this.get('controller.isSubmitDisabled') || !this.get('controller.versionLoaded') || !this.get('controller.isPropertiesChanged')) ;
+  }.property('controller.isSubmitDisabled', 'controller.versionLoaded', 'controller.isPropertiesChanged'),
 
   serviceName: function () {
     return this.get('controller.selectedService.serviceName');
@@ -103,6 +103,12 @@ App.ConfigHistoryFlowView = Em.View.extend({
     return !this.get('controller.versionLoaded');
   }.property('controller.versionLoaded'),
 
+  /**
+   * enable discard to manipulate version only after it's loaded and any property is changed
+   */
+  isDiscardDisabled: function () {
+    return !this.get('controller.versionLoaded') || !this.get('controller.isPropertiesChanged');
+  }.property('controller.versionLoaded','controller.isPropertiesChanged'),
   /**
    * list of service versions
    * by default 6 is number of items in short list
@@ -405,6 +411,7 @@ App.ConfigHistoryFlowView = Em.View.extend({
       },
       onDiscard: function () {
         this.hide();
+        self.get('controller').loadStep();
       },
       onCancel: function () {
         this.hide();
