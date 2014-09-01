@@ -43,6 +43,7 @@ module.exports = App.WizardRoute.extend({
             var self = this;
             App.showConfirmationPopup(function () {
               router.get('updateController').set('isWorking', true);
+              rMHighAvailabilityWizardController.finish();
               App.clusterStatus.setClusterStatus({
                 clusterName: App.router.getClusterName(),
                 clusterState: 'DEFAULT',
@@ -50,16 +51,14 @@ module.exports = App.WizardRoute.extend({
               }, {alwaysCallback: function () {
                 self.hide();
                 router.route('/main/services/YARN/summary');
-                Em.run.next(function() {
-                  location.reload();
-                });
+                location.reload();
               }});
             }, Em.I18n.t('admin.rm_highAvailability.closePopup'));
           } else {
             this.hide();
             rMHighAvailabilityWizardController.setCurrentStep('1');
             router.get('updateController').set('isWorking', true);
-            router.transitionTo('main.services.index');
+            router.route('/main/services/YARN/summary');
           }
         },
         didInsertElement: function () {
@@ -165,8 +164,13 @@ module.exports = App.WizardRoute.extend({
         controller.connectOutlet('rMHighAvailabilityWizardStep4', controller.get('content'));
       })
     },
-    unroutePath: function () {
-      return false;
+    unroutePath: function (router, path) {
+      // allow user to leave route if wizard has finished
+      if (router.get('rMHighAvailabilityWizardController').get('isFinished')) {
+        this._super(router, path);
+      } else {
+        return false;
+      }
     },
     next: function (router) {
       var controller = router.get('rMHighAvailabilityWizardController');
@@ -178,9 +182,7 @@ module.exports = App.WizardRoute.extend({
       }, {alwaysCallback: function () {
         controller.get('popup').hide();
         router.route('/main/services/YARN/summary');
-        Em.run.next(function() {
-          location.reload();
-        });
+        location.reload();
       }});
     }
   }),

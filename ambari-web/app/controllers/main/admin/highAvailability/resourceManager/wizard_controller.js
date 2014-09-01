@@ -25,9 +25,20 @@ App.RMHighAvailabilityWizardController = App.WizardController.extend({
 
   totalSteps: 4,
 
+  isFinished: false,
+
   content: Em.Object.create({
     controllerName: 'rMHighAvailabilityWizardController'
   }),
+
+  init: function () {
+    this._super();
+    this.clearStep();
+  },
+
+  clearStep: function () {
+    this.set('isFinished', false);
+  },
 
   setCurrentStep: function (currentStep, completed) {
     this._super(currentStep, completed);
@@ -141,5 +152,6 @@ App.RMHighAvailabilityWizardController = App.WizardController.extend({
   finish: function () {
     this.resetDbNamespace();
     App.router.get('updateController').updateAll();
+    this.set('isFinished', true);
   }
 });
