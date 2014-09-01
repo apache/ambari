@@ -35,6 +35,21 @@ App.ConfigHistoryFlowView = Em.View.extend({
   showFullList: false,
   compareServiceVersion: null,
 
+  /**
+   * In reason of absence of properties dynamic values support which passed to an action,
+   * used property map to get latest values of properties for action
+   */
+  serviceVersionsReferences: {
+    displayed: Em.Object.create({
+      isReference: true,
+      property: 'displayedServiceVersion'
+    }),
+    compare: Em.Object.create({
+      isReference: true,
+      property: 'compareServiceVersion'
+    })
+  },
+
   showCompareVersionBar: function() {
     return !Em.isNone(this.get('compareServiceVersion'));
   }.property('compareServiceVersion'),
@@ -325,8 +340,10 @@ App.ConfigHistoryFlowView = Em.View.extend({
       serviceName: this.get('displayedServiceVersion.serviceName'),
       notes:''
     });
-    var versionText = event.context ? event.context.get('versionText') : this.get('displayedServiceVersion.versionText');
-    var configGroupName = this.get('displayedServiceVersion.configGroupName');
+    if (serviceConfigVersion.get('isReference')) {
+      serviceConfigVersion = this.get(serviceConfigVersion.get('property'));
+    }
+    var versionText = serviceConfigVersion.get('versionText');
     return App.ModalPopup.show({
       header: Em.I18n.t('dashboard.configHistory.info-bar.makeCurrent.popup.title'),
       serviceConfigNote: Em.I18n.t('services.service.config.configHistory.makeCurrent.message').format(versionText),
