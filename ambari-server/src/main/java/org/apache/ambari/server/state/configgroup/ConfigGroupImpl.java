@@ -400,13 +400,14 @@ public class ConfigGroupImpl implements ConfigGroup {
           (cluster.getClusterId(), config.getType(), config.getTag());
 
         if (clusterConfigEntity == null) {
+          config.setVersion(cluster.getNextConfigVersion(config.getType()));
           // Create configuration
           clusterConfigEntity = new ClusterConfigEntity();
           clusterConfigEntity.setClusterId(clusterEntity.getClusterId());
           clusterConfigEntity.setClusterEntity(clusterEntity);
           clusterConfigEntity.setType(config.getType());
+          clusterConfigEntity.setVersion(config.getVersion());
           clusterConfigEntity.setTag(config.getTag());
-          clusterConfigEntity.setVersion(cluster.getNextConfigVersion(config.getType()));
           clusterConfigEntity.setData(gson.toJson(config.getProperties()));
           if (null != config.getPropertiesAttributes()) {
             clusterConfigEntity.setAttributes(gson.toJson(config.getPropertiesAttributes()));
