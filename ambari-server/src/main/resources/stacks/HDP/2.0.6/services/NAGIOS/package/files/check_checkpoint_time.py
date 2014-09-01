@@ -104,7 +104,7 @@ def get_value_from_jmx(qry, property):
     exit(1)
 
   data_dict = json.loads(data)
-  return (data_dict["beans"][0][property])
+  return data_dict["beans"][0][property]
 
 
 def get_available_nn_host(options, scheme):

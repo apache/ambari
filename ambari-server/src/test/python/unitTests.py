@@ -64,7 +64,7 @@ def get_test_files(path, mask = None, recursive=True):
   return current
 
 
-def stack_test_executor(base_folder, stack, service, custom_tests, executor_result):
+def stack_test_executor(base_folder, service, stack, custom_tests, executor_result):
   """
   Stack tests executor. Must be executed in separate process to prevent module
   name conflicts in different stacks.
@@ -75,14 +75,15 @@ def stack_test_executor(base_folder, stack, service, custom_tests, executor_resu
   else:
     test_mask = TEST_MASK
 
-  server_src_dir = get_parent_path(base_folder,'src')
+  server_src_dir = get_parent_path(base_folder, 'src')
 
   base_stack_folder = os.path.join(server_src_dir,
                                    'main/resources/stacks/HDP/{0}'.format(stack))
 
   script_folders = set()
-  for root, subFolders, files in os.walk(base_stack_folder):
-    if os.path.split(root)[-1] == "scripts" and service in root:
+  for root, subFolders, files in os.walk(os.path.join(base_stack_folder,
+                                                      "services", service)):
+    if os.path.split(root)[-1] in ["scripts", "files"] and service in root:
       script_folders.add(root)
 
   sys.path.extend(script_folders)

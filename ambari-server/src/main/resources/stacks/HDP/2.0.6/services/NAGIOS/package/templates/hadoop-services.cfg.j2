@@ -344,7 +344,6 @@ define service {
         use                     hadoop-service
         service_description     NAMENODE::NameNode host CPU utilization on {{ namenode_hostname }}
         servicegroups           HDFS
-#        check_command           check_cpu!200%!250%
         check_command           check_cpu!{{ namenode_port }}!200%!250%!{{ str(hdfs_ssl_enabled).lower() }}!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}!{{ str(security_enabled).lower() }}
         normal_check_interval   5
         retry_check_interval    2
@@ -441,7 +440,6 @@ define service {
         use                     hadoop-service
         service_description     RESOURCEMANAGER::ResourceManager CPU utilization
         servicegroups           YARN
-#       check_command           check_cpu!200%!250%
         check_command           check_cpu_ha!{{ rm_hosts_in_str }}!{{ rm_port }}!200%!250%!{{ str(yarn_ssl_enabled).lower() }}!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}!{{ str(security_enabled).lower() }}
         normal_check_interval   5
         retry_check_interval    2 
@@ -528,7 +526,6 @@ define service {
         use                     hadoop-service
         service_description     JOBHISTORY::HistoryServer CPU utilization
         servicegroups           MAPREDUCE
-#        check_command           check_cpu!200%!250%
         check_command           check_cpu!{{ hs_port }}!200%!250%!{{ str(mapreduce_ssl_enabled).lower() }}!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}!{{ str(security_enabled).lower() }}
         normal_check_interval   5
         retry_check_interval    2 
@@ -640,17 +637,6 @@ define service {
         max_check_attempts      3
 }
 
-{# HBASE:: MASTER Checks
-# define service {
-#         hostgroup_name          hbasemasters
-#         use                     hadoop-service
-#         service_description     HBASEMASTER::HBase Master Web UI
-#         servicegroups           HBASE
-#         check_command           check_webui!hbase!{{ hbase_master_port }}
-#         normal_check_interval   1
-#         retry_check_interval    1
-#         max_check_attempts      3
-# #}
 {% if hostgroup_defs['hbasemasters'] %}
 {% if check_cpu_on %}
 define service {
@@ -658,7 +644,6 @@ define service {
         use                     hadoop-service
         service_description     HBASEMASTER::HBase Master CPU utilization
         servicegroups           HBASE
-#        check_command           check_cpu!200%!250%
         check_command           check_cpu_ha!{{ hbase_master_hosts_in_str }}!{{ hbase_master_port }}!200%!250%!false!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}!{{ str(security_enabled).lower() }}
         normal_check_interval   5
         retry_check_interval    2

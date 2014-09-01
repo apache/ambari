@@ -2939,7 +2939,7 @@ def status(args):
   status, pid = is_server_runing()
   if status:
     print "Ambari Server running"
-    print "Found Ambari Server PID: '" + str(pid) + " at: " + PID_DIR + os.sep + PID_NAME
+    print "Found Ambari Server PID: " + str(pid) + " at: " + PID_DIR + os.sep + PID_NAME
   else:
     print "Ambari Server not running. Stale PID File at: " + PID_DIR + os.sep + PID_NAME
 

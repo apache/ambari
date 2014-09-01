@@ -65,8 +65,8 @@ def nagios_server_config():
   nagios_server_check( 'check_mapred_local_dir_used.sh')
   nagios_server_check( 'check_nodemanager_health.sh')
   nagios_server_check( 'check_namenodes_ha.sh')
-  nagios_server_check( 'check_wrapper.sh')
   nagios_server_check( 'hdp_nagios_init.php')
+  nagios_server_check( 'mm_wrapper.py' )
   nagios_server_check( 'check_hive_thrift_port.py' )
 
 

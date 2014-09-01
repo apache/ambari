@@ -245,13 +245,13 @@ class TestNagiosServer(RMFTestCase):
                               mode=0755
     )
     self.assertResourceCalled('File',
-                              '/usr/lib64/nagios/plugins/check_wrapper.sh',
-                              content=StaticFile('check_wrapper.sh'),
+                              '/usr/lib64/nagios/plugins/hdp_nagios_init.php',
+                              content=StaticFile('hdp_nagios_init.php'),
                               mode=0755
     )
     self.assertResourceCalled('File',
-                              '/usr/lib64/nagios/plugins/hdp_nagios_init.php',
-                              content=StaticFile('hdp_nagios_init.php'),
+                              '/usr/lib64/nagios/plugins/mm_wrapper.py',
+                              content=StaticFile('mm_wrapper.py'),
                               mode=0755
     )
     self.assertResourceCalled('File',
