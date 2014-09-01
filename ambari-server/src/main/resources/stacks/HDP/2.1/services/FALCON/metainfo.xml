@@ -108,6 +108,10 @@
         <config-type>falcon-runtime.properties</config-type>
       </configuration-dependencies>
 
+      <excluded-config-types>
+        <config-type>oozie-site</config-type>
+      </excluded-config-types>
+
     </service>
   </services>
 </metainfo>
